@@ -9,7 +9,7 @@ taste of web ui for his exporting visual style.
 The internal default theme style:
 
 #+attr_org: :width 400px
-[[file:../annex/img/screenshot_2018-11-11_13-37-39.png]]
+[[file:annex/img/screenshot_2018-11-11_13-37-39.png]]
 
 
 Using extra self building theme (with inhibiting internal theme setting):
