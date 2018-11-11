@@ -726,3 +726,8 @@ textarea {
 .org-svg {
   max-width: 500px;
 }
+
+img
+{
+  max-width: 500px;
+}
