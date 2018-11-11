@@ -1,0 +1,1 @@
+elements folder was aimed to save the external elements of top of this projects.

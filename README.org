@@ -1,0 +1,28 @@
+#+title: Entropy org html export theme
+#+author: Entropy
+
+
+Org mode (emacs org mode) has the functional func =org-html-export-as-html= which has the internal
+css and js decoration for default exporting using. But this not enough for someone with the mordern
+taste of web ui for his exporting visual style. 
+
+The internal default theme style:
+
+#+attr_org: :width 400px
+[[file:../annex/img/screenshot_2018-11-11_13-37-39.png]]
+
+
+Using extra self building theme (with inhibiting internal theme setting):
+
+#+attr_org: :width 400px
+[[file:annex/img/screenshot_2018-11-11_13-29-25.png]]
+
+
+Beautifully uha?
+
+
+This project was aimed for what building the sets of alternative org html export sytle external.
+
+And above export theme demo was powered by theme [[file:elements/themes/redsnapper-theme/][redsnapper-theme]] , the theme built by this project,
+which designed for be compat with single doc as book publishing.
+  
