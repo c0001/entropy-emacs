@@ -20,11 +20,11 @@ body
 #content h5{color: deeppink}
 #content h6{color: hotpink; font-size: 0.8em}
 
-#content span.section-number-2{border: solid 0.2px; panding: 1px; margin: 8px;}
-#content span.section-number-3{border: solid 0.2px; panding: 1px; margin: 8px;}
-#content span.section-number-4{border: solid 0.2px; panding: 1px; margin: 8px;}
-#content span.section-number-5{border: solid 0.2px; panding: 1px; margin: 8px;}
-#content span.section-number-6{border: solid 0.2px; panding: 1px; margin: 8px;}
+#content span.section-number-2{border: solid 0.2px; padding: 0 0.3em; margin: 8px;}
+#content span.section-number-3{border: solid 0.2px; padding: 0 0.3em; margin: 8px;}
+#content span.section-number-4{border: solid 0.2px; padding: 0 0.3em; margin: 8px;}
+#content span.section-number-5{border: solid 0.2px; padding: 0 0.3em; margin: 8px;}
+#content span.section-number-6{border: solid 0.2px; padding: 0 0.3em; margin: 8px;}
 
 
 #content a
