@@ -3,12 +3,13 @@ body
 {
   padding-top: 0;
   margin-top: 0;
+  margin-bottom: 0;
   top: 0;
 }
 
 body > div
 {
-  background-color: white;
+  background-color: honeydew;
   padding-top: 0;
   margin-top: 0;
 }
@@ -21,6 +22,7 @@ body > div
   max-width: 850px;
   border-right: 2px  #320909 solid;
   border-left: 2px  #320909 solid;
+  height: 100%;
 }
 
 
@@ -55,22 +57,10 @@ body > div
 #content span.section-number-5{border: solid 0.2px; padding: 0 0.3em; margin: 8px;}
 #content span.section-number-6{border: solid 0.2px; padding: 0 0.3em; margin: 8px;}
 
-
-/* #content p b */
-/* { */
-/*   background-color: gray; */
-/*   color: blanchedalmond; */
-/*   padding-left: 3px; */
-/*   padding-top: 1px; */
-/*   padding-bottom: 1px; */
-/* } */
-
 #content li b
 {
-  background-color: gray;
-  border-left: 2mm #333333 ridge;
   font-weight: 900;
-  color: white;
+  color: darkred;
   padding-left: 3px;
 }
 
@@ -121,10 +111,17 @@ body > div
 }
 
 
+#content blockquote p b
+{
+  color: white;
+}
+
 
 #content code
 {
   border: 1px solid lightsteelblue;
+  font-weight: 400;
+  border-radius: 4px;
   /* padding: 1px; */
   padding:0px 2px;
 }
@@ -132,8 +129,14 @@ body > div
 
 #content p
 {
-  margin: 5px;
+  margin: 8px;
 }
+
+#content p b
+{
+  color: darkred;
+}
+
 
 #content .outline-2,.outline-3,.outline-4 code
 {
@@ -185,8 +188,12 @@ table th {
 }
 
 table thead th {
+  background-color: indianred;
+  color: antiquewhite;
+  font-weight: 900;
+  text-decoration: underline;
   font-weight: bold;
-  border-top: 3px solid #e1e4e5;
+  border-top: 3px solid brown;
   border-bottom: 1px solid #e1e4e5;
 }
 
@@ -226,6 +233,56 @@ table tr:nth-child(2n) td {
   transform: rotate(270deg);
 }
 
+
+
+/* ** copyright and postamble */
+#copyright,
+#postamble {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  width: 259px;
+  color: #fcfcfc;
+  background: #1f1d1d;
+  border-top: solid 10px #343131;
+  /*   font-family: "Lato", "proxima-nova", "Helvetica Neue", Arial, sans-serif; */
+  font-size: 90%;
+  z-index: 400;
+  padding: 12px;
+}
+
+#postamble .author {
+  font-size: 100%;
+  margin-bottom: 0px;
+}
+
+#postamble .date {
+  font-size: 90%;
+  margin-bottom: 0px;
+  color: yellow;
+}
+
+#postamble .creator,
+#postamble .validation {
+  display: none;
+}
+
+#copyright a {
+  color: #2980B9;
+  text-decoration: none
+}
+
+#copyright .rst-current-version {
+  padding: 12px;
+  background-color: #272525;
+  display: block;
+  text-align: right;
+  font-size: 90%;
+  cursor: pointer;
+  color: #27AE60;
+  *zoom: 1
+}
 
 
 
