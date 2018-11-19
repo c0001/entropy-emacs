@@ -28,6 +28,8 @@ body > div
 
 #content h1
 {
+  color: #3e1e1f;
+  text-decoration: underline;
   margin-top: 0;
   padding-top: 20px;
 }
