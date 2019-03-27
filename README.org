@@ -1,0 +1,157 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-global-read-only-mode
+#+author: Entropy
+
+* Preamble
+Whether the time you want let the buffer opening behaviour be
+read-only defaultly?
+
+This package giving you the try for as.
+
+As it's name 'global read only' meaning, the main feature concept was
+as that but with some custome rule base. Some buffer
+e.g. compiling refers can not do so unless you want to get the
+unexpected things out.
+
+The rule base for is follow the below two way:
+
+1) Modes respective
+
+   Let file start up with read-only mode follow it's buffer major mode
+   specification.
+
+2) Lock files at startup for general view.
+
+   Sing the way for each file opening about, but the special buffer
+   list regexp matching for.
+
+* Requirements
+
+The only one extra melpa extension [[https://github.com/m2ym/popwin-el/tree/95dea14c60019d6cccf9a3b33e0dec4e1f22c304][org]] is required. Org mode utilies
+need treating for specially read-only setting way, thus this package
+will give some re-defun coding snippets for the ones member of those
+utilies. But all the re-defun procedure are just enabled when =org=
+loaded, there's no need to require =org= with the manually way. 
+
+* Installation
+
+Download main [[file:entropy-global-read-only-mode.el][source file]] to your load-path.
+
+* Configuration
+
+The based-rule set mentioned above was given by the customize variable
+=entropy/grom-readonly-type= which gives list of valid internal string
+type value for as:
+
+- "modes" :
+  
+  Initializing read-only type for the major-modes list in
+  =entropy/grom-mode-list= and it's default value is:
+  #+BEGIN_EXAMPLE
+    emacs-lisp-mode-hook
+    c-mode-hook
+    php-mode-hook
+    web-mode-hook
+    python-mode-hook
+    js2-mode-hook
+    css-mode-hook
+    org-mode-hook
+    json-mode-hook
+    markdown-mode-hook
+    bat-mode-hook
+    text-mode-hook
+  #+END_EXAMPLE
+
+  This variable was customized, you may want to specified it along
+  with your own benefit.
+  
+
+- "all" :
+  
+  Initialize all file opening read-only type based on the wide rule
+  set of the buffer name filters
+  =entropy/grom-find-file-except-bfregexp-list=.
+
+  
+You can select one of them be the global-read-only-type for as.
+
+The =use-packge= configure management type demo as:
+#+BEGIN_SRC emacs-lisp
+  (use-package entropy-global-read-only-mode
+    :ensure nil
+    :load-path "path-to-your-load-path"
+    :commands (entropy-grom-mode)
+    :init (add-hook 'after-init-hook #'entropy-grom-mode))
+#+END_SRC
+ 
+* Interaction 
+
+- Function: ~entropy-grom-mode~
+
+  Mainly global read only mode enable or disable function. Enabling
+  obeying the rule set =entropy/grom-readonly-type=. 
+
+- Function: ~entropy/grom-toggle-read-only~
+
+  When =entropy-grom-mode= was non-nil (enabled ~entropy-grom-mode~
+  status), toggle global buffers read-only status in =buffer-list=
+  basic on the buffer name regexp matching regexp rule set
+  =entropy/grom-toggle-except-bfregexp-list=. Rule set list was
+  customized variable, you can set it by your specification, but
+  suggested using it's default value. 
+
+- Function: ~entropy/grom-read-only-buffer~
+
+  Quickly lock current buffer or the otherwise as the emacs internal
+  func ~read-only-mode~ but with the comfirmation.
+
+- Function: ~entropy/grom-quick-readonly-global~
+  
+  Quickly lock all active buffers using the rule set of func
+  ~entropy/grom-toggle-read-only~.
+
+
+
+* Redefine functions and advices tracking
+
+There's some necessary case for redefining some package refered
+function when value of =entropy/grom-readonly-type= was "all", the
+majority occurrence one of them is that they operated buffer without
+buffer read-only status checking, thus they thrown out errors of
+unexcept process interrupted.
+
+Til now in this package, all redefined function are all the utilities
+of =org-mode=. Most of org buffer operation are not checking the
+buffer locked status and for the unlocking automatically way.Thus, the
+redefined core reason is to embed the unlock codes into them
+respectively. Below are the redefined org apis list:
+
+| Redefine Function            | Functional                                                  |
+|------------------------------+-------------------------------------------------------------|
+| ~org-capture-place-template~ | Insert the template at the target location                  |
+| ~org-datetree--find-create~  | Find the datetree matched by REGEX for YEAR, MONTH, or DAY. |
+
+Exception with using redefines for utilities func increasing when type
+"all", I prefer to using func-advice (internal mechnism ~advice-add~)
+to be as that does, it's safety and without the worries for compacting
+for utilites upgrading. OFC, below advices for individual ones shown
+as the table:
+
+| Advice                                     | Ad-Type   | Function              |
+|--------------------------------------------+-----------+-----------------------|
+| ~entropy/grom-agenda-unlock-current-entry~ | =:before= | ~org-agenda-todo~     |
+|                                            |           | ~org-agenda-add-note~ |
+|                                            |           | ~org-add-log-note~    |
+|--------------------------------------------+-----------+-----------------------|
+| ~entropy/grom-agenda-lock-current-entry~   | =:after=  | ~org-agenda-todo~     |
+|                                            |           | ~org-store-log-note~  |
+
+The defination won't be recovered when disable =entropy/grom-mode=,
+but those advice, funcs =entropy/grom-org-setoff= gives the way for.
+
+
