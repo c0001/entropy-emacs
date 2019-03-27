@@ -1,0 +1,44 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-common-library
+#+author: Entropy
+
+Common elisp library for [[https://github.com/c0001/entropy-emacs][entropy-emacs]].
+
+This package also was the basic dependency for all 'entropy-' ethnic
+emacs extension, used for dealing with sets of basic emacs internal
+basic func's improvement or the public functional extra specified as.
+
+These specified funcs group seperated as groups of:
+- elisp data refer
+- file and dir refer
+- window and buffer refer
+- ivy completion framwork extension
+- mischellaneous
+
+* Requirements
+
+- dash (melpa install)
+- cl(emacs built-in with already)
+- ivy (melpa install)
+
+There's just these three library required for compiling with, simplify
+and easy to use.
+
+* Installation
+
+Just requiring with, do not using lazy laoding of it because of that
+all the funcs defined in this package are not defined with =autoload=
+macro denoted.
+
+
+* The const definations file [[file:entropy-common-library-const.el][entropy-common-library-const.el]] 
+
+This file were required by =entropy-common-library=, there's no need
+to required it manually individually on it. This file contained the
+most used const varaible used for various using situation.
+
