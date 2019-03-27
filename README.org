@@ -1,0 +1,54 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-cn-dict
+#+author: Entropy
+
+This package was the simplify chinese words or strings dict query as
+the implementation based on emacs eww retrieving to the chinese local
+famous search engine [[https://www.baidu.com][BAIDU]] of it's own chinese dict sub-server called
+=百度汉语=.
+
+* Requirements 
+
+- eww (emacs built-in)
+- popwin (downloading from github for using [[https://melpa.org/#/getting-started][melpa]])
+
+* Installation
+
+Just requiring this package.
+
+* configuration
+
+If you use [[https://github.com/jwiegley/use-package][use-pacakge]] to manage your package config, you could using
+below code snippet for:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package entropy-cn-dict
+    :ensure nil
+    :commands entropy/cndt-query
+    :bind (("C-x y" . entropy/cndt-query)))
+#+END_SRC
+
+The otherwise using classic elisp package config style:
+#+BEGIN_SRC emacs-lisp
+  (require 'entropy-cn-dict)
+  (global-key-binding (kbd "c-x y") 'entropy/cndt-query)
+#+END_SRC
+
+* Limitation
+
+Unlike english words, chinese do not seperated words by splitting
+string of space char(?\ ). Thus the single chinese char querying
+should using region mark against with using ~thing-at-point~ word
+extracting func automatically. 
+
+With looking around the elisp project on github, I seems to found the
+extension to solve the problem, melpa package [[https://github.com/xuchunyang/chinese-word-at-point.el][chinese-word-at-point]]
+does as is. I will try for this in todo furture step.
+
+Any contribution for as was welcom.
+
