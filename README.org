@@ -1,0 +1,44 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-org-widget
+#+author: Entropy
+
+
+Chains for with Org buffer or Org files. 
+
+Org self provides various APIs given for emacs developer to extended
+Org as. This package was the one as what it is and with the defaultly
+embedded into [[https://github.com/c0001/entropy-emacs][entropy-emacs]] situation gotten.
+
+Org was basically for dealing with the =Org= content format e.g. the
+outlines, heading-tag, drawers, timestamp etc. This package divided
+the functional sitemap with the concept follow that with the source
+content outlines seperated for. For generally of currently used
+categories for:
+
+- headline
+
+  Functions for extending Org heads dealing with.
+
+- drawer
+
+  Functions for extending Org drawer dealing with.
+
+- links refer
+
+  Thus as above.
+
+* Requirements
+
+Org only.
+
+* Installation
+
+Just downloading this package and then adding it to the load-path, the
+last ~require~ it.
+
+
