@@ -1,0 +1,34 @@
+* Intro
+
+A minor mode to toggle proxy for Emacs. Supports HTTP proxy and socks v4, v5 proxy with Emacs built-in functions.
+
+
+* Features
+
+- Support HTTP proxy
+- Support Socks v4, v5 proxy
+
+
+* Installation
+
+** use-package
+
+#+begin_src emacs-lisp
+(use-package proxy-mode
+  :ensure t)
+#+end_src
+
+
+* Config
+
+** specify local host regexp
+
+#+begin_src emacs-lisp
+(setq url-gateway-local-host-regexp
+      (concat "\\`" (regexp-opt '("localhost" "127.0.0.1")) "\\'"))
+#+end_src
+
+
+* Usage
+
+Toggle ~proxy-mode~ minor mode with {{{kbd(M-x proxy-mode RET)}}} .
