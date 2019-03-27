@@ -1,0 +1,779 @@
+;;; entropy-sdcv.el --- entropy emacs sdcv front-interface
+
+;; Copyright (C) 20181211  Entropy
+
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           none
+;; Package-Version: none
+;; Version:       none
+;; Created:       2018-12-11 12:48:04
+;; Keywords:      sdcv
+;; Compatibility: GNU Emacs 26.1;
+;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;;
+;; none
+;;
+;;; Configuration:
+;;
+;; none
+
+;; * Code:
+;; ** require
+(require 'entropy-common-library)
+(condition-case nil (require 'posframe) (error (message "Warn: You haven't install posframe!")))
+(require 'popup)
+(require 'json)
+(require 'f)
+(require 'popwin)
+(require 'hl-line)
+(require 'cl)
+(require 'youdao-dictionary)
+(require 'bing-dict)
+(require 'google-translate)
+
+;; ** variable declaration
+;; *** group
+(defgroup entropy/sdcv-group nil
+  "Group for `entropy-sdcv' feature.")
+;; *** custom
+
+(defcustom entropy/sdcv-user-dicts nil
+  "User sdcv dicts directories list"
+  :type 'list
+  :group 'entroy/sdcv-group)
+
+(defcustom entropy/sdcv-program (if (string-equal system-type "darwin") "/usr/local/bin/sdcv" "sdcv")
+  "Sdcv programe name custom specification, if it not in your
+  path, you are required to specify it's path with it's filename
+  e.g. '/bin/sdcv'."
+  :type 'string
+  :group 'entropy/sdcv-group)
+
+(defcustom entropy/sdcv-command-prefix nil
+  "Prefix command argumetns for sdcv exec."
+  :type 'string
+  :group 'entropy/sdcv-group)
+
+(defcustom entropy/sdcv-tooltip-timeout 5
+  "Timeout for waiting for aborting to sdcv tooltip posframe.")
+
+(defcustom entropy/sdcv-tooltip-type
+  (if (display-graphic-p)
+      (if (version< emacs-version "26.1") 'popup 'posframe)
+    'popup)
+  "The sdcv response string container type. By default, when
+  `emacs-version' less than '26.1' using 'popup' else than using
+  'posframe, because posframe using emacs featuer chiled-frame
+  which built-in on the version upper than thus.
+
+  Note:
+
+  When using terminal based UI, limition of `posframe' will not be
+  supported for, forcing defaultly set it to 'popwin'."
+  :type 'symbol
+  :group 'entropy/sdcv-group)
+
+(defcustom entropy/sdcv-response-filter-hook nil
+  "Hook for filter with sdcv's response."
+  :type 'sexp
+  :group 'entropy/sdcv-group)
+
+
+(defcustom entropy/sdcv-external-query-type 'bing
+  "External query application for failed query from sdcv.
+
+Available chosen are:
+- 'youdao 
+- 'bing
+- 'google
+"
+  :type 'sexp
+  :group 'entropy/sdcv-group)
+
+(defcustom entropy/sdcv-tooltip-border-width 10
+  "posframe tooltip width for sdcv callbacking show as."
+  :type 'integer
+  :group 'entropy/sdcv-group)
+
+;; *** internal var
+(defvar entropy/sdcv--tooltip-last-point nil
+  "Hold last point when show tooltip, use for hide tooltip after move point.")
+
+(defvar entropy/sdcv--tooltip-last-scroll-offset 0
+  "Hold last scroll offset when show tooltip, use for hide tooltip after window scroll.")
+
+(defvar entropy/sdcv--fail-notify-string "Nothing found... \n Try from other dict! ^_^"
+  "This string is for notify user when search fail.")
+
+(defvar entropy/sdcv--dicts-info nil
+  "Alist of user sdcv dicts information formed as ((\"dict name\" \"dict-path\")).")
+
+(defvar entropy/sdcv--showed-buffer "*entropy/sdcv-showed-buffer*"
+  "Entropy sdcv adjacent feedback presenting buffer name.")
+
+(defvar entropy/sdcv--stick-dict nil
+  "Current sdcv dict for searching with. ")
+
+(defvar entropy/sdcv--tooltip-buffer "*entropy/sdcv-tooltip*"
+  "Entropy sdcv tooltip default buffer name. Both using for
+  posframe or popup shown mechanism.")
+
+(defvar entropy/sdcv--truncate-response-max 60
+  "Query feedback info definitions string overflow width used for
+  func `entropy/sdcv--extract-json-response'.")
+
+(defvar entropy/sdcv--response-null-prompt "In the beginning, there's darkness!"
+  "Feedback string for none-matching session.")
+
+(defvar entropy/sdcv--query-log nil
+  "Variable stored current query string for package debug using.")
+
+(defvar entropy/sdcv--response-log nil
+  "Variable stored current query response string for package debug using.")
+
+(defvar entropy/sdcv--bing-dict-response nil
+  "External bing dict process feedback response.")
+
+(defvar entropy/sdcv--bing-adjacent-buffer "*entropy/sdcv-external-bing*"
+  "Buffer name for create external dict bing-dict adjacent buffer.")
+
+(defvar entropy/sdcv--origin-lang-env (getenv "LANG")
+  "Stored user origin specific env lang set.")
+
+(defvar entropy/sdcv--specific-lang "en_US.UTF-8"
+  "Pre ordered system lang set used during sdcv query process.")
+
+
+;; *** default face
+(defface entropy/sdcv-tooltip-bgFace '((t ()))
+  "The tooltip buffer background face. ")
+
+(defcustom entropy/sdcv-tooltip-bgLight-color "burlywood"
+  "Tooltip buffer background color for dark-theme."
+  :type 'color
+  :group 'entropy/sdcv-group)
+
+(defcustom entropy/sdcv-tooltip-bgDark-color "sienna"
+  "Tooltip buffer background color for dark-theme."
+  :type 'color
+  :group 'entropy/sdcv-group)
+
+
+;; ** library
+;; *** lang envrionment pre check
+(defun entropy/sdcv--set-specific-lang-env ()
+  (unless (equal entropy/sdcv--specific-lang
+                 (getenv "LANG"))
+    (setenv "LANG" entropy/sdcv--specific-lang)))
+
+(defun entropy/sdcv--recovery-user-origin-lang-env ()
+  (unless (equal entropy/sdcv--origin-lang-env
+                 (getenv "LANG"))
+    (setenv "LANG" entropy/sdcv--origin-lang-env)))
+
+(defun entropy/sdcv--lang-set-process (oldfunc &rest args)
+  "The around advice for set specification emacs lang set when
+calling query process for the reason that:
+
+sdcv cli responsed alwasys for utf-8 encoding information as, the
+none utf-8 lang set will not decoding the response string
+correctly, the particular problem was for func
+`entropy/sdcv--check-dicts' which will get the unicode
+rsepresentation dict name string when the emacs lang set was not
+the subject of utf-8 group."
+  (entropy/sdcv--set-specific-lang-env)
+  (apply oldfunc args)
+  (entropy/sdcv--recovery-user-origin-lang-env))
+
+;; *** dictionary auto search
+
+(defun entropy/sdcv--auto-search-dicts ()
+  "Automatically search sdcv dict.
+
+  This func assuming that all sdcv dict are stored under home
+  '.stardict' folder and be separated by individual foder.
+
+  All sub-dict dir will be checked the validity by func
+  `entropy/sdcv--judge-dictp', see it for detailes.
+
+  Func maily for setting the value of variable
+  `entropy/sdcv--dicts-info'.
+  "
+  (if (and (not entropy/sdcv-user-dicts)
+           (f-dir-p "~/.stardict"))
+      (let* ((base-dir "~/.stardict")
+             (dir-list (entropy/cl-list-subdir base-dir))
+             (dict-info-list nil))
+        (if (and (listp dir-list)
+                 (not (null dir-list))
+                 (not (member nil dir-list)))
+            (dolist (el dir-list)
+              (let ((dict-info (entropy/sdcv--judge-dictp el)))
+                (when dict-info
+                  (add-to-list 'dict-info-list dict-info))))
+          (error "Could not auto search any dict!"))
+        (when (and dict-info-list
+                   (not (member nil dict-info-list)))
+          (setq entropy/sdcv--dicts-info dict-info-list)))
+    (cond
+     ((not (f-dir-p "~/.stardict"))
+      (error "Can not find '~/.stardict' folder."))
+     (entropy/sdcv-user-dicts
+      (error "You've setting customized sdcv dict path!")))))
+
+(defun entropy/sdcv--judge-dictp (dict-dir)
+  "Check each dict dir's validation state, if valid then returns dict
+  info list formed as '(dict-name dict-absolute-path)' powered by
+  func `entropy/sdcv--get-dict-info', otherwise return nil.
+
+  The valid dict checking mechanism was for finding whether exits
+  two main dict file named with extension '.idx' 'ifo'."
+  (let ((sublist (entropy/cl-list-dir-lite dict-dir))
+        flist
+        (rtn 0))
+    (if (and (listp sublist)
+             (not (member nil sublist)))
+        (dolist (el sublist)
+          (when (equal (car el) "F")
+            (add-to-list 'flist (cdr el))))
+      (error (format "Dir %s was empty!" dict-dir)))
+    (if (not flist)
+        (setq rtn nil)
+      (dolist (el flist)
+        (let ((ext (file-name-extension el)))
+          (when (or (equal ext "ifo")
+                    (equal ext "idx"))
+            (cl-incf rtn)))))
+    (cond ((and rtn (>= rtn 2))
+           (setq rtn (entropy/sdcv--get-dict-info dict-dir)))
+          (t (setq rtn nil)))
+    rtn))
+
+(defun entropy/sdcv--get-dict-info (dict-dir)
+  (unless (executable-find entropy/sdcv-program)
+    (error "Could not found sdcv in your path."))
+  (let (sdcv-get dict-info rtn)
+    (setq sdcv-get
+          (shell-command-to-string
+           (concat entropy/sdcv-program " -l -2 "
+                   dict-dir)))
+    (setq dict-info (replace-regexp-in-string "[ \t]+[0-9]+$" ""
+                                              (nth 1 (split-string (string-trim sdcv-get) "\n"))))
+    (when (not dict-info) (error "dict error"))
+    (setq rtn (list dict-info dict-dir))
+    rtn))
+
+;; *** dictionary check
+(defun entropy/sdcv--check-dicts ()
+  "Check all dicts path stored in variable `entropy/sdcv-user-dicts'
+  validation status and generate dict info list made for
+  `entropy/sdcv--dicts-info'.
+
+  If `entropy/sdcv-user-dicts' was invalid type or nil, using func
+  `entropy/sdcv--auto-search-dicts' auto finding valid dicts stored
+  in '~/.stardict' (see it for details)."
+  (interactive)
+  (setq entropy/sdcv--dicts-info nil)
+  (cond
+   (entropy/sdcv-user-dicts
+    (unless (and entropy/sdcv-user-dicts
+                 (listp entropy/sdcv-user-dicts)
+                 (not (member nil entropy/sdcv-user-dicts)))
+      (error "Dicts specfication error."))
+    (let ((valid-dicts nil))
+      (dolist (el entropy/sdcv-user-dicts)
+        (let ((dict-info (entropy/sdcv--judge-dictp el)))
+          (when dict-info
+            (add-to-list 'valid-dicts dict-info))))
+      (when (not valid-dicts)
+        (error "Can not found valid dicts."))
+      (setq entropy/sdcv--dicts-info valid-dicts)))
+   ((not entropy/sdcv-user-dicts)
+    (entropy/sdcv--auto-search-dicts))))
+
+(advice-add 'entropy/sdcv--check-dicts :around #'entropy/sdcv--lang-set-process)
+
+;; *** dictionaly chosen
+(defun entropy/sdcv--choose-dict (&optional call-with-interactive)
+  "Choose sdcv dict for initializing query state preparing for
+  sub-procedure.
+
+  This func set the stick variable `entropy/sdcv--stick-dict' for
+  the following operation did with, that means you could change
+  query dict recalling this again."
+  (interactive
+   (list t))
+  (unless (and entropy/sdcv--dicts-info
+               (listp entropy/sdcv--dicts-info)
+               (not (member nil entropy/sdcv--dicts-info)))
+    (entropy/sdcv--check-dicts)
+    (setq entropy/sdcv--stick-dict nil))
+  (if (or (not entropy/sdcv--stick-dict)
+          call-with-interactive)
+    (let ((dicts-info entropy/sdcv--dicts-info)
+          chosen)
+      (setq chosen (completing-read "Dict for: " dicts-info))
+      (setq chosen (nth 1 (assoc chosen dicts-info)))
+      (setq entropy/sdcv--stick-dict chosen)
+      chosen)
+    entropy/sdcv--stick-dict))
+
+;; *** string obtains
+(defun entropy/sdcv--get-word-or-region ()
+  "Return region or word around point.
+If `mark-active' on, return region string.
+Otherwise return word around point."
+  (if mark-active
+      (buffer-substring-no-properties (region-beginning)
+                                      (region-end))
+    (thing-at-point 'word t)))
+
+;; *** external dict query
+(defun entropy/sdcv--query-with-external (query show-type app-type)
+  "The tuned dispatcher for `entropy/sdcv--command-router' for
+  shunting to external dict application when sdcv query result match
+  none. 
+
+  Within `entropy-sdcv', there's three supported external dict
+  application, all of them are melpa emacs extension:
+
+  1. youdao
+  2. bing
+  3. google
+
+  The arg app-type was specified with symbol named as above list
+  shown. 
+
+  Arg show-type was necessary for did as. It's valid value are
+  'tooltip' and 'adjacent', which means for showing as tooltip
+  window at point or using popup adjacent buffer with respectively."
+  (let ()
+    (cl-case app-type
+      (youdao
+       (entropy/sdcv--query-with-youdao query show-type))
+      (bing
+       (entropy/sdcv--query-with-bing query show-type))
+      (google
+       (entropy/sdcv--query-with-google query show-type)))
+    nil))
+
+;; **** youdao
+(defun entropy/sdcv--query-with-youdao (query show-type)
+  (cl-case show-type
+    (tooltip
+     (entropy/sdcv--show-with-popup (youdao-dictionary--format-result query)))
+    (adjacent
+     (youdao-dictionary-search query)))
+  nil)
+
+;; **** bing
+(defun entropy/sdcv--query-with-bing (query show-type)
+  (cl-case show-type
+    (tooltip
+     (entropy/sdcv--show-with-popup (entropy/sdcv--bing-dict-url-retrieve query)))
+    (adjacent
+     (with-current-buffer (get-buffer-create entropy/sdcv--bing-adjacent-buffer)
+       (erase-buffer)
+       (insert (entropy/sdcv--bing-dict-url-retrieve query)))
+     (popwin:popup-buffer entropy/sdcv--bing-adjacent-buffer)))
+  nil)
+
+
+(defun entropy/sdcv--bing-dict-url-retrieve (query)
+  (setq entropy/sdcv--bing-dict-response nil)
+  (let (info rtn buffer)
+    (setq buffer
+          (save-match-data
+            (url-retrieve-synchronously
+             (concat bing-dict--base-url
+                     (url-hexify-string query))
+             t t)))
+    (with-current-buffer buffer
+      (entropy/sdcv--bing-dict-brief-cb (decode-coding-string query 'utf-8))
+      (erase-buffer)
+      (setq info entropy/sdcv--bing-dict-response)
+      (cond
+       ((equal (car info)
+               "exact-definition")
+        (insert (nth 1 info) " " (nth 2 info) "\n\n" (nth 4 info))
+        (setq rtn (buffer-string)))
+       ((equal (car info)
+               "sounds-like")
+        (insert (nth 1 info) "\n'n" (nth 3 info))
+        (setq rtn (buffer-string)))
+       ((equal (car info) "no-matched")
+        (setq rtn entropy/sdcv--response-null-prompt))
+       ((equal (car info) "machine-translation")
+        (insert (nth 3 info) "\n\n" (nth 4 info))
+        (setq rtn (buffer-string)))))
+    rtn))
+
+(defun entropy/sdcv--bing-dict-brief-cb (keyword)
+  (set-buffer-multibyte t)
+  (bing-dict--delete-response-header)
+  (setq keyword (propertize keyword
+                            'face
+                            'font-lock-keyword-face))
+  (condition-case nil
+      (if (bing-dict--has-machine-translation-p)
+          (setq entropy/sdcv--bing-dict-response
+                (list
+                 "machine-translation"
+                 bing-dict--machine-translation-text
+                 bing-dict-word-def-separator
+                 keyword
+                 (bing-dict--machine-translation)))
+        (let ((defs (bing-dict--definitions))
+              extra-defs
+              pronunciation
+              short-defstr)
+          (if defs
+              (progn
+                (cond
+                 ((eq bing-dict-show-thesaurus 'synonym)
+                  (when (setq extra-defs (bing-dict--synonyms))
+                    (push extra-defs defs)))
+                 ((eq bing-dict-show-thesaurus 'antonym)
+                  (when (setq extra-defs (bing-dict--antonyms))
+                    (push extra-defs defs)))
+                 ((eq bing-dict-show-thesaurus 'both)
+                  (dolist (func '(bing-dict--synonyms bing-dict--antonyms))
+                    (when (setq extra-defs (funcall func))
+                      (push extra-defs defs)))))
+                (setq
+                 pronunciation (bing-dict--pronunciation)
+                 short-defstr (mapconcat 'identity (nreverse defs)
+                                         "\n"))
+                (setq entropy/sdcv--bing-dict-response
+                      (list
+                       "exact-definition"
+                       keyword
+                       pronunciation
+                       bing-dict-word-def-separator
+                       short-defstr)))
+            (let ((sounds-like-words (bing-dict--get-sounds-like-words)))
+              (if sounds-like-words
+                  (setq entropy/sdcv--bing-dict-response
+                        (list
+                         "sounds-like"
+                         bing-dict--sounds-like-text
+                         bing-dict-word-def-separator
+                         sounds-like-words))
+                (setq entropy/sdcv--bing-dict-response
+                      (list "no-matched" bing-dict--no-result-text)))))))
+    (error (bing-dict--message bing-dict--no-result-text))))
+
+
+;; **** google
+(defun entropy/sdcv--query-with-google (query show-type)
+  (cl-case show-type
+    (tooltip
+     (google-translate-translate nil nil query 'popup))
+    (adjacent
+     (google-translate-translate nil nil query))))
+
+;; *** command transfer
+;; **** shell port
+(defun entropy/sdcv--shell-transfer (str dict-path &optional json-exp)
+  (let (command
+        response
+        (default-directory
+          (cond
+           ((eq system-type 'windows-nt)
+            (getenv "temp"))
+           (t "/tmp/"))))
+    (cond
+     ((not (listp dict-path))
+      (setq command (format "%s %s %s -n %s -2 %s"
+                            entropy/sdcv-program
+                            (if entropy/sdcv-command-prefix
+                                entropy/sdcv-command-prefix
+                              "")
+                            (if json-exp
+                                "-j"
+                              "")
+                            str dict-path)))
+     ((listp dict-path) (error "Multi dicts support was under development ...")))
+    (setq response (shell-command-to-string command)
+          entropy/sdcv--response-log response)
+    response))
+
+;; **** command router
+(defun entropy/sdcv--command-router (str dict-path show-type  &optional recall)
+  "Router for query with while the state both of matching response or
+  non-matched of sdcv cli and the state when query string was
+  sentence which not suitable for doing with sdcv as then querying
+  them from other external dict application defined internal in
+  `entropy/sdcv--query-with-external'.
+
+  Note: On windows platform, multibyte query was not supported withs
+  sdcv cli even if the query string was single word e.g. cjk char
+  string as. Because of that windows using code-page for decoding
+  each char in command line shell 'cmd', and emacs just supported
+  encoding query args with locale codepage for it, which means for
+  example that when you locale code page was 'gbk' that the query
+  string will be sent with code encoding format with 'gbk' to sdcv
+  cli even if you using `encode-coding-string' to forcefully
+  encoding query string to 'utf-8', but sdcv just supportting
+  recieving 'utf-8' query as. For such detailes see emacs mailing
+  list
+  https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00406.html."
+  (let (str-single-p
+        (str-list (split-string str " " t))
+        shell-response)
+    (if (> (length str-list) 1)
+        (setq str-single-p 'nil)
+      (setq str-single-p 't))
+    (cond
+     ((and (eq system-type 'windows-nt)
+           (let ($return (str-elist (split-string str "" t)) (str-count 0))
+             (dolist (el str-elist)
+               (cl-incf str-count))
+             (when (> (string-width str) str-count)
+               (setq $return t))
+             $return))
+      (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
+      (message (concat "Emacs on windows does not support multibye args transfer to process,"
+                       "thus using network query instead.")))
+     ((or (eq str-single-p nil)
+          recall)
+       (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type))
+     ((eq str-single-p t)
+      (setq shell-response
+            (entropy/sdcv--shell-transfer
+             str dict-path t))
+      (if (equal shell-response "[]\n")
+          (entropy/sdcv--command-router str dict-path show-type t)
+        (let ((feedback (entropy/sdcv--extract-json-response shell-response)))
+          (if (eq feedback t)
+              (entropy/sdcv--command-router str dict-path show-type t)
+            (cond
+             ((eq show-type 'tooltip)
+              (if (equal entropy/sdcv-tooltip-type 'posframe)
+                  (entropy/sdcv--show-with-tooltip feedback)
+                (entropy/sdcv--show-with-popup feedback)))
+             ((eq show-type 'adjacent)
+              (entropy/sdcv--show-with-buffer feedback))))))))))
+
+;; *** command response show
+;; **** response filter
+;; ***** generic (under development)
+;; ***** json port
+(defun entropy/sdcv--extract-json-response (json-response)
+  "Extracting sdcv json response object string for filterable
+  with lisp processing. And return the response final feedback
+  string used for tooltip or adjacent buffer shown for. See also
+  core func `entropy/sdcv--parse-response-json'.  
+"
+  (let* ((json-list-ob (entropy/sdcv--parse-response-json json-response))
+         rtn)
+    (if (eq json-list-ob t)
+        (setq rtn t)
+      (setq word (car json-list-ob))
+      (setq def (nth 1 json-list-ob))
+      (setq def-overflow (nth 2 json-list-ob))               
+      (cond ((and word def)
+             (when def-overflow
+               (setq def (entropy/cl-truncate-string-with-length
+                          def
+                          entropy/sdcv--truncate-response-max
+                          def-overflow)))
+             (let ((word-count (string-width word)))
+               (setq rtn (concat "⏺ " word "\n"
+                                 (entropy/cl-concat-char "=" (+ 3 word-count))
+                                 "\n" def))))
+            (t (setq rtn entropy/sdcv--response-null-prompt))))
+    rtn))
+
+(defun entropy/sdcv--parse-response-json (json-response)
+  "Core json object parsing func for
+  `entropy/sdcv--extract-json-response', which using `mapcar' for
+  mapping for the json lisp corresponding vector parsed by
+  `json-read-from-string' with callbacks func
+  `entropy/sdcv--parse-json-info' and returned it's alist.
+
+  Sdcv query condition case arg '-j' will response the result with
+  json object string which structed as:
+
+  [{
+    \"dict\": \"朗道英漢字典5.0\",
+    \"word\": \"tooltips\",
+    \"definition\": \"n【計】 工具提示\"
+  }, {
+    \"dict\": \"朗道英漢字典5.0\",
+    \"word\": \"toolkit\",
+    \"definition\": \"n【計】 工具包\"
+  }]
+  "
+  (let* ((jsob (json-read-from-string json-response))
+         (jsob-alist (mapcar 'entropy/sdcv--parse-json-info
+                             jsob))
+         rtn)
+    (if (> (length jsob-alist) 1)
+        (setq rtn
+              (or
+               (yes-or-no-p "Can not exactly match anything! Search through web? ")
+               (assoc (completing-read "choose similar word: "
+                                       jsob-alist
+                                       :require-match t)
+                      jsob-alist)))
+      (setq rtn (car jsob-alist)))
+    rtn))
+
+(defun entropy/sdcv--parse-json-info (json-object-el)
+  "Parsing sdcv json lisp object with definition str square model
+analyzing based on max width specified by
+`entropy/sdcv--truncate-response-max'.
+
+Return value as list as sexp (list word def def-width-overflow-lines)."
+  (let* ((word (cdr (assoc 'word json-object-el)))
+         (def (cdr (assoc 'definition json-object-el)))
+         (def-width (entropy/cl-get-string-max-width def entropy/sdcv--truncate-response-max))
+         (def-width-overflow-lines (plist-get def-width :match-overflow-lines) )
+         rtn)
+    (setq rtn (list word def def-width-overflow-lines))
+    rtn))
+
+
+;; **** response adjacent buffer show
+
+(defun entropy/sdcv--show-with-buffer (feedback)
+  (let ((buffer (get-buffer-create entropy/sdcv--showed-buffer)))
+    (with-current-buffer buffer
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (insert feedback))
+    (popwin:popup-buffer buffer :height 10)
+    (goto-char (point-min))
+    (setq buffer-read-only t)))
+
+;; **** response tooltip show
+(defun entropy/sdcv--automatic-faceSet ()
+  (let ((Lbg_color entropy/sdcv-tooltip-bgLight-color)
+        (Bbg_color entropy/sdcv-tooltip-bgDark-color)
+        (rtn (list :bg nil :fg nil)))
+    (cl-case (ignore-errors (entropy/cl-frameBG-dark-or-light))
+      (dark (setq rtn (plist-put rtn :bg Lbg_color))
+            (setq rtn (plist-put rtn :fg "brown")))
+      (light (setq rtn (plist-put rtn :bg Bbg_color))
+             (setq rtn (plist-put rtn :fg "bisque")))
+      (nil (setq rtn (plist-put rtn :bg "black"))
+           (setq rtn (plist-put rtn :fg "brightyellow"))))
+    rtn))
+
+;; ***** posframe
+(defun entropy/sdcv--show-with-tooltip (feedback)
+  (if (display-graphic-p)
+      (let ((tooltip_Ctype (entropy/sdcv--automatic-faceSet)))
+        (posframe-show entropy/sdcv--tooltip-buffer
+                       :string feedback
+                       :position (point)
+                       :background-color (plist-get tooltip_Ctype :bg)
+                       :foreground-color (plist-get tooltip_Ctype :fg)
+                       :internal-border-width entropy/sdcv-tooltip-border-width)
+        (setq entropy/sdcv--tooltip-last-point (point)
+              entropy/sdcv--tooltip-last-scroll-offset (window-start))
+        (add-hook 'post-command-hook 'entropy/sdcv--posframe-hide-after-move))
+    (setq entropy/sdcv-tooltip-type 'popup)
+    (entropy/sdcv--show-with-popup feedback)
+    (message "Reset tooltip type to 'popup' due to cli UI.")))
+
+(defun entropy/sdcv--posframe-hide-after-move ()
+  "Quit and delete `entropy/sdcv--tooltip-buffer' of posframe
+show-type whatever keys touching with. 
+
+This func was automatically added into `post-command-hook' by
+`entropy/sdcv--show-with-tooltip'."
+  (ignore-errors
+    (when (get-buffer entropy/sdcv--tooltip-buffer)
+      (unless (and
+               (equal (point) entropy/sdcv--tooltip-last-point)
+               (not (eq this-command 'keyboard-quit))
+               (equal (window-start) entropy/sdcv--tooltip-last-scroll-offset))
+        (posframe-delete entropy/sdcv--tooltip-buffer)
+        (kill-buffer entropy/sdcv--tooltip-buffer)))))
+
+;; ***** popup
+(defun entropy/sdcv--show-with-popup (feedback)
+  (let ((theme_Ctype (entropy/sdcv--automatic-faceSet))
+        ($pface_temp (cons (face-attribute 'popup-tip-face :foreground)
+                           (face-attribute 'popup-tip-face :background))))
+    (set-face-attribute 'popup-tip-face nil
+                        :foreground (plist-get theme_Ctype :fg)
+                        :background (plist-get theme_Ctype :bg))
+    (popup-tip feedback :point (point) :margin 1)
+    (set-face-attribute 'popup-tip-face nil
+                        :foreground (car $pface_temp)
+                        :background (cdr $pface_temp))))
+
+
+;; *** query rebuit
+
+(defun entropy/sdcv--query-rebuit (str)
+  "Rebuilt the query string for be suits as the sdcv receive type
+which can be reducing unmatching probabilities.
+
+Note: now this func was under-development and just simply
+downcase the query string."
+  (let (rtn)
+    (setq rtn (downcase str))
+    (setq entropy/sdcv--query-log rtn)
+    rtn))
+
+
+;; ** main
+;;;###autoload
+(defun entropy/sdcv-search-at-point-tooltip ()
+  "Mainly interactive func for search point or marked region
+string with sdcv cli."
+  (interactive)
+  (let ((str (entropy/sdcv--get-word-or-region))
+        (dict (entropy/sdcv--choose-dict)))
+    (unless (stringp str)
+      (error "Could not find word or region at point."))
+    (setq str (entropy/sdcv--query-rebuit str))
+    (entropy/sdcv--command-router str dict 'tooltip)))
+
+
+;;;###autoload
+(defun entropy/sdcv-search-input-adjacent ()
+    "Mainly interactive func for search with inputted querying
+string with sdcv cli."
+  (interactive)
+  (let* ((dict (entropy/sdcv--choose-dict))
+         (str (let (promt empty-error (rtn "") (prompt-initial (entropy/sdcv--get-word-or-region)))
+                (cond (prompt-initial
+                       (setq prompt (format "Input word (default: %s): " prompt-initial)))
+                      (t (setq prompt "Input word: ")))
+                (setq rtn (read-string prompt))
+                (cond ((and (equal "" rtn)
+                            prompt-initial)
+                       (setq rtn prompt-initial))
+                      ((and (equal "" rtn)
+                            (not prompt-initial))
+                       (error "Input empty!")))
+                rtn)))
+    (setq str (entropy/sdcv--query-rebuit str))
+    (entropy/sdcv--command-router str dict 'adjacent)))
+
+(advice-add 'entropy/sdcv-search-at-point-tooltip :around #'entropy/sdcv--lang-set-process)
+(advice-add 'entropy/sdcv-search-input-adjacent :around #'entropy/sdcv--lang-set-process)
+
+;; * provide
+(provide 'entropy-sdcv)
