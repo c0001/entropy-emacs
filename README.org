@@ -1,0 +1,133 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-proxy-url
+#+author: Entropy
+
+An emacs extension trafficked url matching by proxy regxp rule-set or
+pull down them into whole proxy tunnel.
+
+This package perform as the library role for the functional provision.
+
+* Eww and emacs-w3m proxy stuff
+
+Emacs has the ability to retrieving network data steps with internal
+func ~url-retrieve~ and it's refer url library as. Eww using it as the
+communication backend.  
+
+Although, there's another way for emacs to get network data through
+the way of using external shell application which obtains its
+responsing as the render part. One as be in this case was the famous
+cli plain text browser [[http://w3m.sourceforge.net/][w3m]].
+
+The proxy way for the internal data retrieve was based on emacs
+internal proxy mechanism, and the other one was based on the refer
+response creator's self mechanism.
+
+* How this package working as?
+
+This package taking off the proxy way through two ways for as:
+
+1. Regexp matching of current url retrieving.
+2. Full proxy tunnel whichever current transfer url is.
+
+As seen as which are easy to understanding of the full proxy
+type,here's the description for 'regexp' way:
+
+Each network transfer request will come with one url string as the
+requesting wrapper header. URL string has it's feature stored in it's
+domain part, the domain part can be matched by categorizing using
+regexp method, thus each network requesting can be filter by sets of
+regexp rule-set for determining whether go into the proxy tunnerl.
+
+The regexp filter can be generized of more functional part, by
+matching whatever you want. The rule-set internal customized variable
+=entropy/proxy-url-regexp-list= as is.
+
+* Methods given
+
+The time =entropy-proxy-url='s provision as the mentioned above that
+given for the top web browsing scene both of =eww= and =emacs-w3m=.
+
+There's two macro defined for the core proxy diversion filter:
+
+1) ~entropy/proxy-url-type-form~
+   
+   Form to automatically creating the proxy setting function,
+   arguments of:
+
+   * =FUNC-REGEXP=:
+
+     Function to set proper regexp proxy config to refer target
+     trigger operation.
+     
+   * =FUNC-FULL=:
+
+     Function to set proper full proxy config to refer target trigger
+     operation.
+
+   * =FUNC-CLEAN=
+
+     Function to recover the original target trigger operation's
+     config.
+
+   * =URL=:
+
+     Url requesting string.
+
+   * =TYPE-SOURCE=
+
+     The proxy type of 't', 'regexp', 'nil' corresponding to 'full',
+     'regexp', 'clean' respectively.
+
+2) ~entropy/proxy-url-swith-form~
+
+   Form of switching the proxy type dynamically.
+
+   The only argument =TYPE-SOURCE= as the ~setf~ place for stored the
+   proxy type selected lastly.
+
+
+
+All the arguments name as the unified meaning as is. Thus, the
+implementation both for 'eww' and 'emacs-w3m' feature for:
+
+| Target interaction | proxy-type | func-implementation                |
+|--------------------+------------+------------------------------------|
+| ~w3m-retrieve~     | regexp     | ~entropy/proxy-url-regexp-for-w3m~ |
+|                    | full       | ~entropy/proxy-url-full-for-w3m~   |
+|                    | clean      | ~entropy/proxy-url-clean-for-w3m~  |
+|                    |            |                                    |
+|--------------------+------------+------------------------------------|
+| ~eww-browse-url~   | regexp     | ~entropy/proxy-url-regexp-for-eww~ |
+|                    | full       | ~entropy/proxy-url-full-for-eww~   |
+|                    | clean      | ~entropy/proxy-url-clean-for-eww~  |
+
+
+
+For those implementation's =TYPE-SOURCE= are
+=entropy/proxy-url-enable-eww= and =entropy/proxy-url-enable-w3m=.
+
+* Target operation advice
+
+Now, as the designation for as be library of proxy toggle one,
+=entropy-proxy-url= didn't advicing each target operation function as
+the =:before= type internally, you will do as manually as:
+
+#+BEGIN_SRC elisp
+  (advice-add 'eww-browse-url :before #'entropy/proxy-url-proxy-choice-for-eww)
+  (advice-add 'w3m-retrieve :before #'entropy/proxy-url-proxy-choice-for-w3m)
+#+END_SRC 
+
+* The regexp rule-set list data
+
+Internally, =entropy-proxy-url= has given the sets of regexp rule set
+tracking by [[https://github.com/gfwlist/gfwlist][github gfw list]] project which maintained the common
+sensible blocked web domain list directed against to China GFW network
+ecosystem, however I thought as be compatible for some web transfer
+chargin area too of that China as the biggest aspect doing for thus.
+You can see [[file:entropy-proxy-url-gfw-list.el][the rule-set file]] for more details.
+
