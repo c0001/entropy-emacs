@@ -1,0 +1,76 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-dired-cp-or-mv
+#+author: Entropy
+
+* Preamble
+
+Using emacs internal files copy or moving operation basic on pure
+manually way that show you each prompt line interaction for inputting
+both of the source location and the destination one.
+
+This internally manual way was brief enough for current dir (denoted
+current dired directory) tracing for, but for the seperated dired
+buffer or mean what shows long different path on that manually way.
+
+In this case, the designation of my mind about how to deal with that
+trouble was that get file list in one dired buffer stored in the
+'list' type variable and calling them with another one. This package
+gives you the way doing for thus.
+
+* Requirements
+
+The only another one emacs extensions introduced was [[https://github.com/m2ym/popwin-el/tree/95dea14c60019d6cccf9a3b33e0dec4e1f22c304][popwin]] the one
+gives the way for poping the temporarily window for display some
+prompt thing (always the way for the comprehensive buffer operating
+method).
+
+: pakcage-install popwin
+
+* installation
+
+Get the main source file [[file:entropy-dired-cp-or-mv.el][entropy-cired-cp-or-mv.el]] to your load path.
+
+Than gives the follow =use-package= config style as the template:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package entropy-dired-cp-or-mv
+    :ensure nil
+    :load-path "path-to-your-local-dir"
+    :commands (entropy/cpmv-dired-get-files-list
+               entropy/cpmv-to-current))
+#+END_SRC   
+
+* Configuration
+
+There's no need to get any customized configuration, all the function
+are self-embedded tied.
+
+* Interaction
+
+- *Function:* ~entropy/cpmv-dired-get-files-list~
+
+  Getting the source marked files list preparing for copy or moving to
+  another directory.
+
+- *Function:* ~entropy/cpmv-to-current~ 
+  
+  Copy or moving files whose entries info stored in
+  =entropy/cpmv--marked-files-list= to current dired buffer (the
+  target dired buffer distinguished with the oringin one pointed by
+  func =entropy/cpmv-dired-get-files-list= calling place on).
+
+  *cp/mv exception case:*
+
+  1) Destination has duplicated file which names as the member of one
+     of the marked files list.(This emulating the real OS behaviour)
+
+  2) Destination was the subdirectory of files got local. In this case
+     was indeeded false for thus.
+
+  3) marked file list was NULL.(None files to be done with)
+
