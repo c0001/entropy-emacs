@@ -1,0 +1,37 @@
+#+TITLE: Entropy-Emacs
+#+AUTHOR: Entropy
+
+#+attr_html: :style margin:0 auto; display:block;
+[[file:elements/logo/logo.png]]
+
+
+#+BEGIN_QUOTE
+Now you can download the encapsulation setting contain [[https://github.com/c0001/entropy-emacs][entropy-emacs]] and [[https://github.com/m-parashar/emax64][emax64]] and with msys2 with
+lots of stuffs contained proper [[https://sourceforge.net/projects/entropy-emax64/][here]].
+#+END_QUOTE
+
+This emacs personal configs can be used in:
+
+- Learning emacs.
+- HTML, CSS, JS, PHP, C coding learning and testing.
+- Write article, recording content you captured and simple task
+  managter with configed Org-mode.
+- With some utilities by self and from web and others great idea which
+  also be in github.
+
+
+*Branches descriptioin:*
+
+- master: with the stable packages and config file
+
+- packages-updating: merge from master and be with dately updating
+  packages.
+
+- dev: with the quickly and untesting config by more newly implemented
+  thoughts and waiting for merging into master.
+
+*Thanks to:*
+
+[[https://github.com/seagle0128/.emacs.d][Centaur emacs]]
+
+Entropy @ [2018-04-11 Wed 05:30] © GPL/v3
