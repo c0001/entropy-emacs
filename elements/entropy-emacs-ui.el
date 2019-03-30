@@ -84,7 +84,7 @@ the specific height and width determined by above variable you setted."
                       nil :height 2.5 :bold t :underline t :overline t)
 
   (defvar entropy/dashboard-text-logo-file
-    (expand-file-name "logo.txt" user-emacs-directory)
+    (expand-file-name "elements/logo/logo.txt" user-emacs-directory)
     "Text logo file.")
 
 ;; *** libraries
