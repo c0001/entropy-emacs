@@ -13,6 +13,7 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-common-library)
+(require 'entropy-org-widget)
 
 ;; ** Pre advice
 (defun entropy/org-exp-around-advice (old-func &rest args)
@@ -887,7 +888,8 @@ So a typical ID could look like \"Org-4nd91V40HI\"."
   (when sys/win32p
     (add-to-list 'org-file-apps '(directory . emacs))))
 
-;; ** personal function
+;; ** entropy-emacs additional function
+;; *** tags align
 (defun entropy/tags-align ()
   "Align all tags in one org-mode buffer with align column prompt
 inputting."
@@ -895,6 +897,85 @@ inputting."
   (let ((org-tags-column (string-to-number
                           (read-string "please insert the tag align column: "))))
     (org-set-tags 'universal-argument t)))
+
+;; *** org file images checking
+;; **** extract all images from org file
+(defun entropy/ocimg-extract-file-imgs-main ()
+  "Extracting all images from one org file to the target location
+chosen as prompted query location state."
+  (interactive)
+  (let* ((target-file (completing-read "choosing org file: "
+                                       'read-file-name-internal
+                                       nil t))
+         (target-imgs-dir
+          (completing-read "Choosing imgs extract location: "
+                           'read-file-name-internal
+                           nil t))
+         imgs-paths imgs-lost imgs-copied)
+    (cond
+     ((not (file-exists-p target-file))
+      (error (format "File '%s' not existed." target-file)))
+     ((or (file-directory-p target-file)
+          (not (equal (file-name-extension target-file) "org")))
+      (error (format "File '%s' must be org file" target-file))))
+    (unless (file-directory-p target-imgs-dir)
+      (error (format "Directory '%s' not existed.")))
+    (setq imgs-paths (entropy/ocimg-extract-file-imgs-links target-file)
+          temp/x3 imgs-paths)
+    (when imgs-paths
+      (dolist (el imgs-paths)
+        (if (file-exists-p el)
+            (push el imgs-copied)
+          (push el imgs-lost)))
+      (when imgs-lost
+        (entropy/ocimg-extract-prompt-lost imgs-lost))
+      (if imgs-copied
+          (unless (not (yes-or-no-p
+                        (format "Extract imgs of '%s' to '%s'?"
+                                (file-name-nondirectory target-file)
+                                target-imgs-dir)))
+            (dolist (el imgs-copied)
+              (copy-file el
+                         (expand-file-name (file-name-nondirectory el)
+                                           (expand-file-name target-imgs-dir)))
+              (message (format "Copy '%s' to '%s' done."
+                               el target-imgs-dir))))
+        (message (format "No valid imgs of '%s' to extracted!"
+                         (file-name-nondirectory target-file)))))))
+
+(defun entropy/ocimg-extract-prompt-lost (imgs-list)
+  (dolist (el imgs-list)
+    (message (format "Image file '%s' not existed!" el))))
+
+(defun entropy/ocimg-extract-file-imgs-links (org-file)
+  "extracting all images links from one org-file ORG-FILE without
+source images file existed status checking.
+
+NOTE:
+
+Now just supply localization image file analyzing."
+  (let ((link-objs (entropy/ow-get-buffer-links (find-file-noselect org-file)))
+        links_temp links
+        (base-dir (file-name-directory org-file)))
+    (when link-objs
+      (dolist (el link-objs)
+        (push (plist-get el :link) links_temp)))
+    (setq temp/xx links_temp)
+    (when links_temp
+      (dolist (el links_temp)
+        (when (string-match "\\(svg\\|imagemagick\\|png\\|gif\\|tiff\\|jpeg\\|xpm\\|xbm\\|pbm\\)$"
+                            el)
+          (let ((non-abbrev (replace-regexp-in-string "^file:" "" el)))
+            (cond
+             ((string-match-p "^\\.+" non-abbrev)
+              (let ((default-directory base-dir))
+                (push (expand-file-name non-abbrev) links)))
+             (t
+              (unless (entropy/cl-check-filename-legal non-abbrev t)
+                (push non-abbrev links))))))))
+    links))
+
+
 
 
 ;; ** org-htmlize for export code block with coloful sensitive which suitable with programe
