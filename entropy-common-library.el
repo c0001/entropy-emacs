@@ -978,7 +978,7 @@ Note the location must end with '/'."
 
 
 ;; **** check-filename legal
-(defun entropy/cl-check-filename-legal (filename)
+(defun entropy/cl-check-filename-legal (filename &optional non-error)
   "Check filename legally for current operation system platform.
 
 This function refused the invalid file-name which un-compat for
@@ -997,18 +997,23 @@ current operation system platform like forms below:
    problem as windows, but if you use windows like path style on
    it.
 
-This function will sign the error when filename was illegal,
+This function will sign the error when filename was illegal when
+optional arg NON-ERROR was nil or return t as illegal for,
 otherwise return nil."
   (cond
    ((equal system-type 'windows-nt)
     (let ((path-type (entropy/cl-check-filename-w32-legal filename)))
       (if (not path-type)
-          (error (format "Notice: Filename '%s' illegal!" filename))
+          (if (not non-error)
+              (error (format "Notice: Filename '%s' illegal!" filename))
+            t)
         nil)))
    (t
     (let ((path-type (entropy/cl-check-filename-unix-legal filename)))
       (if (not path-type)
-          (error (format "Notice: Filename '%s' illegal!" filename))
+          (if (not non-error)
+              (error (format "Notice: Filename '%s' illegal!" filename))
+            t)
         nil)))))
 
 (defun entropy/cl-check-filename-unix-legal (filename)
