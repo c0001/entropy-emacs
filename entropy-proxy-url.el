@@ -9,10 +9,7 @@
 ;;; License: GPLv3
 
 ;;* Code:
-(require 'proxy-mode
-         (expand-file-name
-          "elements/self-package/entropy-proxy-mode/proxy-mode.el"
-          user-emacs-directory))
+(require 'proxy-mode)
 
 (require 'w3m)
 (require 'entropy-proxy-url-gfw-list)
