@@ -43,6 +43,7 @@
 ;; ** require
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+(require 'cl)
 ;; ** varaibale defination
 (defvar entropy/iniext-lost-cmd nil)
 (defvar entropy/iniext-submodule-dir
