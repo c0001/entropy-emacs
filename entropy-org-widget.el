@@ -193,26 +193,32 @@ oder as the occurence order of their buffer position.
 bracket link string BRACKT-LINK, and return the plist of which
 indicating it's link properties for:
 
-(:str xxx :desc xxx :link xxx)
+  (list :str str :des description :link link)
 
 Key :str was the substring matched for, :desc was link
 description string matched or nil otherwise, :link as desc."
-  (let (desc link rtn)
+  (let (str desc link rtn)
     (with-temp-buffer
+      (goto-char (point-min))
       (insert bracket-link)
       (goto-char (point-min))
-      (org-in-regexp org-bracket-link-regexp)
-      (setq desc (when (match-end 3) (match-string-no-properties 3)))
-      (setq link (match-string-no-properties 1)))
-    (setq rtn (list :str (match-string-no-properties 0)
-                    ;; (cond ((and desc
-                    ;;             (stringp desc))
-                    ;;        (concat "[[" link "][" desc "]]"))
-                    ;;       (t (concat "[[" link "]]")))
+      (re-search-forward org-bracket-link-regexp nil t)
+      (setq str (match-string-no-properties 0)
+            desc (when (match-end 3) (match-string-no-properties 3))
+            link (match-string-no-properties 1)))
+    (setq rtn (list :str str
                     :desc desc
                     :link link))
     rtn))
 
-
+(defun entropy/ow-get-buffer-links (buffer)
+  (let (buffer-str)
+    (setq buffer-str
+          (with-current-buffer buffer
+            (buffer-substring-no-properties (point-min) (point-max))))
+    (setq buffer-str
+          (replace-regexp-in-string
+           "\n" "" buffer-str))
+    (entropy/ow-get-str-links buffer-str)))
 ;; * provide
 (provide 'entropy-org-widget)
