@@ -23,7 +23,10 @@
 
 ;; ** theme in loading progress
 (when (display-graphic-p)
-  (load-theme 'tango-dark t))
+  (let ((initial-theme-path (expand-file-name "startup-theme" (file-name-directory load-file-name))))
+    (add-to-list 'custom-theme-load-path initial-theme-path)
+    (add-to-list 'load-path initial-theme-path)
+    (load-theme 'entropy-base16-theme-bright t)))
 
 ;; ** init-frame position and width and height
 (if (< entropy/init-frame-width-scale 1)
@@ -84,7 +87,8 @@ the specific height and width determined by above variable you setted."
                       nil :height 2.5 :bold t :underline t :overline t)
 
   (defvar entropy/dashboard-text-logo-file
-    (expand-file-name "elements/logo/logo.txt" user-emacs-directory)
+    (expand-file-name "logo/logo.txt"
+                      (file-name-directory load-file-name))
     "Text logo file.")
 
 ;; *** libraries
