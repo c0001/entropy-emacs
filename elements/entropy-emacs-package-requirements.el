@@ -36,7 +36,7 @@
 ;;; Code:
 
 (defvar entropy-emacs-packages
-  '(ac-php
+  `(ac-php
     apel
     atom-dark-theme
     atom-one-dark-theme
@@ -55,7 +55,7 @@
     anaconda-mode
     company-c-headers
     company-irony
-    company-posframe
+    ,(unless (version< emacs-version "26") 'company-posframe)
     company-quickhelp
     company-shell
     company-tern
@@ -133,7 +133,7 @@
     gntp
     poporg
     popwin
-    posframe
+    ,(unless (version< emacs-version "26") 'posframe)
     py-autopep8
     pyim
     pyim-basedict

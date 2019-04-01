@@ -63,25 +63,27 @@
 
 
 (defvar entropy/iniext-deps
-  '(("entropy-cn-dict" . "https://github.com/c0001/entropy-cn-dict.git")
-    ("entropy-common-library" . "https://github.com/c0001/entropy-common-library.git")
-    ("entropy-counsel-prj" . "https://github.com/c0001/entropy-counsel-prj.git")
-    ("entropy-counsel-stuffs" . "https://github.com/c0001/entropy-counsel-stuffs.git")
-    ("entropy-dired-cp-or-mv" . "https://github.com/c0001/entropy-dired-cp-or-mv.git")
-    ("entropy-epub2org" . "https://github.com/c0001/entropy-epub2org.git")
-    ("entropy-global-read-only-mode" . "https://github.com/c0001/entropy-global-read-only-mode.git")
-    ("entropy-open-with" . "https://github.com/c0001/entropy-open-with.git")
-    ("entropy-org-batch-refile" . "https://github.com/c0001/entropy-org-batch-refile.git")
-    ("entropy-org-export-theme-toggle" . "https://github.com/c0001/entropy-org-export-theme-toggle.git")
-    ("entropy-org-widget" . "https://github.com/c0001/entropy-org-widget.git")
-    ("entropy-portableapps" . "https://github.com/c0001/entropy-portableapps.git")
-    ("entropy-proxy-mode" . "https://github.com/c0001/entropy-proxy-mode.git")
-    ("entropy-proxy-url" . "https://github.com/c0001/entropy-proxy-url.git")
-    ("entropy-s2t" . "https://github.com/c0001/entropy-s2t.git")
-    ("entropy-sdcv" . "https://github.com/c0001/entropy-sdcv.git")
-    ("entropy-unfill" . "https://github.com/c0001/entropy-unfill.git")
-    ("entropy-en-words" . "https://github.com/c0001/entropy-en-words.git")
-    ("entropy-font-lock-plus" . "https://github.com/c0001/entropy-font-lock-plus.git")))
+  (list
+   (list :item "entropy-cn-dict"                 :type "git"  :remote "https://github.com/c0001/entropy-cn-dict.git" :archive (expand-file-name "entropy-cn-dict" entropy/iniext-deps-dir))
+   (list :item "entropy-common-library"          :type "git"  :remote "https://github.com/c0001/entropy-common-library.git" :archive (expand-file-name "entropy-common-library" entropy/iniext-deps-dir))
+   (list :item "entropy-counsel-prj"             :type "git"  :remote "https://github.com/c0001/entropy-counsel-prj.git" :archive (expand-file-name "entropy-counsel-prj" entropy/iniext-deps-dir))
+   (list :item "entropy-counsel-stuffs"          :type "git"  :remote "https://github.com/c0001/entropy-counsel-stuffs.git" :archive (expand-file-name "entropy-counsel-stuffs" entropy/iniext-deps-dir))
+   (list :item "entropy-dired-cp-or-mv"          :type "git"  :remote "https://github.com/c0001/entropy-dired-cp-or-mv.git" :archive (expand-file-name "entropy-dired-cp-or-mv" entropy/iniext-deps-dir))
+   (list :item "entropy-epub2org"                :type "git"  :remote "https://github.com/c0001/entropy-epub2org.git" :archive (expand-file-name "entropy-epub2org" entropy/iniext-deps-dir))
+   (list :item "entropy-global-read-only-mode"   :type "git"  :remote "https://github.com/c0001/entropy-global-read-only-mode.git" :archive (expand-file-name "entropy-global-read-only-mode" entropy/iniext-deps-dir))
+   (list :item "entropy-open-with"               :type "git"  :remote "https://github.com/c0001/entropy-open-with.git" :archive (expand-file-name "entropy-open-with" entropy/iniext-deps-dir))
+   (list :item "entropy-org-batch-refile"        :type "git"  :remote "https://github.com/c0001/entropy-org-batch-refile.git" :archive (expand-file-name "entropy-org-batch-refile" entropy/iniext-deps-dir))
+   (list :item "entropy-org-export-theme-toggle" :type "git"  :remote "https://github.com/c0001/entropy-org-export-theme-toggle.git" :archive (expand-file-name "entropy-org-export-theme-toggle" entropy/iniext-deps-dir))
+   (list :item "entropy-org-widget"              :type "git"  :remote "https://github.com/c0001/entropy-org-widget.git" :archive (expand-file-name "entropy-org-widget" entropy/iniext-deps-dir))
+   (list :item "entropy-portableapps"            :type "git"  :remote "https://github.com/c0001/entropy-portableapps.git" :archive (expand-file-name "entropy-portableapps" entropy/iniext-deps-dir))
+   (list :item "entropy-proxy-mode"              :type "git"  :remote "https://github.com/c0001/entropy-proxy-mode.git" :archive (expand-file-name "entropy-proxy-mode" entropy/iniext-deps-dir))
+   (list :item "entropy-proxy-url"               :type "git"  :remote "https://github.com/c0001/entropy-proxy-url.git" :archive (expand-file-name "entropy-proxy-url" entropy/iniext-deps-dir))
+   (list :item "entropy-s2t"                     :type "git"  :remote "https://github.com/c0001/entropy-s2t.git" :archive (expand-file-name "entropy-s2t" entropy/iniext-deps-dir))
+   (list :item "entropy-sdcv"                    :type "git"  :remote "https://github.com/c0001/entropy-sdcv.git" :archive (expand-file-name "entropy-sdcv" entropy/iniext-deps-dir))
+   (list :item "entropy-unfill"                  :type "git"  :remote "https://github.com/c0001/entropy-unfill.git" :archive (expand-file-name "entropy-unfill" entropy/iniext-deps-dir))
+   (list :item "entropy-en-words"                :type "git"  :remote "https://github.com/c0001/entropy-en-words.git" :archive (expand-file-name "entropy-en-words" entropy/iniext-deps-dir))
+   (list :item "entropy-font-lock-plus"          :type "git"  :remote "https://github.com/c0001/entropy-font-lock-plus.git" :archive (expand-file-name "entropy-font-lock-plus" entropy/iniext-deps-dir))
+   (list :item "org-9.1.13"                      :type "wget" :remote "https://elpa.gnu.org/packages/org-9.1.13.tar" :archive (expand-file-name "org-mode.tar" entropy/iniext-deps-dir))))
 
 (defvar entropy/iniext-deps-counter nil)
 
@@ -101,7 +103,7 @@ dependencies satisfies as.
 Non-nil return indicated of satisfaction."
   (unless entropy/iniext-lost-cmd
     (setq entropy/iniext-lost-cmd nil))
-  (let ((pre-cmd '("git"))
+  (let ((pre-cmd '("git" "make" "wget" "tar" "gzip" "rm"))
         (rtn t))
     (dolist (el pre-cmd)
       (unless (executable-find el)
@@ -330,7 +332,8 @@ the extensions info file path to `Info-additional-directory-list'.
   (let (rtn lossy)
     (dolist (el entropy/iniext-deps)
       (let ((dirN (expand-file-name
-                   (car el) entropy/iniext-deps-dir)))
+                   (plist-get el :item)
+                   entropy/iniext-deps-dir)))
         (unless (file-directory-p dirN)
           (push el lossy))))
     (if lossy
@@ -344,7 +347,7 @@ the extensions info file path to `Info-additional-directory-list'.
       (read-only-mode 0))
     (goto-char (point-min))
     (dolist (el entropy/iniext-deps-lossy)
-      (insert (concat (format "Losing '%s' ." (car el)) "\n"))))
+      (insert (concat (format "Losing '%s' ." (plist-get el :item)) "\n"))))
   (let (rtn)
     (switch-to-buffer entropy/iniext-deps-lossy-prompt-buffer)
     (delete-other-windows)
@@ -353,19 +356,22 @@ the extensions info file path to `Info-additional-directory-list'.
     rtn))
 
 (defun entropy/iniext-deps-get ()
-  (when (yes-or-no-p
-         "Getting entropy-emamcs-deps?")
+  (when (entropy/iniext-deps-lossy-prompt)
     (let (cmds cmds_len (count 0) get-dep-process)
       (dolist (el entropy/iniext-deps-lossy)
         (cl-incf count)
-        (let* ((item (concat (car el) "-git_clone"))
-               (item-remote (cdr el))
-               (item-clone-path (expand-file-name
-                                 (car el)
-                                 (expand-file-name entropy/iniext-deps-dir))))
-          (push (list :cmd (list "clone" item-remote item-clone-path)
+        (let* ((item-info (plist-get el :item))
+               (item-type (plist-get el :type))
+               (item-remote (plist-get el :remote))
+               (item-archive (expand-file-name
+                                 (plist-get el :archive))))
+          (push (list :cmd (cond
+                             ((equal "git" item-type)
+                              (list "git" "clone" item-remote item-archive))
+                             ((equal "wget" item-type)
+                              (list "wget" "-O" item-archive item-remote)))
                       :seq (number-to-string count)
-                      :item item)
+                      :item item-info)
                 cmds)))
       (setq cmds (reverse cmds))
       (setq cmds_len (length cmds))
@@ -376,17 +382,15 @@ the extensions info file path to `Info-additional-directory-list'.
         (goto-char (point-min))
         (dolist (el cmds)
           (insert
-           (concat (plist-get el :seq) ". Item: <" (plist-get el :item) "> cloning ...\n=====\n\n"))))
+           (concat (plist-get el :seq) ". Item: <" (plist-get el :item) "> getting ...\n=====\n\n"))))
       (switch-to-buffer entropy/iniext-deps-lossy-get-buffer)
       (delete-other-windows)
-      (setq count 0)
       (dolist (el cmds)
-        (cl-incf count)
         (setq get-dep-process
               (apply 'start-process
                      (plist-get el :item)
                      entropy/iniext-deps-lossy-get-buffer
-                     "git" (plist-get el :cmd)))
+                     (plist-get el :cmd)))
         (set-process-filter get-dep-process 'entropy/iniext-deps-get-cbk-filter)
         (set-process-sentinel get-dep-process 'entropy/iniext-deps-get-sentinel)))))
 
@@ -399,12 +403,12 @@ the extensions info file path to `Info-additional-directory-list'.
       (forward-line 0)
       (cond
        ((string-match "exited abnormally with code \\([0-9]+\\)" status)
-        (insert (format "Git clone '%s' fatal with code <%s> .\n"
+        (insert (format "Getting '%s' fatal with code <%s> .\n"
                         (process-name proc)
                         (match-string 1 status)))
         (push nil entropy/iniext-deps-counter))
        ((string-match "finished$" status)
-        (insert (format "Git clone '%s' success!\n"
+        (insert (format "Getting '%s' success!\n"
                         (process-name proc)))
         (push t entropy/iniext-deps-counter))))))
 
@@ -422,7 +426,25 @@ the extensions info file path to `Info-additional-directory-list'.
              (eq (length entropy/iniext-deps-lossy) (length entropy/iniext-deps-counter)))
     (cond ((member nil entropy/iniext-deps-counter)
            (entropy/iniext-deps-get-final-prompt "Get deps with error!"))
-          (t (entropy/iniext-deps-get-final-prompt "Get deps successfully! Reboot emacs!")))))
+          (t (entropy/iniext-deps-get-final-task)
+             (entropy/iniext-deps-get-final-prompt "Get deps successfully! Reboot emacs!")))))
+
+(defun entropy/iniext-deps-get-final-task ()
+  (let (org-archive)
+    (when (progn
+            (catch :exit
+              (dolist (el entropy/iniext-deps-lossy)
+                (when (equal (plist-get el :item) "org-9.1.13")
+                  (setq org-archive (expand-file-name (plist-get el :archive)))
+                  (throw :exit t)))))
+      (when (file-exists-p org-archive)
+        (message "Extracting org-mode ...")
+        (let ((default-directory (expand-file-name
+                                  (file-name-directory
+                                   org-archive))))
+          (shell-command (concat "tar -xf " org-archive))
+          (shell-command (concat "rm " org-archive))
+          (message "Extracting org-mode done！"))))))
 
 (defun entropy/iniext-deps-get-final-prompt (string)
   (with-current-buffer (get-buffer-create "entropy-emacs-deps_stdout")
@@ -448,7 +470,12 @@ the extensions info file path to `Info-additional-directory-list'.
              (subdeps-dirs (entropy/list-subdir base-dir)))
         (dolist (el subdeps-dirs)
           (add-to-list 'load-path el)
-          (entropy/iniext-add-subdirs-to-load-path el)))
+          (entropy/iniext-add-subdirs-to-load-path el))
+        (catch :exit
+          (dolist (el load-path)
+            (when (string-match-p "share/emacs/26.1/lisp/org" el)
+              (delete* el load-path)
+              (throw :exit nil)))))
       (setq rtn t))
      ((not deps_status)
       (entropy/iniext-deps-get)

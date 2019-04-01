@@ -13,7 +13,7 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-common-library)
-(require 'entropy-org-widget)
+
 
 ;; ** Pre advice
 (defun entropy/org-exp-around-advice (old-func &rest args)
@@ -28,24 +28,6 @@
 
 
 ;; ** main
-
-;; Force emacs install proper version of Org-Mode when emacs version less than 26
-(when (version< emacs-version "26")
-  (when (not (file-exists-p
-              (expand-file-name
-               (concat package-user-dir "/org-9.1.13") user-emacs-directory)))
-    (let ((new-org (car-safe (cdr (cdr (assq 'org package-archive-contents))))))
-      (setf (package-desc-version new-org) (list 9 1 13))
-      (package-install new-org nil)
-      (message "Successfully install org-9.1.13")))
-  (when (eq entropy/use-extensions-type 'submodules)
-    (let ((dir-list (entropy/cl-list-subdir package-user-dir)))
-      (unless (not dir-list)
-        (catch :exit
-          (dolist (el dir-list)
-            (when (string-match "org-9\\.1\\.[0-9]+$" el)
-              (add-to-list 'load-path el)
-              (throw :exit nil))))))))
 
 (use-package org
 ;; *** init
@@ -65,6 +47,7 @@
   :hook (org-mode . org-babel-result-hide-all)
 ;; *** configs
   :config
+  (require 'entropy-org-widget)
 ;; **** basic setting  
   (setq-default org-agenda-span (quote day)) ;Set agenda daily show as default
   (setq org-log-done 'time)                  ;insert time-stamp when toggle 'TODO' to 'DONE'

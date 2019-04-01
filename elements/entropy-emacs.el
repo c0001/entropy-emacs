@@ -296,30 +296,35 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 
 ;; *** startup main function
+(defun entropy/init-minimal ()
+  (entropy/M-enable)
+  (entropy/X-enable)
+  (when (and entropy/enable-pyim
+             ;; judgement of whether first init entropy-emacs
+             (not
+              (let ((buflist (mapcar #'buffer-name (buffer-list)))
+                    (rtn nil))
+                (when (member "*Compile-Log*" buflist)
+                  (setq rtn t))
+                rtn)))
+    (entropy/pyim-init-prompt)
+    (defun entropy/pyim-init-prompt ()
+      (message "This function has been unloaded."))))
+
+(defun entropy/init-X ()
+  (entropy/M-enable)
+  (when entropy/enable-pyim
+    (entropy/pyim-init-prompt)
+    (defun entropy/pyim-init-prompt ()
+      (message "This function has been unloaded."))))
+
+
 (defun entropy/init-bingo ()
   (cond
    ((not entropy/minimal-start)
-    (run-with-idle-timer 0.1 nil #'(lambda ()
-                                     (entropy/M-enable)
-                                     (entropy/X-enable)
-                                     (when (and entropy/enable-pyim
-                                                ;; judgement of whether first init entropy-emacs
-                                                (not
-                                                 (let ((buflist (mapcar #'buffer-name (buffer-list)))
-                                                       (rtn nil))
-                                                   (when (member "*Compile-Log*" buflist)
-                                                     (setq rtn t))
-                                                   rtn)))
-                                       (entropy/pyim-init-prompt)
-                                       (defun entropy/pyim-init-prompt ()
-                                         (message "This function has been unloaded."))))))
+    (entropy/init-minimal))
    (entropy/minimal-start
-    (run-with-idle-timer 0.1 nil #'(lambda ()
-                                     (entropy/M-enable)
-                                     (when entropy/enable-pyim
-                                       (entropy/pyim-init-prompt)
-                                       (defun entropy/pyim-init-prompt ()
-                                         (message "This function has been unloaded."))))))))
+    (entropy/init-X))))
 
 
 (require 'entropy-emacs-extensions)

@@ -110,12 +110,14 @@ for `user-emacs-directory'."
 ;; Install entropy-emacs pre installed packages
 (when (equal entropy/use-extensions-type 'origin)
   (require 'entropy-emacs-package-requirements)
-  (dolist (package entropy-emacs-packages)
-    (unless (package-installed-p package)
-      (if (ignore-errors (assoc package package-archive-contents))
-          (package-install package)
-        (package-refresh-contents)
-        (package-install package)))))
+  (let ((package-check-signature nil))
+    (dolist (package entropy-emacs-packages)
+      (unless (or (null package)
+                  (package-installed-p package))
+        (if (ignore-errors (assoc package package-archive-contents))
+            (ignore-errors (package-install package))
+          (package-refresh-contents)
+          (ignore-errors (package-install package)))))))
 
 ;; Setup `use-package'
 (unless (eq entropy/use-extensions-type 'submodules)
