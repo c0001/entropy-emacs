@@ -366,7 +366,35 @@ type by function `entropy/transfer-wvol'"
                                             (cygwin "cygstart")
                                             (t "xdg-open"))
                                           (shell-quote-argument X))
-                                  nil 0))))
+                                  nil 0)))
+;; **** redefine counsel-git
+  (defvar entropy/counsel-git-root nil
+    "Temporally variable storing git repository root dir,
+this variable used to patching for origin `counsel-git'.")
+
+  (defun counsel-git-cands ()
+    (let ((default-directory (counsel-locate-git-root)))
+      (setq entropy/counsel-git-root default-directory)
+      (split-string
+       (shell-command-to-string counsel-git-cmd)
+       "\n"
+       t)))
+
+  (defun counsel-git-action (x)
+    "Find file X in current Git repository.
+
+    Note: this function has been modified by entropy-emacs because of:
+
+    ivy version 0.11.0 and counsel version 0.11.0 has the bug that
+    using wrong root-dir for find git repo's file that will cause file
+    not existed error and creating new buffer with that actual name,
+    this problem caused by origin `counsel-git-action' using
+    `ivy-last''s directory slot as the default diretory on the 0.11.0
+    version of ivy framework updating.
+    "
+    (with-ivy-window
+      (let ((default-directory entropy/counsel-git-root))
+        (find-file x)))))
 ;; ** avy
 (use-package avy
   :bind
