@@ -934,6 +934,28 @@ The minor changing was compat for above."
   :config
 
 ;; *** default config
+
+  ;; redefine search-web for compat with entropy-emacs
+  (defun search-web (engine word)
+    "Note this function has been modified for compating with entropy-emacs.
+
+The original one can't recovering default browser function,
+fixing it as thus. "
+    (interactive (list
+                  (search-web-query-engine)
+                  (read-string "Search Word: " nil 'search-web-word-history)))
+    (destructuring-bind (engine url render)
+        (assoc engine search-web-engines)
+      (let* ((render
+              (case render
+                ((nil) search-web-default-browser)
+                (In-Emacs search-web-in-emacs-browser)
+                (External search-web-external-browser)
+                (t render))))
+        (setq browse-url-browser-function render)
+        (browse-url (format url (url-hexify-string word)))
+        (setq-default browse-url-browser-function search-web-default-browser))))
+
   
   ;; redefine search query engine for force input comprehensive data
   (defun entropy/search-web-query-egine (type)
