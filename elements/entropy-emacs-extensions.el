@@ -83,6 +83,7 @@
    (list :item "entropy-unfill"                  :type "git"  :remote "https://github.com/c0001/entropy-unfill.git" :archive (expand-file-name "entropy-unfill" entropy/iniext-deps-dir))
    (list :item "entropy-en-words"                :type "git"  :remote "https://github.com/c0001/entropy-en-words.git" :archive (expand-file-name "entropy-en-words" entropy/iniext-deps-dir))
    (list :item "entropy-font-lock-plus"          :type "git"  :remote "https://github.com/c0001/entropy-font-lock-plus.git" :archive (expand-file-name "entropy-font-lock-plus" entropy/iniext-deps-dir))
+   (list :item "entropy-emacs-doc"               :type "git"  :remote "https://github.com/c0001/entropy-emacs-doc.git" :archive (expand-file-name "entropy-emacs-doc" entropy/iniext-deps-dir))
    (list :item "org-9.1.13"                      :type "wget" :remote "https://elpa.gnu.org/packages/org-9.1.13.tar" :archive (expand-file-name "org-mode.tar" entropy/iniext-deps-dir))))
 
 (defvar entropy/iniext-deps-counter nil)

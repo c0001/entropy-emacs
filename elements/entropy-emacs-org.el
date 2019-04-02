@@ -17,8 +17,9 @@
 
 ;; ** Pre advice
 (defun entropy/org-exp-around-advice (old-func &rest args)
-  (if (not (fboundp 'org-reveal-export-to-html))
-      (load-library "ox-reveal"))
+  (unless (fboundp 'org-reveal-export-to-html)
+    (when (featurep 'ox-reveal)
+      (load-library "ox-reveal")))
   (let ((entropy/web-development-environment t))
     (apply old-func args)))
 

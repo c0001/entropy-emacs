@@ -97,16 +97,16 @@ the specific height and width determined by above variable you setted."
        (:str "entropy-emacs introduction"
         :link-type file
         :link ,(expand-file-name
-                "org/entropy-emacs_introduction.org"
-                user-emacs-directory))
+                "entropy-emacs-doc/org/entropy-emacs_introduction.org"
+                entropy/iniext-deps-dir))
        (:str ".")
        (:str "(view ")
        (:str "html version"
         :link-type web
         :link ,(concat "file://"
                 (expand-file-name
-                 "org/entropy-emacs_introduction.html"
-                 user-emacs-directory)))
+                 "entropy-emacs-doc/org/entropy-emacs_introduction.html"
+                 entropy/iniext-deps-dir)))
        (:str " go.) "))
 
       ((:str "- Get ")

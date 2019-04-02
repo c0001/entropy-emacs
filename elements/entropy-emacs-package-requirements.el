@@ -59,6 +59,7 @@
     company-quickhelp
     company-shell
     company-tern
+    company-web
     company
     copyit
     counsel-css
