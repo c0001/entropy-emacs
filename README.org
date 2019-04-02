@@ -1,0 +1,16 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-emacs-doc
+#+author: Entropy
+
+This repo contained doc(wiki) for [[https://github.com/c0001/entropy-emacs][entropy-emacs]], you can see the main
+doc [[file:org/entropy-emacs_introduction.org][here]].
+
+Doc contained =feature= and =customized= introductions for
+entropy-emacs, read them carefully for more understanding and gain the
+underlying requirement knowledge which was the prerequisite for the
+*PR* and *issue* submitting. 
