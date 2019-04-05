@@ -1199,86 +1199,83 @@ which determined by the scale count 0.3 "
 (global-set-key (kbd "<f12>") 'entropy/time-show)
 
 ;; ** encoding and end-of-line conversation
-(defun entropy/backup-file (FILE)
-  "Backup file with named it by the form of
-  \"xxx-backup_20180713_Fri_21-28-20\""
-  (if (and (file-exists-p FILE) FILE)
-      (let* ((backup-name
-              (concat FILE "-backup_" (format-time-string "%Y%m%d_%a_%H-%M-%S")))
-             (backup-base (file-name-nondirectory backup-name))
-             (file-base (file-name-nondirectory FILE)))
-        (copy-file FILE backup-name)
-        (message (format "Backup '%1$s' to '%2$s'"
-                         file-base backup-base)))
-    (user-error (format "Buffer '%s' is not one exists file's mirror buffer." (buffer-name)))))
+(defun entropy/dos2unix-internal ()
+  "Exchange the buffer end-of-line type to unix sytle."
+  (interactive)
+  (entropy/cl-backup-file (buffer-file-name))
+  (revert-buffer-with-coding-system 'dos t)
+  (set-buffer-file-coding-system 'unix)
+  (if buffer-read-only
+      (read-only-mode 0))
+  (save-buffer)
+  (revert-buffer nil 'revert-without-query)
+  (read-only-mode 1))
 
-(if sys/win32p
-    (progn
-      (defun entropy/dos2unix ()
-        "Exchange the buffer end-of-line type to unix sytle."
-        (interactive)
-        (entropy/backup-file (buffer-file-name))
-        (revert-buffer-with-coding-system 'dos)
-        (set-buffer-file-coding-system 'unix)
+(defun entropy/save-buffer-as-utf8-internal (coding-system)
+  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
+  (interactive "zCoding system for visited file (default nil):")
+  (entropy/cl-backup-file (buffer-file-name))
+  (revert-buffer-with-coding-system coding-system)
+  (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))
+      (progn
+        (set-buffer-file-coding-system 'utf-8-unix)
         (if buffer-read-only
             (read-only-mode 0))
         (save-buffer)
         (revert-buffer nil 'revert-without-query)
         (read-only-mode 1))
-      
-      (defun entropy/save-buffer-as-utf8 (coding-system)
-        "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
-        (interactive "zCoding system for visited file (default nil):")
-        (entropy/backup-file (buffer-file-name))
-        (revert-buffer-with-coding-system coding-system)
-        (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))
-            (progn
-              (set-buffer-file-coding-system 'utf-8-unix)
-              (if buffer-read-only
-                  (read-only-mode 0))
-              (save-buffer)
-              (revert-buffer nil 'revert-without-query)
-              (read-only-mode 1))
-          (user-error "Please try corrected encoding! "))))
-  
-  (progn
-    (defun entropy/dos2unix ()
-      "Exchange the buffer end-of-line type to unix sytle."
-      (interactive)
-      (if (executable-find "dos2unix")
-          (progn
-            (setq entropy/dos2unix-shell-command
-                  (concat "dos2unix " (concat " " buffer-file-name)))
-            (entropy/backup-file (buffer-file-name))
-            (shell-command entropy/dos2unix-shell-command))
-        (message "error: Can't find dos2unix executeble program in your PATH")))
+    (user-error "Please try corrected encoding! ")))
 
-    (defun entropy/gbk2utf8 (coding-system)
-      "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
-      (interactive "zCoding system for visited file (default nil):")
-      (revert-buffer-with-coding-system coding-system)
-      (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))      
-          (if (executable-find "iconv")
-              (progn
-                (setq entropy/file-with-encoding-convert-shell-command
-                      (concat "iconv -f " (symbol-name coding-system) " -t utf-8 "
-                              (concat buffer-file-name
-                                      (concat " > " (concat buffer-file-name ".entropy-with-utf8")))))
-                (setq entropy/file-with-encoding-name
-                      (concat buffer-file-name ".entropy-with-utf8"))
-                (setq entropy/move-file-with-encoding-to-origin-shell-command
-                      (concat "mv "
-                              (concat entropy/file-with-encoding-name
-                                      (concat " " buffer-file-name))))
-                (if (yes-or-no-p (format "Do you confirm transfer this file to '%s' ?" "utf-8-unix"))
-                    (progn
-                      (entropy/backup-file (buffer-file-name))
-                      (shell-command entropy/file-with-encoding-convert-shell-command)
-                      (shell-command entropy/move-file-with-encoding-to-origin-shell-command)
-                      (entropy/dos2unix))
-                  (message "Bye Bye -v- ✌")))
-            (message "error: Can't find iconv executable program in your path"))
-        (user-error "Please try corrected encoding! ")))))
+(defun entropy/dos2unix-external (&optional no-backup)
+  "Exchange the buffer end-of-line type to unix sytle."
+  (interactive)
+  (if (executable-find "dos2unix")
+      (progn
+        (setq entropy/cl-dos2unix-shell-command
+              (concat "dos2unix " (concat " " "\"" buffer-file-name "\"")))
+        (unless no-backup
+          (entropy/cl-backup-file (buffer-file-name)))
+        (shell-command entropy/cl-dos2unix-shell-command))
+    (message "error: Can't find dos2unix executeble program in your PATH")))
+
+(defun entropy/save-buffer-as-utf8-external (coding-system)
+  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
+  (interactive "zCoding system for visited file (default nil):")
+  (revert-buffer-with-coding-system coding-system)
+  (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))      
+      (if (and (executable-find "iconv")
+               (executable-find "mv"))
+          (let* ((fname (if (buffer-file-name) (buffer-file-name) (error "Buffer without exist file!")))
+                 ($dir (file-name-directory fname))
+                 ($item (file-name-nondirectory fname))
+                 ($trans-item (concat $item ".entropy-with-utf8"))
+                 (trans-file (expand-file-name $trans-item $dir))
+                 (iconv_cmd (concat "iconv -f " (symbol-name coding-system)
+                                    " "
+                                    "-t utf-8"
+                                    " "
+                                    (shell-quote-argument fname)
+                                    " > "
+                                    (shell-quote-argument trans-file)))
+                 (rm-cmd (concat "rm " (shell-quote-argument fname)))
+                 (mv-cmd (concat "mv " (shell-quote-argument trans-file) " " (shell-quote-argument fname)))
+                 iconv-cbk)
+            (if (yes-or-no-p (format "Do you confirm transfer this file to '%s' ?" "utf-8-unix"))
+                (progn
+                  (entropy/cl-backup-file fname)
+                  (setq iconv-cbk (shell-command-to-string iconv_cmd))
+                  (if (and (file-exists-p trans-file)
+                           (equal iconv-cbk ""))
+                      (progn
+                        (kill-buffer)
+                        (shell-command rm-cmd)
+                        (shell-command mv-cmd)
+                        (find-file fname))
+                    (error "Iconv failed!")))
+              (message "Bye Bye -v- ✌")))
+        (message "error: Can't find 'iconv' or 'mv' executable program in your path."))
+    (user-error "Please try corrected encoding! ")))
+
 
 ;; ** foreign language realtime translation
 (defun entropy/toggle-dict (&optional default)
