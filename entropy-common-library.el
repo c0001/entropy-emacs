@@ -1188,14 +1188,15 @@ When optional arg VTOOL nil for, using md5sum as default choice.
       (user-error "Please try corrected encoding! "))))
 
 (progn
-  (defun entropy/cl-dos2unix-external ()
+  (defun entropy/cl-dos2unix-external (&optional no-backup)
     "Exchange the buffer end-of-line type to unix sytle."
     (interactive)
     (if (executable-find "dos2unix")
         (progn
           (setq entropy/cl-dos2unix-shell-command
                 (concat "dos2unix " (concat " " "\"" buffer-file-name "\"")))
-          (entropy/cl-backup-file (buffer-file-name))
+          (unless no-backup
+            (entropy/cl-backup-file (buffer-file-name)))
           (shell-command entropy/cl-dos2unix-shell-command))
       (message "error: Can't find dos2unix executeble program in your PATH")))
 
@@ -1204,26 +1205,37 @@ When optional arg VTOOL nil for, using md5sum as default choice.
     (interactive "zCoding system for visited file (default nil):")
     (revert-buffer-with-coding-system coding-system)
     (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))      
-        (if (executable-find "iconv")
-            (progn
-              (setq entropy/cl-file-with-encoding-convert-shell-command
-                    (concat "iconv -f " (symbol-name coding-system) " -t utf-8 "
-                            (concat buffer-file-name
-                                    (concat " > " (concat buffer-file-name ".entropy-with-utf8")))))
-              (setq entropy/cl-file-with-encoding-name
-                    (concat buffer-file-name ".entropy-with-utf8"))
-              (setq entropy/cl-move-file-with-encoding-to-origin-shell-command
-                    (concat "mv "
-                            (concat entropy/cl-file-with-encoding-name
-                                    (concat " " buffer-file-name))))
+        (if (and (executable-find "iconv")
+                 (executable-find "mv"))
+            (let* ((fname (if (buffer-file-name) (buffer-file-name) (error "Buffer without exist file!")))
+                   ($dir (file-name-directory fname))
+                   ($item (file-name-nondirectory fname))
+                   ($trans-item (concat $item ".entropy-with-utf8"))
+                   (trans-file (expand-file-name $trans-item $dir))
+                   (iconv_cmd (concat "iconv -f " (symbol-name coding-system)
+                                      " "
+                                      "-t utf-8"
+                                      " "
+                                      (shell-quote-argument fname)
+                                      " > "
+                                      (shell-quote-argument trans-file)))
+                   (rm-cmd (concat "rm " (shell-quote-argument fname)))
+                   (mv-cmd (concat "mv " (shell-quote-argument trans-file) " " (shell-quote-argument fname)))
+                   iconv-cbk)
               (if (yes-or-no-p (format "Do you confirm transfer this file to '%s' ?" "utf-8-unix"))
                   (progn
-                    (entropy/cl-backup-file (buffer-file-name))
-                    (shell-command entropy/cl-file-with-encoding-convert-shell-command)
-                    (shell-command entropy/cl-move-file-with-encoding-to-origin-shell-command)
-                    (entropy/cl-dos2unix-external))
+                    (entropy/cl-backup-file fname)
+                    (setq iconv-cbk (shell-command-to-string iconv_cmd))
+                    (if (and (file-exists-p trans-file)
+                             (equal iconv-cbk ""))
+                        (progn
+                          (kill-buffer)
+                          (shell-command rm-cmd)
+                          (shell-command mv-cmd)
+                          (find-file fname))
+                      (error "Iconv failed!")))
                 (message "Bye Bye -v- ✌")))
-          (message "error: Can't find iconv executable program in your path"))
+          (message "error: Can't find 'iconv' or 'mv' executable program in your path."))
       (user-error "Please try corrected encoding! "))))
 
 
