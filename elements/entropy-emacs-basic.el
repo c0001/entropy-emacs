@@ -1188,7 +1188,18 @@ using simple dired visual type, although you have seting it to
         (setq rtn (reverse rtn)
               entropy/get-dired-fpath-log rtn)
         (message "Save all path string to log variable 'entropy/get-dired-fpath-log'.")))))
-  (define-key dired-mode-map (kbd "0 w") 'entropy/get-dired-fpath))
+  (define-key dired-mode-map (kbd "0 w") 'entropy/get-dired-fpath)
+
+;; *** dired add load path
+  (defun entropy/dired-add-to-load-path ()
+    (interactive)
+    (let ((dir (completing-read "Choose load path adding item: "
+                                'read-file-name-internal
+                                nil t)))
+      (unless (file-directory-p dir)
+        (setq dir (file-name-directory dir)))
+      (add-to-list 'load-path dir)))
+  (define-key dired-mode-map (kbd "M-l") 'entropy/dired-add-to-load-path))
 
 
 ;; ** image-mode

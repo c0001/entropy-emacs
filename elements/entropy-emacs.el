@@ -327,7 +327,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     (entropy/init-X))))
 
 
-(require 'entropy-emacs-extensions)
+(require 'entropy-emacs-ext)
 ;; On win10 there's default global utf-8 operation system based
 ;; language environment setting supporting option. As when it enable,
 ;; forcing reset emacs internal w32-code page setting to utf-8 which
@@ -340,7 +340,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 (run-with-idle-timer 0.1 nil
                      #'(lambda ()
-                         (when (entropy/iniext-main)
+                         (when (entropy/ext-main)
                            (entropy/init-bingo))))
 
 (provide 'entropy-emacs)

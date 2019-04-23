@@ -177,7 +177,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   :init
   (defun entropy/doom-mdlini-after-advice (&rest _rest)
     "Advice for doom-modeline-mode."
-    (setq doom-modeline-buffer-file-name-style 'truncate-upto-project)
+    (setq doom-modeline-buffer-file-name-style 'truncate-all)
     (doom-modeline-refresh-bars)
     ;; theme adapted
     (if (string-match-p "spolsky" (symbol-name entropy/theme-options))
@@ -188,7 +188,8 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (with-eval-after-load 'doom-modeline
     (advice-add 'doom-modeline-mode :after #'entropy/doom-mdlini-after-advice))
   (setq doom-modeline-bar-width 1
-        doom-modeline-buffer-file-name-style 'truncate-all)
+        doom-modeline-buffer-file-name-style 'truncate-all
+        doom-modeline-major-mode-color-icon t)
   :config
   (defun doom-modeline-update-buffer-file-icon (&rest _)
     "Update file icon in mode-line.
@@ -202,14 +203,18 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (setq doom-modeline--buffer-file-icon
           (when (and doom-modeline-icon doom-modeline-major-mode-icon)
             (let* ((height (/ all-the-icons-scale-factor 1.3))
-                   (icon (when (all-the-icons-auto-mode-match?)
-                           (doom-modeline-icon-for-mode major-mode :height height))))
-              (if (symbolp icon)
-                  (setq icon (doom-modeline-icon-for-mode 'fundamental-mode :height height)))
+                   (icon (doom-modeline-icon-for-mode major-mode :height height)))
+              (when (or (symbolp icon)
+                        (eq major-mode 'fundamental-mode))
+                (cond ((equal (buffer-name) entropy/dashboard-buffer-name)
+                       (setq icon (all-the-icons-octicon "eye" :height height)))
+                      (t
+                       (setq icon (all-the-icons-octicon "file-binary" :height height)))))
               (unless (symbolp icon)
                 (propertize icon
                             'help-echo (format "Major-mode: %s" (format-mode-line mode-name))
-                            'display '(raise -0.125)))))))
+                            'display '(raise -0.125)))
+              icon))))
   
   (defun doom-modeline-update-buffer-file-state-icon (&rest _)
     "Update the buffer or file state in mode-line.

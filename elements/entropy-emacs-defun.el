@@ -70,5 +70,33 @@ directory."
       nil)))
 
 
+;; ** counter map list
+(defun entropy/numberic-list (list-var)
+  "Return list element mapped with numberic prefix which concated
+with '0' as alignment state."
+  (let* ((l-len (length list-var))
+         (register l-len)
+         (counter 0)
+         (step 1)
+         (zero-func
+          (lambda (counter str)
+            (let ((step (length str))
+                   (rtn str))
+              (while (< step counter)
+                (setq rtn (concat "0" rtn)
+                      step (+ 1 step)))
+              rtn)))
+         rtn)
+    (while (not (eq 0 register))
+      (setq register (/ register 10)
+            counter (+ 1 counter)))
+    (dolist (el list-var)
+      (push (cons (funcall zero-func counter (number-to-string step))
+                  el)
+            rtn)
+      (setq step (+ 1 step)))
+    (reverse rtn)))
+
+
 ;; ** provide
 (provide 'entropy-emacs-defun)

@@ -38,29 +38,31 @@
   "Personal Emacs configurations."
   :group 'extensions)
 
-(defcustom entropy/iniext-extensions-dir
-  (expand-file-name
-   ".entropy-emacs-extension"
-   "~/")
-  "entropy-emacs extensions directory path."
+(defcustom entropy/ext-deps-dir (expand-file-name
+                                 ".entropy-emacs-deps"
+                                 "~/")
+  "entropy-emacs dependencies archive location, entropy-emacs
+deps are the necessities for both type of 'origin' or
+'submodules' extension using type of
+`entropy/use-extensions-type'."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/iniext-extensions-elpa-dir
-  (expand-file-name
-   ".entropy-emacs-extension-elpa"
-   "~/")
-  "entropy-emacs elpa/melpa extensions directory path."
+(defcustom entropy/ext-extensions-dir (expand-file-name
+                                      ".entropy-emacs-extension"
+                                      "~/")
+  "entropy-emacs extensions collection archive location. This
+collection used to retrieving all entropy-emacs elpa or melpa
+extensions' repos as submodules archived as one single project
+using for studying or giving the pr to the origin host when you
+found the bug or want to give the improvements.
+
+This archive used then type of 'submodules' to customized
+variable `entropy/use-extensions-type'."
+
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/iniext-deps-dir
-  (expand-file-name
-   ".entropy-emacs-deps"
-   "~/")
-  "entropy-emacs extra feature directory path."
-  :type 'string
-  :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/custom-common-file (expand-file-name
                                        "custom.el"
