@@ -110,7 +110,7 @@ Each elements can be list or any single one."
           (setq $return t)))
     $return))
 
-;; **** make name alist
+;; **** list make name alist
 (defun entropy/cl-make-name-alist (olist naming-func)
   "Make name-alist from one pure vector OLIST. 
 
@@ -131,8 +131,164 @@ then retun name-alist:
     (if rtn
         rtn
       (error "entropy/cl-make-name-alist: Occur wrong!"))))
-  
 
+;; **** list capture region map
+(defun entropy/cl-capture-list-by-region-map (list-var region-map)
+  "Capture list LIST-VAR with region map REGION-TYPE and return
+the grouped pair list type value.
+
+Arg REGION-MAP:
+
+This variable are list of integers (can be both single element or
+multi ones). Integers summer must be equal or lessan than the
+length of LIST-VAR.
+
+Demo:
+
+List var (1 2 3 4 5 6 7 8 9) maped by (1 2 3) will return
+   
+    ((1) (2 3) (4 5 6))."
+  (let ((map-counter (apply '+ region-map))
+        (list-len (length list-var))
+        (counter 0) (list-pointer 0)
+        temp-var rtn)
+    (unless (<= map-counter list-len)
+      (error "[entropy/cl-capture-list-by-map]: region-map overflow!"))
+    (dolist (el region-map)
+      (setq counter list-pointer
+            temp-var nil)
+      (setq list-pointer (+ el list-pointer))
+      (dotimes (el2 el nil)
+        (push (nth counter list-var) temp-var)
+        (cl-incf counter))
+      (push (reverse temp-var) rtn))
+    (reverse rtn)))
+
+
+;; *** alist
+;; **** numberic alist sorting
+(defun entropy/cl-sort-numberic-alist (numberic-alist &optional reverse only-cdr)
+ "Sorting numberic alist which the car of each associate element
+was numberic and return the sorted alist.
+
+Optional arg:
+
+REVERSE: using minmal start sort ordered type.
+
+ONLY-CDR: Return the list of whose element was the origin
+association's cdr."
+  (let (numberic-list max-func rtn temp_var)
+    (dolist (el numberic-alist)
+      (unless (numberp (car el))
+        (error "<<entropy/cl-sort-numberic-alist>>: 
+Wrong type of argument: numberp '%s'" (car el)))
+      (push (car el) numberic-list))
+    (unless (= (length numberic-alist)
+               (length (remove-duplicates numberic-list :test 'eq)))
+      (error "<<entropy/cl-sort-numberic-alist>>: 
+Duplicated numberic order!"))
+    (setq max-func
+          (lambda (number-seq)
+            (let (rtn)
+              (push (apply 'max number-seq) rtn)
+              (unless (null (delete (car rtn) number-seq))
+                (setq rtn
+                      (append rtn
+                              (funcall max-func (delete (car rtn) number-seq)))))
+              rtn)))
+    (setq rtn (funcall max-func numberic-list))
+    (when reverse
+      (setq rtn (reverse rtn)))
+    (dolist (el rtn)
+      (push (assoc el numberic-alist)
+            temp_var))
+    (cond ((not only-cdr)
+           (reverse temp_var))
+          (only-cdr
+           (let (rtn)
+             (dolist (el temp_var)
+               (push (cdr el) rtn))
+             rtn)))))
+
+;; *** plist
+(defun entropy/cl-plistp (plist-var)
+  "Return non-nil while PLIST-VAR whether is plist type."
+  (let ((temp_var (copy-tree plist-var)))
+    (if (and (ignore-errors
+               (plist-put temp_var :test_put "success"))
+             (not (null plist-var)))
+        t
+      nil)))
+
+(defun entropy/cl-plist-batch-put (plist-var list-var &optional form)
+  "Batch put variable in LIST-VAR into plist by its origin
+sequence and return it.
+
+LIST-VAR's length must be the half of the length of plist-var."
+  (unless (entropy/cl-plistp plist-var)
+    (error "entropy/cl-plist-batch-put: plist-var is not plist"))
+  (let* ((plist-len (length plist-var))
+         (list-var-len (length list-var))
+         plist-clauses
+         plist-putted
+         (counter-max (- plist-len 2))
+         (counter 0))
+    (unless (= (* 2 list-var-len) plist-len)
+      (error "entropy/cl-plist-batch-put: plist-var and list-var length not equalized."))
+    (while (<= counter counter-max)
+      (push (nth counter plist-var) plist-clauses)
+      (setq counter (+ 2 counter)))
+    (setq plist-clauses (reverse plist-clauses))
+    (setq counter 0)
+    (cond
+     ((or (null form)
+          (not (functionp form)))
+      (dolist (el plist-clauses)
+        (push (list el (nth counter list-var))
+              plist-putted)
+        (cl-incf counter)))
+     ((functionp form)
+      (dolist (el plist-clauses)
+        (let ((orig-val (plist-get plist-var el))
+              new-var)
+          (setq new-var (apply form (list orig-val (nth counter list-var))))
+          (push (list el new-var) plist-putted)
+          (cl-incf counter)))))
+    (setq plist-putted (reverse plist-putted))
+    (apply 'append plist-putted)))
+  
+(defun entropy/cl-get-plist-prop-pair (plist-var &optional prop)
+  "Return alist type of PlIST-VAR whose element was pair list.
+
+Return single pair list when optional argument PROP was non-nil
+for which key matched of PROP in PLIST-VAR, or return nil when
+not matched. "
+  (unless (entropy/cl-plistp plist-var)
+    (error "[entropy/cl-get-plist-prop-pair]: wrong type of argument 'plistp'!"))
+  (let ((pro-list (entropy/cl-get-plist-prop-list plist-var))
+        rtn)
+    (dolist (el pro-list)
+      (push (list el (plist-get plist-var el)) rtn))
+    (setq rtn (reverse rtn))
+    (cond
+     (prop
+      (setq rtn (assoc prop rtn)))
+     ((null prop)
+      rtn))))
+
+(defun entropy/cl-get-plist-prop-list (plist-var)
+  "Return list of all props of PLIST-VAR with its origin
+sequence."
+  (unless (entropy/cl-plistp plist-var)
+    (error "[entropy/cl-get-plist-prop-list]: wrong type of argument 'plistp'!"))
+  (let* (plist-props
+         (counter 0)
+         (plist-len (length plist-var))
+         (counter-max (- plist-len 2)))
+    (while (<= counter counter-max)
+      (push (nth counter plist-var) plist-props)
+      (setq counter (+ 2 counter)))
+    (setq plist-props (reverse plist-props))))
 ;; *** string operation
 (defun entropy/cl-get-string-lines (str)
   "Get string STR line count while displayed in buffer."
@@ -532,7 +688,6 @@ ending of buffer ending. "
           (cl-incf p_cur))))
     (setq rtn (buffer-string))
     rtn))
-
 ;; ** file and dir operation
 ;; *** dir
 ;; **** list dir
@@ -1159,31 +1314,9 @@ When optional arg VTOOL nil for, using md5sum as default choice.
 
 
 
-;; ** ivy development
-;; *** ivy repeatly read former
-(defun entropy/cl-repeated-read (initial-input-prompt)
-  "Repeated read strings by `read-string' with typing history prompt,
-after type nothing, return the string list in order to the typing
-sequence."
-  (let* ((read "init") rtn
-         (input-prompt initial-input-prompt))
-    (while (not (string= read ""))
-      (if rtn
-          (setq input-prompt (format (concat initial-input-prompt " (%s)")
-                                     (mapconcat #'identity (entropy/cl-reverse-list rtn) ","))))
-      (setq read
-            (read-string (format "%s: " input-prompt)))
-
-      (if (not (string= read ""))
-          (push read rtn)))
-    (if (> (length rtn) 1)
-        (progn
-          (setq rtn (entropy/cl-reverse-list rtn))
-          rtn)
-      (if rtn
-          rtn
-        (error "No input data!")))))
-
+;; ** completion framework
+;; *** ivy development
+;; **** ivy repeatly read former
 (defun entropy/cl-ivy-read-repeatedly-function (read candidates-recorded prompt-abbrev &optional selected-shorten-function)
   "Common repeatedly read action for `ivy-read'.
 
@@ -1236,6 +1369,34 @@ You can see the details of arguments with above mentioned function docstring."
                                                  ""))))
                         prompt))
             rtn)))
+
+;; *** Internal completion method
+;; **** Read string
+(defun entropy/cl-repeated-read (initial-input-prompt)
+  "Repeated read strings by `read-string' with typing history prompt,
+after type nothing, return the string list in order to the typing
+sequence."
+  (let* ((read "init") rtn
+         (input-prompt initial-input-prompt))
+    (while (not (string= read ""))
+      (if rtn
+          (setq input-prompt (format (concat initial-input-prompt " (%s)")
+                                     (mapconcat #'identity (entropy/cl-reverse-list rtn) ","))))
+      (setq read
+            (read-string (format "%s: " input-prompt)))
+
+      (if (not (string= read ""))
+          (push read rtn)))
+    (if (> (length rtn) 1)
+        (progn
+          (setq rtn (entropy/cl-reverse-list rtn))
+          rtn)
+      (if rtn
+          rtn
+        (error "No input data!")))))
+
+
+
 
 ;; ** mischellaneous
 (defun entropy/cl-gen-time-str (&optional format-string)
