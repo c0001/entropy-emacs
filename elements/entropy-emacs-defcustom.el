@@ -64,6 +64,15 @@ variable `entropy/use-extensions-type'."
   :group 'entropy/emacs-custom-variable-basic)
 
 
+(defcustom entropy/ext-extensions-elpa-dir (expand-file-name
+                                            ".entropy-emacs-extension-elpa"
+                                            "~/")
+  "entropy-emacs elpa extensions directory used when
+`entropy/use-extensions-type' was not eq 'submodules'."
+  :type 'string
+  :group 'entropy/emacs-custom-variable-basic)
+
+
 (defcustom entropy/custom-common-file (expand-file-name
                                        "custom.el"
                                        user-emacs-directory)

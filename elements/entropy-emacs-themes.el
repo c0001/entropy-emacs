@@ -84,7 +84,7 @@
 
 ;; **** Adding option themes to theme path
 (unless (eq entropy/use-extensions-type 'origin)
-  (let* ((base-dir (expand-file-name entropy/iniext-submodule-dir))
+  (let* ((base-dir (expand-file-name (expand-file-name "elements/submodules" entropy/ext-extensions-dir)))
          (theme-list '("color-theme-sanityinc-tomorrow"
                        "birds-of-paradise-plus-theme.el"
                        "gotham-theme"

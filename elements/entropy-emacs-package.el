@@ -45,7 +45,7 @@ for `user-emacs-directory'."
   (setq-default package-user-dir
                 (expand-file-name
                  (concat "elpa-" version)
-                 (expand-file-name entropy/iniext-extensions-elpa-dir))))
+                 (expand-file-name entropy/ext-extensions-elpa-dir))))
 
 ;; Set customized package install directory
 (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "27.0.50"))
