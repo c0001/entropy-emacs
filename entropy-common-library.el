@@ -908,7 +908,7 @@ Non-nil value.
 
   - base-dir: '/usr/share/lib'
   - external-dir: '/usr/share'
-  - result: '(-1 \"leading\" t)
+  - result: '(-1 (\"leading\") t)
 
   *different branch:*
   - base-dir: '/usr/share/lib'
@@ -918,7 +918,7 @@ Non-nil value.
   *both as equalization:*
   - base-dir: '/usr/bin'
   - external-dir: '/usr/bin'
-  - result: '(0 \"same\" t)
+  - result: '(0 (\"same\") t)
   "
   (setq entropy/cl-dir-relativity-log nil)
   (let (blist elist clist
@@ -1357,6 +1357,13 @@ You can see the details of arguments with above mentioned function docstring."
                 rtn)
             (dolist (el olist)
               (let (prefix)
+                (unless (stringp el)
+                  (cond
+                   ((symbolp el)
+                    (setq el (symbol-name el)))
+                   (t
+                    (error "<<entropy/cl-ivy-read-repeatedly-prompt-expand>>:
+Just symbol and string type supported for candidates-recoreded."))))
                 (setq prefix (if shorten-function
                                  (funcall shorten-function el)
                                el))
