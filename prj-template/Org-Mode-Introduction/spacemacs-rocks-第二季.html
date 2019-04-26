@@ -1,0 +1,4975 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2018-10-30 Tue 18:06 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lrm;</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="Leekanchive" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+
+<link rel="stylesheet" title="Standard" href="https://orgmode.org/worg/style/worg.css" type="text/css" />
+<link rel="alternate stylesheet" title="Zenburn" href="https://orgmode.org/worg/style/worg-zenburn.css" type="text/css" />
+<link rel="alternate stylesheet" title="Classic" href="https://orgmode.org/worg/style/worg-classic.css" type="text/css" />
+<link rel="SHORTCUT ICON" href="https://orgmode.org/org-mode-unicorn.ico" type="image/x-icon" />
+<link rel="icon" href="https://orgmode.org/org-mode-unicorn.ico" type="image/ico" />
+<style>
+    body #content {
+        padding-top: 0px;
+        width: 65%;
+        margin: 0 auto;
+        margin-top: 5em;
+        background-color: white;
+        padding: 2em;
+        ;; /* box-shadow: 3px 3px 5px #888; */
+    }
+
+    body #postamble.status {width:65%;margin:0 auto;padding:2em;border: 0px;}
+
+    pre.src
+    {
+      overflow-x: scroll;
+      overflow-y: scroll;
+      max-height: 400px;
+    }
+
+    img{max-width: 700px} 
+
+    h3 {
+      margin-left: 0em
+    }
+
+    h4,
+    h5 {
+      font-size: 1.2em;
+      margin-left: 0em
+    }
+
+    h6,
+    h7,
+    h8,
+    h9,
+    h10 {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: crimson;
+      margin-left: 1.3em
+    }
+
+    blockquote
+    {
+      background-color: azure;
+      padding:2%;
+      border: 2px solid;
+      border-color: darkgrey;
+    }
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org5c3cb98">1. Spacemacs Rocks 第二季</a>
+<ul>
+<li><a href="#org9ba9c3f">1.1. 第一天：准备开始</a>
+<ul>
+<li><a href="#org75b6712">1.1.1. 基础操作</a></li>
+<li><a href="#org5d054b5">1.1.2. 内置功能</a></li>
+<li><a href="#org87066f1">1.1.3. 学习基础 Elisp</a>
+<ul>
+<li><a href="#orgb71da47">1.1.3.1. 开始 Hacking！</a></li>
+<li><a href="#orgd947b9c">1.1.3.2. 插件管理</a></li>
+<li><a href="#orgc0f2191">1.1.3.3. Org-mode</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org581196c">1.2. 第二天：高级自定义</a>
+<ul>
+<li><a href="#orgf8d01c5">1.2.1. Emacs 也很美</a></li>
+<li><a href="#org689f2ad">1.2.2. JavaScript IDE</a>
+<ul>
+<li><a href="#orgf5e3c9f">1.2.2.1. Org-mode 进阶</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org24c35a4">1.3. 第三天：配置文件模块化（上）</a>
+<ul>
+<li><a href="#orgdec0ac8">1.3.1. 多文件存储配置文件(上)</a></li>
+<li><a href="#orga6f166b">1.3.2. Major 与 Minor Mode 详解</a></li>
+</ul>
+</li>
+<li><a href="#org1927ba8">1.4. 第四天：配置文件模块化（下）以及使用优化</a>
+<ul>
+<li><a href="#orge1f0186">1.4.1. 配置文件模块化（下）</a></li>
+<li><a href="#org7ad81c4">1.4.2. 更好的默认设置</a>
+<ul>
+<li><a href="#org2f32165">1.4.2.1. 代码缩进</a></li>
+<li><a href="#org2c47d0b">1.4.2.2. 缩写补全</a></li>
+<li><a href="#org8b638af">1.4.2.3. Hippie 补全</a></li>
+</ul>
+</li>
+<li><a href="#orgad1ebf4">1.4.3. Dired Mode</a></li>
+<li><a href="#orgc7bc6cf">1.4.4. Org-mode 管理 Emacs 配置</a></li>
+</ul>
+</li>
+<li><a href="#org80066bf">1.5. 第五天：打造前端开发神器</a>
+<ul>
+<li><a href="#orga6ef93b">1.5.1. web-mode</a></li>
+<li><a href="#org3501983">1.5.2. js2-refactor</a></li>
+<li><a href="#orga4badf7">1.5.3. 优化 occur 与 imenu</a></li>
+<li><a href="#org132c5e6">1.5.4. expand-region</a></li>
+<li><a href="#org0a337a9">1.5.5. iedit</a></li>
+<li><a href="#orgbff23ef">1.5.6. Org 导出</a></li>
+</ul>
+</li>
+<li><a href="#orga06940c">1.6. 第六天：代码片段与语法检查器</a>
+<ul>
+<li><a href="#orgd070fef">1.6.1. Org-mode 进阶使用</a></li>
+<li><a href="#org68c86c5">1.6.2. 批量修改文件名</a></li>
+<li><a href="#org22af4c2">1.6.3. 搜索与替换</a></li>
+<li><a href="#orgf07474e">1.6.4. 语法检查器（Linter）</a></li>
+<li><a href="#orge22f8e7">1.6.5. 代码块</a>
+<ul>
+<li><a href="#org224eb97">1.6.5.1. auto-yasnippet</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgd477b33">1.7. 第七天：Evil 模式</a>
+<ul>
+<li><a href="#org1c34d5f">1.7.1. Evil 的安装</a></li>
+<li><a href="#org8b0e446">1.7.2. Evil 模式插件</a>
+<ul>
+<li><a href="#org54c3f20">1.7.2.1. Leader Key</a></li>
+<li><a href="#orgd0dd823">1.7.2.2. Window-numbering</a></li>
+<li><a href="#org4448ca3">1.7.2.3. Evil-Surround</a></li>
+<li><a href="#org618b083">1.7.2.4. Evil-nerd-commenter</a></li>
+<li><a href="#org9bbbc14">1.7.2.5. Which-key</a></li>
+</ul>
+</li>
+<li><a href="#org0684ad8">1.7.3. Org Mode 中的搜索</a></li>
+</ul>
+</li>
+<li><a href="#org24e090c">1.8. 第八天：Cask 介绍与实践</a>
+<ul>
+<li><a href="#org76e5663">1.8.1. Cask 的安装</a></li>
+<li><a href="#orgdfef155">1.8.2. 为何使用 Cask</a></li>
+<li><a href="#orgbb922be">1.8.3. 故障排除</a>
+<ul>
+<li><a href="#org9daa4e9">1.8.3.1. Emacs24.5 时不能安装 <b>let-alist</b></a></li>
+<li><a href="#orgd306ba3">1.8.3.2. 在 Emacs24.5 中没有定义 define-advice</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgb1c92a3">1.9. 第九天：Macro 与 Use-package</a>
+<ul>
+<li><a href="#orga8bd139">1.9.1. Macro</a>
+<ul>
+<li><a href="#orgd880c30">1.9.1.1. 什么是 Macro</a></li>
+<li><a href="#orgb371a36">1.9.1.2. backquote</a></li>
+<li><a href="#org7c6878d">1.9.1.3. 为什么使用宏</a></li>
+</ul>
+</li>
+<li><a href="#org8d5d7d0">1.9.2. Use-package</a>
+<ul>
+<li><a href="#org8363224">1.9.2.1. 简介</a></li>
+<li><a href="#org303ec10">1.9.2.2. 一些简单的用法</a>
+<ul>
+<li><a href="#org8946de3">1.9.2.2.1. 更安全的 require</a></li>
+<li><a href="#org2d1765f">1.9.2.2.2. 将配置集中</a></li>
+<li><a href="#org7ac2db9">1.9.2.2.3. autoload</a></li>
+<li><a href="#org5b77a62">1.9.2.2.4. 键绑定</a></li>
+</ul>
+</li>
+<li><a href="#orgfda5337">1.9.2.3. 为什么使用 Use-package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org6801a19">1.10. 第十天: Company-mode 与 auto-completion</a>
+<ul>
+<li><a href="#orgf53d719">1.10.1. 升级 Package 之后有 BUG 怎么办</a></li>
+<li><a href="#orga14b035">1.10.2. Use-package 的更多用法</a></li>
+<li><a href="#org21524c6">1.10.3. Company-mode 的工作原理</a></li>
+<li><a href="#orgbd290ce">1.10.4. 为什么有时 Python 的补全 不工作</a></li>
+<li><a href="#org2026ace">1.10.5. Group Backend</a></li>
+<li><a href="#orgb9c67df">1.10.6. 怎样写一个简单的补全后端</a></li>
+</ul>
+</li>
+<li><a href="#org0366c9b">1.11. 第十一天: Spacemacs 简介及安装</a>
+<ul>
+<li><a href="#orgf00ed78">1.11.1. 安装 Spacemacs</a></li>
+<li><a href="#orgf37421b">1.11.2. 添加内置的 layer</a></li>
+<li><a href="#orga6a9ad4">1.11.3. 一些简单的配置</a>
+<ul>
+<li><a href="#orgec5d60d">1.11.3.1. 启动时全屏显示</a></li>
+<li><a href="#orgcb00f69">1.11.3.2. ivy layer</a></li>
+<li><a href="#org11ce154">1.11.3.3. 查看 layer 下的 文档信息</a></li>
+<li><a href="#org1de0a6b">1.11.3.4. 删除安装的 package</a></li>
+<li><a href="#org671fc25">1.11.3.5. 安装 package</a></li>
+<li><a href="#org5b215e9">1.11.3.6. 配置 customize-group</a></li>
+<li><a href="#orga989191">1.11.3.7. 修改主题</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org8611819">1.12. 第十二天: 创建你的第一个 Spacemacs Layer</a>
+<ul>
+<li><a href="#orgfa619c8">1.12.1. 如何更新 Spacemacs</a></li>
+<li><a href="#orgd553e8a">1.12.2. variables 变量</a></li>
+<li><a href="#org997f637">1.12.3. 定制 modeline</a></li>
+<li><a href="#orgc486edb">1.12.4. 创建自己的 layer</a></li>
+<li><a href="#org474e382">1.12.5. 文档</a></li>
+</ul>
+</li>
+<li><a href="#org26669e3">1.13. 第十三天: 定制你的 Layer</a>
+<ul>
+<li><a href="#orgd7d06bf">1.13.1. 修复上一期视频中的配置问题</a></li>
+<li><a href="#orged6d20b">1.13.2. 修复 ivy0.8 的问题</a></li>
+<li><a href="#orgedd451e">1.13.3. post-init 和 pre-init</a></li>
+<li><a href="#orgccc8a7d">1.13.4. location</a>
+<ul>
+<li><a href="#org7a30516">1.13.4.1. 自带 package</a></li>
+<li><a href="#org9202daa">1.13.4.2. 从 github 安装</a></li>
+</ul>
+</li>
+<li><a href="#org07222d0">1.13.5. layers.el</a></li>
+</ul>
+</li>
+<li><a href="#org3dcd96f">1.14. 第十四天: 文件和 Buffer 操作</a>
+<ul>
+<li><a href="#org4fc61d3">1.14.1. 不同点</a></li>
+<li><a href="#org2d05d90">1.14.2. 文件相关操作</a></li>
+<li><a href="#orgb8110e7">1.14.3. buffer 相关操作</a></li>
+<li><a href="#orgd9fcc9d">1.14.4. Dired</a></li>
+</ul>
+</li>
+<li><a href="#org30d3739">1.15. 第十五天: layout, windows 和 project 相关</a>
+<ul>
+<li><a href="#org4724e15">1.15.1. Layout 相关操作</a></li>
+<li><a href="#org74ef209">1.15.2. Window 相关操作</a></li>
+<li><a href="#orgdab6125">1.15.3. project 相关操作</a></li>
+<li><a href="#orgbd35adf">1.15.4. 更多内容</a></li>
+</ul>
+</li>
+<li><a href="#orgc297d67">1.16. 第十六天: 使用 ctags 和 company-etags</a>
+<ul>
+<li><a href="#org3fff713">1.16.1. 为什么使用 ctags</a></li>
+<li><a href="#org739c4f6">1.16.2. 如何配置 ctags</a></li>
+<li><a href="#org88a29d2">1.16.3. 如何高效的使用 ctags</a>
+<ul>
+<li><a href="#org836fcbe">1.16.3.1. 自动重新生成 TAGS 文件</a></li>
+<li><a href="#org9136d26">1.16.3.2. 配置规则来生成更多的 TAGS</a></li>
+<li><a href="#org245d199">1.16.3.3. 使用 etags-select 来浏览项目</a></li>
+</ul>
+</li>
+<li><a href="#org971f4fa">1.16.4. 最后的思考</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org5c3cb98" class="outline-2">
+<h2 id="org5c3cb98"><span class="section-number-2">1</span> Spacemacs Rocks 第二季</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+<b>GitHub</b> <a href="https://github.com/emacs-china/Spacemacs-rocks">Spacemacs Rocks</a> <b>作者</b> <a href="https://github.com/zilongshanren/">zilongshanren</a> <b>编者</b> <a href="https://github.com/li-xinyang">li-xinyang</a>, <a href="https://github.com/lsytj0413">lsytj0413</a>
+</p>
+
+<p>
+在这一季中我们计划用 21 天学习 Emacs 以及 Spacemacs 的使用。从基础安装开始到可以运用到工作生产环节中。为了确保学习质量，请务必完成和理解计划中的每一项学习任务。
+</p>
+</div>
+
+<div id="outline-container-org9ba9c3f" class="outline-3">
+<h3 id="org9ba9c3f"><span class="section-number-3">1.1</span> 第一天：准备开始</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+视频地址如下
+</p>
+
+<ul class="org-ul">
+<li><a href="http://v.youku.com/v_show/id_XMTUwNjU0MjE0OA==.html">优酷视频</a></li>
+<li><a href="http://pan.baidu.com/s/1gep9DQV">百度网盘</a></li>
+<li><a href="https://youtu.be/QKhS9EX9qd8">YouTube</a></li>
+</ul>
+
+<p>
+<b>说在最前面</b>
+</p>
+
+<p>
+如果你第一次听说 Emacs 你可以在<a href="http://emacs.sexy/">性感的 Emacs（Emacs is Sexy）</a>一文中找到使用它的理由！我相信你一定会被它的强大所吸引。
+</p>
+
+<p>
+如果你还没有安装 Emacs 可以在 <a href="http://emacsformacosx.com/builds">Mac OS X 安装链接</a>以及 <a href="http://emacsbinw64.sourceforge.net/">Window 安装链接</a>找到它。本文我们使用的为 Emacs 25.0.x Pretest 版本，一些配置在 Emacs 24 中可能并不适用。
+</p>
+
+<p>
+在开始本教程之前请务必先完成 Emacs 提供的官方教程（完成时间大约 30 分钟），它可以通过使用 <code>C-h t</code> （同时按住 Ctrl 与 h 键，接着按 t 键 <code>t</code> 在这里代表 tutorial）在 Emacs 中直接将其打开。
+</p>
+
+<p>
+Emacs Lisp 是 Emacs 所用的编程语言，你可以在阅读<a href="https://learnxinyminutes.com/docs/elisp/">这篇教程（Learn X in Y Minutes）</a>
+后很快地了解它的基础用法。
+</p>
+</div>
+
+<div id="outline-container-org75b6712" class="outline-4">
+<h4 id="org75b6712"><span class="section-number-4">1.1.1</span> 基础操作</h4>
+<div class="outline-text-4" id="text-1-1-1">
+<p>
+因为 Control 键在 Emacs 中极为常用，所以为了更方便地使用 Emacs 的键位修改，需要对其做出修改。建议将大写锁定键（Caps Lock）替换为 Control 键。这里是一个可以参考的把大写锁定键替换为 Control 键的教程：<a href="https://www.emacswiki.org/emacs/MovingTheCtrlKey">移动 Control 键 (Moving The Ctrl Key)。</a>如果这个的教程不适用于你的操作系统，请自行搜索其它的修改方式。
+</p>
+
+<p>
+常见符号所代表的意义如下
+</p>
+
+<ul class="org-ul">
+<li>M(eta)，在 Mac 下为 Option 键</li>
+<li>s(uper)，在 Mac 环境下为左 Command 键</li>
+<li>S(Shift)</li>
+<li>C(trl)</li>
+</ul>
+
+<p>
+光标的移动是编辑器中最常用的操作所以必须熟知。
+</p>
+
+<ul class="org-ul">
+<li><code>C-f</code> 为前移一个字符， <code>f</code> 代表 forward。</li>
+<li><code>C-b</code> 为后移一个字符， <code>b</code> 代表 backward。</li>
+<li><code>C-p</code> 为上移至前一行， <code>p</code> 代表 previous。</li>
+<li><code>C-n</code> 为上移至下一行， <code>n</code> 代表 next。</li>
+<li><code>C-a</code> 为移至行首， <code>a</code> 代表 ahead。</li>
+<li><code>C-e</code> 为移至行尾， <code>e</code> 代表 end。</li>
+</ul>
+
+<p>
+常用的文件操作快捷键组合也必须熟记。
+</p>
+
+<ul class="org-ul">
+<li><code>C-x C-f</code> 为打开目标文件， <code>f</code> 代表 find/file</li>
+<li><code>C-x C-s</code> 为保存当前缓冲区（Buffer）， <code>s</code> 代表 save</li>
+</ul>
+
+<p>
+<code>C-x</code> 是 Emacs 的快捷键中常用的前缀命令。这些前缀命令常常代表了一系列有关联的指令，十分重要，请特别牢记。其它常见的还有 <code>C-c</code>, <code>C-h</code> 。打断组合键为 <code>C-g</code> ，它用于终端取消之前的指令。快捷键就是用预先绑定好的方式告诉 Emacs 去执行指定的命令。（之后会介绍到更多有关绑定的内容）
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5d054b5" class="outline-4">
+<h4 id="org5d054b5"><span class="section-number-4">1.1.2</span> 内置功能</h4>
+<div class="outline-text-4" id="text-1-1-2">
+<p>
+Emacs 功能强大，但是部分功能默认情况下并未开启。下面就有几个例子，
+</p>
+
+<p>
+编辑器内显示行号可使用 <code>M-x linum-mode</code> 来开启。
+</p>
+
+<p>
+<b>获取帮助</b>
+</p>
+
+<p>
+Emacs 是一个富文档编辑器（Self document, extensible editor）而下面的三种方法在学习 Emacs 的过程中也非常重要。他们分别是，
+</p>
+
+<ul class="org-ul">
+<li><code>C-h k</code> 寻找快捷键的帮助信息</li>
+<li><code>C-h v</code> 寻找变量的帮助信息</li>
+<li><code>C-h f</code> 寻找函数的帮助信息</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org87066f1" class="outline-4">
+<h4 id="org87066f1"><span class="section-number-4">1.1.3</span> 学习基础 Elisp</h4>
+<div class="outline-text-4" id="text-1-1-3">
+<p>
+请务必完成<a href="https://learnxinyminutes.com/docs/elisp/">这篇教程（Learn X in Y Minutes）</a>来了解 Elisp 的使用（阅读时间大约 15
+分钟），你也可以在<a href="https://learnxinyminutes.com/docs/zh-cn/elisp-cn/">这里</a>找到它的中文版。Emacs Lisp 为一个函数式的语言，所以它全部功能都是由函数来实现的。
+</p>
+
+<p>
+下面为一些简单的例子
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">2 + 2</span>
+(+ 2 2)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">2 + 3 * 4</span>
+(+ 2 (* 3 4))
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#23450;&#20041;&#21464;&#37327;</span>
+(<span style="color: #a71d5d;">setq</span> name <span style="color: #183691;">"username"</span>)
+(message name) <span style="color: #969896;">; </span><span style="color: #969896;">-&gt; "username"</span>
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#23450;&#20041;&#20989;&#25968;</span>
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">func</span> ()
+  (message <span style="color: #183691;">"Hello, %s"</span> name))
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#25191;&#34892;&#20989;&#25968;</span>
+(func) <span style="color: #969896;">; </span><span style="color: #969896;">-&gt; Hello, username</span>
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#35774;&#32622;&#24555;&#25463;&#38190;</span>
+(global-set-key (kbd <span style="color: #183691;">"&lt;f1&gt;"</span>) 'func)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#20351;&#20989;&#25968;&#21487;&#30452;&#25509;&#34987;&#35843;&#29992;&#21487;&#28155;&#21152; (interactive)</span>
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">func</span> ()
+  (<span style="color: #a71d5d;">interactive</span>)
+  (message <span style="color: #183691;">"Hello, %s"</span> name))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgb71da47" class="outline-5">
+<h5 id="orgb71da47"><span class="section-number-5">1.1.3.1</span> 开始 Hacking！</h5>
+<div class="outline-text-5" id="text-1-1-3-1">
+<p>
+Emacs 的配置文件默认保存在 <code>~/.emacs.d/init.el</code> 文件中。（如果其不存在可自行创建，配置文件也可保存在 <code>~/.emacs</code> 文件中，他们之间的区别我们会在后面做讨论）
+</p>
+
+<p>
+<b><b>注意：</b></b> 如果希望把配置放在 <code>~/.emacs.d/init.el</code> 文件中，那么需要手工删除
+<code>~/.emacs</code> 文件。
+</p>
+
+<p>
+在开始配置之前让我们先来区别 Emacs 中 Major Mode 与 Minor Mode 的区别。Major
+Mode 通常是定义对于一种文件类型编辑的核心规则，例如语法高亮、缩进、快捷键绑定等。而 Minor Mode 是除去 Major Mode 所提供的核心功能以外的额外编辑功能（辅助功能）。例如在下面的配置文件中 <code>tool-bar-mode</code> 与 <code>linum-mode</code> 等均为 Minor Mode*。
+</p>
+
+<p>
+简单来说就是，一种文件类型同时只能存在一种 Major Mode 但是它可以同时激活一种或多种 Minor Mode。如果你希望知道当前的模式信息，可以使用 <code>C-h m</code> 来显示当前所有开启的全部 Minor Mode 的信息。
+</p>
+
+<p>
+<b>简单的编辑器自定义</b>
+</p>
+
+<p>
+下面是一些简单的编辑器配置信息，你需要做的就是将其写入你的配置文件中（ <code>~/.emacs.d/init.el</code> ）即可。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#20851;&#38381;&#24037;&#20855;&#26639;&#65292;tool-bar-mode &#21363;&#20026;&#19968;&#20010; Minor Mode</span>
+(tool-bar-mode -1)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#20851;&#38381;&#25991;&#20214;&#28369;&#21160;&#25511;&#20214;</span>
+(scroll-bar-mode -1)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#26174;&#31034;&#34892;&#21495;</span>
+(global-linum-mode 1)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#26356;&#25913;&#20809;&#26631;&#30340;&#26679;&#24335;&#65288;&#19981;&#33021;&#29983;&#25928;&#65292;&#35299;&#20915;&#26041;&#26696;&#35265;&#31532;&#20108;&#38598;&#65289;</span>
+(<span style="color: #a71d5d;">setq</span> cursor-type 'bar)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#20851;&#38381;&#21551;&#21160;&#24110;&#21161;&#30011;&#38754;</span>
+(<span style="color: #a71d5d;">setq</span> inhibit-splash-screen 1)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#20851;&#38381;&#32553;&#36827; (&#31532;&#20108;&#22825;&#20013;&#34987;&#21435;&#38500;)</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">(electric-indent-mode -1)</span>
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#26356;&#25913;&#26174;&#31034;&#23383;&#20307;&#22823;&#23567; 16pt</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">http://stackoverflow.com/questions/294664/how-to-set-the-font-size-in-emacs</span>
+(set-face-attribute 'default nil <span style="color: #a71d5d;">:height</span> 160)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#24555;&#36895;&#25171;&#24320;&#37197;&#32622;&#25991;&#20214;</span>
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">open-init-file</span>()
+  (<span style="color: #a71d5d;">interactive</span>)
+  (find-file <span style="color: #183691;">"~/.emacs.d/init.el"</span>))
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#36825;&#19968;&#34892;&#20195;&#30721;&#65292;&#23558;&#20989;&#25968; open-init-file &#32465;&#23450;&#21040; &lt;f2&gt; &#38190;&#19978;</span>
+(global-set-key (kbd <span style="color: #183691;">"&lt;f2&gt;"</span>) 'open-init-file)
+</pre>
+</div>
+
+<p>
+在每次编辑配置文件后，刚刚做的修改并不会立刻生效。这时你需要重启编辑器或者重新加载配置文件。重新加载配置文件你需要在当前配置文件中使用 <code>M-x load-file</code> 双击两次回车确认默认文件名，或者使用 <code>M-x eval-buffer</code> 去执行当前缓冲区的所有 Lisp 命令。你也可以使用 <code>C-x C-e</code> 来执行某一行的 Lisp 代码。这些可使刚刚修改的配置文件生效。当然你也可以将这些函数绑定为快捷键。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd947b9c" class="outline-5">
+<h5 id="orgd947b9c"><span class="section-number-5">1.1.3.2</span> 插件管理</h5>
+<div class="outline-text-5" id="text-1-1-3-2">
+<p>
+使用默认的插件管理系统（可在菜单栏 <code>Options &gt; Manage Emacs Packages</code> 中找到）安装 <a href="http://company-mode.github.io/">Company</a> 插件，他是一个用于代码补全的插件。它的名字代表补全一切的意思（ <b>Comp</b>
+lete <b>Any</b> thing）。因为默认的插件管理系统提供的插件十分有限，所以我们会在之后的几天中继续将其强化。
+</p>
+
+<p>
+使用的下面的配置将 Company-mode 在全局模式下激活
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">; </span><span style="color: #969896;">&#24320;&#21551;&#20840;&#23616; Company &#34917;&#20840;</span>
+(global-company-mode 1)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc0f2191" class="outline-5">
+<h5 id="orgc0f2191"><span class="section-number-5">1.1.3.3</span> Org-mode</h5>
+<div class="outline-text-5" id="text-1-1-3-3">
+<p>
+简单的 Org-mode 使用，它可以列出提纲，并方便地使用 <code>tab</code> 键来对其进行展开与关闭。
+<code>C-c C-t</code> 可以将一个条目转换成一条待办事件。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="color: #333333;">* &#20026;&#19968;&#32423;&#26631;&#39064;</span>
+<span style="color: #ffffff;">*</span><span style="color: #0086b3;">* &#20026;&#20108;&#32423;&#26631;&#39064;</span>
+<span style="color: #ffffff;">**</span><span style="color: #0086b3;">* &#20026;&#19977;&#32423;&#26631;&#39064;&#24182;&#20197;&#27492;&#31867;&#25512;</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org581196c" class="outline-3">
+<h3 id="org581196c"><span class="section-number-3">1.2</span> 第二天：高级自定义</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+视频地址如下
+</p>
+
+<ul class="org-ul">
+<li><a href="http://v.youku.com/v_show/id_XMTUxMzQyODI4MA==.html">优酷视频</a></li>
+<li><a href="http://pan.baidu.com/s/1c2Cw9ck">百度网盘</a></li>
+<li><a href="https://youtu.be/l6TzOIlS8Ec">YouTube</a></li>
+</ul>
+
+<p>
+<b>说在最前面</b>
+</p>
+
+<p>
+如果你想深入学习 Emacs Lisp 可以阅读 GNU 提供的 <a href="https://www.gnu.org/software/emacs/manual/html_mono/eintr.html">An Introduction to Programming
+in Emacs Lisp</a> 。（也可以 <code>M-x info</code> 然后选择 Emacs Lisp Intro）
+</p>
+
+<p>
+我们先解决前一天中遇到的一些问题。首先是在对象是一个缓冲区局部变量（Buffer-local
+variable）的时候，比如这里的 <code>cursor-type</code> ，我们需要区分 <code>setq</code> 与
+<code>setq-default</code> ： <code>setq</code> 设置当前缓冲区（Buffer）中的变量值， <code>setq-default</code> 设置的为全局的变量的值（具体内容可以在 <a href="http://stackoverflow.com/questions/18172728/the-difference-between-setq-and-setq-default-in-emacs-lisp">StackOverflow 找到</a>）。下面是一个例子，用于设置光标样式的方法。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq-default</span> cursor-type 'bar)
+</pre>
+</div>
+
+<p>
+今天我们需要将第一天关闭的自动缩进 (<code>electric-indent-mode</code>) 从配置文件中去除，它是 Emacs 24.4 中加入的新特性，你可以在这篇<a href="http://emacsredux.com/blog/2014/01/19/a-peek-at-emacs-24-dot-4-auto-indentation-by-default/">文章</a>中找到更多关于它的内容。我们之前关闭它是因为，它存在不理想的缩进效果（在 Emacs Lisp 中用分号做注释时
+<code>fancy-comment</code> 会造成很远的缩进，其实解决方法是使用 Emacs Lisp 推荐的两个分号而不是一个 <code>;;</code> ，这样就可以避免这个问题。于是我们也就将其从配置文件中删除）
+</p>
+
+<p>
+因为通常我们的配置文件以及项目文件均使用版本控制系统，所以自动生成的备份文件就显得有些多余。我们还可以禁止 Emacs 自动生成备份文件，例如 <code>init.el~</code> 。（ <code>~</code> 为后缀的文件为自动生成的备份文件）我们可以使用下面的方法将其关闭。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> make-backup-files nil)
+</pre>
+</div>
+
+<p>
+关于分屏的使用，如果你已经读过 Emacs 自带的教程，现在你应该已经掌握了基本的分屏操作方法了。关于分屏的更多内容你可以在<a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Split-Window.html">这里</a>找到。
+</p>
+
+<ul class="org-ul">
+<li><code>C-x 1</code> 仅保留当前窗口</li>
+<li><code>C-x 2</code> 将当前窗口分到上边</li>
+<li><code>C-x 3</code> 将当前窗口分到右边</li>
+</ul>
+
+<p>
+使用下面的配置来加入最近打开过文件的选项让我们更快捷的在图形界面的菜单中打开最近编辑过的文件。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">recentf</span>)
+(recentf-mode 1)
+(<span style="color: #a71d5d;">setq</span> recentf-max-menu-item 10)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#36825;&#20010;&#24555;&#25463;&#38190;&#32465;&#23450;&#21487;&#20197;&#29992;&#20043;&#21518;&#30340;&#25554;&#20214; counsel &#20195;&#26367;</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">(global-set-key (kbd "C-x C-r") 'recentf-open-files)</span>
+</pre>
+</div>
+
+<p>
+<code>require</code> 的意思为从文件中加载特性，你可以在杀哥的网站读到关于 Emacs Lisp 库系统的更多内容，文章在<a href="http://ergoemacs.org/emacs/elisp_library_system.html">这里</a>。
+</p>
+
+<p>
+使用下面的配置文件将删除功能配置成与其他图形界面的编辑器相同，即当你选中一段文字之后输入一个字符会替换掉你选中部分的文字。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(delete-selection-mode 1)
+</pre>
+</div>
+
+<p>
+下面的这些函数可以让你找到不同函数，变量以及快捷键所定义的文件位置。因为非常常用所以我们建议将其设置为与查找文档类似的快捷键（如下所示），
+</p>
+
+<ul class="org-ul">
+<li><code>find-function</code> （ <code>C-h C-f</code> ）</li>
+<li><code>find-variable</code> （ <code>C-h C-v</code> ）</li>
+<li><code>find-function-on-key</code> （ <code>C-h C-k</code> ）</li>
+</ul>
+
+<p>
+在我们进入下一个部分之间让我们来看看使用 <code>~/.emacs.d/init.el</code> 与 <code>~/.emacs</code> 的区别（更多关于他们区别的讨论可在<a href="http://emacs.stackexchange.com/questions/1/are-there-any-advantages-to-using-emacs-d-init-el-instead-of-emacs">这里</a>找到）。简单来说请使用前者，因为它有下面的两个优点，
+</p>
+
+<ul class="org-ul">
+<li>它可以更好将所有 Emacs 相关的文件整合在一个目录内（干净的 <code>HOME</code> ，网盘备份等优点）</li>
+<li>更好的版本控制</li>
+</ul>
+</div>
+
+<div id="outline-container-orgf8d01c5" class="outline-4">
+<h4 id="orgf8d01c5"><span class="section-number-4">1.2.1</span> Emacs 也很美</h4>
+<div class="outline-text-4" id="text-1-2-1">
+<p>
+<b>配置插件源</b>
+</p>
+
+<p>
+在进行美化之前我们需要配置插件的源（默认的源非常有限），最常使用的是 <a href="https://melpa.org/">MELPA</a>
+（Milkypostman's Emacs Lisp Package Archive）。它有非常多的插件（3000 多个插件）。一个插件下载的次数多并不能说明它非常有用，也许这个插件是其他的插件的依赖。在<a href="https://melpa.org/#/getting-started">这里</a>
+你可以找到其安装使用方法。添加源后，我们就可以使用 <code>M-x package-list-packages</code>
+来查看所有 MELPA 上的插件了。在表单中可以使用 <code>I</code> 来标记安装 <code>D</code> 来标记删除，
+<code>U</code> 来更新，并用 <code>X</code> 来确认。
+</p>
+
+<p>
+你可以直接将下面的代码复制到你的配置文件顶端，从而直接使用 Melpa 作为插件的源。你可以将你需要的插件名字写在 <code>my/packages</code> 中，Emacs 在启动时会自动下载未被安装的插件。
+</p>
+
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"> (<span style="color: #a71d5d;">when</span> (&gt;= emacs-major-version 24)
+     (<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">package</span>)
+     (package-initialize)
+     (<span style="color: #a71d5d;">setq</span> package-archives '((<span style="color: #183691;">"gnu"</span>   . <span style="color: #183691;">"http://elpa.emacs-china.org/gnu/"</span>)
+                      (<span style="color: #183691;">"melpa"</span> . <span style="color: #183691;">"http://elpa.emacs-china.org/melpa/"</span>))))
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#27880;&#24847; elpa.emacs-china.org &#26159; Emacs China &#20013;&#25991;&#31038;&#21306;&#22312;&#22269;&#20869;&#25645;&#24314;&#30340;&#19968;&#20010; ELPA &#38236;&#20687;</span>
+
+ <span style="color: #969896;">;; </span><span style="color: #969896;">cl - Common Lisp Extension</span>
+ (<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">cl</span>)
+
+ <span style="color: #969896;">;; </span><span style="color: #969896;">Add Packages</span>
+ (<span style="color: #a71d5d;">defvar</span> <span style="color: #333333;">my/packages</span> '(
+                <span style="color: #969896;">;; </span><span style="color: #969896;">--- Auto-completion ---</span>
+                company
+                <span style="color: #969896;">;; </span><span style="color: #969896;">--- Better Editor ---</span>
+                hungry-delete
+                swiper
+                counsel
+                smartparens
+                <span style="color: #969896;">;; </span><span style="color: #969896;">--- Major Mode ---</span>
+                js2-mode
+                <span style="color: #969896;">;; </span><span style="color: #969896;">--- Minor Mode ---</span>
+                nodejs-repl
+                exec-path-from-shell
+                <span style="color: #969896;">;; </span><span style="color: #969896;">--- Themes ---</span>
+                monokai-theme
+                <span style="color: #969896;">;; </span><span style="color: #969896;">solarized-theme</span>
+                ) <span style="color: #183691;">"Default packages"</span>)
+
+ (<span style="color: #a71d5d;">setq</span> package-selected-packages my/packages)
+
+ (<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">my/packages-installed-p</span> ()
+     (<span style="color: #a71d5d;">loop</span> for pkg in my/packages
+           when (not (package-installed-p pkg)) do (<span style="color: #a71d5d;">return</span> nil)
+           finally (<span style="color: #a71d5d;">return</span> t)))
+
+ (<span style="color: #a71d5d;">unless</span> (my/packages-installed-p)
+     (message <span style="color: #183691;">"%s"</span> <span style="color: #183691;">"Refreshing package database..."</span>)
+     (package-refresh-contents)
+     (<span style="color: #a71d5d;">dolist</span> (pkg my/packages)
+       (<span style="color: #a71d5d;">when</span> (not (package-installed-p pkg))
+         (package-install pkg))))
+
+ <span style="color: #969896;">;; </span><span style="color: #969896;">Find Executable Path on OS X</span>
+ (<span style="color: #a71d5d;">when</span> (memq window-system '(mac ns))
+   (exec-path-from-shell-initialize))
+</pre>
+</div>
+
+<p>
+关于上面这段配置代码有几个知识点，首先就是这段配置文件中用到了 <code>loop for ... in</code>
+，它来自 <code>cl</code> 即 Common Lisp 扩展。 <code>for</code> , <code>in</code>, <code>collect</code> 均为 <code>cl-loop</code> 中的保留关键字。下面是一些简单的 <code>cl-loop</code> 的使用示例：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#36941;&#21382;&#27599;&#19968;&#20010;&#32531;&#20914;&#21306;&#65288;Buffer&#65289;</span>
+(<span style="color: #a71d5d;">cl-loop</span> for buf in (buffer-list)
+         collect (buffer-file-name buf))
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#23547;&#25214; 729 &#30340;&#24179;&#26041;&#26681;&#65288;&#35774;&#32622;&#26368;&#22823;&#20026; 100 &#20026;&#20102;&#38450;&#27490;&#26080;&#38480;&#24490;&#29615;&#65289;</span>
+(<span style="color: #a71d5d;">cl-loop</span> for x from 1 to 100
+         for y = (* x x)
+         until (&gt;= y 729)
+         finally return (list x (= y 729)))
+</pre>
+</div>
+
+<p>
+你可以在<a href="http://www.gnu.org/software/emacs/manual/html_mono/cl.html#Loop-Facility">这里</a>找到更多关于循环的使用说明。
+</p>
+
+<p>
+其次就是它使用到了 <code>quote</code>, 它其实就是我们之前常常见到的 <code>'</code> （单引号）的完全体。因为它在 Lisp 中十分常用，所以就提供了简写的方法。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#19979;&#38754;&#20004;&#34892;&#30340;&#25928;&#26524;&#23436;&#20840;&#30456;&#21516;&#30340;</span>
+(<span style="color: #a71d5d;">quote</span> foo)
+'foo
+</pre>
+</div>
+
+<p>
+<code>quote</code> 的意思是不要执行后面的内容，返回它原本的内容（具体请参考下面的例子）
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(print '(+ 1 1)) <span style="color: #969896;">;; </span><span style="color: #969896;">-&gt; (+ 1 1)</span>
+(print (+ 1 1))  <span style="color: #969896;">;; </span><span style="color: #969896;">-&gt; 2</span>
+</pre>
+</div>
+
+<p>
+更多关于 <code>quote</code> 的内容可以在<a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Quoting.html">这里</a>找到，或者在<a href="http://stackoverflow.com/questions/134887/when-to-use-quote-in-lisp">这里</a>找到 StackOverflow 上对于它的讨论。
+</p>
+
+<p>
+这样我们就可以区分下面三行代码的区别，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#31532;&#19968;&#31181;</span>
+(<span style="color: #a71d5d;">setq</span> package-selected-packages my/packages)
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#31532;&#20108;&#31181;</span>
+(<span style="color: #a71d5d;">setq</span> package-selected-packages 'my/packages)
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#31532;&#19977;&#31181;</span>
+(<span style="color: #a71d5d;">setq</span> package-selected-packages (<span style="color: #a71d5d;">quote</span> my/packages))
+</pre>
+</div>
+
+<p>
+第一种设置是在缓冲区中设置一个名为 <code>package-selected-packages</code> 的变量，将其的值设定为 <code>my/packages</code> 变量的值。第二种和第三种其实是完全相同的，将一个名为
+<code>package-selected-packages</code> 的变量设置为 <code>my/packages</code> 。
+</p>
+
+<p>
+我们可以用下面代码将 Emacs 设置为开启默认全屏，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> initial-frame-alist (<span style="color: #a71d5d;">quote</span> ((fullscreen . maximized))))
+</pre>
+</div>
+
+<p>
+我们也可以启用自动括号匹配（Highlight Matching Parenthesis），随后会介绍插件来增强这个匹配的功能。你可以在<a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Hooks.html">这里</a>读到关于钩子的更多信息。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
+</pre>
+</div>
+
+<p>
+高亮当前行，当文本内容很多时可以很容易找到光标的位置。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-hl-line-mode 1)
+</pre>
+</div>
+
+<p>
+<b>安装主题</b>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-to-list my/packages 'monokai-theme)
+</pre>
+</div>
+
+<p>
+然后使用下面的配置使其每次打开编辑器时加载主题，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(load-theme 'monokai 1)
+</pre>
+</div>
+
+<p>
+<b>推荐插件</b>
+</p>
+
+<ul class="org-ul">
+<li><a href="http://company-mode.github.io/">company</a></li>
+<li><a href="https://github.com/nflath/hungry-delete">hungry-delete</a></li>
+<li><a href="https://github.com/nonsequitur/smex">Smex</a> (如果你使用 Counsel 来增强你的 <code>M-x</code> ，那么就不需要再安装 Smex 了)</li>
+<li><a href="https://github.com/abo-abo/swiper">Swiper &amp; Counsel</a></li>
+<li><a href="https://github.com/Fuco1/smartparens">smartparens</a></li>
+</ul>
+
+<p>
+使用 <code>M-x customize-group</code> 后选择对应的插件名称，可以进入可视化选项区对指定的插件做自定义设置。当选择 Save for future session 后，刚刚做的设计就会被保存在你的配置文件（ <code>init.el</code> ）中。关于各个插件的安装与使用方法通常都可以在其官方页面找到（GitHub Pages 或者是项目仓库中的 README 文件）。我们强烈建议大家在安装这些插件后阅读使用方法来更好的将它们使用到你的日常工作当中使效率最大化。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org689f2ad" class="outline-4">
+<h4 id="org689f2ad"><span class="section-number-4">1.2.2</span> JavaScript IDE</h4>
+<div class="outline-text-4" id="text-1-2-2">
+<p>
+Emacs 提供的默认 JavaScript Major Mode 并不是非常好用。所以我们可以将默认的模式替换成 <a href="https://github.com/mooz/js2-mode">js2-mode</a> 一个比默认模式好用的 Major Mode。我们可以通过 MELPA 来下载它，然后用下面的代码将其启用。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> auto-mode-alist
+      (append
+       '((<span style="color: #183691;">"\\.js\\'"</span> . js2-mode))
+       auto-mode-alist))
+</pre>
+</div>
+
+<p>
+你可以在<a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Auto-Major-Mode.html">这里</a>（How Emacs Chooses a Major Mode）找到 Emacs 是如何选择何时该选用何种 Major Mode 的方法。
+</p>
+
+<p>
+在这里我们需要知道 <code>auto-mode-alist</code> 的作用，这个变量是一个 <a href="https://www.emacswiki.org/emacs/AssociationList">AssociationList</a>，它使用正则表达式（REGEXP）的规则来匹配不同类型文件应使用的 Major Mode。 下面是几个正则表达式匹配的例子，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">((<span style="color: #183691;">"\\`/tmp/fol/"</span> . text-mode)
+ (<span style="color: #183691;">"\\.texinfo\\'"</span> . texinfo-mode)
+ (<span style="color: #183691;">"\\.texi\\'"</span> . texinfo-mode)
+ (<span style="color: #183691;">"\\.el\\'"</span> . emacs-lisp-mode)
+ (<span style="color: #183691;">"\\.c\\'"</span> . c-mode)
+ (<span style="color: #183691;">"\\.h\\'"</span> . c-mode)
+ &#8230;)
+</pre>
+</div>
+
+<p>
+下面是如何添加新的模式与对应文件类型的例子（与我们配置 <code>js2-mode</code> 时相似的例子），
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> auto-mode-alist
+  (append
+   <span style="color: #969896;">;; </span><span style="color: #969896;">File name (within directory) starts with a dot.</span>
+   '((<span style="color: #183691;">"/\\.[</span><span style="color: #a71d5d;">^</span><span style="color: #183691;">/]*\\'"</span> . fundamental-mode)
+     <span style="color: #969896;">;; </span><span style="color: #969896;">File name has no dot.</span>
+     (<span style="color: #183691;">"/[</span><span style="color: #a71d5d;">^</span><span style="color: #183691;">\\./]*\\'"</span> . fundamental-mode)
+     <span style="color: #969896;">;; </span><span style="color: #969896;">File name ends in &#8216;</span><span style="color: #0086b3;">.C</span><span style="color: #969896;">&#8217;.</span>
+     (<span style="color: #183691;">"\\.C\\'"</span> . c++-mode))
+   auto-mode-alist))
+</pre>
+</div>
+
+<p>
+在 <code>js2-mode</code> 模式中会提供
+</p>
+
+<ul class="org-ul">
+<li>语法高亮</li>
+<li>语法检查器（Linter）</li>
+</ul>
+
+<p>
+执行缓冲区的代码可以使用 <code>nodejs-repl</code> 插件，它需要你的机器上已经安装了 NodeJS。然而在 Mac OS X 上可能会出现找不到 NodeJS 可执行文件的问题，要解决这个问题你需要安装另外一个 <code>exec-path-from-shell</code> 的插件并将其启用。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">when</span> (memq window-system '(mac ns))
+  (exec-path-from-shell-initialize))
+</pre>
+</div>
+
+<p>
+有了 <code>nodejs-repl</code> 我们就可以方便的测试和开发我们的 JavaScript 代码了（你可以在
+<a href="https://github.com/mooz/js2-mode">这里</a>找到更多关于它的使用方法）。
+</p>
+</div>
+
+<div id="outline-container-orgf5e3c9f" class="outline-5">
+<h5 id="orgf5e3c9f"><span class="section-number-5">1.2.2.1</span> Org-mode 进阶</h5>
+<div class="outline-text-5" id="text-1-2-2-1">
+<p>
+在 Org-mode 中你可以直接开启新的缓冲区（Buffer）直接用相应的 Major Mode 来编辑代码块内的内容。在代码块中使用 <code>C-c '</code> 会直接打开对应模式的缓冲区（不仅限于 Lisp）。这样就使在 Org-mode 中编辑代码变的十分方便快捷。
+</p>
+
+<p>
+使用 <code>&lt;s</code> 然后 Tab 可以直接插入代码块的代码片段（Snippet），更多类似的代码片段（Org-mode Easy Templates）可以在<a href="http://orgmode.org/manual/Easy-Templates.html">这里</a>找到。
+</p>
+
+<pre class="example">
+#+BEGIN_SRC emacs-lisp
+  ;; Your code goes here
+  ;; 你的代码写在这里
+#+END_SRC
+</pre>
+
+<p>
+<b>添加 Org-mode 文本内语法高亮</b>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">org</span>)
+(<span style="color: #a71d5d;">setq</span> org-src-fontify-natively t)
+</pre>
+</div>
+
+<p>
+在 Org-mode 中重置有序列表序号可以直接使用 M-&lt;RET&gt; 。
+</p>
+
+<p>
+<b>Agenda 的使用</b>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#35774;&#32622;&#40664;&#35748; Org Agenda &#25991;&#20214;&#30446;&#24405;</span>
+(<span style="color: #a71d5d;">setq</span> org-agenda-files '(<span style="color: #183691;">"~/org"</span>))
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#35774;&#32622; org-agenda &#25171;&#24320;&#24555;&#25463;&#38190;</span>
+(global-set-key (kbd <span style="color: #183691;">"C-c a"</span>) 'org-agenda)
+</pre>
+</div>
+
+<p>
+你只需将你的 <code>*.org</code> 文件放入上面所指定的文件夹中就可以开始使用 Agenda
+模式了。
+</p>
+
+<ul class="org-ul">
+<li><code>C-c C-s</code> 选择想要开始的时间</li>
+<li><code>C-c C-d</code> 选择想要结束的时间</li>
+<li><code>C-c a</code> 可以打开 Agenda 模式菜单并选择不同的可视方式（ <code>r</code> ）</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org24c35a4" class="outline-3">
+<h3 id="org24c35a4"><span class="section-number-3">1.3</span> 第三天：配置文件模块化（上）</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+视频地址如下
+</p>
+
+<ul class="org-ul">
+<li><a href="http://v.youku.com/v_show/id_XMTUyNzA0MTMxNg==.html?f=26962151&amp;o=1">优酷视频</a></li>
+<li><a href="http://pan.baidu.com/s/1nuJWyLF">百度网盘</a></li>
+<li><a href="https://youtu.be/hL9B2AtcB1w">YouTube</a></li>
+</ul>
+</div>
+
+<div id="outline-container-orgdec0ac8" class="outline-4">
+<h4 id="orgdec0ac8"><span class="section-number-4">1.3.1</span> 多文件存储配置文件(上)</h4>
+<div class="outline-text-4" id="text-1-3-1">
+<p>
+将不同的配置代码放置到不同的文件中，使其模块化，这让我们的后续维护变得更加简单。下面是我们现在的 <code>~/.emacs.d/</code> 目录中的样子，
+</p>
+
+<pre class="example">
+├── auto-save-list # 自动生成的保存数据
+├── elpa           # 下载的插件目录
+├── init.el        # 我们的配置文件
+└── recentf        # 最近访问的文件列表
+</pre>
+
+<p>
+通常我们只保存配置文件和对其进行版本控制，其他的插件均为在第一次使用编辑器时再通过网络重新下载，当然你也可以选择将全部配置文件进行版本控制来保证自己时刻拥有最稳定的生产环境。
+</p>
+
+<p>
+Elisp 中并没有命名空间（Namespace），换句话说就是所有的变量均为全局变量，所以其命名方法就变的非常重要。下面是一个简单的命名规则，
+</p>
+
+<pre class="example">
+#自定义变量可以使用自己的名字作为命名方式（可以是变量名或者函数名）
+my/XXXX
+
+#模式命名规则
+ModeName-mode
+
+#模式内的变量则可以使用
+ModeName-VariableName
+</pre>
+
+<p>
+遵守上面的命名规则可以最大程度的减少命名冲突发生的可能性。
+</p>
+
+<p>
+现在我们想将原本混合在一起的配置文件分为下面的几个模块（每一个模块为一个独立的配置文件并将其保存在指定的子目录中），它们分别是
+</p>
+
+<pre class="example">
+init-packages.el        # 插件管理
+init-ui.el              # 视觉层配置
+init-better-defaults.el # 增强内置功能
+init-keybindings.el     # 快捷键绑定
+init-org.el             # Org 模式相关的全部设定
+custome.el              # 存放使用编辑器接口产生的配置信息
+</pre>
+
+<p>
+下面为将配置文件进行模块化后的目录结构，
+</p>
+
+<pre class="example">
+├── init.el
+└── lisp
+    ├── custom.el
+    ├── init-better-defaults.el
+    ├── init-helper.el
+    ├── init-keybindings.el
+    ├── init-packages.el
+    ├── init-ui.el
+    └── init-org.el
+</pre>
+
+<p>
+使用模块化配置就可以让我们在之后的配置中迅速的定位与更改配置内容，让整个过程变得更有条理也更加高效。
+</p>
+
+<p>
+和之前一样 <code>init.el</code> 是配置文件的入口，现在它便成为了所有模块配置文件的入口，所以要使用这些模块时，我们需要在其中引用需要加载的模块。下面以 <code>init-packages.el</code>
+（此配置为添加插件的模块） 为例，详细说明如何模块化以及应用的方法。
+</p>
+
+<p>
+下面是在模块化配置之前，我们所使用的配置文件 <code>~/.emacs.d/init.el</code> 的样子，我们将所有的配置代码都放置在了同一个文件中（如下所示）
+</p>
+
+<p>
+下面为 <code>~/.emacs.d/init.el</code> 文件的内容
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;;  </span><span style="color: #969896;">__        __             __   ___</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">|__)  /\  /  ` |__/  /\  / _` |__</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">|    /~~\ \__, |  \ /~~\ \__&gt; |___</span>
+<span style="color: #969896;">;;                      </span><span style="color: #969896;">__   ___        ___      ___</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">|\/|  /\  |\ |  /\  / _` |__   |\/| |__  |\ |  |</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">|  | /~~\ | \| /~~\ \__&gt; |___  |  | |___ | \|  |</span>
+(<span style="color: #a71d5d;">when</span> (&gt;= emacs-major-version 24)
+    (<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">package</span>)
+    (package-initialize)
+    (<span style="color: #a71d5d;">setq</span> package-archives '((<span style="color: #183691;">"gnu"</span>   . <span style="color: #183691;">"http://elpa.emacs-china.org/gnu/"</span>)
+                         (<span style="color: #183691;">"melpa"</span> . <span style="color: #183691;">"http://elpa.emacs-china.org/melpa/"</span>))))
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">cl - Common Lisp Extension</span>
+(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">cl</span>)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">Add Packages</span>
+(<span style="color: #a71d5d;">defvar</span> <span style="color: #333333;">my/packages</span> '(
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">--- Auto-completion ---</span>
+                           company
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">--- Better Editor ---</span>
+                           smooth-scrolling
+                           hungry-delete
+                           swiper
+                           counsel
+                           smartparens
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">--- Major Mode ---</span>
+                           js2-mode
+                           markdown-mode
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">--- Minor Mode ---</span>
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">Quick Note Taking</span>
+                           deft
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">JavaScript REPL</span>
+                           nodejs-repl
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">Find OS X Executable Helper Package</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">...</span>
+</pre>
+</div>
+
+<p>
+之前为了更好的区分不同的区域我使用的方法是使用 ASCII Art 然后再以关键字来做搜索跳转，但是这样再编辑工程中依旧十分缓慢和麻烦。于是我们现在要将配置文件全部模块化，把不同部分的配置代码放置在不同的配置文件中，并在入口文件（ <code>~/.emacs.d/init.el</code>
+）中依次引用不用的模块。
+</p>
+
+<p>
+下面为 <code>~/.emacs.d/lisp/init-packages.el</code> 模块中的代码
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;;  </span><span style="color: #969896;">__        __             __   ___</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">|__)  /\  /  ` |__/  /\  / _` |__</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">|    /~~\ \__, |  \ /~~\ \__&gt; |___</span>
+<span style="color: #969896;">;;                      </span><span style="color: #969896;">__   ___        ___      ___</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">|\/|  /\  |\ |  /\  / _` |__   |\/| |__  |\ |  |</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">|  | /~~\ | \| /~~\ \__&gt; |___  |  | |___ | \|  |</span>
+(<span style="color: #a71d5d;">when</span> (&gt;= emacs-major-version 24)
+    (<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">package</span>)
+    (package-initialize)
+    (<span style="color: #a71d5d;">setq</span> package-archives '((<span style="color: #183691;">"gnu"</span>   . <span style="color: #183691;">"http://elpa.emacs-china.org/gnu/"</span>)
+                         (<span style="color: #183691;">"melpa"</span> . <span style="color: #183691;">"http://elpa.emacs-china.org/melpa/"</span>))))
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">cl - Common Lisp Extension</span>
+(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">cl</span>)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">Add Packages</span>
+(<span style="color: #a71d5d;">defvar</span> <span style="color: #333333;">my/packages</span> '(
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">--- Auto-completion ---</span>
+                           company
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">--- Better Editor ---</span>
+                           smooth-scrolling
+                           hungry-delete
+                           swiper
+                           counsel
+                           smartparens
+                           popwin
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">--- Major Mode ---</span>
+                           js2-mode
+                           markdown-mode
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">...</span>
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#25991;&#20214;&#26411;&#23614;</span>
+(<span style="color: #a71d5d;">provide</span> '<span style="color: #0086b3;">init-packages</span>)
+</pre>
+</div>
+
+<p>
+下面为 <code>~/.emacs.d/init.el</code> 入口文件中的代码
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(package-initialize)
+
+(add-to-list 'load-path <span style="color: #183691;">"~/.emacs.d/lisp/"</span>)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">Package Management</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">-----------------------------------------------------------------</span>
+(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">init-packages</span>)
+</pre>
+</div>
+
+<p>
+模块化要做的其实非常简单，我们要做的其实就是把某一个更改编辑器某定部分（例如，插件管理，显示层，快捷键绑定等）的配置代码写入一个独立的文件中并在末尾为其添加
+<code>(provide 'modul-name)</code> (这里我们的模块名为 <code>init-packages</code> )使其可以在入口文件中被调用，然后再在入口文件中将其引用既可。
+</p>
+
+<p>
+这里需要注意的是，我们需要在入口文件中添加 <code>(add-to-list 'load-path
+ "~/.emacs.d/lisp/")</code> 这可以让 Emacs 找到需要加载的模块所处的位置。
+</p>
+
+<p>
+更多模块化的配置文件可以在<a href="https://github.com/zilongshanren/Learning-Emacs/tree/day3">这里</a>找到。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga6f166b" class="outline-4">
+<h4 id="orga6f166b"><span class="section-number-4">1.3.2</span> Major 与 Minor Mode 详解</h4>
+<div class="outline-text-4" id="text-1-3-2">
+<p>
+在这一节我们将详细介绍 Major Mode 与 Minor Mode 去区别。每一个文件类型都对应一个
+Major Mode，它提供语法高亮以及缩进等基本的编辑支持功能，然后而 Minor Mode 则提供其余的增强性的功能（例如 <code>linum-mode</code> ）。
+</p>
+
+<p>
+在 Emacs 中，Major Mode 又分为三种，
+</p>
+
+<ul class="org-ul">
+<li><code>text-mode</code> ，用于编辑文本文件</li>
+<li><code>special-mode</code> ，特殊模式（很少见）</li>
+<li><code>prog-mode</code> ，所有的编程语言的父模式</li>
+</ul>
+
+<p>
+在每一个模式（mode）中它的名称与各个变量还有函数都是有特定的命名规则，比如所有的模式都被命名为 <code>ModeName-mode</code> ，里面所设置的快捷键则为 <code>ModeName-mode-key-map</code>
+，而所有的钩子则会被命名为 <code>ModeName-mode-hook</code> 。
+</p>
+
+<p>
+注明：为了保持阅读的完整性，部分第三天的关于默认编辑器优化的内容被移至第四天。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org1927ba8" class="outline-3">
+<h3 id="org1927ba8"><span class="section-number-3">1.4</span> 第四天：配置文件模块化（下）以及使用优化</h3>
+<div class="outline-text-3" id="text-1-4">
+<p>
+视频地址如下
+</p>
+
+<ul class="org-ul">
+<li><a href="http://v.youku.com/v_show/id_XMTUzMDAwMDYwMA==.html">优酷视频</a></li>
+<li><a href="http://pan.baidu.com/s/1o8QWrHK">百度网盘</a></li>
+<li><a href="https://youtu.be/IhCOO0R83G8">YouTube</a></li>
+</ul>
+</div>
+
+<div id="outline-container-orge1f0186" class="outline-4">
+<h4 id="orge1f0186"><span class="section-number-4">1.4.1</span> 配置文件模块化（下）</h4>
+<div class="outline-text-4" id="text-1-4-1">
+<p>
+在这一部分我们首先需要知道的是什么是 <code>features</code> 。在 Emacs 中每一个 <code>feature</code> 都是一个 Elisp 符号，用于代表一个 Lisp 插件（Package）。
+</p>
+
+<p>
+当一个插件调用 <code>(provide 'symbol_name)</code> 函数时，Emacs 就会将这个符号加入到
+<code>features</code> 的列表中去。你可以在<a href="http://ergoemacs.org/emacs/elisp_feature_name.html">这里</a>读到更多关于 feature 的内容。
+</p>
+
+<p>
+接着我们需要弄明白的是 <code>load-file</code> , <code>load</code> , <code>require</code> , <code>autoload</code> 之间的区别。（他们之间区别的链接已经再前面贴过了，你也可以在<a href="http://ergoemacs.org/emacs/elisp_library_system.html">这里</a>找到之前同样的链接）
+</p>
+
+<p>
+简单来说， <code>load-file</code> 用于打开某一个指定的文件，用于当你不想让 Emacs 来去决定加载某个配置文件时（ <code>.el</code> 或者 <code>.elc</code> 文件）。
+</p>
+
+<p>
+<code>load</code> 搜索 <code>load-path</code> 中的路径并打开第一个所找到的匹配文件名的文件。此方法用于你预先不知道文件路径的时候。
+</p>
+
+<p>
+<code>require</code> 加载还未被加载的插件。首先它会查看变量 <code>features</code> 中是否存在所要加载的符号如果不存在则使用上面提到的 <code>load</code> 将其载入。（有点类似于其他编程语言中的
+<code>import</code> ）
+</p>
+
+<p>
+<code>autoload</code> 用于仅在函数调用时加载文件，使用此方法可以大大节省编辑器的启动时间。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7ad81c4" class="outline-4">
+<h4 id="org7ad81c4"><span class="section-number-4">1.4.2</span> 更好的默认设置</h4>
+<div class="outline-text-4" id="text-1-4-2">
+<p>
+在这一节我们会配置我们的编辑器使其有更好的使用体验。整个过程就如同搭积木一般，将更好的体验建立在已有的功能基础之上。这样的优化使整个过程变得更高效，也更有趣。
+</p>
+
+<p>
+下面的代码可以是 Emacs 自动加载外部修改过的文件。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-auto-revert-mode 1)
+</pre>
+</div>
+
+<p>
+使用下面的代码可以关闭自己生产的保存文件（之前我们已经关闭过了 Emacs 自动生产的备份文件了，现在是关闭自动保存文件）。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> auto-save-default nil)
+</pre>
+</div>
+
+<p>
+如果你发现你在使用中发现了那些编辑行为与你预期的不相符时，你可以通过搜索引擎去寻找解决方案然后将其加入你的配置中并打造一个真正属于你的神器！
+</p>
+
+<p>
+<code>popwin</code> 插件可以自动将光标移动到，新创建的窗口中。使用下面的代码将其启用，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">popwin</span>)
+(popwin-mode 1)
+</pre>
+</div>
+
+<p>
+也许你并不喜欢听到错误时的“哔哔”的警告提示音，使用下面的代码你可以关闭 Emacs 中的警告音，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> ring-bell-function 'ignore)
+</pre>
+</div>
+
+<p>
+每一次当 Emacs 需要与你确认某个命令时需要输入 <code>(yes or no)</code> 比较麻烦，所有我们可以使用下面的代码，设置一个别名将其简化为只输入 <code>(y or n)</code> 。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(fset 'yes-or-no-p 'y-or-n-p)
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org2f32165" class="outline-5">
+<h5 id="org2f32165"><span class="section-number-5">1.4.2.1</span> 代码缩进</h5>
+<div class="outline-text-5" id="text-1-4-2-1">
+<p>
+<code>indent-region</code> 可以帮我们重新缩进所选区域的代码，但是每一次都选中十分麻烦。使用下面的代码可以一次重新缩进全部缓冲区的代码。（之后也会介绍更好用的，代码格式美化的插件）
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">indent-buffer</span>()
+  (<span style="color: #a71d5d;">interactive</span>)
+  (indent-region (point-min) (point-max)))
+
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">indent-region-or-buffer</span>()
+  (<span style="color: #a71d5d;">interactive</span>)
+  (<span style="color: #a71d5d;">save-excursion</span>
+    (<span style="color: #a71d5d;">if</span> (region-active-p)
+        (<span style="color: #a71d5d;">progn</span>
+          (indent-region (region-beginning) (region-end))
+          (message <span style="color: #183691;">"Indent selected region."</span>))
+      (<span style="color: #a71d5d;">progn</span>
+        (indent-buffer)
+        (message <span style="color: #183691;">"Indent buffer."</span>)))))
+</pre>
+</div>
+
+<p>
+然后再将其用下面的代码将其绑定为快捷键，第一个 <code>\</code> 用于将紧跟的 <code>\</code> 进行逃脱（escape）。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-set-key (kbd <span style="color: #183691;">"C-M-\\"</span>) 'indent-region-or-buffer)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2c47d0b" class="outline-5">
+<h5 id="org2c47d0b"><span class="section-number-5">1.4.2.2</span> 缩写补全</h5>
+<div class="outline-text-5" id="text-1-4-2-2">
+<p>
+使用下面的代码我们可以开启 <code>abbrev</code> 模式并定义一个缩写表，每当我们输入下面的缩写并以空格结束时，Emacs 就会将其自动展开成为我们所需要的字符串。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq-default</span> abbrev-mode t)
+(define-abbrev-table 'global-abbrev-table '(
+                                            <span style="color: #969896;">;; </span><span style="color: #969896;">Shifu</span>
+                                            (<span style="color: #183691;">"8zl"</span> <span style="color: #183691;">"zilongshanren"</span>)
+                                            <span style="color: #969896;">;; </span><span style="color: #969896;">Tudi</span>
+                                            (<span style="color: #183691;">"8lxy"</span> <span style="color: #183691;">"lixinyang"</span>)
+                                           ))
+</pre>
+</div>
+
+<p>
+上面的缩写前使用的 <code>8</code> 也类似于命名空间的作用，使其不会与我们所常用的字符串冲突。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org8b638af" class="outline-5">
+<h5 id="org8b638af"><span class="section-number-5">1.4.2.3</span> Hippie 补全</h5>
+<div class="outline-text-5" id="text-1-4-2-3">
+<p>
+Company 有时候补全功能并不是非常理想，这时就可以使用 Hippie Expand 来完成补全。
+Company Mode 补全效果不理想的原因是在不同的区域中会使用不同的后端函数来完成补全，但是当后端补全函数不能被激活时，则补全就不会被激活。
+</p>
+
+
+<p>
+我们可以将下面的代码加入到我们的配置文件中，来增强 Hippie Expand 的功能，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> hippie-expand-try-function-list '(try-expand-debbrev
+                                        try-expand-debbrev-all-buffers
+                                        try-expand-debbrev-from-kill
+                                        try-complete-file-name-partially
+                                        try-complete-file-name
+                                        try-expand-all-abbrevs
+                                        try-expand-list
+                                        try-expand-line
+                                        try-complete-lisp-symbol-partially
+                                        try-complete-lisp-symbol))
+</pre>
+</div>
+
+<p>
+然后将其绑定为快捷键，使我们可以更方便的使用它。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-set-key (kbd <span style="color: #183691;">"s-/"</span>) 'hippie-expand)
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgad1ebf4" class="outline-4">
+<h4 id="orgad1ebf4"><span class="section-number-4">1.4.3</span> Dired Mode</h4>
+<div class="outline-text-4" id="text-1-4-3">
+<p>
+Dired Mode 是一个强大的模式它能让我们完成和文件管理相关的所有操作。
+</p>
+
+<p>
+使用 <code>C-x d</code> 就可以进入 Dired Mode，这个模式类似于图形界面系统中的资源管理器。你可以在其中查看文件和目录的详细信息，对他们进行各种操作，甚至复制粘贴缓冲区中的内容。下面是一些常用的操作（下面的所有键均需在 Dired Mode 下使用），
+</p>
+
+<ul class="org-ul">
+<li><code>+</code> 创建目录</li>
+<li><code>g</code> 刷新目录</li>
+<li><code>C</code> 拷贝</li>
+<li><code>D</code> 删除</li>
+<li><code>R</code> 重命名</li>
+<li><code>d</code> 标记删除</li>
+<li><code>u</code> 取消标记</li>
+<li><code>x</code> 执行所有的标记</li>
+</ul>
+
+<p>
+这里有几点可以优化的地方。第一是删除目录的时候 Emacs 会询问是否递归删除或拷贝，这也有些麻烦我们可以用下面的配置将其设定为默认递归删除目录（出于安全原因的考虑，也许你需要保持此行为。所有文中的配置请务必按需配置）。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> dired-recursive-deletes 'always)
+(<span style="color: #a71d5d;">setq</span> dired-recursive-copies 'always)
+</pre>
+</div>
+
+<p>
+第二是，每一次你进入一个回车进入一个新的目录中是，一个新的缓冲区就会被建立。这使得我们的缓冲区列表中充满了大量没有实际意义的记录。我们可以使用下面的代码，让
+Emacs 重用唯一的一个缓冲区作为 Dired Mode 显示专用缓冲区。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(put 'dired-find-alternate-file 'disabled nil)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#20027;&#21160;&#21152;&#36733; Dired Mode</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">(require 'dired)</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">(defined-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)</span>
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#24310;&#36831;&#21152;&#36733;</span>
+(<span style="color: #a71d5d;">with-eval-after-load</span> 'dired
+    (define-key dired-mode-map (kbd <span style="color: #183691;">"RET"</span>) 'dired-find-alternate-file))
+</pre>
+</div>
+
+<p>
+使用延迟加载可以使编辑器加载速度有所提升。
+</p>
+
+<p>
+启用 <code>dired-x</code> 可以让每一次进入 Dired 模式时，使用新的快捷键 <code>C-x C-j</code> 就可以进入当前文件夹的所在的路径。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">dired-x</span>)
+</pre>
+</div>
+
+<p>
+使用 <code>(setq dired-dwin-target 1)</code> 则可以使当一个窗口（frame）中存在两个分屏（window）时，将另一个分屏自动设置成拷贝地址的目标。
+</p>
+
+<p>
+最后如果你是 Mac OS X 的用户，可以安装 <code>reveal-in-osx-finder</code> 这个插件（你可以在
+<a href="https://melpa.org/#/reveal-in-osx-finder">这里</a>找到它），它可以将任意文件直接在 Finder 中打开。你想安装这个插件，将其添加至第二天的插件列表中即可，下次启动 Emacs 时，它就会自动帮你完成下载。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgc7bc6cf" class="outline-4">
+<h4 id="orgc7bc6cf"><span class="section-number-4">1.4.4</span> Org-mode 管理 Emacs 配置</h4>
+<div class="outline-text-4" id="text-1-4-4">
+<p>
+Org-mode 下的文学编程将颠覆你对于 Emacs 的看法。因为我们也可以使用 Org 来管理
+Emacs 的配置文件（笔者和他的师傅其实更倾向于模块管理配置文件）。
+</p>
+
+<p>
+你需要将下面的代码放入配置入口文件（ <code>init.el</code> ）中，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(package-initialize)
+
+(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">org-install</span>)
+(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">ob-tangle</span>)
+(org-babel-load-file (expand-file-name <span style="color: #183691;">"org-file-name.org"</span> user-emacs-directory))
+</pre>
+</div>
+
+<p>
+之后我们需要做的仅仅只是将所有的配置文件放入 Org 模式中的代码块即可，并使用目录结构来表述你的配置文件再把它保存在与入口文件相同的目录中即可（文件名为
+<code>org-file-name.org</code> ）。Emacs 会提取其中的配置并使其生效。这样做的好处是可以使自己和他人更直观的，理解你的配置文件或者代码。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org80066bf" class="outline-3">
+<h3 id="org80066bf"><span class="section-number-3">1.5</span> 第五天：打造前端开发神器</h3>
+<div class="outline-text-3" id="text-1-5">
+<p>
+视频地址如下
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1slOOWSd">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTU0NjMyNDg5Ng==.html">优酷</a></li>
+<li><a href="https://youtu.be/Tjh5cKAw1Ks">YouTube</a></li>
+</ul>
+
+<p>
+照例我们先修复一些现在存在的小问题。首先是自动配对的小问题，在 Emacs Lisp 中我们有时候只需要一个 <code>'</code> 但是 Emacs 很好心的帮我们做了补全，但这并不是我们需要的。我们可以通过下面的代码来让使 Emacs Lisp 在 Emacs 中的编辑变得更方便（可以将其添加至 <code>init-default.el</code> 配置文件中）。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(sp-local-pair 'emacs-lisp-mode <span style="color: #183691;">"'"</span> nil <span style="color: #a71d5d;">:actions</span> nil)
+(sp-local-pair 'lisp-interaction-mode <span style="color: #183691;">"'"</span> nil <span style="color: #a71d5d;">:actions</span> nil)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#20063;&#21487;&#20197;&#25226;&#19978;&#38754;&#20004;&#21477;&#21512;&#36215;&#26469;</span>
+(sp-local-pair '(emacs-lisp-mode lisp-interaction-mode) <span style="color: #183691;">"'"</span> nil <span style="color: #a71d5d;">:actions</span> nil)
+</pre>
+</div>
+
+<p>
+在添加配置代码后重启 Emacs 使其生效。当然这个方法你也可以运用在其他的各个 Major
+Mode 中，如果你不想 Emacs 对某些符号进行类似的自动匹配补全。
+</p>
+
+<p>
+<code>show-paren-mode</code> 可以使鼠标在括号上是高亮其所匹配的另一半括号，然而我们想要光标在括号内时就高亮包含内容的两个括号，使用下面的代码就可以做到这一点。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">define-advice</span> <span style="color: #795da3;">show-paren-function</span> (<span style="color: #a71d5d;">:around</span> (fn) fix-show-paren-function)
+  <span style="color: #183691;">"Highlight enclosing parens."</span>
+  (<span style="color: #a71d5d;">cond</span> ((looking-at-p <span style="color: #183691;">"\\s("</span>) (funcall fn))
+        (t (<span style="color: #a71d5d;">save-excursion</span>
+             (<span style="color: #a71d5d;">ignore-errors</span> (backward-up-list))
+             (funcall fn)))))
+</pre>
+</div>
+
+<p>
+Lisp 的宏（Macro）类似于 C++ 中的模板，并可以生产新的代码（你可以在<a href="http://stackoverflow.com/questions/267862/what-makes-lisp-macros-so-special">这里</a>找到更多关于宏的讨论）。使用它，我们可以增强某个函数的功能而不去更改这个函数的代码。
+</p>
+
+<p>
+还有一个小问题就是解决在不同系统中的换行符，例如在 DOS 系统下的 <code>\r(^M)</code> 换行符，这让我们有时候在 Unix 系统中很是头疼，因为它的存在会使版本控制误以为整行的代码都被修改过而造成不必要的麻烦。（你可以在<a href="http://unix.stackexchange.com/questions/32001/what-is-m-and-how-do-i-get-rid-of-it">这里</a>找到更多关于 <code>\r(^M)</code> 的信息）
+</p>
+
+<p>
+我们用两种方式来处理这个问题，隐藏这个换行符或者将其删除。首先下面是隐藏的方法，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">hidden-dos-eol</span> ()
+  <span style="color: #183691;">"Do not show ^M in files containing mixed UNIX and DOS line endings."</span>
+  (<span style="color: #a71d5d;">interactive</span>)
+  (<span style="color: #a71d5d;">unless</span> buffer-display-table
+    (<span style="color: #a71d5d;">setq</span> buffer-display-table (make-display-table)))
+  (aset buffer-display-table ?\^M []))
+</pre>
+</div>
+
+<p>
+使用下面的代码则可以定义函数将此换行符删除，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">remove-dos-eol</span> ()
+  <span style="color: #183691;">"Replace DOS eolns CR LF with Unix eolns CR"</span>
+  (<span style="color: #a71d5d;">interactive</span>)
+  (goto-char (point-min))
+  (<span style="color: #a71d5d;">while</span> (search-forward <span style="color: #183691;">"\r"</span> nil t) (replace-match <span style="color: #183691;">""</span>)))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orga6ef93b" class="outline-4">
+<h4 id="orga6ef93b"><span class="section-number-4">1.5.1</span> web-mode</h4>
+<div class="outline-text-4" id="text-1-5-1">
+<p>
+Emacs 自带的 HTML Mode 使用起来并不是那么的方便，而 web-mode 则是一个非常常用也很强大的用于编辑前端代码的 Major Mode（你可以在<a href="https://github.com/fxbois/web-mode">这里</a>找到更多关于它的信息）。
+</p>
+
+<p>
+首先我们需要安装它，照例我们需要将其添加至我们的插件列表中去。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defvar</span> <span style="color: #333333;">xinyang/packages</span> '(
+                           <span style="color: #969896;">;; </span><span style="color: #969896;">&#20320;&#20854;&#20182;&#30340;&#25554;&#20214;&#22312;&#36825;&#37324;</span>
+                           web-mode
+                           ) <span style="color: #183691;">"Default packages"</span>)
+</pre>
+</div>
+
+<p>
+在安装完成后我们就可以开始配置它了，首先我们需要做的是将所有的 <code>*.html</code> 文件都使用 web-mode 来打开。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> auto-mode-alist
+      (append
+       '((<span style="color: #183691;">"\\.js\\'"</span> . js2-mode))
+       '((<span style="color: #183691;">"\\.html\\'"</span> . web-mode))
+       auto-mode-alist))
+</pre>
+</div>
+
+<p>
+这样所有的 HTML 代码在 Emacs 中就会之间启用 web-mode 而非默认的 HTML Mode 了。你可以阅读它的<a href="http://web-mode.org/">文档</a>来学习更多 web-mode 详细的使用方法。
+</p>
+
+<p>
+例如使用 <code>M-;</code> 就可以注释当前行代码或选中行的代码。
+</p>
+
+<p>
+接下来我们来做更多细节的配置，首先是缩减的大小的设置。因为 web-mode 支持在 HTML
+文件中存在多语言，所以我们可以对不同的语言的缩减做出设置。下面的代码用于设置初始的代码缩进，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">my-web-mode-indent-setup</span> ()
+  (<span style="color: #a71d5d;">setq</span> web-mode-markup-indent-offset 2) <span style="color: #969896;">; </span><span style="color: #969896;">web-mode, html tag in html file</span>
+  (<span style="color: #a71d5d;">setq</span> web-mode-css-indent-offset 2)    <span style="color: #969896;">; </span><span style="color: #969896;">web-mode, css in html file</span>
+  (<span style="color: #a71d5d;">setq</span> web-mode-code-indent-offset 2)   <span style="color: #969896;">; </span><span style="color: #969896;">web-mode, js code in html file</span>
+  )
+(add-hook 'web-mode-hook 'my-web-mode-indent-setup)
+</pre>
+</div>
+
+<p>
+下面的函数可以用于在两个空格和四个空格之间进行切换，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">my-toggle-web-indent</span> ()
+  (<span style="color: #a71d5d;">interactive</span>)
+  <span style="color: #969896;">;; </span><span style="color: #969896;">web development</span>
+  (<span style="color: #a71d5d;">if</span> (<span style="color: #a71d5d;">or</span> (eq major-mode 'js-mode) (eq major-mode 'js2-mode))
+      (<span style="color: #a71d5d;">progn</span>
+        (<span style="color: #a71d5d;">setq</span> js-indent-level (<span style="color: #a71d5d;">if</span> (= js-indent-level 2) 4 2))
+        (<span style="color: #a71d5d;">setq</span> js2-basic-offset (<span style="color: #a71d5d;">if</span> (= js2-basic-offset 2) 4 2))))
+
+  (<span style="color: #a71d5d;">if</span> (eq major-mode 'web-mode)
+      (<span style="color: #a71d5d;">progn</span> (<span style="color: #a71d5d;">setq</span> web-mode-markup-indent-offset (<span style="color: #a71d5d;">if</span> (= web-mode-markup-indent-offset 2) 4 2))
+             (<span style="color: #a71d5d;">setq</span> web-mode-css-indent-offset (<span style="color: #a71d5d;">if</span> (= web-mode-css-indent-offset 2) 4 2))
+             (<span style="color: #a71d5d;">setq</span> web-mode-code-indent-offset (<span style="color: #a71d5d;">if</span> (= web-mode-code-indent-offset 2) 4 2))))
+  (<span style="color: #a71d5d;">if</span> (eq major-mode 'css-mode)
+      (<span style="color: #a71d5d;">setq</span> css-indent-offset (<span style="color: #a71d5d;">if</span> (= css-indent-offset 2) 4 2)))
+
+  (<span style="color: #a71d5d;">setq</span> indent-tabs-mode nil))
+
+(global-set-key (kbd <span style="color: #183691;">"C-c t i"</span>) 'my-toggle-web-indent)
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org3501983" class="outline-4">
+<h4 id="org3501983"><span class="section-number-4">1.5.2</span> js2-refactor</h4>
+<div class="outline-text-4" id="text-1-5-2">
+<p>
+js2-refactor 是一个用于重构 JavaScript 的插件，它是一个 Minor Mode，你可以在
+<a href="https://github.com/magnars/js2-refactor.el">GitHub</a> 找到更多关于这个插件的信息。
+</p>
+
+<p>
+我们使用刚刚所提到的方法来安装 js2-refactor 插件。
+</p>
+
+<p>
+在安装完成后，添加一个钩子（Hook）：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-hook 'js2-mode-hook #'js2-refactor-mode)
+(js2r-add-keybindings-with-prefix <span style="color: #183691;">"C-c C-m"</span>)
+</pre>
+</div>
+
+<p>
+我们可以使用 <code>C-c C-m</code> 然后输入功能前缀，例如 <code>em</code> 是 extract-method 的前缀。更多的功能和使用方法也可以在上面给出的链接中找到，所有的前缀也可以在<a href="https://github.com/magnars/js2-refactor.el#refactorings">这里</a>找到。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga4badf7" class="outline-4">
+<h4 id="orga4badf7"><span class="section-number-4">1.5.3</span> 优化 occur 与 imenu</h4>
+<div class="outline-text-4" id="text-1-5-3">
+<p>
+下面的代码用于配置 Occur Mode 使其默认搜索当前被选中的或者在光标下的字符串：
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">occur-dwim</span> ()
+  <span style="color: #183691;">"Call `</span><span style="color: #0086b3;">occur</span><span style="color: #183691;">' with a sane default."</span>
+  (<span style="color: #a71d5d;">interactive</span>)
+  (<span style="color: #a71d5d;">push</span> (<span style="color: #a71d5d;">if</span> (region-active-p)
+            (buffer-substring-no-properties
+             (region-beginning)
+             (region-end))
+          (<span style="color: #a71d5d;">let</span> ((sym (thing-at-point 'symbol)))
+            (<span style="color: #a71d5d;">when</span> (stringp sym)
+              (regexp-quote sym))))
+        regexp-history)
+  (call-interactively 'occur))
+(global-set-key (kbd <span style="color: #183691;">"M-s o"</span>) 'occur-dwim)
+</pre>
+</div>
+
+<p>
+<code>dwim</code> 是按我说的做的缩写（Do what I mean）。
+</p>
+
+<p>
+Occur 可以用于显示变量或函数的定义，我们可以通过 popwin 的 customize-group 将定义显示设置为右边而不是默认的底部（ <code>customize-group &gt; popwin &gt; Popup Window
+ Position</code> 设置为 right），也可以在这里对其宽度进行调节。
+</p>
+
+<p>
+Occur 与普通的搜索模式不同的是，它可以使用 Occur-Edit Mode (在弹出的窗口中按 <code>e</code>
+进入编辑模式) 对搜索到的结果进行之间的编辑。
+</p>
+
+<p>
+imenu 可以显示当前所有缓冲区的列表，下面的配置可以让其拥有更精确的跳转，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">js2-imenu-make-index</span> ()
+      (<span style="color: #a71d5d;">interactive</span>)
+      (<span style="color: #a71d5d;">save-excursion</span>
+        <span style="color: #969896;">;; </span><span style="color: #969896;">(setq imenu-generic-expression '((nil "describe\\(\"\\(.+\\)\"" 1)))</span>
+        (imenu--generic-function '((<span style="color: #183691;">"describe"</span> <span style="color: #183691;">"\\s-*describe\\s-*(\\s-*[\"']</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">.+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[\"']\\s-*,.*"</span> 1)
+                                   (<span style="color: #183691;">"it"</span> <span style="color: #183691;">"\\s-*it\\s-*(\\s-*[\"']</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">.+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[\"']\\s-*,.*"</span> 1)
+                                   (<span style="color: #183691;">"test"</span> <span style="color: #183691;">"\\s-*test\\s-*(\\s-*[\"']</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">.+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[\"']\\s-*,.*"</span> 1)
+                                   (<span style="color: #183691;">"before"</span> <span style="color: #183691;">"\\s-*before\\s-*(\\s-*[\"']</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">.+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[\"']\\s-*,.*"</span> 1)
+                                   (<span style="color: #183691;">"after"</span> <span style="color: #183691;">"\\s-*after\\s-*(\\s-*[\"']</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">.+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[\"']\\s-*,.*"</span> 1)
+                                   (<span style="color: #183691;">"Function"</span> <span style="color: #183691;">"function[ \t]+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">[a-zA-Z0-9_$.]+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[ \t]*("</span> 1)
+                                   (<span style="color: #183691;">"Function"</span> <span style="color: #183691;">"^[ \t]*</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">[a-zA-Z0-9_$.]+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[ \t]*=[ \t]*function[ \t]*("</span> 1)
+                                   (<span style="color: #183691;">"Function"</span> <span style="color: #183691;">"^var[ \t]*</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">[a-zA-Z0-9_$.]+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[ \t]*=[ \t]*function[ \t]*("</span> 1)
+                                   (<span style="color: #183691;">"Function"</span> <span style="color: #183691;">"^[ \t]*</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">[a-zA-Z0-9_$.]+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[ \t]*()[ \t]*{"</span> 1)
+                                   (<span style="color: #183691;">"Function"</span> <span style="color: #183691;">"^[ \t]*</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">[a-zA-Z0-9_$.]+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">[ \t]*:[ \t]*function[ \t]*("</span> 1)
+                                   (<span style="color: #183691;">"Task"</span> <span style="color: #183691;">"[. \t]task([ \t]*['\"]</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">(</span><span style="color: #183691;">[</span><span style="color: #a71d5d;">^</span><span style="color: #183691;">'\"]+</span><span style="color: #969896;">\\</span><span style="color: #a71d5d;">)</span><span style="color: #183691;">"</span> 1)))))
+(add-hook 'js2-mode-hook
+              (<span style="color: #a71d5d;">lambda</span> ()
+                (<span style="color: #a71d5d;">setq</span> imenu-create-index-function 'js2-imenu-make-index)))
+
+(global-set-key (kbd <span style="color: #183691;">"M-s i"</span>) 'counsel-imenu)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org132c5e6" class="outline-4">
+<h4 id="org132c5e6"><span class="section-number-4">1.5.4</span> expand-region</h4>
+<div class="outline-text-4" id="text-1-5-4">
+<p>
+使用同样的方法将 expand-region 添加至我们的插件列表中，重启 Emacs 安装插件。
+</p>
+
+<p>
+再为其绑定一个快捷键，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-set-key (kbd <span style="color: #183691;">"C-="</span>) 'er/expand-region)
+</pre>
+</div>
+
+<p>
+使用这个插件可以使我们更方便的选中一个区域。（更多使用方法和文档可以在<a href="https://github.com/magnars/expand-region.el">这里</a>找到）
+</p>
+</div>
+</div>
+
+<div id="outline-container-org0a337a9" class="outline-4">
+<h4 id="org0a337a9"><span class="section-number-4">1.5.5</span> iedit</h4>
+<div class="outline-text-4" id="text-1-5-5">
+<p>
+iedit 是一个可以同时编辑多个区域的插件，它类似 Sublime Text 中的多光标编辑。它的 GitHub 仓库在<a href="https://github.com/victorhge/iedit">这里</a>。
+</p>
+
+<p>
+我们将其绑定快捷键以便更快捷的使用这个模式（ <code>C-;</code> 为默认快捷键），
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-set-key (kbd <span style="color: #183691;">"M-s e"</span>) 'iedit-mode)
+</pre>
+</div>
+
+<p>
+我们可以使用 Customized-group 来更改其高亮的背景色，将 <code>highlight</code> 改为 <code>region</code> 。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbff23ef" class="outline-4">
+<h4 id="orgbff23ef"><span class="section-number-4">1.5.6</span> Org 导出</h4>
+<div class="outline-text-4" id="text-1-5-6">
+<p>
+使用 <code>C-c C-e</code> 可以将 Org-mode 文档导出为你需要的格式，例如 HTML 或者 PDF 文件。你现在看到的这本教程就是由 Org-mode 所导出生成的。
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga06940c" class="outline-3">
+<h3 id="orga06940c"><span class="section-number-3">1.6</span> 第六天：代码片段与语法检查器</h3>
+<div class="outline-text-3" id="text-1-6">
+<p>
+视频地址如下
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1miLBw5E">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTU0NjYwNzQ3Mg==.html">优酷</a></li>
+<li><a href="https://www.youtube.com/watch?v=WIzWxTc1KUI&amp;featur">YouTube</a></li>
+</ul>
+
+<p>
+在开始前我们需要注意的是之前模块化的配置文件 <code>init-keybindings.el</code> 应该放在所有调用模块的最后面，因为也许在设置快捷键时某些函数还未被加载。
+</p>
+
+<p>
+我们可以使用下面的配置来在 Company-mode 中使用 <code>C-n</code> 与 <code>C-p</code> 来选择补全项，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">with-eval-after-load</span> 'company
+  (define-key company-active-map (kbd <span style="color: #183691;">"M-n"</span>) nil)
+  (define-key company-active-map (kbd <span style="color: #183691;">"M-p"</span>) nil)
+  (define-key company-active-map (kbd <span style="color: #183691;">"C-n"</span>) #'company-select-next)
+  (define-key company-active-map (kbd <span style="color: #183691;">"C-p"</span>) #'company-select-previous))
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgd070fef" class="outline-4">
+<h4 id="orgd070fef"><span class="section-number-4">1.6.1</span> Org-mode 进阶使用</h4>
+<div class="outline-text-4" id="text-1-6-1">
+<p>
+在学习代码片段和语法检查器（Linter）之前，我们先来学习一下如何使用 Org-mode 来做学习笔记和安排工作时间。我们用下面的配置代码来设置一个模板（其中设置了待办事项的优先级还有触发键），
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> org-capture-templates
+      '((<span style="color: #183691;">"t"</span> <span style="color: #183691;">"Todo"</span> entry (file+headline <span style="color: #183691;">"~/.emacs.d/gtd.org"</span> <span style="color: #183691;">"&#24037;&#20316;&#23433;&#25490;"</span>)
+         <span style="color: #183691;">"* TODO [#B] %?\n  %i\n"</span>
+         <span style="color: #a71d5d;">:empty-lines</span> 1)))
+</pre>
+</div>
+
+<p>
+我们也可以为其绑定一个快捷键，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-set-key (kbd <span style="color: #183691;">"C-c r"</span>) 'org-capture)
+</pre>
+</div>
+
+<p>
+这个功能除了可以记录待办事项还有其他许许多多的功能例如获取将当前浏览器中的
+URL（下面的例子只在 Mac OS X 平台有效）。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">YOUR_NAME/retrieve-chrome-current-tab-url</span>()
+  <span style="color: #183691;">"Get the URL of the active tab of the first window"</span>
+  (<span style="color: #a71d5d;">interactive</span>)
+      (<span style="color: #a71d5d;">let</span> ((result (do-applescript
+                     (concat
+                      <span style="color: #183691;">"set frontmostApplication to path to frontmost application\n"</span>
+                      <span style="color: #183691;">"tell application \"Google Chrome\"\n"</span>
+                      <span style="color: #183691;">" set theUrl to get URL of active tab of first window\n"</span>
+                      <span style="color: #183691;">" set theResult to (get theUrl) \n"</span>
+                      <span style="color: #183691;">"end tell\n"</span>
+                      <span style="color: #183691;">"activate application (frontmostApplication as text)\n"</span>
+                      <span style="color: #183691;">"set links to {}\n"</span>
+                      <span style="color: #183691;">"copy theResult to the end of links\n"</span>
+                      <span style="color: #183691;">"return links as string\n"</span>))))
+        (format <span style="color: #183691;">"%s"</span> (s-chop-suffix <span style="color: #183691;">"\""</span> (s-chop-prefix <span style="color: #183691;">"\""</span> result)))))
+</pre>
+</div>
+
+<p>
+更多有关 Org-capture 的内容可以在<a href="http://orgmode.org/manual/Capture.html">这里</a>找到。
+</p>
+
+<p>
+Org-pomodoro 是一个番茄时间工作法的插件（更多关于这个工作法的信息可以在<a href="https://en.wikipedia.org/wiki/Pomodoro_Technique">这里</a>找到）。它的 GitHub 地址在<a href="https://github.com/lolownia/org-pomodoro">这里</a>。在 <code>(require 'org-pomodoro)</code> 后可以通过 Customize-group
+来对其进行设置，包括不同休息种类的时长。
+</p>
+
+<p>
+因为每次保存中文的时候都需要选择解码，我们可以使用下面的配置将文本解码设置默认为 UTF-8，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-language-environment <span style="color: #183691;">"UTF-8"</span>)
+</pre>
+</div>
+
+<p>
+当 org-mode 不能生效时，我们需要将与 Org 相关的配置放置于 <code>with-eval-after-load</code> 中，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">with-eval-after-load</span> 'org
+  <span style="color: #969896;">;; </span><span style="color: #969896;">Org &#27169;&#24335;&#30456;&#20851;&#35774;&#23450;</span>
+  )
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org68c86c5" class="outline-4">
+<h4 id="org68c86c5"><span class="section-number-4">1.6.2</span> 批量修改文件名</h4>
+<div class="outline-text-4" id="text-1-6-2">
+<p>
+<code>C-x C-q</code> 就可以直接在 Dired Mode 中进行编辑，使用之前学的 iedit-mode 和区域选择就可以直接对多个文件进行重命名编辑了。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org22af4c2" class="outline-4">
+<h4 id="org22af4c2"><span class="section-number-4">1.6.3</span> 搜索与替换</h4>
+<div class="outline-text-4" id="text-1-6-3">
+<p>
+全局搜索在我们的编辑工作中是不可缺少的，今天我们介绍的是 ag。它是非常快速的命令行搜索工具，它是 Linux 的所有搜索工具中最快的。
+</p>
+
+<pre class="example">
+ag &gt; pt &gt; ack &gt; grep
+</pre>
+
+<p>
+在使用 ag 前我们需要进行安装，下面是 Mac OS X 与 Ubuntu 下的安装方法，
+</p>
+
+<pre class="example">
+# Mac OS X 通过 Homebrew 安装
+brew install the_silver_searcher
+
+# Ubuntu 下安装
+apt-get install silversearcher-ag
+
+# Windows 下通过 msys2 安装（确保在 path 中）
+pacman -S mingw-w64-i686-ag # 32 位电脑
+pacman -S mingw-w64-x86_64-ag # 64 位电脑
+</pre>
+
+<p>
+安装好 ag 后我们就可以安装 helm-ag 插件了。（它的 GitHub 仓库地址在<a href="https://github.com/syohex/emacs-helm-ag">这里</a>）在安装完成后可以为其设置快捷键，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-set-key (kbd <span style="color: #183691;">"C-c p s"</span>) 'helm-do-ag-project-root)
+</pre>
+</div>
+
+<p>
+使用这个插件我们同样可以在缓冲区对搜索到的结果进行直接的修改，这样就可以做到快速的搜索与替换。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgf07474e" class="outline-4">
+<h4 id="orgf07474e"><span class="section-number-4">1.6.4</span> 语法检查器（Linter）</h4>
+<div class="outline-text-4" id="text-1-6-4">
+<p>
+语法检查器可以在开发动态语言（Interpreted/Dynamic Programming Language）时极大的提高你的开发效率，它会实时的检查你的代码并将句法错误（Syntax Error）与静态语义（Static Semantic Error）错误进行高亮与提示。
+</p>
+
+<p>
+我们在这里使用的例子是 JavaScript 的语法检查器 eslint 它的安装方法可以在<a href="https://github.com/eslint/eslint">这里</a>找到。
+</p>
+
+<p>
+在安装好语法检查器后就可以安装 flycheck 的插件了，它的 GitHub 的地址在<a href="https://github.com/flycheck/flycheck">这里</a>。
+</p>
+
+<p>
+使用下面的代码可以将 flycheck-mode 在特定模式下激活（下面的例子就是只有在打开
+JavaScript 时才会激活语法检查器），
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-hook 'js2-mode-hook 'flycheck-mode)
+</pre>
+</div>
+
+<p>
+使用 <code>flycheck-verify-setup</code> 可以进行语法检查器的选择。
+</p>
+
+<p>
+eslint 检查器的配置也可以使用项目目录下的 <code>.eslintrc</code> 来进行配置，更多配置方法可以在<a href="http://eslint.org/docs/user-guide/configuring">这里</a>找到。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orge22f8e7" class="outline-4">
+<h4 id="orge22f8e7"><span class="section-number-4">1.6.5</span> 代码块</h4>
+<div class="outline-text-4" id="text-1-6-5">
+<p>
+<code>yasnippet</code> 是一个代码块补全的插件（<a href="https://github.com/capitaomorte/yasnippet">GitHub</a> 地址）。使用下面的配置文件将其在所有的编程语言的模式中激活。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(yas-reload-all)
+(add-hook 'prog-mode-hook #'yas-minor-mode)
+</pre>
+</div>
+
+<p>
+自定义代码块的方法可以在上面提供的链接中找到。
+</p>
+</div>
+
+<div id="outline-container-org224eb97" class="outline-5">
+<h5 id="org224eb97"><span class="section-number-5">1.6.5.1</span> auto-yasnippet</h5>
+<div class="outline-text-5" id="text-1-6-5-1">
+<p>
+<a href="https://github.com/abo-abo/auto-yasnippet">auto-yasnippet</a> 也是一个非常好用代码块补全插件。安装并未其设置快捷键，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-set-key (kbd <span style="color: #183691;">"H-w"</span>) #'aya-create)
+(global-set-key (kbd <span style="color: #183691;">"H-y"</span>) #'aya-expand)
+</pre>
+</div>
+
+<p>
+简单的使用方法就是使用 <code>~</code> 来定义模板，然后调用 <code>aya-create</code> 再使用 <code>aya-expand</code> 来使用模板。
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgd477b33" class="outline-3">
+<h3 id="orgd477b33"><span class="section-number-3">1.7</span> 第七天：Evil 模式</h3>
+<div class="outline-text-3" id="text-1-7">
+<p>
+视频地址如下，
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1dEIlXID">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTU1NTk4MzUyNA==.html">优酷</a></li>
+<li><a href="https://youtu.be/evnnz2jvteQ">YouTube</a></li>
+</ul>
+
+<p>
+开始之前我们先将 <code>C-w</code> 来使其可以向后删除一个单词，这样就可以与 Shell 中的快捷键操作同步。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-set-key (kbd <span style="color: #183691;">"C-w"</span>) 'backward-kill-word)
+</pre>
+</div>
+
+<p>
+如果你不是 Vim 的用户，你可以选择跳过这一天的内容。但是我们强烈建议你花一些时间来学习基本的 Vim 操作，即使 Emacs 是你的最爱 Vim 的快捷键也在一定程度会增加你的编辑效率。基础的 Vim 操作可以在<a href="http://www.openvim.com/">这里</a>学会。
+</p>
+
+<p>
+Evil 模式中的 State 就相当与 Vim 中的模式，常用的模式有下面几种（后面对于了相应的 Emacs 中的 State），
+</p>
+
+<ul class="org-ul">
+<li>Normal Mode -&gt; Normal State</li>
+<li>Insert Mode -&gt; Insert State</li>
+<li>Visual Mode -&gt; Visual State</li>
+<li>Motion Mode -&gt; Motion State</li>
+</ul>
+
+<p>
+还有一个 Emacs 中的特殊状态是 Emacs State。
+</p>
+</div>
+
+<div id="outline-container-org1c34d5f" class="outline-4">
+<h4 id="org1c34d5f"><span class="section-number-4">1.7.1</span> Evil 的安装</h4>
+<div class="outline-text-4" id="text-1-7-1">
+<p>
+照例我们需要将 Evil 插件添加至我们的插件列表中来完成安装。在重启 Emacs 完成安装后可以添加下面的代码将其激活。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(evil-mode 1)
+</pre>
+</div>
+
+<p>
+在激活 Evil 模式后就可以，在 Emacs 中使用 Vim 的快捷键了。有一点需要注意 <code>C-u</code>
+在 Emacs 中有特殊的功所（Universal args）以能我们可以通过使用 <code>customize-group</code>
+来对 Evil 模式进行修改，将 <code>Evil Want C U Scroll</code> 设置为开启。
+</p>
+
+<p>
+下面的代码可以将 <code>insert state map</code> 中的快捷键清空，使其可以回退（Fallback）到
+Emacs State 中，这样我们之前的 Emacs State 里面定义的 <code>C-w</code> 等快捷键就不会被
+<code>evil insert minor mode state</code> 所覆盖，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(setcdr evil-insert-state-map nil)
+(define-key evil-insert-state-map [escape] 'evil-normal-state)
+</pre>
+</div>
+
+<p>
+这样你就可以使用 Evil 来在 Emacs 中完成百分之八十作用的快捷键操作了。
+</p>
+
+<p>
+完整的 Evil Mode 的 PDF 版本的操作指南可以在<a href="https://bytebucket.org/lyro/evil/raw/default/doc/evil.pdf">这里</a>找到，建议从 Vim 转 Emacs 的用户多次阅读来完整的掌握这个模式的使用方法。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org8b0e446" class="outline-4">
+<h4 id="org8b0e446"><span class="section-number-4">1.7.2</span> Evil 模式插件</h4>
+<div class="outline-text-4" id="text-1-7-2">
+</div>
+<div id="outline-container-org54c3f20" class="outline-5">
+<h5 id="org54c3f20"><span class="section-number-5">1.7.2.1</span> Leader Key</h5>
+<div class="outline-text-5" id="text-1-7-2-1">
+<p>
+在 Emacs 中使用 Leader Key 可以通过 <a href="https://github.com/cofi/evil-leader">evil-leader</a> 来实现。你需要做的就是在安装后将其激活即可。
+</p>
+
+<p>
+<b>提示</b>: 根据<a href="https://github.com/cofi/evil-leader">cofi/evil-leader</a> 的说明，你应该在激活 evil-mode 之前就激活 global-evil-leader-mode，否则 evil-leader 在几个初始缓冲区(scratch, Message,&#x2026;)上将不生效。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(global-evil-leader-mode)
+</pre>
+</div>
+
+
+<p>
+Leader Key 可以通过 customize-group 来进行设置（Evil Leader/Leader）。因为之后我们会转移至 Spacemacs 所以我们可以将其设置为空格键 <code>SPC</code> 。
+</p>
+
+<p>
+在通过下面的配置来设置简单的结合 Leader Key 快捷键组合（我们使用不同的键讲不同的功能分组，例如我们使用 <code>f</code> 键来做关于文件的操作，使用 <code>b</code> 键来做关于缓冲区（Buffer）的操作），
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(evil-leader/set-key
+  <span style="color: #183691;">"ff"</span> 'find-file
+  <span style="color: #183691;">"bb"</span> 'switch-to-buffer
+  <span style="color: #183691;">"0"</span>  'select-window-0
+  <span style="color: #183691;">"1"</span>  'select-window-1
+  <span style="color: #183691;">"2"</span>  'select-window-2
+  <span style="color: #183691;">"3"</span>  'select-window-3
+  <span style="color: #183691;">"w/"</span> 'split-window-right
+  <span style="color: #183691;">"w-"</span> 'split-window-below
+  <span style="color: #183691;">":"</span>  'counsel-M-x
+  <span style="color: #183691;">"wM"</span> 'delete-other-windows
+  )
+</pre>
+</div>
+
+<p>
+注意上面窗口跳转相关的设置需要 window-numbering 安装后方可生效。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd0dd823" class="outline-5">
+<h5 id="orgd0dd823"><span class="section-number-5">1.7.2.2</span> Window-numbering</h5>
+<div class="outline-text-5" id="text-1-7-2-2">
+<p>
+这个插件可以让我们快速的使用 Leader Key 与数字键的组合来在多个窗口之间进行跳转。它的 GitHub 地址可以在<a href="https://github.com/nschum/window-numbering.el">这里</a>找到。
+</p>
+
+<p>
+下载安装后通过下面的代码可以将其激活，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(window-numbering-mode 1)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4448ca3" class="outline-5">
+<h5 id="org4448ca3"><span class="section-number-5">1.7.2.3</span> Evil-Surround</h5>
+<div class="outline-text-5" id="text-1-7-2-3">
+<p>
+<a href="https://github.com/timcharper/evil-surround">Evil-surround</a> 是一个 Vim 上非常常用的插件改写的，使用它可以快速的将选中区域进行匹配的操作，例如选中区域两边同时进行添加或修改括号，引号等操作。
+</p>
+
+<p>
+下载安装后使用下面的代码将其激活，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">evil-surround</span>)
+(global-evil-surround-mode)
+</pre>
+</div>
+
+<p>
+简单的使用方法就是在选中所选区域后，使用 <code>S(</code> 来将选中区域包括在括号之中。如果想将括号改变成 <code>"</code> 可以在选中后使用 <code>cs("</code>
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-org618b083" class="outline-5">
+<h5 id="org618b083"><span class="section-number-5">1.7.2.4</span> Evil-nerd-commenter</h5>
+<div class="outline-text-5" id="text-1-7-2-4">
+<p>
+这是一个快速添加与取消注释的插件，它的 GitHub 地址在<a href="https://github.com/redguardtoo/evil-nerd-commenter">这里</a>。
+</p>
+
+<p>
+使用下面代码可以将其激活，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(evilnc-default-hotkeys)
+</pre>
+</div>
+
+<p>
+使用下面的代码将其与 Evil 模式进行绑定，这里我们选择使用 <code>,/</code> 作为快捷键。
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(define-key evil-normal-state-map (kbd <span style="color: #183691;">",/"</span>) 'evilnc-comment-or-uncomment-lines)
+(define-key evil-visual-state-map (kbd <span style="color: #183691;">",/"</span>) 'evilnc-comment-or-uncomment-lines)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9bbbc14" class="outline-5">
+<h5 id="org9bbbc14"><span class="section-number-5">1.7.2.5</span> Which-key</h5>
+<div class="outline-text-5" id="text-1-7-2-5">
+<p>
+<a href="https://github.com/justbur/emacs-which-key">which-key</a> 可以显示当前组合键下所有可以使用的全部组合键的选项。使用这个插件可以很好的解决快捷键太多的问题，我们无需在记忆任何快捷键，而是根据自己的需求使用不同分组的快捷键后再在其中去需找自己需要的功能。
+</p>
+
+<p>
+在下载后可以使用下面的代码进行激活，
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(which-key-mode 1)
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0684ad8" class="outline-4">
+<h4 id="org0684ad8"><span class="section-number-4">1.7.3</span> Org Mode 中的搜索</h4>
+<div class="outline-text-4" id="text-1-7-3">
+<p>
+<code>C-c a</code> 中可以根据提示使用 <code>s</code> 来进行关键字所搜。使用 <code>t</code> 则可以进行代办事项的搜索。
+</p>
+</div>
+</div>
+</div>
+
+
+
+<div id="outline-container-org24e090c" class="outline-3">
+<h3 id="org24e090c"><span class="section-number-3">1.8</span> 第八天：Cask 介绍与实践</h3>
+<div class="outline-text-3" id="text-1-8">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1o83r1vc">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTU3MzEyNDkxNg==.html">优酷</a></li>
+<li><a href="https://youtu.be/B7jx8kJIbnY">YouTube</a></li>
+</ul>
+
+<p>
+什么是 Cask:
+</p>
+
+<p>
+Cask 是一个 Emacs Lisp 的项目管理工具.
+</p>
+</div>
+
+<div id="outline-container-org76e5663" class="outline-4">
+<h4 id="org76e5663"><span class="section-number-4">1.8.1</span> Cask 的安装</h4>
+<div class="outline-text-4" id="text-1-8-1">
+<p>
+Cask 的地址: <a href="https://github.com/cask/cask">Cask</a>
+</p>
+
+<p>
+可以使用如下命令安装 Cask:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">curl -fsSL https://raw.githubusercontent.com/cask/cask/master/go | python
+</pre>
+</div>
+
+<p>
+安装过程中 Cask 将会进行 Bootstrap, 安装一些包到~/.emacs.d 目录中.
+</p>
+
+<p>
+安装完成之后需要将 Cask 的可执行文件目录加入到 PATH 中.
+</p>
+
+<p>
+可以看到, Cask 的安装过程在 ~/.emacs.d 中新建了一个 .Cask 目录.
+</p>
+
+<p>
+安装 Pallet: Pallet 是一个基于 Cask 的包管理工具, 可以使用 Emacs 的包安装方式安装.
+</p>
+
+<p>
+然后使用以下代码启用 Pallet:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(pallet-mode)  
+(pallet-init)    <span style="color: #969896;">; </span><span style="color: #969896;">&#22312;.emacs.d &#20013;&#29983;&#25104;&#19968;&#20010; Cask &#25991;&#20214;, &#20889;&#20837;&#28304;&#19982;&#29616;&#26377;&#21253;</span>
+(pallet-install) <span style="color: #969896;">; </span><span style="color: #969896;">&#23558; elpa &#20013;&#30340; package &#25335;&#36125;&#21040;.Cask/&lt;you version&gt;/elpa &#30446;&#24405;&#20013;</span>
+</pre>
+</div>
+
+<p>
+然后在配置文件中加入以下代码(在其他包加载之前) :
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">cask</span> <span style="color: #183691;">"&lt;path-to-cask&gt;/cask.el"</span>)
+(cask-initialize)    <span style="color: #969896;">; </span><span style="color: #969896;">&#31867;&#20284;&#20110; package-initialize</span>
+(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">pallet</span>)
+(pallet-mode t)      <span style="color: #969896;">; </span><span style="color: #969896;">&#28608;&#27963; pallet, &#22312;&#23433;&#35013;&#21253;&#26102;&#23558; Cask &#25991;&#20214;&#20889;&#20837;&#30456;&#24212;&#20449;&#24687;</span>
+</pre>
+</div>
+
+<p>
+具体使用方式见文档: <a href="https://github.com/rdallasgray/pallet">Pallet</a>
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgdfef155" class="outline-4">
+<h4 id="orgdfef155"><span class="section-number-4">1.8.2</span> 为何使用 Cask</h4>
+<div class="outline-text-4" id="text-1-8-2">
+<ul class="org-ul">
+<li>使用 Cask 文件保存包的信息, 可以通过 <b>Cask install</b> 自动安装</li>
+<li>当有多个版本的 Emacs 时, 将各版本的包单独存放</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgbb922be" class="outline-4">
+<h4 id="orgbb922be"><span class="section-number-4">1.8.3</span> 故障排除</h4>
+<div class="outline-text-4" id="text-1-8-3">
+</div>
+<div id="outline-container-org9daa4e9" class="outline-5">
+<h5 id="org9daa4e9"><span class="section-number-5">1.8.3.1</span> Emacs24.5 时不能安装 <b>let-alist</b></h5>
+<div class="outline-text-5" id="text-1-8-3-1">
+<p>
+解决方案: 将 Gnu 的源加入源列表中, 示例代码如下(加入 Cask 文件)
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(source <span style="color: #183691;">"gnu"</span> <span style="color: #183691;">"http://elpa.zilongshanren.com/gnu/"</span>)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgd306ba3" class="outline-5">
+<h5 id="orgd306ba3"><span class="section-number-5">1.8.3.2</span> 在 Emacs24.5 中没有定义 define-advice</h5>
+<div class="outline-text-5" id="text-1-8-3-2">
+<p>
+define-advice 是一个 Emacs25 中加入的宏, 在 Emacs24 中不能使用, 可以使用
+<b>defadvice</b> 代替:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defadvice</span> <span style="color: #795da3;">show-paren-function</span> (around fix-show-paren-function activate)
+  (<span style="color: #a71d5d;">cond</span> ((looking-at-p <span style="color: #183691;">"\\s("</span>) ad-do-it)
+        (t (<span style="color: #a71d5d;">save-excursion</span>
+             (<span style="color: #a71d5d;">ignore-errors</span> (backward-up-list))
+             ad-do-it)))
+  )
+</pre>
+</div>
+
+<p>
+而且使用 defadvice 相比 define-advice 还有一个优点: 
+</p>
+
+<p>
+使用 define-advice 定义的代码, 当在 Normal 模式时光标两边的括号不会高亮, 而使用
+defadvice 可以.
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb1c92a3" class="outline-3">
+<h3 id="orgb1c92a3"><span class="section-number-3">1.9</span> 第九天：Macro 与 Use-package</h3>
+<div class="outline-text-3" id="text-1-9">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1c1Gnkcw">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTU4MDU2NjE3Ng==.html">优酷</a></li>
+<li><a href="https://youtu.be/AnHP4rNiKSE">YouTube</a></li>
+</ul>
+
+<p>
+这次主要介绍 Emacs Lisp 中的宏(Macro)以及 Use-package 插件.
+</p>
+</div>
+
+<div id="outline-container-orga8bd139" class="outline-4">
+<h4 id="orga8bd139"><span class="section-number-4">1.9.1</span> Macro</h4>
+<div class="outline-text-4" id="text-1-9-1">
+</div>
+<div id="outline-container-orgd880c30" class="outline-5">
+<h5 id="orgd880c30"><span class="section-number-5">1.9.1.1</span> 什么是 Macro</h5>
+<div class="outline-text-5" id="text-1-9-1-1">
+<p>
+宏是一种可以生成代码的代码. 类比与 C 语言中的宏以及 C++中的模板. 先看一个简单的例子:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defmacro</span> <span style="color: #795da3;">inc</span> (var)
+  (list 'setq var (list '1+ var)))
+
+(<span style="color: #a71d5d;">setq</span> my-var 1)
+(<span style="color: #a71d5d;">setq</span> my-var (+ 1 my-var))
+
+(macroexpand '(inc my-var))
+</pre>
+</div>
+
+<p>
+以上这个宏的作用是将变量的值+1. 执行以上代码之后, <b>my-var</b> 的结果为 2.
+</p>
+
+<p>
+可以使用 macroexpand 获得宏展开的结果, 如以上代码结果为:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> my-var (1+ my-var))
+</pre>
+</div>
+
+<p>
+我们也可以使用函数来实现相同的功能, 但 Macro 与函数有以下两个区别:
+</p>
+
+<ol class="org-ol">
+<li>宏的参数并不会被马上求值, 解释器会先展开宏, 宏展开之后解释器才会执行宏展开的结果; 而函数的参数会马上求值</li>
+<li>宏的执行结果是一个表达式, 该表达式会立即被解释器执行; 而函数的结果是一个值</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgb371a36" class="outline-5">
+<h5 id="orgb371a36"><span class="section-number-5">1.9.1.2</span> backquote</h5>
+<div class="outline-text-5" id="text-1-9-1-2">
+<p>
+backquote 是指反引号(`), 即键盘上数字 1 左边的键.
+</p>
+
+<p>
+当在 Emacs 输入 backquote 时会插入两个反引号, 可以使用以下代码关闭这个功能:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(sp-local-pair 'emacs-lisp-mode <span style="color: #183691;">"`"</span> nil <span style="color: #a71d5d;">:actions</span> nil)
+</pre>
+</div>
+
+<p>
+先看以下例子来体会 backquote 的作用:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">my-print</span> (number)
+  (message <span style="color: #183691;">"This is a number: %d"</span> number))
+
+(my-print 2)               <span style="color: #969896;">; </span><span style="color: #969896;">1. output= This is a number: 2</span>
+(my-print (+ 2 3))         <span style="color: #969896;">; </span><span style="color: #969896;">2. output= This is a number: 5</span>
+
+(<span style="color: #a71d5d;">quote</span> (+ 1 1))
+<span style="color: #969896;">;; </span><span style="color: #969896;">return a list= (+ 1 1)</span>
+
+(<span style="color: #a71d5d;">defmacro</span> <span style="color: #795da3;">my-print-2</span> (number)
+  `(message <span style="color: #183691;">"This is a number: %d"</span> ,number))
+
+(my-print-2 2)             <span style="color: #969896;">; </span><span style="color: #969896;">3. output= This is a number: 2</span>
+(my-print-2 (+ 2 3))       <span style="color: #969896;">; </span><span style="color: #969896;">4. output= This is a number: 5</span>
+
+(<span style="color: #a71d5d;">setq</span> my-var 2)
+(inc my-var)
+
+(<span style="color: #a71d5d;">defmacro</span> <span style="color: #795da3;">inc2</span> (var1 var2)
+  (list 'progn (list 'inc var1) (list 'inc var2)))
+
+(macroexpand '(inc2 my-var my-var))
+(macroexpand-all '(inc2 my-var my-var))
+</pre>
+</div>
+
+<p>
+quote 的作用是返回后面的表达式, 不对表达式进行求值. 所以以下代码:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">quote</span> (+ 1 1))
+<span style="color: #969896;">;; </span><span style="color: #969896;">return a list= (+ 1 1)</span>
+</pre>
+</div>
+
+<p>
+并没有对表达式 <b>(+ 1 1)</b> 进行求值返回 2, 而是返回一个 list.
+</p>
+
+<p>
+backquote 的作用与 quote 相似, 同样不对后面的表达式求值, 但是当 backquote 在宏中与逗号(,)一起使用时, 用逗号修饰的变量将进行求值.
+</p>
+
+<p>
+例如以下代码:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defmacro</span> <span style="color: #795da3;">my-print-2</span> (number)
+  `(message <span style="color: #183691;">"This is a number: %d"</span> ,number))
+
+(pp (macroexpand '(my-print-2 (+ 2 3))))
+(my-print-2 (+ 2 3))
+</pre>
+</div>
+
+<p>
+当输出 message 且 number 不带逗号时, <b>my-print-2</b> 的执行将提示错误. 因为宏不对参数进行求值, 所以以上宏展开相当于:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(message <span style="color: #183691;">"This is a number:"</span> number)
+</pre>
+</div>
+
+<p>
+因为我们没有定义 number 变量, 所以执行出错.
+</p>
+
+<p>
+而如果加入逗号, 则在宏展开时会对变量 <b>number</b> 进行求值, 展开结果为:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(message <span style="color: #183691;">"This is a number: %d"</span> (+ 2 3))
+</pre>
+</div>
+
+<p>
+在调试宏的过程中, 可以使用 <b>macroexpand</b> 和 <b>macroexpand-all</b> 获取宏展开的结果.
+</p>
+
+<p>
+关于 backquote 的更多讨论, 可以见以下地址: <a href="https://emacs-china.org/t/lisp/357">lisp 中的`与，是怎么用的？</a>
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7c6878d" class="outline-5">
+<h5 id="org7c6878d"><span class="section-number-5">1.9.1.3</span> 为什么使用宏</h5>
+<div class="outline-text-5" id="text-1-9-1-3">
+<p>
+使用宏可以减少重复的代码, 以下是一个使用宏来定义函数的例子:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">prelude-search</span> (query-url prompt)
+  <span style="color: #183691;">"Open the search url constructed with the QUERY-URL.</span>
+<span style="color: #183691;">PROMPT sets the `read-string prompt."</span>
+  (browse-url
+   (concat query-url
+           (url-hexify-string
+            (<span style="color: #a71d5d;">if</span> mark-active
+                (buffer-substring (region-beginning) (region-end))
+              (read-string prompt))))))
+
+(<span style="color: #a71d5d;">defmacro</span> <span style="color: #795da3;">prelude-install-search-engine</span> (search-engine-name search-engine-url search-engine-prompt)                   <span style="color: #969896;">; </span><span style="color: #969896;">#1</span>
+  <span style="color: #183691;">"Given some information regarding a search engine, install the interactive command to search through them"</span>    
+  `(<span style="color: #a71d5d;">defun</span> ,(intern (format <span style="color: #183691;">"prelude-%s"</span> search-engine-name)) ()                                                       <span style="color: #969896;">; </span><span style="color: #969896;">#2</span>
+       ,(format <span style="color: #183691;">"Search %s with a query or region if any."</span> search-engine-name)                                        <span style="color: #969896;">; </span><span style="color: #969896;">#3</span>
+       (<span style="color: #a71d5d;">interactive</span>)
+       (prelude-search ,search-engine-url ,search-engine-prompt)))                                                    <span style="color: #969896;">; </span><span style="color: #969896;">#4</span>
+
+(prelude-install-search-engine <span style="color: #183691;">"google"</span>     <span style="color: #183691;">"http://www.google.com/search?q="</span>              <span style="color: #183691;">"Google: "</span>)                <span style="color: #969896;">; </span><span style="color: #969896;">#5</span>
+(prelude-install-search-engine <span style="color: #183691;">"youtube"</span>    <span style="color: #183691;">"http://www.youtube.com/results?search_query="</span> <span style="color: #183691;">"Search YouTube: "</span>)
+(prelude-install-search-engine <span style="color: #183691;">"github"</span>     <span style="color: #183691;">"https://github.com/search?q="</span>                 <span style="color: #183691;">"Search GitHub: "</span>)
+(prelude-install-search-engine <span style="color: #183691;">"duckduckgo"</span> <span style="color: #183691;">"https://duckduckgo.com/?t=lm&amp;q="</span>              <span style="color: #183691;">"Search DuckDuckGo: "</span>)
+</pre>
+</div>
+
+<p>
+下面对以上代码进行讲解:
+</p>
+
+<p>
+第#1 行, 通过 <b>prelude-install-search-engine</b> 定义了一个需要 3 个参数的宏, 这个宏的作用是生成一个函数.
+</p>
+
+<p>
+第#2 行, 通过 <b>intern</b> 生成一个符号作为函数名, 名称为　*prelude-xxx* , 其中 xxx
+为第一个参数的值.
+</p>
+
+<p>
+第#3 行, 生成了这个函数的描述. 
+</p>
+
+<p>
+第#4 行, 调用 <b>prelude-search</b> 函数进行搜索处理.
+</p>
+
+<p>
+第#5 行, 调用这个宏定义了一个名为　*prelude-google* 的函数.
+</p>
+
+<p>
+从以上代码可以知道, 我们利用宏生成了４个名称不同的函数, 避免了手动编写函数的问题
+(因为这４个函数的代码非常相似, 根据 DRY 原则应该尽量避免做这种重复工作).
+</p>
+
+<p>
+关于宏的更多内容, 可以阅读 <b>Paul Graham</b> 的著作　<a href="http://www.paulgraham.com/onlisp.html">《On Lisp》</a>
+</p>
+
+<pre class="example">
+prelude-duckduckgo
+
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org8d5d7d0" class="outline-4">
+<h4 id="org8d5d7d0"><span class="section-number-4">1.9.2</span> Use-package</h4>
+<div class="outline-text-4" id="text-1-9-2">
+</div>
+<div id="outline-container-org8363224" class="outline-5">
+<h5 id="org8363224"><span class="section-number-5">1.9.2.1</span> 简介</h5>
+<div class="outline-text-5" id="text-1-9-2-1">
+<p>
+Use-package 是一个宏, 它能让你将一个包的 <b>require</b> 和它的相关的初始化等配置组织在一起, 避免对同一个包的配置代码散落在不同的文件中.
+</p>
+
+<p>
+Use-package 的更多信息参见以下地址: <a href="https://github.com/jwiegley/use-package">Use-package</a>
+</p>
+</div>
+</div>
+
+<div id="outline-container-org303ec10" class="outline-5">
+<h5 id="org303ec10"><span class="section-number-5">1.9.2.2</span> 一些简单的用法</h5>
+<div class="outline-text-5" id="text-1-9-2-2">
+</div>
+<div id="outline-container-org8946de3" class="outline-6">
+<h6 id="org8946de3"><span class="section-number-6">1.9.2.2.1</span> 更安全的 require</h6>
+<div class="outline-text-6" id="text-1-9-2-2-1">
+<p>
+在 Emacs 中, 当我们要引入一个包时, 通常会使用以下代码:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">package-name</span>)
+</pre>
+</div>
+
+<p>
+但是当 <b>package-name</b> 不在 <b>load-path</b> 中时, 以上代码会抛出错误. 使用
+<b>Use-package</b> 可以避免:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">use-package</span> <span style="color: #0086b3;">package-name</span>)
+</pre>
+</div>
+
+<p>
+以上代码展开的结果如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">if</span>
+    (not
+     (<span style="color: #a71d5d;">require</span> '<span style="color: #0086b3;">package-name</span> nil 't))
+    (ignore
+     (message
+      (format <span style="color: #183691;">"Cannot load %s"</span> 'package-name))))
+</pre>
+</div>
+
+<p>
+可以看到, <b>Use-package</b> 使用 <b>ignore</b> 来避免抛出错误, 这样当某个包不存在时,
+<b>eamcs</b> 也能够正常启动.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org2d1765f" class="outline-6">
+<h6 id="org2d1765f"><span class="section-number-6">1.9.2.2.2</span> 将配置集中</h6>
+<div class="outline-text-6" id="text-1-9-2-2-2">
+<p>
+当我们引入某个包时, 有可能需要定义一些与这个包相关的变量, 使用 <b>Use-package</b> 实现这个需求如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">use-package</span> <span style="color: #0086b3;">package-name</span>
+  <span style="color: #a71d5d;">:init</span>
+  (<span style="color: #a71d5d;">setq</span> my-var1 <span style="color: #183691;">"xxx"</span>)
+  <span style="color: #a71d5d;">:config</span>
+  (<span style="color: #a71d5d;">progn</span>
+    (<span style="color: #a71d5d;">setq</span> my-var2 <span style="color: #183691;">"xxx"</span>)
+    (<span style="color: #a71d5d;">setq</span> my-var3 <span style="color: #183691;">"xxx"</span>)
+    )
+  )
+</pre>
+</div>
+
+<p>
+在上例中, <b>init</b> 后的代码在包的 require 之前执行, 如果这段代码出错则跳过包的 require.
+</p>
+
+<p>
+<b>config</b> 后的代码在包的 require 之后执行.
+</p>
+
+<p>
+<b>init</b> 与 <b>config</b> 之后只能接单个表达式语句, 如果需要执行多个语句, 可以用 <b>progn</b> .
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7ac2db9" class="outline-6">
+<h6 id="org7ac2db9"><span class="section-number-6">1.9.2.2.3</span> autoload</h6>
+<div class="outline-text-6" id="text-1-9-2-2-3">
+<p>
+使用 require 时会引入这个包, 但是当你的包很多时会影响启动速度. 而使用 autoload
+则可以在真正需要这个包时再 require, 提高启动速度, 避免无谓的 require.
+</p>
+
+<p>
+使用 <b>Use-package</b> 可以轻松的实现这个功能:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">use-package</span> <span style="color: #0086b3;">package-name</span>
+  <span style="color: #a71d5d;">:commands</span>
+  (global-company-mode)
+  <span style="color: #a71d5d;">:defer</span> t
+  )
+</pre>
+</div>
+
+<p>
+使用 <b>commands</b> 可以让 package 延迟加载, 如以上代码会首先判断 package 的符号是否存在, 如果存在则在 <b>package-name</b> 的路径下加载. <b>defer</b> 也可以让 <b>package-name</b>
+进行延迟加载.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5b77a62" class="outline-6">
+<h6 id="org5b77a62"><span class="section-number-6">1.9.2.2.4</span> 键绑定</h6>
+<div class="outline-text-6" id="text-1-9-2-2-4">
+<p>
+在之前的代码中, 如果我们需要绑定一个键, 需要使用 <b>global-key-bind</b> 或
+<b>define-key</b> 实现, 而使用*Use-package* 实现更简单:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">use-package</span> <span style="color: #0086b3;">color-moccur</span>
+  <span style="color: #a71d5d;">:commands</span> (isearch-moccur isearch-all)
+  <span style="color: #a71d5d;">:bind</span> ((<span style="color: #183691;">"M-s O"</span> . moccur)
+         <span style="color: #a71d5d;">:map</span> isearch-mode-map
+         (<span style="color: #183691;">"M-o"</span> . isearch-moccur)
+         (<span style="color: #183691;">"M-O"</span> . isearch-moccur-all))
+  <span style="color: #a71d5d;">:init</span>
+  (<span style="color: #a71d5d;">setq</span> isearch-lazy-highlight t)
+  <span style="color: #a71d5d;">:config</span>
+  (<span style="color: #a71d5d;">use-package</span> <span style="color: #0086b3;">moccur-edit</span>))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+
+
+<div id="outline-container-orgfda5337" class="outline-5">
+<h5 id="orgfda5337"><span class="section-number-5">1.9.2.3</span> 为什么使用 Use-package</h5>
+<div class="outline-text-5" id="text-1-9-2-3">
+<ol class="org-ol">
+<li>Use-package 能让相关的配置更为集中, 避免配置分散带来的维护困难</li>
+<li>Use-package 有完善的错误处理, 使配置代码更为健壮</li>
+<li>Spacemacs 也大量使用了 Use-package</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6801a19" class="outline-3">
+<h3 id="org6801a19"><span class="section-number-3">1.10</span> 第十天: Company-mode 与 auto-completion</h3>
+<div class="outline-text-3" id="text-1-10">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1hsyfnXq">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTYwMzc0NDg0OA==.html">优酷</a></li>
+<li><a href="https://youtu.be/wgam0sXuMdU">YouTube</a></li>
+</ul>
+
+<p>
+内容概要:
+</p>
+
+<ol class="org-ol">
+<li>给出 Cask 和 Use-package 的简单示例</li>
+<li>详细介绍 Company-mode 的工作原理, 各种 backend 及其用法</li>
+</ol>
+
+<p>
+扩展阅读:
+</p>
+
+<ol class="org-ol">
+<li><a href="http://sixty-north.com/blog/writing-the-simplest-emacs-company-mode-backend">编写一个简单的 comopany backend</a></li>
+<li><a href="https://www.emacswiki.org/emacs/CompanyMode">Company Mode Emacs wiki</a></li>
+</ol>
+</div>
+
+<div id="outline-container-orgf53d719" class="outline-4">
+<h4 id="orgf53d719"><span class="section-number-4">1.10.1</span> 升级 Package 之后有 BUG 怎么办</h4>
+<div class="outline-text-4" id="text-1-10-1">
+<p>
+有些时候我们将一个 Package 升级到最新的版本(例如 github 上最新的 commit), 而该版本可能会存在一些 BUG, 这就会导致我们的配置不能使用.
+</p>
+
+<p>
+如果我们使用 stable 版本的 Package(例如使用 github 上最新的 release), 就可以尽量地减少因为升级包之后的 BUG 导致配置不可用的情况.
+</p>
+
+<p>
+另一种解决方式是使用 Cask 进行包管理, 举例如下:
+</p>
+
+<p>
+首先我们添加一个包, 例如我们编辑 Cask 文件, 添加 monokai-theme :
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(depends-on <span style="color: #183691;">"monokai-theme"</span>
+            <span style="color: #a71d5d;">:git</span> <span style="color: #183691;">"https://github.com/oneKelvinSmith/monokai-emacs/releases"</span>
+            <span style="color: #a71d5d;">:ref</span> <span style="color: #183691;">"02c5f5d"</span>)
+</pre>
+</div>
+
+<p>
+然后启动 emacs, 但是出现了 BUG. 
+这时我们可以直接将 ref 的值修改为最新的 commit, Cask 即会更新这个包, 而不用等待 melpa 对包进行更新.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga14b035" class="outline-4">
+<h4 id="orga14b035"><span class="section-number-4">1.10.2</span> Use-package 的更多用法</h4>
+<div class="outline-text-4" id="text-1-10-2">
+<p>
+如果我们启用 <b>exec-path-from-shell</b> , 在 emacs 启动时可能会提示 <b>PATH</b> 变量重复定义, 解决方案如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">use-package</span> <span style="color: #0086b3;">exec-path-from-shell</span>
+  <span style="color: #a71d5d;">:ensure</span> t
+  <span style="color: #a71d5d;">:if</span> (<span style="color: #a71d5d;">and</span> (eq system-type 'darwin) (display-graphic-p))
+  <span style="color: #a71d5d;">:config</span>
+  (<span style="color: #a71d5d;">progn</span>
+    (<span style="color: #a71d5d;">when</span> (string-match-p <span style="color: #183691;">"/zsh$"</span> (getenv <span style="color: #183691;">"SHELL"</span>))
+      <span style="color: #969896;">;; </span><span style="color: #969896;">Use a non-interactive login shell.  A login shell, because my</span>
+      <span style="color: #969896;">;; </span><span style="color: #969896;">environment variables are mostly set in `</span><span style="color: #0086b3;">.zprofile</span><span style="color: #969896;">'.</span>
+      (<span style="color: #a71d5d;">setq</span> exec-path-from-shell-arguments '(<span style="color: #183691;">"-l"</span>)))
+
+    (exec-path-from-shell-initialize)
+    )
+  )
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">(use-package monokai-theme</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">:ensure t)</span>
+</pre>
+</div>
+
+<p>
+其中 if 子句可以确定启用 Package 的条件, 在 config 子句中向 <b>exec-path-from-shell-arguments</b> 即可消除这个警告.
+</p>
+
+<p>
+ensure 子句来确保 Package 被安装. 如果要使用 stable 版, 则添加以下子句:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #a71d5d;">:pin</span> melpa-stable
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org21524c6" class="outline-4">
+<h4 id="org21524c6"><span class="section-number-4">1.10.3</span> Company-mode 的工作原理</h4>
+<div class="outline-text-4" id="text-1-10-3">
+<p>
+Company-mode 需要配合后端使用, 所有的 backend 都保存在 <b>company-backends</b> 这个变量中,
+例如在我的环境中该变量值如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(company-capf
+ (company-dabbrev-code company-gtags company-etags company-keywords)
+ company-files
+ company-dabbrev
+ )
+</pre>
+</div>
+
+<p>
+*company-backends*变量的值是一个列表, 其中的每一项都是一个后端或 Group Backend.
+</p>
+
+<p>
+Company-mode 会依次调用该变量中的 backend, 并判断该 backend 是否合适当前 Buffer, 直到找到一个合适的补全后端.
+</p>
+
+<p>
+在进行补全项选择的时候, 我们也可以在 mode-line 中看到是使用的哪一个后端.
+</p>
+
+<ol class="org-ol">
+<li>company-dabbrev: 将当前打开的所有 buffer 中的关键字作为补全显示(默认不使用 scratch buffer).</li>
+<li>company-files: 补全路径.</li>
+</ol>
+
+<p>
+如果在补全过程中取消了补全, 也可以使用命令再次开启补全. 例如 <b>company-files</b> 补全方式就可以使用 company-files 函数开启.
+</p>
+
+<p>
+在输入英文时可以使用 company-ispell 进行输入提示.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbd290ce" class="outline-4">
+<h4 id="orgbd290ce"><span class="section-number-4">1.10.4</span> 为什么有时 Python 的补全 不工作</h4>
+<div class="outline-text-4" id="text-1-10-4">
+<p>
+有时在编写 Python 代码的时候补全不能工作, 这时我们可以先查看 <b>company-backends</b> 的值, 查看是否需要安装 <b>company-anaconda</b> 用于补全.
+</p>
+
+<p>
+在 Mac 系统中, 如果 anaconda-mode 的安装过程出现错误, 可以参照以下解决方案: <a href="https://emacs-china.org/t/mac-python-anaconda-mode/207">Mac 上面编辑 python 的时候安装 anaconda-mode 出错</a>
+</p>
+
+<p>
+然后确保在 <b>company-backends</b> 中有 <b>company-anaconda</b> 这个后端即可. 可以使用如下代码:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-hook 'python-mode-hook
+          (<span style="color: #a71d5d;">lambda</span> ()
+            (set (make-local-variable 'company-backends) '(company-anaconda))))
+</pre>
+</div>
+
+<p>
+以上代码在 python-mode 被激活时设置 <b>company-backends</b> 的变量值为 (company-anaconda), 则在编辑 python 代码时就可以使用 anaconda-mode 进行补全.
+</p>
+
+<p>
+在 emacs 中有两种补全方式:
+</p>
+<ol class="org-ol">
+<li>如 company-files 等, 根据关键字等进行补全, 只需要 emacs 自己进行一些处理即可得到补全数据;</li>
+<li>如 company-anaconda 等, 需要使用客户端-服务端模式, 补全后端需要服务端的配合才能得到补全数据.</li>
+</ol>
+
+<p>
+在进行编程时, 一般使用第二种补全后端, 例如 编写 python 代码使用 company-anaconda, 编写 C/C++代码使用 company-ycmd, 编写 javascript 代码使用 company-tern.
+</p>
+
+<p>
+上述示例代码开启 company-anaconda 时有一个缺点, 比如当我们在 python 的注释时没法使用补全, 因为补全后端只有 company-anaconda, 在注释时不工作. 我们可以将 dabbrev 加入后端列表:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-hook 'python-mode-hook
+          (<span style="color: #a71d5d;">lambda</span> ()
+            (set (make-local-variable 'company-backends) '(company-anaconda company-dabbrev))))
+</pre>
+</div>
+
+<p>
+当 company-anaconda 不合适时使用 company-dabbrev 进行补全, 即可满足上述需求.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org2026ace" class="outline-4">
+<h4 id="org2026ace"><span class="section-number-4">1.10.5</span> Group Backend</h4>
+<div class="outline-text-4" id="text-1-10-5">
+<p>
+company-dabbrev-code: 类似于 company-dabbrev, 但是 dabbrev 对代码和注释都进行补全, dabbrev-code 只补全代码.
+</p>
+
+<p>
+假设我们的配置代码如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-hook 'python-mode-hook
+          (<span style="color: #a71d5d;">lambda</span> ()
+            (set (make-local-variable 'company-backends) '((company-anaconda company-dabbrev-code)
+                                                           company-dabbrev)))
+          )
+</pre>
+</div>
+
+<p>
+如果我们在注释中出现了 xxx 这个字符串, 在编写 python 代码时 xxx 不会出现在补全选项中. 因为在此时会先匹配到 company-anaconda, 并不会进入 company-dabbrev. 
+而因为 company-anaconda 是一个 Group Backend, 所以 company-dabbrev-code 的补全数据会出现在补全列表中.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb9c67df" class="outline-4">
+<h4 id="orgb9c67df"><span class="section-number-4">1.10.6</span> 怎样写一个简单的补全后端</h4>
+<div class="outline-text-4" id="text-1-10-6">
+<p>
+因为视频时间关系, 大家可以去阅读以下文章:
+</p>
+
+<p>
+<a href="http://sixty-north.com/blog/writing-the-simplest-emacs-company-mode-backend">Writing the Simplest Emacs company-mode Backend</a>
+</p>
+
+<p>
+实现方式简单介绍如下:
+</p>
+
+<ol class="org-ol">
+<li>定义一个补全数据列表</li>
+<li>定义一个补全函数, 返回对应输入的补全数据</li>
+</ol>
+
+<p>
+更多的内容可以查看该文档, 同时在网页右侧的链接中有更多的详细内容.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org0366c9b" class="outline-3">
+<h3 id="org0366c9b"><span class="section-number-3">1.11</span> 第十一天: Spacemacs 简介及安装</h3>
+<div class="outline-text-3" id="text-1-11">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1eRTHBLC">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTYxMzYyNjc4MA==.html">优酷</a></li>
+<li><a href="https://youtu.be/etLqMM5nmqI">Youtube</a></li>
+</ul>
+
+<p>
+从今天的内容开始介绍 Spacemacs. 地址: <a href="https://github.com/syl20bnr/spacemacs">Spacemacs</a>
+</p>
+
+<p>
+今天的内容包括:
+</p>
+
+<ol class="org-ol">
+<li>如何安装 Spacemacs</li>
+<li>一些简单的配置, 以及 package 管理</li>
+<li>管理自己的配置</li>
+</ol>
+</div>
+
+<div id="outline-container-orgf00ed78" class="outline-4">
+<h4 id="orgf00ed78"><span class="section-number-4">1.11.1</span> 安装 Spacemacs</h4>
+<div class="outline-text-4" id="text-1-11-1">
+<p>
+安装 Spacemacs 非常简单, 只需要将 github 上的仓库克隆即可, 即执行以下命令(如有必要可以先备份以前的配置):
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #a71d5d;">cd</span> ~
+mv .emacs.d .emacs.d.bak
+mv .emacs .emacs.bak
+git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
+</pre>
+</div>
+
+<p>
+在克隆完成后直接运行 Emacs. 
+在第一次使用 Spacemacs 时需要下载一些 Package, 然后在 Bootstrap 完成之后你需要进行如下一些配置:
+</p>
+
+<ol class="org-ol">
+<li>使用哪种编辑方式, 包括 vim 方式(默认) 以及 emacs 方式.</li>
+<li>使用哪种 Spacemacs distribution. 包括标准版(默认)以及基础版. 区别在于标准版包含非常多的功能, 而基础版只包含核心功能.</li>
+</ol>
+
+<p>
+在完成以上两个配置之后, 就会在 HOME 目录生成一个 ~/.spacemacs 配置文件. 
+然后 Spacemacs 会进行进一步的初始化, 下载更多的需要的 Package. 
+如果你需要使用 <a href="http://elpa.emacs-china.org/">emacs-china</a> 的配置源, 此时可以终止 emacs, 然后在~/.spacemacs 中的 dotspacemacs/user-init 函数中加入以下代码:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> configuration-layer--elpa-archives
+      '((<span style="color: #183691;">"melpa-cn"</span> . <span style="color: #183691;">"http://elpa.zilongshanren.com/melpa/"</span>)
+        (<span style="color: #183691;">"org-cn"</span>   . <span style="color: #183691;">"http://elpa.zilongshanren.com/org/"</span>)
+        (<span style="color: #183691;">"gnu-cn"</span>   . <span style="color: #183691;">"http://elpa.zilongshanren.com/gnu/"</span>)))
+</pre>
+</div>
+
+<p>
+重新启动 emacs, 等待 Spacemacs 完成安装即可.
+</p>
+
+<p>
+如果你需要更方便的管理你自己的配置, 可以创建 ~/.spacemacs.d 目录, 然后将 ~/.spacemacs 文件移动到该目录中并重命名为 init.el.
+</p>
+
+<p>
+在 Spacemacs 中的操作方式如下:
+</p>
+
+<ol class="org-ol">
+<li>按下 <b>SPC f j</b> 打开 dired 目录</li>
+<li>按下按键 + , 创建 ~/.spacemacs.d 目录</li>
+<li>将光标移动到 .spacemacs 文件上, 按下 R, 将该文件移动到 .spacemacs.d 目录中</li>
+<li>进入 .spacemacs.d 目录, 将光标移动到 .spacemacs 文件上, 按下 R, 将该文件重命名为 init.el</li>
+<li>按下 qq 退出 dired</li>
+</ol>
+
+<p>
+然后启动 emacs 即可.
+</p>
+
+<p>
+使用这种方式管理配置, 你可以将自己的配置集中到 ~/.spacemacs.d 目录中, 更容易进行统一管理. 你也可以将自己的配置 push 到 github 上.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgf37421b" class="outline-4">
+<h4 id="orgf37421b"><span class="section-number-4">1.11.2</span> 添加内置的 layer</h4>
+<div class="outline-text-4" id="text-1-11-2">
+<p>
+在安装完成 Spacemacs 之后, 按下 <b>SPC f e d</b> 打开 ~/.spacemacs 文件, 修改 <b>dotspacemacs-configuration-layers</b> 变量的值, 
+将 auto-completion, better-defaults, emacs-lisp, git, markdown, org, spell-checking, syntax-checking 等 layer 加入列表.
+</p>
+
+<p>
+然后退出 emacs 再重启, 或者按下 <b>SPC f e R</b> 安装需要的 package.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga6a9ad4" class="outline-4">
+<h4 id="orga6a9ad4"><span class="section-number-4">1.11.3</span> 一些简单的配置</h4>
+<div class="outline-text-4" id="text-1-11-3">
+</div>
+<div id="outline-container-orgec5d60d" class="outline-5">
+<h5 id="orgec5d60d"><span class="section-number-5">1.11.3.1</span> 启动时全屏显示</h5>
+<div class="outline-text-5" id="text-1-11-3-1">
+<p>
+在 dotspacemacs/init 函数中, 将 dotspacemacs-fullscreen-at-startup 变量设置为 t 即可. 代码如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">If non nil the frame is maximized when Emacs starts up.</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">Takes effect only if `</span><span style="color: #0086b3;">dotspacemacs-fullscreen-at-startup</span><span style="color: #969896;">' is nil.</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">(default nil) (Emacs 24.4+ only)</span>
+dotspacemacs-maximized-at-startup t
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgcb00f69" class="outline-5">
+<h5 id="orgcb00f69"><span class="section-number-5">1.11.3.2</span> ivy layer</h5>
+<div class="outline-text-5" id="text-1-11-3-2">
+<p>
+将 ivy 加入 <b>dotspacemacs-configuration-layers</b> 列表中. 按下 <b>CTRL s</b> 使用 swiper 可以进行搜索.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org11ce154" class="outline-5">
+<h5 id="org11ce154"><span class="section-number-5">1.11.3.3</span> 查看 layer 下的 文档信息</h5>
+<div class="outline-text-5" id="text-1-11-3-3">
+<p>
+按下 <b>SPC h SPC</b> 即会弹出一个信息窗口, 可以从窗口中选择具体的 layer 或者其他信息进行查看.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org1de0a6b" class="outline-5">
+<h5 id="org1de0a6b"><span class="section-number-5">1.11.3.4</span> 删除安装的 package</h5>
+<div class="outline-text-5" id="text-1-11-3-4">
+<p>
+只需要将需要删除的 package 名称加入到 <b>dotspacemacs-excluded-packages</b> 变量中, 在下一次启动 emacs 时即会删除该 package.
+示例代码如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">A list of packages and/or extensions that will not be install and loaded.</span>
+dotspacemacs-excluded-packages '(vi-tilde-fringe)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org671fc25" class="outline-5">
+<h5 id="org671fc25"><span class="section-number-5">1.11.3.5</span> 安装 package</h5>
+<div class="outline-text-5" id="text-1-11-3-5">
+<p>
+在 Spacemacs 中安装 package 时最好不要使用 <b>package-install</b>, 因为这样安装的 package 会在下一次启动时被删除.
+</p>
+
+<p>
+Spacemacs 提供了一个方式, 你只需将需要安装的 package 加入到 <b>dotspacemacs-additional-package</b> 变量中即可, 
+示例代码如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">List of additional packages that will be installed without being</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">wrapped in a layer. If you need some configuration for these</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">packages, then consider creating a layer. You can also put the</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">configuration in `</span><span style="color: #0086b3;">dotspacemacs/user-config</span><span style="color: #969896;">'.</span>
+dotspacemacs-additional-packages '(youdao-dictionary)
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org5b215e9" class="outline-5">
+<h5 id="org5b215e9"><span class="section-number-5">1.11.3.6</span> 配置 customize-group</h5>
+<div class="outline-text-5" id="text-1-11-3-6">
+<p>
+如果使用 customize-group 对配置进行了修改, 你可以以下代码将生成的 <b>custom.el</b> 配置文件纳入 ~/.spacemacs.d 目录中进行统一管理:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> custom-file (expand-file-name <span style="color: #183691;">"custom.el"</span> dotspacemacs-directory))
+(load custom-file 'no-error 'no-message)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga989191" class="outline-5">
+<h5 id="orga989191"><span class="section-number-5">1.11.3.7</span> 修改主题</h5>
+<div class="outline-text-5" id="text-1-11-3-7">
+<p>
+只需修改 <b>dotspacemacs-themes</b> 变量的值, 将主题加入列表即可. 在列表中靠前的主题会优先使用.
+示例代码如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">List of themes, the first of the list is loaded when spacemacs starts.</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">Press &lt;SPC&gt; T n to cycle to the next theme in the list (works great</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">with 2 themes variants, one dark and one light)</span>
+dotspacemacs-themes '(
+                      monokai
+                      <span style="color: #969896;">;; </span><span style="color: #969896;">spacemacs-dark</span>
+                      <span style="color: #969896;">;; </span><span style="color: #969896;">spacemacs-light</span>
+                      <span style="color: #969896;">;; </span><span style="color: #969896;">solarized-light</span>
+                      solarized-dark
+                      <span style="color: #969896;">;; </span><span style="color: #969896;">leuven</span>
+                      <span style="color: #969896;">;; </span><span style="color: #969896;">monokai</span>
+                      <span style="color: #969896;">;; </span><span style="color: #969896;">zenburn</span>
+                      )
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org8611819" class="outline-3">
+<h3 id="org8611819"><span class="section-number-3">1.12</span> 第十二天: 创建你的第一个 Spacemacs Layer</h3>
+<div class="outline-text-3" id="text-1-12">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1mi1vZTI">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTYyODgxNjU0OA==.html">优酷</a></li>
+<li><a href="https://youtu.be/qQqpWWjub6A">YouTube</a></li>
+</ul>
+
+<p>
+主要内容:
+</p>
+
+<ol class="org-ol">
+<li>如何更新 Spacemacs, 同步官方 develop 分支及注意事项</li>
+<li>Layer 的 variables 变量及使用方法</li>
+<li>如何创建自己的 Layer</li>
+<li>如何定制 modeline</li>
+<li>evlified state</li>
+</ol>
+</div>
+
+<div id="outline-container-orgfa619c8" class="outline-4">
+<h4 id="orgfa619c8"><span class="section-number-4">1.12.1</span> 如何更新 Spacemacs</h4>
+<div class="outline-text-4" id="text-1-12-1">
+<p>
+可以通过 git 的方式来更新代码, 假设我们使用的是 develop 分支:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">git checkout develop
+git fetch upstream
+git merge upstream/develop
+</pre>
+</div>
+
+<p>
+一般来说, 如果你不熟悉 emacs 并且你的 Spacemacs 配置能够正常工作, 则不需要频繁的更新代码, 以避免更新之后配置不能使用.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd553e8a" class="outline-4">
+<h4 id="orgd553e8a"><span class="section-number-4">1.12.2</span> variables 变量</h4>
+<div class="outline-text-4" id="text-1-12-2">
+<p>
+每一个 layer 都可以配置一些变量, 可以通过 <b>SPC h SPC</b> 然后输入 layer 名称, 点击对应的选项即可打开该 layer 的 README.org 文件.
+然后按下 SPC f j 进入 dired 模式, 选择 config.el 文件打开, 该文件中即定义了该 layer 的变量.
+</p>
+
+<p>
+例如 better-default layer 的变量如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defvar</span> <span style="color: #333333;">better-defaults-move-to-beginning-of-code-first</span> t
+  <span style="color: #183691;">"when t, first stroke of C-a will move the cursor to the beginning of code.</span>
+<span style="color: #183691;">When nil, first stroke will go to the beginning of line.</span>
+<span style="color: #183691;">Subsequent strokes will toggle between beginning of line and beginning of code."</span>)
+
+(<span style="color: #a71d5d;">defvar</span> <span style="color: #333333;">better-defaults-move-to-end-of-code-first</span> nil
+  <span style="color: #183691;">"when t, first stroke of C-e will move the cursor to the end of code (before comments).</span>
+<span style="color: #183691;">When nil, first stroke will go to the end of line (after comments).</span>
+<span style="color: #183691;">Subsequent strokes will toggle between end of line and end of code."</span>)
+</pre>
+</div>
+
+<p>
+要配置使用这些变量, 可以在启用 layer 时使用如下的代码:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(better-defaults <span style="color: #a71d5d;">:variables</span>
+                 better-defaults-move-to-end-of-code-first t)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org997f637" class="outline-4">
+<h4 id="org997f637"><span class="section-number-4">1.12.3</span> 定制 modeline</h4>
+<div class="outline-text-4" id="text-1-12-3">
+<p>
+在 emacs25.1 中, 该版本的 modeline 和以前版本不同, 可以通过如下方式将 modeline 修改为以前的显示形状:
+</p>
+
+<p>
+在 dotspacemacs/user-config 中加入如下代码:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq</span> ns-use-srgb-colorspace nil)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc486edb" class="outline-4">
+<h4 id="orgc486edb"><span class="section-number-4">1.12.4</span> 创建自己的 layer</h4>
+<div class="outline-text-4" id="text-1-12-4">
+<p>
+假设我们需要创建一个 layer, 名叫 zilongshanren, 并且在 layer 下包含一个名叫 youdao-dictionary 的 package.
+</p>
+
+<p>
+首先利用 spacemacs 提供的函数创建 layer. 按下 M-x 并且输入 configuration-layer/create-layer, 然后选择路径 ~/.spacemacs.d,
+确定创建 README, 然后我们就可以看到 layer 创建成功.
+</p>
+
+<p>
+每一个 layer 的结构如下:
+</p>
+
+<pre class="example">
+[layer_name]
+  |__ [local]
+  | |__ [package 1]
+  | |     ...
+  | |__ [package n]
+  |-- layers.el
+  |__ packages.el
+  |__ funcs.el
+  |__ config.el
+  |__ keybindings.el
+
+[] = directory
+</pre>
+
+<p>
+即每一个 layer 目录下都可以包含 layers.el, packages.el 等文件, 以及一个名叫 local 的目录.
+</p>
+
+<p>
+每一个文件的内容描述如下:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">文件名</th>
+<th scope="col" class="org-left">用处</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">layers.el</td>
+<td class="org-left">申明一些额外的 layer 依赖</td>
+</tr>
+
+<tr>
+<td class="org-left">packages.el</td>
+<td class="org-left">一些 layer 使用到的 package 以及相关配置函数</td>
+</tr>
+
+<tr>
+<td class="org-left">funcs.el</td>
+<td class="org-left">定义一些 layer 层次的函数, 即全局函数</td>
+</tr>
+
+<tr>
+<td class="org-left">config.el</td>
+<td class="org-left">layer 的配置, 此处定义的配置可以在 .spacemacs 中申明 layer 时进行配置, 也可以定义 emacs 的默认配置</td>
+</tr>
+
+<tr>
+<td class="org-left">keybindings.el</td>
+<td class="org-left">快捷键配置</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+现在我们可以把 youdao-dictionary 加入到 layer 中, 编辑 packages.el:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#28155;&#21152; package</span>
+(<span style="color: #a71d5d;">defconst</span> <span style="color: #333333;">zilongshanren-packages</span>
+  '(youdao-dictionary)
+  )
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#21021;&#22987;&#21270; package</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#21487;&#20197;&#20351;&#29992; , d m &#24555;&#25463;&#38190;, &#28982;&#21518;&#25353;&#19979; e &#23637;&#24320;&#23439;</span>
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">zilongshanren/init-youdao-dictionary</span> ()
+  (<span style="color: #a71d5d;">use-package</span> <span style="color: #0086b3;">youdao-dictionary</span>
+    <span style="color: #a71d5d;">:defer</span> t
+    <span style="color: #a71d5d;">:init</span>
+    (spacemacs/set-leader-keys <span style="color: #183691;">"oy"</span> 'youdao-dictionary-search-at-point+)
+    )
+  )
+</pre>
+</div>
+
+<p>
+编辑 config.el 文件:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#24320;&#21551;&#34892;&#21495;&#26174;&#31034;</span>
+(global-linum-mode t)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#23450;&#20041;&#24555;&#25463;&#38190;</span>
+(global-set-key (kbd <span style="color: #183691;">"M-s o"</span>) 'occur-dwim)
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#23558; occur &#30340; buffer &#20013;&#30340;&#20809;&#26631;&#31227;&#21160;&#26041;&#24335;&#20462;&#25913;&#20026; HJKL</span>
+(evilified-state-evilify-map occur-mode-map
+  <span style="color: #a71d5d;">:mode</span> occur-mode)
+</pre>
+</div>
+
+<p>
+编辑 keybindings.el 文件:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">dwin = do what i mean.</span>
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">occur-dwim</span> ()
+  <span style="color: #183691;">"Call `</span><span style="color: #0086b3;">occur</span><span style="color: #183691;">' with a sane default."</span>
+  (<span style="color: #a71d5d;">interactive</span>)
+  (<span style="color: #a71d5d;">push</span> (<span style="color: #a71d5d;">if</span> (region-active-p)
+            (buffer-substring-no-properties
+             (region-beginning)
+             (region-end))
+          (<span style="color: #a71d5d;">let</span> ((sym (thing-at-point 'symbol)))
+            (<span style="color: #a71d5d;">when</span> (stringp sym)
+              (regexp-quote sym))))
+        regexp-history)
+  (call-interactively 'occur))
+</pre>
+</div>
+
+<p>
+然后将 zilongshanren 加到 <b>dotspacemacs-configuration-layers</b> 变量中, 即可让 layer 配置生效.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org474e382" class="outline-4">
+<h4 id="org474e382"><span class="section-number-4">1.12.5</span> 文档</h4>
+<div class="outline-text-4" id="text-1-12-5">
+<p>
+spacemacs 的文档保存在 doc 目录下, 包含有 CONVENTIONS.org, DOCUMENTATION.org 等文档文件, 建议大家多多阅读.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org26669e3" class="outline-3">
+<h3 id="org26669e3"><span class="section-number-3">1.13</span> 第十三天: 定制你的 Layer</h3>
+<div class="outline-text-3" id="text-1-13">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1kVroHCj">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTYyOTcyNjk0NA==.html">优酷</a></li>
+<li><a href="https://youtu.be/RMofkN3IcKE">Youtube</a></li>
+</ul>
+
+<p>
+主要内容:
+</p>
+
+<ol class="org-ol">
+<li>修复上一期视频中 occur-mode 启动的问题</li>
+<li>修复 ivy0.8 导致的问题, 同时简单探讨了一下今后如何避免和处理类似的问题</li>
+<li>介绍 post-init 和 pre-init 的用法, 介绍了如何定制 spacemacs 的 company-mode</li>
+<li>介绍 layers.el 文件, 演示该文件的作用</li>
+<li>介绍 layer 的 package 的 location 变量, 演示了如何从 github 获取并安装 package 的方法</li>
+</ol>
+</div>
+
+<div id="outline-container-orgd7d06bf" class="outline-4">
+<h4 id="orgd7d06bf"><span class="section-number-4">1.13.1</span> 修复上一期视频中的配置问题</h4>
+<div class="outline-text-4" id="text-1-13-1">
+<p>
+在之前的配置代码中, 如果我们启动 emacs 会出现以下错误:
+</p>
+
+<pre class="example">
+Symbol's function definition is void: evilified-state-evilify-map
+</pre>
+
+<p>
+这是因为这个符号在 config.el 中使用的时候还是空的, 我们可以通过以下方式修复, 编辑 config.el 文件, 将以下代码移动到 dotspacemacs/user-init 函数中:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(evilified-state-evilify-map occur-mode-map
+  <span style="color: #a71d5d;">:mode</span> occur-mmode)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orged6d20b" class="outline-4">
+<h4 id="orged6d20b"><span class="section-number-4">1.13.2</span> 修复 ivy0.8 的问题</h4>
+<div class="outline-text-4" id="text-1-13-2">
+<p>
+在 ivy 升级到0.8版本时, 对其中一个API的返回值进行了修改:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">let</span> (res)
+  (ivy-with
+   '(ivy-read <span style="color: #183691;">"test: "</span>
+              '((<span style="color: #183691;">"one"</span> . 1) (<span style="color: #183691;">"three"</span> . 3))
+              <span style="color: #a71d5d;">:action</span> (<span style="color: #a71d5d;">lambda</span> (x) (<span style="color: #a71d5d;">setq</span> res x)))
+   <span style="color: #183691;">"t C-m"</span>)
+  res)
+<span style="color: #969896;">;; </span><span style="color: #969896;">=&gt;</span>
+<span style="color: #969896;">;; </span><span style="color: #969896;">("three" . 3)</span>
+</pre>
+</div>
+
+<p>
+在之前的版本中, 这个函数的返回值是 3, 在0.8版本中被修改为了一个列表. 如果要修复这个问题, 我们需要在使用返回值的时候加上 cdr, 具体的修改可以查看<a href="https://github.com/syl20bnr/spacemacs/pull/6478">fix break API changes for ivy 0.8</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgedd451e" class="outline-4">
+<h4 id="orgedd451e"><span class="section-number-4">1.13.3</span> post-init 和 pre-init</h4>
+<div class="outline-text-4" id="text-1-13-3">
+<p>
+有一些 mode 已经安装, 例如 company-mode 已经被 auto-completion layer 安装, 如果这时我们还想对该 mode 进行一些定制, 那么我们可以这样处理:
+</p>
+
+<ol class="org-ol">
+<li>在我们的 layer 中添加这个包</li>
+</ol>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#28155;&#21152; package</span>
+(<span style="color: #a71d5d;">defconst</span> <span style="color: #333333;">zilongshanren-packages</span>
+  '(youdao-dictionary
+    company  <span style="color: #969896;">; </span><span style="color: #969896;">&#28155;&#21152; company package</span>
+    )
+  )
+</pre>
+</div>
+
+<ol class="org-ol">
+<li>然后定义一个 post-init 函数</li>
+</ol>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#23450;&#21046; company-mode</span>
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">zilongshanren/post-init-company</span> ()
+  (<span style="color: #a71d5d;">setq</span> company-minimum-prefix-length 1)
+  )
+</pre>
+</div>
+
+<p>
+然后重启 emacs 即可以看到定制的效果.
+</p>
+
+<p>
+对于 package 的三个函数: pre-init, init, post-init, spacemacs是按照这个顺序来依次调用的.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgccc8a7d" class="outline-4">
+<h4 id="orgccc8a7d"><span class="section-number-4">1.13.4</span> location</h4>
+<div class="outline-text-4" id="text-1-13-4">
+<p>
+在安装 package 时, 我们如果只输入 package 的名字, 那么默认是从 melpa 下载安装的. 如果我们想自定义 package 的安装地址, 那么我们就可以使用 location 变量.
+</p>
+</div>
+
+<div id="outline-container-org7a30516" class="outline-5">
+<h5 id="org7a30516"><span class="section-number-5">1.13.4.1</span> 自带 package</h5>
+<div class="outline-text-5" id="text-1-13-4-1">
+<p>
+例如我们使用一个自带的 occur package:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#33258;&#23450;&#20041; package &#23433;&#35013;&#22320;&#22336;</span>
+(<span style="color: #a71d5d;">defconst</span> <span style="color: #333333;">zilongshanren-packages</span>
+  '(youdao-dictionary
+    (occur-mode <span style="color: #a71d5d;">:location</span> built-in)
+    )
+  )
+
+<span style="color: #969896;">;; </span><span style="color: #969896;">&#21021;&#22987;&#21270; occur mode</span>
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">zilongshanren/init-occur-mode</span> ()
+  (evilified-state-evilify-map occur-mode-map
+    <span style="color: #a71d5d;">:mode</span> occur-mmode)
+  )
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9202daa" class="outline-5">
+<h5 id="org9202daa"><span class="section-number-5">1.13.4.2</span> 从 github 安装</h5>
+<div class="outline-text-5" id="text-1-13-4-2">
+<p>
+例如我们从 github 安装 gulpjs package:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;; </span><span style="color: #969896;">&#33258;&#23450;&#20041; package &#23433;&#35013;&#22320;&#22336;</span>
+(<span style="color: #a71d5d;">defconst</span> <span style="color: #333333;">zilongshanren-packages</span>
+  '(youdao-dictionary
+    (occur-mode <span style="color: #a71d5d;">:location</span> built-in)
+    (gulpjs <span style="color: #a71d5d;">:location</span> (recipe <span style="color: #a71d5d;">:fetcher</span> github <span style="color: #a71d5d;">:repo</span> <span style="color: #183691;">"zilongshanren/emacs-gulpjs"</span>))
+    )
+  )
+
+(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">zilongshanren/init-gulpjs</span> ()
+  (<span style="color: #a71d5d;">use-package</span> <span style="color: #0086b3;">gulpjs</span>
+    <span style="color: #a71d5d;">:init</span>)
+  )
+</pre>
+</div>
+
+<p>
+在 emacs 启动时就会从 github 上下载 guiljs package 并安装到本地.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org07222d0" class="outline-4">
+<h4 id="org07222d0"><span class="section-number-4">1.13.5</span> layers.el</h4>
+<div class="outline-text-4" id="text-1-13-5">
+<p>
+如果我们需要对某些 layer 中的 package 配置进行大量的重写, 那么我们可以移除这个 layer 的某个 package. 我们可以通过 layers.el 来实现这一点, 例如移除 chinese layer 的 youdao-dictionary package:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(configuration-layer/remove-layer 'youdao-dictionary)
+</pre>
+</div>
+
+<p>
+然后我们可以在自己的 layer 中添加这个 package, 然后对它进行定制.
+在这种情况下, spacemacs 不会在 chinese layer 中加载 youdao-dictionary 这个 package, 而是在我们的 layer 中加载这个 package, 以实现对 spacemacs 内置的package 的定制.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3dcd96f" class="outline-3">
+<h3 id="org3dcd96f"><span class="section-number-3">1.14</span> 第十四天: 文件和 Buffer 操作</h3>
+<div class="outline-text-3" id="text-1-14">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1slMRuot">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTY0NjUwMTM5Mg==.html">优酷</a></li>
+<li><a href="https://youtu.be/85g3defJP6M">Youtube</a></li>
+</ul>
+
+<p>
+主要内容:
+</p>
+
+<ol class="org-ol">
+<li>我的配置和 spacemacs配置的一些不同点</li>
+<li>文件相关操作</li>
+<li>Buffer 相关操作</li>
+<li>Dired</li>
+</ol>
+</div>
+
+<div id="outline-container-org4fc61d3" class="outline-4">
+<h4 id="org4fc61d3"><span class="section-number-4">1.14.1</span> 不同点</h4>
+<div class="outline-text-4" id="text-1-14-1">
+<p>
+从今天的视频开始, 将使用 <a href="https://github.com/zilongshanren/spacemacs-private">子龙山人的配置</a> 来讲解视频. 这份配置对 spacemacs 的定制有两个不同点:
+</p>
+
+<ul class="org-ul">
+<li>没有使用官方的 modeline, 而是采用自己定制的</li>
+<li>排除掉了大量的作者认为对他没有作用的 package, 因为这些 package 确实不经常使用, 反而可能导致一些 BUG 或者导致 spacemacs 启动或使用过程中变慢</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org2d05d90" class="outline-4">
+<h4 id="org2d05d90"><span class="section-number-4">1.14.2</span> 文件相关操作</h4>
+<div class="outline-text-4" id="text-1-14-2">
+<ol class="org-ol">
+<li><p>
+SPC p f
+</p>
+
+<p>
+在当前的项目中查找文件, 类似于 vim 中的 Ctrl-p. 在作者的配置中, 该快捷键被绑定到了以下函数:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">zilongshanren/open-file-with-projectile-or-counsel-git</span> ()
+  (<span style="color: #a71d5d;">interactive</span>)
+  (<span style="color: #a71d5d;">if</span> (zilongshanren/vcs-project-root)
+      (counsel-git)
+    (<span style="color: #a71d5d;">if</span> (projectile-project-p)
+        (projectile-find-file)
+      (ido-find-file))))
+</pre>
+</div>
+
+<p>
+该函数会针对不同的项目类型使用不同的查找方式:
+</p>
+
+<ul class="org-ul">
+<li>如果是 git 项目, 那么使用 counsel-git 来查找文件, 不使用 projectile 的原因是 counsel-git 更快</li>
+<li>如果是 projectile 项目, 即在项目的根目录中存在 .projectile 文件, 那么使用 projectile-find-file 来查找文件</li>
+<li>否则使用 ido-fine-file 来查找文件</li>
+</ul></li>
+
+<li><p>
+SPC f f
+</p>
+
+<p>
+从当前目录开始查找文件. 在作者的配置中同时启用了 ivy-layer 和 helm-layer, 默认使用的是 helm 来查找文件.
+</p></li>
+
+<li><p>
+SPC f L
+</p>
+
+<p>
+使用 helm-locate 来在当前系统中查找文件.
+</p></li>
+
+<li><p>
+SPC f l
+</p>
+
+<p>
+查找文件并使用 literal 的方式来打开文件, 使用 literal 方式打开的文件不会附加编码信息, 例如 utf-8 编码中可能存在的 BOM 头信息, 使用 literal 模式即可以看到 BOM头.
+</p></li>
+
+<li><p>
+SPC f h
+</p>
+
+<p>
+查找文件并使用二进制的方式来打开文件, 可以使用 C-c C-c 回到之前的模式.
+</p></li>
+
+<li><p>
+SPC f o
+</p>
+
+<p>
+使用外部程序打开文件.
+</p></li>
+
+<li><p>
+SPC f E
+</p>
+
+<p>
+使用 sudo 来编辑文件, 当某些文件是只读的时候可以采用这种方式来编辑文件.
+</p></li>
+
+<li><p>
+SPC f D
+</p>
+
+<p>
+删除当前的文件和 buffer.
+</p></li>
+
+<li><p>
+SPC f j
+</p>
+
+<p>
+以当前文件的目录打开 dired buffer.
+</p></li>
+
+<li><p>
+SPC f r
+</p>
+
+<p>
+使用 ivy 打开最近文件列表.
+</p></li>
+
+<li><p>
+SPC f R
+</p>
+
+<p>
+重命名当前文件.
+</p></li>
+
+<li><p>
+SPC f v
+</p>
+
+<p>
+添加 local variables, 可以通过这个功能给项目做一些特殊的设置.
+例如按下 SPC f v, 然后选择 add-dir-local-variable, 选择 org-mode, 再选择org-highlight-links 变量, 此时 emacs 会在当前文件的目录下生成一个 .dir-locals.el 文件, 内容如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #969896;">;;; </span><span style="color: #969896;">Directory Local Variables</span>
+<span style="color: #969896;">;;; </span><span style="color: #969896;">For more information see (info "(emacs) Directory Variables")</span>
+
+((org-mode
+  (org-highlight-links)))
+</pre>
+</div>
+
+<p>
+这个文件中的代码会在当前目录下的所有文件 buffer 中生效.
+</p></li>
+
+<li><p>
+SPC f y
+</p>
+
+<p>
+拷贝当前文件的全路径.
+</p></li>
+
+<li><p>
+SPC f a d
+</p>
+
+<p>
+列出最近访问的目录, 使用命令行工具 fasd 实现.
+</p></li>
+
+<li><p>
+SPC f C d/u
+</p>
+
+<p>
+将当前文件的编码转换为 DOS/UNIX 编码.
+</p></li>
+
+<li><p>
+SPC f e d
+</p>
+
+<p>
+打开 .spacemacs 或 .spacemacs.d/init.el 文件.
+</p></li>
+
+<li><p>
+SPC f e i
+</p>
+
+<p>
+打开 .emacs 或 .emacs.d/init.el 文件.
+</p></li>
+
+<li><p>
+SPC f e l
+</p>
+
+<p>
+打开系统中已经安装的 el 文件.
+</p></li>
+
+<li><p>
+SPC f c
+</p>
+
+<p>
+复制文件.
+</p></li>
+
+<li><p>
+SPC f b
+</p>
+
+<p>
+打开标签.
+</p></li>
+
+<li><p>
+SPC f s/S
+</p>
+
+<p>
+保存当前 buffer 或 所有 buffer.
+</p></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgb8110e7" class="outline-4">
+<h4 id="orgb8110e7"><span class="section-number-4">1.14.3</span> buffer 相关操作</h4>
+<div class="outline-text-4" id="text-1-14-3">
+<ol class="org-ol">
+<li><p>
+SPC b .
+</p>
+
+<p>
+打开 Buffer Selection Transient State, 在该模式下可以进行更多的操作, 由 hydra 提供.
+</p></li>
+
+<li><p>
+SPC b b
+</p>
+
+<p>
+切换到已经打开的 buffer.
+</p></li>
+
+<li><p>
+SPC b d
+</p>
+
+<p>
+关闭一个 buffer.
+</p></li>
+
+<li><p>
+SPC b f
+</p>
+
+<p>
+在 finder 中打开当前文件, 只在 Mac系统下生效.
+</p></li>
+
+<li><p>
+SPC b B/i
+</p>
+
+<p>
+以类似 Dired Mode 的形式打开 buffer 列表, 在这个列表中可以执行和 Dired Mode 类似的操作.
+</p></li>
+
+<li><p>
+SPC b h
+</p>
+
+<p>
+进入 \*spacemacs\* buffer.
+</p></li>
+
+<li><p>
+SPC b k
+</p>
+
+<p>
+使用正则表达式来删除 buffer.
+</p></li>
+
+<li><p>
+SPC b N
+</p>
+
+<p>
+新建一个 buffer.
+</p></li>
+
+<li><p>
+SPC b m
+</p>
+
+<p>
+删除除当前 buffer 外的所有 buffer.
+</p></li>
+
+<li><p>
+SPC b R
+</p>
+
+<p>
+使用 emacs 自动备份的文件恢复文件.
+</p></li>
+
+<li><p>
+SPC b s
+</p>
+
+<p>
+跳转到 scratch buffer.
+</p></li>
+
+<li><p>
+SPC b w
+</p>
+
+<p>
+关闭/打开 buffer 的 read-only.
+</p></li>
+
+<li><p>
+SPC b Y
+</p>
+
+<p>
+复制整个 buffer 的内容.
+</p></li>
+
+<li><p>
+SPC b P
+</p>
+
+<p>
+将剪切板的内容粘贴到整个 buffer.
+</p></li>
+
+<li><p>
+SPC &lt;tab&gt;
+</p>
+
+<p>
+在当前 buffer 和上一个打开的 buffer 中进行切换.
+</p></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgd9fcc9d" class="outline-4">
+<h4 id="orgd9fcc9d"><span class="section-number-4">1.14.4</span> Dired</h4>
+<div class="outline-text-4" id="text-1-14-4">
+<p>
+在第四天的内容中已经讲解过 Dired Mode 的操作, 具体可以查看 <a href="https://book.emacs-china.org/#orgheadline22">Dired Mode</a>.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org30d3739" class="outline-3">
+<h3 id="org30d3739"><span class="section-number-3">1.15</span> 第十五天: layout, windows 和 project 相关</h3>
+<div class="outline-text-3" id="text-1-15">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1miMvDji">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTY0NzUxOTI2NA==.html">优酷</a></li>
+<li><a href="https://www.youtube.com/watch?v=vt7FQO9HpBU&amp;list=PL-61yFRAEMlXDnsm3VHfrAm4oT6vVylRG&amp;index=8">Youtube</a></li>
+</ul>
+
+<p>
+主要内容:
+</p>
+
+<ol class="org-ol">
+<li>Layout 相关操作</li>
+<li>Window 相关操作</li>
+<li>project 相关操作</li>
+</ol>
+</div>
+
+<div id="outline-container-org4724e15" class="outline-4">
+<h4 id="org4724e15"><span class="section-number-4">1.15.1</span> Layout 相关操作</h4>
+<div class="outline-text-4" id="text-1-15-1">
+<ol class="org-ol">
+<li><p>
+SPC l L
+</p>
+
+<p>
+加载 layout 文件
+</p></li>
+
+<li><p>
+SPC l l
+</p>
+
+<p>
+在 layout 之间切换
+</p></li>
+
+<li><p>
+SPC l s
+</p>
+
+<p>
+将 layout 保存到文件
+</p></li>
+
+<li><p>
+SPC l &lt;tab&gt;
+</p>
+
+<p>
+在当前 layout 和上一个 layout 之间切换
+</p></li>
+
+<li><p>
+SPC l o
+</p>
+
+<p>
+配置 layout
+</p></li>
+
+<li><p>
+SPC l R
+</p>
+
+<p>
+重命名 layout
+</p></li>
+
+<li><p>
+SPC l ?
+</p>
+
+<p>
+显示更多的与 layout 相关的命令
+</p></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org74ef209" class="outline-4">
+<h4 id="org74ef209"><span class="section-number-4">1.15.2</span> Window 相关操作</h4>
+<div class="outline-text-4" id="text-1-15-2">
+<ol class="org-ol">
+<li><p>
+SPC w -
+</p>
+
+<p>
+上下拆分窗口
+</p></li>
+
+<li><p>
+SPC w /
+</p>
+
+<p>
+左右拆分窗口
+</p></li>
+
+<li><p>
+SPC w .
+</p>
+
+<p>
+显示更多的与 window micro state 的相关的命令
+</p></li>
+
+<li><p>
+SPC w 2/3
+</p>
+
+<p>
+左右显示 2/3 个窗口
+</p></li>
+
+<li><p>
+SPC w =
+</p>
+
+<p>
+将窗口均等分
+</p></li>
+
+<li><p>
+SPC w b
+</p>
+
+<p>
+切换到 minibuffer
+</p></li>
+
+<li><p>
+SPC w d
+</p>
+
+<p>
+删除当前窗口
+</p></li>
+
+<li><p>
+SPC w h/j/k/l
+</p>
+
+<p>
+向 左/下/上/右 移动窗口
+</p></li>
+
+<li><p>
+SPC w m
+</p>
+
+<p>
+最大化显示当前窗口
+</p></li>
+
+<li><p>
+SPC W H/J/K/L
+</p>
+
+<p>
+将当前窗口向 左/下/上/右 移动
+</p></li>
+
+<li><p>
+SPC w u/U
+</p>
+
+<p>
+取消/重置上次操作
+</p></li>
+
+<li><p>
+SPC w o
+</p>
+
+<p>
+切换到其他 frame
+</p></li>
+
+<li><p>
+SPC w F
+</p>
+
+<p>
+创建一个新的 frame
+</p></li>
+
+<li><p>
+SPC w 1/2/3/4
+</p>
+
+<p>
+切换到对应的编号的窗口
+</p></li>
+
+<li><p>
+SPC w w
+</p>
+
+<p>
+依次切换到其他窗口
+</p></li>
+
+<li><p>
+SPC w W
+</p>
+
+<p>
+使用字母标识需要跳转的窗口, 并按下字母进行跳转
+</p></li>
+
+<li><p>
+SPC t g
+</p>
+
+<p>
+将当前显示的窗口与其他窗口进行黄金分割显示
+</p></li>
+
+<li><p>
+SPC t -
+</p>
+
+<p>
+开启/关闭 将光标始终显示在中心行
+</p></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgdab6125" class="outline-4">
+<h4 id="orgdab6125"><span class="section-number-4">1.15.3</span> project 相关操作</h4>
+<div class="outline-text-4" id="text-1-15-3">
+<ol class="org-ol">
+<li><p>
+SPC p f
+</p>
+
+<p>
+在当前 project 中查找并打开文件
+</p></li>
+
+<li><p>
+SPC p b
+</p>
+
+<p>
+在当前 project 中查找打开的 buffer
+</p></li>
+
+<li><p>
+SPC p p
+</p>
+
+<p>
+切换到其他的 project
+</p></li>
+
+<li><p>
+SPC p l
+</p>
+
+<p>
+切换到其他的 project 并创建一个新的 layout
+</p></li>
+
+<li><p>
+find-file-in-project
+</p>
+
+<p>
+这是一个插件, 支持全平台. 目前绑定在 SUPER f 快捷键上.
+</p></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgbd35adf" class="outline-4">
+<h4 id="orgbd35adf"><span class="section-number-4">1.15.4</span> 更多内容</h4>
+<div class="outline-text-4" id="text-1-15-4">
+<p>
+对 Spacemacs 中的快捷键操作就介绍到这里, 更多的快捷键介绍可以到 <a href="https://www.youtube.com/playlist?list=PLrJ2YN5y27KLhd3yNs2dR8_inqtEiEweE">Spacemacs ABC</a> 去查看.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc297d67" class="outline-3">
+<h3 id="orgc297d67"><span class="section-number-3">1.16</span> 第十六天: 使用 ctags 和 company-etags</h3>
+<div class="outline-text-3" id="text-1-16">
+<p>
+视频地址如下:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://pan.baidu.com/s/1hr4CYBq">百度网盘</a></li>
+<li><a href="http://v.youku.com/v_show/id_XMTY1Njc1MjUxNg==.html">优酷</a></li>
+<li><a href="https://www.youtube.com/watch?v=afWk8DBOY68">Youtube</a></li>
+</ul>
+
+<p>
+主要内容:
+</p>
+
+<p>
+这期视频主要介绍 ctags 和 company-mode 的使用.
+</p>
+</div>
+
+<div id="outline-container-org3fff713" class="outline-4">
+<h4 id="org3fff713"><span class="section-number-4">1.16.1</span> 为什么使用 ctags</h4>
+<div class="outline-text-4" id="text-1-16-1">
+<p>
+ctags 是一个开源的, 可以方便的对大型代码库进行索引的软件, 在使用 ctags 生成 tag 之后就可以非常方便的在这些 tag 中进行跳转.
+因为有些编程语言, 例如 javascript 或者 lua, 它们不能进行精确的语义补全, 在有 ctags 进行索引补全的情况下也可以方便编写代码.
+</p>
+
+<p>
+在之前也介绍过 term-mode, 也可以做到一些语义补全. 但是它也有一些缺点:
+</p>
+
+<ol class="org-ol">
+<li>配置方式复杂, 对于比较大的项目的配置比较有难度</li>
+<li>有些时候不能得到想要的补全结果</li>
+</ol>
+
+<p>
+之前作者使用 YCMD 来对 C/C++ 代码进行补全, 但是它不太稳定, 现在已经切换为 ctags 来进行补全, 对于调试和 profile 会使用 IDE 进行操作.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org739c4f6" class="outline-4">
+<h4 id="org739c4f6"><span class="section-number-4">1.16.2</span> 如何配置 ctags</h4>
+<div class="outline-text-4" id="text-1-16-2">
+<p>
+首先新建一个 testJs-ctags 目录, 然后在该目录下新建 a.js 以及 b.js 两个文件:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">mkdir testJs-ctags
+<span style="color: #a71d5d;">cd</span> testJs-ctags
+touch a.js
+touch b.js
+</pre>
+</div>
+
+<p>
+然后编辑 a.js 的内容如下:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-javascript"><span style="color: #a71d5d;">var</span> <span style="color: #333333;">func1</span> = <span style="color: #a71d5d;">function</span> () {
+    console.log(<span style="color: #183691;">"func1"</span>);
+};
+
+<span style="color: #a71d5d;">var</span> <span style="color: #333333;">func2</span> = <span style="color: #a71d5d;">function</span> () {
+};
+</pre>
+</div>
+
+<p>
+然后在 b.js 中的补全中可以显示处 func1 和 func2 的补全提示的. 为了更方便的讲解之后的内容, 我们可以查看使用的补全的后端: 输入 M-x, diminish-undo, 选择 company-mode, 这样在 modeline 就可以看到 company-mode 的具体信息.
+</p>
+
+<p>
+再次输入 fun 等待弹出补全提示, 在补全选项中上下移动, 可以看到使用的补全后端包括 dabbrev-code 和 etags 等, 如果我们关闭 a.js 的 buffer, 就不会出现 func1 和 func2 的补全选项.
+</p>
+
+<p>
+在之前的操作中, 我们并没有生成 ctags, 为什么也能使用 ctags 补全呢? 我们可以使用 SPC h d v, 然后输出 tags-table-list 来查看该变量的值, 当前的值是指向作者 cocos目录下的 TAGS 文件.
+使用以下代码清空该值:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">setq-default</span> tags-table-list nil)
+</pre>
+</div>
+
+<p>
+然后再次尝试补全, 这时就不会使用 ctags 补全了.
+</p>
+
+<p>
+那么如何生成 ctags 补全的文件呢? 使用以下命令即可:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #a71d5d;">cd</span> testJs-ctags
+ctags -e a.js
+<span style="color: #969896;"># </span><span style="color: #969896;">&#38024;&#23545;&#30446;&#24405;</span>
+<span style="color: #969896;"># </span><span style="color: #969896;">ctags -eR foldername</span>
+</pre>
+</div>
+
+<p>
+company-etags 在进行补全的时候, 会从变量 tags-table-list 值的文件列表中去查找 tags, 而且 tags 是不区分语言的.
+</p>
+
+<p>
+如果需要手动加载 TAGS 文件, 那么可以调用 visit-tags-table 命令. 而在打开一个文件时, ctags 会从文件所在的目录进行查找, 一直到根目录, 加载所找到的 TAGS 文件.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org88a29d2" class="outline-4">
+<h4 id="org88a29d2"><span class="section-number-4">1.16.3</span> 如何高效的使用 ctags</h4>
+<div class="outline-text-4" id="text-1-16-3">
+</div>
+<div id="outline-container-org836fcbe" class="outline-5">
+<h5 id="org836fcbe"><span class="section-number-5">1.16.3.1</span> 自动重新生成 TAGS 文件</h5>
+<div class="outline-text-5" id="text-1-16-3-1">
+<p>
+在使用 ctags 的过程中, 如果文件的内容被改变, 那么需要重新生成 TAGS 文件, 以便 ctags 的补全结果更精确. 作者实现了一个函数来自动加载必须的 TAGS 文件:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">my-setup-develop-environment</span> ()
+  (<span style="color: #a71d5d;">interactive</span>)
+  (<span style="color: #a71d5d;">when</span> (my-project-name-contains-substring <span style="color: #183691;">"guanghui"</span>)
+    (<span style="color: #a71d5d;">cond</span>
+     ((my-project-name-contains-substring <span style="color: #183691;">"cocos2d-x"</span>)
+      <span style="color: #969896;">;; </span><span style="color: #969896;">C++ project don't need html tags</span>
+      (<span style="color: #a71d5d;">setq</span> tags-table-list (list (my-create-tags-if-needed <span style="color: #183691;">"~/cocos2d-x/cocos"</span>))))
+     ((my-project-name-contains-substring <span style="color: #183691;">"Github/fireball"</span>)
+      (message <span style="color: #183691;">"load tags for fireball engine repo..."</span>)
+      <span style="color: #969896;">;; </span><span style="color: #969896;">html project donot need C++ tags</span>
+      (<span style="color: #a71d5d;">setq</span> tags-table-list (list (my-create-tags-if-needed <span style="color: #183691;">"~/Github/fireball/engine/cocos2d"</span>)))))))
+</pre>
+</div>
+
+<p>
+有另外一个工具函数, 当保存文件时会自动的重新生成 TAGS:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defun</span> <span style="color: #795da3;">my-auto-update-tags-when-save</span> (prefix)
+  (<span style="color: #a71d5d;">interactive</span> <span style="color: #183691;">"P"</span>)
+  (<span style="color: #a71d5d;">cond</span>
+   ((not my-tags-updated-time)
+    (<span style="color: #a71d5d;">setq</span> my-tags-updated-time (current-time)))
+
+   ((<span style="color: #a71d5d;">and</span> (not prefix)
+         (&lt; (- (float-time (current-time)) (float-time my-tags-updated-time)) 300))
+    <span style="color: #969896;">;; </span><span style="color: #969896;">&lt; 300 seconds</span>
+    (message <span style="color: #183691;">"no need to update the tags"</span>)
+    )
+   (t
+    (<span style="color: #a71d5d;">setq</span> my-tags-updated-time (current-time))
+    (my-update-tags)
+    (message <span style="color: #183691;">"updated tags after %d seconds."</span> (- (float-time (current-time)) (float-time my-tags-updated-time))))))
+</pre>
+</div>
+
+<p>
+可以将 my-auto-udpate-tags-when-save 函数加入 after-save-hook 中, 或者绑定到快捷键上.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9136d26" class="outline-5">
+<h5 id="org9136d26"><span class="section-number-5">1.16.3.2</span> 配置规则来生成更多的 TAGS</h5>
+<div class="outline-text-5" id="text-1-16-3-2">
+<p>
+ctags 自身也有一个配置文件, 可以在该文件中定义规则来更好的生成 TAGS, 一个配置文件的示例如下:
+</p>
+
+<pre class="example">
+--exclude=*.svn*
+--exclude=*.git*
+--exclude=*tmp*
+--exclude=.#*
+--tag-relative=yes
+--recurse=yes
+
+--langdef=js
+
+--regex-js=/[ \t.]([A-Z][A-Z0-9._$]+)[ \t]*[=:][ \t]*([0-9"'\[\{]|null)/\1/n,constant/
+
+--langdef=css
+--langmap=css:.css
+--regex-css=/^[ \t]*\.([A-Za-z0-9_-]+)/.\1/c,class,classes/
+</pre>
+
+<p>
+在配置文件中可以使用 &#x2013;exclude 来忽略文件或路径, 使用 &#x2013;langdef 来定义哪些文件属于 js 文件, 使用 &#x2013;regex-js 来定义 TAGS 生成时的匹配规则.
+这些匹配规则中可以使用正则表达式来提取内容生成 TAGS.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org245d199" class="outline-5">
+<h5 id="org245d199"><span class="section-number-5">1.16.3.3</span> 使用 etags-select 来浏览项目</h5>
+<div class="outline-text-5" id="text-1-16-3-3">
+<p>
+在有 TAGS 之后, 可以使用 ctags 来方便的浏览文件内容.
+例如在某个函数名上点击 [, g], 然后选择 etags-select-find-tag-at-point, 这时会把所有相关的内容列出到 buffer 中, 然后可以选择想要跳转的位置跳转过去.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org971f4fa" class="outline-4">
+<h4 id="org971f4fa"><span class="section-number-4">1.16.4</span> 最后的思考</h4>
+<div class="outline-text-4" id="text-1-16-4">
+<p>
+company-etags 不能对所有的 mode 进行补全, 例如在 org-mode 中默认是不使用 company-etags 的.
+因为在 company-etags.el 文件中有如下的代码:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #a71d5d;">defvar</span> <span style="color: #333333;">company-etags-modes</span> '(prog-mode c-mode objc-mode c++-mode java-mode
+                                        jde-mode pascal-mode perl-mode python-mode))
+</pre>
+</div>
+
+<p>
+在该变量中定义了可以使用 company-etags 的 mode, 将 org-mode 加入该变量的值中即可在 org-mode 使用 company-etags 进行补全.
+</p>
+
+<p>
+ctags 支持上百种语言, 学会使用 ctags 能够提交效率.
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Leekanchive</p>
+<p class="date">Created: 2018-10-30 Tue 18:06</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

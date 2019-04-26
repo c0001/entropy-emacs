@@ -1,0 +1,117 @@
+#+title: Entropy-project template
+#+author: Entropy
+
+[[file:annex/img/project_2018-10-30_18-54-19.jpg]]
+
+*This project was the template for all projects structed as
+ Entropy-project dir structor.*
+
+* What is Entropy-project
+  
+  For widely concept, Entropy-project reconganizes each project as one
+  folder which can contain arbitray things whatever your want to
+  adding into.
+
+  For detailes layout for commonly constant of series project folder
+  containing struct, Entropy-projects was the kind of this folder
+  struct as for it.
+
+* Dir struct for Entropy-project
+
+  Whatever which project's natural meaning, each project must
+  contained doc for introducting to other people or the coperation
+  partner what this project is. Entropy-project main has the =org=
+  directory at the root of current project folder for storing the
+  description or introduction docs.
+
+  #+BEGIN_QUOTE
+  *Why named 'org' for the doc folder:*
+
+  For mostly using daily of my own workflow, I use [[https://www.gnu.org/software/emacs/][emacs]] be the project management and doc source
+  editor, while [[https://orgmode.org/][Org-Mode]] was the famous plain-text typescript format for buiding docs or doing
+  [[https://en.wikipedia.org/wiki/Literate_programming][literate programming]], the greatest of Org-Mode was it can be convert to various doc format because
+  plain-text nature of it and various built-in transfer pasers of it(e.g. org2latex ...), which you
+  don't worry about the multi-convert-of-one-format rather than as the occurrence what microsoft-doc
+  encoutered.
+  #+END_QUOTE
+
+  Secondly, Entropy-project recognizes each part of current project
+  (or called the elements) as element of current project, and put all
+  of them under folder =elements= which under the root of project
+  folder. =elements= folder also can contained the sub-project which
+  structed as Entropy-project.
+
+  Finally, Entropy-project allow the miscellaneous things included in
+  project folder and put them in =annex= folder which under the root
+  of current project folder, name of this folder as meaning what was
+  *annex*. Defaultly Entropy-project contained all doc images under
+  =annex= folder's subfolder =annex/img= .
+
+* Comprehensive dir struct view: 
+
+  #+BEGIN_EXAMPLE
+    .
+    ├── annex
+    │   ├── img
+    │   └── readme.org
+    ├── elements
+    │   └── readme.org
+    └── org
+        └── index.org
+  #+END_EXAMPLE
+
+*  How using this =Entropy-project= template:
+
+** Using [[https://github.com/c0001/entropy-emacs][entropy-emacs]]:
+ 
+   [[https://github.com/c0001/entropy-emacs][Entropy-emacs]] was the emacs configs of my own but not limit for
+   personal using that was designed for hoping to be community driven
+   project. =Entropy-emacs= contained the extension called
+   =entropy-counsel-prj= which self-contained this template while you
+   create one new project by calling ~(entropy/prj-add-project)~ or
+   the first time you using =entropy-counsel-prj= for calling the
+   projects query-prompt func ~(entropy/counsel-prj)~.
+
+   Although emacs package =entropy-counsel-prj= was distributing only
+   with =Entropy-emacs=, but it is individual emacs package which can
+   be extracted for user using, you can download [[https://github.com/c0001/entropy-counsel-prj.git][entropy-counsel-prj]]
+   and it's requirments e.g. =entropy-common-library= and
+   =entropy-counsel-stuffs= which all can be founded on github, and
+   load them into your emacs =load-path=.
+
+** Manually using
+
+   For using this =Entropy-project= manually just copy it to wherever
+   you wanted
+
+** Template [[file:org/index.org][index.org]]:
+
+    This is the only template file of this template folder, as what
+    you seeing, it's a org file with default template header insert:
+    #+BEGIN_SRC org
+      # -*- mode: org; -*-
+      ,#+TITLE: xxx
+      ,#+AUTHOR: xxx
+      ,#+EMAIL: xxx@xxx.com
+      ,#+OPTIONS:   H:3 num:t   toc:3 \n:nil @:t ::t |:t ^:nil -:t f:t *:t <:nil
+      ,#+OPTIONS:   author:t creator:t timestamp:t email:t
+      ,#+DESCRIPTION: Put this org file description here
+      ,#+KEYWORDS:  key1 key2 key3 key4
+      ,#+INFOJS_OPT: view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+      ,#+EXPORT_SELECT_TAGS: export
+      ,#+EXPORT_EXCLUDE_TAGS: noexport
+    #+END_SRC
+
+    You can replace each key's value above shown such as ~#+title:
+    xxx~ to "Hello world".
+
+    Each header keys meaning you can check the org-mode manual section
+    [[https://orgmode.org/manual/Export-settings.html][<export-setting>]] .
+
+
+** Tips:
+
+   You can learn about how to using emacs and org-mode for read the
+   doc under [[file:Org-Mode-Introduction/][Org-Mode-Introduction]] folder. Each file under this folder
+   was published both as org and html file that you can read them
+   without open emacs as just using the system browser.
