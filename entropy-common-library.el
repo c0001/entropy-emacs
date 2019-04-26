@@ -874,7 +874,10 @@ Non-nil value.
   number (negative number indicate that external-dir was not
   deliver from current dir 'base-dir', the other wise was
   oppsite.), and the rest was the path tail with branch
-  indication t or nil (t for same branch, nil for the otherwise).
+  indication t or nil (t for same branch, nil for the otherwise),
+  path tail was not always exist, as that the cases of same
+  comparation and the same branch with negative relative number,
+  it' s always the nil (as 'nil' was list with null as \"'()\").
 
   As that:
 
@@ -906,9 +909,13 @@ Non-nil value.
   - external-dir: '/usr/share/lib'
   - result: '(1 (\"lib\") t)
 
+  - base-dir: '/usr/share'
+  - external-dir: '/usr/share/'
+  - result: '(0 nil t)
+
   - base-dir: '/usr/share/lib'
   - external-dir: '/usr/share'
-  - result: '(-1 (\"leading\") t)
+  - result: '(-1 nil t)
 
   *different branch:*
   - base-dir: '/usr/share/lib'
@@ -1017,6 +1024,44 @@ Non-nil value.
          ((= relative 0)
           (setq rtn `(,relative nil t))))))
     rtn))
+
+(defun entropy/cl-make-relative-path (base-dir external-dir)
+  "Make relative style path for external dir EXTERNAL-DIR which
+based on base dir BASE-DIR powered on
+`entropy/cl-dir-relativity-number'."
+  (let ((relative (entropy/cl-dir-relativity-number base-dir external-dir))
+        rel-conc-func)
+    (setq rel-conc-func
+          (lambda (abs-rela-counter factor)
+            (let ((counter 1)
+                  (rtn ""))
+              (while (<= counter abs-rela-counter)
+                (setq rtn (concat rtn factor)
+                      counter (1+ counter)))
+              rtn)))
+    (cond (relative
+           (let ((same-branch (caddr relative))
+                 (relative-number (car relative))
+                 (relative-content (cadr relative)))
+             (cond (same-branch
+                    (cond ((> relative-number 0)
+                           (let ((abbrev ".")
+                                 (tail ""))
+                             (dolist (el relative-content)
+                               (setq tail (concat tail "/" el)))
+                             (concat abbrev tail)))
+                          ((< relative-number 0)
+                           (funcall rel-conc-func (abs relative-number) "../"))
+                          ((= relative-number 0)
+                           "./")))
+                   ((not same-branch)
+                    (let ((abbrev (funcall rel-conc-func (abs relative-number) "../")))
+                      (dolist (el relative-content)
+                        (setq abbrev (concat abbrev el "/")))
+                      (replace-regexp-in-string "/$" "" abbrev))))))
+          ((not relative)
+           external-dir))))
+
 
 ;; *** file
 ;; **** file modification state check
