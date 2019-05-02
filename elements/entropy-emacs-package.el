@@ -107,6 +107,17 @@ for `user-emacs-directory'."
 (package-initialize)
 (message "Packages initializing done!")
 
+;; Format package-gnupghome-dir format for Msys2
+(when (and entropy/wsl-enable
+           entropy/wsl-apps
+           (executable-find "gpg")
+           (string-match-p "^.:/.*usr/bin" (executable-find "gpg")))
+  (let ((temp-str package-gnupghome-dir))
+    (setq temp-str (replace-regexp-in-string
+                    "^\\(.\\):"
+                    "/\\1" temp-str)
+          package-gnupghome-dir temp-str)))
+
 ;; Install entropy-emacs pre installed packages
 (when (equal entropy/use-extensions-type 'origin)
   (require 'entropy-emacs-package-requirements)

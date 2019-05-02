@@ -1533,11 +1533,12 @@ For now, there's three choices for you:
     (add-hook 'maple-preview:finialize-hook #'maple-preview:schema-finialize-hooks)))
 
 ;; ** entropy-emacs self packages
-;; *** entropy-counsel-project
-(use-package entropy-counsel-prj
+;; *** entropy-projec-manager
+(use-package entropy-prjm
   :ensure nil
-  :bind ("C-c M-p" . entropy/counsel-prj)
-  :commands entropy/counsel-prj)
+  :commands entropy/prjm-inct-chosen-db
+  :bind ("C-c M-p" . entropy/prjm-inct-chosen-db))
+
 ;; *** entropy-unfill
 (use-package entropy-unfill
   :ensure nil

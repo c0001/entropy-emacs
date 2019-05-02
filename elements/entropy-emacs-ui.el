@@ -97,7 +97,7 @@ the specific height and width determined by above variable you setted."
        (:str "entropy-emacs introduction"
         :link-type file
         :link ,(expand-file-name
-                "entropy-emacs-doc/org/entropy-emacs_introduction.org"
+                "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.org"
                 entropy/ext-deps-dir))
        (:str ".")
        (:str "(view ")
