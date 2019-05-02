@@ -112,11 +112,7 @@ for `user-emacs-directory'."
            entropy/wsl-apps
            (executable-find "gpg")
            (string-match-p "^.:/.*usr/bin" (executable-find "gpg")))
-  (let ((temp-str package-gnupghome-dir))
-    (setq temp-str (replace-regexp-in-string
-                    "^\\(.\\):"
-                    "/\\1" temp-str)
-          package-gnupghome-dir temp-str)))
+  (setq package-gnupghome-dir nil))
 
 ;; Install entropy-emacs pre installed packages
 (when (equal entropy/use-extensions-type 'origin)
