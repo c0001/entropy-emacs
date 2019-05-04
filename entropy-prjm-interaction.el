@@ -227,18 +227,18 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
 
 
 ;; *** column read library
-(defun entropy/prjm--inct-read-column (prompt column shaft-value db-location)
+(defun entropy/prjm--inct-read-column (prompt column shaft-value db-location &optional initial)
   (let ((shaft-column (car (plist-get (cdr (assoc 'Shaft (entropy/prjm-prj-obj-prototype)))
                                       :columns))))
     (cond ((or (eq column shaft-column)
                (eq column entropy/prjm--inct-prj-date-column))
            (entropy/prjm--inct-read-string
-            prompt nil (entropy/prjm--inct-gen-prj-shaft)))
+            prompt nil (or initial (entropy/prjm--inct-gen-prj-shaft))))
           ((eq column entropy/prjm--inct-prj-type-column)
            (substring-no-properties
             (entropy/prjm--inct-read-string
              prompt
-             nil nil nil
+             nil initial nil
              (funcall (lambda ()
                         (let (candi)
                           (dolist (el (all-the-icons--read-candidates))
@@ -272,7 +272,7 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
              (if (not (equal type-choose "remote"))
                  (cond ((equal type-choose "auto-local")
                         (let ((prj-root (entropy/prjm--inct-read-string
-                                         prompt nil nil nil
+                                         prompt nil initial nil
                                          'read-file-name-internal))
                               prj-uri prj-path
                               rtn)
@@ -288,7 +288,7 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
                           (list :uri prj-uri :path prj-path)))
                        ((equal type-choose "manually-local")
                         (let ((prj-archive (entropy/prjm--inct-read-string
-                                            prompt nil nil nil 'read-file-name-internal))
+                                            prompt nil initial nil 'read-file-name-internal))
                               prj-uri prj-path)
                           (when (file-exists-p prj-archive)
                             (setq prj-archive (funcall repeated-read-candi prompt
@@ -300,7 +300,7 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
                           (list :uri prj-uri :path prj-path)))
                        ((equal type-choose "exists-local")
                         (let ((prj-archive (entropy/prjm--inct-read-string
-                                            prompt nil nil nil 'read-file-name-internal))
+                                            prompt nil initial nil 'read-file-name-internal))
                               prj-uri prj-path)
                           (unless (file-exists-p prj-archive)
                             (setq prj-archive (funcall repeated-read-candi prompt
@@ -311,9 +311,9 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
                                 prj-uri (entropy/prjm--inct-analyzing-uri
                                          prj-uri db-location "home"))
                           (list :uri prj-uri :path prj-path))))
-               (entropy/prjm--inct-read-string promt))))
+               (entropy/prjm--inct-read-string promt nil initial))))
           (t
-           (entropy/prjm--inct-read-string prompt)))))
+           (entropy/prjm--inct-read-string prompt nil initial)))))
 
 
 ;; ** db chosen interation
@@ -588,6 +588,7 @@ prj shaft '%s' has been existed!" shaft-value)
   (let* ((ivy-format-function 'ivy-format-function-default)
          (key-pairs (entropy/prjm--inct-get-prj-attrs))
          (db-exp (funcall (entropy/prjm--inct-get-db-chosen-operator "get-by-name") entropy/prjm--inct-selected-db-name))
+         (db-obj (entropy/prjm-gen-db-obj db-exp))
          (prj-cl-exp-rtn (copy-tree (cdr prjs-alist-item)))
          (prj-cl-exp-origin (copy-tree (cdr prjs-alist-item)))
          (shaft (car (entropy/prjm-prj-column-expression-prototype)))
@@ -615,27 +616,20 @@ prj shaft '%s' has been existed!" shaft-value)
                                                              'face
                                                              'ivy-match-required-face)))
                             "")))
-            (value-type (cdr (plist-get prj-cl-exp-rtn (cdr el)))))
-        (cond ((eq (cdr el) entropy/prjm--inct-prj-type-column)
+             (value-type (cdr (plist-get prj-cl-exp-rtn (cdr el))))
+             column-read)
+        (setq column-read
+              (entropy/prjm--inct-read-column
+               prompt (cdr el) shaft-origin (plist-get db-obj :db-location)
+               initial))
+        (cond ((eq (cdr el) entropy/prjm--inct-prj-uri-column)
                (push (cons (cdr el)
-                           (cons
-                            (entropy/prjm--inct-read-string
-                             prompt nil initial nil
-                             (funcall (lambda ()
-                                        (let (candi)
-                                          (dolist (el (all-the-icons--read-candidates))
-                                            (push (car (if (display-graphic-p)
-                                                           (split-string  (car el) "\t")
-                                                         (substring-no-properties
-                                                          (split-string  (car el) "\t"))))
-                                                  candi))
-                                          candi))))
-                            value-type))
+                           (cons (plist-get column-read :uri)
+                                 value-type))
                      keys-did))
               (t
                (push (cons (cdr el)
-                           (cons (entropy/prjm--inct-read-string
-                                  prompt nil initial)
+                           (cons column-read
                                  value-type))
                      keys-did)))))
     (progn
