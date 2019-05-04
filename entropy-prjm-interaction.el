@@ -1,5 +1,6 @@
 (require 'entropy-prjm-core)
 (require 'all-the-icons)
+(require 'url)
 
 ;; ** defcustom
 (defcustom entropy/prjm-inct-db-chosen-operation-alist
