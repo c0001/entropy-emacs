@@ -13,6 +13,16 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 
+;; ** Temporal bug revert
+;; *** gnutls bug for emacs version upper than '26.1'
+;; 
+;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
+;;
+;; Refer:
+;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597 
+(unless (version< emacs-version "26.2")
+  (advice-add #'gnutls-available-p :override #'ignore))
+
 ;; ** Personal infomation
 (when (and entropy/user-full-name
            entropy/user-mail-address)
