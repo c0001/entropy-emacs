@@ -49,7 +49,7 @@ deps are the necessities for both type of 'origin' or
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/ext-extensions-dir (expand-file-name
-                                      ".entropy-emacs-extension"
+                                      ".entropy-emacs-extensions"
                                       "~/")
   "entropy-emacs extensions collection archive location. This
 collection used to retrieving all entropy-emacs elpa or melpa
@@ -65,7 +65,7 @@ variable `entropy/use-extensions-type'."
 
 
 (defcustom entropy/ext-extensions-elpa-dir (expand-file-name
-                                            ".entropy-emacs-extension-elpa"
+                                            ".entropy-emacs-extensions-elpa"
                                             "~/")
   "entropy-emacs elpa extensions directory used when
 `entropy/use-extensions-type' was not eq 'submodules'."

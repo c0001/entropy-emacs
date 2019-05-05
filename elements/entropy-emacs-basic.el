@@ -1419,12 +1419,6 @@ emacs."
     :init
     (auto-sudoedit-mode 1)))
 
-;; ** Browse-kill-ring
-(use-package browse-kill-ring
-  :commands (browse-kill-ring-default-keybindings)
-  :bind ("C-c M-k" . browse-kill-ring)
-  :init (browse-kill-ring-default-keybindings))
-
 ;; *** clear killring
 ;;     From the forum of stackexchange
 ;;     `https://superuser.com/questions/546619/clear-the-kill-ring-in-emacs'

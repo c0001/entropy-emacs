@@ -26,12 +26,13 @@
 ;; **** counsel mode map
          :map counsel-mode-map
          ([remap swiper] . counsel-grep-or-swiper)
-         ("C-x j" . counsel-mark-ring)
+         ("C-x j"   . counsel-mark-ring)
          ("C-x C-t" . counsel-find-file-extern)
          ("C-h f"   . counsel-describe-function)
          ("C-h v"   . counsel-describe-variable)
          ("C-h l"   . counsel-find-library)
          ("C-c M-b" . counsel-recentf)
+         ("C-c M-k" . counsel-yank-pop)
          ;; swiper-map
          :map swiper-map
          ("M-%" . swiper-query-replace))
