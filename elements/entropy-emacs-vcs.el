@@ -43,9 +43,9 @@
   :if (executable-find "git")
   :commands
   (magit-status
-   magit-dispatch-popup)
+   magit-dispatch)
   :bind (("C-x g" . magit-status)
-         ("C-x M-g" . magit-dispatch-popup))
+         ("C-x M-g" . magit-dispatch))
   :init
   (use-package magit-popup
     :if (executable-find "git")
@@ -90,7 +90,6 @@
     :ensure nil
     :commands
     (magit-file-popup))
-
   
   (when (and sys/win32p entropy/git-portable)
     (setq magit-git-executable (concat entropy/git-portable-path "git.exe")))
