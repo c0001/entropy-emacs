@@ -80,7 +80,9 @@
     "Indent org capture buffer when finished capture editting."
     (let ((pm (point-min))
           (pb (point-max)))
-      (org-indent-region pm pb)))
+      (org-indent-region pm pb)
+      (goto-char (point-max))
+      (insert "\n")))
   (add-hook 'org-capture-prepare-finalize-hook #'entropy/org-capture-indent-buffer)
 
   (defun entropy/org-capture-set-tags (&rest args)
@@ -210,7 +212,7 @@ recovery method unless reopen capture operation.w
     (interactive)
     (if (string= "*Org Agenda*" (buffer-name))
         (progn
-          (if (string= org-tags-match-list-sublevels nil)
+          (if (eq org-tags-match-list-sublevels nil)
               (setq org-tags-match-list-sublevels 'indented)
             (setq org-tags-match-list-sublevels nil))
           (org-agenda-redo-all))
