@@ -1,3 +1,124 @@
+;;; entropy-prjm-interaction.el --- The interface for entropy-project-manager
+;; * Copyright
+;; #+BEGIN_EXAMPLE
+;; Copyright (C) 20190504  Entropy
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-project-manager/blob/master/entropy-prjm-interaction.el
+;; Package-Version: v0.1.0
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see
+;; <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
+;; This package was the default interface of =entropy-prjm-core=, as
+;; the same prominent position as =entropy-prjm-core= does.Packages
+;; gives open APIs for development to building their own 'entropy
+;; project management backend'.
+;;
+;; OFC, as needed for every =entropy-project-management= referrenced
+;; packages, this package requiring (deriving from)
+;; =entropy-prjm-core=. Using its prototype and expanding them to
+;; building interaction apis framework. 
+;;
+;; The interaction aspects of entropy-project-management are:
+;; - QUERY-ALL
+;; - ADD
+;; - DELETE
+;; - UPDATE
+;; - OPEN
+;;
+;; All of above interaction action in this package are called
+;; 'operation' as the reflection to =prj-object='s operation
+;; clause. Each of them is a declaration function with respective
+;; arguments and value type returning request, they are the first api
+;; of this package. See the function declaration table below:
+;;
+;; | *operation* | *arguments*                 | *return*         |
+;; |-------------+-----------------------------+------------------|
+;; | QUERY-ALL   | single: =db-expression=     | =db-cache-obj=   |
+;; |-------------+-----------------------------+------------------|
+;; | ADD         | 0st: =prj-expression=       | operation status |
+;; |             | 1st: =db-expression=        |                  |
+;; |-------------+-----------------------------+------------------|
+;; | DELETE      | 0st: =prj-expression=       | operation status |
+;; |             | 1st: =db-expression=        |                  |
+;; |-------------+-----------------------------+------------------|
+;; | UPDATE      | 0st: =prj-expression=       | operation status |
+;; |             | 1st: =db-expression=        |                  |
+;; |-------------+-----------------------------+------------------|
+;; | OPEN        | uri of one specific project | none             |
+;; |-------------+-----------------------------+------------------|
+;;
+;; All the operation interface defined in customized variable
+;; ~entropy/prjm-inct-prj-operation-alist~ as the alist type, which
+;; the key was the operation string.
+;; 
+;; For operation =QUERY-ALL=, the only argument it recieved is one
+;; =db-expression=, but this package doesn't give the database
+;; managing feature, thus for this, another api 'database retrieving
+;; operation'. There's two operation type for it:
+;; 
+;; - "get-all" operation
+;;
+;;   Require non-argument, as that this function need to returns all
+;;   *valid* db-expressions, as list type.
+;;
+;;   Notice for the emphasized word *valid*, means the the returned
+;;   db-expressions must passed check individually by
+;;   ~entropy/prjm-db-expression-validp~.
+;;
+;; - "get-by-name" operation
+;;
+;;   This function requried one string type argument, for matcing the
+;;   corresponding db-expression as that this string was the db-name
+;;   of that database. 
+;;
+;; For the instance for databse-retrieveing function, by the requests
+;; of above database operation type list, there needs two instance
+;; for calling for, all you can using the lambda for wrapping your
+;; single function of which has the optioanl argument for satisfiying
+;; the 'get-by-name' operation type.
+;;
+;; Finally as that the origin prj object prototpe is extensible, thus
+;; for that this package needed the exhibited sets of generally used
+;; column given for:
+;;
+;; - ~entropy/prjm--inct-prj-name-column~
+;; - ~entropy/prjm--inct-prj-des-column~
+;; - ~entropy/prjm--inct-prj-vcs-column~
+;; - ~entropy/prjm--inct-prj-type-column~
+;; - ~entropy/prjm--inct-prj-uri-column~
+;; - ~entropy/prjm--inct-prj-date-column~
+;;
+;; Caused from that, commonly, each project description must have
+;; it's name, short description, version control system type,
+;; uri(location indication), and built date whatever data structer it
+;; is. You should assign each value of above list customized
+;; variable, notice for that all of them are type of plist-key
+;; e.g. =:Prj_Name=.
+;;
+;;  
+;;
+;; * Configuration:
+;;
+;; configuration
+
+;;; Code:
+
+
 (require 'entropy-prjm-core)
 (require 'all-the-icons)
 (require 'url)
@@ -6,12 +127,26 @@
 (defcustom entropy/prjm-inct-db-chosen-operation-alist
   '(("get-all" . nil)
     ("get-by-name" . nil))
-  "db chosens operation alist
+  "The database manage function alist, which the associate key
+was 'operation type'.
 
-get: return db-exps list without input args
+Operation type are:
+- \"get-all\"
+- \"get-by-name\"
 
-get-by-name: name-->db-exp
-"
+
+The associated value of each key was one corresponding function
+with speicfic interface regulation. 
+
+*get-all* type operation:
+
+Function with no arguments, return list of =db-expression= (see
+`entropy/prjm-db-expression-prototype'). 
+
+*get-by-name* type operation:
+
+Function with one string type argument, the databse name, return
+corresponding =db-expression=."
   :type 'sexp
   :group 'entropy/prjm-group)
 
@@ -21,13 +156,35 @@ get-by-name: name-->db-exp
     ("DELETE" . nil)
     ("UPDATE" . nil)
     ("OPEN" . nil))
-  "db prjs operation alist
+  "Alist of for project interaction operations.
 
-QUERY-ALL: arg of db-exp. return that's db db-obj
-ADD: arg of both of prj-exp and db-exp, return the operation status.
-DELETE: arg of both of prj-exp and db-exp, return the operation status.
-UPDATE: arg of both of prj-exp and db-exp, return the operation status.
-"
+For `entropy-prjm-interaction', there're five standard operation
+for manipulating with project database:
+
+- \"QUERY-ALL\": Query projects information of single database
+- \"ADD\": Add prj into specific database. 
+- \"DELETE\": Delete prj into specific database. 
+- \"UPDATE\": Update prj into specific database. 
+- \"OPEN\": Open project's location. 
+
+As that, each type of value is function, and the instanced
+rule-set shown in below table:
+
+| *operation* | *arguments*                 | *return*         |
+|-------------+-----------------------------+------------------|
+| QUERY-ALL   | single: =db-expression=     | =db-cache-obj=   |
+|-------------+-----------------------------+------------------|
+| ADD         | 0st: =prj-expression=       | operation status |
+|             | 1st: =db-expression=        |                  |
+|-------------+-----------------------------+------------------|
+| DELETE      | 0st: =prj-expression=       | operation status |
+|             | 1st: =db-expression=        |                  |
+|-------------+-----------------------------+------------------|
+| UPDATE      | 0st: =prj-expression=       | operation status |
+|             | 1st: =db-expression=        |                  |
+|-------------+-----------------------------+------------------|
+| OPEN        | uri of one specific project | none             |
+|-------------+-----------------------------+------------------|"
   :type 'sexp
   :group 'entropy/prjm-group)
 
@@ -311,7 +468,7 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
                                 prj-uri (entropy/prjm--inct-analyzing-uri
                                          prj-uri db-location "home"))
                           (list :uri prj-uri :path prj-path))))
-               (entropy/prjm--inct-read-string promt nil initial))))
+               (entropy/prjm--inct-read-string prompt nil initial))))
           (t
            (entropy/prjm--inct-read-string prompt nil initial)))))
 
@@ -624,7 +781,8 @@ prj shaft '%s' has been existed!" shaft-value)
                initial))
         (cond ((eq (cdr el) entropy/prjm--inct-prj-uri-column)
                (push (cons (cdr el)
-                           (cons (plist-get column-read :uri)
+                           (cons (or (plist-get column-read :uri)
+                                     column-read)
                                  value-type))
                      keys-did))
               (t
