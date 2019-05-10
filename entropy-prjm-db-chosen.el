@@ -1,7 +1,70 @@
+;;; entropy-prjm-db-chosen.el --- One database choosing backend for entropy-prjm-interaction.el
+;;
+;; * Copyright (C) 20190511  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-project-manager/blob/master/entropy-prjm-db-chosen.el
+;; Package-Version: v0.1.00
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;;
+;; * Commentary:
+;;
+;; This package was one implementation for
+;; =entropy-prjm-interaction='s
+;; ~entropy/prjm-inct-db-chosen-operation-alist~.  Further more with
+;; the database real-time validation status checking responses.
+;;
+;; *The validation responses mechanism:*
+;;
+;; - Initialization status:
+;;
+;;   In the status for every new session of emacs startup, checking
+;;   all user customized db-expressions stored in customized variable
+;;   =entropy/prjm-dbcs-user-db-exps= and filterring them into three
+;;   status =valid=, =lossy=, and =illegal= named for literal
+;;   meaning.
+;;
+;; - Using status:
+;;
+;;   Recheck the =valid= and =lossy= status db-expressions, and
+;;   re-arranging them into new ones, and error while there's no
+;;   valid db-expression.
+;; 
+;; * Configuration:
+;;
+;; The "get-all" implementation function is
+;; ~entropy/prjm-dbcs-dbconfig-get~ and the "get-by-name"
+;; implementation is ~entropy/prjm-dbcs-get-dbexp-by-name~.
+;;
+;; For quickly configured: 
+;; #+BEGIN_SRC elisp
+;;   (with-eval-after-load 'entropy-prjm
+;;     (setf (alist-get  "get-all" entropy/prjm-inct-db-chosen-operation-alist)
+;;           'entropy/prjm-dbcs-dbconfig-get)
+;;     (setf (alist-get  "get-by-name" entropy/prjm-inct-db-chosen-operation-alist)
+;;           'entropy/prjm-dbcs-get-dbexp-by-name))
+;; #+END_SRC
+;;
+;; * Code:
+
 (require 'entropy-prjm-core)
 
 (defcustom entropy/prjm-dbcs-user-db-exps nil
-  "db-exps for user customized"
+  "db-expressions for user customized."
   :type 'sexp
   :group 'entropy-prjm-group)
 

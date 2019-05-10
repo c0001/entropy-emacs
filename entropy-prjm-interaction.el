@@ -46,25 +46,48 @@
 ;; arguments and value type returning request, they are the first api
 ;; of this package. See the function declaration table below:
 ;;
-;; | *operation* | *arguments*                 | *return*         |
-;; |-------------+-----------------------------+------------------|
-;; | QUERY-ALL   | single: =db-expression=     | =db-cache-obj=   |
-;; |-------------+-----------------------------+------------------|
-;; | ADD         | 0st: =prj-expression=       | operation status |
-;; |             | 1st: =db-expression=        |                  |
-;; |-------------+-----------------------------+------------------|
-;; | DELETE      | 0st: =prj-expression=       | operation status |
-;; |             | 1st: =db-expression=        |                  |
-;; |-------------+-----------------------------+------------------|
-;; | UPDATE      | 0st: =prj-expression=       | operation status |
-;; |             | 1st: =db-expression=        |                  |
-;; |-------------+-----------------------------+------------------|
-;; | OPEN        | uri of one specific project | none             |
-;; |-------------+-----------------------------+------------------|
+;; | *operation* | *arguments*                        | *return*         |
+;; |-------------+------------------------------------+------------------|
+;; | QUERY-ALL   | single: =db-expression=            | =db-cache-obj=   |
+;; |-------------+------------------------------------+------------------|
+;; | ADD         | 0st: =prj-expression=              | operation status |
+;; |             | 1st: =db-expression=               |                  |
+;; |-------------+------------------------------------+------------------|
+;; | DELETE      | 0st: =prj-expression=              | operation status |
+;; |             | 1st: =db-expression=               |                  |
+;; |-------------+------------------------------------+------------------|
+;; | UPDATE      | 0st: =prj-expression=              | operation status |
+;; |             | 1st: =db-expression=               |                  |
+;; |-------------+------------------------------------+------------------|
+;; | OPEN        | 0st: uri of one specific project   | none             |
+;; |             | 1st: database location path string |                  |
+;; |-------------+------------------------------------+------------------|
 ;;
 ;; All the operation interface defined in customized variable
 ;; ~entropy/prjm-inct-prj-operation-alist~ as the alist type, which
 ;; the key was the operation string.
+;;
+;; There's some unintelligible as of operation "OPEN", the second
+;; argument =database location= may confused you, but actually easily
+;; to acceptable for:
+;;
+;; #+BEGIN_QUOTE
+;; For any project location compatible in consistency rule sets,
+;; 'entropy-prjm' using the =UNIFORM RESOURCE IDENTIFIER= (the [[https://en.wikipedia.org/wiki/Uniform_Resource_Identifier][URI]])
+;; to identify its location, which given the rule set for both remote
+;; type resource type and local one, but for what shown for commonly
+;; using for that:
+;;
+;;   Some status we do not using absolute path string, not to say of
+;;   using the uri type local file path formular.
+;;
+;; Thus, the database location was used for the natively relative
+;; project path relatively with the data-base location, causing for
+;; some situations that user orgnize some projects relative by
+;; database location for portable purpose.
+;;
+;; (*natively relative path format:* ../[../ ...]xxxx or ./xxx)
+;; #+END_QUOTE  
 ;; 
 ;; For operation =QUERY-ALL=, the only argument it recieved is one
 ;; =db-expression=, but this package doesn't give the database
@@ -116,7 +139,7 @@
 ;;
 ;; configuration
 
-;;; Code:
+;; * Code:
 
 
 (require 'entropy-prjm-core)
@@ -170,21 +193,46 @@ for manipulating with project database:
 As that, each type of value is function, and the instanced
 rule-set shown in below table:
 
-| *operation* | *arguments*                 | *return*         |
-|-------------+-----------------------------+------------------|
-| QUERY-ALL   | single: =db-expression=     | =db-cache-obj=   |
-|-------------+-----------------------------+------------------|
-| ADD         | 0st: =prj-expression=       | operation status |
-|             | 1st: =db-expression=        |                  |
-|-------------+-----------------------------+------------------|
-| DELETE      | 0st: =prj-expression=       | operation status |
-|             | 1st: =db-expression=        |                  |
-|-------------+-----------------------------+------------------|
-| UPDATE      | 0st: =prj-expression=       | operation status |
-|             | 1st: =db-expression=        |                  |
-|-------------+-----------------------------+------------------|
-| OPEN        | uri of one specific project | none             |
-|-------------+-----------------------------+------------------|"
+| *operation* | *arguments*                        | *return*         |
+|-------------+------------------------------------+------------------|
+| QUERY-ALL   | single: =db-expression=            | =db-cache-obj=   |
+|-------------+------------------------------------+------------------|
+| ADD         | 0st: =prj-expression=              | operation status |
+|             | 1st: =db-expression=               |                  |
+|-------------+------------------------------------+------------------|
+| DELETE      | 0st: =prj-expression=              | operation status |
+|             | 1st: =db-expression=               |                  |
+|-------------+------------------------------------+------------------|
+| UPDATE      | 0st: =prj-expression=              | operation status |
+|             | 1st: =db-expression=               |                  |
+|-------------+------------------------------------+------------------|
+| OPEN        | 0st: uri of one specific project   | none             |
+|             | 1st: database location path string |                  |
+|-------------+------------------------------------+------------------|
+
+
+There's some unintelligible as of operation \"OPEN\", the second
+argument =database location= may confused you, but actually
+easily to acceptable for:
+
+#+BEGIN_QUOTE
+For any project location compatible in consistency rule sets,
+'entropy-prjm' using the =UNIFORM RESOURCE IDENTIFIER= (the [[https://en.wikipedia.org/wiki/Uniform_Resource_Identifier][URI]])
+to identify its location, which given the rule set for both remote
+type resource type and local one, but for what shown for commonly
+using for that:
+
+Some status we do not using absolute path string, not to say of
+using the uri type local file path formular.
+
+Thus, the database location was used for the natively relative
+project path relatively with the data-base location, causing for
+some situations that user orgnize some projects relative by
+database location for portable purpose.
+
+(*natively relative path format:* ../[../ ...]xxxx or ./xxx)
+#+END_QUOTE  
+"
   :type 'sexp
   :group 'entropy/prjm-group)
 
@@ -334,6 +382,26 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
 
 
 (defun entropy/prjm--inct-analyzing-uri (uri-string db-location &optional force-relative)
+  "Analyzing URI string and return the entropy-project-managemet
+needed format.
+
+#+BEGIN_QUOTE
+*For =entropy-project-management= URI specification:*
+
+Most of uri string are acceptted by it, but for some localization
+uri, i.e. wave sub-directory and the dot relative path are stored
+without the header string of URI standard.
+#+END_QUOTE
+
+As for,localization uri _will be_ transfer into the wave or dot
+relative format automatically while the type matched for it, it's
+the function defaultly dealing method.
+
+The wave type localization uri tranferring result based on the
+=HOME= path(use ~gentenv HOME~ to see your home-path), and the dot
+relative one's result based on the database-location as the
+baseline.
+"
   (let* ((uri (url-generic-parse-url uri-string))
          (uri-host (url-host uri))
          (uri-scheme (url-type uri))
@@ -385,6 +453,62 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
 
 ;; *** column read library
 (defun entropy/prjm--inct-read-column (prompt column shaft-value db-location &optional initial)
+  "Read project property value.
+
+Using `read-string' or `completing-read' to read every
+column(property) of project object prototype from
+`entropy/prjm-prj-obj-prototype', and return the string or plist
+categorized as:
+
+- *common read*:
+
+  Return the string read by interaction.
+
+- *Composited read*:
+
+  For the special case, return the specific elisp type value
+  (also can be simple string, depending on the condition case of
+  the =Composited read=).
+
+All the columns are automatically extracted from current project
+object prototype session, but with some
+specification(entropy-prjm-interaction preserved column type
+instance) from:
+
+1) `entropy/prjm--inct-prj-date-column'
+2) `entropy/prjm--inct-prj-des-column'
+3) `entropy/prjm--inct-prj-name-column'
+4) `entropy/prjm--inct-prj-template'
+5) `entropy/prjm--inct-prj-type-column'
+6) `entropy/prjm--inct-prj-uri-column'
+7) `entropy/prjm--inct-prj-vcs-column'
+8) `entropy/prjm--inct-temp-prjs-candi-alist'
+
+
+*Composited read details:*
+
+Til now, there's only one composited read column i.e. the uri
+column, it has the four sdcondition cases:
+
+| *Type case*        | *condition details*                                                   |
+|--------------------+-----------------------------------------------------------------------|
+| \"manually-local\" | Project in local place and input the path in manually way             |
+|--------------------+-----------------------------------------------------------------------|
+| \"auto-local\"     | Project in local place and automatically creat it's name unter the    |
+|                    | manually inputted root place.                                         |
+|--------------------+-----------------------------------------------------------------------|
+| \"exists-local\"   | Project in local place and choosing it interactively                  |
+|--------------------+-----------------------------------------------------------------------|
+| \"remoe\"          | Project in remote site, input it manually without matching validation |
+
+For the general '*-local' type, the read-return is the plist whose
+keys are :uri and :path, function transfer the read localization
+path string into URI(uniform resource identifier) to key :uri for
+database stored internally powered by
+`entropy/prjm--inct-analyzing-uri'. and the read local path
+assigned to  key :path which used for other function to do
+externals manupulation e.g. creats new project root template as
+did by `entropy/prjm--inct-addprj-create-template'."
   (let ((shaft-column (car (plist-get (cdr (assoc 'Shaft (entropy/prjm-prj-obj-prototype)))
                                       :columns))))
     (cond ((or (eq column shaft-column)
