@@ -1006,7 +1006,10 @@ Now just supply localization image file analyzing."
 
 ;; ** Dwimin commenting code region with org mode
 (use-package poporg
-  :bind(("C-c \"" . poporg-dwim))
+  :bind(("C-c \"" . poporg-dwim)
+        :map poporg-mode-map
+        ("C-c C-c" . org-table-align)
+        ("C-c C-k" . poporg-update))
   :commands (poporg-dwim)
   :config
   (setq poporg-adjust-fill-column nil)

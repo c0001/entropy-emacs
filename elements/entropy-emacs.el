@@ -296,7 +296,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 
 ;; *** startup main function
-(defun entropy/init-minimal ()
+(defun entropy/init-X ()
   (entropy/M-enable)
   (entropy/X-enable)
   (when (and entropy/enable-pyim
@@ -311,7 +311,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     (defun entropy/pyim-init-prompt ()
       (message "This function has been unloaded."))))
 
-(defun entropy/init-X ()
+(defun entropy/init-M ()
   (entropy/M-enable)
   (when entropy/enable-pyim
     (entropy/pyim-init-prompt)
@@ -322,9 +322,9 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 (defun entropy/init-bingo ()
   (cond
    ((not entropy/minimal-start)
-    (entropy/init-minimal))
+    (entropy/init-X))
    (entropy/minimal-start
-    (entropy/init-X))))
+    (entropy/init-M))))
 
 
 (require 'entropy-emacs-ext)
