@@ -43,6 +43,7 @@
     atomic-chrome
     auto-yasnippet
     avy
+    beacon
     bing-dict
     birds-of-paradise-plus-theme
     browse-at-remote

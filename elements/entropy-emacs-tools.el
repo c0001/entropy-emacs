@@ -190,6 +190,11 @@ like `recenter-top-bottom'."
 
 (global-set-key (kbd "C-M-l") 'entropy/vertical-to-bottom)
 
+;; ** beacon cursor blanking
+(use-package beacon
+  :commands (beacon-mode)
+  :init (beacon-mode 1))
+
 ;; ** visual-regexp
 ;; Visual-regexp for Emacs is like replace-regexp, but with live visual feedback directly in the
 ;; buffer.
