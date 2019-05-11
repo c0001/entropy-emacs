@@ -532,75 +532,77 @@ which was matching of regexp REGEXP.
 "
   (let ((ctn 0)
         match-list rtn
-        (core_func_repfunc (lambda (beg_p end_p rex ctn_i cbk-list repfunc repface times_p)
-                             (cond
-                              ((numberp times_p)
-                               (dotimes (el times_p nil)
-                                 (when (re-search-forward rex (symbol-value end_p) t)
-                                   (cl-incf (symbol-value ctn_i))
-                                   (let ((match-for (match-string 0))
-                                         (match-replace (propertize (funcall repfunc (match-string 0))
-                                                                    'face repface)))
-                                     (setf (symbol-value end_p)
-                                           (+ (symbol-value end_p)
-                                              (- (string-width match-replace)
-                                                 (string-width match-for))))
-                                     (push (list :match-order (symbol-value ctn_i)
-                                                 :match-for match-for
-                                                 :match-replace match-replace)
-                                           (symbol-value cbk-list))
-                                     (goto-char beg_p)
-                                     (re-search-forward rex (symbol-value end_p) t (symbol-value ctn_i))
-                                     (replace-match match-replace)))))
-                               ((null times_p)
-                                (while (re-search-forward rex (symbol-value end_p) t)
-                                  (cl-incf (symbol-value ctn_i))
-                                  (let ((match-for (match-string 0))
-                                        (match-replace (propertize (funcall repfunc (match-string 0))
-                                                                   'face repface)))
-                                    (setf (symbol-value end_p)
-                                          (+ (symbol-value end_p)
-                                             (- (string-width match-replace)
-                                                (string-width match-for))))
-                                    (push (list :match-order (symbol-value ctn_i)
-                                                :match-for match-for
-                                                :match-replace match-replace)
-                                          (symbol-value cbk-list))
-                                    (goto-char beg_p)
-                                    (re-search-forward rex (symbol-value end_p)  t (symbol-value ctn_i))
-                                    (replace-match match-replace)))))))
+        (core_func_repfunc
+         (lambda (beg_p end_p rex ctn_i cbk-list repfunc repface times_p)
+           (cond
+            ((numberp times_p)
+             (dotimes (el times_p nil)
+               (when (re-search-forward rex (symbol-value end_p) t)
+                 (cl-incf (symbol-value ctn_i))
+                 (let ((match-for (match-string 0))
+                       (match-replace (propertize (funcall repfunc (match-string 0))
+                                                  'face repface)))
+                   (setf (symbol-value end_p)
+                         (+ (symbol-value end_p)
+                            (- (string-width match-replace)
+                               (string-width match-for))))
+                   (push (list :match-order (symbol-value ctn_i)
+                               :match-for match-for
+                               :match-replace match-replace)
+                         (symbol-value cbk-list))
+                   (goto-char beg_p)
+                   (re-search-forward rex (symbol-value end_p) t (symbol-value ctn_i))
+                   (replace-match match-replace)))))
+            ((null times_p)
+             (while (re-search-forward rex (symbol-value end_p) t)
+               (cl-incf (symbol-value ctn_i))
+               (let ((match-for (match-string 0))
+                     (match-replace (propertize (funcall repfunc (match-string 0))
+                                                'face repface)))
+                 (setf (symbol-value end_p)
+                       (+ (symbol-value end_p)
+                          (- (string-width match-replace)
+                             (string-width match-for))))
+                 (push (list :match-order (symbol-value ctn_i)
+                             :match-for match-for
+                             :match-replace match-replace)
+                       (symbol-value cbk-list))
+                 (goto-char beg_p)
+                 (re-search-forward rex (symbol-value end_p)  t (symbol-value ctn_i))
+                 (replace-match match-replace)))))))
         
-        (core_func_repstr (lambda (end_p rex ctn_i cbk-list rep-str repface times_p)
-                            (cond
-                             ((numberp times_p)
-                              (dotimes (el times_p nil)
-                                (when (re-search-forward rex (symbol-value end_p) t)
-                                  (cl-incf (symbol-value ctn_i))
-                                  (let ((match-for (match-string 0))
-                                        (match-replace (propertize rep-str 'face repface)))
-                                    (setf (symbol-value end_p)
-                                          (+ (symbol-value end_p)
-                                             (- (string-width match-replace)
-                                                (string-width match-for))))
-                                    (push (list :match-order (symbol-value ctn_i)
-                                                :match-for match-for
-                                                :match-replace match-replace)
-                                          (symbol-value cbk-list))
-                                    (replace-match match-replace)))))
-                             ((null times_p)
-                               (while (re-search-forward rex (symbol-value end_p) t)
-                                (cl-incf (symbol-value ctn_i))
-                                (let ((match-for (match-string 0))
-                                      (match-replace (propertize rep-str 'face repface)))
-                                  (setf (symbol-value end_p)
-                                        (+ (symbol-value end_p)
-                                           (- (string-width match-replace)
-                                              (string-width match-for))))
-                                  (push (list :match-order (symbol-value ctn_i)
-                                              :match-for match-for
-                                              :match-replace match-replace)
-                                        (symbol-value cbk-list))
-                                  (replace-match match-replace))))))))
+        (core_func_repstr
+         (lambda (end_p rex ctn_i cbk-list rep-str repface times_p)
+           (cond
+            ((numberp times_p)
+             (dotimes (el times_p nil)
+               (when (re-search-forward rex (symbol-value end_p) t)
+                 (cl-incf (symbol-value ctn_i))
+                 (let ((match-for (match-string 0))
+                       (match-replace (propertize rep-str 'face repface)))
+                   (setf (symbol-value end_p)
+                         (+ (symbol-value end_p)
+                            (- (string-width match-replace)
+                               (string-width match-for))))
+                   (push (list :match-order (symbol-value ctn_i)
+                               :match-for match-for
+                               :match-replace match-replace)
+                         (symbol-value cbk-list))
+                   (replace-match match-replace)))))
+            ((null times_p)
+             (while (re-search-forward rex (symbol-value end_p) t)
+               (cl-incf (symbol-value ctn_i))
+               (let ((match-for (match-string 0))
+                     (match-replace (propertize rep-str 'face repface)))
+                 (setf (symbol-value end_p)
+                       (+ (symbol-value end_p)
+                          (- (string-width match-replace)
+                             (string-width match-for))))
+                 (push (list :match-order (symbol-value ctn_i)
+                             :match-for match-for
+                             :match-replace match-replace)
+                       (symbol-value cbk-list))
+                 (replace-match match-replace))))))))
     (goto-char beg)
     (cond
      ((functionp rep)
@@ -1469,6 +1471,84 @@ If SUFFIX was nill auto use date-time-sec for suffix."
     (if (not suffix)
         (setq $return (concat orname "_" (entropy/cl-gen-time-str)))
       (setq $return (concat orname suffix)))))
+
+(defun entropy/cl-read-file-name (file-type &optional existed)
+ "Repeaatly read file (or dir) name from minibuffer with internal
+file name completion table.
+
+FILE-TYPE was \"file\" string or arbitrary value demoting for
+directory type, using string \"dir\" by habitually.
+
+Optional arg EXISTED indicated for require-matching for current
+candidates from `read-file-name-internal', and satisfied its
+FILE-TYPE.
+
+None existed manaully read case will obey the FILE-TYPE by
+following rule-set:
+
+1) \"file\" type and read as existed one:
+
+   while the read existed as one directory, show prompt in mode
+   line and request repeatly inputtng.
+
+2) \"file\" type and read as non-existed:
+  
+   while the read string matched the tail slash, repeatly
+   inputting.
+  
+3) \"dir\" type and exsited read:
+
+   while the read existed as one file(not directory), do repeatly
+   inputting.
+
+4) Other any read case was legal."
+  
+  (let* ((init-file
+          (completing-read
+           (if (equal file-type "file")
+               "Choosing file: "
+             "Choosing directory: ")
+           'read-file-name-internal))
+         (judge-func (if (equal file-type "file")
+                         (lambda (x) (and (file-exists-p x)
+                                          (not (file-directory-p x))))
+                       'file-directory-p))
+         (repeat-existed-func
+          (lambda ()
+            (while (not (funcall judge-func init-file))
+              (let ((mode-line-format
+                     (if (equal file-type "file")
+                         (if (file-exists-p init-file)
+                             (list "%e" (propertize "Please choose 'FILE' not the directory location!" 'face 'warning))
+                           (list "%e" (propertize (format "File not exists '%s'" init-file) 'face 'warning)))
+                       (if (file-exists-p init-file)
+                           (list "%e" (propertize "Please choose 'DIR' not the file location!" 'face 'warning))
+                         (list "%e" (propertize (format "Direcory not exists '%s'" init-file) 'face 'warning))))))
+                (setq init-file
+                      (completing-read (if (equal file-type "file")
+                                           "Choosing file: "
+                                         "Choosing directory: ")
+                                       'read-file-name-internal))))))
+         (repeat-manually-func
+          (lambda ()
+            (let ((slash-tail-warn (list "%e" (propertize "Please input 'FILE' not the directory location!" 'face 'warning)))
+                  (file-warn (list "%e" (propertize (format "Please input 'DIR', file existed '%s'!" init-file) 'face 'warning))))
+              (cond ((equal "file" file-type)
+                     (while (string-match-p "/$" init-file)
+                       (let ((mode-line-format slash-tail-warn))
+                         (setq init-file
+                               (completing-read "Input file: " 'read-file-name-internal)))))
+                    (t
+                     (while (and (file-exists-p init-file)
+                                 (not (file-directory-p init-file)))
+                       (let ((mode-line-format file-warn))
+                         (setq init-file
+                               (completing-read "Input directory: "
+                                                'read-file-name-internal))))))))))
+    (if existed
+        (funcall repeat-existed-func)
+      (funcall repeat-manually-func))
+    init-file))
 
 ;; ** color refer
 (defun entropy/cl-color-name-to-hsv (color_name)
