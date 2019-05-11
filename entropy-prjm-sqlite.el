@@ -4,6 +4,11 @@
 ;; ** defcustom
 
 ;; ** defvar
+;; *** database creation script file
+(defvar entropy/prjm--sqlite-dbnew-script-file
+  (expand-file-name "entropy-prjm-sqlite-initialize.sql"
+                    (file-name-directory load-file-name)))
+
 ;; *** sqlite cmd format
 (defvar entropy/prjm--sqlite-cmd-format
   "sqlite3 -separator \"|||\" \"%s\" \"%s\"")
@@ -298,6 +303,14 @@
 
 
 ;; *** prj operation function
+;; **** create empty database file
+(defun entropy/prjm-sqlite-create-databse ()
+  (interactive)
+  (let ((db-location
+         (entropy/cl-read-file-name "file"))
+        (shell_cmd (concat "sqlite3 %s < " entropy/prjm--sqlite-dbnew-script-file)))
+    (shell-command (format shell_cmd db-location))))
+
 ;; **** query all prjs
 (defun entropy/prjm-sqlite-query-all-prjs (db-expression)
   (let* ((query-statement (entropy/prjm--sqlite-gen-query-all-statement))

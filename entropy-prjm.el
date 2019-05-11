@@ -1,3 +1,74 @@
+;;; entropy-prjm.el ---  The integrated package for entropy project management subs 
+;;
+;; * Copyright (C) 20190511  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-project-manager/blob/master/entropy-prjm.el
+;; Package-Version: v0.1.0
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;;
+;; * Commentary:
+;;
+;; This package was the integrated centre for wrappering stuffs into
+;; one enforceable project management, stuffs consists of default
+;; utilities to =entropy-project-management=:
+;;
+;; *BASE:*
+;; - the core: =entropy-prjm-core.el=
+;; - the interaction: =entropy-prjm-interactin.el=
+;;
+;; *DB CHOSEN and CACHE:*
+;; - db-cache: =entropy-prjm-db-cache.el=
+;; - db-chosen: =entropy-prjm-db-chosen.el=
+;;
+;; *PRJ MANIPULATION BACKENDS:*
+;; - add: =entropy-prjm-prj-add.el=
+;; - delete: =entropy-prjm-prj-delete.el=
+;; - update: =entropy-prjm-prj-update.el=
+;;
+;; *DB COMMUNICATION BACKENDS*
+;; - sqlite: =entropy-prjm-sqlite.el=
+;;
+;; * Configuration:
+;; 
+;; Following below simple config snippet:
+;; #+BEGIN_SRC elisp
+;;   ;; for traditionally config type
+;;   (require 'entropy-prjm)
+;;   (setq entropy/prjm-dbcs-user-db-exps
+;;           '(("prjs-collection 01" "sqlite" "path-to-this-database" nil nil)
+;;             ("prjs-collection 02" "sqlite" "path-to-this-database" nil nil)))
+;;
+;;   ;; use-package
+;;   (use-package entropy-prjm
+;;     :commands (entropy/prjm-inct-chosen-db)
+;;     :init
+;;     (setq entropy/prjm-dbcs-user-db-exps
+;;           '(("prjs-collection 01" "sqlite" "path-to-this-database" nil nil)
+;;             ("prjs-collection 02" "sqlite" "path-to-this-database" nil nil))))
+;; #+END_SRC
+;;
+;; For now just support 'sqlite3' database communicatiion backends,
+;; you can using =M-x entropy/prjm-sqlite-create-databse= for create
+;; new database if you have none. 
+;; 
+;; * Code:
+
+
 (require 'entropy-prjm-core)
 (require 'entropy-prjm-uri)
 (require 'entropy-prjm-db-cache)
