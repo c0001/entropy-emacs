@@ -1,0 +1,149 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-project-management
+#+author:  Entropy
+* Introduction
+:PROPERTIES:
+:CUSTOM_ID: h-cb507b42-fd6d-4977-835b-17694feb7628
+:END:
+
+This package gives the way for managing larging numerous projects.
+
+Since the daily business growing up, everyone's tentecal point
+spreading to various location, and using  project as unit for workflow
+was the popular way in office and daily working. Along with that,
+numerous projects are built and arranging to us, remebering and
+finding them immediatly was the mind-bending problem, for thus, this
+born as.
+
+This package using *database* concept to manage those projects, thus
+each project's meta-data is stored in the designed database. By
+defaultly, we use [[https://www.sqlite.org/index.html][sqlite]] as the database driven, using sql statement
+to manipulating the project meta-data, but sqlite base was the intance
+for package API designation, any arbitrary database type are
+acceptable while any contributters gives the try.(see [[#h-0a818ff4-fddf-4cc4-94f2-09fcfa4270d6][development
+section]])
+
+* Installation
+:PROPERTIES:
+:CUSTOM_ID: h-5d26c0e3-0721-4a3b-bc6c-7feef145ccfc
+:END:
+
+The installation was along with most elisp extensions habits, just
+cloning this repo to your specific location and adding it to your load
+path.
+
+* Configuration
+:PROPERTIES:
+:CUSTOM_ID: h-4a7c623d-8221-4074-a3e4-cddf1f2f16d3
+:END:
+
+Adding belowed snippet into your main config file such as =.emacs= or
+=.emacs.d/init.el=:
+
+#+BEGIN_SRC elisp
+  (require 'entropy-prjm)
+  (setq entropy/prjm-dbcs-user-db-exps 'your-specification')
+#+END_SRC
+
+The customized variable =entropy/prjm-dbcs-user-db-exps= was simple
+list of strings, and formed like:
+#+BEGIN_SRC elisp
+  (list "database-name" "database-type" "database-location"
+        "database-description" "database-logo")
+#+END_SRC 
+
+You can setting few of them to nil excluding the 'name', 'location',
+and the 'type'.
+
+In the first time, you may want to calling interactively function
+~entropy/prjm-sqlite-create-databse~ to create one pretty new database
+to some place you chosen.
+
+* Development
+:PROPERTIES:
+:CUSTOM_ID: h-0a818ff4-fddf-4cc4-94f2-09fcfa4270d6
+:END:
+
+entropy-project-management(named conveniently as "eprjm" for
+hereinafter) using sets of API structer to define each functional
+module, and using sets of prototype to describe each API. Those API
+and prototypes are stable and flexible, see below sections. 
+
+
+** Prototype and Expression
+:PROPERTIES:
+:CUSTOM_ID: h-b7b4cd2b-bc84-4037-9f23-4a21628ae4cc
+:END:
+
+For most of prototype defined in [[file:entropy-prjm-core.el][entropy-prjm-core.el]], see file
+commentray for details, here's provide the general view:
+
+project has its meta-data, and represented as one object in eprjm, and
+for expanding the static way, project object also with the operation.
+
+As for project, the database also is one object in eprjm, also for
+database's content i.e. the database cache.
+
+Further more, each object's data-structer may complicated for coding,
+as so, eprjm using =expression= to reflect the simple elisp data-type
+to the nested origin.
+
+** API Levels 
+:PROPERTIES:
+:CUSTOM_ID: h-5bf44301-abd1-44a6-b6ed-375743b0cf48
+:END:
+
+eprjm using multi-level designation to built package and providing
+APIs, as what demoting in [[#h-b7b4cd2b-bc84-4037-9f23-4a21628ae4cc][above section]], the underline level was the
+core level of =entropy-prjm-core=, it's just the prototype mapping,
+but for interaction level, which is the second level defined in
+[[file:entropy-prjm-interaction.el][entropy-prjm-interaction.el]], it's providing the database chosing and
+caching even for the project manipulation APIs, it's the 1st eprjm API
+level, those all.
+
+Other resources in eprjm are derived API level from the core and the
+1st itneraction one, for instancing, see [[file:entropy-prjm-db-cache.el][entropy-prjm-db-cache.el]] and
+[[file:entropy-prjm-db-chosen.el][entropy-prjm-db-chosen.el]] commentary to get the third API level.
+
+API level map:
+
+#+BEGIN_EXAMPLE
+
+        +-------------------------------+
+        |  +------------------+         |
+        |  |  0st: core       |         |
+        |  +--------+---------+  main   |
+        |           |                   |
+        |           v            API    |
+        |  +------------------+         |
+        |  | 1st: interaction |  level  |
+        |  +--------+---------+         |
+        +-----------+-------------------+
+                    |                
+           +--------+---------+      
+           |                  |                                           
+      +----v------------------v-----+  +---------------------------------------+
+      | +------+           +------+ |  |                                       |
+      | | data |           | data | |  |    +---------------------------+      |
+      | |      |  3rd API  |      |-+--+--->|data base query all by type|      |
+      | | base |           | base | |  |    +---------------------------+      |
+      | |      |           |      | |  |                                       |
+      | |chosen|           |cache | |  |                                       |
+      | +--+---+           +------+ |  |     4th API                           |
+      +----+------------------------+  |                                       |
+           |                           |    +---------------------+            |
+           +---------------+-----------+--->|data base chosen all |            |
+                           |           |    +---------------------+            |
+                           |           |                                       |
+                           |           |    +------------------------+         |
+                           +-----------+--->+data base chosen by name|         |
+                                       |    +------------------------+         |
+                                       +---------------------------------------+
+#+END_EXAMPLE
+
+
