@@ -404,6 +404,7 @@ this variable used to patching for origin `counsel-git'.")
 
 ;; ** ivy all the icons
 (use-package all-the-icons-ivy
+  :commands (all-the-icons-ivy-setup)
   :init
   (with-eval-after-load 'ivy
     (all-the-icons-ivy-setup)))
