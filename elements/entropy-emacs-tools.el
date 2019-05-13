@@ -201,11 +201,11 @@ performance for some major-modes."
     (let ((temp_post (copy-tree post-command-hook))
           (temp_post_pre (copy-tree pre-command-hook)))
       (setq-local post-command-hook
-                  (remove 'beacon--record-vars temp_variable))
-      (setq-local pre-command-hook '
-                  (remove temp_post_pre 'beacon--vanish))
-      (setq-local pre-command-hook '
-                  (remove temp_post_pre 'beacon--record-vars))))
+                  (remove 'beacon--record-vars temp_post))
+      (setq-local pre-command-hook
+                  (remove 'beacon--vanish temp_post_pre))
+      (setq-local pre-command-hook
+                  (remove 'beacon--record-vars temp_post_pre))))
   (add-hook 'artist-mode-hook 'entropy/beacon-mode-rejected))
 
 ;; ** visual-regexp

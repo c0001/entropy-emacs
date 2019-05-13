@@ -401,6 +401,13 @@ this variable used to patching for origin `counsel-git'.")
   :bind
   (("C-M-;" . avy-goto-char)
    ("M-g l" . avy-goto-line)))
+
+;; ** ivy all the icons
+(use-package all-the-icons-ivy
+  :init
+  (with-eval-after-load 'ivy
+    (all-the-icons-ivy-setup)))
+
 ;; ** use helm  ag or pt search
 (defun entropy/helm-ag--edit-commit ()
   "Funciton to be redefine body of `helm-ag--edit-commit'."
