@@ -193,7 +193,20 @@ like `recenter-top-bottom'."
 ;; ** beacon cursor blanking
 (use-package beacon
   :commands (beacon-mode)
-  :init (beacon-mode 1))
+  :init (beacon-mode 1)
+  :config
+  (defun entropy/beacon-mode-rejected ()
+    "Temporally removing beacon feature for reducing the lagging
+performance for some major-modes."
+    (let ((temp_post (copy-tree post-command-hook))
+          (temp_post_pre (copy-tree pre-command-hook)))
+      (setq-local post-command-hook
+                  (remove 'beacon--record-vars temp_variable))
+      (setq-local pre-command-hook '
+                  (remove temp_post_pre 'beacon--vanish))
+      (setq-local pre-command-hook '
+                  (remove temp_post_pre 'beacon--record-vars))))
+  (add-hook 'artist-mode-hook 'entropy/beacon-mode-rejected))
 
 ;; ** visual-regexp
 ;; Visual-regexp for Emacs is like replace-regexp, but with live visual feedback directly in the
