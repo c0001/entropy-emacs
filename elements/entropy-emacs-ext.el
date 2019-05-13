@@ -44,12 +44,12 @@
   (list (list :item "entropy-emacs-deps"
               :repo-lc entropy/ext-deps-dir
               :version-lc (expand-file-name "version" entropy/ext-deps-dir)
-              :version "v0.1.0"
+              :version "v0.1.1"
               :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/ext-deps-dir))
         (list :item "entropy-emacs-extensions"
               :repo-lc entropy/ext-extensions-dir
               :version-lc (expand-file-name "version" entropy/ext-extensions-dir)
-              :version "v0.1.0"
+              :version "v0.1.1"
               :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/ext-extensions-dir))))
 
 
