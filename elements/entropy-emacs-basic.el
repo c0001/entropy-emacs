@@ -91,7 +91,8 @@
               (insert initial-scratch-message)))))
     bfn))
 
-(entropy/scratch-buffer-file-binding)
+(with-eval-after-load 'entropy-emacs-structure
+  (entropy/scratch-buffer-file-binding))
 
 ;; ** Highlight current line
 (defun entropy/dhl-judge-state ()
