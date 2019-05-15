@@ -99,6 +99,18 @@ for `user-emacs-directory'."
 
 (entropy/set-package-archives entropy/package-archive-repo)
 
+
+;; Remove internal org-mode path
+(let ((match-rexp  (concat (substring data-directory 0 -5) ".*/org$"))
+      (temp_path (copy-tree load-path)))
+  (catch :exit
+    (dolist (el temp_path)
+      (when (string-match match-rexp el)
+        (setq temp_path (remove el temp_path))
+        (throw :exit nil))))
+  (setq load-path temp_path))
+
+
 ;; Initialize packages
 (setq package-enable-at-startup nil)    ; To prevent initialising twice
 (if (not (version< emacs-version "27"))
@@ -148,6 +160,7 @@ for `user-emacs-directory'."
   (diminish
    diminish-undo
    diminished-modes))
+
 (use-package bind-key
   :commands
   (

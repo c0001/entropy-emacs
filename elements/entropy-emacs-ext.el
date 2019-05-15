@@ -44,19 +44,24 @@
   (list (list :item "entropy-emacs-deps"
               :repo-lc entropy/ext-deps-dir
               :version-lc (expand-file-name "version" entropy/ext-deps-dir)
-              :version "v0.1.1"
-              :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/ext-deps-dir))
+              :version "0.1.1"
+              :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/ext-deps-dir)
+              :inited-indicator-lc (expand-file-name "init" entropy/ext-deps-dir))
         (list :item "entropy-emacs-extensions"
               :repo-lc entropy/ext-extensions-dir
               :version-lc (expand-file-name "version" entropy/ext-extensions-dir)
-              :version "v0.1.1"
-              :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/ext-extensions-dir))))
+              :version "0.1.1"
+              :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/ext-extensions-dir)
+              :inited-indicator-lc (expand-file-name "init" entropy/ext-extensions-dir))))
 
 
 (defvar entropy/ext--extras-trouble-table
   '((0 . "%s repo doesn't exist.")
     (1 . "%s repo was fake.")
-    (2 . "%s repo verion not adapt!")))
+    (2 . "%s version indiator lost! Please repair '%s'.")
+    (3 . "%s repo verion lower-than the requested! Update '%s' first!")
+    (4 . "%s repo verion upper-than the requested! Update entropy-emacs first!")
+    (5 . "%s repo not initialzed, see '%s' README for as.")))
 
 
 (defvar entropy/ext--extra-trouble-prompt-head
@@ -80,9 +85,12 @@ There's two entropy-emacs extras may need to download by your self:
    (propertize
     "
 - entropy-emacs-deps (https://github.com/c0001/entropy-emacs-deps.git)
-  
+
   clone it into your home dir and rename as '.entropy-emacs-deps'
   or adjusting customized variable `entropy/ext-deps-dir'.
+
+  If the first time cloning it, please see its README and make it
+  initialized.
 
 - entropy-emacs-extensions (https://github.com/c0001/entropy-emacs-extensions.git)
 
@@ -91,7 +99,10 @@ There's two entropy-emacs extras may need to download by your self:
   clone it into your home dir and rename as
   '.entropy-emacs-extension' or adjusting customized variable
   `entropy/ext-extensions-dir'.
-  
+
+  If the first time cloning it, please see its README and make it
+  initialized.
+
 "
     'face 'italic)))
 
@@ -117,7 +128,8 @@ code defined in `entropy/ext--extras-trouble-table' or t."
         (repo_lc (plist-get extra-plist :repo-lc))
         (version_lc (plist-get extra-plist :version-lc))
         (indicator_lc (plist-get extra-plist :indicator-lc))
-        (version (plist-get extra-plist :version)))
+        (version (plist-get extra-plist :version))
+        (inited-indicator (plist-get extra-plist :inited-indicator-lc)))
     (catch :exit
       (unless (file-exists-p repo_lc)
         (throw :exit 0))
@@ -127,8 +139,13 @@ code defined in `entropy/ext--extras-trouble-table' or t."
           (throw :exit 2)
         (with-temp-buffer
           (insert-file-contents version_lc)
-          (unless (string-match version (buffer-substring (point-min) (point-max)))
-            (throw :exit 2))))
+          (cond
+           ((version< version (buffer-substring (point-min) (point-max)))
+            (throw :exit 3))
+           ((version< (buffer-substring (point-min) (point-max)) version)
+            (throw :exit 4)))))
+      (unless (file-exists-p inited-indicator)
+        (throw :exit 5))
       t)))
 
 
@@ -153,10 +170,8 @@ code defined in `entropy/ext--extras-trouble-table' or t."
   (let* ((tcode (car extra-tmap))
          (ext-plist (cdr extra-tmap))
          (format (cdr (assoc tcode entropy/ext--extras-trouble-table))))
-    (cl-case tcode
-      (0 (format format (plist-get ext-plist :item)))
-      (1 (format format (plist-get ext-plist :item)))
-      (2 (format format (plist-get ext-plist :item))))))
+    (or (ignore-errors (format format (plist-get ext-plist :item)))
+        (ignore-errors (format format (plist-get ext-plist :item) (plist-get ext-plist :item))))))
 
 
 (defun entropy/ext--extra-create-prompt-buffer ()
@@ -167,7 +182,10 @@ code defined in `entropy/ext--extras-trouble-table' or t."
       (when buffer-read-only
         (read-only-mode 0))
       (goto-char (point-min))
-      (insert entropy/ext--extra-trouble-prompt-head))
+      (insert entropy/ext--extra-trouble-prompt-head)
+      (insert "\n\n")
+      (insert (propertize "Tourble meet:" 'face 'underline))
+      (insert "\n\n"))
     buffer))
 
 ;; *** adding load path
