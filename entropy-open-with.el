@@ -7,128 +7,27 @@
 ;; This file is not part of GNU Emacs.
 ;;
 ;;; License: GPLv3
-
+;; 
 ;;; Commentary
-
+;; 
 ;; This package was used to let you can open file in specific apps both in
 ;; windows system or unix like system.
-
-;; Now bug is about can not support unicode file name off-limit in
-;; system local setting like in chinese local set on windows system as
-;; it can not open the filename which cotain Korea charater.
-;;
-;; This bug can be answered by gnu mailing list
-;; https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00406.html
-;; The main description as:
-;; > From: Klaus-Dieter Bauer <address@hidden>
-;; > Date: Wed, 6 Jan 2016 16:20:29 +0100
-;; > 
-;; > Is there a reliable way to pass unicode file names as
-;; > arguments through `start-process'?
-;;
-;; No, not at the moment, not in the native Windows build of Emacs.
-;; Arguments to subprocesses are forced to be encoded in the current
-;; system codepage.  This commentary in w32.c tells a few more details:
-;;
-;;    . Running subprocesses in non-ASCII directories and with non-ASCII
-;;      file arguments is limited to the current codepage (even though
-;;      Emacs is perfectly capable of finding an executable program file
-;;      in a directory whose name cannot be encoded in the current
-;;      codepage).  This is because the command-line arguments are
-;;      encoded _before_ they get to the w32-specific level, and the
-;;      encoding is not known in advance (it doesn't have to be the
-;;      current ANSI codepage), so w32proc.c functions cannot re-encode
-;;      them in UTF-16.  This should be fixed, but will also require
-;;      changes in cmdproxy.  The current limitation is not terribly bad
-;;      anyway, since very few, if any, Windows console programs that are
-;;      likely to be invoked by Emacs support UTF-16 encoded command
-;;      lines.
-;;
-;;    . For similar reasons, server.el and emacsclient are also limited
-;;      to the current ANSI codepage for now.
-;;
-;;    . Emacs itself can only handle command-line arguments encoded in
-;;      the current codepage.
-;;
-;; The main reason for this being a low-priority problem is that the
-;; absolute majority of console programs Emacs might invoke don't support
-;; UTF-16 encoded command-line arguments anyway, so the efforts to enable
-;; this would yield very little gains.  However, patches to do that will
-;; be welcome.  (Note that, as the comment above says, the changes will
-;; also need to touch cmdproxy, since we invoke all the programs through
-;; it.)
-;;
-;; > I realized two limitations:
-;; > 
-;; > 1. Using `prefer-coding-system' with anything other than
-;; > `locale-default-encoding', e.g. 
-;; > (prefer-coding-system 'utf-8), 
-;; > causes a file name "Ö.txt" to be misdecoded as by
-;; > subprocesses -- notably including "emacs.exe", but also
-;; > all other executables I tried (both Windows builtins like
-;; > where.exe and third party executables like ffmpeg.exe or
-;; > GnuWin32 utilities). 
-;; > In my case (German locale, 'utf-8 preferred coding
-;; > system) it is mis-decoded as "Ã–.txt", i.e. emacs encodes
-;; > the process argument as 'utf-8 but the subprocess decodes
-;; > it as 'latin-1 (in my case).
-;; > While this can be fixed by an explicit encoding 
-;; > (start-process ... 
-;; > (encode-coding-string filename locale-coding-system))
-;; > such code will probably not be used in most projects, as
-;; > the issue occurs only on Windows, dependent on the user
-;; > configuration (-> hard-to-find bug?). I have added some
-;; > elisp for demonstration at the end of the mail.
-;; > 
-;; > 2. When a file-name contains characters that cannot be
-;; > encoded in the locale's encoding, e.g. Japanese
-;; > characters in a German locale, I cannot find any way to
-;; > pass the file name through the `start-process' interface; 
-;; > Unlike for characters, that are supported by the locale, 
-;; > it fails even in a clean "emacs -Q" session. 
-;; > Curiously the file name can still be used in cmd.exe,
-;; > though entering it may require TAB-completion (even
-;; > though the active codepage shouldn't support them).
-;;
-;; Does the program which you invoke support UTF-16 encoded command-line
-;; arguments?  It would need to either use '_wmain' instead of 'main', or
-;; access the command-line arguments via GetCommandLineW or such likes,
-;; and process them as wchar_t strings.
-;;
-;; If the program doesn't have these capabilities, it won't help that
-;; Emacs passes it UTF-16 encoded arguments, because Windows will attempt
-;; to convert them to strings encoded in the current codepage, and will
-;; replace any un-encodable characters with question marks or blanks.
-;;
-;; > ;; Set the preferred coding system. 
-;; > (prefer-coding-system 'utf-8)
-;;
-;; You cannot use UTF-8 to encode command-line arguments on Windows, not
-;; in general, even if the program you invoke does understand UTF-8
-;; strings as its command-line arguments.  (I can explain if you want.)
-;;
-;; > ;; On Unix (tested with cygwin), it works fine; Presumably because
-;; > ;; the file name is decoded (in `directory-files') and encoded (in
-;; > ;; `start-process') with the same preferred coding system.
-;;
-;; It works with Cygwin because Cygwin does support UTF-8 for passing
-;; strings to subprograms.  That support lives inside the Cygwin DLL,
-;; which replaces most of the Windows runtime with Posix-compatible
-;; APIs.  The native Windows build of Emacs doesn't have that luxury.
-;;
-
+;; 
+;; 
 ;; You can specific the extension list like:
-
-;; ((("html" "pdf" "xml" "php" "md" "markdown")
-;;   "a:/PortableApps/FirefoxPortable/FirefoxPortable.exe" "file://")
-;;  (("mp3" "mp4" "mkv" "rmvb" "wmv" "flv" "avi")
-;;   "a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe" "")
-;;  (("c")
-;;   "a:/PortableApps/codeblocks/bin/codeblocks.exe" ""))
-
+;; 
+;; #+BEGIN_SRC elisp
+;;   '((("html" "pdf" "xml" "php" "md" "markdown")
+;;      "a:/PortableApps/FirefoxPortable/FirefoxPortable.exe" file "-new-tab")
+;;     (("mp3" "mp4" "mkv" "rmvb" "wmv" "flv" "avi")
+;;      "a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe" quote nil)
+;;     (("c")
+;;      "a:/PortableApps/codeblocks/bin/codeblocks.exe" quote nil))
+;; #+END_SRC
+;; 
 ;; More details see below function definition.
-
-;;* Code:
+;; 
+;; * Code:
 
 
 (defgroup entropy/open-with nil
@@ -138,27 +37,35 @@
 (defcustom entropy/open-with-type-list nil
   "entropy/open-with type list
 
-This list construct was structed like below:
+This list construct was structed as below:
 
+#+BEGIN_SRC elisp
+  '(((\"html\" \"pdf\" \"xml\" \"php\" \"md\" \"markdown\")
+     \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\" file \"-new-tab\")
+    ((\"mp3\" \"mp4\" \"mkv\" \"rmvb\" \"wmv\" \"flv\" \"avi\")
+     \"a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe\" quote nil)
+    ((\"c\")
+     \"a:/PortableApps/codeblocks/bin/codeblocks.exe\" quote nil))
+#+END_SRC
 
-(((\"html\" \"pdf\" \"xml\" \"php\" \"md\" \"markdown\")
-  \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\" \"file://\")
- ((\"mp3\" \"mp4\" \"mkv\" \"rmvb\" \"wmv\" \"flv\" \"avi\")
-  \"a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe\" \"\")
- ((\"c\")
-  \"a:/PortableApps/codeblocks/bin/codeblocks.exe\" \"\"))
+Each element of it calls one _open-with_ group, the group sepcific
+for sets of file type which can open with one specified
+trigger(process command form).
 
 There's three element for one group of this list
-- list of extention name regexp
-- portable program path
-- program inputed parameter
+- List of extention name regexp
+- Portable programe path
+- Path argument format method (see blow for details)
+- Executing parameter 
 
-Note: extension name regexp can not format with abbrev dot like
+*Note:*
+#+BEGIN_QUOTE
+ extension name regexp can not format with abbrev dot like
 \"\\.pdf\", using pure extension name regexp instead, thus in
 this case 'pdf' extension as \"pdf\" regexp specific.
+#+END_QUOTE
 
-
-Like above:
+Like above (the first /open-with/ group):
 
 - (\"html\" \"pdf\" \"xml\" \"php\" \"md\" \"markdown\") was the
 list of extention name regexp which I should let them be opened
@@ -167,112 +74,119 @@ with portable firefox.
 - \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\" was the
   portable firefox path.
 
-- \"file://\" was the firefox commandline parameter for open one
-  local file.
+- 'file  was the file path transferring type, in this cases
+  symbole =file= will hexify the file path and given it the
+  =file:///=  uri protocol.
 
+- none
 
 The gather of above elements was called one group setting for
-open-with.
+`entropy-open-with'.
 
 The general list tpye as:
 ( group1---> firefox open \"html php xml txt mardown\"
   group2---> mphc open media type file like \"mp4 mp3 aac ...\"
   gourp3 ....
   ......)
+
+*Path transfer format method:*
+
+1) 'file' method:
+
+   Most of web browser can not use the local file path string as
+   the file url argument in case of that the path string contained
+   non-ascii characters such as symbol or cjk as for. In this case,
+   using file protocol hexified string  as argument is wise choice.
+
+   This transform firstly hexifies the whole local file path string
+   and then adding the \"file:///\" protocol prefix string ahead of
+   it.
+
+2) 'quote' method:
+
+   It's the most common decoration for commanline arguments, using
+   double quotation char pair.
+
+3) nil, passing origin path string to process.
+
+4) Arbitrary function self specified, requesting one arg, the
+   file path.
+
+*Arguumet:*
+
+Argumet is the concated command arguments string, the single
+string type.
 "
   :type 'sexp
   :group 'entropy/open-with)
 
 
-(defvar entropy/open-with-type-list-full nil
+(defvar entropy/open-with--type-list-full nil
   "Full list for `entropy/open-with-match-open' which gened by
   `entropy/open-with-type-list'")
 
 (defvar entropy/open-with-url-regexp "\\(^https?\\|^s?ftp\\)://"
   "The Regexp string for matching url link.")
 
-(defun entropy/open-with-do-list ()
-  "Expand `entropy/open-with-type-list' to `entropy/open-with-type-list-full'.
+(defun entropy/open-with--do-list ()
+  "Expand `entropy/open-with-type-list' to `entropy/open-with--type-list-full'.
 
-Append 'exec' and 'parameter' to each file suffix 'ext', like:
+Append 'ext-regexp', 'exec', 'path-transform' and 'parameter' to
+each file suffix 'ext', like:
 
-((\"html\" \"filefox.exe\" \"file://\")
- (\"pdf\" \"filefox.exe\" \"file://\")
- (\"xml\" \"filefox.exe\" \"file://\")
+((\"html\" \"filefox.exe\" 'file \"-new-tab\")
+ (\"pdf\" \"filefox.exe\" 'file \"-new-tab\")
+ (\"xml\" \"filefox.exe\" 'file \"-new-tab\")
  ....)"
-  (setq entropy/open-with-type-list-full nil)
+  (setq entropy/open-with--type-list-full nil)
   (if (not entropy/open-with-type-list)
       (error "entropy/open-with-type-list was empty!"))
   (dolist (group entropy/open-with-type-list)
     (let* ((ext-list (car group))
            (exec (nth 1 group))
-           (param (nth 2 group)))
+           (path-transform (nth 2 group))
+           (parameter (nth 3 group)))
       (dolist (ext ext-list)
         (let (new-group-e)
-          (add-to-list 'new-group-e param)
+          (add-to-list 'new-group-e parameter)
+          (add-to-list 'new-group-e path-transform)
           (add-to-list 'new-group-e exec)
           (add-to-list 'new-group-e ext)
-          (add-to-list 'entropy/open-with-type-list-full new-group-e))))))
+          (add-to-list 'entropy/open-with--type-list-full new-group-e))))))
 
-(defun entropy/open-with-judge-file-type (filename)
+(defun entropy/open-with--judge-file-type (filename)
   "Judge the FILENAME type according to
-  `entropy/open-with-type-list' and return a list cotained final
-  state of file description for `entropy/open-with-match-open'.
+`entropy/open-with-type-list' and return a plist cotained final
+state of file description for `entropy/open-with-match-open'.
 
 If not matched the exist file type then return nil."
-  
-  (entropy/open-with-do-list)
-  (let ((judge-r nil)
 
-        ;; final filename container for loading hexi-formated file-name if needed        
-        fcname
+  (let ((type-list (progn (entropy/open-with--do-list)
+                          entropy/open-with--type-list-full))
+        (file-path (expand-file-name filename))
+        path-arg rtn)
+    (catch :exit
+      (dolist (type type-list)
+        (when (string-match (concat "\\." (car type) "$") file-path)
+          (let ((exec (nth 1 type))
+                (path-transform (nth 2 type))
+                (parameter (nth 3 type)))
+            (cond ((eq 'file path-transform)
+                   (cond ((eq system-type 'windows-nt)
+                          (let ((path-formated (replace-regexp-in-string "^\\(.\\):/") "\\1/" file-path))
+                            (setq path-arg (concat "file:///" path-formated))))))
+                  ((eq 'quote path-transform)
+                   (setq path-arg (shell-quote-argument file-path)))
+                  ((functionp path-transform)
+                   (setq path-arg (funcall path-transform file-path)))
+                  (t file-path))
+            (setq rtn (list :caller exec :path-arg path-arg
+                            :parameter parameter  :w32-arg (concat parameter " " path-arg)
+                            :file file-path)))
+          (throw :exit nil))))
+    rtn))
 
-        ;; return list
-        (fin-rlist nil))
-
-    ;; checking the file type and return the final file open data struct
-    (dolist (el entropy/open-with-type-list-full)
-      (let* (
-             ;; get extention name with regexp format
-             (ext-regexp (car el))
-             (ext (concat "\\." ext-regexp "$"))
-
-             ;; executable and file open protocal
-             (exec (nth 1 el))
-             (param (nth 2 el)))
-
-        (if (string-match ext filename)
-            (progn
-              (cond
-               ;; param with file protocal
-               ((string-match-p "file://" param)
-                (setq fcname (concat
-                              param
-                              (url-hexify-string
-                               filename
-                               (url--allowed-chars
-                                (let ((hl url-unreserved-chars)
-                                      (x 1))
-                                  (add-to-list 'hl 58)
-                                  (add-to-list 'hl 47))))))
-                (setq judge-r t))
-
-               ;; none param
-               ((string-match-p "" param)
-                (setq fcname (concat "\"" filename "\""))
-                (setq judge-r t))
-
-               ;; arbitrary param type
-               ((stringp param)
-                (setq fcname (concat param fileanme))
-                (setq judge-r t)))
-              (if judge-r
-                  (setq fin-rlist `(,filename ,fcname ,exec)))))))
-    (if fin-rlist
-        fin-rlist
-      nil)))
-
-(defun entropy/open-with-process-default-dir ()
+(defun entropy/open-with--process-default-dir ()
   "Get the system temp directory.
 
 This func was used for temporally reset `default-directory' which
@@ -288,36 +202,41 @@ procedure who don't want to be as the state as what."
 
 (defun entropy/open-with-match-open (files)
   "This function be used for `entropy/open-with-dired-open' and
-`entropy/open-with-buffer'
+`entropy/open-with-buffer' to locally open file with sepcific
+caller with args specification.
 
 It's core function was to match the ARG files name extension with
 `entropy/open-with-type-list' and used the previous function
-`entropy/open-with-do-list' to convert the readable list to full
-pair list `entropy/open-with-type-list-full'
+`entropy/open-with--do-list' to convert the readable list to full
+pair list `entropy/open-with--type-list-full'.
 
 *Note:*
 
-ARG files: 
-           it's name coding type must be consistency with system
-           local like \"Chiese-GBK\" with \"ASCII\" . it's the bug
+ARG--> files: 
+
+    It's name coding type must be consistency with system local
+    like \"Chiese-GBK\" or \"ASCII\" and mixtures both of them
+    when you are in windows platform without unicode code page
+    global support. You could using WIN10 beta optional for utf-8
+    defaultly with WIN10 version upper than 1803.
 
 The subprocess for calling with for associated file will not use
 `default-dirctory' be the process handle location, using
-`entropy/open-with-process-default-dir' to redirected to system
+`entropy/open-with--process-default-dir' to redirected to system
 temp dir for preventing some file deleting operation conflicted
 occurrence.
 "
   (dolist (el files)
-    (let (($dowith (entropy/open-with-judge-file-type el))
-          (default-directory (entropy/open-with-process-default-dir)))
+    (let (($dowith (entropy/open-with--judge-file-type el))
+          (default-directory (entropy/open-with--process-default-dir)))
       (if $dowith
           (if (string-equal system-type "windows-nt")
-              (w32-shell-execute "open" (nth 2 $dowith) (nth 1 $dowith))
+              (w32-shell-execute "open" (plist-get $dowith :caller) (plist-get $dowith :w32-arg))
             (cond
              ((string-equal system-type "gnu/linux")
-              (start-process "" nil "xdg-open" (car $dowith)))
+              (start-process "" nil "xdg-open" (plist-get $dowith :file)))
              ((string-equal system-type "darwin")
-              (shell-command (concat "open" (shell-quote-argument (car $dowith)))))
+              (shell-command (concat "open" (shell-quote-argument (plist-get $dowith :file)))))
              (t (message "Unsupported operation system type <-- %s -->." system-type))))
         (message "Unknown file type!")))))
 
@@ -359,7 +278,7 @@ Note: this func redirected `default-directory' as
              ((file-directory-p filename)
               (find-file filename))
              ((string-match-p entropy/open-with-url-regexp filename)
-              (let ((default-directory (entropy/open-with-process-default-dir)))
+              (let ((default-directory (entropy/open-with--process-default-dir)))
                 (browse-url filename)))
              ((file-exists-p filename)
               (if inemacs

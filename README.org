@@ -10,11 +10,12 @@
 Open files with external executable applications on emacs interface. 
 
 There's times for emacer try their best-efforts for dealing all the
-operations within emacs onl, but I thought about that this disposition
-was not sticked enough for daily emacs experience that's most of
-common emacser prefer to do some task emacs not be good at with
-external application rather than sticking on the purpose for some
-ultra emacser does said previous.
+operations within emacs only, but I thought about that this was not
+sticked enough for daily emacs experience that's most of common
+emacser prefer to do some task emacs not be good at with and using
+external application rather than gaze at the lagging for thus the
+procedure do with elisp, on the purpose for some ultra emacser does
+said previous.
 
 This package given the ability what file openning with wide customized
 external applications according to the filename extension.
@@ -54,47 +55,65 @@ indicated that you can specify group of filename extension name of
 regexp expression with the corresponding external application forms as
 below:
 
-#+BEGIN_SRC emacs-lisp
-  '((("html" "pdf" "xml" "php" "md" "markdown")
-     "c:/PortableApps/FirefoxPortable/FirefoxPortable.exe"
-     "file://")
-    (("mp3" "mp4" "mkv" "rmvb" "wmv" "flv" "avi")
-     "c:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe"
-     "")
-    (("c")
-     "c:/PortableApps/codeblocks/bin/codeblocks.exe"
-     ""))
+#+BEGIN_SRC elisp
+  '(((\"html\" \"pdf\" \"xml\" \"php\" \"md\" \"markdown\")
+     \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\" file \"-new-tab\")
+    ((\"mp3\" \"mp4\" \"mkv\" \"rmvb\" \"wmv\" \"flv\" \"avi\")
+     \"a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe\" quote nil)
+    ((\"c\")
+     \"a:/PortableApps/codeblocks/bin/codeblocks.exe\" quote nil))
 #+END_SRC
 
 Each element of this list consists of three subjects:
 
-- *extension regexp strings list*
+1) *extension regexp strings list*
 
-  Regexp strings match for specified filename extension can not be
-  include extension dot prefix, thus "\.pdf" was ineffectual, using
-  "pdf" instead.
+   Regexp strings match for specified filename extension can not be
+   include extension dot prefix, thus "\.pdf" was ineffectual, using
+   "pdf" instead.
 
-  Group extensions match was supported as the benefit way for reducing
-  config literal context length for the case for which application can
-  be calling by dealing with multi file types, e.g. =firefox= can be
-  used both of html file open and pdf file as so.
+   Group extensions match was supported as the benefit way for reducing
+   config literal context length for the case for which application can
+   be calling by dealing with multi file types, e.g. =firefox= can be
+   used both of html file open and pdf file as so.
 
-- *External application path string*
+2) *External application path string*
 
-  Called of application's absolute path. 
+   Called of application's absolute path. 
 
-- *Command line filaname transfer heading type*
+3) *Command line filaname transfer heading type*
   
-  For some external application's URI args request as that file name
-  must be concated with the special head prefix, e.g. for web browser
-  that the local page file command line arg must have the prefix
-  "file://", this subject given for thus as.
+   For some external application's URI args request as that file name
+   must be concated with the special head prefix, e.g. for web browser
+   that the local page file command line arg must have the prefix
+   "file://", this subject given for thus as. Type was symbol or
+   function, see below list for details:
 
-  For now, this package just support two file name prefix head
-  i.e. "file://" and the empty one "", the latter was wrappered
-  filename string into quoted style internally.
+   - 'file' method:
+
+     Most of web browser can not use the local file path string as
+     the file url argument in case of that the path string contained
+     non-ascii characters such as symbol or cjk as for. In this case,
+     using file protocol hexified string  as argument is wise choice.
+
+     This transform firstly hexifies the whole local file path string
+     and then adding the \"file:///\" protocol prefix string ahead of
+     it.
+
+   - 'quote' method:
+
+     It's the most common decoration for commanline arguments, using
+     double quotation char pair.
+
+   - nil, passing origin path string to process.
+
+   - Arbitrary function self specified, requesting one arg, the file path.  
  
-`
+4) *command argument string*
+
+   Argumet is the concated command arguments string, the single string
+   type.
+
 * Interaction
 
 - *Func:* ~entropy/open-with-interactively~
@@ -177,11 +196,18 @@ subprocess with properly processing for.
 In =entropy-open-with= interal mechnism, because of that it using
 ~w32-shell-execute~ as the windows port corresponding subjects core
 func, unicode file name was not supported excluding the situation
-while your current code page can be fully decoding the inputting
+until your current code page can be fully decoding the inputting
 filename as so.
 
 This imperfection was the emacs windows port primary implementation
 state, which was referenced to the gnu-emacs mailing list: [[https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00406.html][here]].
 
+[2019-05-17 Fri 06:08:49]
+
+#+BEGIN_QUOTE
+Now, if you are using the latest version of win10 (any version upper
+than 1803), you could enable the beta optional setting for globally
+=utf-8= capability in the =language&region= config panel.
+#+END_QUOTE
 
 
