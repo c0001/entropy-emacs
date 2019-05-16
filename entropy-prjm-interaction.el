@@ -435,12 +435,15 @@ baseline.
                            (throw :exit rtn))))
                      (setq relative-abbrev
                            (entropy/cl-make-relative-path db-dir file-dir))
-                     (if (string-match-p "/$" relative-abbrev)
-                         (setq rtn (concat relative-abbrev  file-base))
-                       (setq rtn (concat relative-abbrev "/" file-base)))
+                     (cond (relative-abbrev
+                            (if (string-match-p "/$" relative-abbrev)
+                                (setq rtn (concat relative-abbrev  file-base))
+                              (setq rtn (concat relative-abbrev "/" file-base))))
+                           ((null relative-abbrev)
+                            (setq rtn uri-string)))
                      rtn)))
                 (t
-                 file-path))))
+                 uri-string))))
        (t
         uri-string)))
      (t

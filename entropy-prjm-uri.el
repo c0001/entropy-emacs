@@ -8,7 +8,12 @@
     (cond
      ((and (equal "file" uri-scheme)
            (equal uri-host "localhost"))
-      (let ((file uri-filename))
+      (let ((file (cond
+                   ((eq system-type 'windows-nt)
+                    (if (string-match-p "^/\\(.\\)/" uri-filename)
+                        (replace-regexp-in-string "^/\\(\.\\)/" "\\1:/" uri-filename)
+                      uri-filename))
+                   (t uri-filename))))
         (if (file-exists-p file)
             (cond ((file-directory-p file)
                    (dired file))
