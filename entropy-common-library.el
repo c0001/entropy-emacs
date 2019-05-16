@@ -842,7 +842,7 @@ Non-nil value.
   "Func `entropy/cl-dir-relativity-number''s log variable for
   debugging used.")
 
-(defun entropy/cl-dir-relativity-number (base-dir external-dir)
+(defun entropy/cl-dir-relativity-number (base-dir-location external-dir-location)
   "Return the alist as relativity hierachy between two directory.
 
 
@@ -930,9 +930,13 @@ Non-nil value.
   - result: '(0 (\"same\") t)
   "
   (setq entropy/cl-dir-relativity-log nil)
-  (let (blist elist clist
-              (equal-count 0)
-              (rtn nil))
+  (let* (blist
+         elist
+         clist
+         (equal-count 0)
+         (rtn nil)
+         (base-dir (expand-file-name base-dir))
+         (external-dir (expand-file-name external-dir-location)))
     (catch 'break
       (cond                             ;Deal with path type rely on different plattform
        ((equal system-type 'windows-nt)
@@ -1027,12 +1031,14 @@ Non-nil value.
           (setq rtn `(,relative nil t))))))
     rtn))
 
-(defun entropy/cl-make-relative-path (base-dir external-dir)
+(defun entropy/cl-make-relative-path (base-dir-location external-dir-location)
   "Make relative style path for external dir EXTERNAL-DIR which
 based on base dir BASE-DIR powered on
 `entropy/cl-dir-relativity-number'."
-  (let ((relative (entropy/cl-dir-relativity-number base-dir external-dir))
-        rel-conc-func)
+  (let* ((base-dir (expand-file-name base-dir-location))
+         (external-dir (expand-file-name external-dir-location))
+         (relative (entropy/cl-dir-relativity-number base-dir external-dir))
+         rel-conc-func)
     (setq rel-conc-func
           (lambda (abs-rela-counter factor)
             (let ((counter 1)
