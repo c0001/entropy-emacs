@@ -1034,7 +1034,10 @@ Non-nil value.
 (defun entropy/cl-make-relative-path (base-dir-location external-dir-location)
   "Make relative style path for external dir EXTERNAL-DIR which
 based on base dir BASE-DIR powered on
-`entropy/cl-dir-relativity-number'."
+`entropy/cl-dir-relativity-number'.
+
+Return the relative path string if relative status exists,
+otherwise for nil."
   (let* ((base-dir (expand-file-name base-dir-location))
          (external-dir (expand-file-name external-dir-location))
          (relative (entropy/cl-dir-relativity-number base-dir external-dir))
@@ -1068,7 +1071,7 @@ based on base dir BASE-DIR powered on
                         (setq abbrev (concat abbrev el "/")))
                       (replace-regexp-in-string "/$" "" abbrev))))))
           ((not relative)
-           external-dir))))
+           nil))))
 
 
 ;; *** file
