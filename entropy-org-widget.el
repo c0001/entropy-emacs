@@ -23,7 +23,7 @@
 (require 'org)
 
 ;; ** headline
-(defun entropy/ow-extract-head-plist (query)
+(defun entropy/ow-extract-head-alist (query)
   "Return the properties' list of current headline according to
 the queries QUERY.
 
@@ -53,7 +53,7 @@ orderd in QUERY.
     rlist))
 
 
-(defun entropy/ow-get-all-head-plist (query)
+(defun entropy/ow-get-all-head-alist (query)
   "Return current buffer's all headline properties list according
 to queries QUERY.
 
@@ -220,5 +220,19 @@ description string matched or nil otherwise, :link as desc."
           (replace-regexp-in-string
            "\n" "" buffer-str))
     (entropy/ow-get-str-links buffer-str)))
+
+;; * obsolete definatioin
+(define-obsolete-function-alias
+  'entropy/ow-extract-head-plist
+  'entropy/ow-extract-head-alist
+  "0.1.1"
+  "The origing =plist= naming was typo.")
+
+(define-obsolete-function-alias
+  'entropy/ow-get-all-head-plist
+  'entropy/ow-get-all-head-alist
+  "0.1.1"
+  "The origing =plist= naming was typo.")
+
 ;; * provide
 (provide 'entropy-org-widget)
