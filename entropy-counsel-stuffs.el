@@ -75,8 +75,8 @@
 
 
 
-(defvar entropy/cs-cached-plist '()
-  "Cached plist from `entropy/cs-entry-recorde-file'")
+(defvar entropy/cs-cached-alist '()
+  "Cached alist from `entropy/cs-entry-recorde-file'")
 
 
 (defvar entropy/cs-read-temp '()
@@ -95,12 +95,12 @@ categories in all `org-agenda-files'."
   (if (not cached)
       entropy/cs-user-category
 
-    (let* ((plist (if entropy/cs-cached-plist entropy/cs-cached-plist
+    (let* ((alist (if entropy/cs-cached-alist entropy/cs-cached-alist
                     (progn (entropy/cs-update-cached-list)
-                           entropy/cs-cached-plist)))
+                           entropy/cs-cached-alist)))
            rlist
            rslist)
-      (dolist (el plist)
+      (dolist (el alist)
         (if (entropy/cs-justify-key-p "CATEGORY" el)
             (push (entropy/cs-get-entry-key-pair-query "CATEGORY" el) rlist)))
 
@@ -115,7 +115,7 @@ categories in all `org-agenda-files'."
 
 
 
-(defun entropy/cs-get-original-plist ()
+(defun entropy/cs-get-original-alist ()
   "Query ITEM, CUSTOM_ID, CSTYPE, CATEGORY, LOCATION of the all
 headline of file `entropy/cs-entry-recorde-file' and return the
 properties gatherd alist of all of the headline of it."
@@ -123,12 +123,12 @@ properties gatherd alist of all of the headline of it."
   (with-temp-buffer (insert-file-contents entropy/cs-entry-recorde-file)
                     (org-mode)
                     (outline-show-all)
-                    (entropy/ow-get-all-head-plist '("ITEM" "CUSTOM_ID" "CSTYPE" "CATEGORY" "LOCATION"))))
+                    (entropy/ow-get-all-head-alist '("ITEM" "CUSTOM_ID" "CSTYPE" "CATEGORY" "LOCATION"))))
 
 
 (defun entropy/cs-get-entry-key-pair-query (query entry)
   "Extract one element of one entry ENTRY of the list returned by
-`entropy/cs-get-original-plist' according the the specifc key
+`entropy/cs-get-original-alist' according the the specifc key
 name -- query QUERY."
   (let (rlist)
     (dolist (el entry)
@@ -136,33 +136,33 @@ name -- query QUERY."
           (setq rlist el)))
     rlist))
 
-(defun entropy/cs-return-filter-category-plist (query plist)
+(defun entropy/cs-return-filter-category-alist (query alist)
   "returned the `entropy-counsel-stuffs' list which the feature
 of each entry of it were all have the specific category value of
 category key in org drawer block using loop of
 `entropy/cs-get-entry-key-pair-query'."
   (let (rlist)
-    (dolist (el plist)
+    (dolist (el alist)
       (if (string-match-p (regexp-quote query) (nth 1 (entropy/cs-get-entry-key-pair-query "CATEGORY" el)))
           (add-to-list 'rlist el t)))
     rlist))
 
-(defun entropy/cs-get-plist-name (plist)
+(defun entropy/cs-get-alist-name (alist)
   "Return one list of all value of ITEM key of one list returned
-by `entropy/cs-get-original-plist'."
+by `entropy/cs-get-original-alist'."
   (let (return-list)
-    (dolist (el plist)
+    (dolist (el alist)
       (let ((item (nth 1 (entropy/cs-get-entry-key-pair-query "ITEM" el)))
             (cs-entry-p (entropy/cs-justify-key-p "CSTYPE" el)))
         (when cs-entry-p
           (add-to-list 'return-list item t))))
     return-list))
 
-(defun entropy/cs-get-plist-id-name (plist)
+(defun entropy/cs-get-alist-id-name (alist)
   "Return one list of all value of both ITEM and CUSTOM_ID key of
-one list returned by `entropy/cs-get-original-plist'"
+one list returned by `entropy/cs-get-original-alist'"
   (let* (rlist)
-    (dolist (el plist)
+    (dolist (el alist)
       (let* ((id-pair (if (entropy/cs-justify-key-p "CUSTOM_ID" el)
                           (nth 1 (entropy/cs-get-entry-key-pair-query "CUSTOM_ID" el))
                         nil))
@@ -189,11 +189,11 @@ value. Ohter wise return nil."
         value
       nil)))
 
-(defun entropy/cs-get-id-entry (id plist)
+(defun entropy/cs-get-id-entry (id alist)
   "Return the entry whose CUSTOM_ID key value was equal specific
 id ID."
   (let* ((rlist nil))
-    (dolist (el plist)
+    (dolist (el alist)
       (if (and (entropy/cs-justify-key-p "CUSTOM_ID" el)
                (string= id (nth 1 (entropy/cs-get-entry-key-pair-query "CUSTOM_ID" el))))
           (setq rlist el)))
@@ -201,15 +201,15 @@ id ID."
 
 
 (defun entropy/cs-update-cached-list ()
-  "Update `entropy-counsel-stuffs' cached plist. And modify
-`entropy/cs-cached-plist'."
+  "Update `entropy-counsel-stuffs' cached alist. And modify
+`entropy/cs-cached-alist'."
   (interactive)
-  (setq entropy/cs-cached-plist (entropy/cs-get-original-plist)))
+  (setq entropy/cs-cached-alist (entropy/cs-get-original-alist)))
 
 (defun entropy/cs-get-cached-list ()
   "Get cached list from `entropy/cs-entry-recorde-file' without
-modifying `entropy/cs-cached-plist'."
-  (entropy/cs-get-original-plist))
+modifying `entropy/cs-cached-alist'."
+  (entropy/cs-get-original-alist))
 
 (defun entropy/cs-read-prompt (type)
   "For repeat produce newest ivy prompt string."
@@ -229,22 +229,22 @@ Args description:
 - PROMPT:   You can customized prompt string by setting PROMPT.
 - inemacs:  Using emacs open stuff entry. This is useful API for lisp programmer."
   (interactive)
-  (let* ((olist (if entropy/cs-cached-plist entropy/cs-cached-plist
+  (let* ((olist (if entropy/cs-cached-alist entropy/cs-cached-alist
                   (progn (entropy/cs-update-cached-list)
-                         entropy/cs-cached-plist)))
+                         entropy/cs-cached-alist)))
          (q-cate (if (not category)
                      (ivy-read "Choose category：" (entropy/cs-get-default-category t)
                                :require-match t)
                    category))
-         (plist (entropy/cs-return-filter-category-plist q-cate olist))
-         (nlist (entropy/cs-get-plist-name plist))
+         (alist (entropy/cs-return-filter-category-alist q-cate olist))
+         (nlist (entropy/cs-get-alist-name alist))
          (chname (ivy-read
                   (if prompt prompt "Choose entry: ")
                   nlist
                   :require-match t))
          chentry
          chlocation)
-    (dolist (el plist)
+    (dolist (el alist)
       (if (string= chname (nth 1 (entropy/cs-get-entry-key-pair-query "ITEM" el)))
           (setq chentry el)))
     (if (entropy/cs-justify-key-p "LOCATION" chentry)
@@ -258,12 +258,12 @@ Args description:
 
 (defun entropy/cs-open-all ()
   "Query before open one stuff for all entry from
-`entropy/cs-cached-plist'."
+`entropy/cs-cached-alist'."
   (interactive)
-  (let* ((olist (if entropy/cs-cached-plist entropy/cs-cached-plist
+  (let* ((olist (if entropy/cs-cached-alist entropy/cs-cached-alist
                   (progn (entropy/cs-update-cached-list)
-                         entropy/cs-cached-plist)))
-         (nlist (entropy/cs-get-plist-name olist))
+                         entropy/cs-cached-alist)))
+         (nlist (entropy/cs-get-alist-name olist))
          (choice (ivy-read "Open stuff: " nlist
                            :require-match t))
          cs-location)
@@ -405,9 +405,9 @@ Args description:
 (defun entropy/cs-modifiy ()
   "Modify specific entry in `entropy/cs-entry-recorde-file'."
   (interactive)
-  (let* ((plist (entropy/cs-get-original-plist))
+  (let* ((alist (entropy/cs-get-original-alist))
          ;; idlist
-         (idlist (entropy/cs-get-plist-id-name plist))
+         (idlist (entropy/cs-get-alist-id-name alist))
          (iidlist (entropy/cl-make-identify-list idlist))
          (nlist (entropy/cl-extract-idlist iidlist 1))
          (choice (ivy-read "Choose which item you want to modified: " nlist))
@@ -416,7 +416,7 @@ Args description:
       (if (string= (car (split-string choice ":")) (car el))
           (setq chidet el)))
 
-    (let* ((id-entry (entropy/cs-get-id-entry (car (nth 1 chidet))  plist))
+    (let* ((id-entry (entropy/cs-get-id-entry (car (nth 1 chidet))  alist))
            (ohname (nth 1 (entropy/cs-get-entry-key-pair-query "ITEM" id-entry)))
            (ocstype (nth 1 (entropy/cs-get-entry-key-pair-query "CSTYPE" id-entry)))
            (ocategory (nth 1 (entropy/cs-get-entry-key-pair-query "CATEGORY" id-entry)))
@@ -468,8 +468,8 @@ Args description:
 (defun entropy/cs-delete ()
   "Delete one entry in `entropy/cs-entry-recorde-file'."
   (interactive)
-  (let* ((plist (entropy/cs-get-original-plist))
-         (idlist (entropy/cs-get-plist-id-name plist))
+  (let* ((alist (entropy/cs-get-original-alist))
+         (idlist (entropy/cs-get-alist-id-name alist))
          (iidlist (entropy/cl-make-identify-list idlist))
          (nlist (entropy/cl-extract-idlist iidlist 1))
          (choice (ivy-read "Choose which item you want to modified: " nlist))
@@ -496,7 +496,7 @@ Args description:
 (defmacro entropy/cs-id-open-macro (fuc-name cid)
   `(defun ,fuc-name ()
      (interactive)
-     (let ((entry (entropy/cs-get-id-entry ,cid (entropy/cs-get-original-plist)))
+     (let ((entry (entropy/cs-get-id-entry ,cid (entropy/cs-get-original-alist)))
            location
            cstype)
        (if (and entry

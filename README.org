@@ -268,14 +268,14 @@ interface:
                                        stuff_files nil
                                        :require-match))
     (let ((entropy/cs-entry-recorde-file chosen_file)
-          (entropy/cs-cached-plist  nil))
+          (entropy/cs-cached-alist  nil))
       (entropy/cs-open-all)))
 #+END_SRC 
 
 With the obviously another notice following the 'pointer' file let
-form, cache list =entropy/cs-cached-plist= must be cleaned out before
+form, cache list =entropy/cs-cached-alist= must be cleaned out before
 the func =entropy/cs-open-all= using. There what you must notice that
-variabnle =entropy/cs-cached-plist= was the second part of the
+variabnle =entropy/cs-cached-alist= was the second part of the
 'database pointer' for most =entropy-counsel-stuffs= apis, that the
 way that the 'file pointer' for database cache retrieving and stuff
 CRUD based, and the 'cache pointer' for database query filter for.
@@ -313,14 +313,14 @@ now just specified in your 'let' form.
 OFC, you don't need to built one data structer parsing manually
 against to this returned cache nested alist, func
 ~entropy/cs-filter-open~ (no args required) with the temporarily
-sticking variable =entropy/cs-cached-plist= whose value must
+sticking variable =entropy/cs-cached-alist= whose value must
 retrieving by the cache getting func ~entropy/cs-get-cached-list~.
 
 
 Demo:
 #+BEGIN_SRC elisp
   (let ((entropy/cs-entry-recorde-file "xxxx")
-        (entropy/cs-cached-plist (entropy/cs-get-cached-list)))
+        (entropy/cs-cached-alist (entropy/cs-get-cached-list)))
     (entropy/cs-filter-open))
 #+END_SRC
 
