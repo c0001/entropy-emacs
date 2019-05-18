@@ -516,24 +516,27 @@ Otherwise return word around point."
 
 ;; **** command router
 (defun entropy/sdcv--command-router (str dict-path show-type  &optional recall)
-  "Router for query with while the state both of matching response or
-  non-matched of sdcv cli and the state when query string was
-  sentence which not suitable for doing with sdcv as then querying
-  them from other external dict application defined internal in
-  `entropy/sdcv--query-with-external'.
+  "Router for query with while the state both of matching
+response or non-matched of sdcv cli and the state when query
+string was sentence which not suitable for doing with sdcv as
+then querying them from other external dict application defined
+internal in `entropy/sdcv--query-with-external'.
 
-  Note: On windows platform, multibyte query was not supported withs
-  sdcv cli even if the query string was single word e.g. cjk char
-  string as. Because of that windows using code-page for decoding
-  each char in command line shell 'cmd', and emacs just supported
-  encoding query args with locale codepage for it, which means for
-  example that when you locale code page was 'gbk' that the query
-  string will be sent with code encoding format with 'gbk' to sdcv
-  cli even if you using `encode-coding-string' to forcefully
-  encoding query string to 'utf-8', but sdcv just supportting
-  recieving 'utf-8' query as. For such detailes see emacs mailing
-  list
-  https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00406.html."
+Note: On windows platform, multibyte query was not supported
+withs sdcv cli even if the query string was single word e.g. cjk
+char string as. Because of that windows using code-page for
+decoding each char in command line shell 'cmd', and emacs just
+supported encoding query args with locale codepage for it, which
+means for example that when you locale code page was 'gbk' that
+the query string will be sent with code encoding format with
+'gbk' to sdcv cli even if you using `encode-coding-string' to
+forcefully encoding query string to 'utf-8', but sdcv just
+supportting recieving 'utf-8' query as. For such detailes see
+emacs mailing list
+https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00406.html.
+
+Or you can enable WIN10 new beta option for globally UTF-8 support.
+"
   (let (str-single-p
         (str-list (split-string str " " t))
         shell-response)
@@ -541,7 +544,8 @@ Otherwise return word around point."
         (setq str-single-p 'nil)
       (setq str-single-p 't))
     (cond
-     ((and (eq system-type 'windows-nt)
+     ((and (and (eq system-type 'windows-nt)
+                (not (eq w32-ansi-code-page 65001)))
            (let ($return (str-elist (split-string str "" t)) (str-count 0))
              (dolist (el str-elist)
                (cl-incf str-count))
