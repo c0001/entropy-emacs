@@ -95,6 +95,20 @@ open eshell on tramp-buffer when on windows platform. "
   (add-hook 'eshell-exit-hook #'(lambda ()
                                   (if (file-exists-p eshell-history-file-name)
                                       (delete-file eshell-history-file-name))))
+  ;; Require eshell package forcely for reducing calling delay
+  (require 'eshell)
+  (require 'em-basic)
+  (require 'em-alias)
+  (require 'em-banner)
+  (require 'em-cmpl)
+  (require 'em-dirs)
+  (require 'em-glob)
+  (require 'em-hist)
+  (require 'em-ls)
+  (require 'em-prompt)
+  (require 'em-script)
+  (require 'em-term)
+  (require 'em-unix)
   :config
   ;; List all candidates when enter 'tab' key
   (setq eshell-cmpl-cycle-completions nil)

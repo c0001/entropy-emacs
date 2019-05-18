@@ -204,8 +204,6 @@ Emacs will auto close after 6s ......")
   (require 'entropy-emacs-tramp)
   ;; For game
   (require 'entropy-emacs-game)
-  ;; force require
-  (require 'entropy-counsel-prj)
   ;; end
   (advice-remove 'require #'entropy/require-loading)
   (run-hooks 'entropy/init-X-hook)
