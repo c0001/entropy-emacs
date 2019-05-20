@@ -117,7 +117,7 @@ variable `entropy/use-extensions-type'."
           (const :tag "firefox %s" firefox))
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/initialize-benchmark-enabled nil
+(defcustom entropy/initialize-benchmark-enable nil
   "Enable the init benchmark or not."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
@@ -772,6 +772,18 @@ as the wsl-apps main controled applications which I suggested use
 git-for-windows-sdk `git-bash.exe'"
   :type 'string
   :group 'entropy/emacs-win)
+
+;; *** enable fakecygpty
+(defcustom entropy/win-fakecygpty-enable nil
+  "Whether enable fake pty for enabling windows ansi-term."
+  :type 'boolean
+  :group 'entropy/emacs-win)
+
+(defcustom entropy/win-fakecygpty-path "c:/fakecgypty"
+  "The fakecygpty compiled binaries archive location."
+  :type 'string
+  :group 'entropy/emacs-win)
+
 
 ;; *** gcc and mingw64 setting
 (defcustom entropy/win-portable-mingw-enable nil

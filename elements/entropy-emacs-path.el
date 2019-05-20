@@ -21,6 +21,11 @@
 ;; *** wsl-apps
   (if entropy/wsl-enable
       (setenv "PATH" (concat entropy/wsl-apps ";" (getenv "PATH"))))
+
+;; *** fakecygpty
+  (if entropy/win-fakecygpty-enable
+      (setenv "PATH" (concat entropy/win-fakecygpty-path ";" (getenv "PATH"))))
+  
 ;; *** gcc for win 
   (if entropy/win-portable-mingw-enable
       (setenv "PATH" (concat entropy/win-portable-mingw-path ";" (getenv "PATH"))))  
@@ -67,6 +72,7 @@
 ;; *** emacs bin folder
   (if entropy/win-emacs-bin-path-add
       (add-to-ordered-list 'exec-path invocation-directory 19))
+  
 ;; *** wsl exec path setting
   (if entropy/wsl-enable
       (progn
@@ -77,12 +83,19 @@
                 `(,(concat entropy/wsl-apps-extra "usr/man")
                   ,(concat entropy/wsl-apps-extra "usr/share/man")
                   ,(concat entropy/wsl-apps-extra "usr/local/man"))))))
+
+;; *** fakecygpty for windows term and ansi-term
+  (if entropy/win-fakecygpty-enable
+      (add-to-ordered-list 'exec-path entropy/win-fakecygpty-path 21))
+  
 ;; *** clang for company-clang
   (if entropy/win-portable-clang-enable
       (add-to-ordered-list 'exec-path entropy/win-portable-clang-path 15))
+  
 ;; *** gcc for win exec path setting
   (if entropy/win-portable-mingw-enable
-      (add-to-ordered-list 'exec-path entropy/win-portable-mingw-path 10))  
+      (add-to-ordered-list 'exec-path entropy/win-portable-mingw-path 10))
+  
 ;; **** windows git-portable exec path setting
   (if entropy/git-portable
       (add-to-ordered-list 'exec-path entropy/git-portable-path 9))

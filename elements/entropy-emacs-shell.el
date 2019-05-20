@@ -208,24 +208,90 @@ was found."
 (use-package multi-term)
 
 ;; ** Shell Pop
-
 (use-package shell-pop
-  :commands (shell-pop)
-  :bind ([f9] . shell-pop)
+  :defines shell-pop-universal-key
+  :bind ([f9] . entropy/shell-pop-for-eshell)
   :init
   (defun entropy/shell-pop-before-advice (&rest args)
     (when (string-match "^/\\w+?:" default-directory)
       (error "Can not usign eshell in tramp location.")))
 
-  (with-eval-after-load 'shell-pop
-    (advice-add 'shell-pop :before #'entropy/shell-pop-before-advice))
+  (advice-add 'entropy/shell-pop-for-eshell
+              :before #'entropy/shell-pop-before-advice)
   
-  (let ((val
-         (if sys/win32p
-             '("eshell" "*eshell*" (lambda () (eshell)))
-           '("ansi-term" "*ansi-term*"
-             (lambda () (ansi-term shell-pop-term-shell))))))
-    (setq shell-pop-shell-type val)))
+  (defun entropy/shell-pop-for-eshell (arg)
+    (interactive "P")
+    (require 'shell-pop)
+    (let* ((value '("eshell" "*eshell*" (lambda () (eshell))))
+           (shell-pop-internal-mode (nth 0 value))
+           (shell-pop-internal-mode-buffer (nth 1 value))
+           (shell-pop-internal-mode-func (nth 2 value)))
+      (shell-pop arg)))
+
+  (defun entropy/shell-pop-make-pop-ansi-term ()
+    (advice-add 'entropy/shell-pop-for-ansi-term-bash
+                :before #'entropy/shell-pop-before-advice)
+    (defun entropy/shell-pop-for-ansi-term-bash (arg)
+      (interactive "P")
+      (require 'shell-pop)
+      (let* ((shell-file-name (if sys/win32p (expand-file-name "bash.exe" entropy/wsl-apps) "bash"))
+             (shell-pop-term-shell shell-file-name)
+             (value '("ansi-term" "*ansi-term*"
+                      (lambda () (ansi-term shell-pop-term-shell))))
+             (shell-pop-internal-mode (nth 0 value))
+             (shell-pop-internal-mode-buffer (nth 1 value))
+             (shell-pop-internal-mode-func (nth 2 value)))
+        (shell-pop arg)))
+    (global-set-key (kbd "<f10>") 'entropy/shell-pop-for-ansi-term-bash))
+
+  ;; ansi-term for linux-like operation system
+  (when (not sys/win32p)
+    (entropy/shell-pop-make-pop-ansi-term))
+
+  ;; ansi-term for windows
+  (use-package fakecygpty
+    :if (and sys/win32p
+             entropy/win-fakecygpty-enable
+             (executable-find "fakecygpty")
+             (executable-find "qkill"))
+    :commands fakecygpty-activate
+    :init
+    (fakecygpty-activate)
+    :config
+    (defun entropy/cd-around-advice (old_func dir)
+      (let ((wsl-root (substring (expand-file-name entropy/wsl-apps) 0 -9)))
+        (cond ((string-match-p "^/.[^/]+" dir)
+               (setq dir (expand-file-name (replace-regexp-in-string "^/" "" dir) wsl-root)))
+              ((string-match-p "^/./" dir)
+               (setq dir
+                     (expand-file-name
+                      (replace-regexp-in-string "^/\\(.\\)/" "\\1:/" dir))))
+              ((string-match-p "^/.$" dir)
+               (setq dir
+                     (expand-file-name
+                      (replace-regexp-in-string "^/\\(.\\)" "\\1:/" dir))))
+              ((string-match-p "^/$" dir)
+               (setq dir wsl-root)))
+        (funcall old_func dir)))
+    (advice-add 'cd :around 'entropy/cd-around-advice)
+    
+    (cond ((and entropy/wsl-enable
+                (ignore-errors (file-exists-p entropy/wsl-apps)))
+           (entropy/shell-pop-make-pop-ansi-term))
+          
+          (t
+           (advice-add 'entropy/shell-pop-for-ansi-term-cmd
+                       :before #'entropy/shell-pop-before-advice)
+           (defun entropy/shell-pop-for-ansi-term-cmd  (arg)
+             (interactive "P")
+             (require 'shell-pop)
+             (let* ((shell-pop-term-shell shell-file-name)
+                    (value '("ansi-term" "*ansi-term*" (lambda () (ansi-term shell-pop-term-shell))))
+                    (shell-pop-internal-mode (nth 0 value))
+                    (shell-pop-internal-mode-buffer (nth 1 value))
+                    (shell-pop-internal-mode-func (nth 2 value)))
+               (shell-pop arg)))
+           (global-set-key (kbd "<f10>") 'entropy/shell-pop-for-ansi-term-cmd)))))
 
 
 

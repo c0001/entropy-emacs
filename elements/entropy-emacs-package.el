@@ -48,12 +48,14 @@ for `user-emacs-directory'."
                  (expand-file-name entropy/ext-extensions-elpa-dir))))
 
 ;; Set customized package install directory
-(if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "27.0.50"))
+(if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
          (equal entropy/use-extensions-type 'origin))
     (entropy/set-package-dir emacs-version)
   (cond
    ((equal emacs-version "25.2.2")
-    (entropy/set-package-dir "25.2.1"))))
+    (entropy/set-package-dir "25.2.1"))
+   (t
+    (error "Unsupport emacs version '%s'" emacs-version))))
 
 
 ;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
@@ -179,7 +181,7 @@ for `user-emacs-directory'."
 
 
 ;; Initialization benchmark
-(when entropy/initialize-benchmark-enabled
+(when entropy/initialize-benchmark-enable
   (use-package benchmark-init
     :init
     ;; (benchmark-init/activate)
