@@ -49,12 +49,13 @@ for `user-emacs-directory'."
 
 ;; Set customized package install directory
 (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
-         (equal entropy/use-extensions-type 'origin))
+         (eq entropy/use-extensions-type 'origin))
     (entropy/set-package-dir emacs-version)
   (cond
-   ((equal emacs-version "25.2.2")
+   ((and (equal emacs-version "25.2.2")
+         (eq entropy/use-extensions-type 'origin))
     (entropy/set-package-dir "25.2.1"))
-   (t
+   ((eq entropy/use-extensions-type 'origin)
     (error "Unsupport emacs version '%s'" emacs-version))))
 
 

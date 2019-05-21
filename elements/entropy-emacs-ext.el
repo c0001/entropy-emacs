@@ -111,19 +111,26 @@ There's two entropy-emacs extras may need to download by your self:
 
 ;; ** libraries
 ;; *** extra status check
-(defun entropy/ext--extra-checks ()
+(defun entropy/ext--check-all-extras ()
   "Return the extra-tmaps for as extra-plists mapped as trouble
 code defined in `entropy/ext--extras-trouble-table' or t."
-  (let ((extras entropy/ext--extras)
+  (let ((extras (entropy/ext--check-inuse-extras))
         rtn)
     (dolist (el extras)
-      (unless (eq (entropy/ext--extra-status el) t)
-        (push (cons (entropy/ext--extra-status el) el) rtn)))
+      (unless (eq (entropy/ext--check-extra-status el) t)
+        (push (cons (entropy/ext--check-extra-status el) el) rtn)))
     (if rtn
         rtn
       t)))
 
-(defun entropy/ext--extra-status (extra-plist)
+
+(defun entropy/ext--check-inuse-extras ()
+  (let ((full-extras entropy/ext--extras))
+    (if (eq entropy/use-extensions-type 'origin)
+        (list (car full-extras))
+      full-extras)))
+
+(defun entropy/ext--check-extra-status (extra-plist)
   (let ((item (plist-get extra-plist :item))
         (repo_lc (plist-get extra-plist :repo-lc))
         (version_lc (plist-get extra-plist :version-lc))
@@ -205,7 +212,7 @@ code defined in `entropy/ext--extras-trouble-table' or t."
 
 ;; ** main
 (defun entropy/ext-main ()
-  (let ((extras-status (entropy/ext--extra-checks)))
+  (let ((extras-status (entropy/ext--check-all-extras)))
     (unless (eq extras-status t)
       (entropy/ext--extra-prompt-troubel extras-status))
     (if (not (eq extras-status t))
