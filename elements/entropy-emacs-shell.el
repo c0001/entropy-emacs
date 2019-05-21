@@ -250,6 +250,7 @@ was found."
 
   ;; ansi-term for windows
   (use-package fakecygpty
+    :ensure nil
     :if (and sys/win32p
              entropy/win-fakecygpty-enable
              (executable-find "fakecygpty")
