@@ -55,7 +55,7 @@
 (defun entropy/minibuffer-attend-hook ()
   (setq gc-cons-threshold most-positive-fixnum))
 (defun entropy/minibuffer-quit-hook ()
-  (setq gc-cons-threshold 800000))
+  (setq gc-cons-threshold 80000000))
 (add-hook 'minibuffer-setup-hook #'entropy/minibuffer-attend-hook)
 (add-hook 'minibuffer-exit-hook #'entropy/minibuffer-quit-hook)
 
