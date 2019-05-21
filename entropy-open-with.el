@@ -173,7 +173,7 @@ If not matched the exist file type then return nil."
                 (parameter (nth 3 type)))
             (cond ((eq 'file path-transform)
                    (cond ((eq system-type 'windows-nt)
-                          (let ((path-formated (replace-regexp-in-string "^\\(.\\):/") "\\1/" file-path))
+                          (let ((path-formated (replace-regexp-in-string "^\\(.\\):/" "\\1/" file-path)))
                             (setq path-arg (concat "file:///" path-formated))))))
                   ((eq 'quote path-transform)
                    (setq path-arg (shell-quote-argument file-path)))
