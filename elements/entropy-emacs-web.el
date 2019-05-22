@@ -56,6 +56,16 @@ You can insert it by directly use `yank'"
 (with-eval-after-load 'tern
   (setq tern-command '("tern")))
 
+
+(defun entropy/toggle-web-php-mode ()
+  (interactive)
+  "Toggle mode between PHP & Web-Mode Helper modes"
+  (cond ((string-match-p "PHP/" mode-name)
+         (web-mode))
+        ((string= mode-name "Web")
+         (php-mode))))
+
+
 ;; ** Front
 ;; *** html
 ;; **** web-mode
@@ -123,7 +133,7 @@ You can insert it by directly use `yank'"
     :commands (company-ac-php-backend))
   (define-key web-mode-map (kbd "M-p") 'company-ac-php-backend)
  
-  (define-key web-mode-map (kbd "<f5>") 'entropy/toggle-php-flavor-mode)
+  (define-key web-mode-map (kbd "<f5>") 'entropy/toggle-web-php-mode)
 ;; ******* Use company-web
   (add-hook 'web-mode-hook
             (lambda ()
@@ -283,17 +293,10 @@ You can insert it by directly use `yank'"
     (with-eval-after-load 'company
       (use-package company-php
         :commands (company-ac-php-backend))
-      (define-key php-mode-map (kbd "M-p") 'company-ac-php-backend))))
+      (define-key php-mode-map (kbd "M-p") 'company-ac-php-backend)))
 
-;; **** php-web-exchage-flavour
-(defun entropy/toggle-php-flavor-mode ()
-  (interactive)
-  "Toggle mode between PHP & Web-Mode Helper modes"
-  (cond ((string-match-p "PHP/" mode-name)
-         (web-mode))
-        ((string= mode-name "Web")
-         (php-mode))))
-(define-key php-mode-map (kbd "<f5>") 'entropy/toggle-php-flavor-mode)
+  ;; php-web-exchage-flavour
+  (define-key php-mode-map (kbd "<f5>") 'entropy/toggle-web-php-mode))
 
 
 
