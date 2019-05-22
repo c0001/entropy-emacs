@@ -108,10 +108,7 @@ You can insert it by directly use `yank'"
       (use-package tern
         :commands (tern-mode))
       (use-package company-tern
-        :commands (company-tern))
-      ;; (require 'tern)
-      ;; (require 'company-tern)
-      )
+        :commands (company-tern)))
     (if (not tern-mode)
         (progn
           (entropy/creat-js2mode-tern-project-file)
@@ -223,6 +220,7 @@ You can insert it by directly use `yank'"
 
 (use-package impatient-mode
   :commands (impatient-mode entropy/impatient-mode)
+  :init (setq impatient-mode-delayed-update nil)
   :config
   (require 'entropy-common-library)
 
@@ -236,7 +234,7 @@ You can insert it by directly use `yank'"
       (if (and (boundp 'impatient-mode)
                (not impatient-mode))
           (progn
-            (if (not (httpd-running-p))
+            (if (not (ignore-errors (httpd-running-p)))
                 (httpd-start))
             (impatient-mode)))
       (if (string-match-p "\\.html" buffer)
@@ -285,8 +283,7 @@ You can insert it by directly use `yank'"
     (with-eval-after-load 'company
       (use-package company-php
         :commands (company-ac-php-backend))
-      (define-key php-mode-map (kbd "M-p") 'company-ac-php-backend)
-      (define-key php-mode-map (kbd "<f5>") 'entropy/toggle-php-flavor-mode))))
+      (define-key php-mode-map (kbd "M-p") 'company-ac-php-backend))))
 
 ;; **** php-web-exchage-flavour
 (defun entropy/toggle-php-flavor-mode ()
@@ -296,6 +293,7 @@ You can insert it by directly use `yank'"
          (web-mode))
         ((string= mode-name "Web")
          (php-mode))))
+(define-key php-mode-map (kbd "<f5>") 'entropy/toggle-php-flavor-mode)
 
 
 
