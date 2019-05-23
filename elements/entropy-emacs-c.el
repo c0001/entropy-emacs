@@ -36,28 +36,36 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 
-;; ** C/C++ Mode
-(use-package cc-mode
-  :ensure nil
-  :init
-  (add-hook 'c-mode-common-hook
-            (lambda ()
-              (c-set-style "bsd")
-              (setq tab-width 4)
-              (setq c-basic-offset 4)))
-  :config
-  (add-hook 'c-mode-hook
-            #'(lambda ()
-                (make-local-variable 'company-backends)
+;; ** Preparation
+(defun entropy/emacs-c-cc-mode-hook ()
+  (c-set-style "bsd")
+  (setq tab-width 4)
+  (setq c-basic-offset 4))
 
-                ;; Company mode backend for C/C++ header files
-                (with-eval-after-load 'company
-                  (use-package company-c-headers
-                    :init (cl-pushnew (company-backend-with-yas 'company-c-headers) company-backends)))))
+(defun entropy/emacs-c-irony-load-subs ()
+  (dolist (el '(irony-cdb-clang-complete
+                irony-cdb-json
+                irony-cdb-libclang
+                irony-cdb
+                irony-completion
+                irony-diagnostics
+                irony-iotask
+                irony-snippet))
+    (require el)))
 
-  (progn
-    (defun entropy/c-derived-mode-company-special-key (command &rest args)
-      "Special key binding 'C-M-/' for c derived modes, only using for
+(defun entropy/emacs-c-irony-pipe-config ()
+  "Reducing pipe-read-delay and set the pipe buffer size to
+64K on Windows (from the original 4K).
+
+It is the recommendation of irony-mode official introduction."
+  (when (boundp 'w32-pipe-read-delay)
+    (setq-local w32-pipe-read-delay 0))
+  (when (boundp 'w32-pipe-buffer-size)
+    (setq-local irony-server-w32-pipe-buffer-size (* 64 1024))))
+
+
+(defun entropy/c-derived-mode-company-special-key (command &rest args)
+  "Special key binding 'C-M-/' for c derived modes, only using for
 company referents.
 
 This function used for do sth like:
@@ -65,15 +73,22 @@ This function used for do sth like:
 If you want to bind sth with key 'C-M-/' for `c-mode' but don't
 let it be derived to the c derived mode like `php-mode'. Or others
 oppsite."
-      (interactive (list 'interactive))
-      (cond
-       ((or (equal major-mode 'c-mode)
-            (equal major-mode 'c++-mode))
-        (funcall-interactively 'company-c-headers command))
-       (t (message (format "Haven't binded sth to 'C-M-/' yet in %s ." major-mode)))))
-    
-    (define-key c-mode-map (kbd "C-M-/") 'entropy/c-derived-mode-company-special-key)
-    (define-key c++-mode-map (kbd "C-M-/") 'entropy/c-derived-mode-company-special-key))
+  (interactive (list 'interactive))
+  (cond
+   ((or (equal major-mode 'c-mode)
+        (equal major-mode 'c++-mode))
+    (funcall-interactively 'company-c-headers command))
+   (t (message (format "Haven't binded sth to 'C-M-/' yet in %s ." major-mode)))))
+  
+;; ** C/C++ Mode
+(use-package cc-mode
+  :ensure nil
+  :init
+  (add-hook 'c-mode-common-hook
+            #'entropy/emacs-c-cc-mode-hook)
+  :config
+  (define-key c-mode-map (kbd "C-M-/") 'entropy/c-derived-mode-company-special-key)
+  (define-key c++-mode-map (kbd "C-M-/") 'entropy/c-derived-mode-company-special-key)
 
 
 ;; *** compiler use gcc or g++ in windows opertion system
@@ -164,7 +179,7 @@ This function must be ran after `entropy/win-c-compiler'.
 
 
 ;; ** irony mode
-(defun entropy/irony-refer-advice-around (oldfuc &rest args)
+(defun entropy/emacs-c-irony-refer-advice-around (oldfuc &rest args)
   "Prevent c group mode as `php-mode' which was the derived from
 `c-mode' to load `irony-mode' and `company-irony'."
   (if (member major-mode '(c++-mode c-mode objc-mode))
@@ -174,51 +189,20 @@ This function must be ran after `entropy/win-c-compiler'.
 (defun entropy/usepackage-irony ()
   "Function for enabling irony mode for c and c++ mode."
   (use-package irony
-    :init (advice-add 'irony-mode :around #'entropy/irony-refer-advice-around)
+    :init (advice-add 'irony-mode :around #'entropy/emacs-c-irony-refer-advice-around)
     :commands (irony-mode)
     :hook ((c-mode . irony-mode)
            (c++-mode . irony-mode)
            (irony-mode . irony-cdb-autosetup-compile-options)
-           (c-mode . entropy/irony-pipe-config)
-           (c++-mode . entropy/irony-pipe-config))
+           (c-mode . entropy/emacs-c-irony-pipe-config)
+           (c++-mode . entropy/emacs-c-irony-pipe-config))
     :config
-    (with-eval-after-load 'irony
-      (dolist (el '(irony-cdb-clang-complete
-                    irony-cdb-json
-                    irony-cdb-libclang
-                    irony-cdb
-                    irony-completion
-                    irony-diagnostics
-                    irony-iotask
-                    irony-snippet))
-        (require el)))
-    
-    (defun entropy/irony-pipe-config ()
-      "Reducing pipe-read-delay and set the pipe buffer size to
-64K on Windows (from the original 4K).
+    (entropy/emacs-c-irony-load-subs))
 
-It is the recommendation of irony-mode official introduction."
-      (when (boundp 'w32-pipe-read-delay)
-        (setq-local w32-pipe-read-delay 0))
-      (when (boundp 'w32-pipe-buffer-size)
-        (setq-local irony-server-w32-pipe-buffer-size (* 64 1024))))
-
-    (use-package irony-eldoc
-      :commands (irony-eldoc)
-      :hook (irony-mode . irony-eldoc)))
-
-  (use-package company-irony
-    :after company
-    :commands (commpany-irony)
-    :init
-    (defun entropy/company-irony-backends ()
-      "Make local company-backends with yasnippet for irony in c
-and c++ mode."
-      (make-local-variable 'company-backends)
-      (cl-pushnew (company-backend-with-yas 'company-irony) company-backends))
-    (advice-add 'entropy/company-irony-backends :around #'entropy/irony-refer-advice-around)
-    (add-hook 'c-mode-hook 'entropy/company-irony-backends)
-    (add-hook 'c++-mode-hook 'entropy/company-irony-backends)))
+  (use-package irony-eldoc
+    :defines irony-mode-hook
+    :commands (irony-eldoc)
+    :hook (irony-mode . irony-eldoc)))
 
 (cond
  ((and sys/win32p

@@ -39,7 +39,7 @@
 ;; Python Mode
 (use-package python
   :ensure nil
-  :defines gud-pdb-command-name pdb-path
+  :defines (gud-pdb-command-name pdb-path inferior-python-mode-hook)
   :config
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
@@ -58,27 +58,21 @@
     (interactive
      (list (gud-query-cmdline
             pdb-path
-            (file-name-nondirectory buffer-file-name)))))
+            (file-name-nondirectory buffer-file-name))))))
 
-  ;; Autopep8
-  (use-package py-autopep8
-    :commands (py-autopep8-enable-on-save)
-    :init (add-hook 'python-mode-hook #'py-autopep8-enable-on-save))
+;; Autopep8
+(use-package py-autopep8
+  :defines python-mode-hook
+  :commands (py-autopep8-enable-on-save)
+  :init (add-hook 'python-mode-hook #'py-autopep8-enable-on-save))
 
-  ;; Anaconda mode
-  (use-package anaconda-mode
-    :diminish anaconda-mode
-    :commands (anaconda-mode)
-    :init
-    (add-hook 'python-mode-hook #'anaconda-mode)
-    :config
-    (add-hook 'anaconda-mode-hook
-              #'(lambda ()
-                  (make-local-variable 'company-backends)
-                  (with-eval-after-load 'company
-                    (use-package company-anaconda
-                      :defines company-backends
-                      :init (cl-pushnew (company-backend-with-yas 'company-anaconda) company-backends)))))))
+;; Anaconda mode
+(use-package anaconda-mode
+  :diminish anaconda-mode
+  :commands anaconda-mode
+  :defines python-mode-hook
+  :init
+  (add-hook 'python-mode-hook #'anaconda-mode))
 
 (provide 'entropy-emacs-python)
 

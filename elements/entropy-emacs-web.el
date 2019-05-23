@@ -14,8 +14,23 @@
 (require 'entropy-emacs-defcustom)
 (require 'cl)
 
-;; ** main
-(defun entropy/creat-js2mode-tern-project-file ()
+;; ** Preparation
+(with-eval-after-load 'tern
+  (setq tern-command '("tern")))
+
+;; ** main libraries
+(defun entropy/emacs-web-mode-company-tern (command)
+  "This function was to automaticly init `tern-mode' and pop-up
+`company-tern'."
+  (interactive (list 'interactive))
+  (unless entropy/company-lsp
+    (if (not tern-mode)
+        (progn
+          (entropy/emacs-web-creat-js2mode-tern-project-file)
+          (tern-mode t))
+      (funcall 'company-tern command))))
+
+(defun entropy/emacs-web-creat-js2mode-tern-project-file ()
   "Auto create '.tern-project' file in current dir.
 
   Notice: this automatically created file was simple, you should
@@ -24,137 +39,70 @@
   And this automatically created file was the file within
   entropy-emacs."
   (interactive)
-  (if (file-exists-p ".tern-project")
-      (message "Already have .tern-project :)")
-    (if (file-exists-p (expand-file-name "annex/.tern-project" user-emacs-directory))
+  (unless entropy/company-lsp
+    (if (file-exists-p ".tern-project")
+        (message "Already have .tern-project :)")
+      (if (file-exists-p (expand-file-name "annex/.tern-project" user-emacs-directory))
+          (progn
+            (copy-file (expand-file-name "annex/.tern-project" user-emacs-directory) "./.tern-project")
+            (message "Succeed to create .tern-project in this folder!"))
+        (message "Can not find origin .tern-project file from your .emacs.d/annex folder")))))
+
+(defun entropy/emacs-web-browse-web-buffer ()
+  (interactive)
+  (require 'entropy-common-library-const)
+  (let* (url)
+    (if (and buffer-file-name
+             (file-exists-p buffer-file-name))
         (progn
-          (copy-file (expand-file-name "annex/.tern-project" user-emacs-directory) "./.tern-project")
-          (message "Succeed to create .tern-project in this folder!"))
-      (message "Can not find origin .tern-project file from your .emacs.d/annex folder"))))
-
-(defun entropy/url-transfer-region-entities ()
-  "Transfer region text into entities form and push it into
-kill-ring.
-
-You can insert it by directly use `yank'"
-  (interactive)
-  (let* ((region (if (use-region-p)
-                     (buffer-substring-no-properties (region-beginning) (region-end))
-                   nil))
-         rtn)
-    (if region
-        (progn (setq rtn (url-insert-entities-in-string region))
-               (with-temp-buffer
-                 (if buffer-read-only
-                     (read-only-mode 0))
-                 (let (p1 p2)
-                   (insert (replace-regexp-in-string "\"" "\"" rtn))
-                   (setq p1 (point-min)
-                         p2 (point-max))
-                   (kill-ring-save p1 p2)))))))
-
-(with-eval-after-load 'tern
-  (setq tern-command '("tern")))
+          (setq url (url-hexify-string (concat "file://" buffer-file-name)
+                                       entropy/cl-url--allowed-chars))
+          (browse-url url)))))
 
 
-(defun entropy/toggle-web-php-mode ()
-  (interactive)
-  "Toggle mode between PHP & Web-Mode Helper modes"
-  (cond ((string-match-p "PHP/" mode-name)
-         (web-mode))
-        ((string= mode-name "Web")
-         (php-mode))))
+(defun entropy/emacs-web-web-mode-hook ()
+  ;; Set indent and tab-width
+  (setq web-mode-markup-indent-offset 4)
+  (setq web-mode-css-indent-offset 4)
+  (setq web-mode-code-indent-offset 4)
+  (setq indent-tabs-mode nil)
+  (setq tab-width 4)
+  (with-eval-after-load 'yasnippet
+    (yas-activate-extra-mode 'php-mode)
+    (yas-activate-extra-mode 'js2-mode)
+    (yas-activate-extra-mode 'css-mode))
+  (web-mode-set-engine "php")
+  (setq-local tern-mode nil))
 
 
 ;; ** Front
 ;; *** html
 ;; **** web-mode
 (use-package web-mode
-  :commands (web-mode)
+  :commands web-mode
   :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\)$"
-;; ***** init
   :init
   (add-hook 'web-mode-hook
-            '(lambda ()
-               ;; Set indent and tab-width
-               (setq web-mode-markup-indent-offset 4)
-               (setq web-mode-css-indent-offset 4)
-               (setq web-mode-code-indent-offset 4)
-               (setq indent-tabs-mode nil)
-               (setq tab-width 4)
-               (with-eval-after-load 'yasnippet
-                 (yas-activate-extra-mode 'php-mode)
-                 (yas-activate-extra-mode 'js2-mode)
-                 (yas-activate-extra-mode 'css-mode))
-               (web-mode-set-engine "php")
-               (setq-local tern-mode nil)))
-;; ***** config
+            'entropy/emacs-web-web-mode-hook)
   :config
   (if (or sys/win32p sys/linux-x-p sys/mac-x-p)
       (progn
         (add-hook 'web-mode-hook #'(lambda () (setq-local entropy/web-development-environment t)))
-	(defun entropy/browse-url-of-buffer ()
-	  (interactive)
-          (require 'entropy-common-library-const)
-          (let* (url)
-            (if (and buffer-file-name
-                     (file-exists-p buffer-file-name))
-                (progn
-                  (setq url (url-hexify-string (concat "file://" buffer-file-name)
-                                               entropy/cl-url--allowed-chars))
-                  (browse-url url)))))
+        (define-key web-mode-map (kbd "<C-f1>") 'entropy/emacs-web-browse-web-buffer)))
 
-        ;; Preview the html file in external browser
-        (define-key web-mode-map (kbd "<C-f1>") 'entropy/browse-url-of-buffer)))
-
-;; ****** company config
-;; ******* js company-config for using tern or lsp
-  (defun entropy/wm-company-tern (command)
-    "This function was to automaticly init `tern-mode' and pop-up
-`company-tern'."
-    (interactive (list 'interactive))
-    (when (or (not (boundp 'tern-mode))
-              (not tern-mode))
-      (use-package tern
-        :commands (tern-mode))
-      (use-package company-tern
-        :commands (company-tern)))
-    (if (not tern-mode)
-        (progn
-          (entropy/creat-js2mode-tern-project-file)
-          (tern-mode t))
-      (funcall 'company-tern command)))
   (when (not entropy/company-lsp)
-    (define-key web-mode-map (kbd "M-t") 'entropy/wm-company-tern))
+    (define-key web-mode-map (kbd "M-t") 'entropy/emacs-web-mode-company-tern))
 
-;; ******* php company config and toggle function of between web or php mode
-  (use-package ac-php-core)
-  (use-package company-php
-    :commands (company-ac-php-backend))
-  (define-key web-mode-map (kbd "M-p") 'company-ac-php-backend)
- 
-  (define-key web-mode-map (kbd "<f5>") 'entropy/toggle-web-php-mode)
-;; ******* Use company-web
-  (add-hook 'web-mode-hook
-            (lambda ()
-	      (make-local-variable 'company-backends)
-	      (with-eval-after-load 'company
-		(use-package company-web
-                  :commands (company-web)
-		  :init
-		  (cl-pushnew (company-backend-with-yas 'company-web-html) company-backends)
-		  (cl-pushnew (company-backend-with-yas 'company-web-jade) company-backends)
-		  (cl-pushnew (company-backend-with-yas 'company-web-slim) company-backends)
-                  (cl-pushnew (company-backend-with-yas 'company-css) company-backends))))))
+  (define-key web-mode-map (kbd "M-p") 'company-ac-php-backend))
 
 ;; **** Use emmet-mode for folding code
 (use-package emmet-mode
-  ;; :after (web-mode)
-  :commands (emmet-mode)
+  :defines (web-mode-hook html-mode-hook)
+  :commands emmet-mode
   :hook ((web-mode . emmet-mode)
          (html-mode . emmet-mode))
   :config
-  (define-key emmet-mode-keymap (kbd "C-c w") nil))
+  (unbind-key "C-c w" emmet-mode-keymap))
 
 ;; *** CSS mode
 (use-package css-mode
@@ -176,35 +124,26 @@ You can insert it by directly use `yank'"
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
     (add-hook 'js2-mode-hook
-              (lambda ()
-                (setq js2-basic-offset 4)
-                (js2-highlight-unused-variables-mode 1)
-                (js2-imenu-extras-mode 1))))
-  :config
-;; **** js2-refactor
-  (use-package js2-refactor
-    :commands (js2-refactor-mode)
-    :diminish js2-refactor-mode
-    :init (add-hook 'js2-mode-hook #'js2-refactor-mode)
-    :config (js2r-add-keybindings-with-prefix "C-c C-m"))
-  
-;; **** js2 company config
+              #'(lambda ()
+                  (setq-local js2-basic-offset 4)
+                  (js2-highlight-unused-variables-mode 1)
+                  (js2-imenu-extras-mode 1)))))
 
-  ;; If not use company-lsp then use company-tern
-  (if (not entropy/company-lsp)
-      (progn
-        (use-package company-tern
-          :commands (company-tern))
-        (use-package tern
-          :commands (tern-mode))
-        (add-hook
-         'js2-mode-hook
-         #'(lambda ()
-             (entropy/creat-js2mode-tern-project-file)
-             (tern-mode t)
-             (make-local-variable 'company-backends)
-             (with-eval-after-load 'company
-               (cl-pushnew (company-backend-with-yas 'company-tern) company-backends)))))))
+;; **** tern mode
+(use-package tern
+  :if (not entropy/company-lsp)
+  :commands (tern-mode)
+  :defines js2-mode-hook
+  :hook (js2-mode . tern-mode))
+
+;; **** js2-refactor
+(use-package js2-refactor
+  :requires js2-mode
+  :defines js2-mode-hook
+  :commands (js2-refactor-mode)
+  :diminish js2-refactor-mode
+  :init (add-hook 'js2-mode-hook #'js2-refactor-mode)
+  :config (js2r-add-keybindings-with-prefix "C-c C-m"))
 
 ;; *** tools
 ;; **** Live browser JavaScript, CSS, and HTML interaction
@@ -232,14 +171,13 @@ You can insert it by directly use `yank'"
   :commands (impatient-mode entropy/impatient-mode)
   :init (setq impatient-mode-delayed-update nil)
   :config
-  (require 'entropy-common-library)
-
   (defun entropy/impatient-mode ()
     "Enable `impatient-mode' and http server by `httpd-start' if
     server not actived and open the impatient url
     \"http://localhost:8080/imp/\" with file-name of current
     buffer if current file was html file."
     (interactive)
+    (require 'entropy-common-library)
     (let* ((buffer (buffer-name (current-buffer))))
       (if (and (boundp 'impatient-mode)
                (not impatient-mode))
@@ -251,6 +189,7 @@ You can insert it by directly use `yank'"
           (browse-url (concat "http://localhost:8080/imp/live/"
                               (file-name-nondirectory (buffer-name)))))))
   (advice-add 'impatient-mode :before 'entropy/cl-sn-buffer-p))
+
 ;; **** Format HTML, CSS and JavaScript/JSON by js-beautify
 (use-package web-beautify
   :commands
@@ -277,27 +216,19 @@ You can insert it by directly use `yank'"
 ;; *** php
 (use-package php-mode
   :mode "\\.php$"
-  :commands (php-mode)
-  :config
-  (use-package ac-php
-    :commands (ac-php-core-eldoc-setup)
-    :init
-    (add-hook 'php-mode-hook '(lambda () (ac-php-core-eldoc-setup)))
-    (add-hook 'php-mode-hook
-  	      '(lambda () 
-  	         (setq indent-tabs-mode nil)
-  	         (setq c-basic-offset 4)
-  	         ;;(setq php-template-compatibility nil)
-  	         (subword-mode 1)))
-
-    (with-eval-after-load 'company
-      (use-package company-php
-        :commands (company-ac-php-backend))
-      (define-key php-mode-map (kbd "M-p") 'company-ac-php-backend)))
-
-  ;; php-web-exchage-flavour
-  (define-key php-mode-map (kbd "<f5>") 'entropy/toggle-web-php-mode))
-
+  :commands php-mode)
+  
+(use-package ac-php
+  :requires php-mode
+  :defines php-mode-hook
+  :commands ac-php-core-eldoc-setup
+  :init
+  (add-hook 'php-mode-hook '(lambda () (ac-php-core-eldoc-setup)))
+  (add-hook 'php-mode-hook
+            '(lambda () 
+               (setq-local indent-tabs-mode nil)
+               (setq-local c-basic-offset 4)
+               (subword-mode 1))))
 
 
 ;; * provide

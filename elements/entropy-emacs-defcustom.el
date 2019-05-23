@@ -38,41 +38,6 @@
   "Personal Emacs configurations."
   :group 'extensions)
 
-(defcustom entropy/ext-deps-dir (expand-file-name
-                                 ".entropy-emacs-deps"
-                                 "~/")
-  "entropy-emacs dependencies archive location, entropy-emacs
-deps are the necessities for both type of 'origin' or
-'submodules' extension using type of
-`entropy/use-extensions-type'."
-  :type 'string
-  :group 'entropy/emacs-custom-variable-basic)
-
-(defcustom entropy/ext-extensions-dir (expand-file-name
-                                      ".entropy-emacs-extensions"
-                                      "~/")
-  "entropy-emacs extensions collection archive location. This
-collection used to retrieving all entropy-emacs elpa or melpa
-extensions' repos as submodules archived as one single project
-using for studying or giving the pr to the origin host when you
-found the bug or want to give the improvements.
-
-This archive used then type of 'submodules' to customized
-variable `entropy/use-extensions-type'."
-
-  :type 'string
-  :group 'entropy/emacs-custom-variable-basic)
-
-
-(defcustom entropy/ext-extensions-elpa-dir (expand-file-name
-                                            ".entropy-emacs-extensions-elpa"
-                                            "~/")
-  "entropy-emacs elpa extensions directory used when
-`entropy/use-extensions-type' was not eq 'submodules'."
-  :type 'string
-  :group 'entropy/emacs-custom-variable-basic)
-
-
 (defcustom entropy/custom-common-file (expand-file-name
                                        "custom.el"
                                        user-emacs-directory)
@@ -134,6 +99,51 @@ variable `entropy/use-extensions-type'."
 Available value are 'submodules' and 'origin'."
   :type 'symbol
   :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/ext-deps-dir (expand-file-name
+                                 ".entropy-emacs-deps"
+                                 "~/")
+  "entropy-emacs dependencies archive location, entropy-emacs
+deps are the necessities for both type of 'origin' or
+'submodules' extension using type of
+`entropy/use-extensions-type'."
+  :type 'string
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/ext-extensions-dir (expand-file-name
+                                      ".entropy-emacs-extensions"
+                                      "~/")
+  "entropy-emacs extensions collection archive location. This
+collection used to retrieving all entropy-emacs elpa or melpa
+extensions' repos as submodules archived as one single project
+using for studying or giving the pr to the origin host when you
+found the bug or want to give the improvements.
+
+This archive used then type of 'submodules' to customized
+variable `entropy/use-extensions-type'."
+
+  :type 'string
+  :group 'entropy/emacs-custom-variable-basic)
+
+
+(defcustom entropy/ext-extensions-elpa-dir (expand-file-name
+                                            ".entropy-emacs-extensions-elpa"
+                                            "~/")
+  "entropy-emacs elpa extensions directory used when
+`entropy/use-extensions-type' was not eq 'submodules'."
+  :type 'string
+  :group 'entropy/emacs-custom-variable-basic)
+
+
+(defcustom entropy/ext-user-specific-load-paths nil
+  "Extra load path list for user specification.
+
+This feature usually used for emacs new feature adding test and
+designation."
+  :type 'sexp
+  :group 'entropy/emacs-custom-variable-basic)
+
+
 ;; *** yas dir
 (defcustom entropy/yas-dir "~/.emacs.d/snippets"
   "Set the default personal snippet dir"

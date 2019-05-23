@@ -224,6 +224,11 @@ code defined in `entropy/ext--extras-trouble-table' or t."
         (entropy/ext--load-path
          (expand-file-name "elements/submodules"
                            entropy/ext-extensions-dir)))
+      (when (and entropy/ext-user-specific-load-paths
+                 (listp entropy/ext-user-specific-load-paths))
+        (dolist (el entropy/ext-user-specific-load-paths)
+          (when (ignore-errors (file-directory-p el))
+            (entropy/ext--load-path (expand-file-name el)))))
       t)))
 
 
