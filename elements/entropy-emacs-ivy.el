@@ -38,7 +38,7 @@
          ("M-%" . swiper-query-replace))
 ;; *** init
   :init
-  (add-hook 'entropy/init-X-hook #'ivy-mode)
+  (add-hook 'entropy/emacs-init-X-hook #'ivy-mode)
   (add-hook 'ivy-mode-hook #'counsel-mode)
 
   (defun ivy-read-action ()

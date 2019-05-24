@@ -59,7 +59,7 @@
 ;; ** Highlight matching paren
 (use-package paren
   :ensure nil
-  :init (add-hook 'entropy/init-X-hook #'show-paren-mode)
+  :init (add-hook 'entropy/emacs-init-X-hook #'show-paren-mode)
   :config
   (setq show-paren-when-point-inside-paren t)
   (setq show-paren-when-point-in-periphery t))
@@ -134,7 +134,7 @@
               ("C-c t o" . hl-todo-occur))
   :init
   (when entropy/emacs-hl-todo-enable-at-startup
-    (add-hook 'entropy/init-X-hook #'global-hl-todo-mode)))
+    (add-hook 'entropy/emacs-init-X-hook #'global-hl-todo-mode)))
 
 ;; ** Highlight uncommitted changes
 ;; --------------------------------------------------------------------------------
@@ -162,7 +162,7 @@
         :bind (:map diff-hl-command-map
                     ("SPC" . diff-hl-mark-hunk))
         :init
-        (add-hook 'entropy/init-X-hook #'global-diff-hl-mode)
+        (add-hook 'entropy/emacs-init-X-hook #'global-diff-hl-mode)
 
         ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode) ;;;;This may be cause dired be crash for big git
                                                     ;;;;repo such as linux kernel repo
@@ -185,7 +185,7 @@
       :bind (:map diff-hl-command-map
                   ("SPC" . diff-hl-mark-hunk))
       :init
-      (add-hook 'entropy/init-X-hook #'global-diff-hl-mode)
+      (add-hook 'entropy/emacs-init-X-hook #'global-diff-hl-mode)
 
       ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode) ;;;;This may be cause dired be crash for big git
                                                     ;;;;repo such as linux kernel repo
@@ -240,7 +240,7 @@
 (use-package volatile-highlights
   :commands (volatile-highlights-mode)
   :diminish volatile-highlights-mode
-  :init (add-hook 'entropy/init-X-hook #'volatile-highlights-mode))
+  :init (add-hook 'entropy/emacs-init-X-hook #'volatile-highlights-mode))
 
 ;; ** Visualize TAB, (HARD) SPACE, NEWLINE
 ;;

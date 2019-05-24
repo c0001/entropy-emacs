@@ -87,7 +87,7 @@
   :config
   (if (or sys/win32p sys/linux-x-p sys/mac-x-p)
       (progn
-        (add-hook 'web-mode-hook #'(lambda () (setq-local entropy/web-development-environment t)))
+        (add-hook 'web-mode-hook #'(lambda () (setq-local entropy/emacs-web-development-environment t)))
         (define-key web-mode-map (kbd "<C-f1>") 'entropy/emacs-web-browse-web-buffer)))
 
   (when (not entropy/emacs-company-lsp)

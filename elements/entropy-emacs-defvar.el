@@ -14,7 +14,7 @@
 ;;  entropy-emacs's main config.
 ;;
 ;; * Code:
-(defvar entropy/web-development-environment nil
+(defvar entropy/emacs-web-development-environment nil
   "Whether using enable web-development envrionment.
 
 This variable is mainly for the judgement button for
@@ -22,11 +22,11 @@ This variable is mainly for the judgement button for
 specific browser to visualize current file.")
 
 
-(defvar entropy/init-mini-hook ()
+(defvar entropy/emacs-init-mini-hook ()
   "Hooks for minimal start.")
 
 
-(defvar entropy/init-X-hook ()
+(defvar entropy/emacs-init-X-hook ()
   "Hooks of entropy-emacs X init.")
 
 

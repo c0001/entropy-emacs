@@ -1012,9 +1012,9 @@ fixing it as thus. "
   (setq search-web-in-emacs-browser 'eww-browse-url)
 
   (defun entropy/search-web--around (oldfun &rest arg-rest)
-    "Partially cancel `entropy/web-development-environment' if
+    "Partially cancel `entropy/emacs-web-development-environment' if
     it's actived."
-    (let* ((entropy/web-development-environment nil))
+    (let* ((entropy/emacs-web-development-environment nil))
       (funcall oldfun)))
 
   (advice-add 'entropy/search-web-toggle :around #'entropy/search-web--around)
@@ -1584,10 +1584,10 @@ For now, there's three choices for you:
              entropy/cs-delete)
   :config
   (defun entropy/open-with-port--stuffs-around (oldfunc &rest arg-rest)
-    "when in `entropy/web-development-environment' advice
+    "when in `entropy/emacs-web-development-environment' advice
 `entropy/open-with-port' for prevent open url with specific
 development web-browser."
-    (let ((entropy/web-development-environment nil))
+    (let ((entropy/emacs-web-development-environment nil))
       (apply oldfunc arg-rest)))
   (with-eval-after-load 'entropy-open-with
     (advice-add 'entropy/open-with-port :around #'entropy/open-with-port--stuffs-around)))

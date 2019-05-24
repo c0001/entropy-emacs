@@ -229,7 +229,7 @@ Manually edit this variable will not be any effection.")
 ;; **** eyebrowse ----> for save the window config(workspace group)
 (use-package eyebrowse
   :commands (eyebrowse-mode)
-  :init (add-hook 'entropy/init-mini-hook #'eyebrowse-mode)
+  :init (add-hook 'entropy/emacs-init-mini-hook #'eyebrowse-mode)
   :bind (("C-c C-w C-e" . entropy/eyebrowse-create-workspaces)
          ("C-c C-w M-e" . entropy/eyebrowse-delete-workspace)
          ("C-c C-w C-`" . entropy/eyebrowse-switch-top)
@@ -621,7 +621,7 @@ without derived slot."
                                 "*Buffer List*"
                                 "*Ibuffer*"
                                 "*esh command on file*"))
-  (add-hook 'entropy/init-mini-hook #'winner-mode))
+  (add-hook 'entropy/emacs-init-mini-hook #'winner-mode))
 ;; **** desktop mode
 (when entropy/emacs-desktop-enable
   (use-package desktop
@@ -1278,13 +1278,13 @@ emacs."
 (use-package entropy-global-read-only-mode
   :ensure nil
   :commands (entropy-grom-mode)
-  :init (add-hook 'entropy/init-mini-hook #'entropy-grom-mode))
+  :init (add-hook 'entropy/emacs-init-mini-hook #'entropy-grom-mode))
 ;; ** Revert buffer
 (global-auto-revert-mode t)
 ;; ** Use popwin mode
 (use-package popwin
   :commands popwin-mode
-  :init (add-hook 'entropy/init-mini-hook #'popwin-mode)
+  :init (add-hook 'entropy/emacs-init-mini-hook #'popwin-mode)
   :config
   (bind-key "C-3" popwin:keymap)
 
@@ -1370,7 +1370,7 @@ emacs."
   :diminish which-key-mode
   :commands which-key-mode
   :init
-  (add-hook 'entropy/init-mini-hook #'which-key-mode)
+  (add-hook 'entropy/emacs-init-mini-hook #'which-key-mode)
   (setq which-key-popup-type 'minibuffer))
 
 ;; ** Undo tree
@@ -1378,7 +1378,7 @@ emacs."
   :diminish undo-tree-mode
   :commands (global-undo-tree-mode)
   :init
-  (add-hook 'entropy/init-mini-hook #'global-undo-tree-mode)
+  (add-hook 'entropy/emacs-init-mini-hook #'global-undo-tree-mode)
   (add-hook 'undo-tree-mode-hook
 	    '(lambda () (define-key undo-tree-map (kbd "C-x u") nil)))
   :config
@@ -1586,7 +1586,7 @@ the list of bookmarks.)"
   :diminish disable-mouse-global-mode
   :commands (global-disable-mouse-mode)
   :init
-  (add-hook 'entropy/init-mini-hook #'global-disable-mouse-mode))
+  (add-hook 'entropy/emacs-init-mini-hook #'global-disable-mouse-mode))
 ;; ** Artist-mode
 (use-package artist-mode
   :ensure nil

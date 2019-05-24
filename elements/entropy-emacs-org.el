@@ -20,7 +20,7 @@
   (unless (fboundp 'org-reveal-export-to-html)
     (when (featurep 'ox-reveal)
       (load-library "ox-reveal")))
-  (let ((entropy/web-development-environment t))
+  (let ((entropy/emacs-web-development-environment t))
     (apply old-func args)))
 
 (with-eval-after-load 'ox
