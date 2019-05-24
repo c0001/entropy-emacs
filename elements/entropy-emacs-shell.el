@@ -80,7 +80,7 @@
 (use-package eshell
   :ensure nil
   :init
-  (defun entropy/eshell-before-advice (&rest args)
+  (defun entropy/emacs-eshell-before-advice (&rest args)
     "Delete eshell histroy file before eshell opening and prevent
 open eshell on tramp-buffer when on windows platform. "
     (if (file-exists-p eshell-history-file-name)
@@ -90,7 +90,7 @@ open eshell on tramp-buffer when on windows platform. "
       (error "Can not using eshell in tramp location.")))
   
   (with-eval-after-load 'eshell
-    (advice-add 'eshell :before #'entropy/eshell-before-advice))
+    (advice-add 'eshell :before #'entropy/emacs-eshell-before-advice))
   
   (add-hook 'eshell-exit-hook #'(lambda ()
                                   (if (file-exists-p eshell-history-file-name)
@@ -114,8 +114,8 @@ open eshell on tramp-buffer when on windows platform. "
   (setq eshell-cmpl-cycle-completions nil)
 
   ;; Value assignment
-  (setq eshell-aliases-file entropy/eshell-alias-file
-        eshell-history-file-name entropy/eshell-history-file)
+  (setq eshell-aliases-file entropy/emacs-eshell-alias-file
+        eshell-history-file-name entropy/emacs-eshell-history-file)
 
 
 
@@ -186,7 +186,7 @@ command will not be called for the instance as your expection."
           (f-touch fname)))))
 
   ;; Shorten eshell prompt string
-  (defun entropy/eshell--prompt ()
+  (defun entropy/emacs-eshell--prompt ()
     "Shrink emacs eshell's prompt string if feature `shrink-path'
 was found."
     (let ((pwd (eshell/pwd))
@@ -201,7 +201,7 @@ was found."
         (concat pwd " $ "))))
 
   (setq eshell-prompt-function
-        'entropy/eshell--prompt))
+        'entropy/emacs-eshell--prompt))
 
 
 ;; ** Multi term
@@ -234,7 +234,7 @@ was found."
     (defun entropy/shell-pop-for-ansi-term-bash (arg)
       (interactive "P")
       (require 'shell-pop)
-      (let* ((shell-file-name (if sys/win32p (expand-file-name "bash.exe" entropy/wsl-apps) "bash"))
+      (let* ((shell-file-name (if sys/win32p (expand-file-name "bash.exe" entropy/emacs-wsl-apps) "bash"))
              (shell-pop-term-shell shell-file-name)
              (value '("ansi-term" "*ansi-term*"
                       (lambda () (ansi-term shell-pop-term-shell))))
@@ -252,7 +252,7 @@ was found."
   (use-package fakecygpty
     :ensure nil
     :if (and sys/win32p
-             entropy/win-fakecygpty-enable
+             entropy/emacs-win-fakecygpty-enable
              (executable-find "fakecygpty")
              (executable-find "qkill"))
     :commands fakecygpty-activate
@@ -260,7 +260,7 @@ was found."
     (fakecygpty-activate)
     :config
     (defun entropy/cd-around-advice (old_func dir)
-      (let ((wsl-root (substring (expand-file-name entropy/wsl-apps) 0 -9)))
+      (let ((wsl-root (substring (expand-file-name entropy/emacs-wsl-apps) 0 -9)))
         (cond ((string-match-p "^/.[^/]+" dir)
                (setq dir (expand-file-name (replace-regexp-in-string "^/" "" dir) wsl-root)))
               ((string-match-p "^/./" dir)
@@ -276,8 +276,8 @@ was found."
         (funcall old_func dir)))
     (advice-add 'cd :around 'entropy/cd-around-advice)
     
-    (cond ((and entropy/wsl-enable
-                (ignore-errors (file-exists-p entropy/wsl-apps)))
+    (cond ((and entropy/emacs-wsl-enable
+                (ignore-errors (file-exists-p entropy/emacs-wsl-apps)))
            (entropy/shell-pop-make-pop-ansi-term))
           
           (t

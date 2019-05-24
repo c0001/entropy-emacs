@@ -93,14 +93,14 @@ oppsite."
 
 ;; *** compiler use gcc or g++ in windows opertion system
   (when (and sys/win32p
-             entropy/win-portable-mingw-enable
+             entropy/emacs-win-portable-mingw-enable
              (executable-find "x86_64-w64-mingw32-g++.exe")
              (executable-find "x86_64-w64-mingw32-gcc.exe"))
-    (defun entropy/win-c-compiler ()
+    (defun entropy/emacs-win-c-compiler ()
       "Compile C or Cpp file with their parameter:
 
-1. `entropy/win-gcc-parameter'
-2. `entropy/win-g++-parameter'
+1. `entropy/emacs-win-gcc-parameter'
+2. `entropy/emacs-win-g++-parameter'
 
 
 Til now, this function just compatibility with windows
@@ -114,23 +114,23 @@ plattform."
          ((string= c-type "c")
           (shell-command
            (concat
-            (concat entropy/win-portable-mingw-path "x86_64-w64-mingw32-gcc.exe")
+            (concat entropy/emacs-win-portable-mingw-path "x86_64-w64-mingw32-gcc.exe")
             (concat " -o "
                     (concat (file-name-directory file)  fname ".exe") " " file
-                    " " entropy/win-gcc-parameter))))
+                    " " entropy/emacs-win-gcc-parameter))))
          ((or (string= c-type "cpp")
               (string= c-type "c++")
               (string= c-type "cxx"))
           (shell-command
            (concat 
-            (concat entropy/win-portable-mingw-path "x86_64-w64-mingw32-g++.exe")
+            (concat entropy/emacs-win-portable-mingw-path "x86_64-w64-mingw32-g++.exe")
             (concat " -o "
                     (concat (file-name-directory file)  fname ".exe") " " file
-                    " " entropy/win-g++-parameter))))
+                    " " entropy/emacs-win-g++-parameter))))
          (t
           (user-error "This file was not C or Cpp file!")))))
 
-    (defun entropy/win-c-open-exec ()
+    (defun entropy/emacs-win-c-open-exec ()
       "Open exec file(windows only) which compiled by current C or
 Cpp file, if no such file named by like:
 
@@ -138,7 +138,7 @@ current-file-name.exe
 
 will quit and message one error info.
 
-This function must be ran after `entropy/win-c-compiler'.
+This function must be ran after `entropy/emacs-win-c-compiler'.
 "
       (interactive)
       (let* (exefile
@@ -174,8 +174,8 @@ This function must be ran after `entropy/win-c-compiler'.
     ;; define key binding with above two function for 'c-mode' and 'c++-mode'
     (let ((mode-map `(,c-mode-map ,c++-mode-map)))
       (dolist (map mode-map)
-        (define-key map (kbd "<f5>") 'entropy/win-c-compiler)
-        (define-key map (kbd "<C-f5>") 'entropy/win-c-open-exec)))))
+        (define-key map (kbd "<f5>") 'entropy/emacs-win-c-compiler)
+        (define-key map (kbd "<C-f5>") 'entropy/emacs-win-c-open-exec)))))
 
 
 ;; ** irony mode
@@ -206,8 +206,8 @@ This function must be ran after `entropy/win-c-compiler'.
 
 (cond
  ((and sys/win32p
-       entropy/win-portable-mingw-enable
-       (file-exists-p (concat entropy/win-portable-mingw-path "libclang.dll")))
+       entropy/emacs-win-portable-mingw-enable
+       (file-exists-p (concat entropy/emacs-win-portable-mingw-path "libclang.dll")))
   (entropy/usepackage-irony))
  ((or sys/linuxp 
       sys/linux-x-p

@@ -23,7 +23,7 @@
   "This function was to automaticly init `tern-mode' and pop-up
 `company-tern'."
   (interactive (list 'interactive))
-  (unless entropy/company-lsp
+  (unless entropy/emacs-company-lsp
     (if (not tern-mode)
         (progn
           (entropy/emacs-web-creat-js2mode-tern-project-file)
@@ -39,7 +39,7 @@
   And this automatically created file was the file within
   entropy-emacs."
   (interactive)
-  (unless entropy/company-lsp
+  (unless entropy/emacs-company-lsp
     (if (file-exists-p ".tern-project")
         (message "Already have .tern-project :)")
       (if (file-exists-p (expand-file-name "annex/.tern-project" user-emacs-directory))
@@ -90,7 +90,7 @@
         (add-hook 'web-mode-hook #'(lambda () (setq-local entropy/web-development-environment t)))
         (define-key web-mode-map (kbd "<C-f1>") 'entropy/emacs-web-browse-web-buffer)))
 
-  (when (not entropy/company-lsp)
+  (when (not entropy/emacs-company-lsp)
     (define-key web-mode-map (kbd "M-t") 'entropy/emacs-web-mode-company-tern))
 
   (define-key web-mode-map (kbd "M-p") 'company-ac-php-backend))
@@ -131,7 +131,7 @@
 
 ;; **** tern mode
 (use-package tern
-  :if (not entropy/company-lsp)
+  :if (not entropy/emacs-company-lsp)
   :commands (tern-mode)
   :defines js2-mode-hook
   :hook (js2-mode . tern-mode))

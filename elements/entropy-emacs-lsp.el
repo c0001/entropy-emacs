@@ -39,7 +39,7 @@
 ;; ** main
 (use-package lsp-mode
   :if (and (>= emacs-major-version 25)
-           entropy/company-lsp)
+           entropy/emacs-company-lsp)
   :diminish lsp-mode
   :commands lsp
   :hook (prog-mode . lsp)
@@ -49,7 +49,7 @@
   
 (use-package lsp-ui
   :if (and (>= emacs-major-version 25)
-           entropy/company-lsp)
+           entropy/emacs-company-lsp)
   :commands (lsp-ui-peek-find-definitions
              lsp-ui-peek-find-references
              lsp-ui-imenu)

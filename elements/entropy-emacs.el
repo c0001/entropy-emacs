@@ -80,7 +80,7 @@ Trying insert some words in below are:
 
 ")
                   (w32-send-sys-command #xF000)))))))
-  (when entropy/win-init-ime-enable ()
+  (when entropy/emacs-win-init-ime-enable ()
         (add-hook 'emacs-startup-hook #'(lambda () (entropy/w32-ime-enable t)))
         (global-set-key (kbd "C-\\") #'(lambda ()
                                          (interactive)
@@ -91,25 +91,25 @@ Trying insert some words in below are:
 ;; ** Resetting browse-url-function in fancy-startup-screen
 
 (defun entropy/startup-screen-after-advice (&rest arg-rest)
-  "The advice when `entropy/browse-url-function' was detectived.
+  "The advice when `entropy/emacs-browse-url-function' was detectived.
 
 The main goal for this advice function was to chanage startup
 screen's `browse-url-browse-function' to
-`entropy/browse-url-function'."
-  (if (and entropy/browse-url-function entropy/enable-personal-browse-url-function)
-      (setq-local browse-url-browser-function entropy/browse-url-function)
+`entropy/emacs-browse-url-function'."
+  (if (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
+      (setq-local browse-url-browser-function entropy/emacs-browse-url-function)
     (setq-local browse-url-browser-function 'browse-url-default-browser)))
 
 
 (defun entropy/about-emacs-after-advice (&rest arg-rest)
-  "The advice when `entropy/browse-url-function' was detectived.
+  "The advice when `entropy/emacs-browse-url-function' was detectived.
 
 The main goal for this advice function was to chanage \"About
 Emacs\" buffer's local `browse-url-browse-function' to
-`entropy/browse-url-function'."
+`entropy/emacs-browse-url-function'."
   (with-current-buffer "*About GNU Emacs*"
-    (if (and entropy/browse-url-function entropy/enable-personal-browse-url-function)
-        (setq-local browse-url-browser-function entropy/browse-url-function)
+    (if (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
+        (setq-local browse-url-browser-function entropy/emacs-browse-url-function)
       (setq-local browse-url-browser-function 'browse-url-default-browser))))
 
 (advice-add 'fancy-startup-screen :after #'entropy/startup-screen-after-advice)
@@ -164,7 +164,7 @@ Emacs will auto close after 6s ......")
   (require 'entropy-emacs-themes)
   (redisplay t)
   ;; highlight
-  (when entropy/use-highlight-features
+  (when entropy/emacs-use-highlight-features
     ;; highlight package will cause the low performance of emacs interpretering, so this be the
     ;; choiced option
     (require 'entropy-emacs-highlight))
@@ -232,7 +232,7 @@ Emacs will auto close after 6s ......")
 
 ;; ** start type choice
 ;; *** status of pyim loading
-(when entropy/enable-pyim
+(when entropy/emacs-enable-pyim
   ;; for emacs 26 and higher version
   (defvar entropy/pyim-timer-26+ nil)
   (defvar entropy/pyim-init-done-26+ nil)
@@ -297,7 +297,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 (defun entropy/init-X ()
   (entropy/M-enable)
   (entropy/X-enable)
-  (when (and entropy/enable-pyim
+  (when (and entropy/emacs-enable-pyim
              ;; judgement of whether first init entropy-emacs
              (not
               (let ((buflist (mapcar #'buffer-name (buffer-list)))
@@ -311,7 +311,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 (defun entropy/init-M ()
   (entropy/M-enable)
-  (when entropy/enable-pyim
+  (when entropy/emacs-enable-pyim
     (entropy/pyim-init-prompt)
     (defun entropy/pyim-init-prompt ()
       (message "This function has been unloaded."))))
@@ -319,9 +319,9 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 (defun entropy/init-bingo ()
   (cond
-   ((not entropy/minimal-start)
+   ((not entropy/emacs-minimal-start)
     (entropy/init-X))
-   (entropy/minimal-start
+   (entropy/emacs-minimal-start
     (entropy/init-M))))
 
 

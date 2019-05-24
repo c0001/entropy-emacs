@@ -28,7 +28,7 @@
        ("C-c M-o" . zeal-at-point-search)))))
 
 
-(when (and sys/win32p entropy/win-portable-zeal-enable)
+(when (and sys/win32p entropy/emacs-win-portable-zeal-enable)
   (entropy/use-zeal-at-point))
 
 (when sys/linux-x-p

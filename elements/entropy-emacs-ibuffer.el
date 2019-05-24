@@ -36,7 +36,7 @@
 (require 'entropy-emacs-defcustom)
 
 ;; ** Group ibuffer's list by project root
-(if entropy/enable-ibuffer-projectitle
+(if entropy/emacs-enable-ibuffer-projectitle
 ;; Because projectitle in ibuffer will Straining system resources ，so let projectitle insert in
 ;; ibuffer be optional, and let all buffer switcher function be kill-buffer function cause if not do
 ;; this it will cause other opertion in other buffer be lagging a lot.

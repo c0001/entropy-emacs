@@ -24,10 +24,10 @@
   (advice-add #'gnutls-available-p :override #'ignore))
 
 ;; ** Personal infomation
-(when (and entropy/user-full-name
-           entropy/user-mail-address)
-  (setq user-full-name entropy/user-full-name)
-  (setq user-mail-address entropy/user-mail-address))
+(when (and entropy/emacs-user-full-name
+           entropy/emacs-user-mail-address)
+  (setq user-full-name entropy/emacs-user-full-name)
+  (setq user-mail-address entropy/emacs-user-mail-address))
 
 
 ;; *** Show the column numberic in modeline
@@ -46,7 +46,7 @@
     (progn
       (setq-default display-line-numbers-width-start t)
       ;; (setq-default display-line-numbers-grow-only t)
-      (when entropy/init-display-line-mode
+      (when entropy/emacs-init-display-line-mode
         (global-display-line-numbers-mode))))
 
 ;; ** Set the default dired directory
@@ -180,43 +180,43 @@ Manually edit this variable will not be any effection.")
   (window-number-mode 1))
 
 ;; **** use windmove function stolen :) from `https://github.com/troydm/emacs-stuff/blob/master/windcycle.el'
-(defun entropy/windmove-up-cycle()
+(defun entropy/emacs-windmove-up-cycle()
   (interactive)
   (condition-case nil (windmove-up)
     (error (condition-case nil (windmove-down)
 	          (error (condition-case nil (windmove-right) (error (condition-case nil (windmove-left) (error (windmove-up))))))))))
 
-(defun entropy/windmove-down-cycle()
+(defun entropy/emacs-windmove-down-cycle()
   (interactive)
   (condition-case nil (windmove-down)
     (error (condition-case nil (windmove-up)
 	          (error (condition-case nil (windmove-left) (error (condition-case nil (windmove-right) (error (windmove-down))))))))))
 
-(defun entropy/windmove-right-cycle()
+(defun entropy/emacs-windmove-right-cycle()
   (interactive)
   (condition-case nil (windmove-right)
     (error (condition-case nil (windmove-left)
 	          (error (condition-case nil (windmove-up) (error (condition-case nil (windmove-down) (error (windmove-right))))))))))
 
-(defun entropy/windmove-left-cycle()
+(defun entropy/emacs-windmove-left-cycle()
   (interactive)
   (condition-case nil (windmove-left)
     (error (condition-case nil (windmove-right)
 	          (error (condition-case nil (windmove-down) (error (condition-case nil (windmove-up) (error (windmove-left))))))))))
 
-(global-set-key (kbd "C-x <up>") 'entropy/windmove-up-cycle)
-(global-set-key (kbd "C-x <down>") 'entropy/windmove-down-cycle)
-(global-set-key (kbd "C-x <right>") 'entropy/windmove-right-cycle)
-(global-set-key (kbd "C-x <left>") 'entropy/windmove-left-cycle)
+(global-set-key (kbd "C-x <up>") 'entropy/emacs-windmove-up-cycle)
+(global-set-key (kbd "C-x <down>") 'entropy/emacs-windmove-down-cycle)
+(global-set-key (kbd "C-x <right>") 'entropy/emacs-windmove-right-cycle)
+(global-set-key (kbd "C-x <left>") 'entropy/emacs-windmove-left-cycle)
 
 ;; ***** disable buffer reverse and turn by =C-x C-left= =C-x C-right=
 (global-set-key (kbd "C-x C-<left>") nil)
 (global-set-key (kbd "C-x C-<right>") nil)
 
-;; (global-set-key (kbd "M-<up>") 'entropy/windmove-up-cycle)
-;; (global-set-key (kbd "M-<down>") 'entropy/windmove-down-cycle)
-;; (global-set-key (kbd "M-<right>") 'entropy/windmove-right-cycle)
-;; (global-set-key (kbd "M-<left>") 'entropy/windmove-left-cycle)
+;; (global-set-key (kbd "M-<up>") 'entropy/emacs-windmove-up-cycle)
+;; (global-set-key (kbd "M-<down>") 'entropy/emacs-windmove-down-cycle)
+;; (global-set-key (kbd "M-<right>") 'entropy/emacs-windmove-right-cycle)
+;; (global-set-key (kbd "M-<left>") 'entropy/emacs-windmove-left-cycle)
 
 ;; Window Dedicated Toggle Function
 (defun toggle-dedicated-window ()
@@ -242,8 +242,8 @@ Manually edit this variable will not be any effection.")
          ("C-c C-w a" . eyebrowse-switch-to-window-config))
   :config
   (setq eyebrowse-mode-line-style nil)
-  (if entropy/enable-eyebrowse-new-workspace-init-function
-      (setq eyebrowse-new-workspace entropy/eyebrowse-new-workspace-init-function)
+  (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
+      (setq eyebrowse-new-workspace entropy/emacs-eyebrowse-new-workspace-init-function)
     (setq eyebrowse-new-workspace t))
 
   ;; debug for improving eyebrowse's user experience
@@ -623,7 +623,7 @@ without derived slot."
                                 "*esh command on file*"))
   (add-hook 'entropy/init-mini-hook #'winner-mode))
 ;; **** desktop mode
-(when entropy/desktop-enable
+(when entropy/emacs-desktop-enable
   (use-package desktop
     :ensure nil
     :commands (desktop-save-mode)
@@ -786,15 +786,15 @@ retrieve from `window-list' larger than 1."
 ;; *** window divider
 (window-divider-mode)
 ;; ** Set defualt tab size
-(if entropy/custom-tab-enable
-    (setq-default tab-width entropy/custom-tab-width)
+(if entropy/emacs-custom-tab-enable
+    (setq-default tab-width entropy/emacs-custom-tab-width)
   (setq-default indent-tabs-mode nil))
 
 ;; ** Setting language encoding environment
 (setq system-time-locale "C") ;Use english format time string
-;; *** Default using UTF-8 encoding for basic environment when `entropy/custom-language-environment-enable' was nil
-(unless (and entropy/custom-language-environment-enable
-             (ignore-errors (stringp entropy/language-environment)))
+;; *** Default using UTF-8 encoding for basic environment when `entropy/emacs-custom-language-environment-enable' was nil
+(unless (and entropy/emacs-custom-language-environment-enable
+             (ignore-errors (stringp entropy/emacs-language-environment)))
   (progn
     (set-language-environment "UTF-8")
     (prefer-coding-system 'utf-8-unix)
@@ -802,16 +802,16 @@ retrieve from `window-list' larger than 1."
     (set-terminal-coding-system 'utf-8-unix)
     (set-keyboard-coding-system 'utf-8-unix)))
 
-;; *** When `entropy/custom-language-environment-enable' was t using customized basic encoding system.
-(when (and entropy/custom-language-environment-enable
-           (ignore-errors (stringp entropy/language-environment)))
-  (set-language-environment entropy/language-environment)
+;; *** When `entropy/emacs-custom-language-environment-enable' was t using customized basic encoding system.
+(when (and entropy/emacs-custom-language-environment-enable
+           (ignore-errors (stringp entropy/emacs-language-environment)))
+  (set-language-environment entropy/emacs-language-environment)
   (setq default-file-name-coding-system 'utf-8-unix))
 
 ;; setting w32 shell lang env
 (when sys/win32p
-  (when entropy/win-env-lang-enable
-    (setenv "LANG" entropy/win-env-lang-set)))
+  (when entropy/emacs-win-env-lang-enable
+    (setenv "LANG" entropy/emacs-win-env-lang-set)))
 
 ;; **** Specific state to forceing using UTF-8 encoding environment
 ;; ***** Treat clipboard input as UTF-8 string first; compound text next, etc.
@@ -872,10 +872,10 @@ Optional arg COND has four type:
       (prefer-coding-system 'utf-8-unix)
       (message "Setting language environment to 'utf-8-unix'."))
      ((string= lang "LOCAL")
-      (set-language-environment entropy/language-environment)
+      (set-language-environment entropy/emacs-language-environment)
       (prefer-coding-system entropy/lang-locale)
       (setq default-file-name-coding-system 'utf-8-unix)
-      (message "Setting language environment to '%s'." entropy/language-environment))
+      (message "Setting language environment to '%s'." entropy/emacs-language-environment))
      (t (error "Invalid LANG arg")))))
 
 (defun entropy/lang-set-utf-8 (&rest args)
@@ -886,19 +886,19 @@ by `entropy/lang-set'"
 
 (defun entropy/revert-buffer-with-custom-language-environment ()
   "This function was designed to auto revert buffer with
-language-environment you set in `entropy/language-environment'."
+language-environment you set in `entropy/emacs-language-environment'."
   (interactive)
   (if (string= current-language-environment "UTF-8")
       (progn
         (entropy/toggle-utf-8-and-locale)
         (revert-buffer t t)
-        (message "Succeed revert buffer with %s" entropy/language-environment))
+        (message "Succeed revert buffer with %s" entropy/emacs-language-environment))
     (error "Have been locale setting ♘")))
 
 ;; ***** let diff-buffer-with-file force run with unicode language environment
 (advice-add 'diff-buffer-with-file :before #'entropy/lang-set-utf-8)
 
-;; ***** around advice when `entropy/custom-language-environment-enable' was nil
+;; ***** around advice when `entropy/emacs-custom-language-environment-enable' was nil
 
 (defun entropy/lang-set-without-enable (oldfunc &rest args)
   "Around advice for funcs:
@@ -908,15 +908,15 @@ language-environment you set in `entropy/language-environment'."
 - entropy/revert-buffer-with-custom-language-environment
 
 This func will force disable each func's internal process when
-custom variable `entropy/custom-language-environment-enable' was
+custom variable `entropy/emacs-custom-language-environment-enable' was
 nil.
  "
   (cond
-   ((and entropy/custom-language-environment-enable
-         (ignore-errors (stringp entropy/language-environment)))
+   ((and entropy/emacs-custom-language-environment-enable
+         (ignore-errors (stringp entropy/emacs-language-environment)))
     (apply oldfunc args))
-   ((or (null entropy/custom-language-environment-enable)
-        (not (ignore-errors (stringp entropy/language-environment))))
+   ((or (null entropy/emacs-custom-language-environment-enable)
+        (not (ignore-errors (stringp entropy/emacs-language-environment))))
     t)))
 
 (dolist (el '(entropy/toggle-utf-8-and-locale
@@ -1094,7 +1094,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
 ;; *** Use coloful dired ls
   (defun entropy/dired-visual-init ()
     "Init dired colorful visual featuer."
-    (cond ((or (string= entropy/dired-visual-type "simple-rainbow")
+    (cond ((or (string= entropy/emacs-dired-visual-type "simple-rainbow")
                (version= emacs-version "25.3.1"))
            (use-package dired-rainbow
              :commands dired-rainbow-define dired-rainbow-define-chmod
@@ -1133,25 +1133,25 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
 
              ;; highlight executable files, but not directories
              (dired-rainbow-define-chmod executable-unix "green" "-[rw-]+x.*"))
-           (if (string= entropy/dired-visual-type "all-the-icons")
+           (if (string= entropy/emacs-dired-visual-type "all-the-icons")
                (warn " Because you are in emacs 25.3.1, just can
 using simple dired visual type, although you have seting it to
 \"all-the-icons\".")))
-          ((and (string= entropy/dired-visual-type "all-the-icons")
+          ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
                 (not (version= emacs-version "25.3.1"))
                 (display-graphic-p))
            (require 'font-lock+)
            (use-package all-the-icons-dired
              :commands (all-the-icons-dired-mode)
              :hook (dired-mode . all-the-icons-dired-mode)))
-          ((and (string= entropy/dired-visual-type "all-the-icons")
+          ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
                 (not (display-graphic-p)))
-           (setq entropy/dired-visual-type "simple-rainbow")
+           (setq entropy/emacs-dired-visual-type "simple-rainbow")
            (warn "You are in terminal emacs session, can not
            enable 'dired-all-the-icons', enable simple-rainbow
            instead now. ")
            (entropy/dired-visual-init))
-          (t (error "entropy/dired-visual-type invalid"))))
+          (t (error "entropy/emacs-dired-visual-type invalid"))))
   (entropy/dired-visual-init)
   
 ;; *** bind 'M-<up>' for dired updir
@@ -1230,22 +1230,22 @@ emacs."
 
 (defun entropy/loop-alpha ()    
   (interactive)    
-  (let ((h (car entropy/loop-alpha-value)))
+  (let ((h (car entropy/emacs-loop-alpha-value)))
     (funcall
      (lambda (a ab)    
        (set-frame-parameter (selected-frame) 'alpha (list a ab))    
        (add-to-list 'default-frame-alist (cons 'alpha (list a ab))))
      (car h)
      (car (cdr h)))
-    (setq entropy/loop-alpha-value (cdr (append entropy/loop-alpha-value (list h))))))
+    (setq entropy/emacs-loop-alpha-value (cdr (append entropy/emacs-loop-alpha-value (list h))))))
 
-(when entropy/init-loop-alpha
+(when entropy/emacs-init-loop-alpha
     (entropy/loop-alpha))
 
 ;; ** Paragraph fill size
-(setq-default fill-column entropy/fill-paragraph-width)
+(setq-default fill-column entropy/emacs-fill-paragraph-width)
 ;; ** Show time on mode line
-(when entropy/display-time-modeline
+(when entropy/emacs-display-time-modeline
   ;; 启用时间显示设置
   (display-time-mode 1)
   (setq-default display-time-interval 1)
@@ -1462,7 +1462,7 @@ emacs."
     (interactive)
     (message "Do not use view-hello-file in windows because of it will jamm windows and emacs")))
 ;; ** Delete file to trash
-(if entropy/dired-enable-trash
+(if entropy/emacs-dired-enable-trash
     (setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder but with some
                                                ; performance bug on windows plattform.
   )
@@ -1477,7 +1477,7 @@ emacs."
     (setq save-place t)))
 
 (use-package recentf
-  :if entropy/use-recentf
+  :if entropy/emacs-use-recentf
   :ensure nil
   :init
   (setq recentf-max-saved-items 200)
@@ -1507,7 +1507,7 @@ emacs."
 ;; ** Bookmarks autosave
 (setq bookmark-save-flag 1)
 ;; *** bookmark utf-8
-(when entropy/custom-language-environment-enable
+(when entropy/emacs-custom-language-environment-enable
   (dolist (hook '(bookmark-edit-annotation-mode-hook
                   bookmark-bmenu-mode-hook))
     (add-hook hook
@@ -1626,7 +1626,7 @@ Temp file was \"~/~entropy-artist.txt\""
 ;; `https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag'
 (setq auto-window-vscroll nil)
 ;; ** use chinese pyim
-(if (and entropy/enable-pyim
+(if (and entropy/emacs-enable-pyim
          (or sys/win32p sys/linux-x-p sys/mac-x-p))
     (use-package pyim
       :bind
@@ -1636,11 +1636,11 @@ Temp file was \"~/~entropy-artist.txt\""
       :commands (pyim-restart-1)
       :config
 ;; *** 词库设置
-      (if (not entropy/pyim-dicts)
+      (if (not entropy/emacs-pyim-dicts)
           (use-package pyim-basedict
             :ensure nil
             :config (pyim-basedict-enable))
-        (setq pyim-dicts entropy/pyim-dicts))
+        (setq pyim-dicts entropy/emacs-pyim-dicts))
 ;; *** 默认输入法设置
       (setq default-input-method "pyim")
 
@@ -1651,18 +1651,18 @@ Temp file was \"~/~entropy-artist.txt\""
       ;; 为 'posframe, 速度很快并且菜单不会变形，不过需要用户
       ;; 手动安装 posframe 包。
       (if (version< emacs-version "26")
-          (if (or (eq entropy/pyim-tooltip 'posframe)
-                  (not entropy/pyim-tooltip))
+          (if (or (eq entropy/emacs-pyim-tooltip 'posframe)
+                  (not entropy/emacs-pyim-tooltip))
               (setq pyim-page-tooltip 'popup)
-            (setq pyim-page-tooltip entropy/pyim-tooltip))
+            (setq pyim-page-tooltip entropy/emacs-pyim-tooltip))
         (progn
           (use-package posframe)
-          (if entropy/pyim-tooltip
-              (setq pyim-page-tooltip entropy/pyim-tooltip)
+          (if entropy/emacs-pyim-tooltip
+              (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
             (setq pyim-page-tooltip 'posframe))))
 
-      (when entropy/pyim-cached-dir
-        (setq pyim-dcache-directory entropy/pyim-cached-dir))
+      (when entropy/emacs-pyim-cached-dir
+        (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir))
 
 ;; *** 选词框显示5个候选词
       (setq pyim-page-length 5)
@@ -1758,13 +1758,13 @@ Temp file was \"~/~entropy-artist.txt\""
   :ensure nil
   :init
   (epa-file-enable)
-  (when (and entropy/wsl-enable
-             (file-exists-p entropy/wsl-apps))
+  (when (and entropy/emacs-wsl-enable
+             (file-exists-p entropy/emacs-wsl-apps))
     (with-eval-after-load 'custom
       (custom-set-variables
-       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/wsl-apps))
-       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/wsl-apps))
-       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/wsl-apps))))))
+       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-wsl-apps))
+       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-wsl-apps))
+       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-wsl-apps))))))
 
 ;; ** process refer
 ;; *** process

@@ -125,9 +125,9 @@ which type of value be:
 ;; **** improve counsel-git and counsel-bookmark
 
   ;; counsel-git and counsel-bookmark usually using 'utf-8' encoding for searching and return data
-  ;; back, so `entropy/custom-language-environment-enable' was conflicted with it, we must turn the
+  ;; back, so `entropy/emacs-custom-language-environment-enable' was conflicted with it, we must turn the
   ;; main encoding type while calling them.
-  (if entropy/custom-language-environment-enable
+  (if entropy/emacs-custom-language-environment-enable
       (progn
         (defun entropy/counsel-git ()
           (interactive)
@@ -299,7 +299,7 @@ when changing theme."
   
 
 ;; **** counsel-locate
-  (when (and sys/win32p entropy/wsl-enable)
+  (when (and sys/win32p entropy/emacs-wsl-enable)
     (defun entropy/counsel-locate ()
       "Call counsel-locate by unicode encoding when in windows
 plattform."
@@ -460,13 +460,13 @@ this variable used to patching for origin `counsel-git'.")
 
 (if sys/win32p
 ;; *** Windows plattform
-    (if (string= entropy/search-program "pt")
+    (if (string= entropy/emacs-search-program "pt")
 ;; **** helm-pt
         (use-package helm-pt
           :commands (helm-do-pt helm-projectile-pt)
           :init
           (setq helm-pt-insert-at-point nil)
-          (if entropy/custom-language-environment-enable
+          (if entropy/emacs-custom-language-environment-enable
               ;; when customized language environment setting enabel keeping helm-pt using UTF-8 for
               ;; enchance the unicode querying.
               (progn
@@ -497,7 +497,7 @@ this variable used to patching for origin `counsel-git'.")
         :init
         ;; Because windows ag exec was locale rely on the operation system, so keeping the ag
         ;; process using locale setting language environment.
-        (if entropy/custom-language-environment-enable
+        (if entropy/emacs-custom-language-environment-enable
             (progn
               (defun entropy/helm-do-ag ()
                 (interactive)
@@ -538,7 +538,7 @@ corresponding buffer."
           (interactive)
           (funcall #'entropy/helm-ag--edit-commit))))
 ;; *** Unix-like plattform
-  (if (string= entropy/search-program "pt")
+  (if (string= entropy/emacs-search-program "pt")
       (use-package helm-pt
         :commands (helm-do-pt helm-projectile-pt)
         :bind

@@ -39,7 +39,7 @@
     (with-eval-after-load 'yasnippet
       (yasnippet-snippets-initialize)))
 
-  (add-to-list 'yas-snippet-dirs entropy/yas-dir)
+  (add-to-list 'yas-snippet-dirs entropy/emacs-yas-dir)
 
   ;; disable tab key in `yas-minor-mode' which will make conflict with `orgstruct-mode'
   ;; `https://stackoverflow.com/questions/14066526/unset-tab-binding-for-yasnippet'

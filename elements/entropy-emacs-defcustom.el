@@ -38,36 +38,36 @@
   "Personal Emacs configurations."
   :group 'extensions)
 
-(defcustom entropy/custom-common-file (expand-file-name
+(defcustom entropy/emacs-custom-common-file (expand-file-name
                                        "custom.el"
                                        user-emacs-directory)
   "entropy-emacs common custom file"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/custom-navigate-file (expand-file-name
+(defcustom entropy/emacs-custom-navigate-file (expand-file-name
                                          "navigate.el"
                                          user-emacs-directory)
   "entropy-emacs navigate custom file."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/fancy-splash-logo (expand-file-name "logo/logo.png" (file-name-directory load-file-name))
+(defcustom entropy/emacs-fancy-splash-logo (expand-file-name "logo/logo.png" (file-name-directory load-file-name))
   "Set emacs logo. nil means official logo."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/user-full-name nil
+(defcustom entropy/emacs-user-full-name nil
   "Set user full name."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/user-mail-address nil
+(defcustom entropy/emacs-user-mail-address nil
   "Set user email address."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/package-archive-repo 'melpa
+(defcustom entropy/emacs-package-archive-repo 'melpa
   "Set package archives from which to fetch."
   :type '(choice
           (const :tag "Melpa" melpa)
@@ -75,24 +75,24 @@
           (const :tag "Tuna" tuna))
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/default-external-browser 'firefox
+(defcustom entropy/emacs-default-external-browser 'firefox
   "Set default browser for `org-open-at-point'"
   :type '(choice
           (const :tag "google-chrome-stable %s" chrome)
           (const :tag "firefox %s" firefox))
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/initialize-benchmark-enable nil
+(defcustom entropy/emacs-initialize-benchmark-enable nil
   "Enable the init benchmark or not."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/use-emms-mode-line nil
+(defcustom entropy/emacs-use-emms-mode-line nil
   "Enable emms-modeline or not."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** use emacs extension from git submodules or elpa folder
-(defcustom entropy/use-extensions-type 'origin
+(defcustom entropy/emacs-use-extensions-type 'origin
   "Init emacs with extensions from entropy-emacs submodules or
   elpa place.
 
@@ -100,17 +100,17 @@ Available value are 'submodules' and 'origin'."
   :type 'symbol
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/ext-deps-dir (expand-file-name
+(defcustom entropy/emacs-ext-deps-dir (expand-file-name
                                  ".entropy-emacs-deps"
                                  "~/")
   "entropy-emacs dependencies archive location, entropy-emacs
 deps are the necessities for both type of 'origin' or
 'submodules' extension using type of
-`entropy/use-extensions-type'."
+`entropy/emacs-use-extensions-type'."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/ext-extensions-dir (expand-file-name
+(defcustom entropy/emacs-ext-extensions-dir (expand-file-name
                                       ".entropy-emacs-extensions"
                                       "~/")
   "entropy-emacs extensions collection archive location. This
@@ -120,22 +120,22 @@ using for studying or giving the pr to the origin host when you
 found the bug or want to give the improvements.
 
 This archive used then type of 'submodules' to customized
-variable `entropy/use-extensions-type'."
+variable `entropy/emacs-use-extensions-type'."
 
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
 
-(defcustom entropy/ext-extensions-elpa-dir (expand-file-name
+(defcustom entropy/emacs-ext-extensions-elpa-dir (expand-file-name
                                             ".entropy-emacs-extensions-elpa"
                                             "~/")
   "entropy-emacs elpa extensions directory used when
-`entropy/use-extensions-type' was not eq 'submodules'."
+`entropy/emacs-use-extensions-type' was not eq 'submodules'."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
 
-(defcustom entropy/ext-user-specific-load-paths nil
+(defcustom entropy/emacs-ext-user-specific-load-paths nil
   "Extra load path list for user specification.
 
 This feature usually used for emacs new feature adding test and
@@ -145,31 +145,31 @@ designation."
 
 
 ;; *** yas dir
-(defcustom entropy/yas-dir "~/.emacs.d/snippets"
+(defcustom entropy/emacs-yas-dir "~/.emacs.d/snippets"
   "Set the default personal snippet dir"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** ui theme and modeline style
 ;; **** enable initial dashboard
-(defcustom entropy/enable-initial-dashboard t
+(defcustom entropy/emacs-enable-initial-dashboard t
   "Enable entropy emacs initial dashboard instead of emacs
   default one."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; **** theme choise
-(defcustom entropy/theme-options 'doom-one
+(defcustom entropy/emacs-theme-options 'doom-one
   "Choice emacs gui theme"
   :type 'face
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/enable-option-theme-tty nil
+(defcustom entropy/emacs-enable-option-theme-tty nil
   "Enable option theme in tty, it's useful for true color tty."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; **** modeline
-(defcustom entropy/modeline-style "origin"
+(defcustom entropy/emacs-modeline-style "origin"
   "
 Choose the modeline style:
 
@@ -187,7 +187,7 @@ Notice:
   not be full visibility fine at this time.
 
 - this variable's effectively was rely on the varaible
-  `entropy/enable-modeline-toggle' enabled, other wise any setting for this
+  `entropy/emacs-enable-modeline-toggle' enabled, other wise any setting for this
   variable were none-effectively."
   :type '(choice
           (const :tag "spaceline-regular" "spaceline")
@@ -197,10 +197,10 @@ Notice:
           (const :tag "doom-modeline" "doom"))
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/enable-modeline-toggle nil
+(defcustom entropy/emacs-enable-modeline-toggle nil
   "Enable modeline toggle function `entropy/mdl-powerline' and
   `entropy/mdl-spaceline' and the customized effectively of
-  `entropy/modeline-style'.
+  `entropy/emacs-modeline-style'.
 
 Note: spaceline and powerline will cause lagging performancs
 issue for emacs while you are in the low performance computer
@@ -210,29 +210,29 @@ for a long time and so as the bad head dispersion."
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; **** display time in modeline
-(defcustom entropy/display-time-modeline nil
+(defcustom entropy/emacs-display-time-modeline nil
   "Whether show the Real-time TIME in mode line."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** init-frame position
-(defcustom entropy/init-fpos-enable nil
+(defcustom entropy/emacs-init-fpos-enable nil
   "Whether set init emacs position by `entropy/set-frame-position'."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/init-frame-width-scale 0.6
+(defcustom entropy/emacs-init-frame-width-scale 0.6
   "The init scale of frame width within the fully width of
   screen"
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/init-frame-height-scale 0.93
+(defcustom entropy/emacs-init-frame-height-scale 0.93
   "The init scale of frame height within the fully height of
   screen"
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/init-fpos-y nil
+(defcustom entropy/emacs-init-fpos-y nil
   "The y coordinate position value.
 
   In commonly this value was nil, because most of windows or linux
@@ -260,49 +260,49 @@ for a long time and so as the bad head dispersion."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** init display line mode
-(defcustom entropy/init-display-line-mode nil
+(defcustom entropy/emacs-init-display-line-mode nil
   "Enable `global-display-line-numbers-mode' at start up time when in
 emacs 26 or higher emacs version."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** desktop save config
-(defcustom entropy/desktop-enable nil
+(defcustom entropy/emacs-desktop-enable nil
   "Enable desktop-save-mode and persistent scratch buffer"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** recent files
-(defcustom entropy/use-recentf nil
+(defcustom entropy/emacs-use-recentf nil
   "Whether use recentf-mode after emacs init."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** tab-width or disable it globally
-(defcustom entropy/custom-tab-enable nil
+(defcustom entropy/emacs-custom-tab-enable nil
   "Enable indent-tab-mode"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/custom-tab-width 4
+(defcustom entropy/emacs-custom-tab-width 4
   "Set the customized tab width"
   :type 'integer
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** init fill column width
-(defcustom entropy/fill-paragraph-width 70
+(defcustom entropy/emacs-fill-paragraph-width 70
   "Setting fill-paragraph width, default 100."
   :type 'integer
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** backgroud transparent
-(defcustom entropy/init-loop-alpha t
+(defcustom entropy/emacs-init-loop-alpha t
   "Enable transparent at startup of emacs"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
-(defcustom entropy/loop-alpha-value '((95 55) (100 100))
+(defcustom entropy/emacs-loop-alpha-value '((95 55) (100 100))
   "The value of background transparent"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** dired about
 ;; **** dired visual type
-(defcustom entropy/dired-visual-type "simple-rainbow"
+(defcustom entropy/emacs-dired-visual-type "simple-rainbow"
   "Type of dired visual appearance.
 
   You have two choice:
@@ -316,26 +316,26 @@ emacs 26 or higher emacs version."
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; **** dired trash enable
-(defcustom entropy/dired-enable-trash nil
+(defcustom entropy/emacs-dired-enable-trash nil
   "Enable trash function when using `dired-delete-file' in
   `dired-mode'."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** eyebrowse config
-(defcustom entropy/enable-eyebrowse-new-workspace-init-function nil
+(defcustom entropy/emacs-enable-eyebrowse-new-workspace-init-function nil
   "Enable personal function for eyebrowse to creating new
   workspace"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/eyebrowse-new-workspace-init-function 'entropy/create-scratch-buffer
+(defcustom entropy/emacs-eyebrowse-new-workspace-init-function 'entropy/create-scratch-buffer
   "Create the init buffer or others with you own function when
 open one new eyebrowse workspace"
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** ibuffer projectiitle config
-(defcustom entropy/enable-ibuffer-projectitle nil
+(defcustom entropy/emacs-enable-ibuffer-projectitle nil
   "Enable ibuffer-projectitle in ibuffer
 
 Note: ibuffer-projectitle will cause the performance debug.
@@ -343,23 +343,23 @@ Note: ibuffer-projectitle will cause the performance debug.
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** google translation
-(defcustom entropy/google-translate-toggle-patched-in-china t
+(defcustom entropy/emacs-google-translate-toggle-patched-in-china t
   "Enable google-translate in china"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** eww search engine set
-(defcustom entropy/eww-search-engine-customize t
+(defcustom entropy/emacs-eww-search-engine-customize t
   "Enable eww search prefix customized"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/eww-search-engine "https://www.bing.com/search?q="
+(defcustom entropy/emacs-eww-search-engine "https://www.bing.com/search?q="
   "Customized eww search prefix string and the default was 'bing.cn'"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** search-web search-engines setting
-(defcustom entropy/search-web-engines-internal
+(defcustom entropy/emacs-search-web-engines-internal
   '(("php-manual" "http://php.net/manual-lookup.php?pattern=%s" In-Emacs)
     ("MOZILA MDN" "http://developer.mozilla.org/en-US/search?q=%s" In-Emacs)
     ("baidu" "http://www.baidu.com/s?wd=%s" In-Emacs)
@@ -374,7 +374,7 @@ Note: ibuffer-projectitle will cause the performance debug.
   :type 'list
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/search-web-engines-external
+(defcustom entropy/emacs-search-web-engines-external
   '(("MOZILA MDN" "http://developer.mozilla.org/en-US/search?q=%s" External)
     ("php-manual" "http://php.net/manual-lookup.php?pattern=%s" External)
     ("github-external" "http://github.com/search?&q=%s" External)
@@ -398,30 +398,30 @@ Note: ibuffer-projectitle will cause the performance debug.
 
 ;; *** org config
 ;; **** org-bullet
-(defcustom entropy/enable-org-bullets t
+(defcustom entropy/emacs-enable-org-bullets t
   "Enable org bullets"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/org-bullets-type "roman"
+(defcustom entropy/emacs-org-bullets-type "roman"
   "Choose org bullets type."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; **** windows org-download temp path
-(defcustom entropy/win-org-download-file-name "c:\\temp\\screenshot.png"
+(defcustom entropy/emacs-win-org-download-file-name "c:\\temp\\screenshot.png"
   "Setting file name with it's path for screenshot in windows"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/win-org-download-screenshot-method "SnippingTool.exe"
+(defcustom entropy/emacs-win-org-download-screenshot-method "SnippingTool.exe"
   "Setting screenshot tool in windows and default be SnippingTool
   which is the componets of windows inside."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** Font setting
-(defcustom entropy/font-setting-enable t
+(defcustom entropy/emacs-font-setting-enable t
   "
 Enable entropy-emacs face font setting
 
@@ -442,7 +442,7 @@ With font below:
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/font-face-default "Noto Mono"
+(defcustom entropy/emacs-font-face-default "Noto Mono"
   "Choose the default font for face:
 There are two font for indicated:
 
@@ -454,21 +454,21 @@ Defualt for \"Noto Mono\""
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/font-size-default 10
+(defcustom entropy/emacs-font-size-default 10
   "Set the default font size for face-attribute.
 
 Default size was 10, the upper limit was 15."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/font-chinese "Droid Sans"
+(defcustom entropy/emacs-font-chinese "Droid Sans"
   "Choose the chinese font setting, default was Droid Sans if
 your installed"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** project search exec
-(defcustom entropy/search-program "ag"
+(defcustom entropy/emacs-search-program "ag"
   "Search engine choices:
 1. ag
 2. pt
@@ -478,14 +478,14 @@ Default is ag"
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** personal browse-url function and varaiable
-(defcustom entropy/enable-personal-browse-url-function nil
+(defcustom entropy/emacs-enable-personal-browse-url-function nil
   "Whether enable personal browse-url function? If yes, set it to
   be 't'"
   :type 'boolean
   :group ' entropy/emacs-custom-variable-basic)
 
 
-(defcustom entropy/browse-url-function nil
+(defcustom entropy/emacs-browse-url-function nil
   "The specific browse-url-function by your self,
 
 Mostly of all, you should write your browse-url function with two args:
@@ -504,29 +504,29 @@ For example:
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** For minmal startup
-(defcustom entropy/minimal-start nil
+(defcustom entropy/emacs-minimal-start nil
   "For minmal startup"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** language envrionment setting
-(defcustom entropy/custom-language-environment-enable nil
+(defcustom entropy/emacs-custom-language-environment-enable nil
   "Enable custome language environment"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/language-environment nil
+(defcustom entropy/emacs-language-environment nil
   "Setting emacs language environment"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** use pyim
-(defcustom entropy/enable-pyim nil
+(defcustom entropy/emacs-enable-pyim nil
   "Enable pyim be the default pyin input method"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/pyim-dicts
+(defcustom entropy/emacs-pyim-dicts
   '((:name "core"
            (expand-file-name "pyim-about/core.pyim" user-emacs-directory))
     (:name "extra"
@@ -537,7 +537,7 @@ minimal usage
 
 You can setting like this:
 
-  (setq entropy/pyim-dicts
+  (setq entropy/emacs-pyim-dicts
         '((:name \"popular\":file \"~/.emacs.d/pydict/sougou.pyim\")
           (:name \"core\" :file \"~/.emacs.d/pydict/py++.pyim\")
           (:name \"pyim-greatdict\" :file \"~/.emacs.d/pydict/pyim-greatdict.pyim\")))
@@ -545,25 +545,25 @@ You can setting like this:
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/pyim-cached-dir nil
+(defcustom entropy/emacs-pyim-cached-dir nil
   "Set pyim cached dir, if nil use defaults setting (see
   `pyim-dcache-directory')"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/pyim-tooltip nil
+(defcustom entropy/emacs-pyim-tooltip nil
   "Setting the pyim toolitip method"
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** elfeed config
-(defcustom entropy/elfeed-proxyfeeds-regexp-list '()
+(defcustom entropy/emacs-elfeed-proxyfeeds-regexp-list '()
   "Regexp for matching the feeds which needed for updating through proxy."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** gnus
-(defcustom entropy/gnus-init-config
+(defcustom entropy/emacs-gnus-init-config
   '(:gnus-home "~/.gnus/"
     :gnus-news-dir "~/.gnus/News/"               
     :mail-dir "~/.gnus/Mail/"
@@ -588,11 +588,11 @@ just it's name."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 ;; ** company config
-(defcustom entropy/company-lsp nil
+(defcustom entropy/emacs-company-lsp nil
   "Enable lsp for company-mode"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
-(defcustom entropy/company-posframe-mode nil
+(defcustom entropy/emacs-company-posframe-mode nil
   "Enable company-posframe.
 
   Note:
@@ -608,50 +608,50 @@ just it's name."
   "Personal Emacs configurations."
   :group 'extensions)
 ;; *** main enable
-(defcustom entropy/use-highlight-features t
+(defcustom entropy/emacs-use-highlight-features t
   "Enable highlight feature package `init-highlight.el'."
   :type 'boolean
   :group 'entropy/emacs-highlight)
 ;; *** highlight-indention
-(defcustom entropy/hl-highlight-indention-enable-at-startup nil
+(defcustom entropy/emacs-hl-highlight-indention-enable-at-startup nil
   "Enable indention highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
 ;; *** symbol-over-lay
-(defcustom entropy/hl-sysmbol-overlay-enable-at-startup nil
+(defcustom entropy/emacs-hl-sysmbol-overlay-enable-at-startup nil
   "Enable symbol-overlay highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 ;; *** highlight-parentheses
-(defcustom entropy/hl-highlight-parentheses-mode-enable-at-startup nil
+(defcustom entropy/emacs-hl-highlight-parentheses-mode-enable-at-startup nil
   "Enable highlight-parentheses highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 ;; *** rainbow delimiters
-(defcustom entropy/hl-rainbow-delimiters-enable-at-startup nil
+(defcustom entropy/emacs-hl-rainbow-delimiters-enable-at-startup nil
   "Enable rainbow-delimiters highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 ;; *** hl-todo-mode
-(defcustom entropy/hl-todo-enable-at-startup nil
+(defcustom entropy/emacs-hl-todo-enable-at-startup nil
   "Enable hl-todo highlight feature which can show color of
   `TODO' keywords universal not only the org file"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 ;; *** diff-hl
-(defcustom entropy/hl-diff-hl-enable-at-startup nil
+(defcustom entropy/emacs-hl-diff-hl-enable-at-startup nil
   "Enable diff-hl highlight feature which can show the git diff
 in current buffer"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 ;; *** whitespace
-(defcustom entropy/hl-whitespace-enable-at-startup nil
+(defcustom entropy/emacs-hl-whitespace-enable-at-startup nil
   "Enable whitespace highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
-(defcustom entropy/hl-whitespace-auto-cleanup nil
+(defcustom entropy/emacs-hl-whitespace-auto-cleanup nil
   "Auto clean up messy or redundant whitespace when in `whitespace-mode'
 
 Notice: If enable this will cause git diff log be messy with long
@@ -662,19 +662,19 @@ difference.
 
 
 ;; ** eshell
-(defgroup entropy/eshell-group nil
+(defgroup entropy/emacs-eshell-group nil
   "Custom variable group for eshell in entropy-emacs. "
   :group 'extensions)
 
-(defcustom entropy/eshell-alias-file "~/.eshell-alias"
+(defcustom entropy/emacs-eshell-alias-file "~/.eshell-alias"
   "entropy-emacs eshell alias file location."
   :type 'string
-  :group 'entropy/eshell-group)
+  :group 'entropy/emacs-eshell-group)
 
-(defcustom entropy/eshell-history-file "~/.eshell-history"
+(defcustom entropy/emacs-eshell-history-file "~/.eshell-history"
   "entropy-emacs eshell history file location."
   :type 'string
-  :group 'entropy/eshell-group)
+  :group 'entropy/emacs-eshell-group)
 
 
 ;; ** specific for windows
@@ -682,29 +682,29 @@ difference.
   "Personal Emacs configurations for windwos."
   :group 'extensions)
 ;; *** w32 ime config
-(defcustom entropy/win-init-ime-enable nil
+(defcustom entropy/emacs-win-init-ime-enable nil
   "Enable win32 ime at startup (offset to the bug of w32-ime)."
   :type 'boolean
   :group 'entropy/emacs-win)
 
 ;; *** emacs lang set for windows
-(defcustom entropy/win-env-lang-enable nil
+(defcustom entropy/emacs-win-env-lang-enable nil
   "Whether enable emacs lang for windows"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-env-lang-set "zh_CN.UTF-8"
+(defcustom entropy/emacs-win-env-lang-set "zh_CN.UTF-8"
   "Setting emacs lang in windows operation system"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** enable wsl in windows
-(defcustom entropy/wsl-enable nil
+(defcustom entropy/emacs-wsl-enable nil
   "Set whether you want to use wsl?"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/wsl-apps "c:/git-portable/usr/bin/"
+(defcustom entropy/emacs-wsl-apps "c:/git-portable/usr/bin/"
   "Set the baisic wsl apps path for basic shell-command using
 which also used in shell-buffer.
 
@@ -713,12 +713,12 @@ Note: now it's just suitable for git-for-windows (no sdk-extra utilitie included
   :group 'entropy/emacs-win)
 
 
-(defcustom entropy/wsl-enable-extra nil
+(defcustom entropy/emacs-wsl-enable-extra nil
   "Enable extra wsl apps.
 
   This ON-OFF variable are setted for follow occurrence:
 
-      If you setting `entropy/wsl-apps' to 'git-for-windows-minimal'
+      If you setting `entropy/emacs-wsl-apps' to 'git-for-windows-minimal'
       which just contained the basic UNIX-LIKE commands that doesn't
       contianed commands like 'man' and 'tree' or sth else, you want
       to using them as well in current emacs session.
@@ -734,7 +734,7 @@ Note: now it's just suitable for git-for-windows (no sdk-extra utilitie included
   :group 'entropy/emacs-win)
 
 
-(defcustom entropy/wsl-apps-extra ""
+(defcustom entropy/emacs-wsl-apps-extra ""
   "Set the extra wsl apps path, used for woman or other
 subprocess of emacs that sth called lying on `exec-path'.
 
@@ -746,20 +746,20 @@ if you using msys2 , you must set this variable to like:
   :type 'string
   :group 'entropy/emacs-win)
 ;; **** windows git portable setting
-(defcustom entropy/git-portable nil
+(defcustom entropy/emacs-git-portable nil
   "Whether enable portable git application when you want to use
   git portable "
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/git-portable-path "c:/git-portable/cmd/"
+(defcustom entropy/emacs-git-portable-path "c:/git-portable/cmd/"
   "When you enable git-custom set the customize git applicaton's
 path default path was my git path please must modify it for yourself"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** Adding path for emacs built 'bin' folder
-(defcustom entropy/win-emacs-bin-path-add t
+(defcustom entropy/emacs-win-emacs-bin-path-add t
   "Whether adding emacs bin folder to path on windows platform.
 
   This ON-OFF varaible setted for adding emacs bin folder to both of
@@ -771,12 +771,12 @@ path default path was my git path please must modify it for yourself"
   :type 'boolean
   :group 'entropy/emacs-win)
 ;; *** wsl terminal setting
-(defcustom entropy/wsl-terminal-enable nil
+(defcustom entropy/emacs-wsl-terminal-enable nil
   "Whether enable the wsl-bash,wsl path config worked when you set this `t'"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/wsl-terminal "c:/git-portable/git-bash.exe"
+(defcustom entropy/emacs-wsl-terminal "c:/git-portable/git-bash.exe"
   "Set the default wsl bash applictions,it suggested to set same
 as the wsl-apps main controled applications which I suggested use
 git-for-windows-sdk `git-bash.exe'"
@@ -784,199 +784,199 @@ git-for-windows-sdk `git-bash.exe'"
   :group 'entropy/emacs-win)
 
 ;; *** enable fakecygpty
-(defcustom entropy/win-fakecygpty-enable nil
+(defcustom entropy/emacs-win-fakecygpty-enable nil
   "Whether enable fake pty for enabling windows ansi-term."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-fakecygpty-path "c:/fakecgypty"
+(defcustom entropy/emacs-win-fakecygpty-path "c:/fakecgypty"
   "The fakecygpty compiled binaries archive location."
   :type 'string
   :group 'entropy/emacs-win)
 
 
 ;; *** gcc and mingw64 setting
-(defcustom entropy/win-portable-mingw-enable nil
+(defcustom entropy/emacs-win-portable-mingw-enable nil
   "Enable portable mingw64 in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-mingw-path "c:/mingw64/bin/"
+(defcustom entropy/emacs-win-portable-mingw-path "c:/mingw64/bin/"
   "Setting the path of portable mingw64 for windows plattform
-  when `entropy/win-portable-mingw-enable' was set to 't'"
+  when `entropy/emacs-win-portable-mingw-enable' was set to 't'"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-gcc-parameter ""
+(defcustom entropy/emacs-win-gcc-parameter ""
   "Setting the gcc compile parameter"
   :type 'string
   :group 'entropy/emacs-win)
-(defcustom entropy/win-g++-parameter ""
+(defcustom entropy/emacs-win-g++-parameter ""
   "Setting the g++ compile parameter"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** clang setting
-(defcustom entropy/win-portable-clang-enable nil
+(defcustom entropy/emacs-win-portable-clang-enable nil
   "Enable clang for windows plattform"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/win-portable-clang-path ""
+(defcustom entropy/emacs-win-portable-clang-path ""
   "Path for portable clang for windows plattform."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** windows texlive setting
-(defcustom entropy/win-portable-texlive-enable nil
+(defcustom entropy/emacs-win-portable-texlive-enable nil
   "Whether to enable texlive in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-texlive-path "c:/texlive/bin"
+(defcustom entropy/emacs-win-portable-texlive-path "c:/texlive/bin"
   "Set up texlive path in windows"
   :type 'string
   :group 'entropy/emacs-win)
 ;; *** enable grep in windows
-(defcustom entropy/win-portable-grep-enable nil
+(defcustom entropy/emacs-win-portable-grep-enable nil
   "Enable windows grep program"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-grep-path "c:/grep/bin"
+(defcustom entropy/emacs-win-portable-grep-path "c:/grep/bin"
   "Set windows grep exec path"
   :type 'string
   :group 'entropy/emacs-win)
 ;; *** enable ag in windows
-(defcustom entropy/win-portable-ag-enable nil
+(defcustom entropy/emacs-win-portable-ag-enable nil
   "Enable windows ag program"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-ag-path "~/.emacs.d/ag/bin/"
+(defcustom entropy/emacs-win-portable-ag-path "~/.emacs.d/ag/bin/"
   "Set windows ag (The Silver Searcher) path"
   :type 'string
   :group 'entropy/emacs-win)
 ;; *** enable rg in windows
-(defcustom entropy/win-portable-rg-enable nil
+(defcustom entropy/emacs-win-portable-rg-enable nil
   "Enable windows ripgrep program"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-rg-path "~/.emacs.d/rg/bin/"
+(defcustom entropy/emacs-win-portable-rg-path "~/.emacs.d/rg/bin/"
   "Set windows ag path"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** enable pt in windows
-(defcustom entropy/win-portable-pt-enable nil
+(defcustom entropy/emacs-win-portable-pt-enable nil
   "Enable windows pt program"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-pt-path "~/.emacs.d/pt/bin/"
+(defcustom entropy/emacs-win-portable-pt-path "~/.emacs.d/pt/bin/"
   "Set windows pt path"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** enable cmder in windows
-(defcustom entropy/Cmder-enable nil
+(defcustom entropy/emacs-Cmder-enable nil
   "Enable windows Cmder program"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/Cmder-path "c:/cmder/bin/Cmder.exe"
+(defcustom entropy/emacs-Cmder-path "c:/cmder/bin/Cmder.exe"
   "Set windows Cmder path"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** enable php in windows
-(defcustom entropy/win-portable-php-enable nil
+(defcustom entropy/emacs-win-portable-php-enable nil
   "Enable php portable in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
-(defcustom entropy/win-portable-php-path "c:/php/"
+(defcustom entropy/emacs-win-portable-php-path "c:/php/"
   "Setting the path of portable php executable"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** enbale pip in windows
-(defcustom entropy/win-portable-pip-enable nil
+(defcustom entropy/emacs-win-portable-pip-enable nil
   "Enable portable pip in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
-(defcustom entropy/win-portable-pip-path "c:/python/bin/"
+(defcustom entropy/emacs-win-portable-pip-path "c:/python/bin/"
   "Set protable pip path in windows"
   :type 'string
   :group 'entropy/emacs-win)
 ;; *** enable python in windows
-(defcustom entropy/win-portable-python-enable nil
+(defcustom entropy/emacs-win-portable-python-enable nil
   "Enable portable python in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
-(defcustom entropy/win-portable-python-path "c:/python/bin/"
+(defcustom entropy/emacs-win-portable-python-path "c:/python/bin/"
   "Set protable python path in windows"
   :type 'string
   :group 'entropy/emacs-win)
 ;; *** enable nodejs in windows
-(defcustom entropy/win-portable-nodejs-enable nil
+(defcustom entropy/emacs-win-portable-nodejs-enable nil
   "Enable nodejs portale in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-nodejs-path "c:/nodejs/"
+(defcustom entropy/emacs-win-portable-nodejs-path "c:/nodejs/"
   "Setting the path of protable nodejs in windows"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** enable opencc in windows
-(defcustom entropy/win-portable-opencc-enable nil
+(defcustom entropy/emacs-win-portable-opencc-enable nil
   "Enable opencc portale in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-opencc-path "c:/opencc/"
+(defcustom entropy/emacs-win-portable-opencc-path "c:/opencc/"
   "Setting the path of protable opencc in windows"
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; *** enable pandoc in windows
-(defcustom entropy/win-portable-pandoc-enable nil
+(defcustom entropy/emacs-win-portable-pandoc-enable nil
   "Enable portable pandoc in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-pandoc-path nil
+(defcustom entropy/emacs-win-portable-pandoc-path nil
   "Setting portble pandoc path for windows"
   :type 'string
   :group 'entropy/emacs-win)
 ;; *** enbale portble jdk
-(defcustom entropy/win-portable-jdk-enable nil
+(defcustom entropy/emacs-win-portable-jdk-enable nil
   "Enable using portble JDK"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-jdk-path "c:/JDK64/bin"
+(defcustom entropy/emacs-win-portable-jdk-path "c:/JDK64/bin"
   "Setting portble JDK pth"
   :type 'string
   :group 'entropy/emacs-win)
 ;; *** enable zeal
-(defcustom entropy/win-portable-zeal-enable 'nil
+(defcustom entropy/emacs-win-portable-zeal-enable 'nil
   "Enable zeal doc http://zealdocs.org/."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-zeal-path ""
+(defcustom entropy/emacs-win-portable-zeal-path ""
   "Setting zeal path on windows plattform."
   :type 'string
   :group 'entropy/emacs-win)
 ;; *** enable putty in windows
-(defcustom entropy/win-portable-putty-enable nil
+(defcustom entropy/emacs-win-portable-putty-enable nil
   "Enable putty portable on windows."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/win-portable-putty-path ""
+(defcustom entropy/emacs-win-portable-putty-path ""
   "Windows portable putty path."
   :type 'string
   :group 'entropy/emacs-win)

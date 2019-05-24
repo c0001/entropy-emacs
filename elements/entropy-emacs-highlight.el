@@ -53,7 +53,7 @@
          ("M-p" . symbol-overlay-jump-prev)
          ([M-f3] . symbol-overlay-remove-all))
   :init
-  (when entropy/hl-sysmbol-overlay-enable-at-startup
+  (when entropy/emacs-hl-sysmbol-overlay-enable-at-startup
     (add-hook 'prog-mode-hook #'symbol-overlay-mode)))
 
 ;; ** Highlight matching paren
@@ -72,7 +72,7 @@
   :diminish highlight-parentheses-mode
   :commands (highlight-parentheses-mode)
   :init
-  (when entropy/hl-highlight-parentheses-mode-enable-at-startup
+  (when entropy/emacs-hl-highlight-parentheses-mode-enable-at-startup
     (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
   :config (set-face-attribute 'hl-paren-face nil :weight 'ultra-bold))
 
@@ -86,7 +86,7 @@
 (use-package highlight-indent-guides
   :commands (highlight-indent-guides-mode)
   :init
-  (when entropy/hl-highlight-indention-enable-at-startup
+  (when entropy/emacs-hl-highlight-indention-enable-at-startup
     (add-hook 'prog-mode-hook #'highlight-indent-guides-mode))
   :config (setq highlight-indent-guides-method 'character))
 
@@ -114,7 +114,7 @@
 (use-package rainbow-delimiters
   :commands (rainbow-delimiters-mode)
   :init
-  (when entropy/hl-rainbow-delimiters-enable-at-startup
+  (when entropy/emacs-hl-rainbow-delimiters-enable-at-startup
     (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)))
 
 ;; ** Highlight TODO and similar keywords in comments and strings
@@ -133,7 +133,7 @@
               ("C-c t n" . hl-todo-next)
               ("C-c t o" . hl-todo-occur))
   :init
-  (when entropy/hl-todo-enable-at-startup
+  (when entropy/emacs-hl-todo-enable-at-startup
     (add-hook 'entropy/init-X-hook #'global-hl-todo-mode)))
 
 ;; ** Highlight uncommitted changes
@@ -156,7 +156,7 @@
 ;; --------------------------------------------------------------------------------
 (if sys/win32p
     ;; In windows system
-    (when (and entropy/wsl-enable entropy/hl-diff-hl-enable-at-startup)
+    (when (and entropy/emacs-wsl-enable entropy/emacs-hl-diff-hl-enable-at-startup)
       (use-package diff-hl
         :commands (global-diff-hl-mode)
         :bind (:map diff-hl-command-map
@@ -179,7 +179,7 @@
           (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh))))
 
   ;; In Not-windows system
-  (when entropy/hl-diff-hl-enable-at-startup
+  (when entropy/emacs-hl-diff-hl-enable-at-startup
     (use-package diff-hl
       :commands (global-diff-hl-mode)
       :bind (:map diff-hl-command-map
@@ -246,7 +246,7 @@
 ;;
 ;;    This package is a minor mode to visualize blanks (TAB, (HARD) SPACE and NEWLINE).
 
-(when entropy/hl-whitespace-enable-at-startup
+(when entropy/emacs-hl-whitespace-enable-at-startup
   (use-package whitespace
     :ensure nil
     :diminish whitespace-mode
@@ -256,7 +256,7 @@
     :config
     (setq whitespace-line-column fill-column) ;; limit line length
     ;; automatically clean up bad whitespace
-    (when entropy/hl-whitespace-auto-cleanup
+    (when entropy/emacs-hl-whitespace-auto-cleanup
       (setq whitespace-action '(auto-cleanup)))
     ;; only show bad whitespace
     (setq whitespace-style '(face

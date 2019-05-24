@@ -49,14 +49,14 @@
       (require 'emms-player-mpv)
       (add-to-list 'emms-player-list 'emms-player-mpv)))
 ;; **** display emms-modeline  
-  (if entropy/use-emms-mode-line
+  (if entropy/emacs-use-emms-mode-line
       (emms-mode-line 1)
     (emms-mode-line -1))
-  (if entropy/use-emms-mode-line
+  (if entropy/emacs-use-emms-mode-line
       (emms-playing-time 1)
     (emms-playing-time-disable-display))
 ;; ***** Cycle mode line
-  (when entropy/use-emms-mode-line
+  (when entropy/emacs-use-emms-mode-line
     (use-package emms-mode-line-cycle
       :init
       (custom-set-variables '(emms-mode-line-cycle-use-icon-p t))

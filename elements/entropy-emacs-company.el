@@ -95,7 +95,7 @@
    company-dabbrev-downcase nil
    company-dabbrev-char-regexp "\\sw\\(-\\w\\|_\\w\\)?*\\(\\.\\w\\)?*")
 
-  (if entropy/company-posframe-mode
+  (if entropy/emacs-company-posframe-mode
       (setq company-tooltip-offset-display 'scrollbar)
     (setq company-tooltip-offset-display 'lines))
 
@@ -104,7 +104,7 @@
 
 ;; **** Using company-posframe to speedup company candidates window show and scrolling
   (when (and (not (version< emacs-version "26.1"))
-             entropy/company-posframe-mode)
+             entropy/emacs-company-posframe-mode)
     (use-package company-posframe
       :after company
       :commands (company-posframe-mode)
@@ -114,7 +114,7 @@
 
 ;; *** Popup documentation for completion candidates
   (use-package company-quickhelp
-    :if (and (not entropy/company-posframe-mode)
+    :if (and (not entropy/emacs-company-posframe-mode)
              (display-graphic-p))
     :after company
     :defines company-quickhelp-delay
@@ -131,7 +131,7 @@
 ;; ** company lsp
 (use-package company-lsp
   :if (and (>= emacs-major-version 25)
-           entropy/company-lsp)
+           entropy/emacs-company-lsp)
   :init
   (add-hook 'prog-mode-hook #'entropy/emacs-company-add-lsp-backend)
   (defun entropy/emacs-company-add-lsp-backend ()
@@ -152,7 +152,7 @@
 ;; ***** lsp
 ;; ***** traditional
 (use-package company-web
-  :if (not entropy/company-lsp)
+  :if (not entropy/emacs-company-lsp)
   :after company
   :defines (company-web-html
             company-web-jade
@@ -186,7 +186,7 @@
 ;; ***** lsp
 ;; ***** traditional
 (use-package company-tern
-  :if (not entropy/company-lsp)
+  :if (not entropy/emacs-company-lsp)
   :after company
   :defines js2-mode-hook
   :commands company-tern
@@ -200,7 +200,7 @@
 ;; ***** lsp
 ;; ***** traditional
 (use-package company-php
-  :if (not entropy/company-lsp)
+  :if (not entropy/emacs-company-lsp)
   :defines php-mode-hook
   :commands company-ac-php-backend
   :init
@@ -214,7 +214,7 @@
 ;; ***** lsp
 ;; ***** traditional
 (use-package company-c-headers
-  :if (not entropy/company-lsp)
+  :if (not entropy/emacs-company-lsp)
   :after company
   :defines (c-mode-hook c++-mode-hook)
   :commands company-c-headers
@@ -227,7 +227,7 @@
 
 
 (use-package company-irony
-  :if (not entropy/company-lsp)
+  :if (not entropy/emacs-company-lsp)
   :after company
   :defines (c-mode-hook c++-mode-hook)
   :commands commpany-irony
@@ -249,7 +249,7 @@ and c++ mode."
 ;; ***** lsp
 ;; ***** traditional
 (use-package company-anaconda
-  :if (not entropy/company-lsp)
+  :if (not entropy/emacs-company-lsp)
   :after company
   :defines anaconda-mode-hook
   :commands company-anaconda

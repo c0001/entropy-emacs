@@ -13,8 +13,8 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 
-(let ((nav entropy/custom-common-file)
-      (cus entropy/custom-navigate-file))
+(let ((nav entropy/emacs-custom-common-file)
+      (cus entropy/emacs-custom-navigate-file))
   (if (file-exists-p nav)
       (load nav)
     (when (file-exists-p cus)

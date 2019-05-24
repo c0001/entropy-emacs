@@ -420,7 +420,7 @@ unwanted space when exporting org-mode to html."
   
 ;; ****** org export html open function
 
-  ;; If `entropy/browse-url-function' is detectived then open
+  ;; If `entropy/emacs-browse-url-function' is detectived then open
   ;; exported html file with it instead of using default apps or
   ;; system type.
 
@@ -433,7 +433,7 @@ unwanted space when exporting org-mode to html."
 If judge t, use the first section part of this function for
 returning the type of exec for open exported html file, they are:
 
-- \"personal\": using `entropy/browse-url-function' to open the
+- \"personal\": using `entropy/emacs-browse-url-function' to open the
   exported html file.
 
 - \"automatic\": using the way by `org-open-file' to automatilly
@@ -441,17 +441,17 @@ returning the type of exec for open exported html file, they are:
     (require 'entropy-common-library-const)
     (if judge
         (let (rtn)
-          (if (and entropy/enable-personal-browse-url-function
-                   entropy/browse-url-function)
+          (if (and entropy/emacs-enable-personal-browse-url-function
+                   entropy/emacs-browse-url-function)
               (setq rtn "personal")
             (setq rtn "automatic"))
           rtn)
       (if link
-          (if (yes-or-no-p "Open html file with entropy/browse-url-function ? ")
+          (if (yes-or-no-p "Open html file with entropy/emacs-browse-url-function ? ")
               (progn
-                (funcall entropy/browse-url-function
+                (funcall entropy/emacs-browse-url-function
                          (concat "file:///" (url-hexify-string link entropy/cl-url--allowed-chars)))
-                (message "Using entropy/browse-url-function to open exported html file."))
+                (message "Using entropy/emacs-browse-url-function to open exported html file."))
             (org-open-file path 'system))
         (error "Invalid link!"))))
 
@@ -598,7 +598,7 @@ Note: This function has been redifined to adding
 ;; ****** Redefine org-download-screenshot function to support auto org-indent current inserted annotation.
     (if (and (or sys/win32p sys/cygwinp)
 	     (executable-find
-	      (car (split-string entropy/win-org-download-screenshot-method))))
+	      (car (split-string entropy/emacs-win-org-download-screenshot-method))))
 	(progn
 	  (defun entropy/org-download-screenshot ()
 	    "Capture screenshot and insert the resulting file.
@@ -606,20 +606,20 @@ The screenshot tool is determined by `org-download-screenshot-method'.
 
 And Now you are in windows plattform we defualt use SnippingTool
 to be stuff. And you can change it's value by the variable
-`entropy/win-org-download-screenshot-method' it will pass itself
+`entropy/emacs-win-org-download-screenshot-method' it will pass itself
 to `org-download-screenshot-method' .
 "
 	    (interactive)
 	    (if buffer-read-only
 		(read-only-mode 0))
-	    (let ((link entropy/win-org-download-file-name))
+	    (let ((link entropy/emacs-win-org-download-file-name))
 	      (shell-command (format org-download-screenshot-method link))
 	      (org-download-image link)
               (beginning-of-line)
               (org-indent-line)
 	      (delete-file link)
               (org-display-inline-images)))
-	  (setq org-download-screenshot-method entropy/win-org-download-screenshot-method))
+	  (setq org-download-screenshot-method entropy/emacs-win-org-download-screenshot-method))
       (defun entropy/org-download-screenshot ()
         " 
 Note: this function was derived and extended from
@@ -839,14 +839,14 @@ So a typical ID could look like \"Org-4nd91V40HI\"."
 ;; ***** second method use external browser for GNU/Linux opertion system
   ;; (when sys/linuxp
   ;;   (cond
-  ;;    ((eq entropy/default-external-browser 'chrome)
+  ;;    ((eq entropy/emacs-default-external-browser 'chrome)
   ;;     (add-hook 'org-mode-hook
   ;; 		'(lambda ()
   ;; 		   (delete '("\\.x?html?\\'" . default) org-file-apps)
   ;; 		   (add-to-list 'org-file-apps '("\\.x?html?\\'" . "google-chrome-stable %s")))
   ;; 		))
 
-  ;;    ((eq entropy/default-external-browser 'firefox)
+  ;;    ((eq entropy/emacs-default-external-browser 'firefox)
   ;;     (add-hook 'org-mode-hook
   ;; 		'(lambda ()
   ;; 		   (delete '("\\.x?html?\\'" . default) org-file-apps)
@@ -971,12 +971,12 @@ Now just supply localization image file analyzing."
 
 ;; ** org-bullets
 (when (and (or sys/win32p sys/linux-x-p sys/mac-x-p)
-           entropy/enable-org-bullets)
+           entropy/emacs-enable-org-bullets)
   (use-package org-bullets
     :commands (org-bullets-mode)
     :hook (org-mode . (lambda () (org-bullets-mode 1)))
     :config
-    (if (not (string= entropy/org-bullets-type "roman"))
+    (if (not (string= entropy/emacs-org-bullets-type "roman"))
         (setq org-bullets-bullet-list '("⓪" "①" "②" "③"
                                         "④" "⑤" "⑥" "⑦"
                                         "⑧" "⑨" "⑩" "⑪"

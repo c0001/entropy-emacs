@@ -42,17 +42,17 @@
 ;; ** defvar
 (defvar entropy/ext--extras
   (list (list :item "entropy-emacs-deps"
-              :repo-lc entropy/ext-deps-dir
-              :version-lc (expand-file-name "version" entropy/ext-deps-dir)
+              :repo-lc entropy/emacs-ext-deps-dir
+              :version-lc (expand-file-name "version" entropy/emacs-ext-deps-dir)
               :version "0.1.1"
-              :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/ext-deps-dir)
-              :inited-indicator-lc (expand-file-name "init" entropy/ext-deps-dir))
+              :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/emacs-ext-deps-dir)
+              :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-deps-dir))
         (list :item "entropy-emacs-extensions"
-              :repo-lc entropy/ext-extensions-dir
-              :version-lc (expand-file-name "version" entropy/ext-extensions-dir)
+              :repo-lc entropy/emacs-ext-extensions-dir
+              :version-lc (expand-file-name "version" entropy/emacs-ext-extensions-dir)
               :version "0.1.1"
-              :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/ext-extensions-dir)
-              :inited-indicator-lc (expand-file-name "init" entropy/ext-extensions-dir))))
+              :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/emacs-ext-extensions-dir)
+              :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir))))
 
 
 (defvar entropy/ext--extras-trouble-table
@@ -87,18 +87,18 @@ There's two entropy-emacs extras may need to download by your self:
 - entropy-emacs-deps (https://github.com/c0001/entropy-emacs-deps.git)
 
   clone it into your home dir and rename as '.entropy-emacs-deps'
-  or adjusting customized variable `entropy/ext-deps-dir'.
+  or adjusting customized variable `entropy/emacs-ext-deps-dir'.
 
   If the first time cloning it, please see its README and make it
   initialized.
 
 - entropy-emacs-extensions (https://github.com/c0001/entropy-emacs-extensions.git)
 
-  (Notices: only when `entropy/use-extensions-type' eq 'submodules)
+  (Notices: only when `entropy/emacs-use-extensions-type' eq 'submodules)
 
   clone it into your home dir and rename as
   '.entropy-emacs-extension' or adjusting customized variable
-  `entropy/ext-extensions-dir'.
+  `entropy/emacs-ext-extensions-dir'.
 
   If the first time cloning it, please see its README and make it
   initialized.
@@ -126,7 +126,7 @@ code defined in `entropy/ext--extras-trouble-table' or t."
 
 (defun entropy/ext--check-inuse-extras ()
   (let ((full-extras entropy/ext--extras))
-    (if (eq entropy/use-extensions-type 'origin)
+    (if (eq entropy/emacs-use-extensions-type 'origin)
         (list (car full-extras))
       full-extras)))
 
@@ -219,14 +219,14 @@ code defined in `entropy/ext--extras-trouble-table' or t."
         nil
       (entropy/ext--load-path
        (expand-file-name "elements/submodules"
-                         entropy/ext-deps-dir))
-      (when (eq entropy/use-extensions-type 'submodules)
+                         entropy/emacs-ext-deps-dir))
+      (when (eq entropy/emacs-use-extensions-type 'submodules)
         (entropy/ext--load-path
          (expand-file-name "elements/submodules"
-                           entropy/ext-extensions-dir)))
-      (when (and entropy/ext-user-specific-load-paths
-                 (listp entropy/ext-user-specific-load-paths))
-        (dolist (el entropy/ext-user-specific-load-paths)
+                           entropy/emacs-ext-extensions-dir)))
+      (when (and entropy/emacs-ext-user-specific-load-paths
+                 (listp entropy/emacs-ext-user-specific-load-paths))
+        (dolist (el entropy/emacs-ext-user-specific-load-paths)
           (when (ignore-errors (file-directory-p el))
             (entropy/ext--load-path (expand-file-name el)))))
       t)))

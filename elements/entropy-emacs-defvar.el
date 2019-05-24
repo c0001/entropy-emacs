@@ -18,7 +18,7 @@
   "Whether using enable web-development envrionment.
 
 This variable is mainly for the judgement button for
-`entropy/browse-url-function' for determined whether to using the
+`entropy/emacs-browse-url-function' for determined whether to using the
 specific browser to visualize current file.")
 
 

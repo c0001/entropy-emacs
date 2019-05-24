@@ -29,7 +29,7 @@
 (defvar entropy/mode-line-sticker ""
   "Sticker for current modeline style")
 
-(setq entropy/mode-line-sticker entropy/modeline-style)
+(setq entropy/mode-line-sticker entropy/emacs-modeline-style)
 
 (defface entropy/mdl-eye-face-main '((t ()))
   "Face for eyebrowse main workspace segment of origin modeline")
@@ -127,7 +127,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 (use-package powerline
   :commands (powerline-default-theme))
 ;; ****** spaceline
-(if (eq entropy/use-extensions-type 'submodules)
+(if (eq entropy/emacs-use-extensions-type 'submodules)
     (use-package spaceline
       :init
       (use-package spaceline-config
@@ -180,7 +180,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (setq doom-modeline-buffer-file-name-style 'truncate-all)
     (doom-modeline-refresh-bars)
     ;; theme adapted
-    (if (string-match-p "spolsky" (symbol-name entropy/theme-options))
+    (if (string-match-p "spolsky" (symbol-name entropy/emacs-theme-options))
         (setq doom-modeline--bar-active
               (doom-modeline--make-xpm 'doom-modeline-inactive-bar
                                        doom-modeline-bar-width
@@ -317,70 +317,70 @@ eyerbowse improvement."
 
 ;; **** load conditions
 (defun entropy/mdl-init ()
-  "Init modeline style specified by `entropy/modeline-style'.
+  "Init modeline style specified by `entropy/emacs-modeline-style'.
 
   If the specific modeline style is not compat with current emacs
   version, then warning with reset modeline style to \"origin\"
-  style which defined in `entropy/modeline-style'."
+  style which defined in `entropy/emacs-modeline-style'."
   (cond
    ;; init spaceline
-   ((string= entropy/modeline-style "spaceline")
+   ((string= entropy/emacs-modeline-style "spaceline")
     (setq powerline-default-separator (if window-system 'arrow 'utf-8))
     (setq powerline-image-apple-rgb sys/mac-x-p)
     (spaceline-spacemacs-theme))
 
    ;; init sapceline-icons
-   ((and (string= entropy/modeline-style "spaceline-icons")
+   ((and (string= entropy/emacs-modeline-style "spaceline-icons")
          (not (string= emacs-version "25.3.1")))
     (spaceline-all-the-icons-theme))
 
-   ((and (string= entropy/modeline-style "spaceline-icons")
+   ((and (string= entropy/emacs-modeline-style "spaceline-icons")
          (string= emacs-version "25.3.1"))
     (warn "You are in emacs veresion 25.3.1 and couldn't use
   spaceline-all-the-icons because this version can not shown
   all-the-icons-fonts correnctly.")
-    (setq entropy/modeline-style "origin")
+    (setq entropy/emacs-modeline-style "origin")
     (entropy/mdl-init))
 
    ;; init powerline
-   ((string= entropy/modeline-style "powerline")
+   ((string= entropy/emacs-modeline-style "powerline")
     (powerline-default-theme))
 
    ;; init-origin style
-   ((string= entropy/modeline-style "origin")
+   ((string= entropy/emacs-modeline-style "origin")
     (with-eval-after-load 'eyebrowse
       (entropy/mode-line-origin-theme)))
 
    ;; init doom-modeline
-   ((and (string= entropy/modeline-style "doom")
+   ((and (string= entropy/emacs-modeline-style "doom")
          (not (version= emacs-version "25.3.1"))
          (display-graphic-p))
     (doom-modeline-mode 1))
 
    ;; if detective init doom-modline in emacs-25.3.1 then warning.
-   ((and (string= entropy/modeline-style "doom")
+   ((and (string= entropy/emacs-modeline-style "doom")
          (version= emacs-version "25.3.1"))
     (warn "You are in emacs veresion 25.3.1 and couldn't use
   doom-modeline because this version can not shown
   all-the-icons-fonts correnctly.")
-    (setq entropy/modeline-style "origin")
+    (setq entropy/emacs-modeline-style "origin")
     (entropy/mdl-init))
 
-   ((and (string= entropy/modeline-style "doom")
+   ((and (string= entropy/emacs-modeline-style "doom")
          (not (display-graphic-p)))
     (warn "You can not using doom-modeline in non-graphic emacs session.")
-    (setq entropy/modeline-style "origin")
+    (setq entropy/emacs-modeline-style "origin")
     (entropy/mdl-init))
 
    ;; any other type was unsupport
-   (t (warn (format "entropy/modeline-style's value '%s' is invalid." entropy/modeline-style))
-      (setq entropy/modeline-style "origin")
+   (t (warn (format "entropy/emacs-modeline-style's value '%s' is invalid." entropy/emacs-modeline-style))
+      (setq entropy/emacs-modeline-style "origin")
       (entropy/mdl-init))))
 
 (entropy/mdl-init)
 
 ;; ** toggle function
-(when entropy/enable-modeline-toggle
+(when entropy/emacs-enable-modeline-toggle
   (defun entropy/mdl-spaceline ()
     "Toggle modeline style to spacelien."
     (interactive)

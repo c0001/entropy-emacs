@@ -123,10 +123,10 @@ Version 2017-10-09"
                             default-directory))
                  ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
                  ($path (concat "\"" $path-backslash "\"")))
-            (if entropy/wsl-terminal-enable
-                (if (string-match-p "msys2_shell" entropy/wsl-terminal)
+            (if entropy/emacs-wsl-terminal-enable
+                (if (string-match-p "msys2_shell" entropy/emacs-wsl-terminal)
                     ;; using msys2 mintty
-                    (w32-shell-execute "open" entropy/wsl-terminal
+                    (w32-shell-execute "open" entropy/emacs-wsl-terminal
                                        (concat
                                         (completing-read "Choosing shell type: "
                                                          '("-mingw32"
@@ -137,7 +137,7 @@ Version 2017-10-09"
                                         " -where "
                                         $path))
                   ;; using git-for-windows terminal
-                  (w32-shell-execute "open" entropy/wsl-terminal))
+                  (w32-shell-execute "open" entropy/emacs-wsl-terminal))
 
               ;; using cmd
               (w32-shell-execute "open" "cmd" $path))))
@@ -156,9 +156,9 @@ Version 2017-10-09"
       (when sys/win32p
         (defun entropy/cmd()
           (interactive)
-          (if entropy/Cmder-enable
+          (if entropy/emacs-Cmder-enable
               (let (($path  default-directory ))
-                (w32-shell-execute "open" entropy/Cmder-path (replace-regexp-in-string "/" "\\" $path t t)))
+                (w32-shell-execute "open" entropy/emacs-Cmder-path (replace-regexp-in-string "/" "\\" $path t t)))
             (let (($path  default-directory ))
               (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t))))))))
 
@@ -254,8 +254,8 @@ performance for some major-modes."
   (advice-add 'w3m-retrieve :before #'entropy/proxy-url-proxy-choice-for-w3m))
 ;; ** eww config
 ;; *** eww search engine
-(if entropy/eww-search-engine-customize
-    (setq eww-search-prefix entropy/eww-search-engine))
+(if entropy/emacs-eww-search-engine-customize
+    (setq eww-search-prefix entropy/emacs-eww-search-engine))
 ;; *** disable eww image animation for reducing the performance lagging
 (setq-default shr-image-animate nil)
 ;; *** get image url
@@ -293,7 +293,7 @@ Browser chosen based on variable
 `browse-url-browser-function'. In entropy-emacs they can be:
 
 1. w3m cli backend fronts to emacs-w3m
-2. personal browser specifiction rely on `entropy/browse-url-function'.
+2. personal browser specifiction rely on `entropy/emacs-browse-url-function'.
 3. default browser detecting as `browse-url-default-browser'.
 "
   (interactive)
@@ -301,8 +301,8 @@ Browser chosen based on variable
     (let ((url (eww-copy-page-url))
           (browse-url-browser-function
            (let (rtn choices)
-             (when (functionp entropy/browse-url-function)
-               (add-to-list 'choices `("personal" ,entropy/browse-url-function)))
+             (when (functionp entropy/emacs-browse-url-function)
+               (add-to-list 'choices `("personal" ,entropy/emacs-browse-url-function)))
              (when (executable-find "w3m")
                (add-to-list 'choices `("w3m" ,(lambda (url &rest args)
                                               (w3m-goto-url url)))))
@@ -366,16 +366,16 @@ and macro expand of it."
   (setq elfeed-curl-timeout 20)
 
   ;; set curl path
-  (let ((mingw-curl (if (and entropy/wsl-enable
-                             (file-exists-p entropy/wsl-apps))
+  (let ((mingw-curl (if (and entropy/emacs-wsl-enable
+                             (file-exists-p entropy/emacs-wsl-apps))
                         (expand-file-name
                          "mingw64/bin/curl.exe"
-                         (substring (directory-file-name entropy/wsl-apps) 0 -7))
+                         (substring (directory-file-name entropy/emacs-wsl-apps) 0 -7))
                       nil))
-        (msys2-curl (if (and entropy/wsl-enable
-                             (file-exists-p entropy/wsl-apps))
+        (msys2-curl (if (and entropy/emacs-wsl-enable
+                             (file-exists-p entropy/emacs-wsl-apps))
                         (expand-file-name
-                         "curl.exe" entropy/wsl-apps)))
+                         "curl.exe" entropy/emacs-wsl-apps)))
         (w32-curl "c:/WINDOWS/system32/curl.exe"))
     (cond
      ((ignore-errors (file-exists-p w32-curl))
@@ -839,23 +839,23 @@ promptings and injecting them into `entropy/elfeed-multi-update-feeds-list'."
   
   (defun entropy/elfeed-update-proxyfeeds-regexp-match ()
     "Update feeds through proxy matched by regexp stored in
-`entropy/elfeed-proxyfeeds-regexp-list'.
+`entropy/emacs-elfeed-proxyfeeds-regexp-list'.
 
 If hasn't setting the regexp list, prompting for input them
 repeatly and stored them in `cutom-file'."
     (interactive)
     (require 'entropy-common-library)
     (let ((olist (elfeed-feed-list))
-          (relist entropy/elfeed-proxyfeeds-regexp-list)
+          (relist entropy/emacs-elfeed-proxyfeeds-regexp-list)
           ulist)
       (unless relist
         (setq relist (entropy/cl-repeated-read "Inputting regexp"))
-        (setq entropy/elfeed-proxyfeeds-regexp-list relist)
-        (customize-save-variable 'entropy/elfeed-proxyfeeds-regexp-list relist))
+        (setq entropy/emacs-elfeed-proxyfeeds-regexp-list relist)
+        (customize-save-variable 'entropy/emacs-elfeed-proxyfeeds-regexp-list relist))
       (when (yes-or-no-p "Do you want to adding some matching? ")
         (setq relist (append relist (entropy/cl-repeated-read "Adding regexp")))
-        (setq entropy/elfeed-proxyfeeds-regexp-list relist)
-        (customize-save-variable 'entropy/elfeed-proxyfeeds-regexp-list relist))
+        (setq entropy/emacs-elfeed-proxyfeeds-regexp-list relist)
+        (customize-save-variable 'entropy/emacs-elfeed-proxyfeeds-regexp-list relist))
       (dolist (el olist)
         (dolist (elm relist)
           (when (string-match-p elm el)
@@ -897,14 +897,14 @@ The minor changing was compat for above."
     (let* ((choice
             (completing-read "Choose browse: " `("default"
                                                  "eww"
-                                                 ,(if entropy/browse-url-function "entropy-browse-url-function" "")
+                                                 ,(if entropy/emacs-browse-url-function "entropy-browse-url-function" "")
                                                  ,(if (executable-find "w3m") "emacs-w3m" ""))
                              nil t))
            (browse-url-browser-function (cl-case (intern choice)
                                           ('default 'browse-url-default-browser)
                                           ('eww 'eww-browse-url)
                                           ('emacs-w3m 'entropy/w3m-browse-url)
-                                          ('entropy-browse-url-function entropy/browse-url-function))))
+                                          ('entropy-browse-url-function entropy/emacs-browse-url-function))))
       (funcall oldfun)))
   (advice-add 'elfeed-search-browse-url :around #'entropy/elfeed-browse-url-around)
   (advice-add 'elfeed-show-visit :around #'entropy/elfeed-browse-url-around))
@@ -914,25 +914,25 @@ The minor changing was compat for above."
   :ensure nil
   :config
   ;; gnus home setting
-  (setq gnus-home-directory (plist-get entropy/gnus-init-config :gnus-home))
+  (setq gnus-home-directory (plist-get entropy/emacs-gnus-init-config :gnus-home))
   ;; gnus news dir
-  (setq gnus-directory (plist-get entropy/gnus-init-config :gnus-news-dir))
-  (setq gnus-kill-files-directory (plist-get entropy/gnus-init-config :gnus-news-dir))
+  (setq gnus-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
+  (setq gnus-kill-files-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
   ;; gnus mail dir
-  (setq mail-source-directory (plist-get entropy/gnus-init-config :mail-dir))
-  (setq mail-default-directory (plist-get entropy/gnus-init-config :mail-temp-dir)) ;setting mail source library 'sendmail' default-directory
-  (setq message-directory (plist-get entropy/gnus-init-config :mail-dir))
-  (setq nnfolder-directory (plist-get entropy/gnus-init-config :mail-dir))
+  (setq mail-source-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
+  (setq mail-default-directory (plist-get entropy/emacs-gnus-init-config :mail-temp-dir)) ;setting mail source library 'sendmail' default-directory
+  (setq message-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
+  (setq nnfolder-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
   ;; gnus-init config file
-  (setq gnus-init-file (plist-get entropy/gnus-init-config :init-file))
+  (setq gnus-init-file (plist-get entropy/emacs-gnus-init-config :init-file))
   ;; newrc source file
-  (setq gnus-startup-file (plist-get entropy/gnus-init-config :startup-file))
-  (setq gnus-read-newsrc-file (plist-get entropy/gnus-init-config :read-newsrc))
-  (setq gnus-save-newsrc-file (plist-get entropy/gnus-init-config :save-newsrc))
+  (setq gnus-startup-file (plist-get entropy/emacs-gnus-init-config :startup-file))
+  (setq gnus-read-newsrc-file (plist-get entropy/emacs-gnus-init-config :read-newsrc))
+  (setq gnus-save-newsrc-file (plist-get entropy/emacs-gnus-init-config :save-newsrc))
   ;; dribble file (The update cache)
-  (setq gnus-use-dribble-file (plist-get entropy/gnus-init-config :use-dribble))
+  (setq gnus-use-dribble-file (plist-get entropy/emacs-gnus-init-config :use-dribble))
   ;; fetch updat sources type, defualt be 'some' recommended set it to 't'
-  (setq gnus-read-active-file (plist-get entropy/gnus-init-config :read-active-file))
+  (setq gnus-read-active-file (plist-get entropy/emacs-gnus-init-config :read-active-file))
 
 
   ;; Unbind `message-kill-address' when in gnus mail `message-mode-map'.
@@ -981,7 +981,7 @@ fixing it as thus. "
       (completing-read prompt search-web-engines nil t
                        (if (string= "External" type)
                            (let ((result nil))
-                             (dolist (el entropy/search-web-engines-external)
+                             (dolist (el entropy/emacs-search-web-engines-external)
                                (if (string= "google" (car el))
                                    (setq result t)))
                              (if result
@@ -994,8 +994,8 @@ fixing it as thus. "
     (interactive)
     (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
       (let* ((search-web-engines (cond 
-                                  ((equal type "Internal") entropy/search-web-engines-internal)
-                                  ((equal type "External") entropy/search-web-engines-external)))
+                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
+                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
              (engine (entropy/search-web-query-egine type))
              (word (read-string "Searching for?: ")))
         (search-web engine word))))
@@ -1004,8 +1004,8 @@ fixing it as thus. "
     (interactive)
     (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
       (let* ((search-web-engines (cond 
-                                  ((equal type "Internal") entropy/search-web-engines-internal)
-                                  ((equal type "External") entropy/search-web-engines-external)))
+                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
+                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
              (engine (entropy/search-web-query-egine type)))
         (search-web-region engine))))
   
@@ -1083,8 +1083,8 @@ can't visit one page suddenly."
 ;; *** w3m external browser setting
     (defun entropy/w3m-external-advice (oldfunc &rest args)
       (let ((browse-url-browser-function
-             (if entropy/browse-url-function
-                 entropy/browse-url-function
+             (if entropy/emacs-browse-url-function
+                 entropy/emacs-browse-url-function
                'browse-url-default-browser)))
         (call-interactively oldfunc)))
     (advice-add 'w3m-view-url-with-browse-url :around #'entropy/w3m-external-advice))
@@ -1114,19 +1114,19 @@ Default option were:
 - eww: `eww-browse-url'
 - default: `browse-url-default-browser'
 
-If `entropy/enable-personal-browse-url-function' was 't' and `entropy/browse-url-function' was
+If `entropy/emacs-enable-personal-browse-url-function' was 't' and `entropy/emacs-browse-url-function' was
 effective then adding option of personal browse url function that be in ordered by
-`entropy/browse-url-function'
+`entropy/emacs-browse-url-function'
 "
   (interactive)
-  (let* ((list-of-choice (cond ((and entropy/enable-personal-browse-url-function
-                                     entropy/browse-url-function
+  (let* ((list-of-choice (cond ((and entropy/emacs-enable-personal-browse-url-function
+                                     entropy/emacs-browse-url-function
                                      (not (executable-find "w3m")))
                                 '("personal"
                                   "eww"
                                   "default"))
-                               ((and entropy/enable-personal-browse-url-function
-                                     entropy/browse-url-function
+                               ((and entropy/emacs-enable-personal-browse-url-function
+                                     entropy/emacs-browse-url-function
                                      (executable-find "w3m"))
                                 '("personal"
                                   "w3m"
@@ -1145,7 +1145,7 @@ effective then adding option of personal browse url function that be in ordered 
          ((string= choice "default")
           (entropy/setting-default-browser 'browse-url-default-browser))
          ((string= choice "personal")
-          (entropy/setting-default-browser entropy/browse-url-function))
+          (entropy/setting-default-browser entropy/emacs-browse-url-function))
          ((string= choice "w3m")
           (entropy/setting-default-browser 'entropy/w3m-browse-url))
          (t
@@ -1153,11 +1153,11 @@ effective then adding option of personal browse url function that be in ordered 
 
 
 ;; init setting
-(when (and entropy/browse-url-function entropy/enable-personal-browse-url-function)
+(when (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
   (if (not (executable-find "w3m"))
-      (entropy/setting-default-browser entropy/browse-url-function)
+      (entropy/setting-default-browser entropy/emacs-browse-url-function)
     (if (display-graphic-p)
-        (entropy/setting-default-browser entropy/browse-url-function)
+        (entropy/setting-default-browser entropy/emacs-browse-url-function)
       (entropy/setting-default-browser 'entropy/w3m-browse-url))))
 
 ;; ** Discover key bindings and their meaning for the current Emacs major mode
@@ -1368,7 +1368,7 @@ For now, there's three choices for you:
              entropy/google-translate-at-point-direct-en-CN
              entropy/google-translate-prompt-direct-en-CN)
   :init
-  (when entropy/google-translate-toggle-patched-in-china
+  (when entropy/emacs-google-translate-toggle-patched-in-china
     ;;    Because google-translate has been block in china, so can use below variable for preventing
     ;;    this problem. And this solution was from `https://emacs-china.org/t/topic/2808/17'  
     (eval-after-load 'google-translate-core
@@ -1502,7 +1502,7 @@ For now, there's three choices for you:
   :commands (pomidor)
   :bind (("C-c <f12>" . pomidor)))
 ;; ** maple preview
-(when (equal entropy/use-extensions-type 'submodules)
+(when (equal entropy/emacs-use-extensions-type 'submodules)
   (use-package maple-preview
     :ensure nil
     :commands (maple-preview-mode)

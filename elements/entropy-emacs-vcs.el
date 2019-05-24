@@ -48,11 +48,11 @@
   :bind (("C-x g" . magit-status)
          ("C-x M-g" . magit-dispatch))
   :init
-  (when (and sys/win32p entropy/git-portable)
-    (setq magit-git-executable (concat entropy/git-portable-path "git.exe")))
+  (when (and sys/win32p entropy/emacs-git-portable)
+    (setq magit-git-executable (concat entropy/emacs-git-portable-path "git.exe")))
 
   ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
-  (when entropy/custom-language-environment-enable
+  (when entropy/emacs-custom-language-environment-enable
     (with-eval-after-load 'magit)
     (advice-add 'magit-status :before #'entropy/lang-set-utf-8)
     (advice-add 'magit-dispatch-popup :before #'entropy/lang-set-utf-8)

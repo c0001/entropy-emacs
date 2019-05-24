@@ -45,17 +45,17 @@ for `user-emacs-directory'."
   (setq-default package-user-dir
                 (expand-file-name
                  (concat "elpa-" version)
-                 (expand-file-name entropy/ext-extensions-elpa-dir))))
+                 (expand-file-name entropy/emacs-ext-extensions-elpa-dir))))
 
 ;; Set customized package install directory
 (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
-         (eq entropy/use-extensions-type 'origin))
+         (eq entropy/emacs-use-extensions-type 'origin))
     (entropy/set-package-dir emacs-version)
   (cond
    ((and (equal emacs-version "25.2.2")
-         (eq entropy/use-extensions-type 'origin))
+         (eq entropy/emacs-use-extensions-type 'origin))
     (entropy/set-package-dir "25.2.1"))
-   ((eq entropy/use-extensions-type 'origin)
+   ((eq entropy/emacs-use-extensions-type 'origin)
     (error "Unsupport emacs version '%s'" emacs-version))))
 
 
@@ -100,7 +100,7 @@ for `user-emacs-directory'."
     (error "Unknown archives: '%s'" archives)))
   (message "Set package archives to '%s'." archives))
 
-(entropy/set-package-archives entropy/package-archive-repo)
+(entropy/set-package-archives entropy/emacs-package-archive-repo)
 
 
 ;; Remove internal org-mode path
@@ -123,14 +123,14 @@ for `user-emacs-directory'."
 (message "Packages initializing done!")
 
 ;; Format package-gnupghome-dir format for Msys2
-(when (and entropy/wsl-enable
-           entropy/wsl-apps
+(when (and entropy/emacs-wsl-enable
+           entropy/emacs-wsl-apps
            (executable-find "gpg")
            (string-match-p "^.:/.*usr/bin" (executable-find "gpg")))
   (setq package-gnupghome-dir nil))
 
 ;; Install entropy-emacs pre installed packages
-(when (equal entropy/use-extensions-type 'origin)
+(when (equal entropy/emacs-use-extensions-type 'origin)
   (require 'entropy-emacs-package-requirements)
   (let ((package-check-signature nil))
     (dolist (package entropy-emacs-packages)
@@ -142,7 +142,7 @@ for `user-emacs-directory'."
           (ignore-errors (package-install package)))))))
 
 ;; Setup `use-package'
-(unless (eq entropy/use-extensions-type 'submodules)
+(unless (eq entropy/emacs-use-extensions-type 'submodules)
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
     (package-install 'use-package)))
@@ -150,7 +150,7 @@ for `user-emacs-directory'."
 (eval-when-compile
   (require 'use-package))
 
-(if (eq entropy/use-extensions-type 'submodules)
+(if (eq entropy/emacs-use-extensions-type 'submodules)
     (setq use-package-always-ensure nil)
   (setq use-package-always-ensure t))
 (setq use-package-always-defer t)
@@ -176,13 +176,13 @@ for `user-emacs-directory'."
    ))
 
 ;; Use ivy and dash (They are the basic dependencies for entropy-emacs)
-(unless (not entropy/minimal-start)
+(unless (not entropy/emacs-minimal-start)
   (use-package ivy)
   (use-package dash))
 
 
 ;; Initialization benchmark
-(when entropy/initialize-benchmark-enable
+(when entropy/emacs-initialize-benchmark-enable
   (use-package benchmark-init
     :init
     ;; (benchmark-init/activate)

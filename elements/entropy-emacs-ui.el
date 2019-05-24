@@ -29,30 +29,30 @@
     (load-theme 'entropy-base16-theme-bright t)))
 
 ;; ** init-frame position and width and height
-(if (< entropy/init-frame-width-scale 1)
+(if (< entropy/emacs-init-frame-width-scale 1)
     (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
-      (if (< entropy/font-size-default 15)
-          (set-face-attribute 'default nil :height (ceiling (* entropy/font-size-default 10)))
+      (if (< entropy/emacs-font-size-default 15)
+          (set-face-attribute 'default nil :height (ceiling (* entropy/emacs-font-size-default 10)))
         (error "Your default font size is too large, you must set it smaller than 15."))
 
       (defun entropy/set-frame-position ()
-        "Reset frame's position and size by the constraint of `entropy/init-frame-width-scale',
-`entropy/init-frame-height-scale'
+        "Reset frame's position and size by the constraint of `entropy/emacs-init-frame-width-scale',
+`entropy/emacs-init-frame-height-scale'
 
 And the aim effection for it is that let frame be in the middle of current displayer you be in with
 the specific height and width determined by above variable you setted."
         (interactive)
         (let (x y width height)
           ;; widht height, coordinate calculate.
-          (setq width (ceiling (* (x-display-pixel-width) entropy/init-frame-width-scale)))
-          (setq height (ceiling (* (x-display-pixel-height) entropy/init-frame-height-scale)))
+          (setq width (ceiling (* (x-display-pixel-width) entropy/emacs-init-frame-width-scale)))
+          (setq height (ceiling (* (x-display-pixel-height) entropy/emacs-init-frame-height-scale)))
           (setq x (ceiling (/ (- (x-display-pixel-width) width) 2)))
-          (setq y (if entropy/init-fpos-y entropy/init-fpos-y 0))
+          (setq y (if entropy/emacs-init-fpos-y entropy/emacs-init-fpos-y 0))
           ;; frame position setting
           (set-frame-width (selected-frame) width nil t)
           (set-frame-height (selected-frame) height nil t)
           (set-frame-position (selected-frame) x y)))
-      (when entropy/init-fpos-enable
+      (when entropy/emacs-init-fpos-enable
         (entropy/set-frame-position)))
   
   (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
@@ -60,7 +60,7 @@ the specific height and width determined by above variable you setted."
     (setq default-frame-alist initial-frame-alist)))
 
 ;; ** elisp show parent
-(unless entropy/use-highlight-features
+(unless entropy/emacs-use-highlight-features
   (add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
   (add-hook 'lisp-interaction-mode-hook 'show-paren-mode))
 ;; ** Don't use GTK+ tooltip
@@ -70,9 +70,9 @@ the specific height and width determined by above variable you setted."
   (setq x-gtk-use-system-tooltips nil))
 
 ;; ** Logo
-(setq fancy-splash-image entropy/fancy-splash-logo)
+(setq fancy-splash-image entropy/emacs-fancy-splash-logo)
 ;; ** initial buffer
-(when entropy/enable-initial-dashboard
+(when entropy/emacs-enable-initial-dashboard
 ;; *** varaible defination  
   (defvar entropy/dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
     "Title of entropy-emacs initial dashboard buffer. ")
@@ -98,7 +98,7 @@ the specific height and width determined by above variable you setted."
         :link-type file
         :link ,(expand-file-name
                 "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.org"
-                entropy/ext-deps-dir))
+                entropy/emacs-ext-deps-dir))
        (:str ".")
        (:str "(view ")
        (:str "html version"
@@ -106,7 +106,7 @@ the specific height and width determined by above variable you setted."
         :link ,(concat "file://"
                 (expand-file-name
                  "entropy-emacs-doc/org/entropy-emacs_introduction.html"
-                 entropy/ext-deps-dir)))
+                 entropy/emacs-ext-deps-dir)))
        (:str " go.) "))
 
       ((:str "- Get ")
@@ -359,7 +359,7 @@ First insert entropy-emacs logo into initial buffer
 and entropy-emacs version with tag description. Last to insert
 widget used func `entropy/dashboard-create-widget'."
     (let ((buffer (get-buffer-create entropy/dashboard-buffer-name))
-          (img (ignore-errors (create-image entropy/fancy-splash-logo)))
+          (img (ignore-errors (create-image entropy/emacs-fancy-splash-logo)))
           (title " WELCOME TO ENTROPY-EMACS ")
           (version entropy/ecv))
       (with-current-buffer buffer
