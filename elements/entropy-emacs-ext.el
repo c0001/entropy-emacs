@@ -40,7 +40,7 @@
 (require 'entropy-emacs-defun)
 
 ;; ** defvar
-(defvar entropy/ext--extras
+(defvar entropy/emacs-ext--extras
   (list (list :item "entropy-emacs-deps"
               :repo-lc entropy/emacs-ext-deps-dir
               :version-lc (expand-file-name "version" entropy/emacs-ext-deps-dir)
@@ -55,7 +55,7 @@
               :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir))))
 
 
-(defvar entropy/ext--extras-trouble-table
+(defvar entropy/emacs-ext--extras-trouble-table
   '((0 . "%s repo doesn't exist.")
     (1 . "%s repo was fake.")
     (2 . "%s version indiator lost! Please repair '%s'.")
@@ -64,7 +64,7 @@
     (5 . "%s repo not initialzed, see '%s' README for as.")))
 
 
-(defvar entropy/ext--extra-trouble-prompt-head
+(defvar entropy/emacs-ext--extra-trouble-prompt-head
   (concat 
    (propertize
     "This buffer occurred when some entropy-emacs extras missing or
@@ -111,26 +111,26 @@ There's two entropy-emacs extras may need to download by your self:
 
 ;; ** libraries
 ;; *** extra status check
-(defun entropy/ext--check-all-extras ()
+(defun entropy/emacs-ext--check-all-extras ()
   "Return the extra-tmaps for as extra-plists mapped as trouble
-code defined in `entropy/ext--extras-trouble-table' or t."
-  (let ((extras (entropy/ext--check-inuse-extras))
+code defined in `entropy/emacs-ext--extras-trouble-table' or t."
+  (let ((extras (entropy/emacs-ext--check-inuse-extras))
         rtn)
     (dolist (el extras)
-      (unless (eq (entropy/ext--check-extra-status el) t)
-        (push (cons (entropy/ext--check-extra-status el) el) rtn)))
+      (unless (eq (entropy/emacs-ext--check-extra-status el) t)
+        (push (cons (entropy/emacs-ext--check-extra-status el) el) rtn)))
     (if rtn
         rtn
       t)))
 
 
-(defun entropy/ext--check-inuse-extras ()
-  (let ((full-extras entropy/ext--extras))
+(defun entropy/emacs-ext--check-inuse-extras ()
+  (let ((full-extras entropy/emacs-ext--extras))
     (if (eq entropy/emacs-use-extensions-type 'origin)
         (list (car full-extras))
       full-extras)))
 
-(defun entropy/ext--check-extra-status (extra-plist)
+(defun entropy/emacs-ext--check-extra-status (extra-plist)
   (let ((item (plist-get extra-plist :item))
         (repo_lc (plist-get extra-plist :repo-lc))
         (version_lc (plist-get extra-plist :version-lc))
@@ -157,14 +157,14 @@ code defined in `entropy/ext--extras-trouble-table' or t."
 
 
 ;; *** trouble prompt
-(defun entropy/ext--extra-prompt-troubel (extra-tmaps)
-  (let ((buffer (entropy/ext--extra-create-prompt-buffer))
+(defun entropy/emacs-ext--extra-prompt-troubel (extra-tmaps)
+  (let ((buffer (entropy/emacs-ext--extra-create-prompt-buffer))
         troubles)
     (dolist (el extra-tmaps)
-      (push (entropy/ext--extra-format-trouble el) troubles))
+      (push (entropy/emacs-ext--extra-format-trouble el) troubles))
     (setq troubles (reverse troubles))
     (with-current-buffer buffer
-      (setq troubles (entropy/numberic-list troubles))
+      (setq troubles (entropy/emacs-numberic-list troubles))
       (dolist (el troubles)
         (insert (concat (car el) ": "
                         (cdr el) "\n\n"))))
@@ -173,62 +173,62 @@ code defined in `entropy/ext--extras-trouble-table' or t."
       (delete-other-windows))))
 
 
-(defun entropy/ext--extra-format-trouble (extra-tmap)
+(defun entropy/emacs-ext--extra-format-trouble (extra-tmap)
   (let* ((tcode (car extra-tmap))
          (ext-plist (cdr extra-tmap))
-         (format (cdr (assoc tcode entropy/ext--extras-trouble-table))))
+         (format (cdr (assoc tcode entropy/emacs-ext--extras-trouble-table))))
     (or (ignore-errors (format format (plist-get ext-plist :item)))
         (ignore-errors (format format (plist-get ext-plist :item) (plist-get ext-plist :item))))))
 
 
-(defun entropy/ext--extra-create-prompt-buffer ()
-  (let ((bffN "*entropy/ext*")
+(defun entropy/emacs-ext--extra-create-prompt-buffer ()
+  (let ((bffN "*entropy/emacs-ext*")
         buffer)
     (setq buffer (get-buffer-create bffN))
     (with-current-buffer buffer
       (when buffer-read-only
         (read-only-mode 0))
       (goto-char (point-min))
-      (insert entropy/ext--extra-trouble-prompt-head)
+      (insert entropy/emacs-ext--extra-trouble-prompt-head)
       (insert "\n\n")
       (insert (propertize "Tourble meet:" 'face 'underline))
       (insert "\n\n"))
     buffer))
 
 ;; *** adding load path
-(defun entropy/ext--add-subdirs-to-load-path (dir)
+(defun entropy/emacs-ext--add-subdirs-to-load-path (dir)
   "Recursive add directories to `load-path'."
   (let ((default-directory (file-name-as-directory dir)))
     (when (not (string-match-p "yasnippet-snippets" dir))
       (normal-top-level-add-subdirs-to-load-path))))
 
 
-(defun entropy/ext--load-path (top-dir)
-  (let ((subdirs (entropy/list-subdir top-dir)))
+(defun entropy/emacs-ext--load-path (top-dir)
+  (let ((subdirs (entropy/emacs-list-subdir top-dir)))
     (dolist (el subdirs)
       (add-to-list 'load-path el)
-      (entropy/ext--add-subdirs-to-load-path el))))
+      (entropy/emacs-ext--add-subdirs-to-load-path el))))
 
 
 ;; ** main
-(defun entropy/ext-main ()
-  (let ((extras-status (entropy/ext--check-all-extras)))
+(defun entropy/emacs-ext-main ()
+  (let ((extras-status (entropy/emacs-ext--check-all-extras)))
     (unless (eq extras-status t)
-      (entropy/ext--extra-prompt-troubel extras-status))
+      (entropy/emacs-ext--extra-prompt-troubel extras-status))
     (if (not (eq extras-status t))
         nil
-      (entropy/ext--load-path
+      (entropy/emacs-ext--load-path
        (expand-file-name "elements/submodules"
                          entropy/emacs-ext-deps-dir))
       (when (eq entropy/emacs-use-extensions-type 'submodules)
-        (entropy/ext--load-path
+        (entropy/emacs-ext--load-path
          (expand-file-name "elements/submodules"
                            entropy/emacs-ext-extensions-dir)))
       (when (and entropy/emacs-ext-user-specific-load-paths
                  (listp entropy/emacs-ext-user-specific-load-paths))
         (dolist (el entropy/emacs-ext-user-specific-load-paths)
           (when (ignore-errors (file-directory-p el))
-            (entropy/ext--load-path (expand-file-name el)))))
+            (entropy/emacs-ext--load-path (expand-file-name el)))))
       t)))
 
 

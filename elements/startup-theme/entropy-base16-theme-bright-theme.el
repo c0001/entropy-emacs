@@ -11,7 +11,7 @@
 
 (require 'entropy-base16-theme)
 
-(defvar entropy/base16-theme-bright-colors
+(defvar entropy/emacs-base16-theme-bright-colors
   '(:base00 "#000000"
     :base01 "#303030"
     :base02 "#505050"
@@ -34,7 +34,7 @@
 (deftheme entropy-base16-theme-bright)
 
 ;; Add all the faces to the theme
-(entropy/base16-theme-define 'entropy-base16-theme-bright entropy/base16-theme-bright-colors)
+(entropy/emacs-base16-theme-define 'entropy-base16-theme-bright entropy/emacs-base16-theme-bright-colors)
 
 ;; Mark the theme as provided
 (provide-theme 'entropy-base16-theme-bright)

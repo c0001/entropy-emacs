@@ -36,9 +36,9 @@
 ;;; Code:
 
 ;; ** library
-(defun entropy/tramp-get-ssh-config ()
+(defun entropy/emacs-tramp-get-ssh-config ()
   "Get ssh config for extracting host candidates using func
-`entropy/tramp-list-group'."
+`entropy/emacs-tramp-list-group'."
   (let ((file (if (file-exists-p "~/.ssh/config")
                   "~/.ssh/config"
                 (error "None ssh config file searched!")))
@@ -51,20 +51,20 @@
     (setq groups (split-string content "^$"))
     (dolist (el groups)
       (when (not (string= "" el))
-        (push (entropy/tramp-list-group el) rtn)))
+        (push (entropy/emacs-tramp-list-group el) rtn)))
     rtn))
 
-(defun entropy/tramp-list-group (group)
-  "Usdng func `entropy/tramp-tidy-source' for extracting the
+(defun entropy/emacs-tramp-list-group (group)
+  "Usdng func `entropy/emacs-tramp-tidy-source' for extracting the
 substring get from splitting with '\n' from group GROUP.
 
 GROUP is the substring get from ssh config file and splitting by
 '^$'."
   (let* ((source (split-string group "\n" t))
-         (source-tidy (entropy/tramp-tidy-source source)))
+         (source-tidy (entropy/emacs-tramp-tidy-source source)))
     source-tidy))
 
-(defun entropy/tramp-tidy-source (source)
+(defun entropy/emacs-tramp-tidy-source (source)
     "Make alist from group GROUP which are the string contained ssh
 config group info as:
 
@@ -105,10 +105,10 @@ This func divided this string into the return list as:
 
 
 ;; ** dispater
-(defun entropy/tramp-query-host-list ()
+(defun entropy/emacs-tramp-query-host-list ()
   "Create host list for the query candidates list used for
-`entropy/tramp-query-chosen-open'. "
-  (let ((source-tidy (entropy/tramp-get-ssh-config))
+`entropy/emacs-tramp-query-chosen-open'. "
+  (let ((source-tidy (entropy/emacs-tramp-get-ssh-config))
         host-name
         rtn)
     (dolist (el source-tidy)
@@ -120,9 +120,9 @@ This func divided this string into the return list as:
        (t nil)))
     rtn))
 
-(defun entropy/tramp-gen-link (group)
+(defun entropy/emacs-tramp-gen-link (group)
   "Generate tramp link used for
-`entropy/tramp-query-chosen-open'."
+`entropy/emacs-tramp-query-chosen-open'."
   (require 'tramp)
   (let ((host-address (nth 1 (or (assoc "hostname" group)
                                  (assoc "HostName" group)
@@ -149,24 +149,24 @@ This func divided this string into the return list as:
     (find-file link)))
 
 
-(defun entropy/tramp-query-chosen-open ()
+(defun entropy/emacs-tramp-query-chosen-open ()
   "The dispatcher for tramp retrieving of entropy-emacs."
   (interactive)
-  (ivy-read "xxx: " (entropy/tramp-query-host-list)
+  (ivy-read "xxx: " (entropy/emacs-tramp-query-host-list)
             :require-match t
-            :action (lambda (arg) (entropy/tramp-gen-link
+            :action (lambda (arg) (entropy/emacs-tramp-gen-link
                                    (nth 1 arg)))))
 
-(global-set-key (kbd "C-c s t") 'entropy/tramp-query-chosen-open)
+(global-set-key (kbd "C-c s t") 'entropy/emacs-tramp-query-chosen-open)
 
 
-(defun entropy/tramp-clean-all ()
+(defun entropy/emacs-tramp-clean-all ()
   "Clean all tramp connections and refer buffers."
   (interactive)
   (tramp-cleanup-all-connections)
   (tramp-cleanup-all-buffers)
   (message "Clean up all tramp refers."))
 
-(global-set-key (kbd "C-c s c") 'entropy/tramp-clean-all)
+(global-set-key (kbd "C-c s c") 'entropy/emacs-tramp-clean-all)
 
 (provide 'entropy-emacs-tramp)

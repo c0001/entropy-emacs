@@ -39,57 +39,57 @@
 
   :config
 
-  (defvar entropy/orgstruct-jumping-head-regexp
+  (defvar entropy/emacs-orgstruct-jumping-head-regexp
     "^\\(\\( \\|	\\)*;;\\( \\|	\\)?\\*\\|^\\( \\|	\\)*#\\( \\|	\\)?\\*\\|^\\( \\|	\\)*\\/\\*\\( \\|	\\)?\\*\\|^\\( \\|	\\)*\\/\\/\\( \\|	\\)?\\*\\)"
     "The regexp for jumping heading by:
 
-    - `entropy/fold-org-struct'
-    - `entropy/previous-orgstruct-headline'
-    - `entropy/next-orgstruct-headline'
-    - `entropy/up-orgstruct-headline'"
+    - `entropy/emacs-fold-org-struct'
+    - `entropy/emacs-previous-orgstruct-headline'
+    - `entropy/emacs-next-orgstruct-headline'
+    - `entropy/emacs-up-orgstruct-headline'"
     )
 
-  (defun entropy/fold-org-struct ()
+  (defun entropy/emacs-fold-org-struct ()
     "Fold the file with orgstruct format struture heading style
 like ';; **' in elisp file"
     (interactive)
     (goto-char (point-min))
     (re-search-forward
-     entropy/orgstruct-jumping-head-regexp)
+     entropy/emacs-orgstruct-jumping-head-regexp)
     (orgstruct-hijacker-org-shifttab-3 t))
   
-  (defun entropy/previous-orgstruct-headline ()
+  (defun entropy/emacs-previous-orgstruct-headline ()
     "Jumping to the previous orgstruct headline."
     (interactive)
     (beginning-of-line)
     (re-search-backward
-     entropy/orgstruct-jumping-head-regexp))
+     entropy/emacs-orgstruct-jumping-head-regexp))
   
-  (defun entropy/next-orgstruct-headline ()
+  (defun entropy/emacs-next-orgstruct-headline ()
     "Jumping to the next orgstruct headline."
     (interactive)
     (end-of-line)
     (re-search-forward
-     entropy/orgstruct-jumping-head-regexp))
+     entropy/emacs-orgstruct-jumping-head-regexp))
 
-  (defun entropy/up-orgstruct-headline ()
+  (defun entropy/emacs-up-orgstruct-headline ()
     "Jumping to the up-level orgstruct headline."
     (interactive)
     (next-line)
     (beginning-of-line)
-    (entropy/previous-orgstruct-headline)
+    (entropy/emacs-previous-orgstruct-headline)
     (orgstruct-hijacker-outline-up-heading-1 t))
   
-  (defun entropy/org-struct-mode-hook ()
-    "Hooks for pusing `entropy/previous-orgstruct-headline',
-`entropy/next-orgstruct-headline',
-`entropy/next-orgstruct-headline' to org-struct-mode-hook."
-    (define-key orgstruct-mode-map (kbd "C-<tab>") 'entropy/fold-org-struct)
-    (define-key orgstruct-mode-map (kbd "C-c C-p") 'entropy/previous-orgstruct-headline)
-    (define-key orgstruct-mode-map (kbd "C-c C-n") 'entropy/next-orgstruct-headline)
-    (define-key orgstruct-mode-map (kbd "C-c C-u") 'entropy/up-orgstruct-headline)
+  (defun entropy/emacs-org-struct-mode-hook ()
+    "Hooks for pusing `entropy/emacs-previous-orgstruct-headline',
+`entropy/emacs-next-orgstruct-headline',
+`entropy/emacs-next-orgstruct-headline' to org-struct-mode-hook."
+    (define-key orgstruct-mode-map (kbd "C-<tab>") 'entropy/emacs-fold-org-struct)
+    (define-key orgstruct-mode-map (kbd "C-c C-p") 'entropy/emacs-previous-orgstruct-headline)
+    (define-key orgstruct-mode-map (kbd "C-c C-n") 'entropy/emacs-next-orgstruct-headline)
+    (define-key orgstruct-mode-map (kbd "C-c C-u") 'entropy/emacs-up-orgstruct-headline)
     (define-key orgstruct-mode-map (kbd "C-c C-f") nil))
-  (add-hook 'orgstruct-mode-hook 'entropy/org-struct-mode-hook))
+  (add-hook 'orgstruct-mode-hook 'entropy/emacs-org-struct-mode-hook))
 
 
 
@@ -114,7 +114,7 @@ like ';; **' in elisp file"
   :config
 
   ;; function for universal code folding
-  (defun entropy/toggle-selective-display (column)
+  (defun entropy/emacs-toggle-selective-display (column)
     "Folding coding block relied on indentation column COLUMN."
     (interactive "P")
     (set-selective-display
@@ -122,7 +122,7 @@ like ';; **' in elisp file"
 	 (unless selective-display
 	   (1+ (current-column))))))
 
-  (defun entropy/toggle-hiding (column)
+  (defun entropy/emacs-toggle-hiding (column)
     "Using `hs-toggle-hiding' to fold partition coding block."
     (interactive "P")
     (if hs-minor-mode
@@ -130,10 +130,10 @@ like ';; **' in elisp file"
 		(hs-toggle-hiding)
 	      (error t))
 	    (hs-show-all))
-      (entropy/toggle-selective-display column)))
+      (entropy/emacs-toggle-selective-display column)))
 
-  (global-set-key (kbd "C--") 'entropy/toggle-hiding)
-  (global-set-key (kbd "C-+") 'entropy/toggle-selective-display))
+  (global-set-key (kbd "C--") 'entropy/emacs-toggle-hiding)
+  (global-set-key (kbd "C-+") 'entropy/emacs-toggle-selective-display))
 
 ;; * provide
 (provide 'entropy-emacs-structure)

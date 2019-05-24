@@ -168,10 +168,10 @@
     (add-hook 'web-mode-hook #'skewer-html-mode)))
 
 (use-package impatient-mode
-  :commands (impatient-mode entropy/impatient-mode)
+  :commands (impatient-mode entropy/emacs-impatient-mode)
   :init (setq impatient-mode-delayed-update nil)
   :config
-  (defun entropy/impatient-mode ()
+  (defun entropy/emacs-impatient-mode ()
     "Enable `impatient-mode' and http server by `httpd-start' if
     server not actived and open the impatient url
     \"http://localhost:8080/imp/\" with file-name of current

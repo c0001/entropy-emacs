@@ -35,7 +35,7 @@
 
 ;; * Code:
 ;; ** file and directories
-(defun entropy/list-dir-lite (dir-root)
+(defun entropy/emacs-list-dir-lite (dir-root)
   "Return directory list with type of whichever file or
 directory."
   (let (rtn-full rtn-lite rtn-attr)
@@ -55,9 +55,9 @@ directory."
         nil))))
 
 
-(defun entropy/list-subdir (dir-root)
+(defun entropy/emacs-list-subdir (dir-root)
   "List subdir of root dir DIR-ROOT"
-  (let ((dirlist (entropy/list-dir-lite dir-root))
+  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
         (rtn nil))
     (if dirlist
         (progn
@@ -71,7 +71,7 @@ directory."
 
 
 ;; ** counter map list
-(defun entropy/numberic-list (list-var)
+(defun entropy/emacs-numberic-list (list-var)
   "Return list element mapped with numberic prefix which concated
 with '0' as alignment state."
   (let* ((l-len (length list-var))

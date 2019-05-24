@@ -14,7 +14,7 @@
 (require 'entropy-emacs-defcustom)
 
 ;; * main
-(defun entropy/use-zeal-at-point ()
+(defun entropy/emacs-use-zeal-at-point ()
   "Use-package zeal-at-point."
   (if (not (executable-find "zeal"))
       (warn "Can not find 'zeal' in path.")
@@ -29,10 +29,10 @@
 
 
 (when (and sys/win32p entropy/emacs-win-portable-zeal-enable)
-  (entropy/use-zeal-at-point))
+  (entropy/emacs-use-zeal-at-point))
 
 (when sys/linux-x-p
-  (entropy/use-zeal-at-point))
+  (entropy/emacs-use-zeal-at-point))
 
 
 (provide 'entropy-emacs-dash)

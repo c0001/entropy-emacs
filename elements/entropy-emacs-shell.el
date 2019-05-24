@@ -210,16 +210,16 @@ was found."
 ;; ** Shell Pop
 (use-package shell-pop
   :defines shell-pop-universal-key
-  :bind ([f9] . entropy/shell-pop-for-eshell)
+  :bind ([f9] . entropy/emacs-shell-pop-for-eshell)
   :init
-  (defun entropy/shell-pop-before-advice (&rest args)
+  (defun entropy/emacs-shell-pop-before-advice (&rest args)
     (when (string-match "^/\\w+?:" default-directory)
       (error "Can not usign eshell in tramp location.")))
 
-  (advice-add 'entropy/shell-pop-for-eshell
-              :before #'entropy/shell-pop-before-advice)
+  (advice-add 'entropy/emacs-shell-pop-for-eshell
+              :before #'entropy/emacs-shell-pop-before-advice)
   
-  (defun entropy/shell-pop-for-eshell (arg)
+  (defun entropy/emacs-shell-pop-for-eshell (arg)
     (interactive "P")
     (require 'shell-pop)
     (let* ((value '("eshell" "*eshell*" (lambda () (eshell))))
@@ -228,10 +228,10 @@ was found."
            (shell-pop-internal-mode-func (nth 2 value)))
       (shell-pop arg)))
 
-  (defun entropy/shell-pop-make-pop-ansi-term ()
-    (advice-add 'entropy/shell-pop-for-ansi-term-bash
-                :before #'entropy/shell-pop-before-advice)
-    (defun entropy/shell-pop-for-ansi-term-bash (arg)
+  (defun entropy/emacs-shell-pop-make-pop-ansi-term ()
+    (advice-add 'entropy/emacs-shell-pop-for-ansi-term-bash
+                :before #'entropy/emacs-shell-pop-before-advice)
+    (defun entropy/emacs-shell-pop-for-ansi-term-bash (arg)
       (interactive "P")
       (require 'shell-pop)
       (let* ((shell-file-name (if sys/win32p (expand-file-name "bash.exe" entropy/emacs-wsl-apps) "bash"))
@@ -242,11 +242,11 @@ was found."
              (shell-pop-internal-mode-buffer (nth 1 value))
              (shell-pop-internal-mode-func (nth 2 value)))
         (shell-pop arg)))
-    (global-set-key (kbd "<f10>") 'entropy/shell-pop-for-ansi-term-bash))
+    (global-set-key (kbd "<f10>") 'entropy/emacs-shell-pop-for-ansi-term-bash))
 
   ;; ansi-term for linux-like operation system
   (when (not sys/win32p)
-    (entropy/shell-pop-make-pop-ansi-term))
+    (entropy/emacs-shell-pop-make-pop-ansi-term))
 
   ;; ansi-term for windows
   (use-package fakecygpty
@@ -259,7 +259,7 @@ was found."
     :init
     (fakecygpty-activate)
     :config
-    (defun entropy/cd-around-advice (old_func dir)
+    (defun entropy/emacs-cd-around-advice (old_func dir)
       (let ((wsl-root (substring (expand-file-name entropy/emacs-wsl-apps) 0 -9)))
         (cond ((string-match-p "^/.[^/]+" dir)
                (setq dir (expand-file-name (replace-regexp-in-string "^/" "" dir) wsl-root)))
@@ -274,16 +274,16 @@ was found."
               ((string-match-p "^/$" dir)
                (setq dir wsl-root)))
         (funcall old_func dir)))
-    (advice-add 'cd :around 'entropy/cd-around-advice)
+    (advice-add 'cd :around 'entropy/emacs-cd-around-advice)
     
     (cond ((and entropy/emacs-wsl-enable
                 (ignore-errors (file-exists-p entropy/emacs-wsl-apps)))
-           (entropy/shell-pop-make-pop-ansi-term))
+           (entropy/emacs-shell-pop-make-pop-ansi-term))
           
           (t
-           (advice-add 'entropy/shell-pop-for-ansi-term-cmd
-                       :before #'entropy/shell-pop-before-advice)
-           (defun entropy/shell-pop-for-ansi-term-cmd  (arg)
+           (advice-add 'entropy/emacs-shell-pop-for-ansi-term-cmd
+                       :before #'entropy/emacs-shell-pop-before-advice)
+           (defun entropy/emacs-shell-pop-for-ansi-term-cmd  (arg)
              (interactive "P")
              (require 'shell-pop)
              (let* ((shell-pop-term-shell shell-file-name)
@@ -292,7 +292,7 @@ was found."
                     (shell-pop-internal-mode-buffer (nth 1 value))
                     (shell-pop-internal-mode-func (nth 2 value)))
                (shell-pop arg)))
-           (global-set-key (kbd "<f10>") 'entropy/shell-pop-for-ansi-term-cmd)))))
+           (global-set-key (kbd "<f10>") 'entropy/emacs-shell-pop-for-ansi-term-cmd)))))
 
 
 

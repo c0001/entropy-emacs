@@ -54,9 +54,9 @@
   ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
   (when entropy/emacs-custom-language-environment-enable
     (with-eval-after-load 'magit)
-    (advice-add 'magit-status :before #'entropy/lang-set-utf-8)
-    (advice-add 'magit-dispatch-popup :before #'entropy/lang-set-utf-8)
-    (advice-add 'magit-file-popup :before #'entropy/lang-set-utf-8))
+    (advice-add 'magit-status :before #'entropy/emacs-lang-set-utf-8)
+    (advice-add 'magit-dispatch-popup :before #'entropy/emacs-lang-set-utf-8)
+    (advice-add 'magit-file-popup :before #'entropy/emacs-lang-set-utf-8))
 
   ;; Disabled vc.el key bindings for prevent to accidental actived 
   (progn
@@ -85,7 +85,7 @@
   :config
   (with-eval-after-load 'magit
     (define-key magit-mode-map (kbd "M-1") nil)) ;disabled 'M-1' key-binding with conflicated with
-                                                 ;`entropy/quick-readonly-global'
+                                                 ;`entropy/emacs-quick-readonly-global'
   (use-package ssh-agency
     :commands (ssh-agency-ensure)
     :init

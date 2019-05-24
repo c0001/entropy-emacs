@@ -18,9 +18,9 @@
 (use-package yasnippet
   :diminish yas-minor-mode
   :commands (yas-global-mode yas-expand)
-  :bind (("M-i" . entropy/yas-enable-or-expand))
+  :bind (("M-i" . entropy/emacs-yas-enable-or-expand))
   :init
-  (defun entropy/yas-enable-or-expand (&rest args)
+  (defun entropy/emacs-yas-enable-or-expand (&rest args)
     "Auto enable `yas-global-mode' when not as it and call
 `yas-expand'."
     (interactive)

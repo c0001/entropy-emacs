@@ -198,8 +198,8 @@ Notice:
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/emacs-enable-modeline-toggle nil
-  "Enable modeline toggle function `entropy/mdl-powerline' and
-  `entropy/mdl-spaceline' and the customized effectively of
+  "Enable modeline toggle function `entropy/emacs-mdl-powerline' and
+  `entropy/emacs-mdl-spaceline' and the customized effectively of
   `entropy/emacs-modeline-style'.
 
 Note: spaceline and powerline will cause lagging performancs
@@ -216,7 +216,7 @@ for a long time and so as the bad head dispersion."
   :group 'entropy/emacs-custom-variable-basic)
 ;; *** init-frame position
 (defcustom entropy/emacs-init-fpos-enable nil
-  "Whether set init emacs position by `entropy/set-frame-position'."
+  "Whether set init emacs position by `entropy/emacs-set-frame-position'."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
@@ -328,7 +328,7 @@ emacs 26 or higher emacs version."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/emacs-eyebrowse-new-workspace-init-function 'entropy/create-scratch-buffer
+(defcustom entropy/emacs-eyebrowse-new-workspace-init-function 'entropy/emacs-create-scratch-buffer
   "Create the init buffer or others with you own function when
 open one new eyebrowse workspace"
   :type 'sexp
@@ -494,7 +494,7 @@ Mostly of all, you should write your browse-url function with two args:
 
 For example:
 
-     (defun entropy/open-with-url (url &rest args)
+     (defun entropy/emacs-open-with-url (url &rest args)
        (interactive (browse-url-interactive-arg \"URL: \"))
        (w32-shell-execute
         \"open\"

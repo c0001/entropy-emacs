@@ -22,7 +22,7 @@
          ("C-S-s" . swiper-all)
 
          ("C-c C-r" . ivy-resume)
-         ("C-c M-t" . entropy/counsel-load-theme)
+         ("C-c M-t" . entropy/emacs-counsel-load-theme)
 ;; **** counsel mode map
          :map counsel-mode-map
          ([remap swiper] . counsel-grep-or-swiper)
@@ -108,7 +108,7 @@ which type of value be:
                  (setcar actions (1+ action-idx))
                  (ivy-set-action actions)))))))
   
-  (defun entropy/ivy-read-action-after-advice (&rest args)
+  (defun entropy/emacs-ivy-read-action-after-advice (&rest args)
     "Interrupting rest process when `this-command' was
 `ivy-read-action'."
     (catch 'ivy-quit
@@ -117,7 +117,7 @@ which type of value be:
           (progn
             (user-error "Ivy-quit!")
             (throw 'ivy-quit "Ivy-quit!")))))
-  (advice-add 'ivy-read :after #'entropy/ivy-read-action-after-advice)
+  (advice-add 'ivy-read :after #'entropy/emacs-ivy-read-action-after-advice)
 ;; **** escape use top-level
   (with-eval-after-load 'counsel
     (define-key counsel-mode-map (kbd "ESC ESC") 'top-level))
@@ -129,7 +129,7 @@ which type of value be:
   ;; main encoding type while calling them.
   (if entropy/emacs-custom-language-environment-enable
       (progn
-        (defun entropy/counsel-git ()
+        (defun entropy/emacs-counsel-git ()
           (interactive)
           (if (not (string= current-language-environment "UTF-8"))
               (progn
@@ -137,9 +137,9 @@ which type of value be:
                 (prefer-coding-system 'utf-8-unix)
                 (counsel-git))
             (counsel-git)))
-        (global-set-key (kbd "C-c g") 'entropy/counsel-git)
+        (global-set-key (kbd "C-c g") 'entropy/emacs-counsel-git)
 
-        (defun entropy/counsel-bookmark ()
+        (defun entropy/emacs-counsel-bookmark ()
           (interactive)
           (if (not (string= current-language-environment "UTF-8"))
               (progn
@@ -151,7 +151,7 @@ which type of value be:
                 (set-keyboard-coding-system 'utf-8-unix)
                 (counsel-bookmark))
             (counsel-bookmark)))
-        (global-set-key (kbd "C-x r b") 'entropy/counsel-bookmark))
+        (global-set-key (kbd "C-x r b") 'entropy/emacs-counsel-bookmark))
     (progn
       (global-set-key (kbd "C-c g") 'counsel-git)
       (global-set-key (kbd "C-x r b") 'counsel-bookmark)))
@@ -162,9 +162,9 @@ which type of value be:
 
   ;; because `counsel--M-x-externs' has the `require' function for it's contained condition context
   ;; so it will lagging like previous version of `ivy--add-face'.
-  (defun entropy/counsel--M-x-externs ()
+  (defun entropy/emacs-counsel--M-x-externs ()
     nil)
-  (advice-add 'counsel--M-x-externs :override #'entropy/counsel--M-x-externs)
+  (advice-add 'counsel--M-x-externs :override #'entropy/emacs-counsel--M-x-externs)
 ;; **** disabled ivy-initial-inputs-alist
 
   ;; ivy initial char inserting was using for regex like searching, and it's also be '^' for ahead
@@ -219,7 +219,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 ;; **** disabled counsel-find-file-at-point
   (setq counsel-find-file-at-point nil)
 ;; **** counsel-load-theme
-  (defun entropy/ivy-org-mode-heading-reset ()
+  (defun entropy/emacs-ivy-org-mode-heading-reset ()
     "Stop the org-level headers from increasing in height relative to the other text."
     (with-eval-after-load 'org
       (dolist (face '(org-level-1
@@ -231,14 +231,14 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
                       org-level-7
                       org-level-8))
         (set-face-attribute face nil :background nil :weight 'semi-bold :height 1.0))))
-  (defun entropy/counsel-load-theme ()
+  (defun entropy/emacs-counsel-load-theme ()
     "Load theme with reset the org-headline face for disabled the
 font style and height."
     (interactive)
     (counsel-load-theme)
-    (entropy/ivy-org-mode-heading-reset))
+    (entropy/emacs-ivy-org-mode-heading-reset))
 
-  (defun entropy/clth-ivy-current-match-specific (x)
+  (defun entropy/emacs-clth-ivy-current-match-specific (x)
     "Advice for `counsel-load-theme-action' that setting face of
 `ivy-current-match' for spacemacs themes.
 
@@ -262,45 +262,45 @@ visual distinction of `ivy-current-match' covered upon the
         (set-face-attribute 'ivy-current-match nil
                             :background "#1a4b77" :foreground "white")))))
 
-  (advice-add 'counsel-load-theme-action :after #'entropy/clth-ivy-current-match-specific)
+  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-clth-ivy-current-match-specific)
 
-  (defun entropy/clth-doomline-specifix (arg)
+  (defun entropy/emacs-clth-doomline-specifix (arg)
     "Advice of auto refresh doom-modeline bar background color
 when changing theme."
     (progn
-      (cond ((and (string= entropy/mode-line-sticker "doom")
+      (cond ((and (string= entropy/emacs-mode-line-sticker "doom")
                   (string-match-p "\\(ujelly\\)" arg))
              (set-face-attribute 'doom-modeline-bar
                                  nil :background "black")
              (doom-modeline-refresh-bars))
-            ((and (string= entropy/mode-line-sticker "doom")
+            ((and (string= entropy/emacs-mode-line-sticker "doom")
                   (string-match-p "\\(spolsky\\)" arg))
              (setq doom-modeline--bar-active
                    (doom-modeline--make-xpm 'doom-modeline-inactive-bar
                                             doom-modeline-bar-width
                                             doom-modeline-height)))
-            ((string= entropy/mode-line-sticker "doom")
+            ((string= entropy/emacs-mode-line-sticker "doom")
              (set-face-attribute 'doom-modeline-bar
                                  nil :background (face-background 'mode-line nil t))
              (doom-modeline-refresh-bars)))))
 
-  (advice-add 'counsel-load-theme-action :after #'entropy/clth-doomline-specifix)
+  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-clth-doomline-specifix)
 
 
 
-  (defun entropy/clth-other-fixing (arg &rest args)
+  (defun entropy/emacs-clth-other-fixing (arg &rest args)
     "Advice of fixing other tiny bug of specific theme."
     (when (not (featurep 'hl-line))
       (require 'hl-line))
     (cond
      ((string= "doom-solarized-light" arg)
       (set-face-attribute 'hl-line nil :background "moccasin"))))
-  (advice-add 'counsel-load-theme-action :after #'entropy/clth-other-fixing)
+  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-clth-other-fixing)
   
 
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-wsl-enable)
-    (defun entropy/counsel-locate ()
+    (defun entropy/emacs-counsel-locate ()
       "Call counsel-locate by unicode encoding when in windows
 plattform."
       (interactive)
@@ -315,7 +315,7 @@ INITIAL-INPUT can be given as the initial minibuffer input.
 
 Note: This function has been modified for transfer volum's type
 of msys2 or other window-gnu-enviroment to windows origin volum
-type by function `entropy/transfer-wvol'"
+type by function `entropy/emacs-transfer-wvol'"
       (interactive)
       (ivy-read "Locate: " #'counsel-locate-function
                 :initial-input initial-input
@@ -324,11 +324,11 @@ type by function `entropy/transfer-wvol'"
                 :action (lambda (file)
                           (when file
                             (with-ivy-window
-                              (entropy/transfer-wvol file))))
+                              (entropy/emacs-transfer-wvol file))))
                 :unwind #'counsel-delete-process
                 :caller 'counsel-locate))
 
-    (defun entropy/transfer-wvol (file)
+    (defun entropy/emacs-transfer-wvol (file)
       (if (string-match-p "^/[a-z]/" file)
           (let ((wvol (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:" file)))
             (find-file wvol))
@@ -336,7 +336,7 @@ type by function `entropy/transfer-wvol'"
 
 ;; **** counsel-dired-jump
   (when (or sys/win32p sys/cygwinp)
-    (advice-add 'counsel-dired-jump :before #'entropy/lang-set-utf-8))
+    (advice-add 'counsel-dired-jump :before #'entropy/emacs-lang-set-utf-8))
 
 ;; **** use counsel css for quickly search css selector
   (use-package counsel-css
@@ -369,13 +369,13 @@ type by function `entropy/transfer-wvol'"
                                           (shell-quote-argument X))
                                   nil 0)))
 ;; **** redefine counsel-git
-  (defvar entropy/counsel-git-root nil
+  (defvar entropy/emacs-counsel-git-root nil
     "Temporally variable storing git repository root dir,
 this variable used to patching for origin `counsel-git'.")
 
   (defun counsel-git-cands ()
     (let ((default-directory (counsel-locate-git-root)))
-      (setq entropy/counsel-git-root default-directory)
+      (setq entropy/emacs-counsel-git-root default-directory)
       (split-string
        (shell-command-to-string counsel-git-cmd)
        "\n"
@@ -394,7 +394,7 @@ this variable used to patching for origin `counsel-git'.")
     version of ivy framework updating.
     "
     (with-ivy-window
-      (let ((default-directory entropy/counsel-git-root))
+      (let ((default-directory entropy/emacs-counsel-git-root))
         (find-file x)))))
 ;; ** avy
 (use-package avy
@@ -410,7 +410,7 @@ this variable used to patching for origin `counsel-git'.")
     (all-the-icons-ivy-setup)))
 
 ;; ** use helm  ag or pt search
-(defun entropy/helm-ag--edit-commit ()
+(defun entropy/emacs-helm-ag--edit-commit ()
   "Funciton to be redefine body of `helm-ag--edit-commit'."
   (goto-char (point-min))
   (let ((read-only-files 0)
@@ -472,22 +472,22 @@ this variable used to patching for origin `counsel-git'.")
               (progn
                 (progn
                   ;; Setting unique setting for windows
-                  (defun entropy/helm-do-pt-for-win ()
+                  (defun entropy/emacs-helm-do-pt-for-win ()
                     (interactive)
                     (unless (string= current-language-environment "UTF-8")
                       (set-language-environment "UTF-8")
                       (prefer-coding-system 'utf-8-unix))
                     (helm-do-pt))
-                  (global-set-key (kbd "C-c j") 'entropy/helm-do-pt-for-win))
+                  (global-set-key (kbd "C-c j") 'entropy/emacs-helm-do-pt-for-win))
 
                 (progn
-                  (defun entropy/helm-projectile-pt-for-win ()
+                  (defun entropy/emacs-helm-projectile-pt-for-win ()
                     (interactive)
                     (unless (string= current-language-environment "UTF-8")
                       (set-language-environment "UTF-8")
                       (prefer-coding-system 'utf-8-unix))
                     (helm-projectile-pt))
-                  (global-set-key (kbd "C-c k") 'entropy/helm-projectile-pt-for-win)))
+                  (global-set-key (kbd "C-c k") 'entropy/emacs-helm-projectile-pt-for-win)))
             (progn
               (global-set-key (kbd "C-c j") 'helm-do-pt)
               (global-set-key (kbd "C-c k") 'helm-projectile-pt))))
@@ -499,20 +499,20 @@ this variable used to patching for origin `counsel-git'.")
         ;; process using locale setting language environment.
         (if entropy/emacs-custom-language-environment-enable
             (progn
-              (defun entropy/helm-do-ag ()
+              (defun entropy/emacs-helm-do-ag ()
                 (interactive)
                 (if (string= current-language-environment "UTF-8")
-                    (entropy/toggle-utf-8-and-locale))
+                    (entropy/emacs-toggle-utf-8-and-locale))
                 (helm-do-ag))
-              (defun entropy/helm-do-ag-project-root ()
+              (defun entropy/emacs-helm-do-ag-project-root ()
                 (interactive)
                 (if (string= current-language-environment "UTF-8")
-                    (entropy/toggle-utf-8-and-locale))
+                    (entropy/emacs-toggle-utf-8-and-locale))
                 (helm-do-ag-project-root))
-              (global-set-key (kbd "C-c j") 'entropy/helm-do-ag)
-              (global-set-key (kbd "C-c k") 'entropy/helm-do-ag-project-root))
+              (global-set-key (kbd "C-c j") 'entropy/emacs-helm-do-ag)
+              (global-set-key (kbd "C-c k") 'entropy/emacs-helm-do-ag-project-root))
           (progn
-            (defun entropy/helm-do-ag ()
+            (defun entropy/emacs-helm-do-ag ()
               (interactive)
               (if (string= current-language-environment "UTF-8")
                   (progn
@@ -520,7 +520,7 @@ this variable used to patching for origin `counsel-git'.")
                     (set-keyboard-coding-system nil)
                     (set-language-environment (coding-system-base locale-coding-system))))
               (helm-do-ag))
-            (defun entropy/helm-do-ag-project-root ()
+            (defun entropy/emacs-helm-do-ag-project-root ()
               (interactive)
               (if (string= current-language-environment "UTF-8")
                   (progn
@@ -528,15 +528,15 @@ this variable used to patching for origin `counsel-git'.")
                     (set-keyboard-coding-system nil)
                     (set-language-environment (coding-system-base locale-coding-system))))
               (helm-do-ag-project-root))
-            (global-set-key (kbd "C-c j") 'entropy/helm-do-ag)
-            (global-set-key (kbd "C-c k") 'entropy/helm-do-ag-project-root)))
+            (global-set-key (kbd "C-c j") 'entropy/emacs-helm-do-ag)
+            (global-set-key (kbd "C-c k") 'entropy/emacs-helm-do-ag-project-root)))
         :config
         (defun helm-ag--edit-commit ()
           "Note: this function has been re-define for compat with
 entropy-emacs which force inhibit readonly mode while operating
 corresponding buffer."
           (interactive)
-          (funcall #'entropy/helm-ag--edit-commit))))
+          (funcall #'entropy/emacs-helm-ag--edit-commit))))
 ;; *** Unix-like plattform
   (if (string= entropy/emacs-search-program "pt")
       (use-package helm-pt
@@ -554,7 +554,7 @@ corresponding buffer."
 entropy-emacs which force inhibit readonly mode while operating
 corresponding buffer."
         (interactive)
-        (funcall #'entropy/helm-ag--edit-commit)))))
+        (funcall #'entropy/emacs-helm-ag--edit-commit)))))
 
 ;; ** provide
 (provide 'entropy-emacs-ivy)

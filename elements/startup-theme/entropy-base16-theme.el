@@ -15,28 +15,28 @@
 
 ;;; Code:
 
-(defcustom entropy/base16-theme-256-color-source 'terminal
+(defcustom entropy/emacs-base16-theme-256-color-source 'terminal
   "Where to get the colors in a 256-color terminal.
 
 In a 256-color terminal, it's not clear where the colors should come from.
 There are 3 possible values: terminal (which was taken from the xresources
-theme), entropy/base16-theme-shell (which was taken from a combination of entropy/base16-theme-shell and
+theme), entropy/emacs-base16-theme-shell (which was taken from a combination of entropy/emacs-base16-theme-shell and
 the xresources theme) and colors (which will be converted from the actual
 html color codes to the closest color).
 
 Note that this needs to be set before themes are loaded or it will not work."
   :type '(radio (const :tag "Terminal" terminal)
-                (const :tag "Base16 shell" entropy/base16-theme-shell)
+                (const :tag "Base16 shell" entropy/emacs-base16-theme-shell)
                 (const :tag "Colors" colors))
   :group 'base16)
 
-(defcustom entropy/base16-theme-distinct-fringe-background t
+(defcustom entropy/emacs-base16-theme-distinct-fringe-background t
   "Make the fringe background different from the normal background color.
 Also affects `linum-mode' background."
   :type 'boolean
   :group 'base16)
 
-(defcustom entropy/base16-theme-highlight-mode-line nil
+(defcustom entropy/emacs-base16-theme-highlight-mode-line nil
   "Make the active mode line stand out more.
 
 There are two choices for applying the emphasis:
@@ -49,7 +49,7 @@ There are two choices for applying the emphasis:
                 (const :tag "Contrast" contrast))
   :group 'base16)
 
-(defvar entropy/base16-theme-shell-colors
+(defvar entropy/emacs-base16-theme-shell-colors
   '(:base00 "black"
     :base01 "brightgreen"
     :base02 "brightyellow"
@@ -66,13 +66,13 @@ There are two choices for applying the emphasis:
     :base0D "blue"
     :base0E "magenta"
     :base0F "brightcyan")
-  "Base16 colors used when in a terminal and not using entropy/base16-theme-shell.
+  "Base16 colors used when in a terminal and not using entropy/emacs-base16-theme-shell.
 
 These mappings are based on the xresources themes.  If you're
 using a different terminal color scheme, you may want to look for
 an alternate theme for use in the terminal.")
 
-(defvar entropy/base16-theme-shell-colors-256
+(defvar entropy/emacs-base16-theme-shell-colors-256
   '(:base00 "black"
     :base01 "color-18"
     :base02 "color-19"
@@ -89,14 +89,14 @@ an alternate theme for use in the terminal.")
     :base0D "blue"
     :base0E "magenta"
     :base0F "color-17")
-  "Base16 colors used when in a terminal and using entropy/base16-theme-shell.
+  "Base16 colors used when in a terminal and using entropy/emacs-base16-theme-shell.
 
 These mappings are based on the xresources themes combined with
-the entropy/base16-theme-shell code.  If you're using a different terminal
+the entropy/emacs-base16-theme-shell code.  If you're using a different terminal
 color scheme, you may want to look for an alternate theme for use
 in the terminal.")
 
-(defun entropy/base16-theme-transform-color-key (key colors)
+(defun entropy/emacs-base16-theme-transform-color-key (key colors)
   "Transform a given color `KEY' into a theme color using `COLORS'.
 
 This function is meant for transforming symbols to valid colors.
@@ -106,18 +106,18 @@ return the actual color value.  Otherwise return the value unchanged."
   (if (symbolp key)
       (cond
 
-       ((string= (symbol-name key) "entropy/base16-theme-settings-fringe-bg")
-        (if entropy/base16-theme-distinct-fringe-background
+       ((string= (symbol-name key) "entropy/emacs-base16-theme-settings-fringe-bg")
+        (if entropy/emacs-base16-theme-distinct-fringe-background
             (plist-get colors :base01)
 		  (plist-get colors :base00)))
 
-	   ((string= (symbol-name key) "entropy/base16-theme-settings-mode-line-box")
-		(if (eq entropy/base16-theme-highlight-mode-line 'box)
+	   ((string= (symbol-name key) "entropy/emacs-base16-theme-settings-mode-line-box")
+		(if (eq entropy/emacs-base16-theme-highlight-mode-line 'box)
 			(list :line-width 1 :color (plist-get colors :base04))
 		  nil))
 
-	   ((string= (symbol-name key) "entropy/base16-theme-settings-mode-line-fg")
-		(if (eq entropy/base16-theme-highlight-mode-line 'contrast)
+	   ((string= (symbol-name key) "entropy/emacs-base16-theme-settings-mode-line-fg")
+		(if (eq entropy/emacs-base16-theme-highlight-mode-line 'contrast)
 			(plist-get colors :base05)
 		  (plist-get colors :base04)))
 
@@ -129,17 +129,17 @@ return the actual color value.  Otherwise return the value unchanged."
     key))
 
 
-(defun entropy/base16-theme-transform-spec (spec colors)
+(defun entropy/emacs-base16-theme-transform-spec (spec colors)
   "Transform a theme `SPEC' into a face spec using `COLORS'."
   (let ((output))
     (while spec
       (let* ((key (car spec))
-             (value (entropy/base16-theme-transform-color-key (cadr spec) colors)))
+             (value (entropy/emacs-base16-theme-transform-color-key (cadr spec) colors)))
 
         ;; Append the transformed element
         (cond
          ((and (memq key '(:box :underline)) (listp value))
-          (setq output (append output (list key (entropy/base16-theme-transform-spec value colors)))))
+          (setq output (append output (list key (entropy/emacs-base16-theme-transform-spec value colors)))))
          (t
           (setq output (append output (list key value))))))
 
@@ -149,38 +149,38 @@ return the actual color value.  Otherwise return the value unchanged."
     ;; Return the transformed spec
     output))
 
-(defun entropy/base16-theme-transform-face (spec colors)
+(defun entropy/emacs-base16-theme-transform-face (spec colors)
   "Transform a face `SPEC' into an Emacs theme face definition using `COLORS'."
   (let* ((face             (car spec))
          (definition       (cdr spec))
-         (shell-colors-256 (pcase entropy/base16-theme-256-color-source
-                             ('terminal      entropy/base16-theme-shell-colors)
-                             ("terminal"     entropy/base16-theme-shell-colors)
-                             ('entropy/base16-theme-shell  entropy/base16-theme-shell-colors-256)
-                             ("entropy/base16-theme-shell" entropy/base16-theme-shell-colors-256)
+         (shell-colors-256 (pcase entropy/emacs-base16-theme-256-color-source
+                             ('terminal      entropy/emacs-base16-theme-shell-colors)
+                             ("terminal"     entropy/emacs-base16-theme-shell-colors)
+                             ('entropy/emacs-base16-theme-shell  entropy/emacs-base16-theme-shell-colors-256)
+                             ("entropy/emacs-base16-theme-shell" entropy/emacs-base16-theme-shell-colors-256)
                              ('colors        colors)
                              ("colors"       colors)
-                             (_              entropy/base16-theme-shell-colors))))
+                             (_              entropy/emacs-base16-theme-shell-colors))))
 
     ;; This is a list of fallbacks to make us select the sanest option possible.
     ;; If there's a graphical terminal, we use the actual colors. If it's not
     ;; graphical, the terminal supports 256 colors, and the user enables it, we
-    ;; use the entropy/base16-theme-shell colors. Otherwise, we fall back to the basic
+    ;; use the entropy/emacs-base16-theme-shell colors. Otherwise, we fall back to the basic
     ;; xresources colors.
-    (list face `((((type graphic))   ,(entropy/base16-theme-transform-spec definition colors))
-                 (((min-colors 256)) ,(entropy/base16-theme-transform-spec definition shell-colors-256))
-                 (t                  ,(entropy/base16-theme-transform-spec definition entropy/base16-theme-shell-colors))))))
+    (list face `((((type graphic))   ,(entropy/emacs-base16-theme-transform-spec definition colors))
+                 (((min-colors 256)) ,(entropy/emacs-base16-theme-transform-spec definition shell-colors-256))
+                 (t                  ,(entropy/emacs-base16-theme-transform-spec definition entropy/emacs-base16-theme-shell-colors))))))
 
-(defun entropy/base16-theme-set-faces (theme-name colors faces)
+(defun entropy/emacs-base16-theme-set-faces (theme-name colors faces)
   "Define the important part of `THEME-NAME' using `COLORS' to map the `FACES' to actual colors."
   (apply 'custom-theme-set-faces theme-name
          (mapcar #'(lambda (face)
-                     (entropy/base16-theme-transform-face face colors))
+                     (entropy/emacs-base16-theme-transform-face face colors))
                  faces)))
 
-(defun entropy/base16-theme-define (theme-name theme-colors)
+(defun entropy/emacs-base16-theme-define (theme-name theme-colors)
   "Define the faces for a base16 colorscheme given a `THEME-NAME' and a plist of `THEME-COLORS'."
-  (entropy/base16-theme-set-faces
+  (entropy/emacs-base16-theme-set-faces
    theme-name
    theme-colors
 
@@ -190,7 +190,7 @@ return the actual color value.  Otherwise return the value unchanged."
      (border                                       :background base03)
      (cursor                                       :background base08)
      (default                                      :foreground base05 :background base00)
-     (fringe                                       :background entropy/base16-theme-settings-fringe-bg)
+     (fringe                                       :background entropy/emacs-base16-theme-settings-fringe-bg)
      (gui-element                                  :background base01)
      (header-line                                  :foreground base0E :background nil :inherit mode-line)
      (highlight                                    :background base01)
@@ -248,11 +248,11 @@ return the actual color value.  Otherwise return the value unchanged."
      (isearch-fail                                 :background base01 :inverse-video t :inherit font-lock-warning-face)
 
 ;;;; line-numbers
-     (line-number                                  :foreground base03 :background entropy/base16-theme-settings-fringe-bg)
+     (line-number                                  :foreground base03 :background entropy/emacs-base16-theme-settings-fringe-bg)
      (line-number-current-line                     :inverse-video t)
 
 ;;;; mode-line
-     (mode-line                                    :foreground entropy/base16-theme-settings-mode-line-fg :background base02 :box entropy/base16-theme-settings-mode-line-box)
+     (mode-line                                    :foreground entropy/emacs-base16-theme-settings-mode-line-fg :background base02 :box entropy/emacs-base16-theme-settings-mode-line-box)
      (mode-line-buffer-id                          :foreground base0B :background nil)
      (mode-line-emphasis                           :foreground base06 :slant italic)
      (mode-line-highlight                          :foreground base0E :box nil :weight bold)
@@ -611,7 +611,7 @@ return the actual color value.  Otherwise return the value unchanged."
      (js3-private-function-call-face               :foreground base08)
 
 ;;;; linum-mode
-     (linum                                        :foreground base03 :background entropy/base16-theme-settings-fringe-bg)
+     (linum                                        :foreground base03 :background entropy/emacs-base16-theme-settings-fringe-bg)
 
 ;;;; magit
      (magit-blame-culprit                          :background base01)

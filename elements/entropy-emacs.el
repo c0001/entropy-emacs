@@ -23,22 +23,22 @@
 
 
 ;; *** require advice
-(defun entropy/require-loading (feature &rest rest)
+(defun entropy/emacs-require-loading (feature &rest rest)
   (message (format "Loading \"%s\" ...... " (symbol-name feature))))
 
 ;; * Trail
 ;; ** Windows IME enable function
 (when sys/win32p
-  (defun entropy/w32-ime-enable (&optional silence)
+  (defun entropy/emacs-w32-ime-enable (&optional silence)
     (interactive)
     (if (> (car (w32-version)) 9)
         (if silence
             (w32-send-sys-command #xF000)
           (if (yes-or-no-p "Do you really want to enable w32? ")
               (let (buff)
-                (setq buff (get-buffer-create "*entropy/w32-prompt*"))
+                (setq buff (get-buffer-create "*entropy/emacs-w32-prompt*"))
                 (switch-to-buffer buff)
-                (with-current-buffer "*entropy/w32-prompt*"
+                (with-current-buffer "*entropy/emacs-w32-prompt*"
                   (org-mode)
                   (insert
                    "
@@ -81,16 +81,16 @@ Trying insert some words in below are:
 ")
                   (w32-send-sys-command #xF000)))))))
   (when entropy/emacs-win-init-ime-enable ()
-        (add-hook 'emacs-startup-hook #'(lambda () (entropy/w32-ime-enable t)))
+        (add-hook 'emacs-startup-hook #'(lambda () (entropy/emacs-w32-ime-enable t)))
         (global-set-key (kbd "C-\\") #'(lambda ()
                                          (interactive)
-                                         (entropy/w32-ime-enable t)))))
+                                         (entropy/emacs-w32-ime-enable t)))))
 
 
 
 ;; ** Resetting browse-url-function in fancy-startup-screen
 
-(defun entropy/startup-screen-after-advice (&rest arg-rest)
+(defun entropy/emacs-startup-screen-after-advice (&rest arg-rest)
   "The advice when `entropy/emacs-browse-url-function' was detectived.
 
 The main goal for this advice function was to chanage startup
@@ -101,7 +101,7 @@ screen's `browse-url-browse-function' to
     (setq-local browse-url-browser-function 'browse-url-default-browser)))
 
 
-(defun entropy/about-emacs-after-advice (&rest arg-rest)
+(defun entropy/emacs-about-emacs-after-advice (&rest arg-rest)
   "The advice when `entropy/emacs-browse-url-function' was detectived.
 
 The main goal for this advice function was to chanage \"About
@@ -112,12 +112,12 @@ Emacs\" buffer's local `browse-url-browse-function' to
         (setq-local browse-url-browser-function entropy/emacs-browse-url-function)
       (setq-local browse-url-browser-function 'browse-url-default-browser))))
 
-(advice-add 'fancy-startup-screen :after #'entropy/startup-screen-after-advice)
+(advice-add 'fancy-startup-screen :after #'entropy/emacs-startup-screen-after-advice)
 
-(advice-add 'about-emacs :after #'entropy/about-emacs-after-advice)
+(advice-add 'about-emacs :after #'entropy/emacs-about-emacs-after-advice)
 ;; * start
 ;; ** starting emacs with installing new packages 
-(defvar entropy/X-is-init-with-install nil
+(defvar entropy/emacs-X-is-init-with-install nil
   "Judgement of whether X start emacs with installing new packages")
 
 (defun entropy/emacs-X-init-with-install-prompt ()
@@ -141,18 +141,18 @@ and save the compiling log into `user-emacs-dir' named as
       (warn "You init with installing new packages, please reopen emacs! 
 
 Emacs will auto close after 6s ......")
-      (setq entropy/X-is-init-with-install t)))
+      (setq entropy/emacs-X-is-init-with-install t)))
 
   (defun entropy/emacs-X-init-with-install-prompt ()
     "This function has been unloaded."
     nil)
-  (when entropy/X-is-init-with-install
+  (when entropy/emacs-X-is-init-with-install
     (run-with-timer 6 nil #'kill-emacs)))
 
 ;; ** x enable
-(defun entropy/X-enable ()
+(defun entropy/emacs-X-enable ()
   (interactive)
-  (advice-add 'require :before #'entropy/require-loading)  
+  (advice-add 'require :before #'entropy/emacs-require-loading)  
   (message "Loading rest ......")
   ;; core
   (require 'entropy-emacs-tools)
@@ -205,9 +205,9 @@ Emacs will auto close after 6s ......")
   ;; For game
   (require 'entropy-emacs-game)
   ;; end
-  (advice-remove 'require #'entropy/require-loading)
+  (advice-remove 'require #'entropy/emacs-require-loading)
   (run-hooks 'entropy/emacs-init-X-hook)
-  (defun entropy/X-enable ()
+  (defun entropy/emacs-X-enable ()
     (interactive)
     (message "This function has been unloaded."))
   (message "Full start completed.")
@@ -215,17 +215,17 @@ Emacs will auto close after 6s ......")
 
 
 ;; ** mini start
-(defun entropy/M-enable ()
+(defun entropy/emacs-M-enable ()
   (message "Loading minimal ...... ")
-  (advice-add 'require :before #'entropy/require-loading)
+  (advice-add 'require :before #'entropy/emacs-require-loading)
   (require 'entropy-emacs-package)
   (require 'entropy-emacs-basic)
   (require 'entropy-emacs-library)
   (redisplay t)
   ;; end
-  (advice-remove 'require #'entropy/require-loading)
+  (advice-remove 'require #'entropy/emacs-require-loading)
   (run-hooks 'entropy/emacs-init-mini-hook)
-  (defun entropy/M-enable ()
+  (defun entropy/emacs-M-enable ()
     (interactive)
     (message "This function has been unloaded."))
   (message "Minimal start completed."))
@@ -234,38 +234,38 @@ Emacs will auto close after 6s ......")
 ;; *** status of pyim loading
 (when entropy/emacs-enable-pyim
   ;; for emacs 26 and higher version
-  (defvar entropy/pyim-timer-26+ nil)
-  (defvar entropy/pyim-init-done-26+ nil)
+  (defvar entropy/emacs-pyim-timer-26+ nil)
+  (defvar entropy/emacs-pyim-init-done-26+ nil)
   
-  (defun entropy/pyim-init-after-loaded-cache-26+ ()
+  (defun entropy/emacs-pyim-init-after-loaded-cache-26+ ()
     "Trace pyim loading thread til it's done as giving the
 notation.
 
 (specific for emacs version uper than '26' or included '26'.)"
     (when (< (length (all-threads)) 2)
-      (setq entropy/pyim-init-done-26+ t)
-      (when (bound-and-true-p entropy/pyim-timer-26+)
-        (cancel-function-timers #'entropy/pyim-init-after-loaded-cache-26+))
+      (setq entropy/emacs-pyim-init-done-26+ t)
+      (when (bound-and-true-p entropy/emacs-pyim-timer-26+)
+        (cancel-function-timers #'entropy/emacs-pyim-init-after-loaded-cache-26+))
       (kill-buffer-and-window)
       (message "pyim loading down.")
-      (defun entropy/pyim-init-after-loaded-cache-26+ ()
+      (defun entropy/emacs-pyim-init-after-loaded-cache-26+ ()
         (message "This function has been unloaded."))))
 
   ;; for emacs 25 and lower version
-  (defun entropy/pyim-init-after-loaded-cache-26- ()
+  (defun entropy/emacs-pyim-init-after-loaded-cache-26- ()
     "Giving the notation when loaded pyim cache.
 
 (specific for emacs version under '26')"
     (message "pyim loading down.")
-    (defun entropy/pyim-init-after-loaded-cache-26- ()
+    (defun entropy/emacs-pyim-init-after-loaded-cache-26- ()
       (message "This function has been unloaded.")))
   
-  (defun entropy/pyim-init-prompt ()
+  (defun entropy/emacs-pyim-init-prompt ()
     "Make prompt when loading and loded pyim cache for emacs init time.
 
 For different emacs version using different tracing method:
-- for 26+: `entropy/pyim-init-after-loaded-cache-26+'
-- for 26-: `entropy/pyim-init-after-loaded-cache-26_'
+- for 26+: `entropy/emacs-pyim-init-after-loaded-cache-26+'
+- for 26-: `entropy/emacs-pyim-init-after-loaded-cache-26_'
 
 It's for that emacs version uper than 26 as pyim using thread for loading cache."
     ;; preparation prompt loading pyim cache.
@@ -285,18 +285,18 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     ;; prompt for loading pyim cache done.
     (cond 
      ((not (version< emacs-version "26"))
-      (setq entropy/pyim-timer-26+
+      (setq entropy/emacs-pyim-timer-26+
             (run-with-timer
              1 200
-             #'entropy/pyim-init-after-loaded-cache-26+)))
+             #'entropy/emacs-pyim-init-after-loaded-cache-26+)))
      ((version< emacs-version "26")
-      (entropy/pyim-init-after-loaded-cache-26-)))))
+      (entropy/emacs-pyim-init-after-loaded-cache-26-)))))
 
 
 ;; *** startup main function
-(defun entropy/init-X ()
-  (entropy/M-enable)
-  (entropy/X-enable)
+(defun entropy/emacs-init-X ()
+  (entropy/emacs-M-enable)
+  (entropy/emacs-X-enable)
   (when (and entropy/emacs-enable-pyim
              ;; judgement of whether first init entropy-emacs
              (not
@@ -305,24 +305,24 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
                 (when (member "*Compile-Log*" buflist)
                   (setq rtn t))
                 rtn)))
-    (entropy/pyim-init-prompt)
-    (defun entropy/pyim-init-prompt ()
+    (entropy/emacs-pyim-init-prompt)
+    (defun entropy/emacs-pyim-init-prompt ()
       (message "This function has been unloaded."))))
 
-(defun entropy/init-M ()
-  (entropy/M-enable)
+(defun entropy/emacs-init-M ()
+  (entropy/emacs-M-enable)
   (when entropy/emacs-enable-pyim
-    (entropy/pyim-init-prompt)
-    (defun entropy/pyim-init-prompt ()
+    (entropy/emacs-pyim-init-prompt)
+    (defun entropy/emacs-pyim-init-prompt ()
       (message "This function has been unloaded."))))
 
 
-(defun entropy/init-bingo ()
+(defun entropy/emacs-init-bingo ()
   (cond
    ((not entropy/emacs-minimal-start)
-    (entropy/init-X))
+    (entropy/emacs-init-X))
    (entropy/emacs-minimal-start
-    (entropy/init-M))))
+    (entropy/emacs-init-M))))
 
 
 (require 'entropy-emacs-ext)
@@ -338,7 +338,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 (run-with-idle-timer 0.1 nil
                      #'(lambda ()
-                         (when (entropy/ext-main)
-                           (entropy/init-bingo))))
+                         (when (entropy/emacs-ext-main)
+                           (entropy/emacs-init-bingo))))
 
 (provide 'entropy-emacs)

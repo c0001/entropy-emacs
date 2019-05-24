@@ -64,7 +64,7 @@ It is the recommendation of irony-mode official introduction."
     (setq-local irony-server-w32-pipe-buffer-size (* 64 1024))))
 
 
-(defun entropy/c-derived-mode-company-special-key (command &rest args)
+(defun entropy/emacs-c-derived-mode-company-special-key (command &rest args)
   "Special key binding 'C-M-/' for c derived modes, only using for
 company referents.
 
@@ -87,8 +87,8 @@ oppsite."
   (add-hook 'c-mode-common-hook
             #'entropy/emacs-c-cc-mode-hook)
   :config
-  (define-key c-mode-map (kbd "C-M-/") 'entropy/c-derived-mode-company-special-key)
-  (define-key c++-mode-map (kbd "C-M-/") 'entropy/c-derived-mode-company-special-key)
+  (define-key c-mode-map (kbd "C-M-/") 'entropy/emacs-c-derived-mode-company-special-key)
+  (define-key c++-mode-map (kbd "C-M-/") 'entropy/emacs-c-derived-mode-company-special-key)
 
 
 ;; *** compiler use gcc or g++ in windows opertion system
@@ -186,7 +186,7 @@ This function must be ran after `entropy/emacs-win-c-compiler'.
       (funcall oldfuc)
     t))
 
-(defun entropy/usepackage-irony ()
+(defun entropy/emacs-usepackage-irony ()
   "Function for enabling irony mode for c and c++ mode."
   (use-package irony
     :init (advice-add 'irony-mode :around #'entropy/emacs-c-irony-refer-advice-around)
@@ -208,12 +208,12 @@ This function must be ran after `entropy/emacs-win-c-compiler'.
  ((and sys/win32p
        entropy/emacs-win-portable-mingw-enable
        (file-exists-p (concat entropy/emacs-win-portable-mingw-path "libclang.dll")))
-  (entropy/usepackage-irony))
+  (entropy/emacs-usepackage-irony))
  ((or sys/linuxp 
       sys/linux-x-p
       sys/mac-x-p
       sys/macp)
-  (entropy/usepackage-irony)))
+  (entropy/emacs-usepackage-irony)))
 
 ;; ** provide
 (provide 'entropy-emacs-c)

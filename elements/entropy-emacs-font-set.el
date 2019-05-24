@@ -43,7 +43,7 @@ If you want to use your own font config please disable it.
 "))
     (if (not (eq juge t))
         (progn 
-          (defun entropy/set-font (&optional frame)
+          (defun entropy/emacs-set-font (&optional frame)
             (interactive)
             (setq use-default-font-for-symbols nil)
             (setq inhibit-compacting-font-caches t) ;preventing unicode cusor move lagging for
@@ -80,8 +80,8 @@ If you want to use your own font config please disable it.
             (set-fontset-font (frame-parameter nil 'font)
                               'hangul
                               (font-spec :family "Noto Serif CJK KR")))
-          (entropy/set-font)
-          (add-to-list 'after-make-frame-functions 'entropy/set-font)))))
+          (entropy/emacs-set-font)
+          (add-to-list 'after-make-frame-functions 'entropy/emacs-set-font)))))
 
 
 (provide 'entropy-emacs-font-set)

@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
    });
   </script>
 "))
-    (defun entropy/mdp-before-advice (&rest args)
+    (defun entropy/emacs-mdp-before-advice (&rest args)
       "Before advice for `markdown-preview-mode' when it trigger
 to disable `markdown-preview-mode' for clean up all web-sockets
 to prevent ports keeping as causing to next previewing error.
@@ -147,8 +147,8 @@ this refer the websocket non-utf-8 cjk chars error."
        (markdown-preview-mode
         (markdown-preview-cleanup)
         (message "Clean up all markdown preview websockets done!"))
-       (t (entropy/lang-set-utf-8))))
-    (advice-add 'markdown-preview-mode :before #'entropy/mdp-before-advice)))
+       (t (entropy/emacs-lang-set-utf-8))))
+    (advice-add 'markdown-preview-mode :before #'entropy/emacs-mdp-before-advice)))
 
 (provide 'entropy-emacs-markdown)
 
