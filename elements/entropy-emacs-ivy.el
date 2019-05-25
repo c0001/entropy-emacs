@@ -11,6 +11,7 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
 
 ;; ** counsel
 (use-package counsel
@@ -410,6 +411,7 @@ this variable used to patching for origin `counsel-git'.")
     (all-the-icons-ivy-setup)))
 
 ;; ** use helm  ag or pt search
+;; *** Preparation
 (defun entropy/emacs-helm-ag--edit-commit ()
   "Funciton to be redefine body of `helm-ag--edit-commit'."
   (goto-char (point-min))
@@ -428,10 +430,12 @@ this variable used to patching for origin `counsel-git'.")
         (with-current-buffer (find-file-noselect file)
           (message "Handling with buffer '%s' ......" (current-buffer))
           (cl-pushnew (current-buffer) open-buffers)
-          (if buffer-read-only
-              (progn
-                (cl-incf read-only-files)
-                (read-only-mode 0)))
+          (when buffer-read-only
+            (progn
+              (cl-incf read-only-files)
+              (read-only-mode 0)))
+          (when (buffer-narrowed-p)
+            (widen))
           (goto-char (point-min))
           (let ((deleted-lines (gethash file line-deletes 0))
                 (deleted (and ovs (overlay-get (car ovs) 'helm-ag-deleted))))
@@ -457,9 +461,9 @@ this variable used to patching for origin `counsel-git'.")
       (message "Success update"))))
 
 
-
+;; *** Main
 (if sys/win32p
-;; *** Windows plattform
+;; **** Windows plattform
     (if (string= entropy/emacs-search-program "pt")
 ;; **** helm-pt
         (use-package helm-pt
@@ -491,6 +495,7 @@ this variable used to patching for origin `counsel-git'.")
             (progn
               (global-set-key (kbd "C-c j") 'helm-do-pt)
               (global-set-key (kbd "C-c k") 'helm-projectile-pt))))
+
 ;; **** use helm ag
       (use-package helm-ag
         :commands (helm-do-ag helm-do-ag-project-root)
@@ -537,7 +542,8 @@ entropy-emacs which force inhibit readonly mode while operating
 corresponding buffer."
           (interactive)
           (funcall #'entropy/emacs-helm-ag--edit-commit))))
-;; *** Unix-like plattform
+  
+;; **** Unix-like plattform
   (if (string= entropy/emacs-search-program "pt")
       (use-package helm-pt
         :commands (helm-do-pt helm-projectile-pt)

@@ -12,6 +12,7 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
 (require 'entropy-common-library)
 
 

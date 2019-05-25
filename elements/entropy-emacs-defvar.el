@@ -21,13 +21,17 @@ This variable is mainly for the judgement button for
 `entropy/emacs-browse-url-function' for determined whether to using the
 specific browser to visualize current file.")
 
-
 (defvar entropy/emacs-init-mini-hook ()
   "Hooks for minimal start.")
-
 
 (defvar entropy/emacs-init-X-hook ()
   "Hooks of entropy-emacs X init.")
 
+(defvar entropy/emacs-lang-locale (car default-process-coding-system)
+  "The locale lang.")
+
+(defvar entropy/emacs-get-dired-fpath-log nil)
+
+(defvar entropy/emacs-window-center-integer 4)
 
 (provide 'entropy-emacs-defvar)

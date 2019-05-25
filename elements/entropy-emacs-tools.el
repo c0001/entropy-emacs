@@ -12,165 +12,175 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
 (require 'subr-x)
 (use-package apel)
 
+
 ;; ** openwith external apps
-(if (or sys/win32p sys/linux-x-p sys/mac-x-p)
-    (progn
 ;; *** openwith config
-      (use-package openwith
-        :commands openwith-make-extension-regexp
-        :init
-        (add-hook 'dired-mode-hook #'openwith-mode)
-        (setq openwith-associations
-              (list
-               (list (openwith-make-extension-regexp
-                      '("mpg" "mpeg" "mp3" "mp4"
-                        "avi" "wmv" "wav" "mov" "flv"
-                        "ogm" "ogg" "mkv" "m4a" "flac" "aac"))
-                     ;;"mpv --audio-display=attachment"
-                     '(file))
-               
-               (list (openwith-make-extension-regexp
-                      '("pdf" "djvu"))
-                     ;;"evince"
-                     '(file)))))
+(use-package openwith
+  :if (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  :commands openwith-make-extension-regexp
+  :init
+  (add-hook 'dired-mode-hook #'openwith-mode)
+  (setq openwith-associations
+        (list
+         (list (openwith-make-extension-regexp
+                '("mpg" "mpeg" "mp3" "mp4"
+                  "avi" "wmv" "wav" "mov" "flv"
+                  "ogm" "ogg" "mkv" "m4a" "flac" "aac"))
+               ;;"mpv --audio-display=attachment"
+               '(file))
+         
+         (list (openwith-make-extension-regexp
+                '("pdf" "djvu"))
+               ;;"evince"
+               '(file)))))
+
 ;; *** Function manually
 ;; **** open in external apps
-      (defun entropy/emacs-open-in-external-app (&optional files)
-        "Open the current file or dired marked files in external app.
+(when  (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  (defun entropy/emacs-open-in-external-app (&optional files)
+    "Open the current file or dired marked files in external app.
 The app is chosen from your OS's preference.  URL
 `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2016-10-15"
-        (interactive)
-        (let* (($file-list
-                (if (not files)
-                    (if (and (string-equal major-mode "dired-mode"))
-                        (dired-get-marked-files)
-                      (list (buffer-file-name)))
-                  files))
-               ($do-it-p (if (<= (length $file-list) 5)
-                             t
-                           (y-or-n-p "Open more than 5 files?"))))
-          (when $do-it-p
-            (cond
-             ((string-equal system-type "windows-nt")
-              (mapc
-               (lambda ($fpath)
-                 (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" $fpath t t)))
-               $file-list))
-             ((string-equal system-type "darwin")
-              (mapc
-               (lambda ($fpath)
-                 (shell-command
-                  (concat "open " (shell-quote-argument $fpath))))
-               $file-list))
-             ((string-equal system-type "gnu/linux")
-              (mapc
-               (lambda ($fpath)
-                 (let ((process-connection-type nil))
-                   (start-process "" nil "xdg-open" $fpath)))
-               $file-list))))))
-      (with-eval-after-load 'dired
-        (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-open-in-external-app))
-;; **** open in desktop manager
-      (defun entropy/emacs-show-in-desktop (&optional dpath)
-        "Show current file in desktop.
+    (interactive)
+    (let* (($file-list
+            (if (not files)
+                (if (and (string-equal major-mode "dired-mode"))
+                    (dired-get-marked-files)
+                  (list (buffer-file-name)))
+              files))
+           ($do-it-p (if (<= (length $file-list) 5)
+                         t
+                       (y-or-n-p "Open more than 5 files?"))))
+      (when $do-it-p
+        (cond
+         ((string-equal system-type "windows-nt")
+          (mapc
+           (lambda ($fpath)
+             (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" $fpath t t)))
+           $file-list))
+         ((string-equal system-type "darwin")
+          (mapc
+           (lambda ($fpath)
+             (shell-command
+              (concat "open " (shell-quote-argument $fpath))))
+           $file-list))
+         ((string-equal system-type "gnu/linux")
+          (mapc
+           (lambda ($fpath)
+             (let ((process-connection-type nil))
+               (start-process "" nil "xdg-open" $fpath)))
+           $file-list))))))
+  (with-eval-after-load 'dired
+    (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-open-in-external-app)))
+
+;; **** Open in desktop manager
+(when (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  (defun entropy/emacs-show-in-desktop (&optional dpath)
+    "Show current file in desktop.
  (Mac Finder, Windows Explorer, Linux file manager)
  This command be called when in a file or in `dired'.
 
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-12-23"
-        (interactive)
-        (let (($path (if (not dpath)
-                         (if (buffer-file-name)
-                             (file-name-nondirectory (buffer-file-name))
-                           default-directory )
-                       dpath)))
-          (cond
-           ((string-equal system-type "windows-nt")
-            (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
-           ((string-equal system-type "darwin")
-            (if (eq major-mode 'dired-mode)
-                (let (($files (dired-get-marked-files )))
-                  (if (eq (length $files) 0)
-                      (shell-command
-                       (concat "open " default-directory ))
-                    (shell-command
-                     (concat "open -R " (car (dired-get-marked-files ))))))
-              (shell-command
-               (concat "open -R " $path))))
-           ((string-equal system-type "gnu/linux")
-            (shell-command "gio open .") ;gio open was the suggested command for now [2018-01-03 三 04:23:17]
-                                        ; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. eg with nautilus
-            ))))
-      (with-eval-after-load 'dired
-          (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-show-in-desktop))
-;; **** open in terminal
-      (defun entropy/emacs-open-in-terminal ()
-        "Open the current dir in a new terminal window.
+    (interactive)
+    (let (($path (if (not dpath)
+                     (if (buffer-file-name)
+                         (file-name-nondirectory (buffer-file-name))
+                       default-directory )
+                   dpath)))
+      (cond
+       ((string-equal system-type "windows-nt")
+        (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
+       ((string-equal system-type "darwin")
+        (if (eq major-mode 'dired-mode)
+            (let (($files (dired-get-marked-files )))
+              (if (eq (length $files) 0)
+                  (shell-command
+                   (concat "open " default-directory ))
+                (shell-command
+                 (concat "open -R " (car (dired-get-marked-files ))))))
+          (shell-command
+           (concat "open -R " $path))))
+       ((string-equal system-type "gnu/linux")
+        (shell-command "gio open .")
+        ;; gio open was the suggested command for now [2018-01-03 Wed 04:23:17]
+        ;;
+        ;; 2013-02-10 (shell-command "xdg-open .")  sometimes froze
+        ;; emacs till the folder is closed. eg with nautilus
+        ))))
+
+  (with-eval-after-load 'dired
+    (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-show-in-desktop)))
+
+;; **** Open in terminal
+(when (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  (defun entropy/emacs-open-in-terminal ()
+    "Open the current dir in a new terminal window.
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
-        (interactive)
-        (cond
-         ((string-equal system-type "windows-nt")
-          ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
-          (let* (($path-o (if (string-match-p "^~/" default-directory)
-                              (replace-regexp-in-string "^~"
-                                                        (expand-file-name "~")
-                                                        default-directory)
-                            default-directory))
-                 ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
-                 ($path (concat "\"" $path-backslash "\"")))
-            (if entropy/emacs-wsl-terminal-enable
-                (if (string-match-p "msys2_shell" entropy/emacs-wsl-terminal)
-                    ;; using msys2 mintty
-                    (w32-shell-execute "open" entropy/emacs-wsl-terminal
-                                       (concat
-                                        (completing-read "Choosing shell type: "
-                                                         '("-mingw32"
-                                                           "-mingw64"
-                                                           "-msys2")
-                                                         nil t)
+    (interactive)
+    (cond
+     ((string-equal system-type "windows-nt")
+      ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
+      (let* (($path-o (if (string-match-p "^~/" default-directory)
+                          (replace-regexp-in-string "^~"
+                                                    (expand-file-name "~")
+                                                    default-directory)
+                        default-directory))
+             ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
+             ($path (concat "\"" $path-backslash "\"")))
+        (if entropy/emacs-wsl-terminal-enable
+            (if (string-match-p "msys2_shell" entropy/emacs-wsl-terminal)
+                ;; using msys2 mintty
+                (w32-shell-execute "open" entropy/emacs-wsl-terminal
+                                   (concat
+                                    (completing-read "Choosing shell type: "
+                                                     '("-mingw32"
+                                                       "-mingw64"
+                                                       "-msys2")
+                                                     nil t)
 
-                                        " -where "
-                                        $path))
-                  ;; using git-for-windows terminal
-                  (w32-shell-execute "open" entropy/emacs-wsl-terminal))
+                                    " -where "
+                                    $path))
+              ;; using git-for-windows terminal
+              (w32-shell-execute "open" entropy/emacs-wsl-terminal))
 
-              ;; using cmd
-              (w32-shell-execute "open" "cmd" $path))))
-         
-         ((string-equal system-type "darwin")
-          (let ((process-connection-type nil))
-            (start-process "" nil "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" default-directory)))
-         
-         ((string-equal system-type "gnu/linux")
-          (let ((process-connection-type nil))
-            (start-process "" nil "gnome-terminal" default-directory)
-                                        ;(concat "--working-directory=" default-directory)
-            ))))
-      (global-set-key (kbd "C-;") 'entropy/emacs-open-in-terminal)
+          ;; using cmd
+          (w32-shell-execute "open" "cmd" $path))))
+     
+     ((string-equal system-type "darwin")
+      (let ((process-connection-type nil))
+        (start-process "" nil "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" default-directory)))
+     
+     ((string-equal system-type "gnu/linux")
+      (let ((process-connection-type nil))
+        (start-process "" nil "gnome-terminal" default-directory)))))
+  (global-set-key (kbd "C-;") 'entropy/emacs-open-in-terminal)
 
-      (when sys/win32p
-        (defun entropy/emacs-cmd()
-          (interactive)
-          (if entropy/emacs-Cmder-enable
-              (let (($path  default-directory ))
-                (w32-shell-execute "open" entropy/emacs-Cmder-path (replace-regexp-in-string "/" "\\" $path t t)))
-            (let (($path  default-directory ))
-              (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t))))))))
+  (when sys/win32p
+    (defun entropy/emacs-cmd()
+      (interactive)
+      (if entropy/emacs-Cmder-enable
+          (let (($path  default-directory ))
+            (w32-shell-execute "open" entropy/emacs-Cmder-path (replace-regexp-in-string "/" "\\" $path t t)))
+        (let (($path  default-directory ))
+          (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t)))))))
 
 ;; *** entropy-open-with
 (use-package entropy-open-with
+  :if (or sys/win32p sys/linux-x-p sys/mac-x-p)
   :ensure nil
-  :commands (entropy/emacs-open-with-dired-open
-             entropy/emacs-open-with-buffer)
-  :bind (("C-M-1" . entropy/emacs-open-with-buffer))
+  :commands (entropy/open-with-dired-open
+             entropy/open-with-buffer)
+  :bind (("C-M-1" . entropy/open-with-buffer))
   :init
   (with-eval-after-load 'dired
-    (define-key dired-mode-map (kbd "<C-M-return>") 'entropy/emacs-open-with-dired-open)))
+    (define-key dired-mode-map (kbd "<C-M-return>") 'entropy/open-with-dired-open)))
 
 
 ;; ** vertical center display
@@ -209,8 +219,9 @@ performance for some major-modes."
   (add-hook 'artist-mode-hook 'entropy/emacs-beacon-mode-rejected))
 
 ;; ** visual-regexp
-;; Visual-regexp for Emacs is like replace-regexp, but with live visual feedback directly in the
-;; buffer.
+;; 
+;; Visual-regexp for Emacs is like replace-regexp, but with live
+;; visual feedback directly in the buffer.
 (use-package visual-regexp
   :commands (vr/replace vr/query-replace)
   :bind
@@ -221,19 +232,22 @@ performance for some major-modes."
 ;; ** ialign
 (use-package ialign
   :commands (ialign))
+
 ;; ** Firefox edit use emacs
 ;;
-;;    An extension for Google Chrome browser that allows you to edit text areas of the browser in
-;;    Emacs. It's similar to Edit with Emacs, but has some advantages as below with the help of
+;;    An extension for Google Chrome browser that allows you to edit
+;;    text areas of the browser in Emacs. It's similar to Edit with
+;;    Emacs, but has some advantages as below with the help of
 ;;    websocket.
 ;;
-;;    The input on Emacs is reflected to the browser instantly and continuously.
+;;    The input on Emacs is reflected to the browser instantly and
+;;    continuously.
 ;;
-;;    You can use both the browser and Emacs at the same time. They are updated to the same content
-;;    bi-directionally.
+;;    You can use both the browser and Emacs at the same time. They
+;;    are updated to the same content bi-directionally.
 ;;
-;;    Since v2.0.0, Atomic Chrome for Emacs supports Ghost Text as browser extension, bringing
-;;    compatibility with Firefox, too.
+;;    Since v2.0.0, Atomic Chrome for Emacs supports Ghost Text as
+;;    browser extension, bringing compatibility with Firefox, too.
 (use-package atomic-chrome
   ;; you can active follow code block for start atomic server with startup of emacs.
   ;;      :init (atomic-chrome-start-server)
@@ -252,12 +266,15 @@ performance for some major-modes."
   :init
   (advice-add 'eww-browse-url :before #'entropy/emacs-proxy-url-proxy-choice-for-eww)
   (advice-add 'w3m-retrieve :before #'entropy/emacs-proxy-url-proxy-choice-for-w3m))
+
 ;; ** eww config
 ;; *** eww search engine
 (if entropy/emacs-eww-search-engine-customize
     (setq eww-search-prefix entropy/emacs-eww-search-engine))
+
 ;; *** disable eww image animation for reducing the performance lagging
 (setq-default shr-image-animate nil)
+
 ;; *** get image url
 (with-eval-after-load 'shr
   (defun entropy/emacs-get-eww-url (choice)
@@ -731,6 +748,7 @@ function of `ivy-read'."
         (setq rtn (delete el rtn)))
       (setq elfeed-feeds rtn)
       (customize-save-variable 'elfeed-feeds elfeed-feeds)))
+  
 ;; **** update specific feed through proxy
   (defvar entropy/emacs-elfeed-multi-update-feeds-list '()
     "Feeds for update.")
@@ -1303,22 +1321,23 @@ Note:
 
 For now, there's three choices for you:
 
-- bingdict
-  
-  Bing dict proxy was really simple and be prompt just using minibuffer.
+1) bingdict
 
-  It's really benefit for instantly know what you want for the current word.
+   Bing dict proxy was really simple and be prompt just using
+   minibuffer.
 
+   It's really benefit for instantly know what you want for the
+   current word.
 
-- youdaodict
+2) youdaodict
 
-  Perfectly with child-frame display just like company-mode's candidates.
+   Perfectly with child-frame display just like company-mode's
+   candidates.
 
+3) google-translation
 
-- google-translation
-
-  Google translation translation engine was known as it's wild coverage for variant foreign
-  languages."
+   Google translation translation engine was known as it's wild
+   coverage for variant foreign languages."
   (interactive)
   (let* ((choice
           (if (not default)
@@ -1340,8 +1359,8 @@ For now, there's three choices for you:
         (global-set-key (kbd "C-c y") 'entropy/emacs-google-translate-at-point-direct-en-CN)
         (global-set-key (kbd "C-c M-y") 'entropy/emacs-google-translate-prompt-direct-en-CN)))
      ((string= choice "sdcv")
-      (global-set-key (kbd "C-c y") 'entropy/emacs-sdcv-search-at-point-tooltip)
-      (global-set-key (kbd "C-c M-y") 'entropy/emacs-sdcv-search-input-adjacent)))))
+      (global-set-key (kbd "C-c y") 'entropy/sdcv-search-at-point-tooltip)
+      (global-set-key (kbd "C-c M-y") 'entropy/sdcv-search-input-adjacent)))))
 
 (entropy/emacs-toggle-dict "sdcv")
 
@@ -1468,19 +1487,21 @@ For now, there's three choices for you:
 ;; *** sdcv
 (use-package entropy-sdcv
   :ensure nil
-  :commands (entropy/emacs-sdcv-search-at-point-tooltip
-             entropy/emacs-sdcv-search-input-adjacent)
+  :commands (entropy/sdcv-search-at-point-tooltip
+             entropy/sdcv-search-input-adjacent)
   :config
   (with-eval-after-load 'entropy-sdcv
-    (defun entropy/emacs-sdcv--lang-advice (&rest args)
+    (defun entropy/sdcv--lang-advice (&rest args)
       (entropy/emacs-lang-set-utf-8))
-    (advice-add 'entropy/emacs-sdcv-search-at-point-tooltip :before #'entropy/emacs-sdcv--lang-advice)
-    (advice-add 'entropy/emacs-sdcv-search-input-adjacent :before #'entropy/emacs-sdcv--lang-advice)))
+    (advice-add 'entropy/sdcv-search-at-point-tooltip :before #'entropy/sdcv--lang-advice)
+    (advice-add 'entropy/sdcv-search-input-adjacent :before #'entropy/sdcv--lang-advice)))
+
 ;; ** chinese dict
 (use-package entropy-cn-dict
   :ensure nil
-  :commands entropy/emacs-cndt-query
-  :bind (("C-x y" . entropy/emacs-cndt-query)))
+  :commands entropy/cndt-query
+  :bind (("C-x y" . entropy/cndt-query)))
+
 ;; ** Log keyboard commands to buffer
 ;;     Show event history and command history of some or all buffers.
 (use-package command-log-mode
@@ -1501,6 +1522,7 @@ For now, there's three choices for you:
 (use-package pomidor
   :commands (pomidor)
   :bind (("C-c <f12>" . pomidor)))
+
 ;; ** maple preview
 (when (equal entropy/emacs-use-extensions-type 'submodules)
   (use-package maple-preview
@@ -1563,15 +1585,18 @@ For now, there's three choices for you:
   :commands (entropy/unfill-full-buffer-without-special-region
              entropy/unfill-paragraph
              entropy/fill-full-buffer-without-special-region))
+
 ;; *** entropy-org-batch-refile
 (use-package entropy-org-batch-refile
   :ensure nil
   :commands entropy/org-batch-refile-tags-read-and-do)
+
 ;; *** entropy-cp-or-mv
 (use-package entropy-dired-cp-or-mv
   :ensure nil
   :commands (entropy/cpmv-dired-get-files-list
              entropy/cpmv-to-current))
+
 ;; *** entropy-counsel-stuffs
 (use-package entropy-counsel-stuffs
   :ensure nil
@@ -1615,7 +1640,6 @@ development web-browser."
 
 
 ;; ** Misc
-
 ;; *** copy path, url, etc.
 (use-package copyit
   :commands
@@ -1658,5 +1682,6 @@ development web-browser."
     (dired "~/"))))
 
 (defalias 'ehome 'entropy/emacs-goto-sys-home "Alias for entropy/emacs-goto-sys-home.")
+
 ;; * provide
 (provide 'entropy-emacs-tools)

@@ -36,6 +36,7 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
 
 ;; ** main
 ;; *** Git

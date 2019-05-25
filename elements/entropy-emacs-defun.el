@@ -34,6 +34,10 @@
 ;; configuration
 
 ;; * Code:
+;; ** require
+(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defvar)
+
 ;; ** file and directories
 (defun entropy/emacs-list-dir-lite (dir-root)
   "Return directory list with type of whichever file or
@@ -96,6 +100,93 @@ with '0' as alignment state."
             rtn)
       (setq step (+ 1 step)))
     (reverse rtn)))
+
+
+;; ** language environment set
+(defun entropy/emacs-toggle-utf-8-and-locale (&optional cond)
+  " This function was to toggle entire UTF-8 environment to or
+back from locale.
+
+Optional arg COND has four type:
+
+- \"prompt\": call this function with ivy-read prompt for choosing the target encoding.
+- \"UTF-8\": choose UTF-8 without prompt.
+- \"LOCAL\": choose LOCAL language environment without prompt.
+"
+  (interactive)
+  (if cond
+      (cond
+       ((string= cond "prompt")
+        (ivy-read "Choice: " '("UTF-8" "LOCAL")
+                  :require-match t
+                  :action #'entropy/emacs-lang-set))
+       ((string= cond "UTF-8") (entropy/emacs-lang-set "UTF-8"))
+       ((string= cond "LOCAL") (entropy/emacs-lang-set "LOCAL"))
+       (t (error "entropy/emacs-toggle-utf-8-and-locale: error argument type.")))
+    (if (string= current-language-environment "UTF-8")
+        (entropy/emacs-lang-set "LOCAL")
+      (entropy/emacs-lang-set "UTF-8"))))
+
+(defun entropy/emacs-lang-set (lang)
+  (if (string-match-p
+       "\\*e?shell\\*\\|\\*eshell-.*?\\*\\|\\(^\\*ansi-term-.*\\)\\|\\(\\*terminal\\)"
+       (format "%s" (buffer-list)))
+      (error "Can not use this function cause shell buffer exist, please kill it and try again!")
+    (cond
+     ((string= lang "UTF-8")
+      (set-language-environment "UTF-8")
+      (prefer-coding-system 'utf-8-unix)
+      (message "Setting language environment to 'utf-8-unix'."))
+     ((string= lang "LOCAL")
+      (set-language-environment entropy/emacs-language-environment)
+      (prefer-coding-system entropy/emacs-lang-locale)
+      (setq default-file-name-coding-system 'utf-8-unix)
+      (message "Setting language environment to '%s'." entropy/emacs-language-environment))
+     (t (error "Invalid LANG arg")))))
+
+(defun entropy/emacs-lang-set-utf-8 (&rest args)
+  "Setting language envrionment to unix-8-unix, supported
+by `entropy/emacs-lang-set'"
+  (if (not (string= current-language-environment "UTF-8"))
+      (entropy/emacs-lang-set "UTF-8")))
+
+(defun entropy/emacs-revert-buffer-with-custom-language-environment ()
+  "This function was designed to auto revert buffer with
+language-environment you set in `entropy/emacs-language-environment'."
+  (interactive)
+  (if (string= current-language-environment "UTF-8")
+      (progn
+        (entropy/emacs-toggle-utf-8-and-locale)
+        (revert-buffer t t)
+        (message "Succeed revert buffer with %s" entropy/emacs-language-environment))
+    (error "Have been locale setting ♘")))
+
+
+;; around advice when `entropy/emacs-custom-language-environment-enable' was nil
+
+(defun entropy/emacs-lang-set-without-enable (oldfunc &rest args)
+  "Around advice for funcs:
+
+- entropy/emacs-toggle-utf-8-and-locale
+- entropy/emacs-lang-set-utf-8
+- entropy/emacs-revert-buffer-with-custom-language-environment
+
+This func will force disable each func's internal procedure when
+custom variable
+`entropy/emacs-custom-language-environment-enable' was nil.
+ "
+  (cond
+   ((and entropy/emacs-custom-language-environment-enable
+         (ignore-errors (stringp entropy/emacs-language-environment)))
+    (apply oldfunc args))
+   ((or (null entropy/emacs-custom-language-environment-enable)
+        (not (ignore-errors (stringp entropy/emacs-language-environment))))
+    t)))
+
+(dolist (el '(entropy/emacs-toggle-utf-8-and-locale
+              entropy/emacs-lang-set-utf-8
+              entropy/emacs-revert-buffer-with-custom-language-environment))
+  (advice-add el :around #'entropy/emacs-lang-set-without-enable))
 
 
 ;; ** provide
