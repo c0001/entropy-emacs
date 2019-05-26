@@ -35,8 +35,9 @@
 
 ;; * Code:
 ;; ** require
-(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-const)
 (require 'entropy-emacs-defvar)
+(require 'entropy-emacs-defcustom)
 
 ;; ** file and directories
 (defun entropy/emacs-list-dir-lite (dir-root)
@@ -138,6 +139,9 @@ Optional arg COND has four type:
       (prefer-coding-system 'utf-8-unix)
       (message "Setting language environment to 'utf-8-unix'."))
      ((string= lang "LOCAL")
+      (unless (and (not (null entropy/emacs-language-environment))
+                   (stringp entropy/emacs-language-environment))
+        (error "Wrong arg type for 'entropy/emacs-language-environment'."))
       (set-language-environment entropy/emacs-language-environment)
       (prefer-coding-system entropy/emacs-lang-locale)
       (setq default-file-name-coding-system 'utf-8-unix)
@@ -149,6 +153,13 @@ Optional arg COND has four type:
 by `entropy/emacs-lang-set'"
   (if (not (string= current-language-environment "UTF-8"))
       (entropy/emacs-lang-set "UTF-8")))
+
+(defun entropy/emacs-lang-set-local (&rest args)
+  "Setting language environment to `locale' specification from
+`entropy/emacs-language-environment'. "
+  (if (and entropy/emacs-custom-language-environment-enable
+           (not (null entropy/emacs-language-environment)))
+      (entropy/emacs-lang-set "LOCAL")))
 
 (defun entropy/emacs-revert-buffer-with-custom-language-environment ()
   "This function was designed to auto revert buffer with
@@ -188,6 +199,28 @@ custom variable
               entropy/emacs-revert-buffer-with-custom-language-environment))
   (advice-add el :around #'entropy/emacs-lang-set-without-enable))
 
+;; common around advice for wrapper function into utf-8 environment
+(defun entropy/emacs-lang-set-utf-8-around-wrapper (old-func &rest _)
+  (unless (string= current-language-environment "UTF-8")
+    (entropy/emacs-lang-set-utf-8))
+  (apply old-func _))
+
+;; common around advice for wrapper funcion into locale language environment
+(defun entropy/emacs-lang-set-local-around-wrapper (old-func &rest _)
+  (when (and entropy/emacs-custom-language-environment-enable)
+    (entropy/emacs-lang-set-local))
+  (apply old-func _))
+
+
+;; ** miscellaneous
+(defun entropy/emacs-transfer-wvol (file)
+  "Transfer linux type root path header into windows volumn
+format on windows platform."
+  (if (and (string-match-p "^/[a-z]/" file)
+           sys/win32p)
+      (let ((wvol (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:" file)))
+        (find-file wvol))
+    (find-file file)))
 
 ;; ** provide
 (provide 'entropy-emacs-defun)

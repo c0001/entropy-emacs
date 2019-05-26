@@ -36,7 +36,7 @@
 ;; *** Set default cursor style
 (setq-default cursor-type t)
 
-(defun entropy/emacs-toggle-cursor-type ()
+(defun entropy/emacs-basic-toggle-cursor-type ()
   (interactive)
   (if (string= (symbol-name cursor-type) "t")
       (setq cursor-type 'bar)
@@ -62,7 +62,7 @@
 ;;     auto-completion in none file buffer, so corresponding one file
 ;;     to *scratch* buffer.
 
-(defun entropy/emacs-scratch-buffer-file-binding ()
+(defun entropy/emacs-basic--scratch-buffer-file-binding ()
   "Corresponded *scratch* buffer to one temp-file.
 
   Filename are \".scratch_entropy\" in `user-emacs-directory'.
@@ -94,10 +94,18 @@
     bfn))
 
 (with-eval-after-load 'entropy-emacs-structure
-  (entropy/emacs-scratch-buffer-file-binding))
+  (entropy/emacs-basic--scratch-buffer-file-binding))
+
+;; Create a new scratch buffer
+(defun entropy/emacs-tools-create-scratch-buffer ()
+  "Create a scratch buffer."
+  (interactive)
+  (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
+  (lisp-interaction-mode)
+  (message "Create *scratch* buffer"))
 
 ;; ** Highlight current line
-(defun entropy/emacs-dhl-judge-state ()
+(defun entropy/emacs-basic--dhl-judge-state ()
   (let ((hlmp (ignore-errors hl-line-mode))
         (dlmp display-line-numbers)
         rtn)
@@ -113,11 +121,11 @@
       (setq rtn 4)))
     rtn))
 
-(defun entropy/emacs-dhl-toggle ($Prefix)
+(defun entropy/emacs-basic--dhl-toggle ($Prefix)
   (interactive "P")
   (if (not (version< emacs-version "26.1"))
       (if (not $Prefix)
-          (cl-case (entropy/emacs-dhl-judge-state)
+          (cl-case (entropy/emacs-basic--dhl-judge-state)
             (1
              (hl-line-mode 1))
             (2
@@ -126,7 +134,7 @@
              (hl-line-mode 0))
             (4
              (hl-line-mode 0)))
-        (cl-case (entropy/emacs-dhl-judge-state)
+        (cl-case (entropy/emacs-basic--dhl-judge-state)
           (1
            (hl-line-mode 1)
            (display-line-numbers-mode 1))
@@ -141,10 +149,10 @@
         (hl-line-mode 1)
       (hl-line-mode 0))))
       
-(global-set-key (kbd "<f2>") 'entropy/emacs-dhl-toggle)
+(global-set-key (kbd "<f2>") 'entropy/emacs-basic--dhl-toggle)
 
 ;; ** Smooth scrolling
-(defvar entropy/emacs-smooth-scrolling-mode nil
+(defvar entropy/emacs-basic-smooth-scrolling-mode nil
   "Indicated whether smooth-scrolling enable.
 
 Note:
@@ -154,7 +162,7 @@ Manually edit this variable will not be any effection.")
 (setq scroll-step 0)
 (setq scroll-conservatively 0)
 
-(defun entropy/emacs-smooth-scrolling ()
+(defun entropy/emacs-basic-smooth-scrolling ()
   "Toggle smooth-scrolling buffer scrolling view."
   (interactive)
   (setq redisplay-dont-pause t
@@ -164,13 +172,13 @@ Manually edit this variable will not be any effection.")
   (if (and (equal scroll-step 1)
            (equal scroll-conservatively 10000))
       (progn
-        (setq entropy/emacs-smooth-scrolling-mode t)
+        (setq entropy/emacs-basic-smooth-scrolling-mode t)
         (message "Smooth scrolling enabled!"))
     (progn
-      (setq entropy/emacs-smooth-scrolling-mode nil)
+      (setq entropy/emacs-basic-smooth-scrolling-mode nil)
       (message "Smooth scrolling disabled!"))))
 
-(entropy/emacs-smooth-scrolling)
+(entropy/emacs-basic-smooth-scrolling)
 
 ;; ** Window-setting
 ;; *** Window switch
@@ -183,7 +191,7 @@ Manually edit this variable will not be any effection.")
   (window-number-mode 1))
 
 ;; **** Use windmove function stolen :) from `https://github.com/troydm/emacs-stuff/blob/master/windcycle.el'
-(defun entropy/emacs-windmove-up-cycle()
+(defun entropy/emacs-basic-windmove-up-cycle ()
   (interactive)
   (condition-case nil (windmove-up)
     (error (condition-case nil (windmove-down)
@@ -191,7 +199,7 @@ Manually edit this variable will not be any effection.")
                       (error (condition-case nil (windmove-left)
                                (error (windmove-up))))))))))
 
-(defun entropy/emacs-windmove-down-cycle()
+(defun entropy/emacs-basic-windmove-down-cycle()
   (interactive)
   (condition-case nil (windmove-down)
     (error (condition-case nil (windmove-up)
@@ -199,7 +207,7 @@ Manually edit this variable will not be any effection.")
                       (error (condition-case nil (windmove-right)
                                (error (windmove-down))))))))))
 
-(defun entropy/emacs-windmove-right-cycle()
+(defun entropy/emacs-basic-windmove-right-cycle()
   (interactive)
   (condition-case nil (windmove-right)
     (error (condition-case nil (windmove-left)
@@ -207,7 +215,7 @@ Manually edit this variable will not be any effection.")
                       (error (condition-case nil (windmove-down)
                                (error (windmove-right))))))))))
 
-(defun entropy/emacs-windmove-left-cycle()
+(defun entropy/emacs-basic-windmove-left-cycle()
   (interactive)
   (condition-case nil (windmove-left)
     (error (condition-case nil (windmove-right)
@@ -215,10 +223,10 @@ Manually edit this variable will not be any effection.")
                       (error (condition-case nil (windmove-up)
                                (error (windmove-left))))))))))
 
-(global-set-key (kbd "C-x <up>") 'entropy/emacs-windmove-up-cycle)
-(global-set-key (kbd "C-x <down>") 'entropy/emacs-windmove-down-cycle)
-(global-set-key (kbd "C-x <right>") 'entropy/emacs-windmove-right-cycle)
-(global-set-key (kbd "C-x <left>") 'entropy/emacs-windmove-left-cycle)
+(global-set-key (kbd "C-x <up>") 'entropy/emacs-basic-windmove-up-cycle)
+(global-set-key (kbd "C-x <down>") 'entropy/emacs-basic-windmove-down-cycle)
+(global-set-key (kbd "C-x <right>") 'entropy/emacs-basic-windmove-right-cycle)
+(global-set-key (kbd "C-x <left>") 'entropy/emacs-basic-windmove-left-cycle)
 
 ;; ***** Disable buffer reverse and turn by =C-x C-left= =C-x C-right=
 (global-set-key (kbd "C-x C-<left>") nil)
@@ -230,20 +238,20 @@ Manually edit this variable will not be any effection.")
 (use-package eyebrowse
   :commands (eyebrowse-mode)
   :init (add-hook 'entropy/emacs-init-mini-hook #'eyebrowse-mode)
-  :bind (("C-c C-w C-e" . entropy/emacs-eyebrowse-create-workspaces)
-         ("C-c C-w M-e" . entropy/emacs-eyebrowse-delete-workspace)
-         ("C-c C-w C-`" . entropy/emacs-eyebrowse-switch-top)
-         ("C-c v" . entropy/emacs-eyebrowse-create-derived)
-         ("C-c M-v" . entropy/emacs-eyebrowse-switch-derived)
+  :bind (("C-c C-w C-e" . entropy/emacs-basic-eyebrowse-create-workspaces)
+         ("C-c C-w M-e" . entropy/emacs-basic-eyebrowse-delete-workspace)
+         ("C-c C-w C-`" . entropy/emacs-basic-eyebrowse-switch-top)
+         ("C-c v" . entropy/emacs-basic-eyebrowse-create-derived)
+         ("C-c M-v" . entropy/emacs-basic-eyebrowse-switch-derived)
          :map eyebrowse-mode-map
-         ("C-c C-w C-c" . entropy/emacs-eyebrowse-create-window-config)
-         ("C-c C-w c" . entropy/emacs-eyebrowse-create-window-config)
-         ("C-c C-w ." . entropy/emacs-eye-switch-basic-window)
+         ("C-c C-w C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
+         ("C-c C-w c" . entropy/emacs-basic-eyebrowse-create-window-config)
+         ("C-c C-w ." . entropy/emacs-basic-eyebrowse-switch-basic-window)
          ("C-c C-w a" . eyebrowse-switch-to-window-config))
   :config
   (setq eyebrowse-mode-line-style nil)
   (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
-      (setq eyebrowse-new-workspace entropy/emacs-eyebrowse-new-workspace-init-function)
+      (setq eyebrowse-new-workspace entropy/emacs-basic--eyebrowse-new-workspace-init-function)
     (setq eyebrowse-new-workspace t))
 
   ;; debug for improving eyebrowse's user experience
@@ -281,7 +289,7 @@ Manually edit this variable will not be any effection.")
 	(or choice (eyebrowse--string-to-number candidate)
             (user-error "Invalid slot number")))))
 
-  (defun entropy/emacs-eyebrowse-create-window-config ()
+  (defun entropy/emacs-basic-eyebrowse-create-window-config ()
     "Creates a window config at a yet unoccupied slot and named
     this work space."
     (interactive)
@@ -290,24 +298,24 @@ Manually edit this variable will not be any effection.")
           (tag (read-string "Tag: ")))
       (apply #'eyebrowse-rename-window-config `(,slot ,tag))))
   
-  (defun entropy/emacs-eyebrowse-show-current-slot ()
+  (defun entropy/emacs-basic--eyebrowse-show-current-slot ()
     "Show current eyebrowse workspace slot and tag info."
     (interactive)
-    (let* ((entropy/emacs-eyebrowse-slot-result (eyebrowse--get 'current-slot))
+    (let* ((entropy/emacs-basic--eyebrowse-slot-result (eyebrowse--get 'current-slot))
            (window-configs (eyebrowse--get 'window-configs))
            (window-config (assoc (eyebrowse--get 'current-slot) window-configs))
            (current-tag (nth 2 window-config)))
-      (message "Slot:%s  Tag:%s" entropy/emacs-eyebrowse-slot-result current-tag)))
-  (global-set-key (kbd "C-c M-s") 'entropy/emacs-eyebrowse-show-current-slot)
+      (message "Slot:%s  Tag:%s" entropy/emacs-basic--eyebrowse-slot-result current-tag)))
+  (global-set-key (kbd "C-c M-s") 'entropy/emacs-basic--eyebrowse-show-current-slot)
 
-  (defun entropy/emacs-eyebrowse-kill-all-group ()
+  (defun entropy/emacs-basic--eyebrowse-kill-all-group ()
     "Kill all eyebrowse window config"
     (interactive)
     (dolist (item (eyebrowse--get 'window-configs))
       (eyebrowse--delete-window-config (car item)))
     (eyebrowse-init))
 
-  (defun entropy/emacs-eyebrowse-create-workspaces (&optional ws-list $confirm)
+  (defun entropy/emacs-basic-eyebrowse-create-workspaces (&optional ws-list $confirm)
     "Batch create eyebrowse workspace with name input prompt
 powered by `entropy/cl-repeated-read'.
 
@@ -323,7 +331,7 @@ confirmation when sets it to 't'."
     (when $confirm
       (unless (yes-or-no-p "Do you want to clean all workspace and buiding new workspaces? ")
         (error "Canceld rebuild workspaces.")))
-    (entropy/emacs-eyebrowse-kill-all-group)
+    (entropy/emacs-basic--eyebrowse-kill-all-group)
     (let ((current-slot (eyebrowse--get 'current-slot ))
           (ws (if ws-list
                   ws-list
@@ -340,14 +348,14 @@ confirmation when sets it to 't'."
       (eyebrowse-switch-to-window-config-1)))
 
 
-  (defvar entropy/emacs-eyebrowse-config-selected '()
+  (defvar entropy/emacs-basic--eyebrowse-config-selected '()
     "Contained selected eyebrowse workspace config.")
 
-  (defun entropy/emacs-eyebrowse-read-prompt ()
+  (defun entropy/emacs-basic--eyebrowse-read-prompt ()
     "Produce the prompt string for repeated selected eyebrowse
 window configs."
     (format "WS (%s) : "
-            (let ((olist entropy/emacs-eyebrowse-config-selected)
+            (let ((olist entropy/emacs-basic--eyebrowse-config-selected)
                   mlist
                   rtn)
               (dolist (el olist)
@@ -363,14 +371,14 @@ window configs."
               rtn)))
   
   (eval-and-compile
-    (defun entropy/emacs-eyebrowse-read-config-repeated (x)
+    (defun entropy/emacs-basic--eyebrowse-read-config-repeated (x)
       "Used in repeated selected eyebrowse config with `ivy-call'.
 
 This was the one action in `ivy-read'."
       (require 'ivy)
-      (if (not (member x entropy/emacs-eyebrowse-config-selected))
-          (push x entropy/emacs-eyebrowse-config-selected))
-      (let ((prompt (entropy/emacs-eyebrowse-read-prompt)))
+      (if (not (member x entropy/emacs-basic--eyebrowse-config-selected))
+          (push x entropy/emacs-basic--eyebrowse-config-selected))
+      (let ((prompt (entropy/emacs-basic--eyebrowse-read-prompt)))
         (setf (ivy-state-prompt ivy-last) prompt)
         (setq ivy--prompt (concat "(%d/%d) " prompt)))
       (cond
@@ -382,12 +390,12 @@ This was the one action in `ivy-read'."
         (with-selected-window (active-minibuffer-window)
           (delete-minibuffer-contents))))))
   
-  (defun entropy/emacs-eyebrowse-delete-workspace ()
+  (defun entropy/emacs-basic-eyebrowse-delete-workspace ()
     "Delete eyebrowse workspace with prompt."
     (interactive)
     (require 'entropy-common-library)
     (require 'ivy)
-    (setq entropy/emacs-eyebrowse-config-selected nil)
+    (setq entropy/emacs-basic--eyebrowse-config-selected nil)
     (let* ((wcon (eyebrowse--get 'window-configs))
            sanm
            candi
@@ -399,8 +407,8 @@ This was the one action in `ivy-read'."
       (setq candin (mapcar 'car candi))
       (ivy-read "Delete worksapce (%d/%d): " candin
                 :require-match t
-                :action 'entropy/emacs-eyebrowse-read-config-repeated)
-      (dolist (el entropy/emacs-eyebrowse-config-selected)
+                :action 'entropy/emacs-basic--eyebrowse-read-config-repeated)
+      (dolist (el entropy/emacs-basic--eyebrowse-config-selected)
         (eyebrowse--delete-window-config (cdr (assoc el candi))))))
 
 
@@ -409,7 +417,7 @@ This was the one action in `ivy-read'."
 The specific behaviour is tmux-like.
 
 Note: this function has been redefine for
-`entropy/emacs-eyebrowse-create-derived'."
+`entropy/emacs-basic-eyebrowse-create-derived'."
     (let ((min (car slots)))
       (if (> min 1)
           1
@@ -424,7 +432,7 @@ Note: this function has been redefine for
           (floor (1+ last))))))
 
   
-  (defun entropy/emacs-eyebrowse-create-derived ()
+  (defun entropy/emacs-basic-eyebrowse-create-derived ()
     "Create derived workspace basic from the current main workspace.
 
 The main workspace was whom have the slot without float point,
@@ -516,7 +524,7 @@ The reason for this limit was that two points follow:
                        (concat "☛" custr)
                      "")))))))
 
-  (defun entropy/emacs-eyebrowse-switch-derived ()
+  (defun entropy/emacs-basic-eyebrowse-switch-derived ()
     "Switch to derived workspace rely on current basic workspace."
     (interactive)
     (let* ((window-configs (eyebrowse--get 'window-configs))
@@ -549,7 +557,7 @@ The reason for this limit was that two points follow:
       (eyebrowse-switch-to-window-config (cdr (assoc choice derived-named-list)))))
 
 
-  (defun entropy/emacs-eye-switch-basic-window ()
+  (defun entropy/emacs-basic-eyebrowse-switch-basic-window ()
     "Switch to basic workspace which has the prompt candidates
 without derived slot."
     (interactive)
@@ -573,20 +581,20 @@ without derived slot."
       (eyebrowse-switch-to-window-config (cdr (assoc choice cons-slots)))))
 
 
-  (defface entropy/emacs-eyebrowse-back-top-wg-message-face_body '((t ()))
-    "Face for message body area with func `entropy/emacs-eyebrowse-switch-top'")
+  (defface entropy/emacs-basic--eyebrowse-back-top-wg-message-face_body '((t ()))
+    "Face for message body area with func `entropy/emacs-basic-eyebrowse-switch-top'")
 
-  (set-face-attribute 'entropy/emacs-eyebrowse-back-top-wg-message-face_body
+  (set-face-attribute 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_body
                       nil :foreground "yellow")
 
-  (defface entropy/emacs-eyebrowse-back-top-wg-message-face_content '((t ()))
-    "Face for message content area with func `entropy/emacs-eyebrowse-switch-top'")
+  (defface entropy/emacs-basic--eyebrowse-back-top-wg-message-face_content '((t ()))
+    "Face for message content area with func `entropy/emacs-basic-eyebrowse-switch-top'")
 
-  (set-face-attribute 'entropy/emacs-eyebrowse-back-top-wg-message-face_content
+  (set-face-attribute 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_content
                       nil :foreground "green2")
 
   
-  (defun entropy/emacs-eyebrowse-switch-top ()
+  (defun entropy/emacs-basic-eyebrowse-switch-top ()
     "Back to the top workspace from current derived workspace."
     (interactive)
     (let* ((cslot (eyebrowse--get 'current-slot))
@@ -596,13 +604,13 @@ without derived slot."
        ((not (equal cslot top-slot))
         (eyebrowse-switch-to-window-config top-slot)
         (message (concat (propertize "You've been back to top wg: "
-                                     'face 'entropy/emacs-eyebrowse-back-top-wg-message-face_body)
+                                     'face 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_body)
                          (propertize (if (and (not (equal top-tag ""))
                                               (not (equal top-tag nil)))
                                          (format "[%s]: %s " top-slot top-tag)
                                        (format "[%s] " top-slot))
-                                     'face 'entropy/emacs-eyebrowse-back-top-wg-message-face_content)
-                         (propertize "." 'face 'entropy/emacs-eyebrowse-back-top-wg-message-face_body))))
+                                     'face 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_content)
+                         (propertize "." 'face 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_body))))
        (t (error "You've at top wg!"))))))
 
 ;; **** winner mode for recover previous window config faster
@@ -621,6 +629,7 @@ without derived slot."
                                 "*Ibuffer*"
                                 "*esh command on file*"))
   (add-hook 'entropy/emacs-init-mini-hook #'winner-mode))
+
 ;; **** desktop mode
 (when entropy/emacs-desktop-enable
   (use-package desktop
@@ -642,11 +651,11 @@ without derived slot."
       (setq desktop-restore-frames nil))))
 
 ;; *** Kill-buffer-and-window function
-(defvar entropy/emacs-kill-buffer-excluded-buffer-list nil
+(defvar entropy/emacs-basic--kill-buffer-excluded-buffer-list nil
   "Buffer name regexp list stored excluded buffer name match for
   func `entropy/emacs-kill-buffer-and-window'.")
 
-(defvar entropy/emacs-kill-buffer-special-buffer-list
+(defvar entropy/emacs-basic--kill-buffer-special-buffer-list
   '(("\\*eshell-?" . (lambda ()
                        (kill-this-buffer)))
     ("\\*anaconda-" . (lambda ()
@@ -664,15 +673,15 @@ without derived slot."
   list of regexp string, the cdr was buffer killing specific
   func. ")
 
-(defun entropy/emacs-kill-buffer-and-window ()
+(defun entropy/emacs-basic-kill-buffer-and-window ()
   "Kill buffer and window following rule by
-`entropy/emacs-kill-buffer-excluded-buffer-list' and
-`entropy/emacs-kill-buffer-special-buffer-list'.
+`entropy/emacs-basic--kill-buffer-excluded-buffer-list' and
+`entropy/emacs-basic--kill-buffer-special-buffer-list'.
 
-Using func `entropy/emacs-buffer-close' be the default func."
+Using func `entropy/emacs-basic--buffer-close' be the default func."
   (interactive)
-  (let ((excluded entropy/emacs-kill-buffer-excluded-buffer-list)
-        (special entropy/emacs-kill-buffer-special-buffer-list)
+  (let ((excluded entropy/emacs-basic--kill-buffer-excluded-buffer-list)
+        (special entropy/emacs-basic--kill-buffer-special-buffer-list)
         excl_p special_p
         (buffn (buffer-name)))
     (when excluded
@@ -683,7 +692,7 @@ Using func `entropy/emacs-buffer-close' be the default func."
             excluded))
     (cond
      (excl_p
-      (entropy/emacs-buffer-close))
+      (entropy/emacs-basic--buffer-close))
      (t
       (mapc (lambda (mod_l)
               (let ((regx (car mod_l))
@@ -704,18 +713,19 @@ Using func `entropy/emacs-buffer-close' be the default func."
             special)
       (if special_p
           (funcall (cdr special_p))
-        (entropy/emacs-buffer-close))))))
+        (entropy/emacs-basic--buffer-close))))))
 
-(global-set-key (kbd "C-x k") 'entropy/emacs-kill-buffer-and-window)
+(global-set-key (kbd "C-x k") 'entropy/emacs-basic-kill-buffer-and-window)
 (global-set-key (kbd "C-x M-k") 'kill-this-buffer)
 
-(defun entropy/emacs-buffer-close ()
+(defun entropy/emacs-basic--buffer-close ()
   "Kill buffer and close it's host window if windows conuts
 retrieve from `window-list' larger than 1."
   (let ((buflist (window-list)))
     (if (> (length buflist) 1)
         (kill-buffer-and-window)
       (kill-buffer))))
+
 ;; *** Buffer window size setting
 (use-package windresize
   :commands (windresize)
@@ -723,11 +733,12 @@ retrieve from `window-list' larger than 1."
   ("C-<f10>" . windresize))
 
 ;; *** Kill-other-buffers
-(defun entropy/emacs-kill-other-buffers ()
+(defun entropy/emacs-basic-kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
-(defun entropy/emacs-kill-large-process-buffer ()
+
+(defun entropy/emacs-basic-kill-large-process-buffer ()
   (interactive)
   (dolist (buffer (buffer-list))
     (when (string-match-p (regexp-quote "*eww") (format "%s" buffer))
@@ -744,7 +755,7 @@ retrieve from `window-list' larger than 1."
                (not (string-match-p (regexp-quote "ansi-term") (format "%s" process)))
                (not (string-match-p (regexp-quote "terminal") (format "%s" process))))
                (delete-process process))))
-(global-set-key (kbd "C-0") 'entropy/emacs-kill-large-process-buffer)
+(global-set-key (kbd "C-0") 'entropy/emacs-basic-kill-large-process-buffer)
 
 
 ;; *** Exchange window
@@ -761,22 +772,22 @@ retrieve from `window-list' larger than 1."
 
 ;; *** Centered-window
 ;; **** Manully method
-(defun entropy/emacs-center-text ()
+(defun entropy/emacs-basic-center-text ()
   "Center the text in the middle of the buffer. Works best in full screen"
   (interactive)
   (if (car (window-margins))
-      (entropy/emacs-center-text-clear)
+      (entropy/emacs-basic-center-text-clear)
     (set-window-margins (car (get-buffer-window-list (current-buffer) nil t))
                         (/ (window-width) entropy/emacs-window-center-integer)
                         (/ (window-width) entropy/emacs-window-center-integer))))
 
-(defun entropy/emacs-center-text-clear ()
+(defun entropy/emacs-basic-center-text-clear ()
   (interactive)
   (set-window-margins
    (car (get-buffer-window-list (current-buffer) nil t))
    nil))
-(global-set-key (kbd "C-c M-<up>")     'entropy/emacs-center-text)
-(global-set-key (kbd "C-c M-<down>")     'entropy/emacs-center-text-clear)
+(global-set-key (kbd "C-c M-<up>")     'entropy/emacs-basic-center-text)
+(global-set-key (kbd "C-c M-<down>")     'entropy/emacs-basic-center-text-clear)
 
 
 ;; *** Window divider
@@ -849,32 +860,32 @@ retrieve from `window-list' larger than 1."
   :ensure nil
   :init
 ;; *** Delete directory with force actions
-  (setq entropy/emacs-dired-delete-file-mode-map (make-sparse-keymap))
-  (define-minor-mode entropy/emacs-dired-delete-file-mode
-    "Minor mode for func `entropy/emacs-dired-delete-file-recursive'."
-    :keymap 'entropy/emacs-dired-delete-file-mode-map
+  (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
+  (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
+    "Minor mode for func `entropy/emacs-basic--dired-delete-file-recursive'."
+    :keymap 'entropy/emacs-basic--dired-delete-file-mode-map
     :global nil)
 
-  (defvar entropy/emacs-dired-file-current-delete nil
+  (defvar entropy/emacs-basic--dired-file-current-delete nil
     "Current file pre deleted by
-`entropy/emacs-dired-delete-file-recursive'.")
+`entropy/emacs-basic--dired-delete-file-recursive'.")
   
-  (defvar entropy/emacs-dired-delete-file-refer-files nil
+  (defvar entropy/emacs-basic--dired-delete-file-refer-files nil
     "Files buffer killed by
-`entropy/emacs-dired-delete-file-recursive' log variable.")
+`entropy/emacs-basic--dired-delete-file-recursive' log variable.")
 
-  (defvar entropy/emacs-dired-delete-file-refer-dired-buffers nil
-    "Dired buffer killed by `entropy/emacs-dired-delete-file-rescursie'
+  (defvar entropy/emacs-basic--dired-delete-file-refer-dired-buffers nil
+    "Dired buffer killed by `entropy/emacs-basic--dired-delete-file-rescursie'
 log variable.")
   
-  (defun entropy/emacs-dired-redelete-file ()
+  (defun entropy/emacs-basic--dired-redelete-file ()
     "Redeletting file specified by variable
-`entropy/emacs-dired-file-current-delete'."
+`entropy/emacs-basic--dired-file-current-delete'."
     (interactive)
     (kill-buffer)
-    (entropy/emacs-dired-delete-file-recursive entropy/emacs-dired-file-current-delete))
+    (entropy/emacs-basic--dired-delete-file-recursive entropy/emacs-basic--dired-file-current-delete))
 
-  (defun entropy/emacs-dired-delete-file-prompt (files-list)
+  (defun entropy/emacs-basic--dired-delete-file-prompt (files-list)
     "popup buffer to deleting with prompting and return the
 condition state for whether be continuing rest process."
     (if (dired-mark-pop-up " *Deletions*"
@@ -885,7 +896,7 @@ condition state for whether be continuing rest process."
         t
       (error "Cancel deleting files!")))
 
-  (defun entropy/emacs-dired-delete-file-recursive (&optional pre-files just-kill-refers)
+  (defun entropy/emacs-basic-dired-delete-file-recursive (&optional pre-files just-kill-refers)
     "Delete file recursively with refer buffer
 cleaned (i.e. files under this dir will cleaned their linked
 opened buffer within current emacs session.)
@@ -896,7 +907,7 @@ than it was given the deletion failed handle for responding to
 some directory.
 
 Error handle will switching to special buffer ‘*[w32-resmon]*’
-buffer with minor mode `entropy/emacs-dired-delete-file-mode' for
+buffer with minor mode `entropy/emacs-basic--dired-delete-file-mode' for
 prompting for how to resolving deletions problems.
 
 In win32 platform using 'resmon' for conflicates resolve tool.  "
@@ -911,7 +922,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
 
 
       (unless just-kill-refers
-        (entropy/emacs-dired-delete-file-prompt base-files))
+        (entropy/emacs-basic--dired-delete-file-prompt base-files))
       
       (dolist (file base-files)
 
@@ -920,21 +931,21 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
           (let* ((buffer-file (buffer-file-name el)))
             (when (and buffer-file
                        (string-match (regexp-quote file) buffer-file))
-              (add-to-list 'entropy/emacs-dired-delete-file-refer-files
+              (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-files
                            (cons (buffer-name el) (current-time-string)))
               (kill-buffer el))))
 
         ;; killed refer dired buffers
         (dolist (el dired-buffers)
           (when (string-match (regexp-quote file) (car el))
-            (add-to-list 'entropy/emacs-dired-delete-file-refer-dired-buffers
+            (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers
                          (cons el (current-time-string)))
             (kill-buffer (cdr el))))
         
         (condition-case nil
             (when (not just-kill-refers)
               (progn
-                (setq entropy/emacs-dired-file-current-delete (list file))
+                (setq entropy/emacs-basic--dired-file-current-delete (list file))
                 (cond ((f-directory-p file)
                        (delete-directory file t))
                       ((f-file-p file)
@@ -951,7 +962,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                      "resmon")
                     (switch-to-buffer prompt-buffer)
                     (goto-char (point-min))
-                    (entropy/emacs-dired-delete-file-mode)
+                    (entropy/emacs-basic--dired-delete-file-mode)
                     (insert
                      (format
                       (concat
@@ -961,22 +972,23 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                        "And try again with answer minibuffer prompts delete again\n\n"
                        "===============Prompt End=================")
                       file))
-                    (entropy/emacs-dired-redelete-file)))
+                    (entropy/emacs-basic--dired-redelete-file)))
                  (t (message "Kill all refer task and try again!"))))))))
 
 
-  (defun entropy/emacs-dired-delete-file-refers ()
+  (defun entropy/emacs-basic-dired-delete-file-refers ()
     "Kill all refers of dired markd file of directories."
     (interactive)
-    (entropy/emacs-dired-delete-file-recursive nil t))
+    (entropy/emacs-basic-dired-delete-file-recursive nil t))
   
   (with-eval-after-load 'dired
-    (define-key dired-mode-map (kbd "D") 'entropy/emacs-dired-delete-file-recursive)
-    (define-key dired-mode-map (kbd "M-d") 'entropy/emacs-dired-delete-file-refers))
+    (define-key dired-mode-map (kbd "D") 'entropy/emacs-basic-dired-delete-file-recursive)
+    (define-key dired-mode-map (kbd "M-d") 'entropy/emacs-basic-dired-delete-file-refers))
   
 ;; *** init hide details
   :config
   (add-hook 'dired-mode-hook '(lambda () (dired-hide-details-mode)))
+  
 ;; *** Set unit of dired inode for human readable
   (if (and (not sys/win32p)
            (not sys/cygwinp))
@@ -1000,7 +1012,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
       :init (dired-quick-sort-setup)))
 
 ;; *** Use coloful dired ls
-  (defun entropy/emacs-dired-visual-init ()
+  (defun entropy/emacs-basic--dired-visual-init ()
     "Init dired colorful visual featuer."
     (cond ((or (string= entropy/emacs-dired-visual-type "simple-rainbow")
                (version= emacs-version "25.3.1"))
@@ -1058,16 +1070,16 @@ using simple dired visual type, although you have seting it to
            (warn "You are in terminal emacs session, can not
            enable 'dired-all-the-icons', enable simple-rainbow
            instead now. ")
-           (entropy/emacs-dired-visual-init))
+           (entropy/emacs-basic--dired-visual-init))
           (t (error "entropy/emacs-dired-visual-type invalid"))))
   
-  (entropy/emacs-dired-visual-init)
+  (entropy/emacs-basic--dired-visual-init)
   
 ;; *** bind 'M-<up>' for dired updir
   (define-key dired-mode-map (kbd "M-<up>") 'dired-up-directory)
   
 ;; *** Improve dired files operation experience for kill opened refer buffers.
-  (defun entropy/emacs-kill-redundant-buffer (&rest rest-args)
+  (defun entropy/emacs-basic--kill-redundant-buffer (&rest rest-args)
     "Delete file refer redundant buffer which will cause dired
 'delete' or 'rename' failed."
     (dolist (el (mapcar 'buffer-name (buffer-list)))
@@ -1075,11 +1087,11 @@ using simple dired visual type, although you have seting it to
                        "\\*RNC Input\\*"))
         (when (string-match-p re-el el)
           (kill-buffer el)))))
-  (advice-add 'dired-do-rename :before #'entropy/emacs-kill-redundant-buffer)
-  (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-kill-redundant-buffer)
+  (advice-add 'dired-do-rename :before #'entropy/emacs-basic--kill-redundant-buffer)
+  (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-basic--kill-redundant-buffer)
   
 ;; *** get both UNIX and WINDOWS style path string
-  (defun entropy/emacs-get-dired-fpath (type)
+  (defun entropy/emacs-basic-get-dired-fpath (type)
     (interactive
      (list (completing-read "Choose path string type: "
                             '("unix" "win32"))))
@@ -1107,13 +1119,13 @@ using simple dired visual type, although you have seting it to
           (message (format "Save '%s' to kill-ring." (car rtn)))))
        (t
         (setq rtn (reverse rtn)
-              entropy/emacs-get-dired-fpath-log rtn)
-        (message "Save all path string to log variable 'entropy/emacs-get-dired-fpath-log'.")))))
+              entropy/emacs-basic-get-dired-fpath-log rtn)
+        (message "Save all path string to log variable 'entropy/emacs-basic-get-dired-fpath-log'.")))))
   
-  (define-key dired-mode-map (kbd "0 w") 'entropy/emacs-get-dired-fpath)
+  (define-key dired-mode-map (kbd "0 w") 'entropy/emacs-basic-get-dired-fpath)
 
 ;; *** dired add load path
-  (defun entropy/emacs-dired-add-to-load-path ()
+  (defun entropy/emacs-basic--dired-add-to-load-path ()
     (interactive)
     (let ((dir (completing-read "Choose load path adding item: "
                                 'read-file-name-internal
@@ -1122,37 +1134,37 @@ using simple dired visual type, although you have seting it to
         (setq dir (file-name-directory dir)))
       (add-to-list 'load-path dir)))
   
-  (define-key dired-mode-map (kbd "M-l") 'entropy/emacs-dired-add-to-load-path))
+  (define-key dired-mode-map (kbd "M-l") 'entropy/emacs-basic--dired-add-to-load-path))
 
 
 ;; ** Image-mode
 (use-package image-mode
   :ensure nil
   :config
-  (defun entropy/emacs-image-gif-warn (&optional args)
+  (defun entropy/emacs-basic-image-gif-warn (&optional args)
     "Warn that gif animation by large gif file will freeze
 emacs."
     (if (string-match-p "\\.gif" (buffer-name))
         (if (not (y-or-n-p "Do you want to animated it? "))
             (error "Please open it with external apps!"))))
-  (advice-add 'image-toggle-animation :before #'entropy/emacs-image-gif-warn))
+  (advice-add 'image-toggle-animation :before #'entropy/emacs-basic-image-gif-warn))
 
 ;; ** Set transparenct of emacs frame
-(global-set-key (kbd "<f6>") 'entropy/emacs-loop-alpha)
+(global-set-key (kbd "<f6>") 'entropy/emacs-basic-loop-alpha)
 
-(defun entropy/emacs-loop-alpha ()    
+(defun entropy/emacs-basic-loop-alpha ()    
   (interactive)    
-  (let ((h (car entropy/emacs-loop-alpha-value)))
+  (let ((h (car entropy/emacs-basic-loop-alpha-value)))
     (funcall
      (lambda (a ab)    
        (set-frame-parameter (selected-frame) 'alpha (list a ab))    
        (add-to-list 'default-frame-alist (cons 'alpha (list a ab))))
      (car h)
      (car (cdr h)))
-    (setq entropy/emacs-loop-alpha-value (cdr (append entropy/emacs-loop-alpha-value (list h))))))
+    (setq entropy/emacs-basic-loop-alpha-value (cdr (append entropy/emacs-basic-loop-alpha-value (list h))))))
 
 (when entropy/emacs-init-loop-alpha
-    (entropy/emacs-loop-alpha))
+    (entropy/emacs-basic-loop-alpha))
 
 ;; ** Paragraph fill size
 (setq-default fill-column entropy/emacs-fill-paragraph-width)
@@ -1170,13 +1182,13 @@ emacs."
   (display-time))
 
 ;; ** Input time into buffer
-(defun now ()
+(defun entropy/emacs-basic-now ()
   "Insert string for the current time formatted like '2:34 PM'."
   (interactive)                 ; permit invocation in minibuffer
   (insert (format-time-string "[%Y-%m-%d %a %H:%M:%S]")))
 
 
-(defun today ()
+(defun entropy/emacs-basic-today ()
   "Insert string for today's date nicely formatted in American style,
  e.g. Sunday, September 17, 2000."
   (interactive)                 ; permit invocation in minibuffer
@@ -1249,7 +1261,7 @@ emacs."
           ("*rg*" :dedicated t :position bottom :stick t :noselect nil :height 0.4)
           ("*pt-search*" :dedicated t :position bottom :stick t :noselect nil :height 0.4)
           ("*Occur*" :dedicated t :position bottom :stick t :noselect nil)
-          ("\*ivy-occur.+*$" :regexp t :position bottom :stick t :noselect nil)
+          ("\\*ivy-occur.+*$" :regexp t :position bottom :stick t :noselect nil)
           ;; ("*xref*" :dedicated t :position bottom :stick nil :noselect nil)
 
           ;; VC
@@ -1301,7 +1313,7 @@ emacs."
 Note:
 
 This function has redefined for adapting to
-`entropy/emacs-center-text'."
+`entropy/emacs-basic-center-text'."
     (interactive)
     (unless (eq major-mode 'undo-tree-visualizer-mode)
       (user-error "Undo-tree mode not enabled in buffer"))
@@ -1320,7 +1332,7 @@ This function has redefined for adapting to
         (unwind-protect
             ;; (if (setq window (get-buffer-window parent))
             ;;     (select-window window))
-            (if entropy/emacs-undo-tree-margin-detective
+            (if entropy/emacs-basic-undo-tree-margin-detective
                 (progn
                   (switch-to-buffer-other-window parent)
                   (set-window-margins (car (get-buffer-window-list (current-buffer) nil t))
@@ -1328,17 +1340,17 @@ This function has redefined for adapting to
                                       (/ (window-width) entropy/emacs-window-center-integer)))
               (switch-to-buffer parent)))))))
 
-(defun entropy/emacs-undo-tree ()
+(defun entropy/emacs-basic-undo-tree ()
   (interactive)
   (if (car (window-margins))
       (progn
-        (setq entropy/emacs-undo-tree-margin-detective t)
-        (entropy/emacs-center-text-clear)
+        (setq entropy/emacs-basic-undo-tree-margin-detective t)
+        (entropy/emacs-basic-center-text-clear)
         (undo-tree-visualize))
     (progn
-      (setq entropy/emacs-undo-tree-margin-detective nil)
+      (setq entropy/emacs-basic-undo-tree-margin-detective nil)
       (undo-tree-visualize))))
-(global-set-key (kbd "C-x u") 'entropy/emacs-undo-tree)
+(global-set-key (kbd "C-x u") 'entropy/emacs-basic-undo-tree)
 
 ;; ** Auto-sudoedit
 (when (and (not sys/win32p)
@@ -1352,19 +1364,19 @@ This function has redefined for adapting to
 ;;     From the forum of stackexchange
 ;;     `https://superuser.com/questions/546619/clear-the-kill-ring-in-emacs'
 ;;     Or you just can use (setq kill-ring nil) only.
-(defun entropy/emacs-clear-kill-ring ()
+(defun entropy/emacs-basic-clear-kill-ring ()
   (interactive)
   (progn (setq kill-ring nil) (garbage-collect)))
 
 ;; ** Windows mark-sexp
 (when sys/win32p
   (global-set-key (kbd "C-`") 'set-mark-command))
-(defun entropy/emacs-mark-set ()
+(defun entropy/emacs-basic-mark-set ()
   (interactive)
   (save-excursion
     (push-mark)
     (push-mark)))
-(global-set-key (kbd "C-2") 'entropy/emacs-mark-set)
+(global-set-key (kbd "C-2") 'entropy/emacs-basic-mark-set)
 
 ;; ** Windows forbidden view-hello-file
 (when (or sys/win32p sys/cygwinp)
@@ -1464,7 +1476,7 @@ coding-system to save bookmark infos"
         (bookmark-set-internal prompt name (if no-overwrite 'push 'overwrite))))))
                   
 ;; ** Major mode reload
-(defun entropy/emacs-major-mode-reload ()
+(defun entropy/emacs-basic-major-mode-reload ()
   "Reload current `major-mode'.
 
   This function was usable for some occurrence that current mode
@@ -1480,7 +1492,7 @@ coding-system to save bookmark infos"
         (goto-char point)
         (message "Reloaded current major mode '%s'!" (symbol-name major-mode)))
     (error "You can not refresh %s in this buffer, if did may cause some bug." (symbol-name major-mode))))
-(global-set-key (kbd "<f7>") 'entropy/emacs-major-mode-reload)
+(global-set-key (kbd "<f7>") 'entropy/emacs-basic-major-mode-reload)
 
 ;; ** Disable-mouse-wheel and more
 (use-package disable-mouse
@@ -1499,7 +1511,7 @@ coding-system to save bookmark infos"
                 (if artist-rubber-banding
                     (setq-local artist-rubber-banding nil)))))
 
-(defun entropy/emacs-ex-toggle-artist-and-text ()
+(defun entropy/emacs-basic-ex-toggle-artist-and-text ()
   (interactive)
   "Toggle mode between `text-mode' & `artist-mode'."
   (cond ((eq major-mode 'picture-mode)
@@ -1508,16 +1520,16 @@ coding-system to save bookmark infos"
          (yes-or-no-p "Really for that? (maybe you don't want to change to artist!) ")
          (artist-mode))))
 (with-eval-after-load 'artist
-  (define-key artist-mode-map (kbd "<f5>") 'entropy/emacs-ex-toggle-artist-and-text))
+  (define-key artist-mode-map (kbd "<f5>") 'entropy/emacs-basic-ex-toggle-artist-and-text))
 (with-eval-after-load 'text-mode
-  (define-key text-mode-map (kbd "<f5>") 'entropy/emacs-ex-toggle-artist-and-text))
+  (define-key text-mode-map (kbd "<f5>") 'entropy/emacs-basic-ex-toggle-artist-and-text))
 
 ;; Disabled '<' and '>' keybinding function.
 (with-eval-after-load 'artist
   (define-key artist-mode-map (kbd ">") nil)
   (define-key artist-mode-map (kbd "<") nil))
 
-(defun entropy/emacs-artist-mode ()
+(defun entropy/emacs-basic-artist-mode ()
   "Open one temp-file with artist-mode.
 Temp file was \"~/~entropy-artist.txt\""
   (interactive)
@@ -1572,14 +1584,14 @@ Temp file was \"~/~entropy-artist.txt\""
       (setq pyim-page-length 5)
 
 ;; *** toggle input method
-      (defun entropy/emacs-pyim-toggle ()
+      (defun entropy/emacs-basic-pyim-toggle ()
         (interactive)
         (if (string= current-input-method "pyim")
             (set-input-method "rfc1345")
           (progn
             (set-input-method "pyim")
             (setq pyim-punctuation-escape-list nil))))
-      (global-set-key (kbd "C-\\") 'entropy/emacs-pyim-toggle)
+      (global-set-key (kbd "C-\\") 'entropy/emacs-basic-pyim-toggle)
       
 ;; *** using 'C-g' to cancling any pyim manipulation
       (if (not (version< emacs-version "26"))
@@ -1589,20 +1601,20 @@ Temp file was \"~/~entropy-artist.txt\""
       (use-package entropy-s2t
         :ensure nil
         :commands entropy/emacs-s2t-string)
-      (defun entropy/emacs-toggle-pyim-s2t ()
+      (defun entropy/emacs-basic-toggle-pyim-s2t ()
         (interactive)
         (if pyim-magic-converter
             (setq pyim-magic-converter nil)
           (setq pyim-magic-converter 'entropy/emacs-s2t-string)))
-      (global-set-key (kbd "C-M-\\") 'entropy/emacs-toggle-pyim-s2t)
+      (global-set-key (kbd "C-M-\\") 'entropy/emacs-basic-toggle-pyim-s2t)
 
 ;; *** toglle punctuation between half and full way.
-      (defun entropy/emacs-toggle-pyim-punctuation-half-or-full ()
+      (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
         (interactive)
         (if (eq (car pyim-punctuation-translate-p) 'no)
             (setq pyim-punctuation-translate-p '(yes no auto))
           (setq pyim-punctuation-translate-p '(no yes auto))))
-      (global-set-key (kbd "C-1") 'entropy/emacs-toggle-pyim-punctuation-half-or-full))
+      (global-set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
   
 ;; *** If didn't use pyim set input method to nil
   (setq default-input-method nil))
@@ -1637,7 +1649,7 @@ Temp file was \"~/~entropy-artist.txt\""
 
 ;; ** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
 (when (and sys/win32p (not (version< emacs-version "26.1")))
-  (defun entropy/emacs-y-or-n-p (prompt)
+  (defun entropy/emacs-basic-y-or-n-p (prompt)
     (let ((judge (completing-read prompt '("yes" "no") nil t)))
       (if (string= judge "yes")
           t
@@ -1645,7 +1657,7 @@ Temp file was \"~/~entropy-artist.txt\""
   
   ;; adding advice ro y-or-n-p for temporarily fix bug of that can not
   ;; using any key-bindings when active "C-<lwindow>-g" in windows
-  (advice-add 'y-or-n-p :override #'entropy/emacs-y-or-n-p))
+  (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
 
 ;; ** Epa (emacs gpg assistant)
 (use-package epa
@@ -1671,7 +1683,7 @@ Temp file was \"~/~entropy-artist.txt\""
   :init
   (setq-default proced-format 'medium)
 
-  (defun entropy/emacs-proced-processP (processName)
+  (defun entropy/emacs-basic-proced-processP (processName)
     "Return one alist collected the proced info of procssName,
 otherwise returns nil."
     (let ((procedList (proced-process-attributes))
@@ -1682,8 +1694,8 @@ otherwise returns nil."
           (push el rtn)))
       rtn))
 
-  (defun entropy/emacs-proced-auto-startwith (processName $executable)
-    (unless (entropy/emacs-proced-processP processName)
+  (defun entropy/emacs-basic-proced-auto-startwith (processName $executable)
+    (unless (entropy/emacs-basic-proced-processP processName)
       (cl-case system-type
         (windows-nt
          (when (fboundp 'w32-shell-execute)
@@ -1693,30 +1705,30 @@ otherwise returns nil."
              (message (format "Start with '%s'."
                               $executable)))))
         (t (message
-            "`entropy/emacs-proced-auto-startwith' are just used in w32 platform")))))
+            "`entropy/emacs-basic-proced-auto-startwith' are just used in w32 platform")))))
 
   (dolist (el entropy/emacs-startwith-apps)
     (when (executable-find (cdr el))
-      (entropy/emacs-proced-auto-startwith (car el) (cdr el)))))
+      (entropy/emacs-basic-proced-auto-startwith (car el) (cdr el)))))
 
 ;; ** Improve captialize function
 
 ;; Due to the convention while want to capitalize or uper-case the word just has been done, building
 ;; follow two function to enhance the origin function `capitalize-word' and `upercase-word'.
-(defun entropy/emacs-capitalize-word (arg)
+(defun entropy/emacs-basic-capitalize-word (arg)
   "Automatically go ahead of previous word before call `capitalize-word'."
   (interactive "P")
   (left-word)
   (call-interactively 'capitalize-word t (vector arg)))
 
-(defun entropy/emacs-upcase-word (arg)
+(defun entropy/emacs-basic-upcase-word (arg)
   "automatically go ahead of previous word before call `upcase-word'."
   (interactive "P")
   (left-word)
   (call-interactively 'upcase-word t (vector arg)))
 
-(global-set-key (kbd "M-c") 'entropy/emacs-capitalize-word)
-(global-set-key (kbd "M-u") 'entropy/emacs-upcase-word)
+(global-set-key (kbd "M-c") 'entropy/emacs-basic-capitalize-word)
+(global-set-key (kbd "M-u") 'entropy/emacs-basic-upcase-word)
 
 ;; * provide
 (provide 'entropy-emacs-basic)

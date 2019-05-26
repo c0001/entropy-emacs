@@ -44,15 +44,15 @@
   (add-hook 'comint-output-filter-functions #'comint-strip-ctrl-m)
   (add-hook 'shell-mode-hook #'ansi-color-for-comint-mode-on)
 ;; *** Improve shell buffer interactive experience
-  (defun n-shell-mode-hook ()
+  (defun entropy/emacs-shell--n-shell-mode-hook ()
     "Shell mode customizations."
     (local-set-key '[up] 'comint-previous-input)
     (local-set-key '[down] 'comint-next-input)
     (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
-    (setq comint-input-sender 'n-shell-simple-send))
-  (add-hook 'shell-mode-hook #'n-shell-mode-hook)
+    (setq comint-input-sender 'entropy/emacs-shell--n-shell-simple-send))
+  (add-hook 'shell-mode-hook #'entropy/emacs-shell--n-shell-mode-hook)
   
-  (defun n-shell-simple-send (proc command)
+  (defun entropy/emacs-shell--n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
     (cond
      ;; Checking for clear command and execute it.
@@ -80,7 +80,7 @@
 (use-package eshell
   :ensure nil
   :init
-  (defun entropy/emacs-eshell-before-advice (&rest args)
+  (defun entropy/emacs-shell--eshell-before-advice (&rest args)
     "Delete eshell histroy file before eshell opening and prevent
 open eshell on tramp-buffer when on windows platform. "
     (if (file-exists-p eshell-history-file-name)
@@ -90,7 +90,7 @@ open eshell on tramp-buffer when on windows platform. "
       (error "Can not using eshell in tramp location.")))
   
   (with-eval-after-load 'eshell
-    (advice-add 'eshell :before #'entropy/emacs-eshell-before-advice))
+    (advice-add 'eshell :before #'entropy/emacs-shell--eshell-before-advice))
   
   (add-hook 'eshell-exit-hook #'(lambda ()
                                   (if (file-exists-p eshell-history-file-name)
@@ -186,7 +186,7 @@ command will not be called for the instance as your expection."
           (f-touch fname)))))
 
   ;; Shorten eshell prompt string
-  (defun entropy/emacs-eshell--prompt ()
+  (defun entropy/emacs-shell--eshell-prompt ()
     "Shrink emacs eshell's prompt string if feature `shrink-path'
 was found."
     (let ((pwd (eshell/pwd))
@@ -201,7 +201,7 @@ was found."
         (concat pwd " $ "))))
 
   (setq eshell-prompt-function
-        'entropy/emacs-eshell--prompt))
+        'entropy/emacs-shell--eshell-prompt))
 
 
 ;; ** Multi term
@@ -210,16 +210,16 @@ was found."
 ;; ** Shell Pop
 (use-package shell-pop
   :defines shell-pop-universal-key
-  :bind ([f9] . entropy/emacs-shell-pop-for-eshell)
+  :bind ([f9] . entropy/emacs-shell-shell-pop-for-eshell)
   :init
-  (defun entropy/emacs-shell-pop-before-advice (&rest args)
+  (defun entropy/emacs-shell--shell-pop-before-advice (&rest args)
     (when (string-match "^/\\w+?:" default-directory)
       (error "Can not usign eshell in tramp location.")))
 
-  (advice-add 'entropy/emacs-shell-pop-for-eshell
-              :before #'entropy/emacs-shell-pop-before-advice)
+  (advice-add 'entropy/emacs-shell-shell-pop-for-eshell
+              :before #'entropy/emacs-shell--shell-pop-before-advice)
   
-  (defun entropy/emacs-shell-pop-for-eshell (arg)
+  (defun entropy/emacs-shell-shell-pop-for-eshell (arg)
     (interactive "P")
     (require 'shell-pop)
     (let* ((value '("eshell" "*eshell*" (lambda () (eshell))))
@@ -228,10 +228,10 @@ was found."
            (shell-pop-internal-mode-func (nth 2 value)))
       (shell-pop arg)))
 
-  (defun entropy/emacs-shell-pop-make-pop-ansi-term ()
-    (advice-add 'entropy/emacs-shell-pop-for-ansi-term-bash
-                :before #'entropy/emacs-shell-pop-before-advice)
-    (defun entropy/emacs-shell-pop-for-ansi-term-bash (arg)
+  (defun entropy/emacs-shell--shell-pop-make-pop-ansi-term ()
+    (advice-add 'entropy/emacs-shell-shell-pop-for-ansi-term-bash
+                :before #'entropy/emacs-shell--shell-pop-before-advice)
+    (defun entropy/emacs-shell-shell-pop-for-ansi-term-bash (arg)
       (interactive "P")
       (require 'shell-pop)
       (let* ((shell-file-name (if sys/win32p (expand-file-name "bash.exe" entropy/emacs-wsl-apps) "bash"))
@@ -242,11 +242,11 @@ was found."
              (shell-pop-internal-mode-buffer (nth 1 value))
              (shell-pop-internal-mode-func (nth 2 value)))
         (shell-pop arg)))
-    (global-set-key (kbd "<f10>") 'entropy/emacs-shell-pop-for-ansi-term-bash))
+    (global-set-key (kbd "<f10>") 'entropy/emacs-shell-shell-pop-for-ansi-term-bash))
 
   ;; ansi-term for linux-like operation system
   (when (not sys/win32p)
-    (entropy/emacs-shell-pop-make-pop-ansi-term))
+    (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
 
   ;; ansi-term for windows
   (use-package fakecygpty
@@ -259,7 +259,7 @@ was found."
     :init
     (fakecygpty-activate)
     :config
-    (defun entropy/emacs-cd-around-advice (old_func dir)
+    (defun entropy/emacs-shell--cd-around-advice (old_func dir)
       (let ((wsl-root (substring (expand-file-name entropy/emacs-wsl-apps) 0 -9)))
         (cond ((string-match-p "^/.[^/]+" dir)
                (setq dir (expand-file-name (replace-regexp-in-string "^/" "" dir) wsl-root)))
@@ -274,15 +274,15 @@ was found."
               ((string-match-p "^/$" dir)
                (setq dir wsl-root)))
         (funcall old_func dir)))
-    (advice-add 'cd :around 'entropy/emacs-cd-around-advice)
+    (advice-add 'cd :around 'entropy/emacs-shell--cd-around-advice)
     
     (cond ((and entropy/emacs-wsl-enable
                 (ignore-errors (file-exists-p entropy/emacs-wsl-apps)))
-           (entropy/emacs-shell-pop-make-pop-ansi-term))
+           (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
           
           (t
            (advice-add 'entropy/emacs-shell-pop-for-ansi-term-cmd
-                       :before #'entropy/emacs-shell-pop-before-advice)
+                       :before #'entropy/emacs-shell--shell-pop-before-advice)
            (defun entropy/emacs-shell-pop-for-ansi-term-cmd  (arg)
              (interactive "P")
              (require 'shell-pop)

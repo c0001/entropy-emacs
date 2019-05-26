@@ -17,7 +17,7 @@
 
 
 ;; ** Pre advice
-(defun entropy/emacs-org-exp-around-advice (old-func &rest args)
+(defun entropy/emacs-org--export-panel-around-advice (old-func &rest args)
   (unless (fboundp 'org-reveal-export-to-html)
     (when (featurep 'ox-reveal)
       (load-library "ox-reveal")))
@@ -26,7 +26,7 @@
 
 (with-eval-after-load 'ox
   (advice-add 'org-export-dispatch
-              :around #'entropy/emacs-org-exp-around-advice))
+              :around #'entropy/emacs-org--export-panel-around-advice))
 
 
 ;; ** main
@@ -77,16 +77,16 @@
   (setq org-imenu-depth 8) ; The default depth shown for integrating org heading line to imenu while be within org-mode
 ;; **** org-capture about
 ;; ***** hook for org-capture
-  (defun entropy/emacs-org-capture-indent-buffer (&optional arg)
+  (defun entropy/emacs-org--capture-indent-buffer (&optional arg)
     "Indent org capture buffer when finished capture editting."
     (let ((pm (point-min))
           (pb (point-max)))
       (org-indent-region pm pb)
       (goto-char (point-max))
       (insert "\n")))
-  (add-hook 'org-capture-prepare-finalize-hook #'entropy/emacs-org-capture-indent-buffer)
+  (add-hook 'org-capture-prepare-finalize-hook #'entropy/emacs-org--capture-indent-buffer)
 
-  (defun entropy/emacs-org-capture-set-tags (&rest args)
+  (defun entropy/emacs-org--capture-set-tags (&rest args)
     "Adding org tags using `counsel-org-tag' and save point where current it is.
 
 This function was the after advice for `org-capture-template'."
@@ -98,14 +98,14 @@ This function was the after advice for `org-capture-template'."
        (message "Cancel adding headline tags."))))
   
   (advice-add 'org-capture-place-template
-              :after #'entropy/emacs-org-capture-set-tags)
+              :after #'entropy/emacs-org--capture-set-tags)
 
 ;; ***** Do not using `org-toggle-link-display' in capture buffer.
 
   ;; Because of that if do this will lost the buffer font-lock effecting(all buffer be non-font-lock
   ;; visual) and do not have the recovery method unless reopen capture operation.w
 
-  (defun entropy/emacs-org-capture-forbidden-toggle-link-display (&rest rest-args)
+  (defun entropy/emacs-org--capture-forbidden-toggle-link-display (&rest rest-args)
     "Advice for `org-toggle-link-display' for forbidden it when in capture buffer.
 
 Because of that if do this will lost the buffer font-lock
@@ -115,7 +115,7 @@ recovery method unless reopen capture operation.w
     (when (string-match-p "^CAPTURE-" (buffer-name))
       (user-error "Do not toggle link display in 'org capture' buffer.")))
 
-  (advice-add 'org-toggle-link-display :before #'entropy/emacs-org-capture-forbidden-toggle-link-display)
+  (advice-add 'org-toggle-link-display :before #'entropy/emacs-org--capture-forbidden-toggle-link-display)
 
   
 ;; **** let org-heading insert without new blank always
@@ -126,22 +126,22 @@ recovery method unless reopen capture operation.w
   ;;         (plain-list-item . nil)))
   ;; ==================================================
 
-  (defun entropy/emacs-call-rebinding-org-blank-behaviour (fn)
+  (defun entropy/emacs-org--call-rebinding-org-blank-behaviour (fn)
     (let ((org-blank-before-new-entry
            (copy-tree org-blank-before-new-entry)))
       (rplacd (assoc 'heading org-blank-before-new-entry) nil)
       (rplacd (assoc 'plain-list-item org-blank-before-new-entry) nil)
       (call-interactively fn)))
 
-  (defun entropy/emacs-smart-org-meta-return-dwim ()
+  (defun entropy/emacs-org-smart-meta-return-dwim ()
     (interactive)
-    (entropy/emacs-call-rebinding-org-blank-behaviour 'org-meta-return))
+    (entropy/emacs-org--call-rebinding-org-blank-behaviour 'org-meta-return))
 
-  (defun entropy/emacs-smart-org-insert-todo-heading-dwim ()
+  (defun entropy/emacs-org-smart-insert-todo-heading-dwim ()
     (interactive)
-    (entropy/emacs-call-rebinding-org-blank-behaviour 'org-insert-todo-heading))
+    (entropy/emacs-org--call-rebinding-org-blank-behaviour 'org-insert-todo-heading))
 
-  (define-key org-mode-map (kbd "M-<return>") 'entropy/emacs-smart-org-meta-return-dwim)
+  (define-key org-mode-map (kbd "M-<return>") 'entropy/emacs-org-smart-meta-return-dwim)
 
   
 ;; **** define 'end' key to `org-end-of-line'
@@ -189,6 +189,7 @@ recovery method unless reopen capture operation.w
 ;; **** org-priority-setting
   (setq org-lowest-priority 90)         ;lowset prioty was 'Z'
   (setq org-default-priority 67)        ;default prioty was 'C'
+  
 ;; **** org-agenda-setting
 ;; ***** org-agenda-prefix
   (if (or sys/linux-x-p sys/mac-x-p sys/win32p)
@@ -208,7 +209,7 @@ recovery method unless reopen capture operation.w
 
 ;; ***** org-tags-match-list-sublevels
   (setq org-tags-match-list-sublevels nil)
-  (defun entropy/emacs-toggle-org-agenda-subshow-and-heading-levels ()
+  (defun entropy/emacs-org-toggle-agenda-subshow-and-heading-levels ()
     "Toggle `org-agenda' tag exhibited visual type."
     (interactive)
     (if (string= "*Org Agenda*" (buffer-name))
@@ -224,7 +225,7 @@ recovery method unless reopen capture operation.w
 
   ;; Some emacs-theme will adjust heading height for obtain better visual sense, but it will break
   ;; the text align state, so using follow function to avoid it.
-  (defun entropy/emacs-org-mode-heading-face-hook ()
+  (defun entropy/emacs-org--heading-face-hook ()
     "Stop the org-level headers from increasing in height relative to the other text."
     (dolist (face '(org-level-1
 		    org-level-2
@@ -236,7 +237,8 @@ recovery method unless reopen capture operation.w
 		    org-level-8))
       (set-face-attribute face nil :background nil :weight 'semi-bold :height 1.0)))
   
-  (add-hook 'org-mode-hook 'entropy/emacs-org-mode-heading-face-hook)
+  (add-hook 'org-mode-hook 'entropy/emacs-org--heading-face-hook)
+  
 ;; **** org-refile gloable and 9 depths
   (setq org-refile-targets '((nil :maxlevel . 9)
                              (org-agenda-files :maxlevel . 9)))
@@ -267,8 +269,8 @@ recovery method unless reopen capture operation.w
 ;; ***** org babel evaluate confirm
   (with-eval-after-load 'org
     (when (not (version< org-version "9.1.9"))
-      (defvar entropy/emacs-org-src-info nil
-        "Current org babel info using for `entropy/emacs-org-babel-comfirm-evaluate'.")
+      (defvar entropy/emacs-org--src-info nil
+        "Current org babel info using for `entropy/emacs-org--babel-comfirm-evaluate'.")
 
       (defun org-babel-exp-src-block ()
         "Process source block for export.
@@ -287,10 +289,10 @@ none ---- do not display either code or results upon export
 
 Assume point is at block opening line.
 
-Note: This func has been modified for compat with entropy-emax.
+Note: This func has been modified for compat with entropy-emacs.
 
       Adding part of the export 'info' as the current value of
-      variabel `entropy/emacs-org-src-info'."
+      variabel `entropy/emacs-org--src-info'."
         (interactive)
         (save-excursion
           (let* ((info (org-babel-get-src-block-info 'light))
@@ -302,7 +304,7 @@ Note: This func has been modified for compat with entropy-emax.
 	      (message "org-babel-exp process %s at position %d..."
 		       lang
 		       (line-beginning-position)))
-            (setq entropy/emacs-org-src-info info)
+            (setq entropy/emacs-org--src-info info)
             (when info
 	      ;; if we're actually going to need the parameters
 	      (when (member (cdr (assq :exports (nth 2 info))) '("both" "results"))
@@ -320,72 +322,71 @@ Note: This func has been modified for compat with entropy-emax.
 	        (setf hash (org-babel-sha1-hash info)))
 	      (org-babel-exp-do-export info 'block hash)))))
 
-      (defun entropy/emacs-org-set-src-info (old-func &rest args)
+      (defun entropy/emacs-org--set-src-info (old-func &rest args)
         "Around advice for func `org-babel-get-src-block-info'
 for obtain current src block info for redistrict into
-`entropy/emacs-org-src-info'. 
+`entropy/emacs-org--src-info'. 
 
-This func built for the reason the unknown mechnism that clean
+This func built for the reason the unknown mechanism that clean
 the block info name part while transport into babel confirmation
 func so that the confirming prompt string will not given the
 babel name, this will confusing for the user to distinguish which
 block current prompting is and then how to judge whether to
 evaluate it.. "
         (let ((info (apply old-func args)))
-          (setq entropy/emacs-org-src-info info)
+          (setq entropy/emacs-org--src-info info)
           info))
 
-      (advice-add 'org-babel-get-src-block-info :around #'entropy/emacs-org-set-src-info)
+      (advice-add 'org-babel-get-src-block-info :around #'entropy/emacs-org--set-src-info)
       
-      (defun entropy/emacs-org-babel-comfirm-evaluate (old-func info)
+      (defun entropy/emacs-org--babel-comfirm-evaluate (old-func info)
         "This function was the around advice func for
-    `org-babel-confirm-evaluate' func.
+`org-babel-confirm-evaluate' func.
 
-    For forcing query prompt whether evaluating src block when dealing
-    with process of exporting.
+For forcing query prompt whether evaluating src block when dealing
+with process of exporting.
 
 
-    ============================
-    For Org version be 9.1.13 or 9.1.19:
+============================
+For Org version be 9.1.13 or 9.1.19:
 
-    Original mechanism for org export will ignore all src evaluating
-    confirm prompting while src language was indicated in
-    `org-babel-load-languages' and be loaded by
-    `org-babel-load-languages'.
+Original mechanism for org export will ignore all src evaluating
+confirm prompting while src language was indicated in
+`org-babel-load-languages' and be loaded by
+`org-babel-load-languages'.
 
-    The core reason was that the variable `org-export-use-babel' of
-    these org version was the pointer for controlling whether export
-    with evaluating src (inline or block) and the default value of it
-    was 't'. These org version modified lots of internal process
-    logical which not as that prompt for evaluating just rely on
-    variable `org-confirm-babel-evaluate' value in 8.xx version.
+The core reason was that the variable `org-export-use-babel' of
+these org version was the pointer for controlling whether export
+with evaluating src (inline or block) and the default value of it
+was 't'. These org version modified lots of internal process
+logical which not as that prompt for evaluating just rely on
+variable `org-confirm-babel-evaluate' value in 8.xx version.
 
-    #+BEGIN_QUOTE
-     You can see functon's top branch diversion condition of func
-     =org-babel-exp-process-buffer= for proving what I expression.
-    #+END_QUOTE
+#+BEGIN_QUOTE
+ You can see functon's top branch diversion condition of func
+ =org-babel-exp-process-buffer= for proving what I expression.
+#+END_QUOTE
 
-    This will cause some serious problem when evaluating some
-    dangerous src block which not indicated the block arg ':eval
-    query' which variable `org-export-use-babel' declared.
+This will cause some serious problem when evaluating some
+dangerous src block which not indicated the block arg ':eval
+query' which variable `org-export-use-babel' declared.
 
-    This func forcing setting variable
-    `org-confirm-babel-evaluate' to t during the comfirmation
-    process, because the core problem indicated above is that
-    whomever clean the comfirmation value to nil of this variable
-    before the comfirming process so that the func
-    `org-babel-confirm-evaluate' was suppressed while evaluating
-    the block, I think the whom was the variable
-    `org-export-use-babel' setting state according to the above
-    problem description.
+This func forcing setting variable `org-confirm-babel-evaluate'
+to t during the comfirmation process, because the core problem
+indicated above is that whomever clean the comfirmation value to
+nil of this variable before the comfirming process so that the
+func `org-babel-confirm-evaluate' was suppressed while evaluating
+the block, I think the whom was the variable
+`org-export-use-babel' setting state according to the above
+problem description.
 
-    This function also using `entropy/emacs-org-src-info' passing for
-    sub-func instead of the origin derived 'info' value as the
-    reason, please see the docstring refer."
+This function also using `entropy/emacs-org--src-info' passing
+for sub-func instead of the origin derived 'info' value as the
+reason, please see the docstring refer."
         (let ((org-confirm-babel-evaluate t))
-          (funcall old-func entropy/emacs-org-src-info)))
+          (funcall old-func entropy/emacs-org--src-info)))
 
-      (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org-babel-comfirm-evaluate)))
+      (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org--babel-comfirm-evaluate)))
   
 ;; **** org export setting
   (use-package entropy-org-export-theme-toggle
@@ -400,9 +401,11 @@ evaluate it.. "
 ;; ***** html export
 ;; ****** html exported head coding
   (setq org-html-coding-system 'utf-8-unix)
+  
   ;; inhibit org self default html style
   (setq org-html-head-include-scripts nil
         org-html-head-include-default-style nil)
+  
 ;; ****** solve the bug when cjk paragraph exported to html has the auto newline space char including.
   ;; This hacking refer to https://emacs-china.org/t/org-mode-html/7174#breadcrumb-0
   ;; and raw from spacemac layer: https://github.com/syl20bnr/spacemacs/blob/develop/layers/+intl/chinese/packages.el#L104
@@ -424,12 +427,10 @@ unwanted space when exporting org-mode to html."
   ;; If `entropy/emacs-browse-url-function' is detectived then open
   ;; exported html file with it instead of using default apps or
   ;; system type.
-
-
   
-  (defun entropy/emacs-org-hexpt-function (&optional path link judge)
+  (defun entropy/emacs-org--hexpt-function (&optional path link judge)
     "Function embeded into `org-file-apps', used for
-`entropy/emacs-org-hexpt-advice'.
+`entropy/emacs-org--hexpt-advice'.
 
 If judge t, use the first section part of this function for
 returning the type of exec for open exported html file, they are:
@@ -457,15 +458,15 @@ returning the type of exec for open exported html file, they are:
         (error "Invalid link!"))))
 
 
-  (defun entropy/emacs-org-hexpt-advice (&rest arg-rest)
+  (defun entropy/emacs-org--hexpt-advice (&rest arg-rest)
     "Advice for `org-open-file' for changing the \"html\"
     associtated function when exporting html file from org file
     or open html file link in org-mode.
 
-    This function use `entropy/emacs-org-hexpt-function' to judge the exec
+    This function use `entropy/emacs-org--hexpt-function' to judge the exec
     type for chosen the way whether embeded it into `org-file-apps'."
-    (let* ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org-hexpt-function))
-           (type (entropy/emacs-org-hexpt-function nil nil t)))
+    (let* ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org--hexpt-function))
+           (type (entropy/emacs-org--hexpt-function nil nil t)))
       (if (string= "personal" type)
           (progn
             (if (not (member embeded org-file-apps))
@@ -475,15 +476,16 @@ returning the type of exec for open exported html file, they are:
            "Using automatic method to open exported html file! ")))))
 
 
-  (advice-add 'org-open-file :before #'entropy/emacs-org-hexpt-advice)
+  (advice-add 'org-open-file :before #'entropy/emacs-org--hexpt-advice)
 
-  (defun entropy/emacs-org-hexpt-after-advice (&rest arg-rest)
+  (defun entropy/emacs-org--hexpt-after-advice (&rest arg-rest)
     "Delete embeded file apps from `org-file-apps'."
-    (let ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org-hexpt-function)))
+    (let ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org--hexpt-function)))
       (if (member embeded org-file-apps)
           (setq org-file-apps (delete embeded org-file-apps)))))
 
-  (advice-add 'org-open-file :after #'entropy/emacs-org-hexpt-after-advice)
+  (advice-add 'org-open-file :after #'entropy/emacs-org--hexpt-after-advice)
+  
 ;; ****** org ignore broken links
   (setq org-export-with-broken-links 'mark)
 
@@ -495,7 +497,7 @@ returning the type of exec for open exported html file, they are:
   ;; Around advice for `org-publish-cache-file-needs-publishing'
   ;; for adding query whether force re publishing unmodified
   ;; cached refer file.
-  (defun entropy/emacs-org-publish-check-timestamp-around_advice
+  (defun entropy/emacs-org--publish-check-timestamp-around_advice
       (oldfun &rest args)
     "The advice around the org publish cache file timestamp check
     function `org-publish-cache-file-needs-publishing'."
@@ -509,13 +511,14 @@ returning the type of exec for open exported html file, they are:
       manually-judgement))
 
   (advice-add 'org-publish-cache-file-needs-publishing
-              :around #'entropy/emacs-org-publish-check-timestamp-around_advice)
+              :around #'entropy/emacs-org--publish-check-timestamp-around_advice)
     
 ;; **** org-counsel-set-tag
   (with-eval-after-load 'org
     (bind-key "C-c C-q" #'counsel-org-tag org-mode-map))
   (with-eval-after-load 'org-agenda
     (bind-key "C-c C-q" #'counsel-org-tag-agenda org-agenda-mode-map))
+  
 ;; **** org-download
   (use-package org-download
     :commands (org-download-image
@@ -535,11 +538,11 @@ returning the type of exec for open exported html file, they are:
       (setq-default org-download-heading-lvl nil)	;; Cancel taxonomy make image directory
 
       ;; Support unicode filename
-      (defun custom-org-download-method (link)
+      (defun entropy/emacs-org--custom-download-method (link)
 	(org-download--fullname (org-link-unescape link)))
-      (setq org-download-method 'custom-org-download-method) ; 注意：这里不能用lambda表达式
+      (setq org-download-method 'entropy/emacs-org--custom-download-method) ; notice, this field can not using lambda expression
 
-      ;; 顺便改下annotate，就是自动插入的那行注释，里面写的是图片来源路径
+      ;; Donwload annotation specifiction 
       (setq org-download-annotate-function
 	    '(lambda (link)
 	       (org-download-annotate-default (org-link-unescape link)))))
@@ -562,13 +565,13 @@ returning the type of exec for open exported html file, they are:
     ;; was handle the dnd operator in org-mode buffer with calling
     ;; `org-download-image' for insert image into current org-mode
     ;; buffer.
-
     
     (if (image-type-available-p 'imagemagick)
         (defun org-download-dnd-fallback (uri action)
-          "Note: This function has been pseudo maked because of the unneeded
-          feature that fall-back to using internal originally type to deal
-          with drop event of draging image to drop it in `org-mode'."
+          "Note: This function has been pseudo maked because of
+the unneeded feature that fall-back to using internal originally
+type to deal with drop event of draging image to drop it in
+`org-mode'."
           (let ((dnd-protocol-alist
                  (rassq-delete-all
                   'org-download-dnd
@@ -638,7 +641,7 @@ The screenshot tool is determined by
 
 
 ;; ****** enhance org-download-insert-link    
-    (defun entropy/emacs-odl-judgement-whether-capture-name (buffname)
+    (defun entropy/emacs-org--odl-judgement-whether-capture-name (buffname)
       "Judgement whether using 'org-download' in capture mode, if
 indeed then auto-transfer buffer-name to origin one and return
 FILENAME.
@@ -719,7 +722,7 @@ adjusting the link insert position follow the rules below:
                 (file-relative-name
                  filename
                  (file-name-directory
-                  (entropy/emacs-odl-judgement-whether-capture-name (buffer-name)))))))
+                  (entropy/emacs-org--odl-judgement-whether-capture-name (buffer-name)))))))
       (org-indent-line)))
   (org-download-enable)
 
@@ -727,7 +730,7 @@ adjusting the link insert position follow the rules below:
   (if (image-type-available-p 'imagemagick)
       (progn
         (setq org-image-actual-width nil)
-        (defun entropy/emacs-otii-before-advice (&rest arg-rest)
+        (defun entropy/emacs-org--otii-before-advice (&rest arg-rest)
           "Advice for `org-toggle-inline-images' when emacs was
 build with imagemagick, because of that org-mode will have the
 ability to display GIF type image whatever it's size be, so it
@@ -736,16 +739,18 @@ directed to large gif file when willing display images in current
 buffer."
           (if (not (yes-or-no-p "This will spend sometime and causing lagging performance, cotinue? "))
               (error "Abort displaying inline images")))
-        (advice-add 'org-display-inline-images :before #'entropy/emacs-otii-before-advice)))
+        (advice-add 'org-display-inline-images :before #'entropy/emacs-org--otii-before-advice)))
+  
 ;; **** toc-org
   (use-package toc-org
     :commands toc-org-insert-toc
     :init (setq toc-org-hrefify-default "gh"))
+  
 ;; **** org-auto-insert 'CUSTOM-ID'
   ;;      which source code from the bloag@
   ;;      `https://writequit.org/articles/emacs-org-mode-generate-ids.html#h-cf29e5e7-b456-4842-a3f7-e9185897ac3b'
 ;; ***** baisc function
-  (defun entropy/emacs-org-custom-id-get (&optional pom create prefix)
+  (defun entropy/emacs-org--custom-id-get (&optional pom create prefix)
     "Get the CUSTOM_ID property of the entry at point-or-marker POM.
    If POM is nil, refer to the entry at point. If the entry does
    not have an CUSTOM_ID, the function returns nil. However, when
@@ -763,25 +768,26 @@ buffer."
           (org-entry-put pom "CUSTOM_ID" id)
           (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
           id)))))
+  
 ;; ***** interactive function
   ;; Originally function that can not auto detected '#+OPTIOINS: auto-id:t'
   (defun entropy/emacs-org-add-ids-to-headlines-in-file ()
-    "Add CUSTOM_ID properties to all headlines in the
-   current file which do not already have one."
+    "Add CUSTOM_ID properties to all headlines in the current
+file which do not already have one."
     (interactive)
-    (org-map-entries (lambda () (entropy/emacs-org-custom-id-get (point) 'create)) t nil))
+    (org-map-entries (lambda () (entropy/emacs-org--custom-id-get (point) 'create)) t nil))
 
   (defun entropy/emacs-org-auto-add-ids-to-headlines-in-file ()
     "Add CUSTOM_ID properties to all headlines in the current
-   file which do not already have one. Only adds ids if the
-   `auto-id' option is set to `t' in the file somewhere. ie,
-   #+OPTIONS: auto-id:t"
-    ;; (interactive)
+file which do not already have one. Only adds ids if the
+`auto-id' option is set to `t' in the file somewhere. ie,
+#+OPTIONS: auto-id:t"
+    (interactive)
     (save-excursion
       (widen)
       (goto-char (point-min))
       (when (re-search-forward "^#\\+OPTIONS:.*auto-id:t" (point-max) t)
-        (org-map-entries (lambda () (entropy/emacs-org-custom-id-get (point) 'create)) t nil))))
+        (org-map-entries (lambda () (entropy/emacs-org--custom-id-get (point) 'create)) t nil))))
 
 ;; ***** Redefun the org-id-new for use '-' instead of ':'
   (use-package org-id
@@ -798,7 +804,11 @@ PREFIX can specify the prefix, the default is given by the variable
 `org-id-prefix'.  However, if PREFIX is the symbol `none', don't use any
 prefix even if `org-id-prefix' specifies one.
 
-So a typical ID could look like \"Org-4nd91V40HI\"."
+So a typical ID could look like \"Org-4nd91V40HI\".
+
+Note: this function has been redefined to use '-' instead of ':'
+as the hypenation."
+      
       (let* ((prefix (if (eq prefix 'none)
                          ""
                        (concat (or prefix org-id-prefix) "-")))
@@ -825,11 +835,13 @@ So a typical ID could look like \"Org-4nd91V40HI\"."
               (when (and (eq major-mode 'org-mode)
                          (eq buffer-read-only nil))
                 (entropy/emacs-org-auto-add-ids-to-headlines-in-file))))
+  
 ;; **** fix problem for browse cached url
   
   ;;	This problem was that cann't open loacal cached url for xdg-open in linux both in fedora and
   ;;	archlinux but windows and can not to find the nature of this issue til now [2018-02-01 Thu
   ;;	14:27:08]
+
 ;; ***** first mehtod set the `process-connection-type' to nill   
   ;; Use pipes for subprocess communication
   ;; 
@@ -837,6 +849,7 @@ So a typical ID could look like \"Org-4nd91V40HI\"."
   ;;	earlier,you could search the variable for mor info.
   ;; 
   ;;(setq process-connection-type nil)
+
 ;; ***** second method use external browser for GNU/Linux opertion system
   ;; (when sys/linuxp
   ;;   (cond
@@ -877,7 +890,7 @@ So a typical ID could look like \"Org-4nd91V40HI\"."
 
 ;; ** entropy-emacs additional function
 ;; *** tags align
-(defun entropy/emacs-tags-align ()
+(defun entropy/emacs-org-tags-align ()
   "Align all tags in one org-mode buffer with align column prompt
 inputting."
   (interactive)
@@ -887,7 +900,7 @@ inputting."
 
 ;; *** org file images checking
 ;; **** extract all images from org file
-(defun entropy/emacs-ocimg-extract-file-imgs-main ()
+(defun entropy/emacs-org-ocii-extract-file-imgs-main ()
   "Extracting all images from one org file to the target location
 chosen as prompted query location state."
   (interactive)
@@ -907,7 +920,7 @@ chosen as prompted query location state."
       (error (format "File '%s' must be org file" target-file))))
     (unless (file-directory-p target-imgs-dir)
       (error (format "Directory '%s' not existed.")))
-    (setq imgs-paths (entropy/emacs-ocimg-extract-file-imgs-links target-file)
+    (setq imgs-paths (entropy/emacs-org--ocii-extract-file-imgs-links target-file)
           temp/x3 imgs-paths)
     (when imgs-paths
       (dolist (el imgs-paths)
@@ -915,7 +928,7 @@ chosen as prompted query location state."
             (push el imgs-copied)
           (push el imgs-lost)))
       (when imgs-lost
-        (entropy/emacs-ocimg-extract-prompt-lost imgs-lost))
+        (entropy/emacs-org--ocii-extract-prompt-lost imgs-lost))
       (if imgs-copied
           (unless (not (yes-or-no-p
                         (format "Extract imgs of '%s' to '%s'?"
@@ -930,11 +943,11 @@ chosen as prompted query location state."
         (message (format "No valid imgs of '%s' to extracted!"
                          (file-name-nondirectory target-file)))))))
 
-(defun entropy/emacs-ocimg-extract-prompt-lost (imgs-list)
+(defun entropy/emacs-org--ocii-extract-prompt-lost (imgs-list)
   (dolist (el imgs-list)
     (message (format "Image file '%s' not existed!" el))))
 
-(defun entropy/emacs-ocimg-extract-file-imgs-links (org-file)
+(defun entropy/emacs-org--ocii-extract-file-imgs-links (org-file)
   "extracting all images links from one org-file ORG-FILE without
 source images file existed status checking.
 
@@ -961,9 +974,6 @@ Now just supply localization image file analyzing."
               (unless (entropy/cl-check-filename-legal non-abbrev t)
                 (push non-abbrev links))))))))
     links))
-
-
-
 
 ;; ** org-htmlize for export code block with coloful sensitive which suitable with programe
 ;;    languages
@@ -1014,12 +1024,13 @@ Now just supply localization image file analyzing."
   :commands (poporg-dwim)
   :config
   (setq poporg-adjust-fill-column nil)
-  (defun entropy/emacs-poporg-edit-hook ()
+  (defun entropy/emacs-org--poporg-edit-hook ()
     "Hooks for `poporg-edit-hook' compat for entropy-emacs."
     (auto-fill-mode)
     (setq-local fill-column 66))
   (add-hook 'poporg-edit-hook
-            'entropy/emacs-poporg-edit-hook
+            'entropy/emacs-org--poporg-edit-hook
             t))
+
 ;; * provide
 (provide 'entropy-emacs-org)

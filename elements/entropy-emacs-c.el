@@ -96,11 +96,11 @@ oppsite."
              entropy/emacs-win-portable-mingw-enable
              (executable-find "x86_64-w64-mingw32-g++.exe")
              (executable-find "x86_64-w64-mingw32-gcc.exe"))
-    (defun entropy/emacs-win-c-compiler ()
+    (defun entropy/emacs-c-win-c-compiler ()
       "Compile C or Cpp file with their parameter:
 
-1. `entropy/emacs-win-gcc-parameter'
-2. `entropy/emacs-win-g++-parameter'
+1. `entropy/emacs-c-win-gcc-parameter'
+2. `entropy/emacs-c-win-g++-parameter'
 
 
 Til now, this function just compatibility with windows
@@ -117,7 +117,7 @@ plattform."
             (concat entropy/emacs-win-portable-mingw-path "x86_64-w64-mingw32-gcc.exe")
             (concat " -o "
                     (concat (file-name-directory file)  fname ".exe") " " file
-                    " " entropy/emacs-win-gcc-parameter))))
+                    " " entropy/emacs-c-win-gcc-parameter))))
          ((or (string= c-type "cpp")
               (string= c-type "c++")
               (string= c-type "cxx"))
@@ -126,11 +126,11 @@ plattform."
             (concat entropy/emacs-win-portable-mingw-path "x86_64-w64-mingw32-g++.exe")
             (concat " -o "
                     (concat (file-name-directory file)  fname ".exe") " " file
-                    " " entropy/emacs-win-g++-parameter))))
+                    " " entropy/emacs-c-win-g++-parameter))))
          (t
           (user-error "This file was not C or Cpp file!")))))
 
-    (defun entropy/emacs-win-c-open-exec ()
+    (defun entropy/emacs-c-win-c-open-exec ()
       "Open exec file(windows only) which compiled by current C or
 Cpp file, if no such file named by like:
 
@@ -138,7 +138,7 @@ current-file-name.exe
 
 will quit and message one error info.
 
-This function must be ran after `entropy/emacs-win-c-compiler'.
+This function must be ran after `entropy/emacs-c-win-c-compiler'.
 "
       (interactive)
       (let* (exefile
@@ -174,8 +174,8 @@ This function must be ran after `entropy/emacs-win-c-compiler'.
     ;; define key binding with above two function for 'c-mode' and 'c++-mode'
     (let ((mode-map `(,c-mode-map ,c++-mode-map)))
       (dolist (map mode-map)
-        (define-key map (kbd "<f5>") 'entropy/emacs-win-c-compiler)
-        (define-key map (kbd "<C-f5>") 'entropy/emacs-win-c-open-exec)))))
+        (define-key map (kbd "<f5>") 'entropy/emacs-c-win-c-compiler)
+        (define-key map (kbd "<C-f5>") 'entropy/emacs-c-win-c-open-exec)))))
 
 
 ;; ** irony mode
@@ -186,7 +186,7 @@ This function must be ran after `entropy/emacs-win-c-compiler'.
       (funcall oldfuc)
     t))
 
-(defun entropy/emacs-usepackage-irony ()
+(defun entropy/emacs-c-usepackage-irony ()
   "Function for enabling irony mode for c and c++ mode."
   (use-package irony
     :init (advice-add 'irony-mode :around #'entropy/emacs-c-irony-refer-advice-around)
@@ -208,12 +208,12 @@ This function must be ran after `entropy/emacs-win-c-compiler'.
  ((and sys/win32p
        entropy/emacs-win-portable-mingw-enable
        (file-exists-p (concat entropy/emacs-win-portable-mingw-path "libclang.dll")))
-  (entropy/emacs-usepackage-irony))
+  (entropy/emacs-c-usepackage-irony))
  ((or sys/linuxp 
       sys/linux-x-p
       sys/mac-x-p
       sys/macp)
-  (entropy/emacs-usepackage-irony)))
+  (entropy/emacs-c-usepackage-irony)))
 
 ;; ** provide
 (provide 'entropy-emacs-c)

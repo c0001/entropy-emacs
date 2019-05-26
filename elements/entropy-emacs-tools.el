@@ -41,7 +41,7 @@
 ;; *** Function manually
 ;; **** open in external apps
 (when  (or sys/win32p sys/linux-x-p sys/mac-x-p)
-  (defun entropy/emacs-open-in-external-app (&optional files)
+  (defun entropy/emacs-tools-open-in-external-app (&optional files)
     "Open the current file or dired marked files in external app.
 The app is chosen from your OS's preference.  URL
 `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
@@ -76,11 +76,11 @@ Version 2016-10-15"
                (start-process "" nil "xdg-open" $fpath)))
            $file-list))))))
   (with-eval-after-load 'dired
-    (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-open-in-external-app)))
+    (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-tools-open-in-external-app)))
 
 ;; **** Open in desktop manager
 (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
-  (defun entropy/emacs-show-in-desktop (&optional dpath)
+  (defun entropy/emacs-tools-show-in-desktop (&optional dpath)
     "Show current file in desktop.
  (Mac Finder, Windows Explorer, Linux file manager)
  This command be called when in a file or in `dired'.
@@ -115,11 +115,11 @@ Version 2017-12-23"
         ))))
 
   (with-eval-after-load 'dired
-    (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-show-in-desktop)))
+    (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-tools-show-in-desktop)))
 
 ;; **** Open in terminal
 (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
-  (defun entropy/emacs-open-in-terminal ()
+  (defun entropy/emacs-tools-open-in-terminal ()
     "Open the current dir in a new terminal window.
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
@@ -160,10 +160,10 @@ Version 2017-10-09"
      ((string-equal system-type "gnu/linux")
       (let ((process-connection-type nil))
         (start-process "" nil "gnome-terminal" default-directory)))))
-  (global-set-key (kbd "C-;") 'entropy/emacs-open-in-terminal)
+  (global-set-key (kbd "C-;") 'entropy/emacs-tools-open-in-terminal)
 
   (when sys/win32p
-    (defun entropy/emacs-cmd()
+    (defun entropy/emacs-tools-cmd()
       (interactive)
       (if entropy/emacs-Cmder-enable
           (let (($path  default-directory ))
@@ -184,28 +184,28 @@ Version 2017-10-09"
 
 
 ;; ** vertical center display
-(defun entropy/emacs-vertical-center ()
+(defun entropy/emacs-tools-vertical-center ()
   "Just vertical-center buffer without further operation supplied
 like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom '(middle)))
 
-(global-set-key (kbd "C-l")  'entropy/emacs-vertical-center)
+(global-set-key (kbd "C-l")  'entropy/emacs-tools-vertical-center)
 
-(defun entropy/emacs-vertical-to-bottom ()
+(defun entropy/emacs-tools-vertical-to-bottom ()
   "Just vertical-bottom buffer without further operation supplied
 like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom -1))
 
-(global-set-key (kbd "C-M-l") 'entropy/emacs-vertical-to-bottom)
+(global-set-key (kbd "C-M-l") 'entropy/emacs-tools-vertical-to-bottom)
 
 ;; ** beacon cursor blanking
 (use-package beacon
   :commands (beacon-mode)
   :init (beacon-mode 1)
   :config
-  (defun entropy/emacs-beacon-mode-rejected ()
+  (defun entropy/emacs-tools--beacon-mode-rejected ()
     "Temporally removing beacon feature for reducing the lagging
 performance for some major-modes."
     (let ((temp_post (copy-tree post-command-hook))
@@ -216,7 +216,7 @@ performance for some major-modes."
                   (remove 'beacon--vanish temp_post_pre))
       (setq-local pre-command-hook
                   (remove 'beacon--record-vars temp_post_pre))))
-  (add-hook 'artist-mode-hook 'entropy/emacs-beacon-mode-rejected))
+  (add-hook 'artist-mode-hook 'entropy/emacs-tools--beacon-mode-rejected))
 
 ;; ** visual-regexp
 ;; 
@@ -261,11 +261,11 @@ performance for some major-modes."
 ;; ** entropy-proxy-url
 (use-package entropy-proxy-url
   :ensure nil
-  :commands (entropy/emacs-proxy-url-proxy-choice-for-eww
-             entropy/emacs-proxy-url-proxy-choice-for-w3m)
+  :commands (entropy/proxy-url-proxy-choice-for-eww
+             entropy/proxy-url-proxy-choice-for-w3m)
   :init
-  (advice-add 'eww-browse-url :before #'entropy/emacs-proxy-url-proxy-choice-for-eww)
-  (advice-add 'w3m-retrieve :before #'entropy/emacs-proxy-url-proxy-choice-for-w3m))
+  (advice-add 'eww-browse-url :before #'entropy/proxy-url-proxy-choice-for-eww)
+  (advice-add 'w3m-retrieve :before #'entropy/proxy-url-proxy-choice-for-w3m))
 
 ;; ** eww config
 ;; *** eww search engine
@@ -277,7 +277,7 @@ performance for some major-modes."
 
 ;; *** get image url
 (with-eval-after-load 'shr
-  (defun entropy/emacs-get-eww-url (choice)
+  (defun entropy/emacs-tools-get-eww-url (choice)
     "Get image or point url at eww or it's derived modes."
     (interactive
      (list (completing-read "Choose url copy type" '("image-url" "shr-url"))))
@@ -291,19 +291,19 @@ performance for some major-modes."
         (error (format "Can not find %s here!" choice)))))
 
   (with-eval-after-load 'eww
-    (define-key eww-mode-map (kbd "m") #'entropy/emacs-get-eww-url))
+    (define-key eww-mode-map (kbd "m") #'entropy/emacs-tools-get-eww-url))
   (with-eval-after-load 'elfeed-show
-    (define-key elfeed-show-mode-map (kbd "m") #'entropy/emacs-get-eww-url)))
+    (define-key elfeed-show-mode-map (kbd "m") #'entropy/emacs-tools-get-eww-url)))
 
 
 ;; *** eww proxy toggle
 (with-eval-after-load 'entropy-proxy-url
   (with-eval-after-load 'eww
-    (define-key eww-mode-map (kbd "p") #'entropy/emacs-proxy-url-switch-for-eww)))
+    (define-key eww-mode-map (kbd "p") #'entropy/proxy-url-switch-for-eww)))
 
 
 ;; *** eww open url outside
-(defun entropy/emacs-eww-open-url-external ()
+(defun entropy/emacs-tools-eww-open-url-external ()
   "Open current eww web page on external browser.
 
 Browser chosen based on variable
@@ -331,32 +331,32 @@ Browser chosen based on variable
       (browse-url url))))
 
 (with-eval-after-load 'eww
-  (define-key eww-mode-map (kbd "M") #'entropy/emacs-eww-open-url-external))
+  (define-key eww-mode-map (kbd "M") #'entropy/emacs-tools-eww-open-url-external))
 
 ;; ** Rss feed
 (use-package elfeed
   :commands (elfeed)
   :bind (:map elfeed-search-mode-map
-              ("A" . entropy/emacs-elfeed-filter-by-feedname)
-              ("B" . entropy/emacs-elfeed-filter-by-tag)
-              ("-" . entropy/emacs-elfeed-untag-selected)
-              ("+" . entropy/emacs-elfeed-tag-selected)
-              ("g" . entropy/emacs-elfeed-format-feed-title)
-              ("s" . entropy/emacs-elfeed-clean-filter)
+              ("A" . entropy/emacs-tools-elfeed-filter-by-feedname)
+              ("B" . entropy/emacs-tools-elfeed-filter-by-tag)
+              ("-" . entropy/emacs-tools-elfeed-untag-selected)
+              ("+" . entropy/emacs-tools-elfeed-tag-selected)
+              ("g" . entropy/emacs-tools-elfeed-format-feed-title)
+              ("s" . entropy/emacs-tools-elfeed-clean-filter)
          :map elfeed-show-mode-map
-              ("q" . entropy/emacs-elfeed-kill-buffer))
+              ("q" . entropy/emacs-tools-elfeed-kill-buffer))
 
   :init
-  (defvar entropy/emacs-elfeed-init nil
+  (defvar entropy/emacs-tools--elfeed-init nil
     "whether the firt time calling `elfeed'.")
   
-  (defun entropy/emacs-elfeed-db-load (&rest rest)
+  (defun entropy/emacs-tools--elfeed-db-load (&rest rest)
     "'BEFORE' advice for elfeed for fix bug of `elfeed-db-load'
 read wrong buffer stirng for `elfeed-db' at init time.
 
 This may be the problem of `use-package' lazy loading of elfeed
 and macro expand of it."
-    (when (not entropy/emacs-elfeed-init)
+    (when (not entropy/emacs-tools--elfeed-init)
       (let ((index (expand-file-name "index" elfeed-db-directory))
             (enable-local-variables nil))
         (when (file-exists-p index) 
@@ -375,9 +375,9 @@ and macro expand of it."
           (setf elfeed-db-feeds (plist-get elfeed-db :feeds)
                 elfeed-db-entries (plist-get elfeed-db :entries)
                 elfeed-db-index (plist-get elfeed-db :index))))
-      (setq entropy/emacs-elfeed-init t)))
+      (setq entropy/emacs-tools--elfeed-init t)))
 
-  (advice-add 'elfeed :before #'entropy/emacs-elfeed-db-load)
+  (advice-add 'elfeed :before #'entropy/emacs-tools--elfeed-db-load)
   
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
   (setq elfeed-curl-timeout 20)
@@ -407,7 +407,7 @@ and macro expand of it."
 
   :config
 ;; *** feeds-title config
-  (defun entropy/emacs-elfeed-sc-str (str)
+  (defun entropy/emacs-tools--elfeed-sc-str (str)
     "Replaces space for '-' when string STR indeed of that."
     (let ((strlist (split-string str " "))
           rtn)
@@ -420,7 +420,7 @@ and macro expand of it."
       rtn))
 
   (eval-when-compile
-    (defun entropy/emacs-elfeed-string-style-hook (&rest args)
+    (defun entropy/emacs-tools--elfeed-string-style-hook (&rest args)
       "Hooks for replace space to '-' when save `elfeed-db'."
       (let ((feeds (if (hash-table-p elfeed-db-feeds)
                        (hash-table-values elfeed-db-feeds)
@@ -431,31 +431,31 @@ and macro expand of it."
             (let ((feed-title (elfeed-feed-title el))
                   newtitle)
               (when (and feed-title (string-match-p " " feed-title))
-                (setq newtitle (entropy/emacs-elfeed-sc-str feed-title))
+                (setq newtitle (entropy/emacs-tools--elfeed-sc-str feed-title))
                 (setf (elfeed-feed-title el) newtitle)
                 (setq did t))))
           (if did
               t
             nil)))))
 
-  (advice-add 'elfeed-db-load :after #'entropy/emacs-elfeed-string-style-hook)
+  (advice-add 'elfeed-db-load :after #'entropy/emacs-tools--elfeed-string-style-hook)
 
 
-  (defun entropy/emacs-elfeed-format-feed-title ()
+  (defun entropy/emacs-tools-elfeed-format-feed-title ()
     "Interactively format feedtitle which has space."
     (interactive)
     (if (equal major-mode 'elfeed-search-mode)
         (progn
-          (entropy/emacs-elfeed-string-style-hook)
+          (entropy/emacs-tools--elfeed-string-style-hook)
           (elfeed-search-update--force))
       (error "You are not in the 'elfeed-search-mode'!")))
   
 ;; *** Query prompting filter function
-  (defun entropy/emacs-elfeed-get-all-entries ()
+  (defun entropy/emacs-tools--elfeed-get-all-entries ()
     "Get all entries from `elfeed-db' and return it."
     (hash-table-values (plist-get elfeed-db :entries)))
   
-  (defun entropy/emacs-elfeed-read-feedname (entry)
+  (defun entropy/emacs-tools--elfeed-read-feedname (entry)
     "Get entry's feed name."
     (let* ((feed (elfeed-entry-feed entry))
            (feed-title
@@ -464,7 +464,7 @@ and macro expand of it."
       (if feed-title
           feed-title)))
   
-  (defun entropy/emacs-elfeed-tags-choice (selected-entries &optional tag return-list prompt match)
+  (defun entropy/emacs-tools--elfeed-tags-choice (selected-entries &optional tag return-list prompt match)
     "Query and selected tag from the list collected by
 SELECTED-ENTRIES. And final return the tag string or the list of
 matched entires by this tag.
@@ -503,7 +503,7 @@ Arguemnts:
             (setq choice tag))
 
           (when (string-match-p " " choice)
-            (setq choice (entropy/emacs-elfeed-sc-str choice)))
+            (setq choice (entropy/emacs-tools--elfeed-sc-str choice)))
 
           (if return-list
               ;; match entries of choice
@@ -514,7 +514,7 @@ Arguemnts:
           rtn)
       (error "Unmatched major-mode of 'elfeed-search-mode'!")))
 
-  (defun entropy/emacs-elfeed-feedname-choice (selected-entries &optional tname return-list)
+  (defun entropy/emacs-tools--elfeed-feedname-choice (selected-entries &optional tname return-list)
     "Query with promt for choosing one feedname from the selected
 entries, return the choice or one entries list wich matched this
 choice.
@@ -532,7 +532,7 @@ Arguments:
           rtn)
       ;; make feed title name list and matched entries list
       (dolist (el entry-list)
-        (let ((feed-title (entropy/emacs-elfeed-read-feedname el)))
+        (let ((feed-title (entropy/emacs-tools--elfeed-read-feedname el)))
           (when feed-title
             (add-to-list 'feedtitle-name-list feed-title)
             (push el entries))))
@@ -542,52 +542,52 @@ Arguments:
         (setq choice (ivy-read "Choose feed title: " feedtitle-name-list)))
       
       (when (string-match-p " " choice)
-        (setq choice (entropy/emacs-elfeed-sc-str choice)))
+        (setq choice (entropy/emacs-tools--elfeed-sc-str choice)))
       
       (if return-list
           (dolist (el entries)
-            (if (equal choice (entropy/emacs-elfeed-read-feedname el))
+            (if (equal choice (entropy/emacs-tools--elfeed-read-feedname el))
                 (push el rtn)))
         (setq rtn choice))
       rtn))
 
-  (defun entropy/emacs-elfeed-filter-by-tag (tag)
-    "Filter with tag choosen, powered by `entropy/emacs-elfeed-tags-choice'"
+  (defun entropy/emacs-tools-elfeed-filter-by-tag (tag)
+    "Filter with tag choosen, powered by `entropy/emacs-tools--elfeed-tags-choice'"
     (interactive
-     (list (entropy/emacs-elfeed-tags-choice (entropy/emacs-elfeed-get-all-entries))))
+     (list (entropy/emacs-tools--elfeed-tags-choice (entropy/emacs-tools--elfeed-get-all-entries))))
     (elfeed-search-set-filter (concat "+" (symbol-name tag))))
   
-  (defun entropy/emacs-elfeed-filter-by-feedname (feedname)
-    "Filter with feedname, powered by `entropy/emacs-elfeed-feedname-choice'."
+  (defun entropy/emacs-tools-elfeed-filter-by-feedname (feedname)
+    "Filter with feedname, powered by `entropy/emacs-tools--elfeed-feedname-choice'."
     (interactive
-     (list (entropy/emacs-elfeed-feedname-choice (entropy/emacs-elfeed-get-all-entries))))
-    (if (entropy/emacs-elfeed-string-style-hook)
+     (list (entropy/emacs-tools--elfeed-feedname-choice (entropy/emacs-tools--elfeed-get-all-entries))))
+    (if (entropy/emacs-tools--elfeed-string-style-hook)
         (elfeed-search-update--force))
     (elfeed-search-set-filter (concat "=" feedname)))
 
-  (defun entropy/emacs-elfeed-untag-selected ()
+  (defun entropy/emacs-tools-elfeed-untag-selected ()
     "Untag tag for selected entries with query prompt as
 requiring matched."
     (interactive)
     (let* ((entries (elfeed-search-selected))
-           (choice (entropy/emacs-elfeed-tags-choice entries nil nil "Choose tag for remove: " t)))
+           (choice (entropy/emacs-tools--elfeed-tags-choice entries nil nil "Choose tag for remove: " t)))
       (elfeed-untag entries choice)
       (mapc #'elfeed-search-update-entry entries)
       (unless (use-region-p) (forward-line))))
 
-  (defun entropy/emacs-elfeed-tag-selected ()
+  (defun entropy/emacs-tools-elfeed-tag-selected ()
     "Adding tag for selected entries with query prompt for
 selecting existing tag or input the new one instead."
     (interactive)
     (let* ((entries (elfeed-search-selected))
-           (full-entrylist (entropy/emacs-elfeed-get-all-entries))
-           (tag (entropy/emacs-elfeed-tags-choice full-entrylist nil nil "Choose tag or input one: ")))
+           (full-entrylist (entropy/emacs-tools--elfeed-get-all-entries))
+           (tag (entropy/emacs-tools--elfeed-tags-choice full-entrylist nil nil "Choose tag or input one: ")))
       (elfeed-tag entries tag)
       (mapc #'elfeed-search-update-entry entries)
       (unless (use-region-p) (forward-line))))
 
 ;; *** other improvement
-  (defun entropy/emacs-elfeed-kill-buffer ()
+  (defun entropy/emacs-tools-elfeed-kill-buffer ()
     "Automatically swtitch to elfeed-search buffer when closed
 the current elfeed-show-buffer."
     (interactive)
@@ -603,13 +603,13 @@ the current elfeed-show-buffer."
             (user-error "Couldn't found *elfeed-search* buffer."))))))
 
 
-  (defun entropy/emacs-elfeed-clean-filter ()
+  (defun entropy/emacs-tools-elfeed-clean-filter ()
     "Clean all filter for curren elfeed search buffer."
     (interactive)
     (elfeed-search-set-filter ""))
   
 ;; **** utilities
-  (defun entropy/emacs-elfeed-list-feeds ()
+  (defun entropy/emacs-tools--elfeed-list-feeds ()
     "List feeds using for querying promt."
     (let ((feeds (hash-table-values (plist-get elfeed-db :feeds)))
           (rtn nil))
@@ -630,7 +630,7 @@ the current elfeed-show-buffer."
         (setq rtn mlist))
       rtn))
 
-  (defun entropy/emacs-elfeed-clean-invalid-feeds ()
+  (defun entropy/emacs-tools-elfeed-clean-invalid-feeds ()
     "Clean invalid feeds which can not be retrieved.
 
 This function will remove 'as entry' both in `elfeed-db' and
@@ -648,11 +648,11 @@ This function will remove 'as entry' both in `elfeed-db' and
       (customize-save-variable 'elfeed-feeds elfeed-feeds)
       (elfeed-db-gc-empty-feeds)))
 
-  (defvar entropy/emacs-elfeed-feed-prompt-alist '()
+  (defvar entropy/emacs-tools--elfeed-feed-prompt-alist '()
     "Alist of feeds prompt string and url.")
   
 ;; **** add feed advice
-  (defun entropy/emacs-elfeed-add-feed-around (oldfunc url)
+  (defun entropy/emacs-tools-elfeed-add-feed-around (oldfunc url)
     "Addding url and hexify it when it contained multi-byte
 string as CJK characters."
     (interactive (list
@@ -660,11 +660,11 @@ string as CJK characters."
     (require 'entropy-common-library-const)
     (let ((hexi-url (url-hexify-string url entropy/cl-url--allowed-chars)))
       (funcall oldfunc hexi-url :save t)))
-  (advice-add 'elfeed-add-feed :around #'entropy/emacs-elfeed-add-feed-around)
+  (advice-add 'elfeed-add-feed :around #'entropy/emacs-tools-elfeed-add-feed-around)
 
 
 ;; **** delete entry
-  (defun entropy/emacs-elfeed-delete-entry ()
+  (defun entropy/emacs-tools-elfeed-delete-entry ()
     "Delete entry of elfeed."
     (interactive)
     (if (not (use-region-p))
@@ -674,7 +674,7 @@ string as CJK characters."
           (avl-tree-delete elfeed-db-index id)
           (remhash id n-entry)
           (setq elfeed-db-entries n-entry)
-          (entropy/emacs-elfeed-format-feed-title))
+          (entropy/emacs-tools-elfeed-format-feed-title))
       (let* ((entries (elfeed-search-selected))
              id
              (n-entry elfeed-db-entries))
@@ -685,15 +685,15 @@ string as CJK characters."
         (dolist (el id)
           (remhash el n-entry))
         (setq elfeed-db-entries n-entry)
-        (entropy/emacs-elfeed-format-feed-title))))
+        (entropy/emacs-tools-elfeed-format-feed-title))))
 
-  (define-key elfeed-search-mode-map (kbd "d") 'entropy/emacs-elfeed-delete-entry)
+  (define-key elfeed-search-mode-map (kbd "d") 'entropy/emacs-tools-elfeed-delete-entry)
 
 ;; **** remove feed function
-  (defvar entropy/emacs-elfeed-feed-remove-list '()
+  (defvar entropy/emacs-tools--elfeed-feed-remove-list '()
     "List stored feeds url of `elfeed-feeds' to remove.")
   
-  (defun entropy/emacs-elfeed-feed-of-url (url)
+  (defun entropy/emacs-tools--elfeed-feed-of-url (url)
     "Matching url's refer feed title name."
     (let* ((feeds (hash-table-values (plist-get elfeed-db :feeds)))
            (rtn nil))
@@ -704,36 +704,36 @@ string as CJK characters."
           rtn
         "-v-")))
 
-  (defun entropy/emacs-elfeed-remove-read-action (x)
+  (defun entropy/emacs-tools--elfeed-remove-read-action (x)
     "Repeatedly read action for removing feeds of `elfeed-feeds',
 powered by `entropy/cl-ivy-read-repeatedly-function'."
     (require 'entropy-common-library)
     (let ((temp (cdr x)))
       (setq x temp))
     (entropy/cl-ivy-read-repeatedly-function
-     x 'entropy/emacs-elfeed-feed-remove-list
+     x 'entropy/emacs-tools--elfeed-feed-remove-list
      "Removing:"
-     #'entropy/emacs-elfeed-feed-of-url))
+     #'entropy/emacs-tools--elfeed-feed-of-url))
   
-  (defun entropy/emacs-elfeed-remove-feed ()
+  (defun entropy/emacs-tools-elfeed-remove-feed ()
     "Remove elfeed feeds with multi-chosen by query prompted
 function of `ivy-read'."
     (interactive)
-    (setq entropy/emacs-elfeed-feed-remove-list nil
-          entropy/emacs-elfeed-feed-prompt-alist nil)
-    (setq entropy/emacs-elfeed-feed-prompt-alist (entropy/emacs-elfeed-list-feeds))
-    (ivy-read "Remove feeds:" entropy/emacs-elfeed-feed-prompt-alist
+    (setq entropy/emacs-tools--elfeed-feed-remove-list nil
+          entropy/emacs-tools--elfeed-feed-prompt-alist nil)
+    (setq entropy/emacs-tools--elfeed-feed-prompt-alist (entropy/emacs-tools--elfeed-list-feeds))
+    (ivy-read "Remove feeds:" entropy/emacs-tools--elfeed-feed-prompt-alist
               :require-match t
-              :action #'entropy/emacs-elfeed-remove-read-action)
+              :action #'entropy/emacs-tools--elfeed-remove-read-action)
     (let ((rtn elfeed-feeds))
-      (dolist (el entropy/emacs-elfeed-feed-remove-list)
+      (dolist (el entropy/emacs-tools--elfeed-feed-remove-list)
         (when (member el elfeed-feeds)
           (setq rtn (delete el rtn))))
       (customize-save-variable 'elfeed-feeds rtn)
       (when (yes-or-no-p "Do you want to remove all empty feeds? ")
         (elfeed-db-gc-empty-feeds))))
 
-  (defun entropy/emacs-elfeed-remove-feed-by-regexp ()
+  (defun entropy/emacs-tools-elfeed-remove-feed-by-regexp ()
     "Remove feeds matched of regexp expr inputted repeatlly."
     (interactive)
     (let* ((regexp (entropy/cl-repeated-read "Input regexp"))
@@ -750,44 +750,44 @@ function of `ivy-read'."
       (customize-save-variable 'elfeed-feeds elfeed-feeds)))
   
 ;; **** update specific feed through proxy
-  (defvar entropy/emacs-elfeed-multi-update-feeds-list '()
+  (defvar entropy/emacs-tools-elfeed-multi-update-feeds-list '()
     "Feeds for update.")
 
-  (defun entropy/emacs-elfeed-update-read-action (x)
+  (defun entropy/emacs-tools--elfeed-update-read-action (x)
     "Repeatly read action for updating feeds of `elfeed-feeds',
 powered by `entropy/cl-ivy-read-repeatedly-function'."
     (require 'entropy-common-library)
     (let ((temp (cdr x)))
       (setq x temp))
     (entropy/cl-ivy-read-repeatedly-function
-     x 'entropy/emacs-elfeed-multi-update-feeds-list
+     x 'entropy/emacs-tools-elfeed-multi-update-feeds-list
      "Updating: "
-     #'entropy/emacs-elfeed-feed-of-url))
+     #'entropy/emacs-tools--elfeed-feed-of-url))
 
-  (defun entropy/emacs-elfeed-get-multi-update-feeds ()
+  (defun entropy/emacs-tools-elfeed-get-multi-update-feeds ()
     "Getting feeds needed for updating through querying with
-promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list'."
+promptings and injecting them into `entropy/emacs-tools-elfeed-multi-update-feeds-list'."
     (interactive)
-    (setq entropy/emacs-elfeed-multi-update-feeds-list nil
-          entropy/emacs-elfeed-feed-prompt-alist nil)
-    (setq entropy/emacs-elfeed-feed-prompt-alist (entropy/emacs-elfeed-list-feeds))
-    (ivy-read "Update feeds: " entropy/emacs-elfeed-feed-prompt-alist
+    (setq entropy/emacs-tools-elfeed-multi-update-feeds-list nil
+          entropy/emacs-tools--elfeed-feed-prompt-alist nil)
+    (setq entropy/emacs-tools--elfeed-feed-prompt-alist (entropy/emacs-tools--elfeed-list-feeds))
+    (ivy-read "Update feeds: " entropy/emacs-tools--elfeed-feed-prompt-alist
               :require-match t
-              :action #'entropy/emacs-elfeed-update-read-action))
+              :action #'entropy/emacs-tools--elfeed-update-read-action))
   
-  (defun entropy/emacs-elfeed-multi-update-feeds ()
-    "Update feeds interactively by multiplied choicing from `entropy/emacs-elfeed-feed-prompt-alist'."
+  (defun entropy/emacs-tools-elfeed-multi-update-feeds ()
+    "Update feeds interactively by multiplied choicing from `entropy/emacs-tools--elfeed-feed-prompt-alist'."
     (interactive)
-    (setq entropy/emacs-elfeed-multi-update-feeds-list nil
-          entropy/emacs-elfeed-feed-prompt-alist nil)
-    (setq entropy/emacs-elfeed-feed-prompt-alist (entropy/emacs-elfeed-list-feeds))
-    (ivy-read "Update feeds: " entropy/emacs-elfeed-feed-prompt-alist
+    (setq entropy/emacs-tools-elfeed-multi-update-feeds-list nil
+          entropy/emacs-tools--elfeed-feed-prompt-alist nil)
+    (setq entropy/emacs-tools--elfeed-feed-prompt-alist (entropy/emacs-tools--elfeed-list-feeds))
+    (ivy-read "Update feeds: " entropy/emacs-tools--elfeed-feed-prompt-alist
               :require-match t
-              :action #'entropy/emacs-elfeed-update-read-action)
-    (dolist (el entropy/emacs-elfeed-multi-update-feeds-list)
+              :action #'entropy/emacs-tools--elfeed-update-read-action)
+    (dolist (el entropy/emacs-tools-elfeed-multi-update-feeds-list)
       (elfeed-update-feed el)))
 
-  (defun entropy/emacs-elfeed-update-curl-proxy (url-lists proxy)
+  (defun entropy/emacs-tools--elfeed-update-curl-proxy (url-lists proxy)
     (when elfeed-curl-extra-arguments
       (let (mlist (olist elfeed-curl-extra-arguments))
         (dolist (el olist)
@@ -799,7 +799,7 @@ promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list
       (elfeed-update-feed el)))
 
 
-  (defun entropy/emacs-elfeed-update-urlretrieve-proxy (url-lists)
+  (defun entropy/emacs-tools--elfeed-update-urlretrieve-proxy (url-lists)
     (if (not (boundp 'proxy-mode))
         (proxy-mode)
       (if (not proxy-mode)
@@ -811,19 +811,19 @@ promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list
         (elfeed-update-feed el)))
     (proxy-mode-disable))
 
-  (defun entropy/emacs-elfeed-update-proxy (&optional url-lists )
+  (defun entropy/emacs-tools-elfeed-update-proxy (&optional url-lists )
     "Update feeds using proxy."
     (interactive)
-    (let ((ulist (if url-lists url-lists (progn (entropy/emacs-elfeed-get-multi-update-feeds)
-                                                entropy/emacs-elfeed-multi-update-feeds-list))))
+    (let ((ulist (if url-lists url-lists (progn (entropy/emacs-tools-elfeed-get-multi-update-feeds)
+                                                entropy/emacs-tools-elfeed-multi-update-feeds-list))))
       (if elfeed-use-curl
           (let ((proxy (ivy-read "Choose or input your proxy: "
                                  '("http://127.0.0.1:1080"))))
-            (entropy/emacs-elfeed-update-curl-proxy ulist proxy))
-        (entropy/emacs-elfeed-update-urlretrieve-proxy ulist))))
+            (entropy/emacs-tools--elfeed-update-curl-proxy ulist proxy))
+        (entropy/emacs-tools--elfeed-update-urlretrieve-proxy ulist))))
 
 
-  (defun entropy/emacs-elfeed-reset-curl-arg ()
+  (defun entropy/emacs-tools--elfeed-reset-curl-arg ()
     (let ((judge nil)
           (mlist nil))
       (when elfeed-curl-extra-arguments
@@ -840,46 +840,46 @@ promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list
               (setq elfeed-curl-extra-arguments
                     (delete el elfeed-curl-extra-arguments)))))))))
 
-  (advice-add 'elfeed-update :before #'entropy/emacs-elfeed-reset-curl-arg)
+  (advice-add 'elfeed-update :before #'entropy/emacs-tools--elfeed-reset-curl-arg)
 
-  (defun entropy/emacs-elfeed-proxy-update-all-nil-feeds ()
-    "Update all empty feeds with proxy by `entropy/emacs-elfeed-update-proxy'."
+  (defun entropy/emacs-tools-elfeed-proxy-update-all-nil-feeds ()
+    "Update all empty feeds with proxy by `entropy/emacs-tools-elfeed-update-proxy'."
     (interactive)
-    (let ((olist (entropy/emacs-elfeed-list-feeds))
+    (let ((olist (entropy/emacs-tools--elfeed-list-feeds))
           mlist rlist)
       (dolist (el olist)
         (when (string-match-p "☹nil" (car el))
           (push (cdr el) mlist)))
       (if mlist
-          (entropy/emacs-elfeed-update-proxy mlist)
+          (entropy/emacs-tools-elfeed-update-proxy mlist)
         (message "None feeds need for updating with proxy."))))
 
   
-  (defun entropy/emacs-elfeed-update-proxyfeeds-regexp-match ()
+  (defun entropy/emacs-tools-elfeed-update-proxyfeeds-regexp-match ()
     "Update feeds through proxy matched by regexp stored in
-`entropy/emacs-elfeed-proxyfeeds-regexp-list'.
+`entropy/emacs-tools--elfeed-proxyfeeds-regexp-list'.
 
 If hasn't setting the regexp list, prompting for input them
 repeatly and stored them in `cutom-file'."
     (interactive)
     (require 'entropy-common-library)
     (let ((olist (elfeed-feed-list))
-          (relist entropy/emacs-elfeed-proxyfeeds-regexp-list)
+          (relist entropy/emacs-tools--elfeed-proxyfeeds-regexp-list)
           ulist)
       (unless relist
         (setq relist (entropy/cl-repeated-read "Inputting regexp"))
-        (setq entropy/emacs-elfeed-proxyfeeds-regexp-list relist)
-        (customize-save-variable 'entropy/emacs-elfeed-proxyfeeds-regexp-list relist))
+        (setq entropy/emacs-tools--elfeed-proxyfeeds-regexp-list relist)
+        (customize-save-variable 'entropy/emacs-tools--elfeed-proxyfeeds-regexp-list relist))
       (when (yes-or-no-p "Do you want to adding some matching? ")
         (setq relist (append relist (entropy/cl-repeated-read "Adding regexp")))
-        (setq entropy/emacs-elfeed-proxyfeeds-regexp-list relist)
-        (customize-save-variable 'entropy/emacs-elfeed-proxyfeeds-regexp-list relist))
+        (setq entropy/emacs-tools--elfeed-proxyfeeds-regexp-list relist)
+        (customize-save-variable 'entropy/emacs-tools--elfeed-proxyfeeds-regexp-list relist))
       (dolist (el olist)
         (dolist (elm relist)
           (when (string-match-p elm el)
             (push el ulist))))
       (when ulist
-        (entropy/emacs-elfeed-update-proxy ulist))))
+        (entropy/emacs-tools-elfeed-update-proxy ulist))))
 
 ;; **** default external browser for feed viewing
 
@@ -910,7 +910,7 @@ The minor changing was compat for above."
     (unless (use-region-p) (forward-line))))
 
   
-  (defun entropy/emacs-elfeed-browse-url-around (oldfun &rest args)
+  (defun entropy/emacs-tools--elfeed-browse-url-around (oldfun &rest args)
     "Browse feed source by external browser with choosing."
     (let* ((choice
             (completing-read "Choose browse: " `("default"
@@ -921,11 +921,11 @@ The minor changing was compat for above."
            (browse-url-browser-function (cl-case (intern choice)
                                           ('default 'browse-url-default-browser)
                                           ('eww 'eww-browse-url)
-                                          ('emacs-w3m 'entropy/emacs-w3m-browse-url)
+                                          ('emacs-w3m 'entropy/emacs-tools-w3m-browse-url)
                                           ('entropy-browse-url-function entropy/emacs-browse-url-function))))
       (funcall oldfun)))
-  (advice-add 'elfeed-search-browse-url :around #'entropy/emacs-elfeed-browse-url-around)
-  (advice-add 'elfeed-show-visit :around #'entropy/emacs-elfeed-browse-url-around))
+  (advice-add 'elfeed-search-browse-url :around #'entropy/emacs-tools--elfeed-browse-url-around)
+  (advice-add 'elfeed-show-visit :around #'entropy/emacs-tools--elfeed-browse-url-around))
 
 ;; ** gnus
 (use-package gnus
@@ -965,8 +965,8 @@ The minor changing was compat for above."
 (use-package search-web
   :ensure nil
   :commands (search-web search-web-region)
-  :bind (("C-c w" . entropy/emacs-search-web-toggle)
-         ("C-c W" . entropy/emacs-search-web-region-toggle))
+  :bind (("C-c w" . entropy/emacs-tools-search-web-toggle)
+         ("C-c W" . entropy/emacs-tools-search-web-region-toggle))
   :config
 
 ;; *** default config
@@ -994,12 +994,12 @@ fixing it as thus. "
 
   
   ;; redefine search query engine for force input comprehensive data
-  (defun entropy/emacs-search-web-query-egine (type)
+  (defun entropy/emacs-tools--search-web-query-egine (type)
     (let* ((prompt "Search Engine: "))
       (completing-read prompt search-web-engines nil t
                        (if (string= "External" type)
                            (let ((result nil))
-                             (dolist (el entropy/emacs-search-web-engines-external)
+                             (dolist (el entropy/emacs-tools--search-web-engines-external)
                                (if (string= "google" (car el))
                                    (setq result t)))
                              (if result
@@ -1008,35 +1008,35 @@ fixing it as thus. "
                          nil))))
 
   ;; Optional choosing internal or external browser to follow the searching.
-  (defun entropy/emacs-search-web-toggle ()
+  (defun entropy/emacs-tools-search-web-toggle ()
     (interactive)
     (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
       (let* ((search-web-engines (cond 
-                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
-                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
-             (engine (entropy/emacs-search-web-query-egine type))
+                                  ((equal type "Internal") entropy/emacs-tools--search-web-engines-internal)
+                                  ((equal type "External") entropy/emacs-tools--search-web-engines-external)))
+             (engine (entropy/emacs-tools--search-web-query-egine type))
              (word (read-string "Searching for?: ")))
         (search-web engine word))))
 
-  (defun entropy/emacs-search-web-region-toggle ()
+  (defun entropy/emacs-tools-search-web-region-toggle ()
     (interactive)
     (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
       (let* ((search-web-engines (cond 
-                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
-                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
-             (engine (entropy/emacs-search-web-query-egine type)))
+                                  ((equal type "Internal") entropy/emacs-tools--search-web-engines-internal)
+                                  ((equal type "External") entropy/emacs-tools--search-web-engines-external)))
+             (engine (entropy/emacs-tools--search-web-query-egine type)))
         (search-web-region engine))))
   
   (setq search-web-in-emacs-browser 'eww-browse-url)
 
-  (defun entropy/emacs-search-web--around (oldfun &rest arg-rest)
+  (defun entropy/emacs-tools--search-web--around (oldfun &rest arg-rest)
     "Partially cancel `entropy/emacs-web-development-environment' if
     it's actived."
     (let* ((entropy/emacs-web-development-environment nil))
       (funcall oldfun)))
 
-  (advice-add 'entropy/emacs-search-web-toggle :around #'entropy/emacs-search-web--around)
-  (advice-add 'entropy/emacs-search-web-region-toggle :around #'entropy/emacs-search-web--around))
+  (advice-add 'entropy/emacs-tools-search-web-toggle :around #'entropy/emacs-tools--search-web--around)
+  (advice-add 'entropy/emacs-tools-search-web-region-toggle :around #'entropy/emacs-tools--search-web--around))
 
 ;; ** emacs-w3m interface
 (when (executable-find "w3m")
@@ -1045,15 +1045,15 @@ fixing it as thus. "
     (w3m
      w3m-search
      w3m-goto-url
-     entropy/emacs-w3m-set-proxy
-     entropy/emacs-w3m-browse-url)
+     entropy/emacs-tools--w3m-set-proxy
+     entropy/emacs-tools--w3m-browse-url)
     :bind
     (:map w3m-mode-map
           ("<down>" . next-line)
           ("<up>" . previous-line)
           ("<left>" . left-char)
           ("<right>" . right-char)
-          ("p" . entropy/emacs-w3m-toggle-proxy)
+          ("p" . entropy/emacs-tools-w3m-toggle-proxy)
           ("b" . w3m-view-url-with-browse-url)
           ("l" . w3m-view-previous-page)
           ("q" . bury-buffer))
@@ -1082,39 +1082,41 @@ fixing it as thus. "
     (setq w3m-session-crash-recovery nil)
 
 ;; *** recorde current retrieve url
-    (defvar entropy/emacs-w3m-retrieve-url nil)
-    (defun entropy/emacs-w3m-recorde-retrieve-url (url &rest args)
-      (setq entropy/emacs-w3m-retrieve-url url))
-    (advice-add 'w3m-retrieve :before #'entropy/emacs-w3m-recorde-retrieve-url)
+    (defvar entropy/emacs-tools--w3m-retrieve-url nil)
+    (defun entropy/emacs-tools--w3m-recorde-retrieve-url (url &rest args)
+      (setq entropy/emacs-tools--w3m-retrieve-url url))
+    (advice-add 'w3m-retrieve :before #'entropy/emacs-tools--w3m-recorde-retrieve-url)
 
 ;; *** w3m proxy toggle
-    (defun entropy/emacs-w3m-toggle-proxy ()
+    (defun entropy/emacs-tools-w3m-toggle-proxy ()
       "Toggle proxy using `entropy-proxy-url' and refresh current
 web page buffer. It's typically using with the statement that you
 can't visit one page suddenly."
       (interactive)
+      (require 'entropy-proxy-url)
       (let ((url (or w3m-current-url
-                     entropy/emacs-w3m-retrieve-url)))
-        (entropy/emacs-proxy-url-switch-for-w3m)
+                     entropy/emacs-tools--w3m-retrieve-url)))
+        (entropy/proxy-url-switch-for-w3m)
         (call-interactively 'w3m-process-stop)
         (w3m-goto-url url)))
+    
 ;; *** w3m external browser setting
-    (defun entropy/emacs-w3m-external-advice (oldfunc &rest args)
+    (defun entropy/emacs-tools--w3m-external-advice (oldfunc &rest args)
       (let ((browse-url-browser-function
              (if entropy/emacs-browse-url-function
                  entropy/emacs-browse-url-function
                'browse-url-default-browser)))
         (call-interactively oldfunc)))
-    (advice-add 'w3m-view-url-with-browse-url :around #'entropy/emacs-w3m-external-advice))
+    (advice-add 'w3m-view-url-with-browse-url :around #'entropy/emacs-tools--w3m-external-advice))
     
     
 ;; *** w3m personal browse url function
-  (defun entropy/emacs-w3m-browse-url (url &rest args)
+  (defun entropy/emacs-tools--w3m-browse-url (url &rest args)
     (w3m-goto-url url)))
 
 
 ;; ** toggle the default browse in emacs
-(defun entropy/emacs-setting-default-browser (browser)
+(defun entropy/emacs-tools--setting-default-browser (browser)
   "Setting the default browser for `search-web' and all the
 url-open about function."
 
@@ -1124,7 +1126,7 @@ url-open about function."
   (setq-default browse-url-browser-function browser)
   (setq shr-external-browser browser))
 
-(defun entropy/emacs-toggle-default-browser ()
+(defun entropy/emacs-tools-toggle-default-browser ()
   "Toggle browse-url defualt browse function for all url-open
 about function.
 
@@ -1159,13 +1161,13 @@ effective then adding option of personal browse url function that be in ordered 
           (ivy-read "Choose the function you want: " list-of-choice)))
         (cond
          ((string= choice "eww")
-          (entropy/emacs-setting-default-browser 'eww-browse-url))
+          (entropy/emacs-tools--setting-default-browser 'eww-browse-url))
          ((string= choice "default")
-          (entropy/emacs-setting-default-browser 'browse-url-default-browser))
+          (entropy/emacs-tools--setting-default-browser 'browse-url-default-browser))
          ((string= choice "personal")
-          (entropy/emacs-setting-default-browser entropy/emacs-browse-url-function))
+          (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function))
          ((string= choice "w3m")
-          (entropy/emacs-setting-default-browser 'entropy/emacs-w3m-browse-url))
+          (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools-w3m-browse-url))
          (t
           (error "Please choose the correct choice!")))))
 
@@ -1173,10 +1175,10 @@ effective then adding option of personal browse url function that be in ordered 
 ;; init setting
 (when (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
   (if (not (executable-find "w3m"))
-      (entropy/emacs-setting-default-browser entropy/emacs-browse-url-function)
+      (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function)
     (if (display-graphic-p)
-        (entropy/emacs-setting-default-browser entropy/emacs-browse-url-function)
-      (entropy/emacs-setting-default-browser 'entropy/emacs-w3m-browse-url))))
+        (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function)
+      (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools-w3m-browse-url))))
 
 ;; ** Discover key bindings and their meaning for the current Emacs major mode
 (use-package discover-my-major
@@ -1186,7 +1188,7 @@ effective then adding option of personal browse url function that be in ordered 
 
 ;; ** Self functions
 ;; *** split window horizontally for comfortable width setting
-(defun entropy/emacs-horizonal-split-window ()
+(defun entropy/emacs-tools-horizonal-split-window ()
   "Split the single window to two windows with different size
 which determined by the scale count 0.3 "
   (interactive)
@@ -1197,18 +1199,7 @@ which determined by the scale count 0.3 "
      (ceiling (* 0.3
                  (frame-width))))
     (other-window 1)))
-(global-set-key (kbd "C-x M-3") 'entropy/emacs-horizonal-split-window)
-
-
-;; *** Create a new scratch buffer
-(defun entropy/emacs-create-scratch-buffer ()
-  "Create a scratch buffer."
-  (interactive)
-  (switch-to-buffer (entropy/emacs-scratch-buffer-file-binding))
-  (lisp-interaction-mode)
-  (message "Create *scratch* buffer"))
-
-
+(global-set-key (kbd "C-x M-3") 'entropy/emacs-tools-horizonal-split-window)
 
 ;; *** Configure network proxy
 ;; **** Changing from proxy-mode by stardiviner:`https://github.com/stardiviner/proxy-mode'
@@ -1221,21 +1212,21 @@ which determined by the scale count 0.3 "
 
 
 ;; *** entropy-emacs version show
-(defun entropy/emacs-entropy-emacs-version ()
+(defun entropy/emacs-tools-entropy-emacs-version ()
   "Show entropy-emacs version."
   (interactive)
   (message entropy/emacs-ecv))
 
 ;; *** show time
-(defun entropy/emacs-time-show ()
+(defun entropy/emacs-tools-time-show ()
   "Show current time with date information also."
   (interactive)
   (let ((time (format-time-string "%Y-%m-%d %a %H:%M:%S")))
     (message "Now is %s" time)))
-(global-set-key (kbd "<f12>") 'entropy/emacs-time-show)
+(global-set-key (kbd "<f12>") 'entropy/emacs-tools-time-show)
 
 ;; ** encoding and end-of-line conversation
-(defun entropy/emacs-dos2unix-internal ()
+(defun entropy/emacs-tools-dos2unix-internal ()
   "Exchange the buffer end-of-line type to unix sytle."
   (interactive)
   (entropy/cl-backup-file (buffer-file-name))
@@ -1247,7 +1238,7 @@ which determined by the scale count 0.3 "
   (revert-buffer nil 'revert-without-query)
   (read-only-mode 1))
 
-(defun entropy/emacs-save-buffer-as-utf8-internal (coding-system)
+(defun entropy/emacs-tools-save-buffer-as-utf8-internal (coding-system)
   "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
   (interactive "zCoding system for visited file (default nil):")
   (entropy/cl-backup-file (buffer-file-name))
@@ -1262,7 +1253,7 @@ which determined by the scale count 0.3 "
         (read-only-mode 1))
     (user-error "Please try corrected encoding! ")))
 
-(defun entropy/emacs-dos2unix-external (&optional no-backup)
+(defun entropy/emacs-tools-dos2unix-external (&optional no-backup)
   "Exchange the buffer end-of-line type to unix sytle."
   (interactive)
   (if (executable-find "dos2unix")
@@ -1274,7 +1265,7 @@ which determined by the scale count 0.3 "
         (shell-command entropy/cl-dos2unix-shell-command))
     (message "error: Can't find dos2unix executeble program in your PATH")))
 
-(defun entropy/emacs-save-buffer-as-utf8-external (coding-system)
+(defun entropy/emacs-tools-save-buffer-as-utf8-external (coding-system)
   "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
   (interactive "zCoding system for visited file (default nil):")
   (revert-buffer-with-coding-system coding-system)
@@ -1313,8 +1304,8 @@ which determined by the scale count 0.3 "
     (user-error "Please try corrected encoding! ")))
 
 
-;; ** foreign language realtime translation
-(defun entropy/emacs-toggle-dict (&optional default)
+;; ** Foreign language realtime translation
+(defun entropy/emacs-tools-toggle-dict (&optional default)
   "Toggle foreign language translate proxy engine interactively.
 
 Note:
@@ -1352,17 +1343,17 @@ For now, there's three choices for you:
         (global-set-key (kbd "C-c M-y") 'youdao-dictionary-search-from-input)))
      ((string= choice "bing")
       (progn
-        (global-set-key (kbd "C-c y") 'entropy/emacs-bing-dict-brief-direct)
-        (global-set-key (kbd "C-c M-y") 'entropy/emacs-bing-dict-brief-prompt)))
+        (global-set-key (kbd "C-c y") 'entropy/emacs-tools-bing-dict-brief-direct)
+        (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-bing-dict-brief-prompt)))
      ((string= choice "google")
       (progn
-        (global-set-key (kbd "C-c y") 'entropy/emacs-google-translate-at-point-direct-en-CN)
-        (global-set-key (kbd "C-c M-y") 'entropy/emacs-google-translate-prompt-direct-en-CN)))
+        (global-set-key (kbd "C-c y") 'entropy/emacs-tools-google-translate-at-point-direct-en-CN)
+        (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-google-translate-prompt-direct-en-CN)))
      ((string= choice "sdcv")
       (global-set-key (kbd "C-c y") 'entropy/sdcv-search-at-point-tooltip)
       (global-set-key (kbd "C-c M-y") 'entropy/sdcv-search-input-adjacent)))))
 
-(entropy/emacs-toggle-dict "sdcv")
+(entropy/emacs-tools-toggle-dict "sdcv")
 
 ;; *** yoaudao-dictionary
 (use-package youdao-dictionary
@@ -1384,8 +1375,8 @@ For now, there's three choices for you:
 ;; *** google-translate
 (use-package google-translate
   :commands (google-translate-translate
-             entropy/emacs-google-translate-at-point-direct-en-CN
-             entropy/emacs-google-translate-prompt-direct-en-CN)
+             entropy/emacs-tools-google-translate-at-point-direct-en-CN
+             entropy/emacs-tools-google-translate-prompt-direct-en-CN)
   :init
   (when entropy/emacs-google-translate-toggle-patched-in-china
     ;;    Because google-translate has been block in china, so can use below variable for preventing
@@ -1396,7 +1387,7 @@ For now, there's three choices for you:
     (eval-after-load 'google-translate-tk
       '(setq google-translate--tkk-url "http://translate.google.cn/")))
   :config
-  (defun entropy/emacs-google-translate-at-point-direct-en-CN ()
+  (defun entropy/emacs-tools-google-translate-at-point-direct-en-CN ()
     (interactive)
     (let* ((langs '("auto" "zh-CN"))
            (source-language (car langs))
@@ -1410,7 +1401,7 @@ For now, there's three choices for you:
                   (buffer-substring-no-properties (car bounds) (cdr bounds)))
              (error "No word at point."))))))
 
-  (defun entropy/emacs-google-translate-prompt-direct-en-CN ()
+  (defun entropy/emacs-tools-google-translate-prompt-direct-en-CN ()
     (interactive)  
     (setq google-translate-translation-direction-query
           (if (use-region-p)
@@ -1439,14 +1430,14 @@ For now, there's three choices for you:
 
 ;; *** bing-dict
 (use-package bing-dict
-  ;; :bind  (("C-c y" . entropy/emacs-bing-dict-brief-direct)
-  ;;         ("C-c M-y" . entropy/emacs-bing-dict-brief-prompt))
+  ;; :bind  (("C-c y" . entropy/emacs-tools-bing-dict-brief-direct)
+  ;;         ("C-c M-y" . entropy/emacs-tools-bing-dict-brief-prompt))
   :commands (bing-dict-brief
              bing-dict-brief-cb
-             entropy/emacs-bing-dict-brief-prompt
-             entropy/emacs-bing-dict-brief-direct)
+             entropy/emacs-tools-bing-dict-brief-prompt
+             entropy/emacs-tools-bing-dict-brief-direct)
   :config
-  (defun entropy/emacs-bing-dict-brief-prompt (word)
+  (defun entropy/emacs-tools-bing-dict-brief-prompt (word)
     "Show the explanation of WORD from Bing in the echo area."
     (interactive
      (let* ((default (if (use-region-p)
@@ -1467,7 +1458,7 @@ For now, there's three choices for you:
                     t
                     t)))
 
-  (defun entropy/emacs-bing-dict-brief-direct (word)
+  (defun entropy/emacs-tools-bing-dict-brief-direct (word)
     (interactive
      (let* ((default (if (use-region-p)
                          (buffer-substring-no-properties
@@ -1510,7 +1501,7 @@ For now, there's three choices for you:
   :init
   (setq command-log-mode-auto-show t)
   (defvar command-log-mode nil)
-  (defun entropy/emacs-command-log-mode ()
+  (defun entropy/emacs-tools-command-log-mode ()
     (interactive)
     (if (not command-log-mode)
         (progn (command-log-mode)
@@ -1531,7 +1522,7 @@ For now, there's three choices for you:
     :init
     (setq maple-preview:allow-modes '(org-mode markdown-mode gfm-mode html-mode web-mode))
     :config
-    (defun maple-preview:schema-auto-hooks ()
+    (defun entropy/emacs-tools-maple-preview:schema-auto-hooks ()
       (dolist ($el '(windmove-left
                      windmove-right
                      windmove-up
@@ -1551,7 +1542,7 @@ For now, there's three choices for you:
       (advice-add 'backward-delete-char-untabify
                   :after #'maple-preview:send-to-server))
 
-    (defun maple-preview:schema-finialize-hooks ()
+    (defun entropy/emacs-tools--maple-preview:schema-finialize-hooks ()
       (dolist ($el '(windmove-left
                      windmove-right
                      windmove-up
@@ -1569,8 +1560,8 @@ For now, there's three choices for you:
       (advice-remove 'backward-delete-char-untabify
                      #'maple-preview:send-to-server))
 
-    (add-hook 'maple-preview:auto-hook #'maple-preview:schema-auto-hooks)
-    (add-hook 'maple-preview:finialize-hook #'maple-preview:schema-finialize-hooks)))
+    (add-hook 'maple-preview:auto-hook #'entropy/emacs-tools-maple-preview:schema-auto-hooks)
+    (add-hook 'maple-preview:finialize-hook #'entropy/emacs-tools--maple-preview:schema-finialize-hooks)))
 
 ;; ** entropy-emacs self packages
 ;; *** entropy-projec-manager
@@ -1608,14 +1599,14 @@ For now, there's three choices for you:
              entropy/cs-modifiy
              entropy/cs-delete)
   :config
-  (defun entropy/open-with-port--stuffs-around (oldfunc &rest arg-rest)
+  (defun entropy/emacs-tools--open-with-port-stuffs-around (oldfunc &rest arg-rest)
     "when in `entropy/emacs-web-development-environment' advice
 `entropy/open-with-port' for prevent open url with specific
 development web-browser."
     (let ((entropy/emacs-web-development-environment nil))
       (apply oldfunc arg-rest)))
   (with-eval-after-load 'entropy-open-with
-    (advice-add 'entropy/open-with-port :around #'entropy/open-with-port--stuffs-around)))
+    (advice-add 'entropy/open-with-port :around #'entropy/emacs-tools--open-with-port-stuffs-around)))
 
 ;; *** entropy-portableapps
 (use-package entropy-portableapps
@@ -1630,13 +1621,13 @@ development web-browser."
   :commands (entropy/ep2o-dispatcher
              entropy/ep2o-src-adjusting-manually)
   :config
-  (defun entropy/ep2o--tidy-up-image-width-defaut ()
+  (defun entropy/emacs-tools--ep2o-tidy-up-image-width-defaut ()
     (unless (equal major-mode 'org-mode)
       (org-mode)
       (outline-show-all)
       (org-show-block-all))
     (add-file-local-variable 'org-image-actual-width 500))
-  (add-hook 'entropy/ep2o-tidy-hook #'entropy/ep2o--tidy-up-image-width-defaut))
+  (add-hook 'entropy/ep2o-tidy-hook #'entropy/emacs-tools--ep2o-tidy-up-image-width-defaut))
 
 
 ;; ** Misc
@@ -1669,7 +1660,7 @@ development web-browser."
 (setq ring-bell-function 'ignore)
 
 ;; *** Goto home dir
-(defun entropy/emacs-goto-sys-home ()
+(defun entropy/emacs-tools-goto-sys-home ()
   "Open system home folder.
 
   It's usefully for windows user to quickly switching to 'c:/.../user-name'."
@@ -1681,7 +1672,7 @@ development web-browser."
    ((or sys/linuxp sys/linux-x-p sys/macp sys/mac-x-p)
     (dired "~/"))))
 
-(defalias 'ehome 'entropy/emacs-goto-sys-home "Alias for entropy/emacs-goto-sys-home.")
+(defalias 'ehome 'entropy/emacs-tools-goto-sys-home "Alias for entropy/emacs-tools-goto-sys-home.")
 
 ;; * provide
 (provide 'entropy-emacs-tools)

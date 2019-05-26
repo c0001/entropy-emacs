@@ -60,7 +60,7 @@
           (browse-url url)))))
 
 
-(defun entropy/emacs-web-web-mode-hook ()
+(defun entropy/emacs-web--web-mode-start-hook ()
   ;; Set indent and tab-width
   (setq web-mode-markup-indent-offset 4)
   (setq web-mode-css-indent-offset 4)
@@ -83,7 +83,7 @@
   :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\)$"
   :init
   (add-hook 'web-mode-hook
-            'entropy/emacs-web-web-mode-hook)
+            'entropy/emacs-web--web-mode-start-hook)
   :config
   (if (or sys/win32p sys/linux-x-p sys/mac-x-p)
       (progn
@@ -171,7 +171,7 @@
   :commands (impatient-mode entropy/emacs-impatient-mode)
   :init (setq impatient-mode-delayed-update nil)
   :config
-  (defun entropy/emacs-impatient-mode ()
+  (defun entropy/emacs-web-impatient-mode ()
     "Enable `impatient-mode' and http server by `httpd-start' if
     server not actived and open the impatient url
     \"http://localhost:8080/imp/\" with file-name of current

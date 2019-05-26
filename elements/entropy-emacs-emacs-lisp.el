@@ -94,7 +94,7 @@
 ;; Semantic code search for emacs lisp
 (use-package elisp-refs)
 
-(defun entropy/emacs-recompile-elpa ()
+(defun entropy/emacs-elisp-recompile-elpa ()
   "Recompile packages in elpa directory. Useful if you switch Emacs versions."
   (interactive)
   (byte-recompile-directory package-user-dir nil t))

@@ -35,7 +35,7 @@
           (set-face-attribute 'default nil :height (ceiling (* entropy/emacs-font-size-default 10)))
         (error "Your default font size is too large, you must set it smaller than 15."))
 
-      (defun entropy/emacs-set-frame-position ()
+      (defun entropy/emacs-ui-set-frame-position ()
         "Reset frame's position and size by the constraint of `entropy/emacs-init-frame-width-scale',
 `entropy/emacs-init-frame-height-scale'
 
@@ -53,7 +53,7 @@ the specific height and width determined by above variable you setted."
           (set-frame-height (selected-frame) height nil t)
           (set-frame-position (selected-frame) x y)))
       (when entropy/emacs-init-fpos-enable
-        (entropy/emacs-set-frame-position)))
+        (entropy/emacs-ui-set-frame-position)))
   
   (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
     (setq initial-frame-alist (quote ((fullscreen . maximized))))
@@ -71,19 +71,18 @@ the specific height and width determined by above variable you setted."
 
 ;; ** Logo
 (setq fancy-splash-image entropy/emacs-fancy-splash-logo)
+
 ;; ** initial buffer
 (when entropy/emacs-enable-initial-dashboard
 ;; *** varaible defination  
-  (defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
-    "Title of entropy-emacs initial dashboard buffer. ")
-  (defvar entropy/emacs-dashboard-last-width nil
+  (defvar entropy/emacs-ui--dashboard-last-width nil
     "Remain the window size of previous (the last) buffer
     `entropy/emacs-dashboard-buffer-name''s widnow.")
-  (defvar entropy/emacs-dashboard-width (window-width)
+  (defvar entropy/emacs-ui--dashboard-width (window-width)
     "Default entropy emacs initial dashboard width. ")
-  (defface entropy/emacs-dashboard-title-face '((t ()))
+  (defface entropy/emacs-ui--dashboard-title-face '((t ()))
     "Face for entropy-emacs initial buffer title.")
-  (set-face-attribute 'entropy/emacs-dashboard-title-face
+  (set-face-attribute 'entropy/emacs-ui--dashboard-title-face
                       nil :height 2.5 :bold t :underline t :overline t)
 
   (defvar entropy/emacs-dashboard-text-logo-file
@@ -92,7 +91,7 @@ the specific height and width determined by above variable you setted."
     "Text logo file.")
 
 ;; *** libraries
-  (defconst entropy/emacs-dashboard-widget-entry-info-list
+  (defconst entropy/emacs-ui--dashboard-widget-entry-info-list
     `(((:str "- Read ")
        (:str "entropy-emacs introduction"
         :link-type file
@@ -124,19 +123,19 @@ the specific height and width determined by above variable you setted."
     entry string displayed must be single line style without any
     newline partition.")
 
-  (defun entropy/emacs-dashboard-gen-widget-entries ()
+  (defun entropy/emacs-ui--dashboard-gen-widget-entries ()
     "Generate entropy-emacs initial dashboard buffer widget's
 source cons which the car was the list contained the element as
 the format proper with widiget entry insert func
-`entropy/emacs-dashboard-insert-widget-entry' and the cdr was the
+`entropy/emacs-ui--dashboard-insert-widget-entry' and the cdr was the
 widget width calc by the lagest entry string width plus two (two
 char \"|\")."
-    (let ((str-obj-list entropy/emacs-dashboard-widget-entry-info-list)
+    (let ((str-obj-list entropy/emacs-ui--dashboard-widget-entry-info-list)
           str-counts-list
           str-fancy-list)
       ;; Generate the string length list of each widiget entry using for generate the align-width
       ;; (the max string width among on the list elements) for func
-      ;; `entropy/emacs-dashboard-widget-expand-str-obj'.
+      ;; `entropy/emacs-ui--dashboard-widget-expand-str-obj'.
       (let ((counter 0))
         (dolist (el str-obj-list)
           (dolist (el2 el)
@@ -145,24 +144,24 @@ char \"|\")."
           (setq counter 0))
         (setq str-counts-list (reverse str-counts-list)))
       ;; Return the widget entries list used for the insert func
-      ;; `entropy/emacs-dashboard-create-widget'. list contains the car as list of str-fancy-obj format
-      ;; relied on func `entropy/emacs-dashboard-insert-widget-entry' and the cdr as align-width for the
+      ;; `entropy/emacs-ui--dashboard-create-widget'. list contains the car as list of str-fancy-obj format
+      ;; relied on func `entropy/emacs-ui--dashboard-insert-widget-entry' and the cdr as align-width for the
       ;; widget width specific.
       (let (temp-fancy
             (align-width (apply 'max str-counts-list))
             (n 0))
         (dolist (el str-obj-list)
           (let ((current-str-width (nth n str-counts-list)))
-            (push (entropy/emacs-dashboard-widget-expand-str-obj el align-width current-str-width) str-fancy-list)
+            (push (entropy/emacs-ui--dashboard-widget-expand-str-obj el align-width current-str-width) str-fancy-list)
             (setq n (1+ n))))
         (setq str-fancy-list (reverse str-fancy-list)
               str-fancy-list (cons str-fancy-list (+ 2 align-width))))
       str-fancy-list))
 
-  (defun entropy/emacs-dashboard-widget-expand-str-obj (str-obj align-width current-str-width)
+  (defun entropy/emacs-ui--dashboard-widget-expand-str-obj (str-obj align-width current-str-width)
     "Expand string object used by entropy emacs dashboard widget
 to the programmable list format used by func
-`entropy/emacs-dashboard-insert-widget-entry'.
+`entropy/emacs-ui--dashboard-insert-widget-entry'.
 
 NOTICE: each string object was defualt as single line entry
 without any newline partition which wil be display correctly as:
@@ -173,19 +172,19 @@ left and right vertical char was the decoration for each widget
 entry."
     (let (atom-list rtn)
       (dolist (el str-obj)
-        (push (entropy/emacs-dashboard-widget-expand-str-obj-atom el) atom-list))
+        (push (entropy/emacs-ui--dashboard-widget-expand-str-obj-atom el) atom-list))
       (dolist (el atom-list)
         (setq rtn (append el rtn)))
       (setq rtn (append '(:face default "|") rtn))
       (when (< current-str-width align-width)
-        (setq rtn (entropy/emacs-dashboard-widget-align-str-space rtn align-width current-str-width)))
+        (setq rtn (entropy/emacs-ui--dashboard-widget-align-str-space rtn align-width current-str-width)))
       (setq rtn (append rtn '(:face default "|\n")))
       rtn))
   
-  (defun entropy/emacs-dashboard-widget-expand-str-obj-atom (str-obj-atom)
+  (defun entropy/emacs-ui--dashboard-widget-expand-str-obj-atom (str-obj-atom)
     "Expand entropy emacs dashboard widget string object's
 element str to the elemet will be append by
-`entropy/emacs-dashboard-widget-expand-str-obj'. "
+`entropy/emacs-ui--dashboard-widget-expand-str-obj'. "
     (let ((str (plist-get str-obj-atom :str))
           (link-type (plist-get str-obj-atom :link-type))
           link
@@ -208,7 +207,7 @@ element str to the elemet will be append by
         (setq rtn `(:face default ,str)))
       rtn))
 
-  (defun entropy/emacs-dashboard-widget-align-str-space (str-fancy-obj align-width current-str-width)
+  (defun entropy/emacs-ui--dashboard-widget-align-str-space (str-fancy-obj align-width current-str-width)
     "Align widget entry width to the align width ALIGN-WIDTH by
 fill the space to trailling of it."
     (let ((n (- align-width current-str-width))
@@ -220,25 +219,25 @@ fill the space to trailling of it."
       rtn))
 
 
-  (defun entropy/emacs-dashboard-create-widget ()
+  (defun entropy/emacs-ui--dashboard-create-widget ()
     "Create entropy-emacs dashboard widget using widget entry
-insert func `entropy/emacs-dashboard-insert-widget-entry'."
-    (let* ((widget (entropy/emacs-dashboard-gen-widget-entries))
+insert func `entropy/emacs-ui--dashboard-insert-widget-entry'."
+    (let* ((widget (entropy/emacs-ui--dashboard-gen-widget-entries))
            (widget-entries (car widget))
            (widget-width (cdr widget))
            (left-margin (make-string (max 0
-                                          (floor (/ (- entropy/emacs-dashboard-width widget-width) 2)))
+                                          (floor (/ (- entropy/emacs-ui--dashboard-width widget-width) 2)))
                                      ?\ )))
       (dolist (el widget-entries)
         (insert left-margin)
-        (entropy/emacs-dashboard-insert-widget-entry el))))
+        (entropy/emacs-ui--dashboard-insert-widget-entry el))))
 
   
-  (defun entropy/emacs-dashboard-insert-widget-entry (args)
+  (defun entropy/emacs-ui--dashboard-insert-widget-entry (args)
     " NOTE: this function was the fork of func
 `fancy-splash-insert' and be modified for compating with
 entropy-emacs initial buffer creater
-`entropy/emacs-dashboard-initial-buffer'.
+`entropy/emacs-ui--dashboard-initial-buffer'.
 
 Insert text into the current buffer, with faces.
 Arguments from ARGS should be either strings; functions called
@@ -276,10 +275,10 @@ a face or button specification."
         (setq args (cdr args)))))
 
 
-  (defun entropy/emacs-dashboard-extract-text-logo (logo_id)
+  (defun entropy/emacs-ui--dashboard-extract-text-logo (logo_id)
     "Extract text logo stored in file
 `entropy/emacs-dashboard-text-logo-file' and return the text logo
-module (see `entropy/emacs-dashboard-text-logo-align').
+module (see `entropy/emacs-ui--dashboard-text-logo-align').
 "
     (let (($f entropy/emacs-dashboard-text-logo-file)
           rtn)
@@ -310,7 +309,7 @@ module (see `entropy/emacs-dashboard-text-logo-align').
   
 ;; *** main function
 
-  (defun entropy/emacs-dashboard-text-logo-align (text-logo)
+  (defun entropy/emacs-ui--dashboard-text-logo-align (text-logo)
     "Align the text logo TEST-LOGO to the window align style,
 text logo module was one plist which has three keys:
 
@@ -328,7 +327,7 @@ text logo module was one plist which has three keys:
                   (make-string
                    (max 0 (floor
                            (/
-                            (- entropy/emacs-dashboard-width
+                            (- entropy/emacs-ui--dashboard-width
                                ;; Adjusting string width with it's display visual
                                ;; face width from it's height.
                                (* (plist-get el :max_len)
@@ -351,13 +350,13 @@ text logo module was one plist which has three keys:
 
 
   
-  (defun entropy/emacs-dashboard-initial-buffer ()
+  (defun entropy/emacs-ui--dashboard-initial-buffer ()
     "Create entroy-emacs initial buffer.
 
 First insert entropy-emacs logo into initial buffer
 `entropy/emacs-dashboard-buffer-name', and then insert 'welcom' title
 and entropy-emacs version with tag description. Last to insert
-widget used func `entropy/emacs-dashboard-create-widget'."
+widget used func `entropy/emacs-ui--dashboard-create-widget'."
     (let ((buffer (get-buffer-create entropy/emacs-dashboard-buffer-name))
           (img (ignore-errors (create-image entropy/emacs-fancy-splash-logo)))
           (title " WELCOME TO ENTROPY-EMACS ")
@@ -377,30 +376,30 @@ widget used func `entropy/emacs-dashboard-create-widget'."
 	                   'follow-link t))
           (insert
            (car 
-            (entropy/emacs-dashboard-text-logo-align
-             (entropy/emacs-dashboard-extract-text-logo 1)))))
+            (entropy/emacs-ui--dashboard-text-logo-align
+             (entropy/emacs-ui--dashboard-extract-text-logo 1)))))
         (insert "\n\n\n\n")
         (insert (make-string
                  (max 0 (floor
                          (/
-                          (- entropy/emacs-dashboard-width
+                          (- entropy/emacs-ui--dashboard-width
                              ;; Adjusting title string width with it's display visual face width
                              ;; from it's height.
                              (* (length title)
                                 (if (display-graphic-p)
-                                    (let ((height (face-attribute 'entropy/emacs-dashboard-title-face
+                                    (let ((height (face-attribute 'entropy/emacs-ui--dashboard-title-face
                                                                   :height)))
                                       (if height height 1))
                                   1)))
                           2)))
                  ?\ ))
-        (insert (propertize title 'face 'entropy/emacs-dashboard-title-face))
+        (insert (propertize title 'face 'entropy/emacs-ui--dashboard-title-face))
         (insert "\n")
-        (insert (make-string (floor (/ (- entropy/emacs-dashboard-width (length version)) 2)) ?\ ))
+        (insert (make-string (floor (/ (- entropy/emacs-ui--dashboard-width (length version)) 2)) ?\ ))
         (insert entropy/emacs-ecv)
         (insert "\n\n\n\n\n\n")
-        (entropy/emacs-dashboard-create-widget)
-        (setq entropy/emacs-dashboard-last-width (window-width))
+        (entropy/emacs-ui--dashboard-create-widget)
+        (setq entropy/emacs-ui--dashboard-last-width (window-width))
         (set-buffer-modified-p nil)
         (if (and view-read-only (not view-mode))
 	    (view-mode-enter nil 'kill-buffer))
@@ -410,26 +409,26 @@ widget used func `entropy/emacs-dashboard-create-widget'."
           (setq-local browse-url-browser-function
                       'eww-browse-url)))
       buffer))
-  (setq initial-buffer-choice #'entropy/emacs-dashboard-initial-buffer)
+  (setq initial-buffer-choice #'entropy/emacs-ui--dashboard-initial-buffer)
 
 
-  (defun entropy/emacs-dashboard-wc-change-func ()
+  (defun entropy/emacs-ui--dashboard-wc-change-func ()
     "Erase and recreate initial buffer when origin window size
 was changed, the window modification detector was the variable
-`entropy/emacs-dashboard-last-width' which stored the lates initial
+`entropy/emacs-ui--dashboard-last-width' which stored the lates initial
 buffer window size."
     (let ((buffer-exists (buffer-live-p (get-buffer entropy/emacs-dashboard-buffer-name))))
-      (when (or (not (eq entropy/emacs-dashboard-last-width (window-width)))
+      (when (or (not (eq entropy/emacs-ui--dashboard-last-width (window-width)))
                 (not buffer-exists))
-        (setq entropy/emacs-dashboard-width (window-width)
-              entropy/emacs-dashboard-last-width entropy/emacs-dashboard-width)
+        (setq entropy/emacs-ui--dashboard-width (window-width)
+              entropy/emacs-ui--dashboard-last-width entropy/emacs-ui--dashboard-width)
         (with-current-buffer (get-buffer-create entropy/emacs-dashboard-buffer-name)
           (let ((buffer-read-only nil))
             (erase-buffer)
-            (entropy/emacs-dashboard-initial-buffer))))))
+            (entropy/emacs-ui--dashboard-initial-buffer))))))
 
-  (defun entropy/emacs-dashboard-resize-hook (&optional _)
-    "Hook useing the core func `entropy/emacs-dashboard-wc-change-func'
+  (defun entropy/emacs-ui--dashboard-resize-hook (&optional _)
+    "Hook useing the core func `entropy/emacs-ui--dashboard-wc-change-func'
 for adding to variable `window-size-change-functions' and hook
 `window-setup-hook'."
     (let ((win-spec (get-buffer-window entropy/emacs-dashboard-buffer-name))
@@ -437,12 +436,12 @@ for adding to variable `window-size-change-functions' and hook
       (when (and win-spec
                  (not (window-minibuffer-p frame-spec)))
         (with-selected-window win-spec
-          (entropy/emacs-dashboard-wc-change-func)))))
+          (entropy/emacs-ui--dashboard-wc-change-func)))))
 
   (add-hook 'window-setup-hook
             (lambda ()
-              (add-hook 'window-size-change-functions 'entropy/emacs-dashboard-resize-hook)
-              (entropy/emacs-dashboard-resize-hook))))
+              (add-hook 'window-size-change-functions 'entropy/emacs-ui--dashboard-resize-hook)
+              (entropy/emacs-ui--dashboard-resize-hook))))
 
 
 
@@ -453,6 +452,7 @@ for adding to variable `window-size-change-functions' and hook
                    (abbreviate-file-name (buffer-file-name))
                  "%b"))))
 (setq icon-title-format frame-title-format)
+
 ;; ** Misc
 ;; *** minor misc
 (size-indication-mode 1)                ;Toggle buffer size display in the mode line (Size Indication mode).

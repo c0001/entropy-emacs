@@ -34,4 +34,10 @@ specific browser to visualize current file.")
 
 (defvar entropy/emacs-window-center-integer 4)
 
+(defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
+  "Title of entropy-emacs initial dashboard buffer. ") 
+
+(defvar entropy/emacs-mode-line-sticker ""
+  "Sticker for current modeline style")
+
 (provide 'entropy-emacs-defvar)

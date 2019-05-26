@@ -39,7 +39,7 @@
 
 ;; ** main
 ;;set package-user-dir position
-(defun entropy/emacs-set-package-dir (version)
+(defun entropy/emacs-package--set-user-package-dir (version)
   "Setting `package-user-dir' based on emacs version name located
 for `user-emacs-directory'."
   (setq-default package-user-dir
@@ -50,11 +50,11 @@ for `user-emacs-directory'."
 ;; Set customized package install directory
 (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
          (eq entropy/emacs-use-extensions-type 'origin))
-    (entropy/emacs-set-package-dir emacs-version)
+    (entropy/emacs-package--set-user-package-dir emacs-version)
   (cond
    ((and (equal emacs-version "25.2.2")
          (eq entropy/emacs-use-extensions-type 'origin))
-    (entropy/emacs-set-package-dir "25.2.1"))
+    (entropy/emacs-package--set-user-package-dir "25.2.1"))
    ((eq entropy/emacs-use-extensions-type 'origin)
     (error "Unsupport emacs version '%s'" emacs-version))))
 
@@ -74,7 +74,7 @@ for `user-emacs-directory'."
 ;;
 (defvar-local package-archives-list '(melpa emacs-china tuna))
 
-(defun entropy/emacs-set-package-archives (archives)
+(defun entropy/emacs-package--set-package-archive-location (archives)
   "Switch to specific package ARCHIVES repository."
   (interactive
    (list
@@ -100,7 +100,7 @@ for `user-emacs-directory'."
     (error "Unknown archives: '%s'" archives)))
   (message "Set package archives to '%s'." archives))
 
-(entropy/emacs-set-package-archives entropy/emacs-package-archive-repo)
+(entropy/emacs-package--set-package-archive-location entropy/emacs-package-archive-repo)
 
 
 ;; Remove internal org-mode path

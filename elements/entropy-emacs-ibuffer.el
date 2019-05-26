@@ -55,7 +55,7 @@
       (add-hook 'ibuffer-hook '(lambda () (eyebrowse-mode 0) (winner-mode 0)))
 
       :config
-      (defun entropy/emacs-kill-ibuffer ()
+      (defun entropy/emacs-ibuffer-kill-ibuffer ()
         (interactive)
         (if (not (string= major-mode 'ibuffer-mode))
             (message "This function is used in Ibuffer!")
@@ -63,17 +63,18 @@
             (entropy/emacs-kill-buffer-and-window)
             (eyebrowse-mode 1)
             (winner-mode 1))))
-      (define-key ibuffer-mode-map (kbd "q") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x b") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x <left>") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x <right>") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x <up>") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x <down>") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x C-<left>") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x C-<right>") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x C-<up>") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x C-<down>") 'entropy/emacs-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x o") 'entropy/emacs-kill-ibuffer))
+      (define-key ibuffer-mode-map (kbd "q") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x b") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x <left>") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x <right>") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x <up>") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x <down>") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x C-<left>") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x C-<right>") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x C-<up>") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x C-<down>") 'entropy/emacs-ibuffer-kill-ibuffer)
+      (define-key ibuffer-mode-map (kbd "C-x o") 'entropy/emacs-ibuffer-kill-ibuffer))
+  
 ;; ** none ibuffer projectitle
   (progn
     (global-set-key (kbd "C-x C-b") 'ibuffer)

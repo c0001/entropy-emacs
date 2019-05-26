@@ -43,7 +43,7 @@
   :preface
   ;; Render and preview via `grip'
   ;; you can install grip by 'pip install grip'
-  (defun markdown-preview-grip ()
+  (defun entropy/emacs-markdown-preview-grip ()
     "Render and preview with `grip'."
     (interactive)
     (if (executable-find "grip")
@@ -60,7 +60,7 @@
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
   :bind (:map markdown-mode-command-map
-              ("p" . markdown-preview-grip))
+              ("p" . entropy/emacs-markdown-preview-grip))
   :config
 
   ;; Change face for markdown code,pre,inline-code face for using `entropy/emacs-font-face-default'
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
    });
   </script>
 "))
-    (defun entropy/emacs-mdp-before-advice (&rest args)
+    (defun entropy/emacs-markdown--mdp-before-advice (&rest args)
       "Before advice for `markdown-preview-mode' when it trigger
 to disable `markdown-preview-mode' for clean up all web-sockets
 to prevent ports keeping as causing to next previewing error.
@@ -149,7 +149,7 @@ this refer the websocket non-utf-8 cjk chars error."
         (markdown-preview-cleanup)
         (message "Clean up all markdown preview websockets done!"))
        (t (entropy/emacs-lang-set-utf-8))))
-    (advice-add 'markdown-preview-mode :before #'entropy/emacs-mdp-before-advice)))
+    (advice-add 'markdown-preview-mode :before #'entropy/emacs-markdown--mdp-before-advice)))
 
 (provide 'entropy-emacs-markdown)
 
