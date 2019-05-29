@@ -921,7 +921,7 @@ The minor changing was compat for above."
            (browse-url-browser-function (cl-case (intern choice)
                                           ('default 'browse-url-default-browser)
                                           ('eww 'eww-browse-url)
-                                          ('emacs-w3m 'entropy/emacs-tools-w3m-browse-url)
+                                          ('emacs-w3m 'entropy/emacs-tools--w3m-browse-url)
                                           ('entropy-browse-url-function entropy/emacs-browse-url-function))))
       (funcall oldfun)))
   (advice-add 'elfeed-search-browse-url :around #'entropy/emacs-tools--elfeed-browse-url-around)
@@ -999,7 +999,7 @@ fixing it as thus. "
       (completing-read prompt search-web-engines nil t
                        (if (string= "External" type)
                            (let ((result nil))
-                             (dolist (el entropy/emacs-tools--search-web-engines-external)
+                             (dolist (el entropy/emacs-search-web-engines-external)
                                (if (string= "google" (car el))
                                    (setq result t)))
                              (if result
@@ -1012,8 +1012,8 @@ fixing it as thus. "
     (interactive)
     (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
       (let* ((search-web-engines (cond 
-                                  ((equal type "Internal") entropy/emacs-tools--search-web-engines-internal)
-                                  ((equal type "External") entropy/emacs-tools--search-web-engines-external)))
+                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
+                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
              (engine (entropy/emacs-tools--search-web-query-egine type))
              (word (read-string "Searching for?: ")))
         (search-web engine word))))
@@ -1022,8 +1022,8 @@ fixing it as thus. "
     (interactive)
     (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
       (let* ((search-web-engines (cond 
-                                  ((equal type "Internal") entropy/emacs-tools--search-web-engines-internal)
-                                  ((equal type "External") entropy/emacs-tools--search-web-engines-external)))
+                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
+                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
              (engine (entropy/emacs-tools--search-web-query-egine type)))
         (search-web-region engine))))
   
@@ -1167,7 +1167,7 @@ effective then adding option of personal browse url function that be in ordered 
          ((string= choice "personal")
           (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function))
          ((string= choice "w3m")
-          (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools-w3m-browse-url))
+          (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools--w3m-browse-url))
          (t
           (error "Please choose the correct choice!")))))
 
@@ -1178,7 +1178,7 @@ effective then adding option of personal browse url function that be in ordered 
       (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function)
     (if (display-graphic-p)
         (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function)
-      (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools-w3m-browse-url))))
+      (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools--w3m-browse-url))))
 
 ;; ** Discover key bindings and their meaning for the current Emacs major mode
 (use-package discover-my-major
@@ -1192,7 +1192,9 @@ effective then adding option of personal browse url function that be in ordered 
   "Split the single window to two windows with different size
 which determined by the scale count 0.3 "
   (interactive)
-  (if (window-margins) (entropy/emacs-center-text-clear))
+  (when (window-margins)
+    (when (fboundp 'entropy/emacs-basic-center-text-clear)
+      (entropy/emacs-basic-center-text-clear)))
   (if (> (length (window-list)) 1) (delete-other-windows))
   (progn
     (split-window-horizontally

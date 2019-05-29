@@ -222,23 +222,13 @@ recovery method unless reopen capture operation.w
   
 
 ;; **** org heading face
-
+  
   ;; Some emacs-theme will adjust heading height for obtain better visual sense, but it will break
   ;; the text align state, so using follow function to avoid it.
-  (defun entropy/emacs-org--heading-face-hook ()
-    "Stop the org-level headers from increasing in height relative to the other text."
-    (dolist (face '(org-level-1
-		    org-level-2
-		    org-level-3
-		    org-level-4
-		    org-level-5
-		    org-level-6
-		    org-level-7
-		    org-level-8))
-      (set-face-attribute face nil :background nil :weight 'semi-bold :height 1.0)))
   
-  (add-hook 'org-mode-hook 'entropy/emacs-org--heading-face-hook)
-  
+  (add-hook 'org-mode-hook 'entropy/emacs-adjust-org-heading-scale)
+
+
 ;; **** org-refile gloable and 9 depths
   (setq org-refile-targets '((nil :maxlevel . 9)
                              (org-agenda-files :maxlevel . 9)))

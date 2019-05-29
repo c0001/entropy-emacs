@@ -40,4 +40,7 @@ specific browser to visualize current file.")
 (defvar entropy/emacs-mode-line-sticker ""
   "Sticker for current modeline style")
 
+(defvar entropy/emacs-theme-sticker ""
+  "Current theme used for this session.")
+
 (provide 'entropy-emacs-defvar)

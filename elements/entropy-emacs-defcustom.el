@@ -420,6 +420,12 @@ Note: ibuffer-projectitle will cause the performance debug.
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
+;; **** org header scale
+(defcustom entropy/emacs-disable-org-heading-scale t
+  "Diable org heading auto-scale face feature."
+  :type 'boolean
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; *** Font setting
 (defcustom entropy/emacs-font-setting-enable t
   "

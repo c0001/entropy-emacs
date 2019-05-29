@@ -12,6 +12,7 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
 
 ;; ** Theme
 (use-package doom-themes
@@ -106,6 +107,10 @@
               (add-to-list 'custom-theme-load-path x))
           theme-list)))
 
+;; *** advice for register theme to `entropy/emacs-theme-sticker'
+(when (fboundp 'entropy/emacs-theme-load-register)
+  (advice-add 'load-theme :around #'entropy/emacs-theme-load-register))
+
 ;; *** Adapting to the daemon init and with customize theme choosen
 ;;     
 ;;     This issue refer to `https://github.com/hlissner/emacs-doom-themes/issues/125'.
@@ -159,5 +164,6 @@
   :commands (global-page-break-lines-mode)
   :init
   (global-page-break-lines-mode))
+
 ;; * provide
 (provide 'entropy-emacs-themes)

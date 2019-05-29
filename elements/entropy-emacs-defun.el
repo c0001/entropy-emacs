@@ -222,5 +222,113 @@ format on windows platform."
         (find-file wvol))
     (find-file file)))
 
+
+;; ** Org face reset
+(defvar entropy/emacs-defun--ohrsc-previous-theme nil)
+
+(defconst entropy/emacs-defun--ohrsc-org-header-faces
+  (list 'org-level-1
+        'org-level-2
+        'org-level-3
+        'org-level-4
+        'org-level-5
+        'org-level-6
+        'org-level-7
+        'org-level-8))
+
+(defconst entropy/emacs-defun--ohrsc-org-header-backup-faces
+  (list 'org-level-1-backup-eemacs
+        'org-level-2-backup-eemacs
+        'org-level-3-backup-eemacs
+        'org-level-4-backup-eemacs
+        'org-level-5-backup-eemacs
+        'org-level-6-backup-eemacs
+        'org-level-7-backup-eemacs
+        'org-level-8-backup-eemacs))
+
+(defconst entropy/emacs-defun--ohrsc-org-header-face-spec
+  '((:background . nil)
+    (:weight . semi-bold)
+    (:height . 1.0)
+    (:inherit . nil)))
+
+(defun entropy/emacs-defun--ohrsc-cancel-org-header-face-scale ()
+  (dolist (face entropy/emacs-defun--ohrsc-org-header-faces)
+    (dolist (spc entropy/emacs-defun--ohrsc-org-header-face-spec)
+      (set-face-attribute
+       face nil
+       (car spc) (cdr spc)))))
+
+(defun entropy/emacs-defun--ohrsc-recovery-org-header-face-scale ()
+  (let ((count 0))
+    (dolist (face entropy/emacs-defun--ohrsc-org-header-faces)
+      (let ((face-bcp (nth count entropy/emacs-defun--ohrsc-org-header-backup-faces)))
+        (dolist (spc entropy/emacs-defun--ohrsc-org-header-face-spec)
+          (set-face-attribute
+           face nil
+           (car spc) (face-attribute face-bcp (car spc)))))
+      (cl-incf count))))
+
+(defun entropy/emacs-defun--ohrsc-org-header-face-backuped-p ()
+  (let (judge)
+    (setq judge
+          (catch :exit
+            (dolist (face entropy/emacs-defun--ohrsc-org-header-backup-faces)
+              (unless (facep face)
+                (throw :exit 'lost)))))
+    (if (eq judge 'lost)
+        nil
+      t)))
+
+(defun entropy/emacs-defun--ohrsc-org-header-faces-modified-p ()
+  (let ((count 0)
+        rtn)
+    (setq rtn (catch :exit
+                (dolist (face entropy/emacs-defun--ohrsc-org-header-faces)
+                  (let ((face-bcp (nth count entropy/emacs-defun--ohrsc-org-header-backup-faces)))
+                    (unless (face-equal face face-bcp)
+                      (throw :exit 'modified))
+                    (cl-incf count)))))
+    (if (eq rtn 'modified)
+        t
+      nil)))
+
+(defun entropy/emacs-defun--ohrsc-backup-org-header-face ()
+  (let ((count 0))
+    (dolist (face entropy/emacs-defun--ohrsc-org-header-faces)
+      (let ((face-bcp (nth count entropy/emacs-defun--ohrsc-org-header-backup-faces)))
+        (copy-face face face-bcp))
+      (cl-incf count))))
+
+(defun entropy/emacs-adjust-org-heading-scale ()
+  "Stop the org-level headers from increasing in height
+relative to the other text when
+`entropy/emacs-disable-org-heading-scale' was non-nil."
+  (when (null entropy/emacs-defun--ohrsc-previous-theme)
+    (setq entropy/emacs-defun--ohrsc-previous-theme
+          entropy/emacs-theme-sticker))
+  (when (and (not (null entropy/emacs-defun--ohrsc-previous-theme))
+             (not (equal entropy/emacs-theme-sticker
+                         entropy/emacs-defun--ohrsc-previous-theme)))
+    (entropy/emacs-defun--ohrsc-backup-org-header-face)
+    (setq entropy/emacs-defun--ohrsc-previous-theme
+          entropy/emacs-theme-sticker))
+  (cond
+   (entropy/emacs-disable-org-heading-scale
+    (unless (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
+      (entropy/emacs-defun--ohrsc-backup-org-header-face))
+    (entropy/emacs-defun--ohrsc-cancel-org-header-face-scale))
+   ((null entropy/emacs-disable-org-heading-scale)
+    (when (and (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
+               (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
+      (entropy/emacs-defun--ohrsc-recovery-org-header-face-scale)))))
+  
+
+;; ** theme sticker
+(defun entropy/emacs-theme-load-register (old-func &rest args)
+  (apply old-func args)
+  (let ((theme-load (car args)))
+    (setq entropy/emacs-theme-sticker theme-load)))
+
 ;; ** provide
 (provide 'entropy-emacs-defun)

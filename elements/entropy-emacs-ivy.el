@@ -224,24 +224,13 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (setq counsel-find-file-at-point nil)
   
 ;; **** counsel-load-theme
-  (defun entropy/emacs-ivy-org-mode-heading-reset ()
-    "Stop the org-level headers from increasing in height relative to the other text."
-    (with-eval-after-load 'org
-      (dolist (face '(org-level-1
-                      org-level-2
-                      org-level-3
-                      org-level-4
-                      org-level-5
-                      org-level-6
-                      org-level-7
-                      org-level-8))
-        (set-face-attribute face nil :background nil :weight 'semi-bold :height 1.0))))
   (defun entropy/emacs-ivy-counsel-load-theme ()
     "Load theme with reset the org-headline face for disabled the
 font style and height."
     (interactive)
     (counsel-load-theme)
-    (entropy/emacs-ivy-org-mode-heading-reset))
+    (when (eq major-mode 'org-mode)
+      (entropy/emacs-adjust-org-heading-scale)))
 
   (defun entropy/emacs-ivy--clth-current-match-specific (x)
     "Advice for `counsel-load-theme-action' that setting face of
@@ -290,8 +279,6 @@ when changing theme."
              (doom-modeline-refresh-bars)))))
 
   (advice-add 'counsel-load-theme-action :after #'entropy/emacs-ivy--clth-doomline-specifix)
-
-
 
   (defun entropy/emacs-ivy--clth-other-fixing (arg &rest args)
     "Advice of fixing other tiny bug of specific theme."
