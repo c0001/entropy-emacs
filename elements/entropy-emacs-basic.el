@@ -1091,6 +1091,8 @@ using simple dired visual type, although you have seting it to
   (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-basic--kill-redundant-buffer)
   
 ;; *** get both UNIX and WINDOWS style path string
+  (defvar entropy/emacs-basic--get-dired-fpath-log nil)
+
   (defun entropy/emacs-basic-get-dired-fpath (type)
     (interactive
      (list (completing-read "Choose path string type: "
@@ -1119,8 +1121,8 @@ using simple dired visual type, although you have seting it to
           (message (format "Save '%s' to kill-ring." (car rtn)))))
        (t
         (setq rtn (reverse rtn)
-              entropy/emacs-basic-get-dired-fpath-log rtn)
-        (message "Save all path string to log variable 'entropy/emacs-basic-get-dired-fpath-log'.")))))
+              entropy/emacs-basic--get-dired-fpath-log rtn)
+        (message "Save all path string to log variable 'entropy/emacs-basic--get-dired-fpath-log'.")))))
   
   (define-key dired-mode-map (kbd "0 w") 'entropy/emacs-basic-get-dired-fpath)
 

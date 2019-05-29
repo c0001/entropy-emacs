@@ -30,8 +30,6 @@ specific browser to visualize current file.")
 (defvar entropy/emacs-lang-locale (car default-process-coding-system)
   "The locale lang.")
 
-(defvar entropy/emacs-get-dired-fpath-log nil)
-
 (defvar entropy/emacs-window-center-integer 4)
 
 (defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"

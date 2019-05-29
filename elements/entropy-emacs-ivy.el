@@ -399,7 +399,9 @@ this variable used to patching for origin `counsel-git'.")
 ;; ** use helm  ag or pt search
 ;; *** Preparation
 (defun entropy/emacs-ivy--helm-ag--edit-commit ()
-  "Funciton to be redefine body of `helm-ag--edit-commit'."
+  "Funciton to be redefine body of `helm-ag--edit-commit'.
+
+Adding buffer unlock and wind narrowed region feature."
   (goto-char (point-min))
   (let ((read-only-files 0)
         (saved-buffers nil)
