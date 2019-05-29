@@ -32,12 +32,12 @@ emacs. Along the way, I came for built it with thus on.
 
 =entropy-emacs= has the implicit repo dir struct as the aim for built
 repo with the constant traditional repo style among with other project
-dir struct used myself.
+dir struct used by myself.
 
 In the root node, it be with three folder:
-1. org
-2. annex
-3. elements
+1) org
+2) annex
+3) elements
 
 This three folder has their own meaning respectively, all of them was
 created as the parts of one normal project I used, thus for:
@@ -69,14 +69,14 @@ philosophy, as it's original intention for building the simple and
 pure as origin emacs like configs, in =entropy-emacs=, they
 abbreviated as =entropy-emacs-xxx.el=. I stored all
 =entropy-emacs-xxx.el= in the =elements/= under entropy-emacs root
-directory , all of them was implementation independently which means
-that the functions and variables built in them are may shared accross
-to sets of =entropy-emacs-xxx.el= files, as the result, I make the
-=entropy-emacs-defcustom.el= and =entropy-emacs-const.el= for storing
-the Cross-files variables for making the convenience for tidying up or
-modifying config. And other =entropy-emacs-xxx.el= file are reference
-the public variable from them to genertate the current emacs session
-config state.
+directory , all of them was implementation independently but which
+that some of the functions and variables built in them are may shared
+accross to sets of =entropy-emacs-xxx.el= files, as the result, I make
+the =entropy-emacs-defcustom.el= and =entropy-emacs-const.el= for
+storing the Cross-files variables for making the convenience for
+tidying up or modifying config. And other =entropy-emacs-xxx.el= file
+are reference the public variable from them to genertate the current
+emacs session config state.
 
 =entropy-emacs-xxx.el= files are named with 'xxx' as the suffix for
 distinguishing with each other, for convenience, suffix of them were
@@ -151,7 +151,7 @@ Now, I built serveral packages shown as below table:
 |---------------------------------+---------------------------------------------------------------------------------------------------|
 | entropy-cn-dict                 | point char or region translation for chinese words (also useful for traditional chinese)          |
 | entropy-common-library          | librarys for building other =entropy-emacs= package                                               |
-| entropy-counsel-prj             | project managements extension                                                                     |
+| entropy-project-manager         | project managements extension                                                                     |
 | entropy-counsel-stuffs          | stuffs managemetns as notes, bookmarks recording or modifying chain                               |
 | entropy-dired-cp-or-mv          | dired copy or move files extension for enhancing based dired refer function                       |
 | entropy-epub2org                | convert epub ebook into org-mode files format front-end                                           |
@@ -181,16 +181,10 @@ variable of =entropy-emacs= to that place and this is the default
 order.
 
 When the first time you using =entropy-emacs=, you may want to create
-the =custom.el= file in =user-emacs-directory/elements/custom-config/=
-used by emacs initial with, as the well, =entropy-emacs= gives the
-template custom file located in same place which named
-=custom-example.el=, you can copy it as custom file for convenience.
-
-This template was commented all content, if you want to active the
-custom entry, you should uncomment corresponding one. Template was
-self documented and structed with org-mode style heading tree, if you
-use =entropy-emacs= emacs session, you could cycle it or folding and
-expanding subtree as well.
+the =custom.el= file in root of =entropy-emacs= used by emacs initial
+with, as the well, =entropy-emacs= gives the template custom file
+located in same place which named =custom-example.el=, you can copy it
+as custom file for convenience.
 
 * Hacking for =entropy-emacs=
 :PROPERTIES:
@@ -207,9 +201,9 @@ But, if you want to hacking for some code snippet you can adding
 =advice= for them and stored in your own config
 folder. =entropy-emacs= providing one navigation detector feature for
 loading you own config files, this extern config loading detector was
-=elisp= func which stored in
-=user-emacs-directory/elements/custom-config/CUSTOM-DIY.el=, this file
-were not exist by default, you should create it by yourself.
+=elisp= func which stored in =CUSTOM-DIY.el= under root of
+=entropy-emacs=, this file were not exist by default, you should
+create it by yourself.
 
 =CUSTOM-DIY.el= can be stored elisp codes arbitrarily, which means
 that you could write the func modifiction all adding new config
@@ -445,11 +439,12 @@ other emacs intern toolchain.
 + *Derived slot create:*
 
   To create one derived slot can be implemented as call func
-  =entropy/eyebrowse-create-derived= or with it's keybinding =C-c v=,
-  after then, you will be required to create the derived workspace tag
-  name and the last you will get the workspace as displayed with slot
-  and tag name format as =main-slot.derived_number:⛓main-slot:"main
-  workspace tagname"☛derived name=
+  =entropy/emacs-basic-eyebrowse-create-derived= or with it's
+  keybinding =C-c v=, after then, you will be required to create the
+  derived workspace tag name and the last you will get the workspace
+  as displayed with slot and tag name format as
+  =main-slot.derived_number:⛓main-slot:"main workspace
+  tagname"☛derived name=
 
   [[file:../annex/img/screenshot_2018-11-18_23-11-04.png]] 
   [[file:../annex/img/screenshot_2018-11-18_23-11-32.png]] 
@@ -464,10 +459,10 @@ other emacs intern toolchain.
   Following gif shows the complete process for toggle to derived slot
   and back to main slot, the latest step for back to top was hanged
   with keybinding =C-c C-w C-`= which call function
-  =entropy/eyebrowse-switch-top=, it's useful for quicly back from the
-  temp derived slot to top (called 'top' by main) slot without
-  remember the current main slot number or backing with calling
-  =entropy/eye-switch-basic-window=.
+  =entropy/emacs-basic-eyebrowse-switch-top=, it's useful for quicly
+  back from the temp derived slot to top (called 'top' by main) slot
+  without remember the current main slot number or backing with
+  calling =entropy/emacs-basic-eyebrowse-switch-basic-window=.
 
   #+attr_org: :width 400px
   [[file:../annex/img/eyebrowse-derived-toggle_2018-11-18_23-21-17.gif]]
@@ -542,7 +537,7 @@ way for solving that problem was what it is.
 
   Another bennifit window jumping method was using us self-built func:
 
-  : entropy/windmove-(up/down/right/left)-cycle
+  : entropy/emacs-basic-windmove-(up/down/right/left)-cycle
 
   The raw func obtained from
   https://github.com/troydm/emacs-stuff/blob/master/windcycle.el.
@@ -598,12 +593,12 @@ way for solving that problem was what it is.
 
 
 Each of them are combined specific for be fit for =entropy-emacs=. You
-can set the custom-variable =entropy/modeline-style= with the tag
-symbole shown from above table:
+can set the custom-variable =entropy/emacs-modeline-style= with the
+tag symbole shown from above table:
 #+BEGIN_SRC emacs-lisp
   ;; demo modeline setting code snippets of entropy-emacs
-  (setq entropy/modeline-style 'powerline)
-  (setq entropy/modeline-style 'spaceline)
+  (setq entropy/emacs-modeline-style 'powerline)
+  (setq entropy/emacs-modeline-style 'spaceline)
   ;; .... and so on
 #+END_SRC
 
@@ -621,9 +616,9 @@ occurence. This was caused by sets of segments of spaceline for what
 was lead to this issue. Another icons version spaceline was not
 recommendation for as, the font default required for and the based
 spaceline core performance problem was both annoying for user who want
-to use them out of box. (=spaceline-icons= will not renderd nice as
-well as linix platform even if the extra fonts it required were
-installed corrently).
+to use them out of box. (=spaceline-icons= will not renderd nice on
+windows platform as well as linix platform even if the extra fonts it
+required were installed corrently).
 
 Thus, if you want to use spaceline, I recommend to use powerline
 instead because spaceline was extension from it and powerline origin
@@ -632,20 +627,20 @@ performance as what gets into spaceline.
 
 the Toggle func for switching different modeline at real time was
 supported with bounds of func:
-- =entropy/mdl-origin= :\\
+- =entropy/emacs-modeline-mdl-origin= :\\
   Toggle to origin-specific modeline style.
-- =entropy/mdl-doom= :\\
+- =entropy/emacs-modeline-mdl-doom= :\\
   Toggle to doom modeline style.
-- =entropy/mdl-powerline= :\\
+- =entropy/emacs-modeline-mdl-powerline= :\\
   Toggle to powerline modeline style.
-- =entropy/mdl-spaceline= :\\
+- =entropy/emacs-modeline-mdl-spaceline= :\\
   Toggle to spaceline modeline style.
-- =entropy/mdl-spaceline-all-the-icons= :\\
+- =entropy/emacs-modeline-mdl-spaceline-all-the-icons= :\\
   Toggle to spaceline-all-the-icons modeline style.
 
 
 By defualt modeline style toggle funcs was all disabled unless you set
-custom-variable =entropy/enable-modeline-toggle= to 't'. And for
+custom-variable =entropy/emacs-enable-modeline-toggle= to 't'. And for
 specific emacs version, =entropy-emacs= gives different modeline style
 pre setting;
 - emacs version =25.2.1= : doom
@@ -755,7 +750,7 @@ widgets for chosen:
 
   Sequence continuing as thus.
 
-  =entropy-emacs= provide the default extra dicts stored in [[file:../elements/pyim-about/dict/][here]],
+  =entropy-emacs= provide the default extra dicts archived in [[https://sourceforge.net/projects/entropy-emax64/files/entropy-emacs_hitch/20190505/][here]],
   there's two dicts:
   1) core.pyim
   2) extra.pyim
@@ -777,14 +772,15 @@ widgets for chosen:
 + *enable pyim with =entropy-emacs=:*
 
   The turn-off custom variable controlling whether enable pyim when
-  emacs startup finished i.e. =entropy/enable-pyim=, you can active it
-  in your =custom.el= file, then the next time you start up or open
-  new session of emacs , pyim will automatically startup using the
-  default dicts specific by =entropy-emacs= as introduction form [[section:pyim-dict][pyim
-  dicts section]], or if you want to enable dicts specified by yourself,
-  you can setting up custom-variable =entropy/pyim-dicts=, the
-  variable information and value format can be shown by touching =C-h
-  v entropy/pyim-dicts RET=.
+  emacs startup finished i.e. =entropy/emacs-enable-pyim=, you can
+  active it in your =custom.el= file, then the next time you start up
+  or open new session of emacs , pyim will automatically startup using
+  the default dicts specific by =entropy-emacs= as introduction form
+  [[section:pyim-dict][pyim dicts section]], or if you want to enable dicts specified by
+  yourself, you can setting up custom-variable
+  =entropy/emacs-pyim-dicts=, the variable information and value
+  format can be shown by touching =C-h v entropy/emacs-pyim-dicts
+  RET=.
 
 + *pyim conversion between simple chinese with traditional chinese:*
 
@@ -796,8 +792,9 @@ widgets for chosen:
 
   =entropy-emacs= supported both of them for inputting choice, but
   initial based inputting was =simple chinese=, you can call func
-  ~(entropy/toggle-pyim-s2t)~ to toggle it to =traditional-chinese= as
-  the final presentation on screen.
+  ~(entropy/emacs-basic-toggle-pyim-s2t)~ to toggle it to
+  =traditional-chinese= as the final presentation on screen.
+
   #+BEGIN_QUOTE
   Original pyim not support the feature of conversation between
   them, but it provide one feature =pyim-magic-converter= whose
@@ -806,11 +803,12 @@ widgets for chosen:
   > 将 “待选词条” 在 “上屏” 之前自动转换为其他字符串. 这个功能可以
   实现“简转繁”，“输入中文得到英文”之类的功能。
 
-  =entropy-emacs= create the self func =entropy/toggle-pyim-s2t=
-  for using this detector feature for reaching the aim of thus.
-  This core was provided by package [[file:../elements/self-package/entropy-s2t/entropy-s2t.el][entropy-s2t]] which list the
-  hash table =entropy/s2t-table= pointed each simple chinese char
-  to the corresponding traditional chinese char.
+  =entropy-emacs= create the self func
+  =entropy/emacs-basic-toggle-pyim-s2t= for using this detector
+  feature for reaching the aim of thus.  This core was provided by
+  package [[https://github.com/c0001/entropy-s2t][entropy-s2t]] which list the hash table =entropy/s2t-table=
+  pointed each simple chinese char to the corresponding traditional
+  chinese char.
 
   So as on the inputting prompt candidates will still be the
   simple chinese char shape style.
@@ -982,7 +980,7 @@ config for kinds of aspects of it.
   Bullets shown style was the minor fancy setup, choosing the taste as
   your way. follow config codes snippet for doing thus:
   #+BEGIN_SRC emacs-lisp
-    (setq entropy/org-bullets-type "roman") ; or with "circle numberic"
+    (setq entropy/emacs-org-bullets-type "roman") ; or with "circle numberic"
   #+END_SRC
 
 + *Headline level face:*
@@ -997,12 +995,15 @@ config for kinds of aspects of it.
   be alignment with the default tag alignment setting by custom
   variable =org-tags-column=, this specification influenced by
   =entropy-emacs= specific function
-  ~entropy/org-mode-heading-face-hook~ which be added into hook
+  ~entropy/emacs-adjust-org-heading-scale~ which be added into hook
   =org-mode-hook=, if you want to cancel this specification, you could
   place follow codes snippet into your custom file"
+
   #+BEGIN_SRC emacs-lisp
-    (with-eval-after-load 'org
-      (delete 'entropy/org-mode-heading-face-hook 'org-mode-hook))
+    (setq entropy/emacs-disable-org-heading-scale nil)
+
+    ;; Reload major-mode for current to trigger the hook 
+    (funcall major-mode)
   #+END_SRC
 
 + *Org file open associate application:*
@@ -1084,7 +1085,7 @@ config for kinds of aspects of it.
   snippet like point on =call_func()=. The issue was that the
   confirmation prompt string doesn't include the babel name. For
   resolving it, =entropy-emacs= declared one internal variable
-  =entropy/org-src-info= for storing the info generated by func
+  =entropy/emacs-org--src-info= for storing the info generated by func
   ~org-babel-get-src-block-info~ and ~org-babel-exp-src-block~
   temporally for using for func ~org-babel-confirm-evaluate~, the info
   getted thus will contain babel block name rathan the origin one
@@ -1101,8 +1102,8 @@ config for kinds of aspects of it.
   =entropy-emacs= gives the way for automatically insert =CUSTOM_ID=
   for all headlines within current org file buffer. These was sets of
   functions:
-  1) ~entropy/org-add-ids-to-headlines-in-file~
-  2) ~entropy/org-auto-add-ids-to-headlines-in-file~
+  1) ~entropy/emacs-org-add-ids-to-headlines-in-file~
+  2) ~entropy/emacs-org-auto-add-ids-to-headlines-in-file~
 
   The first one gives the forcing way for inserting =CUSTOM_ID= to
   each headline while one of them doesn't have one, and the second
@@ -1115,7 +1116,7 @@ config for kinds of aspects of it.
   occurence.
 
   =entropy-emacs= gives the auto way for automatically adding
-  headlines ids before save the org file which contained =auto-id=
+  headlines ids before save the org file who contained =auto-id=
   option, it's useful for the convenience way.
 
 + *Org tag inserting:*
@@ -1237,9 +1238,9 @@ config for kinds of aspects of it.
      way for resolving this problem following Microsoft's developing
      policy as well. Of course, you can specific you own screenshot
      tool by specifying the custom-variable
-     =entropy/win-org-download-screenshot-method= with the default
-     temporally screenshot filename customed by
-     =entropy/win-org-download-file-name=.
+     =entropy/emacs-win-org-download-screenshot-method= with the
+     default temporally screenshot filename customed by
+     =entropy/emacs-win-org-download-file-name=.
 
   4) Capture screenshot image in org capture temporally buffer:
      
@@ -1278,16 +1279,15 @@ config for kinds of aspects of it.
      
      You can see the last code snippt:
 
-     : (format org-download-link-format (file-relative-name filename
-     (file-name-directory (buffer-name))))
+     : (format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))
      
      It's will return the wrong path name when =file-name-directory=
      gives the nil return value.
 
      As on =entropy-emacs= gives the the patching for replacing
      ~(buffer-name)~ with the self defined func
-     ~entropy/odl-judgement-whether-capture-name~ with the full
-     process dealing with the messure capture-buffer name.
+     ~entropy/emacs-org--odl-judgement-whether-capture-name~ with the
+     full process dealing with the messure capture-buffer name.
 
   5) Image link insert automatically adjusting insert position
      feature:
@@ -1375,7 +1375,7 @@ This section was the introduction for thus.
      Extended file stick logo according to its type.
 
   You can chosen one of them by setting custom variable
-  =entropy/dired-visual-type= with two value alternative:
+  =entropy/emacs-dired-visual-type= with two value alternative:
   
   - "simple-rainbow" : using ‘dired-rainbow’.
   - "all-the-icons" : using ‘all-the-icons-dired’
@@ -1399,9 +1399,10 @@ This section was the introduction for thus.
   the user who get the habbits from other text editor which always
   scrolling the page along with the line jumping.
 
-  =entropy-emacs= defined the func ~entropy/smooth-scrolling~ for
-  emulating the behaviour as so.  This func was interactive, you can
-  active this feature by calling it by 'M-x'.
+  =entropy-emacs= defined the func
+  ~entropy/emacs-basic-smooth-scrolling~ for emulating the behaviour
+  as so.  This func was interactive, you can active this feature by
+  calling it by 'M-x'.
 
 + *Auto sudo editting:*
   
@@ -1446,8 +1447,8 @@ collection fonts config for as.
 =entropy-emacs= given the default ttf/otf fonts provission internally,
 all the fonts given were opensource type without any warranty. we use
 them for the defautls font setting turns on with custom variable
-=entropy/font-setting-enable= which was the key for using us defautl
-font setting layout.
+=entropy/emacs-font-setting-enable= which was the key for using us
+defautl font setting layout.
 
 Our fonts config feature provide three type of language scripts type:
 
@@ -1470,9 +1471,9 @@ use 'symbola' one of the wild unicode encoding covering font
 collection.
 
 when your first using =entropy-emacs=, if you want to using our font
-config, you may want to manually install all the fonts archived within
-this git repo [[file:../elements/fonts/][here]]. Or you will recieve the warning at the startup but
-without any feature lost, thus you can install them in any time.
+config, you may want to manually install all the fonts archived
+[[https://sourceforge.net/projects/entropy-emax64/files/entropy-emacs_hitch/20190505/][here]]. Or you will recieve the warning at the startup but without any
+feature lost, thus you can install them in any time.
 
 
 ** Major modes for programming
@@ -1519,8 +1520,8 @@ conflicated, thus x86 and arm or other cpu platform can not using the
 same binary.)
 
 Other feature extending are minor, simple file compiling on WINDOWS OS
-was given as function ~entropy/win-c-compiler~ which using mingw gcc
-for the compiler and with fixed library linking as for.
+was given as function ~entropy/emacs-c-win-c-compiler~ which using
+mingw gcc for the compiler and with fixed library linking as for.
 
 
 *** Php
@@ -1533,11 +1534,6 @@ refer so that the syntax highlight was not needed to extend.
 
 The main extending for was coding completion, we using =company-php=
 for giving thus. Binding with =M-p= for activation.
-
-Reason for that php as the programming language who embeded into html
-file, thus modes toggle between php and html was the oftenly operation
-for user being, func ~entropy/toggle-php-flavor-mode~ binding to
-=<f5>= giving the try as.
 
 
 *** Html and Css
@@ -1553,9 +1549,9 @@ web-mode provide sets of mordern features as for.  Tag folding and
 expanding with [[https://github.com/smihica/emmet-mode][emmet-mode]]'s abbrevation tag editting, giving the more
 sensitive web refer coding.
 
-Our self built func ~entropy/browse-url-of-buffer~ can quickly browse
-the current html page out of using external browser for previewing as
-the way of quickly did. it's binding to =C-<f1>=.
+Our self built func ~entropy/emacs-web-browse-web-buffer~ can quickly
+browse the current html page out of using external browser for
+previewing as the way of quickly did. it's binding to =C-<f1>=.
 
 Both of html and css buffer can be tidy up with normally code style
 using [[https://github.com/yasuyk/web-beautify][web-beautify]] package which required nodejs path searched and the
@@ -1846,7 +1842,7 @@ strange as so, we hacking thus for:
 - UI reconfig
 - Adding external browser quickly going for by keybinding =B=.
 - Automatically proxy with specific rule setting.(using feature powerd
-  by [[file:../elements/self-package/entropy-proxy-url/)][entropy-proxy-url]])
+  by [[https://github.com/c0001/entropy-proxy-url][entropy-proxy-url]])
 
 For using =emacs-w3m= you need the external cli programe w3m
 installed, see the w3m home page http://w3m.sourceforge.net/.
@@ -1872,8 +1868,8 @@ performance consumption.
 
 origin elfeeds feeds naming string querying searching support was not
 support cjk unicode as, we given the try for hacking with by using
-self built func ~entropy/elfeed-filter-by-tag~, as more hacking see
-below:
+self built func ~entropy/emacs-tools-elfeed-filter-by-tag~, as more
+hacking see below:
 
 - Feature adding of searching feed according to feed title
   name. Binding to =A=.
@@ -1890,15 +1886,17 @@ below:
 - Update feeds using proxy.
 
   Through manually setting proxy config through custom variable
-  =entropy/elfeed-proxyfeeds-regexp-list=. (with prompt for input as
-  http://127.0.0.1:1080)
+  =entropy/emacs-elfeed-proxyfeeds-regexp-list=. (with prompt for
+  input as http://127.0.0.1:1080)
 
   Proxy updating with three methods:
 
-  1) using manually feeds selecting by ~entropy/elfeed-update-proxy~.
-  2) update feeds with regexp matching by ~entropy/elfeed-update-proxyfeeds-regexp-match~.
+  1) using manually feeds selecting by
+     ~entropy/emacs-tools-elfeed-update-proxy~.
+  2) update feeds with regexp matching by
+     ~entropy/emacs-tools-elfeed-update-proxyfeeds-regexp-match~.
   3) upate all null feeds (without and entries obtained yet), using
-     ~entropy/elfeed-proxy-update-all-nil-feeds~.
+     ~entropy/emacs-tools-elfeed-proxy-update-all-nil-feeds~.
 
 All the feeds filter can be reset with short cut =S=.
 
@@ -1922,8 +1920,9 @@ All the feeds filter can be reset with short cut =S=.
 :END:
 
 For now, we just given gnus simply try with the local file directory
-location config with one custom variable =entropy/gnus-init-config=
-try see coding snippet for the details.
+location config with one custom variable
+=entropy/emacs-gnus-init-config= try see coding snippet for the
+details.
 
 ** Emacs on windows
 :PROPERTIES:
