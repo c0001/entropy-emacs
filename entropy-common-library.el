@@ -14,9 +14,11 @@
 ;; creation and also for common init configs.
 ;; 
 ;; * Code:
+;; ** require
 (require 'dash)
 (require 'cl)
 (require 'ivy)
+
 ;; ** Internal Functions
 ;;
 ;;    This part defined some functions used only for this package for
@@ -1588,6 +1590,36 @@ non-detectivation."
     (if (> CFlab_l 55)
         'light
       'dark)))
+
+;; ** url refer
+(defun entropy/cl-url-transfer-region-entities (&optional region)
+  "Transfer region-selected text into entities form and push it into
+kill-ring.
+
+You can insert it by directly use `yank'
+
+Optionally argument REGION was used for elisp coding context,
+instead of the interactive way."
+  (let* ((region-selected
+          (cond (region
+                 region)
+                ((not region)
+                 (if (use-region-p)
+                     (buffer-substring-no-properties (region-selected-beginning) (region-selected-end))
+                   nil))))
+         rtn)
+    (if region-selected
+        (progn (setq rtn (url-insert-entities-in-string region-selected))
+               (with-temp-buffer
+                 (if buffer-read-only
+                     (read-only-mode 0))
+                 (let (p1 p2)
+                   (insert (replace-regexp-in-string "\"" "\"" rtn))
+                   (setq p1 (point-min)
+                         p2 (point-max))
+                   (kill-ring-save p1 p2))))
+      (error "Non valid region argument given."))))
+
 
 ;; * provide
 (provide 'entropy-common-library)
