@@ -381,7 +381,7 @@ reason, please see the docstring refer."
 ;; **** org export setting
   (use-package entropy-org-export-theme-toggle
     :ensure nil
-    :commands (entropy/emacs-org-exptth-set-head))
+    :commands (entropy/exptth-set-head))
 
 ;; ***** org global export macro
   (with-eval-after-load 'ox
