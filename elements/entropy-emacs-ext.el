@@ -44,7 +44,7 @@
   (list (list :item "entropy-emacs-deps"
               :repo-lc entropy/emacs-ext-deps-dir
               :version-lc (expand-file-name "version" entropy/emacs-ext-deps-dir)
-              :version "0.1.1"
+              :version "0.1.2"
               :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/emacs-ext-deps-dir)
               :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-deps-dir))
         (list :item "entropy-emacs-extensions"
@@ -59,7 +59,7 @@
   '((0 . "%s repo doesn't exist.")
     (1 . "%s repo was fake.")
     (2 . "%s version indiator lost! Please repair '%s'.")
-    (3 . "%s repo verion lower-than the requested! Update '%s' first!")
+    (3 . "%s repo verion lower-than the requested! Update it first!")
     (4 . "%s repo verion upper-than the requested! Update entropy-emacs first!")
     (5 . "%s repo not initialzed, see '%s' README for as.")))
 
@@ -147,9 +147,9 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
         (with-temp-buffer
           (insert-file-contents version_lc)
           (cond
-           ((version< version (buffer-substring (point-min) (point-max)))
-            (throw :exit 3))
            ((version< (buffer-substring (point-min) (point-max)) version)
+            (throw :exit 3))
+           ((version< version (buffer-substring (point-min) (point-max)))
             (throw :exit 4)))))
       (unless (file-exists-p inited-indicator)
         (throw :exit 5))

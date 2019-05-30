@@ -20,6 +20,7 @@
 (require 'entropy-emacs-path)
 (require 'entropy-emacs-ui)
 (require 'entropy-emacs-font-set)
+(redisplay t)
 
 
 ;; *** require advice
