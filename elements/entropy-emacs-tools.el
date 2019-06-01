@@ -265,7 +265,9 @@ performance for some major-modes."
              entropy/proxy-url-proxy-choice-for-w3m)
   :init
   (advice-add 'eww-browse-url :before #'entropy/proxy-url-proxy-choice-for-eww)
-  (advice-add 'w3m-retrieve :before #'entropy/proxy-url-proxy-choice-for-w3m))
+  (advice-add 'w3m-goto-mailto-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
+  (advice-add 'w3m-goto-ftp-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
+  (advice-add 'w3m--goto-url--valid-url :before #'entropy/proxy-url-proxy-choice-for-w3m))
 
 ;; ** eww config
 ;; *** eww search engine
@@ -800,16 +802,16 @@ promptings and injecting them into `entropy/emacs-tools-elfeed-multi-update-feed
 
 
   (defun entropy/emacs-tools--elfeed-update-urlretrieve-proxy (url-lists)
-    (if (not (boundp 'proxy-mode))
-        (proxy-mode)
-      (if (not proxy-mode)
-          (proxy-mode)))
+    (if (not (boundp 'entropy/proxy-mode))
+        (entropy/proxy-mode)
+      (if (not entropy/proxy-mode)
+          (entropy/proxy-mode)))
     (unless (< (length url-lists) 5)
       (error "Too much feeds selected, it will cause lagging, reducing them under 5."))
     (let ((elfeed-use-curl nil))
       (dolist (el url-lists)
         (elfeed-update-feed el)))
-    (proxy-mode-disable))
+    (entropy/proxy-mode-disable))
 
   (defun entropy/emacs-tools-elfeed-update-proxy (&optional url-lists )
     "Update feeds using proxy."
@@ -1094,8 +1096,7 @@ web page buffer. It's typically using with the statement that you
 can't visit one page suddenly."
       (interactive)
       (require 'entropy-proxy-url)
-      (let ((url (or w3m-current-url
-                     entropy/emacs-tools--w3m-retrieve-url)))
+      (let ((url entropy/emacs-tools--w3m-retrieve-url))
         (entropy/proxy-url-switch-for-w3m)
         (call-interactively 'w3m-process-stop)
         (w3m-goto-url url)))
@@ -1204,15 +1205,6 @@ which determined by the scale count 0.3 "
 (global-set-key (kbd "C-x M-3") 'entropy/emacs-tools-horizonal-split-window)
 
 ;; *** Configure network proxy
-;; **** Changing from proxy-mode by stardiviner:`https://github.com/stardiviner/proxy-mode'
-(use-package proxy-mode
-  :ensure nil
-  :commands proxy-mode
-  :config
-  (setq url-gateway-local-host-regexp
-        (concat "\\`" (regexp-opt '("localhost" "127.0.0.1")) "\\'")))
-
-
 ;; *** entropy-emacs version show
 (defun entropy/emacs-tools-entropy-emacs-version ()
   "Show entropy-emacs version."
@@ -1566,6 +1558,14 @@ For now, there's three choices for you:
     (add-hook 'maple-preview:finialize-hook #'entropy/emacs-tools--maple-preview:schema-finialize-hooks)))
 
 ;; ** entropy-emacs self packages
+;; *** entropy-proxy-mode
+(use-package entropy-proxy-mode
+  :ensure nil
+  :commands entropy/proxy-mode
+  :config
+  (setq url-gateway-local-host-regexp
+        (concat "\\`" (regexp-opt '("localhost" "127.0.0.1")) "\\'")))
+
 ;; *** entropy-projec-manager
 (use-package entropy-prjm
   :ensure nil

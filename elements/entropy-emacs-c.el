@@ -99,8 +99,8 @@ oppsite."
     (defun entropy/emacs-c-win-c-compiler ()
       "Compile C or Cpp file with their parameter:
 
-1. `entropy/emacs-c-win-gcc-parameter'
-2. `entropy/emacs-c-win-g++-parameter'
+1. `entropy/emacs-win-gcc-parameter'
+2. `entropy/emacs-win-g++-parameter'
 
 
 Til now, this function just compatibility with windows
@@ -117,7 +117,7 @@ plattform."
             (concat entropy/emacs-win-portable-mingw-path "x86_64-w64-mingw32-gcc.exe")
             (concat " -o "
                     (concat (file-name-directory file)  fname ".exe") " " file
-                    " " entropy/emacs-c-win-gcc-parameter))))
+                    " " entropy/emacs-win-gcc-parameter))))
          ((or (string= c-type "cpp")
               (string= c-type "c++")
               (string= c-type "cxx"))
@@ -126,7 +126,7 @@ plattform."
             (concat entropy/emacs-win-portable-mingw-path "x86_64-w64-mingw32-g++.exe")
             (concat " -o "
                     (concat (file-name-directory file)  fname ".exe") " " file
-                    " " entropy/emacs-c-win-g++-parameter))))
+                    " " entropy/emacs-win-g++-parameter))))
          (t
           (user-error "This file was not C or Cpp file!")))))
 
