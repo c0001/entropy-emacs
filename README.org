@@ -1,34 +1,37 @@
-* Intro
+# Created 2019-06-01 Sat 12:08
+#+TITLE: A minor mode to toggle proxy.
+* COPYRIGHT
+#+BEGIN_EXAMPLE
+Authors: stardiviner <numbchild@gmail.com>
+Changed by: Entropy
+Package-Requires: ((emacs "25"))
+Package-Version: 20180520.2030
+Package-X-Original-Version: 0.1
+Keywords: comm proxy
+homepage: https://github.com/stardiviner/proxy-mode
+maintaining: https://github.com/c0001/entropy-proxy-mode
 
-A minor mode to toggle proxy for Emacs. Supports HTTP proxy and socks v4, v5 proxy with Emacs built-in functions.
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+#+END_EXAMPLE
 
+* Commentary:
 
-* Features
+Using global-mode =entropy/proxy-mode= to toggle proxy type for
+emacs internal proxy tunnel.
 
-- Support HTTP proxy
-- Support Socks v4, v5 proxy
+There's three way for setting proxy client within emacs itself:
 
-
-* Installation
-
-** use-package
-
-#+begin_src emacs-lisp
-(use-package proxy-mode
-  :ensure t)
-#+end_src
-
-
-* Config
-
-** specify local host regexp
-
-#+begin_src emacs-lisp
-(setq url-gateway-local-host-regexp
-      (concat "\\`" (regexp-opt '("localhost" "127.0.0.1")) "\\'"))
-#+end_src
+1. The uri way of http proxy (built-in)
+2. Environment variable 'http_proxy'
+3. Socks way powered by =socks.el= (built-in)
 
 
-* Usage
+Setting the individually for customized variables:
 
-Toggle ~proxy-mode~ minor mode with {{{kbd(M-x proxy-mode RET)}}} .
+1. =entropy/proxy-mode-url-proxy=
+2. =entropy/proxy-mode-http-proxy=
+3. =entropy/proxy-mode-socks-proxy=
+
+See their default value assignment for form defination.
+
