@@ -18,7 +18,7 @@ Emacs has the ability to retrieving network data steps with internal
 func ~url-retrieve~ and it's refer url library as. Eww using it as the
 communication backend.  
 
-Although, there's another way for emacs to get network data through
+Although, there's another way for emacs to get network data througha
 the way of using external shell application which obtains its
 responsing as the render part. One as be in this case was the famous
 cli plain text browser [[http://w3m.sourceforge.net/][w3m]].
@@ -108,7 +108,7 @@ implementation both for 'eww' and 'emacs-w3m' feature for:
 
 
 
-For those implementation's =TYPE-SOURCE= are
+For those implementation's =TYPE-SOURCE= area
 =entropy/proxy-url-enable-eww= and =entropy/proxy-url-enable-w3m=.
 
 * Target operation advice
@@ -119,7 +119,9 @@ the =:before= type internally, you will do as manually as:
 
 #+BEGIN_SRC elisp
   (advice-add 'eww-browse-url :before #'entropy/proxy-url-proxy-choice-for-eww)
-  (advice-add 'w3m-retrieve :before #'entropy/proxy-url-proxy-choice-for-w3m)
+  (advice-add 'w3m-goto-mailto-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
+  (advice-add 'w3m-goto-ftp-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
+  (advice-add 'w3m--goto-url--valid-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
 #+END_SRC 
 
 * The regexp rule-set list data
@@ -129,5 +131,6 @@ tracking by [[https://github.com/gfwlist/gfwlist][github gfw list]] project whic
 sensible blocked web domain list directed against to China GFW network
 ecosystem, however I thought as be compatible for some web transfer
 chargin area too of that China as the biggest aspect doing for thus.
-You can see [[file:entropy-proxy-url-gfw-list.el][the rule-set file]] for more details.
+The gfw-rule analyzing provided by [[https://github.com/c0001/entropy-adblockP-rule-analysis][entropy-adbp+-rule-analysis]]
+package (Add it to ~load-path~ was requested also).
 
