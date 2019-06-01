@@ -95,16 +95,16 @@ There's two macro defined for the core proxy diversion filter:
 All the arguments name as the unified meaning as is. Thus, the
 implementation both for 'eww' and 'emacs-w3m' feature for:
 
-| Target interaction | proxy-type | func-implementation                |
-|--------------------+------------+------------------------------------|
-| ~w3m-retrieve~     | regexp     | ~entropy/proxy-url-regexp-for-w3m~ |
-|                    | full       | ~entropy/proxy-url-full-for-w3m~   |
-|                    | clean      | ~entropy/proxy-url-clean-for-w3m~  |
-|                    |            |                                    |
-|--------------------+------------+------------------------------------|
-| ~eww-browse-url~   | regexp     | ~entropy/proxy-url-regexp-for-eww~ |
-|                    | full       | ~entropy/proxy-url-full-for-eww~   |
-|                    | clean      | ~entropy/proxy-url-clean-for-eww~  |
+| Target interaction | proxy-type | func-implementation                 |
+|--------------------+------------+-------------------------------------|
+| ~w3m-retrieve~     | regexp     | ~entropy/proxy-url--regexp-for-w3m~ |
+|                    | full       | ~entropy/proxy-url--full-for-w3m~   |
+|                    | clean      | ~entropy/proxy-url--clean-for-w3m~  |
+|                    |            |                                     |
+|--------------------+------------+-------------------------------------|
+| ~eww-browse-url~   | regexp     | ~entropy/proxy-url--regexp-for-eww~ |
+|                    | full       | ~entropy/proxy-url--full-for-eww~   |
+|                    | clean      | ~entropy/proxy-url--clean-for-eww~  |
 
 
 
