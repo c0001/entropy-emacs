@@ -24,11 +24,11 @@
             '(:with company-yasnippet))))
 
 (defun entropy/emacs-company-start-with-yas (&rest _)
-  (if (not (condition-case error
-               (symbol-value yas-global-mode)
-             (error nil)))
-      (when (fboundp 'yas-global-mode)
-        (yas-global-mode))))
+  (when (not (condition-case error
+                 (symbol-value yas-global-mode)
+               (error nil)))
+    (when (fboundp 'yas-global-mode)
+      (yas-global-mode))))
 
 (defun entropy/emacs-company-require-subs ()
   (with-eval-after-load 'company

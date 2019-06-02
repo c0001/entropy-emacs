@@ -26,9 +26,9 @@
 ;;     using modern one , you can choose spaceline which gives you the
 ;;     similar sensitive as spacemacs.
 
-;; *** eyebrowse adapting
 (setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style)
 
+;; *** eyebrowse adapting
 (defface entropy/emacs-modeline--mdl-eye-face-main '((t ()))
   "Face for eyebrowse main workspace segment of origin modeline")
 
@@ -311,7 +311,11 @@ eyerbowse improvement."
          matches buffer-info remote-host buffer-position parrot
          " " company-indicator selection-info)
    '(misc-info lsp irc mu4e github debug fancy-battery minor-modes
-               input-method buffer-encoding major-mode process vcs checker)))
+               input-method buffer-encoding major-mode process vcs checker))
+
+  (doom-modeline-def-modeline 'project
+    '(bar workspace-number window-number buffer-default-directory)
+    '(misc-info fancy-battery mu4e github debug major-mode process)))
 
 ;; **** load conditions
 (defun entropy/emacs-modeline--mdl-init ()
