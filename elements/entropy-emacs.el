@@ -1,16 +1,59 @@
-;;; File name: init.el ---> for entropy-emacs
+;;; entropy-emacs.el --- entropy emacs main bridge controller
 ;;
-;; Copyright (c) 2017 Entropy
+;; * Copyright (C) 20190602  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
+;;   
+;; This file was the connector for other 'entropy-emacs-*' files, can
+;; be as the core but mainly for bridge like role.
 ;;
-;; Author: Entropy
+;; For as the core position of =entropy-emacs=, the top concept
+;; designation were register in this file's commentary part as the
+;; brief introduction for developer or package user to understanding
+;; the basic runtime logic for it.
 ;;
-;; This file is not part of GNU Emacs.
+;; This project fistly building the variable definitions which
+;; contains both of the =customizable= and =static const= cases, even
+;; for the internal temporal ones, all of them categorized into
+;; following files:
 ;;
-;;; License: GPLv3
-
+;; 1) `entropy-emacs-defcustom': the customizable variables declaration
+;; 2) `entropy-emacs-defconst':  the static const variables
+;; 3) `entropy-emacs-defvar':    the pacakge internal sharing variables.
+;;
+;; And the another one file belongs to this top (basic) designation
+;; was the `entropy-emacs-defun' file which was built basic on the
+;; above variable declaraion and be as the basic library for other
+;; package internal files using. 
+;;
+;; The final coding designation was building each file as the wrapper
+;; for corresponding aspect of the major mode, tool-chain, or be the
+;; group config for some-thing.
+;;
+;; * Configuration:
+;; 
+;; Just requiring this file, you will be able to taste entropy-emacs
+;; immediately.
+;; 
 ;; * Code:
-
-
 ;; ** Require
 ;; *** For basic setting
 (require 'entropy-emacs-custom)

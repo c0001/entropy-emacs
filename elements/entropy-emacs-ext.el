@@ -1,39 +1,71 @@
-;;; entropy-emacs-ext.el --- extensions detectivation
-
-;; Copyright (C) 2019  Entropy
-
+;;;  entropy-emacs-ext.el --- entropy-emacs extra dependencies configuration
+;;
+;; * Copyright (C) 20190603  Entropy
+;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           none
-;; Package-Version: none
-;; Version:       noone
-;; Created:       2019-04-24 06:04:03
-;; Keywords:      none, none, none,
-;; Compatibility: GNU Emacs 25.1;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-ext.el
+;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;; 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;; 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; Commentary:
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; none
+;; Excluded from this project i.e. the `entropy-emacs' using various
+;; third-party extensions released on =github=, =elpa=, =melpa= and
+;; other remote host server, thus the dependencies manamgement was
+;; necessary does for checking and loading them correctly.
 ;;
-;;; Configuration:
+;; `entropy-emacs' has the specific map of extensions categories
+;; followed the loading priority and archiving method, variable
+;; `entropy/emacs-ext-deps-dir', `entropy/emacs-ext-extensions-dir'
+;; and `entropy/emacs-ext-user-specific-load-paths' are given for
+;; those aim.
 ;;
-;; none
-
-;;; Code:
+;; Emacs has its own extensions management tool
+;; i.e. =pacakge.el=. this tool has the default upstream [[https://elpa.gnu.org][elpa]] and
+;; [[https://melpa.org/#/][melpa]], although there's lots of extensions registered in them host
+;; and seems enoughly daily using for most of emacs user, but for
+;; some rare things or some package didn't commit to those host. For
+;; those case, entropy-emacs using the above three variable to cover
+;; the extension hosted meta types.
+;;
+;; - `entropy/emacs-ext-deps-dir' indicates the project
+;;   [[https://github.com/c0001/entropy-emacs-deps][entropy-emacs-deps]] location. =entroy-emacs-deps= was the the
+;;   project hosted the extensions who may not registered in =melpa=
+;;   or =elpa= host, and both used for project
+;;   =entropy-emacs-extensions=(see below for its introduction).
+;;
+;; - `entropy/emacs-ext-extensions-dir' inidicates the local location
+;;   of project [[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]] which was the git repo of
+;;   each elpa or melpa packages archved for the sake of tracking
+;;   version peer point to each extension relied by
+;;   `entropy-emacs'. It can be the mirror for dependencies on melpa
+;;   or elpa host but version specified for `entropy-emacs'.
+;;
+;; - `entropy/emacs-ext-user-specific-load-paths' was the variable
+;;   for user specified extensions archive loaction which will be
+;;   added to `load-path' recursively, it's a list of root of thus.
+;;
+;; For more package management mechanism learning, please view 'code'
+;; section for the source code. 
+;;
+;; * Configuration:
+;; 
+;; Loading automatically by `entropy-emacs' but no hacking warranty.
+;; 
+;; * Code:
 
 
 (require 'entropy-emacs-defcustom)

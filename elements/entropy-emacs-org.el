@@ -1,14 +1,45 @@
-;;; File name: init-org.el ---> for entropy-emacs
+;;; entropy-emacs-org.el --- entropy emacs org-mode configuration
 ;;
-;; Copyright (c) 2017 Entropy
+;; * Copyright (C) 20190603  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-org.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
+;; Sets of configuration based on emacs `Org-Mode' which be of the
+;; rich plain-text file management-system.
 ;;
-;; This file is not part of GNU Emacs.
+;; In this file, some hacking and patches for `Org-Mode' was
+;; defaultly and needed by `entropy-emacs's designation. Thus,
+;; `entropy-emacs' using specific Org version release to keep the
+;; config efficiently, for now it is "v9.1.9".
 ;;
-;;; License: GPLv3
-
+;; For that features adding based on org-mode are all tools tiding
+;; for thus , `org-download', `org-bullet', stuffs of extensions
+;; based on it etc.
+;; 
+;; * Configuration:
+;;
+;; Loasing by `entropy-emacs' automatically without hacking warranty.
+;; 
 ;; * Code:
+
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
@@ -1017,7 +1048,9 @@ Now just supply localization image file analyzing."
   (defun entropy/emacs-org--poporg-edit-hook ()
     "Hooks for `poporg-edit-hook' compat for entropy-emacs."
     (auto-fill-mode)
-    (setq-local fill-column 66))
+    (setq-local fill-column 66)
+    (setq-local org-adapt-indentation nil))
+  
   (add-hook 'poporg-edit-hook
             'entropy/emacs-org--poporg-edit-hook
             t))

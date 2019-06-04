@@ -6,8 +6,8 @@
 
 
 #+BEGIN_QUOTE
-Now you can download the encapsulation setting contain [[https://github.com/c0001/entropy-emacs][entropy-emacs]] and [[https://github.com/m-parashar/emax64][emax64]] and with msys2 with
-lots of stuffs contained proper [[https://sourceforge.net/projects/entropy-emax64/][here]].
+Now you can download the encapsulation setting contain [[https://github.com/c0001/entropy-emacs][entropy-emacs]]
+and [[https://github.com/m-parashar/emax64][emax64]] and with msys2 with lots of stuffs contained proper [[https://sourceforge.net/projects/entropy-emax64/][here]].
 #+END_QUOTE
 
 This emacs personal configs can be used in:

@@ -1,14 +1,54 @@
-;;; File name: init-path.el ---> for entropy-emacs
+;;; entropy-emacs-path.el --- entropy-emacs path setting
 ;;
-;; Copyright (c) 2018 Entropy
+;; * Copyright (C) 20190603  Enropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-path.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
+;; `entroy-emacs' intergrated sets of shell command tool as extension
+;; component for server base, communication transform etc. Emacs has
+;; its owns path management as like one does of one operation system,
+;; thus the path config for emacs was the aim of this configuration.
 ;;
-;; This file is not part of GNU Emacs.
+;; emacs run based on system 'shell path' which all copied it into
+;; emacs =env= and can be appending for other specified ones through
+;; the way of using function `setenv'. Further more, emacs has its
+;; other path configuration indicated  by `exec-path' for its
+;; subprogress feature.
 ;;
-;;; License: GPLv3
-
+;; `entropy-emacs' given various external tools enabling and path
+;; sepcific customizalble variable for do both for 'shell-path' and
+;; 'exec-pah', they are ordered by especially form for preventing
+;; coverring type.
+;;
+;; In those path setting, win32 specific ones are treated specially
+;; in `entropy-emacs' of using Msys2 (https://www.msys2.org/) as the
+;; *NIX posix emulator, see those customizable variables doc-string
+;; for detailes in group `entropy/emacs-win'.
+;;
+;; * Configuration:
+;;
+;; Loaing by `entropy-emacs' automaticaly without hacking warranty. 
+;; 
 ;; * Code:
+;; 
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)

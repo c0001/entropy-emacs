@@ -1,13 +1,48 @@
-;;; File name: init-ivy.el ---> for entropy-emacs
+;;; entropy-emacs-ivy.el ---  entropy emacs 'M-x' enhancement
 ;;
-;; Copyright (c) 2017 Entropy
+;; * Copyright (C) 20190603  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-ivy.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
+;; `entropy-emacs' using [[https://github.com/abo-abo/swiper][ivy]] framework to enhance the emacs command
+;; completion interface 'M-x'.
 ;;
-;; This file is not part of GNU Emacs.
+;; Based on this framework, some usefule implementation for
+;; sub-feature also used in `entroy-emacs', the main one was
+;; =counsel= the collection of ivy stuffs.
 ;;
-;;; License: GPLv3
+;; The other 'M-x' ehancement framework was [[https://github.com/emacs-helm/helm][helm]], using independent
+;; buffer to show the command completion unlike what did in ivy which
+;; uses the mini-buffer to do so. `entropy-emacs' using =helm= to do
+;; the project greping/replacing, the main reason for that the
+;; mini-bufer was not adapt to do heavy things due to ivy
+;; designation. As thus, the 'ag' and 'pt' eventhough the ripgrep
+;; 'rg' are using helm interface in `entropy-emacs'.
+;; 
+;; * Configuration:
+;; 
+;; Loading automatically by `entropy-emacs' without hacking warranty. 
+;; 
 ;; * Code:
+
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)

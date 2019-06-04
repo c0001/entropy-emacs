@@ -1,38 +1,40 @@
-;;; entropy-emacs-defun.el --- entropy-emacs-basic function api
-
-;; Copyright (C) 2019-03026  Entropy
-
+;;; entropy-emacs-defun.el --- entropy emacs pre-defined libraries
+;;
+;; * Copyright (C) date  author
+;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           none
-;; Package-Version: none
-;; Version:       none
-;; Created:       year-month-date hour:min:sec
-;; Keywords:      kewords-1, kewords-2, kewords-3,
-;; Compatibility: GNU Emacs emacs-version;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-defun.el
+;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;; 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;; 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; Commentary:
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; commentary
+;; This file was built on the top level concept of entropy-emacs's
+;; designation, as what do with `entropy-emacs-defcustom' and
+;; `entropy-emacs-defconst'.
 ;;
-;;; Configuration:
-;;
-;; configuration
-
+;; For be as the underlying project function library hosting
+;; master. Every part of this file can be sharing on the context and
+;; splitting into categories individually with using outline mode
+;; doc's context format.
+;; 
+;; * Configuration:
+;; 
+;; Just requiring it before checking the file dependencies. 
+;; 
 ;; * Code:
 ;; ** require
 (require 'entropy-emacs-const)

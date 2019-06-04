@@ -1,14 +1,69 @@
-;;; File name: init-company.el ---> for entropy-emacs
+;;; entropy-emacs-company.el --- entropy emacs completion config
 ;;
-;; Copyright (c) 2017 Entropy
+;; * Copyright (C) 20190603  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-company.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
+;; Completion referrence config for `entropy-emacs'.
 ;;
-;; This file is not part of GNU Emacs.
+;; `entropy-emacs' use [[http://company-mode.github.io][company-mode]] as the completion framework as
+;; the completion main tool. It's the framework who provide the
+;; APIS to built arbitrary completion backends for various emacs
+;; major modes even for the mode independent way.
 ;;
-;;; License: GPLv3
-
+;; There's two completion server type choice for `entropy-emacs':
+;;
+;; 1) Traditional way:
+;;   
+;;    The way that each backends basic on the server tool-chain are
+;;    independently using its own designation, such as pyton
+;;    `anaconda-mode', C `irony-mode', javascript `tern-mode'.
+;;
+;;    Advantage for this type is that each backend maintained
+;;    individually and designed just for the single sake. this can
+;;    limitting code built scope and reducing bug fixing difficulty
+;;    level.
+;;
+;;    The weakness was that non-standard server-client communication
+;;    api, which will impede the further features development who
+;;    stand on the top level of all or some of them.
+;;
+;; 2) LSP Mode:
+;;
+;;    LSP (language server protocol) was brought up by Microsoft, for
+;;    solving the problem caused from way '1)', it was under
+;;    development. emacs melpa package 'lsp-mode' and 'elgot' was the
+;;    client for thus, but be under development and with sets of
+;;    bugs.
+;;
+;; `entropy-emacs' defaultly enable the traditional way for the sake
+;; of stability.
+;;
+;; 
+;; * Configuration:
+;; 
+;; configurationLoaidng by `entropy-emacs' automatically.
+;; 
 ;; * Code:
+
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)

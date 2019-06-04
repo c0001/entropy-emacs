@@ -1,13 +1,50 @@
-;;; File name: init-basic.el ---> for entropy-emacs
+;;; entropy-emacs-basic.el --- entropy emacs basic config
 ;;
-;; Copyright (c) 2017 Entropy
+;; * Copyright (C) 20190602  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-basic.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
+;; This file was the `entropy-emacs' basic config file, config of set
+;; of emacs internal features and using some extra extensions to
+;; enhance the basic emacs experience.
 ;;
-;; This file is not part of GNU Emacs.
+;; Also given the simple workspace management based on `eyebrowse'
+;; and hacks of entropy-emacs internally for derived workspace
+;; environment.
 ;;
-;;; License: GPLv3
-
+;; File using `outline mode' to manage the context level and the
+;; categories. 
+;;
+;; This file were enabled for 'Mini mode' (specified of
+;; `entropy/emacs-minimal-start') and well for the full startup
+;; type. Set of auto-start feature in this file are injecting into
+;; hook `entropy/emacs-init-mini-hook' checking this hook for viewing
+;; the features loading at start-up time.
+;;
+;; * Configuration:
+;;
+;; This file must loaded by `entorpy-emacs.el', other testing way is
+;; not in the designation context.
+;;
+;; 
 ;; * Code:
 ;; ** require
 (require 'entropy-emacs-const)
@@ -121,7 +158,7 @@
       (setq rtn 4)))
     rtn))
 
-(defun entropy/emacs-basic--dhl-toggle ($Prefix)
+(defun entropy/emacs-basic-dhl-toggle ($Prefix)
   (interactive "P")
   (if (not (version< emacs-version "26.1"))
       (if (not $Prefix)
@@ -149,7 +186,7 @@
         (hl-line-mode 1)
       (hl-line-mode 0))))
       
-(global-set-key (kbd "<f2>") 'entropy/emacs-basic--dhl-toggle)
+(global-set-key (kbd "<f2>") 'entropy/emacs-basic-dhl-toggle)
 
 ;; ** Smooth scrolling
 (defvar entropy/emacs-basic-smooth-scrolling-mode nil
@@ -862,17 +899,17 @@ retrieve from `window-list' larger than 1."
 ;; *** Delete directory with force actions
   (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
-    "Minor mode for func `entropy/emacs-basic--dired-delete-file-recursive'."
+    "Minor mode for func `entropy/emacs-basic-dired-delete-file-recursive'."
     :keymap 'entropy/emacs-basic--dired-delete-file-mode-map
     :global nil)
 
   (defvar entropy/emacs-basic--dired-file-current-delete nil
     "Current file pre deleted by
-`entropy/emacs-basic--dired-delete-file-recursive'.")
+`entropy/emacs-basic-dired-delete-file-recursive'.")
   
   (defvar entropy/emacs-basic--dired-delete-file-refer-files nil
     "Files buffer killed by
-`entropy/emacs-basic--dired-delete-file-recursive' log variable.")
+`entropy/emacs-basic-dired-delete-file-recursive' log variable.")
 
   (defvar entropy/emacs-basic--dired-delete-file-refer-dired-buffers nil
     "Dired buffer killed by `entropy/emacs-basic--dired-delete-file-rescursie'
@@ -883,7 +920,7 @@ log variable.")
 `entropy/emacs-basic--dired-file-current-delete'."
     (interactive)
     (kill-buffer)
-    (entropy/emacs-basic--dired-delete-file-recursive entropy/emacs-basic--dired-file-current-delete))
+    (entropy/emacs-basic-dired-delete-file-recursive entropy/emacs-basic--dired-file-current-delete))
 
   (defun entropy/emacs-basic--dired-delete-file-prompt (files-list)
     "popup buffer to deleting with prompting and return the

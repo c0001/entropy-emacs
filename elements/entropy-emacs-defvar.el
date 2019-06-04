@@ -1,19 +1,36 @@
-;;; File name: init-defvar.el ---> for entropy-emacs
+;;; entropy-emacs-defvar.el --- entropy emacs internal variable declaration
 ;;
-;; Copyright (c) 2018 Entropy
+;; * Copyright (C) 20190602  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-defvar.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-;;
-;;; Commentary
-;;
-;;  This package provide the init defined variable for using with
-;;  entropy-emacs's main config.
-;;
+;; This file was the collection of `entropy-emacs' internal sharing
+;; variables.
+;; 
+;; * Configuration:
+;; 
+;; No individually loading designation without `entropy-emacs'.
+;; 
 ;; * Code:
+
 (defvar entropy/emacs-web-development-environment nil
   "Whether using enable web-development envrionment.
 

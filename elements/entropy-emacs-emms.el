@@ -1,14 +1,35 @@
-;;; File name: init-emms.el ---> for entropy-emacs
+;;; entropy-emacs-emms.el --- entropy-emacs emms configuration
 ;;
-;; Copyright (c) 2017 Entropy
+;; * Copyright (C) 20190603  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-emms.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-
+;; Simple emms config for `entropy-emacs'.
+;; 
+;; * Configuration:
+;; 
+;; Just used for `entropy-emacs', loading automatically.
+;; 
 ;; * Code:
+;; 
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
