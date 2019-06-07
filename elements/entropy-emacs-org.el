@@ -1099,9 +1099,9 @@ Now just supply localization image file analyzing."
           (funcall-interactively 'set-mark-command nil)
           (goto-char orig-start))
 
-        (cl-case ro-state
-          (nil (read-only-mode 0))
-          (t (read-only-mode 1))))))
+        (cond
+          ((eq ro-state nil) (read-only-mode 0))
+          ((eq ro-state t) (read-only-mode 1))))))
   
   (advice-add 'poporg-dwim
               :before

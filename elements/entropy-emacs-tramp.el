@@ -1,39 +1,39 @@
-;;; init-tramp.el --- entropy-emacs tramp config
-
-;; Copyright (C) 20181126  entropy
-
+;;; entropy-emacs-tramp.el --- entropy-emacs tramp configuratin
+;;
+;; * Copyright (C) 20190607  Entropy
+;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           none
-;; Package-Version: none
-;; Version:       none
-;; Created:       2018-11-26 04:01:52
-;; Keywords:      tramp, entropy-emacs, init file,
-;; Compatibility: GNU Emacs 25.3.1;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-tramp.el
+;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;; 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;; 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; Commentary:
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; entropy-emacs tramp automatically utilities.
+;; `entropy-emacs' self-built tramp wrapper package, used for
+;; cross-platform.
 ;;
-;;; Configuration:
+;; For WIN32 platform using [[https://www.putty.org/][putty]] utilities, and using native
+;; tool-chian for *NIX environment.
 ;;
-;; none
-
-;;; Code:
+;; * Configuration:
+;;
+;; This file can be used for individual way. Just requiring it in
+;; your `load-path'.
+;; 
+;; * Code:
 
 ;; ** library
 (defun entropy/emacs-tramp--get-ssh-config ()

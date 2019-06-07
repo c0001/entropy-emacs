@@ -1,14 +1,35 @@
-;;; File name: init-themes ---> for entropy-emacs
+;;; entropy-emacs-themes.el --- entropy-emacs UI theme configuration
 ;;
-;; Copyright (c) 2018 Entropy
+;; * Copyright (C) 20190607  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-themes.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
+;; `entropy-emacs' UI theme setting and toggle features collection.
 ;;
-;; This file is not part of GNU Emacs.
+;; * Configuration:
 ;;
-;;; License: GPLv3
-
+;; Loading automatically by `entropy-emacs' without hacking warranty.
+;; 
 ;; * Code:
+
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)

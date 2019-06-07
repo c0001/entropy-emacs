@@ -1,14 +1,37 @@
-;;; File name: init-web.el ---> for entropy-emacs
+;;; entropy-emacs-web.el --- entropy-emacs web development configuration
 ;;
-;; Copyright (c) 2017 Entropy
-;;
-;; Author: Entropy
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-
+;; * Copyright (C) 20190607  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-web.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
+;; 
+;; `entropy-emacs' web aspect development environment intergratioin
+;; for both of front-end and backend, as that covering for =html=,
+;; =css=, =javascript=, =php=.
+;; 
+;; * Configuration:
+;; 
+;; Using for `entropy-emacs' only.
+;; 
 ;; * Code:
+
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)

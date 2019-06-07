@@ -1,48 +1,55 @@
-;; init-highlight.el --- Initialize highlight configurations.	-*- lexical-binding: t -*-
+;;; entropy-emacs-highlight.el --- entropy-emacs coding page visualized configuration
 ;;
-;; Author: Vincent Zhang <seagle0128@gmail.com>
-;; Modifed by: Entropy
-;; Version: 3.2.0
-;; URL: https://github.com/seagle0128/.emacs.d
-;; Keywords:
-;; Compatibility:
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;             Highlight configurations.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; * Copyright (C) 20190607  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-highlight.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;;
+;; 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-;; Floor, Boston, MA 02110-1301, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; `entropy-emacs' coding style for visualized aspect configuration.
 ;;
-;;; Code:
+;; Coding parentness highlighting, coding symbole matching
+;; highlighting even for file version tracking highlighting powered
+;; by sets of third-party packages.
+;;
+;; Enable the main key for subs-config
+;; i.e. `entropy/emacs-use-highlight-features', for subs, see
+;; customized variable group `entropy/emacs-highlight'.
+;;
+;; * Configuration:
+;;
+;; Loading automatically by `entropy-emacs' without hacking warranty.
+;;
+;; * Code:
+
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 
 ;; ** Highlight symbols
-;; --------------------------------------------------------------------------------
-;;     : Highlight symbols with overlays while providing a keymap for various operations about
-;;     : highlighted symbols.  It was originally inspired by the package `highlight-symbol`.  The
-;;     : fundamental difference is that in `symbol-overlay` every symbol is highlighted by the Emacs
-;;     : built-in function `overlay-put` rather than the `font-lock` mechanism used in
-;;     : `highlight-symbol`.
+;; 
+;; Highlight symbols with overlays while providing a keymap for
+;; various operations about highlighted symbols.  It was originally
+;; inspired by the package `highlight-symbol`.  The fundamental
+;; difference is that in `symbol-overlay` every symbol is highlighted
+;; by the Emacs built-in function `overlay-put` rather than the
+;; `font-lock` mechanism used in `highlight-symbol`.
 
 (use-package symbol-overlay
   :diminish symbol-overlay-mode
@@ -65,9 +72,10 @@
   (setq show-paren-when-point-in-periphery t))
 
 ;; ** Highlight surrounding parentheses
-;; --------------------------------------------------------------------------------
-;;    :Highlight surrounding parentheses in Emacs, Enable the mode using `M-x
-;;    :highlight-parentheses-mode` or by adding it to a hook.
+;; 
+;; Highlight surrounding parentheses in Emacs, Enable the mode using
+;; `M-x highlight-parentheses-mode` or by adding it to a hook.
+
 (use-package highlight-parentheses
   :diminish highlight-parentheses-mode
   :commands (highlight-parentheses-mode)
@@ -77,12 +85,16 @@
   :config (set-face-attribute 'hl-paren-face nil :weight 'ultra-bold))
 
 ;; ** Highlight indentions
-;; --------------------------------------------------------------------------------
-;;     :This minor mode highlights indentation levels via font-lock. Indent widths are dynamically
-;;     :discovered, which means this correctly highlights in any mode, regardless of indent width, even
-;;     :in languages with non-uniform indentation such as Haskell. By default, this mode also inspects
-;;     :your theme dynamically, and automatically chooses appropriate colors for highlighting. This mode
-;;     :works properly around hard tabs and mixed indentation, and it behaves well in large buffers.
+;;
+;; This minor mode highlights indentation levels via font-lock. Indent
+;; widths are dynamically discovered, which means this correctly
+;; highlights in any mode, regardless of indent width, even in
+;; languages with non-uniform indentation such as Haskell. By default,
+;; this mode also inspects your theme dynamically, and automatically
+;; chooses appropriate colors for highlighting. This mode works
+;; properly around hard tabs and mixed indentation, and it behaves
+;; well in large buffers.
+
 (use-package highlight-indent-guides
   :commands (highlight-indent-guides-mode)
   :init
@@ -91,9 +103,10 @@
   :config (setq highlight-indent-guides-method 'character))
 
 ;; ** Colorize color names in buffers
+;; 
+;; This minor mode sets background color to strings that match color
+;; names, e.g. #0000ff is displayed in white with a blue background.
 
-;;      :This minor mode sets background color to strings that match color names, e.g. #0000ff is
-;;      :displayed in white with a blue background.
 (use-package rainbow-mode
   :diminish rainbow-mode
   :commands (rainbow-mode)
@@ -106,11 +119,14 @@
     (add-hook 'css-mode-hook #'rainbow-mode)))
 
 ;; ** Highlight brackets according to their depth
-;; --------------------------------------------------------------------------------
-;;      :rainbow-delimiters is a "rainbow parentheses"-like mode which highlights delimiters such as
-;;      :parentheses, brackets or braces according to their depth. Each successive level is
-;;      :highlighted in a different color. This makes it easy to spot matching delimiters, orient
-;;      :yourself in the code, and tell which statements are at a given depth.
+;;
+;; rainbow-delimiters is a "rainbow parentheses"-like mode which
+;; highlights delimiters such as parentheses, brackets or braces
+;; according to their depth. Each successive level is highlighted in a
+;; different color. This makes it easy to spot matching delimiters,
+;; orient yourself in the code, and tell which statements are at a
+;; given depth.
+
 (use-package rainbow-delimiters
   :commands (rainbow-delimiters-mode)
   :init
@@ -118,13 +134,15 @@
     (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)))
 
 ;; ** Highlight TODO and similar keywords in comments and strings
-;; --------------------------------------------------------------------------------
-;;     :To highlight keywords turn on hl-todo-mode in individual buffers or use the the global
-;;     :variant global-hl-todo-mode.
 ;;
-;;     :This package also provides commands for moving to the next or previous keyword and to invoke
-;;     :occur with a regexp that matches all known keywords. If you want to use these commands, then
-;;     :you should bind them in hl-todo-mode-map.
+;; To highlight keywords turn on hl-todo-mode in individual buffers or use the the global
+;; variant global-hl-todo-mode.
+;;
+;; This package also provides commands for moving to the next or
+;; previous keyword and to invoke occur with a regexp that matches all
+;; known keywords. If you want to use these commands, then you should
+;; bind them in hl-todo-mode-map.
+
 (use-package hl-todo
   :commands (global-hl-todo-mode)
   :bind (:map hl-todo-mode-map
@@ -137,23 +155,32 @@
     (add-hook 'entropy/emacs-init-X-hook #'global-hl-todo-mode)))
 
 ;; ** Highlight uncommitted changes
-;; --------------------------------------------------------------------------------
-;;    diff-hl-mode highlights uncommitted changes on the left side of the window, allows you to jump
-;;    between and revert them selectively.
 ;;
-;;    For the usage instructions and the list of commands, see the Commentary section inside the file.
+;; diff-hl-mode highlights uncommitted changes on the left side of
+;; the window, allows you to jump between and revert them
+;; selectively.
 ;;
-;;    Tested with Git, Mercurial, Bazaar and SVN. May work with other VC backends, too.
+;; For the usage instructions and the list of commands, see the
+;; Commentary section inside the file.
 ;;
-;;    The package also contains auxiliary modes:
+;; Tested with Git, Mercurial, Bazaar and SVN. May work with other VC
+;; backends, too.
 ;;
-;;    - diff-hl-dired-mode provides similar functionality in Dired.
-;;    - diff-hl-margin-mode changes the highlighting function to use the margin instead of the fringe.
-;;    - diff-hl-amend-mode shifts the reference revision back by one.
-;;    - diff-hl-flydiff-mode implements highlighting changes on the fly. It requires Emacs 24.4 or newer.
+;; The package also contains auxiliary modes:
 ;;
-;;    Check out the Commentary section in each respective file for the usage instructions.
-;; --------------------------------------------------------------------------------
+;; - diff-hl-dired-mode provides similar functionality in Dired.
+;;
+;; - diff-hl-margin-mode changes the highlighting function to use the
+;;   margin instead of the fringe.
+;;
+;; - diff-hl-amend-mode shifts the reference revision back by one.
+;;
+;; - diff-hl-flydiff-mode implements highlighting changes on the
+;;   fly. It requires Emacs 24.4 or newer.
+;;
+;; Check out the Commentary section in each respective file for the
+;; usage instructions.
+
 (if sys/win32p
     ;; In windows system
     (when (and entropy/emacs-wsl-enable entropy/emacs-hl-diff-hl-enable-at-startup)
@@ -164,8 +191,10 @@
         :init
         (add-hook 'entropy/emacs-init-X-hook #'global-diff-hl-mode)
 
-        ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode) ;;;;This may be cause dired be crash for big git
-                                                    ;;;;repo such as linux kernel repo
+        ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
+        ;;;; This may be cause dired be crash for big git
+        ;;;; repo such as linux kernel repo
+        
         :config
         (diff-hl-flydiff-mode 1)
 
@@ -187,8 +216,10 @@
       :init
       (add-hook 'entropy/emacs-init-X-hook #'global-diff-hl-mode)
 
-      ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode) ;;;;This may be cause dired be crash for big git
-                                                    ;;;;repo such as linux kernel repo
+      ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
+      ;;;; This may be cause dired be crash for big git
+      ;;;; repo such as linux kernel repo
+      
       :config
       (diff-hl-flydiff-mode 1)
 
@@ -202,41 +233,55 @@
         (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))))
 
 ;; ** Highlight some operations
-;; --------------------------------------------------------------------------------
-;;    This library provides minor mode volatile-highlights-mode, which brings visual feedback to
-;;    some operations by highlighting portions relating to the operations.
 ;;
-;;    All of highlights made by this library will be removed when any new operation is executed.
+;; This library provides minor mode volatile-highlights-mode, which
+;; brings visual feedback to some operations by highlighting portions
+;; relating to the operations.
+;;
+;; All of highlights made by this library will be removed when any
+;; new operation is executed.
 ;;
 ;;
-;;    To toggle volatile highlighting, type:
+;; To toggle volatile highlighting, type:
 ;;
-;;    ~M-x volatile-highlights-mode <RET>~
+;; ~M-x volatile-highlights-mode <RET>~
 ;;
-;;    While this minor mode is on, a string `VHL’ will be displayed on the modeline.
+;; While this minor mode is on, a string `VHL’ will be displayed on
+;; the modeline.
 ;;
-;;    Currently, operations listed below will be highlighted While the minor mode
-;;    `volatile-highlights-mode’ is on:
+;; Currently, operations listed below will be highlighted While the
+;; minor mode `volatile-highlights-mode’ is on:
 ;;
-;;    - undo\\
-;;      Volatile highlights will be put on the text inserted by undo.
+;; - undo
 ;;
-;;    - yank and yank-pop\\
-;;      Volatile highlights will be put on the text inserted by yank’ or yank-pop.
+;;   Volatile highlights will be put on the text inserted by undo.
 ;;
-;;    - kill-region, kill-line, any other killing function\\
-;;      Volatile highlights will be put at the positions where the killed text used to be.
+;; - yank and yank-pop
 ;;
-;;    - delete-region\\
-;;      Same as kill-region, but not as reliable since delete-region is an inline function.
+;;   Volatile highlights will be put on the text inserted by yank’ or
+;;   yank-pop.
 ;;
-;;    - find-tag\\
-;;      Volatile highlights will be put on the tag name which was found by find-tag.
+;; - kill-region, kill-line, any other killing function
 ;;
-;;    - occur-mode-goto-occurrence and occur-mode-display-occurrence\\
-;;      Volatile highlights will be put on the occurrence which is selected by
-;;      occur-mode-goto-occurrence or occur-mode-display-occurrence.
-;; --------------------------------------------------------------------------------
+;;   Volatile highlights will be put at the positions where the
+;;   killed text used to be.
+;;
+;; - delete-region
+;;
+;;   Same as kill-region, but not as reliable since delete-region is
+;;   an inline function.
+;;
+;; - find-tag
+;;
+;;   Volatile highlights will be put on the tag name which was found
+;;   by find-tag.
+;;
+;; - occur-mode-goto-occurrence and occur-mode-display-occurrence
+;;
+;;   Volatile highlights will be put on the occurrence which is
+;;   selected by occur-mode-goto-occurrence or
+;;   occur-mode-display-occurrence.
+
 (use-package volatile-highlights
   :commands (volatile-highlights-mode)
   :diminish volatile-highlights-mode
@@ -244,7 +289,8 @@
 
 ;; ** Visualize TAB, (HARD) SPACE, NEWLINE
 ;;
-;;    This package is a minor mode to visualize blanks (TAB, (HARD) SPACE and NEWLINE).
+;; This package is a minor mode to visualize blanks (TAB, (HARD) SPACE
+;; and NEWLINE).
 
 (when entropy/emacs-hl-whitespace-enable-at-startup
   (use-package whitespace

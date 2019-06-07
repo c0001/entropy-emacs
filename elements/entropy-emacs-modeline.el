@@ -1,14 +1,43 @@
-;;; File name: init-modeline.el ---> for entropy-emacs
+;;; entropy-emacs-modeline.el --- entropy-emacs mode-line format configuration
 ;;
-;; Copyright (c) 2018 Entropy
+;; * Copyright (C) 20190607  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-modeline.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
 ;;
-;; Author: Entropy
+;; `entropy-emacs' has its own specfic modeline style with bounds of
+;; hacked third-party ones, the default was
+;; `entropy/emacs-mode-line-origin-theme', with subs of `powerline'
+;; and `spaceline' family even for =doom-modeline=.
 ;;
-;; This file is not part of GNU Emacs.
+;; Sets of modeline style switching function named prefixed as
+;; =entropy/emacs-mdl-*=, thus whatever modeline style startup
+;; specific by customized `entropy/emacs-modeline-style', toggled for
+;; that usage.
 ;;
-;;; License: GPLv3
-
+;; * Configuration:
+;;
+;; Loading automatically by `entropy-emacs' without hackign warranty.
+;; 
 ;; * Code:
+
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)

@@ -1,14 +1,50 @@
-;;; File name: init-font-set.el ---> for entropy-emacs
+;;; entropy-emacs-font.el --- entropy-emacs font configuration
 ;;
-;; Copyright (c) 2018 Entropy
-;;
-;; Author: Entropy
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-
+;; * Copyright (C) 20190607  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           
+;; Package-Version: https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-font-set.el
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
+;; 
+;; `entropy-emacs' archive sets of pre-rejecting fonts family [[https://sourceforge.net/projects/entropy-emax64/files/entropy-emacs_hitch/][here]],
+;; thus this file was the configuration for those fonts collection
+;; used for `entropy-emacs' page render.
+;; 
+;; According to language scripts respectively, different font package
+;; is used for, `entropy-emacs' divided the language scripts into
+;; three categories, i.e. =latin=, =cjk=, =symbol=. For each of those
+;; categories, different font-set is enabled for them respectively,
+;; `entropy-emacs' using font both of open-source and user specific
+;; copyright limited ones, as what for google&adobe's NOTO fonts and
+;; the using scope resticted SYMBOLA font.
+;; 
+;; The main font set function `entropy/emacs-font-set-set-font' is
+;; wrappered for both font status checking and font spec setting
+;; procedure.
+;; 
+;; * Configuration:
+;; 
+;; Loading automatically by `entropy-emacs' without hacking warranty.
+;; 
 ;; * Code:
+
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 
