@@ -37,7 +37,7 @@
 
 (defface entropy/emacs-modeline--mdl-eye-face-main_inactive '((t ()))
   "Face for eyebrowse main workspace segment while window
-  inactive of origin modeline")
+inactive of origin modeline")
 
 (set-face-attribute 'entropy/emacs-modeline--mdl-eye-face-main_inactive nil
                     :foreground "white" :background "brown")
@@ -50,7 +50,7 @@
 
 (defface entropy/emacs-modeline--mdl-eye-face-derived_inactive '((t ()))
   "Face for eyebrowse derived workspace segment while window
-  inactive of origin modeline ")
+inactive of origin modeline ")
 
 (set-face-attribute 'entropy/emacs-modeline--mdl-eye-face-derived_inactive nil
                     :foreground "white" :background "DarkOrange4")
@@ -192,12 +192,12 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (defun doom-modeline-update-buffer-file-icon (&rest _)
     "Update file icon in mode-line.
 
-    Note:
+Note:
 
-    This function has been modified for adapting for entropy-emacs.
+This function has been modified for adapting for entropy-emacs.
 
-    The origin func using file-based and mode-based ico generator
-    mechanism. Entropy-emacs use the mode-based ico shown only. "
+The origin func using file-based and mode-based ico generator
+mechanism. Entropy-emacs use the mode-based ico shown only. "
     (setq doom-modeline--buffer-file-icon
           (when (and doom-modeline-icon doom-modeline-major-mode-icon)
             (let* ((height (/ all-the-icons-scale-factor 1.3))
@@ -217,17 +217,16 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (defun doom-modeline-update-buffer-file-state-icon (&rest _)
     "Update the buffer or file state in mode-line.
 
-    Note:
-     
-    This function has been modified for adapting for entropy-emacs.
+Note:
 
-    entropy-emacs using all file state icos show side by side. "
+This function has been modified for adapting for entropy-emacs.
+
+entropy-emacs using all file state icos show side by side. "
     (setq doom-modeline--buffer-file-state-icon
           (concat
            (when (or (buffer-narrowed-p)
                      (and (fboundp 'fancy-narrow-active-p)
                           (fancy-narrow-active-p)))
-             
              (doom-modeline-buffer-file-state-icon
               "vertical_align_center"
               "><"
@@ -237,7 +236,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
               "lock"
               "%1*"
               'doom-modeline-warning))
-           (when (and buffer-file-name (buffer-modified-p))
+           (when (buffer-modified-p)
              (doom-modeline-buffer-file-state-icon
               "save"
               "%1*"
@@ -305,8 +304,7 @@ eyerbowse improvement."
                               (t 'entropy/emacs-modeline--mdl-eye-face-main_inactive)))))
       ""))
 
-  (doom-modeline-def-modeline
-   'main
+  (doom-modeline-def-modeline 'main
    '(bar workspace-number window-number
          matches buffer-info remote-host buffer-position parrot
          " " company-indicator selection-info)

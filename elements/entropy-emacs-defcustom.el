@@ -304,11 +304,13 @@ emacs 26 or higher emacs version."
   "Setting fill-paragraph width, default 100."
   :type 'integer
   :group 'entropy/emacs-custom-variable-basic)
+
 ;; *** backgroud transparent
 (defcustom entropy/emacs-init-loop-alpha t
   "Enable transparent at startup of emacs"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
+
 (defcustom entropy/emacs-loop-alpha-value '((95 55) (100 100))
   "The value of background transparent"
   :type 'boolean

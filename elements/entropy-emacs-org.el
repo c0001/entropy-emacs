@@ -1053,7 +1053,59 @@ Now just supply localization image file analyzing."
   
   (add-hook 'poporg-edit-hook
             'entropy/emacs-org--poporg-edit-hook
-            t))
+            t)
+
+  (defun entropy/emacs-org--poporg-dwim-add-comment-line-head-whitespace (&rest _)
+    (when (and (use-region-p)
+               (not (buffer-narrowed-p)))
+      (let* ((orig-start (region-beginning))
+             (orig-end (region-end))
+             (cm-str (buffer-substring-no-properties
+                      (region-beginning)
+                      (region-end)))
+             new-cm-str
+             (cur-mode major-mode)
+             (ro-state buffer-read-only))
+        (when buffer-read-only
+          (read-only-mode 0))
+        
+        (with-temp-buffer
+          (when buffer-read-only
+            (read-only-mode 0))
+          (erase-buffer)
+          (goto-char (point-min))
+          (insert cm-str)
+          (let ((whadd-func
+                 (lambda (x)
+                   (goto-char (point-min))
+                   (while (re-search-forward
+                           x nil t)
+                     (insert " "))
+                   (setq new-cm-str
+                         (buffer-substring-no-properties
+                          (point-min)
+                          (point-max))))))
+            (cl-case cur-mode
+              ((lisp-interaction-mode emacs-lisp-mode)
+               (funcall whadd-func "^\\s-*;;$"))
+              (sh-mode
+               (funcall whadd-func "^\\s-*#$")))))
+
+        (when (and (not (null new-cm-str))
+                   (not (equal cm-str new-cm-str)))
+          (goto-char orig-start)
+          (delete-region orig-start orig-end)
+          (insert new-cm-str)
+          (funcall-interactively 'set-mark-command nil)
+          (goto-char orig-start))
+
+        (cl-case ro-state
+          (nil (read-only-mode 0))
+          (t (read-only-mode 1))))))
+  
+  (advice-add 'poporg-dwim
+              :before
+              #'entropy/emacs-org--poporg-dwim-add-comment-line-head-whitespace))
 
 ;; * provide
 (provide 'entropy-emacs-org)
