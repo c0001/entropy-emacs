@@ -1193,14 +1193,14 @@ emacs."
 
 (defun entropy/emacs-basic-loop-alpha ()    
   (interactive)    
-  (let ((h (car entropy/emacs-basic-loop-alpha-value)))
+  (let ((h (car entropy/emacs-loop-alpha-value)))
     (funcall
      (lambda (a ab)    
        (set-frame-parameter (selected-frame) 'alpha (list a ab))    
        (add-to-list 'default-frame-alist (cons 'alpha (list a ab))))
      (car h)
      (car (cdr h)))
-    (setq entropy/emacs-basic-loop-alpha-value (cdr (append entropy/emacs-basic-loop-alpha-value (list h))))))
+    (setq entropy/emacs-loop-alpha-value (cdr (append entropy/emacs-loop-alpha-value (list h))))))
 
 (when entropy/emacs-init-loop-alpha
     (entropy/emacs-basic-loop-alpha))

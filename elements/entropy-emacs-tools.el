@@ -225,21 +225,15 @@ like `recenter-top-bottom'."
 
 ;; ** beacon cursor blanking
 (use-package beacon
-  :commands (beacon-mode)
-  :init (beacon-mode 1)
-  :config
-  (defun entropy/emacs-tools--beacon-mode-rejected ()
-    "Temporally removing beacon feature for reducing the lagging
-performance for some major-modes."
-    (let ((temp_post (copy-tree post-command-hook))
-          (temp_post_pre (copy-tree pre-command-hook)))
-      (setq-local post-command-hook
-                  (remove 'beacon--record-vars temp_post))
-      (setq-local pre-command-hook
-                  (remove 'beacon--vanish temp_post_pre))
-      (setq-local pre-command-hook
-                  (remove 'beacon--record-vars temp_post_pre))))
-  (add-hook 'artist-mode-hook 'entropy/emacs-tools--beacon-mode-rejected))
+  :commands (beacon-mode beacon-blink)
+  :init
+  (defun entropy/emacs-tools--beacon-blink-advice (&rest _)
+    (unless (not (fboundp 'beacon-blink))
+      (beacon-blink)))
+  (advice-add 'windmove-do-window-select :after
+              #'entropy/emacs-tools--beacon-blink-advice)
+  (advice-add 'recenter-top-bottom :after
+              #'entropy/emacs-tools--beacon-blink-advice))
 
 ;; ** visual-regexp
 ;; 
