@@ -24,12 +24,9 @@ gives you the way doing for thus.
 
 * Requirements
 
-The only another one emacs extensions introduced was [[https://github.com/m2ym/popwin-el/tree/95dea14c60019d6cccf9a3b33e0dec4e1f22c304][popwin]] the one
-gives the way for poping the temporarily window for display some
-prompt thing (always the way for the comprehensive buffer operating
-method).
-
-: pakcage-install popwin
+There's no third-party libraries required for using
+=entropy-dired-cp-or-mv=, all the librarie used by emacs =built-in=
+ones.
 
 * installation
 

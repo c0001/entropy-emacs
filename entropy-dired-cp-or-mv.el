@@ -25,7 +25,6 @@
 
 ;; * Code:
 ;; ** require
-(require 'popwin)
 
 ;; ** variable declaration
 (defvar entropy/cpmv--marked-files-list nil
@@ -283,8 +282,7 @@ This function used by `entropy/cpmv-to-current'"
             (kill-buffer buffer)
             (get-buffer-create buffer))
         (get-buffer-create buffer))
-      (popwin:popup-buffer buffer
-                           :dedicated nil :position 'bottom :noselect nil :height 0.3)
+      (display-buffer buffer)
       (with-current-buffer buffer
         (toggle-truncate-lines 0)
         (insert (propertize "==========Cpmv Buffer==========\n\n" 'face 'entropy/cpmv-title-face))
