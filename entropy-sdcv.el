@@ -389,7 +389,8 @@ Otherwise return word around point."
     (adjacent
      (with-current-buffer (get-buffer-create entropy/sdcv--bing-adjacent-buffer)
        (erase-buffer)
-       (insert (entropy/sdcv--bing-dict-url-retrieve query)))
+       (insert (entropy/sdcv--bing-dict-url-retrieve query))
+       (goto-char (point-min)))
      (display-buffer entropy/sdcv--bing-adjacent-buffer)))
   nil)
 
@@ -661,9 +662,9 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
     (with-current-buffer buffer
       (setq buffer-read-only nil)
       (erase-buffer)
-      (insert feedback))
+      (insert feedback)
+      (goto-char (point-min)))
     (display-buffer buffer)
-    (goto-char (point-min))
     (setq buffer-read-only t)))
 
 ;; **** response tooltip show
