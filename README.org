@@ -15,7 +15,6 @@ famous search engine [[https://www.baidu.com][BAIDU]] of it's own chinese dict s
 * Requirements 
 
 - eww (emacs built-in)
-- popwin (downloading from github for using [[https://melpa.org/#/getting-started][melpa]])
 
 * Installation
 

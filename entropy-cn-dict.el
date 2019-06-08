@@ -11,7 +11,6 @@
 ;; * Code:
 
 (require 'eww)
-(require 'popwin)
 
 (defcustom entropy/cndt-buffer-name "*entropy/cndt-buffer*"
   "Buffer name of `entropy-cn-dict'."
@@ -63,8 +62,7 @@ buffer, that it will not destruct the window config."
       (error "cndt: Query is invalid!"))
     (if (not (equal (buffer-name) entropy/cndt-buffer-name))
         (let* ((buffer (entropy/cndt-search-query url)))
-          (popwin:popup-buffer buffer
-                               :dedicated nil :position 'bottom :noselect nil :height 0.4))
+          (display-buffer buffer))
       (progn
         (kill-buffer-and-window)
         (funcall-interactively 'entropy/cndt-query query)))))
