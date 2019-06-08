@@ -76,7 +76,7 @@
   (list (list :item "entropy-emacs-deps"
               :repo-lc entropy/emacs-ext-deps-dir
               :version-lc (expand-file-name "version" entropy/emacs-ext-deps-dir)
-              :version "0.1.3"
+              :version "0.1.4"
               :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/emacs-ext-deps-dir)
               :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-deps-dir))
         (list :item "entropy-emacs-extensions"

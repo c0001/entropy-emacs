@@ -1244,8 +1244,10 @@ emacs."
           #'(lambda ()
               (global-auto-revert-mode t)))
 
-;; ** Use popwin mode
+;; ** Use popup window framework
+;; *** popwin-mode
 (use-package popwin
+  :if (eq entropy/emacs-use-popup-window-framework 'popwin)
   :commands popwin-mode
   :init (add-hook 'entropy/emacs-init-mini-hook #'popwin-mode)
   :config
@@ -1327,7 +1329,146 @@ emacs."
 
           ;; Test
           ("*ert*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*nosetests*" :dedicated t :position bottom :stick t :noselect nil))))
+          ("*nosetests*" :dedicated t :position bottom :stick t :noselect nil)
+
+          ;; Entropy refer
+          ("^\\*entropy/cpmv" :regexp t :position bottom :stick nil :noselect nil)
+          ("^\\*entropy/cndt" :regexp t :position bottom :stick nil :noselect nil)
+          ("^\\*entropy/sdcv" :regexp t :position bottom :stick nil :noselect nil))))
+
+;; *** shackle mode
+(use-package shackle
+  :if (eq entropy/emacs-use-popup-window-framework 'shackle)
+  :commands (shackle-display-buffer
+             shackle-popup-buffer
+             shackle-popup-find-file)
+  :init
+  (defvar shackle-popup-mode-map
+    (let ((map (make-sparse-keymap)))
+      map))
+  (global-set-key (kbd "C-3") shackle-popup-mode-map)
+  (add-hook 'entropy/emacs-init-mini-hook #'shackle-mode)
+  (defvar shackle--popup-window-list nil) ; all popup windows
+  (defvar-local shackle--current-popup-window nil) ; current popup window
+  (put 'shackle--current-popup-window 'permanent-local t)
+  :bind
+  (:map shackle-popup-mode-map
+   ("o" . shackle-popup-buffer)
+   ("f" . shackle-popup-find-file)
+   ("e" . shackle-popup-message))
+  :config
+  (eval-and-compile
+    (defun shackle-last-popup-buffer ()
+      "View last popup buffer."
+      (interactive)
+      (ignore-errors
+        (display-buffer shackle-last-buffer)))
+    (bind-key "C-h z" #'shackle-last-popup-buffer)
+
+    ;; Add keyword: `autoclose'
+    (defun shackle-display-buffer-hack (fn buffer alist plist)
+      (let ((window (funcall fn buffer alist plist)))
+        (setq shackle--current-popup-window window)
+
+        (when (plist-get plist :autoclose)
+          (push (cons window buffer) shackle--popup-window-list))
+        window))
+
+    (defun shackle-close-popup-window-hack (&rest _)
+      "Close current popup window via `C-g'."
+      (setq shackle--popup-window-list
+            (cl-loop for (window . buffer) in shackle--popup-window-list
+                     if (and (window-live-p window)
+                             (equal (window-buffer window) buffer))
+                     collect (cons window buffer)))
+      ;; `C-g' can deactivate region
+      (when (and (called-interactively-p 'interactive)
+                 (not (region-active-p)))
+        (let (window buffer)
+          (if (one-window-p)
+              (progn
+                (setq window (selected-window))
+                (when (equal (buffer-local-value 'shackle--current-popup-window
+                                                 (window-buffer window))
+                             window)
+                  (winner-undo)))
+            (setq window (caar shackle--popup-window-list))
+            (setq buffer (cdar shackle--popup-window-list))
+            (when (and (window-live-p window)
+                       (equal (window-buffer window) buffer))
+              (delete-window window)
+
+              (pop shackle--popup-window-list))))))
+
+    (advice-add #'keyboard-quit :before #'shackle-close-popup-window-hack)
+    (advice-add #'shackle-display-buffer :around #'shackle-display-buffer-hack))
+
+  (defun shackle-popup-buffer ()
+    (interactive)
+    (let* ((buff-name (completing-read "Buffer choosing:" 'internal-complete-buffer))
+           (shackle-rules `((,buff-name :select t :size 0.3 :align 'below :autoclose t))))
+      (display-buffer buff-name)))
+
+  (defun shackle-popup-find-file ()
+    (interactive)
+    (let* ((file (completing-read "Buffer choosing:" 'read-file-name-internal))
+           (buff-name (buffer-name (find-file-noselect file)))
+           (shackle-rules `((,buff-name :select t :size 0.3 :align 'below :autoclose t))))
+      (display-buffer buff-name)))
+
+  (defun shackle-popup-message ()
+    (interactive)
+    (let* ((buff-name (buffer-name (get-buffer-create "*Messages*")))
+           (shackle-rules `((,buff-name :select t :size 0.3 :align 'below :autoclose t))))
+      (display-buffer buff-name)))
+  
+  ;; rules
+  (setq shackle-default-size 0.4)
+  (setq shackle-default-alignment 'below)
+  (setq shackle-default-rule nil)
+  (setq shackle-rules
+        '(("*Help*" :select t :size 0.3 :align 'below :autoclose t)
+          ("*compilation*" :size 0.3 :align 'below :autoclose t)
+          ("*Completions*" :size 0.3 :align 'below :autoclose t)
+          ("*Pp Eval Output*" :size 15 :align 'below :autoclose t)
+          ("*ert*" :align 'below :autoclose t)
+          ("*Backtrace*" :select t :size 15 :align 'below)
+          ("*Warnings*" :size 0.3 :align 'below :autoclose t)
+          ("*Messages*" :size 0.3 :align 'below :autoclose t)
+          ("^\\*.*Shell Command.*\\*$" :regexp t :size 0.3 :align 'below :autoclose t)
+          ("\\*[Wo]*Man.*\\*" :regexp t :select t :align 'below :autoclose t)
+          ("*Calendar*" :select t :size 0.3 :align 'below)
+          ("\\*ivy-occur .*\\*" :regexp t :size 0.4 :select t :align 'below)
+          (" *undo-tree*" :select t)
+          ("*Paradox Report*" :size 0.3 :align 'below :autoclose t)
+          ("*quickrun*" :select t :size 15 :align 'below)
+          ("*tldr*" :align 'below :autoclose t)
+          ("*Youdao Dictionary*" :size 0.3 :align 'below :autoclose t)
+          ("*Finder*" :select t :size 0.3 :align 'below :autoclose t)
+          ("^\\*elfeed-entry" :regexp t :size 0.7 :align 'below :autoclose t)
+          ("*lsp-help*" :size 0.3 :align 'below :autoclose t)
+          ("*lsp session*" :size 0.4 :align 'below :autoclose t)
+          (" *Org todo*" :select t :size 4 :align 'below :autoclose t)
+          ("*Org Dashboard*" :select t :size 0.4 :align 'below :autoclose t)
+          ("^\\*entropy/cpmv" :regexp t :select t :size 0.4 :align 'below :autoclose t)
+          ("^\\*entropy/cndt" :regexp t :select t :size 0.4 :align 'below :autoclose t)
+          ("^\\*entropy/sdcv" :regexp t :select t :size 0.4 :align 'below :autoclose t)
+
+          (ag-mode :select t :align 'below)
+          (grep-mode :select t :align 'below)
+          (pt-mode :select t :align 'below)
+          (rg-mode :select t :align 'below)
+
+          (flycheck-error-list-mode :select t :size 0.3 :align 'below :autoclose t)
+          (flymake-diagnostics-buffer-mode :select t :size 0.3 :align 'below :autoclose t)
+
+          (Buffer-menu-mode :select t :size 20 :align 'below :autoclose t)
+          (comint-mode :align 'below)
+          (helpful-mode :select t :size 0.4 :align 'below :autoclose t)
+          (process-menu-mode :select t :size 0.3 :align 'below :autoclose t)
+          (list-environment-mode :select t :size 0.3 :align 'below :autoclose t)
+          (profiler-report-mode :select t :size 0.5 :align 'below)
+          (tabulated-list-mode :align 'below))))
 
 ;; ** Use which-key
 (use-package which-key

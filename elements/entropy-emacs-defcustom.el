@@ -100,6 +100,12 @@
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
+(defcustom entropy/emacs-use-popup-window-framework 'shackle
+  "Using popup window enhancement framework of `popwin-mode' or
+  `shackle-mode'."
+  :type 'symbol
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; *** use emacs extension from git submodules or elpa folder
 (defcustom entropy/emacs-use-extensions-type 'origin
   "Init emacs with extensions from entropy-emacs submodules or

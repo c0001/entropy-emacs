@@ -55,11 +55,14 @@
 (defun entropy/minibuffer-attend-hook ()
   (setq gc-cons-threshold most-positive-fixnum))
 (defun entropy/minibuffer-quit-hook ()
-  (setq gc-cons-threshold 80000000))
+  (setq gc-cons-threshold 600000000))
 (add-hook 'minibuffer-setup-hook #'entropy/minibuffer-attend-hook)
 (add-hook 'minibuffer-exit-hook #'entropy/minibuffer-quit-hook)
 
-(setq gc-cons-threshold 300000000)
+(when (eq system-type 'windows-nt)
+  (setq gc-cons-threshold 600000000)
+  (setq gc-cons-percentage 0.1)
+  (setq garbage-collection-messages t))
 
 ;; Setting gc space limit to smaller one for fasting init time.
 ;;    NOTE: this will cause frequency gc because of the low limit of gc value. Thus this will cause
