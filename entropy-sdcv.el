@@ -40,7 +40,6 @@
 (require 'popup)
 (require 'json)
 (require 'f)
-(require 'popwin)
 (require 'hl-line)
 (require 'cl)
 (require 'youdao-dictionary)
@@ -85,7 +84,7 @@
   Note:
 
   When using terminal based UI, limition of `posframe' will not be
-  supported for, forcing defaultly set it to 'popwin'."
+  supported for, forcing defaultly set it to 'popup'."
   :type 'symbol
   :group 'entropy/sdcv-group)
 
@@ -391,7 +390,7 @@ Otherwise return word around point."
      (with-current-buffer (get-buffer-create entropy/sdcv--bing-adjacent-buffer)
        (erase-buffer)
        (insert (entropy/sdcv--bing-dict-url-retrieve query)))
-     (popwin:popup-buffer entropy/sdcv--bing-adjacent-buffer)))
+     (display-buffer entropy/sdcv--bing-adjacent-buffer)))
   nil)
 
 
@@ -663,7 +662,7 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
       (setq buffer-read-only nil)
       (erase-buffer)
       (insert feedback))
-    (popwin:popup-buffer buffer :height 10)
+    (display-buffer buffer)
     (goto-char (point-min))
     (setq buffer-read-only t)))
 

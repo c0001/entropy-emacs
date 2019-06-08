@@ -156,10 +156,6 @@ provider for this package:
 
   Working for file based operation. 
 
-- popwin:
-
-  Show the query response in adjacent popup buffer.
-
 - cl:
 
   Get some common-lisp featuer, this usually be as built-in feature.
