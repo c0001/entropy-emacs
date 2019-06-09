@@ -1548,9 +1548,8 @@ This function has redefined for adapting to
   (interactive)
   (progn (setq kill-ring nil) (garbage-collect)))
 
-;; ** Windows mark-sexp
-(when sys/win32p
-  (global-set-key (kbd "C-`") 'set-mark-command))
+;; ** mark-sexp
+(global-set-key (kbd "C-`") 'set-mark-command)
 (defun entropy/emacs-basic-mark-set ()
   (interactive)
   (save-excursion

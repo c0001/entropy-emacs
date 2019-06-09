@@ -340,7 +340,7 @@ emacs 26 or higher emacs version."
 ;; **** dired trash enable
 (defcustom entropy/emacs-dired-enable-trash nil
   "Enable trash function when using `dired-delete-file' in
-  `dired-mode'."
+`dired-mode'."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
