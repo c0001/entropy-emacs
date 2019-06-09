@@ -150,6 +150,7 @@
     s
     powerline
     all-the-icons
+    all-the-icons-dired
     memoize
     spacemacs-theme
     srcery-theme

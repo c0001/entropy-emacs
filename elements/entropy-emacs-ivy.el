@@ -53,10 +53,8 @@
   :diminish counsel-mode ivy-mode
   :commands (counsel-mode ivy-mode)
 ;; *** bind-key
-  :bind (("M-x" . counsel-M-x)
-         ("C-s" . swiper)
+  :bind (("C-s" . swiper)
          ("C-S-s" . swiper-all)
-
          ("C-c C-r" . ivy-resume)
          ("C-c M-t" . entropy/emacs-ivy-counsel-load-theme)
 ;; **** counsel mode map

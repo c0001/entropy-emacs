@@ -1022,15 +1022,14 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     (define-key dired-mode-map (kbd "D") 'entropy/emacs-basic-dired-delete-file-recursive)
     (define-key dired-mode-map (kbd "M-d") 'entropy/emacs-basic-dired-delete-file-refers))
   
-;; *** init hide details
   :config
-  (add-hook 'dired-mode-hook '(lambda () (dired-hide-details-mode)))
-  
 ;; *** Set unit of dired inode for human readable
+  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+  
   (if (and (not sys/win32p)
            (not sys/cygwinp))
       ;; because of windows dired list is too long so just let it in linux
-      (setq dired-listing-switches "-alFh --group-directories-first")
+      (setq dired-listing-switches "-alh --group-directories-first")
     (setq dired-listing-switches "-alh"))
 
 ;; *** Always delete and copy resursively
@@ -1100,7 +1099,63 @@ using simple dired visual type, although you have seting it to
            (require 'font-lock+)
            (use-package all-the-icons-dired
              :commands (all-the-icons-dired-mode)
-             :hook (dired-mode . all-the-icons-dired-mode)))
+             :hook (dired-mode . all-the-icons-dired-mode)
+             :config
+             (defun entropy/emacs-basic--all-the-icons-dired-display ()
+               "Display the icons of files without colors in a dired buffer."
+               ;; Don't display icons after dired commands (e.g insert-subdir, create-directory)
+               ;; @see https://github.com/jtbm37/all-the-icons-dired/issues/11
+               (all-the-icons-dired--reset)
+
+               (when (and (not all-the-icons-dired-displayed) dired-subdir-alist)
+                 (setq-local all-the-icons-dired-displayed t)
+                 (let ((inhibit-read-only t)
+                       (remote-p (and (fboundp 'tramp-tramp-file-p)
+                                      (tramp-tramp-file-p default-directory))))
+                   (save-excursion
+                     ;; TRICK: Use TAB to align icons
+                     (setq-local tab-width 1)
+                     (goto-char (point-min))
+                     (while (not (eobp))
+                       (when (dired-move-to-filename nil)
+                         (insert " ")
+                         (let ((file (dired-get-filename 'verbatim t)))
+                           (unless (member file '("." ".."))
+                             (let ((filename (file-local-name (dired-get-filename nil t))))
+                               (if (file-directory-p filename)
+                                   (let ((icon (cond
+                                                (remote-p
+                                                 (all-the-icons-octicon
+                                                  "file-directory"
+                                                  :v-adjust all-the-icons-dired-v-adjust
+                                                  :face 'all-the-icons-dired-dir-face))
+                                                ((file-symlink-p filename)
+                                                 (all-the-icons-octicon
+                                                  "file-symlink-directory"
+                                                  :v-adjust all-the-icons-dired-v-adjust
+                                                  :face 'all-the-icons-dired-dir-face))
+                                                ((all-the-icons-dir-is-submodule filename)
+                                                 (all-the-icons-octicon
+                                                  "file-submodule"
+                                                  :v-adjust all-the-icons-dired-v-adjust
+                                                  :face 'all-the-icons-dired-dir-face))
+                                                ((file-exists-p (format "%s/.git" filename))
+                                                 (all-the-icons-octicon
+                                                  "repo"
+                                                  :height 1.1 :v-adjust all-the-icons-dired-v-adjust
+                                                  :face 'all-the-icons-dired-dir-face))
+                                                (t (let ((matcher (all-the-icons-match-to-alist file all-the-icons-dir-icon-alist)))
+                                                     (apply (car matcher)
+                                                            (list (cadr matcher)
+                                                                  :face 'all-the-icons-dired-dir-face
+                                                                  :v-adjust all-the-icons-dired-v-adjust)))))))
+                                     (insert icon))
+                                 (insert (all-the-icons-icon-for-file
+                                          file
+                                          :v-adjust all-the-icons-dired-v-adjust))))
+                             (insert "\t"))))
+                       (forward-line 1))))))
+             (advice-add #'all-the-icons-dired--display :override #'entropy/emacs-basic--all-the-icons-dired-display)))
           ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
                 (not (display-graphic-p)))
            (setq entropy/emacs-dired-visual-type "simple-rainbow")
