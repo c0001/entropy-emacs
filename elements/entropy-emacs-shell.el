@@ -203,8 +203,12 @@ was found."
         'entropy/emacs-shell--eshell-prompt))
 
 
-;; ** Multi term
-(use-package multi-term)
+;; ** term configuration
+(use-package eterm-256color
+  ;; enable 256 color for emacs term
+  :commands (eterm-256color-mode)
+  :hook (term-mode . eterm-256color-mode))
+
 
 ;; ** Shell Pop
 (use-package shell-pop

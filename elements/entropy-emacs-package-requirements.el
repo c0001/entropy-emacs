@@ -71,6 +71,7 @@
     doneburn-theme
     doom-modeline
     doom-themes
+    eterm-256color
     el2org
     eldoc-eval
     elfeed
