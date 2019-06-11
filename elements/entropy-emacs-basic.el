@@ -893,10 +893,11 @@ retrieve from `window-list' larger than 1."
             #'(lambda (&rest args) (message "Overwrite-mode has been removed from entropy-emacs.")))
 
 ;; ** Dired config
+;; *** dired basic
 (use-package dired
   :ensure nil
   :init
-;; *** Delete directory with force actions
+;; **** Delete directory with force actions
   (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
     "Minor mode for func `entropy/emacs-basic-dired-delete-file-recursive'."
@@ -1023,7 +1024,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     (define-key dired-mode-map (kbd "M-d") 'entropy/emacs-basic-dired-delete-file-refers))
   
   :config
-;; *** Set unit of dired inode for human readable
+;; **** Set unit of dired inode for human readable
   (add-hook 'dired-mode-hook #'dired-hide-details-mode)
   
   (if (and (not sys/win32p)
@@ -1032,14 +1033,14 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
       (setq dired-listing-switches "-alh --group-directories-first")
     (setq dired-listing-switches "-alh"))
 
-;; *** Always delete and copy resursively
+;; **** Always delete and copy resursively
   (setq dired-recursive-deletes 'always)
   (setq dired-recursive-copies 'always)
   
-;; *** Use dired-aux to enable dired-isearch
+;; **** Use dired-aux to enable dired-isearch
   (use-package dired-aux :ensure nil)
   
-;; *** Quick sort dired buffers via hydra
+;; **** Quick sort dired buffers via hydra
   ;;; bind key: `S'
   (when (not sys/win32p)
     (use-package dired-quick-sort
@@ -1047,7 +1048,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
       :commands (dired-quick-sort-setup)
       :init (dired-quick-sort-setup)))
 
-;; *** Use coloful dired ls
+;; **** Use coloful dired ls
   (defun entropy/emacs-basic--dired-visual-init ()
     "Init dired colorful visual featuer."
     (cond ((or (string= entropy/emacs-dired-visual-type "simple-rainbow")
@@ -1167,10 +1168,10 @@ using simple dired visual type, although you have seting it to
   
   (entropy/emacs-basic--dired-visual-init)
   
-;; *** bind 'M-<up>' for dired updir
+;; **** bind 'M-<up>' for dired updir
   (define-key dired-mode-map (kbd "M-<up>") 'dired-up-directory)
   
-;; *** Improve dired files operation experience for kill opened refer buffers.
+;; **** Improve dired files operation experience for kill opened refer buffers.
   (defun entropy/emacs-basic--kill-redundant-buffer (&rest rest-args)
     "Delete file refer redundant buffer which will cause dired
 'delete' or 'rename' failed."
@@ -1182,7 +1183,7 @@ using simple dired visual type, although you have seting it to
   (advice-add 'dired-do-rename :before #'entropy/emacs-basic--kill-redundant-buffer)
   (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-basic--kill-redundant-buffer)
   
-;; *** get both UNIX and WINDOWS style path string
+;; **** get both UNIX and WINDOWS style path string
   (defvar entropy/emacs-basic--get-dired-fpath-log nil)
 
   (defun entropy/emacs-basic-get-dired-fpath (type)
@@ -1218,7 +1219,7 @@ using simple dired visual type, although you have seting it to
   
   (define-key dired-mode-map (kbd "0 w") 'entropy/emacs-basic-get-dired-fpath)
 
-;; *** dired add load path
+;; **** dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
     (interactive)
     (let ((dir (completing-read "Choose load path adding item: "
@@ -1227,10 +1228,14 @@ using simple dired visual type, although you have seting it to
       (unless (file-directory-p dir)
         (setq dir (file-name-directory dir)))
       (add-to-list 'load-path dir)))
-  
+
   (define-key dired-mode-map (kbd "M-l") 'entropy/emacs-basic--dired-add-to-load-path))
 
-
+;; *** dired-x
+(use-package dired-x
+  :commands (dired-omit-mode)
+  :hook (dired-mode . dired-omit-mode))
+  
 ;; ** Image-mode
 (use-package image-mode
   :ensure nil

@@ -54,7 +54,6 @@
     (dolist (font-name '("Noto Mono"
                          "Noto Sans Mono"
                          "Source Code Pro"
-                         "Droid Sans"
                          "Symbola"
                          "Noto Serif CJK KR"))
       (if (not (find-font (font-spec :name font-name)))
