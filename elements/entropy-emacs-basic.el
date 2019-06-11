@@ -1399,7 +1399,8 @@ emacs."
 ;; *** shackle mode
 (use-package shackle
   :if (eq entropy/emacs-use-popup-window-framework 'shackle)
-  :commands (shackle-display-buffer
+  :commands (shackle-mode
+             shackle-display-buffer
              shackle-popup-buffer
              shackle-popup-find-file)
   :init
