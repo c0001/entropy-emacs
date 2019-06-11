@@ -1475,6 +1475,9 @@ emacs."
     (interactive)
     (let* ((buff-name (buffer-name (get-buffer-create "*Messages*")))
            (shackle-rules `((,buff-name :select t :size 0.3 :align 'below :autoclose t))))
+      (with-current-buffer buff-name
+        (unless (eobp)
+          (goto-char (point-max))))
       (display-buffer buff-name)))
   
   ;; rules
