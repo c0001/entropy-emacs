@@ -1235,7 +1235,8 @@ using simple dired visual type, although you have seting it to
 (use-package dired-x
   :ensure nil
   :commands (dired-omit-mode)
-  :hook (dired-mode . dired-omit-mode))
+  :hook (dired-mode . dired-omit-mode)
+  :config (setq dired-omit-size-limit nil))
   
 ;; ** Image-mode
 (use-package image-mode
