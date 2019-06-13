@@ -135,8 +135,11 @@ This func divided this string into the return list as:
         link tramp-method)
     (if (not host-address)
         (error "No address found!"))
-    (setq tramp-method (completing-read "choose tramp method: "
-                                        '("pscp" "plink" "ssh")))
+    (setq tramp-method
+          (cond ((eq system-type 'windows-nt)
+                 (completing-read "choose tramp method: "
+                                  '("pscp" "plink" "ssh")))
+                (t "ssh")))
     (cond
      ((and port user)
       (setq link (concat "/" tramp-method ":" user "@"
