@@ -1191,7 +1191,8 @@ using simple dired visual type, although you have seting it to
      (list (completing-read "Choose path string type: "
                             '("unix" "win32"))))
     (let (rtn
-          (files_get (dired-get-marked-files)))
+          (files_get (or (dired-get-marked-files)
+                         (list default-directory))))
       (dolist (el files_get)
         (cond
          ((string= type "win32")

@@ -56,7 +56,7 @@
   (setq gc-cons-threshold most-positive-fixnum))
 (defun entropy/minibuffer-quit-hook ()
   (if (eq system-type 'windows-nt)
-      (setq gc-cons-threshold 800000000)
+      (setq gc-cons-threshold 80000000)
     (cond ((not (display-graphic-p))
            (setq gc-cons-threshold 800000))
           ((display-graphic-p)
