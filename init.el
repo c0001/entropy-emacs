@@ -64,6 +64,7 @@
 (add-hook 'minibuffer-setup-hook #'entropy/minibuffer-attend-hook)
 (add-hook 'minibuffer-exit-hook #'entropy/minibuffer-quit-hook)
 
+(setq garbage-collection-messages t)
 (setq gc-cons-threshold 100000000)
 (setq gc-cons-percentage 0.1)
 
