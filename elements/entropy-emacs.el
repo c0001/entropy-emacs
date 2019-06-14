@@ -306,6 +306,8 @@ Emacs will auto close after 6s ......")
   ;; for emacs 26 and higher version
   (defvar entropy/emacs--pyim-timer-26+ nil)
   (defvar entropy/emacs--pyim-init-done-26+ nil)
+
+  (defvar entropy/emacs--pyim-init-prompt-buffer "*pyim-cache-loading*")
   
   (defun entropy/emacs--pyim-init-after-loaded-cache-26+ ()
     "Trace pyim loading thread til it's done as giving the
@@ -316,7 +318,9 @@ notation.
       (setq entropy/emacs--pyim-init-done-26+ t)
       (when (bound-and-true-p entropy/emacs--pyim-timer-26+)
         (cancel-function-timers #'entropy/emacs--pyim-init-after-loaded-cache-26+))
-      (kill-buffer-and-window)
+      (when (buffer-live-p entropy/emacs--pyim-init-prompt-buffer)
+        (switch-to-buffer entropy/emacs--pyim-init-prompt-buffer)
+        (kill-buffer-and-window))
       (message "pyim loading down.")
       (defun entropy/emacs--pyim-init-after-loaded-cache-26+ ()
         (message "This function has been unloaded."))))
@@ -341,7 +345,8 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     ;; preparation prompt loading pyim cache.
     (cond
      ((not (version< emacs-version "26"))
-      (let ((buffer (get-buffer-create "*pyim-cache-loading*")))
+      (let ((buffer (get-buffer-create entropy/emacs--pyim-init-prompt-buffer)))
+        (setq entropy/emacs--pyim-init-prompt-buffer buffer)
         (with-current-buffer buffer
           (insert (propertize "Loading pyim cache, please waiting ......" 'face 'warning)))
         (split-window-vertically (- (window-total-height) 4))
