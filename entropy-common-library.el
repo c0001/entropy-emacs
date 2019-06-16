@@ -1176,7 +1176,7 @@ Note the location must end with '/'."
 ;; **** backup files
 (defun entropy/cl-backup-file (FILE)
   "Backup file with named it by the form of
-  \"xxx-backup_20180713_Fri_21-28-20\""
+\"xxx-backup_20180713_Fri_21-28-20\""
   (if (and (file-exists-p FILE) FILE)
       (let* ((backup-name
               (concat FILE "-backup_" (format-time-string "%Y%m%d_%a_%H-%M-%S")))
