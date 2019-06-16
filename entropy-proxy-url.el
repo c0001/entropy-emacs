@@ -4,7 +4,7 @@
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           url
+;; URL:           https://github.com/c0001/entropy-proxy-url/
 ;; Package-Version: package-version
 ;; Version:       file-version
 ;; Created:       year-month-date hour:min:sec
