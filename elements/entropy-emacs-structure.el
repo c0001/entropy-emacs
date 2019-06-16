@@ -50,6 +50,7 @@
   (add-hook 'python-mode-hook #'orgstruct-mode)
   (add-hook 'web-mode-hook #'orgstruct-mode)
   (add-hook 'js2-mode-hook #'orgstruct-mode)
+  (add-hook 'gitignore-mode-hook #'orgstruct-mode)
   (setq orgstruct-heading-prefix-regexp
         "\\(\\( \\|	\\)*;;\\( \\|	\\)?\\|\\( \\|	\\)*#\\( \\|	\\)?\\|\\( \\|	\\)*\\/\\*\\( \\|	\\)?\\|\\( \\|	\\)*\\/\\/\\( \\|	\\)?\\|\\( \\|	\\)*<!--\\( \\|	\\)*\\)")
   

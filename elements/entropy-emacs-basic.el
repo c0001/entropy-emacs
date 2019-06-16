@@ -1230,7 +1230,20 @@ using simple dired visual type, although you have seting it to
         (setq dir (file-name-directory dir)))
       (add-to-list 'load-path dir)))
 
-  (define-key dired-mode-map (kbd "M-l") 'entropy/emacs-basic--dired-add-to-load-path))
+  (define-key dired-mode-map (kbd "M-l") 'entropy/emacs-basic--dired-add-to-load-path)
+
+;; **** dired backup file
+
+  (defun entropy/emacs-basic-backup-files ()
+    (interactive)
+    (when (not (fboundp 'entropy/cl-backup-file))
+      (require 'entropy-common-library))
+    (let ((files (dired-get-marked-files)))
+      (dolist (el files)
+        (when (file-exists-p el)
+          (entropy/cl-backup-file el)))
+      (revert-buffer)))
+  (define-key dired-mode-map (kbd "B") #'entropy/emacs-basic-backup-files))
 
 ;; *** dired-x
 (use-package dired-x
