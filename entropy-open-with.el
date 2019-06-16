@@ -342,6 +342,9 @@ string type.
 (defvar entropy/open-with-url-regexp "\\(^https?\\|^s?ftp\\)://"
   "The Regexp string for matching url link.")
 
+(defun entropy/open-with--on-win32 ()
+  (member system-type '(windows-nt cygwin)))
+
 (defun entropy/open-with--do-list ()
   "Expand `entropy/open-with-type-list' to `entropy/open-with--type-list-full'.
 
@@ -353,9 +356,8 @@ each file suffix 'ext', like:
  (\"xml\" \"filefox.exe\" 'file \"-new-tab\")
  ....)"
   (setq entropy/open-with--type-list-full nil)
-  (if (and (not entropy/open-with-type-list)
-           (eq system-type 'windows-nt))
-      (error "entropy/open-with-type-list was empty!"))
+  (when (not entropy/open-with-type-list)
+    (message "entropy/open-with-type-list was empty! Using system native method for all."))
   (dolist (group entropy/open-with-type-list)
     (let* ((ext-list (car group))
            (exec (nth 1 group))
@@ -387,7 +389,7 @@ If not matched the exist file type then return nil."
                 (path-transform (nth 2 type))
                 (caller-pattern (nth 3 type)))
             (cond ((eq 'file path-transform)
-                   (cond ((eq system-type 'windows-nt)
+                   (cond ((entropy/open-with--on-win32)
                           (let ((path-formated (replace-regexp-in-string "^\\(.\\):/" "\\1/" file-path)))
                             (setq $file-pattern (concat "file:///" path-formated))))
                          ((or (eq system-type 'gnu/linux)
@@ -428,7 +430,7 @@ procedure who don't want to be as the state as what."
             $file-pattern (plist-get file-plist :file-pattern)
             open-with-arg (plist-get file-plist :open-with-arg))
       (cond
-       ((eq system-type 'windows-nt)
+       ((entropy/open-with--on-win32)
         (w32-shell-execute "open" caller open-with-arg))
        ((eq system-type 'gnu/linux)
         (let ((process-connection-type nil))
@@ -437,13 +439,15 @@ procedure who don't want to be as the state as what."
         (shell-command (concat "open " $file-pattern)))))
      ((null file-plistp)
       (cond
-       ((eq system-type 'windows-nt)
+       ((entropy/open-with--on-win32)
         (w32-shell-execute "open" file-plist))
        ((eq system-type 'gnu/linux)
         (let ((process-connection-type nil))
           (start-process "" nil "xdg-open" file-plist)))
        ((eq system-type 'darwin)
-        (shell-command (concat "open " file-plist))))))))
+        (shell-command (concat "open " file-plist))))
+      (unless (null entropy/open-with-type-list)
+        (message "Can not match any open with type for file '%s'" file-plist))))))
 
 (defun entropy/open-with-match-open (files)
   "This function be used for `entropy/open-with-dired-open' and
