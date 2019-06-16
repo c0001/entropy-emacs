@@ -1,13 +1,30 @@
-# Local Variables:
-# fill-column: 70
-# org-adapt-indentation: nil
-# org-download-image-dir: "./img/"
-# eval: (auto-fill-mode)
-# End:
-#+title: entropy-open-with
-#+author: Entropy
+# Created 2019-06-16 Sun 12:13
+#+TITLE: Open file by specific program
+#+AUTHOR: entropy
 
-Open files with external executable applications on emacs interface. 
+* Copyright (C) 20190614  Entropy
+#+BEGIN_EXAMPLE
+Author:        Entropy <bmsac0001@gmail.com>
+Maintainer:    Entropy <bmsac001@gmail.com>
+URL:           https://github.com/c0001/entropy-open-with/blob/master/entropy-open-with.el#L7
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#+END_EXAMPLE
+
+* Commentary:
+
+Open files with external executable applications on emacs interface.
 
 There's times for emacer try their best-efforts for dealing all the
 operations within emacs only, but I thought about that this was not
@@ -20,10 +37,10 @@ said previous.
 This package given the ability what file openning with wide customized
 external applications according to the filename extension.
 
-* Installation
+** Installation
 
-Just requiring the file [[file:entropy-open-with.el][entropy-open-with.el]]  using:
-: (require 'entropy-open-with)
+Just requiring the file [[file:entropy-open-with.el][entropy-open-with.el]] using: : (require
+'entropy-open-with)
 
 Then bind key for func ~entropy/open-with-dired-open~ and
 ~entropy/open-with-buffer~ for suggested keybindings =C-M-return= and
@@ -47,7 +64,7 @@ as below:
         (kbd "<C-M-return>") 'entropy/open-with-dired-open)))
 #+END_SRC
 
-* Configuratioin
+** Configuratioin
 
 The core configuration for this package's customized refers was based
 on the one customized variable =entropy/open-with-type-list= which
@@ -56,33 +73,34 @@ regexp expression with the corresponding external application forms as
 below:
 
 #+BEGIN_SRC elisp
-  '(((\"html\" \"pdf\" \"xml\" \"php\" \"md\" \"markdown\")
-     \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\" file \"-new-tab\")
-    ((\"mp3\" \"mp4\" \"mkv\" \"rmvb\" \"wmv\" \"flv\" \"avi\")
-     \"a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe\" quote nil)
-    ((\"c\")
-     \"a:/PortableApps/codeblocks/bin/codeblocks.exe\" quote nil))
+  '((("html" "pdf" "xml" "php" "md" "markdown")
+     "a:/PortableApps/FirefoxPortable/FirefoxPortable.exe" file "-new-tab")
+    (("mp3" "mp4" "mkv" "rmvb" "wmv" "flv" "avi")
+     "a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe" quote nil)
+    (("c")
+     "a:/PortableApps/codeblocks/bin/codeblocks.exe" quote nil))
 #+END_SRC
 
 Each element of this list consists of three subjects:
 
-1) *extension regexp strings list*
+1. *extension regexp strings list*
 
    Regexp strings match for specified filename extension can not be
    include extension dot prefix, thus "\.pdf" was ineffectual, using
    "pdf" instead.
 
-   Group extensions match was supported as the benefit way for reducing
-   config literal context length for the case for which application can
-   be calling by dealing with multi file types, e.g. =firefox= can be
-   used both of html file open and pdf file as so.
+   Group extensions match was supported as the benefit way for
+   reducing config literal context length for the case for which
+   application can be calling by dealing with multi file types,
+   e.g. =firefox= can be used both of html file open and pdf file as
+   so.
 
-2) *External application path string*
+2. *External application path string*
 
-   Called of application's absolute path. 
+   Called of application's absolute path.
 
-3) *Command line filaname transfer heading type*
-  
+3. *Command line filaname transfer heading type*
+
    For some external application's URI args request as that file name
    must be concated with the special head prefix, e.g. for web browser
    that the local page file command line arg must have the prefix
@@ -91,13 +109,13 @@ Each element of this list consists of three subjects:
 
    - 'file' method:
 
-     Most of web browser can not use the local file path string as
-     the file url argument in case of that the path string contained
+     Most of web browser can not use the local file path string as the
+     file url argument in case of that the path string contained
      non-ascii characters such as symbol or cjk as for. In this case,
-     using file protocol hexified string  as argument is wise choice.
+     using file protocol hexified string as argument is wise choice.
 
      This transform firstly hexifies the whole local file path string
-     and then adding the \"file:///\" protocol prefix string ahead of
+     and then adding the \"file:/\" protocol prefix string ahead of
      it.
 
    - 'quote' method:
@@ -107,14 +125,14 @@ Each element of this list consists of three subjects:
 
    - nil, passing origin path string to process.
 
-   - Arbitrary function self specified, requesting one arg, the file path.  
- 
-4) *command argument string*
+   - Arbitrary function self specified, requesting one arg, the file path.
+
+4. *command argument string*
 
    Argumet is the concated command arguments string, the single string
    type.
 
-* Interaction
+** Interaction
 
 - *Func:* ~entropy/open-with-interactively~
 
@@ -123,12 +141,12 @@ Each element of this list consists of three subjects:
   the file candidates query filter prompt powered by [[https://github.com/abo-abo/swiper][ivy]] framework.
 
 - *Func:* ~entropy/open-with-dired-open~
-  
+
   Calling external application to open marked files in dired-mode.
 
 - *Func:* ~entropy/open-with-buffer~
 
-  Calling external applications to open current buffer chained file. 
+  Calling external applications to open current buffer chained file.
 
 
 All functions above mentioned was given as the interactive function
@@ -136,12 +154,12 @@ for as so. You can binding them to your key-map along with your habits
 or obey the previous installation init setup.
 
 
-* Apis 
+** Apis
 
 =entropy-open-with= was the minor tool for just giving fiews useful
 api functions:
 
-+ Func ~entropy/open-with-match-open~ 
+- Func ~entropy/open-with-match-open~ 
 
   This func was given the simple way for query input filename's
   corresponding 'open-with' type and then opened it immediately with
@@ -150,7 +168,7 @@ api functions:
   It's arg was one list consists of filenames (path strings), thus
   multi files 'open-with' was supported.
 
-+ Func ~entropy/open-with-port~
+- Func ~entropy/open-with-port~
 
   This func given the try for open single file with 'open-with' or
   using internal emacs openning method.
@@ -167,8 +185,7 @@ api functions:
   - Force one: interact
 
     This arguments was forcefully required by calling with as, it
-    denoted whether let user manually choose file for 'open-with'
-    for. 
+    denoted whether let user manually choose file for 'open-with' for.
 
   - optionals: 1) filename      2) inemacs
 
@@ -178,8 +195,8 @@ api functions:
 
     The other one =inemacs= gives the try for open specific file in
     emacs method.
-  
-*  Notice    
+
+** Notice
 
 For current implementation, this package just whole implemented fully
 on windows platform, darwin and linux are using ~shell-quote-argument~
@@ -202,12 +219,27 @@ filename as so.
 This imperfection was the emacs windows port primary implementation
 state, which was referenced to the gnu-emacs mailing list: [[https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00406.html][here]].
 
-[2019-05-17 Fri 06:08:49]
+[2019-05-17 Fri 06:08]
 
 #+BEGIN_QUOTE
 Now, if you are using the latest version of win10 (any version upper
 than 1803), you could enable the beta optional setting for globally
 =utf-8= capability in the =language&region= config panel.
 #+END_QUOTE
+
+* Configuration:
+
+You can specific the extension list like:
+
+#+BEGIN_SRC elisp
+  '((("html" "pdf" "xml" "php" "md" "markdown")
+     "a:/PortableApps/FirefoxPortable/FirefoxPortable.exe" file "-new-tab")
+    (("mp3" "mp4" "mkv" "rmvb" "wmv" "flv" "avi")
+     "a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe" quote nil)
+    (("c")
+     "a:/PortableApps/codeblocks/bin/codeblocks.exe" quote nil))
+#+END_SRC
+
+More details see below function definition.
 
 
