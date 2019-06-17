@@ -883,23 +883,23 @@ promptings and injecting them into `entropy/emacs-tools-elfeed-multi-update-feed
   
   (defun entropy/emacs-tools-elfeed-update-proxyfeeds-regexp-match ()
     "Update feeds through proxy matched by regexp stored in
-`entropy/emacs-tools--elfeed-proxyfeeds-regexp-list'.
+`entropy/emacs-elfeed-proxyfeeds-regexp-list'.
 
 If hasn't setting the regexp list, prompting for input them
 repeatly and stored them in `cutom-file'."
     (interactive)
     (require 'entropy-common-library)
     (let ((olist (elfeed-feed-list))
-          (relist entropy/emacs-tools--elfeed-proxyfeeds-regexp-list)
+          (relist entropy/emacs-elfeed-proxyfeeds-regexp-list)
           ulist)
       (unless relist
         (setq relist (entropy/cl-repeated-read "Inputting regexp"))
-        (setq entropy/emacs-tools--elfeed-proxyfeeds-regexp-list relist)
-        (customize-save-variable 'entropy/emacs-tools--elfeed-proxyfeeds-regexp-list relist))
+        (setq entropy/emacs-elfeed-proxyfeeds-regexp-list relist)
+        (customize-save-variable 'entropy/emacs-elfeed-proxyfeeds-regexp-list relist))
       (when (yes-or-no-p "Do you want to adding some matching? ")
         (setq relist (append relist (entropy/cl-repeated-read "Adding regexp")))
-        (setq entropy/emacs-tools--elfeed-proxyfeeds-regexp-list relist)
-        (customize-save-variable 'entropy/emacs-tools--elfeed-proxyfeeds-regexp-list relist))
+        (setq entropy/emacs-elfeed-proxyfeeds-regexp-list relist)
+        (customize-save-variable 'entropy/emacs-elfeed-proxyfeeds-regexp-list relist))
       (dolist (el olist)
         (dolist (elm relist)
           (when (string-match-p elm el)
@@ -909,8 +909,8 @@ repeatly and stored them in `cutom-file'."
 
 ;; **** default external browser for feed viewing
 
-(defun elfeed-search-browse-url (&optional use-generic-p)
-  "Visit the current entry in your browser using `browse-url'.
+  (defun elfeed-search-browse-url (&optional use-generic-p)
+    "Visit the current entry in your browser using `browse-url'.
 If there is a prefix argument, visit the current entry in the
 browser defined by `browse-url-generic-program'.
 
@@ -924,16 +924,16 @@ because that all its behavior are not witin the
 internal `browse-url-browser-function'.
 
 The minor changing was compat for above."
-  (interactive "P")
-  (let ((entries (elfeed-search-selected)))
-    (cl-loop for entry in entries
-             do (elfeed-untag entry 'unread)
-             do (elfeed-search-update-entry entry)
-             when (elfeed-entry-link entry)
-             do (if use-generic-p
-                    (browse-url-generic it)
-                  (browse-url it)))
-    (unless (use-region-p) (forward-line))))
+    (interactive "P")
+    (let ((entries (elfeed-search-selected)))
+      (cl-loop for entry in entries
+               do (elfeed-untag entry 'unread)
+               do (elfeed-search-update-entry entry)
+               when (elfeed-entry-link entry)
+               do (if use-generic-p
+                      (browse-url-generic it)
+                    (browse-url it)))
+      (unless (use-region-p) (forward-line))))
 
   
   (defun entropy/emacs-tools--elfeed-browse-url-around (oldfun &rest args)
@@ -951,7 +951,37 @@ The minor changing was compat for above."
                                           ('entropy-browse-url-function entropy/emacs-browse-url-function))))
       (funcall oldfun)))
   (advice-add 'elfeed-search-browse-url :around #'entropy/emacs-tools--elfeed-browse-url-around)
-  (advice-add 'elfeed-show-visit :around #'entropy/emacs-tools--elfeed-browse-url-around))
+  (advice-add 'elfeed-show-visit :around #'entropy/emacs-tools--elfeed-browse-url-around)
+
+;; **** elfeed print entry function
+  (defun entropy/emacs-tools--elfeed-search-print-entry--default (entry)
+    "Print ENTRY to the buffer."
+    (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
+           (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
+           (title-faces (elfeed-search--faces (elfeed-entry-tags entry)))
+           (feed (elfeed-entry-feed entry))
+           (feed-title
+            (when feed
+              (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
+           (tags (mapcar #'symbol-name (elfeed-entry-tags entry)))
+           (tags-str (mapconcat
+                      (lambda (s) (propertize s 'face 'elfeed-search-tag-face))
+                      tags ","))
+           (title-width (- (window-width) 10 elfeed-search-trailing-width))
+           (title-column (elfeed-format-column
+                          title (elfeed-clamp
+                                 elfeed-search-title-min-width
+                                 title-width
+                                 elfeed-search-title-max-width)
+                          :left)))
+      (insert (propertize date 'face 'elfeed-search-date-face) " ")
+      (insert (propertize title-column 'face title-faces 'kbd-help title) "\t")
+      (when feed-title
+        (insert (propertize feed-title 'face 'elfeed-search-feed-face) " "))
+      (when tags
+        (insert "(" tags-str ")"))))
+
+  (setq elfeed-search-print-entry-function 'entropy/emacs-tools--elfeed-search-print-entry--default))
 
 ;; ** gnus
 (use-package gnus
