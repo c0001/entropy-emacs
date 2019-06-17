@@ -603,17 +603,15 @@ did by `entropy/prjm--inct-addprj-create-template'."
 ;; ** db chosen interation
 (defun entropy/prjm-inct-chosen-db ()
   (interactive)
-  (let ((ivy-format-function
-         (entropy/prjm--inct-csdb-ivy-format-func)))
-    (ivy-read "Choose entropy prjm db: "
-              (entropy/prjm--inct-csdb-get-db-names-candi)
-              :require-match t
-              :action (lambda (x)
-                        (setq entropy/prjm--inct-selected-db-name x)
-                        (let* ((candi-db-exp-get-func (entropy/prjm--inct-get-db-chosen-operator "get-by-name"))
-                               (db-exp (funcall candi-db-exp-get-func x)))
-                          (funcall 'entropy/prjm--inct-list-prjs db-exp)))
-              :caller 'entropy/prjm-inct-chosen-db)))
+  (ivy-read "Choose entropy prjm db: "
+            (entropy/prjm--inct-csdb-get-db-names-candi)
+            :require-match t
+            :action (lambda (x)
+                      (setq entropy/prjm--inct-selected-db-name x)
+                      (let* ((candi-db-exp-get-func (entropy/prjm--inct-get-db-chosen-operator "get-by-name"))
+                             (db-exp (funcall candi-db-exp-get-func x)))
+                        (funcall 'entropy/prjm--inct-list-prjs db-exp)))
+            :caller 'entropy/prjm-inct-chosen-db))
 
 (ivy-set-actions
  'entropy/prjm-inct-chosen-db
@@ -638,32 +636,34 @@ did by `entropy/prjm--inct-addprj-create-template'."
           (format "%%-%ds   %%s" max-len))
     formatter-string))
 
-(defun entropy/prjm--inct-csdb-ivy-format-func ()
-  (lambda (db-names)
-    (let* ((candi-item-format (entropy/prjm--inct-csdb-db-names-candi-formatter))
-           (candi-db-exp-get-func (entropy/prjm--inct-get-db-chosen-operator "get-by-name"))
-           (candi-des-func
-            (lambda (db-name)
-              (let ((db-obj (entropy/prjm-gen-db-obj
-                             (funcall candi-db-exp-get-func db-name))))
-                (plist-get db-obj :db-des)))))
-           
-      (ivy--format-function-generic
-       (lambda (db-name)
-         (concat (car entropy/prjm--inct-ui-pointer-style)
-                 (format candi-item-format
-                         (ivy--add-face db-name 'ivy-current-match)
-                         (propertize
-                          (funcall candi-des-func db-name)
-                          'face 'ivy-cursor))))
-       (lambda (db-name)
-         (concat (cdr entropy/prjm--inct-ui-pointer-style)
-                 (format candi-item-format
-                         db-name
-                         (propertize (funcall candi-des-func db-name)
-                                     'face
-                                     'ivy-completions-annotations))))
-       db-names "\n"))))
+(defun entropy/prjm--inct-csdb-ivy-format-func (db-names)
+  (let* ((candi-item-format (entropy/prjm--inct-csdb-db-names-candi-formatter))
+         (candi-db-exp-get-func (entropy/prjm--inct-get-db-chosen-operator "get-by-name"))
+         (candi-des-func
+          (lambda (db-name)
+            (let ((db-obj (entropy/prjm-gen-db-obj
+                           (funcall candi-db-exp-get-func db-name))))
+              (plist-get db-obj :db-des)))))
+    
+    (ivy--format-function-generic
+     (lambda (db-name)
+       (concat (car entropy/prjm--inct-ui-pointer-style)
+               (format candi-item-format
+                       (ivy--add-face db-name 'ivy-current-match)
+                       (propertize
+                        (funcall candi-des-func db-name)
+                        'face 'ivy-cursor))))
+     (lambda (db-name)
+       (concat (cdr entropy/prjm--inct-ui-pointer-style)
+               (format candi-item-format
+                       db-name
+                       (propertize (funcall candi-des-func db-name)
+                                   'face
+                                   'ivy-completions-annotations))))
+     db-names "\n")))
+
+(add-to-list 'ivy-format-functions-alist
+             '(entropy/prjm-inct-chosen-db . entropy/prjm--inct-csdb-ivy-format-func))
 
 ;; ** db list all prjs
 (defun entropy/prjm--inct-list-prjs (db-expression)
@@ -671,13 +671,10 @@ did by `entropy/prjm--inct-addprj-create-template'."
                         "QUERY-ALL"))
          (db-cache-obj (funcall prj-operator db-expression))
          (db-obj (entropy/prjm-gen-db-obj db-expression))
-         (db-location (plist-get db-obj :db-location))
-         (ivy-format-function nil)
-         prjs-candi-alist)
+         (db-location (plist-get db-obj :db-location)))
     (setq entropy/prjm--inct-temp-dbco db-cache-obj
           entropy/prjm--inct-temp-prjs-candi-alist
           (entropy/prjm--inct-names-prj-column-exps db-cache-obj))
-    (setq ivy-format-function (entropy/prjm--inct-lprjs-ivy-format-func))
     (ivy-read "Choose prj: " entropy/prjm--inct-temp-prjs-candi-alist
               :require-match t
               :action (lambda (x) (entropy/prjm--inct-lprjs-open-prj
@@ -764,13 +761,14 @@ did by `entropy/prjm--inct-addprj-create-template'."
                                'ivy-completions-annotations)))))
 
 
-(defun entropy/prjm--inct-lprjs-ivy-format-func ()
-  (lambda (prjs-candi-alist)
-    (ivy--format-function-generic
-     (lambda (x) (funcall 'entropy/prjm--inct-lprjs-ivy-item-format-func x))
-     (lambda (x) (funcall 'entropy/prjm--inct-lprjs-ivy-item-format-func x t))
-     prjs-candi-alist "\n")))
+(defun entropy/prjm--inct-lprjs-ivy-format-func (prjs-candi-alist)
+  (ivy--format-function-generic
+   (lambda (x) (funcall 'entropy/prjm--inct-lprjs-ivy-item-format-func x))
+   (lambda (x) (funcall 'entropy/prjm--inct-lprjs-ivy-item-format-func x t))
+   prjs-candi-alist "\n"))
 
+(add-to-list 'ivy-format-functions-alist
+             '(entropy/prjm--inct-list-prjs . entropy/prjm--inct-lprjs-ivy-format-func))
 
 (defun entropy/prjm--inct-lprjs-open-prj (prj-column-exp db-location)
   (let ((open-func (entropy/prjm--inct-get-db-prj-operator "OPEN"))
