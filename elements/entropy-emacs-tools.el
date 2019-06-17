@@ -412,14 +412,21 @@ and macro expand of it."
                              (file-exists-p entropy/emacs-wsl-apps))
                         (expand-file-name
                          "curl.exe" entropy/emacs-wsl-apps)))
-        (w32-curl "c:/WINDOWS/system32/curl.exe"))
+        (w32-curl "c:/WINDOWS/system32/curl.exe")
+        (unix-curl "curl"))
     (cond
      ((ignore-errors (file-exists-p w32-curl))
-      (setq elfeed-curl-program-name w32-curl))
+      (setq elfeed-curl-program-name w32-curl)
+      (setq elfeed-use-curl t))
      ((ignore-errors (file-exists-p mingw-curl))
-      (setq elfeed-curl-program-name mingw-curl))
+      (setq elfeed-curl-program-name mingw-curl)
+      (setq elfeed-use-curl t))
      ((ignore-errors (file-exists-p msys2-curl))
-      (setq elfeed-curl-program-name msys2-curl))
+      (setq elfeed-curl-program-name msys2-curl)
+      (setq elfeed-use-curl t))
+     ((ignore-errors (and (executable-find "curl")
+                          (or sys/linuxp sys/macp)))
+      (setq elfeed-use-curl t))
      (t
       (setq elfeed-use-curl nil))))
 
