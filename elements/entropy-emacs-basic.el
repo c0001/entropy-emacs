@@ -1241,7 +1241,20 @@ using simple dired visual type, although you have seting it to
         (when (file-exists-p el)
           (entropy/cl-backup-file el)))
       (revert-buffer)))
-  (define-key dired-mode-map (kbd "B") #'entropy/emacs-basic-backup-files))
+  (define-key dired-mode-map (kbd "B") #'entropy/emacs-basic-backup-files)
+
+;; **** dired auto revert after some operations
+
+  (defun entropy/emacs-basic--dired-revert-advice (&rest _)
+    (revert-buffer))
+  (dolist (el '(dired-do-rename
+                dired-do-rename-regexp
+                dired-do-copy
+                dired-do-copy-regexp
+                dired-do-compress
+                dired-do-compress-to
+                dired-do-touch))
+    (advice-add el :after #'entropy/emacs-basic--dired-revert-advice)))
 
 ;; *** dired-x
 (use-package dired-x
