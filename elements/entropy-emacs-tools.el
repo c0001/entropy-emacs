@@ -1647,7 +1647,7 @@ For now, there's three choices for you:
 ;; *** entropy-counsel-stuffs
 (use-package entropy-counsel-stuffs
   :ensure nil
-  :bind (("C-M-<f12>" . entropy/cs-recorde-entry)
+  :bind (("M-<f12>" . entropy/cs-recorde-entry)
          ("C-<f12>" . entropy/cs-open-all))
   :commands (entropy/cs-filter-open
              entropy/cs-recorde-entry

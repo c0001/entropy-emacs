@@ -243,40 +243,41 @@ mechanism. Entropy-emacs use the mode-based ico shown only. "
                             'display '(raise -0.125)))
               icon))))
   
-  (defun doom-modeline-update-buffer-file-state-icon (&rest _)
-    "Update the buffer or file state in mode-line.
+  (byte-compile
+   (defun doom-modeline-update-buffer-file-state-icon (&rest _)
+     "Update the buffer or file state in mode-line.
 
 Note:
 
 This function has been modified for adapting for entropy-emacs.
 
 entropy-emacs using all file state icos show side by side. "
-    (setq doom-modeline--buffer-file-state-icon
-          (concat
-           (when (or (buffer-narrowed-p)
-                     (and (fboundp 'fancy-narrow-active-p)
-                          (fancy-narrow-active-p)))
-             (doom-modeline-buffer-file-state-icon
-              "vertical_align_center"
-              "><"
-              'doom-modeline-warning))
-           (when buffer-read-only
-             (doom-modeline-buffer-file-state-icon
-              "lock"
-              "%1*"
-              'doom-modeline-warning))
-           (when (buffer-modified-p)
-             (doom-modeline-buffer-file-state-icon
-              "save"
-              "%1*"
-              'doom-modeline-buffer-modified))
-           (when (and buffer-file-name
-                      (not (file-exists-p buffer-file-name)))
-             (doom-modeline-buffer-file-state-icon
-              "do_not_disturb_alt"
-              "!"
-              'doom-modeline-urgent))
-           "")))
+     (setq doom-modeline--buffer-file-state-icon
+           (concat
+            (when (or (buffer-narrowed-p)
+                      (and (fboundp 'fancy-narrow-active-p)
+                           (fancy-narrow-active-p)))
+              (doom-modeline-buffer-file-state-icon
+               "vertical_align_center"
+               "><"
+               'doom-modeline-warning))
+            (when buffer-read-only
+              (doom-modeline-buffer-file-state-icon
+               "lock"
+               "%1*"
+               'doom-modeline-warning))
+            (when (buffer-modified-p)
+              (doom-modeline-buffer-file-state-icon
+               "save"
+               "%1*"
+               'doom-modeline-buffer-modified))
+            (when (and buffer-file-name
+                       (not (file-exists-p buffer-file-name)))
+              (doom-modeline-buffer-file-state-icon
+               "do_not_disturb_alt"
+               "!"
+               'doom-modeline-urgent))
+            ""))))
   (advice-add #'narrow-to-defun :after #'doom-modeline-update-buffer-file-state-icon)
   (advice-add #'narrow-to-page :after #'doom-modeline-update-buffer-file-state-icon)
   

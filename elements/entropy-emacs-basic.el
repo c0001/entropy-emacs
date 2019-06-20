@@ -1086,12 +1086,9 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
 						           "lzma" "bzip2" "cab" "jar" "iso"))
 
              ;; boring regexp due to lack of imagination
-             (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")
-
-             ;; highlight executable files, but not directories
-             (dired-rainbow-define-chmod executable-unix "green" "-[rw-]+x.*"))
-           (if (string= entropy/emacs-dired-visual-type "all-the-icons")
-               (warn " Because you are in emacs 25.3.1, just can
+             (dired-rainbow-define log (:inherit default :italic t) ".*\\.log"))
+           (when (string= entropy/emacs-dired-visual-type "all-the-icons")
+             (warn " Because you are in emacs 25.3.1, just can
 using simple dired visual type, although you have seting it to
 \"all-the-icons\".")))
           ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
@@ -1108,7 +1105,8 @@ using simple dired visual type, although you have seting it to
                ;; @see https://github.com/jtbm37/all-the-icons-dired/issues/11
                (all-the-icons-dired--reset)
 
-               (when (and (not all-the-icons-dired-displayed) dired-subdir-alist)
+               (when (and (not all-the-icons-dired-displayed) dired-subdir-alist
+                          (not (> (save-excursion (goto-char (point-max)) (line-number-at-pos)) 100)))
                  (setq-local all-the-icons-dired-displayed t)
                  (let ((inhibit-read-only t)
                        (remote-p (and (fboundp 'tramp-tramp-file-p)
