@@ -37,8 +37,6 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
 (require 'subr-x)
-(use-package apel)
-
 
 ;; ** openwith external apps
 ;; *** openwith config

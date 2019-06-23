@@ -33,7 +33,6 @@
 
 (defvar entropy-emacs-packages
   `(ac-php
-    apel
     atom-dark-theme
     atom-one-dark-theme
     atomic-chrome
@@ -100,6 +99,7 @@
     irony-eldoc
     irony
     ivy-xref
+    ivy-rich
     js2-refactor
     json-mode
     json-reformat

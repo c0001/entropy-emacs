@@ -619,6 +619,25 @@ just it's name."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
+;; ** ivy framework
+(defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
+  "The enhancement for ivy-framework, icon abbreviation and other
+information displayed in candidates show.
+
+Two valid value defaulted by `entropy-emacs':
+
+- `all-the-icons-ivy'
+
+  The simple one for that, just ehance for `ivy-switch-buffer' and
+  `counsel-find-file'.
+
+- `ivy-rich-mode'
+
+  The fully riched mode for that, see its document for more
+  details."
+  :type 'sexp
+  :group 'ivy)
+
 ;; ** company config
 (defcustom entropy/emacs-company-lsp nil
   "Enable lsp for company-mode"
