@@ -197,8 +197,8 @@ custom variable
     t)))
 
 (dolist (el '(entropy/emacs-toggle-utf-8-and-locale
-              entropy/emacs-lang-set-utf-8
-              entropy/emacs-revert-buffer-with-custom-language-environment))
+              entropy/emacs-revert-buffer-with-custom-language-environment
+              entropy/emacs-lang-set))
   (advice-add el :around #'entropy/emacs-lang-set-without-enable))
 
 ;; common around advice for wrapper function into utf-8 environment

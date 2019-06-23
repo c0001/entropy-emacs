@@ -216,7 +216,8 @@ was found."
   :bind ([f9] . entropy/emacs-shell-shell-pop-for-eshell)
   :init
   (defun entropy/emacs-shell--shell-pop-before-advice (&rest args)
-    (when (string-match "^/\\w+?:" default-directory)
+    (when (and (string-match "^/\\w+?:" default-directory)
+               sys/win32p)
       (error "Can not usign eshell in tramp location.")))
 
   (advice-add 'entropy/emacs-shell-shell-pop-for-eshell
@@ -284,9 +285,9 @@ was found."
            (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
           
           (t
-           (advice-add 'entropy/emacs-shell-pop-for-ansi-term-cmd
+           (advice-add 'entropy/emacs-shell-pop-for-ansi-term-of-win32cmd
                        :before #'entropy/emacs-shell--shell-pop-before-advice)
-           (defun entropy/emacs-shell-pop-for-ansi-term-cmd  (arg)
+           (defun entropy/emacs-shell-pop-for-ansi-term-of-win32cmd  (arg)
              (interactive "P")
              (require 'shell-pop)
              (let* ((shell-pop-term-shell shell-file-name)
@@ -295,7 +296,7 @@ was found."
                     (shell-pop-internal-mode-buffer (nth 1 value))
                     (shell-pop-internal-mode-func (nth 2 value)))
                (shell-pop arg)))
-           (global-set-key (kbd "<f10>") 'entropy/emacs-shell-pop-for-ansi-term-cmd)))))
+           (global-set-key (kbd "<f10>") 'entropy/emacs-shell-pop-for-ansi-term-of-win32cmd)))))
 
 
 

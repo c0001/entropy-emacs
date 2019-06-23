@@ -172,8 +172,7 @@ which type of value be:
           (interactive)
           (if (not (string= current-language-environment "UTF-8"))
               (progn
-                (set-language-environment "UTF-8")
-                (prefer-coding-system 'utf-8-unix)
+                (entropy/emacs-lang-set-utf-8)
                 (counsel-git))
             (counsel-git)))
         (global-set-key (kbd "C-c g") 'entropy/emacs-ivy-counsel-git)
@@ -182,12 +181,7 @@ which type of value be:
           (interactive)
           (if (not (string= current-language-environment "UTF-8"))
               (progn
-                (set-language-environment "UTF-8")
-                (prefer-coding-system 'utf-8-unix)
-                (setq buffer-file-coding-system 'utf-8-unix)
-                (setq process-coding-system 'utf-8-unix)
-                (set-terminal-coding-system 'utf-8-unix)
-                (set-keyboard-coding-system 'utf-8-unix)
+                (entropy/emacs-lang-set-utf-8)
                 (counsel-bookmark))
             (counsel-bookmark)))
         (global-set-key (kbd "C-x r b") 'entropy/emacs-counsel-bookmark))
