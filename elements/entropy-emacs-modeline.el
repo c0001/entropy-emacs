@@ -235,6 +235,10 @@ mechanism. Entropy-emacs use the mode-based ico shown only. "
                         (eq major-mode 'fundamental-mode))
                 (cond ((equal (buffer-name) entropy/emacs-dashboard-buffer-name)
                        (setq icon (all-the-icons-octicon "eye" :height height)))
+                      ((eq major-mode 'Info-mode)
+                       (setq icon (all-the-icons-faicon "info-circle" :height height)))
+                      ((eq major-mode 'w3m-mode)
+                       (setq icon (all-the-icons-faicon "chrome" :height height)))
                       (t
                        (setq icon (all-the-icons-octicon "file-binary" :height height)))))
               (unless (symbolp icon)

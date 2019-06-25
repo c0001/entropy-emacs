@@ -76,15 +76,17 @@
   (list (list :item "entropy-emacs-deps"
               :repo-lc entropy/emacs-ext-deps-dir
               :version-lc (expand-file-name "version" entropy/emacs-ext-deps-dir)
-              :version "0.1.4"
+              :version "0.1.5"
               :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/emacs-ext-deps-dir)
-              :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-deps-dir))
+              :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-deps-dir)
+              :load-predicate (expand-file-name "entropy-emacs-deps-load.el" entropy/emacs-ext-deps-dir))
         (list :item "entropy-emacs-extensions"
               :repo-lc entropy/emacs-ext-extensions-dir
               :version-lc (expand-file-name "version" entropy/emacs-ext-extensions-dir)
-              :version "0.1.3"
+              :version "0.1.4"
               :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/emacs-ext-extensions-dir)
-              :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir))))
+              :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir)
+              :load-predicate (expand-file-name "entropy-emacs-extensions-load.el" entropy/emacs-ext-extensions-dir))))
 
 
 (defvar entropy/emacs-ext--extras-trouble-table
@@ -242,6 +244,31 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
       (entropy/emacs-ext--add-subdirs-to-load-path el))))
 
 
+;; *** byte compile package
+(defun entropy/emacs-ext--byte-compile-directory (dir)
+  (let* ((dir-cur (expand-file-name dir))
+         (dir-cur-P (unless (file-exists-p dir-cur)
+                      (error "Directory '%s' not exists!" dir-cur)))
+         (dir-list (directory-files (expand-file-name dir-cur)))
+         source-dirP)
+    (catch :exit
+      (dolist (el dir-list)
+        (when (string-match-p "\\.el$" el)
+          (setq source-dirP t)
+          (throw :exit nil))))
+    (when source-dirP
+      (byte-recompile-directory dir-cur 0 t))))
+
+
+;; *** load extra load procedure
+(defun entropy/emacs-ext--load-extra ()
+  (let ((ext-plists (entropy/emacs-ext--check-inuse-extras)))
+    (dolist (el ext-plists)
+      (let ((loader (plist-get el :load-predicate)))
+        (when (ignore-errors (file-exists-p loader))
+          (load loader))))))
+
+
 ;; ** main
 (defun entropy/emacs-ext-main ()
   (let ((extras-status (entropy/emacs-ext--check-all-extras)))
@@ -249,13 +276,7 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
       (entropy/emacs-ext--extra-prompt-troubel extras-status))
     (if (not (eq extras-status t))
         nil
-      (entropy/emacs-ext--load-path
-       (expand-file-name "elements/submodules"
-                         entropy/emacs-ext-deps-dir))
-      (when (eq entropy/emacs-use-extensions-type 'submodules)
-        (entropy/emacs-ext--load-path
-         (expand-file-name "elements/submodules"
-                           entropy/emacs-ext-extensions-dir)))
+      (entropy/emacs-ext--load-extra)
       (when (and entropy/emacs-ext-user-specific-load-paths
                  (listp entropy/emacs-ext-user-specific-load-paths))
         (dolist (el entropy/emacs-ext-user-specific-load-paths)
