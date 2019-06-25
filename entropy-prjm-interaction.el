@@ -453,6 +453,20 @@ baseline.
   (let ((tfmstr (format-time-string "%Y%m%d%H%M%S")))
     tfmstr))
 
+(defun entropy/prjm--inct-build-local-uri (local-path)
+  ;; Note: local-path must be absolute path
+  (let ((head "file://localhost/") w32-transfer xnix-transfer rtn)
+    (cl-case system-type
+      (windows-nt
+       (setq w32-transfer
+             (replace "^\\(.\\):" "\\1" local-path))
+       (setq rtn (concat head w32-transfer)))
+      (t
+       (setq xnix-transfer
+             (replace-regexp-in-string
+              "^/" "" local-path))
+       (setq rtn (concat head xnix-transfer))))))
+
 
 ;; *** column read library
 (defun entropy/prjm--inct-read-column (prompt column shaft-value db-location &optional initial)
@@ -491,7 +505,7 @@ instance) from:
 *Composited read details:*
 
 Til now, there's only one composited read column i.e. the uri
-column, it has the four sdcondition cases:
+column, it has the four condition cases:
 
 | *Type case*        | *condition details*                                                   |
 |--------------------+-----------------------------------------------------------------------|
@@ -566,8 +580,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
                                                     "Please try to selected existed location!"
                                                     t)))
                           (setq prj-path (concat prj-root shaft-value))
-                          (setq prj-root (replace-regexp-in-string "^\\(.\\):" "\\1" prj-root)
-                                prj-uri (concat "file://localhost/" prj-root shaft-value)
+                          (setq prj-uri (entropy/prjm--inct-build-local-uri prj-path)
                                 prj-uri (entropy/prjm--inct-analyzing-uri prj-uri db-location "home"))
                           (list :uri prj-uri :path prj-path)))
                        ((equal type-choose "manually-local")
@@ -578,8 +591,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
                             (setq prj-archive (funcall repeated-read-candi prompt
                                                        "Please try insert file name in root of prj!" nil t)))
                           (setq prj-path prj-archive)
-                          (setq prj-archive (replace-regexp-in-string "^\\(.\\):" "\\1" prj-archive)
-                                prj-uri (concat "file://localhost/" prj-archive)
+                          (setq prj-uri (entropy/prjm--inct-build-local-uri prj-path)
                                 prj-uri (entropy/prjm--inct-analyzing-uri prj-uri db-location "home"))
                           (list :uri prj-uri :path prj-path)))
                        ((equal type-choose "exists-local")
@@ -590,8 +602,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
                             (setq prj-archive (funcall repeated-read-candi prompt
                                                        "Please selected the existed locaion!")))
                           (setq prj-path prj-archive
-                                prj-archive (replace-regexp-in-string "^\\(.\\):" "\\1" prj-archive)
-                                prj-uri (concat "file://localhost/" prj-archive)
+                                prj-uri (entropy/prjm--inct-build-local-uri prj-path)
                                 prj-uri (entropy/prjm--inct-analyzing-uri
                                          prj-uri db-location "home"))
                           (list :uri prj-uri :path prj-path))))
@@ -788,6 +799,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
          (shaft-column (car (plist-get (cdr (assoc 'Shaft (entropy/prjm-prj-obj-prototype)))
                                       :columns)))
          (db-obj (entropy/prjm-gen-db-obj db-expression))
+         (db-name (plist-get db-obj :db-name))
          (db-lc (plist-get db-obj :db-location))
          (keys (entropy/prjm--inct-get-prj-attrs))
          (add-operator (entropy/prjm--inct-get-db-prj-operator '"ADD"))
@@ -815,18 +827,21 @@ did by `entropy/prjm--inct-addprj-create-template'."
              (not (equal "" (car (reverse prj-exp)))))
         (setq prj-exp (append '("ADD") (reverse prj-exp)))
       (error "You must insert the prj shaft!"))
-    (let* ((db-cache-obj (funcall qall-operator db-expression))
+    (let* ((db-cache-obj (ignore-errors (funcall qall-operator db-expression)))
            (db-hash (cadr db-cache-obj))
            (shaft-value (progn
                          (entropy/prjm-prj-expression-validp prj-exp)
                          (cadr prj-exp))))
-      (if (gethash shaft-value db-hash)
-          (error "<<enropy/prjm--inct-add--prj>>:
-prj shaft '%s' has been existed!" shaft-value)
-        (when (and path-added
-                   (not (file-exists-p path-added)))
-          (entropy/prjm--inct-addprj-create-template path-added))
-        (funcall add-operator prj-exp db-expression)))))
+      (cond ((null db-cache-obj)
+             (message "'%s' was fresh new!" db-name))
+            (t
+             (when (gethash shaft-value db-hash)
+               (error "<<enropy/prjm--inct-add--prj>>:
+prj shaft '%s' has been existed!" shaft-value))))
+      (when (and path-added
+                 (not (file-exists-p path-added)))
+        (entropy/prjm--inct-addprj-create-template path-added))
+      (funcall add-operator prj-exp db-expression))))
 
 
 (defun entropy/prjm--inct-addprj-create-template (target-abs)
