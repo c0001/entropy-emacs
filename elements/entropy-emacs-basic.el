@@ -2000,5 +2000,15 @@ otherwise returns nil."
 (global-set-key (kbd "M-c") 'entropy/emacs-basic-capitalize-word)
 (global-set-key (kbd "M-u") 'entropy/emacs-basic-upcase-word)
 
+;; ** autocompression moode
+(defun entropy/emacs-basic--force-enable-autocompression-mode ()
+  "Force refresh autocompression mode enabling status as that the
+initialization for its refers procedure can not cover fully
+functional of `auto-compression-mode'."
+  (auto-compression-mode 0)
+  (auto-compression-mode 1))
+
+(add-hook 'entropy/emacs-init-mini-hook #'entropy/emacs-basic--force-enable-autocompression-mode)
+
 ;; * provide
 (provide 'entropy-emacs-basic)
