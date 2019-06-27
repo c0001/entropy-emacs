@@ -218,6 +218,14 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
         doom-modeline-buffer-file-name-style 'truncate-all
         doom-modeline-major-mode-color-icon t)
   :config
+
+  (defun entropy/emacs-modeline--dml-segments-error-handle (old-func &rest _)
+    (ignore-errors (apply old-func _)))
+
+  (dolist (el '(doom-modeline-update-buffer-file-icon
+                doom-modeline-update-buffer-file-state-icon))
+    (advice-add el :around #'entropy/emacs-modeline--dml-segments-error-handle))
+  
   (defun doom-modeline-update-buffer-file-icon (&rest _)
     "Update file icon in mode-line.
 
