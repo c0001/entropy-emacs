@@ -141,7 +141,7 @@
 
 ;; * Code:
 
-
+(require 'ivy)
 (require 'entropy-prjm-core)
 (require 'all-the-icons)
 (require 'url)
