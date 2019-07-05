@@ -183,7 +183,8 @@ recovery method unless reopen capture operation.w
   (defun entropy/emacs-org-open-at-point ()
     (interactive)
     (let ((org-link-frame-setup
-           (acons 'file 'find-file org-link-frame-setup)))
+           (acons 'file 'find-file org-link-frame-setup))
+          (process-connection-type nil))
       (org-open-at-point)))
   (define-key org-mode-map (kbd "C-c C-o") 'entropy/emacs-org-open-at-point)
 
