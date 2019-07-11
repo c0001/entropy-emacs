@@ -41,7 +41,8 @@
   (defun entropy/emacs-game--tetris-off-display-line-numbers ()
     "If enable `global-display-line-numbers-mode', turn it off in
 `tetris-mode' ."
-    (if (and (not (version< emacs-version "26")) display-line-numbers-mode)
+    (if (and (not (version< emacs-version "26"))
+             (ignore-errors display-line-numbers-mode))
         (display-line-numbers-mode 0)))
   (advice-add 'tetris :after #'entropy/emacs-game--tetris-off-display-line-numbers))
 
