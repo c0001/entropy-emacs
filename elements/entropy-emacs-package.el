@@ -70,9 +70,9 @@ for `user-emacs-directory'."
 ;;
 ;; ELPA: refer to https://elpa.emacs-china.org/
 ;;
-(defvar-local package-archives-list '(melpa emacs-china tuna))
+(defvar-local package-archives-list '(melpa emacs-china tuna tencent))
 
-(defun entropy/emacs-package--set-package-archive-location (archives)
+(defun entropy/emacs-package-set-package-archive-location (archives)
   "Switch to specific package ARCHIVES repository."
   (interactive
    (list
@@ -94,11 +94,16 @@ for `user-emacs-directory'."
                              ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
                              ("org"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/org/")
                              )))
+   ((eq archives 'tencent)
+    (setq package-archives '(("gnu"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
+                             ("melpa" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
+                             ("org"   . "http://mirrors.cloud.tencent.com/elpa/org/")
+                             )))
    (t
     (error "Unknown archives: '%s'" archives)))
   (message "Set package archives to '%s'." archives))
 
-(entropy/emacs-package--set-package-archive-location entropy/emacs-package-archive-repo)
+(entropy/emacs-package-set-package-archive-location entropy/emacs-package-archive-repo)
 
 
 ;; Remove internal org-mode path
