@@ -247,8 +247,10 @@ mechanism. Entropy-emacs use the mode-based ico shown only. "
                        (setq icon (all-the-icons-faicon "info-circle" :height height)))
                       ((eq major-mode 'w3m-mode)
                        (setq icon (all-the-icons-faicon "chrome" :height height)))
+                      ((eq major-mode 'gitignore-mode)
+                       (setq icon (all-the-icons-alltheicon "git" :height height)))
                       (t
-                       (setq icon (all-the-icons-octicon "file-binary" :height height)))))
+                       (setq icon (all-the-icons-faicon "file" :height height)))))
               (unless (symbolp icon)
                 (propertize icon
                             'help-echo (format "Major-mode: %s" (format-mode-line mode-name))
