@@ -106,6 +106,8 @@
     json-snatcher
     klere-theme
     loop
+    lsp-mode
+    lsp-ui
     lua-mode
     macrostep
     magit-gitflow
