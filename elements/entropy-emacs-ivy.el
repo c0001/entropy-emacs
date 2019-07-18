@@ -800,5 +800,28 @@ corresponding buffer."
   (entropy/emacs-ivy--use-ag-common)))
 
 
+;; ** using find-file with counsel
+(use-package find-file-in-project
+  :defines (ffip-project-root)
+  :commands (ffip-find-files entropy/emacs-ivy-ffip)
+  :bind ("C-x M-f" . entropy/emacs-ivy-ffip)
+  :config
+  (defun entropy/emacs-ivy-ffip ()
+    (interactive)
+    (let  (prompt-func)
+      (setq prompt-func
+            (lambda ()
+              (let (target)
+                (setq target
+                      (completing-read
+                       "Choose Place Root: "
+                       'read-file-name-internal))
+                (unless (file-directory-p target)
+                  (setq target (file-name-directory target)))
+                target)))
+      (let ((ffip-project-root (funcall prompt-func)))
+        (ffip-find-files nil nil)))))
+
+
 ;; ** provide
 (provide 'entropy-emacs-ivy)

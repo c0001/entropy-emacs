@@ -79,6 +79,7 @@
     emmet-mode
     esup
     eyebrowse
+    find-file-in-project
     git-messenger
     git-timemachine
     gitattributes-mode
