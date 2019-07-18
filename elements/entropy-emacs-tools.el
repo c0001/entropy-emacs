@@ -1609,6 +1609,11 @@ For now, there's three choices for you:
     (add-hook 'maple-preview:auto-hook #'entropy/emacs-tools-maple-preview:schema-auto-hooks)
     (add-hook 'maple-preview:finialize-hook #'entropy/emacs-tools--maple-preview:schema-finialize-hooks)))
 
+;; ** display world clock
+(use-package counsel-world-clock
+  :commands  (counsel-world-clock)
+  :bind ("C-x <f12>" . counsel-world-clock))
+
 ;; ** entropy-emacs self packages
 ;; *** entropy-proxy-mode
 (use-package entropy-proxy-mode

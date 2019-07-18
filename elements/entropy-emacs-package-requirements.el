@@ -51,6 +51,7 @@
     anaconda-mode
     company-c-headers
     company-irony
+    counsel-world-clock
     ,(unless (version< emacs-version "26") 'company-posframe)
     company-quickhelp
     company-shell
