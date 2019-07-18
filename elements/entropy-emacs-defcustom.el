@@ -403,7 +403,7 @@ Note: ibuffer-projectitle will cause the performance debug.
   '(("MOZILA MDN" "https://developer.mozilla.org/en-US/search?q=%s" External)
     ("php-manual" "https://php.net/manual-lookup.php?pattern=%s" External)
     ("github-external" "https://github.com/search?&q=%s" External)
-    ("baidu" "https://www.baidu.com/s?wd=%s" External)
+    ("baidu" "http://www.baidu.com/s?wd=%s" External)
     ("google" "https://www.google.com/search?q=%s" External)
     ("google ja" "https://www.google.com/search?hl=ja&q=%s" External)
     ("google en" "https://www.google.com/search?hl=en&q=%s" External)
