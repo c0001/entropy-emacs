@@ -110,8 +110,8 @@
 
 (use-package auto-yasnippet
   :commands (aya-create aya-expand)
-  :bind (("H-w" . aya-create)
-         ("H-e" . aya-expand)))
+  :bind (("M-p" . aya-create)
+         ("M-e" . aya-expand)))
 
 ;; * provide
 (provide 'entropy-emacs-yas)
