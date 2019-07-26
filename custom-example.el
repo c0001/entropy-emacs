@@ -57,7 +57,7 @@
 
 ;; *** Projectitle setting
 
-(setq entropy/emacs-enable-ibuffer-projectitle t)
+;; (setq entropy/emacs-enable-ibuffer-projectitle t)
 
 
 ;; *** emms setting
@@ -88,8 +88,8 @@
 ;; *** emacs-init-looklike setting
 
 ;; (setq entropy/emacs-theme-options 'doom-nova)                                 ; set theme you want to use and you can see the
-                                        ; entropy emacs theme list by `M-x customize-themes' 
-                                        ; and the default theme was 'doom-one'
+                                                                                 ; entropy emacs theme list by `M-x customize-themes' 
+                                                                                 ; and the default theme was 'doom-one'
 
 
 ;; (setq entropy/emacs-modeline-style "origin")                                  ; chosen modeline style type, you can see the variable doc for chosen value details.
@@ -147,7 +147,7 @@
 (progn
   ;; (setq entropy/emacs-search-web-engines-internal '(("baidu" "http://www.baidu.com/s?wd=%s" In-Emacs)))
   ;; (setq entropy/emacs-search-web-engines-external '(("baidu" "http://www.baidu.com/s?wd=%s" External)
-  ;;                                             ("google" "http://www.google.com/search?q=%s")))
+  ;;                                                   ("google" "http://www.google.com/search?q=%s")))
   )
 
 
@@ -186,7 +186,6 @@
   ;; (setq entropy/emacs-browse-url-function 'entropy/emacs-open-with-url)
   )
 
-=========
 ;; ** org setting
 
 ;; *** org bullets
@@ -198,7 +197,7 @@
 
 ;; *** org-agenda
 ;; (setq entropy/emacs-org-agenda-emojify t)                                     ; enable emojify for beautify the org agenda prefix but
-                                        ; with performance issue for emacs
+                                                                                 ; with performance issue for emacs
 
 ;; ** highligt setting
 ;;
@@ -206,7 +205,7 @@
 ;;    of whole setting.
 (progn
   ;; (setq entropy/emacs-use-highlight-features t)                                     ; Add highlight package for emacs (t/nil default:nil)
-                                                    ;;; Warning: this will cause low performance of emacs interpretering
+                                                                                       ;;; Warning: this will cause low performance of emacs interpretering
   ;; (setq entropy/emacs-hl-highlight-indention-enable-at-startup t)
   ;; (setq entropy/emacs-hl-diff-hl-enable-at-startup t)
   ;; (setq entropy/emacs-hl-highlight-parentheses-mode-enable-at-startup t)
@@ -224,11 +223,11 @@
   
   ;; *** Whether use wsl(windows subsystem linux)
   (progn ;;(setq entropy/emacs-wsl-enable t)                                     ; whether enable wsl in windows opertion system
-                                        ; recommened applications was git-sdk-64 which contained git-bash and msys2.
-    ;;(setq entropy/emacs-wsl-apps "path-to-your-wsl-apps")
-                                        ; default wsl-apps path was `c:/git-portable/usr/bin'
-                                        ; you must install msys2 to this place and this path was
-                                        ; the default path setted in msys2 installer
+                                                                                 ; recommened applications was git-sdk-64 which contained git-bash and msys2.
+         ;;(setq entropy/emacs-wsl-apps "path-to-your-wsl-apps")
+                                                                                 ; default wsl-apps path was `c:/git-portable/usr/bin'
+                                                                                 ; you must install msys2 to this place and this path was
+                                                                                 ; the default path setted in msys2 installer
     )
 
   ;; **** using gcc within wsl
@@ -245,8 +244,8 @@
   ;; **** Whether use wsl terminal for instead of `cmd.exe' .
   (progn ;;(setq entropy/emacs-wsl-terminal-enable t)                            ; enable wsl terminal
     ;;(setq entropy/emacs-wsl-terminal "path-to-your-wsl-bash-applicatons")
-                                        ; default wsl-terminal application was `c:/git-portable/cmd/git-bash.exe' and you must
-                                        ; install git-for-windows-sdk first accroding to `entropy/emacs-wsl-enable' annotaton
+                                                                                 ; default wsl-terminal application was `c:/git-portable/cmd/git-bash.exe' and you must
+                                                                                 ; install git-for-windows-sdk first accroding to `entropy/emacs-wsl-enable' annotaton
 
     )
   
@@ -257,8 +256,8 @@
     ;; (setq entropy/emacs-git-portable t)                                       ; use portable git instead of system path's git
 
     ;; (setq entropy/emacs-git-portable-path "c:/git-portable/cmd/")
-                                        ; set portable git path and it just be worked when you enable `git-portable'
-                                        ; for attention that you must use `/' in the end of path string
+                                                                                 ; set portable git path and it just be worked when you enable `git-portable'
+                                                                                 ; for attention that you must use `/' in the end of path string
     )
 
 
@@ -269,7 +268,7 @@
     ;; (setq entropy/emacs-win-portable-texlive-path "c:/texlive/bin/win32")     ; path for texlive in windows 
     )
 
-  
+
   ;; *** Portable php in windows
   (progn
     ;; (setq entropy/emacs-win-portable-php-enable t)
@@ -283,9 +282,9 @@
   (progn
     ;; (setq entropy/emacs-win-portable-pip-enable t)                            ; enable pip portable in windows
     ;; (setq entropy/emacs-win-portable-pip-path "your-path-for-pip-in-windows") ; set path for pip in windows
-                                        ; which suggested use
-                                        ; WinPython
-                                        ; `https://winpython.github.io/'
+                                                                                 ; which suggested use
+                                                                                 ; WinPython
+                                                                                 ; `https://winpython.github.io/'
 
     ;; (setq entropy/emacs-win-portable-python-enable t)                         ; enable python portable in windows
     ;; (setq entropy/emacs-win-portable-python-path "C:/WinPython/")

@@ -956,8 +956,8 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                             ((and (not (null pre-files))
                                   (listp pre-files))
                              pre-files)
-                            (t (error "Dir list invalid!")))))
-
+                            (t (error "Dir list invalid!"))))
+          _file-type)
 
       (unless just-kill-refers
         (entropy/emacs-basic--dired-delete-file-prompt base-files))
@@ -984,13 +984,24 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
             (when (not just-kill-refers)
               (progn
                 (setq entropy/emacs-basic--dired-file-current-delete (list file))
-                (cond ((f-directory-p file)
-                       (delete-directory file t))
+                (cond ((f-symlink-p file)
+                       (setq _file-type 'symbol_link)
+                       (delete-file file))
                       ((f-file-p file)
-                       (delete-file file)))
+                       (setq _file-type 'file)
+                       (delete-file file))
+                      ((f-directory-p file)
+                       (setq _file-type 'directory)
+                       (delete-directory file t)))
                 (when (equal major-mode 'dired-mode)
                   (revert-buffer))
-                (message (format "Delete file '%s' done! -v-" file))))
+                (cl-case _file-type
+                  ('symbol_link
+                   (message (format "Delete symbolink '%s' done! -v-" file)))
+                  ('file
+                   (message (format "Delete file '%s' done! -v-" file)))
+                  ('directory
+                   (message (format "Delete directory '%s' done! -v-" file))))))
           (error
            (cond ((eq system-type 'windows-nt)
                   (let ((prompt-buffer (get-buffer-create "*[w32-resmon]*")))
