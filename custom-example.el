@@ -55,6 +55,9 @@
 (setq entropy/emacs-init-frame-height-scale 0.935)
 (setq entropy/emacs-init-loop-alpha nil)
 
+;; *** global read-only-mode enabale
+(setq entropy/grom-enable t)
+
 ;; *** Projectitle setting
 
 ;; (setq entropy/emacs-enable-ibuffer-projectitle t)
