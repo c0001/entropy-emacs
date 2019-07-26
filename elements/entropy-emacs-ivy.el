@@ -548,6 +548,7 @@ this variable used to patching for origin `counsel-git'.")
     (advice-add #'ivy-rich-bookmark-type :override #'ivy-rich-bookmark-type-plus))
   :hook ((ivy-mode . ivy-rich-mode)
          (ivy-rich-mode . (lambda ()
+                            (require 'all-the-icons)
                             (setq ivy-virtual-abbreviate
                                   (or (and ivy-rich-mode 'abbreviate) 'name)))))
   :init
