@@ -97,36 +97,15 @@
 ;; **** darkokai-theme
 (use-package darkokai-theme
   :init (setq darkokai-use-variable-pitch nil))
+
 ;; **** ujelly-theme
 (use-package ujelly-theme)
 
 ;; **** srcery theme
 (use-package srcery-theme)
 
-
-;; **** Adding option themes to theme path
-(unless (eq entropy/emacs-use-extensions-type 'origin)
-  (let* ((base-dir (expand-file-name (expand-file-name "elements/submodules" entropy/emacs-ext-extensions-dir)))
-         (theme-list '("color-theme-sanityinc-tomorrow"
-                       "birds-of-paradise-plus-theme.el"
-                       "gotham-theme"
-                       "atom-dark-theme-emacs"
-                       "atom-one-dark-theme"
-                       "GitHub-Theme-for-Emacs"
-                       "doneburn-theme"
-                       "emacs-klere-theme"
-                       "emacs-material-theme"
-                       "spacemacs-theme"
-                       "emacs-color-themes"
-                       "darkokai"
-                       "color-theme-ujelly"
-                       "srcery-emacs")))
-    (setq theme-list (mapcar #'(lambda (x)
-                                 (expand-file-name x base-dir))
-                             theme-list))
-    (mapc #'(lambda (x)
-              (add-to-list 'custom-theme-load-path x))
-          theme-list)))
+;; **** chocolate theme
+(use-package chocolate-theme)
 
 ;; *** advice for register theme to `entropy/emacs-theme-sticker'
 (when (fboundp 'entropy/emacs-theme-load-register)
@@ -155,25 +134,7 @@
           (load-theme entropy/emacs-theme-options t)
           (when (fboundp 'powerline-reset)
             (powerline-reset))
-          (cond
-           ((string-match-p "spacemacs-dark" (symbol-name entropy/emacs-theme-options))
-            (set-face-attribute 'ivy-current-match nil
-                                :background "purple4" :bold t))
-           ((string-match-p "spacemacs-light)" (symbol-name entropy/emacs-theme-options))
-            (set-face-attribute 'ivy-current-match nil
-                                :background "salmon" :bold t))
-           ((string-match-p "darkokai" (symbol-name entropy/emacs-theme-options))
-            (set-face-attribute 'ivy-current-match nil
-                                :background "#65a7e2"))
-           ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" (symbol-name entropy/emacs-theme-options))
-            (if (equal 'dark (frame-parameter nil 'background-mode))
-                (set-face-attribute 'ivy-current-match nil
-                                    :background "#65a7e2" :foreground "black")
-              (set-face-attribute 'ivy-current-match nil
-                                  :background "#1a4b77" :foreground "white")))
-           ((string= "doom-solarized-light" (symbol-name entropy/emacs-theme-options))
-            (with-eval-after-load 'hl-line
-              (set-face-attribute 'hl-line nil :background "moccasin"))))))
+          (entropy/emacs-theme-load-face-specifix (symbol-name entropy/emacs-theme-options))))
     (error "Problem loading theme %s" (symbol-name entropy/emacs-theme-options))))
 
 ;; ** page-break-lines style form Purcell

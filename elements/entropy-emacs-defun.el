@@ -324,13 +324,62 @@ relative to the other text when
     (when (and (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
                (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
       (entropy/emacs-defun--ohrsc-recovery-org-header-face-scale)))))
-  
+
 
 ;; ** theme sticker
 (defun entropy/emacs-theme-load-register (old-func &rest args)
   (apply old-func args)
   (let ((theme-load (car args)))
     (setq entropy/emacs-theme-sticker theme-load)))
+
+;; ** theme loading specific
+(defun entropy/emacs-theme-load-face-specifix (x)
+  "Advice for `counsel-load-theme-action' that setting face of
+`ivy-current-match' for spacemacs themes.
+
+Reason of this setting was that spacemacs has the un-obviouse
+visual distinction of `ivy-current-match' covered upon the
+`ivy-minibuffer-match-highlight'."
+  (cond
+   ((string-match-p "spacemacs-dark" x)
+    (set-face-attribute 'ivy-current-match nil
+                        :background "purple4" :bold t))
+   ((string-match-p "spacemacs-light)" x)
+    (set-face-attribute 'ivy-current-match nil
+                        :background "salmon" :bold t))
+   ((string-match-p "darkokai" x)
+    (set-face-attribute 'ivy-current-match nil
+                        :background "#65a7e2"))
+   ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" x)
+    (if (equal 'dark (frame-parameter nil 'background-mode))
+        (set-face-attribute 'ivy-current-match nil
+                            :background "#65a7e2" :foreground "black")
+      (set-face-attribute 'ivy-current-match nil
+                          :background "#1a4b77" :foreground "white")))
+   ((string= "doom-solarized-light" x)
+    (when (not (featurep 'hl-line))
+      (require 'hl-line))
+    (set-face-attribute 'hl-line nil :background "moccasin"))))
+
+(defun entropy/emacs-theme-load-modeline-specifix (arg)
+  "Advice of auto refresh doom-modeline bar background color
+when changing theme."
+  (progn
+    (cond ((and (string= entropy/emacs-mode-line-sticker "doom")
+                (string-match-p "\\(ujelly\\)" arg))
+           (set-face-attribute 'doom-modeline-bar
+                               nil :background "black")
+           (doom-modeline-refresh-bars))
+          ((and (string= entropy/emacs-mode-line-sticker "doom")
+                (string-match-p "\\(spolsky\\)" arg))
+           (setq doom-modeline--bar-active
+                 (doom-modeline--make-xpm 'doom-modeline-inactive-bar
+                                          doom-modeline-bar-width
+                                          doom-modeline-height)))
+          ((string= entropy/emacs-mode-line-sticker "doom")
+           (set-face-attribute 'doom-modeline-bar
+                               nil :background (face-background 'mode-line nil t))
+           (doom-modeline-refresh-bars)))))
 
 ;; ** provide
 (provide 'entropy-emacs-defun)

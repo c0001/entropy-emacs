@@ -263,63 +263,8 @@ font style and height."
     (when (eq major-mode 'org-mode)
       (entropy/emacs-adjust-org-heading-scale)))
 
-  (defun entropy/emacs-ivy--clth-current-match-specific (x)
-    "Advice for `counsel-load-theme-action' that setting face of
-`ivy-current-match' for spacemacs themes.
-
-Reason of this setting was that spacemacs has the un-obviouse
-visual distinction of `ivy-current-match' covered upon the
-`ivy-minibuffer-match-highlight'."
-    (cond
-     ((string-match-p "spacemacs-dark" x)
-      (set-face-attribute 'ivy-current-match nil
-                          :background "purple4" :bold t))
-     ((string-match-p "spacemacs-light)" x)
-      (set-face-attribute 'ivy-current-match nil
-                          :background "salmon" :bold t))
-     ((string-match-p "darkokai" x)
-      (set-face-attribute 'ivy-current-match nil
-                          :background "#65a7e2"))
-     ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" x)
-      (if (equal 'dark (frame-parameter nil 'background-mode))
-          (set-face-attribute 'ivy-current-match nil
-                              :background "#65a7e2" :foreground "black")
-        (set-face-attribute 'ivy-current-match nil
-                            :background "#1a4b77" :foreground "white")))))
-
-  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-ivy--clth-current-match-specific)
-
-  (defun entropy/emacs-ivy--clth-doomline-specifix (arg)
-    "Advice of auto refresh doom-modeline bar background color
-when changing theme."
-    (progn
-      (cond ((and (string= entropy/emacs-mode-line-sticker "doom")
-                  (string-match-p "\\(ujelly\\)" arg))
-             (set-face-attribute 'doom-modeline-bar
-                                 nil :background "black")
-             (doom-modeline-refresh-bars))
-            ((and (string= entropy/emacs-mode-line-sticker "doom")
-                  (string-match-p "\\(spolsky\\)" arg))
-             (setq doom-modeline--bar-active
-                   (doom-modeline--make-xpm 'doom-modeline-inactive-bar
-                                            doom-modeline-bar-width
-                                            doom-modeline-height)))
-            ((string= entropy/emacs-mode-line-sticker "doom")
-             (set-face-attribute 'doom-modeline-bar
-                                 nil :background (face-background 'mode-line nil t))
-             (doom-modeline-refresh-bars)))))
-
-  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-ivy--clth-doomline-specifix)
-
-  (defun entropy/emacs-ivy--clth-other-fixing (arg &rest args)
-    "Advice of fixing other tiny bug of specific theme."
-    (when (not (featurep 'hl-line))
-      (require 'hl-line))
-    (cond
-     ((string= "doom-solarized-light" arg)
-      (set-face-attribute 'hl-line nil :background "moccasin"))))
-  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-ivy--clth-other-fixing)
-  
+  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-theme-load-face-specifix)
+  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-theme-load-modeline-specifix)
 
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-wsl-enable)

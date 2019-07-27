@@ -175,7 +175,7 @@ default one."
 
 ;; **** theme choise
 (defcustom entropy/emacs-theme-options 'doom-one
-  "Choice emacs gui theme"
+  "Choice for emacs theme"
   :type 'face
   :group 'entropy/emacs-custom-variable-basic)
 
