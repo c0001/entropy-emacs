@@ -36,6 +36,7 @@
     atom-dark-theme
     atom-one-dark-theme
     atomic-chrome
+    autothemer
     auto-yasnippet
     avy
     beacon
@@ -49,6 +50,7 @@
     command-log-mode
     company-anaconda
     anaconda-mode
+    chocolate-theme
     company-c-headers
     company-irony
     counsel-world-clock
