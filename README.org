@@ -33,6 +33,11 @@ section]])
 :CUSTOM_ID: h-5d26c0e3-0721-4a3b-bc6c-7feef145ccfc
 :END:
 
+#+BEGIN_QUOTE
+Now forcefully limited ivy-version to '0.12.0', because the new
+candidates filter recdisplay mechanism changes since this verson.
+#+END_QUOTE
+
 The installation was along with most elisp extensions habits, just
 cloning this repo to your specific location and adding it to your load
 path.
