@@ -124,7 +124,7 @@ the specific height and width determined by above variable you setted."
         :link-type web
         :link ,(concat "file://"
                 (expand-file-name
-                 "entropy-emacs-doc/org/entropy-emacs_introduction.html"
+                 "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.html"
                  entropy/emacs-ext-deps-dir)))
        (:str " go.) "))
 
