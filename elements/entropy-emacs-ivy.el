@@ -765,7 +765,8 @@ corresponding buffer."
                 (unless (file-directory-p target)
                   (setq target (file-name-directory target)))
                 target)))
-      (let ((ffip-project-root (funcall prompt-func)))
+      (let ((ffip-project-root (funcall prompt-func))
+            (ffip-ignore-filenames nil))
         (if _interaction
             (ffip-find-files "" nil t)
           (ffip-find-files nil nil))))))
