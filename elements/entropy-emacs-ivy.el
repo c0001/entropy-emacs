@@ -807,9 +807,9 @@ corresponding buffer."
   :commands (ffip-find-files entropy/emacs-ivy-ffip)
   :bind ("C-x M-f" . entropy/emacs-ivy-ffip)
   :config
-  (defun entropy/emacs-ivy-ffip ()
-    (interactive)
-    (let  (prompt-func)
+  (defun entropy/emacs-ivy-ffip (_interaction)
+    (interactive "P")
+    (let (prompt-func)
       (setq prompt-func
             (lambda ()
               (let (target)
@@ -821,7 +821,9 @@ corresponding buffer."
                   (setq target (file-name-directory target)))
                 target)))
       (let ((ffip-project-root (funcall prompt-func)))
-        (ffip-find-files nil nil)))))
+        (if _interaction
+            (ffip-find-files "" nil t)
+          (ffip-find-files nil nil))))))
 
 
 ;; ** provide
