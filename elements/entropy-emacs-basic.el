@@ -1643,7 +1643,37 @@ This function has redefined for adapting to
   (use-package auto-sudoedit
     :commands (auto-sudoedit-mode)
     :init
-    (add-hook 'entropy/emacs-init-mini-hook #'auto-sudoedit-mode)))
+    (add-hook 'entropy/emacs-init-mini-hook #'auto-sudoedit-mode)
+    :config
+    (defun auto-sudoedit (_old_func &rest _args)
+      "`auto-sudoedit' around-advice."
+      (let ((curr-path (car _args)))
+        (if (not
+             (or
+              ;; Don't activate for tramp files
+              (tramp-tramp-file-p curr-path)
+              ;; Don't activate on sudo do not exist
+              (not (executable-find "sudo"))))
+            ;; Current path may not exist; back up to the first existing parent
+            ;; and see if it's writable
+            (let ((first-existing-path (f-traverse-upwards #'f-exists? curr-path)))
+              (if (not (and first-existing-path (f-writable? first-existing-path)))
+                  (let ((tramp-path (auto-sudoedit-tramp-path curr-path)))
+                    (apply _old_func tramp-path (cdr _args)))
+                (apply _old_func _args)))
+          (apply _old_func _args))))
+
+    (define-minor-mode
+      auto-sudoedit-mode
+      "automatic do sudo by tramp when need root file"
+      :init-value 0
+      :lighter " ASE"
+      (if auto-sudoedit-mode
+          (progn
+            (advice-add 'find-file :around 'auto-sudoedit)
+            (advice-add 'dired :around 'auto-sudoedit))
+        (advice-remove 'find-file 'auto-sudoedit)
+        (advice-remove 'dired 'auto-sudoedit)))))
 
 ;; *** Clear killring
 ;;     From the forum of stackexchange
