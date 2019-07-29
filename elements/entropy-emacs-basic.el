@@ -705,7 +705,24 @@ without derived slot."
        (let ((buffn (buffer-name))
              (base-dir default-directory))
          (kill-buffer buffn)
-         (dired base-dir)))))
+         (dired base-dir))))
+    ("ansi-term"
+     .
+     (lambda ()
+       (if sys/linuxp
+           (let* ((_buff (current-buffer))
+                  (_proc (get-buffer-process _buff)))
+             (when _proc
+               (when (yes-or-no-p
+                      (format "Buffer %S has a running process; kill it? "
+                              (buffer-name _buff)))
+                 (set-process-filter _proc nil)
+                 (kill-process _proc)
+                 (let ((kill-buffer-query-functions '((lambda () t))))
+                   (if (not (one-window-p))
+                       (kill-buffer-and-window)
+                     (kill-this-buffer))))))
+         (kill-this-buffer)))))
   "Special buffer alist which the car can be regexp string or
   list of regexp string, the cdr was buffer killing specific
   func. ")
@@ -753,7 +770,7 @@ Using func `entropy/emacs-basic--buffer-close' be the default func."
         (entropy/emacs-basic--buffer-close))))))
 
 (global-set-key (kbd "C-x k") 'entropy/emacs-basic-kill-buffer-and-window)
-(global-set-key (kbd "C-x M-k") 'kill-this-buffer)
+(global-set-key (kbd "C-x M-k") 'kill-buffer)
 
 (defun entropy/emacs-basic--buffer-close ()
   "Kill buffer and close it's host window if windows conuts
