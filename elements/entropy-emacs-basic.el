@@ -709,6 +709,10 @@ without derived slot."
     ("ansi-term"
      .
      (lambda ()
+       "The patch for the bug of error after kill ansi-term
+buffer and its popup window refer to bug
+#h-0c3ab89e-a470-42d2-946e-4f217ea2f20c in entropy-emacs bug
+collection."
        (if sys/linuxp
            (let* ((_buff (current-buffer))
                   (_proc (get-buffer-process _buff)))

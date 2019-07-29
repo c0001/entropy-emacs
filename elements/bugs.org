@@ -1,0 +1,91 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-emacs bugs collection
+#+author: Entropy
+
+The bug collection for emacs recoreded for =entropy-emacs=.
+
+
+* HANGUP Bug for 'yes-or-no-p' (founed when using 'doom-modeline'):
+  CLOSED: [2019-07-29 Mon 18:44]
+  :PROPERTIES:
+  :CUSTOM_ID: h-0c3ab89e-a470-42d2-946e-4f217ea2f20c
+  :END:
+
+  - State "HANGUP"     from "MARKING"    [2019-07-29 Mon 18:44] \\
+    Has patched by specific 'kill-buffer' action, waiting for bug reply
+    from emacs-bug-mailist.
+
+*Bug description:*
+
+If using the modeline who using all-the-icons as the segments'
+component, that when using pop-up window to show 'ansi-term' will
+cause the problem during 'kill-buffer' operation for the spawn process
+kill confirmation returns the error for that:
+
+``` error-info
+Debugger entered--Lisp error: (error "Selecting deleted buffer")
+  term-emulate-terminal(#<process *ansi-term*> "your-shell-$ps1")
+```
+
+But when you using the 'y-or-n-p' redefine the 'yes-or-no-p', its
+gone.
+
+The bug trigger also referred to font setting that if using some fonts
+specific (e.g. liberation-mono fonts) unless the google-noto family
+will get the error when the 'yes-or-no-p' redefination not did as
+demoted in above paragraph.
+
+*Bug Reproduce:*
+
+- Operation Environment:
+
+  Platform: GNU/Linux
+  Distro: Manjaro (4.19.60-1-MANJARO GNU/Linux)
+  Emacs-Version: 26.x all serial
+  Emacs Configuration: Vanilla
+
+1. Put below elisp snippet into `init.el`
+
+``` elisp
+(package-initialize)
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(setq package-archives '(("gnu"   . "http://elpa.gnu.org/packages/")
+                         ("melpa" . "http://melpa.org/packages/")
+                         ("org"   . "https://orgmode.org/elpa/")))
+
+;; Please install 'liberation-ttf' first
+(set-face-attribute 'default nil :family "Liberation Mono" :font "Liberation Mono")
+
+(defun temp/test-bug ()
+  (interactive)
+  (when (not (one-window-p))
+    (delete-other-windows)
+    (about-emacs))
+  (let ((_w (split-window
+             (selected-window)
+             25
+             'below)))
+    (select-window _w)
+    (ansi-term "bash")
+    (setq-local kill-buffer-hook nil)))
+
+(global-set-key (kbd "<f9>") #'temp/test-bug)
+
+(global-set-key (kbd "C-x k") 'kill-buffer-and-window)
+
+(unless (package-installed-p 'doom-modeline)
+  (package-refresh-contents)
+  (package-install 'doom-modeline))
+
+(doom-modeline-mode)
+```
+
+2. Start emacs and hit '<f9>', then try to kill the selected buffer
+
+   Notice: the "yes-or-no" input string must type correcly at the firt
+   input time, otherwise the bug reproduce will not did as expecting.
