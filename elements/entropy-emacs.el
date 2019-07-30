@@ -59,7 +59,7 @@
 (require 'entropy-emacs-custom)
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-const)
-
+(require 'entropy-emacs-faces)
 (require 'entropy-emacs-path)
 (require 'entropy-emacs-ui)
 (require 'entropy-emacs-font-set)
@@ -69,21 +69,11 @@
 ;; *** require advice
 (defvar entropy/emacs--required-features nil)
 
-(defface entropy/emacs--require-head-prompt-face
-  '((t :weight semi-bold :foreground "yellow1"))
-  "Face for the head prompt requiring advice
-`entropy/emacs-require-loadding")
-
-(defface entropy/emacs--require-tail-prompt-face
-  '((t :weight semi-bold :foreground "linen" :underline t))
-  "Face for the tail prompt requiring advice
-`entropy/emacs-require-loadding")
-
 
 (defun entropy/emacs--require-prompt (feature)
   (let ((f-str (symbol-name feature))
-        (head (lambda (x) (propertize x 'face 'entropy/emacs--require-head-prompt-face)))
-        (tail (lambda (x) (propertize x 'face 'entropy/emacs--require-tail-prompt-face))))
+        (head (lambda (x) (propertize x 'face 'entropy/emacs-faces--require-faces-head-prompt)))
+        (tail (lambda (x) (propertize x 'face 'entropy/emacs-faces--require-face-tail-prompt))))
     (message
      (format
       "%s %s"

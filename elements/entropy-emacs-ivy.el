@@ -241,18 +241,17 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (setq ivy-height 15)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-on-del-error-function nil)
-
+  (setq ivy-case-fold-search-default nil) ;disable case-fold search
+  
   ;; using fuzzy matching
   (setq ivy-re-builders-alist
         '((read-file-name-internal . ivy--regex-fuzzy)
-          (t . ivy--regex-plus)))
+          ;; using elisp regex match candidates
+          (t . ivy--regex)))
 
   (setq swiper-action-recenter t)
-  (setq counsel-find-file-at-point t)
-  (setq counsel-yank-pop-separator "\n-------\n")
-  
-;; **** disabled counsel-find-file-at-point
   (setq counsel-find-file-at-point nil)
+  (setq counsel-yank-pop-separator "\n-------\n")
   
 ;; **** counsel-load-theme
   (defun entropy/emacs-ivy-counsel-load-theme ()
@@ -365,7 +364,35 @@ this variable used to patching for origin `counsel-git'.")
     "
     (with-ivy-window
       (let ((default-directory entropy/emacs-ivy-counsel-git-root))
-        (find-file x)))))
+        (find-file x))))
+
+;; **** assign format-function to swiper for fix some-bug
+
+  ;; when using `all-the-icons-dired' with swiper, icons displayed in
+  ;; associate dired-buffer are mapped with all-the-icons spec fonts
+  ;; which can not rendered correctly for other fonts. ivy's defaut
+  ;; format function `ivy-format-function-default' used for `swiper'
+  ;; which using `identify' to format inactive candis which using the
+  ;; default face as font-lock atribtue, it will corrupts the
+  ;; correctly font displaying when set spec font to this default
+  ;; face.
+  
+  (with-eval-after-load 'all-the-icons-dired
+    (defun entropy/emacs-ivy--swiper-format-function-for-dired (cands)
+      "Transform CANDS into a string for minibuffer."
+      (ivy--format-function-generic
+       (lambda (str)
+         (ivy--add-face str 'ivy-current-match))
+       (lambda (str)
+         (cond
+          ((eq major-mode 'dired-mode)
+           (ivy--add-face str 'entropy/emacs-faces--swiper-dired-candi-inactive-face))
+          (t
+           (identity str))))
+       cands
+       "\n"))
+    (add-to-list 'ivy-format-functions-alist
+                 (cons 'swiper #'entropy/emacs-ivy--swiper-format-function-for-dired))))
 
 ;; ** avy
 (use-package avy
@@ -727,6 +754,9 @@ Adding buffer unlock and wind narrowed region feature."
     :commands (helm-do-ag helm-do-ag-project-root)
     :bind (("C-c j" . helm-do-ag)
            ("C-c k" . helm-do-ag-project-root))
+    :init
+    (setq helm-ag-base-command
+          "ag --nocolor --nogroup --case-sensitive")
     :config
     (dolist (el '(helm-do-ag helm-do-ag-project-root))
       (advice-add el :around #'entropy/emacs-lang-set-utf-8-around-wrapper))

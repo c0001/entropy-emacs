@@ -186,7 +186,8 @@ language-environment you set in `entropy/emacs-language-environment'."
 
 This func will force disable each func's internal procedure when
 custom variable
-`entropy/emacs-custom-language-environment-enable' was nil.
+`entropy/emacs-custom-language-environment-enable' and
+`entropy/emacs-language-environment' was nil.
  "
   (cond
    ((and entropy/emacs-custom-language-environment-enable

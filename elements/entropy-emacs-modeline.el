@@ -42,6 +42,7 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
+(require 'entropy-emacs-faces)
 
 ;; ** init setting
 ;;
@@ -58,33 +59,6 @@
 (setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style)
 
 ;; *** eyebrowse adapting
-(defface entropy/emacs-modeline--mdl-eye-face-main '((t ()))
-  "Face for eyebrowse main workspace segment of origin modeline")
-
-(set-face-attribute 'entropy/emacs-modeline--mdl-eye-face-main nil
-                    :foreground "DarkGoldenrod2" :background "black" :bold t)
-
-(defface entropy/emacs-modeline--mdl-eye-face-main_inactive '((t ()))
-  "Face for eyebrowse main workspace segment while window
-inactive of origin modeline")
-
-(set-face-attribute 'entropy/emacs-modeline--mdl-eye-face-main_inactive nil
-                    :foreground "white" :background "brown")
-
-(defface entropy/emacs-modeline--mdl-eye-face-derived '((t ()))
-  "Face for eyebrowse derived workspace segment of origin modeline.")
-
-(set-face-attribute 'entropy/emacs-modeline--mdl-eye-face-derived nil
-                    :background "#deaa00" :foreground "purple4" :bold t)
-
-(defface entropy/emacs-modeline--mdl-eye-face-derived_inactive '((t ()))
-  "Face for eyebrowse derived workspace segment while window
-inactive of origin modeline ")
-
-(set-face-attribute 'entropy/emacs-modeline--mdl-eye-face-derived_inactive nil
-                    :foreground "white" :background "DarkOrange4")
-
-
 (defvar entropy/emacs-modeline--mdl-egroup-selected-window (frame-selected-window))
 (defun entropy/emacs-modeline--mdl-egroup-set-selected-window (&rest _)
   "Set `entropy/emacs-modeline--mdl-egroup' selected window indicator."
@@ -121,12 +95,12 @@ inactive of origin modeline ")
   (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
     (cond ((eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window)
            (if derived
-               'entropy/emacs-modeline--mdl-eye-face-derived
-             'entropy/emacs-modeline--mdl-eye-face-main))
+               'entropy/emacs-faces--modeline-mdl-eyebrowse-face-derived
+             'entropy/emacs-faces--modeline-mdl-eyebrowse-face-main))
           ((not (eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window))
            (if derived
-               'entropy/emacs-modeline--mdl-eye-face-derived_inactive
-             'entropy/emacs-modeline--mdl-eye-face-main_inactive)))))
+               'entropy/emacs-faces--modeline-mdl-eyebrowse-face-derived_inactive
+             'entropy/emacs-faces--modeline-mdl-eyebrowse-face-main_inactive)))))
 
 (defun entropy/emacs-modeline--mdl-egroup ()
   "Entropy-emacs specific modeline style.
@@ -342,10 +316,10 @@ eyerbowse improvement."
                       (if (string-match-p "\\.[[:digit:]]" str)
                           (cond
                            ((doom-modeline--active)
-                            'entropy/emacs-modeline--mdl-eye-face-derived)
-                           (t 'entropy/emacs-modeline--mdl-eye-face-derived_inactive))
-                        (cond ((doom-modeline--active) 'entropy/emacs-modeline--mdl-eye-face-main)
-                              (t 'entropy/emacs-modeline--mdl-eye-face-main_inactive)))))
+                            'entropy/emacs-faces--modeline-mdl-eyebrowse-face-derived)
+                           (t 'entropy/emacs-faces--modeline-mdl-eyebrowse-face-derived_inactive))
+                        (cond ((doom-modeline--active) 'entropy/emacs-faces--modeline-mdl-eyebrowse-face-main)
+                              (t 'entropy/emacs-faces--modeline-mdl-eyebrowse-face-main_inactive)))))
       ""))
 
   (doom-modeline-def-modeline 'main

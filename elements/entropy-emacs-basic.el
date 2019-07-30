@@ -49,6 +49,7 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-faces)
 
 ;; ** Temporal bug revert
 ;; *** gnutls bug for emacs version upper than '26.1'
@@ -616,20 +617,6 @@ without derived slot."
       (setq choice (ivy-read "Switch to WS: " s-and-name
                              :require-match t))
       (eyebrowse-switch-to-window-config (cdr (assoc choice cons-slots)))))
-
-
-  (defface entropy/emacs-basic--eyebrowse-back-top-wg-message-face_body '((t ()))
-    "Face for message body area with func `entropy/emacs-basic-eyebrowse-switch-top'")
-
-  (set-face-attribute 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_body
-                      nil :foreground "yellow")
-
-  (defface entropy/emacs-basic--eyebrowse-back-top-wg-message-face_content '((t ()))
-    "Face for message content area with func `entropy/emacs-basic-eyebrowse-switch-top'")
-
-  (set-face-attribute 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_content
-                      nil :foreground "green2")
-
   
   (defun entropy/emacs-basic-eyebrowse-switch-top ()
     "Back to the top workspace from current derived workspace."
@@ -641,13 +628,13 @@ without derived slot."
        ((not (equal cslot top-slot))
         (eyebrowse-switch-to-window-config top-slot)
         (message (concat (propertize "You've been back to top wg: "
-                                     'face 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_body)
+                                     'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body)
                          (propertize (if (and (not (equal top-tag ""))
                                               (not (equal top-tag nil)))
                                          (format "[%s]: %s " top-slot top-tag)
                                        (format "[%s] " top-slot))
-                                     'face 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_content)
-                         (propertize "." 'face 'entropy/emacs-basic--eyebrowse-back-top-wg-message-face_body))))
+                                     'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_content)
+                         (propertize "." 'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body))))
        (t (error "You've at top wg!"))))))
 
 ;; **** winner mode for recover previous window config faster
@@ -1126,7 +1113,8 @@ using simple dired visual type, although you have seting it to
           ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
                 (not (version= emacs-version "25.3.1"))
                 (display-graphic-p))
-           (require 'font-lock+)
+           (when sys/win32p
+             (require 'font-lock+))
            (use-package all-the-icons-dired
              :commands (all-the-icons-dired-mode)
              :hook (dired-mode . all-the-icons-dired-mode)

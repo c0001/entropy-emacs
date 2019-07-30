@@ -52,11 +52,19 @@
                   "avi" "wmv" "wav" "mov" "flv"
                   "ogm" "ogg" "mkv" "m4a" "flac" "aac"))
                ;;"mpv --audio-display=attachment"
+               (cond (sys/linuxp
+                      "xdg-open")
+                     (t
+                      nil))
                '(file))
          
          (list (openwith-make-extension-regexp
                 '("pdf" "djvu"))
                ;;"evince"
+               (cond (sys/linuxp
+                      "xdg-open")
+                     (t
+                      nil))
                '(file)))))
 
 ;; *** Function manually

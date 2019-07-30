@@ -33,7 +33,7 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
-
+(require 'entropy-emacs-faces)
 
 (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
   (customize-set-variable 'scroll-bar-mode nil)
@@ -100,10 +100,6 @@ the specific height and width determined by above variable you setted."
     `entropy/emacs-dashboard-buffer-name''s widnow.")
   (defvar entropy/emacs-ui--dashboard-width (window-width)
     "Default entropy emacs initial dashboard width. ")
-  (defface entropy/emacs-ui--dashboard-title-face '((t ()))
-    "Face for entropy-emacs initial buffer title.")
-  (set-face-attribute 'entropy/emacs-ui--dashboard-title-face
-                      nil :height 2.5 :bold t :underline t :overline t)
 
   (defvar entropy/emacs-dashboard-text-logo-file
     (expand-file-name "logo/logo.txt"
@@ -407,13 +403,13 @@ widget used func `entropy/emacs-ui--dashboard-create-widget'."
                              ;; from it's height.
                              (* (length title)
                                 (if (display-graphic-p)
-                                    (let ((height (face-attribute 'entropy/emacs-ui--dashboard-title-face
+                                    (let ((height (face-attribute 'entropy/emacs-faces--ui-dashboard-title-face
                                                                   :height)))
                                       (if height height 1))
                                   1)))
                           2)))
                  ?\ ))
-        (insert (propertize title 'face 'entropy/emacs-ui--dashboard-title-face))
+        (insert (propertize title 'face 'entropy/emacs-faces--ui-dashboard-title-face))
         (insert "\n")
         (insert (make-string (floor (/ (- entropy/emacs-ui--dashboard-width (length version)) 2)) ?\ ))
         (insert entropy/emacs-ecv)

@@ -36,7 +36,10 @@
 ;; 
 ;; * Code:
 
-(require 'font-lock+)
+(require 'entropy-emacs-const)
+
+(when sys/win32p
+  (require 'font-lock+))
 
 (use-package all-the-icons
   :commands
