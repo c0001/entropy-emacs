@@ -682,7 +682,8 @@ did by `entropy/prjm--inct-addprj-create-template'."
                         "QUERY-ALL"))
          (db-cache-obj (funcall prj-operator db-expression))
          (db-obj (entropy/prjm-gen-db-obj db-expression))
-         (db-location (plist-get db-obj :db-location)))
+         (db-location (plist-get db-obj :db-location))
+         (ivy-case-fold-search-default t))
     (setq entropy/prjm--inct-temp-dbco db-cache-obj
           entropy/prjm--inct-temp-prjs-candi-alist
           (entropy/prjm--inct-names-prj-column-exps db-cache-obj))
