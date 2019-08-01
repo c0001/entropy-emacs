@@ -1349,9 +1349,7 @@ emacs."
   :init (add-hook 'entropy/emacs-init-mini-hook #'entropy-grom-mode))
 
 ;; ** Revert buffer automatically
-(add-hook 'entropy/emacs-init-mini-hook
-          #'(lambda ()
-              (global-auto-revert-mode t)))
+(add-hook 'entropy/emacs-init-mini-hook #'global-auto-revert-mode)
 
 ;; ** Use popup window framework
 ;; *** popwin-mode
