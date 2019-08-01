@@ -60,7 +60,7 @@
     (cond ((not (display-graphic-p))
            (setq gc-cons-threshold 800000))
           ((display-graphic-p)
-           (setq gc-cons-threshold 30000000)))))
+           (setq gc-cons-threshold 8000000)))))
 (add-hook 'minibuffer-setup-hook #'entropy/minibuffer-attend-hook)
 (add-hook 'minibuffer-exit-hook #'entropy/minibuffer-quit-hook)
 
