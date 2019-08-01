@@ -39,6 +39,10 @@
   '((t :weight semi-bold :foreground "linen" :underline t))
   "Face for the tail prompt requiring advice
 `entropy/emacs-require-loadding")
+
+(with-eval-after-load 'faces
+  (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))
+
 ;; ** basic faces
 (defface entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body '((t ()))
   "Face for message body area with func `entropy/emacs-basic-eyebrowse-switch-top'")

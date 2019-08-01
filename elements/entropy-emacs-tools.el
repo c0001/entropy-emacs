@@ -249,7 +249,10 @@ like `recenter-top-bottom'."
   :commands (vr/replace vr/query-replace)
   :bind
   (("C-c r" . vr/replace)
-   ("C-c q" . vr/query-replace)))
+   ("C-c q" . vr/query-replace))
+  :config
+  (dolist (el '(vr--do-replace vr--perform-query-replace vr--interactive-get-args))
+    (advice-add el :around #'entropy/emacs-case-fold-focely-around-advice)))
 
 
 ;; ** ialign

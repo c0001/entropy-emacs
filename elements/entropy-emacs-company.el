@@ -148,7 +148,7 @@
    company-require-match nil
    company-dabbrev-ignore-case nil
    company-dabbrev-downcase nil
-   company-dabbrev-char-regexp "\\sw\\(-\\w\\|_\\w\\)?*\\(\\.\\w\\)?*")
+   company-dabbrev-char-regexp "\\sw[-_]*")
 
   (if entropy/emacs-company-posframe-mode
       (setq company-tooltip-offset-display 'scrollbar)

@@ -59,6 +59,9 @@
 (require 'entropy-emacs-custom)
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-const)
+(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
+
 (require 'entropy-emacs-faces)
 (require 'entropy-emacs-path)
 (require 'entropy-emacs-ui)

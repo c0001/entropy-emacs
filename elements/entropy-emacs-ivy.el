@@ -241,7 +241,6 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (setq ivy-height 15)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-on-del-error-function nil)
-  (setq ivy-case-fold-search-default nil) ;disable case-fold search
   
   ;; using fuzzy matching
   (setq ivy-re-builders-alist
@@ -755,6 +754,7 @@ Adding buffer unlock and wind narrowed region feature."
     :bind (("C-c j" . helm-do-ag)
            ("C-c k" . helm-do-ag-project-root))
     :init
+    ;; case-sensitive for ag search command.
     (setq helm-ag-base-command
           "ag --nocolor --nogroup --case-sensitive")
     :config
@@ -779,8 +779,11 @@ corresponding buffer."
 ;; ** using find-file with counsel
 (use-package find-file-in-project
   :defines (ffip-project-root)
-  :commands (ffip-find-files entropy/emacs-ivy-ffip)
-  :bind ("C-x M-f" . entropy/emacs-ivy-ffip)
+  :commands (ffip-find-files
+             entropy/emacs-ivy-ffip
+             entropy/emacs-ivy-ffip-directory-only)
+  :bind (("C-x M-f" . entropy/emacs-ivy-ffip)
+         ("C-x M-d" . entropy/emacs-ivy-ffip-directory-only))
   :config
   (defun entropy/emacs-ivy-ffip (_interaction)
     (interactive "P")
@@ -799,7 +802,11 @@ corresponding buffer."
             (ffip-ignore-filenames nil))
         (if _interaction
             (ffip-find-files "" nil t)
-          (ffip-find-files nil nil))))))
+          (ffip-find-files nil nil)))))
+
+  (defun entropy/emacs-ivy-ffip-directory-only ()
+    (interactive)
+    (funcall-interactively 'entropy/emacs-ivy-ffip t)))
 
 
 ;; ** provide

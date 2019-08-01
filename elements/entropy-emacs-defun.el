@@ -360,7 +360,9 @@ visual distinction of `ivy-current-match' covered upon the
    ((string= "doom-solarized-light" x)
     (when (not (featurep 'hl-line))
       (require 'hl-line))
-    (set-face-attribute 'hl-line nil :background "moccasin"))))
+    (set-face-attribute 'hl-line nil :background "moccasin"))
+   (t
+    (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
 (defun entropy/emacs-theme-load-modeline-specifix (arg)
   "Advice of auto refresh doom-modeline bar background color
@@ -381,6 +383,29 @@ when changing theme."
            (set-face-attribute 'doom-modeline-bar
                                nil :background (face-background 'mode-line nil t))
            (doom-modeline-refresh-bars)))))
+
+;; ** advice around for case-fold-search
+(defun entropy/emacs-case-fold-focely-around-advice (_old_func &rest _args)
+  "Wrapper function to disable `case-fold-search' functional ability."
+  (let ((_case_type case-fold-search)
+        rtn)
+    (unwind-protect
+        (progn (setq case-fold-search nil)
+               (setq rtn (apply _old_func _args))
+               (setq case-fold-search _case_type)
+               rtn)
+      (setq case-fold-search _case_type))))
+
+
+;; ** common face setting
+(defun entropy/emacs-set-fixed-pitch-serif-face-to-monospace ()
+  "Set info-mode font-lock spec face `fixed-pitch-serif' to
+entropy-emacs specific monospace style.
+
+This funciton will solve the problem that the symbol pattern
+display ugly and small in info-mode."
+  (set-face-attribute 'fixed-pitch-serif nil
+                      :family "Monospace" :slant 'italic))
 
 ;; ** provide
 (provide 'entropy-emacs-defun)
