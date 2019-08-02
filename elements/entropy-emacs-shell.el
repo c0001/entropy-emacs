@@ -69,12 +69,6 @@
      ;; Send other commands to the default handler.
      (t (comint-simple-send proc command)))))
 
-;; ** Company mode backend for shell functions
-(with-eval-after-load 'company
-  (use-package company-shell
-    :commands (company-shell company-shell-env company-fish-shell)
-    :init (cl-pushnew '(company-shell company-shell-env company-fish-shell) company-backends)))
-
 ;; ** eshell
 (use-package eshell
   :ensure nil

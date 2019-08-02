@@ -43,10 +43,10 @@
   :diminish orgstruct-mode
   :init
   (add-hook 'emacs-lisp-mode-hook #'orgstruct-mode)
-  (add-hook 'sh-mode-hook  #'orgstruct-mode)
-  (add-hook 'c-mode-hook  #'orgstruct-mode)
-  (add-hook 'c++-mode-hook  #'orgstruct-mode)  
-  (add-hook 'css-mode-hook  #'orgstruct-mode)
+  (add-hook 'sh-mode-hook #'orgstruct-mode)
+  (add-hook 'c-mode-hook #'orgstruct-mode)
+  (add-hook 'c++-mode-hook #'orgstruct-mode)
+  (add-hook 'css-mode-hook #'orgstruct-mode)
   (add-hook 'python-mode-hook #'orgstruct-mode)
   (add-hook 'web-mode-hook #'orgstruct-mode)
   (add-hook 'js2-mode-hook #'orgstruct-mode)

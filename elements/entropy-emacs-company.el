@@ -202,6 +202,19 @@
   :commands company-en-words
   :bind ("M-]" . company-en-words))
 
+;; *** shell
+(use-package company-shell
+  :if (not entropy/emacs-company-lsp)
+  :after company
+  :defines (sh-mode-hook)
+  :commands (company-shell company-shell-env company-fish-shell)
+  :init
+  (add-hook 'sh-mode-hook #'entropy/emacs-company--add-shell-backend)
+  (defun entropy/emacs-company--add-shell-backend ()
+    (make-local-variable 'company-backends)
+    (dolist (el '(company-shell company-shell-env company-fish-shell))
+      (cl-pushnew (entropy/emacs-company-use-yasnippet el) company-backends))))
+
 ;; *** web refer
 ;; **** web/html&css
 ;; ***** lsp
@@ -274,7 +287,6 @@
   :defines (c-mode-hook c++-mode-hook)
   :commands company-c-headers
   :init
-  (add-hook 'c-mode-hook 'entropy/emacs-company-c-headers-add-cheader-backend)
   (add-hook 'c-mode-hook 'entropy/emacs-company-c-headers-add-cheader-backend)
   (defun entropy/emacs-company-c-headers-add-cheader-backend ()
     (make-local-variable 'company-backends)
