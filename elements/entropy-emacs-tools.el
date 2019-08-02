@@ -1744,5 +1744,21 @@ development web-browser."
 
 (defalias 'ehome 'entropy/emacs-tools-goto-sys-home "Alias for entropy/emacs-tools-goto-sys-home.")
 
+;; *** firefox bookmarks and history query and open
+(use-package counsel-ffdata
+  :commands (counsel-ffdata-firefox-bookmarks
+             counsel-ffdata-firefox-history)
+  :init
+  (setq counsel-ffdata-database-path
+        (cl-case system-type
+          ((gnu gnu/linux gnu/kfreebsd)
+           (expand-file-name
+            (car (file-expand-wildcards
+                  "~/.mozilla/firefox/*.default-release/places.sqlite"))))
+          (windows-nt
+           (car (file-expand-wildcards
+                 (expand-file-name "Mozilla/Firefox/Profiles/*/places.sqlite"
+                                   (getenv "APPDATA"))))))))
+
 ;; * provide
 (provide 'entropy-emacs-tools)

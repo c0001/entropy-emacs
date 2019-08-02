@@ -61,8 +61,9 @@
     company-web
     company
     copyit
-    counsel-css
     counsel
+    counsel-css
+    counsel-ffdata
     darkokai-theme
     dash-functional
     diminish

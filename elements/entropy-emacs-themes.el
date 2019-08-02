@@ -48,6 +48,8 @@
 
   :config
   (use-package doom-themes-ext-org
+    :ensure nil
+    :after doom-themes
     :commands (doom-themes-org-config)
     :init
     (doom-themes-org-config)))
