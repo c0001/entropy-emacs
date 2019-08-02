@@ -980,7 +980,7 @@ source images file existed status checking.
 NOTE:
 
 Now just supply localization image file analyzing."
-  (let ((link-objs (entropy/emacs-ow-get-buffer-links (find-file-noselect org-file)))
+  (let ((link-objs (entropy/ow-get-buffer-links (find-file-noselect org-file)))
         links_temp links
         (base-dir (file-name-directory org-file)))
     (when link-objs
