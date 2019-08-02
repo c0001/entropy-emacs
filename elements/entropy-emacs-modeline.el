@@ -331,7 +331,24 @@ eyerbowse improvement."
 
   (doom-modeline-def-modeline 'project
     '(bar workspace-number window-number buffer-default-directory)
-    '(misc-info fancy-battery mu4e github debug major-mode process)))
+    '(misc-info fancy-battery mu4e github debug major-mode process))
+
+  ;; timer for after-change-function
+  (defvar entropy/emacs-modeline--dml-timer nil)
+  (defun entropy/emacs-modeline--dml-afc-monitior ()
+    "Timer for moitor the doom-modeline feature for hook
+`after-change-functions'.
+
+Since `after-change-functions' was weak when any error occured
+with emacs, see its doc-string for details."
+    (let ((candis '(doom-modeline-update-buffer-file-state-icon
+                    doom-modeline-update-buffer-file-name)))
+      (dolist (el candis)
+        (unless (member el after-change-functions)
+          (add-hook 'after-change-functions el)))))
+
+  (setq entropy/emacs-modeline--dml-timer
+        (run-with-idle-timer 1 t #'entropy/emacs-modeline--dml-afc-monitior)))
 
 ;; **** load conditions
 (defun entropy/emacs-modeline--mdl-init ()
