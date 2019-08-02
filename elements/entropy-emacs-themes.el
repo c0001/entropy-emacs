@@ -38,7 +38,6 @@
 ;; ** Theme
 (use-package doom-themes
   :preface (defvar region-fg nil) ; bug from: `url:https://github.com/hlissner/emacs-doom-themes/issues/166'
-  :commands (doom-themes-org-config)
   :init
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -47,8 +46,11 @@
   ;; Enable flashing mode-line on errors
   ;; (doom-themes-visual-bell-config)
 
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+  :config
+  (use-package doom-themes-ext-org
+    :commands (doom-themes-org-config)
+    :init
+    (doom-themes-org-config)))
 
 ;; *** other options theme
 ;; **** sanityinc
