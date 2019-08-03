@@ -72,9 +72,6 @@
 (redisplay t)
 
 ;; *** require advice
-(defvar entropy/emacs--required-features nil)
-
-
 (defun entropy/emacs--require-prompt (feature)
   (let ((f-str (symbol-name feature))
         (head (lambda (x) (propertize x 'face 'entropy/emacs-faces--require-faces-head-prompt)))
@@ -86,9 +83,8 @@
       (funcall tail f-str)))))
 
 (defun entropy/emacs--require-loading (feature &rest rest)
-  (when (not (member feature entropy/emacs--required-features))
-    (entropy/emacs--require-prompt feature)
-    (add-to-list 'entropy/emacs--required-features feature)))
+  (when (not (featurep feature))
+    (entropy/emacs--require-prompt feature)))
 
 ;; * Trail
 ;; ** Windows IME enable function
