@@ -43,6 +43,9 @@
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
 (package-initialize)
+(with-temp-buffer
+  (require 'org)
+  (orgstruct-mode))
 
 (when (version< emacs-version "24.4")
   (error "This requires Emacs 24.4 and above!"))
