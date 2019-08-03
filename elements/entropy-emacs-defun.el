@@ -41,6 +41,20 @@
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defcustom)
 
+;; *** lazy load branch
+(defmacro entropy/emacs-lazy-load-simple (file &rest body)
+  "Execute BODY after/require FILE is loaded.
+FILE is normally a feature name, but it can also be a file name,
+in case that file does not provide any feature."
+  (declare (indent 1) (debug t))
+  (cond
+   (entropy/emacs-custom-enable-lazy-load
+    `(eval-after-load ,file (lambda () ,@body)))
+   ((null entropy/emacs-custom-enable-lazy-load)
+    `(progn
+       (require ,file)
+       ,@body))))
+
 ;; ** file and directories
 (defun entropy/emacs-list-dir-lite (dir-root)
   "Return directory list with type of whichever file or

@@ -54,62 +54,6 @@
     :init
     (doom-themes-org-config)))
 
-;; *** other options theme
-;; **** sanityinc
-(use-package color-theme-sanityinc-tomorrow
-  :commands (color-theme-sanityinc-tomorrow
-             color-theme-sanityinc-tomorrow-night
-             color-theme-sanityinc-tomorrow-day
-             color-theme-sanityinc-tomorrow-bright
-             color-theme-sanityinc-tomorrow-eighties
-             color-theme-sanityinc-tomorrow-blue))
-
-;; **** warming theme
-(use-package birds-of-paradise-plus-theme)
-
-;; **** ocean color theme
-(use-package gotham-theme)
-
-;; **** atom theme
-(use-package atom-dark-theme)
-(use-package atom-one-dark-theme)
-;; **** light like github theme
-(use-package doneburn-theme
-  :preface (defvar doneburn-override-colors-alist 'nil))
-
-(use-package github-theme)
-
-;; **** klere which was mordern dark type
-(use-package klere-theme)
-
-;; **** material theme for more morden UI
-(use-package material-theme)
-
-;; **** spacemacs the most famous theme in emacs
-(use-package spacemacs-theme
-  :init
-  (with-eval-after-load 'ivy
-    (cond ((eq (car custom-enabled-themes) 'spacemacs-light)
-           (set-face-attribute 'ivy-current-match nil
-                               :background "salmon" :bold t))
-          ((eq (car custom-enabled-themes) 'spacemacs-dark)
-           (set-face-attribute 'ivy-current-match nil
-                               :background "purple4" :bold t)))))
-;; **** sublime like theme
-(use-package sublime-themes)
-
-;; **** darkokai-theme
-(use-package darkokai-theme
-  :init (setq darkokai-use-variable-pitch nil))
-
-;; **** ujelly-theme
-(use-package ujelly-theme)
-
-;; **** srcery theme
-(use-package srcery-theme)
-
-;; **** chocolate theme
-(use-package chocolate-theme)
 
 ;; *** advice for register theme to `entropy/emacs-theme-sticker'
 (when (fboundp 'entropy/emacs-theme-load-register)

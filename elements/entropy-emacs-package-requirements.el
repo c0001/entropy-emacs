@@ -131,6 +131,7 @@
     org-download
     org-pomodoro
     ox-gfm
+    ox-reveal
     page-break-lines
     php-mode
     pomidor

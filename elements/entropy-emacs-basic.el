@@ -119,13 +119,13 @@
               (auto-save-mode 0)
               (erase-buffer)
               (rename-buffer "*scratch*")
-              (emacs-lisp-mode)
+              (lisp-interaction-mode)
               (insert initial-scratch-message)))
         (with-current-buffer (find-file-noselect fname)
           (if buffer-read-only (read-only-mode 0))
           (auto-save-mode 0)
           (rename-buffer "*scratch*")
-          (emacs-lisp-mode)
+          (lisp-interaction-mode)
           (goto-char (point-min))
           (if (not (re-search-forward (regexp-quote initial-scratch-message) nil t))
               (insert initial-scratch-message)))))
@@ -690,9 +690,12 @@ without derived slot."
      .
      (lambda ()
        (let ((buffn (buffer-name))
-             (base-dir default-directory))
+             (base-dir default-directory)
+             (fname (buffer-file-name)))
          (kill-buffer buffn)
-         (dired base-dir))))
+         (when (and (ignore-errors (stringp fname))
+                    (file-writable-p fname))
+           (dired base-dir)))))
     ("ansi-term"
      .
      (lambda ()
@@ -1823,7 +1826,7 @@ coding-system to save bookmark infos"
   (add-hook 'entropy/emacs-init-mini-hook #'global-disable-mouse-mode))
 
 ;; ** Artist-mode
-(use-package artist-mode
+(use-package artist
   :ensure nil
   :init
   ;; Init disable rubber-banding for reducing performance requirements.

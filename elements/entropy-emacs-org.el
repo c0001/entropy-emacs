@@ -44,8 +44,6 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
-(require 'entropy-common-library)
-
 
 ;; ** Pre advice
 (defun entropy/emacs-org--export-panel-around-advice (old-func &rest args)
@@ -65,22 +63,60 @@
 (use-package org
 ;; *** init
   :ensure nil
+  :defines  (org-mode-map)
+  :commands (orgstruct-mode
+             org-mode
+             org-store-link
+             org-agenda
+             org-capture
+             org-switchb
+             org-previous-item
+             org-next-item
+             org-toggle-link-display
+             org-babel-result-hide-all)
+  :diminish orgstruct-mode
 ;; *** binding keys
   :bind
   (("\C-cl" . org-store-link)
    ("\C-ca" . org-agenda)
    ("\C-cc" . org-capture)
    ("\C-cb" . org-switchb)
-   ("<C-f2>" . org-toggle-link-display)
    :map org-mode-map
    ("C-<up>" . org-previous-item)
-   ("C-<down>" . org-next-item))
+   ("C-<down>" . org-next-item)
+   ("<C-f2>" . org-toggle-link-display))
 
 ;; *** hook
-  :hook (org-mode . org-babel-result-hide-all)
+  :hook ((org-mode . org-babel-result-hide-all)
+         (sh-mode . orgstruct-mode)
+         (c-mode . orgstruct-mode)
+         (c++-mode . orgstruct-mode)
+         (css-mode . orgstruct-mode)
+         (python-mode . orgstruct-mode)
+         (web-mode . orgstruct-mode)
+         (js2-mode . orgstruct-mode)
+         (gitignore-mode . orgstruct-mode))
+
+;; *** init
+  :init
+  
+  (defun entropy/emacs-org--elispMode-orgstruct-enable ()
+    (unless (member 'orgstruct-mode emacs-lisp-mode-hook)
+      (add-hook 'emacs-lisp-mode-hook #'orgstruct-mode))
+    (unless (bound-and-true-p orgstruct-mode)
+      (orgstruct-mode)))
+
+  (defun entropy/emacs-org--elispMode-orgstruct-PostCommand-hook ()
+    (add-hook 'post-command-hook #'entropy/emacs-org--elispMode-orgstruct-enable nil t))
+
+  (with-eval-after-load 'elisp-mode
+    (add-hook 'emacs-lisp-mode-hook #'entropy/emacs-org--elispMode-orgstruct-PostCommand-hook))
+  
 ;; *** configs
   :config
   (require 'entropy-org-widget)
+  (require 'entropy-common-library)
+
 ;; **** basic setting  
   (setq-default org-agenda-span (quote day)) ;Set agenda daily show as default
   (setq org-log-done 'time)                  ;insert time-stamp when toggle 'TODO' to 'DONE'
@@ -274,9 +310,6 @@ recovery method unless reopen capture operation.w
   (setq org-url-hexify-p nil)
   (setq-default org-link-file-path-type (quote relative))
 
-;; **** using org-pomodoro 
-  (use-package org-pomodoro)
-
 ;; **** babel handle
   (org-babel-do-load-languages   'org-babel-load-languages
 				 '((python . t)
@@ -413,11 +446,6 @@ reason, please see the docstring refer."
           (funcall old-func entropy/emacs-org--src-info)))
 
       (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org--babel-comfirm-evaluate)))
-  
-;; **** org export setting
-  (use-package entropy-org-export-theme-toggle
-    :ensure nil
-    :commands (entropy/org-exptth-set-head))
 
 ;; ***** org global export macro
   (with-eval-after-load 'ox
@@ -544,213 +572,6 @@ returning the type of exec for open exported html file, they are:
     (bind-key "C-c C-q" #'counsel-org-tag org-mode-map))
   (with-eval-after-load 'org-agenda
     (bind-key "C-c C-q" #'counsel-org-tag-agenda org-agenda-mode-map))
-  
-;; **** org-download
-  (use-package org-download
-    :commands (org-download-image
-	       org-download-screenshot
-	       org-download-delete
-               org-download-enable)
-    :bind
-    (:map org-mode-map
-	  ("\C-cp" . entropy/emacs-org-download-screenshot))
-    :init
-
-    ;; Init setting for changing the default annotation method and support unicode dir-name
-    (progn
-      ;; (require 'org-download)
-      
-      (setq-default org-download-image-dir "../annex/img/")
-      (setq-default org-download-heading-lvl nil)	;; Cancel taxonomy make image directory
-
-      ;; Support unicode filename
-      (defun entropy/emacs-org--custom-download-method (link)
-	(org-download--fullname (org-link-unescape link)))
-      (setq org-download-method 'entropy/emacs-org--custom-download-method) ; notice, this field can not using lambda expression
-
-      ;; Donwload annotation specifiction 
-      (setq org-download-annotate-function
-	    '(lambda (link)
-	       (org-download-annotate-default (org-link-unescape link)))))
-    
-    (setq org-download-annotate-function 'ignore)
-
-;; ***** config
-    :config
-
-;; ****** Redefine or-download-dnd about
-
-    ;; DND was the handle of emacs for handling OS-to-Emacs interactive
-    ;; behaviour abbreviated by 'Drag-And-Drop'.
-    ;;
-    ;; For handling this, emacs provide variable `dnd-protocol-alist'
-    ;; to store the alist of numerous method for handling this.
-    ;;
-    ;; Org-download package's internal functions `org-download-dnd' was
-    ;; added to `dnd-protocol-alist' while enable it, and it's function
-    ;; was handle the dnd operator in org-mode buffer with calling
-    ;; `org-download-image' for insert image into current org-mode
-    ;; buffer.
-    
-    (if (image-type-available-p 'imagemagick)
-        (defun org-download-dnd-fallback (uri action)
-          "Note: This function has been pseudo maked because of
-the unneeded feature that fall-back to using internal originally
-type to deal with drop event of draging image to drop it in
-`org-mode'."
-          (let ((dnd-protocol-alist
-                 (rassq-delete-all
-                  'org-download-dnd
-                  (copy-alist dnd-protocol-alist))))
-            ;; (dnd-handle-one-url nil action uri)
-            nil)))
-
-
-    (defun org-download-dnd (uri action)
-      "When in `org-mode' and URI points to image, download it.
-Otherwise, pass URI and ACTION back to dnd dispatch.
-
-Note: This function has been redifined to adding
-`org-display-inline-images'."
-      (cond ((eq major-mode 'org-mode)
-             (condition-case nil
-                 (org-download-image uri)
-               (error
-                (org-download-dnd-fallback uri action))))
-            ((eq major-mode 'dired-mode)
-             (org-download-dired uri))
-            ;; redirect to someone else
-            (t
-             (org-download-dnd-fallback uri action)))
-      (org-display-inline-images))
-
-
-;; ****** Redefine org-download-screenshot function to support auto org-indent current inserted annotation.
-    (if (and (or sys/win32p sys/cygwinp)
-	     (executable-find
-	      (car (split-string entropy/emacs-win-org-download-screenshot-method))))
-	(progn
-	  (defun entropy/emacs-org-download-screenshot ()
-	    "Capture screenshot and insert the resulting file.
-The screenshot tool is determined by `org-download-screenshot-method'.
-
-And Now you are in windows plattform we defualt use SnippingTool
-to be stuff. And you can change it's value by the variable
-`entropy/emacs-win-org-download-screenshot-method' it will pass itself
-to `org-download-screenshot-method' .
-"
-	    (interactive)
-	    (if buffer-read-only
-		(read-only-mode 0))
-	    (let ((link entropy/emacs-win-org-download-file-name))
-	      (shell-command (format org-download-screenshot-method link))
-	      (org-download-image link)
-              (beginning-of-line)
-              (org-indent-line)
-	      (delete-file link)
-              (org-display-inline-images)))
-	  (setq org-download-screenshot-method entropy/emacs-win-org-download-screenshot-method))
-      (defun entropy/emacs-org-download-screenshot ()
-        " 
-Note: this function was derived and extended from
-org-download-screenshot
-
-Capture screenshot and insert the resulting file.
-The screenshot tool is determined by
-`org-download-screenshot-method'.
-"
-        (interactive)
-        (org-download-screenshot)
-        (beginning-of-line)
-        (org-indent-line)
-        (org-display-inline-images)))
-
-
-;; ****** enhance org-download-insert-link    
-    (defun entropy/emacs-org--odl-judgement-whether-capture-name (buffname)
-      "Judgement whether using 'org-download' in capture mode, if
-indeed then auto-transfer buffer-name to origin one and return
-FILENAME.
-
-FILENAME transfer depending on the value of
-`uniquify-buffer-name-style' which uniquify `buffer-name'
-duplicated in `buffer-list', thus each type of uniquify name style
-corresponding to the specific transfer method."
-      (if (string-match-p "^CAPTURE-" buffname)
-          (let ((tname (replace-regexp-in-string "^CAPTURE-" "" buffname))
-                (forward-re "\\(.*?/\\)+")
-                (reverse-re "\\(.*?\\\\\\)+")
-                (post-foward-re "\\|.*?/?.*?$")
-                (post-angle-re "<.*?>$"))
-            (cond
-             ;; forward uniquify buffer name type
-             ((string-match-p forward-re tname)
-              (setq tname (file-name-nondirectory tname)))
-             ((string-match-p reverse-re tname)
-              (setq tname (file-name-nondirectory tname)))
-             ;; post-forward-angle-brackets uniquify buffer name type
-             ((string-match-p post-angle-re tname)
-              (setq tname (replace-regexp-in-string post-angle-re "" tname)))
-             ;; post-forward uniquify buffer name type
-             ((string-match-p post-forward-re tname)
-              (setq tname (replace-regexp-in-string post-forward-re "" tname)))
-             ;; non-duplicated files
-             (t tname))
-            (concat default-directory tname))
-        buffer-file-name))
-    
-    (defun org-download-insert-link (link filename)
-      "This function has been redefine for the bug of using
-`buffer-name' in `file-name-directory' and automatically
-adjusting the link insert position follow the rules below:
-
-- Point at beginning of empty line:
-
-  Insert link in current point.
-
-- Point at middle or end of empty line:
-
-  Insert link in current point.
-
-- Point at end of none-empty line:
-
-  Insert the link under of current line with newline creating.
-
-- Point at partition case of none-empty line:
-
-  Insert the link under of current line with newline creating.
-"
-      (cond
-       ((and (equal (point) (line-beginning-position)) ;point at beginning of empty line
-             (looking-at " *$"))
-        t)
-       ((and (looking-back "^ +" (line-beginning-position)) ;point at middle or end of empty line
-             (looking-at " *$"))
-        t)
-       ((and (looking-at " *$")       ;point at end of none-empty line
-             (looking-back ".+" (line-beginning-position)))
-        (newline))
-       ((and (looking-at ".+$")       ;point at part or beginning of none-empty line
-             (looking-back ".*" (line-beginning-position)))
-        (end-of-line)
-        (newline)))
-      (insert
-       (concat
-        (funcall org-download-annotate-function link)
-        (if (eq org-download-annotate-function 'ignore) "" "\n")
-        (if (= org-download-image-html-width 0)
-            ""
-          (format "#+attr_html: :width %dpx\n" org-download-image-html-width))
-        (if (= org-download-image-latex-width 0)
-            ""
-          (format "#+attr_latex: :width %dcm\n" org-download-image-latex-width))
-        (format org-download-link-format
-                (file-relative-name
-                 filename
-                 (file-name-directory
-                  (entropy/emacs-org--odl-judgement-whether-capture-name (buffer-name)))))))
-      (org-indent-line)))
-  (org-download-enable)
 
 ;; **** org-inline-image size
   (if (image-type-available-p 'imagemagick)
@@ -766,11 +587,6 @@ buffer."
           (if (not (yes-or-no-p "This will spend sometime and causing lagging performance, cotinue? "))
               (error "Abort displaying inline images")))
         (advice-add 'org-display-inline-images :before #'entropy/emacs-org--otii-before-advice)))
-  
-;; **** toc-org
-  (use-package toc-org
-    :commands toc-org-insert-toc
-    :init (setq toc-org-hrefify-default "gh"))
   
 ;; **** org-auto-insert 'CUSTOM-ID'
   ;;      which source code from the bloag@
@@ -912,7 +728,68 @@ as the hypenation."
   
 ;; **** fix bugs of open directory using external apps in windows
   (when sys/win32p
-    (add-to-list 'org-file-apps '(directory . emacs))))
+    (add-to-list 'org-file-apps '(directory . emacs)))
+
+;; **** orgstruct-mode
+  (setq orgstruct-heading-prefix-regexp
+        "\\(\\( \\|	\\)*;;\\( \\|	\\)?\\|\\( \\|	\\)*#\\( \\|	\\)?\\|\\( \\|	\\)*\\/\\*\\( \\|	\\)?\\|\\( \\|	\\)*\\/\\/\\( \\|	\\)?\\|\\( \\|	\\)*<!--\\( \\|	\\)*\\)")
+  
+
+  ;; unbinding this key for give it to `eval-buffer' for `elisp-mode' and `lisp-interaction-mode'.
+  (advice-add 'orgstruct-mode :after #'(lambda (&optional arg)
+                                         (define-key orgstruct-mode-map (kbd "C-c C-b") nil)))
+
+  (defvar entropy/emacs-structure--orgstruct-jumping-head-regexp
+    "^\\(\\( \\|	\\)*;;\\( \\|	\\)?\\*\\|^\\( \\|	\\)*#\\( \\|	\\)?\\*\\|^\\( \\|	\\)*\\/\\*\\( \\|	\\)?\\*\\|^\\( \\|	\\)*\\/\\/\\( \\|	\\)?\\*\\)"
+    "The regexp for jumping heading by:
+
+    - `entropy/emacs-fold-org-struct'
+    - `entropy/emacs-previous-orgstruct-headline'
+    - `entropy/emacs-next-orgstruct-headline'
+    - `entropy/emacs-up-orgstruct-headline'"
+    )
+
+  (defun entropy/emacs-structure-fold-org-struct ()
+    "Fold the file with orgstruct format struture heading style
+like ';; **' in elisp file"
+    (interactive)
+    (goto-char (point-min))
+    (re-search-forward
+     entropy/emacs-structure--orgstruct-jumping-head-regexp)
+    (orgstruct-hijacker-org-shifttab-3 t))
+  
+  (defun entropy/emacs-structure-previous-orgstruct-headline ()
+    "Jumping to the previous orgstruct headline."
+    (interactive)
+    (beginning-of-line)
+    (re-search-backward
+     entropy/emacs-structure--orgstruct-jumping-head-regexp))
+  
+  (defun entropy/emacs-structure-next-orgstruct-headline ()
+    "Jumping to the next orgstruct headline."
+    (interactive)
+    (end-of-line)
+    (re-search-forward
+     entropy/emacs-structure--orgstruct-jumping-head-regexp))
+
+  (defun entropy/emacs-structure-up-orgstruct-headline ()
+    "Jumping to the up-level orgstruct headline."
+    (interactive)
+    (next-line)
+    (beginning-of-line)
+    (entropy/emacs-structure-previous-orgstruct-headline)
+    (orgstruct-hijacker-outline-up-heading-1 t))
+  
+  (defun entropy/emacs-structure--org-struct-mode-hook ()
+    "Hooks for pusing `entropy/emacs-structure-previous-orgstruct-headline',
+`entropy/emacs-structure-next-orgstruct-headline',
+`entropy/emacs-structure-next-orgstruct-headline' to org-struct-mode-hook."
+    (define-key orgstruct-mode-map (kbd "C-<tab>") 'entropy/emacs-structure-fold-org-struct)
+    (define-key orgstruct-mode-map (kbd "C-c C-p") 'entropy/emacs-structure-previous-orgstruct-headline)
+    (define-key orgstruct-mode-map (kbd "C-c C-n") 'entropy/emacs-structure-next-orgstruct-headline)
+    (define-key orgstruct-mode-map (kbd "C-c C-u") 'entropy/emacs-structure-up-orgstruct-headline)
+    (define-key orgstruct-mode-map (kbd "C-c C-f") nil))
+  (add-hook 'orgstruct-mode-hook 'entropy/emacs-structure--org-struct-mode-hook))
 
 ;; ** entropy-emacs additional function
 ;; *** tags align
@@ -1005,7 +882,6 @@ Now just supply localization image file analyzing."
 ;;    languages
 (use-package htmlize)
 
-
 ;; ** org-bullets
 (when (and (or sys/win32p sys/linux-x-p sys/mac-x-p)
            entropy/emacs-enable-org-bullets)
@@ -1023,9 +899,9 @@ Now just supply localization image file analyzing."
       (setq org-bullets-bullet-list '("●" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ"
                                       "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ"
                                       "Ⅹ" "Ⅺ" "Ⅻ")))))
+
 ;; ** ox-reveal
 (use-package ox-reveal
-  :ensure nil
   :config
   (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
   (setq org-reveal-theme "black")
@@ -1040,6 +916,225 @@ Now just supply localization image file analyzing."
   (setq org-reveal-center t)
   (setq org-reveal-progress t)
   (setq org-reveal-history nil))
+
+;; ** org-pomodoro 
+(use-package org-pomodoro)
+
+;; ** org export setting
+(use-package entropy-org-export-theme-toggle
+  :ensure nil
+  :commands (entropy/org-exptth-set-head))
+  
+;; ** org-download
+(use-package org-download
+  :commands (org-download-image
+             org-download-screenshot
+             org-download-delete
+             org-download-enable)
+  :bind
+  (:map org-mode-map
+        ("\C-cp" . entropy/emacs-org-download-screenshot))
+  :init
+
+  ;; Init setting for changing the default annotation method and support unicode dir-name
+  (progn
+    ;; (require 'org-download)
+    
+    (setq-default org-download-image-dir "../annex/img/")
+    (setq-default org-download-heading-lvl nil)	;; Cancel taxonomy make image directory
+
+    ;; Support unicode filename
+    (defun entropy/emacs-org--custom-download-method (link)
+      (org-download--fullname (org-link-unescape link)))
+    (setq org-download-method 'entropy/emacs-org--custom-download-method) ; notice, this field can not using lambda expression
+
+    ;; Donwload annotation specifiction 
+    (setq org-download-annotate-function
+          '(lambda (link)
+             (org-download-annotate-default (org-link-unescape link)))))
+  
+  (setq org-download-annotate-function 'ignore)
+
+;; *** config
+  :config
+
+;; **** Redefine or-download-dnd about
+
+  ;; DND was the handle of emacs for handling OS-to-Emacs interactive
+  ;; behaviour abbreviated by 'Drag-And-Drop'.
+  ;;
+  ;; For handling this, emacs provide variable `dnd-protocol-alist'
+  ;; to store the alist of numerous method for handling this.
+  ;;
+  ;; Org-download package's internal functions `org-download-dnd' was
+  ;; added to `dnd-protocol-alist' while enable it, and it's function
+  ;; was handle the dnd operator in org-mode buffer with calling
+  ;; `org-download-image' for insert image into current org-mode
+  ;; buffer.
+  
+  (if (image-type-available-p 'imagemagick)
+      (defun org-download-dnd-fallback (uri action)
+        "Note: This function has been pseudo maked because of
+the unneeded feature that fall-back to using internal originally
+type to deal with drop event of draging image to drop it in
+`org-mode'."
+        (let ((dnd-protocol-alist
+               (rassq-delete-all
+                'org-download-dnd
+                (copy-alist dnd-protocol-alist))))
+          ;; (dnd-handle-one-url nil action uri)
+          nil)))
+
+
+  (defun org-download-dnd (uri action)
+    "When in `org-mode' and URI points to image, download it.
+Otherwise, pass URI and ACTION back to dnd dispatch.
+
+Note: This function has been redifined to adding
+`org-display-inline-images'."
+    (cond ((eq major-mode 'org-mode)
+           (condition-case nil
+               (org-download-image uri)
+             (error
+              (org-download-dnd-fallback uri action))))
+          ((eq major-mode 'dired-mode)
+           (org-download-dired uri))
+          ;; redirect to someone else
+          (t
+           (org-download-dnd-fallback uri action)))
+    (org-display-inline-images))
+
+
+;; **** Redefine org-download-screenshot function to support auto org-indent current inserted annotation.
+  (if (and (or sys/win32p sys/cygwinp)
+           (executable-find
+            (car (split-string entropy/emacs-win-org-download-screenshot-method))))
+      (progn
+        (defun entropy/emacs-org-download-screenshot ()
+          "Capture screenshot and insert the resulting file.
+The screenshot tool is determined by `org-download-screenshot-method'.
+
+And Now you are in windows plattform we defualt use SnippingTool
+to be stuff. And you can change it's value by the variable
+`entropy/emacs-win-org-download-screenshot-method' it will pass itself
+to `org-download-screenshot-method' .
+"
+          (interactive)
+          (if buffer-read-only
+              (read-only-mode 0))
+          (let ((link entropy/emacs-win-org-download-file-name))
+            (shell-command (format org-download-screenshot-method link))
+            (org-download-image link)
+            (beginning-of-line)
+            (org-indent-line)
+            (delete-file link)
+            (org-display-inline-images)))
+        (setq org-download-screenshot-method entropy/emacs-win-org-download-screenshot-method))
+    (defun entropy/emacs-org-download-screenshot ()
+      " 
+Note: this function was derived and extended from
+org-download-screenshot
+
+Capture screenshot and insert the resulting file.
+The screenshot tool is determined by
+`org-download-screenshot-method'.
+"
+      (interactive)
+      (org-download-screenshot)
+      (beginning-of-line)
+      (org-indent-line)
+      (org-display-inline-images)))
+
+
+;; **** enhance org-download-insert-link    
+  (defun entropy/emacs-org--odl-judgement-whether-capture-name (buffname)
+    "Judgement whether using 'org-download' in capture mode, if
+indeed then auto-transfer buffer-name to origin one and return
+FILENAME.
+
+FILENAME transfer depending on the value of
+`uniquify-buffer-name-style' which uniquify `buffer-name'
+duplicated in `buffer-list', thus each type of uniquify name style
+corresponding to the specific transfer method."
+    (if (string-match-p "^CAPTURE-" buffname)
+        (let ((tname (replace-regexp-in-string "^CAPTURE-" "" buffname))
+              (forward-re "\\(.*?/\\)+")
+              (reverse-re "\\(.*?\\\\\\)+")
+              (post-foward-re "\\|.*?/?.*?$")
+              (post-angle-re "<.*?>$"))
+          (cond
+           ;; forward uniquify buffer name type
+           ((string-match-p forward-re tname)
+            (setq tname (file-name-nondirectory tname)))
+           ((string-match-p reverse-re tname)
+            (setq tname (file-name-nondirectory tname)))
+           ;; post-forward-angle-brackets uniquify buffer name type
+           ((string-match-p post-angle-re tname)
+            (setq tname (replace-regexp-in-string post-angle-re "" tname)))
+           ;; post-forward uniquify buffer name type
+           ((string-match-p post-forward-re tname)
+            (setq tname (replace-regexp-in-string post-forward-re "" tname)))
+           ;; non-duplicated files
+           (t tname))
+          (concat default-directory tname))
+      buffer-file-name))
+  
+  (defun org-download-insert-link (link filename)
+    "This function has been redefine for the bug of using
+`buffer-name' in `file-name-directory' and automatically
+adjusting the link insert position follow the rules below:
+
+- Point at beginning of empty line:
+
+  Insert link in current point.
+
+- Point at middle or end of empty line:
+
+  Insert link in current point.
+
+- Point at end of none-empty line:
+
+  Insert the link under of current line with newline creating.
+
+- Point at partition case of none-empty line:
+
+  Insert the link under of current line with newline creating.
+"
+    (cond
+     ((and (equal (point) (line-beginning-position)) ;point at beginning of empty line
+           (looking-at " *$"))
+      t)
+     ((and (looking-back "^ +" (line-beginning-position)) ;point at middle or end of empty line
+           (looking-at " *$"))
+      t)
+     ((and (looking-at " *$")       ;point at end of none-empty line
+           (looking-back ".+" (line-beginning-position)))
+      (newline))
+     ((and (looking-at ".+$")       ;point at part or beginning of none-empty line
+           (looking-back ".*" (line-beginning-position)))
+      (end-of-line)
+      (newline)))
+    (insert
+     (concat
+      (funcall org-download-annotate-function link)
+      (if (eq org-download-annotate-function 'ignore) "" "\n")
+      (if (= org-download-image-html-width 0)
+          ""
+        (format "#+attr_html: :width %dpx\n" org-download-image-html-width))
+      (if (= org-download-image-latex-width 0)
+          ""
+        (format "#+attr_latex: :width %dcm\n" org-download-image-latex-width))
+      (format org-download-link-format
+              (file-relative-name
+               filename
+               (file-name-directory
+                (entropy/emacs-org--odl-judgement-whether-capture-name (buffer-name)))))))
+    (org-indent-line)))
+
+;; ** toc-org
+(use-package toc-org
+  :commands toc-org-insert-toc
+  :init (setq toc-org-hrefify-default "gh"))
 
 ;; ** Dwimin commenting code region with org mode
 (use-package poporg

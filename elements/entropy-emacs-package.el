@@ -105,25 +105,13 @@ for `user-emacs-directory'."
 
 (entropy/emacs-package-set-package-archive-location entropy/emacs-package-archive-repo)
 
-
-;; Remove internal org-mode path
-(let ((match-rexp  (concat (substring data-directory 0 -5) ".*/org$"))
-      (temp_path (copy-tree load-path)))
-  (catch :exit
-    (dolist (el temp_path)
-      (when (string-match match-rexp el)
-        (setq temp_path (remove el temp_path))
-        (throw :exit nil))))
-  (setq load-path temp_path))
-
-
 ;; Initialize packages
-(setq package-enable-at-startup nil)    ; To prevent initialising twice
-(if (not (version< emacs-version "27"))
-    (setq package-quickstart t))
-(message "Packages initializing ......")
-(package-initialize)
-(message "Packages initializing done!")
+(when (equal entropy/emacs-use-extensions-type 'origin)
+  (if (not (version< emacs-version "27"))
+      (setq package-quickstart t))
+  (message "Custom packages initializing ......")
+  (package-initialize)
+  (message "Custom packages initializing done!"))
 
 ;; Format package-gnupghome-dir format for Msys2
 (when (and entropy/emacs-wsl-enable

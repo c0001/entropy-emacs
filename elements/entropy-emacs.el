@@ -55,19 +55,21 @@
 ;; 
 ;; * Code:
 ;; ** Require
-;; *** For basic setting
+;; *** load core library
 (require 'entropy-emacs-custom)
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
 
+;; *** load the core configuration
 (require 'entropy-emacs-faces)
 (require 'entropy-emacs-path)
+
+;; *** Enable entropy emacs UI configuration 
 (require 'entropy-emacs-ui)
 (require 'entropy-emacs-font-set)
 (redisplay t)
-
 
 ;; *** require advice
 (defvar entropy/emacs--required-features nil)
@@ -217,15 +219,6 @@ Emacs will auto close after 6s ......")
   (interactive)
   (advice-add 'require :before #'entropy/emacs--require-loading)  
   (message "Loading rest ......")
-  ;; core
-  (require 'entropy-emacs-tools)
-  (require 'entropy-emacs-org)
-  (require 'entropy-emacs-structure)
-  (require 'entropy-emacs-ivy)
-  (require 'entropy-emacs-modeline)
-  ;; theme
-  (require 'entropy-emacs-themes)
-  (redisplay t)
   ;; highlight
   (when entropy/emacs-use-highlight-features
     ;; highlight package will cause the low performance of emacs interpretering, so this be the
@@ -239,7 +232,7 @@ Emacs will auto close after 6s ......")
   ;; For useful tools
   (require 'entropy-emacs-shell)
   (require 'entropy-emacs-ibuffer)
-
+  (require 'entropy-emacs-tools)
   (when sys/linux-x-p
     ;; when in windows environment, mpvplayer can not be load by emms 
     (require 'entropy-emacs-emms))
@@ -285,6 +278,17 @@ Emacs will auto close after 6s ......")
   (require 'entropy-emacs-basic)
   (require 'entropy-emacs-library)
   (redisplay t)
+  ;; ui
+  (require 'entropy-emacs-modeline)
+  (require 'entropy-emacs-themes)
+  (redisplay t)
+  ;; ineractive
+  (require 'entropy-emacs-ivy)
+  ;; org
+  (require 'entropy-emacs-org)
+  ;; code folding
+  (require 'entropy-emacs-structure)
+
   ;; end
   (advice-remove 'require #'entropy/emacs--require-loading)
   (run-hooks 'entropy/emacs-init-mini-hook)
