@@ -158,7 +158,7 @@ which type of value be:
   (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-action-after-advice)
   
 ;; **** escape use top-level
-  (with-eval-after-load 'counsel
+  (entropy/emacs-lazy-load-simple 'counsel
     (define-key counsel-mode-map (kbd "ESC ESC") 'top-level))
 
 ;; **** improve counsel-git and counsel-bookmark
@@ -376,7 +376,7 @@ this variable used to patching for origin `counsel-git'.")
   ;; correctly font displaying when set spec font to this default
   ;; face.
   
-  (with-eval-after-load 'all-the-icons-dired
+  (entropy/emacs-lazy-load-simple 'all-the-icons-dired
     (defun entropy/emacs-ivy--swiper-format-function-for-dired (cands)
       "Transform CANDS into a string for minibuffer."
       (ivy--format-function-generic
@@ -405,7 +405,7 @@ this variable used to patching for origin `counsel-git'.")
   :if (eq entropy/emacs-ivy-rich-type 'all-the-icons-ivy)
   :commands (all-the-icons-ivy-setup)
   :init
-  (with-eval-after-load 'ivy
+  (entropy/emacs-lazy-load-simple 'ivy
     (all-the-icons-ivy-setup)))
 
 ;; *** ivy rich mode

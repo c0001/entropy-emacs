@@ -53,7 +53,7 @@
   (let ((entropy/emacs-web-development-environment t))
     (apply old-func args)))
 
-(with-eval-after-load 'ox
+(entropy/emacs-lazy-load-simple 'ox
   (advice-add 'org-export-dispatch
               :around #'entropy/emacs-org--export-panel-around-advice))
 
@@ -109,7 +109,7 @@
   (defun entropy/emacs-org--elispMode-orgstruct-PostCommand-hook ()
     (add-hook 'post-command-hook #'entropy/emacs-org--elispMode-orgstruct-enable nil t))
 
-  (with-eval-after-load 'elisp-mode
+  (entropy/emacs-lazy-load-simple 'elisp-mode
     (add-hook 'emacs-lisp-mode-hook #'entropy/emacs-org--elispMode-orgstruct-PostCommand-hook))
   
 ;; *** configs
@@ -248,14 +248,14 @@ recovery method unless reopen capture operation.w
 ;; **** clear key-map of 'C-c C-w'
   
   ;; delete keybind `C-c C-w' of org-capture-refile for fix the contradiction with eyebrowse.
-  (with-eval-after-load 'org-capture
+  (entropy/emacs-lazy-load-simple 'org-capture
     (define-key org-capture-mode-map (kbd "C-c C-w") nil))
 
   ;; delete keybind of org-mode
   (define-key org-mode-map (kbd "C-c C-w") nil)
 
   ;; delete keybind of org-agenda
-  (with-eval-after-load 'org-agenda
+  (entropy/emacs-lazy-load-simple 'org-agenda
     (define-key org-agenda-mode-map (kbd "C-c C-w") nil))
 
 ;; **** org-priority-setting
@@ -326,7 +326,7 @@ recovery method unless reopen capture operation.w
 
 
 ;; ***** org babel evaluate confirm
-  (with-eval-after-load 'org
+  (entropy/emacs-lazy-load-simple 'org
     (when (not (version< org-version "9.1.9"))
       (defvar entropy/emacs-org--src-info nil
         "Current org babel info using for `entropy/emacs-org--babel-comfirm-evaluate'.")
@@ -448,7 +448,7 @@ reason, please see the docstring refer."
       (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org--babel-comfirm-evaluate)))
 
 ;; ***** org global export macro
-  (with-eval-after-load 'ox
+  (entropy/emacs-lazy-load-simple 'ox
     (add-to-list 'org-export-global-macros
                  '("kbd" . "@@html:<code>$1</code>@@")))
   
@@ -568,9 +568,9 @@ returning the type of exec for open exported html file, they are:
               :around #'entropy/emacs-org--publish-check-timestamp-around_advice)
     
 ;; **** org-counsel-set-tag
-  (with-eval-after-load 'org
+  (entropy/emacs-lazy-load-simple 'org
     (bind-key "C-c C-q" #'counsel-org-tag org-mode-map))
-  (with-eval-after-load 'org-agenda
+  (entropy/emacs-lazy-load-simple 'org-agenda
     (bind-key "C-c C-q" #'counsel-org-tag-agenda org-agenda-mode-map))
 
 ;; **** org-inline-image size

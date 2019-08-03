@@ -40,7 +40,7 @@
   "Face for the tail prompt requiring advice
 `entropy/emacs-require-loadding")
 
-(with-eval-after-load 'faces
+(entropy/emacs-lazy-load-simple 'faces
   (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))
 
 ;; ** basic faces

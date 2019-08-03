@@ -104,7 +104,7 @@ Version 2016-10-15"
              (let ((process-connection-type nil))
                (start-process "" nil "xdg-open" $fpath)))
            $file-list))))))
-  (with-eval-after-load 'dired
+  (entropy/emacs-lazy-load-simple 'dired
     (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-tools-open-in-external-app)))
 
 ;; **** Open in desktop manager
@@ -143,7 +143,7 @@ Version 2017-12-23"
         ;; emacs till the folder is closed. eg with nautilus
         ))))
 
-  (with-eval-after-load 'dired
+  (entropy/emacs-lazy-load-simple 'dired
     (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-tools-show-in-desktop)))
 
 ;; **** Open in terminal
@@ -208,7 +208,7 @@ Version 2017-10-09"
              entropy/open-with-buffer)
   :bind (("C-M-1" . entropy/open-with-buffer))
   :init
-  (with-eval-after-load 'dired
+  (entropy/emacs-lazy-load-simple 'dired
     (define-key dired-mode-map (kbd "<C-M-return>") 'entropy/open-with-dired-open)))
 
 
@@ -304,7 +304,7 @@ like `recenter-top-bottom'."
 (setq-default shr-image-animate nil)
 
 ;; *** get image url
-(with-eval-after-load 'shr
+(entropy/emacs-lazy-load-simple 'shr
   (defun entropy/emacs-tools-get-eww-url (choice)
     "Get image or point url at eww or it's derived modes."
     (interactive
@@ -318,15 +318,15 @@ like `recenter-top-bottom'."
             url)
         (error (format "Can not find %s here!" choice)))))
 
-  (with-eval-after-load 'eww
+  (entropy/emacs-lazy-load-simple 'eww
     (define-key eww-mode-map (kbd "m") #'entropy/emacs-tools-get-eww-url))
-  (with-eval-after-load 'elfeed-show
+  (entropy/emacs-lazy-load-simple 'elfeed-show
     (define-key elfeed-show-mode-map (kbd "m") #'entropy/emacs-tools-get-eww-url)))
 
 
 ;; *** eww proxy toggle
-(with-eval-after-load 'entropy-proxy-url
-  (with-eval-after-load 'eww
+(entropy/emacs-lazy-load-simple 'entropy-proxy-url
+  (entropy/emacs-lazy-load-simple 'eww
     (define-key eww-mode-map (kbd "p") #'entropy/proxy-url-switch-for-eww)))
 
 
@@ -358,7 +358,7 @@ Browser chosen based on variable
              rtn)))
       (browse-url url))))
 
-(with-eval-after-load 'eww
+(entropy/emacs-lazy-load-simple 'eww
   (define-key eww-mode-map (kbd "M") #'entropy/emacs-tools-eww-open-url-external))
 
 ;; ** Rss feed
@@ -1020,7 +1020,7 @@ The minor changing was compat for above."
 
   ;; Unbind `message-kill-address' when in gnus mail `message-mode-map'.
   ;; Because of that this will cover `browse-kill-ring' default keybinding.
-  (with-eval-after-load 'gnus-msg
+  (entropy/emacs-lazy-load-simple 'gnus-msg
     (define-key message-mode-map (kbd "C-c M-k") nil)))
 
 
@@ -1123,7 +1123,7 @@ fixing it as thus. "
           ("l" . w3m-view-previous-page)
           ("q" . bury-buffer))
     :config
-    (with-eval-after-load 'w3m-search
+    (entropy/emacs-lazy-load-simple 'w3m-search
       (add-to-list 'w3m-search-engine-alist
                    '("bing" "https://www.bing.com/search?q=%s" utf-8))
       (setq w3m-search-default-engine "bing"))
@@ -1538,7 +1538,7 @@ For now, there's three choices for you:
   :commands (entropy/sdcv-search-at-point-tooltip
              entropy/sdcv-search-input-adjacent)
   :config
-  (with-eval-after-load 'entropy-sdcv
+  (entropy/emacs-lazy-load-simple 'entropy-sdcv
     (defun entropy/sdcv--lang-advice (&rest args)
       (entropy/emacs-lang-set-utf-8))
     (advice-add 'entropy/sdcv-search-at-point-tooltip :before #'entropy/sdcv--lang-advice)
@@ -1562,7 +1562,7 @@ For now, there's three choices for you:
     (interactive)
     (if (not command-log-mode)
         (progn (command-log-mode)
-               (with-eval-after-load 'command-log-mode
+               (entropy/emacs-lazy-load-simple 'command-log-mode
                  (clm/toggle-command-log-buffer)))
       (command-log-mode 0))))
 
@@ -1586,13 +1586,13 @@ For now, there's three choices for you:
                      windmove-down))
         (advice-add $el :after #'maple-preview:send-to-server))
       (when (featurep 'eyebrowse)
-        (with-eval-after-load 'eyebrowse
+        (entropy/emacs-lazy-load-simple 'eyebrowse
           (advice-add 'eyebrowse-switch-to-window-config
                       :after
                       #'maple-preview:send-to-server)))
       (advice-add 'other-window :after #'maple-preview:send-to-server)
       (when (featurep 'markdown-mode)
-        (with-eval-after-load 'markdown-mode
+        (entropy/emacs-lazy-load-simple 'markdown-mode
           (advice-add 'markdown-outdent-or-delete
                       :after
                       #'maple-preview:send-to-server)))
@@ -1675,7 +1675,7 @@ For now, there's three choices for you:
 development web-browser."
     (let ((entropy/emacs-web-development-environment nil))
       (apply oldfunc arg-rest)))
-  (with-eval-after-load 'entropy-open-with
+  (entropy/emacs-lazy-load-simple 'entropy-open-with
     (advice-add 'entropy/open-with-port :around #'entropy/emacs-tools--open-with-port-stuffs-around)))
 
 ;; *** entropy-portableapps

@@ -86,7 +86,7 @@
       (yas-global-mode))))
 
 (defun entropy/emacs-company-require-subs ()
-  (with-eval-after-load 'company
+  (entropy/emacs-lazy-load-simple 'company
     (dolist (el '(company-abbrev
                   company-bbdb
                   company-capf

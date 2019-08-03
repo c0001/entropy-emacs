@@ -82,7 +82,7 @@ open eshell on tramp-buffer when on windows platform. "
                sys/win32p)
       (error "Can not using eshell in tramp location.")))
   
-  (with-eval-after-load 'eshell
+  (entropy/emacs-lazy-load-simple 'eshell
     (advice-add 'eshell :before #'entropy/emacs-shell--eshell-before-advice))
   
   (add-hook 'eshell-exit-hook #'(lambda ()

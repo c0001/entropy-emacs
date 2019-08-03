@@ -59,7 +59,7 @@ for `user-emacs-directory'."
 
 ;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
-(with-eval-after-load 'package
+(entropy/emacs-lazy-load-simple 'package
   (defun package--save-selected-packages (&optional value)
     "Set and (don't!) save `package-selected-packages' to VALUE."
     (when value
@@ -144,7 +144,8 @@ for `user-emacs-directory'."
 (if (eq entropy/emacs-use-extensions-type 'submodules)
     (setq use-package-always-ensure nil)
   (setq use-package-always-ensure t))
-(setq use-package-always-defer t)
+
+(setq use-package-always-defer entropy/emacs-custom-enable-lazy-load)
 (setq use-package-expand-minimally t)
 (setq use-package-enable-imenu-support t)
 

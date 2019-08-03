@@ -186,7 +186,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
               (doom-modeline--make-xpm 'doom-modeline-inactive-bar
                                        doom-modeline-bar-width
                                        doom-modeline-height))))
-  (with-eval-after-load 'doom-modeline
+  (entropy/emacs-lazy-load-simple 'doom-modeline
     (advice-add 'doom-modeline-mode :after #'entropy/emacs-doom-mdlini-after-advice))
   (setq doom-modeline-bar-width 1
         doom-modeline-buffer-file-name-style 'truncate-all
@@ -383,7 +383,7 @@ with emacs, see its doc-string for details."
 
    ;; init-origin style
    ((string= entropy/emacs-modeline-style "origin")
-    (with-eval-after-load 'eyebrowse
+    (entropy/emacs-lazy-load-simple 'eyebrowse
       (entropy/emacs-mode-line-origin-theme)))
 
    ;; init doom-modeline
@@ -440,7 +440,7 @@ with emacs, see its doc-string for details."
     (setq entropy/emacs-mode-line-sticker "powerline")
     (powerline-default-theme))
 
-  (with-eval-after-load 'eyebrowse
+  (entropy/emacs-lazy-load-simple 'eyebrowse
     (defun entropy/emacs-modeline-mdl-origin ()
       "Toggle modeline style to entropy specific origin modeline style."
       (interactive)

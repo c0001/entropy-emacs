@@ -131,7 +131,7 @@
               (insert initial-scratch-message)))))
     bfn))
 
-(with-eval-after-load 'entropy-emacs-structure
+(entropy/emacs-lazy-load-simple 'entropy-emacs-structure
   (entropy/emacs-basic--scratch-buffer-file-binding))
 
 ;; Create a new scratch buffer
@@ -293,7 +293,7 @@ Manually edit this variable will not be any effection.")
     (setq eyebrowse-new-workspace t))
 
   ;; debug for improving eyebrowse's user experience
-  (with-eval-after-load 'eyebrowse
+  (entropy/emacs-lazy-load-simple 'eyebrowse
     (defun eyebrowse--read-slot ()
       "Read in a window config SLOT to switch to.
   A formatted list of window configs is presented as candidates.
@@ -1041,7 +1041,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     (interactive)
     (entropy/emacs-basic-dired-delete-file-recursive nil t))
   
-  (with-eval-after-load 'dired
+  (entropy/emacs-lazy-load-simple 'dired
     (define-key dired-mode-map (kbd "D") 'entropy/emacs-basic-dired-delete-file-recursive)
     (define-key dired-mode-map (kbd "M-d") 'entropy/emacs-basic-dired-delete-file-refers))
   
@@ -1843,13 +1843,13 @@ coding-system to save bookmark infos"
         ((eq major-mode 'text-mode)
          (yes-or-no-p "Really for that? (maybe you don't want to change to artist!) ")
          (artist-mode))))
-(with-eval-after-load 'artist
+(entropy/emacs-lazy-load-simple 'artist
   (define-key artist-mode-map (kbd "<f5>") 'entropy/emacs-basic-ex-toggle-artist-and-text))
-(with-eval-after-load 'text-mode
+(entropy/emacs-lazy-load-simple 'text-mode
   (define-key text-mode-map (kbd "<f5>") 'entropy/emacs-basic-ex-toggle-artist-and-text))
 
 ;; Disabled '<' and '>' keybinding function.
-(with-eval-after-load 'artist
+(entropy/emacs-lazy-load-simple 'artist
   (define-key artist-mode-map (kbd ">") nil)
   (define-key artist-mode-map (kbd "<") nil))
 
@@ -1990,7 +1990,7 @@ Temp file was \"~/~entropy-artist.txt\""
   (epa-file-enable)
   (when (and entropy/emacs-wsl-enable
              (file-exists-p entropy/emacs-wsl-apps))
-    (with-eval-after-load 'custom
+    (entropy/emacs-lazy-load-simple 'custom
       (custom-set-variables
        '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-wsl-apps))
        '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-wsl-apps))

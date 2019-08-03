@@ -38,7 +38,7 @@
 (require 'cl)
 
 ;; ** Preparation
-(with-eval-after-load 'tern
+(entropy/emacs-lazy-load-simple 'tern
   (setq tern-command '("tern")))
 
 ;; ** main libraries
@@ -90,7 +90,7 @@
   (setq web-mode-code-indent-offset 4)
   (setq indent-tabs-mode nil)
   (setq tab-width 4)
-  (with-eval-after-load 'yasnippet
+  (entropy/emacs-lazy-load-simple 'yasnippet
     (yas-activate-extra-mode 'php-mode)
     (yas-activate-extra-mode 'js2-mode)
     (yas-activate-extra-mode 'css-mode))
@@ -143,7 +143,7 @@
   :mode "\\.js$"
   :interpreter "node"
   :init
-  (with-eval-after-load 'js2-mode
+  (entropy/emacs-lazy-load-simple 'js2-mode
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
     (add-hook 'js2-mode-hook
@@ -175,7 +175,7 @@
   :commands (skewer-mode skewer-html-mode skewer-css-mode)
   :diminish (skewer-mode skewer-html-mode skewer-css-mode)
   :init
-  (with-eval-after-load 'skewer-mode
+  (entropy/emacs-lazy-load-simple 'skewer-mode
     (dolist (el '(cache-table
                   skewer-bower
                   skewer-css
@@ -183,11 +183,11 @@
                   skewer-repl
                   skewer-setup))
       (require el)))
-  (with-eval-after-load 'js2-mode
+  (entropy/emacs-lazy-load-simple 'js2-mode
     (add-hook 'js2-mode-hook #'skewer-mode))
-  (with-eval-after-load 'css-mode
+  (entropy/emacs-lazy-load-simple 'css-mode
     (add-hook 'css-mode-hook #'skewer-css-mode))
-  (with-eval-after-load 'sgml-mode
+  (entropy/emacs-lazy-load-simple 'sgml-mode
     (add-hook 'web-mode-hook #'skewer-html-mode)))
 
 (use-package impatient-mode
@@ -223,13 +223,13 @@
    web-beautify-js
    web-beautify-js-buffer)
   :init
-  (with-eval-after-load 'js2-mode
+  (entropy/emacs-lazy-load-simple 'js2-mode
     (bind-key "C-c C-b" 'web-beautify-js js2-mode-map))
-  (with-eval-after-load 'json-mode
+  (entropy/emacs-lazy-load-simple 'json-mode
     (bind-key "C-c C-b" 'web-beautify-js json-mode-map))
-  (with-eval-after-load 'sgml-mode
+  (entropy/emacs-lazy-load-simple 'sgml-mode
     (bind-key "C-c C-b" 'web-beautify-html html-mode-map))
-  (with-eval-after-load 'css-mode
+  (entropy/emacs-lazy-load-simple 'css-mode
     (bind-key "C-c C-b" 'web-beautify-css css-mode-map))
   :config
   ;; Set indent size to 2
