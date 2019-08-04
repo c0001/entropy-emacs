@@ -54,27 +54,24 @@
 (defvar default-file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
 
-;; Gc hook for minibuffer (using high gc threshold for ivy)
-(defun entropy/minibuffer-attend-hook ()
-  (setq gc-cons-threshold most-positive-fixnum))
-(defun entropy/minibuffer-quit-hook ()
-  (if (eq system-type 'windows-nt)
-      (setq gc-cons-threshold 80000000)
-    (cond ((not (display-graphic-p))
-           (setq gc-cons-threshold 800000))
-          ((display-graphic-p)
-           (setq gc-cons-threshold 8000000)))))
-(add-hook 'minibuffer-setup-hook #'entropy/minibuffer-attend-hook)
-(add-hook 'minibuffer-exit-hook #'entropy/minibuffer-quit-hook)
+;; Gc hook for minibuffer on WINDOWS platform (using high gc threshold for ivy)
+(when (eq system-type 'windows-nt)
+  (defun entropy/minibuffer-attend-hook ()
+    (setq gc-cons-threshold most-positive-fixnum))
+  (defun entropy/minibuffer-quit-hook ()
+    (setq gc-cons-threshold 80000000))
+  (add-hook 'minibuffer-setup-hook #'entropy/minibuffer-attend-hook)
+  (add-hook 'minibuffer-exit-hook #'entropy/minibuffer-quit-hook)
 
-(setq garbage-collection-messages nil)
-(setq gc-cons-threshold 100000000)
-(setq gc-cons-percentage 0.1)
+  ;; optimize startup gc-trhedshold for speeding up the intilize procedure
+  (setq garbage-collection-messages nil)
+  (setq gc-cons-threshold 100000000)
+  (setq gc-cons-percentage 0.1)
 
-;; Setting gc space limit to smaller one for fasting init time.
-;;    NOTE: this will cause frequency gc because of the low limit of gc value. Thus this will cause
-;;    other lagging experience like counsel-M-x scrolling down with it's candidates.
-(add-hook 'emacs-startup-hook #'entropy/minibuffer-quit-hook)
+  ;; Setting gc space limit to smaller one for fasting init time.
+  ;;    NOTE: this will cause frequency gc because of the low limit of gc value. Thus this will cause
+  ;;    other lagging experience like counsel-M-x scrolling down with it's candidates.
+  (add-hook 'emacs-startup-hook #'entropy/minibuffer-quit-hook))
 
 ;; ** load path
 ;; *** load-path for entropy-emacs
