@@ -44,19 +44,19 @@
 (require 'url)
 
 ;; ** variable declaration
-(setq entropy/adbp-rule--gfw-list-upstream
-      "https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt")
-(setq entropy/adbp-rule--gfw-list-local
-      (expand-file-name "gfw-list.txt"
-                        (file-name-directory load-file-name)))
+(defvar entropy/adbp-rule--gfw-list-upstream
+  "https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt")
+(defvar entropy/adbp-rule--gfw-list-local
+  (expand-file-name "gfw-list.txt"
+                    (file-name-directory load-file-name)))
 
-(setq entropy/adbp-rule--gfw-list-encrypted-cache nil)
-(setq entropy/adbp-rule--origin-rule-set nil)
-(setq entropy/adbp-rule--regexps-cache nil)
+(defvar entropy/adbp-rule--gfw-list-encrypted-cache nil)
+(defvar entropy/adbp-rule--origin-rule-set nil)
+(defvar entropy/adbp-rule--regexps-cache nil)
 
-(setq entropy/adbp-rule--head-full-regexp '("^||\\([^|].*\\)$" . "^\\\\(https?://www\\\\.\\\\|ftp://\\\\)\\1"))
-(setq entropy/adbp-rule--head-regexp '("^|\\([^|].*\\)$" . "^\\1"))
-(setq entropy/adbp-rule--head-wild-regexp '("^\\.\\([^\\.].*\\)$" . ".*\\1"))
+(defvar entropy/adbp-rule--head-full-regexp '("^||\\([^|].*\\)$" . "^\\\\(https?://www\\\\.\\\\|ftp://\\\\)\\1"))
+(defvar entropy/adbp-rule--head-regexp '("^|\\([^|].*\\)$" . "^\\1"))
+(defvar entropy/adbp-rule--head-wild-regexp '("^\\.\\([^\\.].*\\)$" . ".*\\1"))
 
 
 ;; ** libraries
@@ -93,16 +93,21 @@
     rtn))
 
 (defun entropy/adbp-rule--fetch-gfw-list ()
-  (let ((retrieve-buffer (url-retrieve-synchronously entropy/adbp-rule--gfw-list-upstream)))
-    (with-current-buffer retrieve-buffer
-      (goto-char (point-min))
-      (re-search-forward "^$")
-      (forward-line 1)
-      (let ((body (cons (point) (point-max))))
-        (setq entropy/adbp-rule--gfw-list-encrypted-cache
-              (buffer-substring-no-properties
-               (car body)
-               (cdr body)))))))
+  (let ((retrieve-buffer
+         (ignore-errors
+           (url-retrieve-synchronously
+            entropy/adbp-rule--gfw-list-upstream))))
+    (if retrieve-buffer
+        (with-current-buffer retrieve-buffer
+          (goto-char (point-min))
+          (re-search-forward "^$")
+          (forward-line 1)
+          (let ((body (cons (point) (point-max))))
+            (setq entropy/adbp-rule--gfw-list-encrypted-cache
+                  (buffer-substring-no-properties
+                   (car body)
+                   (cdr body)))))
+      nil)))
 
 (defun entropy/adbp-rule--gen-adbp-origin-rule-set ()
   (let ((cache (entropy/adbp-rule--fetch-gfw-list)))
