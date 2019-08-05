@@ -54,13 +54,8 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 
-(let ((cus entropy/emacs-custom-common-file)
-      (nav entropy/emacs-custom-navigate-file))
-  (if (file-exists-p cus)
-      (progn (load cus)
-             (setq custom-file cus))
-    (when (file-exists-p nav)
-      (setq custom-file nav)
-      (load nav))))
+(let ((cus entropy/emacs-custom-common-file))
+  (when (file-exists-p cus)
+    (load cus)))
 
 (provide 'entropy-emacs-custom)

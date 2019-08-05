@@ -57,13 +57,6 @@
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/emacs-custom-navigate-file (expand-file-name
-                                         "navigate.el"
-                                         user-emacs-directory)
-  "entropy-emacs navigate custom file."
-  :type 'string
-  :group 'entropy/emacs-custom-variable-basic)
-
 (defcustom entropy/emacs-fancy-splash-logo (expand-file-name "logo/logo.png" (file-name-directory load-file-name))
   "Set emacs logo. nil means official logo."
   :type 'string
