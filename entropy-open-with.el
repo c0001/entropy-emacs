@@ -345,6 +345,13 @@ string type.
 (defun entropy/open-with--on-win32 ()
   (member system-type '(windows-nt cygwin)))
 
+(defun entropy/open-with--sudo-file-name-predicate (filename)
+  "Shrink trmap path of sudo privilege type when on *NIX platform."
+  (if (and (not (entropy/open-with--on-win32))
+           (string-match-p "^/sudo:root@.*?:/" filename))
+      (replace-regexp-in-string "^/sudo:root@.*?:/" "/" filename)
+    filename))
+
 (defun entropy/open-with--do-list ()
   "Expand `entropy/open-with-type-list' to `entropy/open-with--type-list-full'.
 
@@ -377,10 +384,9 @@ each file suffix 'ext', like:
 state of file description for `entropy/open-with-match-open'.
 
 If not matched the exist file type then return nil."
-
   (let ((type-list (progn (entropy/open-with--do-list)
                           entropy/open-with--type-list-full))
-        (file-path (expand-file-name filename))
+        (file-path (expand-file-name (entropy/open-with--sudo-file-name-predicate filename)))
         $file-pattern rtn)
     (catch :exit
       (dolist (type type-list)
@@ -476,6 +482,7 @@ temp dir for preventing some file deleting operation conflicted
 occurrence.
 "
   (dolist (el files)
+    (setq el (entropy/open-with--sudo-file-name-predicate el))
     (let (($dowith (cond ((entropy/open-with--judge-file-type el)
                           (entropy/open-with--judge-file-type el))
                          ((ignore-errors (file-exists-p el))
@@ -505,8 +512,9 @@ Tips: none-interactive state support open url.
 Note: this func redirected `default-directory' as
 `entropy/open-with-match-open' does so."
   (if interact
-      (let ((accept (ivy-read "Please input FILENAME or insert url: " 'read-file-name-internal
-                              :history 'file-name-history)))
+      (let ((accept (entropy/open-with--sudo-file-name-predicate
+                     (ivy-read "Please input FILENAME or insert url: " 'read-file-name-internal
+                               :history 'file-name-history))))
         (if (file-exists-p accept)
             (cond
              ((file-directory-p accept)
@@ -518,6 +526,7 @@ Note: this func redirected `default-directory' as
                 (entropy/open-with-port t)
               (error "Abort operation.")))))
     (if filename
+        (setq filename (entropy/open-with--sudo-file-name-predicate filename))
         (if (or (and (file-exists-p filename)
                      (not (string= filename "")))
                 (string-match-p entropy/open-with-url-regexp filename))
