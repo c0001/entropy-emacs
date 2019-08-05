@@ -56,7 +56,7 @@
 
 ;; Increase the default gc-cons-percentage for more smooth typing
 ;; experience
-(setq gc-cons-percentage 0.36)
+(setq gc-cons-percentage 0.99)
 
 ;; ** load path
 ;; *** load-path for entropy-emacs
