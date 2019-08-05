@@ -148,6 +148,15 @@ Trying insert some words in below are:
 
 
 
+;; ** Diable linux tty swiching keybinding
+;; 
+;; Disable virtual terminal tty switching keybinding on linux for
+;; release more keybinding possibilitie.(see
+;; <https://unix.stackexchange.com/questions/34158/rebinding-disabling-ctrlaltf-virtual-terminal-console-switching>)
+(when sys/linuxp
+  (shell-command "setxkbmap -option srvrkeys:none")
+  (message "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"))
+
 ;; ** Resetting browse-url-function in fancy-startup-screen
 
 (defun entropy/emacs--startup-screen-after-advice (&rest arg-rest)

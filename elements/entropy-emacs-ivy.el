@@ -76,6 +76,9 @@
          ("M-%" . swiper-query-replace))
 ;; *** init
   :init
+  (unless sys/win32p
+    (global-set-key (kbd "C-M-<f11>") #'counsel-linux-app))
+  
   (add-hook 'entropy/emacs-init-mini-hook #'ivy-mode)
   (add-hook 'ivy-mode-hook #'counsel-mode)
 
