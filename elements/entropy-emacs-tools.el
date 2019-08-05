@@ -65,7 +65,21 @@
                       "xdg-open")
                      (t
                       nil))
-               '(file)))))
+               '(file))))
+  :config
+  (defun openwith-open-unix (command arglist)
+    "Run external command COMMAND, in such a way that it is
+disowned from the parent Emacs process.  If Emacs dies, the
+process spawned here lives on.  ARGLIST is a list of strings,
+each an argument to COMMAND."
+    (let ((shell-file-name "/bin/sh")
+          (process-connection-type nil))
+      (start-process-shell-command
+       "openwith-process" nil
+       (concat
+        "exec nohup " command " " 
+        (mapconcat 'shell-quote-argument arglist " ")
+        " >/dev/null")))))
 
 ;; *** Function manually
 ;; **** open in external apps
