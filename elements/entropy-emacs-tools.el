@@ -1694,6 +1694,7 @@ development web-browser."
 
 ;; *** entropy-portableapps
 (use-package entropy-portableapps
+  :if sys/win32p
   :ensure nil
   :commands (entropy/poapps-query-open)
   :bind (("C-M-<f11>" . entropy/poapps-query-open)))
