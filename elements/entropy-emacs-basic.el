@@ -1559,6 +1559,7 @@ emacs."
           ("*quickrun*" :select t :size 15 :align below)
           ("*tldr*" :align below :autoclose t)
           ("*Youdao Dictionary*" :align below :autoclose t)
+          ("*Google Translate*" :align below :select t :size 0.5 :autoclose t)
           ("*Finder*" :select t :align below :autoclose t)
           ("^\\*elfeed-entry" :regexp t :size 0.7 :align below :autoclose t)
           ("*lsp-help*" :align below :autoclose t)
