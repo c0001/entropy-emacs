@@ -62,6 +62,18 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
 
+;; Increase the default gc-cons-percentage for more smooth typing
+;; experience
+(if entropy/emacs-enable-pyim
+    (setq gc-cons-percentage 0.12)
+  (setq gc-cons-percentage 0.99))
+
+(if entropy/emacs-minimal-start
+    (add-hook 'entropy/emacs-init-mini-hook
+              #'(lambda () (setq garbage-collection-messages t)))
+  (add-hook 'entropy/emacs-init-X-hook
+            #'(lambda () (setq garbage-collection-messages t))))
+
 ;; *** load the core configuration
 (require 'entropy-emacs-faces)
 (require 'entropy-emacs-path)
@@ -388,7 +400,8 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 (defun entropy/emacs--init-M ()
   (entropy/emacs-M-enable)
-  (when entropy/emacs-enable-pyim
+  (when (and entropy/emacs-enable-pyim
+             entropy/emacs-minimal-start)
     (entropy/emacs--pyim-init-prompt)
     (defun entropy/emacs--pyim-init-prompt ()
       (message "This function has been unloaded."))))

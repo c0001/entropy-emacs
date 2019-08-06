@@ -54,10 +54,6 @@
 (defvar default-file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
 
-;; Increase the default gc-cons-percentage for more smooth typing
-;; experience
-(setq gc-cons-percentage 0.99)
-
 ;; ** load path
 ;; *** load-path for entropy-emacs
 (let ((entropy-emacs_path

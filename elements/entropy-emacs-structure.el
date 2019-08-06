@@ -35,6 +35,26 @@
 (require 'entropy-emacs-defcustom)
 
 
+;; ** libraries
+;; function for universal code folding
+(defun entropy/emacs-structure-toggle-selective-display (column)
+  "Folding coding block relied on indentation column COLUMN."
+  (interactive "P")
+  (set-selective-display
+   (or column
+       (unless selective-display
+         (1+ (current-column))))))
+
+(defun entropy/emacs-structure-toggle-hiding (column)
+  "Using `hs-toggle-hiding' to fold partition coding block."
+  (interactive "P")
+  (if hs-minor-mode
+      (if (condition-case nil
+              (hs-toggle-hiding)
+            (error t))
+          (hs-show-all))
+    (entropy/emacs-structure-toggle-selective-display column)))
+
 ;; ** hs-mode
 
 (use-package hideshow
@@ -55,26 +75,6 @@
   (add-hook 'php-mode-hook        #'hs-minor-mode)
   (add-hook 'python-mode-hook     #'hs-minor-mode)
   :config
-
-  ;; function for universal code folding
-  (defun entropy/emacs-structure-toggle-selective-display (column)
-    "Folding coding block relied on indentation column COLUMN."
-    (interactive "P")
-    (set-selective-display
-     (or column
-	 (unless selective-display
-	   (1+ (current-column))))))
-
-  (defun entropy/emacs-structure-toggle-hiding (column)
-    "Using `hs-toggle-hiding' to fold partition coding block."
-    (interactive "P")
-    (if hs-minor-mode
-	(if (condition-case nil
-		(hs-toggle-hiding)
-	      (error t))
-	    (hs-show-all))
-      (entropy/emacs-structure-toggle-selective-display column)))
-
   (global-set-key (kbd "C--") 'entropy/emacs-structure-toggle-hiding)
   (global-set-key (kbd "C-+") 'entropy/emacs-structure-toggle-selective-display))
 
@@ -95,8 +95,25 @@
          (python-mode-hook     . hs-minor-mode))
   :commands (yafolding-toggle-element
              yafolding-show-all)
-  :bind (("C--" . yafolding-toggle-element)
-         ("C-=" . yafolding-show-all)))
+  :bind (("C--" . entropy/emacs-structure-yaf-toggle)
+         ("C-=" . entropy/emacs-structure-yaf-show-all))
+  :config
+  (defvar entropy/emacs-structure--yafolding-jumping-modes '(emacs-lisp-mode lisp-interaction-mode))
+  (defun entropy/emacs-structure-yaf-toggle (column)
+    (interactive "P")
+    (if (member major-mode entropy/emacs-structure--yafolding-jumping-modes)
+        (progn
+          (hs-minor-mode 1)
+          (funcall #'entropy/emacs-structure-toggle-hiding nil))
+      (funcall #'yafolding-toggle-element)))
+
+  (defun entropy/emacs-structure-yaf-show-all ()
+    (interactive)
+    (if (member major-mode entropy/emacs-structure--yafolding-jumping-modes)
+        (progn
+          (hs-minor-mode 1)
+          (funcall 'hs-show-all))
+      (funcall #'yafolding-show-all))))
 
 ;; * provide
 (provide 'entropy-emacs-structure)

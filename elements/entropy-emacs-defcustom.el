@@ -554,6 +554,27 @@ For example:
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
+(defcustom entropy/emacs-pyim-use-backend 'internal
+  "The pyim backend type choosing configuration."
+  :type  '(choice
+           (const internal)
+           (const liberime))
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/emacs-pyim-liberime-scheme-data
+  (cl-case system-type
+    (gnu/linux "/usr/share/rime-data")
+    (t nil))
+  "The rime scheme-data directory using for liberime"
+  :type 'string
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/emacs-pyim-liberime-cache-dir
+  (expand-file-name "pyim/rime-cache" user-emacs-directory)
+  "The cache dir for liberime"
+  :type 'string
+  :group 'entropy/emacs-custom-variable-basic)
+
 (defcustom entropy/emacs-pyim-dicts
   '((:name "core"
            (expand-file-name "pyim-about/core.pyim" user-emacs-directory))
@@ -575,7 +596,7 @@ You can setting like this:
 
 (defcustom entropy/emacs-pyim-cached-dir nil
   "Set pyim cached dir, if nil use defaults setting (see
-  `pyim-dcache-directory')"
+`pyim-dcache-directory')"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 

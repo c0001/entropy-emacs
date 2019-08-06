@@ -739,7 +739,7 @@ as the hypenation."
   (advice-add 'orgstruct-mode :after #'(lambda (&optional arg)
                                          (define-key orgstruct-mode-map (kbd "C-c C-b") nil)))
 
-  (defvar entropy/emacs-structure--orgstruct-jumping-head-regexp
+  (defvar entropy/emacs-org--orgstruct-jumping-head-regexp
     "^\\(\\( \\|	\\)*;;\\( \\|	\\)?\\*\\|^\\( \\|	\\)*#\\( \\|	\\)?\\*\\|^\\( \\|	\\)*\\/\\*\\( \\|	\\)?\\*\\|^\\( \\|	\\)*\\/\\/\\( \\|	\\)?\\*\\)"
     "The regexp for jumping heading by:
 
@@ -749,47 +749,47 @@ as the hypenation."
     - `entropy/emacs-up-orgstruct-headline'"
     )
 
-  (defun entropy/emacs-structure-fold-org-struct ()
+  (defun entropy/emacs-org-fold-orgstruct ()
     "Fold the file with orgstruct format struture heading style
 like ';; **' in elisp file"
     (interactive)
     (goto-char (point-min))
     (re-search-forward
-     entropy/emacs-structure--orgstruct-jumping-head-regexp)
+     entropy/emacs-org--orgstruct-jumping-head-regexp)
     (orgstruct-hijacker-org-shifttab-3 t))
   
-  (defun entropy/emacs-structure-previous-orgstruct-headline ()
+  (defun entropy/emacs-org-previous-orgstruct-headline ()
     "Jumping to the previous orgstruct headline."
     (interactive)
     (beginning-of-line)
     (re-search-backward
-     entropy/emacs-structure--orgstruct-jumping-head-regexp))
+     entropy/emacs-org--orgstruct-jumping-head-regexp))
   
-  (defun entropy/emacs-structure-next-orgstruct-headline ()
+  (defun entropy/emacs-org-next-orgstruct-headline ()
     "Jumping to the next orgstruct headline."
     (interactive)
     (end-of-line)
     (re-search-forward
-     entropy/emacs-structure--orgstruct-jumping-head-regexp))
+     entropy/emacs-org--orgstruct-jumping-head-regexp))
 
-  (defun entropy/emacs-structure-up-orgstruct-headline ()
+  (defun entropy/emacs-org-up-orgstruct-headline ()
     "Jumping to the up-level orgstruct headline."
     (interactive)
     (next-line)
     (beginning-of-line)
-    (entropy/emacs-structure-previous-orgstruct-headline)
+    (entropy/emacs-org-previous-orgstruct-headline)
     (orgstruct-hijacker-outline-up-heading-1 t))
   
-  (defun entropy/emacs-structure--org-struct-mode-hook ()
-    "Hooks for pusing `entropy/emacs-structure-previous-orgstruct-headline',
-`entropy/emacs-structure-next-orgstruct-headline',
-`entropy/emacs-structure-next-orgstruct-headline' to org-struct-mode-hook."
-    (define-key orgstruct-mode-map (kbd "C-<tab>") 'entropy/emacs-structure-fold-org-struct)
-    (define-key orgstruct-mode-map (kbd "C-c C-p") 'entropy/emacs-structure-previous-orgstruct-headline)
-    (define-key orgstruct-mode-map (kbd "C-c C-n") 'entropy/emacs-structure-next-orgstruct-headline)
-    (define-key orgstruct-mode-map (kbd "C-c C-u") 'entropy/emacs-structure-up-orgstruct-headline)
+  (defun entropy/emacs-org--org-struct-mode-hook ()
+    "Hooks for pusing `entropy/emacs-org-previous-orgstruct-headline',
+`entropy/emacs-org-next-orgstruct-headline',
+`entropy/emacs-org-next-orgstruct-headline' to org-struct-mode-hook."
+    (define-key orgstruct-mode-map (kbd "C-<tab>") 'entropy/emacs-org-fold-orgstruct)
+    (define-key orgstruct-mode-map (kbd "C-c C-p") 'entropy/emacs-org-previous-orgstruct-headline)
+    (define-key orgstruct-mode-map (kbd "C-c C-n") 'entropy/emacs-org-next-orgstruct-headline)
+    (define-key orgstruct-mode-map (kbd "C-c C-u") 'entropy/emacs-org-up-orgstruct-headline)
     (define-key orgstruct-mode-map (kbd "C-c C-f") nil))
-  (add-hook 'orgstruct-mode-hook 'entropy/emacs-structure--org-struct-mode-hook))
+  (add-hook 'orgstruct-mode-hook 'entropy/emacs-org--org-struct-mode-hook))
 
 ;; ** entropy-emacs additional function
 ;; *** tags align

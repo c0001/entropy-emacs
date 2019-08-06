@@ -91,7 +91,7 @@
 (setq default-directory "~/")
 
 ;; ** Backup setting
-(setq-default auto-save-default t) ;;auto-save buffer with '#...#' syntax of file name on disk
+(setq-default auto-save-default nil)    ;disable it for preventing typing lagging
 (setq make-backup-files nil)
 
 ;; ** Scratch buffer corresponding file
@@ -1866,82 +1866,100 @@ Temp file was \"~/~entropy-artist.txt\""
 (setq auto-window-vscroll nil)
 
 ;; ** Use chinese pyim
-(if (and entropy/emacs-enable-pyim
-         (or sys/win32p sys/linux-x-p sys/mac-x-p))
-    (use-package pyim
-      :bind
-      (("M-j" . pyim-convert-code-at-point))
-      :diminish chinese-pyim-mode
-      :demand t
-      :commands (pyim-restart-1)
-      :config
+(use-package pyim
+  :if entropy/emacs-enable-pyim
+  :diminish chinese-pyim-mode
+  :commands (pyim-restart-1
+             pyim-start
+             entropy/emacs-basic-pyim-toggle
+             entropy/emacs-basic-toggle-pyim-s2t
+             entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
+             pyim-convert-string-at-point)
+  :bind
+  (("M-j" . pyim-convert-string-at-point))
+  :init
 
 ;; *** pyim user dictionaries specification
-      (if (not entropy/emacs-pyim-dicts)
-          (use-package pyim-basedict
-            :ensure nil
-            :config (pyim-basedict-enable))
-        (setq pyim-dicts entropy/emacs-pyim-dicts))
-      
+  (cond ((and (eq entropy/emacs-pyim-use-backend 'internal)
+              (not entropy/emacs-pyim-dicts))
+         (use-package pyim-basedict
+           :ensure nil
+           :config (pyim-basedict-enable)))
+        ((eq entropy/emacs-pyim-use-backend 'internal)
+         (setq pyim-dicts entropy/emacs-pyim-dicts))
+        ((eq entropy/emacs-pyim-use-backend 'liberime)
+         (use-package liberime-config
+           :ensure nil
+           :commands (liberime-load)
+           :init (liberime-load))
+         (liberime-start (expand-file-name entropy/emacs-pyim-liberime-scheme-data)
+                         (expand-file-name entropy/emacs-pyim-liberime-cache-dir))
+         (liberime-select-schema "luna_pinyin_simp")))
+  
 ;; *** Setting pyim as the default input method
-      (setq default-input-method "pyim")
+  (setq default-input-method "pyim")
 
-;; *** Using 'quanping' full input method
-      (setq pyim-default-scheme 'quanpin)
-      
+;; *** pyim backend chosen
+  (cl-case entropy/emacs-pyim-use-backend
+    (internal (setq pyim-default-scheme 'quanpin))
+    (liberime (setq pyim-default-scheme 'rime-quanpin)))
+  
 ;; *** use popup or posframe for pyim tooltip show
 
-      (if (version< emacs-version "26")
-          (if (or (eq entropy/emacs-pyim-tooltip 'posframe)
-                  (not entropy/emacs-pyim-tooltip))
-              (setq pyim-page-tooltip 'popup)
-            (setq pyim-page-tooltip entropy/emacs-pyim-tooltip))
-        (progn
-          (use-package posframe)
-          (if entropy/emacs-pyim-tooltip
-              (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
-            (setq pyim-page-tooltip 'posframe))))
+  (if (version< emacs-version "26")
+      (if (or (eq entropy/emacs-pyim-tooltip 'posframe)
+              (not entropy/emacs-pyim-tooltip))
+          (setq pyim-page-tooltip 'popup)
+        (setq pyim-page-tooltip entropy/emacs-pyim-tooltip))
+    (progn
+      (use-package posframe)
+      (if entropy/emacs-pyim-tooltip
+          (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
+        (setq pyim-page-tooltip 'posframe))))
 
-      (when entropy/emacs-pyim-cached-dir
-        (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir))
+  (when entropy/emacs-pyim-cached-dir
+    (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir))
 
 ;; *** 5 candidates shown for pyim tooltip
-      (setq pyim-page-length 5)
+  (setq pyim-page-length 8)
 
-;; *** toggle input method
-      (defun entropy/emacs-basic-pyim-toggle ()
-        (interactive)
-        (if (string= current-input-method "pyim")
-            (set-input-method "rfc1345")
-          (progn
-            (set-input-method "pyim")
-            (setq pyim-punctuation-escape-list nil))))
-      (global-set-key (kbd "C-\\") 'entropy/emacs-basic-pyim-toggle)
-      
-;; *** using 'C-g' to cancling any pyim manipulation
-      (if (not (version< emacs-version "26"))
-          (define-key pyim-mode-map (kbd "C-g") 'pyim-quit-clear))
-      
-;; *** s2t&t2s convertor
-      (use-package entropy-s2t
-        :ensure nil
-        :commands entropy/emacs-s2t-string)
-      (defun entropy/emacs-basic-toggle-pyim-s2t ()
-        (interactive)
-        (if pyim-magic-converter
-            (setq pyim-magic-converter nil)
-          (setq pyim-magic-converter 'entropy/emacs-s2t-string)))
-      (global-set-key (kbd "C-M-\\") 'entropy/emacs-basic-toggle-pyim-s2t)
-
-;; *** toglle punctuation between half and full way.
-      (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
-        (interactive)
-        (if (eq (car pyim-punctuation-translate-p) 'no)
-            (setq pyim-punctuation-translate-p '(yes no auto))
-          (setq pyim-punctuation-translate-p '(no yes auto))))
-      (global-set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
+;; *** config
+  :config
+;; **** toggle input method
+  (defun entropy/emacs-basic-pyim-toggle ()
+    (interactive)
+    (if (string= current-input-method "pyim")
+        (set-input-method "rfc1345")
+      (progn
+        (set-input-method "pyim")
+        (setq pyim-punctuation-escape-list nil))))
+  (global-set-key (kbd "C-\\") 'entropy/emacs-basic-pyim-toggle)
   
-;; *** If didn't use pyim set input method to nil
+;; **** using 'C-g' to cancling any pyim manipulation
+  (if (not (version< emacs-version "26"))
+      (define-key pyim-mode-map (kbd "C-g") 'pyim-quit-clear))
+  
+;; **** s2t&t2s convertor
+  (use-package entropy-s2t
+    :ensure nil
+    :commands entropy/s2t-string)
+  (defun entropy/emacs-basic-toggle-pyim-s2t ()
+    (interactive)
+    (if pyim-magic-converter
+        (setq pyim-magic-converter nil)
+      (setq pyim-magic-converter 'entropy/s2t-string)))
+  (global-set-key (kbd "C-M-\\") 'entropy/emacs-basic-toggle-pyim-s2t)
+
+;; **** toglle punctuation between half and full way.
+  (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
+    (interactive)
+    (if (eq (car pyim-punctuation-translate-p) 'no)
+        (setq pyim-punctuation-translate-p '(yes no auto))
+      (setq pyim-punctuation-translate-p '(no yes auto))))
+  (global-set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
+
+;; **** If didn't use pyim set input method to nil
+(unless entropy/emacs-enable-pyim
   (setq default-input-method nil))
 
 
