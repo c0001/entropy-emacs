@@ -1775,5 +1775,104 @@ development web-browser."
                  (expand-file-name "Mozilla/Firefox/Profiles/*/places.sqlite"
                                    (getenv "APPDATA"))))))))
 
+;; *** neotree
+(use-package neotree
+  :commands (neotree-toggle
+             neotree-mode
+             entropy/emacs-tools-neotree--close
+             entropy/emacs-tools-neotree-refresh-for-current
+             entropy/emacs-tools-neo-open-with)
+  :bind (("<f8>" . entropy/emacs-tools-neotree-refresh-for-current)
+         ("C-<f8>" . entropy/emacs-tools-neotree--close))
+
+  :init
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)
+        neo-autorefresh t
+        neo-hidden-regexp-list nil)
+
+  :config
+
+  ;; Make node item execution for neotree with `entropy-open-with'
+  (define-key neotree-mode-map (kbd "<C-M-return>")
+    (neotree-make-executor
+     :file-fn 'entropy/emacs-tools-neo-open-with
+     :dir-fn  'entropy/emacs-tools-neo-open-with))
+
+  (defun entropy/emacs-tools-neo-open-with (full-path &rest _)
+    "Open neotree node item in external apps powered by
+`entropy-open-with'."
+    (interactive)
+    (require 'entropy-open-with)
+    (entropy/open-with-match-open (list full-path)))
+
+  (defun entropy/emacs-tools--neo-pos-hl-and-indent (&rest _)
+    "Highlight current neotree buffer line and goto the first
+word of current-line for preventing the long line truncate view."
+    (hl-line-mode 1)
+    (forward-line 0)
+    (re-search-forward "\\w" nil t))
+
+  (advice-add 'neo-buffer--goto-cursor-pos
+              :after
+              #'entropy/emacs-tools--neo-pos-hl-and-indent)
+
+  (defun neo-global--attach ()
+    "Attach the global neotree buffer
+
+Note: this function has been modified by entropy-emacs for reason
+of forcely repeating the global-refresh behaviour."
+    (when neo-global--autorefresh-timer
+      (cancel-timer neo-global--autorefresh-timer))
+    (when neo-autorefresh
+      (setq neo-global--autorefresh-timer
+            (run-with-idle-timer 1.2 t 'neo-global--do-autorefresh)))
+    (setq neo-global--buffer (get-buffer neo-buffer-name))
+    (setq neo-global--window (get-buffer-window
+                              neo-global--buffer))
+    (neo-global--with-buffer
+      (neo-buffer--lock-width))
+    (run-hook-with-args 'neo-after-create-hook '(window)))
+
+  (defun entropy/emacs-tools-neotree--close ()
+    "Globally close the neotree buffer and window."
+    (interactive)
+    (when neo-global--buffer (kill-buffer neo-global--buffer))
+    (mapcar (lambda (x)
+              (when (equal (buffer-name (window-buffer x)) neo-buffer-name)
+                (delete-window-internal x)))
+            (window-list))
+    (setf neo-global--buffer nil
+          neo-global--window nil))
+
+  (defun entropy/emacs-tools-neotree-refresh-for-current ()
+    "Open neotree with current working directory.
+
+Globally close neotree buffer while selected window was
+`neo-global--window'."
+    (interactive)
+    (let ((buffer_ (current-buffer))
+          (bfn (ignore-errors
+                 (file-name-nondirectory
+                  (buffer-file-name (current-buffer)))))
+          (marker (point)))
+      (cond
+       ((equal buffer_ neo-global--buffer)
+        (entropy/emacs-tools-neotree--close))
+       (t
+        (unless (neo-global--window-exists-p)
+          (save-window-excursion
+            (neotree-show)))
+        (neo-buffer--refresh t t)
+        (when (ignore-errors (stringp bfn))
+          (goto-char (point-min))
+          (re-search-forward bfn nil t)
+          (entropy/emacs-tools--neo-pos-hl-and-indent))
+        (save-excursion
+          (switch-to-buffer buffer_)
+          (goto-char marker))
+        (neo-global--select-window)))))
+
+  (add-hook 'eyebrowse-post-window-switch-hook  #'neo-global--attach))
+
 ;; * provide
 (provide 'entropy-emacs-tools)

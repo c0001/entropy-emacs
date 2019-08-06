@@ -126,6 +126,7 @@
     material-theme
     multi-term
     multiple-cursors
+    neotree
     openwith
     org-bullets
     org-download
@@ -195,6 +196,7 @@
     chinese-word-at-point
     pos-tip
     popup
+    yafolding
     zeal-at-point
     search-web))
 

@@ -38,6 +38,7 @@
 ;; ** hs-mode
 
 (use-package hideshow
+  :if (eq entropy/emacs-code-folding-type 'native)
   :ensure nil
   :diminish hs-minor-mode
   :commands hs-minor-mode
@@ -76,6 +77,26 @@
 
   (global-set-key (kbd "C--") 'entropy/emacs-structure-toggle-hiding)
   (global-set-key (kbd "C-+") 'entropy/emacs-structure-toggle-selective-display))
+
+;; ** yafolding
+
+(use-package yafolding
+  :if (eq entropy/emacs-code-folding-type 'yafolding)
+  :hook ((c-mode-common-hook   . hs-minor-mode)
+         (c++-mode-hook        . hs-minor-mode)  
+         (emacs-lisp-mode-hook . hs-minor-mode)
+         (java-mode-hook       . hs-minor-mode)
+         (lisp-mode-hook       . hs-minor-mode)
+         (perl-mode-hook       . hs-minor-mode)
+         (sh-mode-hook         . hs-minor-mode)
+         (js-mode-hook         . hs-minor-mode)
+         (css-mode-hook        . hs-minor-mode)
+         (php-mode-hook        . hs-minor-mode)
+         (python-mode-hook     . hs-minor-mode))
+  :commands (yafolding-toggle-element
+             yafolding-show-all)
+  :bind (("C--" . yafolding-toggle-element)
+         ("C-=" . yafolding-show-all)))
 
 ;; * provide
 (provide 'entropy-emacs-structure)

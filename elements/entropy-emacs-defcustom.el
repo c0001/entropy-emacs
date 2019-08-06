@@ -616,6 +616,20 @@ just it's name."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
+;; ** code folding group
+(defgroup entropy/emacs-code-folding nil
+  "customized variabel group for code folding and expanding
+features."
+  :group 'extensions
+  :prefix "entropy/emacs-code-folding-")
+
+(defcustom entropy/emacs-code-folding-type 'yafolding
+  "Type for code folding style embeded in entropy/emacs."
+  :type '(choice
+          (const native)
+          (const yafolding))
+  :group 'entropy/emacs-code-folding)
+
 ;; ** ivy framework
 (defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
   "The enhancement for ivy-framework, icon abbreviation and other
