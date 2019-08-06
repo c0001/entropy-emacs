@@ -74,6 +74,17 @@
   (add-hook 'entropy/emacs-init-X-hook
             #'(lambda () (setq garbage-collection-messages t))))
 
+(defun entropy/emacs-maximize-gc-threshold ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defvar entropy/emacs-garbage-collect-idle-timer nil)
+
+(setq entropy/emacs-garbage-collect-idle-timer
+      (run-with-idle-timer 2 t #'garbage-collect))
+
+(add-hook 'focus-out-hook #'garbage-collect)
+(add-hook 'post-command-hook #'entropy/emacs-maximize-gc-threshold)
+
 ;; *** load the core configuration
 (require 'entropy-emacs-faces)
 (require 'entropy-emacs-path)
