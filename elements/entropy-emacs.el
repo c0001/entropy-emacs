@@ -85,6 +85,15 @@
 (add-hook 'focus-out-hook #'garbage-collect)
 (add-hook 'post-command-hook #'entropy/emacs-maximize-gc-threshold)
 
+(defun entropy/emacs-enter-minibuffer-wmaster ()
+  (setq garbage-collection-messages nil))
+
+(defun entropy/emacs-exit-minibuffer-wmaster ()
+  (setq garbage-collection-messages t))
+
+(add-hook 'minibuffer-setup-hook #'entropy/emacs-enter-minibuffer-wmaster)
+(add-hook 'minibuffer-exit-hook #'entropy/emacs-exit-minibuffer-wmaster)
+
 ;; *** load the core configuration
 (require 'entropy-emacs-faces)
 (require 'entropy-emacs-path)
