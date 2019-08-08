@@ -652,6 +652,11 @@ features."
   :group 'entropy/emacs-code-folding)
 
 ;; ** ivy framework
+
+(defgroup entropy/emacs-ivy-customize nil
+  "Ivy framework customized variables group confitured for 'entropy-emacs'."
+  :group 'extensions)
+
 (defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
   "The enhancement for ivy-framework, icon abbreviation and other
 information displayed in candidates show.
@@ -668,13 +673,18 @@ Two valid value defaulted by `entropy-emacs':
   The fully riched mode for that, see its document for more
   details."
   :type 'sexp
-  :group 'ivy)
+  :group 'entropy/emacs-ivy-customize)
 
 ;; ** company config
+(defgroup entropy/emacs-company-customized nil
+  "The customize variables group for `company-mode' configured
+  for 'entropy-emacs'."
+  :group 'extensions)
+
 (defcustom entropy/emacs-company-lsp nil
   "Enable lsp for company-mode"
   :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
+  :group 'entropy/emacs-company-customized)
 
 (defcustom entropy/emacs-company-posframe-mode nil
   "Enable company-posframe.
@@ -685,7 +695,7 @@ company-posframe can not woring well with
 `company-quickhelp-mode', and when set this variable to 't' will
 automatically avoiding startup of `company-quickhelp-mode'."
   :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
+  :group 'entropy/emacs-company-customized)
 
 ;; ** use highlight feature
 (defgroup entropy/emacs-highlight nil

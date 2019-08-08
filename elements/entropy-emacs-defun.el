@@ -340,21 +340,16 @@ relative to the other text when
                (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
       (entropy/emacs-defun--ohrsc-recovery-org-header-face-scale)))))
 
-
-;; ** theme sticker
-(defun entropy/emacs-theme-load-register (old-func &rest args)
-  (apply old-func args)
-  (let ((theme-load (car args)))
-    (setq entropy/emacs-theme-sticker theme-load)))
-
 ;; ** theme loading specific
-(defun entropy/emacs-theme-load-face-specifix (x)
+(defun entropy/emacs-theme-load-face-specifix (&optional x)
   "Advice for `counsel-load-theme-action' that setting face of
 `ivy-current-match' for spacemacs themes.
 
 Reason of this setting was that spacemacs has the un-obviouse
 visual distinction of `ivy-current-match' covered upon the
 `ivy-minibuffer-match-highlight'."
+  (unless x
+    (setq x (symbol-name entropy/emacs-theme-sticker)))
   (cond
    ((string-match-p "spacemacs-dark" x)
     (set-face-attribute 'ivy-current-match nil
@@ -378,9 +373,11 @@ visual distinction of `ivy-current-match' covered upon the
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
-(defun entropy/emacs-theme-load-modeline-specifix (arg)
+(defun entropy/emacs-theme-load-modeline-specifix (&optional arg)
   "Advice of auto refresh doom-modeline bar background color
 when changing theme."
+  (unless arg
+    (setq arg (symbol-name entropy/emacs-theme-sticker)))
   (progn
     (cond ((and (string= entropy/emacs-mode-line-sticker "doom")
                 (string-match-p "\\(ujelly\\)" arg))

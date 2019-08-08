@@ -131,7 +131,8 @@
 ;; *** init for load  
   :init
   (add-hook 'entropy/emacs-init-X-hook #'global-company-mode)
-  (entropy/emacs-company-require-subs)
+  (when (equal entropy/emacs-use-extensions-type 'submodules)
+    (entropy/emacs-company-require-subs))
   (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)
   
 ;; *** config for after-load

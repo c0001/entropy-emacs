@@ -75,21 +75,26 @@
             #'(lambda () (setq garbage-collection-messages t))))
 
 (defun entropy/emacs-maximize-gc-threshold ()
-  (setq gc-cons-threshold most-positive-fixnum))
+  (setq gc-cons-threshold (+ 2000000 gc-cons-threshold)))
+
+(defun entropy/emacs-gc-focus-out-recovery ()
+  (garbage-collect)
+  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic))
 
 (defvar entropy/emacs-garbage-collect-idle-timer nil)
 
 (setq entropy/emacs-garbage-collect-idle-timer
-      (run-with-idle-timer 2 t #'garbage-collect))
+      (run-with-idle-timer 5 t #'entropy/emacs-gc-focus-out-recovery))
 
-(add-hook 'focus-out-hook #'garbage-collect)
+(add-hook 'focus-out-hook #'entropy/emacs-gc-focus-out-recovery)
 (add-hook 'post-command-hook #'entropy/emacs-maximize-gc-threshold)
 
 (defun entropy/emacs-enter-minibuffer-wmaster ()
   (setq garbage-collection-messages nil))
 
 (defun entropy/emacs-exit-minibuffer-wmaster ()
-  (setq garbage-collection-messages t))
+  (setq garbage-collection-messages t)
+  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic))
 
 (add-hook 'minibuffer-setup-hook #'entropy/emacs-enter-minibuffer-wmaster)
 (add-hook 'minibuffer-exit-hook #'entropy/emacs-exit-minibuffer-wmaster)
@@ -311,12 +316,17 @@ Emacs will auto close after 6s ......")
 (defun entropy/emacs-M-enable ()
   (message "Loading minimal ...... ")
   (advice-add 'require :before #'entropy/emacs--require-loading)
+  ;; external depedencies scan and loading
   (require 'entropy-emacs-package)
-  (require 'entropy-emacs-basic)
   (require 'entropy-emacs-library)
+  ;; basic feature defination
+  (require 'entropy-emacs-basic)
   (redisplay t)
   ;; ui
   (require 'entropy-emacs-modeline)
+
+      ;; loading theme configuration after the modeline for loading theme
+      ;; specifics for some mode-line adaption
   (require 'entropy-emacs-themes)
   (redisplay t)
   ;; ineractive
@@ -326,7 +336,7 @@ Emacs will auto close after 6s ......")
   ;; code folding
   (require 'entropy-emacs-structure)
 
-  ;; end
+  ;; ends for minimal start
   (advice-remove 'require #'entropy/emacs--require-loading)
   (run-hooks 'entropy/emacs-init-mini-hook)
   (defun entropy/emacs-M-enable ()
@@ -388,8 +398,9 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
         (switch-to-buffer buffer)))
      ((version< emacs-version "26")
       (message "Loading pyim cache ......")))
-    
-    (pyim-restart-1 t)                  ;loading cache main function.
+
+    (require 'pyim)
+    (set-input-method "pyim")
     
     ;; prompt for loading pyim cache done.
     (cond 

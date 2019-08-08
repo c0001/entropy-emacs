@@ -38,6 +38,9 @@ This variable is mainly for the judgement button for
 `entropy/emacs-browse-url-function' for determined whether to using the
 specific browser to visualize current file.")
 
+(defvar entropy/emacs-gc-threshold-basic 20000000
+  "The basic thredshold for the growth for `gc-cons-threshold'")
+
 (defvar entropy/emacs-init-mini-hook ()
   "Hooks for minimal start.")
 
@@ -47,7 +50,7 @@ specific browser to visualize current file.")
 (defvar entropy/emacs-lang-locale (car default-process-coding-system)
   "The locale lang.")
 
-(defvar entropy/emacs-window-center-integer 4)
+(defvar entropy/emacs-window-center-integer 9)
 
 (defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Title of entropy-emacs initial dashboard buffer. ") 
@@ -57,5 +60,55 @@ specific browser to visualize current file.")
 
 (defvar entropy/emacs-theme-sticker ""
   "Current theme used for this session.")
+
+(defvar entropy/emacs-theme-load-before-hook nil
+  "Hook runs befor theme loading procedure built by `load-theme'.
+
+This hook is declared within the around advice
+`entropy/emacs-theme-load-advice', hook enabled when entropy-emacs
+package `entropy-emacs-defvar' loaded.
+
+The follow auto-laod wrapper may be used in `custom-file'
+#+BEGIN_SRC elisp
+  (with-eval-after-load 'entropy-emacs-defvar
+    (add-hook 'entropy/emacs-theme-load-before-hook symbol-you-specified))
+#+END_SRC
+  ")
+
+(defvar entropy/emacs-theme-load-after-hook nil
+  "Hook runs after theme loading procedure built by `load-theme'.
+
+This hook is declared within the around advice
+`entropy/emacs-theme-load-advice', hook enabled when entropy-emacs
+package `entropy-emacs-defvar' loaded.
+
+The follow auto-laod wrapper may be used in `custom-file'
+#+BEGIN_SRC elisp
+(with-eval-after-load 'entropy-emacs-defvar
+    (add-hook 'entropy/emacs-theme-load-after-hook symbol-you-specified))
+#+END_SRC
+  ")
+
+(defun entropy/emacs-theme-load-advice (old-func &rest args)
+  "Advice for `load-theme' which adding the before ans after hook:
+
+- `entropy/emacs-theme-load-before-hook'
+- `entropy/emacs-theme-load-after-hook'
+
+See their docstring for more details for thus hooks usage.
+
+The wrappered `load-theme' function will register the gloabl
+dynamic variabe `entropy/emacs-theme-sticker' for current enabled
+theme symbol, you can use it in the after hook
+`entropy/emacs-theme-load-after-hook', which means that that hook
+is ran after the registering procedure done within `progn' scope."
+  (run-hooks 'entropy/emacs-theme-load-before-hook)
+  (apply old-func args)
+  (progn
+    (let ((theme-load (car args)))
+      (setq entropy/emacs-theme-sticker theme-load))
+    (run-hooks 'entropy/emacs-theme-load-after-hook)))
+
+(advice-add 'load-theme :around #'entropy/emacs-theme-load-advice)
 
 (provide 'entropy-emacs-defvar)

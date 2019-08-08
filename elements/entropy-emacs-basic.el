@@ -57,8 +57,10 @@
 ;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
 ;;
 ;; Refer:
-;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597 
-(unless (version< emacs-version "26.2")
+;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597
+;; For now [2019-08-08 Thu 19:23:42] it seems occur on w32 port only
+(when (and (version< "26.1" emacs-version)
+           sys/win32p)
   (advice-add #'gnutls-available-p :override #'ignore))
 
 ;; ** Personal infomation
@@ -1068,7 +1070,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     (use-package dired-quick-sort
       :if (or (executable-find "gls") (executable-find "ls"))
       :commands (dired-quick-sort-setup)
-      :init (dired-quick-sort-setup)))
+      :hook (entropy/emacs-init-mini . dired-quick-sort-setup)))
 
 ;; **** Use coloful dired ls
   (defun entropy/emacs-basic--dired-visual-init ()

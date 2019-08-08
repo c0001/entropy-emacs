@@ -1788,7 +1788,8 @@ development web-browser."
   :init
   (setq neo-theme (if (display-graphic-p) 'icons 'arrow)
         neo-autorefresh t
-        neo-hidden-regexp-list nil)
+        neo-hidden-regexp-list nil
+        neo-auto-indent-point t)
 
   :config
 
@@ -1805,17 +1806,21 @@ development web-browser."
     (require 'entropy-open-with)
     (entropy/open-with-match-open (list full-path)))
 
-  (defun entropy/emacs-tools--neo-pos-hl-and-indent (&rest _)
+  (defun entropy/emacs-tools--neo-refresh-filter ()
+    (catch :exit
+      (when (string-match-p "\\*w3m" (buffer-name))
+        (throw :exit 'stick))))
+  
+  (defun entropy/emacs-tools--neo-pos-hl-and-indent (&optional non_indent)
     "Highlight current neotree buffer line and goto the first
 word of current-line for preventing the long line truncate view."
     (hl-line-mode 1)
-    (forward-line 0)
-    (re-search-forward "\\w" nil t))
+    (unless non_indent
+      (forward-line 0)
+      (re-search-forward "\\w" (line-end-position 1) t)))
 
-  (advice-add 'neo-buffer--goto-cursor-pos
-              :after
-              #'entropy/emacs-tools--neo-pos-hl-and-indent)
-
+  (advice-add 'neo-buffer--goto-cursor-pos :after #'entropy/emacs-tools--neo-pos-hl-and-indent)
+  
   (defun neo-global--attach ()
     "Attach the global neotree buffer
 
@@ -1831,6 +1836,9 @@ of forcely repeating the global-refresh behaviour."
                               neo-global--buffer))
     (neo-global--with-buffer
       (neo-buffer--lock-width))
+    (when (window-live-p neo-global--window)
+      (set-window-parameter neo-global--window 'no-delete-other-windows t)
+      (set-window-dedicated-p neo-global--window t))
     (run-hook-with-args 'neo-after-create-hook '(window)))
 
   (defun entropy/emacs-tools-neotree--close ()
@@ -1859,20 +1867,28 @@ Globally close neotree buffer while selected window was
        ((equal buffer_ neo-global--buffer)
         (entropy/emacs-tools-neotree--close))
        (t
-        (unless (neo-global--window-exists-p)
-          (save-window-excursion
-            (neotree-show)))
-        (neo-buffer--refresh t t)
-        (when (ignore-errors (stringp bfn))
-          (goto-char (point-min))
-          (re-search-forward bfn nil t)
-          (entropy/emacs-tools--neo-pos-hl-and-indent))
-        (save-excursion
-          (switch-to-buffer buffer_)
-          (goto-char marker))
-        (neo-global--select-window)))))
+        (unless  (eq 'stick (entropy/emacs-tools--neo-refresh-filter))
+          (unless (neo-global--window-exists-p)
+            (save-window-excursion
+              (neotree-show)))
+          (neo-buffer--refresh t t)
+          (when (ignore-errors (stringp bfn))
+            (goto-char (point-min))
+            (re-search-forward bfn nil t)
+            (entropy/emacs-tools--neo-pos-hl-and-indent)
+            (recenter))
+          (save-excursion
+            (switch-to-buffer buffer_)
+            (goto-char marker))
+          (neo-global--select-window))))))
 
-  (add-hook 'eyebrowse-post-window-switch-hook  #'neo-global--attach))
+  (add-hook 'eyebrowse-post-window-switch-hook  #'neo-global--attach)
+
+  (defun entropy/emacs-tools--neo-refresh-conditions (orig_func &rest orig_args)
+    (unless (eq 'stick (entropy/emacs-tools--neo-refresh-filter))
+      (funcall-interactively orig_func)))
+
+  (advice-add 'neo-global--do-autorefresh :around #'entropy/emacs-tools--neo-refresh-conditions))
 
 ;; * provide
 (provide 'entropy-emacs-tools)

@@ -264,9 +264,6 @@ font style and height."
     (when (eq major-mode 'org-mode)
       (entropy/emacs-adjust-org-heading-scale)))
 
-  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-theme-load-face-specifix)
-  (advice-add 'counsel-load-theme-action :after #'entropy/emacs-theme-load-modeline-specifix)
-
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-wsl-enable)
     (defun entropy/emacs-ivy--counsel-locate ()

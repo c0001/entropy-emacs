@@ -174,8 +174,15 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 ;; ***** doom modeline
 (use-package doom-modeline
   :ensure nil
-  :commands (doom-modeline-mode)
+  :commands (doom-modeline-mode
+             doom-modeline-refresh-bars)
   :init
+
+  (setq doom-modeline-height 10
+        doom-modeline-bar-width 1
+        doom-modeline-buffer-file-name-style 'truncate-all
+        doom-modeline-major-mode-color-icon t)
+  
   (defun entropy/emacs-doom-mdlini-after-advice (&rest _rest)
     "Advice for doom-modeline-mode."
     (setq doom-modeline-buffer-file-name-style 'truncate-all)
@@ -188,9 +195,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
                                        doom-modeline-height))))
   (entropy/emacs-lazy-load-simple 'doom-modeline
     (advice-add 'doom-modeline-mode :after #'entropy/emacs-doom-mdlini-after-advice))
-  (setq doom-modeline-bar-width 1
-        doom-modeline-buffer-file-name-style 'truncate-all
-        doom-modeline-major-mode-color-icon t)
+  
   :config
 
   (defun entropy/emacs-modeline--dml-segments-error-handle (old-func &rest _)
@@ -231,41 +236,42 @@ mechanism. Entropy-emacs use the mode-based ico shown only. "
                             'display '(raise -0.125)))
               icon))))
   
-  (byte-compile
-   (defun doom-modeline-update-buffer-file-state-icon (&rest _)
-     "Update the buffer or file state in mode-line.
+  (defun doom-modeline-update-buffer-file-state-icon (&rest _)
+    "Update the buffer or file state in mode-line.
 
 Note:
 
 This function has been modified for adapting for entropy-emacs.
 
 entropy-emacs using all file state icos show side by side. "
-     (setq doom-modeline--buffer-file-state-icon
-           (concat
-            (when (or (buffer-narrowed-p)
-                      (and (fboundp 'fancy-narrow-active-p)
-                           (fancy-narrow-active-p)))
-              (doom-modeline-buffer-file-state-icon
-               "vertical_align_center"
-               "><"
-               'doom-modeline-warning))
-            (when buffer-read-only
-              (doom-modeline-buffer-file-state-icon
-               "lock"
-               "%1*"
-               'doom-modeline-warning))
-            (when (buffer-modified-p)
-              (doom-modeline-buffer-file-state-icon
-               "save"
-               "%1*"
-               'doom-modeline-buffer-modified))
-            (when (and buffer-file-name
-                       (not (file-exists-p buffer-file-name)))
-              (doom-modeline-buffer-file-state-icon
-               "do_not_disturb_alt"
-               "!"
-               'doom-modeline-urgent))
-            ""))))
+    (setq doom-modeline--buffer-file-state-icon
+          (concat
+           (when (or (buffer-narrowed-p)
+                     (and (fboundp 'fancy-narrow-active-p)
+                          (fancy-narrow-active-p)))
+             (doom-modeline-buffer-file-state-icon
+              "vertical_align_center"
+              "><"
+              'doom-modeline-warning))
+           (when buffer-read-only
+             (doom-modeline-buffer-file-state-icon
+              "lock"
+              "%1*"
+              'doom-modeline-warning))
+           (when (buffer-modified-p)
+             (doom-modeline-buffer-file-state-icon
+              "save"
+              "%1*"
+              'doom-modeline-buffer-modified))
+           (when (and buffer-file-name
+                      (not (file-exists-p buffer-file-name)))
+             (doom-modeline-buffer-file-state-icon
+              "do_not_disturb_alt"
+              "!"
+              'doom-modeline-urgent))
+           "")))
+
+  ;; narrow region adviced by doom-modeline icon dynamic features
   (advice-add #'narrow-to-defun :after #'doom-modeline-update-buffer-file-state-icon)
   (advice-add #'narrow-to-page :after #'doom-modeline-update-buffer-file-state-icon)
   
@@ -452,6 +458,11 @@ with emacs, see its doc-string for details."
     (interactive)
     (setq entropy/emacs-mode-line-sticker "doom")
     (doom-modeline-mode 1)))
+
+;; ** modeline-hide feature
+(use-package hide-mode-line
+  :commands (hide-mode-line-mode)
+  :hook (((completion-list-mode completion-in-region-mode) . hide-mode-line-mode)))
 
 ;; * provide
 (provide 'entropy-emacs-modeline)

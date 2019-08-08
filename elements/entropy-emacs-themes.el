@@ -35,6 +35,75 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
 
+;; ** solaire mode for focus visual style
+(use-package solaire-mode
+  :commands (solaire-mode
+             solaire-mode-swap-bg
+             solaire-global-mode
+             turn-on-solaire-mode)
+  :hook (((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode))
+  
+  :init
+  (setq solaire-mode-remap-fringe nil)
+  (setq solaire-mode-real-buffer-fn
+        (lambda ()
+          t))
+
+  ;; solaire entropy-emacs configuration
+  (defun entropy/emacs-theme--solaire-enable ()
+    (when (ignore-errors (string-match-p "^doom-" (symbol-name entropy/emacs-theme-sticker)))
+      (let (is-swaped)
+        (mapc
+         (lambda (x)
+           (when (buffer-file-name x)
+             (with-current-buffer x
+               (solaire-mode +1)
+               (unless is-swaped
+                 (solaire-mode-swap-bg)
+                 (setq is-swaped t)))))
+         (buffer-list)))))
+  
+  (defun entropy/emacs-theme--solaire-disable ()
+    (when (ignore-errors (string-match-p "^doom-" (symbol-name entropy/emacs-theme-sticker)))
+      (when (bound-and-true-p solaire-global-mode)
+        (solaire-global-mode -1))
+      (mapc
+       (lambda (x)
+         (with-current-buffer x
+           (when (bound-and-true-p solaire-mode)
+             (solaire-mode -1))))
+       (buffer-list))))
+
+  (defun entropy/emacs-theme--solaire-enable-single ()
+    (when (ignore-errors (string-match-p "^doom-" (symbol-name entropy/emacs-theme-sticker)))
+      (solaire-mode +1)))
+  
+  (defun entropy/emacs-theme--solaire-initial-hooks ()
+    (dolist (el '((files . (find-file-hook))
+                  (magit-files . (magit-find-file-hook))
+                  (dired . (dired-mode-hook))))
+      (dolist (hook (cdr el))
+        (eval-after-load (car el)
+          `(lambda () (add-hook ',hook #'entropy/emacs-theme--solaire-enable-single))))))
+
+  (defun entropy/emacs-theme--initilized-start-solaire-mode ()
+    (when (ignore-errors (string-match-p "^doom-" (symbol-name entropy/emacs-theme-sticker)))
+      (with-temp-buffer
+        (solaire-mode +1)
+        (solaire-mode-swap-bg))
+      (redisplay t))
+    (entropy/emacs-theme--solaire-initial-hooks)
+    (add-hook 'entropy/emacs-theme-load-before-hook
+              #'entropy/emacs-theme--solaire-disable)
+    (add-hook 'entropy/emacs-theme-load-after-hook
+              #'entropy/emacs-theme--solaire-enable))
+  
+  (cond
+   (entropy/emacs-minimal-start
+    (add-hook 'entropy/emacs-init-mini-hook #'entropy/emacs-theme--initilized-start-solaire-mode))
+   (t
+    (add-hook 'entropy/emacs-init-X-hook #'entropy/emacs-theme--initilized-start-solaire-mode))))
+
 ;; ** Theme
 (use-package doom-themes
   :preface (defvar region-fg nil) ; bug from: `url:https://github.com/hlissner/emacs-doom-themes/issues/166'
@@ -54,10 +123,10 @@
     :init
     (doom-themes-org-config)))
 
+;; *** theme load specifix
 
-;; *** advice for register theme to `entropy/emacs-theme-sticker'
-(when (fboundp 'entropy/emacs-theme-load-register)
-  (advice-add 'load-theme :around #'entropy/emacs-theme-load-register))
+(add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-face-specifix)
+(add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-modeline-specifix)
 
 ;; *** Adapting to the daemon init and with customize theme choosen
 ;;     

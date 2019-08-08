@@ -95,6 +95,7 @@
     helm-ag
     helm
     helm-core
+    hide-mode-line
     highlight-indent-guides
     highlight-parentheses
     hl-todo
@@ -155,6 +156,7 @@
     js2-mode
     simple-httpd
     smeargle
+    solaire-mode
     spaceline-all-the-icons
     spaceline
     s
