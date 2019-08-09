@@ -50,6 +50,10 @@
   "Fundametal customized variable group for entropy-emacs" 
   :group 'entropy/emacs-custom-variable-basic)
 
+(defcustom entropy/emacs-garbage-collection-delay 5
+  "The defaults garbage collection idle delay secons setting
+for entropy-emacs.")
+
 (defcustom entropy/emacs-custom-enable-lazy-load t
   "Enable lazy load for entropy-emacs"
   :group 'entropy/emacs-customize-fundametal)

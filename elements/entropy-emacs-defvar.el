@@ -111,4 +111,7 @@ is ran after the registering procedure done within `progn' scope."
 
 (advice-add 'load-theme :around #'entropy/emacs-theme-load-advice)
 
+(defvar entropy/emacs-garbage-collect-idle-timer nil
+  "The garbage collection idle timer for entropy-emacs.")
+
 (provide 'entropy-emacs-defvar)

@@ -64,40 +64,7 @@
 
 ;; Increase the default gc-cons-percentage for more smooth typing
 ;; experience
-(if entropy/emacs-enable-pyim
-    (setq gc-cons-percentage 0.12)
-  (setq gc-cons-percentage 0.99))
-
-(if entropy/emacs-minimal-start
-    (add-hook 'entropy/emacs-init-mini-hook
-              #'(lambda () (setq garbage-collection-messages t)))
-  (add-hook 'entropy/emacs-init-X-hook
-            #'(lambda () (setq garbage-collection-messages t))))
-
-(defun entropy/emacs-maximize-gc-threshold ()
-  (setq gc-cons-threshold (+ 2000000 gc-cons-threshold)))
-
-(defun entropy/emacs-gc-focus-out-recovery ()
-  (garbage-collect)
-  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic))
-
-(defvar entropy/emacs-garbage-collect-idle-timer nil)
-
-(setq entropy/emacs-garbage-collect-idle-timer
-      (run-with-idle-timer 5 t #'entropy/emacs-gc-focus-out-recovery))
-
-(add-hook 'focus-out-hook #'entropy/emacs-gc-focus-out-recovery)
-(add-hook 'post-command-hook #'entropy/emacs-maximize-gc-threshold)
-
-(defun entropy/emacs-enter-minibuffer-wmaster ()
-  (setq garbage-collection-messages nil))
-
-(defun entropy/emacs-exit-minibuffer-wmaster ()
-  (setq garbage-collection-messages t)
-  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic))
-
-(add-hook 'minibuffer-setup-hook #'entropy/emacs-enter-minibuffer-wmaster)
-(add-hook 'minibuffer-exit-hook #'entropy/emacs-exit-minibuffer-wmaster)
+(require 'entropy-emacs-gc)
 
 ;; *** load the core configuration
 (require 'entropy-emacs-faces)
