@@ -41,6 +41,7 @@
 (when sys/win32p
   (require 'font-lock+))
 
+;; ** all-the-icons
 (use-package all-the-icons
   :commands
   (all-the-icons-icon-for-file
@@ -49,8 +50,25 @@
    all-the-icons-install-fonts
    all-the-icons-insert)
   :config
+;; *** icons specification  
   (add-to-list 'all-the-icons-mode-icon-alist
                '(vterm-mode all-the-icons-octicon "terminal" :v-adjust 0.2))
+  
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(elfeed-search-mode all-the-icons-faicon "rss" :v-adjust 0.2))
+
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(elfeed-show-mode all-the-icons-material "web" :v-adjust 0.0))
+
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(Info-mode all-the-icons-faicon "info-circle" :v-adjust 0.2))
+
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(w3m-mode all-the-icons-faicon "chrome" :v-adjust -0.2))
+
+  (add-to-list 'all-the-icons-mode-icon-alist
+               '(gitignore-mode all-the-icons-alltheicon "git" :v-adjust 0.2))
+  
   (add-to-list 'all-the-icons-icon-alist
                '("\\.xpm$" all-the-icons-octicon "file-media" :v-adjust 0.0 :face all-the-icons-dgreen))
 
@@ -91,12 +109,14 @@
   (add-to-list 'all-the-icons-mode-icon-alist
                '(gfm-mode all-the-icons-octicon "markdown" :face all-the-icons-blue)))
 
+;; ** eldoc-eval
 (use-package eldoc-eval
-  :preface (defvar eldoc-in-minibuffer-mode nil)
+  :defines eldoc-in-minibuffer-mode
   :commands (eldoc-in-minibuffer-mode
              eldoc-eval-expression)
-  :init (setq eldoc-eval-preferred-function 'eval-expression))
+  :config (setq eldoc-eval-preferred-function 'eval-expression))
 
+;; ** shrink-path
 (use-package shrink-path
   :commands
   (shrink-path--dirs-internal

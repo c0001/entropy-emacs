@@ -197,44 +197,13 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (advice-add 'doom-modeline-mode :after #'entropy/emacs-doom-mdlini-after-advice))
   
   :config
-
-  (defun entropy/emacs-modeline--dml-segments-error-handle (old-func &rest _)
-    (ignore-errors (apply old-func _)))
-
-  (dolist (el '(doom-modeline-update-buffer-file-icon
-                doom-modeline-update-buffer-file-state-icon))
-    (advice-add el :around #'entropy/emacs-modeline--dml-segments-error-handle))
-  
-  (defun doom-modeline-update-buffer-file-icon (&rest _)
-    "Update file icon in mode-line.
-
-Note:
-
-This function has been modified for adapting for entropy-emacs.
-
-The origin func using file-based and mode-based ico generator
-mechanism. Entropy-emacs use the mode-based ico shown only. "
-    (setq doom-modeline--buffer-file-icon
-          (when (and doom-modeline-icon doom-modeline-major-mode-icon)
-            (let* ((height (/ all-the-icons-scale-factor 1.3))
-                   (icon (doom-modeline-icon-for-mode major-mode :height height)))
-              (when (or (symbolp icon)
-                        (eq major-mode 'fundamental-mode))
-                (cond ((equal (buffer-name) entropy/emacs-dashboard-buffer-name)
-                       (setq icon (all-the-icons-octicon "eye" :height height)))
-                      ((eq major-mode 'Info-mode)
-                       (setq icon (all-the-icons-faicon "info-circle" :height height)))
-                      ((eq major-mode 'w3m-mode)
-                       (setq icon (all-the-icons-faicon "chrome" :height height)))
-                      ((eq major-mode 'gitignore-mode)
-                       (setq icon (all-the-icons-alltheicon "git" :height height)))
-                      (t
-                       (setq icon (all-the-icons-faicon "file" :height height)))))
-              (unless (symbolp icon)
-                (propertize icon
-                            'help-echo (format "Major-mode: %s" (format-mode-line mode-name))
-                            'display '(raise -0.125)))
-              icon))))
+  (defun entropy/emacs-modeline--dml-file-icon-around-advice (orig-func &rest orig-args)
+    (apply orig-func orig-args)
+    (when (equal (buffer-name) entropy/emacs-dashboard-buffer-name)
+      (setq doom-modeline--buffer-file-icon (all-the-icons-octicon "eye" :height 0.8 :v-adjust 0.1))))
+  (advice-add 'doom-modeline-update-buffer-file-icon
+              :around
+              #'entropy/emacs-modeline--dml-file-icon-around-advice)
   
   (defun doom-modeline-update-buffer-file-state-icon (&rest _)
     "Update the buffer or file state in mode-line.
