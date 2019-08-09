@@ -1651,44 +1651,14 @@ This function has redefined for adapting to
 (global-set-key (kbd "C-x u") 'entropy/emacs-basic-undo-tree)
 
 ;; ** Auto-sudoedit
-(when (and (not sys/win32p)
+(use-package auto-sudoedit
+  :commands (auto-sudoedit-mode)
+  :if (and (not sys/win32p)
            (not sys/cygwinp))
-  (use-package auto-sudoedit
-    :commands (auto-sudoedit-mode)
-    :init
-    (add-hook 'entropy/emacs-init-mini-hook #'auto-sudoedit-mode)
-    :config
-    (defun auto-sudoedit (_old_func &rest _args)
-      "`auto-sudoedit' around-advice."
-      (let ((curr-path (car _args)))
-        (if (not
-             (or
-              ;; Don't activate for tramp files
-              (tramp-tramp-file-p curr-path)
-              ;; Don't activate on sudo do not exist
-              (not (executable-find "sudo"))))
-            ;; Current path may not exist; back up to the first existing parent
-            ;; and see if it's writable
-            (let ((first-existing-path (f-traverse-upwards #'f-exists? curr-path)))
-              (if (not (and first-existing-path (f-writable? first-existing-path)))
-                  (let ((tramp-path (auto-sudoedit-tramp-path curr-path)))
-                    (apply _old_func tramp-path (cdr _args)))
-                (apply _old_func _args)))
-          (apply _old_func _args))))
+  :init
+  (add-hook 'entropy/emacs-init-mini-hook #'auto-sudoedit-mode))
 
-    (define-minor-mode
-      auto-sudoedit-mode
-      "automatic do sudo by tramp when need root file"
-      :init-value 0
-      :lighter " ASE"
-      (if auto-sudoedit-mode
-          (progn
-            (advice-add 'find-file :around 'auto-sudoedit)
-            (advice-add 'dired :around 'auto-sudoedit))
-        (advice-remove 'find-file 'auto-sudoedit)
-        (advice-remove 'dired 'auto-sudoedit)))))
-
-;; *** Clear killring
+;; ** Clear killring
 ;;     From the forum of stackexchange
 ;;     `https://superuser.com/questions/546619/clear-the-kill-ring-in-emacs'
 ;;     Or you just can use (setq kill-ring nil) only.
