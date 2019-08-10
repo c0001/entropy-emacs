@@ -418,5 +418,15 @@ display ugly and small in info-mode."
   (set-face-attribute 'fixed-pitch-serif nil
                       :family "Monospace" :slant 'italic))
 
+;; ** solaire-mode adapted themes judgement
+(defun entropy/emacs-theme-adapted-to-solaire ()
+  "Judge whether current theme loaded adapted to `solaire-mode',
+return t otherwise for nil. "
+  (let ((theme_cur (symbol-name entropy/emacs-theme-sticker)))
+    (catch :exit
+      (dolist (regex entropy/emacs-solaire-themes-regex-list)
+        (when (ignore-errors (string-match-p regex theme_cur))
+          (throw :exit t))))))
+
 ;; ** provide
 (provide 'entropy-emacs-defun)

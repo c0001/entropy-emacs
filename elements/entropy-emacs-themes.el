@@ -51,7 +51,7 @@
 
   ;; solaire entropy-emacs configuration
   (defun entropy/emacs-theme--solaire-enable ()
-    (when (ignore-errors (string-match-p "^doom-" (symbol-name entropy/emacs-theme-sticker)))
+    (when (entropy/emacs-theme-adapted-to-solaire)
       (let (is-swaped)
         (mapc
          (lambda (x)
@@ -64,7 +64,7 @@
          (buffer-list)))))
   
   (defun entropy/emacs-theme--solaire-disable ()
-    (when (ignore-errors (string-match-p "^doom-" (symbol-name entropy/emacs-theme-sticker)))
+    (when (entropy/emacs-theme-adapted-to-solaire)
       (when (bound-and-true-p solaire-global-mode)
         (solaire-global-mode -1))
       (mapc
@@ -75,7 +75,7 @@
        (buffer-list))))
 
   (defun entropy/emacs-theme--solaire-enable-single ()
-    (when (ignore-errors (string-match-p "^doom-" (symbol-name entropy/emacs-theme-sticker)))
+    (when (entropy/emacs-theme-adapted-to-solaire)
       (solaire-mode +1)))
   
   (defun entropy/emacs-theme--solaire-initial-hooks ()
@@ -87,7 +87,7 @@
           `(lambda () (add-hook ',hook #'entropy/emacs-theme--solaire-enable-single))))))
 
   (defun entropy/emacs-theme--initilized-start-solaire-mode ()
-    (when (ignore-errors (string-match-p "^doom-" (symbol-name entropy/emacs-theme-sticker)))
+    (when (entropy/emacs-theme-adapted-to-solaire)
       (with-temp-buffer
         (solaire-mode +1)
         (solaire-mode-swap-bg))

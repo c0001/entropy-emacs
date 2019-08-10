@@ -193,6 +193,13 @@ default one."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
+(defcustom entropy/emacs-solaire-themes-regex-list
+  '("^doom-"
+    "^spacemacs-")
+  "Themes name regex matchs for solaire-mode."
+  :type 'sexp
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; **** modeline
 (defgroup entropy/emacs-customize-modeline nil
   "Mode line customized variable group configured for entropy-emacs"
