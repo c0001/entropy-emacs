@@ -1521,7 +1521,12 @@ emacs."
     (interactive)
     (let* ((buff-name (completing-read "Buffer choosing:" 'internal-complete-buffer))
            (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
-      (display-buffer buff-name)))
+      (get-buffer-create buff-name)
+      (display-buffer buff-name)
+      (when (and (fboundp 'solaire-mode)
+                 (entropy/emacs-theme-adapted-to-solaire))
+        (with-current-buffer buff-name
+          (solaire-mode +1)))))
 
   (defun shackle-popup-find-file ()
     (interactive)

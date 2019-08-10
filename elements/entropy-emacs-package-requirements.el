@@ -132,6 +132,8 @@
     org-bullets
     org-download
     org-pomodoro
+    outorg
+    outshine
     ox-gfm
     ox-reveal
     page-break-lines

@@ -115,5 +115,52 @@
           (funcall 'hs-show-all))
       (funcall #'yafolding-show-all))))
 
+;; ** outshine-mode
+
+(use-package outshine
+  :hook
+  ((emacs-lisp-mode . outshine-mode)
+   (sh-mode . outshine-mode)
+   (c-mode . outshine-mode)
+   (c++-mode . outshine-mode)
+   (css-mode . outshine-mode)
+   (python-mode . outshine-mode)
+   (web-mode . outshine-mode)
+   (js2-mode . outshine-mode)
+   (gitignore-mode . outshine-mode))
+  :custom (outshine-max-level 100)
+  :bind
+  (("C-<tab>" . outshine-cycle-buffer))
+  :init
+
+  ;; lazy loading for orgstruct for elisp mode for preventing loading
+  ;; org when the *scratch* buffer created with `lisp-interaction-mode'.
+  (defun entropy/emacs-org--elispMode-orgstruct-enable ()
+    "Enable orgstruct for `emacs-lisp-mode' in needed occasion.
+
+Unload it when the first init is done."
+    (unless (member 'outshine-mode emacs-lisp-mode-hook)
+      (add-hook 'emacs-lisp-mode-hook #'orgstruct-mode)
+      (defun entropy/emacs-org--elispMode-orgstruct-enable ()
+        "Enable orgstruct for `emacs-lisp-mode' in needed occasion.
+
+Unload it when the first init is done."
+        t))
+    (unless (bound-and-true-p orgstruct-mode)
+      (orgstruct-mode)))
+
+  (defun entropy/emacs-org--elispMode-orgstruct-PostCommand-hook ()
+    "lazy loading the orgstruct coding style for elisp mode."
+    (add-hook 'post-command-hook #'entropy/emacs-org--elispMode-orgstruct-enable nil t))
+
+  (entropy/emacs-lazy-load-simple 'elisp-mode
+    (add-hook 'emacs-lisp-mode-hook #'entropy/emacs-org--elispMode-orgstruct-PostCommand-hook))
+  
+  :config
+  (outshine-define-key outshine-mode-map
+    (kbd "<backtab>") 'outshine-cycle-buffer
+    (or (outline-on-heading-p) (bobp)
+        (error "Using it out of the headline was not supported."))))
+
 ;; * provide
 (provide 'entropy-emacs-structure)

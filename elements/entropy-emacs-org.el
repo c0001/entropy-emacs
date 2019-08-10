@@ -87,31 +87,8 @@
    ("<C-f2>" . org-toggle-link-display))
 
 ;; *** hook
-  :hook ((org-mode . org-babel-result-hide-all)
-         (sh-mode . orgstruct-mode)
-         (c-mode . orgstruct-mode)
-         (c++-mode . orgstruct-mode)
-         (css-mode . orgstruct-mode)
-         (python-mode . orgstruct-mode)
-         (web-mode . orgstruct-mode)
-         (js2-mode . orgstruct-mode)
-         (gitignore-mode . orgstruct-mode))
+  :hook ((org-mode . org-babel-result-hide-all))
 
-;; *** init
-  :init
-  
-  (defun entropy/emacs-org--elispMode-orgstruct-enable ()
-    (unless (member 'orgstruct-mode emacs-lisp-mode-hook)
-      (add-hook 'emacs-lisp-mode-hook #'orgstruct-mode))
-    (unless (bound-and-true-p orgstruct-mode)
-      (orgstruct-mode)))
-
-  (defun entropy/emacs-org--elispMode-orgstruct-PostCommand-hook ()
-    (add-hook 'post-command-hook #'entropy/emacs-org--elispMode-orgstruct-enable nil t))
-
-  (entropy/emacs-lazy-load-simple 'elisp-mode
-    (add-hook 'emacs-lisp-mode-hook #'entropy/emacs-org--elispMode-orgstruct-PostCommand-hook))
-  
 ;; *** configs
   :config
   (require 'entropy-org-widget)
@@ -728,68 +705,7 @@ as the hypenation."
   
 ;; **** fix bugs of open directory using external apps in windows
   (when sys/win32p
-    (add-to-list 'org-file-apps '(directory . emacs)))
-
-;; **** orgstruct-mode
-  (setq orgstruct-heading-prefix-regexp
-        "\\(\\( \\|	\\)*;;\\( \\|	\\)?\\|\\( \\|	\\)*#\\( \\|	\\)?\\|\\( \\|	\\)*\\/\\*\\( \\|	\\)?\\|\\( \\|	\\)*\\/\\/\\( \\|	\\)?\\|\\( \\|	\\)*<!--\\( \\|	\\)*\\)")
-  
-
-  ;; unbinding this key for give it to `eval-buffer' for `elisp-mode' and `lisp-interaction-mode'.
-  (advice-add 'orgstruct-mode :after #'(lambda (&optional arg)
-                                         (define-key orgstruct-mode-map (kbd "C-c C-b") nil)))
-
-  (defvar entropy/emacs-org--orgstruct-jumping-head-regexp
-    "^\\(\\( \\|	\\)*;;\\( \\|	\\)?\\*\\|^\\( \\|	\\)*#\\( \\|	\\)?\\*\\|^\\( \\|	\\)*\\/\\*\\( \\|	\\)?\\*\\|^\\( \\|	\\)*\\/\\/\\( \\|	\\)?\\*\\)"
-    "The regexp for jumping heading by:
-
-    - `entropy/emacs-fold-org-struct'
-    - `entropy/emacs-previous-orgstruct-headline'
-    - `entropy/emacs-next-orgstruct-headline'
-    - `entropy/emacs-up-orgstruct-headline'"
-    )
-
-  (defun entropy/emacs-org-fold-orgstruct ()
-    "Fold the file with orgstruct format struture heading style
-like ';; **' in elisp file"
-    (interactive)
-    (goto-char (point-min))
-    (re-search-forward
-     entropy/emacs-org--orgstruct-jumping-head-regexp)
-    (orgstruct-hijacker-org-shifttab-3 t))
-  
-  (defun entropy/emacs-org-previous-orgstruct-headline ()
-    "Jumping to the previous orgstruct headline."
-    (interactive)
-    (beginning-of-line)
-    (re-search-backward
-     entropy/emacs-org--orgstruct-jumping-head-regexp))
-  
-  (defun entropy/emacs-org-next-orgstruct-headline ()
-    "Jumping to the next orgstruct headline."
-    (interactive)
-    (end-of-line)
-    (re-search-forward
-     entropy/emacs-org--orgstruct-jumping-head-regexp))
-
-  (defun entropy/emacs-org-up-orgstruct-headline ()
-    "Jumping to the up-level orgstruct headline."
-    (interactive)
-    (next-line)
-    (beginning-of-line)
-    (entropy/emacs-org-previous-orgstruct-headline)
-    (orgstruct-hijacker-outline-up-heading-1 t))
-  
-  (defun entropy/emacs-org--org-struct-mode-hook ()
-    "Hooks for pusing `entropy/emacs-org-previous-orgstruct-headline',
-`entropy/emacs-org-next-orgstruct-headline',
-`entropy/emacs-org-next-orgstruct-headline' to org-struct-mode-hook."
-    (define-key orgstruct-mode-map (kbd "C-<tab>") 'entropy/emacs-org-fold-orgstruct)
-    (define-key orgstruct-mode-map (kbd "C-c C-p") 'entropy/emacs-org-previous-orgstruct-headline)
-    (define-key orgstruct-mode-map (kbd "C-c C-n") 'entropy/emacs-org-next-orgstruct-headline)
-    (define-key orgstruct-mode-map (kbd "C-c C-u") 'entropy/emacs-org-up-orgstruct-headline)
-    (define-key orgstruct-mode-map (kbd "C-c C-f") nil))
-  (add-hook 'orgstruct-mode-hook 'entropy/emacs-org--org-struct-mode-hook))
+    (add-to-list 'org-file-apps '(directory . emacs))))
 
 ;; ** entropy-emacs additional function
 ;; *** tags align
