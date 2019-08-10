@@ -33,6 +33,7 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defun)
 
 ;; ** solaire mode for focus visual style
@@ -79,9 +80,7 @@
       (solaire-mode +1)))
   
   (defun entropy/emacs-theme--solaire-initial-hooks ()
-    (dolist (el '((files . (find-file-hook))
-                  (magit-files . (magit-find-file-hook))
-                  (dired . (dired-mode-hook))))
+    (dolist (el entropy/emacs-enable-solaire-registers)
       (dolist (hook (cdr el))
         (eval-after-load (car el)
           `(lambda () (add-hook ',hook #'entropy/emacs-theme--solaire-enable-single))))))

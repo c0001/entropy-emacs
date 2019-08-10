@@ -377,6 +377,8 @@ Browser chosen based on variable
 
 ;; ** Rss feed
 (use-package elfeed
+  :defines (elfeed-search-mode-hook
+            elfeed-show-mode-hook)
   :commands (elfeed)
   :bind (:map elfeed-search-mode-map
               ("A" . entropy/emacs-tools-elfeed-filter-by-feedname)

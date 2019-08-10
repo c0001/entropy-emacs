@@ -114,4 +114,17 @@ is ran after the registering procedure done within `progn' scope."
 (defvar entropy/emacs-garbage-collect-idle-timer nil
   "The garbage collection idle timer for entropy-emacs.")
 
+(defvar entropy/emacs-enable-solaire-registers
+  '((files . (find-file-hook))
+    (magit-files . (magit-find-file-hook))
+    (dired . (dired-mode-hook))
+    (w3m . (w3m-mode-hook))
+    (elfeed . (elfeed-search-mode-hook elfeed-show-mode-hook))
+    (gnus-group . (gnus-group-mode-hook))
+    (gnus-sum . (gnus-summary-mode-hook)))
+  "Registers list for activing the `solaire-mode'
+
+Each register is one cons whose car was the load feature symbol
+and the cdr is the list of hook belong to that feature. ")
+
 (provide 'entropy-emacs-defvar)
