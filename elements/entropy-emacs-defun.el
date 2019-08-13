@@ -90,6 +90,23 @@ directory."
             nil))
       nil)))
 
+(defun entropy/emacs-file-path-parser (file-name type)
+  "The file-path for 'entropy-emacs, functions for get base-name,
+shrink trail slash, and return the parent(up level) dir."
+  (let (rtn (fname (replace-regexp-in-string "\\(\\\\\\|/\\)$" "" file-name)))
+    (cl-case type
+      ('non-trail-slash
+       (setq rtn fname))
+      ('file-name
+       (setq rtn
+             (replace-regexp-in-string
+              "^.*\\(\\\\\\|/\\)\\([^ /\\\\]+\\)$"
+              "\\2"
+              fname)))
+      ('parent-dir
+       (setq rtn (file-name-directory fname))))
+    rtn))
+
 
 ;; ** counter map list
 (defun entropy/emacs-numberic-list (list-var)
@@ -239,6 +256,11 @@ format on windows platform."
         (find-file wvol))
     (find-file file)))
 
+(defun entropy/emacs-package-is-upstream ()
+  "Judges whether `entropy/emacs-use-extensions-type' is based on
+`package.el'."
+  (or (eq entropy/emacs-use-extensions-type 'origin)
+      (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)))
 
 ;; ** Org face reset
 (defvar entropy/emacs-defun--ohrsc-previous-theme nil)

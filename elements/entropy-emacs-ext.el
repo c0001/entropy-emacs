@@ -86,7 +86,7 @@
               :version "0.1.8.3"
               :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/emacs-ext-extensions-dir)
               :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir)
-              :load-predicate (expand-file-name "entropy-emacs-extensions-load.el" entropy/emacs-ext-extensions-dir))))
+              :load-predicate (expand-file-name "eemacs-ext-load.el" entropy/emacs-ext-extensions-dir))))
 
 
 (defvar entropy/emacs-ext--extras-trouble-table
@@ -128,7 +128,8 @@ There's two entropy-emacs extras may need to download by your self:
 
 - entropy-emacs-extensions (https://github.com/c0001/entropy-emacs-extensions.git)
 
-  (Notices: only when `entropy/emacs-use-extensions-type' eq 'submodules)
+  (Notices: only when `entropy/emacs-use-extensions-type' eq
+  'submodules or 'submodules-melpa-local)
 
   clone it into your home dir and rename as
   '.entropy-emacs-extension' or adjusting customized variable
@@ -156,7 +157,6 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
     (if rtn
         rtn
       t)))
-
 
 (defun entropy/emacs-ext--check-inuse-extras ()
   (let ((full-extras entropy/emacs-ext--extras))

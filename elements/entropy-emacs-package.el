@@ -34,6 +34,7 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
 
 ;; ** main
 ;;set package-user-dir position
@@ -47,15 +48,20 @@ for `user-emacs-directory'."
 
 ;; Set customized package install directory
 (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
-         (eq entropy/emacs-use-extensions-type 'origin))
+         (entropy/emacs-package-is-upstream))
     (entropy/emacs-package--set-user-package-dir emacs-version)
   (cond
    ((and (equal emacs-version "25.2.2")
-         (eq entropy/emacs-use-extensions-type 'origin))
+         (entropy/emacs-package-is-upstream))
     (entropy/emacs-package--set-user-package-dir "25.2.1"))
-   ((eq entropy/emacs-use-extensions-type 'origin)
+   ((entropy/emacs-package-is-upstream)
     (error "Unsupport emacs version '%s'" emacs-version))))
 
+(when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+  (setq package-user-dir
+        (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
+                                  "_MelpaLocal")
+                          (entropy/emacs-file-path-parser package-user-dir 'parent-dir))))
 
 ;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
@@ -103,10 +109,11 @@ for `user-emacs-directory'."
     (error "Unknown archives: '%s'" archives)))
   (message "Set package archives to '%s'." archives))
 
-(entropy/emacs-package-set-package-archive-location entropy/emacs-package-archive-repo)
+(unless (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+  (entropy/emacs-package-set-package-archive-location entropy/emacs-package-archive-repo))
 
 ;; Initialize packages
-(when (equal entropy/emacs-use-extensions-type 'origin)
+(when (entropy/emacs-package-is-upstream)
   (if (not (version< emacs-version "27"))
       (setq package-quickstart t))
   (message "Custom packages initializing ......")
@@ -121,7 +128,7 @@ for `user-emacs-directory'."
   (setq package-gnupghome-dir nil))
 
 ;; Install entropy-emacs pre installed packages
-(when (equal entropy/emacs-use-extensions-type 'origin)
+(when (entropy/emacs-package-is-upstream)
   (require 'entropy-emacs-package-requirements)
   (let ((package-check-signature nil))
     (dolist (package entropy-emacs-packages)

@@ -57,34 +57,11 @@
   :init
 ;; **** set variable
   (setq emms-repeat-playlist nil
-	emms-source-file-default-directory "~/Music/" 
-	emms-lyrics-dir "~/Music/"
 	emms-lyrics-coding-system nil)
+  
 ;; *** config
   :config
-  (emms-standard)
-;; **** use mpv be the emms's player
-  (use-package emms-player-mpv
-    :init
-    (progn
-      (require 'emms-player-mpv)
-      (add-to-list 'emms-player-list 'emms-player-mpv)))
-;; **** display emms-modeline  
-  (if entropy/emacs-use-emms-mode-line
-      (emms-mode-line 1)
-    (emms-mode-line -1))
-  (if entropy/emacs-use-emms-mode-line
-      (emms-playing-time 1)
-    (emms-playing-time-disable-display))
-;; ***** Cycle mode line
-  (when entropy/emacs-use-emms-mode-line
-    (use-package emms-mode-line-cycle
-      :init
-      (custom-set-variables '(emms-mode-line-cycle-use-icon-p t))
-      (add-hook 'after-init-hook (lambda () (emms-mode-line-cycle 1))))))
-
-
-
+  (emms-standard))
 
 ;; * provide
 (provide 'entropy-emacs-emms)

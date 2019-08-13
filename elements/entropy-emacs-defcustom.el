@@ -100,11 +100,6 @@ for entropy-emacs.")
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-use-emms-mode-line nil
-  "Enable emms-modeline or not."
-  :type 'boolean
-  :group 'entropy/emacs-customize-fundametal)
-
 (defcustom entropy/emacs-use-popup-window-framework 'shackle
   "Using popup window enhancement framework of `popwin-mode' or
   `shackle-mode'."
@@ -118,9 +113,9 @@ for entropy-emacs.")
 
 (defcustom entropy/emacs-use-extensions-type 'origin
   "Init emacs with extensions from entropy-emacs submodules or
-  elpa place.
+elpa place.
 
-Available value are 'submodules' and 'origin'."
+Available value are 'submodules' 'submodules-melpa-local' and 'origin'."
   :type 'symbol
   :group 'entropy/emacs-extensions-customize)
 
@@ -678,6 +673,22 @@ You can setting like this:
   "Regexp for matching the feeds which needed for updating through proxy."
   :type 'sexp
   :group 'entropy/emacs-customize-rss)
+
+;; *** emms
+(defgroup entropy/emacs-customized-emms nil
+  "Customized variable group for emms adapted configured for
+  entropy-emacs."
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/emacs-enable-emms nil
+  "Whether enable emms entropy-emacs configuration."
+  :type 'boolean
+  :group 'entropy/emacs-customized-emms)
+
+(defcustom entropy/emacs-use-emms-mode-line nil
+  "Enable emms-modeline or not."
+  :type 'boolean
+  :group 'entropy/emacs-customized-emms)
 
 ;; *** gnus
 (defgroup entropy/emacs-customize-gnus nil

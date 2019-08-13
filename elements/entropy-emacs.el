@@ -242,10 +242,7 @@ Emacs will auto close after 6s ......")
   (require 'entropy-emacs-shell)
   (require 'entropy-emacs-ibuffer)
   (require 'entropy-emacs-tools)
-  (when sys/linux-x-p
-    ;; when in windows environment, mpvplayer can not be load by emms 
-    (require 'entropy-emacs-emms))
-
+  (require 'entropy-emacs-emms)
   (require 'entropy-emacs-vcs)
 
   ;; init-calendar was not adapt emacs 27 or higher and just adapt emacs 25 or earlier

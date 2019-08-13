@@ -140,14 +140,14 @@
 
 Unload it when the first init is done."
     (unless (member 'outshine-mode emacs-lisp-mode-hook)
-      (add-hook 'emacs-lisp-mode-hook #'orgstruct-mode)
+      (add-hook 'emacs-lisp-mode-hook #'outshine-mode)
       (defun entropy/emacs-org--elispMode-orgstruct-enable ()
         "Enable orgstruct for `emacs-lisp-mode' in needed occasion.
 
 Unload it when the first init is done."
         t))
-    (unless (bound-and-true-p orgstruct-mode)
-      (orgstruct-mode)))
+    (unless (bound-and-true-p outshine-mode)
+      (outshine-mode)))
 
   (defun entropy/emacs-org--elispMode-orgstruct-PostCommand-hook ()
     "lazy loading the orgstruct coding style for elisp mode."
