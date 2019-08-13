@@ -48,40 +48,46 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
 
-;; ** counsel
-(use-package counsel
-  :diminish counsel-mode ivy-mode
-  :commands (counsel-mode ivy-mode)
-;; *** bind-key
-  :bind (("C-s" . swiper)
-         ("C-S-s" . swiper-all)
-         ("C-c C-r" . ivy-resume)
-         ("C-c M-t" . entropy/emacs-ivy-counsel-load-theme)
-         ("C-x b" . ivy-switch-buffer)
-         ("C-x d" . counsel-dired)
-         ("C-x C-f" . counsel-find-file)
-         ("C-h P" . counsel-package)
-;; **** counsel mode map
-         :map counsel-mode-map
-         ([remap swiper] . counsel-grep-or-swiper)
-         ("C-x j"   . counsel-mark-ring)
-         ("C-x C-t" . counsel-find-file-extern)
-         ("C-h f"   . counsel-describe-function)
-         ("C-h v"   . counsel-describe-variable)
-         ("C-h l"   . counsel-find-library)
-         ("C-c M-b" . counsel-recentf)
-         ("C-c M-k" . counsel-yank-pop)
-         ;; swiper-map
-         :map swiper-map
-         ("M-%" . swiper-query-replace))
-;; *** init
-  :init
-  (unless sys/win32p
-    (global-set-key (kbd "C-M-<f11>") #'counsel-linux-app))
+;; ** ivy
+(use-package ivy
+  :defines (ivy-mode-hook)
+  :diminish ivy-mode
+  :commands (ivy-mode ivy-switch-buffer ivy-resume)
+  :bind (("C-c C-r" . ivy-resume)
+         ("C-x b" . ivy-switch-buffer))
   
-  (add-hook 'entropy/emacs-init-mini-hook #'ivy-mode)
-  (add-hook 'ivy-mode-hook #'counsel-mode)
+;; *** ivy init
+  :init
 
+  ;;  disabled ivy-initial-inputs-alist
+
+  ;; ivy initial char inserting was using for regex like searching,
+  ;; and it's also be '^' for ahead searching, but when you want to
+  ;; searching no limited in ahead type we must force disable it.
+  (setq ivy-initial-inputs-alist nil) ; disable "^" for heading begining search
+
+  ;; ivy details
+  (setq enable-recursive-minibuffers nil) ; Allow commands in minibuffers
+  (setq ivy-use-selectable-prompt t)
+  (setq ivy-use-virtual-buffers t)    ; Enable bookmarks and recentf
+  (setq ivy-height 15)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq ivy-on-del-error-function nil)
+  
+  ;; using fuzzy matching
+  (setq ivy-re-builders-alist
+        '((read-file-name-internal . ivy--regex-fuzzy)
+          ;; using elisp regex match candidates
+          (t . ivy--regex)))
+
+  (setq swiper-action-recenter t)
+  (setq counsel-find-file-at-point nil)
+  (setq counsel-yank-pop-separator "\n-------\n")
+
+;; *** ivy config
+  :config
+
+  ;; redefines `ivy-read-action' for fix some bug
   (defun ivy-read-action ()
     "Change the action to one of the available ones.
 
@@ -148,7 +154,7 @@ which type of value be:
                  (message "")
                  (setcar actions (1+ action-idx))
                  (ivy-set-action actions)))))))
-  
+
   (defun entropy/emacs-ivy--ivy-read-action-after-advice (&rest args)
     "Interrupting rest process when `this-command' was
 `ivy-read-action'."
@@ -159,59 +165,17 @@ which type of value be:
             (user-error "Ivy-quit!")
             (throw 'ivy-quit "Ivy-quit!")))))
   (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-action-after-advice)
-  
-;; **** escape use top-level
-  (entropy/emacs-lazy-load-simple 'counsel
-    (define-key counsel-mode-map (kbd "ESC ESC") 'top-level))
 
-;; **** improve counsel-git and counsel-bookmark
+  ;; top level for ivy-mode-map
+  (entropy/emacs-lazy-load-simple 'ivy
+    (define-key ivy-mode-map (kbd "ESC ESC") 'top-level))
 
-  ;; counsel-git and counsel-bookmark usually using 'utf-8' encoding for searching and return data
-  ;; back, so `entropy/emacs-custom-language-environment-enable' was conflicted with it, we must turn the
-  ;; main encoding type while calling them.
-  (if entropy/emacs-custom-language-environment-enable
-      (progn
-        (defun entropy/emacs-ivy-counsel-git ()
-          (interactive)
-          (if (not (string= current-language-environment "UTF-8"))
-              (progn
-                (entropy/emacs-lang-set-utf-8)
-                (counsel-git))
-            (counsel-git)))
-        (global-set-key (kbd "C-c g") 'entropy/emacs-ivy-counsel-git)
 
-        (defun entropy/emacs-counsel-bookmark ()
-          (interactive)
-          (if (not (string= current-language-environment "UTF-8"))
-              (progn
-                (entropy/emacs-lang-set-utf-8)
-                (counsel-bookmark))
-            (counsel-bookmark)))
-        (global-set-key (kbd "C-x r b") 'entropy/emacs-counsel-bookmark))
-    (progn
-      (global-set-key (kbd "C-c g") 'counsel-git)
-      (global-set-key (kbd "C-x r b") 'counsel-bookmark)))
+  ;; Redefine the ivy-partial-or-done to prevent double click '<tab>'
 
-;; *** config
-  :config
-;; **** advice counsel--M-x-externs for it's bad lagging perfomance
-
-  ;; because `counsel--M-x-externs' has the `require' function for it's contained condition context
-  ;; so it will lagging like previous version of `ivy--add-face'.
-  (defun entropy/emacs-ivy--counsel--M-x-externs ()
-    nil)
-  (advice-add 'counsel--M-x-externs :override #'entropy/emacs-ivy--counsel--M-x-externs)
-  
-;; **** disabled ivy-initial-inputs-alist
-
-  ;; ivy initial char inserting was using for regex like searching, and it's also be '^' for ahead
-  ;; searching, but when you want to searching no limited in ahead type we must force disable it.
-  (setq ivy-initial-inputs-alist nil) ; disable "^" for heading begining search
-
-;; ***** Redefine the ivy-partial-or-done to prevent double click '<tab>'
-
-  ;; This portion give the minor changed for disabled double tab in ivy completion for preventing
-  ;; accidental operation of double hint for 'TAB'.
+  ;; This portion give the minor changed for disabled double tab in
+  ;; ivy completion for preventing accidental operation of double hint
+  ;; for 'TAB'.
   (defun ivy-partial-or-done ()
     "Complete the minibuffer text as much as possible.
 If the text hasn't changed as a result, forward to `ivy-alt-done'."
@@ -229,31 +193,127 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
       (or (ivy-partial)
           (when (or (eq this-command last-command)
                     (eq ivy--length 1))
-            (message ":) evil smile ^v^")))))
+            (message ":) evil smile ^v^"))))))
+
+
+;; ** swiper
+
+(use-package swiper
+  :bind (("C-s" . swiper)
+         ("C-S-s" . swiper-all)
+         :map swiper-map
+         ("M-%" . swiper-query-replace))
+  :init
+  (entropy/emacs-lazy-load-simple 'swiper
+    (ivy-mode +1))
+  
+  :config
+  ;; ==assign format-function to swiper for fix some-bug==
+
+  ;; when using `all-the-icons-dired' with swiper, icons displayed in
+  ;; associate dired-buffer are mapped with all-the-icons spec fonts
+  ;; which can not rendered correctly for other fonts. ivy's defaut
+  ;; format function `ivy-format-function-default' used for `swiper'
+  ;; which using `identify' to format inactive candis which using the
+  ;; default face as font-lock atribtue, it will corrupts the
+  ;; correctly font displaying when set spec font to this default
+  ;; face.
+  
+  (entropy/emacs-lazy-load-simple 'all-the-icons-dired
+    (defun entropy/emacs-ivy--swiper-format-function-for-dired (cands)
+      "Transform CANDS into a string for minibuffer."
+      (ivy--format-function-generic
+       (lambda (str)
+         (ivy--add-face str 'ivy-current-match))
+       (lambda (str)
+         (cond
+          ((eq major-mode 'dired-mode)
+           (ivy--add-face str 'entropy/emacs-faces--swiper-dired-candi-inactive-face))
+          (t
+           (identity str))))
+       cands
+       "\n"))
+    (add-to-list 'ivy-format-functions-alist
+                 (cons 'swiper #'entropy/emacs-ivy--swiper-format-function-for-dired))))
+
+;; ** counsel
+(use-package counsel
+  :diminish counsel-mode
+  :commands (counsel-mode
+             ivy-mode
+             counsel-linux-app)
+  
+;; *** bind-key
+  :bind (("M-x" . counsel-M-x)
+         ("C-c M-t" . entropy/emacs-ivy-counsel-load-theme)
+         ("C-x d" . counsel-dired)
+         ("C-x C-f" . counsel-find-file)
+         ("C-h P" . counsel-package)
+;; **** counsel mode map
+         :map counsel-mode-map
+         ([remap swiper] . counsel-grep-or-swiper)
+         ("C-x j"   . counsel-mark-ring)
+         ("C-x C-t" . counsel-find-file-extern)
+         ("C-h f"   . counsel-describe-function)
+         ("C-h v"   . counsel-describe-variable)
+         ("C-h l"   . counsel-find-library)
+         ("C-c M-b" . counsel-recentf)
+         ("C-c M-k" . counsel-yank-pop))
+  
+;; **** hooks
+  :hook ((ivy-mode . counsel-mode))
+  
+;; *** init
+  :init
+  (entropy/emacs-lazy-load-simple 'counsel
+    (ivy-mode +1))
+  
+  (unless sys/win32p
+    (global-set-key (kbd "C-M-<f11>") #'counsel-linux-app))
+  
+;; **** improve counsel-git and counsel-bookmark
+
+  ;; counsel-git and counsel-bookmark usually using 'utf-8' encoding for searching and return data
+  ;; back, so `entropy/emacs-custom-language-environment-enable' was conflicted with it, we must turn the
+  ;; main encoding type while calling them.
+  (if entropy/emacs-custom-language-environment-enable
+      (progn
+        (defun entropy/emacs-ivy-counsel-git ()
+          (interactive)
+          (if (not (string= current-language-environment "UTF-8"))
+              (progn
+                (entropy/emacs-lang-set-utf-8)
+                (counsel-git))
+            (counsel-git)))
+        (global-set-key (kbd "C-c g") 'entropy/emacs-ivy-counsel-git)
+
+        (defun entropy/emacs-ivy-counsel-bookmark ()
+          (interactive)
+          (if (not (string= current-language-environment "UTF-8"))
+              (progn
+                (entropy/emacs-lang-set-utf-8)
+                (counsel-bookmark))
+            (counsel-bookmark)))
+        (global-set-key (kbd "C-x r b") 'entropy/emacs-ivy-counsel-bookmark))
+    (progn
+      (global-set-key (kbd "C-c g") 'counsel-git)
+      (global-set-key (kbd "C-x r b") 'counsel-bookmark)))
+
+;; *** config
+  :config
+;; **** advice counsel--M-x-externs for it's bad lagging perfomance
+
+  ;; because `counsel--M-x-externs' has the `require' function for it's contained condition context
+  ;; so it will lagging like previous version of `ivy--add-face'.
+  (defun entropy/emacs-ivy--counsel--M-x-externs ()
+    nil)
+  (advice-add 'counsel--M-x-externs :override #'entropy/emacs-ivy--counsel--M-x-externs)
 
 ;; **** windows not to use grep because there's no grep in windows
   (when sys/win32p
     (defun counsel-grep-or-swiper (&optional initial-input)
       (interactive)
       (swiper initial-input)))
-  
-;; **** ivy details
-  (setq enable-recursive-minibuffers nil) ; Allow commands in minibuffers
-  (setq ivy-use-selectable-prompt t)
-  (setq ivy-use-virtual-buffers t)    ; Enable bookmarks and recentf
-  (setq ivy-height 15)
-  (setq ivy-count-format "(%d/%d) ")
-  (setq ivy-on-del-error-function nil)
-  
-  ;; using fuzzy matching
-  (setq ivy-re-builders-alist
-        '((read-file-name-internal . ivy--regex-fuzzy)
-          ;; using elisp regex match candidates
-          (t . ivy--regex)))
-
-  (setq swiper-action-recenter t)
-  (setq counsel-find-file-at-point nil)
-  (setq counsel-yank-pop-separator "\n-------\n")
   
 ;; **** counsel-load-theme
   (defun entropy/emacs-ivy-counsel-load-theme ()
@@ -363,35 +423,7 @@ this variable used to patching for origin `counsel-git'.")
     "
     (with-ivy-window
       (let ((default-directory entropy/emacs-ivy-counsel-git-root))
-        (find-file x))))
-
-;; **** assign format-function to swiper for fix some-bug
-
-  ;; when using `all-the-icons-dired' with swiper, icons displayed in
-  ;; associate dired-buffer are mapped with all-the-icons spec fonts
-  ;; which can not rendered correctly for other fonts. ivy's defaut
-  ;; format function `ivy-format-function-default' used for `swiper'
-  ;; which using `identify' to format inactive candis which using the
-  ;; default face as font-lock atribtue, it will corrupts the
-  ;; correctly font displaying when set spec font to this default
-  ;; face.
-  
-  (entropy/emacs-lazy-load-simple 'all-the-icons-dired
-    (defun entropy/emacs-ivy--swiper-format-function-for-dired (cands)
-      "Transform CANDS into a string for minibuffer."
-      (ivy--format-function-generic
-       (lambda (str)
-         (ivy--add-face str 'ivy-current-match))
-       (lambda (str)
-         (cond
-          ((eq major-mode 'dired-mode)
-           (ivy--add-face str 'entropy/emacs-faces--swiper-dired-candi-inactive-face))
-          (t
-           (identity str))))
-       cands
-       "\n"))
-    (add-to-list 'ivy-format-functions-alist
-                 (cons 'swiper #'entropy/emacs-ivy--swiper-format-function-for-dired))))
+        (find-file x)))))
 
 ;; ** avy
 (use-package avy
