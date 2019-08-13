@@ -259,9 +259,6 @@ Emacs will auto close after 6s ......")
   (require 'entropy-emacs-lua)
   (require 'entropy-emacs-dash)
   (require 'entropy-emacs-go)
-  ;; For calender 
-  (require 'cal-china-x)
-  (setq mark-holidays-in-calendar t)
   ;; For tramp
   (require 'entropy-emacs-tramp)
   ;; For game

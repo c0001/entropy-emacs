@@ -41,7 +41,14 @@
 ;; `pC' can show lunar details
 (use-package cal-china-x
   :commands cal-china-x-setup
-  :init (add-hook 'calendar-load-hook #'cal-china-x-setup)
+  :hook ((calendar-mode . entropy/emacs-calendar--first-load-chinaX))
+  :init
+  (defvar entropy/emacs-calendar--load-chinaX-t nil)
+  (defun entropy/emacs-calendar--first-load-chinaX ()
+    (unless entropy/emacs-calendar--load-chinaX-t
+      (cal-china-x-setup)
+      (setq entropy/emacs-calendar--load-chinaX-t t)))
+  
   :config
 
   ;; `S' can show the time of sunrise and sunset on Calendar
