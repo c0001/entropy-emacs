@@ -756,7 +756,8 @@ Adding buffer unlock and wind narrowed region feature."
     :init
     ;; case-sensitive for ag search command.
     (setq helm-ag-base-command
-          "ag --nocolor --nogroup --case-sensitive")
+          "ag --nocolor --nogroup --case-sensitive"
+          helm-ag-use-grep-ignore-list t)
     :config
     (dolist (el '(helm-do-ag helm-do-ag-project-root))
       (advice-add el :around #'entropy/emacs-lang-set-utf-8-around-wrapper))
