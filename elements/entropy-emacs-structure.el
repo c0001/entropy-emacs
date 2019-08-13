@@ -119,8 +119,7 @@
 
 (use-package outshine
   :hook
-  ((emacs-lisp-mode . outshine-mode)
-   (sh-mode . outshine-mode)
+  ((sh-mode . outshine-mode)
    (c-mode . outshine-mode)
    (c++-mode . outshine-mode)
    (css-mode . outshine-mode)

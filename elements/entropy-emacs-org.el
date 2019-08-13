@@ -91,9 +91,6 @@
 
 ;; *** configs
   :config
-  (require 'entropy-org-widget)
-  (require 'entropy-common-library)
-
 ;; **** basic setting  
   (setq-default org-agenda-span (quote day)) ;Set agenda daily show as default
   (setq org-log-done 'time)                  ;insert time-stamp when toggle 'TODO' to 'DONE'
@@ -288,13 +285,21 @@ recovery method unless reopen capture operation.w
   (setq-default org-link-file-path-type (quote relative))
 
 ;; **** babel handle
-  (org-babel-do-load-languages   'org-babel-load-languages
-				 '((python . t)
-				   (perl . t)
-				   (shell . t)
-				   (ruby . t)
-				   (C . t)
-				   (emacs-lisp . t)))
+  (defvar entropy/emacs-org--babel-loaded nil)
+  
+  (defun entropy/emacs-org--do-load-babel-lanuages ()
+    (unless entropy/emacs-org--babel-loaded
+      (org-babel-do-load-languages 'org-babel-load-languages
+                                   '((python . t)
+                                     (perl . t)
+                                     (shell . t)
+                                     (ruby . t)
+                                     (C . t)
+                                     (emacs-lisp . t)))
+      (setq entropy/emacs-org--babel-loaded t)))
+
+  (add-hook 'org-mode-hook #'entropy/emacs-org--do-load-babel-lanuages)
+  
 ;; ***** org babel src mode engines
   ;; ---------with the bug of none highlites in org mode src html block
   ;; ---------and the issue with none aspiration of web-mode maintainer with link
@@ -773,6 +778,8 @@ source images file existed status checking.
 NOTE:
 
 Now just supply localization image file analyzing."
+  (require 'entropy-common-library)
+  (require 'entropy-org-widget)
   (let ((link-objs (entropy/ow-get-buffer-links (find-file-noselect org-file)))
         links_temp links
         (base-dir (file-name-directory org-file)))
