@@ -283,22 +283,6 @@ recovery method unless reopen capture operation.w
 
   (setq org-url-hexify-p nil)
   (setq-default org-link-file-path-type (quote relative))
-
-;; **** babel handle
-  (defvar entropy/emacs-org--babel-loaded nil)
-  
-  (defun entropy/emacs-org--do-load-babel-lanuages ()
-    (unless entropy/emacs-org--babel-loaded
-      (org-babel-do-load-languages 'org-babel-load-languages
-                                   '((python . t)
-                                     (perl . t)
-                                     (shell . t)
-                                     (ruby . t)
-                                     (C . t)
-                                     (emacs-lisp . t)))
-      (setq entropy/emacs-org--babel-loaded t)))
-
-  (add-hook 'org-mode-hook #'entropy/emacs-org--do-load-babel-lanuages)
   
 ;; ***** org babel src mode engines
   ;; ---------with the bug of none highlites in org mode src html block

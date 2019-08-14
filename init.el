@@ -44,8 +44,74 @@
 ;; You may delete these explanatory comments.
 (package-initialize)
 (with-temp-buffer
+  (require 'info)
   (require 'org)
-  (orgstruct-mode))
+  (require 'ob)
+  (org-mode)
+  (let ((ob-lang (mapcar
+                  '(lambda (x) (cons x t))
+                  '(vala
+                    tangle
+                    table
+                    stan
+                    sqlite
+                    sql
+                    shen
+                    shell
+                    sed
+                    screen
+                    scheme
+                    sass
+                    ruby
+                    ref
+                    python
+                    processing
+                    plantuml
+                    picolisp
+                    perl
+                    org
+                    octave
+                    ocaml
+                    mscgen
+                    maxima
+                    matlab
+                    makefile
+                    lua
+                    lob
+                    lisp
+                    lilypond
+                    ledger
+                    latex
+                    keys
+                    js
+                    java
+                    io
+                    hledger
+                    haskell
+                    groovy
+                    gnuplot
+                    fortran
+                    forth
+                    exp
+                    eval
+                    emacs-lisp
+                    ebnf
+                    dot
+                    ditaa
+                    css
+                    core
+                    coq
+                    comint
+                    clojure
+                    calc
+                    awk
+                    asymptote
+                    abc
+                    R
+                    J
+                    C))))
+    (org-babel-do-load-languages
+     'org-babel-load-languages ob-lang)))
 
 (when (version< emacs-version "24.4")
   (error "This requires Emacs 24.4 and above!"))

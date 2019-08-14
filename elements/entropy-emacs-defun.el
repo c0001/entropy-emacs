@@ -74,6 +74,7 @@ in case that file does not provide any feature."
        (defun ,func (&rest _)
          (unless ,var
            ,@func-body
+           (message (concat "Loading and enable feature '" ,initial-func-suffix-name "'  ..."))
            (setq ,var t)))
        (defun ,adder-func ()
          (dolist (item ,list-var)

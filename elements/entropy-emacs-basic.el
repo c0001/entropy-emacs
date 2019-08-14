@@ -327,14 +327,15 @@ Manually edit this variable will not be any effection.")
   :init
   (setq eyebrowse-mode-line-style nil)
   (entropy/emacs-lazy-load-simple 'eyebrowse
+    (eyebrowse-mode)
     (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
         (setq eyebrowse-new-workspace entropy/emacs-basic--eyebrowse-new-workspace-init-function)
       (setq eyebrowse-new-workspace t)))
 
+  :config
   ;; debug for improving eyebrowse's user experience
-  (entropy/emacs-lazy-load-simple 'eyebrowse
-    (defun eyebrowse--read-slot ()
-      "Read in a window config SLOT to switch to.
+  (defun eyebrowse--read-slot ()
+    "Read in a window config SLOT to switch to.
   A formatted list of window configs is presented as candidates.
   If no match was found, the user input is interpreted as a new
   slot to switch to.
@@ -356,15 +357,15 @@ Manually edit this variable will not be any effection.")
 
   This minor improve refer to the github issue
   https://github.com/wasamasa/eyebrowse/issues/77"
-      (let* ((current-slot (eyebrowse--get 'current-slot))
-             (candidates (--keep (and (/= (car it) current-slot)
-                                      (cons (eyebrowse-format-slot it)
-                                            (car it)))
-				 (eyebrowse--get 'window-configs)))
-             (candidate (completing-read "Enter slot: " candidates))
-             (choice (cdr (assoc candidate candidates))))
-	(or choice (eyebrowse--string-to-number candidate)
-            (user-error "Invalid slot number")))))
+    (let* ((current-slot (eyebrowse--get 'current-slot))
+           (candidates (--keep (and (/= (car it) current-slot)
+                                    (cons (eyebrowse-format-slot it)
+                                          (car it)))
+                               (eyebrowse--get 'window-configs)))
+           (candidate (completing-read "Enter slot: " candidates))
+           (choice (cdr (assoc candidate candidates))))
+      (or choice (eyebrowse--string-to-number candidate)
+          (user-error "Invalid slot number"))))
 
   (defun entropy/emacs-basic-eyebrowse-create-window-config ()
     "Creates a window config at a yet unoccupied slot and named
@@ -692,7 +693,9 @@ without derived slot."
                                 "*cvs*"
                                 "*Buffer List*"
                                 "*Ibuffer*"
-                                "*esh command on file*")))
+                                "*esh command on file*"))
+  :config
+  (winner-mode))
 
 ;; **** desktop mode
 (when entropy/emacs-desktop-enable

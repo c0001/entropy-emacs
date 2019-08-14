@@ -129,7 +129,11 @@
    (gitignore-mode . outshine-mode))
   :custom (outshine-max-level 100)
   :bind
-  (("C-<tab>" . outshine-cycle-buffer))
+  (("C-<tab>" . outshine-cycle-buffer)
+   :map org-mode-map
+   ("C-c M-t" . nil)
+   ("C-c M-e" . nil))
+  
   :init
 
   ;; lazy loading for orgstruct for elisp mode for preventing loading
