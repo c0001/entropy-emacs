@@ -41,7 +41,12 @@
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defcustom)
 
-;; *** lazy load branch
+;; ** lazy load branch
+(defun entropy/emacs-select-x-hook ()
+  (if entropy/emacs-minimal-start
+      'entropy/emacs-init-mini-hook
+    'entropy/emacs-init-X-hook))
+
 (defmacro entropy/emacs-lazy-load-simple (file &rest body)
   "Execute BODY after/require FILE is loaded.
 FILE is normally a feature name, but it can also be a file name,
@@ -54,6 +59,48 @@ in case that file does not provide any feature."
     `(progn
        (require ,file)
        ,@body))))
+
+
+(defun entropy/emacs-lazy-initial-form
+    (list-var initial-func-suffix-name initial-var-suffix-name abbrev-name adder-name &rest form_args)
+  (let* ((func (intern (concat abbrev-name "_" initial-func-suffix-name)))
+         (adder-func (intern (concat (symbol-name func) "_" adder-name)))
+         (var (intern (concat abbrev-name "_+" initial-var-suffix-name)))
+         (adder-type (car form_args))
+         (adder-flag (cadr form_args))
+         (func-body (nth 2 form_args)))
+    `(progn
+       (defvar ,var nil)
+       (defun ,func (&rest _)
+         (unless ,var
+           ,@func-body
+           (setq ,var t)))
+       (defun ,adder-func ()
+         (dolist (item ,list-var)
+           (if (not (null ,adder-flag))
+               (,adder-type item ,adder-flag ',func)
+             (,adder-type item ',func))))
+       (add-hook ',(entropy/emacs-select-x-hook) ',adder-func))))
+
+
+(defmacro entropy/emacs-lazy-initial-for-hook
+    (hooks initial-func-suffix-name initial-var-suffix-name &rest body)
+  (entropy/emacs-lazy-initial-form
+   hooks initial-func-suffix-name initial-var-suffix-name
+   "entropy/emacs--hook-first-enable-for" "hook-adder"
+   'add-hook
+   nil
+   body))
+
+(defmacro entropy/emacs-lazy-initial-advice-before
+    (advice-fors initial-func-suffix-name initial-var-suffix-name &rest body)
+  (entropy/emacs-lazy-initial-form
+   advice-fors initial-func-suffix-name initial-var-suffix-name
+   "entropy/emacs--beforeADV-fisrt-enable-for"
+   "before-advice-adder"
+   'advice-add
+   :before
+   body))
 
 ;; ** file and directories
 (defun entropy/emacs-list-dir-lite (dir-root)
@@ -106,6 +153,15 @@ shrink trail slash, and return the parent(up level) dir."
       ('parent-dir
        (setq rtn (file-name-directory fname))))
     rtn))
+
+(defun entropy/emacs-buffer-exists-p (buffername)
+  "Judge whether buffer BUFFERNAME existed!"
+  (let* ((bfl (mapcar 'buffer-name (buffer-list))))
+    (if (-filter '(lambda (bname)
+                    (if (string= buffername bname) t nil))
+                 bfl)
+        t
+      nil)))
 
 
 ;; ** counter map list

@@ -35,19 +35,19 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
 
 ;; ** main
 ;; Chinese calendar
 ;; `pC' can show lunar details
 (use-package cal-china-x
   :commands cal-china-x-setup
-  :hook ((calendar-mode . entropy/emacs-calendar--first-load-chinaX))
   :init
-  (defvar entropy/emacs-calendar--load-chinaX-t nil)
-  (defun entropy/emacs-calendar--first-load-chinaX ()
-    (unless entropy/emacs-calendar--load-chinaX-t
-      (cal-china-x-setup)
-      (setq entropy/emacs-calendar--load-chinaX-t t)))
+  (entropy/emacs-lazy-initial-for-hook
+   '(calendar-mode-hook)
+   "calendar-chinaX-mode"
+   "calendar-chinaX-mode"
+   (cal-china-x-setup))
   
   :config
 

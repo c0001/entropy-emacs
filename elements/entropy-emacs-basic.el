@@ -108,8 +108,7 @@
   Filename are \".scratch_entropy\" in `user-emacs-directory'.
   "
   (let ((bfn "*scratch*"))
-    (require 'entropy-common-library)
-    (if (entropy/cl-buffer-exists-p "*scratch*")
+    (if (entropy/emacs-buffer-exists-p "*scratch*")
         (kill-buffer "*scratch*"))
     
     (let ((fname "~/.scratch_entropy"))
@@ -276,8 +275,45 @@ Manually edit this variable will not be any effection.")
 ;; *** window config
 ;; **** eyebrowse ----> for save the window config(workspace group)
 (use-package eyebrowse
-  :commands (eyebrowse-mode)
-  :init (add-hook 'entropy/emacs-init-mini-hook #'eyebrowse-mode)
+  :commands (eyebrowse--current-window-config
+             eyebrowse--delete-window-config
+             eyebrowse--dotted-list-p
+             eyebrowse--fixup-window-config
+             eyebrowse--get
+             eyebrowse--insert-in-window-config-list
+             eyebrowse--load-window-config
+             eyebrowse--read-slot
+             eyebrowse--rename-window-config-buffers
+             eyebrowse--set
+             eyebrowse--string-to-number
+             eyebrowse--update-window-config-element
+             eyebrowse--walk-window-config
+             eyebrowse--window-config-present-p
+             eyebrowse-close-window-config
+             eyebrowse-create-window-config
+             eyebrowse-format-slot
+             eyebrowse-free-slot
+             eyebrowse-init
+             eyebrowse-last-window-config
+             eyebrowse-mode
+             eyebrowse-mode-line-indicator
+             eyebrowse-next-window-config
+             eyebrowse-prev-window-config
+             eyebrowse-rename-window-config
+             eyebrowse-setup-evil-keys
+             eyebrowse-setup-opinionated-keys
+             eyebrowse-switch-to-window-config
+             eyebrowse-switch-to-window-config-0
+             eyebrowse-switch-to-window-config-1
+             eyebrowse-switch-to-window-config-2
+             eyebrowse-switch-to-window-config-3
+             eyebrowse-switch-to-window-config-4
+             eyebrowse-switch-to-window-config-5
+             eyebrowse-switch-to-window-config-6
+             eyebrowse-switch-to-window-config-7
+             eyebrowse-switch-to-window-config-8
+             eyebrowse-switch-to-window-config-9)
+  
   :bind (("C-c C-w C-e" . entropy/emacs-basic-eyebrowse-create-workspaces)
          ("C-c C-w M-e" . entropy/emacs-basic-eyebrowse-delete-workspace)
          ("C-c C-w C-`" . entropy/emacs-basic-eyebrowse-switch-top)
@@ -288,11 +324,12 @@ Manually edit this variable will not be any effection.")
          ("C-c C-w c" . entropy/emacs-basic-eyebrowse-create-window-config)
          ("C-c C-w ." . entropy/emacs-basic-eyebrowse-switch-basic-window)
          ("C-c C-w a" . eyebrowse-switch-to-window-config))
-  :config
+  :init
   (setq eyebrowse-mode-line-style nil)
-  (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
-      (setq eyebrowse-new-workspace entropy/emacs-basic--eyebrowse-new-workspace-init-function)
-    (setq eyebrowse-new-workspace t))
+  (entropy/emacs-lazy-load-simple 'eyebrowse
+    (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
+        (setq eyebrowse-new-workspace entropy/emacs-basic--eyebrowse-new-workspace-init-function)
+      (setq eyebrowse-new-workspace t)))
 
   ;; debug for improving eyebrowse's user experience
   (entropy/emacs-lazy-load-simple 'eyebrowse
@@ -643,6 +680,8 @@ without derived slot."
 (use-package winner
   :ensure nil
   :commands (winner-mode)
+  :bind (("C-c <left>" . winner-undo)
+         ("C-c <right>" . winner-redo))
   :init
   (setq winner-boring-buffers '("*Completions*"
                                 "*Compile-Log*"
@@ -653,8 +692,7 @@ without derived slot."
                                 "*cvs*"
                                 "*Buffer List*"
                                 "*Ibuffer*"
-                                "*esh command on file*"))
-  (add-hook 'entropy/emacs-init-mini-hook #'winner-mode))
+                                "*esh command on file*")))
 
 ;; **** desktop mode
 (when entropy/emacs-desktop-enable
@@ -1070,7 +1108,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     (use-package dired-quick-sort
       :if (or (executable-find "gls") (executable-find "ls"))
       :commands (dired-quick-sort-setup)
-      :hook (entropy/emacs-init-mini . dired-quick-sort-setup)))
+      :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup)))
 
 ;; **** Use coloful dired ls
   (defun entropy/emacs-basic--dired-visual-init ()
@@ -1351,17 +1389,27 @@ emacs."
 (use-package entropy-global-read-only-mode
   :ensure nil
   :commands (entropy-grom-mode)
-  :init (add-hook 'entropy/emacs-init-mini-hook #'entropy-grom-mode))
+  :init
+  (entropy/emacs-lazy-initial-advice-before
+   '(find-file push-button)
+   "entropy-grom"
+   "entropy-grom"
+   (entropy-grom-mode)))
 
 ;; ** Revert buffer automatically
-(add-hook 'entropy/emacs-init-mini-hook #'global-auto-revert-mode)
+
+(entropy/emacs-lazy-initial-for-hook
+ '(find-file-hook)
+ "GlbAutoRevertMode"
+ "GlbAutoRevertMode-enabled"
+ (global-auto-revert-mode +1))
 
 ;; ** Use popup window framework
 ;; *** popwin-mode
 (use-package popwin
   :if (eq entropy/emacs-use-popup-window-framework 'popwin)
   :commands popwin-mode
-  :init (add-hook 'entropy/emacs-init-mini-hook #'popwin-mode)
+  :init (add-hook (entropy/emacs-select-x-hook) #'popwin-mode)
   :config
   (bind-key "C-3" popwin:keymap)
 
@@ -1460,7 +1508,7 @@ emacs."
     (let ((map (make-sparse-keymap)))
       map))
   (global-set-key (kbd "C-3") shackle-popup-mode-map)
-  (add-hook 'entropy/emacs-init-mini-hook #'shackle-mode)
+  (add-hook (entropy/emacs-select-x-hook) #'shackle-mode)
   (defvar shackle--popup-window-list nil) ; all popup windows
   (defvar-local shackle--current-popup-window nil) ; current popup window
   (put 'shackle--current-popup-window 'permanent-local t)
@@ -1598,18 +1646,31 @@ emacs."
   :diminish which-key-mode
   :commands which-key-mode
   :init
-  (add-hook 'entropy/emacs-init-mini-hook #'which-key-mode)
+  (add-hook (entropy/emacs-select-x-hook) #'which-key-mode)
   (setq which-key-popup-type 'minibuffer))
 
 ;; ** Undo tree
 (use-package undo-tree
   :diminish undo-tree-mode
   :commands (global-undo-tree-mode)
+  :bind (("C-x u" . entropy/emacs-basic-undo-tree))
   :init
-  (add-hook 'entropy/emacs-init-mini-hook #'global-undo-tree-mode)
-  (add-hook 'undo-tree-mode-hook
-	    '(lambda () (define-key undo-tree-map (kbd "C-x u") nil)))
+  (entropy/emacs-lazy-load-simple 'undo-tree
+    (global-undo-tree-mode +1)
+    (add-hook 'undo-tree-mode-hook
+              '(lambda () (define-key undo-tree-map (kbd "C-x u") nil))))
   :config
+  (defun entropy/emacs-basic-undo-tree ()
+    (interactive)
+    (if (car (window-margins))
+        (progn
+          (setq entropy/emacs-basic-undo-tree-margin-detective t)
+          (entropy/emacs-basic-center-text-clear)
+          (undo-tree-visualize))
+      (progn
+        (setq entropy/emacs-basic-undo-tree-margin-detective nil)
+        (undo-tree-visualize))))
+
   (defun undo-tree-visualizer-quit ()
     "Quit the undo-tree visualizer. 
 
@@ -1643,25 +1704,17 @@ This function has redefined for adapting to
                                       (/ (window-width) entropy/emacs-window-center-integer)))
               (switch-to-buffer parent)))))))
 
-(defun entropy/emacs-basic-undo-tree ()
-  (interactive)
-  (if (car (window-margins))
-      (progn
-        (setq entropy/emacs-basic-undo-tree-margin-detective t)
-        (entropy/emacs-basic-center-text-clear)
-        (undo-tree-visualize))
-    (progn
-      (setq entropy/emacs-basic-undo-tree-margin-detective nil)
-      (undo-tree-visualize))))
-(global-set-key (kbd "C-x u") 'entropy/emacs-basic-undo-tree)
-
 ;; ** Auto-sudoedit
 (use-package auto-sudoedit
   :commands (auto-sudoedit-mode)
   :if (and (not sys/win32p)
            (not sys/cygwinp))
   :init
-  (add-hook 'entropy/emacs-init-mini-hook #'auto-sudoedit-mode))
+  (entropy/emacs-lazy-initial-advice-before
+   '(find-file dired)
+   "autosudoedit"
+   "autosudoedit"
+   (auto-sudoedit-mode +1)))
 
 ;; ** Clear killring
 ;;     From the forum of stackexchange
@@ -1717,7 +1770,7 @@ This function has redefined for adapting to
 
 (use-package savehist
   :ensure nil
-  :init (add-hook 'entropy/emacs-init-mini-hook #'savehist-mode)
+  :init (add-hook (entropy/emacs-select-x-hook) #'savehist-mode)
   :config
   (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
         history-length 1000
@@ -1801,7 +1854,7 @@ coding-system to save bookmark infos"
   :diminish disable-mouse-global-mode
   :commands (global-disable-mouse-mode)
   :init
-  (add-hook 'entropy/emacs-init-mini-hook #'global-disable-mouse-mode))
+  (add-hook (entropy/emacs-select-x-hook) #'global-disable-mouse-mode))
 
 ;; ** Artist-mode
 (use-package artist
@@ -2051,14 +2104,16 @@ otherwise returns nil."
 (global-set-key (kbd "M-u") 'entropy/emacs-basic-upcase-word)
 
 ;; ** autocompression moode
-(defun entropy/emacs-basic--force-enable-autocompression-mode ()
-  "Force refresh autocompression mode enabling status as that the
-initialization for its refers procedure can not cover fully
-functional of `auto-compression-mode'."
-  (auto-compression-mode 0)
-  (auto-compression-mode 1))
 
-(add-hook 'entropy/emacs-init-mini-hook #'entropy/emacs-basic--force-enable-autocompression-mode)
+;; Force refresh autocompression mode enabling status as that the
+;; initialization for its refers procedure can not cover fully
+;; functional of `auto-compression-mode'.
+(entropy/emacs-lazy-initial-advice-before
+ '(push-button load-library)
+ "autocompression-mode"
+ "autocompression-mode"
+ (auto-compression-mode 0)
+ (auto-compression-mode 1))
 
 ;; * provide
 (provide 'entropy-emacs-basic)

@@ -240,7 +240,6 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 (use-package counsel
   :diminish counsel-mode
   :commands (counsel-mode
-             ivy-mode
              counsel-linux-app)
   
 ;; *** bind-key
@@ -249,16 +248,16 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
          ("C-x d" . counsel-dired)
          ("C-x C-f" . counsel-find-file)
          ("C-h P" . counsel-package)
-;; **** counsel mode map
-         :map counsel-mode-map
-         ([remap swiper] . counsel-grep-or-swiper)
+         ("C-h v" . counsel-describe-variable)
+         ("C-h f" . counsel-describe-function)
+         ("C-h l" . counsel-find-library)
          ("C-x j"   . counsel-mark-ring)
          ("C-x C-t" . counsel-find-file-extern)
-         ("C-h f"   . counsel-describe-function)
-         ("C-h v"   . counsel-describe-variable)
-         ("C-h l"   . counsel-find-library)
          ("C-c M-b" . counsel-recentf)
-         ("C-c M-k" . counsel-yank-pop))
+         ("C-c M-k" . counsel-yank-pop)
+;; **** counsel mode map
+         :map counsel-mode-map
+         ([remap swiper] . counsel-grep-or-swiper))
   
 ;; **** hooks
   :hook ((ivy-mode . counsel-mode))
@@ -456,6 +455,7 @@ this variable used to patching for origin `counsel-git'.")
               all-the-icons-faicon
               all-the-icons-octicon
               all-the-icons-dir-is-submodule)
+  :commands (ivy-rich-mode)
   :preface
   (defun ivy-rich-bookmark-name (candidate)
     (car (assoc candidate bookmark-alist)))
@@ -549,12 +549,18 @@ this variable used to patching for origin `counsel-git'.")
                (all-the-icons-octicon "file-directory" :height 0.9 :v-adjust -0.05))
               (t (all-the-icons-icon-for-file (file-name-nondirectory filename) :height 0.9 :v-adjust -0.05)))))
     (advice-add #'ivy-rich-bookmark-type :override #'ivy-rich-bookmark-type-plus))
-  :hook ((ivy-mode . ivy-rich-mode)
-         (ivy-rich-mode . (lambda ()
-                            (require 'all-the-icons)
-                            (setq ivy-virtual-abbreviate
-                                  (or (and ivy-rich-mode 'abbreviate) 'name)))))
+
   :init
+  (entropy/emacs-lazy-initial-advice-before
+   '(ivy-read)
+   "ivy-mode" "ivy-mode"
+   (require 'ivy)
+   (ivy-mode +1)
+   (ivy-rich-mode +1)
+   (require 'all-the-icons)
+   (setq ivy-virtual-abbreviate
+         (or (and ivy-rich-mode 'abbreviate) 'name)))
+  
   ;; For better performance
   (setq ivy-rich-parse-remote-buffer nil)
 

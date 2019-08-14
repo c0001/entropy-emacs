@@ -97,11 +97,7 @@
     (add-hook 'entropy/emacs-theme-load-after-hook
               #'entropy/emacs-theme--solaire-enable))
   
-  (cond
-   (entropy/emacs-minimal-start
-    (add-hook 'entropy/emacs-init-mini-hook #'entropy/emacs-theme--initilized-start-solaire-mode))
-   (t
-    (add-hook 'entropy/emacs-init-X-hook #'entropy/emacs-theme--initilized-start-solaire-mode))))
+  (add-hook (entropy/emacs-select-x-hook) #'entropy/emacs-theme--initilized-start-solaire-mode))
 
 ;; ** Theme
 (use-package doom-themes
