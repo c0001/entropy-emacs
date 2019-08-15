@@ -1400,7 +1400,7 @@ emacs."
    '(find-file push-button)
    "entropy-grom"
    "entropy-grom"
-   (entropy-grom-mode)))
+   (entropy-grom-mode +1)))
 
 ;; ** Revert buffer automatically
 

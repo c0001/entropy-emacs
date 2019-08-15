@@ -160,8 +160,8 @@ shrink trail slash, and return the parent(up level) dir."
   (let* ((bfl (mapcar 'buffer-name (buffer-list))))
     (if (member
          t
-         (mapcar '(lambda (bname)
-                    (if (string= buffername bname) t nil))
+         (mapcar #'(lambda (bname)
+                     (if (string= buffername bname) t nil))
                  bfl))
         t
       nil)))
