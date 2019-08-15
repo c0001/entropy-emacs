@@ -10,8 +10,6 @@
 
 ;; * Code:
 ;; ** declare variable
-(defvar entropy-grom-mode nil)
-
 (defvar entropy/grom-toggle-except-bfregexp-list
   '(
     "\\*Minibuf.*\\*"
@@ -137,104 +135,46 @@ There's two choice:
           (read-only-mode 1)
           (message "Lock this buffer succesfully"))
       (message "You are in %s , don't read-only it!" (buffer-name)))))
-;; ** Global-readonly-mode
-;; *** enable function
-(defun entropy/grom-init ()
-;; **** Global-readonly-type-filter
-  (when entropy/grom-enable
-    (cond
-     ((string= entropy/grom-readonly-type "modes")
-      (dolist (mode-hook entropy/grom-mode-list)
-        (add-hook mode-hook #'(lambda ()
-                                (when (not (string= (buffer-name) "*scratch*"))
-                                  (read-only-mode 1))))))
-     ((string= entropy/grom-readonly-type "all")
-      (defun entropy/grom-find-file-hook ()
-        "Hooks for find-file with global readonly mode type \"all\"
-      using except buffer-name list
-      `entropy/grom-find-file-except-bfregexp-list'."
-        (let ((p nil))
-          (dolist (buffer entropy/grom-find-file-except-bfregexp-list)
-            (if (string-match-p buffer (buffer-name))
-                (setq p t)))
-          (if (not p)
-              (read-only-mode 1))))
-      (add-hook 'find-file-hook 'entropy/grom-find-file-hook))
-
-     ((string= entropy/grom-readonly-type "convert")
-      (with-eval-after-load dired
-        (defun dired-find-file ()
-          "*Note:* This function has been redefined by
-      global-read-only-mode
-
-In Dired, visit the file or directory named on this line."
-          (interactive)
-          ;; Bind `find-file-run-dired' so that the command works on directories
-          ;; too, independent of the user's setting.
-          (let ((find-file-run-dired t))
-            (find-file-read-only (dired-get-file-for-visit)))))))
-
-;; **** Global read only toggle function
-    (defun entropy/grom-toggle-read-only (&optional readonly editted current-buffer-ndwp cury)
-      "Toggle readonly-or-not for all buffers except for the buffer-name witin `entropy/grom-toggle-except-bfregexp-list'
 
 
-    There's four optional argument for this function:
+;; *** Global read only toggle function
+(defun entropy/grom-toggle-read-only (&optional readonly editted current-buffer-ndwp cury)
+  "Toggle readonly-or-not for all buffers except for the buffer-name witin `entropy/grom-toggle-except-bfregexp-list'
 
-    - *readonly and editted:* If set one of them to 't' then means 'toggle read only' or 'toggle
-      editted' independently
+There's four optional argument for this function:
 
-    - *current-buffer-ndwp:* This set for prompting whether do the main specific function in current
-      buffer when it set to nil . It means that not do with current buffer and be with prompt. This
-      set will cover cury setting when it's be nil.
+- *readonly and editted:* If set one of them to 't' then means 'toggle read only' or 'toggle
+  editted' independently
 
-    - *cury:* Do with current buffer without prompt if set it to t and =current-buffer-ndwp= was t,
-      opposite means that not do current buffer."
-      (interactive)
-      (let* ((current-buffer (buffer-name (current-buffer)))
-             (candidate '("global read only" "global editted"))
-             (read
-              (if (not (or readonly editted))
-                  (completing-read "Please choose read-only or editted:" candidate nil t)
-                (cond
-                 ((and (eq readonly t)
-                       (eq editted nil))
-                  "global read only")
-                 ((and (eq readonly nil)
-                       (eq editted t))
-                  "global editted")
-                 ((and (eq readonly t)
-                       (eq editted t))
-                  (error "Can not double true for readonly and editted!"))))))
-        (let ((p-buffer-list (mapcar (function buffer-name) (buffer-list))))
-          (dolist (value p-buffer-list)
-            (dolist (cache entropy/grom-toggle-except-bfregexp-list)
-              (if (string-match-p cache value)
-                  (delete value p-buffer-list))))
-          (if (not current-buffer-ndwp)
-              (let ((lock-cur (yes-or-no-p "Whether do with current buffer?")))
-                (dolist (buffer p-buffer-list)
-                  (with-current-buffer buffer
-                    (cond
-                     ((string= read "global read only")
-                      (if (and
-                           (not buffer-read-only)
-                           (not (string-match-p
-                                 (regexp-quote "dired-mode")
-                                 (format "%s" major-mode))))
-                          (if (not (string= current-buffer buffer))
-                              (read-only-mode 1)
-                            (if (eq lock-cur t)
-                                (read-only-mode 1)))))
-                     ((string= read "global editted")
-                      (if (and buffer-read-only
-                               (not (string-match-p
-                                     (regexp-quote "dired-mode")
-                                     (format "%s" major-mode))))
-                          (if (not (string= current-buffer buffer))
-                              (read-only-mode 0)
-                            (if (eq lock-cur t)
-                                (read-only-mode 0)))))))))
+- *current-buffer-ndwp:* This set for prompting whether do the main specific function in current
+  buffer when it set to nil . It means that not do with current buffer and be with prompt. This
+  set will cover cury setting when it's be nil.
+
+- *cury:* Do with current buffer without prompt if set it to t and =current-buffer-ndwp= was t,
+  opposite means that not do current buffer."
+  (interactive)
+  (let* ((current-buffer (buffer-name (current-buffer)))
+         (candidate '("global read only" "global editted"))
+         (read
+          (if (not (or readonly editted))
+              (completing-read "Please choose read-only or editted:" candidate nil t)
+            (cond
+             ((and (eq readonly t)
+                   (eq editted nil))
+              "global read only")
+             ((and (eq readonly nil)
+                   (eq editted t))
+              "global editted")
+             ((and (eq readonly t)
+                   (eq editted t))
+              (error "Can not double true for readonly and editted!"))))))
+    (let ((p-buffer-list (mapcar (function buffer-name) (buffer-list))))
+      (dolist (value p-buffer-list)
+        (dolist (cache entropy/grom-toggle-except-bfregexp-list)
+          (if (string-match-p cache value)
+              (delete value p-buffer-list))))
+      (if (not current-buffer-ndwp)
+          (let ((lock-cur (yes-or-no-p "Whether do with current buffer?")))
             (dolist (buffer p-buffer-list)
               (with-current-buffer buffer
                 (cond
@@ -246,7 +186,7 @@ In Dired, visit the file or directory named on this line."
                              (format "%s" major-mode))))
                       (if (not (string= current-buffer buffer))
                           (read-only-mode 1)
-                        (if (eq cury t)
+                        (if (eq lock-cur t)
                             (read-only-mode 1)))))
                  ((string= read "global editted")
                   (if (and buffer-read-only
@@ -255,29 +195,88 @@ In Dired, visit the file or directory named on this line."
                                  (format "%s" major-mode))))
                       (if (not (string= current-buffer buffer))
                           (read-only-mode 0)
-                        (if (eq cury t)
-                            (read-only-mode 0))))))))))))
+                        (if (eq lock-cur t)
+                            (read-only-mode 0)))))))))
+        (dolist (buffer p-buffer-list)
+          (with-current-buffer buffer
+            (cond
+             ((string= read "global read only")
+              (if (and
+                   (not buffer-read-only)
+                   (not (string-match-p
+                         (regexp-quote "dired-mode")
+                         (format "%s" major-mode))))
+                  (if (not (string= current-buffer buffer))
+                      (read-only-mode 1)
+                    (if (eq cury t)
+                        (read-only-mode 1)))))
+             ((string= read "global editted")
+              (if (and buffer-read-only
+                       (not (string-match-p
+                             (regexp-quote "dired-mode")
+                             (format "%s" major-mode))))
+                  (if (not (string= current-buffer buffer))
+                      (read-only-mode 0)
+                    (if (eq cury t)
+                        (read-only-mode 0))))))))))))
 
-    (defun entropy/grom-quick-readonly-global ()
-      "Do readonly for all buffers include current-buffer.
+(defun entropy/grom-quick-readonly-global ()
+  "Do readonly for all buffers include current-buffer.
 
 This function are basically rely on `entropy/grom-toggle-read-only'."
-      (interactive)
-      (if (and (not (string-match-p "CAPTURE-.*\\.org$" (buffer-name (current-buffer))))
-               (not (string-match-p "\\*Minibuf.*\\*" (buffer-name (current-buffer)))))
-          (progn
-            (entropy/grom-toggle-read-only t nil t nil)
-            (let ((judge nil)
-                  (bn (buffer-name)))
-              (dolist (el entropy/grom-toggle-except-bfregexp-list)
-                (if (string-match-p bn el)
-                    (setq judge t)))
-              (if (not judge)
-                  (read-only-mode 1)
-                (error "Current buffer %s can no be locked" bn))))
-        (user-error "Can not use quick-readonly-global in %s!" (buffer-name)))
-      (message "All buffers have been read-only!"))
-    (global-set-key (kbd "M-1") 'entropy/grom-quick-readonly-global)))
+  (interactive)
+  (if (and (not (string-match-p "CAPTURE-.*\\.org$" (buffer-name (current-buffer))))
+           (not (string-match-p "\\*Minibuf.*\\*" (buffer-name (current-buffer)))))
+      (progn
+        (entropy/grom-toggle-read-only t nil t nil)
+        (let ((judge nil)
+              (bn (buffer-name)))
+          (dolist (el entropy/grom-toggle-except-bfregexp-list)
+            (if (string-match-p bn el)
+                (setq judge t)))
+          (if (not judge)
+              (read-only-mode 1)
+            (error "Current buffer %s can no be locked" bn))))
+    (user-error "Can not use quick-readonly-global in %s!" (buffer-name)))
+  (message "All buffers have been read-only!"))
+(global-set-key (kbd "M-1") 'entropy/grom-quick-readonly-global)
+
+
+;; ** Global-readonly-mode
+;; *** enable function
+;; **** Global-readonly-type-filter
+(defun entropy/grom-init ()
+  (cond
+   ((string= entropy/grom-readonly-type "modes")
+    (dolist (mode-hook entropy/grom-mode-list)
+      (add-hook mode-hook #'(lambda ()
+                              (when (not (string= (buffer-name) "*scratch*"))
+                                (read-only-mode 1))))))
+   ((string= entropy/grom-readonly-type "all")
+    (defun entropy/grom-find-file-hook ()
+      "Hooks for find-file with global readonly mode type \"all\"
+      using except buffer-name list
+      `entropy/grom-find-file-except-bfregexp-list'."
+      (let ((p nil))
+        (dolist (buffer entropy/grom-find-file-except-bfregexp-list)
+          (if (string-match-p buffer (buffer-name))
+              (setq p t)))
+        (if (not p)
+            (read-only-mode 1))))
+    (add-hook 'find-file-hook 'entropy/grom-find-file-hook))
+
+   ((string= entropy/grom-readonly-type "convert")
+    (with-eval-after-load dired
+      (defun dired-find-file ()
+        "*Note:* This function has been redefined by
+      global-read-only-mode
+
+In Dired, visit the file or directory named on this line."
+        (interactive)
+        ;; Bind `find-file-run-dired' so that the command works on directories
+        ;; too, independent of the user's setting.
+        (let ((find-file-run-dired t))
+          (find-file-read-only (dired-get-file-for-visit))))))))
 
 
 ;; *** disable function
@@ -368,8 +367,7 @@ in current frame."
   "Unlock current entry in agenda view panel when global
 readonly mode."
   (interactive)
-  (if (and entropy/grom-enable
-           (or (string= entropy/grom-readonly-type "convert")
+  (if (and (or (string= entropy/grom-readonly-type "convert")
                (string= entropy/grom-readonly-type "all"))
            (equal major-mode 'org-agenda-mode))
       (let ((etb (or (if (org-get-at-bol 'org-hd-marker)
@@ -404,9 +402,8 @@ readonly mode."
 ;; *** Adjust org mode
 (defun entropy/grom-org-init ()
 ;; ***** agenda function advice for unlock current entry
-  (when (and entropy/grom-enable
-             (or (string= entropy/grom-readonly-type "convert")
-                 (string= entropy/grom-readonly-type "all")))
+  (when (or (string= entropy/grom-readonly-type "convert")
+            (string= entropy/grom-readonly-type "all"))
     (with-eval-after-load 'org-agenda
       (define-key org-agenda-mode-map (kbd "C-d") #'entropy/grom-unlock-agenda-files)
 
@@ -429,16 +426,13 @@ readonly mode."
 
   
 ;; ***** add error-readonly hook for agenda
-  (when entropy/grom-enable
-    (with-eval-after-load 'org-agenda
-      (define-key org-agenda-mode-map (kbd "<f1>") 'entropy/grom-error-toggle-readonly)
-      (define-key org-agenda-mode-map (kbd "M-1") 'entropy/grom-error-toggle-readonly)))
-
+  (with-eval-after-load 'org-agenda
+    (define-key org-agenda-mode-map (kbd "<f1>") 'entropy/grom-error-toggle-readonly)
+    (define-key org-agenda-mode-map (kbd "M-1") 'entropy/grom-error-toggle-readonly))
   
 ;; ***** Redefine org-capture about function for adapting for global-readonly-mode
-  (when (and entropy/grom-enable
-             (or (string= entropy/grom-readonly-type "convert")
-                 (string= entropy/grom-readonly-type "all")))
+  (when (or (string= entropy/grom-readonly-type "convert")
+            (string= entropy/grom-readonly-type "all"))
     (with-eval-after-load 'org-capture
       (defun org-capture-place-template (&optional inhibit-wconf-store)
         "*Note:* This function has been modified by globla-read-only-mode
@@ -527,41 +521,27 @@ inserted into the buffer."
 ;; ** mode defination
 (defun entropy/grom-mode-enable ()
   "Enable entropy-grom-mode."
-  (if (not entropy-grom-mode)
-      (progn
-        (entropy/grom-init)
-        (entropy/grom-org-init)
-        (setq entropy-grom-mode t)
-        (message "Global read only mode enable!"))
-    (user-error "Global read only mode has been enabled.")))
+  (progn
+    (entropy/grom-init)
+    (entropy/grom-org-init)
+    (message "Global read only mode enable!")))
 
 (defun entropy/grom-mode-disable ()
   "Disable entropy-grom-mode."
-  (if entropy-grom-mode
-      (progn
-        (entropy/grom-setoff)
-        (entropy/grom-org-setoff)
-        (setq entropy-grom-mode nil)
-        (message "Global read only mode disable!"))
-    (user-error "Global read only mode not started.")))
+  (progn
+    (entropy/grom-setoff)
+    (entropy/grom-org-setoff)
+    (message "Global read only mode disable!")))
 
 ;;;###autoload
-(defun entropy-grom-mode (&optional type)
-  (interactive)
-  "Toggle global-readonly-mode."
-  (cond
-   ((not type)
-    (if (not entropy-grom-mode)
-        (entropy/grom-mode-enable)
-      (entropy/grom-mode-disable)))
-   (type
-    (if (equal type 1)
-        (when (not entropy-grom-mode)
-          (entropy/grom-mode-enable))
-      (when entropy-grom-mode
-        (entropy/grom-mode-disable))))))
-
-
+(define-minor-mode entropy-grom-mode
+  "Global minor mode for buffer-readonly for all."
+  :init-value nil
+  :lighter "GROM"
+  :global t
+  (if entropy-grom-mode
+      (entropy/grom-mode-enable)
+    (entropy/grom-mode-disable)))
 
 ;; * provide
 (provide 'entropy-global-read-only-mode)
