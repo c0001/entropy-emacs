@@ -167,6 +167,7 @@
         elisp-slime-nav
         elisp-refs
         emms
+        visual-ascii-mode
 
         ;; themes
         doom-themes

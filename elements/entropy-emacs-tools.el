@@ -1892,5 +1892,14 @@ Globally close neotree buffer while selected window was
 
   (advice-add 'neo-global--do-autorefresh :around #'entropy/emacs-tools--neo-refresh-conditions))
 
+;; *** visual-ascii-mode
+
+  ;; Show key-binding with readable style instead of ascii numberic
+  ;; sequence
+
+(use-package visual-ascii-mode
+  :commands (global-visual-ascii-mode visual-ascii-mode)
+  :hook ((help-mode . visual-ascii-mode)))
+
 ;; * provide
 (provide 'entropy-emacs-tools)
