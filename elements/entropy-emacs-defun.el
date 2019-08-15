@@ -40,6 +40,9 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defcustom)
+(if (version< emacs-version "27")
+    (require 'cl)
+  (require 'cl-macs))
 
 ;; ** lazy load branch
 (defun entropy/emacs-select-x-hook ()
@@ -71,10 +74,18 @@ in case that file does not provide any feature."
     `(progn
        (defvar ,var nil)
        (defun ,func (&rest _)
-         (unless ,var
-           ,@func-body
-           (message (concat "Loading and enable feature '" ,initial-func-suffix-name "'  ..."))
-           (setq ,var t)))
+         (let ((head-time (time-to-seconds))
+               end-time)
+           (unless ,var
+             (redisplay t)
+             (message (concat "Loading and enable feature '" ,initial-func-suffix-name "'  ..."))
+             ,@func-body
+             (setq ,var t)
+             (setq end-time (time-to-seconds))
+             (message (concat "Load done for '" ,initial-func-suffix-name
+                              "' within " (format "%f" (- end-time head-time))
+                              " senconds."))
+             (redisplay t))))
        (if (not entropy/emacs-custom-enable-lazy-load)
            (add-hook (entropy/emacs-select-x-hook) #',func)
          (defun ,adder-func ()

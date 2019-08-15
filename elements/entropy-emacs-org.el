@@ -89,6 +89,93 @@
 ;; *** hook
   :hook ((org-mode . org-babel-result-hide-all))
 
+  :preface
+  (defun entropy/emacs-org--do-load-org ()
+    (let ((prop-format (lambda (msg-str)
+                         (redisplay t)
+                         (message
+                          (format
+                           "*Lazy loading*: %s ... [this may cost some time, take a coffee -v-]"
+                           (propertize msg-str
+                                       'face
+                                       'font-lock-type-face)))
+                         (redisplay t))))
+      (funcall prop-format "org-core")
+      (require 'org)
+      (funcall prop-format "org-ob-core")
+      (require 'ob)
+      (funcall prop-format "org-babels")
+      (let ((ob-lang (mapcar
+                      #'(lambda (x) (cons x t))
+                      '(vala
+                        tangle
+                        table
+                        stan
+                        sqlite
+                        sql
+                        shen
+                        shell
+                        sed
+                        screen
+                        scheme
+                        sass
+                        ruby
+                        ref
+                        python
+                        processing
+                        plantuml
+                        picolisp
+                        perl
+                        org
+                        octave
+                        ocaml
+                        mscgen
+                        maxima
+                        matlab
+                        makefile
+                        lua
+                        lob
+                        lisp
+                        lilypond
+                        ledger
+                        latex
+                        keys
+                        js
+                        java
+                        io
+                        hledger
+                        haskell
+                        groovy
+                        gnuplot
+                        fortran
+                        forth
+                        exp
+                        eval
+                        emacs-lisp
+                        ebnf
+                        dot
+                        ditaa
+                        css
+                        core
+                        coq
+                        comint
+                        clojure
+                        calc
+                        awk
+                        asymptote
+                        abc
+                        R
+                        J
+                        C))))
+        (org-babel-do-load-languages
+         'org-babel-load-languages ob-lang))))
+
+  (entropy/emacs-lazy-initial-advice-before
+   '(org-mode)
+   "org-mode"
+   "org-mode"
+   (entropy/emacs-org--do-load-org))
+  
 ;; *** configs
   :config
 ;; **** basic setting  
@@ -597,46 +684,6 @@ file which do not already have one. Only adds ids if the
       (when (re-search-forward "^#\\+OPTIONS:.*auto-id:t" (point-max) t)
         (org-map-entries (lambda () (entropy/emacs-org--custom-id-get (point) 'create)) t nil))))
 
-;; ***** Redefun the org-id-new for use '-' instead of ':'
-  (use-package org-id
-    :ensure nil
-    :config
-    (defun org-id-new (&optional prefix)
-      "Create a new globally unique ID.
-
-An ID consists of two parts separated by a colon:
-- a prefix
-- a unique part that will be created according to `org-id-method'.
-
-PREFIX can specify the prefix, the default is given by the variable
-`org-id-prefix'.  However, if PREFIX is the symbol `none', don't use any
-prefix even if `org-id-prefix' specifies one.
-
-So a typical ID could look like \"Org-4nd91V40HI\".
-
-Note: this function has been redefined to use '-' instead of ':'
-as the hypenation."
-      
-      (let* ((prefix (if (eq prefix 'none)
-                         ""
-                       (concat (or prefix org-id-prefix) "-")))
-             unique)
-        (if (equal prefix "-") (setq prefix ""))
-        (cond
-         ((memq org-id-method '(uuidgen uuid))
-          (setq unique (org-trim (shell-command-to-string org-id-uuid-program)))
-          (unless (org-uuidgen-p unique)
-            (setq unique (org-id-uuid))))
-         ((eq org-id-method 'org)
-          (let* ((etime (org-reverse-string (org-id-time-to-b36)))
-                 (postfix (if org-id-include-domain
-                              (progn
-                                (require 'message)
-                                (concat "@" (message-make-fqdn))))))
-            (setq unique (concat etime postfix))))
-         (t (error "Invalid `org-id-method'")))
-        (concat prefix unique))))
-
 ;; ***** autamatically add ids to saved org-mode headlines
   (add-hook 'before-save-hook
             (lambda ()
@@ -695,6 +742,46 @@ as the hypenation."
 ;; **** fix bugs of open directory using external apps in windows
   (when sys/win32p
     (add-to-list 'org-file-apps '(directory . emacs))))
+;; ** Redefun the org-id-new for use '-' instead of ':'
+(use-package org-id
+  :ensure nil
+  :commands org-id-new
+  :config
+  (defun org-id-new (&optional prefix)
+    "Create a new globally unique ID.
+
+An ID consists of two parts separated by a colon:
+- a prefix
+- a unique part that will be created according to `org-id-method'.
+
+PREFIX can specify the prefix, the default is given by the variable
+`org-id-prefix'.  However, if PREFIX is the symbol `none', don't use any
+prefix even if `org-id-prefix' specifies one.
+
+So a typical ID could look like \"Org-4nd91V40HI\".
+
+Note: this function has been redefined to use '-' instead of ':'
+as the hypenation."
+    
+    (let* ((prefix (if (eq prefix 'none)
+                       ""
+                     (concat (or prefix org-id-prefix) "-")))
+           unique)
+      (if (equal prefix "-") (setq prefix ""))
+      (cond
+       ((memq org-id-method '(uuidgen uuid))
+        (setq unique (org-trim (shell-command-to-string org-id-uuid-program)))
+        (unless (org-uuidgen-p unique)
+          (setq unique (org-id-uuid))))
+       ((eq org-id-method 'org)
+        (let* ((etime (org-reverse-string (org-id-time-to-b36)))
+               (postfix (if org-id-include-domain
+                            (progn
+                              (require 'message)
+                              (concat "@" (message-make-fqdn))))))
+          (setq unique (concat etime postfix))))
+       (t (error "Invalid `org-id-method'")))
+      (concat prefix unique))))
 
 ;; ** entropy-emacs additional function
 ;; *** tags align

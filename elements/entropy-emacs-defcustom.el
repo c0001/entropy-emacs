@@ -40,6 +40,12 @@
 ;; 
 ;;
 ;; * Code:
+;; ** require
+(require 'entropy-emacs-const)
+(if (version< emacs-version "27")
+    (require 'cl)
+  (require 'cl-macs))
+
 ;; ** basic
 (defgroup entropy/emacs-custom-variable-basic nil
   "Personal Emacs configurations."
