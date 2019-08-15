@@ -49,7 +49,7 @@
   (require 'ob)
   (org-mode)
   (let ((ob-lang (mapcar
-                  '(lambda (x) (cons x t))
+                  #'(lambda (x) (cons x t))
                   '(vala
                     tangle
                     table

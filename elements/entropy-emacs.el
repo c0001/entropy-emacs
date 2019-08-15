@@ -418,9 +418,14 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   (setq w32-system-coding-system 'utf-8)
   (define-coding-system-alias 'cp65001 'utf-8))
 
-(run-with-idle-timer 0.1 nil
-                     #'(lambda ()
-                         (when (entropy/emacs-ext-main)
-                           (entropy/emacs--init-bingo))))
+(defun entropy/emacs-do-load ()
+  (when (entropy/emacs-ext-main)
+    (entropy/emacs--init-bingo)))
+
+(if entropy/emacs-custom-enable-lazy-load
+    (run-with-idle-timer
+     0.1 nil
+     #'entropy/emacs-do-load)
+  (entropy/emacs-do-load))
 
 (provide 'entropy-emacs)

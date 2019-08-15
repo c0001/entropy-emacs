@@ -326,8 +326,11 @@ Manually edit this variable will not be any effection.")
          ("C-c C-w a" . eyebrowse-switch-to-window-config))
   :init
   (setq eyebrowse-mode-line-style nil)
+  
   (entropy/emacs-lazy-load-simple 'eyebrowse
-    (eyebrowse-mode)
+    (unless (fboundp 'pdumper-stats)
+      ;; disable eyebrowse-mode initilized when use pdumper emacs feature
+      (eyebrowse-mode))
     (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
         (setq eyebrowse-new-workspace entropy/emacs-basic--eyebrowse-new-workspace-init-function)
       (setq eyebrowse-new-workspace t)))
