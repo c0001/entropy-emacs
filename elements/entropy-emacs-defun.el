@@ -303,22 +303,6 @@ custom variable
   (apply old-func _))
 
 
-;; ** miscellaneous
-(defun entropy/emacs-transfer-wvol (file)
-  "Transfer linux type root path header into windows volumn
-format on windows platform."
-  (if (and (string-match-p "^/[a-z]/" file)
-           sys/win32p)
-      (let ((wvol (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:" file)))
-        (find-file wvol))
-    (find-file file)))
-
-(defun entropy/emacs-package-is-upstream ()
-  "Judges whether `entropy/emacs-use-extensions-type' is based on
-`package.el'."
-  (or (eq entropy/emacs-use-extensions-type 'origin)
-      (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)))
-
 ;; ** Org face reset
 (defvar entropy/emacs-defun--ohrsc-previous-theme nil)
 
@@ -506,6 +490,22 @@ return t otherwise for nil. "
       (dolist (regex entropy/emacs-solaire-themes-regex-list)
         (when (ignore-errors (string-match-p regex theme_cur))
           (throw :exit t))))))
+
+;; ** miscellaneous
+(defun entropy/emacs-transfer-wvol (file)
+  "Transfer linux type root path header into windows volumn
+format on windows platform."
+  (if (and (string-match-p "^/[a-z]/" file)
+           sys/win32p)
+      (let ((wvol (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:" file)))
+        (find-file wvol))
+    (find-file file)))
+
+(defun entropy/emacs-package-is-upstream ()
+  "Judges whether `entropy/emacs-use-extensions-type' is based on
+`package.el'."
+  (or (eq entropy/emacs-use-extensions-type 'origin)
+      (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)))
 
 ;; ** provide
 (provide 'entropy-emacs-defun)
