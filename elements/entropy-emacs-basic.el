@@ -697,8 +697,13 @@ without derived slot."
                                 "*Buffer List*"
                                 "*Ibuffer*"
                                 "*esh command on file*"))
+  (entropy/emacs-lazy-initial-advice-before
+   '(switch-to-buffer find-file delete-other-windows)
+   "winner-mode" "winner-mode"
+   (winner-mode +1))
+  
   :config
-  (winner-mode))
+  (winner-mode +1))
 
 ;; **** desktop mode
 (when entropy/emacs-desktop-enable
