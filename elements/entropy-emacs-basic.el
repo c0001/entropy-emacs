@@ -2115,7 +2115,7 @@ otherwise returns nil."
 ;; initialization for its refers procedure can not cover fully
 ;; functional of `auto-compression-mode'.
 (entropy/emacs-lazy-initial-advice-before
- '(push-button load-library)
+ '(push-button load-library find-library)
  "autocompression-mode"
  "autocompression-mode"
  (auto-compression-mode 0)
