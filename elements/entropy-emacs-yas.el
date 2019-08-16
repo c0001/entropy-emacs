@@ -127,7 +127,6 @@
       (unless (or (string= "" aya-current)
                   (member aya-current (symbol-value el)))
         (add-to-list el aya-current))))
-  (advice-add 'aya-create :after #'entropy/emacs-yas--aya-preserve)
 
   (defun entropy/emacs-yas-aya-choose-snippet (prefix)
     (interactive "P")
@@ -161,9 +160,13 @@ benefits."
                    (not (string-match-p "\n" str-selected)))
               (apply orig-func region)
             (setq aya-current
-                  str-selected)))
+                  str-selected)
+            (deactivate-mark)
+            (message "Create name-prefix: '%s'." aya-current)))
       (apply orig-func region)))
-  (advice-add 'aya-create :around #'entropy/emacs-yas--aya-create-prefix))
+
+  (advice-add 'aya-create :around #'entropy/emacs-yas--aya-create-prefix)
+  (advice-add 'aya-create :after #'entropy/emacs-yas--aya-preserve))
 
 ;; * provide
 (provide 'entropy-emacs-yas)
