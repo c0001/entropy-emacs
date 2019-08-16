@@ -111,7 +111,59 @@
 (use-package auto-yasnippet
   :commands (aya-create aya-expand)
   :bind (("M-p" . aya-create)
-         ("M-e" . aya-expand)))
+         ("M-e" . aya-expand)
+         ("M-o" . entropy/emacs-yas-aya-choose-snippet))
+
+  :config
+  (defvar entropy/emacs-yas--aya-snippets nil
+    "Global variable to stored the aya-snippets")
+  (defvar-local entropy/emacs-yas--aya-snippets-local nil
+    "Local variable to stored the aya-snippets for
+`current-buffer'.")
+  
+  (defun entropy/emacs-yas--aya-preserve (&rest _)
+    (dolist (el '(entropy/emacs-yas--aya-snippets
+                  entropy/emacs-yas--aya-snippets-local))
+      (unless (or (string= "" aya-current)
+                  (member aya-current (symbol-value el)))
+        (add-to-list el aya-current))))
+  (advice-add 'aya-create :after #'entropy/emacs-yas--aya-preserve)
+
+  (defun entropy/emacs-yas-aya-choose-snippet (prefix)
+    (interactive "P")
+    (let ((minibuffer-allow-text-properties t))
+      (if (or entropy/emacs-yas--aya-snippets-local
+              prefix)
+          (setq aya-current
+                (completing-read (if prefix
+                                     "Select aya(global state): "
+                                   "Select aya: ")
+                                 (if prefix entropy/emacs-yas--aya-snippets
+                                   entropy/emacs-yas--aya-snippets-local)))
+        (setq aya-current
+              (read-string
+               (concat "Select aya "
+                       (propertize "(local empty, list from global)" 'face 'warning)
+                       ": "))))
+      (entropy/emacs-yas--aya-preserve)))
+  
+  (defun entropy/emacs-yas--aya-create-prefix (orig-func &rest region)
+    "Directly yank current short prefix string as `aya-current'. 
+
+The prefix is the region within the single line(e.g. non newline
+included in), as the namespace prefix for context, for coding
+benefits."
+    (if (region-active-p)
+        (let ((str-selected (buffer-substring-no-properties
+                             (region-beginning)
+                             (region-end))))
+          (if (and (string-match-p "~" str-selected)
+                   (not (string-match-p "\n" str-selected)))
+              (apply orig-func region)
+            (setq aya-current
+                  str-selected)))
+      (apply orig-func region)))
+  (advice-add 'aya-create :around #'entropy/emacs-yas--aya-create-prefix))
 
 ;; * provide
 (provide 'entropy-emacs-yas)
