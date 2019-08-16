@@ -83,7 +83,7 @@
         (list :item "entropy-emacs-extensions"
               :repo-lc entropy/emacs-ext-extensions-dir
               :version-lc (expand-file-name "version" entropy/emacs-ext-extensions-dir)
-              :version "0.1.8.3"
+              :version "0.1.9"
               :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/emacs-ext-extensions-dir)
               :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir)
               :load-predicate (expand-file-name "eemacs-ext-load.el" entropy/emacs-ext-extensions-dir))))
