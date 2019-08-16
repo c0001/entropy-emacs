@@ -39,7 +39,7 @@
 ;; and the chapter description within each orgstructed node.
 
 
-;;; * Code:
+;; * Code:
 
 
 
