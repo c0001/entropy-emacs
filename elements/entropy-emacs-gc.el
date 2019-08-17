@@ -57,7 +57,7 @@
         (run-with-idle-timer (if sec sec entropy/emacs-garbage-collection-delay)
                              t #'entropy/emacs-gc--focus-out-recovery)))
 
-(defun entropy/emacs-gc--set-idle-gc (secs)
+(defun entropy/emacs-gc-set-idle-gc (secs)
   "Re-set the garbage collecton timer
 `entropy/emacs-garbage-collect-idle-timer' with specific idle
 delay seconds SECS."

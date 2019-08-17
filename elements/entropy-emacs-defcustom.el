@@ -56,7 +56,7 @@
   "Fundametal customized variable group for entropy-emacs" 
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/emacs-garbage-collection-delay 5
+(defcustom entropy/emacs-garbage-collection-delay 2
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs.")
 
