@@ -78,27 +78,24 @@
   (condition-case nil
       (progn
         (mapc #'disable-theme custom-enabled-themes)
-        (when (or (display-graphic-p)
-                  entropy/emacs-enable-option-theme-tty
-                  entropy/emacs-custom-pdumper-do)
-          (cond (entropy/emacs-custom-pdumper-do
-                 (add-hook 'entropy/emacs-pdumper-load-hook
-                           #'(lambda ()
-                               (load-theme entropy/emacs-theme-options t))))
-                (t
-                 (load-theme entropy/emacs-theme-options t)))
-          (when (and (fboundp 'powerline-reset)
-                     (string-match-p
-                      "space\\|powerline"
-                      entropy/emacs-modeline-style))
-            (cond
-             (entropy/emacs-custom-pdumper-do
-              (add-hook 'entropy/emacs-pdumper-load-hook
-                        #'(lambda ()
-                            (powerline-reset))))
-             (t
-              (powerline-reset))))
-          (entropy/emacs-theme-load-face-specifix (symbol-name entropy/emacs-theme-options))))
+        (cond (entropy/emacs-custom-pdumper-do
+               (add-hook 'entropy/emacs-pdumper-load-hook
+                         #'(lambda ()
+                             (load-theme entropy/emacs-theme-options t))))
+              (t
+               (load-theme entropy/emacs-theme-options t)))
+        (when (and (fboundp 'powerline-reset)
+                   (string-match-p
+                    "space\\|powerline"
+                    entropy/emacs-modeline-style))
+          (cond
+           (entropy/emacs-custom-pdumper-do
+            (add-hook 'entropy/emacs-pdumper-load-hook
+                      #'(lambda ()
+                          (powerline-reset))))
+           (t
+            (powerline-reset))))
+        (entropy/emacs-theme-load-face-specifix (symbol-name entropy/emacs-theme-options)))
     (error "Problem loading theme %s" (symbol-name entropy/emacs-theme-options))))
 
 ;; ** solaire mode for focus visual style

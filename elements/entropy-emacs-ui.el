@@ -42,7 +42,7 @@
   (redisplay t))
 
 ;; ** theme in loading progress
-(when (display-graphic-p)
+(when (entropy/emacs-display-graphic-p)
   (let ((initial-theme-path (expand-file-name "startup-theme" (file-name-directory load-file-name))))
     (add-to-list 'custom-theme-load-path initial-theme-path)
     (add-to-list 'load-path initial-theme-path)

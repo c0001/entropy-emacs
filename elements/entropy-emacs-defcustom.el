@@ -189,11 +189,6 @@ default one."
   :type 'face
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/emacs-enable-option-theme-tty nil
-  "Enable option theme in tty, it's useful for true color tty."
-  :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
-
 (defcustom entropy/emacs-solaire-themes-regex-list
   '("^doom-"
     "^spacemacs-")
