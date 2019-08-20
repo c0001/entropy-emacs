@@ -566,5 +566,12 @@ format on windows platform."
         (find-file wvol))
     (find-file file)))
 
-;; ** provide
+(defun entropy/emacs-display-graphic-p ()
+  "The fake graphic judgement function wrapper of pdumper
+procedure."
+  (or (display-graphic-p)
+      (and (entropy/emacs-in-pdumper-procedure-p)
+           entropy/emacs-do-pdumper-in-X)))
+
+;; * provide
 (provide 'entropy-emacs-defun)

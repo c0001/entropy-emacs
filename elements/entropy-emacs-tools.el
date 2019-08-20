@@ -41,7 +41,7 @@
 ;; ** openwith external apps
 ;; *** openwith config
 (use-package openwith
-  :if (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  :if (entropy/emacs-display-graphic-p)
   :commands openwith-make-extension-regexp
   :init
   (add-hook 'dired-mode-hook #'openwith-mode)
@@ -83,7 +83,7 @@ each an argument to COMMAND."
 
 ;; *** Function manually
 ;; **** open in external apps
-(when  (or sys/win32p sys/linux-x-p sys/mac-x-p)
+(when  (entropy/emacs-display-graphic-p)
   (defun entropy/emacs-tools-open-in-external-app (&optional files)
     "Open the current file or dired marked files in external app.
 The app is chosen from your OS's preference.  URL
@@ -122,7 +122,7 @@ Version 2016-10-15"
     (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-tools-open-in-external-app)))
 
 ;; **** Open in desktop manager
-(when (or sys/win32p sys/linux-x-p sys/mac-x-p)
+(when (entropy/emacs-display-graphic-p)
   (defun entropy/emacs-tools-show-in-desktop (&optional dpath)
     "Show current file in desktop.
  (Mac Finder, Windows Explorer, Linux file manager)
@@ -161,7 +161,7 @@ Version 2017-12-23"
     (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-tools-show-in-desktop)))
 
 ;; **** Open in terminal
-(when (or sys/win32p sys/linux-x-p sys/mac-x-p)
+(when (entropy/emacs-display-graphic-p)
   (defun entropy/emacs-tools-open-in-terminal ()
     "Open the current dir in a new terminal window.
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
@@ -216,7 +216,7 @@ Version 2017-10-09"
 
 ;; *** entropy-open-with
 (use-package entropy-open-with
-  :if (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  :if (entropy/emacs-display-graphic-p)
   :ensure nil
   :commands (entropy/open-with-dired-open
              entropy/open-with-buffer)

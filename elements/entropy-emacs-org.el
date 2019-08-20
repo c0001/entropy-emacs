@@ -877,7 +877,7 @@ Now just supply localization image file analyzing."
 (use-package htmlize)
 
 ;; ** org-bullets
-(when (and (or sys/win32p sys/linux-x-p sys/mac-x-p)
+(when (and (entropy/emacs-display-graphic-p)
            entropy/emacs-enable-org-bullets)
   (use-package org-bullets
     :commands (org-bullets-mode)
