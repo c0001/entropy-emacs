@@ -194,7 +194,10 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
         doom-modeline-bar-width 1
         doom-modeline-buffer-file-name-style 'truncate-all
         doom-modeline-major-mode-color-icon t
-        doom-modeline-icon (or (display-graphic-p) entropy/emacs-custom-pdumper-do))  
+        doom-modeline-icon
+        (or (display-graphic-p)
+            (and entropy/emacs-custom-pdumper-do
+                 entropy/emacs-do-pdumper-in-X)))
 
   (defun entropy/emacs-modeline--dml-file-icon-around-advice (orig-func &rest orig-args)
     (apply orig-func orig-args)

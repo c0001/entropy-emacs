@@ -123,7 +123,9 @@
     (message "Initialized pdumper session")
     (when entropy/emacs-pdumper--rec-timer
       (cancel-timer entropy/emacs-pdumper--rec-timer)
-      (setq entropy/emacs-custom-pdumper-do nil))
+      (setq entropy/emacs-custom-pdumper-do nil)
+      (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
+      (garbage-collect))
     (defun entropy/emacs-pdumper--recovery ()
       nil)))
 
