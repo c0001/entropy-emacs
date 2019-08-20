@@ -38,6 +38,7 @@
 
 ;; ** solaire mode for focus visual style
 (use-package solaire-mode
+  :if (not entropy/emacs-custom-pdumper-do)
   :commands (solaire-mode
              solaire-mode-swap-bg
              solaire-global-mode

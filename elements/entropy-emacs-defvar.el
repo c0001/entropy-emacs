@@ -30,6 +30,7 @@
 ;; No individually loading designation without `entropy-emacs'.
 ;; 
 ;; * Code:
+(require 'entropy-emacs-const)
 
 (defvar entropy/emacs-web-development-environment nil
   "Whether using enable web-development envrionment.
@@ -40,6 +41,10 @@ specific browser to visualize current file.")
 
 (defvar entropy/emacs-gc-threshold-basic 20000000
   "The basic thredshold for the growth for `gc-cons-threshold'")
+
+(defvar entropy/emacs-pdumper-pre-lpth nil)
+
+(defvar entropy/emacs-pdumper-load-hook nil)
 
 (defvar entropy/emacs-init-mini-hook ()
   "Hooks for minimal start.")

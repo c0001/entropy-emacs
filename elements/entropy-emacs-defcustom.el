@@ -64,6 +64,11 @@ for entropy-emacs.")
   "Enable lazy load for entropy-emacs"
   :group 'entropy/emacs-customize-fundametal)
 
+(defcustom entropy/emacs-custom-pdumper-do nil
+  "The emacs running type indication for pdumper."
+  :type 'boolean
+  :group 'entropy/emacs-customize-fundametal)
+
 (defcustom entropy/emacs-custom-common-file (expand-file-name
                                        "custom.el"
                                        user-emacs-directory)

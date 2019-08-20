@@ -60,6 +60,8 @@
   (string-equal "root" (getenv "USER"))
   "Are you using ROOT user?")
 
+(defconst entropy/emacs-origin-load-path (copy-tree load-path))
+
 (defconst entropy/emacs-ecv "VERSION: v0.0.1 Tag: REVOLUTION"
   "Version of entropy-emacs.")
 

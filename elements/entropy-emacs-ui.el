@@ -72,10 +72,12 @@ the specific height and width determined by above variable you setted."
           (set-frame-width (selected-frame) width nil t)
           (set-frame-height (selected-frame) height nil t)
           (set-frame-position (selected-frame) x y)))
-      (when entropy/emacs-init-fpos-enable
+      (when (and entropy/emacs-init-fpos-enable
+                 (not entropy/emacs-custom-pdumper-do))
         (entropy/emacs-ui-set-frame-position)))
   
-  (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  (when (and (or sys/win32p sys/linux-x-p sys/mac-x-p)
+             (not entropy/emacs-custom-pdumper-do))
     (setq initial-frame-alist (quote ((fullscreen . maximized))))
     (setq default-frame-alist initial-frame-alist)))
 
@@ -83,6 +85,7 @@ the specific height and width determined by above variable you setted."
 (unless entropy/emacs-use-highlight-features
   (add-hook 'emacs-lisp-mode-hook 'show-paren-mode)
   (add-hook 'lisp-interaction-mode-hook 'show-paren-mode))
+
 ;; ** Don't use GTK+ tooltip
 
 ;; Follow the emacs warning by starting up with daemon mode, adding follow codes to avoid it.
@@ -90,10 +93,12 @@ the specific height and width determined by above variable you setted."
   (setq x-gtk-use-system-tooltips nil))
 
 ;; ** Logo
-(setq fancy-splash-image entropy/emacs-fancy-splash-logo)
+(when (not entropy/emacs-custom-pdumper-do)
+  (setq fancy-splash-image entropy/emacs-fancy-splash-logo))
 
 ;; ** initial buffer
-(when entropy/emacs-enable-initial-dashboard
+(when (and entropy/emacs-enable-initial-dashboard
+           (not entropy/emacs-custom-pdumper-do))
 ;; *** varaible defination  
   (defvar entropy/emacs-ui--dashboard-last-width nil
     "Remain the window size of previous (the last) buffer

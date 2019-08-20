@@ -57,10 +57,17 @@
 ;; ** Require
 ;; *** load core library
 (require 'entropy-emacs-custom)
-(require 'entropy-emacs-defvar)
 (require 'entropy-emacs-const)
+(require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+
+(when (member "--eval" command-line-args)
+  (setq entropy/emacs-custom-pdumper-do t))
+
+(when (and entropy/emacs-custom-pdumper-do
+           entropy/emacs-custom-enable-lazy-load)
+  (setq entropy/emacs-custom-enable-lazy-load nil))
 
 ;; Increase the default gc-cons-percentage for more smooth typing
 ;; experience
@@ -70,12 +77,12 @@
 (require 'entropy-emacs-faces)
 (require 'entropy-emacs-path)
 
-;; *** Enable entropy emacs UI configuration 
+;; *** Enable entropy emacs UI configuration
 (require 'entropy-emacs-ui)
 (require 'entropy-emacs-font-set)
 (redisplay t)
 
-;; *** require advice
+;; *** preface advice
 (defun entropy/emacs--require-prompt (feature)
   (let ((f-str (symbol-name feature))
         (head (lambda (x) (propertize x 'face 'entropy/emacs-faces--require-faces-head-prompt)))
@@ -89,6 +96,11 @@
 (defun entropy/emacs--require-loading (feature &rest rest)
   (when (not (featurep feature))
     (entropy/emacs--require-prompt feature)))
+
+(defun entropy/emacs--initial-redisplay-advice (orig-func &rest orig-args)
+  (if entropy/emacs-custom-pdumper-do
+      (message "Redisplay disabled in pdumper procedure.")
+    (apply orig-func orig-args)))
 
 ;; * Trail
 ;; ** Windows IME enable function
@@ -226,7 +238,8 @@ Emacs will auto close after 6s ......")
 ;; ** x enable
 (defun entropy/emacs-X-enable ()
   (interactive)
-  (advice-add 'require :before #'entropy/emacs--require-loading)  
+  (advice-add 'require :before #'entropy/emacs--require-loading)
+  (advice-add 'redisplay :around #'entropy/emacs--initial-redisplay-advice)
   (message "Loading rest ......")
   ;; highlight
   (when entropy/emacs-use-highlight-features
@@ -265,6 +278,7 @@ Emacs will auto close after 6s ......")
   (require 'entropy-emacs-game)
   ;; end
   (advice-remove 'require #'entropy/emacs--require-loading)
+  (advice-remove 'redisplay #'entropy/emacs--initial-redisplay-advice)
   (run-hooks 'entropy/emacs-init-X-hook)
   (defun entropy/emacs-X-enable ()
     (interactive)
@@ -277,19 +291,31 @@ Emacs will auto close after 6s ......")
 (defun entropy/emacs-M-enable ()
   (message "Loading minimal ...... ")
   (advice-add 'require :before #'entropy/emacs--require-loading)
+  (advice-add 'redisplay :around #'entropy/emacs--initial-redisplay-advice)
   ;; external depedencies scan and loading
+  (when entropy/emacs-custom-pdumper-do
+    (require 'entropy-emacs-pdumper))
   (require 'entropy-emacs-package)
   (require 'entropy-emacs-library)
   ;; basic feature defination
   (require 'entropy-emacs-basic)
+  
+  ;; ============================
+  ;; mainly ui configuration
   (redisplay t)
-  ;; ui
   (require 'entropy-emacs-modeline)
-
-      ;; loading theme configuration after the modeline for loading theme
-      ;; specifics for some mode-line adaption
+  (redisplay t)
+  ;; loading theme configuration after the modeline for loading theme
+  ;; specifics for some mode-line adaption
   (require 'entropy-emacs-themes)
   (redisplay t)
+
+  (require 'entropy-emacs-wc)
+  (redisplay t)
+  (require 'entropy-emacs-popwin)
+  (redisplay t)
+  ;; =============================
+  
   ;; ineractive
   (require 'entropy-emacs-ivy)
   ;; org
@@ -299,6 +325,7 @@ Emacs will auto close after 6s ......")
 
   ;; ends for minimal start
   (advice-remove 'require #'entropy/emacs--require-loading)
+  (advice-remove 'redisplay #'entropy/emacs--initial-redisplay-advice)
   (run-hooks 'entropy/emacs-init-mini-hook)
   (defun entropy/emacs-M-enable ()
     (interactive)
@@ -422,7 +449,8 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   (when (entropy/emacs-ext-main)
     (entropy/emacs--init-bingo)))
 
-(if entropy/emacs-custom-enable-lazy-load
+(if (and entropy/emacs-custom-enable-lazy-load
+         (not entropy/emacs-custom-pdumper-do))
     (run-with-idle-timer
      0.1 nil
      #'entropy/emacs-do-load)

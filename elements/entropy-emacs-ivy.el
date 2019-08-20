@@ -358,8 +358,12 @@ type by function `entropy/emacs-transfer-wvol'"
 
 ;; **** use counsel css for quickly search css selector
   (use-package counsel-css
+    :after css-mode
     :hook (css-mode . counsel-css-imenu-setup)
-    :bind (:map css-mode-map ("C-c M-d" . counsel-css)))
+    :bind (:map css-mode-map ("C-c M-d" . counsel-css))
+    :init
+    (when entropy/emacs-custom-pdumper-do
+      (require 'css-mode)))
   
 ;; **** use ivy-xref for quickly find defination and reference
   (use-package ivy-xref
@@ -555,9 +559,9 @@ this variable used to patching for origin `counsel-git'.")
    '(ivy-read)
    "ivy-mode" "ivy-mode"
    (require 'ivy)
-   (ivy-mode +1)
-   (ivy-rich-mode +1)
    (require 'all-the-icons)
+   (ivy-rich-mode +1)
+   (ivy-mode +1)
    (setq ivy-virtual-abbreviate
          (or (and ivy-rich-mode 'abbreviate) 'name)))
   

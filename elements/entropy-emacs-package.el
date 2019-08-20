@@ -37,31 +37,7 @@
 (require 'entropy-emacs-defun)
 
 ;; ** main
-;;set package-user-dir position
-(defun entropy/emacs-package--set-user-package-dir (version)
-  "Setting `package-user-dir' based on emacs version name located
-for `user-emacs-directory'."
-  (setq-default package-user-dir
-                (expand-file-name
-                 (concat "elpa-" version)
-                 (expand-file-name entropy/emacs-ext-extensions-elpa-dir))))
-
-;; Set customized package install directory
-(if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
-         (entropy/emacs-package-is-upstream))
-    (entropy/emacs-package--set-user-package-dir emacs-version)
-  (cond
-   ((and (equal emacs-version "25.2.2")
-         (entropy/emacs-package-is-upstream))
-    (entropy/emacs-package--set-user-package-dir "25.2.1"))
-   ((entropy/emacs-package-is-upstream)
-    (error "Unsupport emacs version '%s'" emacs-version))))
-
-(when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
-  (setq package-user-dir
-        (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
-                                  "_MelpaLocal")
-                          (entropy/emacs-file-path-parser package-user-dir 'parent-dir))))
+(entropy/emacs-set-package-user-dir)
 
 ;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
@@ -113,9 +89,10 @@ for `user-emacs-directory'."
   (entropy/emacs-package-set-package-archive-location entropy/emacs-package-archive-repo))
 
 ;; Initialize packages
-(when (entropy/emacs-package-is-upstream)
-  (if (not (version< emacs-version "27"))
-      (setq package-quickstart t))
+(when (and (entropy/emacs-package-is-upstream)
+           (not entropy/emacs-custom-pdumper-do))
+  (unless (version< emacs-version "27")
+    (setq package-quickstart nil))
   (message "Custom packages initializing ......")
   (package-initialize)
   (message "Custom packages initializing done!"))
@@ -139,46 +116,22 @@ for `user-emacs-directory'."
           (package-refresh-contents)
           (ignore-errors (package-install package)))))))
 
-;; Setup `use-package'
-(unless (eq entropy/emacs-use-extensions-type 'submodules)
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package)))
-
 (eval-when-compile
   (require 'use-package))
 
-(if (eq entropy/emacs-use-extensions-type 'submodules)
+(if (or (eq entropy/emacs-use-extensions-type 'submodules)
+        entropy/emacs-custom-pdumper-do)
     (setq use-package-always-ensure nil)
   (setq use-package-always-ensure t))
 
-(setq use-package-always-defer entropy/emacs-custom-enable-lazy-load)
-(setq use-package-expand-minimally t)
+(setq use-package-always-defer entropy/emacs-custom-enable-lazy-load
+      use-package-always-demand entropy/emacs-custom-enable-lazy-load)
+(setq use-package-expand-minimally nil)
 (setq use-package-enable-imenu-support t)
 
 ;; Required by `use-package'
-(use-package diminish
-  :commands
-  (diminish
-   diminish-undo
-   diminished-modes))
-
-(use-package bind-key
-  :commands
-  (
-   bind-key
-   bind-key*
-   bind-keys
-   bind-keys*
-   bind-keys-form
-   unbind-key
-   ))
-
-;; Use ivy and dash (They are the basic dependencies for entropy-emacs)
-(unless (not entropy/emacs-minimal-start)
-  (use-package ivy)
-  (use-package dash))
-
+(require 'diminish)
+(require 'bind-key)
 
 ;; Initialization benchmark
 (when entropy/emacs-initialize-benchmark-enable

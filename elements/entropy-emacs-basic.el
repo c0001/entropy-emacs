@@ -132,8 +132,9 @@
               (insert initial-scratch-message)))))
     bfn))
 
-(entropy/emacs-lazy-load-simple 'entropy-emacs-structure
-  (entropy/emacs-basic--scratch-buffer-file-binding))
+(unless entropy/emacs-custom-pdumper-do
+  (entropy/emacs-lazy-load-simple 'entropy-emacs-structure
+    (entropy/emacs-basic--scratch-buffer-file-binding)))
 
 ;; Create a new scratch buffer
 (defun entropy/emacs-tools-create-scratch-buffer ()
@@ -219,513 +220,7 @@ Manually edit this variable will not be any effection.")
 
 (entropy/emacs-basic-smooth-scrolling)
 
-;; ** Window-setting
-;; *** Window switch
-(use-package window-number
-  :commands (window-number-switch
-             window-number-mode)
-  :bind
-  ("C-x o" . window-number-switch)
-  :init
-  (window-number-mode 1))
-
-;; **** Use windmove function stolen :) from `https://github.com/troydm/emacs-stuff/blob/master/windcycle.el'
-(defun entropy/emacs-basic-windmove-up-cycle ()
-  (interactive)
-  (condition-case nil (windmove-up)
-    (error (condition-case nil (windmove-down)
-             (error (condition-case nil (windmove-right)
-                      (error (condition-case nil (windmove-left)
-                               (error (windmove-up))))))))))
-
-(defun entropy/emacs-basic-windmove-down-cycle()
-  (interactive)
-  (condition-case nil (windmove-down)
-    (error (condition-case nil (windmove-up)
-             (error (condition-case nil (windmove-left)
-                      (error (condition-case nil (windmove-right)
-                               (error (windmove-down))))))))))
-
-(defun entropy/emacs-basic-windmove-right-cycle()
-  (interactive)
-  (condition-case nil (windmove-right)
-    (error (condition-case nil (windmove-left)
-             (error (condition-case nil (windmove-up)
-                      (error (condition-case nil (windmove-down)
-                               (error (windmove-right))))))))))
-
-(defun entropy/emacs-basic-windmove-left-cycle()
-  (interactive)
-  (condition-case nil (windmove-left)
-    (error (condition-case nil (windmove-right)
-             (error (condition-case nil (windmove-down)
-                      (error (condition-case nil (windmove-up)
-                               (error (windmove-left))))))))))
-
-(global-set-key (kbd "C-x <up>") 'entropy/emacs-basic-windmove-up-cycle)
-(global-set-key (kbd "C-x <down>") 'entropy/emacs-basic-windmove-down-cycle)
-(global-set-key (kbd "C-x <right>") 'entropy/emacs-basic-windmove-right-cycle)
-(global-set-key (kbd "C-x <left>") 'entropy/emacs-basic-windmove-left-cycle)
-
-;; ***** Disable buffer reverse and turn by =C-x C-left= =C-x C-right=
-(global-set-key (kbd "C-x C-<left>") nil)
-(global-set-key (kbd "C-x C-<right>") nil)
-
-
-;; *** window config
-;; **** eyebrowse ----> for save the window config(workspace group)
-(use-package eyebrowse
-  :commands (eyebrowse--current-window-config
-             eyebrowse--delete-window-config
-             eyebrowse--dotted-list-p
-             eyebrowse--fixup-window-config
-             eyebrowse--get
-             eyebrowse--insert-in-window-config-list
-             eyebrowse--load-window-config
-             eyebrowse--read-slot
-             eyebrowse--rename-window-config-buffers
-             eyebrowse--set
-             eyebrowse--string-to-number
-             eyebrowse--update-window-config-element
-             eyebrowse--walk-window-config
-             eyebrowse--window-config-present-p
-             eyebrowse-close-window-config
-             eyebrowse-create-window-config
-             eyebrowse-format-slot
-             eyebrowse-free-slot
-             eyebrowse-init
-             eyebrowse-last-window-config
-             eyebrowse-mode
-             eyebrowse-mode-line-indicator
-             eyebrowse-next-window-config
-             eyebrowse-prev-window-config
-             eyebrowse-rename-window-config
-             eyebrowse-setup-evil-keys
-             eyebrowse-setup-opinionated-keys
-             eyebrowse-switch-to-window-config
-             eyebrowse-switch-to-window-config-0
-             eyebrowse-switch-to-window-config-1
-             eyebrowse-switch-to-window-config-2
-             eyebrowse-switch-to-window-config-3
-             eyebrowse-switch-to-window-config-4
-             eyebrowse-switch-to-window-config-5
-             eyebrowse-switch-to-window-config-6
-             eyebrowse-switch-to-window-config-7
-             eyebrowse-switch-to-window-config-8
-             eyebrowse-switch-to-window-config-9)
-  
-  :bind (("C-c C-w C-e" . entropy/emacs-basic-eyebrowse-create-workspaces)
-         ("C-c C-w M-e" . entropy/emacs-basic-eyebrowse-delete-workspace)
-         ("C-c C-w C-`" . entropy/emacs-basic-eyebrowse-switch-top)
-         ("C-c v" . entropy/emacs-basic-eyebrowse-create-derived)
-         ("C-c M-v" . entropy/emacs-basic-eyebrowse-switch-derived)
-         :map eyebrowse-mode-map
-         ("C-c C-w C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
-         ("C-c C-w c" . entropy/emacs-basic-eyebrowse-create-window-config)
-         ("C-c C-w ." . entropy/emacs-basic-eyebrowse-switch-basic-window)
-         ("C-c C-w a" . eyebrowse-switch-to-window-config))
-  :init
-  (setq eyebrowse-mode-line-style nil)
-  
-  (entropy/emacs-lazy-load-simple 'eyebrowse
-    (unless (fboundp 'pdumper-stats)
-      ;; disable eyebrowse-mode initilized when use pdumper emacs feature
-      (eyebrowse-mode))
-    (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
-        (setq eyebrowse-new-workspace entropy/emacs-basic--eyebrowse-new-workspace-init-function)
-      (setq eyebrowse-new-workspace t)))
-
-  :config
-  ;; debug for improving eyebrowse's user experience
-  (defun eyebrowse--read-slot ()
-    "Read in a window config SLOT to switch to.
-  A formatted list of window configs is presented as candidates.
-  If no match was found, the user input is interpreted as a new
-  slot to switch to.
-
-  Note: 
-
-  This function has been modified for be compat with entropy-emacs
-  for reasons as below:
-
-  #+BEGIN_QUOTE
-  Origin eyebrowse slots switching prompt showing all slots include
-  current work-space slot, this was messy as this will producing the
-  probility for switching to current work-space while operator occur
-  the mistake, thus this wasting the time.
-
-  The minor improve for this was remove the current work-space slot
-  in switching prompt's candidates.
-  #+END_QUOTE
-
-  This minor improve refer to the github issue
-  https://github.com/wasamasa/eyebrowse/issues/77"
-    (let* ((current-slot (eyebrowse--get 'current-slot))
-           (candidates (--keep (and (/= (car it) current-slot)
-                                    (cons (eyebrowse-format-slot it)
-                                          (car it)))
-                               (eyebrowse--get 'window-configs)))
-           (candidate (completing-read "Enter slot: " candidates))
-           (choice (cdr (assoc candidate candidates))))
-      (or choice (eyebrowse--string-to-number candidate)
-          (user-error "Invalid slot number"))))
-
-  (defun entropy/emacs-basic-eyebrowse-create-window-config ()
-    "Creates a window config at a yet unoccupied slot and named
-    this work space."
-    (interactive)
-    (funcall #'eyebrowse-create-window-config)
-    (let ((slot (eyebrowse--get 'current-slot))
-          (tag (read-string "Tag: ")))
-      (apply #'eyebrowse-rename-window-config `(,slot ,tag))))
-  
-  (defun entropy/emacs-basic--eyebrowse-show-current-slot ()
-    "Show current eyebrowse workspace slot and tag info."
-    (interactive)
-    (let* ((entropy/emacs-basic--eyebrowse-slot-result (eyebrowse--get 'current-slot))
-           (window-configs (eyebrowse--get 'window-configs))
-           (window-config (assoc (eyebrowse--get 'current-slot) window-configs))
-           (current-tag (nth 2 window-config)))
-      (message "Slot:%s  Tag:%s" entropy/emacs-basic--eyebrowse-slot-result current-tag)))
-  (global-set-key (kbd "C-c M-s") 'entropy/emacs-basic--eyebrowse-show-current-slot)
-
-  (defun entropy/emacs-basic--eyebrowse-kill-all-group ()
-    "Kill all eyebrowse window config"
-    (interactive)
-    (dolist (item (eyebrowse--get 'window-configs))
-      (eyebrowse--delete-window-config (car item)))
-    (eyebrowse-init))
-
-  (defun entropy/emacs-basic-eyebrowse-create-workspaces (&optional ws-list $confirm)
-    "Batch create eyebrowse workspace with name input prompt
-powered by `entropy/cl-repeated-read'.
-
-You can insert optional arg WS-LIST for do it within lisp
-programming code. WS-LIST was list with string elements like:
-
-'(\"basic\" \"main\" \"temp\" \"eww\")'
-
-The second optional arg $confirm will trigger the process
-confirmation when sets it to 't'."
-    (interactive)
-    (require 'entropy-common-library)
-    (when $confirm
-      (unless (yes-or-no-p "Do you want to clean all workspace and buiding new workspaces? ")
-        (error "Canceld rebuild workspaces.")))
-    (entropy/emacs-basic--eyebrowse-kill-all-group)
-    (let ((current-slot (eyebrowse--get 'current-slot ))
-          (ws (if ws-list
-                  ws-list
-                (entropy/cl-repeated-read "work-space name"))))
-      (dolist (el ws)
-        (if (equal 1 current-slot)
-            (progn
-              (eyebrowse-rename-window-config 1 el)
-              (setq current-slot (+ 1 current-slot)))
-          (progn
-            (eyebrowse-switch-to-window-config current-slot)
-            (eyebrowse-rename-window-config current-slot el)
-            (setq current-slot (+ 1 current-slot)))))
-      (eyebrowse-switch-to-window-config-1)))
-
-
-  (defvar entropy/emacs-basic--eyebrowse-config-selected '()
-    "Contained selected eyebrowse workspace config.")
-
-  (defun entropy/emacs-basic--eyebrowse-read-prompt ()
-    "Produce the prompt string for repeated selected eyebrowse
-window configs."
-    (format "WS (%s) : "
-            (let ((olist entropy/emacs-basic--eyebrowse-config-selected)
-                  mlist
-                  rtn)
-              (dolist (el olist)
-                (let (prefix)
-                  (setq prefix (car (split-string el ":")))
-                  (push prefix mlist)))
-              (setq rtn (let ((prompt ""))
-                          (dolist (el mlist)
-                            (setq prompt (concat prompt (if (not (string= el ""))
-                                                            (concat el "☑; ")
-                                                          ""))))
-                          prompt))
-              rtn)))
-  
-  (eval-and-compile
-    (defun entropy/emacs-basic--eyebrowse-read-config-repeated (x)
-      "Used in repeated selected eyebrowse config with `ivy-call'.
-
-This was the one action in `ivy-read'."
-      (require 'ivy)
-      (if (not (member x entropy/emacs-basic--eyebrowse-config-selected))
-          (push x entropy/emacs-basic--eyebrowse-config-selected))
-      (let ((prompt (entropy/emacs-basic--eyebrowse-read-prompt)))
-        (setf (ivy-state-prompt ivy-last) prompt)
-        (setq ivy--prompt (concat "(%d/%d) " prompt)))
-      (cond
-       ((memq this-command '(ivy-done
-                             ivy-alt-done
-                             ivy-immediate-done))
-        t)
-       ((eq this-command 'ivy-call)
-        (with-selected-window (active-minibuffer-window)
-          (delete-minibuffer-contents))))))
-  
-  (defun entropy/emacs-basic-eyebrowse-delete-workspace ()
-    "Delete eyebrowse workspace with prompt."
-    (interactive)
-    (require 'entropy-common-library)
-    (require 'ivy)
-    (setq entropy/emacs-basic--eyebrowse-config-selected nil)
-    (let* ((wcon (eyebrowse--get 'window-configs))
-           sanm
-           candi
-           candin)
-      (dolist (el wcon)
-        (when (not (= (car el) (eyebrowse--get 'current-slot)))
-          (push `(,(concat (number-to-string (car el)) ":" (nth 2 el)) . ,(car el)) candi)))
-      (setq candi (entropy/cl-reverse-list candi))
-      (setq candin (mapcar 'car candi))
-      (ivy-read "Delete worksapce (%d/%d): " candin
-                :require-match t
-                :action 'entropy/emacs-basic--eyebrowse-read-config-repeated)
-      (dolist (el entropy/emacs-basic--eyebrowse-config-selected)
-        (eyebrowse--delete-window-config (cdr (assoc el candi))))))
-
-
-  (defun eyebrowse-free-slot (slots)
-    "Returns a yet unoccupied slot.
-The specific behaviour is tmux-like.
-
-Note: this function has been redefine for
-`entropy/emacs-basic-eyebrowse-create-derived'."
-    (let ((min (car slots)))
-      (if (> min 1)
-          1
-        (let (last cur done)
-          (while (and slots (not done))
-            (setq last (car slots)
-                  cur (cadr slots))
-            (when (and last cur
-                       (> (- cur last) 1))
-              (setq done t))
-            (setq slots (cdr slots)))
-          (floor (1+ last))))))
-
-  
-  (defun entropy/emacs-basic-eyebrowse-create-derived ()
-    "Create derived workspace basic from the current main workspace.
-
-The main workspace was whom have the slot without float point,
-1,2,3,4.....
-
-
-The derived workspace was whom have the float slot point, '1.1'
-'1.2' '5.6' .....
-
-
-For now the which main workspace just can have nine derived
-workspaces. Thus the core cause of this was the slot recording
-function just can manipulate one decimal place for one main
-workspace. 
-
-The reason for this limit was that two points follow:
-
-- For complicated arithmetic coding
-- For trying to reducing the recongnization for operation.
-
-"
-    (interactive)
-    (let* ((dot-list '(
-                       0.1 0.2 0.3
-                       0.4 0.5 0.6
-                       0.7 0.8 0.9))
-           derived-list
-           derived-dot
-           derived-dot-ac
-           new-slot
-           (window-configs (eyebrowse--get 'window-configs)))
-      
-      (let* ((slots (mapcar 'car window-configs))
-             (current-slot (eyebrowse--get 'current-slot))
-             (floor-tag (nth 2 (assoc (floor current-slot) window-configs)))
-             (floor-slot (floor current-slot))
-             (up-slot (+ 1 floor-slot)))
-
-        ;; make derived-list
-        (dolist (el slots)
-          (if (and (< el up-slot)
-                   (>= el floor-slot))
-              (push el derived-list)))
-
-        ;; make derived-dot list
-        (dolist (el derived-list)
-          (push (- el floor-slot) derived-dot))
-        (setq derived-dot (delete 0 derived-dot))
-
-        ;; producing accurated derived-dot list.
-        (dolist (el1 derived-dot)
-          (dolist (el2 dot-list)
-            (if (< (abs (- el1 el2)) 0.00000000000000995)
-                (push el2 derived-dot-ac))))
-
-        ;; judgement of whether derived number fulled
-        (if (> (length derived-dot-ac) 8)
-            (error "Derived number fill out!"))
-
-        (let ((temp-dot dot-list))
-          ;; produce remaining accessed usable derived number
-          (dolist (el1 dot-list)
-            (dolist (el2 derived-dot-ac)
-              (if (= el1 el2)
-                  (setq temp-dot (delete el1 temp-dot)))))
-
-          ;; choose the least usable drived number
-          (let ((lengths (- (length temp-dot) 1))
-                (count 0)
-                (forward 0))
-            (while (< forward lengths)
-              (if (= forward 0) (setq forward (+ count 1)))
-              (if (< (nth count temp-dot)
-                     (nth forward temp-dot))
-                  (setq forward (+ forward 1))
-                (progn (setq count forward)
-                       (setq forward 0))))
-            (setq new-slot (+ floor-slot (nth count temp-dot)))))
-
-        (let* ((custr (read-string "Entering the tag: ")))
-          ;; switch to derived work-space and named it
-          (eyebrowse-switch-to-window-config new-slot)
-          (eyebrowse-rename-window-config
-           new-slot
-           (concat "⛓"  (number-to-string floor-slot) ":"
-                   (if (and floor-tag (not (string= floor-tag "")))
-                                  (concat "\"" floor-tag "\"") "[]")
-                   (if (and custr (not (string= "" custr)))
-                       (concat "☛" custr)
-                     "")))))))
-
-  (defun entropy/emacs-basic-eyebrowse-switch-derived ()
-    "Switch to derived workspace rely on current basic workspace."
-    (interactive)
-    (let* ((window-configs (eyebrowse--get 'window-configs))
-           (slots (mapcar 'car window-configs))
-           (floor-slot (floor (eyebrowse--get 'current-slot)))
-           (top-slot (+ 1 floor-slot))
-           derived-list
-           derived-named-list
-           choice)
-      (dolist (el slots)
-        (if (and (< el top-slot)
-                 (> el floor-slot))
-            (if (and (not (= el (eyebrowse--get 'current-slot)))
-                     (not (= el floor-slot)))
-                (push el derived-list))))
-      (if derived-list
-          (dolist (el derived-list)
-            (push
-             (cons
-              (concat
-               (number-to-string el) ":"
-               (nth 2 (assoc el window-configs)))
-              el)
-             derived-named-list))
-        (cond
-         ((string-match-p "\\.[[:digit:]]" (number-to-string (eyebrowse--get 'current-slot)))
-          (error "You are in the only one derived workspace."))
-         (t (error "No derived work-space."))))
-      (setq choice (completing-read "Choose derived: " derived-named-list nil t))
-      (eyebrowse-switch-to-window-config (cdr (assoc choice derived-named-list)))))
-
-
-  (defun entropy/emacs-basic-eyebrowse-switch-basic-window ()
-    "Switch to basic workspace which has the prompt candidates
-without derived slot."
-    (interactive)
-    (let* ((wcfgs (eyebrowse--get 'window-configs))
-           (slots (mapcar 'car wcfgs))
-           cons-slots
-           s-and-name
-           choice)
-
-      (dolist (el slots)                ;make cons list for candi with slot
-        (if (and (not (> el (floor el)))
-                 (not (= el (eyebrowse--get 'current-slot))))
-            (push `(,(concat (number-to-string el) ":" (nth 2 (assoc el wcfgs)))
-                    . ,el)
-                  cons-slots)))
-      (dolist (el cons-slots)           ;make candi-name list
-        (push (car el) s-and-name))
-
-      (setq choice (ivy-read "Switch to WS: " s-and-name
-                             :require-match t))
-      (eyebrowse-switch-to-window-config (cdr (assoc choice cons-slots)))))
-  
-  (defun entropy/emacs-basic-eyebrowse-switch-top ()
-    "Back to the top workspace from current derived workspace."
-    (interactive)
-    (let* ((cslot (eyebrowse--get 'current-slot))
-           (top-slot (floor cslot))
-           (top-tag (nth 2 (assoc top-slot (eyebrowse--get 'window-configs)))))
-      (cond
-       ((not (equal cslot top-slot))
-        (eyebrowse-switch-to-window-config top-slot)
-        (message (concat (propertize "You've been back to top wg: "
-                                     'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body)
-                         (propertize (if (and (not (equal top-tag ""))
-                                              (not (equal top-tag nil)))
-                                         (format "[%s]: %s " top-slot top-tag)
-                                       (format "[%s] " top-slot))
-                                     'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_content)
-                         (propertize "." 'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body))))
-       (t (error "You've at top wg!"))))))
-
-;; **** winner mode for recover previous window config faster
-(use-package winner
-  :ensure nil
-  :commands (winner-mode)
-  :bind (("C-c <left>" . winner-undo)
-         ("C-c <right>" . winner-redo))
-  :init
-  (setq winner-boring-buffers '("*Completions*"
-                                "*Compile-Log*"
-                                "*inferior-lisp*"
-                                "*Fuzzy Completions*"
-                                "*Apropos*"
-                                "*Help*"
-                                "*cvs*"
-                                "*Buffer List*"
-                                "*Ibuffer*"
-                                "*esh command on file*"))
-  (entropy/emacs-lazy-initial-advice-before
-   '(switch-to-buffer find-file delete-other-windows)
-   "winner-mode" "winner-mode"
-   (winner-mode +1))
-  
-  :config
-  (winner-mode +1))
-
-;; **** desktop mode
-(when entropy/emacs-desktop-enable
-  (use-package desktop
-    :ensure nil
-    :commands (desktop-save-mode)
-    :init (desktop-save-mode 1)
-    :config
-    ;; Restore frames into their original displays (if possible)
-    (setq desktop-restore-in-current-display nil)
-
-    ;; Load custom theme
-    (add-hook 'desktop-after-read-hook
-	      (lambda ()
-		(dolist (theme custom-enabled-themes)
-		  (load-theme theme t))))
-
-    ;; Don't save/restore frames in tty
-    (unless (display-graphic-p)
-      (setq desktop-restore-frames nil))))
-
-;; *** Kill-buffer-and-window function
+;; ** Kill-buffer-and-window function
 (defvar entropy/emacs-basic--kill-buffer-excluded-buffer-list nil
   "Buffer name regexp list stored excluded buffer name match for
   func `entropy/emacs-kill-buffer-and-window'.")
@@ -825,18 +320,13 @@ retrieve from `window-list' larger than 1."
         (kill-buffer-and-window)
       (kill-buffer))))
 
-;; *** Buffer window size setting
-(use-package windresize
-  :commands (windresize)
-  :bind
-  ("C-<f10>" . windresize))
-
-;; *** Kill-other-buffers
+;; ** Kill-other-buffers
 (defun entropy/emacs-basic-kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
+;; ** kill redundant buffer
 (defun entropy/emacs-basic-kill-large-process-buffer ()
   (interactive)
   (dolist (buffer (buffer-list))
@@ -856,41 +346,6 @@ retrieve from `window-list' larger than 1."
                (delete-process process))))
 (global-set-key (kbd "C-0") 'entropy/emacs-basic-kill-large-process-buffer)
 
-
-;; *** Exchange window
-(use-package buffer-move
-  :commands (buf-move-up
-             buf-move-down
-             buf-move-left
-             buf-move-right)
-  :bind
-  (("C-c <C-up>"   .  buf-move-up)
-   ("C-c <C-down>" .  buf-move-down)
-   ("C-c <C-left>" .  buf-move-left)
-   ("C-c <C-right>" . buf-move-right)))
-
-;; *** Centered-window
-;; **** Manully method
-(defun entropy/emacs-basic-center-text ()
-  "Center the text in the middle of the buffer. Works best in full screen"
-  (interactive)
-  (if (car (window-margins))
-      (entropy/emacs-basic-center-text-clear)
-    (set-window-margins (car (get-buffer-window-list (current-buffer) nil t))
-                        (/ (window-width) entropy/emacs-window-center-integer)
-                        (/ (window-width) entropy/emacs-window-center-integer))))
-
-(defun entropy/emacs-basic-center-text-clear ()
-  (interactive)
-  (set-window-margins
-   (car (get-buffer-window-list (current-buffer) nil t))
-   nil))
-(global-set-key (kbd "C-c M-<up>")     'entropy/emacs-basic-center-text)
-(global-set-key (kbd "C-c M-<down>")     'entropy/emacs-basic-center-text-clear)
-
-
-;; *** Window divider
-(window-divider-mode)
 
 ;; ** Set defualt tab size
 (if entropy/emacs-custom-tab-enable
@@ -1110,136 +565,6 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
   (setq dired-recursive-deletes 'always)
   (setq dired-recursive-copies 'always)
   
-;; **** Use dired-aux to enable dired-isearch
-  (use-package dired-aux :ensure nil)
-  
-;; **** Quick sort dired buffers via hydra
-  ;;; bind key: `S'
-  (when (not sys/win32p)
-    (use-package dired-quick-sort
-      :if (or (executable-find "gls") (executable-find "ls"))
-      :commands (dired-quick-sort-setup)
-      :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup)))
-
-;; **** Use coloful dired ls
-  (defun entropy/emacs-basic--dired-visual-init ()
-    "Init dired colorful visual featuer."
-    (cond ((or (string= entropy/emacs-dired-visual-type "simple-rainbow")
-               (version= emacs-version "25.3.1"))
-           (use-package dired-rainbow
-             :commands dired-rainbow-define dired-rainbow-define-chmod
-             :init
-             (dired-rainbow-define dotfiles "gray" "\\..*")
-
-             (dired-rainbow-define web "#4e9a06" ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
-					          "json" "asp" "aspx" "haml" "php" "jsp" "ts"
-					          "coffee" "scss" "less" "phtml"))
-             (dired-rainbow-define prog "yellow3" ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
-					           "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
-					           "m" "cs" "mk" "make" "swift" "go" "java"
-					           "asm" "robot" "yml" "yaml" "rake" "lua"))
-             (dired-rainbow-define sh "green yellow" ("sh" "bash" "zsh" "fish" "csh" "ksh"
-					              "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
-             (dired-rainbow-define text "yellow green" ("txt" "md" "org" "ini" "conf" "rc"
-					                "vim" "vimrc" "exrc"))
-             (dired-rainbow-define doc "spring green" ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
-					               "csv" "rtf" "wps" "pdf" "texi" "tex"
-					               "odt" "ott" "odp" "otp" "ods" "ots"
-					               "odg" "otg"))
-             (dired-rainbow-define misc "gray50" ("DS_Store" "projectile" "cache" "elc"
-					          "dat" "meta"))
-             (dired-rainbow-define media "#ce5c00" ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
-					            "wmv" "mov" "3gp" "avi" "mpg" "mkv"
-					            "flv" "ogg" "rm" "rmvb"))
-             (dired-rainbow-define picture "purple3" ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
-					              "ico" "svg" "psd" "pcd" "raw" "exif"
-					              "BMP" "JPG" "PNG"))
-             (dired-rainbow-define archive "saddle brown" ("zip" "tar" "gz" "tgz" "7z" "rar"
-						           "gzip" "xz" "001" "ace" "bz2" "lz"
-						           "lzma" "bzip2" "cab" "jar" "iso"))
-
-             ;; boring regexp due to lack of imagination
-             (dired-rainbow-define log (:inherit default :italic t) ".*\\.log"))
-           (when (string= entropy/emacs-dired-visual-type "all-the-icons")
-             (warn " Because you are in emacs 25.3.1, just can
-using simple dired visual type, although you have seting it to
-\"all-the-icons\".")))
-          ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
-                (not (version= emacs-version "25.3.1"))
-                (display-graphic-p))
-           (when sys/win32p
-             (require 'font-lock+))
-           (use-package all-the-icons-dired
-             :commands (all-the-icons-dired-mode)
-             :hook (dired-mode . all-the-icons-dired-mode)
-             :config
-             (defun entropy/emacs-basic--all-the-icons-dired-display ()
-               "Display the icons of files without colors in a dired buffer."
-               ;; Don't display icons after dired commands (e.g insert-subdir, create-directory)
-               ;; @see https://github.com/jtbm37/all-the-icons-dired/issues/11
-               (all-the-icons-dired--reset)
-
-               (when (and (not all-the-icons-dired-displayed) dired-subdir-alist
-                          (not (> (save-excursion (goto-char (point-max)) (line-number-at-pos)) 100)))
-                 (setq-local all-the-icons-dired-displayed t)
-                 (let ((inhibit-read-only t)
-                       (remote-p (and (fboundp 'tramp-tramp-file-p)
-                                      (tramp-tramp-file-p default-directory))))
-                   (save-excursion
-                     ;; TRICK: Use TAB to align icons
-                     (setq-local tab-width 1)
-                     (goto-char (point-min))
-                     (while (not (eobp))
-                       (when (dired-move-to-filename nil)
-                         (insert " ")
-                         (let ((file (dired-get-filename 'verbatim t)))
-                           (unless (member file '("." ".."))
-                             (let ((filename (file-local-name (dired-get-filename nil t))))
-                               (if (file-directory-p filename)
-                                   (let ((icon (cond
-                                                (remote-p
-                                                 (all-the-icons-octicon
-                                                  "file-directory"
-                                                  :v-adjust all-the-icons-dired-v-adjust
-                                                  :face 'all-the-icons-dired-dir-face))
-                                                ((file-symlink-p filename)
-                                                 (all-the-icons-octicon
-                                                  "file-symlink-directory"
-                                                  :v-adjust all-the-icons-dired-v-adjust
-                                                  :face 'all-the-icons-dired-dir-face))
-                                                ((all-the-icons-dir-is-submodule filename)
-                                                 (all-the-icons-octicon
-                                                  "file-submodule"
-                                                  :v-adjust all-the-icons-dired-v-adjust
-                                                  :face 'all-the-icons-dired-dir-face))
-                                                ((file-exists-p (format "%s/.git" filename))
-                                                 (all-the-icons-octicon
-                                                  "repo"
-                                                  :height 1.1 :v-adjust all-the-icons-dired-v-adjust
-                                                  :face 'all-the-icons-dired-dir-face))
-                                                (t (let ((matcher (all-the-icons-match-to-alist file all-the-icons-dir-icon-alist)))
-                                                     (apply (car matcher)
-                                                            (list (cadr matcher)
-                                                                  :face 'all-the-icons-dired-dir-face
-                                                                  :v-adjust all-the-icons-dired-v-adjust)))))))
-                                     (insert icon))
-                                 (insert (all-the-icons-icon-for-file
-                                          file
-                                          :v-adjust all-the-icons-dired-v-adjust))))
-                             (insert "\t"))))
-                       (forward-line 1))))))
-             (advice-add #'all-the-icons-dired--display :override #'entropy/emacs-basic--all-the-icons-dired-display)))
-          ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
-                (not (display-graphic-p)))
-           (setq entropy/emacs-dired-visual-type "simple-rainbow")
-           (warn "You are in terminal emacs session, can not
-           enable 'dired-all-the-icons', enable simple-rainbow
-           instead now. ")
-           (entropy/emacs-basic--dired-visual-init))
-          (t (error "entropy/emacs-dired-visual-type invalid"))))
-  
-  (entropy/emacs-basic--dired-visual-init)
-  
 ;; **** bind 'M-<up>' for dired updir
   (define-key dired-mode-map (kbd "M-<up>") 'dired-up-directory)
   
@@ -1330,7 +655,139 @@ using simple dired visual type, although you have seting it to
                 dired-do-touch))
     (advice-add el :after #'entropy/emacs-basic--dired-revert-advice)))
 
-;; *** dired-x
+;; **** Use dired-aux to enable dired-isearch
+(use-package dired-aux :ensure nil)
+
+;; **** Quick sort dired buffers via hydra
+  ;;; bind key: `S'
+(when (not sys/win32p)
+  (use-package dired-quick-sort
+    :if (or (executable-find "gls") (executable-find "ls"))
+    :commands (dired-quick-sort-setup)
+    :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup)))
+
+;; **** Use coloful dired ls
+(defun entropy/emacs-basic--dired-visual-init ()
+  "Init dired colorful visual featuer."
+  (cond ((or (string= entropy/emacs-dired-visual-type "simple-rainbow")
+             (version= emacs-version "25.3.1"))
+         (use-package dired-rainbow
+           :commands dired-rainbow-define dired-rainbow-define-chmod
+           :init
+           (dired-rainbow-define dotfiles "gray" "\\..*")
+
+           (dired-rainbow-define web "#4e9a06" ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
+					        "json" "asp" "aspx" "haml" "php" "jsp" "ts"
+					        "coffee" "scss" "less" "phtml"))
+           (dired-rainbow-define prog "yellow3" ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
+					         "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
+					         "m" "cs" "mk" "make" "swift" "go" "java"
+					         "asm" "robot" "yml" "yaml" "rake" "lua"))
+           (dired-rainbow-define sh "green yellow" ("sh" "bash" "zsh" "fish" "csh" "ksh"
+					            "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
+           (dired-rainbow-define text "yellow green" ("txt" "md" "org" "ini" "conf" "rc"
+					              "vim" "vimrc" "exrc"))
+           (dired-rainbow-define doc "spring green" ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
+					             "csv" "rtf" "wps" "pdf" "texi" "tex"
+					             "odt" "ott" "odp" "otp" "ods" "ots"
+					             "odg" "otg"))
+           (dired-rainbow-define misc "gray50" ("DS_Store" "projectile" "cache" "elc"
+					        "dat" "meta"))
+           (dired-rainbow-define media "#ce5c00" ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
+					          "wmv" "mov" "3gp" "avi" "mpg" "mkv"
+					          "flv" "ogg" "rm" "rmvb"))
+           (dired-rainbow-define picture "purple3" ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
+					            "ico" "svg" "psd" "pcd" "raw" "exif"
+					            "BMP" "JPG" "PNG"))
+           (dired-rainbow-define archive "saddle brown" ("zip" "tar" "gz" "tgz" "7z" "rar"
+						         "gzip" "xz" "001" "ace" "bz2" "lz"
+						         "lzma" "bzip2" "cab" "jar" "iso"))
+
+           ;; boring regexp due to lack of imagination
+           (dired-rainbow-define log (:inherit default :italic t) ".*\\.log"))
+         (when (string= entropy/emacs-dired-visual-type "all-the-icons")
+           (warn " Because you are in emacs 25.3.1, just can
+using simple dired visual type, although you have seting it to
+\"all-the-icons\".")))
+        ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
+              (not (version= emacs-version "25.3.1"))
+              (or (display-graphic-p)
+                  entropy/emacs-custom-pdumper-do))
+         (when sys/win32p
+           (require 'font-lock+))
+         (use-package all-the-icons-dired
+           :commands (all-the-icons-dired-mode)
+           :hook (dired-mode . all-the-icons-dired-mode)
+           :config
+           (defun entropy/emacs-basic--all-the-icons-dired-display ()
+             "Display the icons of files without colors in a dired buffer."
+             ;; Don't display icons after dired commands (e.g insert-subdir, create-directory)
+             ;; @see https://github.com/jtbm37/all-the-icons-dired/issues/11
+             (all-the-icons-dired--reset)
+
+             (when (and (not all-the-icons-dired-displayed) dired-subdir-alist
+                        (not (> (save-excursion (goto-char (point-max)) (line-number-at-pos)) 100)))
+               (setq-local all-the-icons-dired-displayed t)
+               (let ((inhibit-read-only t)
+                     (remote-p (and (fboundp 'tramp-tramp-file-p)
+                                    (tramp-tramp-file-p default-directory))))
+                 (save-excursion
+                   ;; TRICK: Use TAB to align icons
+                   (setq-local tab-width 1)
+                   (goto-char (point-min))
+                   (while (not (eobp))
+                     (when (dired-move-to-filename nil)
+                       (insert " ")
+                       (let ((file (dired-get-filename 'verbatim t)))
+                         (unless (member file '("." ".."))
+                           (let ((filename (file-local-name (dired-get-filename nil t))))
+                             (if (file-directory-p filename)
+                                 (let ((icon (cond
+                                              (remote-p
+                                               (all-the-icons-octicon
+                                                "file-directory"
+                                                :v-adjust all-the-icons-dired-v-adjust
+                                                :face 'all-the-icons-dired-dir-face))
+                                              ((file-symlink-p filename)
+                                               (all-the-icons-octicon
+                                                "file-symlink-directory"
+                                                :v-adjust all-the-icons-dired-v-adjust
+                                                :face 'all-the-icons-dired-dir-face))
+                                              ((all-the-icons-dir-is-submodule filename)
+                                               (all-the-icons-octicon
+                                                "file-submodule"
+                                                :v-adjust all-the-icons-dired-v-adjust
+                                                :face 'all-the-icons-dired-dir-face))
+                                              ((file-exists-p (format "%s/.git" filename))
+                                               (all-the-icons-octicon
+                                                "repo"
+                                                :height 1.1 :v-adjust all-the-icons-dired-v-adjust
+                                                :face 'all-the-icons-dired-dir-face))
+                                              (t (let ((matcher (all-the-icons-match-to-alist file all-the-icons-dir-icon-alist)))
+                                                   (apply (car matcher)
+                                                          (list (cadr matcher)
+                                                                :face 'all-the-icons-dired-dir-face
+                                                                :v-adjust all-the-icons-dired-v-adjust)))))))
+                                   (insert icon))
+                               (insert (all-the-icons-icon-for-file
+                                        file
+                                        :v-adjust all-the-icons-dired-v-adjust))))
+                           (insert "\t"))))
+                     (forward-line 1))))))
+           (advice-add #'all-the-icons-dired--display :override #'entropy/emacs-basic--all-the-icons-dired-display)))
+        ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
+              (not (or (display-graphic-p)
+                       entropy/emacs-custom-pdumper-do)))
+         (setq entropy/emacs-dired-visual-type "simple-rainbow")
+         (warn "You are in terminal emacs session, can not
+           enable 'dired-all-the-icons', enable simple-rainbow
+           instead now. ")
+         (entropy/emacs-basic--dired-visual-init))
+        (t (error "entropy/emacs-dired-visual-type invalid"))))
+
+(entropy/emacs-basic--dired-visual-init)
+
+;; **** dired-x
 (use-package dired-x
   :ensure nil
   :commands (dired-omit-mode)
@@ -1415,243 +872,6 @@ emacs."
  "GlbAutoRevertMode-enabled"
  (global-auto-revert-mode +1))
 
-;; ** Use popup window framework
-;; *** popwin-mode
-(use-package popwin
-  :if (eq entropy/emacs-use-popup-window-framework 'popwin)
-  :commands popwin-mode
-  :init (add-hook (entropy/emacs-select-x-hook) #'popwin-mode)
-  :config
-  (bind-key "C-3" popwin:keymap)
-
-  ;; don't use default value but manage it ourselves
-  (setq popwin:special-display-config
-        '(;; Emacs
-          ("*Help*" :dedicated t :position bottom :stick nil :noselect nil)
-          ("*compilation*" :dedicated t :position bottom :stick t :noselect t :height 0.4)
-          ("*Compile-Log*" :dedicated t :position bottom :stick t :noselect t :height 0.4)
-          ("*Warnings*" :dedicated t :position bottom :stick t :noselect t)
-          ("*Completions*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*Shell Command Output*" :dedicated t :position bottom :stick t :noselect nil)
-          ("\*Async Shell Command\*.+" :regexp t :position bottom :stick t :noselect nil)
-          ("^*Man.+*$" :regexp t :position bottom :stick nil :noselect nil :height 0.4)
-          ("^*WoMan.+*$" :regexp t :position bottom)
-          ("^*Backtrace.+*$" :regexp t :dedicated t :position bottom :stick t :noselect nil)
-
-          ;; Kill Ring
-          ("*Kill Ring*" :dedicated t :position bottom)
-
-          ;; Flycheck
-          ("\*flycheck errors\*.+*$" :regexp t :position bottom :stick t :noselect nil)
-
-          ;; Youdao dict
-          ("*Youdao Dictionary*" :dedicated t :position bottom)
-
-          ;; Google translate
-          ("*Google Translate*" :dedicated t :position bottom)
-
-          ;; Moedict
-          ("*[萌典] 查詢結果*" :dedicated t :position bottom)
-          
-          ;; Paradox
-          ("*Paradox Report*" :dedicated t :position bottom :noselect nil)
-
-          ;; Diff
-          ("*Diff*" :dedicated t :position bottom :noselect nil)
-          
-          ;; List
-          ("*Colors*" :dedicated t :position bottom)
-          ("*Process List*" :dedicated t :position bottom)
-          ("*Process-Environment*" :dedicated t :position bottom)
-
-          ;; undo-tree
-          (" *undo-tree*" :dedicated t :position right :stick t :noselect nil :width 60)
-
-          ;; Search
-          ("*grep*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*ag search*" :dedicated t :position bottom :stick t :noselect nil :height 0.4)
-          ("*rg*" :dedicated t :position bottom :stick t :noselect nil :height 0.4)
-          ("*pt-search*" :dedicated t :position bottom :stick t :noselect nil :height 0.4)
-          ("*Occur*" :dedicated t :position bottom :stick t :noselect nil)
-          ("\\*ivy-occur.+*$" :regexp t :position bottom :stick t :noselect nil)
-          ;; ("*xref*" :dedicated t :position bottom :stick nil :noselect nil)
-
-          ;; VC
-          ("*vc-diff*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*vc-change-log*" :dedicated t :position bottom :stick t :noselect nil)
-
-          ;; Magit
-          ;; (magit-status-mode :dedicated t :position bottom :stick t :height 0.5)
-          ;; (magit-diff-mode :dedicated t :position bottom :stick t :noselect t :height 0.5)
-
-          ;; Script
-          ("*shell*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*Python*" :dedicated t :position bottom :stick t :noselect t)
-          ("*Ruby*" :dedicated t :position bottom :stick t :noselect t)
-          ("*quickrun*" :dedicated t :position bottom :stick t :noselect t)
-
-          ;; Go
-          ("^*godoc.+*$" :regexp t :position bottom :stick nil :noselect nil)
-          ("*golint*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*govet*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*go-guru-output*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*Gofmt Errors*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*Go Test*" :dedicated t :position bottom :stick t :noselect nil)
-
-          ;; Test
-          ("*ert*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*nosetests*" :dedicated t :position bottom :stick t :noselect nil)
-
-          ;; Entropy refer
-          ("^\\*entropy/cpmv" :regexp t :position bottom :stick nil :noselect nil)
-          ("^\\*entropy/cndt" :regexp t :position bottom :stick nil :noselect nil)
-          ("^\\*entropy/sdcv" :regexp t :position bottom :stick nil :noselect nil))))
-
-;; *** shackle mode
-(use-package shackle
-  :if (eq entropy/emacs-use-popup-window-framework 'shackle)
-  :commands (shackle-mode
-             shackle-display-buffer
-             shackle-popup-buffer
-             shackle-popup-find-file)
-  :init
-  (defvar shackle-popup-mode-map
-    (let ((map (make-sparse-keymap)))
-      map))
-  (global-set-key (kbd "C-3") shackle-popup-mode-map)
-  (add-hook (entropy/emacs-select-x-hook) #'shackle-mode)
-  (defvar shackle--popup-window-list nil) ; all popup windows
-  (defvar-local shackle--current-popup-window nil) ; current popup window
-  (put 'shackle--current-popup-window 'permanent-local t)
-  :bind
-  (:map shackle-popup-mode-map
-   ("o" . shackle-popup-buffer)
-   ("f" . shackle-popup-find-file)
-   ("e" . shackle-popup-message))
-  :config
-  (eval-and-compile
-    (defun shackle-last-popup-buffer ()
-      "View last popup buffer."
-      (interactive)
-      (ignore-errors
-        (display-buffer shackle-last-buffer)))
-    (bind-key "C-h z" #'shackle-last-popup-buffer)
-
-    ;; Add keyword: `autoclose'
-    (defun shackle-display-buffer-hack (fn buffer alist plist)
-      (let ((window (funcall fn buffer alist plist)))
-        (setq shackle--current-popup-window window)
-
-        (when (plist-get plist :autoclose)
-          (push (cons window buffer) shackle--popup-window-list))
-        window))
-
-    (defun shackle-close-popup-window-hack (&rest _)
-      "Close current popup window via `C-g'."
-      (setq shackle--popup-window-list
-            (cl-loop for (window . buffer) in shackle--popup-window-list
-                     if (and (window-live-p window)
-                             (equal (window-buffer window) buffer))
-                     collect (cons window buffer)))
-      ;; `C-g' can deactivate region
-      (when (and (called-interactively-p 'interactive)
-                 (not (region-active-p)))
-        (let (window buffer)
-          (if (one-window-p)
-              (progn
-                (setq window (selected-window))
-                (when (equal (buffer-local-value 'shackle--current-popup-window
-                                                 (window-buffer window))
-                             window)
-                  (winner-undo)))
-            (setq window (caar shackle--popup-window-list))
-            (setq buffer (cdar shackle--popup-window-list))
-            (when (and (window-live-p window)
-                       (equal (window-buffer window) buffer))
-              (delete-window window)
-
-              (pop shackle--popup-window-list)
-              (recenter-top-bottom '(middle)))))))
-
-    (advice-add #'keyboard-quit :before #'shackle-close-popup-window-hack)
-    (advice-add #'shackle-display-buffer :around #'shackle-display-buffer-hack))
-
-  (defun shackle-popup-buffer ()
-    (interactive)
-    (let* ((buff-name (completing-read "Buffer choosing:" 'internal-complete-buffer))
-           (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
-      (get-buffer-create buff-name)
-      (display-buffer buff-name)
-      (when (and (fboundp 'solaire-mode)
-                 (entropy/emacs-theme-adapted-to-solaire))
-        (with-current-buffer buff-name
-          (solaire-mode +1)))))
-
-  (defun shackle-popup-find-file ()
-    (interactive)
-    (let* ((file (completing-read "Buffer choosing:" 'read-file-name-internal))
-           (buff-name (buffer-name (find-file-noselect file)))
-           (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
-      (display-buffer buff-name)))
-
-  (defun shackle-popup-message ()
-    (interactive)
-    (let* ((buff-name (buffer-name (get-buffer-create "*Messages*")))
-           (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
-      (with-current-buffer buff-name
-        (unless (eobp)
-          (goto-char (point-max))))
-      (display-buffer buff-name)))
-  
-  ;; rules
-  (setq shackle-default-size 0.6)
-  (setq shackle-default-alignment 'below)
-  (setq shackle-default-rule nil)
-  (setq shackle-rules
-        '(("*Help*" :select t :align below :autoclose t)
-          ("*compilation*" :align below :autoclose t)
-          ("*Completions*" :align below :autoclose t)
-          ("*Pp Eval Output*" :size 15 :align below :autoclose t)
-          ("*ert*" :align below :autoclose t)
-          ("*Backtrace*" :select t :size 15 :align below)
-          ("*Warnings*" :align below :autoclose t)
-          ("*Messages*" :align below :autoclose t)
-          ("^\\*.*Shell Command.*\\*$" :regexp t :align below :autoclose t)
-          ("\\*[Wo]*Man.*\\*" :regexp t :select t :align below :autoclose t)
-          ("*Calendar*" :select t :align below)
-          ("\\*ivy-occur .*\\*" :regexp t :size 0.4 :select t :align below)
-          (" *undo-tree*" :select t :align right)
-          ("*Paradox Report*" :align below :autoclose t)
-          ("*quickrun*" :select t :size 15 :align below)
-          ("*tldr*" :align below :autoclose t)
-          ("*Youdao Dictionary*" :align below :autoclose t)
-          ("*Google Translate*" :align below :select t :size 0.5 :autoclose t)
-          ("*Finder*" :select t :align below :autoclose t)
-          ("^\\*elfeed-entry" :regexp t :size 0.7 :align below :autoclose t)
-          ("*lsp-help*" :align below :autoclose t)
-          ("*lsp session*" :size 0.4 :align below :autoclose t)
-          (" *Org todo*" :select t :size 4 :align below :autoclose t)
-          ("*Org Dashboard*" :select t :size 0.4 :align below :autoclose t)
-          ("^\\*entropy/cpmv" :regexp t :select t :size 0.4 :align below :autoclose t)
-          ("^\\*entropy/cndt" :regexp t :select t :size 0.4 :align below :autoclose t)
-          ("^\\*entropy/sdcv" :regexp t :select t :size 0.4 :align below :autoclose t)
-
-          (ag-mode :select t :align below)
-          (grep-mode :select t :align below)
-          (pt-mode :select t :align below)
-          (rg-mode :select t :align below)
-
-          (flycheck-error-list-mode :select t :align below :autoclose t)
-          (flymake-diagnostics-buffer-mode :select t :align below :autoclose t)
-
-          (Buffer-menu-mode :select t :size 20 :align below :autoclose t)
-          (comint-mode :align below)
-          (helpful-mode :select t :size 0.4 :align below :autoclose t)
-          (process-menu-mode :select t :align below :autoclose t)
-          (list-environment-mode :select t :align below :autoclose t)
-          (profiler-report-mode :select t :size 0.5 :align below)
-          (tabulated-list-mode :align below))))
-
 ;; ** Use which-key
 (use-package which-key
   :diminish which-key-mode
@@ -1665,11 +885,12 @@ emacs."
   :diminish undo-tree-mode
   :commands (global-undo-tree-mode)
   :bind (("C-x u" . entropy/emacs-basic-undo-tree))
+  :hook ((undo-tree-mode . (lambda () (define-key undo-tree-map (kbd "C-x u") nil))))
   :init
-  (entropy/emacs-lazy-load-simple 'undo-tree
-    (global-undo-tree-mode +1)
-    (add-hook 'undo-tree-mode-hook
-              '(lambda () (define-key undo-tree-map (kbd "C-x u") nil))))
+  (unless entropy/emacs-custom-pdumper-do
+    (entropy/emacs-lazy-load-simple 'undo-tree
+      (global-undo-tree-mode +1)))
+  
   :config
   (defun entropy/emacs-basic-undo-tree ()
     (interactive)
@@ -1908,7 +1129,8 @@ Temp file was \"~/~entropy-artist.txt\""
 
 ;; ** Use chinese pyim
 (use-package pyim
-  :if entropy/emacs-enable-pyim
+  :if (and entropy/emacs-enable-pyim
+           (not entropy/emacs-custom-pdumper-do))
   :diminish chinese-pyim-mode
   :commands (pyim-restart-1
              pyim-start

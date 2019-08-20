@@ -186,7 +186,8 @@
         spacemacs-theme
         srcery-theme
         sublime-themes
-        ujelly-theme))
+        ujelly-theme
+        use-package))
 
 ;; filter packages required tree to remove all nil entry
 (let (rtn)

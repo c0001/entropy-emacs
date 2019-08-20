@@ -155,7 +155,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (setq-default mode-line-format
                 '("%e"
                   ;; mode-line-front-space
-                  (:eval (entropy/emacs-modeline--mdl-egroup))
+                  (:eval (ignore-errors (entropy/emacs-modeline--mdl-egroup)))
                   mode-line-mule-info
                   mode-line-client
                   mode-line-modified "  "

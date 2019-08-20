@@ -35,7 +35,9 @@
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
-(require 'cl)
+(if (version< emacs-version "27")
+    (require 'cl)
+  (require 'cl-macs))
 
 ;; ** Preparation
 (entropy/emacs-lazy-load-simple 'tern

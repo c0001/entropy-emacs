@@ -44,6 +44,16 @@
     (require 'cl)
   (require 'cl-macs))
 
+;; ** pdumper common
+(defun entropy/emacs-in-pdumper-procedure-p ()
+  (let (rtn)
+    (catch :exit
+      (dolist (arg command-line-args)
+        (when (string-match-p "dump-emacs-portable" arg)
+          (setq rtn t)
+          (throw :exit nil))))
+    rtn))
+
 ;; ** lazy load branch
 (defun entropy/emacs-select-x-hook ()
   (if entropy/emacs-minimal-start
@@ -86,14 +96,18 @@ in case that file does not provide any feature."
                               "' within " (format "%f" (- end-time head-time))
                               " senconds."))
              (redisplay t))))
-       (if (not entropy/emacs-custom-enable-lazy-load)
-           (add-hook (entropy/emacs-select-x-hook) #',func)
-         (defun ,adder-func ()
-           (dolist (item ,list-var)
-             (if (not (null ,adder-flag))
-                 (,adder-type item ,adder-flag ',func)
-               (,adder-type item ',func))))
-         (add-hook (entropy/emacs-select-x-hook) ',adder-func)))))
+       (cond
+        (entropy/emacs-custom-pdumper-do
+         (message "All lazy loading feature disabled in pdumper procedure")
+         (,func))
+        ((not entropy/emacs-custom-enable-lazy-load)
+         (add-hook (entropy/emacs-select-x-hook) #',func))
+        (t (defun ,adder-func ()
+             (dolist (item ,list-var)
+               (if (not (null ,adder-flag))
+                   (,adder-type item ,adder-flag ',func)
+                 (,adder-type item ',func))))
+           (add-hook (entropy/emacs-select-x-hook) ',adder-func))))))
 
 (defmacro entropy/emacs-lazy-initial-for-hook
     (hooks initial-func-suffix-name initial-var-suffix-name &rest body)
@@ -177,6 +191,39 @@ shrink trail slash, and return the parent(up level) dir."
         t
       nil)))
 
+
+;; ** package user dir config
+
+(defun entropy/emacs-package-is-upstream ()
+  "Judges whether `entropy/emacs-use-extensions-type' is based on
+`package.el'."
+  (or (eq entropy/emacs-use-extensions-type 'origin)
+      (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)))
+
+(defun entropy/emacs--set-user-package-dir-common (version)
+  "Setting `package-user-dir' based on emacs version name located
+for `user-emacs-directory'."
+  (setq package-user-dir
+        (expand-file-name
+         (concat "elpa-" version)
+         (expand-file-name entropy/emacs-ext-extensions-elpa-dir))))
+
+(defun entropy/emacs-set-package-user-dir ()
+  (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
+           (entropy/emacs-package-is-upstream))
+      (entropy/emacs--set-user-package-dir-common emacs-version)
+    (cond
+     ((and (equal emacs-version "25.2.2")
+           (entropy/emacs-package-is-upstream))
+      (entropy/emacs--set-user-package-dir-common "25.2.1"))
+     ((entropy/emacs-package-is-upstream)
+      (error "Unsupport emacs version '%s'" emacs-version))))
+
+  (when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+    (setq package-user-dir
+          (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
+                                    "_MelpaLocal")
+                            (entropy/emacs-file-path-parser package-user-dir 'parent-dir)))))
 
 ;; ** counter map list
 (defun entropy/emacs-numberic-list (list-var)
@@ -513,12 +560,6 @@ format on windows platform."
       (let ((wvol (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:" file)))
         (find-file wvol))
     (find-file file)))
-
-(defun entropy/emacs-package-is-upstream ()
-  "Judges whether `entropy/emacs-use-extensions-type' is based on
-`package.el'."
-  (or (eq entropy/emacs-use-extensions-type 'origin)
-      (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)))
 
 ;; ** provide
 (provide 'entropy-emacs-defun)
