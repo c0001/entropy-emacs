@@ -60,21 +60,8 @@
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-face-specifix)
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-modeline-specifix)
 
-;; *** Adapting to the daemon init and with customize theme choosen
-;;     
-;;     This issue refer to `https://github.com/hlissner/emacs-doom-themes/issues/125'.
-;;
-;;     For generally about, this issue brought the bad theme presentation in daemon mode of init of
-;;     emacs session.
-;; 
-(if (daemonp)
-    (add-hook 'after-make-frame-functions (lambda (frame)
-					    (when (eq (length (frame-list)) 2)
-					      (progn
-						(select-frame
-						 frame)
-						(load-theme entropy/emacs-theme-options)))))
-  
+;; *** Initialize theme and adapting to the daemon init
+(defun entropy/emacs-theme--initialize-theme ()
   (condition-case nil
       (progn
         (mapc #'disable-theme custom-enabled-themes)
@@ -97,6 +84,22 @@
             (powerline-reset))))
         (entropy/emacs-theme-load-face-specifix (symbol-name entropy/emacs-theme-options)))
     (error "Problem loading theme %s" (symbol-name entropy/emacs-theme-options))))
+
+(entropy/emacs-theme--initialize-theme)
+
+;; This issue refer to `https://github.com/hlissner/emacs-doom-themes/issues/125'.
+
+;; For generally about, this issue brought the bad theme presentation
+;; in daemon mode of init of emacs session.
+
+(when (daemonp)
+  (add-hook 'after-make-frame-functions
+            (lambda (frame)
+	      (when (eq (length (frame-list)) 2)
+		(progn
+		  (select-frame
+		   frame)
+		  (load-theme entropy/emacs-theme-options))))))
 
 ;; ** solaire mode for focus visual style
 (use-package solaire-mode
