@@ -36,7 +36,7 @@
 (require 'entropy-emacs-faces)
 
 (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
-  (customize-set-variable 'scroll-bar-mode nil)
+  (scroll-bar-mode 0)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
   (redisplay t))
@@ -72,14 +72,23 @@ the specific height and width determined by above variable you setted."
           (set-frame-width (selected-frame) width nil t)
           (set-frame-height (selected-frame) height nil t)
           (set-frame-position (selected-frame) x y)))
-      (when (and entropy/emacs-init-fpos-enable
-                 (not entropy/emacs-custom-pdumper-do))
-        (entropy/emacs-ui-set-frame-position)))
+      (when entropy/emacs-init-fpos-enable
+        (cond
+         (entropy/emacs-custom-pdumper-do
+          (add-hook 'entropy/emacs-pdumper-load-hook
+                    #'entropy/emacs-ui-set-frame-position))
+         (t
+          (entropy/emacs-ui-set-frame-position)))))
   
-  (when (and (or sys/win32p sys/linux-x-p sys/mac-x-p)
-             (not entropy/emacs-custom-pdumper-do))
-    (setq initial-frame-alist (quote ((fullscreen . maximized))))
-    (setq default-frame-alist initial-frame-alist)))
+  (when (or sys/win32p sys/linux-x-p sys/mac-x-p)
+    (cond (entropy/emacs-custom-pdumper-do
+           (add-hook 'entropy/emacs-pdumper-load-hook
+                     #'(lambda ()
+                         (setq initial-frame-alist (quote ((fullscreen . maximized))))
+                         (setq default-frame-alist initial-frame-alist))))
+          (t
+           (setq initial-frame-alist (quote ((fullscreen . maximized))))
+           (setq default-frame-alist initial-frame-alist)))))
 
 ;; ** elisp show parent
 (unless entropy/emacs-use-highlight-features
@@ -239,7 +248,6 @@ fill the space to trailling of it."
       (setq rtn (append str-fancy-obj (list rtn)))
       rtn))
 
-
   (defun entropy/emacs-ui--dashboard-create-widget ()
     "Create entropy-emacs dashboard widget using widget entry
 insert func `entropy/emacs-ui--dashboard-insert-widget-entry'."
@@ -252,7 +260,6 @@ insert func `entropy/emacs-ui--dashboard-insert-widget-entry'."
       (dolist (el widget-entries)
         (insert left-margin)
         (entropy/emacs-ui--dashboard-insert-widget-entry el))))
-
   
   (defun entropy/emacs-ui--dashboard-insert-widget-entry (args)
     " NOTE: this function was the fork of func
@@ -295,7 +302,6 @@ a face or button specification."
 				     'help-echo (startup-echo-area-message)))))
         (setq args (cdr args)))))
 
-
   (defun entropy/emacs-ui--dashboard-extract-text-logo (logo_id)
     "Extract text logo stored in file
 `entropy/emacs-dashboard-text-logo-file' and return the text logo
@@ -326,7 +332,6 @@ module (see `entropy/emacs-ui--dashboard-text-logo-align').
                                        (string-width str_line))
                                      str-list)))
         (setq rtn `((:str ,(split-string str-choice "\n") :face nil :max_len ,max_len))))))
-
   
 ;; *** main function
 
@@ -368,8 +373,6 @@ text logo module was one plist which has three keys:
 ")
          rtn))
       rtn))
-
-
   
   (defun entropy/emacs-ui--dashboard-initial-buffer ()
     "Create entroy-emacs initial buffer.
@@ -432,7 +435,6 @@ widget used func `entropy/emacs-ui--dashboard-create-widget'."
       buffer))
   (setq initial-buffer-choice #'entropy/emacs-ui--dashboard-initial-buffer)
 
-
   (defun entropy/emacs-ui--dashboard-wc-change-func ()
     "Erase and recreate initial buffer when origin window size
 was changed, the window modification detector was the variable
@@ -463,8 +465,6 @@ for adding to variable `window-size-change-functions' and hook
             (lambda ()
               (add-hook 'window-size-change-functions 'entropy/emacs-ui--dashboard-resize-hook)
               (entropy/emacs-ui--dashboard-resize-hook))))
-
-
 
 ;; ** Title
 (setq frame-title-format

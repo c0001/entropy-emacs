@@ -64,11 +64,6 @@ for entropy-emacs.")
   "Enable lazy load for entropy-emacs"
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-custom-pdumper-do nil
-  "The emacs running type indication for pdumper."
-  :type 'boolean
-  :group 'entropy/emacs-customize-fundametal)
-
 (defcustom entropy/emacs-custom-common-file (expand-file-name
                                        "custom.el"
                                        user-emacs-directory)
@@ -730,6 +725,21 @@ process-name and the cdr was the executable full path string for
 just it's name."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
+
+;; ** pdumper
+(defgroup entropy/emacs-customized-for-pdumper nil
+  "Group customized variables for pdumper charging."
+  :group 'extensions)
+
+(defcustom entropy/emacs-custom-pdumper-do nil
+  "The emacs running type indication for pdumper."
+  :type 'boolean
+  :group 'entropy/emacs-customized-for-pdumper)
+
+(defcustom entropy/emacs-do-pdumper-in-X t
+  "Whether did pdumper for gui prot."
+  :type 'boolean
+  :group 'entropy/emacs-customized-for-pdumper)
 
 ;; ** code folding group
 (defgroup entropy/emacs-code-folding nil

@@ -466,7 +466,9 @@ this variable used to patching for origin `counsel-git'.")
 
   (defun ivy-rich-buffer-icon (candidate)
     "Display buffer icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (let* ((buffer (get-buffer candidate))
              (buffer-file-name (buffer-file-name buffer))
              (major-mode (buffer-local-value 'major-mode buffer))
@@ -480,7 +482,9 @@ this variable used to patching for origin `counsel-git'.")
 
   (defun ivy-rich-file-icon (candidate)
     "Display file icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (let* ((path (file-local-name (expand-file-name candidate ivy--directory)))
              (file (file-name-nondirectory path))
              (icon (cond
@@ -507,40 +511,56 @@ this variable used to patching for origin `counsel-git'.")
 
   (defun ivy-rich-function-icon (_candidate)
     "Display function icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (all-the-icons-faicon "cube" :height 0.9 :v-adjust -0.05 :face 'all-the-icons-purple)))
 
   (defun ivy-rich-variable-icon (_candidate)
     "Display variable icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (all-the-icons-faicon "tag" :height 0.9 :v-adjust -0.05 :face 'all-the-icons-lblue)))
 
   (defun ivy-rich-symbol-icon (_candidate)
     "Display symbol icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (all-the-icons-octicon "gear" :height 0.9 :v-adjust -0.05)))
 
   (defun ivy-rich-theme-icon (_candidate)
     "Display theme icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (all-the-icons-material "palette" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue)))
 
   (defun ivy-rich-keybinding-icon (_candidate)
     "Display keybindings icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (all-the-icons-material "keyboard" :height 1.0 :v-adjust -0.2)))
 
   (defun ivy-rich-library-icon (_candidate)
     "Display library icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (all-the-icons-material "view_module" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue)))
 
   (defun ivy-rich-package-icon (_candidate)
     "Display package icons in `ivy-rich'."
-    (when (display-graphic-p)
+    (when (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))
       (all-the-icons-faicon "archive" :height 0.9 :v-adjust 0.0 :face 'all-the-icons-silver)))
 
-  (when (display-graphic-p)
+  (when (or (display-graphic-p)
+            (and entropy/emacs-custom-pdumper-do
+                 entropy/emacs-do-pdumper-in-X))
     (defun ivy-rich-bookmark-type-plus (candidate)
       (let ((filename (file-local-name (ivy-rich-bookmark-filename candidate))))
         (cond ((null filename)
@@ -553,20 +573,6 @@ this variable used to patching for origin `counsel-git'.")
                (all-the-icons-octicon "file-directory" :height 0.9 :v-adjust -0.05))
               (t (all-the-icons-icon-for-file (file-name-nondirectory filename) :height 0.9 :v-adjust -0.05)))))
     (advice-add #'ivy-rich-bookmark-type :override #'ivy-rich-bookmark-type-plus))
-
-  :init
-  (entropy/emacs-lazy-initial-advice-before
-   '(ivy-read)
-   "ivy-mode" "ivy-mode"
-   (require 'ivy)
-   (require 'all-the-icons)
-   (ivy-rich-mode +1)
-   (ivy-mode +1)
-   (setq ivy-virtual-abbreviate
-         (or (and ivy-rich-mode 'abbreviate) 'name)))
-  
-  ;; For better performance
-  (setq ivy-rich-parse-remote-buffer nil)
 
   ;; Setting tab size to 1, to insert tabs as delimiters
   (add-hook 'minibuffer-setup-hook
@@ -722,7 +728,27 @@ this variable used to patching for origin `counsel-git'.")
           (:columns
            ((ivy-rich-theme-icon)
             (ivy-rich-candidate))
-           :delimiter "\t"))))
+           :delimiter "\t")))
+
+  :init
+  (defun entropy/emacs-ivy--enable-ivy-rich-common ()
+    (require 'ivy)
+    (require 'all-the-icons)
+    (ivy-rich-mode +1)
+    (ivy-mode +1)
+    (setq ivy-virtual-abbreviate
+          (or (and ivy-rich-mode 'abbreviate) 'name)))
+
+  (cond
+   (entropy/emacs-custom-pdumper-do
+    (add-hook 'entropy/emacs-pdumper-load-hook
+              #'entropy/emacs-ivy--enable-ivy-rich-common))
+   (t
+    (entropy/emacs-ivy--enable-ivy-rich-common)))
+
+  :config
+  ;; For better performance
+  (setq ivy-rich-parse-remote-buffer nil))
 
 
 

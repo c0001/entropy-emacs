@@ -56,8 +56,6 @@
 ;;     using modern one , you can choose spaceline which gives you the
 ;;     similar sensitive as spacemacs.
 
-(setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style)
-
 ;; *** eyebrowse adapting
 (defvar entropy/emacs-modeline--mdl-egroup-selected-window (frame-selected-window))
 (defun entropy/emacs-modeline--mdl-egroup-set-selected-window (&rest _)
@@ -177,12 +175,6 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   :commands (doom-modeline-mode
              doom-modeline-refresh-bars)
   :init
-
-  (setq doom-modeline-height 10
-        doom-modeline-bar-width 1
-        doom-modeline-buffer-file-name-style 'truncate-all
-        doom-modeline-major-mode-color-icon t)
-  
   (defun entropy/emacs-doom-mdlini-after-advice (&rest _rest)
     "Advice for doom-modeline-mode."
     (setq doom-modeline-buffer-file-name-style 'truncate-all)
@@ -197,6 +189,13 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (advice-add 'doom-modeline-mode :after #'entropy/emacs-doom-mdlini-after-advice))
   
   :config
+  
+  (setq doom-modeline-height 10
+        doom-modeline-bar-width 1
+        doom-modeline-buffer-file-name-style 'truncate-all
+        doom-modeline-major-mode-color-icon t
+        doom-modeline-icon (or (display-graphic-p) entropy/emacs-custom-pdumper-do))  
+
   (defun entropy/emacs-modeline--dml-file-icon-around-advice (orig-func &rest orig-args)
     (apply orig-func orig-args)
     (when (equal (buffer-name) entropy/emacs-dashboard-buffer-name)
@@ -326,6 +325,10 @@ with emacs, see its doc-string for details."
         (run-with-idle-timer 1 t #'entropy/emacs-modeline--dml-afc-monitior)))
 
 ;; **** load conditions
+(defvar entropy/emacs-modeline--mdl-init-caller nil
+  "The form for enable modeline which obtained by
+`entropy/emacs-modeline--mdl-init'.")
+
 (defun entropy/emacs-modeline--mdl-init ()
   "Init modeline style specified by `entropy/emacs-modeline-style'.
 
@@ -337,12 +340,14 @@ with emacs, see its doc-string for details."
    ((string= entropy/emacs-modeline-style "spaceline")
     (setq powerline-default-separator (if window-system 'arrow 'utf-8))
     (setq powerline-image-apple-rgb sys/mac-x-p)
-    (spaceline-spacemacs-theme))
+    (setq entropy/emacs-modeline--mdl-init-caller
+          '(spaceline-spacemacs-theme)))
 
    ;; init sapceline-icons
    ((and (string= entropy/emacs-modeline-style "spaceline-icons")
          (not (string= emacs-version "25.3.1")))
-    (spaceline-all-the-icons-theme))
+    (setq entropy/emacs-modeline--mdl-init-caller
+          '(spaceline-all-the-icons-theme)))
 
    ((and (string= entropy/emacs-modeline-style "spaceline-icons")
          (string= emacs-version "25.3.1"))
@@ -354,18 +359,20 @@ with emacs, see its doc-string for details."
 
    ;; init powerline
    ((string= entropy/emacs-modeline-style "powerline")
-    (powerline-default-theme))
+    (setq entropy/emacs-modeline--mdl-init-caller
+          '(powerline-default-theme)))
 
    ;; init-origin style
    ((string= entropy/emacs-modeline-style "origin")
     (entropy/emacs-lazy-load-simple 'eyebrowse
-      (entropy/emacs-mode-line-origin-theme)))
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(entropy/emacs-mode-line-origin-theme))))
 
    ;; init doom-modeline
    ((and (string= entropy/emacs-modeline-style "doom")
-         (not (version= emacs-version "25.3.1"))
-         (display-graphic-p))
-    (doom-modeline-mode 1))
+         (not (version= emacs-version "25.3.1")))
+    (setq entropy/emacs-modeline--mdl-init-caller
+          '(doom-modeline-mode 1)))
 
    ;; if detective init doom-modline in emacs-25.3.1 then warning.
    ((and (string= entropy/emacs-modeline-style "doom")
@@ -376,18 +383,23 @@ with emacs, see its doc-string for details."
     (setq entropy/emacs-modeline-style "origin")
     (entropy/emacs-modeline--mdl-init))
 
-   ((and (string= entropy/emacs-modeline-style "doom")
-         (not (display-graphic-p)))
-    (warn "You can not using doom-modeline in non-graphic emacs session.")
-    (setq entropy/emacs-modeline-style "origin")
-    (entropy/emacs-modeline--mdl-init))
-
    ;; any other type was unsupport
    (t (warn (format "entropy/emacs-modeline-style's value '%s' is invalid." entropy/emacs-modeline-style))
       (setq entropy/emacs-modeline-style "origin")
-      (entropy/emacs-modeline--mdl-init))))
+      (entropy/emacs-modeline--mdl-init)))
+  (setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style))
 
 (entropy/emacs-modeline--mdl-init)
+
+(let ((caller `(lambda ()
+                 ,entropy/emacs-modeline--mdl-init-caller)))
+  (cond
+   (entropy/emacs-custom-pdumper-do
+    (add-hook 'entropy/emacs-pdumper-load-hook
+              caller))
+   (t
+    (funcall caller))))
+
 
 ;; ** toggle function
 (when entropy/emacs-enable-modeline-toggle

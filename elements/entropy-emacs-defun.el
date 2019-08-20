@@ -545,11 +545,16 @@ display ugly and small in info-mode."
 (defun entropy/emacs-theme-adapted-to-solaire ()
   "Judge whether current theme loaded adapted to `solaire-mode',
 return t otherwise for nil. "
-  (let ((theme_cur (symbol-name entropy/emacs-theme-sticker)))
-    (catch :exit
-      (dolist (regex entropy/emacs-solaire-themes-regex-list)
-        (when (ignore-errors (string-match-p regex theme_cur))
-          (throw :exit t))))))
+  (let ((theme_cur (ignore-errors (symbol-name entropy/emacs-theme-sticker))))
+    ;; Condition judge for unconditional occurrence for theme loading,
+    ;; seem as in pdumper session.
+    (if (and (stringp theme_cur)
+             (not (eql 0 (length theme_cur))))
+        (catch :exit
+          (dolist (regex entropy/emacs-solaire-themes-regex-list)
+            (when (ignore-errors (string-match-p regex theme_cur))
+              (throw :exit t))))
+      nil)))
 
 ;; ** miscellaneous
 (defun entropy/emacs-transfer-wvol (file)

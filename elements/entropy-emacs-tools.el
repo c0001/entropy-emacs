@@ -1788,7 +1788,7 @@ development web-browser."
          ("C-<f8>" . entropy/emacs-tools-neotree--close))
 
   :init
-  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)
+  (setq neo-theme (if (or (display-graphic-p) entropy/emacs-custom-pdumper-do) 'icons 'arrow)
         neo-autorefresh t
         neo-hidden-regexp-list nil
         neo-auto-indent-point t)

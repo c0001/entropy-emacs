@@ -431,7 +431,10 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
    ((not entropy/emacs-minimal-start)
     (entropy/emacs--init-X))
    (entropy/emacs-minimal-start
-    (entropy/emacs--init-M))))
+    (entropy/emacs--init-M)))
+  (when entropy/emacs-custom-pdumper-do
+    (setq entropy/emacs-pdumper-load-hook
+          (reverse entropy/emacs-pdumper-load-hook))))
 
 
 (require 'entropy-emacs-ext)

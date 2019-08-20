@@ -113,10 +113,17 @@
     (transient-mark-mode +1)
     (setq entropy/emacs-custom-pdumper-do nil)
     (setq load-path entropy/emacs-pdumper-pre-lpth)
+    
     ;; TODO ...body
+    
+    (message "Initializing pdumper session ...")
     (run-hooks 'entropy/emacs-pdumper-load-hook)
+    (when scroll-bar-mode
+      (scroll-bar-mode 0))
+    (message "Initialized pdumper session")
     (when entropy/emacs-pdumper--rec-timer
-      (cancel-timer entropy/emacs-pdumper--rec-timer))
+      (cancel-timer entropy/emacs-pdumper--rec-timer)
+      (setq entropy/emacs-custom-pdumper-do nil))
     (defun entropy/emacs-pdumper--recovery ()
       nil)))
 
