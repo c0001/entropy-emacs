@@ -62,8 +62,12 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
 
-(when (member "--eval" command-line-args)
-  (setq entropy/emacs-custom-pdumper-do t))
+(let ((args-filter (mapcar (lambda (x) (string-match-p "dump-emacs-pdumper" x))
+                           command-line-args)))
+  (catch :exit
+    (when (member t args-filter)
+      (setq entropy/emacs-custom-pdumper-do t)
+      (throw :exit nil))))
 
 (when (and entropy/emacs-custom-pdumper-do
            entropy/emacs-custom-enable-lazy-load)
@@ -279,6 +283,8 @@ Emacs will auto close after 6s ......")
   ;; end
   (advice-remove 'require #'entropy/emacs--require-loading)
   (advice-remove 'redisplay #'entropy/emacs--initial-redisplay-advice)
+  (setq entropy/emacs-init-X-hook
+        (reverse entropy/emacs-init-X-hook))
   (run-hooks 'entropy/emacs-init-X-hook)
   (defun entropy/emacs-X-enable ()
     (interactive)
@@ -326,6 +332,8 @@ Emacs will auto close after 6s ......")
   ;; ends for minimal start
   (advice-remove 'require #'entropy/emacs--require-loading)
   (advice-remove 'redisplay #'entropy/emacs--initial-redisplay-advice)
+  (setq entropy/emacs-init-mini-hook
+        (reverse entropy/emacs-init-mini-hook))
   (run-hooks 'entropy/emacs-init-mini-hook)
   (defun entropy/emacs-M-enable ()
     (interactive)
