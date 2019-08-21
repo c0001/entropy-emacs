@@ -1,16 +1,12 @@
-;;; entropy-emacs-pdumper.el --- procedure wrapper for pdumper process
+;;; entropy-emacs-pdumper.el --- procedure wrapper for pdumper process of entropy-emacs
 ;;
-;; * Copyright (C) date  author
+;; * Copyright (C) 20190821  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           url
-;; Package-Version: package-version
-;; Version:       file-version
-;; Created:       year-month-date hour:min:sec
-;; Keywords:      kewords-1, kewords-2, kewords-3,
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-pdumper.el
 ;; Compatibility: GNU Emacs emacs-version;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "27") (cl-lib "0.5"))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,12 +23,18 @@
 ;; #+END_EXAMPLE
 ;; 
 ;; * Commentary:
-;; 
-;; commentary
-;; 
+;;
+;; Pre loading procedure for pdumper procedure of =entropy-emacs=.
+;;
 ;; * Configuration:
-;; 
-;; configuration
+;;
+;; Designed for =entropy-emacs= only without inidividually using
+;; warranty.
+;;
+;; Sets of functions used as library came from other designation of
+;; =entropy-emacs=, thus correctly extracting theme from that was
+;; necessary for hacking.
+;;
 ;; 
 ;; * Code:
 ;; ** require
@@ -46,13 +48,22 @@
 
 ;; ** defvar
 (defvar entropy/emacs-pdumper--origin-load-path (copy-tree load-path))
-(defvar entropy/emacs-pdumper-upstream-els nil)
-(defvar entropy/emacs-pdumper-upstream-top-dir
-  (progn (entropy/emacs-set-package-user-dir)
-         package-user-dir))
+(defvar entropy/emacs-pdumper--upstream-els nil)
+(defvar entropy/emacs-pdumper--upstream-top-dir
+  (if (entropy/emacs-package-is-upstream)
+      (progn (entropy/emacs-set-package-user-dir)
+             package-user-dir)
+    (cond
+     ((eq entropy/emacs-use-extensions-type 'submodules)
+      (error "Pdumper can not dump extensions with submodule
+archived option of `entropy/emacs-use-extensions-type'"))
+     (t (error "Wrong type of extension type chosen '%s' for pdumper"
+               entropy/emacs-use-extensions-type)))))
 
 ;; timers
-(defvar entropy/emacs-pdumper--rec-timer nil)
+(defvar entropy/emacs-pdumper--rec-timer nil
+  "Timer after load pdumper session used for initialize rest
+configuration.")
 
 ;; ** library
 ;; *** macro
@@ -69,7 +80,7 @@
 
 ;; *** extract files
 (defun entropy/emacs-pdumper--extract-upstream-packages ()
-  (let* ((top-dir entropy/emacs-pdumper-upstream-top-dir)
+  (let* ((top-dir entropy/emacs-pdumper--upstream-top-dir)
          (sub-dirs (entropy/emacs-list-subdir top-dir))
          rtn)
     (dolist (el sub-dirs)
@@ -89,7 +100,7 @@
               (push fpath rtn))))))
     (unless rtn
       (error "Non upstream installed!"))
-    (setq entropy/emacs-pdumper-upstream-els rtn)))
+    (setq entropy/emacs-pdumper--upstream-els rtn)))
 
 (defun entropy/emacs-pdumper--extract-org-packages ()
   (let* ((org-dir (file-name-directory (locate-library "org")))
@@ -133,7 +144,7 @@
 (defun entropy/emacs-pdumper--load-upstream ()
   (let ((els (entropy/emacs-pdumper--extract-upstream-packages)))
     (entropy/emacs-pdumper--with-load-path
-     entropy/emacs-pdumper-upstream-top-dir
+     entropy/emacs-pdumper--upstream-top-dir
      (dolist (file els)
        (let* ((feature-name (file-name-base
                              (entropy/emacs-file-path-parser
@@ -155,7 +166,7 @@
 (entropy/emacs-pdumper--load-upstream)
 (setq load-path (append
                  (entropy/emacs-list-subdir
-                  entropy/emacs-pdumper-upstream-top-dir)
+                  entropy/emacs-pdumper--upstream-top-dir)
                  entropy/emacs-pdumper--origin-load-path)
       entropy/emacs-pdumper-pre-lpth (copy-tree load-path)
       entropy/emacs-pdumper--rec-timer

@@ -1,14 +1,10 @@
-;;; package-name --- package-description
+;;; entropy-emacs-wc.el --- entropy emacs window configuration
 ;;
-;; * Copyright (C) date  author
+;; * Copyright (C) 20190821 Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           url
-;; Package-Version: package-version
-;; Version:       file-version
-;; Created:       year-month-date hour:min:sec
-;; Keywords:      kewords-1, kewords-2, kewords-3,
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-wc.el
 ;; Compatibility: GNU Emacs emacs-version;
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; 
@@ -27,12 +23,20 @@
 ;; #+END_EXAMPLE
 ;; 
 ;; * Commentary:
-;; 
-;; commentary
-;; 
+;;
+;; Emacs window referred configuration sepcified for =entropy-emacs=.
+;;
+;; This configuration aimed to provide batch of window operation
+;; optimized and injecting the window group for work-around.
+;;
 ;; * Configuration:
-;; 
-;; configuration
+;;
+;; Designed for =entropy-emacs= only without inidividually using
+;; warranty.
+;;
+;; Sets of functions used as library came from other designation of
+;; =entropy-emacs=, thus correctly extracting theme from that was
+;; necessary for hacking.
 ;; 
 ;; * Code:
 

@@ -163,7 +163,89 @@ Unload it when the first init is done."
   (outshine-define-key outshine-mode-map
     (kbd "<backtab>") 'outshine-cycle-buffer
     (or (outline-on-heading-p) (bobp)
-        (error "Using it out of the headline was not supported."))))
+        (error "Using it out of the headline was not supported.")))
+
+  (defun entropy/emacs-structure--outshine-advice-1 (orig-func &rest orig-args)
+    (let ((rtn (apply orig-func orig-args)))
+      (when (string-match-p " +$" rtn)
+        (setq
+         rtn
+         (replace-regexp-in-string
+          "\\( +\\)$" "" rtn)))
+      rtn))
+  
+  (advice-add 'outshine-calc-outline-regexp
+              :around
+              #'entropy/emacs-structure--outshine-advice-1)
+
+  (defun entropy/emacs-structure--outshine-fontify-headlines (orig-func &rest orig-args)
+    "Calculate heading regexps for font-lock mode."
+    (let* ((outline-regexp (car orig-args))
+           (outline-rgxp (substring outline-regexp 0 -7))
+           (heading-1-regexp
+            (format "%s%s%s%s"
+                    outline-rgxp
+                    "\\{1\\}\\(.*"
+                    (if outshine-fontify-whole-heading-line "\n?" "")
+                    "\\)"))
+           (heading-2-regexp
+            (format "%s%s%s%s"
+                    outline-rgxp
+                    "\\{2\\}\\(.*"
+                    (if outshine-fontify-whole-heading-line "\n?" "")
+                    "\\)"))
+           (heading-3-regexp
+            (format "%s%s%s%s"
+                    outline-rgxp
+                    "\\{3\\}\\(.*"
+                    (if outshine-fontify-whole-heading-line "\n?" "")
+                    "\\)"))
+           (heading-4-regexp
+            (format "%s%s%s%s"
+                    outline-rgxp
+                    "\\{4\\}\\(.*"
+                    (if outshine-fontify-whole-heading-line "\n?" "")
+                    "\\)"))
+           (heading-5-regexp
+            (format "%s%s%s%s"
+                    outline-rgxp
+                    "\\{5\\}\\(.*"
+                    (if outshine-fontify-whole-heading-line "\n?" "")
+                    "\\)"))
+           (heading-6-regexp
+            (format "%s%s%s%s"
+                    outline-rgxp
+                    "\\{6\\}\\(.*"
+                    (if outshine-fontify-whole-heading-line "\n?" "")
+                    "\\)"))
+           (heading-7-regexp
+            (format "%s%s%s%s"
+                    outline-rgxp
+                    "\\{7\\}\\(.*"
+                    (if outshine-fontify-whole-heading-line "\n?" "")
+                    "\\)"))
+           (heading-8-regexp
+            (format "%s%s%s%s"
+                    outline-rgxp
+                    "\\{8\\}\\(.*"
+                    (if outshine-fontify-whole-heading-line "\n?" "")
+                    "\\)"))
+           (font-lock-new-keywords
+            `((,heading-1-regexp 1 'outshine-level-1 t)
+              (,heading-2-regexp 1 'outshine-level-2 t)
+              (,heading-3-regexp 1 'outshine-level-3 t)
+              (,heading-4-regexp 1 'outshine-level-4 t)
+              (,heading-5-regexp 1 'outshine-level-5 t)
+              (,heading-6-regexp 1 'outshine-level-6 t)
+              (,heading-7-regexp 1 'outshine-level-7 t)
+              (,heading-8-regexp 1 'outshine-level-8 t))))
+
+      (add-to-list 'outshine-font-lock-keywords font-lock-new-keywords)
+      (font-lock-add-keywords nil font-lock-new-keywords)
+      (outshine-font-lock-flush)))
+  (advice-add 'outshine-fontify-headlines
+              :around
+              #'entropy/emacs-structure--outshine-fontify-headlines))
 
 ;; * provide
 (provide 'entropy-emacs-structure)

@@ -44,6 +44,99 @@
     (require 'cl)
   (require 'cl-macs))
 
+;; ** common library
+;; *** file and directories
+(defun entropy/emacs-list-dir-lite (dir-root)
+  "Return directory list with type of whichever file or
+directory."
+  (let (rtn-full rtn-lite rtn-attr)
+    (when (and (file-exists-p dir-root)
+               (file-directory-p dir-root))
+      (setq rtn-full (directory-files dir-root t))
+      (dolist (el rtn-full)
+        (if (not (string-match-p "\\(\\.$\\|\\.\\.$\\)" el))
+            (push el rtn-lite)))
+      (if rtn-lite
+          (progn
+            (dolist (el rtn-lite)
+              (if (file-directory-p el)
+                  (push `("D" . ,el) rtn-attr)
+                (push `("F" . ,el) rtn-attr)))
+            rtn-attr)
+        nil))))
+
+
+(defun entropy/emacs-list-subdir (dir-root)
+  "List subdir of root dir DIR-ROOT"
+  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
+        (rtn nil))
+    (if dirlist
+        (progn
+          (dolist (el dirlist)
+            (if (equal "D" (car el))
+                (push (cdr el) rtn)))
+          (if rtn
+              rtn
+            nil))
+      nil)))
+
+(defun entropy/emacs-file-path-parser (file-name type)
+  "The file-path for 'entropy-emacs, functions for get base-name,
+shrink trail slash, and return the parent(up level) dir."
+  (let (rtn (fname (replace-regexp-in-string "\\(\\\\\\|/\\)$" "" file-name)))
+    (cl-case type
+      ('non-trail-slash
+       (setq rtn fname))
+      ('file-name
+       (setq rtn
+             (replace-regexp-in-string
+              "^.*\\(\\\\\\|/\\)\\([^ /\\\\]+\\)$"
+              "\\2"
+              fname)))
+      ('parent-dir
+       (setq rtn (file-name-directory fname))))
+    rtn))
+
+(defun entropy/emacs-buffer-exists-p (buffername)
+  "Judge whether buffer BUFFERNAME existed!"
+  (let* ((bfl (mapcar 'buffer-name (buffer-list))))
+    (if (member
+         t
+         (mapcar #'(lambda (bname)
+                     (if (string= buffername bname) t nil))
+                 bfl))
+        t
+      nil)))
+
+
+;; *** counter map list
+(defun entropy/emacs-numberic-list (list-var)
+  "Return list element mapped with numberic prefix which concated
+with '0' as alignment state."
+  (let* ((l-len (length list-var))
+         (register l-len)
+         (counter 0)
+         (step 1)
+         (zero-func
+          (lambda (counter str)
+            (let ((step (length str))
+                   (rtn str))
+              (while (< step counter)
+                (setq rtn (concat "0" rtn)
+                      step (+ 1 step)))
+              rtn)))
+         rtn)
+    (while (not (eq 0 register))
+      (setq register (/ register 10)
+            counter (+ 1 counter)))
+    (dolist (el list-var)
+      (push (cons (funcall zero-func counter (number-to-string step))
+                  el)
+            rtn)
+      (setq step (+ 1 step)))
+    (reverse rtn)))
+
+
 ;; ** pdumper common
 (defun entropy/emacs-in-pdumper-procedure-p ()
   (let (rtn)
@@ -128,71 +221,12 @@ in case that file does not provide any feature."
    :before
    body))
 
-;; ** file and directories
-(defun entropy/emacs-list-dir-lite (dir-root)
-  "Return directory list with type of whichever file or
-directory."
-  (let (rtn-full rtn-lite rtn-attr)
-    (when (and (file-exists-p dir-root)
-               (file-directory-p dir-root))
-      (setq rtn-full (directory-files dir-root t))
-      (dolist (el rtn-full)
-        (if (not (string-match-p "\\(\\.$\\|\\.\\.$\\)" el))
-            (push el rtn-lite)))
-      (if rtn-lite
-          (progn
-            (dolist (el rtn-lite)
-              (if (file-directory-p el)
-                  (push `("D" . ,el) rtn-attr)
-                (push `("F" . ,el) rtn-attr)))
-            rtn-attr)
-        nil))))
-
-
-(defun entropy/emacs-list-subdir (dir-root)
-  "List subdir of root dir DIR-ROOT"
-  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
-        (rtn nil))
-    (if dirlist
-        (progn
-          (dolist (el dirlist)
-            (if (equal "D" (car el))
-                (push (cdr el) rtn)))
-          (if rtn
-              rtn
-            nil))
-      nil)))
-
-(defun entropy/emacs-file-path-parser (file-name type)
-  "The file-path for 'entropy-emacs, functions for get base-name,
-shrink trail slash, and return the parent(up level) dir."
-  (let (rtn (fname (replace-regexp-in-string "\\(\\\\\\|/\\)$" "" file-name)))
-    (cl-case type
-      ('non-trail-slash
-       (setq rtn fname))
-      ('file-name
-       (setq rtn
-             (replace-regexp-in-string
-              "^.*\\(\\\\\\|/\\)\\([^ /\\\\]+\\)$"
-              "\\2"
-              fname)))
-      ('parent-dir
-       (setq rtn (file-name-directory fname))))
-    rtn))
-
-(defun entropy/emacs-buffer-exists-p (buffername)
-  "Judge whether buffer BUFFERNAME existed!"
-  (let* ((bfl (mapcar 'buffer-name (buffer-list))))
-    (if (member
-         t
-         (mapcar #'(lambda (bname)
-                     (if (string= buffername bname) t nil))
-                 bfl))
-        t
-      nil)))
-
-
 ;; ** package user dir config
+
+(defun entropy/emacs--guard-ext-use-type ()
+  (unless (member entropy/emacs-use-extensions-type
+                  '(origin submodules submodules-melpa-local))
+    (error "Invalid value for `entropy/emacs-use-extensions-type'")))
 
 (defun entropy/emacs-package-is-upstream ()
   "Judges whether `entropy/emacs-use-extensions-type' is based on
@@ -209,6 +243,7 @@ for `user-emacs-directory'."
          (expand-file-name entropy/emacs-ext-extensions-elpa-dir))))
 
 (defun entropy/emacs-set-package-user-dir ()
+  (entropy/emacs--guard-ext-use-type)
   (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
            (entropy/emacs-package-is-upstream))
       (entropy/emacs--set-user-package-dir-common emacs-version)
@@ -218,40 +253,11 @@ for `user-emacs-directory'."
       (entropy/emacs--set-user-package-dir-common "25.2.1"))
      ((entropy/emacs-package-is-upstream)
       (error "Unsupport emacs version '%s'" emacs-version))))
-
   (when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
     (setq package-user-dir
           (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
                                     "_MelpaLocal")
                             (entropy/emacs-file-path-parser package-user-dir 'parent-dir)))))
-
-;; ** counter map list
-(defun entropy/emacs-numberic-list (list-var)
-  "Return list element mapped with numberic prefix which concated
-with '0' as alignment state."
-  (let* ((l-len (length list-var))
-         (register l-len)
-         (counter 0)
-         (step 1)
-         (zero-func
-          (lambda (counter str)
-            (let ((step (length str))
-                   (rtn str))
-              (while (< step counter)
-                (setq rtn (concat "0" rtn)
-                      step (+ 1 step)))
-              rtn)))
-         rtn)
-    (while (not (eq 0 register))
-      (setq register (/ register 10)
-            counter (+ 1 counter)))
-    (dolist (el list-var)
-      (push (cons (funcall zero-func counter (number-to-string step))
-                  el)
-            rtn)
-      (setq step (+ 1 step)))
-    (reverse rtn)))
-
 
 ;; ** language environment set
 (defun entropy/emacs-toggle-utf-8-and-locale (&optional cond)

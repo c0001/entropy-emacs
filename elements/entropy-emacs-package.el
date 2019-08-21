@@ -36,7 +36,7 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
 
-;; ** main
+;; ** Specify `package-user-dir'
 (entropy/emacs-set-package-user-dir)
 
 ;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
@@ -50,16 +50,16 @@
       (add-hook 'after-init-hook #'package--save-selected-packages))))
 
 ;;
-;; ELPA: refer to https://elpa.emacs-china.org/
+;; ** ELPA: refer to https://elpa.emacs-china.org/
 ;;
-(defvar-local package-archives-list '(melpa emacs-china tuna tencent))
+(defvar-local entropy/emacs-package--package-archives-list '(melpa emacs-china tuna tencent))
 
 (defun entropy/emacs-package-set-package-archive-location (archives)
   "Switch to specific package ARCHIVES repository."
   (interactive
    (list
     (intern (completing-read "Switch to archives: "
-                             package-archives-list))))
+                             entropy/emacs-package--package-archives-list))))
   (cond
    ((eq archives 'melpa)
     (setq package-archives '(("gnu"   . "http://elpa.gnu.org/packages/")
@@ -88,7 +88,7 @@
 (unless (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
   (entropy/emacs-package-set-package-archive-location entropy/emacs-package-archive-repo))
 
-;; Initialize packages
+;; ** Initialize packages
 (when (and (entropy/emacs-package-is-upstream)
            (not entropy/emacs-custom-pdumper-do))
   (unless (version< emacs-version "27")
@@ -97,14 +97,14 @@
   (package-initialize)
   (message "Custom packages initializing done!"))
 
-;; Format package-gnupghome-dir format for Msys2
+;; ** Format package-gnupghome-dir format for Msys2
 (when (and entropy/emacs-wsl-enable
            entropy/emacs-wsl-apps
            (executable-find "gpg")
            (string-match-p "^.:/.*usr/bin" (executable-find "gpg")))
   (setq package-gnupghome-dir nil))
 
-;; Install entropy-emacs pre installed packages
+;; ** Install entropy-emacs pre installed packages
 (when (entropy/emacs-package-is-upstream)
   (require 'entropy-emacs-package-requirements)
   (let ((package-check-signature nil))
@@ -116,6 +116,8 @@
           (package-refresh-contents)
           (ignore-errors (package-install package)))))))
 
+
+;; ** Required by `use-package'
 (eval-when-compile
   (require 'use-package))
 
@@ -129,11 +131,10 @@
 (setq use-package-expand-minimally nil)
 (setq use-package-enable-imenu-support t)
 
-;; Required by `use-package'
 (require 'diminish)
 (require 'bind-key)
 
-;; Initialization benchmark
+;; ** Initialization benchmark
 (when entropy/emacs-initialize-benchmark-enable
   (use-package benchmark-init
     :init
@@ -141,6 +142,7 @@
     ;; (add-hook 'after-init-hook #'benchmark-init/deactivate)
     ))
 
+;; * Provide 
 (provide 'entropy-emacs-package)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

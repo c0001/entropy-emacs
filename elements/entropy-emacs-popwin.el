@@ -1,16 +1,12 @@
-;;; package-name --- package-description
+;;; entropy-emacs-popwin.el --- window or buffer popuped feature for 'entropy-emacs'
 ;;
-;; * Copyright (C) date  author
+;; * Copyright (C) 20190821  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           url
-;; Package-Version: package-version
-;; Version:       file-version
-;; Created:       year-month-date hour:min:sec
-;; Keywords:      kewords-1, kewords-2, kewords-3,
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-popwin.el
 ;; Compatibility: GNU Emacs emacs-version;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,12 +23,24 @@
 ;; #+END_EXAMPLE
 ;; 
 ;; * Commentary:
-;; 
-;; commentary
-;; 
+;;
+;; Using `shackle-mode' and `popwin-mode' to manage the buffer or
+;; window popuping feature, detailes specific for =entropy-emacs=.
+;;
+;; Let's say that, the temporally buffer or window attaching during
+;; the working with emacs was frequently and indeedly useful, also
+;; the 'temporally' meaning that user can benefitted burry them with
+;; =C-g= keybing which was the `keyboard-quit' command built-in of
+;; emacs.
+;;
 ;; * Configuration:
-;; 
-;; configuration
+;;
+;; Designed for =entropy-emacs= only without inidividually using
+;; warranty.
+;;
+;; Sets of functions used as library came from other designation of
+;; =entropy-emacs=, thus correctly extracting theme from that was
+;; necessary for hacking.
 ;; 
 ;; * Code:
 ;; ** popwin-mode

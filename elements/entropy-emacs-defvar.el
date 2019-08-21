@@ -42,7 +42,18 @@ specific browser to visualize current file.")
 (defvar entropy/emacs-gc-threshold-basic 20000000
   "The basic thredshold for the growth for `gc-cons-threshold'")
 
-(defvar entropy/emacs-pdumper-pre-lpth nil)
+(defvar entropy/emacs-pdumper-pre-lpth nil
+  "The fully preserved `load-path' for pdumper session, this
+variable is assigned while pdumper procedure triggered, append
+emacs internal load path and the subdirs of
+`entropy/emacs-ext-extensions-elpa-dir' (i.e. the current
+`package-user-dir' specified by what you settng for
+`entropy/emacs-use-extensions-type').
+
+Note that the entorpy-emacs just use the malpa-local type of
+`entropy/emacs-use-extensions-type' to dumping as, thus the
+submodules pre-loading is not supported for entropy-emacs
+pdumper feature.")
 
 (defvar entropy/emacs-pdumper-load-hook nil)
 
