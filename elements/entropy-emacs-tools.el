@@ -1899,7 +1899,8 @@ Globally close neotree buffer while selected window was
 
 (use-package visual-ascii-mode
   :commands (global-visual-ascii-mode visual-ascii-mode)
-  :hook ((help-mode . visual-ascii-mode)))
+  :bind (:map help-mode-map
+              ("v" . visual-ascii-mode)))
 
 ;; * provide
 (provide 'entropy-emacs-tools)
