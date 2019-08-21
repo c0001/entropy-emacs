@@ -31,6 +31,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; * Code:
+;; ** require
+(require 'entropy-emacs-defcustom)
+
 ;; ** preface
 (defun entropy/emacs-defconst--in-pdumper-procedure-p ()
   (let (rtn)

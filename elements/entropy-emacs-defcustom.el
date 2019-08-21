@@ -41,7 +41,6 @@
 ;;
 ;; * Code:
 ;; ** require
-(require 'entropy-emacs-const)
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))

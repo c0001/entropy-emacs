@@ -55,23 +55,28 @@
 ;; 
 ;; * Code:
 ;; ** Require
-;; *** load core library
-(require 'entropy-emacs-custom)
-(require 'entropy-emacs-const)
-(require 'entropy-emacs-defvar)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defun)
 
-(let ((args-filter (mapcar (lambda (x) (string-match-p "dump-emacs-pdumper" x))
+;; *** customization read
+(require 'entropy-emacs-defcustom)
+
+(let ((args-filter (mapcar (lambda (x) (string-match-p "dump-emacs-portable" x))
                            command-line-args)))
   (catch :exit
-    (when (member t args-filter)
-      (setq entropy/emacs-custom-pdumper-do t)
-      (throw :exit nil))))
+    (dolist (filter args-filter)
+      (when (not (null filter))
+        (setq entropy/emacs-custom-pdumper-do t)
+        (throw :exit nil)))))
 
 (when (and entropy/emacs-custom-pdumper-do
            entropy/emacs-custom-enable-lazy-load)
   (setq entropy/emacs-custom-enable-lazy-load nil))
+
+(require 'entropy-emacs-custom)
+
+;; *** load core library
+(require 'entropy-emacs-const)
+(require 'entropy-emacs-defvar)
+(require 'entropy-emacs-defun)
 
 ;; Increase the default gc-cons-percentage for more smooth typing
 ;; experience
