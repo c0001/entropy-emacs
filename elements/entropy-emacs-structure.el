@@ -132,7 +132,8 @@
   (("C-<tab>" . outshine-cycle-buffer)
    :map org-mode-map
    ("C-c M-t" . nil)
-   ("C-c M-e" . nil))
+   ("C-c M-e" . nil)
+   ("C-c M-p" . nil))
   
   :init
 
