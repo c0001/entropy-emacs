@@ -200,7 +200,7 @@
 ;; on windows platform, darwin and linux are using ~shell-quote-argument~
 ;; and ~xdg-open~ routines respectively for as Thus.
 ;;
-;; *Limitation on windows platform:*
+;; ** Limitation on windows platform:*
 ;;
 ;; In windows, the decoding method was using the one called =code pages=
 ;; which not compatible with UNIX-LIKE platform which also using one
@@ -429,11 +429,11 @@ procedure who don't want to be as the state as what."
 
 (defun entropy/open-with--open-file-plist (file-plist)
   (let ((file-plistp (entropy/cl-plistp file-plist))
-        caller $file-pattern)
+        caller $file-pattern file-path)
     (cond
      (file-plistp
       (setq caller (plist-get file-plist :caller)
-            $file-pattern (plist-get file-plist :file-pattern)
+            $file-pattern (expand-file-name (plist-get file-plist :file-pattern))
             open-with-arg (plist-get file-plist :open-with-arg))
       (cond
        ((entropy/open-with--on-win32)
@@ -444,16 +444,17 @@ procedure who don't want to be as the state as what."
        ((eq system-type 'darwin)
         (shell-command (concat "open " $file-pattern)))))
      ((null file-plistp)
+      (setq file-path (expand-file-name file-plist))
       (cond
        ((entropy/open-with--on-win32)
-        (w32-shell-execute "open" file-plist))
+        (w32-shell-execute "open" file-path))
        ((eq system-type 'gnu/linux)
         (let ((process-connection-type nil))
-          (start-process "" nil "xdg-open" file-plist)))
+          (start-process "" nil "xdg-open" file-path)))
        ((eq system-type 'darwin)
-        (shell-command (concat "open " file-plist))))
+        (shell-command (concat "open " file-path))))
       (unless (null entropy/open-with-type-list)
-        (message "Can not match any open with type for file '%s'" file-plist))))))
+        (message "Can not match any open with type for file '%s'" file-path))))))
 
 (defun entropy/open-with-match-open (files)
   "This function be used for `entropy/open-with-dired-open' and
@@ -525,8 +526,9 @@ Note: this func redirected `default-directory' as
             (if redop
                 (entropy/open-with-port t)
               (error "Abort operation.")))))
-    (if filename
-        (setq filename (entropy/open-with--sudo-file-name-predicate filename))
+    (if (and filename
+             (setq filename
+                   (entropy/open-with--sudo-file-name-predicate filename)))
         (if (or (and (file-exists-p filename)
                      (not (string= filename "")))
                 (string-match-p entropy/open-with-url-regexp filename))
