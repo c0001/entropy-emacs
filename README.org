@@ -1,6 +1,6 @@
-# Created 2019-06-16 Sun 12:13
+# Created 2019-08-23 Fri 02:12
 #+TITLE: Open file by specific program
-#+AUTHOR: entropy
+#+AUTHOR: Entropy
 
 * Copyright (C) 20190614  Entropy
 #+BEGIN_EXAMPLE
@@ -196,13 +196,7 @@ api functions:
     The other one =inemacs= gives the try for open specific file in
     emacs method.
 
-** Notice
-
-For current implementation, this package just whole implemented fully
-on windows platform, darwin and linux are using ~shell-quote-argument~
-and ~xdg-open~ routines respectively for as Thus.
-
-*Limitation on windows platform:*
+** Limitation on windows platform:*
 
 In windows, the decoding method was using the one called =code pages=
 which not compatible with UNIX-LIKE platform which also using one
@@ -241,5 +235,4 @@ You can specific the extension list like:
 #+END_SRC
 
 More details see below function definition.
-
 

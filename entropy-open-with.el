@@ -194,12 +194,6 @@
 ;;     The other one =inemacs= gives the try for open specific file in
 ;;     emacs method.
 ;;   
-;; ** Notice
-;;
-;; For current implementation, this package just whole implemented fully
-;; on windows platform, darwin and linux are using ~shell-quote-argument~
-;; and ~xdg-open~ routines respectively for as Thus.
-;;
 ;; ** Limitation on windows platform:*
 ;;
 ;; In windows, the decoding method was using the one called =code pages=
@@ -254,7 +248,7 @@ This list construct was structed as below:
 
 #+BEGIN_SRC elisp
   '(((\"html\" \"pdf\" \"xml\" \"php\" \"md\" \"markdown\")
-     \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\" file \"-new-tab\")
+     \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\" file '(\"-new-tab\"))
     ((\"mp3\" \"mp4\" \"mkv\" \"rmvb\" \"wmv\" \"flv\" \"avi\")
      \"a:/PortableApps/MPC-HCPortable/MPC-HCPortable.exe\" quote nil)
     ((\"c\")
@@ -269,7 +263,7 @@ There's four element for one group of this list
 - List of extention name regexp
 - Portable programe path
 - Path argument format method (see blow for details)
-- Executing parameter 
+- Executing parameter list
 
 *Note:*
 #+BEGIN_QUOTE
@@ -291,8 +285,8 @@ with portable firefox.
   symbole =file= will hexify the file path and given it the
   =file:///=  uri protocol.
 
-- \"new-tab\" was the exec args for firefox which indicated to open
-  such html file in new-tab buffer.
+- '(\"new-tab\") was the exec args for firefox which indicated to
+  open such html file in new-tab buffer.
 
 The gather of above elements was called one group setting for
 `entropy-open-with'.
@@ -313,7 +307,7 @@ The general list tpye as:
    using file protocol hexified string  as argument is wise choice.
 
    This transform firstly hexifies the whole local file path string
-   and then adding the \"file:///\" protocol prefix string ahead of
+   and then adding the \"file://\" protocol prefix string ahead of
    it.
 
 2) 'quote' method:
@@ -370,13 +364,14 @@ each file suffix 'ext', like:
            (exec (nth 1 group))
            (path-transform (nth 2 group))
            (caller-pattern (nth 3 group)))
-      (dolist (ext ext-list)
-        (let (new-group-e)
-          (add-to-list 'new-group-e caller-pattern)
-          (add-to-list 'new-group-e path-transform)
-          (add-to-list 'new-group-e exec)
-          (add-to-list 'new-group-e ext)
-          (add-to-list 'entropy/open-with--type-list-full new-group-e))))))
+      (when (and exec (stringp exec)) 
+        (dolist (ext ext-list)
+          (let (new-group-e)
+            (push caller-pattern new-group-e)
+            (push path-transform  new-group-e)
+            (push exec new-group-e)
+            (push ext new-group-e)
+            (add-to-list 'entropy/open-with--type-list-full new-group-e)))))))
 
 (defun entropy/open-with--judge-file-type (filename)
   "Judge the FILENAME type according to
@@ -400,14 +395,18 @@ If not matched the exist file type then return nil."
                             (setq $file-pattern (concat "file:///" path-formated))))
                          ((or (eq system-type 'gnu/linux)
                               (eq system-type 'darwin))
-                          (setq $file-pattern (concat "file:///" file-path)))))
+                          (setq $file-pattern (concat "file://" file-path)))))
                   ((eq 'quote path-transform)
                    (setq $file-pattern (shell-quote-argument file-path)))
                   ((functionp path-transform)
                    (setq $file-pattern (funcall path-transform file-path)))
                   (t file-path))
             (setq rtn (list :caller exec :file-pattern $file-pattern
-                            :caller-pattern caller-pattern  :open-with-arg (concat caller-pattern " " $file-pattern)
+                            :caller-pattern caller-pattern
+                            :open-with-arg (append caller-pattern (list $file-pattern))
+                            :open-with-arg-concated (concat
+                                                     (mapconcat 'identity caller-pattern " ")
+                                                     " " $file-pattern)
                             :file file-path)))
           (throw :exit nil))))
     rtn))
@@ -434,15 +433,15 @@ procedure who don't want to be as the state as what."
      (file-plistp
       (setq caller (plist-get file-plist :caller)
             $file-pattern (expand-file-name (plist-get file-plist :file-pattern))
+            open-with-arg-concated (plist-get file-plist :open-with-arg-concated)
             open-with-arg (plist-get file-plist :open-with-arg))
       (cond
        ((entropy/open-with--on-win32)
-        (w32-shell-execute "open" caller open-with-arg))
-       ((eq system-type 'gnu/linux)
+        (w32-shell-execute "open" caller open-with-arg-concated))
+       ((or (eq system-type 'gnu/linux)
+            (eq system-type 'darwin))
         (let ((process-connection-type nil))
-          (start-process "" nil "xdg-open" $file-pattern)))
-       ((eq system-type 'darwin)
-        (shell-command (concat "open " $file-pattern)))))
+          (apply 'start-process "" nil caller open-with-arg)))))
      ((null file-plistp)
       (setq file-path (expand-file-name file-plist))
       (cond
@@ -454,7 +453,8 @@ procedure who don't want to be as the state as what."
        ((eq system-type 'darwin)
         (shell-command (concat "open " file-path))))
       (unless (null entropy/open-with-type-list)
-        (message "Can not match any open with type for file '%s'" file-path))))))
+        (message "Can not match any open with type for file '%s', open with native MIME assoc."
+                 file-path))))))
 
 (defun entropy/open-with-match-open (files)
   "This function be used for `entropy/open-with-dired-open' and
@@ -501,7 +501,7 @@ occurrence.
 
 When arg INTERACTIVE was none-nil. If FILENAME was not existed
 then prompt for retrying inputting FILENAME.(FILENAME inputting
-support ivy-completion) 
+support `read-file-name-internal')
 
 When without interactived option chosen, then directly open the
 FILENAME, if FILENAME was not exist then return error.
@@ -514,8 +514,8 @@ Note: this func redirected `default-directory' as
 `entropy/open-with-match-open' does so."
   (if interact
       (let ((accept (entropy/open-with--sudo-file-name-predicate
-                     (ivy-read "Please input FILENAME or insert url: " 'read-file-name-internal
-                               :history 'file-name-history))))
+                     (completing-read "Please input FILENAME: " 'read-file-name-internal
+                                      nil t nil 'file-name-history))))
         (if (file-exists-p accept)
             (cond
              ((file-directory-p accept)
