@@ -131,8 +131,10 @@
 (setq use-package-expand-minimally nil)
 (setq use-package-enable-imenu-support t)
 
-(require 'diminish)
-(require 'bind-key)
+(use-package diminish
+  :commands (diminish))
+(use-package bind-key
+  :commands (bind-key))
 
 ;; ** Initialization benchmark
 (when entropy/emacs-initialize-benchmark-enable

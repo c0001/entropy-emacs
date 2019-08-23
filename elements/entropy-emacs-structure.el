@@ -119,15 +119,25 @@
 
 (use-package outshine
   :hook
-  ((sh-mode . outshine-mode)
-   (c-mode . outshine-mode)
+  ((c-mode . outshine-mode)
    (c++-mode . outshine-mode)
-   (css-mode . outshine-mode)
+   (java-mode . outshine-mode)
+   (php-mode . outshine-mode)
    (python-mode . outshine-mode)
    (web-mode . outshine-mode)
+   (css-mode . outshine-mode)      
    (js2-mode . outshine-mode)
-   (gitignore-mode . outshine-mode))
-  :custom (outshine-max-level 100)
+   (gitignore-mode . outshine-mode)
+   (gitconfig-mode . outshine-mode)
+   (conf-colon-mode . outshine-mode)
+   (conf-desktop-mode . outshine-mode)
+   (conf-javaprop-mode . outshine-mode)
+   (conf-ppd-mode . outshine-mode)
+   (conf-space-mode . outshine-mode)
+   (conf-toml-mode . outshine-mode)
+   (conf-unix-mode . outshine-mode)
+   (conf-windows-mode . outshine-mode)
+   (conf-xdefaults-mode . outshine-mode))
   :bind
   (("C-<tab>" . outshine-cycle-buffer)
    :map org-mode-map
@@ -136,29 +146,11 @@
    ("C-c M-p" . nil))
   
   :init
-
-  ;; lazy loading for orgstruct for elisp mode for preventing loading
-  ;; org when the *scratch* buffer created with `lisp-interaction-mode'.
-  (defun entropy/emacs-org--elispMode-orgstruct-enable ()
-    "Enable orgstruct for `emacs-lisp-mode' in needed occasion.
-
-Unload it when the first init is done."
-    (unless (member 'outshine-mode emacs-lisp-mode-hook)
-      (add-hook 'emacs-lisp-mode-hook #'outshine-mode)
-      (defun entropy/emacs-org--elispMode-orgstruct-enable ()
-        "Enable orgstruct for `emacs-lisp-mode' in needed occasion.
-
-Unload it when the first init is done."
-        t))
-    (unless (bound-and-true-p outshine-mode)
-      (outshine-mode)))
-
-  (defun entropy/emacs-org--elispMode-orgstruct-PostCommand-hook ()
-    "lazy loading the orgstruct coding style for elisp mode."
-    (add-hook 'post-command-hook #'entropy/emacs-org--elispMode-orgstruct-enable nil t))
-
-  (entropy/emacs-lazy-load-simple 'elisp-mode
-    (add-hook 'emacs-lisp-mode-hook #'entropy/emacs-org--elispMode-orgstruct-PostCommand-hook))
+  (setq outshine-max-level 100)
+  (entropy/emacs-lazy-initial-for-hook
+   '(sh-mode-hook elisp-mode-hook)
+   "outshine-mode" "outshine-mode"
+   (outshine-mode))
   
   :config
   (outshine-define-key outshine-mode-map

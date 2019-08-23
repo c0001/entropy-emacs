@@ -745,7 +745,10 @@ this variable used to patching for origin `counsel-git'.")
     (add-hook 'entropy/emacs-pdumper-load-hook
               #'entropy/emacs-ivy--enable-ivy-rich-common))
    (t
-    (entropy/emacs-ivy--enable-ivy-rich-common)))
+    (entropy/emacs-lazy-initial-advice-before
+     '(ivy-read)
+     "ivy-rich" "ivy-rich"
+     (entropy/emacs-ivy--enable-ivy-rich-common))))
 
   :config
   ;; For better performance
