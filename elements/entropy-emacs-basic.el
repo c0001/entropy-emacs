@@ -1319,22 +1319,25 @@ otherwise returns nil."
 
 ;; ** Improve captialize function
 
-;; Due to the convention while want to capitalize or uper-case the word just has been done, building
-;; follow two function to enhance the origin function `capitalize-word' and `upercase-word'.
-(defun entropy/emacs-basic-capitalize-word (arg)
-  "Automatically go ahead of previous word before call `capitalize-word'."
-  (interactive "P")
-  (left-word)
-  (call-interactively 'capitalize-word t (vector arg)))
+;; Due to the convention while want to capitalize or uper-case the
+;; word just has been done, building follow two function to enhance
+;; the origin function `capitalize-word' and `upercase-word' and
+;; `down-case'.
 
-(defun entropy/emacs-basic-upcase-word (arg)
-  "automatically go ahead of previous word before call `upcase-word'."
-  (interactive "P")
-  (left-word)
-  (call-interactively 'upcase-word t (vector arg)))
+(defmacro entropy/emacs-basic--build-case-toggle (type-name main-func)
+  `(defun ,(intern (concat "entropy/emacs-basic-toggle-case-for-" type-name))
+       (arg)
+     (interactive "P")
+     (left-word)
+     (call-interactively ',main-func t (vector arg))))
 
-(global-set-key (kbd "M-c") 'entropy/emacs-basic-capitalize-word)
-(global-set-key (kbd "M-u") 'entropy/emacs-basic-upcase-word)
+(entropy/emacs-basic--build-case-toggle "capitialize" capitalize-word)
+(entropy/emacs-basic--build-case-toggle "upcase" upcase-word)
+(entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
+
+(global-set-key (kbd "M-c") 'entropy/emacs-basic-toggle-case-for-capitialize)
+(global-set-key (kbd "M-u") 'entropy/emacs-basic-toggle-case-for-upcase)
+(global-set-key (kbd "M-l") 'entropy/emacs-basic-toggle-case-for-downcase)
 
 ;; ** autocompression moode
 
