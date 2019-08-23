@@ -1269,7 +1269,11 @@ Temp file was \"~/~entropy-artist.txt\""
 (use-package epa
   :ensure nil
   :init
-  (epa-file-enable)
+  (entropy/emacs-lazy-initial-for-hook
+   '(dired-mode-hook find-file-hook)
+   "epa-mode" "epa-mode"
+   (epa-file-enable))
+  
   (when (and entropy/emacs-wsl-enable
              (file-exists-p entropy/emacs-wsl-apps))
     (entropy/emacs-lazy-load-simple 'custom
