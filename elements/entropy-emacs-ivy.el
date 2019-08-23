@@ -355,20 +355,6 @@ type by function `entropy/emacs-transfer-wvol'"
 ;; **** counsel-dired-jump
   (when (or sys/win32p sys/cygwinp)
     (advice-add 'counsel-dired-jump :before #'entropy/emacs-lang-set-utf-8))
-
-;; **** use counsel css for quickly search css selector
-  (use-package counsel-css
-    :after css-mode
-    :hook (css-mode . counsel-css-imenu-setup)
-    :bind (:map css-mode-map ("C-c M-d" . counsel-css))
-    :init
-    (when entropy/emacs-custom-pdumper-do
-      (require 'css-mode)))
-  
-;; **** use ivy-xref for quickly find defination and reference
-  (use-package ivy-xref
-    :commands (ivy-xref-show-xrefs)
-    :init (setq xref-show-xrefs-function 'ivy-xref-show-xrefs))
   
 ;; **** redefine counsel-find-file-extern
 
@@ -427,6 +413,21 @@ this variable used to patching for origin `counsel-git'.")
     (with-ivy-window
       (let ((default-directory entropy/emacs-ivy-counsel-git-root))
         (find-file x)))))
+
+;; *** use counsel css for quickly search css selector
+(use-package counsel-css
+  :after css-mode
+  :hook (css-mode . counsel-css-imenu-setup)
+  :bind (:map css-mode-map ("C-c M-d" . counsel-css))
+  :init
+  (when entropy/emacs-custom-pdumper-do
+    (require 'css-mode)))
+  
+
+;; *** use ivy-xref for quickly find defination and reference
+(use-package ivy-xref
+  :commands (ivy-xref-show-xrefs)
+  :init (setq xref-show-xrefs-function 'ivy-xref-show-xrefs))
 
 ;; ** avy
 (use-package avy
