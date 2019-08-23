@@ -184,51 +184,51 @@ Unload it when the first init is done."
     (let* ((outline-regexp (car orig-args))
            (outline-rgxp (substring outline-regexp 0 -7))
            (heading-1-regexp
-            (format "%s%s%s%s"
+            (format "%s%s%s%s%s%s"
                     outline-rgxp
-                    "\\{1\\}\\(.*"
+                    "\\{1\\}" (format "[^%s]" outshine-regexp-base-char) "\\(.*"
                     (if outshine-fontify-whole-heading-line "\n?" "")
                     "\\)"))
            (heading-2-regexp
-            (format "%s%s%s%s"
+            (format "%s%s%s%s%s%s"
                     outline-rgxp
-                    "\\{2\\}\\(.*"
+                    "\\{2\\}" (format "[^%s]" outshine-regexp-base-char) "\\(.*"
                     (if outshine-fontify-whole-heading-line "\n?" "")
                     "\\)"))
            (heading-3-regexp
-            (format "%s%s%s%s"
+            (format "%s%s%s%s%s%s"
                     outline-rgxp
-                    "\\{3\\}\\(.*"
+                    "\\{3\\}" (format "[^%s]" outshine-regexp-base-char) "\\(.*"
                     (if outshine-fontify-whole-heading-line "\n?" "")
                     "\\)"))
            (heading-4-regexp
-            (format "%s%s%s%s"
+            (format "%s%s%s%s%s%s"
                     outline-rgxp
-                    "\\{4\\}\\(.*"
+                    "\\{4\\}" (format "[^%s]" outshine-regexp-base-char) "\\(.*"
                     (if outshine-fontify-whole-heading-line "\n?" "")
                     "\\)"))
            (heading-5-regexp
-            (format "%s%s%s%s"
+            (format "%s%s%s%s%s%s"
                     outline-rgxp
-                    "\\{5\\}\\(.*"
+                    "\\{5\\}" (format "[^%s]" outshine-regexp-base-char) "\\(.*"
                     (if outshine-fontify-whole-heading-line "\n?" "")
                     "\\)"))
            (heading-6-regexp
-            (format "%s%s%s%s"
+            (format "%s%s%s%s%s%s"
                     outline-rgxp
-                    "\\{6\\}\\(.*"
+                    "\\{6\\}" (format "[^%s]" outshine-regexp-base-char) "\\(.*"
                     (if outshine-fontify-whole-heading-line "\n?" "")
                     "\\)"))
            (heading-7-regexp
-            (format "%s%s%s%s"
+            (format "%s%s%s%s%s%s"
                     outline-rgxp
-                    "\\{7\\}\\(.*"
+                    "\\{7\\}" (format "[^%s]" outshine-regexp-base-char) "\\(.*"
                     (if outshine-fontify-whole-heading-line "\n?" "")
                     "\\)"))
            (heading-8-regexp
-            (format "%s%s%s%s"
+            (format "%s%s%s%s%s%s"
                     outline-rgxp
-                    "\\{8\\}\\(.*"
+                    "\\{8\\}" (format "[^%s]" outshine-regexp-base-char) "\\(.*"
                     (if outshine-fontify-whole-heading-line "\n?" "")
                     "\\)"))
            (font-lock-new-keywords
