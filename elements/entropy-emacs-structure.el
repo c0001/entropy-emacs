@@ -166,6 +166,28 @@ Unload it when the first init is done."
     (or (outline-on-heading-p) (bobp)
         (error "Using it out of the headline was not supported.")))
 
+  (defun outshine-set-outline-regexp-base ()
+    "Return the actual outline-regexp-base.
+
+Notice: redefined specific for entropy-emacs
+
+Preventing recursive face rending for level keywords that loal
+binding to `outshine-regexp-base-char' while using traditional
+structure type for elisp."
+    (if (and
+         (not (outshine-modern-header-style-in-elisp-p))
+         (eq major-mode 'emacs-lisp-mode))
+        (progn
+          (setq outshine-enforce-no-comment-padding-p t)
+          (setq outshine-regexp-base
+                outshine-oldschool-elisp-outline-regexp-base)
+          (setq-local outshine-regexp-base-char ";"))
+      (setq outshine-enforce-no-comment-padding-p nil)
+      (setq outshine-regexp-base
+            outshine-default-outline-regexp-base)
+      (setq-local outshine-regexp-base-char
+                  (default-value 'outshine-regexp-base-char))))
+
   (defun entropy/emacs-structure--outshine-advice-1 (orig-func &rest orig-args)
     (let ((rtn (apply orig-func orig-args)))
       (when (string-match-p " +$" rtn)
