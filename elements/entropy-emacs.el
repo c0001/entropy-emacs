@@ -67,9 +67,14 @@
         (setq entropy/emacs-custom-pdumper-do t)
         (throw :exit nil)))))
 
-(when (and entropy/emacs-custom-pdumper-do
-           entropy/emacs-custom-enable-lazy-load)
-  (setq entropy/emacs-custom-enable-lazy-load nil))
+(cond ((and entropy/emacs-custom-pdumper-do
+            entropy/emacs-custom-enable-lazy-load)
+       (setq entropy/emacs-custom-enable-lazy-load nil))
+
+      ((and entropy/emacs-custom-pdumper-do
+            entropy/emacs-enable-pyim)
+       (setq entropy/emacs-enable-pyim nil)
+       (message "You can not enable pyim in pdumper session")))
 
 (require 'entropy-emacs-custom)
 
@@ -244,107 +249,6 @@ Emacs will auto close after 6s ......")
   (when entropy/emacs--X-is-init-with-install
     (run-with-timer 6 nil #'kill-emacs)))
 
-;; ** x enable
-(defun entropy/emacs-X-enable ()
-  (interactive)
-  (advice-add 'require :before #'entropy/emacs--require-loading)
-  (advice-add 'redisplay :around #'entropy/emacs--initial-redisplay-advice)
-  (message "Loading rest ......")
-  ;; highlight
-  (when entropy/emacs-use-highlight-features
-    ;; highlight package will cause the low performance of emacs interpretering, so this be the
-    ;; choiced option
-    (require 'entropy-emacs-highlight))
-
-  ;; For auto complete
-  (require 'entropy-emacs-yas)
-  (require 'entropy-emacs-company)
-  (require 'entropy-emacs-lsp)
-  ;; For useful tools
-  (require 'entropy-emacs-shell)
-  (require 'entropy-emacs-ibuffer)
-  (require 'entropy-emacs-tools)
-  (require 'entropy-emacs-emms)
-  (require 'entropy-emacs-vcs)
-
-  ;; init-calendar was not adapt emacs 27 or higher and just adapt emacs 25 or earlier
-  ;; [2018-03-09 Fri 13:35:45] it's be fixed by xwl (the maintainer)
-  ;; issue url `https://github.com/xwl/cal-china-x/issues/12'
-  (require 'entropy-emacs-calendar)
-
-  ;; For programing language
-  (require 'entropy-emacs-web)
-  (require 'entropy-emacs-python)
-  (require 'entropy-emacs-c)
-  (require 'entropy-emacs-markdown)
-  (require 'entropy-emacs-emacs-lisp)
-  (require 'entropy-emacs-lua)
-  (require 'entropy-emacs-dash)
-  (require 'entropy-emacs-go)
-  ;; For tramp
-  (require 'entropy-emacs-tramp)
-  ;; For game
-  (require 'entropy-emacs-game)
-  ;; end
-  (advice-remove 'require #'entropy/emacs--require-loading)
-  (advice-remove 'redisplay #'entropy/emacs--initial-redisplay-advice)
-  (setq entropy/emacs-init-X-hook
-        (reverse entropy/emacs-init-X-hook))
-  (run-hooks 'entropy/emacs-init-X-hook)
-  (defun entropy/emacs-X-enable ()
-    (interactive)
-    (message "This function has been unloaded."))
-  (message "Full start completed.")
-  (run-with-timer 1 nil #'entropy/emacs--X-init-with-install-prompt))
-
-
-;; ** mini start
-(defun entropy/emacs-M-enable ()
-  (message "Loading minimal ...... ")
-  (advice-add 'require :before #'entropy/emacs--require-loading)
-  (advice-add 'redisplay :around #'entropy/emacs--initial-redisplay-advice)
-  ;; external depedencies scan and loading
-  (when entropy/emacs-custom-pdumper-do
-    (require 'entropy-emacs-pdumper))
-  (require 'entropy-emacs-package)
-  (require 'entropy-emacs-library)
-  ;; basic feature defination
-  (require 'entropy-emacs-basic)
-  
-  ;; ============================
-  ;; mainly ui configuration
-  (redisplay t)
-  (require 'entropy-emacs-modeline)
-  (redisplay t)
-  ;; loading theme configuration after the modeline for loading theme
-  ;; specifics for some mode-line adaption
-  (require 'entropy-emacs-themes)
-  (redisplay t)
-
-  (require 'entropy-emacs-wc)
-  (redisplay t)
-  (require 'entropy-emacs-popwin)
-  (redisplay t)
-  ;; =============================
-  
-  ;; ineractive
-  (require 'entropy-emacs-ivy)
-  ;; org
-  (require 'entropy-emacs-org)
-  ;; code folding
-  (require 'entropy-emacs-structure)
-
-  ;; ends for minimal start
-  (advice-remove 'require #'entropy/emacs--require-loading)
-  (advice-remove 'redisplay #'entropy/emacs--initial-redisplay-advice)
-  (setq entropy/emacs-init-mini-hook
-        (reverse entropy/emacs-init-mini-hook))
-  (run-hooks 'entropy/emacs-init-mini-hook)
-  (defun entropy/emacs-M-enable ()
-    (interactive)
-    (message "This function has been unloaded."))
-  (message "Minimal start completed."))
-
 ;; ** start type choice
 ;; *** status of pyim loading
 (when entropy/emacs-enable-pyim
@@ -396,12 +300,14 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
           (insert (propertize "Loading pyim cache, please waiting ......" 'face 'warning)))
         (split-window-vertically (- (window-total-height) 4))
         (other-window 1)
-        (switch-to-buffer buffer)))
+        (switch-to-buffer buffer)
+        (redisplay t)))
      ((version< emacs-version "26")
       (message "Loading pyim cache ......")))
 
+    ;; initialize pyim
     (require 'pyim)
-    (set-input-method "pyim")
+    (set-input-method "pyim")           ;this will automatically run `pyim-start'
     
     ;; prompt for loading pyim cache done.
     (cond 
@@ -414,11 +320,12 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
       (entropy/emacs--pyim-init-after-loaded-cache-26-)))))
 
 
-;; *** startup main function
-(defun entropy/emacs--init-X ()
-  (entropy/emacs-M-enable)
-  (entropy/emacs-X-enable)
-  (when (and entropy/emacs-enable-pyim
+;; *** after load procedure
+
+(defun entropy/emacs--init-after-load-initialze-process (type aft-hook)
+  ;; pyim starter
+  (when (and type
+             entropy/emacs-enable-pyim
              ;; judgement of whether first init entropy-emacs
              (not
               (let ((buflist (mapcar #'buffer-name (buffer-list)))
@@ -428,16 +335,127 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
                 rtn)))
     (entropy/emacs--pyim-init-prompt)
     (defun entropy/emacs--pyim-init-prompt ()
-      (message "This function has been unloaded."))))
+      (message "This function has been unloaded.")))
+  ;; hook runner 
+  (set aft-hook
+       (reverse (symbol-value aft-hook)))
+  (message "After load initilizing ...")
+  (run-hooks aft-hook)
+  (message "After load initilized"))
+
+;; *** start up branch
+;; **** mini start
+(defun entropy/emacs-M-enable ()
+  (message "Loading minimal ...... ")
+  (advice-add 'require :before #'entropy/emacs--require-loading)
+  (advice-add 'redisplay :around #'entropy/emacs--initial-redisplay-advice)
+  ;; external depedencies scan and loading
+  (when entropy/emacs-custom-pdumper-do
+    (require 'entropy-emacs-pdumper))
+  (require 'entropy-emacs-package)
+  (require 'entropy-emacs-library)
+  ;; basic feature defination
+  (require 'entropy-emacs-basic)
+  
+  ;; ============================
+  ;; mainly ui configuration
+  (redisplay t)
+  (require 'entropy-emacs-modeline)
+  (redisplay t)
+  ;; loading theme configuration after the modeline for loading theme
+  ;; specifics for some mode-line adaption
+  (require 'entropy-emacs-themes)
+  (redisplay t)
+
+  (require 'entropy-emacs-wc)
+  (redisplay t)
+  (require 'entropy-emacs-popwin)
+  (redisplay t)
+  ;; =============================
+  
+  ;; ineractive
+  (require 'entropy-emacs-ivy)
+  ;; org
+  (require 'entropy-emacs-org)
+  ;; code folding
+  (require 'entropy-emacs-structure)
+
+  ;; ends for minimal start
+  (advice-remove 'require #'entropy/emacs--require-loading)
+  (advice-remove 'redisplay #'entropy/emacs--initial-redisplay-advice)
+
+  ;; after loading eemacs mini
+  (entropy/emacs--init-after-load-initialze-process
+   entropy/emacs-minimal-start 'entropy/emacs-init-mini-hook)
+  
+  (defun entropy/emacs-M-enable ()
+    (interactive)
+    (message "This function has been unloaded."))
+  (message "Minimal start completed."))
+
+;; **** x enable
+(defun entropy/emacs-X-enable ()
+  (interactive)
+  (advice-add 'require :before #'entropy/emacs--require-loading)
+  (advice-add 'redisplay :around #'entropy/emacs--initial-redisplay-advice)
+  (message "Loading rest ......")
+  ;; highlight
+  (when entropy/emacs-use-highlight-features
+    ;; highlight package will cause the low performance of emacs interpretering, so this be the
+    ;; choiced option
+    (require 'entropy-emacs-highlight))
+
+  ;; For auto complete
+  (require 'entropy-emacs-yas)
+  (require 'entropy-emacs-company)
+  (require 'entropy-emacs-lsp)
+  ;; For useful tools
+  (require 'entropy-emacs-shell)
+  (require 'entropy-emacs-ibuffer)
+  (require 'entropy-emacs-tools)
+  (require 'entropy-emacs-emms)
+  (require 'entropy-emacs-vcs)
+
+  ;; init-calendar was not adapt emacs 27 or higher and just adapt emacs 25 or earlier
+  ;; [2018-03-09 Fri 13:35:45] it's be fixed by xwl (the maintainer)
+  ;; issue url `https://github.com/xwl/cal-china-x/issues/12'
+  (require 'entropy-emacs-calendar)
+
+  ;; For programing language
+  (require 'entropy-emacs-web)
+  (require 'entropy-emacs-python)
+  (require 'entropy-emacs-c)
+  (require 'entropy-emacs-markdown)
+  (require 'entropy-emacs-emacs-lisp)
+  (require 'entropy-emacs-lua)
+  (require 'entropy-emacs-dash)
+  (require 'entropy-emacs-go)
+  ;; For tramp
+  (require 'entropy-emacs-tramp)
+  ;; For game
+  (require 'entropy-emacs-game)
+  ;; end
+  (advice-remove 'require #'entropy/emacs--require-loading)
+  (advice-remove 'redisplay #'entropy/emacs--initial-redisplay-advice)
+  
+  (entropy/emacs--init-after-load-initialze-process
+   (null entropy/emacs-minimal-start)
+   'entropy/emacs-init-X-hook)
+  
+  (defun entropy/emacs-X-enable ()
+    (interactive)
+    (message "This function has been unloaded."))
+  (message "Full start completed.")
+  (run-with-timer 1 nil #'entropy/emacs--X-init-with-install-prompt))
+
+
+;; *** startup main function
+(defun entropy/emacs--init-X ()
+  (entropy/emacs-M-enable)
+  (entropy/emacs-X-enable))
 
 (defun entropy/emacs--init-M ()
-  (entropy/emacs-M-enable)
-  (when (and entropy/emacs-enable-pyim
-             entropy/emacs-minimal-start)
-    (entropy/emacs--pyim-init-prompt)
-    (defun entropy/emacs--pyim-init-prompt ()
-      (message "This function has been unloaded."))))
-
+  (entropy/emacs-M-enable))
 
 (defun entropy/emacs--init-bingo ()
   (cond
@@ -472,4 +490,6 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
      #'entropy/emacs-do-load)
   (entropy/emacs-do-load))
 
+
+;; * provide
 (provide 'entropy-emacs)

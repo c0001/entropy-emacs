@@ -480,7 +480,7 @@ with emacs, see its doc-string for details."
       ("spaceline-all-the-icons"
        (entropy/emacs-modeline--spaceline-icons-sepc-clean))
       ("doom" (doom-modeline-mode 0))
-      (t nil)))
+      (_ nil)))
 
   (defmacro entropy/emacs-modeline--define-toggle (name spec-form init-var enable-form &rest body)
     `(defun ,(intern (concat "entropy/emacs-modeline-mdl-" name "-toggle")) ()

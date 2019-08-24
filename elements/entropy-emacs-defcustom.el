@@ -634,11 +634,7 @@ corresponding for 'entropy-emacs'."
   :type 'string
   :group 'entropy/emacs-customize-pyim)
 
-(defcustom entropy/emacs-pyim-dicts
-  '((:name "core"
-           (expand-file-name "pyim-about/core.pyim" user-emacs-directory))
-    (:name "extra"
-           (expand-file-name "pyim-about/dict/extra.pyim" user-emacs-directory)))
+(defcustom entropy/emacs-pyim-dicts nil
   "
 Setting pyim-dicts file, if nil then use basic dicts for
 minimal usage
