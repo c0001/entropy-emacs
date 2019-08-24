@@ -1154,10 +1154,13 @@ Temp file was \"~/~entropy-artist.txt\""
          (use-package liberime-config
            :ensure nil
            :commands (liberime-load)
-           :init (liberime-load))
-         (liberime-start (expand-file-name entropy/emacs-pyim-liberime-scheme-data)
-                         (expand-file-name entropy/emacs-pyim-liberime-cache-dir))
-         (liberime-select-schema "luna_pinyin_simp")))
+           :init
+           (setq liberime-shared-data-dir
+                 (expand-file-name entropy/emacs-pyim-liberime-scheme-data)
+                 liberime-user-data-dir
+                 (expand-file-name entropy/emacs-pyim-liberime-cache-dir))
+           (liberime-load)
+           (liberime-select-schema "luna_pinyin_simp"))))
   
 ;; *** Setting pyim as the default input method
   (setq default-input-method "pyim")
