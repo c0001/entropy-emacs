@@ -474,7 +474,7 @@ with emacs, see its doc-string for details."
 (when entropy/emacs-enable-modeline-toggle
   
   (defun entropy/emacs-modeline--mdl-tidy-spec ()
-    (cl-case entropy/emacs-mode-line-sticker
+    (pcase entropy/emacs-mode-line-sticker
       ("spaceline"
        (entropy/emacs-modeline--spaceline-spec-clean))
       ("spaceline-all-the-icons"
