@@ -57,7 +57,7 @@
 ;; ** Require
 
 ;; *** customization read
-(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-custom)
 
 (let ((args-filter (mapcar (lambda (x) (string-match-p "dump-emacs-portable" x))
                            command-line-args)))
@@ -75,8 +75,6 @@
             entropy/emacs-enable-pyim)
        (setq entropy/emacs-enable-pyim nil)
        (message "You can not enable pyim in pdumper session")))
-
-(require 'entropy-emacs-custom)
 
 ;; *** load core library
 (require 'entropy-emacs-const)

@@ -51,7 +51,6 @@
 ;; 
 ;; * Code:
 
-(require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 
 (let ((cus entropy/emacs-custom-common-file))
