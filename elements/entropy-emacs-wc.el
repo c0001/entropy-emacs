@@ -540,9 +540,10 @@ without derived slot."
           "*cvs*"
           "*Buffer List*"
           "*Ibuffer*"
-          "*esh command on file*")
+          "*esh command on file*"
+          "*Backtrace*")
         winner-boring-buffers-regexp
-        '("^magit: ")))
+        (rx (or (seq line-start "magit: ")))))
 
 ;; *** desktop mode
 
