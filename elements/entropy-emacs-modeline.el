@@ -124,36 +124,101 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 ;; ***** powerline group
 ;; ****** powerline
 (use-package powerline
+  :preface
+  (defvar entropy/emacs-modeline--powerline-spec-done nil)
   :commands (powerline-default-theme))
+
 ;; ****** spaceline
+(defvar entropy/emacs-modeline--spaceline-spec-done nil)
+(defvar entropy/emacs-modeline--spaceline-spec-list
+  '())
+
+(defun entropy/emacs-modeline--spaceline-specification ()
+  ;; powerline specification
+  (require 'powerline)
+  (setq entropy/emacs-modeline--spaceline-spec-list nil)
+  (push (cons 'powerline-default-separator
+              powerline-default-separator)
+        entropy/emacs-modeline--spaceline-spec-list)
+
+  (push (cons 'powerline-image-apple-rgb
+              powerline-image-apple-rgb)
+        entropy/emacs-modeline--spaceline-spec-list)
+
+  ;; self specification
+  (setq powerline-default-separator (if window-system 'arrow 'utf-8))
+  (setq powerline-image-apple-rgb sys/mac-x-p)
+  (add-hook 'spaceline-pre-hook #'powerline-reset) ; For changing themes
+  (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified))
+
+(defun entropy/emacs-modeline--spaceline-spec-clean ()
+  (dolist (el entropy/emacs-modeline--spaceline-spec-list)
+    (setq (car el) (cdr el))))
+
 (if (eq entropy/emacs-use-extensions-type 'submodules)
     (use-package spaceline
       :init
       (use-package spaceline-config
         :commands (spaceline-spacemacs-theme)
+        :defines spaceline-pre-hook
         :config
-        (setq spaceline-pre-hook #'powerline-reset) ; For changing themes
-        (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified)))
+        (unless entropy/emacs-modeline--spaceline-spec-done
+          (entropy/emacs-modeline--spaceline-specification))))
   (use-package spaceline
+    :defines spaceline-pre-hook
     :config
-    (setq spaceline-pre-hook #'powerline-reset) ; For changing themes
-    (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified)))
+    (unless entropy/emacs-modeline--spaceline-spec-done
+      (entropy/emacs-modeline--spaceline-specification))))
 
 ;; ****** spaceline icons
 (use-package spaceline-all-the-icons
   :commands (spaceline-all-the-icons-theme)
+  :preface
+
+  (defvar entropy/emacs-modeline--spaceline-icons-spec-done nil)
+
+  (defvar entropy/emacs-modeline--spaceline-icons-spec-list '())
+
+  (defun entropy/emacs-modeline--spaceline-icons-sepc-clean ()
+    (dolist (el entropy/emacs-modeline--spaceline-icons-spec-list)
+      (setq (car el) (cdr el))))
+
+  (defun entropy/emacs-modeline--spaceline-icons-specification ()
+    ;; powerline specification
+    (require 'powerline)
+    (setq entropy/emacs-modeline--spaceline-icons-spec-list nil)
+    (push (cons 'powerline-text-scale-factor powerline-text-scale-factor)
+          entropy/emacs-modeline--spaceline-icons-spec-list)
+    (setq powerline-text-scale-factor 1.2)    
+
+    ;; self specification
+    (setq spaceline-all-the-icons-projectile-p nil)
+    (setq spaceline-all-the-icons-separator-type 'none)
+    (setq spaceline-all-the-icons-icon-set-eyebrowse-slot 'square))
+  
   :config
-  (setq spaceline-all-the-icons-projectile-p nil)
-  (setq spaceline-all-the-icons-separator-type 'none)
-  (setq powerline-text-scale-factor 1.2)
-  (setq spaceline-all-the-icons-icon-set-eyebrowse-slot 'square))
+  (unless entropy/emacs-modeline--spaceline-icons-spec-done
+    (entropy/emacs-modeline--spaceline-icons-specification))
+  
+  (defun entropy/emacs-modeline--spaceline-eyebrowse-segments-advice (orig-func &rest orig-args)
+    "Ignore icon parse for float wind-num type used for
+entropy-emacs' derived eyebrowse window configuration. "
+    (let ((slot-number (car orig-args)))
+      (or (ignore-errors (apply orig-func orig-args))
+          (number-to-string slot-number))))
+  (advice-add 'spaceline-all-the-icons--window-number-icon
+              :around
+              #'entropy/emacs-modeline--spaceline-eyebrowse-segments-advice))
 
 ;; ***** origin type
+(defvar entropy/emacs-modeline--origin-spec-done nil)
+
 (defun entropy/emacs-mode-line-origin-theme ()
   (setq-default mode-line-format
                 '("%e"
                   ;; mode-line-front-space
-                  (:eval (ignore-errors (entropy/emacs-modeline--mdl-egroup)))
+                  (:eval (when (bound-and-true-p eyebrowse-mode)
+                           (entropy/emacs-modeline--mdl-egroup)))
                   mode-line-mule-info
                   mode-line-client
                   mode-line-modified "  "
@@ -166,14 +231,25 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
                   mode-line-misc-info
                   mode-line-end-spaces)))
 
-
-
-
 ;; ***** doom modeline
 (use-package doom-modeline
   :ensure nil
   :commands (doom-modeline-mode
              doom-modeline-refresh-bars)
+  :preface
+
+  (defvar entropy/emacs-modeline--doom-modeline-spec-done nil)
+  
+  (defun entropy/emacs-modeline--doom-modeline-specification ()
+    (setq doom-modeline-height 10
+          doom-modeline-bar-width 1
+          doom-modeline-buffer-file-name-style 'truncate-all
+          doom-modeline-major-mode-color-icon t
+          doom-modeline-icon
+          (or (display-graphic-p)
+              (and entropy/emacs-custom-pdumper-do
+                   entropy/emacs-do-pdumper-in-X))))
+
   :init
   (defun entropy/emacs-doom-mdlini-after-advice (&rest _rest)
     "Advice for doom-modeline-mode."
@@ -189,16 +265,9 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (advice-add 'doom-modeline-mode :after #'entropy/emacs-doom-mdlini-after-advice))
   
   :config
+  (unless entropy/emacs-modeline--doom-modeline-spec-done
+    (entropy/emacs-modeline--doom-modeline-specification))
   
-  (setq doom-modeline-height 10
-        doom-modeline-bar-width 1
-        doom-modeline-buffer-file-name-style 'truncate-all
-        doom-modeline-major-mode-color-icon t
-        doom-modeline-icon
-        (or (display-graphic-p)
-            (and entropy/emacs-custom-pdumper-do
-                 entropy/emacs-do-pdumper-in-X)))
-
   (defun entropy/emacs-modeline--dml-file-icon-around-advice (orig-func &rest orig-args)
     (apply orig-func orig-args)
     (when (equal (buffer-name) entropy/emacs-dashboard-buffer-name)
@@ -341,8 +410,6 @@ with emacs, see its doc-string for details."
   (cond
    ;; init spaceline
    ((string= entropy/emacs-modeline-style "spaceline")
-    (setq powerline-default-separator (if window-system 'arrow 'utf-8))
-    (setq powerline-image-apple-rgb sys/mac-x-p)
     (setq entropy/emacs-modeline--mdl-init-caller
           '(spaceline-spacemacs-theme)))
 
@@ -367,9 +434,8 @@ with emacs, see its doc-string for details."
 
    ;; init-origin style
    ((string= entropy/emacs-modeline-style "origin")
-    (entropy/emacs-lazy-load-simple 'eyebrowse
-      (setq entropy/emacs-modeline--mdl-init-caller
-            '(entropy/emacs-mode-line-origin-theme))))
+    (setq entropy/emacs-modeline--mdl-init-caller
+          '(entropy/emacs-mode-line-origin-theme)))
 
    ;; init doom-modeline
    ((and (string= entropy/emacs-modeline-style "doom")
@@ -406,42 +472,59 @@ with emacs, see its doc-string for details."
 
 ;; ** toggle function
 (when entropy/emacs-enable-modeline-toggle
-  (defun entropy/emacs-modeline-mdl-spaceline ()
-    "Toggle modeline style to spacelien."
-    (interactive)
-    (setq entropy/emacs-mode-line-sticker "spaceline")
-    (setq powerline-default-separator (if window-system 'arrow 'utf-8))
-    (setq powerline-image-apple-rgb sys/mac-x-p)
-    (spaceline-spacemacs-theme))
-
-
-  (defun entropy/emacs-modeline-mdl-spaceline-all-the-icons ()
-    "Toggle modeline style to spaceline-all-the-icons"
-    (interactive)
-    (if (version= "25.3.1" emacs-version)
-        (error "You are in emacs veresion 25.3.1 and couldn't use
-  spaceline-all-the-icons because this version can not shown
-  all-the-icons-fonts correnctly."))
-    (spaceline-all-the-icons-theme))
   
-  (defun entropy/emacs-modeline-mdl-powerline ()
-    "Toggle modeline style to powerline."
-    (interactive)
-    (setq entropy/emacs-mode-line-sticker "powerline")
-    (powerline-default-theme))
+  (defun entropy/emacs-modeline--mdl-tidy-spec ()
+    (cl-case entropy/emacs-mode-line-sticker
+      ("spaceline"
+       (entropy/emacs-modeline--spaceline-spec-clean))
+      ("spaceline-all-the-icons"
+       (entropy/emacs-modeline--spaceline-icons-sepc-clean))
+      ("doom" (doom-modeline-mode 0))
+      (t nil)))
 
-  (entropy/emacs-lazy-load-simple 'eyebrowse
-    (defun entropy/emacs-modeline-mdl-origin ()
-      "Toggle modeline style to entropy specific origin modeline style."
-      (interactive)
-      (setq entropy/emacs-mode-line-sticker "origin")
-      (entropy/emacs-mode-line-origin-theme)))
+  (defmacro entropy/emacs-modeline--define-toggle (name spec-form init-var enable-form &rest body)
+    `(defun ,(intern (concat "entropy/emacs-modeline-mdl-" name "-toggle")) ()
+       (interactive)
+       (entropy/emacs-modeline--mdl-tidy-spec)
+       (setq entropy/emacs-mode-line-sticker ,name)
+       ,spec-form
+       (unwind-protect
+           (progn
+             (setq ,init-var t)
+             ,@body
+             ,enable-form)
+         (progn (setq ,init-var nil)))))
+  
+  (entropy/emacs-modeline--define-toggle
+   "spaceline"
+   (entropy/emacs-modeline--spaceline-specification)
+   entropy/emacs-modeline--spaceline-spec-done
+   (spaceline-spacemacs-theme))
 
-  (defun entropy/emacs-modeline-mdl-doom ()
-    "Toggle doom-modeline."
-    (interactive)
-    (setq entropy/emacs-mode-line-sticker "doom")
-    (doom-modeline-mode 1)))
+  (entropy/emacs-modeline--define-toggle
+   "spaceline-all-the-icons"
+   (entropy/emacs-modeline--spaceline-icons-specification)
+   entropy/emacs-modeline--spaceline-icons-spec-done
+   (spaceline-all-the-icons-theme)
+   (when (version= "25.3.1" emacs-version)
+     (error "You are in emacs veresion 25.3.1 and couldn't use
+  spaceline-all-the-icons because this version can not shown
+  all-the-icons-fonts correnctly.")))
+
+  (entropy/emacs-modeline--define-toggle
+   "powerline"
+   nil entropy/emacs-modeline--powerline-spec-done
+   (powerline-default-theme))
+
+  (entropy/emacs-modeline--define-toggle
+   "doom"
+   (entropy/emacs-modeline--doom-modeline-specification)
+   entropy/emacs-modeline--doom-modeline-spec-done
+   (doom-modeline-mode +1))
+
+  (entropy/emacs-modeline--define-toggle
+   "origin" nil entropy/emacs-modeline--origin-spec-done
+   (entropy/emacs-mode-line-origin-theme)))
 
 ;; ** modeline-hide feature
 (use-package hide-mode-line

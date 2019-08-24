@@ -228,7 +228,7 @@ Notice:
           (const :tag "doom-modeline" "doom"))
   :group 'entropy/emacs-customize-modeline)
 
-(defcustom entropy/emacs-enable-modeline-toggle nil
+(defcustom entropy/emacs-enable-modeline-toggle t
   "Enable modeline toggle function `entropy/emacs-mdl-powerline'
 and `entropy/emacs-mdl-spaceline' and the customized effectively
 of `entropy/emacs-modeline-style'.

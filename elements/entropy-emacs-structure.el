@@ -148,7 +148,7 @@
   :init
   (setq outshine-max-level 100)
   (entropy/emacs-lazy-initial-for-hook
-   '(sh-mode-hook elisp-mode-hook)
+   '(sh-mode-hook emacs-lisp-mode-hook)
    "outshine-mode" "outshine-mode"
    (outshine-mode))
   
