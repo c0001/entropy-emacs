@@ -132,7 +132,8 @@
    :map org-mode-map
    ("C-c M-t" . nil)
    ("C-c M-e" . nil)
-   ("C-c M-p" . nil))
+   ("C-c M-p" . nil)
+   ("C-c M-y" . nil))
   
   :init
   (setq outshine-max-level 100)
