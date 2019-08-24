@@ -153,7 +153,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 
 (defun entropy/emacs-modeline--spaceline-spec-clean ()
   (dolist (el entropy/emacs-modeline--spaceline-spec-list)
-    (setq (car el) (cdr el))))
+    (set (car el) (cdr el))))
 
 (if (eq entropy/emacs-use-extensions-type 'submodules)
     (use-package spaceline
@@ -181,7 +181,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 
   (defun entropy/emacs-modeline--spaceline-icons-sepc-clean ()
     (dolist (el entropy/emacs-modeline--spaceline-icons-spec-list)
-      (setq (car el) (cdr el))))
+      (set (car el) (cdr el))))
 
   (defun entropy/emacs-modeline--spaceline-icons-specification ()
     ;; powerline specification
