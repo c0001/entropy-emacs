@@ -119,7 +119,8 @@
 
 (use-package outshine
   :hook
-  ((c-mode . outshine-mode)
+  ((sh-mode . outshine-mode)
+   (c-mode . outshine-mode)
    (c++-mode . outshine-mode)
    (java-mode . outshine-mode)
    (php-mode . outshine-mode)
@@ -148,9 +149,10 @@
   :init
   (setq outshine-max-level 100)
   (entropy/emacs-lazy-initial-for-hook
-   '(sh-mode-hook emacs-lisp-mode-hook)
+   '(emacs-lisp-mode-hook)
    "outshine-mode" "outshine-mode"
-   (outshine-mode +1))
+   (outshine-mode +1)
+   (add-hook 'emacs-lisp-mode-hook 'outshine-mode))
   
   :config
   (outshine-define-key outshine-mode-map
