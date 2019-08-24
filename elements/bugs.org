@@ -66,7 +66,6 @@ limitation of the bug of vanilla emacs or =entropy-emacs=.
  Debugger entered--Lisp error: (error "Selecting deleted buffer")
    term-emulate-terminal(#<process *ansi-term*> "your-shell-$ps1")
  ```
-
  But when you using the 'y-or-n-p' redefine the 'yes-or-no-p', its
  gone.
 
