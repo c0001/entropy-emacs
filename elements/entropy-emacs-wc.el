@@ -151,7 +151,7 @@
          ("C-c C-w a" . eyebrowse-switch-to-window-config))
   :init
   (defun entropy/emacs-wc--eyebrowse-turn-on ()
-    (eyebrowse-mode)
+    (eyebrowse-mode +1)
     (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
         (setq eyebrowse-new-workspace entropy/emacs-basic--eyebrowse-new-workspace-init-function)
       (setq eyebrowse-new-workspace t)))
