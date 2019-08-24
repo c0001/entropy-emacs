@@ -150,7 +150,7 @@
   (entropy/emacs-lazy-initial-for-hook
    '(sh-mode-hook emacs-lisp-mode-hook)
    "outshine-mode" "outshine-mode"
-   (outshine-mode))
+   (outshine-mode +1))
   
   :config
   (outshine-define-key outshine-mode-map
