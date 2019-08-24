@@ -67,14 +67,14 @@
         (setq entropy/emacs-custom-pdumper-do t)
         (throw :exit nil)))))
 
-(cond ((and entropy/emacs-custom-pdumper-do
-            entropy/emacs-custom-enable-lazy-load)
-       (setq entropy/emacs-custom-enable-lazy-load nil))
+(progn (when (and entropy/emacs-custom-pdumper-do
+                  entropy/emacs-custom-enable-lazy-load)
+         (setq entropy/emacs-custom-enable-lazy-load nil))
 
-      ((and entropy/emacs-custom-pdumper-do
-            entropy/emacs-enable-pyim)
-       (setq entropy/emacs-enable-pyim nil)
-       (message "You can not enable pyim in pdumper session")))
+       (when (and entropy/emacs-custom-pdumper-do
+                  entropy/emacs-enable-pyim)
+         (setq entropy/emacs-enable-pyim nil)
+         (message "You can not enable pyim in pdumper session")))
 
 ;; *** load core library
 (require 'entropy-emacs-const)
