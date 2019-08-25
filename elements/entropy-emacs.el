@@ -304,8 +304,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
       (message "Loading pyim cache ......")))
 
     ;; initialize pyim
-    (require 'pyim)
-    (set-input-method "pyim")           ;this will automatically run `pyim-start'
+    (entropy/emacs-basic-pyim-start)
     
     ;; prompt for loading pyim cache done.
     (cond 

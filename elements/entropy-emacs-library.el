@@ -131,3 +131,31 @@
 
 
 (provide 'entropy-emacs-library)
+;; ** posframe
+(use-package posframe
+  :commands
+  (posframe-arghandler-default
+   posframe-auto-delete
+   posframe-delete
+   posframe-delete-all
+   posframe-delete-frame
+   posframe-funcall
+   posframe-hide
+   posframe-hide-all
+   posframe-poshandler-absolute-x-y
+   posframe-poshandler-frame-bottom-left-corner
+   posframe-poshandler-frame-bottom-right-corner
+   posframe-poshandler-frame-center
+   posframe-poshandler-frame-top-center
+   posframe-poshandler-frame-top-left-corner
+   posframe-poshandler-frame-top-right-corner
+   posframe-poshandler-point-bottom-left-corner
+   posframe-poshandler-point-top-left-corner
+   posframe-poshandler-window-bottom-left-corner
+   posframe-poshandler-window-bottom-right-corner
+   posframe-poshandler-window-center
+   posframe-poshandler-window-top-left-corner
+   posframe-poshandler-window-top-right-corner
+   posframe-run-poshandler
+   posframe-show
+   posframe-workable-p))

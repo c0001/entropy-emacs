@@ -1128,9 +1128,33 @@ Temp file was \"~/~entropy-artist.txt\""
 (setq auto-window-vscroll nil)
 
 ;; ** Use chinese pyim
+;; *** extra dependencies
+;; **** librime for pyim
+(use-package liberime-config
+  :ensure nil
+  :commands (liberime-load)
+  :preface
+  (defun entropy/emacs-basic-pyim-load-rime ()
+    (liberime-load)
+    (liberime-select-schema "luna_pinyin_simp"))
+  :init
+  (setq liberime-shared-data-dir
+        (expand-file-name entropy/emacs-pyim-liberime-scheme-data)
+        liberime-user-data-dir
+        (expand-file-name entropy/emacs-pyim-liberime-cache-dir)))
+
+;; **** pyim-basic
+(use-package pyim-basedict
+  :ensure nil
+  :commands (pyim-basedict-enable))
+
+;; **** simple chinese to traditional chinese
+(use-package entropy-s2t
+  :ensure nil
+  :commands entropy/s2t-string)
+
+;; *** preface
 (use-package pyim
-  :if (and entropy/emacs-enable-pyim
-           (not entropy/emacs-custom-pdumper-do))
   :diminish chinese-pyim-mode
   :commands (pyim-restart-1
              pyim-start
@@ -1140,38 +1164,36 @@ Temp file was \"~/~entropy-artist.txt\""
              pyim-convert-string-at-point)
   :bind
   (("M-j" . pyim-convert-string-at-point))
+  
+  :preface
+  (defun entropy/emacs-basic-pyim-start ()
+    (interactive)
+    (require 'pyim)
+    (cond ((and (eq entropy/emacs-pyim-use-backend 'internal)
+                (not entropy/emacs-pyim-dicts))
+           (pyim-basedict-enable))
+          ((eq entropy/emacs-pyim-use-backend 'internal)
+           (setq pyim-dicts entropy/emacs-pyim-dicts))
+          ((eq entropy/emacs-pyim-use-backend 'liberime)
+           (entropy/emacs-basic-pyim-load-rime)))
+    (set-input-method "pyim"))
+
+;; *** init  
   :init
 
-;; *** pyim user dictionaries specification
-  (cond ((and (eq entropy/emacs-pyim-use-backend 'internal)
-              (not entropy/emacs-pyim-dicts))
-         (use-package pyim-basedict
-           :ensure nil
-           :config (pyim-basedict-enable)))
-        ((eq entropy/emacs-pyim-use-backend 'internal)
-         (setq pyim-dicts entropy/emacs-pyim-dicts))
-        ((eq entropy/emacs-pyim-use-backend 'liberime)
-         (use-package liberime-config
-           :ensure nil
-           :commands (liberime-load)
-           :init
-           (setq liberime-shared-data-dir
-                 (expand-file-name entropy/emacs-pyim-liberime-scheme-data)
-                 liberime-user-data-dir
-                 (expand-file-name entropy/emacs-pyim-liberime-cache-dir))
-           (entropy/emacs-lazy-load-simple 'pyim
-             (liberime-load)
-             (liberime-select-schema "luna_pinyin_simp")))))
-  
-;; *** Setting pyim as the default input method
+  ;; If didn't use pyim set input method to nil
+  (unless entropy/emacs-enable-pyim
+    (setq default-input-method nil))
+
+  ;;  Setting pyim as the default input method
   (setq default-input-method "pyim")
 
-;; *** pyim backend chosen
+  ;;  pyim backend chosen
   (cl-case entropy/emacs-pyim-use-backend
     (internal (setq pyim-default-scheme 'quanpin))
     (liberime (setq pyim-default-scheme 'rime-quanpin)))
   
-;; *** use popup or posframe for pyim tooltip show
+  ;;  use popup or posframe for pyim tooltip show
 
   (if (version< emacs-version "26")
       (if (or (eq entropy/emacs-pyim-tooltip 'posframe)
@@ -1179,7 +1201,6 @@ Temp file was \"~/~entropy-artist.txt\""
           (setq pyim-page-tooltip 'popup)
         (setq pyim-page-tooltip entropy/emacs-pyim-tooltip))
     (progn
-      (use-package posframe)
       (if entropy/emacs-pyim-tooltip
           (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
         (setq pyim-page-tooltip 'posframe))))
@@ -1187,7 +1208,7 @@ Temp file was \"~/~entropy-artist.txt\""
   (when entropy/emacs-pyim-cached-dir
     (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir))
 
-;; *** 5 candidates shown for pyim tooltip
+  ;; 5 candidates shown for pyim tooltip
   (setq pyim-page-length 8)
 
 ;; *** config
@@ -1207,9 +1228,6 @@ Temp file was \"~/~entropy-artist.txt\""
       (define-key pyim-mode-map (kbd "C-g") 'pyim-quit-clear))
   
 ;; **** s2t&t2s convertor
-  (use-package entropy-s2t
-    :ensure nil
-    :commands entropy/s2t-string)
   (defun entropy/emacs-basic-toggle-pyim-s2t ()
     (interactive)
     (if pyim-magic-converter
@@ -1224,11 +1242,6 @@ Temp file was \"~/~entropy-artist.txt\""
         (setq pyim-punctuation-translate-p '(yes no auto))
       (setq pyim-punctuation-translate-p '(no yes auto))))
   (global-set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
-
-;; **** If didn't use pyim set input method to nil
-(unless entropy/emacs-enable-pyim
-  (setq default-input-method nil))
-
 
 ;; ** Enable disabled commands
 (put 'narrow-to-region 'disabled nil)
