@@ -404,71 +404,73 @@ with emacs, see its doc-string for details."
 (defun entropy/emacs-modeline--mdl-init ()
   "Init modeline style specified by `entropy/emacs-modeline-style'.
 
-  If the specific modeline style is not compat with current emacs
-  version, then warning with reset modeline style to \"origin\"
-  style which defined in `entropy/emacs-modeline-style'."
-  (cond
-   ;; init spaceline
-   ((string= entropy/emacs-modeline-style "spaceline")
-    (setq entropy/emacs-modeline--mdl-init-caller
-          '(spaceline-spacemacs-theme)))
+If the specific modeline style is not compat with current emacs
+version, then warning with reset modeline style to \"origin\"
+style which defined in `entropy/emacs-modeline-style'."
+  (let (cancel-branch)
+    (cond
+     ;; init spaceline
+     ((string= entropy/emacs-modeline-style "spaceline")
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(spaceline-spacemacs-theme)))
 
-   ;; init sapceline-icons
-   ((and (string= entropy/emacs-modeline-style "spaceline-icons")
-         (not (string= emacs-version "25.3.1")))
-    (setq entropy/emacs-modeline--mdl-init-caller
-          '(spaceline-all-the-icons-theme)))
+     ;; init sapceline-icons
+     ((and (string= entropy/emacs-modeline-style "spaceline-icons")
+           (not (string= emacs-version "25.3.1")))
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(spaceline-all-the-icons-theme)))
 
-   ((and (string= entropy/emacs-modeline-style "spaceline-icons")
-         (string= emacs-version "25.3.1"))
-    (warn "You are in emacs veresion 25.3.1 and couldn't use
+     ((and (string= entropy/emacs-modeline-style "spaceline-icons")
+           (string= emacs-version "25.3.1"))
+      (warn "You are in emacs veresion 25.3.1 and couldn't use
   spaceline-all-the-icons because this version can not shown
   all-the-icons-fonts correnctly.")
-    (setq entropy/emacs-modeline-style "origin")
-    (entropy/emacs-modeline--mdl-init))
+      (setq entropy/emacs-modeline-style "origin"
+            cancel-branch t)
+      (entropy/emacs-modeline--mdl-init))
 
-   ;; init powerline
-   ((string= entropy/emacs-modeline-style "powerline")
-    (setq entropy/emacs-modeline--mdl-init-caller
-          '(powerline-default-theme)))
+     ;; init powerline
+     ((string= entropy/emacs-modeline-style "powerline")
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(powerline-default-theme)))
 
-   ;; init-origin style
-   ((string= entropy/emacs-modeline-style "origin")
-    (setq entropy/emacs-modeline--mdl-init-caller
-          '(entropy/emacs-mode-line-origin-theme)))
+     ;; init-origin style
+     ((string= entropy/emacs-modeline-style "origin")
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(entropy/emacs-mode-line-origin-theme)))
 
-   ;; init doom-modeline
-   ((and (string= entropy/emacs-modeline-style "doom")
-         (not (version= emacs-version "25.3.1")))
-    (setq entropy/emacs-modeline--mdl-init-caller
-          '(doom-modeline-mode 1)))
+     ;; init doom-modeline
+     ((and (string= entropy/emacs-modeline-style "doom")
+           (not (version= emacs-version "25.3.1")))
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(doom-modeline-mode 1)))
 
-   ;; if detective init doom-modline in emacs-25.3.1 then warning.
-   ((and (string= entropy/emacs-modeline-style "doom")
-         (version= emacs-version "25.3.1"))
-    (warn "You are in emacs veresion 25.3.1 and couldn't use
+     ;; if detective init doom-modline in emacs-25.3.1 then warning.
+     ((and (string= entropy/emacs-modeline-style "doom")
+           (version= emacs-version "25.3.1"))
+      (warn "You are in emacs veresion 25.3.1 and couldn't use
   doom-modeline because this version can not shown
   all-the-icons-fonts correnctly.")
-    (setq entropy/emacs-modeline-style "origin")
-    (entropy/emacs-modeline--mdl-init))
+      (setq entropy/emacs-modeline-style "origin"
+            cancel-branch t)
+      (entropy/emacs-modeline--mdl-init))
 
-   ;; any other type was unsupport
-   (t (warn (format "entropy/emacs-modeline-style's value '%s' is invalid." entropy/emacs-modeline-style))
-      (setq entropy/emacs-modeline-style "origin")
-      (entropy/emacs-modeline--mdl-init)))
-  (setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style))
+     ;; any other type was unsupport
+     (t (warn (format "entropy/emacs-modeline-style's value '%s' is invalid." entropy/emacs-modeline-style))
+        (setq entropy/emacs-modeline-style "origin"
+              cancel-branch t)
+        (entropy/emacs-modeline--mdl-init)))
+    (setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style)
+    (unless cancel-branch
+      (funcall `(lambda () ,entropy/emacs-modeline--mdl-init-caller)))))
 
-(entropy/emacs-modeline--mdl-init)
-
-(let ((caller `(lambda ()
-                 ,entropy/emacs-modeline--mdl-init-caller)))
-  (cond
-   (entropy/emacs-custom-pdumper-do
-    (add-hook 'entropy/emacs-pdumper-load-hook
-              caller))
-   (t
-    (funcall caller))))
-
+(cond
+ (entropy/emacs-custom-pdumper-do
+  (add-hook 'entropy/emacs-pdumper-load-hook
+            #'entropy/emacs-modeline--mdl-init))
+ (t
+  (add-hook (entropy/emacs-select-x-hook)
+            #'entropy/emacs-modeline--mdl-init)))
 
 ;; ** toggle function
 (when entropy/emacs-enable-modeline-toggle

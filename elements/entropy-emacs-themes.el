@@ -45,15 +45,16 @@
 	doom-themes-enable-italic t) ; if nil, italics is universally disabled
 
   ;; Enable flashing mode-line on errors
-  ;; (doom-themes-visual-bell-config)
+  (entropy/emacs-lazy-with-load-trail
+   DoomBell
+   (doom-themes-visual-bell-config)))
 
-  :config
-  (use-package doom-themes-ext-org
-    :ensure nil
-    :after doom-themes
-    :commands (doom-themes-org-config)
-    :init
-    (doom-themes-org-config)))
+(use-package doom-themes-ext-org
+  :ensure nil
+  :after doom-themes
+  :commands (doom-themes-org-config)
+  :init
+  (doom-themes-org-config))
 
 ;; *** theme load specifix
 
@@ -61,45 +62,35 @@
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-modeline-specifix)
 
 ;; *** Initialize theme and adapting to the daemon init
-(defun entropy/emacs-theme--initialize-theme ()
-  (condition-case nil
-      (progn
-        (mapc #'disable-theme custom-enabled-themes)
-        (cond (entropy/emacs-custom-pdumper-do
-               (add-hook 'entropy/emacs-pdumper-load-hook
-                         #'(lambda ()
-                             (load-theme entropy/emacs-theme-options t))))
-              (t
-               (load-theme entropy/emacs-theme-options t)))
-        (when (and (fboundp 'powerline-reset)
-                   (string-match-p
-                    "space\\|powerline"
-                    entropy/emacs-modeline-style))
-          (cond
-           (entropy/emacs-custom-pdumper-do
-            (add-hook 'entropy/emacs-pdumper-load-hook
-                      #'(lambda ()
-                          (powerline-reset))))
-           (t
-            (powerline-reset))))
-        (entropy/emacs-theme-load-face-specifix (symbol-name entropy/emacs-theme-options)))
-    (error "Problem loading theme %s" (symbol-name entropy/emacs-theme-options))))
 
-(entropy/emacs-theme--initialize-theme)
+(entropy/emacs-lazy-with-load-trail
+ enable-theme
+ (mapc #'disable-theme custom-enabled-themes)
+ (condition-case nil
+     (load-theme entropy/emacs-theme-options t)
+   (error "Problem loading theme %s"
+          (symbol-name entropy/emacs-theme-options)))
+ (when (and (fboundp 'powerline-reset)
+            (string-match-p
+             "space\\|powerline"
+             entropy/emacs-modeline-style))
+   (powerline-reset))
+ (entropy/emacs-theme-load-face-specifix
+  (symbol-name entropy/emacs-theme-options))
+ (when (daemonp)
+   ;; This issue refer to
+   ;; `https://github.com/hlissner/emacs-doom-themes/issues/125'.
 
-;; This issue refer to `https://github.com/hlissner/emacs-doom-themes/issues/125'.
+   ;; For generally about, this issue brought the bad theme
+   ;; presentation in daemon mode of init of emacs session.
 
-;; For generally about, this issue brought the bad theme presentation
-;; in daemon mode of init of emacs session.
-
-(when (daemonp)
-  (add-hook 'after-make-frame-functions
-            (lambda (frame)
-	      (when (eq (length (frame-list)) 2)
-		(progn
-		  (select-frame
-		   frame)
-		  (load-theme entropy/emacs-theme-options))))))
+   (add-hook 'after-make-frame-functions
+             (lambda (frame)
+	       (when (eq (length (frame-list)) 2)
+		 (progn
+		   (select-frame
+		    frame)
+		   (load-theme entropy/emacs-theme-options)))))))
 
 ;; ** solaire mode for focus visual style
 (use-package solaire-mode
@@ -180,7 +171,9 @@
   :diminish page-break-lines-mode
   :commands (global-page-break-lines-mode)
   :init
-  (global-page-break-lines-mode))
+  (entropy/emacs-lazy-with-load-trail
+   PageBreakLines
+   (global-page-break-lines-mode +1)))
 
 ;; * provide
 (provide 'entropy-emacs-themes)

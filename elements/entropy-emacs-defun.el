@@ -166,6 +166,21 @@ in case that file does not provide any feature."
        (require ,file)
        ,@body))))
 
+(defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
+  (let ((func (intern
+               (concat "entropy/emacs-lazy-trail-to-"
+                       (symbol-name name)))))
+    `(progn
+       (defun ,func ()
+         ,@body)
+       (cond
+        (entropy/emacs-custom-pdumper-do
+         (add-hook 'entropy/emacs-pdumper-load-hook
+                   ',func))
+        (t
+         (add-hook (entropy/emacs-select-x-hook)
+                   ',func))))))
+
 (defun entropy/emacs-lazy-initial-form
     (list-var initial-func-suffix-name initial-var-suffix-name abbrev-name adder-name &rest form_args)
   (let* ((func (intern (concat abbrev-name "_" initial-func-suffix-name)))
