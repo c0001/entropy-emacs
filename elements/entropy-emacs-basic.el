@@ -1352,12 +1352,18 @@ otherwise returns nil."
 ;; Force refresh autocompression mode enabling status as that the
 ;; initialization for its refers procedure can not cover fully
 ;; functional of `auto-compression-mode'.
-(entropy/emacs-lazy-initial-advice-before
- '(push-button load-library find-library)
- "autocompression-mode"
- "autocompression-mode"
- (auto-compression-mode 0)
- (auto-compression-mode 1))
+(cond (entropy/emacs-custom-pdumper-do
+       (add-hook 'entropy/emacs-pdumper-load-hook
+                 #'(lambda ()
+                     (auto-compression-mode 0)
+                     (auto-compression-mode 1))))
+      (t
+       (entropy/emacs-lazy-initial-advice-before
+        '(push-button load-library find-library)
+        "autocompression-mode"
+        "autocompression-mode"
+        (auto-compression-mode 0)
+        (auto-compression-mode 1))))
 
 ;; * provide
 (provide 'entropy-emacs-basic)
