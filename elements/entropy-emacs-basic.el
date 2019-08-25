@@ -1176,7 +1176,13 @@ Temp file was \"~/~entropy-artist.txt\""
            (setq pyim-dicts entropy/emacs-pyim-dicts))
           ((eq entropy/emacs-pyim-use-backend 'liberime)
            (entropy/emacs-basic-pyim-load-rime)))
-    (set-input-method "pyim"))
+    (set-input-method "pyim")
+
+    ;; keybinding reflect
+
+    (global-set-key (kbd "C-\\") 'entropy/emacs-basic-pyim-toggle)
+    (global-set-key (kbd "C-M-\\") 'entropy/emacs-basic-toggle-pyim-s2t)
+    (global-set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
 
 ;; *** init  
   :init
@@ -1222,7 +1228,6 @@ Temp file was \"~/~entropy-artist.txt\""
       (progn
         (set-input-method "pyim")
         (setq pyim-punctuation-escape-list nil))))
-  (global-set-key (kbd "C-\\") 'entropy/emacs-basic-pyim-toggle)
   
 ;; **** using 'C-g' to cancling any pyim manipulation
   (if (not (version< emacs-version "26"))
@@ -1234,15 +1239,13 @@ Temp file was \"~/~entropy-artist.txt\""
     (if pyim-magic-converter
         (setq pyim-magic-converter nil)
       (setq pyim-magic-converter 'entropy/s2t-string)))
-  (global-set-key (kbd "C-M-\\") 'entropy/emacs-basic-toggle-pyim-s2t)
 
 ;; **** toglle punctuation between half and full way.
   (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
     (interactive)
     (if (eq (car pyim-punctuation-translate-p) 'no)
         (setq pyim-punctuation-translate-p '(yes no auto))
-      (setq pyim-punctuation-translate-p '(no yes auto))))
-  (global-set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
+      (setq pyim-punctuation-translate-p '(no yes auto)))))
 
 ;; ** Enable disabled commands
 (put 'narrow-to-region 'disabled nil)
