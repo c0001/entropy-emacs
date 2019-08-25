@@ -1186,7 +1186,8 @@ Temp file was \"~/~entropy-artist.txt\""
     (setq default-input-method nil))
 
   ;;  Setting pyim as the default input method
-  (setq default-input-method "pyim")
+  (when entropy/emacs-enable-pyim
+    (setq default-input-method "pyim"))
 
   ;;  pyim backend chosen
   (cl-case entropy/emacs-pyim-use-backend
