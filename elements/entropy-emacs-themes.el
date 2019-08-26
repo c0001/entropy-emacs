@@ -157,9 +157,8 @@
   (cond
    (entropy/emacs-custom-pdumper-do
     ;; TODO  `solaire-mode' can not work correctly in pdumper session 
-    ;; (add-hook 'entropy/emacs-pdumper-load-hook
-    ;;           #'entropy/emacs-theme--initilized-start-solaire-mode)
-    )
+    (add-hook 'entropy/emacs-pdumper-load-end-hook
+              #'entropy/emacs-theme--initilized-start-solaire-mode))
    (t
     (add-hook (entropy/emacs-select-x-hook) #'entropy/emacs-theme--initilized-start-solaire-mode))))
 

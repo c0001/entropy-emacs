@@ -250,20 +250,6 @@ entropy-emacs' derived eyebrowse window configuration. "
               (and entropy/emacs-custom-pdumper-do
                    entropy/emacs-do-pdumper-in-X))))
 
-  :init
-  (defun entropy/emacs-doom-mdlini-after-advice (&rest _rest)
-    "Advice for doom-modeline-mode."
-    (setq doom-modeline-buffer-file-name-style 'truncate-all)
-    (doom-modeline-refresh-bars)
-    ;; theme adapted
-    (if (string-match-p "spolsky" (symbol-name entropy/emacs-theme-options))
-        (setq doom-modeline--bar-active
-              (doom-modeline--make-xpm 'doom-modeline-inactive-bar
-                                       doom-modeline-bar-width
-                                       doom-modeline-height))))
-  (entropy/emacs-lazy-load-simple 'doom-modeline
-    (advice-add 'doom-modeline-mode :after #'entropy/emacs-doom-mdlini-after-advice))
-  
   :config
   (unless entropy/emacs-modeline--doom-modeline-spec-done
     (entropy/emacs-modeline--doom-modeline-specification))

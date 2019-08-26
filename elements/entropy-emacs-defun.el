@@ -80,6 +80,57 @@ directory."
             nil))
       nil)))
 
+(defun entropy/emacs-list-subfiles (dir-root)
+  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
+        (rtn nil))
+    (if dirlist
+        (progn
+          (dolist (el dirlist)
+            (when (equal "F" (car el))
+              (push (cdr el) rtn)))
+          (if rtn
+              rtn
+            nil))
+      nil)))
+
+(defun entropy/emacs-list-dir-recursively (top-dir)
+  (let ((subdirs (entropy/emacs-list-subdir top-dir))
+        rtn)
+    (catch :exit
+      (add-to-list 'rtn top-dir)
+      (unless subdirs
+        (throw :exit nil))
+      (dolist (sub-dir subdirs)
+        (add-to-list
+         'rtn
+         (entropy/emacs-list-dir-recursively sub-dir))))
+    (reverse rtn)))
+
+(defun entropy/emacs-list-dir-recursive-for-list (top-dir)
+  (let ((dir-struct (entropy/emacs-list-dir-recursively top-dir))
+        ext-func)
+    (setq
+     ext-func
+     (lambda (node)
+       (let (rtn)
+         (catch :exit
+           (setq rtn (list (car node)))
+           (unless (cdr node)
+             (throw :exit nil))
+           (dolist (sub-node (cdr node))
+             (setq
+              rtn
+              (append rtn (funcall ext-func sub-node)))))
+         rtn)))
+    (funcall ext-func dir-struct)))
+
+(defun entropy/emacs-list-files-recursive-for-list (top-dir)
+  (let ((dir-list (entropy/emacs-list-dir-recursive-for-list top-dir))
+        rtn)
+    (dolist (dir dir-list)
+      (setq rtn (append rtn (entropy/emacs-list-subfiles dir))))
+    rtn))
+
 (defun entropy/emacs-file-path-parser (file-name type)
   "The file-path for 'entropy-emacs, functions for get base-name,
 shrink trail slash, and return the parent(up level) dir."
@@ -207,7 +258,7 @@ in case that file does not provide any feature."
        (cond
         (entropy/emacs-custom-pdumper-do
          (message "All lazy loading feature disabled in pdumper procedure")
-         (,func))
+         (add-hook 'entropy/emacs-pdumper-load-hook #',func))
         ((not entropy/emacs-custom-enable-lazy-load)
          (add-hook (entropy/emacs-select-x-hook) #',func))
         (t (defun ,adder-func ()

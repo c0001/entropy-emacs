@@ -70,9 +70,10 @@ configuration.")
 (cl-defmacro entropy/emacs-pdumper--with-load-path (top-dir &rest body)
   (let* ((tempo-lpth (append
                       (if top-dir 
-                          (entropy/emacs-list-subdir (if (symbolp top-dir)
-                                                         (symbol-value top-dir)
-                                                       top-dir))
+                          (entropy/emacs-list-dir-recursive-for-list
+                           (if (symbolp top-dir)
+                               (symbol-value top-dir)
+                             top-dir))
                         nil)
                       entropy/emacs-origin-load-path)))
     `(let ((load-path ',tempo-lpth))
@@ -102,6 +103,26 @@ configuration.")
       (error "Non upstream installed!"))
     (setq entropy/emacs-pdumper--upstream-els rtn)))
 
+(defun entropy/emacs-pdumper--extract-internal-packages ()
+  (let ((internal-exts (entropy/emacs-list-files-recursive-for-list
+                        (file-name-directory (locate-library "window"))))
+        (org-filter (regexp-quote (file-name-directory (locate-library "org"))))
+        (main-filter (rx (or (seq ".elc" line-end)
+                             (seq ".el.gz" line-end))))
+        (sub-filter (rx (or "cl" "tramp" "file" "dired" "url" "eww" "eshell" "esh")))
+        (sub-filter_ex (rx (or (eval
+                                (if (not sys/win32p)
+                                    "w32"
+                                  "*eemacs-exlude-feature-indicator*")))))
+        tempo-var)
+    (dolist (sub-file internal-exts)
+      (unless (string-match-p org-filter sub-file)
+        (when (and (string-match-p main-filter sub-file)
+                   (not (string-match-p sub-filter_ex sub-file))
+                   (string-match-p sub-filter sub-file))
+          (push sub-file tempo-var))))
+    (reverse tempo-var)))
+
 (defun entropy/emacs-pdumper--extract-org-packages ()
   (let* ((org-dir (file-name-directory (locate-library "org")))
          (lite-list (entropy/emacs-list-dir-lite org-dir))
@@ -128,9 +149,14 @@ configuration.")
     ;; TODO ...body
     
     (message "Initializing pdumper session ...")
+    ;; the pdumper session procedure
     (run-hooks 'entropy/emacs-pdumper-load-hook)
+    ;; trail dealing
+    (load-library "tramp")              ;reload tramp for enable `auto-sudoedit'
     (when scroll-bar-mode
       (scroll-bar-mode 0))
+    ;; the very ending procedure
+    (run-hooks 'entropy/emacs-pdumper-load-end-hook)
     (message "Initialized pdumper session")
     (when entropy/emacs-pdumper--rec-timer
       (cancel-timer entropy/emacs-pdumper--rec-timer)
@@ -154,6 +180,16 @@ configuration.")
                   feature-name)
          (ignore-errors (require feature)))))))
 
+(defun entropy/emacs-pdumper--load-internal ()
+  (let ((files (entropy/emacs-pdumper--extract-internal-packages)))
+    (entropy/emacs-pdumper--with-load-path
+     nil
+     (dolist (file files)
+       (let* ((feature-name (file-name-base file))
+              (feature (intern feature-name)))
+         (message "[Pdumper] load-file: %s" feature-name)
+         (ignore-errors (require feature)))))))
+
 (defun entropy/emacs-pdumper--load-org ()
   (let ((els (entropy/emacs-pdumper--extract-org-packages)))
     (entropy/emacs-pdumper--with-load-path
@@ -162,6 +198,7 @@ configuration.")
        (require (intern (file-name-base file)))))))
 
 ;; ** main
+(entropy/emacs-pdumper--load-internal)
 (entropy/emacs-pdumper--load-org)
 (entropy/emacs-pdumper--load-upstream)
 (setq load-path (append
