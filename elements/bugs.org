@@ -19,22 +19,24 @@ toto-tree for those bugs.
 The todo keys are mapped specially for =entropy-emacs=, with the
 following valid keys:
 
-1) TODO    : indicating for repairing this bug, as the marked-up way, but
-   with high priority.
+1) =TODO= : indicating for repairing this bug, as the marked-up way,
+   but with high priority.
 
-2) DOING   : the current bug repairing procedure including.
+2) =DOING= : the current bug repairing procedure including.
 
-3) DONE    : bug has been fixed up.
+3) =DONE= : bug has been fixed up.
 
-4) HANGUP  : can not find the ideas for fixing this bug, hoped for help.
+4) =HANGUP= : can not find the ideas for fixing this bug, hoped for
+   help.
 
-5) MARKING : minor bug doesn't affecting using but marked for
+5) =MARKING= : minor bug doesn't affecting using but marked for
    remembering fixing as attitude for emacser.
 
-6) UPDATE  : Updating the previous "DONE" status for updating the new
+6) =UPDATE= : Updating the previous "DONE" status for updating the new
    issue.
 
-7) CANCEL  : Canceling the bug fixing task as that its hopeless for as.
+7) =CANCEL= : Canceling the bug fixing task as that its hopeless for
+   as.
 
 * Conribution 
 :PROPERTIES:
