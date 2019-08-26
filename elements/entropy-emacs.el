@@ -319,9 +319,9 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 ;; *** after load procedure
 
-(defun entropy/emacs--init-after-load-initialze-process (type aft-hook)
+(defun entropy/emacs--init-after-load-initialze-process (enable aft-hook)
   ;; pyim starter
-  (when (and type
+  (when (and enable
              entropy/emacs-enable-pyim
              ;; judgement of whether first init entropy-emacs
              (not
@@ -333,12 +333,13 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     (entropy/emacs--pyim-init-prompt)
     (defun entropy/emacs--pyim-init-prompt ()
       (message "This function has been unloaded.")))
-  ;; hook runner 
-  (set aft-hook
-       (reverse (symbol-value aft-hook)))
-  (message "After load initilizing ...")
-  (run-hooks aft-hook)
-  (message "After load initilized"))
+  (when enable
+    ;; hook runner 
+    (set aft-hook
+         (reverse (symbol-value aft-hook)))
+    (message "After load initilizing ...")
+    (run-hooks aft-hook)
+    (message "After load initilized")))
 
 ;; *** start up branch
 ;; **** mini start
