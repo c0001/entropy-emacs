@@ -16,7 +16,9 @@
 ;; * Code:
 ;; ** require
 (require 'dash)
-(require 'cl)
+(if (version< emacs-version "27")
+    (require 'cl)
+  (require 'cl-macs))
 (require 'ivy)
 
 ;; ** Internal Functions
