@@ -95,7 +95,13 @@
             (add-hook hook #'turn-on-elisp-slime-nav-mode))))
 
 ;; Semantic code search for emacs lisp
-(use-package elisp-refs)
+(use-package elisp-refs
+  :commands
+  (elisp-refs-function
+   elisp-refs-macro
+   elisp-refs-variable
+   elisp-refs-special
+   elisp-refs-symbol))
 
 (defun entropy/emacs-elisp-recompile-elpa ()
   "Recompile packages in elpa directory. Useful if you switch Emacs versions."
