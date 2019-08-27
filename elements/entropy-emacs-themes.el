@@ -39,6 +39,7 @@
 ;; ** Theme
 (use-package doom-themes
   :preface (defvar region-fg nil) ; bug from: `url:https://github.com/hlissner/emacs-doom-themes/issues/166'
+  :commands doom-themes-visual-bell-config
   :init
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -47,7 +48,35 @@
   ;; Enable flashing mode-line on errors
   (entropy/emacs-lazy-with-load-trail
    DoomBell
-   (doom-themes-visual-bell-config)))
+   (doom-themes-visual-bell-config))
+
+  :config
+  (defun doom-themes-visual-bell-fn-core (remap)
+    (when (assq 'mode-line face-remapping-alist)
+      (setq face-remapping-alist remap
+            doom-themes--bell-p nil))
+    (force-mode-line-update))
+  
+  (defun doom-themes-visual-bell-fn ()
+    "Blink the mode-line red briefly. Set `ring-bell-function' to this to use it.
+
+Note: this function has been redefined for adapting for [entropy-emacs]
+
+The origin face map recovery rely on the buffer (current-buffer)
+actived status, otherwise for error, which may encounter the
+occasion that the timer run after the buffer killed, that the
+remap for recovering failed."
+    (unless doom-themes--bell-p
+      (let ((old-remap (copy-alist face-remapping-alist)))
+        (setq doom-themes--bell-p t)
+        (setq face-remapping-alist
+              (append (delete (assq 'mode-line face-remapping-alist)
+                              face-remapping-alist)
+                      '((mode-line doom-visual-bell))))
+        (force-mode-line-update)
+        (run-with-timer 0.15 nil
+                        #'doom-themes-visual-bell-fn-core
+                        old-remap)))))
 
 (use-package doom-themes-ext-org
   :ensure nil
