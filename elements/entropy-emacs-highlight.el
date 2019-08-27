@@ -274,40 +274,40 @@
 ;; This package is a minor mode to visualize blanks (TAB, (HARD) SPACE
 ;; and NEWLINE).
 
-(when entropy/emacs-hl-whitespace-enable-at-startup
-  (use-package whitespace
-    :ensure nil
-    :diminish whitespace-mode
-    :init
-    (dolist (hook '(prog-mode-hook outline-mode-hook conf-mode-hook))
-      (add-hook hook #'whitespace-mode))
-    :config
-    (setq whitespace-line-column fill-column) ;; limit line length
-    ;; automatically clean up bad whitespace
-    (when entropy/emacs-hl-whitespace-auto-cleanup
-      (setq whitespace-action '(auto-cleanup)))
-    ;; only show bad whitespace
-    (setq whitespace-style '(face
-                             trailing space-before-tab
-                             indentation empty space-after-tab))
+(use-package whitespace
+  :if entropy/emacs-hl-whitespace-enable-at-startup
+  :ensure nil
+  :diminish whitespace-mode
+  :init
+  (dolist (hook '(prog-mode-hook outline-mode-hook conf-mode-hook))
+    (add-hook hook #'whitespace-mode))
+  :config
+  (setq whitespace-line-column fill-column) ;; limit line length
+  ;; automatically clean up bad whitespace
+  (when entropy/emacs-hl-whitespace-auto-cleanup
+    (setq whitespace-action '(auto-cleanup)))
+  ;; only show bad whitespace
+  (setq whitespace-style '(face
+                           trailing space-before-tab
+                           indentation empty space-after-tab))
 
-    (entropy/emacs-lazy-load-simple 'popup
-      ;; advice for whitespace-mode conflict with popup
-      (defvar my-prev-whitespace-mode nil)
-      (make-local-variable 'my-prev-whitespace-mode)
+  (entropy/emacs-lazy-load-simple 'popup
+    ;; advice for whitespace-mode conflict with popup
+    (defvar my-prev-whitespace-mode nil)
+    (make-local-variable 'my-prev-whitespace-mode)
 
-      (defadvice popup-draw (before my-turn-off-whitespace activate compile)
-        "Turn off whitespace mode before showing autocomplete box."
-        (if whitespace-mode
-            (progn
-              (setq my-prev-whitespace-mode t)
-              (whitespace-mode -1))
-          (setq my-prev-whitespace-mode nil)))
+    (defadvice popup-draw (before my-turn-off-whitespace activate compile)
+      "Turn off whitespace mode before showing autocomplete box."
+      (if whitespace-mode
+          (progn
+            (setq my-prev-whitespace-mode t)
+            (whitespace-mode -1))
+        (setq my-prev-whitespace-mode nil)))
 
-      (defadvice popup-delete (after my-restore-whitespace activate compile)
-        "Restore previous whitespace mode when deleting autocomplete box."
-        (if my-prev-whitespace-mode
-            (whitespace-mode 1))))))
+    (defadvice popup-delete (after my-restore-whitespace activate compile)
+      "Restore previous whitespace mode when deleting autocomplete box."
+      (if my-prev-whitespace-mode
+          (whitespace-mode 1)))))
 
 ;; * provide
 (provide 'entropy-emacs-highlight)

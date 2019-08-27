@@ -73,7 +73,7 @@
 ;; ** eshell
 (use-package eshell
   :ensure nil
-  :init
+  :preface
   (defun entropy/emacs-shell--eshell-before-advice (&rest args)
     "Delete eshell histroy file before eshell opening and prevent
 open eshell on tramp-buffer when on windows platform. "
@@ -82,13 +82,7 @@ open eshell on tramp-buffer when on windows platform. "
     (when (and (string-match "^/\\w+?:" default-directory)
                sys/win32p)
       (error "Can not using eshell in tramp location.")))
-  
-  (entropy/emacs-lazy-load-simple 'eshell
-    (advice-add 'eshell :before #'entropy/emacs-shell--eshell-before-advice))
-  
-  (add-hook 'eshell-exit-hook #'(lambda ()
-                                  (if (file-exists-p eshell-history-file-name)
-                                      (delete-file eshell-history-file-name))))
+
   :config
   ;; List all candidates when enter 'tab' key
   (setq eshell-cmpl-cycle-completions nil)
@@ -97,7 +91,11 @@ open eshell on tramp-buffer when on windows platform. "
   (setq eshell-aliases-file entropy/emacs-eshell-alias-file
         eshell-history-file-name entropy/emacs-eshell-history-file)
 
-
+  ;; disable eshell history preserve for local file for secure warranty
+  (advice-add 'eshell :before #'entropy/emacs-shell--eshell-before-advice)
+  (add-hook 'eshell-exit-hook #'(lambda ()
+                                  (if (file-exists-p eshell-history-file-name)
+                                      (delete-file eshell-history-file-name))))
 
   ;; Redefine `eshell-search-path' for preventing search executable
   ;; binary in current path automatically without prefix "./" manually
@@ -190,21 +188,49 @@ was found."
   :commands (eterm-256color-mode)
   :hook (term-mode . eterm-256color-mode))
 
+(use-package fakecygpty
+  :ensure nil
+  :if (and sys/win32p
+           entropy/emacs-win-fakecygpty-enable
+           (executable-find "fakecygpty")
+           (executable-find "qkill"))
+  :commands fakecygpty-activate
+  :preface
+  (defun entropy/emacs-shell--fakepty-cd-around-advice (old_func dir)
+    (let ((wsl-root (substring (expand-file-name entropy/emacs-wsl-apps) 0 -9)))
+      (cond ((string-match-p "^/.[^/]+" dir)
+             (setq dir (expand-file-name (replace-regexp-in-string "^/" "" dir) wsl-root)))
+            ((string-match-p "^/./" dir)
+             (setq dir
+                   (expand-file-name
+                    (replace-regexp-in-string "^/\\(.\\)/" "\\1:/" dir))))
+            ((string-match-p "^/.$" dir)
+             (setq dir
+                   (expand-file-name
+                    (replace-regexp-in-string "^/\\(.\\)" "\\1:/" dir))))
+            ((string-match-p "^/$" dir)
+             (setq dir wsl-root)))
+      (funcall old_func dir)))
+  
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   fakecygpty
+   (fakecygpty-activate)
+   (when (and entropy/emacs-wsl-enable
+              (ignore-errors (file-exists-p entropy/emacs-wsl-apps)))
+     (advice-add 'cd :around 'entropy/emacs-shell--fakepty-cd-around-advice))))
 
 ;; ** Shell Pop
 (use-package shell-pop
   :defines shell-pop-universal-key
-  :bind ([f9] . entropy/emacs-shell-shell-pop-for-eshell)
-  :init
-  (defun entropy/emacs-shell--shell-pop-before-advice (&rest args)
+  :bind ([f9] . entropy/emacs-shell-shellpop-for-eshell)
+  :preface
+  (defun entropy/emacs-shell--shell-pop-before-advice_tramp_restrict (&rest args)
     (when (and (string-match "^/\\w+?:" default-directory)
                sys/win32p)
       (error "Can not usign eshell in tramp location.")))
 
-  (advice-add 'entropy/emacs-shell-shell-pop-for-eshell
-              :before #'entropy/emacs-shell--shell-pop-before-advice)
-  
-  (defun entropy/emacs-shell-shell-pop-for-eshell (arg)
+  (defun entropy/emacs-shell-shellpop-for-eshell (arg)
     (interactive "P")
     (require 'shell-pop)
     (let* ((value '("eshell" "*eshell*" (lambda () (eshell))))
@@ -215,7 +241,7 @@ was found."
 
   (defun entropy/emacs-shell--shell-pop-make-pop-ansi-term ()
     (advice-add 'entropy/emacs-shell-shell-pop-for-ansi-term-bash
-                :before #'entropy/emacs-shell--shell-pop-before-advice)
+                :before #'entropy/emacs-shell--shell-pop-before-advice_tramp_restrict)
     (defun entropy/emacs-shell-shell-pop-for-ansi-term-bash (arg)
       (interactive "P")
       (require 'shell-pop)
@@ -229,46 +255,7 @@ was found."
         (shell-pop arg)))
     (global-set-key (kbd "<f10>") 'entropy/emacs-shell-shell-pop-for-ansi-term-bash))
 
-  ;; ansi-term for linux-like operation system
-  (when (not sys/win32p)
-    (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
-
-  ;; ansi-term for windows
-  (use-package fakecygpty
-    :ensure nil
-    :if (and sys/win32p
-             entropy/emacs-win-fakecygpty-enable
-             (executable-find "fakecygpty")
-             (executable-find "qkill"))
-    :commands fakecygpty-activate
-    :init
-    (fakecygpty-activate)
-    :config
-    (defun entropy/emacs-shell--cd-around-advice (old_func dir)
-      (let ((wsl-root (substring (expand-file-name entropy/emacs-wsl-apps) 0 -9)))
-        (cond ((string-match-p "^/.[^/]+" dir)
-               (setq dir (expand-file-name (replace-regexp-in-string "^/" "" dir) wsl-root)))
-              ((string-match-p "^/./" dir)
-               (setq dir
-                     (expand-file-name
-                      (replace-regexp-in-string "^/\\(.\\)/" "\\1:/" dir))))
-              ((string-match-p "^/.$" dir)
-               (setq dir
-                     (expand-file-name
-                      (replace-regexp-in-string "^/\\(.\\)" "\\1:/" dir))))
-              ((string-match-p "^/$" dir)
-               (setq dir wsl-root)))
-        (funcall old_func dir)))
-    (advice-add 'cd :around 'entropy/emacs-shell--cd-around-advice)
-    
-    (cond ((and entropy/emacs-wsl-enable
-                (ignore-errors (file-exists-p entropy/emacs-wsl-apps)))
-           (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
-          
-          (t
-           (advice-add 'entropy/emacs-shell-pop-for-ansi-term-of-win32cmd
-                       :before #'entropy/emacs-shell--shell-pop-before-advice)
-           (defun entropy/emacs-shell-pop-for-ansi-term-of-win32cmd  (arg)
+  (defun entropy/emacs-shell-shellpop-for-ansi-term-of-win32cmd  (arg)
              (interactive "P")
              (require 'shell-pop)
              (let* ((shell-pop-term-shell shell-file-name)
@@ -277,9 +264,22 @@ was found."
                     (shell-pop-internal-mode-buffer (nth 1 value))
                     (shell-pop-internal-mode-func (nth 2 value)))
                (shell-pop arg)))
-           (global-set-key (kbd "<f10>") 'entropy/emacs-shell-pop-for-ansi-term-of-win32cmd)))))
 
+  (advice-add 'entropy/emacs-shell-shellpop-for-eshell
+              :before #'entropy/emacs-shell--shell-pop-before-advice_tramp_restrict)
 
+  (advice-add 'entropy/emacs-shell-shellpop-for-ansi-term-of-win32cmd
+              :before #'entropy/emacs-shell--shell-pop-before-advice_tramp_restrict)
+  
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   shellpop-ansiterm
+   (cond ((not sys/win32p)
+          (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
+         ((and sys/win32p (bound-and-true-p fakecygpty--activated))
+          (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
+         (sys/win32p
+          (global-set-key (kbd "<f10>") 'entropy/emacs-shell-shellpop-for-ansi-term-of-win32cmd)))))
 
 ;; ** provide
 (provide 'entropy-emacs-shell)
