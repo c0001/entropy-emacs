@@ -48,10 +48,10 @@
   :if (eq entropy/emacs-use-popup-window-framework 'popwin)
   :commands popwin-mode
   :init
-  (cond (entropy/emacs-custom-pdumper-do
-         (add-hook 'entropy/emacs-pdumper-load-hook
-                   #'popwin-mode))
-        (t (add-hook (entropy/emacs-select-x-hook) #'popwin-mode)))
+
+  (entropy/emacs-lazy-with-load-trail
+   popwin-mode
+   (popwin-mode t))
   
   :bind-keymap
   ("C-3" . popwin:keymap)
@@ -156,12 +156,9 @@
   (defvar-local shackle--current-popup-window nil) ; current popup window
   (put 'shackle--current-popup-window 'permanent-local t)
 
-  (cond
-   (entropy/emacs-custom-pdumper-do
-    (add-hook 'entropy/emacs-pdumper-load-hook
-              #'shackle-mode))
-   (t
-    (add-hook (entropy/emacs-select-x-hook) #'shackle-mode)))
+  (entropy/emacs-lazy-with-load-trail
+   shackle-mode
+   (shackle-mode t))
 
   :bind-keymap ("C-3" . shackle-popup-mode-map)
   :bind

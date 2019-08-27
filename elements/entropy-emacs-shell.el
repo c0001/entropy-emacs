@@ -42,6 +42,7 @@
   :config
   (add-hook 'comint-output-filter-functions #'comint-strip-ctrl-m)
   (add-hook 'shell-mode-hook #'ansi-color-for-comint-mode-on)
+  
 ;; *** Improve shell buffer interactive experience
   (defun entropy/emacs-shell--n-shell-mode-hook ()
     "Shell mode customizations."

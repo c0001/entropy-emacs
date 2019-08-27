@@ -130,7 +130,7 @@
          ("C-n" . company-select-next))
 ;; *** init for load  
   :init
-  (add-hook (entropy/emacs-select-x-hook) #'global-company-mode)
+  (entropy/emacs-lazy-with-load-trail global-company-mode (global-company-mode t))
   (when (equal entropy/emacs-use-extensions-type 'submodules)
     (entropy/emacs-company-require-subs))
   (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)

@@ -450,13 +450,9 @@ style which defined in `entropy/emacs-modeline-style'."
     (unless cancel-branch
       (funcall `(lambda () ,entropy/emacs-modeline--mdl-init-caller)))))
 
-(cond
- (entropy/emacs-custom-pdumper-do
-  (add-hook 'entropy/emacs-pdumper-load-hook
-            #'entropy/emacs-modeline--mdl-init))
- (t
-  (add-hook (entropy/emacs-select-x-hook)
-            #'entropy/emacs-modeline--mdl-init)))
+(entropy/emacs-lazy-with-load-trail
+ eemacs-modeline-init
+ (entropy/emacs-modeline--mdl-init))
 
 ;; ** toggle function
 (when entropy/emacs-enable-modeline-toggle

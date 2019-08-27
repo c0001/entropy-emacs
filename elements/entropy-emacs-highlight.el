@@ -66,7 +66,7 @@
 ;; ** Highlight matching paren
 (use-package paren
   :ensure nil
-  :init (add-hook (entropy/emacs-select-x-hook) #'show-paren-mode)
+  :init (entropy/emacs-lazy-with-load-trail show-paren-mode (show-paren-mode t))
   :config
   (setq show-paren-when-point-inside-paren t)
   (setq show-paren-when-point-in-periphery t))
@@ -152,7 +152,9 @@
               ("C-c t o" . hl-todo-occur))
   :init
   (when entropy/emacs-hl-todo-enable-at-startup
-    (add-hook (entropy/emacs-select-x-hook) #'global-hl-todo-mode)))
+    (entropy/emacs-lazy-with-load-trail
+     global-hl-todo
+     (global-hl-todo-mode t))))
 
 ;; ** Highlight uncommitted changes
 ;;
@@ -181,56 +183,36 @@
 ;; Check out the Commentary section in each respective file for the
 ;; usage instructions.
 
-(if sys/win32p
-    ;; In windows system
-    (when (and entropy/emacs-wsl-enable entropy/emacs-hl-diff-hl-enable-at-startup)
-      (use-package diff-hl
-        :commands (global-diff-hl-mode)
-        :bind (:map diff-hl-command-map
-                    ("SPC" . diff-hl-mark-hunk))
-        :init
-        (add-hook (entropy/emacs-select-x-hook) #'global-diff-hl-mode)
+;; In windows system
 
-        ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
+(use-package diff-hl
+  :if (and (or (and entropy/emacs-wsl-enable
+                    sys/win32p)
+               sys/linuxp sys/macp)
+           entropy/emacs-hl-diff-hl-enable-at-startup)
+  :commands (global-diff-hl-mode)
+  :bind (:map diff-hl-command-map
+              ("SPC" . diff-hl-mark-hunk))
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   global-diff-hl
+   (global-diff-hl-mode t))
+
+  ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
         ;;;; This may be cause dired be crash for big git
         ;;;; repo such as linux kernel repo
-        
-        :config
-        (diff-hl-flydiff-mode 1)
+  
+  :config
+  (diff-hl-flydiff-mode 1)
 
-        ;; Fall back to the display margin, if the fringe is unavailable
-        (unless (display-graphic-p)
-          (setq diff-hl-side 'right)
-          (diff-hl-margin-mode 1))
+  ;; Fall back to the display margin, if the fringe is unavailable
+  (unless (display-graphic-p)
+    (setq diff-hl-side 'right)
+    (diff-hl-margin-mode 1))
 
-        ;; Integration with magit and psvn
-        (entropy/emacs-lazy-load-simple 'magit
-          (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh))))
-
-  ;; In Not-windows system
-  (when entropy/emacs-hl-diff-hl-enable-at-startup
-    (use-package diff-hl
-      :commands (global-diff-hl-mode)
-      :bind (:map diff-hl-command-map
-                  ("SPC" . diff-hl-mark-hunk))
-      :init
-      (add-hook (entropy/emacs-select-x-hook) #'global-diff-hl-mode)
-
-      ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
-      ;;;; This may be cause dired be crash for big git
-      ;;;; repo such as linux kernel repo
-      
-      :config
-      (diff-hl-flydiff-mode 1)
-
-      ;; Fall back to the display margin, if the fringe is unavailable
-      (unless (display-graphic-p)
-        (setq diff-hl-side 'right)
-        (diff-hl-margin-mode 1))
-
-      ;; Integration with magit and psvn
-      (entropy/emacs-lazy-load-simple 'magit
-        (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))))
+  ;; Integration with magit and psvn
+  (entropy/emacs-lazy-load-simple 'magit
+    (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
 ;; ** Highlight some operations
 ;;
@@ -285,7 +267,7 @@
 (use-package volatile-highlights
   :commands (volatile-highlights-mode)
   :diminish volatile-highlights-mode
-  :init (add-hook (entropy/emacs-select-x-hook) #'volatile-highlights-mode))
+  :init (entropy/emacs-lazy-with-load-trail volatile-hl-mode (volatile-highlights-mode t)))
 
 ;; ** Visualize TAB, (HARD) SPACE, NEWLINE
 ;;

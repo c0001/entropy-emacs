@@ -78,8 +78,10 @@ delay seconds SECS."
   (setq garbage-collection-messages t)
   (setq gc-cons-threshold entropy/emacs-gc-threshold-basic))
 
-(add-hook (entropy/emacs-select-x-hook)
-          #'(lambda () (setq garbage-collection-messages t)))
+(entropy/emacs-lazy-with-load-trail
+ gc-message
+ (setq garbage-collection-messages t))
+
 (add-hook 'minibuffer-setup-hook #'entropy/emacs-gc--enter-minibuffer-wmaster)
 (add-hook 'minibuffer-exit-hook #'entropy/emacs-gc--exit-minibuffer-wmaster)
 (add-hook 'focus-out-hook #'entropy/emacs-gc--focus-out-recovery)

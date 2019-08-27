@@ -877,7 +877,7 @@ emacs."
   :diminish which-key-mode
   :commands which-key-mode
   :init
-  (add-hook (entropy/emacs-select-x-hook) #'which-key-mode)
+  (entropy/emacs-lazy-with-load-trail which-key (which-key-mode t))
   (setq which-key-popup-type 'minibuffer))
 
 ;; ** Undo tree
@@ -1002,7 +1002,7 @@ This function has redefined for adapting to
 
 (use-package savehist
   :ensure nil
-  :init (add-hook (entropy/emacs-select-x-hook) #'savehist-mode)
+  :init (entropy/emacs-lazy-with-load-trail savehist (savehist-mode t))
   :config
   (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
         history-length 1000
@@ -1086,7 +1086,7 @@ coding-system to save bookmark infos"
   :diminish disable-mouse-global-mode
   :commands (global-disable-mouse-mode)
   :init
-  (add-hook (entropy/emacs-select-x-hook) #'global-disable-mouse-mode))
+  (entropy/emacs-lazy-with-load-trail disable-mouse (global-disable-mouse-mode t)))
 
 ;; ** Artist-mode
 (use-package artist

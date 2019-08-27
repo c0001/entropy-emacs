@@ -611,12 +611,10 @@ without derived slot."
 
 
 ;; ** Window divider
-(cond
- (entropy/emacs-custom-pdumper-do
-  (add-hook 'entropy/emacs-pdumper-load-hook
-            #'window-divider-mode))
- (t
-  (add-hook (entropy/emacs-select-x-hook) #'window-divider-mode)))
+
+(entropy/emacs-lazy-with-load-trail
+ win-divider
+ (window-divider-mode t))
 
 ;; * provide
 (provide 'entropy-emacs-wc)
