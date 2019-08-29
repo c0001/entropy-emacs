@@ -21,6 +21,18 @@
   (require 'cl-macs))
 (require 'ivy)
 
+;; ** deprecated compatibility
+(defun entropy/cl-remove-duplicates (cl-seq &rest cl-keys)
+  "The wrapper for `remove-duplicates' and `cl-remove-duplicates'.
+
+Using `cl-remove-duplicates' as priority for emacs-version upper
+than 27, otherwise use `remove-duplicates', since emacs 27
+deprecated origin `cl' package instead of `cl-macs'."
+  (cond ((fboundp 'cl-remove-duplicates)
+         (apply 'cl-remove-duplicates cl-seq cl-keys))
+        ((fboundp 'remove-duplicates)
+         (apply 'remove-duplicates cl-seq cl-keys))))
+
 ;; ** Internal Functions
 ;;
 ;;    This part defined some functions used only for this package for
@@ -188,7 +200,7 @@ association's cdr."
 Wrong type of argument: numberp '%s'" (car el)))
       (push (car el) numberic-list))
     (unless (= (length numberic-alist)
-               (length (remove-duplicates numberic-list :test 'eq)))
+               (length (entropy/cl-remove-duplicates numberic-list :test 'eq)))
       (error "<<entropy/cl-sort-numberic-alist>>: 
 Duplicated numberic order!"))
     (setq max-func
