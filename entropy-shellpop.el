@@ -101,15 +101,20 @@
     rtn))
 
 ;; *** buffer bunches parses
-(defun entropy/shellpop--get-type-buffer-indexs (shellpop-type-name)
+(defun entropy/shellpop--get-type-buffer-indexs (shellpop-type-name &optional buffn-list-rtn)
   (let* ((buffns (mapcar (lambda (buff) (buffer-name buff)) (buffer-list)))
          (buffn-regexp (entropy/shellpop--gen-buffn-regexp shellpop-type-name))
-         (index-list '()))
+         (index-list '())
+         (buffn-list '()))
     (dolist (buffn buffns)
       (when (string-match buffn-regexp buffn)
         (push (string-to-number (match-string 1 buffn))
-              index-list)))
-    index-list))
+              index-list)
+        (when buffn-list-rtn
+          (push buffn buffn-list))))
+    (if buffn-list-rtn
+        (list :indexs index-list :buffns buffn-list)
+      index-list)))
 
 (defun entropy/shellpop--get-type-free-indexs (index-list)
   (cl-loop for slot from 0 to (apply 'max index-list)
@@ -154,6 +159,21 @@
              (buffn (format buffn-fmstr index-pick)))
         (list :isnew t :activep (entropy/shellpop--buffer-active-p buffn)
               :index index-pick :buffer-name buffn))))))
+
+(defun entropy/shellpop--close-all-active-shellpop-window ()
+  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop-type-register))
+         shellpop-buffns
+         closed)
+    (dolist (type-name type-names)
+      (let* ((buffns (plist-get (entropy/shellpop--get-type-buffer-indexs
+                                 type-name t)
+                                :buffns)))
+        (setq shellpop-buffns (append shellpop-buffns buffns))))
+    (dolist (buffn shellpop-buffns)
+      (when (entropy/shellpop--buffer-active-p buffn)
+        (delete-window (get-buffer-window buffn)))
+      (push buffn closed))
+    closed))
 
 ;; *** prunning registered shellpop type entity 
 (defun entropy/shellpop--prune-type-register-core (shellpop-type-register)
@@ -266,7 +286,7 @@
                (old-type-register (copy-tree (assoc ,type-name entropy/shellpop-type-register)))
                unwind-trigger buffn-not-eq)
           (unwind-protect
-              (progn 
+              (progn
                 (entropy/shellpop--put-index ,type-name buff-index)
                 (if buff-activep
                     (delete-window (get-buffer-window buffn))
@@ -297,24 +317,24 @@
                (type-plist (cdr type-reg))
                (type-pointer (plist-get type-plist :pointer))
                (type-indexs (plist-get type-plist :indexs)))
+          (when prompt (entropy/shellpop--close-all-active-shellpop-window))
           (cond (prompt
-                 (cond
-                  ((not (null type-indexs))
-                   (cond ((and (listp prompt)
-                               (eq (car prompt) 16))
-                          (,(intern func-name-core)))
-                         ((listp prompt)
-                          (if (null (cdr type-indexs)) ;type-index was only one index
-                              (if (null type-pointer)
-                                  (,(intern func-name-core) (caar type-indexs))
-                                (,(intern func-name-core) type-pointer))
-                            (let ((choice (entropy/shellpop--make-prompt type-indexs)))
-                              (,(intern func-name-core) choice))))
-                         ((integerp prompt)
-                          (,(intern func-name-core) prompt))))
-                  (t
-                   (,(intern func-name-core) type-pointer))))
-                (t (,(intern func-name-core) type-pointer)))))
+                 (cond ((eq (car prompt) 16)
+                        (,(intern func-name-core)))
+                       ((null type-indexs)
+                        (error "None regestered popuped shell buffer found!"))
+                       ((not (null type-indexs))
+                        (,(intern func-name-core)
+                         (entropy/shellpop--make-prompt type-indexs)))))
+                ((null prompt)
+                 (cond ((not (null type-pointer))
+                        (,(intern func-name-core) type-pointer))
+                       ((null type-pointer)
+                        (cond ((not (null type-indexs))
+                               (,(intern func-name-core)
+                                (entropy/shellpop--make-prompt type-indexs)))
+                              ((null type-indexs)
+                               (,(intern func-name-core))))))))))
      `(when (stringp ,type-bind)
         (global-set-key (kbd ,type-bind) #',(intern func-name))))))
 
