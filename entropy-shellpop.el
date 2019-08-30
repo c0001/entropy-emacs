@@ -455,6 +455,10 @@ Slot description:
 
 ;; *** shellpop minor mode
 ;; **** minor mode
+(defvar entropy-shellpop-mode-map
+  (let ((map (make-sparse-keymap)))
+    map))
+
 (define-minor-mode entropy-shellpop-mode
   "Popup shell buffer."
   :initial-value t
@@ -462,12 +466,6 @@ Slot description:
   (if entropy-shellpop-mode
       t
     nil))
-
-;; **** key map
-
-(defvar entropy-shellpop-mode-map
-  (let ((map (make-sparse-keymap)))
-    map))
 
 (define-key entropy-shellpop-mode-map (kbd "<f1>")
   #'entropy/shellpop--rename-index-desc-within-mode)
