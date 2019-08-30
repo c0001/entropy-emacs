@@ -84,6 +84,22 @@
     (core (concat "entropy/shellpop-user-" shellpop-type-name "-shellpop-core"))
     (t (concat "entropy/shellpop-user-" shellpop-type-name "-shellpop"))))
 
+(defun entropy/shellpop--parse-buffer-name-type (buffer-name)
+  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop-type-register))
+         (type-name-regexs (mapcar (lambda (x)
+                                     (cons x (entropy/shellpop--gen-buffn-regexp x)))
+                                   type-names))
+         rtn)
+    (catch :exit
+      (dolist (regex type-name-regexs)
+        (when (string-match (cdr regex) buffer-name)
+          (setq rtn
+                (cons (car regex)
+                      (string-to-number
+                       (match-string 1 buffer-name))))
+          (throw :exit nil))))
+    rtn))
+
 ;; *** buffer bunches parses
 (defun entropy/shellpop--get-type-buffer-indexs (shellpop-type-name)
   (let* ((buffns (mapcar (lambda (buff) (buffer-name buff)) (buffer-list)))
@@ -211,7 +227,7 @@
       (plist-put cur-type-plist
                  :pointer buff-index))))
 
-;; *** shellpop type generator
+;; *** index overview
 (defun entropy/shellpop--make-prompt (shellpop-type-register-index)
   (let* ((name-list (entropy/cl-make-name-alist
                      shellpop-type-register-index
@@ -220,6 +236,8 @@
                                          (cdr x)))))
          (choice (completing-read "Select slot: " name-list)))
     (cadr (assoc choice name-list))))
+
+;; *** shellpop type generator
 
 (defun entropy/shellpop--make-type-core (shellpop-type)
   (let* ((type-name (plist-get shellpop-type :type-name))
@@ -262,7 +280,9 @@
                       (kill-buffer buff)
                       (with-current-buffer buffn-not-eq
                         (rename-buffer buffn)
-                        (setq buff (get-buffer buffn)))))
+                        (setq buff (get-buffer buffn))))
+                    (with-current-buffer buff
+                      (entropy-shellpop-mode t)))
                   (entropy/shellpop--cd-to-cwd cur-workdir buff))
                 (setq unwind-trigger t))
             (unless unwind-trigger
@@ -311,6 +331,46 @@
                                 :indexs nil :pointer nil)))
             entropy/shellpop-type-register))))
 
+
+;; *** shellpop minor mode
+;; **** minor mode
+(define-minor-mode entropy-shellpop-mode
+  "Popup shell buffer."
+  :initial-value t
+  :keymap entropy-shellpop-mode-map
+  (if entropy-shellpop-mode
+      t
+    nil))
+
+;; **** key map
+
+(defvar entropy-shellpop-mode-map
+  (let ((map (make-sparse-keymap)))
+    map))
+
+(define-key entropy-shellpop-mode-map (kbd "<f1>")
+  #'entropy/shellpop--rename-index-desc-within-mode)
+
+;; **** desc modefified
+
+(defun entropy/shellpop--rename-index-desc-core (index shellpop-type-register)
+  (let* ((type-name (car shellpop-type-register))
+         (type-plist (cdr shellpop-type-register))
+         (type-indexs (plist-get type-plist :indexs))
+         (old-desc (alist-get index type-indexs nil nil 'equal))
+         (prompt (format "Input new slot[%s] desc (old-is: '%s'): " index old-desc))
+         (new-desc (read-string prompt)))
+    (setf (alist-get index type-indexs)
+          new-desc)))
+
+(defun entropy/shellpop--rename-index-desc-within-mode ()
+  (interactive)
+  (let* ((buffn (buffer-name))
+         (buffn-parse (entropy/shellpop--parse-buffer-name-type buffn))
+         (type-register (assoc (car buffn-parse) entropy/shellpop-type-register)))
+    (entropy/shellpop--rename-index-desc-core
+     (cdr buffn-parse)
+     type-register)))
 
 ;; * provide
 (provide 'entropy-shellpop)
