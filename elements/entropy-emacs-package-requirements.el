@@ -82,7 +82,6 @@
         yafolding
         outshine
         eterm-256color
-        shell-pop
         openwith
         beacon
         visual-regexp

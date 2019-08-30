@@ -221,65 +221,39 @@ was found."
      (advice-add 'cd :around 'entropy/emacs-shell--fakepty-cd-around-advice))))
 
 ;; ** Shell Pop
-(use-package shell-pop
-  :defines shell-pop-universal-key
-  :bind ([f9] . entropy/emacs-shell-shellpop-for-eshell)
-  :preface
-  (defun entropy/emacs-shell--shell-pop-before-advice_tramp_restrict (&rest args)
-    (when (and (string-match "^/\\w+?:" default-directory)
-               sys/win32p)
-      (error "Can not usign eshell in tramp location.")))
-
-  (defun entropy/emacs-shell-shellpop-for-eshell (arg)
-    (interactive "P")
-    (require 'shell-pop)
-    (let* ((value '("eshell" "*eshell*" (lambda () (eshell))))
-           (shell-pop-internal-mode (nth 0 value))
-           (shell-pop-internal-mode-buffer (nth 1 value))
-           (shell-pop-internal-mode-func (nth 2 value)))
-      (shell-pop arg)))
-
-  (defun entropy/emacs-shell--shell-pop-make-pop-ansi-term ()
-    (advice-add 'entropy/emacs-shell-shell-pop-for-ansi-term-bash
-                :before #'entropy/emacs-shell--shell-pop-before-advice_tramp_restrict)
-    (defun entropy/emacs-shell-shell-pop-for-ansi-term-bash (arg)
-      (interactive "P")
-      (require 'shell-pop)
-      (let* ((shell-file-name (if sys/win32p (expand-file-name "bash.exe" entropy/emacs-wsl-apps) "bash"))
-             (shell-pop-term-shell shell-file-name)
-             (value '("ansi-term" "*ansi-term*"
-                      (lambda () (ansi-term shell-pop-term-shell))))
-             (shell-pop-internal-mode (nth 0 value))
-             (shell-pop-internal-mode-buffer (nth 1 value))
-             (shell-pop-internal-mode-func (nth 2 value)))
-        (shell-pop arg)))
-    (global-set-key (kbd "<f10>") 'entropy/emacs-shell-shell-pop-for-ansi-term-bash))
-
-  (defun entropy/emacs-shell-shellpop-for-ansi-term-of-win32cmd  (arg)
-             (interactive "P")
-             (require 'shell-pop)
-             (let* ((shell-pop-term-shell shell-file-name)
-                    (value '("ansi-term" "*ansi-term*" (lambda () (ansi-term shell-pop-term-shell))))
-                    (shell-pop-internal-mode (nth 0 value))
-                    (shell-pop-internal-mode-buffer (nth 1 value))
-                    (shell-pop-internal-mode-func (nth 2 value)))
-               (shell-pop arg)))
-
-  (advice-add 'entropy/emacs-shell-shellpop-for-eshell
-              :before #'entropy/emacs-shell--shell-pop-before-advice_tramp_restrict)
-
-  (advice-add 'entropy/emacs-shell-shellpop-for-ansi-term-of-win32cmd
-              :before #'entropy/emacs-shell--shell-pop-before-advice_tramp_restrict)
-  
+(use-package entropy-shellpop
+  :ensure nil
+  :commands (entropy/shellpop-start)
   :init
+  (setq entropy/emacs-shell--shpop-types
+        '(:ansiterm
+          (:type-name
+           "eemacs-ansiterm"
+           :size 0.3
+           :align below
+           :bind "<f10>"
+           :type-body
+           ((ansi-term "/bin/bash")))
+          :eshell
+          (:type-name
+           "eemacs-eshell"
+           :size 0.3
+           :align below
+           :bind "<f9>"
+           :type-body
+           ((eshell)))))
+  
   (entropy/emacs-lazy-with-load-trail
-   shellpop-ansiterm
-   (cond ((not sys/win32p)
-          (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
-         ((and sys/win32p (bound-and-true-p fakecygpty--activated))
-          (entropy/emacs-shell--shell-pop-make-pop-ansi-term))
+   shellpop-feature
+   (cond ((or (not sys/win32p)
+              (and sys/win32p (bound-and-true-p fakecygpty--activated)))
+          (setq entropy/shellpop-pop-types
+                (list (plist-get entropy/emacs-shell--shpop-types :eshell)
+                      (plist-get entropy/emacs-shell--shpop-types :ansiterm))))
          (sys/win32p
-          (global-set-key (kbd "<f10>") 'entropy/emacs-shell-shellpop-for-ansi-term-of-win32cmd)))))
+          (setq entropy/shellpop-pop-types
+                (list (plist-get entropy/emacs-shell--shpop-types :eshell)))))
+   (entropy/shellpop-start)))
 
 ;; ** provide
 (provide 'entropy-emacs-shell)

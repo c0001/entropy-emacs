@@ -46,9 +46,9 @@
 	doom-themes-enable-italic t) ; if nil, italics is universally disabled
 
   ;; Enable flashing mode-line on errors
-  (entropy/emacs-lazy-with-load-trail
-   DoomBell
-   (doom-themes-visual-bell-config))
+  ;; (entropy/emacs-lazy-with-load-trail
+  ;;  DoomBell
+  ;;  (doom-themes-visual-bell-config))
 
   :config
   (defun doom-themes-visual-bell-fn-core (remap)
