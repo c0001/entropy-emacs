@@ -3,6 +3,7 @@
 ;; ** require
 (require 'shackle)
 (require 'cl-lib)
+(require 'entropy-common-library)
 
 ;; ** defcustom
 (setq entropy/shellpop-pop-types
@@ -26,7 +27,50 @@
 (defvar entropy/shellpop-type-register nil)
 
 ;; ** library
+;; *** cdw functions
+(defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given &rest body)
+  `(unless (equal (expand-file-name default-directory)
+                  (expand-file-name ,path-given))
+     ,@body))
 
+(defun entropy/shellpop--cd-to-cwd-eshell (cwd)
+  (if (eshell-process-interact 'process-live-p)
+      (message "Won't change CWD because of running process.")
+    (entropy/shellpop--cd-to-cwd-with-judge
+     cwd
+     (setq-local default-directory cwd)
+     (eshell-reset))))
+
+(defun entropy/shellpop--cd-to-cwd-shell (cwd)
+  (entropy/shellpop--cd-to-cwd-with-judge
+   cwd
+   (goto-char (point-max))
+   (comint-kill-input)
+   (insert (concat "cd " (shell-quote-argument cwd)))
+   (let ((comint-process-echoes t))
+     (comint-send-input))
+   (recenter 0)))
+
+(defun entropy/shellpop--cd-to-cwd-term (cwd)
+  (entropy/shellpop--cd-to-cwd-with-judge
+   cwd
+   (term-send-raw-string (concat "cd " (shell-quote-argument cwd) "\n"))
+   (term-send-raw-string "\C-l")))
+
+(defun entropy/shellpop--cd-to-cwd (cwd buff)
+  (with-current-buffer buff
+    (let ((abspath (expand-file-name cwd)))
+      (cond ((eq major-mode 'eshell-mode)
+             (entropy/shellpop--cd-to-cwd-eshell abspath))
+            ((eq major-mode 'shell-mode)
+             (entropy/shellpop--cd-to-cwd-shell abspath))
+            ((eq major-mode 'term-mode)
+             (entropy/shellpop--cd-to-cwd-term abspath))
+            (t
+             (message "Shell type not supported for 'entropy-shellpop' to CDW"))))))
+
+
+;; *** shellpop type name generator
 (defun entropy/shellpop--gen-buffn-regexp (shellpop-type-name)
   (concat "^\\*"
           (regexp-quote shellpop-type-name)
@@ -40,6 +84,7 @@
     (core (concat "entropy/shellpop-user-" shellpop-type-name "-shellpop-core"))
     (t (concat "entropy/shellpop-user-" shellpop-type-name "-shellpop"))))
 
+;; *** buffer bunches parses
 (defun entropy/shellpop--get-type-buffer-indexs (shellpop-type-name)
   (let* ((buffns (mapcar (lambda (buff) (buffer-name buff)) (buffer-list)))
          (buffn-regexp (entropy/shellpop--gen-buffn-regexp shellpop-type-name))
@@ -54,6 +99,10 @@
   (cl-loop for slot from 0 to (apply 'max index-list)
            when (not (member slot index-list))
            collect slot))
+
+;; *** shellpop type entity object generator
+(defun entropy/shellpop--buffer-active-p (buffer-name)
+  (get-buffer-window buffer-name))
 
 (defun entropy/shellpop--get-type-buffer-obj (shellpop-type-name &optional index)
   (let* ((type-buffer-indexs (entropy/shellpop--get-type-buffer-indexs shellpop-type-name))
@@ -90,9 +139,7 @@
         (list :isnew t :activep (entropy/shellpop--buffer-active-p buffn)
               :index index-pick :buffer-name buffn))))))
 
-(defun entropy/shellpop--buffer-active-p (buffer-name)
-  (get-buffer-window buffer-name))
-
+;; *** prunning registered shellpop type entity 
 (defun entropy/shellpop--prune-type-register-core (shellpop-type-register)
   (let* ((type-name (car shellpop-type-register))
          (type-plist (cdr shellpop-type-register))
@@ -122,6 +169,7 @@
   (dolist (shellpop-type-register entropy/shellpop-type-register)
     (entropy/shellpop--prune-type-register-core shellpop-type-register)))
 
+;; *** registering shellpop type
 (defun entropy/shellpop--type-index-member (index shellpop-type-register-index)
   (let ((cur-indexs shellpop-type-register-index))
     (catch :exit
@@ -145,6 +193,7 @@
             (plist-put cur-type-plist
                        :pointer buff-index)))))
 
+;; *** shellpop type generator
 (defun entropy/shellpop--make-prompt (shellpop-type-register-index)
   (let* ((name-list (entropy/cl-make-name-alist
                      shellpop-type-register-index
@@ -171,6 +220,7 @@
                                                  :select t
                                                  :align ,type-align
                                                  :size ,type-size)))
+               (cur-workdir (expand-file-name default-directory))
                (buffer-ob (entropy/shellpop--get-type-buffer-obj ,type-name index))
                (buffn (plist-get buffer-ob :buffer-name))
                (buff-activep (plist-get buffer-ob :activep))
@@ -178,7 +228,7 @@
                (buff-index (plist-get buffer-ob :index))
                (buff (get-buffer-create buffn))
                (old-type-register (copy-tree (assoc ,type-name entropy/shellpop-type-register)))
-               unwind-trigger)
+               unwind-trigger buffn-not-eq)
           (unwind-protect
               (progn 
                 (entropy/shellpop--put-index ,type-name buff-index)
@@ -186,10 +236,16 @@
                     (delete-window (get-buffer-window buffn))
                   (display-buffer buff)
                   (when buff-isnew
-                    ,@type-body
-                    (unless (equal buffn (buffer-name))
+                    (with-current-buffer buff
+                      ,@type-body
+                      (unless (equal buffn (buffer-name))
+                        (setq buffn-not-eq (current-buffer))))
+                    (when buffn-not-eq
                       (kill-buffer buff)
-                      (rename-buffer buffn))))
+                      (with-current-buffer buffn-not-eq
+                        (rename-buffer buffn)
+                        (setq buff (get-buffer buffn)))))
+                  (entropy/shellpop--cd-to-cwd cur-workdir buff))
                 (setq unwind-trigger t))
             (unless unwind-trigger
               (setf (alist-get ,type-name entropy/shellpop-type-register)
@@ -231,7 +287,7 @@
       (funcall `(lambda () ,@type-def))
       (push (cons type-name
                   (copy-tree
-                   `(:type-func ,(list type-func-core type-func)
+                   `(:type-func ,(list :core type-func-core :interact type-func)
                                 :indexs nil :pointer nil)))
             entropy/shellpop-type-register))))
 
