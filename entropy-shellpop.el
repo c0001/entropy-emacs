@@ -154,7 +154,9 @@
          ret)
     ;; pointer reset
     (unless type-pointer-alivep
-      (setf type-plist (plist-put type-plist :pointer nil)))
+      (setq type-plist (plist-put type-plist :pointer nil))
+      (setf (cdr shellpop-type-register) type-plist))
+    
     ;; indexs reset
     (when (not (null type-indexs))
       (dolist (index type-indexs)
@@ -162,7 +164,7 @@
           (when (plist-get buffer-obj :isnew)
             (push index ret))))
       (dolist (index ret)
-        (setf type-indexs (delete index type-indexs)))
+        (setq type-indexs (delete index type-indexs)))
 
       ;; register non-registered exists buffer
       (when (not (null type-buffer-indexs))
@@ -174,10 +176,10 @@
                 (push rested-index supplements)))
             (when (not (null supplements))
               (dolist (item supplements)
-                (setf type-indexs (append (list (cons item "not described"))
+                (setq type-indexs (append (list (cons item "not described"))
                                           type-indexs)))))))
       
-      (setf type-plist
+      (setf (cdr shellpop-type-register)
             (plist-put type-plist :indexs type-indexs)))))
 
 (defun entropy/shellpop--prune-type-register ()
@@ -199,14 +201,12 @@
          (cur-type-indexs (plist-get cur-type-plist :indexs))
          (cur-type-pointer (plist-get cur-type-plist :pointer)))
     (unless (entropy/shellpop--type-index-member buff-index cur-type-indexs)
-      (setf cur-type-plist
-            (plist-put cur-type-plist :indexs
-                       (append (list (cons buff-index (read-string "Type slot 'DES': ")))
-                               cur-type-indexs))))
+      (plist-put cur-type-plist :indexs
+                 (append (list (cons buff-index (read-string "Type slot 'DES': ")))
+                         cur-type-indexs)))
     (unless (eq cur-type-pointer buff-index)
-      (setf cur-type-plist
-            (plist-put cur-type-plist
-                       :pointer buff-index)))))
+      (plist-put cur-type-plist
+                 :pointer buff-index))))
 
 ;; *** shellpop type generator
 (defun entropy/shellpop--make-prompt (shellpop-type-register-index)
