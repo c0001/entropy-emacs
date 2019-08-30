@@ -307,3 +307,5 @@
             entropy/shellpop-type-register))))
 
 
+;; * provide
+(provide 'entropy-shellpop)
