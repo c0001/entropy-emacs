@@ -81,7 +81,44 @@
      :bind "<f9>"
      :type-body
      ((eshell))))
-  "Shell pop types defination."
+  "Shell pop types defination.
+
+It's a list of which each element is plist structed form called
+SHELLPOP-TYPE of `entropy-shellpop'.
+
+Slot description:
+
+1) :type-name
+
+   Uniquely shellpop-type name traversing
+   `entropy/shellpop-pop-types', it will be the name component for
+   the generated FUNC name, SHELLPOP-TYPE-REGISTER key, and also
+   the popuped shell BUFFER-NAME.
+
+2) :size
+
+   The popuped shell-buffer window size, it's the float number
+   between 0 to 1.
+
+3) :align
+
+   Popuped position specification, a symbol, valid are:
+
+     'below 'above 'right 'left and t means 'default'.
+
+4) :bind
+
+   The keybinding for this shellpop-type, it's the string
+   transfered to function `kbd'.
+
+5) :type-body
+
+   The list of form to enable shell entity, for example:
+   '((eshell))' or '((ansi-term \"/bin/bash\"))'
+
+   All the form must host within the top parentheses that all of
+   them will apply into the caller body slot."
+  
   :type 'sexp
   :group 'entropy/shellpop-customized-group)
 
@@ -463,7 +500,6 @@
   (interactive)
   (entropy/shellpop--make-types)
   (message "Intialized shellpop feature"))
-
 
 ;; * provide
 (provide 'entropy-shellpop)
