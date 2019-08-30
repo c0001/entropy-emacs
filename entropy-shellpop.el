@@ -144,6 +144,7 @@
   (let* ((type-name (car shellpop-type-register))
          (type-plist (cdr shellpop-type-register))
          (type-indexs (plist-get type-plist :indexs))
+         (type-buffer-indexs (entropy/shellpop--get-type-buffer-indexs type-name))
          (type-pointer (plist-get type-plist :pointer))
          (type-pointer-alivep (if (integerp type-pointer)
                                   (not (plist-get (entropy/shellpop--get-type-buffer-obj
@@ -161,7 +162,21 @@
           (when (plist-get buffer-obj :isnew)
             (push index ret))))
       (dolist (index ret)
-        (setq type-indexs (delete index type-indexs)))
+        (setf type-indexs (delete index type-indexs)))
+
+      ;; register non-registered exists buffer
+      (when (not (null type-buffer-indexs))
+        (let ((indexed (mapcar (lambda (x) (car x)) type-indexs))
+              supplements)
+          (when indexed
+            (dolist (rested-index type-buffer-indexs)
+              (unless (member rested-index indexed)
+                (push rested-index supplements)))
+            (when (not (null supplements))
+              (dolist (item supplements)
+                (setf type-indexs (append (list (cons item "not described"))
+                                          type-indexs)))))))
+      
       (setf type-plist
             (plist-put type-plist :indexs type-indexs)))))
 
