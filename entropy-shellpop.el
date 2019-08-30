@@ -1,12 +1,72 @@
-;; * code
-
+;;; entropy-shellpop.el --- popup shell buffer for transient
+;;
+;; * Copyright (C) 20190829  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
+;;
+;; The shell popuped feature provision what seems like the =vscode
+;; shellpopup aspect=.
+;;
+;; Allow =multi-shell-type= coexistence, that the mode-type of
+;; =eshell-mode=, =shell-mode=, =term-mode= can be popuped together
+;; with keybinding customization.
+;;
+;; Allow =multi-shell-buffer= coexistence independently, with
+;; completion query prompt manangement.
+;;
+;; This package was inspired by [[http://github.com/kyagi/shell-pop-el][shell-pop-el]], but built based on
+;; purely fundamental, for optimizing features' detailes and
+;; restructed the popup feature rely on [[https://github.com/wasamasa/shackle][shackle]].
+;;
+;; * Configuration:
+;;
+;; Just cloning this repo under the path sepcified on your wish, and
+;; added it to your ~load-path~, using ~require~ or ~use-package~ to
+;; manage the configuration for this by calling the main function
+;; ~entropy/shellpop--make-types~. Traditionally minor snippet as:
+;;
+;; #+BEGIN_SRC elisp
+;;   (require 'entropy-shellpop)
+;;   (entropy/shellpop--make-types)
+;; #+END_SRC
+;;
+;; The internal builtin shell popup types are:
+;;
+;; - for eshell: <f9>
+;; - for ansi-term: <f10>
+;;
+;; You may customize variable =entropy/shellpop-pop-types= for more
+;; specification, see its doc-string for more.
+;; 
+;; * Code:
+;; 
 ;; ** require
-(require 'shackle)
 (require 'cl-lib)
+(require 'shackle)
 (require 'entropy-common-library)
 
 ;; ** defcustom
-(setq entropy/shellpop-pop-types
+(defgroup entropy/shellpop-customized-group nil
+  "entropy-shellpop customized variable group.")
+
+(defcustom entropy/shellpop-pop-types
   '((:type-name
      "eemacs-ansiterm"
      :size 0.3
@@ -20,7 +80,10 @@
      :align below
      :bind "<f9>"
      :type-body
-     ((eshell)))))
+     ((eshell))))
+  "Shell pop types defination."
+  :type 'sexp
+  :group 'entropy/shellpop-customized-group)
 
 ;; ** defvar
 
