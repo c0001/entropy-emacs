@@ -164,23 +164,26 @@
           (when (plist-get buffer-obj :isnew)
             (push index ret))))
       (dolist (index ret)
-        (setq type-indexs (delete index type-indexs)))
+        (setq type-indexs (delete index type-indexs))))
 
-      ;; register non-registered exists buffer
-      (when (not (null type-buffer-indexs))
-        (let ((indexed (mapcar (lambda (x) (car x)) type-indexs))
-              supplements)
-          (when indexed
+    ;; register non-registered exists buffer
+    (when (not (null type-buffer-indexs))
+      (let ((indexed (if (not (null type-indexs))
+                         (mapcar (lambda (x) (car x)) type-indexs)
+                       nil))
+            supplements)
+        (if indexed
             (dolist (rested-index type-buffer-indexs)
               (unless (member rested-index indexed)
                 (push rested-index supplements)))
-            (when (not (null supplements))
-              (dolist (item supplements)
-                (setq type-indexs (append (list (cons item "not described"))
-                                          type-indexs)))))))
-      
-      (setf (cdr shellpop-type-register)
-            (plist-put type-plist :indexs type-indexs)))))
+          (setq supplements type-buffer-indexs))
+        (when (not (null supplements))
+          (dolist (item supplements)
+            (setq type-indexs (append (list (cons item "not described"))
+                                      type-indexs))))))
+
+    (setf (cdr shellpop-type-register)
+          (plist-put type-plist :indexs type-indexs))))
 
 (defun entropy/shellpop--prune-type-register ()
   (dolist (shellpop-type-register entropy/shellpop-type-register)
@@ -281,8 +284,10 @@
                                (eq (car prompt) 16))
                           (,(intern func-name-core)))
                          ((listp prompt)
-                          (if (null (cdr type-indexs))
-                              (,(intern func-name-core) type-pointer)
+                          (if (null (cdr type-indexs)) ;type-index was only one index
+                              (if (null type-pointer)
+                                  (,(intern func-name-core) (caar type-indexs))
+                                (,(intern func-name-core) type-pointer))
                             (let ((choice (entropy/shellpop--make-prompt type-indexs)))
                               (,(intern func-name-core) choice))))
                          ((integerp prompt)
