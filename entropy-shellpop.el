@@ -290,6 +290,7 @@
                 (entropy/shellpop--put-index ,type-name buff-index)
                 (if buff-activep
                     (delete-window (get-buffer-window buffn))
+                  (entropy/shellpop--close-all-active-shellpop-window)
                   (display-buffer buff)
                   (when buff-isnew
                     (with-current-buffer buff
