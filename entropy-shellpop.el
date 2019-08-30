@@ -40,11 +40,11 @@
 ;; Just cloning this repo under the path sepcified on your wish, and
 ;; added it to your ~load-path~, using ~require~ or ~use-package~ to
 ;; manage the configuration for this by calling the main function
-;; ~entropy/shellpop--make-types~. Traditionally minor snippet as:
+;; ~entropy/shellpop-start~. Traditionally minor snippet as:
 ;;
 ;; #+BEGIN_SRC elisp
 ;;   (require 'entropy-shellpop)
-;;   (entropy/shellpop--make-types)
+;;   (entropy/shellpop-start)
 ;; #+END_SRC
 ;;
 ;; The internal builtin shell popup types are:
@@ -87,7 +87,7 @@
 
 ;; ** defvar
 
-(defvar entropy/shellpop-type-register nil)
+(defvar entropy/shellpop--type-register nil)
 
 ;; ** library
 ;; *** cdw functions
@@ -148,7 +148,7 @@
     (t (concat "entropy/shellpop-user-" shellpop-type-name "-shellpop"))))
 
 (defun entropy/shellpop--parse-buffer-name-type (buffer-name)
-  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop-type-register))
+  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop--type-register))
          (type-name-regexs (mapcar (lambda (x)
                                      (cons x (entropy/shellpop--gen-buffn-regexp x)))
                                    type-names))
@@ -224,7 +224,7 @@
               :index index-pick :buffer-name buffn))))))
 
 (defun entropy/shellpop--close-all-active-shellpop-window ()
-  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop-type-register))
+  (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop--type-register))
          shellpop-buffns
          closed)
     (dolist (type-name type-names)
@@ -285,7 +285,7 @@
           (plist-put type-plist :indexs type-indexs))))
 
 (defun entropy/shellpop--prune-type-register ()
-  (dolist (shellpop-type-register entropy/shellpop-type-register)
+  (dolist (shellpop-type-register entropy/shellpop--type-register)
     (entropy/shellpop--prune-type-register-core shellpop-type-register)))
 
 ;; *** registering shellpop type
@@ -298,7 +298,7 @@
 
 (defun entropy/shellpop--put-index (shellpop-type-name buff-index)
   (let* ((type-name shellpop-type-name)
-         (shellpop-type-register (assoc type-name entropy/shellpop-type-register))
+         (shellpop-type-register (assoc type-name entropy/shellpop--type-register))
          (cur-type-plist (cdr shellpop-type-register))
          (cur-type-indexs (plist-get cur-type-plist :indexs))
          (cur-type-pointer (plist-get cur-type-plist :pointer)))
@@ -346,7 +346,7 @@
                (buff-isnew (plist-get buffer-ob :isnew))
                (buff-index (plist-get buffer-ob :index))
                (buff (get-buffer-create buffn))
-               (old-type-register (copy-tree (assoc ,type-name entropy/shellpop-type-register)))
+               (old-type-register (copy-tree (assoc ,type-name entropy/shellpop--type-register)))
                unwind-trigger buffn-not-eq)
           (unwind-protect
               (progn
@@ -370,14 +370,14 @@
                   (entropy/shellpop--cd-to-cwd cur-workdir buff))
                 (setq unwind-trigger t))
             (unless unwind-trigger
-              (setf (alist-get ,type-name entropy/shellpop-type-register)
+              (setf (alist-get ,type-name entropy/shellpop--type-register)
                     (cdr old-type-register))
               (kill-buffer buff)))))
 
      `(defun ,(intern func-name) (prompt)
         (interactive "P")
         (entropy/shellpop--prune-type-register)
-        (let* ((type-reg (assoc ,type-name entropy/shellpop-type-register))
+        (let* ((type-reg (assoc ,type-name entropy/shellpop--type-register))
                (type-plist (cdr type-reg))
                (type-pointer (plist-get type-plist :pointer))
                (type-indexs (plist-get type-plist :indexs)))
@@ -413,7 +413,7 @@
                   (copy-tree
                    `(:type-func ,(list :core type-func-core :interact type-func)
                                 :indexs nil :pointer nil)))
-            entropy/shellpop-type-register))))
+            entropy/shellpop--type-register))))
 
 
 ;; *** shellpop minor mode
@@ -451,10 +451,19 @@
   (interactive)
   (let* ((buffn (buffer-name))
          (buffn-parse (entropy/shellpop--parse-buffer-name-type buffn))
-         (type-register (assoc (car buffn-parse) entropy/shellpop-type-register)))
+         (type-register (assoc (car buffn-parse) entropy/shellpop--type-register)))
     (entropy/shellpop--rename-index-desc-core
      (cdr buffn-parse)
      type-register)))
+
+;; ** Auto Load
+
+;;;###autoload
+(defun entropy/shellpop-start ()
+  (interactive)
+  (entropy/shellpop--make-types)
+  (message "Intialized shellpop feature"))
+
 
 ;; * provide
 (provide 'entropy-shellpop)
