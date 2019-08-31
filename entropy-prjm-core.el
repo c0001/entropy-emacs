@@ -454,7 +454,7 @@
       (dolist (el db-cache)
         (push (plist-get el shaft) shaft-value-list))
       (if (= (length shaft-value-list)
-             (length (remove-duplicates shaft-value-list)))
+             (length (entropy/cl-remove-duplicates shaft-value-list)))
           (setq dup-status nil)
         (setq dup-status t))
       (if dup-status
