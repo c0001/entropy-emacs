@@ -46,16 +46,24 @@
 	doom-themes-enable-italic t) ; if nil, italics is universally disabled
 
   ;; Enable flashing mode-line on errors
-  ;; (entropy/emacs-lazy-with-load-trail
-  ;;  DoomBell
-  ;;  (doom-themes-visual-bell-config))
+  (entropy/emacs-lazy-with-load-trail
+   DoomBell
+   (doom-themes-visual-bell-config))
 
   :config
-  (defun doom-themes-visual-bell-fn-core (remap)
-    (when (assq 'mode-line face-remapping-alist)
-      (setq face-remapping-alist remap
-            doom-themes--bell-p nil))
-    (force-mode-line-update))
+
+  (defvar doom-themes--visual-bell-old-mdl-face-remap nil
+    "The bakcup modeline face for doom themes visual bell
+procedure.")
+  
+  (defun doom-themes-visual-bell-fn-core (buff)
+    (when (and (assq 'mode-line face-remapping-alist)
+               doom-themes--bell-p
+               (buffer-live-p buff))
+      (with-current-buffer buff
+        (setq-local face-remapping-alist doom-themes--visual-bell-old-mdl-face-remap)
+        (setq-local doom-themes--bell-p nil)
+        (force-mode-line-update))))
   
   (defun doom-themes-visual-bell-fn ()
     "Blink the mode-line red briefly. Set `ring-bell-function' to this to use it.
@@ -65,18 +73,32 @@ Note: this function has been redefined for adapting for [entropy-emacs]
 The origin face map recovery rely on the buffer (current-buffer)
 actived status, otherwise for error, which may encounter the
 occasion that the timer run after the buffer killed, that the
-remap for recovering failed."
+remap for recovering failed. 
+
+This patch split the recover func to
+`doom-themes-visual-bell-fn-core' and using the `buffer-alive-p'
+as the trigger condition sentinal.
+
+All face remap are buffer local binding, so that it doesn't mess
+the gloabal way."
     (unless doom-themes--bell-p
-      (let ((old-remap (copy-alist face-remapping-alist)))
-        (setq doom-themes--bell-p t)
-        (setq face-remapping-alist
-              (append (delete (assq 'mode-line face-remapping-alist)
-                              face-remapping-alist)
-                      '((mode-line doom-visual-bell))))
-        (force-mode-line-update)
-        (run-with-timer 0.15 nil
-                        #'doom-themes-visual-bell-fn-core
-                        old-remap)))))
+      (let ((old-remap (copy-tree face-remapping-alist))
+            (buff (current-buffer))
+            unwind-trigger)
+        (unwind-protect
+            (with-current-buffer buff
+              (setq-local doom-themes--visual-bell-old-mdl-face-remap old-remap)
+              (setq-local doom-themes--bell-p t)
+              (setq-local face-remapping-alist
+                          (append (delete (assq 'mode-line face-remapping-alist)
+                                          face-remapping-alist)
+                                  '((mode-line doom-visual-bell))))
+              (force-mode-line-update)
+              (run-with-timer 0.1 nil
+                              #'doom-themes-visual-bell-fn-core (current-buffer))
+              (setq unwind-trigger t))
+          (unless unwind-trigger
+            (message "Visual Bell fatal")))))))
 
 (use-package doom-themes-ext-org
   :ensure nil
