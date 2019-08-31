@@ -45,18 +45,32 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
 
-(defun entropy/emacs-gc--maximize-cons-threshold ()
-  (setq gc-cons-threshold (+ 2000000 gc-cons-threshold)))
+(defun entropy/emacs-gc--increase-cons-threshold ()
+  (setq gc-cons-threshold
+        (+ 2000000
+           gc-cons-threshold)))
 
-(defun entropy/emacs-gc--focus-out-recovery ()
-  (unless entropy/emacs-custom-pdumper-do
-    (garbage-collect)
-    (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)))
+(defun entropy/emacs-gc--idle-time-recovery ()
+  (garbage-collect)
+  (setq gc-cons-threshold
+        entropy/emacs-gc-threshold-basic))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
         (run-with-idle-timer (if sec sec entropy/emacs-garbage-collection-delay)
-                             t #'entropy/emacs-gc--focus-out-recovery)))
+                             t #'entropy/emacs-gc--idle-time-recovery)))
+
+(defun entropy/emacs-gc--focus-in-reset ()
+  (garbage-collect)
+  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
+  (entropy/emacs-gc--init-idle-gc entropy/emacs-garbage-collection-delay))
+
+(defun entropy/emacs-gc--focus-out-hook ()
+  (garbage-collect)
+  (setq gc-cons-threshold 800000)
+  (when (timerp entropy/emacs-garbage-collect-idle-timer)
+    (cancel-timer entropy/emacs-garbage-collect-idle-timer)
+    (setq entropy/emacs-garbage-collect-idle-timer nil)))
 
 (defun entropy/emacs-gc-set-idle-gc (secs)
   "Re-set the garbage collecton timer
@@ -68,7 +82,8 @@ delay seconds SECS."
                (error "Input idle delay not valid!")
              read-delay))))
   (when (timerp entropy/emacs-garbage-collect-idle-timer)
-    (cancel-timer entropy/emacs-garbage-collect-idle-timer))
+    (cancel-timer entropy/emacs-garbage-collect-idle-timer)
+    (setq entropy/emacs-garbage-collect-idle-timer nil))
   (entropy/emacs-gc--init-idle-gc secs))
 
 (defun entropy/emacs-gc--enter-minibuffer-wmaster ()
@@ -76,17 +91,19 @@ delay seconds SECS."
 
 (defun entropy/emacs-gc--exit-minibuffer-wmaster ()
   (setq garbage-collection-messages t)
-  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic))
+  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
+  (garbage-collect))
 
 (entropy/emacs-lazy-with-load-trail
  gc-message
- (setq garbage-collection-messages t))
+ (setq garbage-collection-messages t)
+ (add-hook 'minibuffer-setup-hook #'entropy/emacs-gc--enter-minibuffer-wmaster)
+ (add-hook 'minibuffer-exit-hook #'entropy/emacs-gc--exit-minibuffer-wmaster)
+ (add-hook 'focus-out-hook #'entropy/emacs-gc--focus-out-hook)
+ (add-hook 'focus-in-hook #'entropy/emacs-gc--focus-in-reset)
+ (add-hook 'post-command-hook #'entropy/emacs-gc--increase-cons-threshold)
+ (entropy/emacs-gc--init-idle-gc))
 
-(add-hook 'minibuffer-setup-hook #'entropy/emacs-gc--enter-minibuffer-wmaster)
-(add-hook 'minibuffer-exit-hook #'entropy/emacs-gc--exit-minibuffer-wmaster)
-(add-hook 'focus-out-hook #'entropy/emacs-gc--focus-out-recovery)
-(add-hook 'post-command-hook #'entropy/emacs-gc--maximize-cons-threshold)
-(entropy/emacs-gc--init-idle-gc)
 (when entropy/emacs-custom-pdumper-do
   ;; upper gc threshold for pdumper procedure
   (setq gc-cons-threshold 50000000))
