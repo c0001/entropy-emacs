@@ -123,7 +123,7 @@ If you want to use your own font config please disable it.
 
 (defun entropy/emacs-font-set--setfont-initial ()
   (when (and entropy/emacs-font-setting-enable
-             (entropy/emacs-display-graphic-p))
+             (display-graphic-p))
     (let ((missing (entropy/emacs-font-set--pre-fonts-check)))
       (unless missing
         (entropy/emacs-font-set-setfont-core)

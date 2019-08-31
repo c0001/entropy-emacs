@@ -110,7 +110,7 @@
   (add-hook 'web-mode-hook
             'entropy/emacs-web--web-mode-start-hook)
   :config
-  (if (entropy/emacs-display-graphic-p)
+  (if (display-graphic-p)
       (progn
         (add-hook 'web-mode-hook #'(lambda () (setq-local entropy/emacs-web-development-environment t)))
         (define-key web-mode-map (kbd "<C-f1>") 'entropy/emacs-web-browse-web-buffer)))

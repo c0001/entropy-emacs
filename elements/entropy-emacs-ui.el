@@ -35,14 +35,14 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-faces)
 
-(when (entropy/emacs-display-graphic-p)
+(when (display-graphic-p)
   (scroll-bar-mode 0)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
   (redisplay t))
 
 ;; ** theme in loading progress
-(when (entropy/emacs-display-graphic-p)
+(when (display-graphic-p)
   (let ((initial-theme-path (expand-file-name "startup-theme" (file-name-directory load-file-name))))
     (add-to-list 'custom-theme-load-path initial-theme-path)
     (add-to-list 'load-path initial-theme-path)
@@ -50,7 +50,7 @@
 
 ;; ** init-frame position and width and height
 (if (< entropy/emacs-init-frame-width-scale 1)
-    (when (entropy/emacs-display-graphic-p)
+    (when (display-graphic-p)
       (if (< entropy/emacs-font-size-default 15)
           (set-face-attribute 'default nil :height (ceiling (* entropy/emacs-font-size-default 10)))
         (error "Your default font size is too large, you must set it smaller than 15."))
@@ -80,7 +80,7 @@ the specific height and width determined by above variable you setted."
          (t
           (entropy/emacs-ui-set-frame-position)))))
   
-  (when (entropy/emacs-display-graphic-p)
+  (when (display-graphic-p)
     (cond (entropy/emacs-custom-pdumper-do
            (add-hook 'entropy/emacs-pdumper-load-hook
                      #'(lambda ()
