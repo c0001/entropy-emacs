@@ -656,7 +656,7 @@ format on windows platform."
   (advice-add 'display-graphic-p
               :around
               #'entropy/emacs-display-graphic-pdumper-advice)
-  (add-hook (entropy/emacs-select-x-hook)
+  (add-hook 'entropy/emacs-pdumper-load-end-hook
             #'(lambda ()
                 (advice-remove
                  'display-graphic-p
