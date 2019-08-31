@@ -18,6 +18,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
+;;
+;; Package-Version: 0.1.0
+;; Created:       2019-08-29
+;; Keywords:      shell-pop, shell
+;; Compatibility: GNU Emacs emacs-version 26.1;
+;; Package-Requires: ((cl-lib "1.0"))
 ;; 
 ;; * Commentary:
 ;;
