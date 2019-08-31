@@ -1,5 +1,5 @@
 # Created 2019-08-31 Sat 03:09
-#+TITLE: popup shell buffer for transient
+#+TITLE: Popup shell buffer for transient
 #+AUTHOR: entropy
 
 * Copyright (C) 20190829  Entropy
