@@ -78,48 +78,60 @@ configuration.")
        ,@body)))
 
 ;; *** extract files
+
+(defmacro entropy/emacs-pdumper--extract-files-with-dir (top-dir exc-filters inc-filters &optional full-path)
+  `(let* ((files (entropy/emacs-list-files-recursive-for-list ,top-dir))
+          rtn)
+     (dolist (file files)
+       (let ((file-name (if ,full-path file (entropy/emacs-file-path-parser file 'file-name)))
+             exc-passed inc-passed)
+         
+         (dolist (exc-rx ,exc-filters)
+           (if (string-match-p exc-rx file-name)
+               (push t exc-passed)
+             (push nil exc-passed)))
+         (setq exc-passed (not (member t exc-passed)))
+
+         (dolist (inc-rx ,inc-filters)
+           (if (string-match-p inc-rx file-name)
+               (push t inc-passed)
+             (push nil inc-passed)))
+         (setq inc-passed (not (member nil inc-passed)))
+         
+         (when (and exc-passed inc-passed)
+           (push file rtn))))
+     rtn))
+
 (defun entropy/emacs-pdumper--extract-upstream-packages ()
-  (let* ((top-dir entropy/emacs-pdumper--upstream-top-dir)
-         (sub-dirs (entropy/emacs-list-subdir top-dir))
-         rtn)
-    (dolist (el sub-dirs)
-      (let ((files (entropy/emacs-list-dir-lite el)))
-        (dolist (file files)
-          (let ((ftype (car file))
-                (fpath (cdr file)))
-            (unless (or (equal "D" ftype)
-                        (string-match-p "\\(autoloads\\.el\\|pkg\\.el\\)" fpath)
-                        (not (string-match-p "\\.el$" fpath))
-                        (not (string-match-p
-                              (rx (or "ivy" "org" "magit" "counsel"
-                                      "dired" "all-the-icon"
-                                      "use-package" "diminish" "bind-key"
-                                      (seq line-start "company-")))
-                              (entropy/emacs-file-path-parser fpath 'file-name))))
-              (push fpath rtn))))))
-    (unless rtn
-      (error "Non upstream installed!"))
-    (setq entropy/emacs-pdumper--upstream-els rtn)))
+  (let ((exc-filters `(,(rx (or (seq "autoloads.el" line-end)
+                                (seq "pkg.el" line-end)
+                                (seq line-start "test.el")))))
+        (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "counsel"
+                                     "dired" "all-the-icon"
+                                     "use-package" "diminish" "bind-key"
+                                     (seq line-start "company-"))
+                                 (* any)
+                                 (seq ".elc" line-end))))))
+    (entropy/emacs-pdumper--extract-files-with-dir
+     entropy/emacs-pdumper--upstream-top-dir
+     exc-filters
+     inc-filters
+     t)))
 
 (defun entropy/emacs-pdumper--extract-internal-packages ()
-  (let ((internal-exts (entropy/emacs-list-files-recursive-for-list
-                        (file-name-directory (locate-library "window"))))
-        (org-filter (regexp-quote (file-name-directory (locate-library "org"))))
-        (main-filter (rx (or (seq ".elc" line-end)
-                             (seq ".el.gz" line-end))))
-        (sub-filter (rx (or "cl" "tramp" "file" "dired" "url" "eww" "eshell" "esh")))
-        (sub-filter_ex (rx (or (eval
-                                (if (not sys/win32p)
-                                    "w32"
-                                  "*eemacs-exlude-feature-indicator*")))))
-        tempo-var)
-    (dolist (sub-file internal-exts)
-      (unless (string-match-p org-filter sub-file)
-        (when (and (string-match-p main-filter sub-file)
-                   (not (string-match-p sub-filter_ex sub-file))
-                   (string-match-p sub-filter sub-file))
-          (push sub-file tempo-var))))
-    (reverse tempo-var)))
+  (let ((exc-filters `(,(rx (regexp (eval (regexp-quote (file-name-directory (locate-library "org"))))))
+                       ,(rx (or (eval
+                                 (if (not sys/win32p)
+                                     "w32"
+                                   "*eemacs-exlude-feature-indicator*"))))))
+        (inc-filters `(,(rx (seq (or "cl" "tramp" "file" "dired" "url" "eww" "eshell" "esh")
+                                 (* any)
+                                 (or (seq ".elc" line-end)
+                                     (seq ".el.gz" line-end)))))))
+    (entropy/emacs-pdumper--extract-files-with-dir
+     (file-name-directory (locate-library "window"))
+     exc-filters
+     inc-filters)))
 
 (defun entropy/emacs-pdumper--extract-eemacs-deps-packages ()
   (let* ((eemacs-deps-files (entropy/emacs-list-files-recursive-for-list
