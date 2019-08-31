@@ -188,6 +188,15 @@ with '0' as alignment state."
     (reverse rtn)))
 
 
+;; *** macro refers
+
+(defun entropy/emacs-eval-macro-arg (arg)
+  (cond ((symbolp arg)
+         (symbol-value arg))
+        ((listp arg)
+         (eval arg))
+        (t arg)))
+
 ;; ** pdumper common
 (defun entropy/emacs-in-pdumper-procedure-p ()
   (let (rtn)

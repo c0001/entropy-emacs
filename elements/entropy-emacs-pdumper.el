@@ -69,11 +69,9 @@ configuration.")
 ;; *** macro
 (cl-defmacro entropy/emacs-pdumper--with-load-path (top-dir &rest body)
   (let* ((tempo-lpth (append
-                      (if top-dir 
+                      (if (not (null (symbol-value top-dir)))
                           (entropy/emacs-list-dir-recursive-for-list
-                           (if (symbolp top-dir)
-                               (symbol-value top-dir)
-                             top-dir))
+                           (entropy/emacs-eval-macro-arg top-dir))
                         nil)
                       entropy/emacs-origin-load-path)))
     `(let ((load-path ',tempo-lpth))
@@ -123,6 +121,24 @@ configuration.")
           (push sub-file tempo-var))))
     (reverse tempo-var)))
 
+(defun entropy/emacs-pdumper--extract-eemacs-deps-packages ()
+  (let* ((eemacs-deps-files (entropy/emacs-list-files-recursive-for-list
+                             (expand-file-name "elements/submodules" entropy/emacs-ext-deps-dir)))
+         (exc-filter (rx (seq line-start
+                              (or "liberime"
+                                  "fakecygpty"
+                                  "font-lock"
+                                  "test")
+                              (* any))))
+         (inc-filter (rx (seq line-start "entropy-" (* any))
+                         (seq ".el" line-end)))
+         rtn)
+    (dolist (file eemacs-deps-files)
+      (when (and (not (string-match-p exc-filter (file-name-nondirectory file)))
+                 (string-match-p inc-filter (file-name-nondirectory file)))
+        (push file rtn)))
+    rtn))
+
 (defun entropy/emacs-pdumper--extract-org-packages ()
   (let* ((org-dir (file-name-directory (locate-library "org")))
          (lite-list (entropy/emacs-list-dir-lite org-dir))
@@ -167,40 +183,31 @@ configuration.")
       nil)))
 
 ;; ** load-files
-(defun entropy/emacs-pdumper--load-upstream ()
-  (let ((els (entropy/emacs-pdumper--extract-upstream-packages)))
-    (entropy/emacs-pdumper--with-load-path
-     entropy/emacs-pdumper--upstream-top-dir
-     (dolist (file els)
-       (let* ((feature-name (file-name-base
-                             (entropy/emacs-file-path-parser
-                              file 'file-name)))
-              (feature (intern feature-name)))
-         (message "[Pdumper] load-file: %s"
-                  feature-name)
-         (ignore-errors (require feature)))))))
+(defmacro entropy/emacs-pdumper--load-files-core (top-dir files)
+  `(entropy/emacs-pdumper--with-load-path
+    ,top-dir
+    (dolist (file ,files)
+      (let* ((feature-name (file-name-base file))
+             (feature (intern feature-name)))
+        (message "[Pdumper] load-file: %s" feature-name)
+        (ignore-errors (require feature))))))
 
-(defun entropy/emacs-pdumper--load-internal ()
-  (let ((files (entropy/emacs-pdumper--extract-internal-packages)))
-    (entropy/emacs-pdumper--with-load-path
-     nil
-     (dolist (file files)
-       (let* ((feature-name (file-name-base file))
-              (feature (intern feature-name)))
-         (message "[Pdumper] load-file: %s" feature-name)
-         (ignore-errors (require feature)))))))
-
-(defun entropy/emacs-pdumper--load-org ()
-  (let ((els (entropy/emacs-pdumper--extract-org-packages)))
-    (entropy/emacs-pdumper--with-load-path
-     nil
-     (dolist (file els)
-       (require (intern (file-name-base file)))))))
+(eval-when-compile
+  (defun entropy/emacs-pdumper--load-files (arg-list)
+    (cl-loop for (load-dir . load-files) in arg-list
+             do (entropy/emacs-pdumper--load-files-core
+                 load-dir load-files))))
 
 ;; ** main
-(entropy/emacs-pdumper--load-internal)
-(entropy/emacs-pdumper--load-org)
-(entropy/emacs-pdumper--load-upstream)
+
+(entropy/emacs-pdumper--load-files
+ `((,entropy/emacs-pdumper--upstream-top-dir . ,(entropy/emacs-pdumper--extract-upstream-packages))
+   (,nil . ,(entropy/emacs-pdumper--extract-internal-packages))
+   (,nil . ,(entropy/emacs-pdumper--extract-org-packages))
+   (,(expand-file-name "elements/submodules" entropy/emacs-ext-deps-dir)
+    . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))))
+
+
 (setq load-path (append
                  (entropy/emacs-list-subdir
                   entropy/emacs-pdumper--upstream-top-dir)
