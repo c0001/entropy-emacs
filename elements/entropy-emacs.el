@@ -90,8 +90,15 @@
 (require 'entropy-emacs-path)
 
 ;; *** Enable entropy emacs UI configuration
-(require 'entropy-emacs-ui)
-(require 'entropy-emacs-font-set)
+
+(cond (entropy/emacs-custom-pdumper-do
+       ;; Load fontset specification before UI initilization prevent
+       ;; drawer bug for pdumper session
+       (require 'entropy-emacs-font-set)
+       (require 'entropy-emacs-ui))
+      (t
+       (require 'entropy-emacs-ui)
+       (require 'entropy-emacs-font-set)))
 (redisplay t)
 
 ;; *** preface advice

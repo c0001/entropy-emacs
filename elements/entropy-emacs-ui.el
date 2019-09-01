@@ -385,6 +385,7 @@ widget used func `entropy/emacs-ui--dashboard-create-widget'."
           (title " WELCOME TO ENTROPY-EMACS ")
           (version entropy/emacs-ecv))
       (with-current-buffer buffer
+        (read-only-mode 0)
         (goto-char (point-min))
         (insert "\n\n\n")
         (forward-line 0)
