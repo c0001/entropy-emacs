@@ -39,20 +39,21 @@
 ;; ** Theme
 (use-package doom-themes
   :preface (defvar region-fg nil) ; bug from: `url:https://github.com/hlissner/emacs-doom-themes/issues/166'
-  :commands doom-themes-visual-bell-config
   :init
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
 	doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  )
 
-  ;; Enable flashing mode-line on errors
-  (entropy/emacs-lazy-with-load-trail
-   DoomBell
-   (doom-themes-visual-bell-config)
-   (redisplay t))
-
+(use-package doom-themes-ext-visual-bell
+  :ensure nil
+  :after doom-themes
+  :commands (doom-themes-visual-bell-config)
+  :init
+  
+  (doom-themes-visual-bell-config)
+   
   :config
-
   (defvar doom-themes--visual-bell-old-mdl-face-remap nil
     "The bakcup modeline face for doom themes visual bell
 procedure.")
