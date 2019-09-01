@@ -26,10 +26,16 @@
 
 ;; See the README for more details.
 
-(require 'cl-lib)
+(if (version< emacs-version "27")
+    (require 'cl)
+  (require 'cl-macs))
 (require 'company)
 (require 'company-en-words-data "./company-en-words-data.el")
 
+(defun company-en-words--cl-compatible-for-rmifnot (&rest args)
+  (if (fboundp 'cl-remove-if-not)
+      (apply 'cl-remove-if-not args)
+    (apply 'remove-if-not args)))
 
 (defun company-en-words (command &optional arg &rest ignored)
   (interactive (list 'interactive))
@@ -37,7 +43,7 @@
     (interactive (company-begin-backend 'company-en-words))
     (prefix (company-grab-word))
     (candidates 
-     (remove-if-not
+     (company-en-words--cl-compatible-for-rmifnot
       (lambda (c) (string-prefix-p (downcase arg) c))  
       en-words-completions))
     (sorted t)
