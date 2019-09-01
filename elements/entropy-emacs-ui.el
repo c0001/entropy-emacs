@@ -35,60 +35,60 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-faces)
 
-(when (display-graphic-p)
+(when (and (display-graphic-p)
+           (not entropy/emacs-custom-pdumper-do))
   (scroll-bar-mode 0)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
   (redisplay t))
 
 ;; ** theme in loading progress
-(when (display-graphic-p)
-  (let ((initial-theme-path (expand-file-name "startup-theme" (file-name-directory load-file-name))))
-    (add-to-list 'custom-theme-load-path initial-theme-path)
-    (add-to-list 'load-path initial-theme-path)
-    (load-theme 'entropy-base16-theme-bright t)))
+(defun entropy/emacs-ui--load-basic-theme-core ()
+  (when (display-graphic-p)
+    (let ((initial-theme-path (expand-file-name "startup-theme" entropy/emacs-core-components-hosted-path)))
+      (add-to-list 'custom-theme-load-path initial-theme-path)
+      (add-to-list 'load-path initial-theme-path)
+      (load-theme 'entropy-base16-theme-bright t))))
+
+(if entropy/emacs-custom-pdumper-do
+    (entropy/emacs-lazy-with-load-trail
+     load-basic-theme
+     (entropy/emacs-ui--load-basic-theme-core))
+  (entropy/emacs-ui--load-basic-theme-core))
 
 ;; ** init-frame position and width and height
-(if (< entropy/emacs-init-frame-width-scale 1)
-    (when (display-graphic-p)
-      (if (< entropy/emacs-font-size-default 15)
-          (set-face-attribute 'default nil :height (ceiling (* entropy/emacs-font-size-default 10)))
-        (error "Your default font size is too large, you must set it smaller than 15."))
 
-      (defun entropy/emacs-ui-set-frame-position ()
-        "Reset frame's position and size by the constraint of `entropy/emacs-init-frame-width-scale',
+(when (display-graphic-p)
+  (if (< entropy/emacs-font-size-default 15)
+      (set-face-attribute 'default nil :height (ceiling (* entropy/emacs-font-size-default 10)))
+    (error "Your default font size is too large, you must set it smaller than 15.")))
+
+(defun entropy/emacs-ui-set-frame-position ()
+  "Reset frame's position and size by the constraint of `entropy/emacs-init-frame-width-scale',
 `entropy/emacs-init-frame-height-scale'
 
 And the aim effection for it is that let frame be in the middle of current displayer you be in with
 the specific height and width determined by above variable you setted."
-        (interactive)
-        (let (x y width height)
-          ;; widht height, coordinate calculate.
-          (setq width (ceiling (* (x-display-pixel-width) entropy/emacs-init-frame-width-scale)))
-          (setq height (ceiling (* (x-display-pixel-height) entropy/emacs-init-frame-height-scale)))
-          (setq x (ceiling (/ (- (x-display-pixel-width) width) 2)))
-          (setq y (if entropy/emacs-init-fpos-y entropy/emacs-init-fpos-y 0))
-          ;; frame position setting
-          (set-frame-width (selected-frame) width nil t)
-          (set-frame-height (selected-frame) height nil t)
-          (set-frame-position (selected-frame) x y)))
-      (when entropy/emacs-init-fpos-enable
-        (cond
-         (entropy/emacs-custom-pdumper-do
-          (add-hook 'entropy/emacs-pdumper-load-hook
-                    #'entropy/emacs-ui-set-frame-position))
-         (t
-          (entropy/emacs-ui-set-frame-position)))))
-  
-  (when (display-graphic-p)
-    (cond (entropy/emacs-custom-pdumper-do
-           (add-hook 'entropy/emacs-pdumper-load-hook
-                     #'(lambda ()
-                         (setq initial-frame-alist (quote ((fullscreen . maximized))))
-                         (setq default-frame-alist initial-frame-alist))))
-          (t
-           (setq initial-frame-alist (quote ((fullscreen . maximized))))
-           (setq default-frame-alist initial-frame-alist)))))
+  (interactive)
+  (let (x y width height)
+    ;; widht height, coordinate calculate.
+    (setq width (ceiling (* (x-display-pixel-width) entropy/emacs-init-frame-width-scale)))
+    (setq height (ceiling (* (x-display-pixel-height) entropy/emacs-init-frame-height-scale)))
+    (setq x (ceiling (/ (- (x-display-pixel-width) width) 2)))
+    (setq y (if entropy/emacs-init-fpos-y entropy/emacs-init-fpos-y 0))
+    ;; frame position setting
+    (set-frame-width (selected-frame) width nil t)
+    (set-frame-height (selected-frame) height nil t)
+    (set-frame-position (selected-frame) x y)))
+
+(entropy/emacs-lazy-with-load-trail
+ frame-pos-init
+ (when (display-graphic-p)
+   (if (and entropy/emacs-init-fpos-enable
+            (< entropy/emacs-init-frame-width-scale 1))
+       (entropy/emacs-ui-set-frame-position)
+     (setq initial-frame-alist (quote ((fullscreen . maximized))))
+     (setq default-frame-alist initial-frame-alist))))
 
 ;; ** elisp show parent
 (unless entropy/emacs-use-highlight-features
@@ -102,8 +102,7 @@ the specific height and width determined by above variable you setted."
   (setq x-gtk-use-system-tooltips nil))
 
 ;; ** Logo
-(when (not entropy/emacs-custom-pdumper-do)
-  (setq fancy-splash-image entropy/emacs-fancy-splash-logo))
+(setq fancy-splash-image entropy/emacs-fancy-splash-logo)
 
 ;; ** initial buffer
 (when (and entropy/emacs-enable-initial-dashboard
@@ -433,7 +432,6 @@ widget used func `entropy/emacs-ui--dashboard-create-widget'."
           (setq-local browse-url-browser-function
                       'eww-browse-url)))
       buffer))
-  (setq initial-buffer-choice #'entropy/emacs-ui--dashboard-initial-buffer)
 
   (defun entropy/emacs-ui--dashboard-wc-change-func ()
     "Erase and recreate initial buffer when origin window size
@@ -461,18 +459,33 @@ for adding to variable `window-size-change-functions' and hook
         (with-selected-window win-spec
           (entropy/emacs-ui--dashboard-wc-change-func)))))
 
-  (add-hook 'window-setup-hook
-            (lambda ()
-              (add-hook 'window-size-change-functions 'entropy/emacs-ui--dashboard-resize-hook)
-              (entropy/emacs-ui--dashboard-resize-hook))))
+;; *** welcom initialize
+
+  (defun entropy/emacs-ui--dashboard-init-core ()
+    (setq initial-buffer-choice #'entropy/emacs-ui--dashboard-initial-buffer)
+    (add-hook 'window-setup-hook
+              #'(lambda ()
+                  (unless (member 'entropy/emacs-ui--dashboard-resize-hook
+                                  window-size-change-functions)
+                    (add-hook 'window-size-change-functions 'entropy/emacs-ui--dashboard-resize-hook))
+                  (entropy/emacs-ui--dashboard-resize-hook))))
+  
+  (if entropy/emacs-custom-pdumper-do
+      (entropy/emacs-lazy-with-load-trail
+       welcom-buffer
+       (entropy/emacs-ui--dashboard-init-core)
+       (switch-to-buffer (entropy/emacs-ui--dashboard-initial-buffer)))
+    (entropy/emacs-ui--dashboard-init-core)))
 
 ;; ** Title
-(setq frame-title-format
-      '("GNU Emacs " emacs-version "@" user-login-name " : "
-        (:eval (if (buffer-file-name)
-                   (abbreviate-file-name (buffer-file-name))
-                 "%b"))))
-(setq icon-title-format frame-title-format)
+(entropy/emacs-lazy-with-load-trail
+ frame-title-set
+ (setq frame-title-format
+       '("GNU Emacs " emacs-version "@" user-login-name " : "
+         (:eval (if (buffer-file-name)
+                    (abbreviate-file-name (buffer-file-name))
+                  "%b"))))
+ (setq icon-title-format frame-title-format))
 
 ;; ** Misc
 ;; *** minor misc

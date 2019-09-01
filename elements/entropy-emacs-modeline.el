@@ -452,7 +452,9 @@ style which defined in `entropy/emacs-modeline-style'."
 
 (entropy/emacs-lazy-with-load-trail
  eemacs-modeline-init
- (entropy/emacs-modeline--mdl-init))
+ (redisplay t)
+ (entropy/emacs-modeline--mdl-init)
+ (redisplay t))
 
 ;; ** toggle function
 (when entropy/emacs-enable-modeline-toggle

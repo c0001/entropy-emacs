@@ -32,6 +32,10 @@
 ;; * Code:
 (require 'entropy-emacs-const)
 
+(defvar entropy/emacs-core-components-hosted-path
+  (expand-file-name (file-name-directory load-file-name))
+  "entropy-emacs core library hosted path.")
+
 (defvar entropy/emacs-web-development-environment nil
   "Whether using enable web-development envrionment.
 

@@ -48,7 +48,8 @@
   ;; Enable flashing mode-line on errors
   (entropy/emacs-lazy-with-load-trail
    DoomBell
-   (doom-themes-visual-bell-config))
+   (doom-themes-visual-bell-config)
+   (redisplay t))
 
   :config
 
@@ -116,9 +117,12 @@ the gloabal way."
 
 (entropy/emacs-lazy-with-load-trail
  enable-theme
+ (redisplay t)
  (mapc #'disable-theme custom-enabled-themes)
  (condition-case nil
-     (load-theme entropy/emacs-theme-options t)
+     (progn
+       (load-theme entropy/emacs-theme-options t)
+       (redisplay t))
    (error "Problem loading theme %s"
           (symbol-name entropy/emacs-theme-options)))
  (when (and (fboundp 'powerline-reset)
@@ -136,12 +140,12 @@ the gloabal way."
    ;; presentation in daemon mode of init of emacs session.
 
    (add-hook 'after-make-frame-functions
-             (lambda (frame)
-	       (when (eq (length (frame-list)) 2)
-		 (progn
-		   (select-frame
-		    frame)
-		   (load-theme entropy/emacs-theme-options)))))))
+             #'(lambda (frame)
+	         (when (eq (length (frame-list)) 2)
+		   (progn
+		     (select-frame
+		      frame)
+		     (load-theme entropy/emacs-theme-options)))))))
 
 ;; ** solaire mode for focus visual style
 (use-package solaire-mode
