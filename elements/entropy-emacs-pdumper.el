@@ -109,14 +109,14 @@ configuration.")
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "counsel"
                                      "dired" "all-the-icon"
                                      "use-package" "diminish" "bind-key"
-                                     (seq line-start "company-"))
+                                     "doom" "company")
+                                 "-"
                                  (* any)
                                  (seq ".elc" line-end))))))
     (entropy/emacs-pdumper--extract-files-with-dir
      entropy/emacs-pdumper--upstream-top-dir
      exc-filters
-     inc-filters
-     t)))
+     inc-filters)))
 
 (defun entropy/emacs-pdumper--extract-internal-packages ()
   (let ((exc-filters `(,(rx (regexp (eval (regexp-quote (file-name-directory (locate-library "org"))))))
@@ -181,14 +181,15 @@ configuration.")
     (run-hooks 'entropy/emacs-pdumper-load-hook)
     ;; trail dealing
     (load-library "tramp")              ;reload tramp for enable `auto-sudoedit'
-    (when scroll-bar-mode
-      (scroll-bar-mode 0))
+    (scroll-bar-mode 0)
+    (tool-bar-mode 0)
+    (menu-bar-mode 0)
+    (redisplay t)
     ;; the very ending procedure
     (run-hooks 'entropy/emacs-pdumper-load-end-hook)
     (message "Initialized pdumper session")
     (when entropy/emacs-pdumper--rec-timer
       (cancel-timer entropy/emacs-pdumper--rec-timer)
-      (setq entropy/emacs-custom-pdumper-do nil)
       (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
       (garbage-collect))
     (defun entropy/emacs-pdumper--recovery ()

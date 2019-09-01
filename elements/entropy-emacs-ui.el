@@ -105,8 +105,8 @@ the specific height and width determined by above variable you setted."
 (setq fancy-splash-image entropy/emacs-fancy-splash-logo)
 
 ;; ** initial buffer
-(when (and entropy/emacs-enable-initial-dashboard
-           (not entropy/emacs-custom-pdumper-do))
+(when entropy/emacs-enable-initial-dashboard
+  
 ;; *** varaible defination  
   (defvar entropy/emacs-ui--dashboard-last-width nil
     "Remain the window size of previous (the last) buffer
@@ -473,7 +473,9 @@ for adding to variable `window-size-change-functions' and hook
   (if entropy/emacs-custom-pdumper-do
       (entropy/emacs-lazy-with-load-trail
        welcom-buffer
+       (setq entropy/emacs-ui--dashboard-width (window-width))
        (entropy/emacs-ui--dashboard-init-core)
+       (run-hooks 'window-setup-hook)
        (switch-to-buffer (entropy/emacs-ui--dashboard-initial-buffer)))
     (entropy/emacs-ui--dashboard-init-core)))
 

@@ -823,7 +823,9 @@ emacs."
     (setq entropy/emacs-loop-alpha-value (cdr (append entropy/emacs-loop-alpha-value (list h))))))
 
 (when entropy/emacs-init-loop-alpha
-    (entropy/emacs-basic-loop-alpha))
+  (entropy/emacs-lazy-with-load-trail
+   loop-alpha
+   (entropy/emacs-basic-loop-alpha)))
 
 ;; ** Paragraph fill size
 (setq-default fill-column entropy/emacs-fill-paragraph-width)
