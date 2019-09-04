@@ -36,7 +36,7 @@
 
 ;;; Code:
 (require 'entropy-adblock+-rule-analysis)
-(setq entropy/proxy-url-regexp-list
+(setq entropy/proxy-url-gfw-regexp-alist
       (entropy/adbp-rule-get-regexp-matchs-list))
 
 

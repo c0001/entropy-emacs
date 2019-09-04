@@ -1,16 +1,15 @@
 ;;; entropy-proxy-url ---  Url proxy for emacs eww and w3m
 ;;
-;; * Copyright (C) 20190617  Entropy
+;; * Copyright (C) 20190906  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-proxy-url/
-;; Package-Version: package-version
-;; Version:       file-version
-;; Created:       year-month-date hour:min:sec
-;; Keywords:      kewords-1, kewords-2, kewords-3,
+;; Package-Version: v0.1.0
+;; Created:       2018
+;; Keywords:      proxy
 ;; Compatibility: GNU Emacs emacs-version;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "26") (cl-lib "0.5"))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,7 +27,7 @@
 ;; 
 ;; * Commentary:
 ;;
-;; An emacs extension trafficked url matching by proxy regxp rule-set or
+;; An emacs extension trafficking url matching by proxy regxp rule-set or
 ;; pull down them into whole proxy tunnel.
 ;;
 ;; This package perform as the library role for the functional provision.
@@ -66,7 +65,7 @@
 ;;
 ;; The regexp filter can be generized of more functional part, by
 ;; matching whatever you want. The rule-set internal customized variable
-;; =entropy/proxy-url-regexp-list= as is.
+;; =entropy/proxy-url-gfw-regexp-alist= as is.
 ;;
 ;; This package use the [[https://github.com/gfwlist/gfwlist][gfwlist]] as the default ruleset, for the original
 ;; prototype for it was the simple variant of [[https://en.wikipedia.org/wiki/Proxy_auto-config][PAC]](proxy auto
@@ -83,92 +82,60 @@
 ;;
 ;; ** Methods given
 ;;
-;; The time =entropy-proxy-url='s provision as the mentioned above that
-;; given for the top web browsing scene both of =eww= and =emacs-w3m=.
+;; We using property list as a =PROXY-RECIPE= to given the customized
+;; way for specify the proxy subroutine.
 ;;
-;; There's two macro defined for the core proxy diversion filter:
+;; As the focurs on, the =PROXY-RECIPE= mainly use ~advice-add~ to
+;; around wrappering the target underline functional commands, like
+;; ~w3m-goto-url~ , ~url-retrieve~ etc.
 ;;
-;; 1) ~entropy/proxy-url-type-form~
-;;    
-;;    Form to automatically creating the proxy setting function,
-;;    arguments of:
+;; The =PROXY-RECIPE= slots valid for those listed below:
 ;;
-;;    * =FUNC-REGEXP=:
+;; - =:group-name= : a symbol to indicate the recipe name
+;;   identification
 ;;
-;;      Function to set proper regexp proxy config to refer target
-;;      trigger operation.
-;;      
-;;    * =FUNC-FULL=:
+;; - =:advice-fors= : list of functions for be wrappered with
+;;   `entropy/proxy-url` specification
 ;;
-;;      Function to set proper full proxy config to refer target trigger
-;;      operation.
+;; - =:type-source= : a symbol restored the proxy type (i.e. which
+;;   described in `entropy/proxy-url-initial-typesource')
 ;;
-;;    * =FUNC-CLEAN=
+;; - =:PROXY-MECHANISM= : a symbol indicate the proxy mechanism
+;;   (i.e. describe for `entropy/proxy-url-default-proxy-server-obj')
 ;;
-;;      Function to recover the original target trigger operation's
-;;      config.
+;; - =:server-host-alist= : a symbol indicate the proxy server host
+;;   alist which using the same struct with
+;;   `entropy/proxy-url-default-proxy-server-obj'"
 ;;
-;;    * =URL=:
-;;
-;;      Url requesting string.
-;;
-;;    * =TYPE-SOURCE=
-;;
-;;      The proxy type of 't', 'regexp', 'nil' corresponding to 'full',
-;;      'regexp', 'clean' respectively.
-;;
-;; 2) ~entropy/proxy-url-swith-form~
-;;
-;;    Form of switching the proxy type dynamically.
-;;
-;;    The only argument =TYPE-SOURCE= as the ~setf~ place for stored the
-;;    proxy type selected lastly.
-;;
-;;
-;;
-;; All the arguments name as the unified meaning as is. Thus, the
-;; implementation both for 'eww' and 'emacs-w3m' feature for:
-;;
-;; | Target interaction | proxy-type | func-implementation                 |
-;; |--------------------+------------+-------------------------------------|
-;; | ~w3m-retrieve~     | regexp     | ~entropy/proxy-url--regexp-for-w3m~ |
-;; |                    | full       | ~entropy/proxy-url--full-for-w3m~   |
-;; |                    | clean      | ~entropy/proxy-url--clean-for-w3m~  |
-;; |                    |            |                                     |
-;; |--------------------+------------+-------------------------------------|
-;; | ~eww-browse-url~   | regexp     | ~entropy/proxy-url--regexp-for-eww~ |
-;; |                    | full       | ~entropy/proxy-url--full-for-eww~   |
-;; |                    | clean      | ~entropy/proxy-url--clean-for-eww~  |
-;;
-;;
-;;
-;; For those implementation's =TYPE-SOURCE= are
-;; =entropy/proxy-url-enable-eww= and =entropy/proxy-url-enable-w3m=.
+;; - =:bind= : a alist which the each car of the element was the
+;;   key-map and the cdr was the keybinding specific valid as the
+;;   form for =kbd= function.
 ;;
 ;; ** Proxy reset
 ;;
-;; For those cases that you want to quickly reset the proxy server, you
-;; should reset the proxy config among the eww and w3m utilities, the
-;; interactive function ~entropy/proxy-url-reset-proxy~ give the way for
-;; as. For then, you could reset the =entropy/proxy-mode-url-proxy= value
-;; and then all has done.
-;;
+;; For those cases that you want to quickly reset the proxy server,
+;; just reset your recipes =:server-host-alist= slot's symbol value,
+;; all functional form will obtain the new proxy-host value at next
+;; time for proxy-connection doing.
 ;;
 ;; * Configuration:
 ;;
+;; Just require it, and building =PROXY-RECIPE= you specified.
+;;
 ;; ** Target operation advice
 ;;
-;; Now, as the designation for as be library of proxy toggle one,
-;; =entropy-proxy-url= didn't advicing each target operation function as
-;; the =:before= type internally, you will do as manually as:
+;; There're two built-in =proxy-recipe= i.e. the
+;; ~entropy/proxy-url--eww-recipe~ and
+;; ~entropy/proxy-url--w3m-recipe~, you can call function
+;; ~entropy/proxy-url-make-builtin-recipes~ to buiding
+;; them. Futhermore you can specify your own recipe follow what
+;; mentioned above, and use function ~entropy/proxy-url-make-recipes~
+;; to buiding it(see its doc-string for more details).
 ;;
-;; #+BEGIN_SRC elisp
-;;   (advice-add 'eww-browse-url :before #'entropy/proxy-url-proxy-choice-for-eww)
-;;   (advice-add 'w3m-goto-mailto-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
-;;   (advice-add 'w3m-goto-ftp-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
-;;   (advice-add 'w3m--goto-url--valid-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
-;; #+END_SRC
+;; ** customized varaibles
 ;;
+;; See customized-variable-group ~entropy/proxy-url-group~ for them.
+;; 
 ;; ** The regexp rule-set list data
 ;;
 ;; Internally, =entropy-proxy-url= has given the sets of regexp rule set
@@ -179,33 +146,59 @@
 ;; The gfw-rule analyzing provided by [[https://github.com/c0001/entropy-adblockP-rule-analysis][entropy-adbp+-rule-analysis]] package
 ;; (Add it to ~load-path~ was requested also).
 ;;
-;;
-;;
-;; 
 ;; * Code:
 
-(require 'entropy-proxy-mode)
+(require 'cl-lib)
+(require 'eww)
 (require 'w3m)
-(require 'entropy-proxy-url-gfw-list)
 
 ;; ** variable declare
-(defvar entropy/proxy-url--enable 'regexp
-  "If none-nil enable proxy for two type:
-
-    - symbol ‘regexp’: proxy url matched by regexp of list
-      `entropy/proxy-url-regexp-list'
-
-    - symbol ‘t’: proxy for all searching。")
-
-(defvar entropy/proxy-url--enable-eww entropy/proxy-url--enable)
-(defvar entropy/proxy-url--enable-w3m entropy/proxy-url--enable)
-(defvar entropy/proxy-url--w3m-regexp-injected nil)
-(defvar entropy/proxy-url--url-proxy entropy/proxy-mode-url-proxy)
-
+;; *** customized var
 (defgroup entropy/proxy-url-group nil
   "group of `entropy-proxy-url'")
 
-(defcustom entropy/proxy-url-regexp-list
+(defcustom entropy/proxy-url-default-proxy-server-obj
+  '((emacs-socks "" "127.0.0.1" "1080" "5")
+    (emacs-url "http://" "127.0.0.1" "1081")
+    (shell-http  "http://" "127.0.0.1" "1081")
+    (emacs-w3m "http://" "127.0.0.1" "1081"))
+  "The default server host object, a list of each element of a list as
+one entry.
+
+The order of the sequence of the CARs of the entry were:
+
+1) `proxy-mechanism` : 
+
+   a symbol valid named for `emacs-url` `emacs-socks` `emacs-w3m`
+   `shell-http`.
+   
+   *`emacs-url`* proxy mechanism used for function who use
+   `url-retrieve' like underline of package `url.el'
+
+   *`emacs-socks`* proxy mechanism used for the funcion whose
+   subroutine based on `socks.el'.
+
+   *`emacs-w3m`* proxy mechanism used for function whose subroutine
+   based on `w3m.el'
+
+   *`shell-http'* proxy mechanism used for shell process calling only.
+
+2) `protocal prefix` : string for like \"http://\".
+
+3) `proxy server host domain` : stirng for the proxy host domain
+   indication
+
+4) `proxy server port` : string of integer used for `proxy server host
+   domain` to redirected proxy request for specified system port.
+
+5) `proxy underline exec version` : string of integar, used such for
+   'socks[4]' or 'socks[5]', only effectively in `proxy-mechanism`
+   `eq' `emacs-socks`.
+"
+  :type 'list
+  :group 'entropy/proxy-url-group)
+
+(defcustom entropy/proxy-url-gfw-regexp-alist
   '(("google")
     ("wikipedia"))
   "The regexp list for matching url for using proxy.
@@ -215,182 +208,300 @@ The structer of this variable format was equal with
   :type 'sexp
   :group 'entropy/proxy-url-group)
 
-;; ** macro
-(defmacro entropy/proxy-url--type-form (func-regexp func-full func-clean url type-source)
-  "Macro for creating auto proxy setting function accroding the
-value of `entropy/proxy-url--enable'."
-  `(let ((regular (symbol-value ,type-source)))
-     (cond
-      ((eq regular 'regexp)
-       (funcall ,func-regexp ,url))
-      ((eq regular 't)
-       (funcall ,func-full))
-      ((eq regular nil)
-       (funcall ,func-clean)))))
+(require 'entropy-proxy-url-gfw-list)
 
+(defcustom entropy/proxy-url--with-proxy-http-sever-host "127.0.0.1:1081"
+  "The default http proxy domain string with its port, no
+protocal prefix appended. "
+  :type 'string
+  :group 'entropy/proxy-url-group)
+
+(defcustom entropy/proxy-url--with-proxy-socks-sever-host "127.0.0.1:1080"
+  "The default socks proxy domain string with its port, no
+protocal prefix appended. "
+  :type 'string
+  :group 'entropy/proxy-url-group)
+
+(defcustom entropy/proxy-url--with-proxy-no-proxy
+  '("localhost"
+    "127.0.0.1"
+    "192.168.*"
+    "10.*")
+  "The default \"no_proxy\" regexp list for url-retrieve
+`no_proxy` filter."
+  :type 'list
+  :group 'entropy/proxy-url-group)
+
+(defcustom entropy/proxy-url-initial-typesource 'regexp
+  "If none-nil enable proxy for two type:
+
+- symbol ‘regexp’: proxy url matched by regexp of list
+  `entropy/proxy-url-gfw-regexp-alist'
+
+- symbol ‘t’: proxy for all searching"
+  :type 'symbol
+  :group 'entropy/proxy-url-group)
+
+;; ** library
+;; *** core functional
+;; **** common retrieve recovery
+(defun entropy/proxy-url--rec-for-common ()
+  (when (alist-get ".*" w3m-command-arguments-alist nil nil 'equal)
+    (setq w3m-command-arguments-alist
+          (delete (assoc ".*" w3m-command-arguments-alist)
+                  w3m-command-arguments-alist))))
+
+;; **** underline proxy mechanism
+(defun entropy/proxy-url--with-proxy-cl-args-body (args)
+  "Remove key-value paire from ARGS."
+  (let ((it args))
+    (catch 'break
+      (while t
+        (if (keywordp (car it))
+            (setq it (cddr it))
+          (throw 'break it))))))
+
+(cl-defmacro entropy/proxy-url--with-url-proxy
+    (&rest body &key server-host no-proxy &allow-other-keys)
+  (declare (indent 0) (debug t))
+  (let ((server-host1 (or server-host 'entropy/proxy-url--with-proxy-http-sever-host))
+        (no-proxy1 (or no-proxy 'entropy/proxy-url--with-proxy-no-proxy))
+        (body1 (entropy/proxy-url--with-proxy-cl-args-body body)))
+    `(with-temp-buffer
+       (let ((url-proxy-services
+              (list (cons "http" ,server-host1)
+                    (cons "https" ,server-host1)
+                    (cons "ftp" ,server-host1)
+                    (cons "no_proxy" (concat "^\\(" (mapconcat 'identity ,no-proxy1 "\\|") "\\)")))))
+         ,@body1))))
+
+(cl-defmacro entropy/proxy-url--with-shell-proxy
+    (&rest body &key server-host no-proxy version &allow-other-keys)
+  (declare (indent 0) (debug t))
+  (let ((server-host1 (or server-host '(concat "http://" entropy/proxy-url--with-proxy-http-sever-host)))
+        (body1 (entropy/proxy-url--with-proxy-cl-args-body body)))
+    `(with-temp-buffer
+       (let ((process-environment (cl-copy-list process-environment)))
+         (setenv "HTTP_PROXY" ,server-host1)
+         (setenv "HTTPS_PROXY" ,server-host1)
+         ,@body1))))
+
+(cl-defmacro entropy/proxy-url--with-w3m-proxy
+    (&rest body &key server-host no-proxy version &allow-other-keys)
+  (declare (indent 0) (debug t))
+  (let ((server-host1 (or server-host '(concat "http://" entropy/proxy-url--with-proxy-http-sever-host)))
+        (body1 (entropy/proxy-url--with-proxy-cl-args-body body)))
+    `(let ()
+       (setq
+        w3m-command-arguments-alist
+        (list
+         (list ".*"
+               "-o" (concat "http_proxy=" ,server-host1)
+               "-o" (concat "https_proxy=" ,server-host1)))
+        w3m-no-proxy-domains
+        '("127.0.0.1"
+          "localhost"))
+       ,@body1)))
+
+(cl-defmacro entropy/proxy-url--with-socks-proxy
+    (&rest body &key server-host no-proxy version &allow-other-keys)
+  (declare (indent 0) (debug t))
+  (let ((body1 (entropy/proxy-url--with-proxy-cl-args-body body))
+        (server-host1 (or server-host 'entropy/proxy-url--with-proxy-socks-sever-host))
+        (no-proxy1 (or no-proxy 'entropy/proxy-url--with-proxy-no-proxy)))
+    `(let ((url-gateway-method 'socks)
+           (socks-noproxy ,no-proxy1)
+           (socks-server ,server-host1))
+       ,@body1)))
+
+;; **** proxy-mechanism wrapper
+(defun entropy/proxy-url--judge-operation (proxy-mechanism)
+  (cond ((eq proxy-mechanism 'emacs-url)
+         'entropy/proxy-url--with-url-proxy)
+        ((eq proxy-mechanism 'emacs-w3m)
+         'entropy/proxy-url--with-w3m-proxy)
+        ((eq proxy-mechanism 'emacs-socks)
+         'entropy/proxy-url--with-socks-proxy)
+        ((eq proxy-mechanism 'shell-http)
+         'entropy/proxy-url--with-shell-proxy)))
+
+(cl-defmacro entropy/proxy-url--with-proxy (proxy-mechanism server-host-alist &rest body)
+  (declare (indent 1) (debug t))
+  `(let* ((operation (entropy/proxy-url--judge-operation  ,proxy-mechanism))
+          (server-obj (alist-get
+                       ,proxy-mechanism
+                       (or ,server-host-alist
+                           entropy/proxy-url-default-proxy-server-obj)))
+          (protocal (car server-obj))
+          (domain (cadr server-obj))
+          (port (caddr server-obj))
+          (version (cadddr server-obj))
+          (server-host-str (concat (if (eq ,proxy-mechanism 'emacs-url) ""  protocal)
+                                   domain ":" port)))
+     (funcall (list 'lambda nil
+                    (list operation
+                          ':server-host server-host-str
+                          ':no-proxy 'entropy/proxy-url--with-proxy-no-proxy ':version version
+                          '(progn ,@body))))))
+
+(defun entropy/proxy-url--do-url-proxy
+    (url type-source proxy-mechanism server-host-alist browse-func args)
+  (let ((gfw-list entropy/proxy-url-gfw-regexp-alist)
+        (judge-source (symbol-value type-source))
+        judge form)
+    (if (eq judge-source t)
+        (setq judge t)
+      (when (eq judge-source 'regexp)
+        (catch :exit
+          (dolist (regexp-list gfw-list)
+            (when (string-match-p (car regexp-list) url)
+              (setq judge t)
+              (throw :exit nil))))))
+    (if judge
+        (funcall `(lambda ()
+                    (message "Proxy for url '%s' ..." ',url)
+                    (entropy/proxy-url--with-proxy ',proxy-mechanism
+                      ',server-host-alist
+                      (apply ',browse-func ',url ',args))))
+      (funcall `(lambda ()
+                  (entropy/proxy-url--rec-for-common)
+                  (apply ',browse-func ',url ',args))))))
+
+(defun entropy/proxy-url--proxy-wrapper
+    (advice-for type-source proxy-mechanism server-host-alist &optional remove-advice)
+  (let ((func-name (intern
+                    (concat "entropy/proxy-url-"
+                            (symbol-name advice-for)
+                            "-around-advice")))
+        form)
+    (setq form
+          (if remove-advice
+              `(advice-remove ',advice-for #',func-name)
+            `(progn
+               (defun ,func-name (orig-func &rest orig-args)
+                 (entropy/proxy-url--do-url-proxy
+                  (car orig-args) ',type-source ',proxy-mechanism
+                  ',server-host-alist
+                  orig-func
+                  (cdr orig-args)))
+               (advice-add ',advice-for :around #',func-name))))
+    (funcall `(lambda () ,form))))
+
+(defmacro entropy/proxy-url--batch-proxy-wrapper
+    (group-name advice-fors type-source proxy-mechanism server-host-alist)
+  `(progn
+     (defun ,(intern (concat "entropy/proxy-url-advice-for-group-of-" (symbol-name group-name)))
+         (&optional prefix)
+       (interactive "P")
+       (dolist (item ,advice-fors)
+         (entropy/proxy-url--proxy-wrapper
+          item ,type-source ,proxy-mechanism ,server-host-alist prefix)))
+     (funcall ',(intern (concat "entropy/proxy-url-advice-for-group-of-" (symbol-name group-name))))))
+
+;; **** type source modification
 (defmacro entropy/proxy-url--swith-form (type-source)
   "Macro for creating proxy type throung the way of setting each of
-`entropy/proxy-url--enable-eww' and `entropy/proxy-url--enable-w3m'."
-  `(let ((choice (intern (completing-read "Choose proxy method: "
+`entropy/proxy-url-typesource-for-eww' and `entropy/proxy-url-typesource-for-w3m'."
+  `(let ((choice (intern (completing-read (format "Choose proxy method for [%s]: "
+                                                  (symbol-name (1value ,type-source)))
                                           '("regexp" "t" "nil")))))
      (setf (symbol-value ,type-source) choice)))
 
-;; ** Create eww group function
-(defun entropy/proxy-url--regexp-for-eww (url)
-  "Proxy url visiting by regexp matching by
-`entropy/proxy-url-regexp-list' with eww operation."
-  (let ((regexp entropy/proxy-url-regexp-list))
-    (if (let ((rtn nil))
-          (dolist (el regexp)
-            (when (string-match-p (car el) url)
-              (setq rtn t)))
-          rtn)
-        (when (not entropy/proxy-mode)
-          (entropy/proxy-mode-enable 'url))
-      (when entropy/proxy-mode
-        (entropy/proxy-mode-disable)))))
+;; *** recipes
 
-(defun entropy/proxy-url--full-for-eww ()
-  "Proxy for all urls visiting for eww operation."
-  (when (not entropy/proxy-mode)
-    (entropy/proxy-mode-enable 'url)))
+(defvar entropy/proxy-url-typesource-for-eww entropy/proxy-url-initial-typesource)
+(defvar entropy/proxy-url-typesource-for-w3m entropy/proxy-url-initial-typesource)
 
+(defvar entropy/proxy-url--w3m-recipe
+  '(:group-name
+    w3m-group
+    :advice-fors
+    (w3m-goto-mailto-url
+     w3m-goto-ftp-url w3m--goto-url--valid-url
+     w3m-goto-url w3m-goto-url-new-session w3m-goto-url-with-timer)
+    :type-source
+    entropy/proxy-url-typesource-for-w3m
+    :proxy-mechanism
+    emacs-w3m
+    :server-host-alist
+    nil
+    :bind
+    ((w3m-mode-map . "p"))))
 
-(defun entropy/proxy-url--clean-for-eww ()
-  "Clean all proxy setting for eww operation."
-  (when entropy/proxy-mode
-    (entropy/proxy-mode-disable)))
-
-;; ** Create w3m group function
-
-(defun entropy/proxy-url--append-w3m-proxy (regexp)
-  (let ((http-proxy (cdr (assoc "http" entropy/proxy-url--url-proxy)))
-        (https-proxy (cdr (assoc "https" entropy/proxy-url--url-proxy))))
-    (list regexp
-          "-o"
-          (concat "http_proxy=" (if (string-match-p "^http://" http-proxy)
-                                    ""
-                                  "http://")
-                  http-proxy)
-          "-o"
-          (concat "https_proxy=" (if (string-match-p "^https://" https-proxy)
-                                     ""
-                                   "https://")
-                  https-proxy))))
-
-(defun entropy/proxy-url--gen-w3m-full-proxy-argument ()
-  (entropy/proxy-url--append-w3m-proxy ".*"))
-
-(defun entropy/proxy-url--set-w3m-command-arguments ()
-  "Adding proxy config one by one to `w3m-command-arguments-alist'."
-  (when (and entropy/proxy-url-regexp-list
-             (listp entropy/proxy-url-regexp-list))
-    (dolist (el entropy/proxy-url-regexp-list)
-      (add-to-list 'w3m-command-arguments-alist
-                   (entropy/proxy-url--append-w3m-proxy (car el))))))
-
-(defun entropy/proxy-url--regexp-for-w3m (&optional arg)
-  "Proxy url visiting by regexp matching by
-`entropy/proxy-url-regexp-list' with w3m operation."
-  (when (not entropy/proxy-url--w3m-regexp-injected)
-    (entropy/proxy-url--reset-w3m-arg-alist)
-    (entropy/proxy-url--set-w3m-command-arguments)))
-
-(defun entropy/proxy-url--reset-w3m-arg-alist (&optional do-all)
-  (let (regexp-clean all-match-clean)
-    (setq regexp-clean
-          (lambda ()
-            (dolist (el entropy/proxy-url-regexp-list)
-              (setq w3m-command-arguments-alist
-                    (delete (assoc (car el) w3m-command-arguments-alist)
-                            w3m-command-arguments-alist))))
-          all-match-clean
-          (lambda ()
-            (setq w3m-command-arguments-alist
-                  (delete (entropy/proxy-url--gen-w3m-full-proxy-argument)
-                          w3m-command-arguments-alist))))
-    (cl-case do-all
-      (nil (cond ((assoc (caar entropy/proxy-url-regexp-list)
-                         w3m-command-arguments-alist)
-                  (funcall regexp-clean))
-                 ((member (entropy/proxy-url--gen-w3m-full-proxy-argument)
-                          w3m-command-arguments-alist)
-                  (funcall all-match-clean))))
-      (t (funcall regexp-clean)
-         (funcall all-match-clean)))))
-
-(defun entropy/proxy-url--full-for-w3m ()
-  "Proxy for all urls visiting for eww operation."
-  (when entropy/proxy-url--w3m-regexp-injected
-    (setq entropy/proxy-url--w3m-regexp-injected nil))
-  (entropy/proxy-url--reset-w3m-arg-alist)
-  (when (not (member (entropy/proxy-url--gen-w3m-full-proxy-argument)
-                     w3m-command-arguments-alist))
-    (add-to-list 'w3m-command-arguments-alist
-                 (entropy/proxy-url--gen-w3m-full-proxy-argument))))
-
-(defun entropy/proxy-url--clean-for-w3m ()
-  "Clean all proxy setting for `emacs-w3m'."
-  (entropy/proxy-url--reset-w3m-arg-alist t))
-
-
-;; ** main
-;;;###autoload
-(defun entropy/proxy-url-proxy-choice-for-eww (url &rest args)
-  "Determined for whether using proxy for searching specific url
-or for all searching operation for `eww'.
-
-The determined condition was refer by
-`entropy/proxy-url--enable'."
-  (entropy/proxy-url--type-form 'entropy/proxy-url--regexp-for-eww
-                                'entropy/proxy-url--full-for-eww
-                                'entropy/proxy-url--clean-for-eww
-                                url
-                                'entropy/proxy-url--enable-eww))
+(defvar entropy/proxy-url--eww-recipe
+  '(:group-name
+    eww-group
+    :advice-fors
+    (url-retrieve-internal)
+    :type-source
+    entropy/proxy-url-typesource-for-eww
+    :proxy-mechanism
+    emacs-url
+    :server-host-alist
+    nil
+    :bind
+    ((eww-mode-map . "p"))))
 
 ;;;###autoload
-(defun entropy/proxy-url-proxy-choice-for-w3m (&optional url &rest args)
-  "Determined for whether using proxy for searching specific url or
-for all searching operation for `emacs-w3m'.
+(defun entropy/proxy-url-make-recipes (proxy-recipes)
+  "Expand proxy-sepcification to its defination, grouped as RECIPE. 
 
-The determined condition was refer by `entropy/proxy-url--enable'."
-  (entropy/proxy-url--type-form 'entropy/proxy-url--regexp-for-w3m
-                                'entropy/proxy-url--full-for-w3m
-                                'entropy/proxy-url--clean-for-w3m
-                                url
-                                'entropy/proxy-url--enable-w3m))
+The recipe was one plist.
+
+Recipe slots:
+
+- `:group-name`        : a symbol to indicate the recipe name identification
+
+- `:advice-fors`       : list of functions for be wrappered with
+                         `entropy/proxy-url` specification
+
+- `:type-source`       : a symbol restored the proxy type (i.e. which
+                         described in `entropy/proxy-url-initial-typesource')
+
+- `:proxy-mechanism`   : a symbol indicate the proxy mechanism
+                         (i.e. describe for `entropy/proxy-url-default-proxy-server-obj')
+
+- `:server-host-alist` : a symbol indicate the proxy server host alist
+                         which using the same struct with `entropy/proxy-url-default-proxy-server-obj'
+
+- `:bind`              : a alist for keymap and keybind stroke specification,
+                         keybind-key form as function `kbd' does.
+"
+  
+  (dolist (proxy-recipe proxy-recipes)
+    (let (wrapper-form
+          switch-form
+          (switch-func-name
+           (intern
+            (concat
+             "entropy/proxy-url-switch-proxy-for-"
+             (symbol-name (plist-get proxy-recipe :group-name)))))
+          (bind (plist-get proxy-recipe :bind)))
+      (setq wrapper-form
+            `(entropy/proxy-url--batch-proxy-wrapper
+              ,(plist-get proxy-recipe :group-name)
+              ',(plist-get proxy-recipe :advice-fors)
+              ',(plist-get proxy-recipe :type-source)
+              ',(plist-get proxy-recipe :proxy-mechanism)
+              ,(plist-get proxy-recipe :server-host-alist))
+            
+            switch-form
+            `(defun ,switch-func-name ()
+               (interactive)
+               (entropy/proxy-url--swith-form ',(plist-get proxy-recipe :type-source))))
+      (funcall `(lambda () ,wrapper-form))
+      (funcall `(lambda () ,switch-form))
+      (funcall
+       `(lambda ()
+          (dolist (bind ',bind)
+            (define-key (eval (car bind)) (kbd (eval (cdr bind)))
+              #',switch-func-name)))))))
 
 ;;;###autoload
-(defun entropy/proxy-url-switch-for-eww ()
-  "Switching proxy type for `eww'."
-  (interactive)
-  (entropy/proxy-url--swith-form 'entropy/proxy-url--enable-eww))
-
-;;;###autoload
-(defun entropy/proxy-url-switch-for-w3m ()
-  "Switching proxy type for `emacs-w3m'."
-  (interactive)
-  (entropy/proxy-url--swith-form 'entropy/proxy-url--enable-w3m))
-
-;;;###autoload
-(defun entropy/proxy-url-switch-fo-all ()
-  "Unified the value of proxy type both of `eww' and `emacs-w3m'."
-  (interactive)
-  (let ((choice (intern (completing-read "Choose proxy method for all: " '("regexp" "t" "nil")))))
-    (mapcar #'(lambda (x)
-                (setf (symbol-value x) choice))
-            (list 'entropy/proxy-url--enable-eww
-                  'entropy/proxy-url--enable-w3m))))
-
-
-;;;###autoload
-(defun entropy/proxy-url-reset-proxy ()
-  (interactive)
-  (entropy/proxy-url--clean-for-eww)
-  (entropy/proxy-url--clean-for-w3m)
-  (setq entropy/proxy-url--url-proxy entropy/proxy-mode-url-proxy))
-
-
+(defun entropy/proxy-url-make-builtin-recipes ()
+  (let ((proxy-recipe (list entropy/proxy-url--w3m-recipe
+                            entropy/proxy-url--eww-recipe)))
+    (entropy/proxy-url-make-recipes proxy-recipe)))
 
 ;; * provide
 (provide 'entropy-proxy-url)
