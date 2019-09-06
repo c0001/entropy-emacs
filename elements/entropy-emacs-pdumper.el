@@ -68,7 +68,7 @@ configuration.")
 ;; ** library
 ;; *** macro
 (cl-defmacro entropy/emacs-pdumper--with-load-path (top-dir &rest body)
-  `(let* ((load-path (append (entropy/emacs-list-dir-recursive-for-list ,top-dir)
+  `(let* ((load-path (append (and ,top-dir (entropy/emacs-list-dir-recursive-for-list ,top-dir))
                              entropy/emacs-origin-load-path)))
      ,@body))
 
