@@ -31,15 +31,15 @@
 ;; Loading automatically by `entropy-emacs' without hacking warranty.
 ;; 
 ;; * Code:
-
 ;; ** require
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
 (require 'subr-x)
 
-;; ** openwith external apps
-;; *** openwith config
+;; ** gatherd for minor tools
+;; *** openwith external apps
+;; **** openwith config
 (use-package openwith
   :if (display-graphic-p)
   :commands openwith-make-extension-regexp
@@ -81,8 +81,8 @@ each an argument to COMMAND."
         (mapconcat 'shell-quote-argument arglist " ")
         " >/dev/null")))))
 
-;; *** Function manually
-;; **** open in external apps
+;; **** Function manually
+;; ***** open in external apps
 (when  (display-graphic-p)
   (defun entropy/emacs-tools-open-in-external-app (&optional files)
     "Open the current file or dired marked files in external app.
@@ -121,7 +121,7 @@ Version 2016-10-15"
   (entropy/emacs-lazy-load-simple 'dired
     (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-tools-open-in-external-app)))
 
-;; **** Open in desktop manager
+;; ***** Open in desktop manager
 (when (display-graphic-p)
   (defun entropy/emacs-tools-show-in-desktop (&optional dpath)
     "Show current file in desktop.
@@ -160,7 +160,7 @@ Version 2017-12-23"
   (entropy/emacs-lazy-load-simple 'dired
     (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-tools-show-in-desktop)))
 
-;; **** Open in terminal
+;; ***** Open in terminal
 (when (display-graphic-p)
   (defun entropy/emacs-tools-open-in-terminal ()
     "Open the current dir in a new terminal window.
@@ -214,7 +214,7 @@ Version 2017-10-09"
         (let (($path  default-directory ))
           (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t)))))))
 
-;; *** entropy-open-with
+;; **** entropy-open-with
 (use-package entropy-open-with
   :if (display-graphic-p)
   :ensure nil
@@ -223,10 +223,19 @@ Version 2017-10-09"
   :bind (("C-M-1" . entropy/open-with-buffer))
   :init
   (entropy/emacs-lazy-load-simple 'dired
-    (define-key dired-mode-map (kbd "<C-M-return>") 'entropy/open-with-dired-open)))
+    (define-key dired-mode-map (kbd "<C-M-return>") 'entropy/open-with-dired-open))
+  :config
+  (defun entropy/emacs-tools--open-with-port-stuffs-around (oldfunc &rest arg-rest)
+    "when in `entropy/emacs-web-development-environment' advice
+`entropy/open-with-port' for prevent open url with specific
+development web-browser."
+    (let ((entropy/emacs-web-development-environment nil))
+      (apply oldfunc arg-rest)))
+  (entropy/emacs-lazy-load-simple 'entropy-open-with
+    (advice-add 'entropy/open-with-port :around #'entropy/emacs-tools--open-with-port-stuffs-around)))
 
 
-;; ** vertical center display
+;; *** vertical center display
 (defun entropy/emacs-tools-vertical-center ()
   "Just vertical-center buffer without further operation supplied
 like `recenter-top-bottom'."
@@ -243,7 +252,7 @@ like `recenter-top-bottom'."
 
 (global-set-key (kbd "C-M-l") 'entropy/emacs-tools-vertical-to-bottom)
 
-;; ** beacon cursor blanking
+;; *** beacon cursor blanking
 (use-package beacon
   :commands (beacon-mode beacon-blink)
   :init
@@ -255,7 +264,7 @@ like `recenter-top-bottom'."
   (advice-add 'recenter-top-bottom :after
               #'entropy/emacs-tools--beacon-blink-advice))
 
-;; ** visual-regexp
+;; *** visual-regexp
 ;; 
 ;; Visual-regexp for Emacs is like replace-regexp, but with live
 ;; visual feedback directly in the buffer.
@@ -269,11 +278,11 @@ like `recenter-top-bottom'."
     (advice-add el :around #'entropy/emacs-case-fold-focely-around-advice)))
 
 
-;; ** ialign
+;; *** ialign
 (use-package ialign
   :commands (ialign))
 
-;; ** Firefox edit use emacs
+;; *** Firefox edit use emacs
 ;;
 ;;    An extension for Google Chrome browser that allows you to edit
 ;;    text areas of the browser in Emacs. It's similar to Edit with
@@ -298,16 +307,619 @@ like `recenter-top-bottom'."
         '(("github\\.com" . gfm-mode))))
 
 
-;; ** entropy-proxy-url
-(use-package entropy-proxy-url
+;; *** search-web
+
+;; Post web search queries using `browse-url'.
+(use-package search-web
   :ensure nil
-  :commands (entropy/proxy-url-proxy-choice-for-eww
-             entropy/proxy-url-proxy-choice-for-w3m)
+  :commands (search-web search-web-region)
+  :bind (("C-c w" . entropy/emacs-tools-search-web-toggle)
+         ("C-c W" . entropy/emacs-tools-search-web-region-toggle))
+  :config
+
+;; **** default config
+
+  ;; redefine search-web for compat with entropy-emacs
+  (defun search-web (engine word)
+    "Note this function has been modified for compating with entropy-emacs.
+
+The original one can't recovering default browser function,
+fixing it as thus. "
+    (interactive (list
+                  (search-web-query-engine)
+                  (read-string "Search Word: " nil 'search-web-word-history)))
+    (destructuring-bind (engine url render)
+        (assoc engine search-web-engines)
+      (let* ((render
+              (case render
+                ((nil) search-web-default-browser)
+                (In-Emacs search-web-in-emacs-browser)
+                (External search-web-external-browser)
+                (t render))))
+        (setq browse-url-browser-function render)
+        (browse-url (format url (url-hexify-string word)))
+        (setq-default browse-url-browser-function search-web-default-browser))))
+
+  
+  ;; redefine search query engine for force input comprehensive data
+  (defun entropy/emacs-tools--search-web-query-egine (type)
+    (let* ((prompt "Search Engine: "))
+      (completing-read prompt search-web-engines nil t
+                       (if (string= "External" type)
+                           (let ((result nil))
+                             (dolist (el entropy/emacs-search-web-engines-external)
+                               (if (string= "google" (car el))
+                                   (setq result t)))
+                             (if result
+                                 "google"
+                               nil))
+                         nil))))
+
+  ;; Optional choosing internal or external browser to follow the searching.
+  (defun entropy/emacs-tools-search-web-toggle ()
+    (interactive)
+    (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
+      (let* ((search-web-engines (cond 
+                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
+                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
+             (engine (entropy/emacs-tools--search-web-query-egine type))
+             (word (read-string "Searching for?: ")))
+        (search-web engine word))))
+
+  (defun entropy/emacs-tools-search-web-region-toggle ()
+    (interactive)
+    (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
+      (let* ((search-web-engines (cond 
+                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
+                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
+             (engine (entropy/emacs-tools--search-web-query-egine type)))
+        (search-web-region engine))))
+  
+  (setq search-web-in-emacs-browser 'eww-browse-url)
+
+  (defun entropy/emacs-tools--search-web--around (oldfun &rest arg-rest)
+    "Partially cancel `entropy/emacs-web-development-environment' if
+    it's actived."
+    (let* ((entropy/emacs-web-development-environment nil))
+      (funcall oldfun)))
+
+  (advice-add 'entropy/emacs-tools-search-web-toggle :around #'entropy/emacs-tools--search-web--around)
+  (advice-add 'entropy/emacs-tools-search-web-region-toggle :around #'entropy/emacs-tools--search-web--around))
+
+;; *** emacs-w3m interface
+(use-package w3m
+  :if (executable-find "w3m")
+  :commands
+  (w3m
+   w3m-search
+   w3m-goto-url
+   entropy/emacs-tools--w3m-set-proxy
+   entropy/emacs-tools--w3m-browse-url)
+  :bind
+  (:map w3m-mode-map
+        ("<down>" . next-line)
+        ("<up>" . previous-line)
+        ("<left>" . left-char)
+        ("<right>" . right-char)
+        ("b" . w3m-view-url-with-browse-url)
+        ("l" . w3m-view-previous-page)
+        ("q" . bury-buffer))
   :init
-  (advice-add 'eww-browse-url :before #'entropy/proxy-url-proxy-choice-for-eww)
-  (advice-add 'w3m-goto-mailto-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
-  (advice-add 'w3m-goto-ftp-url :before #'entropy/proxy-url-proxy-choice-for-w3m)
-  (advice-add 'w3m--goto-url--valid-url :before #'entropy/proxy-url-proxy-choice-for-w3m))
+
+  ;; w3m personal browse url function
+  (defun entropy/emacs-tools--w3m-browse-url (url &rest args)
+    (w3m-goto-url url))
+
+  :config
+  (entropy/emacs-lazy-load-simple 'w3m-search
+    (add-to-list 'w3m-search-engine-alist
+                 '("bing" "https://www.bing.com/search?q=%s" utf-8))
+    (setq w3m-search-default-engine "bing"))
+  (setq w3m-confirm-leaving-secure-page nil)
+  (setq w3m-image-no-idle-timer t)
+  (setq w3m-image-animate-seconds nil)
+  (setq w3m-show-graphic-icons-in-header-line nil)
+  (setq w3m-use-favicon nil)
+  (setq w3m-use-refresh nil)
+  (setq w3m-use-tab nil)
+  (setq w3m-use-tab-menubar nil)
+  (setq w3m-process-timeout 5)
+  (setq w3m-pop-up-windows nil)
+  (when (and (eq system-type 'windows-nt)
+             (file-exists-p (concat invocation-directory "convert.exe")))
+    (setq w3m-imagick-convert-program (concat invocation-directory "convert.exe")))
+
+  ;; session configuration
+  (setq w3m-session-autosave nil)
+  (setq w3m-session-deleted-save nil)
+  (setq w3m-session-crash-recovery nil)
+
+  ;; w3m external browser setting
+  (defun entropy/emacs-tools--w3m-external-advice (oldfunc &rest args)
+    (let ((browse-url-browser-function
+           (if entropy/emacs-browse-url-function
+               entropy/emacs-browse-url-function
+             'browse-url-default-browser)))
+      (call-interactively oldfunc)))
+  (advice-add 'w3m-view-url-with-browse-url :around #'entropy/emacs-tools--w3m-external-advice))
+
+;; *** toggle the default browse in emacs
+(defun entropy/emacs-tools--setting-default-browser (browser)
+  "Setting the default browser for `search-web' and all the
+url-open about function."
+
+  (setq-default search-web-default-browser browser)
+  (setq-default search-web-external-browser browser)
+  (setq-default search-web-in-emacs-browser 'eww-browse-url)
+  (setq-default browse-url-browser-function browser)
+  (setq shr-external-browser browser))
+
+(defun entropy/emacs-tools-toggle-default-browser ()
+  "Toggle browse-url defualt browse function for all url-open
+about function.
+
+Default option were: 
+- eww: `eww-browse-url'
+- default: `browse-url-default-browser'
+
+If `entropy/emacs-enable-personal-browse-url-function' was 't' and `entropy/emacs-browse-url-function' was
+effective then adding option of personal browse url function that be in ordered by
+`entropy/emacs-browse-url-function'
+"
+  (interactive)
+  (let* ((list-of-choice (cond ((and entropy/emacs-enable-personal-browse-url-function
+                                     entropy/emacs-browse-url-function
+                                     (not (executable-find "w3m")))
+                                '("personal"
+                                  "eww"
+                                  "default"))
+                               ((and entropy/emacs-enable-personal-browse-url-function
+                                     entropy/emacs-browse-url-function
+                                     (executable-find "w3m"))
+                                '("personal"
+                                  "w3m"
+                                  "eww"
+                                  "default"))
+                               ((executable-find "w3m")
+                                '("w3m"
+                                  "eww"
+                                  "default"))
+                               (t '("eww" "default"))))
+         (choice
+          (ivy-read "Choose the function you want: " list-of-choice)))
+        (cond
+         ((string= choice "eww")
+          (entropy/emacs-tools--setting-default-browser 'eww-browse-url))
+         ((string= choice "default")
+          (entropy/emacs-tools--setting-default-browser 'browse-url-default-browser))
+         ((string= choice "personal")
+          (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function))
+         ((string= choice "w3m")
+          (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools--w3m-browse-url))
+         (t
+          (error "Please choose the correct choice!")))))
+
+
+;; init setting
+(when (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
+  (if (not (executable-find "w3m"))
+      (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function)
+    (if (display-graphic-p)
+        (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function)
+      (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools--w3m-browse-url))))
+
+;; *** Discover key bindings and their meaning for the current Emacs major mode
+(use-package discover-my-major
+  :commands (discover-my-major discover-my-mode)
+  :bind (("C-h M-m" . discover-my-major)
+         ("C-h M-M" . discover-my-mode)))
+
+;; *** Self functions
+;; **** split window horizontally for comfortable width setting
+(defun entropy/emacs-tools-horizonal-split-window ()
+  "Split the single window to two windows with different size
+which determined by the scale count 0.3 "
+  (interactive)
+  (when (window-margins)
+    (when (fboundp 'entropy/emacs-basic-center-text-clear)
+      (entropy/emacs-basic-center-text-clear)))
+  (if (> (length (window-list)) 1) (delete-other-windows))
+  (progn
+    (split-window-horizontally
+     (ceiling (* 0.3
+                 (frame-width))))
+    (other-window 1)))
+(global-set-key (kbd "C-x M-3") 'entropy/emacs-tools-horizonal-split-window)
+
+;; **** Configure network proxy
+;; **** entropy-emacs version show
+(defun entropy/emacs-tools-entropy-emacs-version ()
+  "Show entropy-emacs version."
+  (interactive)
+  (message entropy/emacs-ecv))
+
+;; **** show time
+(defun entropy/emacs-tools-time-show ()
+  "Show current time with date information also."
+  (interactive)
+  (let ((time (format-time-string "%Y-%m-%d %a %H:%M:%S")))
+    (message "Now is %s" time)))
+(global-set-key (kbd "<f12>") 'entropy/emacs-tools-time-show)
+
+;; *** encoding and end-of-line conversation
+(defun entropy/emacs-tools-dos2unix-internal ()
+  "Exchange the buffer end-of-line type to unix sytle."
+  (interactive)
+  (entropy/cl-backup-file (buffer-file-name))
+  (revert-buffer-with-coding-system 'dos t)
+  (set-buffer-file-coding-system 'unix)
+  (if buffer-read-only
+      (read-only-mode 0))
+  (save-buffer)
+  (revert-buffer nil 'revert-without-query)
+  (read-only-mode 1))
+
+(defun entropy/emacs-tools-save-buffer-as-utf8-internal (coding-system)
+  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
+  (interactive "zCoding system for visited file (default nil):")
+  (entropy/cl-backup-file (buffer-file-name))
+  (revert-buffer-with-coding-system coding-system)
+  (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))
+      (progn
+        (set-buffer-file-coding-system 'utf-8-unix)
+        (if buffer-read-only
+            (read-only-mode 0))
+        (save-buffer)
+        (revert-buffer nil 'revert-without-query)
+        (read-only-mode 1))
+    (user-error "Please try corrected encoding! ")))
+
+(defun entropy/emacs-tools-dos2unix-external (&optional no-backup)
+  "Exchange the buffer end-of-line type to unix sytle."
+  (interactive)
+  (if (executable-find "dos2unix")
+      (progn
+        (setq entropy/cl-dos2unix-shell-command
+              (concat "dos2unix " (concat " " "\"" buffer-file-name "\"")))
+        (unless no-backup
+          (entropy/cl-backup-file (buffer-file-name)))
+        (shell-command entropy/cl-dos2unix-shell-command))
+    (message "error: Can't find dos2unix executeble program in your PATH")))
+
+(defun entropy/emacs-tools-save-buffer-as-utf8-external (coding-system)
+  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
+  (interactive "zCoding system for visited file (default nil):")
+  (revert-buffer-with-coding-system coding-system)
+  (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))      
+      (if (and (executable-find "iconv")
+               (executable-find "mv"))
+          (let* ((fname (if (buffer-file-name) (buffer-file-name) (error "Buffer without exist file!")))
+                 ($dir (file-name-directory fname))
+                 ($item (file-name-nondirectory fname))
+                 ($trans-item (concat $item ".entropy-with-utf8"))
+                 (trans-file (expand-file-name $trans-item $dir))
+                 (iconv_cmd (concat "iconv -f " (symbol-name coding-system)
+                                    " "
+                                    "-t utf-8"
+                                    " "
+                                    (shell-quote-argument fname)
+                                    " > "
+                                    (shell-quote-argument trans-file)))
+                 (rm-cmd (concat "rm " (shell-quote-argument fname)))
+                 (mv-cmd (concat "mv " (shell-quote-argument trans-file) " " (shell-quote-argument fname)))
+                 iconv-cbk)
+            (if (yes-or-no-p (format "Do you confirm transfer this file to '%s' ?" "utf-8-unix"))
+                (progn
+                  (entropy/cl-backup-file fname)
+                  (setq iconv-cbk (shell-command-to-string iconv_cmd))
+                  (if (and (file-exists-p trans-file)
+                           (equal iconv-cbk ""))
+                      (progn
+                        (kill-buffer)
+                        (shell-command rm-cmd)
+                        (shell-command mv-cmd)
+                        (find-file fname))
+                    (error "Iconv failed!")))
+              (message "Bye Bye -v- ✌")))
+        (message "error: Can't find 'iconv' or 'mv' executable program in your path."))
+    (user-error "Please try corrected encoding! ")))
+
+
+;; *** Foreign language realtime translation
+(defun entropy/emacs-tools-toggle-dict (&optional default)
+  "Toggle foreign language translate proxy engine interactively.
+
+Note:
+
+For now, there's three choices for you:
+
+1) bingdict
+
+   Bing dict proxy was really simple and be prompt just using
+   minibuffer.
+
+   It's really benefit for instantly know what you want for the
+   current word.
+
+2) youdaodict
+
+   Perfectly with child-frame display just like company-mode's
+   candidates.
+
+3) google-translation
+
+   Google translation translation engine was known as it's wild
+   coverage for variant foreign languages."
+  (interactive)
+  (let* ((choice
+          (if (not default)
+              (ivy-read "Choose your choice: " '("youdao" "bing" "google" "sdcv")
+                        :require-match t
+                        :initial-input "sdcv")
+            default)))
+    (cond
+     ((string= choice "youdao")
+      (progn
+        (global-set-key (kbd "C-c y") 'youdao-dictionary-search-at-point-tooltip)
+        (global-set-key (kbd "C-c M-y") 'youdao-dictionary-search-from-input)))
+     ((string= choice "bing")
+      (progn
+        (global-set-key (kbd "C-c y") 'entropy/emacs-tools-bing-dict-brief-direct)
+        (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-bing-dict-brief-prompt)))
+     ((string= choice "google")
+      (progn
+        (global-set-key (kbd "C-c y") 'entropy/emacs-tools-google-translate-at-point-direct-en-CN)
+        (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-google-translate-prompt-direct-en-CN)))
+     ((string= choice "sdcv")
+      (global-set-key (kbd "C-c y") 'entropy/sdcv-search-at-point-tooltip)
+      (global-set-key (kbd "C-c M-y") 'entropy/sdcv-search-input-adjacent)))))
+
+(entropy/emacs-tools-toggle-dict "sdcv")
+
+;; **** yoaudao-dictionary
+(use-package youdao-dictionary
+  :commands
+  (youdao-dictionary-mode
+   youdao-dictionary-play-voice-at-point
+   youdao-dictionary-play-voice-from-input
+   youdao-dictionary-play-voice-of-current-word
+   youdao-dictionary-search
+   youdao-dictionary-search-and-replace
+   youdao-dictionary-search-at-point
+   youdao-dictionary-search-at-point+
+   youdao-dictionary-search-at-point-tooltip
+   youdao-dictionary-search-from-input)
+  :init
+  (setq url-automatic-caching t)
+  (defalias 'ydi 'youdao-dictionary-search-from-input))
+
+;; **** google-translate
+(use-package google-translate
+  :commands (google-translate-translate
+             entropy/emacs-tools-google-translate-at-point-direct-en-CN
+             entropy/emacs-tools-google-translate-prompt-direct-en-CN)
+  :init
+  (when entropy/emacs-google-translate-toggle-patched-in-china
+    ;;    Because google-translate has been block in china, so can use below variable for preventing
+    ;;    this problem. And this solution was from `https://emacs-china.org/t/topic/2808/17'  
+    (eval-after-load 'google-translate-core
+      '(setq google-translate-base-url "http://translate.google.cn/translate_a/single"
+             google-translate-listen-url "http://translate.google.cn/translate_tts"))
+    (eval-after-load 'google-translate-tk
+      '(setq google-translate--tkk-url "http://translate.google.cn/")))
+  :config
+  (defun entropy/emacs-tools-google-translate-at-point-direct-en-CN ()
+    (interactive)
+    (let* ((langs '("auto" "zh-CN"))
+           (source-language (car langs))
+           (target-language (cadr langs))
+           (bounds nil))
+      (google-translate-translate
+       source-language target-language
+       (if (use-region-p)
+           (buffer-substring-no-properties (region-beginning) (region-end))
+         (or (and (setq bounds (bounds-of-thing-at-point 'word))
+                  (buffer-substring-no-properties (car bounds) (cdr bounds)))
+             (error "No word at point."))))))
+
+  (defun entropy/emacs-tools-google-translate-prompt-direct-en-CN ()
+    (interactive)  
+    (setq google-translate-translation-direction-query
+          (if (use-region-p)
+              (google-translate--strip-string
+               (buffer-substring-no-properties (region-beginning) (region-end)))
+            (current-word t t)))
+
+    (setq google-translate-current-translation-direction 0)
+
+    (let* ((text (let ((rtn
+                        (read-string 
+                         (if google-translate-translation-direction-query
+                             (format "Input text (default-> %s): " google-translate-translation-direction-query)
+                           "Input text: "))))
+                   (if (string= "" rtn)
+                       google-translate-translation-direction-query
+                     rtn)))
+           (source-language "auto")
+           (target-language "zh-CN"))
+      (when (null source-language)
+        (setq source-language (google-translate-read-source-language)))
+      (when (null target-language)
+        (setq target-language (google-translate-read-target-language)))
+      (google-translate-translate source-language target-language text))))
+
+
+;; **** bing-dict
+(use-package bing-dict
+  ;; :bind  (("C-c y" . entropy/emacs-tools-bing-dict-brief-direct)
+  ;;         ("C-c M-y" . entropy/emacs-tools-bing-dict-brief-prompt))
+  :commands (bing-dict-brief
+             bing-dict-brief-cb
+             entropy/emacs-tools-bing-dict-brief-prompt
+             entropy/emacs-tools-bing-dict-brief-direct)
+  :config
+  (defun entropy/emacs-tools-bing-dict-brief-prompt (word)
+    "Show the explanation of WORD from Bing in the echo area."
+    (interactive
+     (let* ((default (if (use-region-p)
+                         (buffer-substring-no-properties
+                          (region-beginning) (region-end))
+                       (let ((text (thing-at-point 'word)))
+                         (if text (substring-no-properties text)))))
+            (prompt (if (stringp default)
+                        (format "Search Bing dict (default \"%s\"): " default)
+                      "Search Bing dict: "))
+            (string (read-string prompt nil 'bing-dict-history default)))
+       (list string)))
+    (save-match-data
+      (url-retrieve (concat bing-dict--base-url
+                            (url-hexify-string word))
+                    'bing-dict-brief-cb
+                    `(,(decode-coding-string word 'utf-8))
+                    t
+                    t)))
+
+  (defun entropy/emacs-tools-bing-dict-brief-direct (word)
+    (interactive
+     (let* ((default (if (use-region-p)
+                         (buffer-substring-no-properties
+                          (region-beginning) (region-end))
+                       (let ((text (thing-at-point 'word)))
+                         (if text
+                             (substring-no-properties text)
+                           (error "No point word found!"))))))
+       (list default)))
+    (save-match-data
+      (url-retrieve (concat bing-dict--base-url
+                            (url-hexify-string word))
+                    'bing-dict-brief-cb
+                    `(,(decode-coding-string word 'utf-8))
+                    t
+                    t))))
+;; **** sdcv
+(use-package entropy-sdcv
+  :ensure nil
+  :commands (entropy/sdcv-search-at-point-tooltip
+             entropy/sdcv-search-input-adjacent)
+  :config
+  (entropy/emacs-lazy-load-simple 'entropy-sdcv
+    (defun entropy/sdcv--lang-advice (&rest args)
+      (entropy/emacs-lang-set-utf-8))
+    (advice-add 'entropy/sdcv-search-at-point-tooltip :before #'entropy/sdcv--lang-advice)
+    (advice-add 'entropy/sdcv-search-input-adjacent :before #'entropy/sdcv--lang-advice)))
+
+;; *** chinese dict
+(use-package entropy-cn-dict
+  :ensure nil
+  :commands entropy/cndt-query
+  :bind (("C-x y" . entropy/cndt-query)))
+
+;; *** Log keyboard commands to buffer
+;;     Show event history and command history of some or all buffers.
+(use-package command-log-mode
+  :diminish (command-log-mode . "¢")
+  :commands (command-log-mode)
+  :init
+  (setq command-log-mode-auto-show t)
+  (defvar command-log-mode nil)
+  (defun entropy/emacs-tools-command-log-mode ()
+    (interactive)
+    (if (not command-log-mode)
+        (progn (command-log-mode)
+               (entropy/emacs-lazy-load-simple 'command-log-mode
+                 (clm/toggle-command-log-buffer)))
+      (command-log-mode 0))))
+
+;; *** pomidor A simple and cool pomodoro timer
+(use-package pomidor
+  :commands (pomidor)
+  :bind (("C-c <f12>" . pomidor)))
+
+;; *** maple preview
+(when (equal entropy/emacs-use-extensions-type 'submodules)
+  (use-package maple-preview
+    :ensure nil
+    :commands (maple-preview-mode)
+    :init
+    (setq maple-preview:allow-modes '(org-mode markdown-mode gfm-mode html-mode web-mode))
+    :config
+    (defun entropy/emacs-tools-maple-preview:schema-auto-hooks ()
+      (dolist ($el '(windmove-left
+                     windmove-right
+                     windmove-up
+                     windmove-down))
+        (advice-add $el :after #'maple-preview:send-to-server))
+      (when (featurep 'eyebrowse)
+        (entropy/emacs-lazy-load-simple 'eyebrowse
+          (advice-add 'eyebrowse-switch-to-window-config
+                      :after
+                      #'maple-preview:send-to-server)))
+      (advice-add 'other-window :after #'maple-preview:send-to-server)
+      (when (featurep 'markdown-mode)
+        (entropy/emacs-lazy-load-simple 'markdown-mode
+          (advice-add 'markdown-outdent-or-delete
+                      :after
+                      #'maple-preview:send-to-server)))
+      (advice-add 'backward-delete-char-untabify
+                  :after #'maple-preview:send-to-server))
+
+    (defun entropy/emacs-tools--maple-preview:schema-finialize-hooks ()
+      (dolist ($el '(windmove-left
+                     windmove-right
+                     windmove-up
+                     windmove-down))
+        (advice-remove $el #'maple-preview:send-to-server))
+      (when (and (featurep 'eyebrowse)
+                 (fboundp 'eyebrowse-switch-to-window-config))
+        (advice-remove 'eyebrowse-switch-to-window-config
+                       #'maple-preview:send-to-server))
+      (advice-remove 'other-window #'maple-preview:send-to-server)
+      (when (and (featurep 'markdown-mode)
+                 (fboundp 'markdown-outdent-or-delete))
+        (advice-remove 'markdown-outdent-or-delete
+                       #'maple-preview:send-to-server))
+      (advice-remove 'backward-delete-char-untabify
+                     #'maple-preview:send-to-server))
+
+    (add-hook 'maple-preview:auto-hook #'entropy/emacs-tools-maple-preview:schema-auto-hooks)
+    (add-hook 'maple-preview:finialize-hook #'entropy/emacs-tools--maple-preview:schema-finialize-hooks)))
+
+;; *** display world clock
+(use-package counsel-world-clock
+  :commands  (counsel-world-clock)
+  :bind ("C-x <f12>" . counsel-world-clock))
+
+;; ** gnus
+(use-package gnus
+  :ensure nil
+  :config
+  ;; gnus home setting
+  (setq gnus-home-directory (plist-get entropy/emacs-gnus-init-config :gnus-home))
+  ;; gnus news dir
+  (setq gnus-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
+  (setq gnus-kill-files-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
+  ;; gnus mail dir
+  (setq mail-source-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
+  (setq mail-default-directory (plist-get entropy/emacs-gnus-init-config :mail-temp-dir)) ;setting mail source library 'sendmail' default-directory
+  (setq message-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
+  (setq nnfolder-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
+  ;; gnus-init config file
+  (setq gnus-init-file (plist-get entropy/emacs-gnus-init-config :init-file))
+  ;; newrc source file
+  (setq gnus-startup-file (plist-get entropy/emacs-gnus-init-config :startup-file))
+  (setq gnus-read-newsrc-file (plist-get entropy/emacs-gnus-init-config :read-newsrc))
+  (setq gnus-save-newsrc-file (plist-get entropy/emacs-gnus-init-config :save-newsrc))
+  ;; dribble file (The update cache)
+  (setq gnus-use-dribble-file (plist-get entropy/emacs-gnus-init-config :use-dribble))
+  ;; fetch updat sources type, defualt be 'some' recommended set it to 't'
+  (setq gnus-read-active-file (plist-get entropy/emacs-gnus-init-config :read-active-file))
+
+
+  ;; Unbind `message-kill-address' when in gnus mail `message-mode-map'.
+  ;; Because of that this will cover `browse-kill-ring' default keybinding.
+  (entropy/emacs-lazy-load-simple 'gnus-msg
+    (define-key message-mode-map (kbd "C-c M-k") nil)))
+
 
 ;; ** eww config
 ;; *** eww search engine
@@ -336,12 +948,6 @@ like `recenter-top-bottom'."
     (define-key eww-mode-map (kbd "m") #'entropy/emacs-tools-get-eww-url))
   (entropy/emacs-lazy-load-simple 'elfeed-show
     (define-key elfeed-show-mode-map (kbd "m") #'entropy/emacs-tools-get-eww-url)))
-
-
-;; *** eww proxy toggle
-(entropy/emacs-lazy-load-simple 'entropy-proxy-url
-  (entropy/emacs-lazy-load-simple 'eww
-    (define-key eww-mode-map (kbd "p") #'entropy/proxy-url-switch-for-eww)))
 
 
 ;; *** eww open url outside
@@ -801,8 +1407,8 @@ function of `ivy-read'."
       (customize-save-variable 'elfeed-feeds elfeed-feeds)))
   
 ;; **** update specific feed through proxy
-  (defvar entropy/emacs-tools-elfeed-multi-update-feeds-list '()
-    "Feeds for update.")
+
+  (defvar entropy/emacs-tools--elfeed-backup-of-orig-urlproxy nil)
 
   (defun entropy/emacs-tools--elfeed-update-read-action (x)
     "Repeatly read action for updating feeds of `elfeed-feeds',
@@ -811,15 +1417,15 @@ powered by `entropy/cl-ivy-read-repeatedly-function'."
     (let ((temp (cdr x)))
       (setq x temp))
     (entropy/cl-ivy-read-repeatedly-function
-     x 'entropy/emacs-tools-elfeed-multi-update-feeds-list
+     x 'entropy/emacs-elfeed-multi-update-feeds-list
      "Updating: "
      #'entropy/emacs-tools--elfeed-feed-of-url))
 
   (defun entropy/emacs-tools-elfeed-get-multi-update-feeds ()
     "Getting feeds needed for updating through querying with
-promptings and injecting them into `entropy/emacs-tools-elfeed-multi-update-feeds-list'."
+promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list'."
     (interactive)
-    (setq entropy/emacs-tools-elfeed-multi-update-feeds-list nil
+    (setq entropy/emacs-elfeed-multi-update-feeds-list nil
           entropy/emacs-tools--elfeed-feed-prompt-alist nil)
     (setq entropy/emacs-tools--elfeed-feed-prompt-alist (entropy/emacs-tools--elfeed-list-feeds))
     (ivy-read "Update feeds: " entropy/emacs-tools--elfeed-feed-prompt-alist
@@ -829,13 +1435,13 @@ promptings and injecting them into `entropy/emacs-tools-elfeed-multi-update-feed
   (defun entropy/emacs-tools-elfeed-multi-update-feeds ()
     "Update feeds interactively by multiplied choicing from `entropy/emacs-tools--elfeed-feed-prompt-alist'."
     (interactive)
-    (setq entropy/emacs-tools-elfeed-multi-update-feeds-list nil
+    (setq entropy/emacs-elfeed-multi-update-feeds-list nil
           entropy/emacs-tools--elfeed-feed-prompt-alist nil)
     (setq entropy/emacs-tools--elfeed-feed-prompt-alist (entropy/emacs-tools--elfeed-list-feeds))
     (ivy-read "Update feeds: " entropy/emacs-tools--elfeed-feed-prompt-alist
               :require-match t
               :action #'entropy/emacs-tools--elfeed-update-read-action)
-    (dolist (el entropy/emacs-tools-elfeed-multi-update-feeds-list)
+    (dolist (el entropy/emacs-elfeed-multi-update-feeds-list)
       (elfeed-update-feed el)))
 
   (defun entropy/emacs-tools--elfeed-update-curl-proxy (url-lists proxy)
@@ -850,26 +1456,48 @@ promptings and injecting them into `entropy/emacs-tools-elfeed-multi-update-feed
       (elfeed-update-feed el)))
 
 
+  (defvar entropy/emacs-tools--elfeed-update-urlretrieve-proxy-timer)
+  (defun entropy/emacs-tools--elfeed-update-urlretrieve-proxy-reset-proxy-request ()
+    (when (and (timerp entropy/emacs-tools--elfeed-update-urlretrieve-proxy-timer)
+               (null url-queue))
+      (progn (cancel-timer entropy/emacs-tools--elfeed-update-urlretrieve-proxy-timer)
+             (setq entropy/emacs-tools--elfeed-update-urlretrieve-proxy-timer nil
+                   entropy/emacs-tools--elfeed-proxy-for-emacs-url nil
+                   url-proxy-services entropy/emacs-tools--elfeed-backup-of-orig-urlproxy))))
+  
   (defun entropy/emacs-tools--elfeed-update-urlretrieve-proxy (url-lists)
-    (if (not (boundp 'entropy/proxy-mode))
-        (entropy/proxy-mode)
-      (if (not entropy/proxy-mode)
-          (entropy/proxy-mode)))
     (unless (< (length url-lists) 5)
       (error "Too much feeds selected, it will cause lagging, reducing them under 5."))
-    (let ((elfeed-use-curl nil))
+    (let ((elfeed-use-curl nil)
+          (copy-proxy (copy-tree url-proxy-services)))
+      (setq entropy/emacs-tools--elfeed-backup-of-orig-urlproxy
+            copy-proxy)
+      (setq url-proxy-services
+            (list (cons "http" entropy/emacs-elfeed-retrieve-proxy)
+                  (cons "https" entropy/emacs-elfeed-retrieve-proxy)
+                  (cons "ftp" entropy/emacs-elfeed-retrieve-proxy)
+                  (cons "no_proxy" (concat
+                                    "^\\("
+                                    (mapconcat
+                                     'identity entropy/emacs-elfeed-url-no-proxy
+                                     "\\|") "\\)"))))
       (dolist (el url-lists)
-        (elfeed-update-feed el)))
-    (entropy/proxy-mode-disable))
+        (elfeed-update-feed el))
+      (setq entropy/emacs-tools--elfeed-update-urlretrieve-proxy-timer
+            (run-with-idle-timer
+             0.1 t
+             #'entropy/emacs-tools--elfeed-update-urlretrieve-proxy-reset-proxy-request))))
+
 
   (defun entropy/emacs-tools-elfeed-update-proxy (&optional url-lists )
     "Update feeds using proxy."
     (interactive)
     (let ((ulist (if url-lists url-lists (progn (entropy/emacs-tools-elfeed-get-multi-update-feeds)
-                                                entropy/emacs-tools-elfeed-multi-update-feeds-list))))
+                                                entropy/emacs-elfeed-multi-update-feeds-list))))
       (if elfeed-use-curl
-          (let ((proxy (ivy-read "Choose or input your proxy: "
-                                 '("http://127.0.0.1:1080"))))
+          (let ((proxy (if (not (string-match-p "^http://" entropy/emacs-elfeed-retrieve-proxy))
+                           (concat "http://" entropy/emacs-elfeed-retrieve-proxy)
+                         entropy/emacs-elfeed-retrieve-proxy)))
             (entropy/emacs-tools--elfeed-update-curl-proxy ulist proxy))
         (entropy/emacs-tools--elfeed-update-urlretrieve-proxy ulist))))
 
@@ -1007,715 +1635,6 @@ The minor changing was compat for above."
         (insert "(" tags-str ")"))))
 
   (setq elfeed-search-print-entry-function 'entropy/emacs-tools--elfeed-search-print-entry--default))
-
-;; ** gnus
-(use-package gnus
-  :ensure nil
-  :config
-  ;; gnus home setting
-  (setq gnus-home-directory (plist-get entropy/emacs-gnus-init-config :gnus-home))
-  ;; gnus news dir
-  (setq gnus-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
-  (setq gnus-kill-files-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
-  ;; gnus mail dir
-  (setq mail-source-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
-  (setq mail-default-directory (plist-get entropy/emacs-gnus-init-config :mail-temp-dir)) ;setting mail source library 'sendmail' default-directory
-  (setq message-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
-  (setq nnfolder-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
-  ;; gnus-init config file
-  (setq gnus-init-file (plist-get entropy/emacs-gnus-init-config :init-file))
-  ;; newrc source file
-  (setq gnus-startup-file (plist-get entropy/emacs-gnus-init-config :startup-file))
-  (setq gnus-read-newsrc-file (plist-get entropy/emacs-gnus-init-config :read-newsrc))
-  (setq gnus-save-newsrc-file (plist-get entropy/emacs-gnus-init-config :save-newsrc))
-  ;; dribble file (The update cache)
-  (setq gnus-use-dribble-file (plist-get entropy/emacs-gnus-init-config :use-dribble))
-  ;; fetch updat sources type, defualt be 'some' recommended set it to 't'
-  (setq gnus-read-active-file (plist-get entropy/emacs-gnus-init-config :read-active-file))
-
-
-  ;; Unbind `message-kill-address' when in gnus mail `message-mode-map'.
-  ;; Because of that this will cover `browse-kill-ring' default keybinding.
-  (entropy/emacs-lazy-load-simple 'gnus-msg
-    (define-key message-mode-map (kbd "C-c M-k") nil)))
-
-
-;; ** search-web
-
-;; Post web search queries using `browse-url'.
-(use-package search-web
-  :ensure nil
-  :commands (search-web search-web-region)
-  :bind (("C-c w" . entropy/emacs-tools-search-web-toggle)
-         ("C-c W" . entropy/emacs-tools-search-web-region-toggle))
-  :config
-
-;; *** default config
-
-  ;; redefine search-web for compat with entropy-emacs
-  (defun search-web (engine word)
-    "Note this function has been modified for compating with entropy-emacs.
-
-The original one can't recovering default browser function,
-fixing it as thus. "
-    (interactive (list
-                  (search-web-query-engine)
-                  (read-string "Search Word: " nil 'search-web-word-history)))
-    (destructuring-bind (engine url render)
-        (assoc engine search-web-engines)
-      (let* ((render
-              (case render
-                ((nil) search-web-default-browser)
-                (In-Emacs search-web-in-emacs-browser)
-                (External search-web-external-browser)
-                (t render))))
-        (setq browse-url-browser-function render)
-        (browse-url (format url (url-hexify-string word)))
-        (setq-default browse-url-browser-function search-web-default-browser))))
-
-  
-  ;; redefine search query engine for force input comprehensive data
-  (defun entropy/emacs-tools--search-web-query-egine (type)
-    (let* ((prompt "Search Engine: "))
-      (completing-read prompt search-web-engines nil t
-                       (if (string= "External" type)
-                           (let ((result nil))
-                             (dolist (el entropy/emacs-search-web-engines-external)
-                               (if (string= "google" (car el))
-                                   (setq result t)))
-                             (if result
-                                 "google"
-                               nil))
-                         nil))))
-
-  ;; Optional choosing internal or external browser to follow the searching.
-  (defun entropy/emacs-tools-search-web-toggle ()
-    (interactive)
-    (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
-      (let* ((search-web-engines (cond 
-                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
-                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
-             (engine (entropy/emacs-tools--search-web-query-egine type))
-             (word (read-string "Searching for?: ")))
-        (search-web engine word))))
-
-  (defun entropy/emacs-tools-search-web-region-toggle ()
-    (interactive)
-    (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
-      (let* ((search-web-engines (cond 
-                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
-                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
-             (engine (entropy/emacs-tools--search-web-query-egine type)))
-        (search-web-region engine))))
-  
-  (setq search-web-in-emacs-browser 'eww-browse-url)
-
-  (defun entropy/emacs-tools--search-web--around (oldfun &rest arg-rest)
-    "Partially cancel `entropy/emacs-web-development-environment' if
-    it's actived."
-    (let* ((entropy/emacs-web-development-environment nil))
-      (funcall oldfun)))
-
-  (advice-add 'entropy/emacs-tools-search-web-toggle :around #'entropy/emacs-tools--search-web--around)
-  (advice-add 'entropy/emacs-tools-search-web-region-toggle :around #'entropy/emacs-tools--search-web--around))
-
-;; ** emacs-w3m interface
-(when (executable-find "w3m")
-  (use-package w3m
-    :commands
-    (w3m
-     w3m-search
-     w3m-goto-url
-     entropy/emacs-tools--w3m-set-proxy
-     entropy/emacs-tools--w3m-browse-url)
-    :bind
-    (:map w3m-mode-map
-          ("<down>" . next-line)
-          ("<up>" . previous-line)
-          ("<left>" . left-char)
-          ("<right>" . right-char)
-          ("p" . entropy/emacs-tools-w3m-toggle-proxy)
-          ("b" . w3m-view-url-with-browse-url)
-          ("l" . w3m-view-previous-page)
-          ("q" . bury-buffer))
-    :config
-    (entropy/emacs-lazy-load-simple 'w3m-search
-      (add-to-list 'w3m-search-engine-alist
-                   '("bing" "https://www.bing.com/search?q=%s" utf-8))
-      (setq w3m-search-default-engine "bing"))
-    (setq w3m-confirm-leaving-secure-page nil)
-    (setq w3m-image-no-idle-timer t)
-    (setq w3m-image-animate-seconds nil)
-    (setq w3m-show-graphic-icons-in-header-line nil)
-    (setq w3m-use-favicon nil)
-    (setq w3m-use-refresh nil)
-    (setq w3m-use-tab nil)
-    (setq w3m-use-tab-menubar nil)
-    (setq w3m-process-timeout 5)
-    (setq w3m-pop-up-windows nil)
-    (when (and (eq system-type 'windows-nt)
-               (file-exists-p (concat invocation-directory "convert.exe")))
-      (setq w3m-imagick-convert-program (concat invocation-directory "convert.exe")))
-
-    ;; session configuration
-    (setq w3m-session-autosave nil)
-    (setq w3m-session-deleted-save nil)
-    (setq w3m-session-crash-recovery nil)
-
-;; *** recorde current retrieve url
-    (defvar entropy/emacs-tools--w3m-retrieve-url nil)
-    (defun entropy/emacs-tools--w3m-recorde-retrieve-url (url &rest args)
-      (setq entropy/emacs-tools--w3m-retrieve-url url))
-    (advice-add 'w3m-retrieve :before #'entropy/emacs-tools--w3m-recorde-retrieve-url)
-
-;; *** w3m proxy toggle
-    (defun entropy/emacs-tools-w3m-toggle-proxy ()
-      "Toggle proxy using `entropy-proxy-url' and refresh current
-web page buffer. It's typically using with the statement that you
-can't visit one page suddenly."
-      (interactive)
-      (require 'entropy-proxy-url)
-      (let ((url entropy/emacs-tools--w3m-retrieve-url))
-        (entropy/proxy-url-switch-for-w3m)
-        (call-interactively 'w3m-process-stop)
-        (w3m-goto-url url)))
-    
-;; *** w3m external browser setting
-    (defun entropy/emacs-tools--w3m-external-advice (oldfunc &rest args)
-      (let ((browse-url-browser-function
-             (if entropy/emacs-browse-url-function
-                 entropy/emacs-browse-url-function
-               'browse-url-default-browser)))
-        (call-interactively oldfunc)))
-    (advice-add 'w3m-view-url-with-browse-url :around #'entropy/emacs-tools--w3m-external-advice))
-    
-    
-;; *** w3m personal browse url function
-  (defun entropy/emacs-tools--w3m-browse-url (url &rest args)
-    (w3m-goto-url url)))
-
-
-;; ** toggle the default browse in emacs
-(defun entropy/emacs-tools--setting-default-browser (browser)
-  "Setting the default browser for `search-web' and all the
-url-open about function."
-
-  (setq-default search-web-default-browser browser)
-  (setq-default search-web-external-browser browser)
-  (setq-default search-web-in-emacs-browser 'eww-browse-url)
-  (setq-default browse-url-browser-function browser)
-  (setq shr-external-browser browser))
-
-(defun entropy/emacs-tools-toggle-default-browser ()
-  "Toggle browse-url defualt browse function for all url-open
-about function.
-
-Default option were: 
-- eww: `eww-browse-url'
-- default: `browse-url-default-browser'
-
-If `entropy/emacs-enable-personal-browse-url-function' was 't' and `entropy/emacs-browse-url-function' was
-effective then adding option of personal browse url function that be in ordered by
-`entropy/emacs-browse-url-function'
-"
-  (interactive)
-  (let* ((list-of-choice (cond ((and entropy/emacs-enable-personal-browse-url-function
-                                     entropy/emacs-browse-url-function
-                                     (not (executable-find "w3m")))
-                                '("personal"
-                                  "eww"
-                                  "default"))
-                               ((and entropy/emacs-enable-personal-browse-url-function
-                                     entropy/emacs-browse-url-function
-                                     (executable-find "w3m"))
-                                '("personal"
-                                  "w3m"
-                                  "eww"
-                                  "default"))
-                               ((executable-find "w3m")
-                                '("w3m"
-                                  "eww"
-                                  "default"))
-                               (t '("eww" "default"))))
-         (choice
-          (ivy-read "Choose the function you want: " list-of-choice)))
-        (cond
-         ((string= choice "eww")
-          (entropy/emacs-tools--setting-default-browser 'eww-browse-url))
-         ((string= choice "default")
-          (entropy/emacs-tools--setting-default-browser 'browse-url-default-browser))
-         ((string= choice "personal")
-          (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function))
-         ((string= choice "w3m")
-          (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools--w3m-browse-url))
-         (t
-          (error "Please choose the correct choice!")))))
-
-
-;; init setting
-(when (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
-  (if (not (executable-find "w3m"))
-      (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function)
-    (if (display-graphic-p)
-        (entropy/emacs-tools--setting-default-browser entropy/emacs-browse-url-function)
-      (entropy/emacs-tools--setting-default-browser 'entropy/emacs-tools--w3m-browse-url))))
-
-;; ** Discover key bindings and their meaning for the current Emacs major mode
-(use-package discover-my-major
-  :commands (discover-my-major discover-my-mode)
-  :bind (("C-h M-m" . discover-my-major)
-         ("C-h M-M" . discover-my-mode)))
-
-;; ** Self functions
-;; *** split window horizontally for comfortable width setting
-(defun entropy/emacs-tools-horizonal-split-window ()
-  "Split the single window to two windows with different size
-which determined by the scale count 0.3 "
-  (interactive)
-  (when (window-margins)
-    (when (fboundp 'entropy/emacs-basic-center-text-clear)
-      (entropy/emacs-basic-center-text-clear)))
-  (if (> (length (window-list)) 1) (delete-other-windows))
-  (progn
-    (split-window-horizontally
-     (ceiling (* 0.3
-                 (frame-width))))
-    (other-window 1)))
-(global-set-key (kbd "C-x M-3") 'entropy/emacs-tools-horizonal-split-window)
-
-;; *** Configure network proxy
-;; *** entropy-emacs version show
-(defun entropy/emacs-tools-entropy-emacs-version ()
-  "Show entropy-emacs version."
-  (interactive)
-  (message entropy/emacs-ecv))
-
-;; *** show time
-(defun entropy/emacs-tools-time-show ()
-  "Show current time with date information also."
-  (interactive)
-  (let ((time (format-time-string "%Y-%m-%d %a %H:%M:%S")))
-    (message "Now is %s" time)))
-(global-set-key (kbd "<f12>") 'entropy/emacs-tools-time-show)
-
-;; ** encoding and end-of-line conversation
-(defun entropy/emacs-tools-dos2unix-internal ()
-  "Exchange the buffer end-of-line type to unix sytle."
-  (interactive)
-  (entropy/cl-backup-file (buffer-file-name))
-  (revert-buffer-with-coding-system 'dos t)
-  (set-buffer-file-coding-system 'unix)
-  (if buffer-read-only
-      (read-only-mode 0))
-  (save-buffer)
-  (revert-buffer nil 'revert-without-query)
-  (read-only-mode 1))
-
-(defun entropy/emacs-tools-save-buffer-as-utf8-internal (coding-system)
-  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
-  (interactive "zCoding system for visited file (default nil):")
-  (entropy/cl-backup-file (buffer-file-name))
-  (revert-buffer-with-coding-system coding-system)
-  (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))
-      (progn
-        (set-buffer-file-coding-system 'utf-8-unix)
-        (if buffer-read-only
-            (read-only-mode 0))
-        (save-buffer)
-        (revert-buffer nil 'revert-without-query)
-        (read-only-mode 1))
-    (user-error "Please try corrected encoding! ")))
-
-(defun entropy/emacs-tools-dos2unix-external (&optional no-backup)
-  "Exchange the buffer end-of-line type to unix sytle."
-  (interactive)
-  (if (executable-find "dos2unix")
-      (progn
-        (setq entropy/cl-dos2unix-shell-command
-              (concat "dos2unix " (concat " " "\"" buffer-file-name "\"")))
-        (unless no-backup
-          (entropy/cl-backup-file (buffer-file-name)))
-        (shell-command entropy/cl-dos2unix-shell-command))
-    (message "error: Can't find dos2unix executeble program in your PATH")))
-
-(defun entropy/emacs-tools-save-buffer-as-utf8-external (coding-system)
-  "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
-  (interactive "zCoding system for visited file (default nil):")
-  (revert-buffer-with-coding-system coding-system)
-  (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))      
-      (if (and (executable-find "iconv")
-               (executable-find "mv"))
-          (let* ((fname (if (buffer-file-name) (buffer-file-name) (error "Buffer without exist file!")))
-                 ($dir (file-name-directory fname))
-                 ($item (file-name-nondirectory fname))
-                 ($trans-item (concat $item ".entropy-with-utf8"))
-                 (trans-file (expand-file-name $trans-item $dir))
-                 (iconv_cmd (concat "iconv -f " (symbol-name coding-system)
-                                    " "
-                                    "-t utf-8"
-                                    " "
-                                    (shell-quote-argument fname)
-                                    " > "
-                                    (shell-quote-argument trans-file)))
-                 (rm-cmd (concat "rm " (shell-quote-argument fname)))
-                 (mv-cmd (concat "mv " (shell-quote-argument trans-file) " " (shell-quote-argument fname)))
-                 iconv-cbk)
-            (if (yes-or-no-p (format "Do you confirm transfer this file to '%s' ?" "utf-8-unix"))
-                (progn
-                  (entropy/cl-backup-file fname)
-                  (setq iconv-cbk (shell-command-to-string iconv_cmd))
-                  (if (and (file-exists-p trans-file)
-                           (equal iconv-cbk ""))
-                      (progn
-                        (kill-buffer)
-                        (shell-command rm-cmd)
-                        (shell-command mv-cmd)
-                        (find-file fname))
-                    (error "Iconv failed!")))
-              (message "Bye Bye -v- ✌")))
-        (message "error: Can't find 'iconv' or 'mv' executable program in your path."))
-    (user-error "Please try corrected encoding! ")))
-
-
-;; ** Foreign language realtime translation
-(defun entropy/emacs-tools-toggle-dict (&optional default)
-  "Toggle foreign language translate proxy engine interactively.
-
-Note:
-
-For now, there's three choices for you:
-
-1) bingdict
-
-   Bing dict proxy was really simple and be prompt just using
-   minibuffer.
-
-   It's really benefit for instantly know what you want for the
-   current word.
-
-2) youdaodict
-
-   Perfectly with child-frame display just like company-mode's
-   candidates.
-
-3) google-translation
-
-   Google translation translation engine was known as it's wild
-   coverage for variant foreign languages."
-  (interactive)
-  (let* ((choice
-          (if (not default)
-              (ivy-read "Choose your choice: " '("youdao" "bing" "google" "sdcv")
-                        :require-match t
-                        :initial-input "sdcv")
-            default)))
-    (cond
-     ((string= choice "youdao")
-      (progn
-        (global-set-key (kbd "C-c y") 'youdao-dictionary-search-at-point-tooltip)
-        (global-set-key (kbd "C-c M-y") 'youdao-dictionary-search-from-input)))
-     ((string= choice "bing")
-      (progn
-        (global-set-key (kbd "C-c y") 'entropy/emacs-tools-bing-dict-brief-direct)
-        (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-bing-dict-brief-prompt)))
-     ((string= choice "google")
-      (progn
-        (global-set-key (kbd "C-c y") 'entropy/emacs-tools-google-translate-at-point-direct-en-CN)
-        (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-google-translate-prompt-direct-en-CN)))
-     ((string= choice "sdcv")
-      (global-set-key (kbd "C-c y") 'entropy/sdcv-search-at-point-tooltip)
-      (global-set-key (kbd "C-c M-y") 'entropy/sdcv-search-input-adjacent)))))
-
-(entropy/emacs-tools-toggle-dict "sdcv")
-
-;; *** yoaudao-dictionary
-(use-package youdao-dictionary
-  :commands
-  (youdao-dictionary-mode
-   youdao-dictionary-play-voice-at-point
-   youdao-dictionary-play-voice-from-input
-   youdao-dictionary-play-voice-of-current-word
-   youdao-dictionary-search
-   youdao-dictionary-search-and-replace
-   youdao-dictionary-search-at-point
-   youdao-dictionary-search-at-point+
-   youdao-dictionary-search-at-point-tooltip
-   youdao-dictionary-search-from-input)
-  :init
-  (setq url-automatic-caching t)
-  (defalias 'ydi 'youdao-dictionary-search-from-input))
-
-;; *** google-translate
-(use-package google-translate
-  :commands (google-translate-translate
-             entropy/emacs-tools-google-translate-at-point-direct-en-CN
-             entropy/emacs-tools-google-translate-prompt-direct-en-CN)
-  :init
-  (when entropy/emacs-google-translate-toggle-patched-in-china
-    ;;    Because google-translate has been block in china, so can use below variable for preventing
-    ;;    this problem. And this solution was from `https://emacs-china.org/t/topic/2808/17'  
-    (eval-after-load 'google-translate-core
-      '(setq google-translate-base-url "http://translate.google.cn/translate_a/single"
-             google-translate-listen-url "http://translate.google.cn/translate_tts"))
-    (eval-after-load 'google-translate-tk
-      '(setq google-translate--tkk-url "http://translate.google.cn/")))
-  :config
-  (defun entropy/emacs-tools-google-translate-at-point-direct-en-CN ()
-    (interactive)
-    (let* ((langs '("auto" "zh-CN"))
-           (source-language (car langs))
-           (target-language (cadr langs))
-           (bounds nil))
-      (google-translate-translate
-       source-language target-language
-       (if (use-region-p)
-           (buffer-substring-no-properties (region-beginning) (region-end))
-         (or (and (setq bounds (bounds-of-thing-at-point 'word))
-                  (buffer-substring-no-properties (car bounds) (cdr bounds)))
-             (error "No word at point."))))))
-
-  (defun entropy/emacs-tools-google-translate-prompt-direct-en-CN ()
-    (interactive)  
-    (setq google-translate-translation-direction-query
-          (if (use-region-p)
-              (google-translate--strip-string
-               (buffer-substring-no-properties (region-beginning) (region-end)))
-            (current-word t t)))
-
-    (setq google-translate-current-translation-direction 0)
-
-    (let* ((text (let ((rtn
-                        (read-string 
-                         (if google-translate-translation-direction-query
-                             (format "Input text (default-> %s): " google-translate-translation-direction-query)
-                           "Input text: "))))
-                   (if (string= "" rtn)
-                       google-translate-translation-direction-query
-                     rtn)))
-           (source-language "auto")
-           (target-language "zh-CN"))
-      (when (null source-language)
-        (setq source-language (google-translate-read-source-language)))
-      (when (null target-language)
-        (setq target-language (google-translate-read-target-language)))
-      (google-translate-translate source-language target-language text))))
-
-
-;; *** bing-dict
-(use-package bing-dict
-  ;; :bind  (("C-c y" . entropy/emacs-tools-bing-dict-brief-direct)
-  ;;         ("C-c M-y" . entropy/emacs-tools-bing-dict-brief-prompt))
-  :commands (bing-dict-brief
-             bing-dict-brief-cb
-             entropy/emacs-tools-bing-dict-brief-prompt
-             entropy/emacs-tools-bing-dict-brief-direct)
-  :config
-  (defun entropy/emacs-tools-bing-dict-brief-prompt (word)
-    "Show the explanation of WORD from Bing in the echo area."
-    (interactive
-     (let* ((default (if (use-region-p)
-                         (buffer-substring-no-properties
-                          (region-beginning) (region-end))
-                       (let ((text (thing-at-point 'word)))
-                         (if text (substring-no-properties text)))))
-            (prompt (if (stringp default)
-                        (format "Search Bing dict (default \"%s\"): " default)
-                      "Search Bing dict: "))
-            (string (read-string prompt nil 'bing-dict-history default)))
-       (list string)))
-    (save-match-data
-      (url-retrieve (concat bing-dict--base-url
-                            (url-hexify-string word))
-                    'bing-dict-brief-cb
-                    `(,(decode-coding-string word 'utf-8))
-                    t
-                    t)))
-
-  (defun entropy/emacs-tools-bing-dict-brief-direct (word)
-    (interactive
-     (let* ((default (if (use-region-p)
-                         (buffer-substring-no-properties
-                          (region-beginning) (region-end))
-                       (let ((text (thing-at-point 'word)))
-                         (if text
-                             (substring-no-properties text)
-                           (error "No point word found!"))))))
-       (list default)))
-    (save-match-data
-      (url-retrieve (concat bing-dict--base-url
-                            (url-hexify-string word))
-                    'bing-dict-brief-cb
-                    `(,(decode-coding-string word 'utf-8))
-                    t
-                    t))))
-;; *** sdcv
-(use-package entropy-sdcv
-  :ensure nil
-  :commands (entropy/sdcv-search-at-point-tooltip
-             entropy/sdcv-search-input-adjacent)
-  :config
-  (entropy/emacs-lazy-load-simple 'entropy-sdcv
-    (defun entropy/sdcv--lang-advice (&rest args)
-      (entropy/emacs-lang-set-utf-8))
-    (advice-add 'entropy/sdcv-search-at-point-tooltip :before #'entropy/sdcv--lang-advice)
-    (advice-add 'entropy/sdcv-search-input-adjacent :before #'entropy/sdcv--lang-advice)))
-
-;; ** chinese dict
-(use-package entropy-cn-dict
-  :ensure nil
-  :commands entropy/cndt-query
-  :bind (("C-x y" . entropy/cndt-query)))
-
-;; ** Log keyboard commands to buffer
-;;     Show event history and command history of some or all buffers.
-(use-package command-log-mode
-  :diminish (command-log-mode . "¢")
-  :commands (command-log-mode)
-  :init
-  (setq command-log-mode-auto-show t)
-  (defvar command-log-mode nil)
-  (defun entropy/emacs-tools-command-log-mode ()
-    (interactive)
-    (if (not command-log-mode)
-        (progn (command-log-mode)
-               (entropy/emacs-lazy-load-simple 'command-log-mode
-                 (clm/toggle-command-log-buffer)))
-      (command-log-mode 0))))
-
-;; ** pomidor A simple and cool pomodoro timer
-(use-package pomidor
-  :commands (pomidor)
-  :bind (("C-c <f12>" . pomidor)))
-
-;; ** maple preview
-(when (equal entropy/emacs-use-extensions-type 'submodules)
-  (use-package maple-preview
-    :ensure nil
-    :commands (maple-preview-mode)
-    :init
-    (setq maple-preview:allow-modes '(org-mode markdown-mode gfm-mode html-mode web-mode))
-    :config
-    (defun entropy/emacs-tools-maple-preview:schema-auto-hooks ()
-      (dolist ($el '(windmove-left
-                     windmove-right
-                     windmove-up
-                     windmove-down))
-        (advice-add $el :after #'maple-preview:send-to-server))
-      (when (featurep 'eyebrowse)
-        (entropy/emacs-lazy-load-simple 'eyebrowse
-          (advice-add 'eyebrowse-switch-to-window-config
-                      :after
-                      #'maple-preview:send-to-server)))
-      (advice-add 'other-window :after #'maple-preview:send-to-server)
-      (when (featurep 'markdown-mode)
-        (entropy/emacs-lazy-load-simple 'markdown-mode
-          (advice-add 'markdown-outdent-or-delete
-                      :after
-                      #'maple-preview:send-to-server)))
-      (advice-add 'backward-delete-char-untabify
-                  :after #'maple-preview:send-to-server))
-
-    (defun entropy/emacs-tools--maple-preview:schema-finialize-hooks ()
-      (dolist ($el '(windmove-left
-                     windmove-right
-                     windmove-up
-                     windmove-down))
-        (advice-remove $el #'maple-preview:send-to-server))
-      (when (and (featurep 'eyebrowse)
-                 (fboundp 'eyebrowse-switch-to-window-config))
-        (advice-remove 'eyebrowse-switch-to-window-config
-                       #'maple-preview:send-to-server))
-      (advice-remove 'other-window #'maple-preview:send-to-server)
-      (when (and (featurep 'markdown-mode)
-                 (fboundp 'markdown-outdent-or-delete))
-        (advice-remove 'markdown-outdent-or-delete
-                       #'maple-preview:send-to-server))
-      (advice-remove 'backward-delete-char-untabify
-                     #'maple-preview:send-to-server))
-
-    (add-hook 'maple-preview:auto-hook #'entropy/emacs-tools-maple-preview:schema-auto-hooks)
-    (add-hook 'maple-preview:finialize-hook #'entropy/emacs-tools--maple-preview:schema-finialize-hooks)))
-
-;; ** display world clock
-(use-package counsel-world-clock
-  :commands  (counsel-world-clock)
-  :bind ("C-x <f12>" . counsel-world-clock))
-
-;; ** entropy-emacs self packages
-;; *** entropy-proxy-mode
-(use-package entropy-proxy-mode
-  :ensure nil
-  :commands entropy/proxy-mode
-  :config
-  (setq url-gateway-local-host-regexp
-        (concat "\\`" (regexp-opt '("localhost" "127.0.0.1")) "\\'")))
-
-;; *** entropy-projec-manager
-(use-package entropy-prjm
-  :ensure nil
-  :commands entropy/prjm-inct-chosen-db
-  :bind ("C-c M-p" . entropy/prjm-inct-chosen-db))
-
-;; *** entropy-unfill
-(use-package entropy-unfill
-  :ensure nil
-  :commands (entropy/unfill-full-buffer-without-special-region
-             entropy/unfill-paragraph
-             entropy/fill-full-buffer-without-special-region))
-
-;; *** entropy-org-batch-refile
-(use-package entropy-org-batch-refile
-  :ensure nil
-  :commands entropy/org-batch-refile-tags-read-and-do)
-
-;; *** entropy-cp-or-mv
-(use-package entropy-dired-cp-or-mv
-  :ensure nil
-  :commands (entropy/cpmv-dired-get-files-list
-             entropy/cpmv-to-current))
-
-;; *** entropy-counsel-stuffs
-(use-package entropy-counsel-stuffs
-  :ensure nil
-  :bind (("M-<f12>" . entropy/cs-recorde-entry)
-         ("C-<f12>" . entropy/cs-open-all))
-  :commands (entropy/cs-filter-open
-             entropy/cs-recorde-entry
-             entropy/cs-converter
-             entropy/cs-modifiy
-             entropy/cs-delete)
-  :config
-  (defun entropy/emacs-tools--open-with-port-stuffs-around (oldfunc &rest arg-rest)
-    "when in `entropy/emacs-web-development-environment' advice
-`entropy/open-with-port' for prevent open url with specific
-development web-browser."
-    (let ((entropy/emacs-web-development-environment nil))
-      (apply oldfunc arg-rest)))
-  (entropy/emacs-lazy-load-simple 'entropy-open-with
-    (advice-add 'entropy/open-with-port :around #'entropy/emacs-tools--open-with-port-stuffs-around)))
-
-;; *** entropy-portableapps
-(use-package entropy-portableapps
-  :if sys/win32p
-  :ensure nil
-  :commands (entropy/poapps-query-open)
-  :bind (("C-M-<f11>" . entropy/poapps-query-open)))
-
-
-;; *** entropy-epub2org
-(use-package entropy-epub2org
-  :ensure nil
-  :commands (entropy/ep2o-dispatcher
-             entropy/ep2o-src-adjusting-manually)
-  :config
-  (defun entropy/emacs-tools--ep2o-tidy-up-image-width-defaut ()
-    (unless (equal major-mode 'org-mode)
-      (org-mode)
-      (outline-show-all)
-      (org-show-block-all))
-    (add-file-local-variable 'org-image-actual-width 500))
-  (add-hook 'entropy/ep2o-tidy-hook #'entropy/emacs-tools--ep2o-tidy-up-image-width-defaut))
-
 
 ;; ** Misc
 ;; *** copy path, url, etc.
@@ -1901,6 +1820,106 @@ Globally close neotree buffer while selected window was
   :commands (global-visual-ascii-mode visual-ascii-mode)
   :bind (:map help-mode-map
               ("v" . visual-ascii-mode)))
+
+;; ** entropy-emacs self packages
+
+;; *** entropy-proxy-url
+(use-package entropy-proxy-url
+  :ensure nil
+  :commands (entropy/proxy-url-make-builtin-recipes
+             entropy/proxy-url-make-recipes)
+  :preface
+
+  (defvar entropy/emacs-proxy-url-loaded nil)
+  
+  :init
+
+  (defun entropy/emacs-tools--proxy-url-w3m-specific ()
+    ;; recorde current retrieve url
+    (defvar entropy/emacs-tools--w3m-retrieve-url nil)
+    (defun entropy/emacs-tools--w3m-recorde-retrieve-url (url &rest args)
+      (setq entropy/emacs-tools--w3m-retrieve-url url))
+    (defun entropy/emacs-tools-w3m-toggle-proxy ()
+      "Toggle proxy using `entropy-proxy-url' and refresh current
+web page buffer. It's typically using with the statement that you
+can't visit one page suddenly."
+      (interactive)
+      (require 'entropy-proxy-url)
+      (let ((url entropy/emacs-tools--w3m-retrieve-url))
+        (entropy/proxy-url-switch-proxy-for-w3m-group)
+        (call-interactively 'w3m-process-stop)
+        (w3m-goto-url url)))
+    (advice-add 'w3m-retrieve :before #'entropy/emacs-tools--w3m-recorde-retrieve-url)
+    (define-key w3m-mode-map (kbd "p") #'entropy/emacs-tools-w3m-toggle-proxy))
+  
+  (entropy/emacs-lazy-load-simple 'w3m
+    (unless (eq entropy/emacs-proxy-url-loaded t)
+      (entropy/proxy-url-make-builtin-recipes)
+      (entropy/emacs-tools--proxy-url-w3m-specific)
+      (setq entropy/emacs-proxy-url-loaded t)))
+
+  (entropy/emacs-lazy-load-simple 'eww
+    (unless (eq entropy/emacs-proxy-url-loaded t)
+      (entropy/proxy-url-make-builtin-recipes)
+      (setq entropy/emacs-proxy-url-loaded t))))
+
+;; *** entropy-projec-manager
+(use-package entropy-prjm
+  :ensure nil
+  :commands entropy/prjm-inct-chosen-db
+  :bind ("C-c M-p" . entropy/prjm-inct-chosen-db))
+
+;; *** entropy-unfill
+(use-package entropy-unfill
+  :ensure nil
+  :commands (entropy/unfill-full-buffer-without-special-region
+             entropy/unfill-paragraph
+             entropy/fill-full-buffer-without-special-region))
+
+;; *** entropy-org-batch-refile
+(use-package entropy-org-batch-refile
+  :ensure nil
+  :commands entropy/org-batch-refile-tags-read-and-do)
+
+;; *** entropy-cp-or-mv
+(use-package entropy-dired-cp-or-mv
+  :ensure nil
+  :commands (entropy/cpmv-dired-get-files-list
+             entropy/cpmv-to-current))
+
+;; *** entropy-counsel-stuffs
+(use-package entropy-counsel-stuffs
+  :ensure nil
+  :bind (("M-<f12>" . entropy/cs-recorde-entry)
+         ("C-<f12>" . entropy/cs-open-all))
+  :commands (entropy/cs-filter-open
+             entropy/cs-recorde-entry
+             entropy/cs-converter
+             entropy/cs-modifiy
+             entropy/cs-delete))
+
+;; *** entropy-portableapps
+(use-package entropy-portableapps
+  :if sys/win32p
+  :ensure nil
+  :commands (entropy/poapps-query-open)
+  :bind (("C-M-<f11>" . entropy/poapps-query-open)))
+
+
+;; *** entropy-epub2org
+(use-package entropy-epub2org
+  :ensure nil
+  :commands (entropy/ep2o-dispatcher
+             entropy/ep2o-src-adjusting-manually)
+  :config
+  (defun entropy/emacs-tools--ep2o-tidy-up-image-width-defaut ()
+    (unless (equal major-mode 'org-mode)
+      (org-mode)
+      (outline-show-all)
+      (org-show-block-all))
+    (add-file-local-variable 'org-image-actual-width 500))
+  (add-hook 'entropy/ep2o-tidy-hook #'entropy/emacs-tools--ep2o-tidy-up-image-width-defaut))
+
 
 ;; * provide
 (provide 'entropy-emacs-tools)

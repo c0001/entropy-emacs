@@ -154,8 +154,6 @@ the gloabal way."
              solaire-mode-swap-bg
              solaire-global-mode
              turn-on-solaire-mode)
-  :hook (((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode))
-  
   :preface
 
   ;; solaire entropy-emacs configuration

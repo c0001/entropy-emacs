@@ -68,14 +68,9 @@ configuration.")
 ;; ** library
 ;; *** macro
 (cl-defmacro entropy/emacs-pdumper--with-load-path (top-dir &rest body)
-  (let* ((tempo-lpth (append
-                      (if (not (null (symbol-value top-dir)))
-                          (entropy/emacs-list-dir-recursive-for-list
-                           (entropy/emacs-eval-macro-arg top-dir))
-                        nil)
-                      entropy/emacs-origin-load-path)))
-    `(let ((load-path ',tempo-lpth))
-       ,@body)))
+  `(let* ((load-path (append (entropy/emacs-list-dir-recursive-for-list ,top-dir)
+                             entropy/emacs-origin-load-path)))
+     ,@body))
 
 ;; *** extract files
 
@@ -205,11 +200,10 @@ configuration.")
         (message "[Pdumper] load-file: %s" feature-name)
         (ignore-errors (require feature))))))
 
-(eval-when-compile
-  (defun entropy/emacs-pdumper--load-files (arg-list)
-    (cl-loop for (load-dir . load-files) in arg-list
-             do (entropy/emacs-pdumper--load-files-core
-                 load-dir load-files))))
+(defun entropy/emacs-pdumper--load-files (arg-list)
+  (cl-loop for (load-dir . load-files) in arg-list
+           do (entropy/emacs-pdumper--load-files-core
+               load-dir load-files)))
 
 ;; ** main
 

@@ -660,16 +660,6 @@ You can setting like this:
   :type 'sexp
   :group 'entropy/emacs-customize-pyim)
 
-;; *** elfeed config
-(defgroup entropy/emacs-customize-rss nil
-  "Emacs RSS client configuration group  for 'entropy-emacs'."
-  :group 'entropy/emacs-custom-variable-basic)
-
-(defcustom entropy/emacs-elfeed-proxyfeeds-regexp-list '()
-  "Regexp for matching the feeds which needed for updating through proxy."
-  :type 'sexp
-  :group 'entropy/emacs-customize-rss)
-
 ;; *** emms
 (defgroup entropy/emacs-customized-emms nil
   "Customized variable group for emms adapted configured for
@@ -715,6 +705,36 @@ process-name and the cdr was the executable full path string for
 just it's name."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
+
+;; ** elfeed config
+(defgroup entropy/emacs-customize-elfeed nil
+  "Emacs RSS client configuration group  for 'entropy-emacs'."
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/emacs-elfeed-proxyfeeds-regexp-list '()
+  "Regexp for matching the feeds which needed for updating through proxy."
+  :type 'list
+  :group 'entropy/emacs-customize-elfeed)
+
+(defcustom entropy/emacs-elfeed-multi-update-feeds-list '()
+  "Elfeed Feeds for update."
+  :type 'list
+  :group 'entropy/emacs-customize-elfeed)  
+
+(defcustom entropy/emacs-elfeed-url-no-proxy
+  '("localhost"
+    "127.0.0.1"
+    "192.168.*"
+    "10.*")
+  "No proxy for elfeed proxy setting"
+  :type 'list
+  :group 'entropy/emacs-customize-elfeed)
+
+(defcustom entropy/emacs-elfeed-retrieve-proxy "127.0.0.1:1081"
+  "The default proxy host domain and port concated string for
+elfeed proxy setting."
+  :type 'string
+  :group 'entropy/emacs-customize-elfeed)
 
 ;; ** pdumper
 (defgroup entropy/emacs-customized-for-pdumper nil
