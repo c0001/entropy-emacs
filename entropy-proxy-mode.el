@@ -46,11 +46,6 @@
   :prefix "entropy/proxy-mode-"
   :group 'proxy)
 
-(defcustom entropy/proxy-mode-rules-alist nil
-  "A list of rules for proxy."
-  :type 'alist
-  :group 'entropy/proxy-mode)
-
 (defvar entropy/proxy-mode--types
   '(("HTTP Proxy" . http) ("Socks Proxy" . socks) ("URL proxy" . url))
   "A list of `entropy/proxy-mode' supported proxy types.")
@@ -58,7 +53,7 @@
 (defvar entropy/proxy-mode--proxy-type nil
   "Currently enabled proxy type.")
 
-;; Privoxy
+;; Proxy types
 (defcustom entropy/proxy-mode-http-proxy "http://localhost:1081"
   "Default HTTP_PROXY environment variable value."
   :type 'string
