@@ -132,7 +132,7 @@
   :init
   (entropy/emacs-lazy-with-load-trail global-company-mode (global-company-mode t))
   (when (or (equal entropy/emacs-use-extensions-type 'submodules)
-            entropy/emacs-custom-pdumper-do)
+            entropy/emacs-fall-love-with-pdumper)
     (entropy/emacs-company-require-subs))
   (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)
   

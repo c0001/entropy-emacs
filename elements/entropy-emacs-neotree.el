@@ -1,0 +1,151 @@
+;;; entropy-emacs-neotree.el --- Vim neotree port for entropy-emacs
+;;
+;; * Copyright (C) 20190907  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-neotree.el
+;; Keywords:      neotree, bar,
+;; Compatibility: GNU Emacs emacs-version;
+;; Package-Requires: ((emacs "26") (cl-lib "0.5"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
+;; 
+;; Neotree side bar configuration for =entropy-emacs=.
+;; 
+;; * Configuration:
+;; 
+;; Using for =entropy-emacs= only.
+;; 
+;; * Code:
+
+;; *** neotree
+(use-package neotree
+  :commands (neotree-toggle
+             neotree-mode
+             entropy/emacs-neotree-neotree--close
+             entropy/emacs-neotree-neotree-refresh-for-current
+             entropy/emacs-neotree-neo-open-with)
+  :bind (("<f8>" . entropy/emacs-neotree-neotree-refresh-for-current)
+         ("C-<f8>" . entropy/emacs-neotree-neotree--close))
+
+  :init
+  (setq neo-theme (if (or (display-graphic-p) entropy/emacs-fall-love-with-pdumper) 'icons 'arrow)
+        neo-autorefresh t
+        neo-hidden-regexp-list nil
+        neo-auto-indent-point t)
+
+  :config
+
+  ;; Make node item execution for neotree with `entropy-open-with'
+  (define-key neotree-mode-map (kbd "<C-M-return>")
+    (neotree-make-executor
+     :file-fn 'entropy/emacs-neotree-neo-open-with
+     :dir-fn  'entropy/emacs-neotree-neo-open-with))
+
+  (defun entropy/emacs-neotree-neo-open-with (full-path &rest _)
+    "Open neotree node item in external apps powered by
+`entropy-open-with'."
+    (interactive)
+    (require 'entropy-open-with)
+    (entropy/open-with-match-open (list full-path)))
+
+  (defun entropy/emacs-neotree--neo-refresh-filter ()
+    (catch :exit
+      (when (string-match-p "\\*w3m" (buffer-name))
+        (throw :exit 'stick))))
+  
+  (defun entropy/emacs-neotree--neo-pos-hl-and-indent (&optional non_indent)
+    "Highlight current neotree buffer line and goto the first
+word of current-line for preventing the long line truncate view."
+    (hl-line-mode 1)
+    (unless non_indent
+      (forward-line 0)
+      (re-search-forward "\\w" (line-end-position 1) t)))
+
+  (advice-add 'neo-buffer--goto-cursor-pos :after #'entropy/emacs-neotree--neo-pos-hl-and-indent)
+  
+  (defun neo-global--attach ()
+    "Attach the global neotree buffer
+
+Note: this function has been modified by entropy-emacs for reason
+of forcely repeating the global-refresh behaviour."
+    (when neo-global--autorefresh-timer
+      (cancel-timer neo-global--autorefresh-timer))
+    (when neo-autorefresh
+      (setq neo-global--autorefresh-timer
+            (run-with-idle-timer 1.2 t 'neo-global--do-autorefresh)))
+    (setq neo-global--buffer (get-buffer neo-buffer-name))
+    (setq neo-global--window (get-buffer-window
+                              neo-global--buffer))
+    (neo-global--with-buffer
+      (neo-buffer--lock-width))
+    (when (window-live-p neo-global--window)
+      (set-window-parameter neo-global--window 'no-delete-other-windows t)
+      (set-window-dedicated-p neo-global--window t))
+    (run-hook-with-args 'neo-after-create-hook '(window)))
+
+  (defun entropy/emacs-neotree-neotree--close ()
+    "Globally close the neotree buffer and window."
+    (interactive)
+    (when neo-global--buffer (kill-buffer neo-global--buffer))
+    (mapcar (lambda (x)
+              (when (equal (buffer-name (window-buffer x)) neo-buffer-name)
+                (delete-window-internal x)))
+            (window-list))
+    (setf neo-global--buffer nil
+          neo-global--window nil))
+
+  (defun entropy/emacs-neotree-neotree-refresh-for-current ()
+    "Open neotree with current working directory.
+
+Globally close neotree buffer while selected window was
+`neo-global--window'."
+    (interactive)
+    (let ((buffer_ (current-buffer))
+          (bfn (ignore-errors
+                 (file-name-nondirectory
+                  (buffer-file-name (current-buffer)))))
+          (marker (point)))
+      (cond
+       ((equal buffer_ neo-global--buffer)
+        (entropy/emacs-neotree-neotree--close))
+       (t
+        (unless  (eq 'stick (entropy/emacs-neotree--neo-refresh-filter))
+          (unless (neo-global--window-exists-p)
+            (save-window-excursion
+              (neotree-show)))
+          (neo-buffer--refresh t t)
+          (when (ignore-errors (stringp bfn))
+            (goto-char (point-min))
+            (re-search-forward bfn nil t)
+            (entropy/emacs-neotree--neo-pos-hl-and-indent)
+            (recenter))
+          (save-excursion
+            (switch-to-buffer buffer_)
+            (goto-char marker))
+          (neo-global--select-window))))))
+
+  (add-hook 'eyebrowse-post-window-switch-hook  #'neo-global--attach)
+
+  (defun entropy/emacs-neotree--neo-refresh-conditions (orig_func &rest orig_args)
+    (unless (eq 'stick (entropy/emacs-neotree--neo-refresh-filter))
+      (funcall-interactively orig_func)))
+
+  (advice-add 'neo-global--do-autorefresh :around #'entropy/emacs-neotree--neo-refresh-conditions))
+
+(provide 'entropy-emacs-neotree)

@@ -60,7 +60,11 @@ submodules pre-loading is not supported for entropy-emacs
 pdumper feature.")
 
 (defvar entropy/emacs-pdumper-load-hook nil)
+
 (defvar entropy/emacs-pdumper-load-end-hook nil)
+
+(defvar entropy/emacs-fall-love-with-pdumper nil
+  "The emacs running type indication for pdumper.")
 
 (defvar entropy/emacs-init-mini-hook ()
   "Hooks for minimal start.")

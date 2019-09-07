@@ -237,7 +237,7 @@ in case that file does not provide any feature."
          ,@body
          (message (format "Start '%s' done!" ,msg-str)))
        (cond
-        (entropy/emacs-custom-pdumper-do
+        (entropy/emacs-fall-love-with-pdumper
          (add-hook 'entropy/emacs-pdumper-load-hook
                    ',func))
         (t
@@ -268,7 +268,7 @@ in case that file does not provide any feature."
                               " senconds."))
              (redisplay t))))
        (cond
-        (entropy/emacs-custom-pdumper-do
+        (entropy/emacs-fall-love-with-pdumper
          (message "All lazy loading feature disabled in pdumper procedure")
          (add-hook 'entropy/emacs-pdumper-load-hook #',func))
         ((not entropy/emacs-custom-enable-lazy-load)
@@ -654,7 +654,7 @@ format on windows platform."
     (orig-func &rest orig-arg)
   t)
 
-(when (and (and entropy/emacs-custom-pdumper-do
+(when (and (and entropy/emacs-fall-love-with-pdumper
                 entropy/emacs-do-pdumper-in-X))
   (advice-add 'display-graphic-p
               :around

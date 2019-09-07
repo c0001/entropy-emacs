@@ -209,7 +209,7 @@ the gloabal way."
         (lambda ()
           t))
   (cond
-   (entropy/emacs-custom-pdumper-do
+   (entropy/emacs-fall-love-with-pdumper
     ;; TODO  `solaire-mode' can not work correctly in pdumper session
     ;; referred bug of `h-86e0180b-bcf0-484d-bc21-9502d8abeb58'
     ;; (add-hook 'entropy/emacs-pdumper-load-end-hook

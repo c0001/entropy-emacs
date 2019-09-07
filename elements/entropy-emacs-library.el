@@ -128,9 +128,6 @@
    shrink-path-file-mixed
    shrink-path-prompt))
 
-
-
-(provide 'entropy-emacs-library)
 ;; ** posframe
 (use-package posframe
   :commands
@@ -159,3 +156,11 @@
    posframe-run-poshandler
    posframe-show
    posframe-workable-p))
+
+;; ** hydra
+
+(use-package hydra
+  :commands(defhydra))
+
+;; * provide
+(provide 'entropy-emacs-library)

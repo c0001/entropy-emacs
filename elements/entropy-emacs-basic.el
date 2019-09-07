@@ -132,7 +132,7 @@
               (insert initial-scratch-message)))))
     bfn))
 
-(unless entropy/emacs-custom-pdumper-do
+(unless entropy/emacs-fall-love-with-pdumper
   (entropy/emacs-lazy-load-simple 'entropy-emacs-structure
     (entropy/emacs-basic--scratch-buffer-file-binding)))
 
@@ -712,7 +712,7 @@ using simple dired visual type, although you have seting it to
         ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
               (not (version= emacs-version "25.3.1"))
               (or (display-graphic-p)
-                  entropy/emacs-custom-pdumper-do))
+                  entropy/emacs-fall-love-with-pdumper))
          (when sys/win32p
            (require 'font-lock+))
          (use-package all-the-icons-dired
@@ -777,7 +777,7 @@ using simple dired visual type, although you have seting it to
            (advice-add #'all-the-icons-dired--display :override #'entropy/emacs-basic--all-the-icons-dired-display)))
         ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
               (not (or (display-graphic-p)
-                       entropy/emacs-custom-pdumper-do)))
+                       entropy/emacs-fall-love-with-pdumper)))
          (setq entropy/emacs-dired-visual-type "simple-rainbow")
          (warn "You are in terminal emacs session, can not
            enable 'dired-all-the-icons', enable simple-rainbow
@@ -889,7 +889,7 @@ emacs."
   :bind (("C-x u" . entropy/emacs-basic-undo-tree))
   :hook ((undo-tree-mode . (lambda () (define-key undo-tree-map (kbd "C-x u") nil))))
   :init
-  (unless entropy/emacs-custom-pdumper-do
+  (unless entropy/emacs-fall-love-with-pdumper
     (entropy/emacs-lazy-load-simple 'undo-tree
       (global-undo-tree-mode +1)))
   
@@ -1371,7 +1371,7 @@ otherwise returns nil."
 ;; Force refresh autocompression mode enabling status as that the
 ;; initialization for its refers procedure can not cover fully
 ;; functional of `auto-compression-mode'.
-(cond (entropy/emacs-custom-pdumper-do
+(cond (entropy/emacs-fall-love-with-pdumper
        (add-hook 'entropy/emacs-pdumper-load-hook
                  #'(lambda ()
                      (auto-compression-mode 0)

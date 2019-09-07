@@ -90,7 +90,7 @@
 
 ;; ** Initialize packages
 (when (and (entropy/emacs-package-is-upstream)
-           (not entropy/emacs-custom-pdumper-do))
+           (not entropy/emacs-fall-love-with-pdumper))
   (unless (version< emacs-version "27")
     (setq package-quickstart nil))
   (message "Custom packages initializing ......")
@@ -122,13 +122,14 @@
   (require 'use-package))
 
 (if (or (eq entropy/emacs-use-extensions-type 'submodules)
-        entropy/emacs-custom-pdumper-do)
+        entropy/emacs-fall-love-with-pdumper)
     (setq use-package-always-ensure nil)
   (setq use-package-always-ensure t))
 
 (setq use-package-always-defer entropy/emacs-custom-enable-lazy-load
       use-package-always-demand entropy/emacs-custom-enable-lazy-load)
-(setq use-package-expand-minimally nil)
+(unless entropy/emacs-fall-love-with-pdumper
+  (setq use-package-expand-minimally t))
 (setq use-package-enable-imenu-support t)
 
 (use-package diminish

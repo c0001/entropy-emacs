@@ -741,11 +741,6 @@ elfeed proxy setting."
   "Group customized variables for pdumper charging."
   :group 'extensions)
 
-(defcustom entropy/emacs-custom-pdumper-do nil
-  "The emacs running type indication for pdumper."
-  :type 'boolean
-  :group 'entropy/emacs-customized-for-pdumper)
-
 (defcustom entropy/emacs-do-pdumper-in-X t
   "Whether did pdumper for gui prot."
   :type 'boolean

@@ -48,7 +48,7 @@
   :bind
   ("C-x o" . window-number-switch)
   :init
-  (cond (entropy/emacs-custom-pdumper-do
+  (cond (entropy/emacs-fall-love-with-pdumper
          (add-hook 'entropy/emacs-pdumper-load-hook
                    #'window-number-mode))
         (t
@@ -157,7 +157,7 @@
       (setq eyebrowse-new-workspace t)))
 
   (cond
-   (entropy/emacs-custom-pdumper-do
+   (entropy/emacs-fall-love-with-pdumper
     (add-hook 'entropy/emacs-pdumper-load-hook
               #'entropy/emacs-wc--eyebrowse-turn-on))
    (t
@@ -520,7 +520,7 @@ without derived slot."
   :init
 
   (cond
-   (entropy/emacs-custom-pdumper-do
+   (entropy/emacs-fall-love-with-pdumper
     (add-hook 'entropy/emacs-pdumper-load-hook
               #'winner-mode))
    (t
@@ -553,7 +553,7 @@ without derived slot."
   :commands (desktop-save-mode)
   :init
   (cond
-   (entropy/emacs-custom-pdumper-do
+   (entropy/emacs-fall-love-with-pdumper
     (add-hook 'entropy/emacs-pdumper-load-hook
               #'desktop-save-mode))
    (t (desktop-save-mode +1)))

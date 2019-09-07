@@ -104,7 +104,7 @@ delay seconds SECS."
  (add-hook 'post-command-hook #'entropy/emacs-gc--increase-cons-threshold)
  (entropy/emacs-gc--init-idle-gc))
 
-(when entropy/emacs-custom-pdumper-do
+(when entropy/emacs-fall-love-with-pdumper
   ;; upper gc threshold for pdumper procedure
   (setq gc-cons-threshold 50000000))
 

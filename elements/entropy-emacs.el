@@ -58,27 +58,27 @@
 
 ;; *** customization read
 (require 'entropy-emacs-custom)
+(require 'entropy-emacs-defvar)
 
 (let ((args-filter (mapcar (lambda (x) (string-match-p "dump-emacs-portable" x))
                            command-line-args)))
   (catch :exit
     (dolist (filter args-filter)
       (when (not (null filter))
-        (setq entropy/emacs-custom-pdumper-do t)
+        (setq entropy/emacs-fall-love-with-pdumper t)
         (throw :exit nil)))))
 
-(progn (when (and entropy/emacs-custom-pdumper-do
+(progn (when (and entropy/emacs-fall-love-with-pdumper
                   entropy/emacs-custom-enable-lazy-load)
          (setq entropy/emacs-custom-enable-lazy-load nil))
 
-       (when (and entropy/emacs-custom-pdumper-do
+       (when (and entropy/emacs-fall-love-with-pdumper
                   entropy/emacs-enable-pyim)
          (setq entropy/emacs-enable-pyim nil)
          (message "You can not enable pyim in pdumper session")))
 
 ;; *** load core library
 (require 'entropy-emacs-const)
-(require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defun)
 
 ;; Increase the default gc-cons-percentage for more smooth typing
@@ -91,7 +91,7 @@
 
 ;; *** Enable entropy emacs UI configuration
 
-(cond (entropy/emacs-custom-pdumper-do
+(cond (entropy/emacs-fall-love-with-pdumper
        ;; Load fontset specification before UI initilization prevent
        ;; drawer bug for pdumper session
        (require 'entropy-emacs-font-set)
@@ -117,7 +117,7 @@
     (entropy/emacs--require-prompt feature)))
 
 (defun entropy/emacs--initial-redisplay-advice (orig-func &rest orig-args)
-  (if entropy/emacs-custom-pdumper-do
+  (if entropy/emacs-fall-love-with-pdumper
       (message "Redisplay disabled in pdumper procedure.")
     (apply orig-func orig-args)))
 
@@ -355,7 +355,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   (advice-add 'require :before #'entropy/emacs--require-loading)
   (advice-add 'redisplay :around #'entropy/emacs--initial-redisplay-advice)
   ;; external depedencies scan and loading
-  (when entropy/emacs-custom-pdumper-do
+  (when entropy/emacs-fall-love-with-pdumper
     (require 'entropy-emacs-pdumper))
   (require 'entropy-emacs-package)
   (require 'entropy-emacs-library)
@@ -417,6 +417,10 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   ;; For useful tools
   (require 'entropy-emacs-shell)
   (require 'entropy-emacs-ibuffer)
+  (require 'entropy-emacs-textwww)
+  (require 'entropy-emacs-rss)
+  (require 'entropy-emacs-gnus)
+  (require 'entropy-emacs-neotree)
   (require 'entropy-emacs-tools)
   (require 'entropy-emacs-emms)
   (require 'entropy-emacs-vcs)
@@ -468,7 +472,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     (entropy/emacs--init-X))
    (entropy/emacs-minimal-start
     (entropy/emacs--init-M)))
-  (when entropy/emacs-custom-pdumper-do
+  (when entropy/emacs-fall-love-with-pdumper
     (setq entropy/emacs-pdumper-load-hook
           (reverse entropy/emacs-pdumper-load-hook))))
 
@@ -489,7 +493,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     (entropy/emacs--init-bingo)))
 
 (if (and entropy/emacs-custom-enable-lazy-load
-         (not entropy/emacs-custom-pdumper-do))
+         (not entropy/emacs-fall-love-with-pdumper))
     (run-with-idle-timer
      0.1 nil
      #'entropy/emacs-do-load)

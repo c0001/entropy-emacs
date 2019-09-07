@@ -36,7 +36,7 @@
 (require 'entropy-emacs-faces)
 
 (when (and (display-graphic-p)
-           (not entropy/emacs-custom-pdumper-do))
+           (not entropy/emacs-fall-love-with-pdumper))
   (scroll-bar-mode 0)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
@@ -50,7 +50,7 @@
       (add-to-list 'load-path initial-theme-path)
       (load-theme 'entropy-base16-theme-bright t))))
 
-(if entropy/emacs-custom-pdumper-do
+(if entropy/emacs-fall-love-with-pdumper
     (entropy/emacs-lazy-with-load-trail
      load-basic-theme
      (entropy/emacs-ui--load-basic-theme-core))
@@ -471,7 +471,7 @@ for adding to variable `window-size-change-functions' and hook
                     (add-hook 'window-size-change-functions 'entropy/emacs-ui--dashboard-resize-hook))
                   (entropy/emacs-ui--dashboard-resize-hook))))
   
-  (if entropy/emacs-custom-pdumper-do
+  (if entropy/emacs-fall-love-with-pdumper
       (entropy/emacs-lazy-with-load-trail
        welcom-buffer
        (setq entropy/emacs-ui--dashboard-width (window-width))

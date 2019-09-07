@@ -247,7 +247,7 @@ entropy-emacs' derived eyebrowse window configuration. "
           doom-modeline-major-mode-color-icon t
           doom-modeline-icon
           (or (display-graphic-p)
-              (and entropy/emacs-custom-pdumper-do
+              (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))))
 
   :config

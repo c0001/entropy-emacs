@@ -100,7 +100,9 @@ configuration.")
 (defun entropy/emacs-pdumper--extract-upstream-packages ()
   (let ((exc-filters `(,(rx (or (seq "autoloads.el" line-end)
                                 (seq "pkg.el" line-end)
-                                (seq line-start "test.el")))))
+                                (seq line-start "test.el")
+                                (seq line-start "company-lsp")
+                                (seq line-start "lsp-")))))
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "counsel"
                                      "dired" "all-the-icon"
                                      "use-package" "diminish" "bind-key"
@@ -166,7 +168,7 @@ configuration.")
   (unless (entropy/emacs-in-pdumper-procedure-p)
     (global-font-lock-mode +1)
     (transient-mark-mode +1)
-    (setq entropy/emacs-custom-pdumper-do nil)
+    (setq entropy/emacs-fall-love-with-pdumper nil)
     (setq load-path entropy/emacs-pdumper-pre-lpth)
     
     ;; TODO ...body
