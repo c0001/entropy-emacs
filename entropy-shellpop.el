@@ -104,7 +104,7 @@ Slot description:
 2) :size
 
    The popuped shell-buffer window size, it's the float number
-   between 0 to 1.
+   between 0 to 1(do not set it to 1 that will cause messure).
 
 3) :align
 
@@ -282,6 +282,7 @@ shellpop type")
         (list :isnew t :activep (entropy/shellpop--buffer-active-p buffn)
               :index index-pick :buffer-name buffn))))))
 
+;; *** close all actived shellpop window
 (defun entropy/shellpop--close-all-active-shellpop-window ()
   (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop--type-register))
          shellpop-buffns
@@ -409,6 +410,9 @@ shellpop type")
                unwind-trigger buffn-not-eq)
           (unwind-protect
               (progn
+                (unless (and (< ,type-size 1)
+                             (> ,type-size 0))
+                  (error "Unsupport shellpop window size '%s'" ,type-size))
                 (entropy/shellpop--put-index ,type-name buff-index)
                 (if buff-activep
                     (entropy/shellpop--delete-window (get-buffer-window buffn))
