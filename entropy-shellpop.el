@@ -132,7 +132,23 @@ Slot description:
 
 (defvar entropy/shellpop--type-register nil)
 
+(defvar entropy/shellpop--top-wcfg-register nil
+  "The window configuratio register for recovering for maximized
+shellpop type")
+
 ;; ** library
+;; *** specific delete window function
+
+(defun entropy/shellpop--delete-window (window)
+  (catch :exit
+    (unless (one-window-p)
+      (apply 'delete-window `(,window))
+      (throw :exit nil))
+    (progn
+      (set-window-configuration
+       entropy/shellpop--top-wcfg-register)
+      (apply 'delete-window `(,window)))))
+
 ;; *** cdw functions
 (defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given &rest body)
   `(unless (equal (expand-file-name default-directory)
@@ -395,7 +411,7 @@ Slot description:
               (progn
                 (entropy/shellpop--put-index ,type-name buff-index)
                 (if buff-activep
-                    (delete-window (get-buffer-window buffn))
+                    (entropy/shellpop--delete-window (get-buffer-window buffn))
                   (entropy/shellpop--close-all-active-shellpop-window)
                   (display-buffer buff)
                   (when buff-isnew
@@ -473,8 +489,14 @@ Slot description:
       t
     nil))
 
-(define-key entropy-shellpop-mode-map (kbd "<f1>")
-  #'entropy/shellpop--rename-index-desc-within-mode)
+(defun entropy/shellpop--define-key (key-maps)
+  (cl-loop for (key-bind . func) in key-maps
+           do (define-key entropy-shellpop-mode-map
+                (kbd key-bind) func)))
+
+(entropy/shellpop--define-key
+ '(("<f1>" . entropy/shellpop-rename-index-desc-within-mode)
+   ("C-x 1" . entropy/shellpop-delete-other-widnow)))
 
 ;; **** desc modefified
 
@@ -488,7 +510,7 @@ Slot description:
     (setf (alist-get index type-indexs)
           new-desc)))
 
-(defun entropy/shellpop--rename-index-desc-within-mode ()
+(defun entropy/shellpop-rename-index-desc-within-mode ()
   (interactive)
   (let* ((buffn (buffer-name))
          (buffn-parse (entropy/shellpop--parse-buffer-name-type buffn))
@@ -496,6 +518,15 @@ Slot description:
     (entropy/shellpop--rename-index-desc-core
      (cdr buffn-parse)
      type-register)))
+
+;; **** register for delete other window
+
+(defun entropy/shellpop-delete-other-widnow ()
+  (interactive)
+  (unless (one-window-p)
+    (let ((wfg-cur (current-window-configuration)))
+      (setq entropy/shellpop--top-wcfg-register wfg-cur)
+      (delete-other-windows))))
 
 ;; ** Auto Load
 
