@@ -294,7 +294,7 @@ shellpop type")
         (setq shellpop-buffns (append shellpop-buffns buffns))))
     (dolist (buffn shellpop-buffns)
       (when (entropy/shellpop--buffer-active-p buffn)
-        (delete-window (get-buffer-window buffn)))
+        (entropy/shellpop--delete-window (get-buffer-window buffn)))
       (push buffn closed))
     closed))
 
