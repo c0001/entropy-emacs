@@ -182,6 +182,11 @@ the gloabal way."
             entropy/emacs-theme-sticker 'default))))
   
   ;; solaire entropy-emacs configuration
+
+  (defvar entropy/emacs-theme--solaire-is-enabled nil
+    "Transient variable for indicating buffer `solaire-mode'
+    status.")
+  
   (defun entropy/emacs-theme--solaire-enable ()
     (when (entropy/emacs-theme-adapted-to-solaire)
       (let (is-swaped)
@@ -214,7 +219,7 @@ the gloabal way."
     (dolist (el entropy/emacs-enable-solaire-registers)
       (dolist (hook (cdr el))
         (eval-after-load (car el)
-          `(lambda () (add-hook ',hook #'entropy/emacs-theme--solaire-enable-single))))))
+          `(add-hook ',hook #'entropy/emacs-theme--solaire-enable-single)))))
 
   (defun entropy/emacs-theme--initilized-start-solaire-mode ()
     (when (entropy/emacs-theme-adapted-to-solaire)
@@ -223,6 +228,16 @@ the gloabal way."
         (solaire-mode-swap-bg))
       (redisplay t))
     (entropy/emacs-theme--solaire-initial-hooks)
+    (add-hook 'change-major-mode-hook
+              #'(lambda ()
+                  (when (bound-and-true-p solaire-mode)
+                    (setq entropy/emacs-theme--solaire-is-enabled t))))
+    (add-hook 'after-change-major-mode-hook
+              #'(lambda ()
+                  (unwind-protect
+                      (when entropy/emacs-theme--solaire-is-enabled
+                        (entropy/emacs-theme--solaire-enable-single))
+                    (setq entropy/emacs-theme--solaire-is-enabled nil))))
     (add-hook 'entropy/emacs-theme-load-before-hook
               #'entropy/emacs-theme--solaire-disable)
     (add-hook 'entropy/emacs-theme-load-after-hook
