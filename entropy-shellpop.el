@@ -150,22 +150,26 @@ shellpop type")
       (apply 'delete-window `(,window)))))
 
 ;; *** cdw functions
-(defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given &rest body)
+(defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given prompt &rest body)
   `(unless (equal (expand-file-name default-directory)
                   (expand-file-name ,path-given))
-     ,@body))
+     (cond (,prompt
+            (when (y-or-n-p (format "CD to '%s'" ,path-given))
+              ,@body))
+           ((null ,prompt)
+            ,@body))))
 
 (defun entropy/shellpop--cd-to-cwd-eshell (cwd)
   (if (eshell-process-interact 'process-live-p)
       (message "Won't change CWD because of running process.")
     (entropy/shellpop--cd-to-cwd-with-judge
-     cwd
+     cwd nil
      (setq-local default-directory cwd)
      (eshell-reset))))
 
 (defun entropy/shellpop--cd-to-cwd-shell (cwd)
   (entropy/shellpop--cd-to-cwd-with-judge
-   cwd
+   cwd t
    (goto-char (point-max))
    (comint-kill-input)
    (insert (concat "cd " (shell-quote-argument cwd)))
@@ -175,7 +179,7 @@ shellpop type")
 
 (defun entropy/shellpop--cd-to-cwd-term (cwd)
   (entropy/shellpop--cd-to-cwd-with-judge
-   cwd
+   cwd t
    (term-send-raw-string (concat "cd " (shell-quote-argument cwd) "\n"))
    (term-send-raw-string "\C-l")))
 
