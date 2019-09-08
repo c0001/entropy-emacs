@@ -149,12 +149,20 @@ shellpop type")
        entropy/shellpop--top-wcfg-register)
       (apply 'delete-window `(,window)))))
 
+;; *** specific confirm function
+
+(defun entropy/shellpop--confirm (prompt)
+  (condition-case nil
+      (y-or-n-p prompt)
+    ((quit error) nil)))
+
 ;; *** cdw functions
 (defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given prompt &rest body)
   `(unless (equal (expand-file-name default-directory)
                   (expand-file-name ,path-given))
      (cond (,prompt
-            (when (y-or-n-p (format "CD to '%s'" ,path-given))
+            (when (entropy/shellpop--confirm
+                   (format "CD to '%s'" ,path-given))
               ,@body))
            ((null ,prompt)
             ,@body))))
@@ -439,7 +447,7 @@ shellpop type")
             (unless unwind-trigger
               (setf (alist-get ,type-name entropy/shellpop--type-register)
                     (cdr old-type-register))
-              (kill-buffer buff)))))
+              (kill-buffer-ask buff)))))
 
      `(defun ,(intern func-name) (prompt)
         (interactive "P")
