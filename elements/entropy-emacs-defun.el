@@ -650,6 +650,14 @@ format on windows platform."
         (find-file wvol))
     (find-file file)))
 
+(defun entropy/emacs-get-theme-face (theme face)
+  (let ((theme-settings (get theme 'theme-settings)))
+    (catch :exit
+      (dolist (theme-setting theme-settings)
+        (when (and (eq 'theme-face (car theme-setting))
+                   (eq face (cadr theme-setting)))
+          (throw :exit (cadddr theme-setting)))))))
+
 (defun entropy/emacs-display-graphic-pdumper-advice
     (orig-func &rest orig-arg)
   t)

@@ -168,7 +168,6 @@ configuration.")
   (unless (entropy/emacs-in-pdumper-procedure-p)
     (global-font-lock-mode +1)
     (transient-mark-mode +1)
-    (setq entropy/emacs-fall-love-with-pdumper nil)
     (setq load-path entropy/emacs-pdumper-pre-lpth)
     
     ;; TODO ...body
@@ -182,6 +181,7 @@ configuration.")
     (tool-bar-mode 0)
     (menu-bar-mode 0)
     (redisplay t)
+    (setq entropy/emacs-fall-love-with-pdumper nil)
     ;; the very ending procedure
     (run-hooks 'entropy/emacs-pdumper-load-end-hook)
     (message "Initialized pdumper session")

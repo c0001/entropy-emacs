@@ -180,7 +180,8 @@ entropy@entropy-pc
    - shackle window popup feature (ibus tooltip losst when popout the
      shackle buffer at the first time)
 
-** MARKING =solaire-mode= can not working correctly in pdumper-session
+** DONE =solaire-mode= can not working correctly in pdumper-session
+CLOSED: [2019-09-09 Mon 05:42]
 :PROPERTIES:
 :CUSTOM_ID: h-86e0180b-bcf0-484d-bc21-9502d8abeb58
 :END:
@@ -200,6 +201,14 @@ non-solaired buffer.
    1) Pdumper session lost some features relied by ~solaire-mode~.
    2) This must try another way to configured ~solaire-mode~ with
       pdumper session.
+
+
+Resolutions:
+
+Pdumper session will lost some face specification of specific theme
+when change theme, it's a bug (don't find some refer in mailing list
+now), get the origin face SPEC in the theme source and reload it
+solved as.
 
 * COMMENT Local Varaibles  
 :PROPERTIES:

@@ -156,6 +156,31 @@ the gloabal way."
              turn-on-solaire-mode)
   :preface
 
+  ;; pdumper session specification
+  (defun entropy/emacs-themes--solaire-get-origin-faces ()
+    (cl-loop for ((orig-face solaire-face) . judge) in solaire-mode-remap-alist
+             when (eval judge)
+             collect solaire-face))
+
+  (defun entropy/emacs-themes--solaire-force-set-faces (cur-theme)
+    (let ((settings (get cur-theme 'theme-settings))
+          (solaire-faces
+           (entropy/emacs-themes--solaire-get-origin-faces)))
+      (dolist (s settings)
+        (let* ((face (cadr s))
+               (face-spec (cadddr s)))
+          (when (member face solaire-faces)
+	    (custom-set-faces (list face face-spec)))))))
+  
+  (defun entropy/emacs-themes--recovery-solaire-faces ()
+    (when (entropy/emacs-theme-adapted-to-solaire)
+      (entropy/emacs-themes--solaire-force-set-faces
+       entropy/emacs-theme-sticker))
+    (custom-set-faces
+     (list 'default
+           (entropy/emacs-get-theme-face
+            entropy/emacs-theme-sticker 'default))))
+  
   ;; solaire entropy-emacs configuration
   (defun entropy/emacs-theme--solaire-enable ()
     (when (entropy/emacs-theme-adapted-to-solaire)
@@ -208,15 +233,14 @@ the gloabal way."
   (setq solaire-mode-real-buffer-fn
         (lambda ()
           t))
-  (cond
-   (entropy/emacs-fall-love-with-pdumper
-    ;; TODO  `solaire-mode' can not work correctly in pdumper session
-    ;; referred bug of `h-86e0180b-bcf0-484d-bc21-9502d8abeb58'
-    ;; (add-hook 'entropy/emacs-pdumper-load-end-hook
-    ;;           #'entropy/emacs-theme--initilized-start-solaire-mode)
-    )
-   (t
-    (add-hook (entropy/emacs-select-x-hook) #'entropy/emacs-theme--initilized-start-solaire-mode))))
+
+  (entropy/emacs-lazy-with-load-trail
+   solaire-mode
+   (entropy/emacs-theme--initilized-start-solaire-mode)
+   (when entropy/emacs-fall-love-with-pdumper
+     (add-hook 'entropy/emacs-theme-load-after-hook
+               #'entropy/emacs-themes--recovery-solaire-faces
+               100))))
 
 ;; ** page-break-lines style form Purcell
 ;;
