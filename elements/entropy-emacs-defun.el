@@ -640,6 +640,20 @@ return t otherwise for nil. "
               (throw :exit t))))
       nil)))
 
+;; ** key map refer
+(defun entropy/emacs-batch-define-key (key-obj-list)
+  "Define key to keymap for batching way.
+
+KEY-OBJ-LIST's each element forms as (keymap . ((key func) ... )), 'key' was
+the string passed to `kbd'."
+  (dolist (key-obj key-obj-list)
+    (let ((key-map (car key-obj))
+          (key-binds (cdr key-obj)))
+      (when (boundp key-map)
+        (dolist (key-bind key-binds)
+          (define-key key-map
+            (kbd (car key-bind)) (cdr key-bind)))))))
+
 ;; ** miscellaneous
 (defun entropy/emacs-transfer-wvol (file)
   "Transfer linux type root path header into windows volumn

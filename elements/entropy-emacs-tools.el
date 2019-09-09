@@ -311,7 +311,31 @@ like `recenter-top-bottom'."
 (use-package discover-my-major
   :commands (discover-my-major discover-my-mode)
   :bind (("C-h M-m" . discover-my-major)
-         ("C-h M-M" . discover-my-mode)))
+         ("C-h M-M" . discover-my-mode))
+  :config
+
+  (defun entropy/emacs-tools--dmm-prune-sections (dmm-sections)
+    (let ((dmm-sections-copy (copy-sequence dmm-sections))
+          (rules '("next-line" "previous-line" "left-char" "right-char"))
+          rtn)
+      (dolist (section dmm-sections-copy)
+        (let* ((group-name (car section))
+               (bindings (cdr section))
+               (cpbdins (copy-sequence bindings))
+               cache)
+          (dolist (binding bindings)
+            (unless (member (cdr binding) rules)
+              (push binding cache)))
+          (push (append (list group-name) (nreverse cache)) rtn)))
+      (nreverse rtn)))
+
+  (defun entropy/emacs-tools--dmm-adv-for-section-builder (orig-func &rest orig-args)
+    (let ((dmm-sections (apply orig-func orig-args)))
+      (entropy/emacs-tools--dmm-prune-sections dmm-sections)))
+
+  (advice-add 'dmm/descbinds-all-sections
+              :around
+              #'entropy/emacs-tools--dmm-adv-for-section-builder))
 
 ;; *** Self functions
 ;; **** split window horizontally for comfortable width setting

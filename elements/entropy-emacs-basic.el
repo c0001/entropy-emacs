@@ -1313,9 +1313,7 @@ Temp file was \"~/~entropy-artist.txt\""
 (use-package proced
   :ensure nil
   :commands (proced-process-attributes)
-  :init
-  (setq-default proced-format 'medium)
-
+  :preface
   (defun entropy/emacs-basic-proced-processP (processName)
     "Return one alist collected the proced info of procssName,
 otherwise returns nil."
@@ -1340,9 +1338,13 @@ otherwise returns nil."
         (t (message
             "`entropy/emacs-basic-proced-auto-startwith' are just used in w32 platform")))))
 
-  (dolist (el entropy/emacs-startwith-apps)
-    (when (executable-find (cdr el))
-      (entropy/emacs-basic-proced-auto-startwith (car el) (cdr el)))))
+  :init
+  (setq-default proced-format 'medium)
+  (entropy/emacs-lazy-with-load-trail
+   auto-start-exec
+   (dolist (el entropy/emacs-startwith-apps)
+     (when (executable-find (cdr el))
+       (entropy/emacs-basic-proced-auto-startwith (car el) (cdr el))))))
 
 ;; ** Improve captialize function
 
