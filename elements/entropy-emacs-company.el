@@ -170,20 +170,20 @@
 
 
 ;; *** Popup documentation for completion candidates
-  (use-package company-quickhelp
-    :if (and (not entropy/emacs-company-posframe-mode)
-             (display-graphic-p))
-    :after company
-    :defines company-quickhelp-delay
-    :commands (company-quickhelp-mode
-               company-quickhelp-manual-begin)
-    :bind (:map company-active-map
-                ("M-h" . company-quickhelp-manual-begin)
-                ("c-h" . nil)
-                ("<f1>" . nil))
-    :init
-    (setq company-quickhelp-delay 1)
-    (company-quickhelp-mode 1))
+(use-package company-quickhelp
+  :if (and (not entropy/emacs-company-posframe-mode)
+           (display-graphic-p))
+  :after company
+  :defines company-quickhelp-delay
+  :commands (company-quickhelp-mode
+             company-quickhelp-manual-begin)
+  :bind (:map company-active-map
+              ("M-h" . company-quickhelp-manual-begin)
+              ("C-h" . nil)
+              ("<f1>" . nil))
+  :init
+  (setq company-quickhelp-delay 1)
+  (company-quickhelp-mode 1))
 
 ;; ** company lsp
 (use-package company-lsp
