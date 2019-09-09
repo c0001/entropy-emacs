@@ -79,18 +79,20 @@
     (define-key global-map (kbd "C-x v x") nil)
     (define-key global-map (kbd "C-x v ~") nil)
     (define-key global-map (kbd "C-x v i") nil))
-  
-  :config
+
+  ;;disabled 'M-1' key-binding with conflicated with
+  ;;`entropy/emacs-quick-readonly-global'
   (entropy/emacs-lazy-load-simple 'magit
-    (define-key magit-mode-map (kbd "M-1") nil)) ;disabled 'M-1' key-binding with conflicated with
-                                                 ;`entropy/emacs-quick-readonly-global'
-  (use-package ssh-agency
-    :commands (ssh-agency-ensure)
-    :init
-    (entropy/emacs-lazy-load-simple 'magit
-      (add-hook 'magit-credential-hook 'ssh-agency-ensure))
-    :config
-    (setenv "SSH_ASKPASS" "git-gui--askpass")))
+    (define-key magit-mode-map (kbd "M-1") nil)
+    (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)))
+
+(use-package ssh-agency
+  :commands (ssh-agency-ensure)
+  :init
+  (entropy/emacs-lazy-load-simple 'magit
+    (add-hook 'magit-credential-hook 'ssh-agency-ensure))
+  :config
+  (setenv "SSH_ASKPASS" "git-gui--askpass"))
 
 ;; **** magit-popup toolchain
 
