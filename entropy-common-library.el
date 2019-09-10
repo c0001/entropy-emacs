@@ -4,7 +4,7 @@
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           https://github.com/c0001/entropy-common-library/blob/nil/entropy-common-library.el
+;; URL:           https://github.com/c0001/entropy-common-library
 ;; Package-Version: 0.1.0
 ;; Created:       2018
 ;; Package-Requires: ((emacs "25") (dash "2.16.0") (ivy "0.12.0"))
