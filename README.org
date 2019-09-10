@@ -1,11 +1,31 @@
-# Local Variables:
-# fill-column: 70
-# org-adapt-indentation: nil
-# org-download-image-dir: "./img/"
-# eval: (auto-fill-mode)
-# End:
-#+title: entropy-common-library
-#+author: Entropy
+# Created 2019-09-11 Wed 06:25
+#+TITLE: Common library for entropy-emacs elisp programming
+#+AUTHOR: entropy
+
+* Copyright (C) 20190911  Entropy
+#+BEGIN_EXAMPLE
+Author:        Entropy <bmsac0001@gmail.com>
+Maintainer:    Entropy <bmsac001@gmail.com>
+URL:           https://github.com/c0001/entropy-common-library/blob/nil/entropy-common-library.el
+Package-Version: 0.1.0
+Created:       2018
+Package-Requires: ((emacs "25") (dash "2.16.0") (ivy "0.12.0"))
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#+END_EXAMPLE
+
+* Commentary:
 
 Common elisp library for [[https://github.com/c0001/entropy-emacs][entropy-emacs]].
 
@@ -20,7 +40,7 @@ These specified funcs group seperated as groups of:
 - ivy completion framwork extension
 - mischellaneous
 
-* Requirements
+** Requirements
 
 - dash (melpa install)
 - cl(emacs built-in with already)
@@ -29,16 +49,9 @@ These specified funcs group seperated as groups of:
 There's just these three library required for compiling with, simplify
 and easy to use.
 
-* Installation
+* Configuration
 
 Just requiring with, do not using lazy laoding of it because of that
 all the funcs defined in this package are not defined with =autoload=
 macro denoted.
-
-
-* The const definations file [[file:entropy-common-library-const.el][entropy-common-library-const.el]] 
-
-This file were required by =entropy-common-library=, there's no need
-to required it manually individually on it. This file contained the
-most used const varaible used for various using situation.
 
