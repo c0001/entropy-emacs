@@ -1,6 +1,6 @@
 ;;; entropy-cn-dict.el --- Simple chinese dictionary using BAIDU API
 ;;
-;;; Copyright (C) date  author
+;;; Copyright (C) 20190911 Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
