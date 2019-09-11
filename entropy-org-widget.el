@@ -1,28 +1,69 @@
-;;; File name: entropy-org-widget.el  ---> for entropy-emacs
+;;; entropy-org-widget.el --- The org widget for entropy-emacs 
 ;;
-;; Copyright (c) 2018 Entropy
+;;; Copyright (C) 20190911  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-org-widget
+;; Package-Version: v0.1.0
+;; Created:       2018
+;; Compatibility: GNU Emacs 25;
+;; Package-Requires: ((emacs "25") (cl-lib "0.5") (org "9.1.3"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;;; Commentary:
 ;;
-;; Author: Entropy
+;; Chains for with Org buffer or Org files. 
 ;;
-;; This file is not part of GNU Emacs.
+;; Org self provides various APIs given for emacs developer to extended
+;; Org as. This package was the one as what it is and with the defaultly
+;; embedded into [[https://github.com/c0001/entropy-emacs][entropy-emacs]] situation gotten.
 ;;
-;;; License: GPLv3
+;; Org was basically for dealing with the =Org= content format e.g. the
+;; outlines, heading-tag, drawers, timestamp etc. This package divided
+;; the functional sitemap with the concept follow that with the source
+;; content outlines seperated for. For generally of currently used
+;; categories for:
 ;;
-;;; Commentry:
+;; - headline
 ;;
-;; This packages was the basic library for expanding org apis and be based on
-;; it. This packages provide the library for entropy-emacs's other self
-;; packages.
+;;   Functions for extending Org heads dealing with.
 ;;
+;; - drawer
 ;;
+;;   Functions for extending Org drawer dealing with.
 ;;
+;; - links refer
 ;;
+;;   Thus as above.
 ;;
-;; * Code:
+;;;; Requirements
+;;
+;; Org only.
+;;
+;;;; Installation
+;;
+;; Just downloading this package and then adding it to the load-path, the
+;; last ~require~ it.
+;; 
+;;; Code:
 
 (require 'org)
 
-;; ** headline
+;;;; headline
 (defun entropy/ow-extract-head-alist (query)
   "Return the properties' list of current headline according to
 the queries QUERY.
@@ -154,7 +195,7 @@ within current buffer.
     (delete-region start end)))
 
 
-;; ** drawer
+;;;; drawer
 (defun entropy/ow-set-drawer (drawer-list)
   "Set headline with the properties in org-mode specified by list DRAWER-LIST.
 
@@ -172,7 +213,7 @@ car position."
 
 
 
-;; ** links refer
+;;;; links refer
 (defun entropy/ow-get-str-links (str)
   "Get all bracket org links using regexp
 `org-bracket-link-regexp' from string sorted as the raw seqeunce
@@ -221,7 +262,7 @@ description string matched or nil otherwise, :link as desc."
            "\n" "" buffer-str))
     (entropy/ow-get-str-links buffer-str)))
 
-;; * obsolete definatioin
+;;; obsolete definatioin
 (define-obsolete-function-alias
   'entropy/ow-extract-head-plist
   'entropy/ow-extract-head-alist
@@ -234,5 +275,5 @@ description string matched or nil otherwise, :link as desc."
   "0.1.1"
   "The origing =plist= naming was typo.")
 
-;; * provide
+;;; provide
 (provide 'entropy-org-widget)
