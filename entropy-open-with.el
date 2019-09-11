@@ -1,10 +1,11 @@
 ;;; entropy-open-with.el --- Open file by specific program  
 ;;
-;; * Copyright (C) 20190614  Entropy
+;;; Copyright (C) 20190614  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           https://github.com/c0001/entropy-open-with/blob/master/entropy-open-with.el#L7
+;; URL:           https://github.com/c0001/entropy-open-with/blob/master/entropy-open-with.el
+;; Package-Requires: ((entropy-common-library "0.1.0"))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,7 +21,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;; 
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; Open files with external executable applications on emacs interface.
 ;;
@@ -35,7 +36,7 @@
 ;; This package given the ability what file openning with wide customized
 ;; external applications according to the filename extension.
 ;;
-;; ** Installation
+;;;; Installation
 ;;
 ;; Just requiring the file [[file:entropy-open-with.el][entropy-open-with.el]] using: : (require
 ;; 'entropy-open-with)
@@ -62,7 +63,7 @@
 ;;         (kbd "<C-M-return>") 'entropy/open-with-dired-open)))
 ;; #+END_SRC
 ;;
-;; ** Configuratioin
+;;;; Configuratioin
 ;;
 ;; The core configuration for this package's customized refers was based
 ;; on the one customized variable =entropy/open-with-type-list= which
@@ -130,7 +131,7 @@
 ;;    Argumet is the concated command arguments string, the single string
 ;;    type.
 ;;
-;; ** Interaction
+;;;; Interaction
 ;;
 ;; - *Func:* ~entropy/open-with-interactively~
 ;;
@@ -152,7 +153,7 @@
 ;; or obey the previous installation init setup.
 ;;
 ;;
-;; ** Apis 
+;;;; Apis 
 ;;
 ;; =entropy-open-with= was the minor tool for just giving fiews useful
 ;; api functions:
@@ -194,7 +195,7 @@
 ;;     The other one =inemacs= gives the try for open specific file in
 ;;     emacs method.
 ;;   
-;; ** Limitation on windows platform:*
+;;;; Limitation on windows platform:*
 ;;
 ;; In windows, the decoding method was using the one called =code pages=
 ;; which not compatible with UNIX-LIKE platform which also using one
@@ -219,7 +220,7 @@
 ;; =utf-8= capability in the =language&region= config panel.
 ;; #+END_QUOTE
 ;;
-;; * Configuration:
+;;; Configuration:
 ;;
 ;; You can specific the extension list like:
 ;;
@@ -234,7 +235,7 @@
 ;;
 ;; More details see below function definition.
 ;; 
-;; * Code:
+;;; Code:
 (require 'entropy-common-library)
 
 (defgroup entropy/open-with nil
