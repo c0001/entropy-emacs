@@ -170,16 +170,16 @@ the gloabal way."
         (let* ((face (cadr s))
                (face-spec (cadddr s)))
           (when (member face solaire-faces)
-	    (custom-set-faces (list face face-spec)))))))
+	           (face-spec-set face face-spec))))))
   
   (defun entropy/emacs-theme--recovery-solaire-faces ()
     (when (entropy/emacs-theme-adapted-to-solaire)
       (entropy/emacs-theme--solaire-force-set-faces
        entropy/emacs-theme-sticker))
-    (custom-set-faces
-     (list 'default
-           (entropy/emacs-get-theme-face
-            entropy/emacs-theme-sticker 'default))))
+    (face-spec-set
+     'default
+     (entropy/emacs-get-theme-face
+      entropy/emacs-theme-sticker 'default)))
   
   ;; solaire entropy-emacs configuration
 
