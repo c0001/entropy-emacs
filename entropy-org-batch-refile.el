@@ -1,31 +1,129 @@
-;;; File name: entropy-org-batch-refile.el ---> for entropy-emacs
+;;; entropy-org-batch-refile.el --- Org batch refile simple interactivation
 ;;
-;; Copyright (c) 2018 Entropy
-;;
-;; Author: Entropy
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-;;
-;;
+;;; Copyright (C) 20190911  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-org-batch-refile
+;; Package-Version: 0.1.0
+;; Version:       file-version
+;; Created:       2018
+;; Compatibility: GNU Emacs 25;
+;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
 ;;; Commentary:
+;;;; Preamble
 ;;
-;; This package provide you the function for quickly batch refile org entry rely on the specific tag
-;; matching.
+;; In org mode, internals heading taggning system give the heads tree
+;; filter and grouped way for searching both be in current buffer and be
+;; within searching by agenda utilities.  But be with the increasing of
+;; counts of heads, heading refile (powerd by ~org-refile~) is poor of
+;; the effeciency of it's manually way for the case that many of us need
+;; to refile dozens of heading by the rule set of org heading properties
+;; and tag.
+;;
+;; Thus why this package named as what you see here. This package gives
+;; you the try for refile bounds of headings ruled by what your
+;; specification of tag (_til now haven't do with the heading properties
+;; batch refile implements_), called =batch refile=.
+;;
+;;;; Requirements
+;;
+;; =Org= only.
+;;
+;;;; Installation
+;;
+;; The =use-package= configuration managements style:
+;; #+BEGIN_SRC emacs-lisp
+;;   (use-package entropy-org-batch-refile
+;;     :ensure nil
+;;     :load-path "path-to-your-load-path"
+;;     :commands entropy/org-batch-refile-tags-read-and-do)
+;; #+END_SRC
+;;
+;;;; Interactions
+;;
+;; #+BEGIN_QUOTE
+;; The properties matching refile will be implemented soon.
+;; #+END_QUOTE
+;;
+;; Call func ~entropy/org-batch-refile-tags-read-and-do~.
+;;
+;;;; Apis
+;;
+;; There's several internal course can be exposed for elisp developer
+;; using for. The mains of them two user_target_module and the macro
+;; ~entropy/org-full-buffer-tag-match-refile~.
+;;
+;;
+;;;;; User target model
+;;
+;; For the way of defining refilling target location, this package gives
+;; the data structer for denoted where and how you would like to refile
+;; to, that which I called =user_target_module=. The user_target_module
+;; is simple and comprehensive for as is. The data type of it was one
+;; cons cell which the car of it was the main file and heading location
+;; introduction and the cdr of it was the instance of the car of it.
+;;
+;; For more detailes as one demo as: =((t/nil 1/2/3) head-string file-path)=
+;;
+;; - *car:* =(list t/nil 1/2/3)=
+;;
+;;   Car 't or nil' indicate whether using exits file as refile target
+;;   file specification. Cdr '1 or 2 or 3' shows for the case of the
+;;   type indication target of refiling head for as three cases:
+;;
+;;   1) exites org head in target file
+;;   2) function auto-built head string which will be create as for
+;;   3) user specified head string which will be create as for
+;;
+;; - *cdr:* =(list head-string file-path)=
+;;
+;;   The cdr of =user_target_module= value follow the car type, that the
+;;   head-string required by the case that head specification case 3
+;;   has been given and whatever target file existed, other wise it's
+;;   must be nil. Arg file-path must be set when the file specification
+;;   type was 't'. 
+;;
+;;;;; Macro
+;;
+;; The core refiling course created macro
+;; ~entropy/org-full-buffer-tag-match-refile~ accept two args
+;; e.g. tag-matched and user_target_module, you can using it for the
+;; secondary development. The lambda expression extracted by this was the
+;; processing for that:
+;;
+;; 1. Analyzing user_target_module to located or create target location.
+;; 2. Get org headings by the rule set of matching tags tag-matched
+;;    specification and then refiling them all into the target.
 ;;
 ;;; TODO:
 ;;
-;; - Improve `entropy/obr--auto-create-refile-file' auto-gen file name core function which will let
-;;   sth like 'index.org<test-folder>' transfered to 'index.orgtest-folder' that we must using the
+;; - Improve `entropy/obr--auto-create-refile-file' auto-gen file name
+;;   core function which will let sth like 'index.org<test-folder>'
+;;   transfered to 'index.orgtest-folder' that we must using the
 ;;   further detailed category analyzation.
 
 
-;; * Code:
-;; ** require
+;;; Code:
+;;;; require
 (require 'org)
-;; ** main function
-;; *** main micro for tag match refile
+;;;; main function
+;;;;; main micro for tag match refile
 (defmacro entropy/org-full-buffer-tag-match-refile (tag-regexp user-model)
   "The macro of instantiation of tag matched for `org-refile' function."
   `(if (eq major-mode 'org-mode)
@@ -39,8 +137,8 @@
            (while (re-search-forward full-regexp nil t)
              (entropy/org-refile-specific-target head-name file-name))))
      (user-error "entropy/obr: You can not use this function in %s" major-mode)))
-;; *** library for main
-;; **** refile function
+;;;;; library for main
+;;;;;; refile function
 (defun entropy/org-refile-specific-target (headline file)
   "Refile headline into another file within it's specific
 headline.
@@ -53,8 +151,8 @@ https://mollermara.com/blog/Fast-refiling-in-org-mode-with-hydras/
                 (read-only-mode 0)
                 (org-find-exact-headline-in-buffer headline))))
     (org-refile nil nil (list headline file nil pos))))
-;; **** target model justify and return result function
-;; ***** user-model instantiation function
+;;;;;; target model justify and return result function
+;;;;;;; user-model instantiation function
 (defun entropy/obr--target-instantiation-model (user-target-model)
   "
 User-target-model is a list within 3 elements:
@@ -143,7 +241,7 @@ This function return the a list of \"'(file head)\"
      ;; cond t
      (t (error "entropy/obr: user-target-model invalid! model: \"(cond t)\"")))
     model-list))
-;; ***** justify whether head in file funciton
+;;;;;;; justify whether head in file funciton
 (defun entropy/obr--justify-head-in-file (HEAD FILE)
   "Justify whether headline HEAD in file FILE.
 
@@ -164,7 +262,7 @@ justifing.
                      return-p))))
       (progn (setq return-p nil)
              return-p))))
-;; ***** auto create refile file function
+;;;;;;; auto create refile file function
 (defun entropy/obr--auto-create-refile-file (&optional auto-insert-enable)
   " Auto create a refile file and alternatively for auto
 generating refile head line.
@@ -196,7 +294,7 @@ It's return a list with head and file:
             (setq return-list `(,auto-headline-name ,refile-target-file-name)))
         (setq return-list `(nil ,refile-target-file-name))))
     return-list))
-;; ***** auto create headline name function
+;;;;;;; auto create headline name function
 (defun entropy/obr--auto-create-headline-name (&optional RANGE)
   "Generate one mechanical headline name and return it in string
 type. 
@@ -213,7 +311,7 @@ The return string format like: \"* Refile-20180604_Mon_135151\""
         (setq return-string (concat "Refile" RANGE))
       (setq return-string auto-headline-name))
     return-string))
-;; ***** range data function
+;;;;;;; range data function
 (defun entropy/obr--range-data ()
   "Generate one ranger data for naming using and return it as
 string.
@@ -223,7 +321,7 @@ The return string format is like: \"-20180604_Mon_135151\"."
         return-data)
     (setq return-data (concat "-" time))
     return-data))
-;; ***** headline hierachy combine
+;;;;;;; headline hierachy combine
 (defun entropy/obr--headline-combine (head-name &optional hierachy)
   " Combine headline name to completely full format of org's
 headline sytle.
@@ -244,7 +342,7 @@ count was 1.
       (progn
         (setq return-head (concat "* " head-name))
         return-head))))
-;; ** interactive funcion
+;;;; interactive funcion
 
 ;;;###autoload
 (defun entropy/org-batch-refile-tags-read-and-do (tag-regexp)
@@ -253,5 +351,5 @@ count was 1.
   (entropy/org-full-buffer-tag-match-refile tag-regexp '((nil 2) nil nil)))
 
 
-;; * provide
+;;; provide
 (provide 'entropy-org-batch-refile)
