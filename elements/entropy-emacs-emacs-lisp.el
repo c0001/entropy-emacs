@@ -118,7 +118,7 @@ PREFIX if non-nil for old-school style."
   (interactive "P")
   (let ((inhibit-read-only t))
     (goto-char (point-min))
-    (while (re-search-forward (if prefix "^;;\\(;+\\)" "^;; \\(\\*+\\)") nil t)
+    (while (re-search-forward (if prefix "^;;\\(;+\\) " "^;; \\(\\*+\\) ") nil t)
       (save-excursion
         (let* ((level-str (match-string 1))
                (level (length level-str))
@@ -127,7 +127,7 @@ PREFIX if non-nil for old-school style."
                                 (let ((rtn ""))
                                   (dotimes (var level)
                                     (setq rtn (concat rtn (if prefix "*" ";"))))
-                                  rtn))))
+                                  (concat rtn " ")))))
           (replace-match
            rep-str))))))
 

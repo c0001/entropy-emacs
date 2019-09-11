@@ -259,7 +259,7 @@ structure type for elisp."
               (list (format "%s%s%s%s%s%s"
                             outline-regex-head
                             (format "\\{%d\\}" level)
-                            (format "[^%s#]" outshine-regexp-base-char)
+                            " "
                             "\\(.*"
                             (if outshine-fontify-whole-heading-line "\n?" "")
                             "\\)")
