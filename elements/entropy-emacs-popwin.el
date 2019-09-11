@@ -217,7 +217,7 @@
 
   (defun shackle-popup-buffer ()
     (interactive)
-    (let* ((buff-name (completing-read "Buffer choosing:" 'internal-complete-buffer))
+    (let* ((buff-name (completing-read "Buffer choosing: " 'internal-complete-buffer))
            (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
       (get-buffer-create buff-name)
       (display-buffer buff-name)
@@ -228,7 +228,7 @@
 
   (defun shackle-popup-find-file ()
     (interactive)
-    (let* ((file (completing-read "Buffer choosing:" 'read-file-name-internal))
+    (let* ((file (completing-read "Buffer choosing: " 'read-file-name-internal))
            (buff-name (buffer-name (find-file-noselect file)))
            (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
       (display-buffer buff-name)))
