@@ -156,6 +156,46 @@
   (advice-add 'outshine-calc-outline-regexp :around
               #'entropy/emacs-structer--outshine-advice-for-outline-regexp-calc)
 
+  (defun entropy/emacs-structure--outshine-advice-for-cut-trailing-whitespace
+      (orig-func &rest orig-args)
+    "The trailing white-space was the 'demote' and 'promote' bug
+trace core, that the origin mechinsm of outline to re-generate
+the head level sign was using 'substring' function manipulate the
+outline-regexp matced group of the asterisk sequence, the
+trailing white space will be recognized as the 'level' sign char,
+thus any demote will mess as the scene.
+
+     (defun outline-invent-heading (head up)
+       \"Create a heading by using heading HEAD as a template.
+     When UP is non-nil, the created heading will be one level above.
+     Otherwise, it will be one level below.\"
+       (save-match-data
+         ;; Let's try to invent one by repeating or deleting the last char.
+         (let ((new-head (if up (substring head 0 -1)
+         >>>>>>>>>>>>>>>>>>>>>>>*_notice here_ 
+                           (concat head (substring head -1)))))
+           (if (string-match (concat \"\\`\\(?:\" outline-regexp \"\\)\")
+                             new-head)
+               ;; Why bother checking that it is indeed higher/lower level ?
+               new-head
+             ;; Didn't work, so ask what to do.
+             (read-string (format-message \"%s heading for `%s': \"
+                                          (if up \"Parent\" \"Demoted\") head)
+                          head nil nil t)))))"
+    
+    (let ((rtn (apply orig-func orig-args)))
+      (when (string-match-p " +$" rtn)
+        (setq
+         rtn
+         (replace-regexp-in-string
+          "\\( +\\)$" "" rtn)))
+      rtn))
+  
+  (advice-add 'outshine-calc-outline-regexp
+              :around
+              #'entropy/emacs-structure--outshine-advice-for-cut-trailing-whitespace)
+
+
   (defun outshine-set-outline-regexp-base ()
     "Return the actual outline-regexp-base.
 
@@ -179,7 +219,7 @@ structure type for elisp."
                   (default-value 'outshine-regexp-base-char))))
 
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
-    (let ((outline-regex-head (substring outline-regexp 0 -8))
+    (let ((outline-regex-head (substring outline-regexp 0 -7))
           func rtn)
       (setq func
             (lambda (level)
