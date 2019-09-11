@@ -149,14 +149,12 @@
     (or (outline-on-heading-p) (bobp)
         (error "Using it out of the headline was not supported.")))
 
-  (defun entropy/emacs-structer--outshine-advice-for-outline-regexp-calc
+  (defun entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-head-stick
       (orig-func &rest orig-args)
     (concat "^"
             (apply orig-func orig-args)))
-  (advice-add 'outshine-calc-outline-regexp :around
-              #'entropy/emacs-structer--outshine-advice-for-outline-regexp-calc)
-
-  (defun entropy/emacs-structure--outshine-advice-for-cut-trailing-whitespace
+ 
+  (defun entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-cut-trailing-whitespace
       (orig-func &rest orig-args)
     "The trailing white-space was the 'demote' and 'promote' bug
 trace core, that the origin mechinsm of outline to re-generate
@@ -190,11 +188,19 @@ thus any demote will mess as the scene.
          (replace-regexp-in-string
           "\\( +\\)$" "" rtn)))
       rtn))
-  
-  (advice-add 'outshine-calc-outline-regexp
-              :around
-              #'entropy/emacs-structure--outshine-advice-for-cut-trailing-whitespace)
 
+  (defun entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-special-head-char
+      (orig-func &rest orig-args)
+    "Deminish ';;;###autoload' key word as outline level in elisp code structure."
+    (let ((outline-regexp (apply orig-func orig-args)))
+      (if (not (outshine-modern-header-style-in-elisp-p))
+          (concat outline-regexp "[^#]")
+        outline-regexp)))
+
+  (cl-loop for advice in '(entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-head-stick
+                           entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-cut-trailing-whitespace
+                           entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-special-head-char)
+           do (advice-add 'outshine-calc-outline-regexp :around advice))
 
   (defun outshine-set-outline-regexp-base ()
     "Return the actual outline-regexp-base.
@@ -219,7 +225,11 @@ structure type for elisp."
                   (default-value 'outshine-regexp-base-char))))
 
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
-    (let ((outline-regex-head (substring outline-regexp 0 -7))
+    (let ((outline-regex-head (substring outline-regexp
+                                         0
+                                         (if (outshine-modern-header-style-in-elisp-p)
+                                             -7
+                                           -11)))
           func rtn)
       (setq func
             (lambda (level)
