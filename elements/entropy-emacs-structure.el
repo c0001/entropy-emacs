@@ -136,7 +136,6 @@
    ("C-c M-y" . nil))
   
   :init
-  (setq outshine-max-level 100)
   (entropy/emacs-lazy-initial-for-hook
    '(emacs-lisp-mode-hook)
    "outshine-mode" "outshine-mode"
@@ -144,6 +143,16 @@
    (add-hook 'emacs-lisp-mode-hook 'outshine-mode))
   
   :config
+
+  (setq outshine-max-level 100)
+  
+  (setq outshine-default-outline-regexp-base
+        (format "[%s]\\{1,%d\\}"
+                outshine-regexp-base-char outshine-max-level))
+
+  (setq outshine-oldschool-elisp-outline-regexp-base
+        (format "[;]\\{1,%d\\}" outshine-max-level))
+  
   (outshine-define-key outshine-mode-map
     (kbd "<backtab>") 'outshine-cycle-buffer
     (or (outline-on-heading-p) (bobp)
@@ -153,15 +162,19 @@
       (orig-func &rest orig-args)
     (concat "^"
             (apply orig-func orig-args)))
- 
-  (defun entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-cut-trailing-whitespace
-      (orig-func &rest orig-args)
-    "The trailing white-space was the 'demote' and 'promote' bug
-trace core, that the origin mechinsm of outline to re-generate
-the head level sign was using 'substring' function manipulate the
-outline-regexp matced group of the asterisk sequence, the
-trailing white space will be recognized as the 'level' sign char,
-thus any demote will mess as the scene.
+
+  (cl-loop for advice in '(entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-head-stick)
+           do (advice-add 'outshine-calc-outline-regexp :around advice))
+
+  (defmacro entropy/emacs-structure--outshine-with-nontrailing-space-otreg (&rest body)
+    "The specific subroutine for outshine 'demote' or 'promote' head level.
+
+The trailing white-space was the outline 'demote' and 'promote'
+bug trace core in outshine, that the origin mechinsm of outline
+to re-generate the head level sign was using 'substring' function
+manipulate the outline-regexp matced group of the asterisk
+sequence, the trailing white space will be recognized as the
+'level' sign char, thus any demote will mess as the scene.
 
      (defun outline-invent-heading (head up)
        \"Create a heading by using heading HEAD as a template.
@@ -180,28 +193,42 @@ thus any demote will mess as the scene.
              (read-string (format-message \"%s heading for `%s': \"
                                           (if up \"Parent\" \"Demoted\") head)
                           head nil nil t)))))"
+    `(let ((outline-regexp (let ((rtn outline-regexp))
+                             (when (string-match-p " +$" rtn)
+                               (setq
+                                rtn
+                                (replace-regexp-in-string
+                                 "\\( +\\)$" "" rtn)))
+                             rtn)))
+       ,@body))
+  
+  (defun entropy/emacs-structure--outshine-back-to-head ()
+    (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
+     (outline-back-to-heading)))
+  
+  (defun entropy/emacs-structure--outshine-demote (&optional which)
+    (interactive
+     (list (if (and transient-mark-mode mark-active) 'region
+	            (entropy/emacs-structure--outshine-back-to-head)
+	            (if current-prefix-arg nil 'subtree))))
+    (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
+     (funcall 'outline-demote which)))
+
+  (defun entropy/emacs-structure--outshine-promote (&optional which)
+    (interactive
+     (list (if (and transient-mark-mode mark-active) 'region
+	            (entropy/emacs-structure--outshine-back-to-head)
+	            (if current-prefix-arg nil 'subtree))))
+    (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
+     (funcall 'outline-promote which)))
+
+  (outshine-define-key outshine-mode-map
+    (kbd "M-S-<left>") 'entropy/emacs-structure--outshine-promote
+    (outline-on-heading-p))
+  (outshine-define-key outshine-mode-map
+    (kbd "M-S-<right>") 'entropy/emacs-structure--outshine-demote
+    (outline-on-heading-p))
     
-    (let ((rtn (apply orig-func orig-args)))
-      (when (string-match-p " +$" rtn)
-        (setq
-         rtn
-         (replace-regexp-in-string
-          "\\( +\\)$" "" rtn)))
-      rtn))
-
-  (defun entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-special-head-char
-      (orig-func &rest orig-args)
-    "Deminish ';;;###autoload' key word as outline level in elisp code structure."
-    (let ((outline-regexp (apply orig-func orig-args)))
-      (if (not (outshine-modern-header-style-in-elisp-p))
-          (concat outline-regexp "[^#]")
-        outline-regexp)))
-
-  (cl-loop for advice in '(entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-head-stick
-                           entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-cut-trailing-whitespace
-                           entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-special-head-char)
-           do (advice-add 'outshine-calc-outline-regexp :around advice))
-
   (defun outshine-set-outline-regexp-base ()
     "Return the actual outline-regexp-base.
 
@@ -225,11 +252,7 @@ structure type for elisp."
                   (default-value 'outshine-regexp-base-char))))
 
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
-    (let ((outline-regex-head (substring outline-regexp
-                                         0
-                                         (if (outshine-modern-header-style-in-elisp-p)
-                                             -7
-                                           -11)))
+    (let ((outline-regex-head (substring outline-regexp 0 -10))
           func rtn)
       (setq func
             (lambda (level)
