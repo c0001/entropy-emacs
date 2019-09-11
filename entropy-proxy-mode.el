@@ -1,5 +1,5 @@
 ;;; entropy-proxy-mode.el --- A minor mode to toggle proxy.
-;; * COPYRIGHT
+;;; COPYRIGHT
 ;; #+BEGIN_EXAMPLE
 ;; Authors: stardiviner <numbchild@gmail.com>
 ;; Changed by: Entropy
@@ -14,7 +14,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;;
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; Using global-mode =entropy/proxy-mode= to toggle proxy type for
 ;; emacs internal proxy tunnel.
@@ -34,13 +34,13 @@
 ;;
 ;; See their default value assignment for form defination.
 ;;
-;; * Code:
-;; ** require
+;;; Code:
+;;;; require
 (require 'url-gw)
 (require 'socks)
 (require 'cl-lib)
 
-;; ** variable declaration
+;;;; variable declaration
 (defgroup entropy/proxy-mode nil
   "A minor mode to toggle proxy."
   :prefix "entropy/proxy-mode-"
@@ -78,8 +78,8 @@
   :safe #'listp
   :group 'entropy/proxy-mode)
 
-;; ** libraries
-;; *** HTTP Proxy
+;;;; libraries
+;;;;; HTTP Proxy
 
 (defun entropy/proxy-mode--http-enable ()
   "Enable HTTP proxy."
@@ -96,7 +96,7 @@
   (setenv "HTTPS_PROXY" nil)
   (setq entropy/proxy-mode--proxy-type nil))
 
-;; *** URL Proxy
+;;;;; URL Proxy
 
 (defun entropy/proxy-mode--url-enable ()
   "Enable URL proxy."
@@ -108,7 +108,7 @@
   (setq url-proxy-services nil)
   (setq entropy/proxy-mode--proxy-type nil))
 
-;; *** Socks Proxy
+;;;;; Socks Proxy
 
 (defun entropy/proxy-mode--socks-enable ()
   "Enable Socks proxy."
@@ -122,7 +122,7 @@
   (setq url-gateway-method 'native)
   (setq entropy/proxy-mode--proxy-type nil))
 
-;; ** Main
+;;;; Main
 
 ;;;###autoload
 (defun entropy/proxy-mode-enable (&optional manually)
@@ -185,7 +185,7 @@
     (call-interactively 'entropy/proxy-mode-disable)))
 
 
-;; * provide
+;;; provide
 (provide 'entropy-proxy-mode)
 
 ;;; entropy-proxy-mode.el ends here
