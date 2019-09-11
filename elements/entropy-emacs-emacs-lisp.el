@@ -108,6 +108,31 @@
   (interactive)
   (byte-recompile-directory package-user-dir nil t))
 
+;; Toggle context structer style
+
+(defun entropy/emacs-elisp-toggle-outline-struct-style (&optional prefix)
+  "Toggle outline regexp style in elisp source file, ';;;+' as
+old-school type, ';; *+' as the mordern one.
+
+PREFIX if non-nil for old-school style."
+  (interactive "P")
+  (let ((inhibit-read-only t))
+    (goto-char (point-min))
+    (while (re-search-forward (if prefix "^;;\\(;+\\)" "^;; \\(\\*+\\)") nil t)
+      (save-excursion
+        (let* ((level-str (match-string 1))
+               (level (length level-str))
+               (head-str (match-string 0))
+               (rep-str (concat ";;" (when prefix " ")
+                                (let ((rtn ""))
+                                  (dotimes (var level)
+                                    (setq rtn (concat rtn (if prefix "*" ";"))))
+                                  rtn))))
+          (replace-match
+           rep-str))))))
+
+
+;; * provide
 (provide 'entropy-emacs-emacs-lisp)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
