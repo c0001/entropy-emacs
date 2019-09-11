@@ -1,9 +1,9 @@
 ;;; entropy-shellpop.el --- popup shell buffer for transient
 ;;
-;; * Copyright (C) 20190829  Entropy
+;;; Copyright (C) 20190829  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
-;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; Maintainer:    Entropy <bmsac0001@gmail.com>
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,13 +19,14 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;;
-;; Package-Version: 0.1.0
+;; Package-Version: 20190829
+;; Version: 0.1.0
 ;; Created:       2019-08-29
 ;; Keywords:      shell-pop, shell
 ;; Compatibility: GNU Emacs emacs-version 26.1;
-;; Package-Requires: ((cl-lib "1.0"))
+;; Package-Requires: ((cl-lib "1.0") (shackle "1.0.3"))
 ;; 
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; The shell popuped feature provision what seems like the =vscode
 ;; shellpopup aspect=.
@@ -41,7 +42,7 @@
 ;; purely fundamental, for optimizing features' detailes and
 ;; restructed the popup feature rely on [[https://github.com/wasamasa/shackle][shackle]].
 ;;
-;; * Configuration:
+;;; Configuration:
 ;;
 ;; Just cloning this repo under the path sepcified on your wish, and
 ;; added it to your ~load-path~, using ~require~ or ~use-package~ to
@@ -61,14 +62,14 @@
 ;; You may customize variable =entropy/shellpop-pop-types= for more
 ;; specification, see its doc-string for more.
 ;; 
-;; * Code:
+;;; Code:
 ;; 
-;; ** require
+;;;; require
 (require 'cl-lib)
 (require 'shackle)
 (require 'entropy-common-library)
 
-;; ** defcustom
+;;;; defcustom
 (defgroup entropy/shellpop-customized-group nil
   "entropy-shellpop customized variable group.")
 
@@ -128,7 +129,7 @@ Slot description:
   :type 'sexp
   :group 'entropy/shellpop-customized-group)
 
-;; ** defvar
+;;;; defvar
 
 (defvar entropy/shellpop--type-register nil)
 
@@ -136,8 +137,8 @@ Slot description:
   "The window configuratio register for recovering for maximized
 shellpop type")
 
-;; ** library
-;; *** specific delete window function
+;;;; library
+;;;;; specific delete window function
 
 (defun entropy/shellpop--delete-window (window)
   (catch :exit
@@ -149,14 +150,14 @@ shellpop type")
        entropy/shellpop--top-wcfg-register)
       (apply 'delete-window `(,window)))))
 
-;; *** specific confirm function
+;;;;; specific confirm function
 
 (defun entropy/shellpop--confirm (prompt)
   (condition-case nil
       (y-or-n-p prompt)
     ((quit error) nil)))
 
-;; *** cdw functions
+;;;;; cdw functions
 (defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given prompt &rest body)
   `(unless (equal (expand-file-name default-directory)
                   (expand-file-name ,path-given))
@@ -204,7 +205,7 @@ shellpop type")
              (message "Shell type not supported for 'entropy-shellpop' to CDW"))))))
 
 
-;; *** shellpop type name generator
+;;;;; shellpop type name generator
 (defun entropy/shellpop--gen-buffn-regexp (shellpop-type-name)
   (concat "^\\*"
           (regexp-quote shellpop-type-name)
@@ -234,7 +235,7 @@ shellpop type")
           (throw :exit nil))))
     rtn))
 
-;; *** buffer bunches parses
+;;;;; buffer bunches parses
 (defun entropy/shellpop--get-type-buffer-indexs (shellpop-type-name &optional buffn-list-rtn)
   (let* ((buffns (mapcar (lambda (buff) (buffer-name buff)) (buffer-list)))
          (buffn-regexp (entropy/shellpop--gen-buffn-regexp shellpop-type-name))
@@ -255,7 +256,7 @@ shellpop type")
            when (not (member slot index-list))
            collect slot))
 
-;; *** shellpop type entity object generator
+;;;;; shellpop type entity object generator
 (defun entropy/shellpop--buffer-active-p (buffer-name)
   (get-buffer-window buffer-name))
 
@@ -294,7 +295,7 @@ shellpop type")
         (list :isnew t :activep (entropy/shellpop--buffer-active-p buffn)
               :index index-pick :buffer-name buffn))))))
 
-;; *** close all actived shellpop window
+;;;;; close all actived shellpop window
 (defun entropy/shellpop--close-all-active-shellpop-window ()
   (let* ((type-names (mapcar (lambda (x) (car x)) entropy/shellpop--type-register))
          shellpop-buffns
@@ -310,7 +311,7 @@ shellpop type")
       (push buffn closed))
     closed))
 
-;; *** prunning registered shellpop type entity 
+;;;;; prunning registered shellpop type entity 
 (defun entropy/shellpop--prune-type-register-core (shellpop-type-register)
   (let* ((type-name (car shellpop-type-register))
          (type-plist (cdr shellpop-type-register))
@@ -360,7 +361,7 @@ shellpop type")
   (dolist (shellpop-type-register entropy/shellpop--type-register)
     (entropy/shellpop--prune-type-register-core shellpop-type-register)))
 
-;; *** registering shellpop type
+;;;;; registering shellpop type
 (defun entropy/shellpop--type-index-member (index shellpop-type-register-index)
   (let ((cur-indexs shellpop-type-register-index))
     (catch :exit
@@ -382,7 +383,7 @@ shellpop type")
       (plist-put cur-type-plist
                  :pointer buff-index))))
 
-;; *** index overview
+;;;;; index overview
 (defun entropy/shellpop--make-prompt (shellpop-type-register-index)
   (let* ((name-list (entropy/cl-make-name-alist
                      shellpop-type-register-index
@@ -392,7 +393,7 @@ shellpop type")
          (choice (completing-read "Select slot: " name-list)))
     (cadr (assoc choice name-list))))
 
-;; *** shellpop type generator
+;;;;; shellpop type generator
 
 (defun entropy/shellpop--make-type-core (shellpop-type)
   (let* ((type-name (plist-get shellpop-type :type-name))
@@ -447,7 +448,8 @@ shellpop type")
             (unless unwind-trigger
               (setf (alist-get ,type-name entropy/shellpop--type-register)
                     (cdr old-type-register))
-              (kill-buffer-ask buff)))))
+              (when buff-isnew
+                (kill-buffer buff))))))
 
      `(defun ,(intern func-name) (prompt)
         (interactive "P")
@@ -491,8 +493,8 @@ shellpop type")
             entropy/shellpop--type-register))))
 
 
-;; *** shellpop minor mode
-;; **** minor mode
+;;;;; shellpop minor mode
+;;;;;; minor mode
 (defvar entropy-shellpop-mode-map
   (let ((map (make-sparse-keymap)))
     map))
@@ -514,7 +516,7 @@ shellpop type")
  '(("<f1>" . entropy/shellpop-rename-index-desc-within-mode)
    ("C-x 1" . entropy/shellpop-delete-other-widnow)))
 
-;; **** desc modefified
+;;;;;; desc modefified
 
 (defun entropy/shellpop--rename-index-desc-core (index shellpop-type-register)
   (let* ((type-name (car shellpop-type-register))
@@ -535,7 +537,7 @@ shellpop type")
      (cdr buffn-parse)
      type-register)))
 
-;; **** register for delete other window
+;;;;;; register for delete other window
 
 (defun entropy/shellpop-delete-other-widnow ()
   (interactive)
@@ -544,7 +546,7 @@ shellpop type")
       (setq entropy/shellpop--top-wcfg-register wfg-cur)
       (delete-other-windows))))
 
-;; ** Auto Load
+;;;; Auto Load
 
 ;;;###autoload
 (defun entropy/shellpop-start ()
@@ -552,5 +554,5 @@ shellpop type")
   (entropy/shellpop--make-types)
   (message "Intialized shellpop feature"))
 
-;; * provide
+;;; provide
 (provide 'entropy-shellpop)
