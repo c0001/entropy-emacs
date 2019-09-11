@@ -1,32 +1,101 @@
-;;; File name: entropy-dired-cp-or-mv.el ---> for entropy-emacs
+;;; entropy-dired-cp-or-mv.el --- Simple cross window cp or mv for emacs dired
 ;;
-;; Copyright (c) 2018 Entropy
-;;
-;; Author: Entropy
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-;;
+;;; Copyright (C) 20190911  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-dired-cp-or-mv
+;; Package-Version: 0.1.0
+;; Version:       file-version
+;; Created:       2018-month-date hour:min:sec
+;; Keywords:      dired, copy
+;; Compatibility: GNU Emacs 24;
+;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
 ;;; Commentary:
 ;;
-;; This package let you can quickly copy or move files (also be folder) from one dired window to
-;; another one.
+;;;; Preamble
 ;;
-;; The first thing you shoud do is to markd files in one dired window or just be with the entry
-;; under current point position, and then called `entropy/cpmv-dired-get-files-list' to get the
-;; file-list you marked.
+;; Using emacs internal files copy or moving operation basic on pure
+;; manually way that show you each prompt line interaction for inputting
+;; both of the source location and the destination one.
 ;;
-;; The final step is swithed to another dired windows and called `entropy/cpmv-to-current' to copy
-;; or move the files in file-list obtain from previous operation.
+;; This internally manual way was brief enough for current dir (denoted
+;; current dired directory) tracing for, but for the seperated dired
+;; buffer or mean what shows long different path on that manually way.
 ;;
+;; In this case, the designation of my mind about how to deal with that
+;; trouble was that get file list in one dired buffer stored in the
+;; 'list' type variable and calling them with another one. This package
+;; gives you the way doing for thus.
 ;;
-;;  
+;;;; Requirements
+;;
+;; There's no third-party libraries required for using
+;; =entropy-dired-cp-or-mv=, all the librarie used by emacs =built-in=
+;; ones.
+;;
+;;;; installation
+;;
+;; Get the main source file [[file:entropy-dired-cp-or-mv.el][entropy-cired-cp-or-mv.el]] to your load path.
+;;
+;; Than gives the follow =use-package= config style as the template:
+;;
+;; #+BEGIN_SRC emacs-lisp
+;;   (use-package entropy-dired-cp-or-mv
+;;     :ensure nil
+;;     :load-path "path-to-your-local-dir"
+;;     :commands (entropy/cpmv-dired-get-files-list
+;;                entropy/cpmv-to-current))
+;; #+END_SRC   
+;;
+;;;; Interaction
+;;
+;; - *Function:* ~entropy/cpmv-dired-get-files-list~
+;;
+;;   Getting the source marked files list preparing for copy or moving to
+;;   another directory.
+;;
+;; - *Function:* ~entropy/cpmv-to-current~ 
+;;   
+;;   Copy or moving files whose entries info stored in
+;;   =entropy/cpmv--marked-files-list= to current dired buffer (the
+;;   target dired buffer distinguished with the oringin one pointed by
+;;   func =entropy/cpmv-dired-get-files-list= calling place on).
+;;
+;;   *cp/mv exception case:*
+;;
+;;   1) Destination has duplicated file which names as the member of one
+;;      of the marked files list.(This emulating the real OS behaviour)
+;;
+;;   2) Destination was the subdirectory of files got local. In this case
+;;      was indeeded false for thus.
+;;
+;;   3) marked file list was NULL.(None files to be done with)
+;;
+;;; Configuration
+;;
+;; There's no need to get any customized configuration, all the function
+;; are self-embedded tied.
+;; 
+;;; Code:
+;;;; require
 
-;; * Code:
-;; ** require
-
-;; ** variable declaration
+;;;; variable declaration
 (defvar entropy/cpmv--marked-files-list nil
   "marked file-list created by `dired-get-marked-files'")
 (defvar entropy/cpmv--source-buffer-name nil
@@ -55,7 +124,7 @@ Be sure in mind that data was the most core of your life!
   "The rechecked buffer info-string for
   `entropy/cpmv-to-current'")
 
-;; ** face declaration
+;;;; face declaration
 (defgroup entropy/cpmv-face nil
   "face variable group for `entropy-dired-cp-or-mv'.")
 
@@ -86,9 +155,9 @@ Be sure in mind that data was the most core of your life!
 
 
 
-;; ** function
-;; *** library
-;; **** tools function
+;;;; function
+;;;;; library
+;;;;;; tools function
 (defun entropy/cpmv--clean-variable ()
   "Clean all the cpmv about variable."
   (setq entropy/cpmv--marked-files-list nil)
@@ -156,7 +225,7 @@ This function used by `entropy/cpmv-to-current'"
         (setq rv t))
     rv))
 
-;; **** print function
+;;;;;; print function
 
 ;; The following coding was aimed to render the marked file-list buffer like:
 
@@ -365,7 +434,7 @@ This function was one recursive function.
       cur)))
 
 
-;; *** main function
+;;;;; main function
 ;;;###autoload
 (defun entropy/cpmv-dired-get-files-list ()
   "Get files list for cp or mv for `entropy/cpmv-to-current' with
@@ -503,5 +572,5 @@ checked buffer showing"
   (when (get-buffer "*entropy/cpmv-prompt-buffer*")
     (kill-buffer "*entropy/cpmv-prompt-buffer*")))
 
-;; ** provide
+;;;; provide
 (provide 'entropy-dired-cp-or-mv)
