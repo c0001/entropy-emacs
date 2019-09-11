@@ -2,39 +2,401 @@
 
 ;; Copyright (C) 20181211  Entropy
 
-;; Author:        Entropy <bmsac0001@gmail.com>
-;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           none
-;; Package-Version: none
-;; Version:       none
-;; Created:       2018-12-11 12:48:04
-;; Keywords:      sdcv
-;; Compatibility: GNU Emacs 26.1;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-
+;; Author:           Entropy <bmsac0001@gmail.com>
+;; Maintainer:       Entropy <bmsac001@gmail.com>
+;; URL:              https://github.com/c0001/entropy-sdcv
+;; Package-Version:  20181211.1248
+;; Version:          0.1.0
+;; Created:          2018-12-11 12:48:04
+;; Keywords:         sdcv
+;; Compatibility:    GNU Emacs 26.1;
+;; Package-Requires: ((emacs "24") (cl-lib "0.5") (entropy-common-library "0.1.0") (popup "0.5.3") (f "0.20.0") (youdao-dictional "0.4") (bing-dict) (google-translate))
+;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;; 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;; 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+;; 
 ;;; Commentary:
 ;;
-;; none
+;;;; Preamble
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-2aee4d32-27fa-4237-bbf2-f5544adf63c4
+;; :END:
 ;;
-;;; Configuration:
+;; Sdcv was one cli wide-dicts query tool. It was derived from the
+;; opensource e-dict application [[http://www.huzheng.org/stardict/][startdict]] founded by [[http://huzheng.org/][Huzheng]].
 ;;
-;; none
-
-;; * Code:
-;; ** require
+;; Sdcv can parse stardict e-dict formt and return through the cli
+;; response, various internal optional args can charge the reponse type
+;; and the query style, ~sdcv --help~ gives you the prompts.
+;;
+;; =entrop-sdcv= is the front-end of sdcv and be as the pure elisp
+;; written and aims that help you quickly query words within emacs buffer
+;; without any window exchanging and be using the offline dict instead of
+;; retrieving the response from online dict server e.g. bing-dic or
+;; google-translation. This package inspired by [[https://github.com/manateelazycat/sdcv][manateelazycat's sdcv]]
+;; package, but reducing some unnecessary feature and rebuild from fresh.
+;;
+;; Before using and configuring this package, you should some common
+;; basic command interaction of it's backend sdcv for understanding some
+;; effection and the terms of this package. Below subsection shows what
+;; about this.
+;;
+;;
+;;;;; Sdcv interaction:
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-809ff094-b70d-40cd-84d2-1e2c0d4bfc51
+;; :END:
+;;
+;; sdcv is simple, cross-platform text-base utility for work with
+;; dictionaries in StarDict's format. The word from "list of words" may
+;; be string with leading '/' for using Fuzzy search algorithm, string
+;; may contain '?' and '*' for using regexp search. It works in
+;; interactive and non-interactive mode. Press Ctrl+D to exit from
+;; interactive mode.
+;;
+;; From sdcv help prompting response:
+;; #+BEGIN_EXAMPLE
+;; ~/.e/e/s/entropy-sdcv/ $ sdcv --help
+;; Usage:
+;;   sdcv [OPTION...]  words
+;;
+;; Help Options:
+;;   -h, --help                     Show help options
+;;
+;; Application Options:
+;;   -v, --version                  display version information and exit
+;;   -l, --list-dicts               display list of available dictionaries and exit
+;;   -u, --use-dict=bookname        for search use only dictionary with this bookname
+;;   -n, --non-interactive          for use in scripts
+;;   -j, --json-output              print the result formatted as JSON
+;;   -e, --exact-search             do not fuzzy-search for similar words, only return exact matches
+;;   -0, --utf8-output              output must be in utf8
+;;   -1, --utf8-input               input of sdcv in utf8
+;;   -2, --data-dir=path/to/dir     use this directory as path to stardict data directory
+;;   -x, --only-data-dir            only use the dictionaries in data-dir, do not search in user and system directories
+;;   -c, --color                    colorize the output
+;;
+;; #+END_EXAMPLE 
+;;  
+;; The basic query operation can be done with (query 'apple' for demo):
+;; #+BEGIN_EXAMPLE
+;; $ sdcv apple
+;;
+;; Word: apple
+;;
+;; [ˋæpL;ˊæpl]
+;; < ap.ple >
+;; [基本字彙]
+;; <<名詞>>
+;; 1 a. 蘋果樹
+;;   b. 蘋果
+;; 2 a. 類似蘋果樹的植物
+;;      如: 野生蘋果樹, 釋迦果樹等
+;;   b. 類似蘋果的果實
+;; <<慣用語>>
+;; apple of (one's) eye
+;; 掌上明珠, 心肝寶貝
+;; Her grandson is the apple of her eye.  她的孫子是她的至寶
+;; #+END_EXAMPLE
+;;
+;;;;; Sdcv dicts choosen
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-59d86f4e-8b76-4a37-8cbb-3583ecbb7e54
+;; :END:
+;;
+;; *Valid dict:*
+;;
+;; All stardict dicts has its dir structure, which was one dimension
+;; consistsof sets of individual files, below files denoted are
+;; necessary:
+;;
+;; - *.ifo file:     Dict information indication.
+;; - *.idx file:     Dict index.
+;; - *.dict.dz file: Dict compressed database.
+;;
+;;
+;; *Default:*
+;;
+;; Sdcv default using the dict archived with searching for environment
+;; variable =STARDICT_DATA_DIR=, and get the dict info under its 'dict'
+;; dir , thus if your set this envrionmet be as =~/.stardict=, then it
+;; will will search your querying about by the dict under
+;; =~/.startdict/dict/=.
+;;
+;; *Realtime specification:*
+;;
+;; Sdcv optional arg =-2= gives the description that "use this directory
+;; as path to stardict data directory", thus you get the ability to
+;; search for individual dict, this as one demo from my eshell:
+;;
+;; #+BEGIN_EXAMPLE
+;; ~/.e/e/s/entropy-sdcv/ $ sdcv apple -2 ~/.stardict/stardict-xdict-ec-big5_fix-2.4.2/
+;; Found 1 items, similar to apple.
+;; -->XDICT英漢辭典
+;; -->apple
+;;
+;; [ˊæpl]
+;; n. 蘋果,蘋果電腦公司;人,家伙;手榴彈
+;; #+END_EXAMPLE
+;;
+;;
+;;;; Requirements
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-5259b341-5966-4fbd-a14e-dcba4c8b81df
+;; :END:
+;;
+;; There's sets of melpa emacs extensions are required as the api
+;; provider for this package:
+;;
+;; - [[https://github.com/tumashu/posframe/tree/d141d56d1c747bca51f71f04fdb9d4d463996401][posframe]]: 
+;;
+;;   show query response with tooltip sub-window if on emacs-version
+;;   upper than 26.
+;;
+;; - [[https://github.com/auto-complete/popup-el/tree/80829dd46381754639fb764da11c67235fe63282][popup]]:
+;;
+;;   show query response with tooltip sub-window in generally
+;;   emacs-version whichever you ran with.
+;;
+;; - json:
+;;
+;;   Parse sdcv's json response, it usually be built-in with. 
+;;
+;; - [[http://github.com/rejeep/f.el][f]]
+;;
+;;   Working for file based operation. 
+;;
+;; - cl:
+;;
+;;   Get some common-lisp featuer, this usually be as built-in feature.
+;;  
+;; - [[https://github.com/xuchunyang/youdao-dictionary.el][youdao-dictionary]]
+;;
+;;   Be as the optioanl exteranl online query channel when no sdcv
+;;   response got.
+;;
+;; - [[https://github.com/cute-jumper/bing-dict.el][bing-dict]]
+;;
+;;   Be as the optioanl exteranl online query channel when no sdcv
+;;   response got.
+;;
+;; - [[https://github.com/atykhonov/google-translate/tree/17a1ddc074b96cdc3b8199ccb06824a7a95bf9ff][google-translate]]
+;;
+;;   Be as the optioanl exteranl online query channel when no sdcv
+;;   response got.
+;;
+;;
+;; Also as other entropy-built package, the package
+;; =entropy-common-library= was required on the core position, you can
+;; get it from entropy-emacs repositor.
+;;
+;;;; Dependencies
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-599612f8-33fc-4be9-bf42-fd18eb05c016
+;; :END:
+;;
+;; The external dependency required was only one =sdcv=, you should get
+;; it from [[https://github.com/Dushistov/sdcv][github]] and compile and install it by you self. 
+;;
+;; It quiet simple for the way of compiling on unix-like platform:
+;;
+;; #+BEGIN_SRC bash
+;;   # For building
+;;   mkdir /tmp/build-sdcv
+;;   cd /tmp/build-sdcv
+;;   cmake path/to/source/code/of/sdcv
+;;   make
+;;
+;;   # If you enable nls then you should also type
+;;   make lang
+;;
+;;   # To install
+;;   make install
+;; #+END_SRC 
+;;
+;; *Build on windows:*
+;;
+;; Original sdcv was not support Windows platform, thus the way for
+;; compiling it basic on pure Windows platform must be patching a lot
+;; into it source, however I don't know C enough for understanding it's
+;; raw mechanism. However, we can use the posix environment on windows
+;; called Msys2(basic on cygwin and Mingw project) to compiling it and
+;; run it within this posix environment.
+;;
+;; Fist of all, install [[https://www.msys2.org/][Msys2]] in your PC and clone the minor patched
+;; version of sdcv from [[https://github.com/c0001/sdcv][c0001/sdcv]] with the =patch= branch, and then
+;; build using Msys tool chain by satisfying all the dependencies
+;; founded the description in repo's README.
+;;
+;;;; Installation
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-8e9efb70-4fa5-4556-a143-7b58ab8009fa
+;; :END:
+;;
+;; For famous emacs package configuration management tool =use-package=
+;; you can using below coding snippet:
+;;
+;; #+BEGIN_SRC  emacs-lisp
+;;   (use-package entropy-sdcv
+;;     :ensure nil
+;;     :path "path-to-your-load-path"
+;;     :commands (entropy/sdcv-search-at-point-tooltip
+;;                entropy/sdcv-search-input-adjacent))
+;; #+END_SRC
+;;
+;; The forcefully 'utf-8' transfer advice was needed as your current
+;; coding system are local setting not equaling for 'utf-8', this case
+;; usually occurred in windows platform, you could using function like:
+;;
+;; #+BEGIN_SRC emacs-lisp
+;;   (defun  my/lang-set-utf8 ()
+;;     (string= lang "UTF-8")
+;;     (set-language-environment "UTF-8")
+;;     (prefer-coding-system 'utf-8-unix))
+;; #+END_SRC
+;;
+;; #+BEGIN_QUOTE
+;; The utf-8 language environment requirement was rely on the cases that
+;; some dict information string response at dict query step will be messy
+;; coding for. 
+;; #+END_QUOTE
+;;
+;; And then advice the each entropy-sdcv interaction command as:
+;; #+BEGIN_SRC emacs-lisp
+;;   (with-eval-after-load 'entropy-sdcv
+;;     (defun my/sdcv--lang-advice (&rest args)
+;;       (my/lang-set-utf8))
+;;     (advice-add 'entropy/sdcv-search-at-point-tooltip :before #'my/sdcv--lang-advice)
+;;     (advice-add 'entropy/sdcv-search-input-adjacent :before #'my/sdcv--lang-advice))
+;; #+END_SRC
+;;
+;;
+;;
+;;; Configuration
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-ec2ff0d8-4223-48f5-b4e9-6ff1b9450df3
+;; :END:
+;;
+;; =entropy-sdcv= exposed dozen of customized feature for user to
+;; specify along with their own taste. For the customizing level dividing
+;; into what, I gives below customized level categories for understanding
+;; and got the proper way of selecting which level you should give a try. 
+;;
+;;;; Classical  suggested configuration  
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-95394510-3e8b-4370-9424-6d1bc5b17b6b
+;; :END:
+;;
+;; - =entropy/sdcv-user-dicts= : Specified your sdcv dict collection
+;;   directory location.
+;;
+;;   As mentionded upons sections, this variale's default value is
+;;   "~/.stardict" which contain the dicts collections structed as:
+;;   #+BEGIN_EXAMPLE
+;;     .
+;;     ├── stardict-21shijishuangxiangcidian-big5-2.4.2
+;;     ├── stardict-21shijishuangyukejicidian-big5-2.4.2
+;;     ├── stardict-2wwords-2.4.2
+;;     ├── stardict-CDICTbig-2.4.2
+;;     ├── stardict-cdict-big5-2.4.2
+;;     ├── stardict-cedict-big5-2.4.2
+;;     ├── stardict-chenyixiaofoxuechangjiancihui-2.4.2
+;;     ├── stardict-eng-ch-eng-buddhist-2.4.2
+;;     ├── stardict-faxiangcidian-big5-2.4.2
+;;     ├── stardict-foguangdacidian-big5-2.4.2
+;;     ├── stardict-foxuedacidian-big5-2.4.2
+;;     ├── stardict-handedict-big5-2.4.2
+;;     ├── stardict-kdic-ec-14w-big5-2.4.2
+;;     ├── stardict-langdao-ce-big5-2.4.2
+;;     ├── stardict-langdao-ec-big5-2.4.2
+;;     ├── stardict-lazyworm-ce-big5-2.4.2
+;;     ├── stardict-lazyworm-ec-big5-2.4.2
+;;     ├── stardict-oxford-big5-2.4.2
+;;     ├── stardict-sanzunfasu-2.4.2
+;;     ├── stardict-soothill-buddhist-2.4.2
+;;     ├── stardict-sun_dict_e2t-2.4.2
+;;     ├── stardict-xdict-ce-big5_fix-2.4.2
+;;     ├── stardict-xdict-ce-big5-2.4.2
+;;     ├── stardict-xdict-ec-big5_fix-2.4.2
+;;     └── stardict-xdict-ec-big5-2.4.2
+;;
+;;   #+END_EXAMPLE
+;;
+;;   Each subfolder of it was one dict folder structed as the description
+;;   of [[#h-59d86f4e-8b76-4a37-8cbb-3583ecbb7e54][here]], and this show what your must noted due to that whatever
+;;   dict collection location you specified for, the collection dir
+;;   structer must formed as this default.
+;;
+;;   On what you see here, the demo of dict collection shown as was what
+;;   my self using for, if your want to get the same dict collection
+;;   without the toughly searching the usable dicts by paying further
+;;   extra vitality which annoyed to you, you can clone follow repo as
+;;   with none warranty:
+;;
+;;   : git clone https://github.com/zdict/dictionaries.git ~/.stardict
+;;
+;; - =entropy/sdcv-program= : Specified sdcv binary calling path.
+;;
+;;   In generally cases about, it's you should involve 'sdcv' binary from
+;;   your shell =PATH= directly but be from what you specified path
+;;   location. But it's just the suggestion for various benefit for
+;;   install sdcv in your =PATH=, OFC you can specified the sdcv calling
+;;   path by setting =entropy/sdcv-program= as the path string.
+;;
+;;;; Useful minor feature configuration
+;; :PROPERTIES:
+;; :CUSTOM_ID: h-b8dcaa05-788f-4292-acbe-a2400edb705c
+;; :END:
+;;
+;; - =entropy/sdcv-command-prefix= : extra sdcv optioanl args transfer to
+;;   shell commmand.
+;;
+;;   The internal default sdcv shell command subprocess getting with
+;;   optional arg '-n' which show that "do not using interaction way."
+;;   which just response directly without queried returning candidates
+;;   selection prompt interactivation.
+;;
+;;   In which you want to specified the case of be as without fuzzy
+;;   matching words quried about, you can sets varible to =-e=.
+;;
+;; - =entropy/sdcv-tooltip-type= : Chosen the tooltip type with 'popup'
+;;   or 'posframe' type.
+;;
+;;   The sdcv response string container type. By default, when
+;;   ‘emacs-version’ less than ’26.1’ using ’popup’ else than using
+;;   ’posframe, because posframe using emacs featuer chiled-frame which
+;;   built-in on the version upper than thus.
+;;
+;; - =entropy/sdcv-external-query-type= : Chosen the external dict type.
+;;
+;;   While there's none response returned by sdcv which case that sdcv
+;;   can not find the exact word matching of current input(or the
+;;   'thing-at-point'), =entropy-sdcv= will try it from querying for
+;;   external online dict powered by [[https://github.com/cute-jumper/bing-dict.el][bing-dict]], [[https://github.com/xuchunyang/youdao-dictionary.el][youdao-dict]], and
+;;   [[https://github.com/atykhonov/google-translate/tree/17a1ddc074b96cdc3b8199ccb06824a7a95bf9ff][google-translation]].
+;;
+;;   The valid value of this variable was (symbol type):
+;;   1. ’youdao 
+;;   2. ’bing
+;;   3. ’google
+;;
+;;
+;;
+;;
+;;
+;; 
+;;; Code:
+;;;; require
 (require 'entropy-common-library)
 (condition-case nil (require 'posframe) (error (message "Warn: You haven't install posframe!")))
 (require 'popup)
@@ -46,11 +408,11 @@
 (require 'bing-dict)
 (require 'google-translate)
 
-;; ** variable declaration
-;; *** group
+;;;; variable declaration
+;;;;; group
 (defgroup entropy/sdcv-group nil
   "Group for `entropy-sdcv' feature.")
-;; *** custom
+;;;;; custom
 
 (defcustom entropy/sdcv-user-dicts nil
   "User sdcv dicts directories list"
@@ -110,7 +472,7 @@ Available chosen are:
   :type 'integer
   :group 'entropy/sdcv-group)
 
-;; *** internal var
+;;;;; internal var
 (defvar entropy/sdcv--tooltip-last-point nil
   "Hold last point when show tooltip, use for hide tooltip after move point.")
 
@@ -159,7 +521,7 @@ Available chosen are:
   "Pre ordered system lang set used during sdcv query process.")
 
 
-;; *** default face
+;;;;; default face
 (defface entropy/sdcv-tooltip-bgFace '((t ()))
   "The tooltip buffer background face. ")
 
@@ -174,8 +536,8 @@ Available chosen are:
   :group 'entropy/sdcv-group)
 
 
-;; ** library
-;; *** lang envrionment pre check
+;;;; library
+;;;;; lang envrionment pre check
 (defun entropy/sdcv--set-specific-lang-env ()
   (unless (equal entropy/sdcv--specific-lang
                  (getenv "LANG"))
@@ -200,7 +562,7 @@ the subject of utf-8 group."
   (apply oldfunc args)
   (entropy/sdcv--recovery-user-origin-lang-env))
 
-;; *** dictionary auto search
+;;;;; dictionary auto search
 
 (defun entropy/sdcv--auto-search-dicts ()
   "Automatically search sdcv dict.
@@ -278,7 +640,7 @@ the subject of utf-8 group."
     (setq rtn (list dict-info dict-dir))
     rtn))
 
-;; *** dictionary check
+;;;;; dictionary check
 (defun entropy/sdcv--check-dicts ()
   "Check all dicts path stored in variable `entropy/sdcv-user-dicts'
   validation status and generate dict info list made for
@@ -308,7 +670,7 @@ the subject of utf-8 group."
 
 (advice-add 'entropy/sdcv--check-dicts :around #'entropy/sdcv--lang-set-process)
 
-;; *** dictionaly chosen
+;;;;; dictionaly chosen
 (defun entropy/sdcv--choose-dict (&optional call-with-interactive)
   "Choose sdcv dict for initializing query state preparing for
   sub-procedure.
@@ -333,7 +695,7 @@ the subject of utf-8 group."
       chosen)
     entropy/sdcv--stick-dict))
 
-;; *** string obtains
+;;;;; string obtains
 (defun entropy/sdcv--get-word-or-region ()
   "Return region or word around point.
 If `mark-active' on, return region string.
@@ -343,7 +705,7 @@ Otherwise return word around point."
                                       (region-end))
     (thing-at-point 'word t)))
 
-;; *** external dict query
+;;;;; external dict query
 (defun entropy/sdcv--query-with-external (query show-type app-type)
   "The tuned dispatcher for `entropy/sdcv--command-router' for
   shunting to external dict application when sdcv query result match
@@ -372,7 +734,7 @@ Otherwise return word around point."
        (entropy/sdcv--query-with-google query show-type)))
     nil))
 
-;; **** youdao
+;;;;;; youdao
 (defun entropy/sdcv--query-with-youdao (query show-type)
   (cl-case show-type
     (tooltip
@@ -381,7 +743,7 @@ Otherwise return word around point."
      (youdao-dictionary-search query)))
   nil)
 
-;; **** bing
+;;;;;; bing
 (defun entropy/sdcv--query-with-bing (query show-type)
   (cl-case show-type
     (tooltip
@@ -480,7 +842,7 @@ Otherwise return word around point."
     (error (bing-dict--message bing-dict--no-result-text))))
 
 
-;; **** google
+;;;;;; google
 (defun entropy/sdcv--query-with-google (query show-type)
   (cl-case show-type
     (tooltip
@@ -488,8 +850,8 @@ Otherwise return word around point."
     (adjacent
      (google-translate-translate nil nil query))))
 
-;; *** command transfer
-;; **** shell port
+;;;;; command transfer
+;;;;;; shell port
 (defun entropy/sdcv--shell-transfer (str dict-path &optional json-exp)
   (let (command
         response
@@ -514,7 +876,7 @@ Otherwise return word around point."
           entropy/sdcv--response-log response)
     response))
 
-;; **** command router
+;;;;;; command router
 (defun entropy/sdcv--command-router (str dict-path show-type  &optional recall)
   "Router for query with while the state both of matching
 response or non-matched of sdcv cli and the state when query
@@ -575,10 +937,10 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
              ((eq show-type 'adjacent)
               (entropy/sdcv--show-with-buffer feedback))))))))))
 
-;; *** command response show
-;; **** response filter
-;; ***** generic (under development)
-;; ***** json port
+;;;;; command response show
+;;;;;; response filter
+;;;;;;; generic (under development)
+;;;;;;; json port
 (defun entropy/sdcv--extract-json-response (json-response)
   "Extracting sdcv json response object string for filterable
   with lisp processing. And return the response final feedback
@@ -655,7 +1017,7 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
     rtn))
 
 
-;; **** response adjacent buffer show
+;;;;;; response adjacent buffer show
 
 (defun entropy/sdcv--show-with-buffer (feedback)
   (let ((buffer (get-buffer-create entropy/sdcv--showed-buffer)))
@@ -667,7 +1029,7 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
     (display-buffer buffer)
     (setq buffer-read-only t)))
 
-;; **** response tooltip show
+;;;;;; response tooltip show
 (defun entropy/sdcv--automatic-faceSet ()
   (let ((Lbg_color entropy/sdcv-tooltip-bgLight-color)
         (Bbg_color entropy/sdcv-tooltip-bgDark-color)
@@ -681,7 +1043,7 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
            (setq rtn (plist-put rtn :fg "brightyellow"))))
     rtn))
 
-;; ***** posframe
+;;;;;;; posframe
 (defun entropy/sdcv--show-with-tooltip (feedback)
   (if (display-graphic-p)
       (let ((tooltip_Ctype (entropy/sdcv--automatic-faceSet)))
@@ -713,7 +1075,7 @@ This func was automatically added into `post-command-hook' by
         (posframe-delete entropy/sdcv--tooltip-buffer)
         (kill-buffer entropy/sdcv--tooltip-buffer)))))
 
-;; ***** popup
+;;;;;;; popup
 (defun entropy/sdcv--show-with-popup (feedback)
   (let ((theme_Ctype (entropy/sdcv--automatic-faceSet))
         ($pface_temp (cons (face-attribute 'popup-tip-face :foreground)
@@ -727,7 +1089,7 @@ This func was automatically added into `post-command-hook' by
                         :background (cdr $pface_temp))))
 
 
-;; *** query rebuit
+;;;;; query rebuit
 
 (defun entropy/sdcv--query-rebuit (str)
   "Rebuilt the query string for be suits as the sdcv receive type
@@ -741,7 +1103,7 @@ downcase the query string."
     rtn))
 
 
-;; ** main
+;;;; main
 ;;;###autoload
 (defun entropy/sdcv-search-at-point-tooltip ()
   "Mainly interactive func for search point or marked region
@@ -779,5 +1141,5 @@ string with sdcv cli."
 (advice-add 'entropy/sdcv-search-at-point-tooltip :around #'entropy/sdcv--lang-set-process)
 (advice-add 'entropy/sdcv-search-input-adjacent :around #'entropy/sdcv--lang-set-process)
 
-;; * provide
+;;; provide
 (provide 'entropy-sdcv)
