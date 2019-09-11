@@ -1,14 +1,61 @@
-;;; File name: entropy-s2t.el ---> for entropy-emacs
+;;; entropy-s2t.el --- Simple and traditional chinese toggle function for pyim
 ;;
-;; Copyright (c) 2018 Entropy
+;;; Copyright (C) 20190911  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-s2t
+;; Package-Version: 0.1.0
+;; Created:       2018
+;; Compatibility: GNU Emacs emacs-version;
+;; Package-Requires: ((emacs "24") (cl-lib "0.5") (pyim "1.6.0"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;;; Commentary:
 ;;
-;; Author: Entropy
+;; This packag was the simplified-to-traditional chinese library using
+;; was the value of =pyim-magic-converter= which was the customized
+;; variable of emacs chinese input method [[https://github.com/tumashu/pyim/tree/84e90a9de9508242c693d425ccd3cedeac4602b3][pyim]].
 ;;
-;; This file is not part of GNU Emacs.
+;; - Requirements: =pyim=
 ;;
-;;; License: GPLv3
-
-;; * Code:
+;; - Installation:
+;;   
+;;   #+BEGIN_SRC elisp
+;;     (use-package entropy-s2t
+;;       :ensure nil
+;;       :load-path "path-to-your-load-path"
+;;       :commands entropy/s2t-string)
+;;
+;;     (defun entropy/toggle-pyim-s2t ()
+;;       (interactive)
+;;       (if pyim-magic-converter
+;;           (setq pyim-magic-converter nil)
+;;         (setq pyim-magic-converter 'entropy/s2t-string)))
+;;
+;;     (global-set-key (kbd "C-M-\\") 'entropy/toggle-pyim-s2t)
+;;   #+END_SRC
+;;
+;; - Demo:
+;;
+;;   #+attr_org: :width 400px
+;;   #+attr_html: :width 600px
+;;   [[file:img/test_2019-02-11_21-50-24.gif]]
+;; 
+;;; Code:
 
 (defvar entropy/s2t-table
       '(("㐷" . "傌")
