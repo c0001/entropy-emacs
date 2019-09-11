@@ -1,6 +1,6 @@
 ;;; entropy-common-library.el --- Common library for entropy-emacs elisp programming
 ;;
-;; * Copyright (C) 20190911  Entropy
+;;; Copyright (C) 20190911  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
@@ -23,7 +23,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;; 
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; Common elisp library for [[https://github.com/c0001/entropy-emacs][entropy-emacs]].
 ;;
@@ -38,7 +38,7 @@
 ;; - ivy completion framwork extension
 ;; - mischellaneous
 ;;
-;; ** Requirements
+;;;; Requirements
 ;;
 ;; - dash (melpa install)
 ;; - cl(emacs built-in with already)
@@ -47,7 +47,7 @@
 ;; There's just these three library required for compiling with, simplify
 ;; and easy to use.
 ;;
-;; * Configuration
+;;; Configuration
 ;;
 ;; Just requiring with, do not using lazy laoding of it because of that
 ;; all the funcs defined in this package are not defined with =autoload=
@@ -57,14 +57,14 @@
 ;; 
 ;;; Code:
  
-;; * require
+;;; require
 (require 'dash)
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
 (require 'ivy)
 
-;; * deprecated compatibility
+;;; deprecated compatibility
 (defun entropy/cl-remove-duplicates (cl-seq &rest cl-keys)
   "The wrapper for `remove-duplicates' and `cl-remove-duplicates'.
 
@@ -76,13 +76,13 @@ deprecated origin `cl' package instead of `cl-macs'."
         ((fboundp 'remove-duplicates)
          (apply 'remove-duplicates cl-seq cl-keys))))
 
-;; * Internal Functions
+;;; Internal Functions
 ;;
 ;;    This part defined some functions used only for this package for
 ;;    providing middle functional utilities to other Apis.
 ;;
 ;;    
-;; * System environment checker
+;;; System environment checker
 (defun entropy/cl-checking-system-utf8-supply ()
   "Checking operation system envrionment lanuguage support full
 'utf-8' surroundings, it's useful for emacs process starting or
@@ -100,9 +100,9 @@ Return non-nil as supported as."
          (setq rtn t))))
     rtn))
 
-;; * elisp data type operation
-;; ** list
-;; *** list reverse
+;;; elisp data type operation
+;;;; list
+;;;;; list reverse
 (defun entropy/cl-reverse-list (list)
   "reverse the sequence of one list and return the result but
   without replacing the original list LIST."
@@ -112,7 +112,7 @@ Return non-nil as supported as."
     rlist))
 
 
-;; *** list uniquely creator
+;;;;; list uniquely creator
 (defun entropy/cl-make-identify-list (list)
   "Adding identifier for each element of list LIST and return new list.
 
@@ -160,7 +160,7 @@ Each elements can be list or any single one."
     (setq rlist (entropy/cl-reverse-list rlist))))
 
 
-;; *** list member checker
+;;;;; list member checker
 (defun entropy/cl-unique-list (unit list)
   "Justify whether has the unit in list LIST."
   (let (($return nil))
@@ -169,7 +169,7 @@ Each elements can be list or any single one."
           (setq $return t)))
     $return))
 
-;; *** list make name alist
+;;;;; list make name alist
 (defun entropy/cl-make-name-alist (olist naming-func)
   "Make name-alist from one pure vector OLIST. 
 
@@ -191,7 +191,7 @@ then retun name-alist:
         rtn
       (error "entropy/cl-make-name-alist: Occur wrong!"))))
 
-;; *** list capture region map
+;;;;; list capture region map
 (defun entropy/cl-capture-list-by-region-map (list-var region-map)
   "Capture list LIST-VAR with region map REGION-TYPE and return
 the grouped pair list type value.
@@ -224,8 +224,8 @@ List var (1 2 3 4 5 6 7 8 9) maped by (1 2 3) will return
     (reverse rtn)))
 
 
-;; ** alist
-;; *** numberic alist sorting
+;;;; alist
+;;;;; numberic alist sorting
 (defun entropy/cl-sort-numberic-alist (numberic-alist &optional reverse only-cdr)
  "Sorting numberic alist which the car of each associate element
 was numberic and return the sorted alist.
@@ -269,7 +269,7 @@ Duplicated numberic order!"))
                (push (cdr el) rtn))
              rtn)))))
 
-;; ** plist
+;;;; plist
 (defun entropy/cl-plistp (plist-var)
   "Return non-nil while PLIST-VAR whether is plist type."
   (let ((temp_var (copy-tree plist-var)))
@@ -348,7 +348,7 @@ sequence."
       (push (nth counter plist-var) plist-props)
       (setq counter (+ 2 counter)))
     (setq plist-props (reverse plist-props))))
-;; ** string operation
+;;;; string operation
 (defun entropy/cl-get-string-lines (str)
   "Get string STR line count while displayed in buffer."
   (let (line-count)
@@ -443,7 +443,7 @@ sequence."
    rtn))
 
 
-;; *** truncate string
+;;;;; truncate string
 (defun entropy/cl-truncate-string-with-length (str length &optional line-indication)
   "Truncate string STR with length LENGTH rescursively and be without
  destroying string struct. Using func
@@ -575,7 +575,7 @@ char e.g. '\\n' for with."
                                 rest-part length)))))))
     rtn))
 
-;; *** string replace
+;;;;; string replace
 
 (defun entropy/cl-replace-buffer-substr-with-face (beg end regexp rep indicated-face times)
   "Replace buffer substring from BEG to END matched by regexp REGEXP
@@ -749,9 +749,9 @@ ending of buffer ending. "
           (cl-incf p_cur))))
     (setq rtn (buffer-string))
     rtn))
-;; * file and dir operation
-;; ** dir
-;; *** list dir
+;;; file and dir operation
+;;;; dir
+;;;;; list dir
 (defun entropy/cl-list-dir-lite (dir-root)
   "Return directory list with type of whichever file or
 directory."
@@ -809,7 +809,7 @@ return the path list. "
         (setq rtn $files)))
     rtn))
 
-;; *** checking duplicated files
+;;;;; checking duplicated files
 (defun entropy/cl--sdpf-car-duplicated (cons-list)
   (let ((rtn nil)
         (rest-cons (cdr cons-list))
@@ -896,7 +896,7 @@ Non-nil value.
                   compare-list)))
          (entropy/cl--sdpf-car-duplicated compare-list))))))
 
-;; *** dirs relative relationship
+;;;;; dirs relative relationship
 (defvar entropy/cl-dir-relativity-log nil
   "Func `entropy/cl-dir-relativity-number''s log variable for
   debugging used.")
@@ -1133,8 +1133,8 @@ otherwise for nil."
            nil))))
 
 
-;; ** file
-;; *** file modification state check
+;;;; file
+;;;;; file modification state check
 (defun entropy/cl-file-last-modification-time (file)
   "Indicated the last modification time of file FILE.
 
@@ -1179,7 +1179,7 @@ FILE-TIME was produced by `entropy/cl-file-last-modification-time'."
           (setq rtn t)))
     rtn))
 
-;; *** automatically create file
+;;;;; automatically create file
 (defun entropy/cl-create-file (&optional file-name target-location)
   "Create file with follow options:
 
@@ -1230,7 +1230,7 @@ Note the location must end with '/'."
 
 
 
-;; *** backup files
+;;;;; backup files
 (defun entropy/cl-backup-file (FILE)
   "Backup file with named it by the form of
 \"xxx-backup_20180713_Fri_21-28-20\""
@@ -1247,7 +1247,7 @@ Note the location must end with '/'."
 
 
 
-;; *** check-filename legal
+;;;;; check-filename legal
 (defun entropy/cl-check-filename-legal (filename &optional non-error)
   "Check filename legally for current operation system platform.
 
@@ -1343,7 +1343,7 @@ That indicated that drive 'm' 'f' 'z' were detected."
       (when (file-exists-p (car el))
         (add-to-list 'rtn (cdr el) t)))
     rtn))
-;; *** file-sha-or-md5 checking
+;;;;; file-sha-or-md5 checking
 (defun entropy/cl-file-validation (file &optional vtool)
   "Using validation tool generated the file validation codes.
 
@@ -1381,9 +1381,9 @@ When optional arg VTOOL nil for, using md5sum as default choice.
       (setq validation (replace-regexp-in-string "\n" "" validation)))
     validation))
 
-;; * window and buffer operaion
-;; ** buffer operation
-;; *** buffer name uniquely checker
+;;; window and buffer operaion
+;;;; buffer operation
+;;;;; buffer name uniquely checker
 (defun entropy/cl-ununiquify-bfn (buffer-name)
   "ununiquify buffer name which auto produced the extension name
   components rely on `uniquify-buffer-name-style-unique'."
@@ -1403,7 +1403,7 @@ When optional arg VTOOL nil for, using md5sum as default choice.
           (error "Buffer name not uniquify! please close other buffer which as named as current buffer.")))
     (message "Uniquely buffer-name: %s" (buffer-name))))
 
-;; *** buffer exist check
+;;;;; buffer exist check
 (defun entropy/cl-buffer-exists-p (buffername)
   "Judge whether buffer BUFFERNAME existed!"
   (let* ((bfl (mapcar 'buffer-name (buffer-list))))
@@ -1414,7 +1414,7 @@ When optional arg VTOOL nil for, using md5sum as default choice.
       nil)))
 
 
-;; *** replacing buffer string
+;;;;; replacing buffer string
 (defun entropy/cl-replacing-buffer (re-rules-alist)
   "Replacing by regexp rule within whole buffer.
 
@@ -1429,9 +1429,9 @@ When optional arg VTOOL nil for, using md5sum as default choice.
 
 
 
-;; * completion framework
-;; ** ivy development
-;; *** ivy repeatly read former
+;;; completion framework
+;;;; ivy development
+;;;;; ivy repeatly read former
 (defun entropy/cl-ivy-read-repeatedly-function (read candidates-recorded prompt-abbrev &optional selected-shorten-function)
   "Common repeatedly read action for `ivy-read'.
 
@@ -1492,8 +1492,8 @@ Just symbol and string type supported for candidates-recoreded."))))
                         prompt))
             rtn)))
 
-;; ** Internal completion method
-;; *** Read string
+;;;; Internal completion method
+;;;;; Read string
 (defun entropy/cl-repeated-read (initial-input-prompt)
   "Repeated read strings by `read-string' with typing history prompt,
 after type nothing, return the string list in order to the typing
@@ -1520,7 +1520,7 @@ sequence."
 
 
 
-;; * mischellaneous
+;;; mischellaneous
 (defun entropy/cl-gen-time-str (&optional format-string)
   "generate one time-string from the default style or the
 customized specific format-string FORMAT-STRING."
@@ -1618,7 +1618,7 @@ following rule-set:
       (funcall repeat-manually-func))
     init-file))
 
-;; * color refer
+;;; color refer
 (defun entropy/cl-color-name-to-hsv (color_name)
   "Transfer color COLOR_NAME to hsv format."
   (let* ((Crgb (color-name-to-rgb color_name))
@@ -1648,7 +1648,7 @@ non-detectivation."
         'light
       'dark)))
 
-;; * url refer
+;;; url refer
 (defun entropy/cl-url-transfer-region-entities (&optional region)
   "Transfer region-selected text into entities form and push it into
 kill-ring.
@@ -1678,5 +1678,5 @@ instead of the interactive way."
       (error "Non valid region argument given."))))
 
 
-;; * provide
+;;; provide
 (provide 'entropy-common-library)
