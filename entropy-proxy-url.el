@@ -1,6 +1,6 @@
 ;;; entropy-proxy-url ---  Url proxy for emacs eww and w3m
 ;;
-;; * Copyright (C) 20190906  Entropy
+;;; Copyright (C) 20190906  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
@@ -9,7 +9,7 @@
 ;; Created:       2018
 ;; Keywords:      proxy
 ;; Compatibility: GNU Emacs emacs-version;
-;; Package-Requires: ((emacs "26") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "26") (cl-lib "0.5") (eww) (w3m "20190830.742"))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,14 +25,14 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;; 
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; An emacs extension trafficking url matching by proxy regxp rule-set or
 ;; pull down them into whole proxy tunnel.
 ;;
 ;; This package perform as the library role for the functional provision.
 ;;
-;; ** Eww and emacs-w3m proxy stuff
+;;;; Eww and emacs-w3m proxy stuff
 ;;
 ;; Emacs has the ability to retrieving network data steps with internal
 ;; func ~url-retrieve~ and it's refer url library as. Eww using it as the
@@ -47,7 +47,7 @@
 ;; internal proxy mechanism, and the other one was based on the refer
 ;; response creator's self mechanism.
 ;;
-;; ** How this package working as?
+;;;; How this package working as?
 ;;
 ;; This package taking off the proxy way through two ways for as:
 ;;
@@ -80,7 +80,7 @@
 ;; or using the package built-in one which was the pre-fetched one, so it
 ;; will not be the latest version.
 ;;
-;; ** Methods given
+;;;; Methods given
 ;;
 ;; We using property list as a =PROXY-RECIPE= to given the customized
 ;; way for specify the proxy subroutine.
@@ -111,18 +111,18 @@
 ;;   key-map and the cdr was the keybinding specific valid as the
 ;;   form for =kbd= function.
 ;;
-;; ** Proxy reset
+;;;; Proxy reset
 ;;
 ;; For those cases that you want to quickly reset the proxy server,
 ;; just reset your recipes =:server-host-alist= slot's symbol value,
 ;; all functional form will obtain the new proxy-host value at next
 ;; time for proxy-connection doing.
 ;;
-;; * Configuration:
+;;; Configuration:
 ;;
 ;; Just require it, and building =PROXY-RECIPE= you specified.
 ;;
-;; ** Target operation advice
+;;;; Target operation advice
 ;;
 ;; There're two built-in =proxy-recipe= i.e. the
 ;; ~entropy/proxy-url--eww-recipe~ and
@@ -132,11 +132,11 @@
 ;; mentioned above, and use function ~entropy/proxy-url-make-recipes~
 ;; to buiding it(see its doc-string for more details).
 ;;
-;; ** customized varaibles
+;;;; customized varaibles
 ;;
 ;; See customized-variable-group ~entropy/proxy-url-group~ for them.
 ;; 
-;; ** The regexp rule-set list data
+;;;; The regexp rule-set list data
 ;;
 ;; Internally, =entropy-proxy-url= has given the sets of regexp rule set
 ;; tracking by [[https://github.com/gfwlist/gfwlist][github gfw list]] project which maintained the common
@@ -146,14 +146,14 @@
 ;; The gfw-rule analyzing provided by [[https://github.com/c0001/entropy-adblockP-rule-analysis][entropy-adbp+-rule-analysis]] package
 ;; (Add it to ~load-path~ was requested also).
 ;;
-;; * Code:
+;;; Code:
 
 (require 'cl-lib)
 (require 'eww)
 (require 'w3m)
 
-;; ** variable declare
-;; *** customized var
+;;;; variable declare
+;;;;; customized var
 (defgroup entropy/proxy-url-group nil
   "group of `entropy-proxy-url'")
 
@@ -242,16 +242,16 @@ protocal prefix appended. "
   :type 'symbol
   :group 'entropy/proxy-url-group)
 
-;; ** library
-;; *** core functional
-;; **** common retrieve recovery
+;;;; library
+;;;;; core functional
+;;;;;; common retrieve recovery
 (defun entropy/proxy-url--rec-for-common ()
   (when (alist-get ".*" w3m-command-arguments-alist nil nil 'equal)
     (setq w3m-command-arguments-alist
           (delete (assoc ".*" w3m-command-arguments-alist)
                   w3m-command-arguments-alist))))
 
-;; **** underline proxy mechanism
+;;;;;; underline proxy mechanism
 (defun entropy/proxy-url--with-proxy-cl-args-body (args)
   "Remove key-value paire from ARGS."
   (let ((it args))
@@ -314,7 +314,7 @@ protocal prefix appended. "
            (socks-server ,server-host1))
        ,@body1)))
 
-;; **** proxy-mechanism wrapper
+;;;;;; proxy-mechanism wrapper
 (defun entropy/proxy-url--judge-operation (proxy-mechanism)
   (cond ((eq proxy-mechanism 'emacs-url)
          'entropy/proxy-url--with-url-proxy)
@@ -398,7 +398,7 @@ protocal prefix appended. "
           item ,type-source ,proxy-mechanism ,server-host-alist prefix)))
      (funcall ',(intern (concat "entropy/proxy-url-advice-for-group-of-" (symbol-name group-name))))))
 
-;; **** type source modification
+;;;;;; type source modification
 (defmacro entropy/proxy-url--swith-form (type-source)
   "Macro for creating proxy type throung the way of setting each of
 `entropy/proxy-url-typesource-for-eww' and `entropy/proxy-url-typesource-for-w3m'."
@@ -407,7 +407,7 @@ protocal prefix appended. "
                                           '("regexp" "t" "nil")))))
      (setf (symbol-value ,type-source) choice)))
 
-;; *** recipes
+;;;;; recipes
 
 (defvar entropy/proxy-url-typesource-for-eww entropy/proxy-url-initial-typesource)
 (defvar entropy/proxy-url-typesource-for-w3m entropy/proxy-url-initial-typesource)
@@ -503,5 +503,5 @@ Recipe slots:
                             entropy/proxy-url--eww-recipe)))
     (entropy/proxy-url-make-recipes proxy-recipe)))
 
-;; * provide
+;;; provide
 (provide 'entropy-proxy-url)
