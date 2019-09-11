@@ -1,11 +1,12 @@
 ;;; entropy-prjm.el ---  The integrated package for entropy project management subs 
 ;;
-;; * Copyright (C) 20190511  Entropy
+;;; Copyright (C) 20190511  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-project-manager/blob/master/entropy-prjm.el
 ;; Package-Version: v0.1.0
+;; Package-Requires: ((entropy-common-library "0.1.0") (ivy "0.12.0"))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;;
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; This package was the integrated centre for wrappering stuffs into
 ;; one enforceable project management, stuffs consists of default
@@ -43,7 +44,7 @@
 ;; *DB COMMUNICATION BACKENDS*
 ;; - sqlite: =entropy-prjm-sqlite.el=
 ;;
-;; * Configuration:
+;;; Configuration:
 ;; 
 ;; Following below simple config snippet:
 ;; #+BEGIN_SRC elisp
@@ -66,7 +67,7 @@
 ;; you can using =M-x entropy/prjm-sqlite-create-databse= for create
 ;; new database if you have none. 
 ;; 
-;; * Code:
+;;; Code:
 
 
 (require 'entropy-prjm-core)
@@ -80,27 +81,27 @@
 (require 'entropy-prjm-interaction)
 
 
-;; ** dbcc
+;;;; dbcc
 (setq entropy/prjm-dbcc-operation-alist
       '(("sqlite" . entropy/prjm-sqlite-query-all-prjs)))
 
 
-;; ** prj delete
+;;;; prj delete
 (setq entropy/prjm-prjdelete-operation-alist
       '(("sqlite" . entropy/prjm-sqlite-delete-prj)))
 
 
-;; ** prj add
+;;;; prj add
 (setq entropy/prjm-prjadd-operation-alist
       '(("sqlite" . entropy/prjm-sqlite-add-prj)))
 
 
-;; ** prj update
+;;;; prj update
 (setq entropy/prjm-prjupdate-operation-alist
       '(("sqlite" . entropy/prjm-sqlite-update-prj)))
 
 
-;; ** inct
+;;;; inct
 (setq entropy/prjm-inct-db-chosen-operation-alist
       '(("get-all" . entropy/prjm-dbcs-dbconfig-get)
         ("get-by-name" . entropy/prjm-dbcs-get-dbexp-by-name)))
@@ -122,5 +123,5 @@
 (setq entropy/prjm--inct-prj-date-column :Prj_Date)
 
 
-;; ** provide
+;;;; provide
 (provide 'entropy-prjm)
