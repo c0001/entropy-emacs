@@ -5,8 +5,7 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           None
-;; Package-Version: None
-;; Version:       None
+;; Package-Version: 0.1.0
 ;; Created:       2018-09-30 07:51:36
 ;; Keywords:      epub, ebook-convert, tools,
 ;; Compatibility: GNU Emacs 25;
