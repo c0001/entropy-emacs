@@ -1,6 +1,6 @@
 ;;; entropy-cn-dict.el --- Simple chinese dictionary using BAIDU API
 ;;
-;; * Copyright (C) date  author
+;;; Copyright (C) date  author
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
@@ -25,15 +25,15 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;; 
-;; * Commentary:
+;;; Commentary:
 ;; 
 ;; A simple chinese dictionary using BAIDU API. 
 ;; 
-;; * Configuration:
+;;; Configuration:
 ;; 
 ;; Added to load-path and requiring 
 ;; 
-;; * Code:
+;;; Code:
 
 (require 'eww)
 
