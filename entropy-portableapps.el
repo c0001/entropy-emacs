@@ -1,20 +1,124 @@
-;;; File name: entropy-portableapps.el ---> for entropy-emacs
+;;; entropy-portableapps.el --- Apps toggle based on portableapps.com
 ;;
-;; Copyright (c) 2018 Entropy
+;;; Copyright (C) 20190911  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-portableapps
+;; Package-Version: 0.1.0
+;; Created:       2018
+;; Compatibility: GNU Emacs 25;
+;; Package-Requires: ((emacs "25") (cl-lib "0.5") (entropy-common-library "0.1.0"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;;; Commentary:
 ;;
-;; Author: Entropy
+;; [[https://portableapps.com/][Portableapps]] platform gives dozen of portale applications those for
+;; using without any localization configuration pollution. This package
+;; was the simple portableapps management both of query and open frontend
+;; interface written by emacs lisp.
 ;;
-;; This file is not part of GNU Emacs.
+;;;; Requirements 
 ;;
-;;; License: GPLv3
-;;; Commentry:
+;; Depended on =entropy-common-library= as various other entropy emacs
+;; extensions.
 ;;
-;;  This pacakage provide query and start portableapps which
-;;  installed through the method provided by
-;;  https://portableapps.com/.
+;;;; Installation 
 ;;
-;; * Code:
+;; The =use-package= configuration form:
 ;;
+;; #+BEGIN_SRC elisp
+;;   (use-package entropy-portableapps
+;;     :ensure nil
+;;     :load-path "path-to-your-load-path"
+;;     :commands (entropy/poapps-query-open)
+;;     :bind (("C-M-<f11>" . entropy/poapps-query-open)))
+;; #+END_SRC
+;;
+;;;; Mechanism
+;;
+;; The portableapps platform gathered all portable applications into one
+;; root directory, assumption here as dir =./Portableapps/=:
+;;
+;; #+BEGIN_EXAMPLE
+;;   .
+;;   ├── 7-ZipPortable
+;;   ├── calibrePortable
+;;   ├── CloudMusicPortable
+;;   ├── CPU-ZPortable
+;;   ├── FeedNotifierPortable
+;;   ├── FeedRollerPortable
+;;   ├── FileZillaPortable
+;;   ├── FoxitReaderPortable
+;;   ├── fscPortable
+;;   ├── GIMPPortable
+;;   ├── GoogleChromePortable
+;;   ├── GPU-ZPortable
+;;   ├── InkscapePortable
+;;   ├── IrfanViewPortable
+;;   ├── KeePassProPortable
+;;   ├── LibreOfficePortable
+;;   ├── LightscreenPortable
+;;   ├── MPC-HCPortable
+;;   ├── OBSPortable
+;;   ├── PCI-ZPortable
+;;   ├── PortableApps.com
+;;   ├── PortableApps.comInstaller
+;;   ├── PortableApps.comLauncher
+;;   ├── ProcessHackerPortable
+;;   ├── QuiteRSSPortable
+;;   ├── RegshotPortable
+;;   ├── RufusPortable
+;;   ├── ScreenToGifPortable
+;;   ├── SQLiteDatabaseBrowserPortable
+;;   ├── TCPViewPortable
+;;   ├── TelegramDesktopPortable
+;;   ├── ThunderPortable
+;;   ├── TimPortable
+;;   └── WeChatPortable
+;; #+END_EXAMPLE
+;;
+;;
+;; Each portable application has the folder tree form as:
+;; #+BEGIN_EXAMPLE
+;;  .
+;; ├── App
+;; ├── Data
+;; ├── Other
+;; └── PortableApps.comInstaller.exe
+;; #+END_EXAMPLE
+;;
+;; Indication that there's exit the top dir startup binary (the launcher)
+;; which can be detected through the subdir list filter, then the
+;; launcher collection was built as the query candidates basic on the
+;; =Ivy= framework.
+;;
+;; Binaries can be file of the extension as "bat","exe".
+;;
+;;; Configuration
+;;
+;; As the mechanism section mentioned, there's one core customized
+;; variable =entropy/poapps-root= to specified as the portabaleapps root
+;; directory.
+;;
+;; Another one was =entropy/poapps-exclude-list= to give the treatment
+;; for some no need binaries. 
+;;
+;; 
+;;; Code:
 
 (require 'entropy-common-library)
 
