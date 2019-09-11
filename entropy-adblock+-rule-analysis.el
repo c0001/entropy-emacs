@@ -1,11 +1,12 @@
 ;;; entropy-adblock+-rule-analysis.el --- elisp extension to analyze adblock+ url rule set
 ;;
-;; * Copyright (C) 20190530  Entropy
+;;; Copyright (C) 20190530  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-adblockP-rule-analysis
 ;; Package-Version: v0.1.0
+;; Package-Requires: ((emacs "25") (url))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;; 
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; This package gives the ability to transfer adblock-plus simple url
 ;; rule-set to the elisp regexp string foramt.
@@ -36,14 +37,14 @@
 ;; interaface was function
 ;; ~entropy/adbp-rule-get-regexp-matchs-list~.
 ;;
-;; * Configuration:
+;;; Configuration:
 ;; 
 ;; 
-;; * Code:
-;; ** require
+;;; Code:
+;;;; require
 (require 'url)
 
-;; ** variable declaration
+;;;; variable declaration
 (defvar entropy/adbp-rule--gfw-list-upstream
   "https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt")
 (defvar entropy/adbp-rule--gfw-list-local
@@ -59,7 +60,7 @@
 (defvar entropy/adbp-rule--head-wild-regexp '("^\\.\\([^\\.].*\\)$" . ".*\\1"))
 
 
-;; ** libraries
+;;;; libraries
 (defun entropy/adbp-rule--replace-origin-rule-entry (rule-entry $rule-defination)
   (replace-regexp-in-string (car $rule-defination)
                             (cdr $rule-defination)
@@ -132,7 +133,7 @@
 
 
 
-;; ** main
+;;;; main
 (defun entropy/adbp-rule-get-regexp-matchs-list (&optional inct)
   (entropy/adbp-rule--extract-regexp-rules)
   (cond 
@@ -151,5 +152,5 @@
           (insert (concat el "\n"))))
       (switch-to-buffer buffer)))))
 
-;; * provide
+;;; provide
 (provide 'entropy-adblock+-rule-analysis)
