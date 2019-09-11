@@ -1,15 +1,180 @@
-;;; File name: entropy-global-read-only-mode.el ---> for entropy-emacs
+;;; entropy-global-readonly-mode --- Simple global read-only mode
 ;;
-;; Copyright (c) 2018 Entropy
+;;; Copyright (C) 20190911  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-global-read-only-mode
+;; Package-Version: 0.1.0
+;; Created:       2018
+;; Compatibility: GNU Emacs 25;
+;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;;; Commentary:
 ;;
-;; Author: Entropy
+;; Whether the time you want let the buffer opening behaviour be
+;; read-only defaultly?
 ;;
-;; This file is not part of GNU Emacs.
+;; This package giving you the try for as.
 ;;
-;;; License: GPLv3
+;; As it's name 'global read only' meaning, the main feature concept was
+;; as that but with some custome rule base. Some buffer
+;; e.g. compiling refers can not do so unless you want to get the
+;; unexpected things out.
+;;
+;; The rule base for is follow the below two way:
+;;
+;; 1) Modes respective
+;;
+;;    Let file start up with read-only mode follow it's buffer major mode
+;;    specification.
+;;
+;; 2) Lock files at startup for general view.
+;;
+;;    Sing the way for each file opening about, but the special buffer
+;;    list regexp matching for.
+;;
+;;;; Requirements
+;;
+;; The only one extra melpa extension [[https://github.com/m2ym/popwin-el/tree/95dea14c60019d6cccf9a3b33e0dec4e1f22c304][org]] is required. Org mode utilies
+;; need treating for specially read-only setting way, thus this package
+;; will give some re-defun coding snippets for the ones member of those
+;; utilies. But all the re-defun procedure are just enabled when =org=
+;; loaded, there's no need to require =org= with the manually way. 
+;;
+;;;; Installation
+;;
+;; Download main [[file:entropy-global-read-only-mode.el][source file]] to your load-path.
+;;
+;;;; Configuration
+;;
+;; The based-rule set mentioned above was given by the customize variable
+;; =entropy/grom-readonly-type= which gives list of valid internal string
+;; type value for as:
+;;
+;; - "modes" :
+;;   
+;;   Initializing read-only type for the major-modes list in
+;;   =entropy/grom-mode-list= and it's default value is:
+;;   #+BEGIN_EXAMPLE
+;;     emacs-lisp-mode-hook
+;;     c-mode-hook
+;;     php-mode-hook
+;;     web-mode-hook
+;;     python-mode-hook
+;;     js2-mode-hook
+;;     css-mode-hook
+;;     org-mode-hook
+;;     json-mode-hook
+;;     markdown-mode-hook
+;;     bat-mode-hook
+;;     text-mode-hook
+;;   #+END_EXAMPLE
+;;
+;;   This variable was customized, you may want to specified it along
+;;   with your own benefit.
+;;   
+;;
+;; - "all" :
+;;   
+;;   Initialize all file opening read-only type based on the wide rule
+;;   set of the buffer name filters
+;;   =entropy/grom-find-file-except-bfregexp-list=.
+;;
+;;   
+;; You can select one of them be the global-read-only-type for as.
+;;
+;; The =use-packge= configure management type demo as:
+;; #+BEGIN_SRC emacs-lisp
+;;   (use-package entropy-global-read-only-mode
+;;     :ensure nil
+;;     :load-path "path-to-your-load-path"
+;;     :commands (entropy-grom-mode)
+;;     :init (add-hook 'after-init-hook #'entropy-grom-mode))
+;; #+END_SRC
+;;  
+;;;; Interaction 
+;;
+;; - Function: ~entropy-grom-mode~
+;;
+;;   Mainly global read only mode enable or disable function. Enabling
+;;   obeying the rule set =entropy/grom-readonly-type=. 
+;;
+;; - Function: ~entropy/grom-toggle-read-only~
+;;
+;;   When =entropy-grom-mode= was non-nil (enabled ~entropy-grom-mode~
+;;   status), toggle global buffers read-only status in =buffer-list=
+;;   basic on the buffer name regexp matching regexp rule set
+;;   =entropy/grom-toggle-except-bfregexp-list=. Rule set list was
+;;   customized variable, you can set it by your specification, but
+;;   suggested using it's default value. 
+;;
+;; - Function: ~entropy/grom-read-only-buffer~
+;;
+;;   Quickly lock current buffer or the otherwise as the emacs internal
+;;   func ~read-only-mode~ but with the comfirmation.
+;;
+;; - Function: ~entropy/grom-quick-readonly-global~
+;;   
+;;   Quickly lock all active buffers using the rule set of func
+;;   ~entropy/grom-toggle-read-only~.
+;;
+;;
+;;
+;;;; Redefine functions and advices tracking
+;;
+;; There's some necessary case for redefining some package refered
+;; function when value of =entropy/grom-readonly-type= was "all", the
+;; majority occurrence one of them is that they operated buffer without
+;; buffer read-only status checking, thus they thrown out errors of
+;; unexcept process interrupted.
+;;
+;; Til now in this package, all redefined function are all the utilities
+;; of =org-mode=. Most of org buffer operation are not checking the
+;; buffer locked status and for the unlocking automatically way.Thus, the
+;; redefined core reason is to embed the unlock codes into them
+;; respectively. Below are the redefined org apis list:
+;;
+;; | Redefine Function            | Functional                                                  |
+;; |------------------------------+-------------------------------------------------------------|
+;; | ~org-capture-place-template~ | Insert the template at the target location                  |
+;; | ~org-datetree--find-create~  | Find the datetree matched by REGEX for YEAR, MONTH, or DAY. |
+;;
+;; Exception with using redefines for utilities func increasing when type
+;; "all", I prefer to using func-advice (internal mechnism ~advice-add~)
+;; to be as that does, it's safety and without the worries for compacting
+;; for utilites upgrading. OFC, below advices for individual ones shown
+;; as the table:
+;;
+;; | Advice                                     | Ad-Type   | Function              |
+;; |--------------------------------------------+-----------+-----------------------|
+;; | ~entropy/grom-agenda-unlock-current-entry~ | =:before= | ~org-agenda-todo~     |
+;; |                                            |           | ~org-agenda-add-note~ |
+;; |                                            |           | ~org-add-log-note~    |
+;; |--------------------------------------------+-----------+-----------------------|
+;; | ~entropy/grom-agenda-lock-current-entry~   | =:after=  | ~org-agenda-todo~     |
+;; |                                            |           | ~org-store-log-note~  |
+;;
+;; The defination won't be recovered when disable =entropy/grom-mode=,
+;; but those advice, funcs =entropy/grom-org-setoff= gives the way for.
+;; 
+;;; Code:
 
-;; * Code:
-;; ** declare variable
+;;;; declare variable
 (defvar entropy/grom-toggle-except-bfregexp-list
   '(
     "\\*Minibuf.*\\*"
@@ -71,7 +236,7 @@ This variable will be auto-clean when agenda manipulation
 finished.")
 
 
-;; ** custom variable
+;;;; custom variable
 (defgroup entropy-global-read-only-mode nil
   "group for global-readonly-mode.")
 
@@ -121,8 +286,8 @@ There's two choice:
   :group 'entropy-global-read-only-mode)
 
 
-;; ** Read-only minor tools
-;; *** Buffer lock quick way with <f1>
+;;;; Read-only minor tools
+;;;;; Buffer lock quick way with <f1>
 (global-set-key (kbd "<f1>") 'entropy/grom-read-only-buffer)
 (defun entropy/grom-read-only-buffer ()
   (interactive)
@@ -137,7 +302,7 @@ There's two choice:
       (message "You are in %s , don't read-only it!" (buffer-name)))))
 
 
-;; *** Global read only toggle function
+;;;;; Global read only toggle function
 (defun entropy/grom-toggle-read-only (&optional readonly editted current-buffer-ndwp cury)
   "Toggle readonly-or-not for all buffers except for the buffer-name witin `entropy/grom-toggle-except-bfregexp-list'
 
@@ -242,9 +407,9 @@ This function are basically rely on `entropy/grom-toggle-read-only'."
 (global-set-key (kbd "M-1") 'entropy/grom-quick-readonly-global)
 
 
-;; ** Global-readonly-mode
-;; *** enable function
-;; **** Global-readonly-type-filter
+;;;; Global-readonly-mode
+;;;;; enable function
+;;;;;; Global-readonly-type-filter
 (defun entropy/grom-init ()
   (cond
    ((string= entropy/grom-readonly-type "modes")
@@ -279,7 +444,7 @@ In Dired, visit the file or directory named on this line."
           (find-file-read-only (dired-get-file-for-visit))))))))
 
 
-;; *** disable function
+;;;;; disable function
 (defun entropy/grom-setoff ()
   "Setoff global-readonly-mode."
   (cond
@@ -305,9 +470,9 @@ In Dired, visit the file or directory named on this line."
   (defun entropy/grom-quick-readonly-global ()
     (message "Function has been removed.")))
 
-;; ** Global read only excepted feature
-;; *** Unlock library
-;; **** library for org
+;;;; Global read only excepted feature
+;;;;; Unlock library
+;;;;;; library for org
 (defun entropy/grom-error-toggle-readonly ()
   (interactive)
   (user-error "Can not use quick-global-only or toggle-readonly in %s" major-mode))
@@ -399,9 +564,9 @@ readonly mode."
             (read-only-mode 1))))
     (setq entropy/grom-current-agenda-buffer nil)))
 
-;; *** Adjust org mode
+;;;;; Adjust org mode
 (defun entropy/grom-org-init ()
-;; ***** agenda function advice for unlock current entry
+;;;;;;; agenda function advice for unlock current entry
   (when (or (string= entropy/grom-readonly-type "convert")
             (string= entropy/grom-readonly-type "all"))
     (with-eval-after-load 'org-agenda
@@ -425,12 +590,12 @@ readonly mode."
 
 
   
-;; ***** add error-readonly hook for agenda
+;;;;;;; add error-readonly hook for agenda
   (with-eval-after-load 'org-agenda
     (define-key org-agenda-mode-map (kbd "<f1>") 'entropy/grom-error-toggle-readonly)
     (define-key org-agenda-mode-map (kbd "M-1") 'entropy/grom-error-toggle-readonly))
   
-;; ***** Redefine org-capture about function for adapting for global-readonly-mode
+;;;;;;; Redefine org-capture about function for adapting for global-readonly-mode
   (when (or (string= entropy/grom-readonly-type "convert")
             (string= entropy/grom-readonly-type "all"))
     (with-eval-after-load 'org-capture
@@ -518,7 +683,7 @@ inserted into the buffer."
     (advice-remove 'org-add-log-note #'entropy/grom-agenda-unlock-current-entry)
     (advice-remove 'org-store-log-note #'entropy/grom-agenda-lock-current-entry)))
 
-;; ** mode defination
+;;;; mode defination
 (defun entropy/grom-mode-enable ()
   "Enable entropy-grom-mode."
   (progn
@@ -543,5 +708,5 @@ inserted into the buffer."
       (entropy/grom-mode-enable)
     (entropy/grom-mode-disable)))
 
-;; * provide
+;;; provide
 (provide 'entropy-global-read-only-mode)
