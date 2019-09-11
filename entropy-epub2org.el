@@ -9,7 +9,7 @@
 ;; Version:       None
 ;; Created:       2018-09-30 07:51:36
 ;; Keywords:      epub, ebook-convert, tools,
-;; Compatibility: GNU Emacs 26.1;
+;; Compatibility: GNU Emacs 25;
 ;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -27,30 +27,129 @@
 
 ;;; Commentary:
 ;;
-;; This package provide you the function of convert epub book into the
-;; sets of org-files
+;; For emacs user, the native vision of the getting style of reading
+;; ebooks was originally tends to the method which be based on emacs it
+;; self. For this pure and fully power imagination, I thought about sets
+;; of hacking methods, through the way of 'sh-render' each xml or html
+;; file within ebook as the melpa package [[https://github.com/wasamasa/nov.el][nov.el]] does, or using convert
+;; way for as that transfer each ebook's internal ebook page to org
+;; file. Obviously, the first one have the exits extension does, thus
+;; this package was serving as the latter goal.  
 ;;
-;;; Configuration:
 ;;
-;; Call function `entropy/ep2o-dispatcher' for prompting using.
+;; Although kinds of ebook wrapper format are popular covering the word,
+;; e.g. epub, awz3, mob ..., there's just the wrapper =epub= gets the
+;; free for. Thus this package only given the try for converting the
+;; epub format ebook to Org files collection ([[https://orgmode.org/][Org]] was the most popular
+;; rich plain text format using in emacs).
 ;;
-;; If you want to see the details of this package, you should browse
-;; this file carefully for be familiar with each function's doc string
-;; and the chapter description within each orgstructed node.
-
-
-;; * Code:
-
-
-
-;; ** require
+;;
+;;
+;; =entropy-epub2org= using four steps to process the convertting
+;; procedure:
+;;
+;; 1) Unzip the epub file to the folder archived with sets of webpages
+;;   which were the main contents host files.
+;;
+;; 2) Parsing the index part tree into org files.
+;;
+;; 3) Convert all content carrier file into org files named as is.
+;;
+;; 4) Tidy up all converted org files into the normal org context format.
+;;
+;;
+;;;; Dependencies 
+;;
+;; this package depends on some external cli dependencies:
+;; - [[https://pandoc.org/][pandoc]]
+;; - unzip
+;; - dos2unix
+;;
+;; Above two external cli tool unzip and dos2unix were common embedded
+;; into various linux distribution, if not as, you should download them
+;; using dist's package managements tool from the corresponding package
+;; repository or from the DVD iso.
+;;
+;; For WINDOWS platform, I suggested using Msys2 to be the GNU
+;; environment emulator which commonly embedded unzip and dos2unix as
+;; well into it's installation, if not using Msys2's package management
+;; =pacman= to install them.
+;;
+;; Pandoc was cross-platform tool using for providing various file type
+;; converted each ohter, as thus support webpage source file converted
+;; into Org file. In generally case that you should download and install
+;; it manually from it's official website (mentioned in above list).
+;;
+;;
+;;;; Requirements
+;;
+;; - entropy-common-library
+;; - entropy-common-library-const
+;; - entropy-unfill
+;; - org
+;; - files
+;;
+;; All the library named using the prefix =entropy-= was embedded into
+;; [[https://github.com/c0001/entropy-emacs][entropy-emacs]], you can find them there and then download it into your
+;; load path.
+;;
+;;;; Installation
+;;
+;; Just require it as:
+;;: (require 'entropy-epub2org) 
+;;
+;;;; Interaction
+;;
+;;=entropy-epub2org= was easy to start it with calling only one func
+;;~entropy/ep2o-dispatcher~ which one shabby(currently simplify used as)
+;; and enough for walking through all the functionally.
+;;
+;; This func was interactively only for as. The once you call it, it
+;; prompt you to choose the ebook location which will be chosen about,
+;; and then unzip it for following steps processing mentioned in the
+;; preamble.
+;;
+;; Just try to calling it as the first experience ^^:)
+;;
+;;;; Modification before/after converting
+;;
+;; For generally attempts for, not all content transfer from ebook source
+;; to org format were comprehensively as what be along with your
+;; expection. In this case, you wish to re-converted them agian for using
+;; some modification rule using for ~entropy/ep2o-tidy-up-all-org-files~
+;; which was the core tidy func using in step 'tidy up', of cousrse you
+;; can use hook =entropy/ep2o-tidy-hook= to retry as the yet another way.
+;;
+;; The core aspects of 'tidy up' procedure was searching replacing the
+;; unexpected converted content into the expected one following the
+;; regexp rule list =entropy/ep2o-replace-rule-alist= whose each element
+;; was the cons whose the car was the unexpected thing regexp matching
+;; for, and the cdr otherwise. =entropy/ep2o-replacing-rule-alist= have
+;; the default value setted for commonly useing in the first converted
+;; processing but was absolutely limited of be that can not do with
+;; widely unexpected occurrence, thus you can order extra rules by
+;;~add-to-list~ as is for responding to the customized way. This
+;; paragraph gives the way for ordering the specified modification before
+;; converting.
+;;
+;; But as the human's imagination limitation, thus you couldn't get the
+;; comprehensive looking for all the modification cases, you need to make
+;; the modification process after the intial converting for generally
+;; speaking. In this case you should using func
+;; ~entropy/ep2o-src-adjusting-manually~ to modify the rest unexpected
+;; thing have got. all you need was for inputting extra searching
+;; replacing rule set once or repeatly for as with prompting it's
+;; interface, thus til the state expected by your self.
+;;
+;;; Code:
+;;;; require
 (require 'entropy-common-library)
 (require 'entropy-common-library-const)
 (require 'entropy-unfill)
 (require 'org)
 (require 'files)
 
-;; ** defvar
+;;;; defvar
 (defvar entropy/ep2o-ops-srcfiles-regexp "\\.\\(x?html?\\|xml\\)$"
   "Epub book splitted source file extention regexp matching rule.")
 (defvar entropy/ep2o-replace-rule-alist
@@ -91,7 +190,7 @@
   "Hook for run function to customized converted org file at the
   last procedure of func `entropy/ep2o-tidy-up-all-org-files'.")
 
-;; ** ncx file parsing
+;;;; ncx file parsing
 ;;
 ;; The first thing for convert epub format files sets to org sets was to
 ;; extracting the summary of it and convert it to be as org index file.
@@ -130,7 +229,7 @@
 ;;
 ;;
 ;;
-;; *** ncx file parsing library
+;;;;; ncx file parsing library
 (defun entropy/ep2o-get-navLabel (navpoint)
   (let (rtn mlist)
     (dolist (el navpoint)
@@ -210,7 +309,7 @@ the same positively sequenced as the origin navPoint list."
 
 
 
-;; *** ncx file parsing main function
+;;;;; ncx file parsing main function
 (defun entropy/ep2o-get-ncx-buffer (&optional file)
   "Getting ncx file and return it's opened buffer.
 
@@ -258,7 +357,7 @@ navpoint dom node and it's self recursive."
 
 
 
-;; ** convertting html file to org file
+;;;; convertting html file to org file
 
 (defun entropy/ep2o-list-html-src (&optional dir)
   "Return the list of html or xml or other source files of this epub book.
@@ -318,14 +417,14 @@ created by `entropy/ep2o-list-html-src'."
 
 
 
-;; ** replacing error syntax formats of org files
+;;;; replacing error syntax formats of org files
 (defun entropy/ep2o-replacing-by-rules ()
   "Using `entropy/ep2o-replace-rule-alist' to replacing the
 messing syntax produced by pandoc automatically."
   (dolist (el entropy/ep2o-replace-rule-alist)
     (entropy/cl-replacing-buffer el)))
 
-;; ** tidy up all org files
+;;;; tidy up all org files
 (defun entropy/ep2o-generate-back-to-index-string (ep2o-dir-struct)
   (let* ((ops-dir (nth 1 ep2o-dir-struct))
          (index-file (car ep2o-dir-struct))
@@ -446,7 +545,7 @@ And then run hook `entropy/ep2o-tidy-hook'."
       (kill-buffer))))
 
 
-;; ** convert end-of-lines type
+;;;; convert end-of-lines type
 (defun entropy/ep2o-dos2unix-org-files (org-files)
   (let ((test-file (car org-files))
         (is-dos nil))
@@ -470,7 +569,7 @@ And then run hook `entropy/ep2o-tidy-hook'."
 
 
 
-;; ** write index org file
+;;;; write index org file
 (defun entropy/ep2o-get-index-file (&optional file)
   (let ((fname (if file file (completing-read "Choose index file location: " 'read-file-name-internal)))
         buffer)
@@ -593,7 +692,7 @@ navpoint level."
       (save-buffer)
       (kill-buffer))))
 
-;; ** unzip epub file
+;;;; unzip epub file
 (defun entropy/ep2o-extract-book (book-file)
   "Using unzip extract selected epub book file BOOK-FILE into the
 plain-ascii named folder and return cons of 'convert dir name'
@@ -626,7 +725,7 @@ and 'raw dir name'."
                                            (file-name-base book-file))))
     rtn))
 
-;; ** dispatchers
+;;;; dispatchers
 ;; If epub dir structer was like:
 ;;
 ;; #+BEGIN_EXAMPLE
@@ -792,7 +891,7 @@ dir/
   
 
 
-;; ** ops srcs adjusting function
+;;;; ops srcs adjusting function
 (defun entropy/ep2o-src-adjusting-manually ()
   "Manully adjusting ops dir for missed regexp replacing."
   (interactive)
@@ -876,5 +975,5 @@ dir/
       (error "OPS dir wrong!"))))
 
 
-;; * provide
+;;; provide
 (provide 'entropy-epub2org)
