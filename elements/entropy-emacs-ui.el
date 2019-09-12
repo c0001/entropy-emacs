@@ -475,6 +475,8 @@ for adding to variable `window-size-change-functions' and hook
       (entropy/emacs-lazy-with-load-trail
        welcom-buffer
        (setq entropy/emacs-ui--dashboard-width (window-width))
+       (setq entropy/emacs-ui--dashboard-widget-entry-info-list
+           (entropy/emacs-ui--dashboard-gen-widget-entry-info-list))
        (entropy/emacs-ui--dashboard-init-core)
        (run-hooks 'window-setup-hook)
        (switch-to-buffer (entropy/emacs-ui--dashboard-initial-buffer)))
