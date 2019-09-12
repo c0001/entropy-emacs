@@ -60,6 +60,12 @@ archived option of `entropy/emacs-use-extensions-type'"))
      (t (error "Wrong type of extension type chosen '%s' for pdumper"
                entropy/emacs-use-extensions-type)))))
 
+(defvar entropy/emacs-pdumper--loads-log-file
+  (expand-file-name
+   (format "pdumper-loads-log_%s.txt"
+           (format-time-string "%Y%m%d%H%M%S"))
+   user-emacs-directory))
+
 ;; timers
 (defvar entropy/emacs-pdumper--rec-timer nil
   "Timer after load pdumper session used for initialize rest
@@ -106,7 +112,7 @@ configuration.")
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "counsel"
                                      "dired" "all-the-icon"
                                      "use-package" "diminish" "bind-key"
-                                     "doom" "company")
+                                     "doom" "company" "entropy")
                                  "-"
                                  (* any)
                                  (seq ".elc" line-end))))))
@@ -121,7 +127,7 @@ configuration.")
                                  (if (not sys/win32p)
                                      "w32"
                                    "*eemacs-exlude-feature-indicator*"))))))
-        (inc-filters `(,(rx (seq (or "cl" "tramp" "file" "dired" "url" "eww" "eshell" "esh")
+        (inc-filters `(,(rx (seq (or "cl" "tramp" "file" "dired" "url" "eww" "eshell" "esh" "em-")
                                  (* any)
                                  (or (seq ".elc" line-end)
                                      (seq ".el.gz" line-end)))))))
@@ -199,6 +205,22 @@ configuration.")
     (dolist (file ,files)
       (let* ((feature-name (file-name-base file))
              (feature (intern feature-name)))
+        (let ((inhibit-read-only t)
+              (backup-inhibited t))
+          (if (not (file-exists-p entropy/emacs-pdumper--loads-log-file))
+              (with-temp-buffer
+                (erase-buffer)
+                (goto-char (point-min))
+                (insert file)
+                (write-region
+                 nil nil
+                 entropy/emacs-pdumper--loads-log-file))
+            (with-current-buffer (find-file-noselect entropy/emacs-pdumper--loads-log-file)
+              (goto-char (point-max))
+              (when (looking-back "^.+")
+                (insert "\n"))
+              (insert file)
+              (save-buffer))))
         (message "[Pdumper] load-file: %s" feature-name)
         (ignore-errors (require feature))))))
 
@@ -209,13 +231,18 @@ configuration.")
 
 ;; ** main
 
-(entropy/emacs-pdumper--load-files
- `((,entropy/emacs-pdumper--upstream-top-dir . ,(entropy/emacs-pdumper--extract-upstream-packages))
-   (,nil . ,(entropy/emacs-pdumper--extract-internal-packages))
-   (,nil . ,(entropy/emacs-pdumper--extract-org-packages))
-   (,(expand-file-name "elements/submodules" entropy/emacs-ext-deps-dir)
-    . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))))
+(defvar entropy/emacs-pdumper--load-alist
+  (let ((basic-load `((,entropy/emacs-pdumper--upstream-top-dir . ,(entropy/emacs-pdumper--extract-upstream-packages))
+                      (,nil . ,(entropy/emacs-pdumper--extract-internal-packages))
+                      (,nil . ,(entropy/emacs-pdumper--extract-org-packages)))))
+    (when (eq entropy/emacs-use-extensions-type 'origin)
+      (setq basic-load
+            (append basic-load
+                    `((,(expand-file-name "elements/submodules" entropy/emacs-ext-deps-dir)
+                       . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))))))
+    basic-load))
 
+(entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
 
 (setq load-path (append
                  (entropy/emacs-list-subdir

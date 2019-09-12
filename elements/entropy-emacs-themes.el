@@ -47,17 +47,19 @@
 
 (use-package doom-themes-ext-visual-bell
   :ensure nil
-  :after doom-themes
   :commands (doom-themes-visual-bell-config)
   :init
-  (doom-themes-visual-bell-config))
+  (entropy/emacs-lazy-with-load-trail
+   doom-visual-bell
+   (doom-themes-visual-bell-config)))
 
 (use-package doom-themes-ext-org
   :ensure nil
-  :after doom-themes
   :commands (doom-themes-org-config)
   :init
-  (doom-themes-org-config))
+  (entropy/emacs-lazy-with-load-trail
+   doom-org-specific
+   (doom-themes-org-config)))
 
 ;; *** theme load specifix
 
