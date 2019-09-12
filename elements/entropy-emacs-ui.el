@@ -120,37 +120,37 @@ the specific height and width determined by above variable you setted."
     "Text logo file.")
 
 ;; *** libraries
-  (defconst entropy/emacs-ui--dashboard-widget-entry-info-list
+
+  (defun entropy/emacs-ui--dashboard-gen-widget-entry-info-list ()
     `(((:str "- Read ")
        (:str "entropy-emacs introduction"
-        :link-type file
-        :link ,(expand-file-name
-                "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.org"
-                entropy/emacs-ext-deps-dir))
+             :link-type file
+             :link ,(plist-get entropy/emacs-doc-path :org))
        (:str ".")
        (:str "(view ")
        (:str "html version"
-        :link-type web
-        :link ,(concat "file://"
-                (expand-file-name
-                 "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.html"
-                 entropy/emacs-ext-deps-dir)))
+             :link-type web
+             :link ,(concat "file://"
+                            (plist-get entropy/emacs-doc-path :html)))
        (:str " go.) "))
 
       ((:str "- Get ")
        (:str "entropy-emax64 encapsulation"
-        :link-type web 
-        :link "https://sourceforge.net/projects/entropy-emax64/")
+             :link-type web 
+             :link "https://sourceforge.net/projects/entropy-emax64/")
        (:str "."))
 
       ((:str "- View ")
        (:str "emacs tutorial"
-        :link-type help
-        :link (help-with-tutorial))
-       (:str ".")))
+             :link-type help
+             :link (help-with-tutorial))
+       (:str "."))))
+  
+  (defvar entropy/emacs-ui--dashboard-widget-entry-info-list
+    (entropy/emacs-ui--dashboard-gen-widget-entry-info-list)
     "The default entropy-emacs dashbaord widget infos const. Each
-    entry string displayed must be single line style without any
-    newline partition.")
+entry string displayed must be single line style without any
+newline partition.")
 
   (defun entropy/emacs-ui--dashboard-gen-widget-entries ()
     "Generate entropy-emacs initial dashboard buffer widget's
@@ -478,7 +478,13 @@ for adding to variable `window-size-change-functions' and hook
        (entropy/emacs-ui--dashboard-init-core)
        (run-hooks 'window-setup-hook)
        (switch-to-buffer (entropy/emacs-ui--dashboard-initial-buffer)))
-    (entropy/emacs-ui--dashboard-init-core)))
+    (entropy/emacs-ui--dashboard-init-core)
+    (entropy/emacs-lazy-with-load-trail
+     welcom-buffer-refresh
+     (kill-buffer entropy/emacs-dashboard-buffer-name)
+     (setq entropy/emacs-ui--dashboard-widget-entry-info-list
+           (entropy/emacs-ui--dashboard-gen-widget-entry-info-list))
+     (switch-to-buffer (entropy/emacs-ui--dashboard-initial-buffer)))))
 
 ;; ** Title
 (entropy/emacs-lazy-with-load-trail

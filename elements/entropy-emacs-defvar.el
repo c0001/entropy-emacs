@@ -152,4 +152,14 @@ is ran after the registering procedure done within `progn' scope."
 Each register is one cons whose car was the load feature symbol
 and the cdr is the list of hook belong to that feature. ")
 
+(defvar entropy/emacs-doc-path
+  `(:org
+    ,(expand-file-name
+      "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.org"
+      entropy/emacs-ext-deps-dir)
+    :html
+    ,(expand-file-name
+      "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.html"
+      entropy/emacs-ext-deps-dir)))
+
 (provide 'entropy-emacs-defvar)

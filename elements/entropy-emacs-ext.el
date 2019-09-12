@@ -160,9 +160,11 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 
 (defun entropy/emacs-ext--check-inuse-extras ()
   (let ((full-extras entropy/emacs-ext--extras))
-    (if (eq entropy/emacs-use-extensions-type 'origin)
-        (list (car full-extras))
-      full-extras)))
+    (cond ((eq entropy/emacs-use-extensions-type 'origin)
+           (list (car full-extras)))
+          ((or (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+               (eq entropy/emacs-use-extensions-type 'submodules))
+           (list (nth 1 full-extras))))))
 
 (defun entropy/emacs-ext--check-extra-status (extra-plist)
   (let ((item (plist-get extra-plist :item))
