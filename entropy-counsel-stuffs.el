@@ -9,7 +9,7 @@
 ;; Version:       file-version
 ;; Created:       2018-month-date hour:min:sec
 ;; Compatibility: GNU Emacs 24;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5") (org "9.1.13"))
+;; Package-Requires: ((emacs "24") (cl-lib "0.5") (org "9.1"))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
