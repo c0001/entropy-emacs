@@ -84,7 +84,7 @@ configuration.")
   `(let* ((files (entropy/emacs-list-files-recursive-for-list ,top-dir))
           rtn)
      (dolist (file files)
-       (let ((file-name (if ,full-path file (entropy/emacs-file-path-parser file 'file-name)))
+       (let ((file-name (if ,full-path file (file-name-nondirectory file)))
              exc-passed inc-passed)
          
          (dolist (exc-rx ,exc-filters)
@@ -137,22 +137,19 @@ configuration.")
      inc-filters)))
 
 (defun entropy/emacs-pdumper--extract-eemacs-deps-packages ()
-  (let* ((eemacs-deps-files (entropy/emacs-list-files-recursive-for-list
-                             (expand-file-name "elements/submodules" entropy/emacs-ext-deps-dir)))
-         (exc-filter (rx (seq line-start
-                              (or "liberime"
-                                  "fakecygpty"
-                                  "font-lock"
-                                  "test")
-                              (* any))))
-         (inc-filter (rx (seq line-start "entropy-" (* any))
-                         (seq ".el" line-end)))
-         rtn)
-    (dolist (file eemacs-deps-files)
-      (when (and (not (string-match-p exc-filter (file-name-nondirectory file)))
-                 (string-match-p inc-filter (file-name-nondirectory file)))
-        (push file rtn)))
-    rtn))
+  (let* ((eemacs-deps-top-dir
+          (expand-file-name "elements/submodules" entropy/emacs-ext-deps-dir))
+         (exc-filters `(,(rx (seq line-start
+                                  (or "liberime"
+                                      "fakecygpty"
+                                      "font-lock"
+                                      "test")
+                                  (* any)))))
+         (inc-filters `(,(rx (seq line-start "entropy-" (* any))
+                             (seq ".el" line-end)))))
+    (entropy/emacs-pdumper--extract-files-with-dir
+     eemacs-deps-top-dir
+     exc-filters inc-filters)))
 
 (defun entropy/emacs-pdumper--extract-org-packages ()
   (let* ((org-dir (file-name-directory (locate-library "org")))
