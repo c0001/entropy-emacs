@@ -211,7 +211,7 @@
                     entropy-org-export-theme-toggle
                     entropy-org-widget
                     entropy-portableapps
-                    entropy-project-manager
+                    entropy-prjm
                     entropy-proxy-mode
                     entropy-proxy-url
                     entropy-s2t
