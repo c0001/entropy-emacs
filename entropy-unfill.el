@@ -1,79 +1,98 @@
-;;; File name: entropy-org-unfill.el ---> for entropy-emacs
+;;; entropy-unfill --- Unfill improvements for entropy-emacs 
 ;;
-;; Copyright (c) 2018 Entropy
-;;
-;; Author: Entropy
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; License: GPLv3
-;;
+;;; Copyright (C) 20190911  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-unfill
+;; Package-Version: 20180606
+;; Version:       0.1.0
+;; Created:       2018
+;; Compatibility: GNU Emacs 25;
+;; Package-Requires: ((emacs "24") (cl-lib "0.5") (org "9.1") (entropy-common-library "0.1.0") (entropy-org-widget "0.1.0"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
 ;;; Commentary:
-;;;
-;;; Is there some times that you regret for filling the whole buffer with the specific column setting
-;;; when you want to specific the new filling column number?
-;;;
-;;; In this time the first thing you want is to unfill the whole buffer and then determine the next
-;;; operation.
-;;;
-;;; So this packages will provide you the automatically unfill whole buffer function with the subtile
-;;; constraints for unfill process.
-;;;
-;;; The core concept of the mechanism of this packages function was using the specific flag of points
-;;; pair list to separate the buffer, you can quickly understand this with following work-flow:
-;;; #+BEGIN_EXAMPLE
-;;;
-;;;          +---------------------------------------------+
-;;;          | +-----------------------------------------+ |
-;;;          | |  part 1                           t   --+-+--------------------->  part-1 of this buffer was paragraph and it will be convert to unfill.
-;;;          | |     xxxxxxxxxxxxxxxxxxxxxxxx            | |                        So the state of it was 't' .                                         
-;;;          | +-----------------------------------------+ |                                                                                            
-;;;          | +-----------------------------------------+ |                                                                                            
-;;;          | |  part 2                                 | |                                                                                            
-;;;          | |   #+begin_src                     nil --+-+--------------------->  part-2 was code area and do not convert it, state 'nil.             
-;;;          | |      ......                             | |                                                                            
-;;;          | |   #+end_src                             | |                                                                            
-;;;          | +-----------------------------------------+ |                                                                            
-;;;          | +-----------------------------------------+ |                                                                            
-;;;          | |  part 3                                 | |                                                                            
-;;;          | |    - xxxxxx                       nil --+-+--------------------->  part-3 was list , so setting converted state to nil.
-;;;          | |    - xxxxxx                             | |                                                                           
-;;;          | +-----------------------------------------+ |                                                                           
-;;;          | +-----------------------------------------+ |                                                                           
-;;;          | |  part 4                                 | |                                                                  
-;;;          | |                                         | |                                                                  
-;;;          | |   | xx | xx | xx |                      | |                           
-;;;          | |   |----|----|----|                nil --+-+--------------------->  part-4 was table formal so setting converted state to nil
-;;;          | |   | xx | xx | xx |                      | |                                                                                 
-;;;          | |   | xx | xx | xx |                      | |                                                                                 
-;;;          | |                                         | |                                                                                 
-;;;          | +-----------------------------------------+ |                                
-;;;          | +-----------------------------------------+ |                                
-;;;          | |  part 5                                 | |                      
-;;;          | |                                         | |                      
-;;;          | |       ...............               t --+-+--------------------->  part-5 was specific area which must be converted to.
-;;;          | |                                         | |                                  
-;;;          | +-----------------------------------------+ |                                  
-;;;          +---------------------------------------------+                                  
-;;;
-;;; #+END_EXAMPLE
-;;;
-;;; So the first thing you should do before using this pacakge was to setting the variable
-;;; `entropy/unfill-special-line-regexp', and you can using the default value of it without manually
-;;; setting, the default value was used for `org-mode' special region type, like code-block,
-;;; plain-list, headling .....
-;;;
-;;; And then you can directively using the function
-;;; `entropy/unfill-full-buffer-without-special-region' for unfill full buffer.
-;;;
-;;;
-;;;
-
-;; * Code:
-;; ** require
+;;
+;; Is there some times that you regret for filling the whole buffer
+;; with the specific column setting when you want to specific the new
+;; filling column number?
+;;
+;; In this time the first thing you want is to unfill the whole
+;; buffer and then determine the next operation.
+;;
+;; So this packages will provide you the automatically unfill whole
+;; buffer function with the subtile constraints for unfill process.
+;;
+;; The core concept of the mechanism of this packages function was
+;; using the specific flag of points pair list to separate the
+;; buffer, you can quickly understand this with following work-flow:
+;;
+;; #+BEGIN_EXAMPLE
+;;
+;;          +---------------------------------------------+
+;;          | +-----------------------------------------+ |
+;;          | |  part 1                           t   --+-+--------------------->  part-1 of this buffer was paragraph and it will be convert to unfill.
+;;          | |     xxxxxxxxxxxxxxxxxxxxxxxx            | |                        So the state of it was 't' .                                         
+;;          | +-----------------------------------------+ |                                                                                            
+;;          | +-----------------------------------------+ |                                                                                            
+;;          | |  part 2                                 | |                                                                                            
+;;          | |   #+begin_src                     nil --+-+--------------------->  part-2 was code area and do not convert it, state 'nil.             
+;;          | |      ......                             | |                                                                            
+;;          | |   #+end_src                             | |                                                                            
+;;          | +-----------------------------------------+ |                                                                            
+;;          | +-----------------------------------------+ |                                                                            
+;;          | |  part 3                                 | |                                                                            
+;;          | |    - xxxxxx                       nil --+-+--------------------->  part-3 was list , so setting converted state to nil.
+;;          | |    - xxxxxx                             | |                                                                           
+;;          | +-----------------------------------------+ |                                                                           
+;;          | +-----------------------------------------+ |                                                                           
+;;          | |  part 4                                 | |                                                                  
+;;          | |                                         | |                                                                  
+;;          | |   | xx | xx | xx |                      | |                           
+;;          | |   |----|----|----|                nil --+-+--------------------->  part-4 was table formal so setting converted state to nil
+;;          | |   | xx | xx | xx |                      | |                                                                                 
+;;          | |   | xx | xx | xx |                      | |                                                                                 
+;;          | |                                         | |                                                                                 
+;;          | +-----------------------------------------+ |                                
+;;          | +-----------------------------------------+ |                                
+;;          | |  part 5                                 | |                      
+;;          | |                                         | |                      
+;;          | |       ...............               t --+-+--------------------->  part-5 was specific area which must be converted to.
+;;          | |                                         | |                                  
+;;          | +-----------------------------------------+ |                                  
+;;          +---------------------------------------------+                                  
+;;
+;; #+END_EXAMPLE
+;;
+;; So the first thing you should do before using this pacakge was to
+;; setting the variable `entropy/unfill-special-line-regexp', and you
+;; can using the default value of it without manually setting, the
+;; default value was used for `org-mode' special region type, like
+;; code-block, plain-list, headling .....
+;;
+;; And then you can directively using the function
+;; `entropy/unfill-full-buffer-without-special-region' for unfill
+;; full buffer.
+;;
+;;; Code:
+;;;; require
 (require 'entropy-common-library)
 (require 'entropy-org-widget)
-;; ** var declaration
+;;;; var declaration
 (defvar entropy/unfill-special-line-description nil
   "This variable temporarily holded current-line's special line type which matching with
   `entropy/unfill-special-line-regexp' and automatically operated by
@@ -117,8 +136,8 @@ so do not setting manually (it's no effection).
 ")
 
 
-;; ** function
-;; *** judge special line type
+;;;; function
+;;;;; judge special line type
 (defun entropy/unfill-judge-special-line-type ()
   "Judge the line type and return the type description.
 
@@ -144,7 +163,7 @@ end of progress."
       (setq entropy/unfill-special-line-description (car des-temp)))
     (goto-char opoint)))
 
-;; *** jump to special end
+;;;;; jump to special end
 (defun entropy/unfill-jump-to-special-line-target-end ()
   "Jump to the end flag of the matched beginning flag of special
   line regexp."
@@ -166,7 +185,7 @@ the end-flag regexp."
             (setq entropy/return re-end-c))))
     entropy/return))
 
-;; *** unfill region recorde
+;;;;; unfill region recorde
 (defun entropy/unfill-recorde-feature-region-pair-points ()
   "From point of current line, detectiving the regions scope for
 used by
@@ -211,7 +230,7 @@ based on current line."
       (add-to-list 'entropy/unfill-feature-region-pair-points-list `(,p1 ,p2 t))
       (goto-char p1))))
 
-;; **** recorde all unfill region in buffer
+;;;;;; recorde all unfill region in buffer
 (defun entropy/unfill-recorde-feature-region-pair-points-in-full-buffer ()
   "Recorde all unfill region pair points list within buffer
 
@@ -230,7 +249,7 @@ based on current line."
         (goto-char (+ p2 1))))))
 
 
-;; *** main function
+;;;;; main function
 ;;;###autoload
 (defun entropy/unfill-full-buffer-without-special-region ()
   "Unfill full buffer with specific special region type that
@@ -319,7 +338,7 @@ description string for preventing so."
                                            (string-width repstr)))))
        nil))))
 
-;; **** unfill region
+;;;;;; unfill region
 ;;;###autoload
 (defun entropy/unfill-region (start end)
   "Replace newline chars in region from START to END by single spaces.
@@ -328,7 +347,7 @@ This command does the inverse of `fill-region'."
   (let ((fill-column most-positive-fixnum))
     (fill-region start end)))
 
-;; **** unfill paragraph
+;;;;;; unfill paragraph
 ;;;###autoload
 (defun entropy/unfill-paragraph (&optional region)
   "Takes a multi-line paragraph and makes it into a single line of text."
@@ -339,5 +358,5 @@ This command does the inverse of `fill-region'."
     (fill-paragraph nil region)))
 
 
-;; * provide
+;;; provide
 (provide 'entropy-unfill)
