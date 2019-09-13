@@ -10,7 +10,7 @@
 ;; Created:          2018-12-11 12:48:04
 ;; Keywords:         sdcv
 ;; Compatibility:    GNU Emacs 26.1;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5") (entropy-common-library "0.1.0") (popup "0.5.3") (f "0.20.0") (youdao-dictional "0.4") (bing-dict) (google-translate))
+;; Package-Requires: ((emacs "24") (cl-lib "0.5") (entropy-common-library "0.1.0") (popup "0.5.3") (f "0.20.0") (youdao-dictionary "0.4") (bing-dict) (google-translate))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
