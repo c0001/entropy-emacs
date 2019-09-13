@@ -32,39 +32,10 @@
 ;; * Code:
 (require 'entropy-emacs-const)
 
+;; ** basic
 (defvar entropy/emacs-core-components-hosted-path
   (expand-file-name (file-name-directory load-file-name))
   "entropy-emacs core library hosted path.")
-
-(defvar entropy/emacs-web-development-environment nil
-  "Whether using enable web-development envrionment.
-
-This variable is mainly for the judgement button for
-`entropy/emacs-browse-url-function' for determined whether to using the
-specific browser to visualize current file.")
-
-(defvar entropy/emacs-gc-threshold-basic 20000000
-  "The basic thredshold for the growth for `gc-cons-threshold'")
-
-(defvar entropy/emacs-pdumper-pre-lpth nil
-  "The fully preserved `load-path' for pdumper session, this
-variable is assigned while pdumper procedure triggered, append
-emacs internal load path and the subdirs of
-`entropy/emacs-ext-extensions-elpa-dir' (i.e. the current
-`package-user-dir' specified by what you settng for
-`entropy/emacs-use-extensions-type').
-
-Note that the entorpy-emacs just use the malpa-local type of
-`entropy/emacs-use-extensions-type' to dumping as, thus the
-submodules pre-loading is not supported for entropy-emacs
-pdumper feature.")
-
-(defvar entropy/emacs-pdumper-load-hook nil)
-
-(defvar entropy/emacs-pdumper-load-end-hook nil)
-
-(defvar entropy/emacs-fall-love-with-pdumper nil
-  "The emacs running type indication for pdumper.")
 
 (defvar entropy/emacs-init-mini-hook ()
   "Hooks for minimal start.")
@@ -75,13 +46,37 @@ pdumper feature.")
 (defvar entropy/emacs-lang-locale (car default-process-coding-system)
   "The locale lang.")
 
+(defvar entropy/emacs-web-development-environment nil
+  "Whether using enable web-development envrionment.
+
+This variable is mainly for the judgement button for
+`entropy/emacs-browse-url-function' for determined whether to using the
+specific browser to visualize current file.")
+
 (defvar entropy/emacs-window-center-integer 9)
 
 (defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Title of entropy-emacs initial dashboard buffer. ") 
 
-(defvar entropy/emacs-mode-line-sticker ""
-  "Sticker for current modeline style")
+(defvar entropy/emacs-doc-path
+  `(:org
+    ,(expand-file-name
+      "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.org"
+      entropy/emacs-ext-deps-dir)
+    :html
+    ,(expand-file-name
+      "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.html"
+      entropy/emacs-ext-deps-dir)))
+
+;; ** garbage collection
+
+(defvar entropy/emacs-gc-threshold-basic 20000000
+  "The basic thredshold for the growth for `gc-cons-threshold'")
+
+(defvar entropy/emacs-garbage-collect-idle-timer nil
+  "The garbage collection idle timer for entropy-emacs.")
+
+;; ** theme refer
 
 (defvar entropy/emacs-theme-sticker ""
   "Current theme used for this session.")
@@ -136,9 +131,6 @@ is ran after the registering procedure done within `progn' scope."
 
 (advice-add 'load-theme :around #'entropy/emacs-theme-load-advice)
 
-(defvar entropy/emacs-garbage-collect-idle-timer nil
-  "The garbage collection idle timer for entropy-emacs.")
-
 (defvar entropy/emacs-enable-solaire-registers
   '((files . (find-file-hook))
     (magit-files . (magit-find-file-hook))
@@ -152,14 +144,31 @@ is ran after the registering procedure done within `progn' scope."
 Each register is one cons whose car was the load feature symbol
 and the cdr is the list of hook belong to that feature. ")
 
-(defvar entropy/emacs-doc-path
-  `(:org
-    ,(expand-file-name
-      "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.org"
-      entropy/emacs-ext-deps-dir)
-    :html
-    ,(expand-file-name
-      "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.html"
-      entropy/emacs-ext-deps-dir)))
+;; ** modeline refer
 
+(defvar entropy/emacs-mode-line-sticker ""
+  "Sticker for current modeline style")
+
+;; ** pdumper
+(defvar entropy/emacs-pdumper-pre-lpth nil
+  "The fully preserved `load-path' for pdumper session, this
+variable is assigned while pdumper procedure triggered, append
+emacs internal load path and the subdirs of
+`entropy/emacs-ext-extensions-elpa-dir' (i.e. the current
+`package-user-dir' specified by what you settng for
+`entropy/emacs-use-extensions-type').
+
+Note that the entorpy-emacs just use the malpa-local type of
+`entropy/emacs-use-extensions-type' to dumping as, thus the
+submodules pre-loading is not supported for entropy-emacs
+pdumper feature.")
+
+(defvar entropy/emacs-pdumper-load-hook nil)
+
+(defvar entropy/emacs-pdumper-load-end-hook nil)
+
+(defvar entropy/emacs-fall-love-with-pdumper nil
+  "The emacs running type indication for pdumper.")
+
+;; * provide
 (provide 'entropy-emacs-defvar)
