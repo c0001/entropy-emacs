@@ -1,5 +1,5 @@
 ;;; entropy-prjm-interaction.el --- The interface for entropy-project-manager
-;; * Copyright
+;;; Copyright
 ;; #+BEGIN_EXAMPLE
 ;; Copyright (C) 20190504  Entropy
 ;; Author:        Entropy <bmsac0001@gmail.com>
@@ -22,7 +22,7 @@
 ;; <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;; 
-;; * Commentary:
+;;; Commentary:
 ;; This package was the default interface of =entropy-prjm-core=, as
 ;; the same prominent position as =entropy-prjm-core= does.Packages
 ;; gives open APIs for development to building their own 'entropy
@@ -135,18 +135,18 @@
 ;;
 ;;  
 ;;
-;; * Configuration:
+;;; Configuration:
 ;;
 ;; configuration
 
-;; * Code:
+;;; Code:
 
 (require 'ivy)
 (require 'entropy-prjm-core)
 (require 'all-the-icons)
 (require 'url)
 
-;; ** defcustom
+;;;; defcustom
 (defcustom entropy/prjm-inct-db-chosen-operation-alist
   '(("get-all" . nil)
     ("get-by-name" . nil))
@@ -236,12 +236,12 @@ database location for portable purpose.
   :type 'sexp
   :group 'entropy/prjm-group)
 
-;; ** defvar
+;;;; defvar
 (defvar entropy/prjm--inct-all-the-icons (if (display-graphic-p) t nil))
 (defvar entropy/prjm--inct-uri-added-log nil)
 
 
-;; *** default prj info key
+;;;;; default prj info key
 (defvar entropy/prjm--inct-prj-name-column nil)
 (defvar entropy/prjm--inct-prj-des-column nil)
 (defvar entropy/prjm--inct-prj-vcs-column nil)
@@ -250,23 +250,23 @@ database location for portable purpose.
 (defvar entropy/prjm--inct-prj-date-column nil)
 
 
-;; *** interaction pointer icon
+;;;;; interaction pointer icon
 (defvar entropy/prjm--inct-ui-pointer-style
   (if (display-graphic-p)
       (cons (concat (all-the-icons-faicon "hand-o-right") " ") "   ")
     (cons "--> " "    ")))
 
-;; *** temporally db refer var
+;;;;; temporally db refer var
 (defvar entropy/prjm--inct-temp-dbco  nil)
 (defvar entropy/prjm--inct-temp-prjs-candi-alist nil)
 (defvar entropy/prjm--inct-selected-db-name nil)
 
-;; *** prj template folder place
+;;;;; prj template folder place
 (defvar entropy/prjm--inct-prj-template
   (expand-file-name "prj-template" (file-name-directory load-file-name)))
 
-;; ** library
-;; *** common library
+;;;; library
+;;;;; common library
 (defun entropy/prjm--inct-get-db-prj-operator (prj-operation)
   (let* ((operator (cdr (assoc prj-operation entropy/prjm-inct-prj-operation-alist))))
     (unless (and operator
@@ -468,7 +468,7 @@ baseline.
        (setq rtn (concat head xnix-transfer))))))
 
 
-;; *** column read library
+;;;;; column read library
 (defun entropy/prjm--inct-read-column (prompt column shaft-value db-location &optional initial)
   "Read project property value.
 
@@ -611,7 +611,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
            (entropy/prjm--inct-read-string prompt nil initial)))))
 
 
-;; ** db chosen interation
+;;;; db chosen interation
 (defun entropy/prjm-inct-chosen-db ()
   (interactive)
   (ivy-read "Choose entropy prjm db: "
@@ -676,7 +676,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
 (add-to-list 'ivy-format-functions-alist
              '(entropy/prjm-inct-chosen-db . entropy/prjm--inct-csdb-ivy-format-func))
 
-;; ** db list all prjs
+;;;; db list all prjs
 (defun entropy/prjm--inct-list-prjs (db-expression)
   (let* ((prj-operator (entropy/prjm--inct-get-db-prj-operator
                         "QUERY-ALL"))
@@ -789,7 +789,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
 
 
 
-;; ** add db prj interaction
+;;;; add db prj interaction
 (defun entropy/prjm-inct-add-prj (db-name)
   (let ((db-exp (funcall (entropy/prjm--inct-get-db-chosen-operator "get-by-name") db-name))
         (ivy-format-function 'ivy-format-function-default))
@@ -864,7 +864,7 @@ prj shaft '%s' has been existed!" shaft-value))))
                                target-abs))))))))
 
 
-;; ** delete db prj interaction
+;;;; delete db prj interaction
 (defun entropy/prjm--inct-delete-prj (prjs-alist-item)
   (let ((db-expression (funcall (entropy/prjm--inct-get-db-chosen-operator "get-by-name") entropy/prjm--inct-selected-db-name))
         (ivy-format-function 'ivy-format-function-default))
@@ -881,7 +881,7 @@ prj shaft '%s' has been existed!" shaft-value))))
     (when (yes-or-no-p (format "Delete project %s ? " prj-indicator))
       (funcall delete-func prj-exp db-expression))))
 
-;; ** update db prj interaction
+;;;; update db prj interaction
 (defun entropy/prjm--inct-update-prj (prjs-alist-item)
   (let* ((ivy-format-function 'ivy-format-function-default)
          (key-pairs (entropy/prjm--inct-get-prj-attrs))
@@ -954,5 +954,5 @@ prj shaft '%s' has been existed!" shaft-value))))
 
 
 
-;; ** provide
+;;;; provide
 (provide 'entropy-prjm-interaction)

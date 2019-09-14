@@ -1,6 +1,6 @@
 ;;; entropy-prjm-db-chosen.el --- One database choosing backend for entropy-prjm-interaction.el
 ;;
-;; * Copyright (C) 20190511  Entropy
+;;; Copyright (C) 20190511  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
@@ -21,7 +21,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;;
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; This package was one implementation for
 ;; =entropy-prjm-interaction='s
@@ -44,7 +44,7 @@
 ;;   re-arranging them into new ones, and error while there's no
 ;;   valid db-expression.
 ;; 
-;; * Configuration:
+;;; Configuration:
 ;;
 ;; The "get-all" implementation function is
 ;; ~entropy/prjm-dbcs-dbconfig-get~ and the "get-by-name"
@@ -59,7 +59,7 @@
 ;;           'entropy/prjm-dbcs-get-dbexp-by-name))
 ;; #+END_SRC
 ;;
-;; * Code:
+;;; Code:
 
 (require 'entropy-prjm-core)
 

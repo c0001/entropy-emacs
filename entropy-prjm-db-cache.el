@@ -1,6 +1,6 @@
 ;;; entropy-prjm-db-cache.el --- One entropy-prjm-interaction database query-all backend
 ;;
-;; * Copyright (C) 20190510  Entropy
+;;; Copyright (C) 20190510  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
@@ -21,7 +21,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;;
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; This package designed based on ~entropy-prjm-interaction~'s api,
 ;; that basically satisfied the 'QUERY-ALL' operation, but with
@@ -34,7 +34,7 @@
 ;; associated value was function with single argument for
 ;; =db-expression=.
 ;; 
-;; * Configuration:
+;;; Configuration:
 ;;
 ;; Assign function ~entropy/prjm-dbcc-get-dbcahe~ into
 ;; =entropy/prjm-inct-prj-operation-alist='s "QUERY-ALL" cdr clause.
@@ -45,7 +45,7 @@
 ;;           'entropy/prjm-dbcc-get-dbcahe))
 ;; #+END_SRC
 ;;
-;; * Code:
+;;; Code:
 
 
 (require 'entropy-prjm-core)

@@ -1,6 +1,6 @@
 ;;; entropy-prjm-core.el --- The core prototype module for entropy project management system
 
-;; * Copyright
+;;; Copyright
 ;; #+BEGIN_EXAMPLE
 ;; Copyright (C) [2019-04-27 Sat 16:51:58]  Entropy
 ;;
@@ -28,7 +28,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
 ;;
-;; * Commentary:
+;;; Commentary:
 ;;
 ;; This file define the core prototype of entropy project
 ;; managerment, which gives the data type with it's method without
@@ -184,20 +184,20 @@
 ;; context organization for developer for as, read it and happy
 ;; hacking.
 ;;
-;; * Configuration:
+;;; Configuration:
 ;; There's nothing need to do for using this package for requring it
 ;; into your project.
 ;; 
-;; * Code:
+;;; Code:
 
-;; ** require
+;;;; require
 (require 'entropy-common-library)
 
-;; ** defcustom
+;;;; defcustom
 (defgroup entropy/prjm-group nil
   "entropy project manager group")
 
-;; ** utilities 
+;;;; utilities 
 (defun entropy/prjm--transfer-prop-to-string (prop)
   (let (rtn)
     (unless (string-match "^:" (symbol-name prop))
@@ -213,9 +213,9 @@
     (setq rtn
           (intern (concat ":" prop-name)))))
 
-;; ** prjm module
-;; *** prjm database module
-;; **** prjm database obj prototype
+;;;; prjm module
+;;;;; prjm database module
+;;;;;; prjm database obj prototype
 
 ;; This part for prj-db-obj and it's expression
 ;;
@@ -258,7 +258,7 @@
 
 
 
-;; ***** prjm database obj structor
+;;;;;;; prjm database obj structor
 (defun entropy/prjm-db-obj-prototype ()
   (let* ((proto-func
           (lambda ()
@@ -266,15 +266,15 @@
          (copy-proto (copy-tree (funcall proto-func))))
     copy-proto))
 
-;; ***** prjm database obj operation
-;; ****** prjm database obj generator
+;;;;;;; prjm database obj operation
+;;;;;;;; prjm database obj generator
 (defun entropy/prjm-gen-db-obj (db-expression)
   (entropy/prjm-db-expression-validp db-expression)
   (entropy/cl-plist-batch-put
    (entropy/prjm-db-obj-prototype)
    db-expression))
 
-;; **** prjm database expression
+;;;;;; prjm database expression
 (defun entropy/prjm-db-expression-prototype ()
   (let* ((db-proto (entropy/prjm-db-obj-prototype))
          (db-proto-len (length db-proto))
@@ -283,8 +283,8 @@
       (push nil rtn))
     rtn))
 
-;; ****** prjm database expression operation
-;; ******* prjm database expression valid checker
+;;;;;;;; prjm database expression operation
+;;;;;;;;; prjm database expression valid checker
 (defun entropy/prjm-db-expression-validp (db-expression &optional details)
   (let ((db-name (car db-expression))
         (db-type (cadr db-expression))
@@ -381,9 +381,9 @@
        (t
         t))))))
 
-;; *** prjm database cache module
-;; **** prjm database cache obj prototype 
-;; ***** prjm database cache obj prototype structor
+;;;;; prjm database cache module
+;;;;;; prjm database cache obj prototype 
+;;;;;;; prjm database cache obj prototype structor
 (defun entropy/prjm-db-cache-obj-prototype ()
   (let* ((proto-hash (make-hash-table :test 'equal :weakness nil))
          (proto-hash-copy (copy-hash-table proto-hash))
@@ -392,8 +392,8 @@
     (setf (cadr proto-cons-copy) proto-hash-copy)
     proto-cons-copy))
 
-;; ***** prjm database cache obj operation
-;; ****** prjm database cache obj generator
+;;;;;;; prjm database cache obj operation
+;;;;;;;; prjm database cache obj generator
 (defun entropy/prjm-gen-db-cache-obj (db-cache-expression)
   (entropy/prjm-db-cache-expression-validp db-cache-expression)
   (let* ((db-cache-obj-proto (entropy/prjm-db-cache-obj-prototype))
@@ -412,9 +412,9 @@
     (append (remove nil db-cache-obj-proto) (caddr db-cache-expression))))
 
 
-;; **** prjm database cache expression
-;; ***** prjm database cache expression prototype
-;; ****** prjm database cache expression prototype structor
+;;;;;; prjm database cache expression
+;;;;;;; prjm database cache expression prototype
+;;;;;;;; prjm database cache expression prototype structor
 (defun entropy/prjm-db-cache-expression-prototype ()
   (let* ((proto-func (lambda () (list ""
                                       (list (entropy/prjm-prj-column-expression-prototype))
@@ -422,8 +422,8 @@
          (proto-copy (copy-tree (funcall proto-func))))
     proto-copy))
 
-;; ****** prjm database cache expression operation
-;; ******* prjm database cache expression valid checker
+;;;;;;;; prjm database cache expression operation
+;;;;;;;;; prjm database cache expression valid checker
 (defun entropy/prjm-db-cache-expression-validp (db-cache-expression &optional details)
   (let ((shaft (car (plist-get (cdr (assoc 'Shaft (entropy/prjm-prj-obj-prototype))) :columns)))
         (db-name (car db-cache-expression))
@@ -472,9 +472,9 @@
 
 
 
-;; *** prjm prj module
-;; **** prjm prj object prototype
-;; ***** prjm prj object strutor
+;;;;; prjm prj module
+;;;;;; prjm prj object prototype
+;;;;;;; prjm prj object strutor
 ;; This part was the fountainhead entropy-project-manager object
 ;; prototype  =prj-obj-prototype='s RFC.
 ;;
@@ -556,8 +556,8 @@
          (rtn (copy-tree prototype)))
     rtn))
 
-;; ***** prjm prj object operation
-;; ****** prjm prj object genterator
+;;;;;;; prjm prj object operation
+;;;;;;;; prjm prj object genterator
 (defun entropy/prjm-gen-prj-obj (prj-expression)
   (entropy/prjm-prj-expression-validp prj-expression)
   (let* ((prj-obj-prototype (entropy/prjm-prj-obj-prototype))
@@ -599,7 +599,7 @@
         (cl-incf counter)))
     prj-obj-prototype))
 
-;; ****** prjm prj object counter map
+;;;;;;;; prjm prj object counter map
 (defun entropy/prjm-prj-counter-region-map (prj-obj)
   (let* (($tables (cdr (assoc 'Tables prj-obj)))
          ($tables-len (length $tables))
@@ -615,8 +615,8 @@
 
 
 
-;; **** prjm prj expression
-;; ***** prjm prj expression structor
+;;;;;; prjm prj expression
+;;;;;;; prjm prj expression structor
 (defun entropy/prjm-prj-expression-prototype ()
   (let* ((prj-obj-prototype (entropy/prjm-prj-obj-prototype))
          (prj-tables (cdr (assoc 'Tables prj-obj-prototype)))
@@ -630,8 +630,8 @@
       (push nil prj-expression-prototype))
     prj-expression-prototype))
 
-;; ***** prjm prj expression operation
-;; ****** prjm prj expression valid checker
+;;;;;;; prjm prj expression operation
+;;;;;;;; prjm prj expression valid checker
 (defun entropy/prjm-prj-expression-validp (prj-expression &optional non-error)
   (let ((prj-expression-prototype (entropy/prjm-prj-expression-prototype))
         len-satisfied rtn)
@@ -645,7 +645,7 @@
       (setq rtn t))
     rtn))
 
-;; **** prjm prj column expression
+;;;;;; prjm prj column expression
 ;; This part for =prj-column-expression= which the most usefully
 ;; brief expression for =prj-obj=.
 ;;
@@ -660,7 +660,7 @@
 ;;
 
 
-;; ***** prjm prj column expression structor
+;;;;;;; prjm prj column expression structor
 (defun entropy/prjm-prj-column-expression-prototype ()
   (let* ((prj-obj (entropy/prjm-prj-obj-prototype))
          ($tables (cdr (assoc 'Tables prj-obj)))
@@ -672,8 +672,8 @@
           (apply 'append (reverse rtn)))
     (setq rtn
           (append (plist-get $shaft :columns) rtn))))
-;; ***** prjm prj column expression operation
-;; ****** prjm prj column expression generator
+;;;;;;; prjm prj column expression operation
+;;;;;;;; prjm prj column expression generator
 (defun entropy/prjm-gen-prj-column-expression (prj-expression)
   (entropy/prjm-prj-expression-validp prj-expression)
   (let* ((prj-column-expression (entropy/prjm-prj-column-expression-prototype))
@@ -691,7 +691,7 @@
       (setq counter-column (+ 2 counter-column)))
     prj-column-expression))
 
-;; ****** prjm column expression validp
+;;;;;;;; prjm column expression validp
 (defun entropy/prjm-prj-column-expression-validp (prj-column-expression &optional details)
   (let ((exp-proto (entropy/prjm-prj-column-expression-prototype))
         (counter 0)
@@ -733,7 +733,7 @@
         (setq rtn t)))
     rtn))
 
-;; ****** prjm column expression transfer to prj expression
+;;;;;;;; prjm column expression transfer to prj expression
 (defun entropy/prjm-prj-column-exp-to-prj-exp (prj-column-expression operation)
   (entropy/prjm-prj-column-expression-validp prj-column-expression)
   (let ((counter 0) rtn)
@@ -743,8 +743,8 @@
       (setq counter (+ 2 counter)))
     (append `(,operation) (reverse rtn))))
 
-;; **** prjm prj rich expression
-;; ***** prjm prj rich expressioon structor
+;;;;;; prjm prj rich expression
+;;;;;;; prjm prj rich expressioon structor
 ;; This part gives the implement for prj-rich-expression, it's
 ;; prototype and its generator.
 ;;
@@ -831,7 +831,7 @@
     (push prj-shaft-rich rtn)
     (push prj-operation rtn)
     rtn))
-;; ***** prjm prj rich expression prototype utilities
+;;;;;;; prjm prj rich expression prototype utilities
 (defun entropy/prjm--list-rich-item (plist-var)
   (let ((key (car plist-var))
         (p-val (caadr plist-var))
@@ -842,8 +842,8 @@
 
 
 
-;; ***** prjm prj rich expression operation
-;; ****** prjm prj rich expression generator
+;;;;;;; prjm prj rich expression operation
+;;;;;;;; prjm prj rich expression generator
 (defun entropy/prjm-gen-prj-rich-expression (prj-expression)
   (entropy/prjm-prj-expression-validp prj-expression)
   (let* ((prj-rich-expression-prototype (entropy/prjm-prj-rich-expression-prototype))
@@ -860,7 +860,7 @@
       (cl-incf counter-expression))
     prj-rich-expression-prototype))
 
-;; ****** prjm prj rich expression valid checker
+;;;;;;;; prjm prj rich expression valid checker
 
 (defun entropy/prjm-prj-rich-expression-validp (prj-rich-expression &optional details)
   (let* (column-cl-chk-func
@@ -973,5 +973,5 @@
     result))
 
 
-;; ** provide
+;;;; provide
 (provide 'entropy-prjm-core)

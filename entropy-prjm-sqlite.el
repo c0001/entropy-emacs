@@ -1,19 +1,19 @@
-;; ** require
+;;;; require
 (require 'entropy-prjm-core)
 
-;; ** defcustom
+;;;; defcustom
 
-;; ** defvar
-;; *** database creation script file
+;;;; defvar
+;;;;; database creation script file
 (defvar entropy/prjm--sqlite-dbnew-script-file
   (expand-file-name "entropy-prjm-sqlite-initialize.sql"
                     (file-name-directory load-file-name)))
 
-;; *** sqlite cmd format
+;;;;; sqlite cmd format
 (defvar entropy/prjm--sqlite-cmd-format
   "sqlite3 -separator \"|||\" \"%s\" \"%s\"")
 
-;; *** sqlite statements
+;;;;; sqlite statements
 (defvar entropy/prjm--sqlite-add-prj-statement-form
   "INSERT INTO %s (%s) VALUES (%s);")
 
@@ -26,7 +26,7 @@
 (defvar entropy/prjm--sqlite-query-all-prj-statement-form
   "SELECT %s FROM %s WHERE %s;")
 
-;; *** sqlite value type
+;;;;; sqlite value type
 (defvar entropy/prjm--sqlite-statement-value-type
   (list
    (cons "INT" (list :db-des "Integer"
@@ -39,7 +39,7 @@
                           :method #'(lambda (str)
                                       (format "'%s'" (or str "")))))))
 
-;; ** utilities
+;;;; utilities
 (defun entropy/prjm--sqlite-transfer-prop-to-string (prop)
   (let (rtn)
     (unless (string-match "^:" (symbol-name prop))
@@ -47,8 +47,8 @@
     (setq rtn
           (replace-regexp-in-string
            "^:" "" (symbol-name prop)))))
-;; ** Library
-;; *** sqlite callback state filter
+;;;; Library
+;;;;; sqlite callback state filter
 (defun entropy/prjm--sqlite-cbk-filter (cbk)
   (let (cbk-split-group
         cbk-split-list
@@ -75,8 +75,8 @@
         (push plist-rtn rtn)))
     (reverse rtn)))
 
-;; *** prj object parser
-;; **** common library
+;;;;; prj object parser
+;;;;;; common library
 (defun entropy/prjm--sqlite-format-value (value value-type)
   (unless (stringp value-type)
      (error "Formatting sqlite data type attributce must be string."))
@@ -105,8 +105,8 @@
           (setq rtn (concat rtn separator item))))))
     rtn))
 
-;; **** main utilities
-;; ***** keyval group
+;;;;;; main utilities
+;;;;;;; keyval group
 (defun entropy/prjm--sqlite-gen-keyval-group-list (prj-rich-expression)
   (let* ((operation (car prj-rich-expression))
          (shaft-rich (cadr prj-rich-expression))
@@ -141,7 +141,7 @@
     (push operation group-list)))
 
 
-;; ***** keyval eqstm
+;;;;;;; keyval eqstm
 (defun entropy/prjm--sqlite-gen-keyval-eqstm-list (prj-rich-expression)
   (let* ((operation (car prj-rich-expression))
          (shaft-rich (cadr prj-rich-expression))
@@ -179,8 +179,8 @@
 
 
 
-;; *** prj object transfer to sqlite statement
-;; **** insert prj statement generator
+;;;;; prj object transfer to sqlite statement
+;;;;;; insert prj statement generator
 (defun entropy/prjm--sqlite-gen-insert-statement (prj-expression)
   (let* ((prj-rich-expression (entropy/prjm-gen-prj-rich-expression prj-expression))
          (prj-rich-insert-expression (entropy/prjm--sqlite-gen-keyval-group-list
@@ -195,7 +195,7 @@
             statements-list))
     (setq statements-list (entropy/prjm--sqlite-concat-list (reverse statements-list)
                                                              " "))))
-;; **** update prj statement generator
+;;;;;; update prj statement generator
 (defun entropy/prjm--sqlite-gen-update-statement (prj-expression)
   (let* ((prj-rich-expression (entropy/prjm-gen-prj-rich-expression prj-expression))
          (prj-rich-update-expression (entropy/prjm--sqlite-gen-keyval-eqstm-list
@@ -214,7 +214,7 @@
            (reverse statements-list)
            " "))))
 
-;; **** deletion prj statement
+;;;;;; deletion prj statement
 (defun entropy/prjm--sqlite-gen-delete-statement (prj-expression)
   (let* ((prj-rich-expression (entropy/prjm-gen-prj-rich-expression
                                prj-expression))
@@ -246,7 +246,7 @@
           (entropy/prjm--sqlite-concat-list
            statements-list " "))))
 
-;; **** query all prj statement
+;;;;;; query all prj statement
 (defun entropy/prjm--sqlite-gen-query-all-statement ()
   (let* ((prj-obj-prototype (entropy/prjm-prj-obj-prototype))
          (shaft-place (cdr (assoc 'Shaft prj-obj-prototype)))
@@ -302,8 +302,8 @@
             obj-concat tables-name-concat where-statement)))
 
 
-;; *** prj operation function
-;; **** create empty database file
+;;;;; prj operation function
+;;;;;; create empty database file
 (defun entropy/prjm-sqlite-create-databse ()
   (interactive)
   (let ((db-location
@@ -311,7 +311,7 @@
         (shell_cmd (concat "sqlite3 %s < " entropy/prjm--sqlite-dbnew-script-file)))
     (shell-command (format shell_cmd db-location))))
 
-;; **** query all prjs
+;;;;;; query all prjs
 (defun entropy/prjm-sqlite-query-all-prjs (db-expression)
   (let* ((query-statement (entropy/prjm--sqlite-gen-query-all-statement))
          (db-obj (entropy/prjm-gen-db-obj db-expression))
@@ -328,7 +328,7 @@
     (setq cbk (list db-name cbk
                     (entropy/cl-file-last-modification-time db-location)))))
 
-;; **** Add prj
+;;;;;; Add prj
 (defun entropy/prjm-sqlite-add-prj (prj-expression db-expression &optional non-cbk-status)
   (let* ((add-statement (entropy/prjm--sqlite-gen-insert-statement prj-expression))
          (db-obj (entropy/prjm-gen-db-obj db-expression))
@@ -348,7 +348,7 @@
         (message "Add prj '%s' \n =====> with error '%s'" prj-expression cbk-status))))))
 
 
-;; **** Delete prj
+;;;;;; Delete prj
 (defun entropy/prjm-sqlite-delete-prj (prj-expression db-expression &optional non-cbk-status)
   (let* ((delete-statement
           (entropy/prjm--sqlite-gen-delete-statement prj-expression))
@@ -367,7 +367,7 @@
        ((string-match "^Error: " cbk-status)
         (message "Delete db '%s' \n =====> with error '%s'" prj-expression cbk-status))))))
 
-;; **** Update prj 
+;;;;;; Update prj 
 (defun entropy/prjm-sqlite-update-prj (prj-expression db-expression &optional non-cbk-status)
   (let* ((update-statement
           (entropy/prjm--sqlite-gen-update-statement prj-expression))
@@ -387,5 +387,5 @@
 
 
 
-;; ** provide
+;;;; provide
 (provide 'entropy-prjm-sqlite)
