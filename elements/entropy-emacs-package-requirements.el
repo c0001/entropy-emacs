@@ -31,6 +31,8 @@
 ;; 
 ;; * Code:
 
+(require 'entropy-emacs-defcustom)
+
 (defvar entropy-emacs-packages nil)
 
 (setq entropy-emacs-packages
@@ -45,6 +47,7 @@
         rainbow-mode
         rainbow-delimiters
         hl-todo
+        diff-hl
         volatile-highlights
         counsel
         counsel-css
@@ -77,6 +80,7 @@
         org-download
         toc-org
         poporg
+        popwin
         py-autopep8
         anaconda-mode
         yafolding
