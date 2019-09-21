@@ -749,7 +749,14 @@ elfeed proxy setting."
 ;; ** making procedure
 (defvar entropy/emacs-is-make-session nil)
 (defun entropy/emacs-is-make-session ()
-  (equal (getenv "EEMACS_MAKE") "do"))
+  (require 'subr-x)
+  (let ((env-p (getenv "EEMACS_MAKE")))
+    (cond
+     ((or (null env-p)
+          (string-empty-p env-p))
+      nil)
+     (t
+      env-p))))
 
 ;; ** pdumper
 (defgroup entropy/emacs-customized-for-pdumper nil

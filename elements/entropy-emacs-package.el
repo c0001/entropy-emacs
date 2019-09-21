@@ -109,15 +109,20 @@
     (message "Custom packages initializing done!")))
 
 ;; *** prepare main
+(defvar entropy/emacs-package-prepare-done nil)
 
 (defun entropy/emacs-package-prepare-foras ()
-  (entropy/emacs-set-package-user-dir)
-  (entropy/emacs-package--initial-package-archive)
-  (entropy/emacs-package--refresh-gnupg-homedir)
-  (entropy/emacs-package--package-initialize))
+  (unless entropy/emacs-package-prepare-done
+    (entropy/emacs-set-package-user-dir)
+    (entropy/emacs-package--initial-package-archive)
+    (entropy/emacs-package--refresh-gnupg-homedir)
+    (entropy/emacs-package--package-initialize)
+    (setq entropy/emacs-package-prepare-done t)))
 
 ;; ** Package install subroutines
 ;; *** core
+(defvar entropy/emacs-package-install-failed-list nil)
+
 (defun entropy/emacs-package-package-archive-empty-p ()
   (entropy/emacs-set-package-user-dir)
   (let ((pkg-archive-dir (expand-file-name "archives" package-user-dir)))
@@ -151,15 +156,29 @@
                  (entropy/emacs-message-do-message
                   (green "✓ DONE"))
                (entropy/emacs-message-do-message
-                (red "✕ FAILED"))))))))
+                (red "✕ FAILED"))
+               (push pkg entropy/emacs-package-install-failed-list)))))))
+
+;; *** error prompt for failing items
+
+(defun entropy/emacs-package-prompt-install-fails ()
+  (when entropy/emacs-package-install-failed-list
+    (let ((count 1))
+      (dolist (pkg entropy/emacs-package-install-failed-list)
+        (entropy/emacs-message-do-message
+         "%s: %s '%s'"
+         (yellow (number-to-string count))
+         (red "failed to install pkg")
+         (yellow (symbol-name pkg))))
+      (cl-incf count))
+    (error "")))
 
 ;; *** install
 (defun entropy/emacs-package-install-all-packages ()
   (entropy/emacs-package-prepare-foras)
   (when (entropy/emacs-package-is-upstream)
-    (when noninteractive
-      (entropy/emacs-message-do-message
-       (blue "Ready to install all packages ...")))
+    (entropy/emacs-message-do-message
+     (blue "Ready to install all packages ..."))
     (require 'entropy-emacs-package-requirements)
     (let ((package-check-signature nil))
       (dolist (package entropy-emacs-packages)
@@ -169,10 +188,12 @@
               (ignore-errors (entropy/emacs-package-install-package nil package))
             (package-refresh-contents)
             (ignore-errors
-              (entropy/emacs-package-install-package nil package))))))))
+              (entropy/emacs-package-install-package nil package))))))
+    (entropy/emacs-package-prompt-install-fails)))
 
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
+  (entropy/emacs-package-prepare-foras)
   (when (entropy/emacs-package-is-upstream)
     (let ((current-pkgs (copy-tree package-alist))
           (new-pkgs (progn (package-refresh-contents)
@@ -199,7 +220,8 @@
            (yellow (number-to-string (length updates))))
           (sleep-for 5)
           (dolist (pkg-id updates)
-            (entropy/emacs-package-install-package t pkg-id)))))))
+            (entropy/emacs-package-install-package t pkg-id))
+          (entropy/emacs-package-prompt-install-fails))))))
 
 ;; ** Use-package inititialize
 ;; Required by `use-package'

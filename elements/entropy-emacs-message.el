@@ -39,7 +39,51 @@
     (strike     . 9))
   "List of styles.")
 
-(defun entropy/emacs-message--ansi-apply (code format &rest args)
+(defun entropy/emacs-message-quit (&rest args)
+  (let ((echo-wd (get-buffer-window entropy/emacs-message-message-buffer)))
+    (when echo-wd
+      (delete-window echo-wd))))
+
+(advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
+
+(defun entropy/emacs-message--ansi-color-apply-for-face (string)
+  "The same as `ansi-color-apply', but using `face' instead of
+`font-lock-faace' for make `message' colorized."
+  (let ((codes (car ansi-color-context))
+	(start 0) end result)
+    ;; If context was saved and is a string, prepend it.
+    (if (cadr ansi-color-context)
+        (setq string (concat (cadr ansi-color-context) string)
+              ansi-color-context nil))
+    ;; Find the next escape sequence.
+    (while (setq end (string-match ansi-color-control-seq-regexp string start))
+      (let ((esc-end (match-end 0)))
+        ;; Colorize the old block from start to end using old face.
+        (when codes
+          (put-text-property start end 'face
+                             (ansi-color--find-face codes) string))
+        (push (substring string start end) result)
+        (setq start (match-end 0))
+        ;; If this is a color escape sequence,
+        (when (eq (aref string (1- esc-end)) ?m)
+          ;; create a new face from it.
+          (setq codes (ansi-color-apply-sequence
+                       (substring string end esc-end) codes)))))
+    ;; if the rest of the string should have a face, put it there
+    (when codes
+      (put-text-property start (length string)
+                         'face (ansi-color--find-face codes) string))
+    ;; save context, add the remainder of the string to the result
+    (let (fragment)
+      (if (string-match "\033" string start)
+	  (let ((pos (match-beginning 0)))
+	    (setq fragment (substring string pos))
+	    (push (substring string start pos) result))
+	(push (substring string start) result))
+      (setq ansi-color-context (if (or codes fragment) (list codes fragment))))
+    (apply 'concat (nreverse result))))
+
+(defun entropy/emacs-message--ansi-format (code format &rest args)
   (let ((rule (or (assq code entropy/emacs-message-message-fg)
                   (assq code entropy/emacs-message-message-bg)
                   (assq code entropy/emacs-message-message-fx))))
@@ -48,7 +92,7 @@
             (apply #'format format args)
             0)))
 
-(defmacro entropy/emacs-message--format-message (message &rest args)
+(defmacro entropy/emacs-message-format-message (message &rest args)
   "An alternative to `format' that strips out ANSI codes if used in an
 interactive session."
   `(cl-flet*
@@ -59,39 +103,48 @@ interactive session."
                    collect
                    `(,(car rule)
                      (lambda (message &rest args)
-                       (apply #'entropy/emacs-message--ansi-apply ',(car rule) message args))))
+                       (apply #'entropy/emacs-message--ansi-format ',(car rule) message args))))
         (color
          (lambda (code format &rest args)
-           (apply #'entropy/emacs-message--ansi-apply code format args))))
+           (apply #'entropy/emacs-message--ansi-format code format args))))
      (format ,message ,@args)))
 
-(defun entropy/emacs-message-quit (&rest args)
-  (let ((echo-wd (get-buffer-window entropy/emacs-message-message-buffer)))
-    (when echo-wd
-      (delete-window echo-wd))))
+(defmacro entropy/emacs-message--do-message-ansi-apply (message &rest args)
+  `(let (echo-string
+         (inhibit-read-only t))
+     (setq echo-string
+           (if noninteractive
+               (entropy/emacs-message-format-message ,message ,@args)
+             (entropy/emacs-message--ansi-color-apply-for-face
+              (entropy/emacs-message-format-message ,message ,@args))))))
 
-(advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
+(defmacro entropy/emacs-message--do-message-popup (message &rest args)
+  `(let ((buf (get-buffer-create entropy/emacs-message-message-buffer)))
+     (with-selected-window (display-buffer-at-bottom
+                            buf '((align . below)
+                                  (window-height . 0.3)))
+       (goto-char (point-max))
+       (insert (entropy/emacs-message--do-message-ansi-apply
+                ,message ,@args)))))
 
 ;;;###autoload
-
-(defmacro entropy/emacs-message-do-message (message &rest args)
+(defmacro entropy/emacs-message-do-message-auto (message &rest args)
   "An alternative to `message' that strips out ANSI codes if used in an
 interactive session."
   `(if noninteractive
-       (message (entropy/emacs-message--format-message ,message ,@args))
-     (let ((buf (get-buffer-create entropy/emacs-message-message-buffer))
-           echo-string)
-       (with-current-buffer buf
-         (goto-char (point-max))
-         (let ((beg (point))
-               end)
-           (insert (entropy/emacs-message--format-message ,message ,@args))
-           (insert "\n")
-           (setq end (point))
-           (ansi-color-apply-on-region beg end)))
-       (with-selected-window (display-buffer-at-bottom
-                              buf '((align . below)
-                                    (window-height . 0.3)))
-         (goto-char (point-max))))))
+       (message (entropy/emacs-message-format-message ,message ,@args))
+     (entropy/emacs-message--do-message-popup
+      ,message ,@args)))
+
+(defmacro entropy/emacs-message-do-message (message &rest args)
+  `(message
+    (entropy/emacs-message--do-message-ansi-apply
+     ,message ,@args)))
+
+(defmacro entropy/emacs-message-do-error (message &rest args)
+  `(progn
+     (entropy/emacs-message-do-message
+      ,message ,@args-1)
+     (error "")))
 
 (provide 'entropy-emacs-message)
