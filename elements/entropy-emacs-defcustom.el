@@ -736,6 +736,11 @@ elfeed proxy setting."
   :type 'string
   :group 'entropy/emacs-customize-elfeed)
 
+;; ** making procedure
+(defvar entropy/emacs-is-make-session nil)
+(defun entropy/emacs-is-make-session ()
+  (equal (getenv "EEMACS_MAKE") "do"))
+
 ;; ** pdumper
 (defgroup entropy/emacs-customized-for-pdumper nil
   "Group customized variables for pdumper charging."
@@ -745,6 +750,50 @@ elfeed proxy setting."
   "Whether did pdumper for gui prot."
   :type 'boolean
   :group 'entropy/emacs-customized-for-pdumper)
+
+(defcustom entropy/emacs-fall-love-with-pdumper nil
+  "The emacs running type indication for pdumper."
+  :type 'boolean
+  :group 'entropy/emacs-customized-for-pdumper)
+
+(defcustom entropy/emacs-pdumper-load-hook nil
+  "Hook for run with pdumper session startup."
+  :type 'list
+  :group 'entropy/emacs-customized-for-pdumper)
+
+(defcustom entropy/emacs-pdumper-load-end-hook nil
+  "Hook for run after pdumper session startup."
+  :type 'list
+  :group 'entropy/emacs-customized-for-pdumper)
+
+(defun entropy/emacs-in-pdumper-procedure-p ()
+  (let (rtn)
+    (catch :exit
+      (dolist (arg command-line-args)
+        (when (string-match-p "dump-emacs-portable" arg)
+          (setq rtn t)
+          (throw :exit nil))))
+    rtn))
+
+(defun entropy/emacs-display-graphic-pdumper-advice
+    (orig-func &rest orig-args)
+  (if (and entropy/emacs-fall-love-with-pdumper
+           entropy/emacs-do-pdumper-in-X)
+      t
+    (apply orig-func orig-args)))
+
+(advice-add 'display-graphic-p
+            :around
+            #'entropy/emacs-display-graphic-pdumper-advice)
+
+(dolist (hook `(entropy/emacs-pdumper-load-end-hook
+                entropy/emacs-init-mini-hook
+                entropy/emacs-init-X-hook))
+  (add-hook hook
+            #'(lambda ()
+                (advice-remove
+                 'display-graphic-p
+                 #'entropy/emacs-display-graphic-pdumper-advice))))
 
 ;; ** code folding group
 (defgroup entropy/emacs-code-folding nil

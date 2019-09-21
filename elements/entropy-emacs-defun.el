@@ -37,9 +37,9 @@
 ;; 
 ;; * Code:
 ;; ** require
-(require 'entropy-emacs-const)
-(require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defvar)
+(require 'entropy-emacs-const)
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
@@ -197,16 +197,6 @@ with '0' as alignment state."
          (eval arg))
         (t arg)))
 
-;; ** pdumper common
-(defun entropy/emacs-in-pdumper-procedure-p ()
-  (let (rtn)
-    (catch :exit
-      (dolist (arg command-line-args)
-        (when (string-match-p "dump-emacs-portable" arg)
-          (setq rtn t)
-          (throw :exit nil))))
-    rtn))
-
 ;; ** lazy load branch
 (defun entropy/emacs-select-x-hook ()
   (if entropy/emacs-minimal-start
@@ -301,6 +291,8 @@ in case that file does not provide any feature."
 
 ;; ** package user dir config
 
+(defvar entropy/emacs--package-user-dir-setted nil)
+
 (defun entropy/emacs--guard-ext-use-type ()
   (unless (member entropy/emacs-use-extensions-type
                   '(origin submodules submodules-melpa-local))
@@ -321,21 +313,23 @@ for `user-emacs-directory'."
          (expand-file-name entropy/emacs-ext-extensions-elpa-dir))))
 
 (defun entropy/emacs-set-package-user-dir ()
-  (entropy/emacs--guard-ext-use-type)
-  (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
-           (entropy/emacs-package-is-upstream))
-      (entropy/emacs--set-user-package-dir-common emacs-version)
-    (cond
-     ((and (equal emacs-version "25.2.2")
-           (entropy/emacs-package-is-upstream))
-      (entropy/emacs--set-user-package-dir-common "25.2.1"))
-     ((entropy/emacs-package-is-upstream)
-      (error "Unsupport emacs version '%s'" emacs-version))))
-  (when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
-    (setq package-user-dir
-          (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
-                                    "_MelpaLocal")
-                            (entropy/emacs-file-path-parser package-user-dir 'parent-dir)))))
+  (unless entropy/emacs--package-user-dir-setted
+    (entropy/emacs--guard-ext-use-type)
+    (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
+             (entropy/emacs-package-is-upstream))
+        (entropy/emacs--set-user-package-dir-common emacs-version)
+      (cond
+       ((and (equal emacs-version "25.2.2")
+             (entropy/emacs-package-is-upstream))
+        (entropy/emacs--set-user-package-dir-common "25.2.1"))
+       ((entropy/emacs-package-is-upstream)
+        (error "Unsupport emacs version '%s'" emacs-version))))
+    (when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+      (setq package-user-dir
+            (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
+                                      "_MelpaLocal")
+                              (entropy/emacs-file-path-parser package-user-dir 'parent-dir))))
+    (setq entropy/emacs--package-user-dir-setted t)))
 
 ;; ** language environment set
 (defun entropy/emacs-toggle-utf-8-and-locale (&optional cond)
@@ -671,21 +665,6 @@ format on windows platform."
         (when (and (eq 'theme-face (car theme-setting))
                    (eq face (cadr theme-setting)))
           (throw :exit (cadddr theme-setting)))))))
-
-(defun entropy/emacs-display-graphic-pdumper-advice
-    (orig-func &rest orig-arg)
-  t)
-
-(when (and (and entropy/emacs-fall-love-with-pdumper
-                entropy/emacs-do-pdumper-in-X))
-  (advice-add 'display-graphic-p
-              :around
-              #'entropy/emacs-display-graphic-pdumper-advice)
-  (add-hook 'entropy/emacs-pdumper-load-end-hook
-            #'(lambda ()
-                (advice-remove
-                 'display-graphic-p
-                 #'entropy/emacs-display-graphic-pdumper-advice))))
 
 ;; * provide
 (provide 'entropy-emacs-defun)

@@ -58,6 +58,7 @@
 
 ;; *** customization read
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-const)
 (require 'entropy-emacs-defvar)
 
 (let ((args-filter (mapcar (lambda (x) (string-match-p "dump-emacs-portable" x))
@@ -224,10 +225,10 @@ Emacs\" buffer's local `browse-url-browse-function' to
 
 ;; * start
 ;; ** starting emacs with installing new packages 
-(defvar entropy/emacs-start--X-is-init-with-install nil
+(defvar entropy/emacs-start--is-init-with-install nil
   "Judgement of whether X start emacs with installing new packages")
 
-(defun entropy/emacs-start--X-init-with-install-prompt ()
+(defun entropy/emacs-start--check-init-with-install-p ()
   "When X start emacs with installing, prompt user to reboot emacs.
 and save the compiling log into `user-emacs-dir' named as
 'compile_$date.log'."
@@ -245,15 +246,11 @@ and save the compiling log into `user-emacs-dir' named as
           (insert buff_content)
           (save-buffer)
           (kill-buffer)))
-      (warn "You init with installing new packages, please reopen emacs! 
-
-Emacs will auto close after 6s ......")
-      (setq entropy/emacs-start--X-is-init-with-install t)))
-
-  (defun entropy/emacs-start--X-init-with-install-prompt ()
+      (setq entropy/emacs-start--is-init-with-install t)))
+  (defun entropy/emacs-start--check-init-with-install-p ()
     "This function has been unloaded."
     nil)
-  (when entropy/emacs-start--X-is-init-with-install
+  (when entropy/emacs-start--is-init-with-install
     (run-with-timer 6 nil #'kill-emacs)))
 
 ;; ** start type choice
@@ -346,9 +343,16 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     ;; hook runner 
     (set aft-hook
          (reverse (symbol-value aft-hook)))
-    (message "After load initilizing ...")
-    (run-hooks aft-hook)
-    (message "After load initilized")))
+    (when (not entropy/emacs-is-make-session)
+      (entropy/emacs-start--check-init-with-install-p)
+      (when entropy/emacs-start--is-init-with-install
+        (warn "You init with installing new packages, please reopen emacs! 
+
+Emacs will auto close after 6s ......")))
+    (unless entropy/emacs-start--is-init-with-install
+      (message "After load initilizing ...")
+      (run-hooks aft-hook)
+      (message "After load initilized"))))
 
 ;; *** start up branch
 ;; **** mini start
@@ -360,6 +364,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   (when entropy/emacs-fall-love-with-pdumper
     (require 'entropy-emacs-pdumper))
   (require 'entropy-emacs-package)
+  (entropy/emacs-package-common-start)
   (require 'entropy-emacs-library)
   ;; basic feature defination
   (require 'entropy-emacs-basic)
@@ -456,9 +461,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   (defun entropy/emacs-start-X-enable ()
     (interactive)
     (message "This function has been unloaded."))
-  (message "Full start completed.")
-  (run-with-timer 1 nil #'entropy/emacs-start--X-init-with-install-prompt))
-
+  (message "Full start completed."))
 
 ;; *** startup main function
 (defun entropy/emacs-start--init-X ()
@@ -478,7 +481,6 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     (setq entropy/emacs-pdumper-load-hook
           (reverse entropy/emacs-pdumper-load-hook))))
 
-
 (require 'entropy-emacs-ext)
 ;; On win10 there's default global utf-8 operation system based
 ;; language environment setting supporting option. As when it enable,
@@ -496,9 +498,11 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 (if (and entropy/emacs-custom-enable-lazy-load
          (not entropy/emacs-fall-love-with-pdumper))
-    (run-with-idle-timer
-     0.1 nil
-     #'entropy/emacs-start-do-load)
+    (if (null entropy/emacs-fall-love-with-pdumper)
+        (run-with-idle-timer
+         0.1 nil
+         #'entropy/emacs-start-do-load)
+      entropy/emacs-start-do-load)
   (entropy/emacs-start-do-load))
 
 

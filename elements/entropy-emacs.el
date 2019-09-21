@@ -1,8 +1,7 @@
 (require 'entropy-emacs-custom)
 
-(let ((preinstallp (getenv "EEMACS_INSTALL")))
-  (if preinstallp
-      (require 'entropy-emacs-install)
-    (require 'entropy-emacs-start)))
+(if (entropy/emacs-is-make-session)
+    (require 'entropy-emacs-making)
+  (require 'entropy-emacs-start))
 
 (provide 'entropy-emacs)

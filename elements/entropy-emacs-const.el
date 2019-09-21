@@ -34,23 +34,6 @@
 ;; ** require
 (require 'entropy-emacs-defcustom)
 
-;; ** preface
-(defun entropy/emacs-defconst--in-pdumper-procedure-p ()
-  (let (rtn)
-    (catch :exit
-      (dolist (arg command-line-args)
-        (when (string-match-p "dump-emacs-portable" arg)
-          (setq rtn t)
-          (throw :exit nil))))
-    rtn))
-
-(defun entropy/emacs-defconst--display-graphic-p ()
-  "The fake graphic judgement function wrapper of pdumper
-procedure."
-  (or (display-graphic-p)
-      (and (entropy/emacs-defconst--in-pdumper-procedure-p)
-           entropy/emacs-do-pdumper-in-X)))
-
 ;; ** main
 (defconst sys/win32p
   (eq system-type 'windows-nt)
@@ -65,11 +48,11 @@ procedure."
   "Are we running on a Mac system?")
 
 (defconst sys/mac-x-p
-  (and (entropy/emacs-defconst--display-graphic-p) sys/macp)
+  (and (display-graphic-p) sys/macp)
   "Are we running under X on a Mac system?")
 
 (defconst sys/linux-x-p
-  (and (entropy/emacs-defconst--display-graphic-p) sys/linuxp)
+  (and (display-graphic-p) sys/linuxp)
   "Are we running under X on a GNU/Linux system?")
 
 (defconst sys/cygwinp
@@ -85,6 +68,7 @@ procedure."
 (defconst entropy/emacs-ecv "VERSION: v0.0.1 Tag: REVOLUTION"
   "Version of entropy-emacs.")
 
+;; * provide
 (provide 'entropy-emacs-const)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

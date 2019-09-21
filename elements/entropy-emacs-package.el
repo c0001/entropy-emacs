@@ -35,10 +35,9 @@
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-message)
 
-;; ** Specify `package-user-dir'
-(entropy/emacs-set-package-user-dir)
-
+;; ** Patched for selected-packages 
 ;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
 (entropy/emacs-lazy-load-simple 'package
@@ -50,7 +49,8 @@
       (add-hook 'after-init-hook #'package--save-selected-packages))))
 
 ;;
-;; ** ELPA: refer to https://elpa.emacs-china.org/
+;; ** Prepare
+;; *** Package archive set 
 ;;
 (defvar-local entropy/emacs-package--package-archives-list '(melpa emacs-china tuna tencent))
 
@@ -85,65 +85,155 @@
     (error "Unknown archives: '%s'" archives)))
   (message "Set package archives to '%s'." archives))
 
-(unless (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
-  (entropy/emacs-package-set-package-archive-location entropy/emacs-package-archive-repo))
+(defun entropy/emacs-package--initial-package-archive ()
+  (unless (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+    (entropy/emacs-package-set-package-archive-location
+     entropy/emacs-package-archive-repo)))
 
-;; ** Initialize packages
-(when (and (entropy/emacs-package-is-upstream)
-           (not entropy/emacs-fall-love-with-pdumper))
-  (unless (version< emacs-version "27")
-    (setq package-quickstart nil))
-  (message "Custom packages initializing ......")
-  (package-initialize)
-  (message "Custom packages initializing done!"))
+;; *** Format package-gnupghome-dir format for Msys2
+(defun entropy/emacs-package--refresh-gnupg-homedir  ()
+  (when (and entropy/emacs-wsl-enable
+             entropy/emacs-wsl-apps
+             (executable-find "gpg")
+             (string-match-p "^.:/.*usr/bin" (executable-find "gpg")))
+    (setq package-gnupghome-dir nil)))
 
-;; ** Format package-gnupghome-dir format for Msys2
-(when (and entropy/emacs-wsl-enable
-           entropy/emacs-wsl-apps
-           (executable-find "gpg")
-           (string-match-p "^.:/.*usr/bin" (executable-find "gpg")))
-  (setq package-gnupghome-dir nil))
+;; *** Initialize packages
+(defun entropy/emacs-package--package-initialize ()
+  (when (and (entropy/emacs-package-is-upstream)
+             (not entropy/emacs-fall-love-with-pdumper))
+    (unless (version< emacs-version "27")
+      (setq package-quickstart nil))
+    (message "Custom packages initializing ......")
+    (package-initialize)
+    (message "Custom packages initializing done!")))
 
-;; ** Install entropy-emacs pre installed packages
-(when (entropy/emacs-package-is-upstream)
-  (require 'entropy-emacs-package-requirements)
-  (let ((package-check-signature nil))
-    (dolist (package entropy-emacs-packages)
-      (unless (or (null package)
-                  (package-installed-p package))
-        (if (ignore-errors (assoc package package-archive-contents))
-            (ignore-errors (package-install package))
-          (package-refresh-contents)
-          (ignore-errors (package-install package)))))))
+;; *** prepare main
 
+(defun entropy/emacs-package-prepare-foras ()
+  (entropy/emacs-set-package-user-dir)
+  (entropy/emacs-package--initial-package-archive)
+  (entropy/emacs-package--refresh-gnupg-homedir)
+  (entropy/emacs-package--package-initialize))
 
-;; ** Required by `use-package'
-(eval-when-compile
-  (require 'use-package))
+;; ** Package install subroutines
+;; *** core
+(defun entropy/emacs-package-package-archive-empty-p ()
+  (entropy/emacs-set-package-user-dir)
+  (let ((pkg-archive-dir (expand-file-name "archives" package-user-dir)))
+    (if (and (file-exists-p pkg-archive-dir)
+             (entropy/emacs-list-files-recursive-for-list pkg-archive-dir))
+        nil
+      t)))
 
-(if (or (eq entropy/emacs-use-extensions-type 'submodules)
-        entropy/emacs-fall-love-with-pdumper)
-    (setq use-package-always-ensure nil)
-  (setq use-package-always-ensure t))
+(defun entropy/emacs-package-install-package (update &rest args)
+  (let ((current-pkgs (copy-tree package-alist))
+        (pkg (car args))
+        install-pass)
+    (when update
+      (package-delete (car (alist-get pkg current-pkgs)) t))
+    (if (not noninteractive)
+        (apply 'package-install args)
+      (entropy/emacs-message-do-message
+       "[%s] package '%s' ..."
+       (blue (if update "Updating" "Installing"))
+       (yellow (symbol-name pkg)))
+      (cond ((and (package-installed-p pkg)
+                  (null update))
+             (entropy/emacs-message-do-message
+              (dark (white "⚠ ALREADY INSTALLED"))))
+            (t
+             (setq install-pass
+                   (condition-case nil
+                       (let ((inhibit-message t)) (apply 'package-install args))
+                     (error t)))
+             (if (null install-pass)
+                 (entropy/emacs-message-do-message
+                  (green "✓ DONE"))
+               (entropy/emacs-message-do-message
+                (red "✕ FAILED"))))))))
 
-(setq use-package-always-defer entropy/emacs-custom-enable-lazy-load
-      use-package-always-demand entropy/emacs-custom-enable-lazy-load)
-(unless entropy/emacs-fall-love-with-pdumper
-  (setq use-package-expand-minimally t))
-(setq use-package-enable-imenu-support t)
+;; *** install
+(defun entropy/emacs-package-install-all-packages ()
+  (entropy/emacs-package-prepare-foras)
+  (when (entropy/emacs-package-is-upstream)
+    (when noninteractive
+      (entropy/emacs-message-do-message
+       (blue "Ready to install all packages ...")))
+    (require 'entropy-emacs-package-requirements)
+    (let ((package-check-signature nil))
+      (dolist (package entropy-emacs-packages)
+        (unless (or (null package)
+                    (package-installed-p package))
+          (if (ignore-errors (assoc package package-archive-contents))
+              (ignore-errors (entropy/emacs-package-install-package nil package))
+            (package-refresh-contents)
+            (ignore-errors
+              (entropy/emacs-package-install-package nil package))))))))
 
-(use-package diminish
-  :commands (diminish))
-(use-package bind-key
-  :commands (bind-key))
+;; *** update
+(defun entropy/emacs-package-update-all-packages ()
+  (when (entropy/emacs-package-is-upstream)
+    (let ((current-pkgs (copy-tree package-alist))
+          (new-pkgs (progn (package-refresh-contents)
+                           (copy-tree package-archive-contents)))
+          updates)
+      (dolist (pkg current-pkgs)
+        (let* ((pkg-id (car pkg))
+               (pkg-desc-cur (cadr pkg))
+               (pkg-desc-new (car (alist-get
+                                   pkg-id
+                                   new-pkgs)))
+               (outdated (ignore-errors
+                           (version-list-< (package-desc-version pkg-desc-cur)
+                                           (package-desc-version pkg-desc-new)))))
+          (when outdated
+            (push pkg-id updates))))
+      (if (null updates)
+          (entropy/emacs-message-do-message
+           (green "All packages are newest!"))
+        (progn
+          (entropy/emacs-message-do-message
+           "%s '%s' will be updated after 5 seconds"
+           (green "There're")
+           (yellow (number-to-string (length updates))))
+          (sleep-for 5)
+          (dolist (pkg-id updates)
+            (entropy/emacs-package-install-package t pkg-id)))))))
 
-;; ** Initialization benchmark
-(when entropy/emacs-initialize-benchmark-enable
-  (use-package benchmark-init
-    :init
-    ;; (benchmark-init/activate)
-    ;; (add-hook 'after-init-hook #'benchmark-init/deactivate)
-    ))
+;; ** Use-package inititialize
+;; Required by `use-package'
+
+(defun entropy/emacs-package-init-use-package  ()
+  (require 'use-package)
+  (if (or (eq entropy/emacs-use-extensions-type 'submodules)
+          entropy/emacs-fall-love-with-pdumper)
+      (setq use-package-always-ensure nil)
+    (setq use-package-always-ensure t))
+
+  (setq use-package-always-defer entropy/emacs-custom-enable-lazy-load
+        use-package-always-demand entropy/emacs-custom-enable-lazy-load)
+  (unless entropy/emacs-fall-love-with-pdumper
+    (setq use-package-expand-minimally t))
+  (setq use-package-enable-imenu-support t)
+
+  (use-package diminish
+    :commands (diminish))
+  (use-package bind-key
+    :commands (bind-key))
+
+  ;; Initialization benchmark
+  (when entropy/emacs-initialize-benchmark-enable
+    (use-package benchmark-init
+      :init
+      (benchmark-init/activate)
+      (add-hook 'after-init-hook #'benchmark-init/deactivate))))
+
+;; ** common start
+
+(defun entropy/emacs-package-common-start ()
+  (entropy/emacs-package-install-all-packages)
+  (entropy/emacs-package-init-use-package))
 
 ;; * Provide 
 (provide 'entropy-emacs-package)

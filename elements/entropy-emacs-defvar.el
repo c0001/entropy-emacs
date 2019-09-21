@@ -163,12 +163,5 @@ Note that the entorpy-emacs just use the malpa-local type of
 submodules pre-loading is not supported for entropy-emacs
 pdumper feature.")
 
-(defvar entropy/emacs-pdumper-load-hook nil)
-
-(defvar entropy/emacs-pdumper-load-end-hook nil)
-
-(defvar entropy/emacs-fall-love-with-pdumper nil
-  "The emacs running type indication for pdumper.")
-
 ;; * provide
 (provide 'entropy-emacs-defvar)

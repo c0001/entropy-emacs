@@ -70,6 +70,7 @@
 
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-message)
 
 ;; ** defvar
 (defvar entropy/emacs-ext--extras
@@ -204,9 +205,17 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
       (dolist (el troubles)
         (insert (concat (car el) ": "
                         (cdr el) "\n\n"))))
-    (switch-to-buffer buffer)
-    (when (> (length (window-list)) 1)
-      (delete-other-windows))))
+    (cond ((entropy/emacs-is-make-session)
+           (with-current-buffer buffer
+             (let ((content (buffer-substring-no-properties
+                             (point-min)
+                             (point-max))))
+               (entropy/emacs-message-do-message
+                (red content)))))
+          (t
+           (set-buffer buffer)
+           (when (> (length (window-list)) 1)
+             (delete-other-windows))))))
 
 
 (defun entropy/emacs-ext--extra-format-trouble (extra-tmap)
