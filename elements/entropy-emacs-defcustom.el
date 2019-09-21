@@ -50,6 +50,22 @@
   "Personal Emacs configurations."
   :group 'extensions)
 
+;; *** init hooks
+(defcustom entropy/emacs-minimal-start nil
+  "For minmal startup"
+  :type 'boolean
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/emacs-init-mini-hook '()
+  "Hooks for minimal start."
+  :type 'list
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/emacs-init-X-hook '()
+  "Hooks of entropy-emacs X init."
+  :type 'list
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; *** fundamental config
 (defgroup entropy/emacs-customize-fundametal nil
   "Fundametal customized variable group for entropy-emacs" 
@@ -579,12 +595,6 @@ your installed"
 
 Default is ag"
   :type 'string
-  :group 'entropy/emacs-custom-variable-basic)
-
-;; *** For minmal startup
-(defcustom entropy/emacs-minimal-start nil
-  "For minmal startup"
-  :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; *** language envrionment setting

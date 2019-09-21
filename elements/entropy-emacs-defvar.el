@@ -37,12 +37,6 @@
   (expand-file-name (file-name-directory load-file-name))
   "entropy-emacs core library hosted path.")
 
-(defvar entropy/emacs-init-mini-hook ()
-  "Hooks for minimal start.")
-
-(defvar entropy/emacs-init-X-hook ()
-  "Hooks of entropy-emacs X init.")
-
 (defvar entropy/emacs-lang-locale (car default-process-coding-system)
   "The locale lang.")
 
