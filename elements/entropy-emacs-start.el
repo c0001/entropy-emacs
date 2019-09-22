@@ -122,8 +122,8 @@
        (red "Redisplay disabled in pdumper procedure."))
     (apply orig-func orig-args)))
 
-;; * Trail
-;; ** Windows IME enable function
+;; ** Trail
+;; *** Windows IME enable function
 (when sys/win32p
   (defun entropy/emacs-start-w32-ime-enable (&optional silence)
     (interactive)
@@ -184,7 +184,7 @@ Trying insert some words in below are:
 
 
 
-;; ** Diable linux tty swiching keybinding
+;; *** Diable linux tty swiching keybinding
 ;; 
 ;; Disable virtual terminal tty switching keybinding on linux for
 ;; release more keybinding possibilitie.(see
@@ -196,7 +196,7 @@ Trying insert some words in below are:
    (entropy/emacs-message-do-message
     (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"))))
 
-;; ** Resetting browse-url-function in fancy-startup-screen
+;; *** Resetting browse-url-function in fancy-startup-screen
 
 (defun entropy/emacs-start--startup-screen-after-advice (&rest arg-rest)
   "The advice when `entropy/emacs-browse-url-function' was detectived.
@@ -224,8 +224,8 @@ Emacs\" buffer's local `browse-url-browse-function' to
 
 (advice-add 'about-emacs :after #'entropy/emacs-start--about-emacs-after-advice)
 
-;; * start
-;; ** starting emacs with installing new packages 
+;; ** start
+;; *** starting emacs with installing new packages 
 (defvar entropy/emacs-start--is-init-with-install nil
   "Judgement of whether X start emacs with installing new packages")
 
@@ -254,8 +254,8 @@ and save the compiling log into `user-emacs-dir' named as
   (when entropy/emacs-start--is-init-with-install
     (run-with-timer 6 nil #'kill-emacs)))
 
-;; ** start type choice
-;; *** status of pyim loading
+;; *** start type choice
+;; **** status of pyim loading
 (when entropy/emacs-enable-pyim
   ;; for emacs 26 and higher version
   (defvar entropy/emacs-start--pyim-timer-26+ nil)
@@ -327,7 +327,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
       (entropy/emacs-start--pyim-init-after-loaded-cache-26-)))))
 
 
-;; *** after load procedure
+;; **** after load procedure
 
 (defun entropy/emacs-start--init-after-load-initialze-process (enable aft-hook)
   ;; pyim starter
@@ -360,8 +360,8 @@ Emacs will auto close after 6s ......")))
       (entropy/emacs-message-do-message
        (green "After load initilized")))))
 
-;; *** start up branch
-;; **** mini start
+;; **** start up branch
+;; ***** mini start
 (defun entropy/emacs-start-M-enable ()
   (entropy/emacs-message-do-message
    "%s %s"
@@ -417,7 +417,7 @@ Emacs will auto close after 6s ......")))
    (white "⮞")
    (green "Minimal start completed.")))
 
-;; **** x enable
+;; ***** x enable
 (defun entropy/emacs-start-X-enable ()
   (interactive)
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
@@ -479,7 +479,7 @@ Emacs will auto close after 6s ......")))
    (white "⮞")
    (green "Full start completed.")))
 
-;; *** startup main function
+;; **** startup main function
 (defun entropy/emacs-start--init-X ()
   (entropy/emacs-start-M-enable)
   (entropy/emacs-start-X-enable))
