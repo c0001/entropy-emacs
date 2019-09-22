@@ -502,13 +502,13 @@ without derived slot."
        ((not (equal cslot top-slot))
         (eyebrowse-switch-to-window-config top-slot)
         (message (concat (propertize "You've been back to top wg: "
-                                     'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body)
+                                     'face 'entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_body)
                          (propertize (if (and (not (equal top-tag ""))
                                               (not (equal top-tag nil)))
                                          (format "[%s]: %s " top-slot top-tag)
                                        (format "[%s] " top-slot))
-                                     'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_content)
-                         (propertize "." 'face 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body))))
+                                     'face 'entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_content)
+                         (propertize "." 'face 'entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_body))))
        (t (error "You've at top wg!"))))))
 
 ;; *** winner mode for recover previous window config faster

@@ -411,13 +411,13 @@ widget used func `entropy/emacs-ui--dashboard-create-widget'."
                              ;; from it's height.
                              (* (length title)
                                 (if (display-graphic-p)
-                                    (let ((height (face-attribute 'entropy/emacs-faces--ui-dashboard-title-face
+                                    (let ((height (face-attribute 'entropy/emacs-defface-face-for-ui-dashboard-title-face
                                                                   :height)))
                                       (if height height 1))
                                   1)))
                           2)))
                  ?\ ))
-        (insert (propertize title 'face 'entropy/emacs-faces--ui-dashboard-title-face))
+        (insert (propertize title 'face 'entropy/emacs-defface-face-for-ui-dashboard-title-face))
         (insert "\n")
         (insert (make-string (floor (/ (- entropy/emacs-ui--dashboard-width (length version)) 2)) ?\ ))
         (insert entropy/emacs-ecv)

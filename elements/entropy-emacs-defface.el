@@ -30,12 +30,12 @@
 ;; 
 ;; * Code:
 ;; ** init faces
-(defface entropy/emacs-faces--require-faces-head-prompt
+(defface entropy/emacs-defface-face-for-require-faces-head-prompt
   '((t :weight semi-bold :foreground "yellow1"))
   "Face for the head prompt requiring advice
 `entropy/emacs-require-loadding")
 
-(defface entropy/emacs-faces--require-face-tail-prompt
+(defface entropy/emacs-defface-face-for-require-face-tail-prompt
   '((t :weight semi-bold :foreground "linen" :underline t))
   "Face for the tail prompt requiring advice
 `entropy/emacs-require-loadding")
@@ -44,55 +44,55 @@
   (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))
 
 ;; ** basic faces
-(defface entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body '((t ()))
+(defface entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_body '((t ()))
   "Face for message body area with func `entropy/emacs-basic-eyebrowse-switch-top'")
 
-(set-face-attribute 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_body
+(set-face-attribute 'entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_body
                     nil :foreground "yellow")
 
-(defface entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_content '((t ()))
+(defface entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_content '((t ()))
   "Face for message content area with func `entropy/emacs-basic-eyebrowse-switch-top'")
 
-(set-face-attribute 'entropy/emacs-faces--basic-eyebrowse-back-top-wg-message-face_content
+(set-face-attribute 'entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_content
                     nil :foreground "green2")
 
 
 ;; ** ui faces
-(defface entropy/emacs-faces--ui-dashboard-title-face '((t ()))
+(defface entropy/emacs-defface-face-for-ui-dashboard-title-face '((t ()))
   "Face for entropy-emacs initial buffer title.")
 
-(set-face-attribute 'entropy/emacs-faces--ui-dashboard-title-face
+(set-face-attribute 'entropy/emacs-defface-face-for-ui-dashboard-title-face
                     nil :height 2.5 :bold t :underline t :overline t)
 ;; ** modeline faces
-(defface entropy/emacs-faces--modeline-mdl-eyebrowse-face-main '((t ()))
+(defface entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main '((t ()))
   "Face for eyebrowse main workspace segment of origin modeline")
 
-(set-face-attribute 'entropy/emacs-faces--modeline-mdl-eyebrowse-face-main nil
+(set-face-attribute 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main nil
                     :foreground "DarkGoldenrod2" :background "black" :bold t)
 
-(defface entropy/emacs-faces--modeline-mdl-eyebrowse-face-main_inactive '((t ()))
+(defface entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive '((t ()))
   "Face for eyebrowse main workspace segment while window
 inactive of origin modeline")
 
-(set-face-attribute 'entropy/emacs-faces--modeline-mdl-eyebrowse-face-main_inactive nil
+(set-face-attribute 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive nil
                     :foreground "white" :background "brown")
 
-(defface entropy/emacs-faces--modeline-mdl-eyebrowse-face-derived '((t ()))
+(defface entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived '((t ()))
   "Face for eyebrowse derived workspace segment of origin modeline.")
 
-(set-face-attribute 'entropy/emacs-faces--modeline-mdl-eyebrowse-face-derived nil
+(set-face-attribute 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived nil
                     :background "#deaa00" :foreground "purple4" :bold t)
 
-(defface entropy/emacs-faces--modeline-mdl-eyebrowse-face-derived_inactive '((t ()))
+(defface entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive '((t ()))
   "Face for eyebrowse derived workspace segment while window
 inactive of origin modeline ")
 
-(set-face-attribute 'entropy/emacs-faces--modeline-mdl-eyebrowse-face-derived_inactive nil
+(set-face-attribute 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive nil
                     :foreground "white" :background "DarkOrange4")
 
 
 ;; ** ivy faces
-(defface entropy/emacs-faces--swiper-dired-candi-inactive-face  '((t ()))
+(defface entropy/emacs-defface-face-for-swiper-dired-candi-inactive-face  '((t ()))
   "Faces for swiper inactive entries  for dired-buffer.")
 
 

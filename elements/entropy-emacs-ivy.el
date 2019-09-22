@@ -228,7 +228,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
        (lambda (str)
          (cond
           ((eq major-mode 'dired-mode)
-           (ivy--add-face str 'entropy/emacs-faces--swiper-dired-candi-inactive-face))
+           (ivy--add-face str 'entropy/emacs-defface-face-for-swiper-dired-candi-inactive-face))
           (t
            (identity str))))
        cands
