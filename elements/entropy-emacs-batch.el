@@ -1,0 +1,94 @@
+;;; entropy-emacs-batch.el --- entropy-emacs non-interactive toolchains
+;;
+;; * Copyright (C) 20190920  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-batch.el
+;; Package-Version: 0.1.0
+;; Version:       file-version
+;; Created:       2019-09-20 18:18:18
+;; Compatibility: GNU Emacs 25.2;
+;; Package-Requires: ((emacs "25.2") (cl-lib "0.5"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
+;; 
+;; =entropy-emacs= native batch tools for non-interactive session,
+;; usually for 'MAKE'.
+;; 
+;; * Configuration:
+;; 
+;; Designed for =entropy-emacs= only.
+;; 
+;; * Code:
+
+;; ** require 
+(require 'entropy-emacs-message)
+(require 'entropy-emacs-package)
+(require 'entropy-emacs-ext)
+
+;; ** defvar
+(defvar entropy/emacs-batch--making-out nil)
+
+;; ** library
+(defun entropy/emacs-batch--dump-emacs ()
+  (let ((dump-file (expand-file-name
+                    (format "eemacs_%s.pdmp" (format-time-string "%Y%m%d%H%M%S"))
+                    user-emacs-directory)))
+    (setq entropy/emacs-fall-love-with-pdumper t
+          entropy/emacs-is-make-session t)
+    (require 'entropy-emacs-start)
+    (dump-emacs-portable dump-file)))
+
+(defun entropy/emacs-batch-dump-emacs (&optional no-confirm)
+  (unless (not (version< emacs-version "27"))
+    (entropy/emacs-message-do-error
+     (red
+      "You just can portable dump emacs while emacs version upon 27, abort")))
+  (when (or no-confirm
+            (yes-or-no-p "Make pdumper file? "))
+    (setq entropy/emacs-batch--making-out t)
+    (entropy/emacs-batch--dump-emacs)))
+
+;; ** interactive
+(when (and (entropy/emacs-ext-main)
+           (null entropy/emacs-batch--making-out))
+  (let ((type (entropy/emacs-is-make-session)))
+    (cond
+     ((equal type "All")
+      ;; install packages
+      (if (entropy/emacs-package-package-archive-empty-p)
+          (entropy/emacs-package-install-all-packages)
+        (entropy/emacs-package-install-all-packages)
+        (when (yes-or-no-p "Update packages? ")
+          (entropy/emacs-package-update-all-packages)))
+
+      ;; make dump file
+      (entropy/emacs-batch-dump-emacs))
+     ((equal type "Install")
+      (entropy/emacs-package-install-all-packages))
+     ((equal type "Update")
+      (if (entropy/emacs-package-package-archive-empty-p)
+          (entropy/emacs-message-do-error
+           (red "You haven't install packages, can not do updating, abort!"))
+        (entropy/emacs-package-update-all-packages)))
+     (t
+      (entropy/emacs-message-do-error
+       (red (format "Unknown making type '%s'" type)))))))
+
+;; * provide
+(provide 'entropy-emacs-batch)

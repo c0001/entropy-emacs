@@ -22,9 +22,8 @@
 ;; 
 ;; * Commentary:
 ;;
-;; This file was built on the top level concept of entropy-emacs's
-;; designation, as what do with `entropy-emacs-defcustom' and
-;; `entropy-emacs-defconst'.
+;; This file was built on the =func-binds= concept of entropy-emacs's
+;; designation.
 ;;
 ;; For be as the underlying project function library hosting
 ;; master. Every part of this file can be sharing on the context and
@@ -39,7 +38,7 @@
 ;; ** require
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
-(require 'entropy-emacs-const)
+(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-message)
 (if (version< emacs-version "27")
     (require 'cl)

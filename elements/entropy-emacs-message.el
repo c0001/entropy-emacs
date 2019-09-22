@@ -1,6 +1,48 @@
-;;; -*- lexical-binding: t; -*-
+;;; entropy-emacs-message.el --- entropy-emacs top function library for 'message' refer
+;;
+;; * Copyright (C) 201909  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-message.el
+;; Package-Version: 0.1.0
+;; Version:       file-version
+;; Created:       2019
+;; Compatibility: GNU Emacs 25.2;
+;; Package-Requires: ((emacs "25.2") (cl-lib "0.5") (ansi-color "3"))
+;; 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;; 
+;; * Commentary:
+;;
+;; This file was built on the =func-binds= concept of entropy-emacs's
+;; designation.
+;; 
+;; The ansi-color wrapper for emacs message-system, aim for unifying
+;; non-interaction (e.g. emacs batch-mode ) or interaction session's
+;; messaging system, inspired from [[https://github.com/hlissner/doom-emacs][doom-emacs]]'s `message.el'
+;;
+;; * Configuration:
+;;
+;; Design for =entropy-emacs= only, non-warranty for grafting.
+;; 
+;; * Code:
+;; ** require
 (require 'ansi-color)
 
+;; ** const define
 (defconst entropy/emacs-message-message-buffer
   " *eemacs messages*")
 
@@ -39,6 +81,8 @@
     (strike     . 9))
   "List of styles.")
 
+;; ** library
+;; *** top advice
 (defun entropy/emacs-message-quit (&rest args)
   (let ((echo-wd (get-buffer-window entropy/emacs-message-message-buffer)))
     (when echo-wd
@@ -46,6 +90,7 @@
 
 (advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
 
+;; *** core
 (defun entropy/emacs-message--ansi-color-apply-for-face (string)
   "The same as `ansi-color-apply', but using `face' instead of
 `font-lock-faace' for make `message' colorized."
@@ -129,6 +174,7 @@ interactive session."
        (insert (entropy/emacs-message--do-message-ansi-apply
                 ,message ,@args)))))
 
+;; ** auto load
 ;;;###autoload
 (defmacro entropy/emacs-message-do-message-auto (message &rest args)
   "An alternative to `message' that strips out ANSI codes if used in an

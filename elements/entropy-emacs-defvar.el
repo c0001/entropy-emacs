@@ -30,7 +30,7 @@
 ;; No individually loading designation without `entropy-emacs'.
 ;; 
 ;; * Code:
-(require 'entropy-emacs-const)
+(require 'entropy-emacs-defconst)
 
 ;; ** basic
 (defvar entropy/emacs-core-components-hosted-path

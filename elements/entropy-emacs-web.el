@@ -33,7 +33,7 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-const)
+(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 (if (version< emacs-version "27")
     (require 'cl)

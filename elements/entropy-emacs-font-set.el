@@ -46,7 +46,7 @@
 ;; * Code:
 
 (require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-const)
+(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defun)
 
 (defvar entropy/emacs-font-set--warn

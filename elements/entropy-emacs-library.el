@@ -36,7 +36,7 @@
 ;; 
 ;; * Code:
 
-(require 'entropy-emacs-const)
+(require 'entropy-emacs-defconst)
 
 (when sys/win32p
   (require 'font-lock+))

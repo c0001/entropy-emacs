@@ -58,7 +58,7 @@
 
 ;; *** customization read
 (require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-const)
+(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-message)
 
@@ -81,7 +81,7 @@
           (red "You can not enable pyim in pdumper session"))))
 
 ;; *** load core library
-(require 'entropy-emacs-const)
+(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defun)
 
 ;; Increase the default gc-cons-percentage for more smooth typing

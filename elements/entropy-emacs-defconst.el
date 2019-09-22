@@ -69,7 +69,7 @@
   "Version of entropy-emacs.")
 
 ;; * provide
-(provide 'entropy-emacs-const)
+(provide 'entropy-emacs-defconst)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-const.el ends here
