@@ -51,13 +51,10 @@
 (defvar default-file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
 
-;; ** load path
-;; *** load-path for entropy-emacs
-(let ((entropy-emacs_path
-       (expand-file-name "elements/"
-                         user-emacs-directory)))
-  (add-to-list 'load-path entropy-emacs_path))
-
 ;; ** startup entropy-emacs
-(require 'entropy-emacs)
+(require
+ 'entropy-emacs
+ (expand-file-name
+  "elements/entropy-emacs.el"
+  user-emacs-directory))
 

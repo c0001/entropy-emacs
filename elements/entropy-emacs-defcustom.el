@@ -88,7 +88,8 @@ for entropy-emacs.")
   :type 'string
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-fancy-splash-logo (expand-file-name "logo/logo.png" (file-name-directory load-file-name))
+(defcustom entropy/emacs-fancy-splash-logo
+  (expand-file-name "logo/logo.png" (file-name-directory load-file-name))
   "Set emacs logo. nil means official logo."
   :type 'string
   :group 'entropy/emacs-customize-fundametal)

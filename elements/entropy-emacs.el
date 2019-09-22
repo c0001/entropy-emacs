@@ -101,6 +101,13 @@
 ;; immediately.
 ;;
 ;; * Code:
+(let ((sub-paths
+       '("var-binds" "func-binds" "tentacles"))
+      (cur-path (expand-file-name (file-name-directory load-file-name))))
+  (add-to-list 'load-path cur-path)
+  (dolist (subp sub-paths)
+    (add-to-list 'load-path (expand-file-name subp cur-path))))
+
 (require 'entropy-emacs-defcustom)
 
 (if (entropy/emacs-is-make-session)

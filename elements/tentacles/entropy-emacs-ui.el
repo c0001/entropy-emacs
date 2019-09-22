@@ -116,7 +116,7 @@ the specific height and width determined by above variable you setted."
 
   (defvar entropy/emacs-dashboard-text-logo-file
     (expand-file-name "logo/logo.txt"
-                      (file-name-directory load-file-name))
+                      entropy/emacs-core-components-hosted-path)
     "Text logo file.")
 
 ;; *** libraries

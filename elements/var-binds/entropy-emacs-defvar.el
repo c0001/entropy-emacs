@@ -34,7 +34,7 @@
 
 ;; ** basic
 (defvar entropy/emacs-core-components-hosted-path
-  (expand-file-name (file-name-directory load-file-name))
+  (expand-file-name "../" (file-name-directory load-file-name))
   "entropy-emacs core library hosted path.")
 
 (defvar entropy/emacs-lang-locale (car default-process-coding-system)
