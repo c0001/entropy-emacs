@@ -192,7 +192,7 @@ interactive session."
 (defmacro entropy/emacs-message-do-error (message &rest args)
   `(progn
      (entropy/emacs-message-do-message
-      ,message ,@args-1)
+      ,message ,@args)
      (error "")))
 
 (provide 'entropy-emacs-message)
