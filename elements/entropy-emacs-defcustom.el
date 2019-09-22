@@ -704,12 +704,12 @@ You can setting like this:
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/emacs-gnus-init-config
-  `(:gnus-home ,(expand-file-name ".gnus" entropy/emacs-stuffs-topdir)
-    :gnus-news-dir ,(expand-file-name ".gnus/News" entropy/emacs-stuffs-topdir)
-    :mail-dir ,(expand-file-name ".gnus/Mail" entropy/emacs-stuffs-topdir)
-    :mail-temp-dir ,(expand-file-name ".gnus/temp" entropy/emacs-stuffs-topdir)
-    :init-file ,(expand-file-name ".gnus/gnus-config.el" entropy/emacs-stuffs-topdir)
-    :startup-file ,(expand-file-name ".gnus/newsrc" entropy/emacs-stuffs-topdir)
+  `(:gnus-home ,(expand-file-name "gnus" entropy/emacs-stuffs-topdir)
+    :gnus-news-dir ,(expand-file-name "gnus/News" entropy/emacs-stuffs-topdir)
+    :mail-dir ,(expand-file-name "gnus/Mail" entropy/emacs-stuffs-topdir)
+    :mail-temp-dir ,(expand-file-name "gnus/temp" entropy/emacs-stuffs-topdir)
+    :init-file ,(expand-file-name "gnus/gnus-config.el" entropy/emacs-stuffs-topdir)
+    :startup-file ,(expand-file-name "gnus/newsrc" entropy/emacs-stuffs-topdir)
     :read-newsrc nil
     :save-newsrc nil
     :use-dribble t
