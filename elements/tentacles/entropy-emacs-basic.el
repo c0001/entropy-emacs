@@ -128,8 +128,8 @@
           (rename-buffer "*scratch*")
           (lisp-interaction-mode)
           (goto-char (point-min))
-          (if (not (re-search-forward (regexp-quote initial-scratch-message) nil t))
-              (insert initial-scratch-message)))))
+          (unless (re-search-forward (regexp-quote initial-scratch-message) nil t)
+            (insert initial-scratch-message)))))
     bfn))
 
 (unless entropy/emacs-fall-love-with-pdumper
