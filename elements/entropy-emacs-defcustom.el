@@ -52,6 +52,15 @@
   "Personal Emacs configurations."
   :group 'extensions)
 
+;; **** stuffs dir
+(defcustom entropy/emacs-stuffs-topdir
+  (expand-file-name "stuffs" user-emacs-directory)
+  "The stuffs collection host path, for as `savehist-file',
+`bookmark-file' cache host. This setting mainly for cleanup
+`user-emacs-directory'."
+  :type 'string
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; **** init hooks
 (defcustom entropy/emacs-minimal-start nil
   "For minmal startup"
@@ -695,12 +704,12 @@ You can setting like this:
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/emacs-gnus-init-config
-  '(:gnus-home "~/.gnus/"
-    :gnus-news-dir "~/.gnus/News/"               
-    :mail-dir "~/.gnus/Mail/"
-    :mail-temp-dir "~/.gnus/temp/"
-    :init-file "~/.gnus/gnus-config.el"
-    :startup-file "~/.gnus/newsrc"
+  `(:gnus-home ,(expand-file-name ".gnus" entropy/emacs-stuffs-topdir)
+    :gnus-news-dir ,(expand-file-name ".gnus/News" entropy/emacs-stuffs-topdir)
+    :mail-dir ,(expand-file-name ".gnus/Mail" entropy/emacs-stuffs-topdir)
+    :mail-temp-dir ,(expand-file-name ".gnus/temp" entropy/emacs-stuffs-topdir)
+    :init-file ,(expand-file-name ".gnus/gnus-config.el" entropy/emacs-stuffs-topdir)
+    :startup-file ,(expand-file-name ".gnus/newsrc" entropy/emacs-stuffs-topdir)
     :read-newsrc nil
     :save-newsrc nil
     :use-dribble t
@@ -1279,6 +1288,28 @@ git-for-windows-sdk `git-bash.exe'"
                 (advice-remove
                  'display-graphic-p
                  #'entropy/emacs-display-graphic-pdumper-advice))))
+
+;; *** clean stuff files
+(let ((top entropy/emacs-stuffs-topdir))
+  (unless (file-exists-p top)
+    (make-directory top))
+  (dolist (item '((bookmark-file . "bookmarks")
+                  (recentf-save-file . "recentf")
+                  (tramp-persistency-file-name . "tramp")
+                  (auto-save-list-file-prefix . "auto-save-list/.saves-")
+                  ;; savehist caches
+                  (savehist-file . "history")
+                  (save-place-file . "places")
+                  ;; emms caches
+                  (emms-directory . "emms")
+                  ;; eshell files
+                  (eshell-directory-name . "eshell")
+                  ;; transient files
+                  (transient-levels-file . "transient/levels.el")
+                  (transient-values-file . "transient/values.el")
+                  (transient-history-file . "transient/history.el")
+                  (yas--default-user-snippets-dir . "snippets")))
+    (set (car item) (expand-file-name (cdr item) top))))
 
 ;; * provide
 (provide 'entropy-emacs-defcustom)
