@@ -40,6 +40,7 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-const)
+(require 'entropy-emacs-message)
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
@@ -223,9 +224,17 @@ in case that file does not provide any feature."
         (msg-str (symbol-name name)))
     `(progn
        (defun ,func ()
-         (message (format "Start '%s' ..." ,msg-str))
+         (entropy/emacs-message-do-message
+          "%s '%s' %s"
+          (blue "Start")
+          (yellow ,msg-str)
+          (blue "..."))
          ,@body
-         (message (format "Start '%s' done!" ,msg-str)))
+         (entropy/emacs-message-do-message
+          "%s '%s' %s"
+          (blue "Start")
+          (yellow ,msg-str)
+          (blue "done!")))
        (cond
         (entropy/emacs-fall-love-with-pdumper
          (add-hook 'entropy/emacs-pdumper-load-hook
@@ -249,17 +258,26 @@ in case that file does not provide any feature."
                end-time)
            (unless ,var
              (redisplay t)
-             (message (concat "Loading and enable feature '" ,initial-func-suffix-name "'  ..."))
+             (entropy/emacs-message-do-message
+              "%s '%s' %s"
+              (blue "Loading and enable feature")
+              (yellow ,initial-func-suffix-name)
+              (blue "..."))
              ,@func-body
              (setq ,var t)
              (setq end-time (time-to-seconds))
-             (message (concat "Load done for '" ,initial-func-suffix-name
-                              "' within " (format "%f" (- end-time head-time))
-                              " senconds."))
+             (entropy/emacs-message-do-message
+              "%s '%s' %s '%s' %s"
+              (green "Load done for")
+              (yellow ,initial-func-suffix-name)
+              (green "within")
+              (cyan (format "%f" (- end-time head-time)))
+              (green "seconds."))
              (redisplay t))))
        (cond
         (entropy/emacs-fall-love-with-pdumper
-         (message "All lazy loading feature disabled in pdumper procedure")
+         (entropy/emacs-message-do-message
+          (red "All lazy loading feature disabled in pdumper procedure"))
          (add-hook 'entropy/emacs-pdumper-load-hook #',func))
         ((not entropy/emacs-custom-enable-lazy-load)
          (add-hook (entropy/emacs-select-x-hook) #',func))

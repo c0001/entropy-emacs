@@ -60,6 +60,7 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-const)
 (require 'entropy-emacs-defvar)
+(require 'entropy-emacs-message)
 
 (let ((args-filter (mapcar (lambda (x) (string-match-p "dump-emacs-portable" x))
                            command-line-args)))
@@ -76,7 +77,8 @@
        (when (and entropy/emacs-fall-love-with-pdumper
                   entropy/emacs-enable-pyim)
          (setq entropy/emacs-enable-pyim nil)
-         (message "You can not enable pyim in pdumper session")))
+         (entropy/emacs-message-do-message
+          (red "You can not enable pyim in pdumper session"))))
 
 ;; *** load core library
 (require 'entropy-emacs-const)
@@ -104,14 +106,11 @@
 
 ;; *** preface advice
 (defun entropy/emacs-start--require-prompt (feature)
-  (let ((f-str (symbol-name feature))
-        (head (lambda (x) (propertize x 'face 'entropy/emacs-faces--require-faces-head-prompt)))
-        (tail (lambda (x) (propertize x 'face 'entropy/emacs-faces--require-face-tail-prompt))))
-    (message
-     (format
-      "%s %s"
-      (funcall head "Loading:")
-      (funcall tail f-str)))))
+  (let ((f-str (symbol-name feature)))
+    (entropy/emacs-message-do-message
+     "%s %s"
+     (green "Loading:")
+     (yellow f-str))))
 
 (defun entropy/emacs-start--require-loading (feature &rest rest)
   (when (not (featurep feature))
@@ -119,7 +118,8 @@
 
 (defun entropy/emacs-start--initial-redisplay-advice (orig-func &rest orig-args)
   (if entropy/emacs-fall-love-with-pdumper
-      (message "Redisplay disabled in pdumper procedure.")
+      (entropy/emacs-message-do-message
+       (red "Redisplay disabled in pdumper procedure."))
     (apply orig-func orig-args)))
 
 ;; * Trail
@@ -193,7 +193,8 @@ Trying insert some words in below are:
   (entropy/emacs-lazy-with-load-trail
    setxkbmap
    (shell-command "setxkbmap -option srvrkeys:none")
-   (message "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually")))
+   (entropy/emacs-message-do-message
+    (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"))))
 
 ;; ** Resetting browse-url-function in fancy-startup-screen
 
@@ -274,18 +275,20 @@ notation.
       (when (buffer-live-p entropy/emacs-start--pyim-init-prompt-buffer)
         (switch-to-buffer entropy/emacs-start--pyim-init-prompt-buffer)
         (kill-buffer-and-window))
-      (message "pyim loading down.")
+      (entropy/emacs-message-do-message (green "pyim loading down."))
       (defun entropy/emacs-start--pyim-init-after-loaded-cache-26+ ()
-        (message "This function has been unloaded."))))
+        (entropy/emacs-message-do-message
+         (yellow "This function has been unloaded.")))))
 
   ;; for emacs 25 and lower version
   (defun entropy/emacs-start--pyim-init-after-loaded-cache-26- ()
     "Giving the notation when loaded pyim cache.
 
 (specific for emacs version under '26')"
-    (message "pyim loading down.")
+    (entropy/emacs-message-do-message (green "pyim loading down."))
     (defun entropy/emacs-start--pyim-init-after-loaded-cache-26- ()
-      (message "This function has been unloaded.")))
+      (entropy/emacs-message-do-message
+       (yellow "This function has been unloaded."))))
   
   (defun entropy/emacs-start--pyim-init-prompt ()
     "Make prompt when loading and loded pyim cache for emacs init time.
@@ -307,7 +310,8 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
         (switch-to-buffer buffer)
         (redisplay t)))
      ((version< emacs-version "26")
-      (message "Loading pyim cache ......")))
+      (entropy/emacs-message-do-message
+       (blue (bold "Loading pyim cache ......")))))
 
     ;; initialize pyim
     (entropy/emacs-basic-pyim-start)
@@ -350,14 +354,19 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 Emacs will auto close after 6s ......")))
     (unless entropy/emacs-start--is-init-with-install
-      (message "After load initilizing ...")
+      (entropy/emacs-message-do-message
+       (cyan "After load initilizing ..."))
       (run-hooks aft-hook)
-      (message "After load initilized"))))
+      (entropy/emacs-message-do-message
+       (green "After load initilized")))))
 
 ;; *** start up branch
 ;; **** mini start
 (defun entropy/emacs-start-M-enable ()
-  (message "Loading minimal ...... ")
+  (entropy/emacs-message-do-message
+   "%s %s"
+   (white "⮞")
+   (blue "Loading minimal ...... "))
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
   (advice-add 'redisplay :around #'entropy/emacs-start--initial-redisplay-advice)
   ;; external depedencies scan and loading
@@ -403,14 +412,18 @@ Emacs will auto close after 6s ......")))
   (defun entropy/emacs-start-M-enable ()
     (interactive)
     (message "This function has been unloaded."))
-  (message "Minimal start completed."))
+  (entropy/emacs-message-do-message
+   "%s %s"
+   (white "⮞")
+   (green "Minimal start completed.")))
 
 ;; **** x enable
 (defun entropy/emacs-start-X-enable ()
   (interactive)
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
   (advice-add 'redisplay :around #'entropy/emacs-start--initial-redisplay-advice)
-  (message "Loading rest ......")
+  (entropy/emacs-message-do-message
+   "%s %s" (white "⮞") (blue "Loading rest ......"))
   ;; highlight
   (when entropy/emacs-use-highlight-features
     ;; highlight package will cause the low performance of emacs interpretering, so this be the
@@ -461,7 +474,10 @@ Emacs will auto close after 6s ......")))
   (defun entropy/emacs-start-X-enable ()
     (interactive)
     (message "This function has been unloaded."))
-  (message "Full start completed."))
+  (entropy/emacs-message-do-message
+   "%s %s"
+   (white "⮞")
+   (green "Full start completed.")))
 
 ;; *** startup main function
 (defun entropy/emacs-start--init-X ()

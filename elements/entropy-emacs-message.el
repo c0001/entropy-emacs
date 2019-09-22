@@ -103,10 +103,12 @@ interactive session."
                    collect
                    `(,(car rule)
                      (lambda (message &rest args)
-                       (apply #'entropy/emacs-message--ansi-format ',(car rule) message args))))
+                       (apply #'entropy/emacs-message--ansi-format
+                              ',(car rule) message args))))
         (color
          (lambda (code format &rest args)
-           (apply #'entropy/emacs-message--ansi-format code format args))))
+           (apply #'entropy/emacs-message--ansi-format
+                  code format args))))
      (format ,message ,@args)))
 
 (defmacro entropy/emacs-message--do-message-ansi-apply (message &rest args)

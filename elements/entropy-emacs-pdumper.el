@@ -175,7 +175,7 @@ configuration.")
     
     ;; TODO ...body
     
-    (message "Initializing pdumper session ...")
+    (entropy/emacs-message-do-message (blue "Initializing pdumper session ..."))
     ;; the pdumper session procedure
     (run-hooks 'entropy/emacs-pdumper-load-hook)
     ;; trail dealing
@@ -187,7 +187,7 @@ configuration.")
     (setq entropy/emacs-fall-love-with-pdumper nil)
     ;; the very ending procedure
     (run-hooks 'entropy/emacs-pdumper-load-end-hook)
-    (message "Initialized pdumper session")
+    (entropy/emacs-message-do-message (green "Initialized pdumper session"))
     (when entropy/emacs-pdumper--rec-timer
       (cancel-timer entropy/emacs-pdumper--rec-timer)
       (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
@@ -218,8 +218,13 @@ configuration.")
                 (insert "\n"))
               (insert file)
               (save-buffer))))
-        (message "[Pdumper] load-file: %s" feature-name)
-        (ignore-errors (require feature))))))
+        (entropy/emacs-message-do-message
+         "%s %s"
+         (blue "🠶 [Pdumper] load-file:")
+         (yellow feature-name))
+        (let ((inhibit-message t))
+          (ignore-errors
+            (require feature)))))))
 
 (defun entropy/emacs-pdumper--load-files (arg-list)
   (cl-loop for (load-dir . load-files) in arg-list
