@@ -61,6 +61,10 @@
 ;; the reason for as that =defconst= and =defvar='s content may be
 ;; initialized with user customization.
 ;;
+;; There's another var-bind type for emacs that the 'face' type, in
+;; =entropy-emacs= they are registerred in
+;; `entropy-emacs-defface.el'.
+;;
 ;; ** Func-binds 
 ;; :PROPERTIES:
 ;; :CUSTOM_ID: h-9283a47f-0bcd-420c-a3f8-f718346e6288
