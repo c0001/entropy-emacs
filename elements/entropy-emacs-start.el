@@ -290,7 +290,7 @@ notation.
       (entropy/emacs-message-do-message
        (yellow "This function has been unloaded."))))
   
-  (defun entropy/emacs-start--pyim-init-prompt ()
+  (defun entropy/emacs-start--pyim-initialize ()
     "Make prompt when loading and loded pyim cache for emacs init time.
 
 For different emacs version using different tracing method:
@@ -324,25 +324,15 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
              1 200
              #'entropy/emacs-start--pyim-init-after-loaded-cache-26+)))
      ((version< emacs-version "26")
-      (entropy/emacs-start--pyim-init-after-loaded-cache-26-)))))
+      (entropy/emacs-start--pyim-init-after-loaded-cache-26-)))
+    ;; reset function
+    (defun entropy/emacs-start--pyim-initialize ()
+      (message "This function has been unloaded."))))
 
 
 ;; **** after load procedure
 
 (defun entropy/emacs-start--init-after-load-initialze-process (enable aft-hook)
-  ;; pyim starter
-  (when (and enable
-             entropy/emacs-enable-pyim
-             ;; judgement of whether first init entropy-emacs
-             (not
-              (let ((buflist (mapcar #'buffer-name (buffer-list)))
-                    (rtn nil))
-                (when (member "*Compile-Log*" buflist)
-                  (setq rtn t))
-                rtn)))
-    (entropy/emacs-start--pyim-init-prompt)
-    (defun entropy/emacs-start--pyim-init-prompt ()
-      (message "This function has been unloaded.")))
   (when enable
     ;; hook runner 
     (set aft-hook
@@ -358,7 +348,12 @@ Emacs will auto close after 6s ......")))
        (cyan "After load initilizing ..."))
       (run-hooks aft-hook)
       (entropy/emacs-message-do-message
-       (green "After load initilized")))))
+       (green "After load initilized"))))
+  ;; start pyim
+  (when (and enable
+             entropy/emacs-enable-pyim
+             (not entropy/emacs-start--is-init-with-install))
+    (entropy/emacs-start--pyim-initialize)))
 
 ;; **** start up branch
 ;; ***** mini start
