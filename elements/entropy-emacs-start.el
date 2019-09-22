@@ -21,32 +21,10 @@
 ;; #+END_EXAMPLE
 ;; 
 ;; * Commentary:
-;;   
-;; This file was the connector for other 'entropy-emacs-*' files, can
+;;
+;; This file was the starter for other 'entropy-emacs-*' files, can
 ;; be as the core but mainly for bridge like role.
 ;;
-;; For as the core position of =entropy-emacs=, the top concept
-;; designation were register in this file's commentary part as the
-;; brief introduction for developer or package user to understanding
-;; the basic runtime logic for it.
-;;
-;; This project fistly building the variable definitions which
-;; contains both of the =customizable= and =static const= cases, even
-;; for the internal temporal ones, all of them categorized into
-;; following files:
-;;
-;; 1) `entropy-emacs-defcustom': the customizable variables declaration
-;; 2) `entropy-emacs-defconst':  the static const variables
-;; 3) `entropy-emacs-defvar':    the pacakge internal sharing variables.
-;;
-;; And the another one file belongs to this top (basic) designation
-;; was the `entropy-emacs-defun' file which was built basic on the
-;; above variable declaraion and be as the basic library for other
-;; package internal files using. 
-;;
-;; The final coding designation was building each file as the wrapper
-;; for corresponding aspect of the major mode, tool-chain, or be the
-;; group config for some-thing.
 ;;
 ;; * Configuration:
 ;; 
@@ -81,7 +59,6 @@
           (red "You can not enable pyim in pdumper session"))))
 
 ;; *** load core library
-(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defun)
 
 ;; Increase the default gc-cons-percentage for more smooth typing
