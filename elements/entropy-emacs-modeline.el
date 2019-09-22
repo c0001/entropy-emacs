@@ -42,7 +42,7 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
-(require 'entropy-emacs-faces)
+(require 'entropy-emacs-defface)
 
 ;; ** init setting
 ;;

@@ -66,7 +66,7 @@
 (require 'entropy-emacs-gc)
 
 ;; *** load the core configuration
-(require 'entropy-emacs-faces)
+(require 'entropy-emacs-defface)
 (require 'entropy-emacs-path)
 
 ;; *** Enable entropy emacs UI configuration

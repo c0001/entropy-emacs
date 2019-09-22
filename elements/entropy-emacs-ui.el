@@ -33,7 +33,7 @@
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-faces)
+(require 'entropy-emacs-defface)
 
 (when (and (display-graphic-p)
            (not entropy/emacs-fall-love-with-pdumper))

@@ -97,4 +97,4 @@ inactive of origin modeline ")
 
 
 ;; * provide
-(provide  'entropy-emacs-faces)
+(provide  'entropy-emacs-defface)

@@ -49,7 +49,7 @@
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-faces)
+(require 'entropy-emacs-defface)
 
 ;; ** Temporal bug revert
 ;; *** gnutls bug for emacs version upper than '26.1'
