@@ -129,8 +129,7 @@ configuration.")
                                    "*eemacs-exlude-feature-indicator*"))))))
         (inc-filters `(,(rx (seq (or "cl" "tramp" "file" "dired" "url" "eww" "eshell" "esh" "em-")
                                  (* any)
-                                 (or (seq ".elc" line-end)
-                                     (seq ".el.gz" line-end)))))))
+                                 (seq ".elc" line-end))))))
     (entropy/emacs-pdumper--extract-files-with-dir
      (file-name-directory (locate-library "window"))
      exc-filters
