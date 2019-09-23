@@ -214,7 +214,7 @@ and save the compiling log into `user-emacs-dir' named as
     (when (member "*Compile-Log*" buflist)
       ;; First recorde compiling log
       (let (($f (expand-file-name (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
-                                  user-emacs-directory))
+                                  entropy/emacs-stuffs-topdir))
             buff_content)
         (with-current-buffer (find-file-noselect $f)
           (with-current-buffer "*Compile-Log*"

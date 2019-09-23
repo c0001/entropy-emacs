@@ -64,7 +64,7 @@ archived option of `entropy/emacs-use-extensions-type'"))
   (expand-file-name
    (format "pdumper-loads-log_%s.txt"
            (format-time-string "%Y%m%d%H%M%S"))
-   user-emacs-directory))
+   entropy/emacs-stuffs-topdir))
 
 ;; timers
 (defvar entropy/emacs-pdumper--rec-timer nil
