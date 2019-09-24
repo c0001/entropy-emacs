@@ -1078,8 +1078,9 @@ This func was automatically added into `post-command-hook' by
 ;;;;;;; popup
 (defun entropy/sdcv--show-with-popup (feedback)
   (let ((theme_Ctype (entropy/sdcv--automatic-faceSet))
-        ($pface_temp (cons (face-attribute 'popup-tip-face :foreground)
-                           (face-attribute 'popup-tip-face :background))))
+        ($pface_temp (copy-tree
+                      (cons (face-attribute 'popup-tip-face :foreground)
+                            (face-attribute 'popup-tip-face :background)))))
     (set-face-attribute 'popup-tip-face nil
                         :foreground (plist-get theme_Ctype :fg)
                         :background (plist-get theme_Ctype :bg))
