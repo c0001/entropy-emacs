@@ -494,7 +494,10 @@ For now, there's three choices for you:
         (global-set-key (kbd "C-c y") 'entropy/emacs-tools-google-translate-at-point-direct-en-CN)
         (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-google-translate-prompt-direct-en-CN)))
      ((string= choice "sdcv")
-      (global-set-key (kbd "C-c y") 'entropy/sdcv-search-at-point-tooltip)
+      (global-set-key (kbd "C-c y")
+                      (if entropy/emacs-fall-love-with-pdumper
+                          'entropy/sdcv-search-input-adjacent
+                        'entropy/sdcv-search-at-point-tooltip))
       (global-set-key (kbd "C-c M-y") 'entropy/sdcv-search-input-adjacent)))))
 
 (entropy/emacs-tools-toggle-dict "sdcv")

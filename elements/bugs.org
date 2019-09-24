@@ -210,6 +210,22 @@ when change theme, it's a bug (don't find some refer in mailing list
 now), get the origin face SPEC in the theme source and reload it
 solved as.
 
+
+** Face spec for posframe not effectived for =posframe= in *pdumper* session
+:PROPERTIES:
+:CUSTOM_ID: h-9ea04c28-bdbe-4099-80b2-c97ba373e62b
+:END:
+
+This bug may has the same core issue with [[h-86e0180b-bcf0-484d-bc21-9502d8abeb58][this]].
+
+1) Bug description:
+
+   When using =entropy-sdcv= of its tool-tip show feature, the
+   posframe's foreground may not specified by its subroutine
+   correctly while after change theme by
+   `entropy/emacs-ivy-counsel-load-theme', this bug occurred for while
+   the fixing patch for [[h-86e0180b-bcf0-484d-bc21-9502d8abeb58][this]].
+
 * COMMENT Local Varaibles  
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d
