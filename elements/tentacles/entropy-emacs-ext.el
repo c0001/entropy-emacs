@@ -213,7 +213,7 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
                (entropy/emacs-message-do-message
                 (red content)))))
           (t
-           (set-buffer buffer)
+           (switch-to-buffer buffer)
            (when (> (length (window-list)) 1)
              (delete-other-windows))))))
 
