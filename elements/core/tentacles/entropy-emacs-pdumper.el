@@ -233,15 +233,12 @@ configuration.")
 ;; ** main
 
 (defvar entropy/emacs-pdumper--load-alist
-  (let ((basic-load `((,entropy/emacs-pdumper--upstream-top-dir . ,(entropy/emacs-pdumper--extract-upstream-packages))
-                      (,nil . ,(entropy/emacs-pdumper--extract-internal-packages))
-                      (,nil . ,(entropy/emacs-pdumper--extract-org-packages)))))
-    (when (eq entropy/emacs-use-extensions-type 'origin)
-      (setq basic-load
-            (append basic-load
-                    `((,entropy/emacs-site-lisp-path
-                       . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))))))
-    basic-load))
+  `((,entropy/emacs-pdumper--upstream-top-dir
+     . ,(entropy/emacs-pdumper--extract-upstream-packages))
+    (,nil . ,(entropy/emacs-pdumper--extract-internal-packages))
+    (,nil . ,(entropy/emacs-pdumper--extract-org-packages))
+    (,entropy/emacs-site-lisp-path
+     . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))))
 
 (entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
 
