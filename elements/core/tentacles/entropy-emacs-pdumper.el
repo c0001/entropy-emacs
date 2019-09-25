@@ -137,7 +137,7 @@ configuration.")
 
 (defun entropy/emacs-pdumper--extract-eemacs-deps-packages ()
   (let* ((eemacs-deps-top-dir
-          (expand-file-name "elements/submodules" entropy/emacs-ext-deps-dir))
+          entropy/emacs-site-lisp-path)
          (exc-filters `(,(rx (seq line-start
                                   (or "liberime"
                                       "fakecygpty"
@@ -239,7 +239,7 @@ configuration.")
     (when (eq entropy/emacs-use-extensions-type 'origin)
       (setq basic-load
             (append basic-load
-                    `((,(expand-file-name "elements/submodules" entropy/emacs-ext-deps-dir)
+                    `((,entropy/emacs-site-lisp-path
                        . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))))))
     basic-load))
 

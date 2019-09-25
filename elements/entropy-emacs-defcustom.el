@@ -146,19 +146,10 @@ Available value are 'submodules' 'submodules-melpa-local' and 'origin'."
   :type 'symbol
   :group 'entropy/emacs-extensions-customize)
 
-(defcustom entropy/emacs-ext-deps-dir (expand-file-name
-                                 ".entropy-emacs-deps"
-                                 "~/")
-  "entropy-emacs dependencies archive location, entropy-emacs
-deps are the necessities for both type of 'origin' or
-'submodules' extension using type of
-`entropy/emacs-use-extensions-type'."
-  :type 'string
-  :group 'entropy/emacs-extensions-customize)
-
-(defcustom entropy/emacs-ext-extensions-dir (expand-file-name
-                                      ".entropy-emacs-extensions"
-                                      "~/")
+(defcustom entropy/emacs-ext-extensions-dir
+  (expand-file-name
+   ".entropy-emacs-extensions"
+   "~/")
   "entropy-emacs extensions collection archive location. This
 collection used to retrieving all entropy-emacs elpa or melpa
 extensions' repos as submodules archived as one single project
@@ -172,14 +163,14 @@ variable `entropy/emacs-use-extensions-type'."
   :group 'entropy/emacs-extensions-customize)
 
 
-(defcustom entropy/emacs-ext-extensions-elpa-dir (expand-file-name
-                                            ".entropy-emacs-extensions-elpa"
-                                            "~/")
+(defcustom entropy/emacs-ext-extensions-elpa-dir
+  (expand-file-name
+   ".entropy-emacs-extensions-elpa"
+   "~/.config/entropy-emacs")
   "entropy-emacs elpa extensions directory used when
 `entropy/emacs-use-extensions-type' was not eq 'submodules'."
   :type 'string
   :group 'entropy/emacs-extensions-customize)
-
 
 (defcustom entropy/emacs-ext-user-specific-load-paths nil
   "Extra load path list for user specification.
@@ -1234,9 +1225,16 @@ git-for-windows-sdk `git-bash.exe'"
 
 ;; ** Top APIs
 ;; *** top paths
+(defvar entropy/emacs-hosted-path
+  (file-name-directory load-file-name)
+  "entropy-emacs hosted path")
+
 (defvar entropy/emacs-core-components-hosted-path
-  (expand-file-name "core" (file-name-directory load-file-name))
+  (expand-file-name "core" entropy/emacs-hosted-path)
   "entropy-emacs core library hosted path.")
+
+(defvar entropy/emacs-site-lisp-path
+  (expand-file-name "site-lisp" entropy/emacs-hosted-path))
 
 (defvar entropy/emacs-fancy-splash-logo-file
   (expand-file-name "logo/logo.png" entropy/emacs-core-components-hosted-path)
@@ -1250,6 +1248,16 @@ git-for-windows-sdk `git-bash.exe'"
 (defvar entropy/emacs-initial-theme-path
   (expand-file-name "startup-theme" entropy/emacs-core-components-hosted-path)
   "Initial theme path for entropy-emacs. ")
+
+(defvar entropy/emacs-doc-path
+  `(:org
+    ,(expand-file-name
+      "entropy-emacs-doc/org/entropy-emacs_introduction.org"
+      entropy/emacs-site-lisp-path)
+    :html
+    ,(expand-file-name
+      "entropy-emacs-doc/org/entropy-emacs_introduction.html"
+      entropy/emacs-site-lisp-path)))
 
 ;; *** making procedure
 (defvar entropy/emacs-is-make-session nil)

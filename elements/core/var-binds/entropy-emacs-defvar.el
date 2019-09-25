@@ -48,16 +48,6 @@ specific browser to visualize current file.")
 (defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Title of entropy-emacs initial dashboard buffer. ") 
 
-(defvar entropy/emacs-doc-path
-  `(:org
-    ,(expand-file-name
-      "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.org"
-      entropy/emacs-ext-deps-dir)
-    :html
-    ,(expand-file-name
-      "elements/submodules/entropy-emacs-doc/org/entropy-emacs_introduction.html"
-      entropy/emacs-ext-deps-dir)))
-
 ;; ** garbage collection
 
 (defvar entropy/emacs-gc-threshold-basic 20000000

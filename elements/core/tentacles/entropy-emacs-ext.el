@@ -29,23 +29,17 @@
 ;;
 ;; `entropy-emacs' has the specific map of extensions categories
 ;; followed the loading priority and archiving method, variable
-;; `entropy/emacs-ext-deps-dir', `entropy/emacs-ext-extensions-dir'
-;; and `entropy/emacs-ext-user-specific-load-paths' are given for
-;; those aim.
+;; `entropy/emacs-ext-extensions-dir' and
+;; `entropy/emacs-ext-user-specific-load-paths' are given for those
+;; aim.
 ;;
 ;; Emacs has its own extensions management tool
 ;; i.e. =pacakge.el=. this tool has the default upstream [[https://elpa.gnu.org][elpa]] and
 ;; [[https://melpa.org/#/][melpa]], although there's lots of extensions registered in them host
 ;; and seems enoughly daily using for most of emacs user, but for
 ;; some rare things or some package didn't commit to those host. For
-;; those case, entropy-emacs using the above three variable to cover
+;; those case, entropy-emacs using the above two variable to cover
 ;; the extension hosted meta types.
-;;
-;; - `entropy/emacs-ext-deps-dir' indicates the project
-;;   [[https://github.com/c0001/entropy-emacs-deps][entropy-emacs-deps]] location. =entroy-emacs-deps= was the the
-;;   project hosted the extensions who may not registered in =melpa=
-;;   or =elpa= host, and both used for project
-;;   =entropy-emacs-extensions=(see below for its introduction).
 ;;
 ;; - `entropy/emacs-ext-extensions-dir' inidicates the local location
 ;;   of project [[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]] which was the git repo of
@@ -74,21 +68,14 @@
 
 ;; ** defvar
 (defvar entropy/emacs-ext--extras
-  (list (list :item "entropy-emacs-deps"
-              :repo-lc entropy/emacs-ext-deps-dir
-              :version-lc (expand-file-name "version" entropy/emacs-ext-deps-dir)
-              :version "0.1.6.5"
-              :indicator-lc (expand-file-name "entropy-emacs-deps" entropy/emacs-ext-deps-dir)
-              :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-deps-dir)
-              :load-predicate (expand-file-name "entropy-emacs-deps-load.el" entropy/emacs-ext-deps-dir))
-        (list :item "entropy-emacs-extensions"
-              :repo-lc entropy/emacs-ext-extensions-dir
-              :version-lc (expand-file-name "version" entropy/emacs-ext-extensions-dir)
-              :version "0.1.9.2"
-              :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/emacs-ext-extensions-dir)
-              :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir)
-              :load-predicate (expand-file-name "eemacs-ext-load.el" entropy/emacs-ext-extensions-dir))))
-
+  (list 
+   (list :item "entropy-emacs-extensions"
+         :repo-lc entropy/emacs-ext-extensions-dir
+         :version-lc (expand-file-name "version" entropy/emacs-ext-extensions-dir)
+         :version "0.1.9.2"
+         :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/emacs-ext-extensions-dir)
+         :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir)
+         :load-predicate (expand-file-name "eemacs-ext-load.el" entropy/emacs-ext-extensions-dir))))
 
 (defvar entropy/emacs-ext--extras-trouble-table
   '((0 . "%s repo doesn't exist.")
@@ -113,20 +100,12 @@ such the problem.
 
    (propertize 
    "
-There's two entropy-emacs extras may need to download by your self:
+There's one entropy-emacs extras may need to download by your self:
 "
    'face 'bold)
 
    (propertize
     "
-- entropy-emacs-deps (https://github.com/c0001/entropy-emacs-deps.git)
-
-  clone it into your home dir and rename as '.entropy-emacs-deps'
-  or adjusting customized variable `entropy/emacs-ext-deps-dir'.
-
-  If the first time cloning it, please see its README and make it
-  initialized.
-
 - entropy-emacs-extensions (https://github.com/c0001/entropy-emacs-extensions.git)
 
   (Notices: only when `entropy/emacs-use-extensions-type' eq
@@ -142,30 +121,28 @@ There's two entropy-emacs extras may need to download by your self:
 "
     'face 'italic)))
 
-
-
-
 ;; ** libraries
 ;; *** extra status check
 (defun entropy/emacs-ext--check-all-extras ()
   "Return the extra-tmaps for as extra-plists mapped as trouble
 code defined in `entropy/emacs-ext--extras-trouble-table' or t."
   (let ((extras (entropy/emacs-ext--check-inuse-extras))
-        rtn)
+        check-errs)
     (dolist (el extras)
       (unless (eq (entropy/emacs-ext--check-extra-status el) t)
-        (push (cons (entropy/emacs-ext--check-extra-status el) el) rtn)))
-    (if rtn
-        rtn
+        (push (cons (entropy/emacs-ext--check-extra-status el) el)
+              check-errs)))
+    (if check-errs
+        check-errs
       t)))
 
 (defun entropy/emacs-ext--check-inuse-extras ()
   (let ((full-extras entropy/emacs-ext--extras))
     (cond ((eq entropy/emacs-use-extensions-type 'origin)
-           (list (car full-extras)))
+           nil)
           ((or (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
                (eq entropy/emacs-use-extensions-type 'submodules))
-           (list (nth 1 full-extras))))))
+           (list (car full-extras))))))
 
 (defun entropy/emacs-ext--check-extra-status (extra-plist)
   (let ((item (plist-get extra-plist :item))
@@ -274,11 +251,11 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 ;; *** load extra load procedure
 (defun entropy/emacs-ext--load-extra ()
   (let ((ext-plists (entropy/emacs-ext--check-inuse-extras)))
-    (dolist (el ext-plists)
-      (let ((loader (plist-get el :load-predicate)))
-        (when (ignore-errors (file-exists-p loader))
-          (load loader))))))
-
+    (when ext-plists 
+      (dolist (el ext-plists)
+        (let ((loader (plist-get el :load-predicate)))
+          (when (ignore-errors (file-exists-p loader))
+            (load loader)))))))
 
 ;; ** main
 (defun entropy/emacs-ext-main ()
@@ -294,7 +271,6 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
           (when (ignore-errors (file-directory-p el))
             (entropy/emacs-ext--load-path (expand-file-name el)))))
       t)))
-
 
 ;; ** provide
 (provide 'entropy-emacs-ext)

@@ -131,7 +131,7 @@
           "with-proxy.el"))
        (cur-path (expand-file-name (file-name-directory load-file-name)))
        (core-path (expand-file-name "core" cur-path))
-       (deps-path (expand-file-name "site-lisp")))
+       (deps-path (expand-file-name "site-lisp" cur-path)))
   (add-to-list 'load-path cur-path)
   (dolist (sub-core subs-core)
     (add-to-list 'load-path (expand-file-name sub-core core-path)))
