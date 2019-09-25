@@ -23,40 +23,41 @@ This emacs personal configs can be used in:
 For see full documents of the introduction of =entropy-emacs= please
 see [[https://github.com/c0001/entropy-emacs-doc/blob/master/org/entropy-emacs_introduction.org][here]].
 
-*Branches descriptioin:*
-
-- master: with the stable packages and config file
-
-- packages-updating: merge from master and be with dately updating
-  packages.
-
-- dev: with the quickly and untesting config by more newly implemented
-  thoughts and waiting for merging into master.
-
-For user daily using the master branch was enoughly and statble, which
-entropy-emacs suggested to clone.
-
 *Extensions:*
 
 =entropy-emacs= using various third-party extensions from [[https://elpa.gnu.org/packages/][elpa]], [[https://melpa.org][melpa]],
 and some ones hosted on _gihtub.com_, thus most of them are not
 wrappered within this repo, for reason of moduling
-management. There're two main corresponding project tied with
+management. There're one main corresponding project tied with
 =entropy-emacs= for as the archive of current using extensions
 collection:
 
-1) [[https://github.com/c0001/entropy-emacs-deps][entropy-emacs-deps]]
-2) [[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]]
+1. [[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]]
 
-For see there explicit meaning, see the commentary of
+For see its explicit meaning, see the commentary of
 [[file:elements/entropy-emacs-ext.el][entropy-emacs-ext.el]].
 
-Notice for that, project =entropy-emacs-deps= are the forcely
-dependencies for =entropy-emacs=, you must cloning it in your home
-directory and then archived it named as =.entropy-emacs-deps= (with
-build for then) before your calling emacs shown-up, or you will
-recieve the warning prompting after the startup.
+Its the stable(tested) extensions that entropy-emacs used for, it has
+its own host-server procedure which forked from '[[https://melpa.org/][melpa]]' to produce as
+what it means. You must make it before using it follow its README.
 
+Or on the most used occasion, you don't need to retrieve this archive
+project, just using the melpa up-to-date upstream.
+
+For switch this two extension usage type, the variable
+~entropy/emacs-use-extensions-type~ are gives for you, the default
+type was using melpa upstream.
+
+*Make entropy-emacs*
+
+entropy-emacs provide one simple =makefile= to batch interact with the
+recipes internal for the sake of below three options:
+
+- install all required packages
+- update all required packages
+- include above two and dump emacs (need emacs 27 or above)
+
+You can run ~make help~ to see the details.
 
 *Thanks to:*
 

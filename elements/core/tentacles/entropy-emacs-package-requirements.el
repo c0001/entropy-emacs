@@ -197,34 +197,7 @@
   (dolist (el entropy-emacs-packages)
     (unless (eq nil el)
       (push el rtn)))
-  (setq entropy-emacs-packages rtn)
-  (when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
-    (setq entropy-emacs-packages
-          (append entropy-emacs-packages
-                  '(entropy-adblock+-rule-analysis
-                    entropy-cn-dict
-                    entropy-common-library
-                    entropy-counsel-stuffs
-                    entropy-dired-cp-or-mv
-                    entropy-en-words
-                    entropy-epub2org
-                    font-lock+
-                    entropy-global-read-only-mode
-                    entropy-open-with
-                    entropy-org-batch-refile
-                    entropy-org-export-theme-toggle
-                    entropy-org-widget
-                    entropy-portableapps
-                    entropy-prjm
-                    entropy-proxy-mode
-                    entropy-proxy-url
-                    entropy-s2t
-                    entropy-sdcv
-                    entropy-shellpop
-                    entropy-unfill
-                    fakecygpty
-                    liberime-config
-                    with-proxy)))))
+  (setq entropy-emacs-packages rtn))
 
 
 (provide 'entropy-emacs-package-requirements)
