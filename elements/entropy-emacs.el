@@ -101,12 +101,42 @@
 ;; immediately.
 ;;
 ;; * Code:
-(let ((sub-paths
-       '("var-binds" "func-binds" "tentacles"))
-      (cur-path (expand-file-name (file-name-directory load-file-name))))
+(let* ((subs-core
+        '("var-binds" "func-binds" "tentacles"))
+       (subs-dep
+        '("entropy-adblockP-rule-analysis"
+          "entropy-cn-dict"
+          "entropy-common-library"
+          "entropy-counsel-stuffs"
+          "entropy-dired-cp-or-mv"
+          "entropy-emacs-doc"
+          "entropy-en-words"
+          "entropy-epub2org"
+          "entropy-font-lock-plus"
+          "entropy-global-read-only-mode"
+          "entropy-open-with"
+          "entropy-org-batch-refile"
+          "entropy-org-export-theme-toggle"
+          "entropy-org-widget"
+          "entropy-portableapps"
+          "entropy-project-manager"
+          "entropy-proxy-mode"
+          "entropy-proxy-url"
+          "entropy-s2t"
+          "entropy-sdcv"
+          "entropy-shellpop"
+          "entropy-unfill"
+          "fakecygpty"
+          "liberime"
+          "with-proxy.el"))
+       (cur-path (expand-file-name (file-name-directory load-file-name)))
+       (core-path (expand-file-name "core" cur-path))
+       (deps-path (expand-file-name "site-lisp")))
   (add-to-list 'load-path cur-path)
-  (dolist (subp sub-paths)
-    (add-to-list 'load-path (expand-file-name subp cur-path))))
+  (dolist (sub-core subs-core)
+    (add-to-list 'load-path (expand-file-name sub-core core-path)))
+  (dolist (sub-dep subs-dep)
+    (add-to-list 'load-path (expand-file-name sub-dep deps-path))))
 
 (require 'entropy-emacs-defcustom)
 

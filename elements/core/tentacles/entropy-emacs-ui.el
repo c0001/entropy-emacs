@@ -45,7 +45,7 @@
 ;; ** theme in loading progress
 (defun entropy/emacs-ui--load-basic-theme-core ()
   (when (display-graphic-p)
-    (let ((initial-theme-path (expand-file-name "startup-theme" entropy/emacs-core-components-hosted-path)))
+    (let ((initial-theme-path entropy/emacs-initial-theme-path))
       (add-to-list 'custom-theme-load-path initial-theme-path)
       (add-to-list 'load-path initial-theme-path)
       (load-theme 'entropy-base16-theme-bright t))))
@@ -102,7 +102,7 @@ the specific height and width determined by above variable you setted."
   (setq x-gtk-use-system-tooltips nil))
 
 ;; ** Logo
-(setq fancy-splash-image entropy/emacs-fancy-splash-logo)
+(setq fancy-splash-image entropy/emacs-fancy-splash-logo-file)
 
 ;; ** initial buffer
 (when entropy/emacs-enable-initial-dashboard
@@ -113,11 +113,6 @@ the specific height and width determined by above variable you setted."
     `entropy/emacs-dashboard-buffer-name''s widnow.")
   (defvar entropy/emacs-ui--dashboard-width (window-width)
     "Default entropy emacs initial dashboard width. ")
-
-  (defvar entropy/emacs-dashboard-text-logo-file
-    (expand-file-name "logo/logo.txt"
-                      entropy/emacs-core-components-hosted-path)
-    "Text logo file.")
 
 ;; *** libraries
 
@@ -303,10 +298,10 @@ a face or button specification."
 
   (defun entropy/emacs-ui--dashboard-extract-text-logo (logo_id)
     "Extract text logo stored in file
-`entropy/emacs-dashboard-text-logo-file' and return the text logo
+`entropy/emacs-fancy-splash-text-logo-file' and return the text logo
 module (see `entropy/emacs-ui--dashboard-text-logo-align').
 "
-    (let (($f entropy/emacs-dashboard-text-logo-file)
+    (let (($f entropy/emacs-fancy-splash-text-logo-file)
           rtn)
       (with-current-buffer (find-file-noselect $f)
         (goto-char (point-min))
@@ -381,7 +376,7 @@ First insert entropy-emacs logo into initial buffer
 and entropy-emacs version with tag description. Last to insert
 widget used func `entropy/emacs-ui--dashboard-create-widget'."
     (let ((buffer (get-buffer-create entropy/emacs-dashboard-buffer-name))
-          (img (ignore-errors (create-image entropy/emacs-fancy-splash-logo)))
+          (img (ignore-errors (create-image entropy/emacs-fancy-splash-logo-file)))
           (title " WELCOME TO ENTROPY-EMACS ")
           (version entropy/emacs-ecv))
       (with-current-buffer buffer

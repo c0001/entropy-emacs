@@ -97,12 +97,6 @@ for entropy-emacs.")
   :type 'string
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-fancy-splash-logo
-  (expand-file-name "logo/logo.png" (file-name-directory load-file-name))
-  "Set emacs logo. nil means official logo."
-  :type 'string
-  :group 'entropy/emacs-customize-fundametal)
-
 (defcustom entropy/emacs-user-full-name nil
   "Set user full name."
   :type 'string
@@ -1239,6 +1233,24 @@ git-for-windows-sdk `git-bash.exe'"
   :group 'entropy/emacs-win)
 
 ;; ** Top APIs
+;; *** top paths
+(defvar entropy/emacs-core-components-hosted-path
+  (expand-file-name "core" (file-name-directory load-file-name))
+  "entropy-emacs core library hosted path.")
+
+(defvar entropy/emacs-fancy-splash-logo-file
+  (expand-file-name "logo/logo.png" entropy/emacs-core-components-hosted-path)
+  "Set emacs logo. nil means official logo.")
+
+(defvar entropy/emacs-fancy-splash-text-logo-file
+  (expand-file-name "logo/logo.txt"
+                    entropy/emacs-core-components-hosted-path)
+  "Text logo file.")  
+
+(defvar entropy/emacs-initial-theme-path
+  (expand-file-name "startup-theme" entropy/emacs-core-components-hosted-path)
+  "Initial theme path for entropy-emacs. ")
+
 ;; *** making procedure
 (defvar entropy/emacs-is-make-session nil)
 (defun entropy/emacs-is-make-session ()
