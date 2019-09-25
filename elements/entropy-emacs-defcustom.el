@@ -182,7 +182,8 @@ designation."
 
 
 ;; **** yas dir
-(defcustom entropy/emacs-yas-dir "~/.emacs.d/snippets"
+(defcustom entropy/emacs-yas-dir
+  (expand-file-name "snippets" entropy/emacs-stuffs-topdir)
   "Set the default personal snippet dir"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
