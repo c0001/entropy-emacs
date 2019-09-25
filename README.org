@@ -2,7 +2,7 @@
 #+AUTHOR: Entropy
 
 #+attr_html: :style margin:0 auto; display:block;
-[[file:elements/logo/logo.png]]
+[[file:elements/core/logo/logo.png]]
 
 
 #+BEGIN_QUOTE
