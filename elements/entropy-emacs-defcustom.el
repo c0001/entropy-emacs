@@ -167,8 +167,8 @@ variable `entropy/emacs-use-extensions-type'."
   (expand-file-name
    ".entropy-emacs-extensions-elpa"
    "~/.config/entropy-emacs")
-  "entropy-emacs elpa extensions directory used when
-`entropy/emacs-use-extensions-type' was not eq 'submodules'."
+  "entropy-emacs elpa extensions directory for hosting the
+upstream installed packages of `package.el'."
   :type 'string
   :group 'entropy/emacs-extensions-customize)
 

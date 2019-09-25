@@ -33,9 +33,9 @@ all:
 
 install:
 	@export EEMACS_MAKE=Install;\
-	@$(EMACS_MAKE)
+	$(EMACS_MAKE)
 
 update:
 	@export EEMACS_MAKE=Update;\
-	@$(EMACS_MAKE)
+	$(EMACS_MAKE)
 
