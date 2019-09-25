@@ -1,0 +1,93 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-org-batch-refile
+#+author: Entropy
+
+* Preamble
+
+In org mode, internals heading taggning system give the heads tree
+filter and grouped way for searching both be in current buffer and be
+within searching by agenda utilities.  But be with the increasing of
+counts of heads, heading refile (powerd by ~org-refile~) is poor of
+the effeciency of it's manually way for the case that many of us need
+to refile dozens of heading by the rule set of org heading properties
+and tag.
+
+Thus why this package named as what you see here. This package gives
+you the try for refile bounds of headings ruled by what your
+specification of tag (_til now haven't do with the heading properties
+batch refile implements_), called =batch refile=.
+
+* Requirements
+
+=Org= only.
+
+* Installation
+
+The =use-package= configuration managements style:
+#+BEGIN_SRC emacs-lisp
+  (use-package entropy-org-batch-refile
+    :ensure nil
+    :load-path "path-to-your-load-path"
+    :commands entropy/org-batch-refile-tags-read-and-do)
+#+END_SRC
+
+* Interactions
+
+#+BEGIN_QUOTE
+The properties matching refile will be implemented soon.
+#+END_QUOTE
+
+Call func ~entropy/org-batch-refile-tags-read-and-do~.
+
+* Apis
+
+There's several internal course can be exposed for elisp developer
+using for. The mains of them two user_target_module and the macro
+~entropy/org-full-buffer-tag-match-refile~.
+
+
+** User target model
+
+For the way of defining refilling target location, this package gives
+the data structer for denoted where and how you would like to refile
+to, that which I called =user_target_module=. The user_target_module
+is simple and comprehensive for as is. The data type of it was one
+cons cell which the car of it was the main file and heading location
+introduction and the cdr of it was the instance of the car of it.
+
+For more detailes as one demo as: =((t/nil 1/2/3) head-string file-path)=
+
+- *car:* =(list t/nil 1/2/3)=
+
+  Car 't or nil' indicate whether using exits file as refile target
+  file specification. Cdr '1 or 2 or 3' shows for the case of the
+  type indication target of refiling head for as three cases:
+
+  1) exites org head in target file
+  2) function auto-built head string which will be create as for
+  3) user specified head string which will be create as for
+
+- *cdr:* =(list head-string file-path)=
+
+  The cdr of =user_target_module= value follow the car type, that the
+  head-string required by the case that head specification case 3
+  has been given and whatever target file existed, other wise it's
+  must be nil. Arg file-path must be set when the file specification
+  type was 't'. 
+
+** Macro
+
+The core refiling course created macro
+~entropy/org-full-buffer-tag-match-refile~ accept two args
+e.g. tag-matched and user_target_module, you can using it for the
+secondary development. The lambda expression extracted by this was the
+processing for that:
+
+1. Analyzing user_target_module to located or create target location.
+2. Get org headings by the rule set of matching tags tag-matched
+   specification and then refiling them all into the target.
