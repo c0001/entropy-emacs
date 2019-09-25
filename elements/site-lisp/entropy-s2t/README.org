@@ -1,0 +1,37 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-s2t
+#+author: Entropy
+
+This packag was the simplified-to-traditional chinese library using
+was the value of =pyim-magic-converter= which was the customized
+variable of emacs chinese input method [[https://github.com/tumashu/pyim/tree/84e90a9de9508242c693d425ccd3cedeac4602b3][pyim]].
+
+- Requirements: =pyim=
+
+- Installation:
+  
+  #+BEGIN_SRC elisp
+    (use-package entropy-s2t
+      :ensure nil
+      :load-path "path-to-your-load-path"
+      :commands entropy/s2t-string)
+
+    (defun entropy/toggle-pyim-s2t ()
+      (interactive)
+      (if pyim-magic-converter
+          (setq pyim-magic-converter nil)
+        (setq pyim-magic-converter 'entropy/s2t-string)))
+
+    (global-set-key (kbd "C-M-\\") 'entropy/toggle-pyim-s2t)
+  #+END_SRC
+
+- Demo:
+
+  #+attr_org: :width 400px
+  #+attr_html: :width 600px
+  [[file:img/test_2019-02-11_21-50-24.gif]]
