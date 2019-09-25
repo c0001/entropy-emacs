@@ -1,0 +1,100 @@
+# Local Variables:
+# fill-column: 70
+# org-adapt-indentation: nil
+# org-download-image-dir: "./img/"
+# eval: (auto-fill-mode)
+# End:
+#+title: entropy-portableapps
+#+author: Entropy
+
+[[https://portableapps.com/][Portableapps]] platform gives dozen of portale applications those for
+using without any localization configuration pollution. This package
+was the simple portableapps management both of query and open frontend
+interface written by emacs lisp.
+
+* Requirements 
+
+Depended on =entropy-common-library= as various other entropy emacs
+extensions.
+
+* Installation 
+
+The =use-package= configuration form:
+
+#+BEGIN_SRC elisp
+  (use-package entropy-portableapps
+    :ensure nil
+    :load-path "path-to-your-load-path"
+    :commands (entropy/poapps-query-open)
+    :bind (("C-M-<f11>" . entropy/poapps-query-open)))
+#+END_SRC
+
+* Mechanism
+
+The portableapps platform gathered all portable applications into one
+root directory, assumption here as dir =./Portableapps/=:
+
+#+BEGIN_EXAMPLE
+  .
+  ├── 7-ZipPortable
+  ├── calibrePortable
+  ├── CloudMusicPortable
+  ├── CPU-ZPortable
+  ├── FeedNotifierPortable
+  ├── FeedRollerPortable
+  ├── FileZillaPortable
+  ├── FoxitReaderPortable
+  ├── fscPortable
+  ├── GIMPPortable
+  ├── GoogleChromePortable
+  ├── GPU-ZPortable
+  ├── InkscapePortable
+  ├── IrfanViewPortable
+  ├── KeePassProPortable
+  ├── LibreOfficePortable
+  ├── LightscreenPortable
+  ├── MPC-HCPortable
+  ├── OBSPortable
+  ├── PCI-ZPortable
+  ├── PortableApps.com
+  ├── PortableApps.comInstaller
+  ├── PortableApps.comLauncher
+  ├── ProcessHackerPortable
+  ├── QuiteRSSPortable
+  ├── RegshotPortable
+  ├── RufusPortable
+  ├── ScreenToGifPortable
+  ├── SQLiteDatabaseBrowserPortable
+  ├── TCPViewPortable
+  ├── TelegramDesktopPortable
+  ├── ThunderPortable
+  ├── TimPortable
+  └── WeChatPortable
+#+END_EXAMPLE
+
+
+Each portable application has the folder tree form as:
+#+BEGIN_EXAMPLE
+ .
+├── App
+├── Data
+├── Other
+└── PortableApps.comInstaller.exe
+#+END_EXAMPLE
+
+Indication that there's exit the top dir startup binary (the launcher)
+which can be detected through the subdir list filter, then the
+launcher collection was built as the query candidates basic on the
+=Ivy= framework.
+
+Binaries can be file of the extension as "bat","exe".
+
+* Configuration
+
+As the mechanism section mentioned, there's one core customized
+variable =entropy/poapps-root= to specified as the portabaleapps root
+directory.
+
+Another one was =entropy/poapps-exclude-list= to give the treatment
+for some no need binaries. 
+
