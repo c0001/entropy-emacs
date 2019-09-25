@@ -1328,7 +1328,6 @@ git-for-windows-sdk `git-bash.exe'"
                   (transient-levels-file . "transient/levels.el")
                   (transient-values-file . "transient/values.el")
                   (transient-history-file . "transient/history.el")
-                  (yas--default-user-snippets-dir . "snippets")
                   ;; url caches
                   (url-configuration-directory . "url")))
     (set (car item) (expand-file-name (cdr item) top))))

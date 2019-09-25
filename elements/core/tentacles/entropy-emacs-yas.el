@@ -62,6 +62,12 @@
 
   (add-to-list 'yas-snippet-dirs entropy/emacs-yas-dir)
 
+  ;; remove original internal const setting for 'snippets' dir
+  ;; auto-created in `user-emacs-directory'
+  (setq yas-snippet-dirs
+        (remove yas--default-user-snippets-dir
+                yas-snippet-dirs))
+
   ;; disable tab key in `yas-minor-mode' which will make conflict with `orgstruct-mode'
   ;; `https://stackoverflow.com/questions/14066526/unset-tab-binding-for-yasnippet'
   (progn
