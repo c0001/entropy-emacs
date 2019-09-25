@@ -116,9 +116,3 @@ Each header keys meaning you can check the org-mode manual section
 [[https://orgmode.org/manual/Export-settings.html][<export-setting>]] .
 
 
-** Tips:
-
-You can learn about how to using emacs and org-mode for read the doc
-under [[file:Org-Mode-Introduction/][Org-Mode-Introduction]] folder. Each file under this folder was
-published both as org and html file that you can read them without
-open emacs as just using the system browser.
