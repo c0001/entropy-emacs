@@ -151,8 +151,8 @@
              (setq install-pass
                    (condition-case nil
                        (let ((inhibit-message t)) (apply 'package-install args))
-                     (error t)))
-             (if (null install-pass)
+                     (error 'notpassed)))
+             (if (not (eq install-pass 'notpassed))
                  (entropy/emacs-message-do-message
                   (green "✓ DONE"))
                (entropy/emacs-message-do-message
