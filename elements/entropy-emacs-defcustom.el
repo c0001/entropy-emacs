@@ -148,7 +148,7 @@ Available value are 'submodules' 'submodules-melpa-local' and 'origin'."
 
 (defcustom entropy/emacs-ext-extensions-dir
   (expand-file-name
-   ".entropy-emacs-extensions"
+   "entropy-emacs-extensions"
    "~/")
   "entropy-emacs extensions collection archive location. This
 collection used to retrieving all entropy-emacs elpa or melpa
@@ -165,7 +165,7 @@ variable `entropy/emacs-use-extensions-type'."
 
 (defcustom entropy/emacs-ext-extensions-elpa-dir
   (expand-file-name
-   ".entropy-emacs-extensions-elpa"
+   "entropy-emacs-extensions-elpa"
    "~/.config/entropy-emacs")
   "entropy-emacs elpa extensions directory for hosting the
 upstream installed packages of `package.el'."
