@@ -242,13 +242,21 @@ configuration.")
 
 (entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
 
-(setq load-path (append
-                 (entropy/emacs-list-subdir
-                  entropy/emacs-pdumper--upstream-top-dir)
-                 entropy/emacs-pdumper--origin-load-path)
-      entropy/emacs-pdumper-pre-lpth (copy-tree load-path)
-      entropy/emacs-pdumper--rec-timer
-      (run-with-idle-timer 1.1 t #'entropy/emacs-pdumper--recovery))
+;; Preventing duplicated upstream load-path and append upstream
+;; load-path
+(let ((cur-lpth (copy-tree load-path))
+      (uplist (entropy/emacs-list-subdir
+               entropy/emacs-pdumper--upstream-top-dir)))
+  (mapc (lambda (lpth-item)
+          (when (member lpth-item uplist)
+            (setq cur-lpth (remove lpth-item cur-lpth))))
+        load-path)
+  (setq load-path (append uplist cur-lpth)))
+
+(setq 
+ entropy/emacs-pdumper-pre-lpth (copy-tree load-path)
+ entropy/emacs-pdumper--rec-timer
+ (run-with-idle-timer 1.1 t #'entropy/emacs-pdumper--recovery))
 
 ;; * provide
 (provide 'entropy-emacs-pdumper)
