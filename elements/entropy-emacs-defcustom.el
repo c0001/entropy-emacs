@@ -1286,6 +1286,7 @@ git-for-windows-sdk `git-bash.exe'"
 ;; ** entropy-emacs initialize
 ;; *** load specifications
 (let ((cus entropy/emacs-custom-common-file))
+  (setq-default custom-file entropy/emacs-custom-common-file)
   (when (file-exists-p cus)
     (load cus)))
 

@@ -169,8 +169,8 @@
          "%s: %s '%s'"
          (yellow (number-to-string count))
          (red "failed to install pkg")
-         (yellow (symbol-name pkg))))
-      (cl-incf count))
+         (yellow (symbol-name pkg)))
+        (cl-incf count)))
     (error "")))
 
 ;; *** install
