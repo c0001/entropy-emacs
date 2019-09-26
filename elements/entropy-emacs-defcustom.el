@@ -149,7 +149,7 @@ Available value are 'submodules' 'submodules-melpa-local' and 'origin'."
 (defcustom entropy/emacs-ext-extensions-dir
   (expand-file-name
    "entropy-emacs-extensions"
-   "~/")
+   "~/.config/entropy-emacs")
   "entropy-emacs extensions collection archive location. This
 collection used to retrieving all entropy-emacs elpa or melpa
 extensions' repos as submodules archived as one single project
