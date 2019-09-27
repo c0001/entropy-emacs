@@ -19,6 +19,11 @@ This emacs personal configs can be used in:
 - With some utilities by self and from web and others great idea which
   also be in github.
 
+Support platform:
+
+- GNU/Linux (fully support)
+- Windows7/8/8.1/10 (fully support)
+- Darwin(MacOS) (feature limited)
 
 For see full documents of the introduction of =entropy-emacs= please
 see [[https://github.com/c0001/entropy-emacs-doc/blob/master/org/entropy-emacs_introduction.org][here]].
