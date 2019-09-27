@@ -637,7 +637,7 @@ corresponding for 'entropy-emacs'."
   :group 'entropy/emacs-customize-pyim)
 
 (defcustom entropy/emacs-pyim-liberime-cache-dir
-  (expand-file-name "pyim/rime-cache" user-emacs-directory)
+  (expand-file-name "pyim/rime-cache" entropy/emacs-stuffs-topdir)
   "The cache dir for liberime"
   :type 'string
   :group 'entropy/emacs-customize-pyim)
@@ -657,7 +657,8 @@ You can setting like this:
   :type 'sexp
   :group 'entropy/emacs-customize-pyim)
 
-(defcustom entropy/emacs-pyim-cached-dir nil
+(defcustom entropy/emacs-pyim-cached-dir
+  (expand-file-name "pyim/internal-cache" entropy/emacs-stuffs-topdir)
   "Set pyim cached dir, if nil use defaults setting (see
 `pyim-dcache-directory')"
   :type 'string

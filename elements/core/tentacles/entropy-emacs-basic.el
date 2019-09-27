@@ -1214,8 +1214,7 @@ Temp file was \"~/~entropy-artist.txt\""
           (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
         (setq pyim-page-tooltip 'posframe))))
 
-  (when entropy/emacs-pyim-cached-dir
-    (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir))
+  (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir)
 
   ;; 5 candidates shown for pyim tooltip
   (setq pyim-page-length 8)
