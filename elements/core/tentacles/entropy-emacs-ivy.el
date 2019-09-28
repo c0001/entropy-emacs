@@ -353,7 +353,7 @@ type by function `entropy/emacs-transfer-wvol'"
                 :caller 'counsel-locate)))
 
 ;; **** counsel-dired-jump
-  (when (or sys/win32p sys/cygwinp)
+  (when sys/win32p
     (advice-add 'counsel-dired-jump :before #'entropy/emacs-lang-set-utf-8))
   
 ;; **** redefine counsel-find-file-extern

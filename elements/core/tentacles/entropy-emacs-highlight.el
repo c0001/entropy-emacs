@@ -188,7 +188,7 @@
 (use-package diff-hl
   :if (and (or (and entropy/emacs-wsl-enable
                     sys/win32p)
-               sys/linuxp sys/macp)
+               sys/is-posix-compatible)
            entropy/emacs-hl-diff-hl-enable-at-startup)
   :commands (global-diff-hl-mode)
   :bind (:map diff-hl-command-map

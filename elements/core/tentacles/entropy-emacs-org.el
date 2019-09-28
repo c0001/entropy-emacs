@@ -187,7 +187,7 @@
 
   
   ;; Choosing org formula convertor
-  (when (or sys/linux-x-p sys/mac-x-p)
+  (when (and sys/is-graphic-support (not sys/is-win-group))
     (setq org-preview-latex-default-process 'imagemagick)
     (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2)))
   (when sys/win32p
@@ -325,7 +325,7 @@ recovery method unless reopen capture operation.w
   
 ;; **** org-agenda-setting
 ;; ***** org-agenda-prefix
-  (if (or sys/linux-x-p sys/mac-x-p sys/win32p)
+  (if sys/is-graphic-support
       (progn
         (setq org-agenda-prefix-format
               '((agenda . " ✪ %?-12t% s")
@@ -742,6 +742,7 @@ file which do not already have one. Only adds ids if the
 ;; **** fix bugs of open directory using external apps in windows
   (when sys/win32p
     (add-to-list 'org-file-apps '(directory . emacs))))
+
 ;; ** Redefun the org-id-new for use '-' instead of ':'
 (use-package org-id
   :ensure nil
@@ -1000,7 +1001,7 @@ Note: This function has been redifined to adding
 
 
 ;; **** Redefine org-download-screenshot function to support auto org-indent current inserted annotation.
-  (if (and (or sys/win32p sys/cygwinp)
+  (if (and sys/is-win-group
            (executable-find
             (car (split-string entropy/emacs-win-org-download-screenshot-method))))
       (progn

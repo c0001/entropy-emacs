@@ -107,7 +107,7 @@ _M-d_elete by regexp  _f_: feed filter     _g_: refresh                         
       (setq elfeed-curl-program-name msys2-curl)
       (setq elfeed-use-curl t))
      ((ignore-errors (and (executable-find "curl")
-                          (or sys/linuxp sys/macp)))
+                          sys/is-posix-compatible))
       (setq elfeed-use-curl t))
      (t
       (setq elfeed-use-curl nil))))

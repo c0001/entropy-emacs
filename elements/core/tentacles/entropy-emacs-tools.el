@@ -754,7 +754,7 @@ For now, there's three choices for you:
    (sys/win32p
     (let ((home (getenv "USERPROFILE")))
       (dired home)))
-   ((or sys/linuxp sys/linux-x-p sys/macp sys/mac-x-p)
+   (sys/is-posix-compatible
     (dired "~/"))))
 
 (defalias 'ehome 'entropy/emacs-tools-goto-sys-home "Alias for entropy/emacs-tools-goto-sys-home.")
@@ -864,7 +864,7 @@ can't visit one page suddenly."
 
 ;; *** entropy-portableapps
 (use-package entropy-portableapps
-  :if sys/win32p
+  :if sys/is-win-group
   :ensure nil
   :commands (entropy/poapps-query-open)
   :bind (("C-M-<f11>" . entropy/poapps-query-open)))

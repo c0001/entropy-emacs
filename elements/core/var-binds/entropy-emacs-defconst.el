@@ -34,7 +34,8 @@
 ;; ** require
 (require 'entropy-emacs-defcustom)
 
-;; ** main
+;; ** system type
+;; *** basic conditions
 (defconst sys/win32p
   (eq system-type 'windows-nt)
   "Are we running on a WinTel system?")
@@ -63,6 +64,31 @@
   (string-equal "root" (getenv "USER"))
   "Are you using ROOT user?")
 
+;; *** group filter
+(defconst sys/is-win-group
+  (or sys/win32p sys/cygwinp)
+  "System type group filter for win32 platform.
+
+Include all windows posix emulator environment, as 'Cygwin' or
+'Msys2'.")
+
+(defconst sys/is-posix-compatible
+  (or sys/linux-x-p sys/linuxp sys/mac-x-p sys/macp)
+  "System type group filter for posix comptible system
+platforms even for posix emulators.
+
+Include 'GNU/Linux', 'Darwin' or any 'UNIX' distribution.
+
+Posix emulator supports for:
+
+- 'Cygwin'
+- 'Msys' or 'Msys2'")
+
+(defconst sys/is-graphic-support
+  (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  "System group filter for graphic supported platforms.")
+
+;; ** others
 (defconst entropy/emacs-origin-load-path (copy-tree load-path))
 
 (defconst entropy/emacs-ecv "VERSION: v0.0.1 Tag: REVOLUTION"

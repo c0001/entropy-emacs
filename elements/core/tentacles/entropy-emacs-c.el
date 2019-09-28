@@ -213,10 +213,7 @@ This function must be ran after `entropy/emacs-c-win-c-compiler'.
        entropy/emacs-win-portable-mingw-enable
        (file-exists-p (concat entropy/emacs-win-portable-mingw-path "libclang.dll")))
   (entropy/emacs-c-usepackage-irony))
- ((or sys/linuxp 
-      sys/linux-x-p
-      sys/mac-x-p
-      sys/macp)
+ (sys/is-posix-compatible
   (entropy/emacs-c-usepackage-irony)))
 
 ;; ** provide

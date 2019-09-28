@@ -555,8 +555,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
 ;; **** Set unit of dired inode for human readable
   (add-hook 'dired-mode-hook #'dired-hide-details-mode)
   
-  (if (and (not sys/win32p)
-           (not sys/cygwinp))
+  (if (not sys/is-win-group)
       ;; because of windows dired list is too long so just let it in linux
       (setq dired-listing-switches "-alh --group-directories-first")
     (setq dired-listing-switches "-alh"))
@@ -941,8 +940,7 @@ This function has redefined for adapting to
 ;; ** Auto-sudoedit
 (use-package auto-sudoedit
   :commands (auto-sudoedit-mode)
-  :if (and (not sys/win32p)
-           (not sys/cygwinp))
+  :if (not sys/is-win-group)
   :init
   (entropy/emacs-lazy-initial-advice-before
    '(find-file dired)
@@ -968,7 +966,7 @@ This function has redefined for adapting to
 (global-set-key (kbd "C-2") 'entropy/emacs-basic-mark-set)
 
 ;; ** Windows forbidden view-hello-file
-(when (or sys/win32p sys/cygwinp)
+(when sys/is-win-group
   (defun view-hello-file ()
     "Prompt emacs user do not use view-hello-file in windows operation system"
     (interactive)
