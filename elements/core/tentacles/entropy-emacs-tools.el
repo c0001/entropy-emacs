@@ -765,15 +765,16 @@ For now, there's three choices for you:
              counsel-ffdata-firefox-history)
   :init
   (setq counsel-ffdata-database-path
-        (cl-case system-type
-          ((gnu gnu/linux gnu/kfreebsd)
-           (expand-file-name
-            (car (file-expand-wildcards
-                  "~/.mozilla/firefox/*.default-release/places.sqlite"))))
-          (windows-nt
-           (car (file-expand-wildcards
-                 (expand-file-name "Mozilla/Firefox/Profiles/*/places.sqlite"
-                                   (getenv "APPDATA"))))))))
+        (ignore-errors
+          (cl-case system-type
+            ((gnu gnu/linux gnu/kfreebsd)
+             (expand-file-name
+              (car (file-expand-wildcards
+                    "~/.mozilla/firefox/*.default-release/places.sqlite"))))
+            (windows-nt
+             (car (file-expand-wildcards
+                   (expand-file-name "Mozilla/Firefox/Profiles/*/places.sqlite"
+                                     (getenv "APPDATA")))))))))
 
 ;; *** visual-ascii-mode
 
