@@ -926,7 +926,7 @@ difference.
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-env-lang-set "zh_CN.UTF-8"
+(defcustom entropy/emacs-win-env-lang-set "en_US.UTF-8"
   "Setting emacs lang in windows operation system"
   :type 'string
   :group 'entropy/emacs-win)
@@ -957,12 +957,8 @@ This ON-OFF variable are setted for follow occurrence:
     and 'tree' or sth else, you want to using them as well in
     current emacs session.
 
-Notice:
-
-It suggested you to using Msys2's '/usr/bin' to be the value of
-this variable, that you could set it as:
-
-    \"c:/Msys2/usr/bin\".
+See customized variable `entropy/emacs-wsl-apps-extra' for
+details.
   "
   :type 'boolean
   :group 'entropy/emacs-win)
@@ -972,8 +968,10 @@ this variable, that you could set it as:
   "Set the extra wsl apps path, used for woman or other
 subprocess of emacs that sth called lying on `exec-path'.
 
-And this must using the type for the root of wsl-tool path, like
-if you using msys2 , you must set this variable to like:
+And this must using the type for the root of wsl-tool path(which
+we can search the folder stucter of 'usr/bin' under this root
+directly), like if you using msys2 , you must set this variable
+to like:
 
 \"c:/msys2/\"
 "
@@ -997,11 +995,11 @@ path default path was my git path please must modify it for yourself"
 (defcustom entropy/emacs-win-emacs-bin-path-add t
   "Whether adding emacs bin folder to path on windows platform.
 
-  This ON-OFF varaible setted for adding emacs bin folder to both of
-  `exec-path' and \"PATH\" system variable.
+This ON-OFF varaible setted for adding emacs bin folder to both of
+`exec-path' and \"PATH\" system variable.
 
-  It's useful that your can call emacs or other bult-in binary as
-  'convert' intern.
+It's useful that your can call emacs or other bult-in binary as
+'convert' of builtin imagemaick support.
   "
   :type 'boolean
   :group 'entropy/emacs-win)
@@ -1046,6 +1044,7 @@ git-for-windows-sdk `git-bash.exe'"
   "Setting the gcc compile parameter"
   :type 'string
   :group 'entropy/emacs-win)
+
 (defcustom entropy/emacs-win-g++-parameter ""
   "Setting the g++ compile parameter"
   :type 'string
@@ -1132,6 +1131,7 @@ git-for-windows-sdk `git-bash.exe'"
   "Enable php portable in windows"
   :type 'boolean
   :group 'entropy/emacs-win)
+
 (defcustom entropy/emacs-win-portable-php-path "c:/php/"
   "Setting the path of portable php executable"
   :type 'string

@@ -58,6 +58,7 @@
 ;; *** emacs bin folder
   (if entropy/emacs-win-emacs-bin-path-add
       (setenv "PATH" (concat invocation-directory ";" (getenv "path"))))
+  
 ;; *** wsl-apps
   (if entropy/emacs-wsl-enable
       (setenv "PATH" (concat entropy/emacs-wsl-apps ";" (getenv "PATH"))))
@@ -68,38 +69,52 @@
   
 ;; *** gcc for win 
   (if entropy/emacs-win-portable-mingw-enable
-      (setenv "PATH" (concat entropy/emacs-win-portable-mingw-path ";" (getenv "PATH"))))  
+      (setenv "PATH" (concat entropy/emacs-win-portable-mingw-path ";" (getenv "PATH"))))
+  
 ;; *** git-portable
   (if entropy/emacs-git-portable
       (setenv "PATH" (concat entropy/emacs-git-portable-path ";" (getenv "PATH"))))
+  
 ;; *** windows texlive
   (if entropy/emacs-win-portable-texlive-enable (setenv "PATH" (concat entropy/emacs-win-portable-texlive-path ";" (getenv "PATH"))))
 
 ;; *** windows php
   (if entropy/emacs-win-portable-php-enable (setenv "PATH" (concat entropy/emacs-win-portable-php-path ";" (getenv "PATH"))))
+  
 ;; *** windows python about
 ;; **** windows pip-path setting
   (if entropy/emacs-win-portable-pip-enable (setenv "PATH" (concat entropy/emacs-win-portable-pip-path ";" (getenv "PATH"))))
+  
 ;; **** windows python-path setting
   (if entropy/emacs-win-portable-python-enable (setenv "PATH" (concat entropy/emacs-win-portable-python-path ";" (getenv "PATH"))))
+  
 ;; *** windows grep path setting
   (if entropy/emacs-win-portable-grep-enable (setenv "PATH" (concat entropy/emacs-win-portable-grep-path ";" (getenv "PATH"))))
+  
 ;; *** windows ag-path setting
   (if entropy/emacs-win-portable-ag-enable (setenv "PATH" (concat (getenv "PATH") ";" entropy/emacs-win-portable-ag-path)))
+  
 ;; *** windows rg-path setting
   (if entropy/emacs-win-portable-rg-enable (setenv "PATH" (concat entropy/emacs-win-portable-rg-path ";" (getenv "PATH"))))
+  
 ;; *** windows pt-path setting
   (if entropy/emacs-win-portable-pt-enable (setenv "PATH" (concat entropy/emacs-win-portable-pt-path ";" (getenv "PATH"))))
+  
 ;; *** windows nodejs-path setting
   (if entropy/emacs-win-portable-nodejs-enable (setenv "PATH" (concat entropy/emacs-win-portable-nodejs-path ";" (getenv "PATH"))))
+  
 ;; *** windows-opencc
   (if entropy/emacs-win-portable-opencc-enable (setenv "PATH" (concat entropy/emacs-win-portable-opencc-path ";" (getenv "PATH"))))
+  
 ;; *** windows-pandoc
   (if entropy/emacs-win-portable-pandoc-enable (setenv "PATH" (concat entropy/emacs-win-portable-pandoc-path ";" (getenv "PATH"))))
+  
 ;; *** windows-portable-jdk
   (if entropy/emacs-win-portable-jdk-enable (setenv "PATH" (concat entropy/emacs-win-portable-jdk-path ";" (getenv "PATH"))))
+  
 ;; *** windows-zeal
   (if entropy/emacs-win-portable-zeal-enable (setenv "PATH" (concat entropy/emacs-win-portable-zeal-path ";" (getenv "PATH"))))
+  
 ;; *** windows portable putty
   (if entropy/emacs-win-portable-putty-enable
       (setenv "PATH" (concat entropy/emacs-win-portable-putty-path
@@ -139,6 +154,7 @@
 ;; **** windows git-portable exec path setting
   (if entropy/emacs-git-portable
       (add-to-ordered-list 'exec-path entropy/emacs-git-portable-path 9))
+  
 ;; *** windows texlive path setting
   (if entropy/emacs-win-portable-texlive-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-texlive-path 8))
@@ -146,10 +162,12 @@
 ;; *** windows php
   (if entropy/emacs-win-portable-php-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-php-path 7))
+  
 ;; *** windows python about
 ;; **** windows pip exec path setting
   (if entropy/emacs-win-portable-pip-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-pip-path 6))
+  
 ;; **** windows python exec path setting
   (if entropy/emacs-win-portable-python-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-python-path 5))
@@ -157,15 +175,19 @@
 ;; *** windows grep exec path setting
   (if entropy/emacs-win-portable-grep-enable
       (add-to-ordered-list 'exec entropy/emacs-win-portable-grep-path 4))
+  
 ;; *** windnows ag exec path setting
   (if entropy/emacs-win-portable-ag-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-ag-path 11))
+  
 ;; *** windows rg exec path setting
   (if entropy/emacs-win-portable-rg-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-rg-path 3))
+  
 ;; *** windows pt exec path setting
   (if entropy/emacs-win-portable-pt-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-pt-path 2))
+  
 ;; *** windows nodejs exec path setting
   (if entropy/emacs-win-portable-nodejs-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-nodejs-path 1))
@@ -185,6 +207,7 @@
 ;; *** windows portable zeal path setting
   (if entropy/emacs-win-portable-zeal-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-zeal-path 17))
+  
 ;; *** windows portable putty path setting
   (if entropy/emacs-win-portable-putty-enable
       (add-to-ordered-list 'exec-path entropy/emacs-win-portable-putty-path 20)))
