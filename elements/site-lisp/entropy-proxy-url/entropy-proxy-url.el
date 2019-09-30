@@ -150,7 +150,19 @@
 
 (require 'cl-lib)
 (require 'eww)
-(require 'w3m)
+(defvar entropy/proxy-url--w3m-load-effectively
+  (let ((status (ignore-errors (require 'w3m))))
+    (if (eq status 'w3m)
+        t
+      nil))
+  "The requiring CBK of `w3m.el', for t as successfully loaded
+and nil otherwise.
+
+Original `w3m.el' loading procedure will checking the 'w3m'
+binary version and features applied status, thus error will
+occurred then there's no valid 'w3m' binary installed in current
+platform, this will corrupt `entropy-proxy-url' load procedure,
+and this is the meaning for this variable existed.")
 
 ;;;; variable declare
 ;;;;; customized var
@@ -246,7 +258,8 @@ protocal prefix appended. "
 ;;;;; core functional
 ;;;;;; common retrieve recovery
 (defun entropy/proxy-url--rec-for-common ()
-  (when (alist-get ".*" w3m-command-arguments-alist nil nil 'equal)
+  (when (and (not (null entropy/proxy-url--w3m-load-effectively))
+             (alist-get ".*" w3m-command-arguments-alist nil nil 'equal))
     (setq w3m-command-arguments-alist
           (delete (assoc ".*" w3m-command-arguments-alist)
                   w3m-command-arguments-alist))))
@@ -499,8 +512,10 @@ Recipe slots:
 
 ;;;###autoload
 (defun entropy/proxy-url-make-builtin-recipes ()
-  (let ((proxy-recipe (list entropy/proxy-url--w3m-recipe
-                            entropy/proxy-url--eww-recipe)))
+  (let ((proxy-recipe (if (not (null entropy/proxy-url--w3m-load-effectively))
+                          (list entropy/proxy-url--w3m-recipe
+                                entropy/proxy-url--eww-recipe)
+                        (list entropy/proxy-url--eww-recipe))))
     (entropy/proxy-url-make-recipes proxy-recipe)))
 
 ;;; provide
