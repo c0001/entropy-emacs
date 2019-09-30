@@ -120,7 +120,6 @@
           "entropy-org-widget"
           "entropy-portableapps"
           "entropy-project-manager"
-          "entropy-proxy-mode"
           "entropy-proxy-url"
           "entropy-s2t"
           "entropy-sdcv"
