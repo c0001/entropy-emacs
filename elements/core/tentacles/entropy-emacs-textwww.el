@@ -69,7 +69,7 @@ _e_: browse-externally
                    ("l" ,previous-page)
                    ("n" ,next-page)
                    ("s" ,search-query))
-                 (define-key ,hydra-body-map (kbd "C-1") #',hydra-body-func))))
+                 (define-key ,hydra-body-map (kbd "C-q") #',hydra-body-func))))
           (setq entropy/emacs-textwww--uniform-expanded t))))
 
 ;; ** browsers

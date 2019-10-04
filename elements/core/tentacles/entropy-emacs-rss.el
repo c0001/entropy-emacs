@@ -724,7 +724,7 @@ The minor changing was compat for above."
 
 ;; *** uniform
   (funcall entropy/emacs-rss--elfeed-uniform-func)
-  (define-key elfeed-search-mode-map (kbd "C-1") #'entropy/emacs-rss-elfeed/body))
+  (define-key elfeed-search-mode-map (kbd "C-q") #'entropy/emacs-rss-elfeed/body))
 
 ;; * provide
 (provide 'entropy-emacs-rss)

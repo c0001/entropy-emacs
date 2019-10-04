@@ -139,30 +139,48 @@
              eyebrowse-switch-to-window-config-8
              eyebrowse-switch-to-window-config-9)
   
-  :bind (("C-c C-w C-e" . entropy/emacs-basic-eyebrowse-create-workspaces)
-         ("C-c C-w M-e" . entropy/emacs-basic-eyebrowse-delete-workspace)
-         ("C-c C-w C-`" . entropy/emacs-basic-eyebrowse-switch-top)
-         ("C-c v" . entropy/emacs-basic-eyebrowse-create-derived)
-         ("C-c M-v" . entropy/emacs-basic-eyebrowse-switch-derived)
-         :map eyebrowse-mode-map
-         ("C-c C-w C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
-         ("C-c C-w c" . entropy/emacs-basic-eyebrowse-create-window-config)
-         ("C-c C-w ." . entropy/emacs-basic-eyebrowse-switch-basic-window)
-         ("C-c C-w a" . eyebrowse-switch-to-window-config))
+  :bind (("C-c v" . entropy/emacs-basic-eyebrowse-create-derived)
+         ("C-c M-v" . entropy/emacs-basic-eyebrowse-switch-derived))
   :init
-  (defun entropy/emacs-wc--eyebrowse-turn-on ()
-    (eyebrowse-mode +1)
-    (if entropy/emacs-enable-eyebrowse-new-workspace-init-function
-        (setq eyebrowse-new-workspace entropy/emacs-basic--eyebrowse-new-workspace-init-function)
-      (setq eyebrowse-new-workspace t)))
 
-  (cond
-   (entropy/emacs-fall-love-with-pdumper
-    (add-hook 'entropy/emacs-pdumper-load-hook
-              #'entropy/emacs-wc--eyebrowse-turn-on))
-   (t
-    (entropy/emacs-lazy-load-simple 'eyebrowse
-      (entropy/emacs-wc--eyebrowse-turn-on))))
+  (entropy/emacs-lazy-with-load-trail
+   eyebrowse-enable
+   (eyebrowse-mode +1)
+
+   (setq eyebrowse-mode-map
+     (let ((map (current-global-map))
+           (prefix-map (make-sparse-keymap)))
+       (define-key prefix-map (kbd "<") 'eyebrowse-prev-window-config)
+       (define-key prefix-map (kbd ">") 'eyebrowse-next-window-config)
+       (define-key prefix-map (kbd "'") 'eyebrowse-last-window-config)
+       (define-key prefix-map (kbd "\"") 'eyebrowse-close-window-config)
+       (define-key prefix-map (kbd ",") 'eyebrowse-rename-window-config)
+       (define-key prefix-map (kbd ".") 'eyebrowse-switch-to-window-config)
+       (define-key prefix-map (kbd "0") 'eyebrowse-switch-to-window-config-0)
+       (define-key prefix-map (kbd "1") 'eyebrowse-switch-to-window-config-1)
+       (define-key prefix-map (kbd "2") 'eyebrowse-switch-to-window-config-2)
+       (define-key prefix-map (kbd "3") 'eyebrowse-switch-to-window-config-3)
+       (define-key prefix-map (kbd "4") 'eyebrowse-switch-to-window-config-4)
+       (define-key prefix-map (kbd "5") 'eyebrowse-switch-to-window-config-5)
+       (define-key prefix-map (kbd "6") 'eyebrowse-switch-to-window-config-6)
+       (define-key prefix-map (kbd "7") 'eyebrowse-switch-to-window-config-7)
+       (define-key prefix-map (kbd "8") 'eyebrowse-switch-to-window-config-8)
+       (define-key prefix-map (kbd "9") 'eyebrowse-switch-to-window-config-9)
+       (define-key prefix-map (kbd "c") 'eyebrowse-create-window-config)
+       (define-key prefix-map (kbd "C-c") 'eyebrowse-create-window-config)
+       (define-key map eyebrowse-keymap-prefix prefix-map)))
+
+   (global-set-key (kbd "C-c C-w") eyebrowse-mode-map)
+   
+   (dolist (bind '(("C-e" . entropy/emacs-basic-eyebrowse-create-workspaces)
+                   ("M-e" . entropy/emacs-basic-eyebrowse-delete-workspace)
+                   ("C-`" . entropy/emacs-basic-eyebrowse-switch-top)
+                   ("C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
+                   ("c" . entropy/emacs-basic-eyebrowse-create-window-config)
+                   ("." . entropy/emacs-basic-eyebrowse-switch-basic-window)
+                   ("a" . eyebrowse-switch-to-window-config)))
+     (define-key eyebrowse-mode-map
+       (kbd (car bind)) (cdr bind))))
 
   :config
   (setq eyebrowse-mode-line-style nil)

@@ -344,7 +344,7 @@ retrieve from `window-list' larger than 1."
                (not (string-match-p (regexp-quote "ansi-term") (format "%s" process)))
                (not (string-match-p (regexp-quote "terminal") (format "%s" process))))
                (delete-process process))))
-(entropy/emacs-!set-key (kbd "C-0") 'entropy/emacs-basic-kill-large-process-buffer)
+(entropy/emacs-!set-key (kbd "0") 'entropy/emacs-basic-kill-large-process-buffer)
 
 ;; ** Set defualt tab size
 (if entropy/emacs-custom-tab-enable
@@ -777,9 +777,9 @@ using simple dired visual type, although you have seting it to
               (not (or (display-graphic-p)
                        entropy/emacs-fall-love-with-pdumper)))
          (setq entropy/emacs-dired-visual-type "simple-rainbow")
-         (warn "You are in terminal emacs session, can not
-           enable 'dired-all-the-icons', enable simple-rainbow
-           instead now. ")
+         (warn "
+You are in terminal emacs session, can not enable
+'dired-all-the-icons', enable simple-rainbow instead now.")
          (entropy/emacs-basic--dired-visual-init))
         (t (error "entropy/emacs-dired-visual-type invalid"))))
 
@@ -1180,8 +1180,8 @@ Temp file was \"~/~entropy-artist.txt\""
     ;; keybinding reflect
 
     (global-set-key (kbd "C-\\") 'entropy/emacs-basic-pyim-toggle)
-    (entropy/emacs-!set-key (kbd "C-2") 'entropy/emacs-basic-toggle-pyim-s2t)
-    (entropy/emacs-!set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
+    (entropy/emacs-!set-key (kbd "2") 'entropy/emacs-basic-toggle-pyim-s2t)
+    (entropy/emacs-!set-key (kbd "1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
 
 ;; *** init  
   :init
