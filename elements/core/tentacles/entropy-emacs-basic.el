@@ -51,6 +51,14 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defface)
 
+(entropy/emacs-lazy-with-load-trail
+ top-keybinding
+ (define-key (current-global-map)
+  (if (display-graphic-p)
+      (kbd "C-`")
+    (kbd "C-@"))
+  entropy/emacs-top-keymap))
+
 ;; ** Temporal bug revert
 ;; *** gnutls bug for emacs version upper than '26.1'
 ;; 

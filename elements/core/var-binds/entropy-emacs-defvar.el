@@ -34,11 +34,6 @@
 
 ;; ** basic
 (defvar entropy/emacs-top-keymap (make-sparse-keymap))
-(define-key (current-global-map)
-  (if (display-graphic-p)
-      (kbd "C-`")
-    (kbd "C-@"))
-  entropy/emacs-top-keymap)
 
 (defvar entropy/emacs-lang-locale (car default-process-coding-system)
   "The locale lang.")
