@@ -578,20 +578,24 @@ visual distinction of `ivy-current-match' covered upon the
     (setq x (symbol-name entropy/emacs-theme-sticker)))
   (cond
    ((string-match-p "spacemacs-dark" x)
-    (set-face-attribute 'ivy-current-match nil
-                        :background "purple4" :bold t))
-   ((string-match-p "spacemacs-light)" x)
-    (set-face-attribute 'ivy-current-match nil
-                        :background "salmon" :bold t))
-   ((string-match-p "darkokai" x)
-    (set-face-attribute 'ivy-current-match nil
-                        :background "#65a7e2"))
-   ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" x)
-    (if (equal 'dark (frame-parameter nil 'background-mode))
-        (set-face-attribute 'ivy-current-match nil
-                            :background "#65a7e2" :foreground "black")
+    (with-eval-after-load 'ivy
       (set-face-attribute 'ivy-current-match nil
-                          :background "#1a4b77" :foreground "white")))
+                          :background "purple4" :bold t)))
+   ((string-match-p "spacemacs-light)" x)
+    (with-eval-after-load 'ivy
+     (set-face-attribute 'ivy-current-match nil
+                        :background "salmon" :bold t)))
+   ((string-match-p "darkokai" x)
+    (with-eval-after-load 'ivy
+      (set-face-attribute 'ivy-current-match nil
+                          :background "#65a7e2")))
+   ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" x)
+    (with-eval-after-load 'ivy
+      (if (equal 'dark (frame-parameter nil 'background-mode))
+          (set-face-attribute 'ivy-current-match nil
+                              :background "#65a7e2" :foreground "black")
+        (set-face-attribute 'ivy-current-match nil
+                            :background "#1a4b77" :foreground "white"))))
    ((string= "doom-solarized-light" x)
     (when (not (featurep 'hl-line))
       (require 'hl-line))
