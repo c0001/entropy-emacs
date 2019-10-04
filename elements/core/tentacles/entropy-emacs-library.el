@@ -160,7 +160,7 @@
 ;; ** hydra
 
 (use-package hydra
-  :commands(defhydra))
+  :commands (defhydra))
 
 ;; * provide
 (provide 'entropy-emacs-library)
