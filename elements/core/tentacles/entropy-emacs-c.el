@@ -69,12 +69,12 @@ It is the recommendation of irony-mode official introduction."
 
 
 (defun entropy/emacs-c-derived-mode-company-special-key (command &rest args)
-  "Special key binding 'C-M-/' for c derived modes, only using for
+  "Special key binding 'C-x M-/' for c derived modes, only using for
 company referents.
 
 This function used for do sth like:
 
-If you want to bind sth with key 'C-M-/' for `c-mode' but don't
+If you want to bind sth with key 'C-x M-/' for `c-mode' but don't
 let it be derived to the c derived mode like `php-mode'. Or others
 oppsite."
   (interactive (list 'interactive))
@@ -82,7 +82,7 @@ oppsite."
    ((or (equal major-mode 'c-mode)
         (equal major-mode 'c++-mode))
     (funcall-interactively 'company-c-headers command))
-   (t (message (format "Haven't binded sth to 'C-M-/' yet in %s ." major-mode)))))
+   (t (message (format "Haven't binded sth to 'C-x M-/' yet in %s ." major-mode)))))
   
 ;; ** C/C++ Mode
 (use-package cc-mode
@@ -91,8 +91,8 @@ oppsite."
   (add-hook 'c-mode-common-hook
             #'entropy/emacs-c-cc-mode-hook)
   :config
-  (define-key c-mode-map (kbd "C-M-/") 'entropy/emacs-c-derived-mode-company-special-key)
-  (define-key c++-mode-map (kbd "C-M-/") 'entropy/emacs-c-derived-mode-company-special-key)
+  (define-key c-mode-map (kbd "C-x M-/") 'entropy/emacs-c-derived-mode-company-special-key)
+  (define-key c++-mode-map (kbd "C-x M-/") 'entropy/emacs-c-derived-mode-company-special-key)
 
 
 ;; *** compiler use gcc or g++ in windows opertion system

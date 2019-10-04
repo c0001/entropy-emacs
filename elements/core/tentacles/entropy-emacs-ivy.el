@@ -268,7 +268,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
     (ivy-mode +1))
   
   (unless sys/win32p
-    (global-set-key (kbd "C-M-<f11>") #'counsel-linux-app))
+    (entropy/emacs-!set-key (kbd "<M-up>") #'counsel-linux-app))
   
 ;; **** improve counsel-git and counsel-bookmark
 
@@ -432,8 +432,9 @@ this variable used to patching for origin `counsel-git'.")
 ;; ** avy
 (use-package avy
   :bind
-  (("C-M-;" . avy-goto-char)
-   ("M-g l" . avy-goto-line)))
+  (("M-g l" . avy-goto-line)
+   :map entropy/emacs-top-keymap
+   ("M-;" . avy-goto-char)))
 
 ;; ** ivy all the icons
 ;; *** all the icons ivy

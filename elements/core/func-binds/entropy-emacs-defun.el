@@ -45,6 +45,11 @@
   (require 'cl-macs))
 
 ;; ** common library
+;; *** key bindings
+(defmacro entropy/emacs-!set-key (key command)
+  (declare (indent defun))
+  `(define-key entropy/emacs-top-keymap ,key ,command))
+
 ;; *** file and directories
 (defun entropy/emacs-list-dir-lite (dir-root)
   "Return directory list with type of whichever file or

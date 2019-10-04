@@ -220,10 +220,11 @@ Version 2017-10-09"
   :ensure nil
   :commands (entropy/open-with-dired-open
              entropy/open-with-buffer)
-  :bind (("C-M-1" . entropy/open-with-buffer))
+  :bind (:map entropy/emacs-top-keymap
+         ("M-1" . entropy/open-with-buffer))
   :init
   (entropy/emacs-lazy-load-simple 'dired
-    (define-key dired-mode-map (kbd "<C-M-return>") 'entropy/open-with-dired-open))
+    (define-key dired-mode-map (kbd "M-RET") 'entropy/open-with-dired-open))
   :config
   (defun entropy/emacs-tools--open-with-port-stuffs-around (oldfunc &rest arg-rest)
     "when in `entropy/emacs-web-development-environment' advice
@@ -250,7 +251,7 @@ like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom -1))
 
-(global-set-key (kbd "C-M-l") 'entropy/emacs-tools-vertical-to-bottom)
+(entropy/emacs-!set-key (kbd "C-l") 'entropy/emacs-tools-vertical-to-bottom)
 
 ;; *** beacon cursor blanking
 (use-package beacon
@@ -868,8 +869,8 @@ can't visit one page suddenly."
   :if sys/is-win-group
   :ensure nil
   :commands (entropy/poapps-query-open)
-  :bind (("C-M-<f11>" . entropy/poapps-query-open)))
-
+  :bind (:map entropy/emacs-top-keymap
+         ("<M-up>" . entropy/poapps-query-open)))
 
 ;; *** entropy-epub2org
 (use-package entropy-epub2org

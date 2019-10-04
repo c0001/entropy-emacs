@@ -269,7 +269,7 @@ recovery method unless reopen capture operation.w
     (interactive)
     (entropy/emacs-org--call-rebinding-org-blank-behaviour 'org-insert-todo-heading))
 
-  (define-key org-mode-map (kbd "M-<return>") 'entropy/emacs-org-smart-meta-return-dwim)
+  (define-key org-mode-map (kbd "M-RET") 'entropy/emacs-org-smart-meta-return-dwim)
 
   
 ;; **** define 'end' key to `org-end-of-line'

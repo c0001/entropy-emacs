@@ -55,7 +55,7 @@
   :diminish symbol-overlay-mode
   :commands (symbol-overlay-mode)
   :bind (:map symbol-overlay-mode-map
-         ("C-M-i" . symbol-overlay-put)
+         ("C-p" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
          ([M-f3] . symbol-overlay-remove-all))

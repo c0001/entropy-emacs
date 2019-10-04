@@ -344,8 +344,7 @@ retrieve from `window-list' larger than 1."
                (not (string-match-p (regexp-quote "ansi-term") (format "%s" process)))
                (not (string-match-p (regexp-quote "terminal") (format "%s" process))))
                (delete-process process))))
-(global-set-key (kbd "C-0") 'entropy/emacs-basic-kill-large-process-buffer)
-
+(entropy/emacs-!set-key (kbd "C-0") 'entropy/emacs-basic-kill-large-process-buffer)
 
 ;; ** Set defualt tab size
 (if entropy/emacs-custom-tab-enable
@@ -957,13 +956,13 @@ This function has redefined for adapting to
   (progn (setq kill-ring nil) (garbage-collect)))
 
 ;; ** mark-sexp
-(global-set-key (kbd "C-`") 'set-mark-command)
+(entropy/emacs-!set-key (if (display-graphic-p) (kbd "C-`") (kbd "C-@")) 'set-mark-command)
 (defun entropy/emacs-basic-mark-set ()
   (interactive)
   (save-excursion
     (push-mark)
     (push-mark)))
-(global-set-key (kbd "C-2") 'entropy/emacs-basic-mark-set)
+(entropy/emacs-!set-key (kbd "1") 'entropy/emacs-basic-mark-set)
 
 ;; ** Windows forbidden view-hello-file
 (when sys/is-win-group
@@ -1181,8 +1180,8 @@ Temp file was \"~/~entropy-artist.txt\""
     ;; keybinding reflect
 
     (global-set-key (kbd "C-\\") 'entropy/emacs-basic-pyim-toggle)
-    (global-set-key (kbd "C-M-\\") 'entropy/emacs-basic-toggle-pyim-s2t)
-    (global-set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
+    (entropy/emacs-!set-key (kbd "C-2") 'entropy/emacs-basic-toggle-pyim-s2t)
+    (entropy/emacs-!set-key (kbd "C-1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
 
 ;; *** init  
   :init

@@ -46,6 +46,7 @@
 ;; ** popwin-mode
 (use-package popwin
   :if (eq entropy/emacs-use-popup-window-framework 'popwin)
+  :defines (popwin:keymap)
   :commands popwin-mode
   :init
 
@@ -53,8 +54,7 @@
    popwin-mode
    (popwin-mode t))
   
-  :bind-keymap
-  ("C-3" . popwin:keymap)
+  (entropy/emacs-!set-key (kbd "3") popwin:keymap)
 
   :config
   ;; don't use default value but manage it ourselves
@@ -160,7 +160,8 @@
    shackle-mode
    (shackle-mode t))
 
-  :bind-keymap ("C-3" . shackle-popup-mode-map)
+  (entropy/emacs-!set-key (kbd "3") shackle-popup-mode-map)
+  
   :bind
   (:map shackle-popup-mode-map
    ("o" . shackle-popup-buffer)
