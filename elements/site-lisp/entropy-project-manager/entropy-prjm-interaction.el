@@ -542,8 +542,8 @@ did by `entropy/prjm--inct-addprj-create-template'."
                           (dolist (el (all-the-icons--read-candidates))
                             (push (car (if (display-graphic-p)
                                            (split-string  (car el) "\t")
-                                         (substring-no-properties
-                                          (split-string  (car el) "\t"))))
+                                         (mapcar 'substring-no-properties
+                                                 (split-string  (car el) "\t"))))
                                   candi))
                           candi))))))
           ((eq column entropy/prjm--inct-prj-uri-column)
