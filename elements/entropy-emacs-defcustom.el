@@ -1259,7 +1259,21 @@ git-for-windows-sdk `git-bash.exe'"
     :html
     ,(expand-file-name
       "entropy-emacs-doc/org/entropy-emacs_introduction.html"
+      entropy/emacs-site-lisp-path)
+    :texi
+    ,(expand-file-name
+      "entropy-emacs-doc/org/entropy-emacs_introduction.texi"
+      entropy/emacs-site-lisp-path)
+    :texinfo
+    ,(expand-file-name
+      "entropy-emacs-doc/org/entropy-emacs_introduction.info"
       entropy/emacs-site-lisp-path)))
+
+(setq Info-default-directory-list
+      (append (list
+               (file-name-directory
+                (plist-get entropy/emacs-doc-path :texinfo)))
+              Info-default-directory-list))
 
 ;; *** making procedure
 (defvar entropy/emacs-is-make-session nil)
