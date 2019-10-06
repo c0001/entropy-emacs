@@ -183,7 +183,11 @@
        (kbd (car bind)) (cdr bind))))
 
   :config
-  (setq eyebrowse-mode-line-style nil)
+  (setq eyebrowse-mode-line-style nil
+        eyebrowse-new-workspace
+        (if (functionp entropy/emacs-enable-eyebrowse-new-workspace-init-function)
+            entropy/emacs-enable-eyebrowse-new-workspace-init-function
+          t))
   
   ;; debug for improving eyebrowse's user experience
   (defun eyebrowse--read-slot ()
