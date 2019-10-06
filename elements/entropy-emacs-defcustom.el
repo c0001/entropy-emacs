@@ -1269,12 +1269,6 @@ git-for-windows-sdk `git-bash.exe'"
       "entropy-emacs-doc/org/entropy-emacs_introduction.info"
       entropy/emacs-site-lisp-path)))
 
-(setq Info-default-directory-list
-      (append (list
-               (file-name-directory
-                (plist-get entropy/emacs-doc-path :texinfo)))
-              Info-default-directory-list))
-
 ;; *** making procedure
 (defvar entropy/emacs-is-make-session nil)
 (defun entropy/emacs-is-make-session ()
@@ -1304,6 +1298,14 @@ git-for-windows-sdk `git-bash.exe'"
   (setq-default custom-file entropy/emacs-custom-common-file)
   (when (file-exists-p cus)
     (load cus)))
+
+;; *** add eemacs texinfo to info-path
+
+(setq Info-default-directory-list
+      (append (list
+               (file-name-directory
+                (plist-get entropy/emacs-doc-path :texinfo)))
+              Info-default-directory-list))
 
 ;; *** fake display-graphic
 (defun entropy/emacs-display-graphic-pdumper-advice
