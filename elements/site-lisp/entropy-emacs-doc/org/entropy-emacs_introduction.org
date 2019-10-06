@@ -54,7 +54,8 @@ created as the parts of one normal project I used, thus for:
 _What for more?_
 
 This struct design were just use these three based rule without any of
-other limits which show that arbitray layouts adding was permitted.
+other restriction which show that arbitray layouts adding was
+permitted.
 
 * Main config files
 :PROPERTIES:
@@ -67,66 +68,83 @@ i.e. *init config* and *self buit pakages*.
 The =init config= conceptual thoughts from =centaur-emacs's= design
 philosophy, as it's original intention for building the simple and
 pure as origin emacs like configs, in =entropy-emacs=, they
-abbreviated as =entropy-emacs-xxx.el=. I stored all
-=entropy-emacs-xxx.el= in the =elements/= under entropy-emacs root
-directory , all of them was implementation independently but which
-that some of the functions and variables built in them are may shared
-accross to sets of =entropy-emacs-xxx.el= files, as the result, I make
-the =entropy-emacs-defcustom.el= and =entropy-emacs-const.el= for
-storing the Cross-files variables for making the convenience for
-tidying up or modifying config. And other =entropy-emacs-xxx.el= file
-are reference the public variable from them to genertate the current
-emacs session config state.
+abbreviated as =entropy-emacs-xxx.el=. 
 
-=entropy-emacs-xxx.el= files are named with 'xxx' as the suffix for
-distinguishing with each other, for convenience, suffix of them were
-point to their config direction directly, such as
-=entropy-emacs-org.el='s suffix =org= was implicit it's the init
-config file for feature =org-mode=, and so as on for others init
-files.
+=entropy-emacs= using the three bind-level core packages managements
+design to separate individual source files in =elements/core= root
+path, they are the =initial level=, =binds-level= and the =tentacle
+level=, the loading sequence was followed the mentioned order.
 
+On the startup time, fistly loading the =initial-level= which try to
+customizing next loading environment and inizilized some internal
+requested specification, and providing the top-level apis for
+subroutines. The seconed time loading the basic core functions,
+internal-variables defination used for rest tentacles, so as called it
+=binds-level=, finally loading each entropy-emacs recipes called
+=tentacle-level=.
 
-There's the list of init files and their description:
+For now, the =initial-level= was injected for
+=entropy-emaacs-defcustom.el=, and the =binds-level= are hosted in
+follow three files:
 
-| *Category*         | *init package*             | *package description*                                                |
-|--------------------+----------------------------+----------------------------------------------------------------------|
-|                    | entropy-emacs-basic.el     | basic setting for =entropy-emacs=                                    |
-| basic config       | entropy-emacs-ui.el        | ui defination with the customized startup screen design              |
-|                    | entropy-emacs-themes.el    | theme collections and startup default theme sets                     |
-|                    | entropy-emacs-modeline.el  | modeline themes collection and default modeline theme setes          |
-|                    |                            |                                                                      |
-|--------------------+----------------------------+----------------------------------------------------------------------|
-|                    | entropy-emacs-ivy.el       | [[https://github.com/abo-abo/swiper][ivy]] mode configs and others refer enhancements                       |
-| interactive chains | entropy-emacs-company.el   | [[https://github.com/company-mode/company-mode][company-mode]] confifs and other refer enhancements                    |
-|                    | entropy-emacs-yas.el       | [[https://github.com/joaotavora/yasnippet][yasnippet for emacs]] configs and other refer enhancements             |
-|                    |                            |                                                                      |
-|--------------------+----------------------------+----------------------------------------------------------------------|
-|                    | entropy-emacs-org.el       | emacs org mode configs                                               |
-|                    | entropy-emacs-markdown.el  | emacs markdown mode configs                                          |
-| major modes        | entropy-emacs-c.el         | C/C++ mode configs with =irony= completion chians                    |
-|                    | entropy-emacs-lisp.el      | emacs lisp mode configs                                              |
-|                    | entropy-emacs-web.el       | web mode (web front/back end) configs (inclues js css html php)      |
-|                    | entropy-emacs-python.el    | python mode config with =company-anaconda= completion chain          |
-|                    | entropy-emacs-lua.el       | lua mode configs                                                     |
-|                    |                            |                                                                      |
-|--------------------+----------------------------+----------------------------------------------------------------------|
-|                    | entropy-emacs-path.el      | path configs for =entropy-emacs= specfic environment                 |
-| tool-chains        | entropy-emacs-shell.el     | emacs internal shell front-end enhancements                          |
-|                    | entropy-emacs-vcs.el       | git/svn codes version control with =magit=                           |
-|                    | entropy-emacs-structure.el | programme editting structs fold/expanding feature package            |
-|                    | entropy-emacs-highlight.el | codes snippet highlighting guide feature provider                    |
-|                    | entropy-emacs-dash.el      | dashboard of api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]           |
-|                    |                            |                                                                      |
-|--------------------+----------------------------+----------------------------------------------------------------------|
-| entertainments     | entropy-emacs-emms.el      | gnu emms as media play control panel =entropy-emacs= specifics       |
-|                    | entropy-emacs-game.el      | emacs internal game setting config optimization                      |
-|                    |                            |                                                                      |
-|--------------------+----------------------------+----------------------------------------------------------------------|
-| fundamental        | entropy-emacs-package.el   | on-line packages mirror management and local featuere loaded configs |
-|                    | entropy-emacs-custom.el    | custom file loading setting with alternative custom file specific    |
-|                    |                            |                                                                      |
+1. *The var binds*
+   1) =entropy-emacs-defvar.el=
+   2) =entropy-emacs-defconst.el=
 
+2. *The function binds*
+   1) =entropy-emacs-defun.el=
+   2) =entropy-emacs-message.el=
 
+For file named convention, =entropy-emacs-xxx.el= files are named with
+'xxx' as the suffix for distinguishing with each other, for
+convenience, suffix of them were point to their config direction
+directly, such as =entropy-emacs-org.el='s suffix =org= was implicit
+it's the init config file for feature =org-mode=, and so as on for
+others init files.
+
+There's the list of the tentacles and their description:
+
+| *Category*           | *init package*             | *package description*                                                |
+|----------------------+----------------------------+----------------------------------------------------------------------|
+|                      | entropy-emacs-basic.el     | basic setting for =entropy-emacs=                                    |
+| basic config         | entropy-emacs-ui.el        | ui defination with the customized startup screen design              |
+|                      | entropy-emacs-themes.el    | theme collections and startup default theme sets                     |
+|                      | entropy-emacs-modeline.el  | modeline themes collection and default modeline theme setes          |
+|                      |                            |                                                                      |
+|----------------------+----------------------------+----------------------------------------------------------------------|
+| window conigurations | entropy-emacs-wc.el        | The emacs window moving and workaround emulator configuration        |
+|                      | entropy-emacs-popup.el     | The popuped window procedure defination                              |
+|                      |                            |                                                                      |
+|----------------------+----------------------------+----------------------------------------------------------------------|
+|                      | entropy-emacs-ivy.el       | [[https://github.com/abo-abo/swiper][ivy]] mode configs and others refer enhancements                       |
+| interactive chains   | entropy-emacs-company.el   | [[https://github.com/company-mode/company-mode][company-mode]] confifs and other refer enhancements                    |
+|                      | entropy-emacs-yas.el       | [[https://github.com/joaotavora/yasnippet][yasnippet for emacs]] configs and other refer enhancements             |
+|                      |                            |                                                                      |
+|----------------------+----------------------------+----------------------------------------------------------------------|
+|                      | entropy-emacs-org.el       | emacs org mode configs                                               |
+|                      | entropy-emacs-markdown.el  | emacs markdown mode configs                                          |
+| major modes          | entropy-emacs-c.el         | C/C++ mode configs with =irony= completion chians                    |
+|                      | entropy-emacs-lisp.el      | emacs lisp mode configs                                              |
+|                      | entropy-emacs-web.el       | web mode (web front/back end) configs (inclues js css html php)      |
+|                      | entropy-emacs-python.el    | python mode config with =company-anaconda= completion chain          |
+|                      | entropy-emacs-lua.el       | lua mode configs                                                     |
+|                      |                            |                                                                      |
+|----------------------+----------------------------+----------------------------------------------------------------------|
+|                      | entropy-emacs-path.el      | path configs for =entropy-emacs= specfic environment                 |
+| tool-chains          | entropy-emacs-shell.el     | emacs internal shell front-end enhancements                          |
+|                      | entropy-emacs-vcs.el       | git/svn codes version control with =magit=                           |
+|                      | entropy-emacs-structure.el | programme editting structs fold/expanding feature package            |
+|                      | entropy-emacs-highlight.el | codes snippet highlighting guide feature provider                    |
+|                      | entropy-emacs-dash.el      | dashboard of api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]           |
+|                      |                            |                                                                      |
+|----------------------+----------------------------+----------------------------------------------------------------------|
+| entertainments       | entropy-emacs-emms.el      | gnu emms as media play control panel =entropy-emacs= specifics       |
+|                      | entropy-emacs-game.el      | emacs internal game setting config optimization                      |
+|                      |                            |                                                                      |
+|----------------------+----------------------------+----------------------------------------------------------------------|
+| fundamental          | entropy-emacs-package.el   | on-line packages mirror management and local featuere loaded configs |
+|                      | entropy-emacs-custom.el    | custom file loading setting with alternative custom file specific    |
+|                      |                            |                                                                      |
 
 * Self built packages
 :PROPERTIES:
@@ -151,7 +169,7 @@ Now, I built serveral packages shown as below table:
 |---------------------------------+---------------------------------------------------------------------------------------------------|
 | entropy-cn-dict                 | point char or region translation for chinese words (also useful for traditional chinese)          |
 | entropy-common-library          | librarys for building other =entropy-emacs= package                                               |
-| entropy-project-manager         | project managements extension                                                                     |
+| entropy-project-manager         | simple project managements system                                                                 |
 | entropy-counsel-stuffs          | stuffs managemetns as notes, bookmarks recording or modifying chain                               |
 | entropy-dired-cp-or-mv          | dired copy or move files extension for enhancing based dired refer function                       |
 | entropy-epub2org                | convert epub ebook into org-mode files format front-end                                           |
