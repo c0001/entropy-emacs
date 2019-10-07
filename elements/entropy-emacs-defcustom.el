@@ -541,34 +541,58 @@ For example:
 
 (defcustom entropy/emacs-font-setting-enable t
   "
-Enable entropy-emacs face font setting
+Enable entropy-emacs specific font setting
 
 With font below:
 
-      \"Noto Sans Mono\" or \"Noto Mono\" (for emacs 25.3 only)
-      \"Source Code Pro\"
-      \"Droid Sans\"
+      \"Noto Mono\"
       \"Symbola\"
+      \"Noto Serif CJK SC\"
+      \"Noto Serif CJK TC\"
+      \"Noto Serif CJK JP\"
       \"Noto Serif CJK KR\"
 
-1. Google noto mono for the default face-attribute.
-2. Source Code Pro for default face also.
-3. symbola for the main unicode character show.
-4. Droid for display CJ font.
-5. KR for such it means.
+1. Google noto mono for the default latin char-coding.
+2. symbola for the main unicode character show.
+3. CJK for such it means.
+
+You may want to specify the latin and chinese(exlude japan)
+fonts, see `entropy/emacs-default-latin-font' and
+`entropy/emacs-default-cjk-sc-font' or
+`entropy/emacs-default-cjk-tc-font' for details.
 "
   :type 'boolean
   :group 'entropy/emacs-customize-font)
 
-(defcustom entropy/emacs-font-face-default "Noto Mono"
-  "Choose the default font for face:
-There are two font for indicated:
-
-1. Noto Mono
-2. Source Code pro
-3. Liberation Mono
+(defcustom entropy/emacs-default-latin-font "Noto Mono"
+  "Setting the default latin script font, when you enabled
+`entropy/emacs-font-setting-enable'.
 
 Defualt for \"Noto Mono\""
+  :type 'string
+  :group 'entropy/emacs-customize-font)
+
+(defcustom entropy/emacs-default-cjk-sc-font "Noto Sans Mono CJK SC"
+  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK SC\""
+  :type 'string
+  :group 'entropy/emacs-customize-font)
+
+(defcustom entropy/emacs-default-cjk-tc-font "Noto Sans Mono CJK TC"
+  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK TC\"
+
+By default `entropy/emacs-default-cjk-sc-font' preceded for this
+setting to display chinese characters, unset 'sc' font setting to
+enable this as default one."
+  :type 'string
+  :group 'entropy/emacs-customize-font)
+
+(defcustom entropy/emacs-default-cjk-jp-font "Noto Sans Mono CJK JP"
+  "Set the JP script font, default was \"Noto Sans Mono CJK JP\""
+  :type 'string
+  :group 'entropy/emacs-customize-font)
+
+(defcustom entropy/emacs-default-cjk-kr-font "Noto Sans Mono CJK KR"
+  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK KR\""
   :type 'string
   :group 'entropy/emacs-customize-font)
 
@@ -577,12 +601,6 @@ Defualt for \"Noto Mono\""
 
 Default size was 10, the upper limit was 15."
   :type 'sexp
-  :group 'entropy/emacs-customize-font)
-
-(defcustom entropy/emacs-font-chinese "Droid Sans"
-  "Choose the chinese font setting, default was Droid Sans if
-your installed"
-  :type 'string
   :group 'entropy/emacs-customize-font)
 
 ;; **** project search exec

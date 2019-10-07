@@ -48,7 +48,13 @@ specific browser to visualize current file.")
 (defvar entropy/emacs-window-center-integer 9)
 
 (defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
-  "Title of entropy-emacs initial dashboard buffer. ") 
+  "Title of entropy-emacs initial dashboard buffer. ")
+
+(defvar entropy/emacs-default-cjk-cn-font
+  (or entropy/emacs-default-cjk-sc-font
+      entropy/emacs-default-cjk-tc-font)
+  "The default font for chinese lang-script, using
+`entropy/emacs-default-cjk-tc-font' when SC was nil.")
 
 ;; ** garbage collection
 

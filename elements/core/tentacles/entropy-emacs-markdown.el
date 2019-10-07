@@ -62,8 +62,8 @@
               ("p" . entropy/emacs-markdown-preview-grip))
   :config
 
-  ;; Change face for markdown code,pre,inline-code face for using `entropy/emacs-font-face-default'
-  (set-face-attribute 'fixed-pitch nil :family entropy/emacs-font-face-default)
+  ;; Change face for markdown code,pre,inline-code face for using `entropy/emacs-default-latin-font'
+  (set-face-attribute 'fixed-pitch nil :family entropy/emacs-default-latin-font)
   
   (when (executable-find "multimarkdown")
     (setq markdown-command "multimarkdown"))
