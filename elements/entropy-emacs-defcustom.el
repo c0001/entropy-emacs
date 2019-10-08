@@ -927,6 +927,90 @@ difference.
   :type 'string
   :group 'entropy/emacs-eshell-group)
 
+;; *** markdown mode
+(defgroup entropy/emacs-markdown-mode-spec nil
+  "Custom variables group for markdown mode"
+  :group 'extensions)
+
+(defcustom entropy/emacs-markdown-exp-header-context-type
+  "application/xhtml+xml"
+  "Content type string for the http-equiv header in XHTML output.
+When set to an empty string, this attribute is omitted.  Defaults to
+‘text/html’."
+  :type 'string
+  :group 'entropy/emacs-markdown-mode-spec)
+
+(defcustom entropy/emacs-markdown-exp-header-content
+  "
+        <meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
+        <style>
+        body {
+          box-sizing: border-box;
+          max-width: 740px;
+          width: 100%;
+          margin: 40px auto;
+          padding: 0 10px;
+        }
+        </style>
+        <script src='http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js'></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.classList.add('markdown-body');
+          document.querySelectorAll('pre[lang] > code').forEach((code) => {
+            code.classList.add(code.parentElement.lang);
+            hljs.highlightBlock(code);
+          });
+        });
+        </script>
+"
+  "Additional content to include in the XHTML <head> block."
+  :type 'string
+  :group 'entropy/emacs-markdown-mode-spec)
+
+(defcustom entropy/emacs-markdown-exp-css-paths
+  '("https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"
+    "http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github.min.css")
+  "URL of CSS file to link to in the output XHTML."
+  :type 'list
+  :group 'entropy/emacs-markdown-mode-spec)
+
+(defcustom entropy/emacs-markdown-preview-stylesheets
+  (list "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/2.9.0/github-markdown.min.css"
+        "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"
+        "
+         <style>
+          .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+          }
+
+          @media (max-width: 767px) {
+            .markdown-body {
+              padding: 15px;
+            }
+          }
+         </style>")
+  "List of client stylesheets for preview."
+  :type 'list
+  :group 'entropy/emacs-markdown-mode-spec)
+
+(defcustom entropy/emacs-markdown-preview-javascript
+  (list "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
+        "
+         <script>
+          $(document).on('mdContentChange', function() {
+            $('pre code').each(function(i, block) {
+              hljs.highlightBlock(block);
+            });
+          });
+         </script>")
+  "List of client javascript libs for preview."
+  :type 'list
+  :group 'entropy/emacs-markdown-mode-spec)
+
 ;; *** specific for windows
 (defgroup entropy/emacs-win nil
   "Personal Emacs configurations for windwos."

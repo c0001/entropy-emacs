@@ -39,27 +39,9 @@
 (use-package markdown-mode
   :commands (markdown-mode)
   :hook (markdown-mode . markdown-toggle-url-hiding)
-  :preface
-  ;; Render and preview via `grip'
-  ;; you can install grip by 'pip install grip'
-  (defun entropy/emacs-markdown-preview-grip ()
-    "Render and preview with `grip'."
-    (interactive)
-    (if (executable-find "grip")
-        (let ((port "6419"))
-          (start-process "grip" "*gfm-to-html*" "grip" (buffer-file-name) port)
-          (browse-url (format "http://localhost:%s/%s.%s"
-                              port
-                              (file-name-base)
-                              (file-name-extension
-                               (buffer-file-name)))))
-      (user-error "Please install grip by 'pip install grip'.")))
-
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
-  :bind (:map markdown-mode-command-map
-              ("p" . entropy/emacs-markdown-preview-grip))
   :config
 
   ;; Change face for markdown code,pre,inline-code face for using `entropy/emacs-default-latin-font'
@@ -70,71 +52,48 @@
 
   ;; seting export html styl-sheet
   (setq markdown-command-needs-filename t)
-  (setq markdown-content-type "application/xhtml+xml")
-  (setq markdown-css-paths '("https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"
-                             "http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github.min.css"))
-  (setq markdown-xhtml-header-content "
-<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>
-<style>
-body {
-  box-sizing: border-box;
-  max-width: 740px;
-  width: 100%;
-  margin: 40px auto;
-  padding: 0 10px;
-}
-</style>
-<script src='http://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js'></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  document.body.classList.add('markdown-body');
-  document.querySelectorAll('pre[lang] > code').forEach((code) => {
-    code.classList.add(code.parentElement.lang);
-    hljs.highlightBlock(code);
-  });
-});
-</script>
-")
+  (setq markdown-content-type entropy/emacs-markdown-exp-header-context-type)
+  (setq markdown-css-paths
+        entropy/emacs-markdown-exp-css-paths)
+  (setq markdown-xhtml-header-content
+        entropy/emacs-markdown-exp-header-content))
 
-  ;; synchronization previewing
-  (use-package markdown-preview-mode
-    :commands (markdown-preview-mode)
-    :bind (:map markdown-mode-command-map
-                ("P" . markdown-preview-mode))
-    :config
-    (setq markdown-preview-stylesheets
-          (list "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/2.9.0/github-markdown.min.css"
-                "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"
-                "
-  <style>
-   .markdown-body {
-     box-sizing: border-box;
-     min-width: 200px;
-     max-width: 980px;
-     margin: 0 auto;
-     padding: 45px;
-   }
+;; ** markdown preview
+;; *** simple preview
+;; Render and preview via `grip'
+;; you can install grip by 'pip install grip'
+(defun entropy/emacs-markdown-preview-grip ()
+  "Render and preview with `grip'."
+  (interactive)
+  (if (executable-find "grip")
+      (let ((port "6419"))
+        (start-process "grip" "*gfm-to-html*" "grip" (buffer-file-name) port)
+        (browse-url (format "http://localhost:%s/%s.%s"
+                            port
+                            (file-name-base)
+                            (file-name-extension
+                             (buffer-file-name)))))
+    (user-error "Please install grip by 'pip install grip'.")))
 
-   @media (max-width: 767px) {
-     .markdown-body {
-       padding: 15px;
-     }
-   }
-  </style>
-"))
-    (setq markdown-preview-javascript
-          (list "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
-                "
-  <script>
-   $(document).on('mdContentChange', function() {
-     $('pre code').each(function(i, block) {
-       hljs.highlightBlock(block);
-     });
-   });
-  </script>
-"))
-    (defun entropy/emacs-markdown--mdp-before-advice (&rest args)
-      "Before advice for `markdown-preview-mode' when it trigger
+(entropy/emacs-lazy-load-simple 'markdown-mode
+  (define-key markdown-mode-command-map
+    (kbd "p") #'entropy/emacs-markdown-preview-grip))
+
+;; *** synchronization previewing
+(use-package markdown-preview-mode
+  :after markdown-mode
+  :commands (markdown-preview-mode)
+  :bind (:map markdown-mode-command-map
+              ("P" . markdown-preview-mode))
+  :config
+  (setq markdown-preview-stylesheets
+        entropy/emacs-markdown-preview-stylesheets)
+  
+  (setq markdown-preview-javascript
+        entropy/emacs-markdown-preview-javascript)
+  
+  (defun entropy/emacs-markdown--mdp-before-advice (&rest args)
+    "Before advice for `markdown-preview-mode' when it trigger
 to disable `markdown-preview-mode' for clean up all web-sockets
 to prevent ports keeping as causing to next previewing error.
 
@@ -143,12 +102,14 @@ This issue refer to
 
 For more is force to set locale language coding system to utf-8,
 this refer the websocket non-utf-8 cjk chars error."
-      (cond
-       (markdown-preview-mode
-        (markdown-preview-cleanup)
-        (message "Clean up all markdown preview websockets done!"))
-       (t (entropy/emacs-lang-set-utf-8))))
-    (advice-add 'markdown-preview-mode :before #'entropy/emacs-markdown--mdp-before-advice)))
+    (cond
+     (markdown-preview-mode
+      (markdown-preview-cleanup)
+      (message "Clean up all markdown preview websockets done!"))
+     (t (entropy/emacs-lang-set-utf-8))))
+  (advice-add 'markdown-preview-mode
+              :before
+              #'entropy/emacs-markdown--mdp-before-advice))
 
 (provide 'entropy-emacs-markdown)
 
