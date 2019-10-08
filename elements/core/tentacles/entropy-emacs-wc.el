@@ -174,7 +174,7 @@
    
    (dolist (bind '(("C-e" . entropy/emacs-basic-eyebrowse-create-workspaces)
                    ("M-e" . entropy/emacs-basic-eyebrowse-delete-workspace)
-                   ("C-`" . entropy/emacs-basic-eyebrowse-switch-top)
+                   ("C-o" . entropy/emacs-basic-eyebrowse-switch-top)
                    ("C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
                    ("c" . entropy/emacs-basic-eyebrowse-create-window-config)
                    ("." . entropy/emacs-basic-eyebrowse-switch-basic-window)

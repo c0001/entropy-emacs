@@ -34,74 +34,51 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 
-;; ** Group ibuffer's list by project root
-(if entropy/emacs-enable-ibuffer-projectitle
-;; Because projectitle in ibuffer will Straining system resources ，so let projectitle insert in
-;; ibuffer be optional, and let all buffer switcher function be kill-buffer function cause if not do
-;; this it will cause other opertion in other buffer be lagging a lot.
-;;
 ;; ** use ibuffer-projectitle
-    (use-package ibuffer-projectile
-      :bind ("C-x C-b" . ibuffer)
-      :init
-      (setq ibuffer-filter-group-name-face 'font-lock-function-name-face)
-      (add-hook 'ibuffer-hook
-                (lambda ()
-                  (ibuffer-auto-mode 1)
-                  (ibuffer-projectile-set-filter-groups)
-                  (unless (eq ibuffer-sorting-mode 'alphabetic)
-                    (ibuffer-do-sort-by-alphabetic))))
-      (add-hook 'ibuffer-hook '(lambda () (eyebrowse-mode 0) (winner-mode 0)))
-
-      :config
-      (defun entropy/emacs-ibuffer-kill-ibuffer ()
-        (interactive)
-        (if (not (string= major-mode 'ibuffer-mode))
-            (message "This function is used in Ibuffer!")
-          (progn
-            (entropy/emacs-kill-buffer-and-window)
-            (eyebrowse-mode 1)
-            (winner-mode 1))))
-      (define-key ibuffer-mode-map (kbd "q") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x b") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x <left>") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x <right>") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x <up>") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x <down>") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x C-<left>") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x C-<right>") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x C-<up>") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x C-<down>") 'entropy/emacs-ibuffer-kill-ibuffer)
-      (define-key ibuffer-mode-map (kbd "C-x o") 'entropy/emacs-ibuffer-kill-ibuffer))
+(use-package ibuffer-projectile
+  :if entropy/emacs-enable-ibuffer-projectitle
+  :preface
+  (defun entropy/emacs-ibuffer--ibprjt-init ()
+    (ibuffer-auto-mode 1)
+    (ibuffer-projectile-set-filter-groups)
+    (unless (eq ibuffer-sorting-mode 'alphabetic)
+      (ibuffer-do-sort-by-alphabetic)))
   
-;; ** none ibuffer projectitle
-  (progn
-    (global-set-key (kbd "C-x C-b") 'ibuffer)
-    (add-hook 'ibuffer-hook
-              #'(lambda ()
-                  (progn
-                    (ibuffer-set-filter-groups-by-mode)
+  :bind ("C-x C-b" . ibuffer)
+  :init
+  (setq ibuffer-filter-group-name-face 'font-lock-function-name-face)
+  (add-hook 'ibuffer-hook
+            #'entropy/emacs-ibuffer--ibprjt-init))
+  
+;; ** common ibuffer display
+(when (not entropy/emacs-enable-ibuffer-projectitle)
+  (global-set-key (kbd "C-x C-b") 'ibuffer)
+  (defun entropy/emacs-ibuffer--init-common ()
+    (progn
+      (ibuffer-set-filter-groups-by-mode)
 
-;; *** size readable form EmacsWiki `https://www.emacswiki.org/emacs/IbufferMode'
-                    ;; Use human readable Size column instead of original one
-                    (define-ibuffer-column size-h
-                      (:name "Size" :inline t)
-                      (cond
-                       ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
-                       ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
-                       ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
-                       (t (format "%8d" (buffer-size)))))
+      ;; size readable form EmacsWiki `https://www.emacswiki.org/emacs/IbufferMode'
+      ;; Use human readable Size column instead of original one
+      (define-ibuffer-column size-h
+        (:name "Size" :inline t)
+        (cond
+         ((> (buffer-size) 1000000) (format "%7.1fM" (/ (buffer-size) 1000000.0)))
+         ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
+         ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
+         (t (format "%8d" (buffer-size)))))
 
-                    ;; Modify the default ibuffer-formats
-                    (setq ibuffer-formats
-                          '((mark modified read-only " "
-                                  (name 18 18 :left :elide)
-                                  " "
-                                  (size-h 9 -1 :right)
-                                  " "
-                                  (mode 16 16 :left :elide)
-                                  " "
-                                  filename-and-process))))))))
+      ;; Modify the default ibuffer-formats
+      (setq ibuffer-formats
+            '((mark modified read-only " "
+                    (name 18 18 :left :elide)
+                    " "
+                    (size-h 9 -1 :right)
+                    " "
+                    (mode 16 16 :left :elide)
+                    " "
+                    filename-and-process)))))
+  (add-hook 'ibuffer-hook
+            #'entropy/emacs-ibuffer--init-common))
 
 ;; * provide
 (provide 'entropy-emacs-ibuffer)
