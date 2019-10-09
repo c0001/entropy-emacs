@@ -53,164 +53,204 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 
-;; ** shell path
+;; ** library
+;; *** w32 path set library
+(setq entropy/emacs-path-win32-shell-path-register
+  '((:trigger entropy/emacs-win-emacs-bin-path-add
+              :path invocation-directory
+              :env-order 1
+              :exec-order 1)
+    (:trigger entropy/emacs-wsl-enable
+              :path entropy/emacs-wsl-apps
+              :env-order 2
+              :exec-order 2)
+    (:trigger entropy/emacs-win-fakecygpty-enable
+              :path entropy/emacs-win-fakecygpty-path
+              :env-order 3
+              :exec-order 3)
+    (:trigger entropy/emacs-win-portable-mingw-enable
+              :path entropy/emacs-win-portable-mingw-path
+              :env-order 4
+              :exec-order 4)
+    (:trigger entropy/emacs-git-portable
+              :path entropy/emacs-git-portable-path
+              :env-order 5
+              :exec-order 5)
+    (:trigger entropy/emacs-win-portable-texlive-enable
+              :path entropy/emacs-win-portable-texlive-path
+              :env-order 6
+              :exec-order 6)
+    (:trigger entropy/emacs-win-portable-php-enable
+              :path entropy/emacs-win-portable-php-path
+              :env-order 7
+              :exec-order 7)
+    (:trigger entropy/emacs-win-portable-pip-enable
+              :path entropy/emacs-win-portable-pip-path
+              :env-order 8
+              :exec-order 8)
+    (:trigger entropy/emacs-win-portable-python-enable
+              :path entropy/emacs-win-portable-python-path
+              :env-order 9
+              :exec-order 9)
+    (:trigger entropy/emacs-win-portable-grep-enable
+              :path entropy/emacs-win-portable-grep-path
+              :env-order 10
+              :exec-order 10)
+    (:trigger entropy/emacs-win-portable-ag-enable
+              :path entropy/emacs-win-portable-ag-path
+              :env-order -1
+              :exec-order -1)
+    (:trigger entropy/emacs-win-portable-rg-enable
+              :path entropy/emacs-win-portable-rg-path
+              :env-order 11
+              :exec-order 11)
+    (:trigger entropy/emacs-win-portable-pt-enable
+              :path entropy/emacs-win-portable-pt-path
+              :env-order 12
+              :exec-order 12)
+    (:trigger entropy/emacs-win-portable-nodejs-enable
+              :path entropy/emacs-win-portable-nodejs-path
+              :env-order 13
+              :exec-order 13)
+    (:trigger entropy/emacs-win-portable-opencc-enable
+              :path entropy/emacs-win-portable-opencc-path
+              :env-order 14
+              :exec-order 14)
+    (:trigger entropy/emacs-win-portable-pandoc-enable
+              :path entropy/emacs-win-portable-pandoc-path
+              :env-order 15
+              :exec-order 15)
+    (:trigger entropy/emacs-win-portable-jdk-enable
+              :path entropy/emacs-win-portable-jdk-path
+              :env-order 16
+              :exec-order 16)
+    (:trigger entropy/emacs-win-portable-zeal-enable
+              :path entropy/emacs-win-portable-zeal-path
+              :env-order 17
+              :exec-order 17)
+    (:trigger entropy/emacs-win-portable-putty-enable
+              :path entropy/emacs-win-portable-putty-path
+              :env-order 18
+              :exec-order 18)))
+
+(defun entropy/emacs-path--w32-path-sort-predicate ()
+  (let* ((orig-len (length entropy/emacs-path-win32-shell-path-register))
+         env-paths-positive
+         env-paths-negative
+         exec-paths-positive
+         exec-paths-negative
+         sort-func-positive
+         sort-func-negative
+         extract-path-func)
+
+    (setq sort-func-positive
+          (lambda (a b)
+            (let ((a_order (cdr a))
+                  (b_order (cdr b)))
+              (if (< a_order b_order)
+                  nil
+                t)))
+          sort-func-negative
+          (lambda (a b)
+            (let ((a_order (abs (cdr a)))
+                  (b_order (abs (cdr b))))
+              (if (< a_order b_order)
+                  t
+                nil)))
+          extract-path-func
+          (lambda (x)
+            (let (rtn)
+              (dolist(el x)
+                (push (car el) rtn))
+              (nreverse rtn))))
+    
+    (dolist (el entropy/emacs-path-win32-shell-path-register)
+      (let* ((trigger (plist-get el :trigger))
+             (env-order (plist-get el :env-order))
+             (exec-order (plist-get el :exec-order))
+             (path (plist-get el :path))
+             (env-path-pair (cons path env-order))
+             (exec-path-pair (cons path exec-order)))
+        (when (not (null (symbol-value trigger)))
+          (if (> env-order 0)
+              (push env-path-pair env-paths-positive)
+            (push env-path-pair env-paths-negative))
+          (if (> exec-order 0)
+              (push exec-path-pair exec-paths-positive)
+            (push exec-path-pair exec-paths-negative)))))
+
+    (dolist (positive-list '(env-paths-positive exec-paths-positive))
+      (set positive-list
+           (sort (symbol-value positive-list)
+                 sort-func-positive)))
+    (dolist (negative-list '(env-paths-negative exec-paths-negative))
+      (set negative-list
+           (sort (symbol-value negative-list)
+                 sort-func-negative)))
+
+    (list :env-paths (cons (funcall extract-path-func env-paths-positive)
+                           (funcall extract-path-func env-paths-negative))
+          :exec-paths (cons (funcall extract-path-func exec-paths-positive)
+                            (funcall extract-path-func exec-paths-negative)))))
+
+(defun entropy/emacs-path--w32-regist-path ()
+  (let* ((register-var (entropy/emacs-path--w32-path-sort-predicate))
+         (env-paths (plist-get register-var :env-paths))
+         (env-pos-paths (car env-paths))
+         (env-neg-paths (cdr env-paths))
+         (exec-paths (plist-get register-var :exec-paths))
+         (exec-pos-paths (car exec-paths))
+         (exec-neg-paths (cdr exec-paths))
+         (env-orig (getenv "PATH"))
+         env-pos-concat env-neg-concat)
+
+    ;; ==================== setenv ====================
+    (when (not (null env-pos-paths))
+      (dolist (el env-pos-paths)
+        (setq env-pos-concat
+              (if (stringp env-pos-concat)
+                  (concat env-pos-concat ";" (symbol-value el))
+                (symbol-value el)))))
+
+    (when (not (null env-neg-paths))
+      (dolist (el env-neg-paths)
+        (setq env-neg-concat
+              (if (stringp env-neg-concat)
+                  (concat env-neg-concat ";" (symbol-value el))
+                (symbol-value el)))))
+
+    (setenv "PATH"
+            (cond
+             ((and (null env-pos-concat)
+                   (null env-neg-concat))
+              env-orig)
+             ((and (not (null env-pos-concat))
+                   (null env-neg-concat))
+              (concat env-pos-concat ";" env-orig))
+             ((and (null env-pos-concat)
+                   (not (null env-neg-concat)))
+              (concat env-orig ";" env-neg-concat))
+             (t
+              (concat env-pos-concat ";" env-orig ";" env-neg-concat))))
+
+    ;; ==================== exec ====================
+
+    (when (not (null exec-pos-paths))
+      (setq exec-path
+            (append
+             (mapcar 'symbol-value exec-pos-paths)
+             exec-path)))
+
+    (when (not (null exec-neg-paths))
+      (setq exec-path
+            (append exec-path
+                    (mapcar 'symbol-value exec-neg-paths))))))
+
+
+;; ** main
+
 (when sys/win32p
-;; *** emacs bin folder
-  (if entropy/emacs-win-emacs-bin-path-add
-      (setenv "PATH" (concat invocation-directory ";" (getenv "path"))))
-  
-;; *** wsl-apps
-  (if entropy/emacs-wsl-enable
-      (setenv "PATH" (concat entropy/emacs-wsl-apps ";" (getenv "PATH"))))
-
-;; *** fakecygpty
-  (if entropy/emacs-win-fakecygpty-enable
-      (setenv "PATH" (concat entropy/emacs-win-fakecygpty-path ";" (getenv "PATH"))))
-  
-;; *** gcc for win 
-  (if entropy/emacs-win-portable-mingw-enable
-      (setenv "PATH" (concat entropy/emacs-win-portable-mingw-path ";" (getenv "PATH"))))
-  
-;; *** git-portable
-  (if entropy/emacs-git-portable
-      (setenv "PATH" (concat entropy/emacs-git-portable-path ";" (getenv "PATH"))))
-  
-;; *** windows texlive
-  (if entropy/emacs-win-portable-texlive-enable (setenv "PATH" (concat entropy/emacs-win-portable-texlive-path ";" (getenv "PATH"))))
-
-;; *** windows php
-  (if entropy/emacs-win-portable-php-enable (setenv "PATH" (concat entropy/emacs-win-portable-php-path ";" (getenv "PATH"))))
-  
-;; *** windows python about
-;; **** windows pip-path setting
-  (if entropy/emacs-win-portable-pip-enable (setenv "PATH" (concat entropy/emacs-win-portable-pip-path ";" (getenv "PATH"))))
-  
-;; **** windows python-path setting
-  (if entropy/emacs-win-portable-python-enable (setenv "PATH" (concat entropy/emacs-win-portable-python-path ";" (getenv "PATH"))))
-  
-;; *** windows grep path setting
-  (if entropy/emacs-win-portable-grep-enable (setenv "PATH" (concat entropy/emacs-win-portable-grep-path ";" (getenv "PATH"))))
-  
-;; *** windows ag-path setting
-  (if entropy/emacs-win-portable-ag-enable (setenv "PATH" (concat (getenv "PATH") ";" entropy/emacs-win-portable-ag-path)))
-  
-;; *** windows rg-path setting
-  (if entropy/emacs-win-portable-rg-enable (setenv "PATH" (concat entropy/emacs-win-portable-rg-path ";" (getenv "PATH"))))
-  
-;; *** windows pt-path setting
-  (if entropy/emacs-win-portable-pt-enable (setenv "PATH" (concat entropy/emacs-win-portable-pt-path ";" (getenv "PATH"))))
-  
-;; *** windows nodejs-path setting
-  (if entropy/emacs-win-portable-nodejs-enable (setenv "PATH" (concat entropy/emacs-win-portable-nodejs-path ";" (getenv "PATH"))))
-  
-;; *** windows-opencc
-  (if entropy/emacs-win-portable-opencc-enable (setenv "PATH" (concat entropy/emacs-win-portable-opencc-path ";" (getenv "PATH"))))
-  
-;; *** windows-pandoc
-  (if entropy/emacs-win-portable-pandoc-enable (setenv "PATH" (concat entropy/emacs-win-portable-pandoc-path ";" (getenv "PATH"))))
-  
-;; *** windows-portable-jdk
-  (if entropy/emacs-win-portable-jdk-enable (setenv "PATH" (concat entropy/emacs-win-portable-jdk-path ";" (getenv "PATH"))))
-  
-;; *** windows-zeal
-  (if entropy/emacs-win-portable-zeal-enable (setenv "PATH" (concat entropy/emacs-win-portable-zeal-path ";" (getenv "PATH"))))
-  
-;; *** windows portable putty
-  (if entropy/emacs-win-portable-putty-enable
-      (setenv "PATH" (concat entropy/emacs-win-portable-putty-path
-                             ";"
-                             (getenv "PATH")))))
-
-
-;; ** exec path
-(when sys/win32p
-;; *** emacs bin folder
-  (if entropy/emacs-win-emacs-bin-path-add
-      (add-to-ordered-list 'exec-path invocation-directory 19))
-  
-;; *** wsl exec path setting
-  (if entropy/emacs-wsl-enable
-      (progn
-        (add-to-ordered-list 'exec-path entropy/emacs-wsl-apps 12)
-        (when entropy/emacs-wsl-enable-extra
-          (add-to-ordered-list 'exec-path (concat entropy/emacs-wsl-apps-extra "usr/bin/") 18)
-          (setq woman-manpath
-                `(,(concat entropy/emacs-wsl-apps-extra "usr/man")
-                  ,(concat entropy/emacs-wsl-apps-extra "usr/share/man")
-                  ,(concat entropy/emacs-wsl-apps-extra "usr/local/man"))))))
-
-;; *** fakecygpty for windows term and ansi-term
-  (if entropy/emacs-win-fakecygpty-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-fakecygpty-path 21))
-  
-;; *** clang for company-clang
-  (if entropy/emacs-win-portable-clang-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-clang-path 15))
-  
-;; *** gcc for win exec path setting
-  (if entropy/emacs-win-portable-mingw-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-mingw-path 10))
-  
-;; **** windows git-portable exec path setting
-  (if entropy/emacs-git-portable
-      (add-to-ordered-list 'exec-path entropy/emacs-git-portable-path 9))
-  
-;; *** windows texlive path setting
-  (if entropy/emacs-win-portable-texlive-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-texlive-path 8))
-
-;; *** windows php
-  (if entropy/emacs-win-portable-php-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-php-path 7))
-  
-;; *** windows python about
-;; **** windows pip exec path setting
-  (if entropy/emacs-win-portable-pip-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-pip-path 6))
-  
-;; **** windows python exec path setting
-  (if entropy/emacs-win-portable-python-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-python-path 5))
-  
-;; *** windows grep exec path setting
-  (if entropy/emacs-win-portable-grep-enable
-      (add-to-ordered-list 'exec entropy/emacs-win-portable-grep-path 4))
-  
-;; *** windnows ag exec path setting
-  (if entropy/emacs-win-portable-ag-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-ag-path 11))
-  
-;; *** windows rg exec path setting
-  (if entropy/emacs-win-portable-rg-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-rg-path 3))
-  
-;; *** windows pt exec path setting
-  (if entropy/emacs-win-portable-pt-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-pt-path 2))
-  
-;; *** windows nodejs exec path setting
-  (if entropy/emacs-win-portable-nodejs-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-nodejs-path 1))
-
-;; *** windows opencc exec path setting
-  (if entropy/emacs-win-portable-opencc-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-opencc-path 13))
-
-;; *** windows pandoc exec path setting
-  (if entropy/emacs-win-portable-pandoc-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-pandoc-path 14))
-
-;; *** windows portable jdk exec path setting
-  (if entropy/emacs-win-portable-jdk-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-jdk-path 16))
-
-;; *** windows portable zeal path setting
-  (if entropy/emacs-win-portable-zeal-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-zeal-path 17))
-  
-;; *** windows portable putty path setting
-  (if entropy/emacs-win-portable-putty-enable
-      (add-to-ordered-list 'exec-path entropy/emacs-win-portable-putty-path 20)))
+  (entropy/emacs-path--w32-regist-path))
 
 ;; * provide
 (provide 'entropy-emacs-path)
