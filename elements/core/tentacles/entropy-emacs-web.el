@@ -44,35 +44,6 @@
   (setq tern-command '("tern")))
 
 ;; ** main libraries
-(defun entropy/emacs-web-mode-company-tern (command)
-  "This function was to automaticly init `tern-mode' and pop-up
-`company-tern'."
-  (interactive (list 'interactive))
-  (unless entropy/emacs-company-lsp
-    (if (not tern-mode)
-        (progn
-          (entropy/emacs-web-creat-js2mode-tern-project-file)
-          (tern-mode t))
-      (funcall 'company-tern command))))
-
-(defun entropy/emacs-web-creat-js2mode-tern-project-file ()
-  "Auto create '.tern-project' file in current dir.
-
-  Notice: this automatically created file was simple, you should
-  modify it by personal customization.
-
-  And this automatically created file was the file within
-  entropy-emacs."
-  (interactive)
-  (unless entropy/emacs-company-lsp
-    (if (file-exists-p ".tern-project")
-        (message "Already have .tern-project :)")
-      (if (file-exists-p (expand-file-name "annex/.tern-project" user-emacs-directory))
-          (progn
-            (copy-file (expand-file-name "annex/.tern-project" user-emacs-directory) "./.tern-project")
-            (message "Succeed to create .tern-project in this folder!"))
-        (message "Can not find origin .tern-project file from your .emacs.d/annex folder")))))
-
 (defun entropy/emacs-web-browse-web-buffer ()
   (interactive)
   (require 'entropy-common-library-const)
@@ -80,10 +51,11 @@
     (if (and buffer-file-name
              (file-exists-p buffer-file-name))
         (progn
-          (setq url (url-hexify-string (concat "file://" buffer-file-name)
-                                       entropy/cl-url--allowed-chars))
+          (setq url
+                (url-hexify-string
+                 (concat "file://" buffer-file-name)
+                 entropy/cl-url--allowed-chars))
           (browse-url url)))))
-
 
 (defun entropy/emacs-web--web-mode-start-hook ()
   ;; Set indent and tab-width
@@ -97,30 +69,36 @@
     (yas-activate-extra-mode 'js2-mode)
     (yas-activate-extra-mode 'css-mode))
   (web-mode-set-engine "php")
+  ;; fake initial value for tern in `web-mode', used for
+  ;; `company-tern''s subtroutine.
   (setq-local tern-mode nil))
 
-
-;; ** Front
+;; ** web frontend technologies
 ;; *** html
 ;; **** web-mode
 (use-package web-mode
   :commands web-mode
-  :mode "\\.\\(phtml\\|php|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\)$"
+  :mode
+  ("\\.\\(phtml\\|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\)$"
+   .
+   web-mode)
   :init
   (add-hook 'web-mode-hook
             'entropy/emacs-web--web-mode-start-hook)
   :config
-  (if (display-graphic-p)
-      (progn
-        (add-hook 'web-mode-hook #'(lambda () (setq-local entropy/emacs-web-development-environment t)))
-        (define-key web-mode-map (kbd "<C-f1>") 'entropy/emacs-web-browse-web-buffer)))
+  (when (display-graphic-p)
+    (add-hook 'web-mode-hook
+              #'(lambda ()
+                  (setq-local entropy/emacs-web-development-environment
+                              t)))
+    (define-key web-mode-map (kbd "<C-f1>")
+      'entropy/emacs-web-browse-web-buffer))
 
   (when (not entropy/emacs-company-lsp)
-    (define-key web-mode-map (kbd "M-t") 'entropy/emacs-web-mode-company-tern))
+    (define-key web-mode-map (kbd "M-t") 'company-tern)
+    (define-key web-mode-map (kbd "M-p") 'company-ac-php-backend)))
 
-  (define-key web-mode-map (kbd "M-p") 'company-ac-php-backend))
-
-;; **** Use emmet-mode for folding code
+;; **** Emmet-mode for quick edittng
 (use-package emmet-mode
   :defines (web-mode-hook html-mode-hook)
   :commands emmet-mode
@@ -193,27 +171,46 @@
     (add-hook 'web-mode-hook #'skewer-html-mode)))
 
 (use-package impatient-mode
-  :commands (impatient-mode entropy/emacs-impatient-mode)
-  :init (setq impatient-mode-delayed-update nil)
-  :config
+  :commands (impatient-mode)
+  :preface
   (defun entropy/emacs-web-impatient-mode ()
     "Enable `impatient-mode' and http server by `httpd-start' if
-    server not actived and open the impatient url
-    \"http://localhost:8080/imp/\" with file-name of current
-    buffer if current file was html file."
+server not actived and open the impatient url
+\"http://localhost:8080/imp/\" with file-name of current buffer
+if current file was html file."
     (interactive)
     (require 'entropy-common-library)
-    (let* ((buffer (buffer-name (current-buffer))))
-      (if (and (boundp 'impatient-mode)
-               (not impatient-mode))
-          (progn
-            (if (not (ignore-errors (httpd-running-p)))
-                (httpd-start))
-            (impatient-mode)))
-      (if (string-match-p "\\.html" buffer)
-          (browse-url (concat "http://localhost:8080/imp/live/"
-                              (file-name-nondirectory (buffer-name)))))))
-  (advice-add 'impatient-mode :before 'entropy/cl-sn-buffer-p))
+    (require 'impatient-mode)
+    (let* ((buffer_n (buffer-name (current-buffer))))
+      (cond
+       ((and (boundp 'impatient-mode)
+             impatient-mode)
+        (impatient-mode 0))
+       ((and (boundp 'impatient-mode)
+             (not impatient-mode))
+        (unless (ignore-errors (httpd-running-p))
+          (httpd-start))
+        (impatient-mode 1)
+        (when (string-match-p "\\.html" buffer_n)
+          (imp-visit-buffer))))))
+  :init (setq impatient-mode-delayed-update nil)
+  :config
+  (advice-add 'impatient-mode :before 'entropy/cl-sn-buffer-p)
+  (defun imp-visit-buffer (&optional arg)
+    "Visit the current buffer in a browser.
+If given a prefix argument, visit the buffer listing instead.
+
+Notice: this function has been modified to patch with host name
+format."
+    (interactive "P")
+    (unless (process-status "httpd")
+      (httpd-start))
+    (unless impatient-mode
+      (impatient-mode))
+    (let ((url (format "http://localhost:%d/imp/" httpd-port)))
+      (unless arg
+        (setq url (format "%slive/%s/" url (url-hexify-string (buffer-name)))))
+      (browse-url url))))
 
 ;; **** Format HTML, CSS and JavaScript/JSON by js-beautify
 (use-package web-beautify
@@ -237,7 +234,7 @@
   ;; Set indent size to 2
   (setq web-beautify-args '("-s" "2" "-f" "-")))
 
-;; ** End
+;; ** web backend technologies
 ;; *** php
 (use-package php-mode
   :mode "\\.php$"

@@ -1353,6 +1353,10 @@ git-for-windows-sdk `git-bash.exe'"
   (expand-file-name "startup-theme" entropy/emacs-core-components-hosted-path)
   "Initial theme path for entropy-emacs. ")
 
+(defvar entropy/emacs-templates-dir
+  (expand-file-name "templates" entropy/emacs-core-components-hosted-path)
+  "The sourced templated files archive location of entropy-emacs")
+
 (defvar entropy/emacs-doc-path
   `(:org
     ,(expand-file-name

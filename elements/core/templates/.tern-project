@@ -1,0 +1,12 @@
+{
+  "libs": [
+    "browser",
+    "jquery",
+    "chai",
+    "ecmascript",
+    "underscore"
+  ],
+  "plugins": {
+    "node": {}
+  }
+}
