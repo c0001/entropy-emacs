@@ -108,7 +108,8 @@ configuration.")
                                 (seq "pkg.el" line-end)
                                 (seq line-start "test.el")
                                 (seq line-start "company-lsp")
-                                (seq line-start "lsp-")))))
+                                (seq line-start "lsp-")
+                                (seq line-start "doom-themes-ext")))))
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "counsel"
                                      "dired" "all-the-icon"
                                      "use-package" "diminish" "bind-key"

@@ -146,6 +146,10 @@ Globally close neotree buffer while selected window was
     (unless (eq 'stick (entropy/emacs-neotree--neo-refresh-filter))
       (funcall-interactively orig_func)))
 
-  (advice-add 'neo-global--do-autorefresh :around #'entropy/emacs-neotree--neo-refresh-conditions))
+  (advice-add 'neo-global--do-autorefresh :around #'entropy/emacs-neotree--neo-refresh-conditions)
+
+  ;; enable doom-theme neotree visualized spec
+  (when (string-match-p "^doom-" (symbol-name entropy/emacs-theme-options))
+    (doom-themes-neotree-config)))
 
 (provide 'entropy-emacs-neotree)
