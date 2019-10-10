@@ -133,6 +133,11 @@ for entropy-emacs.")
   :type 'symbol
   :group 'entropy/emacs-customize-fundametal)
 
+(defcustom entropy/emacs-neotree-text-scale -2
+  "The text-scale for neotree buffer."
+  :type 'integer
+  :group 'entropy/emacs-customize-fundametal)
+
 ;; **** use emacs extension from git submodules or elpa folder
 (defgroup entropy/emacs-extensions-customize nil
   "Customized extensions variable group configured for entropy-emacs."

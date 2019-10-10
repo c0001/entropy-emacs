@@ -37,11 +37,11 @@
 (use-package neotree
   :commands (neotree-toggle
              neotree-mode
-             entropy/emacs-neotree-neotree--close
+             entropy/emacs-neotree-neotree-close
              entropy/emacs-neotree-neotree-refresh-for-current
              entropy/emacs-neotree-neo-open-with)
   :bind (("<f8>" . entropy/emacs-neotree-neotree-refresh-for-current)
-         ("C-<f8>" . entropy/emacs-neotree-neotree--close))
+         ("C-<f8>" . entropy/emacs-neotree-neotree-close))
 
   :init
   (setq neo-theme (if (or (display-graphic-p) entropy/emacs-fall-love-with-pdumper) 'icons 'arrow)
@@ -51,12 +51,14 @@
 
   :config
 
+  ;; key register
   ;; Make node item execution for neotree with `entropy-open-with'
   (define-key neotree-mode-map (kbd "M-RET")
     (neotree-make-executor
      :file-fn 'entropy/emacs-neotree-neo-open-with
      :dir-fn  'entropy/emacs-neotree-neo-open-with))
-
+  
+  ;; library
   (defun entropy/emacs-neotree-neo-open-with (full-path &rest _)
     "Open neotree node item in external apps powered by
 `entropy-open-with'."
@@ -68,6 +70,10 @@
     (catch :exit
       (when (string-match-p "\\*w3m" (buffer-name))
         (throw :exit 'stick))))
+
+  (defun entropy/emacs-neotree--neo-refresh-conditions (orig_func &rest orig_args)
+    (unless (eq 'stick (entropy/emacs-neotree--neo-refresh-filter))
+      (funcall-interactively orig_func)))
   
   (defun entropy/emacs-neotree--neo-pos-hl-and-indent (&optional non_indent)
     "Highlight current neotree buffer line and goto the first
@@ -76,9 +82,8 @@ word of current-line for preventing the long line truncate view."
     (unless non_indent
       (forward-line 0)
       (re-search-forward "\\w" (line-end-position 1) t)))
-
-  (advice-add 'neo-buffer--goto-cursor-pos :after #'entropy/emacs-neotree--neo-pos-hl-and-indent)
   
+  ;; redefinations
   (defun neo-global--attach ()
     "Attach the global neotree buffer
 
@@ -99,7 +104,16 @@ of forcely repeating the global-refresh behaviour."
       (set-window-dedicated-p neo-global--window t))
     (run-hook-with-args 'neo-after-create-hook '(window)))
 
-  (defun entropy/emacs-neotree-neotree--close ()
+  ;; Hooks
+  ;; Retach neotree window when eyerbowse switched workspaces
+  (add-hook 'eyebrowse-post-window-switch-hook #'neo-global--attach)
+
+  ;; advices
+  (advice-add 'neo-buffer--goto-cursor-pos :after #'entropy/emacs-neotree--neo-pos-hl-and-indent)
+  (advice-add 'neo-global--do-autorefresh :around #'entropy/emacs-neotree--neo-refresh-conditions)
+  
+  ;; interactive
+  (defun entropy/emacs-neotree-neotree-close ()
     "Globally close the neotree buffer and window."
     (interactive)
     (when neo-global--buffer (kill-buffer neo-global--buffer))
@@ -123,7 +137,7 @@ Globally close neotree buffer while selected window was
           (marker (point)))
       (cond
        ((equal buffer_ neo-global--buffer)
-        (entropy/emacs-neotree-neotree--close))
+        (entropy/emacs-neotree-neotree-close))
        (t
         (unless  (eq 'stick (entropy/emacs-neotree--neo-refresh-filter))
           (unless (neo-global--window-exists-p)
@@ -138,16 +152,20 @@ Globally close neotree buffer while selected window was
           (save-excursion
             (switch-to-buffer buffer_)
             (goto-char marker))
-          (neo-global--select-window))))))
+          (neo-global--select-window)
+          (with-current-buffer neo-buffer-name
+            (cond
+             ((> entropy/emacs-neotree-text-scale 0)
+              (text-scale-increase entropy/emacs-neotree-text-scale))
+             ((< entropy/emacs-neotree-text-scale 0)
+              (text-scale-decrease (abs entropy/emacs-neotree-text-scale)))
+             ((= entropy/emacs-neotree-text-scale 0)
+              nil)
+             ((not (integerp entropy/emacs-neotree-text-scale))
+              (error "Wrong type of argument for 'entropy/emacs-neotree-text-scale'")))
+            ))))))
 
-  (add-hook 'eyebrowse-post-window-switch-hook  #'neo-global--attach)
-
-  (defun entropy/emacs-neotree--neo-refresh-conditions (orig_func &rest orig_args)
-    (unless (eq 'stick (entropy/emacs-neotree--neo-refresh-filter))
-      (funcall-interactively orig_func)))
-
-  (advice-add 'neo-global--do-autorefresh :around #'entropy/emacs-neotree--neo-refresh-conditions)
-
+  ;; specifications
   ;; enable doom-theme neotree visualized spec
   (when (string-match-p "^doom-" (symbol-name entropy/emacs-theme-options))
     (doom-themes-neotree-config)))
