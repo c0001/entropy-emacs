@@ -61,20 +61,10 @@
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
-;; **** init hooks
+;; **** init type
 (defcustom entropy/emacs-minimal-start nil
   "For minmal startup"
   :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
-
-(defcustom entropy/emacs-init-mini-hook '()
-  "Hooks for minimal start."
-  :type 'list
-  :group 'entropy/emacs-custom-variable-basic)
-
-(defcustom entropy/emacs-init-X-hook '()
-  "Hooks of entropy-emacs X init."
-  :type 'list
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; **** fundamental config
@@ -783,16 +773,6 @@ elfeed proxy setting."
   :type 'boolean
   :group 'entropy/emacs-customized-for-pdumper)
 
-(defcustom entropy/emacs-pdumper-load-hook nil
-  "Hook for run with pdumper session startup."
-  :type 'list
-  :group 'entropy/emacs-customized-for-pdumper)
-
-(defcustom entropy/emacs-pdumper-load-end-hook nil
-  "Hook for run after pdumper session startup."
-  :type 'list
-  :group 'entropy/emacs-customized-for-pdumper)
-
 ;; *** code folding group
 (defgroup entropy/emacs-code-folding nil
   "customized variabel group for code folding and expanding
@@ -1379,6 +1359,19 @@ git-for-windows-sdk `git-bash.exe'"
     ,(expand-file-name
       "entropy-emacs-doc/org/entropy-emacs_introduction.info"
       entropy/emacs-site-lisp-path)))
+
+;; *** entropy-emacs init hooks
+(defvar entropy/emacs-init-mini-hook '()
+  "Hooks for minimal start.")
+
+(defvar entropy/emacs-init-X-hook '()
+  "Hooks of entropy-emacs X init.")
+
+(defvar entropy/emacs-pdumper-load-hook nil
+  "Hook for run with pdumper session startup.")
+
+(defvar entropy/emacs-pdumper-load-end-hook nil
+  "Hook for run after pdumper session startup.")
 
 ;; *** making procedure
 (defvar entropy/emacs-is-make-session nil)
