@@ -817,6 +817,11 @@ Two valid value defaulted by `entropy-emacs':
 for 'entropy-emacs'."
   :group 'extensions)
 
+(defcustom entropy/emacs-company-install-server-immediately nil
+  "Install language server immediatly in needed while."
+  :type 'boolean
+  :group 'entropy/emacs-company-customized)
+
 (defcustom entropy/emacs-company-lsp nil
   "Enable lsp for company-mode"
   :type 'boolean

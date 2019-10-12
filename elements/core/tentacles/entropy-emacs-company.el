@@ -67,6 +67,7 @@
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-message)
 
 ;; ** defvar
 
@@ -196,6 +197,106 @@
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-lsp) company-backends)))
 
 ;; ** Backends
+;; *** library
+;; **** server install procedure
+(defun entropy/emacs-company--server-install-warn (task-name proc-buffer)
+  (with-current-buffer proc-buffer
+    (goto-char (point-min))
+    (if (re-search-forward (rx (or (regexp "[^a-z]Error") "ERR!" "No matching"))
+                           nil t)
+        (let ((debug-on-error nil))
+          (error
+           (format 
+            "%s %s %s %s %s"
+            "Fatal do with lsp-install task for"
+            (format "<%s>" task-name)
+            ", check callback buffer"
+            (format "'%s'" (buffer-name (get-buffer proc-buffer)))
+            "for more details")))
+      (entropy/emacs-message-do-message
+       "%s %s %s"
+       (green "Install lsp-task")
+       (yellow (format "<%s>" task-name))
+       (green "successfully")))))
+
+(defmacro entropy/emacs-company--server-search
+    (task-name task-buffer server-cons install-cmd
+               before-install after-install proc-workdir
+               &rest install-args)
+  `(let ((server-type (car ',server-cons))
+         (server-bin (eval (cdr ',server-cons)))
+         (task-buffer (get-buffer-create ,task-buffer)))
+     (with-current-buffer task-buffer
+       (when buffer-read-only
+         (read-only-mode 0))
+       (goto-char (point-min))
+       (erase-buffer))
+     (funcall ,before-install)
+     (if
+         (cond ((eq 'file server-type)
+                (not (file-exists-p server-bin)))
+               ((eq 'exec server-type)
+                (not (executable-find server-bin))))
+         (let ((default-directory ,proc-workdir))
+           (entropy/emacs-message-do-message
+            "%s %s %s"
+            (green "Do lsp server install task")
+            (yellow (format "<%s>" ,task-name))
+            (green "..."))
+           (sleep-for 2)
+           (call-process ,install-cmd nil ,task-buffer t ,@install-args)
+           (entropy/emacs-company--server-install-warn
+            ,task-name task-buffer)
+           (funcall ,after-install))
+       (entropy/emacs-message-do-message
+        "%s %s %s"
+        (green "lsp server task")
+        (yellow (format "<%s>" ,task-name))
+        (green "has been installed")))))
+
+(defmacro entropy/emacs-company--server-install-by-npm
+    (server-name-string server-bin-string server-repo-string)
+  `(entropy/emacs-company--server-search
+    ,server-name-string
+    ,(concat "*eemacs " server-name-string " install*")
+    (file . ,(expand-file-name
+              (format ".local/lib/node_modules/.bin/%s" server-bin-string)
+              "~"))
+    "npm"
+    (lambda ()
+      (mkdir (expand-file-name ".local/bin" "~") t)
+      (mkdir (expand-file-name ".local/lib/node_modules/" "~") t)
+      (let ((lock-package-file (expand-file-name ".local/lib/package-lock.json" "~")))
+        (when (file-exists-p lock-package-file)
+          (delete-file lock-package-file t))))
+    (lambda ()
+      (make-symbolic-link (expand-file-name
+                           ,(format ".local/lib/node_modules/.bin/%s" server-bin-string)
+                           "~")
+                          (expand-file-name
+                           ,(format ".local/bin/%s" server-bin-string)
+                           "~")
+                          t)
+      (let ((lock-package-file (expand-file-name ".local/lib/package-lock.json" "~")))
+        (when (file-exists-p lock-package-file)
+          (delete-file lock-package-file t))))
+    (expand-file-name ".local/lib/" "~")
+    "install" ,server-repo-string))
+
+(defmacro entropy/emacs-company--server-install-by-pip
+    (server-name-string server-bin-string server-repo-string)
+  `(entropy/emacs-company--server-search
+    ,server-name-string
+    ,(format "*eemacs %s install <pip>*" server-name-string)
+    (file
+     .
+     ,(expand-file-name (format ".local/bin/%s" server-bin-string) "~"))
+    "pip"
+    (lambda () nil)
+    (lambda () nil)
+    default-directory
+    "install" ,server-repo-string "--user"))
+
 ;; *** miscelloneous
 ;; **** englishs dict quick completion
 (use-package company-en-words
@@ -220,6 +321,19 @@
 ;; *** web refer
 ;; **** web/html&css
 ;; ***** lsp
+(when entropy/emacs-company-lsp
+  (defun entropy/emacs-company-check-web-lsp (&rest _)
+    (interactive)
+    (entropy/emacs-company--server-install-by-npm
+     "html-lsp-server" "html-languageserver" "vscode-html-languageserver-bin")
+    (entropy/emacs-company--server-install-by-npm
+     "css-lsp-server" "css-languageserver" "vscode-css-languageserver-bin"))
+  
+  (when entropy/emacs-company-install-server-immediately
+    (dolist (mode '(css-mode web-mode))
+      (entropy/emacs-lazy-load-simple mode
+        (advice-add mode :before #'entropy/emacs-company-check-web-lsp)))))
+
 ;; ***** traditional
 (use-package company-web
   :if (not entropy/emacs-company-lsp)
@@ -254,6 +368,16 @@
 
 ;; **** javascript
 ;; ***** lsp
+(when entropy/emacs-company-lsp
+  (defun entropy/emacs-company-check-js-lsp (&rest _)
+    (interactive)
+    (entropy/emacs-company--server-install-by-npm
+     "js-lsp-server" "typescript-language-server" "typescript-language-server"))
+
+  (when entropy/emacs-company-install-server-immediately
+    (entropy/emacs-lazy-load-simple 'js2-mode
+      (advice-add 'js2-mode :before #'entropy/emacs-company-check-js-lsp))))
+
 ;; ***** traditional
 (use-package company-tern
   :if (not entropy/emacs-company-lsp)
@@ -266,6 +390,15 @@
     (make-local-variable 'company-backends)
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-tern)
                 company-backends))
+
+  (defun entropy/emacs-company-check-tern-server (&rest _)
+    (interactive)
+    (entropy/emacs-company--server-install-by-npm
+     "tern-server-install" "tern" "tern"))
+
+  (when entropy/emacs-company-install-server-immediately
+    (entropy/emacs-lazy-load-simple 'js2-mode
+      (advice-add 'js2-mode :before #'entropy/emacs-company-check-tern-server)))
 
   :config
   (defun entropy/emacs-company-create-tern-project-file (&rest _)
@@ -291,6 +424,15 @@ entropy-emacs."
 
 ;; **** php
 ;; ***** lsp
+(when entropy/emacs-company-lsp
+  (defun entropy/emacs-company-check-php-lsp (&rest _)
+    (interactive)
+    (entropy/emacs-company--server-install-by-npm
+     "php-lsp-server" "intelephense" "intelephense"))
+  (when entropy/emacs-company-install-server-immediately
+    (entropy/emacs-lazy-load-simple 'php-mode
+      (advice-add 'php-mode :before #'entropy/emacs-company-check-php-lsp))))
+
 ;; ***** traditional
 (use-package company-php
   :if (not entropy/emacs-company-lsp)
@@ -317,7 +459,6 @@ entropy-emacs."
     (make-local-variable 'company-backends)
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-c-headers) company-backends)))
 
-
 (use-package company-irony
   :if (not entropy/emacs-company-lsp)
   :after company
@@ -334,11 +475,21 @@ and c++ mode."
                (eq major-mode 'c++-mode))
       (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-irony) company-backends))))
 
-;; ****Java
+;; **** Java
 ;; ***** lsp
 ;; ***** traditional
 ;; **** Python
 ;; ***** lsp
+
+(when entropy/emacs-company-lsp
+  (defun entropy/emacs-company-check-python-lsp (&rest _)
+    (interactive)
+    (entropy/emacs-company--server-install-by-pip
+     "pyls-lsp" "pyls" "python-language-server"))
+  (when entropy/emacs-company-install-server-immediately
+    (entropy/emacs-lazy-load-simple 'python-mode
+      (advice-add 'python-mode :before #'entropy/emacs-company-check-python-lsp))))
+
 ;; ***** traditional
 (use-package company-anaconda
   :if (not entropy/emacs-company-lsp)
@@ -350,9 +501,6 @@ and c++ mode."
   (defun entropy/emacs-company-anaconda-add-anaconda-backend ()
     (make-local-variable 'company-backends)
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-anaconda) company-backends)))
-
-
-
 
 ;; * provide
 (provide 'entropy-emacs-company)
