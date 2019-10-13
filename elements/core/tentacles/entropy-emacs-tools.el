@@ -821,7 +821,8 @@ can't visit one page suddenly."
   (entropy/emacs-lazy-load-simple 'w3m
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (entropy/proxy-url-make-builtin-recipes)
-      (entropy/emacs-tools--proxy-url-w3m-specific)
+      (when (executable-find "w3m")
+        (entropy/emacs-tools--proxy-url-w3m-specific))
       (setq entropy/emacs-proxy-url-loaded t)))
 
   (entropy/emacs-lazy-load-simple 'eww
