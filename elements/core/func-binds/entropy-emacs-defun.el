@@ -477,7 +477,15 @@ custom variable
         'org-level-5
         'org-level-6
         'org-level-7
-        'org-level-8))
+        'org-level-8
+        'outline-1
+        'outline-2
+        'outline-3
+        'outline-4
+        'outline-5
+        'outline-6
+        'outline-7
+        'outline-8))
 
 (defconst entropy/emacs-defun--ohrsc-org-header-backup-faces
   (list 'org-level-1-backup-eemacs
@@ -487,7 +495,15 @@ custom variable
         'org-level-5-backup-eemacs
         'org-level-6-backup-eemacs
         'org-level-7-backup-eemacs
-        'org-level-8-backup-eemacs))
+        'org-level-8-backup-eemacs
+        'outline-1-backup-eemacs
+        'outline-2-backup-eemacs
+        'outline-3-backup-eemacs
+        'outline-4-backup-eemacs
+        'outline-5-backup-eemacs
+        'outline-6-backup-eemacs
+        'outline-7-backup-eemacs
+        'outline-8-backup-eemacs))
 
 (defconst entropy/emacs-defun--ohrsc-org-header-face-spec
   '((:background . nil)
