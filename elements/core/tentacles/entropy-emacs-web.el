@@ -132,13 +132,6 @@
                   (js2-highlight-unused-variables-mode 1)
                   (js2-imenu-extras-mode 1)))))
 
-;; **** tern mode
-(use-package tern
-  :if (not entropy/emacs-company-lsp)
-  :commands (tern-mode)
-  :defines js2-mode-hook
-  :hook (js2-mode . tern-mode))
-
 ;; **** js2-refactor
 (use-package js2-refactor
   :requires js2-mode

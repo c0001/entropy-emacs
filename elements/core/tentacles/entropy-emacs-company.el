@@ -73,6 +73,7 @@
 
 
 ;; ** libraries
+;; *** yas load
 (defun entropy/emacs-company-use-yasnippet (backend)
   (if (and (listp backend) (member 'company-yasnippet backend))
       backend
@@ -86,6 +87,7 @@
     (when (fboundp 'yas-global-mode)
       (yas-global-mode))))
 
+;; *** company components load
 (defun entropy/emacs-company-require-subs ()
   (entropy/emacs-lazy-load-simple 'company
     (dolist (el '(company-abbrev
@@ -113,92 +115,7 @@
                   company-yasnippet))
       (require el))))
 
-
-;; ** company core
-(use-package company
-  ;; :diminish company-mode  ;;; This comment to diminish the modline
-  :commands (global-company-mode)
-;; *** bind-key  
-  :bind (("M-/" . company-complete)
-         ("M-\\" . company-dabbrev)
-         ("C-c C-y" . company-yasnippet)
-         :map company-active-map
-         ("C-p" . company-select-previous)
-         ("C-n" . company-select-next)
-         ;; ("<tab>" . company-complete-selection)
-         :map company-search-map
-         ("C-p" . company-select-previous)
-         ("C-n" . company-select-next))
-;; *** init for load  
-  :init
-  (entropy/emacs-lazy-with-load-trail global-company-mode (global-company-mode t))
-  (when (or (equal entropy/emacs-use-extensions-type 'submodules)
-            entropy/emacs-fall-love-with-pdumper)
-    (entropy/emacs-company-require-subs))
-  (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)
-  
-;; *** config for after-load
-  :config
-;; **** basic setting 
-  ;; aligns annotation to the right hand side
-  (setq company-tooltip-align-annotations t)
-
-  (setq
-   company-tooltip-limit 20  ; bigger popup window
-   company-echo-delay 0      ; remove annoying blinking
-   company-dabbrev-code-everywhere t
-   company-minimum-prefix-length 2
-   company-require-match nil
-   company-dabbrev-ignore-case nil
-   company-dabbrev-downcase nil
-   company-dabbrev-char-regexp "\\sw[-_]*")
-
-  (if entropy/emacs-company-posframe-mode
-      (setq company-tooltip-offset-display 'scrollbar)
-    (setq company-tooltip-offset-display 'lines))
-
-;; **** Support yas in commpany
-  (setq company-backends (mapcar #'entropy/emacs-company-use-yasnippet company-backends))
-
-;; **** Using company-posframe to speedup company candidates window show and scrolling
-  (when (and (not (version< emacs-version "26.1"))
-             entropy/emacs-company-posframe-mode)
-    (use-package company-posframe
-      :after company
-      :commands (company-posframe-mode)
-      :diminish company-posframe-mode
-      :init (company-posframe-mode 1))))
-
-
-;; *** Popup documentation for completion candidates
-(use-package company-quickhelp
-  :if (and (not entropy/emacs-company-posframe-mode)
-           (display-graphic-p))
-  :after company
-  :defines company-quickhelp-delay
-  :commands (company-quickhelp-mode
-             company-quickhelp-manual-begin)
-  :bind (:map company-active-map
-              ("M-h" . company-quickhelp-manual-begin)
-              ("C-h" . nil)
-              ("<f1>" . nil))
-  :init
-  (setq company-quickhelp-delay 1)
-  (company-quickhelp-mode 1))
-
-;; ** company lsp
-(use-package company-lsp
-  :if (and (>= emacs-major-version 25)
-           entropy/emacs-company-lsp)
-  :init
-  (add-hook 'prog-mode-hook #'entropy/emacs-company-add-lsp-backend)
-  (defun entropy/emacs-company-add-lsp-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-lsp) company-backends)))
-
-;; ** Backends
-;; *** library
-;; **** server install procedure
+;; *** server install procedure
 (defun entropy/emacs-company--server-install-warn (task-name proc-buffer)
   (with-current-buffer proc-buffer
     (goto-char (point-min))
@@ -297,6 +214,112 @@
     default-directory
     "install" ,server-repo-string "--user"))
 
+;; ** company core
+(use-package company
+  ;; :diminish company-mode  ;;; This comment to diminish the modline
+  :commands (global-company-mode)
+;; *** bind-key  
+  :bind (("M-/" . company-complete)
+         ("M-\\" . company-dabbrev)
+         ("C-c C-y" . company-yasnippet)
+         :map company-active-map
+         ("C-p" . company-select-previous)
+         ("C-n" . company-select-next)
+         ;; ("<tab>" . company-complete-selection)
+         :map company-search-map
+         ("C-p" . company-select-previous)
+         ("C-n" . company-select-next))
+;; *** init for load  
+  :init
+  (entropy/emacs-lazy-with-load-trail global-company-mode (global-company-mode t))
+  (when (or (equal entropy/emacs-use-extensions-type 'submodules)
+            entropy/emacs-fall-love-with-pdumper)
+    (entropy/emacs-company-require-subs))
+  (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)
+  
+;; *** config for after-load
+  :config
+;; **** basic setting 
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+
+  (setq
+   company-tooltip-limit 20  ; bigger popup window
+   company-echo-delay 0      ; remove annoying blinking
+   company-dabbrev-code-everywhere t
+   company-minimum-prefix-length 2
+   company-require-match nil
+   company-dabbrev-ignore-case nil
+   company-dabbrev-downcase nil
+   company-dabbrev-char-regexp "\\sw[-_]*")
+
+  (if entropy/emacs-company-posframe-mode
+      (setq company-tooltip-offset-display 'scrollbar)
+    (setq company-tooltip-offset-display 'lines))
+
+;; **** Support yas in commpany
+  (setq company-backends (mapcar #'entropy/emacs-company-use-yasnippet company-backends))
+
+;; **** Using company-posframe to speedup company candidates window show and scrolling
+  (when (and (not (version< emacs-version "26.1"))
+             entropy/emacs-company-posframe-mode)
+    (use-package company-posframe
+      :after company
+      :commands (company-posframe-mode)
+      :diminish company-posframe-mode
+      :init (company-posframe-mode 1))))
+
+
+;; *** Popup documentation for completion candidates
+(use-package company-quickhelp
+  :if (and (not entropy/emacs-company-posframe-mode)
+           (display-graphic-p))
+  :after company
+  :defines company-quickhelp-delay
+  :commands (company-quickhelp-mode
+             company-quickhelp-manual-begin)
+  :bind (:map company-active-map
+              ("M-h" . company-quickhelp-manual-begin)
+              ("C-h" . nil)
+              ("<f1>" . nil))
+  :init
+  (setq company-quickhelp-delay 1)
+  (company-quickhelp-mode 1))
+
+;; ** microsoft language server
+;; *** lsp-mode
+(use-package lsp-mode
+  :if (and (>= emacs-major-version 25)
+           entropy/emacs-company-lsp)
+  :diminish lsp-mode
+  :commands lsp
+  :hook (prog-mode . lsp)
+  :init
+  (setq lsp-auto-guess-root t)
+  (setq lsp-prefer-flymake nil))
+
+(use-package lsp-ui
+  :if (and (>= emacs-major-version 25)
+           entropy/emacs-company-lsp)
+  :commands (lsp-ui-peek-find-definitions
+             lsp-ui-peek-find-references
+             lsp-ui-imenu)
+  :bind (:map lsp-ui-mode-map
+              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+              ([remap xref-find-references] . lsp-ui-peek-find-references)
+              ("C-c u" . lsp-ui-imenu)))
+
+;; *** company-lsp
+(use-package company-lsp
+  :if (and (>= emacs-major-version 25)
+           entropy/emacs-company-lsp)
+  :init
+  (add-hook 'prog-mode-hook #'entropy/emacs-company-add-lsp-backend)
+  (defun entropy/emacs-company-add-lsp-backend ()
+    (make-local-variable 'company-backends)
+    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-lsp) company-backends)))
+
+;; ** Backends
 ;; *** miscelloneous
 ;; **** englishs dict quick completion
 (use-package company-en-words
@@ -330,9 +353,14 @@
      "css-lsp-server" "css-languageserver" "vscode-css-languageserver-bin"))
   
   (when entropy/emacs-company-install-server-immediately
-    (dolist (mode '(css-mode web-mode))
-      (entropy/emacs-lazy-load-simple mode
-        (advice-add mode :before #'entropy/emacs-company-check-web-lsp)))))
+    (entropy/emacs-lazy-load-simple 'web-mode
+      (advice-add 'web-mode
+                  :before
+                  #'entropy/emacs-company-check-web-lsp))
+    (entropy/emacs-lazy-load-simple 'css-mode
+      (advice-add 'css-mode
+                  :before
+                  #'entropy/emacs-company-check-web-lsp))))
 
 ;; ***** traditional
 (use-package company-web
@@ -379,6 +407,12 @@
       (advice-add 'js2-mode :before #'entropy/emacs-company-check-js-lsp))))
 
 ;; ***** traditional
+(use-package tern
+  :if (not entropy/emacs-company-lsp)
+  :commands (tern-mode)
+  :defines js2-mode-hook
+  :hook (js2-mode . tern-mode))
+
 (use-package company-tern
   :if (not entropy/emacs-company-lsp)
   :after company
@@ -447,7 +481,27 @@ entropy-emacs."
 ;; *** C(PP) Java python
 ;; **** C(PP)
 ;; ***** lsp
+(when entropy/emacs-company-lsp
+  (defun entropy/emacs-company-check-clangd-lsp ()
+    (interactive)
+    (if (executable-find "clangd")
+        (entropy/emacs-message-do-message
+         "%s %s %s"
+         (green "Installed lsp server")
+         (yellow "'<clangd>'")
+         (green "."))
+      (error "Please using system package management install '<clangd>'.")))
+  (when entropy/emacs-company-install-server-immediately
+    (entropy/emacs-lazy-load-simple 'cc-mode
+      (advice-add 'c-mode
+                  :before
+                  #'entropy/emacs-company-check-clangd-lsp)
+      (advice-add 'c++-mode
+                  :before
+                  #'entropy/emacs-company-check-clangd-lsp))))
+
 ;; ***** traditional
+;; ****** headers
 (use-package company-c-headers
   :if (not entropy/emacs-company-lsp)
   :after company
@@ -458,6 +512,62 @@ entropy-emacs."
   (defun entropy/emacs-company-c-headers-add-cheader-backend ()
     (make-local-variable 'company-backends)
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-c-headers) company-backends)))
+
+;; ****** irony mode
+(defun entropy/emacs-c-irony-load-subs ()
+  (dolist (el '(irony-cdb-clang-complete
+                irony-cdb-json
+                irony-cdb-libclang
+                irony-cdb
+                irony-completion
+                irony-diagnostics
+                irony-iotask
+                irony-snippet))
+    (require el)))
+
+(defun entropy/emacs-c-irony-pipe-config ()
+  "Reducing pipe-read-delay and set the pipe buffer size to
+64K on Windows (from the original 4K).
+
+It is the recommendation of irony-mode official introduction."
+  (when (boundp 'w32-pipe-read-delay)
+    (setq-local w32-pipe-read-delay 0))
+  (when (boundp 'w32-pipe-buffer-size)
+    (setq-local irony-server-w32-pipe-buffer-size (* 64 1024))))
+
+(defun entropy/emacs-c-irony-refer-advice-around (oldfuc &rest args)
+  "Prevent c group mode as `php-mode' which was the derived from
+`c-mode' to load `irony-mode' and `company-irony'."
+  (if (member major-mode '(c++-mode c-mode objc-mode))
+      (funcall oldfuc)
+    t))
+
+(defun entropy/emacs-c-usepackage-irony ()
+  "Function for enabling irony mode for c and c++ mode."
+  (use-package irony
+    :if (not entropy/emacs-company-lsp)
+    :commands (irony-mode)
+    :hook ((c-mode . irony-mode)
+           (c++-mode . irony-mode)
+           (irony-mode . irony-cdb-autosetup-compile-options)
+           (c-mode . entropy/emacs-c-irony-pipe-config)
+           (c++-mode . entropy/emacs-c-irony-pipe-config))
+    :config
+    (entropy/emacs-c-irony-load-subs)
+    (advice-add 'irony-mode :around #'entropy/emacs-c-irony-refer-advice-around))
+
+  (use-package irony-eldoc
+    :defines irony-mode-hook
+    :commands (irony-eldoc)
+    :hook (irony-mode . irony-eldoc)))
+
+(cond
+ ((and sys/win32p
+       entropy/emacs-win-portable-mingw-enable
+       (file-exists-p (concat entropy/emacs-win-portable-mingw-path "libclang.dll")))
+  (entropy/emacs-c-usepackage-irony))
+ (sys/is-posix-compatible
+  (entropy/emacs-c-usepackage-irony)))
 
 (use-package company-irony
   :if (not entropy/emacs-company-lsp)
@@ -487,7 +597,7 @@ and c++ mode."
     (entropy/emacs-company--server-install-by-pip
      "pyls-lsp" "pyls" "python-language-server"))
   (when entropy/emacs-company-install-server-immediately
-    (entropy/emacs-lazy-load-simple 'python-mode
+    (entropy/emacs-lazy-load-simple 'python
       (advice-add 'python-mode :before #'entropy/emacs-company-check-python-lsp))))
 
 ;; ***** traditional

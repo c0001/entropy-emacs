@@ -405,7 +405,6 @@ Emacs will auto close after 6s ......")))
   ;; For auto complete
   (require 'entropy-emacs-yas)
   (require 'entropy-emacs-company)
-  (require 'entropy-emacs-lsp)
   ;; For useful tools
   (require 'entropy-emacs-shell)
   (require 'entropy-emacs-ibuffer)
