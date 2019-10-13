@@ -59,6 +59,9 @@
      :dir-fn  'entropy/emacs-neotree-neo-open-with))
   
   ;; library
+  (defvar entropy/emacs-neotree--neo-textscaled nil
+    "Indicator for preventing further textscale for neo buffer.")
+  
   (defun entropy/emacs-neotree-neo-open-with (full-path &rest _)
     "Open neotree node item in external apps powered by
 `entropy-open-with'."
@@ -122,7 +125,8 @@ of forcely repeating the global-refresh behaviour."
                 (delete-window-internal x)))
             (window-list))
     (setf neo-global--buffer nil
-          neo-global--window nil))
+          neo-global--window nil
+          entropy/emacs-neotree--neo-textscaled nil))
 
   (defun entropy/emacs-neotree-neotree-refresh-for-current ()
     "Open neotree with current working directory.
@@ -153,17 +157,18 @@ Globally close neotree buffer while selected window was
             (switch-to-buffer buffer_)
             (goto-char marker))
           (neo-global--select-window)
-          (with-current-buffer neo-buffer-name
-            (cond
-             ((> entropy/emacs-neotree-text-scale 0)
-              (text-scale-increase entropy/emacs-neotree-text-scale))
-             ((< entropy/emacs-neotree-text-scale 0)
-              (text-scale-decrease (abs entropy/emacs-neotree-text-scale)))
-             ((= entropy/emacs-neotree-text-scale 0)
-              nil)
-             ((not (integerp entropy/emacs-neotree-text-scale))
-              (error "Wrong type of argument for 'entropy/emacs-neotree-text-scale'")))
-            ))))))
+          (unless entropy/emacs-neotree--neo-textscaled
+            (with-current-buffer neo-buffer-name
+              (cond
+               ((> entropy/emacs-neotree-text-scale 0)
+                (text-scale-increase entropy/emacs-neotree-text-scale))
+               ((< entropy/emacs-neotree-text-scale 0)
+                (text-scale-decrease (abs entropy/emacs-neotree-text-scale)))
+               ((= entropy/emacs-neotree-text-scale 0)
+                nil)
+               ((not (integerp entropy/emacs-neotree-text-scale))
+                (error "Wrong type of argument for 'entropy/emacs-neotree-text-scale'"))))
+            (setq entropy/emacs-neotree--neo-textscaled t)))))))
 
   ;; specifications
   ;; enable doom-theme neotree visualized spec
