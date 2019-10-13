@@ -132,10 +132,11 @@
     (when (entropy/emacs-theme-adapted-to-solaire)
       (entropy/emacs-theme--solaire-force-set-faces
        entropy/emacs-theme-sticker))
-    (face-spec-set
-     'default
-     (entropy/emacs-get-theme-face
-      entropy/emacs-theme-sticker 'default)))
+    (dolist (el '(default hl-line))
+      (face-spec-set
+       el
+       (entropy/emacs-get-theme-face
+        entropy/emacs-theme-sticker el))))
   
   ;; solaire entropy-emacs configuration
 
