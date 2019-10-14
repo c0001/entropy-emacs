@@ -190,7 +190,7 @@
 ;; ** company-lsp
 (use-package company-lsp
   :if (and (>= emacs-major-version 25)
-           entropy/emacs-company-lsp)
+           (eq entropy/emacs-use-ide-type 'lsp))
   :init
   (add-hook 'prog-mode-hook #'entropy/emacs-company-add-lsp-backend)
   (defun entropy/emacs-company-add-lsp-backend ()
@@ -208,7 +208,7 @@
 
 ;; *** shell
 (use-package company-shell
-  :if (not entropy/emacs-company-lsp)
+  :if (eq entropy/emacs-use-ide-type 'traditional)
   :after company
   :defines (sh-mode-hook)
   :commands (company-shell company-shell-env company-fish-shell)
@@ -222,7 +222,7 @@
 ;; *** web refer
 ;; **** web/html&css
 (use-package company-web
-  :if (not entropy/emacs-company-lsp)
+  :if (eq entropy/emacs-use-ide-type 'traditional)
   :after company
   :defines (company-web-html
             company-web-jade
@@ -254,7 +254,7 @@
 
 ;; **** javascript
 (use-package company-tern
-  :if (not entropy/emacs-company-lsp)
+  :if (eq entropy/emacs-use-ide-type 'traditional)
   :after company
   :defines js2-mode-hook
   :commands company-tern
@@ -298,7 +298,7 @@ entropy-emacs."
 
 ;; **** php
 (use-package company-php
-  :if (not entropy/emacs-company-lsp)
+  :if (eq entropy/emacs-use-ide-type 'traditional)
   :defines php-mode-hook
   :commands company-ac-php-backend
   :init
@@ -311,7 +311,7 @@ entropy-emacs."
 ;; **** C(PP)
 ;; ***** headers
 (use-package company-c-headers
-  :if (not entropy/emacs-company-lsp)
+  :if (eq entropy/emacs-use-ide-type 'traditional)
   :after company
   :defines (c-mode-hook c++-mode-hook)
   :commands company-c-headers
@@ -323,7 +323,7 @@ entropy-emacs."
 
 ;; ***** company irony
 (use-package company-irony
-  :if (not entropy/emacs-company-lsp)
+  :if (eq entropy/emacs-use-ide-type 'traditional)
   :after company
   :defines (c-mode-hook c++-mode-hook)
   :commands commpany-irony
@@ -341,7 +341,7 @@ and c++ mode."
 ;; **** Java
 ;; **** Python
 (use-package company-anaconda
-  :if (not entropy/emacs-company-lsp)
+  :if (eq entropy/emacs-use-ide-type 'traditional)
   :after company
   :defines anaconda-mode-hook
   :commands company-anaconda

@@ -171,7 +171,7 @@ It is the recommendation of irony-mode official introduction."
 (defun entropy/emacs-codeserver-usepackage-irony ()
   "Function for enabling irony mode for c and c++ mode."
   (use-package irony
-    :if (not entropy/emacs-company-lsp)
+    :if (eq entropy/emacs-use-ide-type 'traditional)
     :commands (irony-mode)
     :hook ((c-mode . irony-mode)
            (c++-mode . irony-mode)
@@ -204,7 +204,7 @@ It is the recommendation of irony-mode official introduction."
     (add-hook 'python-mode-hook #'anaconda-mode)))
 
 ;; *** startup
-(when entropy/emacs-company-lsp
+(when (eq entropy/emacs-use-ide-type 'traditional)
   (cond
    ((and sys/win32p
          entropy/emacs-win-portable-mingw-enable
@@ -219,7 +219,7 @@ It is the recommendation of irony-mode official introduction."
 ;; *** lsp-client
 (use-package lsp-mode
   :if (and (>= emacs-major-version 25)
-           entropy/emacs-company-lsp)
+           (eq entropy/emacs-use-ide-type 'lsp))
   :diminish lsp-mode
   :commands lsp
   :hook (prog-mode . lsp)
@@ -229,7 +229,7 @@ It is the recommendation of irony-mode official introduction."
 
 (use-package lsp-ui
   :if (and (>= emacs-major-version 25)
-           entropy/emacs-company-lsp)
+           (eq entropy/emacs-use-ide-type 'lsp))
   :commands (lsp-ui-peek-find-definitions
              lsp-ui-peek-find-references
              lsp-ui-imenu)
@@ -240,7 +240,7 @@ It is the recommendation of irony-mode official introduction."
 
 ;; *** lsp instances
 ;; **** lsp html&css
-(when entropy/emacs-company-lsp
+(when (eq entropy/emacs-use-ide-type 'lsp)
   (defun entropy/emacs-codeserver-check-web-lsp (&rest _)
     (interactive)
     (entropy/emacs-codeserver--server-install-by-npm
@@ -259,7 +259,7 @@ It is the recommendation of irony-mode official introduction."
                   #'entropy/emacs-codeserver-check-web-lsp))))
 
 ;; **** lsp javascript
-(when entropy/emacs-company-lsp
+(when (eq entropy/emacs-use-ide-type 'lsp)
   (defun entropy/emacs-codeserver-check-js-lsp (&rest _)
     (interactive)
     (entropy/emacs-codeserver--server-install-by-npm
@@ -270,7 +270,7 @@ It is the recommendation of irony-mode official introduction."
       (advice-add 'js2-mode :before #'entropy/emacs-codeserver-check-js-lsp))))
 
 ;; **** lsp php
-(when entropy/emacs-company-lsp
+(when (eq entropy/emacs-use-ide-type 'lsp)
   (defun entropy/emacs-codeserver-check-php-lsp (&rest _)
     (interactive)
     (entropy/emacs-codeserver--server-install-by-npm
@@ -280,7 +280,7 @@ It is the recommendation of irony-mode official introduction."
       (advice-add 'php-mode :before #'entropy/emacs-codeserver-check-php-lsp))))
 
 ;; **** lsp clangd
-(when entropy/emacs-company-lsp
+(when (eq entropy/emacs-use-ide-type 'lsp)
   (defun entropy/emacs-codeserver-check-clangd-lsp ()
     (interactive)
     (if (executable-find "clangd")
@@ -300,7 +300,7 @@ It is the recommendation of irony-mode official introduction."
                   #'entropy/emacs-codeserver-check-clangd-lsp))))
 
 ;; **** lsp python
-(when entropy/emacs-company-lsp
+(when (eq entropy/emacs-use-ide-type 'lsp)
   (defun entropy/emacs-codeserver-check-python-lsp (&rest _)
     (interactive)
     (entropy/emacs-codeserver--server-install-by-pip

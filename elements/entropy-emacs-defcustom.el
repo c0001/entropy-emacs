@@ -773,11 +773,23 @@ elfeed proxy setting."
   :type 'boolean
   :group 'entropy/emacs-customized-for-pdumper)
 
-;; *** code folding group
+;; *** IDE
+(defgroup entropy/emacs-ide-config nil
+  "The IDE configurations group"
+  :group 'extensions)
+
+(defcustom entropy/emacs-use-ide-type 'traditional
+  "IDE integration type.
+
+Valid value are 'traditional' and 'lsp'"
+  :type 'symbol
+  :group 'entropy/emacs-ide-config)
+
+;; **** code folding group
 (defgroup entropy/emacs-code-folding nil
   "customized variabel group for code folding and expanding
 features."
-  :group 'extensions
+  :group 'entropy/emacs-ide-config
   :prefix "entropy/emacs-code-folding-")
 
 (defcustom entropy/emacs-code-folding-type 'yafolding
@@ -787,11 +799,11 @@ features."
           (const yafolding))
   :group 'entropy/emacs-code-folding)
 
-;; *** ivy framework
+;; **** ivy framework
 
 (defgroup entropy/emacs-ivy-customize nil
   "Ivy framework customized variables group confitured for 'entropy-emacs'."
-  :group 'extensions)
+  :group 'entropy/emacs-ide-config)
 
 (defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
   "The enhancement for ivy-framework, icon abbreviation and other
@@ -811,19 +823,14 @@ Two valid value defaulted by `entropy-emacs':
   :type 'sexp
   :group 'entropy/emacs-ivy-customize)
 
-;; *** company config
+;; **** company config
 (defgroup entropy/emacs-company-customized nil
   "The customize variables group for `company-mode' configured
 for 'entropy-emacs'."
-  :group 'extensions)
+  :group 'entropy/emacs-ide-config)
 
 (defcustom entropy/emacs-company-install-server-immediately nil
   "Install language server immediatly in needed while."
-  :type 'boolean
-  :group 'entropy/emacs-company-customized)
-
-(defcustom entropy/emacs-company-lsp nil
-  "Enable lsp for company-mode"
   :type 'boolean
   :group 'entropy/emacs-company-customized)
 
@@ -838,56 +845,56 @@ automatically avoiding startup of `company-quickhelp-mode'."
   :type 'boolean
   :group 'entropy/emacs-company-customized)
 
-;; *** use highlight feature
+;; **** use highlight feature
 (defgroup entropy/emacs-highlight nil
   "Personal Emacs configurations."
-  :group 'extensions)
+  :group 'entropy/emacs-ide-config)
 
-;; **** main enable
+;; ***** main enable
 (defcustom entropy/emacs-use-highlight-features t
   "Enable highlight feature package `init-highlight.el'."
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
-;; **** highlight-indention
+;; ***** highlight-indention
 (defcustom entropy/emacs-hl-highlight-indention-enable-at-startup nil
   "Enable indention highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
-;; **** symbol-over-lay
+;; ***** symbol-over-lay
 (defcustom entropy/emacs-hl-sysmbol-overlay-enable-at-startup nil
   "Enable symbol-overlay highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
-;; **** highlight-parentheses
+;; ***** highlight-parentheses
 (defcustom entropy/emacs-hl-highlight-parentheses-mode-enable-at-startup nil
   "Enable highlight-parentheses highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
-;; **** rainbow delimiters
+;; ***** rainbow delimiters
 (defcustom entropy/emacs-hl-rainbow-delimiters-enable-at-startup nil
   "Enable rainbow-delimiters highlight feature"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
-;; **** hl-todo-mode
+;; ***** hl-todo-mode
 (defcustom entropy/emacs-hl-todo-enable-at-startup nil
   "Enable hl-todo highlight feature which can show color of
   `TODO' keywords universal not only the org file"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
-;; **** diff-hl
+;; ***** diff-hl
 (defcustom entropy/emacs-hl-diff-hl-enable-at-startup nil
   "Enable diff-hl highlight feature which can show the git diff
 in current buffer"
   :type 'boolean
   :group 'entropy/emacs-highlight)
 
-;; **** whitespace
+;; ***** whitespace
 (defcustom entropy/emacs-hl-whitespace-enable-at-startup nil
   "Enable whitespace highlight feature"
   :type 'boolean
