@@ -74,15 +74,19 @@
 
 (defcustom entropy/emacs-garbage-collection-delay 2
   "The defaults garbage collection idle delay secons setting
-for entropy-emacs.")
+for entropy-emacs."
+  :type 'integer
+  :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-custom-enable-lazy-load t
   "Enable lazy load for entropy-emacs"
+  :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-custom-common-file (expand-file-name
-                                       "custom.el"
-                                       user-emacs-directory)
+(defcustom entropy/emacs-custom-common-file
+  (expand-file-name
+   "custom.el"
+   user-emacs-directory)
   "entropy-emacs common custom file"
   :type 'string
   :group 'entropy/emacs-customize-fundametal)
@@ -157,7 +161,6 @@ variable `entropy/emacs-use-extensions-type'."
   :type 'string
   :group 'entropy/emacs-extensions-customize)
 
-
 (defcustom entropy/emacs-ext-extensions-elpa-dir
   (expand-file-name
    "entropy-emacs-extensions-elpa"
@@ -174,7 +177,6 @@ This feature usually used for emacs new feature adding test and
 designation."
   :type 'sexp
   :group 'entropy/emacs-extensions-customize)
-
 
 ;; **** yas dir
 (defcustom entropy/emacs-yas-dir
