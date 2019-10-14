@@ -233,11 +233,18 @@ It is the recommendation of irony-mode official introduction."
   :if (and (>= emacs-major-version 25)
            (eq entropy/emacs-use-ide-type 'lsp))
   :diminish lsp-mode
-  :commands lsp
+  :commands (lsp lsp-mode)
   :hook (prog-mode . lsp)
   :init
   (setq lsp-auto-guess-root t)
-  (setq lsp-prefer-flymake nil))
+  (setq lsp-prefer-flymake nil)
+
+  (entropy/emacs-lazy-initial-advice-before
+   '(lsp)
+   "lsp-enable-yas"
+   "lsp-enable-yas"
+   (require 'yasnippet)
+   (yas-global-mode)))
 
 (use-package lsp-ui
   :if (and (>= emacs-major-version 25)
