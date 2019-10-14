@@ -402,8 +402,9 @@ Emacs will auto close after 6s ......")))
     ;; choiced option
     (require 'entropy-emacs-highlight))
 
-  ;; For auto complete
+  ;; For code IDE
   (require 'entropy-emacs-yas)
+  (require 'entropy-emacs-codeserver)
   (require 'entropy-emacs-company)
   ;; For useful tools
   (require 'entropy-emacs-shell)

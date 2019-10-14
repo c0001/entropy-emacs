@@ -115,105 +115,6 @@
                   company-yasnippet))
       (require el))))
 
-;; *** server install procedure
-(defun entropy/emacs-company--server-install-warn (task-name proc-buffer)
-  (with-current-buffer proc-buffer
-    (goto-char (point-min))
-    (if (re-search-forward (rx (or (regexp "[^a-z]Error") "ERR!" "No matching"))
-                           nil t)
-        (let ((debug-on-error nil))
-          (error
-           (format 
-            "%s %s %s %s %s"
-            "Fatal do with lsp-install task for"
-            (format "<%s>" task-name)
-            ", check callback buffer"
-            (format "'%s'" (buffer-name (get-buffer proc-buffer)))
-            "for more details")))
-      (entropy/emacs-message-do-message
-       "%s %s %s"
-       (green "Install lsp-task")
-       (yellow (format "<%s>" task-name))
-       (green "successfully")))))
-
-(defmacro entropy/emacs-company--server-search
-    (task-name task-buffer server-cons install-cmd
-               before-install after-install proc-workdir
-               &rest install-args)
-  `(let ((server-type (car ',server-cons))
-         (server-bin (eval (cdr ',server-cons)))
-         (task-buffer (get-buffer-create ,task-buffer)))
-     (with-current-buffer task-buffer
-       (when buffer-read-only
-         (read-only-mode 0))
-       (goto-char (point-min))
-       (erase-buffer))
-     (funcall ,before-install)
-     (if
-         (cond ((eq 'file server-type)
-                (not (file-exists-p server-bin)))
-               ((eq 'exec server-type)
-                (not (executable-find server-bin))))
-         (let ((default-directory ,proc-workdir))
-           (entropy/emacs-message-do-message
-            "%s %s %s"
-            (green "Do lsp server install task")
-            (yellow (format "<%s>" ,task-name))
-            (green "..."))
-           (sleep-for 2)
-           (call-process ,install-cmd nil ,task-buffer t ,@install-args)
-           (entropy/emacs-company--server-install-warn
-            ,task-name task-buffer)
-           (funcall ,after-install))
-       (entropy/emacs-message-do-message
-        "%s %s %s"
-        (green "lsp server task")
-        (yellow (format "<%s>" ,task-name))
-        (green "has been installed")))))
-
-(defmacro entropy/emacs-company--server-install-by-npm
-    (server-name-string server-bin-string server-repo-string)
-  `(entropy/emacs-company--server-search
-    ,server-name-string
-    ,(concat "*eemacs " server-name-string " install*")
-    (file . ,(expand-file-name
-              (format ".local/lib/node_modules/.bin/%s" server-bin-string)
-              "~"))
-    "npm"
-    (lambda ()
-      (mkdir (expand-file-name ".local/bin" "~") t)
-      (mkdir (expand-file-name ".local/lib/node_modules/" "~") t)
-      (let ((lock-package-file (expand-file-name ".local/lib/package-lock.json" "~")))
-        (when (file-exists-p lock-package-file)
-          (delete-file lock-package-file t))))
-    (lambda ()
-      (make-symbolic-link (expand-file-name
-                           ,(format ".local/lib/node_modules/.bin/%s" server-bin-string)
-                           "~")
-                          (expand-file-name
-                           ,(format ".local/bin/%s" server-bin-string)
-                           "~")
-                          t)
-      (let ((lock-package-file (expand-file-name ".local/lib/package-lock.json" "~")))
-        (when (file-exists-p lock-package-file)
-          (delete-file lock-package-file t))))
-    (expand-file-name ".local/lib/" "~")
-    "install" ,server-repo-string))
-
-(defmacro entropy/emacs-company--server-install-by-pip
-    (server-name-string server-bin-string server-repo-string)
-  `(entropy/emacs-company--server-search
-    ,server-name-string
-    ,(format "*eemacs %s install <pip>*" server-name-string)
-    (file
-     .
-     ,(expand-file-name (format ".local/bin/%s" server-bin-string) "~"))
-    "pip"
-    (lambda () nil)
-    (lambda () nil)
-    default-directory
-    "install" ,server-repo-string "--user"))
-
 ;; ** company core
 (use-package company
   ;; :diminish company-mode  ;;; This comment to diminish the modline
@@ -286,30 +187,7 @@
   (setq company-quickhelp-delay 1)
   (company-quickhelp-mode 1))
 
-;; ** microsoft language server
-;; *** lsp-mode
-(use-package lsp-mode
-  :if (and (>= emacs-major-version 25)
-           entropy/emacs-company-lsp)
-  :diminish lsp-mode
-  :commands lsp
-  :hook (prog-mode . lsp)
-  :init
-  (setq lsp-auto-guess-root t)
-  (setq lsp-prefer-flymake nil))
-
-(use-package lsp-ui
-  :if (and (>= emacs-major-version 25)
-           entropy/emacs-company-lsp)
-  :commands (lsp-ui-peek-find-definitions
-             lsp-ui-peek-find-references
-             lsp-ui-imenu)
-  :bind (:map lsp-ui-mode-map
-              ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-              ([remap xref-find-references] . lsp-ui-peek-find-references)
-              ("C-c u" . lsp-ui-imenu)))
-
-;; *** company-lsp
+;; ** company-lsp
 (use-package company-lsp
   :if (and (>= emacs-major-version 25)
            entropy/emacs-company-lsp)
@@ -319,7 +197,7 @@
     (make-local-variable 'company-backends)
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-lsp) company-backends)))
 
-;; ** Backends
+;; ** Individual backends
 ;; *** miscelloneous
 ;; **** englishs dict quick completion
 (use-package company-en-words
@@ -343,26 +221,6 @@
 
 ;; *** web refer
 ;; **** web/html&css
-;; ***** lsp
-(when entropy/emacs-company-lsp
-  (defun entropy/emacs-company-check-web-lsp (&rest _)
-    (interactive)
-    (entropy/emacs-company--server-install-by-npm
-     "html-lsp-server" "html-languageserver" "vscode-html-languageserver-bin")
-    (entropy/emacs-company--server-install-by-npm
-     "css-lsp-server" "css-languageserver" "vscode-css-languageserver-bin"))
-  
-  (when entropy/emacs-company-install-server-immediately
-    (entropy/emacs-lazy-load-simple 'web-mode
-      (advice-add 'web-mode
-                  :before
-                  #'entropy/emacs-company-check-web-lsp))
-    (entropy/emacs-lazy-load-simple 'css-mode
-      (advice-add 'css-mode
-                  :before
-                  #'entropy/emacs-company-check-web-lsp))))
-
-;; ***** traditional
 (use-package company-web
   :if (not entropy/emacs-company-lsp)
   :after company
@@ -395,24 +253,6 @@
     (entropy/emacs-company-web-add-css-backend)))
 
 ;; **** javascript
-;; ***** lsp
-(when entropy/emacs-company-lsp
-  (defun entropy/emacs-company-check-js-lsp (&rest _)
-    (interactive)
-    (entropy/emacs-company--server-install-by-npm
-     "js-lsp-server" "typescript-language-server" "typescript-language-server"))
-
-  (when entropy/emacs-company-install-server-immediately
-    (entropy/emacs-lazy-load-simple 'js2-mode
-      (advice-add 'js2-mode :before #'entropy/emacs-company-check-js-lsp))))
-
-;; ***** traditional
-(use-package tern
-  :if (not entropy/emacs-company-lsp)
-  :commands (tern-mode)
-  :defines js2-mode-hook
-  :hook (js2-mode . tern-mode))
-
 (use-package company-tern
   :if (not entropy/emacs-company-lsp)
   :after company
@@ -457,17 +297,6 @@ entropy-emacs."
   (advice-add 'company-tern :before #'entropy/emacs-company-create-tern-project-file))
 
 ;; **** php
-;; ***** lsp
-(when entropy/emacs-company-lsp
-  (defun entropy/emacs-company-check-php-lsp (&rest _)
-    (interactive)
-    (entropy/emacs-company--server-install-by-npm
-     "php-lsp-server" "intelephense" "intelephense"))
-  (when entropy/emacs-company-install-server-immediately
-    (entropy/emacs-lazy-load-simple 'php-mode
-      (advice-add 'php-mode :before #'entropy/emacs-company-check-php-lsp))))
-
-;; ***** traditional
 (use-package company-php
   :if (not entropy/emacs-company-lsp)
   :defines php-mode-hook
@@ -480,28 +309,7 @@ entropy-emacs."
 
 ;; *** C(PP) Java python
 ;; **** C(PP)
-;; ***** lsp
-(when entropy/emacs-company-lsp
-  (defun entropy/emacs-company-check-clangd-lsp ()
-    (interactive)
-    (if (executable-find "clangd")
-        (entropy/emacs-message-do-message
-         "%s %s %s"
-         (green "Installed lsp server")
-         (yellow "'<clangd>'")
-         (green "."))
-      (error "Please using system package management install '<clangd>'.")))
-  (when entropy/emacs-company-install-server-immediately
-    (entropy/emacs-lazy-load-simple 'cc-mode
-      (advice-add 'c-mode
-                  :before
-                  #'entropy/emacs-company-check-clangd-lsp)
-      (advice-add 'c++-mode
-                  :before
-                  #'entropy/emacs-company-check-clangd-lsp))))
-
-;; ***** traditional
-;; ****** headers
+;; ***** headers
 (use-package company-c-headers
   :if (not entropy/emacs-company-lsp)
   :after company
@@ -513,62 +321,7 @@ entropy-emacs."
     (make-local-variable 'company-backends)
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-c-headers) company-backends)))
 
-;; ****** irony mode
-(defun entropy/emacs-c-irony-load-subs ()
-  (dolist (el '(irony-cdb-clang-complete
-                irony-cdb-json
-                irony-cdb-libclang
-                irony-cdb
-                irony-completion
-                irony-diagnostics
-                irony-iotask
-                irony-snippet))
-    (require el)))
-
-(defun entropy/emacs-c-irony-pipe-config ()
-  "Reducing pipe-read-delay and set the pipe buffer size to
-64K on Windows (from the original 4K).
-
-It is the recommendation of irony-mode official introduction."
-  (when (boundp 'w32-pipe-read-delay)
-    (setq-local w32-pipe-read-delay 0))
-  (when (boundp 'w32-pipe-buffer-size)
-    (setq-local irony-server-w32-pipe-buffer-size (* 64 1024))))
-
-(defun entropy/emacs-c-irony-refer-advice-around (oldfuc &rest args)
-  "Prevent c group mode as `php-mode' which was the derived from
-`c-mode' to load `irony-mode' and `company-irony'."
-  (if (member major-mode '(c++-mode c-mode objc-mode))
-      (funcall oldfuc)
-    t))
-
-(defun entropy/emacs-c-usepackage-irony ()
-  "Function for enabling irony mode for c and c++ mode."
-  (use-package irony
-    :if (not entropy/emacs-company-lsp)
-    :commands (irony-mode)
-    :hook ((c-mode . irony-mode)
-           (c++-mode . irony-mode)
-           (irony-mode . irony-cdb-autosetup-compile-options)
-           (c-mode . entropy/emacs-c-irony-pipe-config)
-           (c++-mode . entropy/emacs-c-irony-pipe-config))
-    :config
-    (entropy/emacs-c-irony-load-subs)
-    (advice-add 'irony-mode :around #'entropy/emacs-c-irony-refer-advice-around))
-
-  (use-package irony-eldoc
-    :defines irony-mode-hook
-    :commands (irony-eldoc)
-    :hook (irony-mode . irony-eldoc)))
-
-(cond
- ((and sys/win32p
-       entropy/emacs-win-portable-mingw-enable
-       (file-exists-p (concat entropy/emacs-win-portable-mingw-path "libclang.dll")))
-  (entropy/emacs-c-usepackage-irony))
- (sys/is-posix-compatible
-  (entropy/emacs-c-usepackage-irony)))
-
+;; ***** company irony
 (use-package company-irony
   :if (not entropy/emacs-company-lsp)
   :after company
@@ -586,21 +339,7 @@ and c++ mode."
       (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-irony) company-backends))))
 
 ;; **** Java
-;; ***** lsp
-;; ***** traditional
 ;; **** Python
-;; ***** lsp
-
-(when entropy/emacs-company-lsp
-  (defun entropy/emacs-company-check-python-lsp (&rest _)
-    (interactive)
-    (entropy/emacs-company--server-install-by-pip
-     "pyls-lsp" "pyls" "python-language-server"))
-  (when entropy/emacs-company-install-server-immediately
-    (entropy/emacs-lazy-load-simple 'python
-      (advice-add 'python-mode :before #'entropy/emacs-company-check-python-lsp))))
-
-;; ***** traditional
 (use-package company-anaconda
   :if (not entropy/emacs-company-lsp)
   :after company

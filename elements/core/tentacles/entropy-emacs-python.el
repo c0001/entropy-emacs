@@ -71,14 +71,6 @@
   :commands (py-autopep8-enable-on-save)
   :init (add-hook 'python-mode-hook #'py-autopep8-enable-on-save))
 
-;; Anaconda mode
-(use-package anaconda-mode
-  :diminish anaconda-mode
-  :commands anaconda-mode
-  :defines python-mode-hook
-  :init
-  (add-hook 'python-mode-hook #'anaconda-mode))
-
 (provide 'entropy-emacs-python)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
