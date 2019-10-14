@@ -71,7 +71,8 @@
 
   (defun entropy/emacs-neotree--neo-refresh-filter ()
     (catch :exit
-      (when (string-match-p "\\*w3m" (buffer-name))
+      (when (or (string-match-p "\\*w3m" (buffer-name))
+                (bound-and-true-p lsp-ui-doc--bounds))
         (throw :exit 'stick))))
 
   (defun entropy/emacs-neotree--neo-refresh-conditions (orig_func &rest orig_args)
