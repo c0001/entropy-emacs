@@ -728,10 +728,34 @@ just it's name."
   :type 'sexp
   :group 'entropy/emacs-custom-variable-basic)
 
+;; **** ivy framework
+
+(defgroup entropy/emacs-ivy-customize nil
+  "Ivy framework customized variables group confitured for 'entropy-emacs'."
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
+  "The enhancement for ivy-framework, icon abbreviation and other
+information displayed in candidates show.
+
+Two valid value defaulted by `entropy-emacs':
+
+- `all-the-icons-ivy'
+
+  The simple one for that, just ehance for `ivy-switch-buffer' and
+  `counsel-find-file'.
+
+- `ivy-rich-mode'
+
+  The fully riched mode for that, see its document for more
+  details."
+  :type 'sexp
+  :group 'entropy/emacs-ivy-customize)
+
 ;; *** elfeed config
 (defgroup entropy/emacs-customize-elfeed nil
   "Emacs RSS client configuration group  for 'entropy-emacs'."
-  :group 'entropy/emacs-custom-variable-basic)
+  :group 'extensions)
 
 (defcustom entropy/emacs-elfeed-proxyfeeds-regexp-list '()
   "Regexp for matching the feeds which needed for updating through proxy."
@@ -785,6 +809,11 @@ Valid value are 'traditional' and 'lsp'"
   :type 'symbol
   :group 'entropy/emacs-ide-config)
 
+(defcustom entropy/emacs-install-server-immediately nil
+  "Install language server immediatly in needed while."
+  :type 'boolean
+  :group 'entropy/emacs-ide-config)
+
 ;; **** code folding group
 (defgroup entropy/emacs-code-folding nil
   "customized variabel group for code folding and expanding
@@ -799,40 +828,11 @@ features."
           (const yafolding))
   :group 'entropy/emacs-code-folding)
 
-;; **** ivy framework
-
-(defgroup entropy/emacs-ivy-customize nil
-  "Ivy framework customized variables group confitured for 'entropy-emacs'."
-  :group 'entropy/emacs-ide-config)
-
-(defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
-  "The enhancement for ivy-framework, icon abbreviation and other
-information displayed in candidates show.
-
-Two valid value defaulted by `entropy-emacs':
-
-- `all-the-icons-ivy'
-
-  The simple one for that, just ehance for `ivy-switch-buffer' and
-  `counsel-find-file'.
-
-- `ivy-rich-mode'
-
-  The fully riched mode for that, see its document for more
-  details."
-  :type 'sexp
-  :group 'entropy/emacs-ivy-customize)
-
 ;; **** company config
 (defgroup entropy/emacs-company-customized nil
   "The customize variables group for `company-mode' configured
 for 'entropy-emacs'."
   :group 'entropy/emacs-ide-config)
-
-(defcustom entropy/emacs-company-install-server-immediately nil
-  "Install language server immediatly in needed while."
-  :type 'boolean
-  :group 'entropy/emacs-company-customized)
 
 (defcustom entropy/emacs-company-posframe-mode nil
   "Enable company-posframe.

@@ -265,15 +265,6 @@
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-tern)
                 company-backends))
 
-  (defun entropy/emacs-company-check-tern-server (&rest _)
-    (interactive)
-    (entropy/emacs-company--server-install-by-npm
-     "tern-server-install" "tern" "tern"))
-
-  (when entropy/emacs-company-install-server-immediately
-    (entropy/emacs-lazy-load-simple 'js2-mode
-      (advice-add 'js2-mode :before #'entropy/emacs-company-check-tern-server)))
-
   :config
   (defun entropy/emacs-company-create-tern-project-file (&rest _)
     "Auto create '.tern-project' file in current dir.

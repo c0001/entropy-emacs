@@ -194,6 +194,11 @@ It is the recommendation of irony-mode official introduction."
     :defines js2-mode-hook
     :hook (js2-mode . tern-mode)))
 
+(defun entropy/emacs-company-check-tern-server (&rest _)
+  (interactive)
+  (entropy/emacs-company--server-install-by-npm
+   "tern-server-install" "tern" "tern"))
+
 ;; **** anaconda server
 (defun entropy/emacs-codeserver-usepackage-anaconda ()
   (use-package anaconda-mode
@@ -212,8 +217,15 @@ It is the recommendation of irony-mode official introduction."
     (entropy/emacs-codeserver-usepackage-irony))
    (sys/is-posix-compatible
     (entropy/emacs-codeserver-usepackage-irony)))
+  
   (entropy/emacs-codeserver-usepackage-tern)
-  (entropy/emacs-codeserver-usepackage-anaconda))
+  (entropy/emacs-codeserver-usepackage-anaconda)
+
+  (when entropy/emacs-install-server-immediately
+    (entropy/emacs-lazy-load-simple 'js2-mode
+      (advice-add 'js2-mode
+                  :before
+                  #'entropy/emacs-company-check-tern-server))))
 
 ;; ** microsoft language server
 ;; *** lsp-client
@@ -248,7 +260,7 @@ It is the recommendation of irony-mode official introduction."
     (entropy/emacs-codeserver--server-install-by-npm
      "css-lsp-server" "css-languageserver" "vscode-css-languageserver-bin"))
   
-  (when entropy/emacs-company-install-server-immediately
+  (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'web-mode
       (advice-add 'web-mode
                   :before
@@ -265,7 +277,7 @@ It is the recommendation of irony-mode official introduction."
     (entropy/emacs-codeserver--server-install-by-npm
      "js-lsp-server" "typescript-language-server" "typescript-language-server"))
 
-  (when entropy/emacs-company-install-server-immediately
+  (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'js2-mode
       (advice-add 'js2-mode :before #'entropy/emacs-codeserver-check-js-lsp))))
 
@@ -275,7 +287,7 @@ It is the recommendation of irony-mode official introduction."
     (interactive)
     (entropy/emacs-codeserver--server-install-by-npm
      "php-lsp-server" "intelephense" "intelephense"))
-  (when entropy/emacs-company-install-server-immediately
+  (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'php-mode
       (advice-add 'php-mode :before #'entropy/emacs-codeserver-check-php-lsp))))
 
@@ -290,7 +302,7 @@ It is the recommendation of irony-mode official introduction."
          (yellow "'<clangd>'")
          (green "."))
       (error "Please using system package management install '<clangd>'.")))
-  (when entropy/emacs-company-install-server-immediately
+  (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'cc-mode
       (advice-add 'c-mode
                   :before
@@ -305,7 +317,7 @@ It is the recommendation of irony-mode official introduction."
     (interactive)
     (entropy/emacs-codeserver--server-install-by-pip
      "pyls-lsp" "pyls" "python-language-server"))
-  (when entropy/emacs-company-install-server-immediately
+  (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'python
       (advice-add 'python-mode
                   :before
