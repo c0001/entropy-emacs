@@ -279,11 +279,8 @@ in case that file does not provide any feature."
               (green "seconds."))
              (redisplay t))))
        (cond
-        (entropy/emacs-fall-love-with-pdumper
-         (entropy/emacs-message-do-message
-          (red "All lazy loading feature disabled in pdumper procedure"))
-         (add-hook 'entropy/emacs-pdumper-load-hook #',func))
-        ((not entropy/emacs-custom-enable-lazy-load)
+        ((and (not entropy/emacs-custom-enable-lazy-load)
+              (not entropy/emacs-fall-love-with-pdumper))
          (add-hook (entropy/emacs-select-x-hook) #',func))
         (t (defun ,adder-func ()
              (dolist (item ,list-var)

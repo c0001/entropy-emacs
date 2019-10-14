@@ -232,19 +232,6 @@ format."
 (use-package php-mode
   :mode "\\.php$"
   :commands php-mode)
-  
-(use-package ac-php
-  :requires php-mode
-  :defines php-mode-hook
-  :commands ac-php-core-eldoc-setup
-  :init
-  (add-hook 'php-mode-hook '(lambda () (ac-php-core-eldoc-setup)))
-  (add-hook 'php-mode-hook
-            '(lambda () 
-               (setq-local indent-tabs-mode nil)
-               (setq-local c-basic-offset 4)
-               (subword-mode 1))))
-
 
 ;; * provide
 (provide 'entropy-emacs-web)

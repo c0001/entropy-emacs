@@ -208,6 +208,20 @@ It is the recommendation of irony-mode official introduction."
     :init
     (add-hook 'python-mode-hook #'anaconda-mode)))
 
+;; **** ac-php
+(defun entropy/emacs-codeserver-usepackage-ac-php ()
+  (use-package ac-php
+    :requires php-mode
+    :defines php-mode-hook
+    :commands ac-php-core-eldoc-setup
+    :init
+    (add-hook 'php-mode-hook '(lambda () (ac-php-core-eldoc-setup)))
+    (add-hook 'php-mode-hook
+              '(lambda () 
+                 (setq-local indent-tabs-mode nil)
+                 (setq-local c-basic-offset 4)
+                 (subword-mode 1)))))
+
 ;; *** startup
 (when (eq entropy/emacs-use-ide-type 'traditional)
   (cond
@@ -220,7 +234,8 @@ It is the recommendation of irony-mode official introduction."
   
   (entropy/emacs-codeserver-usepackage-tern)
   (entropy/emacs-codeserver-usepackage-anaconda)
-
+  (entropy/emacs-codeserver-usepackage-ac-php)
+  
   (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'js2-mode
       (advice-add 'js2-mode
@@ -234,7 +249,7 @@ It is the recommendation of irony-mode official introduction."
            (eq entropy/emacs-use-ide-type 'lsp))
   :diminish lsp-mode
   :commands (lsp lsp-mode)
-  :hook (prog-mode . lsp)
+  :hook (prog-mode . lsp-deferred)
   :init
   (setq lsp-auto-guess-root t)
   (setq lsp-prefer-flymake nil)
