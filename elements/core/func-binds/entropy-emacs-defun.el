@@ -508,8 +508,7 @@ custom variable
 (defconst entropy/emacs-defun--ohrsc-org-header-face-spec
   '((:background . nil)
     (:weight . semi-bold)
-    (:height . 1.0)
-    (:inherit . nil)))
+    (:height . 1.0)))
 
 (defun entropy/emacs-defun--ohrsc-cancel-org-header-face-scale ()
   (dolist (face entropy/emacs-defun--ohrsc-org-header-faces)
