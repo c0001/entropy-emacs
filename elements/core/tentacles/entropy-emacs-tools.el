@@ -797,6 +797,12 @@ For now, there's three choices for you:
   :preface
 
   (defvar entropy/emacs-proxy-url-loaded nil)
+  (when entropy/emacs-fall-love-with-pdumper
+    ;; prevent non-interactive procedure loading w3m as fatally status
+    ;; for `entropy-proxy-url' w3m loading status checker
+    (when (executable-find "w3m")
+      (setq entropy/proxy-url--w3m-load-effectively
+            t)))
   
   :init
 
