@@ -94,7 +94,7 @@
     (define-key web-mode-map (kbd "<C-f1>")
       'entropy/emacs-web-browse-web-buffer))
 
-  (when (eq entropy/emacs-ide-type 'traditional)
+  (when (eq entropy/emacs-use-ide-type 'traditional)
     (define-key web-mode-map (kbd "M-t") 'company-tern)
     (define-key web-mode-map (kbd "M-p") 'company-ac-php-backend)))
 
