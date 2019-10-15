@@ -194,9 +194,9 @@ It is the recommendation of irony-mode official introduction."
     :defines js2-mode-hook
     :hook (js2-mode . tern-mode)))
 
-(defun entropy/emacs-company-check-tern-server (&rest _)
+(defun entropy/emacs-codeserver-check-tern-server (&rest _)
   (interactive)
-  (entropy/emacs-company--server-install-by-npm
+  (entropy/emacs-codeserver--server-install-by-npm
    "tern-server-install" "tern" "tern"))
 
 ;; **** anaconda server
@@ -240,7 +240,7 @@ It is the recommendation of irony-mode official introduction."
     (entropy/emacs-lazy-load-simple 'js2-mode
       (advice-add 'js2-mode
                   :before
-                  #'entropy/emacs-company-check-tern-server))))
+                  #'entropy/emacs-codeserver-check-tern-server))))
 
 ;; ** microsoft language server
 ;; *** lsp-client
