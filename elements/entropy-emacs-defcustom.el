@@ -52,25 +52,23 @@
   "Personal Emacs configurations."
   :group 'extensions)
 
-;; **** stuffs dir
+;; **** fundamental config
+(defgroup entropy/emacs-customize-fundametal nil
+  "Fundametal customized variable group for entropy-emacs" 
+  :group 'entropy/emacs-custom-variable-basic)
+
 (defcustom entropy/emacs-stuffs-topdir
   (expand-file-name "stuffs" user-emacs-directory)
   "The stuffs collection host path, for as `savehist-file',
 `bookmark-file' cache host. This setting mainly for cleanup
 `user-emacs-directory'."
   :type 'string
-  :group 'entropy/emacs-custom-variable-basic)
+  :group 'entropy/emacs-customize-fundametal)
 
-;; **** init type
 (defcustom entropy/emacs-minimal-start nil
   "For minmal startup"
   :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
-
-;; **** fundamental config
-(defgroup entropy/emacs-customize-fundametal nil
-  "Fundametal customized variable group for entropy-emacs" 
-  :group 'entropy/emacs-custom-variable-basic)
+  :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-garbage-collection-delay 2
   "The defaults garbage collection idle delay secons setting
@@ -127,12 +125,28 @@ for entropy-emacs."
   :type 'symbol
   :group 'entropy/emacs-customize-fundametal)
 
+(defcustom entropy/emacs-init-display-line-mode nil
+  "Enable `global-display-line-numbers-mode' at start up time when in
+emacs 26 or higher emacs version."
+  :type 'boolean
+  :group 'entropy/emacs-customize-fundametal)
+
+(defcustom entropy/emacs-fill-paragraph-width 70
+  "Setting fill-paragraph width, default 100."
+  :type 'integer
+  :group 'entropy/emacs-customize-fundametal)
+
+(defcustom entropy/emacs-use-recentf nil
+  "Whether use recentf-mode after emacs init."
+  :type 'boolean
+  :group 'entropy/emacs-customize-fundametal)
+
 (defcustom entropy/emacs-neotree-text-scale -2
   "The text-scale for neotree buffer."
   :type 'integer
   :group 'entropy/emacs-customize-fundametal)
 
-;; **** use emacs extension from git submodules or elpa folder
+;; **** emacs extension use options
 (defgroup entropy/emacs-extensions-customize nil
   "Customized extensions variable group configured for entropy-emacs."
   :group 'entropy/emacs-custom-variable-basic)
@@ -178,7 +192,7 @@ designation."
   :type 'sexp
   :group 'entropy/emacs-extensions-customize)
 
-;; **** yas dir
+;; **** yasnippet
 (defcustom entropy/emacs-yas-dir
   (expand-file-name "snippets" entropy/emacs-stuffs-topdir)
   "Set the default personal snippet dir"
@@ -306,22 +320,9 @@ height of dock:
   :type 'sexp
   :group 'entropy/emacs-initial-position)
 
-;; **** init display line mode
-(defcustom entropy/emacs-init-display-line-mode nil
-  "Enable `global-display-line-numbers-mode' at start up time when in
-emacs 26 or higher emacs version."
-  :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
-
 ;; **** desktop save config
 (defcustom entropy/emacs-desktop-enable nil
   "Enable desktop-save-mode and persistent scratch buffer"
-  :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
-
-;; **** recent files
-(defcustom entropy/emacs-use-recentf nil
-  "Whether use recentf-mode after emacs init."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
@@ -333,12 +334,6 @@ emacs 26 or higher emacs version."
 
 (defcustom entropy/emacs-custom-tab-width 4
   "Set the customized tab width"
-  :type 'integer
-  :group 'entropy/emacs-custom-variable-basic)
-
-;; **** init fill column width
-(defcustom entropy/emacs-fill-paragraph-width 70
-  "Setting fill-paragraph width, default 100."
   :type 'integer
   :group 'entropy/emacs-custom-variable-basic)
 
