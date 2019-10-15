@@ -280,7 +280,7 @@ recovery method unless reopen capture operation.w
   (defun entropy/emacs-org-open-at-point ()
     (interactive)
     (let ((org-link-frame-setup
-           (acons 'file 'find-file org-link-frame-setup))
+           (cons 'file 'find-file org-link-frame-setup))
           (process-connection-type
            (cond
             ((eq system-type 'gnu/linux)
