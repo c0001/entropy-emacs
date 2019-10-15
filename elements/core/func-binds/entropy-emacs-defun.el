@@ -45,6 +45,13 @@
   (require 'cl-macs))
 
 ;; ** common library
+;; *** individuals
+(defun entropy/emacs-func-aliasp (func)
+  "Return non-nil if function FN is aliased to a function symbol."
+  (let ((val  (symbol-function func)))
+    (and val
+         (symbolp val))))
+
 ;; *** key bindings
 (defmacro entropy/emacs-!set-key (key command)
   (declare (indent defun))
@@ -192,15 +199,33 @@ with '0' as alignment state."
       (setq step (+ 1 step)))
     (reverse rtn)))
 
+;; *** cl-wrapper for higher and slower emacs version compatible
+(defun entropy/emacs-cl-findnew-p (func)
+  (let (new-func)
+    (catch :exit
+      (dolist (ref entropy/emacs-cl-compatible-reflects)
+        (if (consp ref)
+            (when (eq func (car ref))
+              (setq new-func (cdr ref)))
+          (when (eq ref func)
+            (setq new-func
+                  (intern (format "cl-%s" (symbol-name func))))))
+        (when (not (null new-func))
+          (throw :exit nil))))
+    new-func))
 
-;; *** macro refers
-
-(defun entropy/emacs-eval-macro-arg (arg)
-  (cond ((symbolp arg)
-         (symbol-value arg))
-        ((listp arg)
-         (eval arg))
-        (t arg)))
+(defmacro entropy/emacs-cl-compatible-apply (cl-func &rest args)
+  "Macro for be forward compatibility of `cl.el' with `cl-lib.el'
+in new emacs-version."
+  `(let (abbrevp cl-func-use)
+     (cond ((and (fboundp ',cl-func)
+                 (not (null (entropy/emacs-cl-findnew-p ',cl-func))))
+            (setq cl-func-use ',cl-func))
+           (t
+            (require 'cl-lib)
+            (setq cl-func-use
+                  (entropy/emacs-cl-findnew-p ',cl-func))))
+     (funcall cl-func-use ,@args)))
 
 ;; ** lazy load branch
 (defun entropy/emacs-select-x-hook ()
