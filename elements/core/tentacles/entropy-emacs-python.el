@@ -45,6 +45,7 @@
 (use-package python
   :ensure nil
   :defines (gud-pdb-command-name pdb-path inferior-python-mode-hook)
+  :init (setq python-indent-guess-indent-offset-verbose nil)
   :config
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
