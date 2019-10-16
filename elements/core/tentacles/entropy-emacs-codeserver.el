@@ -58,49 +58,79 @@
        (yellow (format "<%s>" task-name))
        (green "successfully")))))
 
+(defun entropy/emacs-codeserver--server-bins-execp (bins)
+  (let (rtn)
+    (catch :exit
+      (dolist (el bins)
+        (unless (executable-find el)
+          (setq rtn t)
+          (throw :exit nil))))
+    (if rtn nil t)))
+
+(defun entropy/emacs-codeserver--server-files-existp (files)
+  (let (rtn)
+    (catch :exit
+      (dolist (el files)
+        (unless (file-exists-p el)
+          (setq rtn t)
+          (throw :exit nil))))
+    (if rtn nil t)))
+
+(defun entropy/emacs-codeserver--server-alist-judge (svalist)
+  (let (rtn)
+    (catch :exit
+      (dolist (el svalist)
+        (cond ((eq 'file (car el))
+               (unless (entropy/emacs-codeserver--server-files-existp (cdr el))
+                 (setq rtn t)
+                 (throw :exit nil)))
+              ((eq 'exec (car el))
+               (unless (entropy/emacs-codeserver--server-bins-execp (cdr el))
+                 (setq rtn t)
+                 (throw :exit nil))))))
+    (if rtn nil t)))
+
 (defmacro entropy/emacs-codeserver--server-search
-    (task-name task-buffer server-cons install-cmd
+    (task-name-string task-buffer server-alist install-cmd
                before-install after-install proc-workdir
                &rest install-args)
-  `(let ((server-type (car ',server-cons))
-         (server-bin (eval (cdr ',server-cons)))
-         (task-buffer (get-buffer-create ,task-buffer)))
+  `(let ((task-buffer (get-buffer-create ,task-buffer)))
      (with-current-buffer task-buffer
        (when buffer-read-only
          (read-only-mode 0))
        (goto-char (point-min))
        (erase-buffer))
      (funcall ,before-install)
-     (if
-         (cond ((eq 'file server-type)
-                (not (file-exists-p server-bin)))
-               ((eq 'exec server-type)
-                (not (executable-find server-bin))))
+     (if (not (entropy/emacs-codeserver--server-alist-judge ,server-alist))
          (let ((default-directory ,proc-workdir))
            (entropy/emacs-message-do-message
             "%s %s %s"
             (green "Do lsp server install task")
-            (yellow (format "<%s>" ,task-name))
+            (yellow (format "<%s>" ,task-name-string))
             (green "..."))
            (sleep-for 2)
            (call-process ,install-cmd nil ,task-buffer t ,@install-args)
            (entropy/emacs-codeserver--server-install-warn
-            ,task-name task-buffer)
+            ,task-name-string task-buffer)
            (funcall ,after-install))
        (entropy/emacs-message-do-message
         "%s %s %s"
         (green "lsp server task")
-        (yellow (format "<%s>" ,task-name))
+        (yellow (format "<%s>" ,task-name-string))
         (green "has been installed")))))
 
 (defmacro entropy/emacs-codeserver--server-install-by-npm
-    (server-name-string server-bin-string server-repo-string)
+    (server-name-string server-bins server-repo-string)
   `(entropy/emacs-codeserver--server-search
     ,server-name-string
-    ,(concat "*eemacs " server-name-string " install*")
-    (file . ,(expand-file-name
-              (format ".local/lib/node_modules/.bin/%s" server-bin-string)
-              "~"))
+    (concat "*eemacs " ,server-name-string " install*")
+    (list (cons 'file
+                (mapcar
+                 (lambda (x)
+                   (expand-file-name
+                    (format ".local/lib/node_modules/.bin/%s" x)
+                    "~"))
+                 ',server-bins)))
     "npm"
     (lambda ()
       (mkdir (expand-file-name ".local/bin" "~") t)
@@ -109,13 +139,14 @@
         (when (file-exists-p lock-package-file)
           (delete-file lock-package-file t))))
     (lambda ()
-      (make-symbolic-link (expand-file-name
-                           ,(format ".local/lib/node_modules/.bin/%s" server-bin-string)
-                           "~")
-                          (expand-file-name
-                           ,(format ".local/bin/%s" server-bin-string)
-                           "~")
-                          t)
+      (dolist (el ',server-bins)
+        (make-symbolic-link (expand-file-name
+                             (format ".local/lib/node_modules/.bin/%s" el)
+                             "~")
+                            (expand-file-name
+                             (format ".local/bin/%s" el)
+                             "~")
+                            t))
       (let ((lock-package-file (expand-file-name ".local/lib/package-lock.json" "~")))
         (when (file-exists-p lock-package-file)
           (delete-file lock-package-file t))))
@@ -123,13 +154,17 @@
     "install" ,server-repo-string))
 
 (defmacro entropy/emacs-codeserver--server-install-by-pip
-    (server-name-string server-bin-string server-repo-string)
+    (server-name-string server-bins server-repo-string)
   `(entropy/emacs-codeserver--server-search
     ,server-name-string
-    ,(format "*eemacs %s install <pip>*" server-name-string)
-    (file
-     .
-     ,(expand-file-name (format ".local/bin/%s" server-bin-string) "~"))
+    (format "*eemacs %s install <pip>*" ,server-name-string)
+    (list (cons 'file
+                (mapcar
+                 (lambda (x)
+                   (expand-file-name
+                    (format ".local/bin/%s" x)
+                    "~"))
+                 ',server-bins)))
     "pip"
     (lambda () nil)
     (lambda () nil)
@@ -197,7 +232,7 @@ It is the recommendation of irony-mode official introduction."
 (defun entropy/emacs-codeserver-check-tern-server (&rest _)
   (interactive)
   (entropy/emacs-codeserver--server-install-by-npm
-   "tern-server-install" "tern" "tern"))
+   "tern-server-install" ("tern") "tern"))
 
 ;; **** anaconda server
 (defun entropy/emacs-codeserver-usepackage-anaconda ()
@@ -278,9 +313,9 @@ It is the recommendation of irony-mode official introduction."
   (defun entropy/emacs-codeserver-check-web-lsp (&rest _)
     (interactive)
     (entropy/emacs-codeserver--server-install-by-npm
-     "html-lsp-server" "html-languageserver" "vscode-html-languageserver-bin")
+     "html-lsp-server" ("html-languageserver") "vscode-html-languageserver-bin")
     (entropy/emacs-codeserver--server-install-by-npm
-     "css-lsp-server" "css-languageserver" "vscode-css-languageserver-bin"))
+     "css-lsp-server" ("css-languageserver") "vscode-css-languageserver-bin"))
   
   (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'web-mode
@@ -297,7 +332,13 @@ It is the recommendation of irony-mode official introduction."
   (defun entropy/emacs-codeserver-check-js-lsp (&rest _)
     (interactive)
     (entropy/emacs-codeserver--server-install-by-npm
-     "js-lsp-server" "typescript-language-server" "typescript-language-server"))
+     "typescript-base"
+     ("tsc" "tsserver")
+     "typescript")
+    (entropy/emacs-codeserver--server-install-by-npm
+     "js-lsp-server"
+     ("typescript-language-server")
+     "typescript-language-server"))
 
   (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'js2-mode
@@ -308,7 +349,7 @@ It is the recommendation of irony-mode official introduction."
   (defun entropy/emacs-codeserver-check-php-lsp (&rest _)
     (interactive)
     (entropy/emacs-codeserver--server-install-by-npm
-     "php-lsp-server" "intelephense" "intelephense"))
+     "php-lsp-server" ("intelephense") "intelephense"))
   (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'php-mode
       (advice-add 'php-mode :before #'entropy/emacs-codeserver-check-php-lsp))))
@@ -338,7 +379,7 @@ It is the recommendation of irony-mode official introduction."
   (defun entropy/emacs-codeserver-check-python-lsp (&rest _)
     (interactive)
     (entropy/emacs-codeserver--server-install-by-pip
-     "pyls-lsp" "pyls" "python-language-server"))
+     "pyls-lsp" ("pyls") "python-language-server"))
   (when entropy/emacs-install-server-immediately
     (entropy/emacs-lazy-load-simple 'python
       (advice-add 'python-mode
