@@ -81,9 +81,7 @@
           (t . ivy--regex)))
 
   (setq swiper-action-recenter t)
-  (setq counsel-find-file-at-point nil)
-  (setq counsel-yank-pop-separator "\n-------\n")
-
+  
 ;; *** ivy config
   :config
 
@@ -264,6 +262,10 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   
 ;; *** init
   :init
+
+  (setq counsel-find-file-at-point nil)
+  (setq counsel-yank-pop-separator "\n-------\n")
+  
   (entropy/emacs-lazy-load-simple 'counsel
     (ivy-mode +1))
   
@@ -300,6 +302,9 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
 ;; *** config
   :config
+;; **** reset `ivy-initial-inputs-alist'  
+  (setq ivy-initial-inputs-alist nil)
+  
 ;; **** advice counsel--M-x-externs for it's bad lagging perfomance
 
   ;; because `counsel--M-x-externs' has the `require' function for it's contained condition context
