@@ -46,6 +46,35 @@
 (defvar entropy/emacs-batch--making-out nil)
 
 ;; ** library
+;; *** section prompting
+(defun entropy/emacs-batch--prompts-for-ext-install-section ()
+  (entropy/emacs-message-do-message
+   "\n%s\n%s\n%s\n"
+   (blue    "==================================================")
+   (yellow "       Section for extensions installing ...")
+   (blue    "==================================================")))
+
+(defun entropy/emacs-batch--prompts-for-dump-section ()
+  (entropy/emacs-message-do-message
+   "\n%s\n%s\n%s\n"
+   (blue    "==================================================")
+   (yellow "           Section for emacs dump ...")
+   (blue    "==================================================")))
+
+(defun entropy/emacs-batch--prompts-for-ext-update-section ()
+  (entropy/emacs-message-do-message
+   "\n%s\n%s\n%s\n"
+   (blue    "==================================================")
+   (yellow "       Section for extensions updating ...")
+   (blue    "==================================================")))
+
+(defun entropy/emacs-batch--prompts-for-coworkers-installing-section ()
+  (entropy/emacs-message-do-message
+   "\n%s\n%s\n%s\n"
+   (blue    "==================================================")
+   (yellow "       Section for coworkers installing ...")
+   (blue    "==================================================")))
+
 ;; *** dump emacs
 (defun entropy/emacs-batch--dump-emacs-core ()
   (let ((dump-file (expand-file-name
@@ -69,11 +98,6 @@
 ;; *** install coworkers
 
 (defun entropy/emacs-batch--install-coworkers ()
-  (entropy/emacs-message-do-message
-   "\n%s\n%s\n%s\n"
-   (blue    "==================================================")
-   (magenta "        Section for coworkers installing")
-   (blue    "=================================================="))
   (let ((count 1)
         (task-list '(("tern" . entropy/emacs-coworker-check-tern-server)
                      ("web-lsp" . entropy/emacs-coworker-check-web-lsp)
@@ -98,23 +122,32 @@
      ((equal type "All")
       ;; install packages
       (if (entropy/emacs-package-package-archive-empty-p)
-          (entropy/emacs-package-install-all-packages)
+          (progn
+            (entropy/emacs-batch--prompts-for-ext-install-section)
+            (entropy/emacs-package-install-all-packages))
+        (entropy/emacs-batch--prompts-for-ext-install-section)
         (entropy/emacs-package-install-all-packages)
+        (entropy/emacs-batch--prompts-for-ext-update-section)
         (when (yes-or-no-p "Update packages? ")
           (entropy/emacs-package-update-all-packages)))
       ;; install coworkes
+      (entropy/emacs-batch--prompts-for-coworkers-installing-section)
       (entropy/emacs-batch--install-coworkers)
       ;; make dump file
+      (entropy/emacs-batch--prompts-for-dump-section)
       (entropy/emacs-batch--dump-emacs))
      
      ((equal type "Install")
+      (entropy/emacs-batch--prompts-for-ext-install-section)
       (entropy/emacs-package-install-all-packages)
+      (entropy/emacs-batch--prompts-for-coworkers-installing-section)
       (entropy/emacs-batch--install-coworkers))
      
      ((equal type "Update")
       (if (entropy/emacs-package-package-archive-empty-p)
           (entropy/emacs-message-do-error
            (red "You haven't install packages, can not do updating, abort!"))
+        (entropy/emacs-batch--prompts-for-ext-update-section)
         (entropy/emacs-package-update-all-packages)))
      (t
       (entropy/emacs-message-do-error
