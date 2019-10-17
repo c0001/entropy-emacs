@@ -38,6 +38,7 @@
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
+(require 'entropy-emacs-coworker)
 
 ;; ** Preparation
 (entropy/emacs-lazy-load-simple 'tern
@@ -214,6 +215,13 @@ format."
    web-beautify-html-buffer
    web-beautify-js
    web-beautify-js-buffer)
+  :preface
+  (defun entropy/emacs-web--check-js-beautify-coworker ()
+    (interactive)
+    (entropy/emacs-coworker--coworker-install-by-npm
+     "js-beautify" ("css-beautify" "html-beautify" "js-beautify")
+     "js-beautify"))
+  
   :init
   (entropy/emacs-lazy-load-simple 'js2-mode
     (bind-key "C-c C-b" 'web-beautify-js js2-mode-map))
@@ -225,7 +233,14 @@ format."
     (bind-key "C-c C-b" 'web-beautify-css css-mode-map))
   :config
   ;; Set indent size to 2
-  (setq web-beautify-args '("-s" "2" "-f" "-")))
+  (setq web-beautify-args '("-s" "2" "-f" "-"))
+
+  ;; install `js-beautify' coworker
+  (when entropy/emacs-install-server-immediately
+    (dolist (el '(web-beautify-css web-beautify-html web-beautify-js))
+      (advice-add el
+                  :before
+                  #'entropy/emacs-coworker--coworker-install-by-npm))))
 
 ;; ** web backend technologies
 ;; *** php
