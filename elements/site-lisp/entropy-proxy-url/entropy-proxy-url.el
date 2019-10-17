@@ -135,7 +135,7 @@
 ;;;; customized varaibles
 ;;
 ;; See customized-variable-group ~entropy/proxy-url-group~ for them.
-;; 
+;;
 ;;;; The regexp rule-set list data
 ;;
 ;; Internally, =entropy-proxy-url= has given the sets of regexp rule set
@@ -145,6 +145,11 @@
 ;; chargin area too of that China as the biggest aspect doing for thus.
 ;; The gfw-rule analyzing provided by [[https://github.com/c0001/entropy-adblockP-rule-analysis][entropy-adbp+-rule-analysis]] package
 ;; (Add it to ~load-path~ was requested also).
+;;
+;; By default the rule-set was gained once at the startup, but you
+;; can refresh it by calling
+;; ~entropy/proxy-url-refresh-gfw-regexp-alist~ at any time for
+;; keeping your rule-set updating with upstream.
 ;;
 ;;; Code:
 

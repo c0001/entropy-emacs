@@ -1,5 +1,5 @@
-# Created 2019-09-06 Fri 19:57
-#+TITLE: Url proxy for emacs eww and w3m
+# Created 2019-10-17 Thu 20:15
+#+TITLE: entropy-proxy-url (Url proxy for emacs eww and w3m)
 #+AUTHOR: entropy
 
 * Copyright (C) 20190906  Entropy
@@ -11,7 +11,7 @@ Package-Version: v0.1.0
 Created:       2018
 Keywords:      proxy
 Compatibility: GNU Emacs emacs-version;
-Package-Requires: ((emacs "26") (cl-lib "0.5"))
+Package-Requires: ((emacs "26") (cl-lib "0.5") (eww) (w3m "20190830.742"))
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -147,4 +147,9 @@ ecosystem, however I thought as be compatible for some web transfer
 chargin area too of that China as the biggest aspect doing for thus.
 The gfw-rule analyzing provided by [[https://github.com/c0001/entropy-adblockP-rule-analysis][entropy-adbp+-rule-analysis]] package
 (Add it to ~load-path~ was requested also).
+
+By default the rule-set was gained once at the startup, but you
+can refresh it by calling
+~entropy/proxy-url-refresh-gfw-regexp-alist~ at any time for
+keeping your rule-set updating with upstream.
 
