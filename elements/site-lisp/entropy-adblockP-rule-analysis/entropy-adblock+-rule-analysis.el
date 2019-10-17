@@ -98,8 +98,9 @@ attack or gnutls error in emacs batch mode)."
           (ignore-errors
             (base64-decode-string base64-code)))
     (when (not rtn)
-      (message "Can not retrieve gfw-list on '%s'\nUsing local cached version."
-               entropy/adbp-rule--gfw-list-upstream)
+      (when entropy/adbp-rule-use-upstream-rule-list
+        (message "Can not retrieve gfw-list on '%s'\nUsing local cached version."
+                 entropy/adbp-rule--gfw-list-upstream))
       (with-temp-buffer
         (when buffer-read-only
           (read-only-mode 0))
