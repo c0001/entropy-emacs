@@ -178,7 +178,7 @@
   (entropy/emacs-package-prepare-foras)
   (when (entropy/emacs-package-is-upstream)
     (entropy/emacs-message-do-message
-     (blue "Ready to install all packages ..."))
+     (blue "Checking extensions satisfied status ..."))
     (require 'entropy-emacs-package-requirements)
     (let ((package-check-signature nil))
       (dolist (package entropy-emacs-packages)
@@ -189,7 +189,9 @@
             (package-refresh-contents)
             (ignore-errors
               (entropy/emacs-package-install-package nil package))))))
-    (entropy/emacs-package-prompt-install-fails)))
+    (entropy/emacs-package-prompt-install-fails)
+    (entropy/emacs-message-do-message
+     (green "All packages installed, congratulations 👏"))))
 
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
