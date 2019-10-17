@@ -39,13 +39,15 @@
 ;; ** require 
 (require 'entropy-emacs-message)
 (require 'entropy-emacs-package)
+(require 'entropy-emacs-coworker)
 (require 'entropy-emacs-ext)
 
 ;; ** defvar
 (defvar entropy/emacs-batch--making-out nil)
 
 ;; ** library
-(defun entropy/emacs-batch--dump-emacs ()
+;; *** dump emacs
+(defun entropy/emacs-batch--dump-emacs-core ()
   (let ((dump-file (expand-file-name
                     (format "eemacs_%s.pdmp" (format-time-string "%Y%m%d%H%M%S"))
                     user-emacs-directory)))
@@ -54,7 +56,7 @@
     (require 'entropy-emacs-start)
     (dump-emacs-portable dump-file)))
 
-(defun entropy/emacs-batch-dump-emacs (&optional no-confirm)
+(defun entropy/emacs-batch--dump-emacs (&optional no-confirm)
   (unless (not (version< emacs-version "27"))
     (entropy/emacs-message-do-error
      (red
@@ -62,7 +64,31 @@
   (when (or no-confirm
             (yes-or-no-p "Make pdumper file? "))
     (setq entropy/emacs-batch--making-out t)
-    (entropy/emacs-batch--dump-emacs)))
+    (entropy/emacs-batch--dump-emacs-core)))
+
+;; *** install coworkers
+
+(defun entropy/emacs-batch--install-coworkers ()
+  (entropy/emacs-message-do-message
+   "\n%s\n%s\n%s\n"
+   (blue    "==================================================")
+   (magenta "        Section for coworkers installing")
+   (blue    "=================================================="))
+  (let ((count 1)
+        (task-list '(("tern" . entropy/emacs-coworker-check-tern-server)
+                     ("web-lsp" . entropy/emacs-coworker-check-web-lsp)
+                     ("js-lsp" . entropy/emacs-coworker-check-js-lsp)
+                     ("php-lsp" . entropy/emacs-coworker-check-php-lsp)
+                     ("clangd-lsp" . entropy/emacs-coworker-check-clangd-lsp)
+                     ("python-lsp" . entropy/emacs-coworker-check-python-lsp))))
+    (dolist (el task-list)
+      (entropy/emacs-message-do-message
+       "%s %s %s"
+       (cyan (format "🏠 %s: " count))
+       (yellow (format "'%s'" (car el)))
+       (green "installing ..."))
+      (funcall (cdr el))
+      (cl-incf count))))
 
 ;; ** interactive
 (when (and (entropy/emacs-ext-main)
@@ -76,11 +102,15 @@
         (entropy/emacs-package-install-all-packages)
         (when (yes-or-no-p "Update packages? ")
           (entropy/emacs-package-update-all-packages)))
-
+      ;; install coworkes
+      (entropy/emacs-batch--install-coworkers)
       ;; make dump file
-      (entropy/emacs-batch-dump-emacs))
+      (entropy/emacs-batch--dump-emacs))
+     
      ((equal type "Install")
-      (entropy/emacs-package-install-all-packages))
+      (entropy/emacs-package-install-all-packages)
+      (entropy/emacs-batch--install-coworkers))
+     
      ((equal type "Update")
       (if (entropy/emacs-package-package-archive-empty-p)
           (entropy/emacs-message-do-error

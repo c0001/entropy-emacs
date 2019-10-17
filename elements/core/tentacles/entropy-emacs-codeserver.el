@@ -95,11 +95,6 @@ It is the recommendation of irony-mode official introduction."
     :defines js2-mode-hook
     :hook (js2-mode . tern-mode)))
 
-(defun entropy/emacs-codeserver-check-tern-server (&rest _)
-  (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
-   "tern-server-install" ("tern") "tern"))
-
 ;; **** anaconda server
 (defun entropy/emacs-codeserver-usepackage-anaconda ()
   (use-package anaconda-mode
@@ -141,7 +136,7 @@ It is the recommendation of irony-mode official introduction."
     (entropy/emacs-lazy-load-simple 'js2-mode
       (advice-add 'js2-mode
                   :before
-                  #'entropy/emacs-codeserver-check-tern-server))))
+                  #'entropy/emacs-coworker-check-tern-server))))
 
 ;; ** microsoft language server
 ;; *** lsp-client
@@ -176,81 +171,46 @@ It is the recommendation of irony-mode official introduction."
 ;; *** lsp instances
 ;; **** lsp html&css
 (when (eq entropy/emacs-use-ide-type 'lsp)
-  (defun entropy/emacs-codeserver-check-web-lsp (&rest _)
-    (interactive)
-    (entropy/emacs-coworker--coworker-install-by-npm
-     "html-lsp-server" ("html-languageserver") "vscode-html-languageserver-bin")
-    (entropy/emacs-coworker--coworker-install-by-npm
-     "css-lsp-server" ("css-languageserver") "vscode-css-languageserver-bin"))
-  
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'web-mode
       (advice-add 'web-mode
                   :before
-                  #'entropy/emacs-codeserver-check-web-lsp))
+                  #'entropy/emacs-coworker-check-web-lsp))
     (entropy/emacs-lazy-load-simple 'css-mode
       (advice-add 'css-mode
                   :before
-                  #'entropy/emacs-codeserver-check-web-lsp))))
+                  #'entropy/emacs-coworker-check-web-lsp))))
 
 ;; **** lsp javascript
 (when (eq entropy/emacs-use-ide-type 'lsp)
-  (defun entropy/emacs-codeserver-check-js-lsp (&rest _)
-    (interactive)
-    (entropy/emacs-coworker--coworker-install-by-npm
-     "typescript-base"
-     ("tsc" "tsserver")
-     "typescript")
-    (entropy/emacs-coworker--coworker-install-by-npm
-     "js-lsp-server"
-     ("typescript-language-server")
-     "typescript-language-server"))
-
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'js2-mode
-      (advice-add 'js2-mode :before #'entropy/emacs-codeserver-check-js-lsp))))
+      (advice-add 'js2-mode :before #'entropy/emacs-coworker-check-js-lsp))))
 
 ;; **** lsp php
 (when (eq entropy/emacs-use-ide-type 'lsp)
-  (defun entropy/emacs-codeserver-check-php-lsp (&rest _)
-    (interactive)
-    (entropy/emacs-coworker--coworker-install-by-npm
-     "php-lsp-server" ("intelephense") "intelephense"))
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'php-mode
-      (advice-add 'php-mode :before #'entropy/emacs-codeserver-check-php-lsp))))
+      (advice-add 'php-mode :before #'entropy/emacs-coworker-check-php-lsp))))
 
 ;; **** lsp clangd
 (when (eq entropy/emacs-use-ide-type 'lsp)
-  (defun entropy/emacs-codeserver-check-clangd-lsp ()
-    (interactive)
-    (if (executable-find "clangd")
-        (entropy/emacs-message-do-message
-         "%s %s %s"
-         (green "Installed lsp server")
-         (yellow "'<clangd>'")
-         (green "."))
-      (error "Please using system package management install '<clangd>'.")))
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'cc-mode
       (advice-add 'c-mode
                   :before
-                  #'entropy/emacs-codeserver-check-clangd-lsp)
+                  #'entropy/emacs-coworker-check-clangd-lsp)
       (advice-add 'c++-mode
                   :before
-                  #'entropy/emacs-codeserver-check-clangd-lsp))))
+                  #'entropy/emacs-coworker-check-clangd-lsp))))
 
 ;; **** lsp python
 (when (eq entropy/emacs-use-ide-type 'lsp)
-  (defun entropy/emacs-codeserver-check-python-lsp (&rest _)
-    (interactive)
-    (entropy/emacs-coworker--coworker-install-by-pip
-     "pyls-lsp" ("pyls") "python-language-server"))
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'python
       (advice-add 'python-mode
                   :before
-                  #'entropy/emacs-codeserver-check-python-lsp))))
+                  #'entropy/emacs-coworker-check-python-lsp))))
 
 ;; * provide
 (provide 'entropy-emacs-codeserver)

@@ -37,24 +37,36 @@
 ;; Designed for entropy-emacs only.
 ;; 
 ;; * Code:
+;; ** require
+(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-message)
 
+;; ** library
 (defun entropy/emacs-coworker--coworker-install-warn (task-name proc-buffer)
   (with-current-buffer proc-buffer
     (goto-char (point-min))
     (if (re-search-forward (rx (or (regexp "[^a-z]Error") "ERR!" "No matching"))
                            nil t)
-        (let ((debug-on-error nil))
-          (error
-           (format 
-            "%s %s %s %s %s"
-            "Fatal do with lsp-install task for"
-            (format "<%s>" task-name)
-            ", check callback buffer"
-            (format "'%s'" (buffer-name (get-buffer proc-buffer)))
-            "for more details")))
+        (let ((debug-on-error nil)
+              (stdrr (buffer-substring-no-properties (point-min) (point-max))))
+          (when noninteractive
+            (entropy/emacs-message-do-message
+             "%s"
+             (red stdrr)))
+          (princ "\n")
+          (if (not noninteractive)
+              (error
+               (format 
+                "%s %s %s %s %s"
+                "Fatal do with coworker install task for"
+                (format "<%s>" task-name)
+                ", check callback buffer"
+                (format "'%s'" (buffer-name (get-buffer proc-buffer)))
+                "for more details"))
+            (error (format "Fatal during task '%s'" task-name))))
       (entropy/emacs-message-do-message
        "%s %s %s"
-       (green "Install lsp-task")
+       (green "Install coworker")
        (yellow (format "<%s>" task-name))
        (green "successfully")))))
 
@@ -105,7 +117,7 @@
          (let ((default-directory ,proc-workdir))
            (entropy/emacs-message-do-message
             "%s %s %s"
-            (green "Do lsp server install task")
+            (green "Do coworker install task")
             (yellow (format "<%s>" ,task-name-string))
             (green "..."))
            (sleep-for 2)
@@ -114,7 +126,7 @@
             ,task-name-string task-buffer))
        (entropy/emacs-message-do-message
         "%s %s %s"
-        (green "lsp server task")
+        (green "Coworker install task")
         (yellow (format "<%s>" ,task-name-string))
         (green "has been installed")))
      (funcall ,after-install)))
@@ -181,6 +193,50 @@
     default-directory
     "install" ,server-repo-string "--prefix" entropy/emacs-coworker-host-root))
 
+;; *** instances
 
+(defun entropy/emacs-coworker-check-tern-server (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "tern-server-install" ("tern") "tern"))
+
+(defun entropy/emacs-coworker-check-web-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "html-lsp-server" ("html-languageserver") "vscode-html-languageserver-bin")
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "css-lsp-server" ("css-languageserver") "vscode-css-languageserver-bin"))
+
+(defun entropy/emacs-coworker-check-js-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "typescript-base"
+   ("tsc" "tsserver")
+   "typescript")
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "js-lsp-server"
+   ("typescript-language-server")
+   "typescript-language-server"))
+
+(defun entropy/emacs-coworker-check-php-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "php-lsp-server" ("intelephense") "intelephense"))
+
+(defun entropy/emacs-coworker-check-clangd-lsp (&rest _)
+  (interactive)
+  (if (executable-find "clangd")
+      (entropy/emacs-message-do-message
+       "%s %s %s"
+       (green "Installed lsp server")
+       (yellow "'<clangd>'")
+       (green "."))
+    (error "Please using system package management install '<clangd>'.")))
+
+(defun entropy/emacs-coworker-check-python-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-pip
+   "pyls-lsp" ("pyls") "python-language-server"))
+  
 ;; * provide
 (provide 'entropy-emacs-coworker)
