@@ -39,5 +39,23 @@
 (setq entropy/proxy-url-gfw-regexp-alist
       (entropy/adbp-rule-get-regexp-matchs-list))
 
+(defun entropy/proxy-url-refresh-gfw-regexp-alist (fetch-type)
+  "Refresh `entropy/proxy-url-gfw-regexp-alist' by FETCH-TYPE
+i.e. 'local' or 'upstream'.
 
+This function was interactively for FETCH-TYPE chosen or
+specifying it in elisp code."
+  (interactive
+   (list (intern (completing-read "Choice fetch type:  "
+                                  '("local" "upstream")))))
+  (let ((entropy/adbp-rule-use-upstream-rule-list
+         (cl-case fetch-type
+           (local nil)
+           (upstream t))))
+    (setq entropy/proxy-url-gfw-regexp-alist
+          (entropy/adbp-rule-get-regexp-matchs-list))
+    (message (format "Refresh gfw alist done by type '%s'"
+                     (symbol-name fetch-type)))))
+
+;;; provide
 (provide 'entropy-proxy-url-gfw-list)
