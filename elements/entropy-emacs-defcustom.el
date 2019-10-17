@@ -811,6 +811,27 @@ Valid value are 'traditional' and 'lsp'"
   :type 'boolean
   :group 'entropy/emacs-ide-config)
 
+;; **** server path
+(defcustom entropy/emacs-language-server-host-root
+  (if (eq system-type 'windows-nt)
+      (getenv "APPDATA")
+    (expand-file-name ".local" (getenv "HOME")))
+  "The language server bins host root dir."
+  :type 'string
+  :group 'entropy/emacs-ide-config)
+
+(defcustom entropy/emacs-language-server-bin-host-path
+  (expand-file-name "bin" entropy/emacs-language-server-host-root)
+  "The language server bin host."
+  :type 'string
+  :group 'entropy/emacs-ide-config)
+
+(defcustom entropy/emacs-language-server-lib-host-root
+  (expand-file-name "lib" entropy/emacs-language-server-host-root)
+  "The default libs host root for language server dependencies"
+  :type 'string
+  :group 'entropy/emacs-ide-config)
+
 ;; **** code folding group
 (defgroup entropy/emacs-code-folding nil
   "customized variabel group for code folding and expanding

@@ -111,13 +111,13 @@
            (sleep-for 2)
            (call-process ,install-cmd nil ,task-buffer t ,@install-args)
            (entropy/emacs-codeserver--server-install-warn
-            ,task-name-string task-buffer)
-           (funcall ,after-install))
+            ,task-name-string task-buffer))
        (entropy/emacs-message-do-message
         "%s %s %s"
         (green "lsp server task")
         (yellow (format "<%s>" ,task-name-string))
-        (green "has been installed")))))
+        (green "has been installed")))
+     (funcall ,after-install)))
 
 (defmacro entropy/emacs-codeserver--server-install-by-npm
     (server-name-string server-bins server-repo-string)
@@ -128,29 +128,31 @@
                 (mapcar
                  (lambda (x)
                    (expand-file-name
-                    (format ".local/lib/node_modules/.bin/%s" x)
-                    "~"))
+                    (format "node_modules/.bin/%s" x)
+                    entropy/emacs-language-server-lib-host-root))
                  ',server-bins)))
     "npm"
     (lambda ()
-      (mkdir (expand-file-name ".local/bin" "~") t)
-      (mkdir (expand-file-name ".local/lib/node_modules/" "~") t)
-      (let ((lock-package-file (expand-file-name ".local/lib/package-lock.json" "~")))
+      (mkdir entropy/emacs-language-server-bin-host-path t)
+      (mkdir (expand-file-name "node_modules" entropy/emacs-language-server-lib-host-root) t)
+      (let ((lock-package-file
+             (expand-file-name "package-lock.json" entropy/emacs-language-server-lib-host-root)))
         (when (file-exists-p lock-package-file)
           (delete-file lock-package-file t))))
     (lambda ()
       (dolist (el ',server-bins)
         (make-symbolic-link (expand-file-name
-                             (format ".local/lib/node_modules/.bin/%s" el)
-                             "~")
+                             (format "node_modules/.bin/%s" el)
+                             entropy/emacs-language-server-lib-host-root)
                             (expand-file-name
-                             (format ".local/bin/%s" el)
-                             "~")
+                             el
+                             entropy/emacs-language-server-bin-host-path)
                             t))
-      (let ((lock-package-file (expand-file-name ".local/lib/package-lock.json" "~")))
+      (let ((lock-package-file
+             (expand-file-name "package-lock.json" entropy/emacs-language-server-lib-host-root)))
         (when (file-exists-p lock-package-file)
           (delete-file lock-package-file t))))
-    (expand-file-name ".local/lib/" "~")
+    entropy/emacs-language-server-lib-host-root
     "install" ,server-repo-string))
 
 (defmacro entropy/emacs-codeserver--server-install-by-pip
@@ -162,15 +164,22 @@
                 (mapcar
                  (lambda (x)
                    (expand-file-name
-                    (format ".local/bin/%s" x)
-                    "~"))
+                    x
+                    entropy/emacs-language-server-bin-host-path))
                  ',server-bins)))
     "pip"
     (lambda () nil)
-    (lambda () nil)
+    (lambda ()
+      (dolist (el ',server-bins)
+        (unless (file-exists-p
+                 (expand-file-name el entropy/emacs-language-server-bin-host-path))
+          (make-symbolic-link
+           (expand-file-name el
+                             (expand-file-name "bin" entropy/emacs-language-server-host-root))
+           (expand-file-name el entropy/emacs-language-server-bin-host-path)
+           t))))
     default-directory
-    "install" ,server-repo-string "--user"))
-
+    "install" ,server-repo-string "--prefix" entropy/emacs-language-server-host-root))
 
 ;; ** common server
 ;; *** individual servers
