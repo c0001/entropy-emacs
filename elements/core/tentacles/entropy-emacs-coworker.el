@@ -129,30 +129,30 @@
                  (lambda (x)
                    (expand-file-name
                     (format "node_modules/.bin/%s" x)
-                    entropy/emacs-language-server-lib-host-root))
+                    entropy/emacs-coworker-lib-host-root))
                  ',server-bins)))
     "npm"
     (lambda ()
-      (mkdir entropy/emacs-language-server-bin-host-path t)
-      (mkdir (expand-file-name "node_modules" entropy/emacs-language-server-lib-host-root) t)
+      (mkdir entropy/emacs-coworker-bin-host-path t)
+      (mkdir (expand-file-name "node_modules" entropy/emacs-coworker-lib-host-root) t)
       (let ((lock-package-file
-             (expand-file-name "package-lock.json" entropy/emacs-language-server-lib-host-root)))
+             (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root)))
         (when (file-exists-p lock-package-file)
           (delete-file lock-package-file t))))
     (lambda ()
       (dolist (el ',server-bins)
         (make-symbolic-link (expand-file-name
                              (format "node_modules/.bin/%s" el)
-                             entropy/emacs-language-server-lib-host-root)
+                             entropy/emacs-coworker-lib-host-root)
                             (expand-file-name
                              el
-                             entropy/emacs-language-server-bin-host-path)
+                             entropy/emacs-coworker-bin-host-path)
                             t))
       (let ((lock-package-file
-             (expand-file-name "package-lock.json" entropy/emacs-language-server-lib-host-root)))
+             (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root)))
         (when (file-exists-p lock-package-file)
           (delete-file lock-package-file t))))
-    entropy/emacs-language-server-lib-host-root
+    entropy/emacs-coworker-lib-host-root
     "install" ,server-repo-string))
 
 (defmacro entropy/emacs-coworker--coworker-install-by-pip
@@ -165,21 +165,21 @@
                  (lambda (x)
                    (expand-file-name
                     x
-                    entropy/emacs-language-server-bin-host-path))
+                    entropy/emacs-coworker-bin-host-path))
                  ',server-bins)))
     "pip"
     (lambda () nil)
     (lambda ()
       (dolist (el ',server-bins)
         (unless (file-exists-p
-                 (expand-file-name el entropy/emacs-language-server-bin-host-path))
+                 (expand-file-name el entropy/emacs-coworker-bin-host-path))
           (make-symbolic-link
            (expand-file-name el
-                             (expand-file-name "bin" entropy/emacs-language-server-host-root))
-           (expand-file-name el entropy/emacs-language-server-bin-host-path)
+                             (expand-file-name "bin" entropy/emacs-coworker-host-root))
+           (expand-file-name el entropy/emacs-coworker-bin-host-path)
            t))))
     default-directory
-    "install" ,server-repo-string "--prefix" entropy/emacs-language-server-host-root))
+    "install" ,server-repo-string "--prefix" entropy/emacs-coworker-host-root))
 
 
 ;; * provide

@@ -794,6 +794,36 @@ elfeed proxy setting."
   :type 'boolean
   :group 'entropy/emacs-customized-for-pdumper)
 
+;; *** Coworkers
+(defgroup entropy/emacs-coworkers-group nil
+  "Group for coworkers refer customized variables."
+  :group 'extensions)
+
+(defcustom entropy/emacs-install-coworker-immediately nil
+  "Install coworker immediatly in needed while."
+  :type 'boolean
+  :group 'entropy/emacs-coworkers-group)
+
+(defcustom entropy/emacs-coworker-host-root
+  (if (eq system-type 'windows-nt)
+      (getenv "APPDATA")
+    (expand-file-name ".local" (getenv "HOME")))
+  "The coworker bins host root dir."
+  :type 'string
+  :group 'entropy/emacs-coworkers-group)
+
+(defcustom entropy/emacs-coworker-bin-host-path
+  (expand-file-name "bin" entropy/emacs-coworker-host-root)
+  "The coworker bin host."
+  :type 'string
+  :group 'entropy/emacs-coworkers-group)
+
+(defcustom entropy/emacs-coworker-lib-host-root
+  (expand-file-name "lib" entropy/emacs-coworker-host-root)
+  "The default libs host root for coworker"
+  :type 'string
+  :group 'entropy/emacs-coworkers-group)
+
 ;; *** IDE
 (defgroup entropy/emacs-ide-config nil
   "The IDE configurations group"
@@ -804,32 +834,6 @@ elfeed proxy setting."
 
 Valid value are 'traditional' and 'lsp'"
   :type 'symbol
-  :group 'entropy/emacs-ide-config)
-
-(defcustom entropy/emacs-install-server-immediately nil
-  "Install language server immediatly in needed while."
-  :type 'boolean
-  :group 'entropy/emacs-ide-config)
-
-;; **** server path
-(defcustom entropy/emacs-language-server-host-root
-  (if (eq system-type 'windows-nt)
-      (getenv "APPDATA")
-    (expand-file-name ".local" (getenv "HOME")))
-  "The language server bins host root dir."
-  :type 'string
-  :group 'entropy/emacs-ide-config)
-
-(defcustom entropy/emacs-language-server-bin-host-path
-  (expand-file-name "bin" entropy/emacs-language-server-host-root)
-  "The language server bin host."
-  :type 'string
-  :group 'entropy/emacs-ide-config)
-
-(defcustom entropy/emacs-language-server-lib-host-root
-  (expand-file-name "lib" entropy/emacs-language-server-host-root)
-  "The default libs host root for language server dependencies"
-  :type 'string
   :group 'entropy/emacs-ide-config)
 
 ;; **** code folding group

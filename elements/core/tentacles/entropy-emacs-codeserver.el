@@ -137,7 +137,7 @@ It is the recommendation of irony-mode official introduction."
   (entropy/emacs-codeserver-usepackage-anaconda)
   (entropy/emacs-codeserver-usepackage-ac-php)
   
-  (when entropy/emacs-install-server-immediately
+  (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'js2-mode
       (advice-add 'js2-mode
                   :before
@@ -183,7 +183,7 @@ It is the recommendation of irony-mode official introduction."
     (entropy/emacs-coworker--coworker-install-by-npm
      "css-lsp-server" ("css-languageserver") "vscode-css-languageserver-bin"))
   
-  (when entropy/emacs-install-server-immediately
+  (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'web-mode
       (advice-add 'web-mode
                   :before
@@ -206,7 +206,7 @@ It is the recommendation of irony-mode official introduction."
      ("typescript-language-server")
      "typescript-language-server"))
 
-  (when entropy/emacs-install-server-immediately
+  (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'js2-mode
       (advice-add 'js2-mode :before #'entropy/emacs-codeserver-check-js-lsp))))
 
@@ -216,7 +216,7 @@ It is the recommendation of irony-mode official introduction."
     (interactive)
     (entropy/emacs-coworker--coworker-install-by-npm
      "php-lsp-server" ("intelephense") "intelephense"))
-  (when entropy/emacs-install-server-immediately
+  (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'php-mode
       (advice-add 'php-mode :before #'entropy/emacs-codeserver-check-php-lsp))))
 
@@ -231,7 +231,7 @@ It is the recommendation of irony-mode official introduction."
          (yellow "'<clangd>'")
          (green "."))
       (error "Please using system package management install '<clangd>'.")))
-  (when entropy/emacs-install-server-immediately
+  (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'cc-mode
       (advice-add 'c-mode
                   :before
@@ -246,7 +246,7 @@ It is the recommendation of irony-mode official introduction."
     (interactive)
     (entropy/emacs-coworker--coworker-install-by-pip
      "pyls-lsp" ("pyls") "python-language-server"))
-  (when entropy/emacs-install-server-immediately
+  (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'python
       (advice-add 'python-mode
                   :before

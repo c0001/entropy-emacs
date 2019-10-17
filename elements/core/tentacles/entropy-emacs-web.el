@@ -236,7 +236,7 @@ format."
   (setq web-beautify-args '("-s" "2" "-f" "-"))
 
   ;; install `js-beautify' coworker
-  (when entropy/emacs-install-server-immediately
+  (when entropy/emacs-install-coworker-immediately
     (dolist (el '(web-beautify-css web-beautify-html web-beautify-js))
       (advice-add el
                   :before
