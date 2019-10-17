@@ -45,6 +45,23 @@
 (require 'url)
 
 ;;;; variable declaration
+;;;;; customized variables
+(defgroup entropy/adbp-rule-group nil
+  "Group variables classified identifier for
+`entropy-adblock+-rule-analysis'"
+  :group 'extensions)
+
+(defcustom entropy/adbp-rule-use-upstream-rule-list nil
+  "Wether to use updated upstream gfw-list.
+
+Defautl value was nil indicated to use local cached rule-sets,
+this cared for reducing some network retrieving error occurs
+during emacs startup (e.g. the unobstructed net visiting ISP
+attack or gnutls error in emacs batch mode)."
+  :type 'boolean
+  :group 'entropy/adbp-rule-group)
+
+;;;;; internal variables
 (defvar entropy/adbp-rule--gfw-list-upstream
   "https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt")
 (defvar entropy/adbp-rule--gfw-list-local
@@ -95,9 +112,10 @@
 
 (defun entropy/adbp-rule--fetch-gfw-list ()
   (let ((retrieve-buffer
-         (ignore-errors
-           (url-retrieve-synchronously
-            entropy/adbp-rule--gfw-list-upstream))))
+         (when entropy/adbp-rule-use-upstream-rule-list
+           (ignore-errors
+             (url-retrieve-synchronously
+              entropy/adbp-rule--gfw-list-upstream)))))
     (if retrieve-buffer
         (with-current-buffer retrieve-buffer
           (goto-char (point-min))
@@ -115,7 +133,6 @@
     (setq entropy/adbp-rule--origin-rule-set
           (entropy/adbp-rule--base64-decrypt cache))))
 
-
 (defun entropy/adbp-rule--extract-regexp-rules ()
   (let ((origin-rule-set (entropy/adbp-rule--gen-adbp-origin-rule-set))
         (rule-defination-list
@@ -130,8 +147,6 @@
       (dolist (el rule-defination-list)
         (entropy/adbp-rule--extract-buffer-rule-entries
          el 'entropy/adbp-rule--regexps-cache)))))
-
-
 
 ;;;; main
 (defun entropy/adbp-rule-get-regexp-matchs-list (&optional inct)
