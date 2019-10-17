@@ -114,7 +114,7 @@
   "Toggle outline regexp style in elisp source file, ';;;+' as
 old-school type, ';; *+' as the mordern one.
 
-PREFIX if non-nil for old-school style."
+PREFIX if non-nil for mordern org-mode style."
   (interactive "P")
   (let ((inhibit-read-only t))
     (goto-char (point-min))
@@ -130,7 +130,6 @@ PREFIX if non-nil for old-school style."
                                   (concat rtn " ")))))
           (replace-match
            rep-str))))))
-
 
 ;; * provide
 (provide 'entropy-emacs-emacs-lisp)
