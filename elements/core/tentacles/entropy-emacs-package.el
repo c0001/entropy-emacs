@@ -217,9 +217,13 @@
            (green "All packages are newest!"))
         (progn
           (entropy/emacs-message-do-message
-           "%s '%s' will be updated after 5 seconds"
+           "%s '%s' %s"
            (green "There're")
-           (yellow (number-to-string (length updates))))
+           (yellow (number-to-string (length updates)))
+           (green (concat (if (eq 1 (length updates))
+                              "package"
+                            "packages")
+                          "will be updated after 5 seconds")))
           (sleep-for 5)
           (dolist (pkg-id updates)
             (entropy/emacs-package-install-package t pkg-id))
