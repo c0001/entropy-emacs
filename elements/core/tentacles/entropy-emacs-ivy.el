@@ -241,23 +241,46 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
              counsel-linux-app)
   
 ;; *** bind-key
-  :bind (("M-x" . counsel-M-x)
+  :bind (("M-x"     . counsel-M-x)
          ("C-c M-t" . entropy/emacs-ivy-counsel-load-theme)
-         ("C-x d" . counsel-dired)
+         ("C-x d"   . counsel-dired)
          ("C-x C-f" . counsel-find-file)
-         ("C-h P" . counsel-package)
-         ("C-h v" . counsel-describe-variable)
-         ("C-h f" . counsel-describe-function)
-         ("C-h l" . counsel-find-library)
+         ("C-h P"   . counsel-package)
+         ("C-h v"   . counsel-describe-variable)
+         ("C-h f"   . counsel-describe-function)
+         ("C-h l"   . counsel-find-library)
          ("C-x j"   . counsel-mark-ring)
          ("C-x C-t" . counsel-find-file-extern)
          ("C-c M-b" . counsel-recentf)
          ("C-c M-k" . counsel-yank-pop)
+
+;; **** entropy/emacs-top-keymap
+         :map entropy/emacs-top-keymap
+         ("C-c L" . counsel-load-library)
+         ("C-c P" . counsel-package)
+         ("C-c g" . counsel-grep)
+         ("C-c h" . counsel-command-history)
+         ("C-c j" . counsel-git-grep)
+         ("C-c l" . counsel-locate)
+         ("C-c r" . counsel-rg)
+         ("C-c z" . counsel-fzf)
+         ("C-c f" . counsel-faces)
+         ("C-c a" . counsel-apropos)
+         ("C-c u" . counsel-unicode-char)
+         ("C-c c e" . counsel-colors-emacs)
+         ("C-c c w" . counsel-colors-web)
+         ("C-c c l" . counsel-locate)
+         ("C-c c m" . counsel-minibuffer-history)
+         ("C-c c o" . counsel-outline)
+         ("C-c c p" . counsel-pt)
+         ("C-c c r" . counsel-rg)
+         ("C-c c a" . counsel-ag)
+         
 ;; **** counsel mode map
          :map counsel-mode-map
          ([remap swiper] . counsel-grep-or-swiper))
   
-;; **** hooks
+;; *** hooks
   :hook ((ivy-mode . counsel-mode))
   
 ;; *** init
@@ -466,11 +489,14 @@ this variable used to patching for origin `counsel-git'.")
               all-the-icons-octicon
               all-the-icons-dir-is-submodule)
   :commands (ivy-rich-mode)
+
+;; **** preface
   :preface
-  (defun ivy-rich-bookmark-name (candidate)
+;; ***** ivy rich icons
+  (defun entropy/emacs-ivy--ivy-rich-bookmark-name (candidate)
     (car (assoc candidate bookmark-alist)))
 
-  (defun ivy-rich-buffer-icon (candidate)
+  (defun entropy/emacs-ivy--ivy-rich-buffer-icon (candidate)
     "Display buffer icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
@@ -486,7 +512,7 @@ this variable used to patching for origin `counsel-git'.")
             (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0)
           icon))))
 
-  (defun ivy-rich-file-icon (candidate)
+  (defun entropy/emacs-ivy--ivy-rich-file-icon (candidate)
     "Display file icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
@@ -515,59 +541,64 @@ this variable used to patching for origin `counsel-git'.")
             (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :height 0.8 :v-adjust 0.0)
           icon))))
 
-  (defun ivy-rich-function-icon (_candidate)
+  (defun entropy/emacs-ivy--ivy-rich-function-icon (_candidate)
     "Display function icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))
       (all-the-icons-faicon "cube" :height 0.9 :v-adjust -0.05 :face 'all-the-icons-purple)))
 
-  (defun ivy-rich-variable-icon (_candidate)
+  (defun entropy/emacs-ivy--ivy-rich-variable-icon (_candidate)
     "Display variable icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))
       (all-the-icons-faicon "tag" :height 0.9 :v-adjust -0.05 :face 'all-the-icons-lblue)))
 
-  (defun ivy-rich-symbol-icon (_candidate)
+  (defun entropy/emacs-ivy--ivy-rich-symbol-icon (_candidate)
     "Display symbol icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))
       (all-the-icons-octicon "gear" :height 0.9 :v-adjust -0.05)))
 
-  (defun ivy-rich-theme-icon (_candidate)
+  (defun entropy/emacs-ivy--ivy-rich-theme-icon (_candidate)
     "Display theme icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))
       (all-the-icons-material "palette" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue)))
 
-  (defun ivy-rich-keybinding-icon (_candidate)
+  (defun entropy/emacs-ivy--ivy-rich-keybinding-icon (_candidate)
     "Display keybindings icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))
       (all-the-icons-material "keyboard" :height 1.0 :v-adjust -0.2)))
 
-  (defun ivy-rich-library-icon (_candidate)
+  (defun entropy/emacs-ivy--ivy-rich-library-icon (_candidate)
     "Display library icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))
       (all-the-icons-material "view_module" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue)))
 
-  (defun ivy-rich-package-icon (_candidate)
+  (defun entropy/emacs-ivy--ivy-rich-package-icon (_candidate)
     "Display package icons in `ivy-rich'."
     (when (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))
       (all-the-icons-faicon "archive" :height 0.9 :v-adjust 0.0 :face 'all-the-icons-silver)))
 
+  (defun entropy/emacs-ivy--ivy-rich-font-icon (_candidate)
+    "Display the font icon in `ivy-rich'."
+    (when (display-graphic-p)
+      (all-the-icons-faicon "font" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-lblue)))
+  
   (when (or (display-graphic-p)
             (and entropy/emacs-fall-love-with-pdumper
                  entropy/emacs-do-pdumper-in-X))
-    (defun ivy-rich-bookmark-type-plus (candidate)
+    (defun entropy/emacs-ivy--ivy-rich-bookmark-type-plus (candidate)
       (let ((filename (file-local-name (ivy-rich-bookmark-filename candidate))))
         (cond ((null filename)
                (all-the-icons-material "block" :v-adjust -0.2 :face 'warning))  ; fixed #38
@@ -578,165 +609,17 @@ this variable used to patching for origin `counsel-git'.")
               ((file-directory-p filename)
                (all-the-icons-octicon "file-directory" :height 0.9 :v-adjust -0.05))
               (t (all-the-icons-icon-for-file (file-name-nondirectory filename) :height 0.9 :v-adjust -0.05)))))
-    (advice-add #'ivy-rich-bookmark-type :override #'ivy-rich-bookmark-type-plus))
+    (advice-add #'ivy-rich-bookmark-type :override #'entropy/emacs-ivy--ivy-rich-bookmark-type-plus))
+
+;; **** initialize
+  :init
 
   ;; Setting tab size to 1, to insert tabs as delimiters
   (add-hook 'minibuffer-setup-hook
             (lambda ()
               (setq tab-width 1)))
-
-  (setq ivy-rich-display-transformers-list
-        '(ivy-switch-buffer
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          ivy-switch-buffer-other-window
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          counsel-switch-buffer
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          counsel-switch-buffer-other-window
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          persp-switch-to-buffer
-          (:columns
-           ((ivy-rich-buffer-icon)
-            (ivy-rich-candidate (:width 30))
-            (ivy-rich-switch-buffer-size (:width 7))
-            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
-           :predicate
-           (lambda (cand) (get-buffer cand))
-           :delimiter "\t")
-          counsel-M-x
-          (:columns
-           ((ivy-rich-function-icon)
-            (counsel-M-x-transformer (:width 50))
-            (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))
-          counsel-describe-function
-          (:columns
-           ((ivy-rich-function-icon)
-            (counsel-describe-function-transformer (:width 50))
-            (ivy-rich-counsel-function-docstring (:face font-lock-doc-face)))
-           :delimiter "\t")
-          counsel-describe-variable
-          (:columns
-           ((ivy-rich-variable-icon)
-            (counsel-describe-variable-transformer (:width 50))
-            (ivy-rich-counsel-variable-docstring (:face font-lock-doc-face)))
-           :delimiter "\t")
-          counsel-apropos
-          (:columns
-           ((ivy-rich-symbol-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-info-lookup-symbol
-          (:columns
-           ((ivy-rich-symbol-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-descbinds
-          (:columns
-           ((ivy-rich-keybinding-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-find-file
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-read-file-transformer))
-           :delimiter "\t")
-          counsel-locate-action-extern
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-file-jump
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-dired
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-read-file-transformer))
-           :delimiter "\t")
-          counsel-dired-jump
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-fzf
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-git
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-recentf
-          (:columns
-           ((ivy-rich-file-icon)
-            (ivy-rich-candidate (:width 0.8))
-            (ivy-rich-file-last-modified-time (:face font-lock-comment-face)))
-           :delimiter "\t")
-          counsel-bookmark
-          (:columns
-           ((ivy-rich-bookmark-type)
-            (ivy-rich-bookmark-name (:width 40))
-            (ivy-rich-bookmark-info))
-           :delimiter "\t")
-          counsel-package
-          (:columns
-           ((ivy-rich-package-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-find-library
-          (:columns
-           ((ivy-rich-library-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-load-library
-          (:columns
-           ((ivy-rich-library-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")
-          counsel-load-theme
-          (:columns
-           ((ivy-rich-theme-icon)
-            (ivy-rich-candidate))
-           :delimiter "\t")))
-
-  :init
+  
+;; ***** lazy load
   (defun entropy/emacs-ivy--enable-ivy-rich-common ()
     (require 'ivy)
     (require 'all-the-icons)
@@ -755,6 +638,169 @@ this variable used to patching for origin `counsel-git'.")
      "ivy-rich" "ivy-rich"
      (entropy/emacs-ivy--enable-ivy-rich-common))))
 
+;; ***** ivy-rich register
+  (setq ivy-rich-display-transformers-list
+        '(ivy-switch-buffer
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-buffer-icon)
+            (ivy-rich-candidate (:width 30))
+            (ivy-rich-switch-buffer-size (:width 7))
+            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
+            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
+           :predicate
+           (lambda (cand) (get-buffer cand))
+           :delimiter "\t")
+          ivy-switch-buffer-other-window
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-buffer-icon)
+            (ivy-rich-candidate (:width 30))
+            (ivy-rich-switch-buffer-size (:width 7))
+            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
+            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
+           :predicate
+           (lambda (cand) (get-buffer cand))
+           :delimiter "\t")
+          counsel-switch-buffer
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-buffer-icon)
+            (ivy-rich-candidate (:width 30))
+            (ivy-rich-switch-buffer-size (:width 7))
+            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
+            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
+           :predicate
+           (lambda (cand) (get-buffer cand))
+           :delimiter "\t")
+          counsel-switch-buffer-other-window
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-buffer-icon)
+            (ivy-rich-candidate (:width 30))
+            (ivy-rich-switch-buffer-size (:width 7))
+            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
+            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
+           :predicate
+           (lambda (cand) (get-buffer cand))
+           :delimiter "\t")
+          persp-switch-to-buffer
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-buffer-icon)
+            (ivy-rich-candidate (:width 30))
+            (ivy-rich-switch-buffer-size (:width 7))
+            (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
+            (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
+           :predicate
+           (lambda (cand) (get-buffer cand))
+           :delimiter "\t")
+          counsel-M-x
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-function-icon)
+            (counsel-M-x-transformer (:width 50))
+            (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))
+          counsel-describe-function
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-function-icon)
+            (counsel-describe-function-transformer (:width 50))
+            (ivy-rich-counsel-function-docstring (:face font-lock-doc-face)))
+           :delimiter "\t")
+          counsel-describe-variable
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-variable-icon)
+            (counsel-describe-variable-transformer (:width 50))
+            (ivy-rich-counsel-variable-docstring (:face font-lock-doc-face)))
+           :delimiter "\t")
+          counsel-apropos
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-symbol-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-info-lookup-symbol
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-symbol-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-descbinds
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-keybinding-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-find-file
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-file-icon)
+            (ivy-read-file-transformer))
+           :delimiter "\t")
+          counsel-locate-action-extern
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-file-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-file-jump
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-file-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-dired
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-file-icon)
+            (ivy-read-file-transformer))
+           :delimiter "\t")
+          counsel-dired-jump
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-file-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-fzf
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-file-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-git
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-file-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-recentf
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-file-icon)
+            (ivy-rich-candidate (:width 0.8))
+            (ivy-rich-file-last-modified-time (:face font-lock-comment-face)))
+           :delimiter "\t")
+          counsel-bookmark
+          (:columns
+           ((ivy-rich-bookmark-type)
+            (entropy/emacs-ivy--ivy-rich-bookmark-name (:width 40))
+            (ivy-rich-bookmark-info))
+           :delimiter "\t")
+          counsel-package
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-package-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-find-library
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-library-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-load-library
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-library-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-load-theme
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-theme-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-fonts
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-font-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")
+          counsel-major
+          (:columns
+           ((entropy/emacs-ivy--ivy-rich-function-icon)
+            (ivy-rich-candidate))
+           :delimiter "\t")))
+  
+;; **** after load
   :config
   ;; For better performance
   (setq ivy-rich-parse-remote-buffer nil))
