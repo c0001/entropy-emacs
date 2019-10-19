@@ -1486,7 +1486,10 @@ git-for-windows-sdk `git-bash.exe'"
                   (transient-values-file . "transient/values.el")
                   (transient-history-file . "transient/history.el")
                   ;; url caches
-                  (url-configuration-directory . "url")))
+                  (url-configuration-directory . "url")
+                  ;; lsp mode
+                  (lsp-session-file . ".lsp-session-v1")
+                  ))
     (set (car item) (expand-file-name (cdr item) top))))
 
 ;; * provide
