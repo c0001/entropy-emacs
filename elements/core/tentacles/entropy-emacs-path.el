@@ -54,6 +54,28 @@
 (require 'entropy-emacs-defcustom)
 
 ;; ** library
+;; *** common path setting
+(defun entropy/emacs-path--common-path-register ()
+  (let (coworker-exec-exists-p
+        coworker-env-exists-p
+        (coworker-bin-path (entropy/emacs-file-path-parser
+                            entropy/emacs-coworker-bin-host-path
+                            'non-trail-slash))
+        (env (getenv "PATH")))
+    (when (string-match-p coworker-bin-path env)
+      (setq coworker-env-exists-p t))
+    (mapc
+     (lambda (x)
+       (when (string-match-p coworker-bin-path x)
+         (setq coworker-exec-exists-p t)))
+     exec-path)
+    (unless coworker-exec-exists-p
+      (add-to-list 'exec-path entropy/emacs-coworker-bin-host-path))
+    (unless coworker-env-exists-p
+      (setenv "PATH" (concat entropy/emacs-coworker-bin-host-path
+                             (if sys/win32p ";" ":")
+                             (getenv "PATH"))))))
+
 ;; *** w32 path set library
 (setq entropy/emacs-path-win32-shell-path-register
   `((:trigger entropy/emacs-win-emacs-bin-path-add
@@ -263,7 +285,7 @@
 
 
 ;; ** main
-
+(entropy/emacs-path--common-path-register)
 (when sys/win32p
   (entropy/emacs-path--w32-regist-path))
 
