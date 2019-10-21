@@ -117,7 +117,8 @@
 (defvar entropy/emacs-package-prepare-done nil)
 
 (defun entropy/emacs-package-prepare-foras (&optional force)
-  (unless entropy/emacs-package-prepare-done
+  (unless (or entropy/emacs-package-prepare-done
+              (null force))
     (entropy/emacs-set-package-user-dir)
     (entropy/emacs-package--initial-package-archive)
     (entropy/emacs-package--refresh-gnupg-homedir)
