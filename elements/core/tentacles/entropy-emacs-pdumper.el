@@ -243,19 +243,6 @@ configuration.")
 
 (entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
 
-;; *** reset load-path
-
-;; Preventing duplicated upstream load-path (while after update
-;; packages in make procedure).
-
-(setq load-path nil
-      load-path
-      (copy-tree
-       (append
-        entropy/emacs-origin-load-path
-        (entropy/emacs-list-subdir
-         entropy/emacs-pdumper--upstream-top-dir))))
-
 ;; *** idle recovery
 (setq 
  entropy/emacs-pdumper-pre-lpth (copy-tree load-path)

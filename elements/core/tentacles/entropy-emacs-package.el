@@ -99,11 +99,16 @@
     (setq package-gnupghome-dir nil)))
 
 ;; *** Initialize packages
-(defun entropy/emacs-package--package-initialize ()
+(defun entropy/emacs-package--package-initialize (&optional force)
   (when (and (entropy/emacs-package-is-upstream)
              (not entropy/emacs-fall-love-with-pdumper))
     (unless (version< emacs-version "27")
       (setq package-quickstart nil))
+    (when force
+      (setq package--initialized nil)
+      (setq load-path nil)
+      (setq package-alist nil)
+      (setq package-activated-list nil))
     (message "Custom packages initializing ......")
     (package-initialize)
     (message "Custom packages initializing done!")))
@@ -111,12 +116,12 @@
 ;; *** prepare main
 (defvar entropy/emacs-package-prepare-done nil)
 
-(defun entropy/emacs-package-prepare-foras ()
+(defun entropy/emacs-package-prepare-foras (&optional force)
   (unless entropy/emacs-package-prepare-done
     (entropy/emacs-set-package-user-dir)
     (entropy/emacs-package--initial-package-archive)
     (entropy/emacs-package--refresh-gnupg-homedir)
-    (entropy/emacs-package--package-initialize)
+    (entropy/emacs-package--package-initialize force)
     (setq entropy/emacs-package-prepare-done t)))
 
 ;; ** Package install subroutines
@@ -227,7 +232,8 @@
           (sleep-for 5)
           (dolist (pkg-id updates)
             (entropy/emacs-package-install-package t pkg-id))
-          (entropy/emacs-package-prompt-install-fails))))))
+          (entropy/emacs-package-prompt-install-fails)
+          (entropy/emacs-package-prepare-foras t))))))
 
 ;; ** Use-package inititialize
 ;; Required by `use-package'
