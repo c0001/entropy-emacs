@@ -106,7 +106,7 @@
       (setq package-quickstart nil))
     (when force
       (setq package--initialized nil)
-      (setq load-path nil)
+      (setq load-path (copy-tree entropy/emacs-origin-load-path))
       (setq package-alist nil)
       (setq package-activated-list nil))
     (message "Custom packages initializing ......")
