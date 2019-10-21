@@ -123,7 +123,8 @@
     (entropy/emacs-package--initial-package-archive)
     (entropy/emacs-package--refresh-gnupg-homedir)
     (entropy/emacs-package--package-initialize force)
-    (setq entropy/emacs-package-prepare-done t)))
+    (unless entropy/emacs-package-prepare-done
+      (setq entropy/emacs-package-prepare-done t))))
 
 ;; ** Package install subroutines
 ;; *** core
@@ -229,12 +230,12 @@
            (green (concat (if (eq 1 (length updates))
                               "package"
                             "packages")
-                          "will be updated after 5 seconds")))
+                          " will be updated after 5 seconds")))
           (sleep-for 5)
           (dolist (pkg-id updates)
             (entropy/emacs-package-install-package t pkg-id))
           (entropy/emacs-package-prompt-install-fails)
-          (entropy/emacs-package-prepare-foras t))))))
+          (entropy/emacs-package--package-initialize t))))))
 
 ;; ** Use-package inititialize
 ;; Required by `use-package'

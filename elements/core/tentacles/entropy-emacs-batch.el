@@ -43,8 +43,6 @@
 (require 'entropy-emacs-ext)
 
 ;; ** defvar
-(defvar entropy/emacs-batch--making-out nil)
-
 ;; ** library
 ;; *** section prompting
 (defun entropy/emacs-batch--prompts-for-ext-install-section ()
@@ -80,20 +78,16 @@
   (let ((dump-file (expand-file-name
                     (format "eemacs_%s.pdmp" (format-time-string "%Y%m%d%H%M%S"))
                     user-emacs-directory)))
-    (setq entropy/emacs-fall-love-with-pdumper t
-          entropy/emacs-is-make-session t)
+    (setq entropy/emacs-fall-love-with-pdumper t)
     (require 'entropy-emacs-start)
     (dump-emacs-portable dump-file)))
 
-(defun entropy/emacs-batch--dump-emacs (&optional no-confirm)
+(defun entropy/emacs-batch--dump-emacs ()
   (unless (not (version< emacs-version "27"))
     (entropy/emacs-message-do-error
      (red
       "You just can portable dump emacs while emacs version upon 27, abort")))
-  (when (or no-confirm
-            (yes-or-no-p "Make pdumper file? "))
-    (setq entropy/emacs-batch--making-out t)
-    (entropy/emacs-batch--dump-emacs-core)))
+  (entropy/emacs-batch--dump-emacs-core))
 
 ;; *** install coworkers
 
@@ -116,7 +110,7 @@
 
 ;; ** interactive
 (when (and (entropy/emacs-ext-main)
-           (null entropy/emacs-batch--making-out))
+           (null entropy/emacs-make-session-make-out))
   (let ((type (entropy/emacs-is-make-session)))
     (cond
      ((equal type "All")
@@ -134,8 +128,10 @@
       (entropy/emacs-batch--prompts-for-coworkers-installing-section)
       (entropy/emacs-batch--install-coworkers)
       ;; make dump file
-      (entropy/emacs-batch--prompts-for-dump-section)
-      (entropy/emacs-batch--dump-emacs))
+      (setq entropy/emacs-make-session-make-out t)
+      (when (yes-or-no-p "Make pdumper file? ")
+        (entropy/emacs-batch--prompts-for-dump-section)
+        (entropy/emacs-batch--dump-emacs)))
      
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section)

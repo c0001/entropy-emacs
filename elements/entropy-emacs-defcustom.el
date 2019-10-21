@@ -1408,7 +1408,6 @@ git-for-windows-sdk `git-bash.exe'"
   "Hook for run after pdumper session startup.")
 
 ;; *** making procedure
-(defvar entropy/emacs-is-make-session nil)
 (defun entropy/emacs-is-make-session ()
   (require 'subr-x)
   (let ((env-p (getenv "EEMACS_MAKE")))
@@ -1418,6 +1417,8 @@ git-for-windows-sdk `git-bash.exe'"
       nil)
      (t
       env-p))))
+
+(defvar entropy/emacs-make-session-make-out nil)
 
 ;; *** pdumper env check
 
@@ -1446,16 +1447,19 @@ git-for-windows-sdk `git-bash.exe'"
               Info-default-directory-list))
 
 ;; *** fake display-graphic
-(defun entropy/emacs-display-graphic-pdumper-advice
+(defun entropy/emacs-display-graphic-fake-advice
     (orig-func &rest orig-args)
-  (if (and entropy/emacs-fall-love-with-pdumper
-           entropy/emacs-do-pdumper-in-X)
-      t
-    (apply orig-func orig-args)))
+  (cond
+   ((and (or entropy/emacs-fall-love-with-pdumper
+             (entropy/emacs-is-make-session))
+         entropy/emacs-do-pdumper-in-X)
+    t)
+   (t
+    (apply orig-func orig-args))))
 
 (advice-add 'display-graphic-p
             :around
-            #'entropy/emacs-display-graphic-pdumper-advice)
+            #'entropy/emacs-display-graphic-fake-advice)
 
 (dolist (hook `(entropy/emacs-pdumper-load-end-hook
                 entropy/emacs-init-mini-hook
@@ -1464,7 +1468,7 @@ git-for-windows-sdk `git-bash.exe'"
             #'(lambda ()
                 (advice-remove
                  'display-graphic-p
-                 #'entropy/emacs-display-graphic-pdumper-advice))))
+                 #'entropy/emacs-display-graphic-fake-advice))))
 
 ;; *** clean stuff files
 (let ((top entropy/emacs-stuffs-topdir))

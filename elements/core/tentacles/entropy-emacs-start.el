@@ -166,7 +166,7 @@ Trying insert some words in below are:
 ;; Disable virtual terminal tty switching keybinding on linux for
 ;; release more keybinding possibilitie.(see
 ;; <https://unix.stackexchange.com/questions/34158/rebinding-disabling-ctrlaltf-virtual-terminal-console-switching>)
-(when sys/linuxp
+(when sys/linux-x-p
   (entropy/emacs-lazy-with-load-trail
    setxkbmap
    (shell-command "setxkbmap -option srvrkeys:none")
@@ -311,26 +311,26 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
 (defun entropy/emacs-start--init-after-load-initialze-process (enable aft-hook)
   (when enable
-    ;; hook runner 
-    (set aft-hook
-         (reverse (symbol-value aft-hook)))
-    (when (not entropy/emacs-is-make-session)
+    ;; check start with package install status
+    (when (not (entropy/emacs-is-make-session))
       (entropy/emacs-start--check-init-with-install-p)
       (when entropy/emacs-start--is-init-with-install
         (warn "You init with installing new packages, please reopen emacs! 
 
 Emacs will auto close after 6s ......")))
+    ;; run after init hooks
     (unless entropy/emacs-start--is-init-with-install
+      (set aft-hook
+           (reverse (symbol-value aft-hook)))
       (entropy/emacs-message-do-message
        (cyan "After load initilizing ..."))
       (run-hooks aft-hook)
       (entropy/emacs-message-do-message
-       (green "After load initilized"))))
-  ;; start pyim
-  (when (and enable
-             entropy/emacs-enable-pyim
-             (not entropy/emacs-start--is-init-with-install))
-    (entropy/emacs-start--pyim-initialize)))
+       (green "After load initilized")))
+    ;; start pyim
+    (when (and entropy/emacs-enable-pyim
+               (not entropy/emacs-start--is-init-with-install))
+      (entropy/emacs-start--pyim-initialize))))
 
 ;; **** start up branch
 ;; ***** mini start
@@ -344,8 +344,10 @@ Emacs will auto close after 6s ......")))
   ;; external depedencies scan and loading
   (when entropy/emacs-fall-love-with-pdumper
     (require 'entropy-emacs-pdumper))
-  (require 'entropy-emacs-package)
-  (entropy/emacs-package-common-start)
+  (unless (or (entropy/emacs-is-make-session)
+              entropy/emacs-make-session-make-out)
+    (require 'entropy-emacs-package)
+    (entropy/emacs-package-common-start))
   (require 'entropy-emacs-library)
   ;; basic feature defination
   (require 'entropy-emacs-basic)
