@@ -48,7 +48,7 @@
 ;; *** individuals
 (defun entropy/emacs-func-aliasp (func)
   "Return non-nil if function FN is aliased to a function symbol."
-  (let ((val  (symbol-function func)))
+  (let ((val (symbol-function func)))
     (and val
          (symbolp val))))
 
@@ -228,11 +228,6 @@ in new emacs-version."
      (funcall cl-func-use ,@args)))
 
 ;; ** lazy load branch
-(defun entropy/emacs-select-x-hook ()
-  (if entropy/emacs-minimal-start
-      'entropy/emacs-init-mini-hook
-    'entropy/emacs-init-X-hook))
-
 (defmacro entropy/emacs-lazy-load-simple (file &rest body)
   "Execute BODY after/require FILE is loaded.
 FILE is normally a feature name, but it can also be a file name,

@@ -1401,6 +1401,13 @@ git-for-windows-sdk `git-bash.exe'"
 (defvar entropy/emacs-init-X-hook '()
   "Hooks of entropy-emacs X init.")
 
+(defun entropy/emacs-select-x-hook ()
+  "Automatically selects after-load hook registry. Return for
+`entropy/emacs-init-mini-hook' and `entropy/emacs-init-X-hook'."
+  (if entropy/emacs-minimal-start
+      'entropy/emacs-init-mini-hook
+    'entropy/emacs-init-X-hook))
+
 (defvar entropy/emacs-pdumper-load-hook nil
   "Hook for run with pdumper session startup.")
 
@@ -1409,6 +1416,8 @@ git-for-windows-sdk `git-bash.exe'"
 
 ;; *** making procedure
 (defun entropy/emacs-is-make-session ()
+  "Obtained the 'EEMACS_MAKE' env variable value if valid
+otherwise return nil."
   (require 'subr-x)
   (let ((env-p (getenv "EEMACS_MAKE")))
     (cond
@@ -1418,11 +1427,15 @@ git-for-windows-sdk `git-bash.exe'"
      (t
       env-p))))
 
-(defvar entropy/emacs-make-session-make-out nil)
+(defvar entropy/emacs-make-session-make-out nil
+  "More sensitive indicator for tentacles loading justified
+for whether do with non-eemacs-make-session specified.")
 
 ;; *** pdumper env check
 
 (defun entropy/emacs-in-pdumper-procedure-p ()
+  "Judge whether in pdumper procedure according to the
+`command-line-args'."
   (let (rtn)
     (catch :exit
       (dolist (arg command-line-args)
