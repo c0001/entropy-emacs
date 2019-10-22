@@ -1,16 +1,16 @@
-;;; entropy-sdcv.el --- entropy emacs sdcv front-interface
+;;; entropy-sdcv.el --- entropy emacs sdcv front-end
 
 ;; Copyright (C) 20181211  Entropy
 
 ;; Author:           Entropy <bmsac0001@gmail.com>
 ;; Maintainer:       Entropy <bmsac001@gmail.com>
 ;; URL:              https://github.com/c0001/entropy-sdcv
-;; Package-Version:  20181211.1248
-;; Version:          0.1.0
+;; Package-Version:  20191023.2003
+;; Version:          0.1.1
 ;; Created:          2018-12-11 12:48:04
 ;; Keywords:         sdcv
 ;; Compatibility:    GNU Emacs 26.1;
-;; Package-Requires: ((emacs "24") (cl-lib "0.5") (entropy-common-library "0.1.0") (popup "0.5.3") (f "0.20.0") (youdao-dictionary "0.4") (bing-dict) (google-translate))
+;; Package-Requires: ((emacs "24") (cl-lib "0.5") (entropy-common-library "0.1.0") (popup "0.5.3") (f "0.20.0") (youdao-dictionary "0.4") (bing-dict) (google-translate) (posframe "0.5.0") (pos-tip) (tooltip))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 ;; 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-;; 
+;;
 ;;; Commentary:
 ;;
 ;;;; Preamble
@@ -32,10 +32,10 @@
 ;; :CUSTOM_ID: h-2aee4d32-27fa-4237-bbf2-f5544adf63c4
 ;; :END:
 ;;
-;; Sdcv was one cli wide-dicts query tool. It was derived from the
+;; =sdcv= was one cli wide-dicts query tool. It was derived from the
 ;; opensource e-dict application [[http://www.huzheng.org/stardict/][startdict]] founded by [[http://huzheng.org/][Huzheng]].
 ;;
-;; Sdcv can parse stardict e-dict formt and return through the cli
+;; =sdcv= can parse stardict e-dict formt and return through the cli
 ;; response, various internal optional args can charge the reponse type
 ;; and the query style, ~sdcv --help~ gives you the prompts.
 ;;
@@ -44,15 +44,15 @@
 ;; without any window exchanging and be using the offline dict instead of
 ;; retrieving the response from online dict server e.g. bing-dic or
 ;; google-translation. This package inspired by [[https://github.com/manateelazycat/sdcv][manateelazycat's sdcv]]
-;; package, but reducing some unnecessary feature and rebuild from fresh.
+;; package, but reducing some unnecessary feature and rebuild from fresh
+;; new coding context.
 ;;
-;; Before using and configuring this package, you should some common
-;; basic command interaction of it's backend sdcv for understanding some
-;; effection and the terms of this package. Below subsection shows what
-;; about this.
+;; Before using and configuring this package, you should learn some
+;; common basic command interaction of it's backend sdcv for
+;; understanding some effection and the running mechanism of this
+;; package. Below subsection shows what about this.
 ;;
-;;
-;;;;; Sdcv interaction:
+;;;;; =sdcv= interaction:
 ;; :PROPERTIES:
 ;; :CUSTOM_ID: h-809ff094-b70d-40cd-84d2-1e2c0d4bfc51
 ;; :END:
@@ -86,8 +86,8 @@
 ;;   -x, --only-data-dir            only use the dictionaries in data-dir, do not search in user and system directories
 ;;   -c, --color                    colorize the output
 ;;
-;; #+END_EXAMPLE 
-;;  
+;; #+END_EXAMPLE
+;;
 ;; The basic query operation can be done with (query 'apple' for demo):
 ;; #+BEGIN_EXAMPLE
 ;; $ sdcv apple
@@ -109,7 +109,7 @@
 ;; Her grandson is the apple of her eye.  她的孫子是她的至寶
 ;; #+END_EXAMPLE
 ;;
-;;;;; Sdcv dicts choosen
+;;;;; =sdcv= dicts choosen
 ;; :PROPERTIES:
 ;; :CUSTOM_ID: h-59d86f4e-8b76-4a37-8cbb-3583ecbb7e54
 ;; :END:
@@ -127,7 +127,7 @@
 ;;
 ;; *Default:*
 ;;
-;; Sdcv default using the dict archived with searching for environment
+;; =sdcv= default using the dict archived with searching for environment
 ;; variable =STARDICT_DATA_DIR=, and get the dict info under its 'dict'
 ;; dir , thus if your set this envrionmet be as =~/.stardict=, then it
 ;; will will search your querying about by the dict under
@@ -135,9 +135,10 @@
 ;;
 ;; *Realtime specification:*
 ;;
-;; Sdcv optional arg =-2= gives the description that "use this directory
-;; as path to stardict data directory", thus you get the ability to
-;; search for individual dict, this as one demo from my eshell:
+;; =sdcv= optional arg =-2= gives the description that "use this
+;; directory as path to stardict data directory", thus you get the
+;; ability to search for individual dict, this as one demo from my
+;; eshell:
 ;;
 ;; #+BEGIN_EXAMPLE
 ;; ~/.e/e/s/entropy-sdcv/ $ sdcv apple -2 ~/.stardict/stardict-xdict-ec-big5_fix-2.4.2/
@@ -158,28 +159,35 @@
 ;; There's sets of melpa emacs extensions are required as the api
 ;; provider for this package:
 ;;
+;; - [[https://github.com/pitkali/pos-tip][pos-tip]]:
+;;
+;;   Show query response with tooltip sub-window by emacs builtin
+;;   ~x-show-tip~ as the subroutine, used in *graphic* session only,
+;;   support emacs version above(include) 22.
+;;
 ;; - [[https://github.com/tumashu/posframe/tree/d141d56d1c747bca51f71f04fdb9d4d463996401][posframe]]: 
 ;;
-;;   show query response with tooltip sub-window if on emacs-version
-;;   upper than 26.
+;;   show query response with tooltip sub-window by emacs builtin
+;;   =child-frame= feature if on emacs-version upper than 26.
 ;;
 ;; - [[https://github.com/auto-complete/popup-el/tree/80829dd46381754639fb764da11c67235fe63282][popup]]:
 ;;
 ;;   show query response with tooltip sub-window in generally
-;;   emacs-version whichever you ran with.
+;;   emacs-version whichever you ran with without graphic display session
+;;   limitation.
 ;;
 ;; - json:
 ;;
-;;   Parse sdcv's json response, it usually be built-in with. 
+;;   Parse sdcv's json response, it usually be built-in with.
 ;;
 ;; - [[http://github.com/rejeep/f.el][f]]
 ;;
-;;   Working for file based operation. 
+;;   Working for file based operation.
 ;;
 ;; - cl:
 ;;
 ;;   Get some common-lisp featuer, this usually be as built-in feature.
-;;  
+;;
 ;; - [[https://github.com/xuchunyang/youdao-dictionary.el][youdao-dictionary]]
 ;;
 ;;   Be as the optioanl exteranl online query channel when no sdcv
@@ -197,8 +205,8 @@
 ;;
 ;;
 ;; Also as other entropy-built package, the package
-;; =entropy-common-library= was required on the core position, you can
-;; get it from entropy-emacs repositor.
+;; [[https://github.com/c0001/entropy-common-library][entropy-common-library]] was required on the core position, you can get
+;; it from entropy-emacs repositor.
 ;;
 ;;;; Dependencies
 ;; :PROPERTIES:
@@ -206,7 +214,7 @@
 ;; :END:
 ;;
 ;; The external dependency required was only one =sdcv=, you should get
-;; it from [[https://github.com/Dushistov/sdcv][github]] and compile and install it by you self. 
+;; it from [[https://github.com/Dushistov/sdcv][github]] and compile and install it by you self.
 ;;
 ;; It quiet simple for the way of compiling on unix-like platform:
 ;;
@@ -222,7 +230,7 @@
 ;;
 ;;   # To install
 ;;   make install
-;; #+END_SRC 
+;; #+END_SRC
 ;;
 ;; *Build on windows:*
 ;;
@@ -235,8 +243,8 @@
 ;;
 ;; Fist of all, install [[https://www.msys2.org/][Msys2]] in your PC and clone the minor patched
 ;; version of sdcv from [[https://github.com/c0001/sdcv][c0001/sdcv]] with the =patch= branch, and then
-;; build using Msys tool chain by satisfying all the dependencies
-;; founded the description in repo's README.
+;; build using Msys tool chain by satisfying all the dependencies founded
+;; the description in repo's README.
 ;;
 ;;;; Installation
 ;; :PROPERTIES:
@@ -280,17 +288,15 @@
 ;;     (advice-add 'entropy/sdcv-search-input-adjacent :before #'my/sdcv--lang-advice))
 ;; #+END_SRC
 ;;
-;;
-;;
 ;;; Configuration
 ;; :PROPERTIES:
 ;; :CUSTOM_ID: h-ec2ff0d8-4223-48f5-b4e9-6ff1b9450df3
 ;; :END:
 ;;
-;; =entropy-sdcv= exposed dozen of customized feature for user to
-;; specify along with their own taste. For the customizing level dividing
-;; into what, I gives below customized level categories for understanding
-;; and got the proper way of selecting which level you should give a try. 
+;; =entropy-sdcv= exposed dozen of customized feature for user to specify
+;; along with their own taste. For the customizing level dividing into
+;; what, I gives below customized level categories for understanding and
+;; got the proper way of selecting which level you should give a try.
 ;;
 ;;;; Classical  suggested configuration  
 ;; :PROPERTIES:
@@ -370,12 +376,16 @@
 ;;   matching words quried about, you can sets varible to =-e=.
 ;;
 ;; - =entropy/sdcv-tooltip-type= : Chosen the tooltip type with 'popup'
-;;   or 'posframe' type.
+;;   'posframe' or 'pos-tip' type.
 ;;
-;;   The sdcv response string container type. By default, when
-;;   ‘emacs-version’ less than ’26.1’ using ’popup’ else than using
-;;   ’posframe, because posframe using emacs featuer chiled-frame which
-;;   built-in on the version upper than thus.
+;;   By default, when `emacs-version' less than '26.1' using 'popup' or
+;;   'pos-tip' else than using 'posframe', because posframe using emacs
+;;   featuer chiled-frame which built-in on the version upper than thus.
+;;
+;;   Note:
+;;
+;;   When using terminal based UI, limition of `posframe' and 'pos-tip'
+;;   will not be supported for, forcing defaultly set it to 'popup'."
 ;;
 ;; - =entropy/sdcv-external-query-type= : Chosen the external dict type.
 ;;
@@ -391,19 +401,28 @@
 ;;   3. ’google
 ;;
 ;;
-;;
-;;
-;;
 ;; 
+;;; Chanage log
+;; 
+;; 2019/10/23
+;;      * version v0.1.1 pop out
+;;        - Using new auto-gen's tooltip face render
+;;        - Add `pos-tip' tooltip type.
+;; 
+;; 2018/12/11
+;;      * First release pop out v0.1.0
+;;
+;;
 ;;; Code:
 ;;;; require
+(require 'tooltip)
 (require 'entropy-common-library)
 (condition-case nil (require 'posframe) (error (message "Warn: You haven't install posframe!")))
 (require 'popup)
+(require 'pos-tip)
 (require 'json)
 (require 'f)
-(require 'hl-line)
-(require 'cl)
+(require 'cl-lib)
 (require 'youdao-dictionary)
 (require 'bing-dict)
 (require 'google-translate)
@@ -411,7 +430,9 @@
 ;;;; variable declaration
 ;;;;; group
 (defgroup entropy/sdcv-group nil
-  "Group for `entropy-sdcv' feature.")
+  "Group for `entropy-sdcv' feature."
+  :group 'extensions)
+
 ;;;;; custom
 
 (defcustom entropy/sdcv-user-dicts nil
@@ -431,22 +452,24 @@
   :type 'string
   :group 'entropy/sdcv-group)
 
-(defcustom entropy/sdcv-tooltip-timeout 5
-  "Timeout for waiting for aborting to sdcv tooltip posframe.")
-
 (defcustom entropy/sdcv-tooltip-type
   (if (display-graphic-p)
       (if (version< emacs-version "26.1") 'popup 'posframe)
     'popup)
-  "The sdcv response string container type. By default, when
-  `emacs-version' less than '26.1' using 'popup' else than using
-  'posframe, because posframe using emacs featuer chiled-frame
-  which built-in on the version upper than thus.
+  "The sdcv response string container type. 
 
-  Note:
+There's three type of tooltip type for chosen, i.e. 'pos-tip',
+'popup' and 'posframe'.
 
-  When using terminal based UI, limition of `posframe' will not be
-  supported for, forcing defaultly set it to 'popup'."
+By default, when `emacs-version' less than '26.1' using 'popup' or
+'pos-tip' else than using 'posframe', because posframe using emacs
+featuer chiled-frame which built-in on the version upper than
+thus.
+
+Note:
+
+When using terminal based UI, limition of `posframe' and 'pos-tip'
+will not be supported for, forcing defaultly set it to 'popup'."
   :type 'symbol
   :group 'entropy/sdcv-group)
 
@@ -454,7 +477,6 @@
   "Hook for filter with sdcv's response."
   :type 'sexp
   :group 'entropy/sdcv-group)
-
 
 (defcustom entropy/sdcv-external-query-type 'bing
   "External query application for failed query from sdcv.
@@ -491,13 +513,17 @@ Available chosen are:
 (defvar entropy/sdcv--stick-dict nil
   "Current sdcv dict for searching with. ")
 
+(defvar entropy/sdcv--show-response-in-adjacently nil
+  "Indicator for whether show sdcv response in adjacent buffer.")
+
 (defvar entropy/sdcv--tooltip-buffer "*entropy/sdcv-tooltip*"
   "Entropy sdcv tooltip default buffer name. Both using for
   posframe or popup shown mechanism.")
 
-(defvar entropy/sdcv--truncate-response-max 60
+(defvar entropy/sdcv--response-column-width-max 60
   "Query feedback info definitions string overflow width used for
-  func `entropy/sdcv--extract-json-response'.")
+func `entropy/sdcv--extract-json-response' to fill lines
+destructively or display with truncated occur.")
 
 (defvar entropy/sdcv--response-null-prompt "In the beginning, there's darkness!"
   "Feedback string for none-matching session.")
@@ -522,19 +548,19 @@ Available chosen are:
 
 
 ;;;;; default face
-(defface entropy/sdcv-tooltip-bgFace '((t ()))
+(defface entropy/sdcv-tooltip-face '((t ()))
   "The tooltip buffer background face. ")
 
-(defcustom entropy/sdcv-tooltip-bgLight-color "burlywood"
+(defun entropy/sdcv-tooltip-bgLight-color ()
   "Tooltip buffer background color for dark-theme."
-  :type 'color
-  :group 'entropy/sdcv-group)
+  (face-attribute 'tooltip :background))
 
-(defcustom entropy/sdcv-tooltip-bgDark-color "sienna"
+(defun entropy/sdcv-tooltip-bgDark-color ()
   "Tooltip buffer background color for dark-theme."
-  :type 'color
-  :group 'entropy/sdcv-group)
+  (face-attribute 'tooltip :background))
 
+(defface entropy/sdcv-box-face '((t :box t))
+  "Face sytle with box enable.")
 
 ;;;; library
 ;;;;; lang envrionment pre check
@@ -901,7 +927,9 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
 "
   (let (str-single-p
         (str-list (split-string str " " t))
-        shell-response)
+        shell-response
+        (entropy/sdcv--show-response-in-adjacently
+         (if (eq show-type 'adjacent) t nil)))
     (if (> (length str-list) 1)
         (setq str-single-p 'nil)
       (setq str-single-p 't))
@@ -931,9 +959,7 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
               (entropy/sdcv--command-router str dict-path show-type t)
             (cond
              ((eq show-type 'tooltip)
-              (if (equal entropy/sdcv-tooltip-type 'posframe)
-                  (entropy/sdcv--show-with-tooltip feedback)
-                (entropy/sdcv--show-with-popup feedback)))
+              (entropy/sdcv--show-with-tooltip feedback))
              ((eq show-type 'adjacent)
               (entropy/sdcv--show-with-buffer feedback))))))))))
 
@@ -943,9 +969,9 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
 ;;;;;;; json port
 (defun entropy/sdcv--extract-json-response (json-response)
   "Extracting sdcv json response object string for filterable
-  with lisp processing. And return the response final feedback
-  string used for tooltip or adjacent buffer shown for. See also
-  core func `entropy/sdcv--parse-response-json'.  
+with lisp processing. And return the response final feedback
+string used for tooltip or adjacent buffer shown for. See also
+core func `entropy/sdcv--parse-response-json'.  
 "
   (let* ((json-list-ob (entropy/sdcv--parse-response-json json-response))
          rtn)
@@ -955,24 +981,31 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
       (setq def (nth 1 json-list-ob))
       (setq def-overflow (nth 2 json-list-ob))               
       (cond ((and word def)
-             (when def-overflow
+             (when (and def-overflow
+                        (or entropy/sdcv--show-response-in-adjacently
+                            (not (eq entropy/sdcv-tooltip-type 'popup))))
                (setq def (entropy/cl-truncate-string-with-length
                           def
-                          entropy/sdcv--truncate-response-max
+                          entropy/sdcv--response-column-width-max
                           def-overflow)))
-             (let ((word-count (string-width word)))
-               (setq rtn (concat "⏺ " word "\n"
-                                 (entropy/cl-concat-char "=" (+ 3 word-count))
+             (let* ((word-count (string-width word))
+                    (dress-line (entropy/cl-concat-char "-" (+ 3 word-count))))
+               (setq rtn (concat dress-line "\n"
+                                 "⏺ " word "\n"
+                                 dress-line
                                  "\n" def))))
             (t (setq rtn entropy/sdcv--response-null-prompt))))
     rtn))
 
 (defun entropy/sdcv--parse-response-json (json-response)
   "Core json object parsing func for
-  `entropy/sdcv--extract-json-response', which using `mapcar' for
-  mapping for the json lisp corresponding vector parsed by
-  `json-read-from-string' with callbacks func
-  `entropy/sdcv--parse-json-info' and returned it's alist.
+`entropy/sdcv--extract-json-response', which using `mapcar' for
+mapping for the json lisp corresponding vector parsed by
+`json-read-from-string' with callbacks func
+`entropy/sdcv--parse-json-info' and returned it's alist, or t if
+with fuzzy match and confirm for fetch with other approach..
+
+Example: 
 
   Sdcv query condition case arg '-j' will response the result with
   json object string which structed as:
@@ -986,6 +1019,11 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
     \"word\": \"toolkit\",
     \"definition\": \"n【計】 工具包\"
   }]
+
+  It's fuzzy match with un-explicitly one, then popup the
+  confirmation with two mentod:
+  - Query by using another approach (return t)
+  - Choose one fuzzy matched candidate (return normal as explicitly procedure) 
   "
   (let* ((jsob (json-read-from-string json-response))
          (jsob-alist (mapcar 'entropy/sdcv--parse-json-info
@@ -994,10 +1032,16 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
     (if (> (length jsob-alist) 1)
         (setq rtn
               (or
-               (yes-or-no-p "Can not exactly match anything! Search through web? ")
+               (yes-or-no-p
+                (format (propertize
+                         "Can not exactly match for world '%s'? \nsearch web[yes] or see similar canis[no]: "
+                                    'face 'error)
+                        (propertize (concat " " entropy/sdcv--query-log " ")
+                                    'face
+                                    'entropy/sdcv-box-face)))
                (assoc (completing-read "choose similar word: "
                                        jsob-alist
-                                       :require-match t)
+                                       nil t)
                       jsob-alist)))
       (setq rtn (car jsob-alist)))
     rtn))
@@ -1005,12 +1049,12 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
 (defun entropy/sdcv--parse-json-info (json-object-el)
   "Parsing sdcv json lisp object with definition str square model
 analyzing based on max width specified by
-`entropy/sdcv--truncate-response-max'.
+`entropy/sdcv--response-column-width-max'.
 
 Return value as list as sexp (list word def def-width-overflow-lines)."
   (let* ((word (cdr (assoc 'word json-object-el)))
          (def (cdr (assoc 'definition json-object-el)))
-         (def-width (entropy/cl-get-string-max-width def entropy/sdcv--truncate-response-max))
+         (def-width (entropy/cl-get-string-max-width def entropy/sdcv--response-column-width-max))
          (def-width-overflow-lines (plist-get def-width :match-overflow-lines) )
          rtn)
     (setq rtn (list word def def-width-overflow-lines))
@@ -1025,40 +1069,54 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
       (setq buffer-read-only nil)
       (erase-buffer)
       (insert feedback)
-      (goto-char (point-min)))
-    (display-buffer buffer)
-    (setq buffer-read-only t)))
+      (goto-char (point-min))
+      (setq buffer-read-only t))
+    (display-buffer buffer)))
 
 ;;;;;; response tooltip show
 (defun entropy/sdcv--automatic-faceSet ()
-  (let ((Lbg_color entropy/sdcv-tooltip-bgLight-color)
-        (Bbg_color entropy/sdcv-tooltip-bgDark-color)
+  (let ((Lbg_color (entropy/sdcv-tooltip-bgLight-color))
+        (Bbg_color (entropy/sdcv-tooltip-bgDark-color))
         (rtn (list :bg nil :fg nil)))
     (cl-case (ignore-errors (entropy/cl-frameBG-dark-or-light))
       (dark (setq rtn (plist-put rtn :bg Lbg_color))
-            (setq rtn (plist-put rtn :fg "brown")))
+            (setq rtn (plist-put rtn :fg "goldenrod")))
       (light (setq rtn (plist-put rtn :bg Bbg_color))
-             (setq rtn (plist-put rtn :fg "bisque")))
+             (setq rtn (plist-put rtn :fg "firebrick")))
       (nil (setq rtn (plist-put rtn :bg "black"))
            (setq rtn (plist-put rtn :fg "brightyellow"))))
+    (set-face-attribute
+     'entropy/sdcv-tooltip-face
+     nil
+     :foreground (plist-get rtn :fg)
+     :background (plist-get rtn :bg))
     rtn))
 
-;;;;;;; posframe
 (defun entropy/sdcv--show-with-tooltip (feedback)
   (if (display-graphic-p)
-      (let ((tooltip_Ctype (entropy/sdcv--automatic-faceSet)))
-        (posframe-show entropy/sdcv--tooltip-buffer
-                       :string feedback
-                       :position (point)
-                       :background-color (plist-get tooltip_Ctype :bg)
-                       :foreground-color (plist-get tooltip_Ctype :fg)
-                       :internal-border-width entropy/sdcv-tooltip-border-width)
-        (setq entropy/sdcv--tooltip-last-point (point)
-              entropy/sdcv--tooltip-last-scroll-offset (window-start))
-        (add-hook 'post-command-hook 'entropy/sdcv--posframe-hide-after-move))
+      (cond
+       ((eq entropy/sdcv-tooltip-type 'posframe)
+        (entropy/sdcv--show-with-posframe feedback))
+       ((eq entropy/sdcv-tooltip-type 'pos-tip)
+        (entropy/sdcv--show-with-postip feedback))
+       ((eq entropy/sdcv-tooltip-type 'popup)
+        (entropy/sdcv--show-with-popup feedback)))
     (setq entropy/sdcv-tooltip-type 'popup)
     (entropy/sdcv--show-with-popup feedback)
     (message "Reset tooltip type to 'popup' due to cli UI.")))
+
+;;;;;;; posframe
+(defun entropy/sdcv--show-with-posframe (feedback)
+  (let ((tooltip_Ctype (entropy/sdcv--automatic-faceSet)))
+    (posframe-show entropy/sdcv--tooltip-buffer
+                   :string feedback
+                   :position (point)
+                   :background-color (plist-get tooltip_Ctype :bg)
+                   :foreground-color (plist-get tooltip_Ctype :fg)
+                   :internal-border-width entropy/sdcv-tooltip-border-width)
+    (setq entropy/sdcv--tooltip-last-point (point)
+          entropy/sdcv--tooltip-last-scroll-offset (window-start))
+    (add-hook 'post-command-hook 'entropy/sdcv--posframe-hide-after-move)))
 
 (defun entropy/sdcv--posframe-hide-after-move ()
   "Quit and delete `entropy/sdcv--tooltip-buffer' of posframe
@@ -1075,16 +1133,29 @@ This func was automatically added into `post-command-hook' by
         (posframe-delete entropy/sdcv--tooltip-buffer)
         (kill-buffer entropy/sdcv--tooltip-buffer)))))
 
+;;;;;;; pos-tip
+(defun entropy/sdcv--show-with-postip (feedback)
+  (let ((tooltip_Ctype (entropy/sdcv--automatic-faceSet))
+        (pos-tip-internal-border-width 12))
+    (entropy/sdcv--automatic-faceSet)
+    (setq feedback
+          (propertize feedback 'face 'entropy/sdcv-tooltip-face))
+    (pos-tip-show-no-propertize
+     feedback
+     'entropy/sdcv-tooltip-face
+     nil nil -1)))
+
 ;;;;;;; popup
 (defun entropy/sdcv--show-with-popup (feedback)
   (let ((theme_Ctype (entropy/sdcv--automatic-faceSet))
         ($pface_temp (copy-tree
                       (cons (face-attribute 'popup-tip-face :foreground)
-                            (face-attribute 'popup-tip-face :background)))))
+                            (face-attribute 'popup-tip-face :background))))
+        (popup-tip-max-width entropy/sdcv--response-column-width-max))
     (set-face-attribute 'popup-tip-face nil
                         :foreground (plist-get theme_Ctype :fg)
                         :background (plist-get theme_Ctype :bg))
-    (popup-tip feedback :point (point) :margin 1)
+    (popup-tip feedback :point (point) :margin 1 :truncate t)
     (set-face-attribute 'popup-tip-face nil
                         :foreground (car $pface_temp)
                         :background (cdr $pface_temp))))
@@ -1120,7 +1191,7 @@ string with sdcv cli."
 
 ;;;###autoload
 (defun entropy/sdcv-search-input-adjacent ()
-    "Mainly interactive func for search with inputted querying
+  "Mainly interactive func for search with inputted querying
 string with sdcv cli."
   (interactive)
   (let* ((dict (entropy/sdcv--choose-dict))

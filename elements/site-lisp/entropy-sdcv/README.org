@@ -1,21 +1,38 @@
-# Local Variables:
-# fill-column: 70
-# org-adapt-indentation: nil
-# org-download-image-dir: "./img/"
-# eval: (auto-fill-mode)
-# End:
-#+title: entropy-sdcv
-#+author: Entropy
+# Created 2019-10-23 Wed 20:29
+#+TITLE: entropy emacs sdcv front-end
+#+AUTHOR: entropy
+Copyright (C) 20181211  Entropy
 
-* Preamble
-:PROPERTIES:
-:CUSTOM_ID: h-2aee4d32-27fa-4237-bbf2-f5544adf63c4
-:END:
+Author:           Entropy <bmsac0001@gmail.com>
+Maintainer:       Entropy <bmsac001@gmail.com>
+URL:              https://github.com/c0001/entropy-sdcv
+Package-Version:  20191023.2003
+Version:          0.1.1
+Created:          2018-12-11 12:48:04
+Keywords:         sdcv
+Compatibility:    GNU Emacs 26.1;
+Package-Requires: ((emacs "24") (cl-lib "0.5") (entropy-common-library "0.1.0") (popup "0.5.3") (f "0.20.0") (youdao-dictionary "0.4") (bing-dict) (google-translate) (posframe "0.5.0") (pos-tip) (tooltip))
 
-Sdcv was one cli wide-dicts query tool. It was derived from the
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+* Commentary:
+
+** Preamble
+=sdcv= was one cli wide-dicts query tool. It was derived from the
 opensource e-dict application [[http://www.huzheng.org/stardict/][startdict]] founded by [[http://huzheng.org/][Huzheng]].
 
-Sdcv can parse stardict e-dict formt and return through the cli
+=sdcv= can parse stardict e-dict formt and return through the cli
 response, various internal optional args can charge the reponse type
 and the query style, ~sdcv --help~ gives you the prompts.
 
@@ -24,19 +41,15 @@ written and aims that help you quickly query words within emacs buffer
 without any window exchanging and be using the offline dict instead of
 retrieving the response from online dict server e.g. bing-dic or
 google-translation. This package inspired by [[https://github.com/manateelazycat/sdcv][manateelazycat's sdcv]]
-package, but reducing some unnecessary feature and rebuild from fresh.
+package, but reducing some unnecessary feature and rebuild from fresh
+new coding context.
 
-Before using and configuring this package, you should some common
-basic command interaction of it's backend sdcv for understanding some
-effection and the terms of this package. Below subsection shows what
-about this.
+Before using and configuring this package, you should learn some
+common basic command interaction of it's backend sdcv for
+understanding some effection and the running mechanism of this
+package. Below subsection shows what about this.
 
-
-** Sdcv interaction:
-:PROPERTIES:
-:CUSTOM_ID: h-809ff094-b70d-40cd-84d2-1e2c0d4bfc51
-:END:
-
+*** =sdcv= interaction:
 sdcv is simple, cross-platform text-base utility for work with
 dictionaries in StarDict's format. The word from "list of words" may
 be string with leading '/' for using Fuzzy search algorithm, string
@@ -65,9 +78,8 @@ Application Options:
   -2, --data-dir=path/to/dir     use this directory as path to stardict data directory
   -x, --only-data-dir            only use the dictionaries in data-dir, do not search in user and system directories
   -c, --color                    colorize the output
+#+END_EXAMPLE
 
-#+END_EXAMPLE 
- 
 The basic query operation can be done with (query 'apple' for demo):
 #+BEGIN_EXAMPLE
 $ sdcv apple
@@ -89,11 +101,7 @@ apple of (one's) eye
 Her grandson is the apple of her eye.  她的孫子是她的至寶
 #+END_EXAMPLE
 
-** Sdcv dicts choosen
-:PROPERTIES:
-:CUSTOM_ID: h-59d86f4e-8b76-4a37-8cbb-3583ecbb7e54
-:END:
-
+*** =sdcv= dicts choosen
 *Valid dict:*
 
 All stardict dicts has its dir structure, which was one dimension
@@ -107,7 +115,7 @@ necessary:
 
 *Default:*
 
-Sdcv default using the dict archived with searching for environment
+=sdcv= default using the dict archived with searching for environment
 variable =STARDICT_DATA_DIR=, and get the dict info under its 'dict'
 dir , thus if your set this envrionmet be as =~/.stardict=, then it
 will will search your querying about by the dict under
@@ -115,9 +123,10 @@ will will search your querying about by the dict under
 
 *Realtime specification:*
 
-Sdcv optional arg =-2= gives the description that "use this directory
-as path to stardict data directory", thus you get the ability to
-search for individual dict, this as one demo from my eshell:
+=sdcv= optional arg =-2= gives the description that "use this
+directory as path to stardict data directory", thus you get the
+ability to search for individual dict, this as one demo from my
+eshell:
 
 #+BEGIN_EXAMPLE
 ~/.e/e/s/entropy-sdcv/ $ sdcv apple -2 ~/.stardict/stardict-xdict-ec-big5_fix-2.4.2/
@@ -130,36 +139,39 @@ n. 蘋果,蘋果電腦公司;人,家伙;手榴彈
 #+END_EXAMPLE
 
 
-* Requirements
-:PROPERTIES:
-:CUSTOM_ID: h-5259b341-5966-4fbd-a14e-dcba4c8b81df
-:END:
-
+** Requirements
 There's sets of melpa emacs extensions are required as the api
 provider for this package:
 
+- [[https://github.com/pitkali/pos-tip][pos-tip]]:
+
+  Show query response with tooltip sub-window by emacs builtin
+  ~x-show-tip~ as the subroutine, used in *graphic* session only,
+  support emacs version above(include) 22.
+
 - [[https://github.com/tumashu/posframe/tree/d141d56d1c747bca51f71f04fdb9d4d463996401][posframe]]: 
 
-  show query response with tooltip sub-window if on emacs-version
-  upper than 26.
+  show query response with tooltip sub-window by emacs builtin
+  =child-frame= feature if on emacs-version upper than 26.
 
 - [[https://github.com/auto-complete/popup-el/tree/80829dd46381754639fb764da11c67235fe63282][popup]]:
 
   show query response with tooltip sub-window in generally
-  emacs-version whichever you ran with.
+  emacs-version whichever you ran with without graphic display session
+  limitation.
 
 - json:
 
-  Parse sdcv's json response, it usually be built-in with. 
+  Parse sdcv's json response, it usually be built-in with.
 
 - [[http://github.com/rejeep/f.el][f]]
 
-  Working for file based operation. 
+  Working for file based operation.
 
 - cl:
 
   Get some common-lisp featuer, this usually be as built-in feature.
- 
+
 - [[https://github.com/xuchunyang/youdao-dictionary.el][youdao-dictionary]]
 
   Be as the optioanl exteranl online query channel when no sdcv
@@ -177,16 +189,12 @@ provider for this package:
 
 
 Also as other entropy-built package, the package
-=entropy-common-library= was required on the core position, you can
-get it from entropy-emacs repositor.
+[[https://github.com/c0001/entropy-common-library][entropy-common-library]] was required on the core position, you can get
+it from entropy-emacs repositor.
 
-* Dependencies
-:PROPERTIES:
-:CUSTOM_ID: h-599612f8-33fc-4be9-bf42-fd18eb05c016
-:END:
-
+** Dependencies
 The external dependency required was only one =sdcv=, you should get
-it from [[https://github.com/Dushistov/sdcv][github]] and compile and install it by you self. 
+it from [[https://github.com/Dushistov/sdcv][github]] and compile and install it by you self.
 
 It quiet simple for the way of compiling on unix-like platform:
 
@@ -196,13 +204,13 @@ It quiet simple for the way of compiling on unix-like platform:
   cd /tmp/build-sdcv
   cmake path/to/source/code/of/sdcv
   make
-
+  
   # If you enable nls then you should also type
   make lang
-
+  
   # To install
   make install
-#+END_SRC 
+#+END_SRC
 
 *Build on windows:*
 
@@ -215,18 +223,14 @@ run it within this posix environment.
 
 Fist of all, install [[https://www.msys2.org/][Msys2]] in your PC and clone the minor patched
 version of sdcv from [[https://github.com/c0001/sdcv][c0001/sdcv]] with the =patch= branch, and then
-build using Msys tool chain by satisfying all the dependencies
-founded the description in repo's README.
+build using Msys tool chain by satisfying all the dependencies founded
+the description in repo's README.
 
-* Installation
-:PROPERTIES:
-:CUSTOM_ID: h-8e9efb70-4fa5-4556-a143-7b58ab8009fa
-:END:
-
+** Installation
 For famous emacs package configuration management tool =use-package=
 you can using below coding snippet:
 
-#+BEGIN_SRC  emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package entropy-sdcv
     :ensure nil
     :path "path-to-your-load-path"
@@ -260,56 +264,45 @@ And then advice the each entropy-sdcv interaction command as:
     (advice-add 'entropy/sdcv-search-input-adjacent :before #'my/sdcv--lang-advice))
 #+END_SRC
 
-
-
 * Configuration
-:PROPERTIES:
-:CUSTOM_ID: h-ec2ff0d8-4223-48f5-b4e9-6ff1b9450df3
-:END:
+=entropy-sdcv= exposed dozen of customized feature for user to specify
+along with their own taste. For the customizing level dividing into
+what, I gives below customized level categories for understanding and
+got the proper way of selecting which level you should give a try.
 
-=entropy-sdcv= exposed dozen of customized feature for user to
-specify along with their own taste. For the customizing level dividing
-into what, I gives below customized level categories for understanding
-and got the proper way of selecting which level you should give a try. 
-
-** Classical  suggested configuration  
-:PROPERTIES:
-:CUSTOM_ID: h-95394510-3e8b-4370-9424-6d1bc5b17b6b
-:END:
-
+** Classical  suggested configuration
 - =entropy/sdcv-user-dicts= : Specified your sdcv dict collection
   directory location.
 
   As mentionded upons sections, this variale's default value is
   "~/.stardict" which contain the dicts collections structed as:
   #+BEGIN_EXAMPLE
-    .
-    ├── stardict-21shijishuangxiangcidian-big5-2.4.2
-    ├── stardict-21shijishuangyukejicidian-big5-2.4.2
-    ├── stardict-2wwords-2.4.2
-    ├── stardict-CDICTbig-2.4.2
-    ├── stardict-cdict-big5-2.4.2
-    ├── stardict-cedict-big5-2.4.2
-    ├── stardict-chenyixiaofoxuechangjiancihui-2.4.2
-    ├── stardict-eng-ch-eng-buddhist-2.4.2
-    ├── stardict-faxiangcidian-big5-2.4.2
-    ├── stardict-foguangdacidian-big5-2.4.2
-    ├── stardict-foxuedacidian-big5-2.4.2
-    ├── stardict-handedict-big5-2.4.2
-    ├── stardict-kdic-ec-14w-big5-2.4.2
-    ├── stardict-langdao-ce-big5-2.4.2
-    ├── stardict-langdao-ec-big5-2.4.2
-    ├── stardict-lazyworm-ce-big5-2.4.2
-    ├── stardict-lazyworm-ec-big5-2.4.2
-    ├── stardict-oxford-big5-2.4.2
-    ├── stardict-sanzunfasu-2.4.2
-    ├── stardict-soothill-buddhist-2.4.2
-    ├── stardict-sun_dict_e2t-2.4.2
-    ├── stardict-xdict-ce-big5_fix-2.4.2
-    ├── stardict-xdict-ce-big5-2.4.2
-    ├── stardict-xdict-ec-big5_fix-2.4.2
-    └── stardict-xdict-ec-big5-2.4.2
-
+  .
+  ├── stardict-21shijishuangxiangcidian-big5-2.4.2
+  ├── stardict-21shijishuangyukejicidian-big5-2.4.2
+  ├── stardict-2wwords-2.4.2
+  ├── stardict-CDICTbig-2.4.2
+  ├── stardict-cdict-big5-2.4.2
+  ├── stardict-cedict-big5-2.4.2
+  ├── stardict-chenyixiaofoxuechangjiancihui-2.4.2
+  ├── stardict-eng-ch-eng-buddhist-2.4.2
+  ├── stardict-faxiangcidian-big5-2.4.2
+  ├── stardict-foguangdacidian-big5-2.4.2
+  ├── stardict-foxuedacidian-big5-2.4.2
+  ├── stardict-handedict-big5-2.4.2
+  ├── stardict-kdic-ec-14w-big5-2.4.2
+  ├── stardict-langdao-ce-big5-2.4.2
+  ├── stardict-langdao-ec-big5-2.4.2
+  ├── stardict-lazyworm-ce-big5-2.4.2
+  ├── stardict-lazyworm-ec-big5-2.4.2
+  ├── stardict-oxford-big5-2.4.2
+  ├── stardict-sanzunfasu-2.4.2
+  ├── stardict-soothill-buddhist-2.4.2
+  ├── stardict-sun_dict_e2t-2.4.2
+  ├── stardict-xdict-ce-big5_fix-2.4.2
+  ├── stardict-xdict-ce-big5-2.4.2
+  ├── stardict-xdict-ec-big5_fix-2.4.2
+  └── stardict-xdict-ec-big5-2.4.2
   #+END_EXAMPLE
 
   Each subfolder of it was one dict folder structed as the description
@@ -334,10 +327,6 @@ and got the proper way of selecting which level you should give a try.
   path by setting =entropy/sdcv-program= as the path string.
 
 ** Useful minor feature configuration
-:PROPERTIES:
-:CUSTOM_ID: h-b8dcaa05-788f-4292-acbe-a2400edb705c
-:END:
-
 - =entropy/sdcv-command-prefix= : extra sdcv optioanl args transfer to
   shell commmand.
 
@@ -350,12 +339,16 @@ and got the proper way of selecting which level you should give a try.
   matching words quried about, you can sets varible to =-e=.
 
 - =entropy/sdcv-tooltip-type= : Chosen the tooltip type with 'popup'
-  or 'posframe' type.
+  'posframe' or 'pos-tip' type.
 
-  The sdcv response string container type. By default, when
-  ‘emacs-version’ less than ’26.1’ using ’popup’ else than using
-  ’posframe, because posframe using emacs featuer chiled-frame which
-  built-in on the version upper than thus.
+  By default, when `emacs-version' less than '26.1' using 'popup' or
+  'pos-tip' else than using 'posframe', because posframe using emacs
+  featuer chiled-frame which built-in on the version upper than thus.
+
+  Note:
+
+  When using terminal based UI, limition of `posframe' and 'pos-tip'
+  will not be supported for, forcing defaultly set it to 'popup'."
 
 - =entropy/sdcv-external-query-type= : Chosen the external dict type.
 
@@ -366,8 +359,20 @@ and got the proper way of selecting which level you should give a try.
   [[https://github.com/atykhonov/google-translate/tree/17a1ddc074b96cdc3b8199ccb06824a7a95bf9ff][google-translation]].
 
   The valid value of this variable was (symbol type):
-  1. ’youdao 
+  1. ’youdao
   2. ’bing
   3. ’google
+
+
+
+* Chanage log
+
+2019/10/23
+- version v0.1.1 pop out
+  - Using new auto-gen's tooltip face render
+  - Add `pos-tip' tooltip type.
+
+2018/12/11
+- First release pop out v0.1.0
 
 
