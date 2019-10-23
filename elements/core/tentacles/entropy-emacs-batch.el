@@ -129,8 +129,8 @@
       (entropy/emacs-batch--install-coworkers)
       ;; make dump file
       (setq entropy/emacs-make-session-make-out t)
+      (entropy/emacs-batch--prompts-for-dump-section)
       (when (yes-or-no-p "Make pdumper file? ")
-        (entropy/emacs-batch--prompts-for-dump-section)
         (entropy/emacs-batch--dump-emacs)))
      
      ((equal type "Install")
