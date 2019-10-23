@@ -867,7 +867,7 @@ emacs."
   :commands (entropy-grom-mode)
   :init
   (entropy/emacs-lazy-initial-advice-before
-   '(find-file push-button)
+   '(find-file push-button find-library-name)
    "entropy-grom"
    "entropy-grom"
    (entropy-grom-mode +1)))

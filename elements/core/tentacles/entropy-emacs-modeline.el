@@ -276,25 +276,17 @@ entropy-emacs using all file state icos show side by side. "
                      (and (fboundp 'fancy-narrow-active-p)
                           (fancy-narrow-active-p)))
              (doom-modeline-buffer-file-state-icon
-              "vertical_align_center"
-              "><"
-              'doom-modeline-warning))
+              "vertical_align_center" "↕" "><" 'doom-modeline-warning))
            (when buffer-read-only
              (doom-modeline-buffer-file-state-icon
-              "lock"
-              "%1*"
-              'doom-modeline-warning))
+              "lock" "🔒" "%1*" 'doom-modeline-warning))
            (when (buffer-modified-p)
              (doom-modeline-buffer-file-state-icon
-              "save"
-              "%1*"
-              'doom-modeline-buffer-modified))
+              "save" "💾" "%1*" 'doom-modeline-buffer-modified))
            (when (and buffer-file-name
                       (not (file-exists-p buffer-file-name)))
              (doom-modeline-buffer-file-state-icon
-              "do_not_disturb_alt"
-              "!"
-              'doom-modeline-urgent))
+              "do_not_disturb_alt" "🚫" "!" 'doom-modeline-urgent))
            "")))
 
   ;; narrow region adviced by doom-modeline icon dynamic features
