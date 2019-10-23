@@ -108,6 +108,23 @@
       (funcall (cdr el))
       (cl-incf count))))
 
+;; *** backup `package-user-dir'
+(defun entropy/emacs-batch--backup-extensions ()
+  (let* ((host-path (file-name-directory package-user-dir))
+         (archive (file-name-nondirectory package-user-dir))
+         (time-stamp (format-time-string "%Y%m%d%H%M%S"))
+         (archive-bck (concat archive "_" time-stamp))
+         (bcknew (expand-file-name archive-bck host-path)))
+    (entropy/emacs-message-do-message
+     (green "Backup `package-user-dir' ..."))
+    (copy-directory package-user-dir
+                    bcknew)
+    (entropy/emacs-message-do-message
+     "%s %s %s"
+     (green "Backup to")
+     (yellow (format "'%s'" bcknew))
+     (green "completely!"))))
+
 ;; ** interactive
 (when (and (entropy/emacs-ext-main)
            (null entropy/emacs-make-session-make-out))
@@ -123,6 +140,7 @@
         (entropy/emacs-package-install-all-packages)
         (entropy/emacs-batch--prompts-for-ext-update-section)
         (when (yes-or-no-p "Update packages? ")
+          (entropy/emacs-batch--backup-extensions)
           (entropy/emacs-package-update-all-packages)))
       ;; install coworkes
       (entropy/emacs-batch--prompts-for-coworkers-installing-section)
@@ -144,6 +162,7 @@
           (entropy/emacs-message-do-error
            (red "You haven't install packages, can not do updating, abort!"))
         (entropy/emacs-batch--prompts-for-ext-update-section)
+        (entropy/emacs-batch--backup-extensions)
         (entropy/emacs-package-update-all-packages)))
      (t
       (entropy/emacs-message-do-error
