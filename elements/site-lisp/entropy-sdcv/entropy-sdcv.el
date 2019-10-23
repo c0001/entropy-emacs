@@ -764,7 +764,7 @@ Otherwise return word around point."
 (defun entropy/sdcv--query-with-youdao (query show-type)
   (cl-case show-type
     (tooltip
-     (entropy/sdcv--show-with-popup (youdao-dictionary--format-result query)))
+     (entropy/sdcv--show-with-tooltip (youdao-dictionary--format-result query)))
     (adjacent
      (youdao-dictionary-search query)))
   nil)
@@ -773,7 +773,7 @@ Otherwise return word around point."
 (defun entropy/sdcv--query-with-bing (query show-type)
   (cl-case show-type
     (tooltip
-     (entropy/sdcv--show-with-popup (entropy/sdcv--bing-dict-url-retrieve query)))
+     (entropy/sdcv--show-with-tooltip (entropy/sdcv--bing-dict-url-retrieve query)))
     (adjacent
      (with-current-buffer (get-buffer-create entropy/sdcv--bing-adjacent-buffer)
        (erase-buffer)
