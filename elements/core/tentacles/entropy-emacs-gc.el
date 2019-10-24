@@ -61,13 +61,12 @@
                              t #'entropy/emacs-gc--idle-time-recovery)))
 
 (defun entropy/emacs-gc--focus-in-reset ()
-  (garbage-collect)
-  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
   (entropy/emacs-gc--init-idle-gc entropy/emacs-garbage-collection-delay))
 
 (defun entropy/emacs-gc--focus-out-hook ()
   (garbage-collect)
-  (setq gc-cons-threshold 800000)
+  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
+  (garbage-collect)
   (when (timerp entropy/emacs-garbage-collect-idle-timer)
     (cancel-timer entropy/emacs-garbage-collect-idle-timer)
     (setq entropy/emacs-garbage-collect-idle-timer nil)))
