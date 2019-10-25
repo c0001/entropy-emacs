@@ -582,14 +582,7 @@ destructively or display with truncated occur.")
 
 ;;;; library
 ;;;;; common library
-(defvar entropy/sdcv--call-sdcv-refer-is-errored nil)
-(defun entropy/sdcv--call-sdcv-refer-error-message (format-string &rest args)
-  (unless entropy/sdcv--call-sdcv-refer-is-errored
-    (apply 'message format-string args)
-    (setq entropy/sdcv--call-sdcv-refer-is-errored t))
-  (message "Using external dict querying due to unavailable common procedure."))
-
-;;;;; lang envrionment pre check
+;;;;;; lang envrionment pre check
 (defun entropy/sdcv--set-specific-lang-env ()
   (unless (equal entropy/sdcv--specific-lang
                  (getenv "LANG"))
@@ -613,6 +606,160 @@ the subject of utf-8 group."
   (entropy/sdcv--set-specific-lang-env)
   (apply oldfunc args)
   (entropy/sdcv--recovery-user-origin-lang-env))
+
+;;;;;; error spec prompt 
+(defvar entropy/sdcv--call-sdcv-refer-is-errored nil)
+(defun entropy/sdcv--call-sdcv-refer-error-message (format-string &rest args)
+  (unless entropy/sdcv--call-sdcv-refer-is-errored
+    (apply 'message format-string args)
+    (setq entropy/sdcv--call-sdcv-refer-is-errored t))
+  (message "Using external dict querying due to unavailable common procedure."))
+
+;;;;;; string obtains
+(defun entropy/sdcv--get-word-or-region ()
+  "Return region or word around point.
+If `mark-active' on, return region string.
+Otherwise return word around point."
+  (if mark-active
+      (buffer-substring-no-properties (region-beginning)
+                                      (region-end))
+    (thing-at-point 'word t)))
+
+;;;;;; shell command
+(defun entropy/sdcv--shell-transfer (str dict-path &optional json-exp)
+  (let (command
+        response
+        (default-directory
+          (cond
+           ((eq system-type 'windows-nt)
+            (getenv "temp"))
+           (t "/tmp/"))))
+    (cond
+     ((not (listp dict-path))
+      (setq command (format "%s %s %s -n %s -2 %s"
+                            entropy/sdcv-program
+                            (if entropy/sdcv-command-prefix
+                                entropy/sdcv-command-prefix
+                              "")
+                            (if json-exp
+                                "-j"
+                              "")
+                            str dict-path)))
+     ((listp dict-path) (error "Multi dicts support was under development ...")))
+    (setq response (shell-command-to-string command)
+          entropy/sdcv--response-log response)
+    response))
+
+;;;;;; query rebuit
+
+(defun entropy/sdcv--query-rebuit (str)
+  "Rebuilt the query string for be suits as the sdcv receive type
+which can be reducing unmatching probabilities.
+
+Note: now this func was under-development and just simply
+downcase the query string."
+  (let (rtn)
+    (setq rtn (downcase str))
+    (setq entropy/sdcv--query-log rtn)
+    rtn))
+
+
+;;;;;; response filter
+;;;;;;; generic (under development)
+;;;;;;; json port
+(defun entropy/sdcv--extract-json-response (json-response)
+  "Extracting sdcv json response object string for filterable
+with lisp processing. And return the response final feedback
+string used for tooltip or adjacent buffer shown for. See also
+core func `entropy/sdcv--parse-response-json'.  
+"
+  (let* ((json-list-ob (entropy/sdcv--parse-response-json json-response))
+         rtn)
+    (if (eq json-list-ob t)
+        (setq rtn t)
+      (setq word (car json-list-ob))
+      (setq def (nth 1 json-list-ob))
+      (setq def-overflow (nth 2 json-list-ob))               
+      (cond ((and word def)
+             (when (and def-overflow
+                        (or entropy/sdcv--show-response-in-adjacently
+                            (not (eq entropy/sdcv-tooltip-type 'popup))))
+               (setq def (entropy/cl-truncate-string-with-length
+                          def
+                          entropy/sdcv--response-column-width-max
+                          def-overflow)))
+             (let* ((word-count (string-width word))
+                    (dress-line (entropy/cl-concat-char "-" (+ 3 word-count))))
+               (setq rtn (concat dress-line "\n"
+                                 "⏺ " word "\n"
+                                 dress-line
+                                 "\n" def))))
+            (t (setq rtn entropy/sdcv--response-null-prompt))))
+    rtn))
+
+(defun entropy/sdcv--parse-response-json (json-response)
+  "Core json object parsing func for
+`entropy/sdcv--extract-json-response', which using `mapcar' for
+mapping for the json lisp corresponding vector parsed by
+`json-read-from-string' with callbacks func
+`entropy/sdcv--parse-json-info' and returned it's alist, or t if
+with fuzzy match and confirm for fetch with other approach..
+
+Example: 
+
+  Sdcv query condition case arg '-j' will response the result with
+  json object string which structed as:
+
+  [{
+    \"dict\": \"朗道英漢字典5.0\",
+    \"word\": \"tooltips\",
+    \"definition\": \"n【計】 工具提示\"
+  }, {
+    \"dict\": \"朗道英漢字典5.0\",
+    \"word\": \"toolkit\",
+    \"definition\": \"n【計】 工具包\"
+  }]
+
+  It's fuzzy match with un-explicitly one, then popup the
+  confirmation with two mentod:
+  - Query by using another approach (return t)
+  - Choose one fuzzy matched candidate (return normal as explicitly procedure) 
+  "
+  (let* ((jsob (json-read-from-string json-response))
+         (jsob-alist (mapcar 'entropy/sdcv--parse-json-info
+                             jsob))
+         rtn)
+    (if (> (length jsob-alist) 1)
+        (setq rtn
+              (or
+               (yes-or-no-p
+                (format (propertize
+                         "Can not exactly match for world '%s'? \nsearch web[yes] or see similar canis[no]: "
+                                    'face 'error)
+                        (propertize (concat " " entropy/sdcv--query-log " ")
+                                    'face
+                                    'entropy/sdcv-box-face)))
+               (assoc (completing-read "choose similar word: "
+                                       jsob-alist
+                                       nil t)
+                      jsob-alist)))
+      (setq rtn (car jsob-alist)))
+    rtn))
+
+(defun entropy/sdcv--parse-json-info (json-object-el)
+  "Parsing sdcv json lisp object with definition str square model
+analyzing based on max width specified by
+`entropy/sdcv--response-column-width-max'.
+
+Return value as list as sexp (list word def def-width-overflow-lines)."
+  (let* ((word (cdr (assoc 'word json-object-el)))
+         (def (cdr (assoc 'definition json-object-el)))
+         (def-width (entropy/cl-get-string-max-width def entropy/sdcv--response-column-width-max))
+         (def-width-overflow-lines (plist-get def-width :match-overflow-lines) )
+         rtn)
+    (setq rtn (list word def def-width-overflow-lines))
+    rtn))
+
 
 ;;;;; sdcv dictionaries looking up
 ;;;;;; dictionary auto search
@@ -775,16 +922,6 @@ query dict recalling this again."
       chosen)
     entropy/sdcv--stick-dict))
 
-;;;;; string obtains
-(defun entropy/sdcv--get-word-or-region ()
-  "Return region or word around point.
-If `mark-active' on, return region string.
-Otherwise return word around point."
-  (if mark-active
-      (buffer-substring-no-properties (region-beginning)
-                                      (region-end))
-    (thing-at-point 'word t)))
-
 ;;;;; external dict query
 (defun entropy/sdcv--query-with-external (query show-type app-type)
   "The tuned dispatcher for `entropy/sdcv--command-router' for
@@ -925,200 +1062,7 @@ Otherwise return word around point."
     (adjacent
      (google-translate-translate "auto" entropy/sdcv-source-language query))))
 
-;;;;; command transfer
-;;;;;; shell port
-(defun entropy/sdcv--shell-transfer (str dict-path &optional json-exp)
-  (let (command
-        response
-        (default-directory
-          (cond
-           ((eq system-type 'windows-nt)
-            (getenv "temp"))
-           (t "/tmp/"))))
-    (cond
-     ((not (listp dict-path))
-      (setq command (format "%s %s %s -n %s -2 %s"
-                            entropy/sdcv-program
-                            (if entropy/sdcv-command-prefix
-                                entropy/sdcv-command-prefix
-                              "")
-                            (if json-exp
-                                "-j"
-                              "")
-                            str dict-path)))
-     ((listp dict-path) (error "Multi dicts support was under development ...")))
-    (setq response (shell-command-to-string command)
-          entropy/sdcv--response-log response)
-    response))
-
-;;;;;; command router
-(defun entropy/sdcv--command-router (str dict-path show-type)
-  "Router for query with while the state both of matching
-response or non-matched of sdcv cli and the state when query
-string was sentence which not suitable for doing with sdcv as
-then querying them from other external dict application defined
-internal in `entropy/sdcv--query-with-external'.
-
-Note: On windows platform, multibyte query was not supported
-withs sdcv cli even if the query string was single word e.g. cjk
-char string as. Because of that windows using code-page for
-decoding each char in command line shell 'cmd', and emacs just
-supported encoding query args with locale codepage for it, which
-means for example that when you locale code page was 'gbk' that
-the query string will be sent with code encoding format with
-'gbk' to sdcv cli even if you using `encode-coding-string' to
-forcefully encoding query string to 'utf-8', but sdcv just
-supportting recieving 'utf-8' query as. For such detailes see
-emacs mailing list
-https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00406.html.
-
-Or you can enable WIN10 new beta option for globally UTF-8 support.
-"
-  (let (str-single-p
-        (str-list (split-string str " " t))
-        shell-response
-        (entropy/sdcv--show-response-in-adjacently
-         (if (eq show-type 'adjacent) t nil))
-        (multibyte-p
-         (let ($return (str-elist (split-string str "" t)) (str-count 0))
-           (dolist (el str-elist)
-             (cl-incf str-count))
-           (when (> (string-width str) str-count)
-             (setq $return t))
-           $return)))
-    (if (> (length str-list) 1)
-        (setq str-single-p 'nil)
-      (setq str-single-p 't))
-    (cond
-     ((or (and (not str-single-p) (message "Query setence from external dict due to sdcv limitaion!"))
-          (and (or (null dict-path)
-                   (not (file-exists-p dict-path)))
-               (entropy/sdcv--call-sdcv-refer-error-message
-                "Non-valid sdcv dict path or not set! quering from external dict automatically!")))
-      (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type))
-     ((and (and (eq system-type 'windows-nt)
-                (not (eq w32-ansi-code-page 65001)))
-           multibyte-p)
-      (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
-      (message (concat "Emacs on windows does not support multibye args transfer to process,"
-                       "thus using network query instead.")))
-     (t
-      (setq shell-response
-            (entropy/sdcv--shell-transfer
-             str dict-path t))
-      (if (or (equal shell-response "[]\n")
-              (or (string-match-p "^Nothing similar to" shell-response)
-                  (string-match-p "sorry :(" shell-response)))
-          (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
-        (let ((feedback (entropy/sdcv--extract-json-response shell-response)))
-          (if (eq feedback t)
-              (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
-            (when entropy/sdcv--call-sdcv-refer-is-errored
-              (setq entropy/sdcv--call-sdcv-refer-is-errored nil))
-            (cond
-             ((eq show-type 'tooltip)
-              (entropy/sdcv--show-with-tooltip feedback))
-             ((eq show-type 'adjacent)
-              (entropy/sdcv--show-with-buffer feedback))))))))))
-
-;;;;; command response show
-;;;;;; response filter
-;;;;;;; generic (under development)
-;;;;;;; json port
-(defun entropy/sdcv--extract-json-response (json-response)
-  "Extracting sdcv json response object string for filterable
-with lisp processing. And return the response final feedback
-string used for tooltip or adjacent buffer shown for. See also
-core func `entropy/sdcv--parse-response-json'.  
-"
-  (let* ((json-list-ob (entropy/sdcv--parse-response-json json-response))
-         rtn)
-    (if (eq json-list-ob t)
-        (setq rtn t)
-      (setq word (car json-list-ob))
-      (setq def (nth 1 json-list-ob))
-      (setq def-overflow (nth 2 json-list-ob))               
-      (cond ((and word def)
-             (when (and def-overflow
-                        (or entropy/sdcv--show-response-in-adjacently
-                            (not (eq entropy/sdcv-tooltip-type 'popup))))
-               (setq def (entropy/cl-truncate-string-with-length
-                          def
-                          entropy/sdcv--response-column-width-max
-                          def-overflow)))
-             (let* ((word-count (string-width word))
-                    (dress-line (entropy/cl-concat-char "-" (+ 3 word-count))))
-               (setq rtn (concat dress-line "\n"
-                                 "⏺ " word "\n"
-                                 dress-line
-                                 "\n" def))))
-            (t (setq rtn entropy/sdcv--response-null-prompt))))
-    rtn))
-
-(defun entropy/sdcv--parse-response-json (json-response)
-  "Core json object parsing func for
-`entropy/sdcv--extract-json-response', which using `mapcar' for
-mapping for the json lisp corresponding vector parsed by
-`json-read-from-string' with callbacks func
-`entropy/sdcv--parse-json-info' and returned it's alist, or t if
-with fuzzy match and confirm for fetch with other approach..
-
-Example: 
-
-  Sdcv query condition case arg '-j' will response the result with
-  json object string which structed as:
-
-  [{
-    \"dict\": \"朗道英漢字典5.0\",
-    \"word\": \"tooltips\",
-    \"definition\": \"n【計】 工具提示\"
-  }, {
-    \"dict\": \"朗道英漢字典5.0\",
-    \"word\": \"toolkit\",
-    \"definition\": \"n【計】 工具包\"
-  }]
-
-  It's fuzzy match with un-explicitly one, then popup the
-  confirmation with two mentod:
-  - Query by using another approach (return t)
-  - Choose one fuzzy matched candidate (return normal as explicitly procedure) 
-  "
-  (let* ((jsob (json-read-from-string json-response))
-         (jsob-alist (mapcar 'entropy/sdcv--parse-json-info
-                             jsob))
-         rtn)
-    (if (> (length jsob-alist) 1)
-        (setq rtn
-              (or
-               (yes-or-no-p
-                (format (propertize
-                         "Can not exactly match for world '%s'? \nsearch web[yes] or see similar canis[no]: "
-                                    'face 'error)
-                        (propertize (concat " " entropy/sdcv--query-log " ")
-                                    'face
-                                    'entropy/sdcv-box-face)))
-               (assoc (completing-read "choose similar word: "
-                                       jsob-alist
-                                       nil t)
-                      jsob-alist)))
-      (setq rtn (car jsob-alist)))
-    rtn))
-
-(defun entropy/sdcv--parse-json-info (json-object-el)
-  "Parsing sdcv json lisp object with definition str square model
-analyzing based on max width specified by
-`entropy/sdcv--response-column-width-max'.
-
-Return value as list as sexp (list word def def-width-overflow-lines)."
-  (let* ((word (cdr (assoc 'word json-object-el)))
-         (def (cdr (assoc 'definition json-object-el)))
-         (def-width (entropy/cl-get-string-max-width def entropy/sdcv--response-column-width-max))
-         (def-width-overflow-lines (plist-get def-width :match-overflow-lines) )
-         rtn)
-    (setq rtn (list word def def-width-overflow-lines))
-    rtn))
-
-
+;;;;; result show
 ;;;;;; response adjacent buffer show
 
 (defun entropy/sdcv--show-with-buffer (feedback)
@@ -1230,19 +1174,75 @@ This func was automatically added into `post-command-hook' by
                         :background (cdr $pface_temp))))
 
 
-;;;;; query rebuit
+;;;;; command router
+(defun entropy/sdcv--command-router (str dict-path show-type)
+  "Router for query with while the state both of matching
+response or non-matched of sdcv cli and the state when query
+string was sentence which not suitable for doing with sdcv as
+then querying them from other external dict application defined
+internal in `entropy/sdcv--query-with-external'.
 
-(defun entropy/sdcv--query-rebuit (str)
-  "Rebuilt the query string for be suits as the sdcv receive type
-which can be reducing unmatching probabilities.
+Note: On windows platform, multibyte query was not supported
+withs sdcv cli even if the query string was single word e.g. cjk
+char string as. Because of that windows using code-page for
+decoding each char in command line shell 'cmd', and emacs just
+supported encoding query args with locale codepage for it, which
+means for example that when you locale code page was 'gbk' that
+the query string will be sent with code encoding format with
+'gbk' to sdcv cli even if you using `encode-coding-string' to
+forcefully encoding query string to 'utf-8', but sdcv just
+supportting recieving 'utf-8' query as. For such detailes see
+emacs mailing list
+https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00406.html.
 
-Note: now this func was under-development and just simply
-downcase the query string."
-  (let (rtn)
-    (setq rtn (downcase str))
-    (setq entropy/sdcv--query-log rtn)
-    rtn))
-
+Or you can enable WIN10 new beta option for globally UTF-8 support.
+"
+  (let (str-single-p
+        (str-list (split-string str " " t))
+        shell-response
+        (entropy/sdcv--show-response-in-adjacently
+         (if (eq show-type 'adjacent) t nil))
+        (multibyte-p
+         (let ($return (str-elist (split-string str "" t)) (str-count 0))
+           (dolist (el str-elist)
+             (cl-incf str-count))
+           (when (> (string-width str) str-count)
+             (setq $return t))
+           $return)))
+    (if (> (length str-list) 1)
+        (setq str-single-p 'nil)
+      (setq str-single-p 't))
+    (cond
+     ((or (and (not str-single-p) (message "Query setence from external dict due to sdcv limitaion!"))
+          (and (or (null dict-path)
+                   (not (file-exists-p dict-path)))
+               (entropy/sdcv--call-sdcv-refer-error-message
+                "Non-valid sdcv dict path or not set! quering from external dict automatically!")))
+      (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type))
+     ((and (and (eq system-type 'windows-nt)
+                (not (eq w32-ansi-code-page 65001)))
+           multibyte-p)
+      (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
+      (message (concat "Emacs on windows does not support multibye args transfer to process,"
+                       "thus using network query instead.")))
+     (t
+      (setq shell-response
+            (entropy/sdcv--shell-transfer
+             str dict-path t))
+      (if (or (equal shell-response "[]\n")
+              (or (string-match-p "^Nothing similar to" shell-response)
+                  (string-match-p "sorry :(" shell-response)))
+          (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
+        (let ((feedback (entropy/sdcv--extract-json-response shell-response)))
+          (if (eq feedback t)
+              (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
+            (when entropy/sdcv--call-sdcv-refer-is-errored
+              (setq entropy/sdcv--call-sdcv-refer-is-errored nil))
+            (cond
+             ((eq show-type 'tooltip)
+              (entropy/sdcv--show-with-tooltip feedback))
+             ((eq show-type 'adjacent)
+              (entropy/sdcv--show-with-buffer feedback))))))))))
 
 ;;;; main
 ;;;###autoload
