@@ -486,15 +486,11 @@ Emacs will auto close after 6s ......")))
   (when (entropy/emacs-ext-main)
     (entropy/emacs-start--init-bingo)))
 
-(if (and entropy/emacs-custom-enable-lazy-load
-         (not entropy/emacs-fall-love-with-pdumper))
-    (if (null entropy/emacs-fall-love-with-pdumper)
-        (run-with-idle-timer
-         0.1 nil
-         #'entropy/emacs-start-do-load)
-      entropy/emacs-start-do-load)
-  (entropy/emacs-start-do-load))
-
+(if entropy/emacs-fall-love-with-pdumper
+    (entropy/emacs-start-do-load)
+  (run-with-idle-timer
+   0.1 nil
+   #'entropy/emacs-start-do-load))
 
 ;; * provide
 (provide 'entropy-emacs-start)
