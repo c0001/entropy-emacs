@@ -579,6 +579,14 @@ destructively or display with truncated occur.")
   "Face sytle with box enable.")
 
 ;;;; library
+;;;;; common library
+(defvar entropy/sdcv--call-sdcv-refer-is-errored nil)
+(defun entropy/sdcv--call-sdcv-refer-error-message (format-string &rest args)
+  (unless entropy/sdcv--call-sdcv-refer-is-errored
+    (apply 'message format-string args)
+    (setq entropy/sdcv--call-sdcv-refer-is-errored t))
+  (message "Using external dict querying due to unavailable common procedure."))
+
 ;;;;; lang envrionment pre check
 (defun entropy/sdcv--set-specific-lang-env ()
   (unless (equal entropy/sdcv--specific-lang
@@ -632,16 +640,19 @@ Func maily for setting the value of variable
                 (let ((dict-info (entropy/sdcv--judge-dictp el)))
                   (when dict-info
                     (add-to-list 'dict-info-list dict-info))))
-            (message "Could not auto search any dict!")
+            (entropy/sdcv--call-sdcv-refer-error-message
+             "Could not auto search any dict!")
             (throw :exit nil))
           (if (and dict-info-list
                    (not (member nil dict-info-list)))
               (setq entropy/sdcv--dicts-info dict-info-list)
-            (message "No sdcv dict found!")
+            (entropy/sdcv--call-sdcv-refer-error-message
+             "No sdcv dict found!")
             (throw :exit nil)))
       (cond
        ((not (f-dir-p entropy/sdcv-common-dicts-host))
-        (message "Can not find 'entropy/sdcv-common-dicts-host' folder.")
+        (entropy/sdcv--call-sdcv-refer-error-message
+         "Can not find 'entropy/sdcv-common-dicts-host' folder.")
         (throw :exit nil))
        (entropy/sdcv-user-dicts
         (message "You've setting customized sdcv dict path!")
@@ -663,7 +674,8 @@ two main dict file named with extension '.idx' 'ifo'."
           (dolist (el sublist)
             (when (equal (car el) "F")
               (add-to-list 'flist (cdr el))))
-        (message (format "Dir %s was empty!" dict-dir))
+        (entropy/sdcv--call-sdcv-refer-error-message
+         "Dir %s was empty!" dict-dir)
         (throw :exit nil))
       (if (not flist)
           (setq rtn nil)
@@ -680,7 +692,8 @@ two main dict file named with extension '.idx' 'ifo'."
 (defun entropy/sdcv--get-dict-info (dict-dir)
   (catch :exit
     (unless (executable-find entropy/sdcv-program)
-      (message "Could not found sdcv in your path.")
+      (entropy/sdcv--call-sdcv-refer-error-message
+       "Could not found sdcv in your path.")
       (throw :exit nil))
     (let (sdcv-get dict-info rtn)
       (setq sdcv-get
@@ -692,8 +705,9 @@ two main dict file named with extension '.idx' 'ifo'."
              "[ \t]+[0-9]+$" ""
              (nth 1 (split-string (string-trim sdcv-get) "\n"))))
       (when (not dict-info)
-        (message "sdcv dict `%s` not a valid sdcv dict format"
-                 dict-dir)
+        (entropy/sdcv--call-sdcv-refer-error-message
+         "sdcv dict `%s` not a valid sdcv dict format"
+         dict-dir)
         (throw :exit nil))
       (setq rtn (list dict-info dict-dir))
       rtn)))
@@ -715,7 +729,8 @@ in 'entropy/sdcv-common-dicts-host' (see it for details)."
       (unless (and entropy/sdcv-user-dicts
                    (listp entropy/sdcv-user-dicts)
                    (not (member nil entropy/sdcv-user-dicts)))
-        (message "User sdcv dicts specfication error please check `entropy/sdcv-user-dicts'.")
+        (entropy/sdcv--call-sdcv-refer-error-message
+         "User sdcv dicts specfication error please check `entropy/sdcv-user-dicts'.")
         (throw :exit nil))
       (let ((valid-dicts nil))
         (dolist (el entropy/sdcv-user-dicts)
@@ -723,7 +738,8 @@ in 'entropy/sdcv-common-dicts-host' (see it for details)."
             (when dict-info
               (add-to-list 'valid-dicts dict-info))))
         (when (not valid-dicts)
-          (message "Can not found valid dicts.")
+          (entropy/sdcv--call-sdcv-refer-error-message
+           "Can not found valid dicts.")
           (throw :exit nil))
         (setq entropy/sdcv--dicts-info valid-dicts)))
      ((not entropy/sdcv-user-dicts)
@@ -939,7 +955,7 @@ Otherwise return word around point."
     response))
 
 ;;;;;; command router
-(defun entropy/sdcv--command-router (str dict-path show-type  &optional recall)
+(defun entropy/sdcv--command-router (str dict-path show-type)
   "Router for query with while the state both of matching
 response or non-matched of sdcv cli and the state when query
 string was sentence which not suitable for doing with sdcv as
@@ -977,10 +993,11 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
         (setq str-single-p 'nil)
       (setq str-single-p 't))
     (cond
-     ((or recall
-          (not str-single-p)
-          (or (null dict-path)
-              (not (file-exists-p dict-path))))
+     ((or (and (not str-single-p) (message "Query setence from external dict due to sdcv limitaion!"))
+          (and (or (null dict-path)
+                   (not (file-exists-p dict-path)))
+               (entropy/sdcv--call-sdcv-refer-error-message
+                "Non-valid sdcv dict path or not set! quering from external dict automatically!")))
       (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type))
      ((and (and (eq system-type 'windows-nt)
                 (not (eq w32-ansi-code-page 65001)))
@@ -992,11 +1009,15 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
       (setq shell-response
             (entropy/sdcv--shell-transfer
              str dict-path t))
-      (if (equal shell-response "[]\n")
+      (if (or (equal shell-response "[]\n")
+              (or (string-match-p "^Nothing similar to" shell-response)
+                  (string-match-p "sorry :(" shell-response)))
           (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
         (let ((feedback (entropy/sdcv--extract-json-response shell-response)))
           (if (eq feedback t)
               (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
+            (when entropy/sdcv--call-sdcv-refer-is-errored
+              (setq entropy/sdcv--call-sdcv-refer-is-errored nil))
             (cond
              ((eq show-type 'tooltip)
               (entropy/sdcv--show-with-tooltip feedback))
