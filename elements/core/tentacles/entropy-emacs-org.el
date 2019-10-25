@@ -691,38 +691,7 @@ file which do not already have one. Only adds ids if the
                          (eq buffer-read-only nil))
                 (entropy/emacs-org-auto-add-ids-to-headlines-in-file))))
   
-;; **** fix problem for browse cached url
-  
-  ;;	This problem was that cann't open loacal cached url for xdg-open in linux both in fedora and
-  ;;	archlinux but windows and can not to find the nature of this issue til now [2018-02-01 Thu
-  ;;	14:27:08]
-
-;; ***** first mehtod set the `process-connection-type' to nill   
-  ;; Use pipes for subprocess communication
-  ;; 
-  ;;	This config will cause shell-mode error upon emacs 27 and little mistake for emacs 25 or
-  ;;	earlier,you could search the variable for mor info.
-  ;; 
-  ;;(setq process-connection-type nil)
-
-;; ***** second method use external browser for GNU/Linux opertion system
-  ;; (when sys/linuxp
-  ;;   (cond
-  ;;    ((eq entropy/emacs-default-external-browser 'chrome)
-  ;;     (add-hook 'org-mode-hook
-  ;; 		'(lambda ()
-  ;; 		   (delete '("\\.x?html?\\'" . default) org-file-apps)
-  ;; 		   (add-to-list 'org-file-apps '("\\.x?html?\\'" . "google-chrome-stable %s")))
-  ;; 		))
-
-  ;;    ((eq entropy/emacs-default-external-browser 'firefox)
-  ;;     (add-hook 'org-mode-hook
-  ;; 		'(lambda ()
-  ;; 		   (delete '("\\.x?html?\\'" . default) org-file-apps)
-  ;; 		   (add-to-list 'org-file-apps '("\\.x?html?\\'" . "firefox %s")))
-  ;; 		))))
-
-;; ***** third method to use the system default apps 
+;; **** browser url with system app
   (add-hook 'org-mode-hook
 	    '(lambda ()
 	       (delete '("\\.x?html?\\'" . default) org-file-apps)

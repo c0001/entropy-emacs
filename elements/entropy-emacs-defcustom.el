@@ -107,13 +107,6 @@ for entropy-emacs."
           (const :tag "Tuna" tuna))
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-default-external-browser 'firefox
-  "Set default browser for `org-open-at-point'"
-  :type '(choice
-          (const :tag "google-chrome-stable %s" chrome)
-          (const :tag "firefox %s" firefox))
-  :group 'entropy/emacs-customize-fundametal)
-
 (defcustom entropy/emacs-initialize-benchmark-enable nil
   "Enable the init benchmark or not."
   :type 'boolean
