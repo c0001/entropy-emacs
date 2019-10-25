@@ -459,6 +459,11 @@
   :type 'string
   :group 'entropy/sdcv-group)
 
+(defcustom entropy/sdcv-source-language "zh-CN"
+  "Mother tougue"
+  :type 'string
+  :group 'entropy/sdcv-group)
+
 (defcustom entropy/sdcv-tooltip-type
   (if (display-graphic-p)
       (if (version< emacs-version "26.1") 'popup 'posframe)
@@ -552,9 +557,6 @@ destructively or display with truncated occur.")
 
 (defvar entropy/sdcv--bing-dict-response nil
   "External bing dict process feedback response.")
-
-(defvar entropy/sdcv--bing-adjacent-buffer "*entropy/sdcv-external-bing*"
-  "Buffer name for create external dict bing-dict adjacent buffer.")
 
 (defvar entropy/sdcv--origin-lang-env (getenv "LANG")
   "Stored user origin specific env lang set.")
@@ -827,13 +829,9 @@ Otherwise return word around point."
     (tooltip
      (entropy/sdcv--show-with-tooltip (entropy/sdcv--bing-dict-url-retrieve query)))
     (adjacent
-     (with-current-buffer (get-buffer-create entropy/sdcv--bing-adjacent-buffer)
-       (erase-buffer)
-       (insert (entropy/sdcv--bing-dict-url-retrieve query))
-       (goto-char (point-min)))
-     (display-buffer entropy/sdcv--bing-adjacent-buffer)))
+     (entropy/sdcv--show-with-buffer
+      (entropy/sdcv--bing-dict-url-retrieve query))))
   nil)
-
 
 (defun entropy/sdcv--bing-dict-url-retrieve (query)
   (setq entropy/sdcv--bing-dict-response nil)
@@ -919,14 +917,13 @@ Otherwise return word around point."
                       (list "no-matched" bing-dict--no-result-text)))))))
     (error (bing-dict--message bing-dict--no-result-text))))
 
-
 ;;;;;; google
 (defun entropy/sdcv--query-with-google (query show-type)
   (cl-case show-type
     (tooltip
-     (google-translate-translate nil nil query 'popup))
+     (google-translate-translate "auto" entropy/sdcv-source-language query 'popup))
     (adjacent
-     (google-translate-translate nil nil query))))
+     (google-translate-translate "auto" entropy/sdcv-source-language query))))
 
 ;;;;; command transfer
 ;;;;;; shell port
