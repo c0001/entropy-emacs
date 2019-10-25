@@ -597,7 +597,8 @@ the subject of utf-8 group."
   (apply oldfunc args)
   (entropy/sdcv--recovery-user-origin-lang-env))
 
-;;;;; dictionary auto search
+;;;;; sdcv dictionaries looking up
+;;;;;; dictionary auto search
 
 (defun entropy/sdcv--auto-search-dicts ()
   "Automatically search sdcv dict.
@@ -675,15 +676,15 @@ the subject of utf-8 group."
     (setq rtn (list dict-info dict-dir))
     rtn))
 
-;;;;; dictionary check
+;;;;;; dictionary check
 (defun entropy/sdcv--check-dicts ()
-  "Check all dicts path stored in variable `entropy/sdcv-user-dicts'
-  validation status and generate dict info list made for
-  `entropy/sdcv--dicts-info'.
+  "Check all dicts path stored in variable
+`entropy/sdcv-user-dicts' validation status and generate dict
+info list made for `entropy/sdcv--dicts-info'.
 
-  If `entropy/sdcv-user-dicts' was invalid type or nil, using func
-  `entropy/sdcv--auto-search-dicts' auto finding valid dicts stored
-  in '~/.stardict' (see it for details)."
+If `entropy/sdcv-user-dicts' was invalid type or nil, using func
+`entropy/sdcv--auto-search-dicts' auto finding valid dicts stored
+in '~/.stardict' (see it for details)."
   (interactive)
   (setq entropy/sdcv--dicts-info nil)
   (cond
@@ -705,14 +706,14 @@ the subject of utf-8 group."
 
 (advice-add 'entropy/sdcv--check-dicts :around #'entropy/sdcv--lang-set-process)
 
-;;;;; dictionaly chosen
+;;;;;; dictionaly chosen
 (defun entropy/sdcv--choose-dict (&optional call-with-interactive)
   "Choose sdcv dict for initializing query state preparing for
-  sub-procedure.
+sub-procedure.
 
-  This func set the stick variable `entropy/sdcv--stick-dict' for
-  the following operation did with, that means you could change
-  query dict recalling this again."
+This func set the stick variable `entropy/sdcv--stick-dict' for
+the following operation did with, that means you could change
+query dict recalling this again."
   (interactive
    (list t))
   (unless (and entropy/sdcv--dicts-info
@@ -938,34 +939,35 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
         (str-list (split-string str " " t))
         shell-response
         (entropy/sdcv--show-response-in-adjacently
-         (if (eq show-type 'adjacent) t nil)))
+         (if (eq show-type 'adjacent) t nil))
+        (multibyte-p
+         (let ($return (str-elist (split-string str "" t)) (str-count 0))
+           (dolist (el str-elist)
+             (cl-incf str-count))
+           (when (> (string-width str) str-count)
+             (setq $return t))
+           $return)))
     (if (> (length str-list) 1)
         (setq str-single-p 'nil)
       (setq str-single-p 't))
     (cond
+     ((or recall (not str-single-p) (not dict-path))
+      (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type))
      ((and (and (eq system-type 'windows-nt)
                 (not (eq w32-ansi-code-page 65001)))
-           (let ($return (str-elist (split-string str "" t)) (str-count 0))
-             (dolist (el str-elist)
-               (cl-incf str-count))
-             (when (> (string-width str) str-count)
-               (setq $return t))
-             $return))
+           multibyte-p)
       (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
       (message (concat "Emacs on windows does not support multibye args transfer to process,"
                        "thus using network query instead.")))
-     ((or (eq str-single-p nil)
-          recall)
-       (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type))
-     ((eq str-single-p t)
+     (t
       (setq shell-response
             (entropy/sdcv--shell-transfer
              str dict-path t))
       (if (equal shell-response "[]\n")
-          (entropy/sdcv--command-router str dict-path show-type t)
+          (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
         (let ((feedback (entropy/sdcv--extract-json-response shell-response)))
           (if (eq feedback t)
-              (entropy/sdcv--command-router str dict-path show-type t)
+              (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type)
             (cond
              ((eq show-type 'tooltip)
               (entropy/sdcv--show-with-tooltip feedback))
