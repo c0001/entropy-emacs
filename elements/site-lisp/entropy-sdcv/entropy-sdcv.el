@@ -473,6 +473,15 @@ will not be supported for, forcing defaultly set it to 'popup'."
   :type 'symbol
   :group 'entropy/sdcv-group)
 
+(defcustom entropy/sdcv-pos-tip-height-stretch 1.5
+  "The height scale for `pos-tip-show-no-propertize'.
+
+Cause for the bug for `pos-tip-show-no-propertize' can not
+caculate the multibyte string block height, this var will do the
+proper stretching."
+  :type 'sexp
+  :group 'entropy/sdcv-group)
+
 (defcustom entropy/sdcv-response-filter-hook nil
   "Hook for filter with sdcv's response."
   :type 'sexp
@@ -1134,16 +1143,27 @@ This func was automatically added into `post-command-hook' by
         (kill-buffer entropy/sdcv--tooltip-buffer)))))
 
 ;;;;;;; pos-tip
+(defun entropy/sdcv--pos-tip-show (string &optional face)
+  (let* ((w-h (pos-tip-string-width-height string))
+         (window (selected-window))
+         (frame (window-frame window)))
+    (pos-tip-show-no-propertize
+     string
+     face
+     (point) nil -1
+     (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
+     (ceiling (* (pos-tip-tooltip-height
+                  (cdr w-h)
+                  (frame-char-height frame) frame)
+                 entropy/sdcv-pos-tip-height-stretch)))))
+
 (defun entropy/sdcv--show-with-postip (feedback)
   (let ((tooltip_Ctype (entropy/sdcv--automatic-faceSet))
         (pos-tip-internal-border-width 12))
     (entropy/sdcv--automatic-faceSet)
     (setq feedback
           (propertize feedback 'face 'entropy/sdcv-tooltip-face))
-    (pos-tip-show-no-propertize
-     feedback
-     'entropy/sdcv-tooltip-face
-     nil nil -1)))
+    (entropy/sdcv--pos-tip-show feedback 'entropy/sdcv-tooltip-face)))
 
 ;;;;;;; popup
 (defun entropy/sdcv--show-with-popup (feedback)
