@@ -435,8 +435,15 @@
 
 ;;;;; custom
 
+(defcustom entropy/sdcv-common-dicts-host
+  (expand-file-name ".stardict" (getenv "HOME"))
+  "The common ruled stardict collections host directory."
+  :type 'string
+  :group 'entropy/sdcv-group)
+
 (defcustom entropy/sdcv-user-dicts nil
-  "User sdcv dicts directories list"
+  "User sdcv dicts directories list, it is priority than
+`entropy/sdcv-common-dicts-host'."
   :type 'list
   :group 'entroy/sdcv-group)
 
@@ -603,78 +610,93 @@ the subject of utf-8 group."
 (defun entropy/sdcv--auto-search-dicts ()
   "Automatically search sdcv dict.
 
-  This func assuming that all sdcv dict are stored under home
-  '.stardict' folder and be separated by individual foder.
+This func assuming that all sdcv dict are stored under home
+'.stardict' folder and be separated by individual foder.
 
-  All sub-dict dir will be checked the validity by func
-  `entropy/sdcv--judge-dictp', see it for detailes.
+All sub-dict dir will be checked the validity by func
+`entropy/sdcv--judge-dictp', see it for detailes.
 
-  Func maily for setting the value of variable
-  `entropy/sdcv--dicts-info'.
-  "
-  (if (and (not entropy/sdcv-user-dicts)
-           (f-dir-p "~/.stardict"))
-      (let* ((base-dir "~/.stardict")
-             (dir-list (entropy/cl-list-subdir base-dir))
-             (dict-info-list nil))
-        (if (and (listp dir-list)
-                 (not (null dir-list))
-                 (not (member nil dir-list)))
-            (dolist (el dir-list)
-              (let ((dict-info (entropy/sdcv--judge-dictp el)))
-                (when dict-info
-                  (add-to-list 'dict-info-list dict-info))))
-          (error "Could not auto search any dict!"))
-        (when (and dict-info-list
+Func maily for setting the value of variable
+`entropy/sdcv--dicts-info'.
+"
+  (catch :exit
+    (if (and (not entropy/sdcv-user-dicts)
+             (f-dir-p entropy/sdcv-common-dicts-host))
+        (let* ((base-dir entropy/sdcv-common-dicts-host)
+               (dir-list (entropy/cl-list-subdir base-dir))
+               (dict-info-list nil))
+          (if (and (listp dir-list)
+                   (not (null dir-list))
+                   (not (member nil dir-list)))
+              (dolist (el dir-list)
+                (let ((dict-info (entropy/sdcv--judge-dictp el)))
+                  (when dict-info
+                    (add-to-list 'dict-info-list dict-info))))
+            (message "Could not auto search any dict!")
+            (throw :exit nil))
+          (if (and dict-info-list
                    (not (member nil dict-info-list)))
-          (setq entropy/sdcv--dicts-info dict-info-list)))
-    (cond
-     ((not (f-dir-p "~/.stardict"))
-      (error "Can not find '~/.stardict' folder."))
-     (entropy/sdcv-user-dicts
-      (error "You've setting customized sdcv dict path!")))))
+              (setq entropy/sdcv--dicts-info dict-info-list)
+            (message "No sdcv dict found!")
+            (throw :exit nil)))
+      (cond
+       ((not (f-dir-p entropy/sdcv-common-dicts-host))
+        (message "Can not find 'entropy/sdcv-common-dicts-host' folder.")
+        (throw :exit nil))
+       (entropy/sdcv-user-dicts
+        (message "You've setting customized sdcv dict path!")
+        (throw :exit nil))))))
 
 (defun entropy/sdcv--judge-dictp (dict-dir)
-  "Check each dict dir's validation state, if valid then returns dict
-  info list formed as '(dict-name dict-absolute-path)' powered by
-  func `entropy/sdcv--get-dict-info', otherwise return nil.
+  "Check each dict dir's validation state, if valid then returns
+dict info list formed as '(dict-name dict-absolute-path)' powered
+by func `entropy/sdcv--get-dict-info', otherwise return nil.
 
-  The valid dict checking mechanism was for finding whether exits
-  two main dict file named with extension '.idx' 'ifo'."
-  (let ((sublist (entropy/cl-list-dir-lite dict-dir))
-        flist
-        (rtn 0))
-    (if (and (listp sublist)
-             (not (member nil sublist)))
-        (dolist (el sublist)
-          (when (equal (car el) "F")
-            (add-to-list 'flist (cdr el))))
-      (error (format "Dir %s was empty!" dict-dir)))
-    (if (not flist)
-        (setq rtn nil)
-      (dolist (el flist)
-        (let ((ext (file-name-extension el)))
-          (when (or (equal ext "ifo")
-                    (equal ext "idx"))
-            (cl-incf rtn)))))
-    (cond ((and rtn (>= rtn 2))
-           (setq rtn (entropy/sdcv--get-dict-info dict-dir)))
-          (t (setq rtn nil)))
-    rtn))
+The valid dict checking mechanism was for finding whether exits
+two main dict file named with extension '.idx' 'ifo'."
+  (catch :exit
+    (let ((sublist (entropy/cl-list-dir-lite dict-dir))
+          flist
+          (rtn 0))
+      (if (and (listp sublist)
+               (not (member nil sublist)))
+          (dolist (el sublist)
+            (when (equal (car el) "F")
+              (add-to-list 'flist (cdr el))))
+        (message (format "Dir %s was empty!" dict-dir))
+        (throw :exit nil))
+      (if (not flist)
+          (setq rtn nil)
+        (dolist (el flist)
+          (let ((ext (file-name-extension el)))
+            (when (or (equal ext "ifo")
+                      (equal ext "idx"))
+              (cl-incf rtn)))))
+      (cond ((and rtn (>= rtn 2))
+             (setq rtn (entropy/sdcv--get-dict-info dict-dir)))
+            (t (setq rtn nil)))
+      rtn)))
 
 (defun entropy/sdcv--get-dict-info (dict-dir)
-  (unless (executable-find entropy/sdcv-program)
-    (error "Could not found sdcv in your path."))
-  (let (sdcv-get dict-info rtn)
-    (setq sdcv-get
-          (shell-command-to-string
-           (concat entropy/sdcv-program " -l -2 "
-                   dict-dir)))
-    (setq dict-info (replace-regexp-in-string "[ \t]+[0-9]+$" ""
-                                              (nth 1 (split-string (string-trim sdcv-get) "\n"))))
-    (when (not dict-info) (error "dict error"))
-    (setq rtn (list dict-info dict-dir))
-    rtn))
+  (catch :exit
+    (unless (executable-find entropy/sdcv-program)
+      (message "Could not found sdcv in your path.")
+      (throw :exit nil))
+    (let (sdcv-get dict-info rtn)
+      (setq sdcv-get
+            (shell-command-to-string
+             (concat entropy/sdcv-program " -l -2 "
+                     dict-dir)))
+      (setq dict-info
+            (replace-regexp-in-string
+             "[ \t]+[0-9]+$" ""
+             (nth 1 (split-string (string-trim sdcv-get) "\n"))))
+      (when (not dict-info)
+        (message "sdcv dict `%s` not a valid sdcv dict format"
+                 dict-dir)
+        (throw :exit nil))
+      (setq rtn (list dict-info dict-dir))
+      rtn)))
 
 ;;;;;; dictionary check
 (defun entropy/sdcv--check-dicts ()
@@ -684,25 +706,28 @@ info list made for `entropy/sdcv--dicts-info'.
 
 If `entropy/sdcv-user-dicts' was invalid type or nil, using func
 `entropy/sdcv--auto-search-dicts' auto finding valid dicts stored
-in '~/.stardict' (see it for details)."
+in 'entropy/sdcv-common-dicts-host' (see it for details)."
   (interactive)
-  (setq entropy/sdcv--dicts-info nil)
-  (cond
-   (entropy/sdcv-user-dicts
-    (unless (and entropy/sdcv-user-dicts
-                 (listp entropy/sdcv-user-dicts)
-                 (not (member nil entropy/sdcv-user-dicts)))
-      (error "Dicts specfication error."))
-    (let ((valid-dicts nil))
-      (dolist (el entropy/sdcv-user-dicts)
-        (let ((dict-info (entropy/sdcv--judge-dictp el)))
-          (when dict-info
-            (add-to-list 'valid-dicts dict-info))))
-      (when (not valid-dicts)
-        (error "Can not found valid dicts."))
-      (setq entropy/sdcv--dicts-info valid-dicts)))
-   ((not entropy/sdcv-user-dicts)
-    (entropy/sdcv--auto-search-dicts))))
+  (catch :exit
+    (setq entropy/sdcv--dicts-info nil)
+    (cond
+     (entropy/sdcv-user-dicts
+      (unless (and entropy/sdcv-user-dicts
+                   (listp entropy/sdcv-user-dicts)
+                   (not (member nil entropy/sdcv-user-dicts)))
+        (message "User sdcv dicts specfication error please check `entropy/sdcv-user-dicts'.")
+        (throw :exit nil))
+      (let ((valid-dicts nil))
+        (dolist (el entropy/sdcv-user-dicts)
+          (let ((dict-info (entropy/sdcv--judge-dictp el)))
+            (when dict-info
+              (add-to-list 'valid-dicts dict-info))))
+        (when (not valid-dicts)
+          (message "Can not found valid dicts.")
+          (throw :exit nil))
+        (setq entropy/sdcv--dicts-info valid-dicts)))
+     ((not entropy/sdcv-user-dicts)
+      (entropy/sdcv--auto-search-dicts)))))
 
 (advice-add 'entropy/sdcv--check-dicts :around #'entropy/sdcv--lang-set-process)
 
@@ -721,8 +746,9 @@ query dict recalling this again."
                (not (member nil entropy/sdcv--dicts-info)))
     (entropy/sdcv--check-dicts)
     (setq entropy/sdcv--stick-dict nil))
-  (if (or (not entropy/sdcv--stick-dict)
-          call-with-interactive)
+  (if (and (or (not entropy/sdcv--stick-dict)
+               call-with-interactive)
+           (not (null entropy/sdcv--dicts-info)))
     (let ((dicts-info entropy/sdcv--dicts-info)
           chosen)
       (setq chosen (completing-read "Dict for: " dicts-info))
@@ -951,7 +977,10 @@ Or you can enable WIN10 new beta option for globally UTF-8 support.
         (setq str-single-p 'nil)
       (setq str-single-p 't))
     (cond
-     ((or recall (not str-single-p) (not dict-path))
+     ((or recall
+          (not str-single-p)
+          (or (null dict-path)
+              (not (file-exists-p dict-path))))
       (entropy/sdcv--query-with-external str show-type entropy/sdcv-external-query-type))
      ((and (and (eq system-type 'windows-nt)
                 (not (eq w32-ansi-code-page 65001)))
