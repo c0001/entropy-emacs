@@ -139,6 +139,22 @@ emacs 26 or higher emacs version."
   :type 'integer
   :group 'entropy/emacs-customize-fundametal)
 
+(defcustom entropy/emacs-dictionary-backend 'sdcv
+  "The dictionary tool type for chosen, valid type are
+
+- 'sdcv'
+- 'bing'
+- 'youdao'
+- 'google'
+"
+  :type 'symbol
+  :group 'entropy/emacs-customize-fundametal)
+
+(defcustom entropy/emacs-google-translate-toggle-patched-in-china t
+  "Enable google-translate in china. (GFW banned restriction break)"
+  :type 'boolean
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; **** emacs extension use options
 (defgroup entropy/emacs-extensions-customize nil
   "Customized extensions variable group configured for entropy-emacs."
@@ -394,12 +410,6 @@ open one new eyebrowse workspace"
 
 Note: ibuffer-projectitle will cause the performance debug.
 "
-  :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
-
-;; **** google translation
-(defcustom entropy/emacs-google-translate-toggle-patched-in-china t
-  "Enable google-translate in china"
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 

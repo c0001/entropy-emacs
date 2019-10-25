@@ -498,7 +498,7 @@ For now, there's three choices for you:
       (global-set-key (kbd "C-c y") 'entropy/sdcv-search-at-point-tooltip)
       (global-set-key (kbd "C-c M-y") 'entropy/sdcv-search-input-adjacent)))))
 
-(entropy/emacs-tools-toggle-dict "sdcv")
+(entropy/emacs-tools-toggle-dict (symbol-name entropy/emacs-dictionary-backend))
 
 ;; **** yoaudao-dictionary
 (use-package youdao-dictionary
