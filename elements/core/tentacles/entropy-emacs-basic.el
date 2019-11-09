@@ -1364,11 +1364,11 @@ otherwise returns nil."
      (left-word)
      (call-interactively ',main-func t (vector arg))))
 
-(entropy/emacs-basic--build-case-toggle "capitialize" capitalize-word)
+(entropy/emacs-basic--build-case-toggle "capitalize" capitalize-word)
 (entropy/emacs-basic--build-case-toggle "upcase" upcase-word)
 (entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
 
-(global-set-key (kbd "M-c") 'entropy/emacs-basic-toggle-case-for-capitialize)
+(global-set-key (kbd "M-c") 'entropy/emacs-basic-toggle-case-for-capitalize)
 (global-set-key (kbd "M-u") 'entropy/emacs-basic-toggle-case-for-upcase)
 (global-set-key (kbd "M-l") 'entropy/emacs-basic-toggle-case-for-downcase)
 

@@ -624,13 +624,7 @@ For now, there's three choices for you:
 (use-package entropy-sdcv
   :ensure nil
   :commands (entropy/sdcv-search-at-point-tooltip
-             entropy/sdcv-search-input-adjacent)
-  :config
-  (entropy/emacs-lazy-load-simple 'entropy-sdcv
-    (defun entropy/sdcv--lang-advice (&rest args)
-      (entropy/emacs-lang-set-utf-8))
-    (advice-add 'entropy/sdcv-search-at-point-tooltip :before #'entropy/sdcv--lang-advice)
-    (advice-add 'entropy/sdcv-search-input-adjacent :before #'entropy/sdcv--lang-advice)))
+             entropy/sdcv-search-input-adjacent))
 
 ;; *** chinese dict
 (use-package entropy-cn-dict

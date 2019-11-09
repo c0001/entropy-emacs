@@ -236,7 +236,9 @@
 (defun entropy/emacs-coworker-check-python-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-pip
-   "pyls-lsp" ("pyls") "python-language-server"))
+   "pyls-lsp" ("pyls") "python-language-server")
+  (entropy/emacs-coworker--coworker-install-by-pip
+   "autopep8" ("autopep8") "autopep8"))
   
 ;; * provide
 (provide 'entropy-emacs-coworker)
