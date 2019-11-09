@@ -328,11 +328,12 @@ retrieve from `window-list' larger than 1."
         (cond
          ((and (eq (length buflist) 2)
                (let (rtn)
-                 (mapc (lambda (buff)
-                         (when (window-parameter
-                                (get-buffer-window buff)
-                                'no-delete-other-windows)
-                           (setq rtn t)))
+                 (mapc (lambda (window)
+                         (let ((buff (window-buffer window)))
+                           (when (window-parameter
+                                  (get-buffer-window buff)
+                                  'no-delete-other-windows)
+                             (setq rtn t))))
                        buflist)
                  rtn))
           (kill-buffer))
