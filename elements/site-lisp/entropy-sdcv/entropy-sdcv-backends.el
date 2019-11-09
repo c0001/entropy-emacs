@@ -530,11 +530,20 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
 
 ;;;;; wudao
 (defun entropy/sdcv-backends--wudao-require ()
-  (unless (ignore-errors (require 'wudao-query))
-    (error
-     "You must install 'wudao-dict' from https://github.com/c0001/Wudao-dict.git.
+  (let* ((wd-path (executable-find "wd"))
+         (error-message
+          "You must install 'wudao-dict' from https://github.com/c0001/Wudao-dict.git.
 
-And install it by 'make install'")))
+And install it by 'make install'. Finally check whether '~/.local/bin' in your \"PATH\".")
+         wd-host)
+    (unless (stringp wd-path)
+      (error error-message))
+    (setq wd-host (file-name-directory
+                   (directory-file-name
+                    (file-name-directory
+                     (car (file-attributes wd-path))))))
+    (add-to-list 'load-path (expand-file-name "emacs" wd-host))
+    (require 'wudao-query)))
 
 (defun entropy/sdcv-backends--query-with-wudao-by-hash (query show-method)
   (entropy/sdcv-backends--wudao-require)
