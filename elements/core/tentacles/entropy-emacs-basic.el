@@ -325,7 +325,19 @@ Using func `entropy/emacs-basic--buffer-close' be the default func."
 retrieve from `window-list' larger than 1."
   (let ((buflist (window-list)))
     (if (> (length buflist) 1)
-        (kill-buffer-and-window)
+        (cond
+         ((and (eq (length buflist) 2)
+               (let (rtn)
+                 (mapc (lambda (buff)
+                         (when (window-parameter
+                                (get-buffer-window buff)
+                                'no-delete-other-windows)
+                           (setq rtn t)))
+                       buflist)
+                 rtn))
+          (kill-buffer))
+         (t
+          (kill-buffer-and-window)))
       (kill-buffer))))
 
 ;; ** Kill-other-buffers
@@ -547,7 +559,6 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                       file))
                     (entropy/emacs-basic--dired-redelete-file)))
                  (t (message "Kill all refer task and try again!"))))))))
-
 
   (defun entropy/emacs-basic-dired-delete-file-refers ()
     "Kill all refers of dired markd file of directories."
