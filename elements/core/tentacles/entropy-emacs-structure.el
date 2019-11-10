@@ -228,29 +228,67 @@ sequence, the trailing white space will be recognized as the
   (outshine-define-key outshine-mode-map
     (kbd "M-S-<right>") 'entropy/emacs-structure--outshine-demote
     (outline-on-heading-p))
-    
-  (defun outshine-set-outline-regexp-base ()
-    "Return the actual outline-regexp-base.
 
-Notice: redefined specific for entropy-emacs
+  (defun entropy/emacs-structer--outshine-modern-header-style-in-elisp-p (&optional buffer)
+    "Return nil, if there is no match for a outshine-style header.
+Searches in BUFFER if given, otherwise in current buffer for 0 or
+1 which 0 means the traditional oushine-style header with
+comment-padding (inverse of
+`outshine-enforce-no-comment-padding-p'), 1 for otherwise.
+
+This function was the replacement for
+`outshine-modern-header-style-in-elisp-p' which made for be
+suitable for the eemacs modified version of
+`outshine-set-outline-regexp-base'."
+    (let ((buf (or buffer (current-buffer)))
+          feature)
+      (with-current-buffer buf
+        (save-excursion
+          (goto-char (point-min))
+          (cond ((save-excursion
+                   (re-search-forward
+                    (format "^;; [%s]\\{1,%d\\} "
+                            outshine-regexp-base-char outshine-max-level)
+                    nil 'NOERROR))
+                 (setq feature 0))
+                ((save-excursion
+                   (re-search-forward
+                    (format "^;;[%s]\\{1,%d\\} "
+                            outshine-regexp-base-char outshine-max-level)
+                    nil 'NOERROR))
+                 (setq feature 1))
+                (t (setq feature nil)))))
+      feature))
+  
+  (defun entropy/emacs-structer--outshine-set-outline-regexp-base (orig-func &rest orig-args)
+    "Return the actual outline-regexp-base.
 
 Preventing recursive face rending for level keywords that local
 binding to `outshine-regexp-base-char' while using traditional
 structure type for elisp."
-    (if (and
-         (not (outshine-modern-header-style-in-elisp-p))
-         (eq major-mode 'emacs-lisp-mode))
-        (progn
-          (setq outshine-enforce-no-comment-padding-p t)
-          (setq outshine-regexp-base
-                outshine-oldschool-elisp-outline-regexp-base)
-          (setq-local outshine-regexp-base-char ";"))
-      (setq outshine-enforce-no-comment-padding-p nil)
-      (setq outshine-regexp-base
-            outshine-default-outline-regexp-base)
-      (setq-local outshine-regexp-base-char
-                  (default-value 'outshine-regexp-base-char))))
+    (let ((feature (entropy/emacs-structer--outshine-modern-header-style-in-elisp-p)))
+      (if (and
+           (null feature)
+           (or (eq major-mode 'emacs-lisp-mode)
+               (eq major-mode 'lisp-mode)
+               (eq major-mode 'lisp-interaction-mode)))
+          (progn
+            (setq outshine-enforce-no-comment-padding-p t)
+            (setq outshine-regexp-base
+                  outshine-oldschool-elisp-outline-regexp-base)
+            (setq-local outshine-regexp-base-char ";"))
+        (setq outshine-enforce-no-comment-padding-p
+              (if (eq feature 0)
+                  nil t))
+        (setq outshine-regexp-base
+              outshine-default-outline-regexp-base)
+        (setq-local outshine-regexp-base-char
+                    (default-value 'outshine-regexp-base-char)))))
 
+  (advice-add 'outshine-set-outline-regexp-base
+              :around
+              'entropy/emacs-structer--outshine-set-outline-regexp-base)
+  
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
     (let ((outline-regex-head (substring outline-regexp 0 -10))
           func rtn)
