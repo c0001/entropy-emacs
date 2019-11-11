@@ -350,12 +350,12 @@ eyerbowse improvement."
    '(bar workspace-number window-number
          matches buffer-info remote-host buffer-position parrot
          " " company-indicator selection-info)
-   '(misc-info lsp irc mu4e github debug fancy-battery minor-modes
+   '(misc-info lsp irc mu4e github debug minor-modes
                input-method buffer-encoding major-mode process vcs checker))
 
   (doom-modeline-def-modeline 'project
     '(bar workspace-number window-number buffer-default-directory)
-    '(misc-info fancy-battery mu4e github debug major-mode process))
+    '(misc-info mu4e github debug major-mode process))
 
   ;; timer for after-change-function
   (defvar entropy/emacs-modeline--dml-timer nil)
