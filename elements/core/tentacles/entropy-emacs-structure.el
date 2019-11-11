@@ -103,6 +103,69 @@
           (funcall 'hs-show-all))
       (funcall #'yafolding-show-all))))
 
+;; ** outorg
+(use-package outorg
+  :commands (outorg-edit-as-org
+             outorg-edit-comments-and-propagate-changes
+             outorg-copy-edits-and-exit)
+  :init
+  (entropy/emacs-!set-key (kbd "o") 'outorg-edit-as-org)
+  :config
+  (define-key outorg-edit-minor-mode-map
+    [remap outorg-save-edits-to-tmp-file] nil)
+  (define-key outorg-edit-minor-mode-map
+    (kbd "C-x C-s") 'outorg-copy-edits-and-exit)
+
+  (with-eval-after-load 'outshine
+    (defun outshine-hook-function ()
+      (outshine-mode 1)))
+
+  (defun entropy/emacs-structure--copied-filter (&rest _)
+    "Prunning `outorg-edit-buffer-name''s emtpy commented line for
+preventing uncommenting funciton throw out the current marker
+which will make outorg's 'looping' procedure can not terminated in
+correct way.
+
+Example in lisp mode buffer:
+
+#+BEGIN_SRC emacs-lisp
+  ;;; code
+  ;;
+  ;; Test outorg transfer to org context
+  ;;
+  ;;; Foobar
+  ;;
+  ;; test
+#+END_SRC
+
+Line 2 and 4 even for 6, can not uncomment by
+`uncomment-region-default-1' for commonly result, it will warnning
+for prompt \"Beginning of buffer\" which will overwrite the outorg
+convert procedure (i.e. `outorg-convert-to-org') temporal marker
+to indicate the comment beginning, thus the following marker
+moving operation will cause non-terminated looping proceeding."
+    (with-current-buffer (current-buffer)
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward (format "^%s+ *$" comment-start) nil t)
+          (replace-match "")))))
+  (advice-add 'outorg-convert-oldschool-elisp-buffer-to-outshine
+              :before
+              #'entropy/emacs-structure--copied-filter)
+  (advice-add 'outorg-convert-to-org
+              :before
+              #'entropy/emacs-structure--copied-filter)
+
+  (defun entropy/emacs-structure--outorg-edit-unlock-buffer (&rest _)
+    (when buffer-read-only
+      (if (not (y-or-n-p "Buffer is read-only - make writable "))
+          (error "Cannot edit read-only buffer")
+        (with-current-buffer (current-buffer)
+          (read-only-mode 0)))))
+  (advice-add 'outorg-edit-as-org
+              :before
+              'entropy/emacs-structure--outorg-edit-unlock-buffer))
+
 ;; ** outshine-mode
 
 (use-package outshine
@@ -229,7 +292,7 @@ sequence, the trailing white space will be recognized as the
     (kbd "M-S-<right>") 'entropy/emacs-structure--outshine-demote
     (outline-on-heading-p))
 
-  (defun entropy/emacs-structer--outshine-modern-header-style-in-elisp-p (&optional buffer)
+  (defun entropy/emacs-structure--outshine-modern-header-style-in-elisp-p (&optional buffer)
     "Return nil, if there is no match for a outshine-style header.
 Searches in BUFFER if given, otherwise in current buffer for 0 or
 1 which 0 means the traditional oushine-style header with
@@ -260,13 +323,13 @@ suitable for the eemacs modified version of
                 (t (setq feature nil)))))
       feature))
   
-  (defun entropy/emacs-structer--outshine-set-outline-regexp-base (orig-func &rest orig-args)
+  (defun entropy/emacs-structure--outshine-set-outline-regexp-base (orig-func &rest orig-args)
     "Return the actual outline-regexp-base.
 
 Preventing recursive face rending for level keywords that local
 binding to `outshine-regexp-base-char' while using traditional
 structure type for elisp."
-    (let ((feature (entropy/emacs-structer--outshine-modern-header-style-in-elisp-p)))
+    (let ((feature (entropy/emacs-structure--outshine-modern-header-style-in-elisp-p)))
       (if (and
            (null feature)
            (or (eq major-mode 'emacs-lisp-mode)
@@ -287,7 +350,7 @@ structure type for elisp."
 
   (advice-add 'outshine-set-outline-regexp-base
               :around
-              'entropy/emacs-structer--outshine-set-outline-regexp-base)
+              'entropy/emacs-structure--outshine-set-outline-regexp-base)
   
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
     (let ((outline-regex-head (substring outline-regexp 0 -10))
