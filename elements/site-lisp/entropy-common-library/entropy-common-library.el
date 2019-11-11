@@ -54,7 +54,16 @@
 ;; macro denoted.
 ;;
 ;;
-;; 
+;;
+;;; Change log:
+;; - 2019-11-11: Version 0.1.1 release
+  
+;;   This is the typo fixed emergency release.
+
+;; - 2018~: Versions 0.1.0 release
+
+;;   First release out.
+
 ;;; Code:
  
 ;;; require
@@ -994,7 +1003,7 @@ Non-nil value.
          clist
          (equal-count 0)
          (rtn nil)
-         (base-dir (expand-file-name base-dir))
+         (base-dir (expand-file-name base-dir-location))
          (external-dir (expand-file-name external-dir-location)))
     (catch 'break
       (cond                             ;Deal with path type rely on different plattform
