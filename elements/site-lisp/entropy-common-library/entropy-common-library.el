@@ -2,11 +2,11 @@
 ;;
 ;;; Copyright (C) 20190911  Entropy
 ;; #+BEGIN_EXAMPLE
-;; Author:        Entropy <bmsac0001@gmail.com>
-;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           https://github.com/c0001/entropy-common-library
-;; Package-Version: 0.1.0
-;; Created:       2018
+;; Author:           Entropy <bmsac0001@gmail.com>
+;; Maintainer:       Entropy <bmsac001@gmail.com>
+;; URL:              https://github.com/c0001/entropy-common-library
+;; Package-Version:  0.1.2
+;; Created:          2018-10-08
 ;; Package-Requires: ((emacs "25") (dash "2.16.0") (ivy "0.12.0"))
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
@@ -56,11 +56,24 @@
 ;;
 ;;
 ;;; Change log:
-;; - 2019-11-11: Version 0.1.1 release
+;; - [2019-11-11]
+  
+;;   *version 0.1.2 release*
+
+;;   1. Optimize `entropy/cl-truncate-string-with-length' to use
+;;      emacs-builtin `fill-paragraph' function.
+
+;;   2. Remove `entropy/cl-truncate-single-line-string-with-length'.
+
+;; - [2019-11-11]
+
+;;   *Version 0.1.1 release*
   
 ;;   This is the typo fixed emergency release.
 
-;; - 2018~: Versions 0.1.0 release
+;; - [2018-10-08] 
+
+;;   *Versions 0.1.0 release*
 
 ;;   First release out.
 
@@ -454,19 +467,30 @@ sequence."
 
 ;;;;; truncate string
 (defun entropy/cl-truncate-string-with-length (str length &optional line-indication)
-  "Truncate string STR with length LENGTH rescursively and be without
- destroying string struct. Using func
- `entropy/cl-truncate-single-line-string-with-length' for each line
- procedural dealing with."
+  "Truncate string STR with length LENGTH rescursively and be
+without destroying string struct.
+
+Optional argument LINE-INIDICATION formed as a list of integers
+to indicate which part (i.e. line indicator for buffer render
+case) to truncate."
   (let (rtn
         (str-split (split-string str "\n"))
-        (count 1))
+        (count 1)
+        (fill-func
+         (lambda (str length)
+           (let ((fill-column length))
+             (with-temp-buffer
+               (insert str)
+               (goto-char (point-min))
+               (fill-paragraph)
+               (buffer-substring
+                (point-min) (point-max)))))))
     (dolist (el str-split)
       (push (if line-indication
                 (if (member count line-indication)
-                    (entropy/cl-truncate-single-line-string-with-length el length)
+                    (funcall fill-func el length)
                   el)
-              (entropy/cl-truncate-single-line-string-with-length el length))
+              (funcall fill-func el length))
             rtn)
       (cl-incf count))
     (cond ((> (length rtn) 1)
@@ -476,112 +500,6 @@ sequence."
                                     (setq x (concat x "\n"))))
                                 rtn nil)))
           (t (setq rtn (car rtn))))
-    rtn))
-
-(defun entropy/cl-truncate-single-line-string-with-length (str length)
-  "
-Recursively truncate single line string STR with specified length
-LENGTH similar to buffer operation `fill-region' but used in lisp
-abstract and without destroying the string struct as:
-
-Assuming that process string arg was 'abcdefg' with truncate
-length '2', the result was:
-
-'abcdefg'
-
-Nothing happened for, because the string as that was recognized as
-the word which couldn't be truncate for, if the str arg was 'abc
-de fg' then the result will be:
-
-'abc_ 
-de_ 
-fg_'
-
-In this case, truncation was visualized and the place '_' was
-where space char located.
-
-For the all as above description, word will not be truncated even
-if the last word's length offset over the arg LENGTH specified,
-and any word's tail with space char sequence which at end of line
-will not be inherited for the next line head, instead that will be
-inserted for current line ending.
-
-Single line string means that the string do not have any newline
-char e.g. '\\n' for with."
-  (let* (($char-width 0)
-         head-part
-         rest-part
-         rtn (cnt 0)
-         (list/concat-func (lambda (x) x))
-         (str-list (split-string str "" t))
-         (str-list-len (length str-list)))
-
-    (while (not (> (+ cnt 1) str-list-len))
-      (let* ((el (nth cnt str-list))
-             (el-width (string-width el)))
-        (setq $char-width (+ $char-width el-width))
-        (cond
-         ;; current char was multibyte
-         ((or (> el-width 1) (string-match "[ \t]" el))
-          (if (<= $char-width length)
-              (push el head-part)
-            (push el rest-part)))
-         ;; current char was ascii
-         ((and (= el-width 1) (not (string-match "[ \t]" el)))
-          (if (<= $char-width length)
-              (let ((cnt_temp_char (1+ cnt))
-                    char-offset_char)
-
-                (while (and (<= (1+ cnt_temp_char) str-list-len)
-                            (not (string-match "[ \t]" (nth cnt_temp_char str-list))))
-                  (push (nth cnt_temp_char str-list) char-offset_char)
-                  (cl-incf cnt_temp_char))
-                
-                (push el head-part)
-                
-                (let ((offset_wsp (nth cnt_temp_char str-list))
-                      (cnt_temp_wsp (1+ cnt_temp_char))
-                      char-offset_wsp)
-                  (when (and offset_wsp
-                             (string-match "[ \t]" offset_wsp))
-                    (push (nth cnt_temp_char str-list) char-offset_wsp)
-                    (while (and (<= (1+ cnt_temp_wsp) str-list-len)
-                                (string-match "[ \t]" (nth cnt_temp_wsp str-list)))
-                      (push (nth cnt_temp_wsp str-list) char-offset_wsp)
-                      (cl-incf cnt_temp_wsp))
-                    (when char-offset_wsp
-                      (setq char-offset_char (append char-offset_wsp char-offset_char)
-                            cnt_temp_char cnt_temp_wsp))))
-                
-                (when char-offset_char
-                  (setq head-part (append char-offset_char head-part)
-                        cnt (1- cnt_temp_char)
-                        $char-width (+ (length char-offset_char) $char-width))))
-            (push el rest-part))))
-        (cl-incf cnt)))
-    
-    (setq head-part (reverse head-part)
-          rest-part (reverse rest-part))
-    
-    (cond
-     ((and (not head-part)
-           (not rest-part))
-      (setq rtn ""))
-     ((and (not head-part)
-           rest-part)
-      (setq rtn str))
-     ((and head-part
-           (not rest-part))
-      (setq rtn str))
-     ((and head-part rest-part)
-      (setq head-part (mapconcat list/concat-func head-part nil)
-            rest-part (mapconcat list/concat-func rest-part nil))
-      (cond ((<= (string-width rest-part) length)
-             (setq rtn (concat head-part "\n" rest-part)))
-            ((> (string-width rest-part) length)
-             (setq rtn (concat head-part "\n"
-                               (entropy/cl-truncate-single-line-string-with-length
-                                rest-part length)))))))
     rtn))
 
 ;;;;; string replace
