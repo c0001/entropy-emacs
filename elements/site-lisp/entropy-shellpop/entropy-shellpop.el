@@ -73,19 +73,29 @@
 (defgroup entropy/shellpop-customized-group nil
   "entropy-shellpop customized variable group.")
 
+(defcustom entropy/shellpop-eshell-popup-key "<f9>"
+  "Default key sequence for popup eshell."
+  :type 'string
+  :group 'entropy/shellpop-customized-group)
+
+(defcustom entropy/shellpop-ansiterm-popup-key"<f10>"
+  "Default key sequence for popup ansi-term."
+  :type 'string
+  :group 'entropy/shellpop-customized-group)
+
 (defcustom entropy/shellpop-pop-types
-  '((:type-name
+  `((:type-name
      "eemacs-ansiterm"
      :size 0.3
      :align below
-     :bind "<f10>"
+     :bind ,entropy/shellpop-ansiterm-popup-key
      :type-body
      ((ansi-term "/bin/bash")))
     (:type-name
      "eemacs-eshell"
      :size 0.3
      :align below
-     :bind "<f9>"
+     :bind ,entropy/shellpop-eshell-popup-key
      :type-body
      ((eshell))))
   "Shell pop types defination.
