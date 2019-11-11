@@ -140,6 +140,11 @@
 ;; replacing rule set once or repeatly for as with prompting it's
 ;; interface, thus til the state expected by your self.
 ;;
+;;; Change log
+;; - 2018-09-30: Version 0.1.0 release
+
+;;   The initial release.
+
 ;;; Code:
 ;;;; require
 (require 'entropy-common-library)
@@ -396,11 +401,10 @@ created by `entropy/ep2o-list-html-src'."
         (w32-quote-process-args nil))
     (dolist (el html-files-list)
       (call-process "pandoc" nil rtbuffer nil
-                     (concat "\"" el "\""
-                             " -o "
-                             "\""
-                             (replace-regexp-in-string entropy/ep2o-ops-srcfiles-regexp ".org" el)
-                             "\""))
+                    el
+                    "-o"
+                    (replace-regexp-in-string
+                     entropy/ep2o-ops-srcfiles-regexp ".org" el))
       (message "Complete convert %s to org file." el)))
 
   ;; list converted org files
@@ -413,8 +417,6 @@ created by `entropy/ep2o-list-html-src'."
                       (not (string-match-p "\\.#" (cdr el)))))
         (push (cdr el) rtn)))
     rtn))
-
-
 
 ;;;; replacing error syntax formats of org files
 (defun entropy/ep2o-replacing-by-rules ()
