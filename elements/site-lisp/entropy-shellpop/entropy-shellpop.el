@@ -73,14 +73,16 @@
 (defgroup entropy/shellpop-customized-group nil
   "entropy-shellpop customized variable group.")
 
-(defcustom entropy/shellpop-eshell-popup-key "<f9>"
+(defcustom entropy/shellpop-eshell-popup-key
+  (lambda (func) (global-set-key (kbd "<f9>") func))
   "Default key sequence for popup eshell."
-  :type 'string
+  :type 'sexp
   :group 'entropy/shellpop-customized-group)
 
-(defcustom entropy/shellpop-ansiterm-popup-key"<f10>"
+(defcustom entropy/shellpop-ansiterm-popup-key
+  (lambda (func) (global-set-key (kbd "<f10>") func))
   "Default key sequence for popup ansi-term."
-  :type 'string
+  :type 'sexp
   :group 'entropy/shellpop-customized-group)
 
 (defcustom entropy/shellpop-pop-types
@@ -90,14 +92,14 @@
      :align below
      :bind ,entropy/shellpop-ansiterm-popup-key
      :type-body
-     ((ansi-term "/bin/bash")))
+     (ansi-term "/bin/bash"))
     (:type-name
      "eemacs-eshell"
      :size 0.3
      :align below
      :bind ,entropy/shellpop-eshell-popup-key
      :type-body
-     ((eshell))))
+     (eshell)))
   "Shell pop types defination.
 
 It's a list of which each element is plist structed form called
@@ -125,16 +127,15 @@ Slot description:
 
 4) :bind
 
-   The keybinding for this shellpop-type, it's the string
-   transfered to function `kbd'.
+   The keybinding for this shellpop-type, it's one function to
+   bind the interactive function for this SHELL-TYPE, one argument
+   slot for that func.
 
 5) :type-body
 
-   The list of form to enable shell entity, for example:
-   '((eshell))' or '((ansi-term \"/bin/bash\"))'
-
-   All the form must host within the top parentheses that all of
-   them will apply into the caller body slot."
+   The forms to enable shell entity, for example: '(eshell)' or
+   '(ansi-term \"/bin/bash\")'.
+"
   
   :type 'sexp
   :group 'entropy/shellpop-customized-group)
@@ -414,7 +415,7 @@ shellpop type")
          (type-size (plist-get shellpop-type :size))
          (type-align (plist-get shellpop-type :align))
          (type-bind (plist-get shellpop-type :bind))
-         (type-body (plist-get shellpop-type :type-body))
+         (type-body (entropy/cl-plist-get-rest shellpop-type :type-body))
          (buffern-regexp (entropy/shellpop--gen-buffn-regexp type-name)))
     (list
      `(defun ,(intern func-name-core) (&optional index)
@@ -486,8 +487,8 @@ shellpop type")
                                 (entropy/shellpop--make-prompt type-indexs)))
                               ((null type-indexs)
                                (,(intern func-name-core))))))))))
-     `(when (stringp ,type-bind)
-        (global-set-key (kbd ,type-bind) #',(intern func-name))))))
+     `(when (functionp ',type-bind)
+        (funcall ',type-bind #',(intern func-name))))))
 
 (defun entropy/shellpop--make-types ()
   (dolist (shellpop-type entropy/shellpop-pop-types)
@@ -524,7 +525,8 @@ shellpop type")
 
 (entropy/shellpop--define-key
  '(("<f1>" . entropy/shellpop-rename-index-desc-within-mode)
-   ("C-x 1" . entropy/shellpop-delete-other-widnow)))
+   ("C-x 1" . entropy/shellpop-delete-other-widnow)
+   ("\C-u" . universal-argument)))
 
 ;;;;;; desc modefified
 
