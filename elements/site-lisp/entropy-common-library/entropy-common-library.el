@@ -56,6 +56,12 @@
 ;;
 ;;
 ;;; Change log:
+;; - [2019-11-12]
+
+;;   *version 0.1.3 release*
+
+;;   Add new plist manipulate api `entropy/cl-plist-get-rest'.
+
 ;; - [2019-11-11]
   
 ;;   *version 0.1.2 release*
@@ -370,6 +376,29 @@ sequence."
       (push (nth counter plist-var) plist-props)
       (setq counter (+ 2 counter)))
     (setq plist-props (reverse plist-props))))
+
+(defun entropy/cl-plist-get-rest (plist-var key)
+  "Get the whole plist PLIST-VAR values-seq after the key KEY and
+return them into list ordered as original case."
+  (let (nth-key nth-rest-tail (count 0) rtn)
+    (catch :exit
+      (dolist (el plist-var)
+        (when (eq el key)
+          (setq nth-key count)
+          (throw :exit nil))
+        (cl-incf count)))
+    (catch :exit
+      (cl-loop for pos from (+ nth-key 1) to (- (length plist-var) 1)
+               when (and (symbolp (nth pos plist-var))
+                         (string-match-p "^:" (symbol-name (nth pos plist-var))))
+               do (progn (setq nth-rest-tail (- pos 1))
+                         (throw :exit nil))))
+    (unless (integerp nth-rest-tail)
+      (setq nth-rest-tail (- (length plist-var) 1)))
+    (cl-loop for pos from (+ 1 nth-key) to nth-rest-tail
+             do (push (nth pos plist-var) rtn))
+    (reverse rtn)))
+
 ;;;; string operation
 (defun entropy/cl-get-string-lines (str)
   "Get string STR line count while displayed in buffer."
