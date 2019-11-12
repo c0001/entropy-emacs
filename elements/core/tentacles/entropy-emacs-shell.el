@@ -224,6 +224,13 @@ was found."
 (use-package entropy-shellpop
   :ensure nil
   :commands (entropy/shellpop-start)
+  :preface
+  
+  (defun entropy/emacs-shell--shellpop-bindkey-for-eshell (func)
+    (entropy/emacs-!set-key (kbd "-") func))
+  (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
+    (entropy/emacs-!set-key (kbd "=") func))
+
   :init
   (setq entropy/emacs-shell--shpop-types
         '(:ansiterm
@@ -231,17 +238,17 @@ was found."
            "eemacs-ansiterm"
            :size 0.3
            :align below
-           :bind "<f10>"
+           :bind entropy/emacs-shell--shellpop-bindkey-for-ansiterm
            :type-body
-           ((ansi-term "/bin/bash")))
+           (ansi-term "/bin/bash"))
           :eshell
           (:type-name
            "eemacs-eshell"
            :size 0.3
            :align below
-           :bind "<f9>"
+           :bind entropy/emacs-shell--shellpop-bindkey-for-eshell
            :type-body
-           ((eshell)))))
+           (eshell))))
   
   (entropy/emacs-lazy-with-load-trail
    shellpop-feature
