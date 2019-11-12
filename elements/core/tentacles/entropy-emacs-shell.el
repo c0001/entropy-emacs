@@ -236,17 +236,17 @@ was found."
         '(:ansiterm
           (:type-name
            "eemacs-ansiterm"
-           :size 0.3
-           :align below
-           :bind entropy/emacs-shell--shellpop-bindkey-for-ansiterm
+           :shackle-size 0.3
+           :shackle-align below
+           :type-keybind entropy/emacs-shell--shellpop-bindkey-for-ansiterm
            :type-body
            (ansi-term "/bin/bash"))
           :eshell
           (:type-name
            "eemacs-eshell"
-           :size 0.3
-           :align below
-           :bind entropy/emacs-shell--shellpop-bindkey-for-eshell
+           :shackle-size 0.3
+           :shackle-align below
+           :type-keybind entropy/emacs-shell--shellpop-bindkey-for-eshell
            :type-body
            (eshell))))
   
