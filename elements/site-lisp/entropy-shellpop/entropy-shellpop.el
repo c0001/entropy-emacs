@@ -88,16 +88,16 @@
 (defcustom entropy/shellpop-pop-types
   `((:type-name
      "eemacs-ansiterm"
-     :size 0.3
-     :align below
-     :bind ,entropy/shellpop-ansiterm-popup-key
+     :shackle-size 0.3
+     :shackle-align below
+     :type-keybind ,entropy/shellpop-ansiterm-popup-key
      :type-body
      (ansi-term "/bin/bash"))
     (:type-name
      "eemacs-eshell"
-     :size 0.3
-     :align below
-     :bind ,entropy/shellpop-eshell-popup-key
+     :shackle-size 0.3
+     :shackle-align below
+     :type-keybind ,entropy/shellpop-eshell-popup-key
      :type-body
      (eshell)))
   "Shell pop types defination.
@@ -114,18 +114,18 @@ Slot description:
    the generated FUNC name, SHELLPOP-TYPE-REGISTER key, and also
    the popuped shell BUFFER-NAME.
 
-2) :size
+2) :shackle-size
 
    The popuped shell-buffer window size, it's the float number
    between 0 to 1(do not set it to 1 that will cause messure).
 
-3) :align
+3) :shackle-align
 
    Popuped position specification, a symbol, valid are:
 
      'below 'above 'right 'left and t means 'default'.
 
-4) :bind
+4) :type-keybind
 
    The keybinding for this shellpop-type, it's one function to
    bind the interactive function for this SHELL-TYPE, one argument
@@ -412,9 +412,9 @@ shellpop type")
                           type-name 'core))
          (func-name (entropy/shellpop--gen-type-func-name
                      type-name t))
-         (type-size (plist-get shellpop-type :size))
-         (type-align (plist-get shellpop-type :align))
-         (type-bind (plist-get shellpop-type :bind))
+         (type-size (plist-get shellpop-type :shackle-size))
+         (type-align (plist-get shellpop-type :shackle-align))
+         (type-bind (plist-get shellpop-type :type-keybind))
          (type-body (entropy/cl-plist-get-rest shellpop-type :type-body))
          (buffern-regexp (entropy/shellpop--gen-buffn-regexp type-name)))
     (list
