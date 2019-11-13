@@ -624,7 +624,10 @@ For now, there's three choices for you:
 (use-package entropy-sdcv
   :ensure nil
   :commands (entropy/sdcv-search-at-point-tooltip
-             entropy/sdcv-search-input-adjacent))
+             entropy/sdcv-search-input-adjacent)
+  :init
+  (unless (display-graphic-p)
+    (setq entropy/sdcv-default-show-tooltip-method 'popup)))
 
 ;; *** chinese dict
 (use-package entropy-cn-dict
