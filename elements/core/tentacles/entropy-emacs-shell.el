@@ -228,7 +228,12 @@ was found."
   :preface
   
   (defun entropy/emacs-shell--shellpop-bindkey-for-eshell (func)
-    (entropy/emacs-!set-key (kbd "-") func))
+    (entropy/emacs-!set-key (kbd "-") func)
+    (unless (display-graphic-p)
+      (define-key entropy-shellpop-mode-map
+        (kbd (concat entropy/emacs-top-key " " "-"))
+        func)))
+  
   (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
     (entropy/emacs-!set-key (kbd "=") func)
     (unless (display-graphic-p)
