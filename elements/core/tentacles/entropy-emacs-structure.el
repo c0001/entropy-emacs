@@ -200,14 +200,22 @@ moving operation will cause non-terminated looping proceeding."
    (conf-windows-mode . outshine-mode)
    (conf-xdefaults-mode . outshine-mode))
   :bind
-  (("C-<tab>" . outshine-cycle-buffer)
-   :map org-mode-map
+  (:map org-mode-map
    ("C-c M-t" . nil)
    ("C-c M-e" . nil)
    ("C-c M-p" . nil)
    ("C-c M-y" . nil))
+  :preface
+  (defun entropy/emacs-structure--outshine-cycle-buffer (&optional arg)
+    (interactive "P")
+    (when (bound-and-true-p outshine-mode)
+      (funcall 'outshine-cycle-buffer arg)))
   
   :init
+  (entropy/emacs-!set-key
+    (kbd "\\")
+    'entropy/emacs-structure--outshine-cycle-buffer)
+  
   (entropy/emacs-lazy-initial-for-hook
    '(emacs-lisp-mode-hook)
    "outshine-mode" "outshine-mode"
