@@ -627,7 +627,14 @@ For now, there's three choices for you:
              entropy/sdcv-search-input-adjacent)
   :init
   (unless (display-graphic-p)
-    (setq entropy/sdcv-default-show-tooltip-method 'popup)))
+    (setq entropy/sdcv-default-show-tooltip-method 'popup))
+
+  :config
+  (cond ((executable-find "wd")
+         (setq entropy/sdcv-default-query-backend-name 'wudao-hash))
+        ((or (not (executable-find "sdcv"))
+             (not (entropy/sdcv-backends--sdcv-auto-search-dicts)))
+         (setq entropy/sdcv-default-query-backend-name 'youdao))))
 
 ;; *** chinese dict
 (use-package entropy-cn-dict
