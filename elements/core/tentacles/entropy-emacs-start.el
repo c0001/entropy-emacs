@@ -56,7 +56,10 @@
                   entropy/emacs-enable-pyim)
          (setq entropy/emacs-enable-pyim nil)
          (entropy/emacs-message-do-message
-          (red "You can not enable pyim in pdumper session"))))
+          (red "You can not enable pyim in pdumper procedure, but
+we inject it into pdumper session initialize procedure. "))
+         (add-hook 'entropy/emacs-pdumper-load-end-hook
+                   #'entropy/emacs-basic-pyim-start)))
 
 ;; *** load core library
 (require 'entropy-emacs-defun)
