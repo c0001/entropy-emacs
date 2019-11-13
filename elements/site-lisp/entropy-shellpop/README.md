@@ -1,23 +1,23 @@
 
 # Table of Contents
 
-1.  [entropy-shellpop.el &#x2014; popup shell buffer for transient](#orgeb11996)
-2.  [Copyright (C) 20190829  Entropy](#org0bf684f)
-3.  [Commentary:](#org3ec9036)
-4.  [Configuration:](#orgcb1b0cf)
-5.  [Development](#org4ad5bf4)
-    1.  [`shellpop-type-register` data structure](#org5c64be9)
-    2.  [`shellpop-buffer-object` data structure](#org1a2836a)
-    3.  [Extensible developing](#org6815a57)
-6.  [Changelog](#org0f95166)
+1.  [entropy-shellpop.el &#x2014; popup shell buffer for transient](#orgc649b55)
+2.  [Copyright (C) 20190829  Entropy](#org7c56438)
+3.  [Commentary:](#orgd79c398)
+4.  [Configuration:](#orgab602fd)
+5.  [Development](#org834b6e7)
+    1.  [`shellpop-type-register` data structure](#org5c2f375)
+    2.  [`shellpop-buffer-object` data structure](#orge3bc7c4)
+    3.  [Extensible developing](#org3f33e5b)
+6.  [Changelog](#org659b18c)
 
 
-<a id="orgeb11996"></a>
+<a id="orgc649b55"></a>
 
 # entropy-shellpop.el &#x2014; popup shell buffer for transient
 
 
-<a id="org0bf684f"></a>
+<a id="org7c56438"></a>
 
 # Copyright (C) 20190829  Entropy
 
@@ -36,16 +36,16 @@
     
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+    
     Package-Version: 20190829
-    Version: 0.1.0
+    Version:       0.1.0
     Created:       2019-08-29
     Keywords:      shell-pop, shell
     Compatibility: GNU Emacs emacs-version 26.1;
     Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3"))
 
 
-<a id="org3ec9036"></a>
+<a id="orgd79c398"></a>
 
 # Commentary:
 
@@ -64,7 +64,7 @@ purely fundamental, for optimizing features' detailes and
 restructed the popup feature rely on [shackle](https://github.com/wasamasa/shackle).
 
 
-<a id="orgcb1b0cf"></a>
+<a id="orgab602fd"></a>
 
 # Configuration:
 
@@ -78,14 +78,14 @@ manage the configuration for this by calling the main function
 
 The internal builtin shell popup types are:
 
--   for eshell: <f9>
--   for ansi-term: <f10>
+-   for eshell: `<f9>`
+-   for ansi-term: `<f10>`
 
 You may customize variable `entropy/shellpop-pop-types` for more
 specification, see its doc-string for more.
 
 
-<a id="org4ad5bf4"></a>
+<a id="org834b6e7"></a>
 
 # Development
 
@@ -93,7 +93,7 @@ For PR and extented aiming for, `entropy-shellpop` provide its own
 code context map, a illustration for thus as below sections:
 
 
-<a id="org5c64be9"></a>
+<a id="org5c2f375"></a>
 
 ## `shellpop-type-register` data structure
 
@@ -168,7 +168,7 @@ string, and the cdr was the plist whose slots are:
     is used currently.
 
 
-<a id="org1a2836a"></a>
+<a id="orge3bc7c4"></a>
 
 ## `shellpop-buffer-object` data structure
 
@@ -200,7 +200,7 @@ various buffer status information, include:
     indicated that.
 
 
-<a id="org6815a57"></a>
+<a id="org3f33e5b"></a>
 
 ## Extensible developing
 
@@ -211,7 +211,7 @@ and given the rich way to experience thus. Just do with your flying
 mind.
 
 
-<a id="org0f95166"></a>
+<a id="org659b18c"></a>
 
 # Changelog
 
