@@ -223,13 +223,18 @@ was found."
 ;; ** Shell Pop
 (use-package entropy-shellpop
   :ensure nil
+  :defines (entropy-shellpop-mode-map)
   :commands (entropy/shellpop-start)
   :preface
   
   (defun entropy/emacs-shell--shellpop-bindkey-for-eshell (func)
     (entropy/emacs-!set-key (kbd "-") func))
   (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
-    (entropy/emacs-!set-key (kbd "=") func))
+    (entropy/emacs-!set-key (kbd "=") func)
+    (unless (display-graphic-p)
+      (define-key entropy-shellpop-mode-map
+        (kbd (concat entropy/emacs-top-key " " "="))
+        func)))
 
   :init
   (setq entropy/emacs-shell--shpop-types

@@ -35,6 +35,15 @@
 ;; ** individuals
 (defvar entropy/emacs-top-keymap (make-sparse-keymap))
 
+(defvar entropy/emacs-top-key
+  (if (display-graphic-p)
+      "C-`"
+    "C-@")
+  "Top key for entropy-emacs global keybind for
+`entropy/emacs-top-keymap'.
+
+It is a string used for `kbd'.")
+
 (defvar entropy/emacs-lang-locale (car default-process-coding-system)
   "The locale lang.")
 

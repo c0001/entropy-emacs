@@ -54,9 +54,7 @@
 (entropy/emacs-lazy-with-load-trail
  top-keybinding
  (define-key (current-global-map)
-  (if (display-graphic-p)
-      (kbd "C-`")
-    (kbd "C-@"))
+   (kbd entropy/emacs-top-key)
   entropy/emacs-top-keymap))
 
 ;; ** Temporal bug revert
