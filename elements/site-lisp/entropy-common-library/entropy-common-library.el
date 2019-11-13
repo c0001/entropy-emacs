@@ -5,7 +5,7 @@
 ;; Author:           Entropy <bmsac0001@gmail.com>
 ;; Maintainer:       Entropy <bmsac001@gmail.com>
 ;; URL:              https://github.com/c0001/entropy-common-library
-;; Package-Version:  0.1.2
+;; Package-Version:  0.1.3
 ;; Created:          2018-10-08
 ;; Package-Requires: ((emacs "25") (dash "2.16.0") (ivy "0.12.0"))
 ;; 
