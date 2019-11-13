@@ -8,21 +8,21 @@
 ;; Package-Version:  0.1.3
 ;; Created:          2018-10-08
 ;; Package-Requires: ((emacs "25") (dash "2.16.0") (ivy "0.12.0"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 ;;
 ;; Common elisp library for [[https://github.com/c0001/entropy-emacs][entropy-emacs]].
@@ -63,7 +63,7 @@
 ;;   Add new plist manipulate api `entropy/cl-plist-get-rest'.
 
 ;; - [2019-11-11]
-  
+
 ;;   *version 0.1.2 release*
 
 ;;   1. Optimize `entropy/cl-truncate-string-with-length' to use
@@ -74,17 +74,17 @@
 ;; - [2019-11-11]
 
 ;;   *Version 0.1.1 release*
-  
+
 ;;   This is the typo fixed emergency release.
 
-;; - [2018-10-08] 
+;; - [2018-10-08]
 
 ;;   *Versions 0.1.0 release*
 
 ;;   First release out.
 
 ;;; Code:
- 
+
 ;;; require
 (require 'dash)
 (if (version< emacs-version "27")
@@ -109,7 +109,7 @@ deprecated origin `cl' package instead of `cl-macs'."
 ;;    This part defined some functions used only for this package for
 ;;    providing middle functional utilities to other Apis.
 ;;
-;;    
+;;
 ;;; System environment checker
 (defun entropy/cl-checking-system-utf8-supply ()
   "Checking operation system envrionment lanuguage support full
@@ -199,7 +199,7 @@ Each elements can be list or any single one."
 
 ;;;;; list make name alist
 (defun entropy/cl-make-name-alist (olist naming-func)
-  "Make name-alist from one pure vector OLIST. 
+  "Make name-alist from one pure vector OLIST.
 
 Function NAMEING-FUNC was provided by youself which has the
 single argument to accepting one element of OLIST.
@@ -233,7 +233,7 @@ length of LIST-VAR.
 Demo:
 
 List var (1 2 3 4 5 6 7 8 9) maped by (1 2 3) will return
-   
+
     ((1) (2 3) (4 5 6))."
   (let ((map-counter (apply '+ region-map))
         (list-len (length list-var))
@@ -267,12 +267,12 @@ association's cdr."
   (let (numberic-list max-func rtn temp_var)
     (dolist (el numberic-alist)
       (unless (numberp (car el))
-        (error "<<entropy/cl-sort-numberic-alist>>: 
+        (error "<<entropy/cl-sort-numberic-alist>>:
 Wrong type of argument: numberp '%s'" (car el)))
       (push (car el) numberic-list))
     (unless (= (length numberic-alist)
                (length (entropy/cl-remove-duplicates numberic-list :test 'eq)))
-      (error "<<entropy/cl-sort-numberic-alist>>: 
+      (error "<<entropy/cl-sort-numberic-alist>>:
 Duplicated numberic order!"))
     (setq max-func
           (lambda (number-seq)
@@ -343,7 +343,7 @@ LIST-VAR's length must be the half of the length of plist-var."
           (cl-incf counter)))))
     (setq plist-putted (reverse plist-putted))
     (apply 'append plist-putted)))
-  
+
 (defun entropy/cl-get-plist-prop-pair (plist-var &optional prop)
   "Return alist type of PlIST-VAR whose element was pair list.
 
@@ -409,7 +409,7 @@ return them into list ordered as original case."
       (setq line-count(line-number-at-pos (point)))
       (kill-buffer))
     line-count))
-  
+
 (defun entropy/cl-get-string-max-width (str &optional max-indication)
   "Get string width module with plist value return.
 
@@ -424,16 +424,16 @@ return them into list ordered as original case."
 
   #+BEGIN_EXAMPLE
       String buffer displayed square:
-                                 
-    lines:+-------------+                
-        1.|abcdefg      |<------match-overflow: 7         
-        2.|agcd         |<-------------------------overflow     
-        3.|absdfsdfsdfsf| <-----max-width: 14               
-        4.|asdfsdfsdf   |<-------------------------overflow    
-        5.|asdfasdfasdff| <-----max-width: 14              
-          +-------------+                                  
-                                                         
-    Result: (:match-width 14 :match-max-lines (3 5) :match-overflow 7 :match-overflow-lines (2 4)) 
+
+    lines:+-------------+
+        1.|abcdefg      |<------match-overflow: 7
+        2.|agcd         |<-------------------------overflow
+        3.|absdfsdfsdfsf| <-----max-width: 14
+        4.|asdfsdfsdf   |<-------------------------overflow
+        5.|asdfasdfasdff| <-----max-width: 14
+          +-------------+
+
+    Result: (:match-width 14 :match-max-lines (3 5) :match-overflow 7 :match-overflow-lines (2 4))
   #+END_EXAMPLE
   "
   (let (str-len-list str-attr-list str-split max-len rtn rtn-overflow (count 1))
@@ -447,8 +447,8 @@ return them into list ordered as original case."
         (cl-incf count))
       (dolist (el str-attr-list)
         (add-to-list 'str-len-list (cdr el)))
-      (setq max-len (apply 'max str-len-list))             
-      
+      (setq max-len (apply 'max str-len-list))
+
       (dolist (el str-attr-list)
         (when (equal (cdr el) max-len)
           (push (car el) rtn)))
@@ -460,7 +460,7 @@ return them into list ordered as original case."
           (dolist (el str-attr-list)
             (when (member (cdr el) overflows)
               (push (car el) rtn-overflow)))))
-      
+
       (setq rtn (list :max-width max-len
                       :mactch-max-lines rtn))
       (when max-indication
@@ -543,7 +543,7 @@ searching within using `dotimes' instead of `while' til the end of
 substring ending END.
 
 If REP was a funciton, it's arg was single of the string type
-which was matching of regexp REGEXP. 
+which was matching of regexp REGEXP.
 "
   (let ((ctn 0)
         match-list rtn
@@ -585,7 +585,7 @@ which was matching of regexp REGEXP.
                  (goto-char beg_p)
                  (re-search-forward rex (symbol-value end_p)  t (symbol-value ctn_i))
                  (replace-match match-replace)))))))
-        
+
         (core_func_repstr
          (lambda (end_p rex ctn_i cbk-list rep-str repface times_p)
            (cond
@@ -652,7 +652,7 @@ can be nil whill will always point to the buffer `point-max', the
 otherwise for should calculated within REP-FUN's procedure as pont
 current arg did as well, in this case, it must always be setted to
 the new end of current buffer substring changed from the origin
-BEG to END. 
+BEG to END.
 
 To giving the explicitly process for return the accurate new
 whole substring end will enhancing the procedure performance
@@ -800,7 +800,7 @@ the cdr was the duplicated association information.
 
 The default duplicated searching mechanism was based the same
 file-name, in that case that you don't want to using file
-validation checking as the full accurate mehod. 
+validation checking as the full accurate mehod.
 
 The optional arg SHA_COMPARE was used for checking file validation
 message insteads of search duplicated as file-name based. It's
@@ -1003,7 +1003,7 @@ Non-nil value.
           (setq relative (- elen blen)))
          ((< equal-count blen)
           (setq relative (- equal-count blen))))
-        
+
         (cond                           ;generate different path
          ((< relative 0)
           (cond
@@ -1013,7 +1013,7 @@ Non-nil value.
                   (count 0)
                   both
                   tail)
-              
+
               (while (<= count pos)     ;make both list
                 (push (nth count blist) both)
                 (setq count (+ 1 count)))
@@ -1217,7 +1217,7 @@ current operation system platform like forms below:
      the drives has been mounted as 'A B C' but 'D' drive, thus if
      file name begin with 'D:/' or 'D:\\' was not allowed.
 
-2. For unix like platform 
+2. For unix like platform
 
    In commonly, unix-like system was without the whether mounted
    problem as windows, but if you use windows like path style on
@@ -1330,7 +1330,7 @@ When optional arg VTOOL nil for, using md5sum as default choice.
     (setq validation
           (replace-regexp-in-string
            "^\\([a-zA-Z0-9]+\\)\\( +.*$\\)" "\\1"
-           (shell-command-to-string  
+           (shell-command-to-string
             (concat vtool " "
                     (shell-quote-argument file)))))
     (when (string-match-p "\n" validation)
@@ -1404,7 +1404,7 @@ Arguments:
                              display. It's symbol. This variable
                              was optional.
 "
-  
+
   (if (and (not (member read (symbol-value candidates-recorded)))
            (not (string= "" read)))
       (push read (symbol-value candidates-recorded)))
@@ -1516,17 +1516,17 @@ following rule-set:
    line and request repeatly inputtng.
 
 2) \"file\" type and read as non-existed:
-  
+
    while the read string matched the tail slash, repeatly
    inputting.
-  
+
 3) \"dir\" type and exsited read:
 
    while the read existed as one file(not directory), do repeatly
    inputting.
 
 4) Other any read case was legal."
-  
+
   (let* ((init-file
           (completing-read
            (if (equal file-type "file")

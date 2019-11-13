@@ -4,11 +4,11 @@
 
 * Copyright (C) 20190911  Entropy
 #+BEGIN_EXAMPLE
-Author:        Entropy <bmsac0001@gmail.com>
-Maintainer:    Entropy <bmsac001@gmail.com>
-URL:           https://github.com/c0001/entropy-common-library
-Package-Version: 0.1.0
-Created:       2018
+Author:           Entropy <bmsac0001@gmail.com>
+Maintainer:       Entropy <bmsac001@gmail.com>
+URL:              https://github.com/c0001/entropy-common-library
+Package-Version:  0.1.3
+Created:          2018-10-08
 Package-Requires: ((emacs "25") (dash "2.16.0") (ivy "0.12.0"))
 
 This program is free software; you can redistribute it and/or modify
@@ -55,3 +55,32 @@ Just requiring with, do not using lazy laoding of it because of that
 all the funcs defined in this package are not defined with =autoload=
 macro denoted.
 
+
+
+* Change log:
+- [2019-11-12]
+
+  *version 0.1.3 release*
+
+  Add new plist manipulate api `entropy/cl-plist-get-rest'.
+
+- [2019-11-11]
+
+  *version 0.1.2 release*
+
+  1. Optimize `entropy/cl-truncate-string-with-length' to use
+     emacs-builtin `fill-paragraph' function.
+
+  2. Remove `entropy/cl-truncate-single-line-string-with-length'.
+
+- [2019-11-11]
+
+  *Version 0.1.1 release*
+
+  This is the typo fixed emergency release.
+
+- [2018-10-08]
+
+  *Versions 0.1.0 release*
+
+  First release out.
