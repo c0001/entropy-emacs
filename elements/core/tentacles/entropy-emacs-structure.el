@@ -74,8 +74,8 @@
          (php-mode . hs-minor-mode)
          (python-mode . hs-minor-mode))
   :config
-  (global-set-key (kbd "C--") 'entropy/emacs-structure-toggle-hiding)
-  (global-set-key (kbd "C-+") 'entropy/emacs-structure-toggle-selective-display))
+  (entropy/emacs-!set-key (kbd "M--") 'entropy/emacs-structure-toggle-hiding)
+  (entropy/emacs-!set-key (kbd "M-=") 'entropy/emacs-structure-toggle-selective-display))
 
 ;; ** yafolding
 
@@ -83,9 +83,7 @@
   :if (eq entropy/emacs-code-folding-type 'yafolding)
   :commands (yafolding-toggle-element
              yafolding-show-all)
-  :bind (("C--" . entropy/emacs-structure-yaf-toggle)
-         ("C-=" . entropy/emacs-structure-yaf-show-all))
-  :config
+  :preface
   (defvar entropy/emacs-structure--yafolding-jumping-modes '(emacs-lisp-mode lisp-interaction-mode))
   (defun entropy/emacs-structure-yaf-toggle (column)
     (interactive "P")
@@ -101,7 +99,10 @@
         (progn
           (hs-minor-mode 1)
           (funcall 'hs-show-all))
-      (funcall #'yafolding-show-all))))
+      (funcall #'yafolding-show-all)))
+  :init
+  (entropy/emacs-!set-key (kbd "M--") #'entropy/emacs-structure-yaf-toggle)
+  (entropy/emacs-!set-key (kbd "M-=") #'entropy/emacs-structure-yaf-show-all))
 
 ;; ** outorg
 (use-package outorg
@@ -346,24 +347,27 @@ suitable for the eemacs modified version of
 Preventing recursive face rending for level keywords that local
 binding to `outshine-regexp-base-char' while using traditional
 structure type for elisp."
-    (let ((feature (entropy/emacs-structure--outshine-modern-header-style-in-elisp-p)))
-      (if (and
-           (null feature)
-           (or (eq major-mode 'emacs-lisp-mode)
+
+    (cond ((or (eq major-mode 'emacs-lisp-mode)
                (eq major-mode 'lisp-mode)
-               (eq major-mode 'lisp-interaction-mode)))
-          (progn
-            (setq outshine-enforce-no-comment-padding-p t)
-            (setq outshine-regexp-base
-                  outshine-oldschool-elisp-outline-regexp-base)
-            (setq-local outshine-regexp-base-char ";"))
-        (setq outshine-enforce-no-comment-padding-p
-              (if (eq feature 0)
-                  nil t))
-        (setq outshine-regexp-base
-              outshine-default-outline-regexp-base)
-        (setq-local outshine-regexp-base-char
-                    (default-value 'outshine-regexp-base-char)))))
+               (eq major-mode 'lisp-interaction-mode))
+           (let ((mordern-lisp-feature
+                  (entropy/emacs-structure--outshine-modern-header-style-in-elisp-p)))
+             (cl-case mordern-lisp-feature
+               (0 (setq outshine-enforce-no-comment-padding-p nil))
+               (1 (setq outshine-enforce-no-comment-padding-p t)))
+             (setq outshine-regexp-base
+                   (if (null mordern-lisp-feature)
+                       outshine-oldschool-elisp-outline-regexp-base
+                     outshine-default-outline-regexp-base))
+             (when (null mordern-lisp-feature)
+               (setq-local outshine-regexp-base-char ";"))))
+          (t
+           (setq outshine-enforce-no-comment-padding-p nil)
+           (setq outshine-regexp-base
+                 outshine-default-outline-regexp-base)
+           (setq-local outshine-regexp-base-char
+                       (default-value 'outshine-regexp-base-char)))))
 
   (advice-add 'outshine-set-outline-regexp-base
               :around
