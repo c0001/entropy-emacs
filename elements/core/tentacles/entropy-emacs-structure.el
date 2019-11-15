@@ -354,17 +354,18 @@ structure type for elisp."
            (let ((mordern-lisp-feature
                   (entropy/emacs-structure--outshine-modern-header-style-in-elisp-p)))
              (cl-case mordern-lisp-feature
-               (0 (setq outshine-enforce-no-comment-padding-p nil))
-               (1 (setq outshine-enforce-no-comment-padding-p t)))
-             (setq outshine-regexp-base
+               (0 (setq-local outshine-enforce-no-comment-padding-p nil))
+               (1 (setq-local outshine-enforce-no-comment-padding-p t)))
+             (setq-local outshine-regexp-base
                    (if (null mordern-lisp-feature)
                        outshine-oldschool-elisp-outline-regexp-base
                      outshine-default-outline-regexp-base))
              (when (null mordern-lisp-feature)
+               (setq-local outshine-enforce-no-comment-padding-p t)
                (setq-local outshine-regexp-base-char ";"))))
           (t
-           (setq outshine-enforce-no-comment-padding-p nil)
-           (setq outshine-regexp-base
+           (setq-local outshine-enforce-no-comment-padding-p nil)
+           (setq-local outshine-regexp-base
                  outshine-default-outline-regexp-base)
            (setq-local outshine-regexp-base-char
                        (default-value 'outshine-regexp-base-char)))))
