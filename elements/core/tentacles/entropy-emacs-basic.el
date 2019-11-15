@@ -1262,6 +1262,16 @@ Temp file was \"~/~entropy-artist.txt\""
 (put 'narrow-to-region 'disabled nil)
 
 ;; ** Key modification
+;; *** xclip activation
+(use-package xclip
+  :if (and (not (display-graphic-p)) (executable-find "xclip"))
+  :commands
+  (xclip-mode)
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   xclip-mode
+   (xclip-mode 1)))
+
 ;; *** key re-mapping
 ;; Binding 'super' and 'hyper' on win32 and mac.
 ;;   the idea form `http://ergoemacs.org/emacs/emacs_hyper_super_keys.html'
@@ -1283,25 +1293,31 @@ Temp file was \"~/~entropy-artist.txt\""
 
 ;; *** event re-bind
 ;; **** xterm re-bind
-(when (and (not (display-graphic-p))
-           (fboundp #'xterm-paste))
-  (define-key global-map [xterm-paste]
-    #'entropy/emacs-xterm-paste)
+(entropy/emacs-lazy-with-load-trail
+ xterm-rebind
+ (when (and (not (display-graphic-p))
+            (fboundp #'xterm-paste))
+   (if (not (executable-find "xclip"))
+     (define-key global-map [xterm-paste]
+       #'entropy/emacs-xterm-paste)
+     (define-key global-map [xterm-paste]
+       #'yank))
 
-  (defun entropy/emacs-basic-xterm-S-insert (event)
-    (interactive "e")
-    (when (fboundp #'xterm-paste)
-      (entropy/emacs-xterm-paste-core event))
-    (let* ((paste (car kill-ring)))
-      (term-send-raw-string paste)))
+   (defun entropy/emacs-basic-xterm-S-insert (event)
+     (interactive "e")
+     (when (and (fboundp #'xterm-paste)
+                (not (executable-find "xclip")))
+       (entropy/emacs-xterm-paste-core event))
+     (let* ((paste (car kill-ring)))
+       (term-send-raw-string paste)))
 
-  (entropy/emacs-lazy-load-simple 'term
-    (define-key term-raw-map
-      [S-insert]
-      #'entropy/emacs-basic-xterm-S-insert)
-    (define-key term-raw-map
-      [xterm-paste]
-      #'entropy/emacs-basic-xterm-S-insert)))
+   (entropy/emacs-lazy-load-simple 'term
+     (define-key term-raw-map
+       [S-insert]
+       #'entropy/emacs-basic-xterm-S-insert)
+     (define-key term-raw-map
+       [xterm-paste]
+       #'entropy/emacs-basic-xterm-S-insert))))
 
 ;; ** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
 (when (and sys/win32p (not (version< emacs-version "26.1")))
@@ -1412,17 +1428,6 @@ otherwise returns nil."
         "autocompression-mode"
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
-
-;; ** xclip-mode
-
-(use-package xclip
-  :if (and (not (display-graphic-p)) (executable-find "xclip"))
-  :commands
-  (xclip-mode)
-  :init
-  (entropy/emacs-lazy-with-load-trail
-   xclip-mode
-   (xclip-mode 1)))
 
 ;; * provide
 (provide 'entropy-emacs-basic)
