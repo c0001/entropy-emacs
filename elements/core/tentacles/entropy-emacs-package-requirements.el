@@ -190,7 +190,8 @@
         srcery-theme
         sublime-themes
         ujelly-theme
-        use-package))
+        use-package
+        xclip))
 
 ;; filter packages required tree to remove all nil entry
 (let (rtn)
