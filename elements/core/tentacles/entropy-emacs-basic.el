@@ -1298,8 +1298,8 @@ Temp file was \"~/~entropy-artist.txt\""
  (when (and (not (display-graphic-p))
             (fboundp #'xterm-paste))
    (if (not (executable-find "xclip"))
-     (define-key global-map [xterm-paste]
-       #'entropy/emacs-xterm-paste)
+       (define-key global-map [xterm-paste]
+         #'entropy/emacs-xterm-paste)
      (define-key global-map [xterm-paste]
        #'yank))
 
