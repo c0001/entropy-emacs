@@ -709,6 +709,25 @@ the string passed to `kbd'."
           (define-key key-map
             (kbd (car key-bind)) (cdr key-bind)))))))
 
+;; ** cli compatibale
+(defvar entropy/emacs--xterm-clipboard-head nil)
+
+(defun entropy/emacs-xterm-paste-core (event)
+  (let* ((paste-str (nth 1 event)))
+    (with-temp-buffer
+      (if (not (equal paste-str
+                      entropy/emacs--xterm-clipboard-head))
+          (and (setq entropy/emacs--xterm-clipboard-head
+                     paste-str)
+               (xterm-paste event))
+        (yank)))))
+
+(defun entropy/emacs-xterm-paste (event)
+  "Prefer to use `kill-ring` to yank instead of event get thus."
+  (interactive "e")
+  (entropy/emacs-xterm-paste-core event)
+  (yank))
+
 ;; ** miscellaneous
 (defun entropy/emacs-transfer-wvol (file)
   "Transfer linux type root path header into windows volumn

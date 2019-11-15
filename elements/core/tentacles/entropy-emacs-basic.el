@@ -422,11 +422,6 @@ retrieve from `window-list' larger than 1."
 (global-set-key(kbd "C-<f9>") 'toggle-truncate-lines)
 (setq org-startup-truncated t)
 
-;; ** remove overwrite-mode
-(advice-add 'overwrite-mode
-            :override
-            #'(lambda (&rest args) (message "Overwrite-mode has been removed from entropy-emacs.")))
-
 ;; ** Dired config
 ;; *** dired basic
 (use-package dired
@@ -973,7 +968,7 @@ This function has redefined for adapting to
   (interactive)
   (progn (setq kill-ring nil) (garbage-collect)))
 
-;; ** mark-sexp
+;; ** Mark-sexp
 (entropy/emacs-!set-key (if (display-graphic-p) (kbd "C-`") (kbd "C-@")) 'set-mark-command)
 (defun entropy/emacs-basic-mark-set ()
   (interactive)
@@ -1266,29 +1261,47 @@ Temp file was \"~/~entropy-artist.txt\""
 ;; ** Enable disabled commands
 (put 'narrow-to-region 'disabled nil)
 
-;; ** 'super' and 'hyper' key
-(progn
-  ;; Binding 'super' and 'hyper' on win32 and mac.
-  ;;   the idea form `http://ergoemacs.org/emacs/emacs_hyper_super_keys.html'
-  (cond
-   (sys/win32p
-    (setq w32-apps-modifier 'hyper) ; Menu/App key
-    (global-set-key (kbd "C-M-g") 'keyboard-quit) ; when unintended active this, using 'QUIT' as 'C-g'
-    (global-set-key (kbd "C-s-g") 'keyboard-quit) ; same as above of super key intended active
-    (global-set-key (kbd "A-C-g") 'keyboard-quit) ; same as above of super key intended active
+;; ** Key modification
+;; *** key re-mapping
+;; Binding 'super' and 'hyper' on win32 and mac.
+;;   the idea form `http://ergoemacs.org/emacs/emacs_hyper_super_keys.html'
+(cond
+ (sys/win32p
+  (setq w32-apps-modifier 'hyper) ; Menu/App key
+  (global-set-key (kbd "C-M-g") 'keyboard-quit) ; when unintended active this, using 'QUIT' as 'C-g'
+  (global-set-key (kbd "C-s-g") 'keyboard-quit) ; same as above of super key intended active
+  (global-set-key (kbd "A-C-g") 'keyboard-quit) ; same as above of super key intended active
+  )
+ 
+ (sys/macp
+  ;; set keys for Apple keyboard, for emacs in OS X
+  (setq mac-command-modifier 'meta) ; make cmd key do Meta
+  (setq mac-option-modifier 'super) ; make opt key do Super
+  (setq mac-control-modifier 'control) ; make Control key do Control
+  (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
+  ))
 
-    ;; actived for `aya-create' and `aya-expand'
-    (w32-register-hot-key [h-e])
-    (w32-register-hot-key [h-w]))
-   
-   (sys/macp
-    ;; set keys for Apple keyboard, for emacs in OS X
-    (setq mac-command-modifier 'meta) ; make cmd key do Meta
-    (setq mac-option-modifier 'super) ; make opt key do Super
-    (setq mac-control-modifier 'control) ; make Control key do Control
-    (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
-    )))
+;; *** event re-bind
+;; **** xterm re-bind
+(when (and (not (display-graphic-p))
+           (fboundp #'xterm-paste))
+  (define-key global-map [xterm-paste]
+    #'entropy/emacs-xterm-paste)
 
+  (defun entropy/emacs-basic-xterm-S-insert (event)
+    (interactive "e")
+    (when (fboundp #'xterm-paste)
+      (entropy/emacs-xterm-paste-core event))
+    (let* ((paste (car kill-ring)))
+      (term-send-raw-string paste)))
+
+  (entropy/emacs-lazy-load-simple 'term
+    (define-key term-raw-map
+      [S-insert]
+      #'entropy/emacs-basic-xterm-S-insert)
+    (define-key term-raw-map
+      [xterm-paste]
+      #'entropy/emacs-basic-xterm-S-insert)))
 
 ;; ** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
 (when (and sys/win32p (not (version< emacs-version "26.1")))
@@ -1399,6 +1412,17 @@ otherwise returns nil."
         "autocompression-mode"
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
+
+;; ** xclip-mode
+
+(use-package xclip
+  :if (and (not (display-graphic-p)) (executable-find "xclip"))
+  :commands
+  (xclip-mode)
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   xclip-mode
+   (xclip-mode 1)))
 
 ;; * provide
 (provide 'entropy-emacs-basic)
