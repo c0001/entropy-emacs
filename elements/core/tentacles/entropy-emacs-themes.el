@@ -112,7 +112,7 @@
              turn-on-solaire-mode)
   :preface
 
-  ;; pdumper session specification
+  ;; eemacs solaire optimized library
   (defun entropy/emacs-theme--solaire-get-origin-faces ()
     (cl-loop for ((orig-face solaire-face) . judge) in solaire-mode-remap-alist
              when (eval judge)
@@ -132,17 +132,18 @@
     (when (entropy/emacs-theme-adapted-to-solaire)
       (entropy/emacs-theme--solaire-force-set-faces
        entropy/emacs-theme-sticker))
-    (dolist (el '(default hl-line))
-      (face-spec-set
-       el
-       (entropy/emacs-get-theme-face
-        entropy/emacs-theme-sticker el))))
+    ;; recover stock themes
+    (dolist (el '(default hl-line mode-line tooltip))
+      (let ((face-spec (entropy/emacs-get-theme-face
+                        entropy/emacs-theme-sticker el)))
+        (when face-spec (face-spec-set el face-spec))))
+    (entropy/emacs-solaire-specific-for-themes))
   
   ;; solaire entropy-emacs configuration
 
   (defvar entropy/emacs-theme--solaire-is-enabled nil
     "Transient variable for indicating buffer `solaire-mode'
-    status.")
+status.")
   
   (defun entropy/emacs-theme--solaire-enable ()
     (when (entropy/emacs-theme-adapted-to-solaire)
@@ -197,11 +198,13 @@
                     (setq entropy/emacs-theme--solaire-is-enabled nil))))
     (add-hook 'entropy/emacs-theme-load-before-hook
               #'entropy/emacs-theme--solaire-disable)
-    (add-hook 'entropy/emacs-theme-load-after-hook
-              #'entropy/emacs-theme--solaire-enable))
+    (add-hook 'entropy/emacs-theme-load-after-hook-end-1
+              #'entropy/emacs-theme--solaire-enable)
+    (entropy/emacs-solaire-specific-for-themes))
 
   :init
-  (setq solaire-mode-remap-fringe nil)
+  (setq solaire-mode-remap-fringe nil
+        solaire-mode-remap-modeline nil)
   (setq solaire-mode-real-buffer-fn
         (lambda ()
           t))
@@ -209,10 +212,10 @@
   (entropy/emacs-lazy-with-load-trail
    solaire-mode
    (entropy/emacs-theme--initilized-start-solaire-mode)
-   (when entropy/emacs-fall-love-with-pdumper
-     (add-hook 'entropy/emacs-theme-load-after-hook
-               #'entropy/emacs-theme--recovery-solaire-faces
-               100))))
+   (add-hook 'entropy/emacs-theme-load-after-hook-end-2
+             #'entropy/emacs-solaire-specific-for-themes)
+   (add-hook 'entropy/emacs-theme-load-after-hook-end-2
+             #'entropy/emacs-theme--recovery-solaire-faces)))
 
 ;; ** page-break-lines style form Purcell
 ;;

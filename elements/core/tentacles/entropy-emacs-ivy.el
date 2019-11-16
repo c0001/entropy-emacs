@@ -348,7 +348,8 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 font style and height."
     (interactive)
     (counsel-load-theme)
-    (entropy/emacs-adjust-org-heading-scale))
+    (ignore-errors
+      (entropy/emacs-adjust-org-heading-scale)))
 
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-wsl-enable)

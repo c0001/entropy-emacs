@@ -211,11 +211,20 @@ moving operation will cause non-terminated looping proceeding."
     (interactive "P")
     (when (bound-and-true-p outshine-mode)
       (funcall 'outshine-cycle-buffer arg)))
+
+  (defun entropy/emacs-structure--outshine-pop-imenu (&optional args)
+    (interactive)
+    (when (bound-and-true-p outshine-mode)
+      (outshine-imenu)))
   
   :init
   (entropy/emacs-!set-key
     (kbd "\\")
     'entropy/emacs-structure--outshine-cycle-buffer)
+
+  (entropy/emacs-!set-key
+    (kbd "M-i")
+    'entropy/emacs-structure--outshine-pop-imenu)
   
   (entropy/emacs-lazy-initial-for-hook
    '(emacs-lisp-mode-hook)

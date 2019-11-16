@@ -284,6 +284,12 @@ The follow auto-laod wrapper may be used in `custom-file'
 #+END_SRC
   ")
 
+(defvar entropy/emacs-theme-load-after-hook-end-1 nil
+  "Hooks run after hook `entropy/emacs-theme-load-after-hook'.")
+
+(defvar entropy/emacs-theme-load-after-hook-end-2 nil
+  "Hooks run after hook `entropy/emacs-theme-load-after-hook-end-1'.")
+
 (defun entropy/emacs-theme-load-advice (old-func &rest args)
   "Advice for `load-theme' which adding the before ans after hook:
 
@@ -302,7 +308,9 @@ is ran after the registering procedure done within `progn' scope."
   (progn
     (let ((theme-load (car args)))
       (setq entropy/emacs-theme-sticker theme-load))
-    (run-hooks 'entropy/emacs-theme-load-after-hook)))
+    (run-hooks 'entropy/emacs-theme-load-after-hook)
+    (run-hooks 'entropy/emacs-theme-load-after-hook-end-1)
+    (run-hooks 'entropy/emacs-theme-load-after-hook-end-2)))
 
 (advice-add 'load-theme :around #'entropy/emacs-theme-load-advice)
 

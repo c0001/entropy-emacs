@@ -52,6 +52,20 @@
     (and val
          (symbolp val))))
 
+(defun entropy/emacs-theme-adapted-to-solaire ()
+  "Judge whether current theme loaded adapted to `solaire-mode',
+return t otherwise for nil. "
+  (let ((theme_cur (ignore-errors (symbol-name entropy/emacs-theme-sticker))))
+    ;; Condition judge for unconditional occurrence for theme loading,
+    ;; seem as in pdumper session.
+    (if (and (stringp theme_cur)
+             (not (eql 0 (length theme_cur))))
+        (catch :exit
+          (dolist (regex entropy/emacs-solaire-themes-regex-list)
+            (when (ignore-errors (string-match-p regex theme_cur))
+              (throw :exit t))))
+      nil)))
+
 ;; *** key bindings
 (defmacro entropy/emacs-!set-key (key command)
   (declare (indent defun))
@@ -657,6 +671,23 @@ when changing theme."
                                nil :background (face-background 'mode-line nil t))
            (doom-modeline-refresh-bars)))))
 
+(defun entropy/emacs-solaire-specific-for-themes ()
+  (when (entropy/emacs-theme-adapted-to-solaire)
+    (require 'hl-line)
+    (require 'solaire-mode)
+    (cond
+     ((eq entropy/emacs-theme-sticker 'spacemacs-dark)
+      (dolist (x '(solaire-hl-line-face hl-line))
+        (set-face-attribute
+         x
+         nil
+         :background
+         (cond ((not (display-graphic-p))
+                "color-236")
+               ((display-graphic-p)
+                "#293c44")))))
+     (t nil))))
+
 ;; ** advice around for case-fold-search
 (defun entropy/emacs-case-fold-focely-around-advice (_old_func &rest _args)
   "Wrapper function to disable `case-fold-search' functional ability."
@@ -679,21 +710,6 @@ This funciton will solve the problem that the symbol pattern
 display ugly and small in info-mode."
   (set-face-attribute 'fixed-pitch-serif nil
                       :family "Monospace" :slant 'italic))
-
-;; ** solaire-mode adapted themes judgement
-(defun entropy/emacs-theme-adapted-to-solaire ()
-  "Judge whether current theme loaded adapted to `solaire-mode',
-return t otherwise for nil. "
-  (let ((theme_cur (ignore-errors (symbol-name entropy/emacs-theme-sticker))))
-    ;; Condition judge for unconditional occurrence for theme loading,
-    ;; seem as in pdumper session.
-    (if (and (stringp theme_cur)
-             (not (eql 0 (length theme_cur))))
-        (catch :exit
-          (dolist (regex entropy/emacs-solaire-themes-regex-list)
-            (when (ignore-errors (string-match-p regex theme_cur))
-              (throw :exit t))))
-      nil)))
 
 ;; ** key map refer
 (defun entropy/emacs-batch-define-key (key-obj-list)
