@@ -29,6 +29,13 @@
     (org-mode)
     (outline-show-all)))
 
+(defun entropy/sdcv-backends--auto-face-common (show-method)
+  (cl-case show-method
+    (adjacent-common
+     nil)
+    (t
+     'entropy/sdcv-core-common-face)))
+
 ;;;; backends
 ;;;;; youdao
 (defun entropy/sdcv-backends--query-with-youdao (query &rest _)
@@ -500,6 +507,7 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
 ;;;;;; show predicate
 
 (defun entropy/sdcv-backends--sdcv-show-predicate (feedback show-method)
+  (entropy/sdcv-core-get-word-or-region)
   (cl-case show-method
     ((or pos-tip popup)
      (entropy/sdcv-core-common-propertize-feedback feedback))
@@ -567,15 +575,20 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
 
 (dolist
     (el
-     '((wudao-hash :query-function entropy/sdcv-backends--query-with-wudao-by-hash)
-       (wudao-command :query-function entropy/sdcv-backends--query-with-wudao-by-command)
+     '((wudao-hash :query-function entropy/sdcv-backends--query-with-wudao-by-hash
+                   :show-face entropy/sdcv-backends--auto-face-common)
+       (wudao-command :query-function entropy/sdcv-backends--query-with-wudao-by-command
+                      :show-face entropy/sdcv-backends--auto-face-common)
        (sdcv :query-function entropy/sdcv-backends--query-with-sdcv
              :show-predicate entropy/sdcv-backends--sdcv-show-predicate
-             :show-face entropy/sdcv-core-gen-common-face)
+             :show-face entropy/sdcv-backends--auto-face-common)
        (youdao :query-function entropy/sdcv-backends--query-with-youdao
-               :show-predicate entropy/sdcv-backends--youdao-show-predicate)
-       (bing :query-function entropy/sdcv-backends--query-with-bing)
-       (google :query-function entropy/sdcv-backends--query-with-google)))
+               :show-predicate entropy/sdcv-backends--youdao-show-predicate
+               :show-face entropy/sdcv-backends--auto-face-common)
+       (bing :query-function entropy/sdcv-backends--query-with-bing
+             :show-face entropy/sdcv-backends--auto-face-common)
+       (google :query-function entropy/sdcv-backends--query-with-google
+               :show-face entropy/sdcv-backends--auto-face-common)))
   (add-to-list 'entropy/sdcv-core-query-backends-register el))
 
 (provide 'entropy-sdcv-backends)

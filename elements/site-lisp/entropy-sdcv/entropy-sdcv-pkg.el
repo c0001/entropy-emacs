@@ -1,4 +1,4 @@
-(define-package "entropy-sdcv" "20191105.140"
+(define-package "entropy-sdcv" "20191116.2003"
   "A emacs word translate dictionary framework."
   '((emacs "24")
     (cl-lib "0.5")

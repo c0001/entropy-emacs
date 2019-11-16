@@ -45,7 +45,7 @@ posframe or popup shown mechanism."
   (let ((buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-showed-buffer))
         (feedback (plist-get show-instance :feedback))
         (show-predicate (plist-get show-instance :show-predicate))
-        (face (plist-get show-instance :show-face)))
+        (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'adjacent-common)))
     (when (facep face)
       (setq feedback
             (propertize feedback 'face face)))
@@ -75,7 +75,7 @@ posframe or popup shown mechanism."
 (defun entropy/sdcv-show--show-with-posframe (show-instance)
   (let* ((feedback (plist-get show-instance :feedback))
          (show-predicate (plist-get show-instance :show-predicate))
-         (face (plist-get show-instance :show-face))
+         (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'posframe))
          (predicate (entropy/sdcv-show--response-predicate-gen show-predicate feedback 'posframe))
          (buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-tooltip-buffer)))
     (cond ((eq face nil)
@@ -127,7 +127,7 @@ proper stretching."
          (feedback (plist-get show-instance :feedback))
          (w-h (pos-tip-string-width-height feedback))
          (show-predicate (plist-get show-instance :show-predicate))
-         (face (plist-get show-instance :show-face)))
+         (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'pos-tip)))
     (setq feedback (funcall (entropy/sdcv-show--response-predicate-gen
                              show-predicate feedback 'pos-tip)))
     (pos-tip-show-no-propertize
@@ -141,9 +141,7 @@ proper stretching."
                  entropy/sdcv-show-pos-tip-height-stretch)))))
 
 (defun entropy/sdcv-show--show-with-postip (show-instance)
-  (let ((tooltip_Ctype (entropy/sdcv-core-automatic-faceSet))
-        (pos-tip-internal-border-width 12))
-    (entropy/sdcv-core-automatic-faceSet)
+  (let ((pos-tip-internal-border-width 12))
     (entropy/sdcv-show--pos-tip-show show-instance)))
 
 ;;;;; popup
@@ -154,7 +152,7 @@ proper stretching."
         (popup-tip-max-width entropy/sdcv-core-response-column-width-max)
         (feedback (plist-get show-instance :feedback))
         (show-predicate (plist-get show-instance :show-predicate))
-        (face (plist-get show-instance :show-face)))
+        (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'popup)))
     (setq feedback (funcall (entropy/sdcv-show--response-predicate-gen
                              show-predicate feedback 'popup)))
     (if (null (facep face))

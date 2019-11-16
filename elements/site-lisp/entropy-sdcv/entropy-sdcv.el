@@ -5,7 +5,7 @@
 ;; Author:           Entropy <bmsac0001@gmail.com>
 ;; Maintainer:       Entropy <bmsac001@gmail.com>
 ;; URL:              https://github.com/c0001/entropy-sdcv
-;; Package-Version:  20191023.2003
+;; Package-Version:  20191116.2003
 ;; Version:          0.1.1
 ;; Created:          2018-12-11 12:48:04
 ;; Keywords:         sdcv
@@ -93,22 +93,27 @@
 ;;
 ;;
 ;;; Chanage log
-;;
+
+;; 2019/11/16
+;;      * Fix bugs for face setting
+;;        - Api =:show-face= now require the SHOW-METHOD argument for
+;;          funcion aspect.
+;;        - New api: ~entropy/sdcv-core-use-face~ in core library.
+
 ;; 2019/11/06
 ;;      * Rebuilding features logic to prepare for 0.2.0 release
 ;;        - using multi-backends instead sdcv maily framework
 ;;        - protocols made out for specification and featue adding
 ;;        - more more rigorous srcs splitting style.
-;; 
+
 ;; 2019/10/23
 ;;      * version v0.1.1 pop out
 ;;        - Using new auto-gen's tooltip face render
 ;;        - Add `pos-tip' tooltip type.
-;; 
+
 ;; 2018/12/11
 ;;      * First release pop out v0.1.0
-;;
-;;
+
 ;;; Code:
 ;;;; require
 (require 'entropy-sdcv-core)

@@ -138,7 +138,7 @@ parameters i.e. FEEDBACK and SHOW-METHOD.
 
 :show-face slotted the showed string (the FEEDBACK) face or nil
 means using default setting, or it is a funciton which return one
-specified face without any argument.
+specified face with one argument of SHOW-METHOD.
 
 FEEDBACK was string calling back from the specific DICT-BACKEND,
 commonly non-propertized, but can be fontlocked by the Backend
@@ -217,7 +217,7 @@ fill lines destructively or display with truncated occur."
 
 ;;;;; default face
 (defface entropy/sdcv-core-common-face '((t ()))
-  "The tooltip buffer background face. ")
+  "The tooltip buffer common face.")
 
 (defun entropy/sdcv-core-common-face-bgLight-color ()
   "Tooltip buffer background color for dark-theme."
@@ -286,12 +286,20 @@ downcase the query string."
     'entropy/sdcv-core-common-face))
 
 (defun entropy/sdcv-core-common-propertize-feedback (feedback)
-  (entropy/sdcv-core-automatic-faceSet)
+  (entropy/sdcv-core-gen-common-face)
   (propertize feedback 'face 'entropy/sdcv-core-common-face))
+
+(defun entropy/sdcv-core-use-face (show-face &optional show-method)
+  (or (and (null show-face) nil)
+      (and (facep show-face) show-face)
+      (and (functionp show-face)
+           (facep (funcall show-face show-method))
+           (funcall show-face show-method))))
 
 ;;;;; query with backend
 
 (defun entropy/sdcv-core-query-backend (query dict-backend-name show-method)
+  (entropy/sdcv-core-gen-common-face)
   (let* ((backend (alist-get
                    dict-backend-name
                    entropy/sdcv-core-query-backends-register))
@@ -301,11 +309,7 @@ downcase the query string."
          (feedback (funcall query-function query show-method)))
     (list :feedback feedback
           :show-predicate show-predicate
-          :show-face (or (and (eq face t) t)
-                         (and (facep face) face)
-                         (and (functionp face)
-                              (facep (funcall face))
-                              (funcall face))))))
+          :show-face face)))
 
 ;;;;; show response
 
