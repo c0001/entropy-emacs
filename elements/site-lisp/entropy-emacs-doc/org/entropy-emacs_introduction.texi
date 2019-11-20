@@ -26,15 +26,16 @@
 * Repo folder struct::
 * Main config files::
 * Self built packages::
+* Eemacs top-key map::
 * Custom @samp{entropy-emacs}::
 * Hacking for @samp{entropy-emacs}::
-* config feature specifiction::
+* Config feature specifiction introduction::
 * Docs refers::
 
 @detailmenu
 --- The Detailed Node Listing ---
 
-config feature specifiction
+Config feature specifiction introduction
 
 * Internal basic setting specific::
 * Major modes for programming::
@@ -195,7 +196,7 @@ others init files.
 
 There's the list of the tentacles and their description:
 
-@multitable {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem @strong{Category}
 @tab @strong{init package}
 @tab @strong{package description}
@@ -211,6 +212,9 @@ There's the list of the tentacles and their description:
 @item 
 @tab entropy-emacs-modeline.el
 @tab modeline themes collection and default modeline theme setes
+@item 
+@tab entropy-emacs-path.el
+@tab path configs for @samp{entropy-emacs} specfic environment
 @item 
 @tab 
 @tab 
@@ -260,12 +264,9 @@ There's the list of the tentacles and their description:
 @tab 
 @tab 
 @item 
-@tab entropy-emacs-path.el
-@tab path configs for @samp{entropy-emacs} specfic environment
-@item tool-chains
 @tab entropy-emacs-shell.el
 @tab emacs internal shell front-end enhancements
-@item 
+@item tool-chains
 @tab entropy-emacs-vcs.el
 @tab git/svn codes version control with @samp{magit}
 @item 
@@ -298,6 +299,12 @@ There's the list of the tentacles and their description:
 @item 
 @tab 
 @tab 
+@item code server
+@tab entropy-emacs-coworker.el
+@tab third-party language server query insall library.
+@item 
+@tab entropy-emacs-codeserver.el
+@tab the dashboard for language server installer
 @end multitable
 
 @node Self built packages
@@ -314,19 +321,21 @@ Pacakges I built was aimed for:
 @item
 Enhancing the basic emacs function or other elpa packages.
 @item
-things needed for me as the special hobby.
+Things needed for me as the special hobby.
 @item
-useful self built extension which hope to sharing with others.
+Useful self built extension which hope to sharing with others.
 @end itemize
 
 
 Now, I built serveral packages shown as below table:
 
-@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem package name
 @tab pakage description
 @item entropy-cn-dict
 @tab point char or region translation for chinese words (also useful for traditional chinese)
+@item entropy-sdcv
+@tab the emacs multi-dictionaries framework
 @item entropy-common-library
 @tab librarys for building other @samp{entropy-emacs} package
 @item entropy-project-manager
@@ -355,7 +364,23 @@ Now, I built serveral packages shown as below table:
 @tab convert simplified chinese to traditional chinese func used for @uref{https://github.com/tumashu/pyim, pyim} (emacs chinese input method)
 @item entropy-unfill
 @tab unfill buffer paragraph with specific rules built by user self
+@item entropy-shellpop
+@tab the yet-another @uref{http://github.com/kyagi/shell-pop-el, shell-pop} toolkit replacement for using @uref{https://github.com/wasamasa/shackle, shackle} as the popup method
 @end multitable
+
+@node Eemacs top-key map
+@chapter Eemacs top-key map
+
+For unified emacs experience both of CLI and GUI, @samp{entropy-emacs}
+using the auto-adaptable key @samp{entropy/emacs-top-key} as the the
+unified prefix key to bind a keymap @samp{entropy/emacs-top-keymap},
+various commands hosted on it to be interactived thus.
+
+Commonly @samp{entropy/emacs-top-key} was bind to @samp{C-@@} in CLI and @samp{C-`} in
+GUI, all of them are reflected with physical key hints @samp{C-`} on your
+keyboard. We make the convention that string @samp{[eprefix]} indicate the
+hint @samp{entropy/emacs-top-key} , that example @samp{[eprefix] w} means hint
+@samp{entropy/emacs-top-key} and @samp{w} sequentially.
 
 @node Custom @samp{entropy-emacs}
 @chapter Custom @samp{entropy-emacs}
@@ -364,7 +389,7 @@ Now, I built serveral packages shown as below table:
 acquiescently. For each feature in main config files
 @samp{entropy-emacs-xxx.el} or in self built extensions, @samp{entropy-emacs}
 custom-variables provides the wild freedom customized ability to
-specific config actually using experience.
+specific config actually to referred using experience.
 
 Since emacs using @samp{custom.el} for stored all customized setting
 temporarily entries, @samp{entropy-emacs} also allow user to setting custom
@@ -384,7 +409,7 @@ as custom file for convenience.
 is not suggested by. Sets of @samp{entrop-emacs} was corresponding to each
 other frequencly which shown as that if you modified one code snippet
 while you are not familiar with details logic designation of
-@samp{entropy-emacs}, you will get mess with the func in some place.
+@samp{entropy-emacs}, you will get mess with the functional in some place.
 
 But, if you want to hacking for some code snippet you can adding
 @samp{advice} for them and stored in your own config
@@ -414,26 +439,26 @@ files be interpreted.
 The conceptual for thus, file @samp{my_entropy-emacs_extern.el} can be
 secondary @samp{init.el} or the secodary emacs config repo main thing.
 
-@node config feature specifiction
-@chapter config feature specifiction
+@node Config feature specifiction introduction
+@chapter Config feature specifiction introduction
 
 This chapter introducts the main config features of @samp{entropy-emacs},
 each part of below sections pointing one feature category which was
 the collection sets description and feature specified core sets, you
 may want to select refer things you'd metioned or care about for
 jumping with the sequence as the section it self, but I recommended
-for reading consequences one by one instead of jumping where while you
-are fisrt using @samp{entropy-emacs}.
+for reading sections one by one instead of jumping where while you are
+fisrt using @samp{entropy-emacs}.
 
-Each feature required the basic emacs using experience procedure for
-or has been, which means if you are the newbie of emacs, you must
-reading the emacs internal tutorial first and then doing thus.
+Each feature required the basic emacs using experience for or has
+been, which means if you are the newbie of emacs, you must reading the
+emacs internal tutorial first and then doing thus.
 
-For windows using section, only suggested reading task for someone
-using emacs on windows, that section was the sets of experiences by me
-as using emacs on windows, I currently using emacs on windows as one
-portable programming encapsulation environment, that portable
-work-around for daily using of me.
+For WINDOWS specification section, only suggested reading task for
+someone using emacs on windows, that section was the sets of
+experiences by me as using emacs on windows, I often using emacs on
+WINDOWS as one portable programming encapsulation environment, that
+portable work-around for daily using of me.
 
 For chinese emacs user, when you want to input chinese and showing CJK
 fonts well (without lagging or other crash problem as emacs with cjk
@@ -562,13 +587,14 @@ each candidate was one unique slot number with workspace name:
 @image{../annex/img/Snipaste_2018-03-12_17-49-51_2018-03-12_17-50-08,,,,png}
 
 But the easist way for doing like this was using the shortcuts
-prefix @samp{C-c C-w} with the workspace slots number limited within
-decimal based digit as '1~9', thus if you active key stick @samp{C-c C-w
-  2} , you will toggle workspace to slot '2'. By default, @samp{eyerbrowse}
-supports toggle to none exists slot which creates it while then but
-without tag inputting prompt, or you can create new slot by sticking
-@samp{C-c C-w C-c} which will create one new slot with tag inputting
-demands prompting hacked adding by @samp{entropy-emacs}.
+prefix @samp{[eprefix] w} with the workspace slots number
+limited within decimal based digit as '1~9', thus if you active key
+stick @samp{[eprefix] w 2} , you will toggle workspace to slot
+'2'. By default, @samp{eyerbrowse} supports toggle to none exists slot
+which creates it while then but without tag inputting prompt, or you
+can create new slot by sticking @samp{[eprefix] w C-c} which
+will create one new slot with tag inputting demands prompting hacked
+adding by @samp{entropy-emacs}.
 
 @item
 @strong{Derived workspace:}
@@ -683,7 +709,7 @@ For toggle the derived slot, keybinding @samp{C-c M-v} as so.
 
 Following gif shows the complete process for toggle to derived slot
 and back to main slot, the latest step for back to top was hanged
-with keybinding @samp{C-c C-w C-`} which call function
+with keybinding @samp{[eprefix] w C-o} which call function
 @samp{entropy/emacs-basic-eyebrowse-switch-top}, it's useful for quicly
 back from the temp derived slot to top (called 'top' by main) slot
 without remember the current main slot number or backing with
@@ -780,10 +806,7 @@ The raw func obtained from
 They binding to @samp{C-x up/down/right/left}. That means you could
 jumping cycle round for sibling window quickly with your instincts
 visual sensitive.
-@end itemize
 
-
-@itemize
 @item
 @strong{Window resize:}
 
@@ -908,7 +931,7 @@ emacs version @samp{25.2.1} : doom
 @item
 emacs version @samp{25.3.1} : origin
 @item
-emacs version @samp{26.1} : doom
+emacs version @samp{26.1} and above: doom
 @end itemize
 
 This specification was rely on the unicode font render effection
@@ -977,7 +1000,7 @@ emacs interanl chinese input methods as the list below:
 @end itemize
 
 You don't have to know the each knowledge about them, but the most pop
-used one was @samp{chinese-py} which was aslo the most popular methond for
+used one was @samp{chinese-py} which was aslo the most popular method for
 chinese people for using as the default chinese hans char input
 method.
 
@@ -1024,7 +1047,7 @@ version below 26.1 and the oppsite using 'posframe'.
 
 @itemize
 @item
-@strong{Pyim dicts:} @anchor{org97d2cb1}
+@strong{Pyim dicts:} @anchor{org0bec613}
 
 Although @samp{pyim} was one emacs extension written by @uref{(info%20"elisp"), elisp}, it was
 also one comprehensive chinese input programe which as the same sets
@@ -1065,6 +1088,25 @@ other sets of scienece subjects vocabulary collection, it's size
 about 0.8 million entries.
 
 @item
+@strong{using liberime as rime backend for pyim}
+
+Except for plain text dictionary as cacheing method, the another
+project @uref{https://github.com/merrickluo/liberime, liberime-config} gives the ability to get IME query
+candicates from native @uref{https://rime.im, rime} engine @uref{https://github.com/rime/librime, librime}, and the configuration
+steps are easily and thus as:
+
+@enumerate
+@item
+given the rime schemes host in operation system for variable
+@samp{entropy/emacs-pyim-liberime-scheme-data}.
+@item
+Setting the specific rime scheme selected 
+@item
+Optionally give the rime cache dir value to
+@samp{entropy/emacs-pyim-liberime-cache-dir}.
+@end enumerate
+
+@item
 @strong{enable pyim with @samp{entropy-emacs}:}
 
 The turn-off custom variable controlling whether enable pyim when
@@ -1072,7 +1114,7 @@ emacs startup finished i.e. @samp{entropy/emacs-enable-pyim}, you can
 active it in your @samp{custom.el} file, then the next time you start up
 or open new session of emacs , pyim will automatically startup using
 the default dicts specific by @samp{entropy-emacs} as introduction form
-@ref{org97d2cb1, , pyim dicts section}, or if you want to enable dicts specified by
+@ref{org0bec613, , pyim dicts section}, or if you want to enable dicts specified by
 yourself, you can setting up custom-variable
 @samp{entropy/emacs-pyim-dicts}, the variable information and value
 format can be shown by touching @samp{C-h v entropy/emacs-pyim-dicts
@@ -1851,11 +1893,23 @@ cheerful user experience.
 presented major modes' feature for enhancing more and more modes
 experience individually. The main extending purpose was sticking on
 the coding completion, based on @samp{company-mode} which was the coding
-completion framework for any scences.
+completion framework for any scences.As well, eachs major modes
+extending were including the coding interactive sth refer, coding
+folding and expanding uppon the region or pair punctuations are adding
+so.
 
-As well, eachs major modes extending were including the coding
-interactive sth refer, coding folding and expanding uppon the region
-or pair punctuations are adding so.
+@samp{entropy-emacs} treats emacs as the IDE (i.e. integrated development
+environment), extended with third-party lanuage servers, with the
+quickly ripened for @uref{https://github.com/microsoft/language-server-protocol, Microsoft language server}, we are trending to use
+the LSP as the IDE core component, its powerful with unified
+crossplatform protocol defination and ripened communitiy driven. But
+for those old IDE configuration (i.e. individually un-unified code
+sever) were remained in @samp{entropy-emacs} and with full supported as
+before. 
+
+The switcher for @samp{lsp} and the old IDE configuration is customized
+variable @samp{entropy/emacs-use-ide-type} whose valid values are 'lsp or
+'traditional.
 
 Follow sections given the description for each major modes which have
 been enhanced the extending feature details informations.
@@ -1872,9 +1926,35 @@ been enhanced the extending feature details informations.
 @node C and C++
 @subsection C and C++
 
-As in C++ major modes, we major giving the two extending features:
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem @strong{IDE type}
+@tab @strong{language server}
+@tab @strong{completion support}
+@tab @strong{xref-defination support}
+@item lsp-mode
+@tab @uref{https://clang.llvm.org/extra/clangd.html, clangd}
+@tab yes
+@tab yes
+@item traditional
+@tab @uref{https://github.com/Sarcasm/irony-mode, irony-mode}
+@tab yes
+@tab yes
+@item 
+@tab 
+@tab 
+@tab 
+@end multitable
 
 @itemize
+@item
+@strong{Lsp-mode for cland eemacs configuration:}
+
+Common lsp-mode configuration. 
+
+@item
+@strong{irony-mode eemacs configuration:}
+
+@enumerate
 @item
 Using @uref{https://github.com/Sarcasm/irony-mode, irony-mode} to giving the project code defination review and
 jumping feature.
@@ -1882,7 +1962,7 @@ jumping feature.
 @item
 Using @samp{company-c-headers} to giving the project header file query
 completions.
-@end itemize
+@end enumerate
 
 @samp{irony-mode} based on the irony-server which has been compiled for w32
 platform within @samp{entropy-emacs}, but needed compiling manually on
@@ -1894,9 +1974,31 @@ same binary.)
 Other feature extending are minor, simple file compiling on WINDOWS OS
 was given as function @code{entropy/emacs-c-win-c-compiler} which using
 mingw gcc for the compiler and with fixed library linking as for.
+@end itemize
 
 @node Php
 @subsection Php
+
+@multitable {aaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem @strong{IDE type}
+@tab @strong{language server}
+@tab @strong{completion support}
+@tab @strong{xref-defination support}
+@item lsp-mode
+@tab @uref{https://github.com/felixfbecker/php-language-server, php-language-server}
+@tab yes
+@tab yes
+@item traditional ide
+@tab @uref{https://github.com/xcwen/ac-php, ac-php}
+@tab yes
+@tab yes
+@end multitable
+
+@strong{Lsp-mode php-language-server eemacs configuration:}
+
+Common lsp-mode instruction
+
+@strong{Ac-php eemacs configuration:}
 
 Php mode was derived from C-mode, familiar syntax-table and grammer
 refer so that the syntax highlight was not needed to extend.
@@ -1909,7 +2011,8 @@ for giving thus. Binding with @samp{M-p} for activation.
 
 emacs internal default web front-end major modes html and css mode are
 user basically with simple func interactively support, we use melpa
-package @uref{http://web-mode.org, web-mode} for the enhancements.
+package @uref{http://web-mode.org, web-mode} for the enhancements for html group markup language
+but for css as.
 
 web-mode provide sets of mordern features as for.  Tag folding and
 expanding with @uref{https://github.com/smihica/emmet-mode, emmet-mode}'s abbrevation tag editting, giving the more
@@ -1923,6 +2026,25 @@ Both of html and css buffer can be tidy up with normally code style
 using @uref{https://github.com/yasuyk/web-beautify, web-beautify} package which required nodejs path searched and the
 npm refer packages installed.
 
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem @strong{IDE type}
+@tab @strong{language server}
+@tab @strong{completion support}
+@tab @strong{xref-defination support}
+@item lsp-mode
+@tab @uref{https://github.com/vscode-langservers/vscode-html-languageserver, html}
+@tab yes
+@tab yes
+@item traditional
+@tab html: no
+@tab yes (@uref{https://github.com/osv/company-web, company-web})
+@tab no
+@item 
+@tab css:  no
+@tab yes (company-capf)
+@tab no
+@end multitable
+
 @node Javascript
 @subsection Javascript
 
@@ -1930,6 +2052,21 @@ JS development IDE @uref{https://github.com/mooz/js2-mode/, js2-mode} was the on
 syntax checking and morden syntax highlighting feature for js coding
 which used in @samp{entropy-emacs} for be replaced with origin js major
 mode.
+
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem @strong{IDE type}
+@tab @strong{language server}
+@tab @strong{completion support}
+@tab @strong{xref-defination support}
+@item lsp-mode
+@tab @uref{https://github.com/theia-ide/typescript-language-server, typescript-language-server}
+@tab yes
+@tab yes
+@item traditional
+@tab @uref{https://github.com/ternjs/tern, tern}
+@tab yes (@uref{https://github.com/ternjs/tern, company-tern})
+@tab yes
+@end multitable
 
 @node Web front-end realtime previewer
 @subsection Web front-end realtime previewer
@@ -2036,8 +2173,27 @@ html js all in one embedding file as for.
 @node Python anaconda
 @subsection Python anaconda
 
-Now we using @uref{https://github.com/proofit404/anaconda-mode, anaconda-mode} as python-mode extending feature for
-providing coding completion func.
+We using emacs built-in major-mode @samp{python-mode} for coding python codes.
+
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem @strong{IDE type}
+@tab @strong{language server}
+@tab @strong{completion support}
+@tab @strong{xref-defination support}
+@item lsp-mode
+@tab @uref{https://github.com/palantir/python-language-server, pyls}
+@tab yes
+@tab yes
+@item traditional
+@tab @uref{https://github.com/proofit404/anaconda-mode, anaconda-mode}
+@tab yes (@uref{https://github.com/proofit404/anaconda-mode, company-anaconda})
+@tab yes
+@end multitable
+
+@strong{python-mode eemacs specification}
+
+By defautly, we using @samp{python3} be the primary python shell, that it
+was the most recommendation for thus.
 
 @node Packages enhancements and introduction
 @section Packages enhancements and introduction
@@ -2411,7 +2567,6 @@ toolchains, minor bugs was founded, the key touching bug especially.
 There's no key touching bug founded on WIN7, thus below description
 was refer to WIN10.
 @end quotation
-
 
 On WIN10, the @samp{win} key was temporally frozen the other key taken up
 when OS session recovery from screen lock state, this was the annoying

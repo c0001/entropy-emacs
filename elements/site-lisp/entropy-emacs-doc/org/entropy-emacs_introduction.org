@@ -104,47 +104,51 @@ others init files.
 
 There's the list of the tentacles and their description:
 
-| *Category*           | *init package*             | *package description*                                                |
-|----------------------+----------------------------+----------------------------------------------------------------------|
-|                      | entropy-emacs-basic.el     | basic setting for =entropy-emacs=                                    |
-| basic config         | entropy-emacs-ui.el        | ui defination with the customized startup screen design              |
-|                      | entropy-emacs-themes.el    | theme collections and startup default theme sets                     |
-|                      | entropy-emacs-modeline.el  | modeline themes collection and default modeline theme setes          |
-|                      |                            |                                                                      |
-|----------------------+----------------------------+----------------------------------------------------------------------|
-| window conigurations | entropy-emacs-wc.el        | The emacs window moving and workaround emulator configuration        |
-|                      | entropy-emacs-popup.el     | The popuped window procedure defination                              |
-|                      |                            |                                                                      |
-|----------------------+----------------------------+----------------------------------------------------------------------|
-|                      | entropy-emacs-ivy.el       | [[https://github.com/abo-abo/swiper][ivy]] mode configs and others refer enhancements                       |
-| interactive chains   | entropy-emacs-company.el   | [[https://github.com/company-mode/company-mode][company-mode]] confifs and other refer enhancements                    |
-|                      | entropy-emacs-yas.el       | [[https://github.com/joaotavora/yasnippet][yasnippet for emacs]] configs and other refer enhancements             |
-|                      |                            |                                                                      |
-|----------------------+----------------------------+----------------------------------------------------------------------|
-|                      | entropy-emacs-org.el       | emacs org mode configs                                               |
-|                      | entropy-emacs-markdown.el  | emacs markdown mode configs                                          |
-| major modes          | entropy-emacs-c.el         | C/C++ mode configs with =irony= completion chians                    |
-|                      | entropy-emacs-lisp.el      | emacs lisp mode configs                                              |
-|                      | entropy-emacs-web.el       | web mode (web front/back end) configs (inclues js css html php)      |
-|                      | entropy-emacs-python.el    | python mode config with =company-anaconda= completion chain          |
-|                      | entropy-emacs-lua.el       | lua mode configs                                                     |
-|                      |                            |                                                                      |
-|----------------------+----------------------------+----------------------------------------------------------------------|
-|                      | entropy-emacs-path.el      | path configs for =entropy-emacs= specfic environment                 |
-| tool-chains          | entropy-emacs-shell.el     | emacs internal shell front-end enhancements                          |
-|                      | entropy-emacs-vcs.el       | git/svn codes version control with =magit=                           |
-|                      | entropy-emacs-structure.el | programme editting structs fold/expanding feature package            |
-|                      | entropy-emacs-highlight.el | codes snippet highlighting guide feature provider                    |
-|                      | entropy-emacs-dash.el      | dashboard of api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]           |
-|                      |                            |                                                                      |
-|----------------------+----------------------------+----------------------------------------------------------------------|
-| entertainments       | entropy-emacs-emms.el      | gnu emms as media play control panel =entropy-emacs= specifics       |
-|                      | entropy-emacs-game.el      | emacs internal game setting config optimization                      |
-|                      |                            |                                                                      |
-|----------------------+----------------------------+----------------------------------------------------------------------|
-| fundamental          | entropy-emacs-package.el   | on-line packages mirror management and local featuere loaded configs |
-|                      | entropy-emacs-custom.el    | custom file loading setting with alternative custom file specific    |
-|                      |                            |                                                                      |
+| *Category*           | *init package*              | *package description*                                                |
+|----------------------+-----------------------------+----------------------------------------------------------------------|
+|                      | entropy-emacs-basic.el      | basic setting for =entropy-emacs=                                    |
+| basic config         | entropy-emacs-ui.el         | ui defination with the customized startup screen design              |
+|                      | entropy-emacs-themes.el     | theme collections and startup default theme sets                     |
+|                      | entropy-emacs-modeline.el   | modeline themes collection and default modeline theme setes          |
+|                      | entropy-emacs-path.el       | path configs for =entropy-emacs= specfic environment                 |
+|                      |                             |                                                                      |
+|----------------------+-----------------------------+----------------------------------------------------------------------|
+| window conigurations | entropy-emacs-wc.el         | The emacs window moving and workaround emulator configuration        |
+|                      | entropy-emacs-popup.el      | The popuped window procedure defination                              |
+|                      |                             |                                                                      |
+|----------------------+-----------------------------+----------------------------------------------------------------------|
+|                      | entropy-emacs-ivy.el        | [[https://github.com/abo-abo/swiper][ivy]] mode configs and others refer enhancements                       |
+| interactive chains   | entropy-emacs-company.el    | [[https://github.com/company-mode/company-mode][company-mode]] confifs and other refer enhancements                    |
+|                      | entropy-emacs-yas.el        | [[https://github.com/joaotavora/yasnippet][yasnippet for emacs]] configs and other refer enhancements             |
+|                      |                             |                                                                      |
+|----------------------+-----------------------------+----------------------------------------------------------------------|
+|                      | entropy-emacs-org.el        | emacs org mode configs                                               |
+|                      | entropy-emacs-markdown.el   | emacs markdown mode configs                                          |
+| major modes          | entropy-emacs-c.el          | C/C++ mode configs with =irony= completion chians                    |
+|                      | entropy-emacs-lisp.el       | emacs lisp mode configs                                              |
+|                      | entropy-emacs-web.el        | web mode (web front/back end) configs (inclues js css html php)      |
+|                      | entropy-emacs-python.el     | python mode config with =company-anaconda= completion chain          |
+|                      | entropy-emacs-lua.el        | lua mode configs                                                     |
+|                      |                             |                                                                      |
+|----------------------+-----------------------------+----------------------------------------------------------------------|
+|                      | entropy-emacs-shell.el      | emacs internal shell front-end enhancements                          |
+| tool-chains          | entropy-emacs-vcs.el        | git/svn codes version control with =magit=                           |
+|                      | entropy-emacs-structure.el  | programme editting structs fold/expanding feature package            |
+|                      | entropy-emacs-highlight.el  | codes snippet highlighting guide feature provider                    |
+|                      | entropy-emacs-dash.el       | dashboard of api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]           |
+|                      |                             |                                                                      |
+|----------------------+-----------------------------+----------------------------------------------------------------------|
+| entertainments       | entropy-emacs-emms.el       | gnu emms as media play control panel =entropy-emacs= specifics       |
+|                      | entropy-emacs-game.el       | emacs internal game setting config optimization                      |
+|                      |                             |                                                                      |
+|----------------------+-----------------------------+----------------------------------------------------------------------|
+| fundamental          | entropy-emacs-package.el    | on-line packages mirror management and local featuere loaded configs |
+|                      | entropy-emacs-custom.el     | custom file loading setting with alternative custom file specific    |
+|                      |                             |                                                                      |
+|----------------------+-----------------------------+----------------------------------------------------------------------|
+| code server          | entropy-emacs-coworker.el   | third-party language server query insall library.                    |
+|                      | entropy-emacs-codeserver.el | the dashboard for language server installer                          |
+
 
 * Self built packages
 :PROPERTIES:
@@ -159,8 +163,8 @@ reason for me to build things just I using or just contained within
 
 Pacakges I built was aimed for:
 - Enhancing the basic emacs function or other elpa packages.
-- things needed for me as the special hobby.
-- useful self built extension which hope to sharing with others.
+- Things needed for me as the special hobby.
+- Useful self built extension which hope to sharing with others.
 
 
 Now, I built serveral packages shown as below table:
@@ -168,6 +172,7 @@ Now, I built serveral packages shown as below table:
 | package name                    | pakage description                                                                                |
 |---------------------------------+---------------------------------------------------------------------------------------------------|
 | entropy-cn-dict                 | point char or region translation for chinese words (also useful for traditional chinese)          |
+| entropy-sdcv                    | the emacs multi-dictionaries framework                                                            |
 | entropy-common-library          | librarys for building other =entropy-emacs= package                                               |
 | entropy-project-manager         | simple project managements system                                                                 |
 | entropy-counsel-stuffs          | stuffs managemetns as notes, bookmarks recording or modifying chain                               |
@@ -182,6 +187,19 @@ Now, I built serveral packages shown as below table:
 | entrop-proxy-url                | http retrieving proxy tool for eww and emacs-w3m                                                  |
 | entropy-s2t                     | convert simplified chinese to traditional chinese func used for [[https://github.com/tumashu/pyim][pyim]] (emacs chinese input method) |
 | entropy-unfill                  | unfill buffer paragraph with specific rules built by user self                                    |
+| entropy-shellpop                | the yet-another [[http://github.com/kyagi/shell-pop-el][shell-pop]] toolkit replacement for using [[https://github.com/wasamasa/shackle][shackle]] as the popup method               |
+* Eemacs top-key map
+
+For unified emacs experience both of CLI and GUI, =entropy-emacs=
+using the auto-adaptable key =entropy/emacs-top-key= as the the
+unified prefix key to bind a keymap =entropy/emacs-top-keymap=,
+various commands hosted on it to be interactived thus.
+
+Commonly =entropy/emacs-top-key= was bind to =C-@= in CLI and =C-`= in
+GUI, all of them are reflected with physical key hints =C-`= on your
+keyboard. We make the convention that string =[eprefix]= indicate the
+hint =entropy/emacs-top-key= , that example =[eprefix] w= means hint
+=entropy/emacs-top-key= and =w= sequentially.
 
 * Custom =entropy-emacs=
 :PROPERTIES:
@@ -191,7 +209,7 @@ Now, I built serveral packages shown as below table:
 acquiescently. For each feature in main config files
 =entropy-emacs-xxx.el= or in self built extensions, =entropy-emacs=
 custom-variables provides the wild freedom customized ability to
-specific config actually using experience.
+specific config actually to referred using experience.
 
 Since emacs using =custom.el= for stored all customized setting
 temporarily entries, =entropy-emacs= also allow user to setting custom
@@ -213,7 +231,7 @@ as custom file for convenience.
 is not suggested by. Sets of =entrop-emacs= was corresponding to each
 other frequencly which shown as that if you modified one code snippet
 while you are not familiar with details logic designation of
-=entropy-emacs=, you will get mess with the func in some place.
+=entropy-emacs=, you will get mess with the functional in some place.
 
 But, if you want to hacking for some code snippet you can adding
 =advice= for them and stored in your own config
@@ -243,7 +261,7 @@ files be interpreted.
 The conceptual for thus, file =my_entropy-emacs_extern.el= can be
 secondary =init.el= or the secodary emacs config repo main thing.
   
-* config feature specifiction
+* Config feature specifiction introduction
 :PROPERTIES:
 :CUSTOM_ID: h-c6193e3f-dade-485f-a82e-e12aa35543cc
 :END:
@@ -253,18 +271,18 @@ each part of below sections pointing one feature category which was
 the collection sets description and feature specified core sets, you
 may want to select refer things you'd metioned or care about for
 jumping with the sequence as the section it self, but I recommended
-for reading consequences one by one instead of jumping where while you
-are fisrt using =entropy-emacs=.
+for reading sections one by one instead of jumping where while you are
+fisrt using =entropy-emacs=.
 
-Each feature required the basic emacs using experience procedure for
-or has been, which means if you are the newbie of emacs, you must
-reading the emacs internal tutorial first and then doing thus.
+Each feature required the basic emacs using experience for or has
+been, which means if you are the newbie of emacs, you must reading the
+emacs internal tutorial first and then doing thus.
 
-For windows using section, only suggested reading task for someone
-using emacs on windows, that section was the sets of experiences by me
-as using emacs on windows, I currently using emacs on windows as one
-portable programming encapsulation environment, that portable
-work-around for daily using of me.
+For WINDOWS specification section, only suggested reading task for
+someone using emacs on windows, that section was the sets of
+experiences by me as using emacs on windows, I often using emacs on
+WINDOWS as one portable programming encapsulation environment, that
+portable work-around for daily using of me.
 
 For chinese emacs user, when you want to input chinese and showing CJK
 fonts well (without lagging or other crash problem as emacs with cjk
@@ -294,8 +312,6 @@ Basic config of =entropy-emacs= can be splitting into seven nodes:
 All of these seven parts consists the basic core of =entropy-emacs=
 config. They are oriented respectively for their individual direction,
 and was necessary be the part of core of this.
-   
-   
    
 *** Windows configuration and workspace defination
 :PROPERTIES:
@@ -361,13 +377,14 @@ other emacs intern toolchain.
   [[file:../annex/img/Snipaste_2018-03-12_17-49-51_2018-03-12_17-50-08.png]]
 
   But the easist way for doing like this was using the shortcuts
-  prefix =C-c C-w= with the workspace slots number limited within
-  decimal based digit as '1~9', thus if you active key stick =C-c C-w
-  2= , you will toggle workspace to slot '2'. By default, =eyerbrowse=
-  supports toggle to none exists slot which creates it while then but
-  without tag inputting prompt, or you can create new slot by sticking
-  =C-c C-w C-c= which will create one new slot with tag inputting
-  demands prompting hacked adding by =entropy-emacs=.
+  prefix =[eprefix] w= with the workspace slots number
+  limited within decimal based digit as '1~9', thus if you active key
+  stick =[eprefix] w 2= , you will toggle workspace to slot
+  '2'. By default, =eyerbrowse= supports toggle to none exists slot
+  which creates it while then but without tag inputting prompt, or you
+  can create new slot by sticking =[eprefix] w C-c= which
+  will create one new slot with tag inputting demands prompting hacked
+  adding by =entropy-emacs=.
 
 + *Derived workspace:*
 
@@ -476,7 +493,7 @@ other emacs intern toolchain.
 
   Following gif shows the complete process for toggle to derived slot
   and back to main slot, the latest step for back to top was hanged
-  with keybinding =C-c C-w C-`= which call function
+  with keybinding =[eprefix] w C-o= which call function
   =entropy/emacs-basic-eyebrowse-switch-top=, it's useful for quicly
   back from the temp derived slot to top (called 'top' by main) slot
   without remember the current main slot number or backing with
@@ -500,6 +517,7 @@ other emacs intern toolchain.
   less is more
            ---- xxxx
   #+END_QUOTE
+
 **** Buffer or Window switching
 :PROPERTIES:
 :CUSTOM_ID: h-355d7f4b-95d4-49fe-bee3-63274a0a57b1
@@ -563,7 +581,6 @@ way for solving that problem was what it is.
   They binding to =C-x up/down/right/left=. That means you could
   jumping cycle round for sibling window quickly with your instincts
   visual sensitive.
-
 
 + *Window resize:*
      
@@ -663,14 +680,11 @@ specific emacs version, =entropy-emacs= gives different modeline style
 pre setting;
 - emacs version =25.2.1= : doom
 - emacs version =25.3.1= : origin
-- emacs version =26.1= : doom
+- emacs version =26.1= and above: doom
 
 This specification was rely on the unicode font render effection
 activation reason that =25.3.1= version was specially not support as
 what, so as it.
-
-    
-
       
 *** Chinse input method
 :PROPERTIES:
@@ -709,7 +723,7 @@ emacs interanl chinese input methods as the list below:
 + =chinese-zozy=
 
 You don't have to know the each knowledge about them, but the most pop
-used one was =chinese-py= which was aslo the most popular methond for
+used one was =chinese-py= which was aslo the most popular method for
 chinese people for using as the default chinese hans char input
 method.
 
@@ -719,6 +733,7 @@ really simple and crude which can not be used as the daily tool for
 thus. As the result, =entropy-emacs= usig the most powerful and
 comprehensive 'pinyin' function built melpa extentioin [[https://github.com/tumashu/pyim][pyim]] :
 #+attr_org: :width 400px
+#+attr_html: :width 400px
 [[file:../annex/img/pyim-demo_2018-11-20_21-36-29.gif]]
 
 Above demo shows the fully process for input chinese using
@@ -786,6 +801,19 @@ widgets for chosen:
   contained extra popular vocabularies and animal, stars, psycology or
   other sets of scienece subjects vocabulary collection, it's size
   about 0.8 million entries.
+
++ *using liberime as rime backend for pyim*
+
+  Except for plain text dictionary as cacheing method, the another
+  project [[https://github.com/merrickluo/liberime][liberime-config]] gives the ability to get IME query
+  candicates from native [[https://rime.im][rime]] engine [[https://github.com/rime/librime][librime]], and the configuration
+  steps are easily and thus as:
+
+  1) given the rime schemes host in operation system for variable
+    =entropy/emacs-pyim-liberime-scheme-data=.
+  2) Setting the specific rime scheme selected 
+  3) Optionally give the rime cache dir value to
+     =entropy/emacs-pyim-liberime-cache-dir=.
 
 + *enable pyim with =entropy-emacs=:*
 
@@ -1508,11 +1536,23 @@ cheerful user experience.
 presented major modes' feature for enhancing more and more modes
 experience individually. The main extending purpose was sticking on
 the coding completion, based on =company-mode= which was the coding
-completion framework for any scences.
+completion framework for any scences.As well, eachs major modes
+extending were including the coding interactive sth refer, coding
+folding and expanding uppon the region or pair punctuations are adding
+so.
 
-As well, eachs major modes extending were including the coding
-interactive sth refer, coding folding and expanding uppon the region
-or pair punctuations are adding so.
+=entropy-emacs= treats emacs as the IDE (i.e. integrated development
+environment), extended with third-party lanuage servers, with the
+quickly ripened for [[https://github.com/microsoft/language-server-protocol][Microsoft language server]], we are trending to use
+the LSP as the IDE core component, its powerful with unified
+crossplatform protocol defination and ripened communitiy driven. But
+for those old IDE configuration (i.e. individually un-unified code
+sever) were remained in =entropy-emacs= and with full supported as
+before. 
+
+The switcher for =lsp= and the old IDE configuration is customized
+variable =entropy/emacs-use-ide-type= whose valid values are 'lsp or
+'traditional.
 
 Follow sections given the description for each major modes which have
 been enhanced the extending feature details informations.
@@ -1522,30 +1562,53 @@ been enhanced the extending feature details informations.
 :CUSTOM_ID: h-686dc5e1-06c9-4681-9f7f-b7f0e130d900
 :END:
 
-As in C++ major modes, we major giving the two extending features:
+| *IDE type*  | *language server* | *completion support* | *xref-defination support* |
+|-------------+-------------------+----------------------+---------------------------|
+| lsp-mode    | [[https://clang.llvm.org/extra/clangd.html][clangd]]            | yes                  | yes                       |
+|-------------+-------------------+----------------------+---------------------------|
+| traditional | [[https://github.com/Sarcasm/irony-mode][irony-mode]]        | yes                  | yes                       |
+|             |                   |                      |                           |
 
-- Using [[https://github.com/Sarcasm/irony-mode][irony-mode]] to giving the project code defination review and
-  jumping feature.
++ *Lsp-mode for cland eemacs configuration:*
 
-- Using =company-c-headers= to giving the project header file query
-  completions.
+  Common lsp-mode configuration. 
 
-=irony-mode= based on the irony-server which has been compiled for w32
-platform within =entropy-emacs=, but needed compiling manually on
-linux with dependencies installed e.g. cmake, clang ... (We do not
-packing the server binary on linux because for ths platform across
-conflicated, thus x86 and arm or other cpu platform can not using the
-same binary.)
++ *irony-mode eemacs configuration:*
 
-Other feature extending are minor, simple file compiling on WINDOWS OS
-was given as function ~entropy/emacs-c-win-c-compiler~ which using
-mingw gcc for the compiler and with fixed library linking as for.
+  1) Using [[https://github.com/Sarcasm/irony-mode][irony-mode]] to giving the project code defination review and
+     jumping feature.
+
+  2) Using =company-c-headers= to giving the project header file query
+     completions.
+
+  =irony-mode= based on the irony-server which has been compiled for w32
+  platform within =entropy-emacs=, but needed compiling manually on
+  linux with dependencies installed e.g. cmake, clang ... (We do not
+  packing the server binary on linux because for ths platform across
+  conflicated, thus x86 and arm or other cpu platform can not using the
+  same binary.)
+
+  Other feature extending are minor, simple file compiling on WINDOWS OS
+  was given as function ~entropy/emacs-c-win-c-compiler~ which using
+  mingw gcc for the compiler and with fixed library linking as for.
 
 
 *** Php
 :PROPERTIES:
 :CUSTOM_ID: h-660173e6-8597-435a-ab32-82a327fdfc6a
 :END:
+
+| *IDE type*      | *language server*   | *completion support* | *xref-defination support* |
+|-----------------+---------------------+----------------------+---------------------------|
+| lsp-mode        | [[https://github.com/felixfbecker/php-language-server][php-language-server]] | yes                  | yes                       |
+|-----------------+---------------------+----------------------+---------------------------|
+| traditional ide | [[https://github.com/xcwen/ac-php][ac-php]]              | yes                  | yes                       |
+
+*Lsp-mode php-language-server eemacs configuration:*
+
+Common lsp-mode instruction
+
+*Ac-php eemacs configuration:*
 
 Php mode was derived from C-mode, familiar syntax-table and grammer
 refer so that the syntax highlight was not needed to extend.
@@ -1561,7 +1624,8 @@ for giving thus. Binding with =M-p= for activation.
 
 emacs internal default web front-end major modes html and css mode are
 user basically with simple func interactively support, we use melpa
-package [[http://web-mode.org][web-mode]] for the enhancements.
+package [[http://web-mode.org][web-mode]] for the enhancements for html group markup language
+but for css as.
 
 web-mode provide sets of mordern features as for.  Tag folding and
 expanding with [[https://github.com/smihica/emmet-mode][emmet-mode]]'s abbrevation tag editting, giving the more
@@ -1575,7 +1639,12 @@ Both of html and css buffer can be tidy up with normally code style
 using [[https://github.com/yasuyk/web-beautify][web-beautify]] package which required nodejs path searched and the
 npm refer packages installed.
 
-
+| *IDE type*  | *language server* | *completion support* | *xref-defination support* |
+|-------------+-------------------+----------------------+---------------------------|
+| lsp-mode    | [[https://github.com/vscode-langservers/vscode-html-languageserver][html]]              | yes                  | yes                       |
+|-------------+-------------------+----------------------+---------------------------|
+| traditional | html: no          | yes ([[https://github.com/osv/company-web][company-web]])    | no                        |
+|             | css:  no          | yes (company-capf)   | no                        |
 
 *** Javascript
 :PROPERTIES:
@@ -1586,6 +1655,12 @@ JS development IDE [[https://github.com/mooz/js2-mode/][js2-mode]] was the one f
 syntax checking and morden syntax highlighting feature for js coding
 which used in =entropy-emacs= for be replaced with origin js major
 mode.
+
+| *IDE type*  | *language server*          | *completion support* | *xref-defination support* |
+|-------------+----------------------------+----------------------+---------------------------+
+| lsp-mode    | [[https://github.com/theia-ide/typescript-language-server][typescript-language-server]] | yes                  | yes                       |
+|-------------+----------------------------+----------------------+---------------------------+
+| traditional | [[https://github.com/ternjs/tern][tern]]                       | yes ([[https://github.com/ternjs/tern][company-tern]])   | yes                       |
 
 *** Web front-end realtime previewer
 :PROPERTIES:
@@ -1694,8 +1769,18 @@ providing the web front-end realtime previewer feature.
 :CUSTOM_ID: h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c
 :END:
 
-Now we using [[https://github.com/proofit404/anaconda-mode][anaconda-mode]] as python-mode extending feature for
-providing coding completion func.
+We using emacs built-in major-mode =python-mode= for coding python codes.
+
+| *IDE type*  | *language server* | *completion support*   | *xref-defination support* |
+|-------------+-------------------+------------------------+---------------------------|
+| lsp-mode    | [[https://github.com/palantir/python-language-server][pyls]]              | yes                    | yes                       |
+|-------------+-------------------+------------------------+---------------------------|
+| traditional | [[https://github.com/proofit404/anaconda-mode][anaconda-mode]]     | yes ([[https://github.com/proofit404/anaconda-mode][company-anaconda]]) | yes                       |
+
+*python-mode eemacs specification*
+
+By defautly, we using =python3= be the primary python shell, that it
+was the most recommendation for thus.
 
 ** Packages enhancements and introduction
 :PROPERTIES:
@@ -2024,13 +2109,10 @@ There's no key touching bug founded on WIN7, thus below description
 was refer to WIN10.
 #+END_QUOTE
 
-
 On WIN10, the =win= key was temporally frozen the other key taken up
 when OS session recovery from screen lock state, this was the annoying
 bug which caused by the new windows key chunks api refers, to recovery
 this by touching =win= key again.
-
-
 
 * Docs refers 
 :PROPERTIES:

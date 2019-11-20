@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-10-06 Sun 10:41 -->
+<!-- 2019-11-20 Wed 19:51 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>entropy emacs introduction</title>
@@ -1162,54 +1162,55 @@ img
 <li><a href="#h-99a2e999-07fd-4b3a-9528-21425fe3f86c">2. Repo folder struct</a></li>
 <li><a href="#h-badd8396-e6da-45a3-8176-901a5110f898">3. Main config files</a></li>
 <li><a href="#h-e2a984e4-c4e3-401a-afcb-7bb09be92512">4. Self built packages</a></li>
-<li><a href="#h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737">5. Custom <code>entropy-emacs</code></a></li>
-<li><a href="#h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5">6. Hacking for <code>entropy-emacs</code></a></li>
-<li><a href="#h-c6193e3f-dade-485f-a82e-e12aa35543cc">7. config feature specifiction</a>
+<li><a href="#orgbce5690">5. Eemacs top-key map</a></li>
+<li><a href="#h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737">6. Custom <code>entropy-emacs</code></a></li>
+<li><a href="#h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5">7. Hacking for <code>entropy-emacs</code></a></li>
+<li><a href="#h-c6193e3f-dade-485f-a82e-e12aa35543cc">8. Config feature specifiction introduction</a>
 <ul>
-<li><a href="#h-50f1e907-51ea-4e62-841b-2f7addb4c1d8">7.1. Internal basic setting specific</a>
+<li><a href="#h-50f1e907-51ea-4e62-841b-2f7addb4c1d8">8.1. Internal basic setting specific</a>
 <ul>
-<li><a href="#h-cba6d0f3-2f63-4c83-990d-55b8a38e5104">7.1.1. Windows configuration and workspace defination</a>
+<li><a href="#h-cba6d0f3-2f63-4c83-990d-55b8a38e5104">8.1.1. Windows configuration and workspace defination</a>
 <ul>
-<li><a href="#h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb">7.1.1.1. Eyebrowse</a></li>
-<li><a href="#h-355d7f4b-95d4-49fe-bee3-63274a0a57b1">7.1.1.2. Buffer or Window switching</a></li>
+<li><a href="#h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb">8.1.1.1. Eyebrowse</a></li>
+<li><a href="#h-355d7f4b-95d4-49fe-bee3-63274a0a57b1">8.1.1.2. Buffer or Window switching</a></li>
 </ul>
 </li>
-<li><a href="#h-6d3f57a8-9eda-4ae2-bcae-e1707cd66434">7.1.2. Modeline themes toggle</a></li>
-<li><a href="#h-85139937-9a4e-4f3b-b951-181051b2d454">7.1.3. Chinse input method</a></li>
-<li><a href="#h-7783929d-6dbd-4e40-bc32-f7d1247be222">7.1.4. Globally readonly mode</a></li>
-<li><a href="#h-2263f98f-eba0-4248-8dcd-03928af7978c">7.1.5. Org-mode</a></li>
-<li><a href="#h-dd1be778-45a9-451c-938c-e325bfe7ed1d">7.1.6. Miscellaneous emacs internal setting</a></li>
-<li><a href="#h-9246b459-6586-4464-b978-e8eba56658a6">7.1.7. Font specific</a></li>
+<li><a href="#h-6d3f57a8-9eda-4ae2-bcae-e1707cd66434">8.1.2. Modeline themes toggle</a></li>
+<li><a href="#h-85139937-9a4e-4f3b-b951-181051b2d454">8.1.3. Chinse input method</a></li>
+<li><a href="#h-7783929d-6dbd-4e40-bc32-f7d1247be222">8.1.4. Globally readonly mode</a></li>
+<li><a href="#h-2263f98f-eba0-4248-8dcd-03928af7978c">8.1.5. Org-mode</a></li>
+<li><a href="#h-dd1be778-45a9-451c-938c-e325bfe7ed1d">8.1.6. Miscellaneous emacs internal setting</a></li>
+<li><a href="#h-9246b459-6586-4464-b978-e8eba56658a6">8.1.7. Font specific</a></li>
 </ul>
 </li>
-<li><a href="#h-8002552d-95c4-4252-812b-e4909f055882">7.2. Major modes for programming</a>
+<li><a href="#h-8002552d-95c4-4252-812b-e4909f055882">8.2. Major modes for programming</a>
 <ul>
-<li><a href="#h-686dc5e1-06c9-4681-9f7f-b7f0e130d900">7.2.1. C and C++</a></li>
-<li><a href="#h-660173e6-8597-435a-ab32-82a327fdfc6a">7.2.2. Php</a></li>
-<li><a href="#h-90e8b37b-f8ef-41db-92fb-df349125f5da">7.2.3. Html and Css</a></li>
-<li><a href="#h-c913cd4b-1228-4981-86ac-e6a4ddee5564">7.2.4. Javascript</a></li>
-<li><a href="#h-6c7020ca-a20f-4536-a039-888650bf2849">7.2.5. Web front-end realtime previewer</a></li>
-<li><a href="#h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c">7.2.6. Python anaconda</a></li>
+<li><a href="#h-686dc5e1-06c9-4681-9f7f-b7f0e130d900">8.2.1. C and C++</a></li>
+<li><a href="#h-660173e6-8597-435a-ab32-82a327fdfc6a">8.2.2. Php</a></li>
+<li><a href="#h-90e8b37b-f8ef-41db-92fb-df349125f5da">8.2.3. Html and Css</a></li>
+<li><a href="#h-c913cd4b-1228-4981-86ac-e6a4ddee5564">8.2.4. Javascript</a></li>
+<li><a href="#h-6c7020ca-a20f-4536-a039-888650bf2849">8.2.5. Web front-end realtime previewer</a></li>
+<li><a href="#h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c">8.2.6. Python anaconda</a></li>
 </ul>
 </li>
-<li><a href="#h-a628d8f1-df5e-4656-b779-24d53d0e37f1">7.3. Packages enhancements and introduction</a>
+<li><a href="#h-a628d8f1-df5e-4656-b779-24d53d0e37f1">8.3. Packages enhancements and introduction</a>
 <ul>
-<li><a href="#h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6">7.3.1. Ivy and Helm</a></li>
-<li><a href="#h-cfb1027d-8d50-4b33-be13-427d937130e3">7.3.2. Emacs-W3m</a></li>
-<li><a href="#h-58b8abfe-6b1f-401e-a673-43b5450678d3">7.3.3. Elfeed</a></li>
-<li><a href="#h-67b22622-81ed-4c2b-8f21-838b83e21769">7.3.4. Gnus</a></li>
+<li><a href="#h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6">8.3.1. Ivy and Helm</a></li>
+<li><a href="#h-cfb1027d-8d50-4b33-be13-427d937130e3">8.3.2. Emacs-W3m</a></li>
+<li><a href="#h-58b8abfe-6b1f-401e-a673-43b5450678d3">8.3.3. Elfeed</a></li>
+<li><a href="#h-67b22622-81ed-4c2b-8f21-838b83e21769">8.3.4. Gnus</a></li>
 </ul>
 </li>
-<li><a href="#h-098f1399-8e79-4027-88a6-395f80a528d4">7.4. Emacs on windows</a>
+<li><a href="#h-098f1399-8e79-4027-88a6-395f80a528d4">8.4. Emacs on windows</a>
 <ul>
-<li><a href="#h-e4748b27-6529-4913-a6cc-f9e13799f50e">7.4.1. Bash and unix tool chains for windows</a></li>
-<li><a href="#h-cdbb7a64-c5fd-4ff2-b063-896397e74478">7.4.2. Portable emacs environment on windows</a></li>
-<li><a href="#h-d3f5382d-4bf9-4792-950c-217be00f0da6">7.4.3. Notice for key touching on windows</a></li>
+<li><a href="#h-e4748b27-6529-4913-a6cc-f9e13799f50e">8.4.1. Bash and unix tool chains for windows</a></li>
+<li><a href="#h-cdbb7a64-c5fd-4ff2-b063-896397e74478">8.4.2. Portable emacs environment on windows</a></li>
+<li><a href="#h-d3f5382d-4bf9-4792-950c-217be00f0da6">8.4.3. Notice for key touching on windows</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#h-3891c5d8-1486-407e-9d2c-0128d927b304">8. Docs refers</a></li>
+<li><a href="#h-3891c5d8-1486-407e-9d2c-0128d927b304">9. Docs refers</a></li>
 </ul>
 </div>
 </div>
@@ -1218,8 +1219,8 @@ img
 <p><img src="../logo.png" alt="logo.png" width="300px" />
 </p>
 </div>
-<div id="outline-container-org0d83aad" class="outline-2">
-<h2 id="h-622e3623-f12f-46cd-95bd-925940a5e3e7"><a id="org0d83aad"></a><span class="section-number-2">1</span> Preface</h2>
+<div id="outline-container-orgff967bf" class="outline-2">
+<h2 id="h-622e3623-f12f-46cd-95bd-925940a5e3e7"><a id="orgff967bf"></a><span class="section-number-2">1</span> Preface</h2>
 <div class="outline-text-2" id="text-h-622e3623-f12f-46cd-95bd-925940a5e3e7">
 <p>
 Entropy emacs was one personal emacs config built for me at the
@@ -1243,8 +1244,8 @@ emacs. Along the way, I came for built it with thus on.
 </div>
 </div>
 
-<div id="outline-container-org111f263" class="outline-2">
-<h2 id="h-99a2e999-07fd-4b3a-9528-21425fe3f86c"><a id="org111f263"></a><span class="section-number-2">2</span> Repo folder struct</h2>
+<div id="outline-container-orgd3b3b58" class="outline-2">
+<h2 id="h-99a2e999-07fd-4b3a-9528-21425fe3f86c"><a id="orgd3b3b58"></a><span class="section-number-2">2</span> Repo folder struct</h2>
 <div class="outline-text-2" id="text-h-99a2e999-07fd-4b3a-9528-21425fe3f86c">
 <p>
 <code>entropy-emacs</code> has the implicit repo dir struct as the aim for built
@@ -1289,8 +1290,8 @@ permitted.
 </div>
 </div>
 
-<div id="outline-container-org6357b2c" class="outline-2">
-<h2 id="h-badd8396-e6da-45a3-8176-901a5110f898"><a id="org6357b2c"></a><span class="section-number-2">3</span> Main config files</h2>
+<div id="outline-container-org5dde2ad" class="outline-2">
+<h2 id="h-badd8396-e6da-45a3-8176-901a5110f898"><a id="org5dde2ad"></a><span class="section-number-2">3</span> Main config files</h2>
 <div class="outline-text-2" id="text-h-badd8396-e6da-45a3-8176-901a5110f898">
 <p>
 <code>entropy-emacs</code> host configs file divided into three categories,
@@ -1398,6 +1399,12 @@ There's the list of the tentacles and their description:
 
 <tr>
 <td class="org-left">&#xa0;</td>
+<td class="org-left">entropy-emacs-path.el</td>
+<td class="org-left">path configs for <code>entropy-emacs</code> specfic environment</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
 </tr>
@@ -1498,18 +1505,12 @@ There's the list of the tentacles and their description:
 <tbody>
 <tr>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">entropy-emacs-path.el</td>
-<td class="org-left">path configs for <code>entropy-emacs</code> specfic environment</td>
-</tr>
-
-<tr>
-<td class="org-left">tool-chains</td>
 <td class="org-left">entropy-emacs-shell.el</td>
 <td class="org-left">emacs internal shell front-end enhancements</td>
 </tr>
 
 <tr>
-<td class="org-left">&#xa0;</td>
+<td class="org-left">tool-chains</td>
 <td class="org-left">entropy-emacs-vcs.el</td>
 <td class="org-left">git/svn codes version control with <code>magit</code></td>
 </tr>
@@ -1576,12 +1577,26 @@ There's the list of the tentacles and their description:
 <td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
+<tbody>
+<tr>
+<td class="org-left">code server</td>
+<td class="org-left">entropy-emacs-coworker.el</td>
+<td class="org-left">third-party language server query insall library.</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">entropy-emacs-codeserver.el</td>
+<td class="org-left">the dashboard for language server installer</td>
+</tr>
+</tbody>
 </table>
 </div>
 </div>
 
-<div id="outline-container-orgd314a35" class="outline-2">
-<h2 id="h-e2a984e4-c4e3-401a-afcb-7bb09be92512"><a id="orgd314a35"></a><span class="section-number-2">4</span> Self built packages</h2>
+
+<div id="outline-container-orgaad8379" class="outline-2">
+<h2 id="h-e2a984e4-c4e3-401a-afcb-7bb09be92512"><a id="orgaad8379"></a><span class="section-number-2">4</span> Self built packages</h2>
 <div class="outline-text-2" id="text-h-e2a984e4-c4e3-401a-afcb-7bb09be92512">
 <p>
 As the default, elpa packages was enough for users to use emacs with
@@ -1596,8 +1611,8 @@ Pacakges I built was aimed for:
 </p>
 <ul class="org-ul">
 <li>Enhancing the basic emacs function or other elpa packages.</li>
-<li>things needed for me as the special hobby.</li>
-<li>useful self built extension which hope to sharing with others.</li>
+<li>Things needed for me as the special hobby.</li>
+<li>Useful self built extension which hope to sharing with others.</li>
 </ul>
 
 
@@ -1623,6 +1638,11 @@ Now, I built serveral packages shown as below table:
 <tr>
 <td class="org-left">entropy-cn-dict</td>
 <td class="org-left">point char or region translation for chinese words (also useful for traditional chinese)</td>
+</tr>
+
+<tr>
+<td class="org-left">entropy-sdcv</td>
+<td class="org-left">the emacs multi-dictionaries framework</td>
 </tr>
 
 <tr>
@@ -1694,20 +1714,44 @@ Now, I built serveral packages shown as below table:
 <td class="org-left">entropy-unfill</td>
 <td class="org-left">unfill buffer paragraph with specific rules built by user self</td>
 </tr>
+
+<tr>
+<td class="org-left">entropy-shellpop</td>
+<td class="org-left">the yet-another <a href="http://github.com/kyagi/shell-pop-el">shell-pop</a> toolkit replacement for using <a href="https://github.com/wasamasa/shackle">shackle</a> as the popup method</td>
+</tr>
 </tbody>
 </table>
 </div>
 </div>
+<div id="outline-container-orgbce5690" class="outline-2">
+<h2 id="orgbce5690"><span class="section-number-2">5</span> Eemacs top-key map</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+For unified emacs experience both of CLI and GUI, <code>entropy-emacs</code>
+using the auto-adaptable key <code>entropy/emacs-top-key</code> as the the
+unified prefix key to bind a keymap <code>entropy/emacs-top-keymap</code>,
+various commands hosted on it to be interactived thus.
+</p>
 
-<div id="outline-container-org25cb4c9" class="outline-2">
-<h2 id="h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737"><a id="org25cb4c9"></a><span class="section-number-2">5</span> Custom <code>entropy-emacs</code></h2>
+<p>
+Commonly <code>entropy/emacs-top-key</code> was bind to <code>C-@</code> in CLI and <code>C-`</code> in
+GUI, all of them are reflected with physical key hints <code>C-`</code> on your
+keyboard. We make the convention that string <code>[eprefix]</code> indicate the
+hint <code>entropy/emacs-top-key</code> , that example <code>[eprefix] w</code> means hint
+<code>entropy/emacs-top-key</code> and <code>w</code> sequentially.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org90ecf2f" class="outline-2">
+<h2 id="h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737"><a id="org90ecf2f"></a><span class="section-number-2">6</span> Custom <code>entropy-emacs</code></h2>
 <div class="outline-text-2" id="text-h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737">
 <p>
 <code>entropy-emacs</code> has lots of custom-variables be defined
 acquiescently. For each feature in main config files
 <code>entropy-emacs-xxx.el</code> or in self built extensions, <code>entropy-emacs</code>
 custom-variables provides the wild freedom customized ability to
-specific config actually using experience.
+specific config actually to referred using experience.
 </p>
 
 <p>
@@ -1727,15 +1771,15 @@ as custom file for convenience.
 </div>
 </div>
 
-<div id="outline-container-org043562a" class="outline-2">
-<h2 id="h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5"><a id="org043562a"></a><span class="section-number-2">6</span> Hacking for <code>entropy-emacs</code></h2>
+<div id="outline-container-org0cbd193" class="outline-2">
+<h2 id="h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5"><a id="org0cbd193"></a><span class="section-number-2">7</span> Hacking for <code>entropy-emacs</code></h2>
 <div class="outline-text-2" id="text-h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5">
 <p>
 <code>entropy-emacs</code> allow user to modified internal config files but this
 is not suggested by. Sets of <code>entrop-emacs</code> was corresponding to each
 other frequencly which shown as that if you modified one code snippet
 while you are not familiar with details logic designation of
-<code>entropy-emacs</code>, you will get mess with the func in some place.
+<code>entropy-emacs</code>, you will get mess with the functional in some place.
 </p>
 
 <p>
@@ -1756,9 +1800,9 @@ stored the extern config files load function to it, i.e. some thing
 like below:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #56697A;">;; </span><span style="color: #56697A;">load "my_entropy-emacs_extern.el" after loading "custom.el" .</span>
-(<span style="color: #5EC4FF;">let</span> ((file (file-exists-p <span style="color: #7FA0B7;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
-  (<span style="color: #5EC4FF;">when</span> (file-exists-p file)
+<pre class="src src-emacs-lisp"><span style="color: #808080; font-style: italic;">;; </span><span style="color: #808080; font-style: italic;">load "my_entropy-emacs_extern.el" after loading "custom.el" .</span>
+(<span style="color: #6c9ef8;">let</span> ((file (file-exists-p <span style="color: #d08928;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
+  (<span style="color: #6c9ef8;">when</span> (file-exists-p file)
     (load-file file)))
 </pre>
 </div>
@@ -1777,8 +1821,8 @@ secondary <code>init.el</code> or the secodary emacs config repo main thing.
 </div>
 </div>
 
-<div id="outline-container-orge80846c" class="outline-2">
-<h2 id="h-c6193e3f-dade-485f-a82e-e12aa35543cc"><a id="orge80846c"></a><span class="section-number-2">7</span> config feature specifiction</h2>
+<div id="outline-container-orgb17e09f" class="outline-2">
+<h2 id="h-c6193e3f-dade-485f-a82e-e12aa35543cc"><a id="orgb17e09f"></a><span class="section-number-2">8</span> Config feature specifiction introduction</h2>
 <div class="outline-text-2" id="text-h-c6193e3f-dade-485f-a82e-e12aa35543cc">
 <p>
 This chapter introducts the main config features of <code>entropy-emacs</code>,
@@ -1786,22 +1830,22 @@ each part of below sections pointing one feature category which was
 the collection sets description and feature specified core sets, you
 may want to select refer things you'd metioned or care about for
 jumping with the sequence as the section it self, but I recommended
-for reading consequences one by one instead of jumping where while you
-are fisrt using <code>entropy-emacs</code>.
+for reading sections one by one instead of jumping where while you are
+fisrt using <code>entropy-emacs</code>.
 </p>
 
 <p>
-Each feature required the basic emacs using experience procedure for
-or has been, which means if you are the newbie of emacs, you must
-reading the emacs internal tutorial first and then doing thus.
+Each feature required the basic emacs using experience for or has
+been, which means if you are the newbie of emacs, you must reading the
+emacs internal tutorial first and then doing thus.
 </p>
 
 <p>
-For windows using section, only suggested reading task for someone
-using emacs on windows, that section was the sets of experiences by me
-as using emacs on windows, I currently using emacs on windows as one
-portable programming encapsulation environment, that portable
-work-around for daily using of me.
+For WINDOWS specification section, only suggested reading task for
+someone using emacs on windows, that section was the sets of
+experiences by me as using emacs on windows, I often using emacs on
+WINDOWS as one portable programming encapsulation environment, that
+portable work-around for daily using of me.
 </p>
 
 <p>
@@ -1817,8 +1861,8 @@ sensing, happy hacking with <code>entropy-emacs</code>.
 </p>
 </div>
 
-<div id="outline-container-org579dbbd" class="outline-3">
-<h3 id="h-50f1e907-51ea-4e62-841b-2f7addb4c1d8"><a id="org579dbbd"></a><span class="section-number-3">7.1</span> Internal basic setting specific</h3>
+<div id="outline-container-org68edc02" class="outline-3">
+<h3 id="h-50f1e907-51ea-4e62-841b-2f7addb4c1d8"><a id="org68edc02"></a><span class="section-number-3">8.1</span> Internal basic setting specific</h3>
 <div class="outline-text-3" id="text-h-50f1e907-51ea-4e62-841b-2f7addb4c1d8">
 <p>
 <code>entropy-emacs</code> using elpa/melpa emacs extension to build basic
@@ -1845,10 +1889,8 @@ and was necessary be the part of core of this.
 </p>
 </div>
 
-
-
-<div id="outline-container-org6520635" class="outline-4">
-<h4 id="h-cba6d0f3-2f63-4c83-990d-55b8a38e5104"><a id="org6520635"></a><span class="section-number-4">7.1.1</span> Windows configuration and workspace defination</h4>
+<div id="outline-container-orgdeaf9ea" class="outline-4">
+<h4 id="h-cba6d0f3-2f63-4c83-990d-55b8a38e5104"><a id="orgdeaf9ea"></a><span class="section-number-4">8.1.1</span> Windows configuration and workspace defination</h4>
 <div class="outline-text-4" id="text-h-cba6d0f3-2f63-4c83-990d-55b8a38e5104">
 <p>
 Emacs using <b>buffer</b>, <b>window</b>, <b>frame</b> to recoganize the current
@@ -1882,8 +1924,8 @@ different windows was called window toggle.
 </p>
 </div>
 
-<div id="outline-container-org7b1bd36" class="outline-5">
-<h5 id="h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb"><a id="org7b1bd36"></a><span class="section-number-5">7.1.1.1</span> Eyebrowse</h5>
+<div id="outline-container-orgc1552b2" class="outline-5">
+<h5 id="h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb"><a id="orgc1552b2"></a><span class="section-number-5">8.1.1.1</span> Eyebrowse</h5>
 <div class="outline-text-5" id="text-h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb">
 <p>
 <code>entropy-emacs</code> workspace creating, toggle, and defination using
@@ -1939,13 +1981,14 @@ each candidate was one unique slot number with workspace name:
 
 <p>
 But the easist way for doing like this was using the shortcuts
-prefix <code>C-c C-w</code> with the workspace slots number limited within
-decimal based digit as '1~9', thus if you active key stick <code>C-c C-w
-  2</code> , you will toggle workspace to slot '2'. By default, <code>eyerbrowse</code>
-supports toggle to none exists slot which creates it while then but
-without tag inputting prompt, or you can create new slot by sticking
-<code>C-c C-w C-c</code> which will create one new slot with tag inputting
-demands prompting hacked adding by <code>entropy-emacs</code>.
+prefix <code>[eprefix] w</code> with the workspace slots number
+limited within decimal based digit as '1~9', thus if you active key
+stick <code>[eprefix] w 2</code> , you will toggle workspace to slot
+'2'. By default, <code>eyerbrowse</code> supports toggle to none exists slot
+which creates it while then but without tag inputting prompt, or you
+can create new slot by sticking <code>[eprefix] w C-c</code> which
+will create one new slot with tag inputting demands prompting hacked
+adding by <code>entropy-emacs</code>.
 </p></li>
 
 <li><p>
@@ -2082,7 +2125,7 @@ For toggle the derived slot, keybinding <code>C-c M-v</code> as so.
 <p>
 Following gif shows the complete process for toggle to derived slot
 and back to main slot, the latest step for back to top was hanged
-with keybinding <code>C-c C-w C-`</code> which call function
+with keybinding <code>[eprefix] w C-o</code> which call function
 <code>entropy/emacs-basic-eyebrowse-switch-top</code>, it's useful for quicly
 back from the temp derived slot to top (called 'top' by main) slot
 without remember the current main slot number or backing with
@@ -2121,8 +2164,9 @@ less is more
 </ul>
 </div>
 </div>
-<div id="outline-container-org32dabac" class="outline-5">
-<h5 id="h-355d7f4b-95d4-49fe-bee3-63274a0a57b1"><a id="org32dabac"></a><span class="section-number-5">7.1.1.2</span> Buffer or Window switching</h5>
+
+<div id="outline-container-org71d07db" class="outline-5">
+<h5 id="h-355d7f4b-95d4-49fe-bee3-63274a0a57b1"><a id="org71d07db"></a><span class="section-number-5">8.1.1.2</span> Buffer or Window switching</h5>
 <div class="outline-text-5" id="text-h-355d7f4b-95d4-49fe-bee3-63274a0a57b1">
 <p>
 The conceptual of window configuration under the workspace was buffer
@@ -2207,10 +2251,7 @@ They binding to <code>C-x up/down/right/left</code>. That means you could
 jumping cycle round for sibling window quickly with your instincts
 visual sensitive.
 </p></li>
-</ul>
 
-
-<ul class="org-ul">
 <li><p>
 <b>Window resize:</b>
 </p>
@@ -2259,8 +2300,8 @@ respectively.
 </div>
 </div>
 
-<div id="outline-container-org61ff57a" class="outline-4">
-<h4 id="h-6d3f57a8-9eda-4ae2-bcae-e1707cd66434"><a id="org61ff57a"></a><span class="section-number-4">7.1.2</span> Modeline themes toggle</h4>
+<div id="outline-container-orgb714134" class="outline-4">
+<h4 id="h-6d3f57a8-9eda-4ae2-bcae-e1707cd66434"><a id="orgb714134"></a><span class="section-number-4">8.1.2</span> Modeline themes toggle</h4>
 <div class="outline-text-4" id="text-h-6d3f57a8-9eda-4ae2-bcae-e1707cd66434">
 <p>
 <code>entropy-emacs</code> provide four kinds modeline style:
@@ -2323,10 +2364,10 @@ can set the custom-variable <code>entropy/emacs-modeline-style</code> with the
 tag symbole shown from above table:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #56697A;">;; </span><span style="color: #56697A;">demo modeline setting code snippets of entropy-emacs</span>
-(<span style="color: #5EC4FF;">setq</span> entropy/emacs-modeline-style 'powerline)
-(<span style="color: #5EC4FF;">setq</span> entropy/emacs-modeline-style 'spaceline)
-<span style="color: #56697A;">;; </span><span style="color: #56697A;">.... and so on</span>
+<pre class="src src-emacs-lisp"><span style="color: #808080; font-style: italic;">;; </span><span style="color: #808080; font-style: italic;">demo modeline setting code snippets of entropy-emacs</span>
+(<span style="color: #6c9ef8;">setq</span> entropy/emacs-modeline-style 'powerline)
+(<span style="color: #6c9ef8;">setq</span> entropy/emacs-modeline-style 'spaceline)
+<span style="color: #808080; font-style: italic;">;; </span><span style="color: #808080; font-style: italic;">.... and so on</span>
 </pre>
 </div>
 
@@ -2386,7 +2427,7 @@ pre setting;
 <ul class="org-ul">
 <li>emacs version <code>25.2.1</code> : doom</li>
 <li>emacs version <code>25.3.1</code> : origin</li>
-<li>emacs version <code>26.1</code> : doom</li>
+<li>emacs version <code>26.1</code> and above: doom</li>
 </ul>
 
 <p>
@@ -2397,11 +2438,8 @@ what, so as it.
 </div>
 </div>
 
-
-
-
-<div id="outline-container-org96ede19" class="outline-4">
-<h4 id="h-85139937-9a4e-4f3b-b951-181051b2d454"><a id="org96ede19"></a><span class="section-number-4">7.1.3</span> Chinse input method</h4>
+<div id="outline-container-org7b0e424" class="outline-4">
+<h4 id="h-85139937-9a4e-4f3b-b951-181051b2d454"><a id="org7b0e424"></a><span class="section-number-4">8.1.3</span> Chinse input method</h4>
 <div class="outline-text-4" id="text-h-85139937-9a4e-4f3b-b951-181051b2d454">
 <p>
 For emacs inputing with CJK chars experience, the default chosen for
@@ -2440,7 +2478,7 @@ emacs interanl chinese input methods as the list below:
 
 <p>
 You don't have to know the each knowledge about them, but the most pop
-used one was <code>chinese-py</code> which was aslo the most popular methond for
+used one was <code>chinese-py</code> which was aslo the most popular method for
 chinese people for using as the default chinese hans char input
 method.
 </p>
@@ -2454,7 +2492,7 @@ comprehensive 'pinyin' function built melpa extentioin <a href="https://github.c
 </p>
 
 <div class="figure">
-<p><img src="../annex/img/pyim-demo_2018-11-20_21-36-29.gif" alt="pyim-demo_2018-11-20_21-36-29.gif" />
+<p><img src="../annex/img/pyim-demo_2018-11-20_21-36-29.gif" alt="pyim-demo_2018-11-20_21-36-29.gif" width="400px" />
 </p>
 </div>
 
@@ -2504,7 +2542,7 @@ version below 26.1 and the oppsite using 'posframe'.
 
 <ul class="org-ul">
 <li><p>
-<b>Pyim dicts:</b> <a id="org3694f58"></a>
+<b>Pyim dicts:</b> <a id="org0a95e41"></a>
 </p>
 
 <p>
@@ -2556,6 +2594,25 @@ about 0.8 million entries.
 </p></li>
 
 <li><p>
+<b>using liberime as rime backend for pyim</b>
+</p>
+
+<p>
+Except for plain text dictionary as cacheing method, the another
+project <a href="https://github.com/merrickluo/liberime">liberime-config</a> gives the ability to get IME query
+candicates from native <a href="https://rime.im">rime</a> engine <a href="https://github.com/rime/librime">librime</a>, and the configuration
+steps are easily and thus as:
+</p>
+
+<ol class="org-ol">
+<li>given the rime schemes host in operation system for variable
+<code>entropy/emacs-pyim-liberime-scheme-data</code>.</li>
+<li>Setting the specific rime scheme selected</li>
+<li>Optionally give the rime cache dir value to
+<code>entropy/emacs-pyim-liberime-cache-dir</code>.</li>
+</ol></li>
+
+<li><p>
 <b>enable pyim with <code>entropy-emacs</code>:</b>
 </p>
 
@@ -2565,7 +2622,7 @@ emacs startup finished i.e. <code>entropy/emacs-enable-pyim</code>, you can
 active it in your <code>custom.el</code> file, then the next time you start up
 or open new session of emacs , pyim will automatically startup using
 the default dicts specific by <code>entropy-emacs</code> as introduction form
-<a href="#org3694f58">pyim dicts section</a>, or if you want to enable dicts specified by
+<a href="#org0a95e41">pyim dicts section</a>, or if you want to enable dicts specified by
 yourself, you can setting up custom-variable
 <code>entropy/emacs-pyim-dicts</code>, the variable information and value
 format can be shown by touching <code>C-h v entropy/emacs-pyim-dicts
@@ -2631,8 +2688,8 @@ table in org mode.
 </div>
 </div>
 
-<div id="outline-container-org8752e26" class="outline-4">
-<h4 id="h-7783929d-6dbd-4e40-bc32-f7d1247be222"><a id="org8752e26"></a><span class="section-number-4">7.1.4</span> Globally readonly mode</h4>
+<div id="outline-container-org921b285" class="outline-4">
+<h4 id="h-7783929d-6dbd-4e40-bc32-f7d1247be222"><a id="org921b285"></a><span class="section-number-4">8.1.4</span> Globally readonly mode</h4>
 <div class="outline-text-4" id="text-h-7783929d-6dbd-4e40-bc32-f7d1247be222">
 <p>
 Emacs open all common buffers with editted state by default all. It be
@@ -2700,8 +2757,8 @@ You will enable it do with filling follow elisp codes snippet into
 custom file:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #5EC4FF;">setq</span> entropy/grom-enable t)
-(<span style="color: #5EC4FF;">setq</span> entropy/grom-readonly-type <span style="color: #7FA0B7;">"all"</span>)
+<pre class="src src-emacs-lisp">(<span style="color: #6c9ef8;">setq</span> entropy/grom-enable t)
+(<span style="color: #6c9ef8;">setq</span> entropy/grom-readonly-type <span style="color: #d08928;">"all"</span>)
 </pre>
 </div>
 
@@ -2714,12 +2771,12 @@ was regexp string matched before <code>find-file</code> opens file.  Til now thi
 list shown as blow:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">'(<span style="color: #7FA0B7;">"autoloads\\.el"</span>
-  <span style="color: #7FA0B7;">"\\*Compile-.*\\*"</span>
-  <span style="color: #7FA0B7;">"loaddefs\\.el"</span>
-  <span style="color: #7FA0B7;">"COMMIT_EDITMSG"</span>
-  <span style="color: #7FA0B7;">"_archive"</span>
-  <span style="color: #7FA0B7;">"^ *\\*.*?\\* *$"</span>)
+<pre class="src src-emacs-lisp">'(<span style="color: #d08928;">"autoloads\\.el"</span>
+  <span style="color: #d08928;">"\\*Compile-.*\\*"</span>
+  <span style="color: #d08928;">"loaddefs\\.el"</span>
+  <span style="color: #d08928;">"COMMIT_EDITMSG"</span>
+  <span style="color: #d08928;">"_archive"</span>
+  <span style="color: #d08928;">"^ *\\*.*?\\* *$"</span>)
 </pre>
 </div>
 
@@ -2789,8 +2846,8 @@ gloal-readonly-mode again.
 </div>
 </div>
 
-<div id="outline-container-org4545713" class="outline-4">
-<h4 id="h-2263f98f-eba0-4248-8dcd-03928af7978c"><a id="org4545713"></a><span class="section-number-4">7.1.5</span> Org-mode</h4>
+<div id="outline-container-orgf1d815e" class="outline-4">
+<h4 id="h-2263f98f-eba0-4248-8dcd-03928af7978c"><a id="orgf1d815e"></a><span class="section-number-4">8.1.5</span> Org-mode</h4>
 <div class="outline-text-4" id="text-h-2263f98f-eba0-4248-8dcd-03928af7978c">
 <p>
 Org mode was the structor plain text doc type combined with emacs
@@ -2865,7 +2922,7 @@ Bullets shown style was the minor fancy setup, choosing the taste as
 your way. follow config codes snippet for doing thus:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #5EC4FF;">setq</span> entropy/emacs-org-bullets-type <span style="color: #7FA0B7;">"roman"</span>) <span style="color: #56697A;">; </span><span style="color: #56697A;">or with "circle numberic"</span>
+<pre class="src src-emacs-lisp">(<span style="color: #6c9ef8;">setq</span> entropy/emacs-org-bullets-type <span style="color: #d08928;">"roman"</span>) <span style="color: #808080; font-style: italic;">; </span><span style="color: #808080; font-style: italic;">or with "circle numberic"</span>
 </pre>
 </div></li>
 
@@ -2892,9 +2949,9 @@ place follow codes snippet into your custom file"
 </p>
 
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #5EC4FF;">setq</span> entropy/emacs-disable-org-heading-scale nil)
+<pre class="src src-emacs-lisp">(<span style="color: #6c9ef8;">setq</span> entropy/emacs-disable-org-heading-scale nil)
 
-<span style="color: #56697A;">;; </span><span style="color: #56697A;">Reload major-mode for current to trigger the hook </span>
+<span style="color: #808080; font-style: italic;">;; </span><span style="color: #808080; font-style: italic;">Reload major-mode for current to trigger the hook </span>
 (funcall major-mode)
 </pre>
 </div></li>
@@ -3177,9 +3234,9 @@ point:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #5EC4FF;">defun</span> <span style="color: #4db5bd;">custom-org-download-method</span> (link)
+<pre class="src src-emacs-lisp">(<span style="color: #6c9ef8;">defun</span> <span style="color: #b77fdb; font-weight: bold;">custom-org-download-method</span> (link)
         (org-download--fullname (org-link-unescape link)))
-(<span style="color: #5EC4FF;">setq</span> org-download-method 'custom-org-download-method)
+(<span style="color: #6c9ef8;">setq</span> org-download-method 'custom-org-download-method)
 </pre>
 </div>
 
@@ -3252,20 +3309,20 @@ not working on the temporally buffer, the whole relative link
 path return snippet process will not worked as well yet:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #5EC4FF;">defun</span> <span style="color: #4db5bd;">org-download-insert-link</span> (link filename)
-  (<span style="color: #5EC4FF;">if</span> (looking-back <span style="color: #7FA0B7;">"^[ \t]+"</span> (line-beginning-position))
+<pre class="src src-emacs-lisp">(<span style="color: #6c9ef8;">defun</span> <span style="color: #b77fdb; font-weight: bold;">org-download-insert-link</span> (link filename)
+  (<span style="color: #6c9ef8;">if</span> (looking-back <span style="color: #d08928;">"^[ \t]+"</span> (line-beginning-position))
       (delete-region (match-beginning 0) (match-end 0))
     (newline))
   (insert
    (concat
     (funcall org-download-annotate-function link)
-    <span style="color: #7FA0B7;">"\n"</span>
-    (<span style="color: #5EC4FF;">if</span> (= org-download-image-html-width 0)
-        <span style="color: #7FA0B7;">""</span>
-      (format <span style="color: #7FA0B7;">"#+attr_html: :width %dpx\n"</span> org-download-image-html-width))
-    (<span style="color: #5EC4FF;">if</span> (= org-download-image-latex-width 0)
-        <span style="color: #7FA0B7;">""</span>
-      (format <span style="color: #7FA0B7;">"#+attr_latex: :width %dcm\n"</span> org-download-image-latex-width))
+    <span style="color: #d08928;">"\n"</span>
+    (<span style="color: #6c9ef8;">if</span> (= org-download-image-html-width 0)
+        <span style="color: #d08928;">""</span>
+      (format <span style="color: #d08928;">"#+attr_html: :width %dpx\n"</span> org-download-image-html-width))
+    (<span style="color: #6c9ef8;">if</span> (= org-download-image-latex-width 0)
+        <span style="color: #d08928;">""</span>
+      (format <span style="color: #d08928;">"#+attr_latex: :width %dcm\n"</span> org-download-image-latex-width))
     (format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))))
   (org-display-inline-images))
 </pre>
@@ -3378,8 +3435,8 @@ comment flags by keybinding <code>C-c "</code>.
 </div>
 </div>
 
-<div id="outline-container-org30badf8" class="outline-4">
-<h4 id="h-dd1be778-45a9-451c-938c-e325bfe7ed1d"><a id="org30badf8"></a><span class="section-number-4">7.1.6</span> Miscellaneous emacs internal setting</h4>
+<div id="outline-container-org7feba97" class="outline-4">
+<h4 id="h-dd1be778-45a9-451c-938c-e325bfe7ed1d"><a id="org7feba97"></a><span class="section-number-4">8.1.6</span> Miscellaneous emacs internal setting</h4>
 <div class="outline-text-4" id="text-h-dd1be778-45a9-451c-938c-e325bfe7ed1d">
 <p>
 Emacs consists of various modes and sets of basic tool chains, all of
@@ -3534,8 +3591,8 @@ with yanking choosing functional.
 </div>
 </div>
 
-<div id="outline-container-orgc2ad390" class="outline-4">
-<h4 id="h-9246b459-6586-4464-b978-e8eba56658a6"><a id="orgc2ad390"></a><span class="section-number-4">7.1.7</span> Font specific</h4>
+<div id="outline-container-org21980ca" class="outline-4">
+<h4 id="h-9246b459-6586-4464-b978-e8eba56658a6"><a id="org21980ca"></a><span class="section-number-4">8.1.7</span> Font specific</h4>
 <div class="outline-text-4" id="text-h-9246b459-6586-4464-b978-e8eba56658a6">
 <p>
 Emacs support multibyte fonts setting and the rich features for each
@@ -3596,8 +3653,8 @@ feature lost, thus you can install them in any time.
 </div>
 
 
-<div id="outline-container-orga0af974" class="outline-3">
-<h3 id="h-8002552d-95c4-4252-812b-e4909f055882"><a id="orga0af974"></a><span class="section-number-3">7.2</span> Major modes for programming</h3>
+<div id="outline-container-org1ec1436" class="outline-3">
+<h3 id="h-8002552d-95c4-4252-812b-e4909f055882"><a id="org1ec1436"></a><span class="section-number-3">8.2</span> Major modes for programming</h3>
 <div class="outline-text-3" id="text-h-8002552d-95c4-4252-812b-e4909f055882">
 <p>
 Most major-modes contained the basic coding experience as syntax
@@ -3611,13 +3668,27 @@ cheerful user experience.
 presented major modes' feature for enhancing more and more modes
 experience individually. The main extending purpose was sticking on
 the coding completion, based on <code>company-mode</code> which was the coding
-completion framework for any scences.
+completion framework for any scences.As well, eachs major modes
+extending were including the coding interactive sth refer, coding
+folding and expanding uppon the region or pair punctuations are adding
+so.
 </p>
 
 <p>
-As well, eachs major modes extending were including the coding
-interactive sth refer, coding folding and expanding uppon the region
-or pair punctuations are adding so.
+<code>entropy-emacs</code> treats emacs as the IDE (i.e. integrated development
+environment), extended with third-party lanuage servers, with the
+quickly ripened for <a href="https://github.com/microsoft/language-server-protocol">Microsoft language server</a>, we are trending to use
+the LSP as the IDE core component, its powerful with unified
+crossplatform protocol defination and ripened communitiy driven. But
+for those old IDE configuration (i.e. individually un-unified code
+sever) were remained in <code>entropy-emacs</code> and with full supported as
+before. 
+</p>
+
+<p>
+The switcher for <code>lsp</code> and the old IDE configuration is customized
+variable <code>entropy/emacs-use-ide-type</code> whose valid values are 'lsp or
+'traditional.
 </p>
 
 <p>
@@ -3626,20 +3697,74 @@ been enhanced the extending feature details informations.
 </p>
 </div>
 
-<div id="outline-container-org25aba25" class="outline-4">
-<h4 id="h-686dc5e1-06c9-4681-9f7f-b7f0e130d900"><a id="org25aba25"></a><span class="section-number-4">7.2.1</span> C and C++</h4>
+<div id="outline-container-orgbefa250" class="outline-4">
+<h4 id="h-686dc5e1-06c9-4681-9f7f-b7f0e130d900"><a id="orgbefa250"></a><span class="section-number-4">8.2.1</span> C and C++</h4>
 <div class="outline-text-4" id="text-h-686dc5e1-06c9-4681-9f7f-b7f0e130d900">
-<p>
-As in C++ major modes, we major giving the two extending features:
-</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><b>IDE type</b></th>
+<th scope="col" class="org-left"><b>language server</b></th>
+<th scope="col" class="org-left"><b>completion support</b></th>
+<th scope="col" class="org-left"><b>xref-defination support</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">lsp-mode</td>
+<td class="org-left"><a href="https://clang.llvm.org/extra/clangd.html">clangd</a></td>
+<td class="org-left">yes</td>
+<td class="org-left">yes</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">traditional</td>
+<td class="org-left"><a href="https://github.com/Sarcasm/irony-mode">irony-mode</a></td>
+<td class="org-left">yes</td>
+<td class="org-left">yes</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+</table>
 
 <ul class="org-ul">
+<li><p>
+<b>Lsp-mode for cland eemacs configuration:</b>
+</p>
+
+<p>
+Common lsp-mode configuration. 
+</p></li>
+
+<li><p>
+<b>irony-mode eemacs configuration:</b>
+</p>
+
+<ol class="org-ol">
 <li>Using <a href="https://github.com/Sarcasm/irony-mode">irony-mode</a> to giving the project code defination review and
 jumping feature.</li>
 
 <li>Using <code>company-c-headers</code> to giving the project header file query
 completions.</li>
-</ul>
+</ol>
 
 <p>
 <code>irony-mode</code> based on the irony-server which has been compiled for w32
@@ -3654,14 +3779,65 @@ same binary.)
 Other feature extending are minor, simple file compiling on WINDOWS OS
 was given as function <code>entropy/emacs-c-win-c-compiler</code> which using
 mingw gcc for the compiler and with fixed library linking as for.
-</p>
+</p></li>
+</ul>
 </div>
 </div>
 
 
-<div id="outline-container-org004f17a" class="outline-4">
-<h4 id="h-660173e6-8597-435a-ab32-82a327fdfc6a"><a id="org004f17a"></a><span class="section-number-4">7.2.2</span> Php</h4>
+<div id="outline-container-orgcd3e9da" class="outline-4">
+<h4 id="h-660173e6-8597-435a-ab32-82a327fdfc6a"><a id="orgcd3e9da"></a><span class="section-number-4">8.2.2</span> Php</h4>
 <div class="outline-text-4" id="text-h-660173e6-8597-435a-ab32-82a327fdfc6a">
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><b>IDE type</b></th>
+<th scope="col" class="org-left"><b>language server</b></th>
+<th scope="col" class="org-left"><b>completion support</b></th>
+<th scope="col" class="org-left"><b>xref-defination support</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">lsp-mode</td>
+<td class="org-left"><a href="https://github.com/felixfbecker/php-language-server">php-language-server</a></td>
+<td class="org-left">yes</td>
+<td class="org-left">yes</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">traditional ide</td>
+<td class="org-left"><a href="https://github.com/xcwen/ac-php">ac-php</a></td>
+<td class="org-left">yes</td>
+<td class="org-left">yes</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+<b>Lsp-mode php-language-server eemacs configuration:</b>
+</p>
+
+<p>
+Common lsp-mode instruction
+</p>
+
+<p>
+<b>Ac-php eemacs configuration:</b>
+</p>
+
 <p>
 Php mode was derived from C-mode, familiar syntax-table and grammer
 refer so that the syntax highlight was not needed to extend.
@@ -3675,13 +3851,14 @@ for giving thus. Binding with <code>M-p</code> for activation.
 </div>
 
 
-<div id="outline-container-orgaa367b3" class="outline-4">
-<h4 id="h-90e8b37b-f8ef-41db-92fb-df349125f5da"><a id="orgaa367b3"></a><span class="section-number-4">7.2.3</span> Html and Css</h4>
+<div id="outline-container-org6da3519" class="outline-4">
+<h4 id="h-90e8b37b-f8ef-41db-92fb-df349125f5da"><a id="org6da3519"></a><span class="section-number-4">8.2.3</span> Html and Css</h4>
 <div class="outline-text-4" id="text-h-90e8b37b-f8ef-41db-92fb-df349125f5da">
 <p>
 emacs internal default web front-end major modes html and css mode are
 user basically with simple func interactively support, we use melpa
-package <a href="http://web-mode.org">web-mode</a> for the enhancements.
+package <a href="http://web-mode.org">web-mode</a> for the enhancements for html group markup language
+but for css as.
 </p>
 
 <p>
@@ -3701,13 +3878,56 @@ Both of html and css buffer can be tidy up with normally code style
 using <a href="https://github.com/yasuyk/web-beautify">web-beautify</a> package which required nodejs path searched and the
 npm refer packages installed.
 </p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><b>IDE type</b></th>
+<th scope="col" class="org-left"><b>language server</b></th>
+<th scope="col" class="org-left"><b>completion support</b></th>
+<th scope="col" class="org-left"><b>xref-defination support</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">lsp-mode</td>
+<td class="org-left"><a href="https://github.com/vscode-langservers/vscode-html-languageserver">html</a></td>
+<td class="org-left">yes</td>
+<td class="org-left">yes</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">traditional</td>
+<td class="org-left">html: no</td>
+<td class="org-left">yes (<a href="https://github.com/osv/company-web">company-web</a>)</td>
+<td class="org-left">no</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">css:  no</td>
+<td class="org-left">yes (company-capf)</td>
+<td class="org-left">no</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
-
-
-<div id="outline-container-orge95e38e" class="outline-4">
-<h4 id="h-c913cd4b-1228-4981-86ac-e6a4ddee5564"><a id="orge95e38e"></a><span class="section-number-4">7.2.4</span> Javascript</h4>
+<div id="outline-container-org896f340" class="outline-4">
+<h4 id="h-c913cd4b-1228-4981-86ac-e6a4ddee5564"><a id="org896f340"></a><span class="section-number-4">8.2.4</span> Javascript</h4>
 <div class="outline-text-4" id="text-h-c913cd4b-1228-4981-86ac-e6a4ddee5564">
 <p>
 JS development IDE <a href="https://github.com/mooz/js2-mode/">js2-mode</a> was the one for given such as repl and
@@ -3715,11 +3935,49 @@ syntax checking and morden syntax highlighting feature for js coding
 which used in <code>entropy-emacs</code> for be replaced with origin js major
 mode.
 </p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><b>IDE type</b></th>
+<th scope="col" class="org-left"><b>language server</b></th>
+<th scope="col" class="org-left"><b>completion support</b></th>
+<th scope="col" class="org-left"><b>xref-defination support</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">lsp-mode</td>
+<td class="org-left"><a href="https://github.com/theia-ide/typescript-language-server">typescript-language-server</a></td>
+<td class="org-left">yes</td>
+<td class="org-left">yes</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">traditional</td>
+<td class="org-left"><a href="https://github.com/ternjs/tern">tern</a></td>
+<td class="org-left">yes (<a href="https://github.com/ternjs/tern">company-tern</a>)</td>
+<td class="org-left">yes</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
-<div id="outline-container-org581253b" class="outline-4">
-<h4 id="h-6c7020ca-a20f-4536-a039-888650bf2849"><a id="org581253b"></a><span class="section-number-4">7.2.5</span> Web front-end realtime previewer</h4>
+<div id="outline-container-orgdb84507" class="outline-4">
+<h4 id="h-6c7020ca-a20f-4536-a039-888650bf2849"><a id="orgdb84507"></a><span class="section-number-4">8.2.5</span> Web front-end realtime previewer</h4>
 <div class="outline-text-4" id="text-h-6c7020ca-a20f-4536-a039-888650bf2849">
 <p>
 <a href="https://github.com/netguy204/imp.el">impatient-mode</a> and <a href="https://github.com/skeeto/skewer-mode">skewer-mode</a> was two included melpa extension for
@@ -3873,23 +4131,69 @@ html js all in one embedding file as for.
 </div>
 
 
-<div id="outline-container-orge181e0e" class="outline-4">
-<h4 id="h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c"><a id="orge181e0e"></a><span class="section-number-4">7.2.6</span> Python anaconda</h4>
+<div id="outline-container-org55793a0" class="outline-4">
+<h4 id="h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c"><a id="org55793a0"></a><span class="section-number-4">8.2.6</span> Python anaconda</h4>
 <div class="outline-text-4" id="text-h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c">
 <p>
-Now we using <a href="https://github.com/proofit404/anaconda-mode">anaconda-mode</a> as python-mode extending feature for
-providing coding completion func.
+We using emacs built-in major-mode <code>python-mode</code> for coding python codes.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><b>IDE type</b></th>
+<th scope="col" class="org-left"><b>language server</b></th>
+<th scope="col" class="org-left"><b>completion support</b></th>
+<th scope="col" class="org-left"><b>xref-defination support</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">lsp-mode</td>
+<td class="org-left"><a href="https://github.com/palantir/python-language-server">pyls</a></td>
+<td class="org-left">yes</td>
+<td class="org-left">yes</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">traditional</td>
+<td class="org-left"><a href="https://github.com/proofit404/anaconda-mode">anaconda-mode</a></td>
+<td class="org-left">yes (<a href="https://github.com/proofit404/anaconda-mode">company-anaconda</a>)</td>
+<td class="org-left">yes</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+<b>python-mode eemacs specification</b>
+</p>
+
+<p>
+By defautly, we using <code>python3</code> be the primary python shell, that it
+was the most recommendation for thus.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgd296dc9" class="outline-3">
-<h3 id="h-a628d8f1-df5e-4656-b779-24d53d0e37f1"><a id="orgd296dc9"></a><span class="section-number-3">7.3</span> Packages enhancements and introduction</h3>
+<div id="outline-container-org8faff51" class="outline-3">
+<h3 id="h-a628d8f1-df5e-4656-b779-24d53d0e37f1"><a id="org8faff51"></a><span class="section-number-3">8.3</span> Packages enhancements and introduction</h3>
 <div class="outline-text-3" id="text-h-a628d8f1-df5e-4656-b779-24d53d0e37f1">
 </div>
-<div id="outline-container-org2081d61" class="outline-4">
-<h4 id="h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6"><a id="org2081d61"></a><span class="section-number-4">7.3.1</span> Ivy and Helm</h4>
+<div id="outline-container-org2a61bda" class="outline-4">
+<h4 id="h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6"><a id="org2a61bda"></a><span class="section-number-4">8.3.1</span> Ivy and Helm</h4>
 <div class="outline-text-4" id="text-h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6">
 <p>
 Ivy was emacs <code>M-x</code> enhancements tool framework, it provides the
@@ -4065,8 +4369,8 @@ using the demo as <code>counsel-describe-face</code>:
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(ivy-set-actions
  'counsel-describe-variable
- '((<span style="color: #7FA0B7;">"I"</span> counsel-info-lookup-symbol <span style="color: #7FA0B7;">"info"</span>)
-   (<span style="color: #7FA0B7;">"d"</span> counsel--find-symbol <span style="color: #7FA0B7;">"definition"</span>)))
+ '((<span style="color: #d08928;">"I"</span> counsel-info-lookup-symbol <span style="color: #d08928;">"info"</span>)
+   (<span style="color: #d08928;">"d"</span> counsel--find-symbol <span style="color: #d08928;">"definition"</span>)))
 </pre>
 </div></li>
 </ol></li>
@@ -4085,8 +4389,8 @@ binded to <code>C-c j</code>.
 
 
 
-<div id="outline-container-org88329ca" class="outline-4">
-<h4 id="h-cfb1027d-8d50-4b33-be13-427d937130e3"><a id="org88329ca"></a><span class="section-number-4">7.3.2</span> Emacs-W3m</h4>
+<div id="outline-container-org25cec6a" class="outline-4">
+<h4 id="h-cfb1027d-8d50-4b33-be13-427d937130e3"><a id="org25cec6a"></a><span class="section-number-4">8.3.2</span> Emacs-W3m</h4>
 <div class="outline-text-4" id="text-h-cfb1027d-8d50-4b33-be13-427d937130e3">
 <p>
 Emacs internal browser eww was pure and enough for simple text web
@@ -4127,8 +4431,8 @@ And onekey for open it with <code>M-x w3m</code>. Go go go &#x2026;
 
 
 
-<div id="outline-container-org2217d6d" class="outline-4">
-<h4 id="h-58b8abfe-6b1f-401e-a673-43b5450678d3"><a id="org2217d6d"></a><span class="section-number-4">7.3.3</span> Elfeed</h4>
+<div id="outline-container-org837b412" class="outline-4">
+<h4 id="h-58b8abfe-6b1f-401e-a673-43b5450678d3"><a id="org837b412"></a><span class="section-number-4">8.3.3</span> Elfeed</h4>
 <div class="outline-text-4" id="text-h-58b8abfe-6b1f-401e-a673-43b5450678d3">
 <p>
 Did you thought about for feeding rss rely on emacs only?
@@ -4238,8 +4542,8 @@ All the feeds filter can be reset with short cut <code>S</code>.
 
 
 
-<div id="outline-container-orga48a50c" class="outline-4">
-<h4 id="h-67b22622-81ed-4c2b-8f21-838b83e21769"><a id="orga48a50c"></a><span class="section-number-4">7.3.4</span> Gnus</h4>
+<div id="outline-container-org6128f5e" class="outline-4">
+<h4 id="h-67b22622-81ed-4c2b-8f21-838b83e21769"><a id="org6128f5e"></a><span class="section-number-4">8.3.4</span> Gnus</h4>
 <div class="outline-text-4" id="text-h-67b22622-81ed-4c2b-8f21-838b83e21769">
 <p>
 For now, we just given gnus simply try with the local file directory
@@ -4251,8 +4555,8 @@ details.
 </div>
 </div>
 
-<div id="outline-container-org2bf854b" class="outline-3">
-<h3 id="h-098f1399-8e79-4027-88a6-395f80a528d4"><a id="org2bf854b"></a><span class="section-number-3">7.4</span> Emacs on windows</h3>
+<div id="outline-container-org12c6a4a" class="outline-3">
+<h3 id="h-098f1399-8e79-4027-88a6-395f80a528d4"><a id="org12c6a4a"></a><span class="section-number-3">8.4</span> Emacs on windows</h3>
 <div class="outline-text-3" id="text-h-098f1399-8e79-4027-88a6-395f80a528d4">
 <p>
 Emacs was originally built for gnu/linux, compatible with UNIX-like
@@ -4297,8 +4601,8 @@ for.
 </p>
 </div>
 
-<div id="outline-container-orgdb0b6c4" class="outline-4">
-<h4 id="h-e4748b27-6529-4913-a6cc-f9e13799f50e"><a id="orgdb0b6c4"></a><span class="section-number-4">7.4.1</span> Bash and unix tool chains for windows</h4>
+<div id="outline-container-org1f007a2" class="outline-4">
+<h4 id="h-e4748b27-6529-4913-a6cc-f9e13799f50e"><a id="org1f007a2"></a><span class="section-number-4">8.4.1</span> Bash and unix tool chains for windows</h4>
 <div class="outline-text-4" id="text-h-e4748b27-6529-4913-a6cc-f9e13799f50e">
 <p>
 We using Msys2 as the bash shell emulator for emacs windows port, this
@@ -4317,8 +4621,8 @@ the shell path detectived "PATH" obtained by <code>(getenv "PATH")</code> and th
 </div>
 </div>
 
-<div id="outline-container-orgae529d1" class="outline-4">
-<h4 id="h-cdbb7a64-c5fd-4ff2-b063-896397e74478"><a id="orgae529d1"></a><span class="section-number-4">7.4.2</span> Portable emacs environment on windows</h4>
+<div id="outline-container-org6d76a5f" class="outline-4">
+<h4 id="h-cdbb7a64-c5fd-4ff2-b063-896397e74478"><a id="org6d76a5f"></a><span class="section-number-4">8.4.2</span> Portable emacs environment on windows</h4>
 <div class="outline-text-4" id="text-h-cdbb7a64-c5fd-4ff2-b063-896397e74478">
 <p>
 Emacs has the relative path specification variable
@@ -4333,8 +4637,8 @@ those two variable to be the bridge to directed to the home path using
 the elisp code indicating:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #5EC4FF;">defvar</span> <span style="color: #9CAABB;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #7FA0B7;">"Msys2/"</span>))
-(setenv <span style="color: #7FA0B7;">"HOME"</span> (expand-file-name (concat device-root <span style="color: #7FA0B7;">"portable-HOME"</span>)))
+<pre class="src src-emacs-lisp">(<span style="color: #6c9ef8;">defvar</span> <span style="color: #5699AF;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #d08928;">"Msys2/"</span>))
+(setenv <span style="color: #d08928;">"HOME"</span> (expand-file-name (concat device-root <span style="color: #d08928;">"portable-HOME"</span>)))
 </pre>
 </div>
 
@@ -4345,8 +4649,8 @@ setting.
 </div>
 </div>
 
-<div id="outline-container-org7e0a777" class="outline-4">
-<h4 id="h-d3f5382d-4bf9-4792-950c-217be00f0da6"><a id="org7e0a777"></a><span class="section-number-4">7.4.3</span> Notice for key touching on windows</h4>
+<div id="outline-container-orgab1c93e" class="outline-4">
+<h4 id="h-d3f5382d-4bf9-4792-950c-217be00f0da6"><a id="orgab1c93e"></a><span class="section-number-4">8.4.3</span> Notice for key touching on windows</h4>
 <div class="outline-text-4" id="text-h-d3f5382d-4bf9-4792-950c-217be00f0da6">
 <p>
 Emacs windows port distribution was built with mingw relied on msys2
@@ -4359,7 +4663,6 @@ was refer to WIN10.
 </p>
 </blockquote>
 
-
 <p>
 On WIN10, the <code>win</code> key was temporally frozen the other key taken up
 when OS session recovery from screen lock state, this was the annoying
@@ -4371,17 +4674,15 @@ this by touching <code>win</code> key again.
 </div>
 </div>
 
-
-
-<div id="outline-container-orgca67b87" class="outline-2">
-<h2 id="h-3891c5d8-1486-407e-9d2c-0128d927b304"><a id="orgca67b87"></a><span class="section-number-2">8</span> Docs refers</h2>
+<div id="outline-container-orgc00de74" class="outline-2">
+<h2 id="h-3891c5d8-1486-407e-9d2c-0128d927b304"><a id="orgc00de74"></a><span class="section-number-2">9</span> Docs refers</h2>
 <div class="outline-text-2" id="text-h-3891c5d8-1486-407e-9d2c-0128d927b304">
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Entropy</p>
-<p class="date">Created: 2019-10-06 Sun 10:41</p>
+<p class="date">Created: 2019-11-20 Wed 19:51</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
