@@ -83,8 +83,7 @@
    ("\C-cb" . org-switchb)
    :map org-mode-map
    ("C-<up>" . org-previous-item)
-   ("C-<down>" . org-next-item)
-   ("<C-f2>" . org-toggle-link-display))
+   ("C-<down>" . org-next-item))
 
 ;; *** hook
   :hook ((org-mode . org-babel-result-hide-all))
@@ -174,7 +173,8 @@
    '(org-mode)
    "org-mode"
    "org-mode"
-   (entropy/emacs-org--do-load-org))
+   (entropy/emacs-org--do-load-org)
+   (entropy/emacs-!set-key (kbd "<f2>") #'org-toggle-link-display))
   
 ;; *** configs
   :config

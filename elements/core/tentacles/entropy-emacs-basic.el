@@ -1308,8 +1308,12 @@ Temp file was \"~/~entropy-artist.txt\""
      (when (and (fboundp #'xterm-paste)
                 (not (executable-find "xclip")))
        (entropy/emacs-xterm-paste-core event))
-     (let* ((paste (car kill-ring)))
-       (term-send-raw-string paste)))
+     (let* ((paste (with-temp-buffer
+                     (yank)
+                     (car kill-ring))))
+       (when (stringp paste)
+         (setq paste (substring-no-properties paste))
+         (term-send-raw-string paste))))
 
    (entropy/emacs-lazy-load-simple 'term
      (define-key term-raw-map

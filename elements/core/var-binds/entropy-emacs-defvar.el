@@ -319,6 +319,7 @@ is ran after the registering procedure done within `progn' scope."
     (magit-files . (magit-find-file-hook))
     (dired . (dired-mode-hook))
     (w3m . (w3m-mode-hook))
+    (eww . (eww-mode-hook))
     (elfeed . (elfeed-search-mode-hook elfeed-show-mode-hook))
     (gnus-group . (gnus-group-mode-hook))
     (gnus-sum . (gnus-summary-mode-hook)))

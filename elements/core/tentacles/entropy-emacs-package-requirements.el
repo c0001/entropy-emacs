@@ -81,7 +81,6 @@
         toc-org
         poporg
         popwin
-        py-autopep8
         anaconda-mode
         yafolding
         outshine

@@ -175,7 +175,7 @@
                    ("C-o" . entropy/emacs-basic-eyebrowse-switch-top)
                    ("C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
                    ("c" . entropy/emacs-basic-eyebrowse-create-window-config)
-                   ("." . entropy/emacs-basic-eyebrowse-switch-basic-window)
+                   ("." . eyebrowse-switch-to-window-config)
                    ("a" . eyebrowse-switch-to-window-config)))
      (define-key entropy/emacs-wc-eyebrowse-mode-map
        (kbd (car bind)) (cdr bind))))
