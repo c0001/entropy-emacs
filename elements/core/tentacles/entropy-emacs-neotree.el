@@ -53,10 +53,11 @@
 
   ;; key register
   ;; Make node item execution for neotree with `entropy-open-with'
-  (define-key neotree-mode-map (kbd "M-RET")
-    (neotree-make-executor
-     :file-fn 'entropy/emacs-neotree-neo-open-with
-     :dir-fn  'entropy/emacs-neotree-neo-open-with))
+  (when (display-graphic-p)
+    (define-key neotree-mode-map (kbd "M-RET")
+      (neotree-make-executor
+       :file-fn 'entropy/emacs-neotree-neo-open-with
+       :dir-fn  'entropy/emacs-neotree-neo-open-with)))
   
   ;; library
   (defvar entropy/emacs-neotree--neo-textscaled nil
@@ -158,7 +159,8 @@ Globally close neotree buffer while selected window was
             (switch-to-buffer buffer_)
             (goto-char marker))
           (neo-global--select-window)
-          (unless entropy/emacs-neotree--neo-textscaled
+          (unless (and entropy/emacs-neotree--neo-textscaled
+                       (display-graphic-p))
             (with-current-buffer neo-buffer-name
               (cond
                ((> entropy/emacs-neotree-text-scale 0)
