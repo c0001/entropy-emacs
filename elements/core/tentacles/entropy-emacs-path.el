@@ -213,7 +213,7 @@
               (push exec-path-pair exec-paths-positive)
             (push exec-path-pair exec-paths-negative)))
         ;; do node predicate
-        (when (and (not (null predicate) (functionp predicate)))
+        (when (and (not (null predicate)) (functionp predicate))
           (funcall predicate))))
 
     (dolist (positive-list '(env-paths-positive exec-paths-positive))
