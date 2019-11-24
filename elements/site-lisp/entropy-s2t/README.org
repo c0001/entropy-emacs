@@ -30,8 +30,3 @@ variable of emacs chinese input method [[https://github.com/tumashu/pyim/tree/84
     (global-set-key (kbd "C-M-\\") 'entropy/toggle-pyim-s2t)
   #+END_SRC
 
-- Demo:
-
-  #+attr_org: :width 400px
-  #+attr_html: :width 600px
-  [[file:img/test_2019-02-11_21-50-24.gif]]
