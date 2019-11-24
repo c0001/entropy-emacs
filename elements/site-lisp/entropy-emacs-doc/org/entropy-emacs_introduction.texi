@@ -581,10 +581,21 @@ Commonly, the display format of thus was formula as
 forground covered on black background.
 
 Layout switching was through the way of query prompt within
-minibuffer and enhanced with candidates showing list powered by @uref{../annex/img/screenshot_2018-11-18_21-24-42.png, ivy},
+minibuffer and enhanced with candidates showing list powered by @uref{https://github.com/abo-abo/swiper, ivy},
 each candidate was one unique slot number with workspace name:
 
-@image{../annex/img/Snipaste_2018-03-12_17-49-51_2018-03-12_17-50-08,,,,png}
+@example
++--------------------------------------------------------------------------------+
+|  * 169 U(Unix) *scratch*      Lisp Interactioin Orgstruct>>      << 4: 23 ALL  |
++--------------------------------------------------------------------------------+
+(1/3) Enter slot:
+
+     +------------------+
+---> |1: basic workspace|
+     +------------------+
+      2: Readme edit
+      3: News reader
+@end example
 
 But the easist way for doing like this was using the shortcuts
 prefix @samp{[eprefix] w} with the workspace slots number
@@ -694,28 +705,22 @@ To create one derived slot can be implemented as call func
 keybinding @samp{C-c v}, after then, you will be required to create the
 derived workspace tag name and the last you will get the workspace
 as displayed with slot and tag name format as
-@samp{main-slot.derived_number:⛓main-slot:"main workspace
-  tagname"☛derived name}
 
-@image{../annex/img/screenshot_2018-11-18_23-11-04,,,,png} 
-@image{../annex/img/screenshot_2018-11-18_23-11-32,,,,png} 
-@image{../annex/img/screenshot_2018-11-18_23-12-03,,,,png} 
-@image{../annex/img/screenshot_2018-11-18_23-12-34,,,,png}
+@example
+main-slot.derived_number:⛓main-slot:"main workspace tagname"☛derived name
+@end example
 
 Above demos show the face and the instant display format of derived
 slot derived from the main slot '1:temp'.
 
 For toggle the derived slot, keybinding @samp{C-c M-v} as so.
 
-Following gif shows the complete process for toggle to derived slot
-and back to main slot, the latest step for back to top was hanged
-with keybinding @samp{[eprefix] w C-o} which call function
-@samp{entropy/emacs-basic-eyebrowse-switch-top}, it's useful for quicly
-back from the temp derived slot to top (called 'top' by main) slot
-without remember the current main slot number or backing with
-calling @samp{entropy/emacs-basic-eyebrowse-switch-basic-window}.
-
-@image{../annex/img/eyebrowse-derived-toggle_2018-11-18_23-21-17,,,,gif}
+For backing to main slot, was hanged with keybinding @samp{[eprefix] w
+  C-o} which call function @samp{entropy/emacs-basic-eyebrowse-switch-top},
+it's useful for quicly back from the temp derived slot to top
+(called 'top' by main) slot without remember the current main slot
+number or backing with calling
+@samp{entropy/emacs-basic-eyebrowse-switch-basic-window}.
 
 @item
 @strong{Derived slot limitation:}
@@ -845,25 +850,25 @@ respectively.
 
 @samp{entropy-emacs} provide four kinds modeline style:
 
-@multitable {aaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem name
 @tab tag
-@tab demo visualization
+@tab description
 @item origin-specific
 @tab origin
-@tab @image{../annex/img/screenshot_2018-08-08_03-13-00,,,,png}
+@tab minor extended origin `mode-line-format`
 @item doom-modeline
 @tab doom
-@tab @image{../annex/img/screenshot_2018-08-08_03-16-43,,,,png}
+@tab morden simply mode-line style extracted from @uref{https://github.com/hlissner/doom-emacs, doom-emacs}
 @item sapceline
 @tab spaceline
-@tab @image{../annex/img/screenshot_2018-08-08_03-14-35,,,,png}
+@tab morden extensible mode-line style of @uref{https://www.spacemacs.org/, spacemacs}
 @item spaceline-icons
 @tab spaceline-icons
-@tab @image{../annex/img/screenshot_2018-08-08_03-15-50,,,,png}
+@tab @uref{https://github.com/domtronn/all-the-icons.el, all-the-icons} patched @samp{spaceline}
 @item powerline
 @tab powerline
-@tab @image{../annex/img/screenshot_2018-08-08_03-13-55,,,,png}
+@tab the enhanced exensible mordern mode-line based used for @samp{spaceline}
 @end multitable
 
 
@@ -1009,7 +1014,15 @@ using, if onece you get it on your scatter doing, you will find it was
 really simple and crude which can not be used as the daily tool for
 thus. As the result, @samp{entropy-emacs} usig the most powerful and
 comprehensive 'pinyin' function built melpa extentioin @uref{https://github.com/tumashu/pyim, pyim} :
-@image{../annex/img/pyim-demo_2018-11-20_21-36-29,,,,gif}
+
+@example
+  这是一段中文说明，你好shijie
+                        ^
+                        |
+                        +-------------------------+
+                        | 1. 世界 2. 时节 .....   |
+                        +-------------------------+
+@end example
 
 Above demo shows the fully process for input chinese using
 pyim. pinyin candidates shown within the tooltip widget @samp{posframe}
@@ -1047,7 +1060,7 @@ version below 26.1 and the oppsite using 'posframe'.
 
 @itemize
 @item
-@strong{Pyim dicts:} @anchor{org0bec613}
+@strong{Pyim dicts:} @anchor{org81b2ade}
 
 Although @samp{pyim} was one emacs extension written by @uref{(info%20"elisp"), elisp}, it was
 also one comprehensive chinese input programe which as the same sets
@@ -1114,7 +1127,7 @@ emacs startup finished i.e. @samp{entropy/emacs-enable-pyim}, you can
 active it in your @samp{custom.el} file, then the next time you start up
 or open new session of emacs , pyim will automatically startup using
 the default dicts specific by @samp{entropy-emacs} as introduction form
-@ref{org0bec613, , pyim dicts section}, or if you want to enable dicts specified by
+@ref{org81b2ade, , pyim dicts section}, or if you want to enable dicts specified by
 yourself, you can setting up custom-variable
 @samp{entropy/emacs-pyim-dicts}, the variable information and value
 format can be shown by touching @samp{C-h v entropy/emacs-pyim-dicts
@@ -2102,27 +2115,51 @@ immediately then let your external browser directed to one page
 @uref{http://127.0.0.1:8080/skewer/demo} , this page was the one previewing
 all results generated by @samp{skewer-mode}.
 
-At the beginning, there's nothing in this page as demo shown below:
-
-@image{../annex/img/screenshot_2018-08-01_23-23-21,,,,png}
-
-The following interaction demo shows the full process as is:
-
-@image{../annex/img/skewer-demo_2018-08-02_02-46-46,,,,gif}
-
-Above instance shows the process sending one html code block into
-server, after dealing finished data, external browser show the
-result with evaluating current js scripts.
-
 @samp{skewer-mode} support css well, for css html and javascript, it
 divided three minor-modes individually and functionally purpose as
 the list below:
 
-@image{../annex/img/screenshot_2018-08-02_03-05-58,,,,png}
+@example
+The keybindings for evaluating expressions in the browser are just
+like the Lisp modes. These are provided by the minor mode skewer-mode.
+
+* C-x C-e: Evaluate the form before the point and display the result
+ in the minibuffer. If given a prefix argument, insert the result into
+ the current buffer.
+
+* C-M-x: Evaluate the top-level form around the point.
+
+* C-c C-k: Load the current buffer.
+
+* C-c C-z: Select the REPL buffer.
+
+
+The result of the expression is echoed in the minibuffer.
+
+Additionally, css-mode and html-mode get similar sets of bindings for
+modifying the CSS rules and HTML on the current page.
+
+CSS
+
+* C-x C-e: Load the declaration at the point.
+* C-M-x: Load the entire rule around the point.
+* C-c C-k: Load the current buffer as a stylesheet.
+
+HTML
+
+* C-M-x: Load the HTML tag immediately around the point.
+
+Note: run-skewer uses browse-url to launch the browser. This may
+require further setup depending on your operating system and personal
+preferences.
+@end example
+@end itemize
+
 
 You can touching @samp{C-c C-z} to active repl for js within js2-mode
 buffer.
 
+@itemize
 @item
 @strong{impatient-mode:}
 
@@ -2166,8 +2203,6 @@ All the linkage file must under the same directory tree. Thus
 impatient-mode just the one for html design layout tool, otherwise
 for the meaning as just for the single file previewing as the css
 html js all in one embedding file as for.
-
-@image{../annex/img/impatient-mode-demo_2018-08-02_14-25-25,,,,gif}
 @end itemize
 
 @node Python anaconda
@@ -2316,14 +2351,8 @@ candidates.
 Notice: bug that can not cancel company-mode origin tooltip
 when @samp{C-g} for this command.
 @end quotation
-
-@image{../annex/img/counsel-company_2018-04-14_22-33-09,,,,gif}
 @end enumerate
-@end itemize
 
-
-
-@itemize
 @item
 @strong{ivy read action:}
 
@@ -2467,18 +2496,6 @@ upate all null feeds (without and entries obtained yet), using
 @end itemize
 
 All the feeds filter can be reset with short cut @samp{S}.
-
-@image{../annex/img/Snipaste_2018-09-09_13-05-02_2018-09-09_13-05-39,,,,png}
-
-@image{../annex/img/Snipaste_2018-09-09_13-02-18_2018-09-09_13-05-51,,,,png}
-
-@image{../annex/img/Snipaste_2018-09-09_13-03-05_2018-09-09_13-05-59,,,,png}
-
-@image{../annex/img/Snipaste_2018-09-09_13-03-49_2018-09-09_13-06-05,,,,png}
-
-@image{../annex/img/Snipaste_2018-09-09_13-04-20_2018-09-09_13-06-11,,,,png}
-
-@image{../annex/img/Snipaste_2018-09-09_13-10-23_2018-09-09_13-10-52,,,,png}
 
 @node Gnus
 @subsection Gnus
