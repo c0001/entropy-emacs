@@ -5,7 +5,7 @@
 
 #+attr_org: :width 300px
 #+attr_html: :width 300px
-[[file:../logo.png]]
+[[file:../annex/img/logo.png]]
 * Preface
 :PROPERTIES:
 :CUSTOM_ID: h-622e3623-f12f-46cd-95bd-925940a5e3e7

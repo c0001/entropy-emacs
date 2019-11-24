@@ -18,7 +18,7 @@
 @node Top
 @top entropy emacs introduction
 
-@image{../logo,,,,png}
+@image{../annex/img/logo,,,,png}
 @end ifnottex
 
 @menu
@@ -1060,7 +1060,7 @@ version below 26.1 and the oppsite using 'posframe'.
 
 @itemize
 @item
-@strong{Pyim dicts:} @anchor{org81b2ade}
+@strong{Pyim dicts:} @anchor{orga29ef96}
 
 Although @samp{pyim} was one emacs extension written by @uref{(info%20"elisp"), elisp}, it was
 also one comprehensive chinese input programe which as the same sets
@@ -1127,7 +1127,7 @@ emacs startup finished i.e. @samp{entropy/emacs-enable-pyim}, you can
 active it in your @samp{custom.el} file, then the next time you start up
 or open new session of emacs , pyim will automatically startup using
 the default dicts specific by @samp{entropy-emacs} as introduction form
-@ref{org81b2ade, , pyim dicts section}, or if you want to enable dicts specified by
+@ref{orga29ef96, , pyim dicts section}, or if you want to enable dicts specified by
 yourself, you can setting up custom-variable
 @samp{entropy/emacs-pyim-dicts}, the variable information and value
 format can be shown by touching @samp{C-h v entropy/emacs-pyim-dicts
