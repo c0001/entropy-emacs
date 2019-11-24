@@ -179,11 +179,3 @@ follow instruction only has the html part.
   The root dir of the caching was defined of
   =entropy/org-exptt-html-theme-cache-dir=, but you can defined
   elsewhere you wander for.
-
-
-* Interaction 
-
-#+attr_org: :width 400px
-#+attr_html: :width 800px
-[[file:img/Interaction_2019-02-11_19-50-45.gif]]
-
