@@ -73,8 +73,10 @@ recipes internal for the sake of below three options:
 
 You can run ~make help~ to see the details.
 
-*Thanks to:*
+*Thanks to:* [[https://github.com/seagle0128/.emacs.d][Centaur emacs]]
 
-[[https://github.com/seagle0128/.emacs.d][Centaur emacs]]
+*Realease:*
 
-Entropy @ [2018-04-11 Wed 05:30] © GPL/v3
+Entropy(bmsac0001@gmail.com) @ [2019-11-25 Wed 15:39] © GPL/v3
+
+=VERSION: 0.1.0 Tag: ONEPIECE=
