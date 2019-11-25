@@ -358,8 +358,7 @@ in case that file does not provide any feature."
       (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)))
 
 (defun entropy/emacs--set-user-package-dir-common (version)
-  "Setting `package-user-dir' based on emacs version name located
-for `user-emacs-directory'."
+  "Setting `package-user-dir' based on emacs version"
   (setq package-user-dir
         (expand-file-name
          (concat "elpa-" version)

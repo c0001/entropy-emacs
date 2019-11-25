@@ -52,9 +52,15 @@
 (setq file-name-handler-alist nil)
 
 ;; ** startup entropy-emacs
+(defvar entropy/emacs-user-emacs-directory
+  (file-name-directory load-file-name)
+  "Top eemacs host directory replaced of `user-emacs-directory'
+for preventing unregular loading procedure by modification of
+emacs upstream")
+
 (require
  'entropy-emacs
  (expand-file-name
   "elements/entropy-emacs.el"
-  (file-name-directory load-file-name)))
+  entropy/emacs-user-emacs-directory))
 

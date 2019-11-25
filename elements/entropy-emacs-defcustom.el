@@ -58,10 +58,10 @@
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/emacs-stuffs-topdir
-  (expand-file-name "stuffs" user-emacs-directory)
+  (expand-file-name "stuffs" entropy/emacs-user-emacs-directory)
   "The stuffs collection host path, for as `savehist-file',
 `bookmark-file' cache host. This setting mainly for cleanup
-`user-emacs-directory'."
+`entropy/emacs-user-emacs-directory'."
   :type 'string
   :group 'entropy/emacs-customize-fundametal)
 
@@ -84,7 +84,7 @@ for entropy-emacs."
 (defcustom entropy/emacs-custom-common-file
   (expand-file-name
    "custom.el"
-   user-emacs-directory)
+   entropy/emacs-user-emacs-directory)
   "entropy-emacs common custom file"
   :type 'string
   :group 'entropy/emacs-customize-fundametal)

@@ -77,7 +77,7 @@
 (defun entropy/emacs-batch--dump-emacs-core ()
   (let ((dump-file (expand-file-name
                     (format "eemacs_%s.pdmp" (format-time-string "%Y%m%d%H%M%S"))
-                    user-emacs-directory)))
+                    entropy/emacs-user-emacs-directory)))
     (setq entropy/emacs-fall-love-with-pdumper t)
     (require 'entropy-emacs-start)
     (dump-emacs-portable dump-file)))
