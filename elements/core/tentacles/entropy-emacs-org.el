@@ -1166,10 +1166,28 @@ adjusting the link insert position follow the rules below:
         (cond
           ((eq ro-state nil) (read-only-mode 0))
           ((eq ro-state t) (read-only-mode 1))))))
+
+  (defun entropy/emacs-org--poporg-dwim-unnarrowed-buffer (&rest _)
+    (with-current-buffer (current-buffer)
+      (when (buffer-narrowed-p)
+        (save-excursion
+          (widen)))))
+
+  (defun entropy/emacs-org--poporg-dwim-unlock-orig-buffer (&rest _)
+    (with-current-buffer (poporg-orig-buffer)
+      (when buffer-read-only
+        (read-only-mode 0))))
   
   (advice-add 'poporg-dwim
               :before
-              #'entropy/emacs-org--poporg-dwim-add-comment-line-head-whitespace))
+              #'entropy/emacs-org--poporg-dwim-add-comment-line-head-whitespace)
+  (advice-add 'poporg-dwim
+              :before
+              #'entropy/emacs-org--poporg-dwim-unnarrowed-buffer)
+
+  (advice-add 'poporg-edit-exit
+              :before
+              #'entropy/emacs-org--poporg-dwim-unlock-orig-buffer))
 
 ;; * provide
 (provide 'entropy-emacs-org)

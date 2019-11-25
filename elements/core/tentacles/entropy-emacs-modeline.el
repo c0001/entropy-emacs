@@ -249,6 +249,8 @@ entropy-emacs' derived eyebrowse window configuration. "
           (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))))
+  :init
+  (setq doom-modeline-unicode-fallback t)
 
   :config
   (unless entropy/emacs-modeline--doom-modeline-spec-done
@@ -261,6 +263,38 @@ entropy-emacs' derived eyebrowse window configuration. "
   (advice-add 'doom-modeline-update-buffer-file-icon
               :around
               #'entropy/emacs-modeline--dml-file-icon-around-advice)
+
+
+  (defun doom-modeline-icon (icon-set icon-name unicode text face &rest args)
+    "Display icon of ICON-NAME with FACE and ARGS in mode-line.
+
+  ICON-SET includes `octicon', `faicon', `material', `alltheicons'
+  and `fileicon'.  UNICODE is the unicode char fallback. TEXT is the
+  ASCII char fallback.
+
+  Notice:
+
+  This function has been patched for be compatible with CLI
+  interaction."
+    (let ((face (or face 'mode-line)))
+      (or (when (and icon-name (not (string-empty-p icon-name)) (display-graphic-p))
+            (pcase icon-set
+              ('octicon
+               (apply #'all-the-icons-octicon icon-name :face face args))
+              ('faicon
+               (apply #'all-the-icons-faicon icon-name :face face args))
+              ('material
+               (apply #'all-the-icons-material icon-name :face face args))
+              ('alltheicon
+               (apply #'all-the-icons-alltheicon icon-name :face face args))
+              ('fileicon
+               (apply #'all-the-icons-fileicon icon-name :face face args))))
+          (when (and doom-modeline-unicode-fallback
+                     unicode
+                     (not (string-empty-p unicode))
+                     (char-displayable-p (string-to-char unicode)))
+            (propertize unicode 'face face))
+          (when text (propertize text 'face face)))))
   
   (defun doom-modeline-update-buffer-file-state-icon (&rest _)
     "Update the buffer or file state in mode-line.
