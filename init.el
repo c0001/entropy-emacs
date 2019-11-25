@@ -56,5 +56,5 @@
  'entropy-emacs
  (expand-file-name
   "elements/entropy-emacs.el"
-  user-emacs-directory))
+  (file-name-directory load-file-name)))
 
