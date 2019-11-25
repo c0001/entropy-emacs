@@ -2,18 +2,24 @@
 #+AUTHOR: Entropy
 
 #+attr_html: :style margin:0 auto; display:block;
+#+attr_html: :width 200px
+#+attr_org: :width 200px
 [[file:elements/core/logo/logo.png]]
 
 
 #+BEGIN_QUOTE
+*Windows user:*
 Now you can download the encapsulation setting contain [[https://github.com/c0001/entropy-emacs][entropy-emacs]]
 and [[https://github.com/m-parashar/emax64][emax64]] and with msys2 with lots of stuffs contained proper [[https://sourceforge.net/projects/entropy-emax64/][here]].
+
+*Terms convention:*
+We call *eemacs* as the abbreviation of =entropy-emacs=.
 #+END_QUOTE
 
 This emacs personal configs can be used in:
 
 - Learning emacs.
-- HTML, CSS, JS, PHP, C coding learning and testing.
+- HTML, CSS, JS, PHP, C , python etc. coding learning and testing.
 - Write article, recording content you captured and simple task
   managter with configed Org-mode.
 - With some utilities by self and from web and others great idea which
@@ -26,7 +32,7 @@ Support platform:
 - Darwin(MacOS) (feature limited)
 
 For see full documents of the introduction of =entropy-emacs= please
-see [[https://github.com/c0001/entropy-emacs-doc/blob/master/org/entropy-emacs_introduction.org][here]].
+see [[file:elements/site-lisp/entropy-emacs-doc/org/entropy-emacs_introduction.org][here]].
 
 *Extensions:*
 
@@ -35,19 +41,22 @@ and some ones hosted on _gihtub.com_, thus most of them are not
 wrappered within this repo, for reason of moduling
 management. There're one main corresponding project tied with
 =entropy-emacs= for as the archive of current using extensions
-collection:
-
-1. [[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]]
+collection: ([[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]]).
 
 For see its explicit meaning, see the commentary of
-[[file:elements/entropy-emacs-ext.el][entropy-emacs-ext.el]].
+[[file:elements/core/tentacles/entropy-emacs-ext.el][entropy-emacs-ext.el]].
 
 Its the stable(tested) extensions that entropy-emacs used for, it has
 its own host-server procedure which forked from '[[https://melpa.org/][melpa]]' to produce as
 what it means. You must make it before using it follow its README.
 
-Or on the most used occasion, you don't need to retrieve this archive
-project, just using the melpa up-to-date upstream.
+Or on the most used occasion, you don't need to retrieve that eemacs
+extension release project, just using the melpa *up-to-date* upstream
+but may have compability problem with current eemacs release version,
+if that, please using eemacs git repo as your eemacs configuration
+workspace host to track update with =dev= branch, this may solve
+various compability issue or kick one issue on eemacs github page for
+quering on a resolution.
 
 For switch this two extension usage type, the variable
 ~entropy/emacs-use-extensions-type~ are gives for you, the default

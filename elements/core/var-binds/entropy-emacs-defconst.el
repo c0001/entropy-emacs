@@ -91,7 +91,7 @@ Posix emulator supports for:
 ;; ** others
 (defconst entropy/emacs-origin-load-path (copy-tree load-path))
 
-(defconst entropy/emacs-ecv "VERSION: v0.0.1 Tag: REVOLUTION"
+(defconst entropy/emacs-ecv "VERSION: 0.1.0 Tag: ONEPIECE"
   "Version of entropy-emacs.")
 
 ;; * provide
