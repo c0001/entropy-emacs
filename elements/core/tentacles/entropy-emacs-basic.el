@@ -111,7 +111,7 @@
 (defun entropy/emacs-basic--scratch-buffer-file-binding ()
   "Corresponded *scratch* buffer to one temp-file.
 
-  Filename are \".scratch_entropy\" in `user-emacs-directory'.
+  Filename are \".scratch_entropy\" in HOME.
   "
   (let ((bfn "*scratch*"))
     (if (entropy/emacs-buffer-exists-p "*scratch*")
