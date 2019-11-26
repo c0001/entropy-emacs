@@ -24,7 +24,7 @@ posframe or popup shown mechanism."
 (defmacro entropy/sdcv-show--response-predicate-gen (show-predicate feedback show-method)
   `(lambda ()
      (if (functionp ,show-predicate)
-         (funcall ,show-predicate ,feedback ,show-method)
+         (funcall ,show-predicate ,feedback ',show-method)
        ,feedback)))
 
 ;;;;; kill buffer and window
@@ -55,7 +55,7 @@ posframe or popup shown mechanism."
       (insert feedback)
       (goto-char (point-min))
       (funcall (entropy/sdcv-show--response-predicate-gen
-                show-predicate feedback 'adjacent-common))
+                show-predicate feedback adjacent-common))
       (setq buffer-read-only t))
     (display-buffer buffer)))
 
@@ -76,7 +76,7 @@ posframe or popup shown mechanism."
   (let* ((feedback (plist-get show-instance :feedback))
          (show-predicate (plist-get show-instance :show-predicate))
          (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'posframe))
-         (predicate (entropy/sdcv-show--response-predicate-gen show-predicate feedback 'posframe))
+         (predicate (entropy/sdcv-show--response-predicate-gen show-predicate feedback posframe))
          (buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-tooltip-buffer)))
     (cond ((eq face nil)
            (posframe-show buffer
@@ -129,7 +129,7 @@ proper stretching."
          (show-predicate (plist-get show-instance :show-predicate))
          (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'pos-tip)))
     (setq feedback (funcall (entropy/sdcv-show--response-predicate-gen
-                             show-predicate feedback 'pos-tip)))
+                             show-predicate feedback pos-tip)))
     (pos-tip-show-no-propertize
      feedback
      face
@@ -154,7 +154,7 @@ proper stretching."
         (show-predicate (plist-get show-instance :show-predicate))
         (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'popup)))
     (setq feedback (funcall (entropy/sdcv-show--response-predicate-gen
-                             show-predicate feedback 'popup)))
+                             show-predicate feedback popup)))
     (if (null (facep face))
         (popup-tip feedback :point (point) :margin 1 :truncate t)
       (set-face-attribute 'popup-tip-face nil
@@ -166,12 +166,29 @@ proper stretching."
                           :background (cdr $pface_temp)))))
 
 
+;;; minibuffer show
+
+(defun entropy/sdcv-show--show-with-minibuffer-common (show-instance)
+  (let ((feedback (plist-get show-instance :feedback))
+        (show-predicate (plist-get show-instance :show-predicate))
+        (face (entropy/sdcv-core-use-face
+               (plist-get show-instance :show-face)
+               'minibuffer-common)))
+    (setq feedback (funcall
+                    (entropy/sdcv-show--response-predicate-gen
+                     show-predicate feedback minibuffer-common)))
+    (when (facep face)
+      (setq feedback
+            (propertize feedback 'face face)))
+    (message feedback)))
+
 ;;; provide
 
 (dolist (el '((adjacent-common . entropy/sdcv-show--show-with-buffer-common)
               (posframe . entropy/sdcv-show--show-with-posframe)
               (popup . entropy/sdcv-show--show-with-popup)
-              (pos-tip . entropy/sdcv-show--show-with-postip)))
+              (pos-tip . entropy/sdcv-show--show-with-postip)
+              (minibuffer-common . entropy/sdcv-show--show-with-minibuffer-common)))
   (add-to-list 'entropy/sdcv-core-response-show-frontends
                el))
 

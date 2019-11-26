@@ -21,80 +21,80 @@
 ;; #+END_EXAMPLE
 ;; 
 ;;; Commentary:
-;;
+
 ;; The core defination framework for =entropy-sdcv.el=.
-;;
-;; Protocols:
-;;
+
+;;;; Protocols:
+
 ;; We defined below four top category protocols, each of them may
 ;; have the subroutine protocols as the components role, but they
 ;; are individually for usage. 
-;;
+
 ;; + DICT-BACKEND
-;;
+
 ;;   One dict type present in =entropy-sdcv= as one =DICT-BACKEND=,
 ;;   which functionally for query responses and given the response
-;;   filter method even for propertizing its resones.
-;;   
-;;   A =DICT-BACKEND= consists of two aspect, one =DICT-NAME= and one
-;;   =DICT-INSTANCE=.
-;;
+;;   filter method even for propertizing its respones.
+
+;;   A =DICT-BACKEND= is a cons consists of two aspect, car of
+;;   =DICT-NAME= and cdr of =DICT-INSTANCE=.
+
 ;;   1) DICT-NAME
-;;
+
 ;;      A symbol to indicate the DICT-BACKEND as the name denotation. 
-;;
+
 ;;   2) DICT-INSTANCE
-;;
+
 ;;      A plist consists of three slots, e.g. :query-function,
 ;;      :show-predicate and :show-face, see
 ;;      ~entropy/sdcv-core-query-backends-register~ doc-string for
 ;;      them defination.
-;;
+
 ;; + SHOW-TYPE
-;;
+
 ;;   The query-response display type, along with wild possible
 ;;   customizable specification, the feedback can be showed in
 ;;   popup-tooltip or adjacent buffer etc. any way you willing to.
-;;
-;;   A =SHOW-TYPE= consists of two component, one =SHOW-METHOD= and
-;;   one =SHOW-FUNCTIO=.
-;;
+
+;;   A =SHOW-TYPE= is a cons consists of two component, car of
+;;   =SHOW-METHOD= and cdr of =SHOW-FUNCTION=.
+
 ;;   1. SHOW-METHOD
-;;
+
 ;;      A symbol as name denotation for its SHOW-TYPE.
-;;
+
 ;;   2. SHOW-FUNCTION
-;;
+
 ;;      Function which recieve one SHOW-INSTANCE (see below section)
 ;;      to display the resule to caller.
-;;
+
 ;; + SHOW-INSTANCE
-;;
+
 ;;   The query-response representation data-struct, abstract way
 ;;   include the string obtained from =DICT-BACKEND=, and the its
 ;;   SHOW-PREDICAT with SHOW-FACE.
-;;
+
 ;;   Consists of =FEEDBACK=, =SHOW-PREDICATE=, =SHOW-FACE=
-;;
+
 ;;   1. FEEDBACK
-;;
+
 ;;      A string as dict query-response.
-;;
+
 ;;   2. SHOW-PREDICATE
-;;
+
 ;;      A predicate to filte the FEEDBACK and did specification in
 ;;      the SHOW-TYPE of specified SHOW-METHOD.
-;;      
+
 ;;   3. SHOW-FACE
-;;
+
 ;;      The simple propertized face for FEEDBACK.
-;;
+
 ;; + SHOW-ASPECT
-;;
+
 ;;   The fix-up representaion of dict query-response, indicated
 ;;   specific SHOW-METHOD, it's a cons of SHOW-MEHOD and
 ;;   SHOW-INSTANCE.
-;;
+
 ;;; Configuration:
 ;;
 ;; See ~entropy/sdcv-core-group~ variable group.
@@ -153,7 +153,7 @@ the default valid value are showed in
   :group 'entropy/sdcv-core-group)
 
 (defcustom entropy/sdcv-core-response-show-frontends '()
-  "The alist whose eache element was one query-response SHOW-TYPE
+  "The alist whose each element was one query-response SHOW-TYPE
 cons. The cons which car is SHOW-METHOD of a symbol and the cdr
 was the FEEDBACK showing frontend function SHOW-FUNCTION whose
 parameter is SHOW-INSTANCE i.e. a plist with three slots,

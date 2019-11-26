@@ -36,6 +36,13 @@
     (t
      'entropy/sdcv-core-common-face)))
 
+(defun entropy/sdcv-backends--make-feedback-single-line (feedback)
+  (let ((str-list (split-string feedback "\n" t))
+        (rtn ""))
+    (cl-loop for str in str-list
+             do (setq rtn (concat rtn str "| ")))
+    (replace-regexp-in-string "| *$" "" rtn)))
+
 ;;;; backends
 ;;;;; youdao
 (defun entropy/sdcv-backends--query-with-youdao (query &rest _)
@@ -50,12 +57,23 @@
      (entropy/sdcv-backends--org-show-feedback))
     (popup
      (entropy/sdcv-backends--org-colorful feedback))
+    (minibuffer-common
+     (entropy/sdcv-backends--make-feedback-single-line
+      (entropy/sdcv-backends--org-colorful feedback)))
     (adjacent-common
      (entropy/sdcv-backends--org-show-feedback))))
 
 ;;;;; bing
 (defvar entropy/sdcv-backends--bing-dict-response nil
   "External bing dict process feedback response.")
+
+(defun entropy/sdcv-backends--bing-show-predicate (feedback show-method)
+  (cl-case show-method
+    (minibuffer-common
+     (entropy/sdcv-backends--make-feedback-single-line
+      feedback))
+    (t
+     feedback)))
 
 (defun entropy/sdcv-backends--query-with-bing (query &rest _)
   (setq entropy/sdcv-core-response-log
@@ -509,9 +527,11 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
 (defun entropy/sdcv-backends--sdcv-show-predicate (feedback show-method)
   (entropy/sdcv-core-get-word-or-region)
   (cl-case show-method
-    ((or pos-tip popup)
+    ((pos-tip popup)
      (entropy/sdcv-core-common-propertize-feedback feedback))
-    (adjacent-common
+    (minibuffer-common
+     (entropy/sdcv-backends--make-feedback-single-line feedback))
+    (t
      feedback)))
 
 ;;;;;; sdcv query
@@ -553,6 +573,13 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
     (add-to-list 'load-path (expand-file-name "emacs" wd-host))
     (require 'wudao-query)))
 
+(defun entropy/sdcv-backends--wudao-show-predicate (feedback show-method)
+  (cl-case show-method
+    (minibuffer-common
+     (entropy/sdcv-backends--make-feedback-single-line feedback))
+    (t
+     feedback)))
+
 (defun entropy/sdcv-backends--query-with-wudao-by-hash (query show-method)
   (entropy/sdcv-backends--wudao-require)
   (let ((response (or (ignore-errors
@@ -576,17 +603,16 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
 (dolist
     (el
      '((wudao-hash :query-function entropy/sdcv-backends--query-with-wudao-by-hash
-                   :show-face entropy/sdcv-backends--auto-face-common)
+                   :show-predicate entropy/sdcv-backends--wudao-show-predicate)
        (wudao-command :query-function entropy/sdcv-backends--query-with-wudao-by-command
-                      :show-face entropy/sdcv-backends--auto-face-common)
+                      :show-predicate entropy/sdcv-backends--wudao-show-predicate)
        (sdcv :query-function entropy/sdcv-backends--query-with-sdcv
              :show-predicate entropy/sdcv-backends--sdcv-show-predicate
              :show-face entropy/sdcv-backends--auto-face-common)
        (youdao :query-function entropy/sdcv-backends--query-with-youdao
-               :show-predicate entropy/sdcv-backends--youdao-show-predicate
-               :show-face entropy/sdcv-backends--auto-face-common)
+               :show-predicate entropy/sdcv-backends--youdao-show-predicate)
        (bing :query-function entropy/sdcv-backends--query-with-bing
-             :show-face entropy/sdcv-backends--auto-face-common)
+             :show-predicate entropy/sdcv-backends--bing-show-predicate)
        (google :query-function entropy/sdcv-backends--query-with-google
                :show-face entropy/sdcv-backends--auto-face-common)))
   (add-to-list 'entropy/sdcv-core-query-backends-register el))

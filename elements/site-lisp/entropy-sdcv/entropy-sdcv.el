@@ -156,7 +156,47 @@ the subject of utf-8 group."
     (apply old-func args)
     (entropy/sdcv-core-recovery-user-origin-lang-env)))
 
+;;;; lazy show mode
+
+(defvar entropy/sdcv-autoshow-timer-register nil
+  "Timer register for `entropy/sdcv-autoshow-mode'.")
+
+(defun entropy/sdcv-autoshow-create (buff)
+  `(lambda ()
+     (let ((thing (entropy/sdcv-core-get-word-or-region))
+           show-instance)
+       (when (and (stringp thing)
+                  (fboundp 'bing-dict-brief)
+                  (eq (current-buffer) ,buff))
+         (setq show-instance
+               (entropy/sdcv-core-query-backend
+                thing
+                entropy/sdcv-default-query-backend-name
+                'minibuffer-common))
+         (unless (string= (plist-get show-instance :feedback)
+                          entropy/sdcv-core-response-null-prompt)
+           (entropy/sdcv-core-response-show
+            (cons 'minibuffer-common
+                  show-instance)))))))
+
+(define-minor-mode entropy/sdcv-autoshow-mode
+  "Automatically show the translation based on point thing."
+  nil nil nil
+  (if entropy/sdcv-autoshow-mode
+      (add-to-list 'entropy/sdcv-autoshow-timer-register
+                   (cons (current-buffer)
+                         (run-with-idle-timer
+                          1.5 t
+                          (entropy/sdcv-autoshow-create (current-buffer)))))
+    (let ((timer (alist-get (current-buffer)
+                            entropy/sdcv-autoshow-timer-register)))
+      (when (timerp timer)
+        (cancel-timer timer)))))
+
 ;;;; main
+(advice-add 'entropy/sdcv-search-at-point-tooltip :around #'entropy/sdcv-lang-set-process-for-sdcv-backends)
+(advice-add 'entropy/sdcv-search-input-adjacent :around #'entropy/sdcv-lang-set-process-for-sdcv-backends)
+
 ;;;###autoload
 (defun entropy/sdcv-search-at-point-tooltip ()
   "Mainly interactive func for search point or marked region
@@ -194,9 +234,6 @@ string with sdcv cli."
      entropy/sdcv-default-query-backend-name
      entropy/sdcv-default-show-adjacent-method)))
 
-(advice-add 'entropy/sdcv-search-at-point-tooltip :around #'entropy/sdcv-lang-set-process-for-sdcv-backends)
-(advice-add 'entropy/sdcv-search-input-adjacent :around #'entropy/sdcv-lang-set-process-for-sdcv-backends)
-
 ;;;###autoload
 (defun entropy/sdcv-toggle-backend ()
   (interactive)
@@ -213,6 +250,13 @@ string with sdcv cli."
     (setq entropy/sdcv-default-show-tooltip-method
           (intern
            (completing-read "Backends: " methods nil t)))))
+
+;;;###autoload
+(defun entropy/sdcv-clean-autoshow-all ()
+  (interactive)
+  (cl-loop for item in entropy/sdcv-autoshow-timer-register
+           when (timerp (cdr item))
+           do (cancel-timer (cdr item))))
 
 ;;; provide
 (provide 'entropy-sdcv)
