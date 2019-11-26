@@ -56,6 +56,7 @@ posframe or popup shown mechanism."
       (goto-char (point-min))
       (funcall (entropy/sdcv-show--response-predicate-gen
                 show-predicate feedback adjacent-common))
+      (entropy/sdcv-core-adjacent-buffer-common-mode 1)
       (setq buffer-read-only t))
     (display-buffer buffer)))
 

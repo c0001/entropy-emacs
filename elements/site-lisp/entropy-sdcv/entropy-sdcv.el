@@ -139,6 +139,11 @@
   :type 'symbol
   :group 'entropy/sdcv-interactive-group)
 
+(defcustom entropy/sdcv-autoshow-delay 1
+  "Idle delay for `entropy/sdcv-autoshow-mode'."
+  :type 'integer
+  :group 'entropy/sdcv-interactive-group)
+
 ;;;; library
 (defun entropy/sdcv-lang-set-process-for-sdcv-backends (old-func &rest args)
   "The around advice for set specification emacs lang set when
@@ -165,9 +170,10 @@ the subject of utf-8 group."
   `(lambda ()
      (let ((thing (entropy/sdcv-core-get-word-or-region))
            show-instance)
-       (when (and (stringp thing)
-                  (fboundp 'bing-dict-brief)
-                  (eq (current-buffer) ,buff))
+       (when (and entropy/sdcv-autoshow-mode
+                  (eq ,buff (current-buffer))
+                  (stringp thing)
+                  (fboundp 'bing-dict-brief))
          (setq show-instance
                (entropy/sdcv-core-query-backend
                 thing
@@ -186,12 +192,15 @@ the subject of utf-8 group."
       (add-to-list 'entropy/sdcv-autoshow-timer-register
                    (cons (current-buffer)
                          (run-with-idle-timer
-                          1.5 t
+                          entropy/sdcv-autoshow-delay t
                           (entropy/sdcv-autoshow-create (current-buffer)))))
     (let ((timer (alist-get (current-buffer)
                             entropy/sdcv-autoshow-timer-register)))
       (when (timerp timer)
-        (cancel-timer timer)))))
+        (cancel-timer timer))
+      (setq entropy/sdcv-autoshow-timer-register
+            (delete (assoc (current-buffer) entropy/sdcv-autoshow-timer-register)
+                    entropy/sdcv-autoshow-timer-register)))))
 
 ;;;; main
 (advice-add 'entropy/sdcv-search-at-point-tooltip :around #'entropy/sdcv-lang-set-process-for-sdcv-backends)
@@ -256,7 +265,11 @@ string with sdcv cli."
   (interactive)
   (cl-loop for item in entropy/sdcv-autoshow-timer-register
            when (timerp (cdr item))
-           do (cancel-timer (cdr item))))
+           do (progn (cancel-timer (cdr item))
+                     (when (buffer-live-p (car item))
+                       (with-current-buffer (car item)
+                         (entropy/sdcv-autoshow-mode 0)))))
+  (setq entropy/sdcv-autoshow-timer-register nil))
 
 ;;; provide
 (provide 'entropy-sdcv)

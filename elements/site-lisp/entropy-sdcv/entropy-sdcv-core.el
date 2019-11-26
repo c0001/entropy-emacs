@@ -328,5 +328,19 @@ downcase the query string."
          (show-aspect (cons show-method show-instance)))
     (entropy/sdcv-core-response-show show-aspect)))
 
+;;;; modes
+(defvar entropy/sdcv-core-adjacent-buffer-common-mode-map
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap (kbd "q") #'quit-window)
+    keymap)
+  "key-map for `entropy/sdcv-core-adjacent-buffer-common-mode'.")
+
+(define-minor-mode entropy/sdcv-core-adjacent-buffer-common-mode
+  "Common minor mode for adjacent `entropy-sdcv' buffer show."
+  :init-value nil
+  :keymap entropy/sdcv-core-adjacent-buffer-common-mode-map
+  :global nil
+  t)
+
 ;;; provide
 (provide 'entropy-sdcv-core)
