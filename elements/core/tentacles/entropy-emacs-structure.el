@@ -169,10 +169,15 @@ moving operation will cause non-terminated looping proceeding."
 
   (defun entropy/emacs-structure--outorg-edit-exit-unlock-code-buffer (&rest _)
     (let ((buffer (marker-buffer outorg-code-buffer-point-marker)))
+      ;; unlock source code buffer
       (when (and (buffer-live-p (get-buffer buffer))
                  (with-current-buffer buffer buffer-read-only))
         (with-current-buffer buffer
-          (read-only-mode 0)))))
+          (read-only-mode 0)))
+
+      ;; unlock edit buffer
+      (when buffer-read-only
+        (read-only-mode 0))))
   (advice-add 'outorg-copy-edits-and-exit :before
               #'entropy/emacs-structure--outorg-edit-exit-unlock-code-buffer))
 
