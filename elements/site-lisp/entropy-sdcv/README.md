@@ -1,43 +1,42 @@
 
 # Table of Contents
 
-1.  [entropy-sdcv.el &#x2014; entropy emacs sdcv front-end](#orge30793c)a
-2.  [Commentary:](#org45a557f)
-3.  [Development](#orgb7192bb)
-4.  [Chanage log](#org755ba40)
+1.  [entropy-sdcv.el &#x2014; entropy emacs sdcv front-end](#orgb146151)
+2.  [Commentary:](#org3d0e680)
+3.  [Development](#org9efeec1)
+4.  [Chanage log](#org76d4a53)
 
-<a id="orge30793c"></a>
+
+<a id="orgb146151"></a>
 
 # entropy-sdcv.el &#x2014; entropy emacs sdcv front-end
 
-``` text
-Copyright (C) 20181211  Entropy
+    Copyright (C) 20181211  Entropy
+    
+    Author:           Entropy <bmsac0001@gmail.com>
+    Maintainer:       Entropy <bmsac001@gmail.com>
+    URL:              https://github.com/c0001/entropy-sdcv
+    Package-Version:  20191116.2003
+    Version:          0.1.1
+    Created:          2018-12-11 12:48:04
+    Keywords:         sdcv
+    Compatibility:    GNU Emacs 26.1;
+    
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Author:           Entropy <bmsac0001@gmail.com>
-Maintainer:       Entropy <bmsac001@gmail.com>
-URL:              <https://github.com/c0001/entropy-sdcv>
-Package-Version:  20191116.2003
-Version:          0.1.1
-Created:          2018-12-11 12:48:04
-Keywords:         sdcv
-Compatibility:    GNU Emacs 26.1;
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-```
-
-<a id="org45a557f"></a>
+<a id="org3d0e680"></a>
 
 # Commentary:
 
@@ -91,9 +90,14 @@ frameworks.
     call `entropy/sdcv-toggle-backend` for thus, even for calling
     `entropy/sdcv-toggle-show-tooltip-method` to switch displaying
     type (show-type).
+    
+    Further more, you can enable `entropy/sdcv-autoshow-mode` to show
+    translation response at point automatically with minor delay. You
+    also can change 'autoshow' dict-backend or show-method with usually
+    interactive method demoted above.
 
 
-<a id="orgb7192bb"></a>
+<a id="org9efeec1"></a>
 
 # Development
 
@@ -108,9 +112,15 @@ All the protocols defination are written in
 understanding.
 
 
-<a id="org755ba40"></a>
+<a id="org76d4a53"></a>
 
 # Chanage log
+
+2019/11/27
+
+-   Add \`entropy/sdcv-autoshow-mode'
+    -   autoshow for all builtin dict backends.
+    -   fix some typo and minor bugs
 
 2019/11/16
 
@@ -135,7 +145,4 @@ understanding.
 2018/12/11
 
 -   First release pop out v0.1.0
-
-
-<a id="org93e5bf9"></a>
 

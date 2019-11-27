@@ -25,39 +25,39 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 ;;; Commentary:
-;;
+
 ;; A emacs-lisp implementation of dictionary client.
-;;
+
 ;; Name component 'sdcv' means [[https://github.com/Dushistov/sdcv][stardict console version]] that this
 ;; project originally was the front-end for 'sdcv', but now with
 ;; architecture re-built, it becomes one dictionary query-response
 ;; frameworks.
-;;
+
 ;; *Features:*
-;;
+
 ;; 1. [[https://github.com/xuchunyang/youdao-dictionary.el][youdao-dict]], [[https://github.com/cute-jumper/bing-dict.el][bing-dict]], [[https://github.com/atykhonov/google-translate][google-dict]] defaultly supported.
-;;
+
 ;; 2. Out-of-box, easily usage with two command
 ;;    ~entropy/sdcv-search-at-point-tooltip~ and
 ;;    ~entropy/sdcv-search-input-adjacent~.
-;;
+
 ;; 3. Extensible wildly. Simple apis for add new dictionary backend
 ;;    and new displaying method.
-;;
+
 ;; *Quick starting:*
-;;
+
 ;; + Preparation:
-;;   
+
 ;;  =entropy-sdcv= have sets of built-in dict backend, but defautly
 ;;   using 'sdcv', you should put it in your =PATH=, or if you do not
 ;;   want to using it as default backend, you should picking up your
 ;;   specified value of =entropy/sdcv-default-query-backend-name= to
 ;;   one of 'youdao', 'bing' or 'google'.
-;;
+
 ;;   For sdcv usage, you need cloned your own sdcv dict database
 ;;   stored in your =~/.stardict=, and structed as folder hosted
 ;;   individually, as:
-;;
+
 ;;   #+BEGIN_EXAMPLE
 ;;   --~/.stardict
 ;;     |
@@ -66,19 +66,24 @@
 ;;        |--oxford.idx
 ;;        |--oxford.ifo
 ;;   #+END_EXAMPLE
-;;
+
 ;; + Interaction:
-;;   
+
 ;;   Call command ~entropy/sdcv-search-at-point-tooltip~ to search
 ;;   thesaurus at current point and show it in tooltip buffer. Or if
 ;;   you want to search by manually inputting, calling
 ;;   ~entropy/sdcv-search-input-adjacent~ instead.
-;;
+
 ;;   And for some reason, you want to toggle dict backend, you can
 ;;   call ~entropy/sdcv-toggle-backend~ for thus, even for calling
 ;;   ~entropy/sdcv-toggle-show-tooltip-method~ to switch displaying
 ;;   type (show-type).
-;;
+
+;;   Further more, you can enable ~entropy/sdcv-autoshow-mode~ to show
+;;   translation response at point automatically with minor delay. You
+;;   also can change 'autoshow' dict-backend or show-method with usually
+;;   interactive method demoted above.
+
 ;;; Development
 ;;
 ;; As denoted in commentary, entropy-sdcv provides wildly extensible
@@ -93,6 +98,11 @@
 ;;
 ;;
 ;;; Chanage log
+
+;; 2019/11/27
+;;      * Add `entropy/sdcv-autoshow-mode'
+;;        - autoshow for all builtin dict backends.
+;;        - fix some typo and minor bugs
 
 ;; 2019/11/16
 ;;      * Fix bugs for face setting
@@ -168,7 +178,9 @@ the subject of utf-8 group."
 
 (defun entropy/sdcv-autoshow-create (buff)
   `(lambda ()
-     (let ((thing (entropy/sdcv-core-get-word-or-region))
+     (let ((thing (when (not mark-active)
+                    ;; prevent large region translation frozes emacs
+                    (thing-at-point 'word t)))
            show-instance)
        (when (and entropy/sdcv-autoshow-mode
                   (eq ,buff (current-buffer))
