@@ -624,10 +624,16 @@ For now, there's three choices for you:
 (use-package entropy-sdcv
   :ensure nil
   :commands (entropy/sdcv-search-at-point-tooltip
-             entropy/sdcv-search-input-adjacent)
+             entropy/sdcv-search-input-adjacent
+             entropy/sdcv-autoshow-mode)
   :init
   (unless (display-graphic-p)
     (setq entropy/sdcv-default-show-tooltip-method 'popup))
+
+  (dolist (item '((eww . eww-mode-hook) (w3m . w3m-mode-hook)
+                  (info . Info-mode-hook) (markdown-mode . markdown-mode-hook)))
+    (eval-after-load (car item)
+      `(add-hook ',(cdr item) #'entropy/sdcv-autoshow-mode)))
 
   :config
   (cond ((executable-find "wd")
