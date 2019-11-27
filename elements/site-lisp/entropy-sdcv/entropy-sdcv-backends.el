@@ -36,12 +36,14 @@
     (t
      'entropy/sdcv-core-common-face)))
 
-(defun entropy/sdcv-backends--make-feedback-single-line (feedback)
-  (let ((str-list (split-string feedback "\n" t))
-        (rtn ""))
+(defun entropy/sdcv-backends--make-feedback-single-line (feedback &optional separator)
+  (let* ((str-list (split-string feedback "\n" t))
+         (rtn "")
+         (separator (or (and (stringp separator) separator) "| "))
+         (tail-dis (format "%s$" separator)))
     (cl-loop for str in str-list
-             do (setq rtn (concat rtn str "| ")))
-    (replace-regexp-in-string "| *$" "" rtn)))
+             do (setq rtn (concat rtn str separator)))
+    (replace-regexp-in-string tail-dis "" rtn)))
 
 ;;;; backends
 ;;;;; youdao
@@ -59,7 +61,8 @@
      (entropy/sdcv-backends--org-colorful feedback))
     (minibuffer-common
      (entropy/sdcv-backends--make-feedback-single-line
-      (entropy/sdcv-backends--org-colorful feedback)))
+      (entropy/sdcv-backends--org-colorful feedback)
+      " "))
     (adjacent-common
      (entropy/sdcv-backends--org-show-feedback))))
 
@@ -233,6 +236,10 @@
 
 (defvar entropy/sdcv-backends--sdcv-stick-dict nil
   "Current sdcv dict for searching with. ")
+
+(defvar entropy/sdcv-backends--sdcv-manually-fetch nil
+  "Whether prompt for manually choose query target when not
+explicit match any sdcv candidates.")
 
 (defface entropy/sdcv-backends--sdcv-box-face '((t :box t))
   "Face sytle with box enable.")
@@ -490,19 +497,20 @@ Example:
          rtn)
     (if (> (length jsob-alist) 1)
         (setq rtn
-              (or
-               (not
-                (yes-or-no-p
-                 (format (propertize
-                          "Can not exactly match for world '%s'?\nsee similar canis: "
-                          'face 'error)
-                         (propertize (concat " " entropy/sdcv-core-query-log " ")
-                                     'face
-                                     'entropy/sdcv-backends--sdcv-box-face))))
-               (assoc (completing-read "choose similar word: "
-                                       jsob-alist
-                                       nil t)
-                      jsob-alist)))
+              (when entropy/sdcv-backends--sdcv-manually-fetch
+                (or
+                 (not
+                  (yes-or-no-p
+                   (format (propertize
+                            "Can not exactly match for world '%s'?\nsee similar canis: "
+                            'face 'error)
+                           (propertize (concat " " entropy/sdcv-core-query-log " ")
+                                       'face
+                                       'entropy/sdcv-backends--sdcv-box-face))))
+                 (assoc (completing-read "choose similar word: "
+                                         jsob-alist
+                                         nil t)
+                        jsob-alist))))
       (setq rtn (car jsob-alist)))
     (if (eq rtn t)
         nil
@@ -530,16 +538,29 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
     ((pos-tip popup)
      (entropy/sdcv-core-common-propertize-feedback feedback))
     (minibuffer-common
-     (entropy/sdcv-backends--make-feedback-single-line feedback))
+     (let ((feedback
+            (replace-regexp-in-string
+             "\\(| \\) +" "\\1"
+             (replace-regexp-in-string
+              "-+|" ""
+              (entropy/sdcv-backends--make-feedback-single-line feedback))))
+           (overflow (when (> (length feedback) (frame-width)) (- (frame-width) 20))))
+       (when overflow
+         (setq feedback (concat (substring feedback 0 overflow) "...")))
+       feedback))
     (t
      feedback)))
 
 ;;;;;; sdcv query
-(defun entropy/sdcv-backends--query-with-sdcv (query &rest _)
+(defun entropy/sdcv-backends--query-with-sdcv (query show-method)
   (let* ((dict (entropy/sdcv-backends--sdcv-choose-dict))
          shell-json-response
          feedback
          rtn)
+    (setq entropy/sdcv-backends--sdcv-manually-fetch
+          (cl-case show-method
+            (minibuffer-common nil)
+            (t t)))
     (catch :exit
       (if (null dict)
           (and 
