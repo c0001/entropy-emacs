@@ -39,9 +39,31 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 
-;; ** main
+;; ** library
+;; *** Toggle context structer style
+(defun entropy/emacs-elisp-toggle-outline-struct-style (&optional prefix)
+  "Toggle outline regexp style in elisp source file, ';;;+' as
+old-school type, ';; *+' as the mordern one.
 
-;; Emacs lisp mode
+PREFIX if non-nil for mordern org-mode style."
+  (interactive "P")
+  (let ((inhibit-read-only t))
+    (goto-char (point-min))
+    (while (re-search-forward (if prefix "^;;\\(;+\\) " "^;; \\(\\*+\\) ") nil t)
+      (save-excursion
+        (let* ((level-str (match-string 1))
+               (level (length level-str))
+               (head-str (match-string 0))
+               (rep-str (concat ";;" (when prefix " ")
+                                (let ((rtn ""))
+                                  (dotimes (var level)
+                                    (setq rtn (concat rtn (if prefix "*" ";"))))
+                                  (concat rtn " ")))))
+          (replace-match
+           rep-str))))))
+
+;; ** main
+;; *** Emacs lisp mode
 ;; Note: `elisp-mode' was called `emacs-lisp-mode' in <=24
 (use-package elisp-mode
   :ensure nil
@@ -108,28 +130,14 @@
   (interactive)
   (byte-recompile-directory package-user-dir nil t))
 
-;; Toggle context structer style
-
-(defun entropy/emacs-elisp-toggle-outline-struct-style (&optional prefix)
-  "Toggle outline regexp style in elisp source file, ';;;+' as
-old-school type, ';; *+' as the mordern one.
-
-PREFIX if non-nil for mordern org-mode style."
-  (interactive "P")
-  (let ((inhibit-read-only t))
-    (goto-char (point-min))
-    (while (re-search-forward (if prefix "^;;\\(;+\\) " "^;; \\(\\*+\\) ") nil t)
-      (save-excursion
-        (let* ((level-str (match-string 1))
-               (level (length level-str))
-               (head-str (match-string 0))
-               (rep-str (concat ";;" (when prefix " ")
-                                (let ((rtn ""))
-                                  (dotimes (var level)
-                                    (setq rtn (concat rtn (if prefix "*" ";"))))
-                                  (concat rtn " ")))))
-          (replace-match
-           rep-str))))))
+;; *** common lisp
+(use-package slime
+  :commands (slime slime-mode slime-autodoc-mode)
+  :init
+  (setq inferior-lisp-program entropy/emacs-inferior-lisp-program)
+  (setq slime-lisp-implementations
+        entropy/emacs-slime-lisp-implementations)
+  (add-to-list 'slime-contribs 'slime-autodoc))
 
 ;; * provide
 (provide 'entropy-emacs-emacs-lisp)

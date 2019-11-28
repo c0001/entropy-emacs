@@ -145,6 +145,7 @@
         dired-rainbow
         all-the-icons-dired
         shackle
+        slime
         which-key
         undo-tree
         auto-sudoedit

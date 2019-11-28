@@ -949,7 +949,8 @@ difference.
   :type 'string
   :group 'entropy/emacs-eshell-group)
 
-;; *** markdown mode
+;; *** major-modes
+;; **** markdown mode
 (defgroup entropy/emacs-markdown-mode-spec nil
   "Custom variables group for markdown mode"
   :group 'extensions)
@@ -1032,6 +1033,23 @@ When set to an empty string, this attribute is omitted.  Defaults to
   "List of client javascript libs for preview."
   :type 'list
   :group 'entropy/emacs-markdown-mode-spec)
+
+;; **** common lisp mode
+(defgroup entropy/emacs-common-lisp-mode-spec nil
+  "Customized variables group for `lisp-mode' and `slime'."
+  :group 'extensions)
+
+(defcustom entropy/emacs-inferior-lisp-program "sbcl"
+  "Eemacs specified lisp program value redirected to
+`inferrior-lisp-program'."
+  :type 'string
+  :group 'entropy/emacs-common-lisp-mode-spec)
+
+(defcustom entropy/emacs-slime-lisp-implementations
+  '((sbcl ("sbcl") :coding-system utf-8-unix))
+  "Eemacs specified `slime-lisp-implementation' value."
+  :type 'sexp
+  :group 'entropy/emacs-common-lisp-mode-spec)
 
 ;; *** specific for windows
 (defgroup entropy/emacs-win nil
