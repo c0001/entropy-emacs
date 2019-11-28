@@ -184,7 +184,6 @@
   (setq org-link-search-must-match-exact-headline nil) ;using fuzzy match for org external link
                                                        ;which support the link type:
                                                        ;'file:xxx.org::str'
-
   
   ;; Choosing org formula convertor
   (when (and sys/is-graphic-support (not sys/is-win-group))
@@ -202,16 +201,20 @@
   (setq-default org-complete-tags-always-offer-all-agenda-tags t) ;Gloable tags match
   (add-to-list 'org-export-backends 'md) ;Adding org export file type - markdown
 
-  (setq org-imenu-depth 8) ; The default depth shown for integrating org heading line to imenu while be within org-mode
+  (setq org-imenu-depth 8) ; The default depth shown for integrating
+                           ; org heading line to imenu while be within
+                           ; org-mode
+  
 ;; **** org-capture about
 ;; ***** hook for org-capture
   (defun entropy/emacs-org--capture-indent-buffer (&optional arg)
     "Indent org capture buffer when finished capture editting."
-    (let ((pm (point-min))
-          (pb (point-max)))
-      (org-indent-region pm pb)
-      (goto-char (point-max))
-      (insert "\n")))
+    (when org-adapt-indentation
+      (let ((pm (point-min))
+            (pb (point-max)))
+        (org-indent-region pm pb)
+        (goto-char (point-max))
+        (insert "\n"))))
   (add-hook 'org-capture-prepare-finalize-hook #'entropy/emacs-org--capture-indent-buffer)
 
   (defun entropy/emacs-org--capture-set-tags (&rest args)
@@ -240,12 +243,12 @@ Because of that if do this will lost the buffer font-lock
 effecting(all buffer be non-font-lock visual) and do not have the
 recovery method unless reopen capture operation.w
 "
-    (when (string-match-p "^CAPTURE-" (buffer-name))
+    (when (and (string-match-p "^CAPTURE-" (buffer-name))
+               (eq major-mode 'org-mode))
       (user-error "Do not toggle link display in 'org capture' buffer.")))
 
   (advice-add 'org-toggle-link-display :before #'entropy/emacs-org--capture-forbidden-toggle-link-display)
 
-  
 ;; **** let org-heading insert without new blank always
   ;; ==================================================
   ;; The principle for follow function was like below code block:
@@ -274,6 +277,7 @@ recovery method unless reopen capture operation.w
   
 ;; **** define 'end' key to `org-end-of-line'
   (define-key org-mode-map (kbd "<end>") 'org-end-of-line)
+  
 ;; **** org open at point enhanced
 
   ;; change the find-file method of org-open-at-point instead of find-file-other-window
@@ -308,7 +312,8 @@ recovery method unless reopen capture operation.w
   
 ;; **** clear key-map of 'C-c C-w'
   
-  ;; delete keybind `C-c C-w' of org-capture-refile for fix the contradiction with eyebrowse.
+  ;; delete keybind `C-c C-w' of org-capture-refile for fix the
+  ;; contradiction with eyebrowse.
   (entropy/emacs-lazy-load-simple 'org-capture
     (define-key org-capture-mode-map (kbd "C-c C-w") nil))
 
@@ -371,68 +376,18 @@ recovery method unless reopen capture operation.w
   (setq org-url-hexify-p nil)
   (setq-default org-link-file-path-type (quote relative))
   
-;; ***** org babel src mode engines
+;; **** org babel src mode engines
   ;; ---------with the bug of none highlites in org mode src html block
   ;; ---------and the issue with none aspiration of web-mode maintainer with link
   ;; ----------------------------->`https://github.com/fxbois/web-mode/issues/636'
   ;; (add-to-list 'org-src-lang-modes '("html" . web))
 
 
-;; ***** org babel evaluate confirm
+;; **** org babel evaluate confirm
   (entropy/emacs-lazy-load-simple 'org
     (when (not (version< org-version "9.1.9"))
       (defvar entropy/emacs-org--src-info nil
         "Current org babel info using for `entropy/emacs-org--babel-comfirm-evaluate'.")
-
-      (defun org-babel-exp-src-block ()
-        "Process source block for export.
-Depending on the \":export\" header argument, replace the source
-code block like this:
-
-both ---- display the code and the results
-
-code ---- the default, display the code inside the block but do
-          not process
-
-results - just like none only the block is run on export ensuring
-          that its results are present in the Org mode buffer
-
-none ---- do not display either code or results upon export
-
-Assume point is at block opening line.
-
-Note: This func has been modified for compat with entropy-emacs.
-
-      Adding part of the export 'info' as the current value of
-      variabel `entropy/emacs-org--src-info'."
-        (interactive)
-        (save-excursion
-          (let* ((info (org-babel-get-src-block-info 'light))
-	         (lang (nth 0 info))
-	         (raw-params (nth 2 info))
-	         hash)
-            ;; bail if we couldn't get any info from the block
-            (unless noninteractive
-	      (message "org-babel-exp process %s at position %d..."
-		       lang
-		       (line-beginning-position)))
-            (setq entropy/emacs-org--src-info info)
-            (when info
-	      ;; if we're actually going to need the parameters
-	      (when (member (cdr (assq :exports (nth 2 info))) '("both" "results"))
-	        (let ((lang-headers (intern (concat "org-babel-default-header-args:"
-					            lang))))
-	          (org-babel-exp--at-source
-		      (setf (nth 2 info)
-		            (org-babel-process-params
-		             (apply #'org-babel-merge-params
-			            org-babel-default-header-args
-			            (and (boundp lang-headers)
-				         (symbol-value lang-headers))
-			            (append (org-babel-params-from-properties lang)
-				            (list raw-params)))))))
-	        (setf hash (org-babel-sha1-hash info)))
-	      (org-babel-exp-do-export info 'block hash)))))
 
       (defun entropy/emacs-org--set-src-info (old-func &rest args)
         "Around advice for func `org-babel-get-src-block-info'
@@ -500,20 +455,20 @@ reason, please see the docstring refer."
 
       (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org--babel-comfirm-evaluate)))
 
-;; ***** org global export macro
+;; **** org global export macro
   (entropy/emacs-lazy-load-simple 'ox
     (add-to-list 'org-export-global-macros
                  '("kbd" . "@@html:<code>$1</code>@@")))
   
-;; ***** html export
-;; ****** html exported head coding
+;; **** html export
+;; ***** html exported head coding
   (setq org-html-coding-system 'utf-8-unix)
   
   ;; inhibit org self default html style
   (setq org-html-head-include-scripts nil
         org-html-head-include-default-style nil)
   
-;; ****** solve the bug when cjk paragraph exported to html has the auto newline space char including.
+;; ***** solve the bug when cjk paragraph exported to html has the auto newline space char including.
   ;; This hacking refer to https://emacs-china.org/t/org-mode-html/7174#breadcrumb-0
   ;; and raw from spacemac layer: https://github.com/syl20bnr/spacemacs/blob/develop/layers/+intl/chinese/packages.el#L104
   (defadvice org-html-paragraph (before org-html-paragraph-advice
@@ -529,7 +484,7 @@ unwanted space when exporting org-mode to html."
       (ad-set-arg 1 fixed-contents)))
 
   
-;; ****** org export html open function
+;; ***** org export html open function
 
   ;; If `entropy/emacs-browse-url-function' is detectived then open
   ;; exported html file with it instead of using default apps or
@@ -586,10 +541,10 @@ returning the type of exec for open exported html file, they are:
 
   (advice-add 'org-open-file :around #'entropy/emacs-org--hexpt-advice)
   
-;; ****** org ignore broken links
+;; ***** org ignore broken links
   (setq org-export-with-broken-links 'mark)
 
-;; ***** org publish config
+;; **** org publish config
 
   ;; Force using the utf-8 coding system while publish process
   (advice-add 'org-publish :before #'entropy/emacs-lang-set-utf-8)
@@ -614,25 +569,27 @@ returning the type of exec for open exported html file, they are:
               :around #'entropy/emacs-org--publish-check-timestamp-around_advice)
     
 ;; **** org-counsel-set-tag
-  (entropy/emacs-lazy-load-simple 'org
-    (bind-key "C-c C-q" #'counsel-org-tag org-mode-map))
-  (entropy/emacs-lazy-load-simple 'org-agenda
-    (bind-key "C-c C-q" #'counsel-org-tag-agenda org-agenda-mode-map))
+
+  (when (featurep 'counsel)
+    (entropy/emacs-lazy-load-simple 'org
+      (bind-key "C-c C-q" #'counsel-org-tag org-mode-map))
+    (entropy/emacs-lazy-load-simple 'org-agenda
+      (bind-key "C-c C-q" #'counsel-org-tag-agenda org-agenda-mode-map)))
 
 ;; **** org-inline-image size
-  (if (image-type-available-p 'imagemagick)
-      (progn
-        (setq org-image-actual-width nil)
-        (defun entropy/emacs-org--otii-before-advice (&rest arg-rest)
-          "Advice for `org-toggle-inline-images' when emacs was
+  (when (image-type-available-p 'imagemagick)
+    (progn
+      (setq org-image-actual-width nil)
+      (defun entropy/emacs-org--otii-before-advice (&rest arg-rest)
+        "Advice for `org-toggle-inline-images' when emacs was
 build with imagemagick, because of that org-mode will have the
 ability to display GIF type image whatever it's size be, so it
 will cause the large lagging performance when the file link
 directed to large gif file when willing display images in current
 buffer."
-          (if (not (yes-or-no-p "This will spend sometime and causing lagging performance, cotinue? "))
-              (error "Abort displaying inline images")))
-        (advice-add 'org-display-inline-images :before #'entropy/emacs-org--otii-before-advice)))
+        (if (not (yes-or-no-p "This will spend sometime and causing lagging performance, cotinue? "))
+            (error "Abort displaying inline images")))
+      (advice-add 'org-display-inline-images :before #'entropy/emacs-org--otii-before-advice)))
   
 ;; **** org-auto-insert 'CUSTOM-ID'
   ;;      which source code from the bloag@
@@ -835,8 +792,7 @@ Now just supply localization image file analyzing."
                 (push non-abbrev links))))))))
     links))
 
-;; ** org-htmlize for export code block with coloful sensitive which suitable with programe
-;;    languages
+;; ** org-htmlize for export code block with coloful sensitive which suitable with programe languages
 (use-package htmlize)
 
 ;; ** org-bullets
