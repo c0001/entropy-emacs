@@ -534,12 +534,9 @@ unwanted space when exporting org-mode to html."
   ;; If `entropy/emacs-browse-url-function' is detectived then open
   ;; exported html file with it instead of using default apps or
   ;; system type.
-  
-  (defun entropy/emacs-org--hexpt-function (&optional path link judge)
-    "Function embeded into `org-file-apps', used for
-`entropy/emacs-org--hexpt-advice'.
 
-If judge t, use the first section part of this function for
+  (defun entropy/emacs-org--hexpt-use-external-type ()
+    "
 returning the type of exec for open exported html file, they are:
 
 - \"personal\": using `entropy/emacs-browse-url-function' to open the
@@ -547,25 +544,24 @@ returning the type of exec for open exported html file, they are:
 
 - \"automatic\": using the way by `org-open-file' to automatilly
   open exported file."
+    (if (and entropy/emacs-enable-personal-browse-url-function
+             (functionp entropy/emacs-browse-url-function))
+        "personal"
+      "automatic"))
+  
+  (defun entropy/emacs-org--hexpt-function (&optional path link)
+    "Function embeded into `org-file-apps', used for
+`entropy/emacs-org--hexpt-advice' to open html file using
+`entropy/emacs-browse-url-function'."
     (require 'entropy-common-library-const)
-    (if judge
-        (let (rtn)
-          (if (and entropy/emacs-enable-personal-browse-url-function
-                   entropy/emacs-browse-url-function)
-              (setq rtn "personal")
-            (setq rtn "automatic"))
-          rtn)
-      (if link
-          (if (yes-or-no-p "Open html file with entropy/emacs-browse-url-function ? ")
-              (progn
-                (funcall entropy/emacs-browse-url-function
-                         (concat "file:///" (url-hexify-string link entropy/cl-url--allowed-chars)))
-                (message "Using entropy/emacs-browse-url-function to open exported html file."))
-            (org-open-file path 'system))
-        (error "Invalid link!"))))
+    (if link
+        (if (yes-or-no-p "Open html file with entropy/emacs-browse-url-function ? ")
+            (funcall entropy/emacs-browse-url-function
+                     (concat "file:///" (url-hexify-string link entropy/cl-url--allowed-chars)))
+          (org-open-file path 'system))
+      (error "Invalid link!")))
 
-
-  (defun entropy/emacs-org--hexpt-advice (&rest arg-rest)
+  (defun entropy/emacs-org--hexpt-advice (orig-func &rest orig-args)
     "Advice for `org-open-file' for changing the \"html\"
     associtated function when exporting html file from org file
     or open html file link in org-mode.
@@ -573,25 +569,22 @@ returning the type of exec for open exported html file, they are:
     This function use `entropy/emacs-org--hexpt-function' to judge the exec
     type for chosen the way whether embeded it into `org-file-apps'."
     (let* ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org--hexpt-function))
-           (type (entropy/emacs-org--hexpt-function nil nil t)))
-      (if (string= "personal" type)
-          (progn
-            (if (not (member embeded org-file-apps))
-                (add-to-list 'org-file-apps embeded)))
-        (when (string-match "\\.\\(x\\|m\\)?html?$" (car arg-rest))
-          (message
-           "Using automatic method to open exported html file! ")))))
+           (type (entropy/emacs-org--hexpt-use-external-type))
+           (process-connection-type nil))
+      (when (string-match "\\.\\(x\\|m\\)?html?$" (car orig-args))
+        (cond ((string= "personal" type)
+               (when (not (member embeded org-file-apps))
+                 (add-to-list 'org-file-apps embeded)
+                 (message "Using `entropy/emacs-browse-url-function' to open exported html file.")))
+              ("automatic"
+               (message
+                "Using automatic method to open exported html file! "))))
+      (unwind-protect
+          (apply orig-func orig-args)
+        (when (member embeded org-file-apps)
+          (setq org-file-apps (delete embeded org-file-apps))))))
 
-
-  (advice-add 'org-open-file :before #'entropy/emacs-org--hexpt-advice)
-
-  (defun entropy/emacs-org--hexpt-after-advice (&rest arg-rest)
-    "Delete embeded file apps from `org-file-apps'."
-    (let ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org--hexpt-function)))
-      (if (member embeded org-file-apps)
-          (setq org-file-apps (delete embeded org-file-apps)))))
-
-  (advice-add 'org-open-file :after #'entropy/emacs-org--hexpt-after-advice)
+  (advice-add 'org-open-file :around #'entropy/emacs-org--hexpt-advice)
   
 ;; ****** org ignore broken links
   (setq org-export-with-broken-links 'mark)
