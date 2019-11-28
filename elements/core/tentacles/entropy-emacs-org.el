@@ -89,7 +89,9 @@
   :hook ((org-mode . org-babel-result-hide-all))
 
   :preface
-  (defun entropy/emacs-org--do-load-org ()
+  (defun entropy/emacs-org-do-load-org-babels ()
+    "Load all org-babels."
+    (interactive)
     (let ((prop-format (lambda (msg-str)
                          (redisplay t)
                          (message
@@ -173,7 +175,8 @@
    '(org-mode)
    "org-mode"
    "org-mode"
-   (entropy/emacs-org--do-load-org)
+   (when entropy/emacs-fall-love-with-pdumper
+     (entropy/emacs-org-do-load-org-babels))
    (entropy/emacs-!set-key (kbd "<f2>") #'org-toggle-link-display))
   
 ;; *** configs
