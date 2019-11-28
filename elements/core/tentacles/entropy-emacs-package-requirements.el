@@ -146,6 +146,7 @@
         all-the-icons-dired
         shackle
         slime
+        slime-company
         which-key
         undo-tree
         auto-sudoedit

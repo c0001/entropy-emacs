@@ -342,5 +342,21 @@ and c++ mode."
     (make-local-variable 'company-backends)
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-anaconda) company-backends)))
 
+;; *** common lisp
+;; slime repl completion
+(use-package slime-company
+  :after slime
+  :commands (company-slime slime-company-doc-mode)
+  :init
+  (add-to-list 'slime-contribs 'slime-company)
+  (add-hook 'slime-mode-hook
+            #'entropy/emacs-company-slime-add-company-slime-backend)
+  (add-hook 'slime-repl-mode-hook
+            #'entropy/emacs-company-slime-add-company-slime-backend)
+  (defun entropy/emacs-company-slime-add-company-slime-backend ()
+    (make-local-variable 'company-backends)
+    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-slime)
+                company-backends)))
+
 ;; * provide
 (provide 'entropy-emacs-company)

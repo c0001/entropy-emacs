@@ -132,12 +132,14 @@ PREFIX if non-nil for mordern org-mode style."
 
 ;; *** common lisp
 (use-package slime
-  :commands (slime slime-mode slime-autodoc-mode)
+  :commands (slime slime-mode)
   :init
   (setq inferior-lisp-program entropy/emacs-inferior-lisp-program)
   (setq slime-lisp-implementations
         entropy/emacs-slime-lisp-implementations)
-  (add-to-list 'slime-contribs 'slime-autodoc))
+  (dolist (contrib '(slime-repl slime-autodoc))
+    (add-to-list 'slime-contribs contrib))
+  (add-hook 'lisp-mode-hook #'slime-mode))
 
 ;; * provide
 (provide 'entropy-emacs-emacs-lisp)
