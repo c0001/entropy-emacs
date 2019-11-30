@@ -190,6 +190,7 @@ the subject of utf-8 group."
                   (stringp thing)
                   (not (string= entropy/sdcv-autoshow-last-query thing))
                   (fboundp 'bing-dict-brief))
+         (setq entropy/sdcv-autoshow-last-query thing)
          (setq show-instance
                (entropy/sdcv-core-query-backend
                 thing
