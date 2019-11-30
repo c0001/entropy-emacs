@@ -176,6 +176,9 @@ the subject of utf-8 group."
 (defvar entropy/sdcv-autoshow-timer-register nil
   "Timer register for `entropy/sdcv-autoshow-mode'.")
 
+(defvar entropy/sdcv-autoshow-last-query nil
+  "The last query-word for `entropy/sdcv-autoshow-create'.")
+
 (defun entropy/sdcv-autoshow-create (buff)
   `(lambda ()
      (let ((thing (when (not mark-active)
@@ -185,6 +188,7 @@ the subject of utf-8 group."
        (when (and entropy/sdcv-autoshow-mode
                   (eq ,buff (current-buffer))
                   (stringp thing)
+                  (not (string= entropy/sdcv-autoshow-last-query thing))
                   (fboundp 'bing-dict-brief))
          (setq show-instance
                (entropy/sdcv-core-query-backend
