@@ -100,8 +100,9 @@ of forcely repeating the global-refresh behaviour."
       (setq neo-global--autorefresh-timer
             (run-with-idle-timer 1.2 t 'neo-global--do-autorefresh)))
     (setq neo-global--buffer (get-buffer neo-buffer-name))
-    (setq neo-global--window (get-buffer-window
-                              neo-global--buffer))
+    (setq neo-global--window (when (not (null neo-global--buffer))
+                               (get-buffer-window
+                                neo-global--buffer)))
     (neo-global--with-buffer
       (neo-buffer--lock-width))
     (when (window-live-p neo-global--window)

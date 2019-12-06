@@ -183,8 +183,9 @@
   :config
   (setq eyebrowse-mode-line-style nil
         eyebrowse-new-workspace
-        (if (functionp entropy/emacs-enable-eyebrowse-new-workspace-init-function)
-            entropy/emacs-enable-eyebrowse-new-workspace-init-function
+        (if (and entropy/emacs-enable-eyebrowse-new-workspace-init-function
+                 (functionp entropy/emacs-eyebrowse-new-workspace-init-function))
+            entropy/emacs-eyebrowse-new-workspace-init-function
           t))
   
   ;; debug for improving eyebrowse's user experience

@@ -95,9 +95,6 @@
       (when entropy/emacs-init-display-line-mode
         (global-display-line-numbers-mode))))
 
-;; ** Set the default dired directory
-(setq default-directory "~/")
-
 ;; ** Backup setting
 (setq-default auto-save-default nil)    ;disable it for preventing typing lagging
 (setq make-backup-files nil)
@@ -344,6 +341,33 @@ retrieve from `window-list' larger than 1."
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+
+;; ** kill-other-windows
+
+(defun entropy/emacs-basic-kill-other-window ()
+  "Delete other window and do again using `delete-other-windows-internal' if non-effect.
+
+This affected by `neotree' window sticking with `eyebrowse'
+layout switching conflicts."
+  (interactive)
+  (let ((wdc (length (window-list)))
+        neo-exist)
+    (unless (eq wdc 1)
+      (delete-other-windows)
+      (when (and (= wdc (length (window-list)))
+                 (bound-and-true-p neo-buffer-name)
+                 (not (let (_var rtn)
+                        (setq _var (mapcar
+                                    (lambda (x)
+                                      (equal neo-buffer-name
+                                             (buffer-name (window-buffer x))))
+                                    (window-list)))
+                        (dolist (elt _var)
+                          (unless (null elt)
+                            (setq rtn t)))
+                        rtn)))
+        (delete-other-windows-internal)))))
+(global-set-key (kbd "C-x 1") #'entropy/emacs-basic-kill-other-window)
 
 ;; ** kill redundant buffer
 (defun entropy/emacs-basic-kill-large-process-buffer ()
