@@ -1508,6 +1508,7 @@ for whether do with non-eemacs-make-session specified.")
 (let ((top entropy/emacs-stuffs-topdir))
   (unless (file-exists-p top)
     (make-directory top))
+  ;; subs host
   (dolist (item '((bookmark-file . "bookmarks")
                   (recentf-save-file . "recentf")
                   (tramp-persistency-file-name . "tramp")
@@ -1527,8 +1528,15 @@ for whether do with non-eemacs-make-session specified.")
                   (url-configuration-directory . "url")
                   ;; lsp mode
                   (lsp-session-file . ".lsp-session-v1")
+                  (lsp-intelephense-storage-path . "lsp-cache")
+                  ;; async log file
+                  (async-byte-compile-log-file . "async-bytecomp.log")
                   ))
-    (set (car item) (expand-file-name (cdr item) top))))
+    (set (car item) (expand-file-name (cdr item) top)))
+
+  ;; directory host
+  (dolist (item '(eww-bookmarks-directory))
+    (set item top)))
 
 ;; * provide
 (provide 'entropy-emacs-defcustom)
