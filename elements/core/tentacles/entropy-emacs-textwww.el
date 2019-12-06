@@ -100,7 +100,7 @@ _e_: browse-externally
    :hydra-body-map w3m-mode-map
    :bookmark-library-view w3m-bookmark-view
    :bookmark-add w3m-bookmark-add-current-url
-   :browse-with-external w3m-view-url-with-external-browser
+   :browse-with-external w3m-view-url-with-browse-url
    :current-page-url w3m-print-current-url
    :current-link-url w3m-print-this-url
    :previous-page w3m-view-previous-page
@@ -205,7 +205,7 @@ Browser chosen based on variable
    :browse-with-external entropy/emacs-textwww-eww-open-url-external
    :current-page-url eww-copy-page-url
    :current-link-url entropy/emacs-textwww-get-eww-url
-   :previous-page eww-previous-url
+   :previous-page eww-back-url
    :next-page eww-next-url
    :search-query eww))
 
