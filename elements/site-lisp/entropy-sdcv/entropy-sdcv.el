@@ -181,9 +181,7 @@ the subject of utf-8 group."
 
 (defun entropy/sdcv-autoshow-create (buff)
   `(lambda ()
-     (let ((thing (when (not mark-active)
-                    ;; prevent large region translation frozes emacs
-                    (thing-at-point 'word t)))
+     (let ((thing (entropy/sdcv-core-get-word-or-region t))
            show-instance)
        (when (and entropy/sdcv-autoshow-mode
                   (eq ,buff (current-buffer))

@@ -10,7 +10,8 @@
     (google-translate)
     (posframe "0.5.0")
     (pos-tip)
-    (tooltip)))
+    (tooltip)
+    (chinese-word-at-point "0.2.3")))
 
 ;; Local Variables:
 ;; no-byte-compile: t

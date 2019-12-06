@@ -105,7 +105,29 @@
 (require 'tooltip)
 (condition-case nil (require 'posframe) (error (message "Warn: You haven't install posframe!")))
 (require 'cl-lib)
+(require 'chinese-word-at-point)
 (require 'entropy-common-library)
+
+;;;; defs
+(defvar entropy/sdcv-core--jieba-test-py
+  (expand-file-name
+   "jieba-test.py"
+   (file-name-directory load-file-name))
+  "jieba test feature python process file.")
+
+(defvar entropy/sdcv-core--jieba-test-result nil
+  "Result sticking for whether jieba cli tool installed.")
+
+(defun entropy/sdcv-core--jieba-installed ()
+  (unless (member entropy/sdcv-core--jieba-test-result '(installed notfound))
+    (let ((sh-cbk (shell-command-to-string
+                   (format "python \"%s\""
+                           entropy/sdcv-core--jieba-test-py)))
+          (rx-match "ModuleNotFoundError"))
+      (setq entropy/sdcv-core--jieba-test-result
+            (if (string-match-p rx-match sh-cbk)
+                'notfound
+              'installed)))))
 
 ;;;; variable declaration
 ;;;;; group
@@ -240,14 +262,20 @@ fill lines destructively or display with truncated occur."
     (setenv "LANG" entropy/sdcv-core-origin-lang-env)))
 
 ;;;;; string obtains
-(defun entropy/sdcv-core-get-word-or-region ()
+(defun entropy/sdcv-core-get-word-or-region (&optional not_check_region)
   "Return region or word around point.
 If `mark-active' on, return region string.
 Otherwise return word around point."
-  (if mark-active
+  (entropy/sdcv-core--jieba-installed)
+  (if (and mark-active
+           (not not_check_region))
       (buffer-substring-no-properties (region-beginning)
                                       (region-end))
-    (thing-at-point 'word t)))
+    (thing-at-point
+     (if (eq entropy/sdcv-core--jieba-test-result 'installed)
+         'chinese-or-other-word
+       'word)
+     t)))
 
 ;;;;; query rebuit
 
