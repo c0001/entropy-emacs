@@ -1531,6 +1531,8 @@ for whether do with non-eemacs-make-session specified.")
                   (lsp-intelephense-storage-path . "lsp-cache")
                   ;; async log file
                   (async-byte-compile-log-file . "async-bytecomp.log")
+                  ;; slime
+                  (slime-repl-history-file . ".slime-history.eld")
                   ))
     (set (car item) (expand-file-name (cdr item) top)))
 

@@ -133,13 +133,65 @@ PREFIX if non-nil for mordern org-mode style."
 ;; *** common lisp
 (use-package slime
   :commands (slime slime-mode)
+  :bind
+  (:map slime-mode-map
+        ;; describe for
+        ("C-c C-s" . slime-describe-symbol)
+        ("C-c C-f" . slime-describe-function)
+        ;; documentation
+        ("C-c M-f" . slime-documentation)
+        ;; repl
+        ("C-c M-r" . slime-repl))
   :init
   (setq inferior-lisp-program entropy/emacs-inferior-lisp-program)
   (setq slime-lisp-implementations
         entropy/emacs-slime-lisp-implementations)
   (dolist (contrib '(slime-repl slime-autodoc))
     (add-to-list 'slime-contribs contrib))
-  (add-hook 'lisp-mode-hook #'slime-mode))
+  (add-hook 'lisp-mode-hook #'slime-mode)
+
+  :config
+  (defun entropy/emacs-lisp--slime-env-symbols ()
+    (slime-simple-completions ""))
+
+  ;; (defun entropy/emacs-lisp--slime-filter-desc-brief (desc)
+  ;;   (let (rtn)
+  ;;     (when (string-match-p "Documentation:" desc)
+  ;;       (with-temp-buffer
+  ;;         (insert desc)
+  ;;         (goto-char (point-min))
+  ;;         (re-search-forward "Documentation:" nil t)
+  ;;         (forward-line 1)
+  ;;         (setq rtn (replace-regexp-in-string
+  ;;                    "^\\s-+" ""
+  ;;                    (buffer-substring (point) (progn (end-of-line) (point)))))))
+  ;;     (or rtn "")))
+
+  (defun entropy/emacs-lisp-slime-counsel-desc-symbol ()
+    (interactive)
+    (when (fboundp #'ivy-read)
+      (ivy-read "Desc symbol: " (entropy/emacs-lisp--slime-env-symbols)
+                :require-match t
+                :preselect (slime-symbol-at-point)
+                :action #'slime-describe-symbol
+                :caller 'entropy/emacs-lisp-slime-counsel-desc-symbol)))
+
+  (define-key slime-mode-map (kbd "C-c p") #'entropy/emacs-lisp-slime-counsel-desc-symbol)
+  
+  (with-eval-after-load 'ivy-rich
+    (when (fboundp #'entropy/emacs-ivy--ivy-rich-variable-icon)
+      (setq ivy-rich-display-transformers-list
+            (append
+             '(entropy/emacs-lisp-slime-counsel-desc-symbol
+               (:columns
+                ((entropy/emacs-ivy--ivy-rich-symbol-icon)
+                 (ivy-rich-candidate (:width 30)))
+                :delimiter "\t"))
+             ivy-rich-display-transformers-list))
+      ;; renable `ivy-rich-mode' to enable new rich display rule
+      (when ivy-rich-mode
+        (ivy-rich-mode 0)
+        (ivy-rich-mode 1)))))
 
 ;; * provide
 (provide 'entropy-emacs-emacs-lisp)

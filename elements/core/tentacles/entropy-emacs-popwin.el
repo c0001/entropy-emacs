@@ -66,7 +66,7 @@
           ("*Warnings*" :dedicated t :position bottom :stick t :noselect t)
           ("*Completions*" :dedicated t :position bottom :stick t :noselect nil)
           ("*Shell Command Output*" :dedicated t :position bottom :stick t :noselect nil)
-          ("\*Async Shell Command\*.+" :regexp t :position bottom :stick t :noselect nil)
+          ("\\*Async Shell Command\\*.+" :regexp t :position bottom :stick t :noselect nil)
           ("^*Man.+*$" :regexp t :position bottom :stick nil :noselect nil :height 0.4)
           ("^*WoMan.+*$" :regexp t :position bottom)
           ("^*Backtrace.+*$" :regexp t :dedicated t :position bottom :stick t :noselect nil)
@@ -75,7 +75,7 @@
           ("*Kill Ring*" :dedicated t :position bottom)
 
           ;; Flycheck
-          ("\*flycheck errors\*.+*$" :regexp t :position bottom :stick t :noselect nil)
+          ("\\*flycheck errors\\*.+*$" :regexp t :position bottom :stick t :noselect nil)
 
           ;; Youdao dict
           ("*Youdao Dictionary*" :dedicated t :position bottom)
@@ -138,7 +138,12 @@
           ;; Entropy refer
           ("^\\*entropy/cpmv" :regexp t :position bottom :stick nil :noselect nil)
           ("^\\*entropy/cndt" :regexp t :position bottom :stick nil :noselect nil)
-          ("^\\*entropy/sdcv" :regexp t :position bottom :stick nil :noselect nil))))
+          ("^\\*entropy/sdcv" :regexp t :position bottom :stick nil :noselect nil)
+
+          ;; sbcl-mode
+          ("^\\*slime-" :regexp t :stick t :position bottom :noselect nil :height 0.4)
+          ("^\\*sldb" :regexp t :stick t :position bottom :noselect nil :height 0.4)
+          )))
 
 ;; ** shackle mode
 (use-package shackle
@@ -275,6 +280,8 @@
           ("^\\*entropy/cpmv" :regexp t :select t :size 0.4 :align below :autoclose t)
           ("^\\*entropy/cndt" :regexp t :select t :size 0.4 :align below :autoclose t)
           ("^\\*entropy/sdcv" :regexp t :select t :size 0.4 :align below :autoclose t)
+          ("^\\*slime-" :regexp t :select t :size 0.4 :align below :autoclose t)
+          ("^\\*sldb" :regexp t :select t :size 0.4 :align below :autoclose t)
 
           (ag-mode :select t :align below)
           (grep-mode :select t :align below)
