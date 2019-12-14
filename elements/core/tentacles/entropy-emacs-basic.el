@@ -114,7 +114,7 @@
     (if (entropy/emacs-buffer-exists-p "*scratch*")
         (kill-buffer "*scratch*"))
     
-    (let ((fname "~/.scratch_entropy"))
+    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir)))
       (if (not (file-exists-p fname))
           (progn
             (write-region "" "" fname)
