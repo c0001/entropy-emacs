@@ -1533,6 +1533,8 @@ for whether do with non-eemacs-make-session specified.")
                   (async-byte-compile-log-file . "async-bytecomp.log")
                   ;; slime
                   (slime-repl-history-file . ".slime-history.eld")
+                  ;; irony srever dir
+                  (irony-user-dir . "irony/")
                   ))
     (set (car item) (expand-file-name (cdr item) top)))
 
