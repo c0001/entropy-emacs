@@ -414,6 +414,9 @@ type by function `entropy/emacs-transfer-wvol'"
               :caller 'counsel-locate-action-extern))
   
 ;; **** redefine counsel-git
+  
+  (setq counsel-git-cmd "git ls-files --full-name --")
+  
   (defvar entropy/emacs-ivy-counsel-git-root nil
     "Temporally variable storing git repository root dir,
 this variable used to patching for origin `counsel-git'.")
