@@ -155,6 +155,12 @@ emacs 26 or higher emacs version."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
+(defcustom entropy/emacs-indicate-sshd-session nil
+  "Indicate whether current emacs session is on ssh remote
+  session."
+  :type 'boolean
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; **** emacs extension use options
 (defgroup entropy/emacs-extensions-customize nil
   "Customized extensions variable group configured for entropy-emacs."
@@ -1454,20 +1460,22 @@ for whether do with non-eemacs-make-session specified.")
 
 ;; *** ssh session justice
 (defun entropy/emacs-is-ssh-session ()
-  "Justice whether use eemacs in sshd session.
+  "Justice whether use eemacs in sshd session. Take priority of
+`entropy/emacs-indicate-sshd-session'.
 
 Fixme: 
 
 - ipv6 support
 - Windows dos cmd check feature."
-  (cond
-   ((string-match-p "linux\\|cygwin\\|darwin" (symbol-name system-type))
-    (let ((who (shell-command-to-string "who"))
-          (ipv4-regx "([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)"))
-      (when (string-match-p ipv4-regx who)
-        t)))
-   ((string-match-p "windows" (symbol-name system-type))
-    nil)))
+  (or entropy/emacs-indicate-sshd-session
+      (cond
+       ((string-match-p "linux\\|cygwin\\|darwin" (symbol-name system-type))
+        (let ((who (shell-command-to-string "who"))
+              (ipv4-regx "([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)"))
+          (when (string-match-p ipv4-regx who)
+            t)))
+       ((string-match-p "windows" (symbol-name system-type))
+        nil))))
 
 ;; *** pdumper env check
 

@@ -27,6 +27,8 @@
 
 (setq entropy/emacs-user-mail-address "thanos@comos.com")
 
+(setq entropy/emacs-indicate-sshd-session nil)
+
 ;; Startup options
 (setq entropy/emacs-minimal-start nil)
 

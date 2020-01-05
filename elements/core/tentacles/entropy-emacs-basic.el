@@ -51,6 +51,10 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defface)
 
+(when (and entropy/emacs-indicate-sshd-session
+           (display-graphic-p))
+  (setq entropy/emacs-indicate-sshd-session nil))
+
 (entropy/emacs-lazy-with-load-trail
  top-keybinding
  (define-key (current-global-map)
