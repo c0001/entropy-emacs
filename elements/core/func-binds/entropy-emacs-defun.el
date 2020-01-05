@@ -743,6 +743,18 @@ the string passed to `kbd'."
   (entropy/emacs-xterm-paste-core event)
   (yank))
 
+(defun entropy/emacs-xterm-term-S-insert (event)
+  (interactive "e")
+  (when (and (fboundp #'xterm-paste)
+             (not (executable-find "xclip")))
+    (entropy/emacs-xterm-paste-core event))
+  (let* ((paste (with-temp-buffer
+                  (yank)
+                  (car kill-ring))))
+    (when (stringp paste)
+      (setq paste (substring-no-properties paste))
+      (term-send-raw-string paste))))
+
 ;; ** miscellaneous
 (defun entropy/emacs-transfer-wvol (file)
   "Transfer linux type root path header into windows volumn

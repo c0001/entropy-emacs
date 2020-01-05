@@ -1452,6 +1452,23 @@ otherwise return nil."
   "More sensitive indicator for tentacles loading justified
 for whether do with non-eemacs-make-session specified.")
 
+;; *** ssh session justice
+(defun entropy/emacs-is-ssh-session ()
+  "Justice whether use eemacs in sshd session.
+
+Fixme: 
+
+- ipv6 support
+- Windows dos cmd check feature."
+  (cond
+   ((string-match-p "linux\\|cygwin\\|darwin" (symbol-name system-type))
+    (let ((who (shell-command-to-string "who"))
+          (ipv4-regx "([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)"))
+      (when (string-match-p ipv4-regx who)
+        t)))
+   ((string-match-p "windows" (symbol-name system-type))
+    nil)))
+
 ;; *** pdumper env check
 
 (defun entropy/emacs-in-pdumper-procedure-p ()

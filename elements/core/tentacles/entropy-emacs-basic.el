@@ -1321,31 +1321,50 @@ Temp file was \"~/~entropy-artist.txt\""
  xterm-rebind
  (when (and (not (display-graphic-p))
             (fboundp #'xterm-paste))
-   (if (not (executable-find "xclip"))
-       (define-key global-map [xterm-paste]
-         #'entropy/emacs-xterm-paste)
+   (if (not (entropy/emacs-is-ssh-session))
+       (if (not (executable-find "xclip"))
+           (define-key global-map [xterm-paste]
+             #'entropy/emacs-xterm-paste)
+         (define-key global-map [xterm-paste]
+           #'yank))
      (define-key global-map [xterm-paste]
-       #'yank))
+       #'entropy/emacs-xterm-paste-sshsession))
 
-   (defun entropy/emacs-basic-xterm-S-insert (event)
-     (interactive "e")
-     (when (and (fboundp #'xterm-paste)
-                (not (executable-find "xclip")))
-       (entropy/emacs-xterm-paste-core event))
-     (let* ((paste (with-temp-buffer
-                     (yank)
-                     (car kill-ring))))
-       (when (stringp paste)
-         (setq paste (substring-no-properties paste))
-         (term-send-raw-string paste))))
+   (defun entropy/emacs-xterm-paste-sshsession ()
+     (interactive)
+     (let ()
+       (run-with-timer 0.01 nil #'yank)
+       (keyboard-quit)))   
+
+   (defun entropy/emacs-basic-xterm-term-S-insert-sshsession ()
+     (interactive)
+     (run-with-timer
+      0.01 nil
+      #'(lambda ()
+          (let* ((paste (with-temp-buffer
+                          (yank)
+                          (car kill-ring))))
+            (when (stringp paste)
+              (setq paste (substring-no-properties paste))
+              (term-send-raw-string paste)))))
+     (keyboard-quit))
 
    (entropy/emacs-lazy-load-simple 'term
-     (define-key term-raw-map
-       [S-insert]
-       #'entropy/emacs-basic-xterm-S-insert)
-     (define-key term-raw-map
-       [xterm-paste]
-       #'entropy/emacs-basic-xterm-S-insert))))
+     (cond
+      ((not (entropy/emacs-is-ssh-session))
+       (define-key term-raw-map
+         [S-insert]
+         #'entropy/emacs-xterm-term-S-insert)
+       (define-key term-raw-map
+         [xterm-paste]
+         #'entropy/emacs-xterm-term-S-insert))
+      (t
+       (define-key term-raw-map
+         [S-insert]
+         #'entropy/emacs-basic-xterm-term-S-insert-sshsession)
+       (define-key term-raw-map
+         [xterm-paste]
+         #'entropy/emacs-basic-xterm-term-S-insert-sshsession))))))
 
 ;; ** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
 (when (and sys/win32p (not (version< emacs-version "26.1")))
