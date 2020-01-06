@@ -147,6 +147,7 @@
   (setq
    company-tooltip-limit 20  ; bigger popup window
    company-echo-delay 0      ; remove annoying blinking
+   company-idle-delay nil
    company-dabbrev-code-everywhere t
    company-minimum-prefix-length 2
    company-require-match nil
@@ -157,6 +158,22 @@
   (if entropy/emacs-company-posframe-mode
       (setq company-tooltip-offset-display 'scrollbar)
     (setq company-tooltip-offset-display 'lines))
+
+  (defun entropy/emacs-company-toggle-idledelay ()
+    (interactive)
+    (if company-idle-delay
+        (progn (setq company-idle-delay nil)
+               (message "turn off `company-idle-delay'"))
+      (setq company-idle-delay
+            entropy/emacs-company-idle-delay-default)
+      (entropy/emacs-message-do-message
+       "%s '%s' to '%s'"
+       (blue "set")
+       (yellow (symbol-name 'company-idle-delay))
+       (red (number-to-string company-idle-delay)))))
+
+  (entropy/emacs-!set-key (kbd "M-p")
+    #'entropy/emacs-company-toggle-idledelay)
 
 ;; **** Support yas in commpany
   (setq company-backends (mapcar #'entropy/emacs-company-use-yasnippet company-backends))

@@ -876,6 +876,11 @@ automatically avoiding startup of `company-quickhelp-mode'."
   :type 'boolean
   :group 'entropy/emacs-company-customized)
 
+(defcustom entropy/emacs-company-idle-delay-default 0.1
+  "default eemacs specified set for `company-idle-delay`."
+  :type 'sexp
+  :group 'entropy/emacs-company-customized)
+
 ;; **** use highlight feature
 (defgroup entropy/emacs-highlight nil
   "Personal Emacs configurations."
