@@ -76,6 +76,11 @@ for entropy-emacs."
   :type 'integer
   :group 'entropy/emacs-customize-fundametal)
 
+(defcustom entropy/emacs-garbage-collection-message-p nil
+  "whether echo garbage collection message."
+  :type 'boolean
+  :group 'entropy/emacs-customize-fundametal)
+
 (defcustom entropy/emacs-custom-enable-lazy-load t
   "Enable lazy load for entropy-emacs"
   :type 'boolean
