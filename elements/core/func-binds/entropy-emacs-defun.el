@@ -367,7 +367,7 @@ in case that file does not provide any feature."
 (defun entropy/emacs-set-package-user-dir ()
   (unless entropy/emacs--package-user-dir-setted
     (entropy/emacs--guard-ext-use-type)
-    (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50"))
+    (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50" "28.0.50"))
              (entropy/emacs-package-is-upstream))
         (entropy/emacs--set-user-package-dir-common emacs-version)
       (cond
