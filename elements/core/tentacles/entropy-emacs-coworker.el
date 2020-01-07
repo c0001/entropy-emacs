@@ -237,6 +237,13 @@
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-pip
    "pyls-lsp" ("pyls") "python-language-server"))
-  
+
+(defun entropy/emacs-coworker-check-bash-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "bash-language-server"
+   ("bash-language-server")
+   "bash-language-server"))
+
 ;; * provide
 (provide 'entropy-emacs-coworker)

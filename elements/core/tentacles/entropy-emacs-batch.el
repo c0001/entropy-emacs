@@ -97,8 +97,9 @@
                      ("web-lsp" . entropy/emacs-coworker-check-web-lsp)
                      ("js-lsp" . entropy/emacs-coworker-check-js-lsp)
                      ("php-lsp" . entropy/emacs-coworker-check-php-lsp)
-                     ("clangd-lsp" . entropy/emacs-coworker-check-clangd-lsp)
-                     ("python-lsp" . entropy/emacs-coworker-check-python-lsp))))
+                     ("bash-lsp" . entropy/emacs-coworker-check-bash-lsp)
+                     ("python-lsp" . entropy/emacs-coworker-check-python-lsp)
+                     ("clangd-lsp" . entropy/emacs-coworker-check-clangd-lsp))))
     (dolist (el task-list)
       (entropy/emacs-message-do-message
        "%s %s %s"
