@@ -919,7 +919,7 @@ emacs."
   :commands which-key-mode
   :init
   (entropy/emacs-lazy-with-load-trail which-key (which-key-mode t))
-  (setq which-key-popup-type 'minibuffer))
+  (setq which-key-popup-type 'side-window))
 
 ;; ** Undo tree
 (use-package undo-tree
