@@ -172,6 +172,7 @@
         elisp-refs
         emms
         visual-ascii-mode
+        vterm
 
         ;; themes
         doom-themes

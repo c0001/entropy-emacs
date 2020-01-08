@@ -220,6 +220,20 @@ was found."
               (ignore-errors (file-exists-p entropy/emacs-wsl-apps)))
      (advice-add 'cd :around 'entropy/emacs-shell--fakepty-cd-around-advice))))
 
+
+;; ** vterm config
+
+(use-package vterm
+  :if (not sys/win32p)
+  :commands (vterm vterm-mode)
+  :config
+  (defun entropy/emacs-shell--vterm-mode-around-advice (orig-func &rest orig-args)
+    "prevent `vterm-mode` calling in vterm-mode from causing
+segmentation fault."
+    (unless (eq major-mode 'vterm-mode)
+      (apply orig-func orig-args)))
+  (advice-add 'vterm-mode :around #'entropy/emacs-shell--vterm-mode-around-advice))
+
 ;; ** Shell Pop
 (use-package entropy-shellpop
   :ensure nil
@@ -235,6 +249,13 @@ was found."
         func)))
   
   (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
+    (entropy/emacs-!set-key (kbd "M-0") func)
+    (unless (display-graphic-p)
+      (define-key entropy-shellpop-mode-map
+        (kbd (concat entropy/emacs-top-key " " "M-0"))
+        func)))
+
+  (defun entropy/emacs-shell--shellpop-bindkey-for-vterm (func)
     (entropy/emacs-!set-key (kbd "=") func)
     (unless (display-graphic-p)
       (define-key entropy-shellpop-mode-map
@@ -243,7 +264,7 @@ was found."
 
   :init
   (setq entropy/emacs-shell--shpop-types
-        '(:ansiterm
+        `(:ansiterm
           (:type-name
            "eemacs-ansiterm"
            :shackle-size 0.3
@@ -258,7 +279,15 @@ was found."
            :shackle-align below
            :type-keybind entropy/emacs-shell--shellpop-bindkey-for-eshell
            :type-body
-           (eshell))))
+           (eshell))
+          :vterm
+          (:type-name
+           "eemacs-vterm"
+           :shackle-size 0.3
+           :shackle-align bottom
+           :type-keybind entropy/emacs-shell--shellpop-bindkey-for-vterm
+           :type-body
+           (vterm-mode))))
   
   (entropy/emacs-lazy-with-load-trail
    shellpop-feature
@@ -266,7 +295,8 @@ was found."
               (and sys/win32p (bound-and-true-p fakecygpty--activated)))
           (setq entropy/shellpop-pop-types
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
-                      (plist-get entropy/emacs-shell--shpop-types :ansiterm))))
+                      (plist-get entropy/emacs-shell--shpop-types :ansiterm)
+                      (plist-get entropy/emacs-shell--shpop-types :vterm))))
          (sys/win32p
           (setq entropy/shellpop-pop-types
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)))))

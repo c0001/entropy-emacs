@@ -41,26 +41,59 @@
 
 ;; ** library
 ;; *** Toggle context structer style
-(defun entropy/emacs-elisp-toggle-outline-struct-style (&optional prefix)
+(defun entropy/emacs-elisp-toggle-outline-struct-style (&optional prefix force-new)
   "Toggle outline regexp style in elisp source file, ';;;+' as
 old-school type, ';; *+' as the mordern one.
 
-PREFIX if non-nil for mordern org-mode style."
+PREFIX if non-nil for create new file copy of current buffer to
+transformation.
+
+Optional arg: FORCE-NEW for lisp coding with new file transformation.
+
+For lisp coding aim, always return the transfered buffer. 
+"
   (interactive "P")
-  (let ((inhibit-read-only t))
-    (goto-char (point-min))
-    (while (re-search-forward (if prefix "^;;\\(;+\\) " "^;; \\(\\*+\\) ") nil t)
-      (save-excursion
-        (let* ((level-str (match-string 1))
-               (level (length level-str))
-               (head-str (match-string 0))
-               (rep-str (concat ";;" (when prefix " ")
-                                (let ((rtn ""))
-                                  (dotimes (var level)
-                                    (setq rtn (concat rtn (if prefix "*" ";"))))
-                                  (concat rtn " ")))))
-          (replace-match
-           rep-str))))))
+  (when (and prefix force-new)
+    (setq force-new nil))
+  (let* ((type '("old style" "mordern style"))
+         (choice (if (string= (completing-read "Choose style: " type nil t) "old style")
+                     nil t))
+         (path default-directory)
+         (file (format "lisp-toggle-file.[%s].el"
+                       (format-time-string "%Y%m%d%H%M%S")))
+         (file-create
+          (lambda ()
+            (with-current-buffer (current-buffer)
+              (write-region
+               (point-min) (point-max)
+               (expand-file-name
+                file path)))))
+         (buffer (if (or prefix force-new) (progn (funcall file-create) (find-file-noselect file))
+                   (current-buffer))))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (goto-char (point-min))
+        (while (re-search-forward (if choice "^;;\\(;+\\) " "^;; \\(\\*+\\) ") nil t)
+          (save-excursion
+            (let* ((level-str (match-string 1))
+                   (level (length level-str))
+                   (head-str (match-string 0))
+                   (rep-str (concat ";;" (when choice " ")
+                                    (let ((rtn ""))
+                                      (dotimes (var level)
+                                        (setq rtn (concat rtn (if choice "*" ";"))))
+                                      (concat rtn " ")))))
+              (replace-match
+               rep-str))))
+        (when (buffer-file-name)
+          (save-buffer))
+        (if (and prefix (null force-new))
+            (let ((judge
+                   (yes-or-no-p
+                    (format "Create toggled buffer '%s'\nSwitch-To? " buffer))))
+              (when judge
+                (switch-to-buffer buffer)))
+          buffer)))))
 
 ;; ** main
 ;; *** Emacs lisp mode

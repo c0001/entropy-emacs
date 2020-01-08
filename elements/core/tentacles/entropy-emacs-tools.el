@@ -743,7 +743,15 @@ For now, there's three choices for you:
 (use-package el2org
   :commands (el2org-generate-html
              el2org-generate-org
-             el2org-generate-readme))
+             el2org-generate-readme)
+  :preface
+  (defun entropy/emacs-tools-gen-el-readme ()
+    "Transfered current elisp buffer to markdown README file. "
+    (interactive)
+    (when (eq major-mode 'emacs-lisp-mode)
+      (let ((buffer (funcall 'entropy/emacs-elisp-toggle-outline-struct-style nil t)))
+        (with-current-buffer buffer
+          (el2org-generate-readme))))))
 
 
 ;; ****  require by el2org for generate source to readme which be with the github style md file
