@@ -216,7 +216,8 @@ Version 2017-10-09"
 
 ;; **** entropy-open-with
 (use-package entropy-open-with
-  :if (display-graphic-p)
+  :if (or (display-graphic-p)
+          entropy/emacs-use-emacs-in-terminal-with-graphic-features)
   :ensure nil
   :commands (entropy/open-with-dired-open
              entropy/open-with-buffer)

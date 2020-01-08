@@ -29,6 +29,8 @@
 
 (setq entropy/emacs-indicate-sshd-session nil)
 
+(setq entropy/emacs-use-emacs-in-terminal-with-graphic-features t)
+
 ;; Startup options
 (setq entropy/emacs-minimal-start nil)
 
@@ -45,4 +47,5 @@
 
 (setq entropy/emacs-modeline-style "doom")
 
-(setq entropy/emacs-dired-visual-type "all-the-icons")
+(setq entropy/emacs-dired-visual-type
+      (if (display-graphic-p) "all-the-icons" "simple-rainbow")

@@ -166,6 +166,12 @@ emacs 26 or higher emacs version."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
+(defcustom entropy/emacs-use-emacs-in-terminal-with-graphic-features nil
+  "Using some eemacs features on graphic session in text-based
+  session."
+  :type 'boolean
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; **** emacs extension use options
 (defgroup entropy/emacs-extensions-customize nil
   "Customized extensions variable group configured for entropy-emacs."
