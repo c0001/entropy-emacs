@@ -23,7 +23,7 @@
 ;; Created:       2019-08-29
 ;; Keywords:      shell-pop, shell
 ;; Compatibility: GNU Emacs emacs-version 26.1;
-;; Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3"))
+;; Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3") (vterm "0.0.1"))
 ;; #+END_EXAMPLE
 ;;
 ;;; Commentary:
@@ -43,25 +43,26 @@
 ;; restructed the popup feature rely on [[https://github.com/wasamasa/shackle][shackle]].
 ;;
 ;;; Configuration:
-;;
+
 ;; Just cloning this repo under the path sepcified on your wish, and
 ;; added it to your ~load-path~, using ~require~ or ~use-package~ to
 ;; manage the configuration for this by calling the main function
 ;; ~entropy/shellpop-start~. Traditionally minor snippet as:
-;;
+
 ;; #+BEGIN_SRC elisp
 ;;   (require 'entropy-shellpop)
 ;;   (entropy/shellpop-start)
 ;; #+END_SRC
-;;
+
 ;; The internal builtin shell popup types are:
-;;
+
 ;; - for eshell: =<f9>=
 ;; - for ansi-term: =<f10>=
-;;
+;; - for vterm: =<f12>=
+
 ;; You may customize variable =entropy/shellpop-pop-types= for more
 ;; specification, see its doc-string for more.
-;;
+
 ;;; Development
 
 ;; For PR and extented aiming for, =entropy-shellpop= provide its own
@@ -179,6 +180,7 @@
 ;; mind.
 
 ;;; Changelog
+;; - [2020-01-08] Add support for `vterm`
 
 ;; - [2019-11-13] *v0.1.0* release out.
 
@@ -189,6 +191,7 @@
 ;;;; require
 (require 'cl-lib)
 (require 'shackle)
+(require 'vterm)
 (require 'entropy-common-library)
 
 ;;;; defcustom
@@ -208,6 +211,12 @@
   :type 'sexp
   :group 'entropy/shellpop-customized-group)
 
+(defcustom entropy/shellpop-vterm-popup-key
+  (lambda (func) (global-set-key (kbd "<f12>") func))
+  "Default key sequence for popup vterm."
+  :type 'sexp
+  :group 'entropy/shellpop-customized-group)
+
 (defcustom entropy/shellpop-pop-types
   `((:type-name
      "eemacs-ansiterm"
@@ -222,7 +231,14 @@
      :shackle-align below
      :type-keybind ,entropy/shellpop-eshell-popup-key
      :type-body
-     (eshell)))
+     (eshell))
+    (:type-name
+     "eemacs-vterm"
+     :shackle-size 0.3
+     :shackle-align bottom
+     :type-keybind ,entropy/shellpop-vterm-popup-key
+     :type-body
+     (vterm-mode)))
   "Shell pop types defination.
 
 It's a list of which each element is plist structed form called
@@ -326,6 +342,12 @@ shellpop type")
    (term-send-raw-string (concat "cd " (shell-quote-argument cwd) "\n"))
    (term-send-raw-string "\C-l")))
 
+(defun entropy/shellpop--cd-to-cwd-vterm (cwd)
+  (entropy/shellpop--cd-to-cwd-with-judge
+   cwd t
+   (vterm-send-string (concat "cd " (shell-quote-argument cwd)))
+   (vterm-send-return)))
+
 (defun entropy/shellpop--cd-to-cwd (cwd buff)
   (with-current-buffer buff
     (let ((abspath (expand-file-name cwd)))
@@ -335,6 +357,8 @@ shellpop type")
              (entropy/shellpop--cd-to-cwd-shell abspath))
             ((eq major-mode 'term-mode)
              (entropy/shellpop--cd-to-cwd-term abspath))
+            ((eq major-mode 'vterm-mode)
+             (entropy/shellpop--cd-to-cwd-vterm abspath))
             (t
              (message "Shell type not supported for 'entropy-shellpop' to CDW"))))))
 

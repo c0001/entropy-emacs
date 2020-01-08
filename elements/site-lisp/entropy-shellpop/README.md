@@ -1,23 +1,21 @@
-
 # Table of Contents
 
-1.  [entropy-shellpop.el &#x2014; popup shell buffer for transient](#orgc649b55)
-2.  [Copyright (C) 20190829  Entropy](#org7c56438)
-3.  [Commentary:](#orgd79c398)
-4.  [Configuration:](#orgab602fd)
-5.  [Development](#org834b6e7)
-    1.  [`shellpop-type-register` data structure](#org5c2f375)
-    2.  [`shellpop-buffer-object` data structure](#orge3bc7c4)
-    3.  [Extensible developing](#org3f33e5b)
-6.  [Changelog](#org659b18c)
+1.  [entropy-shellpop.el &#x2014; popup shell buffer for transient](#orga719067)
+2.  [Copyright (C) 20190829  Entropy](#orged59d29)
+3.  [Commentary:](#org0f15e58)
+4.  [Configuration:](#orgf70a954)
+5.  [Development](#orgdcb3223)
+    1.  [`shellpop-type-register` data structure](#org5017207)
+    2.  [`shellpop-buffer-object` data structure](#orgaf3ba1a)
+    3.  [Extensible developing](#org02236ea)
+6.  [Changelog](#org8546bdb)
 
-
-<a id="orgc649b55"></a>
+<a id="orga719067"></a>
 
 # entropy-shellpop.el &#x2014; popup shell buffer for transient
 
 
-<a id="org7c56438"></a>
+<a id="orged59d29"></a>
 
 # Copyright (C) 20190829  Entropy
 
@@ -42,10 +40,10 @@
     Created:       2019-08-29
     Keywords:      shell-pop, shell
     Compatibility: GNU Emacs emacs-version 26.1;
-    Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3"))
+    Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3") (vterm "0.0.1"))
 
 
-<a id="orgd79c398"></a>
+<a id="org0f15e58"></a>
 
 # Commentary:
 
@@ -64,7 +62,7 @@ purely fundamental, for optimizing features' detailes and
 restructed the popup feature rely on [shackle](https://github.com/wasamasa/shackle).
 
 
-<a id="orgab602fd"></a>
+<a id="orgf70a954"></a>
 
 # Configuration:
 
@@ -80,12 +78,13 @@ The internal builtin shell popup types are:
 
 -   for eshell: `<f9>`
 -   for ansi-term: `<f10>`
+-   for vterm: `<f12>`
 
 You may customize variable `entropy/shellpop-pop-types` for more
 specification, see its doc-string for more.
 
 
-<a id="org834b6e7"></a>
+<a id="orgdcb3223"></a>
 
 # Development
 
@@ -93,7 +92,7 @@ For PR and extented aiming for, `entropy-shellpop` provide its own
 code context map, a illustration for thus as below sections:
 
 
-<a id="org5c2f375"></a>
+<a id="org5017207"></a>
 
 ## `shellpop-type-register` data structure
 
@@ -168,7 +167,7 @@ string, and the cdr was the plist whose slots are:
     is used currently.
 
 
-<a id="orge3bc7c4"></a>
+<a id="orgaf3ba1a"></a>
 
 ## `shellpop-buffer-object` data structure
 
@@ -200,7 +199,7 @@ various buffer status information, include:
     indicated that.
 
 
-<a id="org3f33e5b"></a>
+<a id="org02236ea"></a>
 
 ## Extensible developing
 
@@ -211,11 +210,16 @@ and given the rich way to experience thus. Just do with your flying
 mind.
 
 
-<a id="org659b18c"></a>
+<a id="org8546bdb"></a>
 
 # Changelog
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2020-01-08 Wed] </span></span> Add support for \`vterm\`
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2019-11-13 Wed] </span></span> **v0.1.0** release out.
     
     The first release of `entropy-sdcv`
+
+
+<a id="org9753eab"></a>
 
