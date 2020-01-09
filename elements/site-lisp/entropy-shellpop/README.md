@@ -1,21 +1,20 @@
-# Table of Contents
 
-1.  [entropy-shellpop.el &#x2014; popup shell buffer for transient](#orga719067)
-2.  [Copyright (C) 20190829  Entropy](#orged59d29)
-3.  [Commentary:](#org0f15e58)
-4.  [Configuration:](#orgf70a954)
-5.  [Development](#orgdcb3223)
-    1.  [`shellpop-type-register` data structure](#org5017207)
-    2.  [`shellpop-buffer-object` data structure](#orgaf3ba1a)
-    3.  [Extensible developing](#org02236ea)
-6.  [Changelog](#org8546bdb)
+- [entropy-shellpop.el &#x2014; popup shell buffer for transient](#org15029f9)
+- [Copyright (C) 20190829  Entropy](#org22ff15e)
+- [Commentary:](#orgbdafc02)
+- [Configuration:](#org2128d2f)
+- [Development](#orgfa7805c)
+  - [`shellpop-type-register` data structure](#org62e1644)
+  - [`shellpop-buffer-object` data structure](#org967cbb0)
+  - [Extensible developing](#orgbc00a01)
+- [Changelog](#org4000443)
 
-<a id="orga719067"></a>
+<a id="org15029f9"></a>
 
 # entropy-shellpop.el &#x2014; popup shell buffer for transient
 
 
-<a id="orged59d29"></a>
+<a id="org22ff15e"></a>
 
 # Copyright (C) 20190829  Entropy
 
@@ -43,36 +42,29 @@
     Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3") (vterm "0.0.1"))
 
 
-<a id="org0f15e58"></a>
+<a id="orgbdafc02"></a>
 
 # Commentary:
 
-The shell popuped feature provision what seems like the `vscode
-shellpopup aspect`.
+The shell popuped feature provision what seems like the `vscode shellpopup aspect`.
 
-Allow `multi-shell-type` coexistence, that the mode-type of
-`eshell-mode`, `shell-mode`, `term-mode` can be popuped together
-with keybinding customization.
+Allow `multi-shell-type` coexistence, that the mode-type of `eshell-mode`, `shell-mode`, `term-mode` can be popuped together with keybinding customization.
 
-Allow `multi-shell-buffer` coexistence independently, with
-completion query prompt manangement.
+Allow `multi-shell-buffer` coexistence independently, with completion query prompt manangement.
 
-This package was inspired by [shell-pop-el](http://github.com/kyagi/shell-pop-el), but built based on
-purely fundamental, for optimizing features' detailes and
-restructed the popup feature rely on [shackle](https://github.com/wasamasa/shackle).
+This package was inspired by [shell-pop-el](http://github.com/kyagi/shell-pop-el), but built based on purely fundamental, for optimizing features' detailes and restructed the popup feature rely on [shackle](https://github.com/wasamasa/shackle).
 
 
-<a id="orgf70a954"></a>
+<a id="org2128d2f"></a>
 
 # Configuration:
 
-Just cloning this repo under the path sepcified on your wish, and
-added it to your `load-path`, using `require` or `use-package` to
-manage the configuration for this by calling the main function
-`entropy/shellpop-start`. Traditionally minor snippet as:
+Just cloning this repo under the path sepcified on your wish, and added it to your `load-path`, using `require` or `use-package` to manage the configuration for this by calling the main function `entropy/shellpop-start`. Traditionally minor snippet as:
 
-    (require 'entropy-shellpop)
-    (entropy/shellpop-start)
+```elisp
+(require 'entropy-shellpop)
+(entropy/shellpop-start)
+```
 
 The internal builtin shell popup types are:
 
@@ -80,28 +72,21 @@ The internal builtin shell popup types are:
 -   for ansi-term: `<f10>`
 -   for vterm: `<f12>`
 
-You may customize variable `entropy/shellpop-pop-types` for more
-specification, see its doc-string for more.
+You may customize variable `entropy/shellpop-pop-types` for more specification, see its doc-string for more.
 
 
-<a id="orgdcb3223"></a>
+<a id="orgfa7805c"></a>
 
 # Development
 
-For PR and extented aiming for, `entropy-shellpop` provide its own
-code context map, a illustration for thus as below sections:
+For PR and extented aiming for, `entropy-shellpop` provide its own code context map, a illustration for thus as below sections:
 
 
-<a id="org5017207"></a>
+<a id="org62e1644"></a>
 
 ## `shellpop-type-register` data structure
 
-This is the global host var-type designed for 'entropy-shellpop' to
-get the overview for all shellpop buffers in current emacs session of
-arbitrary shell-type (yes `entropy-shellpop` was multi-shell coexist
-possibly). It group the shellpop buffers into two-step tree, the top
-was referred to the `shell-type-name` and the subtree was for index of
-those buffers, that:
+This is the global host var-type designed for 'entropy-shellpop' to get the overview for all shellpop buffers in current emacs session of arbitrary shell-type (yes `entropy-shellpop` was multi-shell coexist possibly). It group the shellpop buffers into two-step tree, the top was referred to the `shell-type-name` and the subtree was for index of those buffers, that:
 
                               =========================================
                                  shellpop type register  illustration
@@ -126,93 +111,65 @@ those buffers, that:
         |                                          |                                          |
      pointer                                    pointer                                    pointer
 
-With the illustration shown above, `shellpop-type-register` also has
-the **pointer** to indicate which shellpop buffer of specific shell-type
-are used currently, this **pointer** was used to briefly popping out the
-shellpop buffer without items chosen operation.
+With the illustration shown above, `shellpop-type-register` also has the **pointer** to indicate which shellpop buffer of specific shell-type are used currently, this **pointer** was used to briefly popping out the shellpop buffer without items chosen operation.
 
-Var `entropy/shellpop--type-register` was one implementation instance
-used for thus, its a alist which key was the `shellpop-type-name` a
-string, and the cdr was the plist whose slots are:
+Var `entropy/shellpop--type-register` was one implementation instance used for thus, its a alist which key was the `shellpop-type-name` a string, and the cdr was the plist whose slots are:
 
 -   `:type-func`
     
-    This slot hosts the one plist to show the current shell-type caller
-    and its core function.
+    This slot hosts the one plist to show the current shell-type caller and its core function.
     
     1.  `:core`
         
-        Each shellpop-type has one underline function mainly for showing
-        the shellpop buffer according to this shell-type
-        specification. This slot was on that.
+        Each shellpop-type has one underline function mainly for showing the shellpop buffer according to this shell-type specification. This slot was on that.
     
     2.  `:interact`
         
-        The main caller for this shellpop-type, a function with
-        interacive features.
+        The main caller for this shellpop-type, a function with interacive features.
 
 -   `:indexs`
     
-    Alist to represent the current shellpop-type shellpop buffers,
-    formed as
+    Alist to represent the current shellpop-type shellpop buffers, formed as
     
         '((0  . tag-name_0) (1 . tag-name_1) (2 . tag-name_2))'
     
-    **tag-name** was the human readable description for its shellpop
-    buffer.
+    **tag-name** was the human readable description for its shellpop buffer.
 
 -   `:pointer`
     
-    **Interger** to indicate which shellpop buffer of this shellpop-type
-    is used currently.
+    **Interger** to indicate which shellpop buffer of this shellpop-type is used currently.
 
 
-<a id="orgaf3ba1a"></a>
+<a id="org967cbb0"></a>
 
 ## `shellpop-buffer-object` data structure
 
-As that metioned for section for **shellpop-type-register**, each
-shellpop buffer of one shellpop-type was mapped in one indexed alist,
-thus for term, the index space can be unlimited restricted by the
-emacs's threshold for integer. Says in the other hand, in imagination
-case, there's infinite shellpop buffers exists in the same time,
-exists or inexists as the top level concept.
+As that metioned for section for **shellpop-type-register**, each shellpop buffer of one shellpop-type was mapped in one indexed alist, thus for term, the index space can be unlimited restricted by the emacs's threshold for integer. Says in the other hand, in imagination case, there's infinite shellpop buffers exists in the same time, exists or inexists as the top level concept.
 
-Each shellpop buffer registed in `entropy/shellpop--type-register` was
-a index with its description, but without any status recorded, and for
-that the register were not background upate in real-time as a service
-running for watching as 'watch-dog'. For thus, `entropy-sdcv` gives a
-shellpop buffer status checking probe function
-`entropy/shellpop--get-type-buffer-obj`.
+Each shellpop buffer registed in `entropy/shellpop--type-register` was a index with its description, but without any status recorded, and for that the register were not background upate in real-time as a service running for watching as 'watch-dog'. For thus, `entropy-sdcv` gives a shellpop buffer status checking probe function `entropy/shellpop--get-type-buffer-obj`.
 
-The probe function recieve two arguments i.e. the `shellpop-type-name`
-and the buffer-index (ps: optionally), return one plist strucured of
-`shellpop-buffer-object` struct. This data structure stored the
-various buffer status information, include:
+The probe function recieve two arguments i.e. the `shellpop-type-name` and the buffer-index (ps: optionally), return one plist strucured of `shellpop-buffer-object` struct. This data structure stored the various buffer status information, include:
 
-1.  Whether this index of buffer was exists, key `:isnew` indicated
-    that.
-2.  Whether the indexed exists buffer shown in the current frame, key
-    `:activep` indicated that.
+1.  Whether this index of buffer was exists, key `:isnew` indicated that.
+2.  Whether the indexed exists buffer shown in the current frame, key `:activep` indicated that.
 3.  The index of this shellpop buffer, key `:index` indicated that.
-4.  The buffer-naem of the indexed shellpop buffer, key `:buffer-name`
-    indicated that.
+4.  The buffer-naem of the indexed shellpop buffer, key `:buffer-name` indicated that.
 
 
-<a id="org02236ea"></a>
+<a id="orgbc00a01"></a>
 
 ## Extensible developing
 
-As for compability case thought for, I think the
-`shellpop-type-register` and `shellpop-buffer-object` provision was
-enoughly for you to write some tools to enhance the shellpop behavior,
-and given the rich way to experience thus. Just do with your flying
-mind.
+As for compability case thought for, I think the `shellpop-type-register` and `shellpop-buffer-object` provision was enoughly for you to write some tools to enhance the shellpop behavior, and given the rich way to experience thus. Just do with your flying mind.
 
 
-<a id="org8546bdb"></a>
+<a id="org4000443"></a>
 
 # Changelog
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2020-01-09 Thu] </span></span> bug fixed
+    
+    Remove vterm feature on non \`&#x2013;with-modules\` feature emacs session
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2020-01-08 Wed] </span></span> Add support for \`vterm\`
 
@@ -221,5 +178,5 @@ mind.
     The first release of `entropy-sdcv`
 
 
-<a id="org9753eab"></a>
+<a id="orgdf8a464"></a>
 

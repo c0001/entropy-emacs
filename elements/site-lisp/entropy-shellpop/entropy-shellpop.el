@@ -180,6 +180,10 @@
 ;; mind.
 
 ;;; Changelog
+;; - [2020-01-09] bug fixed
+  
+;;   Remove vterm feature on non `--with-modules` feature emacs session
+
 ;; - [2020-01-08] Add support for `vterm`
 
 ;; - [2019-11-13] *v0.1.0* release out.
@@ -191,7 +195,8 @@
 ;;;; require
 (require 'cl-lib)
 (require 'shackle)
-(require 'vterm)
+(when (member "MODULES" (split-string system-configuration-features nil t))
+  (require 'vterm))
 (require 'entropy-common-library)
 
 ;;;; defcustom
@@ -218,28 +223,33 @@
   :group 'entropy/shellpop-customized-group)
 
 (defcustom entropy/shellpop-pop-types
-  `((:type-name
-     "eemacs-ansiterm"
-     :shackle-size 0.3
-     :shackle-align below
-     :type-keybind ,entropy/shellpop-ansiterm-popup-key
-     :type-body
-     (ansi-term "/bin/bash"))
-    (:type-name
-     "eemacs-eshell"
-     :shackle-size 0.3
-     :shackle-align below
-     :type-keybind ,entropy/shellpop-eshell-popup-key
-     :type-body
-     (eshell))
-    (:type-name
-     "eemacs-vterm"
-     :shackle-size 0.3
-     :shackle-align bottom
-     :type-keybind ,entropy/shellpop-vterm-popup-key
-     :type-body
-     (vterm-mode)))
-  "Shell pop types defination.
+  (let ((base
+         `((:type-name
+            "eemacs-ansiterm"
+            :shackle-size 0.3
+            :shackle-align below
+            :type-keybind ,entropy/shellpop-ansiterm-popup-key
+            :type-body
+            (ansi-term "/bin/bash"))
+           (:type-name
+            "eemacs-eshell"
+            :shackle-size 0.3
+            :shackle-align below
+            :type-keybind ,entropy/shellpop-eshell-popup-key
+            :type-body
+            (eshell))))
+        (vterm
+         `((:type-name
+            "eemacs-vterm"
+            :shackle-size 0.3
+            :shackle-align bottom
+            :type-keybind ,entropy/shellpop-vterm-popup-key
+            :type-body
+            (vterm-mode)))))
+    (if (member "MODULES" (split-string system-configuration-features nil t))
+        (append vterm base)
+      base))
+    "Shell pop types defination.
 
 It's a list of which each element is plist structed form called
 SHELLPOP-TYPE of `entropy-shellpop'.
