@@ -122,6 +122,7 @@
 ;; *** bind-key  
   :bind (("M-/" . company-complete)
          ("M-\\" . company-dabbrev)
+         ("M-[" . company-files)
          ("C-c C-y" . company-yasnippet)
          :map company-active-map
          ("C-p" . company-select-previous)
@@ -209,9 +210,13 @@
   :if (and (>= emacs-major-version 25)
            (eq entropy/emacs-use-ide-type 'lsp))
   :init
-  (add-hook 'prog-mode-hook #'entropy/emacs-company-add-lsp-backend)
-  (defun entropy/emacs-company-add-lsp-backend ()
+  (entropy/emacs-lazy-load-simple 'lsp-mode
+    (advice-add 'lsp--auto-configure
+                :after
+                #'entropy/emacs-company-add-lsp-backend))
+  (defun entropy/emacs-company-add-lsp-backend (&rest args)
     (make-local-variable 'company-backends)
+    (setq-local company-backends (remove 'company-lsp company-backends))
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-lsp) company-backends)))
 
 ;; ** Individual backends

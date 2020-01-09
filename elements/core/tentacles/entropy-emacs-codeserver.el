@@ -148,6 +148,7 @@ It is the recommendation of irony-mode official introduction."
   :hook (prog-mode . lsp-deferred)
   :init
   (setq lsp-auto-guess-root t)
+  (setq lsp-auto-configure t)
   (setq lsp-prefer-flymake nil)
 
   (entropy/emacs-lazy-initial-advice-before
