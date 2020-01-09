@@ -850,16 +850,36 @@ emacs."
 ;; ** Set transparenct of emacs frame
 (global-set-key (kbd "<f6>") 'entropy/emacs-basic-loop-alpha)
 
-(defun entropy/emacs-basic-loop-alpha ()    
-  (interactive)    
-  (let ((h (car entropy/emacs-loop-alpha-value)))
+(defun entropy/emacs-basic-loop-alpha (prefix)
+  (interactive "P")
+  (let ((h (car entropy/emacs-loop-alpha-value))
+        (bgtr
+         (when prefix
+           (string-to-number (read-string "Input bg trransparent var (0-100): ")))))
+    (setq bgtr
+          (let ()
+            (if (not (integerp bgtr))
+                (car h)
+              (if (> bgtr 95)
+                  95
+                (if (<= bgtr 0)
+                    75
+                  bgtr)))))
     (funcall
-     (lambda (a ab)    
-       (set-frame-parameter (selected-frame) 'alpha (list a ab))    
+     (lambda (a ab)
+       (let ((alpha-items (mapcar (lambda (x) (when (eq (car x) 'alpha) x))
+                                  default-frame-alist)))
+         (dolist (el alpha-items)
+           (unless (null el)
+             (setq default-frame-alist
+                   (delete* el default-frame-alist)))))
+       (set-frame-parameter (selected-frame) 'alpha (list a ab))
        (add-to-list 'default-frame-alist (cons 'alpha (list a ab))))
-     (car h)
+     bgtr
      (car (cdr h)))
-    (setq entropy/emacs-loop-alpha-value (cdr (append entropy/emacs-loop-alpha-value (list h))))))
+    (setq entropy/emacs-loop-alpha-value
+          (cdr (append entropy/emacs-loop-alpha-value
+                       (list (list bgtr (nth 1 h))))))))
 
 (when entropy/emacs-init-loop-alpha
   (entropy/emacs-lazy-with-load-trail

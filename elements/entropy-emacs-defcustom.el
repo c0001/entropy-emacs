@@ -373,7 +373,7 @@ height of dock:
   :type 'boolean
   :group 'entropy/emacs-transparent-bg)
 
-(defcustom entropy/emacs-loop-alpha-value '((95 55) (100 100))
+(defcustom entropy/emacs-loop-alpha-value '((85 100) (100 100))
   "The value of background transparent"
   :type 'boolean
   :group 'entropy/emacs-transparent-bg)
