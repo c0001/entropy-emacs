@@ -75,7 +75,7 @@
 
 ;; spacemacs theme has the best tui adaptable
 (unless (display-graphic-p)
-  (setq entropy/emacs-theme-options 'spacemacs-dark))
+  (setq entropy/emacs-theme-options 'doom-Iosvkem))
 
 (entropy/emacs-lazy-with-load-trail
  enable-theme
