@@ -872,7 +872,7 @@ emacs."
          (dolist (el alpha-items)
            (unless (null el)
              (setq default-frame-alist
-                   (delete* el default-frame-alist)))))
+                   (delete el default-frame-alist)))))
        (set-frame-parameter (selected-frame) 'alpha (list a ab))
        (add-to-list 'default-frame-alist (cons 'alpha (list a ab))))
      bgtr
@@ -881,7 +881,8 @@ emacs."
           (cdr (append entropy/emacs-loop-alpha-value
                        (list (list bgtr (nth 1 h))))))))
 
-(when entropy/emacs-init-loop-alpha
+(when (and entropy/emacs-init-loop-alpha
+           (display-graphic-p))
   (entropy/emacs-lazy-with-load-trail
    loop-alpha
    (entropy/emacs-basic-loop-alpha)))
