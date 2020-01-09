@@ -249,9 +249,14 @@ in case that file does not provide any feature."
   (declare (indent 1) (debug t))
   (cond
    (entropy/emacs-custom-enable-lazy-load
-    `(eval-after-load ,file (lambda () ,@body)))
+    `(progn
+       (eval-after-load ,file
+         (lambda () ,@body
+           (message "with lazy load configs for file '%s'"
+                    (symbol-name ,file))))))
    ((null entropy/emacs-custom-enable-lazy-load)
     `(progn
+       (message "force load configs for file '%s'" (symbol-name ,file))
        (require ,file)
        ,@body))))
 
