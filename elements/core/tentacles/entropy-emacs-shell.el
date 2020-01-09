@@ -275,8 +275,8 @@ segmentation fault."
   
   (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
     (let ((key (if (member "MODULES" (split-string system-configuration-features nil t))
-                   "="
-                 "M-0")))
+                   "M-0"
+                 "=")))
       (entropy/emacs-!set-key (kbd key) func)
       (unless (display-graphic-p)
         (define-key entropy-shellpop-mode-map
@@ -326,7 +326,7 @@ segmentation fault."
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
                       (plist-get entropy/emacs-shell--shpop-types :ansiterm)))
           (when (member "MODULES" (split-string system-configuration-features nil t))
-            (add-to-list 'entropy/shelpop-pop-types
+            (add-to-list 'entropy/shellpop-pop-types
                          (plist-get entropy/emacs-shell--shpop-types :vterm))))
          (sys/win32p
           (setq entropy/shellpop-pop-types
