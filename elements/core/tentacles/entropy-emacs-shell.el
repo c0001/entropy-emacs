@@ -224,7 +224,8 @@ was found."
 ;; ** vterm config
 
 (use-package vterm
-  :if (not sys/win32p)
+  :if (and (not sys/win32p)
+           (member "MODULES" (split-string system-configuration-features nil t)))
   :commands (vterm vterm-mode)
   :preface
 
@@ -273,18 +274,22 @@ segmentation fault."
         func)))
   
   (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
-    (entropy/emacs-!set-key (kbd "M-0") func)
-    (unless (display-graphic-p)
-      (define-key entropy-shellpop-mode-map
-        (kbd (concat entropy/emacs-top-key " " "M-0"))
-        func)))
+    (let ((key (if (member "MODULES" (split-string system-configuration-features nil t))
+                   "="
+                 "M-0")))
+      (entropy/emacs-!set-key (kbd key) func)
+      (unless (display-graphic-p)
+        (define-key entropy-shellpop-mode-map
+          (kbd (concat entropy/emacs-top-key " " key))
+          func))))
 
-  (defun entropy/emacs-shell--shellpop-bindkey-for-vterm (func)
-    (entropy/emacs-!set-key (kbd "=") func)
-    (unless (display-graphic-p)
-      (define-key entropy-shellpop-mode-map
-        (kbd (concat entropy/emacs-top-key " " "="))
-        func)))
+  (when (member "MODULES" (split-string system-configuration-features nil t))
+    (defun entropy/emacs-shell--shellpop-bindkey-for-vterm (func)
+      (entropy/emacs-!set-key (kbd "=") func)
+      (unless (display-graphic-p)
+        (define-key entropy-shellpop-mode-map
+          (kbd (concat entropy/emacs-top-key " " "="))
+          func))))
 
   :init
   (setq entropy/emacs-shell--shpop-types
@@ -319,8 +324,10 @@ segmentation fault."
               (and sys/win32p (bound-and-true-p fakecygpty--activated)))
           (setq entropy/shellpop-pop-types
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
-                      (plist-get entropy/emacs-shell--shpop-types :ansiterm)
-                      (plist-get entropy/emacs-shell--shpop-types :vterm))))
+                      (plist-get entropy/emacs-shell--shpop-types :ansiterm)))
+          (when (member "MODULES" (split-string system-configuration-features nil t))
+            (add-to-list 'entropy/shelpop-pop-types
+                         (plist-get entropy/emacs-shell--shpop-types :vterm))))
          (sys/win32p
           (setq entropy/shellpop-pop-types
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)))))
