@@ -148,7 +148,6 @@
         slime
         slime-company
         which-key
-        undo-tree
         auto-sudoedit
         disable-mouse
         pyim

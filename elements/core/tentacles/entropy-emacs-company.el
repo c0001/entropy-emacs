@@ -70,15 +70,22 @@
 (require 'entropy-emacs-message)
 
 ;; ** defvar
-
+(defvar entropy/emacs-company-elisp-top-backends
+  '(company-files company-capf :with company-en-words))
 
 ;; ** libraries
 ;; *** yas load
-(defun entropy/emacs-company-use-yasnippet (backend)
+(defun entropy/emacs-company-use-yasnippet (backend &optional reverse)
   (if (and (listp backend) (member 'company-yasnippet backend))
       backend
-    (append (if (consp backend) backend (list backend))
-            '(:with company-yasnippet))))
+    (if  reverse
+        (append 
+         (if (consp backend) backend (list backend))
+         '(:with company-yasnippet))
+      (append 
+       '(company-yasnippet)
+       (if (consp backend) backend (list backend)))
+      )))
 
 (defun entropy/emacs-company-start-with-yas (&rest _)
   (when (not (condition-case error
@@ -115,6 +122,31 @@
                   company-yasnippet))
       (require el))))
 
+;; *** company for docs modes
+(defvar entropy/emacs-company-docs-separate-backends
+  '(company-files company-yasnippet :with company-en-words))
+
+(defun entropy/emacs-company-privilege-yas-for-docs ()
+  (make-local-variable 'company-backends)
+  (add-to-list 'company-backends
+               `(,@entropy/emacs-company-docs-separate-backends)))
+
+(defun entropy/emacs-company-yas-for-docs-init ()
+  (let (macros)
+    (dolist (el '((org-mode . org-mode-hook)
+                  (mardown-mode . markdown-mode-hook)
+                  (text-mode . text-mode-hook)))
+      (add-to-list
+       'macros
+       `(lambda ()
+          (with-eval-after-load ',(car el)
+            (add-hook ',(cdr el)
+                      #'entropy/emacs-company-privilege-yas-for-docs
+                      )))))
+    (dolist (macro macros)
+      (funcall macro))))
+
+
 ;; ** company core
 (use-package company
   ;; :diminish company-mode  ;;; This comment to diminish the modline
@@ -133,7 +165,31 @@
          ("C-n" . company-select-next))
 ;; *** init for load  
   :init
-  (entropy/emacs-lazy-with-load-trail global-company-mode (global-company-mode t))
+  (entropy/emacs-lazy-with-load-trail
+   global-company-mode
+   (global-company-mode t)
+   ;; init company backends for *scratch* buffer
+   (mapc (lambda (buffer)
+           (with-current-buffer buffer
+             (when (or (eq major-mode 'emacs-lisp-mode)
+                       (eq major-mode 'lisp-interaction-mode))
+               (add-to-list 'company-backends
+                            entropy/emacs-company-elisp-top-backends)
+               )))
+         (buffer-list))
+   (entropy/emacs-company-yas-for-docs-init))
+
+  (when (eq entropy/emacs-use-ide-type 'traditional)
+    (entropy/emacs-lazy-load-simple
+        'elisp-mode
+      (dolist (hook '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
+        (add-hook
+         hook
+         #'(lambda ()
+             (add-to-list
+              'company-backends
+              entropy/emacs-company-elisp-top-backends))))))
+  
   (when (or (equal entropy/emacs-use-extensions-type 'submodules)
             entropy/emacs-fall-love-with-pdumper)
     (entropy/emacs-company-require-subs))
@@ -176,17 +232,19 @@
   (entropy/emacs-!set-key (kbd "M-p")
     #'entropy/emacs-company-toggle-idledelay)
 
-;; **** Support yas in commpany
-  (setq company-backends (mapcar #'entropy/emacs-company-use-yasnippet company-backends))
+  ;; Support yas in commpany
+  (setq company-backends
+        (mapcar #'(lambda (x) (entropy/emacs-company-use-yasnippet x t))
+                company-backends)))
 
-;; **** Using company-posframe to speedup company candidates window show and scrolling
-  (when (and (not (version< emacs-version "26.1"))
-             entropy/emacs-company-posframe-mode)
-    (use-package company-posframe
-      :after company
-      :commands (company-posframe-mode)
-      :diminish company-posframe-mode
-      :init (company-posframe-mode 1))))
+;; *** Using company-posframe to speedup company candidates window show and scrolling
+(when (and (not (version< emacs-version "26.1"))
+           entropy/emacs-company-posframe-mode)
+  (use-package company-posframe
+    :after company
+    :commands (company-posframe-mode)
+    :diminish company-posframe-mode
+    :init (company-posframe-mode 1)))
 
 
 ;; *** Popup documentation for completion candidates
@@ -215,9 +273,27 @@
                 :after
                 #'entropy/emacs-company-add-lsp-backend))
   (defun entropy/emacs-company-add-lsp-backend (&rest args)
-    (make-local-variable 'company-backends)
     (setq-local company-backends (remove 'company-lsp company-backends))
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-lsp) company-backends)))
+    (cond ((eq major-mode 'sh-mode)
+           (add-to-list 'company-backends
+                        '(company-yasnippet company-files :separate company-lsp :with company-en-words)))
+          ((or (eq major-mode 'js2-mode)
+               (eq major-mode 'php-mode)
+               (eq major-mode 'python-mode)
+               (eq major-mode 'css-mode)
+               (eq major-mode 'html-mode)
+               (eq major-mode 'web-mode))
+           (add-to-list 'company-backends
+                        '(company-files company-lsp company-yasnippet :separate company-en-words)))
+          ((or (eq major-mode 'emacs-lisp-mode)
+               (eq major-mode 'lisp-interaction-mode))
+           (add-to-list 'company-backends
+                        entropy/emacs-company-elisp-top-backends))
+          ((or (eq major-mode 'c-mode)
+               (eq major-mode 'c++-mode))
+           (add-to-list 'company-backends '(company-files company-lsp :with company-yasnippet)))
+          (t
+           (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-lsp) company-backends)))))
 
 ;; ** Individual backends
 ;; *** miscelloneous

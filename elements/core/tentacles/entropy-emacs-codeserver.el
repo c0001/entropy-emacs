@@ -144,7 +144,7 @@ It is the recommendation of irony-mode official introduction."
   :if (and (>= emacs-major-version 25)
            (eq entropy/emacs-use-ide-type 'lsp))
   :diminish lsp-mode
-  :commands (lsp lsp-mode)
+  :commands (lsp lsp-mode lsp-deferred)
   :hook (prog-mode . lsp-deferred)
   :init
   (setq lsp-auto-guess-root t)
@@ -187,6 +187,18 @@ It is the recommendation of irony-mode official introduction."
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'js2-mode
       (advice-add 'js2-mode :before #'entropy/emacs-coworker-check-js-lsp))))
+
+;; **** lsp json
+(when (eq entropy/emacs-use-ide-type 'lsp)
+  (when entropy/emacs-install-coworker-immediately
+    (entropy/emacs-lazy-load-simple 'json-mode
+      (advie-add 'json-mode :before #'entropy/emacs-coworker-check-json-lsp))))
+
+;; **** lsp bash
+(when (eq entropy/emacs-use-ide-type 'lsp)
+  (when entropy/emacs-install-coworker-immediately
+    (entropy/emacs-lazy-load-simple 'sh-mode
+      (advie-add 'sh-mode :before #'entropy/emacs-coworker-check-bash-lsp))))
 
 ;; **** lsp php
 (when (eq entropy/emacs-use-ide-type 'lsp)

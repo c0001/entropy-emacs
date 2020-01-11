@@ -245,5 +245,12 @@
    ("bash-language-server")
    "bash-language-server"))
 
+(defun entropy/emacs-coworker-check-json-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "json-lsp"
+   ("vscode-json-languageserver")
+   "vscode-json-languageserver"))
+
 ;; * provide
 (provide 'entropy-emacs-coworker)

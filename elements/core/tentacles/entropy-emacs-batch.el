@@ -96,6 +96,7 @@
         (task-list '(("tern" . entropy/emacs-coworker-check-tern-server)
                      ("web-lsp" . entropy/emacs-coworker-check-web-lsp)
                      ("js-lsp" . entropy/emacs-coworker-check-js-lsp)
+                     ("json-lsp" . entropy/emacs-coworker-check-json-lsp)
                      ("php-lsp" . entropy/emacs-coworker-check-php-lsp)
                      ("bash-lsp" . entropy/emacs-coworker-check-bash-lsp)
                      ("python-lsp" . entropy/emacs-coworker-check-python-lsp)

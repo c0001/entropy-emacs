@@ -126,6 +126,7 @@
           "entropy-shellpop"
           "entropy-unfill"
           "fakecygpty"
+          "undo-tree-eemacs"
           "liberime"
           "with-proxy.el"))
        (cur-path (expand-file-name (file-name-directory load-file-name)))

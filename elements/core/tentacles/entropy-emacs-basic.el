@@ -945,13 +945,16 @@ emacs."
 ;; ** Undo tree
 (use-package undo-tree
   :diminish undo-tree-mode
-  :commands (global-undo-tree-mode)
+  :ensure nil
+  :commands (global-undo-tree-mode undo-tree-visualize)
+  :defines (entropy/emacs-basic-undo-tree-margin-detective)
   :bind (("C-x u" . entropy/emacs-basic-undo-tree))
   :hook ((undo-tree-mode . (lambda () (define-key undo-tree-map (kbd "C-x u") nil))))
   :init
-  (unless entropy/emacs-fall-love-with-pdumper
-    (entropy/emacs-lazy-load-simple 'undo-tree
-      (global-undo-tree-mode +1)))
+
+  (entropy/emacs-lazy-with-load-trail
+   undo-tree-enable
+   (global-undo-tree-mode t))
   
   :config
   (defun entropy/emacs-basic-undo-tree ()
@@ -992,7 +995,7 @@ This function has redefined for adapting to
             ;;     (select-window window))
             (if entropy/emacs-basic-undo-tree-margin-detective
                 (progn
-                  (switch-to-buffer-other-window parent)
+                  (switch-to-buffer parent)
                   (set-window-margins (car (get-buffer-window-list (current-buffer) nil t))
                                       (/ (window-width) entropy/emacs-window-center-integer)
                                       (/ (window-width) entropy/emacs-window-center-integer)))

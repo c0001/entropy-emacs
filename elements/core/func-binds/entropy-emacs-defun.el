@@ -159,7 +159,22 @@ directory."
 
 (defun entropy/emacs-file-path-parser (file-name type)
   "The file-path for 'entropy-emacs, functions for get base-name,
-shrink trail slash, and return the parent(up level) dir."
+shrink trail slash, and return the parent(up level) dir.
+
+
+type: 
+
+- 'non-trail-slash':
+  
+  Shrink the FILE-NAME path trail slash and return it.
+
+- 'file-name':
+
+  Return the file base name include its suffix type.
+  
+- 'parent-dir':
+
+  Return its parent directory path using `file-name-directory'"
   (let (rtn (fname (replace-regexp-in-string "\\(\\\\\\|/\\)$" "" file-name)))
     (cl-case type
       ('non-trail-slash
@@ -382,6 +397,9 @@ in case that file does not provide any feature."
        ((and (equal emacs-version "26.3")
              (entropy/emacs-package-is-upstream))
         (entropy/emacs--set-user-package-dir-common "26.2"))
+       ((and (equal emacs-version "27.0.60")
+             (entropy/emacs-package-is-upstream))
+        (entropy/emacs--set-user-package-dir-common "27.0.50"))
        ((entropy/emacs-package-is-upstream)
         (error "Unsupport emacs version '%s'" emacs-version))))
     (when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
