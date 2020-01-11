@@ -5,7 +5,7 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-proxy-url/
-;; Package-Version: v0.1.0
+;; Package-Version: v0.1.1
 ;; Created:       2018
 ;; Keywords:      proxy
 ;; Compatibility: GNU Emacs emacs-version;
@@ -151,15 +151,52 @@
 ;; ~entropy/proxy-url-refresh-gfw-regexp-alist~ at any time for
 ;; keeping your rule-set updating with upstream.
 ;;
+;;; Change log:
+
+;; - [2020-01-11] *version 0.1.1* release out
+
+;;   Remove force requiring `w3m` at load time excepted that variable
+;;   `entropy/proxy-url-force-require-w3m` is nil.
+
+;;   Defined specified key map when proper feature loaded up.
+
+;; - [2018-10-01] *version 0.1.0* release out
+
+;;   First release out.
+
 ;;; Code:
 
 (require 'cl-lib)
 (require 'eww)
+(require 'entropy-common-library)
+
+(declare-function url-retrieve-internal 'url)
+
+(dolist (el '(w3m-goto-mailto-url
+              w3m-goto-ftp-url w3m--goto-url--valid-url
+              w3m-goto-url w3m-goto-url-new-session
+              w3m-goto-url-with-timer))
+  (funcall
+   `(lambda ()
+      (declare-function ,el 'w3m))))
+(defvar w3m-command-arguments-alist)
+
+;;;; variable declare
+;;;;; customized var
+(defgroup entropy/proxy-url-group nil
+  "group of `entropy-proxy-url'")
+
+(defcustom entropy/proxy-url-force-require-w3m t
+  "Force require w3m without any compability check."
+  :type 'boolean
+  :group 'entropy/proxy-url-group)
+
 (defvar entropy/proxy-url--w3m-load-effectively
-  (let ((status (ignore-errors (require 'w3m))))
-    (if (eq status 'w3m)
-        t
-      nil))
+  (or entropy/proxy-url-force-require-w3m
+      (let ((status (ignore-errors (require 'w3m))))
+        (if (eq status 'w3m)
+            t
+          nil)))
   "The requiring CBK of `w3m.el', for t as successfully loaded
 and nil otherwise.
 
@@ -168,11 +205,6 @@ binary version and features applied status, thus error will
 occurred then there's no valid 'w3m' binary installed in current
 platform, this will corrupt `entropy-proxy-url' load procedure,
 and this is the meaning for this variable existed.")
-
-;;;; variable declare
-;;;;; customized var
-(defgroup entropy/proxy-url-group nil
-  "group of `entropy-proxy-url'")
 
 (defcustom entropy/proxy-url-default-proxy-server-obj
   '((emacs-socks "" "127.0.0.1" "1080" "5")
@@ -444,7 +476,7 @@ protocal prefix appended. "
     :server-host-alist
     nil
     :bind
-    ((w3m-mode-map . "p"))))
+    ((w3m) . ((w3m-mode-map . "p")))))
 
 (defvar entropy/proxy-url--eww-recipe
   '(:group-name
@@ -458,7 +490,7 @@ protocal prefix appended. "
     :server-host-alist
     nil
     :bind
-    ((eww-mode-map . "p"))))
+    ((eww) . ((eww-mode-map . "p")))))
 
 ;;;###autoload
 (defun entropy/proxy-url-make-recipes (proxy-recipes)
@@ -482,38 +514,48 @@ Recipe slots:
 - `:server-host-alist` : a symbol indicate the proxy server host alist
                          which using the same struct with `entropy/proxy-url-default-proxy-server-obj'
 
-- `:bind`              : a alist for keymap and keybind stroke specification,
-                         keybind-key form as function `kbd' does.
+- `:bind`              : a cons for the car of a list of feature to lazy load
+                         and the cdr of a alist for keymap and keybind stroke
+                         specification, keybind-key form as function `kbd' does.
 "
-  
-  (dolist (proxy-recipe proxy-recipes)
-    (let (wrapper-form
-          switch-form
-          (switch-func-name
-           (intern
-            (concat
-             "entropy/proxy-url-switch-proxy-for-"
-             (symbol-name (plist-get proxy-recipe :group-name)))))
-          (bind (plist-get proxy-recipe :bind)))
-      (setq wrapper-form
-            `(entropy/proxy-url--batch-proxy-wrapper
-              ,(plist-get proxy-recipe :group-name)
-              ',(plist-get proxy-recipe :advice-fors)
-              ',(plist-get proxy-recipe :type-source)
-              ',(plist-get proxy-recipe :proxy-mechanism)
-              ,(plist-get proxy-recipe :server-host-alist))
-            
+  (let ((eval-binds))
+    (dolist (proxy-recipe proxy-recipes)
+      (let (wrapper-form
             switch-form
-            `(defun ,switch-func-name ()
-               (interactive)
-               (entropy/proxy-url--swith-form ',(plist-get proxy-recipe :type-source))))
-      (funcall `(lambda () ,wrapper-form))
-      (funcall `(lambda () ,switch-form))
-      (funcall
-       `(lambda ()
-          (dolist (bind ',bind)
-            (define-key (eval (car bind)) (kbd (eval (cdr bind)))
-              #',switch-func-name)))))))
+            (switch-func-name
+             (intern
+              (concat
+               "entropy/proxy-url-switch-proxy-for-"
+               (symbol-name (plist-get proxy-recipe :group-name)))))
+            (bind (plist-get proxy-recipe :bind)))
+        (setq wrapper-form
+              `(entropy/proxy-url--batch-proxy-wrapper
+                ,(plist-get proxy-recipe :group-name)
+                ',(plist-get proxy-recipe :advice-fors)
+                ',(plist-get proxy-recipe :type-source)
+                ',(plist-get proxy-recipe :proxy-mechanism)
+                ,(plist-get proxy-recipe :server-host-alist))
+              
+              switch-form
+              `(defun ,switch-func-name ()
+                 (interactive)
+                 (entropy/proxy-url--swith-form ',(plist-get proxy-recipe :type-source))))
+        (funcall `(lambda () ,wrapper-form))
+        (funcall `(lambda () ,switch-form))
+        (let* ((features (car bind))
+               (key-binds (cdr bind))
+               (form '(eval-after-load feature))
+               (replace (mapcar (lambda (x) (list `(1 ',x))) features))
+               (body
+                `((lambda ()
+                    (dolist (bind-form ',key-binds)
+                      (define-key (eval (car bind-form)) (kbd (eval (cdr bind-form)))
+                        #',switch-func-name)))))
+               (macro (entropy/cl-gen-nested-append-form
+                       form replace body t)))
+          (add-to-list 'eval-binds macro)))
+      (dolist (item eval-binds)
+        (eval item)))))
 
 ;;;###autoload
 (defun entropy/proxy-url-make-builtin-recipes ()
