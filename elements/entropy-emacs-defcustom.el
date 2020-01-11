@@ -1570,6 +1570,7 @@ Fixme:
                   ;; lsp mode
                   (lsp-session-file . ".lsp-session-v1")
                   (lsp-intelephense-storage-path . "lsp-cache")
+                  (lsp-server-install-dir . "cache/lsp")
                   ;; async log file
                   (async-byte-compile-log-file . "async-bytecomp.log")
                   ;; slime
