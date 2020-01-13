@@ -245,7 +245,7 @@ specific browser to visualize current file.")
 
 ;; ** garbage collection
 
-(defvar entropy/emacs-gc-threshold-basic 20000000
+(defvar entropy/emacs-gc-threshold-basic 2000000
   "The basic thredshold for the growth for `gc-cons-threshold'")
 
 (defvar entropy/emacs-garbage-collect-idle-timer nil

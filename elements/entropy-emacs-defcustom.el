@@ -70,7 +70,7 @@
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-garbage-collection-delay 2
+(defcustom entropy/emacs-garbage-collection-delay 0.65
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs."
   :type 'integer
@@ -887,7 +887,7 @@ automatically avoiding startup of `company-quickhelp-mode'."
   :type 'boolean
   :group 'entropy/emacs-company-customized)
 
-(defcustom entropy/emacs-company-idle-delay-default 0.1
+(defcustom entropy/emacs-company-idle-delay-default 0.65
   "default eemacs specified set for `company-idle-delay`."
   :type 'sexp
   :group 'entropy/emacs-company-customized)

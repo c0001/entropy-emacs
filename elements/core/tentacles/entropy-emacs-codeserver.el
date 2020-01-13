@@ -167,7 +167,9 @@ It is the recommendation of irony-mode official introduction."
   :bind (:map lsp-ui-mode-map
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references] . lsp-ui-peek-find-references)
-              ("C-c u" . lsp-ui-imenu)))
+              ("C-c u" . lsp-ui-imenu))
+  :init
+  (setq lsp-ui-doc-position 'top))
 
 ;; *** lsp instances
 ;; **** lsp html&css
