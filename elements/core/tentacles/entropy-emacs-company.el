@@ -216,13 +216,21 @@
       (setq company-tooltip-offset-display 'scrollbar)
     (setq company-tooltip-offset-display 'lines))
 
-  (defun entropy/emacs-company-toggle-idledelay ()
-    (interactive)
+  (defun entropy/emacs-company-toggle-idledelay (&optional prefix)
+    (interactive "P")
     (if company-idle-delay
         (progn (setq company-idle-delay nil)
                (message "turn off `company-idle-delay'"))
       (setq company-idle-delay
-            entropy/emacs-company-idle-delay-default)
+            (if prefix
+                (let ((secs (string-to-number
+                             (read-string "Input Company delay secs: "))))
+                  (if (and (numberp secs)
+                           (> secs 0))
+                      secs
+                    (message "Invalid company-delay secs '%s'" secs)
+                    entropy/emacs-company-idle-delay-default))
+              entropy/emacs-company-idle-delay-default))
       (entropy/emacs-message-do-message
        "%s '%s' to '%s'"
        (blue "set")
