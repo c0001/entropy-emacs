@@ -70,7 +70,7 @@
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-garbage-collection-delay 0.65
+(defcustom entropy/emacs-garbage-collection-delay 6.6
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs."
   :type 'integer
@@ -828,19 +828,7 @@ elfeed proxy setting."
   (if (eq system-type 'windows-nt)
       (getenv "APPDATA")
     (expand-file-name ".local" (getenv "HOME")))
-  "The coworker bins host root dir."
-  :type 'string
-  :group 'entropy/emacs-coworkers-group)
-
-(defcustom entropy/emacs-coworker-bin-host-path
-  (expand-file-name "bin" entropy/emacs-coworker-host-root)
-  "The coworker bin host."
-  :type 'string
-  :group 'entropy/emacs-coworkers-group)
-
-(defcustom entropy/emacs-coworker-lib-host-root
-  (expand-file-name "lib" entropy/emacs-coworker-host-root)
-  "The default libs host root for coworker"
+  "The coworker host root dir."
   :type 'string
   :group 'entropy/emacs-coworkers-group)
 

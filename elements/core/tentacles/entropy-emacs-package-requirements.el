@@ -107,6 +107,9 @@
         ox-gfm
         counsel-ffdata
         neotree
+        with-editor
+        ghub
+        git-commit
         magit
         ssh-agency
         magit-popup

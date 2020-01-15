@@ -243,6 +243,28 @@ specific browser to visualize current file.")
       incf
       ))
 
+;; ** coworker refer
+(defvar entropy/emacs-coworker-bin-host-path
+  (expand-file-name "bin" entropy/emacs-coworker-host-root)
+  "The coworker bin host.")
+
+(defvar entropy/emacs-coworker-lib-host-root
+  (expand-file-name "lib" entropy/emacs-coworker-host-root)
+  "The default libs host root for coworker")
+
+(defmacro entropy/emacs-with-coworker-host (newhost &rest body)
+  (declare (indent defun))
+  `(let ()
+     (if (and (not (null ,newhost))
+              (file-exists-p ,newhost))
+         (let* ((entropy/emacs-coworker-host-root ,newhost)
+                (entropy/emacs-coworker-bin-host-path
+                 (expand-file-name "bin" entropy/emacs-coworker-host-root))
+                (entropy/emacs-coworker-lib-host-root
+                 (expand-file-name "lib" entropy/emacs-coworker-host-root)))
+           ,@body)
+       ,@body)))
+
 ;; ** garbage collection
 
 (defvar entropy/emacs-gc-threshold-basic 2000000

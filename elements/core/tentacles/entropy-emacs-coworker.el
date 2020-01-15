@@ -133,65 +133,86 @@
 
 (defmacro entropy/emacs-coworker--coworker-install-by-npm
     (server-name-string server-bins server-repo-string)
-  `(entropy/emacs-coworker--coworker-search
-    ,server-name-string
-    (concat "*eemacs " ,server-name-string " install*")
-    (list (cons 'file
-                (mapcar
-                 (lambda (x)
-                   (expand-file-name
-                    (format "node_modules/.bin/%s" x)
-                    entropy/emacs-coworker-lib-host-root))
-                 ',server-bins)))
-    "npm"
-    (lambda ()
-      (mkdir entropy/emacs-coworker-bin-host-path t)
-      (mkdir (expand-file-name "node_modules" entropy/emacs-coworker-lib-host-root) t)
-      (let ((lock-package-file
-             (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root)))
-        (when (file-exists-p lock-package-file)
-          (delete-file lock-package-file t))))
-    (lambda ()
-      (dolist (el ',server-bins)
-        (make-symbolic-link (expand-file-name
-                             (format "node_modules/.bin/%s" el)
-                             entropy/emacs-coworker-lib-host-root)
-                            (expand-file-name
-                             el
-                             entropy/emacs-coworker-bin-host-path)
-                            t))
-      (let ((lock-package-file
-             (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root)))
-        (when (file-exists-p lock-package-file)
-          (delete-file lock-package-file t))))
-    entropy/emacs-coworker-lib-host-root
-    "install" ,server-repo-string))
+  (if (not (or sys/win32p sys/cygwinp))
+      `(entropy/emacs-coworker--coworker-search
+        ,server-name-string
+        (concat "*eemacs " ,server-name-string " install*")
+        (list (cons 'file
+                    (mapcar
+                     (lambda (x)
+                       (expand-file-name
+                        (format "node_modules/.bin/%s" x)
+                        entropy/emacs-coworker-lib-host-root))
+                     ',server-bins)))
+        "npm"
+        (lambda ()
+          (mkdir entropy/emacs-coworker-bin-host-path t)
+          (mkdir (expand-file-name "node_modules" entropy/emacs-coworker-lib-host-root) t)
+          (let ((lock-package-file
+                 (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root)))
+            (when (file-exists-p lock-package-file)
+              (delete-file lock-package-file t))))
+        (lambda ()
+          (dolist (el ',server-bins)
+            (make-symbolic-link (expand-file-name
+                                 (format "node_modules/.bin/%s" el)
+                                 entropy/emacs-coworker-lib-host-root)
+                                (expand-file-name
+                                 el
+                                 entropy/emacs-coworker-bin-host-path)
+                                t))
+          (let ((lock-package-file
+                 (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root)))
+            (when (file-exists-p lock-package-file)
+              (delete-file lock-package-file t))))
+        entropy/emacs-coworker-lib-host-root
+        "install" ,server-repo-string)
+    `(entropy/emacs-coworker--coworker-search
+      ,server-name-string
+      (concat "*eemacs " ,server-name-string " install*")
+      (list (cons 'exec ',server-bins))
+      "npm" (lambda () nil) (lambda () nil)
+      default-directory
+      "install" "-g" ,server-repo-string)))
 
 (defmacro entropy/emacs-coworker--coworker-install-by-pip
     (server-name-string server-bins server-repo-string)
-  `(entropy/emacs-coworker--coworker-search
-    ,server-name-string
-    (format "*eemacs %s install <pip>*" ,server-name-string)
-    (list (cons 'file
-                (mapcar
-                 (lambda (x)
-                   (expand-file-name
-                    x
-                    entropy/emacs-coworker-bin-host-path))
-                 ',server-bins)))
-    "pip"
-    (lambda () nil)
-    (lambda ()
-      (dolist (el ',server-bins)
-        (unless (file-exists-p
-                 (expand-file-name el entropy/emacs-coworker-bin-host-path))
-          (make-symbolic-link
-           (expand-file-name el
-                             (expand-file-name "bin" entropy/emacs-coworker-host-root))
-           (expand-file-name el entropy/emacs-coworker-bin-host-path)
-           t))))
-    default-directory
-    "install" ,server-repo-string "--prefix" entropy/emacs-coworker-host-root))
+  (if (not (or sys/win32p sys/cygwinp))
+      `(entropy/emacs-coworker--coworker-search
+        ,server-name-string
+        (format "*eemacs %s install <pip>*" ,server-name-string)
+        (list (cons 'file
+                    (mapcar
+                     (lambda (x)
+                       (expand-file-name
+                        x
+                        entropy/emacs-coworker-bin-host-path))
+                     ',server-bins)))
+        "pip"
+        (lambda () nil)
+        (lambda ()
+          (dolist (el ',server-bins)
+            (unless (file-exists-p
+                     (expand-file-name el entropy/emacs-coworker-bin-host-path))
+              (make-symbolic-link
+               (expand-file-name el
+                                 (expand-file-name "bin" entropy/emacs-coworker-host-root))
+               (expand-file-name el entropy/emacs-coworker-bin-host-path)
+               t))))
+        default-directory
+        "--isolated"
+        "install" "-I"
+        ,server-repo-string "--prefix" entropy/emacs-coworker-host-root
+        "--no-compile")
+    `(entropy/emacs-coworker--coworker-search
+      ,server-name-string
+      (format "*eemacs %s install <pip>*" ,server-name-string)
+      (list (cons 'exec ',server-bins))
+      "pip"
+      (lambda () nil)
+      (lambda () nil)
+      default-directory
+      "install" ,server-repo-string "--no-compile")))
 
 ;; *** instances
 

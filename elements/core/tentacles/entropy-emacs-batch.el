@@ -91,8 +91,11 @@
 
 ;; *** install coworkers
 
-(defun entropy/emacs-batch--install-coworkers ()
+(defun entropy/emacs-batch--install-coworkers (&optional prefix)
+  (interactive "P")
   (let ((count 1)
+        (newhost (when prefix
+                   (read-directory-name "Coworker Host: " nil nil t)))
         (task-list '(("tern" . entropy/emacs-coworker-check-tern-server)
                      ("web-lsp" . entropy/emacs-coworker-check-web-lsp)
                      ("js-lsp" . entropy/emacs-coworker-check-js-lsp)
@@ -101,14 +104,16 @@
                      ("bash-lsp" . entropy/emacs-coworker-check-bash-lsp)
                      ("python-lsp" . entropy/emacs-coworker-check-python-lsp)
                      ("clangd-lsp" . entropy/emacs-coworker-check-clangd-lsp))))
-    (dolist (el task-list)
-      (entropy/emacs-message-do-message
-       "%s %s %s"
-       (cyan (format "🏠 %s: " count))
-       (yellow (format "'%s'" (car el)))
-       (green "installing ..."))
-      (funcall (cdr el))
-      (cl-incf count))))
+    (entropy/emacs-with-coworker-host
+      newhost
+      (dolist (el task-list)
+        (entropy/emacs-message-do-message
+         "%s %s %s"
+         (cyan (format "🏠 %s: " count))
+         (yellow (format "'%s'" (car el)))
+         (green "installing ..."))
+        (funcall (cdr el))
+        (cl-incf count)))))
 
 ;; *** backup `package-user-dir'
 (defun entropy/emacs-batch--backup-extensions ()

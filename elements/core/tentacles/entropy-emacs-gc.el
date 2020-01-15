@@ -45,15 +45,23 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
 
+(defmacro entropy/emacs-gc--with-message (&rest body)
+  (declare (indent defun))
+  `(let ()
+     (message "Wait! Garbage collecting ...")
+     ,@body
+     (message "")))
+
 (defun entropy/emacs-gc--increase-cons-threshold ()
   (setq gc-cons-threshold
         (+ 2000000
            gc-cons-threshold)))
 
 (defun entropy/emacs-gc--idle-time-recovery ()
-  (garbage-collect)
-  (setq gc-cons-threshold
-        entropy/emacs-gc-threshold-basic))
+  (entropy/emacs-gc--with-message
+    (garbage-collect)
+    (setq gc-cons-threshold
+          entropy/emacs-gc-threshold-basic)))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
@@ -64,9 +72,10 @@
   (entropy/emacs-gc--init-idle-gc entropy/emacs-garbage-collection-delay))
 
 (defun entropy/emacs-gc--focus-out-hook ()
-  (garbage-collect)
-  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
-  (garbage-collect)
+  (entropy/emacs-gc--with-message
+    (garbage-collect)
+    (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
+    (garbage-collect))
   (when (timerp entropy/emacs-garbage-collect-idle-timer)
     (cancel-timer entropy/emacs-garbage-collect-idle-timer)
     (setq entropy/emacs-garbage-collect-idle-timer nil)))
@@ -77,21 +86,26 @@
 delay seconds SECS."
   (interactive
    (list (let ((read-delay (string-to-number (read-string "Idle delay seconds: "))))
-           (if (eq read-delay 0)
+           (if (or (not (numberp read-delay))
+                   (<= read-delay 0))
                (error "Input idle delay not valid!")
              read-delay))))
   (when (timerp entropy/emacs-garbage-collect-idle-timer)
     (cancel-timer entropy/emacs-garbage-collect-idle-timer)
     (setq entropy/emacs-garbage-collect-idle-timer nil))
-  (entropy/emacs-gc--init-idle-gc secs))
+  (setq entropy/emacs-garbage-collection-delay secs)
+  (entropy/emacs-gc--init-idle-gc
+   entropy/emacs-garbage-collection-delay))
 
 (defun entropy/emacs-gc--enter-minibuffer-wmaster ()
-  (setq garbage-collection-messages nil))
+  (when (null entropy/emacs-garbage-collection-message-p)
+    (setq garbage-collection-messages nil)))
 
 (defun entropy/emacs-gc--exit-minibuffer-wmaster ()
   (setq garbage-collection-messages entropy/emacs-garbage-collection-message-p)
   (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
-  (garbage-collect))
+  (entropy/emacs-gc--with-message
+    (garbage-collect)))
 
 (entropy/emacs-lazy-with-load-trail
  gc-message
