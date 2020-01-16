@@ -258,7 +258,40 @@ https://github.com/akermu/emacs-libvterm/issues/55#issuecomment-468833300"
 segmentation fault."
     (unless (eq major-mode 'vterm-mode)
       (apply orig-func orig-args)))
-  (advice-add 'vterm-mode :around #'entropy/emacs-shell--vterm-mode-around-advice))
+  (advice-add 'vterm-mode :around #'entropy/emacs-shell--vterm-mode-around-advice)
+
+  ;; more vterm key bounding
+  
+  (defun entropy/emacs-shell-vterm-meta-left ()
+    (interactive)
+    (vterm-send-key "<left>" nil t nil))
+
+  (defun entropy/emacs-shell-vterm-meta-right ()
+    (interactive)
+    (vterm-send-key "<right>" nil t nil))
+
+  (defun entropy/emacs-shell-vterm-ctrl-left ()
+    (interactive)
+    (vterm-send-key "<left>" nil nil t))
+
+  (defun entropy/emacs-shell-vterm-ctrl-right ()
+    (interactive)
+    (vterm-send-key "<right>" nil nil t))
+
+  (defun entropy/emacs-shell-vterm-ctrl-backspace ()
+    (interactive)
+    (vterm-send-key "<backspace>" nil nil t))
+
+  (define-key vterm-mode-map [C-left]
+    #'entropy/emacs-shell-vterm-ctrl-left)
+  (define-key vterm-mode-map [C-right]
+    #'entropy/emacs-shell-vterm-ctrl-right)
+  (define-key vterm-mode-map [M-left]
+    #'entropy/emacs-shell-vterm-meta-left)
+  (define-key vterm-mode-map [M-right]
+    #'entropy/emacs-shell-vterm-meta-right)
+  (define-key vterm-mode-map [C-backspace]
+    #'entropy/emacs-shell-vterm-ctrl-backspace))
 
 ;; ** Shell Pop
 (use-package entropy-shellpop
