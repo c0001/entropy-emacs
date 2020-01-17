@@ -200,7 +200,7 @@
 (defun entropy/shellpop--vterm-supported ()
   (and (member "MODULES" (split-string system-configuration-features nil t))
        (not (eq system-type 'windows-nt))
-       (let ((execs '("cmake" "make" "gcc" "libtool"))
+       (let ((execs '("cmake" "make" "gcc" "libtool" "git"))
              judge)
          (catch :exit
            (dolist (exec execs)
