@@ -1195,6 +1195,7 @@ Temp file was \"~/~entropy-artist.txt\""
 ;; *** extra dependencies
 ;; **** librime for pyim
 (use-package liberime-config
+  :if (not sys/is-win-group)
   :ensure nil
   :commands (liberime-load)
   :preface

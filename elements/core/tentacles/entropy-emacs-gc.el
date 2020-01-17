@@ -104,8 +104,9 @@ delay seconds SECS."
 (defun entropy/emacs-gc--exit-minibuffer-wmaster ()
   (setq garbage-collection-messages entropy/emacs-garbage-collection-message-p)
   (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
-  (entropy/emacs-gc--with-message
-    (garbage-collect)))
+  ;; (entropy/emacs-gc--with-message
+  ;;   (garbage-collect))
+  )
 
 (entropy/emacs-lazy-with-load-trail
  gc-message
