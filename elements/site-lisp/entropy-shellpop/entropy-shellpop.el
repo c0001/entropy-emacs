@@ -196,11 +196,23 @@
 
 ;;; Code:
 ;;
+;;;; preface
+(defun entropy/shellpop--vterm-supported ()
+  (and (member "MODULES" (split-string system-configuration-features nil t))
+       (not (eq system-type 'windows-nt))
+       (let ((execs '("cmake" "make" "gcc" "libtool"))
+             judge)
+         (catch :exit
+           (dolist (exec execs)
+             (unless (executable-find exec)
+               (setq judge t)
+               (throw :exit nil))))
+         (if judge nil t))))
+
 ;;;; require
 (require 'cl-lib)
 (require 'shackle)
-(when (and (member "MODULES" (split-string system-configuration-features nil t))
-           (not (eq system-type 'windows-nt)))
+(when (entropy/shellpop--vterm-supported)
   (require 'vterm))
 (require 'entropy-common-library)
 
@@ -255,8 +267,7 @@
               :type-body
               (vterm-mode))))))
     (append register (list (alist-get 'eshell types)))
-    (when (and (member "MODULES" (split-string system-configuration-features nil t))
-               (not (eq system-type 'windows-nt)))
+    (when (entropy/shellpop--vterm-supported)
       (append register (list (alist-get 'vterm types))))
     (when (not (eq system-type 'windows-nt))
       (append register (list (alist-get 'ansi-term types))))
