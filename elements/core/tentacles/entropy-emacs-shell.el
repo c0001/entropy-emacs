@@ -361,7 +361,15 @@ segmentation fault."
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
                       (plist-get entropy/emacs-shell--shpop-types :ansiterm)))
           (when (and (member "MODULES" (split-string system-configuration-features nil t))
-                     (not (eq system-type 'windows-nt)))
+                     (not (eq system-type 'windows-nt))
+                     (let ((execs '("cmake" "make" "gcc" "libtool"))
+                           judge)
+                       (catch :exit
+                         (dolist (exec execs)
+                           (unless (executable-find exec)
+                             (setq judge t)
+                             (throw :exit nil))))
+                       (if judge nil t)))
             (add-to-list 'entropy/shellpop-pop-types
                          (plist-get entropy/emacs-shell--shpop-types :vterm))))
          (sys/win32p
