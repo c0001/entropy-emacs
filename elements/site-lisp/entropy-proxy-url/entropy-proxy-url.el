@@ -153,6 +153,8 @@
 ;;
 ;;; Change log:
 
+;; - [2020-01-18] bug fix for boundp check for `w3m-command-arguments-alist'
+
 ;; - [2020-01-11] *version 0.1.1* release out
 
 ;;   Remove force requiring `w3m` at load time excepted that variable
@@ -295,11 +297,14 @@ protocal prefix appended. "
 ;;;;; core functional
 ;;;;;; common retrieve recovery
 (defun entropy/proxy-url--rec-for-common ()
-  (when (and (not (null entropy/proxy-url--w3m-load-effectively))
-             (alist-get ".*" w3m-command-arguments-alist nil nil 'equal))
-    (setq w3m-command-arguments-alist
-          (delete (assoc ".*" w3m-command-arguments-alist)
-                  w3m-command-arguments-alist))))
+  (cond
+   ((eq major-mode 'w3m-mode)
+    (when (and (not (null entropy/proxy-url--w3m-load-effectively))
+               (boundp 'w3m-command-arguments-alist)
+               (alist-get ".*" w3m-command-arguments-alist nil nil 'equal))
+      (setq w3m-command-arguments-alist
+            (delete (assoc ".*" w3m-command-arguments-alist)
+                    w3m-command-arguments-alist))))))
 
 ;;;;;; underline proxy mechanism
 (defun entropy/proxy-url--with-proxy-cl-args-body (args)
