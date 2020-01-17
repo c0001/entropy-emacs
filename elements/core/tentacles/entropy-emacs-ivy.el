@@ -421,7 +421,7 @@ type by function `entropy/emacs-transfer-wvol'"
     "Temporally variable storing git repository root dir,
 this variable used to patching for origin `counsel-git'.")
 
-  (defun counsel-git-cands ()
+  (defun counsel-git-cands (&rest _)
     (let ((default-directory (counsel-locate-git-root)))
       (setq entropy/emacs-ivy-counsel-git-root default-directory)
       (split-string
