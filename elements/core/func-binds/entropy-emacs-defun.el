@@ -295,11 +295,13 @@ in case that file does not provide any feature."
           (blue "done!")))
        (cond
         (entropy/emacs-fall-love-with-pdumper
-         (add-hook 'entropy/emacs-pdumper-load-hook
-                   ',func))
+         (setq entropy/emacs-pdumper-load-hook
+               (append entropy/emacs-pdumper-load-hook
+                       '(,func))))
         (t
-         (add-hook (entropy/emacs-select-x-hook)
-                   ',func))))))
+         (set (entropy/emacs-select-x-hook)
+              (append (symbol-value (entropy/emacs-select-x-hook))
+                      '(,func))))))))
 
 (defun entropy/emacs-lazy-initial-form
     (list-var initial-func-suffix-name initial-var-suffix-name abbrev-name adder-name &rest form_args)
@@ -332,16 +334,17 @@ in case that file does not provide any feature."
               (cyan (format "%f" (- end-time head-time)))
               (green "seconds."))
              (redisplay t))))
-       (cond
-        ((and (not entropy/emacs-custom-enable-lazy-load)
-              (not entropy/emacs-fall-love-with-pdumper))
-         (add-hook (entropy/emacs-select-x-hook) #',func))
-        (t (defun ,adder-func ()
-             (dolist (item ,list-var)
-               (if (not (null ,adder-flag))
-                   (,adder-type item ,adder-flag ',func)
-                 (,adder-type item ',func))))
-           (add-hook (entropy/emacs-select-x-hook) ',adder-func))))))
+       (let ((hook (entropy/emacs-select-x-hook)))
+         (cond
+          ((and (not entropy/emacs-custom-enable-lazy-load)
+                (not entropy/emacs-fall-love-with-pdumper))
+           (set hook (append (symbol-value hook) '(,func))))
+          (t (defun ,adder-func ()
+               (dolist (item ,list-var)
+                 (if (not (null ,adder-flag))
+                     (,adder-type item ,adder-flag ',func)
+                   (,adder-type item ',func))))
+             (set hook (append (symbol-value hook) '(,adder-func)))))))))
 
 (defmacro entropy/emacs-lazy-initial-for-hook
     (hooks initial-func-suffix-name initial-var-suffix-name &rest body)

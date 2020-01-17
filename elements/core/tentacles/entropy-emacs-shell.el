@@ -317,7 +317,8 @@ segmentation fault."
           (kbd (concat entropy/emacs-top-key " " key))
           func))))
 
-  (when (member "MODULES" (split-string system-configuration-features nil t))
+  (when (and (member "MODULES" (split-string system-configuration-features nil t))
+             (not (eq system-type 'windows-nt)))
     (defun entropy/emacs-shell--shellpop-bindkey-for-vterm (func)
       (entropy/emacs-!set-key (kbd "=") func)
       (unless (display-graphic-p)
@@ -359,7 +360,8 @@ segmentation fault."
           (setq entropy/shellpop-pop-types
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
                       (plist-get entropy/emacs-shell--shpop-types :ansiterm)))
-          (when (member "MODULES" (split-string system-configuration-features nil t))
+          (when (and (member "MODULES" (split-string system-configuration-features nil t))
+                     (not (eq system-type 'windows-nt)))
             (add-to-list 'entropy/shellpop-pop-types
                          (plist-get entropy/emacs-shell--shpop-types :vterm))))
          (sys/win32p

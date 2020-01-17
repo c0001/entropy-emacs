@@ -850,7 +850,7 @@ emacs."
 ;; ** Set transparenct of emacs frame
 (global-set-key (kbd "<f6>") 'entropy/emacs-basic-loop-alpha)
 
-(defun entropy/emacs-basic-loop-alpha (prefix)
+(defun entropy/emacs-basic-loop-alpha (&optional prefix)
   (interactive "P")
   (let ((h (car entropy/emacs-loop-alpha-value))
         (bgtr

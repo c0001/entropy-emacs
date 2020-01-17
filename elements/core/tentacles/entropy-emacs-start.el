@@ -323,8 +323,6 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 Emacs will auto close after 6s ......")))
     ;; run after init hooks
     (unless entropy/emacs-start--is-init-with-install
-      (set aft-hook
-           (reverse (symbol-value aft-hook)))
       (entropy/emacs-message-do-message
        (cyan "After load initilizing ..."))
       (run-hooks aft-hook)
@@ -469,10 +467,7 @@ Emacs will auto close after 6s ......")))
    ((not entropy/emacs-minimal-start)
     (entropy/emacs-start--init-X))
    (entropy/emacs-minimal-start
-    (entropy/emacs-start--init-M)))
-  (when entropy/emacs-fall-love-with-pdumper
-    (setq entropy/emacs-pdumper-load-hook
-          (reverse entropy/emacs-pdumper-load-hook))))
+    (entropy/emacs-start--init-M))))
 
 (require 'entropy-emacs-ext)
 ;; On win10 there's default global utf-8 operation system based
