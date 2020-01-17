@@ -57,8 +57,8 @@
 ;; The internal builtin shell popup types are:
 
 ;; - for eshell: =<f9>=
-;; - for ansi-term: =<f10>=
-;; - for vterm: =<f12>=
+;; - for ansi-term: =<f10>= (windows native exclude)
+;; - for vterm: =<f12>= (windows native exclude)
 
 ;; You may customize variable =entropy/shellpop-pop-types= for more
 ;; specification, see its doc-string for more.
@@ -180,6 +180,10 @@
 ;; mind.
 
 ;;; Changelog
+;; - [2020-01-18] bug fixed
+
+;;   Remove ansiterm and vterm shellpop types enabled in windows.
+
 ;; - [2020-01-09] bug fixed
   
 ;;   Remove vterm feature on non `--with-modules` feature emacs session
@@ -195,7 +199,8 @@
 ;;;; require
 (require 'cl-lib)
 (require 'shackle)
-(when (member "MODULES" (split-string system-configuration-features nil t))
+(when (and (member "MODULES" (split-string system-configuration-features nil t))
+           (not (eq system-type 'windows-nt)))
   (require 'vterm))
 (require 'entropy-common-library)
 
@@ -223,32 +228,39 @@
   :group 'entropy/shellpop-customized-group)
 
 (defcustom entropy/shellpop-pop-types
-  (let ((base
-         `((:type-name
+  (let (register
+        (types
+         `((ansi-term
+            :type-name
             "eemacs-ansiterm"
             :shackle-size 0.3
             :shackle-align below
             :type-keybind ,entropy/shellpop-ansiterm-popup-key
             :type-body
             (ansi-term "/bin/bash"))
-           (:type-name
+           (eshell
+            :type-name
             "eemacs-eshell"
             :shackle-size 0.3
             :shackle-align below
             :type-keybind ,entropy/shellpop-eshell-popup-key
             :type-body
-            (eshell))))
-        (vterm
-         `((:type-name
-            "eemacs-vterm"
-            :shackle-size 0.3
-            :shackle-align bottom
-            :type-keybind ,entropy/shellpop-vterm-popup-key
-            :type-body
-            (vterm-mode)))))
-    (if (member "MODULES" (split-string system-configuration-features nil t))
-        (append vterm base)
-      base))
+            (eshell))
+           `((vterm
+              :type-name
+              "eemacs-vterm"
+              :shackle-size 0.3
+              :shackle-align bottom
+              :type-keybind ,entropy/shellpop-vterm-popup-key
+              :type-body
+              (vterm-mode))))))
+    (append register (list (alist-get 'eshell types)))
+    (when (and (member "MODULES" (split-string system-configuration-features nil t))
+               (not (eq system-type 'windows-nt)))
+      (append register (list (alist-get 'vterm types))))
+    (when (not (eq system-type 'windows-nt))
+      (append register (list (alist-get 'ansi-term types))))
+    register)
     "Shell pop types defination.
 
 It's a list of which each element is plist structed form called

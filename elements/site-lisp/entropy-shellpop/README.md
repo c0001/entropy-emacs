@@ -1,20 +1,20 @@
 
-- [entropy-shellpop.el &#x2014; popup shell buffer for transient](#org15029f9)
-- [Copyright (C) 20190829  Entropy](#org22ff15e)
-- [Commentary:](#orgbdafc02)
-- [Configuration:](#org2128d2f)
-- [Development](#orgfa7805c)
-  - [`shellpop-type-register` data structure](#org62e1644)
-  - [`shellpop-buffer-object` data structure](#org967cbb0)
-  - [Extensible developing](#orgbc00a01)
-- [Changelog](#org4000443)
+- [entropy-shellpop.el &#x2014; popup shell buffer for transient](#org62148f5)
+- [Copyright (C) 20190829  Entropy](#org2f28b0c)
+- [Commentary:](#orgbbf7487)
+- [Configuration:](#org7bfac72)
+- [Development](#orgf62cdbf)
+  - [`shellpop-type-register` data structure](#org5e88844)
+  - [`shellpop-buffer-object` data structure](#org712c318)
+  - [Extensible developing](#org92cdb41)
+- [Changelog](#orge77f562)
 
-<a id="org15029f9"></a>
+<a id="org62148f5"></a>
 
 # entropy-shellpop.el &#x2014; popup shell buffer for transient
 
 
-<a id="org22ff15e"></a>
+<a id="org2f28b0c"></a>
 
 # Copyright (C) 20190829  Entropy
 
@@ -42,7 +42,7 @@
     Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3") (vterm "0.0.1"))
 
 
-<a id="orgbdafc02"></a>
+<a id="orgbbf7487"></a>
 
 # Commentary:
 
@@ -55,7 +55,7 @@ Allow `multi-shell-buffer` coexistence independently, with completion query prom
 This package was inspired by [shell-pop-el](http://github.com/kyagi/shell-pop-el), but built based on purely fundamental, for optimizing features' detailes and restructed the popup feature rely on [shackle](https://github.com/wasamasa/shackle).
 
 
-<a id="org2128d2f"></a>
+<a id="org7bfac72"></a>
 
 # Configuration:
 
@@ -69,20 +69,20 @@ Just cloning this repo under the path sepcified on your wish, and added it to yo
 The internal builtin shell popup types are:
 
 -   for eshell: `<f9>`
--   for ansi-term: `<f10>`
--   for vterm: `<f12>`
+-   for ansi-term: `<f10>` (windows native exclude)
+-   for vterm: `<f12>` (windows native exclude)
 
 You may customize variable `entropy/shellpop-pop-types` for more specification, see its doc-string for more.
 
 
-<a id="orgfa7805c"></a>
+<a id="orgf62cdbf"></a>
 
 # Development
 
 For PR and extented aiming for, `entropy-shellpop` provide its own code context map, a illustration for thus as below sections:
 
 
-<a id="org62e1644"></a>
+<a id="org5e88844"></a>
 
 ## `shellpop-type-register` data structure
 
@@ -140,7 +140,7 @@ Var `entropy/shellpop--type-register` was one implementation instance used for t
     **Interger** to indicate which shellpop buffer of this shellpop-type is used currently.
 
 
-<a id="org967cbb0"></a>
+<a id="org712c318"></a>
 
 ## `shellpop-buffer-object` data structure
 
@@ -156,16 +156,20 @@ The probe function recieve two arguments i.e. the `shellpop-type-name` and the b
 4.  The buffer-naem of the indexed shellpop buffer, key `:buffer-name` indicated that.
 
 
-<a id="orgbc00a01"></a>
+<a id="org92cdb41"></a>
 
 ## Extensible developing
 
 As for compability case thought for, I think the `shellpop-type-register` and `shellpop-buffer-object` provision was enoughly for you to write some tools to enhance the shellpop behavior, and given the rich way to experience thus. Just do with your flying mind.
 
 
-<a id="org4000443"></a>
+<a id="orge77f562"></a>
 
 # Changelog
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2020-01-18 Sat] </span></span> bug fixed
+    
+    Remove ansiterm and vterm shellpop types enabled in windows.
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2020-01-09 Thu] </span></span> bug fixed
     
@@ -178,5 +182,5 @@ As for compability case thought for, I think the `shellpop-type-register` and `s
     The first release of `entropy-sdcv`
 
 
-<a id="orgdf8a464"></a>
+<a id="org3f592b6"></a>
 
