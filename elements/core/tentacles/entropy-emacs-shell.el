@@ -362,7 +362,7 @@ segmentation fault."
                       (plist-get entropy/emacs-shell--shpop-types :ansiterm)))
           (when (and (member "MODULES" (split-string system-configuration-features nil t))
                      (not (eq system-type 'windows-nt))
-                     (let ((execs '("cmake" "make" "gcc" "libtool"))
+                     (let ((execs '("git" "cmake" "make" "gcc" "libtool"))
                            judge)
                        (catch :exit
                          (dolist (exec execs)
