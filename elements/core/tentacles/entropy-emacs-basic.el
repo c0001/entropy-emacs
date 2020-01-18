@@ -69,7 +69,8 @@
 ;; Refer:
 ;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597
 ;; For now [2019-08-08 Thu 19:23:42] it seems occur on w32 port only
-(when (and (version< "26.1" emacs-version)
+(when (and (or (version= "26.2" emacs-version)
+               (version= "26.3" emacs-version))
            sys/win32p)
   (advice-add #'gnutls-available-p :override #'ignore))
 
