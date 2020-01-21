@@ -137,13 +137,16 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 ;; ** ivy hydra
 ;; Additional key bindings for Ivy
 (use-package ivy-hydra
-  :commands ivy-hydra-read-action
   :init
   (when (version< "26" emacs-version)
     ;; `ivy-dispatching-done' can not display minibuffer hint prompt
     ;; when emacs version upper than 26. see
     ;; https://github.com/abo-abo/swiper/issues/2397 for details
-    (setq ivy-read-action-function #'ivy-hydra-read-action)))
+    (entropy/emacs-lazy-load-simple 'ivy
+      (require 'ivy-hydra)
+      (when (fboundp 'ivy-hydra-read-action)
+        ;; using new ivy hydra api in latest ivy update version
+        (setq ivy-read-action-function #'ivy-hydra-read-action)))))
 
 ;; ** swiper
 
