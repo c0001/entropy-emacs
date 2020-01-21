@@ -36,166 +36,214 @@
 (defvar entropy-emacs-packages nil)
 
 (setq entropy-emacs-packages
-      `(go-mode
+      `(
+        ;; elpa&melpa packags
+        ac-php
+        ac-php-core
+        alert
         all-the-icons
-        eldoc-eval
-        shrink-path
-        ibuffer-projectile
-        symbol-overlay
-        highlight-parentheses
-        highlight-indent-guides
-        rainbow-mode
-        rainbow-delimiters
-        hl-todo
-        diff-hl
-        volatile-highlights
+        all-the-icons-dired
+        all-the-icons-ivy
+        anaconda-mode
+        async
+        atom-dark-theme
+        atom-one-dark-theme
+        atomic-chrome
+        auto-complete
+        auto-sudoedit
+        auto-yasnippet
+        autothemer
+        avy
+        beacon
+        benchmark-init
+        bind-key
+        bing-dict
+        birds-of-paradise-plus-theme
+        browse-at-remote
+        browse-kill-ring
+        buffer-move
+        cal-china-x
+        chinese-word-at-point
+        chocolate-theme
+        color-theme-sanityinc-tomorrow
+        command-log-mode
+        company
+        company-anaconda
+        company-c-headers
+        company-irony
+        company-lsp
+        company-php
+        ,(unless (version< emacs-version "26") 'company-posframe)
+        company-quickhelp
+        company-shell
+        company-tern
+        company-web
+        copyit
         counsel
         counsel-css
-        ivy-xref
-        avy
-        all-the-icons-ivy
-        ivy-rich
-        helm-pt
-        helm-ag
+        counsel-ffdata
+        counsel-world-clock
+        darkokai-theme
+        dash
+        dash-functional
+        diff-hl
+        diminish
+        dired-hacks-utils
+        dired-quick-sort
+        dired-rainbow
+        disable-mouse
+        discover-my-major
+        doneburn-theme
+        doom-modeline
+        doom-themes
+        el2org
+        eldoc-eval
+        elfeed
+        elisp-refs
+        elisp-slime-nav
+        emacsql
+        emmet-mode
+        emms
+        epl
+        esup
+        eterm-256color
+        eyebrowse
+        f
         find-file-in-project
-        markdown-mode
-        markdown-preview-mode
+        ghub
+        git-commit
+        git-messenger
+        git-timemachine
+        gitattributes-mode
+        gitconfig-mode
+        github-theme
+        gitignore-mode
+        gntp
+        go-mode
+        google-translate
+        gotham-theme
+        helm
+        helm-ag
+        helm-core
+        helm-pt
+        hide-mode-line
+        highlight-indent-guides
+        highlight-parentheses
+        hl-todo
+        ht
+        htmlize
+        hydra
+        ialign
+        ibuffer-projectile
+        impatient-mode
+        irony
+        irony-eldoc
+        ivy
+        ivy-hydra
+        ivy-rich
+        ivy-xref
+        js2-mode
+        js2-refactor
+        json-mode
+        json-reformat
+        json-snatcher
+        klere-theme
+        log4e
+        loop
         lsp-mode
         lsp-ui
         lua-mode
-        powerline
-        spaceline
-        spaceline-all-the-icons
-        doom-modeline
-        hide-mode-line
-        diminish
-        bind-key
-        ivy
-        dash
-        benchmark-init
-        htmlize
-        org-bullets
-        ox-reveal
-        org-pomodoro
-        org-download
-        toc-org
-        poporg
-        popwin
-        anaconda-mode
-        yafolding
-        outshine
-        eterm-256color
-        openwith
-        beacon
-        visual-regexp
-        ialign
-        atomic-chrome
-        elfeed
-        search-web
-        w3m
-        discover-my-major
-        youdao-dictionary
-        google-translate
-        bing-dict
-        command-log-mode
-        pomidor
-        ,(when (not (eq entropy/emacs-use-extensions-type 'origin)) 'maple-preview)
-        counsel-world-clock
-        copyit
-        esup
-        el2org
-        ox-gfm
-        counsel-ffdata
-        neotree
-        with-editor
-        ghub
-        git-commit
+        lv
+        macrostep
         magit
-        ssh-agency
-        magit-popup
         magit-gitflow
+        magit-popup
         magit-svn
-        git-messenger
-        git-timemachine
-        smeargle
-        gitattributes-mode
-        gitconfig-mode
-        gitignore-mode
-        browse-at-remote
-        solaire-mode
+        makey
+        markdown-mode
+        markdown-preview-mode
+        material-theme
+        memoize
+        multi-term
+        multiple-cursors
+        names
+        neotree
+        openwith
+        org-bullets
+        org-download
+        org-pomodoro
+        outorg
+        outshine
+        ox-gfm
+        ox-reveal
         page-break-lines
-        web-mode
-        emmet-mode
-        json-mode
-        js2-mode
-        tern
-        js2-refactor
-        skewer-mode
-        impatient-mode
-        web-beautify
+        paradox
         php-mode
-        ac-php
-        yasnippet
-        yasnippet-snippets
-        auto-yasnippet
-        irony
-        irony-eldoc
-        window-number
-        eyebrowse
-        windresize
-        buffer-move
-        dired-quick-sort
-        dired-rainbow
-        all-the-icons-dired
-        shackle
-        slime
-        slime-company
-        which-key
-        auto-sudoedit
-        disable-mouse
+        pkg-info
+        pomidor
+        poporg
+        popup
+        popwin
+        pos-tip
+        ,(unless (version< emacs-version "26") 'posframe)
+        powerline
+        projectile
         pyim
         pyim-basedict
-        ,(unless (version< emacs-version "26") 'posframe)
-        cal-china-x
-        company
-        ,(unless (version< emacs-version "26") 'company-posframe)
-        company-quickhelp
-        company-lsp
-        company-shell
-        company-web
-        company-tern
-        company-php
-        company-c-headers
-        company-irony
-        company-anaconda
-        zeal-at-point
-        macrostep
-        elisp-slime-nav
-        elisp-refs
-        emms
-        visual-ascii-mode
-        vterm
-
-        ;; themes
-        doom-themes
-        atom-dark-theme
-        atom-one-dark-theme
-        autothemer
-        birds-of-paradise-plus-theme
-        color-theme-sanityinc-tomorrow
-        chocolate-theme
-        darkokai-theme
-        doneburn-theme
-        github-theme
-        gotham-theme
-        klere-theme
-        material-theme
+        pythonic
+        rainbow-delimiters
+        rainbow-mode
+        s
+        search-web
+        shackle
+        shell-pop
+        shrink-path
+        simple-httpd
+        skewer-mode
+        slime
+        slime-company
+        smeargle
+        solaire-mode
+        spaceline
+        spaceline-all-the-icons
         spacemacs-theme
+        spinner
         srcery-theme
+        ssh-agency
         sublime-themes
+        swiper
+        symbol-overlay
+        tern
+        toc-org
+        transient
+        treepy
         ujelly-theme
         use-package
-        xclip))
+        visual-ascii-mode
+        visual-regexp
+        volatile-highlights
+        vterm
+        w3m
+        web-beautify
+        web-completion-data
+        web-mode
+        web-server
+        websocket
+        which-key
+        window-number
+        with-editor
+        xcscope
+        xr
+        xterm-color
+        yafolding
+        yasnippet
+        yasnippet-snippets
+        youdao-dictionary
+        zeal-at-point
+
+        ;; eemacs-ext archived packages
+        ,(when (not (eq entropy/emacs-use-extensions-type 'origin)) 'maple-preview)
+        ))
 
 ;; filter packages required tree to remove all nil entry
 (let (rtn)

@@ -85,74 +85,6 @@
 ;; *** ivy config
   :config
 
-  ;; redefines `ivy-read-action' for fix some bug
-  (defun ivy-read-action ()
-    "Change the action to one of the available ones.
-
-Return nil for `minibuffer-keyboard-quit' or wrong key during the
-selection, non-nil otherwise.
-
-Notice: 
-
-*This function have been modified for fixing the bug of:*
-
-If `buffer-list' includ buffer \"Backtrace\" buffer this func will
-not performed normally.
-
-The core error founded with was the snippet: \\
-~(setq key (concat key (string (read-key hint))))~
-
-Which the part ~(read-key hint)~ will return one list as 
-='(t . NUM)=  instead of the common return as one number, this
-will cause func =string= sign the error:
-#+BEGIN_EXAMPLE
-(wrong-type-argument characterp (t . NUM))
-#+END_EXAMPLE
-
-To solve this problem was adding one condition checker for judge
-which type of value be:
-#+BEGIN_SRC emacs-lisp
-  (or (condition-case error (string hint-value) (error nil))
-      (condition-case error (string (cdr hint-value))))
-  ;; hint-value was can be defined in one 'let' form for func ~(read-key hint)~.
- #+END_SRC
-"
-    (interactive)
-    (let ((actions (ivy-state-action ivy-last)))
-      (if (not (ivy--actionp actions))
-          t
-        (let* ((hint (funcall ivy-read-action-format-function (cdr actions)))
-               (resize-mini-windows t)
-               (key "")
-               action-idx)
-          (while (and (setq action-idx (cl-position-if
-                                        (lambda (x)
-                                          (string-prefix-p key (car x)))
-                                        (cdr actions)))
-                      (not (string= key (car (nth action-idx (cdr actions))))))
-            (let* ((hint-value (read-key hint))
-                   hint-string)
-              (setq hint-string
-                    (or
-                     (condition-case error
-                         (string hint-value)
-                       (error nil))
-                     (condition-case error
-                         (string (cdr hint-value))
-                       (error nil))))
-              (if hint-string
-                  (setq key (concat key hint-string))
-                (error "Ivy hint error!"))))
-          (cond ((member key '("" ""))
-                 nil)
-                ((null action-idx)
-                 (message "%s is not bound" key)
-                 nil)
-                (t
-                 (message "")
-                 (setcar actions (1+ action-idx))
-                 (ivy-set-action actions)))))))
-
   (defun entropy/emacs-ivy--ivy-read-action-after-advice (&rest args)
     "Interrupting rest process when `this-command' was
 `ivy-read-action'."
@@ -169,30 +101,49 @@ which type of value be:
     (define-key ivy-mode-map (kbd "ESC ESC") 'top-level))
 
 
-  ;; Redefine the ivy-partial-or-done to prevent double click '<tab>'
-
+  ;;; *Redefine the ivy-partial-or-done to prevent double click '<tab>'*
   ;; This portion give the minor changed for disabled double tab in
   ;; ivy completion for preventing accidental operation of double hint
   ;; for 'TAB'.
+
   (defun ivy-partial-or-done ()
     "Complete the minibuffer text as much as possible.
 If the text hasn't changed as a result, forward to `ivy-alt-done'."
     (interactive)
-    (if (and (eq (ivy-state-collection ivy-last) #'read-file-name-internal)
-             (or (and (equal ivy--directory "/")
-                      (string-match "\\`[^/]+:.*\\'" ivy-text))
-                 (string-match "\\`/" ivy-text)))
-        (let ((default-directory ivy--directory)
-              dir)
-          (minibuffer-complete)
-          (setq ivy-text (ivy--input))
-          (when (setq dir (ivy-expand-file-if-directory ivy-text))
-            (ivy--cd dir)))
+    (cond
+     ((and completion-cycle-threshold (< (length ivy--all-candidates) completion-cycle-threshold))
+      (let ((ivy-wrap t))
+        (ivy-next-line)))
+     ((and (eq (ivy-state-collection ivy-last) #'read-file-name-internal)
+           (or (and (equal ivy--directory "/")
+                    (string-match-p "\\`[^/]+:.*\\'" ivy-text))
+               (= (string-to-char ivy-text) ?/)))
+      (let ((default-directory ivy--directory)
+            dir)
+        (minibuffer-complete)
+        (setq ivy-text (ivy--input))
+        (when (setq dir (ivy-expand-file-if-directory ivy-text))
+          (ivy--cd dir))))
+     (t
       (or (ivy-partial)
           (when (or (eq this-command last-command)
                     (eq ivy--length 1))
             (message ":) evil smile ^v^"))))))
 
+  )
+
+
+
+;; ** ivy hydra
+;; Additional key bindings for Ivy
+(use-package ivy-hydra
+  :commands ivy-hydra-read-action
+  :init
+  (when (version< "26" emacs-version)
+    ;; `ivy-dispatching-done' can not display minibuffer hint prompt
+    ;; when emacs version upper than 26. see
+    ;; https://github.com/abo-abo/swiper/issues/2397 for details
+    (setq ivy-read-action-function #'ivy-hydra-read-action)))
 
 ;; ** swiper
 
