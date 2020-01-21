@@ -1,6 +1,6 @@
 ;;; entropy-global-readonly-mode --- Simple global read-only mode
 ;;
-;;; Copyright (C) 20190911  Entropy
+;;; Copyright (C) 20200221  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
@@ -171,7 +171,16 @@
 ;;
 ;; The defination won't be recovered when disable =entropy/grom-mode=,
 ;; but those advice, funcs =entropy/grom-org-setoff= gives the way for.
-;; 
+;;
+;;; Changelog:
+
+;; - [2020-02-21] disable prompt for unlock buffer 
+
+;;   "for simply and quickly toggle"
+
+;; - [2018-08-01] version 0.1.0 release
+
+
 ;;; Code:
 
 ;;;; declare variable
@@ -292,8 +301,7 @@ There's two choice:
 (defun entropy/grom-read-only-buffer ()
   (interactive)
   (if buffer-read-only
-      (if (yes-or-no-p "Do you really want to quit <Readonly Mode> ?")
-          (read-only-mode 0))
+      (read-only-mode 0)
     (if (and (not (string-match-p "\\*Minibuf.*\\*" (buffer-name)))
              (not (string-match-p "CAPTURE-.*.org$" (buffer-name))))
         (progn
