@@ -230,8 +230,10 @@
         web-server
         websocket
         which-key
+        windresize
         window-number
         with-editor
+        xclip
         xcscope
         xr
         xterm-color
