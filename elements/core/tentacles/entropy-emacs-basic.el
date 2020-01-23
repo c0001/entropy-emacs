@@ -140,12 +140,13 @@
             (insert initial-scratch-message)))))
     bfn))
 
-(unless entropy/emacs-fall-love-with-pdumper
+(entropy/emacs-lazy-with-load-trail
+ init-eemamcs-scratch-buffer
   (entropy/emacs-lazy-load-simple 'entropy-emacs-structure
     (entropy/emacs-basic--scratch-buffer-file-binding)))
 
 ;; Create a new scratch buffer
-(defun entropy/emacs-tools-create-scratch-buffer ()
+(defun entropy/emacs-basic-create-scratch-buffer ()
   "Create a scratch buffer."
   (interactive)
   (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))

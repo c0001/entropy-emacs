@@ -232,10 +232,18 @@ moving operation will cause non-terminated looping proceeding."
     'entropy/emacs-structure--outshine-pop-imenu)
   
   (entropy/emacs-lazy-initial-for-hook
-   '(emacs-lisp-mode-hook)
+   '(emacs-lisp-mode-hook lisp-interaction-mode-hook)
    "outshine-mode" "outshine-mode"
    (outshine-mode +1)
-   (add-hook 'emacs-lisp-mode-hook 'outshine-mode))
+   (add-hook 'emacs-lisp-mode-hook 'outshine-mode)
+   (add-hook 'lisp-interaction-mode-hook 'outshine-mode))
+  (entropy/emacs-lazy-with-load-trail
+   enable-outshine-for-scratch-buffer
+   (mapc (lambda (buffer)
+           (when (string= (buffer-name buffer) "*scratch*")
+             (with-current-buffer buffer
+               (outshine-mode +1))))
+         (buffer-list)))
   
   :config
 
