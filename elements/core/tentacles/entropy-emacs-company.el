@@ -150,11 +150,16 @@
 ;; ** company core
 (use-package company
   ;; :diminish company-mode  ;;; This comment to diminish the modline
-  :commands (global-company-mode)
+  :commands (global-company-mode
+             company-complete
+             company-dabbrev
+             company-files
+             company-yasnippet
+             company-active-map)
+  
 ;; *** bind-key  
   :bind (("M-/" . company-complete)
          ("M-\\" . company-dabbrev)
-         ("M-[" . company-files)
          ("C-c C-y" . company-yasnippet)
          :map company-active-map
          ("C-p" . company-select-previous)
@@ -163,6 +168,15 @@
          :map company-search-map
          ("C-p" . company-select-previous)
          ("C-n" . company-select-next))
+;; *** preface
+
+  (defun entropy/emacs-company-files (command)
+    (interactive (list 'interactive))
+    (unless (or buffer-read-only
+                (equal (buffer-name)
+                       entropy/emacs-dashboard-buffer-name))
+      (company-files command)))
+  
 ;; *** init for load  
   :init
   (entropy/emacs-lazy-with-load-trail
@@ -177,7 +191,8 @@
                             entropy/emacs-company-elisp-top-backends)
                )))
          (buffer-list))
-   (entropy/emacs-company-yas-for-docs-init))
+   (entropy/emacs-company-yas-for-docs-init)
+   (entropy/emacs-!set-key (kbd "]") #'entropy/emacs-company-files))
 
   (when (eq entropy/emacs-use-ide-type 'traditional)
     (entropy/emacs-lazy-load-simple
