@@ -170,6 +170,7 @@
          ("C-n" . company-select-next))
 ;; *** preface
 
+  :preface
   (defun entropy/emacs-company-files (command)
     (interactive (list 'interactive))
     (unless (or buffer-read-only
