@@ -43,6 +43,27 @@
   :bind (("<f8>" . entropy/emacs-neotree-neotree-refresh-for-current)
          ("C-<f8>" . entropy/emacs-neotree-neotree-close))
 
+  :preface
+  (defun entropy/emacs-neotree-neo-open-with (full-path &rest _)
+    "Open neotree node item in external apps powered by
+`entropy-open-with'."
+    (interactive)
+    (require 'entropy-open-with)
+    (entropy/open-with-match-open (list full-path)))
+
+  (defun entropy/emacs-neotree-neo-up-dir (&rest _)
+    (interactive)
+    (goto-char (point-min))
+    (neotree-select-up-node))
+
+  (defun entropy/emacs-neotree-neo-load-node (full-path &rest _)
+    (interactive)
+    (if (file-directory-p full-path)
+        (progn
+          (add-to-list 'load-path (expand-file-name full-path))
+          (message "Adding load path '%s' ..." full-path))
+      (load full-path)))
+
   :init
   (setq neo-theme (if (or (display-graphic-p) entropy/emacs-fall-love-with-pdumper) 'icons 'arrow)
         neo-autorefresh t
@@ -58,19 +79,24 @@
     (define-key neotree-mode-map (kbd "M-RET")
       (neotree-make-executor
        :file-fn 'entropy/emacs-neotree-neo-open-with
-       :dir-fn  'entropy/emacs-neotree-neo-open-with)))
+       :dir-fn  'entropy/emacs-neotree-neo-open-with))
+    (define-key neotree-mode-map (kbd "<M-up>")
+      #'entropy/emacs-neotree-neo-up-dir)
+    (define-key neotree-mode-map (kbd "+")
+      #'neotree-create-node)
+    (define-key neotree-mode-map (kbd "w")
+      #'neotree-copy-filepath-to-yank-ring)
+    (define-key neotree-mode-map (kbd "M-l")
+      (neotree-make-executor
+       :file-fn #'entropy/emacs-neotree-neo-load-node
+       :dir-fn #'entropy/emacs-neotree-neo-load-node))
+    (define-key neotree-mode-map (kbd "D")
+      #'neotree-delete-node))
   
   ;; library
   (defvar entropy/emacs-neotree--neo-textscaled nil
     "Indicator for preventing further textscale for neo buffer.")
   
-  (defun entropy/emacs-neotree-neo-open-with (full-path &rest _)
-    "Open neotree node item in external apps powered by
-`entropy-open-with'."
-    (interactive)
-    (require 'entropy-open-with)
-    (entropy/open-with-match-open (list full-path)))
-
   (defun entropy/emacs-neotree--neo-refresh-filter ()
     (catch :exit
       (when (or (string-match-p "\\*w3m" (buffer-name))

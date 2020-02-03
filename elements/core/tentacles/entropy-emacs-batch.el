@@ -66,12 +66,16 @@
    (yellow "       Section for extensions updating ...")
    (blue    "==================================================")))
 
-(defun entropy/emacs-batch--prompts-for-coworkers-installing-section ()
-  (entropy/emacs-message-do-message
-   "\n%s\n%s\n%s\n"
-   (blue    "==================================================")
-   (yellow "       Section for coworkers installing ...")
-   (blue    "==================================================")))
+(defmacro entropy/emacs-batch--prompts-for-coworkers-installing-section
+    (&rest body)
+  `(let ()
+     (entropy/emacs-message-do-message
+      "\n%s\n%s\n%s\n"
+      (blue    "==================================================")
+      (yellow "       Section for coworkers installing ...")
+      (blue    "=================================================="))
+     (when (yes-or-no-p "Install them? ")
+       ,@body)))
 
 ;; *** dump emacs
 (defun entropy/emacs-batch--dump-emacs-core ()
@@ -150,8 +154,8 @@
           (entropy/emacs-batch--backup-extensions)
           (entropy/emacs-package-update-all-packages)))
       ;; install coworkes
-      (entropy/emacs-batch--prompts-for-coworkers-installing-section)
-      (entropy/emacs-batch--install-coworkers)
+      (entropy/emacs-batch--prompts-for-coworkers-installing-section
+       (entropy/emacs-batch--install-coworkers))
       ;; make dump file
       (setq entropy/emacs-make-session-make-out t)
       (entropy/emacs-batch--prompts-for-dump-section)
@@ -161,8 +165,8 @@
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section)
       (entropy/emacs-package-install-all-packages)
-      (entropy/emacs-batch--prompts-for-coworkers-installing-section)
-      (entropy/emacs-batch--install-coworkers))
+      (entropy/emacs-batch--prompts-for-coworkers-installing-section
+       (entropy/emacs-batch--install-coworkers)))
      
      ((equal type "Update")
       (if (entropy/emacs-package-package-archive-empty-p)

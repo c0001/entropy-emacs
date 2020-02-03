@@ -40,6 +40,7 @@
         ;; elpa&melpa packags
         ac-php
         ac-php-core
+        ace-window
         alert
         all-the-icons
         all-the-icons-dired
@@ -178,6 +179,7 @@
         ox-reveal
         page-break-lines
         paradox
+        pfuture
         php-mode
         pkg-info
         pomidor
@@ -216,6 +218,7 @@
         tern
         toc-org
         transient
+        treemacs
         treepy
         ujelly-theme
         use-package
