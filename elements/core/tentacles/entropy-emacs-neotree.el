@@ -32,9 +32,14 @@
 ;; Using for =entropy-emacs= only.
 ;; 
 ;; * Code:
+;; ** Require
+(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defconst)
+(require 'entropy-emacs-defun)
 
-;; *** neotree
+;; ** neotree
 (use-package neotree
+  :if (eq entropy/emacs-tree-visual-type 'neotree)
   :commands (neotree-toggle
              neotree-mode
              entropy/emacs-neotree-neotree-close

@@ -139,11 +139,6 @@ emacs 26 or higher emacs version."
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-neotree-text-scale -2
-  "The text-scale for neotree buffer."
-  :type 'integer
-  :group 'entropy/emacs-customize-fundametal)
-
 (defcustom entropy/emacs-dictionary-backend 'sdcv
   "The dictionary tool type for chosen, valid type are
 
@@ -171,6 +166,21 @@ emacs 26 or higher emacs version."
   session."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
+
+;; **** tree
+(defgroup entropy/emacs-tree-visual-group nil
+  "Tree side bar show group"
+  :group 'entropy/emacs-custom-variable-basic)
+
+(defcustom entropy/emacs-tree-visual-type 'treemacs
+  "'neotree' or 'treemacs' tree slide show type."
+  :type 'symbol
+  :group 'entropy/emacs-tree-visual-group)
+
+(defcustom entropy/emacs-neotree-text-scale -2
+  "The text-scale for neotree buffer."
+  :type 'integer
+  :group 'entropy/emacs-tree-visual-group)
 
 ;; **** emacs extension use options
 (defgroup entropy/emacs-extensions-customize nil
@@ -1565,6 +1575,9 @@ Fixme:
                   (slime-repl-history-file . ".slime-history.eld")
                   ;; irony srever dir
                   (irony-user-dir . "irony/")
+                  ;; treemacs persist file
+                  (treemacs-persist-file . "cache/treemacs-persist")
+                  (treemacs-last-error-persist-file . "cache/treemacs-persist-at-last-error")
                   ))
     (set (car item) (expand-file-name (cdr item) top)))
 

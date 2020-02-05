@@ -926,7 +926,10 @@ emacs."
    '(find-file push-button find-library-name)
    "entropy-grom"
    "entropy-grom"
-   (entropy-grom-mode +1)))
+   (entropy-grom-mode +1))
+  :config
+  (add-to-list 'entropy/grom-find-file-except-bfregexp-list
+               "treemacs-persist"))
 
 ;; ** Revert buffer automatically
 
