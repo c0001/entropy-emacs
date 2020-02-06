@@ -48,12 +48,47 @@
              treemacs-filewatch-mode
              treemacs-fringe-indicator-mode
              treemacs-git-mode)
-  :bind (([f8]        . treemacs)
-         ("M-0"       . treemacs-select-window)
+  :bind (("M-0"       . treemacs-select-window)
          ("C-x 1"     . treemacs-delete-other-windows)
          :map treemacs-mode-map
          ([mouse-1]   . treemacs-single-click-expand-action))
+  :preface
+  
+  (defun entropy/emacs-treemacs--get-buffer-path ()
+    (or (buffer-file-name (current-buffer))
+        (when (eq major-mode 'dired-mode)
+          (treemacs--canonical-path (dired-current-directory)))))
+
+  (defun entropy/emacs-treemacs--buffer-in-project-p ()
+    (let ((current-file (entropy/emacs-treemacs--get-buffer-path)))
+      (treemacs--find-project-for-buffer current-file)))
+
+  (defun entropy/emacs-treemacs--unwind-for-init (orig-func &rest orig-args)
+    "Unwind protect to set `treemacs--ready-to-follow' t for init time."
+    (unwind-protect
+        (apply orig-func orig-args)
+      (setq treemacs--ready-to-follow t)))
+
+  :init
+  (global-set-key (kbd "<f8>") #'entropy/emacs-treemacs-toggle-treemacs)
+  (global-set-key (kbd "<C-f8>") #'treemacs)
+
+  (defun entropy/emacs-treemacs-toggle-treemacs ()
+    (interactive)
+    (require 'treemacs)
+    (pcase (treemacs-current-visibility)
+      ('visible (delete-window (treemacs-get-local-window)))
+      ('exists  (if (entropy/emacs-treemacs--buffer-in-project-p)
+                    (treemacs-select-window)
+                  (let ((current-prefix-arg t))
+                    (funcall-interactively
+                     'treemacs-add-project-to-workspace
+                     (read-directory-name "Get project root: " nil nil t)))))
+      ('none    (treemacs--init))))
+  
   :config
+  (advice-add 'treemacs--init :around #'entropy/emacs-treemacs--unwind-for-init)
+  
   (setq treemacs-collapse-dirs           (if treemacs-python-executable 3 0)
         treemacs-sorting                 'alphabetic-case-insensitive-desc
         treemacs-follow-after-init       t

@@ -61,10 +61,12 @@ archived option of `entropy/emacs-use-extensions-type'"))
                entropy/emacs-use-extensions-type)))))
 
 (defvar entropy/emacs-pdumper--loads-log-file
-  (expand-file-name
-   (format "pdumper-loads-log_%s.txt"
-           (format-time-string "%Y%m%d%H%M%S"))
-   entropy/emacs-stuffs-topdir))
+  (file-truename
+   ;; using truename for opening log file for prevent link chase warning in cli
+   (expand-file-name
+    (format "pdumper-loads-log_%s.txt"
+            (format-time-string "%Y%m%d%H%M%S"))
+    entropy/emacs-stuffs-topdir)))
 
 ;; timers
 (defvar entropy/emacs-pdumper--rec-timer nil
@@ -113,7 +115,7 @@ configuration.")
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "counsel"
                                      "dired" "all-the-icon"
                                      "use-package" "diminish" "bind-key"
-                                     "doom" "company" "entropy")
+                                     "doom" "company" "treemacs" "entropy")
                                  "-"
                                  (* any)
                                  (seq ".elc" line-end))))))

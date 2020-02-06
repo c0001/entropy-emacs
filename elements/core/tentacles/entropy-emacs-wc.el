@@ -545,9 +545,9 @@ without derived slot."
     (add-hook 'entropy/emacs-pdumper-load-hook
               #'winner-mode))
    (t
-    (entropy/emacs-lazy-initial-advice-before
-     '(switch-to-buffer find-file delete-other-windows)
-     "winner-mode" "winner-mode"
+    ;; Force init after load for prevent other frame window setup mess
+    (entropy/emacs-lazy-with-load-trail
+     enable-winner-mode
      (winner-mode +1))))
   
   :config

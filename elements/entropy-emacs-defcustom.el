@@ -1505,6 +1505,31 @@ Fixme:
     rtn))
 
 ;; ** entropy-emacs initialize
+;; *** intial advice
+;; **** find file patch
+(define-inline entropy/emacs--unslash-path (path)
+  "Remove the final slash in PATH."
+  (declare (pure t) (side-effect-free t))
+  (inline-letevals (path)
+    (inline-quote
+     (if (and (> (length ,path) 1)
+              (eq ?/ (aref ,path (1- (length ,path)))))
+         (substring ,path 0 -1)
+       ,path))))
+
+(defun entropy/emacs--dwim-abs-find-file (orig-func &rest orig-args)
+  "Find file with enabled `find-file-visit-truename' when file
+under the symbolink root dir."
+  (let* ((filename (entropy/emacs--unslash-path (car orig-args)))
+         (rest (cdr orig-args))
+         (ftruename (entropy/emacs--unslash-path (file-truename filename))))
+    (let ((find-file-visit-truename
+           (and
+            (not (equal filename ftruename))
+            (not (file-directory-p filename)))))
+      (apply orig-func orig-args))))
+(advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
+
 ;; *** load specifications
 (let ((cus entropy/emacs-custom-common-file))
   (setq-default custom-file entropy/emacs-custom-common-file)
