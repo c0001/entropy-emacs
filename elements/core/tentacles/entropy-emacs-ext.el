@@ -68,14 +68,33 @@
 
 ;; ** defvar
 (defvar entropy/emacs-ext--extras
-  (list 
-   (list :item "entropy-emacs-extensions"
-         :repo-lc entropy/emacs-ext-extensions-dir
-         :version-lc (expand-file-name "version" entropy/emacs-ext-extensions-dir)
-         :version "0.2.1"
-         :indicator-lc (expand-file-name "entropy-emacs-extensions" entropy/emacs-ext-extensions-dir)
-         :inited-indicator-lc (expand-file-name "init" entropy/emacs-ext-extensions-dir)
-         :load-predicate (expand-file-name "eemacs-ext-load.el" entropy/emacs-ext-extensions-dir))))
+  (let ((eemacs-ext 
+         (list :item "entropy-emacs-extensions"
+               :repo-lc entropy/emacs-ext-extensions-dir
+               :version-lc (expand-file-name "version"
+                                             entropy/emacs-ext-extensions-dir)
+               :version "0.2.1"
+               :indicator-lc (expand-file-name "entropy-emacs-extensions"
+                                               entropy/emacs-ext-extensions-dir)
+               :inited-indicator-lc (expand-file-name "init"
+                                                      entropy/emacs-ext-extensions-dir)
+               :load-predicate (expand-file-name "eemacs-ext-load.el"
+                                                 entropy/emacs-ext-extensions-dir)))
+        (eemacs-lsparc
+         (list :item "entropy-emacs-lsp-archive"
+               :repo-lc entropy/emacs-ext-lsp-archive-dir
+
+               :version-lc (expand-file-name "version"
+                                             entropy/emacs-ext-lsp-archive-dir)
+               :version "0.1.0"
+               :indicator-lc (expand-file-name "eemacs-lsp-archive"
+                                               entropy/emacs-ext-lsp-archive-dir)
+               :inited-indicator-lc (expand-file-name "init"
+                                                      entropy/emacs-ext-lsp-archive-dir)
+               :load-predicate (expand-file-name "eemacs-lsp-archive-load.el"
+                                                 entropy/emacs-ext-lsp-archive-dir)
+               )))
+    (list :eemacs-ext eemacs-ext :eemacs-lsparc eemacs-lsparc)))
 
 (defvar entropy/emacs-ext--extras-trouble-table
   '((0 . "%s repo doesn't exist.")
@@ -137,12 +156,17 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
       t)))
 
 (defun entropy/emacs-ext--check-inuse-extras ()
-  (let ((full-extras entropy/emacs-ext--extras))
-    (cond ((eq entropy/emacs-use-extensions-type 'origin)
-           nil)
-          ((or (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
-               (eq entropy/emacs-use-extensions-type 'submodules))
-           (list (car full-extras))))))
+  (let ((full-extras entropy/emacs-ext--extras)
+        rtn)
+    (setq rtn
+          (cond ((eq entropy/emacs-use-extensions-type 'origin)
+                 nil)
+                ((or (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+                     (eq entropy/emacs-use-extensions-type 'submodules))
+                 (list (plist-get full-extras :eemacs-ext)))))
+    (when entropy/emacs-ext-use-eemacs-lsparc
+      (add-to-list 'rtn (plist-get full-extras :eemacs-lsparc)))
+    rtn))
 
 (defun entropy/emacs-ext--check-extra-status (extra-plist)
   (let ((item (plist-get extra-plist :item))

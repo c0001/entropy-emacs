@@ -211,6 +211,21 @@ variable `entropy/emacs-use-extensions-type'."
   :type 'string
   :group 'entropy/emacs-extensions-customize)
 
+(defcustom entropy/emacs-ext-lsp-archive-dir
+  (expand-file-name
+   "entropy-emacs-lsp-archive"
+   "~/.config/entropy-emacs")
+  "entropy emacs language server archives project location, you
+may download from
+'https://github.com/c0001/entropy-emacs-lsp-archive'."
+  :type 'string
+  :group 'entropy/emacs-extensions-customize)
+
+(defcustom entropy/emacs-ext-use-eemacs-lsparc nil
+  "Whether to use archived lanuguage servers."
+  :type 'string
+  :group 'entropy/emacs-extensions-customize)
+
 (defcustom entropy/emacs-ext-extensions-elpa-dir
   (expand-file-name
    "entropy-emacs-extensions-elpa"
