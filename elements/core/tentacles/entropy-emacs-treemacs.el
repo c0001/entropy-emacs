@@ -95,7 +95,13 @@
         ;; treemacs-is-never-other-window   t
         treemacs-silent-filewatch        t
         treemacs-silent-refresh          t
-        treemacs-width                   30)
+        treemacs-width                   36
+        treemacs-show-cursor             t
+        treemacs-recenter-after-file-follow    t
+        treemacs-recenter-after-project-expand t
+        treemacs-recenter-after-project-jump   t
+        treemacs-recenter-after-tag-follow     t
+        treemacs-show-edit-workspace-help t)
 
   (treemacs-follow-mode t)
   (treemacs-filewatch-mode t)
