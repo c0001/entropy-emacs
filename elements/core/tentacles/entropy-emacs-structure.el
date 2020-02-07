@@ -210,7 +210,10 @@ moving operation will cause non-terminated looping proceeding."
    ("C-c M-t" . nil)
    ("C-c M-e" . nil)
    ("C-c M-p" . nil)
-   ("C-c M-y" . nil))
+   ("C-c M-y" . nil)
+   :map outshine-mode-map
+   ("C-x n s" . org-narrow-to-subtree))
+  
   :preface
   (defun entropy/emacs-structure--outshine-cycle-buffer (&optional arg)
     (interactive "P")

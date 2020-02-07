@@ -330,7 +330,11 @@ entropy-emacs using all file state icos show side by side. "
   (doom-modeline-def-segment company-indicator
     "Company mode backends indicator."
     (let ((company-lighter-base
-           (propertize "✪ company" 'face 'mode-line-emphasis))
+           (propertize "✪ company"
+                       'face
+                       (if (doom-modeline--active)
+                           'mode-line-emphasis
+                         'mode-line-inactive)))
           (company-backend-abbrev-indicatior
            (lambda (x_str)
              (format "%s%s%s" 
