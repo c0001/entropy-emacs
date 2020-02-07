@@ -204,11 +204,6 @@ Globally close neotree buffer while selected window was
                 nil)
                ((not (integerp entropy/emacs-neotree-text-scale))
                 (error "Wrong type of argument for 'entropy/emacs-neotree-text-scale'"))))
-            (setq entropy/emacs-neotree--neo-textscaled t)))))))
-
-  ;; specifications
-  ;; enable doom-theme neotree visualized spec
-  (when (string-match-p "^doom-" (symbol-name entropy/emacs-theme-options))
-    (doom-themes-neotree-config)))
+            (setq entropy/emacs-neotree--neo-textscaled t))))))))
 
 (provide 'entropy-emacs-neotree)
