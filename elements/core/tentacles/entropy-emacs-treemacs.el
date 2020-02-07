@@ -96,6 +96,7 @@
         treemacs-silent-filewatch        t
         treemacs-silent-refresh          t
         treemacs-width                   36
+        treemacs-indentation             1
         treemacs-show-cursor             t
         treemacs-recenter-after-file-follow    t
         treemacs-recenter-after-project-expand t
