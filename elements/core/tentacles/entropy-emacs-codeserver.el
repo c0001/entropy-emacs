@@ -143,6 +143,12 @@ It is the recommendation of irony-mode official introduction."
 (use-package lsp-mode
   :if (and (>= emacs-major-version 25)
            (eq entropy/emacs-use-ide-type 'lsp))
+  :preface
+  (defun entropy/emacs-codeserver-lsp-mode-remove-session-file ()
+    (when (and (boundp 'lsp-session-file)
+               (file-exists-p lsp-session-file))
+      (delete-file lsp-session-file)))
+  
   :diminish lsp-mode
   :commands (lsp lsp-mode lsp-deferred)
   :hook (prog-mode . lsp-deferred)
@@ -151,6 +157,11 @@ It is the recommendation of irony-mode official introduction."
   (setq lsp-auto-configure t)
   (setq lsp-prefer-flymake nil)
 
+  ;; delete transient lsp session file for prevent lagging with large
+  ;; amounts of folder parsing while next emacs session setup.
+  (add-hook 'kill-emacs-hook
+            #'entropy/emacs-codeserver-lsp-mode-remove-session-file)
+  
   (entropy/emacs-lazy-initial-advice-before
    '(lsp)
    "lsp-enable-yas"

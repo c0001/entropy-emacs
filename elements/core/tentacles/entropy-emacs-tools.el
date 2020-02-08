@@ -852,12 +852,6 @@ can't visit one page suddenly."
       (entropy/proxy-url-make-builtin-recipes)
       (setq entropy/emacs-proxy-url-loaded t))))
 
-;; *** entropy-projec-manager
-(use-package entropy-prjm
-  :ensure nil
-  :commands entropy/prjm-inct-chosen-db
-  :bind ("C-c M-p" . entropy/prjm-inct-chosen-db))
-
 ;; *** entropy-unfill
 (use-package entropy-unfill
   :ensure nil
