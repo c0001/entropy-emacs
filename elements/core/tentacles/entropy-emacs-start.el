@@ -68,9 +68,7 @@ we inject it into pdumper session initialize procedure. "))
 ;; experience
 (require 'entropy-emacs-gc)
 
-;; *** load the core configuration
 (require 'entropy-emacs-defface)
-(require 'entropy-emacs-path)
 
 ;; *** Enable entropy emacs UI configuration
 
@@ -483,6 +481,7 @@ Emacs will auto close after 6s ......")))
 
 (defun entropy/emacs-start-do-load ()
   (when (entropy/emacs-ext-main)
+    (require 'entropy-emacs-path)
     (entropy/emacs-start--init-bingo)))
 
 (if entropy/emacs-fall-love-with-pdumper

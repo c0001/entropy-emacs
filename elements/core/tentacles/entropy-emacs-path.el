@@ -52,6 +52,12 @@
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
+
+;; ** variable
+
+(defvar entropy/emacs-path--altered-exec-path nil)
+(defvar entropy/emacs-path--altered-shell-path nil)
 
 ;; ** library
 ;; *** common path setting
@@ -77,6 +83,7 @@
                              (getenv "PATH"))))))
 
 ;; *** w32 path set library
+;; **** subrs
 (setq entropy/emacs-path-win32-shell-path-register
   `((:trigger entropy/emacs-win-emacs-bin-path-add
               :path invocation-directory
@@ -230,6 +237,7 @@
           :exec-paths (cons (funcall extract-path-func exec-paths-positive)
                             (funcall extract-path-func exec-paths-negative)))))
 
+;; **** main
 (defun entropy/emacs-path--w32-regist-path ()
   (let* ((register-var (entropy/emacs-path--w32-path-sort-predicate))
          (env-paths (plist-get register-var :env-paths))
@@ -283,11 +291,23 @@
             (append exec-path
                     (mapcar 'symbol-value exec-neg-paths))))))
 
-
 ;; ** main
+;; path registering
 (entropy/emacs-path--common-path-register)
 (when sys/win32p
   (entropy/emacs-path--w32-regist-path))
+
+
+;; path altering for pdumper session
+(when entropy/emacs-fall-love-with-pdumper
+  (setq entropy/emacs-path--altered-exec-path
+        (copy-tree exec-path))
+  (setq entropy/emacs-path--altered-shell-path
+        (copy-tree (getenv "PATH")))
+  (entropy/emacs-lazy-with-load-trail
+   path-register
+   (setenv "PATH" entropy/emacs-path--altered-shell-path)
+   (set 'exec-path entropy/emacs-path--altered-exec-path)))
 
 ;; * provide
 (provide 'entropy-emacs-path)

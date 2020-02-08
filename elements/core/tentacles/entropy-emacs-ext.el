@@ -21,18 +21,15 @@
 ;; #+END_EXAMPLE
 ;; 
 ;; * Commentary:
-;;
+
 ;; Excluded from this project i.e. the `entropy-emacs' using various
 ;; third-party extensions released on =github=, =elpa=, =melpa= and
 ;; other remote host server, thus the dependencies manamgement was
 ;; necessary does for checking and loading them correctly.
-;;
-;; `entropy-emacs' has the specific map of extensions categories
-;; followed the loading priority and archiving method, variable
-;; `entropy/emacs-ext-extensions-dir' and
-;; `entropy/emacs-ext-user-specific-load-paths' are given for those
-;; aim.
-;;
+
+;; `entropy-emacs' has the specific map of extensions categories followed
+;; the loading priority and archiving method.
+
 ;; Emacs has its own extensions management tool
 ;; i.e. =pacakge.el=. this tool has the default upstream [[https://elpa.gnu.org][elpa]] and
 ;; [[https://melpa.org/#/][melpa]], although there's lots of extensions registered in them host
@@ -40,21 +37,33 @@
 ;; some rare things or some package didn't commit to those host. For
 ;; those case, entropy-emacs using the above two variable to cover
 ;; the extension hosted meta types.
-;;
+
 ;; - `entropy/emacs-ext-extensions-dir' inidicates the local location
 ;;   of project [[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]] which was the git repo of
 ;;   each elpa or melpa packages archved for the sake of tracking
 ;;   version peer point to each extension relied by
 ;;   `entropy-emacs'. It can be the mirror for dependencies on melpa
 ;;   or elpa host but version specified for `entropy-emacs'.
-;;
+
 ;; - `entropy/emacs-ext-user-specific-load-paths' was the variable
 ;;   for user specified extensions archive loaction which will be
 ;;   added to `load-path' recursively, it's a list of root of thus.
-;;
+
+
+;; Further more, there's other inidvidual optional extension projects
+;; builded by =entorpy-emacs= used for =entropy-emacs= for more aims of
+;; aspects:
+
+;; - `entropy/emacs-ext-lsp-archive-dir' indicates the local location for
+;;   project [[https://github.com/c0001/entropy-emacs-lsp-archive][entropy-emacs-lsp-archive]] which was the microsoft language
+;;   server repos archive specifed for =entropy-emacs= aimed for quickly
+;;   batch install lsp servers for current =entropy-emacs= version
+;;   without dirty messed up your workspace even without root access
+;;   authorization.
+
 ;; For more package management mechanism learning, please view 'code'
 ;; section for the source code. 
-;;
+
 ;; * Configuration:
 ;; 
 ;; Loading automatically by `entropy-emacs' but no hacking warranty.
@@ -67,6 +76,11 @@
 (require 'entropy-emacs-message)
 
 ;; ** defvar
+
+(defvar entropy/emacs-ext--loaded nil
+  "Inidicate whether exts has loaded for prevent double
+loading.")
+
 (defvar entropy/emacs-ext--extras
   (let ((eemacs-ext 
          (list :item "entropy-emacs-extensions"
@@ -93,6 +107,7 @@
                                                       entropy/emacs-ext-lsp-archive-dir)
                :load-predicate (expand-file-name "eemacs-lsp-archive-load.el"
                                                  entropy/emacs-ext-lsp-archive-dir)
+               :preface (lambda () (setq eemacs-lspa/subr-loader-indicator t))
                )))
     (list :eemacs-ext eemacs-ext :eemacs-lsparc eemacs-lsparc)))
 
@@ -119,7 +134,7 @@ such the problem.
 
    (propertize 
    "
-There's one entropy-emacs extras may need to download by your self:
+There's some entropy-emacs extras may need to download by your self:
 "
    'face 'bold)
 
@@ -130,14 +145,22 @@ There's one entropy-emacs extras may need to download by your self:
   (Notices: only when `entropy/emacs-use-extensions-type' eq
   'submodules or 'submodules-melpa-local)
 
-  clone it into your home dir and rename as
-  '.entropy-emacs-extension' or adjusting customized variable
+  Clone it into your home entropy-emacs config dir
+  =~/.config/entropy-emacs/= and rename as
+  'entropy-emacs-extension' or adjusting customized variable
   `entropy/emacs-ext-extensions-dir'.
 
   If the first time cloning it, please see its README and make it
   initialized.
 
-"
+- entropy-emacs-lsp-archive (https://github.com/c0001/entropy-emacs-lsp-archive)
+
+  (Notice: only when `entropy/emacs-ext-use-eemacs-lsparc' is
+  enabled)
+
+  Clone it into your home config dir =~/.config/entropy-emacs/=
+  and rename as 'entropy-emacs-lsp-archive' or adjusting
+  customized variable `entropy/emacs-ext-lsp-archive-dir'"
     'face 'italic)))
 
 ;; ** libraries
@@ -277,8 +300,11 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
   (let ((ext-plists (entropy/emacs-ext--check-inuse-extras)))
     (when ext-plists 
       (dolist (el ext-plists)
-        (let ((loader (plist-get el :load-predicate)))
+        (let ((loader (plist-get el :load-predicate))
+              (preface (plist-get el :preface)))
           (when (ignore-errors (file-exists-p loader))
+            (when (functionp preface)
+              (funcall preface))
             (load loader)))))))
 
 ;; ** main
@@ -288,12 +314,14 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
       (entropy/emacs-ext--extra-prompt-troubel extras-status))
     (if (not (eq extras-status t))
         nil
-      (entropy/emacs-ext--load-extra)
-      (when (and entropy/emacs-ext-user-specific-load-paths
-                 (listp entropy/emacs-ext-user-specific-load-paths))
-        (dolist (el entropy/emacs-ext-user-specific-load-paths)
-          (when (ignore-errors (file-directory-p el))
-            (entropy/emacs-ext--load-path (expand-file-name el)))))
+      (unless entropy/emacs-ext--loaded
+        (entropy/emacs-ext--load-extra)
+        (when (and entropy/emacs-ext-user-specific-load-paths
+                   (listp entropy/emacs-ext-user-specific-load-paths))
+          (dolist (el entropy/emacs-ext-user-specific-load-paths)
+            (when (ignore-errors (file-directory-p el))
+              (entropy/emacs-ext--load-path (expand-file-name el)))))
+        (setq entropy/emacs-ext--loaded t))
       t)))
 
 ;; ** provide
