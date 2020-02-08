@@ -92,6 +92,7 @@ with sets of mordern emacs extension tracking on.
 @quotation
 @samp{entropy-emacs} was based on the commit of @samp{centaur-emacs} by
 @samp{55b07da55415b48ee75cde67a3f99dd80f3bb491}
+
 @end quotation
 
 But with the time when @samp{entropy-emacs} grown up after one year, it's
@@ -710,6 +711,7 @@ as displayed with slot and tag name format as
 main-slot.derived_number:⛓main-slot:"main workspace tagname"☛derived name
 @end example
 
+
 Above demos show the face and the instant display format of derived
 slot derived from the main slot '1:temp'.
 
@@ -737,6 +739,7 @@ cause the difficulties managements, for what as known:
 @quotation
 less is more
          ---- xxxx
+
 @end quotation
 @end itemize
 
@@ -804,6 +807,7 @@ Another bennifit window jumping method was using us self-built func:
 @example
 entropy/emacs-basic-windmove-(up/down/right/left)-cycle
 @end example
+
 
 The raw func obtained from
 @uref{https://github.com/troydm/emacs-stuff/blob/master/windcycle.el}.
@@ -1016,12 +1020,12 @@ thus. As the result, @samp{entropy-emacs} usig the most powerful and
 comprehensive 'pinyin' function built melpa extentioin @uref{https://github.com/tumashu/pyim, pyim} :
 
 @example
-  这是一段中文说明，你好shijie
-                        ^
-                        |
-                        +-------------------------+
-                        | 1. 世界 2. 时节 .....   |
-                        +-------------------------+
+这是一段中文说明，你好shijie
+                      ^
+                      |
+                      +-------------------------+
+                      | 1. 世界 2. 时节 .....   |
+                      +-------------------------+
 @end example
 
 Above demo shows the fully process for input chinese using
@@ -1060,7 +1064,7 @@ version below 26.1 and the oppsite using 'posframe'.
 
 @itemize
 @item
-@strong{Pyim dicts:} @anchor{orga29ef96}
+@strong{Pyim dicts:} @anchor{sectionpyim-dict}
 
 Although @samp{pyim} was one emacs extension written by @uref{(info%20"elisp"), elisp}, it was
 also one comprehensive chinese input programe which as the same sets
@@ -1127,7 +1131,7 @@ emacs startup finished i.e. @samp{entropy/emacs-enable-pyim}, you can
 active it in your @samp{custom.el} file, then the next time you start up
 or open new session of emacs , pyim will automatically startup using
 the default dicts specific by @samp{entropy-emacs} as introduction form
-@ref{orga29ef96, , pyim dicts section}, or if you want to enable dicts specified by
+@ref{sectionpyim-dict, , pyim dicts section}, or if you want to enable dicts specified by
 yourself, you can setting up custom-variable
 @samp{entropy/emacs-pyim-dicts}, the variable information and value
 format can be shown by touching @samp{C-h v entropy/emacs-pyim-dicts
@@ -1164,6 +1168,7 @@ chinese char.
 
 So as on the inputting prompt candidates will still be the
 simple chinese char shape style.
+
 @end quotation
 
 @item
@@ -1672,6 +1677,7 @@ You can see the last code snippt:
 (format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))
 @end example
 
+
 It's will return the wrong path name when @samp{file-name-directory}
 gives the nil return value.
 
@@ -2108,6 +2114,7 @@ the server mentioned before.
 
 Later, each buffer modification will be sent to the server, and
 external browser tracking the response.
+
 @end quotation
 
 Full process enable just using one func calling @code{run-skewer},
@@ -2350,6 +2357,7 @@ candidates.
 @quotation
 Notice: bug that can not cancel company-mode origin tooltip
 when @samp{C-g} for this command.
+
 @end quotation
 @end enumerate
 
@@ -2418,6 +2426,7 @@ the using feeling constant full with emacs as well.
 @quotation
 One reason for doing this was that emacs now can not retrieving https
 content using the external proxy.
+
 @end quotation
 
 The origin keybindings and UI default setting for emacs-w3m was minor
@@ -2509,20 +2518,21 @@ details.
 @section Emacs on windows
 
 Emacs was originally built for gnu/linux, compatible with UNIX-like
-OS. Windows port was built for be as the reason by:
+OS@. Windows port was built for be as the reason by:
 @quotation
 We support GNU Emacs on proprietary operating systems because we hope
 this taste of freedom will inspire users to escape from them.
 
 excerpt from:
 @uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Microsoft-Windows.html#Microsoft-Windows}
+
 @end quotation
 
 'Taste' notice for, but more than this prudent meaning.
 
 I thought the reason for 'taste' annotaion quoting for this as the
 declaration was that WINDOWS was designed by the different tree fork
-sibling as the rebeler against UNIX. Thus the OS internal process
+sibling as the rebeler against UNIX@. Thus the OS internal process
 mechnism was not full compat with the origin emacs design conceptual.
 
 But, actually I am one emacser port on w32. Mine experience was fully
@@ -2583,6 +2593,7 @@ toolchains, minor bugs was founded, the key touching bug especially.
 @quotation
 There's no key touching bug founded on WIN7, thus below description
 was refer to WIN10.
+
 @end quotation
 
 On WIN10, the @samp{win} key was temporally frozen the other key taken up

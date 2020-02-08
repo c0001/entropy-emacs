@@ -188,6 +188,7 @@ Now, I built serveral packages shown as below table:
 | entropy-s2t                     | convert simplified chinese to traditional chinese func used for [[https://github.com/tumashu/pyim][pyim]] (emacs chinese input method) |
 | entropy-unfill                  | unfill buffer paragraph with specific rules built by user self                                    |
 | entropy-shellpop                | the yet-another [[http://github.com/kyagi/shell-pop-el][shell-pop]] toolkit replacement for using [[https://github.com/wasamasa/shackle][shackle]] as the popup method               |
+
 * Eemacs top-key map
 
 For unified emacs experience both of CLI and GUI, =entropy-emacs=
