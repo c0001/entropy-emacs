@@ -214,7 +214,7 @@
       default-directory
       "install" ,server-repo-string "--no-compile")))
 
-;; *** instances
+;; ** instances
 
 (defun entropy/emacs-coworker-check-tern-server (&rest _)
   (interactive)
