@@ -44,8 +44,8 @@
 ;; You may delete these explanatory comments.
 ;; (package-initialize)
 
-(when (version< emacs-version "24.4")
-  (error "This requires Emacs 24.4 and above!"))
+(when (version< emacs-version "25.2")
+  (error "This requires Emacs 25.2 and above!"))
 
 ;; ** Optimize gc performance and loading speed:
 (defvar default-file-name-handler-alist file-name-handler-alist)
