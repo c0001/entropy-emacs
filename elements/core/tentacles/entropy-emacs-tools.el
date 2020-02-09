@@ -719,11 +719,6 @@ For now, there's three choices for you:
     (add-hook 'maple-preview:auto-hook #'entropy/emacs-tools-maple-preview:schema-auto-hooks)
     (add-hook 'maple-preview:finialize-hook #'entropy/emacs-tools--maple-preview:schema-finialize-hooks)))
 
-;; *** display world clock
-(use-package counsel-world-clock
-  :commands  (counsel-world-clock)
-  :bind ("C-x <f12>" . counsel-world-clock))
-
 ;; ** Misc
 ;; *** copy path, url, etc.
 (use-package copyit
@@ -775,23 +770,6 @@ For now, there's three choices for you:
     (dired "~/"))))
 
 (defalias 'ehome 'entropy/emacs-tools-goto-sys-home "Alias for entropy/emacs-tools-goto-sys-home.")
-
-;; *** firefox bookmarks and history query and open
-(use-package counsel-ffdata
-  :commands (counsel-ffdata-firefox-bookmarks
-             counsel-ffdata-firefox-history)
-  :init
-  (setq counsel-ffdata-database-path
-        (ignore-errors
-          (cl-case system-type
-            ((gnu gnu/linux gnu/kfreebsd)
-             (expand-file-name
-              (car (file-expand-wildcards
-                    "~/.mozilla/firefox/*.default-release/places.sqlite"))))
-            (windows-nt
-             (car (file-expand-wildcards
-                   (expand-file-name "Mozilla/Firefox/Profiles/*/places.sqlite"
-                                     (getenv "APPDATA")))))))))
 
 ;; *** visual-ascii-mode
 
