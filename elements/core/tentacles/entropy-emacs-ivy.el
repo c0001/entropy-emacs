@@ -443,6 +443,28 @@ this variable used to patching for origin `counsel-git'.")
   :commands (ivy-xref-show-xrefs)
   :init (setq xref-show-xrefs-function 'ivy-xref-show-xrefs))
 
+;; *** use counsel projectile
+
+(use-package counsel-projectile
+  :after projectile
+  :commands
+  (counsel-projectile-switch-to-buffer
+   counsel-projectile-switch-project
+   counsel-projectile-find-dir
+   counsel-projectile-git-grep
+   counsel-projectile-mode
+   counsel-projectile-find-file
+   counsel-projectile-org-capture
+   counsel-projectile-find-file-dwim
+   counsel-projectile-ag
+   counsel-projectile
+   counsel-projectile-rg
+   counsel-projectile-org-agenda
+   counsel-projectile-grep
+   )
+  :init
+  (counsel-projectile-mode +1))
+
 ;; ** avy
 (use-package avy
   :bind
