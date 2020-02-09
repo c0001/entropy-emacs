@@ -38,9 +38,12 @@
 (setq entropy-emacs-packages
       `(
         ;; elpa&melpa packags
+        ,(unless (version< emacs-version "26") 'company-posframe)
+        ,(unless (version< emacs-version "26") 'posframe)
         ac-php
         ac-php-core
         ace-window
+        ag
         alert
         all-the-icons
         all-the-icons-dired
@@ -74,7 +77,6 @@
         company-irony
         company-lsp
         company-php
-        ,(unless (version< emacs-version "26") 'company-posframe)
         company-quickhelp
         company-shell
         company-tern
@@ -83,6 +85,7 @@
         counsel
         counsel-css
         counsel-ffdata
+        counsel-projectile
         counsel-world-clock
         darkokai-theme
         dash
@@ -152,6 +155,7 @@
         log4e
         loop
         lsp-mode
+        lsp-treemacs
         lsp-ui
         lua-mode
         lv
@@ -187,7 +191,6 @@
         popup
         popwin
         pos-tip
-        ,(unless (version< emacs-version "26") 'posframe)
         powerline
         projectile
         pyim
@@ -195,6 +198,7 @@
         pythonic
         rainbow-delimiters
         rainbow-mode
+        ripgrep
         s
         search-web
         shackle
@@ -219,6 +223,7 @@
         toc-org
         transient
         treemacs
+        treemacs-projectile
         treepy
         ujelly-theme
         use-package
@@ -233,8 +238,8 @@
         web-server
         websocket
         which-key
-        windresize
         window-number
+        windresize
         with-editor
         xclip
         xcscope
