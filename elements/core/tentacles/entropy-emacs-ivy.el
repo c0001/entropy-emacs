@@ -197,8 +197,10 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 ;; *** bind-key
   :bind (("M-x"     . counsel-M-x)
          ("C-c M-t" . entropy/emacs-ivy-counsel-load-theme)
+         ("C-c g"   . counsel-git)
          ("C-x d"   . counsel-dired)
          ("C-x C-f" . counsel-find-file)
+         ("C-h a"   . counsel-apropos)
          ("C-h P"   . counsel-package)
          ("C-h v"   . counsel-describe-variable)
          ("C-h f"   . counsel-describe-function)
@@ -210,25 +212,49 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
 ;; **** entropy/emacs-top-keymap
          :map entropy/emacs-top-keymap
-         ("C-c L" . counsel-load-library)
-         ("C-c P" . counsel-package)
-         ("C-c g" . counsel-grep)
-         ("C-c h" . counsel-command-history)
-         ("C-c j" . counsel-git-grep)
-         ("C-c l" . counsel-locate)
-         ("C-c r" . counsel-rg)
-         ("C-c z" . counsel-fzf)
-         ("C-c f" . counsel-faces)
-         ("C-c a" . counsel-apropos)
-         ("C-c u" . counsel-unicode-char)
-         ("C-c c e" . counsel-colors-emacs)
-         ("C-c c w" . counsel-colors-web)
-         ("C-c c l" . counsel-locate)
-         ("C-c c m" . counsel-minibuffer-history)
-         ("C-c c o" . counsel-outline)
-         ("C-c c p" . counsel-pt)
-         ("C-c c r" . counsel-rg)
-         ("C-c c a" . counsel-ag)
+         ;; FILE group -- prefix 'f'
+         ("C-c f b"   . counsel-buffer-or-recentf)
+         ("C-c f f"   . counsel-fzf)
+         ("C-c f l"   . counsel-locate)
+         ("C-c f m b" . counsel-bookmark)
+         ("C-c f m d" . counsel-bookmarked-directory)
+         ("C-c f o"   . counsel-switch-buffer-other-window)
+         ("C-c f r"   . counsel-rg)
+         
+         ;; GIT group -- prefix 'g'
+         ("C-c g c" . counsel-git-checkout)
+         ("C-c g g" . counsel-git-grep)
+         
+         ;; GREP group -- prefix 's'
+         ("C-c s g" . counsel-grep)
+
+         ;; Misc.Emacs group -- prefix 'e'
+         ("C-c e /" . counsel-el)
+         ("C-c e c" . counsel-faces)
+         ("C-c e f" . counsel-fonts)
+         ("C-c e h" . counsel-command-history)
+         ("C-c e i" . counsel-imenu)
+         ("C-c e l" . counsel-load-library)
+         ("C-c e m" . counsel-minor)
+         ("C-c e p" . counsel-package)
+         ("C-c e s" . counsel-list-processes)
+         ("C-c e t" . counsel-load-theme)
+         ("C-c e u" . counsel-unicode-char)
+         ("C-c e v" . counsel-set-variable)
+
+         ;; TODO Misc.OS group -- prefix 'o'
+         ;; --------------------------------
+         ;; TODO org grep
+         ;; -------------
+         ;; MISCELLANEOUS group
+         ("C-c m a" . counsel-ag)
+         ("C-c m e" . counsel-colors-emacs)
+         ("C-c m l" . counsel-locate)
+         ("C-c m m" . counsel-minibuffer-history)
+         ("C-c m o" . counsel-outline)
+         ("C-c m p" . counsel-pt)
+         ("C-c m r" . counsel-rg)
+         ("C-c m w" . counsel-colors-web)
          
 ;; **** counsel mode map
          :map counsel-mode-map
@@ -241,7 +267,8 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   :init
 
   (setq counsel-find-file-at-point nil)
-  (setq counsel-yank-pop-separator "\n-------\n")
+  (setq counsel-yank-pop-separator
+        "\n────────\n")
   
   (entropy/emacs-lazy-load-simple 'counsel
     (ivy-mode +1))
@@ -251,31 +278,28 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   
 ;; **** improve counsel-git and counsel-bookmark
 
-  ;; counsel-git and counsel-bookmark usually using 'utf-8' encoding for searching and return data
-  ;; back, so `entropy/emacs-custom-language-environment-enable' was conflicted with it, we must turn the
-  ;; main encoding type while calling them.
-  (if entropy/emacs-custom-language-environment-enable
-      (progn
-        (defun entropy/emacs-ivy-counsel-git ()
-          (interactive)
-          (if (not (string= current-language-environment "UTF-8"))
-              (progn
-                (entropy/emacs-lang-set-utf-8)
-                (counsel-git))
-            (counsel-git)))
-        (global-set-key (kbd "C-c g") 'entropy/emacs-ivy-counsel-git)
+  ;; counsel-git and counsel-bookmark usually using 'utf-8' encoding
+  ;; for searching and return data back, so
+  ;; `entropy/emacs-custom-language-environment-enable' was conflicted
+  ;; with it, we must turn the main encoding type while calling them.
+  (when entropy/emacs-custom-language-environment-enable
+    (defun entropy/emacs-ivy-counsel-git (orig-func &rest orig-args)
+      (interactive)
+      (if (not (string= current-language-environment "UTF-8"))
+          (progn
+            (entropy/emacs-lang-set-utf-8)
+            (apply orig-func orig-args))
+        (apply orig-func orig-args)))
+    (advice-add 'counsel-git :around #'entropy/emacs-ivy-counsel-git)
 
-        (defun entropy/emacs-ivy-counsel-bookmark ()
-          (interactive)
-          (if (not (string= current-language-environment "UTF-8"))
-              (progn
-                (entropy/emacs-lang-set-utf-8)
-                (counsel-bookmark))
-            (counsel-bookmark)))
-        (global-set-key (kbd "C-x r b") 'entropy/emacs-ivy-counsel-bookmark))
-    (progn
-      (global-set-key (kbd "C-c g") 'counsel-git)
-      (global-set-key (kbd "C-x r b") 'counsel-bookmark)))
+    (defun entropy/emacs-ivy-counsel-bookmark (orig-func &rest orig-args)
+      (interactive)
+      (if (not (string= current-language-environment "UTF-8"))
+          (progn
+            (entropy/emacs-lang-set-utf-8)
+            (apply orig-func orig-args))
+        (apply orig-func orig-args)))
+    (advice-add 'counsel-bookmark :around #'entropy/emacs-ivy-counsel-bookmark))
 
 ;; *** config
   :config
@@ -288,13 +312,18 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   ;; so it will lagging like previous version of `ivy--add-face'.
   (defun entropy/emacs-ivy--counsel--M-x-externs ()
     nil)
-  (advice-add 'counsel--M-x-externs :override #'entropy/emacs-ivy--counsel--M-x-externs)
+  (advice-add 'counsel--M-x-externs
+              :override
+              #'entropy/emacs-ivy--counsel--M-x-externs)
 
 ;; **** windows not to use grep because there's no grep in windows
   (when sys/win32p
-    (defun counsel-grep-or-swiper (&optional initial-input)
+    (defun entropy/emacs-ivy-counsel-grep-or-swiper (orig-func &rest orig-args)
       (interactive)
-      (swiper initial-input)))
+      (apply 'swiper orig-args))
+    (advice-add 'counsel-grep-or-swiper
+                :around
+                #'entropy/emacs-ivy-counsel-grep-or-swiper))
   
 ;; **** counsel-load-theme
   (defun entropy/emacs-ivy-counsel-load-theme ()
