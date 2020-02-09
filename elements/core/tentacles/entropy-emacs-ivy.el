@@ -507,9 +507,7 @@ this variable used to patching for origin `counsel-git'.")
 
   (defun entropy/emacs-ivy--ivy-rich-buffer-icon (candidate)
     "Display buffer icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (let* ((buffer (get-buffer candidate))
              (buffer-file-name (buffer-file-name buffer))
              (major-mode (buffer-local-value 'major-mode buffer))
@@ -523,9 +521,7 @@ this variable used to patching for origin `counsel-git'.")
 
   (defun entropy/emacs-ivy--ivy-rich-file-icon (candidate)
     "Display file icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (let* ((path (file-local-name (expand-file-name candidate ivy--directory)))
              (file (file-name-nondirectory path))
              (icon (cond
@@ -552,51 +548,37 @@ this variable used to patching for origin `counsel-git'.")
 
   (defun entropy/emacs-ivy--ivy-rich-function-icon (_candidate)
     "Display function icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (all-the-icons-faicon "cube" :height 0.9 :v-adjust -0.05 :face 'all-the-icons-purple)))
 
   (defun entropy/emacs-ivy--ivy-rich-variable-icon (_candidate)
     "Display variable icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (all-the-icons-faicon "tag" :height 0.9 :v-adjust -0.05 :face 'all-the-icons-lblue)))
 
   (defun entropy/emacs-ivy--ivy-rich-symbol-icon (_candidate)
     "Display symbol icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (all-the-icons-octicon "gear" :height 0.9 :v-adjust -0.05)))
 
   (defun entropy/emacs-ivy--ivy-rich-theme-icon (_candidate)
     "Display theme icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (all-the-icons-material "palette" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue)))
 
   (defun entropy/emacs-ivy--ivy-rich-keybinding-icon (_candidate)
     "Display keybindings icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (all-the-icons-material "keyboard" :height 1.0 :v-adjust -0.2)))
 
   (defun entropy/emacs-ivy--ivy-rich-library-icon (_candidate)
     "Display library icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (all-the-icons-material "view_module" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue)))
 
   (defun entropy/emacs-ivy--ivy-rich-package-icon (_candidate)
     "Display package icons in `ivy-rich'."
-    (when (or (display-graphic-p)
-              (and entropy/emacs-fall-love-with-pdumper
-                   entropy/emacs-do-pdumper-in-X))
+    (when (display-graphic-p)
       (all-the-icons-faicon "archive" :height 0.9 :v-adjust 0.0 :face 'all-the-icons-silver)))
 
   (defun entropy/emacs-ivy--ivy-rich-font-icon (_candidate)
@@ -604,9 +586,7 @@ this variable used to patching for origin `counsel-git'.")
     (when (display-graphic-p)
       (all-the-icons-faicon "font" :height 0.85 :v-adjust -0.05 :face 'all-the-icons-lblue)))
   
-  (when (or (display-graphic-p)
-            (and entropy/emacs-fall-love-with-pdumper
-                 entropy/emacs-do-pdumper-in-X))
+  (when (display-graphic-p)
     (defun entropy/emacs-ivy--ivy-rich-bookmark-type-plus (candidate)
       (let ((filename (file-local-name (ivy-rich-bookmark-filename candidate))))
         (cond ((null filename)
