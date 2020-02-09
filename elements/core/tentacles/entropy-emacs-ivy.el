@@ -367,35 +367,6 @@ type by function `entropy/emacs-transfer-wvol'"
   (when sys/win32p
     (advice-add 'counsel-dired-jump :before #'entropy/emacs-lang-set-utf-8))
   
-;; **** redefine counsel-find-file-extern
-
-  ;; Origin this function using `interactive' prefix 'F' be as the
-  ;; file choosing func, it's has a bug for what wrong with the
-  ;; current diretory './' open as of redirected as current
-  ;; buffer-file. Using `completing-read' instead.
-  
-  (defun entropy/emacs-ivy--counsel-locate-action-extern (X)
-    "Pass X to `xdg-open' or equivalent command via the shell."
-    (if (and (eq system-type 'windows-nt)
-             (fboundp 'w32-shell-execute))
-        (w32-shell-execute "open" X)
-      (call-process-shell-command (format "%s %s"
-                                          (cl-case system-type
-                                            (darwin "open")
-                                            (cygwin "cygstart")
-                                            (t "xdg-open"))
-                                          (shell-quote-argument X))
-                                  nil 0)))
-
-  (defun counsel-locate-action-extern ()
-    (interactive)
-    (ivy-read "Choose file open with extern: "
-              'read-file-name-internal
-              :require-match t
-              :action #'entropy/emacs-ivy--counsel-locate-action-extern
-              :history 'file-name-history
-              :caller 'counsel-locate-action-extern))
-  
 ;; **** redefine counsel-git
   
   (setq counsel-git-cmd "git ls-files --full-name --")
