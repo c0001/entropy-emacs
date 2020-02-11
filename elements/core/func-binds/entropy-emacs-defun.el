@@ -799,5 +799,20 @@ format on windows platform."
                    (eq face (cadr theme-setting)))
           (throw :exit (cadddr theme-setting)))))))
 
+(defun entropy/emacs-buffer-is-lisp-like-p ()
+  "Justify current buffer is lisp like, any value for true, nil
+for otherwise."
+  (let ((lisp-file-regexp
+         (progn
+           (require 'rx)
+           (rx (or (seq ".el" line-end)
+                   (seq ".lisp" line-end)
+                   )))))
+    (or (and (buffer-file-name)
+             (string-match-p lisp-file-regexp (buffer-file-name)))
+        (or (eq major-mode 'emacs-lisp-mode)
+            (eq major-mode 'lisp-mode)
+            (eq major-mode 'lisp-interaction-mode)))))
+
 ;; * provide
 (provide 'entropy-emacs-defun)

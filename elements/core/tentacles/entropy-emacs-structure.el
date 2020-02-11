@@ -212,9 +212,29 @@ moving operation will cause non-terminated looping proceeding."
    ("C-c M-p" . nil)
    ("C-c M-y" . nil)
    :map outshine-mode-map
-   ("C-x n s" . org-narrow-to-subtree))
+   ("C-x n s" . org-narrow-to-subtree)
+   ("C-<f7>" . entropy/emacs-structure--outshine-reload-major))
   
   :preface
+  (defvar-local entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode nil)
+
+  (defun entropy/emacs-structure--outshine-reload-major ()
+    "Reload lisp(e.g. lisp elisp or more like one) buffer's outshine
+    feataure with mordern \"*\" or old-school \";\" headline visual type
+    set."
+    (interactive)
+    (when (and (bound-and-true-p outshine-mode)
+               (entropy/emacs-buffer-is-lisp-like-p))
+      (outshine-mode -1)
+      (let ((mode major-mode))
+        (with-current-buffer (current-buffer)
+          (setq-local
+           entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode
+           (null
+            entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode))
+          (outshine-mode)
+          ))))
+  
   (defun entropy/emacs-structure--outshine-cycle-buffer (&optional arg)
     (interactive "P")
     (when (bound-and-true-p outshine-mode)
@@ -266,8 +286,10 @@ moving operation will cause non-terminated looping proceeding."
 
   (defun entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-head-stick
       (orig-func &rest orig-args)
-    (concat "^"
-            (apply orig-func orig-args)))
+    (let ((rtn (apply orig-func orig-args)))
+      (unless (string-match-p "^\\^" rtn)
+        (setq rtn (concat "^" rtn)))
+      rtn))
 
   (cl-loop for advice in '(entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-head-stick)
            do (advice-add 'outshine-calc-outline-regexp :around advice))
@@ -347,21 +369,29 @@ This function was the replacement for
 suitable for the eemacs modified version of
 `outshine-set-outline-regexp-base'."
     (let ((buf (or buffer (current-buffer)))
+          (outshine-regexp-base-char
+           (default-value 'outshine-regexp-base-char))
+          (modern-padding-search
+           (lambda ()
+             (save-excursion
+               (re-search-forward
+                (format "^;; [%s]\\{1,%d\\} "
+                        outshine-regexp-base-char outshine-max-level)
+                nil 'NOERROR))))
+          (modern-nonpadding-search
+           (lambda ()
+             (save-excursion
+               (re-search-forward
+                (format "^;;[%s]\\{1,%d\\} "
+                        outshine-regexp-base-char outshine-max-level)
+                nil 'NOERROR))))
           feature)
       (with-current-buffer buf
         (save-excursion
           (goto-char (point-min))
-          (cond ((save-excursion
-                   (re-search-forward
-                    (format "^;; [%s]\\{1,%d\\} "
-                            outshine-regexp-base-char outshine-max-level)
-                    nil 'NOERROR))
+          (cond ((funcall modern-padding-search)
                  (setq feature 0))
-                ((save-excursion
-                   (re-search-forward
-                    (format "^;;[%s]\\{1,%d\\} "
-                            outshine-regexp-base-char outshine-max-level)
-                    nil 'NOERROR))
+                ((funcall modern-nonpadding-search)
                  (setq feature 1))
                 (t (setq feature nil)))))
       feature))
@@ -373,25 +403,27 @@ Preventing recursive face rending for level keywords that local
 binding to `outshine-regexp-base-char' while using traditional
 structure type for elisp."
 
-    (cond ((or (eq major-mode 'emacs-lisp-mode)
-               (eq major-mode 'lisp-mode)
-               (eq major-mode 'lisp-interaction-mode))
+    (cond ((entropy/emacs-buffer-is-lisp-like-p)
            (let ((mordern-lisp-feature
                   (entropy/emacs-structure--outshine-modern-header-style-in-elisp-p)))
-             (cl-case mordern-lisp-feature
-               (0 (setq-local outshine-enforce-no-comment-padding-p nil))
-               (1 (setq-local outshine-enforce-no-comment-padding-p t)))
-             (setq-local outshine-regexp-base
-                   (if (null mordern-lisp-feature)
-                       outshine-oldschool-elisp-outline-regexp-base
-                     outshine-default-outline-regexp-base))
-             (when (null mordern-lisp-feature)
-               (setq-local outshine-enforce-no-comment-padding-p t)
-               (setq-local outshine-regexp-base-char ";"))))
+             (cond ((and (not (null mordern-lisp-feature))
+                         (null entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode))
+                    (cl-case mordern-lisp-feature
+                      (0 (setq-local outshine-enforce-no-comment-padding-p nil))
+                      (1 (setq-local outshine-enforce-no-comment-padding-p t)))
+                    (setq-local outshine-regexp-base
+                                outshine-default-outline-regexp-base
+                                outshine-regexp-base-char
+                                (default-value 'outshine-regexp-base-char)))
+                   ((or (null mordern-lisp-feature)
+                        entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode)
+                    (setq-local outshine-regexp-base outshine-oldschool-elisp-outline-regexp-base)
+                    (setq-local outshine-enforce-no-comment-padding-p t)
+                    (setq-local outshine-regexp-base-char ";")))))
           (t
            (setq-local outshine-enforce-no-comment-padding-p nil)
            (setq-local outshine-regexp-base
-                 outshine-default-outline-regexp-base)
+                       outshine-default-outline-regexp-base)
            (setq-local outshine-regexp-base-char
                        (default-value 'outshine-regexp-base-char)))))
 
