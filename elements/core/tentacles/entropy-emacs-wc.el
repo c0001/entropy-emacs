@@ -42,18 +42,21 @@
 
 ;; ** Window switch
 ;; *** window numberic indicator
-(use-package window-number
-  :commands (window-number-switch
-             window-number-mode)
-  :bind
-  ("C-x o" . window-number-switch)
+(use-package ace-window
+  :commands
+  (ace-delete-other-windows
+   ace-delete-window
+   ace-select-window
+   ace-swap-window
+   ace-window-display-mode
+   ace-window)
   :init
-  (cond (entropy/emacs-fall-love-with-pdumper
-         (add-hook 'entropy/emacs-pdumper-load-hook
-                   #'window-number-mode))
-        (t
-         (entropy/emacs-lazy-load-simple 'window-number
-           (window-number-mode +1)))))
+  (entropy/emacs-lazy-with-load-trail
+   ace-window-init
+   (ace-window-display-mode +1)
+   (global-set-key
+    (kbd "C-x M-o")
+    #'ace-window)))
 
 ;; *** Use windmove function stolen :) from `https://github.com/troydm/emacs-stuff/blob/master/windcycle.el'
 (defun entropy/emacs-basic-windmove-up-cycle ()

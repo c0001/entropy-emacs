@@ -238,7 +238,6 @@
         web-server
         websocket
         which-key
-        window-number
         windresize
         with-editor
         xclip
