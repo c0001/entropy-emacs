@@ -100,8 +100,7 @@
 
 ;; *** Initialize packages
 (defun entropy/emacs-package--package-initialize (&optional force)
-  (when (and (entropy/emacs-package-is-upstream)
-             (not entropy/emacs-fall-love-with-pdumper))
+  (when (entropy/emacs-package-is-upstream)
     (unless (version< emacs-version "27")
       (setq package-quickstart nil))
     (when force
@@ -122,7 +121,7 @@
     (entropy/emacs-set-package-user-dir)
     (entropy/emacs-package--initial-package-archive)
     (entropy/emacs-package--refresh-gnupg-homedir)
-    (entropy/emacs-package--package-initialize force)
+    (entropy/emacs-package--package-initialize t)
     (unless entropy/emacs-package-prepare-done
       (setq entropy/emacs-package-prepare-done t))))
 
@@ -235,7 +234,11 @@
           (dolist (pkg-id updates)
             (entropy/emacs-package-install-package t pkg-id))
           (entropy/emacs-package-prompt-install-fails)
-          (entropy/emacs-package--package-initialize t))))))
+          ;;; FIXME: package reinitialize after updates cause error
+          ;;; for `yasnippet-snippets' that for autroload deleted old
+          ;;; version..
+          ;;(entropy/emacs-package--package-initialize t)
+          )))))
 
 ;; ** Use-package inititialize
 ;; Required by `use-package'

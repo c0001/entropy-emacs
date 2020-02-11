@@ -41,13 +41,13 @@
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-defconst)
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
 (require 'rx)
 
 ;; ** defvar
-(defvar entropy/emacs-pdumper--origin-load-path (copy-tree load-path))
 (defvar entropy/emacs-pdumper--upstream-els nil)
 (defvar entropy/emacs-pdumper--upstream-top-dir
   (if (entropy/emacs-package-is-upstream)
@@ -247,7 +247,8 @@ configuration.")
 
 ;; *** idle recovery
 (setq 
- entropy/emacs-pdumper-pre-lpth (copy-tree load-path)
+ entropy/emacs-pdumper-pre-lpth
+ (copy-tree load-path)
  entropy/emacs-pdumper--rec-timer
  (run-with-idle-timer 1.1 t #'entropy/emacs-pdumper--recovery))
 

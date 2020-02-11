@@ -45,26 +45,37 @@
 ;; ** defvar
 ;; ** library
 ;; *** section prompting
-(defun entropy/emacs-batch--prompts-for-ext-install-section ()
-  (entropy/emacs-message-do-message
-   "\n%s\n%s\n%s\n"
-   (blue    "==================================================")
-   (yellow "       Section for extensions installing ...")
-   (blue    "==================================================")))
+(defmacro entropy/emacs-batch--prompts-for-ext-install-section
+    (&rest body)
+  `(let ()
+     (entropy/emacs-message-do-message
+      "\n%s\n%s\n%s\n"
+      (blue    "==================================================")
+      (yellow "       Section for extensions installing ...")
+      (blue    "=================================================="))
+     ,@body))
 
-(defun entropy/emacs-batch--prompts-for-dump-section ()
-  (entropy/emacs-message-do-message
-   "\n%s\n%s\n%s\n"
-   (blue    "==================================================")
-   (yellow "           Section for emacs dump ...")
-   (blue    "==================================================")))
+(defmacro entropy/emacs-batch--prompts-for-dump-section
+    (&rest body)
+  `(let ()
+     (entropy/emacs-message-do-message
+      "\n%s\n%s\n%s\n"
+      (blue    "==================================================")
+      (yellow "           Section for emacs dump ...")
+      (blue    "=================================================="))
+     (when (yes-or-no-p "Dump eemacs? ")
+       ,@body)))
 
-(defun entropy/emacs-batch--prompts-for-ext-update-section ()
-  (entropy/emacs-message-do-message
-   "\n%s\n%s\n%s\n"
-   (blue    "==================================================")
-   (yellow "       Section for extensions updating ...")
-   (blue    "==================================================")))
+(defmacro entropy/emacs-batch--prompts-for-ext-update-section
+    (&rest body)
+  `(let ()
+     (entropy/emacs-message-do-message
+      "\n%s\n%s\n%s\n"
+      (blue    "==================================================")
+      (yellow "       Section for extensions updating ...")
+      (blue    "=================================================="))
+     (when (yes-or-no-p "Do package update? ")
+       ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-coworkers-installing-section
     (&rest body)
@@ -137,34 +148,35 @@
      (green "completely!"))))
 
 ;; ** interactive
-(when (and (entropy/emacs-ext-main)
-           (null entropy/emacs-make-session-make-out))
+(when (entropy/emacs-ext-main)
   (let ((type (entropy/emacs-is-make-session)))
     (cond
      ((equal type "All")
       ;; install packages
       (if (entropy/emacs-package-package-archive-empty-p)
           (progn
-            (entropy/emacs-batch--prompts-for-ext-install-section)
-            (entropy/emacs-package-install-all-packages))
-        (entropy/emacs-batch--prompts-for-ext-install-section)
-        (entropy/emacs-package-install-all-packages)
-        (entropy/emacs-batch--prompts-for-ext-update-section)
-        (when (yes-or-no-p "Update packages? ")
-          (entropy/emacs-batch--backup-extensions)
-          (entropy/emacs-package-update-all-packages)))
+            (entropy/emacs-batch--prompts-for-ext-install-section
+             (entropy/emacs-package-install-all-packages)))
+        (entropy/emacs-batch--prompts-for-ext-install-section
+         (entropy/emacs-package-install-all-packages))
+        (entropy/emacs-batch--prompts-for-ext-update-section
+         (entropy/emacs-batch--backup-extensions)
+         (entropy/emacs-package-update-all-packages)))
       ;; install coworkes
       (entropy/emacs-batch--prompts-for-coworkers-installing-section
        (entropy/emacs-batch--install-coworkers))
       ;; make dump file
-      (setq entropy/emacs-make-session-make-out t)
-      (entropy/emacs-batch--prompts-for-dump-section)
-      (when (yes-or-no-p "Make pdumper file? ")
-        (entropy/emacs-batch--dump-emacs)))
+      (entropy/emacs-batch--prompts-for-dump-section
+       (entropy/emacs-batch--dump-emacs)))
+
+     ((equal type "Dump")
+      ;; make dump file
+      (entropy/emacs-batch--prompts-for-dump-section
+       (entropy/emacs-batch--dump-emacs)))
      
      ((equal type "Install")
-      (entropy/emacs-batch--prompts-for-ext-install-section)
-      (entropy/emacs-package-install-all-packages)
+      (entropy/emacs-batch--prompts-for-ext-install-section
+       (entropy/emacs-package-install-all-packages))
       (entropy/emacs-batch--prompts-for-coworkers-installing-section
        (entropy/emacs-batch--install-coworkers)))
      
@@ -172,9 +184,9 @@
       (if (entropy/emacs-package-package-archive-empty-p)
           (entropy/emacs-message-do-error
            (red "You haven't install packages, can not do updating, abort!"))
-        (entropy/emacs-batch--prompts-for-ext-update-section)
-        (entropy/emacs-batch--backup-extensions)
-        (entropy/emacs-package-update-all-packages)))
+        (entropy/emacs-batch--prompts-for-ext-update-section
+         (entropy/emacs-batch--backup-extensions)
+         (entropy/emacs-package-update-all-packages))))
      (t
       (entropy/emacs-message-do-error
        (red (format "Unknown making type '%s'" type)))))))

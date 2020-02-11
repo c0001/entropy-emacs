@@ -340,13 +340,15 @@ Emacs will auto close after 6s ......")))
    (blue "Loading minimal ...... "))
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
   (advice-add 'redisplay :around #'entropy/emacs-start--initial-redisplay-advice)
+
+  ;; parse installed packages
+  (require 'entropy-emacs-package)
+  (entropy/emacs-package-common-start)
+  
   ;; external depedencies scan and loading
   (when entropy/emacs-fall-love-with-pdumper
     (require 'entropy-emacs-pdumper))
-  (unless (or (entropy/emacs-is-make-session)
-              entropy/emacs-make-session-make-out)
-    (require 'entropy-emacs-package)
-    (entropy/emacs-package-common-start))
+  
   (require 'entropy-emacs-library)
   ;; basic feature defination
   (require 'entropy-emacs-basic)

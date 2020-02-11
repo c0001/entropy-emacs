@@ -1483,10 +1483,6 @@ otherwise return nil."
      (t
       env-p))))
 
-(defvar entropy/emacs-make-session-make-out nil
-  "More sensitive indicator for tentacles loading justified
-for whether do with non-eemacs-make-session specified.")
-
 ;; *** ssh session justice
 (defun entropy/emacs-is-ssh-session ()
   "Justice whether use eemacs in sshd session. Take priority of
