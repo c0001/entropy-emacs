@@ -348,8 +348,9 @@ Emacs will auto close after 6s ......")))
   ;; external depedencies scan and loading
   (when entropy/emacs-fall-love-with-pdumper
     (require 'entropy-emacs-pdumper))
+
+  (require 'entropy-emacs-hydra-hollow)
   
-  (require 'entropy-emacs-utils)
   ;; basic feature defination
   (require 'entropy-emacs-basic)
   
