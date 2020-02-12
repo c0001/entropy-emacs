@@ -65,7 +65,10 @@
   (setq web-mode-code-indent-offset 4)
   (setq indent-tabs-mode nil)
   (setq tab-width 4)
-  (entropy/emacs-lazy-load-simple 'yasnippet
+  (progn
+    (require 'yasnippet)
+    (unless yas-minor-mode
+      (yas-minor-mode))
     (yas-activate-extra-mode 'php-mode)
     (yas-activate-extra-mode 'js2-mode)
     (yas-activate-extra-mode 'css-mode))
