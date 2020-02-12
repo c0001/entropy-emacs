@@ -102,7 +102,9 @@
 ;;
 ;; * Code:
 (let* ((subs-core
-        '("var-binds" "func-binds" "tentacles"))
+        '("wasteland/var-binds" "wasteland/func-binds"
+          "tentacles"
+          "baron/startup" "baron/batch" "baron/summon" "baron/utils"))
        (subs-dep
         '("entropy-adblockP-rule-analysis"
           "entropy-cn-dict"

@@ -35,7 +35,7 @@
 ;; usages.
 ;; 
 ;; * Code:
-
+(require 'cl-lib)
 (require 'entropy-emacs-defconst)
 
 (when sys/win32p
@@ -175,9 +175,51 @@
    posframe-workable-p))
 
 ;; ** hydra
-
+;; *** hydra core
 (use-package hydra
   :commands (defhydra))
 
+;; *** pretty-hydra
+
+(use-package pretty-hydra
+  :commands
+  (
+   pretty-hydra-define
+   pretty-hydra-define+
+   pretty-hydra-toggle
+   ))
+
+;; *** major-hydra
+
+(use-package major-mode-hydra
+  :commands
+  (
+   major-mode-hydra-define
+   major-mode-hydra
+   major-mode-hydra-bind
+   major-mode-hydra-define+
+   ))
+
+
+;; *** def APIs
+;; **** pretty hydra title making
+(with-no-warnings
+  (cl-defun entropy/emacs-pretty-hydra-make-title
+      (title &optional icon-type icon-name
+             &key face height v-adjust)
+    "Add an icon in the hydra title."
+    (let ((face (or face `(:foreground ,(face-background 'highlight))))
+          (height (or height 1.0))
+          (v-adjust (or v-adjust 0.0)))
+      (concat
+       (when (and (display-graphic-p) icon-type icon-name)
+         (let ((f (intern (format "all-the-icons-%s" icon-type))))
+           (when (fboundp f)
+             (concat
+              (apply f (list icon-name :face face :height height :v-adjust v-adjust))
+              " "))))
+       (propertize title 'face face)))))
+
+
 ;; * provide
-(provide 'entropy-emacs-library)
+(provide 'entropy-emacs-utils)

@@ -349,7 +349,7 @@ Emacs will auto close after 6s ......")))
   (when entropy/emacs-fall-love-with-pdumper
     (require 'entropy-emacs-pdumper))
   
-  (require 'entropy-emacs-library)
+  (require 'entropy-emacs-utils)
   ;; basic feature defination
   (require 'entropy-emacs-basic)
   
