@@ -256,6 +256,27 @@ in new emacs-version."
                   (entropy/emacs-cl-findnew-p ',cl-func))))
      (funcall cl-func-use ,@args)))
 
+;; *** nth remap with `car' and `cdr'
+(defun entropy/emacs-remap-for-nth (pos list-var)
+  (let (final-form)
+    (cond ((and (> pos 0)
+                (= pos 1))
+           (setq final-form `(cadr ',list-var)))
+          ((= pos 0)
+           (setq final-form `(car ',list-var)))
+          ((> pos 1)
+           (let ((tmp-form `(cdr ',list-var)))
+             (cl-loop for ct from 2 to pos
+                      do (setq tmp-form
+                               (list 'cdr tmp-form)))
+             (setq final-form
+                   (list 'car tmp-form)))))
+    final-form))
+
+(defun entropy/emacs-setf-for-nth (pos replace list-var)
+  (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
+    (eval `(setf ,remap-form replace))))
+
 ;; ** lazy load branch
 (defmacro entropy/emacs-lazy-load-simple (file &rest body)
   "Execute BODY after/require FILE is loaded.

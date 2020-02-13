@@ -187,6 +187,8 @@
   (setq org-link-search-must-match-exact-headline nil) ;using fuzzy match for org external link
                                                        ;which support the link type:
                                                        ;'file:xxx.org::str'
+
+  (setq org-startup-truncated t)
   
   ;; Choosing org formula convertor
   (when (and sys/is-graphic-support (not sys/is-win-group))

@@ -96,5 +96,27 @@ inactive of origin modeline ")
   "Faces for swiper inactive entries  for dired-buffer.")
 
 
+;; ** hydra face
+
+(defface entropy/emacs-defface-face-for-hydra-heads-red-face '((t ()))
+  "face for hydra head 'red'")
+
+(set-face-attribute 'entropy/emacs-defface-face-for-hydra-heads-red-face nil
+                    :foreground "red")
+
+
+(defface entropy/emacs-defface-face-for-hydra-heads-blue-face '((t ()))
+  "face for hydra head 'blue'")
+
+(set-face-attribute 'entropy/emacs-defface-face-for-hydra-heads-blue-face nil
+                    :foreground "blue")
+
+
+(defface entropy/emacs-defface-face-for-hydra-heads-orange-face '((t ()))
+  "face for hydra head 'orange'")
+
+(set-face-attribute 'entropy/emacs-defface-face-for-hydra-heads-orange-face nil
+                    :foreground "orange")
+
 ;; * provide
 (provide  'entropy-emacs-defface)

@@ -44,11 +44,51 @@
 ;; ** all-the-icons
 (use-package all-the-icons
   :commands
-  (all-the-icons-icon-for-file
-   all-the-icons-icon-for-mode
-   all-the-icons--icon-info-for-buffer
+  (all-the-icons-octicon-family
+   all-the-icons-octicon
+   all-the-icons-dired--display
+   all-the-icons-icon-for-buffer
+   all-the-icons-icon-family-for-buffer
+   all-the-icons-icon-family
+   all-the-icons-fileicon-data
+   all-the-icons-insert-alltheicon
+   all-the-icons-wicon-data
+   all-the-icons-icon-for-url
+   all-the-icons-insert-material
    all-the-icons-install-fonts
-   all-the-icons-insert)
+   all-the-icons-insert-wicon
+   all-the-icons-faicon
+   all-the-icons-material-family
+   all-the-icons-material
+   all-the-icons-icon-for-weather
+   all-the-icons-fileicon-family
+   all-the-icons-insert
+   all-the-icons-dired-mode
+   all-the-icons-icon-for-mode
+   all-the-icons-icon-for-file
+   all-the-icons-match-to-alist
+   all-the-icons-wicon
+   all-the-icons-alltheicon-family
+   all-the-icons-icon-family-for-mode
+   all-the-icons-icon-family-for-file
+   all-the-icons-wicon-family
+   all-the-icons-faicon-family
+   all-the-icons-octicon-data
+   all-the-icons-insert-octicon
+   all-the-icons-insert-icons-for
+   all-the-icons-alltheicon-data
+   all-the-icons-insert-fileicon
+   all-the-icons-insert-faicon
+   all-the-icons-ivy-setup
+   all-the-icons-dir-is-submodule
+   all-the-icons-dired--reset
+   all-the-icons-faicon-data
+   all-the-icons-material-data
+   all-the-icons-auto-mode-match?
+   all-the-icons-fileicon
+   all-the-icons-alltheicon
+   all-the-icons-icon-for-dir
+   )
   :config
 ;; *** icons specification  
   (add-to-list 'all-the-icons-mode-icon-alist
@@ -187,7 +227,9 @@
    pretty-hydra-define
    pretty-hydra-define+
    pretty-hydra-toggle
-   ))
+   )
+  :init
+  (setq pretty-hydra-enable-use-package t))
 
 ;; *** major-hydra
 
@@ -198,7 +240,9 @@
    major-mode-hydra
    major-mode-hydra-bind
    major-mode-hydra-define+
-   ))
+   )
+  :init
+  (require 'major-mode-hydra))
 
 
 ;; *** def APIs

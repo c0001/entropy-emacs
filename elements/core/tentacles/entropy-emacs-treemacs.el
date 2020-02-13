@@ -49,7 +49,6 @@
              treemacs-fringe-indicator-mode
              treemacs-git-mode)
   :bind (("M-0"       . treemacs-select-window)
-         ("C-x 1"     . treemacs-delete-other-windows)
          :map treemacs-mode-map
          ([mouse-1]   . treemacs-single-click-expand-action))
   :preface
