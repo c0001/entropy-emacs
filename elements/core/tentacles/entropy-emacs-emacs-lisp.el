@@ -36,8 +36,9 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defconst)
+(require 'entropy-emacs-defun)
 
 ;; ** library
 ;; *** Toggle context structer style
@@ -127,6 +128,27 @@ For lisp coding aim, always return the transfered buffer.
                     ielm-mode-hook
                     eval-expression-minibuffer-setup-hook))
       (add-hook hook #'eldoc-mode))))
+
+(use-package eldoc-eval
+  :commands (eldoc-in-minibuffer-mode)
+  :preface
+  (defun entropy/emacs-lisp-eldoc-minibuffer-mode-guard ()
+    (when (eq entropy/emacs-tree-visual-type 'treemacs)
+      (let ((treemacs-active-p
+             (and (fboundp 'treemacs-current-visibility)
+                  (eq (treemacs-current-visibility) 'visible))))
+        (if treemacs-active-p
+            (eldoc-in-minibuffer-mode +1)
+          (eldoc-in-minibuffer-mode -1)))))
+  :init
+  ;; set large amount to mode line show time for preventing cut the
+  ;; show state when noticed for long time, 100 sec was enough.
+  (setq eldoc-show-in-mode-line-delay 100)
+  
+  (entropy/emacs-lazy-with-load-trail
+   eldoc-minibuffer-show
+   (add-hook 'window-configuration-change-hook
+             #'entropy/emacs-lisp-eldoc-minibuffer-mode-guard)))
 
 ;; Interactive macro expander
 (use-package macrostep
