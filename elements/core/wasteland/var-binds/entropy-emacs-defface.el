@@ -102,21 +102,24 @@ inactive of origin modeline ")
   "face for hydra head 'red'")
 
 (set-face-attribute 'entropy/emacs-defface-face-for-hydra-heads-red-face nil
-                    :foreground "red")
+                    :foreground "red"
+                    :weight 'bold)
 
 
 (defface entropy/emacs-defface-face-for-hydra-heads-blue-face '((t ()))
   "face for hydra head 'blue'")
 
 (set-face-attribute 'entropy/emacs-defface-face-for-hydra-heads-blue-face nil
-                    :foreground "blue")
+                    :foreground "blue"
+                    :weight 'bold)
 
 
 (defface entropy/emacs-defface-face-for-hydra-heads-orange-face '((t ()))
   "face for hydra head 'orange'")
 
 (set-face-attribute 'entropy/emacs-defface-face-for-hydra-heads-orange-face nil
-                    :foreground "orange")
+                    :foreground "orange"
+                    :weight 'bold)
 
 ;; * provide
 (provide  'entropy-emacs-defface)

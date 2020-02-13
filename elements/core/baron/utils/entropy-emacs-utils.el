@@ -37,6 +37,7 @@
 ;; * Code:
 (require 'cl-lib)
 (require 'entropy-emacs-defconst)
+(require 'entropy-emacs-defun)
 
 (when sys/win32p
   (require 'font-lock+))
@@ -242,8 +243,10 @@
    major-mode-hydra-define+
    )
   :init
-  (require 'major-mode-hydra))
-
+  (require 'major-mode-hydra)
+  (entropy/emacs-!set-key
+    (kbd "m")
+    #'major-mode-hydra))
 
 ;; *** def APIs
 ;; **** pretty hydra title making

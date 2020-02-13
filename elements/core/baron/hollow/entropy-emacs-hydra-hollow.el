@@ -17,10 +17,11 @@
     (setq group-element-parse-func
           (lambda (x)
             (let ((command (cadr x))
-                  (key (car x)))
+                  (key (car x))
+                  (map-inject (plist-get (cdddr x) :map-inject)))
               (unless (symbolp command)
                 (setq command `(lambda () ,command)))
-              `(:command ,command :key ,key)))
+              `(:command ,command :key ,key :map-inject ,map-inject)))
           group-extract-func
           (lambda (x)
             (let (rtn)
@@ -107,7 +108,7 @@
       (funcall form))))
 
 (cl-defmacro entropy/emacs-hydra-hollow-add-for-top-dispatch
-    (group &key notation key command toggle exit)
+    (group &key notation key command toggle exit global-bind)
   (declare (indent 1))
   `(progn
      (entropy/emacs-hydra-hollow-init-top-dispatch)
@@ -123,23 +124,42 @@
         ((,key ,command ,notation
                :toggle ,toggle :exit ,exit
                :face entropy/emacs-defface-face-for-hydra-heads-orange-face))))
-     (when (or (string= ,group "Basic")
-               (string= ,group "WWW"))
+     (when ,global-bind
        (global-set-key (kbd ,key) #',command))))
 
 ;; *** majro mode dispacher
 
 (cl-defmacro entropy/emacs-hydra-hollow-define-major-mode-hydra
-    (mode mode-map body heads-plist)
-  `(let ((binds (entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
-                 ',heads-plist)))
+    (mode feature mode-map body heads-plist)
+  `(let ()
      (major-mode-hydra-define ,mode
        ,body
        ,heads-plist)
+     (entropy/emacs-lazy-load-simple ',feature
+       (let ((binds (entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
+                     ',heads-plist)))
+         (dolist (el binds)
+           (let ((command (plist-get el :command))
+                 (key (plist-get el :key))
+                 (map-inject (plist-get el :map-inject)))
+             (when map-inject
+               (message "Binding key '%s' of command '%s' to map '%s' ..."
+                        key (symbol-name command) (symbol-name ',mode-map))
+               (define-key ,mode-map (kbd key) command))))))))
+
+(cl-defmacro entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+    (mode mode-map heads-plist)
+  `(let ((binds (entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
+                 ',heads-plist)))
+     (major-mode-hydra-define+ ,mode
+       nil
+       ,heads-plist)
      (dolist (el binds)
        (let ((command (plist-get el :command))
-             (key (plist-get el :key)))
-         (define-key ,mode-map (kbd key) command)))))
+             (key (plist-get el :key))
+             (map-inject (plist-get el :map-inject)))
+         (when map-inject
+           (define-key ,mode-map (kbd key) command))))))
 
 ;; * provide
 (provide 'entropy-emacs-hydra-hollow)

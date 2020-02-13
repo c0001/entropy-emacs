@@ -47,9 +47,11 @@
 ;; 
 ;; * Code:
 ;; ** require
-(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defface)
+(require 'entropy-emacs-utils)
+(require 'entropy-emacs-hydra-hollow)
 
 (when (and entropy/emacs-indicate-sshd-session
            (display-graphic-p))
@@ -197,8 +199,13 @@
     (if (not (ignore-errors hl-line-mode))
         (hl-line-mode 1)
       (hl-line-mode 0))))
-      
-(global-set-key (kbd "<f2>") 'entropy/emacs-basic-dhl-toggle)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
+  :notation "hl line"
+  :key "<f2>"
+  :command entropy/emacs-basic-dhl-toggle
+  :exit t
+  :global-bind t)
 
 ;; ** Smooth scrolling
 (defvar entropy/emacs-basic-smooth-scrolling-mode nil
@@ -373,7 +380,13 @@ layout switching conflicts."
                             (setq rtn t)))
                         rtn)))
         (delete-other-windows-internal)))))
-(global-set-key (kbd "C-x 1") #'entropy/emacs-basic-kill-other-window)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
+  :notation "delete-other-window"
+  :key "C-x 1"
+  :command entropy/emacs-basic-kill-other-window
+  :exit t
+  :global-bind t)
 
 ;; ** kill redundant buffer
 (defun entropy/emacs-basic-kill-large-process-buffer ()
@@ -392,8 +405,13 @@ layout switching conflicts."
     (when (and (not (string-match-p (regexp-quote "shell") (format "%s" process)))
                (not (string-match-p (regexp-quote "ansi-term") (format "%s" process)))
                (not (string-match-p (regexp-quote "terminal") (format "%s" process))))
-               (delete-process process))))
-(entropy/emacs-!set-key (kbd "0") 'entropy/emacs-basic-kill-large-process-buffer)
+      (delete-process process))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Misc."
+  :notation "kill large process"
+  :key "0"
+  :command entropy/emacs-basic-kill-large-process-buffer
+  :exit t)
 
 ;; ** Set defualt tab size
 (if entropy/emacs-custom-tab-enable
@@ -449,15 +467,57 @@ layout switching conflicts."
 
 ;; ** Auto wrap line
 (setq-default truncate-lines t)
-(global-set-key(kbd "C-<f9>") 'toggle-truncate-lines)
-(setq org-startup-truncated t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
+  :notation "toggle truncate"
+  :key "C-<f9>"
+  :command toggle-truncate-lines
+  :toggle truncate-lines
+  :exit t
+  :global-bind t)
 
 ;; ** Dired config
 ;; *** dired basic
 (use-package dired
   :ensure nil
+;; **** init
   :init
-;; **** Delete directory with force actions
+;; ***** pretty hydra
+  ;; major mode hydra
+  (entropy/emacs-hydra-hollow-define-major-mode-hydra
+   dired-mode dired dired-mode-map
+   (:title
+    (entropy/emacs-pretty-hydra-make-title
+     "Dired Actions" "fileicon" "emacs")
+    :color ambranth
+    :quit-key "q")
+   ("Delete Node"
+    (("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
+      :map-inject t
+      :exit t)
+     ("M-d" entropy/emacs-basic-dired-delete-file-refers "Delete refers"
+      :map-inject t
+      :exit t))
+    "Add Node"
+    (("+" dired-create-directory "Create directory"
+      :map-inject t
+      :exit t))
+    "Navigation"
+    (("M-<up>" dired-up-directory "Up directory"
+      :map-inject t
+      :exit t))
+    "Backup"
+    (("B" entropy/emacs-basic-backup-files "Common Backup"
+      :map-inject t
+      :exit t))
+    "Misc."
+    (("0" entropy/emacs-basic-get-dired-fpath "Get Node Path"
+      :map-inject t
+      :exit t)
+     ("M-l" entropy/emacs-basic--dired-add-to-load-path "Add path"
+      :map-inject t
+      :exit t))))
+  
+;; ***** Delete directory with force actions
   (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
     "Minor mode for func `entropy/emacs-basic-dired-delete-file-recursive'."
@@ -588,13 +648,10 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     "Kill all refers of dired markd file of directories."
     (interactive)
     (entropy/emacs-basic-dired-delete-file-recursive nil t))
-  
-  (entropy/emacs-lazy-load-simple 'dired
-    (define-key dired-mode-map (kbd "D") 'entropy/emacs-basic-dired-delete-file-recursive)
-    (define-key dired-mode-map (kbd "M-d") 'entropy/emacs-basic-dired-delete-file-refers))
-  
+
+;; **** config
   :config
-;; **** Set unit of dired inode for human readable
+;; ***** Set unit of dired inode for human readable
   (add-hook 'dired-mode-hook #'dired-hide-details-mode)
   
   (if (not sys/is-win-group)
@@ -602,14 +659,12 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
       (setq dired-listing-switches "-alh --group-directories-first")
     (setq dired-listing-switches "-alh"))
 
-;; **** Always delete and copy resursively
+;; ***** Always delete and copy resursively
   (setq dired-recursive-deletes 'always)
   (setq dired-recursive-copies 'always)
   
-;; **** bind 'M-<up>' for dired updir
-  (define-key dired-mode-map (kbd "M-<up>") 'dired-up-directory)
   
-;; **** Improve dired files operation experience for kill opened refer buffers.
+;; ***** Improve dired files operation experience for kill opened refer buffers.
   (defun entropy/emacs-basic--kill-redundant-buffer (&rest rest-args)
     "Delete file refer redundant buffer which will cause dired
 'delete' or 'rename' failed."
@@ -621,7 +676,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
   (advice-add 'dired-do-rename :before #'entropy/emacs-basic--kill-redundant-buffer)
   (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-basic--kill-redundant-buffer)
   
-;; **** get both UNIX and WINDOWS style path string
+;; ***** get both UNIX and WINDOWS style path string
   (defvar entropy/emacs-basic--get-dired-fpath-log nil)
 
   (defun entropy/emacs-basic-get-dired-fpath (type)
@@ -656,9 +711,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
               entropy/emacs-basic--get-dired-fpath-log rtn)
         (message "Save all path string to log variable 'entropy/emacs-basic--get-dired-fpath-log'.")))))
   
-  (define-key dired-mode-map (kbd "0 w") 'entropy/emacs-basic-get-dired-fpath)
-
-;; **** dired add load path
+;; ***** dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
     (interactive)
     (let ((dir (completing-read "Choose load path adding item: "
@@ -668,9 +721,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
         (setq dir (file-name-directory dir)))
       (add-to-list 'load-path dir)))
 
-  (define-key dired-mode-map (kbd "M-l") 'entropy/emacs-basic--dired-add-to-load-path)
-
-;; **** dired backup file
+;; ***** dired backup file
 
   (defun entropy/emacs-basic-backup-files ()
     (interactive)
@@ -681,9 +732,8 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
         (when (file-exists-p el)
           (entropy/cl-backup-file el)))
       (revert-buffer)))
-  (define-key dired-mode-map (kbd "B") #'entropy/emacs-basic-backup-files)
 
-;; **** dired auto revert after some operations
+;; ***** dired auto revert after some operations
 
   (defun entropy/emacs-basic--dired-revert-advice (&rest _)
     (revert-buffer))
@@ -694,12 +744,13 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                 dired-do-compress
                 dired-do-compress-to
                 dired-do-touch))
-    (advice-add el :after #'entropy/emacs-basic--dired-revert-advice)))
+    (advice-add el :after #'entropy/emacs-basic--dired-revert-advice))
+  )
 
-;; **** Use dired-aux to enable dired-isearch
+;; *** Use dired-aux to enable dired-isearch
 (use-package dired-aux :ensure nil)
 
-;; **** Quick sort dired buffers via hydra
+;; *** Quick sort dired buffers via hydra
   ;;; bind key: `S'
 (when (not sys/win32p)
   (use-package dired-quick-sort
@@ -707,7 +758,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     :commands (dired-quick-sort-setup)
     :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup)))
 
-;; **** Use coloful dired ls
+;; *** Use coloful dired ls
 (defun entropy/emacs-basic--dired-visual-init ()
   "Init dired colorful visual featuer."
   (cond ((or (string= entropy/emacs-dired-visual-type "simple-rainbow")
@@ -828,7 +879,7 @@ You are in terminal emacs session, can not enable
 
 (entropy/emacs-basic--dired-visual-init)
 
-;; **** dired-x
+;; *** dired-x
 (use-package dired-x
   :ensure nil
   :commands (dired-omit-mode)
@@ -850,10 +901,20 @@ emacs."
   (advice-add 'image-toggle-animation :before #'entropy/emacs-basic-image-gif-warn))
 
 ;; ** Set transparenct of emacs frame
-(global-set-key (kbd "<f6>") 'entropy/emacs-basic-loop-alpha)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Misc."
+  :key "<f6>"
+  :command entropy/emacs-basic-loop-alpha
+  :notation "Frame Alpha"
+  :toggle entropy/emacs-basic-loop-alpha-did
+  :global-bind t)
+
+(defvar entropy/emacs-basic-loop-alpha-did nil)
 
 (defun entropy/emacs-basic-loop-alpha (&optional prefix)
   (interactive "P")
+  (setq entropy/emacs-basic-loop-alpha-did
+        (null entropy/emacs-basic-loop-alpha-did))
   (let ((h (car entropy/emacs-loop-alpha-value))
         (bgtr
          (when prefix
@@ -1148,7 +1209,13 @@ coding-system to save bookmark infos"
         (goto-char point)
         (message "Reloaded current major mode '%s'!" (symbol-name major-mode)))
     (error "You can not refresh %s in this buffer, if did may cause some bug." (symbol-name major-mode))))
-(global-set-key (kbd "<f7>") 'entropy/emacs-basic-major-mode-reload)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
+  :key "<f7>"
+  :command entropy/emacs-basic-major-mode-reload
+  :notation "Reload Major"
+  :exit t
+  :global-bind t)
 
 ;; ** Disable-mouse-wheel and more
 (use-package disable-mouse
@@ -1165,25 +1232,47 @@ coding-system to save bookmark infos"
   (add-hook 'artist-mode-hook
             #'(lambda () 
                 (if artist-rubber-banding
-                    (setq-local artist-rubber-banding nil)))))
+                    (setq-local artist-rubber-banding nil))))
 
-(defun entropy/emacs-basic-ex-toggle-artist-and-text ()
-  (interactive)
-  "Toggle mode between `text-mode' & `artist-mode'."
-  (cond ((eq major-mode 'picture-mode)
-         (text-mode))
-        ((eq major-mode 'text-mode)
-         (yes-or-no-p "Really for that? (maybe you don't want to change to artist!) ")
-         (artist-mode))))
-(entropy/emacs-lazy-load-simple 'artist
-  (define-key artist-mode-map (kbd "<f5>") 'entropy/emacs-basic-ex-toggle-artist-and-text))
-(entropy/emacs-lazy-load-simple 'text-mode
-  (define-key text-mode-map (kbd "<f5>") 'entropy/emacs-basic-ex-toggle-artist-and-text))
+  ;; major-mode hydra defined
+  (entropy/emacs-hydra-hollow-define-major-mode-hydra
+   picture-mode picture picture-mode-map
+   (:title
+    (entropy/emacs-pretty-hydra-make-title
+     "Artist-Mode Actions" "faicon" "paint-brush")
+    :color ambranth
+    :quit-key "q")
+   ("Basic"
+    (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'text-mode'"
+      :toggle (if (eq major-mode 'picture-mode) nil t)
+      :map-inject t
+      :exit t))))
 
-;; Disabled '<' and '>' keybinding function.
-(entropy/emacs-lazy-load-simple 'artist
-  (define-key artist-mode-map (kbd ">") nil)
-  (define-key artist-mode-map (kbd "<") nil))
+  (entropy/emacs-lazy-load-simple 'text-mode
+    (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+     text-mode text-mode-map
+     ("Basic"
+      (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'artist-mode'"
+        :toggle (if (eq major-mode 'text-mode) nil t)
+        :map-inject t
+        :exit t)))))
+
+  :config
+
+  (defun entropy/emacs-basic-ex-toggle-artist-and-text ()
+    (interactive)
+    "Toggle mode between `text-mode' & `artist-mode'."
+    (cond ((eq major-mode 'picture-mode)
+           (text-mode))
+          ((eq major-mode 'text-mode)
+           (yes-or-no-p "Really for that? (maybe you don't want to change to artist!) ")
+           (artist-mode))))
+
+  ;; Disabled '<' and '>' keybinding function.
+  (entropy/emacs-lazy-load-simple 'artist
+    (define-key artist-mode-map (kbd ">") nil)
+    (define-key artist-mode-map (kbd "<") nil))
+  )
 
 (defun entropy/emacs-basic-artist-mode ()
   "Open one temp-file with artist-mode.
@@ -1431,7 +1520,13 @@ Temp file was \"~/~entropy-artist.txt\""
 
 ;; ** Emacs process and system proced manager hacking
 ;; *** process
-(global-set-key (kbd "C-c s s") 'list-processes)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Misc."
+  :key "C-c s s"
+  :command list-processes
+  :notation "List Process"
+  :exit t
+  :global-bind t)
 
 ;; *** proced
 (use-package proced
@@ -1488,9 +1583,26 @@ otherwise returns nil."
 (entropy/emacs-basic--build-case-toggle "upcase" upcase-word)
 (entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
 
-(global-set-key (kbd "M-c") 'entropy/emacs-basic-toggle-case-for-capitalize)
-(global-set-key (kbd "M-u") 'entropy/emacs-basic-toggle-case-for-upcase)
-(global-set-key (kbd "M-l") 'entropy/emacs-basic-toggle-case-for-downcase)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
+  :key "M-c"
+  :command entropy/emacs-basic-toggle-case-for-capitalize
+  :notation "Captalize Word"
+  :exit t
+  :global-bind t)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
+  :key "M-l"
+  :command entropy/emacs-basic-toggle-case-for-downcase
+  :notation "Down Case Word"
+  :exit t
+  :global-bind t)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
+  :key "M-u"
+  :command entropy/emacs-basic-toggle-case-for-upcase
+  :notation "Upcase Word"
+  :exit t
+  :global-bind t)
 
 ;; ** autocompression moode
 
