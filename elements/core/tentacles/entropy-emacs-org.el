@@ -625,7 +625,10 @@ buffer."
     "Add CUSTOM_ID properties to all headlines in the current
 file which do not already have one."
     (interactive)
-    (org-map-entries (lambda () (entropy/emacs-org--custom-id-get (point) 'create)) t nil))
+    (org-map-entries
+     (lambda ()
+       (entropy/emacs-org--custom-id-get (point) 'create))
+     t nil))
 
   (defun entropy/emacs-org-auto-add-ids-to-headlines-in-file ()
     "Add CUSTOM_ID properties to all headlines in the current
@@ -637,15 +640,18 @@ file which do not already have one. Only adds ids if the
       (widen)
       (goto-char (point-min))
       (when (re-search-forward "^#\\+OPTIONS:.*auto-id:t" (point-max) t)
-        (org-map-entries (lambda () (entropy/emacs-org--custom-id-get (point) 'create)) t nil))))
+        (org-map-entries
+         (lambda () (entropy/emacs-org--custom-id-get (point) 'create))
+         t nil))))
 
 ;; ***** autamatically add ids to saved org-mode headlines
+
+  (defun entropy/emacs-org-auto-add-org-ids-before-save ()
+    (when (and (eq major-mode 'org-mode)
+               (eq buffer-read-only nil))
+      (entropy/emacs-org-auto-add-ids-to-headlines-in-file)))
   (add-hook 'before-save-hook
-            (lambda ()
-              (when (and (eq major-mode 'org-mode)
-                         (eq buffer-read-only nil))
-                (entropy/emacs-org-auto-add-ids-to-headlines-in-file))))
-  
+            #'entropy/emacs-org-auto-add-org-ids-before-save)
 ;; **** browser url with system app
   (add-hook 'org-mode-hook
 	    '(lambda ()
