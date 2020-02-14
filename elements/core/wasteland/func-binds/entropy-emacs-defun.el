@@ -43,6 +43,7 @@
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
+(require 'rx)
 
 ;; ** common library
 ;; *** individuals
@@ -276,6 +277,17 @@ in new emacs-version."
 (defun entropy/emacs-setf-for-nth (pos replace list-var)
   (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
     (eval `(setf ,remap-form replace))))
+
+;; *** map string match
+(eval-when-compile
+  (defun entropy/emacs-map-string-match-p (str matches)
+    (let ((rtn 0))
+      (dolist (el matches)
+        (when (string-match-p (rx (regexp (eval el))) str)
+          (cl-incf rtn)))
+      (if (eq rtn 0)
+          nil
+        t))))
 
 ;; ** lazy load branch
 (defmacro entropy/emacs-lazy-load-simple (file &rest body)

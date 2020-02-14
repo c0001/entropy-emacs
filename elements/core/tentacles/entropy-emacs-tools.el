@@ -316,17 +316,25 @@ like `recenter-top-bottom'."
          ("C-h M-M" . discover-my-mode))
   :config
 
+  (defvar entropy/emacs-tools--dmm-sections-log nil)
+  
   (defun entropy/emacs-tools--dmm-prune-sections (dmm-sections)
+    (setq entropy/emacs-tools--dmm-sections-log nil)
     (let ((dmm-sections-copy (copy-sequence dmm-sections))
-          (rules '("next-line" "previous-line" "left-char" "right-char"))
+          (rules '("next-line" "previous-line" "left-char" "right-char"
+                   "beginning-of-line" "end-of-line"))
           rtn)
+      (setq entropy/emacs-tools--dmm-sections-log dmm-sections-copy)
       (dolist (section dmm-sections-copy)
         (let* ((group-name (car section))
                (bindings (cdr section))
                (cpbdins (copy-sequence bindings))
                cache)
-          (dolist (binding bindings)
-            (unless (member (cdr binding) rules)
+          (dolist (binding cpbdins)
+            (unless (or (entropy/emacs-map-string-match-p
+                         (cdr binding) rules)
+                        (entropy/emacs-map-string-match-p
+                         (car binding) rules))
               (push binding cache)))
           (push (append (list group-name) (nreverse cache)) rtn)))
       (nreverse rtn)))
