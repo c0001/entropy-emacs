@@ -740,8 +740,7 @@ chosen as prompted query location state."
       (error (format "File '%s' must be org file" target-file))))
     (unless (file-directory-p target-imgs-dir)
       (error (format "Directory '%s' not existed.")))
-    (setq imgs-paths (entropy/emacs-org--ocii-extract-file-imgs-links target-file)
-          temp/x3 imgs-paths)
+    (setq imgs-paths (entropy/emacs-org--ocii-extract-file-imgs-links target-file))
     (when imgs-paths
       (dolist (el imgs-paths)
         (if (file-exists-p el)
@@ -782,7 +781,6 @@ Now just supply localization image file analyzing."
     (when link-objs
       (dolist (el link-objs)
         (push (plist-get el :link) links_temp)))
-    (setq temp/xx links_temp)
     (when links_temp
       (dolist (el links_temp)
         (when (string-match "\\(svg\\|imagemagick\\|png\\|gif\\|tiff\\|jpeg\\|xpm\\|xbm\\|pbm\\)$"
