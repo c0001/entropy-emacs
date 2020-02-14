@@ -5,29 +5,29 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-ibuffer.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
-;; IBUFFER configuration of `entropy-emacs'. 
+;; IBUFFER configuration of `entropy-emacs'.
 ;;
 ;; * Configuration:
 ;;
 ;; Loading automatically by `entropy-emacs' without hacking warranty.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -43,13 +43,13 @@
     (ibuffer-projectile-set-filter-groups)
     (unless (eq ibuffer-sorting-mode 'alphabetic)
       (ibuffer-do-sort-by-alphabetic)))
-  
+
   :bind ("C-x C-b" . ibuffer)
   :init
   (setq ibuffer-filter-group-name-face 'font-lock-function-name-face)
   (add-hook 'ibuffer-hook
             #'entropy/emacs-ibuffer--ibprjt-init))
-  
+
 ;; ** common ibuffer display
 (when (not entropy/emacs-enable-ibuffer-projectitle)
   (global-set-key (kbd "C-x C-b") 'ibuffer)

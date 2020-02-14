@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-shell.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; `entropy-emacs' internal shell emulator configuration for 'eshell'
@@ -27,11 +27,11 @@
 ;;
 ;; * Configuration:
 ;;
-;; This file may not be used out of entroy-emacs. 
+;; This file may not be used out of entroy-emacs.
 ;;
-;; 
+;;
 ;; * Code:
-;; 
+;;
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
@@ -42,7 +42,7 @@
   :config
   (add-hook 'comint-output-filter-functions #'comint-strip-ctrl-m)
   (add-hook 'shell-mode-hook #'ansi-color-for-comint-mode-on)
-  
+
 ;; *** Improve shell buffer interactive experience
   (defun entropy/emacs-shell--n-shell-mode-hook ()
     "Shell mode customizations."
@@ -51,7 +51,7 @@
     (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
     (setq comint-input-sender 'entropy/emacs-shell--n-shell-simple-send))
   (add-hook 'shell-mode-hook #'entropy/emacs-shell--n-shell-mode-hook)
-  
+
   (defun entropy/emacs-shell--n-shell-simple-send (proc command)
     "Various PROC COMMANDs pre-processing before sending to shell."
     (cond
@@ -132,23 +132,23 @@ command will not be called for the instance as your expection."
     (if (file-name-absolute-p name)
         name
       (let ((list (eshell-parse-colon-path eshell-path-env))
-	    suffixes n1 n2 file)
+            suffixes n1 n2 file)
         ;; (if (eshell-under-windows-p)
         ;;     (push "." list))
         (while list
-	  (setq n1 (concat (car list) name))
-	  (setq suffixes eshell-binary-suffixes)
-	  (while suffixes
-	    (setq n2 (concat n1 (car suffixes)))
-	    (if (and (or (file-executable-p n2)
-		         (and eshell-force-execution
-			      (file-readable-p n2)))
-		     (not (file-directory-p n2)))
-	        (setq file n2 suffixes nil list nil))
-	    (setq suffixes (cdr suffixes)))
-	  (setq list (cdr list)))
+          (setq n1 (concat (car list) name))
+          (setq suffixes eshell-binary-suffixes)
+          (while suffixes
+            (setq n2 (concat n1 (car suffixes)))
+            (if (and (or (file-executable-p n2)
+                         (and eshell-force-execution
+                              (file-readable-p n2)))
+                     (not (file-directory-p n2)))
+                (setq file n2 suffixes nil list nil))
+            (setq suffixes (cdr suffixes)))
+          (setq list (cdr list)))
         file)))
-  
+
   ;; self-function
   (defun eshell/touch (&rest files)
     "Elisp implement 'touch' unix command."
@@ -212,7 +212,7 @@ was found."
             ((string-match-p "^/$" dir)
              (setq dir wsl-root)))
       (funcall old_func dir)))
-  
+
   :init
   (entropy/emacs-lazy-with-load-trail
    fakecygpty
@@ -232,7 +232,7 @@ was found."
 
   (defvar entropy/emacs-shell--vterm-title-log nil
     "vterm env title debug log var.")
-  
+
   (defun vterm--cd-to-directory-in-title (title)
     "Change into directory extracted from path info in TITLE, so
 that vterm buffer's `default-directory' will update
@@ -245,13 +245,13 @@ shell. See sections 3 and 4 on this page for how to set the TITLE
 via the shell:
 http://www.faqs.org/docs/Linux-mini/Xterm-Title.html
 
-gitub issue link: 
+gitub issue link:
 https://github.com/akermu/emacs-libvterm/issues/55#issuecomment-468833300"
     (setq entropy/emacs-shell--vterm-title-log  title)
     (let ((dir (concat (nth 1 (split-string title ":")) "/")))
       (cd dir)))
   (add-hook 'vterm-set-title-functions #'vterm--cd-to-directory-in-title)
-  
+
   :config
   (defun entropy/emacs-shell--vterm-mode-around-advice (orig-func &rest orig-args)
     "prevent `vterm-mode` calling in vterm-mode from causing
@@ -261,7 +261,7 @@ segmentation fault."
   (advice-add 'vterm-mode :around #'entropy/emacs-shell--vterm-mode-around-advice)
 
   ;; more vterm key bounding
-  
+
   (defun entropy/emacs-shell-vterm-meta-left ()
     (interactive)
     (vterm-send-key "<left>" nil t nil))
@@ -299,14 +299,14 @@ segmentation fault."
   :defines (entropy-shellpop-mode-map)
   :commands (entropy/shellpop-start)
   :preface
-  
+
   (defun entropy/emacs-shell--shellpop-bindkey-for-eshell (func)
     (entropy/emacs-!set-key (kbd "-") func)
     (unless (display-graphic-p)
       (define-key entropy-shellpop-mode-map
         (kbd (concat entropy/emacs-top-key " " "-"))
         func)))
-  
+
   (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
     (let ((key (if (member "MODULES" (split-string system-configuration-features nil t))
                    "M-0"
@@ -352,7 +352,7 @@ segmentation fault."
            :type-keybind entropy/emacs-shell--shellpop-bindkey-for-vterm
            :type-body
            (vterm-mode))))
-  
+
   (entropy/emacs-lazy-with-load-trail
    shellpop-feature
    (cond ((or (not sys/win32p)

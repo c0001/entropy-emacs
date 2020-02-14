@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-emacs-lisp.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; The lisp development environment config for `entropy-emacs',
@@ -32,7 +32,7 @@
 ;; * Configuration:
 ;;
 ;; Loading by `entropy-emacs' automatically without hacking warranty.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -51,7 +51,7 @@ transformation.
 
 Optional arg: FORCE-NEW for lisp coding with new file transformation.
 
-For lisp coding aim, always return the transfered buffer. 
+For lisp coding aim, always return the transfered buffer.
 "
   (interactive "P")
   (when (and prefix force-new)
@@ -144,7 +144,7 @@ For lisp coding aim, always return the transfered buffer.
   ;; set large amount to mode line show time for preventing cut the
   ;; show state when noticed for long time, 100 sec was enough.
   (setq eldoc-show-in-mode-line-delay 100)
-  
+
   (entropy/emacs-lazy-with-load-trail
    eldoc-minibuffer-show
    (add-hook 'window-configuration-change-hook
@@ -232,7 +232,7 @@ For lisp coding aim, always return the transfered buffer.
                 :caller 'entropy/emacs-lisp-slime-counsel-desc-symbol)))
 
   (define-key slime-mode-map (kbd "C-c p") #'entropy/emacs-lisp-slime-counsel-desc-symbol)
-  
+
   (with-eval-after-load 'ivy-rich
     (when (fboundp #'entropy/emacs-ivy--ivy-rich-variable-icon)
       (setq ivy-rich-display-transformers-list

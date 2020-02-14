@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; This file was the starter for other 'entropy-emacs-*' files, can
@@ -27,10 +27,10 @@
 ;;
 ;;
 ;; * Configuration:
-;; 
+;;
 ;; Just requiring this file, you will be able to taste entropy-emacs
 ;; immediately.
-;; 
+;;
 ;; * Code:
 ;; ** Require
 
@@ -117,8 +117,8 @@ we inject it into pdumper session initialize procedure. "))
                   (insert
                    "
 
-Quote:                                                                                             
-                                                                                                     
+Quote:
+
 Because of the mechanism of win10-18030, emacs couldn't to using
 IME before you do the action that moving the frame of current
 emacs session.
@@ -128,7 +128,7 @@ When you see this buffer, it proving that you are in the state for
 enable w32-ime, please enter 'ENTER' key to enable it.
 
 
-Futher-prompt: 
+Futher-prompt:
 
 - when you can not using UPCASE in win10, please type <lwindow> ,
   because this caused after lock-window which activated by
@@ -142,7 +142,7 @@ Futher-prompt:
   combination.
 
   The fixing (temperally recover method) was double typing
-  'Control' key as the unlocking way. 
+  'Control' key as the unlocking way.
 
 
                                              Happy your life -v- !
@@ -163,7 +163,7 @@ Trying insert some words in below are:
 
 
 ;; *** Diable linux tty swiching keybinding
-;; 
+;;
 ;; Disable virtual terminal tty switching keybinding on linux for
 ;; release more keybinding possibilitie.(see
 ;; <https://unix.stackexchange.com/questions/34158/rebinding-disabling-ctrlaltf-virtual-terminal-console-switching>)
@@ -203,7 +203,7 @@ Emacs\" buffer's local `browse-url-browse-function' to
 (advice-add 'about-emacs :after #'entropy/emacs-start--about-emacs-after-advice)
 
 ;; ** start
-;; *** starting emacs with installing new packages 
+;; *** starting emacs with installing new packages
 (defvar entropy/emacs-start--is-init-with-install nil
   "Judgement of whether X start emacs with installing new packages")
 
@@ -240,7 +240,7 @@ and save the compiling log into `user-emacs-dir' named as
   (defvar entropy/emacs-start--pyim-init-done-26+ nil)
 
   (defvar entropy/emacs-start--pyim-init-prompt-buffer "*pyim-cache-loading*")
-  
+
   (defun entropy/emacs-start--pyim-init-after-loaded-cache-26+ ()
     "Trace pyim loading thread til it's done as giving the
 notation.
@@ -267,7 +267,7 @@ notation.
     (defun entropy/emacs-start--pyim-init-after-loaded-cache-26- ()
       (entropy/emacs-message-do-message
        (yellow "This function has been unloaded."))))
-  
+
   (defun entropy/emacs-start--pyim-initialize ()
     "Make prompt when loading and loded pyim cache for emacs init time.
 
@@ -293,9 +293,9 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
 
     ;; initialize pyim
     (entropy/emacs-basic-pyim-start)
-    
+
     ;; prompt for loading pyim cache done.
-    (cond 
+    (cond
      ((not (version< emacs-version "26"))
       (setq entropy/emacs-start--pyim-timer-26+
             (run-with-timer
@@ -316,7 +316,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     (when (not (entropy/emacs-is-make-session))
       (entropy/emacs-start--check-init-with-install-p)
       (when entropy/emacs-start--is-init-with-install
-        (warn "You init with installing new packages, please reopen emacs! 
+        (warn "You init with installing new packages, please reopen emacs!
 
 Emacs will auto close after 6s ......")))
     ;; run after init hooks
@@ -344,16 +344,16 @@ Emacs will auto close after 6s ......")))
   ;; parse installed packages
   (require 'entropy-emacs-package)
   (entropy/emacs-package-common-start)
-  
+
   ;; external depedencies scan and loading
   (when entropy/emacs-fall-love-with-pdumper
     (require 'entropy-emacs-pdumper))
 
   (require 'entropy-emacs-hydra-hollow)
-  
+
   ;; basic feature defination
   (require 'entropy-emacs-basic)
-  
+
   ;; ============================
   ;; mainly ui configuration
   (redisplay t)
@@ -369,7 +369,7 @@ Emacs will auto close after 6s ......")))
   (require 'entropy-emacs-popwin)
   (redisplay t)
   ;; =============================
-  
+
   ;; ineractive
   (require 'entropy-emacs-ivy)
   ;; org
@@ -384,7 +384,7 @@ Emacs will auto close after 6s ......")))
   ;; after loading eemacs mini
   (entropy/emacs-start--init-after-load-initialze-process
    entropy/emacs-minimal-start 'entropy/emacs-init-mini-hook)
-  
+
   (defun entropy/emacs-start-M-enable ()
     (interactive)
     (message "This function has been unloaded."))
@@ -444,11 +444,11 @@ Emacs will auto close after 6s ......")))
   ;; end
   (advice-remove 'require #'entropy/emacs-start--require-loading)
   (advice-remove 'redisplay #'entropy/emacs-start--initial-redisplay-advice)
-  
+
   (entropy/emacs-start--init-after-load-initialze-process
    (null entropy/emacs-minimal-start)
    'entropy/emacs-init-X-hook)
-  
+
   (defun entropy/emacs-start-X-enable ()
     (interactive)
     (message "This function has been unloaded."))

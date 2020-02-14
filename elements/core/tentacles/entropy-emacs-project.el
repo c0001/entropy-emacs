@@ -5,29 +5,29 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; Created:       2020-02-08 16:49:08
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
-;; 
+;;
 ;; Projects management
-;; 
+;;
 ;; * Configuration:
-;; 
+;;
 ;; For eemacs specification only, no warranty for others.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -42,7 +42,7 @@
   :diminish
   :commands (projectile-find-file
              projectile-command-map)
-  :bind 
+  :bind
   :init
 
   (entropy/emacs-lazy-with-load-trail
@@ -51,7 +51,7 @@
          projectile-sort-order 'recentf
          projectile-use-git-grep t
          projectile-completion-system 'ivy)
-   
+
    (projectile-mode +1)
 
    (define-key projectile-mode-map (kbd "C-c p")

@@ -150,13 +150,13 @@
                       (entropy/emacs-hydra-hollow--split-pretty-hydra-group-heads
                        heads-plist)))
         patched-heads-group)
-    
+
     (dolist (head split-heads)
       (let* ((head-plist (caadr head))
              (head-attr (cdddr head-plist))
              (map-inject (plist-get head-attr :map-inject))
              (notation (caddr head-plist)))
-        (push 
+        (push
          (list
           (car head)
           (list
@@ -173,7 +173,7 @@
     (setq patched-heads-group (reverse patched-heads-group)
           patched-heads-group
           (entropy/emacs-hydra-hollow--merge-pretty-hydra-sparse-heads
-           patched-heads-group))           
+           patched-heads-group))
 
     `(let ()
        (entropy/emacs-lazy-load-simple ',feature
@@ -182,8 +182,8 @@
 
            (major-mode-hydra-define ,mode
              ,body
-             ,patched-heads-group)              
-           
+             ,patched-heads-group)
+
            (dolist (el binds)
              (let ((command (plist-get el :command))
                    (key (plist-get el :key))

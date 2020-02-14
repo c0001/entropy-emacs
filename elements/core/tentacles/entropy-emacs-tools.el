@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-tools.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Tool-box for `entropy-emacs', include web-search, web-viewer,
@@ -29,7 +29,7 @@
 ;; * Configuration:
 ;;
 ;; Loading automatically by `entropy-emacs' without hacking warranty.
-;; 
+;;
 ;; * Code:
 ;; ** require
 (require 'entropy-emacs-defconst)
@@ -57,7 +57,7 @@
                      (t
                       nil))
                '(file))
-         
+
          (list (openwith-make-extension-regexp
                 '("pdf" "djvu"))
                ;;"evince"
@@ -77,7 +77,7 @@ each an argument to COMMAND."
       (start-process-shell-command
        "openwith-process" nil
        (concat
-        "exec nohup " command " " 
+        "exec nohup " command " "
         (mapconcat 'shell-quote-argument arglist " ")
         " >/dev/null")))))
 
@@ -195,11 +195,11 @@ Version 2017-10-09"
 
           ;; using cmd
           (w32-shell-execute "open" "cmd" $path))))
-     
+
      ((string-equal system-type "darwin")
       (let ((process-connection-type nil))
         (start-process "" nil "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" default-directory)))
-     
+
      ((string-equal system-type "gnu/linux")
       (let ((process-connection-type nil))
         (start-process "" nil "gnome-terminal" default-directory)))))
@@ -267,7 +267,7 @@ like `recenter-top-bottom'."
               #'entropy/emacs-tools--beacon-blink-advice))
 
 ;; *** visual-regexp
-;; 
+;;
 ;; Visual-regexp for Emacs is like replace-regexp, but with live
 ;; visual feedback directly in the buffer.
 (use-package visual-regexp
@@ -317,7 +317,7 @@ like `recenter-top-bottom'."
   :config
 
   (defvar entropy/emacs-tools--dmm-sections-log nil)
-  
+
   (defun entropy/emacs-tools--dmm-prune-sections (dmm-sections)
     (setq entropy/emacs-tools--dmm-sections-log nil)
     (let ((dmm-sections-copy (copy-sequence dmm-sections))
@@ -423,7 +423,7 @@ which determined by the scale count 0.3 "
   "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
   (interactive "zCoding system for visited file (default nil):")
   (revert-buffer-with-coding-system coding-system)
-  (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))      
+  (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))
       (if (and (executable-find "iconv")
                (executable-find "mv"))
           (let* ((fname (if (buffer-file-name) (buffer-file-name) (error "Buffer without exist file!")))
@@ -534,7 +534,7 @@ For now, there's three choices for you:
   :init
   (when entropy/emacs-google-translate-toggle-patched-in-china
     ;;    Because google-translate has been block in china, so can use below variable for preventing
-    ;;    this problem. And this solution was from `https://emacs-china.org/t/topic/2808/17'  
+    ;;    this problem. And this solution was from `https://emacs-china.org/t/topic/2808/17'
     (eval-after-load 'google-translate-core
       '(setq google-translate-base-url "http://translate.google.cn/translate_a/single"
              google-translate-listen-url "http://translate.google.cn/translate_tts"))
@@ -556,7 +556,7 @@ For now, there's three choices for you:
              (error "No word at point."))))))
 
   (defun entropy/emacs-tools-google-translate-prompt-direct-en-CN ()
-    (interactive)  
+    (interactive)
     (setq google-translate-translation-direction-query
           (if (use-region-p)
               (google-translate--strip-string
@@ -566,7 +566,7 @@ For now, there's three choices for you:
     (setq google-translate-current-translation-direction 0)
 
     (let* ((text (let ((rtn
-                        (read-string 
+                        (read-string
                          (if google-translate-translation-direction-query
                              (format "Input text (default-> %s): " google-translate-translation-direction-query)
                            "Input text: "))))
@@ -805,7 +805,7 @@ For now, there's three choices for you:
     (when (executable-find "w3m")
       (setq entropy/proxy-url--w3m-load-effectively
             t)))
-  
+
   :init
 
   (defun entropy/emacs-tools--proxy-url-w3m-specific ()
@@ -825,7 +825,7 @@ can't visit one page suddenly."
         (w3m-goto-url url)))
     (advice-add 'w3m-retrieve :before #'entropy/emacs-tools--w3m-recorde-retrieve-url)
     (define-key w3m-mode-map (kbd "p") #'entropy/emacs-tools-w3m-toggle-proxy))
-  
+
   (entropy/emacs-lazy-load-simple 'w3m
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (entropy/proxy-url-make-builtin-recipes)

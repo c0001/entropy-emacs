@@ -5,29 +5,29 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-vcs.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
-;; 
+;;
 ;; `entropy-emacs' version control system emacs client configuration.
-;; 
+;;
 ;; * Configuration:
-;; 
+;;
 ;; Loading automatically by `entropy-emacs'.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -54,7 +54,7 @@
       (advice-add 'magit-dispatch-popup :before #'entropy/emacs-lang-set-utf-8)
       (advice-add 'magit-file-popup :before #'entropy/emacs-lang-set-utf-8)))
 
-  ;; Disabled vc.el key bindings for prevent to accidental actived 
+  ;; Disabled vc.el key bindings for prevent to accidental actived
   (progn
     (define-key global-map (kbd "C-x v =") nil)
     (define-key global-map (kbd "C-x v +") nil)
@@ -157,7 +157,7 @@
   :diminish magit-svn-mode
   :commands (magit-svn-mode)
   :init (add-hook 'magit-mode-hook #'magit-svn-mode))
-  
+
 
 ;; **** Pop up last commit information of current line
 (use-package git-messenger

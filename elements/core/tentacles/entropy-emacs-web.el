@@ -5,31 +5,31 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-web.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
-;; 
+;;
 ;; `entropy-emacs' web aspect development environment intergratioin
 ;; for both of front-end and backend, as that covering for =html=,
 ;; =css=, =javascript=, =php=.
-;; 
+;;
 ;; * Configuration:
-;; 
+;;
 ;; Using for `entropy-emacs' only.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -224,7 +224,7 @@ format."
     (entropy/emacs-coworker--coworker-install-by-npm
      "js-beautify" ("css-beautify" "html-beautify" "js-beautify")
      "js-beautify"))
-  
+
   :init
   (entropy/emacs-lazy-load-simple 'js2-mode
     (bind-key "C-c C-b" 'web-beautify-js js2-mode-map))

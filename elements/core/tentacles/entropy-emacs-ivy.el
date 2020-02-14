@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-ivy.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; `entropy-emacs' using [[https://github.com/abo-abo/swiper][ivy]] framework to enhance the emacs command
@@ -36,11 +36,11 @@
 ;; mini-bufer was not adapt to do heavy things due to ivy
 ;; designation. As thus, the 'ag' and 'pt' eventhough the ripgrep
 ;; 'rg' are using helm interface in `entropy-emacs'.
-;; 
+;;
 ;; * Configuration:
-;; 
-;; Loading automatically by `entropy-emacs' without hacking warranty. 
-;; 
+;;
+;; Loading automatically by `entropy-emacs' without hacking warranty.
+;;
 ;; * Code:
 
 ;; ** require
@@ -55,7 +55,7 @@
   :commands (ivy-mode ivy-switch-buffer ivy-resume)
   :bind (("C-c C-r" . ivy-resume)
          ("C-x b" . ivy-switch-buffer))
-  
+
 ;; *** ivy init
   :init
 
@@ -73,7 +73,7 @@
   (setq ivy-height 10)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-on-del-error-function nil)
-  
+
   ;; using fuzzy matching
   (setq ivy-re-builders-alist
         '((read-file-name-internal . ivy--regex-fuzzy)
@@ -81,7 +81,7 @@
           (t . ivy--regex)))
 
   (setq swiper-action-recenter t)
-  
+
 ;; *** ivy config
   :config
 
@@ -158,7 +158,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   :init
   (entropy/emacs-lazy-load-simple 'swiper
     (ivy-mode +1))
-  
+
   :config
   ;; ==assign format-function to swiper for fix some-bug==
 
@@ -170,7 +170,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   ;; default face as font-lock atribtue, it will corrupts the
   ;; correctly font displaying when set spec font to this default
   ;; face.
-  
+
   (entropy/emacs-lazy-load-simple 'all-the-icons-dired
     (defun entropy/emacs-ivy--swiper-format-function-for-dired (cands)
       "Transform CANDS into a string for minibuffer."
@@ -193,7 +193,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   :diminish counsel-mode
   :commands (counsel-mode
              counsel-linux-app)
-  
+
 ;; *** bind-key
   :bind (("M-x"     . counsel-M-x)
          ("C-c M-t" . entropy/emacs-ivy-counsel-load-theme)
@@ -220,11 +220,11 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
          ("C-c f m d" . counsel-bookmarked-directory)
          ("C-c f o"   . counsel-switch-buffer-other-window)
          ("C-c f r"   . counsel-rg)
-         
+
          ;; GIT group -- prefix 'g'
          ("C-c g c" . counsel-git-checkout)
          ("C-c g g" . counsel-git-grep)
-         
+
          ;; GREP group -- prefix 's'
          ("C-c s g" . counsel-grep)
 
@@ -255,27 +255,27 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
          ("C-c m p" . counsel-pt)
          ("C-c m r" . counsel-rg)
          ("C-c m w" . counsel-colors-web)
-         
+
 ;; **** counsel mode map
          :map counsel-mode-map
          ([remap swiper] . counsel-grep-or-swiper))
-  
+
 ;; *** hooks
   :hook ((ivy-mode . counsel-mode))
-  
+
 ;; *** init
   :init
 
   (setq counsel-find-file-at-point nil)
   (setq counsel-yank-pop-separator
         "\n────────\n")
-  
+
   (entropy/emacs-lazy-load-simple 'counsel
     (ivy-mode +1))
-  
+
   (unless sys/win32p
     (entropy/emacs-!set-key (kbd "<M-up>") #'counsel-linux-app))
-  
+
 ;; **** improve counsel-git and counsel-bookmark
 
   ;; counsel-git and counsel-bookmark usually using 'utf-8' encoding
@@ -303,9 +303,9 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
 ;; *** config
   :config
-;; **** reset `ivy-initial-inputs-alist'  
+;; **** reset `ivy-initial-inputs-alist'
   (setq ivy-initial-inputs-alist nil)
-  
+
 ;; **** advice counsel--M-x-externs for it's bad lagging perfomance
 
   ;; because `counsel--M-x-externs' has the `require' function for it's contained condition context
@@ -324,7 +324,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
     (advice-add 'counsel-grep-or-swiper
                 :around
                 #'entropy/emacs-ivy-counsel-grep-or-swiper))
-  
+
 ;; **** counsel-load-theme
   (defun entropy/emacs-ivy-counsel-load-theme ()
     "Load theme with reset the org-headline face for disabled the
@@ -366,11 +366,11 @@ type by function `entropy/emacs-transfer-wvol'"
 ;; **** counsel-dired-jump
   (when sys/win32p
     (advice-add 'counsel-dired-jump :before #'entropy/emacs-lang-set-utf-8))
-  
+
 ;; **** redefine counsel-git
-  
+
   (setq counsel-git-cmd "git ls-files --full-name --")
-  
+
   (defvar entropy/emacs-ivy-counsel-git-root nil
     "Temporally variable storing git repository root dir,
 this variable used to patching for origin `counsel-git'.")
@@ -407,7 +407,7 @@ this variable used to patching for origin `counsel-git'.")
   :init
   (when entropy/emacs-fall-love-with-pdumper
     (require 'css-mode)))
-  
+
 
 ;; *** use ivy-xref for quickly find defination and reference
 (use-package ivy-xref
@@ -639,7 +639,7 @@ this variable used to patching for origin `counsel-git'.")
     (when (display-graphic-p)
       (all-the-icons-octicon
        "git-branch" :height 1.0 :v-adjust -0.05 :face 'all-the-icons-green)))
-  
+
   (when (display-graphic-p)
     (defun entropy/emacs-ivy--ivy-rich-bookmark-type-plus (candidate)
       (let ((filename (file-local-name (ivy-rich-bookmark-filename candidate))))
@@ -661,7 +661,7 @@ this variable used to patching for origin `counsel-git'.")
   (add-hook 'minibuffer-setup-hook
             (lambda ()
               (setq tab-width 1)))
-  
+
 ;; ***** lazy load
   (defun entropy/emacs-ivy--enable-ivy-rich-common ()
     (require 'ivy)
@@ -908,7 +908,7 @@ this variable used to patching for origin `counsel-git'.")
            :delimiter "\t")
 
           ))
-  
+
 ;; **** after load
   :config
   ;; For better performance
@@ -993,7 +993,7 @@ Adding buffer unlock and wind narrowed region feature."
     :config
     (dolist (el '(helm-do-ag helm-do-ag-project-root))
       (advice-add el :around #'entropy/emacs-lang-set-utf-8-around-wrapper))
-    
+
     (defun helm-ag--edit-commit ()
       "Note: this function has been re-define for compat with
 entropy-emacs which force inhibit readonly mode while operating

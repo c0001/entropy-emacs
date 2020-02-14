@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-themes.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; `entropy-emacs' UI theme setting and toggle features collection.
@@ -27,7 +27,7 @@
 ;; * Configuration:
 ;;
 ;; Loading automatically by `entropy-emacs' without hacking warranty.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -42,7 +42,7 @@
   :init
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	doom-themes-enable-italic t  ; if nil, italics is universally disabled
+        doom-themes-enable-italic t  ; if nil, italics is universally disabled
         )
   ;; slide tree doom visual
   (cond ((eq entropy/emacs-tree-visual-type 'neotree)
@@ -112,11 +112,11 @@
 
    (add-hook 'after-make-frame-functions
              #'(lambda (frame)
-	         (when (eq (length (frame-list)) 2)
-		   (progn
-		     (select-frame
-		      frame)
-		     (load-theme entropy/emacs-theme-options)))))))
+                 (when (eq (length (frame-list)) 2)
+                   (progn
+                     (select-frame
+                      frame)
+                     (load-theme entropy/emacs-theme-options)))))))
 
 ;; ** solaire mode for focus visual style
 (use-package solaire-mode
@@ -140,8 +140,8 @@
         (let* ((face (cadr s))
                (face-spec (cadddr s)))
           (when (member face solaire-faces)
-	           (face-spec-set face face-spec))))))
-  
+                   (face-spec-set face face-spec))))))
+
   (defun entropy/emacs-theme--recovery-solaire-faces ()
     (when (entropy/emacs-theme-adapted-to-solaire)
       (entropy/emacs-theme--solaire-force-set-faces
@@ -152,13 +152,13 @@
                         entropy/emacs-theme-sticker el)))
         (when face-spec (face-spec-set el face-spec))))
     (entropy/emacs-solaire-specific-for-themes))
-  
+
   ;; solaire entropy-emacs configuration
 
   (defvar entropy/emacs-theme--solaire-is-enabled nil
     "Transient variable for indicating buffer `solaire-mode'
 status.")
-  
+
   (defun entropy/emacs-theme--solaire-enable ()
     (when (entropy/emacs-theme-adapted-to-solaire)
       (let (is-swaped)
@@ -171,7 +171,7 @@ status.")
                  (solaire-mode-swap-bg)
                  (setq is-swaped t)))))
          (buffer-list)))))
-  
+
   (defun entropy/emacs-theme--solaire-disable ()
     (when (entropy/emacs-theme-adapted-to-solaire)
       (when (bound-and-true-p solaire-global-mode)
@@ -186,7 +186,7 @@ status.")
   (defun entropy/emacs-theme--solaire-enable-single ()
     (when (entropy/emacs-theme-adapted-to-solaire)
       (solaire-mode +1)))
-  
+
   (defun entropy/emacs-theme--solaire-initial-hooks ()
     (dolist (el entropy/emacs-enable-solaire-registers)
       (dolist (hook (cdr el))

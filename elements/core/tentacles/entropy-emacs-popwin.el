@@ -7,21 +7,21 @@
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-popwin.el
 ;; Compatibility: GNU Emacs emacs-version;
 ;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Using `shackle-mode' and `popwin-mode' to manage the buffer or
@@ -41,7 +41,7 @@
 ;; Sets of functions used as library came from other designation of
 ;; =entropy-emacs=, thus correctly extracting theme from that was
 ;; necessary for hacking.
-;; 
+;;
 ;; * Code:
 ;; ** popwin-mode
 (use-package popwin
@@ -53,7 +53,7 @@
   (entropy/emacs-lazy-with-load-trail
    popwin-mode
    (popwin-mode t))
-  
+
   (entropy/emacs-!set-key (kbd "3") popwin:keymap)
 
   :config
@@ -85,13 +85,13 @@
 
           ;; Moedict
           ("*[萌典] 查詢結果*" :dedicated t :position bottom)
-          
+
           ;; Paradox
           ("*Paradox Report*" :dedicated t :position bottom :noselect nil)
 
           ;; Diff
           ("*Diff*" :dedicated t :position bottom :noselect nil)
-          
+
           ;; List
           ("*Colors*" :dedicated t :position bottom)
           ("*Process List*" :dedicated t :position bottom)
@@ -166,13 +166,13 @@
    (shackle-mode t))
 
   (entropy/emacs-!set-key (kbd "3") shackle-popup-mode-map)
-  
+
   :bind
   (:map shackle-popup-mode-map
    ("o" . shackle-popup-buffer)
    ("f" . shackle-popup-find-file)
    ("e" . shackle-popup-message))
-  
+
   :config
 
   (defun shackle-last-popup-buffer ()
@@ -247,7 +247,7 @@
         (unless (eobp)
           (goto-char (point-max))))
       (display-buffer buff-name)))
-  
+
   ;; rules
   (setq shackle-default-size 0.6)
   (setq shackle-default-alignment 'below)

@@ -5,29 +5,29 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-yas.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
-;; 
-;; Yasnippet configuration for `entropy-emacs'. 
-;; 
+;;
+;; Yasnippet configuration for `entropy-emacs'.
+;;
 ;; * Configuration:
-;; 
+;;
 ;; Uisng for `entropy-emacs' only.
-;; 
+;;
 ;; * Code:
 
 
@@ -52,7 +52,7 @@
       (yas-expand))
      (t
       (yas-expand))))
-  
+
   :config
   (use-package yasnippet-snippets
     :commands (yasnippet-snippets-initialize)
@@ -126,7 +126,7 @@
   (defvar-local entropy/emacs-yas--aya-snippets-local nil
     "Local variable to stored the aya-snippets for
 `current-buffer'.")
-  
+
   (defun entropy/emacs-yas--aya-preserve (&rest _)
     (dolist (el '(entropy/emacs-yas--aya-snippets
                   entropy/emacs-yas--aya-snippets-local))
@@ -151,9 +151,9 @@
                        (propertize "(local empty, list from global)" 'face 'warning)
                        ": "))))
       (entropy/emacs-yas--aya-preserve)))
-  
+
   (defun entropy/emacs-yas--aya-create-prefix (orig-func &rest region)
-    "Directly yank current short prefix string as `aya-current'. 
+    "Directly yank current short prefix string as `aya-current'.
 
 The prefix is the region within the single line(e.g. non newline
 included in), as the namespace prefix for context, for coding

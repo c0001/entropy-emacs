@@ -10,29 +10,29 @@
 ;; Keywords:      kewords-1, kewords-2, kewords-3,
 ;; Compatibility: GNU Emacs emacs-version;
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
-;; 
+;;
 ;; commentary
-;; 
+;;
 ;; * Configuration:
-;; 
+;;
 ;; configuration
-;; 
+;;
 ;; * Code:
 
 ;; ** Require
@@ -52,7 +52,7 @@
          :map treemacs-mode-map
          ([mouse-1]   . treemacs-single-click-expand-action))
   :preface
-  
+
   (defun entropy/emacs-treemacs--get-buffer-path ()
     (or (buffer-file-name (current-buffer))
         (when (eq major-mode 'dired-mode)
@@ -84,10 +84,10 @@
                      'treemacs-add-project-to-workspace
                      (read-directory-name "Get project root: " nil nil t)))))
       ('none    (treemacs--init))))
-  
+
   :config
   (advice-add 'treemacs--init :around #'entropy/emacs-treemacs--unwind-for-init)
-  
+
   (setq treemacs-collapse-dirs           (if treemacs-python-executable 3 0)
         treemacs-sorting                 'alphabetic-case-insensitive-desc
         treemacs-follow-after-init       t

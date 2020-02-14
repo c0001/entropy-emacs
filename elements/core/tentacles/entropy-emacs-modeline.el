@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-modeline.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; `entropy-emacs' has its own specfic modeline style with bounds of
@@ -35,7 +35,7 @@
 ;; * Configuration:
 ;;
 ;; Loading automatically by `entropy-emacs' without hackign warranty.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -189,17 +189,17 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (setq entropy/emacs-modeline--spaceline-icons-spec-list nil)
     (push (cons 'powerline-text-scale-factor powerline-text-scale-factor)
           entropy/emacs-modeline--spaceline-icons-spec-list)
-    (setq powerline-text-scale-factor 1.2)    
+    (setq powerline-text-scale-factor 1.2)
 
     ;; self specification
     (setq spaceline-all-the-icons-projectile-p nil)
     (setq spaceline-all-the-icons-separator-type 'none)
     (setq spaceline-all-the-icons-icon-set-eyebrowse-slot 'square))
-  
+
   :config
   (unless entropy/emacs-modeline--spaceline-icons-spec-done
     (entropy/emacs-modeline--spaceline-icons-specification))
-  
+
   (defun entropy/emacs-modeline--spaceline-eyebrowse-segments-advice (orig-func &rest orig-args)
     "Ignore icon parse for float wind-num type used for
 entropy-emacs' derived eyebrowse window configuration. "
@@ -239,7 +239,7 @@ entropy-emacs' derived eyebrowse window configuration. "
   :preface
 
   (defvar entropy/emacs-modeline--doom-modeline-spec-done nil)
-  
+
   (defun entropy/emacs-modeline--doom-modeline-specification ()
     (setq doom-modeline-height 10
           doom-modeline-bar-width 1
@@ -255,7 +255,7 @@ entropy-emacs' derived eyebrowse window configuration. "
   :config
   (unless entropy/emacs-modeline--doom-modeline-spec-done
     (entropy/emacs-modeline--doom-modeline-specification))
-  
+
   (defun entropy/emacs-modeline--dml-file-icon-around-advice (orig-func &rest orig-args)
     (apply orig-func orig-args)
     (when (equal (buffer-name) entropy/emacs-dashboard-buffer-name)
@@ -295,7 +295,7 @@ entropy-emacs' derived eyebrowse window configuration. "
                      (char-displayable-p (string-to-char unicode)))
             (propertize unicode 'face face))
           (when text (propertize text 'face face)))))
-  
+
   (defun doom-modeline-update-buffer-file-state-icon (&rest _)
     "Update the buffer or file state in mode-line.
 
@@ -326,7 +326,7 @@ entropy-emacs using all file state icos show side by side. "
   ;; narrow region adviced by doom-modeline icon dynamic features
   (advice-add #'narrow-to-defun :after #'doom-modeline-update-buffer-file-state-icon)
   (advice-add #'narrow-to-page :after #'doom-modeline-update-buffer-file-state-icon)
-  
+
   (doom-modeline-def-segment company-indicator
     "Company mode backends indicator."
     (let ((company-lighter-base
@@ -337,7 +337,7 @@ entropy-emacs using all file state icos show side by side. "
                          'mode-line-inactive)))
           (company-backend-abbrev-indicatior
            (lambda (x_str)
-             (format "%s%s%s" 
+             (format "%s%s%s"
                      (propertize "✚ ❮" 'face 'mode-line-emphasis)
                      (propertize x_str 'face 'diary)
                      (propertize "❯" 'face 'mode-line-emphasis))))
@@ -488,7 +488,7 @@ style which defined in `entropy/emacs-modeline-style'."
 
 ;; ** toggle function
 (when entropy/emacs-enable-modeline-toggle
-  
+
   (defun entropy/emacs-modeline--mdl-tidy-spec ()
     (pcase entropy/emacs-mode-line-sticker
       ("spaceline"
@@ -510,7 +510,7 @@ style which defined in `entropy/emacs-modeline-style'."
              ,@body
              ,enable-form)
          (progn (setq ,init-var nil)))))
-  
+
   (entropy/emacs-modeline--define-toggle
    "spaceline"
    (entropy/emacs-modeline--spaceline-specification)

@@ -7,21 +7,21 @@
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-wc.el
 ;; Compatibility: GNU Emacs emacs-version;
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Emacs window referred configuration sepcified for =entropy-emacs=.
@@ -37,7 +37,7 @@
 ;; Sets of functions used as library came from other designation of
 ;; =entropy-emacs=, thus correctly extracting theme from that was
 ;; necessary for hacking.
-;; 
+;;
 ;; * Code:
 
 ;; ** Window switch
@@ -141,13 +141,13 @@
              eyebrowse-switch-to-window-config-7
              eyebrowse-switch-to-window-config-8
              eyebrowse-switch-to-window-config-9)
-  
+
   :bind (("C-c v" . entropy/emacs-basic-eyebrowse-create-derived)
          ("C-c M-v" . entropy/emacs-basic-eyebrowse-switch-derived))
   :init
 
   (setq eyebrowse-keymap-prefix (kbd "s-w"))
-  
+
   (entropy/emacs-lazy-with-load-trail
    eyebrowse-enable
    (eyebrowse-mode +1)
@@ -190,7 +190,7 @@
                  (functionp entropy/emacs-eyebrowse-new-workspace-init-function))
             entropy/emacs-eyebrowse-new-workspace-init-function
           t))
-  
+
   ;; debug for improving eyebrowse's user experience
   (defun eyebrowse--read-slot ()
     "Read in a window config SLOT to switch to.
@@ -198,7 +198,7 @@
   If no match was found, the user input is interpreted as a new
   slot to switch to.
 
-  Note: 
+  Note:
 
   This function has been modified for be compat with entropy-emacs
   for reasons as below:
@@ -233,7 +233,7 @@
     (let ((slot (eyebrowse--get 'current-slot))
           (tag (read-string "Tag: ")))
       (apply #'eyebrowse-rename-window-config `(,slot ,tag))))
-  
+
   (defun entropy/emacs-basic--eyebrowse-show-current-slot ()
     "Show current eyebrowse workspace slot and tag info."
     (interactive)
@@ -305,7 +305,7 @@ window configs."
                                                           ""))))
                           prompt))
               rtn)))
-  
+
   (eval-and-compile
     (defun entropy/emacs-basic--eyebrowse-read-config-repeated (x)
       "Used in repeated selected eyebrowse config with `ivy-call'.
@@ -325,7 +325,7 @@ This was the one action in `ivy-read'."
        ((eq this-command 'ivy-call)
         (with-selected-window (active-minibuffer-window)
           (delete-minibuffer-contents))))))
-  
+
   (defun entropy/emacs-basic-eyebrowse-delete-workspace ()
     "Delete eyebrowse workspace with prompt."
     (interactive)
@@ -367,7 +367,7 @@ Note: this function has been redefine for
             (setq slots (cdr slots)))
           (floor (1+ last))))))
 
-  
+
   (defun entropy/emacs-basic-eyebrowse-create-derived ()
     "Create derived workspace basic from the current main workspace.
 
@@ -382,7 +382,7 @@ The derived workspace was whom have the float slot point, '1.1'
 For now the which main workspace just can have nine derived
 workspaces. Thus the core cause of this was the slot recording
 function just can manipulate one decimal place for one main
-workspace. 
+workspace.
 
 The reason for this limit was that two points follow:
 
@@ -400,7 +400,7 @@ The reason for this limit was that two points follow:
            derived-dot-ac
            new-slot
            (window-configs (eyebrowse--get 'window-configs)))
-      
+
       (let* ((slots (mapcar 'car window-configs))
              (current-slot (eyebrowse--get 'current-slot))
              (floor-tag (nth 2 (assoc (floor current-slot) window-configs)))
@@ -515,7 +515,7 @@ without derived slot."
       (setq choice (ivy-read "Switch to WS: " s-and-name
                              :require-match t))
       (eyebrowse-switch-to-window-config (cdr (assoc choice cons-slots)))))
-  
+
   (defun entropy/emacs-basic-eyebrowse-switch-top ()
     "Back to the top workspace from current derived workspace."
     (interactive)
@@ -552,7 +552,7 @@ without derived slot."
     (entropy/emacs-lazy-with-load-trail
      enable-winner-mode
      (winner-mode +1))))
-  
+
   :config
   (setq winner-boring-buffers
         '("*Completions*"
@@ -581,16 +581,16 @@ without derived slot."
     (add-hook 'entropy/emacs-pdumper-load-hook
               #'desktop-save-mode))
    (t (desktop-save-mode +1)))
-  
+
   :config
   ;; Restore frames into their original displays (if possible)
   (setq desktop-restore-in-current-display nil)
 
   ;; Load custom theme
   (add-hook 'desktop-after-read-hook
-	    (lambda ()
-	      (dolist (theme custom-enabled-themes)
-		(load-theme theme t))))
+            (lambda ()
+              (dolist (theme custom-enabled-themes)
+                (load-theme theme t))))
 
   ;; Don't save/restore frames in tty
   (unless (display-graphic-p)

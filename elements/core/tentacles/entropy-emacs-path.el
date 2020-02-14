@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-path.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; `entroy-emacs' intergrated sets of shell command tool as extension
@@ -45,10 +45,10 @@
 ;;
 ;; * Configuration:
 ;;
-;; Loaing by `entropy-emacs' automaticaly without hacking warranty. 
-;; 
+;; Loaing by `entropy-emacs' automaticaly without hacking warranty.
+;;
 ;; * Code:
-;; 
+;;
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
@@ -203,7 +203,7 @@
               (dolist(el x)
                 (push (car el) rtn))
               (nreverse rtn))))
-    
+
     (dolist (el entropy/emacs-path-win32-shell-path-register)
       (let* ((trigger (plist-get el :trigger))
              (env-order (plist-get el :env-order))

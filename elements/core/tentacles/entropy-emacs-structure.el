@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-structure.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Coding structer context development using `org-struct-mode'.
@@ -27,7 +27,7 @@
 ;; * Configuration:
 ;;
 ;; Loading automatically by `entropy-emacs' without hacking warranty.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -63,7 +63,7 @@
   :diminish hs-minor-mode
   :commands hs-minor-mode
   :hook ((c-mode-common . hs-minor-mode)
-         (c++-mode . hs-minor-mode)  
+         (c++-mode . hs-minor-mode)
          (emacs-lisp-mode . hs-minor-mode)
          (java-mode . hs-minor-mode)
          (lisp-mode . hs-minor-mode)
@@ -192,7 +192,7 @@ moving operation will cause non-terminated looping proceeding."
    (php-mode . outshine-mode)
    (python-mode . outshine-mode)
    (web-mode . outshine-mode)
-   (css-mode . outshine-mode)      
+   (css-mode . outshine-mode)
    (js2-mode . outshine-mode)
    (gitignore-mode . outshine-mode)
    (gitconfig-mode . outshine-mode)
@@ -214,7 +214,7 @@ moving operation will cause non-terminated looping proceeding."
    :map outshine-mode-map
    ("C-x n s" . org-narrow-to-subtree)
    ("C-<f7>" . entropy/emacs-structure--outshine-reload-major))
-  
+
   :preface
   (defvar-local entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode nil)
 
@@ -234,7 +234,7 @@ moving operation will cause non-terminated looping proceeding."
             entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode))
           (outshine-mode)
           ))))
-  
+
   (defun entropy/emacs-structure--outshine-cycle-buffer (&optional arg)
     (interactive "P")
     (when (bound-and-true-p outshine-mode)
@@ -244,7 +244,7 @@ moving operation will cause non-terminated looping proceeding."
     (interactive)
     (when (bound-and-true-p outshine-mode)
       (outshine-imenu)))
-  
+
   :init
   (entropy/emacs-!set-key
     (kbd "\\")
@@ -253,7 +253,7 @@ moving operation will cause non-terminated looping proceeding."
   (entropy/emacs-!set-key
     (kbd "M-i")
     'entropy/emacs-structure--outshine-pop-imenu)
-  
+
   (entropy/emacs-lazy-initial-for-hook
    '(emacs-lisp-mode-hook lisp-interaction-mode-hook)
    "outshine-mode" "outshine-mode"
@@ -267,18 +267,18 @@ moving operation will cause non-terminated looping proceeding."
              (with-current-buffer buffer
                (outshine-mode +1))))
          (buffer-list)))
-  
+
   :config
 
   (setq outshine-max-level 100)
-  
+
   (setq outshine-default-outline-regexp-base
         (format "[%s]\\{1,%d\\}"
                 outshine-regexp-base-char outshine-max-level))
 
   (setq outshine-oldschool-elisp-outline-regexp-base
         (format "[;]\\{1,%d\\}" outshine-max-level))
-  
+
   (outshine-define-key outshine-mode-map
     (kbd "<backtab>") 'outshine-cycle-buffer
     (or (outline-on-heading-p) (bobp)
@@ -311,7 +311,7 @@ sequence, the trailing white space will be recognized as the
        (save-match-data
          ;; Let's try to invent one by repeating or deleting the last char.
          (let ((new-head (if up (substring head 0 -1)
-         >>>>>>>>>>>>>>>>>>>>>>>*_notice here_ 
+         >>>>>>>>>>>>>>>>>>>>>>>*_notice here_
                            (concat head (substring head -1)))))
            (if (string-match (concat \"\\`\\(?:\" outline-regexp \"\\)\")
                              new-head)
@@ -329,24 +329,24 @@ sequence, the trailing white space will be recognized as the
                                  "\\( +\\)$" "" rtn)))
                              rtn)))
        ,@body))
-  
+
   (defun entropy/emacs-structure--outshine-back-to-head ()
     (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
      (outline-back-to-heading)))
-  
+
   (defun entropy/emacs-structure--outshine-demote (&optional which)
     (interactive
      (list (if (and transient-mark-mode mark-active) 'region
-	            (entropy/emacs-structure--outshine-back-to-head)
-	            (if current-prefix-arg nil 'subtree))))
+                    (entropy/emacs-structure--outshine-back-to-head)
+                    (if current-prefix-arg nil 'subtree))))
     (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
      (funcall 'outline-demote which)))
 
   (defun entropy/emacs-structure--outshine-promote (&optional which)
     (interactive
      (list (if (and transient-mark-mode mark-active) 'region
-	            (entropy/emacs-structure--outshine-back-to-head)
-	            (if current-prefix-arg nil 'subtree))))
+                    (entropy/emacs-structure--outshine-back-to-head)
+                    (if current-prefix-arg nil 'subtree))))
     (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
      (funcall 'outline-promote which)))
 
@@ -395,7 +395,7 @@ suitable for the eemacs modified version of
                  (setq feature 1))
                 (t (setq feature nil)))))
       feature))
-  
+
   (defun entropy/emacs-structure--outshine-set-outline-regexp-base (orig-func &rest orig-args)
     "Return the actual outline-regexp-base.
 
@@ -430,7 +430,7 @@ structure type for elisp."
   (advice-add 'outshine-set-outline-regexp-base
               :around
               'entropy/emacs-structure--outshine-set-outline-regexp-base)
-  
+
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
     (let ((outline-regex-head (substring outline-regexp 0 -10))
           func rtn)
@@ -449,7 +449,7 @@ structure type for elisp."
       (cl-loop for level from 1 to times
                do (push (funcall func level) rtn))
       (nreverse rtn)))
-  
+
   (defun entropy/emacs-structure--outshine-fontify-headlines (orig-func &rest orig-args)
     "Calculate heading regexps for font-lock mode."
     (let* ((outline-regexp (car orig-args))

@@ -5,30 +5,30 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-package.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Setting `package.el' with `entropy-emacs' specification with
-;; `use-package' delaying loading procedure. 
+;; `use-package' delaying loading procedure.
 ;;
 ;; * Configuration:
 ;;
 ;; Non manually configuration mentioned.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -37,7 +37,7 @@
 (require 'entropy-emacs-defun)
 (require 'entropy-emacs-message)
 
-;; ** Patched for selected-packages 
+;; ** Patched for selected-packages
 ;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
 (entropy/emacs-lazy-load-simple 'package
@@ -50,7 +50,7 @@
 
 ;;
 ;; ** Prepare
-;; *** Package archive set 
+;; *** Package archive set
 ;;
 (defvar-local entropy/emacs-package--package-archives-list '(melpa emacs-china tuna tencent))
 
@@ -274,7 +274,7 @@
   (entropy/emacs-package-install-all-packages)
   (entropy/emacs-package-init-use-package))
 
-;; * Provide 
+;; * Provide
 (provide 'entropy-emacs-package)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

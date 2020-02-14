@@ -7,21 +7,21 @@
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-pdumper.el
 ;; Compatibility: GNU Emacs emacs-version;
 ;; Package-Requires: ((emacs "27") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Pre loading procedure for pdumper procedure of =entropy-emacs=.
@@ -35,7 +35,7 @@
 ;; =entropy-emacs=, thus correctly extracting theme from that was
 ;; necessary for hacking.
 ;;
-;; 
+;;
 ;; * Code:
 ;; ** require
 (require 'entropy-emacs-defvar)
@@ -88,7 +88,7 @@ configuration.")
      (dolist (file files)
        (let ((file-name (if ,full-path file (file-name-nondirectory file)))
              exc-passed inc-passed)
-         
+
          (dolist (exc-rx ,exc-filters)
            (if (string-match-p exc-rx file-name)
                (push t exc-passed)
@@ -100,7 +100,7 @@ configuration.")
                (push t inc-passed)
              (push nil inc-passed)))
          (setq inc-passed (not (member nil inc-passed)))
-         
+
          (when (and exc-passed inc-passed)
            (push file rtn))))
      rtn))
@@ -174,9 +174,9 @@ configuration.")
     (global-font-lock-mode +1)
     (transient-mark-mode +1)
     (setq load-path entropy/emacs-pdumper-pre-lpth)
-    
+
     ;; TODO ...body
-    
+
     (entropy/emacs-message-do-message (blue "Initializing pdumper session ..."))
     ;; the pdumper session procedure
     (run-hooks 'entropy/emacs-pdumper-load-hook)
@@ -246,7 +246,7 @@ configuration.")
 (entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
 
 ;; *** idle recovery
-(setq 
+(setq
  entropy/emacs-pdumper-pre-lpth
  (copy-tree load-path)
  entropy/emacs-pdumper--rec-timer

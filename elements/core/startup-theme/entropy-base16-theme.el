@@ -109,23 +109,23 @@ return the actual color value.  Otherwise return the value unchanged."
        ((string= (symbol-name key) "entropy/emacs-base16-theme-settings-fringe-bg")
         (if entropy/emacs-base16-theme-distinct-fringe-background
             (plist-get colors :base01)
-		  (plist-get colors :base00)))
+                  (plist-get colors :base00)))
 
-	   ((string= (symbol-name key) "entropy/emacs-base16-theme-settings-mode-line-box")
-		(if (eq entropy/emacs-base16-theme-highlight-mode-line 'box)
-			(list :line-width 1 :color (plist-get colors :base04))
-		  nil))
+           ((string= (symbol-name key) "entropy/emacs-base16-theme-settings-mode-line-box")
+                (if (eq entropy/emacs-base16-theme-highlight-mode-line 'box)
+                        (list :line-width 1 :color (plist-get colors :base04))
+                  nil))
 
-	   ((string= (symbol-name key) "entropy/emacs-base16-theme-settings-mode-line-fg")
-		(if (eq entropy/emacs-base16-theme-highlight-mode-line 'contrast)
-			(plist-get colors :base05)
-		  (plist-get colors :base04)))
+           ((string= (symbol-name key) "entropy/emacs-base16-theme-settings-mode-line-fg")
+                (if (eq entropy/emacs-base16-theme-highlight-mode-line 'contrast)
+                        (plist-get colors :base05)
+                  (plist-get colors :base04)))
 
-	   (t
-		(let ((maybe-color (plist-get colors (intern (concat ":" (symbol-name key))))))
-		  (if maybe-color
-			  maybe-color
-			key))))
+           (t
+                (let ((maybe-color (plist-get colors (intern (concat ":" (symbol-name key))))))
+                  (if maybe-color
+                          maybe-color
+                        key))))
     key))
 
 

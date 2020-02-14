@@ -7,29 +7,29 @@
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/core/tentacles/entropy-emacs-codeserver.el
 ;; Compatibility: GNU Emacs emacs-25;
 ;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
-;; 
+;;
 ;; The language server integrating configuration
-;; 
+;;
 ;; * Configuration:
-;; 
+;;
 ;; Designed for entropy-emacs only.
-;; 
+;;
 ;; * Code:
 
 (require 'entropy-emacs-defcustom)
@@ -113,7 +113,7 @@ It is the recommendation of irony-mode official introduction."
     :init
     (add-hook 'php-mode-hook '(lambda () (ac-php-core-eldoc-setup)))
     (add-hook 'php-mode-hook
-              '(lambda () 
+              '(lambda ()
                  (setq-local indent-tabs-mode nil)
                  (setq-local c-basic-offset 4)
                  (subword-mode 1)))))
@@ -127,11 +127,11 @@ It is the recommendation of irony-mode official introduction."
     (entropy/emacs-codeserver-usepackage-irony))
    (sys/is-posix-compatible
     (entropy/emacs-codeserver-usepackage-irony)))
-  
+
   (entropy/emacs-codeserver-usepackage-tern)
   (entropy/emacs-codeserver-usepackage-anaconda)
   (entropy/emacs-codeserver-usepackage-ac-php)
-  
+
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple 'js2-mode
       (advice-add 'js2-mode
@@ -148,7 +148,7 @@ It is the recommendation of irony-mode official introduction."
     (when (and (boundp 'lsp-session-file)
                (file-exists-p lsp-session-file))
       (delete-file lsp-session-file)))
-  
+
   :diminish lsp-mode
   :commands (lsp lsp-mode lsp-deferred)
   :hook (prog-mode . lsp-deferred)
@@ -161,7 +161,7 @@ It is the recommendation of irony-mode official introduction."
   ;; amounts of folder parsing while next emacs session setup.
   (add-hook 'kill-emacs-hook
             #'entropy/emacs-codeserver-lsp-mode-remove-session-file)
-  
+
   (entropy/emacs-lazy-initial-advice-before
    '(lsp)
    "lsp-enable-yas"

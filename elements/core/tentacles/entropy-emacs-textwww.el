@@ -8,21 +8,21 @@
 ;; Keywords:      browser, eww, w3m
 ;; Compatibility: GNU Emacs emacs-version;
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Text plain web browser configuration for =entropy-emacs= .
@@ -33,7 +33,7 @@
 ;; * Configuration:
 ;;
 ;; Using for =entropy-emacs= only.
-;; 
+;;
 ;; * Code:
 ;; ** require
 (require 'entropy-emacs-defcustom)
@@ -157,7 +157,7 @@ _e_: browse-externally
               (message "Copy %s: '%s' ." choice url)
               url)
           (error (format "Can not find %s here!" choice))))))
-  :init 
+  :init
 ;; **** eww search engine
   (if entropy/emacs-eww-search-engine-customize
       (setq eww-search-prefix entropy/emacs-eww-search-engine))
@@ -221,7 +221,7 @@ Browser chosen based on variable
   :config
 
   (require 'cl)
-  
+
 ;; **** default config
 
   ;; redefine search-web for compat with entropy-emacs
@@ -245,7 +245,7 @@ fixing it as thus. "
         (browse-url (format url (url-hexify-string word)))
         (setq-default browse-url-browser-function search-web-default-browser))))
 
-  
+
   ;; redefine search query engine for force input comprehensive data
   (defun entropy/emacs-textwww--search-web-query-egine (type)
     (let* ((prompt "Search Engine: "))
@@ -264,7 +264,7 @@ fixing it as thus. "
   (defun entropy/emacs-textwww-search-web-toggle ()
     (interactive)
     (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
-      (let* ((search-web-engines (cond 
+      (let* ((search-web-engines (cond
                                   ((equal type "Internal") entropy/emacs-search-web-engines-internal)
                                   ((equal type "External") entropy/emacs-search-web-engines-external)))
              (engine (entropy/emacs-textwww--search-web-query-egine type))
@@ -274,12 +274,12 @@ fixing it as thus. "
   (defun entropy/emacs-textwww-search-web-region-toggle ()
     (interactive)
     (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
-      (let* ((search-web-engines (cond 
+      (let* ((search-web-engines (cond
                                   ((equal type "Internal") entropy/emacs-search-web-engines-internal)
                                   ((equal type "External") entropy/emacs-search-web-engines-external)))
              (engine (entropy/emacs-textwww--search-web-query-egine type)))
         (search-web-region engine))))
-  
+
   (setq search-web-in-emacs-browser 'eww-browse-url)
 
   (defun entropy/emacs-textwww--search-web--around (oldfun &rest arg-rest)
@@ -308,7 +308,7 @@ url-open about function."
   "Toggle browse-url defualt browse function for all url-open
 about function.
 
-Default option were: 
+Default option were:
 - eww: `eww-browse-url'
 - default: `browse-url-default-browser'
 

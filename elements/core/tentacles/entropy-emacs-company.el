@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-company.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Completion referrence config for `entropy-emacs'.
@@ -32,7 +32,7 @@
 ;; There's two completion server type choice for `entropy-emacs':
 ;;
 ;; 1) Traditional way:
-;;   
+;;
 ;;    The way that each backends basic on the server tool-chain are
 ;;    independently using its own designation, such as pyton
 ;;    `anaconda-mode', C `irony-mode', javascript `tern-mode'.
@@ -57,11 +57,11 @@
 ;; `entropy-emacs' defaultly enable the traditional way for the sake
 ;; of stability.
 ;;
-;; 
+;;
 ;; * Configuration:
-;; 
+;;
 ;; configurationLoaidng by `entropy-emacs' automatically.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -79,10 +79,10 @@
   (if (and (listp backend) (member 'company-yasnippet backend))
       backend
     (if  reverse
-        (append 
+        (append
          (if (consp backend) backend (list backend))
          '(:with company-yasnippet))
-      (append 
+      (append
        '(company-yasnippet)
        (if (consp backend) backend (list backend)))
       )))
@@ -156,8 +156,8 @@
              company-files
              company-yasnippet
              company-active-map)
-  
-;; *** bind-key  
+
+;; *** bind-key
   :bind (("M-/" . company-complete)
          ("M-\\" . company-dabbrev)
          ("C-c C-y" . company-yasnippet)
@@ -177,8 +177,8 @@
                 (equal (buffer-name)
                        entropy/emacs-dashboard-buffer-name))
       (company-files command)))
-  
-;; *** init for load  
+
+;; *** init for load
   :init
   (entropy/emacs-lazy-with-load-trail
    global-company-mode
@@ -205,15 +205,15 @@
              (add-to-list
               'company-backends
               entropy/emacs-company-elisp-top-backends))))))
-  
+
   (when (or (equal entropy/emacs-use-extensions-type 'submodules)
             entropy/emacs-fall-love-with-pdumper)
     (entropy/emacs-company-require-subs))
   (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)
-  
+
 ;; *** config for after-load
   :config
-;; **** basic setting 
+;; **** basic setting
   ;; aligns annotation to the right hand side
   (setq company-tooltip-align-annotations t)
 
@@ -355,7 +355,7 @@
   :init
   (add-hook 'web-mode-hook #'entropy/emacs-company-web-add-all-backends)
   (add-hook 'css-mode-hook #'entropy/emacs-company-web-add-css-backend)
-  
+
   (defun entropy/emacs-company-web-add-html-backend ()
     (make-local-variable 'company-backends)
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-web-html) company-backends))

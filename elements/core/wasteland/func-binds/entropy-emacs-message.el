@@ -10,26 +10,26 @@
 ;; Created:       2019
 ;; Compatibility: GNU Emacs 25.2;
 ;; Package-Requires: ((emacs "25.2") (cl-lib "0.5") (ansi-color "3"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; This file was built on the =func-binds= concept of entropy-emacs's
 ;; designation.
-;; 
+;;
 ;; The ansi-color wrapper for emacs message-system, aim for unifying
 ;; non-interaction (e.g. emacs batch-mode ) or interaction session's
 ;; messaging system, inspired from [[https://github.com/hlissner/doom-emacs][doom-emacs]]'s `message.el'
@@ -37,7 +37,7 @@
 ;; * Configuration:
 ;;
 ;; Design for =entropy-emacs= only, non-warranty for grafting.
-;; 
+;;
 ;; * Code:
 ;; ** require
 (require 'ansi-color)
@@ -95,7 +95,7 @@
   "The same as `ansi-color-apply', but using `face' instead of
 `font-lock-faace' for make `message' colorized."
   (let ((codes (car ansi-color-context))
-	(start 0) end result)
+        (start 0) end result)
     ;; If context was saved and is a string, prepend it.
     (if (cadr ansi-color-context)
         (setq string (concat (cadr ansi-color-context) string)
@@ -121,10 +121,10 @@
     ;; save context, add the remainder of the string to the result
     (let (fragment)
       (if (string-match "\033" string start)
-	  (let ((pos (match-beginning 0)))
-	    (setq fragment (substring string pos))
-	    (push (substring string start pos) result))
-	(push (substring string start) result))
+          (let ((pos (match-beginning 0)))
+            (setq fragment (substring string pos))
+            (push (substring string start pos) result))
+        (push (substring string start) result))
       (setq ansi-color-context (if (or codes fragment) (list codes fragment))))
     (apply 'concat (nreverse result))))
 

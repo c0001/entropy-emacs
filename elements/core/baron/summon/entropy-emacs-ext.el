@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-ext.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 
 ;; Excluded from this project i.e. the `entropy-emacs' using various
@@ -62,12 +62,12 @@
 ;;   authorization.
 
 ;; For more package management mechanism learning, please view 'code'
-;; section for the source code. 
+;; section for the source code.
 
 ;; * Configuration:
-;; 
+;;
 ;; Loading automatically by `entropy-emacs' but no hacking warranty.
-;; 
+;;
 ;; * Code:
 
 
@@ -82,7 +82,7 @@
 loading.")
 
 (defvar entropy/emacs-ext--extras
-  (let ((eemacs-ext 
+  (let ((eemacs-ext
          (list :item "entropy-emacs-extensions"
                :repo-lc entropy/emacs-ext-extensions-dir
                :version-lc (expand-file-name "version"
@@ -121,7 +121,7 @@ loading.")
 
 
 (defvar entropy/emacs-ext--extra-trouble-prompt-head
-  (concat 
+  (concat
    (propertize
     "This buffer occurred when some entropy-emacs extras missing or
 with the wrong status discovered automatically by
@@ -132,7 +132,7 @@ such the problem.
 
     'face 'warning)
 
-   (propertize 
+   (propertize
    "
 There's some entropy-emacs extras may need to download by your self:
 "
@@ -298,7 +298,7 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 ;; *** load extra load procedure
 (defun entropy/emacs-ext--load-extra ()
   (let ((ext-plists (entropy/emacs-ext--check-inuse-extras)))
-    (when ext-plists 
+    (when ext-plists
       (dolist (el ext-plists)
         (let ((loader (plist-get el :load-predicate))
               (preface (plist-get el :preface)))

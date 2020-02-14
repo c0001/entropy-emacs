@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-basic.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; This file was the `entropy-emacs' basic config file, config of set
@@ -31,7 +31,7 @@
 ;; environment.
 ;;
 ;; File using `outline mode' to manage the context level and the
-;; categories. 
+;; categories.
 ;;
 ;; This file were enabled for 'Mini mode' (specified of
 ;; `entropy/emacs-minimal-start') and well for the full startup
@@ -44,7 +44,7 @@
 ;; This file must loaded by `entorpy-emacs.el', other testing way is
 ;; not in the designation context.
 ;;
-;; 
+;;
 ;; * Code:
 ;; ** require
 (require 'entropy-emacs-defcustom)
@@ -65,7 +65,7 @@
 
 ;; ** Temporal bug revert
 ;; *** gnutls bug for emacs version upper than '26.1'
-;; 
+;;
 ;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
 ;;
 ;; Refer:
@@ -107,7 +107,7 @@
 (setq make-backup-files nil)
 
 ;; ** Scratch buffer corresponding file
-;; 
+;;
 ;;     Amounts of company backend function can not functional
 ;;     auto-completion in none file buffer, so corresponding one file
 ;;     to *scratch* buffer.
@@ -120,7 +120,7 @@
   (let ((bfn "*scratch*"))
     (if (entropy/emacs-buffer-exists-p "*scratch*")
         (kill-buffer "*scratch*"))
-    
+
     (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir)))
       (if (not (file-exists-p fname))
           (progn
@@ -399,7 +399,7 @@ layout switching conflicts."
     (when (string-match-p (regexp-quote "*eshell") (format "%s" buffer))
       (kill-buffer buffer))
     (when (string-match-p (regexp-quote "*helm") (format "%s" buffer))
-      (kill-buffer buffer))    
+      (kill-buffer buffer))
     )
   (dolist (process (process-list))
     (when (and (not (string-match-p (regexp-quote "shell") (format "%s" process)))
@@ -445,7 +445,7 @@ layout switching conflicts."
 ;; ***** Treat clipboard input as UTF-8 string first; compound text next, etc.
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
-;; ***** Force setting specific file type which must be opened with utf-8-unix encoding system. 
+;; ***** Force setting specific file type which must be opened with utf-8-unix encoding system.
 (modify-coding-system-alist 'file "\\.org\\'" 'utf-8-unix)
 (modify-coding-system-alist 'file "\\.md\\'" 'utf-8-unix)
 (modify-coding-system-alist 'file "\\.html\\'" 'utf-8-unix)
@@ -532,7 +532,7 @@ layout switching conflicts."
      ("M-l" entropy/emacs-basic--dired-add-to-load-path "Add path"
       :map-inject t
       :exit t))))
-  
+
 ;; ***** Delete directory with force actions
   (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
@@ -543,7 +543,7 @@ layout switching conflicts."
   (defvar entropy/emacs-basic--dired-file-current-delete nil
     "Current file pre deleted by
 `entropy/emacs-basic-dired-delete-file-recursive'.")
-  
+
   (defvar entropy/emacs-basic--dired-delete-file-refer-files nil
     "Files buffer killed by
 `entropy/emacs-basic-dired-delete-file-recursive' log variable.")
@@ -551,7 +551,7 @@ layout switching conflicts."
   (defvar entropy/emacs-basic--dired-delete-file-refer-dired-buffers nil
     "Dired buffer killed by `entropy/emacs-basic--dired-delete-file-rescursie'
 log variable.")
-  
+
   (defun entropy/emacs-basic--dired-redelete-file ()
     "Redeletting file specified by variable
 `entropy/emacs-basic--dired-file-current-delete'."
@@ -597,7 +597,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
 
       (unless just-kill-refers
         (entropy/emacs-basic--dired-delete-file-prompt base-files))
-      
+
       (dolist (file base-files)
 
         ;; killed refer buffers.
@@ -615,7 +615,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
             (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers
                          (cons el (current-time-string)))
             (kill-buffer (cdr el))))
-        
+
         (condition-case nil
             (when (not just-kill-refers)
               (progn
@@ -653,7 +653,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                       (concat
                        "==============Prompt Info=================\n\n"
                        "Kill all handle refer file:\n %s\n"
-                       "with filter with windows resmon!\n\n" 
+                       "with filter with windows resmon!\n\n"
                        "And try again with answer minibuffer prompts delete again\n\n"
                        "===============Prompt End=================")
                       file))
@@ -669,7 +669,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
   :config
 ;; ***** Set unit of dired inode for human readable
   (add-hook 'dired-mode-hook #'dired-hide-details-mode)
-  
+
   (if (not sys/is-win-group)
       ;; because of windows dired list is too long so just let it in linux
       (setq dired-listing-switches "-alh --group-directories-first")
@@ -678,8 +678,8 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
 ;; ***** Always delete and copy resursively
   (setq dired-recursive-deletes 'always)
   (setq dired-recursive-copies 'always)
-  
-  
+
+
 ;; ***** Improve dired files operation experience for kill opened refer buffers.
   (defun entropy/emacs-basic--kill-redundant-buffer (&rest rest-args)
     "Delete file refer redundant buffer which will cause dired
@@ -691,7 +691,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
           (kill-buffer el)))))
   (advice-add 'dired-do-rename :before #'entropy/emacs-basic--kill-redundant-buffer)
   (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-basic--kill-redundant-buffer)
-  
+
 ;; ***** get both UNIX and WINDOWS style path string
   (defvar entropy/emacs-basic--get-dired-fpath-log nil)
 
@@ -712,7 +712,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                 rtn))
          (t
           (push el rtn))))
-      
+
       (cond
        ((= (length rtn) 1)
         (with-temp-buffer
@@ -726,7 +726,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
         (setq rtn (reverse rtn)
               entropy/emacs-basic--get-dired-fpath-log rtn)
         (message "Save all path string to log variable 'entropy/emacs-basic--get-dired-fpath-log'.")))))
-  
+
 ;; ***** dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
     (interactive)
@@ -785,31 +785,31 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
            (dired-rainbow-define dotfiles "gray" "\\..*")
 
            (dired-rainbow-define web "#4e9a06" ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
-					        "json" "asp" "aspx" "haml" "php" "jsp" "ts"
-					        "coffee" "scss" "less" "phtml"))
+                                                "json" "asp" "aspx" "haml" "php" "jsp" "ts"
+                                                "coffee" "scss" "less" "phtml"))
            (dired-rainbow-define prog "yellow3" ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
-					         "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
-					         "m" "cs" "mk" "make" "swift" "go" "java"
-					         "asm" "robot" "yml" "yaml" "rake" "lua"))
+                                                 "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
+                                                 "m" "cs" "mk" "make" "swift" "go" "java"
+                                                 "asm" "robot" "yml" "yaml" "rake" "lua"))
            (dired-rainbow-define sh "green yellow" ("sh" "bash" "zsh" "fish" "csh" "ksh"
-					            "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
+                                                    "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
            (dired-rainbow-define text "yellow green" ("txt" "md" "org" "ini" "conf" "rc"
-					              "vim" "vimrc" "exrc"))
+                                                      "vim" "vimrc" "exrc"))
            (dired-rainbow-define doc "spring green" ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
-					             "csv" "rtf" "wps" "pdf" "texi" "tex"
-					             "odt" "ott" "odp" "otp" "ods" "ots"
-					             "odg" "otg"))
+                                                     "csv" "rtf" "wps" "pdf" "texi" "tex"
+                                                     "odt" "ott" "odp" "otp" "ods" "ots"
+                                                     "odg" "otg"))
            (dired-rainbow-define misc "gray50" ("DS_Store" "projectile" "cache" "elc"
-					        "dat" "meta"))
+                                                "dat" "meta"))
            (dired-rainbow-define media "#ce5c00" ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
-					          "wmv" "mov" "3gp" "avi" "mpg" "mkv"
-					          "flv" "ogg" "rm" "rmvb"))
+                                                  "wmv" "mov" "3gp" "avi" "mpg" "mkv"
+                                                  "flv" "ogg" "rm" "rmvb"))
            (dired-rainbow-define picture "purple3" ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
-					            "ico" "svg" "psd" "pcd" "raw" "exif"
-					            "BMP" "JPG" "PNG"))
+                                                    "ico" "svg" "psd" "pcd" "raw" "exif"
+                                                    "BMP" "JPG" "PNG"))
            (dired-rainbow-define archive "saddle brown" ("zip" "tar" "gz" "tgz" "7z" "rar"
-						         "gzip" "xz" "001" "ace" "bz2" "lz"
-						         "lzma" "bzip2" "cab" "jar" "iso"))
+                                                         "gzip" "xz" "001" "ace" "bz2" "lz"
+                                                         "lzma" "bzip2" "cab" "jar" "iso"))
 
            ;; boring regexp due to lack of imagination
            (dired-rainbow-define log (:inherit default :italic t) ".*\\.log"))
@@ -903,7 +903,7 @@ You are in terminal emacs session, can not enable
   :config
   (setq dired-omit-size-limit nil)
   (setq dired-omit-extensions nil))
-  
+
 ;; ** Image-mode
 (use-package image-mode
   :ensure nil
@@ -971,7 +971,7 @@ emacs."
 
 ;; ** Show time on mode line
 (when entropy/emacs-display-time-modeline
-  ;; enable time show when  
+  ;; enable time show when
   (display-time-mode 1)
   (setq-default display-time-interval 1)
   ;; display time with date and real time infos
@@ -1037,7 +1037,7 @@ emacs."
   (entropy/emacs-lazy-with-load-trail
    undo-tree-enable
    (global-undo-tree-mode t))
-  
+
   :config
   (defun entropy/emacs-basic-undo-tree ()
     (interactive)
@@ -1051,7 +1051,7 @@ emacs."
         (undo-tree-visualize))))
 
   (defun undo-tree-visualizer-quit ()
-    "Quit the undo-tree visualizer. 
+    "Quit the undo-tree visualizer.
 
 Note:
 
@@ -1145,8 +1145,8 @@ This function has redefined for adapting to
   :init
   (setq recentf-max-saved-items 200)
   (add-hook 'find-file-hook '(lambda () (unless recentf-mode
-					  (recentf-mode)
-					  (recentf-track-opened-file))))
+                                          (recentf-mode)
+                                          (recentf-track-opened-file))))
   :config
   (add-to-list 'recentf-exclude (expand-file-name package-user-dir))
   (add-to-list 'recentf-exclude "bookmarks")
@@ -1213,7 +1213,7 @@ coding-system to save bookmark infos"
       (let ((prompt
              (if no-overwrite "Set bookmark" "Set bookmark unconditionally")))
         (bookmark-set-internal prompt name (if no-overwrite 'push 'overwrite))))))
-                  
+
 ;; ** Major mode reload
 (defun entropy/emacs-basic-major-mode-reload ()
   "Reload current `major-mode'.
@@ -1252,7 +1252,7 @@ coding-system to save bookmark infos"
   :init
   ;; Init disable rubber-banding for reducing performance requirements.
   (add-hook 'artist-mode-hook
-            #'(lambda () 
+            #'(lambda ()
                 (if artist-rubber-banding
                     (setq-local artist-rubber-banding nil))))
 
@@ -1345,7 +1345,7 @@ Temp file was \"~/~entropy-artist.txt\""
              pyim-convert-string-at-point)
   :bind
   (("M-j" . pyim-convert-string-at-point))
-  
+
   :preface
 
   (defvar entropy/emacs-basic-pyim-has-initialized nil)
@@ -1357,7 +1357,7 @@ Temp file was \"~/~entropy-artist.txt\""
     :global-bind nil
     :toggle entropy/emacs-basic-pyim-has-initialized
     :exit t)
-  
+
   (defun entropy/emacs-basic-pyim-start ()
     (interactive)
     (unless entropy/emacs-basic-pyim-has-initialized
@@ -1384,7 +1384,7 @@ Temp file was \"~/~entropy-artist.txt\""
         :command entropy/emacs-basic-toggle-pyim-s2t
         :notation "'Pyim' use traditional chinese"
         :toggle (eq pyim-magic-converter 'entropy/s2t-string))
-      
+
       (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
         :key "1"
         :command entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
@@ -1393,7 +1393,7 @@ Temp file was \"~/~entropy-artist.txt\""
 
       (setq entropy/emacs-basic-pyim-has-initialized t)))
 
-;; *** init  
+;; *** init
   :init
 
   ;; If didn't use pyim set input method to nil
@@ -1408,7 +1408,7 @@ Temp file was \"~/~entropy-artist.txt\""
   (cl-case entropy/emacs-pyim-use-backend
     (internal (setq pyim-default-scheme 'quanpin))
     (liberime (setq pyim-default-scheme 'rime-quanpin)))
-  
+
   ;;  use popup or posframe for pyim tooltip show
 
   (if (version< emacs-version "26")
@@ -1436,11 +1436,11 @@ Temp file was \"~/~entropy-artist.txt\""
       (progn
         (set-input-method "pyim")
         (setq pyim-punctuation-escape-list nil))))
-  
+
 ;; **** using 'C-g' to cancling any pyim manipulation
   (if (not (version< emacs-version "26"))
       (define-key pyim-mode-map (kbd "C-g") 'pyim-quit-clear))
-  
+
 ;; **** s2t&t2s convertor
   (defun entropy/emacs-basic-toggle-pyim-s2t ()
     (interactive)
@@ -1480,7 +1480,7 @@ Temp file was \"~/~entropy-artist.txt\""
   (global-set-key (kbd "C-s-g") 'keyboard-quit) ; same as above of super key intended active
   (global-set-key (kbd "A-C-g") 'keyboard-quit) ; same as above of super key intended active
   )
- 
+
  (sys/macp
   ;; set keys for Apple keyboard, for emacs in OS X
   (setq mac-command-modifier 'meta) ; make cmd key do Meta
@@ -1508,7 +1508,7 @@ Temp file was \"~/~entropy-artist.txt\""
      (interactive)
      (let ()
        (run-with-timer 0.01 nil #'yank)
-       (keyboard-quit)))   
+       (keyboard-quit)))
 
    (defun entropy/emacs-basic-xterm-term-S-insert-sshsession ()
      (interactive)
@@ -1547,7 +1547,7 @@ Temp file was \"~/~entropy-artist.txt\""
       (if (string= judge "yes")
           t
         nil)))
-  
+
   ;; adding advice ro y-or-n-p for temporarily fix bug of that can not
   ;; using any key-bindings when active "C-<lwindow>-g" in windows
   (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
@@ -1560,7 +1560,7 @@ Temp file was \"~/~entropy-artist.txt\""
    '(dired-mode-hook find-file-hook)
    "epa-mode" "epa-mode"
    (epa-file-enable))
-  
+
   (when (and entropy/emacs-wsl-enable
              (file-exists-p entropy/emacs-wsl-apps))
     (entropy/emacs-lazy-load-simple 'custom

@@ -5,29 +5,29 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-ui.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
-;; `entropy-emacs' UI basic configuration. 
+;; `entropy-emacs' UI basic configuration.
 ;;
 ;; * Configuration:
 ;;
 ;; Using for `entropy-emacs' only, be without hacking warranty.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -106,8 +106,8 @@ the specific height and width determined by above variable you setted."
 
 ;; ** initial buffer
 (when entropy/emacs-enable-initial-dashboard
-  
-;; *** varaible defination  
+
+;; *** varaible defination
   (defvar entropy/emacs-ui--dashboard-last-width nil
     "Remain the window size of previous (the last) buffer
     `entropy/emacs-dashboard-buffer-name''s widnow.")
@@ -131,7 +131,7 @@ the specific height and width determined by above variable you setted."
 
       ((:str "- Get ")
        (:str "entropy-emax64 encapsulation"
-             :link-type web 
+             :link-type web
              :link "https://sourceforge.net/projects/entropy-emax64/")
        (:str "."))
 
@@ -140,7 +140,7 @@ the specific height and width determined by above variable you setted."
              :link-type help
              :link (help-with-tutorial))
        (:str "."))))
-  
+
   (defvar entropy/emacs-ui--dashboard-widget-entry-info-list
     (entropy/emacs-ui--dashboard-gen-widget-entry-info-list)
     "The default entropy-emacs dashbaord widget infos const. Each
@@ -204,7 +204,7 @@ entry."
         (setq rtn (entropy/emacs-ui--dashboard-widget-align-str-space rtn align-width current-str-width)))
       (setq rtn (append rtn '(:face default "|\n")))
       rtn))
-  
+
   (defun entropy/emacs-ui--dashboard-widget-expand-str-obj-atom (str-obj-atom)
     "Expand entropy emacs dashboard widget string object's
 element str to the elemet will be append by
@@ -254,7 +254,7 @@ insert func `entropy/emacs-ui--dashboard-insert-widget-entry'."
       (dolist (el widget-entries)
         (insert left-margin)
         (entropy/emacs-ui--dashboard-insert-widget-entry el))))
-  
+
   (defun entropy/emacs-ui--dashboard-insert-widget-entry (args)
     " NOTE: this function was the fork of func
 `fancy-splash-insert' and be modified for compating with
@@ -273,27 +273,27 @@ a face or button specification."
     (let ((current-face nil))
       (while args
         (cond ((eq (car args) :face)
-	       (setq args (cdr args) current-face (car args))
-	       (if (functionp current-face)
-		   (setq current-face (funcall current-face))))
-	      ((eq (car args) :link)
-	       (setq args (cdr args))
-	       (let ((spec (car args)))
-	         (if (functionp spec)
-		     (setq spec (funcall spec)))
-	         (insert-button (car spec)
-			        'face (list 'link current-face)
-			        'action (cadr spec)
-			        'help-echo (concat "mouse-2, RET: "
-						   (or (nth 2 spec)
-						       "Follow this link"))
-			        'follow-link t)))
-	      (t (insert (propertize (let ((it (car args)))
-				       (if (functionp it)
-					   (funcall it)
-				         it))
-				     'face current-face
-				     'help-echo (startup-echo-area-message)))))
+               (setq args (cdr args) current-face (car args))
+               (if (functionp current-face)
+                   (setq current-face (funcall current-face))))
+              ((eq (car args) :link)
+               (setq args (cdr args))
+               (let ((spec (car args)))
+                 (if (functionp spec)
+                     (setq spec (funcall spec)))
+                 (insert-button (car spec)
+                                'face (list 'link current-face)
+                                'action (cadr spec)
+                                'help-echo (concat "mouse-2, RET: "
+                                                   (or (nth 2 spec)
+                                                       "Follow this link"))
+                                'follow-link t)))
+              (t (insert (propertize (let ((it (car args)))
+                                       (if (functionp it)
+                                           (funcall it)
+                                         it))
+                                     'face current-face
+                                     'help-echo (startup-echo-area-message)))))
         (setq args (cdr args)))))
 
   (defun entropy/emacs-ui--dashboard-extract-text-logo (logo_id)
@@ -326,7 +326,7 @@ module (see `entropy/emacs-ui--dashboard-text-logo-align').
                                        (string-width str_line))
                                      str-list)))
         (setq rtn `((:str ,(split-string str-choice "\n") :face nil :max_len ,max_len))))))
-  
+
 ;; *** main function
 
   (defun entropy/emacs-ui--dashboard-text-logo-align (text-logo)
@@ -367,7 +367,7 @@ text logo module was one plist which has three keys:
 ")
          rtn))
       rtn))
-  
+
   (defun entropy/emacs-ui--dashboard-initial-buffer ()
     "Create entroy-emacs initial buffer.
 
@@ -387,14 +387,14 @@ widget used func `entropy/emacs-ui--dashboard-create-widget'."
         (if (and img (display-graphic-p))
             (progn
               (insert (propertize " " 'display
-	        	          `(space :align-to (+ center (-0.5 . ,img)))))
+                                  `(space :align-to (+ center (-0.5 . ,img)))))
               (make-button (prog1 (point) (insert-image img)) (point)
-	                   'face 'default
-	                   'help-echo "mouse-2, RET: Browse https://www.gnu.org/"
-	                   'action (lambda (_button) (browse-url "https://www.gnu.org/"))
-	                   'follow-link t))
+                           'face 'default
+                           'help-echo "mouse-2, RET: Browse https://www.gnu.org/"
+                           'action (lambda (_button) (browse-url "https://www.gnu.org/"))
+                           'follow-link t))
           (insert
-           (car 
+           (car
             (entropy/emacs-ui--dashboard-text-logo-align
              (entropy/emacs-ui--dashboard-extract-text-logo 1)))))
         (insert "\n\n\n\n")
@@ -421,7 +421,7 @@ widget used func `entropy/emacs-ui--dashboard-create-widget'."
         (setq entropy/emacs-ui--dashboard-last-width (window-width))
         (set-buffer-modified-p nil)
         (if (and view-read-only (not view-mode))
-	    (view-mode-enter nil 'kill-buffer))
+            (view-mode-enter nil 'kill-buffer))
         (goto-char (point-min))
         (read-only-mode 1)
         (unless (display-graphic-p)
@@ -465,7 +465,7 @@ for adding to variable `window-size-change-functions' and hook
                                   window-size-change-functions)
                     (add-hook 'window-size-change-functions 'entropy/emacs-ui--dashboard-resize-hook))
                   (entropy/emacs-ui--dashboard-resize-hook))))
-  
+
   (if entropy/emacs-fall-love-with-pdumper
       (entropy/emacs-lazy-with-load-trail
        welcom-buffer

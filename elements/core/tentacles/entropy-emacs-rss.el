@@ -8,21 +8,21 @@
 ;; Keywords:      rss, elfeed
 ;; Compatibility: GNU Emacs emacs-version;
 ;; Package-Requires: ((emacs "26") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; Emacs rss client configuration for =entropy-emacs=.
@@ -30,7 +30,7 @@
 ;; * Configuration:
 ;;
 ;; Using for =entropy-emacs= only.
-;; 
+;;
 ;; * Code:
 
 ;; ** require
@@ -54,7 +54,7 @@
               "
 ^feed^                ^filter^             ^update^                             ^entry^
 ^^--------------------^^-------------------^^-----------------------------------^^-----------------------
-_A_dd-feed            _s_: clean filter    _u_: update multi                    _d_: delete seleted entry   
+_A_dd-feed            _s_: clean filter    _u_: update multi                    _d_: delete seleted entry
 _D_elete-feed         _t_: tag filter      _U_: update all                      _+_: tag entry for
 _M-d_elete by regexp  _f_: feed filter     _g_: refresh                         _-_: untag entry for
 ^^                    _m_: filter by hand  _M-u_: update multi with proxy
@@ -78,7 +78,7 @@ _M-d_elete by regexp  _f_: feed filter     _g_: refresh                         
               ("M-u" entropy/emacs-rss-elfeed-update-proxy)
               ("M-U" entropy/emacs-rss-elfeed-proxy-update-all-nil-feeds)
               ("M-r" entropy/emacs-rss-elfeed-update-proxyfeeds-regexp-match))))
-  
+
   :init
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
   (setq elfeed-curl-timeout 20)
@@ -118,7 +118,7 @@ _M-d_elete by regexp  _f_: feed filter     _g_: refresh                         
 
   (defvar entropy/emacs-rss--elfeed-init nil
     "whether the firt time calling `elfeed'.")
-  
+
   (defun entropy/emacs-rss--elfeed-db-load (&rest rest)
     "'BEFORE' advice for elfeed for fix bug of `elfeed-db-load'
 read wrong buffer stirng for `elfeed-db' at init time.
@@ -128,7 +128,7 @@ and macro expand of it."
     (when (not entropy/emacs-rss--elfeed-init)
       (let ((index (expand-file-name "index" elfeed-db-directory))
             (enable-local-variables nil))
-        (when (file-exists-p index) 
+        (when (file-exists-p index)
           (with-current-buffer (find-file-noselect index :nowarn)
             (fundamental-mode)
             (goto-char (point-min))
@@ -147,7 +147,7 @@ and macro expand of it."
       (setq entropy/emacs-rss--elfeed-init t)))
 
   (advice-add 'elfeed :before #'entropy/emacs-rss--elfeed-db-load)
-  
+
 ;; *** utilities
   (defun entropy/emacs-rss--elfeed-list-feeds ()
     "List feeds using for querying promt."
@@ -224,7 +224,7 @@ the current elfeed-show-buffer."
             (setq rtn el)
           (setq rtn (concat rtn "-" el))))
       rtn))
-  
+
 ;; *** feeds-title config
 
   (eval-when-compile
@@ -257,12 +257,12 @@ the current elfeed-show-buffer."
           (entropy/emacs-rss--elfeed-string-style-hook)
           (elfeed-search-update--force))
       (error "You are not in the 'elfeed-search-mode'!")))
-  
+
 ;; *** query prompting filter function
   (defun entropy/emacs-rss--elfeed-get-all-entries ()
     "Get all entries from `elfeed-db' and return it."
     (hash-table-values (plist-get elfeed-db :entries)))
-  
+
   (defun entropy/emacs-rss--elfeed-read-feedname (entry)
     "Get entry's feed name."
     (let* ((feed (elfeed-entry-feed entry))
@@ -271,7 +271,7 @@ the current elfeed-show-buffer."
               (or (elfeed-meta feed :title) (elfeed-feed-title feed)))))
       (if feed-title
           feed-title)))
-  
+
   (defun entropy/emacs-rss--elfeed-tags-choice (selected-entries &optional tag return-list prompt match)
     "Query and selected tag from the list collected by
 SELECTED-ENTRIES. And final return the tag string or the list of
@@ -348,10 +348,10 @@ Arguments:
       (if tname
           (setq choice tname)
         (setq choice (ivy-read "Choose feed title: " feedtitle-name-list)))
-      
+
       (when (string-match-p " " choice)
         (setq choice (entropy/emacs-rss--elfeed-sc-str choice)))
-      
+
       (if return-list
           (dolist (el entries)
             (if (equal choice (entropy/emacs-rss--elfeed-read-feedname el))
@@ -364,7 +364,7 @@ Arguments:
     (interactive
      (list (entropy/emacs-rss--elfeed-tags-choice (entropy/emacs-rss--elfeed-get-all-entries))))
     (elfeed-search-set-filter (concat "+" (symbol-name tag))))
-  
+
   (defun entropy/emacs-rss-elfeed-filter-by-feedname (feedname)
     "Filter with feedname, powered by `entropy/emacs-rss--elfeed-feedname-choice'."
     (interactive
@@ -435,7 +435,7 @@ string as CJK characters."
 ;; *** remove feed function
   (defvar entropy/emacs-rss--elfeed-feed-remove-list '()
     "List stored feeds url of `elfeed-feeds' to remove.")
-  
+
   (defun entropy/emacs-rss--elfeed-feed-of-url (url)
     "Matching url's refer feed title name."
     (let* ((feeds (hash-table-values (plist-get elfeed-db :feeds)))
@@ -457,7 +457,7 @@ powered by `entropy/cl-ivy-read-repeatedly-function'."
      x 'entropy/emacs-rss--elfeed-feed-remove-list
      "Removing:"
      #'entropy/emacs-rss--elfeed-feed-of-url))
-  
+
   (defun entropy/emacs-rss-elfeed-remove-feed ()
     "Remove elfeed feeds with multi-chosen by query prompted
 function of `ivy-read'."
@@ -491,7 +491,7 @@ function of `ivy-read'."
         (setq rtn (delete el rtn)))
       (setq elfeed-feeds rtn)
       (customize-save-variable 'elfeed-feeds elfeed-feeds)))
-  
+
 ;; *** update specific feed through proxy
 
   (defvar entropy/emacs-rss--elfeed-backup-of-orig-urlproxy nil)
@@ -517,7 +517,7 @@ promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list
     (ivy-read "Update feeds: " entropy/emacs-rss--elfeed-feed-prompt-alist
               :require-match t
               :action #'entropy/emacs-rss--elfeed-update-read-action))
-  
+
   (defun entropy/emacs-rss-elfeed-multi-update-feeds ()
     "Update feeds interactively by multiplied choicing from `entropy/emacs-rss--elfeed-feed-prompt-alist'."
     (interactive)
@@ -550,7 +550,7 @@ promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list
              (setq entropy/emacs-rss--elfeed-update-urlretrieve-proxy-timer nil
                    entropy/emacs-rss--elfeed-proxy-for-emacs-url nil
                    url-proxy-services entropy/emacs-rss--elfeed-backup-of-orig-urlproxy))))
-  
+
   (defun entropy/emacs-rss--elfeed-update-urlretrieve-proxy (url-lists)
     (unless (< (length url-lists) 5)
       (error "Too much feeds selected, it will cause lagging, reducing them under 5."))
@@ -619,7 +619,7 @@ promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list
           (entropy/emacs-rss-elfeed-update-proxy mlist)
         (message "None feeds need for updating with proxy."))))
 
-  
+
   (defun entropy/emacs-rss-elfeed-update-proxyfeeds-regexp-match ()
     "Update feeds through proxy matched by regexp stored in
 `entropy/emacs-elfeed-proxyfeeds-regexp-list'.
@@ -659,7 +659,7 @@ one bug of which:
 Original func coding logic leaving entry update part after opening
 url, this will not redraw the \"*elfeed-search*\" successfully
 because that all its behavior are not witin the
-\"*elfeed-search*\" buffer as it be on w3m or eww buffer when using 
+\"*elfeed-search*\" buffer as it be on w3m or eww buffer when using
 internal `browse-url-browser-function'.
 
 The minor changing was compat for above."
@@ -674,7 +674,7 @@ The minor changing was compat for above."
                     (browse-url it)))
       (unless (use-region-p) (forward-line))))
 
-  
+
   (defun entropy/emacs-rss--elfeed-browse-url-around (oldfun &rest args)
     "Browse feed source by external browser with choosing."
     (let* ((choice

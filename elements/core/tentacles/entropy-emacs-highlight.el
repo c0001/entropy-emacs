@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-highlight.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; `entropy-emacs' coding style for visualized aspect configuration.
@@ -43,7 +43,7 @@
 (require 'entropy-emacs-defcustom)
 
 ;; ** Highlight symbols
-;; 
+;;
 ;; Highlight symbols with overlays while providing a keymap for
 ;; various operations about highlighted symbols.  It was originally
 ;; inspired by the package `highlight-symbol`.  The fundamental
@@ -72,7 +72,7 @@
   (setq show-paren-when-point-in-periphery t))
 
 ;; ** Highlight surrounding parentheses
-;; 
+;;
 ;; Highlight surrounding parentheses in Emacs, Enable the mode using
 ;; `M-x highlight-parentheses-mode` or by adding it to a hook.
 
@@ -103,7 +103,7 @@
   :config (setq highlight-indent-guides-method 'character))
 
 ;; ** Colorize color names in buffers
-;; 
+;;
 ;; This minor mode sets background color to strings that match color
 ;; names, e.g. #0000ff is displayed in white with a blue background.
 
@@ -201,7 +201,7 @@
   ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
         ;;;; This may be cause dired be crash for big git
         ;;;; repo such as linux kernel repo
-  
+
   :config
   (diff-hl-flydiff-mode 1)
 
