@@ -1325,23 +1325,51 @@ Temp file was \"~/~entropy-artist.txt\""
   (("M-j" . pyim-convert-string-at-point))
   
   :preface
+
+  (defvar entropy/emacs-basic-pyim-has-initialized nil)
+
+  (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
+    :key "c"
+    :notation "Enable Pyim"
+    :command entropy/emacs-basic-pyim-start
+    :global-bind nil
+    :toggle entropy/emacs-basic-pyim-has-initialized
+    :exit t)
+  
   (defun entropy/emacs-basic-pyim-start ()
     (interactive)
-    (require 'pyim)
-    (cond ((and (eq entropy/emacs-pyim-use-backend 'internal)
-                (not entropy/emacs-pyim-dicts))
-           (pyim-basedict-enable))
-          ((eq entropy/emacs-pyim-use-backend 'internal)
-           (setq pyim-dicts entropy/emacs-pyim-dicts))
-          ((eq entropy/emacs-pyim-use-backend 'liberime)
-           (entropy/emacs-basic-pyim-load-rime)))
-    (set-input-method "pyim")
+    (unless entropy/emacs-basic-pyim-has-initialized
+      (require 'pyim)
+      (cond ((and (eq entropy/emacs-pyim-use-backend 'internal)
+                  (not entropy/emacs-pyim-dicts))
+             (pyim-basedict-enable))
+            ((eq entropy/emacs-pyim-use-backend 'internal)
+             (setq pyim-dicts entropy/emacs-pyim-dicts))
+            ((eq entropy/emacs-pyim-use-backend 'liberime)
+             (entropy/emacs-basic-pyim-load-rime)))
+      (set-input-method "pyim")
 
-    ;; keybinding reflect
+      ;; keybinding reflect
+      (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
+        :key "C-\\"
+        :command entropy/emacs-basic-pyim-toggle
+        :notation "Set Inputmethod 'Pyim'"
+        :toggle (string= current-input-method "pyim")
+        :global-bind t)
 
-    (global-set-key (kbd "C-\\") 'entropy/emacs-basic-pyim-toggle)
-    (entropy/emacs-!set-key (kbd "2") 'entropy/emacs-basic-toggle-pyim-s2t)
-    (entropy/emacs-!set-key (kbd "1") 'entropy/emacs-basic-toggle-pyim-punctuation-half-or-full))
+      (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
+        :key "2"
+        :command entropy/emacs-basic-toggle-pyim-s2t
+        :notation "'Pyim' use traditional chinese"
+        :toggle (eq pyim-magic-converter 'entropy/s2t-string))
+      
+      (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
+        :key "1"
+        :command entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
+        :notation "'Pyim' toggle punct full/half"
+        :toggle (eq (car pyim-punctuation-translate-p) 'yes))
+
+      (setq entropy/emacs-basic-pyim-has-initialized t)))
 
 ;; *** init  
   :init
@@ -1382,7 +1410,7 @@ Temp file was \"~/~entropy-artist.txt\""
   (defun entropy/emacs-basic-pyim-toggle ()
     (interactive)
     (if (string= current-input-method "pyim")
-        (set-input-method "rfc1345")
+        (set-input-method nil)
       (progn
         (set-input-method "pyim")
         (setq pyim-punctuation-escape-list nil))))
@@ -1401,7 +1429,8 @@ Temp file was \"~/~entropy-artist.txt\""
 ;; **** toglle punctuation between half and full way.
   (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
     (interactive)
-    (if (eq (car pyim-punctuation-translate-p) 'no)
+    (if (or (eq (car pyim-punctuation-translate-p) 'no)
+            (eq (car pyim-punctuation-translate-p) 'auto))
         (setq pyim-punctuation-translate-p '(yes no auto))
       (setq pyim-punctuation-translate-p '(no yes auto)))))
 

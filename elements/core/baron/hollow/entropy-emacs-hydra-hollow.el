@@ -84,10 +84,9 @@
        :color ambranth
        :quit-key "q")
       ("Basic"     ()
+       "Pyim"      ()
        "Highlight" ()
-       "Coding"    ()
        "WWW"       ()
-       "Theme"     ()
        "Misc."     ()))
     (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
       (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
