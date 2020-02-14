@@ -475,6 +475,22 @@ layout switching conflicts."
   :exit t
   :global-bind t)
 
+;; ** Auto clean whitespace after save buffer
+(use-package whitespace
+  :ensure nil
+  :commands (whitespace-cleanup)
+  :preface
+  (defun entropy/emacs-basic-simple-whitespace-clean ()
+    (interactive)
+    (require 'whitespace)
+    (let ((whitespace-style (default-value 'whitespace-style)))
+      (with-current-buffer (current-buffer)
+        (let ((inhibit-read-only t))
+          (whitespace-cleanup)))))
+  :init
+  (add-hook 'before-save-hook
+            #'entropy/emacs-basic-simple-whitespace-clean))
+
 ;; ** Dired config
 ;; *** dired basic
 (use-package dired
