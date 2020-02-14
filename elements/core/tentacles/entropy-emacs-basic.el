@@ -1088,12 +1088,18 @@ This function has redefined for adapting to
 
 ;; ** Mark-sexp
 (entropy/emacs-!set-key (if (display-graphic-p) (kbd "C-`") (kbd "C-@")) 'set-mark-command)
+
 (defun entropy/emacs-basic-mark-set ()
   (interactive)
   (save-excursion
     (push-mark)
     (push-mark)))
-(entropy/emacs-!set-key (kbd "1") 'entropy/emacs-basic-mark-set)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
+  :key "1"
+  :command entropy/emacs-basic-mark-set
+  :notation "Mark Set"
+  :exit t)
 
 ;; ** Windows forbidden view-hello-file
 (when sys/is-win-group
