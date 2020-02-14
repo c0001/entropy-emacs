@@ -1614,6 +1614,10 @@ under the symbolink root dir."
                   ;; treemacs persist file
                   (treemacs-persist-file . "cache/treemacs-persist")
                   (treemacs-last-error-persist-file . "cache/treemacs-persist-at-last-error")
+                  ;; projetile eld file
+                  (projectile-known-projects-file . "projectile-bookmarks.eld")
+                  ;; image dired
+                  (image-dired-dir . "image-dired")
                   ))
     (set (car item) (expand-file-name (cdr item) top)))
 
