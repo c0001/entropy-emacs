@@ -89,18 +89,39 @@
   :init
   (add-hook 'web-mode-hook
             'entropy/emacs-web--web-mode-start-hook)
+  (entropy/emacs-hydra-hollow-define-major-mode-hydra
+   web-mode web-mode web-mode-map
+   (:title
+    (entropy/emacs-pretty-hydra-make-title
+     "Web-Mode Actions" "alltheicon" "html5")
+    :color ambranth
+    :quit-key "q")
+   ("Basic"
+    (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
+      :exit t))
+    "Emmet" ()
+    "Navigation" ()
+    "Company"
+    (("M-/" company-complete "Common Complete"
+      :exit t))))
+
   :config
   (when (display-graphic-p)
-    (add-hook 'web-mode-hook
-              #'(lambda ()
-                  (setq-local entropy/emacs-web-development-environment
+    (entropy/emacs-add-hook-lambda-nil
+     web-mode-enable-development-env web-mode-hook
+     (setq-local entropy/emacs-web-development-environment
                               t)))
-    (define-key web-mode-map (kbd "<C-f1>")
-      'entropy/emacs-web-browse-web-buffer))
 
   (when (eq entropy/emacs-use-ide-type 'traditional)
-    (define-key web-mode-map (kbd "M-t") 'company-tern)
-    (define-key web-mode-map (kbd "M-p") 'company-ac-php-backend)))
+    (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+     web-mode web-mode-map
+     ("Company"
+      (("M-t" company-tern "Company Tern"
+        :exit t
+        :map-inject t)
+       ("M-p" company-ac-php-backend "Company Ac Php"
+        :exit t
+        :map-inject t))))))
 
 ;; **** Emmet-mode for quick edittng
 (use-package emmet-mode
@@ -109,7 +130,7 @@
   :hook ((web-mode . emmet-mode)
          (html-mode . emmet-mode))
   :config
-  (unbind-key "C-c w" emmet-mode-keymap))
+  (define-key emmet-mode-keymap "C-c w" nil))
 
 ;; *** CSS mode
 (use-package css-mode
@@ -130,11 +151,11 @@
   (entropy/emacs-lazy-load-simple 'js2-mode
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
-    (add-hook 'js2-mode-hook
-              #'(lambda ()
-                  (setq-local js2-basic-offset 4)
-                  (js2-highlight-unused-variables-mode 1)
-                  (js2-imenu-extras-mode 1)))))
+    (entropy/emacs-add-hook-lambda-nil
+     js2-initialized-common js2-mode-hook
+     (setq-local js2-basic-offset 4)
+     (js2-highlight-unused-variables-mode 1)
+     (js2-imenu-extras-mode 1))))
 
 ;; **** js2-refactor
 (use-package js2-refactor
@@ -226,24 +247,57 @@ format."
      "js-beautify"))
 
   :init
-  (entropy/emacs-lazy-load-simple 'js2-mode
-    (bind-key "C-c C-b" 'web-beautify-js js2-mode-map))
-  (entropy/emacs-lazy-load-simple 'json-mode
-    (bind-key "C-c C-b" 'web-beautify-js json-mode-map))
-  (entropy/emacs-lazy-load-simple 'sgml-mode
-    (bind-key "C-c C-b" 'web-beautify-html html-mode-map))
-  (entropy/emacs-lazy-load-simple 'css-mode
-    (bind-key "C-c C-b" 'web-beautify-css css-mode-map))
+
+  (entropy/emacs-hydra-hollow-define-major-mode-hydra
+   js2-mode js2-mode js2-mode-map
+   (:title
+    (entropy/emacs-pretty-hydra-make-title
+     "Javasript Mode Actions" "alltheicon" "javascript")
+    :color ambranth
+    :quit-key "q")
+   ("Web Beautify"
+    (("C-c C-b" web-beautify-js "Beautify Js"
+      :exit t
+      :map-inject t))))
+
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   json-mode json-mode json-mode-map
+   ("Web Beautify"
+    (("C-c C-b" web-beautify-js "Beautify Json"
+      :exit t
+      :map-inject t))))
+
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   web-mode web-mode web-mode-map
+   ("Web Beautify"
+    (("C-c C-b" web-beautify-html "Beautify html"
+      :exit t
+      :map-inject t))))
+
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   sgml-mode sgml-mode sgml-mode-map
+   ("Web Beautify"
+    (("C-c C-b" web-beautify-html "Beautify Xml"
+      :exit t
+      :map-inject t))))
+
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   css-mode css-mode css-mode-map
+   ("Web Beautify"
+    (("C-c C-b" web-beautify-html "Beautify Css"
+      :exit t
+      :map-inject t))))
+
   :config
   ;; Set indent size to 2
   (setq web-beautify-args '("-s" "2" "-f" "-"))
 
   ;; install `js-beautify' coworker
   (when entropy/emacs-install-coworker-immediately
-    (dolist (el '(web-beautify-css web-beautify-html web-beautify-js))
-      (advice-add el
-                  :before
-                  #'entropy/emacs-coworker--coworker-install-by-npm))))
+    (advice-add
+     el
+     :before
+     #'entropy/emacs-web--check-js-beautify-coworker)))
 
 ;; ** web backend technologies
 ;; *** php
