@@ -305,6 +305,73 @@ in new emacs-version."
           nil
         t))))
 
+;; *** form manipulation
+(defun entropy/emacs-replace-form-symbol
+    (form sub-elt replace &optional parse-append)
+  (let (form-patch
+        (vector-form-p (vectorp form)))
+    (mapc
+     (lambda (el)
+       (cond
+        ((and (symbolp el) (eq el sub-elt))
+         (setq form-patch
+               (append form-patch
+                       (if (null parse-append)
+                           `(,replace)
+                         replace))))
+        ((sequencep el)
+         (setq form-patch
+               (append form-patch
+                       `(,(entropy/emacs-replace-form-symbol
+                           el sub-elt replace parse-append)))))
+        (t
+         (setq form-patch
+               (append form-patch `(,el))))))
+     form)
+    (if vector-form-p
+        (vconcat form-patch)
+      form-patch)))
+
+;; *** dolist macro progn sequence expand type
+(defun entropy/emacs--progn-seq-dolist-core
+    (looper body-list &optional not-do parse-append)
+  (let ((sub-elt (car looper))
+        (map-seq (cadr looper))
+        forms)
+    (dolist (replace map-seq)
+      (push
+       (entropy/emacs-replace-form-symbol
+        `(progn
+           ,@body-list)
+        sub-elt replace parse-append)
+       forms))
+    (setq forms
+          (append '(lambda nil)
+                  (list
+                   (append '(progn)
+                           (reverse forms)))))
+    (if not-do
+        forms
+      (funcall forms))))
+
+(defmacro entropy/emacs-progn-seq-dolist (looper &rest body)
+  `(entropy/emacs--progn-seq-dolist-core
+    ',looper ',body))
+
+(defmacro entropy/emacs-progn-seq-dolist-with-parse-append
+    (looper &rest body)
+  `(entropy/emacs--progn-seq-dolist-core
+    ',looper ',body nil :parse-append))
+
+(defmacro entropy/emacs-progn-seq-dolist-not-do (looper &rest body)
+  `(entropy/emacs--progn-seq-dolist-core
+    ',looper ',body t))
+
+(defmacro entropy/emacs-progn-seq-dolist-not-do-with-parse-append
+    (looper &rest body)
+  `(entropy/emacs--progn-seq-dolist-core
+    ',looper ',body t :parse-append))
+
 ;; ** lazy load branch
 (defmacro entropy/emacs-lazy-load-simple (file &rest body)
   "Execute BODY after/require FILE is loaded.
