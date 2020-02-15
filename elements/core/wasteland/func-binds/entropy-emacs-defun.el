@@ -67,6 +67,22 @@ return t otherwise for nil. "
               (throw :exit t))))
       nil)))
 
+(eval-when-compile
+  (defmacro entropy/emacs-add-hook-lambda-nil (name hook &rest body)
+    "Biuld auto-named function prefixed by NAME a symbol and
+inject into HOOK wrapped BODY."
+    (let ()
+      `(let ((prefix-name
+              (intern (format "entropy/emacs-fake-lambda-nil-%s-function"
+                              (symbol-name ',name))))
+             func-define)
+         (setq func-define
+               (list 'defun prefix-name '()
+                     '(progn ,@body)))
+         (eval func-define)
+         (add-hook ',hook
+                   prefix-name)))))
+
 ;; *** key bindings
 (defmacro entropy/emacs-!set-key (key command)
   (declare (indent defun))
