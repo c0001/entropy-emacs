@@ -1270,14 +1270,13 @@ coding-system to save bookmark infos"
       :map-inject t
       :exit t))))
 
-  (entropy/emacs-lazy-load-simple 'text-mode
-    (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-     text-mode text-mode-map
-     ("Basic"
-      (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'artist-mode'"
-        :toggle (if (eq major-mode 'text-mode) nil t)
-        :map-inject t
-        :exit t)))))
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   text-mode text-mode text-mode-map
+   ("Basic"
+    (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'artist-mode'"
+      :toggle (if (eq major-mode 'text-mode) nil t)
+      :map-inject t
+      :exit t))))
 
   :config
 
