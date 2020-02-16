@@ -3,10 +3,13 @@
 (require 'entropy-emacs-defun)
 (require 'entropy-emacs-utils)
 (require 'cl-lib)
+(require 'use-package)
 
 ;; ** defvar
 (defvar entropy/emacs-hydra-hollow-top-dispatch-register nil)
 (defvar entropy/emacs-hydra-hollow-top-dispatch-init-done nil)
+
+(defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
 
 ;; ** libraries
 (defun entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
@@ -95,7 +98,7 @@
     (pretty-hydra-define entropy/emacs-hydra-hollow-top-dispatch
       (:title
        (entropy/emacs-pretty-hydra-make-title
-        "eemacs top dispatch" 'faicon "toggle-on")
+        "eemacs top dispatch" "faicon" "toggle-on")
        :color ambranth
        :quit-key "q")
       ("Basic"     ()
@@ -146,7 +149,8 @@
          (global-set-key (kbd ,key) #',command)))))
 
 ;; *** majro mode dispacher
-
+;; **** library
+;; ***** patch hint doc
 (defun entropy/emacs-hydra-hollow-patch-mode-inject-group-heads
     (pretty-heads-group)
   (let ((split-heads (copy-tree
@@ -182,20 +186,26 @@
            patched-heads-group))
     patched-heads-group))
 
+;; **** define major mode hydra
+
 (cl-defmacro entropy/emacs-hydra-hollow-define-major-mode-hydra
     (mode feature mode-map body heads-plist)
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-patch-mode-inject-group-heads
           heads-plist)))
     `(let ()
+       ;; Define major-mode-hydra before lazy loading feature prevent
+       ;; hydra adding cover its body
+       (major-mode-hydra-define ,mode
+         ,body
+         ,patched-heads-group)
+
+       (push (cons ',mode ',body)
+             entropy/emacs-hydra-hollow-major-mode-body-register)
+
        (entropy/emacs-lazy-load-simple ',feature
          (let ((binds (entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
                        ',heads-plist)))
-
-           (major-mode-hydra-define ,mode
-             ,body
-             ,patched-heads-group)
-
            (dolist (el binds)
              (let ((command (plist-get el :command))
                    (key (plist-get el :key))
@@ -207,37 +217,114 @@
 
 (defmacro entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
     (mode feature mode-map)
-  `(entropy/emacs-hydra-hollow-define-major-mode-hydra
-    ,mode ,feature ,mode-map
-    (:title
-     (entropy/emacs-pretty-hydra-make-title-for-major-mode-common
-      ',mode (format "%s Actions" (symbol-name ',mode)))
-     :color ambranth
-     :quit-key "q")
-    ("Baisc"      ()
-     "Company"    ()
-     "IDE"        ()
-     "Navigation" ()
-     "Misc."      ())))
+  (let ((body
+         `(:title
+           (entropy/emacs-pretty-hydra-make-title-for-major-mode-common
+            ',mode (format "%s Actions" (symbol-name ',mode)))
+           :color ambranth
+           :quit-key "q")))
+    `(progn
+       (push (cons ',mode
+                   ',body)
+             entropy/emacs-hydra-hollow-major-mode-body-register)
+       (entropy/emacs-hydra-hollow-define-major-mode-hydra
+        ,mode ,feature ,mode-map
+        ,body
+        ("Baisc"      ()
+         "Company"    ()
+         "IDE"        ()
+         "Navigation" ()
+         "Misc."      ())))))
 
+;; **** add major mode hydra
 (cl-defmacro entropy/emacs-hydra-hollow-add-to-major-mode-hydra
     (mode feature mode-map heads-plist)
   (let ((binds (entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
                 heads-plist))
         (patched-heads-group
          (entropy/emacs-hydra-hollow-patch-mode-inject-group-heads
-          heads-plist)))
+          heads-plist))
+        (body (alist-get
+               mode
+               entropy/emacs-hydra-hollow-major-mode-body-register
+               )))
     `(let ()
-       (major-mode-hydra-define+ ,mode
-         nil
-         ,patched-heads-group)
        (entropy/emacs-lazy-load-simple ',feature
+         ;; add hydra for feature with lazy load prevent covering the
+         ;; major defination
+         (major-mode-hydra-define+ ,mode
+           ,body
+           ,patched-heads-group)
          (dolist (el ',binds)
            (let ((command (plist-get el :command))
                  (key (plist-get el :key))
                  (map-inject (plist-get el :map-inject)))
              (when map-inject
                (define-key ,mode-map (kbd key) command))))))))
+
+
+;; **** use-package extended
+;; ***** :eemacs-mmc
+(defvar entropy/emacs-hydra-hollow--usepackage-arg-log nil)
+
+(defun entropy/emacs-hydra-hollow--usepackage-add-keyword (keyword)
+  "Add the KEYWORD to `use-package-keywords'."
+  (setq use-package-keywords
+        ;; should go in the same location as :bind
+        (cl-loop for item in use-package-keywords
+                 if (eq item :bind-keymap*)
+                 collect :bind-keymap* and collect keyword
+                 else
+                 ;; don't add duplicates
+                 unless (eq item keyword)
+                 collect item)))
+
+(defun entropy/emacs-hydra-hollow--usepackage-mm-common-def-normalize
+    (use-name key key-value)
+  (let ()
+    (cond ((and (listp key-value)
+                (= 1 (length key-value)))
+           (add-to-list 'entropy/emacs-hydra-hollow--usepackage-arg-log
+                        (list use-name :normalize-arg key-value))
+           (car key-value))
+          (t
+           (error
+            "eemacs mm common use-package clause form wrong type for '%s' def!"
+            (symbol-name use-name))))))
+
+(defun entropy/emacs-hydra-hollow--usepackage-mm-common-def-handler
+    (use-name key $arg rest state)
+  (let* ((rest-body (use-package-process-keywords use-name rest state))
+         (enable (plist-get $arg :enable))
+         (mode (or (plist-get $arg :mode)
+                   use-name))
+         (map (or (plist-get $arg :map)
+                  (intern (format "%s-map" (symbol-name use-name)))))
+         (feature (or (plist-get $arg :feature)
+                      use-name))
+         init-form)
+    (add-to-list 'entropy/emacs-hydra-hollow--usepackage-arg-log
+                 (list use-name :handle-arg $arg))
+    (when (listp enable)
+      (setq enable (funcall `(lambda () ,enable))))
+    (setq
+     init-form
+     `((when (not (null ',enable))
+         (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+          ,mode ,feature ,map))))
+    (use-package-concat
+     rest-body
+     init-form)))
+
+(defalias 'use-package-normalize/:eemacs-mmc
+  #'entropy/emacs-hydra-hollow--usepackage-mm-common-def-normalize)
+
+(defalias 'use-package-handler/:eemacs-mmc
+  #'entropy/emacs-hydra-hollow--usepackage-mm-common-def-handler)
+
+(entropy/emacs-hydra-hollow--usepackage-add-keyword
+ :eemacs-mmc)
+
 
 ;; * provide
 (provide 'entropy-emacs-hydra-hollow)
