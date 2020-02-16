@@ -267,6 +267,22 @@
               " "))))
        (propertize title 'face face)))))
 
+(cl-defun entropy/emacs-pretty-hydra-make-title-for-major-mode-common
+    (mode title-str &key face height v-adjust)
+  (let* ((display-graphic-p (display-graphic-p))
+         (face (or face `(:foreground ,(face-background 'highlight))))
+         (icon (if (fboundp 'all-the-icons-icon-for-mode)
+                   (all-the-icons-icon-for-mode
+                    mode
+                    :face face :height (or height 1)
+                    :v-adjust (or v-adjust 0))
+                 (when display-graphic-p
+                   (error "Function <all-the-icons-icon-for-mode> not found!")))))
+    (concat
+     (when display-graphic-p
+       icon)
+     " "
+     (propertize title-str 'face face))))
 
 ;; * provide
 (provide 'entropy-emacs-utils)

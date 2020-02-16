@@ -45,8 +45,11 @@
                        (group (nth cnt pretty-heads-group))
                        (heads (nth (+ cnt 1) pretty-heads-group))
                        rtn)
-                  (dolist (el heads)
-                    (push (list group (list el)) rtn))
+                  (cond ((not (null heads))
+                         (dolist (el heads)
+                           (push (list group (list el)) rtn)))
+                        (t
+                         (push (list group '()) rtn)))
                   (when rtn
                     (setq split-heads (append split-heads (reverse rtn))))))
     split-heads))
@@ -154,20 +157,25 @@
       (let* ((head-plist (caadr head))
              (head-attr (cdddr head-plist))
              (map-inject (plist-get head-attr :map-inject))
-             (notation (caddr head-plist)))
-        (push
-         (list
-          (car head)
-          (list
-           (append
-            (list
-             (car head-plist)
-             (cadr head-plist)
-             (if map-inject
-                 (format "%s (m)" notation)
-               notation))
-            (cdddr head-plist))))
-         patched-heads-group)))
+             (notation (caddr head-plist))
+             new-heads-plist)
+        (setq new-heads-plist
+              (append
+               (list
+                (car head-plist)
+                (cadr head-plist)
+                (if map-inject
+                    (format "%s (m)" notation)
+                  notation))
+               (cdddr head-plist)))
+        (if (not (null head-plist))
+            (push
+             (list
+              (car head)
+              (list
+               new-heads-plist))
+             patched-heads-group)
+          (push (list (car head) nil) patched-heads-group))))
     (setq patched-heads-group (reverse patched-heads-group)
           patched-heads-group
           (entropy/emacs-hydra-hollow--merge-pretty-hydra-sparse-heads
@@ -192,10 +200,25 @@
              (let ((command (plist-get el :command))
                    (key (plist-get el :key))
                    (map-inject (plist-get el :map-inject)))
-               (when map-inject
+               (when (and map-inject command key)
                  (message "Binding key '%s' of command '%s' to map '%s' ..."
                           key (symbol-name command) (symbol-name ',mode-map))
                  (define-key ,mode-map (kbd key) command)))))))))
+
+(defmacro entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+    (mode feature mode-map)
+  `(entropy/emacs-hydra-hollow-define-major-mode-hydra
+    ,mode ,feature ,mode-map
+    (:title
+     (entropy/emacs-pretty-hydra-make-title-for-major-mode-common
+      ',mode (format "%s Actions" (symbol-name ',mode)))
+     :color ambranth
+     :quit-key "q")
+    ("Baisc"      ()
+     "Company"    ()
+     "IDE"        ()
+     "Navigation" ()
+     "Misc."      ())))
 
 (cl-defmacro entropy/emacs-hydra-hollow-add-to-major-mode-hydra
     (mode feature mode-map heads-plist)
