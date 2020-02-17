@@ -39,6 +39,7 @@
     (require 'cl)
   (require 'cl-macs))
 (require 'entropy-emacs-coworker)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** Preparation
 (entropy/emacs-lazy-load-simple 'tern
@@ -114,7 +115,7 @@
 
   (when (eq entropy/emacs-use-ide-type 'traditional)
     (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-     web-mode web-mode-map
+     web-mode web-mode web-mode-map
      ("Company"
       (("M-t" company-tern "Company Tern"
         :exit t
@@ -135,6 +136,7 @@
 ;; *** CSS mode
 (use-package css-mode
   :ensure nil
+  :eemacs-mmc (:enable t)
   :init (setq css-indent-offset 2))
 
 ;; *** JSON mode

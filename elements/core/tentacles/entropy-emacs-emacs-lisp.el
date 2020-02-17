@@ -39,6 +39,7 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** library
 ;; *** Toggle context structer style
@@ -101,18 +102,51 @@ For lisp coding aim, always return the transfered buffer.
 ;; Note: `elisp-mode' was called `emacs-lisp-mode' in <=24
 (use-package elisp-mode
   :ensure nil
-  :bind (:map emacs-lisp-mode-map
-              ("C-c C-z" . ielm)
-              ("C-c C-c" . eval-defun)
-              ("C-c C-b" . eval-buffer)
-              ("M-\\" . company-dabbrev-code)))
+  :init
+  (entropy/emacs-hydra-hollow-define-major-mode-hydra
+   emacs-lisp-mode elisp-mode emacs-lisp-mode-map
+   (:title
+    (entropy/emacs-pretty-hydra-make-title
+     "Emacs Lisp Mode Actions" "fileicon" "emacs")
+    :color ambranth
+    :quit-key "q")
+   ("IELM"
+    (("C-c C-z" ielm "Open IELM"
+      :exit t
+      :map-inject t))
+    "Comanpy"
+    (("M-\\" company-dabbrev-code "Company Dabbrev"
+      :exit t
+      :map-inject t))
+    "Eval"
+    (("C-c C-c" eval-defun "Eval wrapping context"
+      :exit t
+      :map-inject t)
+     ("C-c C-b" eval-buffer "Eval Whole buffer"
+      :exit t
+      :map-inject t)))))
 
 (use-package lisp-interaction-mode
   :ensure nil
-  :bind (:map lisp-interaction-mode-map
-              ("M-\\" . company-dabbrev-code)
-              ("C-c C-c" . eval-defun)
-              ("C-c C-b" . eval-buffer)))
+  :init
+  (entropy/emacs-hydra-hollow-define-major-mode-hydra
+   lisp-interaction-mode elisp-mode lisp-interaction-mode-map
+   (:title
+    (entropy/emacs-pretty-hydra-make-title
+     "Lisp Interaction Mode Actions" "fileicon" "lisp")
+    :color ambranth
+    :quit-key "q")
+   ("Company"
+    (("M-\\" company-dabbrev-code "Company dabbrev"
+      :exit t
+      :map-inject t))
+    "Eval"
+    (("C-c C-c" eval-defun "Eval wrapping context"
+      :exit t
+      :map-inject t)
+     ("C-c C-b" eval-buffer "Eval Whole Buffer"
+      :exit t
+      :map-inject t)))))
 
 
 ;; Show function arglist or variable docstring
@@ -153,10 +187,19 @@ For lisp coding aim, always return the transfered buffer.
 ;; Interactive macro expander
 (use-package macrostep
   :commands (macrostep-expand)
-  :bind (:map emacs-lisp-mode-map
-              ("C-c e" . macrostep-expand)
-         :map lisp-interaction-mode-map
-              ("C-c e" . macrostep-expand)))
+  :init
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   emacs-lisp-mode elisp-mode emacs-lisp-mode-map
+   ("Macro"
+    (("C-c e" macrostep-expand "Expand Macro At Point"
+      :exit t
+      :map-inject t))))
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   lisp-interaction-mode elisp-mode lisp-interaction-mode-map
+   ("Macro"
+    (("C-c e" macrostep-expand "Expand Macro At Point"
+      :exit t
+      :map-inject t)))))
 
 ;; Make M-. and M-, work in elisp like they do in slime.
 ;; `xref' is perfect since 25, so only use in <=24.
@@ -166,10 +209,12 @@ For lisp coding aim, always return the transfered buffer.
     :commands (turn-on-elisp-slime-nav-mode)
     :bind (:map elisp-slime-nav-mode-map
                 ("C-h o" . elisp-slime-nav-describe-elisp-thing-at-point))
-    :init (dolist (hook '(emacs-lisp-mode-hook
-                          lisp-interaction-mode-hook
-                          ielm-mode-hook))
-            (add-hook hook #'turn-on-elisp-slime-nav-mode))))
+    :init
+    (entropy/emacs-progn-seq-dolist
+     (hook (emacs-lisp-mode-hook
+            lisp-interaction-mode-hook
+            ielm-mode-hook))
+     (add-hook 'hook #'turn-on-elisp-slime-nav-mode))))
 
 ;; Semantic code search for emacs lisp
 (use-package elisp-refs
@@ -188,16 +233,27 @@ For lisp coding aim, always return the transfered buffer.
 ;; *** common lisp
 (use-package slime
   :commands (slime slime-mode)
-  :bind
-  (:map slime-mode-map
-        ;; describe for
-        ("C-c C-s" . slime-describe-symbol)
-        ("C-c C-f" . slime-describe-function)
-        ;; documentation
-        ("C-c M-f" . slime-documentation)
-        ;; repl
-        ("C-c M-r" . slime-repl))
   :init
+  (entropy/emacs-hydra-hollow-define-major-mode-hydra
+   lisp-mode slime slime-mode-map
+   (:title
+    (entropy/emacs-pretty-hydra-make-title
+     "Common Lisp Mode Actions" "fileicon" "clisp")
+    :color ambranth
+    :quit-key "q")
+   ("Slime"
+    (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol
+      "Slime Describe Symbols"
+      :exit t
+      :map-inject t)
+     ("C-c C-s" slime-describe-symbol "Slime Describe Symbol At Point"
+      :exit t
+      :map-inject t)
+     ("C-c C-f" slime-describe-function "Slime Describe Func At Point"
+      :exit t
+      :map-inject t)
+     ("C-c M-r" slime-repl "Slime repl" :map-inject t :exit t))))
+
   (setq inferior-lisp-program entropy/emacs-inferior-lisp-program)
   (setq slime-lisp-implementations
         entropy/emacs-slime-lisp-implementations)
@@ -209,6 +265,7 @@ For lisp coding aim, always return the transfered buffer.
   (defun entropy/emacs-lisp--slime-env-symbols ()
     (slime-simple-completions ""))
 
+  ;; TODO: Show brief symbol doc in ivy rich
   ;; (defun entropy/emacs-lisp--slime-filter-desc-brief (desc)
   ;;   (let (rtn)
   ;;     (when (string-match-p "Documentation:" desc)
@@ -230,8 +287,6 @@ For lisp coding aim, always return the transfered buffer.
                 :preselect (slime-symbol-at-point)
                 :action #'slime-describe-symbol
                 :caller 'entropy/emacs-lisp-slime-counsel-desc-symbol)))
-
-  (define-key slime-mode-map (kbd "C-c p") #'entropy/emacs-lisp-slime-counsel-desc-symbol)
 
   (with-eval-after-load 'ivy-rich
     (when (fboundp #'entropy/emacs-ivy--ivy-rich-variable-icon)
