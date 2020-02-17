@@ -279,7 +279,7 @@
 ;; ***** :eemacs-mmc
 (defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log nil)
 
-(defun entropy/emacs-hydra-hollow--usepackage-add-keyword (keyword)
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-add-keyword (keyword)
   "Add the KEYWORD to `use-package-keywords'."
   (setq use-package-keywords
         ;; should go in the same location as :bind
@@ -291,7 +291,7 @@
                  unless (eq item keyword)
                  collect item)))
 
-(defun entropy/emacs-hydra-hollow--usepackage-mm-common-def-normalize
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-def-normalize
     (use-name key key-value)
   (let ()
     (cond ((and (listp key-value)
@@ -304,7 +304,7 @@
             "eemacs mm common use-package clause form wrong type for '%s' def!"
             (symbol-name use-name))))))
 
-(defun entropy/emacs-hydra-hollow--usepackage-mm-common-def-handler
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-def-handler
     (use-name key $arg rest state)
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          (enable (plist-get $arg :enable))
@@ -330,13 +330,99 @@
      init-form)))
 
 (defalias 'use-package-normalize/:eemacs-mmc
-  #'entropy/emacs-hydra-hollow--usepackage-mm-common-def-normalize)
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-def-normalize)
 
 (defalias 'use-package-handler/:eemacs-mmc
-  #'entropy/emacs-hydra-hollow--usepackage-mm-common-def-handler)
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-def-handler)
 
-(entropy/emacs-hydra-hollow--usepackage-add-keyword
+(entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-add-keyword
  :eemacs-mmc)
+
+
+;; ***** :eemacs-mmca
+
+(defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log nil)
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmca-add-keyword (keyword)
+  "Add the KEYWORD to `use-package-keywords'."
+  (setq use-package-keywords
+        ;; should go in the same location as :eemacs-mmc
+        (cl-loop for item in use-package-keywords
+                 if (eq item :eemacs-mmc)
+                 collect :eemacs-mmc and collect keyword
+                 else
+                 ;; don't add duplicates
+                 unless (eq item keyword)
+                 collect item)))
+
+(defun entropy/emacs-hydra-hollow--usepackage-mmca-def-normalize
+    (use-name key key-value)
+  (let ()
+    (cond ((and (listp key-value)
+                (= 1 (length key-value)))
+           (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log
+                        (list use-name :normalize-arg key-value))
+           (let ((arg-list (car key-value))
+                 rtn split-func)
+             (setq split-func
+                   (lambda (x)
+                     (let ((patterns (car x))
+                           (heads (cadr x))
+                           output)
+                       (dolist (el patterns)
+                         (push (list el heads) output))
+                       output)))
+
+             (dolist (el arg-list)
+               (let ((pattern-group-car (ignore-errors (caar el))))
+                 (cond
+                  ((and pattern-group-car
+                        (listp pattern-group-car))
+                   (setq rtn (append rtn (reverse (funcall split-func el)))))
+                  (t
+                   (setq rtn (append rtn (list el)))))))
+             rtn))
+          (t
+           (error
+            "eemacs mmca common use-package clause form wrong type for '%s' def!"
+            (symbol-name use-name))))))
+
+(defun entropy/emacs-hydra-hollow--usepackage-mmca-def-handler
+    (use-name key $arg rest state)
+  (let* ((rest-body (use-package-process-keywords use-name rest state))
+         init-form)
+    (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log
+                 (list use-name :handle-arg $arg))
+    (setq
+     init-form
+     `((let (_callers)
+         (dolist (item ',$arg)
+           (let* ((pattern (car item))
+                  (heads (cadr item))
+                  (mode (car pattern))
+                  (feature (cadr pattern))
+                  (map (caddr pattern))
+                  run-call)
+             (setq run-call
+                   (list 'lambda '()
+                         (list 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+                               mode feature map heads)))
+             (push run-call _callers)))
+         (dolist (caller (reverse _callers))
+           (funcall caller)))))
+    (use-package-concat
+     rest-body
+     init-form)))
+
+(defalias 'use-package-normalize/:eemacs-mmca
+  #'entropy/emacs-hydra-hollow--usepackage-mmca-def-normalize)
+
+(defalias 'use-package-handler/:eemacs-mmca
+  #'entropy/emacs-hydra-hollow--usepackage-mmca-def-handler)
+
+(entropy/emacs-hydra-hollow--usepackage-eemacs-mmca-add-keyword
+ :eemacs-mmca)
+
 
 
 ;; * provide
