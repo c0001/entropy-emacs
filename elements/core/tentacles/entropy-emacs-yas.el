@@ -57,7 +57,7 @@
   (use-package yasnippet-snippets
     :commands (yasnippet-snippets-initialize)
     :init
-    (entropy/emacs-lazy-load-simple 'yasnippet
+    (entropy/emacs-lazy-load-simple yasnippet
       (yasnippet-snippets-initialize)))
 
   (add-to-list 'yas-snippet-dirs entropy/emacs-yas-dir)

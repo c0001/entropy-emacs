@@ -46,7 +46,7 @@
         )
   ;; slide tree doom visual
   (cond ((eq entropy/emacs-tree-visual-type 'neotree)
-         (entropy/emacs-lazy-load-simple 'neotree
+         (entropy/emacs-lazy-load-simple neotree
            (setq doom-themes-neotree-file-icons
                  (cond
                   ((display-graphic-p)
@@ -55,7 +55,7 @@
                    'nerd)))
            (require 'doom-themes-ext-neotree)))
         ((eq entropy/emacs-tree-visual-type 'treemacs)
-         (entropy/emacs-lazy-load-simple 'treemacs
+         (entropy/emacs-lazy-load-simple treemacs
            (setq doom-theme-treeemacs-theme "doom-atom")
            (require 'doom-themes-ext-treemacs)))))
 

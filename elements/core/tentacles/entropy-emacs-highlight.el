@@ -113,9 +113,9 @@
   :init
   (add-hook 'emacs-lisp-mode-hook #'rainbow-mode)
   (add-hook 'help-mode-hook #'rainbow-mode)
-  (entropy/emacs-lazy-load-simple 'web-mode
+  (entropy/emacs-lazy-load-simple web-mode
     (add-hook 'web-mode-hook #'rainbow-mode))
-  (entropy/emacs-lazy-load-simple 'css-mode
+  (entropy/emacs-lazy-load-simple css-mode
     (add-hook 'css-mode-hook #'rainbow-mode)))
 
 ;; ** Highlight brackets according to their depth
@@ -211,7 +211,7 @@
     (diff-hl-margin-mode 1))
 
   ;; Integration with magit and psvn
-  (entropy/emacs-lazy-load-simple 'magit
+  (entropy/emacs-lazy-load-simple magit
     (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
 ;; ** Highlight some operations
@@ -291,7 +291,7 @@
                            trailing space-before-tab
                            indentation empty space-after-tab))
 
-  (entropy/emacs-lazy-load-simple 'popup
+  (entropy/emacs-lazy-load-simple popup
     ;; advice for whitespace-mode conflict with popup
     (defvar my-prev-whitespace-mode nil)
     (make-local-variable 'my-prev-whitespace-mode)

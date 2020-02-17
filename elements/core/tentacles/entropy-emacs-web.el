@@ -42,7 +42,7 @@
 (require 'entropy-emacs-hydra-hollow)
 
 ;; ** Preparation
-(entropy/emacs-lazy-load-simple 'tern
+(entropy/emacs-lazy-load-simple tern
   (setq tern-command '("tern")))
 
 ;; ** main libraries
@@ -150,7 +150,7 @@
   :mode "\\.js$"
   :interpreter "node"
   :init
-  (entropy/emacs-lazy-load-simple 'js2-mode
+  (entropy/emacs-lazy-load-simple js2-mode
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
     (entropy/emacs-add-hook-lambda-nil
@@ -175,7 +175,7 @@
   :commands (skewer-mode skewer-html-mode skewer-css-mode)
   :diminish (skewer-mode skewer-html-mode skewer-css-mode)
   :init
-  (entropy/emacs-lazy-load-simple 'skewer-mode
+  (entropy/emacs-lazy-load-simple skewer-mode
     (dolist (el '(cache-table
                   skewer-bower
                   skewer-css
@@ -183,11 +183,11 @@
                   skewer-repl
                   skewer-setup))
       (require el)))
-  (entropy/emacs-lazy-load-simple 'js2-mode
+  (entropy/emacs-lazy-load-simple js2-mode
     (add-hook 'js2-mode-hook #'skewer-mode))
-  (entropy/emacs-lazy-load-simple 'css-mode
+  (entropy/emacs-lazy-load-simple css-mode
     (add-hook 'css-mode-hook #'skewer-css-mode))
-  (entropy/emacs-lazy-load-simple 'sgml-mode
+  (entropy/emacs-lazy-load-simple sgml-mode
     (add-hook 'web-mode-hook #'skewer-html-mode)))
 
 (use-package impatient-mode

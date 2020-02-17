@@ -372,8 +372,33 @@ in new emacs-version."
   `(entropy/emacs--progn-seq-dolist-core
     ',looper ',body t :parse-append))
 
+;; *** batch `eval-after-load'
+(defmacro entropy/emacs-eval-after-load (feature &rest body)
+  (let (forms (cnt 1) bound)
+    (cond ((symbolp feature)
+           (setq forms
+                 `(eval-after-load ',feature
+                    (lambda ()
+                      ,@body))))
+          ((and (listp feature)
+                (> (length feature) 1))
+           (setq feature (reverse feature)
+                 forms `(eval-after-load ',(car feature) (lambda () ,@body))
+                 bound (length (cdr feature)))
+           (dolist (load (cdr feature))
+             (setq forms
+                   `(eval-after-load ',load
+                      ,forms))))
+          ((and (listp feature)
+                (= 1 (length feature)))
+           (setq forms
+                 `(eval-after-load ',(car feature)
+                    (lambda ()
+                      ,@body)))))
+    forms))
+
 ;; ** lazy load branch
-(defmacro entropy/emacs-lazy-load-simple (file &rest body)
+(defmacro entropy/emacs-lazy-load-simple (feature &rest body)
   "Execute BODY after/require FILE is loaded.
 FILE is normally a feature name, but it can also be a file name,
 in case that file does not provide any feature."
@@ -381,14 +406,19 @@ in case that file does not provide any feature."
   (cond
    (entropy/emacs-custom-enable-lazy-load
     `(progn
-       (eval-after-load ,file
-         (lambda () ,@body
-           (message "with lazy load configs for file '%s'"
-                    (symbol-name ,file))))))
+       (entropy/emacs-eval-after-load ,feature
+         ,@body
+         (message "with lazy load configs for feature '%s'"
+                  (if (symbolp ',feature)
+                      (symbol-name ',feature)
+                    ',feature)))))
    ((null entropy/emacs-custom-enable-lazy-load)
     `(progn
-       (message "force load configs for file '%s'" (symbol-name ,file))
-       (require ,file)
+       (message "force load configs for feature '%s'" (symbol-name ',feature))
+       (cond ((listp ',feature)
+              (dolist (el ',feature)
+                (require el)))
+             ((require ',feature)))
        ,@body))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)

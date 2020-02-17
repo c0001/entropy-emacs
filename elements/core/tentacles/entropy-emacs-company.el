@@ -96,7 +96,7 @@
 
 ;; *** company components load
 (defun entropy/emacs-company-require-subs ()
-  (entropy/emacs-lazy-load-simple 'company
+  (entropy/emacs-lazy-load-simple company
     (dolist (el '(company-abbrev
                   company-bbdb
                   company-capf
@@ -292,7 +292,7 @@
   :if (and (>= emacs-major-version 25)
            (eq entropy/emacs-use-ide-type 'lsp))
   :init
-  (entropy/emacs-lazy-load-simple 'lsp-mode
+  (entropy/emacs-lazy-load-simple lsp-mode
     (advice-add 'lsp--auto-configure
                 :after
                 #'entropy/emacs-company-add-lsp-backend))

@@ -133,7 +133,7 @@ It is the recommendation of irony-mode official introduction."
   (entropy/emacs-codeserver-usepackage-ac-php)
 
   (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple 'js2-mode
+    (entropy/emacs-lazy-load-simple js2-mode
       (advice-add 'js2-mode
                   :before
                   #'entropy/emacs-coworker-check-tern-server))))
@@ -186,11 +186,11 @@ It is the recommendation of irony-mode official introduction."
 ;; **** lsp html&css
 (when (eq entropy/emacs-use-ide-type 'lsp)
   (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple 'web-mode
+    (entropy/emacs-lazy-load-simple web-mode
       (advice-add 'web-mode
                   :before
                   #'entropy/emacs-coworker-check-web-lsp))
-    (entropy/emacs-lazy-load-simple 'css-mode
+    (entropy/emacs-lazy-load-simple css-mode
       (advice-add 'css-mode
                   :before
                   #'entropy/emacs-coworker-check-web-lsp))))
@@ -198,31 +198,31 @@ It is the recommendation of irony-mode official introduction."
 ;; **** lsp javascript
 (when (eq entropy/emacs-use-ide-type 'lsp)
   (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple 'js2-mode
+    (entropy/emacs-lazy-load-simple js2-mode
       (advice-add 'js2-mode :before #'entropy/emacs-coworker-check-js-lsp))))
 
 ;; **** lsp json
 (when (eq entropy/emacs-use-ide-type 'lsp)
   (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple 'json-mode
+    (entropy/emacs-lazy-load-simple json-mode
       (advie-add 'json-mode :before #'entropy/emacs-coworker-check-json-lsp))))
 
 ;; **** lsp bash
 (when (eq entropy/emacs-use-ide-type 'lsp)
   (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple 'sh-mode
+    (entropy/emacs-lazy-load-simple sh-mode
       (advie-add 'sh-mode :before #'entropy/emacs-coworker-check-bash-lsp))))
 
 ;; **** lsp php
 (when (eq entropy/emacs-use-ide-type 'lsp)
   (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple 'php-mode
+    (entropy/emacs-lazy-load-simple php-mode
       (advice-add 'php-mode :before #'entropy/emacs-coworker-check-php-lsp))))
 
 ;; **** lsp clangd
 (when (eq entropy/emacs-use-ide-type 'lsp)
   (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple 'cc-mode
+    (entropy/emacs-lazy-load-simple cc-mode
       (advice-add 'c-mode
                   :before
                   #'entropy/emacs-coworker-check-clangd-lsp)
@@ -233,7 +233,7 @@ It is the recommendation of irony-mode official introduction."
 ;; **** lsp python
 (when (eq entropy/emacs-use-ide-type 'lsp)
   (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple 'python
+    (entropy/emacs-lazy-load-simple python
       (advice-add 'python-mode
                   :before
                   #'entropy/emacs-coworker-check-python-lsp))))

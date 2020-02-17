@@ -203,7 +203,7 @@
        (push (cons ',mode ',body)
              entropy/emacs-hydra-hollow-major-mode-body-register)
 
-       (entropy/emacs-lazy-load-simple ',feature
+       (entropy/emacs-lazy-load-simple ,feature
          (let ((binds (entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
                        ',heads-plist)))
            (dolist (el binds)
@@ -249,7 +249,7 @@
                entropy/emacs-hydra-hollow-major-mode-body-register
                )))
     `(let ()
-       (entropy/emacs-lazy-load-simple ',feature
+       (entropy/emacs-lazy-load-simple ,feature
          ;; add hydra for feature with lazy load prevent covering the
          ;; major defination
          (major-mode-hydra-define+ ,mode

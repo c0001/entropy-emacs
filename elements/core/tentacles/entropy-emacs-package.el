@@ -40,7 +40,7 @@
 ;; ** Patched for selected-packages
 ;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
-(entropy/emacs-lazy-load-simple 'package
+(entropy/emacs-lazy-load-simple package
   (defun package--save-selected-packages (&optional value)
     "Set and (don't!) save `package-selected-packages' to VALUE."
     (when value

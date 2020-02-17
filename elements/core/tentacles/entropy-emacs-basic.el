@@ -144,7 +144,7 @@
 
 (entropy/emacs-lazy-with-load-trail
  init-eemamcs-scratch-buffer
-  (entropy/emacs-lazy-load-simple 'entropy-emacs-structure
+  (entropy/emacs-lazy-load-simple entropy-emacs-structure
     (entropy/emacs-basic--scratch-buffer-file-binding)))
 
 ;; Create a new scratch buffer
@@ -1290,7 +1290,7 @@ coding-system to save bookmark infos"
            (artist-mode))))
 
   ;; Disabled '<' and '>' keybinding function.
-  (entropy/emacs-lazy-load-simple 'artist
+  (entropy/emacs-lazy-load-simple artist
     (define-key artist-mode-map (kbd ">") nil)
     (define-key artist-mode-map (kbd "<") nil))
   )
@@ -1522,7 +1522,7 @@ Temp file was \"~/~entropy-artist.txt\""
               (term-send-raw-string paste)))))
      (keyboard-quit))
 
-   (entropy/emacs-lazy-load-simple 'term
+   (entropy/emacs-lazy-load-simple term
      (cond
       ((not (entropy/emacs-is-ssh-session))
        (define-key term-raw-map
@@ -1562,7 +1562,7 @@ Temp file was \"~/~entropy-artist.txt\""
 
   (when (and entropy/emacs-wsl-enable
              (file-exists-p entropy/emacs-wsl-apps))
-    (entropy/emacs-lazy-load-simple 'custom
+    (entropy/emacs-lazy-load-simple custom
       (custom-set-variables
        '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-wsl-apps))
        '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-wsl-apps))

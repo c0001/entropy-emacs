@@ -107,7 +107,7 @@ _e_: browse-externally
    :next-page w3m-view-next-page
    :search-query w3m-search)
 
-  (entropy/emacs-lazy-load-simple 'w3m-search
+  (entropy/emacs-lazy-load-simple w3m-search
     (add-to-list 'w3m-search-engine-alist
                  '("bing" "https://www.bing.com/search?q=%s" utf-8))
     (setq w3m-search-default-engine "bing"))
@@ -144,7 +144,7 @@ _e_: browse-externally
 (use-package eww
   :preface
 ;; **** get image url
-  (entropy/emacs-lazy-load-simple 'shr
+  (entropy/emacs-lazy-load-simple shr
     (defun entropy/emacs-textwww-get-eww-url ()
       "Get image or point url at eww or it's derived modes."
       (interactive)

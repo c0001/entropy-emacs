@@ -97,7 +97,7 @@
   (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-action-after-advice)
 
   ;; top level for ivy-mode-map
-  (entropy/emacs-lazy-load-simple 'ivy
+  (entropy/emacs-lazy-load-simple ivy
     (define-key ivy-mode-map (kbd "ESC ESC") 'top-level))
 
 
@@ -142,7 +142,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
     ;; `ivy-dispatching-done' can not display minibuffer hint prompt
     ;; when emacs version upper than 26. see
     ;; https://github.com/abo-abo/swiper/issues/2397 for details
-    (entropy/emacs-lazy-load-simple 'ivy
+    (entropy/emacs-lazy-load-simple ivy
       (require 'ivy-hydra)
       (when (fboundp 'ivy-hydra-read-action)
         ;; using new ivy hydra api in latest ivy update version
@@ -156,7 +156,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
          :map swiper-map
          ("M-%" . swiper-query-replace))
   :init
-  (entropy/emacs-lazy-load-simple 'swiper
+  (entropy/emacs-lazy-load-simple swiper
     (ivy-mode +1))
 
   :config
@@ -171,7 +171,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   ;; correctly font displaying when set spec font to this default
   ;; face.
 
-  (entropy/emacs-lazy-load-simple 'all-the-icons-dired
+  (entropy/emacs-lazy-load-simple all-the-icons-dired
     (defun entropy/emacs-ivy--swiper-format-function-for-dired (cands)
       "Transform CANDS into a string for minibuffer."
       (ivy--format-function-generic
@@ -270,7 +270,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (setq counsel-yank-pop-separator
         "\n────────\n")
 
-  (entropy/emacs-lazy-load-simple 'counsel
+  (entropy/emacs-lazy-load-simple counsel
     (ivy-mode +1))
 
   (unless sys/win32p
@@ -471,7 +471,7 @@ this variable used to patching for origin `counsel-git'.")
   :if (eq entropy/emacs-ivy-rich-type 'all-the-icons-ivy)
   :commands (all-the-icons-ivy-setup)
   :init
-  (entropy/emacs-lazy-load-simple 'ivy
+  (entropy/emacs-lazy-load-simple ivy
     (all-the-icons-ivy-setup)))
 
 ;; *** ivy rich mode

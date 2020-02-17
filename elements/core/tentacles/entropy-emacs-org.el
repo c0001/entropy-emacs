@@ -53,7 +53,7 @@
   (let ((entropy/emacs-web-development-environment t))
     (apply old-func args)))
 
-(entropy/emacs-lazy-load-simple 'ox
+(entropy/emacs-lazy-load-simple ox
   (advice-add 'org-export-dispatch
               :around #'entropy/emacs-org--export-panel-around-advice))
 
@@ -319,14 +319,14 @@ recovery method unless reopen capture operation.w
 
   ;; delete keybind `C-c C-w' of org-capture-refile for fix the
   ;; contradiction with eyebrowse.
-  (entropy/emacs-lazy-load-simple 'org-capture
+  (entropy/emacs-lazy-load-simple org-capture
     (define-key org-capture-mode-map (kbd "C-c C-w") nil))
 
   ;; delete keybind of org-mode
   (define-key org-mode-map (kbd "C-c C-w") nil)
 
   ;; delete keybind of org-agenda
-  (entropy/emacs-lazy-load-simple 'org-agenda
+  (entropy/emacs-lazy-load-simple org-agenda
     (define-key org-agenda-mode-map (kbd "C-c C-w") nil))
 
 ;; **** org-priority-setting
@@ -389,7 +389,7 @@ recovery method unless reopen capture operation.w
 
 
 ;; **** org babel evaluate confirm
-  (entropy/emacs-lazy-load-simple 'org
+  (entropy/emacs-lazy-load-simple org
     (when (not (version< org-version "9.1.9"))
       (defvar entropy/emacs-org--src-info nil
         "Current org babel info using for `entropy/emacs-org--babel-comfirm-evaluate'.")
@@ -461,7 +461,7 @@ reason, please see the docstring refer."
       (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org--babel-comfirm-evaluate)))
 
 ;; **** org global export macro
-  (entropy/emacs-lazy-load-simple 'ox
+  (entropy/emacs-lazy-load-simple ox
     (add-to-list 'org-export-global-macros
                  '("kbd" . "@@html:<code>$1</code>@@")))
 
@@ -576,9 +576,9 @@ returning the type of exec for open exported html file, they are:
 ;; **** org-counsel-set-tag
 
   (when (featurep 'counsel)
-    (entropy/emacs-lazy-load-simple 'org
+    (entropy/emacs-lazy-load-simple org
       (bind-key "C-c C-q" #'counsel-org-tag org-mode-map))
-    (entropy/emacs-lazy-load-simple 'org-agenda
+    (entropy/emacs-lazy-load-simple org-agenda
       (bind-key "C-c C-q" #'counsel-org-tag-agenda org-agenda-mode-map)))
 
 ;; **** org-inline-image size

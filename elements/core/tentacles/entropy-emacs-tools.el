@@ -118,7 +118,7 @@ Version 2016-10-15"
              (let ((process-connection-type nil))
                (start-process "" nil "xdg-open" $fpath)))
            $file-list))))))
-  (entropy/emacs-lazy-load-simple 'dired
+  (entropy/emacs-lazy-load-simple dired
     (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-tools-open-in-external-app)))
 
 ;; ***** Open in desktop manager
@@ -157,7 +157,7 @@ Version 2017-12-23"
         ;; emacs till the folder is closed. eg with nautilus
         ))))
 
-  (entropy/emacs-lazy-load-simple 'dired
+  (entropy/emacs-lazy-load-simple dired
     (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-tools-show-in-desktop)))
 
 ;; ***** Open in terminal
@@ -224,7 +224,7 @@ Version 2017-10-09"
   :bind (:map entropy/emacs-top-keymap
          ("M-1" . entropy/open-with-buffer))
   :init
-  (entropy/emacs-lazy-load-simple 'dired
+  (entropy/emacs-lazy-load-simple dired
     (define-key dired-mode-map (kbd "M-RET") 'entropy/open-with-dired-open))
   :config
   (defun entropy/emacs-tools--open-with-port-stuffs-around (oldfunc &rest arg-rest)
@@ -233,7 +233,7 @@ Version 2017-10-09"
 development web-browser."
     (let ((entropy/emacs-web-development-environment nil))
       (apply oldfunc arg-rest)))
-  (entropy/emacs-lazy-load-simple 'entropy-open-with
+  (entropy/emacs-lazy-load-simple entropy-open-with
     (advice-add 'entropy/open-with-port :around #'entropy/emacs-tools--open-with-port-stuffs-around)))
 
 
@@ -669,7 +669,7 @@ For now, there's three choices for you:
     (interactive)
     (if (not command-log-mode)
         (progn (command-log-mode)
-               (entropy/emacs-lazy-load-simple 'command-log-mode
+               (entropy/emacs-lazy-load-simple command-log-mode
                  (clm/toggle-command-log-buffer)))
       (command-log-mode 0))))
 
@@ -693,13 +693,13 @@ For now, there's three choices for you:
                      windmove-down))
         (advice-add $el :after #'maple-preview:send-to-server))
       (when (featurep 'eyebrowse)
-        (entropy/emacs-lazy-load-simple 'eyebrowse
+        (entropy/emacs-lazy-load-simple eyebrowse
           (advice-add 'eyebrowse-switch-to-window-config
                       :after
                       #'maple-preview:send-to-server)))
       (advice-add 'other-window :after #'maple-preview:send-to-server)
       (when (featurep 'markdown-mode)
-        (entropy/emacs-lazy-load-simple 'markdown-mode
+        (entropy/emacs-lazy-load-simple markdown-mode
           (advice-add 'markdown-outdent-or-delete
                       :after
                       #'maple-preview:send-to-server)))
@@ -826,14 +826,14 @@ can't visit one page suddenly."
     (advice-add 'w3m-retrieve :before #'entropy/emacs-tools--w3m-recorde-retrieve-url)
     (define-key w3m-mode-map (kbd "p") #'entropy/emacs-tools-w3m-toggle-proxy))
 
-  (entropy/emacs-lazy-load-simple 'w3m
+  (entropy/emacs-lazy-load-simple w3m
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (entropy/proxy-url-make-builtin-recipes)
       (when (executable-find "w3m")
         (entropy/emacs-tools--proxy-url-w3m-specific))
       (setq entropy/emacs-proxy-url-loaded t)))
 
-  (entropy/emacs-lazy-load-simple 'eww
+  (entropy/emacs-lazy-load-simple eww
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (entropy/proxy-url-make-builtin-recipes)
       (setq entropy/emacs-proxy-url-loaded t))))

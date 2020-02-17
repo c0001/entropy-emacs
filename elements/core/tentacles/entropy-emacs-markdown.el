@@ -75,7 +75,7 @@
                              (buffer-file-name)))))
     (user-error "Please install grip by 'pip install grip'.")))
 
-(entropy/emacs-lazy-load-simple 'markdown-mode
+(entropy/emacs-lazy-load-simple markdown-mode
   (define-key markdown-mode-command-map
     (kbd "p") #'entropy/emacs-markdown-preview-grip))
 

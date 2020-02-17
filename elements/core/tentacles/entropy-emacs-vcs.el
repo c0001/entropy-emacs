@@ -49,7 +49,7 @@
 
   ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
   (when entropy/emacs-custom-language-environment-enable
-    (entropy/emacs-lazy-load-simple 'magit
+    (entropy/emacs-lazy-load-simple magit
       (advice-add 'magit-status :before #'entropy/emacs-lang-set-utf-8)
       (advice-add 'magit-dispatch-popup :before #'entropy/emacs-lang-set-utf-8)
       (advice-add 'magit-file-popup :before #'entropy/emacs-lang-set-utf-8)))
@@ -80,14 +80,14 @@
 
   ;;disabled 'M-1' key-binding with conflicated with
   ;;`entropy/emacs-quick-readonly-global'
-  (entropy/emacs-lazy-load-simple 'magit
+  (entropy/emacs-lazy-load-simple magit
     (define-key magit-mode-map (kbd "M-1") nil)
     (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)))
 
 (use-package ssh-agency
   :commands (ssh-agency-ensure)
   :init
-  (entropy/emacs-lazy-load-simple 'magit
+  (entropy/emacs-lazy-load-simple magit
     (add-hook 'magit-credential-hook 'ssh-agency-ensure))
   :config
   (setenv "SSH_ASKPASS" "git-gui--askpass"))
