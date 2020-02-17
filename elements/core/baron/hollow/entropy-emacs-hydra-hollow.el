@@ -200,8 +200,9 @@
          ,body
          ,patched-heads-group)
 
-       (push (cons ',mode ',body)
-             entropy/emacs-hydra-hollow-major-mode-body-register)
+       (unless (alist-get  ',mode entropy/emacs-hydra-hollow-major-mode-body-register)
+         (push (cons ',mode ',body)
+               entropy/emacs-hydra-hollow-major-mode-body-register))
 
        (entropy/emacs-lazy-load-simple ,feature
          (let ((binds (entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
@@ -215,39 +216,19 @@
                           key (symbol-name command) (symbol-name ',mode-map))
                  (define-key ,mode-map (kbd key) command)))))))))
 
-(defmacro entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-    (mode feature mode-map)
-  (let ((body
-         `(:title
-           (entropy/emacs-pretty-hydra-make-title-for-major-mode-common
-            ',mode (format "%s Actions" (symbol-name ',mode)))
-           :color ambranth
-           :quit-key "q")))
-    `(progn
-       (push (cons ',mode
-                   ',body)
-             entropy/emacs-hydra-hollow-major-mode-body-register)
-       (entropy/emacs-hydra-hollow-define-major-mode-hydra
-        ,mode ,feature ,mode-map
-        ,body
-        ("Baisc"      ()
-         "Company"    ()
-         "IDE"        ()
-         "Navigation" ()
-         "Misc."      ())))))
-
 ;; **** add major mode hydra
 (cl-defmacro entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-    (mode feature mode-map heads-plist)
+    (mode feature mode-map heads-plist &optional hydra-body)
   (let ((binds (entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
                 heads-plist))
         (patched-heads-group
          (entropy/emacs-hydra-hollow-patch-mode-inject-group-heads
           heads-plist))
-        (body (alist-get
-               mode
-               entropy/emacs-hydra-hollow-major-mode-body-register
-               )))
+        (body (or hydra-body
+                  (alist-get
+                   mode
+                   entropy/emacs-hydra-hollow-major-mode-body-register
+                   ))))
     `(let ()
        (entropy/emacs-lazy-load-simple ,feature
          ;; add hydra for feature with lazy load prevent covering the
@@ -262,6 +243,37 @@
              (when map-inject
                (define-key ,mode-map (kbd key) command))))))))
 
+;; **** sparse tree builder
+
+(cl-defmacro entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+    (mode feature mode-map &optional heads)
+  (let ((body
+         `(:title
+           (entropy/emacs-pretty-hydra-make-title-for-major-mode-common
+            ',mode (format "%s Actions" (symbol-name ',mode)))
+           :color ambranth
+           :quit-key "q")))
+    `(progn
+       (unless (alist-get ',mode entropy/emacs-hydra-hollow-major-mode-body-register)
+         (push (cons ',mode
+                     ',body)
+               entropy/emacs-hydra-hollow-major-mode-body-register))
+       (entropy/emacs-hydra-hollow-define-major-mode-hydra
+        ,mode ,feature ,mode-map
+        ,body
+        ("Baisc"      ()
+         "Company"    ()
+         "IDE"        ()
+         "Navigation" ()
+         "Misc."      ()))
+       (when (not (null ',heads))
+         ;; We forced tranferred the 'body' arg to
+         ;; `entropy/emacs-hydra-hollow-add-to-major-mode-hydra'
+         ;; prevent from that its a macro will expand while this
+         ;; procedure process
+         (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+          ,mode ,feature ,mode-map ,heads ,body))
+       )))
 
 ;; **** use-package extended
 ;; ***** :eemacs-mmc
@@ -302,6 +314,7 @@
                   (intern (format "%s-map" (symbol-name use-name)))))
          (feature (or (plist-get $arg :feature)
                       use-name))
+         (heads (plist-get $arg :heads))
          init-form)
     (add-to-list 'entropy/emacs-hydra-hollow--usepackage-arg-log
                  (list use-name :handle-arg $arg))
@@ -311,7 +324,7 @@
      init-form
      `((when (not (null ',enable))
          (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-          ,mode ,feature ,map))))
+          ,mode ,feature ,map ,heads))))
     (use-package-concat
      rest-body
      init-form)))

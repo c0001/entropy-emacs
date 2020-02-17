@@ -272,15 +272,18 @@
   (let* ((display-graphic-p (display-graphic-p))
          (face (or face `(:foreground ,(face-background 'highlight))))
          (icon (if (fboundp 'all-the-icons-icon-for-mode)
-                   (all-the-icons-icon-for-mode
-                    mode
-                    :face face :height (or height 1)
-                    :v-adjust (or v-adjust 0))
+                   (ignore-errors
+                     (all-the-icons-icon-for-mode
+                      mode
+                      :face face :height (or height 1)
+                      :v-adjust (or v-adjust 0)))
                  (when display-graphic-p
                    (error "Function <all-the-icons-icon-for-mode> not found!")))))
     (concat
      (when display-graphic-p
-       icon)
+       (if (not (stringp icon))
+           "[unmached icon]"
+         icon))
      " "
      (propertize title-str 'face face))))
 
