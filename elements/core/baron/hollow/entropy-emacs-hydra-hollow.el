@@ -277,7 +277,7 @@
 
 ;; **** use-package extended
 ;; ***** :eemacs-mmc
-(defvar entropy/emacs-hydra-hollow--usepackage-arg-log nil)
+(defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log nil)
 
 (defun entropy/emacs-hydra-hollow--usepackage-add-keyword (keyword)
   "Add the KEYWORD to `use-package-keywords'."
@@ -296,7 +296,7 @@
   (let ()
     (cond ((and (listp key-value)
                 (= 1 (length key-value)))
-           (add-to-list 'entropy/emacs-hydra-hollow--usepackage-arg-log
+           (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log
                         (list use-name :normalize-arg key-value))
            (car key-value))
           (t
@@ -316,7 +316,7 @@
                       use-name))
          (heads (plist-get $arg :heads))
          init-form)
-    (add-to-list 'entropy/emacs-hydra-hollow--usepackage-arg-log
+    (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log
                  (list use-name :handle-arg $arg))
     (when (listp enable)
       (setq enable (funcall `(lambda () ,enable))))
