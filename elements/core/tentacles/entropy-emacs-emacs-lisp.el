@@ -102,14 +102,12 @@ For lisp coding aim, always return the transfered buffer.
 ;; Note: `elisp-mode' was called `emacs-lisp-mode' in <=24
 (use-package elisp-mode
   :ensure nil
-  :init
-  (entropy/emacs-hydra-hollow-define-major-mode-hydra
-   emacs-lisp-mode elisp-mode emacs-lisp-mode-map
-   (:title
-    (entropy/emacs-pretty-hydra-make-title
-     "Emacs Lisp Mode Actions" "fileicon" "emacs")
-    :color ambranth
-    :quit-key "q")
+  :eemacs-mmphc
+  (:enable
+   t
+   :mode emacs-lisp-mode
+   :map emacs-lisp-mode-map
+   :heads
    ("IELM"
     (("C-c C-z" ielm "Open IELM"
       :exit t
@@ -124,18 +122,16 @@ For lisp coding aim, always return the transfered buffer.
       :map-inject t)
      ("C-c C-b" eval-buffer "Eval Whole buffer"
       :exit t
-      :map-inject t)))))
+      :map-inject t))))
+  )
 
 (use-package lisp-interaction-mode
   :ensure nil
-  :init
-  (entropy/emacs-hydra-hollow-define-major-mode-hydra
-   lisp-interaction-mode elisp-mode lisp-interaction-mode-map
-   (:title
-    (entropy/emacs-pretty-hydra-make-title
-     "Lisp Interaction Mode Actions" "fileicon" "lisp")
-    :color ambranth
-    :quit-key "q")
+  :eemacs-mmphc
+  (:enable
+   t
+   :feature elisp-mode
+   :heads
    ("Company"
     (("M-\\" company-dabbrev-code "Company dabbrev"
       :exit t
@@ -146,7 +142,8 @@ For lisp coding aim, always return the transfered buffer.
       :map-inject t)
      ("C-c C-b" eval-buffer "Eval Whole Buffer"
       :exit t
-      :map-inject t)))))
+      :map-inject t))))
+  )
 
 
 ;; Show function arglist or variable docstring
@@ -187,19 +184,15 @@ For lisp coding aim, always return the transfered buffer.
 ;; Interactive macro expander
 (use-package macrostep
   :commands (macrostep-expand)
-  :init
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   emacs-lisp-mode elisp-mode emacs-lisp-mode-map
-   ("Macro"
-    (("C-c e" macrostep-expand "Expand Macro At Point"
-      :exit t
-      :map-inject t))))
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   lisp-interaction-mode elisp-mode lisp-interaction-mode-map
-   ("Macro"
-    (("C-c e" macrostep-expand "Expand Macro At Point"
-      :exit t
-      :map-inject t)))))
+  :eemacs-mmphca
+  (((((:enable t)
+      (emacs-lisp-mode elisp-mode emacs-lisp-mode-map))
+     ((:enable t)
+      (lisp-interaction-mode elisp-mode lisp-interaction-mode-map)))
+    ("Macro"
+     (("C-c e" macrostep-expand "Expand Macro At Point"
+       :exit t
+       :map-inject t))))))
 
 ;; Make M-. and M-, work in elisp like they do in slime.
 ;; `xref' is perfect since 25, so only use in <=24.
@@ -233,14 +226,12 @@ For lisp coding aim, always return the transfered buffer.
 ;; *** common lisp
 (use-package slime
   :commands (slime slime-mode)
-  :init
-  (entropy/emacs-hydra-hollow-define-major-mode-hydra
-   lisp-mode slime slime-mode-map
-   (:title
-    (entropy/emacs-pretty-hydra-make-title
-     "Common Lisp Mode Actions" "fileicon" "clisp")
-    :color ambranth
-    :quit-key "q")
+  :eemacs-mmphc
+  (:enable
+   t
+   :mode lisp-mode
+   :map slime-mode-map
+   :heads
    ("Slime"
     (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol
       "Slime Describe Symbols"
@@ -253,6 +244,7 @@ For lisp coding aim, always return the transfered buffer.
       :exit t
       :map-inject t)
      ("C-c M-r" slime-repl "Slime repl" :map-inject t :exit t))))
+  :init
 
   (setq inferior-lisp-program entropy/emacs-inferior-lisp-program)
   (setq slime-lisp-implementations
