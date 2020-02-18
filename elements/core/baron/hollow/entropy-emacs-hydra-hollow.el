@@ -12,6 +12,7 @@
 (defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
 
 ;; ** libraries
+;; *** pretty hydra heads manipulation
 (defun entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
     (pretty-heads-group)
   (let (group-extract-func
@@ -89,6 +90,29 @@
       (setq rtn (append rtn el)))
     rtn))
 
+
+;; *** heads notation handler
+
+(defun entropy/emacs-hydra-hollow-pretty-head-notation-handler
+    (head-notation type)
+  (dolist (feature '(faces))
+    (require feature))
+  (let* ((match-map
+          `((global-map-inject
+             :format "%s %s"
+             :icon (lambda () (propertize "⭮" 'face 'error))
+             :notation (lambda (notation) (propertize notation 'face 'link)))
+            (mode-map-inject
+             :format "%s%s"
+             :icon (lambda () (propertize "⭥" 'face 'error))
+             :notation (lambda (notation) (propertize notation 'face 'link)))))
+         (matched (alist-get type match-map))
+         (fmstr (plist-get matched :format))
+         (icon (funcall (plist-get matched :icon)))
+         (notation (funcall (plist-get matched :notation) head-notation)))
+    (format fmstr icon notation)))
+
+
 ;; ** apis
 ;; *** top dispatcher
 
@@ -129,7 +153,8 @@
   (declare (indent 1))
   (let ((notation
          (if global-bind
-             (format "%s (g)" notation)
+             (entropy/emacs-hydra-hollow-pretty-head-notation-handler
+              notation 'global-map-inject)
            notation)))
     `(progn
        (entropy/emacs-hydra-hollow-init-top-dispatch)
@@ -169,7 +194,8 @@
                 (car head-plist)
                 (cadr head-plist)
                 (if map-inject
-                    (format "%s (m)" notation)
+                    (entropy/emacs-hydra-hollow-pretty-head-notation-handler
+                     notation 'mode-map-inject)
                   notation))
                (cdddr head-plist)))
         (if (not (null head-plist))
@@ -260,11 +286,11 @@
        (entropy/emacs-hydra-hollow-define-major-mode-hydra
         ,mode ,feature ,mode-map
         ,body
-        ("Baisc"      ()
-         "Company"    ()
-         "IDE"        ()
-         "Navigation" ()
-         "Misc."      ()))
+        ("Help"
+         (("C-h M-m" discover-my-major "Show Keybinds For Current Major Mode"
+           :exit t)
+          ("C-h M-M" discover-my-mode "Show Keybinds For Enabled Minor Mode"
+           :exit t))))
        (when (not (null ',heads))
          ;; We forced tranferred the 'body' arg to
          ;; `entropy/emacs-hydra-hollow-add-to-major-mode-hydra'
