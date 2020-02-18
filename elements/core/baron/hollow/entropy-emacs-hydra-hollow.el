@@ -275,10 +275,10 @@
        )))
 
 ;; **** use-package extended
-;; ***** :eemacs-mmc
+;; ***** :eemacs-mmphc
 (defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log nil)
 
-(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-add-keyword (keyword)
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-add-keyword (keyword)
   "Add the KEYWORD to `use-package-keywords'."
   (setq use-package-keywords
         ;; should go in the same location as :bind
@@ -290,7 +290,7 @@
                  unless (eq item keyword)
                  collect item)))
 
-(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-def-normalize
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-normalize
     (use-name key key-value)
   (let ()
     (cond ((and (listp key-value)
@@ -303,7 +303,7 @@
             "eemacs mm common use-package clause form wrong type for '%s' def!"
             (symbol-name use-name))))))
 
-(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-def-handler
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-handler
     (use-name key $arg rest state)
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          (enable (plist-get $arg :enable))
@@ -328,33 +328,32 @@
      rest-body
      init-form)))
 
-(defalias 'use-package-normalize/:eemacs-mmc
-  #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-def-normalize)
+(defalias 'use-package-normalize/:eemacs-mmphc
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-normalize)
 
-(defalias 'use-package-handler/:eemacs-mmc
-  #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-def-handler)
+(defalias 'use-package-handler/:eemacs-mmphc
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-handler)
 
-(entropy/emacs-hydra-hollow--usepackage-eemacs-mmc-add-keyword
- :eemacs-mmc)
+(entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-add-keyword
+ :eemacs-mmphc)
 
-
-;; ***** :eemacs-mmca
+;; ***** :eemacs-mmphca
 
 (defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log nil)
 
-(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmca-add-keyword (keyword)
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-add-keyword (keyword)
   "Add the KEYWORD to `use-package-keywords'."
   (setq use-package-keywords
         ;; should go in the same location as :eemacs-mmc
         (cl-loop for item in use-package-keywords
-                 if (eq item :eemacs-mmc)
-                 collect :eemacs-mmc and collect keyword
+                 if (eq item :eemacs-mmphc)
+                 collect :eemacs-mmphc and collect keyword
                  else
                  ;; don't add duplicates
                  unless (eq item keyword)
                  collect item)))
 
-(defun entropy/emacs-hydra-hollow--usepackage-mmca-def-normalize
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-normalize
     (use-name key key-value)
   (let ()
     (cond ((and (listp key-value)
@@ -386,7 +385,7 @@
             "eemacs mmca common use-package clause form wrong type for '%s' def!"
             (symbol-name use-name))))))
 
-(defun entropy/emacs-hydra-hollow--usepackage-mmca-def-handler
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-handler
     (use-name key $arg rest state)
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          init-form)
@@ -424,14 +423,14 @@
      rest-body
      init-form)))
 
-(defalias 'use-package-normalize/:eemacs-mmca
-  #'entropy/emacs-hydra-hollow--usepackage-mmca-def-normalize)
+(defalias 'use-package-normalize/:eemacs-mmphca
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-normalize)
 
-(defalias 'use-package-handler/:eemacs-mmca
-  #'entropy/emacs-hydra-hollow--usepackage-mmca-def-handler)
+(defalias 'use-package-handler/:eemacs-mmphca
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-handler)
 
-(entropy/emacs-hydra-hollow--usepackage-eemacs-mmca-add-keyword
- :eemacs-mmca)
+(entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-add-keyword
+ :eemacs-mmphca)
 
 
 
