@@ -78,7 +78,9 @@
                (push (caadr (nth el rest)) collect))
              (push (caadar manipulate-list) collect))
             (when collect
-              (push (list group collect) pretty-heads-group-fake))
+              (push (list group
+                          (cl-delete nil collect))
+                    pretty-heads-group-fake))
             (progn
               (dolist (pt pointer-list)
                 (entropy/emacs-setf-for-nth
