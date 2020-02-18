@@ -123,28 +123,21 @@ For lisp coding aim, always return the transfered buffer.
      ("C-c C-b" eval-buffer "Eval Whole buffer"
       :exit t
       :map-inject t))))
+  :eemacs-mmphca
+  ((((:enable t)
+     (lisp-interaction-mode elisp-mode lisp-interaction-mode-map))
+    ("Company"
+     (("M-\\" company-dabbrev-code "Company dabbrev"
+       :exit t
+       :map-inject t))
+     "Eval"
+     (("C-c C-c" eval-defun "Eval wrapping context"
+       :exit t
+       :map-inject t)
+      ("C-c C-b" eval-buffer "Eval Whole Buffer"
+       :exit t
+       :map-inject t)))))
   )
-
-(use-package lisp-interaction-mode
-  :ensure nil
-  :eemacs-mmphc
-  (:enable
-   t
-   :feature elisp-mode
-   :heads
-   ("Company"
-    (("M-\\" company-dabbrev-code "Company dabbrev"
-      :exit t
-      :map-inject t))
-    "Eval"
-    (("C-c C-c" eval-defun "Eval wrapping context"
-      :exit t
-      :map-inject t)
-     ("C-c C-b" eval-buffer "Eval Whole Buffer"
-      :exit t
-      :map-inject t))))
-  )
-
 
 ;; Show function arglist or variable docstring
 (use-package eldoc
