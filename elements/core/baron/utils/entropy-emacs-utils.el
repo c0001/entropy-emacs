@@ -269,6 +269,7 @@
 
 (cl-defun entropy/emacs-pretty-hydra-make-title-for-major-mode-common
     (mode title-str &key face height v-adjust)
+  (require 'faces)
   (let* ((display-graphic-p (display-graphic-p))
          (face (or face `(:foreground ,(face-background 'highlight))))
          (icon (if (fboundp 'all-the-icons-icon-for-mode)
@@ -286,6 +287,15 @@
          icon))
      " "
      (propertize title-str 'face face))))
+
+(defun entropy/emacs-pretty-hydra-make-body-for-major-mode-union (mode)
+  `(:title
+    (let* ((mode-str (capitalize (symbol-name ',mode)))
+           (title (entropy/emacs-pretty-hydra-make-title-for-major-mode-common
+                   ',mode (format "%s Actions" mode-str))))
+      title)
+    :color ambranth
+    :quit-key "q"))
 
 ;; * provide
 (provide 'entropy-emacs-utils)

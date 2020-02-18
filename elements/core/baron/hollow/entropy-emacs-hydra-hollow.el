@@ -228,7 +228,9 @@
                   (alist-get
                    mode
                    entropy/emacs-hydra-hollow-major-mode-body-register
-                   ))))
+                   )
+                  (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
+                   mode))))
     `(let ()
        (entropy/emacs-lazy-load-simple ,feature
          ;; add hydra for feature with lazy load prevent covering the
@@ -248,11 +250,8 @@
 (cl-defmacro entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
     (mode feature mode-map &optional heads)
   (let ((body
-         `(:title
-           (entropy/emacs-pretty-hydra-make-title-for-major-mode-common
-            ',mode (format "%s Actions" (symbol-name ',mode)))
-           :color ambranth
-           :quit-key "q")))
+         (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
+          mode)))
     `(progn
        (unless (alist-get ',mode entropy/emacs-hydra-hollow-major-mode-body-register)
          (push (cons ',mode
@@ -366,15 +365,15 @@
                  rtn split-func)
              (setq split-func
                    (lambda (x)
-                     (let ((patterns (car x))
+                     (let ((barons (car x))
                            (heads (cadr x))
                            output)
-                       (dolist (el patterns)
+                       (dolist (el barons)
                          (push (list el heads) output))
                        output)))
 
              (dolist (el arg-list)
-               (let ((pattern-group-car (ignore-errors (caar el))))
+               (let ((pattern-group-car (ignore-errors (caaar el))))
                  (cond
                   ((and pattern-group-car
                         (listp pattern-group-car))
@@ -397,19 +396,30 @@
      init-form
      `((let (_callers)
          (dolist (item ',$arg)
-           (let* ((pattern (car item))
-                  (heads (cadr item))
+           (let* ((baron (car item))
+                  (condition (car baron))
+                  (enable (let ((enable-slot (plist-get condition :enable)))
+                            (cond ((listp enable-slot)
+                                   (funcall `(lambda () ,enable-slot)))
+                                  (t
+                                   (if (null enable-slot)
+                                       nil
+                                     t)))))
+                  (pattern (cadr baron))
                   (mode (car pattern))
                   (feature (cadr pattern))
                   (map (caddr pattern))
+                  (heads (cadr item))
                   run-call)
-             (setq run-call
-                   (list 'lambda '()
-                         (list 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-                               mode feature map heads)))
-             (push run-call _callers)))
-         (dolist (caller (reverse _callers))
-           (funcall caller)))))
+             (when enable
+               (setq run-call
+                     (list 'lambda '()
+                           (list 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+                                 mode feature map heads)))
+               (push run-call _callers))))
+         (when (not (null _callers))
+           (dolist (caller (reverse _callers))
+             (funcall caller))))))
     (use-package-concat
      rest-body
      init-form)))
