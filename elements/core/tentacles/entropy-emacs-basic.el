@@ -495,17 +495,15 @@ layout switching conflicts."
 ;; *** dired basic
 (use-package dired
   :ensure nil
-;; **** init
-  :init
-;; ***** pretty hydra
-  ;; major mode hydra
-  (entropy/emacs-hydra-hollow-define-major-mode-hydra
-   dired-mode dired dired-mode-map
-   (:title
-    (entropy/emacs-pretty-hydra-make-title
-     "Dired Actions" "fileicon" "emacs")
-    :color ambranth
-    :quit-key "q")
+
+;; **** pretty-hydra
+  :eemacs-mmphc
+  (:enable
+   t
+   :mode dired-mode
+   :feature dired
+   :map dired-mode-map
+   :heads
    ("Delete Node"
     (("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
       :map-inject t
@@ -533,6 +531,8 @@ layout switching conflicts."
       :map-inject t
       :exit t))))
 
+;; **** init
+  :init
 ;; ***** Delete directory with force actions
   (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
@@ -1249,34 +1249,28 @@ coding-system to save bookmark infos"
 ;; ** Artist-mode
 (use-package artist
   :ensure nil
+  :eemacs-mmphca
+  ((((:enable t)
+     (picture-mode picture picture-mode-map))
+    ("Basic"
+     (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'text-mode'"
+       :toggle (if (eq major-mode 'picture-mode) nil t)
+       :map-inject t
+       :exit t))))
+   (((:enable t)
+     (text-mode text-mode text-mode-map))
+    ("Basic"
+    (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'artist-mode'"
+      :toggle (if (eq major-mode 'text-mode) nil t)
+      :map-inject t
+      :exit t)))))
+
   :init
   ;; Init disable rubber-banding for reducing performance requirements.
   (add-hook 'artist-mode-hook
             #'(lambda ()
                 (if artist-rubber-banding
                     (setq-local artist-rubber-banding nil))))
-
-  ;; major-mode hydra defined
-  (entropy/emacs-hydra-hollow-define-major-mode-hydra
-   picture-mode picture picture-mode-map
-   (:title
-    (entropy/emacs-pretty-hydra-make-title
-     "Artist-Mode Actions" "faicon" "paint-brush")
-    :color ambranth
-    :quit-key "q")
-   ("Basic"
-    (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'text-mode'"
-      :toggle (if (eq major-mode 'picture-mode) nil t)
-      :map-inject t
-      :exit t))))
-
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   text-mode text-mode text-mode-map
-   ("Basic"
-    (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'artist-mode'"
-      :toggle (if (eq major-mode 'text-mode) nil t)
-      :map-inject t
-      :exit t))))
 
   :config
 

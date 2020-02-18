@@ -87,16 +87,10 @@
   ("\\.\\(phtml\\|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\)$"
    .
    web-mode)
-  :init
-  (add-hook 'web-mode-hook
-            'entropy/emacs-web--web-mode-start-hook)
-  (entropy/emacs-hydra-hollow-define-major-mode-hydra
-   web-mode web-mode web-mode-map
-   (:title
-    (entropy/emacs-pretty-hydra-make-title
-     "Web-Mode Actions" "alltheicon" "html5")
-    :color ambranth
-    :quit-key "q")
+  :eemacs-mmphc
+  (:enable
+   t
+   :heads
    ("Basic"
     (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
       :exit t))
@@ -106,23 +100,26 @@
     (("M-/" company-complete "Common Complete"
       :exit t))))
 
+  :eemacs-mmphca
+  ((((:enable (eq entropy/emacs-use-ide-type 'traditional))
+     (web-mode web-mode web-mode-map))
+    ("Company"
+     (("M-t" company-tern "Company Tern"
+       :exit t
+       :map-inject t)
+      ("M-p" company-ac-php-backend "Company Ac Php"
+       :exit t
+       :map-inject t)))))
+
+  :init
+  (add-hook 'web-mode-hook
+            'entropy/emacs-web--web-mode-start-hook)
   :config
   (when (display-graphic-p)
     (entropy/emacs-add-hook-lambda-nil
      web-mode-enable-development-env web-mode-hook
      (setq-local entropy/emacs-web-development-environment
-                              t)))
-
-  (when (eq entropy/emacs-use-ide-type 'traditional)
-    (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-     web-mode web-mode web-mode-map
-     ("Company"
-      (("M-t" company-tern "Company Tern"
-        :exit t
-        :map-inject t)
-       ("M-p" company-ac-php-backend "Company Ac Php"
-        :exit t
-        :map-inject t))))))
+                 t))))
 
 ;; **** Emmet-mode for quick edittng
 (use-package emmet-mode
@@ -136,7 +133,7 @@
 ;; *** CSS mode
 (use-package css-mode
   :ensure nil
-  :eemacs-mmc (:enable t)
+  :eemacs-mmphc (:enable t)
   :init (setq css-indent-offset 2))
 
 ;; *** JSON mode
@@ -248,47 +245,37 @@ format."
      "js-beautify" ("css-beautify" "html-beautify" "js-beautify")
      "js-beautify"))
 
-  :init
-
-  (entropy/emacs-hydra-hollow-define-major-mode-hydra
-   js2-mode js2-mode js2-mode-map
-   (:title
-    (entropy/emacs-pretty-hydra-make-title
-     "Javasript Mode Actions" "alltheicon" "javascript")
-    :color ambranth
-    :quit-key "q")
-   ("Web Beautify"
-    (("C-c C-b" web-beautify-js "Beautify Js"
-      :exit t
-      :map-inject t))))
-
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   json-mode json-mode json-mode-map
-   ("Web Beautify"
-    (("C-c C-b" web-beautify-js "Beautify Json"
-      :exit t
-      :map-inject t))))
-
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   web-mode web-mode web-mode-map
-   ("Web Beautify"
-    (("C-c C-b" web-beautify-html "Beautify html"
-      :exit t
-      :map-inject t))))
-
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   sgml-mode sgml-mode sgml-mode-map
-   ("Web Beautify"
-    (("C-c C-b" web-beautify-html "Beautify Xml"
-      :exit t
-      :map-inject t))))
-
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   css-mode css-mode css-mode-map
-   ("Web Beautify"
-    (("C-c C-b" web-beautify-html "Beautify Css"
-      :exit t
-      :map-inject t))))
+  :eemacs-mmphca
+  ((((:enable t)
+     (js2-mode js2-mode js2-mode-map))
+    ("Web Beautify"
+     (("C-c C-b" web-beautify-js "Beautify Js"
+       :exit t
+       :map-inject t))))
+   (((:enable t)
+     (json-mode json-mode json-mode-map))
+    ("Web Beautify"
+     (("C-c C-b" web-beautify-js "Beautify Json"
+       :exit t
+       :map-inject t))))
+   (((:enable t)
+     (web-mode web-mode web-mode-map))
+    ("Web Beautify"
+     (("C-c C-b" web-beautify-html "Beautify html"
+       :exit t
+       :map-inject t))))
+   (((:enable t)
+     (sgml-mode sgml-mode sgml-mode-map))
+    ("Web Beautify"
+     (("C-c C-b" web-beautify-html "Beautify Xml"
+       :exit t
+       :map-inject t))))
+   (((:enable t)
+     (css-mode css-mode css-mode-map))
+    ("Web Beautify"
+     (("C-c C-b" web-beautify-html "Beautify Css"
+       :exit t
+       :map-inject t)))))
 
   :config
   ;; Set indent size to 2
