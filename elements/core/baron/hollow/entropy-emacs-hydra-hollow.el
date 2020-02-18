@@ -274,8 +274,67 @@
           ,mode ,feature ,mode-map ,heads ,body))
        )))
 
-;; **** use-package extended
-;; ***** :eemacs-mmphc
+;; *** use-package extended
+;; **** :eemacs-tpha
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-add-keyword (keyword)
+  (setq use-package-keywords
+        ;; should go in the same location as :bind
+        (cl-loop for item in use-package-keywords
+                 if (eq item :config)
+                 collect :config and collect keyword
+                 else
+                 ;; don't add duplicates
+                 unless (eq item keyword)
+                 collect item)))
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-normalize
+    (use-name key key-value)
+  (let ()
+    (cond ((and (listp key-value)
+                (= 1 (length key-value)))
+           (car key-value))
+          (t
+           (error
+            "eemacs mm common use-package clause form wrong type for '%s' def!"
+            (symbol-name use-name))))))
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-handler
+    (use-name key $arg rest state)
+  (let* ((rest-body (use-package-process-keywords use-name rest state))
+         (init-form '()))
+    (dolist (item $arg)
+      (let* ((condition (car item))
+             (enable (let ((enable-slot (plist-get condition :enable)))
+                       (cond ((listp enable-slot)
+                              (funcall `(lambda () ,enable-slot)))
+                             (t
+                              (if (null enable-slot)
+                                  nil
+                                t)))))
+             (spec (cadr item)))
+        (when enable
+          (setq init-form
+                (append init-form
+                        `((lambda ()
+                            ,(append '(entropy/emacs-hydra-hollow-add-for-top-dispatch)
+                                     spec))))))))
+    (use-package-concat
+     rest-body
+     init-form)))
+
+(defalias 'use-package-normalize/:eemacs-tpha
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-normalize)
+
+(defalias 'use-package-handler/:eemacs-tpha
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-handler)
+
+(entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-add-keyword
+ :eemacs-tpha)
+
+
+
+;; **** :eemacs-mmphc
 (defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log nil)
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-add-keyword (keyword)
@@ -337,7 +396,7 @@
 (entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-add-keyword
  :eemacs-mmphc)
 
-;; ***** :eemacs-mmphca
+;; **** :eemacs-mmphca
 
 (defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log nil)
 
