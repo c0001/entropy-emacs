@@ -13,6 +13,14 @@
 
 ;; ** libraries
 ;; *** pretty hydra heads manipulation
+;; **** core
+(defun entropy/emacs-hydra-hollow--delete-empty-pretty-hydra-head-group
+    (pretty-heads-group)
+  (cl-loop for cnt from 0 to (- (/ (length pretty-heads-group) 2) 1)
+           if (not (null (nth (+ (* cnt 2) 1) pretty-heads-group)))
+           collect (nth (* cnt 2) pretty-heads-group)
+           and collect (nth (+ (* cnt 2) 1) pretty-heads-group)))
+
 (defun entropy/emacs-hydra-hollow--gets-pretty-hydra-heads-keybind
     (pretty-heads-group)
   (let (group-extract-func
@@ -91,6 +99,32 @@
     (dolist (el (reverse pretty-heads-group-fake))
       (setq rtn (append rtn el)))
     rtn))
+
+
+;; **** wapper
+
+(defun entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
+    (heads-group)
+  (let ((split-heads
+         (entropy/emacs-hydra-hollow--split-pretty-hydra-group-heads
+          heads-group))
+        rtn)
+    (dolist (sp-head split-heads)
+      (let* ((group (car sp-head))
+             (head-pattern (cdddr (caadr sp-head)))
+             (enable (let ((enable-slot (plist-get head-pattern :enable)))
+                       (if (listp enable-slot)
+                           (funcall `(lambda () ,enable-slot))
+                         (if (null enable-slot)
+                             nil
+                           t)))))
+        (if enable
+            (setq rtn (append rtn `((,group ,(cadr sp-head)))))
+          (setq rtn (append rtn `((,group nil)))))))
+    (setq rtn
+          (entropy/emacs-hydra-hollow--delete-empty-pretty-hydra-head-group
+           (entropy/emacs-hydra-hollow--merge-pretty-hydra-sparse-heads
+            rtn)))))
 
 
 ;; *** heads notation handler
