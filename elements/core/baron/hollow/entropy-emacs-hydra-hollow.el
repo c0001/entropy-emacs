@@ -14,6 +14,17 @@
 ;; ** libraries
 ;; *** pretty hydra heads manipulation
 ;; **** core
+
+(defun entropy/emacs-hydra-hollow--common-judge-p
+    (pattern)
+  (cond ((listp pattern)
+         (funcall `(lambda () ,pattern)))
+        ((symbolp pattern)
+         (unless (null pattern)
+           t))
+        (t
+         (error "Judge pattern can be only a form or a symbol!"))))
+
 (defun entropy/emacs-hydra-hollow-delete-empty-pretty-hydra-head-group
     (pretty-heads-group)
   (cl-loop for cnt from 0 to (- (/ (length pretty-heads-group) 2) 1)
@@ -30,7 +41,8 @@
           (lambda (x)
             (let ((command (cadr x))
                   (key (car x))
-                  (refer-match (plist-get (cdddr x) refer-key)))
+                  (refer-match (entropy/emacs-hydra-hollow--common-judge-p
+                                (plist-get (cdddr x) refer-key))))
               (unless (symbolp command)
                 (setq command `(lambda () ,command)))
               `(:command ,command :key ,key ,refer-key ,refer-match)))
@@ -113,11 +125,8 @@
       (let* ((group (car sp-head))
              (head-pattern (cdddr (caadr sp-head)))
              (enable (let ((enable-slot (plist-get head-pattern :enable)))
-                       (if (listp enable-slot)
-                           (funcall `(lambda () ,enable-slot))
-                         (if (null enable-slot)
-                             nil
-                           t)))))
+                       (entropy/emacs-hydra-hollow--common-judge-p
+                        enable-slot))))
         (if enable
             (setq rtn (append rtn `((,group ,(cadr sp-head)))))
           (setq rtn (append rtn `((,group nil)))))))
@@ -157,7 +166,8 @@
     (dolist (head split-heads)
       (let* ((head-plist (caadr head))
              (head-attr (cdddr head-plist))
-             (refer-match (plist-get head-attr refer-key))
+             (refer-match (entropy/emacs-hydra-hollow--common-judge-p
+                           (plist-get head-attr refer-key)))
              (notation (caddr head-plist))
              new-heads-plist)
         (setq new-heads-plist
@@ -413,12 +423,8 @@
     (dolist (item $arg)
       (let* ((condition (car item))
              (enable (let ((enable-slot (plist-get condition :enable)))
-                       (cond ((listp enable-slot)
-                              (funcall `(lambda () ,enable-slot)))
-                             (t
-                              (if (null enable-slot)
-                                  nil
-                                t)))))
+                       (entropy/emacs-hydra-hollow--common-judge-p
+                        enable-slot)))
              (spec (cadr item)))
         (when enable
           (setq init-form
@@ -474,7 +480,8 @@
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-handler
     (use-name key $arg rest state)
   (let* ((rest-body (use-package-process-keywords use-name rest state))
-         (enable (plist-get $arg :enable))
+         (enable (entropy/emacs-hydra-hollow--common-judge-p
+                  (plist-get $arg :enable)))
          (mode (or (plist-get $arg :mode)
                    use-name))
          (map (or (plist-get $arg :map)
@@ -485,8 +492,6 @@
          init-form)
     (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log
                  (list use-name :handle-arg $arg))
-    (when (listp enable)
-      (setq enable (funcall `(lambda () ,enable))))
     (setq
      init-form
      `((when (not (null ',enable))
@@ -566,12 +571,8 @@
            (let* ((baron (car item))
                   (condition (car baron))
                   (enable (let ((enable-slot (plist-get condition :enable)))
-                            (cond ((listp enable-slot)
-                                   (funcall `(lambda () ,enable-slot)))
-                                  (t
-                                   (if (null enable-slot)
-                                       nil
-                                     t)))))
+                            (entropy/emacs-hydra-hollow--common-judge-p
+                             enable-slot)))
                   (pattern (cadr baron))
                   (mode (car pattern))
                   (feature (cadr pattern))
