@@ -200,12 +200,13 @@
         (hl-line-mode 1)
       (hl-line-mode 0))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
-  :notation "hl line"
-  :key "<f2>"
-  :command entropy/emacs-basic-dhl-toggle
-  :exit t
-  :global-bind t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
+     :enable t
+     :exit t
+     :global-bind t))))
+
 
 ;; ** Smooth scrolling
 (defvar entropy/emacs-basic-smooth-scrolling-mode nil
@@ -381,12 +382,14 @@ layout switching conflicts."
                         rtn)))
         (delete-other-windows-internal)))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
-  :notation "delete-other-window"
-  :key "C-x 1"
-  :command entropy/emacs-basic-kill-other-window
-  :exit t
-  :global-bind t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("C-x 1" entropy/emacs-basic-kill-other-window
+     "delete-other-window"
+     :enable t
+     :exit t
+     :global-bind t
+     ))))
 
 ;; ** kill redundant buffer
 (defun entropy/emacs-basic-kill-large-process-buffer ()
@@ -407,11 +410,12 @@ layout switching conflicts."
                (not (string-match-p (regexp-quote "terminal") (format "%s" process))))
       (delete-process process))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Misc."
-  :notation "kill large process"
-  :key "0"
-  :command entropy/emacs-basic-kill-large-process-buffer
-  :exit t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Misc."
+   (("0" entropy/emacs-basic-kill-large-process-buffer
+     "kill large process"
+     :enable t
+     :exit t))))
 
 ;; ** Set defualt tab size
 (if entropy/emacs-custom-tab-enable
@@ -467,13 +471,12 @@ layout switching conflicts."
 
 ;; ** Auto wrap line
 (setq-default truncate-lines t)
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
-  :notation "toggle truncate"
-  :key "C-<f9>"
-  :command toggle-truncate-lines
-  :toggle truncate-lines
-  :exit t
-  :global-bind t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("C-<f9>" toggle-truncate-lines "toggle truncate"
+     :enable t
+     :toggle truncate-lines
+     :global-bind t))))
 
 ;; ** Auto clean whitespace after save buffer
 (use-package whitespace
@@ -506,28 +509,35 @@ layout switching conflicts."
    :heads
    ("Delete Node"
     (("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
+      :enable t
       :map-inject t
       :exit t)
      ("M-d" entropy/emacs-basic-dired-delete-file-refers "Delete refers"
+      :enable t
       :map-inject t
       :exit t))
     "Add Node"
     (("+" dired-create-directory "Create directory"
+      :enable t
       :map-inject t
       :exit t))
     "Navigation"
     (("M-<up>" dired-up-directory "Up directory"
+      :enable t
       :map-inject t
       :exit t))
     "Backup"
     (("B" entropy/emacs-basic-backup-files "Common Backup"
+      :enable t
       :map-inject t
       :exit t))
     "Misc."
     (("0" entropy/emacs-basic-get-dired-fpath "Get Node Path"
+      :enable t
       :map-inject t
       :exit t)
      ("M-l" entropy/emacs-basic--dired-add-to-load-path "Add path"
+      :enable t
       :map-inject t
       :exit t))))
 
@@ -918,12 +928,13 @@ emacs."
 
 ;; ** Set transparenct of emacs frame
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Misc."
-  :key "<f6>"
-  :command entropy/emacs-basic-loop-alpha
-  :notation "Frame Alpha"
-  :toggle entropy/emacs-basic-loop-alpha-did
-  :global-bind t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Misc."
+   (("<f6>" entropy/emacs-basic-loop-alpha
+     "Frame Alpha"
+     :enable t
+     :toggle entropy/emacs-basic-loop-alpha-did
+     :global-bind t))))
 
 (defvar entropy/emacs-basic-loop-alpha-did nil)
 
@@ -1111,11 +1122,12 @@ This function has redefined for adapting to
     (push-mark)
     (push-mark)))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
-  :key "1"
-  :command entropy/emacs-basic-mark-set
-  :notation "Mark Set"
-  :exit t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("1" entropy/emacs-basic-mark-set
+     "Mark Set"
+     :enable t
+     :exit t))))
 
 ;; ** Windows forbidden view-hello-file
 (when sys/is-win-group
@@ -1232,12 +1244,13 @@ coding-system to save bookmark infos"
         (message "Reloaded current major mode '%s'!" (symbol-name major-mode)))
     (error "You can not refresh %s in this buffer, if did may cause some bug." (symbol-name major-mode))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
-  :key "<f7>"
-  :command entropy/emacs-basic-major-mode-reload
-  :notation "Reload Major"
-  :exit t
-  :global-bind t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("<f7>" entropy/emacs-basic-major-mode-reload
+     "Reload Major"
+     :enable t
+     :exit t
+     :global-bind t))))
 
 ;; ** Disable-mouse-wheel and more
 (use-package disable-mouse
@@ -1254,16 +1267,18 @@ coding-system to save bookmark infos"
      (picture-mode picture picture-mode-map))
     ("Basic"
      (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'text-mode'"
+       :enable t
        :toggle (if (eq major-mode 'picture-mode) nil t)
        :map-inject t
        :exit t))))
    (((:enable t)
      (text-mode text-mode text-mode-map))
     ("Basic"
-    (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'artist-mode'"
-      :toggle (if (eq major-mode 'text-mode) nil t)
-      :map-inject t
-      :exit t)))))
+     (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'artist-mode'"
+       :enable t
+       :toggle (if (eq major-mode 'text-mode) nil t)
+       :map-inject t
+       :exit t)))))
 
   :init
   ;; Init disable rubber-banding for reducing performance requirements.
@@ -1343,13 +1358,13 @@ Temp file was \"~/~entropy-artist.txt\""
 
   (defvar entropy/emacs-basic-pyim-has-initialized nil)
 
-  (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
-    :key "c"
-    :notation "Enable Pyim"
-    :command entropy/emacs-basic-pyim-start
-    :global-bind nil
-    :toggle entropy/emacs-basic-pyim-has-initialized
-    :exit t)
+  (entropy/emacs-hydra-hollow-add-for-top-dispatch
+   '("Pyim"
+     (("c" entropy/emacs-basic-pyim-start
+       "Enable Pyim"
+       :enable t
+       :toggle entropy/emacs-basic-pyim-has-initialized
+       :exit t))))
 
   (defun entropy/emacs-basic-pyim-start ()
     (interactive)
@@ -1365,24 +1380,23 @@ Temp file was \"~/~entropy-artist.txt\""
       (set-input-method "pyim")
 
       ;; keybinding reflect
-      (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
-        :key "C-\\"
-        :command entropy/emacs-basic-pyim-toggle
-        :notation "Set Inputmethod 'Pyim'"
-        :toggle (string= current-input-method "pyim")
-        :global-bind t)
+      (entropy/emacs-hydra-hollow-add-for-top-dispatch
+       '("Pyim"
+         (("C-\\" entropy/emacs-basic-pyim-toggle
+           "Set Inputmethod 'Pyim'"
+           :enable t
+           :toggle (string= current-input-method "pyim")
+           :global-bind t)
 
-      (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
-        :key "2"
-        :command entropy/emacs-basic-toggle-pyim-s2t
-        :notation "'Pyim' use traditional chinese"
-        :toggle (eq pyim-magic-converter 'entropy/s2t-string))
+          ("2" entropy/emacs-basic-toggle-pyim-s2t
+           "'Pyim' use traditional chinese"
+           :enable t
+           :toggle (eq pyim-magic-converter 'entropy/s2t-string))
 
-      (entropy/emacs-hydra-hollow-add-for-top-dispatch "Pyim"
-        :key "1"
-        :command entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
-        :notation "'Pyim' toggle punct full/half"
-        :toggle (eq (car pyim-punctuation-translate-p) 'yes))
+          ("3" entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
+           "'Pyim' toggle punct full/half"
+           :enable t
+           :toggle (eq (car pyim-punctuation-translate-p) 'yes)))))
 
       (setq entropy/emacs-basic-pyim-has-initialized t)))
 
@@ -1565,12 +1579,12 @@ Temp file was \"~/~entropy-artist.txt\""
 ;; ** Emacs process and system proced manager hacking
 ;; *** process
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Misc."
-  :key "C-c s s"
-  :command list-processes
-  :notation "List Process"
-  :exit t
-  :global-bind t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Misc."
+   (("C-c s s" list-processes "List Process"
+     :enable t
+     :exit t
+     :global-bind t))))
 
 ;; *** proced
 (use-package proced
@@ -1627,26 +1641,23 @@ otherwise returns nil."
 (entropy/emacs-basic--build-case-toggle "upcase" upcase-word)
 (entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
-  :key "M-c"
-  :command entropy/emacs-basic-toggle-case-for-capitalize
-  :notation "Captalize Word"
-  :exit t
-  :global-bind t)
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
-  :key "M-l"
-  :command entropy/emacs-basic-toggle-case-for-downcase
-  :notation "Down Case Word"
-  :exit t
-  :global-bind t)
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch "Basic"
-  :key "M-u"
-  :command entropy/emacs-basic-toggle-case-for-upcase
-  :notation "Upcase Word"
-  :exit t
-  :global-bind t)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("M-c" entropy/emacs-basic-toggle-case-for-capitalize
+     "Captalize Word"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("M-l" entropy/emacs-basic-toggle-case-for-downcase
+     "Down Case Word"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("M-u" entropy/emacs-basic-toggle-case-for-upcase
+     "Upcase Word"
+     :enable t
+     :exit t
+     :global-bind t))))
 
 ;; ** autocompression moode
 

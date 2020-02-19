@@ -110,17 +110,21 @@ For lisp coding aim, always return the transfered buffer.
    :heads
    ("IELM"
     (("C-c C-z" ielm "Open IELM"
+      :enable t
       :exit t
       :map-inject t))
     "Comanpy"
     (("M-\\" company-dabbrev-code "Company Dabbrev"
+      :enable t
       :exit t
       :map-inject t))
     "Eval"
     (("C-c C-c" eval-defun "Eval wrapping context"
+      :enable t
       :exit t
       :map-inject t)
      ("C-c C-b" eval-buffer "Eval Whole buffer"
+      :enable t
       :exit t
       :map-inject t))))
   :eemacs-mmphca
@@ -128,13 +132,16 @@ For lisp coding aim, always return the transfered buffer.
      (lisp-interaction-mode elisp-mode lisp-interaction-mode-map))
     ("Company"
      (("M-\\" company-dabbrev-code "Company dabbrev"
+       :enable t
        :exit t
        :map-inject t))
      "Eval"
      (("C-c C-c" eval-defun "Eval wrapping context"
+       :enable t
        :exit t
        :map-inject t)
       ("C-c C-b" eval-buffer "Eval Whole Buffer"
+       :enable t
        :exit t
        :map-inject t)))))
   )
@@ -184,6 +191,7 @@ For lisp coding aim, always return the transfered buffer.
       (lisp-interaction-mode elisp-mode lisp-interaction-mode-map)))
     ("Macro"
      (("C-c e" macrostep-expand "Expand Macro At Point"
+       :enable t
        :exit t
        :map-inject t))))))
 
@@ -228,15 +236,18 @@ For lisp coding aim, always return the transfered buffer.
    ("Slime"
     (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol
       "Slime Describe Symbols"
+      :enable t
       :exit t
       :map-inject t)
      ("C-c C-s" slime-describe-symbol "Slime Describe Symbol At Point"
+      :enable t
       :exit t
       :map-inject t)
      ("C-c C-f" slime-describe-function "Slime Describe Func At Point"
+      :enable t
       :exit t
       :map-inject t)
-     ("C-c M-r" slime-repl "Slime repl" :map-inject t :exit t))))
+     ("C-c M-r" slime-repl "Slime repl" :enable t :map-inject t :exit t))))
   :init
 
   (setq inferior-lisp-program entropy/emacs-inferior-lisp-program)

@@ -93,11 +93,13 @@
    :heads
    ("Basic"
     (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
+      :enable t
       :exit t))
     "Emmet" ()
     "Navigation" ()
     "Company"
     (("M-/" company-complete "Common Complete"
+      :enable t
       :exit t))))
 
   :eemacs-mmphca
@@ -105,9 +107,11 @@
      (web-mode web-mode web-mode-map))
     ("Company"
      (("M-t" company-tern "Company Tern"
+       :enable t
        :exit t
        :map-inject t)
       ("M-p" company-ac-php-backend "Company Ac Php"
+       :enable t
        :exit t
        :map-inject t)))))
 
@@ -250,30 +254,35 @@ format."
      (js2-mode js2-mode js2-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-js "Beautify Js"
+       :enable t
        :exit t
        :map-inject t))))
    (((:enable t)
      (json-mode json-mode json-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-js "Beautify Json"
+       :enable t
        :exit t
        :map-inject t))))
    (((:enable t)
      (web-mode web-mode web-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-html "Beautify html"
+       :enable t
        :exit t
        :map-inject t))))
    (((:enable t)
      (sgml-mode sgml-mode sgml-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-html "Beautify Xml"
+       :enable t
        :exit t
        :map-inject t))))
    (((:enable t)
      (css-mode css-mode css-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-html "Beautify Css"
+       :enable t
        :exit t
        :map-inject t)))))
 
