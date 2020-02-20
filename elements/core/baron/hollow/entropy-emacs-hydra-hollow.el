@@ -392,6 +392,94 @@
            ',mode ',feature ',mode-map ',heads))))))
 
 ;; *** use-package extended
+;; **** library
+
+(defun entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
+    (pattern-form)
+  "A PATTERN-FORM was a ISLAND or a list of ISLANDs.
+
+- Island
+
+  consists of =Baron= and =Heads-Group=
+
+  (list Baron Heads-Group)
+
+- Baron
+
+  consists of =Section= or =Section=s, each =Section= has a
+  =Attribute= a plist and a =Request= a list.
+
+  (list Attribute Request)
+
+  or
+
+  (list
+    (list Attribute-0 Request-0)
+    (list Attribute-1 Request-1)
+    ...
+  )
+
+
+=Request= can be omitted or nil as element injected to the
+pattern-form, for =Heads-Group= can not be ommited but for a
+single 'nil' instead because the single =Island= pattern-fom with
+multi =Sections= of =Baron= has same form type as the multi
+=Islands= pattern-form of which the first =Island= is single
+=Section= type when their's =Heads-Group= and inline =Request= are
+both ommited, that as:
+
+   1: multi =Section= of =Baron= of single =Island= as
+   PATTERN-FORM with omitted =Heads-Group= and inline =Request=
+   ((((:enable t)) ) b)
+
+   2: multi =Island= PATTERN-FORM whose the first =Island= was
+   single =Section= of =Baron= with omitted =Heads-Group= and
+   inline =Request=
+   ((((:enable t)) b) )
+"
+  (let* ((ptform-single-island-p
+          (and (= (length pattern-form) 2)
+               (or (ignore-errors (stringp (caadr pattern-form)))
+                   (null (cadr pattern-form)))))
+         (island-baron-section-single-p
+          (lambda (island)
+            (let ((baron (car island)))
+              (and (or (= (length baron) 2)
+                       (= (length baron) 1))
+                   (symbolp (caar baron))))))
+         (island-multi-sections-split-func
+          (lambda (multi-secs-island)
+            (let ((sections (car multi-secs-island))
+                  (heads (cadr multi-secs-island))
+                  split-island)
+              (dolist (sec sections)
+                (setq split-island
+                      (append split-island (list (list sec heads)))))
+              split-island)))
+         (island-parse-func
+          (lambda (island)
+            (let (output)
+              (if (funcall island-baron-section-single-p
+                           island)
+                  (setq output (list island))
+                (setq output
+                      (funcall island-multi-sections-split-func
+                               island)))
+              output)))
+         rtn)
+    (cond
+     (ptform-single-island-p
+      (setq rtn
+            (funcall island-parse-func
+                     pattern-form)))
+     ((null ptform-single-island-p)
+      (dolist (island pattern-form)
+        (let ((obtain (funcall island-parse-func
+                               island)))
+          (setq rtn (append rtn obtain))))))
+    rtn))
+
+
 ;; **** :eemacs-tpha
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-add-keyword (keyword)
