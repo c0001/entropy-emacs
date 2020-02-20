@@ -103,11 +103,8 @@ For lisp coding aim, always return the transfered buffer.
 (use-package elisp-mode
   :ensure nil
   :eemacs-mmphc
-  (:enable
-   t
-   :mode emacs-lisp-mode
-   :map emacs-lisp-mode-map
-   :heads
+  (((:enable t)
+    (emacs-lisp-mode nil emacs-lisp-mode-map))
    ("IELM"
     (("C-c C-z" ielm "Open IELM"
       :enable t
@@ -128,22 +125,22 @@ For lisp coding aim, always return the transfered buffer.
       :exit t
       :map-inject t))))
   :eemacs-mmphca
-  ((((:enable t)
-     (lisp-interaction-mode elisp-mode lisp-interaction-mode-map))
-    ("Company"
-     (("M-\\" company-dabbrev-code "Company dabbrev"
-       :enable t
-       :exit t
-       :map-inject t))
-     "Eval"
-     (("C-c C-c" eval-defun "Eval wrapping context"
-       :enable t
-       :exit t
-       :map-inject t)
-      ("C-c C-b" eval-buffer "Eval Whole Buffer"
-       :enable t
-       :exit t
-       :map-inject t)))))
+  (((:enable t)
+    (lisp-interaction-mode elisp-mode lisp-interaction-mode-map))
+   ("Company"
+    (("M-\\" company-dabbrev-code "Company dabbrev"
+      :enable t
+      :exit t
+      :map-inject t))
+    "Eval"
+    (("C-c C-c" eval-defun "Eval wrapping context"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("C-c C-b" eval-buffer "Eval Whole Buffer"
+      :enable t
+      :exit t
+      :map-inject t))))
   )
 
 ;; Show function arglist or variable docstring
@@ -185,15 +182,15 @@ For lisp coding aim, always return the transfered buffer.
 (use-package macrostep
   :commands (macrostep-expand)
   :eemacs-mmphca
-  (((((:enable t)
-      (emacs-lisp-mode elisp-mode emacs-lisp-mode-map))
-     ((:enable t)
-      (lisp-interaction-mode elisp-mode lisp-interaction-mode-map)))
-    ("Macro"
-     (("C-c e" macrostep-expand "Expand Macro At Point"
-       :enable t
-       :exit t
-       :map-inject t))))))
+  ((((:enable t)
+     (emacs-lisp-mode elisp-mode emacs-lisp-mode-map))
+    ((:enable t)
+     (lisp-interaction-mode elisp-mode lisp-interaction-mode-map)))
+   ("Macro"
+    (("C-c e" macrostep-expand "Expand Macro At Point"
+      :enable t
+      :exit t
+      :map-inject t)))))
 
 ;; Make M-. and M-, work in elisp like they do in slime.
 ;; `xref' is perfect since 25, so only use in <=24.
@@ -228,11 +225,8 @@ For lisp coding aim, always return the transfered buffer.
 (use-package slime
   :commands (slime slime-mode)
   :eemacs-mmphc
-  (:enable
-   t
-   :mode lisp-mode
-   :map slime-mode-map
-   :heads
+  (((:enable t)
+    (lisp-mode nil slime-mode-map))
    ("Slime"
     (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol
       "Slime Describe Symbols"

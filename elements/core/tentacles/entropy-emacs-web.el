@@ -88,9 +88,8 @@
    .
    web-mode)
   :eemacs-mmphc
-  (:enable
-   t
-   :heads
+  (((:enable t)
+    (nil nil nil))
    ("Basic"
     (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
       :enable t
@@ -103,17 +102,17 @@
       :exit t))))
 
   :eemacs-mmphca
-  ((((:enable (eq entropy/emacs-use-ide-type 'traditional))
-     (web-mode web-mode web-mode-map))
-    ("Company"
-     (("M-t" company-tern "Company Tern"
-       :enable t
-       :exit t
-       :map-inject t)
-      ("M-p" company-ac-php-backend "Company Ac Php"
-       :enable t
-       :exit t
-       :map-inject t)))))
+  (((:enable (eq entropy/emacs-use-ide-type 'traditional))
+    (web-mode web-mode web-mode-map))
+   ("Company"
+    (("M-t" company-tern "Company Tern"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("M-p" company-ac-php-backend "Company Ac Php"
+      :enable t
+      :exit t
+      :map-inject t))))
 
   :init
   (add-hook 'web-mode-hook
@@ -137,7 +136,8 @@
 ;; *** CSS mode
 (use-package css-mode
   :ensure nil
-  :eemacs-mmphc (:enable t)
+  :eemacs-mmphc
+  (((:enable t)) nil)
   :init (setq css-indent-offset 2))
 
 ;; *** JSON mode

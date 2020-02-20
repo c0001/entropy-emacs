@@ -498,7 +498,8 @@ both ommited, that as:
   (let ()
     (cond ((and (listp key-value)
                 (= 1 (length key-value)))
-           (car key-value))
+           (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
+            (car key-value)))
           (t
            (error
             "eemacs mm common use-package clause form wrong type for '%s' def!"
@@ -508,12 +509,14 @@ both ommited, that as:
     (use-name key $arg rest state)
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          (init-form '()))
-    (dolist (item $arg)
-      (let* ((condition (car item))
-             (enable (let ((enable-slot (plist-get condition :enable)))
+    (dolist (island $arg)
+      (let* ((baron (car island))
+             (attr (car baron))
+             (requests (cadr baron))
+             (enable (let ((enable-slot (plist-get attr :enable)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
-             (spec (cadr item)))
+             (heads (cadr item)))
         (when enable
           (setq init-form
                 (append init-form
@@ -521,7 +524,7 @@ both ommited, that as:
                             ,(append
                               '(apply)
                               '('entropy/emacs-hydra-hollow-add-for-top-dispatch)
-                              (list (list 'quote spec))))))))))
+                              (list (list 'quote heads))))))))))
     (use-package-concat
      rest-body
      init-form)))
@@ -559,7 +562,8 @@ both ommited, that as:
                 (= 1 (length key-value)))
            (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log
                         (list use-name :normalize-arg key-value))
-           (car key-value))
+           (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
+            (car key-value)))
           (t
            (error
             "eemacs mm common use-package clause form wrong type for '%s' def!"
@@ -568,23 +572,28 @@ both ommited, that as:
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-handler
     (use-name key $arg rest state)
   (let* ((rest-body (use-package-process-keywords use-name rest state))
-         (enable (entropy/emacs-hydra-hollow--common-judge-p
-                  (plist-get $arg :enable)))
-         (mode (or (plist-get $arg :mode)
-                   use-name))
-         (map (or (plist-get $arg :map)
-                  (intern (format "%s-map" (symbol-name use-name)))))
-         (feature (or (plist-get $arg :feature)
-                      use-name))
-         (heads (plist-get $arg :heads))
          init-form)
     (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log
                  (list use-name :handle-arg $arg))
-    (setq
-     init-form
-     `((when (not (null ',enable))
-         (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-          ',mode ',feature ',map ',heads))))
+    (dolist (island $arg)
+      (let* ((baron (car island))
+             (attr (car baron))
+             (enable (entropy/emacs-hydra-hollow--common-judge-p
+                      (plist-get attr :enable)))
+             (requests (cadr baron))
+             (mode (or (car requests)
+                       use-name))
+             (map (or (caddr requests)
+                      (intern (format "%s-map" (symbol-name use-name)))))
+             (feature (or (cadr requests)
+                          use-name))
+             (heads (cadr island)))
+        (setq
+         init-form
+         (append init-form
+                 `((when (not (null ',enable))
+                     (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+                      ',mode ',feature ',map ',heads)))))))
     (use-package-concat
      rest-body
      init-form)))
@@ -621,26 +630,8 @@ both ommited, that as:
                 (= 1 (length key-value)))
            (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log
                         (list use-name :normalize-arg key-value))
-           (let ((arg-list (car key-value))
-                 rtn split-func)
-             (setq split-func
-                   (lambda (x)
-                     (let ((barons (car x))
-                           (heads (cadr x))
-                           output)
-                       (dolist (el barons)
-                         (push (list el heads) output))
-                       output)))
-
-             (dolist (el arg-list)
-               (let ((pattern-group-car (ignore-errors (caaar el))))
-                 (cond
-                  ((and pattern-group-car
-                        (listp pattern-group-car))
-                   (setq rtn (append rtn (reverse (funcall split-func el)))))
-                  (t
-                   (setq rtn (append rtn (list el)))))))
-             rtn))
+           (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
+            (car key-value)))
           (t
            (error
             "eemacs mmca common use-package clause form wrong type for '%s' def!"
@@ -655,17 +646,17 @@ both ommited, that as:
     (setq
      init-form
      `((let (_callers)
-         (dolist (item ',$arg)
-           (let* ((baron (car item))
-                  (condition (car baron))
-                  (enable (let ((enable-slot (plist-get condition :enable)))
+         (dolist (island ',$arg)
+           (let* ((baron (car island))
+                  (attr (car baron))
+                  (enable (let ((enable-slot (plist-get attr :enable)))
                             (entropy/emacs-hydra-hollow--common-judge-p
                              enable-slot)))
-                  (pattern (cadr baron))
-                  (mode (car pattern))
-                  (feature (cadr pattern))
-                  (map (caddr pattern))
-                  (heads (cadr item))
+                  (requests (cadr baron))
+                  (mode (car requests))
+                  (feature (cadr requests))
+                  (map (caddr requests))
+                  (heads (cadr island))
                   run-call)
              (when enable
                (setq run-call
