@@ -144,12 +144,12 @@
     (require feature))
   (let* ((match-map
           `((global-map-inject
-             :format "%s %s"
-             :icon (lambda () (propertize "⭮" 'face 'error))
+             :format "%s%s"
+             :icon (lambda () (propertize "g" 'face 'error))
              :notation (lambda (notation) (propertize notation 'face 'link)))
             (mode-map-inject
              :format "%s%s"
-             :icon (lambda () (propertize "⭥" 'face 'error))
+             :icon (lambda () (propertize "m" 'face 'error))
              :notation (lambda (notation) (propertize notation 'face 'link)))))
          (matched (alist-get type match-map))
          (fmstr (plist-get matched :format))
