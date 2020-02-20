@@ -516,15 +516,16 @@ both ommited, that as:
              (enable (let ((enable-slot (plist-get attr :enable)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
-             (heads (cadr item)))
+             (heads (cadr island))
+             (heads-append-arg `(,heads))
+             (core-caller
+              `(apply
+                'entropy/emacs-hydra-hollow-add-for-top-dispatch
+                ',heads-append-arg)))
         (when enable
           (setq init-form
                 (append init-form
-                        `((lambda ()
-                            ,(append
-                              '(apply)
-                              '('entropy/emacs-hydra-hollow-add-for-top-dispatch)
-                              (list (list 'quote heads))))))))))
+                        `(,core-caller))))))
     (use-package-concat
      rest-body
      init-form)))
