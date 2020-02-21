@@ -17,7 +17,8 @@
 
 (defun entropy/emacs-hydra-hollow--common-judge-p
     (pattern)
-  (cond ((listp pattern)
+  (cond ((and (listp pattern)
+              (not (null pattern)))
          (funcall `(lambda () ,pattern)))
         ((symbolp pattern)
          (unless (null pattern)
@@ -116,7 +117,7 @@
 ;; **** wapper
 
 (defun entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
-    (heads-group)
+    (heads-group &optional no-merge)
   (let ((split-heads
          (entropy/emacs-hydra-hollow-split-pretty-hydra-group-heads
           heads-group))
@@ -127,19 +128,170 @@
              (enable (let ((enable-slot (plist-get head-pattern :enable)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot))))
-        (if enable
-            (setq rtn (append rtn `((,group ,(cadr sp-head)))))
-          (setq rtn (append rtn `((,group nil)))))))
-    (setq rtn
-          (entropy/emacs-hydra-hollow-delete-empty-pretty-hydra-head-group
-           (entropy/emacs-hydra-hollow-merge-pretty-hydra-sparse-heads
-            rtn)))))
+        (when enable
+          (setq rtn (append rtn `((,group ,(cadr sp-head))))))))
+    (when (not (null rtn))
+      (unless no-merge
+        (setq rtn
+              (entropy/emacs-hydra-hollow-delete-empty-pretty-hydra-head-group
+               (entropy/emacs-hydra-hollow-merge-pretty-hydra-sparse-heads
+                rtn)))))
+    rtn))
 
+(defmacro entropy/emacs-hydra-hollow-with-enabled-split-heads
+    (pretty-heads-group &rest body)
+  `(let ((enabled-split-pretty-heads
+          (entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
+           ,pretty-heads-group t)))
+     ,@body))
+
+;; **** heads predicate
+;; ***** predicate defination
+
+;; - =Predicate Functionn:=
+
+;;   A function parse the riched-split-pretty-head and return the
+;;   predicated one.
+
+;;   A =riched-split-pretty-head= is a plist of three key, =:restrict=
+;;   a list of symbols and the =:split-pretty-head= was the slot host
+;;   the =split-pretty-head=, and the =:rest-args= a list of remaining
+;;   args needed by current predicate function, thus for all, it forms
+;;   as:
+
+;;   (:restrict  (global-bind-notation-patched ...)
+;;    :split-pretty-head ("Basic" (("1" (message "yes") "test message")))
+;;    :rest-args (mode feature map))
+
+(defvar entropy/emacs-hydra-hollow-predicate-union-form
+  '(lambda ()))
+
+(defvar entropy/emacs-hydra-hollow-predicative-keys
+  '((:global-bind . entropy/emacs-hydra-hollow-global-bind-predicate)
+    (:map-inject . entropy/emacs-hydra-hollow-map-inject-predicate)))
+
+(defun entropy/emacs-hydra-hollow-global-bind-predicate
+    (riched-split-pretty-head)
+  (let* (
+         ;; :restrict
+         (restrict (plist-get riched-split-pretty-head :restrict))
+         ;; :split-pretty-head
+         (split-pretty-head (plist-get riched-split-pretty-head :split-pretty-head))
+         (group (car split-pretty-head))
+         (split-pretty-head-pattern (caadr split-pretty-head))
+         (key (car split-pretty-head-pattern))
+         (command (cadr split-pretty-head-pattern))
+         (notation (caddr split-pretty-head-pattern))
+         (split-pretty-head-plist (cdddr split-pretty-head-pattern))
+         (global-bind-p (entropy/emacs-hydra-hollow--common-judge-p
+                         (plist-get split-pretty-head-plist :global-bind)))
+         ;; :rest-args
+         (rest-args (plist-get riched-split-pretty-head :rest-args))
+         )
+    (when global-bind-p
+      (setq notation
+            (entropy/emacs-hydra-hollow-pretty-head-notation-handler
+             notation 'global-map-inject))
+      (setq restrict (append restrict '(:global-bind-notation-beautified)))
+      (setq entropy/emacs-hydra-hollow-predicate-union-form
+            (append entropy/emacs-hydra-hollow-predicate-union-form
+                    `((global-set-key (kbd ,key) #',command))))
+      )
+    (list :restrict restrict
+          :split-pretty-head
+          `(,group ((,key ,command ,notation ,@split-pretty-head-plist))))))
+
+(defun entropy/emacs-hydra-hollow-map-inject-predicate
+    (riched-split-pretty-head)
+  (let* (
+         ;; :restrict
+         (restrict (plist-get riched-split-pretty-head :restrict))
+         ;; :split-pretty-head
+         (split-pretty-head (plist-get riched-split-pretty-head :split-pretty-head))
+         (group (car split-pretty-head))
+         (split-pretty-head-pattern (caadr split-pretty-head))
+         (key (car split-pretty-head-pattern))
+         (command (cadr split-pretty-head-pattern))
+         (notation (caddr split-pretty-head-pattern))
+         (split-pretty-head-plist (cdddr split-pretty-head-pattern))
+         (map-inject (entropy/emacs-hydra-hollow--common-judge-p
+                      (plist-get split-pretty-head-plist
+                                 :map-inject)))
+         ;; :rest-args
+         (rest-args (plist-get riched-split-pretty-head :rest-args))
+         (mode (car rest-args))
+         (feature (cadr rest-args))
+         (map (caddr rest-args))
+         )
+    (when map-inject
+      (setq notation
+            (entropy/emacs-hydra-hollow-pretty-head-notation-handler
+             notation 'mode-map-inject
+             (member :global-bind-notation-beautified restrict)))
+      (setq restrict
+            (append restrict '(:map-inject-notation-beautified)))
+      (setq entropy/emacs-hydra-hollow-predicate-union-form
+            (append entropy/emacs-hydra-hollow-predicate-union-form
+                    `((entropy/emacs-lazy-load-simple ,feature
+                        (define-key ,map (kbd ,key) #',command)))))
+      )
+
+    (list :restrict restrict
+          :split-pretty-head
+          `(,group ((,key ,command ,notation ,@split-pretty-head-plist)))
+          )))
+
+;; ***** batch patch split-head
+
+(defun entropy/emacs-hydra-hollow--sort-riched-split-head-predicate-pattern
+    (riched-split-head-predicate-pattern)
+  (let (rtn)
+    (dolist (item entropy/emacs-hydra-hollow-predicative-keys)
+      (when (assoc (car item) riched-split-head-predicate-pattern)
+        (setq rtn
+              (append rtn
+                      (list (assoc (car item) riched-split-head-predicate-pattern))))))
+    rtn))
+
+(defun entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
+    (pretty-heads-group riched-split-head-predicate-pattern &optional not-merge)
+  (when (or (not (listp riched-split-head-predicate-pattern))
+            (null (cl-delete nil riched-split-head-predicate-pattern)))
+    (error "riched-split-head-predicate-pattern was fake!"))
+  (entropy/emacs-hydra-hollow-with-enabled-split-heads
+   pretty-heads-group
+   (let ((sp-heads enabled-split-pretty-heads)
+         (rshpp (entropy/emacs-hydra-hollow--sort-riched-split-head-predicate-pattern
+                 riched-split-head-predicate-pattern))
+         new-split-heads)
+     (when sp-heads
+       (dolist (head sp-heads)
+         (let (head-of-rsh)
+           (dolist (predicate-pattern rshpp)
+             (let* ((key (car predicate-pattern))
+                    (rest-args (cdr predicate-pattern))
+                    (predicate-func (alist-get key entropy/emacs-hydra-hollow-predicative-keys))
+                    (rsh (if (null head-of-rsh)
+                             (list :rest nil
+                                   :split-pretty-head
+                                   head
+                                   :rest-args
+                                   rest-args)
+                           (append head-of-rsh `(:rest-args ,rest-args)))))
+               (setq head-of-rsh
+                     (funcall predicate-func rsh))))
+           (setq new-split-heads
+                 (append new-split-heads
+                         (list (plist-get head-of-rsh :split-pretty-head))))))
+       (if not-merge
+           new-split-heads
+         (entropy/emacs-hydra-hollow-merge-pretty-hydra-sparse-heads
+          new-split-heads))))))
 
 ;; *** heads notation handler
 
 (defun entropy/emacs-hydra-hollow-pretty-head-notation-handler
-    (head-notation type)
+    (head-notation type &optional not-beautify-notation)
   (dolist (feature '(faces))
     (require feature))
   (let* ((match-map
@@ -154,7 +306,9 @@
          (matched (alist-get type match-map))
          (fmstr (plist-get matched :format))
          (icon (funcall (plist-get matched :icon)))
-         (notation (funcall (plist-get matched :notation) head-notation)))
+         (notation (or (when not-beautify-notation
+                         head-notation)
+                       (funcall (plist-get matched :notation) head-notation))))
     (format fmstr icon notation)))
 
 (defun entropy/emacs-hydra-hollow-patch-pretty-hydra-heads-group-notations

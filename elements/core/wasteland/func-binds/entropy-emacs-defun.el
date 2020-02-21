@@ -418,7 +418,8 @@ in case that file does not provide any feature."
        (cond ((listp ',feature)
               (dolist (el ',feature)
                 (require el)))
-             ((require ',feature)))
+             ((symbolp ',feature)
+              (require ',feature)))
        ,@body))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
