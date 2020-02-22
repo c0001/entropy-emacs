@@ -39,6 +39,7 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** uniform
 (defvar entropy/emacs-textwww--uniform-func nil)
@@ -216,8 +217,20 @@ Browser chosen based on variable
 (use-package search-web
   :ensure nil
   :commands (search-web search-web-region)
-  :bind (("C-c w" . entropy/emacs-textwww-search-web-toggle)
-         ("C-c W" . entropy/emacs-textwww-search-web-region-toggle))
+  :eemacs-tpha
+  (((:enable t))
+   ("WWW"
+    (("C-c w" entropy/emacs-textwww-search-web-toggle
+      "Search For Web With Hint"
+      :enable t
+      :global-bind t
+      :exit t)
+     ("C-c W" entropy/emacs-textwww-search-web-region-toggle
+      "Search For Web With Region"
+      :enable t
+      :global-bind t
+      :exit t))))
+
   :config
 
   (require 'cl)
@@ -351,6 +364,14 @@ effective then adding option of personal browse url function that be in ordered 
 
 
 ;; init setting
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("WWW"
+   (("M-w" entropy/emacs-textwww-toggle-default-browser
+     "Toggle default browser."
+     :enable t
+     :exit t))))
+
 (when (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
   (if (not (executable-find "w3m"))
       (entropy/emacs-textwww--setting-default-browser entropy/emacs-browse-url-function)
