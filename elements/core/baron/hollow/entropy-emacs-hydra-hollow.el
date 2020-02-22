@@ -122,6 +122,39 @@
 
 ;; **** wapper
 
+(defun entropy/emacs-hydra-hollow-generalized-split-heads-for-key-slot
+    (pretty-split-heads)
+  (let (rtn)
+    (dolist (sp-head pretty-split-heads)
+      (let* ((group (car sp-head))
+             (pattern (caadr sp-head))
+             (ptt-plist (cdddr pattern))
+             (key (car pattern))
+             (command (cadr pattern))
+             (notation (caddr pattern))
+             new-key)
+        (cond
+         ((stringp key)
+          (setq new-key key))
+         ((listp key)
+          (setq new-key
+                (funcall
+                 `(lambda ()
+                    ,key))))
+         ((symbolp key)
+          (setq new-key (symbol-value key)))
+         (t
+          (error "Wrong type of argument 'key' of pretty hydra head '%s'"
+                 key)))
+        (unless (stringp new-key)
+          (error "Wrong predicated 'key' form of pretty hydra head '%s'"
+                 key))
+        (setq rtn
+              (append
+               rtn
+               `((,group ((,new-key ,command ,notation ,@ptt-plist))))))))
+    rtn))
+
 (defun entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
     (heads-group &optional no-merge)
   (let ((split-heads
@@ -137,6 +170,9 @@
         (when enable
           (setq rtn (append rtn `((,group ,(cadr sp-head))))))))
     (when (not (null rtn))
+      (setq rtn
+            (entropy/emacs-hydra-hollow-generalized-split-heads-for-key-slot
+             rtn))
       (unless no-merge
         (setq rtn
               (entropy/emacs-hydra-hollow-delete-empty-pretty-hydra-head-group
