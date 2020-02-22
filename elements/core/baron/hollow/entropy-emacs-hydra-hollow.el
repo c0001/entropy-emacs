@@ -638,8 +638,8 @@ both ommited, that as:
   (setq use-package-keywords
         ;; should go in the same location as :bind
         (cl-loop for item in use-package-keywords
-                 if (eq item :config)
-                 collect :config and collect keyword
+                 if (eq item :init)
+                 collect :init and collect keyword
                  else
                  ;; don't add duplicates
                  unless (eq item keyword)
