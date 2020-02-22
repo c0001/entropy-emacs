@@ -53,12 +53,62 @@
 
 (use-package symbol-overlay
   :diminish symbol-overlay-mode
-  :commands (symbol-overlay-mode)
-  :bind (:map symbol-overlay-mode-map
-         ("C-p" . symbol-overlay-put)
-         ("M-n" . symbol-overlay-jump-next)
-         ("M-p" . symbol-overlay-jump-prev)
-         ([M-f3] . symbol-overlay-remove-all))
+  :commands (symbol-overlay-mode
+             symbol-overlay-put
+             symbol-overlay-remove-all
+             symbol-overlay-jump-prev)
+  :preface
+
+  (defun entropy/emacs-hl-symbol-overlay-toggle ()
+    (interactive)
+    (symbol-overlay-mode 'toggle))
+  (defun entropy/emacs-hl-symbol-overlay-put ()
+    (interactive)
+    (unless (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode +1))
+    (symbol-overlay-put))
+  (defun entropy/emacs-hl-symbol-overlay-remove-all ()
+    (interactive)
+    (unless (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode +1))
+    (symbol-overlay-remove-all))
+  (defun entropy/emacs-hl-symbol-overlay-jump-next ()
+    (interactive)
+    (unless (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode +1))
+    (symbol-overlay-jump-next))
+  (defun entropy/emacs-hl-symbol-overlay-jump-prev ()
+    (interactive)
+    (unless (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode +1))
+    (symbol-overlay-jump-prev))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Highlight"
+    (("s e" entropy/emacs-hl-symbol-overlay-toggle
+      "Toggle symbol overlay mode"
+      :enable t
+      :toggle
+      (if (bound-and-true-p symbol-overlay-mode)
+          t
+        nil))
+     ("s p" entropy/emacs-hl-symbol-overlay-put
+      "Toggle all overlays of symbol at point"
+      :enable t
+      :exit t)
+     ("s r" entropy/emacs-hl-symbol-overlay-remove-all
+      "Remove all highlighted symbols in the buffer"
+      :enable t
+      :exit t)
+     ("s n" entropy/emacs-hl-symbol-overlay-jump-next
+      "Jump to the next location of symbol at point"
+      :enable t
+      :exit t)
+     ("s p" entropy/emacs-hl-symbol-overlay-jump-prev
+      "Jump to the previous location of symbol at point"
+      :enable t
+      :exit t))))
   :init
   (when entropy/emacs-hl-sysmbol-overlay-enable-at-startup
     (add-hook 'prog-mode-hook #'symbol-overlay-mode)))
@@ -79,6 +129,16 @@
 (use-package highlight-parentheses
   :diminish highlight-parentheses-mode
   :commands (highlight-parentheses-mode)
+  :eemacs-tpha
+  (((:enable t))
+   ("Highlight"
+    (("p e" highlight-parentheses-mode
+      "highlight the surrounding parentheses"
+      :enable t
+      :toggle
+      (if (bound-and-true-p highlight-parentheses-mode)
+          t
+        nil)))))
   :init
   (when entropy/emacs-hl-highlight-parentheses-mode-enable-at-startup
     (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
@@ -97,6 +157,16 @@
 
 (use-package highlight-indent-guides
   :commands (highlight-indent-guides-mode)
+  :eemacs-tpha
+  (((:enable t))
+   ("Highlight"
+    (("p i" highlight-indent-guides-mode
+      "Display indent guides in a buffer"
+      :enable t
+      :toggle
+      (if (bound-and-true-p highlight-indent-guides-mode)
+          t
+        nil)))))
   :init
   (when entropy/emacs-hl-highlight-indention-enable-at-startup
     (add-hook 'prog-mode-hook #'highlight-indent-guides-mode))
@@ -110,6 +180,16 @@
 (use-package rainbow-mode
   :diminish rainbow-mode
   :commands (rainbow-mode)
+  :eemacs-tpha
+  (((:enable t))
+   ("Highlight"
+    (("p r" rainbow-mode
+      "Turn on Rainbow-Mode"
+      :enable t
+      :toggle
+      (if (bound-and-true-p rainbow-mode)
+          t
+        nil)))))
   :init
   (add-hook 'emacs-lisp-mode-hook #'rainbow-mode)
   (add-hook 'help-mode-hook #'rainbow-mode)
@@ -129,6 +209,16 @@
 
 (use-package rainbow-delimiters
   :commands (rainbow-delimiters-mode)
+  :eemacs-tpha
+  (((:enable t))
+   ("Highlight"
+    (("p d" rainbow-delimiters-mode
+      "Toggle Rainbow-Delimiters mode"
+      :enable t
+      :toggle
+      (if (bound-and-true-p rainbow-delimiters-mode)
+          t
+        nil)))))
   :init
   (when entropy/emacs-hl-rainbow-delimiters-enable-at-startup
     (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)))
@@ -144,12 +234,26 @@
 ;; bind them in hl-todo-mode-map.
 
 (use-package hl-todo
-  :commands (global-hl-todo-mode)
-  :bind (:map hl-todo-mode-map
-              ([C-f3] . hl-todo-occur)
-              ("C-c t p" . hl-todo-previous)
-              ("C-c t n" . hl-todo-next)
-              ("C-c t o" . hl-todo-occur))
+  :commands (global-hl-todo-mode
+             hl-todo-occur
+             hl-todo-previous
+             hl-todo-next
+             hl-todo-occur)
+  :eemacs-tpha
+  (((:enable t))
+   ("Highlight"
+    (("t o" hl-todo-occur
+      "Find All TODO Keywords"
+      :enable t
+      :exit t)
+     ("t p" hl-todo-previous
+      "Jump to the previous TODO"
+      :enable t
+      :exit t)
+     ("t n" hl-todo-next
+      "Jump to the next TODO"
+      :enable t
+      :exit t))))
   :init
   (when entropy/emacs-hl-todo-enable-at-startup
     (entropy/emacs-lazy-with-load-trail
@@ -190,9 +294,20 @@
                     sys/win32p)
                sys/is-posix-compatible)
            entropy/emacs-hl-diff-hl-enable-at-startup)
-  :commands (global-diff-hl-mode)
+  :commands (global-diff-hl-mode
+             diff-hl-mode)
   :bind (:map diff-hl-command-map
               ("SPC" . diff-hl-mark-hunk))
+  :eemacs-tpha
+  (((:enable t))
+   ("Hightlight"
+    (("d h" diff-hl-mode
+      "Toggle VC diff highlighting"
+      :enable t
+      :toggle
+      (if (bound-and-true-p diff-hl-mode)
+          t
+        nil)))))
   :init
   (entropy/emacs-lazy-with-load-trail
    global-diff-hl
@@ -267,6 +382,16 @@
 (use-package volatile-highlights
   :commands (volatile-highlights-mode)
   :diminish volatile-highlights-mode
+  :eemacs-tpha
+  (((:enable t))
+   ("Highlight"
+    (("d v" volatile-highlights-mode
+      "visual feedback on some operations"
+      :enable t
+      :toggle
+      (if (bound-and-true-p volatile-highlights-mode)
+          t
+        nil)))))
   :init (entropy/emacs-lazy-with-load-trail volatile-hl-mode (volatile-highlights-mode t)))
 
 ;; ** Visualize TAB, (HARD) SPACE, NEWLINE
@@ -278,6 +403,16 @@
   :if entropy/emacs-hl-whitespace-enable-at-startup
   :ensure nil
   :diminish whitespace-mode
+  :eemacs-tpha
+  (((:enable t))
+   ("Highlight"
+    (("d w" whitespace-mode
+      "Toggle whitespace visualization"
+      :enable t
+      :toggle
+      (if (bound-and-true-p whitespace-mode)
+          t
+        nil)))))
   :init
   (dolist (hook '(prog-mode-hook outline-mode-hook conf-mode-hook))
     (add-hook hook #'whitespace-mode))
