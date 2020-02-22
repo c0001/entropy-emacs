@@ -172,6 +172,10 @@
 (defvar entropy/emacs-hydra-hollow-predicate-union-form
   '(lambda ()))
 
+(entropy/emacs-lazy-with-load-trail
+ hydra-hollow-predicate-union-do
+ (funcall entropy/emacs-hydra-hollow-predicate-union-form))
+
 (defvar entropy/emacs-hydra-hollow-predicative-keys
   '((:global-bind . entropy/emacs-hydra-hollow-global-bind-predicate)
     (:map-inject . entropy/emacs-hydra-hollow-map-inject-predicate)))
