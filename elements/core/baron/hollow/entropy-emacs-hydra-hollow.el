@@ -18,13 +18,19 @@
 (defun entropy/emacs-hydra-hollow--common-judge-p
     (pattern)
   (cond ((and (listp pattern)
+              (eq (car pattern) :data))
+         (cdr pattern))
+        ((and (listp pattern)
               (not (null pattern)))
          (funcall `(lambda () ,pattern)))
-        ((symbolp pattern)
+        ((and (symbolp pattern)
+              (member pattern '(nil t)))
          (unless (null pattern)
            t))
+        ((symbolp pattern)
+         (symbol-value pattern))
         (t
-         (error "Judge pattern can be only a form or a symbol!"))))
+         pattern)))
 
 (defun entropy/emacs-hydra-hollow-delete-empty-pretty-hydra-head-group
     (pretty-heads-group)
@@ -223,18 +229,53 @@
          (feature (cadr rest-args))
          (map (caddr rest-args))
          )
-    (when map-inject
-      (setq notation
-            (entropy/emacs-hydra-hollow-pretty-head-notation-handler
-             notation 'mode-map-inject
-             (member :global-bind-notation-beautified restrict)))
-      (setq restrict
-            (append restrict '(:map-inject-notation-beautified)))
-      (setq entropy/emacs-hydra-hollow-predicate-union-form
-            (append entropy/emacs-hydra-hollow-predicate-union-form
-                    `((entropy/emacs-lazy-load-simple ,feature
-                        (define-key ,map (kbd ,key) #',command)))))
-      )
+    (let ()
+      (cond
+       ((eq map-inject t)
+        (setq notation
+              (entropy/emacs-hydra-hollow-pretty-head-notation-handler
+               notation 'mode-map-inject
+               (member :global-bind-notation-beautified restrict)))
+        (setq restrict
+              (append restrict '(:map-inject-notation-beautified)))
+        (setq entropy/emacs-hydra-hollow-predicate-union-form
+              (append entropy/emacs-hydra-hollow-predicate-union-form
+                      `((entropy/emacs-lazy-load-simple ,feature
+                          (define-key ,map (kbd ,key) #',command))))))
+       ((entropy/emacs-common-plistp map-inject)
+        (let ((do-beautify-notation
+               (entropy/emacs-hydra-hollow--common-judge-p
+                (plist-get map-inject :do-beautify-notation)))
+              (do-inject-spec-maps
+               (entropy/emacs-hydra-hollow--common-judge-p
+                (plist-get map-inject :do-inject-spec-maps)))
+              (do-inherit-predicate
+               (entropy/emacs-hydra-hollow--common-judge-p
+                (plist-get map-inject :do-inherit-predicate))))
+          (when do-beautify-notation
+            (setq notation
+                  (entropy/emacs-hydra-hollow-pretty-head-notation-handler
+                   notation 'mode-map-inject
+                   (member :global-bind-notation-beautified restrict)))
+            (setq restrict
+                  (append restrict '(:map-inject-notation-beautified))))
+          (when do-inherit-predicate
+            (setq entropy/emacs-hydra-hollow-predicate-union-form
+                  (append entropy/emacs-hydra-hollow-predicate-union-form
+                          `((entropy/emacs-lazy-load-simple ,feature
+                              (define-key ,map (kbd ,key) #',command))))))
+          (when do-inject-spec-maps
+            (when (and (listp do-inject-spec-maps)
+                       (listp (car do-inject-spec-maps)))
+              (dolist (item do-inject-spec-maps)
+                (let ((feature (car item))
+                      (map (cadr item))
+                      (key-for (or (nth 2 item) key)))
+                  (setq entropy/emacs-hydra-hollow-predicate-union-form
+                        (append entropy/emacs-hydra-hollow-predicate-union-form
+                                `((entropy/emacs-lazy-load-simple ,feature
+                                    (define-key ,map (kbd ,key-for) #',command)))))
+                  ))))))))
 
     (list :restrict restrict
           :split-pretty-head

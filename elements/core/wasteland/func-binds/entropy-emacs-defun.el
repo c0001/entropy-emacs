@@ -83,6 +83,65 @@ inject into HOOK wrapped BODY."
          (add-hook ',hook
                    prefix-name)))))
 
+(defun entropy/emacs-strict-plistp (arg)
+  (cond
+   ((not (listp arg))
+    nil)
+   ((and (listp arg)
+         (= (/ (length arg) 2.0) (/ (length arg) 2)))
+    (let (rtn)
+      (cl-loop for item from 0 to (- (/ (length arg) 2) 1)
+               do (unless (and (symbolp (nth (* item 2) arg))
+                               ;; using `string-match-p' prevent match
+                               ;; history messy
+                               (string-match-p
+                                "^:"
+                                (symbol-name (nth (* item 2) arg))))
+                    (setq rtn t)))
+      (unless rtn
+        t)))
+   (t
+    nil)))
+
+(defun entropy/emacs-common-plistp (arg)
+  (cond
+   ((not (listp arg))
+    nil)
+   ((and (listp arg)
+         (not (null arg))
+         (symbolp (car arg)))
+    (let (indicator fake-p (pos 0))
+      (dolist (el arg)
+        (if (and (symbolp el)
+                 ;; using `string-match-p' prevent match
+                 ;; history messy
+                 (string-match-p
+                  "^:"
+                  (symbol-name el)))
+            (setq indicator
+                  (append indicator '(1)))
+          (setq indicator
+                (append indicator '(0)))))
+      (catch :exit
+        (while (< pos (length indicator))
+          (when (= (nth pos indicator) 1)
+            (let ((-pos (+ 1 pos))
+                  (seq-num 0))
+              (while (and (< -pos (length indicator))
+                          (= (nth -pos indicator) 0))
+                (setq seq-num (+ 1 seq-num)
+                      -pos (+ 1 -pos)))
+              (when (> seq-num 1)
+                (setq fake-p t)
+                (throw :exit nil))
+              (if (> -pos (- (- (length indicator) 1) 1))
+                  (throw :exit nil)
+                (setq pos -pos))))))
+      (if fake-p
+          nil
+        t)))
+   (t nil)))
+
 ;; *** key bindings
 (defmacro entropy/emacs-!set-key (key command)
   (declare (indent defun))
