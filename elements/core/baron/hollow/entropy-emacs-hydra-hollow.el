@@ -424,55 +424,35 @@
                  ,head)))
       (funcall form))))
 
-(defun entropy/emacs-hydra-hollow-patch-global-inject-group-heads-notations
-    (pretty-heads-group)
-  (entropy/emacs-hydra-hollow-patch-pretty-hydra-heads-group-notations
-   pretty-heads-group :global-bind 'global-map-inject))
-
 (defun entropy/emacs-hydra-hollow-add-for-top-dispatch
     (pretty-heads-group)
-  (let* ((notation-patched-heads-group
-          (entropy/emacs-hydra-hollow-patch-global-inject-group-heads-notations
-           pretty-heads-group))
-         (enabled-heads-group
-          (entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
-           notation-patched-heads-group)))
-    (unless (null enabled-heads-group)
-      (entropy/emacs-hydra-hollow-init-top-dispatch)
-      (dolist (split-head (entropy/emacs-hydra-hollow-split-pretty-hydra-group-heads
-                           enabled-heads-group))
+  (entropy/emacs-hydra-hollow-init-top-dispatch)
+  (let* ((split-heads
+          (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
+           pretty-heads-group '((:global-bind)) t)))
+    (unless (null split-heads)
+      (dolist (sp-h split-heads)
         (setq entropy/emacs-hydra-hollow-top-dispatch-register
               (append entropy/emacs-hydra-hollow-top-dispatch-register
-                      `(,split-head))))
+                      `(,sp-h))))
       (funcall
        `(lambda ()
           (pretty-hydra-define+ entropy/emacs-hydra-hollow-top-dispatch
             nil
-            ,enabled-heads-group)))
-      (let ((global-binds (entropy/emacs-hydra-hollow-gets-pretty-hydra-heads-keybind
-                           enabled-heads-group :global-bind)))
-        (dolist (bind global-binds)
-          (let ((key (plist-get bind :key))
-                (command (plist-get bind :command))
-                (inject-p (plist-get bind :global-bind)))
-            (when inject-p
-              (global-set-key (kbd key) command))))))))
+            ,(entropy/emacs-hydra-hollow-merge-pretty-hydra-sparse-heads
+              split-heads)))))))
 
 ;; *** majro mode dispacher
-;; **** library
-;; ***** patch hint doc
-(defun entropy/emacs-hydra-hollow-patch-mode-inject-group-heads-notations
-    (pretty-heads-group)
-  (entropy/emacs-hydra-hollow-patch-pretty-hydra-heads-group-notations
-   pretty-heads-group :map-inject 'mode-map-inject))
 
 ;; **** define major mode hydra
 
 (cl-defmacro entropy/emacs-hydra-hollow--define-major-mode-hydra-macro
     (mode feature mode-map body heads-plist)
   (let ((patched-heads-group
-         (entropy/emacs-hydra-hollow-patch-mode-inject-group-heads-notations
-          heads-plist)))
+         (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
+          heads-plist
+          `((:map-inject . (,mode ,feature ,mode-map))
+            (:global-bind)))))
     `(let ()
        ;; Define major-mode-hydra before lazy loading feature prevent
        ;; hydra adding cover its body
@@ -482,39 +462,24 @@
 
        (unless (alist-get  ',mode entropy/emacs-hydra-hollow-major-mode-body-register)
          (push (cons ',mode ',body)
-               entropy/emacs-hydra-hollow-major-mode-body-register))
-
-       (entropy/emacs-lazy-load-simple ,feature
-         (let ((binds (entropy/emacs-hydra-hollow-gets-pretty-hydra-heads-keybind
-                       ',heads-plist :map-inject)))
-           (dolist (el binds)
-             (let ((command (plist-get el :command))
-                   (key (plist-get el :key))
-                   (map-inject (plist-get el :map-inject)))
-               (when (and map-inject command key)
-                 (message "Binding key '%s' of command '%s' to map '%s' ..."
-                          key (symbol-name command) (symbol-name ',mode-map))
-                 (define-key ,mode-map (kbd key) command)))))))))
+               entropy/emacs-hydra-hollow-major-mode-body-register)))))
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra
     (mode feature mode-map body heads-plist)
-  (let ((heads-plist
-         (entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
-          heads-plist)))
-    (unless (null heads-plist)
-      (funcall
-       `(lambda ()
-          (entropy/emacs-hydra-hollow--define-major-mode-hydra-macro
-           ,mode ,feature ,mode-map ,body ,heads-plist))))))
+  (let ()
+    (funcall
+     `(lambda ()
+        (entropy/emacs-hydra-hollow--define-major-mode-hydra-macro
+         ,mode ,feature ,mode-map ,body ,heads-plist)))))
 
 ;; **** add major mode hydra
 (cl-defmacro entropy/emacs-hydra-hollow--add-to-major-mode-hydra-macro
     (mode feature mode-map heads-plist &optional hydra-body)
-  (let ((binds (entropy/emacs-hydra-hollow-gets-pretty-hydra-heads-keybind
-                heads-plist :map-inject))
-        (patched-heads-group
-         (entropy/emacs-hydra-hollow-patch-mode-inject-group-heads-notations
-          heads-plist))
+  (let ((patched-heads-group
+         (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
+          heads-plist
+          `((:map-inject . (,mode ,feature ,mode-map))
+            (:global-bind))))
         (body (or hydra-body
                   (alist-get
                    mode
@@ -523,29 +488,20 @@
                   (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
                    mode))))
     `(let ()
-       (entropy/emacs-lazy-load-simple ,feature
-         ;; add hydra for feature with lazy load prevent covering the
-         ;; major defination
-         (major-mode-hydra-define+ ,mode
-           ,body
-           ,patched-heads-group)
-         (dolist (el ',binds)
-           (let ((command (plist-get el :command))
-                 (key (plist-get el :key))
-                 (map-inject (plist-get el :map-inject)))
-             (when map-inject
-               (define-key ,mode-map (kbd key) command))))))))
+       ;; add hydra for feature with lazy load prevent covering the
+       ;; major defination
+       (major-mode-hydra-define+ ,mode
+         ,body
+         ,patched-heads-group)
+       )))
 
 (defun entropy/emacs-hydra-hollow-add-to-major-mode-hydra
     (mode feature mode-map heads-plist &optional hydra-body)
-  (let ((heads-plist
-         (entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
-          heads-plist)))
-    (unless (null heads-plist)
-      (funcall
-       `(lambda ()
-          (entropy/emacs-hydra-hollow--add-to-major-mode-hydra-macro
-           ,mode ,feature ,mode-map ,heads-plist ,hydra-body))))))
+  (let ()
+    (funcall
+     `(lambda ()
+        (entropy/emacs-hydra-hollow--add-to-major-mode-hydra-macro
+         ,mode ,feature ,mode-map ,heads-plist ,hydra-body)))))
 
 ;; **** sparse tree builder
 
@@ -573,18 +529,15 @@
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
     (mode feature mode-map &optional heads)
-  (let ((heads
-         (entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
-          heads)))
+  (let ()
     (funcall
      `(lambda ()
         (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
          ,mode ,feature ,mode-map)))
-    (when heads
-      (funcall
-       `(lambda ()
-          (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-           ',mode ',feature ',mode-map ',heads))))))
+    (funcall
+     `(lambda ()
+        (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+         ',mode ',feature ',mode-map ',heads)))))
 
 ;; *** use-package extended
 ;; **** library
