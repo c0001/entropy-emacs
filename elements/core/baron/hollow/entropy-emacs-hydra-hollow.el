@@ -196,10 +196,10 @@
 ;;   predicated one.
 
 ;;   A =riched-split-pretty-head= is a plist of three key, =:restrict=
-;;   a list of symbols and the =:split-pretty-head= was the slot host
-;;   the =split-pretty-head=, and the =:rest-args= a list of remaining
-;;   args needed by current predicate function, thus for all, it forms
-;;   as:
+;;   a plist of hosted restriction status and the =:split-pretty-head=
+;;   was the slot host the =split-pretty-head=, and the =:rest-args= a
+;;   list of remaining args needed by current predicate function, thus
+;;   for all, it forms as:
 
 ;;   (:restrict  (global-bind-notation-patched ...)
 ;;    :split-pretty-head ("Basic" (("1" (message "yes") "test message")))
@@ -214,7 +214,8 @@
 
 (defvar entropy/emacs-hydra-hollow-predicative-keys
   '((:global-bind . entropy/emacs-hydra-hollow-global-bind-predicate)
-    (:map-inject . entropy/emacs-hydra-hollow-map-inject-predicate)))
+    (:map-inject . entropy/emacs-hydra-hollow-map-inject-predicate)
+    (:eemacs-top-bind . entropy/emacs-hydra-hollow-top-keymap-inject-predicate)))
 
 (defun entropy/emacs-hydra-hollow-global-bind-predicate
     (riched-split-pretty-head)
@@ -238,7 +239,7 @@
       (setq notation
             (entropy/emacs-hydra-hollow-pretty-head-notation-handler
              notation 'global-map-inject))
-      (setq restrict (append restrict '(:global-bind-notation-beautified)))
+      (setq restrict (append restrict '(:global-bind-notation-beautified t)))
       (setq entropy/emacs-hydra-hollow-predicate-union-form
             (append entropy/emacs-hydra-hollow-predicate-union-form
                     `((global-set-key (kbd ,key) #',command))))
@@ -275,9 +276,11 @@
         (setq notation
               (entropy/emacs-hydra-hollow-pretty-head-notation-handler
                notation 'mode-map-inject
-               (member :global-bind-notation-beautified restrict)))
+               (and (member :global-bind-notation-beautified restrict)
+                    (entropy/emacs-hydra-hollow--common-judge-p
+                     (plist-get restrict :global-bind-notation-beautified)))))
         (setq restrict
-              (append restrict '(:map-inject-notation-beautified)))
+              (append restrict '(:map-inject-notation-beautified t)))
         (setq entropy/emacs-hydra-hollow-predicate-union-form
               (append entropy/emacs-hydra-hollow-predicate-union-form
                       `((entropy/emacs-lazy-load-simple ,feature
@@ -321,6 +324,45 @@
           :split-pretty-head
           `(,group ((,key ,command ,notation ,@split-pretty-head-plist)))
           )))
+
+(defun entropy/emacs-hydra-hollow-top-keymap-inject-predicate
+    (riched-split-pretty-head)
+  (let* (
+         ;; :restrict
+         (restrict (plist-get riched-split-pretty-head :restrict))
+         ;; :split-pretty-head
+         (split-pretty-head (plist-get riched-split-pretty-head :split-pretty-head))
+         (group (car split-pretty-head))
+         (split-pretty-head-pattern (caadr split-pretty-head))
+         (key (car split-pretty-head-pattern))
+         (command (cadr split-pretty-head-pattern))
+         (notation (caddr split-pretty-head-pattern))
+         (split-pretty-head-plist (cdddr split-pretty-head-pattern))
+         (top-bind-p (entropy/emacs-hydra-hollow--common-judge-p
+                      (plist-get split-pretty-head-plist
+                                 :eemacs-top-bind)))
+         ;; :rest-args
+         (rest-args (plist-get riched-split-pretty-head :rest-args))
+         )
+    (when top-bind-p
+      (setq notation
+            (entropy/emacs-hydra-hollow-pretty-head-notation-handler
+             notation 'eemacs-top-keymap-inject
+             (or (entropy/emacs-hydra-hollow--common-judge-p
+                  (plist-get restrict :global-bind-notation-beautified))
+                 (entropy/emacs-hydra-hollow--common-judge-p
+                  (plist-get restrict :map-inject-notation-beautified))))
+            restrict
+            (append restrict
+                    '(:eemacs-topkey-notation-beautified t)))
+      (setq entropy/emacs-hydra-hollow-predicate-union-form
+            (append entropy/emacs-hydra-hollow-predicate-union-form
+                    `((entropy/emacs-!set-key
+                        (kbd ,key)
+                        #',command)))))
+    (list :restrict restrict
+          :split-pretty-head
+          `(,group ((,key ,command ,notation ,@split-pretty-head-plist))))))
 
 ;; ***** batch patch split-head
 
@@ -383,6 +425,10 @@
             (mode-map-inject
              :format "%s%s"
              :icon (lambda () (propertize "m" 'face 'error))
+             :notation (lambda (notation) (propertize notation 'face 'link)))
+            (eemacs-top-keymap-inject
+             :format "%s%s"
+             :icon (lambda () (propertize "e" 'face 'success))
              :notation (lambda (notation) (propertize notation 'face 'link)))))
          (matched (alist-get type match-map))
          (fmstr (plist-get matched :format))
@@ -469,7 +515,10 @@
   (entropy/emacs-hydra-hollow-init-top-dispatch)
   (let* ((split-heads
           (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
-           pretty-heads-group '((:global-bind)) t)))
+           pretty-heads-group
+           '((:global-bind)
+             (:eemacs-top-bind))
+           t)))
     (unless (null split-heads)
       (dolist (sp-h split-heads)
         (setq entropy/emacs-hydra-hollow-top-dispatch-register
