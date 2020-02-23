@@ -39,35 +39,6 @@
            collect (nth (* cnt 2) pretty-heads-group)
            and collect (nth (+ (* cnt 2) 1) pretty-heads-group)))
 
-(defun entropy/emacs-hydra-hollow-gets-pretty-hydra-heads-keybind
-    (pretty-heads-group refer-key)
-  (let (group-extract-func
-        group-element-parse-func
-        return-var)
-    (setq group-element-parse-func
-          (lambda (x)
-            (let ((command (cadr x))
-                  (key (car x))
-                  (refer-match (entropy/emacs-hydra-hollow--common-judge-p
-                                (plist-get (cdddr x) refer-key))))
-              (unless (symbolp command)
-                (setq command `(lambda () ,command)))
-              `(:command ,command :key ,key ,refer-key ,refer-match)))
-          group-extract-func
-          (lambda (x)
-            (let (rtn)
-              (dolist (el x)
-                (when (and (listp el)
-                           (not (null (car el)))
-                           (not (stringp el)))
-                  (push el rtn)))
-              rtn)))
-    (dolist (el (funcall group-extract-func pretty-heads-group))
-      (dolist (elt el)
-        (push (funcall group-element-parse-func elt)
-              return-var)))
-    return-var))
-
 (defun entropy/emacs-hydra-hollow-split-pretty-hydra-group-heads
     (pretty-heads-group)
   (let (split-heads)
