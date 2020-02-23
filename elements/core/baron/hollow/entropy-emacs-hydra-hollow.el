@@ -208,9 +208,15 @@
 (defvar entropy/emacs-hydra-hollow-predicate-union-form
   '(lambda ()))
 
-(entropy/emacs-lazy-with-load-trail
- hydra-hollow-predicate-union-do
- (funcall entropy/emacs-hydra-hollow-predicate-union-form))
+(defvar entropy/emacs-hydra-hollow--predicate-union-form-temp nil)
+
+(defun entropy/emacs-hydra-hollow-predicate-call-union-form (&rest _)
+  (unless (equal entropy/emacs-hydra-hollow--predicate-union-form-temp
+                 entropy/emacs-hydra-hollow-predicate-union-form)
+    (setq
+     entropy/emacs-hydra-hollow--predicate-union-form-temp
+     entropy/emacs-hydra-hollow-predicate-union-form)
+    (funcall entropy/emacs-hydra-hollow-predicate-union-form)))
 
 (defvar entropy/emacs-hydra-hollow-predicative-keys
   '((:global-bind . entropy/emacs-hydra-hollow-global-bind-predicate)
@@ -496,7 +502,10 @@
       (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
       (entropy/emacs-!set-key
         (kbd "h")
-        #'entropy/emacs-hydra-hollow-top-dispatch/body))))
+        #'entropy/emacs-hydra-hollow-top-dispatch/body)
+      (advice-add 'entropy/emacs-hydra-hollow-top-dispatch/body
+                  :before
+                  #'entropy/emacs-hydra-hollow-predicate-call-union-form))))
 
 (defun entropy/emacs-hydra-hollow-remap-top-dispatch ()
   (interactive)
@@ -532,6 +541,10 @@
               split-heads)))))))
 
 ;; *** majro mode dispacher
+
+(advice-add 'major-mode-hydra
+            :before
+            #'entropy/emacs-hydra-hollow-predicate-call-union-form)
 
 ;; **** define major mode hydra
 
