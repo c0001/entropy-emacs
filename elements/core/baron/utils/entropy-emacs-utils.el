@@ -241,12 +241,7 @@
    major-mode-hydra
    major-mode-hydra-bind
    major-mode-hydra-define+
-   )
-  :init
-  (require 'major-mode-hydra)
-  (entropy/emacs-!set-key
-    (kbd "m")
-    #'major-mode-hydra))
+   ))
 
 ;; *** def APIs
 ;; **** pretty hydra title making
