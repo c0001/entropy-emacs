@@ -290,7 +290,8 @@
                    ',mode (format "%s Actions" mode-str))))
       title)
     :color ambranth
-    :quit-key "q"))
+    :quit-key "q"
+    :separator "═"))
 
 ;; * provide
 (provide 'entropy-emacs-utils)

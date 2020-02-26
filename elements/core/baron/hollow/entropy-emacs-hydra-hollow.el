@@ -988,7 +988,8 @@
          (entropy/emacs-pretty-hydra-make-title
           "eemacs top dispatch" "faicon" "toggle-on")
          :color ambranth
-         :quit-key "q")
+         :quit-key "q"
+         :separator "═")
        '("Basic"     ()
          "WI&BUF"    ()
          "Highlight" ()
