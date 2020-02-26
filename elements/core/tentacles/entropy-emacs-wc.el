@@ -187,11 +187,9 @@
           (define-key map (kbd "8") 'eyebrowse-switch-to-window-config-8)
           (define-key map (kbd "9") 'eyebrowse-switch-to-window-config-9)
           (define-key map (kbd "c") 'eyebrowse-create-window-config)
-          (define-key map (kbd "C-c") 'eyebrowse-create-window-config)
           map))
 
   (dolist (bind '(("c" . entropy/emacs-basic-eyebrowse-create-window-config)
-                  ("C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
                   ("a" . eyebrowse-switch-to-window-config)))
     (define-key entropy/emacs-wc-eyebrowse-mode-map
       (kbd (car bind)) (cdr bind)))
@@ -207,8 +205,26 @@
 
   :eemacs-mmphc
   (((:enable t)
-    (eyebrowse-mode eyebrowse-mode entropy/emacs-wc-eyebrowse-mode-map))
+    (eyebrowse-mode eyebrowse entropy/emacs-wc-eyebrowse-mode-map
+                    t))
    ("Common Switch"
+    (("C-o" entropy/emacs-basic-eyebrowse-switch-top
+      "Switch to Workspace Top"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("."   eyebrowse-switch-to-window-config
+      "Choose Work-Space And Jump into"
+      :enable t
+      :exit t
+      :map-inject t)
+     (","   eyebrowse-rename-window-config
+      "Rename or add workspace tag"
+      :enable t
+      :exit t
+      :map-inject t))
+
+    "Create Or Delete Workspace"
     (("C-e" entropy/emacs-basic-eyebrowse-create-workspaces
       "Batch create workspace"
       :enable t
@@ -219,22 +235,14 @@
       :enable t
       :exit t
       :map-inject t)
-     ("C-o" entropy/emacs-basic-eyebrowse-switch-top
-      "Switch to Workspace Top"
-      :enable t
-      :exit t
-      :map-inject t)
      ("C-c c" entropy/emacs-basic-eyebrowse-create-window-config
       "Create One Work-Space "
       :enable t
       :exit t
-      :map-inject t)
-     ("."   eyebrowse-switch-to-window-config
-      "Choose Work-Space And Jump into"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("C-c v" entropy/emacs-basic-eyebrowse-create-derived
+      :map-inject t))
+
+    "Derived Workspace"
+    (("C-c v" entropy/emacs-basic-eyebrowse-create-derived
       "Create Derived Work-Space"
       :enable t
       :exit t
@@ -244,6 +252,7 @@
       :enable t
       :exit t
       :global-bind t))
+
     "Digital switch"
     (("0" eyebrowse-switch-to-window-config-0
       "Switch to Work Space 0"
