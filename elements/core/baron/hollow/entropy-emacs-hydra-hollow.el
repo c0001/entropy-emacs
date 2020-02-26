@@ -439,7 +439,7 @@
 (defun entropy/emacs-hydra-hollow-category-frame-work-define+
     (category-name-prefix pretty-body pretty-heads-group
                           &optional
-                          category-width-indicator-for-biuld
+                          category-width-indicator-for-build
                           category-width-indicator-for-inject)
   (let* ((top-category-name
           (entropy/emacs-hydra-hollow-category-get-category-name
@@ -452,7 +452,7 @@
     (unless top-category-exists-p
       (entropy/emacs-hydra-hollow-category-frame-work-define
        category-name-prefix pretty-body pretty-heads-group
-       nil nil category-width-indicator-for-biuld))
+       nil nil category-width-indicator-for-build))
     (when top-category-exists-p
       (dolist (part-ctg ctgs)
         (let* ((group (car part-ctg))
@@ -637,15 +637,21 @@
          (entropy/emacs-hydra-hollow-category-get-major-mode-name-prefix
           mode)))
     (entropy/emacs-hydra-hollow-category-frame-work-define
-     ctg-name-prefix pretty-body pretty-heads-group category-width-indicator)))
+     ctg-name-prefix pretty-body pretty-heads-group
+     nil nil category-width-indicator)))
 
 (defun entropy/emacs-hydra-hollow-category-major-mode-define+
-    (mode pretty-body pretty-heads-group &optional category-width-indicator)
+    (mode pretty-body pretty-heads-group
+          &optional
+          category-width-indicator-for-build
+          category-width-indicator-for-inject)
   (let ((ctg-name-prefix
          (entropy/emacs-hydra-hollow-category-get-major-mode-name-prefix
           mode)))
     (entropy/emacs-hydra-hollow-category-frame-work-define+
-     ctg-name-prefix pretty-body pretty-heads-group category-width-indicator)))
+     ctg-name-prefix pretty-body pretty-heads-group
+     category-width-indicator-for-build
+     category-width-indicator-for-inject)))
 
 
 (defun entropy/emacs-hydra-hollow-category-major-mode-hydra ()
@@ -1033,7 +1039,7 @@
 ;; **** define major mode hydra
 
 (cl-defmacro entropy/emacs-hydra-hollow--define-major-mode-hydra-macro
-    (mode feature mode-map body heads-plist)
+    (mode feature mode-map body heads-plist &optional ctg-width-indc)
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
           heads-plist
@@ -1045,23 +1051,28 @@
        (entropy/emacs-hydra-hollow-category-major-mode-define
         ',mode
         ',body
-        ',patched-heads-group)
+        ',patched-heads-group
+        ',ctg-width-indc)
 
        (unless (alist-get  ',mode entropy/emacs-hydra-hollow-major-mode-body-register)
          (push (cons ',mode ',body)
                entropy/emacs-hydra-hollow-major-mode-body-register)))))
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra
-    (mode feature mode-map body heads-plist)
+    (mode feature mode-map body heads-plist &optional ctg-width-indc)
   (let ()
     (funcall
      `(lambda ()
         (entropy/emacs-hydra-hollow--define-major-mode-hydra-macro
-         ,mode ,feature ,mode-map ,body ,heads-plist)))))
+         ,mode ,feature ,mode-map ,body ,heads-plist ,ctg-width-indc)))))
 
 ;; **** add major mode hydra
 (cl-defmacro entropy/emacs-hydra-hollow--add-to-major-mode-hydra-macro
-    (mode feature mode-map heads-plist &optional hydra-body)
+    (mode feature mode-map heads-plist
+          &optional
+          hydra-body
+          category-width-indicator-for-build
+          category-width-indicator-for-inject)
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
           heads-plist
@@ -1080,21 +1091,29 @@
        (entropy/emacs-hydra-hollow-category-major-mode-define+
         ',mode
         ',body
-        ',patched-heads-group)
+        ',patched-heads-group
+        category-width-indicator-for-build
+        category-width-indicator-for-inject)
        )))
 
 (defun entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-    (mode feature mode-map heads-plist &optional hydra-body)
+    (mode feature mode-map heads-plist
+          &optional
+          hydra-body
+          category-width-indicator-for-build
+          category-width-indicator-for-inject)
   (let ()
     (funcall
      `(lambda ()
         (entropy/emacs-hydra-hollow--add-to-major-mode-hydra-macro
-         ,mode ,feature ,mode-map ,heads-plist ,hydra-body)))))
+         ,mode ,feature ,mode-map ,heads-plist ,hydra-body
+         ,category-width-indicator-for-build
+         ,category-width-indicator-for-inject)))))
 
 ;; **** sparse tree builder
 
 (cl-defmacro entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
-    (mode)
+    (mode &optional category-width-indicator)
   (let ((body
          (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
           mode)))
@@ -1107,20 +1126,27 @@
         ',mode
         ',body
         '("Help"
-          nil)))))
+          nil)
+        ',category-width-indicator))))
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-    (mode feature mode-map do-not-build-sparse-tree &optional heads)
+    (mode feature mode-map do-not-build-sparse-tree
+          &optional
+          heads
+          category-width-indicator-for-build
+          category-width-indicator-for-inject)
   (let ()
     (unless do-not-build-sparse-tree
       (funcall
        `(lambda ()
           (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
-           ,mode))))
+           ,mode ,category-width-indicator-for-build))))
     (funcall
      `(lambda ()
         (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-         ',mode ',feature ',mode-map ',heads)))))
+         ',mode ',feature ',mode-map ',heads
+         nil nil
+         ',category-width-indicator-for-inject)))))
 
 ;; *** use-package extended
 ;; **** library
@@ -1321,16 +1347,22 @@ both ommited, that as:
                       (intern (format "%s-map" (symbol-name use-name)))))
              (do-not-build-sparse-tree
               (cadddr requests))
+             (ctg-width-indc-for-build
+              (nth 4 requests))
+             (ctg-width-indc-for-inject
+              (nth 5 requests))
              (heads (cadr island)))
         (setq
          init-form
          (append init-form
                  `((when (not (null ',enable))
                      (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-                      ',mode ',feature ',map ',do-not-build-sparse-tree ',heads)))))))
+                      ',mode ',feature ',map ',do-not-build-sparse-tree ',heads
+                      ',ctg-width-indc-for-build
+                      ',ctg-width-indc-for-inject)))))))
     (use-package-concat
-     rest-body
-     init-form)))
+     init-form
+     rest-body)))
 
 (defalias 'use-package-normalize/:eemacs-mmphc
   #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-normalize)
@@ -1390,6 +1422,11 @@ both ommited, that as:
                   (mode (car requests))
                   (feature (cadr requests))
                   (map (caddr requests))
+                  (pretty-body (nth 3 requests))
+                  (category-width-indicator-for-build
+                   (nth 4 requests))
+                  (category-width-indicator-for-inject
+                   (nth 5 requests))
                   (heads (cadr island))
                   run-call)
              (when enable
@@ -1397,14 +1434,18 @@ both ommited, that as:
                      (list 'lambda '()
                            (list 'apply
                                  (list 'function 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra)
-                                 (list 'quote (list mode feature map heads)))))
+                                 (list 'quote
+                                       (list mode feature map heads
+                                             pretty-body
+                                             category-width-indicator-for-build
+                                             category-width-indicator-for-inject)))))
                (push run-call _callers))))
          (when (not (null _callers))
            (dolist (caller (reverse _callers))
              (funcall caller))))))
     (use-package-concat
-     rest-body
-     init-form)))
+     init-form
+     rest-body)))
 
 (defalias 'use-package-normalize/:eemacs-mmphca
   #'entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-normalize)
