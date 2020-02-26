@@ -35,6 +35,7 @@
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** shell config
 (use-package shell
@@ -301,7 +302,12 @@ segmentation fault."
   :preface
 
   (defun entropy/emacs-shell--shellpop-bindkey-for-eshell (func)
-    (entropy/emacs-!set-key (kbd "-") func)
+    (entropy/emacs-hydra-hollow-add-for-top-dispatch
+     `("Basic"
+       (("-" ,func "Shellpop For Eshell"
+         :enable t
+         :exit t
+         :eemacs-top-bind t))))
     (unless (display-graphic-p)
       (define-key entropy-shellpop-mode-map
         (kbd (concat entropy/emacs-top-key " " "-"))
@@ -311,7 +317,12 @@ segmentation fault."
     (let ((key (if (member "MODULES" (split-string system-configuration-features nil t))
                    "M-0"
                  "=")))
-      (entropy/emacs-!set-key (kbd key) func)
+      (entropy/emacs-hydra-hollow-add-for-top-dispatch
+       `("Basic"
+         ((,key ,func "Shellpop For Ansi-Term"
+                :enable t
+                :exit t
+                :eemacs-top-bind t))))
       (unless (display-graphic-p)
         (define-key entropy-shellpop-mode-map
           (kbd (concat entropy/emacs-top-key " " key))
@@ -320,7 +331,12 @@ segmentation fault."
   (when (and (member "MODULES" (split-string system-configuration-features nil t))
              (not (eq system-type 'windows-nt)))
     (defun entropy/emacs-shell--shellpop-bindkey-for-vterm (func)
-      (entropy/emacs-!set-key (kbd "=") func)
+      (entropy/emacs-hydra-hollow-add-for-top-dispatch
+       `("Basic"
+         (("=" ,func "Shellpop For Vterm"
+           :enable t
+           :exit t
+           :eemacs-top-bind t))))
       (unless (display-graphic-p)
         (define-key entropy-shellpop-mode-map
           (kbd (concat entropy/emacs-top-key " " "="))

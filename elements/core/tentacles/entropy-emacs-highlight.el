@@ -89,6 +89,7 @@
     (("s e" entropy/emacs-hl-symbol-overlay-toggle
       "Toggle symbol overlay mode"
       :enable t
+      :eemacs-top-bind t
       :toggle
       (if (bound-and-true-p symbol-overlay-mode)
           t
@@ -96,18 +97,22 @@
      ("s p" entropy/emacs-hl-symbol-overlay-put
       "Toggle all overlays of symbol at point"
       :enable t
+      :eemacs-top-bind t
       :exit t)
      ("s r" entropy/emacs-hl-symbol-overlay-remove-all
       "Remove all highlighted symbols in the buffer"
       :enable t
+      :eemacs-top-bind t
       :exit t)
      ("s n" entropy/emacs-hl-symbol-overlay-jump-next
       "Jump to the next location of symbol at point"
       :enable t
+      :eemacs-top-bind t
       :exit t)
      ("s p" entropy/emacs-hl-symbol-overlay-jump-prev
       "Jump to the previous location of symbol at point"
       :enable t
+      :eemacs-top-bind t
       :exit t))))
   :init
   (when entropy/emacs-hl-sysmbol-overlay-enable-at-startup
@@ -135,6 +140,7 @@
     (("p e" highlight-parentheses-mode
       "highlight the surrounding parentheses"
       :enable t
+      :eemacs-top-bind t
       :toggle
       (if (bound-and-true-p highlight-parentheses-mode)
           t
@@ -163,6 +169,7 @@
     (("p i" highlight-indent-guides-mode
       "Display indent guides in a buffer"
       :enable t
+      :eemacs-top-bind t
       :toggle
       (if (bound-and-true-p highlight-indent-guides-mode)
           t
@@ -186,6 +193,7 @@
     (("p r" rainbow-mode
       "Turn on Rainbow-Mode"
       :enable t
+      :eemacs-top-bind t
       :toggle
       (if (bound-and-true-p rainbow-mode)
           t
@@ -215,6 +223,7 @@
     (("p d" rainbow-delimiters-mode
       "Toggle Rainbow-Delimiters mode"
       :enable t
+      :eemacs-top-bind t
       :toggle
       (if (bound-and-true-p rainbow-delimiters-mode)
           t
@@ -245,14 +254,17 @@
     (("t o" hl-todo-occur
       "Find All TODO Keywords"
       :enable t
+      :eemacs-top-bind t
       :exit t)
      ("t p" hl-todo-previous
       "Jump to the previous TODO"
       :enable t
+      :eemacs-top-bind t
       :exit t)
      ("t n" hl-todo-next
       "Jump to the next TODO"
       :enable t
+      :eemacs-top-bind t
       :exit t))))
   :init
   (when entropy/emacs-hl-todo-enable-at-startup
@@ -304,6 +316,7 @@
     (("d h" diff-hl-mode
       "Toggle VC diff highlighting"
       :enable t
+      :eemacs-top-bind t
       :toggle
       (if (bound-and-true-p diff-hl-mode)
           t
@@ -388,6 +401,7 @@
     (("d v" volatile-highlights-mode
       "visual feedback on some operations"
       :enable t
+      :eemacs-top-bind t
       :toggle
       (if (bound-and-true-p volatile-highlights-mode)
           t
@@ -409,6 +423,7 @@
     (("d w" whitespace-mode
       "Toggle whitespace visualization"
       :enable t
+      :eemacs-top-bind t
       :toggle
       (if (bound-and-true-p whitespace-mode)
           t

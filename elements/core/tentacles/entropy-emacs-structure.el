@@ -33,7 +33,7 @@
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
-
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** libraries
 ;; function for universal code folding
@@ -73,9 +73,19 @@
          (css-mode . hs-minor-mode)
          (php-mode . hs-minor-mode)
          (python-mode . hs-minor-mode))
-  :config
-  (entropy/emacs-!set-key (kbd "M--") 'entropy/emacs-structure-toggle-hiding)
-  (entropy/emacs-!set-key (kbd "M-=") 'entropy/emacs-structure-toggle-selective-display))
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("M--" entropy/emacs-structure-toggle-hiding
+      "Hide Show For Hide"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)
+     ("M-=" entropy/emacs-structure-toggle-selective-display
+      "Hide Show For Show"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)))))
 
 ;; ** yafolding
 
@@ -100,17 +110,33 @@
           (hs-minor-mode 1)
           (funcall 'hs-show-all))
       (funcall #'yafolding-show-all)))
-  :init
-  (entropy/emacs-!set-key (kbd "M--") #'entropy/emacs-structure-yaf-toggle)
-  (entropy/emacs-!set-key (kbd "M-=") #'entropy/emacs-structure-yaf-show-all))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("M--" entropy/emacs-structure-yaf-toggle
+      "yafold toggle hide/show"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)
+     ("M-=" entropy/emacs-structure-yaf-show-all
+      "yafold show all"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)))))
 
 ;; ** outorg
 (use-package outorg
   :commands (outorg-edit-as-org
              outorg-edit-comments-and-propagate-changes
              outorg-copy-edits-and-exit)
-  :init
-  (entropy/emacs-!set-key (kbd "o") 'outorg-edit-as-org)
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("M-o" outorg-edit-as-org "Edit As Org Block"
+      :enable t
+      :exit t
+      :eemacs-top-bind t))))
   :config
   (define-key outorg-edit-minor-mode-map
     [remap outorg-save-edits-to-tmp-file] nil)
@@ -245,14 +271,21 @@ moving operation will cause non-terminated looping proceeding."
     (when (bound-and-true-p outshine-mode)
       (outshine-imenu)))
 
-  :init
-  (entropy/emacs-!set-key
-    (kbd "\\")
-    'entropy/emacs-structure--outshine-cycle-buffer)
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("\\" entropy/emacs-structure--outshine-cycle-buffer
+      "Outshine Cycle"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)
+     ("M-i" entropy/emacs-structure--outshine-pop-imenu
+      "Outshine popup imenu"
+      :enable t
+      :exit t
+      :eemacs-top-bind t))))
 
-  (entropy/emacs-!set-key
-    (kbd "M-i")
-    'entropy/emacs-structure--outshine-pop-imenu)
+  :init
 
   (entropy/emacs-lazy-initial-for-hook
    '(emacs-lisp-mode-hook lisp-interaction-mode-hook)

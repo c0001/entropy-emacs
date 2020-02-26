@@ -50,13 +50,17 @@
    ace-swap-window
    ace-window-display-mode
    ace-window)
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("C-x M-o" ace-window "Switch to Another Window"
+      :enable t
+      :exit t
+      :global-bind t))))
   :init
   (entropy/emacs-lazy-with-load-trail
    ace-window-init
-   (ace-window-display-mode +1)
-   (global-set-key
-    (kbd "C-x M-o")
-    #'ace-window)))
+   (ace-window-display-mode +1)))
 
 ;; *** Use windmove function stolen :) from `https://github.com/troydm/emacs-stuff/blob/master/windcycle.el'
 (defun entropy/emacs-basic-windmove-up-cycle ()
@@ -91,10 +95,30 @@
                       (error (condition-case nil (windmove-up)
                                (error (windmove-left))))))))))
 
-(global-set-key (kbd "C-x <up>") 'entropy/emacs-basic-windmove-up-cycle)
-(global-set-key (kbd "C-x <down>") 'entropy/emacs-basic-windmove-down-cycle)
-(global-set-key (kbd "C-x <right>") 'entropy/emacs-basic-windmove-right-cycle)
-(global-set-key (kbd "C-x <left>") 'entropy/emacs-basic-windmove-left-cycle)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("WI&BUF"
+   (("C-x <up>" entropy/emacs-basic-windmove-up-cycle
+     "Move To Up Window"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("C-x <down>" entropy/emacs-basic-windmove-down-cycle
+     "Move To Below Window"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("C-x <right>" entropy/emacs-basic-windmove-right-cycle
+     "Move To Right Window"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("C-x <left>" entropy/emacs-basic-windmove-left-cycle
+     "Move To Left Window"
+     :enable t
+     :exit t
+     :global-bind t)
+    )))
 
 ;; **** Disable buffer reverse and turn by =C-x C-left= =C-x C-right=
 (global-set-key (kbd "C-x C-<left>") nil)
@@ -142,46 +166,143 @@
              eyebrowse-switch-to-window-config-8
              eyebrowse-switch-to-window-config-9)
 
-  :bind (("C-c v" . entropy/emacs-basic-eyebrowse-create-derived)
-         ("C-c M-v" . entropy/emacs-basic-eyebrowse-switch-derived))
+  :preface
+
+  (setq entropy/emacs-wc-eyebrowse-mode-map
+        (let ((map (make-sparse-keymap)))
+          (define-key map (kbd "<") 'eyebrowse-prev-window-config)
+          (define-key map (kbd ">") 'eyebrowse-next-window-config)
+          (define-key map (kbd "'") 'eyebrowse-last-window-config)
+          (define-key map (kbd "\"") 'eyebrowse-close-window-config)
+          (define-key map (kbd ",") 'eyebrowse-rename-window-config)
+          (define-key map (kbd ".") 'eyebrowse-switch-to-window-config)
+          (define-key map (kbd "0") 'eyebrowse-switch-to-window-config-0)
+          (define-key map (kbd "1") 'eyebrowse-switch-to-window-config-1)
+          (define-key map (kbd "2") 'eyebrowse-switch-to-window-config-2)
+          (define-key map (kbd "3") 'eyebrowse-switch-to-window-config-3)
+          (define-key map (kbd "4") 'eyebrowse-switch-to-window-config-4)
+          (define-key map (kbd "5") 'eyebrowse-switch-to-window-config-5)
+          (define-key map (kbd "6") 'eyebrowse-switch-to-window-config-6)
+          (define-key map (kbd "7") 'eyebrowse-switch-to-window-config-7)
+          (define-key map (kbd "8") 'eyebrowse-switch-to-window-config-8)
+          (define-key map (kbd "9") 'eyebrowse-switch-to-window-config-9)
+          (define-key map (kbd "c") 'eyebrowse-create-window-config)
+          (define-key map (kbd "C-c") 'eyebrowse-create-window-config)
+          map))
+
+  (dolist (bind '(("c" . entropy/emacs-basic-eyebrowse-create-window-config)
+                  ("C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
+                  ("a" . eyebrowse-switch-to-window-config)))
+    (define-key entropy/emacs-wc-eyebrowse-mode-map
+      (kbd (car bind)) (cdr bind)))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("w" eemacs-hydra-for-mode-eyebrowse-mode--hydra-category-caller-0/body
+      "Eyerbowse Map"
+      :enable t
+      :exit t
+      :eemacs-top-bind t))))
+
+  :eemacs-mmphc
+  (((:enable t)
+    (eyebrowse-mode eyebrowse-mode entropy/emacs-wc-eyebrowse-mode-map))
+   ("Common Switch"
+    (("C-e" entropy/emacs-basic-eyebrowse-create-workspaces
+      "Batch create workspace"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("M-e" entropy/emacs-basic-eyebrowse-delete-workspace
+      "Delete workspace"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("C-o" entropy/emacs-basic-eyebrowse-switch-top
+      "Switch to Workspace Top"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("C-c c" entropy/emacs-basic-eyebrowse-create-window-config
+      "Create One Work-Space "
+      :enable t
+      :exit t
+      :map-inject t)
+     ("."   eyebrowse-switch-to-window-config
+      "Choose Work-Space And Jump into"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("C-c v" entropy/emacs-basic-eyebrowse-create-derived
+      "Create Derived Work-Space"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-c M-v" entropy/emacs-basic-eyebrowse-create-derived
+      "Switch To Derived Work-Space"
+      :enable t
+      :exit t
+      :global-bind t))
+    "Digital switch"
+    (("0" eyebrowse-switch-to-window-config-0
+      "Switch to Work Space 0"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("1" eyebrowse-switch-to-window-config-1
+      "Switch to Work Space 1"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("2" eyebrowse-switch-to-window-config-2
+      "Switch to Work Space 2"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("3" eyebrowse-switch-to-window-config-3
+      "Switch to Work Space 3"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("4" eyebrowse-switch-to-window-config-4
+      "Switch to Work Space 4"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("5" eyebrowse-switch-to-window-config-5
+      "Switch to Work Space 5"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("6" eyebrowse-switch-to-window-config-6
+      "Switch to Work Space 6"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("7" eyebrowse-switch-to-window-config-7
+      "Switch to Work Space 7"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("8" eyebrowse-switch-to-window-config-8
+      "Switch to Work Space 8"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("9" eyebrowse-switch-to-window-config-9
+      "Switch to Work Space 9"
+      :enable t
+      :exit t
+      :map-inject t))))
+
   :init
 
   (setq eyebrowse-keymap-prefix (kbd "s-w"))
 
   (entropy/emacs-lazy-with-load-trail
    eyebrowse-enable
-   (eyebrowse-mode +1)
-   (setq entropy/emacs-wc-eyebrowse-mode-map
-     (let ((map (make-sparse-keymap)))
-       (define-key map (kbd "<") 'eyebrowse-prev-window-config)
-       (define-key map (kbd ">") 'eyebrowse-next-window-config)
-       (define-key map (kbd "'") 'eyebrowse-last-window-config)
-       (define-key map (kbd "\"") 'eyebrowse-close-window-config)
-       (define-key map (kbd ",") 'eyebrowse-rename-window-config)
-       (define-key map (kbd ".") 'eyebrowse-switch-to-window-config)
-       (define-key map (kbd "0") 'eyebrowse-switch-to-window-config-0)
-       (define-key map (kbd "1") 'eyebrowse-switch-to-window-config-1)
-       (define-key map (kbd "2") 'eyebrowse-switch-to-window-config-2)
-       (define-key map (kbd "3") 'eyebrowse-switch-to-window-config-3)
-       (define-key map (kbd "4") 'eyebrowse-switch-to-window-config-4)
-       (define-key map (kbd "5") 'eyebrowse-switch-to-window-config-5)
-       (define-key map (kbd "6") 'eyebrowse-switch-to-window-config-6)
-       (define-key map (kbd "7") 'eyebrowse-switch-to-window-config-7)
-       (define-key map (kbd "8") 'eyebrowse-switch-to-window-config-8)
-       (define-key map (kbd "9") 'eyebrowse-switch-to-window-config-9)
-       (define-key map (kbd "c") 'eyebrowse-create-window-config)
-       (define-key map (kbd "C-c") 'eyebrowse-create-window-config)
-       map))
-   (entropy/emacs-!set-key (kbd "w") entropy/emacs-wc-eyebrowse-mode-map)
-   (dolist (bind '(("C-e" . entropy/emacs-basic-eyebrowse-create-workspaces)
-                   ("M-e" . entropy/emacs-basic-eyebrowse-delete-workspace)
-                   ("C-o" . entropy/emacs-basic-eyebrowse-switch-top)
-                   ("C-c" . entropy/emacs-basic-eyebrowse-create-window-config)
-                   ("c" . entropy/emacs-basic-eyebrowse-create-window-config)
-                   ("." . eyebrowse-switch-to-window-config)
-                   ("a" . eyebrowse-switch-to-window-config)))
-     (define-key entropy/emacs-wc-eyebrowse-mode-map
-       (kbd (car bind)) (cdr bind))))
+   (eyebrowse-mode +1))
 
   :config
   (setq eyebrowse-mode-line-style nil
@@ -539,8 +660,20 @@ without derived slot."
 (use-package winner
   :ensure nil
   :commands (winner-mode)
-  :bind (("C-c <left>" . winner-undo)
-         ("C-c <right>" . winner-redo))
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("C-c <left>" winner-undo
+      "Winner Undo"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-c <right>" winner-redo
+      "Winner Redo"
+      :enable t
+      :exit t
+      :global-bind t))))
+
   :init
 
   (cond
@@ -599,8 +732,13 @@ without derived slot."
 ;; ** Buffer window size setting
 (use-package windresize
   :commands (windresize)
-  :bind
-  ("C-<f10>" . windresize))
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("C-<f10>" windresize "Resize Window"
+      :enable t
+      :global-bind t
+      :exit t)))))
 
 ;; ** Exchange window
 (use-package buffer-move
@@ -608,11 +746,21 @@ without derived slot."
              buf-move-down
              buf-move-left
              buf-move-right)
-  :bind
-  (("C-c <C-up>"   .  buf-move-up)
-   ("C-c <C-down>" .  buf-move-down)
-   ("C-c <C-left>" .  buf-move-left)
-   ("C-c <C-right>" . buf-move-right)))
+  :eemacs-tpha
+  ((((:enable t)))
+   ("WI&BUF"
+    (("C-c <C-up>"     buf-move-up
+      "Move Buffer To Upstairs Window"
+      :enable t :global-bind t :exit t)
+     ("C-c <C-down>"   buf-move-down
+      "Move Buffer To Down-stairs Window"
+      :enable t :global-bind t :exit t)
+     ("C-c <C-left>"   buf-move-left
+      "Move Buffer To Left Window"
+      :enable t :global-bind t :exit t)
+     ("C-c <C-right>"  buf-move-right
+      "Move Buffer To Right Window"
+      :enable t :global-bind t :exit t)))))
 
 ;; ** Centered-window
 ;; *** Manully method
@@ -630,9 +778,19 @@ without derived slot."
   (set-window-margins
    (car (get-buffer-window-list (current-buffer) nil t))
    nil))
-(global-set-key (kbd "C-c M-<up>")     'entropy/emacs-basic-center-text)
-(global-set-key (kbd "C-c M-<down>")     'entropy/emacs-basic-center-text-clear)
 
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("WI&BUF"
+   (("C-c M-<up>" entropy/emacs-basic-center-text
+     "Center Window"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("C-c M-<down>" entropy/emacs-basic-center-text-clear
+     "Clear Center Window"
+     :enable t
+     :exit t
+     :global-bind t))))
 
 ;; ** Window divider
 
