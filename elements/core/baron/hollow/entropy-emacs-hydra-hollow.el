@@ -357,14 +357,8 @@
           (cl-incf cnt)))))
 
     ;; patch pretty-body
-    (let ((title (plist-get body-patch :title))
-          new-title)
-      (if (or rest-head-group previous-category-name)
-          (setq new-title
-                `(concat ,title
-                         (format "-category-[%s]"
-                                 ,depth)))
-        (setq new-title title))
+    (let* ((title (plist-get body-patch :title))
+           (new-title (copy-tree title)))
 
       (setq new-title
             (entropy/emacs-hydra-hollow-category-concat-title-for-nav
@@ -968,41 +962,38 @@
 ;; ** apis
 ;; *** top dispatcher
 
+(defvar entropy/emacs-hydra-hollow-init-top-dispatch-ctg-name-prefix
+  'entropy/emacs-hydra-hollow-top-dispatch)
+
 (defun entropy/emacs-hydra-hollow-init-top-dispatch (&optional force)
   (when (or (not entropy/emacs-hydra-hollow-top-dispatch-init-done)
             force)
-    (pretty-hydra-define entropy/emacs-hydra-hollow-top-dispatch
-      (:title
-       (entropy/emacs-pretty-hydra-make-title
-        "eemacs top dispatch" "faicon" "toggle-on")
-       :color ambranth
-       :quit-key "q")
-      ("Basic"     ()
-       "WI&BUF"    ()
-       "Pyim"      ()
-       "Highlight" ()
-       "WWW"       ()
-       "Misc."     ()))
-    (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
-      (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
-      (entropy/emacs-!set-key
-        (kbd "h")
-        #'entropy/emacs-hydra-hollow-top-dispatch/body)
-      (advice-add 'entropy/emacs-hydra-hollow-top-dispatch/body
-                  :before
-                  #'entropy/emacs-hydra-hollow-predicate-call-union-form))))
+    (let* ((ctg-name-prefix entropy/emacs-hydra-hollow-init-top-dispatch-ctg-name-prefix)
+           (ctg-top-caller-body
+            (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+             ctg-name-prefix t)))
+      (entropy/emacs-hydra-hollow-category-frame-work-define
+       ctg-name-prefix
+       '(:title
+         (entropy/emacs-pretty-hydra-make-title
+          "eemacs top dispatch" "faicon" "toggle-on")
+         :color ambranth
+         :quit-key "q")
+       '("Basic"     ()
+         "WI&BUF"    ()
+         "Pyim"      ()
+         "Highlight" ()
+         "WWW"       ()
+         "Misc."     ()))
 
-(defun entropy/emacs-hydra-hollow-remap-top-dispatch ()
-  (interactive)
-  (entropy/emacs-hydra-hollow-init-top-dispatch t)
-  (dolist (head entropy/emacs-hydra-hollow-top-dispatch-register)
-    (let (form)
-      (setq form
-            `(lambda ()
-               (pretty-hydra-define+ entropy/emacs-hydra-hollow-top-dispatch
-                 nil
-                 ,head)))
-      (funcall form))))
+      (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
+        (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
+        (entropy/emacs-!set-key
+          (kbd "h")
+          ctg-top-caller-body)
+        (advice-add ctg-top-caller-body
+                    :before
+                    #'entropy/emacs-hydra-hollow-predicate-call-union-form)))))
 
 (defun entropy/emacs-hydra-hollow-add-for-top-dispatch
     (pretty-heads-group)
@@ -1018,16 +1009,16 @@
         (setq entropy/emacs-hydra-hollow-top-dispatch-register
               (append entropy/emacs-hydra-hollow-top-dispatch-register
                       `(,sp-h))))
-      (funcall
-       `(lambda ()
-          (pretty-hydra-define+ entropy/emacs-hydra-hollow-top-dispatch
-            nil
-            ,(entropy/emacs-hydra-hollow-merge-pretty-hydra-sparse-heads
-              split-heads)))))))
+
+      (entropy/emacs-hydra-hollow-category-frame-work-define+
+       entropy/emacs-hydra-hollow-init-top-dispatch-ctg-name-prefix
+       nil
+       (entropy/emacs-hydra-hollow-merge-pretty-hydra-sparse-heads
+        split-heads)))))
 
 ;; *** majro mode dispacher
 
-(advice-add 'major-mode-hydra
+(advice-add 'entropy/emacs-hydra-hollow-category-major-mode-hydra
             :before
             #'entropy/emacs-hydra-hollow-predicate-call-union-form)
 
@@ -1043,9 +1034,10 @@
     `(let ()
        ;; Define major-mode-hydra before lazy loading feature prevent
        ;; hydra adding cover its body
-       (major-mode-hydra-define ,mode
-         ,body
-         ,patched-heads-group)
+       (entropy/emacs-hydra-hollow-category-major-mode-define
+        ',mode
+        ',body
+        ',patched-heads-group)
 
        (unless (alist-get  ',mode entropy/emacs-hydra-hollow-major-mode-body-register)
          (push (cons ',mode ',body)
@@ -1077,9 +1069,10 @@
     `(let ()
        ;; add hydra for feature with lazy load prevent covering the
        ;; major defination
-       (major-mode-hydra-define+ ,mode
-         ,body
-         ,patched-heads-group)
+       (entropy/emacs-hydra-hollow-category-major-mode-define+
+        ',mode
+        ',body
+        ',patched-heads-group)
        )))
 
 (defun entropy/emacs-hydra-hollow-add-to-major-mode-hydra
