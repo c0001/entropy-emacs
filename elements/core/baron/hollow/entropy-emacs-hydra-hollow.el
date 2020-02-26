@@ -93,37 +93,32 @@
 
 ;; **** wapper
 
-(defun entropy/emacs-hydra-hollow-generalized-split-heads-for-key-slot
+(defun entropy/emacs-hydra-hollow-generalized-split-heads-common
     (pretty-split-heads)
   (let (rtn)
     (dolist (sp-head pretty-split-heads)
       (let* ((group (car sp-head))
+             (new-group (entropy/emacs-hydra-hollow--common-judge-p
+                         group))
              (pattern (caadr sp-head))
              (ptt-plist (cdddr pattern))
              (key (car pattern))
+             (new-key (entropy/emacs-hydra-hollow--common-judge-p
+                       key))
              (command (cadr pattern))
+             (new-command (or (ignore-errors
+                                (when (eq :eval (car command))
+                                  (eval (cadr command))))
+                              command))
              (notation (caddr pattern))
-             new-key)
-        (cond
-         ((stringp key)
-          (setq new-key key))
-         ((listp key)
-          (setq new-key
-                (funcall
-                 `(lambda ()
-                    ,key))))
-         ((symbolp key)
-          (setq new-key (symbol-value key)))
-         (t
-          (error "Wrong type of argument 'key' of pretty hydra head '%s'"
-                 key)))
-        (unless (stringp new-key)
-          (error "Wrong predicated 'key' form of pretty hydra head '%s'"
-                 key))
+             (new-notation (entropy/emacs-hydra-hollow--common-judge-p
+                            notation))
+             )
+
         (setq rtn
               (append
                rtn
-               `((,group ((,new-key ,command ,notation ,@ptt-plist))))))))
+               `((,new-group ((,new-key ,new-command ,new-notation ,@ptt-plist))))))))
     rtn))
 
 (defun entropy/emacs-hydra-hollow-get-enabled-pretty-group-heads
@@ -142,7 +137,7 @@
           (setq rtn (append rtn `((,group ,(cadr sp-head))))))))
     (when (not (null rtn))
       (setq rtn
-            (entropy/emacs-hydra-hollow-generalized-split-heads-for-key-slot
+            (entropy/emacs-hydra-hollow-generalized-split-heads-common
              rtn))
       (unless no-merge
         (setq rtn
@@ -630,6 +625,15 @@
            (format "eemacs-hydra-for-mode-%s"
                    mode-str))))
     mode-ctg-name-prefix))
+
+(defun entropy/emacs-hydra-hollow-category-get-major-mode-caller (mode)
+  (let (rtn)
+    (setq rtn
+          (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+           (entropy/emacs-hydra-hollow-category-get-major-mode-name-prefix
+            mode)
+           t))
+    rtn))
 
 (defun entropy/emacs-hydra-hollow-category-major-mode-define
     (mode pretty-body pretty-heads-group &optional category-width-indicator)

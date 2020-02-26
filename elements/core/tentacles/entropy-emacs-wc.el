@@ -197,7 +197,10 @@
   :eemacs-tpha
   (((:enable t))
    ("WI&BUF"
-    (("w" eemacs-hydra-for-mode-eyebrowse-mode--hydra-category-caller-0/body
+    (("w"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-get-major-mode-caller
+        'eyebrowse-mode))
       "Eyerbowse Map"
       :enable t
       :exit t
