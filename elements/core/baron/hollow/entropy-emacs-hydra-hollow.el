@@ -161,7 +161,7 @@
 ;; **** category framework
 ;; ***** library
 
-(defvar entropy/emacs-hydra-hollow-category-default-width 3)
+(defvar entropy/emacs-hydra-hollow-category-default-width 4)
 
 (defun entropy/emacs-hydra-hollow-partion-pretty-heads-group
     (pretty-heads-group)
@@ -981,10 +981,14 @@
          :quit-key "q")
        '("Basic"     ()
          "WI&BUF"    ()
-         "Pyim"      ()
          "Highlight" ()
+         "Pyim"      ()
          "WWW"       ()
-         "Misc."     ()))
+         "Rss"       ()
+         "Utils"     ()
+         "Misc."     ())
+       nil nil
+       '(3 3 nil))
 
       (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
         (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
@@ -1086,7 +1090,7 @@
 ;; **** sparse tree builder
 
 (cl-defmacro entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
-    (mode feature mode-map)
+    (mode)
   (let ((body
          (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
           mode)))
@@ -1095,25 +1099,20 @@
          (push (cons ',mode
                      ',body)
                entropy/emacs-hydra-hollow-major-mode-body-register))
-       (entropy/emacs-hydra-hollow-define-major-mode-hydra
-        ',mode ',feature ',mode-map
+       (entropy/emacs-hydra-hollow-category-major-mode-define
+        ',mode
         ',body
         '("Help"
-          (("C-h M-m" discover-my-major "Show Keybinds For Current Major Mode"
-            :exit t
-            :enable t)
-           ("C-h M-M" discover-my-mode "Show Keybinds For Enabled Minor Mode"
-            :exit t
-            :enable t))))
-       )))
+          nil)))))
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-    (mode feature mode-map &optional heads)
+    (mode feature mode-map do-not-build-sparse-tree &optional heads)
   (let ()
-    (funcall
-     `(lambda ()
-        (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
-         ,mode ,feature ,mode-map)))
+    (unless do-not-build-sparse-tree
+      (funcall
+       `(lambda ()
+          (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
+           ,mode))))
     (funcall
      `(lambda ()
         (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
@@ -1312,17 +1311,19 @@ both ommited, that as:
              (requests (cadr baron))
              (mode (or (car requests)
                        use-name))
-             (map (or (caddr requests)
-                      (intern (format "%s-map" (symbol-name use-name)))))
              (feature (or (cadr requests)
                           use-name))
+             (map (or (caddr requests)
+                      (intern (format "%s-map" (symbol-name use-name)))))
+             (do-not-build-sparse-tree
+              (cadddr requests))
              (heads (cadr island)))
         (setq
          init-form
          (append init-form
                  `((when (not (null ',enable))
                      (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-                      ',mode ',feature ',map ',heads)))))))
+                      ',mode ',feature ',map ',do-not-build-sparse-tree ',heads)))))))
     (use-package-concat
      rest-body
      init-form)))
