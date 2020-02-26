@@ -582,6 +582,10 @@
                    category-name-prefix inherit-base-pretty-body part-ctg
                    depth tail-category-name category-width-indicator-for-inject)
 
+                  ;; pop out current category-width-indicator-for-inject
+                  (when (not (null category-width-indicator-for-inject))
+                    (pop category-width-indicator-for-inject))
+
                   ;; modify tail category's pretty-body for add 'down' nav prompt
                   (let* ((tail-category-used-pretty-body-new-title
                           (entropy/emacs-hydra-hollow-category-concat-title-for-nav
