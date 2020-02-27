@@ -679,6 +679,63 @@
   (kbd "m")
   #'entropy/emacs-hydra-hollow-category-major-mode-hydra)
 
+;; ***** individual pretty hydra core
+
+
+(defun entropy/emacs-hydra-hollow-category-common-individual-get-name-prefix
+    (individual-hydra-name)
+  (let* ((fmstr "entropy/emacs-individual-hydra--%s")
+         (category-name-prefix
+          (format fmstr
+                  (symbol-name individual-hydra-name))))
+    category-name-prefix))
+
+(defun entropy/emacs-hydra-hollow-category-common-individual-get-caller
+    (individual-hydra-name)
+  (let ((name-prefix
+         (entropy/emacs-hydra-hollow-category-common-individual-get-name-prefix
+          individual-hydra-name)))
+    (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+     name-prefix t)))
+
+
+(defun entropy/emacs-hydra-hollow-category-common-individual-define
+    (individual-hydra-name pretty-body pretty-heads-group
+                           &optional category-width-indicator)
+  (let* ((name-prefix
+          (entropy/emacs-hydra-hollow-category-common-individual-get-name-prefix
+           individual-hydra-name)))
+    (entropy/emacs-hydra-hollow-category-frame-work-define
+     name-prefix pretty-body pretty-heads-group
+     nil nil
+     category-width-indicator)))
+
+(defun entropy/emacs-hydra-hollow-category-common-individual-define+
+    (individual-hydra-name pretty-body pretty-heads-group
+                           &optional
+                           category-width-indicator-for-build
+                           category-width-indicator-for-inject)
+  (let* ((name-prefix
+          (entropy/emacs-hydra-hollow-category-common-individual-get-name-prefix
+           individual-hydra-name)))
+    (entropy/emacs-hydra-hollow-category-frame-work-define+
+     name-prefix pretty-body pretty-heads-group
+     category-width-indicator-for-build
+     category-width-indicator-for-inject)))
+
+(defun entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+    (individual-hydra-name)
+  (let ((title-str
+         (format "%s Actions" (capitalize (symbol-name individual-hydra-name)))))
+    `(:title
+      (entropy/emacs-pretty-hydra-make-title
+       ,title-str
+       "faicon" "certificate")
+      :color ambranth
+      :quit-key "q"
+      :separator "═")))
+
+
 ;; **** heads predicate
 ;; ***** predicate defination
 
@@ -764,9 +821,8 @@
                                  :map-inject)))
          ;; :rest-args
          (rest-args (plist-get riched-split-pretty-head :rest-args))
-         (mode (car rest-args))
-         (feature (cadr rest-args))
-         (map (caddr rest-args))
+         (feature (car rest-args))
+         (map (cadr rest-args))
          )
     (let ()
       (cond
@@ -799,7 +855,7 @@
                    notation 'mode-map-inject
                    (member :global-bind-notation-beautified restrict)))
             (setq restrict
-                  (append restrict '(:map-inject-notation-beautified))))
+                  (append restrict '(:map-inject-notation-beautified t))))
           (when do-inherit-predicate
             (setq entropy/emacs-hydra-hollow-predicate-union-form
                   (append entropy/emacs-hydra-hollow-predicate-union-form
@@ -1051,7 +1107,7 @@
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
           heads-plist
-          `((:map-inject . (,mode ,feature ,mode-map))
+          `((:map-inject . (,feature ,mode-map))
             (:global-bind)
             (:eemacs-top-bind)))))
     `(let ()
@@ -1085,7 +1141,7 @@
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
           heads-plist
-          `((:map-inject . (,mode ,feature ,mode-map))
+          `((:map-inject . (,feature ,mode-map))
             (:global-bind)
             (:eemacs-top-bind))))
         (body (or hydra-body
@@ -1168,6 +1224,46 @@
           (entropy/emacs-hydra-hollow-define-major-mode-hydra
            ',mode ',feature ',mode-map ',hydra-body ',heads
            ',category-width-indicator-for-build))))))
+
+;; **** individual common hydra define&define+
+
+
+(defun entropy/emacs-hydra-hollow-common-individual-hydra-define
+    (individual-hydra-name feature keymap heads-plist
+                           &optional hydra-body category-width-indicator)
+  (let ((patched-heads-group
+         (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
+          heads-plist
+          `((:map-inject . (,feature ,keymap))
+            (:global-bind)
+            (:eemacs-top-bind))))
+        (body (or hydra-body
+                  (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+                   individual-hydra-name))))
+    (entropy/emacs-hydra-hollow-category-common-individual-define
+     individual-hydra-name body patched-heads-group
+     category-width-indicator)))
+
+(defun entropy/emacs-hydra-hollow-common-individual-hydra-define+
+    (individual-hydra-name feature keymap heads-plist
+                           &optional
+                           hydra-body
+                           category-width-indicator-for-build
+                           category-width-indicator-for-inject)
+  (let ((patched-heads-group
+         (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
+          heads-plist
+          `((:map-inject . (,feature ,keymap))
+            (:global-bind)
+            (:eemacs-top-bind))))
+        (body (or hydra-body
+                  (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+                   individual-hydra-name))))
+    (entropy/emacs-hydra-hollow-category-common-individual-define+
+     individual-hydra-name body patched-heads-group
+     category-width-indicator-for-build
+     category-width-indicator-for-inject)))
+
 
 ;; *** use-package extended
 ;; **** library
@@ -1478,6 +1574,138 @@ both ommited, that as:
  :eemacs-mmphca)
 
 
+
+;; **** :eemacs-indhc
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-add-keyword (keyword)
+  (setq use-package-keywords
+        ;; should go in the same location as :bind
+        (cl-loop for item in use-package-keywords
+                 if (eq item :bind)
+                 collect :bind and collect keyword
+                 else
+                 ;; don't add duplicates
+                 unless (eq item keyword)
+                 collect item)))
+
+(defalias 'use-package-normalize/:eemacs-indhc
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-normalize)
+
+(defalias 'use-package-handler/:eemacs-indhc
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-handler)
+
+(entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-add-keyword
+ :eemacs-indhc)
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-normalize
+    (use-name key key-value)
+  (let ()
+    (cond ((and (listp key-value)
+                (= 1 (length key-value)))
+           (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
+            (car key-value)))
+          (t
+           (error
+            "eemacs mm common use-package clause form wrong type for '%s' def!"
+            (symbol-name use-name))))))
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-handler
+    (use-name key $arg rest state)
+  (let* ((rest-body (use-package-process-keywords use-name rest state))
+         (init-form '()))
+    (dolist (island $arg)
+      (let* ((baron (car island))
+             (attr (car baron))
+             (enable (let ((enable-slot (plist-get attr :enable)))
+                       (entropy/emacs-hydra-hollow--common-judge-p
+                        enable-slot)))
+             (heads (cadr island))
+             (requests (cadr baron))
+             (individual-hydra-name (car requests))
+             (feature (cadr requests))
+             (keymap (caddr requests))
+             (hydra-body (cadddr requests))
+             (ctg-width-indc (nth 4 requests)))
+        (when enable
+          (setq init-form
+                (append init-form
+                        `((entropy/emacs-hydra-hollow-common-individual-hydra-define
+                           ',individual-hydra-name
+                           ',feature
+                           ',keymap
+                           ',heads
+                           ',hydra-body
+                           ',ctg-width-indc)))))))
+    (use-package-concat
+     rest-body
+     init-form)))
+
+;; **** :eemacs-indhca
+
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-add-keyword (keyword)
+  (setq use-package-keywords
+        ;; should go in the same location as :bind
+        (cl-loop for item in use-package-keywords
+                 if (eq item :eemacs-indhca)
+                 collect :eemacs-indhca and collect keyword
+                 else
+                 ;; don't add duplicates
+                 unless (eq item keyword)
+                 collect item)))
+
+(defalias 'use-package-normalize/:eemacs-indhca
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-normalize)
+
+(defalias 'use-package-handler/:eemacs-indhca
+  #'entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-handler)
+
+(entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-add-keyword
+ :eemacs-indhca)
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-normalize
+    (use-name key key-value)
+  (let ()
+    (cond ((and (listp key-value)
+                (= 1 (length key-value)))
+           (entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
+            (car key-value)))
+          (t
+           (error
+            "eemacs mm common use-package clause form wrong type for '%s' def!"
+            (symbol-name use-name))))))
+
+(defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-handler
+    (use-name key $arg rest state)
+  (let* ((rest-body (use-package-process-keywords use-name rest state))
+         (init-form '()))
+    (dolist (island $arg)
+      (let* ((baron (car island))
+             (attr (car baron))
+             (enable (let ((enable-slot (plist-get attr :enable)))
+                       (entropy/emacs-hydra-hollow--common-judge-p
+                        enable-slot)))
+             (heads (cadr island))
+             (requests (cadr baron))
+             (individual-hydra-name (car requests))
+             (feature (cadr requests))
+             (keymap (caddr requests))
+             (hydra-body (cadddr requests))
+             (ctg-width-indc-for-build (nth 4 requests))
+             (ctg-width-indc-for-inject (nth 5 requests)))
+        (when enable
+          (setq init-form
+                (append init-form
+                        `((entropy/emacs-hydra-hollow-common-individual-hydra-define+
+                           ',individual-hydra-name
+                           ',feature
+                           ',keymap
+                           ',heads
+                           ',hydra-body
+                           ',ctg-width-indc-for-build
+                           ',ctg-width-indc-for-inject)))))))
+    (use-package-concat
+     rest-body
+     init-form)))
 
 ;; * provide
 (provide 'entropy-emacs-hydra-hollow)
