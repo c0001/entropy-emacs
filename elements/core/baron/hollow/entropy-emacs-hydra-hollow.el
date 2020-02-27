@@ -997,13 +997,16 @@
        '("Basic"     ()
          "WI&BUF"    ()
          "Highlight" ()
-         "Pyim"      ()
-         "WWW"       ()
-         "Rss"       ()
+         "Shellpop"  ()
          "Utils"     ()
+         "Structure" ()
+         "WWW"       ()
+         "Project"   ()
+         "Rss"       ()
+         "Pyim"      ()
          "Misc."     ())
        nil nil
-       '(3 3 nil))
+       '(3 4 nil))
 
       (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
         (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
@@ -1049,7 +1052,8 @@
          (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
           heads-plist
           `((:map-inject . (,mode ,feature ,mode-map))
-            (:global-bind)))))
+            (:global-bind)
+            (:eemacs-top-bind)))))
     `(let ()
        ;; Define major-mode-hydra before lazy loading feature prevent
        ;; hydra adding cover its body
@@ -1082,7 +1086,8 @@
          (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
           heads-plist
           `((:map-inject . (,mode ,feature ,mode-map))
-            (:global-bind))))
+            (:global-bind)
+            (:eemacs-top-bind))))
         (body (or hydra-body
                   (alist-get
                    mode
@@ -1140,18 +1145,29 @@
           heads
           category-width-indicator-for-build
           category-width-indicator-for-inject)
-  (let ()
+  (let ((hydra-body
+         (or
+          (alist-get
+           mode
+           entropy/emacs-hydra-hollow-major-mode-body-register)
+          (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
+           mode))))
     (unless do-not-build-sparse-tree
       (funcall
        `(lambda ()
           (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
            ,mode ,category-width-indicator-for-build))))
     (funcall
-     `(lambda ()
-        (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-         ',mode ',feature ',mode-map ',heads
-         nil nil
-         ',category-width-indicator-for-inject)))))
+     (if (null do-not-build-sparse-tree)
+         `(lambda ()
+            (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+             ',mode ',feature ',mode-map ',heads
+             nil nil
+             ',category-width-indicator-for-inject))
+       `(lambda ()
+          (entropy/emacs-hydra-hollow-define-major-mode-hydra
+           ',mode ',feature ',mode-map ',hydra-body ',heads
+           ',category-width-indicator-for-build))))))
 
 ;; *** use-package extended
 ;; **** library
