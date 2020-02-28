@@ -37,6 +37,7 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** elfeed feed
 (use-package elfeed
@@ -46,38 +47,45 @@
   :bind (:map
          elfeed-show-mode-map
          ("q" . entropy/emacs-rss-elfeed-kill-buffer))
-  :preface
 
-  (setq entropy/emacs-rss--elfeed-uniform-func
-        #'(lambda ()
-            (defhydra entropy/emacs-rss-elfeed (:color blue :hint none)
-              "
-^feed^                ^filter^             ^update^                             ^entry^
-^^--------------------^^-------------------^^-----------------------------------^^-----------------------
-_A_dd-feed            _s_: clean filter    _u_: update multi                    _d_: delete seleted entry
-_D_elete-feed         _t_: tag filter      _U_: update all                      _+_: tag entry for
-_M-d_elete by regexp  _f_: feed filter     _g_: refresh                         _-_: untag entry for
-^^                    _m_: filter by hand  _M-u_: update multi with proxy
-^^                    ^^                   _M-U_: update all failed with proxy
-^^                    ^^                   _M-r_: update regx match with proxy
-"
+  :eemacs-tpha
+  (((:enable t))
+   ("Rss"
+    (("r e" elfeed "Read Rss By Elfeed"
+      :enable t
+      :exit t))))
 
-              ("A" elfeed-add-feed)
-              ("D" entropy/emacs-rss-elfeed-remove-feed)
-              ("M-d" entropy/emacs-rss-elfeed-remove-feed-by-regexp)
-              ("s" entropy/emacs-rss-elfeed-clean-filter)
-              ("m" elfeed-search-set-filter)
-              ("t" entropy/emacs-rss-elfeed-filter-by-tag)
-              ("f" entropy/emacs-rss-elfeed-filter-by-feedname)
-              ("u" entropy/emacs-rss-elfeed-multi-update-feeds)
-              ("U" elfeed-search-fetch)
-              ("g" entropy/emacs-rss-elfeed-format-feed-title)
-              ("d" entropy/emacs-rss-elfeed-delete-entry)
-              ("+" entropy/emacs-rss-elfeed-tag-selected)
-              ("-" entropy/emacs-rss-elfeed-untag-selected)
-              ("M-u" entropy/emacs-rss-elfeed-update-proxy)
-              ("M-U" entropy/emacs-rss-elfeed-proxy-update-all-nil-feeds)
-              ("M-r" entropy/emacs-rss-elfeed-update-proxyfeeds-regexp-match))))
+  :eemacs-mmphc
+  (((:enable t)
+    (elfeed-search-mode elfeed elfeed-search-mode-map t))
+   ("Feed"
+    (("A" elfeed-add-feed "Add feed" :enable t :exit t)
+     ("D" entropy/emacs-rss-elfeed-remove-feed "Delete feed commonly" :enable t :exit t)
+     ("M-d" entropy/emacs-rss-elfeed-remove-feed-by-regexp "Delete feed by regexp"
+      :enable t :exit t))
+    "Filter"
+    (("s" entropy/emacs-rss-elfeed-clean-filter "Clean current patched filter"
+      :enable t :exit t)
+     ("t" entropy/emacs-rss-elfeed-filter-by-tag "Filter feeds by tag"
+      :enable t :exit t)
+     ("f" entropy/emacs-rss-elfeed-filter-by-feedname "Filter feeds by name"
+      :enable t :exit t)
+     ("m" elfeed-search-set-filter "Filter feeds by hand" :enable t :exit t))
+    "Update"
+    (("u" entropy/emacs-rss-elfeed-multi-update-feeds "Update multiple feeds"
+      :enable t :exit t)
+     ("U" elfeed-search-fetch "Update all feeds" :enable t :exit t)
+     ("g" entropy/emacs-rss-elfeed-format-feed-title "Refresh all feeds" :enable t :exit t)
+     ("M-u" entropy/emacs-rss-elfeed-update-proxy "Update multiple feeds by proxy"
+      :enable t :exit t)
+     ("M-U" entropy/emacs-rss-elfeed-proxy-update-all-nil-feeds "Update all failed feeds with proxy"
+      :enable t :exit t)
+     ("M-r" entropy/emacs-rss-elfeed-update-proxyfeeds-regexp-match "Update feeds by regexp match with proxy"
+      :enable t :exit t))
+    "Entry"
+    (("d" entropy/emacs-rss-elfeed-delete-entry "Delete current entry" :enable t :exit t)
+     ("+" entropy/emacs-rss-elfeed-tag-selected "Add tag for current entry" :enable t :exit t)
+     ("-" entropy/emacs-rss-elfeed-untag-selected "Delete tag for current entry" :enable t :exit t))))
 
   :init
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
@@ -722,9 +730,7 @@ The minor changing was compat for above."
 
   (setq elfeed-search-print-entry-function 'entropy/emacs-rss--elfeed-search-print-entry--default)
 
-;; *** uniform
-  (funcall entropy/emacs-rss--elfeed-uniform-func)
-  (define-key elfeed-search-mode-map (kbd "C-q") #'entropy/emacs-rss-elfeed/body))
+  )
 
 ;; * provide
 (provide 'entropy-emacs-rss)

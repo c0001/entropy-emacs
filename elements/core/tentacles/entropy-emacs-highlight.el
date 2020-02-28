@@ -86,7 +86,7 @@
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
-    (("s e" entropy/emacs-hl-symbol-overlay-toggle
+    (("C-c h s e" entropy/emacs-hl-symbol-overlay-toggle
       "Toggle symbol overlay mode"
       :enable t
       :eemacs-top-bind t
@@ -94,22 +94,22 @@
       (if (bound-and-true-p symbol-overlay-mode)
           t
         nil))
-     ("s p" entropy/emacs-hl-symbol-overlay-put
+     ("C-c h s p" entropy/emacs-hl-symbol-overlay-put
       "Toggle all overlays of symbol at point"
       :enable t
       :eemacs-top-bind t
       :exit t)
-     ("s r" entropy/emacs-hl-symbol-overlay-remove-all
+     ("C-c h s r" entropy/emacs-hl-symbol-overlay-remove-all
       "Remove all highlighted symbols in the buffer"
       :enable t
       :eemacs-top-bind t
       :exit t)
-     ("s n" entropy/emacs-hl-symbol-overlay-jump-next
+     ("C-c h s n" entropy/emacs-hl-symbol-overlay-jump-next
       "Jump to the next location of symbol at point"
       :enable t
       :eemacs-top-bind t
       :exit t)
-     ("s p" entropy/emacs-hl-symbol-overlay-jump-prev
+     ("C-c h s p" entropy/emacs-hl-symbol-overlay-jump-prev
       "Jump to the previous location of symbol at point"
       :enable t
       :eemacs-top-bind t
@@ -137,7 +137,7 @@
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
-    (("p e" highlight-parentheses-mode
+    (("C-c h p e" highlight-parentheses-mode
       "highlight the surrounding parentheses"
       :enable t
       :eemacs-top-bind t
@@ -166,7 +166,7 @@
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
-    (("p i" highlight-indent-guides-mode
+    (("C-c h p i" highlight-indent-guides-mode
       "Display indent guides in a buffer"
       :enable t
       :eemacs-top-bind t
@@ -190,7 +190,7 @@
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
-    (("p r" rainbow-mode
+    (("C-c h p r" rainbow-mode
       "Turn on Rainbow-Mode"
       :enable t
       :eemacs-top-bind t
@@ -220,7 +220,7 @@
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
-    (("p d" rainbow-delimiters-mode
+    (("C-c h p d" rainbow-delimiters-mode
       "Toggle Rainbow-Delimiters mode"
       :enable t
       :eemacs-top-bind t
@@ -251,17 +251,17 @@
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
-    (("t o" hl-todo-occur
+    (("C-c h t o" hl-todo-occur
       "Find All TODO Keywords"
       :enable t
       :eemacs-top-bind t
       :exit t)
-     ("t p" hl-todo-previous
+     ("C-c h t p" hl-todo-previous
       "Jump to the previous TODO"
       :enable t
       :eemacs-top-bind t
       :exit t)
-     ("t n" hl-todo-next
+     ("C-c h t n" hl-todo-next
       "Jump to the next TODO"
       :enable t
       :eemacs-top-bind t
@@ -313,7 +313,7 @@
   :eemacs-tpha
   (((:enable t))
    ("Hightlight"
-    (("d h" diff-hl-mode
+    (("C-c h d h" diff-hl-mode
       "Toggle VC diff highlighting"
       :enable t
       :eemacs-top-bind t
@@ -398,7 +398,7 @@
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
-    (("d v" volatile-highlights-mode
+    (("C-c h d v" volatile-highlights-mode
       "visual feedback on some operations"
       :enable t
       :eemacs-top-bind t
@@ -420,7 +420,7 @@
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
-    (("d w" whitespace-mode
+    (("C-c h d w" whitespace-mode
       "Toggle whitespace visualization"
       :enable t
       :eemacs-top-bind t

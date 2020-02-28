@@ -199,17 +199,16 @@
    ("WI&BUF"
     (("w"
       (:eval
-       (entropy/emacs-hydra-hollow-category-get-major-mode-caller
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'eyebrowse-mode))
       "Eyerbowse Map"
       :enable t
       :exit t
       :eemacs-top-bind t))))
 
-  :eemacs-mmphc
+  :eemacs-indhc
   (((:enable t)
-    (eyebrowse-mode eyebrowse entropy/emacs-wc-eyebrowse-mode-map
-                    t))
+    (eyebrowse-mode eyebrowse entropy/emacs-wc-eyebrowse-mode-map))
    ("Common Switch"
     (("C-o" entropy/emacs-basic-eyebrowse-switch-top
       "Switch to Workspace Top"
@@ -250,7 +249,7 @@
       :enable t
       :exit t
       :global-bind t)
-     ("C-c M-v" entropy/emacs-basic-eyebrowse-create-derived
+     ("C-c M-v" entropy/emacs-basic-eyebrowse-switch-derived
       "Switch To Derived Work-Space"
       :enable t
       :exit t

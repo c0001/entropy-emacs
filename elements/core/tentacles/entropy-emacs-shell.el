@@ -303,7 +303,7 @@ segmentation fault."
 
   (defun entropy/emacs-shell--shellpop-bindkey-for-eshell (func)
     (entropy/emacs-hydra-hollow-add-for-top-dispatch
-     `("Basic"
+     `("Shellpop"
        (("-" ,func "Shellpop For Eshell"
          :enable t
          :exit t
@@ -318,7 +318,7 @@ segmentation fault."
                    "M-0"
                  "=")))
       (entropy/emacs-hydra-hollow-add-for-top-dispatch
-       `("Basic"
+       `("Shellpop"
          ((,key ,func "Shellpop For Ansi-Term"
                 :enable t
                 :exit t
@@ -332,7 +332,7 @@ segmentation fault."
              (not (eq system-type 'windows-nt)))
     (defun entropy/emacs-shell--shellpop-bindkey-for-vterm (func)
       (entropy/emacs-hydra-hollow-add-for-top-dispatch
-       `("Basic"
+       `("Shellpop"
          (("=" ,func "Shellpop For Vterm"
            :enable t
            :exit t

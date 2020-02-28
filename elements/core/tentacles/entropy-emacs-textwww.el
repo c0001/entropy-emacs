@@ -42,36 +42,29 @@
 (require 'entropy-emacs-hydra-hollow)
 
 ;; ** uniform
-(defvar entropy/emacs-textwww--uniform-func nil)
-(defvar entropy/emacs-textwww--uniform-expanded nil)
-(setq entropy/emacs-textwww--uniform-func
-      (lambda ()
-        (unless entropy/emacs-textwww--uniform-expanded
-          (cl-defmacro entropy/emacs-textwww--hydra-uniform
-              (&key hydra-name hydra-body-map bookmark-library-view bookmark-add
-                    browse-with-external
-                    current-page-url current-link-url previous-page next-page goto-url
-                    search-query)
-            (let ((hydra-body-func (intern (concat (symbol-name hydra-name) "/body"))))
-              `(progn
-                 (defhydra ,hydra-name (:color blue :hint nil)
-                   "
-^page-move^                ^link-retrieve^           ^bookmak operation^      ^search^
-^^-------------------------^^------------------------^^-----------------------^^----------
-_l_: previous page         _c_: current-page-url     _b_: view bookmarks      _s_: search
-_n_: next page             _u_: current-link-url     _a_: add bookmark
-_e_: browse-externally
-"
-                   ("b" ,bookmark-library-view)
-                   ("a" ,bookmark-add)
-                   ("e" ,browse-with-external)
-                   ("c" ,current-page-url)
-                   ("u" ,current-link-url)
-                   ("l" ,previous-page)
-                   ("n" ,next-page)
-                   ("s" ,search-query))
-                 (define-key ,hydra-body-map (kbd "C-q") #',hydra-body-func))))
-          (setq entropy/emacs-textwww--uniform-expanded t))))
+
+(cl-defmacro entropy/emacs-textwww--hydra-uniform
+    (&key mode feature mode-map
+          bookmark-library-view bookmark-add
+          browse-with-external
+          current-page-url current-link-url previous-page next-page goto-url
+          search-query)
+  (let ()
+    `(progn
+       (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+        ',mode ',feature ',mode-map t
+        '("Page Move"
+          (("l" ,previous-page "Previous Page" :enable t :exit t)
+           ("n" ,next-page "Next Page" :enable t :exit t)
+           ("e" ,browse-with-external "Browse Externally" :enable t :exit t))
+          "Link Retrieve"
+          (("c" ,current-page-url "Copy Current Page Url" :enable t :exit t)
+           ("u" ,current-link-url "Copy Current Link Url" :enable t :exit t))
+          "Bookmark Operation"
+          (("b" ,bookmark-library-view "View Bookmarks" :enable t :exit t)
+           ("a" ,bookmark-add "Add Bookmark" :enable t :exit t))
+          "Search"
+          (("s" ,search-query "Search" :enable t :exit t)))))))
 
 ;; ** browsers
 ;; *** emacs-w3m interface
@@ -94,11 +87,11 @@ _e_: browse-externally
   (defun entropy/emacs-textwww--w3m-browse-url (url &rest args)
     (w3m-goto-url url))
 
-  :config
-  (funcall entropy/emacs-textwww--uniform-func)
+  ;; uniform
   (entropy/emacs-textwww--hydra-uniform
-   :hydra-name entropy/emacs-textwww--w3m-uniform
-   :hydra-body-map w3m-mode-map
+   :mode w3m-mode
+   :feature w3m
+   :mode-map w3m-mode-map
    :bookmark-library-view w3m-bookmark-view
    :bookmark-add w3m-bookmark-add-current-url
    :browse-with-external w3m-view-url-with-browse-url
@@ -107,6 +100,8 @@ _e_: browse-externally
    :previous-page w3m-view-previous-page
    :next-page w3m-view-next-page
    :search-query w3m-search)
+
+  :config
 
   (entropy/emacs-lazy-load-simple w3m-search
     (add-to-list 'w3m-search-engine-alist
@@ -159,6 +154,21 @@ _e_: browse-externally
               url)
           (error (format "Can not find %s here!" choice))))))
   :init
+;; **** uniform
+
+  (entropy/emacs-textwww--hydra-uniform
+   :mode eww-mode
+   :feature eww
+   :mode-map eww-mode-map
+   :bookmark-library-view eww-list-bookmarks
+   :bookmark-add eww-add-bookmark
+   :browse-with-external entropy/emacs-textwww-eww-open-url-external
+   :current-page-url eww-copy-page-url
+   :current-link-url entropy/emacs-textwww-get-eww-url
+   :previous-page eww-back-url
+   :next-page eww-next-url
+   :search-query eww)
+
 ;; **** eww search engine
   (if entropy/emacs-eww-search-engine-customize
       (setq eww-search-prefix entropy/emacs-eww-search-engine))
@@ -195,20 +205,7 @@ Browser chosen based on variable
                rtn)))
         (browse-url url))))
 
-;; **** uniform
-
-  (funcall entropy/emacs-textwww--uniform-func)
-  (entropy/emacs-textwww--hydra-uniform
-   :hydra-name entropy/emacs-textwww--eww-uniform
-   :hydra-body-map eww-mode-map
-   :bookmark-library-view eww-list-bookmarks
-   :bookmark-add eww-add-bookmark
-   :browse-with-external entropy/emacs-textwww-eww-open-url-external
-   :current-page-url eww-copy-page-url
-   :current-link-url entropy/emacs-textwww-get-eww-url
-   :previous-page eww-back-url
-   :next-page eww-next-url
-   :search-query eww))
+  )
 
 ;; ** caller
 ;; *** search-web
@@ -216,7 +213,10 @@ Browser chosen based on variable
 ;; Post web search queries using `browse-url'.
 (use-package search-web
   :ensure nil
-  :commands (search-web search-web-region)
+  :commands (search-web
+             search-web-region
+             entropy/emacs-textwww-search-web-region-toggle
+             entropy/emacs-textwww-search-web-toggle)
   :eemacs-tpha
   (((:enable t))
    ("WWW"

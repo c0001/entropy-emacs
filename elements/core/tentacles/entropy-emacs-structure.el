@@ -75,7 +75,7 @@
          (python-mode . hs-minor-mode))
   :eemacs-tpha
   (((:enable t))
-   ("Basic"
+   ("Structure"
     (("M--" entropy/emacs-structure-toggle-hiding
       "Hide Show For Hide"
       :enable t
@@ -113,7 +113,7 @@
 
   :eemacs-tpha
   (((:enable t))
-   ("Basic"
+   ("Structure"
     (("M--" entropy/emacs-structure-yaf-toggle
       "yafold toggle hide/show"
       :enable t
@@ -132,7 +132,7 @@
              outorg-copy-edits-and-exit)
   :eemacs-tpha
   (((:enable t))
-   ("Basic"
+   ("Structure"
     (("M-o" outorg-edit-as-org "Edit As Org Block"
       :enable t
       :exit t
@@ -273,7 +273,7 @@ moving operation will cause non-terminated looping proceeding."
 
   :eemacs-tpha
   (((:enable t))
-   ("Basic"
+   ("Structure"
     (("\\" entropy/emacs-structure--outshine-cycle-buffer
       "Outshine Cycle"
       :enable t

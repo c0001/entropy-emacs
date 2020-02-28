@@ -210,55 +210,100 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
          ("C-c M-b" . counsel-recentf)
          ("C-c M-k" . counsel-yank-pop)
 
-;; **** entropy/emacs-top-keymap
-         :map entropy/emacs-top-keymap
-         ;; FILE group -- prefix 'f'
-         ("C-c f b"   . counsel-buffer-or-recentf)
-         ("C-c f f"   . counsel-fzf)
-         ("C-c f l"   . counsel-locate)
-         ("C-c f m b" . counsel-bookmark)
-         ("C-c f m d" . counsel-bookmarked-directory)
-         ("C-c f o"   . counsel-switch-buffer-other-window)
-         ("C-c f r"   . counsel-rg)
-
-         ;; GIT group -- prefix 'g'
-         ("C-c g c" . counsel-git-checkout)
-         ("C-c g g" . counsel-git-grep)
-
-         ;; GREP group -- prefix 's'
-         ("C-c s g" . counsel-grep)
-
-         ;; Misc.Emacs group -- prefix 'e'
-         ("C-c e /" . counsel-el)
-         ("C-c e c" . counsel-faces)
-         ("C-c e f" . counsel-fonts)
-         ("C-c e h" . counsel-command-history)
-         ("C-c e i" . counsel-imenu)
-         ("C-c e l" . counsel-load-library)
-         ("C-c e m" . counsel-minor)
-         ("C-c e p" . counsel-package)
-         ("C-c e s" . counsel-list-processes)
-         ("C-c e t" . counsel-load-theme)
-         ("C-c e u" . counsel-unicode-char)
-         ("C-c e v" . counsel-set-variable)
-
-         ;; TODO Misc.OS group -- prefix 'o'
-         ;; --------------------------------
-         ;; TODO org grep
-         ;; -------------
-         ;; MISCELLANEOUS group
-         ("C-c m a" . counsel-ag)
-         ("C-c m e" . counsel-colors-emacs)
-         ("C-c m l" . counsel-locate)
-         ("C-c m m" . counsel-minibuffer-history)
-         ("C-c m o" . counsel-outline)
-         ("C-c m p" . counsel-pt)
-         ("C-c m r" . counsel-rg)
-         ("C-c m w" . counsel-colors-web)
-
-;; **** counsel mode map
          :map counsel-mode-map
          ([remap swiper] . counsel-grep-or-swiper))
+
+;; *** entropy/emacs-top-keymap
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u c"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'counsel-mode))
+      "Counsel Stuffs Map"
+      :enable t :exit t))))
+
+  :eemacs-indhc
+  (((:enable t)
+    (counsel-mode counsel counsel-mode-map nil (2 2 2)))
+   (
+    ;; FILE group -- prefix 'f'
+    "Counsel File Manipulation"
+    (("C-c c f b" counsel-buffer-or-recentf "Open Recentf buffer or File"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c f f" counsel-fzf "Open a file using the fzf shell command"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c f l" counsel-locate "Call the "locate" shell command."
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c f m b" counsel-bookmark "View Emacs Bookmarks"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c f m d" counsel-bookmarked-directory "View Emacs Bookmarked Directories"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c f o" counsel-switch-buffer-other-window "Switch buffer to other window"
+      :enable t :exit t :eemacs-top-bind t))
+
+    ;; GIT group -- prefix 'g'
+    "Counsel Git Manipulation"
+    (("C-c c g c" counsel-git-checkout "Call the \"git checkout\" command"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c g g" counsel-git-grep "Grep for a string in the current Git repository"
+      :enable t :exit t :eemacs-top-bind t))
+
+    ;; GREP group -- prefix 's'
+    "Counsel Grep Manipulation"
+    (("C-c c s g" counsel-grep "Grep for a string in the file visited by the current buffer"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c s a" counsel-ag "Grep for a string in the current directory using ag"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c s p" counsel-pt "Grep for a string in the current directory using pt"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c s r" counsel-rg "Grep for a string in the current directory using rg"
+      :enable t :exit t :eemacs-top-bind t))
+
+    ;; Misc.Emacs group -- prefix 'e'
+    "Counsel Emacs Manipulation"
+    (("C-c c e /" counsel-el "Elisp completion at point"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e c" counsel-faces "Complete faces with preview"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e f" counsel-fonts "Show a list of all supported font families"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e h" counsel-command-history "Show the history of commands"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e i" counsel-imenu "Jump to a buffer position indexed by imenu"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e l" counsel-load-library "Load a selected the Emacs Lisp library"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e m" counsel-minor "Enable or disable minor mode"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e p" counsel-package "Install or delete packages"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e s" counsel-list-processes "Offer completion for ‘process-list’"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e t" entropy/emacs-ivy-counsel-load-theme "Load specific emacs theme"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e u" counsel-unicode-char "Insert COUNT copies of a Unicode character at point"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e v" counsel-set-variable "Set a variable SYM, with completion"
+      :enable t :exit t :eemacs-top-bind t))
+
+    ;; TODO Misc.OS group -- prefix 'o'
+    ;; --------------------------------
+    ;; TODO org grep
+    ;; -------------
+    ;; MISCELLANEOUS group
+    "Counsel Miscellaneous"
+    (("C-c c m e" counsel-colors-emacs
+      "Show a list of all supported colors for a particular frame"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c m m" counsel-minibuffer-history "Browse minibuffer history"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c m o" counsel-outline "Jump to an outline heading with completion"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c m w" counsel-colors-web "Show a list of all W3C web colors for use in CSS"
+      :enable t :exit t :eemacs-top-bind t))))
 
 ;; *** hooks
   :hook ((ivy-mode . counsel-mode))
@@ -403,7 +448,15 @@ this variable used to patching for origin `counsel-git'.")
 (use-package counsel-css
   :after css-mode
   :hook (css-mode . counsel-css-imenu-setup)
-  :bind (:map css-mode-map ("C-c M-d" . counsel-css))
+  :eemacs-indhca
+  (((:enable t)
+    (css-mode css-mode css-mode-map))
+   ("Misc."
+    (("C-c M-d" counsel-css "Jump to a css selector"
+      :enable t
+      :exit t
+      :map-inject t))))
+
   :init
   (when entropy/emacs-fall-love-with-pdumper
     (require 'css-mode)))
@@ -414,37 +467,30 @@ this variable used to patching for origin `counsel-git'.")
   :commands (ivy-xref-show-xrefs)
   :init (setq xref-show-xrefs-function 'ivy-xref-show-xrefs))
 
-;; *** use counsel projectile
-
-(use-package counsel-projectile
-  :after projectile
-  :commands
-  (counsel-projectile-switch-to-buffer
-   counsel-projectile-switch-project
-   counsel-projectile-find-dir
-   counsel-projectile-git-grep
-   counsel-projectile-mode
-   counsel-projectile-find-file
-   counsel-projectile-org-capture
-   counsel-projectile-find-file-dwim
-   counsel-projectile-ag
-   counsel-projectile
-   counsel-projectile-rg
-   counsel-projectile-org-agenda
-   counsel-projectile-grep)
-  :init
-  (counsel-projectile-mode +1))
-
 ;; *** use display world clock
 (use-package counsel-world-clock
   :commands  (counsel-world-clock)
-  :bind (:map entropy/emacs-top-keymap
-              ("C-c e w" . counsel-world-clock)))
+  :eemacs-indhca
+  (((:enable t)
+    (counsel-mode counsel counsel-mode-map))
+   ("Counsel Miscellaneous"
+    (("C-c c m c" counsel-world-clock "Display time in different time zone in echo area"
+      :enable t :exit t :eemacs-top-bind t)))))
 
 ;; *** use firefox bookmarks and history query and open
 (use-package counsel-ffdata
   :commands (counsel-ffdata-firefox-bookmarks
              counsel-ffdata-firefox-history)
+
+  :eemacs-indhca
+  (((:enable t)
+    (counsel-mode counsel counsel-mode-map))
+   ("Counsel Miscellaneous"
+    (("C-c c m f b" counsel-ffdata-firefox-bookmarks "Search your Firefox bookmarks"
+      :enable t :exit t :eemacs-top-bind t)
+     ("C-c c m f h" counsel-ffdata-firefox-history "Search your Firefox history"
+      :enable t :exit t :eemacs-top-bind t))))
+
   :init
   (setq counsel-ffdata-database-path
         (ignore-errors
@@ -460,10 +506,15 @@ this variable used to patching for origin `counsel-git'.")
 
 ;; ** avy
 (use-package avy
-  :bind
-  (("M-g l" . avy-goto-line)
-   :map entropy/emacs-top-keymap
-   ("M-;" . avy-goto-char)))
+  :commands
+  (avy-goto-line avy-goto-char)
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("M-g l" avy-goto-line "Jump to a line start in current buffer"
+      :enable t :exit t :global-bind t)
+     ("M-g c" avy-goto-char "Jump to the currently visible CHAR"
+      :enable t :exit t :global-bind t)))))
 
 ;; ** ivy all the icons
 ;; *** all the icons ivy
@@ -973,9 +1024,13 @@ Adding buffer unlock and wind narrowed region feature."
 (defun entropy/emacs-ivy--use-pt-common ()
   (use-package helm-pt
     :commands (helm-do-pt helm-projectile-pt)
-    :bind
-    (("C-c j" . helm-do-pt)
-     ("C-c k" . helm-projectile-pt))
+    :eemacs-tpha
+    (((:enable t))
+     ("Utils"
+      (("C-c j" helm-do-pt "Helm source for platinum searcher"
+        :enable t :exit t :global-bind t)
+       ("C-c k" helm-projectile-pt "Helm version of projectile-pt"
+        :enable t :exit t :global-bind t))))
     :config
     (dolist (el '(helm-do-pt helm-projectile-pt))
       (advice-add el :around #'entropy/emacs-lang-set-local-around-wrapper))))
@@ -983,8 +1038,13 @@ Adding buffer unlock and wind narrowed region feature."
 (defun entropy/emacs-ivy--use-ag-common ()
   (use-package helm-ag
     :commands (helm-do-ag helm-do-ag-project-root)
-    :bind (("C-c j" . helm-do-ag)
-           ("C-c k" . helm-do-ag-project-root))
+    :eemacs-tpha
+    (((:enable t))
+     ("Utils"
+      (("C-c j" helm-do-ag "Helm AG Search"
+        :enable t :exit t :global-bind t)
+       ("C-c k" helm-do-ag-project-root "Helm AG search for project root"
+        :enable t :exit t :global-bind t))))
     :init
     ;; case-sensitive for ag search command.
     (setq helm-ag-base-command
@@ -1015,8 +1075,13 @@ corresponding buffer."
   :commands (ffip-find-files
              entropy/emacs-ivy-ffip
              entropy/emacs-ivy-ffip-directory-only)
-  :bind (("C-x M-f" . entropy/emacs-ivy-ffip)
-         ("C-x M-d" . entropy/emacs-ivy-ffip-directory-only))
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("C-x M-f" entropy/emacs-ivy-ffip "Fuzzy Open File"
+      :enable t :exit t :global-bind t)
+     ("C-x M-d" entropy/emacs-ivy-ffip-directory-only "Fuzzy Open File Under Directory"
+      :enable t :exit t :global-bind t))))
   :config
   (defun entropy/emacs-ivy-ffip (_interaction)
     (interactive "P")
@@ -1025,9 +1090,9 @@ corresponding buffer."
             (lambda ()
               (let (target)
                 (setq target
-                      (completing-read
+                      (read-directory-name
                        "Choose Place Root: "
-                       'read-file-name-internal))
+                       nil nil t))
                 (unless (file-directory-p target)
                   (setq target (file-name-directory target)))
                 target)))
