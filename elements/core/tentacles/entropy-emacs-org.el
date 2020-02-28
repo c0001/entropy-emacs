@@ -44,6 +44,8 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-utils)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** Pre advice
 (defun entropy/emacs-org--export-panel-around-advice (old-func &rest args)
@@ -75,15 +77,74 @@
              org-toggle-link-display
              org-babel-result-hide-all)
   :diminish orgstruct-mode
-;; *** binding keys
-  :bind
-  (("\C-cl" . org-store-link)
-   ("\C-ca" . org-agenda)
-   ("\C-cc" . org-capture)
-   ("\C-cb" . org-switchb)
-   :map org-mode-map
-   ("C-<up>" . org-previous-item)
-   ("C-<down>" . org-next-item))
+;; *** eemacs binding keys
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Org"
+    (("C-c a" org-agenda "Dispatch agenda commands to collect entries to the agenda buffer"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-c c" org-capture "Capture something via Org-Mode"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-c b" org-switchb "Switch between Org buffers"
+      :enable t
+      :exit t
+      :global-bind t))))
+
+  :eemacs-mmphc
+  (((:enable t)
+    (org-mode org org-mode-map t (2 2 2 2 2 2 2 2 2)))
+   ("Org Link Manipulation"
+    (("C-c c-l" org-insert-link "Insert a org link"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("C-c l" org-store-link "Store a link to the current location"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("C-c M-o" entropy/emacs-org-eow "Open link in org-mode using ‘entropy/open-with-port"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("C-c C-o" entropy/emacs-org-open-at-point "Open link at point"
+      :enable t
+      :exit t
+      :map-inject t))
+    "Org Entry Navigation"
+    (("C-<up>" org-previous-item "Move to the beginning of the previous item"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("C-<down>" org-next-item "Move to the beginning of the next item"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("<M-S-down>" org-shiftmetadown "Drag the line at point down"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("<M-S-up>" org-shiftmetaup "Drag the line at point up"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("<M-S-left>" org-shiftmetaleft "Promote subtree or delete table column"
+      :enable t
+      :exit t
+      :map-inject t)
+     ("<M-S-right>" org-shiftmetaright "Demote subtree or insert table column"
+      :enable t
+      :exit t
+      :map-inject t))
+    "Org Head Tag"
+    (("C-c q" org-set-tags-command "Set the tags for the current visible entry"
+      :enable t
+      :exit t
+      :map-inject t))))
 
 ;; *** hook
   :hook ((org-mode . org-babel-result-hide-all))
@@ -801,8 +862,6 @@ Now just supply localization image file analyzing."
                 (push non-abbrev links))))))))
     links))
 
-;; ** org-htmlize for export code block with coloful sensitive which suitable with programe languages
-(use-package htmlize)
 
 ;; ** org-bullets
 (when (and (display-graphic-p)
