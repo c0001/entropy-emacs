@@ -44,7 +44,14 @@
     (unless (eq ibuffer-sorting-mode 'alphabetic)
       (ibuffer-do-sort-by-alphabetic)))
 
-  :bind ("C-x C-b" . ibuffer)
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("C-x C-b" ibuffer "Begin using Ibuffer to edit a list of buffers"
+      :enable t
+      :exit t
+      :global-bind t))))
+
   :init
   (setq ibuffer-filter-group-name-face 'font-lock-function-name-face)
   (add-hook 'ibuffer-hook
@@ -52,7 +59,13 @@
 
 ;; ** common ibuffer display
 (when (not entropy/emacs-enable-ibuffer-projectitle)
-  (global-set-key (kbd "C-x C-b") 'ibuffer)
+  (entropy/emacs-hydra-hollow-add-for-top-dispatch
+   '("WI&BUF"
+     (("C-x C-b" ibuffer "Begin using Ibuffer to edit a list of buffers"
+       :enable t
+       :exit t
+       :global-bind t))))
+
   (defun entropy/emacs-ibuffer--init-common ()
     (progn
       (ibuffer-set-filter-groups-by-mode)
