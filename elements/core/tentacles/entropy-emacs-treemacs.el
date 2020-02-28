@@ -68,9 +68,20 @@
         (apply orig-func orig-args)
       (setq treemacs--ready-to-follow t)))
 
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("<f8>" entropy/emacs-treemacs-toggle-treemacs
+      "Treemacs Slide Show Dwim"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-<f8>" treemacs "Treemacs Slide Show Native"
+      :enable t
+      :exit t
+      :global-bind t))))
+
   :init
-  (global-set-key (kbd "<f8>") #'entropy/emacs-treemacs-toggle-treemacs)
-  (global-set-key (kbd "<C-f8>") #'treemacs)
 
   (defun entropy/emacs-treemacs-toggle-treemacs ()
     (interactive)

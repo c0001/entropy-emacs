@@ -45,8 +45,19 @@
              entropy/emacs-neotree-neotree-close
              entropy/emacs-neotree-neotree-refresh-for-current
              entropy/emacs-neotree-neo-open-with)
-  :bind (("<f8>" . entropy/emacs-neotree-neotree-refresh-for-current)
-         ("C-<f8>" . entropy/emacs-neotree-neotree-close))
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("<f8>" entropy/emacs-neotree-neotree-refresh-for-current
+      "Neotree slide show"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-<f8>" entropy/emacs-neotree-neotree-close
+      "Globally close the neotree buffer and window"
+      :enable t
+      :exit t
+      :global-bind t))))
 
   :preface
   (defun entropy/emacs-neotree-neo-open-with (full-path &rest _)
