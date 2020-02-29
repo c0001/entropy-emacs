@@ -1054,15 +1054,18 @@
          "WI&BUF"    ()
          "Highlight" ()
          "Shellpop"  ()
+         "Tramp"     ()
          "Utils"     ()
          "Structure" ()
          "WWW"       ()
+         "Vcs"       ()
          "Project"   ()
          "Rss"       ()
          "Pyim"      ()
-         "Misc."     ())
+         "Misc."     ()
+         "Org"       ())
        nil nil
-       '(3 4 nil))
+       '(2 3 3 3))
 
       (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
         (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
@@ -1113,7 +1116,10 @@
     `(let ()
        ;; Define major-mode-hydra before lazy loading feature prevent
        ;; hydra adding cover its body
-       (entropy/emacs-hydra-hollow-category-major-mode-define
+       (,(if (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
+                       mode))
+             'entropy/emacs-hydra-hollow-category-major-mode-define+
+           'entropy/emacs-hydra-hollow-category-major-mode-define)
         ',mode
         ',body
         ',patched-heads-group
@@ -1201,20 +1207,23 @@
           heads
           category-width-indicator-for-build
           category-width-indicator-for-inject)
-  (let ((hydra-body
+  (let ((has-defined (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
+                              mode)))
+        (hydra-body
          (or
           (alist-get
            mode
            entropy/emacs-hydra-hollow-major-mode-body-register)
           (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
            mode))))
-    (unless do-not-build-sparse-tree
+    (unless (or has-defined do-not-build-sparse-tree)
       (funcall
        `(lambda ()
           (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
            ,mode ,category-width-indicator-for-build))))
     (funcall
-     (if (null do-not-build-sparse-tree)
+     (if (and (null do-not-build-sparse-tree)
+              (null has-defined))
          `(lambda ()
             (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
              ',mode ',feature ',mode-map ',heads
@@ -1231,7 +1240,9 @@
 (defun entropy/emacs-hydra-hollow-common-individual-hydra-define
     (individual-hydra-name feature keymap heads-plist
                            &optional hydra-body category-width-indicator)
-  (let ((patched-heads-group
+  (let ((has-defined (fboundp (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+                              individual-hydra-name)))
+        (patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-heads-group
           heads-plist
           `((:map-inject . (,feature ,keymap))
@@ -1240,9 +1251,13 @@
         (body (or hydra-body
                   (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
                    individual-hydra-name))))
-    (entropy/emacs-hydra-hollow-category-common-individual-define
-     individual-hydra-name body patched-heads-group
-     category-width-indicator)))
+    (if (null has-defined)
+        (entropy/emacs-hydra-hollow-category-common-individual-define
+         individual-hydra-name body patched-heads-group
+         category-width-indicator)
+      (entropy/emacs-hydra-hollow-category-common-individual-define+
+       individual-hydra-name body patched-heads-group
+       category-width-indicator))))
 
 (defun entropy/emacs-hydra-hollow-common-individual-hydra-define+
     (individual-hydra-name feature keymap heads-plist
