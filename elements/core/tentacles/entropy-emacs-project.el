@@ -50,7 +50,7 @@
    ("Project"
     (("C-c p"
       (:eval
-       (entropy/emacs-hydra-hollow-category-get-major-mode-caller
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'projectile-mode))
       "Projectile Map"
       :enable t :exit t))))

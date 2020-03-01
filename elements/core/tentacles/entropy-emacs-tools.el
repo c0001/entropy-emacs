@@ -35,6 +35,8 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-utils)
+(require 'entropy-emacs-hydra-hollow)
 (require 'subr-x)
 
 ;; ** gatherd for minor tools
@@ -118,8 +120,13 @@ Version 2016-10-15"
              (let ((process-connection-type nil))
                (start-process "" nil "xdg-open" $fpath)))
            $file-list))))))
-  (entropy/emacs-lazy-load-simple dired
-    (define-key dired-mode-map (kbd "<C-return>") 'entropy/emacs-tools-open-in-external-app)))
+
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   'dired-mode 'dired 'dired-mode-map
+   '("Open item"
+     (("<C-return>" entropy/emacs-tools-open-in-external-app
+       "Open the current file or dired marked files in external app"
+       :enable t :exit t :map-inject t)))))
 
 ;; ***** Open in desktop manager
 (when (display-graphic-p)
@@ -146,7 +153,7 @@ Version 2017-12-23"
                   (shell-command
                    (concat "open " default-directory ))
                 (shell-command
-                 (concat "open -R " (car (dired-get-marked-files ))))))
+                 (concat "open -R " (car (dired-get-marked-files))))))
           (shell-command
            (concat "open -R " $path))))
        ((string-equal system-type "gnu/linux")
@@ -157,8 +164,12 @@ Version 2017-12-23"
         ;; emacs till the folder is closed. eg with nautilus
         ))))
 
-  (entropy/emacs-lazy-load-simple dired
-    (define-key dired-mode-map (kbd "C-=") 'entropy/emacs-tools-show-in-desktop)))
+  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+   'dired-mode 'dired 'dired-mode-map
+   '("Open item"
+     (("C-=" entropy/emacs-tools-show-in-desktop
+       "Show current file in desktaop"
+       :enable t :exit t :map-inject t)))))
 
 ;; ***** Open in terminal
 (when (display-graphic-p)
@@ -203,15 +214,20 @@ Version 2017-10-09"
      ((string-equal system-type "gnu/linux")
       (let ((process-connection-type nil))
         (start-process "" nil "gnome-terminal" default-directory)))))
-  (global-set-key (kbd "C-;") 'entropy/emacs-tools-open-in-terminal)
+
+  (entropy/emacs-hydra-hollow-add-for-top-dispatch
+   '("Basic"
+     (("C-;" entropy/emacs-tools-open-in-terminal
+       "Open the current location in a new terminal window"
+       :enable t :exit t :global-bind t))))
 
   (when sys/win32p
     (defun entropy/emacs-tools-cmd()
       (interactive)
       (if entropy/emacs-Cmder-enable
-          (let (($path  default-directory ))
+          (let (($path default-directory))
             (w32-shell-execute "open" entropy/emacs-Cmder-path (replace-regexp-in-string "/" "\\" $path t t)))
-        (let (($path  default-directory ))
+        (let (($path default-directory))
           (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t)))))))
 
 ;; **** entropy-open-with
@@ -221,11 +237,20 @@ Version 2017-10-09"
   :ensure nil
   :commands (entropy/open-with-dired-open
              entropy/open-with-buffer)
-  :bind (:map entropy/emacs-top-keymap
-         ("M-1" . entropy/open-with-buffer))
-  :init
-  (entropy/emacs-lazy-load-simple dired
-    (define-key dired-mode-map (kbd "M-RET") 'entropy/open-with-dired-open))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("M-1" entropy/open-with-buffer "Buffer open with portable apps"
+      :enable t :exit t :eemacs-top-bind t))))
+
+  :eemacs-mmphca
+  (((:enable t)
+    (dired-mode dired dired-mode-map))
+   ("Open item"
+    (("M-RET" entropy/open-with-dired-open "Dired open with portable apps"
+      :enable t :exit t :map-inject t))))
+
   :config
   (defun entropy/emacs-tools--open-with-port-stuffs-around (oldfunc &rest arg-rest)
     "when in `entropy/emacs-web-development-environment' advice
@@ -234,8 +259,9 @@ development web-browser."
     (let ((entropy/emacs-web-development-environment nil))
       (apply oldfunc arg-rest)))
   (entropy/emacs-lazy-load-simple entropy-open-with
-    (advice-add 'entropy/open-with-port :around #'entropy/emacs-tools--open-with-port-stuffs-around)))
-
+    (advice-add 'entropy/open-with-port
+                :around
+                #'entropy/emacs-tools--open-with-port-stuffs-around)))
 
 ;; *** vertical center display
 (defun entropy/emacs-tools-vertical-center ()
@@ -244,15 +270,18 @@ like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom '(middle)))
 
-(global-set-key (kbd "C-l")  'entropy/emacs-tools-vertical-center)
-
 (defun entropy/emacs-tools-vertical-to-bottom ()
   "Just vertical-bottom buffer without further operation supplied
 like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom -1))
 
-(entropy/emacs-!set-key (kbd "C-l") 'entropy/emacs-tools-vertical-to-bottom)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("WI&BUF"
+   (("C-l" entropy/emacs-tools-vertical-center "Vertical center buffer"
+     :enable t :exit t :global-bind t)
+    ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter top bottom’"
+     :enable t :exit t :global-bind t))))
 
 ;; *** beacon cursor blanking
 (use-package beacon
@@ -272,9 +301,13 @@ like `recenter-top-bottom'."
 ;; visual feedback directly in the buffer.
 (use-package visual-regexp
   :commands (vr/replace vr/query-replace)
-  :bind
-  (("C-c r" . vr/replace)
-   ("C-c q" . vr/query-replace))
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("C-c r" vr/replace "Regexp-replace with live visual feedback"
+      :enable t :exit t :global-bind t)
+     ("C-c q" vr/query-replace "Use vr/query-replace like you would use query-replace-regexp"
+      :enable t :exit t :global-bind t))))
   :config
   (dolist (el '(vr--do-replace vr--perform-query-replace vr--interactive-get-args))
     (advice-add el :around #'entropy/emacs-case-fold-focely-around-advice)))
@@ -282,7 +315,12 @@ like `recenter-top-bottom'."
 
 ;; *** ialign
 (use-package ialign
-  :commands (ialign))
+  :commands (ialign)
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("C-c i" ialign "Interactively align region"
+      :enable t :exit t :global-bind t)))))
 
 ;; *** Firefox edit use emacs
 ;;
@@ -303,6 +341,23 @@ like `recenter-top-bottom'."
   ;; you can active follow code block for start atomic server with startup of emacs.
   ;;      :init (atomic-chrome-start-server)
   :commands (atomic-chrome-start-server)
+  :defines (atomic-chrome-server-atomic-chrome)
+  :preface
+  (defun entropy/emacs-tools-toggle-atomic-chrome ()
+    (interactive)
+    (require 'atomic-chrome)
+    (if atomic-chrome-server-atomic-chrome
+        (atomic-chrome-stop-server)
+      (atomic-chrome-start-server)))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u a" entropy/emacs-tools-toggle-atomic-chrome
+      "Toggle websocket server for atomic-chrome"
+      :enable t :exit t
+      :toggle atomic-chrome-server-atomic-chrome))))
+
   :config
   (setq atomic-chrome-default-major-mode 'markdown-mode)
   (setq atomic-chrome-url-major-mode-alist
@@ -314,6 +369,14 @@ like `recenter-top-bottom'."
   :commands (discover-my-major discover-my-mode)
   :bind (("C-h M-m" . discover-my-major)
          ("C-h M-M" . discover-my-mode))
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("C-h M-m" discover-my-major "Create a makey popup listing all major-mode"
+      :enable t :exit t :global-bind t)
+     ("C-h M-M" discover-my-mode "Create a makey popup listing all minor-mode"
+      :enable t :exit t :global-bind t))))
+
   :config
 
   (defvar entropy/emacs-tools--dmm-sections-log nil)
@@ -362,14 +425,24 @@ which determined by the scale count 0.3 "
      (ceiling (* 0.3
                  (frame-width))))
     (other-window 1)))
-(global-set-key (kbd "C-x M-3") 'entropy/emacs-tools-horizonal-split-window)
 
-;; **** Configure network proxy
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("WI&BUF"
+   (("C-x M-3" entropy/emacs-tools-horizonal-split-window
+     "Split the single window to two windows with different size"
+     :enable t :exit t :global-bind t))))
+
 ;; **** entropy-emacs version show
 (defun entropy/emacs-tools-entropy-emacs-version ()
   "Show entropy-emacs version."
   (interactive)
   (message entropy/emacs-ecv))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b v" entropy/emacs-tools-entropy-emacs-version
+     "Show entropy-emacs version"
+     :enable t :exit t))))
 
 ;; **** show time
 (defun entropy/emacs-tools-time-show ()
@@ -377,7 +450,12 @@ which determined by the scale count 0.3 "
   (interactive)
   (let ((time (format-time-string "%Y-%m-%d %a %H:%M:%S")))
     (message "Now is %s" time)))
-(global-set-key (kbd "<f12>") 'entropy/emacs-tools-time-show)
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("<f12>" entropy/emacs-tools-time-show
+     "Show current time with date information also"
+     :enable t :exit t :global-bind t))))
 
 ;; *** encoding and end-of-line conversation
 (defun entropy/emacs-tools-dos2unix-internal ()
@@ -457,6 +535,21 @@ which determined by the scale count 0.3 "
         (message "error: Can't find 'iconv' or 'mv' executable program in your path."))
     (user-error "Please try corrected encoding! ")))
 
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Utils"
+   (("u b d i" entropy/emacs-tools-dos2unix-internal
+     "Exchange the buffer end-of-line type to unix sytle internally"
+     :enable t :exit t)
+    ("u b d e" entropy/emacs-tools-dos2unix-external
+     "Exchange the buffer end-of-line type to unix sytle externally"
+     :enable t :exit t)
+    ("u b u i" entropy/emacs-tools-save-buffer-as-utf8-internal
+     "Revert a buffer with ‘CODING-SYSTEM’ and save as UTF-8 internally"
+     :enable t :exit t)
+    ("u b u e" entropy/emacs-tools-save-buffer-as-utf8-external
+     "Revert a buffer with ‘CODING-SYSTEM’ and save as UTF-8 externally"
+     :enable t :exit t))))
 
 ;; *** Foreign language realtime translation
 (defun entropy/emacs-tools-toggle-dict (&optional default)
@@ -655,28 +748,43 @@ For now, there's three choices for you:
 (use-package entropy-cn-dict
   :ensure nil
   :commands entropy/cndt-query
-  :bind (("C-x y" . entropy/cndt-query)))
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("C-x y" entropy/cndt-query "Simple Translate Chinese at point"
+      :enable t :exit t :global-bind t)))))
 
 ;; *** Log keyboard commands to buffer
 ;;     Show event history and command history of some or all buffers.
 (use-package command-log-mode
   :diminish (command-log-mode . "¢")
+  :defines (command-log-mode)
   :commands (command-log-mode)
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u l" entropy/emacs-tools-command-log-mode
+      "Toggle keyboard command logging"
+      :enable t :toggle command-log-mode))))
   :init
   (setq command-log-mode-auto-show t)
-  (defvar command-log-mode nil)
   (defun entropy/emacs-tools-command-log-mode ()
     (interactive)
+    (require 'command-log-mode)
     (if (not command-log-mode)
         (progn (command-log-mode)
-               (entropy/emacs-lazy-load-simple command-log-mode
-                 (clm/toggle-command-log-buffer)))
+               (clm/toggle-command-log-buffer))
       (command-log-mode 0))))
 
 ;; *** pomidor A simple and cool pomodoro timer
 (use-package pomidor
   :commands (pomidor)
-  :bind (("C-c <f12>" . pomidor)))
+  :eemacs-tpha
+  (((:enale t))
+   ("Utils"
+    (("C-c <f12>" pomidor
+      "A simple and cool pomodoro technique timer"
+      :enable t :exit t :global-bind t)))))
 
 ;; *** maple preview
 (when (equal entropy/emacs-use-extensions-type 'submodules)
@@ -736,7 +844,28 @@ For now, there's three choices for you:
    copyit-file-exif-information
    copyit-file-pathname
    copyit-ssh
-   copyit-variable))
+   copyit-variable)
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u p u" copyit-file-as-data-uri
+      "Copy ‘FILE-PATH’ content as Data URI format"
+      :enable t :exit t)
+     ("u p c" copyit-file-content
+      "Copy ‘FILE-PATH’ content"
+      :enable t :exit t)
+     ("u p e" copyit-file-exif-information
+      "Copy exif-information by ‘FILE-PATH’"
+      :enable t :exit t)
+     ("u p p" copyit-file-pathname
+      "Copy ‘FILE-PATH’"
+      :enable t :exit t)
+     ("u p s" copyit-ssh
+      "Copy ssh file"
+      :enable t :exit t)
+     ("u p v" copyit-variable
+      "Copy pretty-printed value ‘SYMBOL’s variable"
+      :enable t :exit t)))))
 
 ;; *** Emacs startup profiler
 (use-package esup
@@ -751,10 +880,21 @@ For now, there's three choices for you:
   (defun entropy/emacs-tools-gen-el-readme ()
     "Transfered current elisp buffer to markdown README file. "
     (interactive)
+    (require 'entropy-emacs-emacs-lisp)
     (when (eq major-mode 'emacs-lisp-mode)
       (let ((buffer (funcall 'entropy/emacs-elisp-toggle-outline-struct-style nil t)))
         (with-current-buffer buffer
-          (el2org-generate-readme))))))
+          (el2org-generate-readme)))))
+  :eemacs-mmphca
+  (((:enable t)
+    (emacs-lisp-mode elisp-mode emacs-lisp-mode-map))
+   ("Convert"
+    (("c o" el2org-generate-org "Generate org file from current elisp file"
+      :enable t :exit t)
+     ("c h" el2org-generate-html "Generate html file from current elisp file"
+      :enable t :exit t)
+     ("c r" entropy/emacs-tools-gen-el-readme "Generate readme file from current elisp file"
+      :enable t :exit t)))))
 
 
 ;; ****  require by el2org for generate source to readme which be with the github style md file
@@ -777,7 +917,14 @@ For now, there's three choices for you:
    (sys/is-posix-compatible
     (dired "~/"))))
 
-(defalias 'ehome 'entropy/emacs-tools-goto-sys-home "Alias for entropy/emacs-tools-goto-sys-home.")
+(defalias 'ehome
+  'entropy/emacs-tools-goto-sys-home
+  "Alias for entropy/emacs-tools-goto-sys-home.")
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b h" ehome "Open HOME Directory"
+     :enable t :exit t))))
 
 ;; *** visual-ascii-mode
 
@@ -786,8 +933,12 @@ For now, there's three choices for you:
 
 (use-package visual-ascii-mode
   :commands (global-visual-ascii-mode visual-ascii-mode)
-  :bind (:map help-mode-map
-              ("v" . visual-ascii-mode)))
+  :eemacs-mmphca
+  (((:enable t)
+    (help-mode help-mode help-mode-map))
+   ("Visual"
+    (("v" visual-ascii-mode "Visualize ascii code on buffer"
+      :enable t :exit t :map-inject t)))))
 
 ;; ** entropy-emacs self packages
 
@@ -843,43 +994,95 @@ can't visit one page suddenly."
   :ensure nil
   :commands (entropy/unfill-full-buffer-without-special-region
              entropy/unfill-paragraph
-             entropy/fill-full-buffer-without-special-region))
+             entropy/fill-full-buffer-without-special-region)
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u x u" entropy/unfill-full-buffer-without-special-region
+      "Unfill full buffer without specific special region"
+      :enable t :exit t)
+     ("u x f" entropy/fill-full-buffer-without-special-region
+      "Fill full buffer without specific special region"
+      :enable t :exit t)
+     ("u x p" entropy/unfill-paragraph
+      "Takes paragraph into a single line of text"
+      :enable t :exit t)))))
 
 ;; *** entropy-org-batch-refile
 (use-package entropy-org-batch-refile
   :ensure nil
-  :commands entropy/org-batch-refile-tags-read-and-do)
+  :commands entropy/org-batch-refile-tags-read-and-do
+  :eemacs-mmphca
+  (((:enable t)
+    (org-mode org org-mode-map))
+   ("Org Refile"
+    (("r b" entropy/org-batch-refile-tags-read-and-do
+      "Refile by specifying the tag matched"
+      :enable t :exit t)))))
 
 ;; *** entropy-cp-or-mv
 (use-package entropy-dired-cp-or-mv
   :ensure nil
   :commands (entropy/cpmv-dired-get-files-list
-             entropy/cpmv-to-current))
+             entropy/cpmv-to-current)
+  :eemacs-mmphca
+  (((:enable t)
+    (dired-mode dired dired-mode-map))
+   ("Misc."
+    (("m c" entropy/cpmv-dired-get-files-list
+      "Get files list for cp or mv"
+      :enable t :exit t)
+     ("m t" entropy/cpmv-to-current
+      "Cp or Mv fils or directory"
+      :enable t :exit t)))))
 
 ;; *** entropy-counsel-stuffs
 (use-package entropy-counsel-stuffs
   :ensure nil
-  :bind (("M-<f12>" . entropy/cs-recorde-entry)
-         ("C-<f12>" . entropy/cs-open-all))
-  :commands (entropy/cs-filter-open
+  :commands (entropy/cs-open-all
+             entropy/cs-filter-open
              entropy/cs-recorde-entry
              entropy/cs-converter
              entropy/cs-modifiy
-             entropy/cs-delete))
+             entropy/cs-delete)
+  :eemacs-tpha
+  (((:enable t))
+   ("Project"
+    (("M-<f12>" entropy/cs-recorde-entry
+      "Recorde stuff entry"
+      :enable t :exit t :global-bind t)
+     ("C-<f12>" entropy/cs-open-all
+      "Read all stuffs"
+      :enable t :exit t :global-bind t)))))
 
 ;; *** entropy-portableapps
 (use-package entropy-portableapps
   :if sys/is-win-group
   :ensure nil
   :commands (entropy/poapps-query-open)
-  :bind (:map entropy/emacs-top-keymap
-         ("<M-up>" . entropy/poapps-query-open)))
+  :eemacs-tpha
+  (((:enable t))
+   ("Misc."
+    (("<M-up>" entropy/poapps-query-open
+      "Query and open portableapps"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)))))
 
 ;; *** entropy-epub2org
 (use-package entropy-epub2org
   :ensure nil
   :commands (entropy/ep2o-dispatcher
              entropy/ep2o-src-adjusting-manually)
+  :eemacs-tpha
+  (((:enable t))
+   ("Misc."
+    (("m e d" entropy/ep2o-dispatcher
+      "Convert epub book to org-files"
+      :enable t :exit t)
+     ("m e m" entropy/ep2o-src-adjusting-manually
+      "Re-adjust epub book org version"
+      :enable t :exit t))))
   :config
   (defun entropy/emacs-tools--ep2o-tidy-up-image-width-defaut ()
     (unless (equal major-mode 'org-mode)

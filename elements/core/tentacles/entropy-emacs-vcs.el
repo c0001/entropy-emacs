@@ -34,6 +34,9 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-utils)
+(require 'entropy-emacs-hydra-hollow)
+
 
 ;; ** main
 ;; *** Git
@@ -43,8 +46,13 @@
   :commands
   (magit-status
    magit-dispatch)
-  :bind (("C-x g" . magit-status)
-         ("C-x M-g" . magit-dispatch))
+  :eemacs-tpha
+  (((:enable t))
+   ("Vcs"
+    (("C-x g" magit-status "Show the status of the current Git repository in a buffer"
+      :enable t :exit t :global-bind t)
+     ("C-x M-g" magit-dispatch "Invoke a Magit command from a list of available commands"
+      :enable t :exit t :global-bind t))))
   :init
 
   ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
@@ -97,7 +105,11 @@
 (use-package magit-files
   :if (executable-find "git")
   :ensure nil
-  :bind (("C-c M-g" . magit-file-popup))
+  :eemacs-tpha
+  (((:enable t))
+   ("Vcs"
+    (("C-c M-g" magit-file-popup "Popup console for Magit commands in file-visiting buffers"
+      :enable t :exit t :global-bind t))))
   :commands
   (magit-file-popup))
 
@@ -144,8 +156,14 @@
   :diminish magit-gitflow-mode
   :commands (magit-gitflow-popup
              turn-on-magit-gitflow)
-  :bind (:map magit-status-mode-map
-              ("G" . magit-gitflow-popup))
+
+  :eemacs-mmphca
+  (((:enable t)
+    (magit-status-mode magit-status magit-status-mode-map))
+   ("Gitflow"
+    (("G" magit-gitflow-popup "Popup console for GitFlow commands"
+      :enable t :exit t :map-inject t))))
+
   :init (add-hook 'magit-mode-hook #'turn-on-magit-gitflow)
   :config
   (magit-define-popup-action 'magit-dispatch-popup
@@ -162,9 +180,15 @@
 ;; **** Pop up last commit information of current line
 (use-package git-messenger
   :commands git-messenger:copy-message
-  :bind (("C-x v p" . git-messenger:popup-message)
-         :map git-messenger-map
-         ("m" . git-messenger:copy-message))
+  :bind (:map git-messenger-map
+              ("m" . git-messenger:copy-message))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Vcs"
+    (("C-x v p" git-messenger:popup-message "Git Messenger"
+      :enable t :exit t :global-bind t))))
+
   :init
   ;; Use magit-show-commit for showing status/diff commands
   (setq git-messenger:use-magit-popup t))
@@ -179,9 +203,15 @@
 ;; **** Highlighting regions by last updated time
 (use-package smeargle
   :commands (smeargle smeargle-commits smeargle-clear)
-  :bind (("C-x v s" . smeargle)
-         ("C-x v c" . smeargle-commits)
-         ("C-x v r" . smeargle-clear)))
+  :eemacs-tpha
+  (((:enable t))
+   ("Vcs"
+    (("C-x v s" smeargle "Highlight regions by last updated time"
+      :enable t :exit t :global-bind t)
+     ("C-x v c" smeargle-commits "Highlight regions by age of commits"
+      :enable t :exit t :global-bind t)
+     ("C-x v r" smeargle-clear "Clear smeargle overlays in current buffer"
+      :enable t :exit t :global-bind t)))))
 
 ;; **** Git major modes
 (use-package gitattributes-mode

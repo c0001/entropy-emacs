@@ -34,12 +34,23 @@
 ;; ** require
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
+(require 'entropy-emacs-utils)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** yasnippet
 (use-package yasnippet
   :diminish yas-minor-mode
   :commands (yas-global-mode yas-expand)
-  :bind (("M-i" . entropy/emacs-yas-enable-or-expand))
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("M-i" entropy/emacs-yas-enable-or-expand
+      "Expand current point content with yasnippet"
+      :enable t
+      :exit t
+      :global-bind t))))
+
   :init
   (defun entropy/emacs-yas-enable-or-expand (&rest args)
     "Auto enable `yas-global-mode' when not as it and call
@@ -116,9 +127,15 @@
 
 (use-package auto-yasnippet
   :commands (aya-create aya-expand)
-  :bind (("M-p" . aya-create)
-         ("M-e" . aya-expand)
-         ("M-o" . entropy/emacs-yas-aya-choose-snippet))
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("M-p" aya-create "Create a snippet from the text between BEG and END"
+      :enable t :exit t :global-bind t)
+     ("M-e" aya-expand "Insert the last yasnippet created by ‘aya-create’"
+      :enable t :exit t :global-bind t)
+     ("M-e" entropy/emacs-yas-aya-choose-snippet "Choose aya snippet by recorded history"
+      :enable t :exit t :global-bind t))))
 
   :config
   (defvar entropy/emacs-yas--aya-snippets nil

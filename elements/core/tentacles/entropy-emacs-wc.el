@@ -40,6 +40,13 @@
 ;;
 ;; * Code:
 
+;; ** require
+(require 'entropy-emacs-defconst)
+(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
+(require 'entropy-emacs-utils)
+(require 'entropy-emacs-hydra-hollow)
+
 ;; ** Window switch
 ;; *** window numberic indicator
 (use-package ace-window

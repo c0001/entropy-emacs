@@ -35,6 +35,13 @@
 ;;
 ;; * Code:
 
+;; ** require
+(require 'entropy-emacs-defconst)
+(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-defun)
+(require 'entropy-emacs-utils)
+(require 'entropy-emacs-hydra-hollow)
+
 ;; ** library
 (defun entropy/emacs-tramp--get-ssh-config ()
   "Get ssh config for extracting host candidates using func
@@ -160,9 +167,6 @@ This func divided this string into the return list as:
             :action (lambda (arg) (entropy/emacs-tramp--gen-link
                                    (nth 1 arg)))))
 
-(global-set-key (kbd "C-c s t") 'entropy/emacs-tramp-query-chosen-open)
-
-
 (defun entropy/emacs-tramp-clean-all ()
   "Clean all tramp connections and refer buffers."
   (interactive)
@@ -170,6 +174,13 @@ This func divided this string into the return list as:
   (tramp-cleanup-all-buffers)
   (message "Clean up all tramp refers."))
 
-(global-set-key (kbd "C-c s c") 'entropy/emacs-tramp-clean-all)
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Tramp"
+   (("C-c s t" entropy/emacs-tramp-query-chosen-open
+     "The dispatcher for tramp retrieving of entropy-emacs"
+     :enable t :exit t :global-bind t)
+    ("C-c s c" entropy/emacs-tramp-clean-all
+     "Clean all tramp connections and refer buffers"
+     :enable t :exit t :global-bind t))))
 
 (provide 'entropy-emacs-tramp)

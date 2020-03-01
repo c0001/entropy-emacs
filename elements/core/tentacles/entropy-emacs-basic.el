@@ -502,8 +502,13 @@ layout switching conflicts."
 ;; **** pretty-hydra
   :eemacs-mmphc
   (((:enable t)
-    (dired-mode dired dired-mode-map t))
-   ("Delete Node"
+    (dired-mode dired dired-mode-map t (3 5)))
+   ("Open item"
+    (("RET" dired-find-file "Open item dwim"
+      :enable t
+      :exit t
+      :map-inject t))
+    "Delete Node"
     (("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
       :enable t
       :map-inject t

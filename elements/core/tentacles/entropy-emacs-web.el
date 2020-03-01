@@ -39,6 +39,7 @@
     (require 'cl)
   (require 'cl-macs))
 (require 'entropy-emacs-coworker)
+(require 'entropy-emacs-utils)
 (require 'entropy-emacs-hydra-hollow)
 
 ;; ** Preparation
@@ -88,8 +89,7 @@
    .
    web-mode)
   :eemacs-mmphc
-  (((:enable t)
-    (nil nil nil))
+  (((:enable t))
    ("Basic"
     (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
       :enable t
