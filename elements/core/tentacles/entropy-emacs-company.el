@@ -197,7 +197,7 @@
 
   (when (eq entropy/emacs-use-ide-type 'traditional)
     (entropy/emacs-lazy-load-simple
-        'elisp-mode
+        elisp-mode
       (dolist (hook '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
         (add-hook
          hook
