@@ -536,19 +536,30 @@ which determined by the scale count 0.3 "
     (user-error "Please try corrected encoding! ")))
 
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Utils"
-   (("u b d i" entropy/emacs-tools-dos2unix-internal
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'tools-coding-refactor nil nil
+ '("DOS2UNIX"
+   (("d i" entropy/emacs-tools-dos2unix-internal
      "Exchange the buffer end-of-line type to unix sytle internally"
      :enable t :exit t)
-    ("u b d e" entropy/emacs-tools-dos2unix-external
+    ("d e" entropy/emacs-tools-dos2unix-external
      "Exchange the buffer end-of-line type to unix sytle externally"
-     :enable t :exit t)
-    ("u b u i" entropy/emacs-tools-save-buffer-as-utf8-internal
+     :enable t :exit t))
+   "Convert To Utf-8"
+   (("u i" entropy/emacs-tools-save-buffer-as-utf8-internal
      "Revert a buffer with ‘CODING-SYSTEM’ and save as UTF-8 internally"
      :enable t :exit t)
-    ("u b u e" entropy/emacs-tools-save-buffer-as-utf8-external
+    ("u e" entropy/emacs-tools-save-buffer-as-utf8-external
      "Revert a buffer with ‘CODING-SYSTEM’ and save as UTF-8 externally"
+     :enable t :exit t))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Utils"
+   (("u b"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'tools-coding-refactor))
+     "Dos2unix and UTF-8 convertor"
      :enable t :exit t))))
 
 ;; *** Foreign language realtime translation
@@ -845,26 +856,37 @@ For now, there's three choices for you:
    copyit-file-pathname
    copyit-ssh
    copyit-variable)
+  :eemacs-indhc
+  (((:enable t)
+    (copyit))
+   ("File Copyit"
+    (("u" copyit-file-as-data-uri
+      "Copy ‘FILE-PATH’ content as Data URI format"
+      :enable t :exit t)
+     ("c" copyit-file-content
+      "Copy ‘FILE-PATH’ content"
+      :enable t :exit t)
+     ("e" copyit-file-exif-information
+      "Copy exif-information by ‘FILE-PATH’"
+      :enable t :exit t)
+     ("p" copyit-file-pathname
+      "Copy ‘FILE-PATH’"
+      :enable t :exit t))
+    "Misc."
+    (("s" copyit-ssh
+      "Copy ssh file"
+      :enable t :exit t)
+     ("v" copyit-variable
+      "Copy pretty-printed value ‘SYMBOL’s variable"
+      :enable t :exit t))))
   :eemacs-tpha
   (((:enable t))
    ("Utils"
-    (("u p u" copyit-file-as-data-uri
-      "Copy ‘FILE-PATH’ content as Data URI format"
-      :enable t :exit t)
-     ("u p c" copyit-file-content
-      "Copy ‘FILE-PATH’ content"
-      :enable t :exit t)
-     ("u p e" copyit-file-exif-information
-      "Copy exif-information by ‘FILE-PATH’"
-      :enable t :exit t)
-     ("u p p" copyit-file-pathname
-      "Copy ‘FILE-PATH’"
-      :enable t :exit t)
-     ("u p s" copyit-ssh
-      "Copy ssh file"
-      :enable t :exit t)
-     ("u p v" copyit-variable
-      "Copy pretty-printed value ‘SYMBOL’s variable"
+    (("u p"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'copyit))
+      "Copyit stuff"
       :enable t :exit t)))))
 
 ;; *** Emacs startup profiler
@@ -995,17 +1017,29 @@ can't visit one page suddenly."
   :commands (entropy/unfill-full-buffer-without-special-region
              entropy/unfill-paragraph
              entropy/fill-full-buffer-without-special-region)
+  :eemacs-indhc
+  (((:enable t)
+    (entropy-unfill))
+   ("Unfill"
+    (("u" entropy/unfill-full-buffer-without-special-region
+      "Unfill full buffer without specific special region"
+      :enable t :exit t)
+     ("p" entropy/unfill-paragraph
+      "Takes paragraph into a single line of text"
+      :enable t :exit t))
+    "Fill"
+    (("f" entropy/fill-full-buffer-without-special-region
+      "Fill full buffer without specific special region"
+      :enable t :exit t))))
+
   :eemacs-tpha
   (((:enable t))
    ("Utils"
-    (("u x u" entropy/unfill-full-buffer-without-special-region
-      "Unfill full buffer without specific special region"
-      :enable t :exit t)
-     ("u x f" entropy/fill-full-buffer-without-special-region
-      "Fill full buffer without specific special region"
-      :enable t :exit t)
-     ("u x p" entropy/unfill-paragraph
-      "Takes paragraph into a single line of text"
+    (("u x"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'entropy-unfill))
+      "Entropy Unfill"
       :enable t :exit t)))))
 
 ;; *** entropy-org-batch-refile
