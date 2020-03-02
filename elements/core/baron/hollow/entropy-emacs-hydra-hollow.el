@@ -1052,20 +1052,26 @@
          :separator "═")
        '("Basic"     ()
          "WI&BUF"    ()
+         ;; ---
          "Highlight" ()
-         "Shellpop"  ()
-         "Tramp"     ()
          "Utils"     ()
+         ;; ---
+         "Shellpop"  ()
          "Structure" ()
          "WWW"       ()
-         "Vcs"       ()
-         "Project"   ()
          "Rss"       ()
+         ;; ---
+         "Vcs"       ()
+         "Tramp"     ()
+         ;; ---
+         "Project"   ()
+         "Org"       ()
+         ;; ---
          "Pyim"      ()
          "Misc."     ()
-         "Org"       ())
+         )
        nil nil
-       '(2 3 3 3))
+       '(2 2 4 2 2))
 
       (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
         (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)

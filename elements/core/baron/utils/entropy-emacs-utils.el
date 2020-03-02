@@ -343,7 +343,7 @@
       (title &optional icon-type icon-name
              &key face height v-adjust)
     "Add an icon in the hydra title."
-    (let ((face (or face `(:foreground ,(face-background 'highlight))))
+    (let ((face (or face 'entropy/emacs-defface-face-for-hydra-orange-face))
           (height (or height 1.0))
           (v-adjust (or v-adjust 0.0)))
       (concat
@@ -359,7 +359,7 @@
     (mode title-str &key face height v-adjust)
   (require 'faces)
   (let* ((display-graphic-p (display-graphic-p))
-         (face (or face `(:foreground ,(face-background 'highlight))))
+         (face (or face 'entropy/emacs-defface-face-for-hydra-orange-face))
          (icon (if (fboundp 'all-the-icons-icon-for-mode)
                    (ignore-errors
                      (all-the-icons-icon-for-mode
