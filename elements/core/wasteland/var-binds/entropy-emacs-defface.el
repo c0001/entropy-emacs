@@ -121,5 +121,13 @@ inactive of origin modeline ")
                     :foreground "orange"
                     :weight 'bold)
 
+(defface entropy/emacs-defface-face-for-hydra-grey-face '((t ()))
+  "face for hydra head 'grey'")
+
+(set-face-attribute 'entropy/emacs-defface-face-for-hydra-grey-face nil
+                    :foreground "grey"
+                    :weight 'bold)
+
+
 ;; * provide
 (provide  'entropy-emacs-defface)

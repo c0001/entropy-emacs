@@ -971,19 +971,20 @@
     (head-notation type &optional not-beautify-notation)
   (dolist (feature '(faces))
     (require feature))
-  (let* ((match-map
+  (let* ((nface 'entropy/emacs-defface-face-for-hydra-grey-face)
+         (match-map
           `((global-map-inject
              :format "%s%s"
              :icon (lambda () (propertize "g" 'face 'error))
-             :notation (lambda (notation) (propertize notation 'face 'link)))
+             :notation (lambda (notation) (propertize notation 'face ',nface)))
             (mode-map-inject
              :format "%s%s"
              :icon (lambda () (propertize "m" 'face 'error))
-             :notation (lambda (notation) (propertize notation 'face 'link)))
+             :notation (lambda (notation) (propertize notation 'face ',nface)))
             (eemacs-top-keymap-inject
              :format "%s%s"
              :icon (lambda () (propertize "e" 'face 'success))
-             :notation (lambda (notation) (propertize notation 'face 'link)))))
+             :notation (lambda (notation) (propertize notation 'face ',nface)))))
          (matched (alist-get type match-map))
          (fmstr (plist-get matched :format))
          (icon (funcall (plist-get matched :icon)))
