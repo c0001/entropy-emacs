@@ -164,6 +164,7 @@
         magit-gitflow
         magit-popup
         magit-svn
+        major-mode-hydra
         makey
         markdown-mode
         markdown-preview-mode
@@ -192,6 +193,7 @@
         popwin
         pos-tip
         powerline
+        pretty-hydra
         projectile
         pyim
         pyim-basedict
