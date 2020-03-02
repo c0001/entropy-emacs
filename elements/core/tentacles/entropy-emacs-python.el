@@ -44,6 +44,27 @@
 ;; Python Mode
 (use-package python
   :ensure nil
+  :eemacs-mmphc
+  (((:enable t)
+    (python-mode python python-mode-map t (2 1)))
+   ("Basic"
+    (("M-/" company-complete "Auto completion"
+      :enable t :exit t :map-inject t))
+    "Repl"
+    (("C-c C-p" run-python "Run an inferior Python process"
+      :enable t :exit t :map-inject t))
+    "Eval"
+    (("C-c C-e" python-shell-send-statement
+      "Send the statement at point to inferior Python process"
+      :enable t :exit t :map-inject t)
+     ("C-x C-e" python-shell-send-defun
+      "Send the statement at point to inferior Python process"
+      :enable t :exit t :map-inject t)
+     ("C-c C-r" python-shell-send-region
+      "Send the region to inferior Python process"
+      :enable t :exit t :map-inject t))
+    "IDE"
+    nil))
   :init
   (setq python-indent-guess-indent-offset-verbose nil)
   ;; Disable readline based native completion

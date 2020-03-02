@@ -150,6 +150,28 @@
   :commands (js2-mode)
   :mode "\\.js$"
   :interpreter "node"
+  :eemacs-mmphc
+  (((:enable t)
+    (nil nil nil t (2 2)))
+   ("Basic"
+    (("C-c C-w" js2-mode-toggle-warnings-and-errors "Toggle the display of warnings and errors"
+      :enable t :exit t :map-inject t))
+    "Hide and Show"
+    (("C-c C-e" js2-mode-hide-element "Fold/hide contents of a block, showing ellipses"
+      :enable t :exit t :map-inject t)
+     ("C-c C-s" js2-mode-show-element "Show the hidden element at current point"
+      :enable t :exit t :map-inject t)
+     ("C-c C-o" js2-mode-toggle-element "Hide or show the foldable element at the point"
+      :enable t :exit t :map-inject t)
+     ("C-c C-f" js2-mode-toggle-hide-functions "Fully hide or show buffer content"
+      :enable t :exit t :map-inject t)
+     ("C-c C-a" js2-mode-show-all "Show all of the text in the buffer"
+      :enable t :exit t :map-inject t)
+     ("C-c C-t" js2-mode-toggle-hide-comments "Folds all block comments in the buffer"
+      :enable t :exit t :map-inject t))
+    "Repl" nil
+    "Eval" nil
+    "Web Beautify" nil))
   :init
   (entropy/emacs-lazy-load-simple js2-mode
     (require 'js2-old-indent)
