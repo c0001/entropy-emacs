@@ -1642,7 +1642,8 @@ otherwise returns nil."
 (entropy/emacs-basic--build-case-toggle "upcase" upcase-word)
 (entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'words-manipulation nil nil
  '("Basic"
    (("M-c" entropy/emacs-basic-toggle-case-for-capitalize
      "Captalize Word"
@@ -1659,6 +1660,16 @@ otherwise returns nil."
      :enable t
      :exit t
      :global-bind t))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b w"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'words-manipulation))
+     "Words manipulation"
+     :enable t
+     :exit t))))
 
 ;; ** autocompression moode
 

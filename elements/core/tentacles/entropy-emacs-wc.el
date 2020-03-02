@@ -47,6 +47,23 @@
 (require 'entropy-emacs-utils)
 (require 'entropy-emacs-hydra-hollow)
 
+(let ((ind-hydra-name 'eemacs-window-config))
+  (entropy/emacs-hydra-hollow-category-common-individual-define
+   ind-hydra-name
+   (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+    ind-hydra-name)
+   '("Move Window" nil
+     "Jump To Window" nil
+     "Align Buffer" nil))
+  (entropy/emacs-hydra-hollow-add-for-top-dispatch
+   `("WI&BUF"
+     (("M-w"
+       (:eval
+        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+         ',ind-hydra-name))
+       "Rich command for (window buffer) Dwim"
+       :enable t :exit t)))))
+
 ;; ** Window switch
 ;; *** window numberic indicator
 (use-package ace-window
@@ -103,8 +120,9 @@
                                (error (windmove-left))))))))))
 
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("WI&BUF"
+(entropy/emacs-hydra-hollow-common-individual-hydra-define+
+ 'eemacs-window-config nil nil
+ '("Jump To Window"
    (("C-x <up>" entropy/emacs-basic-windmove-up-cycle
      "Move To Up Window"
      :enable t
@@ -764,9 +782,10 @@ without derived slot."
              buf-move-down
              buf-move-left
              buf-move-right)
-  :eemacs-tpha
-  ((((:enable t)))
-   ("WI&BUF"
+  :eemacs-indhca
+  (((:enable t)
+    (eemacs-window-config))
+   ("Move Window"
     (("C-c <C-up>"     buf-move-up
       "Move Buffer To Upstairs Window"
       :enable t :global-bind t :exit t)
@@ -797,8 +816,9 @@ without derived slot."
    (car (get-buffer-window-list (current-buffer) nil t))
    nil))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("WI&BUF"
+(entropy/emacs-hydra-hollow-common-individual-hydra-define+
+ 'eemacs-window-config nil nil
+ '("Align Buffer"
    (("C-c M-<up>" entropy/emacs-basic-center-text
      "Center Window"
      :enable t

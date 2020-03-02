@@ -45,9 +45,10 @@
              entropy/emacs-neotree-neotree-close
              entropy/emacs-neotree-neotree-refresh-for-current
              entropy/emacs-neotree-neo-open-with)
-  :eemacs-tpha
-  (((:enable t))
-   ("Basic"
+  :eemacs-indhc
+  (((:enable t)
+    (neotree))
+   ("Toggle Neotree"
     (("<f8>" entropy/emacs-neotree-neotree-refresh-for-current
       "Neotree slide show"
       :enable t
@@ -58,6 +59,16 @@
       :enable t
       :exit t
       :global-bind t))))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("b t"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'neotree))
+      "Slide Filesystem Tree"
+      :enable t :exit t))))
 
   :preface
   (defun entropy/emacs-neotree-neo-open-with (full-path &rest _)

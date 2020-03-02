@@ -508,13 +508,24 @@ this variable used to patching for origin `counsel-git'.")
 (use-package avy
   :commands
   (avy-goto-line avy-goto-char)
-  :eemacs-tpha
-  (((:enable t))
-   ("Basic"
+  :eemacs-indhc
+  (((:enable t)
+    (avy))
+   ("Avy Core Actions"
     (("M-g l" avy-goto-line "Jump to a line start in current buffer"
       :enable t :exit t :global-bind t)
      ("M-g c" avy-goto-char "Jump to the currently visible CHAR"
-      :enable t :exit t :global-bind t)))))
+      :enable t :exit t :global-bind t))))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("b a"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'avy))
+      "Avy Pos Jump"
+      :enable t :exit t)))))
 
 ;; ** ivy all the icons
 ;; *** all the icons ivy

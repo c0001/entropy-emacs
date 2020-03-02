@@ -68,9 +68,10 @@
         (apply orig-func orig-args)
       (setq treemacs--ready-to-follow t)))
 
-  :eemacs-tpha
-  (((:enable t))
-   ("Basic"
+  :eemacs-indhc
+  (((:enable t)
+    (treemacs))
+   ("Toggle treemacs"
     (("<f8>" entropy/emacs-treemacs-toggle-treemacs
       "Treemacs Slide Show Dwim"
       :enable t
@@ -80,6 +81,15 @@
       :enable t
       :exit t
       :global-bind t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("b t"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'treemacs))
+      "Slide Filesystem Tree"
+      :enable t :exit t))))
 
   :init
 

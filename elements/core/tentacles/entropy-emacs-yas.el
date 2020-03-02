@@ -38,12 +38,29 @@
 (require 'entropy-emacs-utils)
 (require 'entropy-emacs-hydra-hollow)
 
+(entropy/emacs-hydra-hollow-category-common-individual-define
+ 'yasnippet-uniform
+ (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+  'yasnippet-uniform)
+ '("Basic" nil
+   "Auto yasnippet" nil))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b y"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'yasnippet-uniform))
+     "Yasnippet Actions"
+     :enable t :exit t))))
+
 ;; ** yasnippet
 (use-package yasnippet
   :diminish yas-minor-mode
   :commands (yas-global-mode yas-expand)
-  :eemacs-tpha
-  (((:enable t))
+  :eemacs-indhca
+  (((:enable t)
+    (yasnippet-uniform))
    ("Basic"
     (("M-i" entropy/emacs-yas-enable-or-expand
       "Expand current point content with yasnippet"
@@ -126,15 +143,19 @@
 ;;     ~`red'_total = get_total("`red'_values");~
 
 (use-package auto-yasnippet
-  :commands (aya-create aya-expand)
-  :eemacs-tpha
-  (((:enable t))
-   ("Basic"
+  :commands
+  (aya-create
+   aya-expand
+   entropy/emacs-yas-aya-choose-snippet)
+  :eemacs-indhca
+  (((:enable t)
+    (yasnippet-uniform))
+   ("Auto yasnippet"
     (("M-p" aya-create "Create a snippet from the text between BEG and END"
       :enable t :exit t :global-bind t)
      ("M-e" aya-expand "Insert the last yasnippet created by ‘aya-create’"
       :enable t :exit t :global-bind t)
-     ("M-e" entropy/emacs-yas-aya-choose-snippet "Choose aya snippet by recorded history"
+     ("M-o" entropy/emacs-yas-aya-choose-snippet "Choose aya snippet by recorded history"
       :enable t :exit t :global-bind t))))
 
   :config
