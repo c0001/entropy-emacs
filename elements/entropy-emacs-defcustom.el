@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-defcustom.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;;
 ;; This file was the =entropy-emacs= initializing top fundamental,
@@ -38,7 +38,7 @@
 ;;
 ;; This file was the part of `entropy-emacs', individually using was
 ;; not in the context of designation.
-;; 
+;;
 ;;
 ;; * Code:
 ;; ** require
@@ -54,7 +54,7 @@
 
 ;; **** fundamental config
 (defgroup entropy/emacs-customize-fundametal nil
-  "Fundametal customized variable group for entropy-emacs" 
+  "Fundametal customized variable group for entropy-emacs"
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/emacs-stuffs-topdir
@@ -362,8 +362,8 @@ height of dock:
        |   |    |   \\-                 |      |
        |   v    |     \\-               |      |
        |   x    |       emacs position |  ----+------->  emacs height
-       |        |                      |      |        
-       |        |                      |      |     
+       |        |                      |      |
+       |        |                      |      |
        |        |                      |      |
        |        |                      |      |
        +--------+----------------------+------+
@@ -564,7 +564,7 @@ For example:
   which is the componets of windows inside."
   :type 'string
   :group 'entropy/emacs-customize-org)
- 
+
 ;; ***** org header scale
 (defcustom entropy/emacs-disable-org-heading-scale t
   "Diable org heading auto-scale face feature."
@@ -807,7 +807,7 @@ Two valid value defaulted by `entropy-emacs':
 (defcustom entropy/emacs-elfeed-multi-update-feeds-list '()
   "Elfeed Feeds for update."
   :type 'list
-  :group 'entropy/emacs-customize-elfeed)  
+  :group 'entropy/emacs-customize-elfeed)
 
 (defcustom entropy/emacs-elfeed-url-no-proxy
   '("localhost"
@@ -1422,7 +1422,7 @@ git-for-windows-sdk `git-bash.exe'"
 (defvar entropy/emacs-fancy-splash-text-logo-file
   (expand-file-name "logo/logo.txt"
                     entropy/emacs-core-components-hosted-path)
-  "Text logo file.")  
+  "Text logo file.")
 
 (defvar entropy/emacs-initial-theme-path
   (expand-file-name "startup-theme" entropy/emacs-core-components-hosted-path)
@@ -1488,7 +1488,7 @@ otherwise return nil."
   "Justice whether use eemacs in sshd session. Take priority of
 `entropy/emacs-indicate-sshd-session'.
 
-Fixme: 
+Fixme:
 
 - ipv6 support
 - Windows dos cmd check feature."
@@ -1618,6 +1618,8 @@ under the symbolink root dir."
                   (projectile-known-projects-file . "projectile-bookmarks.eld")
                   ;; image dired
                   (image-dired-dir . "image-dired")
+                  ;; game dir
+                  (gamegrid-user-score-file-directory . "games")
                   ))
     (set (car item) (expand-file-name (cdr item) top)))
 
