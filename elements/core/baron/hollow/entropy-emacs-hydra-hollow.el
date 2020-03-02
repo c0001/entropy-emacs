@@ -824,7 +824,7 @@
          (feature (car rest-args))
          (map (cadr rest-args))
          )
-    (let ()
+    (when (and feature map)
       (cond
        ((eq map-inject t)
         (setq notation

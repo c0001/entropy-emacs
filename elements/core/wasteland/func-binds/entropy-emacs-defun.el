@@ -464,7 +464,7 @@ in case that file does not provide any feature."
   (declare (indent 1) (debug t))
   (cond
    (entropy/emacs-custom-enable-lazy-load
-    `(progn
+    `(when (not (null ',feature))
        (entropy/emacs-eval-after-load ,feature
          ,@body
          (message "with lazy load configs for feature '%s'"
@@ -472,7 +472,7 @@ in case that file does not provide any feature."
                       (symbol-name ',feature)
                     ',feature)))))
    ((null entropy/emacs-custom-enable-lazy-load)
-    `(progn
+    `(when (not (null ',feature))
        (message "force load configs for feature '%s'" (symbol-name ',feature))
        (cond ((listp ',feature)
               (dolist (el ',feature)
