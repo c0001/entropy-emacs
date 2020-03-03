@@ -78,8 +78,8 @@ set earlier in the ‘setq-local’.  The return value of the
 ;; You may delete these explanatory comments.
 ;; (package-initialize)
 
-(when (version< emacs-version "25.2")
-  (error "This requires Emacs 25.2 and above!"))
+(when (version< emacs-version "26")
+  (error "This requires Emacs 26 and above!"))
 
 ;; ** Optimize gc performance and loading speed:
 (defvar default-file-name-handler-alist file-name-handler-alist)
