@@ -232,23 +232,23 @@
   (let ((depth (number-to-string (or depth 0))))
     (cond ((null branch)
            (intern
-            (format "%s--hydra-category-caller-%s"
+            (format "%s--hydra-category-%s-caller"
                     category-name-prefix depth)))
           ((eq branch 'hydra-map)
            (intern
-            (format "%s--hydra-category-caller-%s/keymap"
+            (format "%s--hydra-category-%s-caller/keymap"
                     category-name-prefix depth)))
           ((eq branch 'hydra-pretty-body)
            (intern
-            (format "%s--hydra-category-caller-%s/pretty-body"
+            (format "%s--hydra-category-%s-caller/pretty-body"
                     category-name-prefix depth)))
           ((eq branch 'hydra-group-heads)
            (intern
-            (format "%s--hydra-category-caller-%s/heads-plist"
+            (format "%s--hydra-category-%s-caller/heads-plist"
                     category-name-prefix depth)))
           (t
            (intern
-            (format "%s--hydra-category-caller-%s/body"
+            (format "%s--hydra-category-%s-caller/body"
                     category-name-prefix depth))))))
 
 (defun entropy/emacs-hydra-hollow-category-define-nav-key
