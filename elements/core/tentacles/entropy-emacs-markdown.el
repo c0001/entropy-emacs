@@ -160,50 +160,49 @@
 ;; ***** hydra-heads define
 (defvar entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-command
   '("Basic"
-    (("m" markdown-other-window
+    (("b m" markdown-other-window
       "Run ‘markdown-command’ on current buffer and display in other window"
       :enable t :exit t)
-     ("p" markdown-preview
-      "Run ‘markdown-command’ on the current buffer and view output in browser"
-      :enable t :exit t)
-     ("e" markdown-export
+     ("b e" markdown-export
       "Run Markdown on the current buffer, save to file, and return the filename"
       :enable t :exit t)
-     ("v" markdown-export-and-preview
-      "Export to XHTML using ‘markdown-export’ and browse the resulting file"
-      :enable t :exit t)
-     ("o" markdown-open
+     ("b o" markdown-open
       "Open file for the current buffer with ‘markdown-open-command’"
       :enable t :exit t)
-     ("l" markdown-live-preview-mode
-      "Toggle native previewing on save for a specific markdown file"
-      :enable t :exit t)
-     ("w" markdown-kill-ring-save
+     ("b w" markdown-kill-ring-save
       "Run Markdown on file and store output in the kill ring"
       :enable t :exit t)
-     ("c" markdown-check-refs
+     ("b c" markdown-check-refs
       "Show all undefined Markdown references in current ‘markdown-mode’ buffer"
       :enable t :exit t)
-     ("u" markdown-unused-refs
+     ("b u" markdown-unused-refs
       "Show all unused Markdown references in current ‘markdown-mode’ buffer"
       :enable t :exit t)
-     ("n" markdown-cleanup-list-numbers
+     ("b n" markdown-cleanup-list-numbers
       "Update the numbering of ordered lists"
       :enable t :exit t)
-     ("]" markdown-complete-buffer
+     ("b ]" markdown-complete-buffer
       "Complete markup for all objects in the current buffer"
       :enable t :exit t)
-     ("^" markdown-table-sort-lines
+     ("b ^" markdown-table-sort-lines
       "Sort table lines according to the column at point"
       :enable t :exit t)
-     ("|" markdown-table-convert-region
+     ("b |" markdown-table-convert-region
       "Convert region from BEGIN to END to table with SEPARATOR"
       :enable t :exit t)
-     ("t" markdown-table-transpose
+     ("b t" markdown-table-transpose
       "Transpose table at point"
+      :enable t :exit t))
+    "Preview"
+    (("p c" markdown-preview
+      "Run ‘markdown-command’ on the current buffer and view output in browser"
+      :enable t :exit t)
+     ("p e" markdown-export-and-preview
+      "Export to XHTML using ‘markdown-export’ and browse the resulting file"
+      :enable t :exit t)
+     ("p l" markdown-live-preview-mode
+      "Toggle native previewing on save for a specific markdown file"
       :enable t :exit t))))
-
-
 
 ;; ***** hydra-define
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
@@ -430,9 +429,12 @@
                              (buffer-file-name)))))
     (user-error "Please install grip by 'pip install grip'.")))
 
-(entropy/emacs-lazy-load-simple markdown-mode
-  (define-key markdown-mode-command-map
-    (kbd "p") #'entropy/emacs-markdown-preview-grip))
+(entropy/emacs-hydra-hollow-common-individual-hydra-define+
+ 'markdown-mode-command-map nil nil
+ '("Preview"
+   (("p g" entropy/emacs-markdown-preview-grip
+     "Preview markdown buffer using python grip"
+     :enable t :exit t))))
 
 ;; *** synchronization previewing
 (use-package markdown-preview-mode
@@ -440,6 +442,14 @@
   :commands (markdown-preview-mode)
   :bind (:map markdown-mode-command-map
               ("P" . markdown-preview-mode))
+  :eemacs-indhca
+  (((:enable t)
+    (markdown-mode-command-map))
+   ("Preview"
+    (("p p" markdown-preview-mode
+      "Live preview markdown buffer with external browser"
+      :enable t :exit t))))
+
   :config
   (setq markdown-preview-stylesheets
         entropy/emacs-markdown-preview-stylesheets)
