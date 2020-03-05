@@ -311,7 +311,14 @@
 ;; ** hydra
 ;; *** hydra core
 (use-package hydra
-  :commands (defhydra))
+  :commands (defhydra)
+  :init
+  ;; Fix '[]' as key stroke in hydra doc init refer to
+  ;; https://github.com/abo-abo/hydra/issues/365#issue-574484394
+  ;;
+  ;; This will remove when update hydra package.
+  (setq hydra-key-regex
+        "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?"))
 
 ;; *** pretty-hydra
 

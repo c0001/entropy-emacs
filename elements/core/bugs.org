@@ -3,7 +3,7 @@
 
 The bug collection for emacs recoreded for =entropy-emacs=.
 
-* Introduction 
+* Introduction
 :PROPERTIES:
 :CUSTOM_ID: h-3a73ab13-b8f2-4023-bc71-adf0e0bce2e5
 :END:
@@ -14,7 +14,7 @@ natively of specific emacs release.
 
 All the bug recorded in this file is recognized as one todo entry
 uppon on the Org-Mode feature, using org-mode to manage the whole
-toto-tree for those bugs. 
+toto-tree for those bugs.
 
 The todo keys are mapped specially for =entropy-emacs=, with the
 following valid keys:
@@ -38,7 +38,7 @@ following valid keys:
 7) =CANCEL= : Canceling the bug fixing task as that its hopeless for
    as.
 
-* Conribution 
+* Conribution
 :PROPERTIES:
 :CUSTOM_ID: h-84966099-8b8e-4765-89f2-5b8e4181d34a
 :END:
@@ -51,7 +51,7 @@ description for the corresponding sector.
 Or oppsite for bug fixing PR, you can commit new bug to this file with
 limitation of the bug of vanilla emacs or =entropy-emacs=.
 
-* Bugs 
+* Bugs
 :PROPERTIES:
 :CUSTOM_ID: h-d7b20c2e-f395-4d35-bfdf-e12fc00cb7ad
 :END:
@@ -147,22 +147,22 @@ demoted in above paragraph.
 OS: Manjaro Linux (Linux 4.19.60-1-MANJARO #1 SMP PREEMPT Sun Jul 21 12:17:26 UTC 2019 x86_64 GNU/Linux)
 neofetch:
 
-entropy@entropy-pc 
-██████████████████  ████████   ------------------ 
-██████████████████  ████████   OS: Manjaro Linux x86_64 
-██████████████████  ████████   Host: Satellite L700 PSK12Q-01600D 
-████████            ████████   Kernel: 4.19.60-1-MANJARO 
-████████  ████████  ████████   Uptime: 13 hours, 51 mins 
-████████  ████████  ████████   Packages: 1284 (pacman) 
-████████  ████████  ████████   Shell: bash 5.0.7 
-████████  ████████  ████████   Resolution: 1366x768 
-████████  ████████  ████████   DE: GNOME 3.32.2 
-████████  ████████  ████████   Theme: Matcha-dark-sea [GTK2/3] 
-████████  ████████  ████████   Icons: Papirus-Dark-Maia [GTK2/3] 
-████████  ████████  ████████   Terminal: gnome-terminal 
-████████  ████████  ████████   CPU: Intel i5-2410M (4) @ 2.900GHz 
-                               GPU: NVIDIA GeForce GT 525M 
-                               Memory: 2831MiB / 5941MiB 
+entropy@entropy-pc
+██████████████████  ████████   ------------------
+██████████████████  ████████   OS: Manjaro Linux x86_64
+██████████████████  ████████   Host: Satellite L700 PSK12Q-01600D
+████████            ████████   Kernel: 4.19.60-1-MANJARO
+████████  ████████  ████████   Uptime: 13 hours, 51 mins
+████████  ████████  ████████   Packages: 1284 (pacman)
+████████  ████████  ████████   Shell: bash 5.0.7
+████████  ████████  ████████   Resolution: 1366x768
+████████  ████████  ████████   DE: GNOME 3.32.2
+████████  ████████  ████████   Theme: Matcha-dark-sea [GTK2/3]
+████████  ████████  ████████   Icons: Papirus-Dark-Maia [GTK2/3]
+████████  ████████  ████████   Terminal: gnome-terminal
+████████  ████████  ████████   CPU: Intel i5-2410M (4) @ 2.900GHz
+                               GPU: NVIDIA GeForce GT 525M
+                               Memory: 2831MiB / 5941MiB
 
 #+END_EXAMPLE
 
@@ -190,7 +190,7 @@ CLOSED: [2019-09-09 Mon 05:42]
 
 
 1) Bug description:
-    
+
 The emacs session of pdumper loaded type can not covering solaire-mode
 feature fully, the solaired buffer has no significant color rendering
 efficient, that the solaired buffer has the same color face as the
@@ -226,7 +226,52 @@ This bug may has the same core issue with [[h-86e0180b-bcf0-484d-bc21-9502d8abeb
    `entropy/emacs-ivy-counsel-load-theme', this bug occurred for while
    the fixing patch for [[h-86e0180b-bcf0-484d-bc21-9502d8abeb58][this]].
 
-* COMMENT Local Varaibles  
+** DOING Hydra ruby doc area can not using underscore char '_' as key notation
+
+- State "DOING"      from              [2020-03-05 Thu 21:07]
+This bug was push the issue to hydra official project page's [[https://github.com/abo-abo/hydra/issues/366][issue
+block]].
+
+*Bug description: *
+
+#+begin_example
+Hi hydra maintainer:
+
+I've temporary define a hydra on vanilla emacs env (27.0.90):
+
+(defhydra temp/hydra
+  (:hint nil :exit nil :foreign-keys nil)
+  "
+
+ temp/hydra
+
+ Common Insert^^
+─────────────────────────────────────────────────────────────────────────────────
+ _C-c C-,_: Insert a block structure of the type #+begin_foo/#+end_foo
+"
+  ("C-c C-," org-insert-structure-template :exit t))
+
+With follow warning:
+Warning (emacs): Unrecognized key: foo/#+end
+
+Its the bug when the key notation part contained '_' char, is that the ruby doc format limitation which can not using the underscore char in the key notation part (just can used in key stroke region)? Or is their a backslash escape like method to avoid thats strange doc defination?
+
+I known this issue was strained, but what I want is let 'hydra' be more stronger smiley , hope for your help.
+
+Thanks for your greate contribution!
+#+end_example
+
+
+** DOING Hydra can not bind key with underscore char "_"
+
+- State "DOING"      from              [2020-03-05 Thu 21:08]
+
+
+
+This bug was the older one, that hasn't been fixed til now, you can
+found the reflect github issue [[https://github.com/abo-abo/hydra/issues/161][here]].
+
+* COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d
 :END:

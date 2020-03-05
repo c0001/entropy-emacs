@@ -61,9 +61,9 @@
 
 
 ;; ** main
-
+;; *** core
 (use-package org
-;; *** init
+;; **** init
   :ensure nil
   :defines  (org-mode-map)
   :commands (orgstruct-mode
@@ -77,7 +77,8 @@
              org-toggle-link-display
              org-babel-result-hide-all)
   :diminish orgstruct-mode
-;; *** eemacs binding keys
+
+;; **** eemacs top binding keys
 
   :eemacs-tpha
   (((:enable t))
@@ -95,58 +96,7 @@
       :exit t
       :global-bind t))))
 
-  :eemacs-mmphc
-  (((:enable t)
-    (org-mode org org-mode-map t (2 2 2 2 2 2 2 2 2)))
-   ("Org Link Manipulation"
-    (("C-c c-l" org-insert-link "Insert a org link"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("C-c l" org-store-link "Store a link to the current location"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("C-c M-o" entropy/emacs-org-eow "Open link in org-mode using ‘entropy/open-with-port"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("C-c C-o" entropy/emacs-org-open-at-point "Open link at point"
-      :enable t
-      :exit t
-      :map-inject t))
-    "Org Entry Navigation"
-    (("C-<up>" org-previous-item "Move to the beginning of the previous item"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("C-<down>" org-next-item "Move to the beginning of the next item"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("<M-S-down>" org-shiftmetadown "Drag the line at point down"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("<M-S-up>" org-shiftmetaup "Drag the line at point up"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("<M-S-left>" org-shiftmetaleft "Promote subtree or delete table column"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("<M-S-right>" org-shiftmetaright "Demote subtree or insert table column"
-      :enable t
-      :exit t
-      :map-inject t))
-    "Org Head Tag"
-    (("C-c q" org-set-tags-command "Set the tags for the current visible entry"
-      :enable t
-      :exit t
-      :map-inject t))))
-
-;; *** hook
+;; **** hook
   :hook ((org-mode . org-babel-result-hide-all))
 
   :preface
@@ -240,9 +190,9 @@
      (entropy/emacs-org-do-load-org-babels))
    (entropy/emacs-!set-key (kbd "<f2>") #'org-toggle-link-display))
 
-;; *** configs
+;; **** configs
   :config
-;; **** basic setting
+;; ***** basic setting
   (setq-default org-agenda-span (quote day)) ;Set agenda daily show as default
   (setq org-log-done 'time)                  ;insert time-stamp when toggle 'TODO' to 'DONE'
   (setq org-link-search-must-match-exact-headline nil) ;using fuzzy match for org external link
@@ -271,8 +221,8 @@
                            ; org heading line to imenu while be within
                            ; org-mode
 
-;; **** org-capture about
-;; ***** hook for org-capture
+;; ***** org-capture about
+;; ****** hook for org-capture
   (defun entropy/emacs-org--capture-indent-buffer (&optional arg)
     "Indent org capture buffer when finished capture editting."
     (when org-adapt-indentation
@@ -297,7 +247,7 @@ This function was the after advice for `org-capture-template'."
   (advice-add 'org-capture-place-template
               :after #'entropy/emacs-org--capture-set-tags)
 
-;; ***** Do not using `org-toggle-link-display' in capture buffer.
+;; ****** Do not using `org-toggle-link-display' in capture buffer.
 
   ;; Because of that if do this will lost the buffer font-lock effecting(all buffer be non-font-lock
   ;; visual) and do not have the recovery method unless reopen capture operation.w
@@ -315,7 +265,7 @@ recovery method unless reopen capture operation.w
 
   (advice-add 'org-toggle-link-display :before #'entropy/emacs-org--capture-forbidden-toggle-link-display)
 
-;; **** let org-heading insert without new blank always
+;; ***** let org-heading insert without new blank always
   ;; ==================================================
   ;; The principle for follow function was like below code block:
   ;; (setq org-blank-before-new-entry
@@ -341,10 +291,10 @@ recovery method unless reopen capture operation.w
   (define-key org-mode-map (kbd "M-RET") 'entropy/emacs-org-smart-meta-return-dwim)
 
 
-;; **** define 'end' key to `org-end-of-line'
+;; ***** define 'end' key to `org-end-of-line'
   (define-key org-mode-map (kbd "<end>") 'org-end-of-line)
 
-;; **** org open at point enhanced
+;; ***** org open at point enhanced
 
   ;; change the find-file method of org-open-at-point instead of find-file-other-window
   (defun entropy/emacs-org-open-at-point ()
@@ -376,7 +326,7 @@ recovery method unless reopen capture operation.w
                                         (t (error (format "Invalid file type '%s'!" link-type)))))))
   (define-key org-mode-map (kbd "C-c M-o") 'entropy/emacs-org-eow)
 
-;; **** clear key-map of 'C-c C-w'
+;; ***** clear key-map of 'C-c C-w'
 
   ;; delete keybind `C-c C-w' of org-capture-refile for fix the
   ;; contradiction with eyebrowse.
@@ -390,12 +340,12 @@ recovery method unless reopen capture operation.w
   (entropy/emacs-lazy-load-simple org-agenda
     (define-key org-agenda-mode-map (kbd "C-c C-w") nil))
 
-;; **** org-priority-setting
+;; ***** org-priority-setting
   (setq org-lowest-priority 90)         ;lowset prioty was 'Z'
   (setq org-default-priority 67)        ;default prioty was 'C'
 
-;; **** org-agenda-setting
-;; ***** org-agenda-prefix
+;; ***** org-agenda-setting
+;; ****** org-agenda-prefix
   (if sys/is-graphic-support
       (progn
         (setq org-agenda-prefix-format
@@ -411,7 +361,7 @@ recovery method unless reopen capture operation.w
   (if (not (version< emacs-version "26.1"))
       (add-hook 'org-agenda-mode-hook #'(lambda () (display-line-numbers-mode 0))))
 
-;; ***** org-tags-match-list-sublevels
+;; ****** org-tags-match-list-sublevels
   (setq org-tags-match-list-sublevels nil)
   (defun entropy/emacs-org-toggle-agenda-subshow-and-heading-levels ()
     "Toggle `org-agenda' tag exhibited visual type."
@@ -425,7 +375,7 @@ recovery method unless reopen capture operation.w
       (error "You must use it in org agenda buffer!")))
 
 
-;; **** org heading face
+;; ***** org heading face
 
   ;; Some emacs-theme will adjust heading height for obtain better visual sense, but it will break
   ;; the text align state, so using follow function to avoid it.
@@ -433,7 +383,7 @@ recovery method unless reopen capture operation.w
   (add-hook 'org-mode-hook 'entropy/emacs-adjust-org-heading-scale)
 
 
-;; **** org-refile gloable and 9 depths
+;; ***** org-refile gloable and 9 depths
   (setq org-refile-targets '((nil :maxlevel . 9)
                              (org-agenda-files :maxlevel . 9)))
   (setq org-outline-path-complete-in-steps nil)         ; Refile in a single go
@@ -442,14 +392,14 @@ recovery method unless reopen capture operation.w
   (setq org-url-hexify-p nil)
   (setq-default org-link-file-path-type (quote relative))
 
-;; **** org babel src mode engines
+;; ***** org babel src mode engines
   ;; ---------with the bug of none highlites in org mode src html block
   ;; ---------and the issue with none aspiration of web-mode maintainer with link
   ;; ----------------------------->`https://github.com/fxbois/web-mode/issues/636'
   ;; (add-to-list 'org-src-lang-modes '("html" . web))
 
 
-;; **** org babel evaluate confirm
+;; ***** org babel evaluate confirm
   (entropy/emacs-lazy-load-simple org
     (when (not (version< org-version "9.1.9"))
       (defvar entropy/emacs-org--src-info nil
@@ -521,20 +471,20 @@ reason, please see the docstring refer."
 
       (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org--babel-comfirm-evaluate)))
 
-;; **** org global export macro
+;; ***** org global export macro
   (entropy/emacs-lazy-load-simple ox
     (add-to-list 'org-export-global-macros
                  '("kbd" . "@@html:<code>$1</code>@@")))
 
-;; **** html export
-;; ***** html exported head coding
+;; ***** html export
+;; ****** html exported head coding
   (setq org-html-coding-system 'utf-8-unix)
 
   ;; inhibit org self default html style
   (setq org-html-head-include-scripts nil
         org-html-head-include-default-style nil)
 
-;; ***** solve the bug when cjk paragraph exported to html has the auto newline space char including.
+;; ****** solve the bug when cjk paragraph exported to html has the auto newline space char including.
   ;; This hacking refer to https://emacs-china.org/t/org-mode-html/7174#breadcrumb-0
   ;; and raw from spacemac layer: https://github.com/syl20bnr/spacemacs/blob/develop/layers/+intl/chinese/packages.el#L104
   (defadvice org-html-paragraph (before org-html-paragraph-advice
@@ -550,7 +500,7 @@ unwanted space when exporting org-mode to html."
       (ad-set-arg 1 fixed-contents)))
 
 
-;; ***** org export html open function
+;; ****** org export html open function
 
   ;; If `entropy/emacs-browse-url-function' is detectived then open
   ;; exported html file with it instead of using default apps or
@@ -607,10 +557,10 @@ returning the type of exec for open exported html file, they are:
 
   (advice-add 'org-open-file :around #'entropy/emacs-org--hexpt-advice)
 
-;; ***** org ignore broken links
+;; ****** org ignore broken links
   (setq org-export-with-broken-links 'mark)
 
-;; **** org publish config
+;; ***** org publish config
 
   ;; Force using the utf-8 coding system while publish process
   (advice-add 'org-publish :before #'entropy/emacs-lang-set-utf-8)
@@ -634,7 +584,7 @@ returning the type of exec for open exported html file, they are:
   (advice-add 'org-publish-cache-file-needs-publishing
               :around #'entropy/emacs-org--publish-check-timestamp-around_advice)
 
-;; **** org-counsel-set-tag
+;; ***** org-counsel-set-tag
 
   (when (featurep 'counsel)
     (entropy/emacs-lazy-load-simple org
@@ -642,7 +592,7 @@ returning the type of exec for open exported html file, they are:
     (entropy/emacs-lazy-load-simple org-agenda
       (bind-key "C-c C-q" #'counsel-org-tag-agenda org-agenda-mode-map)))
 
-;; **** org-inline-image size
+;; ***** org-inline-image size
   (when (image-type-available-p 'imagemagick)
     (progn
       (setq org-image-actual-width nil)
@@ -657,10 +607,10 @@ buffer."
             (error "Abort displaying inline images")))
       (advice-add 'org-display-inline-images :before #'entropy/emacs-org--otii-before-advice)))
 
-;; **** org-auto-insert 'CUSTOM-ID'
+;; ***** org-auto-insert 'CUSTOM-ID'
   ;;      which source code from the bloag@
   ;;      `https://writequit.org/articles/emacs-org-mode-generate-ids.html#h-cf29e5e7-b456-4842-a3f7-e9185897ac3b'
-;; ***** baisc function
+;; ****** baisc function
   (defun entropy/emacs-org--custom-id-get (&optional pom create prefix)
     "Get the CUSTOM_ID property of the entry at point-or-marker POM.
    If POM is nil, refer to the entry at point. If the entry does
@@ -680,7 +630,7 @@ buffer."
           (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
           id)))))
 
-;; ***** interactive function
+;; ****** interactive function
   ;; Originally function that can not auto detected '#+OPTIOINS: auto-id:t'
   (defun entropy/emacs-org-add-ids-to-headlines-in-file ()
     "Add CUSTOM_ID properties to all headlines in the current
@@ -705,7 +655,7 @@ file which do not already have one. Only adds ids if the
          (lambda () (entropy/emacs-org--custom-id-get (point) 'create))
          t nil))))
 
-;; ***** autamatically add ids to saved org-mode headlines
+;; ****** autamatically add ids to saved org-mode headlines
 
   (defun entropy/emacs-org-auto-add-org-ids-before-save ()
     (when (and (eq major-mode 'org-mode)
@@ -713,7 +663,7 @@ file which do not already have one. Only adds ids if the
       (entropy/emacs-org-auto-add-ids-to-headlines-in-file)))
   (add-hook 'before-save-hook
             #'entropy/emacs-org-auto-add-org-ids-before-save)
-;; **** browser url with system app
+;; ***** browser url with system app
   (add-hook 'org-mode-hook
             '(lambda ()
                (delete '("\\.x?html?\\'" . default) org-file-apps)
@@ -730,9 +680,838 @@ file which do not already have one. Only adds ids if the
                (add-to-list 'org-file-apps '("\\.pdf\\'" . system))))
 
 
-;; **** fix bugs of open directory using external apps in windows
+;; ***** fix bugs of open directory using external apps in windows
   (when sys/win32p
     (add-to-list 'org-file-apps '(directory . emacs))))
+
+;; *** keymap hydra reflect
+;; **** library
+(defun entropy/emacs-org-gen-pretty-hydra-group
+    (group-name sub-group-infos)
+  (let ((get-name-prefix-func
+         (lambda (name)
+           (let (rtn
+                 (name-prefix
+                  (replace-regexp-in-string
+                   "entropy/emacs-org-keymap-group-\\$\\(.*\\)"
+                   "\\1" (symbol-name name))))
+             (setq rtn (intern (format "org-mode-eemacs-map-$%s" name-prefix)))
+             rtn)))
+        (rtn-form '(lambda nil))
+        rtn-gps)
+    (dolist (gp sub-group-infos)
+      (let* ((gp-sym (car gp))
+             (gp-key (cadr gp))
+             (gp-des (caddr gp))
+             (gp-ctg-width-indc (cadddr gp))
+             (gp-name-prefix (funcall get-name-prefix-func gp-sym))
+             (gp-value (symbol-value gp-sym)))
+        (setq rtn-form
+              (append
+               rtn-form
+               `((entropy/emacs-hydra-hollow-common-individual-hydra-define
+                  ',gp-name-prefix 'org 'org-mode-map
+                  ',gp-value
+                  nil ',gp-ctg-width-indc))))
+        (setq rtn-gps
+              (append
+               rtn-gps
+               `((,gp-key
+                  ,(entropy/emacs-hydra-hollow-category-common-individual-get-caller
+                    gp-name-prefix)
+                  ,gp-des
+                  :enable t :exit t))))))
+    (setq rtn-gps
+          (list group-name rtn-gps))
+    (funcall rtn-form)
+    rtn-gps))
+
+
+;; **** sub-groups
+;; ***** org basic manipulation
+;; ****** sub-groups
+;; ******* common group
+;; ******** sub-groups
+;; ********* common insert
+
+(defvar entropy/emacs-org-keymap-group-$common-insert
+  '("Common Insert"
+    (("C-<return>" org-insert-heading-respect-content
+      "Insert heading with ‘org-insert-heading-respect-content’ set to t"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-," org-insert-structure-template
+      "Insert a block structure of the type which babel defined so"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x f" org-footnote-action
+      "Do the right thing for footnotes"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-f" org-emphasize
+      "Insert or change an emphasis, i.e. a font like bold or italic"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("M-<return>" org-meta-return
+      "Insert a new heading or wrap a region in a table"
+      :enable t :map-inject t :exit t) ;; RET/<return> key with modifiers
+     )))
+
+;; ********* common copy
+
+(defvar entropy/emacs-org-keymap-group-$common-copy&paste
+  '("Common copy and paste"
+    (("C-c M-w" org-copy "Like ‘org-refile’, but copy"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-w" org-refile "Move the entry or entries at point to another heading"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x M-w" org-copy-special
+      "Copy region in table or copy current subtree"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-w" org-cut-special "Cut region in table or cut current subtree"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-y" org-paste-special
+      "Paste rectangular region into table, or past subtree relative to level"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x v" org-copy-visible "Copy the visible parts of the region"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ********* common move
+
+(defvar entropy/emacs-org-keymap-group-$common-move
+  '("Common move"
+    (("C-M-t" org-transpose-element
+      "Transpose current and previous elements, keeping blank lines between"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("M-<down>" org-metadown
+      "Move subtree down or move table row down"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("M-<up>" org-metaup
+      "Move subtree up or move table row up"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("M-<left>" org-metaleft
+      "Promote heading, list item at point or move table column left"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("M-<right>" org-metaright
+      "Demote heading, list item at point or move table column right"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("C-c C->" org-demote-subtree
+      "Demote the entire subtree."
+      :enable t :map-inject t :exit t)
+     ("C-c C-<" org-promote-subtree
+      "Promote the entire subtree"
+      :enable t :map-inject t :exit t))))
+
+;; ********* common archive
+
+(defvar entropy/emacs-org-keymap-group-$common-archive
+  '("Common archive"
+    (("C-c $" org-archive-subtree
+      "Move the current subtree to the archive"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-s" org-archive-subtree
+      "Move the current subtree to the archive"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-a" org-archive-subtree-default
+      "Archive the current subtree with the default command"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x A" org-archive-to-archive-sibling
+      "Archive the current heading by moving it under the archive sibling"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-<tab>" org-force-cycle-archived
+      "Cycle subtree even if it is archived"
+      :enable t :map-inject t :exit t) ;; TAB key with modifiers
+     ("C-c C-x a" org-toggle-archive-tag
+      "Toggle the archive tag for the current headline"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ********* common toggle
+
+(defvar entropy/emacs-org-keymap-group-$common-toggle
+  '("Common toggle"
+    (("C-c C-x C-b" org-toggle-checkbox
+      "Toggle the checkbox in the current line"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c ;" org-toggle-comment
+      "Change the COMMENT state of an entry"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c :" org-toggle-fixed-width
+      "Toggle fixed-width markup"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x \\" org-toggle-pretty-entities
+      "Toggle the composition display of entities as UTF8 characters"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-*" org-list-make-subtree
+      "Convert the plain list at point into a subtree"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C--" org-toggle-item
+      "Convert headings or normal lines to items, items to normal lines"
+      :enable t :map-inject t :exit t)
+     ("C-c -" org-ctrl-c-minus
+      "Insert separator line in table or modify bullet status of line"
+      :enable t :map-inject t :exit t))))
+
+;; ********* common attachments
+
+(defvar entropy/emacs-org-keymap-group-$common-attachments
+  '("Common attachments"
+    (("C-c C-a" org-attach "The dispatcher for attachment commands"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ********* common sort
+(defvar entropy/emacs-org-keymap-group-$common-sort
+    '("Common sort"
+      (("C-c ^" org-sort
+        "Call ‘org-sort-entries’, ‘org-table-sort-lines’ or ‘org-sort-list’"
+        :enable t :map-inject t :exit t) ;; All the other keys
+       )))
+
+;; ********* common open
+(defvar entropy/emacs-org-keymap-group-$common-open
+  '("Common open"
+    (("C-c C-o" entropy/emacs-org-open-at-point
+      "Open link, timestamp, footnote or tags at point"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c M-o" entropy/emacs-org-eow
+      "Open link in org-mode using ‘entropy/open-with-port"
+      :enable t :exit t :map-inject t)
+     )))
+
+;; ********* common edit
+(defvar entropy/emacs-org-keymap-group-$common-edit
+  '("Common edit"
+    (("C-c '" org-edit-special "Call a special editor for the element at point"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-M-S-<left>" org-decrease-number-at-point
+      "Decrement the number at point"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("C-M-S-<right>" org-increase-number-at-point
+      "Increment the number at point"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("C-c C-r" org-reveal
+      "Show current entry, hierarchy above it, and the following headline"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******** define
+(defvar entropy/emacs-org-keymap-group--$common-infos
+  '((entropy/emacs-org-keymap-group-$common-insert      "c i" "Common Insert")
+    (entropy/emacs-org-keymap-group-$common-edit        "c e" "Common Edit")
+    (entropy/emacs-org-keymap-group-$common-copy&paste  "c y" "Common copy and paste")
+    (entropy/emacs-org-keymap-group-$common-move        "c m" "Common Move")
+    (entropy/emacs-org-keymap-group-$common-open        "c o" "Common Open")
+    (entropy/emacs-org-keymap-group-$common-sort        "c s" "Common Sort ")
+    (entropy/emacs-org-keymap-group-$common-toggle      "c t" "Common Toggle")
+    (entropy/emacs-org-keymap-group-$common-archive     "c a" "Common Archive")
+    (entropy/emacs-org-keymap-group-$common-attachments "c n" "Common attachments")))
+
+(defvar entropy/emacs-org-keymap-group-$common
+  (entropy/emacs-org-gen-pretty-hydra-group
+   "Common Manipulations"
+   entropy/emacs-org-keymap-group--$common-infos))
+
+;; ******* babel
+(defvar entropy/emacs-org-keymap-group-$babel
+  '("Babel"
+    (("C-c C-x [" org-reftex-citation
+      "Use reftex-citation to insert a citation into the buffer"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******* time stamp
+(defvar entropy/emacs-org-keymap-group-$time-stamp
+  '("Time stamp"
+    (("C-c ." org-time-stamp "Prompt for a date/time and insert a time stamp"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c !" org-time-stamp-inactive
+      "Insert an inactive time stamp"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-t" org-toggle-time-stamp-overlays
+      "Toggle the use of custom time stamp formats"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c <" org-date-from-calendar
+      "Insert time stamp corresponding to cursor date in *Calendar* buffer"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("S-<down>" org-shiftdown
+      "Decrease the date item at the cursor by one"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("S-<up>" org-shiftup
+      "Increase the date item at the cursor by one"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     )))
+
+;; ******* headline tag
+(defvar entropy/emacs-org-keymap-group-$headline-tag
+  '("Headline tag"
+    (("C-c C-x q" org-toggle-tags-groups
+      "Toggle support for group tags"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-q" org-set-tags-command
+      "Set the tags for the current visible entry"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-c" org-ctrl-c-ctrl-c
+      "Set tags in headline, or update according to changed information at point"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+
+;; ******* plain list
+(defvar entropy/emacs-org-keymap-group-$plain-list
+  '("Plain list"
+    (("M-S-<right>" org-shiftmetaright
+      "Indent a local list item including its children"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("M-S-<left>" org-shiftmetaleft
+      "Outdent a local list item including its children"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     )))
+
+;; ******* headline drawer property
+(defvar entropy/emacs-org-keymap-group-$drawer&property
+  '("Drawer and property"
+    (("C-c C-x d" org-insert-drawer
+      "Insert a drawer at point"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x o" org-toggle-ordered-property
+      "Toggle the ORDERED property of the current entry"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x p" org-set-property
+      "In the current entry, set PROPERTY to VALUE"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x P" org-set-property-and-value
+      "Allow to set [PROPERTY]: [value] direction from prompt"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x e" org-set-effort
+      "Set the effort property of the current entry"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x E" org-inc-effort
+      "Increment the value of the effort property in the current entry"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******* inline image
+
+(defvar entropy/emacs-org-keymap-group-$inline-image
+  '("Inline image"
+    (("C-c C-x C-v" org-toggle-inline-images
+      "Toggle the display of inline images"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-M-v" org-redisplay-inline-images
+      "Refresh the display of inline images"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******* table
+;; ******** subgroups
+;; ********* table create&covert
+
+(defvar entropy/emacs-org-keymap-group-$table-create&convert
+  '("Table create&convert"
+    (("C-c |" org-table-create-or-convert-from-region
+      "Convert region to table, or create an empty table"
+      :enable t :map-inject t :exit t
+      ) ;; All the other keys
+     ("C-c ~" org-table-create-with-table.el
+      "Use the table.el package to insert a new table"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ********* table edit
+
+(defvar entropy/emacs-org-keymap-group-$table-edit
+  '("Table edit"
+    (("C-c `" org-table-edit-field
+      "Edit table field in a different window"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c ?" org-table-field-info
+      "Show info about the current field, and highlight any reference at point"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-#" org-table-rotate-recalc-marks
+      "Rotate the recalculation mark in the first column"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c SPC" org-table-blank-field
+      "Blank the current table field or active region"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("S-RET" org-table-copy-down
+      "Copy the value of the current field one row below"
+      :enable t :map-inject t :exit t) ;; RET/<return> key with modifiers
+     ("C-c \" a" orgtbl-ascii-plot
+      "Draw an ASCII bar plot in a column"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c \" g" org-plot/gnuplot
+      "Plot table using gnuplot"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("M-S-<down>" org-shiftmetadown
+      "Insert an empty row at the current line"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("M-S-<up>" org-shiftmetaup
+      "kill the current row"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("M-S-<right>" org-shiftmetaright
+      "Demote subtree or insert table column"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("M-S-<left>" org-shiftmetaleft
+      "Promote subtree or delete table column"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     )))
+
+;; ********* table eval
+(defvar entropy/emacs-org-keymap-group-$table-eval
+  '("Table eval"
+    (("C-c =" org-table-eval-formula
+      "Replace the table field value at the cursor by the result of a calculation"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c +" org-table-sum
+      "Sum numbers in region of current table column"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c *" org-ctrl-c-star
+      "Compute table, or change heading status of lines"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c {" org-table-toggle-formula-debugger
+      "Toggle the formula debugger in tables"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ********* table view
+(defvar entropy/emacs-org-keymap-group-$table-view
+  '("Table view"
+    (("C-c }" org-table-toggle-coordinate-overlays
+      "Toggle the display of Row/Column numbers in tables"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c TAB" org-ctrl-c-tab
+      "Toggle columns width in a table, or show children"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ********* table move
+
+(defvar entropy/emacs-org-keymap-group-$table-move
+  '("Table move "
+    (("S-<down>" org-shiftdown
+      "Move a single cell down in a table"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("S-<left>" org-shiftleft
+      "move a single cell left"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("S-<right>" org-shiftright
+      "move a single cell right") ;; Cursor keys with modifiers
+     ("S-<up>" org-shiftup
+      "Move a single cell up in a table"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("S-<tab>" org-shifttab
+      "Go to the previous field in the table"
+      :enable t :map-inject t :exit t) ;; TAB key with modifiers
+     )))
+
+;; ******** define
+
+(defvar entropy/emacs-org-keymap-group--$table-infos
+  '((entropy/emacs-org-keymap-group-$table-create&convert
+     "c" "Create&Convert Table")
+    (entropy/emacs-org-keymap-group-$table-edit "e" "Edit Table ")
+    (entropy/emacs-org-keymap-group-$table-move "m" "Move Elements")
+    (entropy/emacs-org-keymap-group-$table-eval "f" "Table Evaluate")
+    (entropy/emacs-org-keymap-group-$table-view "v" "Table rich view")))
+
+(defvar entropy/emacs-org-keymap-group-$table
+  (entropy/emacs-org-gen-pretty-hydra-group
+   "Table" entropy/emacs-org-keymap-group--$table-infos))
+
+;; ******* dynamic block
+(defvar entropy/emacs-org-keymap-group-$dynamic-block
+  '("Dynamic block"
+    (("C-c C-x x" org-dynamic-block-insert-dblock
+      "Insert a dynamic block of type TYPE"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-u" org-dblock-update
+      "User command for updating dynamic blocks"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******* link
+
+(defvar entropy/emacs-org-keymap-group-$link
+  '("Link"
+    (("C-c C-l" org-insert-link
+      "Insert a link.  At the prompt, enter the link"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-M-l" org-insert-all-links
+      "Insert all links in ‘org-stored-links’"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c M-l" org-insert-last-stored-link
+      "Insert the last link stored in ‘org-stored-links’"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-n" org-next-link
+      "Move forward to the next link"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-p" org-previous-link
+      "Move backward to the previous link"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+
+;; ******* note
+(defvar entropy/emacs-org-keymap-group-$note
+  '("Note"
+    (("C-c C-z" org-add-note
+      "Add a note to the current entry"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-k" org-kill-note-or-show-branches
+      "Abort storing current note, or show just branches"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ****** define
+(defvar entropy/emacs-org-keymap-group--$basic-manipulation-infos
+  '((entropy/emacs-org-keymap-group-$common          "b c" "Common Manipulation")
+    (entropy/emacs-org-keymap-group-$link            "b u" "Link Manipulation")
+    (entropy/emacs-org-keymap-group-$table           "b t" "Table Manipulation")
+    (entropy/emacs-org-keymap-group-$plain-list      "b l" "Plain List Manipulation")
+    (entropy/emacs-org-keymap-group-$note            "b n" "Note Manipulation")
+    (entropy/emacs-org-keymap-group-$headline-tag    "b g" "Tag Manipulation")
+    (entropy/emacs-org-keymap-group-$drawer&property "b d" "Drawer&Property Manipulation")
+    (entropy/emacs-org-keymap-group-$time-stamp      "b s" "Time Stamp Manipulation")
+    (entropy/emacs-org-keymap-group-$inline-image    "b i" "Inline Image manipulation")
+    (entropy/emacs-org-keymap-group-$dynamic-block   "b y" "Dynamic Block manipulation")
+    (entropy/emacs-org-keymap-group-$babel           "b b" "Babel Manipulation")))
+
+(defvar entropy/emacs-org-keymap-group-$basic-manipulation
+  (entropy/emacs-org-gen-pretty-hydra-group
+   "Basic" entropy/emacs-org-keymap-group--$basic-manipulation-infos))
+
+;; ***** org buffer navigation (guide)
+;; ****** sub-groups
+;; ******* sparse tree
+(defvar entropy/emacs-org-keymap-group-$sparse-tree
+  '("Sparse tree"
+    (("C-c \\" org-match-sparse-tree
+      "Create a sparse tree according to tags string MATCH"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c /" org-sparse-tree
+      "Create a sparse tree, prompt for the details"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-c" org-columns
+      "Turn on column view on an Org mode file"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x b" org-tree-to-indirect-buffer
+      "Create indirect buffer and narrow it to current subtree"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******* cycle
+(defvar entropy/emacs-org-keymap-group-$cycle
+  '("Cycle"
+    (("<tab>" org-cycle
+      "TAB-action and visibility cycling for Org mode"
+      :enable t :map-inject t :exit t) ;; TAB key with modifiers
+     ("C-i" org-cycle
+      "TAB-action and visibility cycling for Org mode"
+      :enable t :map-inject t :exit t) ;; TAB key with modifiers
+     ("C-'" org-cycle-agenda-files
+      "Cycle through the files in ‘org-agenda-files’"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-," org-cycle-agenda-files
+      "Cycle through the files in ‘org-agenda-files’"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******* goto
+(defvar entropy/emacs-org-keymap-group-$goto
+  '("Goto"
+    (("C-c C-j" org-goto
+      "Look up a different location in the current file, keeping current visibility"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c >" org-goto-calendar
+      "Go to the Emacs calendar at the current date"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-p" org-previous-visible-heading
+      "Move to the previous visible heading"
+      :enable t :map-inject t :exit t)
+     ("C-c C-p" org-next-visible-heading
+      "Move to the next visible heading"
+      :enable t :map-inject t :exit t)
+     ("C-<up>" org-previous-item "Move to the beginning of the previous item"
+      :enable t :exit t :map-inject t)
+     ("C-<down>" org-next-item "Move to the beginning of the next item"
+      :enable t :exit t :map-inject t)
+     ("M-{" org-backward-element
+      "Move to the previous element at the same level, when possible"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("M-}" org-forward-element
+      "Move to the next element at the same level, when possible"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-b" org-backward-heading-same-level
+      "Move backward to the ARG’th subheading at same level as this one"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-f" org-forward-heading-same-level
+      "Move forward to the ARG’th subheading at same level as this one"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-/" org-down-element
+      "Move to inner element"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-^" org-up-element
+      "Move to upper element"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+
+;; ******* mark
+(defvar entropy/emacs-org-keymap-group-$mark
+  '("Mark"
+    (("ESC h" org-mark-element
+      "Put point at beginning of this element, mark at end"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("M-h" org-mark-element
+      "Put point at beginning of this element, mark at end"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c &" org-mark-ring-goto
+      "Jump to the previous position in the mark ring"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c %" org-mark-ring-push
+      "Put the current position into the mark ring and rotate it"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c @" org-mark-subtree
+      "Mark the current subtree"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+
+;; ******* narrow
+(defvar entropy/emacs-org-keymap-group-$narrow
+  '("Narrow"
+    (("C-x n b" org-narrow-to-block
+      "Narrow buffer to the current block"
+      :enable t :map-inject t :exit t) ;; Narrowing bindings
+     ("C-x n e" org-narrow-to-element
+      "Narrow buffer to current element"
+      :enable t :map-inject t :exit t) ;; Narrowing bindings
+     ("C-x n s" org-narrow-to-subtree
+      "Narrow buffer to the current subtree"
+      :enable t :map-inject t :exit t) ;; Narrowing bindings
+     )))
+
+;; ******* block jump
+(defvar entropy/emacs-org-keymap-group-$block-jump
+  '("Block Jump"
+    (("C-c M-f" org-next-block
+      "Jump to the next block"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c M-b" org-previous-block
+      "Jump to the previous block"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ****** define
+
+(defvar entropy/emacs-org-keymap-group--$buffer-navigation-infos
+  '((entropy/emacs-org-keymap-group-$sparse-tree "n s" "Sparse Tree Viewer")
+    (entropy/emacs-org-keymap-group-$cycle       "n c" "Cycle Through Buffer")
+    (entropy/emacs-org-keymap-group-$goto        "n g" "Goto Buffer POS")
+    (entropy/emacs-org-keymap-group-$mark        "n m" "Mark Up Org Buffer")
+    (entropy/emacs-org-keymap-group-$narrow      "n n" "Narrow Org Buffer")
+    (entropy/emacs-org-keymap-group-$block-jump  "n j" "Block Jump")))
+
+(defvar entropy/emacs-org-keymap-group-$buffer-navigation
+  (entropy/emacs-org-gen-pretty-hydra-group
+   "Buffer Navigation"
+   entropy/emacs-org-keymap-group--$buffer-navigation-infos))
+
+;; ***** org task function
+;; ****** sub-groups
+;; ******* timer
+(defvar entropy/emacs-org-keymap-group-$timer
+  '("Timer"
+    (("C-c C-x ." org-timer
+      "Insert a H:MM:SS string from the timer into the buffer"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x -" org-timer-item
+      "Insert a description-type item with the current timer value"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x ," org-timer-pause-or-continue
+      "Pause or continue the relative or countdown timer"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x ;" org-timer-set-timer
+      "Prompt for a duration in minutes or hh:mm:ss and set a timer"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x 0" org-timer-start
+      "Set the starting time for the relative timer to now"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x /" org-timer-stop
+      "Stop the relative or countdown timer"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******* clock
+(defvar entropy/emacs-org-keymap-group-$clock
+  '("Clock"
+    (("C-c C-x C-q" org-clock-cancel
+      "Cancel the running clock by removing the start timestamp"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-d" org-clock-display
+      "Show subtree times in the entire buffer"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-j" org-clock-goto
+      "Go to the currently clocked-in entry, or to the most recently clocked one"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-i" org-clock-in
+      "Start the clock on the current item"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-x" org-clock-in-last
+      "Clock in the last closed clocked item"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-o" org-clock-out
+      "Stop the currently running clock"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-z" org-resolve-clocks
+      "Resolve all currently open Org clocks"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-y" org-evaluate-time-range
+      "Evaluate a time range by computing the difference between start and end"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-S-<down>" org-shiftcontroldown
+      "Change timestamps synchronously down in CLOCK log lines"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("C-S-<up>" org-shiftcontrolup
+      "Change timestamps synchronously up in CLOCK log lines"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     )))
+
+;; ******* todo
+
+(defvar entropy/emacs-org-keymap-group-$todo
+  '("Todo"
+    (("C-c C-t" org-todo
+      "Change the TODO state of an item"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("M-S-<return>" org-insert-todo-heading
+      "Insert a new heading with the same level and TODO state as current heading"
+      :enable t :map-inject t :exit t) ;; RET/<return> key with modifiers
+     ("M-S-RET" org-insert-todo-heading
+      "Insert a new heading with the same level and TODO state as current heading"
+      :enable t :map-inject t :exit t) ;; RET/<return> key with modifiers
+     ("C-S-<return>" org-insert-todo-heading-respect-content
+      "Insert TODO heading with ‘org-insert-heading-respect-content’ set to t"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c #" org-update-statistics-cookies
+      "Update the statistics cookie, either from TODO or from checkboxes"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c ," org-priority
+      "Change the priority of an item"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x c" org-clone-subtree-with-time-shift
+      "Clone the task (subtree) at point N times"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-S-<left>" org-shiftcontrolleft
+      "Switch to previous TODO set"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("C-S-<right>" org-shiftcontrolright
+      "Switch to next TODO set"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("S-<down>" org-shiftdown
+      "Decrease the priority of the current item"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("S-<up>" org-shiftup
+      "Increase the priority of the current item"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("S-<left>" org-shiftleft
+      "switch to the previous TODO keyword"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     ("S-<right>" org-shiftright
+      "switch to the next TODO keyword"
+      :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
+     )))
+
+;; ******* agenda
+(defvar entropy/emacs-org-keymap-group-$agenda
+  '("Agenda"
+    (("C-c [" org-agenda-file-to-front
+      "Move/add the current file to the top of the agenda file list"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x >" org-agenda-remove-restriction-lock
+      "Remove agenda restriction lock"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x <" org-agenda-set-restriction-lock
+      "Set restriction lock for agenda to current subtree or file"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c ]" org-remove-file
+      "Remove current file from the list of files in variable ‘org-agenda-files’"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ******* schedule
+
+(defvar entropy/emacs-org-keymap-group-$schedule
+  '("Schedule"
+    (("C-c C-d" org-deadline
+      "Insert the "DEADLINE:" string with a timestamp to make a deadline"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-s" org-schedule
+      "Insert the SCHEDULED: string with a timestamp to schedule a TODO item"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+
+;; ****** define
+
+(defvar entropy/emacs-org-keymap-group--$task-manipulation-infos
+  '((entropy/emacs-org-keymap-group-$todo "t t" "Todo manipulation")
+    (entropy/emacs-org-keymap-group-$clock "t c" "Clock Operation")
+    (entropy/emacs-org-keymap-group-$agenda "t a" "Agenda Refer")
+    (entropy/emacs-org-keymap-group-$timer "t m" "Timer manipulation")))
+
+(defvar entropy/emacs-org-keymap-group-$task-manipulation
+  (entropy/emacs-org-gen-pretty-hydra-group
+   "Task Manipulation"
+   entropy/emacs-org-keymap-group--$task-manipulation-infos))
+
+
+;; ***** org rss
+(defvar entropy/emacs-org-keymap-group-$org-rss
+  '("Rss"
+    (("C-c C-x G" org-feed-goto-inbox
+      "Go to the inbox that captures the feed named FEED"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x g" org-feed-update-all
+      "Get inbox items from all feeds in ‘org-feed-alist’"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ***** org export and preview
+
+(defvar entropy/emacs-org-keymap-group-$export-and-preview
+  '("Export&Preview"
+    (("C-c C-e" org-export-dispatch
+      "Export dispatcher for Org mode"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x C-l" org-latex-preview
+      "Toggle preview of the LaTeX fragment at point"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; ***** org misc.
+
+(defvar entropy/emacs-org-keymap-group-$misc
+  '("Misc"
+    (("C-c C-x I" org-info-find-node
+      "Find Info documentation NODENAME or Org documentation according context"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x !" org-reload
+      "Reload all Org Lisp files"
+      :enable t :map-inject t :exit t) ;; All the other keys
+     )))
+
+;; **** define-hydra
+
+(entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+ 'org-mode 'org 'org-mode-map t
+ (append
+  entropy/emacs-org-keymap-group-$basic-manipulation
+  entropy/emacs-org-keymap-group-$buffer-navigation
+  entropy/emacs-org-keymap-group-$task-manipulation
+  entropy/emacs-org-keymap-group-$org-rss
+  entropy/emacs-org-keymap-group-$export-and-preview
+  entropy/emacs-org-keymap-group-$misc)
+ '(3 2 2)
+ '(3 2 2))
 
 ;; ** Redefun the org-id-new for use '-' instead of ':'
 (use-package org-id
