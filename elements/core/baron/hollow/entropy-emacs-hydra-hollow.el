@@ -32,6 +32,16 @@
         (t
          pattern)))
 
+(defun entropy/emacs-hydra-hollow-partion-pretty-heads-group
+    (pretty-heads-group)
+  (let (rtn (cnt 0))
+    (while (< cnt (/ (length pretty-heads-group) 2))
+      (push (list (nth (* cnt 2) pretty-heads-group)
+                  (nth (+ 1 (* cnt 2)) pretty-heads-group))
+            rtn)
+      (cl-incf cnt))
+    (reverse rtn)))
+
 (defun entropy/emacs-hydra-hollow-delete-empty-pretty-hydra-head-group
     (pretty-heads-group)
   (cl-loop for cnt from 0 to (- (/ (length pretty-heads-group) 2) 1)
@@ -156,17 +166,137 @@
 ;; **** category framework
 ;; ***** library
 
+;; ****** core
+
+;; ******* category prototype
+
 (defvar entropy/emacs-hydra-hollow-category-default-width 4)
 
-(defun entropy/emacs-hydra-hollow-partion-pretty-heads-group
-    (pretty-heads-group)
-  (let (rtn (cnt 0))
-    (while (< cnt (/ (length pretty-heads-group) 2))
-      (push (list (nth (* cnt 2) pretty-heads-group)
-                  (nth (+ 1 (* cnt 2)) pretty-heads-group))
-            rtn)
-      (cl-incf cnt))
-    (reverse rtn)))
+(cl-defun entropy/emacs-hydra-hollow-set-category-name
+    (category-name
+     &key
+     category-name-prefix
+     caller-name
+     caller-body
+     caller-base-pretty-body
+     groups
+     depth
+     category-width
+     previous-category-name
+     next-category-name)
+  (cond
+   ((null (entropy/emacs-common-plistp (ignore-errors (symbol-value category-name))))
+    (set category-name
+         (list
+          :category-name-prefix category-name-prefix
+          :category-name category-name
+          :caller-name caller-name
+          :caller-body caller-body
+          :caller-base-pretty-body caller-base-pretty-body
+          :groups groups
+          :depth depth
+          :category-width category-width
+          :previous-category-name previous-category-name
+          :next-category-name
+          next-category-name)))
+   ((entropy/emacs-common-plistp (ignore-errors (symbol-value category-name)))
+    (dolist
+        (el
+         '((:category-name-prefix category-name-prefix)
+           (:category-name category-name)
+           (:caller-name caller-name)
+           (:caller-body caller-body)
+           (:caller-base-pretty-body caller-base-pretty-body)
+           (:groups groups)
+           (:depth depth)
+           (:category-width category-width)
+           (:previous-category-name previous-category-name)
+           (:next-category-name next-category-name)))
+      (unless (null (symbol-value (cadr el)))
+        (plist-put (symbol-value category-name)
+                   (car el) (symbol-value (cadr el))))))))
+
+;; ******* category names get
+
+(defvar entropy/emacs-hydra-hollow-category-name-core
+  "--hydra-category-")
+
+(defvar entropy/emacs-hydra-hollow-category-name-format
+  (format "%%s%s%%s"
+          entropy/emacs-hydra-hollow-category-name-core))
+
+(defvar entropy/emacs-hydra-hollow-category-name-regexp
+  (format "\\(.+\\)\\(%s\\)\\([0-9]+\\)"
+          entropy/emacs-hydra-hollow-category-name-core))
+
+(defvar entropy/emacs-hydra-hollow-category-caller-name-format
+  (format "%%s%s%%s-caller"
+          entropy/emacs-hydra-hollow-category-name-core))
+
+(defvar entropy/emacs-hydra-hollow-category-caller-name-regexp
+  (format "%s-caller"
+          entropy/emacs-hydra-hollow-category-name-regexp))
+
+(defun entropy/emacs-hydra-hollow-category-get-category-name
+    (category-name-prefix &optional depth)
+  (let ((depth (number-to-string (or depth 0))))
+    (intern
+     (format entropy/emacs-hydra-hollow-category-name-format
+             category-name-prefix depth))))
+
+(defun entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+    (category-name-prefix branch &optional depth)
+  (let ((depth (number-to-string (or depth 0))))
+    (cond ((null branch)
+           (intern
+            (format entropy/emacs-hydra-hollow-category-caller-name-format
+                    category-name-prefix depth)))
+          ((eq branch 'hydra-map)
+           (intern
+            (concat
+             (format entropy/emacs-hydra-hollow-category-caller-name-format
+                     category-name-prefix depth)
+             "/keymap")))
+          ((eq branch 'hydra-pretty-body)
+           (intern
+            (concat
+             (format entropy/emacs-hydra-hollow-category-caller-name-format
+                     category-name-prefix depth)
+             "/pretty-body")))
+          ((eq branch 'hydra-group-heads)
+           (intern
+            (concat
+             (format entropy/emacs-hydra-hollow-category-caller-name-format
+                     category-name-prefix depth)
+             "/heads-plist")))
+          (t
+           (intern
+            (concat
+             (format entropy/emacs-hydra-hollow-category-caller-name-format
+                     category-name-prefix depth)
+             "/body"))))))
+
+(defun entropy/emacs-hydra-hollow-category-caller-name-p
+    (maybe-caller-name &optional get-type)
+  (if (string-match entropy/emacs-hydra-hollow-category-caller-name-regexp
+                    (symbol-name maybe-caller-name))
+      (let* ((name-str (symbol-name maybe-caller-name))
+             (category-name-prefix (match-string 1 name-str))
+             (depth (string-to-number (match-string 3 name-str))))
+        (cond
+         ((and (not (null get-type))
+               (not (eq get-type 'just-prefix)))
+          (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+           category-name-prefix get-type depth))
+         ((eq get-type 'just-prefix)
+          category-name-prefix)
+         (t
+          (entropy/emacs-hydra-hollow-category-get-category-name
+           category-name-prefix depth))))
+    nil))
+
+
+;; ******* category width normalize
 
 (defun entropy/emacs-hydra-hollow-normalize-category-width-indicator
     (category-width-indicator)
@@ -190,6 +320,8 @@
           (t
            (setq rtn t)))
     rtn))
+
+;; ******* category navigation set
 
 (defun entropy/emacs-hydra-hollow-category-concat-title-for-nav
     (title &rest nav)
@@ -220,37 +352,6 @@
                                   'face 'warning)))))
     title))
 
-(defun entropy/emacs-hydra-hollow-category-get-category-name
-    (category-name-prefix &optional depth)
-  (let ((depth (number-to-string (or depth 0))))
-    (intern
-     (format "%s--hydra-category-%s"
-             category-name-prefix depth))))
-
-(defun entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-    (category-name-prefix branch &optional depth)
-  (let ((depth (number-to-string (or depth 0))))
-    (cond ((null branch)
-           (intern
-            (format "%s--hydra-category-%s-caller"
-                    category-name-prefix depth)))
-          ((eq branch 'hydra-map)
-           (intern
-            (format "%s--hydra-category-%s-caller/keymap"
-                    category-name-prefix depth)))
-          ((eq branch 'hydra-pretty-body)
-           (intern
-            (format "%s--hydra-category-%s-caller/pretty-body"
-                    category-name-prefix depth)))
-          ((eq branch 'hydra-group-heads)
-           (intern
-            (format "%s--hydra-category-%s-caller/heads-plist"
-                    category-name-prefix depth)))
-          (t
-           (intern
-            (format "%s--hydra-category-%s-caller/body"
-                    category-name-prefix depth))))))
-
 (defun entropy/emacs-hydra-hollow-category-define-nav-key
     (keymap &rest category-nav-caller-body)
   (let ((up-caller (car category-nav-caller-body))
@@ -259,6 +360,8 @@
       (define-key keymap (kbd "<up>") up-caller))
     (when (not (null down-caller))
       (define-key keymap (kbd "<down>") down-caller))))
+
+;; ******* category recursive match
 
 (defun entropy/emacs-hydra-hollow-category-recursive-match-group
     (category-name-prefix group-match)
@@ -282,6 +385,107 @@
     (unless (not (null rtn))
       (setq rtn (list :category nil :depth depth)))
     rtn))
+
+;; ******* category manipulation
+
+(defmacro entropy/emacs-hydra-hollow-category-with-category
+    (category-name-prefix depth &rest body)
+  `(let* (($internally/category-name-prefix ,category-name-prefix)
+          ($internally/depth ,depth)
+
+          ($internally/category-name
+           (entropy/emacs-hydra-hollow-category-get-category-name
+            $internally/category-name-prefix $internally/depth))
+
+          ($internally/category-value
+           (symbol-value $internally/category-name))
+
+          ($internally/category-caller-name
+           (plist-get $internally/category-value :caller-name))
+
+          ($internally/next-category-name
+           (plist-get $internally/category-value :next-category-name))
+          ($internally/next-category-value (symbol-value $internally/next-category-name))
+
+          ($internally/previous-category-name
+           (plist-get $internally/category-value :previous-category-name))
+          ($internally/previous-category-value
+           (symbol-value $internally/previous-category-name))
+
+          ($internally/category-pretty-hydra-body-name
+           (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+            $internally/category-name-prefix 'hydra-pretty-body $internally/depth))
+
+          ($internally/category-pretty-hydra-body-value
+           (symbol-value
+            $internally/category-pretty-hydra-body-name))
+
+          ($internally/category-pretty-heads-group-name
+           (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+            $internally/category-name-prefix
+            'hydra-group-heads $internally/depth))
+
+          ($internally/category-pretty-heads-group-value
+           (symbol-value
+            $internally/category-pretty-heads-group-name))
+
+          ($internally/category-hydra-map-name
+           (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+            $internally/category-name-prefix
+            'hydra-map $internally/depth))
+
+          ($internally/category-groups-value
+           (plist-get $internally/category-value :groups))
+          $internally/new-category-groups-value
+
+          ($internally/category-width-value
+           (plist-get $internally/category-value :category-width))
+          $internally/new-category-width-value
+
+          ($internally/new-category-pretty-hydra-body-value
+           (copy-tree $internally/category-pretty-hydra-body-value))
+          ($internally/new-category-pretty-heads-group-value
+           (copy-tree $internally/category-pretty-heads-group-value)))
+
+     ;; run body
+     (progn
+       ,@body)
+
+     ;; redefine category pretty-hydra
+     (funcall
+      (list 'lambda nil
+            (list 'pretty-hydra-define $internally/category-caller-name
+                  $internally/new-category-pretty-hydra-body-value
+                  $internally/new-category-pretty-heads-group-value)))
+
+     ;; reset cagegory
+     (setq $internally/new-category-groups-value
+           (cl-loop for item in (symbol-value $internally/category-pretty-heads-group-name)
+                    when (stringp item)
+                    collect item))
+
+     (entropy/emacs-hydra-hollow-set-category-name
+      $internally/category-name
+      :groups $internally/new-category-groups-value
+      :category-width
+      (or $internally/new-category-width-value
+          (if (> (length $internally/new-category-groups-value)
+                 $internally/category-width-value)
+              (length $internally/new-category-groups-value)
+            $internally/category-width-value)))
+
+     ;; remap category navigation key-binds
+     (entropy/emacs-hydra-hollow-category-define-nav-key
+      (symbol-value $internally/category-hydra-map-name)
+      (plist-get
+       $internally/previous-category-value
+       :caller-body)
+      (plist-get
+       $internally/next-category-value
+       :caller-body))))
+
+
+;; ****** define hydra hollow category
 
 (defun entropy/emacs-hydra-hollow-category-frame-work-define
     (category-name-prefix pretty-body pretty-heads-group
@@ -415,19 +619,19 @@
        (+ depth 1) category-name rest-ctg-inc))
 
     ;; return category plist
-    (set category-name
-         (list :category-name-prefix category-name-prefix
-               :category-name category-name
-               :caller-name caller-name
-               :caller-body caller-name-body
-               :caller-base-pretty-body pretty-body
-               :groups (cl-loop for item in cur-head-group
-                                when (not (listp item))
-                                collect item)
-               :depth depth
-               :category-width cur-ctg-indc
-               :previous-category-name previous-category-name
-               :next-category-name next-category-name))
+    (entropy/emacs-hydra-hollow-set-category-name
+     category-name
+     :category-name-prefix category-name-prefix
+     :caller-name caller-name
+     :caller-body caller-name-body
+     :caller-base-pretty-body pretty-body
+     :groups (cl-loop for item in cur-head-group
+                      when (not (listp item))
+                      collect item)
+     :depth depth
+     :category-width cur-ctg-indc
+     :previous-category-name previous-category-name
+     :next-category-name next-category-name)
 
     ))
 
