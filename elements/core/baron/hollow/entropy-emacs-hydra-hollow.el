@@ -516,6 +516,9 @@
            (setq cur-ctg-indc
                  entropy/emacs-hydra-hollow-category-default-width
                  rest-ctg-inc nil))
+          ((integerp ctg-indc)
+           (setq cur-ctg-indc ctg-indc
+                 rest-ctg-inc ctg-indc))
           (t
            (setq cur-ctg-indc (car ctg-indc)
                  rest-ctg-inc (cdr ctg-indc))))
@@ -527,7 +530,10 @@
       (cl-loop for item in ctgs
                do (setq cur-head-group
                         (append cur-head-group item))))
-     ((null cur-ctg-indc)
+     ((or (null cur-ctg-indc)
+          (and (integerp cur-ctg-indc)
+               (<= cur-ctg-indc 0))
+          (floatp cur-ctg-indc))
       (let ((cnt 0))
         (while (<= (+ cnt 1)
                    entropy/emacs-hydra-hollow-category-default-width)
