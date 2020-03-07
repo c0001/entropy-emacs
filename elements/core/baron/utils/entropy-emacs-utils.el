@@ -328,6 +328,7 @@
    pretty-hydra-define
    pretty-hydra-define+
    pretty-hydra-toggle
+   pretty-hydra--merge-heads
    )
   :init
   (setq pretty-hydra-enable-use-package t))

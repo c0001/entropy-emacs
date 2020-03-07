@@ -12,6 +12,21 @@
 (defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
 
 ;; ** libraries
+
+(defun entropy/emacs-hydra-hollow-func-version-pthydra-define
+    (name body heads-plist)
+  (funcall
+   `(lambda ()
+      (pretty-hydra-define
+        ,name ,body ,heads-plist))))
+
+(defun entropy/emacs-hydra-hollow-func-version-pthydra-define+
+    (name body heads-plist)
+  (funcall
+   `(lambda ()
+      (pretty-hydra-define+
+        ,name ,body ,heads-plist))))
+
 ;; *** pretty hydra heads manipulation
 ;; **** core
 
@@ -448,8 +463,33 @@
            (copy-tree $internally/category-pretty-heads-group-value)))
 
      ;; run body
-     (progn
-       ,@body)
+     (cl-labels
+         (($internally/pretty-hydra-define
+           (name body heads-plist)
+           (cond
+            ((eq name $internally/category-name)
+             (setq $internally/new-category-pretty-hydra-body-value
+                   body)
+             (setq $internally/new-category-pretty-heads-group-value
+                   heads-plist))
+            (t
+             (entropy/emacs-hydra-hollow-func-version-pthydra-define
+              name body heads-plist))))
+          ($internally/pretty-hydra-define+
+           (name body heads-plist)
+           (cond
+            ((eq name $internally/category-name)
+             (setq $internally/new-category-pretty-hydra-body-value
+                   body)
+             (setq $internally/new-category-pretty-heads-group-value
+                   (pretty-hydra--merge-heads
+                    $internally/new-category-pretty-heads-group-value
+                    heads-plist)))
+            (t
+             (entropy/emacs-hydra-hollow-func-version-pthydra-define+
+              name body heads-plist)))))
+       (progn
+         ,@body))
 
      ;; redefine category pretty-hydra
      (funcall
