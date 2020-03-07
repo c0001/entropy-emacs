@@ -111,7 +111,7 @@ For lisp coding aim, always return the transfered buffer.
       :exit t
       :map-inject t))
     "Comanpy"
-    (("M-\\" company-dabbrev-code "Company Dabbrev"
+    (("M-\\" company-dabbrev "Company Dabbrev"
       :enable t
       :exit t
       :map-inject t))
@@ -128,7 +128,7 @@ For lisp coding aim, always return the transfered buffer.
   (((:enable t)
     (lisp-interaction-mode elisp-mode lisp-interaction-mode-map))
    ("Company"
-    (("M-\\" company-dabbrev-code "Company dabbrev"
+    (("M-\\" company-dabbrev "Company dabbrev"
       :enable t
       :exit t
       :map-inject t))
