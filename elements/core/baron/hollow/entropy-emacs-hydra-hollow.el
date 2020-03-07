@@ -115,6 +115,31 @@
       (setq rtn (append rtn el)))
     rtn))
 
+(defun entropy/emacs-hydra-hollow-pretty-head-notation-handler
+    (head-notation type &optional not-beautify-notation)
+  (dolist (feature '(faces))
+    (require feature))
+  (let* ((nface 'entropy/emacs-defface-face-for-hydra-grey-face)
+         (match-map
+          `((global-map-inject
+             :format "%s%s"
+             :icon (lambda () (propertize "g" 'face 'error))
+             :notation (lambda (notation) (propertize notation 'face ',nface)))
+            (mode-map-inject
+             :format "%s%s"
+             :icon (lambda () (propertize "m" 'face 'error))
+             :notation (lambda (notation) (propertize notation 'face ',nface)))
+            (eemacs-top-keymap-inject
+             :format "%s%s"
+             :icon (lambda () (propertize "e" 'face 'success))
+             :notation (lambda (notation) (propertize notation 'face ',nface)))))
+         (matched (alist-get type match-map))
+         (fmstr (plist-get matched :format))
+         (icon (funcall (plist-get matched :icon)))
+         (notation (or (when not-beautify-notation
+                         head-notation)
+                       (funcall (plist-get matched :notation) head-notation))))
+    (format fmstr icon notation)))
 
 ;; **** wapper
 
@@ -1141,70 +1166,6 @@
          (entropy/emacs-hydra-hollow-merge-pretty-hydra-sparse-heads
           new-split-heads))))))
 
-;; *** heads notation handler
-
-(defun entropy/emacs-hydra-hollow-pretty-head-notation-handler
-    (head-notation type &optional not-beautify-notation)
-  (dolist (feature '(faces))
-    (require feature))
-  (let* ((nface 'entropy/emacs-defface-face-for-hydra-grey-face)
-         (match-map
-          `((global-map-inject
-             :format "%s%s"
-             :icon (lambda () (propertize "g" 'face 'error))
-             :notation (lambda (notation) (propertize notation 'face ',nface)))
-            (mode-map-inject
-             :format "%s%s"
-             :icon (lambda () (propertize "m" 'face 'error))
-             :notation (lambda (notation) (propertize notation 'face ',nface)))
-            (eemacs-top-keymap-inject
-             :format "%s%s"
-             :icon (lambda () (propertize "e" 'face 'success))
-             :notation (lambda (notation) (propertize notation 'face ',nface)))))
-         (matched (alist-get type match-map))
-         (fmstr (plist-get matched :format))
-         (icon (funcall (plist-get matched :icon)))
-         (notation (or (when not-beautify-notation
-                         head-notation)
-                       (funcall (plist-get matched :notation) head-notation))))
-    (format fmstr icon notation)))
-
-(defun entropy/emacs-hydra-hollow-patch-pretty-hydra-heads-group-notations
-    (pretty-heads-group refer-key notation-type)
-  (let ((split-heads (copy-tree
-                      (entropy/emacs-hydra-hollow-split-pretty-hydra-group-heads
-                       pretty-heads-group)))
-        patched-heads-group)
-    (dolist (head split-heads)
-      (let* ((head-plist (caadr head))
-             (head-attr (cdddr head-plist))
-             (refer-match (entropy/emacs-hydra-hollow--common-judge-p
-                           (plist-get head-attr refer-key)))
-             (notation (caddr head-plist))
-             new-heads-plist)
-        (setq new-heads-plist
-              (append
-               (list
-                (car head-plist)
-                (cadr head-plist)
-                (if refer-match
-                    (entropy/emacs-hydra-hollow-pretty-head-notation-handler
-                     notation notation-type)
-                  notation))
-               (cdddr head-plist)))
-        (if (not (null head-plist))
-            (push
-             (list
-              (car head)
-              (list
-               new-heads-plist))
-             patched-heads-group)
-          (push (list (car head) nil) patched-heads-group))))
-    (setq patched-heads-group (reverse patched-heads-group)
-          patched-heads-group
-          (entropy/emacs-hydra-hollow-merge-pretty-hydra-sparse-heads
-           patched-heads-group))
-    patched-heads-group))
 
 ;; ** apis
 ;; *** top dispatcher
