@@ -417,15 +417,25 @@
 
           ($internally/category-caller-name
            (plist-get $internally/category-value :caller-name))
+          ($internally/new-category-caller-name
+           $internally/category-caller-name)
+
+          ($internally/category-caller-base-pretty-body-value
+           (plist-get $internally/category-value :caller-base-pretty-body))
 
           ($internally/next-category-name
            (plist-get $internally/category-value :next-category-name))
-          ($internally/next-category-value (symbol-value $internally/next-category-name))
+          ($internally/next-category-value
+           (ignore-errors (symbol-value $internally/next-category-name)))
+          ($internally/new-next-category-name
+           $internally/next-category-name)
 
           ($internally/previous-category-name
            (plist-get $internally/category-value :previous-category-name))
           ($internally/previous-category-value
-           (symbol-value $internally/previous-category-name))
+           (ignore-errors (symbol-value $internally/previous-category-name)))
+          ($internally/new-previous-category-name
+           $internally/previous-category-name)
 
           ($internally/category-pretty-hydra-body-name
            (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
@@ -467,7 +477,7 @@
          (($internally/pretty-hydra-define
            (name body heads-plist)
            (cond
-            ((eq name $internally/category-name)
+            ((eq name $internally/category-caller-name)
              (setq $internally/new-category-pretty-hydra-body-value
                    body)
              (setq $internally/new-category-pretty-heads-group-value
@@ -478,7 +488,7 @@
           ($internally/pretty-hydra-define+
            (name body heads-plist)
            (cond
-            ((eq name $internally/category-name)
+            ((eq name $internally/category-caller-name)
              (setq $internally/new-category-pretty-hydra-body-value
                    body)
              (setq $internally/new-category-pretty-heads-group-value
@@ -512,16 +522,19 @@
           (if (> (length $internally/new-category-groups-value)
                  $internally/category-width-value)
               (length $internally/new-category-groups-value)
-            $internally/category-width-value)))
+            $internally/category-width-value))
+      :caller-name $internally/new-category-caller-name
+      :next-category-name $internally/new-next-category-name
+      :previous-category-name $internally/new-previous-category-name)
 
      ;; remap category navigation key-binds
      (entropy/emacs-hydra-hollow-category-define-nav-key
       (symbol-value $internally/category-hydra-map-name)
       (plist-get
-       $internally/previous-category-value
+       (ignore-errors (symbol-value $internally/new-previous-category-name))
        :caller-body)
       (plist-get
-       $internally/next-category-value
+       (ignore-errors (symbol-value $internally/new-next-category-name))
        :caller-body))))
 
 
@@ -712,38 +725,13 @@
             (let* ((matched-ctg
                     (plist-get ctg-match :category))
                    (matched-depth
-                    (plist-get matched-ctg :depth))
-                   (matched-hydra-key-map-name
-                    (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-                     category-name-prefix 'hydra-map matched-depth))
-                   (matched-previous-caller
-                    (plist-get
-                     (symbol-value
-                      (plist-get matched-ctg
-                                 :previous-category-name))
-                     :caller-body))
-                   (matched-next-caller
-                    (plist-get
-                     (symbol-value
-                      (plist-get matched-ctg
-                                 :next-category-name))
-                     :caller-body))
-                   (caller-name (plist-get
-                                 matched-ctg
-                                 :caller-name)))
-              ;; inject heads
-              (funcall
-               `(lambda ()
-                  (pretty-hydra-define+ ,caller-name
-                    nil
-                    ,part-ctg)))
-
-              ;; reset nav key
-              (entropy/emacs-hydra-hollow-category-define-nav-key
-               (symbol-value matched-hydra-key-map-name)
-               matched-previous-caller
-               matched-next-caller)
-              ))
+                    (plist-get matched-ctg :depth)))
+              (entropy/emacs-hydra-hollow-category-with-category
+               category-name-prefix matched-depth
+               ($internally/pretty-hydra-define+
+                $internally/category-caller-name
+                $internally/category-pretty-hydra-body-value
+                part-ctg))))
            (t
             (let* ((depth (plist-get ctg-match :depth))
                    (tail-category-depth (- depth 1))
@@ -753,116 +741,54 @@
 
                    (tail-category (symbol-value tail-category-name))
 
-                   (tail-category-previous-ctg-caller-body
-                    (plist-get
-                     (symbol-value
-                      (plist-get tail-category
-                                 :previous-category-name))
-                     :caller-body))
-
-                   (tail-category-caller-name (plist-get tail-category :caller-name))
-
-                   (tail-category-hydra-keymap-name
-                    (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-                     category-name-prefix 'hydra-map tail-category-depth))
-
-                   (tail-category-used-pretty-body-name
-                    (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-                     category-name-prefix 'hydra-pretty-body tail-category-depth))
-
-                   (tail-category-used-pretty-body
-                    (copy-tree
-                     (symbol-value
-                      tail-category-used-pretty-body-name)))
-
-                   (tail-category-hydra-heads-plist
-                    (symbol-value
-                     (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-                      category-name-prefix 'hydra-group-heads tail-category-depth)))
-
-                   (tail-category-used-pretty-body-title
-                    (plist-get tail-category-used-pretty-body
-                               :title))
-
                    (tail-category-ctg-width (plist-get tail-category :category-width))
                    (tail-category-groups (copy-tree (plist-get tail-category :groups)))
 
                    (tail-category-overflow-p
                     (>= (length tail-category-groups)
-                        tail-category-ctg-width))
-
-                   (inherit-base-pretty-body
-                    (plist-get tail-category
-                               :caller-base-pretty-body)))
+                        tail-category-ctg-width)))
               (cond
                ((null tail-category-overflow-p)
-                ;; inject heads
-                (funcall
-                 `(lambda ()
-                    (pretty-hydra-define+ ,tail-category-caller-name
-                      nil
-                      ,part-ctg)))
-
-                ;; patch tail category groups slot
-                (set tail-category-caller-name
-                     (plist-put tail-category
-                                :groups
-                                (append tail-category-groups
-                                        (list group))))
-
-                ;; reset previous body key
-                (entropy/emacs-hydra-hollow-category-define-nav-key
-                 (symbol-value tail-category-hydra-keymap-name)
-                 tail-category-previous-ctg-caller-body))
+                (entropy/emacs-hydra-hollow-category-with-category
+                 category-name-prefix tail-category-depth
+                 ($internally/pretty-hydra-define+
+                  $internally/category-caller-name
+                  $internally/category-pretty-hydra-body-value
+                  part-ctg)))
 
                (tail-category-overflow-p
                 (let* ((new-ctg-name
                         (entropy/emacs-hydra-hollow-category-get-category-name
-                         category-name-prefix depth))
-                       (new-ctg-caller-body
-                        (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-                         category-name-prefix t depth)))
-                  ;; add new tail category
-                  (entropy/emacs-hydra-hollow-category-frame-work-define
-                   category-name-prefix inherit-base-pretty-body part-ctg
-                   depth tail-category-name category-width-indicator-for-inject)
+                         category-name-prefix depth)))
 
-                  ;; pop out current category-width-indicator-for-inject
-                  (when (not (null category-width-indicator-for-inject))
-                    (pop category-width-indicator-for-inject))
+                  (entropy/emacs-hydra-hollow-category-with-category
+                   category-name-prefix tail-category-depth
+                   (let ((tail-category-used-pretty-body-title
+                          (plist-get $internally/new-category-pretty-hydra-body-value
+                                     :title)))
+                     ;; add new tail category
+                     (entropy/emacs-hydra-hollow-category-frame-work-define
+                      category-name-prefix
+                      $internally/category-caller-base-pretty-body-value
+                      part-ctg
+                      (+ 1 $internally/depth)
+                      $internally/category-name
+                      category-width-indicator-for-inject)
 
-                  ;; modify tail category's pretty-body for add 'down' nav prompt
-                  (let* ((tail-category-used-pretty-body-new-title
-                          (entropy/emacs-hydra-hollow-category-concat-title-for-nav
-                           tail-category-used-pretty-body-title
-                           nil t)))
-                    (setq tail-category-used-pretty-body
-                          (plist-put
-                           tail-category-used-pretty-body
-                           :title
-                           tail-category-used-pretty-body-new-title))
-                    (set tail-category-used-pretty-body-name
-                         tail-category-used-pretty-body)
+                     ;; pop out current category-width-indicator-for-inject
+                     (when (and (not (null category-width-indicator-for-inject))
+                                (listp category-width-indicator-for-inject))
+                       (pop category-width-indicator-for-inject))
 
-                    (funcall
-                     `(lambda ()
-                        (pretty-hydra-define ,tail-category-caller-name
-                          ,tail-category-used-pretty-body
-                          ,tail-category-hydra-heads-plist))))
-
-                  ;; set tail category next-category-name
-                  (set tail-category-name
-                       (plist-put
-                        tail-category :next-category-name
-                        new-ctg-name))
-
-                  ;; reset nav key for tail category hydra keymap
-                  (entropy/emacs-hydra-hollow-category-define-nav-key
-                   (symbol-value tail-category-hydra-keymap-name)
-                   tail-category-previous-ctg-caller-body
-                   new-ctg-caller-body)
-
-                  )))))))))))
+                     (setq $internally/new-category-pretty-hydra-body-value
+                           (plist-put
+                            $internally/new-category-pretty-hydra-body-value
+                            :title
+                            (entropy/emacs-hydra-hollow-category-concat-title-for-nav
+                             tail-category-used-pretty-body-title
+                             nil t))
+                           $internally/new-next-category-name
+                           new-ctg-name))))))))))))))
 
 
 ;; ***** major-mode pretty hydra core
