@@ -97,22 +97,9 @@ delay seconds SECS."
   (entropy/emacs-gc--init-idle-gc
    entropy/emacs-garbage-collection-delay))
 
-(defun entropy/emacs-gc--enter-minibuffer-wmaster ()
-  (when (null entropy/emacs-garbage-collection-message-p)
-    (setq garbage-collection-messages nil)))
-
-(defun entropy/emacs-gc--exit-minibuffer-wmaster ()
-  (setq garbage-collection-messages entropy/emacs-garbage-collection-message-p)
-  (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
-  ;; (entropy/emacs-gc--with-message
-  ;;   (garbage-collect))
-  )
-
 (entropy/emacs-lazy-with-load-trail
  gc-message
  (setq garbage-collection-messages entropy/emacs-garbage-collection-message-p)
- (add-hook 'minibuffer-setup-hook #'entropy/emacs-gc--enter-minibuffer-wmaster)
- (add-hook 'minibuffer-exit-hook #'entropy/emacs-gc--exit-minibuffer-wmaster)
  (add-hook 'focus-out-hook #'entropy/emacs-gc--focus-out-hook)
  (add-hook 'focus-in-hook #'entropy/emacs-gc--focus-in-reset)
  (add-hook 'post-command-hook #'entropy/emacs-gc--increase-cons-threshold)
