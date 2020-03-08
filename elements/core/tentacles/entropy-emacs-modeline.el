@@ -540,7 +540,25 @@ style which defined in `entropy/emacs-modeline-style'."
 
   (entropy/emacs-modeline--define-toggle
    "origin" nil entropy/emacs-modeline--origin-spec-done
-   (entropy/emacs-mode-line-origin-theme)))
+   (entropy/emacs-mode-line-origin-theme))
+
+  (entropy/emacs-hydra-hollow-add-for-top-dispatch
+   '("Misc."
+     (("m m d" entropy/emacs-modeline-mdl-doom-toggle
+       "Toggle modeline type to [doom-mode-line] type"
+       :enable t)
+      ("m m s" entropy/emacs-modeline-mdl-spaceline-toggle
+       "Toggle modeline type to [spacemacs line] type"
+       :enable t)
+      ("m m a" entropy/emacs-modeline-mdl-spaceline-all-the-icons-toggle
+       "Toggle modeline type to [spaceline all the icons] type"
+       :enable t)
+      ("m m p" entropy/emacs-modeline-mdl-powerline-toggle
+       "Toggle modeline type to [powerline (riched modeline)] type"
+       :enable t)
+      ("m m o" entropy/emacs-modeline-mdl-origin-toggle
+       "Toggle modeline type to [entropy emacs origin] type"
+       :enable t)))))
 
 ;; ** modeline-hide feature
 (use-package hide-mode-line
