@@ -123,6 +123,10 @@ For lisp coding aim, always return the transfered buffer.
      ("C-c C-b" eval-buffer "Eval Whole buffer"
       :enable t
       :exit t
+      :map-inject t)
+     ("C-c M-r" eval-region "Eval Markup Region"
+      :enable t
+      :exit t
       :map-inject t))))
   :eemacs-mmphca
   (((:enable t)

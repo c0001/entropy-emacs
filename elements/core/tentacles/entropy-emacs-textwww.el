@@ -367,7 +367,7 @@ effective then adding option of personal browse url function that be in ordered 
 
 (entropy/emacs-hydra-hollow-add-for-top-dispatch
  '("WWW"
-   (("M-w" entropy/emacs-textwww-toggle-default-browser
+   (("C-c M-w" entropy/emacs-textwww-toggle-default-browser
      "Toggle default browser."
      :enable t
      :exit t))))
