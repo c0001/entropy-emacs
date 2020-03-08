@@ -12,27 +12,35 @@
 (defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
 
 (defvar entropy/emacs-hydra-hollow-union-form
-  '(lambda ()))
+  '(lambda (&rest _)))
 
 (defvar entropy/emacs-hydra-hollow-call-union-form-adviced-list nil)
 
-(defvar entropy/emacs-hydra-hollow--union-form-temp nil)
-
 ;; ** libraries
+
 (defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
-  (unless (equal entropy/emacs-hydra-hollow--union-form-temp
-                 entropy/emacs-hydra-hollow-union-form)
-    (setq
-     entropy/emacs-hydra-hollow--union-form-temp
-     entropy/emacs-hydra-hollow-union-form)
-    (funcall entropy/emacs-hydra-hollow-union-form)))
+  (let ((copy-union-form (copy-tree entropy/emacs-hydra-hollow-union-form)))
+    (unless (null (cddr copy-union-form))
+      (progn
+        (funcall entropy/emacs-hydra-hollow-union-form)
+        (unless (equal copy-union-form entropy/emacs-hydra-hollow-union-form)
+          (dolist (form (cddr copy-union-form))
+            (setq temp/x1 2)
+            (setq entropy/emacs-hydra-hollow-union-form
+                  (cl-delete form entropy/emacs-hydra-hollow-union-form
+                             :test 'equal)))
+          (entropy/emacs-hydra-hollow-call-union-form))
+        (unless (eq entropy/emacs-hydra-hollow-union-form
+                    '(lambda (&rest _)))
+          (setq entropy/emacs-hydra-hollow-union-form
+                '(lambda (&rest _))))))))
 
 (defun entropy/emacs-hydra-hollow-advice-for-call-union-form (func)
-  (unless (not (member
-                func
-                entropy/emacs-hydra-hollow-call-union-form-adviced-list))
-    (and (advice-add func :before #'entropy/emacs-hydra-hollow-call-union-form)
-         (push func entropy/emacs-hydra-hollow-call-union-form-adviced-list))))
+  (unless (member
+           func
+           entropy/emacs-hydra-hollow-call-union-form-adviced-list)
+    (progn (advice-add func :before #'entropy/emacs-hydra-hollow-call-union-form)
+           (push func entropy/emacs-hydra-hollow-call-union-form-adviced-list))))
 
 (defun entropy/emacs-hydra-hollow-func-version-pthydra-define
     (name body heads-plist)
@@ -243,6 +251,7 @@
      category-groups
      category-depth
      category-width
+     category-baron-name
      previous-category-name
      next-category-name)
   (cond
@@ -257,6 +266,7 @@
           :category-groups category-groups
           :category-depth category-depth
           :category-width category-width
+          :category-baron-name category-baron-name
           :previous-category-name previous-category-name
           :next-category-name
           next-category-name)))
@@ -271,6 +281,7 @@
            (:category-groups category-groups)
            (:category-depth category-depth)
            (:category-width category-width)
+           (:category-baron-name category-baron-name)
            (:previous-category-name previous-category-name)
            (:next-category-name next-category-name)))
       (unless (null (symbol-value (cadr el)))
@@ -342,7 +353,7 @@
   (if (string-match entropy/emacs-hydra-hollow-category-hydra-name-regexp
                     (symbol-name maybe-category-hydra-name))
       (let* ((name-str (symbol-name maybe-category-hydra-name))
-             (category-name-prefix (match-string 1 name-str))
+             (category-name-prefix (intern (match-string 1 name-str)))
              (category-depth (string-to-number (match-string 3 name-str))))
         (cond
          ((and (not (null get-type))
@@ -422,6 +433,33 @@
     (when (not (null down-caller))
       (define-key keymap (kbd "<down>") down-caller))))
 
+;; ******* categor baron set
+
+(defun entropy/emacs-hydra-hollow-category-define-rate-key
+    (keymap category-baron)
+  (when (and (keymapp keymap)
+             (functionp category-baron))
+    (define-key keymap (kbd "<up>") category-baron)))
+
+(defun entropy/emacs-hydra-hollow-category-patch-hire-title
+    (pretty-hydra-body &optional hint-string)
+  (let* ((new-pretty-hydra-body (copy-tree pretty-hydra-body))
+         (title (plist-get pretty-hydra-body :title))
+         (stick-regexp "» Hint <up> to \\[Previous Hydra\\]")
+         (stick-p (string-match-p stick-regexp (eval title)))
+         new-title)
+    (unless stick-p
+      (setq new-title
+            `(concat
+              ,title
+              " "
+              "» "
+              (propertize "Hint <up> to [Previous Hydra]"
+                          'face 'error)))
+      (setq new-pretty-hydra-body
+            (plist-put new-pretty-hydra-body :title new-title)))
+    new-pretty-hydra-body))
+
 ;; ******* category recursive match
 
 (defun entropy/emacs-hydra-hollow-category-recursive-match-group
@@ -451,7 +489,9 @@
 
 (defmacro entropy/emacs-hydra-hollow-category-with-category
     (category-name-prefix category-depth &rest body)
-  `(let* (($internally/category-name-prefix ,category-name-prefix)
+  `(let* (                              ;
+          ;; orig pattern
+          ($internally/category-name-prefix ,category-name-prefix)
           ($internally/category-depth ,category-depth)
 
           ($internally/category-name
@@ -463,25 +503,22 @@
 
           ($internally/category-hydra-name
            (plist-get $internally/category-value :category-hydra-name))
-          ($internally/new-category-hydra-name
-           $internally/category-hydra-name)
 
           ($internally/category-caller-base-pretty-body-value
            (plist-get $internally/category-value :caller-base-pretty-body))
+
+          ($internally/category-baron-name
+           (plist-get $internally/category-value :category-baron-name))
 
           ($internally/next-category-name
            (plist-get $internally/category-value :next-category-name))
           ($internally/next-category-value
            (ignore-errors (symbol-value $internally/next-category-name)))
-          ($internally/new-next-category-name
-           $internally/next-category-name)
 
           ($internally/previous-category-name
            (plist-get $internally/category-value :previous-category-name))
           ($internally/previous-category-value
            (ignore-errors (symbol-value $internally/previous-category-name)))
-          ($internally/new-previous-category-name
-           $internally/previous-category-name)
 
           ($internally/category-pretty-hydra-body-name
            (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
@@ -507,16 +544,30 @@
 
           ($internally/category-groups-value
            (plist-get $internally/category-value :category-groups))
-          $internally/new-category-groups-value
 
           ($internally/category-width-value
            (plist-get $internally/category-value :category-width))
+
+          ;; new pattern
+
+          ($internally/new-category-baron-name
+           $internally/category-baron-name)
+
+          ($internally/new-next-category-name
+           $internally/next-category-name)
+
+          ($internally/new-previous-category-name
+           $internally/previous-category-name)
+
+          $internally/new-category-groups-value
           $internally/new-category-width-value
 
           ($internally/new-category-pretty-hydra-body-value
            (copy-tree $internally/category-pretty-hydra-body-value))
           ($internally/new-category-pretty-heads-group-value
-           (copy-tree $internally/category-pretty-heads-group-value)))
+           (copy-tree $internally/category-pretty-heads-group-value))
+
+          )
 
      ;; run body
      (cl-labels
@@ -547,6 +598,12 @@
        (progn
          ,@body))
 
+     ;; redefine category pretty-hydra-body for patching with baron
+     (when (not (null $internally/new-category-baron-name))
+       (setq $internally/new-category-pretty-hydra-body-value
+             (entropy/emacs-hydra-hollow-category-patch-hire-title
+              $internally/new-category-pretty-hydra-body-value)))
+
      ;; redefine category pretty-hydra
      (funcall
       (list 'lambda nil
@@ -569,7 +626,7 @@
                  $internally/category-width-value)
               (length $internally/new-category-groups-value)
             $internally/category-width-value))
-      :category-hydra-name $internally/new-category-hydra-name
+      :category-baron-name $internally/new-category-baron-name
       :next-category-name $internally/new-next-category-name
       :previous-category-name $internally/new-previous-category-name)
 
@@ -581,7 +638,38 @@
        :category-hydra-caller)
       (plist-get
        (ignore-errors (symbol-value $internally/new-next-category-name))
-       :category-hydra-caller))))
+       :category-hydra-caller))
+
+     ;; remap category baron key-binds
+     (when $internally/new-category-baron-name
+       (setq entropy/emacs-hydra-hollow-union-form
+             (append
+              entropy/emacs-hydra-hollow-union-form
+              `((entropy/emacs-hydra-hollow-category-define-rate-key
+                 (symbol-value ',$internally/category-hydra-map-name)
+                 ',$internally/new-category-baron-name)))))
+     ))
+
+
+(defun entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
+    (category-baron-name pretty-hydra-heads-group)
+  (let ((split-heads
+         (entropy/emacs-hydra-hollow-split-pretty-hydra-group-heads
+          pretty-hydra-heads-group)))
+    (dolist (head split-heads)
+      (let ((command (cadr (caadr head))))
+        (when (entropy/emacs-hydra-hollow-category-hydra-name-p
+               command)
+          (let* ((it-ctg-name-prefix
+                  (entropy/emacs-hydra-hollow-category-hydra-name-p
+                   command 'just-prefix)))
+            (setq entropy/emacs-hydra-hollow-union-form
+                  (append
+                   entropy/emacs-hydra-hollow-union-form
+                   `((entropy/emacs-hydra-hollow-category-with-category
+                      ',it-ctg-name-prefix nil
+                      (setq $internally/new-category-baron-name
+                            ',category-baron-name)))))))))))
 
 
 ;; ****** define hydra hollow category
@@ -707,6 +795,11 @@
           ,body-patch
           ,cur-head-group)))
 
+    ;; bind rate key and patch rate title
+
+    (entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
+     category-hydra-caller cur-head-group)
+
     ;; advice for calling union form
     (when (eq category-depth 0)
       (entropy/emacs-hydra-hollow-advice-for-call-union-form
@@ -777,13 +870,18 @@
             (let* ((matched-ctg
                     (plist-get ctg-match :category))
                    (matched-category-depth
-                    (plist-get matched-ctg :category-depth)))
+                    (plist-get matched-ctg :category-depth))
+                   (matched-ctg-caller
+                    (plist-get matched-ctg :category-hydra-caller)))
               (entropy/emacs-hydra-hollow-category-with-category
                category-name-prefix matched-category-depth
                ($internally/pretty-hydra-define+
                 $internally/category-hydra-name
                 $internally/category-pretty-hydra-body-value
-                part-ctg))))
+                part-ctg))
+              (entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
+               matched-ctg-caller
+               part-ctg)))
            (t
             (let* ((category-depth (plist-get ctg-match :category-depth))
                    (tail-category-depth (- category-depth 1))
@@ -792,7 +890,7 @@
                      category-name-prefix tail-category-depth))
 
                    (tail-category (symbol-value tail-category-name))
-
+                   (tail-category-hydra-caller (plist-get tail-category :category-hydra-caller))
                    (tail-category-ctg-width (plist-get tail-category :category-width))
                    (tail-category-groups (copy-tree (plist-get tail-category :category-groups)))
 
@@ -806,7 +904,10 @@
                  ($internally/pretty-hydra-define+
                   $internally/category-hydra-name
                   $internally/category-pretty-hydra-body-value
-                  part-ctg)))
+                  part-ctg))
+                (entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
+                 tail-category-hydra-caller
+                 part-ctg))
 
                (tail-category-overflow-p
                 (let* ((new-ctg-name
