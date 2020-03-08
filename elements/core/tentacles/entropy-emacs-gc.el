@@ -45,12 +45,26 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
 
-(defmacro entropy/emacs-gc--with-message (&rest body)
+(defvar entropy/emacs-gc-records nil)
+
+(defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
-  `(let ()
-     (message "Wait! Garbage collecting ...")
+  `(let* (duration
+          (cur-time (current-time))
+          (cur-time-human (format-time-string "[%Y-%m-%d %a %H:%M:%S]"))
+          (start cur-time))
+
+     (when (> (length entropy/emacs-gc-records) 1000)
+       (setq entropy/emacs-gc-records nil))
+
      ,@body
-     (message "")))
+     (setq duration
+           (float-time
+            (time-subtract
+             (current-time) start)))
+     (push (list :stamp cur-time-human :duration duration
+                 :idle-delay entropy/emacs-garbage-collection-delay)
+           entropy/emacs-gc-records)))
 
 (defun entropy/emacs-gc--increase-cons-threshold ()
   (setq gc-cons-threshold
@@ -58,7 +72,7 @@
            gc-cons-threshold)))
 
 (defun entropy/emacs-gc--idle-time-recovery ()
-  (entropy/emacs-gc--with-message
+  (entropy/emacs-gc--with-record
     (garbage-collect)
     (setq gc-cons-threshold
           entropy/emacs-gc-threshold-basic)))
@@ -72,7 +86,7 @@
   (entropy/emacs-gc--init-idle-gc entropy/emacs-garbage-collection-delay))
 
 (defun entropy/emacs-gc--focus-out-hook ()
-  (entropy/emacs-gc--with-message
+  (entropy/emacs-gc--with-record
     (garbage-collect)
     (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
     (garbage-collect))
