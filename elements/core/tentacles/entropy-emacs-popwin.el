@@ -43,18 +43,37 @@
 ;; necessary for hacking.
 ;;
 ;; * Code:
+;; ** require
+
+(require 'entropy-emacs-defcustom)
+(require 'entropy-emacs-hydra-hollow)
+
 ;; ** popwin-mode
 (use-package popwin
   :if (eq entropy/emacs-use-popup-window-framework 'popwin)
   :defines (popwin:keymap)
-  :commands popwin-mode
+  :commands (popwin-mode
+             popwin:messages
+             popwin:find-file
+             popwin:display-buffer)
+
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("p o" popwin:display-buffer "Popup for buffers"
+      :enable t :exit t :eemacs-top-bind t)
+     ("p f" popwin:find-file "Popup for files"
+      :enable t :exit t :eemacs-top-bind t)
+     ("p e" popwin:messages "Popup message buffer"
+      :enable t :exit t :eemacs-top-bind t)
+     ("p l" popwin:popup-last-buffer "Popup last popuped buffer"
+      :enable t :exit t :eemacs-top-bind t))))
+
   :init
 
   (entropy/emacs-lazy-with-load-trail
    popwin-mode
    (popwin-mode t))
-
-  (entropy/emacs-!set-key (kbd "3") popwin:keymap)
 
   :config
   ;; don't use default value but manage it ourselves
@@ -156,6 +175,19 @@
   (defvar shackle-popup-mode-map
     (let ((map (make-sparse-keymap)))
       map))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("p o" shackle-popup-buffer "Popup for buffers"
+      :enable t :exit t :eemacs-top-bind t)
+     ("p f" shackle-popup-find-file "Popup for files"
+      :enable t :exit t :eemacs-top-bind t)
+     ("p e" shackle-popup-message "Popup message buffer"
+      :enable t :exit t :eemacs-top-bind t)
+     ("p l" shackle-last-popup-buffer "Popup last popuped buffer"
+      :enable t :exit t :eemacs-top-bind t))))
+
   :init
   (defvar shackle--popup-window-list nil) ; all popup windows
   (defvar-local shackle--current-popup-window nil) ; current popup window
@@ -165,14 +197,6 @@
    shackle-mode
    (shackle-mode t))
 
-  (entropy/emacs-!set-key (kbd "3") shackle-popup-mode-map)
-
-  :bind
-  (:map shackle-popup-mode-map
-   ("o" . shackle-popup-buffer)
-   ("f" . shackle-popup-find-file)
-   ("e" . shackle-popup-message))
-
   :config
 
   (defun shackle-last-popup-buffer ()
@@ -180,7 +204,6 @@
     (interactive)
     (ignore-errors
       (display-buffer shackle-last-buffer)))
-  (bind-key "C-h z" #'shackle-last-popup-buffer)
 
   ;; Add keyword: `autoclose'
   (defun shackle-display-buffer-hack (fn buffer alist plist)

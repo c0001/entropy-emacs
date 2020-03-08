@@ -391,32 +391,6 @@ layout switching conflicts."
      :global-bind t
      ))))
 
-;; ** kill redundant buffer
-(defun entropy/emacs-basic-kill-large-process-buffer ()
-  (interactive)
-  (dolist (buffer (buffer-list))
-    (when (string-match-p (regexp-quote "*eww") (format "%s" buffer))
-      (kill-buffer buffer))
-    (when (string-match-p (regexp-quote "*[萌典]") (format "%s" buffer))
-      (kill-buffer buffer))
-    (when (string-match-p (regexp-quote "*eshell") (format "%s" buffer))
-      (kill-buffer buffer))
-    (when (string-match-p (regexp-quote "*helm") (format "%s" buffer))
-      (kill-buffer buffer))
-    )
-  (dolist (process (process-list))
-    (when (and (not (string-match-p (regexp-quote "shell") (format "%s" process)))
-               (not (string-match-p (regexp-quote "ansi-term") (format "%s" process)))
-               (not (string-match-p (regexp-quote "terminal") (format "%s" process))))
-      (delete-process process))))
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Misc."
-   (("0" entropy/emacs-basic-kill-large-process-buffer
-     "kill large process"
-     :enable t
-     :exit t))))
-
 ;; ** Set defualt tab size
 (if entropy/emacs-custom-tab-enable
     (setq-default tab-width entropy/emacs-custom-tab-width)
@@ -1125,7 +1099,7 @@ This function has redefined for adapting to
 
 (entropy/emacs-hydra-hollow-add-for-top-dispatch
  '("Basic"
-   (("1" entropy/emacs-basic-mark-set
+   (("SPC" entropy/emacs-basic-mark-set
      "Mark Set"
      :enable t
      :exit t))))
@@ -1361,7 +1335,7 @@ Temp file was \"~/~entropy-artist.txt\""
 
   (entropy/emacs-hydra-hollow-add-for-top-dispatch
    '("Pyim"
-     (("c" entropy/emacs-basic-pyim-start
+     (("c c" entropy/emacs-basic-pyim-start
        "Enable Pyim"
        :enable t
        :toggle entropy/emacs-basic-pyim-has-initialized
@@ -1389,12 +1363,12 @@ Temp file was \"~/~entropy-artist.txt\""
            :toggle (string= current-input-method "pyim")
            :global-bind t)
 
-          ("2" entropy/emacs-basic-toggle-pyim-s2t
+          ("c t" entropy/emacs-basic-toggle-pyim-s2t
            "'Pyim' use traditional chinese"
            :enable t
            :toggle (eq pyim-magic-converter 'entropy/s2t-string))
 
-          ("3" entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
+          ("c f" entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
            "'Pyim' toggle punct full/half"
            :enable t
            :toggle (eq (car pyim-punctuation-translate-p) 'yes)))))
