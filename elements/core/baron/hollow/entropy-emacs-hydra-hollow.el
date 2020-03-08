@@ -11,7 +11,28 @@
 
 (defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
 
+(defvar entropy/emacs-hydra-hollow-union-form
+  '(lambda ()))
+
+(defvar entropy/emacs-hydra-hollow-call-union-form-adviced-list nil)
+
+(defvar entropy/emacs-hydra-hollow--union-form-temp nil)
+
 ;; ** libraries
+(defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
+  (unless (equal entropy/emacs-hydra-hollow--union-form-temp
+                 entropy/emacs-hydra-hollow-union-form)
+    (setq
+     entropy/emacs-hydra-hollow--union-form-temp
+     entropy/emacs-hydra-hollow-union-form)
+    (funcall entropy/emacs-hydra-hollow-union-form)))
+
+(defun entropy/emacs-hydra-hollow-advice-for-call-union-form (func)
+  (unless (not (member
+                func
+                entropy/emacs-hydra-hollow-call-union-form-adviced-list))
+    (and (advice-add func :before #'entropy/emacs-hydra-hollow-call-union-form)
+         (push func entropy/emacs-hydra-hollow-call-union-form-adviced-list))))
 
 (defun entropy/emacs-hydra-hollow-func-version-pthydra-define
     (name body heads-plist)
@@ -686,6 +707,12 @@
           ,body-patch
           ,cur-head-group)))
 
+    ;; advice for calling union form
+    (when (eq category-depth 0)
+      (entropy/emacs-hydra-hollow-advice-for-call-union-form
+       (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+        category-name-prefix t)))
+
     ;; define current category nav keys
     (entropy/emacs-hydra-hollow-category-define-nav-key
      (symbol-value cur-hydra-keymap-name)
@@ -955,19 +982,6 @@
 ;;    :split-pretty-head ("Basic" (("1" (message "yes") "test message")))
 ;;    :rest-args (mode feature map))
 
-(defvar entropy/emacs-hydra-hollow-predicate-union-form
-  '(lambda ()))
-
-(defvar entropy/emacs-hydra-hollow--predicate-union-form-temp nil)
-
-(defun entropy/emacs-hydra-hollow-predicate-call-union-form (&rest _)
-  (unless (equal entropy/emacs-hydra-hollow--predicate-union-form-temp
-                 entropy/emacs-hydra-hollow-predicate-union-form)
-    (setq
-     entropy/emacs-hydra-hollow--predicate-union-form-temp
-     entropy/emacs-hydra-hollow-predicate-union-form)
-    (funcall entropy/emacs-hydra-hollow-predicate-union-form)))
-
 (defvar entropy/emacs-hydra-hollow-predicative-keys
   '((:global-bind . entropy/emacs-hydra-hollow-global-bind-predicate)
     (:map-inject . entropy/emacs-hydra-hollow-map-inject-predicate)
@@ -996,10 +1010,7 @@
             (entropy/emacs-hydra-hollow-pretty-head-notation-handler
              notation 'global-map-inject))
       (setq restrict (append restrict '(:global-bind-notation-beautified t)))
-      (setq entropy/emacs-hydra-hollow-predicate-union-form
-            (append entropy/emacs-hydra-hollow-predicate-union-form
-                    `((global-set-key (kbd ,key) #',command))))
-      )
+      (global-set-key (kbd key) command))
     (list :restrict restrict
           :split-pretty-head
           `(,group ((,key ,command ,notation ,@split-pretty-head-plist))))))
@@ -1036,10 +1047,10 @@
                      (plist-get restrict :global-bind-notation-beautified)))))
         (setq restrict
               (append restrict '(:map-inject-notation-beautified t)))
-        (setq entropy/emacs-hydra-hollow-predicate-union-form
-              (append entropy/emacs-hydra-hollow-predicate-union-form
-                      `((entropy/emacs-lazy-load-simple ,feature
-                          (define-key ,map (kbd ,key) #',command))))))
+        (funcall
+         `(lambda nil
+            (entropy/emacs-lazy-load-simple ,feature
+              (define-key ,map (kbd ,key) #',command)))))
        ((entropy/emacs-common-plistp map-inject)
         (let ((do-beautify-notation
                (entropy/emacs-hydra-hollow--common-judge-p
@@ -1058,10 +1069,10 @@
             (setq restrict
                   (append restrict '(:map-inject-notation-beautified t))))
           (when do-inherit-predicate
-            (setq entropy/emacs-hydra-hollow-predicate-union-form
-                  (append entropy/emacs-hydra-hollow-predicate-union-form
-                          `((entropy/emacs-lazy-load-simple ,feature
-                              (define-key ,map (kbd ,key) #',command))))))
+            (funcall
+             `(lambda nil
+                (entropy/emacs-lazy-load-simple ,feature
+                  (define-key ,map (kbd ,key) #',command)))))
           (when do-inject-spec-maps
             (when (and (listp do-inject-spec-maps)
                        (listp (car do-inject-spec-maps)))
@@ -1069,10 +1080,10 @@
                 (let ((feature (car item))
                       (map (cadr item))
                       (key-for (or (nth 2 item) key)))
-                  (setq entropy/emacs-hydra-hollow-predicate-union-form
-                        (append entropy/emacs-hydra-hollow-predicate-union-form
-                                `((entropy/emacs-lazy-load-simple ,feature
-                                    (define-key ,map (kbd ,key-for) #',command)))))
+                  (funcall
+                   `(lambda nil
+                      (entropy/emacs-lazy-load-simple ,feature
+                        (define-key ,map (kbd ,key-for) #',command))))
                   ))))))))
 
     (list :restrict restrict
@@ -1110,11 +1121,11 @@
             restrict
             (append restrict
                     '(:eemacs-topkey-notation-beautified t)))
-      (setq entropy/emacs-hydra-hollow-predicate-union-form
-            (append entropy/emacs-hydra-hollow-predicate-union-form
-                    `((entropy/emacs-!set-key
-                        (kbd ,key)
-                        #',command)))))
+      (funcall
+       `(lambda ()
+          (entropy/emacs-!set-key
+            (kbd ,key)
+            #',command))))
     (list :restrict restrict
           :split-pretty-head
           `(,group ((,key ,command ,notation ,@split-pretty-head-plist))))))
@@ -1216,9 +1227,8 @@
         (entropy/emacs-!set-key
           (kbd "h")
           ctg-top-category-hydra-caller)
-        (advice-add ctg-top-category-hydra-caller
-                    :before
-                    #'entropy/emacs-hydra-hollow-predicate-call-union-form)))))
+        (entropy/emacs-hydra-hollow-advice-for-call-union-form
+         ctg-top-category-hydra-caller)))))
 
 (defun entropy/emacs-hydra-hollow-add-for-top-dispatch
     (pretty-heads-group)
@@ -1243,9 +1253,8 @@
 
 ;; *** majro mode dispacher
 
-(advice-add 'entropy/emacs-hydra-hollow-category-major-mode-hydra
-            :before
-            #'entropy/emacs-hydra-hollow-predicate-call-union-form)
+(entropy/emacs-hydra-hollow-advice-for-call-union-form
+ #'entropy/emacs-hydra-hollow-category-major-mode-hydra)
 
 ;; **** define major mode hydra
 
