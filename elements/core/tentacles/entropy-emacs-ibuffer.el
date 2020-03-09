@@ -34,16 +34,9 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 
-;; ** use ibuffer-projectitle
-(use-package ibuffer-projectile
-  :if entropy/emacs-enable-ibuffer-projectitle
-  :preface
-  (defun entropy/emacs-ibuffer--ibprjt-init ()
-    (ibuffer-auto-mode 1)
-    (ibuffer-projectile-set-filter-groups)
-    (unless (eq ibuffer-sorting-mode 'alphabetic)
-      (ibuffer-do-sort-by-alphabetic)))
-
+;; ** ibuffer core
+(use-package ibuffer
+  :ensure nil
   :eemacs-tpha
   (((:enable t))
    ("WI&BUF"
@@ -52,20 +45,55 @@
       :exit t
       :global-bind t))))
 
+  :init (setq ibuffer-filter-group-name-face '(:inherit (font-lock-string-face bold)))
+  :config
+  (entropy/emacs-lazy-load-simple counsel
+    (with-no-warnings
+      (defun entropy/emacs-ibuffer-find-file ()
+        (interactive)
+        (let ((default-directory
+                (let ((buf (ibuffer-current-buffer)))
+                  (if (buffer-live-p buf)
+                      (with-current-buffer buf
+                        default-directory)
+                    default-directory))))
+          (counsel-find-file default-directory)))
+      (advice-add #'ibuffer-find-file
+                  :override
+                  #'entropy/emacs-ibuffer-find-file))))
+
+
+;; ** ibuffer all the icons feature
+(use-package all-the-icons-ibuffer
+  :if (display-graphic-p)
+  :init (all-the-icons-ibuffer-mode 1))
+
+;; ** ibuffer-projectitle display
+(use-package ibuffer-projectile
+  :if entropy/emacs-enable-ibuffer-projectitle
+  :preface
+  (defun entropy/emacs-ibuffer--ibprjt-init ()
+    (ibuffer-projectile-set-filter-groups)
+    (unless (eq ibuffer-sorting-mode 'alphabetic)
+      (ibuffer-do-sort-by-alphabetic)))
+
   :init
   (setq ibuffer-filter-group-name-face 'font-lock-function-name-face)
   (add-hook 'ibuffer-hook
-            #'entropy/emacs-ibuffer--ibprjt-init))
+            #'entropy/emacs-ibuffer--ibprjt-init)
+  (setq ibuffer-projectile-prefix
+        (if (display-graphic-p)
+            (concat
+             (all-the-icons-octicon
+              "file-directory"
+              :face ibuffer-filter-group-name-face
+              :v-adjust -0.05
+              :height 1.25)
+             " ")
+          "Project: ")))
 
 ;; ** common ibuffer display
 (when (not entropy/emacs-enable-ibuffer-projectitle)
-  (entropy/emacs-hydra-hollow-add-for-top-dispatch
-   '("WI&BUF"
-     (("C-x C-b" ibuffer "Begin using Ibuffer to edit a list of buffers"
-       :enable t
-       :exit t
-       :global-bind t))))
-
   (defun entropy/emacs-ibuffer--init-common ()
     (progn
       (ibuffer-set-filter-groups-by-mode)

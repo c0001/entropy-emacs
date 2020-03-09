@@ -47,6 +47,7 @@
         alert
         all-the-icons
         all-the-icons-dired
+        all-the-icons-ibuffer
         all-the-icons-ivy
         anaconda-mode
         async
