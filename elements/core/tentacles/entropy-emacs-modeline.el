@@ -284,7 +284,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (defun entropy/emacs-modeline--doom-modeline-specification ()
     (setq doom-modeline-height 10
           doom-modeline-bar-width 1
-          doom-modeline-buffer-file-name-style 'truncate-all
+          doom-modeline-buffer-file-name-style 'buffer-name
           doom-modeline-major-mode-color-icon t
           doom-modeline-icon
           (or (display-graphic-p)
