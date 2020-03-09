@@ -43,6 +43,7 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defface)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** init setting
 ;;
@@ -55,9 +56,35 @@
 ;;     performance enhanced with emacs run time.  And if you want to
 ;;     using modern one , you can choose spaceline which gives you the
 ;;     similar sensitive as spacemacs.
+;; *** eemaac-specification
+;; **** restore origninal mode-line-format
 
-;; *** eyebrowse adapting
-(defvar entropy/emacs-modeline--mdl-egroup-selected-window (frame-selected-window))
+(defvar entropy/emacs-modeline-default-modeline-formt
+  (copy-tree mode-line-format))
+
+(defun entropy/emacs-modeline-restore-default-mdlfmt ()
+  (setq-default
+   mode-line-format
+   entropy/emacs-modeline-default-modeline-formt)
+  (dolist (bname '("*scratch*" "*Messages*"))
+    (if (buffer-live-p (get-buffer bname))
+        (with-current-buffer bname
+          (setq mode-line-format
+                entropy/emacs-modeline-default-modeline-formt)))))
+
+;; **** Common set mode line format
+
+(defun entropy/emacs-modeline--set-mdlfmt-after-advice (&rest _)
+  (let ((cur-mdl-fmt (default-value 'mode-line-format)))
+    (dolist (bname '("*scratch*" "*Messages*"))
+      (if (buffer-live-p (get-buffer bname))
+          (with-current-buffer bname
+            (setq mode-line-format cur-mdl-fmt))))))
+
+;; **** selected window set
+(defvar entropy/emacs-modeline--mdl-egroup-selected-window
+  (frame-selected-window))
+
 (defun entropy/emacs-modeline--mdl-egroup-set-selected-window (&rest _)
   "Set `entropy/emacs-modeline--mdl-egroup' selected window indicator."
   (let ((win (frame-selected-window)))
@@ -65,70 +92,48 @@
       (setq entropy/emacs-modeline--mdl-egroup-selected-window win)
       (force-mode-line-update))))
 
-
 (defun entropy/emacs-modeline--mdl-egroup-unset-selected-window ()
   "Unset `entropy/emacs-modeline--mdl-egroup' appropriately."
   (setq entropy/emacs-modeline--mdl-egroup-selected-window nil)
   (force-mode-line-update))
 
+(add-hook 'window-configuration-change-hook
+          #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
+(advice-add #'handle-switch-frame
+            :after
+            #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
+(advice-add #'select-window
+            :after
+            #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
 
-(add-hook 'window-configuration-change-hook #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
-(advice-add #'handle-switch-frame :after #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
-(advice-add #'select-window :after #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
 (with-no-warnings
   (if (not (boundp 'after-focus-change-function))
       (progn
         (add-hook 'focus-in-hook  #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
         (add-hook 'focus-out-hook #'entropy/emacs-modeline--mdl-egroup-unset-selected-window))
+
     (defun entropy/emacs-modeline--mdl-egroup-refresh-frame ()
       (setq entropy/emacs-modeline--mdl-egroup-selected-window nil)
       (cl-loop for frame in (frame-list)
                if (eq (frame-focus-state frame) t)
-               return (setq entropy/emacs-modeline--mdl-egroup-selected-window (frame-selected-window frame)))
+               return (setq entropy/emacs-modeline--mdl-egroup-selected-window
+                            (frame-selected-window frame)))
       (force-mode-line-update))
-    (add-function :after after-focus-change-function #'entropy/emacs-modeline--mdl-egroup-refresh-frame)))
+    (add-function :after after-focus-change-function
+                  #'entropy/emacs-modeline--mdl-egroup-refresh-frame)))
 
 
-(defun entropy/emacs-modeline--mdl-egroup-face-dynamic (tag)
-  (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
-    (cond ((eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window)
-           (if derived
-               'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived
-             'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main))
-          ((not (eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window))
-           (if derived
-               'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive
-             'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive)))))
-
-(defun entropy/emacs-modeline--mdl-egroup ()
-  "Entropy-emacs specific modeline style.
-
-This customization mainly adding the eyebrowse slot and tagging name show function."
-  (let* ((cs (eyebrowse--get 'current-slot))
-         (window-configs (eyebrowse--get 'window-configs))
-         (window-config (assoc cs window-configs))
-         (current-tag (nth 2 window-config))
-         (mdlface (entropy/emacs-modeline--mdl-egroup-face-dynamic (number-to-string cs)))
-         rtn)
-    (setq rtn (concat
-               ;; (propertize "<<" 'face 'font-lock-type-face)
-               (propertize (concat " " (number-to-string cs) ":") 'face mdlface)
-               (propertize (concat current-tag " ") 'face mdlface) " "
-               ;; (propertize ">> " 'face 'font-lock-type-face)
-               ))
-    rtn))
-
-;; *** init procedure
-;; **** pre required
-
-;; ***** powerline group
-;; ****** powerline
+;; *** modeline type defined
+;; **** powerline group
+;; ***** powerline
 (use-package powerline
   :preface
   (defvar entropy/emacs-modeline--powerline-spec-done nil)
+  (defun entropy/emacs-modeline--powerline-spec-clean ()
+    (entropy/emacs-modeline-restore-default-mdlfmt))
   :commands (powerline-default-theme))
 
-;; ****** spaceline
+;; ***** spaceline
 (defvar entropy/emacs-modeline--spaceline-spec-done nil)
 (defvar entropy/emacs-modeline--spaceline-spec-list
   '())
@@ -153,7 +158,8 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 
 (defun entropy/emacs-modeline--spaceline-spec-clean ()
   (dolist (el entropy/emacs-modeline--spaceline-spec-list)
-    (set (car el) (cdr el))))
+    (set (car el) (cdr el)))
+  (entropy/emacs-modeline-restore-default-mdlfmt))
 
 (if (eq entropy/emacs-use-extensions-type 'submodules)
     (use-package spaceline
@@ -170,7 +176,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (unless entropy/emacs-modeline--spaceline-spec-done
       (entropy/emacs-modeline--spaceline-specification))))
 
-;; ****** spaceline icons
+;; ***** spaceline icons
 (use-package spaceline-all-the-icons
   :commands (spaceline-all-the-icons-theme)
   :preface
@@ -181,7 +187,8 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 
   (defun entropy/emacs-modeline--spaceline-icons-sepc-clean ()
     (dolist (el entropy/emacs-modeline--spaceline-icons-spec-list)
-      (set (car el) (cdr el))))
+      (set (car el) (cdr el)))
+    (entropy/emacs-modeline-restore-default-mdlfmt))
 
   (defun entropy/emacs-modeline--spaceline-icons-specification ()
     ;; powerline specification
@@ -200,7 +207,8 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (unless entropy/emacs-modeline--spaceline-icons-spec-done
     (entropy/emacs-modeline--spaceline-icons-specification))
 
-  (defun entropy/emacs-modeline--spaceline-eyebrowse-segments-advice (orig-func &rest orig-args)
+  (defun entropy/emacs-modeline--spaceline-all-the-icons-eyebrowse-segments-advice
+      (orig-func &rest orig-args)
     "Ignore icon parse for float wind-num type used for
 entropy-emacs' derived eyebrowse window configuration. "
     (let ((slot-number (car orig-args)))
@@ -208,17 +216,50 @@ entropy-emacs' derived eyebrowse window configuration. "
           (number-to-string slot-number))))
   (advice-add 'spaceline-all-the-icons--window-number-icon
               :around
-              #'entropy/emacs-modeline--spaceline-eyebrowse-segments-advice))
+              #'entropy/emacs-modeline--spaceline-all-the-icons-eyebrowse-segments-advice))
 
-;; ***** origin type
+;; **** origin type
+;; ***** eyebrowse adapting
+(defun entropy/emacs-modeline--mdl-egroup-eyebrowse-face-dynamic (tag)
+  (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
+    (cond ((eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window)
+           (if derived
+               'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived
+             'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main))
+          ((not (eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window))
+           (if derived
+               'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive
+             'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive)))))
+
+(defun entropy/emacs-modeline--mdl-egroup-eyebrowse-segment ()
+  "Entropy-emacs specific modeline style.
+
+This customization mainly adding the eyebrowse slot and tagging name show function."
+  (let* ((cs (eyebrowse--get 'current-slot))
+         (window-configs (eyebrowse--get 'window-configs))
+         (window-config (assoc cs window-configs))
+         (current-tag (nth 2 window-config))
+         (mdlface (entropy/emacs-modeline--mdl-egroup-eyebrowse-face-dynamic
+                   (number-to-string cs)))
+         rtn)
+    (setq rtn (concat
+               (propertize (concat " " (number-to-string cs) ":") 'face mdlface)
+               (propertize (concat current-tag " ") 'face mdlface)
+               " "))
+    rtn))
+
+;; ***** main
 (defvar entropy/emacs-modeline--origin-spec-done nil)
+
+(defun entropy/emacs-modeline--origin-spec-clean ()
+  (entropy/emacs-modeline-restore-default-mdlfmt))
 
 (defun entropy/emacs-mode-line-origin-theme ()
   (setq-default mode-line-format
                 '("%e"
                   ;; mode-line-front-space
                   (:eval (when (bound-and-true-p eyebrowse-mode)
-                           (entropy/emacs-modeline--mdl-egroup)))
+                           (entropy/emacs-modeline--mdl-egroup-eyebrowse-segment)))
                   mode-line-mule-info
                   mode-line-client
                   mode-line-modified "  "
@@ -231,7 +272,7 @@ entropy-emacs' derived eyebrowse window configuration. "
                   mode-line-misc-info
                   mode-line-end-spaces)))
 
-;; ***** doom modeline
+;; **** doom modeline
 (use-package doom-modeline
   :ensure nil
   :commands (doom-modeline-mode
@@ -256,10 +297,8 @@ entropy-emacs' derived eyebrowse window configuration. "
   (unless entropy/emacs-modeline--doom-modeline-spec-done
     (entropy/emacs-modeline--doom-modeline-specification))
 
-  ;; narrow region adviced by doom-modeline icon dynamic features
-  (advice-add #'narrow-to-defun :after #'doom-modeline-update-buffer-file-state-icon)
-  (advice-add #'narrow-to-page :after #'doom-modeline-update-buffer-file-state-icon)
-
+;; ***** eemacs doom-modeline segments spec
+;; ****** company-indicator
   (doom-modeline-def-segment company-indicator
     "Company mode backends indicator."
     (let ((company-lighter-base
@@ -289,6 +328,7 @@ entropy-emacs' derived eyebrowse window configuration. "
                (funcall company-backend-abbrev-indicatior
                         cur_info))))))
 
+;; ****** workspace-number
   (doom-modeline-def-segment workspace-number
     "The current workspace name or number. Requires
 `eyebrowse-mode' to be enabled.
@@ -307,16 +347,20 @@ eyerbowse improvement."
                (str (if (and tag (< 0 (length tag)))
                         (concat (int-to-string num) ":" tag)
                       (when num (int-to-string num)))))
-          (propertize (format " %s " str) 'face
-                      (if (string-match-p "\\.[[:digit:]]" str)
-                          (cond
-                           ((doom-modeline--active)
-                            'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived)
-                           (t 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive))
-                        (cond ((doom-modeline--active) 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main)
-                              (t 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive)))))
+          (propertize
+           (format " %s " str) 'face
+           (if (string-match-p "\\.[[:digit:]]" str)
+               (cond
+                ((doom-modeline--active)
+                 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived)
+                (t 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive))
+             (cond ((doom-modeline--active)
+                    'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main)
+                   (t
+                    'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive)))))
       ""))
 
+;; ***** eemacs doom-modeline type spec
   (doom-modeline-def-modeline 'main
    '(bar workspace-number window-number
          matches buffer-info remote-host buffer-position parrot
@@ -328,6 +372,7 @@ eyerbowse improvement."
     '(bar workspace-number window-number buffer-default-directory)
     '(misc-info mu4e github debug major-mode process))
 
+;; ***** common spec
   ;; timer for after-change-function
   (defvar entropy/emacs-modeline--dml-timer nil)
   (defun entropy/emacs-modeline--dml-afc-monitior ()
@@ -345,7 +390,7 @@ with emacs, see its doc-string for details."
   (setq entropy/emacs-modeline--dml-timer
         (run-with-idle-timer 1 t #'entropy/emacs-modeline--dml-afc-monitior)))
 
-;; **** load conditions
+;; *** init load conditions
 (defvar entropy/emacs-modeline--mdl-init-caller nil
   "The form for enable modeline which obtained by
 `entropy/emacs-modeline--mdl-init'.")
@@ -424,11 +469,14 @@ style which defined in `entropy/emacs-modeline-style'."
 
   (defun entropy/emacs-modeline--mdl-tidy-spec ()
     (pcase entropy/emacs-mode-line-sticker
+      ("powerline"
+       (entropy/emacs-modeline--powerline-spec-clean))
       ("spaceline"
        (entropy/emacs-modeline--spaceline-spec-clean))
       ("spaceline-all-the-icons"
        (entropy/emacs-modeline--spaceline-icons-sepc-clean))
       ("doom" (doom-modeline-mode 0))
+      ("origin" (entropy/emacs-modeline--origin-spec-clean))
       (_ nil)))
 
   (defmacro entropy/emacs-modeline--define-toggle (name spec-form init-var enable-form &rest body)
@@ -444,12 +492,16 @@ style which defined in `entropy/emacs-modeline-style'."
              ,enable-form)
          (progn (setq ,init-var nil)))))
 
+  (advice-add 'spaceline-spacemacs-theme
+              :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
   (entropy/emacs-modeline--define-toggle
    "spaceline"
    (entropy/emacs-modeline--spaceline-specification)
    entropy/emacs-modeline--spaceline-spec-done
    (spaceline-spacemacs-theme))
 
+  (advice-add 'spaceline-all-the-icons-theme
+              :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
   (entropy/emacs-modeline--define-toggle
    "spaceline-all-the-icons"
    (entropy/emacs-modeline--spaceline-icons-specification)
@@ -460,6 +512,8 @@ style which defined in `entropy/emacs-modeline-style'."
   spaceline-all-the-icons because this version can not shown
   all-the-icons-fonts correnctly.")))
 
+  (advice-add 'powerline-default-theme
+              :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
   (entropy/emacs-modeline--define-toggle
    "powerline"
    nil entropy/emacs-modeline--powerline-spec-done
@@ -471,6 +525,8 @@ style which defined in `entropy/emacs-modeline-style'."
    entropy/emacs-modeline--doom-modeline-spec-done
    (doom-modeline-mode +1))
 
+  (advice-add 'entropy/emacs-mode-line-origin-theme
+              :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
   (entropy/emacs-modeline--define-toggle
    "origin" nil entropy/emacs-modeline--origin-spec-done
    (entropy/emacs-mode-line-origin-theme))
