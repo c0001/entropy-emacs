@@ -282,16 +282,12 @@ Choose the modeline style:
 
 You can choose below four choices:
 - spaceline-regular:                                  spaceline
-- spaceline-all-the-icons:                            spaceline-icons
 - powerline-default:                                  powerline
 - origin with none modified until you do it yourself: origin
 - doom-modeline                                       doom
 
 
 Notice:
-
-- spaceline-all-the-icons config of entropy-emacs was in development, so it may
-  not be full visibility fine at this time.
 
 - this variable's effectively was rely on the varaible
   `entropy/emacs-enable-modeline-toggle' enabled, other wise any setting for this

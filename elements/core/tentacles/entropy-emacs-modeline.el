@@ -222,48 +222,6 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (unless entropy/emacs-modeline--spaceline-spec-done
       (entropy/emacs-modeline--spaceline-specification))))
 
-;; ***** spaceline icons
-(use-package spaceline-all-the-icons
-  :commands (spaceline-all-the-icons-theme)
-  :preface
-
-  (defvar entropy/emacs-modeline--spaceline-icons-spec-done nil)
-
-  (defvar entropy/emacs-modeline--spaceline-icons-spec-list '())
-
-  (defun entropy/emacs-modeline--spaceline-icons-sepc-clean ()
-    (dolist (el entropy/emacs-modeline--spaceline-icons-spec-list)
-      (set (car el) (cdr el)))
-    (entropy/emacs-modeline-restore-default-mdlfmt))
-
-  (defun entropy/emacs-modeline--spaceline-icons-specification ()
-    ;; powerline specification
-    (require 'powerline)
-    (setq entropy/emacs-modeline--spaceline-icons-spec-list nil)
-    (push (cons 'powerline-text-scale-factor powerline-text-scale-factor)
-          entropy/emacs-modeline--spaceline-icons-spec-list)
-    (setq powerline-text-scale-factor 1.2)
-
-    ;; self specification
-    (setq spaceline-all-the-icons-projectile-p nil)
-    (setq spaceline-all-the-icons-separator-type 'none)
-    (setq spaceline-all-the-icons-icon-set-eyebrowse-slot 'square))
-
-  :config
-  (unless entropy/emacs-modeline--spaceline-icons-spec-done
-    (entropy/emacs-modeline--spaceline-icons-specification))
-
-  (defun entropy/emacs-modeline--spaceline-all-the-icons-eyebrowse-segments-advice
-      (orig-func &rest orig-args)
-    "Ignore icon parse for float wind-num type used for
-entropy-emacs' derived eyebrowse window configuration. "
-    (let ((slot-number (car orig-args)))
-      (or (ignore-errors (apply orig-func orig-args))
-          (number-to-string slot-number))))
-  (advice-add 'spaceline-all-the-icons--window-number-icon
-              :around
-              #'entropy/emacs-modeline--spaceline-all-the-icons-eyebrowse-segments-advice))
-
 ;; **** origin type
 
 (defvar entropy/emacs-modeline--origin-spec-done nil)
@@ -425,21 +383,6 @@ style which defined in `entropy/emacs-modeline-style'."
       (setq entropy/emacs-modeline--mdl-init-caller
             '(spaceline-spacemacs-theme)))
 
-     ;; init sapceline-icons
-     ((and (string= entropy/emacs-modeline-style "spaceline-icons")
-           (not (string= emacs-version "25.3.1")))
-      (setq entropy/emacs-modeline--mdl-init-caller
-            '(spaceline-all-the-icons-theme)))
-
-     ((and (string= entropy/emacs-modeline-style "spaceline-icons")
-           (string= emacs-version "25.3.1"))
-      (warn "You are in emacs veresion 25.3.1 and couldn't use
-  spaceline-all-the-icons because this version can not shown
-  all-the-icons-fonts correnctly.")
-      (setq entropy/emacs-modeline-style "origin"
-            cancel-branch t)
-      (entropy/emacs-modeline--mdl-init))
-
      ;; init powerline
      ((string= entropy/emacs-modeline-style "powerline")
       (setq entropy/emacs-modeline--mdl-init-caller
@@ -490,8 +433,6 @@ style which defined in `entropy/emacs-modeline-style'."
        (entropy/emacs-modeline--powerline-spec-clean))
       ("spaceline"
        (entropy/emacs-modeline--spaceline-spec-clean))
-      ("spaceline-all-the-icons"
-       (entropy/emacs-modeline--spaceline-icons-sepc-clean))
       ("doom" (doom-modeline-mode 0))
       ("origin" (entropy/emacs-modeline--origin-spec-clean))
       (_ nil)))
@@ -516,18 +457,6 @@ style which defined in `entropy/emacs-modeline-style'."
    (entropy/emacs-modeline--spaceline-specification)
    entropy/emacs-modeline--spaceline-spec-done
    (spaceline-spacemacs-theme))
-
-  (advice-add 'spaceline-all-the-icons-theme
-              :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
-  (entropy/emacs-modeline--define-toggle
-   "spaceline-all-the-icons"
-   (entropy/emacs-modeline--spaceline-icons-specification)
-   entropy/emacs-modeline--spaceline-icons-spec-done
-   (spaceline-all-the-icons-theme)
-   (when (version= "25.3.1" emacs-version)
-     (error "You are in emacs veresion 25.3.1 and couldn't use
-  spaceline-all-the-icons because this version can not shown
-  all-the-icons-fonts correnctly.")))
 
   (advice-add 'entropy/emacs-modeline-do-powerline-set
               :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
@@ -555,9 +484,6 @@ style which defined in `entropy/emacs-modeline-style'."
        :enable t)
       ("m m s" entropy/emacs-modeline-mdl-spaceline-toggle
        "Toggle modeline type to [spacemacs line] type"
-       :enable t)
-      ("m m a" entropy/emacs-modeline-mdl-spaceline-all-the-icons-toggle
-       "Toggle modeline type to [spaceline all the icons] type"
        :enable t)
       ("m m p" entropy/emacs-modeline-mdl-powerline-toggle
        "Toggle modeline type to [powerline (riched modeline)] type"
