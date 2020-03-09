@@ -70,7 +70,7 @@
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-garbage-collection-delay 6.6
+(defcustom entropy/emacs-garbage-collection-delay 1.2
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs."
   :type 'integer
