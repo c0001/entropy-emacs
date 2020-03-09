@@ -68,6 +68,7 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-message)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** defvar
 (defvar entropy/emacs-company-elisp-top-backends
@@ -158,16 +159,35 @@
              company-active-map)
 
 ;; *** bind-key
-  :bind (("M-/" . company-complete)
-         ("M-\\" . company-dabbrev)
-         ("C-c C-y" . company-yasnippet)
-         :map company-active-map
+  :bind (:map company-active-map
          ("C-p" . company-select-previous)
          ("C-n" . company-select-next)
          ;; ("<tab>" . company-complete-selection)
          :map company-search-map
          ("C-p" . company-select-previous)
          ("C-n" . company-select-next))
+
+  :eemacs-indhc
+  (((:enable t)
+    (company-auto-completion))
+   ("Basic complete"
+    (("M-/" company-complete
+      "Insert the common part of all candidates or the current selection"
+      :enable t :global-bind t :exit t)
+     ("M-\\" company-dabbrev "dabbrev-like ‘company-mode’ completion backend"
+      :enable t :global-bind t :exit t)
+     ("C-c C-y" company-yasnippet "‘company-mode’ backend for ‘yasnippet’"
+      :enable t :global-bind t :exit t))))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("b c"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'company-auto-completion))
+      "Auto completion operations"
+      :enable t :exit t))))
 ;; *** preface
 
   :preface
