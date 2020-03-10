@@ -350,8 +350,10 @@
 
 (defun entropy/emacs-hydra-hollow-category-hydra-name-p
     (maybe-category-hydra-name &optional get-type)
-  (if (string-match entropy/emacs-hydra-hollow-category-hydra-name-regexp
-                    (symbol-name maybe-category-hydra-name))
+  (if (and
+       (symbolp maybe-category-hydra-name)
+       (string-match entropy/emacs-hydra-hollow-category-hydra-name-regexp
+                     (symbol-name maybe-category-hydra-name)))
       (let* ((name-str (symbol-name maybe-category-hydra-name))
              (category-name-prefix (intern (match-string 1 name-str)))
              (category-depth (string-to-number (match-string 3 name-str))))

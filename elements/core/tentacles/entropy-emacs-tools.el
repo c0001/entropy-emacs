@@ -367,8 +367,6 @@ like `recenter-top-bottom'."
 ;; *** Discover key bindings and their meaning for the current Emacs major mode
 (use-package discover-my-major
   :commands (discover-my-major discover-my-mode)
-  :bind (("C-h M-m" . discover-my-major)
-         ("C-h M-M" . discover-my-mode))
   :eemacs-tpha
   (((:enable t))
    ("Basic"
@@ -563,55 +561,54 @@ which determined by the scale count 0.3 "
      :enable t :exit t))))
 
 ;; *** Foreign language realtime translation
-(defun entropy/emacs-tools-toggle-dict (&optional default)
-  "Toggle foreign language translate proxy engine interactively.
 
-Note:
+(defvar entropy/emacs-tools-dict-sticker entropy/emacs-dictionary-backend)
 
-For now, there's three choices for you:
-
-1) bingdict
-
-   Bing dict proxy was really simple and be prompt just using
-   minibuffer.
-
-   It's really benefit for instantly know what you want for the
-   current word.
-
-2) youdaodict
-
-   Perfectly with child-frame display just like company-mode's
-   candidates.
-
-3) google-translation
-
-   Google translation translation engine was known as it's wild
-   coverage for variant foreign languages."
+(defun entropy/emacs-tools-dict-search-at-point ()
   (interactive)
-  (let* ((choice
-          (if (not default)
-              (ivy-read "Choose your choice: " '("youdao" "bing" "google" "sdcv")
-                        :require-match t
-                        :initial-input "sdcv")
-            default)))
-    (cond
-     ((string= choice "youdao")
-      (progn
-        (global-set-key (kbd "C-c y") 'youdao-dictionary-search-at-point-tooltip)
-        (global-set-key (kbd "C-c M-y") 'youdao-dictionary-search-from-input)))
-     ((string= choice "bing")
-      (progn
-        (global-set-key (kbd "C-c y") 'entropy/emacs-tools-bing-dict-brief-direct)
-        (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-bing-dict-brief-prompt)))
-     ((string= choice "google")
-      (progn
-        (global-set-key (kbd "C-c y") 'entropy/emacs-tools-google-translate-at-point-direct-en-CN)
-        (global-set-key (kbd "C-c M-y") 'entropy/emacs-tools-google-translate-prompt-direct-en-CN)))
-     ((string= choice "sdcv")
-      (global-set-key (kbd "C-c y") 'entropy/sdcv-search-at-point-tooltip)
-      (global-set-key (kbd "C-c M-y") 'entropy/sdcv-search-input-adjacent)))))
+  (let ()
+    (pcase entropy/emacs-tools-dict-sticker
+      ('sdcv (call-interactively 'entropy/sdcv-search-at-point-tooltip))
+      ('youdao (call-interactively 'entropy/emacs-tools-youdao-search-at-point))
+      ('google (call-interactively 'entropy/emacs-tools-google-translate-at-point-direct-en-CN))
+      ('bing (call-interactively 'entropy/emacs-tools-bing-dict-brief-direct)))))
 
-(entropy/emacs-tools-toggle-dict (symbol-name entropy/emacs-dictionary-backend))
+(defun entropy/emacs-tools-dict-search-with-prompt ()
+  (interactive)
+  (let ()
+    (pcase entropy/emacs-tools-dict-sticker
+      ('sdcv (call-interactively 'entropy/sdcv-search-input-adjacent))
+      ('youdao (call-interactively 'youdao-dictionary-search-from-input))
+      ('google (call-interactively 'entropy/emacs-tools-google-translate-prompt-direct-en-CN))
+      ('bing (call-interactively 'entropy/emacs-tools-bing-dict-brief-prompt)))))
+
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'eemacs-dict-search nil nil
+ '("Basic"
+   (("C-c y" entropy/emacs-tools-dict-search-at-point
+     "Search dict for thing at current point"
+     :enable t :global-bind t :exit t)
+    ("C-c M-y" entropy/emacs-tools-dict-search-with-prompt
+     "Search dict for user specified with prompts"
+     :enable t :global-bind t :exit t)
+    ("t"
+     (let* ((candis '("sdcv" "youdao" "bing" "google"))
+            (chosen (completing-read
+                     "Toggle dict backend to: "
+                     candis nil t "sdcv")))
+       (setq entropy/emacs-tools-dict-sticker (intern chosen)))
+     "Toggle entropy-emacs dict search backend"
+     :enable t :exit t))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b o"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'eemacs-dict-search))
+     "Dict search with sets of backends "
+     :enable t :exit t))))
+
 
 ;; **** yoaudao-dictionary
 (use-package youdao-dictionary
@@ -625,7 +622,17 @@ For now, there's three choices for you:
    youdao-dictionary-search-at-point
    youdao-dictionary-search-at-point+
    youdao-dictionary-search-at-point-tooltip
+   youdao-dictionary-search-at-point-posframe
    youdao-dictionary-search-from-input)
+
+  :preface
+  (defun entropy/emacs-tools-youdao-search-at-point ()
+    (interactive)
+    (call-interactively
+     (if (fboundp 'company-posframe-mode)
+         'youdao-dictionary-search-at-point-posframe
+       'youdao-dictionary-search-at-point-tooltip)))
+
   :init
   (setq url-automatic-caching t)
   (defalias 'ydi 'youdao-dictionary-search-from-input))
@@ -645,6 +652,24 @@ For now, there's three choices for you:
     (eval-after-load 'google-translate-tk
       '(setq google-translate--tkk-url "http://translate.google.cn/")))
   :config
+
+  (defun google-translate-json-suggestion (json)
+    "Retrieve from JSON (which returns by the
+`google-translate-request' function) suggestion. This function
+does matter when translating misspelled word. So instead of
+translation it is possible to get suggestion.
+
+Notice: this function has redefined for fix the bug for json
+parsing bug of 'Args out of range: [], 1'.
+
+Patching method getted from
+https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
+"
+    (let ((info (aref json 7)))
+      (if (and info (> (length info) 0))
+          (aref info 1)
+        nil)))
+
   (defun entropy/emacs-tools-google-translate-at-point-direct-en-CN ()
     (interactive)
     (let* ((langs '("auto" "zh-CN"))
@@ -688,8 +713,6 @@ For now, there's three choices for you:
 
 ;; **** bing-dict
 (use-package bing-dict
-  ;; :bind  (("C-c y" . entropy/emacs-tools-bing-dict-brief-direct)
-  ;;         ("C-c M-y" . entropy/emacs-tools-bing-dict-brief-prompt))
   :commands (bing-dict-brief
              bing-dict-brief-cb
              entropy/emacs-tools-bing-dict-brief-prompt
@@ -979,6 +1002,20 @@ For now, there's three choices for you:
       (setq entropy/proxy-url--w3m-load-effectively
             t)))
 
+  :eemacs-mmphca
+  ((((:enable t)
+     (eww-mode eww eww-mode-map))
+    ("Proxy"
+     (("p" entropy/proxy-url-switch-proxy-for-eww-group
+       "Toggle proxy type"
+       :enable t :map-inject t :exit t))))
+   (((:enable t)
+     (w3m-mode w3m w3m-mode-map))
+    ("Proxy"
+     (("p" entropy/emacs-tools-w3m-toggle-proxy
+       "Toggle proxy type"
+       :enable t :map-inject t :exit t)))))
+
   :init
 
   (defun entropy/emacs-tools--proxy-url-w3m-specific ()
@@ -996,20 +1033,26 @@ can't visit one page suddenly."
         (entropy/proxy-url-switch-proxy-for-w3m-group)
         (call-interactively 'w3m-process-stop)
         (w3m-goto-url url)))
-    (advice-add 'w3m-retrieve :before #'entropy/emacs-tools--w3m-recorde-retrieve-url)
-    (define-key w3m-mode-map (kbd "p") #'entropy/emacs-tools-w3m-toggle-proxy))
+    (advice-add 'w3m-retrieve :before
+                #'entropy/emacs-tools--w3m-recorde-retrieve-url))
 
   (entropy/emacs-lazy-load-simple w3m
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (entropy/proxy-url-make-builtin-recipes)
-      (when (executable-find "w3m")
-        (entropy/emacs-tools--proxy-url-w3m-specific))
-      (setq entropy/emacs-proxy-url-loaded t)))
+      (setq entropy/emacs-proxy-url-loaded t))
+    (when (executable-find "w3m")
+      (entropy/emacs-tools--proxy-url-w3m-specific)))
 
   (entropy/emacs-lazy-load-simple eww
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (entropy/proxy-url-make-builtin-recipes)
-      (setq entropy/emacs-proxy-url-loaded t))))
+      (setq entropy/emacs-proxy-url-loaded t)))
+
+  ;; disable w3m update warning before w3m loading
+  (advice-add 'w3m-fix-melpa-installation
+              :around
+              (lambda (&rest _) nil)))
+
 
 ;; *** entropy-unfill
 (use-package entropy-unfill
