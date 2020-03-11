@@ -276,12 +276,22 @@ like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom -1))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("WI&BUF"
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'eemacs-center-line-position nil nil
+ '("Eemacs Center Line"
    (("C-l" entropy/emacs-tools-vertical-center "Vertical center buffer"
      :enable t :exit t :global-bind t)
     ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter top bottom’"
      :enable t :exit t :global-bind t))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("WI&BUF"
+   (("i l"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'eemacs-center-line-position))
+     "Center buffer line"
+     :enable t :exit t))))
 
 ;; *** beacon cursor blanking
 (use-package beacon

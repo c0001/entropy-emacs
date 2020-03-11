@@ -699,6 +699,16 @@ without derived slot."
   :eemacs-tpha
   (((:enable t))
    ("WI&BUF"
+    (("i w"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'winner-mode))
+      "Winner Mode"
+      :enable t :exit t))))
+  :eemacs-indhca
+  (((:enable t)
+    (winner-mode))
+   ("Basic"
     (("C-c <left>" winner-undo
       "Winner Undo"
       :enable t
