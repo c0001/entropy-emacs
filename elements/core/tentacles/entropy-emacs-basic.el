@@ -1314,13 +1314,13 @@ Temp file was \"~/~entropy-artist.txt\""
     (interactive)
     (unless entropy/emacs-basic-pyim-has-initialized
       (require 'pyim)
-      (cond ((and (eq entropy/emacs-pyim-use-backend 'internal)
-                  (not entropy/emacs-pyim-dicts))
-             (pyim-basedict-enable))
-            ((eq entropy/emacs-pyim-use-backend 'internal)
+      (cond ((eq entropy/emacs-pyim-use-backend 'internal)
              (setq pyim-dicts entropy/emacs-pyim-dicts))
-            ((eq entropy/emacs-pyim-use-backend 'liberime)
-             (entropy/emacs-basic-pyim-load-rime)))
+            ((and (eq entropy/emacs-pyim-use-backend 'liberime)
+                  (not sys/win32p))
+             (entropy/emacs-basic-pyim-load-rime))
+            (t
+             (pyim-basedict-enable)))
       (set-input-method "pyim")
 
       ;; keybinding reflect
