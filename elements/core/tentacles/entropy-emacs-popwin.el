@@ -79,7 +79,8 @@
   ;; don't use default value but manage it ourselves
   (setq popwin:special-display-config
         '(;; Emacs
-          ("*Help*" :dedicated t :position bottom :stick nil :noselect nil)
+          ("*Help*" :dedicated t :position bottom :stick nil :noselect nil :height 0.4)
+          ("*Messages*" :dedicated t :position bottom :stick nil :noselect nil :height 0.4)
           ("*compilation*" :dedicated t :position bottom :stick t :noselect t :height 0.4)
           ("*Compile-Log*" :dedicated t :position bottom :stick t :noselect t :height 0.4)
           ("*Warnings*" :dedicated t :position bottom :stick t :noselect t)
@@ -100,7 +101,7 @@
           ("*Youdao Dictionary*" :dedicated t :position bottom)
 
           ;; Google translate
-          ("*Google Translate*" :dedicated t :position bottom)
+          ("*Google Translate*" :dedicated t :position bottom :height 0.4)
 
           ;; Moedict
           ("*[萌典] 查詢結果*" :dedicated t :position bottom)
@@ -276,16 +277,17 @@
   (setq shackle-default-alignment 'below)
   (setq shackle-default-rule nil)
   (setq shackle-rules
-        '(("*Help*" :select t :align below :autoclose t)
+        '(("*Help*" :select t :align below :autoclose t :size 0.4)
           ("*compilation*" :align below :autoclose t)
           ("*Completions*" :align below :autoclose t)
           ("*Pp Eval Output*" :size 15 :align below :autoclose t)
           ("*ert*" :align below :autoclose t)
           ("*Backtrace*" :select t :size 15 :align below)
           ("*Warnings*" :align below :autoclose t)
-          ("*Messages*" :align below :autoclose t)
+          ("*Messages*" :align below :autoclose t :size 0.4)
           ("^\\*.*Shell Command.*\\*$" :regexp t :align below :autoclose t)
           ("\\*[Wo]*Man.*\\*" :regexp t :select t :align below :autoclose t)
+          ("^\\*Man .*\\*" :regexp t :select t :align below :autoclose t)
           ("*Calendar*" :select t :align below)
           ("\\*ivy-occur .*\\*" :regexp t :size 0.4 :select t :align below)
           (" *undo-tree*" :select t :align right)
@@ -293,7 +295,7 @@
           ("*quickrun*" :select t :size 15 :align below)
           ("*tldr*" :align below :autoclose t)
           ("*Youdao Dictionary*" :align below :autoclose t)
-          ("*Google Translate*" :align below :select t :size 0.5 :autoclose t)
+          ("*Google Translate*" :align below :select t :size 0.4 :autoclose t)
           ("*Finder*" :select t :align below :autoclose t)
           ("^\\*elfeed-entry" :regexp t :size 0.7 :align below :autoclose t)
           ("*lsp-help*" :align below :autoclose t)
