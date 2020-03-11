@@ -6,43 +6,48 @@
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-adblockP-rule-analysis
 ;; Package-Version: v0.1.0
-;; Package-Requires: ((emacs "25") (url))
-;; 
+;; Package-Requires: ((emacs "25") (url) (memoize "1.1"))
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
-;;; Commentary:
 ;;
+;;; Commentary:
+
 ;; This package gives the ability to transfer adblock-plus simple url
 ;; rule-set to the elisp regexp string foramt.
-;;
+
 ;; You can see all the adblock-plus rule set document [[https://adblockplus.org/en/filters][online]].
-;;
+
 ;; For more, the transforming used to for simple pac(proxy auto
 ;; configuration) used by [[https://github.com/FelisCatus/SwitchyOmega][Switchy-Omega]], which rely on the rule-list
 ;; host on [[https://github.com/gfwlist/gfwlist][GFWLIST]].
-;;
-;; This package was the apis orientated designation, the only open
-;; interaface was function
-;; ~entropy/adbp-rule-get-regexp-matchs-list~.
-;;
+
+;; This package was the apis orientated designation, the rules get func
+;; ~entropy/adbp-rule-get-regexp-matchs-list~ and url blacklist check
+;; func ~entropy/adbp-rule-blacklist-match-url-p~ are the mainly
+;; provision.
+
 ;;; Configuration:
-;; 
-;; 
+
+;;; Changelog:
+
+;; - [2020-03-11 Wed 10:50:19] Version 0.1.0 release out
+
 ;;; Code:
 ;;;; require
 (require 'url)
+(require 'memoize)
 
 ;;;; variable declaration
 ;;;;; customized variables
@@ -68,14 +73,20 @@ attack or gnutls error in emacs batch mode)."
   (expand-file-name "gfw-list.txt"
                     (file-name-directory load-file-name)))
 
-(defvar entropy/adbp-rule--gfw-list-encrypted-cache nil)
+(defvar entropy/adbp-rule--upstream-gfw-list-encrypted-cache nil)
 (defvar entropy/adbp-rule--origin-rule-set nil)
-(defvar entropy/adbp-rule--regexps-cache nil)
+(defvar entropy/adbp-rule--blacklist-regexps-cache nil)
+(defvar entropy/adbp-rule--whitelist-regexps-cache nil)
 
-(defvar entropy/adbp-rule--head-full-regexp '("^||\\([^|].*\\)$" . "^\\\\(https?://www\\\\.\\\\|ftp://\\\\)\\1"))
-(defvar entropy/adbp-rule--head-regexp '("^|\\([^|].*\\)$" . "^\\1"))
-(defvar entropy/adbp-rule--head-wild-regexp '("^\\.\\([^\\.].*\\)$" . ".*\\1"))
+(defvar entropy/adbp-rule--head-full-blacklist-regexp
+  '("^||\\([^|].*\\)$" . "^\\\\(https?://www\\\\.\\\\|ftp://\\\\)\\1"))
+(defvar entropy/adbp-rule--head-blacklist-regexp '("^|\\([^|].*\\)$" . "^\\1"))
+(defvar entropy/adbp-rule--head-wild-blacklist-regexp '("^\\.\\([^\\.].*\\)$" . ".*\\1"))
 
+(defvar entropy/adbp-rule--head-full-whitelist-regexp
+  '("^@@||\\([^|].*\\)$" . "^\\\\(https?://www\\\\.\\\\|ftp://\\\\)\\1"))
+(defvar entropy/adbp-rule--head-whitelist-regexp '("^@@|\\([^|].*\\)$" . "^\\1"))
+(defvar entropy/adbp-rule--head-wild-whitelist-regexp '("^@@\\.\\([^\\.].*\\)$" . ".*\\1"))
 
 ;;;; libraries
 (defun entropy/adbp-rule--replace-origin-rule-entry (rule-entry $rule-defination)
@@ -123,7 +134,7 @@ attack or gnutls error in emacs batch mode)."
           (re-search-forward "^$")
           (forward-line 1)
           (let ((body (cons (point) (point-max))))
-            (setq entropy/adbp-rule--gfw-list-encrypted-cache
+            (setq entropy/adbp-rule--upstream-gfw-list-encrypted-cache
                   (buffer-substring-no-properties
                    (car body)
                    (cdr body)))))
@@ -136,37 +147,86 @@ attack or gnutls error in emacs batch mode)."
 
 (defun entropy/adbp-rule--extract-regexp-rules ()
   (let ((origin-rule-set (entropy/adbp-rule--gen-adbp-origin-rule-set))
-        (rule-defination-list
-         (list entropy/adbp-rule--head-regexp
-               entropy/adbp-rule--head-full-regexp
-               entropy/adbp-rule--head-wild-regexp)))
-    (setq entropy/adbp-rule--regexps-cache nil)
+        (blacklist-rule-defination-list
+         (list entropy/adbp-rule--head-blacklist-regexp
+               entropy/adbp-rule--head-full-blacklist-regexp
+               entropy/adbp-rule--head-wild-blacklist-regexp))
+        (whitelist-rule-defination-list
+         (list entropy/adbp-rule--head-whitelist-regexp
+               entropy/adbp-rule--head-full-whitelist-regexp
+               entropy/adbp-rule--head-wild-whitelist-regexp)))
+    (setq entropy/adbp-rule--blacklist-regexps-cache nil)
     (with-temp-buffer
       (when buffer-read-only
         (read-only-mode 0))
       (insert origin-rule-set)
-      (dolist (el rule-defination-list)
+      (dolist (el blacklist-rule-defination-list)
         (entropy/adbp-rule--extract-buffer-rule-entries
-         el 'entropy/adbp-rule--regexps-cache)))))
+         el 'entropy/adbp-rule--blacklist-regexps-cache))
+      (dolist (el whitelist-rule-defination-list)
+        (entropy/adbp-rule--extract-buffer-rule-entries
+         el 'entropy/adbp-rule--whitelist-regexps-cache)))))
 
 ;;;; main
+
+;;;###autoload
 (defun entropy/adbp-rule-get-regexp-matchs-list (&optional inct)
   (entropy/adbp-rule--extract-regexp-rules)
-  (cond 
+  (cond
    ((null inct)
-    (let (rtn)
-      (dolist (el entropy/adbp-rule--regexps-cache)
-        (add-to-list 'rtn (list el)))
-      rtn))
+    (let (rtn-blacklist rtn-whitelist)
+      (dolist (el entropy/adbp-rule--blacklist-regexps-cache)
+        (add-to-list 'rtn-blacklist (list el)))
+      (dolist (el entropy/adbp-rule--whitelist-regexps-cache)
+        (add-to-list 'rtn-whitelist (list el)))
+      (list :blacklist rtn-blacklist
+            :whitelist rtn-whitelist)))
    (inct
     (let ((buffer (get-buffer-create "*entropy/adbp-show-rules*")))
       (with-current-buffer buffer
         (when buffer-read-only
           (read-only-mode 0))
+        (erase-buffer)
         (goto-char (point-min))
-        (dolist (el entropy/adbp-rule--regexps-cache)
-          (insert (concat el "\n"))))
+        (insert "* =====blacklist=====\n")
+        (dolist (el entropy/adbp-rule--blacklist-regexps-cache)
+          (insert (concat "\"" el "\"" "\n")))
+        (insert "\n\n")
+        (insert "* =====whitelist=====\n")
+        (dolist (el entropy/adbp-rule--whitelist-regexps-cache)
+          (insert (concat "\"" el "\"" "\n")))
+        (org-mode))
       (switch-to-buffer buffer)))))
+
+;;;###autoload
+(defun entropy/adbp-rule-blacklist-match-url-p (url &optional debug)
+  (when (or (null entropy/adbp-rule--blacklist-regexps-cache)
+            (null entropy/adbp-rule--whitelist-regexps-cache))
+    (entropy/adbp-rule-get-regexp-matchs-list))
+  (let (blacklist-p whitelist-p)
+    (catch :exit
+      (dolist (rule entropy/adbp-rule--whitelist-regexps-cache)
+        (when (string-match-p rule url)
+          (setq whitelist-p t)
+          (throw :exit nil))))
+    (when (null whitelist-p)
+      (catch :exit
+        (dolist (rule entropy/adbp-rule--blacklist-regexps-cache)
+          (when (string-match-p rule url)
+            (setq blacklist-p t)
+            (throw :exit nil)))))
+    (cond
+     (whitelist-p
+      (when debug
+        (message "Whitlist match for url \"%s\"" url))
+      nil)
+     (blacklist-p
+      (when debug
+        (message "Blacklist match for url \"%s\"" url))
+      t)
+     (t
+      nil))))
+(memoize #'entropy/adbp-rule-blacklist-match-url-p)
 
 ;;; provide
 (provide 'entropy-adblock+-rule-analysis)

@@ -5,68 +5,69 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-proxy-url/
-;; Package-Version: v0.1.1
+;; Package-Version: v0.1.2
 ;; Created:       2018
 ;; Keywords:      proxy
 ;; Compatibility: GNU Emacs emacs-version;
-;; Package-Requires: ((emacs "26") (cl-lib "0.5") (eww) (w3m "20190830.742"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
-;;; Commentary:
 ;;
+;;; Commentary:
+
 ;; An emacs extension trafficking url matching by proxy regxp rule-set or
 ;; pull down them into whole proxy tunnel.
-;;
+
 ;; This package perform as the library role for the functional provision.
-;;
+
 ;;;; Eww and emacs-w3m proxy stuff
-;;
+
 ;; Emacs has the ability to retrieving network data steps with internal
 ;; func ~url-retrieve~ and it's refer url library as. Eww using it as the
 ;; communication backend.
-;;
-;; Although, there's another way for emacs to get network data througha
+
+;; Although, there's another way for emacs to get network data through a
 ;; the way of using external shell application which obtains its
 ;; responsing as the render part. One as be in this case was the famous
 ;; cli plain text browser [[http://w3m.sourceforge.net/][w3m]].
-;;
+
 ;; The proxy way for the internal data retrieve was based on emacs
 ;; internal proxy mechanism, and the other one was based on the refer
 ;; response creator's self mechanism.
-;;
+
 ;;;; How this package working as?
-;;
+
 ;; This package taking off the proxy way through two ways for as:
-;;
+
 ;; 1. Regexp matching of current url retrieving.
 ;; 2. Full proxy tunnel whichever current transfer url is.
-;;
+
 ;; As seen as which are easy to understanding of the full proxy
 ;; type,here's the description for 'regexp' way:
-;;
+
 ;; Each network transfer request will come with one url string as the
 ;; requesting wrapper header. URL string has it's feature stored in it's
 ;; domain part, the domain part can be matched by categorizing using
 ;; regexp method, thus each network requesting can be filter by sets of
 ;; regexp rule-set for determining whether go into the proxy tunnerl.
-;;
+
 ;; The regexp filter can be generized of more functional part, by
-;; matching whatever you want. The rule-set internal customized variable
-;; =entropy/proxy-url-gfw-regexp-alist= as is.
-;;
+;; matching whatever you want. For user specification aimed, the
+;; customized variable =entropy/proxy-url-user-proxy-match-func= stored
+;; the function for matching the pre-proxied url method(see its docstring
+;; for more details).
+
 ;; This package use the [[https://github.com/gfwlist/gfwlist][gfwlist]] as the default ruleset, for the original
 ;; prototype for it was the simple variant of [[https://en.wikipedia.org/wiki/Proxy_auto-config][PAC]](proxy auto
 ;; configuration), whose syntax abided by [[https://adblockplus.org/][adblock-plus]] web extensions,
@@ -79,45 +80,45 @@
 ;; when you current internet environment allow the connecting for that,
 ;; or using the package built-in one which was the pre-fetched one, so it
 ;; will not be the latest version.
-;;
+
 ;;;; Methods given
-;;
+
 ;; We using property list as a =PROXY-RECIPE= to given the customized
 ;; way for specify the proxy subroutine.
-;;
+
 ;; As the focurs on, the =PROXY-RECIPE= mainly use ~advice-add~ to
 ;; around wrappering the target underline functional commands, like
 ;; ~w3m-goto-url~ , ~url-retrieve~ etc.
-;;
+
 ;; The =PROXY-RECIPE= slots valid for those listed below:
-;;
+
 ;; - =:group-name= : a symbol to indicate the recipe name
 ;;   identification
-;;
+
 ;; - =:advice-fors= : list of functions for be wrappered with
 ;;   `entropy/proxy-url` specification
-;;
+
 ;; - =:type-source= : a symbol restored the proxy type (i.e. which
 ;;   described in `entropy/proxy-url-initial-typesource')
-;;
+
 ;; - =:PROXY-MECHANISM= : a symbol indicate the proxy mechanism
 ;;   (i.e. describe for `entropy/proxy-url-default-proxy-server-obj')
-;;
+
 ;; - =:server-host-alist= : a symbol indicate the proxy server host
 ;;   alist which using the same struct with
 ;;   `entropy/proxy-url-default-proxy-server-obj'"
-;;
+
 ;; - =:bind= : a alist which the each car of the element was the
 ;;   key-map and the cdr was the keybinding specific valid as the
 ;;   form for =kbd= function.
-;;
+
 ;;;; Proxy reset
-;;
+
 ;; For those cases that you want to quickly reset the proxy server,
 ;; just reset your recipes =:server-host-alist= slot's symbol value,
 ;; all functional form will obtain the new proxy-host value at next
 ;; time for proxy-connection doing.
-;;
+
 ;;; Configuration:
 ;;
 ;; Just require it, and building =PROXY-RECIPE= you specified.
@@ -153,6 +154,20 @@
 ;;
 ;;; Change log:
 
+;; - [2020-03-11 Wed 10:41:29] version 0.1.2 release out
+
+;;   * Using =entropy/proxy-url-user-proxy-match-func= for more flexible
+;;     aiming user aspect proxy method specification.
+
+;;   * Follow =entropy-adblock+-rule-analysis= updates for using more
+;;     quickly way for matching proxy matching way, and thus for that now
+;;     support *whitelist* tunnel.
+
+;;   * Add ~entropy/proxy-url-update-proxy-port~ interactive function to
+;;     quickly rebind all proxy underlines proxy-port. This useful for
+;;     those user who using local proxy client as front-end which proxy
+;;     url matches as '127.0.0.1' etc.
+
 ;; - [2020-01-18] bug fix for boundp check for `w3m-command-arguments-alist'
 
 ;; - [2020-01-11] *version 0.1.1* release out
@@ -171,6 +186,7 @@
 (require 'cl-lib)
 (require 'eww)
 (require 'entropy-common-library)
+(require 'entropy-adblock+-rule-analysis)
 
 (declare-function url-retrieve-internal 'url)
 
@@ -218,11 +234,11 @@ one entry.
 
 The order of the sequence of the CARs of the entry were:
 
-1) `proxy-mechanism` : 
+1) `proxy-mechanism` :
 
    a symbol valid named for `emacs-url` `emacs-socks` `emacs-w3m`
    `shell-http`.
-   
+
    *`emacs-url`* proxy mechanism used for function who use
    `url-retrieve' like underline of package `url.el'
 
@@ -248,18 +264,6 @@ The order of the sequence of the CARs of the entry were:
 "
   :type 'list
   :group 'entropy/proxy-url-group)
-
-(defcustom entropy/proxy-url-gfw-regexp-alist
-  '(("google")
-    ("wikipedia"))
-  "The regexp list for matching url for using proxy.
-
-The structer of this variable format was equal with
-`w3m-command-arguments-alist'."
-  :type 'sexp
-  :group 'entropy/proxy-url-group)
-
-(require 'entropy-proxy-url-gfw-list)
 
 (defcustom entropy/proxy-url--with-proxy-http-sever-host "127.0.0.1:1081"
   "The default http proxy domain string with its port, no
@@ -291,6 +295,13 @@ protocal prefix appended. "
 
 - symbol ‘t’: proxy for all searching"
   :type 'symbol
+  :group 'entropy/proxy-url-group)
+
+(defcustom entropy/proxy-url-user-proxy-match-func nil
+  "The user spec url proxy match function who required only one
+argument the URL, and its return nil or t for indicating whether
+do proxy for current transferring URL."
+  :type 'sexp
   :group 'entropy/proxy-url-group)
 
 ;;;; library
@@ -401,17 +412,14 @@ protocal prefix appended. "
 
 (defun entropy/proxy-url--do-url-proxy
     (url type-source proxy-mechanism server-host-alist browse-func args)
-  (let ((gfw-list entropy/proxy-url-gfw-regexp-alist)
-        (judge-source (symbol-value type-source))
+  (let ((judge-source (symbol-value type-source))
         judge form)
     (if (eq judge-source t)
         (setq judge t)
       (when (eq judge-source 'regexp)
-        (catch :exit
-          (dolist (regexp-list gfw-list)
-            (when (string-match-p (car regexp-list) url)
-              (setq judge t)
-              (throw :exit nil))))))
+        (if (functionp entropy/proxy-url-user-proxy-match-func)
+            (setq judge (funcall entropy/proxy-url-user-proxy-match-func url))
+          (setq judge (entropy/adbp-rule-blacklist-match-url-p url)))))
     (if judge
         (funcall `(lambda ()
                     (message "Proxy for url '%s' ..." ',url)
@@ -499,7 +507,7 @@ protocal prefix appended. "
 
 ;;;###autoload
 (defun entropy/proxy-url-make-recipes (proxy-recipes)
-  "Expand proxy-sepcification to its defination, grouped as RECIPE. 
+  "Expand proxy-sepcification to its defination, grouped as RECIPE.
 
 The recipe was one plist.
 
@@ -540,7 +548,7 @@ Recipe slots:
                 ',(plist-get proxy-recipe :type-source)
                 ',(plist-get proxy-recipe :proxy-mechanism)
                 ,(plist-get proxy-recipe :server-host-alist))
-              
+
               switch-form
               `(defun ,switch-func-name ()
                  (interactive)
@@ -569,6 +577,54 @@ Recipe slots:
                                 entropy/proxy-url--eww-recipe)
                         (list entropy/proxy-url--eww-recipe))))
     (entropy/proxy-url-make-recipes proxy-recipe)))
+
+
+;;;###autoload
+(defun entropy/proxy-url-update-proxy-port ()
+  (interactive)
+  (let* ((read-func
+          (lambda (prompt type)
+            (let* ((1st-read
+                    (read-string prompt))
+                   (rtn 1st-read))
+              (when (or (string= 1st-read "")
+                        (not (integerp (string-to-number 1st-read))))
+                (setq rtn
+                      (caddr
+                       (alist-get
+                        type
+                        entropy/proxy-url-default-proxy-server-obj))))
+              rtn)))
+         (emacs-socks (funcall read-func "emacs-socks proxy port: " 'emacs-socks))
+         (emacs-url (funcall read-func "emacs-url proxy port: " 'emacs-url))
+         (shell-http (funcall read-func "shell-http proxy port: " 'shell-http))
+         (emacs-w3m (funcall read-func "emacs-w3m proxy port: " 'emacs-w3m)))
+    (setq entropy/proxy-url-default-proxy-server-obj
+          `((emacs-socks
+             ,(car (alist-get 'emacs-socks entropy/proxy-url-default-proxy-server-obj))
+             ,(cadr (alist-get 'emacs-socks entropy/proxy-url-default-proxy-server-obj))
+             ,emacs-socks
+             ,(nth 3 (alist-get 'emacs-socks entropy/proxy-url-default-proxy-server-obj)))
+
+            (emacs-url
+             ,(car (alist-get 'emacs-url entropy/proxy-url-default-proxy-server-obj))
+             ,(cadr (alist-get 'emacs-url entropy/proxy-url-default-proxy-server-obj))
+             ,emacs-url
+             ,(nth 3 (alist-get 'emacs-url entropy/proxy-url-default-proxy-server-obj)))
+
+            (shell-http
+             ,(car (alist-get 'shell-http entropy/proxy-url-default-proxy-server-obj))
+             ,(cadr (alist-get 'shell-http entropy/proxy-url-default-proxy-server-obj))
+             ,shell-http
+             ,(nth 3 (alist-get 'shell-http entropy/proxy-url-default-proxy-server-obj)))
+
+            (emacs-w3m
+             ,(car (alist-get 'emacs-w3m entropy/proxy-url-default-proxy-server-obj))
+             ,(cadr (alist-get 'emacs-w3m entropy/proxy-url-default-proxy-server-obj))
+             ,emacs-w3m
+             ,(nth 3 (alist-get 'emacs-w3m entropy/proxy-url-default-proxy-server-obj)))))
+    (entropy/proxy-url-make-builtin-recipes)))
+
 
 ;;; provide
 (provide 'entropy-proxy-url)
