@@ -234,7 +234,7 @@ was found."
   (defvar entropy/emacs-shell--vterm-title-log nil
     "vterm env title debug log var.")
 
-  (defun vterm--cd-to-directory-in-title (title)
+  (defun entropy/emacs-shell-vterm--cd-to-directory-in-title (title)
     "Change into directory extracted from path info in TITLE, so
 that vterm buffer's `default-directory' will update
 automatically.
@@ -251,7 +251,12 @@ https://github.com/akermu/emacs-libvterm/issues/55#issuecomment-468833300"
     (setq entropy/emacs-shell--vterm-title-log  title)
     (let ((dir (concat (nth 1 (split-string title ":")) "/")))
       (cd dir)))
-  (add-hook 'vterm-set-title-functions #'vterm--cd-to-directory-in-title)
+  (add-hook 'vterm-set-title-functions
+            #'entropy/emacs-shell-vterm--cd-to-directory-in-title)
+
+  :init
+  ;; prevent the large buffer content remainin lag (possibile)
+  (setq vterm-max-scrollback 1000)
 
   :config
   (defun entropy/emacs-shell--vterm-mode-around-advice (orig-func &rest orig-args)
