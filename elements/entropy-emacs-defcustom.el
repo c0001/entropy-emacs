@@ -1616,6 +1616,8 @@ under the symbolink root dir."
                   (image-dired-dir . "image-dired")
                   ;; game dir
                   (gamegrid-user-score-file-directory . "games")
+                  ;; vimish
+                  (vimish-fold-dir . "vimish-fold")
                   ))
     (set (car item) (expand-file-name (cdr item) top)))
 
