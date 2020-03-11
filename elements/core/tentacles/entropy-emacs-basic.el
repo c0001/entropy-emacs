@@ -63,6 +63,43 @@
    (kbd entropy/emacs-top-key)
   entropy/emacs-top-keymap))
 
+;; ** eemacs basic hydra-hollow instances
+
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'eemacs-basic-config-core nil nil
+ '("Eemacs Basic Core"
+   (("C-x 1" entropy/emacs-basic-kill-other-window
+     "delete-other-window"
+     :enable t :exit t :global-bind t)
+    ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("<f6>" entropy/emacs-basic-loop-alpha
+     "Frame Alpha"
+     :enable t
+     :toggle entropy/emacs-basic-loop-alpha-did
+     :global-bind t)
+    ("<f7>" entropy/emacs-basic-major-mode-reload
+     "Reload Major"
+     :enable t :exit t :global-bind t)
+    ("C-<f9>" toggle-truncate-lines "toggle truncate"
+     :enable t :toggle truncate-lines :global-bind t)
+    ("SPC" entropy/emacs-basic-mark-set
+     "Mark Set"
+     :enable t :exit t)
+    ("C-c s s" list-processes "List Process"
+     :enable t :exit t :global-bind t))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b m"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'eemacs-basic-config-core))
+     "misc operations"
+     :enable t :exit t))))
+
 ;; ** Temporal bug revert
 ;; *** gnutls bug for emacs version upper than '26.1'
 ;;
@@ -83,10 +120,10 @@
   (setq user-mail-address entropy/emacs-user-mail-address))
 
 
-;; *** Show the column numberic in modeline
+;; ** Show the column numberic in modeline
 (setq column-number-mode t)
 
-;; *** Set default cursor style
+;; ** Set default cursor style
 (setq-default cursor-type t)
 
 (defun entropy/emacs-basic-toggle-cursor-type ()
@@ -95,7 +132,7 @@
       (setq cursor-type 'bar)
     (setq cursor-type t)))
 
-;; *** Global display line number mode
+;; ** Global display line number mode
 (if (>= emacs-major-version 26)
     (progn
       (setq-default display-line-numbers-width-start t)
@@ -199,14 +236,6 @@
     (if (not (ignore-errors hl-line-mode))
         (hl-line-mode 1)
       (hl-line-mode 0))))
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
-     :enable t
-     :exit t
-     :global-bind t))))
-
 
 ;; ** Smooth scrolling
 (defvar entropy/emacs-basic-smooth-scrolling-mode nil
@@ -382,15 +411,6 @@ layout switching conflicts."
                         rtn)))
         (delete-other-windows-internal)))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("C-x 1" entropy/emacs-basic-kill-other-window
-     "delete-other-window"
-     :enable t
-     :exit t
-     :global-bind t
-     ))))
-
 ;; ** Set defualt tab size
 (if entropy/emacs-custom-tab-enable
     (setq-default tab-width entropy/emacs-custom-tab-width)
@@ -445,12 +465,6 @@ layout switching conflicts."
 
 ;; ** Auto wrap line
 (setq-default truncate-lines t)
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("C-<f9>" toggle-truncate-lines "toggle truncate"
-     :enable t
-     :toggle truncate-lines
-     :global-bind t))))
 
 ;; ** Auto clean whitespace after save buffer
 (use-package whitespace
@@ -872,14 +886,6 @@ emacs."
 
 ;; ** Set transparenct of emacs frame
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Misc."
-   (("<f6>" entropy/emacs-basic-loop-alpha
-     "Frame Alpha"
-     :enable t
-     :toggle entropy/emacs-basic-loop-alpha-did
-     :global-bind t))))
-
 (defvar entropy/emacs-basic-loop-alpha-did nil)
 
 (defun entropy/emacs-basic-loop-alpha (&optional prefix)
@@ -1066,13 +1072,6 @@ This function has redefined for adapting to
     (push-mark)
     (push-mark)))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("SPC" entropy/emacs-basic-mark-set
-     "Mark Set"
-     :enable t
-     :exit t))))
-
 ;; ** Windows forbidden view-hello-file
 (when sys/is-win-group
   (defun view-hello-file ()
@@ -1187,14 +1186,6 @@ coding-system to save bookmark infos"
         (goto-char point)
         (message "Reloaded current major mode '%s'!" (symbol-name major-mode)))
     (error "You can not refresh %s in this buffer, if did may cause some bug." (symbol-name major-mode))))
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("<f7>" entropy/emacs-basic-major-mode-reload
-     "Reload Major"
-     :enable t
-     :exit t
-     :global-bind t))))
 
 ;; ** Disable-mouse-wheel and more
 (use-package disable-mouse
@@ -1522,13 +1513,6 @@ Temp file was \"~/~entropy-artist.txt\""
 
 ;; ** Emacs process and system proced manager hacking
 ;; *** process
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Misc."
-   (("C-c s s" list-processes "List Process"
-     :enable t
-     :exit t
-     :global-bind t))))
 
 ;; *** proced
 (use-package proced
