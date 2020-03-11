@@ -56,6 +56,27 @@
 ;;
 ;;
 ;;; Change log:
+
+;; - [2020-03-11 Wed 18:18:15]
+
+;;   *Bug fix*
+
+;;   _Using more limition to plistp checker._
+
+;;   For now the function ~entropy/cl-plistp~ was the wrapper for two
+;;   subroutines:
+
+;;   * ~entropy/cl-common-plistp~
+
+;;     The commonly wildly limitation plist type checker, whose key must
+;;     be =:xx= type and the value can be omitted.
+
+;;   * ~entropy/cl-strict-plistp~
+
+;;     The strictly restriction plist type checker that based on the
+;;     commonly one, further more that the key's value can not be
+;;     omitted.
+
 ;; - [2020-01-11]
 
 ;;   *version 0.1.4 release*
@@ -304,14 +325,85 @@ Duplicated numberic order!"))
              rtn)))))
 
 ;;;; plist
-(defun entropy/cl-plistp (plist-var)
-  "Return non-nil while PLIST-VAR whether is plist type."
-  (let ((temp_var (copy-tree plist-var)))
-    (if (and (ignore-errors
-               (plist-put temp_var :test_put "success"))
-             (not (null plist-var)))
-        t
-      nil)))
+(defun entropy/cl-plistp (plist-var &optional strict)
+  "Return non-nil while PLIST-VAR whether is plist type.
+
+Using `entropy/cl-common-plistp' by default when nil of optional
+argument STRICT, otherwise for use the strict type
+`entropy/cl-strict-plistp'."
+  (if strict
+      (entropy/cl-strict-plistp plist-var)
+    (entropy/cl-common-plistp plist-var)))
+
+(defun entropy/cl-strict-plistp (arg)
+  "Strict plist true-p checker.
+
+The strict plist structed as key-value pairs appended list, the
+car of it was key, each key was a symbol must using the ':xx'
+type. Each key's value was grouped that say the key's 2-step
+after place must be key as well, thus the 'strict' meaning."
+  (cond
+   ((not (listp arg))
+    nil)
+   ((and (listp arg)
+         (= (/ (length arg) 2.0) (/ (length arg) 2)))
+    (let (rtn)
+      (cl-loop for item from 0 to (- (/ (length arg) 2) 1)
+               do (unless (and (symbolp (nth (* item 2) arg))
+                               ;; using `string-match-p' prevent match
+                               ;; history messy
+                               (string-match-p
+                                "^:"
+                                (symbol-name (nth (* item 2) arg))))
+                    (setq rtn t)))
+      (unless rtn
+        t)))
+   (t
+    nil)))
+
+(defun entropy/cl-common-plistp (arg)
+  "Common plist true-p checker
+
+The strict plist structed as key-value pairs appended list, the
+car of it was key, each key was a symbol must using the ':xx'
+type. Each key's value can be omitted thus the 'common' meaning."
+  (cond
+   ((not (listp arg))
+    nil)
+   ((and (listp arg)
+         (not (null arg))
+         (symbolp (car arg)))
+    (let (indicator fake-p (pos 0))
+      (dolist (el arg)
+        (if (and (symbolp el)
+                 ;; using `string-match-p' prevent match
+                 ;; history messy
+                 (string-match-p
+                  "^:"
+                  (symbol-name el)))
+            (setq indicator
+                  (append indicator '(1)))
+          (setq indicator
+                (append indicator '(0)))))
+      (catch :exit
+        (while (< pos (length indicator))
+          (when (= (nth pos indicator) 1)
+            (let ((-pos (+ 1 pos))
+                  (seq-num 0))
+              (while (and (< -pos (length indicator))
+                          (= (nth -pos indicator) 0))
+                (setq seq-num (+ 1 seq-num)
+                      -pos (+ 1 -pos)))
+              (when (> seq-num 1)
+                (setq fake-p t)
+                (throw :exit nil))
+              (if (> -pos (- (- (length indicator) 1) 1))
+                  (throw :exit nil)
+                (setq pos -pos))))))
+      (if fake-p
+          nil
+        t)))
+   (t nil)))
 
 (defun entropy/cl-plist-batch-put (plist-var list-var &optional form)
   "Batch put variable in LIST-VAR into plist by its origin
@@ -1507,7 +1599,7 @@ A *nested appended* form was a regular nested form which each pos
 of the subroutine has the same formulation, the formulation was
 the =base-form=.
 
-Example: 
+Example:
 
 #+begin_src emacs-lisp :tangle yes
 
