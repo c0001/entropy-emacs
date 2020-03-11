@@ -577,7 +577,13 @@ this variable used to patching for origin `counsel-git'.")
 
 
 (use-package all-the-icons-ivy-rich
-  :init (all-the-icons-ivy-rich-mode 1)
+  :commands all-the-icons-ivy-rich-mode
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   all-the-icons-ivy-rich-mode
+   (entropy/emacs-lazy-load-simple ivy
+     (all-the-icons-ivy-rich-mode 1)))
+
   :config
   (entropy/emacs-lazy-load-simple all-the-icons-ivy-rich
     (setq
@@ -594,6 +600,7 @@ this variable used to patching for origin `counsel-git'.")
         :predicate
         (lambda (cand) (get-buffer cand))
         :delimiter "\t")))))
+
 ;; ** use helm ag or pt search
 ;; *** Preparation
 (defun entropy/emacs-ivy--helm-ag--edit-commit ()

@@ -84,6 +84,7 @@
   (setq ibuffer-filter-group-name-face 'font-lock-function-name-face)
   (add-hook 'ibuffer-hook
             #'entropy/emacs-ibuffer--ibprjt-init)
+  :config
   (setq ibuffer-projectile-prefix
         (if (display-graphic-p)
             (concat
