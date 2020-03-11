@@ -1226,7 +1226,7 @@ file which do not already have one. Only adds ids if the
      ("C-c C-p" org-previous-visible-heading
       "Move to the previous visible heading"
       :enable t :map-inject t :exit t)
-     ("C-c C-p" org-next-visible-heading
+     ("C-c C-n" org-next-visible-heading
       "Move to the next visible heading"
       :enable t :map-inject t :exit t)
      ("C-<up>" org-previous-item "Move to the beginning of the previous item"
