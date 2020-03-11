@@ -231,6 +231,7 @@
         treepy
         ujelly-theme
         use-package
+        vimish-fold
         visual-ascii-mode
         visual-regexp
         volatile-highlights

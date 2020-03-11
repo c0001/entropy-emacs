@@ -125,6 +125,112 @@
       :exit t
       :eemacs-top-bind t)))))
 
+
+;; ** vimish
+(use-package vimish-fold
+  :commands
+  (vimish-fold-mode
+   vimish-fold-next-fold
+   vimish-fold-delete
+   vimish-fold
+   vimish-fold-delete-all
+   vimish-fold-avy
+   vimish-fold-refold
+   vimish-fold-refold-all
+   vimish-fold-unfold
+   vimish-fold-toggle
+   vimish-fold-unfold-all
+   vimish-fold-previous-fold
+   vimish-fold-global-mode
+   vimish-fold-toggle-all
+   )
+  :preface
+  (defun entropy/emacs-structure--vimish-folded-p (beg end)
+    (require 'vimish-fold)
+    (let (rtn)
+      (catch :exit
+        (cl-destructuring-bind (beg . end) (vimish-fold--correct-region beg end)
+          (dolist (overlay (overlays-in beg end))
+            (when (vimish-fold--vimish-overlay-p overlay)
+              (goto-char (overlay-start overlay))
+              (setq rtn t)
+              (throw :exit nil)))))
+      rtn))
+
+  (defun entropy/emacs-structure-vimish-toggle (beg end)
+    (interactive "r")
+    (require 'vimish-fold)
+    (deactivate-mark)
+    (if (entropy/emacs-structure--vimish-folded-p
+         (line-beginning-position)
+         (line-end-position))
+        (call-interactively #'vimish-fold-toggle)
+      (vimish-fold beg end)))
+
+  (defun entropy/emacs-structure-vimish-fold-lisp-doc-string ()
+    "Fold lisp type doc string block using `vimish'."
+    (interactive)
+    (require 'vimish-fold)
+    (let ((head-dquote-pt
+           (save-excursion (re-search-backward "^\\s-*\"")))
+          (end-dquote-pt
+           (save-excursion (re-search-forward "\"\\s-*$"))))
+      (if (entropy/emacs-structure--vimish-folded-p
+           (line-beginning-position)
+           (line-end-position))
+          (call-interactively #'entropy/emacs-structure-vimish-toggle)
+        (entropy/emacs-structure-vimish-toggle
+         head-dquote-pt end-dquote-pt))))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("b q"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'vimish-fold))
+      "Vimish Mode"
+      :enable t :exit t))))
+
+  :eemacs-indhc
+  (((:enable t)
+    (vimish-fold vimish-fold vimish-fold-folded-keymap nil (2 2)))
+   ("Vimish toggle"
+    (("<C-tab>" entropy/emacs-structure-vimish-toggle
+      "Automatically vimish fold/show region"
+      :enable t :global-bind t :exit t))
+    "Vimish delete"
+    (("d c" vimish-fold-delete "Delete fold at point"
+      :enable t :exit t)
+     ("d a" vimish-fold-delete-all
+      "Delete all folds in current buffer"
+      :enable t :exit t))
+    "Vimish fold"
+    (("f c" vimish-fold "Fold active region staring at BEG, ending at END"
+      :enable t :exit t)
+     ("f a" vimish-fold-refold-all "Refold all closed folds in current buffer"
+      :enable t :exit t))
+    "Vimish unfold"
+    (("u c" vimish-fold-unfold "Delete all ‘vimish-fold--folded’ overlays at point"
+      :enable t :exit t)
+     ("u a" vimish-fold-unfold-all "Unfold all folds in current buffer"
+      :enable t :exit t))))
+
+  :eemacs-mmphca
+  (((:enable t)
+    (emacs-lisp-mode elisp-mode emacs-lisp-mode-map nil nil (2)))
+   ("Doc string"
+    (("C-c C-o"
+      entropy/emacs-structure-vimish-fold-lisp-doc-string
+      "Quickly vimish fold doc string."
+      :enable t :exit t :map-inject t))))
+
+  :config
+  ;; Disable vimish native kemap that conflict with eemacs
+  ;; specification
+  (define-key vimish-fold-folded-keymap [67108960] nil)
+  (define-key vimish-fold-unfolded-keymap [67108960] nil))
+
 ;; ** outorg
 (use-package outorg
   :commands (outorg-edit-as-org
