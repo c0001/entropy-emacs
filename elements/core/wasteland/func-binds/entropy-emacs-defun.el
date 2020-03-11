@@ -84,6 +84,12 @@ inject into HOOK wrapped BODY."
                    prefix-name)))))
 
 (defun entropy/emacs-strict-plistp (arg)
+  "Strict plist true-p checker.
+
+The strict plist structed as key-value pairs appended list, the
+car of it was key, each key was a symbol must using the ':xx'
+type. Each key's value was grouped that say the key's 2-step
+after place must be key as well, thus the 'strict' meaning."
   (cond
    ((not (listp arg))
     nil)
@@ -104,6 +110,11 @@ inject into HOOK wrapped BODY."
     nil)))
 
 (defun entropy/emacs-common-plistp (arg)
+  "Common plist true-p checker
+
+The strict plist structed as key-value pairs appended list, the
+car of it was key, each key was a symbol must using the ':xx'
+type. Each key's value can be omitted thus the 'common' meaning."
   (cond
    ((not (listp arg))
     nil)
