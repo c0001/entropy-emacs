@@ -316,6 +316,11 @@
     (advice-add 'lsp--auto-configure
                 :after
                 #'entropy/emacs-company-add-lsp-backend))
+
+  ;; Forcely cache lsp auto-completions candi for prevent emacs
+  ;; lagging with frequency candi draging
+  (setq company-lsp-cache-candidates t)
+
   (defun entropy/emacs-company-add-lsp-backend (&rest args)
     (setq-local company-backends (remove 'company-lsp company-backends))
     (cond ((eq major-mode 'sh-mode)
