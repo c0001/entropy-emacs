@@ -239,6 +239,13 @@ status.")
   :diminish page-break-lines-mode
   :commands (global-page-break-lines-mode)
   :init
+
+  (setq page-break-lines-modes
+        '(emacs-lisp-mode
+          lisp-mode
+          scheme-mode
+          compilation-mode outline-mode))
+
   (entropy/emacs-lazy-with-load-trail
    PageBreakLines
    (global-page-break-lines-mode +1)))
