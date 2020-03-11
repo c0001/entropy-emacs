@@ -66,7 +66,10 @@
 ;; ** ibuffer all the icons feature
 (use-package all-the-icons-ibuffer
   :if (display-graphic-p)
-  :init (all-the-icons-ibuffer-mode 1))
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   all-the-icons-ibuffer
+   (all-the-icons-ibuffer-mode 1)))
 
 ;; ** ibuffer-projectitle display
 (use-package ibuffer-projectile
