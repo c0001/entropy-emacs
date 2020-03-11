@@ -152,6 +152,16 @@ It is the recommendation of irony-mode official introduction."
   :diminish lsp-mode
   :commands (lsp lsp-mode lsp-deferred)
   :hook (prog-mode . lsp-deferred)
+  :preface
+  (defun entropy/emacs-codeserver--lsp-deferred-promt (&rest _)
+    "Prompting for `lsp-deferred' starting for prevent lagging
+nervous."
+    (entropy/emacs-message-do-message
+     "%s <%s> %s"
+     (green "Lsp check for buffer")
+     (yellow (buffer-name))
+     (green "...")))
+
   :init
   (setq lsp-auto-guess-root t)
   (setq lsp-auto-configure t)
@@ -167,7 +177,12 @@ It is the recommendation of irony-mode official introduction."
    "lsp-enable-yas"
    "lsp-enable-yas"
    (require 'yasnippet)
-   (yas-global-mode)))
+   (yas-global-mode))
+
+  :config
+  (advice-add 'lsp-deferred
+              :before
+              #'entropy/emacs-codeserver--lsp-deferred-promt))
 
 (use-package lsp-ui
   :if (and (>= emacs-major-version 25)
