@@ -266,14 +266,18 @@
   (defun shackle-popup-message ()
     (interactive)
     (let* ((buff-name (buffer-name (get-buffer-create "*Messages*")))
-           (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
+           (shackle-rules `((,buff-name
+                             :select t
+                             :align 'below
+                             :autoclose t
+                             :size 0.3))))
       (with-current-buffer buff-name
         (unless (eobp)
           (goto-char (point-max))))
       (display-buffer buff-name)))
 
   ;; rules
-  (setq shackle-default-size 0.6)
+  (setq shackle-default-size 0.4)
   (setq shackle-default-alignment 'below)
   (setq shackle-default-rule nil)
   (setq shackle-rules
