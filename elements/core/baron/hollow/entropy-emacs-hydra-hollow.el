@@ -5,18 +5,11 @@
 (require 'cl-lib)
 (require 'use-package)
 
-;; ** defvar
-(defvar entropy/emacs-hydra-hollow-top-dispatch-register nil)
-(defvar entropy/emacs-hydra-hollow-top-dispatch-init-done nil)
-
-(defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
-
+;; ** libraries
 (defvar entropy/emacs-hydra-hollow-union-form
   '(lambda (&rest _)))
 
 (defvar entropy/emacs-hydra-hollow-call-union-form-adviced-list nil)
-
-;; ** libraries
 
 (defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
   (let ((copy-union-form (copy-tree entropy/emacs-hydra-hollow-union-form)))
@@ -491,7 +484,7 @@
 
 (defmacro entropy/emacs-hydra-hollow-category-with-category
     (category-name-prefix category-depth &rest body)
-  `(let* (                              ;
+  `(let* (
           ;; orig pattern
           ($internally/category-name-prefix ,category-name-prefix)
           ($internally/category-depth ,category-depth)
@@ -1287,6 +1280,9 @@
 (defvar entropy/emacs-hydra-hollow-init-top-dispatch-ctg-name-prefix
   'entropy/emacs-hydra-hollow-top-dispatch)
 
+(defvar entropy/emacs-hydra-hollow-top-dispatch-register nil)
+(defvar entropy/emacs-hydra-hollow-top-dispatch-init-done nil)
+
 (defun entropy/emacs-hydra-hollow-init-top-dispatch (&optional force)
   (when (or (not entropy/emacs-hydra-hollow-top-dispatch-init-done)
             force)
@@ -1358,6 +1354,8 @@
 
 (entropy/emacs-hydra-hollow-advice-for-call-union-form
  #'entropy/emacs-hydra-hollow-category-major-mode-hydra)
+
+(defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
 
 ;; **** define major mode hydra
 
@@ -1490,7 +1488,7 @@
            ',mode ',feature ',mode-map ',hydra-body ',heads
            ',category-width-indicator-for-build))))))
 
-;; **** individual common hydra define&define+
+;; *** individual common hydra define&define+
 
 
 (defun entropy/emacs-hydra-hollow-common-individual-hydra-define
