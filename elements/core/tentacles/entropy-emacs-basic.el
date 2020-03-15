@@ -238,6 +238,12 @@
       (hl-line-mode 0))))
 
 ;; ** Smooth scrolling
+
+;; Force smooth mouse scroll experience
+(when (display-graphic-p)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
+        mouse-wheel-progressive-speed nil))
+
 (defvar entropy/emacs-basic-smooth-scrolling-mode nil
   "Indicated whether smooth-scrolling enable.
 
@@ -254,9 +260,9 @@ Manually edit this variable will not be any effection.")
   (setq redisplay-dont-pause t
         scroll-margin 0
         scroll-step   (if (equal scroll-step 0) 1 0)
-        scroll-conservatively (if (equal scroll-conservatively 0) 10000 0))
+        scroll-conservatively (if (equal scroll-conservatively 0) 100000 0))
   (if (and (equal scroll-step 1)
-           (equal scroll-conservatively 10000))
+           (equal scroll-conservatively 100000))
       (progn
         (setq entropy/emacs-basic-smooth-scrolling-mode t)
         (message "Smooth scrolling enabled!"))

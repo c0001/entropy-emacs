@@ -243,6 +243,16 @@
       :enable t
       :exit t
       :eemacs-top-bind t))))
+  :init
+
+  (defun entropy/emacs-structure--outorg-edit-hook ()
+    "Hooks for `outorg-edit-minor-mode-hook' compat for entropy-emacs."
+    (auto-fill-mode)
+    (setq-local fill-column 66)
+    (setq-local org-adapt-indentation nil))
+  (add-hook 'outorg-edit-minor-mode-hook
+            #'entropy/emacs-structure--outorg-edit-hook)
+
   :config
   (define-key outorg-edit-minor-mode-map
     [remap outorg-save-edits-to-tmp-file] nil)
