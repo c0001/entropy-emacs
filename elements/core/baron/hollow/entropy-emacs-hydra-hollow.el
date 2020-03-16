@@ -305,7 +305,8 @@ The generization aiming for use
 `entropy/emacs-hydra-hollow--common-judge-p' to expand the slot
 of =pretty-hydra-casket= for group-name, key-stroke and its
 notation, especially for the command slot that will preserve its
-symbol type when its a symbol, otherwise as other purpose for.
+symbol type or form type when its a symbol or a native form,
+otherwise as other purpose for.
 "
   (let (rtn)
     (dolist (sp-head pretty-hydra-caskets-list)
@@ -1677,6 +1678,25 @@ valid result type are:
 
 (defun entropy/emacs-hydra-hollow-top-keymap-inject-predicate
     (riched-pretty-hydra-casket)
+  "A =pretty-hydra-head-predicate-func= for head's key :eemacs-top-bind.
+
+Restriction:
+
+Maybe enable =:eemacs-topkey-notation-beautified= slot in
+restriction place.
+
+Rest arguments:
+
+No external arguments required.
+
+Key description:
+
+This key indicate for inject the current =pretty-hyra-head='s
+command to the `entropy/emacs-top-keymap'. The pattern of this
+key slot will be evaluated by
+`entropy/emacs-hydra-hollow--common-judge-p' and use its result
+as for judging with 't' or 'nil'.
+  "
   (let* (
          ;; :restrict
          (restrict (plist-get riched-pretty-hydra-casket :restrict))
