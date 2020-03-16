@@ -71,25 +71,63 @@ Add current music to queue when its not in thus."
        (call-interactively #'mpc-songs-jump-to)
        (call-interactively #'mpc-select-toggle))))
 
+  (defun entropy/emacs-music-increae-volume ()
+    (interactive)
+    (let* ((curvol (string-to-number (cdr (assq 'volume mpc-status))))
+           (newvol (+ curvol 5))
+           (newvol-str (number-to-string newvol)))
+      (if (< newvol 100)
+          (mpc-proc-cmd (list "setvol" newvol-str)
+                        'mpc-status-refresh)
+        (message "Warn: mpc vol was loudest!"))))
+
+  (defun entropy/emacs-music-decrease-volume ()
+    (interactive)
+    (let* ((curvol (string-to-number (cdr (assq 'volume mpc-status))))
+           (newvol (- curvol 5))
+           (newvol-str (number-to-string (- curvol 5))))
+      (if (> newvol 0)
+          (mpc-proc-cmd (list "setvol" newvol-str)
+                        'mpc-status-refresh)
+        (message "Warn: mpc vol was mute!"))))
+
   :eemacs-mmphc
   ((((:enable t)
      (mpc-songs-mode mpc mpc-songs-mode-map t (3 2 2)))
     ((:enable t)
-     (mpc-tagbrowser-mode mpc mpc-tagbrowser-mode-map t (3 2 2))))
+     (mpc-tagbrowser-mode mpc mpc-tagbrowser-mode-map t (3 2 2)))
+    ((:enable t)
+     (mpc-status-mode mpc mpc-status-mode-map t (3 2 2))))
    ("Common"
     (("P" mpc-pause "Pause playing" :enable t :exit t :map-inject t)
      ("s" mpc-toggle-play "Toggle between play and pause"
       :enable t :exit t :map-inject t)
      ("n" mpc-next "next song" :enable t :exit t :map-inject t)
      ("p" (mpc-proc-cmd "previous") "previous song"
-      :enable t :exit t :map-inject t)
-     ("RET" mpc-select "Select the tag value at point"
-      :enable t :map-inject t :exit t))
-    "Seek"
+      :enable t :exit t :map-inject t))
+
+    "Seek&volume"
     ((">" (mpc-seek-current "+10") "Seek forward 10s"
       :enable t :map-inject t)
      ("<" (mpc-seek-current "-10") "Seek backward 10s"
-      :enable t :map-inject t))
+      :enable t :map-inject t)
+     ("+" entropy/emacs-music-increae-volume "increase volume"
+      :enable t :map-inject t)
+     ("-" entropy/emacs-music-decrease-volume "decrease volume"
+      :enable t :map-inject t)
+     ("m m"
+      (mpc-proc-cmd
+       (list "setvol" "100")
+       'mpc-status-refresh)
+      "Maximize volume to 100"
+      :enable t :exit t)
+     ("m 0"
+      (mpc-proc-cmd
+       (list "setvol" "0")
+       'mpc-status-refresh)
+      "Mute volume to 0"
+      :enable t :exit t))
+
     "Search"
     (("s" mpc-songs-search
       "Filter songs to those who include STRING in their metadata"
@@ -97,6 +135,7 @@ Add current music to queue when its not in thus."
      ("S" mpc-songs-kill-search
       "Turn off the current search restriction"
       :enable t :exit t :map-inject t))
+
     "Playlist"
     (("g" mpc-playlist "Show the current playlist"
       :enable t :exit t :map-inject t)
@@ -112,12 +151,26 @@ Add current music to queue when its not in thus."
       :enable t :exit t))))
 
   :eemacs-mmphca
-  (((:enable t)
-    (mpc-songs-mode mpc mpc-songs-mode-map t))
-   ("Common"
-    (("RET" entropy/emacs-music-mpc-auto-add-and-play
-      "Play current music."
-      :enable t :exit t :map-inject t))))
+  (((((:enable t)
+      (mpc-songs-mode mpc mpc-songs-mode-map))
+     ((:enable t)
+      (mpc-tagbrowser-mode mpc mpc-tagbrowser-mode-map))
+     ((:enable t)
+      (mpc-songs-mode mpc mpc-songs-mode-map t)))
+    ("Common"
+     (("RET" mpc-select "Select the tag value at point"
+       :enable t :map-inject t :exit t))))
+   (((:enable t)
+     (mpc-songs-mode mpc mpc-songs-mode-map t))
+    ("Common"
+     (("RET" entropy/emacs-music-mpc-auto-add-and-play
+       "Play current music."
+       :enable t :exit t :map-inject t)))))
+
+  :hook
+  ((mpc-songs-mode      . hl-line-mode)
+   (mpc-status-mode     . hl-line-mode)
+   (mpc-tagbrowser-mode . hl-line-mode))
 
   :init
   (setq
@@ -128,8 +181,21 @@ Add current music to queue when its not in thus."
    mpc-songs-format
    "%-5{Time} %25{Title} %20{Album} %20{Artist} %5{Date}"
    mpc-browser-tags
-   '(Artist|Composer|Performer
-     Album|Playlist)))
+   '(Genre
+     Artist|Composer|Performer
+     Album|Playlist)
+   mpc-status-buffer-format
+   '("%-5{Time} / %{Duration} %2{Disc--}%4{Track}"
+     "Title:  %{Title}"
+     "Album:  %{Album}"
+     "Artist: %{Artist}"
+     "%128{Cover}"))
+
+  :config
+  ;; RET in mpc-status-mode is meaningless and will messy the visual
+  ;; experience.
+  (define-key mpc-status-mode-map
+    (kbd "RET") nil))
 
 
 ;; * provide
