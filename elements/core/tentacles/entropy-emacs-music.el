@@ -100,7 +100,7 @@ Add current music to queue when its not in thus."
      (mpc-status-mode mpc mpc-status-mode-map t (3 2 2))))
    ("Common"
     (("P" mpc-pause "Pause playing" :enable t :exit t :map-inject t)
-     ("s" mpc-toggle-play "Toggle between play and pause"
+     ("t" mpc-toggle-play "Toggle between play and pause"
       :enable t :exit t :map-inject t)
      ("n" mpc-next "next song" :enable t :exit t :map-inject t)
      ("p" (mpc-proc-cmd "previous") "previous song"
