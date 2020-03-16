@@ -1454,6 +1454,73 @@ backend instead of `pretty-hydra-define+'."
 ;; =pretty-hydra-head=, aiming for handling more entropy-emacs
 ;; specified head key slot.
 
+;; ***** library
+
+(defvar entropy/emacs-hydra-hollow-random-func-name-number-register nil
+  "The register for the random number suffix as name for random
+function naming.
+
+Do not manually modify this variable or risking on your self.")
+
+(defun entropy/emacs-hydra-hollow-define-key (keymap key form)
+  "Bind KEY to KEYMAP with FORM.
+
+If FORM is not a symbol then define a function with unique random
+name suffix by request from
+`entropy/emacs-hydra-hollow-random-func-name-number-register'.
+
+KEYMAP was a keymap, a keymap symbol or for some meaningful usage:
+
+- KEYMAP `eq' 'global-map', binding KEY to global map.
+- KEYMAP `eq' 'eemacs-top-map, binding KEY to
+  `entropy/emacs-top-keymap'."
+  (let* (command
+         (func-reg-num
+          (or
+           (ignore-errors
+            (+
+             (car
+              entropy/emacs-hydra-hollow-random-func-name-number-register)
+             1))
+           0)))
+    ;; get new random func name suffix
+    (while (member func-reg-num
+                   entropy/emacs-hydra-hollow-random-func-name-number-register)
+      (cl-incf func-reg-num))
+
+    ;; normalize command
+    (cond
+     ((symbolp form)
+      (setq command form))
+     ((listp form)
+      (let ((func-name (intern
+                        (format "eemacs-hydra-hollow-random-func--/number-%s"
+                                (number-to-string func-reg-num)))))
+        (when (fboundp func-name)
+          (error "Function '%s' has been existed, random function creating fatal!"
+                 (symbol-name func-name)))
+        (push func-reg-num
+              entropy/emacs-hydra-hollow-random-func-name-number-register)
+        (eval
+         `(defun ,func-name ()
+            (interactive)
+            ,form))
+        (setq command func-name))))
+
+    ;; inject command to map
+    (pcase keymap
+      ('global-map
+       (global-set-key (kbd key) command))
+      ('eemacs-top-map
+       (entropy/emacs-!set-key
+         (kbd key) command))
+      (_
+       (if (listp keymap)
+           (define-key keymap (kbd key) command)
+         (define-key (symbol-value keymap)
+           (kbd key) command))))
+    ))
+
 ;; ***** predicate defination
 
 ;; *Data type*
@@ -1545,7 +1612,8 @@ There's no rest-arguments required by this function.
             (entropy/emacs-hydra-hollow-pretty-hydra-head-notation-handler
              notation 'global-map-inject))
       (setq restrict (append restrict '(:global-bind-notation-beautified t)))
-      (global-set-key (kbd key) command))
+      (entropy/emacs-hydra-hollow-define-key
+       'global-map key command))
     (list :restrict restrict
           :pretty-hydra-casket
           `(,group ((,key ,command ,notation ,@pretty-hydra-casket-plist))))))
@@ -1635,7 +1703,8 @@ valid result type are:
         (funcall
          `(lambda nil
             (entropy/emacs-lazy-load-simple ,feature
-              (define-key ,map (kbd ,key) #',command)))))
+              (entropy/emacs-hydra-hollow-define-key
+               ',map ,key ',command)))))
        ((entropy/emacs-common-plistp map-inject)
         (let ((do-beautify-notation
                (entropy/emacs-hydra-hollow--common-judge-p
@@ -1657,18 +1726,20 @@ valid result type are:
             (funcall
              `(lambda nil
                 (entropy/emacs-lazy-load-simple ,feature
-                  (define-key ,map (kbd ,key) #',command)))))
+                  (entropy/emacs-hydra-hollow-define-key
+                   ',map ,key ',command)))))
           (when do-inject-spec-maps
             (when (and (listp do-inject-spec-maps)
                        (listp (car do-inject-spec-maps)))
               (dolist (item do-inject-spec-maps)
                 (let ((feature (car item))
-                      (map (cadr item))
+                      (map-for (cadr item))
                       (key-for (or (nth 2 item) key)))
                   (funcall
                    `(lambda nil
                       (entropy/emacs-lazy-load-simple ,feature
-                        (define-key ,map (kbd ,key-for) #',command))))
+                        (entropy/emacs-hydra-hollow-define-key
+                         ',map-for ,key-for ',command))))
                   ))))))))
 
     (list :restrict restrict
@@ -1727,9 +1798,10 @@ as for judging with 't' or 'nil'.
                     '(:eemacs-topkey-notation-beautified t)))
       (funcall
        `(lambda ()
-          (entropy/emacs-!set-key
-            (kbd ,key)
-            #',command))))
+          (entropy/emacs-hydra-hollow-define-key
+           'eemacs-top-map
+           ,key
+           ',command))))
     (list :restrict restrict
           :pretty-hydra-casket
           `(,group ((,key ,command ,notation ,@pretty-hydra-casket-plist))))))
