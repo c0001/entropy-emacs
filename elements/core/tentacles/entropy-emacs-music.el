@@ -151,17 +151,13 @@ Add current music to queue when its not in thus."
       :enable t :exit t))))
 
   :eemacs-mmphca
-  (((((:enable t)
-      (mpc-songs-mode mpc mpc-songs-mode-map))
-     ((:enable t)
-      (mpc-tagbrowser-mode mpc mpc-tagbrowser-mode-map))
-     ((:enable t)
-      (mpc-songs-mode mpc mpc-songs-mode-map t)))
+  ((((:enable t)
+     (mpc-tagbrowser-mode mpc mpc-tagbrowser-mode-map))
     ("Common"
      (("RET" mpc-select "Select the tag value at point"
        :enable t :map-inject t :exit t))))
    (((:enable t)
-     (mpc-songs-mode mpc mpc-songs-mode-map t))
+     (mpc-songs-mode mpc mpc-songs-mode-map))
     ("Common"
      (("RET" entropy/emacs-music-mpc-auto-add-and-play
        "Play current music."
