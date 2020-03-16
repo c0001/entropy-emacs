@@ -720,21 +720,20 @@ You can setting like this:
   :type 'sexp
   :group 'entropy/emacs-customize-pyim)
 
-;; **** emms
-(defgroup entropy/emacs-customized-emms nil
-  "Customized variable group for emms adapted configured for
-  entropy-emacs."
+;; **** mpc
+(defgroup entropy/emacs-customized-mpd nil
+  "Customized variable group for MPD (music player daemon)"
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/emacs-enable-emms nil
-  "Whether enable emms entropy-emacs configuration."
+(defcustom entropy/emacs-mpd-host-url "127.0.0.1"
+  "Mpd host url defautl to 'localhost'."
   :type 'boolean
-  :group 'entropy/emacs-customized-emms)
+  :group 'entropy/emacs-customized-mpd)
 
-(defcustom entropy/emacs-use-emms-mode-line nil
-  "Enable emms-modeline or not."
+(defcustom entropy/emacs-mpd-host-port "9688"
+  "Mpd host port defautl to '9688'."
   :type 'boolean
-  :group 'entropy/emacs-customized-emms)
+  :group 'entropy/emacs-customized-mpd)
 
 ;; **** gnus
 (defgroup entropy/emacs-customize-gnus nil
