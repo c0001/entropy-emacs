@@ -1,4 +1,38 @@
-;; * code
+;;; entropy-emacs-hydra-hollow.el --- entropy-emacs hydra framework
+;;
+;; * Copyright (C) 2019  Entropy
+;; #+BEGIN_EXAMPLE
+;; Author:        Entropy <bmsac0001@gmail.com>
+;; Maintainer:    Entropy <bmsac001@gmail.com>
+;; Created:       2019-12-10
+;; Keywords:      kewords-1, kewords-2, kewords-3,
+;; Compatibility: GNU Emacs emacs-version;
+;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; #+END_EXAMPLE
+;;
+;; * Commentary:
+
+;; This package built entropy-emacs union hydra framework based on
+;; =pretty-hydra= but stand on a superstructure type.
+
+;; * Configuration:
+;;
+;; Designed for =entropy-emacs= only, recommend for using as reference.
+;;
+;; * Code
 ;; ** require
 (require 'entropy-emacs-defun)
 (require 'entropy-emacs-utils)
@@ -1320,6 +1354,10 @@ Optional arguments are all type of
 
 
 ;; ***** major-mode pretty hydra core
+;; This section gives the method to directed define a entropy-emacs
+;; superstructure pretty hydra for a major-mode or even for a
+;; arbitray mode but not recommended for the context term restriction.
+
 
 (defun entropy/emacs-hydra-hollow-category-get-major-mode-name-prefix
     (mode)
@@ -1392,6 +1430,14 @@ backend instead of `pretty-hydra-define+'."
   #'entropy/emacs-hydra-hollow-category-major-mode-hydra)
 
 ;; ***** individual pretty hydra core
+
+;; This section gives the method to define individual entropy-emacs
+;; superstructure pretty hyra, with follow data type defined:
+
+;; - =individual-hydra-name=:
+
+;;   A symbol as =pretty-hydra-category-name-prefix= but used for
+;;   this individual hydra wrapper, and expanded to thus as.
 
 
 (defun entropy/emacs-hydra-hollow-category-common-individual-get-name-prefix
@@ -2127,11 +2173,20 @@ if Optional arguments NOT-MERGE is non-nil. "
 
 
 ;; *** use-package extended
+
+;; This section defined the use-pacakge extended keywords based on
+;; entropy-emacs pretty hydra superstructure.
+
 ;; **** library
+
+;; For give the more powerful key slot form syntax, we defined a new
+;; form-type =pretty-hydra-riched-usepackage-pattern=, see below
+;; function's doc-string for more details.
 
 (defun entropy/emacs-hydra-hollow--usepackage-common-pattern-parse
     (pattern-form)
-  "A PATTERN-FORM was a ISLAND or a list of ISLANDs.
+  "A PATTERN-FORM was a ISLAND or a list of ISLANDs. The PATTERN-FORM
+has its termed name =pretty-hydra-riched-usepackage-pattern=.
 
 - Island
 
@@ -2153,6 +2208,15 @@ if Optional arguments NOT-MERGE is non-nil. "
     (list Attribute-1 Request-1)
     ...
   )
+
+For fully naming each part of
+=pretty-hydra-riched-usepackage-pattern=, we termed their as:
+
+- =pretty-hydra-riched-usepackage-pattern-island=
+- =pretty-hydra-riched-usepackage-pattern-baron=
+- =pretty-hydra-riched-usepackage-pattern-section=
+- =pretty-hydra-riched-usepackage-pattern-section-attribute=
+- =pretty-hydra-riched-usepackage-pattern-section-request=
 
 
 =Request= can be omitted or nil as element injected to the
@@ -2245,6 +2309,18 @@ both ommited, that as:
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-handler
     (use-name key $arg rest state)
+  "The use-package =:eemacs-tpha= key handler.
+
+Special for its
+=pretty-hydra-riched-usepackage-pattern-section-request= was
+without any request.
+
+Special for its
+=pretty-hydra-riched-usepackage-pattern-section-attribute= just
+has one valid key =:enable=, it will be sent to
+`entropy/emacs-hydra-hollow--common-judge-p' and using that's
+evaluated result as its value.
+"
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          (init-form '()))
     (dolist (island $arg)
@@ -2311,6 +2387,23 @@ both ommited, that as:
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-handler
     (use-name key $arg rest state)
+  "The use-package keyword handler for =:eemacs-mmphc=
+
+- Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
+
+  #+begin_src emacs-lisp
+    '(
+      mode feature map do-not-build-sparse-tree
+      pretty-hydra-category-width-indicator-for-build
+      pretty-hydra-category-width-indicator-for-inject)
+  #+end_src
+
+- Special for its =pretty-hydra-riched-usepackage-pattern-section-attribute=:
+
+  Just has one valid key =:enable=, it will be sent to
+  `entropy/emacs-hydra-hollow--common-judge-p' and using that's
+  evaluated result as its value."
+
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          init-form)
     (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log
@@ -2390,6 +2483,24 @@ both ommited, that as:
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-handler
     (use-name key $arg rest state)
+    "The use-package keyword handler for =:eemacs-mmphca=
+
+- Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
+
+  #+begin_src emacs-lisp
+    '(
+      mode feature map
+      pretty-hydra-body
+      pretty-hydra-category-width-indicator-for-build
+      pretty-hydra-category-width-indicator-for-inject)
+  #+end_src
+
+- Special for its =pretty-hydra-riched-usepackage-pattern-section-attribute=:
+
+  Just has one valid key =:enable=, it will be sent to
+  `entropy/emacs-hydra-hollow--common-judge-p' and using that's
+  evaluated result as its value."
+
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          init-form)
     (add-to-list 'entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log
@@ -2479,6 +2590,25 @@ both ommited, that as:
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-handler
     (use-name key $arg rest state)
+  "The use-package keyword handler for =:eemacs-indhc=
+
+- Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
+
+  #+begin_src emacs-lisp
+    '(
+      individual-hydra-name feature keymap
+      pretty-hydra-body
+      pretty-hydra-category-width-indicator-for-build
+     )
+  #+end_src
+
+- Special for its =pretty-hydra-riched-usepackage-pattern-section-attribute=:
+
+  Just has one valid key =:enable=, it will be sent to
+  `entropy/emacs-hydra-hollow--common-judge-p' and using that's
+  evaluated result as its value."
+
+
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          (init-form '()))
     (dolist (island $arg)
@@ -2548,6 +2678,24 @@ both ommited, that as:
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-handler
     (use-name key $arg rest state)
+    "The use-package keyword handler for =:eemacs-indhca=
+
+- Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
+
+  #+begin_src emacs-lisp
+    '(
+      individual-hydra-name feature keymap
+      pretty-hydra-body
+      pretty-hydra-category-width-indicator-for-build
+      pretty-hydra-category-width-indicator-for-inject)
+  #+end_src
+
+- Special for its =pretty-hydra-riched-usepackage-pattern-section-attribute=:
+
+  Just has one valid key =:enable=, it will be sent to
+  `entropy/emacs-hydra-hollow--common-judge-p' and using that's
+  evaluated result as its value."
+
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          (init-form '()))
     (dolist (island $arg)
