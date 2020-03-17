@@ -1973,7 +1973,7 @@ if Optional arguments NOT-MERGE is non-nil. "
 ;; This section provide the method for how to define a
 ;; =entropy/emacs-pretty-hydra-for-major-mode=.
 
-(cl-defmacro entropy/emacs-hydra-hollow--define-major-mode-hydra-macro
+(defun entropy/emacs-hydra-hollow-define-major-mode-hydra
     (mode feature mode-map body heads-plist &optional ctg-width-indc)
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
@@ -1981,36 +1981,26 @@ if Optional arguments NOT-MERGE is non-nil. "
           `((:map-inject . (,feature ,mode-map))
             (:global-bind)
             (:eemacs-top-bind)))))
-    `(let ()
-       ;; Define major-mode-hydra before lazy loading feature prevent
-       ;; hydra adding cover its body
-       (,(if (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
-                       mode))
-             'entropy/emacs-hydra-hollow-category-major-mode-define+
-           'entropy/emacs-hydra-hollow-category-major-mode-define)
-        ',mode
-        ',body
-        ',patched-heads-group
-        ',ctg-width-indc)
-
-       (unless (alist-get  ',mode entropy/emacs-hydra-hollow-major-mode-body-register)
-         (push (cons ',mode ',body)
-               entropy/emacs-hydra-hollow-major-mode-body-register)))))
-
-(defun entropy/emacs-hydra-hollow-define-major-mode-hydra
-    (mode feature mode-map body heads-plist &optional ctg-width-indc)
-  (let ()
-    (funcall
-     `(lambda ()
-        (entropy/emacs-hydra-hollow--define-major-mode-hydra-macro
-         ,mode ,feature ,mode-map ,body ,heads-plist ,ctg-width-indc)))))
+    (let ()
+      (funcall
+       (if (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
+                     mode))
+           'entropy/emacs-hydra-hollow-category-major-mode-define+
+         'entropy/emacs-hydra-hollow-category-major-mode-define)
+       mode
+       body
+       patched-heads-group
+       ctg-width-indc)
+      (unless (alist-get mode entropy/emacs-hydra-hollow-major-mode-body-register)
+        (push (cons mode body)
+              entropy/emacs-hydra-hollow-major-mode-body-register)))))
 
 ;; **** add major mode hydra
 ;; This section provide the method for how to add a
 ;; =pretty-hydr-cabinet= into
 ;; =entropy/emacs-pretty-hydra-for-major-mode=.
 
-(cl-defmacro entropy/emacs-hydra-hollow--add-to-major-mode-hydra-macro
+(defun entropy/emacs-hydra-hollow-add-to-major-mode-hydra
     (mode feature mode-map heads-plist
           &optional
           pretty-hydra-body
@@ -2025,34 +2015,15 @@ if Optional arguments NOT-MERGE is non-nil. "
         (body (or pretty-hydra-body
                   (alist-get
                    mode
-                   entropy/emacs-hydra-hollow-major-mode-body-register
-                   )
+                   entropy/emacs-hydra-hollow-major-mode-body-register)
                   (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
                    mode))))
-    `(let ()
-       ;; add hydra for feature with lazy load prevent covering the
-       ;; major defination
-       (entropy/emacs-hydra-hollow-category-major-mode-define+
-        ',mode
-        ',body
-        ',patched-heads-group
-        pretty-hydra-category-width-indicator-for-build
-        pretty-hydra-category-width-indicator-for-inject)
-       )))
-
-(defun entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-    (mode feature mode-map heads-plist
-          &optional
-          pretty-hydra-body
-          pretty-hydra-category-width-indicator-for-build
-          pretty-hydra-category-width-indicator-for-inject)
-  (let ()
-    (funcall
-     `(lambda ()
-        (entropy/emacs-hydra-hollow--add-to-major-mode-hydra-macro
-         ,mode ,feature ,mode-map ,heads-plist ,pretty-hydra-body
-         ,pretty-hydra-category-width-indicator-for-build
-         ,pretty-hydra-category-width-indicator-for-inject)))))
+    (entropy/emacs-hydra-hollow-category-major-mode-define+
+     mode
+     body
+     patched-heads-group
+     pretty-hydra-category-width-indicator-for-build
+     pretty-hydra-category-width-indicator-for-inject)))
 
 ;; **** sparse tree builder
 
@@ -2060,22 +2031,22 @@ if Optional arguments NOT-MERGE is non-nil. "
 ;; =entropy/emacs-pretty-hydra-for-major-mode= with builtin
 ;; =pretty-hydra-cabinet-unit=.
 
-(cl-defmacro entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
+(defun entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-core
     (mode &optional pretty-hydra-category-width-indicator)
   (let ((body
          (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
           mode)))
-    `(progn
-       (unless (alist-get ',mode entropy/emacs-hydra-hollow-major-mode-body-register)
-         (push (cons ',mode
-                     ',body)
-               entropy/emacs-hydra-hollow-major-mode-body-register))
-       (entropy/emacs-hydra-hollow-category-major-mode-define
-        ',mode
-        ',body
-        '("Help"
-          nil)
-        ',pretty-hydra-category-width-indicator))))
+    (progn
+      (unless (alist-get mode entropy/emacs-hydra-hollow-major-mode-body-register)
+        (push (cons mode
+                    body)
+              entropy/emacs-hydra-hollow-major-mode-body-register))
+      (entropy/emacs-hydra-hollow-category-major-mode-define
+       mode
+       body
+       '("Help"
+         nil)
+       pretty-hydra-category-width-indicator))))
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
     (mode feature mode-map do-not-build-sparse-tree
@@ -2083,8 +2054,9 @@ if Optional arguments NOT-MERGE is non-nil. "
           heads
           pretty-hydra-category-width-indicator-for-build
           pretty-hydra-category-width-indicator-for-inject)
-  (let ((has-defined (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
-                               mode)))
+  (let ((has-defined
+         (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
+                   mode)))
         (pretty-hydra-body
          (or
           (alist-get
@@ -2093,22 +2065,17 @@ if Optional arguments NOT-MERGE is non-nil. "
           (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
            mode))))
     (unless (or has-defined do-not-build-sparse-tree)
-      (funcall
-       `(lambda ()
-          (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
-           ,mode ,pretty-hydra-category-width-indicator-for-build))))
-    (funcall
-     (if (and (null do-not-build-sparse-tree)
-              (null has-defined))
-         `(lambda ()
-            (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-             ',mode ',feature ',mode-map ',heads
-             nil nil
-             ',pretty-hydra-category-width-indicator-for-inject))
-       `(lambda ()
-          (entropy/emacs-hydra-hollow-define-major-mode-hydra
-           ',mode ',feature ',mode-map ',pretty-hydra-body ',heads
-           ',pretty-hydra-category-width-indicator-for-build))))))
+      (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-core
+       mode pretty-hydra-category-width-indicator-for-build))
+    (if (and (null do-not-build-sparse-tree)
+             (null has-defined))
+        (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+         mode feature mode-map heads
+         nil nil
+         pretty-hydra-category-width-indicator-for-inject)
+      (entropy/emacs-hydra-hollow-define-major-mode-hydra
+       mode feature mode-map pretty-hydra-body heads
+       pretty-hydra-category-width-indicator-for-build))))
 
 ;; *** individual common hydra define&define+
 
