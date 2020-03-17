@@ -1807,9 +1807,24 @@ as for judging with 't' or 'nil'.
           `(,group ((,key ,command ,notation ,@pretty-hydra-casket-plist))))))
 
 ;; ***** batch patch pretty-hydra-casket
+;; This section provide a method to handle the =pretty-hydra-cabinet=
+;; with =pretty-hydra-head-predicate-func=.
+
+;; Thus for its a batch procedure, we need to define a new data-type:
+;; =riched-pretty-hydra-casket-predicate-pattern=, an alist for
+;; grouping the head's predications type. Each key of this alist was
+;; the predicated key defined in
+;; =entropy/emacs-hydra-hollow-predicative-keys=, and the value was a
+;; list i.e. the :rest-args slot of
+;; =riched-pretty-hydra-head-predicate-func='s
+;; =riched-pretty-hydra-casket= argument.
+
 
 (defun entropy/emacs-hydra-hollow--sort-riched-pretty-hydra-casket-predicate-pattern
     (riched-pretty-hydra-casket-predicate-pattern)
+  "Sort RICHED-PRETTY-HYDRA-CASKET-PREDICATE-PATTERN with the
+priority as the same as the key order in
+`entropy/emacs-hydra-hollow-predicative-keys'."
   (let (rtn)
     (dolist (item entropy/emacs-hydra-hollow-predicative-keys)
       (when (assoc (car item) riched-pretty-hydra-casket-predicate-pattern)
@@ -1820,6 +1835,11 @@ as for judging with 't' or 'nil'.
 
 (defun entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
     (pretty-hydra-cabinet riched-pretty-hydra-casket-predicate-pattern &optional not-merge)
+  "Rebuild PRETTY-HYDRA-CABINET with sets of
+=PRETTY-HYDRA-HEAD-PREDICATE-FUNC= required by
+RICHED-PRETTY-HYDRA-CASKET-PREDICATE-PATTERN, and return a
+handled =pretty-hydra-cabinet= or a =pretty-hydra-caskets-list=
+if Optional arguments NOT-MERGE is non-nil. "
   (when (or (not (listp riched-pretty-hydra-casket-predicate-pattern))
             (null (cl-delete nil riched-pretty-hydra-casket-predicate-pattern)))
     (error "riched-pretty-hydra-casket-predicate-pattern was fake!"))
@@ -1854,7 +1874,16 @@ as for judging with 't' or 'nil'.
           new-pretty-hydra-caskets-list))))))
 
 ;; ** apis
+
+;; This section gives entropy-emacs specified hydra defination
+;; platform for other entropy-emacs config to attend in. Including
+;; some customized hydras and their equivalent =use-package= feature
+;; support.
+
 ;; *** top dispatcher
+;; This section defines the root hydra dispatch used for
+;; entropy-emacs for calling globally. We call this hydra
+;; =entropy/emacs-pretty-hydra-for-top-dispatch=.
 
 (defvar entropy/emacs-hydra-hollow-init-top-dispatch-ctg-name-prefix
   'entropy/emacs-hydra-hollow-top-dispatch)
@@ -1930,6 +1959,10 @@ as for judging with 't' or 'nil'.
         pretty-hydra-caskets-list)))))
 
 ;; *** majro mode dispacher
+;; This section defines the unified major-mode dispatch used for
+;; entropy-emacs for calling for arbitrary buffer with its
+;; major-mode. We call this hydra type
+;; =entropy/emacs-pretty-hydra-for-major-mode=
 
 (entropy/emacs-hydra-hollow-advice-for-call-union-form
  #'entropy/emacs-hydra-hollow-category-major-mode-hydra)
@@ -1937,6 +1970,8 @@ as for judging with 't' or 'nil'.
 (defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
 
 ;; **** define major mode hydra
+;; This section provide the method for how to define a
+;; =entropy/emacs-pretty-hydra-for-major-mode=.
 
 (cl-defmacro entropy/emacs-hydra-hollow--define-major-mode-hydra-macro
     (mode feature mode-map body heads-plist &optional ctg-width-indc)
@@ -1971,6 +2006,10 @@ as for judging with 't' or 'nil'.
          ,mode ,feature ,mode-map ,body ,heads-plist ,ctg-width-indc)))))
 
 ;; **** add major mode hydra
+;; This section provide the method for how to add a
+;; =pretty-hydr-cabinet= into
+;; =entropy/emacs-pretty-hydra-for-major-mode=.
+
 (cl-defmacro entropy/emacs-hydra-hollow--add-to-major-mode-hydra-macro
     (mode feature mode-map heads-plist
           &optional
@@ -2016,6 +2055,10 @@ as for judging with 't' or 'nil'.
          ,pretty-hydra-category-width-indicator-for-inject)))))
 
 ;; **** sparse tree builder
+
+;; This section provide a method for defining one
+;; =entropy/emacs-pretty-hydra-for-major-mode= with builtin
+;; =pretty-hydra-cabinet-unit=.
 
 (cl-defmacro entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-macro
     (mode &optional pretty-hydra-category-width-indicator)
@@ -2069,6 +2112,9 @@ as for judging with 't' or 'nil'.
 
 ;; *** individual common hydra define&define+
 
+;; This section provide a method to define a somewhat hydra using
+;; entropy-emacs pretty hydra supperstructure. We call this hydra
+;; type =entropy/emacs-pretty-hydra-for-individual=
 
 (defun entropy/emacs-hydra-hollow-common-individual-hydra-define
     (individual-hydra-name feature keymap heads-plist
@@ -2203,6 +2249,9 @@ both ommited, that as:
 
 
 ;; **** :eemacs-tpha
+;; The use-package key =:eemacs-tpha= indicating to add some
+;; =pretty-hydra-cabinet= into
+;; =entropy/emacs-pretty-hydra-for-top-dispatch=.
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-add-keyword (keyword)
   (setq use-package-keywords
@@ -2261,9 +2310,10 @@ both ommited, that as:
 (entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-add-keyword
  :eemacs-tpha)
 
-
-
 ;; **** :eemacs-mmphc
+;; The use-package key =:eemacs-mmphc= indicating define a
+;; =entropy/emacs-pretty-hydra-for-major-mode=.
+
 (defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmc-arg-log nil)
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-add-keyword (keyword)
@@ -2339,6 +2389,9 @@ both ommited, that as:
  :eemacs-mmphc)
 
 ;; **** :eemacs-mmphca
+;; The use-package key =:eemacs-mmphca= indicating to add some
+;; =pretty-hydra-cabinet= into a specified
+;; =entropy/emacs-pretty-hydra-for-major-mode=.
 
 (defvar entropy/emacs-hydra-hollow--usepackage-eemamcs-mmca-arg-log nil)
 
@@ -2421,9 +2474,10 @@ both ommited, that as:
 (entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-add-keyword
  :eemacs-mmphca)
 
-
-
 ;; **** :eemacs-indhc
+;; The use-package key =:eemacs-indhc= indicating to define a
+;; =entropy/emacs-pretty-hydra-for-individual=.
+
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-add-keyword (keyword)
   (setq use-package-keywords
         ;; should go in the same location as :bind
@@ -2489,6 +2543,9 @@ both ommited, that as:
 
 ;; **** :eemacs-indhca
 
+;; The use-package key =:eemacs-indhca= indicating to add some
+;; =pretty-hydra-cabinet= into a specified
+;; =entropy/emacs-pretty-hydra-for-individual=
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-add-keyword (keyword)
   (setq use-package-keywords
