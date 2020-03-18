@@ -1223,14 +1223,68 @@ Temp file was \"~/~entropy-artist.txt\""
 ;; ** Use chinese pyim
 ;; *** extra dependencies
 ;; **** librime for pyim
-(use-package liberime-config
+(use-package liberime
   :if (not sys/is-win-group)
   :ensure nil
   :commands (liberime-load)
   :preface
+  (defvar entropy/emacs-basic-pyim-liberime-load-timer nil)
+
+  (defun entropy/emacs-basic--pyim-set-rime-schema ()
+    "Set rime input schema to 'luna_pinyin_simp' as that is the
+only schema supported in entropy-emacs.
+
+Notice:
+
+If your input schema was traditional chinese, try to create
+'luna_pinyin.custom.yaml' in
+`entropy/emacs-pyim-liberime-cache-dir' with the content to:
+
+#+begin_example
+patch:
+  switches:                   # 注意縮進
+    - name: ascii_mode
+      reset: 0                # reset 0 的作用是當從其他輸入方案切換到本方案時，
+      states: [ 中文, 西文 ]  # 重設爲指定的狀態，而不保留在前一個方案中設定的狀態。
+    - name: full_shape        # 選擇輸入方案後通常需要立即輸入中文，故重設 ascii_mode = 0；
+      states: [ 半角, 全角 ]  # 而全／半角則可沿用之前方案中的用法。
+    - name: simplification
+      reset: 1                # 增加這一行：默認啓用「繁→簡」轉換。
+      states: [ 漢字, 汉字 ]
+#+end_example
+
+See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5%AE%9A%E8%A3%BD%E7%B0%A1%E5%8C%96%E5%AD%97%E8%BC%B8%E5%87%BA][the rime wiki]] for details.
+
+"
+    (liberime-select-schema
+     "luna_pinyin_simp"))
+
+  (defun entropy/emacs-basic--pyim-first-build-timer ()
+    (setq entropy/emacs-basic-pyim-liberime-load-timer
+          (run-with-timer
+           2 1
+           (lambda ()
+             (cancel-timer entropy/emacs-basic-pyim-liberime-load-timer)
+             (unless
+                 (ignore-errors
+                   (entropy/emacs-basic--pyim-set-rime-schema))
+               (entropy/emacs-basic--pyim-first-build-timer))))))
+
   (defun entropy/emacs-basic-pyim-load-rime ()
-    (liberime-load)
-    (liberime-select-schema "luna_pinyin_simp"))
+    ;; load liberim just needed to require it.
+    (require 'liberime)
+    ;; set liberime schema and check dynamic module status and build
+    ;; it when needed.
+    (let (building)
+      (when
+          (not
+           (ignore-errors
+             (entropy/emacs-basic--pyim-set-rime-schema)))
+        (liberime-build)
+        (setq building t))
+      (when building
+        (entropy/emacs-basic--pyim-first-build-timer))))
+
   :init
   (setq liberime-shared-data-dir
         (expand-file-name entropy/emacs-pyim-liberime-scheme-data)
@@ -1247,7 +1301,7 @@ Temp file was \"~/~entropy-artist.txt\""
   :ensure nil
   :commands entropy/s2t-string)
 
-;; *** preface
+;; *** pyim main
 (use-package pyim
   :diminish chinese-pyim-mode
   :commands (pyim-restart-1
@@ -1305,7 +1359,7 @@ Temp file was \"~/~entropy-artist.txt\""
 
       (setq entropy/emacs-basic-pyim-has-initialized t)))
 
-;; *** init
+;; **** init
   :init
 
   ;; If didn't use pyim set input method to nil
@@ -1338,9 +1392,9 @@ Temp file was \"~/~entropy-artist.txt\""
   ;; 5 candidates shown for pyim tooltip
   (setq pyim-page-length 8)
 
-;; *** config
+;; **** config
   :config
-;; **** toggle input method
+;; ***** toggle input method
   (defun entropy/emacs-basic-pyim-toggle ()
     (interactive)
     (if (string= current-input-method "pyim")
@@ -1349,18 +1403,18 @@ Temp file was \"~/~entropy-artist.txt\""
         (set-input-method "pyim")
         (setq pyim-punctuation-escape-list nil))))
 
-;; **** using 'C-g' to cancling any pyim manipulation
+;; ***** using 'C-g' to cancling any pyim manipulation
   (if (not (version< emacs-version "26"))
       (define-key pyim-mode-map (kbd "C-g") 'pyim-quit-clear))
 
-;; **** s2t&t2s convertor
+;; ***** s2t&t2s convertor
   (defun entropy/emacs-basic-toggle-pyim-s2t ()
     (interactive)
     (if pyim-magic-converter
         (setq pyim-magic-converter nil)
       (setq pyim-magic-converter 'entropy/s2t-string)))
 
-;; **** toglle punctuation between half and full way.
+;; ***** toglle punctuation between half and full way.
   (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
     (interactive)
     (if (or (eq (car pyim-punctuation-translate-p) 'no)
