@@ -1,110 +1,156 @@
-* liberime [开发中]
+#+TITLE: liberime [开发中]
 
-A emacs dynamic module provide librime bindings for emacs
+* Introduction
 
-目前只实现了几个方法，以及新加一个 librime 没有的方法 liberime-search 方便 [[https://github.com/tumashu/pyim][pyim]] 集成。
+A dynamic module provides librime bindings for emacs.
 
-理想情况是暴露所有 librime 的 API 到 emacs-lisp;
+目前只实现了几个方法，理想情况是暴露所有 librime 的 API 到 emacs-lisp.
 
-** Build
+* Requirement
+1. emacs 需要启用支持动态模块，在编译的时候使用 --with-modules 选项。
+2. librime 版本 > 1.3.2
 
-On Linux:
+* Build
+** Build on Linux:
 #+NAME: build on linux
 #+BEGIN_SRC shell
-make liberime
+make liberime-core
 ls build/
 
 # try
 make test
 #+END_SRC
 
-On Darwin
-1. Build librime following this [[https://github.com/rime/librime/blob/master/README-mac.md][instruction]], you will need xcode (good luck).
-2. setup environment variable RIME_PATH to librime project dir
-Example: ~export RIME_PATH=~/Develop/others/librime~
-3. build just like on Linux
-#+NAME: build on osx
-#+BEGIN_SRC shell
-make liberime
-ls build/
+** Build on Darwin
+1. Build librime by following this [[https://github.com/rime/librime/blob/master/README-mac.md][instruction]]. You will need Xcode (good luck).
+2. Setup the environment variable RIME_PATH to librime project dir, for example:
+   #+begin_src shell
+   export RIME_PATH=~/Develop/others/librime
+   #+end_src
+3. Build just like on Linux
+   #+NAME: build on osx
+   #+BEGIN_SRC shell
+   make liberime-core
+   ls build/
 
-# try
-make test
-#+END_SRC
+   # try
+   make test
+   #+END_SRC
 
-** Usage
+** Build on Windows (Msys2)
+1. 打开 MSYS2 MinGW 终端
+2. 切换到 liberime 所在的目录
+3. 运行下面的命令
 
-*** Initialize
-    :PROPERTIES:
-    :ORDERED:  t
-    :END:
+   #+BEGIN_SRC shell
+   ./msys2-build.sh
+   #+END_SRC
+
+4. =./msys2-build.sh= 命令有许多选项，可以使用下面的命令获取帮助
+
+   #+BEGIN_SRC shell
+   ./msys2-build.sh --help
+   #+END_SRC
+
+注意事项：=liberime-core.dll= 加载有时候会报错，遇到这种情况，首先应该
+检查环境变量 =PATH= 的设置，确保 =librime.dll= 可以通过 PATH 找到。
+
+如果用户不想自己编译，可以从 release 区下载 liberime-archive 预编译包
+尝鲜，预编译包主要用于测试，还是建议用户直接使用 msys2-build 编译安
+装。
+
+* Usage
+** Initialize
+
+需要配合 [[https://github.com/tumashu/pyim][pyim]] 使用。
 
 shared_data_dir:
 librime 安装后提供的共享数据，里面会有预置的 schema 等 [[https://github.com/rime/home/wiki/SharedData][各平台所在位置详情]]。
 
+注意：如果你用的是 Windows msys2 版本，不要将 shared_data_dir 设置为小狼毫的
+data 目录，因为小狼毫使用 MSVC 编译的，OpenCC 的 .ocd 文件格式不同。你可以设置为
+build 目录下的 data 目录。
+
+
 user_data_dir:
 推荐放在 "~/.emacs.d/rime",
 
-或者可以尝试使用外置输入法用的文件夹，比如Fcitx: "~/.config/fcitx/rime" 。（没测试过
-也许会有冲突）
+通过 use-package + quelpa 加载
+注意 add-hook 一定要放在:init block 里面
 
-
-通过 use-package + quelpa加载
-注意add-hook一定要放在:init block里面
-
-#+NAME use git fetcher
+使用 GitHub Repo
 #+BEGIN_SRC emacs-lisp
-(use-package liberime-config
-  :quelpa (liberime-config
-           :fetcher git
-           :url "https://gitlab.com/liberime/liberime"
-           :files ("CMakeLists.txt" "Makefile" "src" "liberime-config.el"))
+(use-package liberime
+  :quelpa (liberime
+           :fetcher github
+           :repo "merrickluo/liberime"
+           :files ("CMakeLists.txt" "Makefile" "src" "liberime*.el" "liberime-config.el"))
   :init
-  (add-hook 'after-liberime-load-hook
+  (add-hook 'liberime-after-start-hook
             (lambda ()
-              (liberime-select-schema "luna_pinyin_simp"))))
+              ;; Select schema delay 5 second, make sure
+              ;; `liberime-load' run finish.
+              (run-with-timer
+               5 1
+               (liberime-select-schema "luna_pinyin_simp")))))
 #+END_SRC
 
-#+NAME: use local folder
+使用本地文件
 #+BEGIN_SRC emacs-lisp
-(use-package liberime-config
-  :quelpa (liberime-config
+(use-package liberime
+  :quelpa (liberime
            :fetcher file
            :path "~/Develop/emacs/liberime"
-           :files ("CMakeLists.txt" "Makefile" "src" "liberime-config.el"))
+           :files ("CMakeLists.txt" "Makefile" "src" "liberime.el" "liberime-config.el"))
   :init
   (add-hook 'after-liberime-load-hook
             (lambda ()
-              (liberime-select-schema "luna_pinyin_simp"))))
+              ;; Select schema delay 5 second, make sure
+              ;; `liberime-load' run finish.
+              (run-with-timer
+               5 1
+               (liberime-select-schema "luna_pinyin_simp")))))
 #+END_SRC
+
+#+BEGIN_QUOTE
+注意，使用 hook 修改输入方案会有一些问题，由于 liberime 在执行 sync 等操作之后会
+重新部署，由于目前的技术限制，重新部署的通知在 elisp 环境无法收到，所以无法重新执
+行这些 hooks,如果需要设置指定的输入方案，建议直接在
+~/.emacs.d/rime/default.custom.yaml~ 配置。see [[https://gist.github.com/merrickluo/553f39c131d0eb717cd59f72c9d4b60d][example]]
+#+END_QUOTE
 
 #+NAME setup pyim
 #+BEGIN_SRC emacs-lisp
 (use-package pyim
-  :after liberime-config
+  :after liberime
   :config
   (setq default-input-method "pyim")
   (setq pyim-default-scheme 'rime))
 #+END_SRC
 
-*** Avaliable methods
+** Deploy
+在手动修改了 librime 的配置后，可以手动调用 ~(liberime-deploy)~ 进行重新部署。
 
-**** (liberime-start shared_data_dir user_data_dir)
+** Sync
+使用 liberime 会导致一个问题，就是在 Emacs 中输入中文时，词库跟系统输入法不一致，
+无论是你在使用 fcitx-rime, ibus-rime, 或者是 squirrel。不过 librime 提供了方法让
+我们保持词库同步。参考：[[https://github.com/rime/home/wiki/UserGuide#%E5%90%8C%E6%AD%A5%E7%94%A8%E6%88%B6%E8%B3%87%E6%96%99][Rime 同步用户资料]]。
+
+默认情况下 liberime 的 installation.yaml 在
+$HOME/.emacs.d/rime/installation.yaml，用户只需要在里面添加 sync_dir ，就可以使用
+liberime 提供的 ~(liberime-sync)~ 方法进行同步了。还可以将其加入到
+emacs 的 ~after-init-hook~ 中自动进行同步。
+
+#+begin_src emacs-lisp
+(add-hook 'after-init-hook #'liberime-sync)
+#+end_src
+
+** Available methods
+
+*** (liberime-start shared_data_dir user_data_dir)
 initialize deploy and started a session with librime
 returns t if success report error otherwise
-**** (liberime-search pinyin &optional limit)
-returns list of limit count of candidates for pinyin,
-returns all if limit not set or set to nil
-
-Example output:
-#+BEGIN_SRC emacs-lisp
-(liberime-search "shurufa")
-;; ("输入法" "输入" "澍濡" "菽乳" "竖儒" "书" "数" "树" "输" "属" "熟" "术" "舒" "鼠" "叔" "束" "淑" "疏" "署" "述" "竖" "蜀" "梳" "孰" "殊" "恕" "姝" "墅" "赎" "薯" "暑" "洙" "漱" "庶" "枢" "抒" "曙" "戍" "蔬" "嗽" "澍" "倏" "黍" "纾" "塾" "菽" "沭" "殳" "樗" "秫" "摭" "鼡" "鸀" "翛" "腧" "悆" "儵" "尗" "糬" "𦈌" "摅" "俆" "掓" "侸" "癙" "疎" "荗" "钃" "忬" "𡠟" "婌" "毹" "襡" "暏" "潻" "倐" "摴" "䉤" "潄" "鯈" "踈" "蒣" "璹" "鉥" "埱" "橾" "訹" "鏣" "嫬" "蒁" "捒" "疋" "尌" "𧑏" "藲" "祋" "丨" "襩" "薥" "裋" "𨐅" "杸" "焂" "鈙" "陎" "鮛" "灟" "跾" "庻" "虪" "錰" "濖" "鶐" "瘶" "毺" "鵨" "权" "𫉄" "𣉛" "瀭" "𤴙" "𢋂" "𡱆" "𢞣" "𤱐" "𢠫" "𢧇" "𣀻" "𤍓" "𣏗" "𣤯" "𣰿" "𤞉" "𤘷" "𣻚" "𤗪" "𤕟" "𩢻" "𫌋" "𧠣" "𧼯" "𨁀" "𨅒" "𨔦" "𨛭" "𨶝" "𨷙" "𨽉" "𩛅" "𧞀" "𩪍" "𩳅" "𩷌" "𩾈" "𪅰" "𪌶" "𪐧" "鱪" "蠴" "鱰" "㑐" "𦠦" "𥌚" "𥍝" "𥞃" "𥣋" "𥳕" "𥿇" "𦈷" "𦍄" "𦐣" "𦒶" "𤻃" "𦤂" "𦶕" "𦺗" "𦺪" "𧁿" "𧄔" "𧇝" "𧊠" "𧑓" "𧒑" "𧗱" "䝪" "㾁" "䃞" "䇬" "䉀" "䑕" "䘤" "䜹" "䝂" "㽰" "䞖" "䠼" "䢞" "䢤" "䨹" "䩱")
-(liberime-search "shurufa" 10)
-;; ("输入法" "输入" "澍濡" "菽乳" "竖儒" "书" "数" "树" "输" "属")
-#+END_SRC
-
-**** (liberime-get-schema-list)
+*** (liberime-get-schema-list)
 returns list of pairs(list of (schema_id, schema_name) ) avaliable schema
 
 Example output(prebuilt schemas)
@@ -112,7 +158,7 @@ Example output(prebuilt schemas)
 (liberime-get-schema-list)
 ;; (("luna_pinyin" "朙月拼音") ("luna_pinyin_simp" "朙月拼音·简化字") ("luna_pinyin_fluency" "朙月拼音·語句流") ("bopomofo" "注音") ("bopomofo_tw" "注音·臺灣正體") ("cangjie5" "倉頡五代") ("stroke" "五筆畫") ("terra_pinyin" "地球拼音"))
 #+END_SRC
-**** (liberime-select-schema schema_id)
+*** (liberime-select-schema schema_id)
 should use schema_id returns from libeliberime-get-schema-list
 returns t if success, report error otherwise
 

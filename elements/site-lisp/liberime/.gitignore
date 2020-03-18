@@ -7,3 +7,9 @@
 build
 CMakeFiles/
 .envrc
+
+# ccls files
+.ccls-cache
+Debug
+
+/third_party_build/
