@@ -63,6 +63,19 @@
    (kbd entropy/emacs-top-key)
   entropy/emacs-top-keymap))
 
+;; ** Temporal bug revert
+;; *** gnutls bug for emacs version upper than '26.1'
+;;
+;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
+;;
+;; Refer:
+;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597
+;; For now [2019-08-08 Thu 19:23:42] it seems occur on w32 port only
+(when (and (or (version= "26.2" emacs-version)
+               (version= "26.3" emacs-version))
+           sys/win32p)
+  (advice-add #'gnutls-available-p :override #'ignore))
+
 ;; ** eemacs basic hydra-hollow instances
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
@@ -87,7 +100,7 @@
      :enable t :toggle truncate-lines :global-bind t)
     ("SPC" entropy/emacs-basic-mark-set
      "Mark Set"
-     :enable t :exit t)
+     :enable t :eemacs-top-bind t :exit t)
     ("C-c s s" list-processes "List Process"
      :enable t :exit t :global-bind t))))
 
@@ -99,19 +112,6 @@
        'eemacs-basic-config-core))
      "misc operations"
      :enable t :exit t))))
-
-;; ** Temporal bug revert
-;; *** gnutls bug for emacs version upper than '26.1'
-;;
-;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
-;;
-;; Refer:
-;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597
-;; For now [2019-08-08 Thu 19:23:42] it seems occur on w32 port only
-(when (and (or (version= "26.2" emacs-version)
-               (version= "26.3" emacs-version))
-           sys/win32p)
-  (advice-add #'gnutls-available-p :override #'ignore))
 
 ;; ** Personal infomation
 (when (and entropy/emacs-user-full-name
@@ -140,7 +140,7 @@
         (global-display-line-numbers-mode))))
 
 ;; ** Backup setting
-(setq-default auto-save-default nil)    ;disable it for preventing typing lagging
+(setq-default auto-save-default nil)    ; disable it for preventing typing lagging
 (setq make-backup-files nil)
 
 ;; ** Scratch buffer corresponding file
@@ -152,12 +152,11 @@
 (defun entropy/emacs-basic--scratch-buffer-file-binding ()
   "Corresponded *scratch* buffer to one temp-file.
 
-  Filename are \".scratch_entropy\" in HOME.
-  "
+Filename are \".scratch_entropy\" host in `entropy/emacs-stuffs-topdir'.
+"
   (let ((bfn "*scratch*"))
     (if (entropy/emacs-buffer-exists-p "*scratch*")
         (kill-buffer "*scratch*"))
-
     (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir)))
       (if (not (file-exists-p fname))
           (progn
@@ -181,8 +180,9 @@
 
 (entropy/emacs-lazy-with-load-trail
  init-eemamcs-scratch-buffer
-  (entropy/emacs-lazy-load-simple entropy-emacs-structure
-    (entropy/emacs-basic--scratch-buffer-file-binding)))
+ (entropy/emacs-lazy-load-simple entropy-emacs-structure
+   (redisplay t)
+   (entropy/emacs-basic--scratch-buffer-file-binding)))
 
 ;; Create a new scratch buffer
 (defun entropy/emacs-basic-create-scratch-buffer ()
@@ -273,100 +273,46 @@ Manually edit this variable will not be any effection.")
 (entropy/emacs-basic-smooth-scrolling)
 
 ;; ** Kill-buffer-and-window function
-(defvar entropy/emacs-basic--kill-buffer-excluded-buffer-list nil
-  "Buffer name regexp list stored excluded buffer name match for
-  func `entropy/emacs-kill-buffer-and-window'.")
 
-(defvar entropy/emacs-basic--kill-buffer-special-buffer-list
-  '(("\\*eshell-?" . (lambda ()
-                       (kill-this-buffer)))
-    ("\\*anaconda-" . (lambda ()
-                        (error
-                         "You couldn't kill this buffer, as it will cause some problem.")))
-    (("\\.cp?p?" "\\.h" "\\.el" "\\.py" "\\.php" "\\.js" "\\.html" "\\.css" "\\.sh" "\\.org"
-      "\\.txt" "\\.md")
-     .
-     (lambda ()
-       (let ((buffn (buffer-name))
-             (base-dir default-directory)
-             (fname (buffer-file-name)))
-         (kill-buffer buffn)
-         (when (and (ignore-errors (stringp fname))
-                    (file-writable-p fname))
-           (dired base-dir)))))
-    ("ansi-term"
-     .
-     (lambda ()
-       "The patch for the bug of error after kill ansi-term
-buffer and its popup window refer to bug
+(defun entropy/emacs-basic-kill-ansiterm-buffer ()
+  "Kill `ansi-term' buffer with proper way.
+
+This function mainly gives a patch for the bug of error after
+kill ansi-term buffer and its popup window refer to bug
 #h-0c3ab89e-a470-42d2-946e-4f217ea2f20c in entropy-emacs bug
 collection."
-       (if sys/linuxp
-           (let* ((_buff (current-buffer))
-                  (_proc (get-buffer-process _buff)))
-             (when _proc
-               (when (yes-or-no-p
-                      (format "Buffer %S has a running process; kill it? "
-                              (buffer-name _buff)))
-                 (set-process-filter _proc nil)
-                 (kill-process _proc)
-                 (let ((kill-buffer-query-functions '((lambda () t))))
-                   (if (not (one-window-p))
-                       (kill-buffer-and-window)
-                     (kill-this-buffer))))))
-         (kill-this-buffer)))))
-  "Special buffer alist which the car can be regexp string or
-  list of regexp string, the cdr was buffer killing specific
-  func. ")
-
-(defun entropy/emacs-basic-kill-buffer-and-window ()
-  "Kill buffer and window following rule by
-`entropy/emacs-basic--kill-buffer-excluded-buffer-list' and
-`entropy/emacs-basic--kill-buffer-special-buffer-list'.
-
-Using func `entropy/emacs-basic--buffer-close' be the default func."
   (interactive)
-  (let ((excluded entropy/emacs-basic--kill-buffer-excluded-buffer-list)
-        (special entropy/emacs-basic--kill-buffer-special-buffer-list)
-        excl_p special_p
-        (buffn (buffer-name)))
-    (when excluded
-      (mapc (lambda (regx)
-              (when (not excl_p)
-                (when (string-match-p regx buffn)
-                  (setq excl_p t))))
-            excluded))
-    (cond
-     (excl_p
-      (entropy/emacs-basic--buffer-close))
-     (t
-      (mapc (lambda (mod_l)
-              (let ((regx (car mod_l))
-                    (predicate (cdr mod_l)))
-                (when (not special_p)
-                  (cond
-                   ((listp regx)
-                    (catch :exit
-                      (dolist (el regx)
-                        (when (string-match-p el buffn)
-                          (setq special_p
-                                (cons el predicate))
-                          (throw :exit nil)))))
-                   (t
-                    (when (string-match-p regx buffn)
-                      (setq special_p
-                            (cons regx predicate))))))))
-            special)
-      (if special_p
-          (funcall (cdr special_p))
-        (entropy/emacs-basic--buffer-close))))))
+  (if sys/linuxp
+      (let* ((_buff (current-buffer))
+             (_proc (get-buffer-process _buff)))
+        (when _proc
+          (when (yes-or-no-p
+                 (format "Buffer %S has a running process; kill it? "
+                         (buffer-name _buff)))
+            (set-process-filter _proc nil)
+            (kill-process _proc)
+            (let ((kill-buffer-query-functions '((lambda () t))))
+              (if (not (one-window-p))
+                  (kill-buffer-and-window)
+                (kill-this-buffer))))))
+    (kill-this-buffer)))
 
-(global-set-key (kbd "C-x k") 'entropy/emacs-basic-kill-buffer-and-window)
-(global-set-key (kbd "C-x M-k") 'kill-buffer)
+(defun entropy/emacs-basic-kill-buffer-and-show-its-dired ()
+  "Kill buffer, swtich to its hosted location `dired' buffer when
+its a exists file's buffer."
+  (interactive)
+  (let ((buffn (buffer-name))
+        (base-dir default-directory)
+        (fname (buffer-file-name)))
+    (kill-buffer buffn)
+    (when (and (ignore-errors (stringp fname))
+               (file-writable-p fname))
+      (dired base-dir))))
 
-(defun entropy/emacs-basic--buffer-close ()
+(defun entropy/emacs-basic-kill-buffer-and-its-window-when-grids ()
   "Kill buffer and close it's host window if windows conuts
 retrieve from `window-list' larger than 1."
+  (interactive)
   (let ((buflist (window-list)))
     (if (> (length buflist) 1)
         (cond
@@ -385,16 +331,28 @@ retrieve from `window-list' larger than 1."
           (kill-buffer-and-window)))
       (kill-buffer))))
 
-;; ** Kill-other-buffers
-(defun entropy/emacs-basic-kill-other-buffers ()
-  "Kill all other buffers."
+(defun entropy/emacs-basic-kill-buffer ()
+  "Entropy emacs specified `kill-buffer' method, used for replace
+as thus."
   (interactive)
-  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+  (cond
+   ((eq major-mode 'term-mode)
+    (call-interactively #'entropy/emacs-basic-kill-ansiterm-buffer))
+   ((buffer-file-name)
+    (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired))
+   (t
+    (call-interactively
+     #'entropy/emacs-basic-kill-buffer-and-its-window-when-grids))))
+
+(global-set-key (kbd "C-x k") #'entropy/emacs-basic-kill-buffer)
+(global-set-key (kbd "C-x M-k") #'kill-buffer)
+
 
 ;; ** kill-other-windows
 
 (defun entropy/emacs-basic-kill-other-window ()
-  "Delete other window and do again using `delete-other-windows-internal' if non-effect.
+  "Delete other window and do again using
+`delete-other-windows-internal' if non-effect.
 
 This affected by `neotree' window sticking with `eyebrowse'
 layout switching conflicts."
@@ -418,13 +376,19 @@ layout switching conflicts."
         (delete-other-windows-internal)))))
 
 ;; ** Set defualt tab size
+;; Do not use `indent-tabs-mode' by default for compatibility meaning
+;; that tabs visualization are not unified accorss editor.
+
 (if entropy/emacs-custom-tab-enable
     (setq-default tab-width entropy/emacs-custom-tab-width)
   (setq-default indent-tabs-mode nil))
 
 ;; ** Setting language encoding environment
 (setq system-time-locale "C") ;Use english format time string
-;; *** Default using UTF-8 encoding for basic environment when `entropy/emacs-custom-language-environment-enable' was nil
+
+;; *** Default using UTF-8 encoding for basic environment
+;; when `entropy/emacs-custom-language-environment-enable' was nil
+
 (unless (and entropy/emacs-custom-language-environment-enable
              (ignore-errors (stringp entropy/emacs-language-environment)))
   (progn
@@ -434,11 +398,13 @@ layout switching conflicts."
     (set-terminal-coding-system 'utf-8-unix)
     (set-keyboard-coding-system 'utf-8-unix)))
 
-;; *** When `entropy/emacs-custom-language-environment-enable' was t using customized basic encoding system.
+;; *** Using customized basic encoding system
+;; When `entropy/emacs-custom-language-environment-enable' was t
+
 (when (and entropy/emacs-custom-language-environment-enable
            (ignore-errors (stringp entropy/emacs-language-environment)))
-  (set-language-environment entropy/emacs-language-environment)
-  (setq default-file-name-coding-system 'utf-8-unix))
+  ;; Customize language environment with user specification
+  (set-language-environment entropy/emacs-language-environment))
 
 ;; setting w32 shell lang env
 (when sys/win32p
@@ -446,25 +412,27 @@ layout switching conflicts."
     (setenv "LANG" entropy/emacs-win-env-lang-set)))
 
 ;; **** Specific cases to forceing using UTF-8 encoding environment
+;; ***** Forcely using 'UTF-8' charset for file-name handler for compatibility.
+(setq default-file-name-coding-system 'utf-8-unix)
+
 ;; ***** Treat clipboard input as UTF-8 string first; compound text next, etc.
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 ;; ***** Force setting specific file type which must be opened with utf-8-unix encoding system.
-(modify-coding-system-alist 'file "\\.org\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.md\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.html\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.css\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.c\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.php\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.js\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.sh\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.el\\'" 'utf-8-unix)
-(modify-coding-system-alist 'file "\\.bat\\'" 'utf-8-unix)
+(dolist (suffix
+         '(;; document file
+           "\\.org$" "\\.md$"
+           ;; source file
+           "\\.html" "\\.css$" "\\.php$" "\\.js$" "\\.ts$"
+           "\\.c\\(p+\\)?$" "\\.py$" "\\.lisp$" "\\.el$"
+           "\\.sh$" "\\.bat$"
+           ))
+  (modify-coding-system-alist 'file suffix 'utf-8-unix))
+
 ;; ========================================================================
 ;; Prompt: If you want all file to be one coding system you should do below
 ;;(modify-coding-system-alist 'file "" 'utf-8-unix)
 ;; ========================================================================
-
 
 ;; ***** let diff-buffer-with-file force run with unicode language environment
 (advice-add 'diff-buffer-with-file :before #'entropy/emacs-lang-set-utf-8)
@@ -478,6 +446,7 @@ layout switching conflicts."
   :commands (whitespace-cleanup)
   :preface
   (defun entropy/emacs-basic-simple-whitespace-clean ()
+    "Clean whitespace with the default `whitspace-style'."
     (interactive)
     (require 'whitespace)
     (let ((whitespace-style (default-value 'whitespace-style)))
@@ -496,7 +465,7 @@ layout switching conflicts."
 ;; **** pretty-hydra
   :eemacs-mmphc
   (((:enable t)
-    (dired-mode dired dired-mode-map t (3 5)))
+    (dired-mode dired dired-mode-map t (3 3 3)))
    ("Open item"
     (("RET" dired-find-file "Open item dwim"
       :enable t
@@ -516,6 +485,9 @@ layout switching conflicts."
       :enable t
       :map-inject t
       :exit t))
+    "Sort"
+    (("S" hydra-dired-quick-sort/body "Sort dired with hydra dispatch"
+      :enable (not sys/win32p) :map-inject t :exit t))
     "Navigation"
     (("M-<up>" dired-up-directory "Up directory"
       :enable t
@@ -540,6 +512,8 @@ layout switching conflicts."
   :init
 ;; ***** Delete directory with force actions
   (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
+
+  ;; TODO : comlete `entropy/emacs-basic--dired-delete-file-mode'
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
     "Minor mode for func `entropy/emacs-basic-dired-delete-file-recursive'."
     :keymap 'entropy/emacs-basic--dired-delete-file-mode-map
@@ -681,9 +655,8 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     (setq dired-listing-switches "-alh"))
 
 ;; ***** Always delete and copy resursively
-  (setq dired-recursive-deletes 'always)
-  (setq dired-recursive-copies 'always)
-
+  (setq dired-recursive-deletes 'always
+        dired-recursive-copies 'always)
 
 ;; ***** Improve dired files operation experience for kill opened refer buffers.
   (defun entropy/emacs-basic--kill-redundant-buffer (&rest rest-args)
@@ -698,7 +671,9 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
   (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-basic--kill-redundant-buffer)
 
 ;; ***** get both UNIX and WINDOWS style path string
-  (defvar entropy/emacs-basic--get-dired-fpath-log nil)
+  (defvar entropy/emacs-basic-dired-fpath-get-log nil
+    "The log list stored file path temporarily, will be reset
+when you call `entropy/emacs-basic-get-dired-fpath'.")
 
   (defun entropy/emacs-basic-get-dired-fpath (type)
     (interactive
@@ -729,8 +704,9 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
           (message (format "Save '%s' to kill-ring." (car rtn)))))
        (t
         (setq rtn (reverse rtn)
-              entropy/emacs-basic--get-dired-fpath-log rtn)
-        (message "Save all path string to log variable 'entropy/emacs-basic--get-dired-fpath-log'.")))))
+              entropy/emacs-basic-dired-fpath-get-log nil
+              entropy/emacs-basic-dired-fpath-get-log rtn)
+        (message "Save all path string to log variable 'entropy/emacs-basic-dired-fpath-get-log'.")))))
 
 ;; ***** dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
@@ -769,7 +745,8 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
   )
 
 ;; *** Use dired-aux to enable dired-isearch
-(use-package dired-aux :ensure nil)
+(entropy/emacs-lazy-load-simple dired
+  (require 'dired-aux))
 
 ;; *** Quick sort dired buffers via hydra
   ;;; bind key: `S'
@@ -780,94 +757,102 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup)))
 
 ;; *** Use coloful dired ls
-(defun entropy/emacs-basic--dired-visual-init ()
-  "Init dired colorful visual featuer."
-  (cond ((or (string= entropy/emacs-dired-visual-type "simple-rainbow")
-             (version= emacs-version "25.3.1"))
-         (use-package dired-rainbow
-           :commands dired-rainbow-define dired-rainbow-define-chmod
-           :init
-           (dired-rainbow-define dotfiles "gray" "\\..*")
 
-           (dired-rainbow-define web "#4e9a06" ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
-                                                "json" "asp" "aspx" "haml" "php" "jsp" "ts"
-                                                "coffee" "scss" "less" "phtml"))
-           (dired-rainbow-define prog "yellow3" ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
-                                                 "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
-                                                 "m" "cs" "mk" "make" "swift" "go" "java"
-                                                 "asm" "robot" "yml" "yaml" "rake" "lua"))
-           (dired-rainbow-define sh "green yellow" ("sh" "bash" "zsh" "fish" "csh" "ksh"
-                                                    "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
-           (dired-rainbow-define text "yellow green" ("txt" "md" "org" "ini" "conf" "rc"
-                                                      "vim" "vimrc" "exrc"))
-           (dired-rainbow-define doc "spring green" ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
-                                                     "csv" "rtf" "wps" "pdf" "texi" "tex"
-                                                     "odt" "ott" "odp" "otp" "ods" "ots"
-                                                     "odg" "otg"))
-           (dired-rainbow-define misc "gray50" ("DS_Store" "projectile" "cache" "elc"
-                                                "dat" "meta"))
-           (dired-rainbow-define media "#ce5c00" ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
-                                                  "wmv" "mov" "3gp" "avi" "mpg" "mkv"
-                                                  "flv" "ogg" "rm" "rmvb"))
-           (dired-rainbow-define picture "purple3" ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
-                                                    "ico" "svg" "psd" "pcd" "raw" "exif"
-                                                    "BMP" "JPG" "PNG"))
-           (dired-rainbow-define archive "saddle brown" ("zip" "tar" "gz" "tgz" "7z" "rar"
-                                                         "gzip" "xz" "001" "ace" "bz2" "lz"
-                                                         "lzma" "bzip2" "cab" "jar" "iso"))
+(use-package dired-rainbow
+  :commands
+  (dired-rainbow-define dired-rainbow-define-chmod)
+  :init
+  (entropy/emacs-lazy-load-simple dired
+    (dired-rainbow-define dotfiles "gray" "\\..*")
+    (dired-rainbow-define
+     web "#4e9a06"
+     ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
+      "json" "asp" "aspx" "haml" "php" "jsp" "ts"
+      "coffee" "scss" "less" "phtml"))
+    (dired-rainbow-define
+     prog "yellow3"
+     ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
+      "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
+      "m" "cs" "mk" "make" "swift" "go" "java"
+      "asm" "robot" "yml" "yaml" "rake" "lua"))
+    (dired-rainbow-define
+     sh "green yellow"
+     ("sh" "bash" "zsh" "fish" "csh" "ksh"
+      "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
+    (dired-rainbow-define
+     text "yellow green"
+     ("txt" "md" "org" "ini" "conf" "rc"
+      "vim" "vimrc" "exrc"))
+    (dired-rainbow-define
+     doc "spring green"
+     ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
+      "csv" "rtf" "wps" "pdf" "texi" "tex"
+      "odt" "ott" "odp" "otp" "ods" "ots"
+      "odg" "otg"))
+    (dired-rainbow-define
+     misc "gray50"
+     ("DS_Store" "projectile" "cache" "elc"
+      "dat" "meta"))
+    (dired-rainbow-define
+     media "#ce5c00"
+     ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
+      "wmv" "mov" "3gp" "avi" "mpg" "mkv"
+      "flv" "ogg" "rm" "rmvb"))
+    (dired-rainbow-define
+     picture "purple3"
+     ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
+      "ico" "svg" "psd" "pcd" "raw" "exif"
+      "BMP" "JPG" "PNG"))
+    (dired-rainbow-define
+     archive "saddle brown"
+     ("zip" "tar" "gz" "tgz" "7z" "rar"
+      "gzip" "xz" "001" "ace" "bz2" "lz"
+      "lzma" "bzip2" "cab" "jar" "iso"))
+    ;; boring regexp due to lack of imagination
+    (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")))
 
-           ;; boring regexp due to lack of imagination
-           (dired-rainbow-define log (:inherit default :italic t) ".*\\.log"))
-         (when (string= entropy/emacs-dired-visual-type "all-the-icons")
-           (warn " Because you are in emacs 25.3.1, just can
-using simple dired visual type, although you have seting it to
-\"all-the-icons\".")))
-        ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
-              (not (version= emacs-version "25.3.1"))
-              (or (display-graphic-p)
-                  entropy/emacs-fall-love-with-pdumper))
-         (when sys/win32p
-           (require 'font-lock+))
-         (use-package all-the-icons-dired
-           :commands (all-the-icons-dired-mode)
-           :hook (dired-mode . all-the-icons-dired-mode)
-           :config
-           (with-no-warnings
-             (defun entropy/emacs-basic--all-the-icons-dired-refresh ()
-               "Display the icons of files in a dired buffer."
-               (all-the-icons-dired--remove-all-overlays)
-               ;; NOTE: don't display icons it too many items
-               (if (<= (count-lines (point-min) (point-max)) 1000)
-                   (save-excursion
-                     ;; TRICK: Use TAB to align icons
-                     (setq-local tab-width 1)
+(use-package diredfl
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   diredfl-colorful-ini
+   (diredfl-global-mode 1)))
 
-                     (goto-char (point-min))
-                     (while (not (eobp))
-                       (let ((file (dired-get-filename 'verbatim t)))
-                         (when file
-                           (let ((icon (if (file-directory-p file)
-                                           (all-the-icons-icon-for-dir file nil "")
-                                         (all-the-icons-icon-for-file file :v-adjust all-the-icons-dired-v-adjust))))
-                             (if (member file '("." ".."))
-                                 (all-the-icons-dired--add-overlay (point) " \t")
-                               (all-the-icons-dired--add-overlay (point) (concat icon "\t"))))))
-                       (dired-next-line 1)))
-                 (message "Not display icons because of too many items.")))
-             (advice-add #'all-the-icons-dired--refresh
-                         :override #'entropy/emacs-basic--all-the-icons-dired-refresh))
-           ))
-        ((and (string= entropy/emacs-dired-visual-type "all-the-icons")
-              (not (or (display-graphic-p)
-                       entropy/emacs-fall-love-with-pdumper)))
-         (setq entropy/emacs-dired-visual-type "simple-rainbow")
-         (warn "
-You are in terminal emacs session, can not enable
-'dired-all-the-icons', enable simple-rainbow instead now.")
-         (entropy/emacs-basic--dired-visual-init))
-        (t (error "entropy/emacs-dired-visual-type invalid"))))
+(use-package all-the-icons-dired
+  :if
+  (and (display-graphic-p)
+       (entropy/emacs-icons-displayable-p))
+  :commands (all-the-icons-dired-mode)
+  :hook (dired-mode . all-the-icons-dired-mode)
+  :init
+  (when sys/win32p
+    (require 'font-lock+))
+  :config
+  (with-no-warnings
+    (defun entropy/emacs-basic--all-the-icons-dired-refresh ()
+      "Display the icons of files in a dired buffer."
+      (all-the-icons-dired--remove-all-overlays)
+      ;; NOTE: don't display icons it too many items
+      (if (<= (count-lines (point-min) (point-max)) 300)
+          (save-excursion
+            ;; TRICK: Use TAB to align icons
+            (setq-local tab-width 1)
 
-(entropy/emacs-basic--dired-visual-init)
+            (goto-char (point-min))
+            (while (not (eobp))
+              (let ((file (dired-get-filename 'verbatim t)))
+                (when file
+                  (let ((icon (if (file-directory-p file)
+                                  (all-the-icons-icon-for-dir file nil "")
+                                (all-the-icons-icon-for-file
+                                 file
+                                 :v-adjust all-the-icons-dired-v-adjust))))
+                    (if (member file '("." ".."))
+                        (all-the-icons-dired--add-overlay (point) " \t")
+                      (all-the-icons-dired--add-overlay (point) (concat icon "\t"))))))
+              (dired-next-line 1)))
+        (message "Not display icons because of too many items.")))
+    (advice-add #'all-the-icons-dired--refresh
+                :override #'entropy/emacs-basic--all-the-icons-dired-refresh)))
 
 ;; *** dired-x
 (use-package dired-x
@@ -953,7 +938,6 @@ emacs."
   "Insert string for the current time formatted like '2:34 PM'."
   (interactive)                 ; permit invocation in minibuffer
   (insert (format-time-string "[%Y-%m-%d %a %H:%M:%S]")))
-
 
 (defun entropy/emacs-basic-today ()
   "Insert string for today's date nicely formatted in American style,
@@ -1103,11 +1087,14 @@ This function has redefined for adapting to
 (use-package recentf
   :if entropy/emacs-use-recentf
   :ensure nil
+  :preface
+  (defun entropy/emacs-basic--enable-recentf ()
+    (unless recentf-mode
+      (recentf-mode)
+      (recentf-track-opened-file)))
   :init
   (setq recentf-max-saved-items 200)
-  (add-hook 'find-file-hook '(lambda () (unless recentf-mode
-                                          (recentf-mode)
-                                          (recentf-track-opened-file))))
+  (add-hook 'find-file-hook #'entropy/emacs-basic--enable-recentf)
   :config
   (add-to-list 'recentf-exclude (expand-file-name package-user-dir))
   (add-to-list 'recentf-exclude "bookmarks")
@@ -1119,11 +1106,12 @@ This function has redefined for adapting to
   :config
   (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
         history-length 1000
-        savehist-additional-variables '(mark-ring
-                                        global-mark-ring
-                                        search-ring
-                                        regexp-search-ring
-                                        extended-command-history)
+        savehist-additional-variables
+        '(mark-ring
+          global-mark-ring
+          search-ring
+          regexp-search-ring
+          extended-command-history)
         savehist-autosave-interval 60))
 
 ;; ** Bookmarks autosave
@@ -1179,9 +1167,9 @@ coding-system to save bookmark infos"
 (defun entropy/emacs-basic-major-mode-reload ()
   "Reload current `major-mode'.
 
-  This function was usable for some occurrence that current mode
-  functional part was missed or be without working on the proper
-  way. "
+This function was usable for some occurrence that current mode
+functional part was missed or be without working on the proper
+way. "
   (interactive)
   (if (not (string-match-p "^CAPTURE-" (buffer-name)))
       (let ((point (point))
@@ -1191,36 +1179,21 @@ coding-system to save bookmark infos"
           (outline-show-all))
         (goto-char point)
         (message "Reloaded current major mode '%s'!" (symbol-name major-mode)))
-    (error "You can not refresh %s in this buffer, if did may cause some bug." (symbol-name major-mode))))
+    (error "You can not refresh %s in this buffer, if did may cause some bug."
+           (symbol-name major-mode))))
 
 ;; ** Disable-mouse-wheel and more
 (use-package disable-mouse
   :diminish disable-mouse-global-mode
   :commands (global-disable-mouse-mode)
   :init
-  (entropy/emacs-lazy-with-load-trail disable-mouse (global-disable-mouse-mode t)))
+  (entropy/emacs-lazy-with-load-trail
+   disable-mouse
+   (global-disable-mouse-mode t)))
 
 ;; ** Artist-mode
 (use-package artist
   :ensure nil
-  :eemacs-mmphca
-  ((((:enable t)
-     (picture-mode picture picture-mode-map))
-    ("Basic"
-     (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'text-mode'"
-       :enable t
-       :toggle (if (eq major-mode 'picture-mode) nil t)
-       :map-inject t
-       :exit t))))
-   (((:enable t)
-     (text-mode text-mode text-mode-map))
-    ("Basic"
-     (("<f5>" entropy/emacs-basic-ex-toggle-artist-and-text "Toggle to 'artist-mode'"
-       :enable t
-       :toggle (if (eq major-mode 'text-mode) nil t)
-       :map-inject t
-       :exit t)))))
-
   :init
   ;; Init disable rubber-banding for reducing performance requirements.
   (add-hook 'artist-mode-hook
@@ -1229,15 +1202,6 @@ coding-system to save bookmark infos"
                     (setq-local artist-rubber-banding nil))))
 
   :config
-
-  (defun entropy/emacs-basic-ex-toggle-artist-and-text ()
-    (interactive)
-    "Toggle mode between `text-mode' & `artist-mode'."
-    (cond ((eq major-mode 'picture-mode)
-           (text-mode))
-          ((eq major-mode 'text-mode)
-           (yes-or-no-p "Really for that? (maybe you don't want to change to artist!) ")
-           (artist-mode))))
 
   ;; Disabled '<' and '>' keybinding function.
   (entropy/emacs-lazy-load-simple artist
@@ -1437,8 +1401,11 @@ Temp file was \"~/~entropy-artist.txt\""
   (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
   ))
 
-;; *** event re-bind
-;; **** xterm re-bind
+;; *** xterm re-bind
+
+;; Rebind "insert" refer key in terminal emacs to support yank&cut
+;; communication with GUI.
+
 (entropy/emacs-lazy-with-load-trail
  xterm-rebind
  (when (and (not (display-graphic-p))
@@ -1451,25 +1418,6 @@ Temp file was \"~/~entropy-artist.txt\""
            #'yank))
      (define-key global-map [xterm-paste]
        #'entropy/emacs-xterm-paste-sshsession))
-
-   (defun entropy/emacs-xterm-paste-sshsession ()
-     (interactive)
-     (let ()
-       (run-with-timer 0.01 nil #'yank)
-       (keyboard-quit)))
-
-   (defun entropy/emacs-basic-xterm-term-S-insert-sshsession ()
-     (interactive)
-     (run-with-timer
-      0.01 nil
-      #'(lambda ()
-          (let* ((paste (with-temp-buffer
-                          (yank)
-                          (car kill-ring))))
-            (when (stringp paste)
-              (setq paste (substring-no-properties paste))
-              (term-send-raw-string paste)))))
-     (keyboard-quit))
 
    (entropy/emacs-lazy-load-simple term
      (cond
@@ -1497,7 +1445,7 @@ Temp file was \"~/~entropy-artist.txt\""
         nil)))
 
   ;; adding advice ro y-or-n-p for temporarily fix bug of that can not
-  ;; using any key-bindings when active "C-<lwindow>-g" in windows
+  ;; using any key-bindings when active "C-<lwindow>-g" in WINDOWS
   (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
 
 ;; ** Epa (emacs gpg assistant)
@@ -1519,6 +1467,23 @@ Temp file was \"~/~entropy-artist.txt\""
 
 ;; ** Emacs process and system proced manager hacking
 ;; *** process
+(entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+ 'process-menu-mode 'simple process-menu-mode-map t
+ '("Basic"
+   (("S" tabulated-list-sort "Sort Tabulated List entries by the column at point"
+     :enable t :exit t :map-inject t)
+    ("d" process-menu-delete-process "Kill process at point in a ‘list-processes’ buffer."
+     :enable t :exit t :map-inject t)
+    ("g" revert-buffer "Refresh process buffer"
+     :enable t :exit t :map-inject t)
+    ("h" describe-mode "Display documentation of current major mode and minor modes."
+     :enable t :exit t :map-inject t)
+    ("q" quit-window "Quit WINDOW and bury its buffer."
+     :enable t :exit t :map-inject t)
+    ("{" tabulated-list-narrow-current-column "Narrow the current tabulated list column by N chars."
+     :enable t :exit t :map-inject t)
+    ("}" tabulated-list-widen-current-column "Widen the current tabulated-list column by N chars."
+     :enable t :exit t :map-inject t))))
 
 ;; *** proced
 (use-package proced
@@ -1549,13 +1514,77 @@ otherwise returns nil."
         (t (message
             "`entropy/emacs-basic-proced-auto-startwith' are just used in w32 platform")))))
 
+  :eemacs-mmphc
+  (((:enable t)
+    (proced-mode proced proced-mode-map t (2 2 2 2)))
+   ("Marking"
+    (("m" proced-mark "Mark the current (or next COUNT) processes"
+      :enable t :exit t :map-inject t)
+     ("u" proced-unmark "Unmark the current (or next COUNT) processes"
+      :enable t :exit t :map-inject t)
+     ("M" proced-mark-all "Mark all processes (or with region support)."
+      :enable t :exit t :map-inject t)
+     ("U" proced-unmark-all "Unmark all processes (or with region support)."
+      :enable t :exit t :map-inject t)
+     ("t" proced-toggle-marks "Toggle marks: marked processes become unmarked, and vice versa"
+      :enable t :exit t :map-inject t)
+     ("C" proced-mark-children "Mark child processes of process PPID."
+      :enable t :exit t :map-inject t)
+     ("P" proced-mark-parents "Mark parent processes of process CPID."
+      :enable t :exit t :map-inject t))
+    "Filtering"
+    (("f" proced-filter-interactive "Filter Proced buffer using SCHEME"
+      :enable t :exit t :map-inject t)
+     ("RET" proced-refine
+      "Refine Proced listing by comparing with the attribute value at point."
+      :enable t :exit t :map-inject t))
+    "Sorting"
+    (("s c" proced-sort-pcpu "Sort Proced buffer by percentage CPU TIME."
+      :enable t :exit t :map-inject t)
+     ("s m" proced-sort-pmem "Sort Proced buffer by percentage MEMORY USAGE."
+      :enable t :exit t :map-inject t)
+     ("s p" proced-sort-pid "Sort Proced buffer by PID."
+      :enable t :exit t :map-inject t)
+     ("s s" proced-sort-start "Sort Proced buffer by time the command STARTED."
+      :enable t :exit t :map-inject t)
+     ("s S" proced-sort-interactive "Sort Proced buffer using SCHEME."
+      :enable t :exit t :map-inject t)
+     ("s t" proced-sort-time "Sort Proced buffer by CPU TIME."
+      :enable t :exit t :map-inject t)
+     ("s u" proced-sort-user "Sort Proced buffer by USER."
+      :enable t :exit t :map-inject t))
+    "Tree"
+    (("T" proced-toggle-tree
+      "Toggle the display of the process listing as process tree."
+      :enable t :exit t :map-inject t))
+    "Formatting"
+    (("F" proced-format-interactive
+      "Format Proced buffer using SCHEME."
+      :enable t :exit t :map-inject t))
+    "Operate"
+    (("o" proced-omit-processes
+      "Omit marked processes."
+      :enable t :exit t :map-inject t)
+     ("x" proced-send-signal
+      "Send a SIGNAL to processes in PROCESS-ALIST."
+      :enable t :exit t :map-inject t)
+     ("k" proced-send-signal
+      "Send a SIGNAL to processes in PROCESS-ALIST."
+      :enable t :exit t :map-inject t)
+     ("r" proced-renice
+      "Renice the processes in PROCESS-ALIST to PRIORITY."
+      :enable t :exit t :map-inject t))
+    ))
+
   :init
   (setq-default proced-format 'medium)
   (entropy/emacs-lazy-with-load-trail
    auto-start-exec
-   (dolist (el entropy/emacs-startwith-apps)
-     (when (executable-find (cdr el))
-       (entropy/emacs-basic-proced-auto-startwith (car el) (cdr el))))))
+   (when sys/win32p
+     (dolist (el entropy/emacs-startwith-apps)
+       (when (executable-find (cdr el))
+         (entropy/emacs-basic-proced-auto-startwith
+          (car el) (cdr el)))))))
 
 ;; ** Improve captialize function
 

@@ -732,5 +732,24 @@ The minor changing was compat for above."
 
   )
 
+;; ** newsticker
+
+(use-package newsticker
+  :ensure nil
+  :eemacs-tpha
+  (((:enable t))
+   ("Rss"
+    (("r a" newsticker-show-news
+      "Read emacs about news"
+      :enable t :exit t))))
+  :init
+  (setq newsticker-url-list
+        '(("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
+          ("Mastering Emacs" "http://www.masteringemacs.org/feed/")
+          ("Oremacs" "https://oremacs.com/atom.xml")
+          ("EmacsCast" "https://pinecast.com/feed/emacscast")
+          ("Emacs Reddit" "https://www.reddit.com/r/emacs.rss"))))
+
+
 ;; * provide
 (provide 'entropy-emacs-rss)

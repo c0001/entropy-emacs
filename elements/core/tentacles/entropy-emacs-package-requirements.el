@@ -97,6 +97,7 @@
         dired-hacks-utils
         dired-quick-sort
         dired-rainbow
+        diredfl
         disable-mouse
         discover-my-major
         doneburn-theme

@@ -153,6 +153,23 @@ type. Each key's value can be omitted thus the 'common' meaning."
         t)))
    (t nil)))
 
+(defun entropy/emacs-icons-displayable-p ()
+  "Return non-nil if `all-the-icons' is displayable."
+  (and entropy/emacs-use-icon
+       (display-graphic-p)
+       (let ((rtn t))
+         (catch :exit
+           (dolist (font-name '("github-octicons"
+                                "FontAwesome"
+                                "file-icons"
+                                "Weather Icons"
+                                "Material Icons"
+                                "all-the-icons"))
+             (unless (find-font (font-spec :name font-name))
+               (setq rtn nil)
+               (throw :exit nil))))
+         rtn)))
+
 ;; *** key bindings
 (defmacro entropy/emacs-!set-key (key command)
   (declare (indent defun))
@@ -976,9 +993,9 @@ the string passed to `kbd'."
     (with-temp-buffer
       (if (not (equal paste-str
                       entropy/emacs--xterm-clipboard-head))
-          (and (setq entropy/emacs--xterm-clipboard-head
-                     paste-str)
-               (xterm-paste event))
+          (progn (setq entropy/emacs--xterm-clipboard-head
+                       paste-str)
+                 (xterm-paste event))
         (yank)))))
 
 (defun entropy/emacs-xterm-paste (event)
@@ -998,6 +1015,25 @@ the string passed to `kbd'."
     (when (stringp paste)
       (setq paste (substring-no-properties paste))
       (term-send-raw-string paste))))
+
+(defun entropy/emacs-xterm-paste-sshsession ()
+  (interactive)
+  (let ()
+    (run-with-timer 0.01 nil #'yank)
+    (keyboard-quit)))
+
+(defun entropy/emacs-basic-xterm-term-S-insert-sshsession ()
+  (interactive)
+  (run-with-timer
+   0.01 nil
+   #'(lambda ()
+       (let* ((paste (with-temp-buffer
+                       (yank)
+                       (car kill-ring))))
+         (when (stringp paste)
+           (setq paste (substring-no-properties paste))
+           (term-send-raw-string paste)))))
+  (keyboard-quit))
 
 ;; ** miscellaneous
 (defun entropy/emacs-transfer-wvol (file)

@@ -54,7 +54,6 @@ it becoming one empty form."
         (funcall entropy/emacs-hydra-hollow-union-form)
         (unless (equal copy-union-form entropy/emacs-hydra-hollow-union-form)
           (dolist (form (cddr copy-union-form))
-            (setq temp/x1 2)
             (setq entropy/emacs-hydra-hollow-union-form
                   (cl-delete form entropy/emacs-hydra-hollow-union-form
                              :test 'equal)))

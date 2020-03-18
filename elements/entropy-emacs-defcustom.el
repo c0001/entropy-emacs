@@ -134,6 +134,11 @@ emacs 26 or higher emacs version."
   :type 'integer
   :group 'entropy/emacs-customize-fundametal)
 
+(defcustom entropy/emacs-use-icon t
+  "Whether to use icon visualization when available."
+  :type 'boolean
+  :group 'entropy/emacs-customize-fundametal)
+
 (defcustom entropy/emacs-use-recentf nil
   "Whether use recentf-mode after emacs init."
   :type 'boolean
@@ -313,7 +318,7 @@ for a long time and so as the bad head dispersion."
   :group 'entropy/emacs-customize-modeline)
 
 ;; ***** display time in modeline
-(defcustom entropy/emacs-display-time-modeline nil
+(defcustom entropy/emacs-display-time-modeline t
   "Whether show the Real-time TIME in mode line."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
@@ -403,20 +408,6 @@ height of dock:
 (defgroup entropy/emacs-customize-dired nil
   "Dired customized variables group configured for entropy-emacs."
   :group 'entropy/emacs-custom-variable-basic)
-
-;; ***** dired visual type
-(defcustom entropy/emacs-dired-visual-type "simple-rainbow"
-  "Type of dired visual appearance.
-
-  You have two choice:
-  - \"simple-rainbow\" : using `dired-rainbow'.
-  - \"all-the-icons\" : using `all-the-icons-dired'
-
-  If you use emacs-25.3.1 , you just can using the simple way
-  because that emacs 25.3 have the bug of can not show all-the-icons
-  fully type."
-  :type 'string
-  :group 'entropy/emacs-customize-dired)
 
 ;; ***** dired trash enable
 (defcustom entropy/emacs-dired-enable-trash nil
@@ -1481,21 +1472,10 @@ otherwise return nil."
 ;; *** ssh session justice
 (defun entropy/emacs-is-ssh-session ()
   "Justice whether use eemacs in sshd session. Take priority of
-`entropy/emacs-indicate-sshd-session'.
-
-Fixme:
-
-- ipv6 support
-- Windows dos cmd check feature."
+`entropy/emacs-indicate-sshd-session'."
   (or entropy/emacs-indicate-sshd-session
-      (cond
-       ((string-match-p "linux\\|cygwin\\|darwin" (symbol-name system-type))
-        (let ((who (shell-command-to-string "who"))
-              (ipv4-regx "([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)"))
-          (when (string-match-p ipv4-regx who)
-            t)))
-       ((string-match-p "windows" (symbol-name system-type))
-        nil))))
+      (getenv "SSH_CLIENT")
+      (getenv "SSH_TTY")))
 
 ;; *** pdumper env check
 
