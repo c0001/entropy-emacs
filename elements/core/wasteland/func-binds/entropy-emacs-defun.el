@@ -495,7 +495,7 @@ in case that file does not provide any feature."
     `(when (not (null ',feature))
        (entropy/emacs-eval-after-load ,feature
          ,@body
-         (message "with lazy load configs for feature '%s'"
+         (message "with lazy loading configs for feature '%s' ..."
                   (if (symbolp ',feature)
                       (symbol-name ',feature)
                     ',feature)))))
