@@ -172,6 +172,16 @@ emacs 26 or higher emacs version."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
+(defcustom entropy/emacs-align-window-center-with? 'olivetti
+  "The window central visual toggler type, valid of 'olivetti' or 'basic'.
+
+=olivetti= was a riched window center align package which provide
+shrink and expand auto-key, and without alignment be killed
+problem, =basic= type is simple but without fully featured.
+"
+  :type 'symbol
+  :group 'entropy/emacs-custom-variable-basic)
+
 ;; **** tree
 (defgroup entropy/emacs-tree-visual-group nil
   "Tree side bar show group"

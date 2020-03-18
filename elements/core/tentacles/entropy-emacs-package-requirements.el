@@ -177,6 +177,7 @@
         multiple-cursors
         names
         neotree
+        olivetti
         openwith
         org-bullets
         org-download

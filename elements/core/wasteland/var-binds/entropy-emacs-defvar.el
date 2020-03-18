@@ -54,7 +54,9 @@ This variable is mainly for the judgement button for
 `entropy/emacs-browse-url-function' for determined whether to using the
 specific browser to visualize current file.")
 
-(defvar entropy/emacs-window-center-integer 9)
+(defvar entropy/emacs-window-center-integer 10
+  "The number to split the `window-width' for calculating the
+margin width.")
 
 (defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Title of entropy-emacs initial dashboard buffer. ")

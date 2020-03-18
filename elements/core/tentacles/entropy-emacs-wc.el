@@ -811,34 +811,83 @@ without derived slot."
 
 ;; ** Centered-window
 ;; *** Manully method
-(defun entropy/emacs-basic-center-text ()
-  "Center the text in the middle of the buffer. Works best in full screen"
-  (interactive)
-  (if (car (window-margins))
-      (entropy/emacs-basic-center-text-clear)
-    (set-window-margins (car (get-buffer-window-list (current-buffer) nil t))
-                        (/ (window-width) entropy/emacs-window-center-integer)
-                        (/ (window-width) entropy/emacs-window-center-integer))))
+(when (eq entropy/emacs-align-window-center-with? 'basic)
+  (defun entropy/emacs-basic-center-text ()
+    "Center the text in the middle of the buffer. Works best in full screen"
+    (interactive)
+    (if (car (window-margins))
+        (entropy/emacs-basic-center-text-clear)
+      (set-window-margins
+       (car (get-buffer-window-list (current-buffer) nil t))
+       (/ (window-width) entropy/emacs-window-center-integer)
+       (/ (window-width) entropy/emacs-window-center-integer))))
 
-(defun entropy/emacs-basic-center-text-clear ()
-  (interactive)
-  (set-window-margins
-   (car (get-buffer-window-list (current-buffer) nil t))
-   nil))
+  (defun entropy/emacs-basic-center-text-clear ()
+    (interactive)
+    (set-window-margins
+     (car (get-buffer-window-list (current-buffer) nil t))
+     nil)))
+
+;; ** Using olivetti
+
+(use-package olivetti
+  :if (eq entropy/emacs-align-window-center-with? 'olivetti)
+  :commands
+  (olivetti-mode
+   olivetti-set-width
+   olivetti-shrink
+   olivetti-expand)
+  :preface
+  (defun entropy/emacs-wc--calc-olivetti-body-width ()
+    "Calculate the center alignment percentage rely on
+`entropy/emacs-window-center-integer'."
+    (let ((partial
+           (/ (- (window-width)
+                 (* 2 (/ (window-width)
+                         entropy/emacs-window-center-integer)))
+              (float (window-width)))))
+      (setq olivetti-body-width partial)))
+
+  :init
+  (setq olivetti-minimum-body-width 10)
+  (add-hook 'olivetti-mode-hook
+            #'entropy/emacs-wc--calc-olivetti-body-width))
+
+
+;; ** key bind
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define+
  'eemacs-window-config nil nil
  '("Align Buffer"
-   (("C-c M-<up>" entropy/emacs-basic-center-text
+   (("C-c M-<up>"
+     (:eval
+      (cond ((eq entropy/emacs-align-window-center-with? 'basic)
+             'entropy/emacs-basic-center-text)
+            ((eq entropy/emacs-align-window-center-with? 'olivetti)
+             '(olivetti-mode 1))))
      "Center Window"
-     :enable t
+     :enable (or (eq entropy/emacs-align-window-center-with? 'basic)
+                 (eq entropy/emacs-align-window-center-with? 'olivetti))
      :exit t
      :global-bind t)
-    ("C-c M-<down>" entropy/emacs-basic-center-text-clear
+    ("C-c M-<down>"
+     (:eval
+      (cond ((eq entropy/emacs-align-window-center-with? 'basic)
+             'entropy/emacs-basic-center-text-clear)
+            ((eq entropy/emacs-align-window-center-with? 'olivetti)
+             '(olivetti-mode 0))))
      "Clear Center Window"
-     :enable t
+     :enable (or (eq entropy/emacs-align-window-center-with? 'basic)
+                 (eq entropy/emacs-align-window-center-with? 'olivetti))
      :exit t
-     :global-bind t))))
+     :global-bind t)
+    ("{" olivetti-shrink "Shrink align width"
+     :enable
+     (eq entropy/emacs-align-window-center-with? 'olivetti))
+    ("}" olivetti-expand "Expand align width"
+     :enable
+     (eq entropy/emacs-align-window-center-with? 'olivetti))
+    )))
 
 ;; ** Window divider
 

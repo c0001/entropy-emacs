@@ -981,58 +981,61 @@ emacs."
   :ensure nil
   :commands (global-undo-tree-mode undo-tree-visualize)
   :defines (entropy/emacs-basic-undo-tree-margin-detective)
-  :bind (("C-x u" . entropy/emacs-basic-undo-tree))
   :hook ((undo-tree-mode . (lambda () (define-key undo-tree-map (kbd "C-x u") nil))))
   :init
-
   (entropy/emacs-lazy-with-load-trail
    undo-tree-enable
    (global-undo-tree-mode t))
 
-  :config
-  (defun entropy/emacs-basic-undo-tree ()
-    (interactive)
-    (if (car (window-margins))
-        (progn
-          (setq entropy/emacs-basic-undo-tree-margin-detective t)
-          (entropy/emacs-basic-center-text-clear)
-          (undo-tree-visualize))
-      (progn
-        (setq entropy/emacs-basic-undo-tree-margin-detective nil)
-        (undo-tree-visualize))))
+  (if (eq entropy/emacs-align-window-center-with? 'basic)
+      (global-set-key (kbd "C-x u") #'entropy/emacs-basic-undo-tree)
+    (global-set-key (kbd "C-x u") #'undo-tree-visualize))
 
-  (defun undo-tree-visualizer-quit ()
-    "Quit the undo-tree visualizer.
+  :config
+  (when (eq entropy/emacs-align-window-center-with? 'basic)
+    (defun entropy/emacs-basic-undo-tree ()
+      (interactive)
+      (if (car (window-margins))
+          (progn
+            (setq entropy/emacs-basic-undo-tree-margin-detective t)
+            (entropy/emacs-basic-center-text-clear)
+            (undo-tree-visualize))
+        (progn
+          (setq entropy/emacs-basic-undo-tree-margin-detective nil)
+          (undo-tree-visualize))))
+
+    (defun undo-tree-visualizer-quit ()
+      "Quit the undo-tree visualizer.
 
 Note:
 
 This function has redefined for adapting to
 `entropy/emacs-basic-center-text'."
-    (interactive)
-    (unless (eq major-mode 'undo-tree-visualizer-mode)
-      (user-error "Undo-tree mode not enabled in buffer"))
-    (undo-tree-clear-visualizer-data buffer-undo-tree)
-    ;; remove kill visualizer hook from parent buffer
-    (unwind-protect
-        (with-current-buffer undo-tree-visualizer-parent-buffer
-          (remove-hook 'before-change-functions 'undo-tree-kill-visualizer t))
-      ;; kill diff buffer, if any
-      (when undo-tree-visualizer-diff (undo-tree-visualizer-hide-diff))
-      (let ((parent undo-tree-visualizer-parent-buffer)
-            window)
-        ;; kill visualizer buffer
-        (kill-buffer nil)
-        ;; switch back to parent buffer
-        (unwind-protect
-            ;; (if (setq window (get-buffer-window parent))
-            ;;     (select-window window))
-            (if entropy/emacs-basic-undo-tree-margin-detective
-                (progn
-                  (switch-to-buffer parent)
-                  (set-window-margins (car (get-buffer-window-list (current-buffer) nil t))
-                                      (/ (window-width) entropy/emacs-window-center-integer)
-                                      (/ (window-width) entropy/emacs-window-center-integer)))
-              (switch-to-buffer parent)))))))
+      (interactive)
+      (unless (eq major-mode 'undo-tree-visualizer-mode)
+        (user-error "Undo-tree mode not enabled in buffer"))
+      (undo-tree-clear-visualizer-data buffer-undo-tree)
+      ;; remove kill visualizer hook from parent buffer
+      (unwind-protect
+          (with-current-buffer undo-tree-visualizer-parent-buffer
+            (remove-hook 'before-change-functions 'undo-tree-kill-visualizer t))
+        ;; kill diff buffer, if any
+        (when undo-tree-visualizer-diff (undo-tree-visualizer-hide-diff))
+        (let ((parent undo-tree-visualizer-parent-buffer)
+              window)
+          ;; kill visualizer buffer
+          (kill-buffer nil)
+          ;; switch back to parent buffer
+          (unwind-protect
+              ;; (if (setq window (get-buffer-window parent))
+              ;;     (select-window window))
+              (if entropy/emacs-basic-undo-tree-margin-detective
+                  (progn
+                    (switch-to-buffer parent)
+                    (set-window-margins (car (get-buffer-window-list (current-buffer) nil t))
+                                        (/ (window-width) entropy/emacs-window-center-integer)
+                                        (/ (window-width) entropy/emacs-window-center-integer)))
+                (switch-to-buffer parent))))))))
 
 ;; ** Auto-sudoedit
 (use-package auto-sudoedit
