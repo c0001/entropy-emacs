@@ -56,11 +56,10 @@
   :init
 
   ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
-  (when entropy/emacs-custom-language-environment-enable
-    (entropy/emacs-lazy-load-simple magit
-      (advice-add 'magit-status :before #'entropy/emacs-lang-set-utf-8)
-      (advice-add 'magit-dispatch-popup :before #'entropy/emacs-lang-set-utf-8)
-      (advice-add 'magit-file-popup :before #'entropy/emacs-lang-set-utf-8)))
+  (entropy/emacs-lazy-load-simple magit
+    (advice-add 'magit-status :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+    (advice-add 'magit-dispatch-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+    (advice-add 'magit-file-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
 
   ;; Disabled vc.el key bindings for prevent to accidental actived
   (progn

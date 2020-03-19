@@ -70,6 +70,16 @@
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
+(defcustom entropy/emacs-top-prefix-key-cons '("C-`" .  "C-@")
+  "The cons stores the prefix key for `entropy/emacs-top-keymap',
+the car for GUI session, and cdr for TUI thus as well.
+
+The intention to get different prefix key for GUI anD TUI is for
+that the terminal emulation used for emacs may not have the full
+key-stroke experience."
+  :type 'cons
+  :group 'entropy/emacs-customize-fundametal)
+
 (defcustom entropy/emacs-garbage-collection-delay 1.2
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs."
@@ -139,7 +149,7 @@ emacs 26 or higher emacs version."
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-use-recentf nil
+(defcustom entropy/emacs-use-recentf t
   "Whether use recentf-mode after emacs init."
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
@@ -658,10 +668,18 @@ corresponding for 'entropy-emacs'."
   :type 'boolean
   :group 'entropy/emacs-customize-language)
 
-(defcustom entropy/emacs-language-environment nil
+(defcustom entropy/emacs-locale-language-environment
+  (copy-tree current-language-environment)
   "Setting emacs language environment"
   :type 'string
   :group 'entropy/emacs-customize-language)
+
+(defcustom entropy/emacs-locale-coding-system
+  (car default-process-coding-system)
+  "Setting locale coding system."
+  :type 'string
+  :group 'entropy/emacs-customize-language)
+
 
 ;; **** use pyim
 (defgroup entropy/emacs-customize-pyim nil
@@ -1095,12 +1113,15 @@ When set to an empty string, this attribute is omitted.  Defaults to
 
 ;; **** emacs lang set for windows
 (defcustom entropy/emacs-win-env-lang-enable nil
-  "Whether enable emacs lang for windows"
+  "Whether enable customize shell lanugage environment for
+WINDOWS emacs session."
   :type 'boolean
   :group 'entropy/emacs-win)
 
 (defcustom entropy/emacs-win-env-lang-set "en_US.UTF-8"
-  "Setting emacs lang in windows operation system"
+  "Setting emacs lang in windows operation system, its useful
+while you run a process communicates with the inferior daemon
+which has a special language environment request."
   :type 'string
   :group 'entropy/emacs-win)
 

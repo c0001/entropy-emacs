@@ -648,29 +648,6 @@ in case that file does not provide any feature."
     (setq entropy/emacs--package-user-dir-setted t)))
 
 ;; ** language environment set
-(defun entropy/emacs-toggle-utf-8-and-locale (&optional cond)
-  " This function was to toggle entire UTF-8 environment to or
-back from locale.
-
-Optional arg COND has four type:
-
-- \"prompt\": call this function with ivy-read prompt for choosing the target encoding.
-- \"UTF-8\": choose UTF-8 without prompt.
-- \"LOCAL\": choose LOCAL language environment without prompt.
-"
-  (interactive)
-  (if cond
-      (cond
-       ((string= cond "prompt")
-        (ivy-read "Choice: " '("UTF-8" "LOCAL")
-                  :require-match t
-                  :action #'entropy/emacs-lang-set))
-       ((string= cond "UTF-8") (entropy/emacs-lang-set "UTF-8"))
-       ((string= cond "LOCAL") (entropy/emacs-lang-set "LOCAL"))
-       (t (error "entropy/emacs-toggle-utf-8-and-locale: error argument type.")))
-    (if (string= current-language-environment "UTF-8")
-        (entropy/emacs-lang-set "LOCAL")
-      (entropy/emacs-lang-set "UTF-8"))))
 
 (defun entropy/emacs-lang-set (lang)
   (if (string-match-p
@@ -683,13 +660,13 @@ Optional arg COND has four type:
       (prefer-coding-system 'utf-8-unix)
       (message "Setting language environment to 'utf-8-unix'."))
      ((string= lang "LOCAL")
-      (unless (and (not (null entropy/emacs-language-environment))
-                   (stringp entropy/emacs-language-environment))
-        (error "Wrong arg type for 'entropy/emacs-language-environment'."))
-      (set-language-environment entropy/emacs-language-environment)
-      (prefer-coding-system entropy/emacs-lang-locale)
-      (setq default-file-name-coding-system 'utf-8-unix)
-      (message "Setting language environment to '%s'." entropy/emacs-language-environment))
+      (when (and (not (null entropy/emacs-custom-language-environment-enable))
+                 (not (null entropy/emacs-locale-language-environment))
+                 (stringp entropy/emacs-locale-language-environment))
+        (set-language-environment entropy/emacs-locale-language-environment)
+        (prefer-coding-system entropy/emacs-locale-coding-system)
+        (setq default-file-name-coding-system 'utf-8-unix)
+        (message "Setting language environment to '%s'." entropy/emacs-locale-language-environment)))
      (t (error "Invalid LANG arg")))))
 
 (defun entropy/emacs-lang-set-utf-8 (&rest args)
@@ -700,61 +677,34 @@ by `entropy/emacs-lang-set'"
 
 (defun entropy/emacs-lang-set-local (&rest args)
   "Setting language environment to `locale' specification from
-`entropy/emacs-language-environment'. "
+`entropy/emacs-locale-language-environment'. "
   (if (and entropy/emacs-custom-language-environment-enable
-           (not (null entropy/emacs-language-environment)))
+           (not (null entropy/emacs-locale-language-environment)))
       (entropy/emacs-lang-set "LOCAL")))
 
-(defun entropy/emacs-revert-buffer-with-custom-language-environment ()
-  "This function was designed to auto revert buffer with
-language-environment you set in `entropy/emacs-language-environment'."
-  (interactive)
-  (if (string= current-language-environment "UTF-8")
-      (progn
-        (entropy/emacs-toggle-utf-8-and-locale)
-        (revert-buffer t t)
-        (message "Succeed revert buffer with %s" entropy/emacs-language-environment))
-    (error "Have been locale setting ♘")))
-
-
-;; around advice when `entropy/emacs-custom-language-environment-enable' was nil
-
-(defun entropy/emacs-lang-set-without-enable (oldfunc &rest args)
-  "Around advice for funcs:
-
-- entropy/emacs-toggle-utf-8-and-locale
-- entropy/emacs-lang-set-utf-8
-- entropy/emacs-revert-buffer-with-custom-language-environment
-
-This func will force disable each func's internal procedure when
-custom variable
-`entropy/emacs-custom-language-environment-enable' and
-`entropy/emacs-language-environment' was nil.
- "
-  (cond
-   ((and entropy/emacs-custom-language-environment-enable
-         (ignore-errors (stringp entropy/emacs-language-environment)))
-    (apply oldfunc args))
-   ((or (null entropy/emacs-custom-language-environment-enable)
-        (not (ignore-errors (stringp entropy/emacs-language-environment))))
-    t)))
-
-(dolist (el '(entropy/emacs-toggle-utf-8-and-locale
-              entropy/emacs-revert-buffer-with-custom-language-environment
-              entropy/emacs-lang-set))
-  (advice-add el :around #'entropy/emacs-lang-set-without-enable))
-
 ;; common around advice for wrapper function into utf-8 environment
-(defun entropy/emacs-lang-set-utf-8-around-wrapper (old-func &rest _)
-  (unless (string= current-language-environment "UTF-8")
-    (entropy/emacs-lang-set-utf-8))
-  (apply old-func _))
+(defun entropy/emacs-lang-use-utf-8-ces-around-advice (old-func &rest _)
+  (let* ((coding-system-for-read 'utf-8)
+         (coding-system-for-write 'utf-8))
+    (apply old-func _)))
 
 ;; common around advice for wrapper funcion into locale language environment
-(defun entropy/emacs-lang-set-local-around-wrapper (old-func &rest _)
-  (when (and entropy/emacs-custom-language-environment-enable)
-    (entropy/emacs-lang-set-local))
-  (apply old-func _))
+(defun entropy/emacs-lang-use-locale-ces-around-advice (old-func &rest _)
+  (let ((coding-system-for-read entropy/emacs-locale-coding-system)
+        (coding-system-for-write entropy/emacs-locale-coding-system))
+    (apply old-func _)))
+
+;; the 'with' macro
+(defmacro entropy/emacs-lang-with-utf-8-ces (&rest body)
+  `(let* ((coding-system-for-read 'utf-8)
+          (coding-system-for-write 'utf-8))
+     ,@body))
+
+(defmacro entropy/emacs-lang-with-locale-ces (&rest body)
+  `(let* ((coding-system-for-read entropy/emacs-locale-coding-system)
+          (coding-system-for-write entropy/emacs-locale-coding-system))
+     ,@body))
+
 
 
 ;; ** Org face reset

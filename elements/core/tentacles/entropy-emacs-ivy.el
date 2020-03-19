@@ -321,30 +321,10 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (unless sys/win32p
     (entropy/emacs-!set-key (kbd "<M-up>") #'counsel-linux-app))
 
-;; **** improve counsel-git and counsel-bookmark
+;; **** counsel-git with utf-8
 
-  ;; counsel-git and counsel-bookmark usually using 'utf-8' encoding
-  ;; for searching and return data back, so
-  ;; `entropy/emacs-custom-language-environment-enable' was conflicted
-  ;; with it, we must turn the main encoding type while calling them.
-  (when entropy/emacs-custom-language-environment-enable
-    (defun entropy/emacs-ivy-counsel-git (orig-func &rest orig-args)
-      (interactive)
-      (if (not (string= current-language-environment "UTF-8"))
-          (progn
-            (entropy/emacs-lang-set-utf-8)
-            (apply orig-func orig-args))
-        (apply orig-func orig-args)))
-    (advice-add 'counsel-git :around #'entropy/emacs-ivy-counsel-git)
-
-    (defun entropy/emacs-ivy-counsel-bookmark (orig-func &rest orig-args)
-      (interactive)
-      (if (not (string= current-language-environment "UTF-8"))
-          (progn
-            (entropy/emacs-lang-set-utf-8)
-            (apply orig-func orig-args))
-        (apply orig-func orig-args)))
-    (advice-add 'counsel-bookmark :around #'entropy/emacs-ivy-counsel-bookmark))
+  (advice-add 'counsel-git :around
+              #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
 ;; *** config
   :config
@@ -381,14 +361,6 @@ font style and height."
 
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-wsl-enable)
-    (defun entropy/emacs-ivy--counsel-locate ()
-      "Call counsel-locate by unicode encoding when in windows
-plattform."
-      (interactive)
-      (unless (string= current-language-environment "UTF-8")
-        (entropy/emacs-lang-set-utf-8))
-      (counsel-locate))
-
     (defun counsel-locate (&optional initial-input)
       "Call the \"locate\" shell command.
 INITIAL-INPUT can be given as the initial minibuffer input.
@@ -407,10 +379,6 @@ type by function `entropy/emacs-transfer-wvol'"
                               (entropy/emacs-transfer-wvol file))))
                 :unwind #'counsel-delete-process
                 :caller 'counsel-locate)))
-
-;; **** counsel-dired-jump
-  (when sys/win32p
-    (advice-add 'counsel-dired-jump :before #'entropy/emacs-lang-set-utf-8))
 
 ;; **** redefine counsel-git
 
@@ -666,8 +634,10 @@ Adding buffer unlock and wind narrowed region feature."
        ("C-c k" helm-projectile-pt "Helm version of projectile-pt"
         :enable t :exit t :global-bind t))))
     :config
-    (dolist (el '(helm-do-pt helm-projectile-pt))
-      (advice-add el :around #'entropy/emacs-lang-set-local-around-wrapper))))
+    (when sys/win32p
+      (dolist (el '(helm-do-pt helm-projectile-pt))
+        (advice-add el :around
+                    #'entropy/emacs-lang-use-locale-ces-around-advice)))))
 
 (defun entropy/emacs-ivy--use-ag-common ()
   (use-package helm-ag
@@ -686,7 +656,8 @@ Adding buffer unlock and wind narrowed region feature."
           helm-ag-use-grep-ignore-list t)
     :config
     (dolist (el '(helm-do-ag helm-do-ag-project-root))
-      (advice-add el :around #'entropy/emacs-lang-set-utf-8-around-wrapper))
+      (advice-add el :around
+                  #'entropy/emacs-lang-use-utf-8-ces-around-advice))
 
     (defun helm-ag--edit-commit ()
       "Note: this function has been re-define for compat with

@@ -483,6 +483,32 @@ emacs."
   (advice-add 'image-toggle-animation :before #'entropy/emacs-basic-image-gif-warn))
 
 
+;; *** Artist-mode
+(use-package artist
+  :ensure nil
+  :init
+  ;; Init disable rubber-banding for reducing performance requirements.
+  (add-hook 'artist-mode-hook
+            #'(lambda ()
+                (if artist-rubber-banding
+                    (setq-local artist-rubber-banding nil))))
+
+  :config
+
+  ;; Disabled '<' and '>' keybinding function.
+  (entropy/emacs-lazy-load-simple artist
+    (define-key artist-mode-map (kbd ">") nil)
+    (define-key artist-mode-map (kbd "<") nil))
+  )
+
+(defun entropy/emacs-basic-artist-mode ()
+  "Open one temp-file with artist-mode.
+Temp file was \"~/~entropy-artist.txt\""
+  (interactive)
+  (find-file "~/~entropy-artist.txt")
+  (artist-mode))
+
+
 ;; ** Basic global settings:
 ;; *** Temporal bug revert
 ;; **** gnutls bug for emacs version upper than '26.1'
@@ -775,30 +801,23 @@ layout switching conflicts."
 ;; when `entropy/emacs-custom-language-environment-enable' was nil
 
 (unless (and entropy/emacs-custom-language-environment-enable
-             (ignore-errors (stringp entropy/emacs-language-environment)))
-  (progn
-    (set-language-environment "UTF-8")
-    (prefer-coding-system 'utf-8-unix)
-    (set-default-coding-systems 'utf-8-unix)
-    (set-terminal-coding-system 'utf-8-unix)
-    (set-keyboard-coding-system 'utf-8-unix)))
+             (ignore-errors (stringp entropy/emacs-locale-language-environment)))
+  (entropy/emacs-lang-set-utf-8))
 
 ;; **** Using customized basic encoding system
 ;; When `entropy/emacs-custom-language-environment-enable' was t
 
 (when (and entropy/emacs-custom-language-environment-enable
-           (ignore-errors (stringp entropy/emacs-language-environment)))
+           (ignore-errors (stringp entropy/emacs-locale-language-environment)))
   ;; Customize language environment with user specification
-  (set-language-environment entropy/emacs-language-environment))
+  (entropy/emacs-lang-set-local))
 
-;; setting w32 shell lang env
+;; setting w32 shell lanuguage environment
 (when sys/win32p
   (when entropy/emacs-win-env-lang-enable
     (setenv "LANG" entropy/emacs-win-env-lang-set)))
 
 ;; ***** Specific cases to forceing using UTF-8 encoding environment
-;; ****** Forcely using 'UTF-8' charset for file-name handler for compatibility.
-(setq default-file-name-coding-system 'utf-8-unix)
 
 ;; ****** Treat clipboard input as UTF-8 string first; compound text next, etc.
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
@@ -820,7 +839,8 @@ layout switching conflicts."
 ;; ========================================================================
 
 ;; ****** let diff-buffer-with-file force run with unicode language environment
-(advice-add 'diff-buffer-with-file :before #'entropy/emacs-lang-set-utf-8)
+(advice-add 'diff-buffer-with-file
+            :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
 ;; *** Auto wrap line
 (setq-default truncate-lines t)
@@ -913,7 +933,7 @@ layout switching conflicts."
   (interactive)                 ; permit invocation in minibuffer
   (insert (format-time-string "%A, %B %e, %Y")))
 
-;; *** Read-Only-About
+;; *** Global read only mode
 (use-package entropy-global-read-only-mode
   :ensure nil
   :commands (entropy-grom-mode)
@@ -935,7 +955,7 @@ layout switching conflicts."
  "GlbAutoRevertMode-enabled"
  (global-auto-revert-mode +1))
 
-;; *** Use which-key
+;; *** Popup key stroking prompt
 (use-package which-key
   :diminish which-key-mode
   :commands which-key-mode
@@ -1025,18 +1045,28 @@ This function has redefined for adapting to
   (progn (setq kill-ring nil) (garbage-collect)))
 
 ;; *** Mark-sexp
-(entropy/emacs-!set-key (if (display-graphic-p) (kbd "C-`") (kbd "C-@")) 'set-mark-command)
+(entropy/emacs-!set-key
+  ;; Set the default region mark enable key stroke to the double of
+  ;; `entropy/emacs-top-key' i.e. double hints that.
+  ;;
+  ;; This is key-stroke was easy to remeber, greate!
+  (kbd entropy/emacs-top-key)
+  'set-mark-command)
 
 (defun entropy/emacs-basic-mark-set ()
+  "Mark the current point and push it to mark ring so that this
+place can be easily found by other interactive command."
   (interactive)
   (save-excursion
-    (push-mark)
     (push-mark)))
 
-;; *** Windows forbidden view-hello-file
+;; *** Forbidden view-hello-file for W32 platform
+
+;; `view-hello-file' will freeze WINDOWS emacs session, override it!
 (when sys/is-win-group
   (defun view-hello-file ()
-    "Prompt emacs user do not use view-hello-file in windows operation system"
+    "Prompt emacs user do not use view-hello-file in windows
+operation system"
     (interactive)
     (message "Do not use view-hello-file in windows because of it will jamm windows and emacs")))
 
@@ -1059,21 +1089,24 @@ This function has redefined for adapting to
   :if entropy/emacs-use-recentf
   :ensure nil
   :preface
-  (defun entropy/emacs-basic--enable-recentf ()
-    (unless recentf-mode
-      (recentf-mode)
-      (recentf-track-opened-file)))
   :init
-  (setq recentf-max-saved-items 200)
-  (add-hook 'find-file-hook #'entropy/emacs-basic--enable-recentf)
+  (setq recentf-max-saved-items 300)
+  (entropy/emacs-lazy-with-load-trail
+   recentf-init
+   (recentf-mode))
   :config
-  (add-to-list 'recentf-exclude (expand-file-name package-user-dir))
-  (add-to-list 'recentf-exclude "bookmarks")
-  (add-to-list 'recentf-exclude "COMMIT_EDITMSG\\'"))
+  (setq recentf-max-saved-items 300
+        recentf-exclude
+        `("\\.?cache" ".cask" "url" "COMMIT_EDITMSG\\'" "bookmarks"
+          "\\.\\(?:gz\\|gif\\|svg\\|png\\|jpe?g\\|bmp\\|xpm\\)$"
+          "\\.?ido\\.last$" "\\.revive$" "/G?TAGS$" "/.elfeed/"
+          "^/tmp/" "^/var/folders/.+$" ; "^/ssh:"
+          ,(expand-file-name recentf-save-file)
+          (lambda (file) (file-in-directory-p file package-user-dir)))))
 
 (use-package savehist
   :ensure nil
-  :init (entropy/emacs-lazy-with-load-trail savehist (savehist-mode t))
+  :init (entropy/emacs-lazy-with-load-trail savehist-init (savehist-mode t))
   :config
   (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
         history-length 1000
@@ -1085,54 +1118,8 @@ This function has redefined for adapting to
           extended-command-history)
         savehist-autosave-interval 60))
 
-;; *** Bookmarks autosave
+;; *** Bookmarks
 (setq bookmark-save-flag 1)
-
-;; **** Bookmark utf-8
-(when entropy/emacs-custom-language-environment-enable
-  (dolist (hook '(bookmark-edit-annotation-mode-hook
-                  bookmark-bmenu-mode-hook))
-    (add-hook hook
-              #'(lambda ()
-                  (unless (string= current-language-environment "UTF-8")
-                    (entropy/emacs-lang-set-utf-8)))))
-
-  (use-package bookmark
-    :ensure nil
-    :config
-    (defun bookmark-set (&optional name no-overwrite)
-      "Set a bookmark named NAME at the current location.
-If NAME is nil, then prompt the user.
-
-With a prefix arg (non-nil NO-OVERWRITE), do not overwrite any
-existing bookmark that has the same name as NAME, but instead push the
-new bookmark onto the bookmark alist.  The most recently set bookmark
-with name NAME is thus the one in effect at any given time, but the
-others are still there, should the user decide to delete the most
-recent one.
-
-To yank words from the text of the buffer and use them as part of the
-bookmark name, type C-w while setting a bookmark.  Successive C-w's
-yank successive words.
-
-Typing C-u inserts (at the bookmark name prompt) the name of the last
-bookmark used in the document where the new bookmark is being set;
-this helps you use a single bookmark name to track progress through a
-large document.  If there is no prior bookmark for this document, then
-C-u inserts an appropriate name based on the buffer or file.
-
-Use \\[bookmark-delete] to remove bookmarks (you give it a name and
-it removes only the first instance of a bookmark with that name from
-the list of bookmarks.)
-
-Note: This function has been redefined for forcing using utf-8
-coding-system to save bookmark infos"
-      (interactive (list nil current-prefix-arg))
-      (unless (string= current-language-environment "UTF-8")
-        (entropy/emacs-lang-set-utf-8))
-      (let ((prompt
-             (if no-overwrite "Set bookmark" "Set bookmark unconditionally")))
-        (bookmark-set-internal prompt name (if no-overwrite 'push 'overwrite))))))
 
 ;; *** Major mode reload
 (defun entropy/emacs-basic-major-mode-reload ()
@@ -1161,31 +1148,6 @@ way. "
   (entropy/emacs-lazy-with-load-trail
    disable-mouse
    (global-disable-mouse-mode t)))
-
-;; *** Artist-mode
-(use-package artist
-  :ensure nil
-  :init
-  ;; Init disable rubber-banding for reducing performance requirements.
-  (add-hook 'artist-mode-hook
-            #'(lambda ()
-                (if artist-rubber-banding
-                    (setq-local artist-rubber-banding nil))))
-
-  :config
-
-  ;; Disabled '<' and '>' keybinding function.
-  (entropy/emacs-lazy-load-simple artist
-    (define-key artist-mode-map (kbd ">") nil)
-    (define-key artist-mode-map (kbd "<") nil))
-  )
-
-(defun entropy/emacs-basic-artist-mode ()
-  "Open one temp-file with artist-mode.
-Temp file was \"~/~entropy-artist.txt\""
-  (interactive)
-  (find-file "~/~entropy-artist.txt")
-  (artist-mode))
 
 ;; *** Disable auto-window-vscroll
 

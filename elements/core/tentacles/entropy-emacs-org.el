@@ -563,7 +563,7 @@ returning the type of exec for open exported html file, they are:
 ;; ***** org publish config
 
   ;; Force using the utf-8 coding system while publish process
-  (advice-add 'org-publish :before #'entropy/emacs-lang-set-utf-8)
+  (advice-add 'org-publish :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
   ;; Around advice for `org-publish-cache-file-needs-publishing'
   ;; for adding query whether force re publishing unmodified

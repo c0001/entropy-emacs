@@ -464,17 +464,17 @@ to prevent ports keeping as causing to next previewing error.
 
 This issue refer to
 `https://github.com/ancane/markdown-preview-mode/issues/31'.
-
-For more is force to set locale language coding system to utf-8,
-this refer the websocket non-utf-8 cjk chars error."
+"
     (cond
      (markdown-preview-mode
       (markdown-preview-cleanup)
-      (message "Clean up all markdown preview websockets done!"))
-     (t (entropy/emacs-lang-set-utf-8))))
+      (message "Clean up all markdown preview websockets done!"))))
   (advice-add 'markdown-preview-mode
               :before
-              #'entropy/emacs-markdown--mdp-before-advice))
+              #'entropy/emacs-markdown--mdp-before-advice)
+
+  (advice-add 'markdown-preview-mode
+              :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
 
 (provide 'entropy-emacs-markdown)
 
