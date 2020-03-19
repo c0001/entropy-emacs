@@ -45,7 +45,7 @@
 ;; not in the designation context.
 ;;
 ;;
-;; * Code:
+;; * Code
 ;; ** require
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defconst)
@@ -63,406 +63,13 @@
    (kbd entropy/emacs-top-key)
   entropy/emacs-top-keymap))
 
-;; ** Temporal bug revert
-;; *** gnutls bug for emacs version upper than '26.1'
-;;
-;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
-;;
-;; Refer:
-;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597
-;; For now [2019-08-08 Thu 19:23:42] it seems occur on w32 port only
-(when (and (or (version= "26.2" emacs-version)
-               (version= "26.3" emacs-version))
-           sys/win32p)
-  (advice-add #'gnutls-available-p :override #'ignore))
-
-;; ** eemacs basic hydra-hollow instances
-
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-basic-config-core nil nil
- '("Eemacs Basic Core"
-   (("C-x 1" entropy/emacs-basic-kill-other-window
-     "delete-other-window"
-     :enable t :exit t :global-bind t)
-    ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("<f6>" entropy/emacs-basic-loop-alpha
-     "Frame Alpha"
-     :enable t
-     :toggle entropy/emacs-basic-loop-alpha-did
-     :global-bind t)
-    ("<f7>" entropy/emacs-basic-major-mode-reload
-     "Reload Major"
-     :enable t :exit t :global-bind t)
-    ("C-<f9>" toggle-truncate-lines "toggle truncate"
-     :enable t :toggle truncate-lines :global-bind t)
-    ("SPC" entropy/emacs-basic-mark-set
-     "Mark Set"
-     :enable t :eemacs-top-bind t :exit t)
-    ("C-c s s" list-processes "List Process"
-     :enable t :exit t :global-bind t))))
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b m"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'eemacs-basic-config-core))
-     "misc operations"
-     :enable t :exit t))))
-
-;; ** Personal infomation
-(when (and entropy/emacs-user-full-name
-           entropy/emacs-user-mail-address)
-  (setq user-full-name entropy/emacs-user-full-name)
-  (setq user-mail-address entropy/emacs-user-mail-address))
-
-
-;; ** Show the column numberic in modeline
-(setq column-number-mode t)
-
-;; ** Set default cursor style
-(setq-default cursor-type t)
-
-(defun entropy/emacs-basic-toggle-cursor-type ()
-  (interactive)
-  (if (string= (symbol-name cursor-type) "t")
-      (setq cursor-type 'bar)
-    (setq cursor-type t)))
-
-;; ** Global display line number mode
-(if (>= emacs-major-version 26)
-    (progn
-      (setq-default display-line-numbers-width-start t)
-      (when entropy/emacs-init-display-line-mode
-        (global-display-line-numbers-mode))))
-
-;; ** Backup setting
-(setq-default auto-save-default nil)    ; disable it for preventing typing lagging
-(setq make-backup-files nil)
-
-;; ** Scratch buffer corresponding file
-;;
-;;     Amounts of company backend function can not functional
-;;     auto-completion in none file buffer, so corresponding one file
-;;     to *scratch* buffer.
-
-(defun entropy/emacs-basic--scratch-buffer-file-binding ()
-  "Corresponded *scratch* buffer to one temp-file.
-
-Filename are \".scratch_entropy\" host in `entropy/emacs-stuffs-topdir'.
-"
-  (let ((bfn "*scratch*"))
-    (if (entropy/emacs-buffer-exists-p "*scratch*")
-        (kill-buffer "*scratch*"))
-    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir)))
-      (if (not (file-exists-p fname))
-          (progn
-            (write-region "" "" fname)
-            (with-current-buffer (find-file-noselect fname)
-              (if buffer-read-only (read-only-mode 0))
-              (auto-save-mode 0)
-              (erase-buffer)
-              (rename-buffer "*scratch*")
-              (lisp-interaction-mode)
-              (insert initial-scratch-message)))
-        (with-current-buffer (find-file-noselect fname)
-          (if buffer-read-only (read-only-mode 0))
-          (auto-save-mode 0)
-          (rename-buffer "*scratch*")
-          (lisp-interaction-mode)
-          (goto-char (point-min))
-          (unless (re-search-forward (regexp-quote initial-scratch-message) nil t)
-            (insert initial-scratch-message)))))
-    bfn))
-
-(entropy/emacs-lazy-with-load-trail
- init-eemamcs-scratch-buffer
- (entropy/emacs-lazy-load-simple entropy-emacs-structure
-   (redisplay t)
-   (entropy/emacs-basic--scratch-buffer-file-binding)))
-
-;; Create a new scratch buffer
-(defun entropy/emacs-basic-create-scratch-buffer ()
-  "Create a scratch buffer."
-  (interactive)
-  (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
-  (lisp-interaction-mode)
-  (message "Create *scratch* buffer"))
-
-;; ** Highlight current line
-(defun entropy/emacs-basic--dhl-judge-state ()
-  (let ((hlmp (ignore-errors hl-line-mode))
-        (dlmp display-line-numbers)
-        rtn)
-    (setq rtn (list hlmp dlmp))
-    (cond
-     ((equal rtn '(nil nil))
-      (setq rtn 1))
-     ((equal rtn '(nil t))
-      (setq rtn 2))
-     ((equal rtn '(t nil))
-      (setq rtn 3))
-     ((equal rtn '(t t))
-      (setq rtn 4)))
-    rtn))
-
-(defun entropy/emacs-basic-dhl-toggle ($Prefix)
-  (interactive "P")
-  (if (not (version< emacs-version "26.1"))
-      (if (not $Prefix)
-          (cl-case (entropy/emacs-basic--dhl-judge-state)
-            (1
-             (hl-line-mode 1))
-            (2
-             (hl-line-mode 1))
-            (3
-             (hl-line-mode 0))
-            (4
-             (hl-line-mode 0)))
-        (cl-case (entropy/emacs-basic--dhl-judge-state)
-          (1
-           (hl-line-mode 1)
-           (display-line-numbers-mode 1))
-          (2
-           (hl-line-mode 1))
-          (3
-           (display-line-numbers-mode 1))
-          (4
-           (hl-line-mode 0)
-           (display-line-numbers-mode 0))))
-    (if (not (ignore-errors hl-line-mode))
-        (hl-line-mode 1)
-      (hl-line-mode 0))))
-
-;; ** Smooth scrolling
-
-;; Force smooth mouse scroll experience
-(when (display-graphic-p)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
-        mouse-wheel-progressive-speed nil))
-
-(defvar entropy/emacs-basic-smooth-scrolling-mode nil
-  "Indicated whether smooth-scrolling enable.
-
-Note:
-
-Manually edit this variable will not be any effection.")
-
-(setq scroll-step 0)
-(setq scroll-conservatively 0)
-
-(defun entropy/emacs-basic-smooth-scrolling ()
-  "Toggle smooth-scrolling buffer scrolling view."
-  (interactive)
-  (setq redisplay-dont-pause t
-        scroll-margin 0
-        scroll-step   (if (equal scroll-step 0) 1 0)
-        scroll-conservatively (if (equal scroll-conservatively 0) 100000 0))
-  (if (and (equal scroll-step 1)
-           (equal scroll-conservatively 100000))
-      (progn
-        (setq entropy/emacs-basic-smooth-scrolling-mode t)
-        (message "Smooth scrolling enabled!"))
-    (progn
-      (setq entropy/emacs-basic-smooth-scrolling-mode nil)
-      (message "Smooth scrolling disabled!"))))
-
-(entropy/emacs-basic-smooth-scrolling)
-
-;; ** Kill-buffer-and-window function
-
-(defun entropy/emacs-basic-kill-ansiterm-buffer ()
-  "Kill `ansi-term' buffer with proper way.
-
-This function mainly gives a patch for the bug of error after
-kill ansi-term buffer and its popup window refer to bug
-#h-0c3ab89e-a470-42d2-946e-4f217ea2f20c in entropy-emacs bug
-collection."
-  (interactive)
-  (if sys/linuxp
-      (let* ((_buff (current-buffer))
-             (_proc (get-buffer-process _buff)))
-        (when _proc
-          (when (yes-or-no-p
-                 (format "Buffer %S has a running process; kill it? "
-                         (buffer-name _buff)))
-            (set-process-filter _proc nil)
-            (kill-process _proc)
-            (let ((kill-buffer-query-functions '((lambda () t))))
-              (if (not (one-window-p))
-                  (kill-buffer-and-window)
-                (kill-this-buffer))))))
-    (kill-this-buffer)))
-
-(defun entropy/emacs-basic-kill-buffer-and-show-its-dired ()
-  "Kill buffer, swtich to its hosted location `dired' buffer when
-its a exists file's buffer."
-  (interactive)
-  (let ((buffn (buffer-name))
-        (base-dir default-directory)
-        (fname (buffer-file-name)))
-    (kill-buffer buffn)
-    (when (and (ignore-errors (stringp fname))
-               (file-writable-p fname))
-      (dired base-dir))))
-
-(defun entropy/emacs-basic-kill-buffer-and-its-window-when-grids ()
-  "Kill buffer and close it's host window if windows conuts
-retrieve from `window-list' larger than 1."
-  (interactive)
-  (let ((buflist (window-list)))
-    (if (> (length buflist) 1)
-        (cond
-         ((and (eq (length buflist) 2)
-               (let (rtn)
-                 (mapc (lambda (window)
-                         (let ((buff (window-buffer window)))
-                           (when (window-parameter
-                                  (get-buffer-window buff)
-                                  'no-delete-other-windows)
-                             (setq rtn t))))
-                       buflist)
-                 rtn))
-          (kill-buffer))
-         (t
-          (kill-buffer-and-window)))
-      (kill-buffer))))
-
-(defun entropy/emacs-basic-kill-buffer ()
-  "Entropy emacs specified `kill-buffer' method, used for replace
-as thus."
-  (interactive)
-  (cond
-   ((eq major-mode 'term-mode)
-    (call-interactively #'entropy/emacs-basic-kill-ansiterm-buffer))
-   ((buffer-file-name)
-    (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired))
-   (t
-    (call-interactively
-     #'entropy/emacs-basic-kill-buffer-and-its-window-when-grids))))
-
-(global-set-key (kbd "C-x k") #'entropy/emacs-basic-kill-buffer)
-(global-set-key (kbd "C-x M-k") #'kill-buffer)
-
-
-;; ** kill-other-windows
-
-(defun entropy/emacs-basic-kill-other-window ()
-  "Delete other window and do again using
-`delete-other-windows-internal' if non-effect.
-
-This affected by `neotree' window sticking with `eyebrowse'
-layout switching conflicts."
-  (interactive)
-  (let ((wdc (length (window-list)))
-        neo-exist)
-    (unless (eq wdc 1)
-      (delete-other-windows)
-      (when (and (= wdc (length (window-list)))
-                 (bound-and-true-p neo-buffer-name)
-                 (not (let (_var rtn)
-                        (setq _var (mapcar
-                                    (lambda (x)
-                                      (equal neo-buffer-name
-                                             (buffer-name (window-buffer x))))
-                                    (window-list)))
-                        (dolist (elt _var)
-                          (unless (null elt)
-                            (setq rtn t)))
-                        rtn)))
-        (delete-other-windows-internal)))))
-
-;; ** Set defualt tab size
-;; Do not use `indent-tabs-mode' by default for compatibility meaning
-;; that tabs visualization are not unified accorss editor.
-
-(if entropy/emacs-custom-tab-enable
-    (setq-default tab-width entropy/emacs-custom-tab-width)
-  (setq-default indent-tabs-mode nil))
-
-;; ** Setting language encoding environment
-(setq system-time-locale "C") ;Use english format time string
-
-;; *** Default using UTF-8 encoding for basic environment
-;; when `entropy/emacs-custom-language-environment-enable' was nil
-
-(unless (and entropy/emacs-custom-language-environment-enable
-             (ignore-errors (stringp entropy/emacs-language-environment)))
-  (progn
-    (set-language-environment "UTF-8")
-    (prefer-coding-system 'utf-8-unix)
-    (set-default-coding-systems 'utf-8-unix)
-    (set-terminal-coding-system 'utf-8-unix)
-    (set-keyboard-coding-system 'utf-8-unix)))
-
-;; *** Using customized basic encoding system
-;; When `entropy/emacs-custom-language-environment-enable' was t
-
-(when (and entropy/emacs-custom-language-environment-enable
-           (ignore-errors (stringp entropy/emacs-language-environment)))
-  ;; Customize language environment with user specification
-  (set-language-environment entropy/emacs-language-environment))
-
-;; setting w32 shell lang env
-(when sys/win32p
-  (when entropy/emacs-win-env-lang-enable
-    (setenv "LANG" entropy/emacs-win-env-lang-set)))
-
-;; **** Specific cases to forceing using UTF-8 encoding environment
-;; ***** Forcely using 'UTF-8' charset for file-name handler for compatibility.
-(setq default-file-name-coding-system 'utf-8-unix)
-
-;; ***** Treat clipboard input as UTF-8 string first; compound text next, etc.
-(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
-
-;; ***** Force setting specific file type which must be opened with utf-8-unix encoding system.
-(dolist (suffix
-         '(;; document file
-           "\\.org$" "\\.md$"
-           ;; source file
-           "\\.html" "\\.css$" "\\.php$" "\\.js$" "\\.ts$"
-           "\\.c\\(p+\\)?$" "\\.py$" "\\.lisp$" "\\.el$"
-           "\\.sh$" "\\.bat$"
-           ))
-  (modify-coding-system-alist 'file suffix 'utf-8-unix))
-
-;; ========================================================================
-;; Prompt: If you want all file to be one coding system you should do below
-;;(modify-coding-system-alist 'file "" 'utf-8-unix)
-;; ========================================================================
-
-;; ***** let diff-buffer-with-file force run with unicode language environment
-(advice-add 'diff-buffer-with-file :before #'entropy/emacs-lang-set-utf-8)
-
-;; ** Auto wrap line
-(setq-default truncate-lines t)
-
-;; ** Auto clean whitespace after save buffer
-(use-package whitespace
-  :ensure nil
-  :commands (whitespace-cleanup)
-  :preface
-  (defun entropy/emacs-basic-simple-whitespace-clean ()
-    "Clean whitespace with the default `whitspace-style'."
-    (interactive)
-    (require 'whitespace)
-    (let ((whitespace-style (default-value 'whitespace-style)))
-      (with-current-buffer (current-buffer)
-        (let ((inhibit-read-only t))
-          (whitespace-cleanup)))))
-  :init
-  (add-hook 'before-save-hook
-            #'entropy/emacs-basic-simple-whitespace-clean))
-
-;; ** Dired config
-;; *** dired basic
+;; ** Basic major-modes spec
+;; *** Dired config
+;; **** dired basic
 (use-package dired
   :ensure nil
 
-;; **** pretty-hydra
+;; ***** pretty-hydra
   :eemacs-mmphc
   (((:enable t)
     (dired-mode dired dired-mode-map t (3 3 3)))
@@ -508,9 +115,9 @@ layout switching conflicts."
       :map-inject t
       :exit t))))
 
-;; **** init
+;; ***** init
   :init
-;; ***** Delete directory with force actions
+;; ****** Delete directory with force actions
   (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
 
   ;; TODO : comlete `entropy/emacs-basic--dired-delete-file-mode'
@@ -644,9 +251,9 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
     (interactive)
     (entropy/emacs-basic-dired-delete-file-recursive nil t))
 
-;; **** config
+;; ***** config
   :config
-;; ***** Set unit of dired inode for human readable
+;; ****** Set unit of dired inode for human readable
   (add-hook 'dired-mode-hook #'dired-hide-details-mode)
 
   (if (not sys/is-win-group)
@@ -654,11 +261,11 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
       (setq dired-listing-switches "-alh --group-directories-first")
     (setq dired-listing-switches "-alh"))
 
-;; ***** Always delete and copy resursively
+;; ****** Always delete and copy resursively
   (setq dired-recursive-deletes 'always
         dired-recursive-copies 'always)
 
-;; ***** Improve dired files operation experience for kill opened refer buffers.
+;; ****** Improve dired files operation experience for kill opened refer buffers.
   (defun entropy/emacs-basic--kill-redundant-buffer (&rest rest-args)
     "Delete file refer redundant buffer which will cause dired
 'delete' or 'rename' failed."
@@ -670,7 +277,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
   (advice-add 'dired-do-rename :before #'entropy/emacs-basic--kill-redundant-buffer)
   (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-basic--kill-redundant-buffer)
 
-;; ***** get both UNIX and WINDOWS style path string
+;; ****** get both UNIX and WINDOWS style path string
   (defvar entropy/emacs-basic-dired-fpath-get-log nil
     "The log list stored file path temporarily, will be reset
 when you call `entropy/emacs-basic-get-dired-fpath'.")
@@ -708,7 +315,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
               entropy/emacs-basic-dired-fpath-get-log rtn)
         (message "Save all path string to log variable 'entropy/emacs-basic-dired-fpath-get-log'.")))))
 
-;; ***** dired add load path
+;; ****** dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
     (interactive)
     (let ((dir (completing-read "Choose load path adding item: "
@@ -718,7 +325,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
         (setq dir (file-name-directory dir)))
       (add-to-list 'load-path dir)))
 
-;; ***** dired backup file
+;; ****** dired backup file
 
   (defun entropy/emacs-basic-backup-files ()
     (interactive)
@@ -730,7 +337,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
           (entropy/cl-backup-file el)))
       (revert-buffer)))
 
-;; ***** dired auto revert after some operations
+;; ****** dired auto revert after some operations
 
   (defun entropy/emacs-basic--dired-revert-advice (&rest _)
     (revert-buffer))
@@ -744,11 +351,11 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
     (advice-add el :after #'entropy/emacs-basic--dired-revert-advice))
   )
 
-;; *** Use dired-aux to enable dired-isearch
+;; **** Use dired-aux to enable dired-isearch
 (entropy/emacs-lazy-load-simple dired
   (require 'dired-aux))
 
-;; *** Quick sort dired buffers via hydra
+;; **** Quick sort dired buffers via hydra
   ;;; bind key: `S'
 (when (not sys/win32p)
   (use-package dired-quick-sort
@@ -756,7 +363,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
     :commands (dired-quick-sort-setup)
     :init (add-hook 'dired-mode-hook 'dired-quick-sort-setup)))
 
-;; *** Use coloful dired ls
+;; **** Use coloful dired ls
 
 (use-package dired-rainbow
   :commands
@@ -854,7 +461,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
     (advice-add #'all-the-icons-dired--refresh
                 :override #'entropy/emacs-basic--all-the-icons-dired-refresh)))
 
-;; *** dired-x
+;; **** dired-x
 (use-package dired-x
   :ensure nil
   :commands (dired-omit-mode)
@@ -863,7 +470,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
   (setq dired-omit-size-limit nil)
   (setq dired-omit-extensions nil))
 
-;; ** Image-mode
+;; *** Image-mode
 (use-package image-mode
   :ensure nil
   :config
@@ -875,7 +482,368 @@ emacs."
             (error "Please open it with external apps!"))))
   (advice-add 'image-toggle-animation :before #'entropy/emacs-basic-image-gif-warn))
 
-;; ** Set transparenct of emacs frame
+
+;; ** Basic global settings:
+;; *** Temporal bug revert
+;; **** gnutls bug for emacs version upper than '26.1'
+;;
+;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
+;;
+;; Refer:
+;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597
+;; For now [2019-08-08 Thu 19:23:42] it seems occur on w32 port only
+(when (and (or (version= "26.2" emacs-version)
+               (version= "26.3" emacs-version))
+           sys/win32p)
+  (advice-add #'gnutls-available-p :override #'ignore))
+
+
+;; *** Personal infomation
+(when (and entropy/emacs-user-full-name
+           entropy/emacs-user-mail-address)
+  (setq user-full-name entropy/emacs-user-full-name)
+  (setq user-mail-address entropy/emacs-user-mail-address))
+
+
+;; *** Show the column numberic in modeline
+(setq column-number-mode t)
+
+;; *** Set default cursor style
+(setq-default cursor-type t)
+
+(defun entropy/emacs-basic-toggle-cursor-type ()
+  (interactive)
+  (if (string= (symbol-name cursor-type) "t")
+      (setq cursor-type 'bar)
+    (setq cursor-type t)))
+
+;; *** Global display line number mode
+(if (>= emacs-major-version 26)
+    (progn
+      (setq-default display-line-numbers-width-start t)
+      (when entropy/emacs-init-display-line-mode
+        (global-display-line-numbers-mode))))
+
+;; *** Backup setting
+(setq-default auto-save-default nil)    ; disable it for preventing typing lagging
+(setq make-backup-files nil)
+
+;; *** Scratch buffer corresponding file
+;;
+;;     Amounts of company backend function can not functional
+;;     auto-completion in none file buffer, so corresponding one file
+;;     to *scratch* buffer.
+
+(defun entropy/emacs-basic--scratch-buffer-file-binding ()
+  "Corresponded *scratch* buffer to one temp-file.
+
+Filename are \".scratch_entropy\" host in `entropy/emacs-stuffs-topdir'.
+"
+  (let ((bfn "*scratch*"))
+    (if (entropy/emacs-buffer-exists-p "*scratch*")
+        (kill-buffer "*scratch*"))
+    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir)))
+      (if (not (file-exists-p fname))
+          (progn
+            (write-region "" "" fname)
+            (with-current-buffer (find-file-noselect fname)
+              (if buffer-read-only (read-only-mode 0))
+              (auto-save-mode 0)
+              (erase-buffer)
+              (rename-buffer "*scratch*")
+              (lisp-interaction-mode)
+              (insert initial-scratch-message)))
+        (with-current-buffer (find-file-noselect fname)
+          (if buffer-read-only (read-only-mode 0))
+          (auto-save-mode 0)
+          (rename-buffer "*scratch*")
+          (lisp-interaction-mode)
+          (goto-char (point-min))
+          (unless (re-search-forward (regexp-quote initial-scratch-message) nil t)
+            (insert initial-scratch-message)))))
+    bfn))
+
+(entropy/emacs-lazy-with-load-trail
+ init-eemamcs-scratch-buffer
+ (entropy/emacs-lazy-load-simple entropy-emacs-structure
+   (redisplay t)
+   (entropy/emacs-basic--scratch-buffer-file-binding)))
+
+;; Create a new scratch buffer
+(defun entropy/emacs-basic-create-scratch-buffer ()
+  "Create a scratch buffer."
+  (interactive)
+  (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
+  (lisp-interaction-mode)
+  (message "Create *scratch* buffer"))
+
+;; *** Highlight current line
+(defun entropy/emacs-basic--dhl-judge-state ()
+  (let ((hlmp (ignore-errors hl-line-mode))
+        (dlmp display-line-numbers)
+        rtn)
+    (setq rtn (list hlmp dlmp))
+    (cond
+     ((equal rtn '(nil nil))
+      (setq rtn 1))
+     ((equal rtn '(nil t))
+      (setq rtn 2))
+     ((equal rtn '(t nil))
+      (setq rtn 3))
+     ((equal rtn '(t t))
+      (setq rtn 4)))
+    rtn))
+
+(defun entropy/emacs-basic-dhl-toggle ($Prefix)
+  (interactive "P")
+  (if (not (version< emacs-version "26.1"))
+      (if (not $Prefix)
+          (cl-case (entropy/emacs-basic--dhl-judge-state)
+            (1
+             (hl-line-mode 1))
+            (2
+             (hl-line-mode 1))
+            (3
+             (hl-line-mode 0))
+            (4
+             (hl-line-mode 0)))
+        (cl-case (entropy/emacs-basic--dhl-judge-state)
+          (1
+           (hl-line-mode 1)
+           (display-line-numbers-mode 1))
+          (2
+           (hl-line-mode 1))
+          (3
+           (display-line-numbers-mode 1))
+          (4
+           (hl-line-mode 0)
+           (display-line-numbers-mode 0))))
+    (if (not (ignore-errors hl-line-mode))
+        (hl-line-mode 1)
+      (hl-line-mode 0))))
+
+;; *** Smooth scrolling
+
+;; Force smooth mouse scroll experience
+(when (display-graphic-p)
+  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
+        mouse-wheel-progressive-speed nil))
+
+(defvar entropy/emacs-basic-smooth-scrolling-mode nil
+  "Indicated whether smooth-scrolling enable.
+
+Note:
+
+Manually edit this variable will not be any effection.")
+
+(setq scroll-step 0)
+(setq scroll-conservatively 0)
+
+(defun entropy/emacs-basic-smooth-scrolling ()
+  "Toggle smooth-scrolling buffer scrolling view."
+  (interactive)
+  (setq redisplay-dont-pause t
+        scroll-margin 0
+        scroll-step   (if (equal scroll-step 0) 1 0)
+        scroll-conservatively (if (equal scroll-conservatively 0) 100000 0))
+  (if (and (equal scroll-step 1)
+           (equal scroll-conservatively 100000))
+      (progn
+        (setq entropy/emacs-basic-smooth-scrolling-mode t)
+        (message "Smooth scrolling enabled!"))
+    (progn
+      (setq entropy/emacs-basic-smooth-scrolling-mode nil)
+      (message "Smooth scrolling disabled!"))))
+
+(entropy/emacs-basic-smooth-scrolling)
+
+;; *** Kill-buffer-and-window spec
+
+(defun entropy/emacs-basic-kill-ansiterm-buffer ()
+  "Kill `ansi-term' buffer with proper way.
+
+This function mainly gives a patch for the bug of error after
+kill ansi-term buffer and its popup window refer to bug
+#h-0c3ab89e-a470-42d2-946e-4f217ea2f20c in entropy-emacs bug
+collection."
+  (interactive)
+  (if sys/linuxp
+      (let* ((_buff (current-buffer))
+             (_proc (get-buffer-process _buff)))
+        (when _proc
+          (when (yes-or-no-p
+                 (format "Buffer %S has a running process; kill it? "
+                         (buffer-name _buff)))
+            (set-process-filter _proc nil)
+            (kill-process _proc)
+            (let ((kill-buffer-query-functions '((lambda () t))))
+              (if (not (one-window-p))
+                  (kill-buffer-and-window)
+                (kill-this-buffer))))))
+    (kill-this-buffer)))
+
+(defun entropy/emacs-basic-kill-buffer-and-show-its-dired ()
+  "Kill buffer, swtich to its hosted location `dired' buffer when
+its a exists file's buffer."
+  (interactive)
+  (let ((buffn (buffer-name))
+        (base-dir default-directory)
+        (fname (buffer-file-name)))
+    (kill-buffer buffn)
+    (when (and (ignore-errors (stringp fname))
+               (file-writable-p fname))
+      (dired base-dir))))
+
+(defun entropy/emacs-basic-kill-buffer-and-its-window-when-grids ()
+  "Kill buffer and close it's host window if windows conuts
+retrieve from `window-list' larger than 1."
+  (interactive)
+  (let ((buflist (window-list)))
+    (if (> (length buflist) 1)
+        (cond
+         ((and (eq (length buflist) 2)
+               (let (rtn)
+                 (mapc (lambda (window)
+                         (let ((buff (window-buffer window)))
+                           (when (window-parameter
+                                  (get-buffer-window buff)
+                                  'no-delete-other-windows)
+                             (setq rtn t))))
+                       buflist)
+                 rtn))
+          (kill-buffer))
+         (t
+          (kill-buffer-and-window)))
+      (kill-buffer))))
+
+(defun entropy/emacs-basic-kill-buffer ()
+  "Entropy emacs specified `kill-buffer' method, used for replace
+as thus."
+  (interactive)
+  (cond
+   ((eq major-mode 'term-mode)
+    (call-interactively #'entropy/emacs-basic-kill-ansiterm-buffer))
+   ((buffer-file-name)
+    (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired))
+   (t
+    (call-interactively
+     #'entropy/emacs-basic-kill-buffer-and-its-window-when-grids))))
+
+(global-set-key (kbd "C-x k") #'entropy/emacs-basic-kill-buffer)
+(global-set-key (kbd "C-x M-k") #'kill-buffer)
+
+
+;; *** Kill-other-windowss spec
+
+(defun entropy/emacs-basic-kill-other-window ()
+  "Delete other window and do again using
+`delete-other-windows-internal' if non-effect.
+
+This affected by `neotree' window sticking with `eyebrowse'
+layout switching conflicts."
+  (interactive)
+  (let ((wdc (length (window-list)))
+        neo-exist)
+    (unless (eq wdc 1)
+      (delete-other-windows)
+      (when (and (= wdc (length (window-list)))
+                 (bound-and-true-p neo-buffer-name)
+                 (not (let (_var rtn)
+                        (setq _var (mapcar
+                                    (lambda (x)
+                                      (equal neo-buffer-name
+                                             (buffer-name (window-buffer x))))
+                                    (window-list)))
+                        (dolist (elt _var)
+                          (unless (null elt)
+                            (setq rtn t)))
+                        rtn)))
+        (delete-other-windows-internal)))))
+
+;; *** Set defualt tab size
+;; Do not use `indent-tabs-mode' by default for compatibility meaning
+;; that tabs visualization are not unified accorss editor.
+
+(if entropy/emacs-custom-tab-enable
+    (setq-default tab-width entropy/emacs-custom-tab-width)
+  (setq-default indent-tabs-mode nil))
+
+;; *** Setting language encoding environment
+(setq system-time-locale "C") ;Use english format time string
+
+;; **** Default using UTF-8 encoding for basic environment
+;; when `entropy/emacs-custom-language-environment-enable' was nil
+
+(unless (and entropy/emacs-custom-language-environment-enable
+             (ignore-errors (stringp entropy/emacs-language-environment)))
+  (progn
+    (set-language-environment "UTF-8")
+    (prefer-coding-system 'utf-8-unix)
+    (set-default-coding-systems 'utf-8-unix)
+    (set-terminal-coding-system 'utf-8-unix)
+    (set-keyboard-coding-system 'utf-8-unix)))
+
+;; **** Using customized basic encoding system
+;; When `entropy/emacs-custom-language-environment-enable' was t
+
+(when (and entropy/emacs-custom-language-environment-enable
+           (ignore-errors (stringp entropy/emacs-language-environment)))
+  ;; Customize language environment with user specification
+  (set-language-environment entropy/emacs-language-environment))
+
+;; setting w32 shell lang env
+(when sys/win32p
+  (when entropy/emacs-win-env-lang-enable
+    (setenv "LANG" entropy/emacs-win-env-lang-set)))
+
+;; ***** Specific cases to forceing using UTF-8 encoding environment
+;; ****** Forcely using 'UTF-8' charset for file-name handler for compatibility.
+(setq default-file-name-coding-system 'utf-8-unix)
+
+;; ****** Treat clipboard input as UTF-8 string first; compound text next, etc.
+(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
+
+;; ****** Force setting specific file type which must be opened with utf-8-unix encoding system.
+(dolist (suffix
+         '(;; document file
+           "\\.org$" "\\.md$"
+           ;; source file
+           "\\.html" "\\.css$" "\\.php$" "\\.js$" "\\.ts$"
+           "\\.c\\(p+\\)?$" "\\.py$" "\\.lisp$" "\\.el$"
+           "\\.sh$" "\\.bat$"
+           ))
+  (modify-coding-system-alist 'file suffix 'utf-8-unix))
+
+;; ========================================================================
+;; Prompt: If you want all file to be one coding system you should do below
+;;(modify-coding-system-alist 'file "" 'utf-8-unix)
+;; ========================================================================
+
+;; ****** let diff-buffer-with-file force run with unicode language environment
+(advice-add 'diff-buffer-with-file :before #'entropy/emacs-lang-set-utf-8)
+
+;; *** Auto wrap line
+(setq-default truncate-lines t)
+
+;; *** Auto clean whitespace after save buffer
+(use-package whitespace
+  :ensure nil
+  :commands (whitespace-cleanup)
+  :preface
+  (defun entropy/emacs-basic-simple-whitespace-clean ()
+    "Clean whitespace with the default `whitspace-style'."
+    (interactive)
+    (require 'whitespace)
+    (let ((whitespace-style (default-value 'whitespace-style)))
+      (with-current-buffer (current-buffer)
+        (let ((inhibit-read-only t))
+          (whitespace-cleanup)))))
+  :init
+  (add-hook 'before-save-hook
+            #'entropy/emacs-basic-simple-whitespace-clean))
+
+
+;; *** Set transparenct of emacs frame
 
 (defvar entropy/emacs-basic-loop-alpha-did nil)
 
@@ -918,10 +886,10 @@ emacs."
    loop-alpha
    (entropy/emacs-basic-loop-alpha)))
 
-;; ** Paragraph fill size
+;; *** Paragraph fill size
 (setq-default fill-column entropy/emacs-fill-paragraph-width)
 
-;; ** Show time on mode line
+;; *** Show time on mode line
 (when entropy/emacs-display-time-modeline
   ;; enable time show when
   (display-time-mode 1)
@@ -933,7 +901,7 @@ emacs."
   (setq display-time-format "%e %b %Y %H:%M:%S")
   (display-time))
 
-;; ** Input time into buffer
+;; *** Input time into buffer
 (defun entropy/emacs-basic-now ()
   "Insert string for the current time formatted like '2:34 PM'."
   (interactive)                 ; permit invocation in minibuffer
@@ -945,7 +913,7 @@ emacs."
   (interactive)                 ; permit invocation in minibuffer
   (insert (format-time-string "%A, %B %e, %Y")))
 
-;; ** Read-Only-About
+;; *** Read-Only-About
 (use-package entropy-global-read-only-mode
   :ensure nil
   :commands (entropy-grom-mode)
@@ -959,7 +927,7 @@ emacs."
   (add-to-list 'entropy/grom-find-file-except-bfregexp-list
                "treemacs-persist"))
 
-;; ** Revert buffer automatically
+;; *** Revert buffer automatically
 
 (entropy/emacs-lazy-initial-for-hook
  '(find-file-hook)
@@ -967,7 +935,7 @@ emacs."
  "GlbAutoRevertMode-enabled"
  (global-auto-revert-mode +1))
 
-;; ** Use which-key
+;; *** Use which-key
 (use-package which-key
   :diminish which-key-mode
   :commands which-key-mode
@@ -975,7 +943,7 @@ emacs."
   (entropy/emacs-lazy-with-load-trail which-key (which-key-mode t))
   (setq which-key-popup-type 'side-window))
 
-;; ** Undo tree
+;; *** Undo tree
 (use-package undo-tree
   :diminish undo-tree-mode
   :ensure nil
@@ -1037,7 +1005,7 @@ This function has redefined for adapting to
                                         (/ (window-width) entropy/emacs-window-center-integer)))
                 (switch-to-buffer parent))))))))
 
-;; ** Auto-sudoedit
+;; *** Auto-sudoedit
 (use-package auto-sudoedit
   :commands (auto-sudoedit-mode)
   :if (not sys/is-win-group)
@@ -1048,7 +1016,7 @@ This function has redefined for adapting to
    "autosudoedit"
    (auto-sudoedit-mode +1)))
 
-;; ** Clear killring
+;; *** Clear killring
 ;;     From the forum of stackexchange
 ;;     `https://superuser.com/questions/546619/clear-the-kill-ring-in-emacs'
 ;;     Or you just can use (setq kill-ring nil) only.
@@ -1056,7 +1024,7 @@ This function has redefined for adapting to
   (interactive)
   (progn (setq kill-ring nil) (garbage-collect)))
 
-;; ** Mark-sexp
+;; *** Mark-sexp
 (entropy/emacs-!set-key (if (display-graphic-p) (kbd "C-`") (kbd "C-@")) 'set-mark-command)
 
 (defun entropy/emacs-basic-mark-set ()
@@ -1065,20 +1033,20 @@ This function has redefined for adapting to
     (push-mark)
     (push-mark)))
 
-;; ** Windows forbidden view-hello-file
+;; *** Windows forbidden view-hello-file
 (when sys/is-win-group
   (defun view-hello-file ()
     "Prompt emacs user do not use view-hello-file in windows operation system"
     (interactive)
     (message "Do not use view-hello-file in windows because of it will jamm windows and emacs")))
 
-;; ** Delete file to trash
+;; *** Delete file to trash
 (if entropy/emacs-dired-enable-trash
     (setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder but with some
                                                ; performance bug on windows plattform.
   )
 
-;; ** History && Recentf
+;; *** History && Recentf
 (use-package saveplace
   :ensure nil
   :init
@@ -1117,10 +1085,10 @@ This function has redefined for adapting to
           extended-command-history)
         savehist-autosave-interval 60))
 
-;; ** Bookmarks autosave
+;; *** Bookmarks autosave
 (setq bookmark-save-flag 1)
 
-;; *** Bookmark utf-8
+;; **** Bookmark utf-8
 (when entropy/emacs-custom-language-environment-enable
   (dolist (hook '(bookmark-edit-annotation-mode-hook
                   bookmark-bmenu-mode-hook))
@@ -1166,7 +1134,7 @@ coding-system to save bookmark infos"
              (if no-overwrite "Set bookmark" "Set bookmark unconditionally")))
         (bookmark-set-internal prompt name (if no-overwrite 'push 'overwrite))))))
 
-;; ** Major mode reload
+;; *** Major mode reload
 (defun entropy/emacs-basic-major-mode-reload ()
   "Reload current `major-mode'.
 
@@ -1185,7 +1153,7 @@ way. "
     (error "You can not refresh %s in this buffer, if did may cause some bug."
            (symbol-name major-mode))))
 
-;; ** Disable-mouse-wheel and more
+;; *** Disable-mouse-wheel and more
 (use-package disable-mouse
   :diminish disable-mouse-global-mode
   :commands (global-disable-mouse-mode)
@@ -1194,7 +1162,7 @@ way. "
    disable-mouse
    (global-disable-mouse-mode t)))
 
-;; ** Artist-mode
+;; *** Artist-mode
 (use-package artist
   :ensure nil
   :init
@@ -1219,13 +1187,21 @@ Temp file was \"~/~entropy-artist.txt\""
   (find-file "~/~entropy-artist.txt")
   (artist-mode))
 
-;; ** Disable auto-window-vscroll -----> the resean from
+;; *** Disable auto-window-vscroll
+
+;; see
 ;; `https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag'
+;; for details.
+;;
+;; This is the main lag causer for the line navigation lag. Especially
+;; that use the powerline or some modeline type based on it which
+;; oftenly provide the buffer 'v-scroll' indicator that for thus.
+
 (setq auto-window-vscroll nil)
 
-;; ** Use chinese pyim
-;; *** extra dependencies
-;; **** librime for pyim
+;; *** Use chinese pyim
+;; **** extra dependencies
+;; ***** librime for pyim
 (use-package liberime
   :if (not sys/is-win-group)
   :ensure nil
@@ -1294,17 +1270,17 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
         liberime-user-data-dir
         (expand-file-name entropy/emacs-pyim-liberime-cache-dir)))
 
-;; **** pyim-basic
+;; ***** pyim-basic
 (use-package pyim-basedict
   :ensure nil
   :commands (pyim-basedict-enable))
 
-;; **** simple chinese to traditional chinese
+;; ***** simple chinese to traditional chinese
 (use-package entropy-s2t
   :ensure nil
   :commands entropy/s2t-string)
 
-;; *** pyim main
+;; **** pyim main
 (use-package pyim
   :diminish chinese-pyim-mode
   :commands (pyim-restart-1
@@ -1362,7 +1338,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
 
       (setq entropy/emacs-basic-pyim-has-initialized t)))
 
-;; **** init
+;; ***** init
   :init
 
   ;; If didn't use pyim set input method to nil
@@ -1395,9 +1371,9 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
   ;; 5 candidates shown for pyim tooltip
   (setq pyim-page-length 8)
 
-;; **** config
+;; ***** config
   :config
-;; ***** toggle input method
+;; ****** toggle input method
   (defun entropy/emacs-basic-pyim-toggle ()
     (interactive)
     (if (string= current-input-method "pyim")
@@ -1406,18 +1382,18 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
         (set-input-method "pyim")
         (setq pyim-punctuation-escape-list nil))))
 
-;; ***** using 'C-g' to cancling any pyim manipulation
+;; ****** using 'C-g' to cancling any pyim manipulation
   (if (not (version< emacs-version "26"))
       (define-key pyim-mode-map (kbd "C-g") 'pyim-quit-clear))
 
-;; ***** s2t&t2s convertor
+;; ****** s2t&t2s convertor
   (defun entropy/emacs-basic-toggle-pyim-s2t ()
     (interactive)
     (if pyim-magic-converter
         (setq pyim-magic-converter nil)
       (setq pyim-magic-converter 'entropy/s2t-string)))
 
-;; ***** toglle punctuation between half and full way.
+;; ****** toglle punctuation between half and full way.
   (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
     (interactive)
     (if (or (eq (car pyim-punctuation-translate-p) 'no)
@@ -1425,11 +1401,11 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
         (setq pyim-punctuation-translate-p '(yes no auto))
       (setq pyim-punctuation-translate-p '(no yes auto)))))
 
-;; ** Enable disabled commands
+;; *** Enable disabled commands
 (put 'narrow-to-region 'disabled nil)
 
-;; ** Key modification
-;; *** xclip activation
+;; *** Key modification
+;; **** xclip activation
 (use-package xclip
   :if (and (not (display-graphic-p)) (executable-find "xclip"))
   :commands
@@ -1439,7 +1415,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
    xclip-mode
    (xclip-mode 1)))
 
-;; *** key re-mapping
+;; **** key re-mapping
 ;; Binding 'super' and 'hyper' on win32 and mac.
 ;;   the idea form `http://ergoemacs.org/emacs/emacs_hyper_super_keys.html'
 (cond
@@ -1458,7 +1434,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
   (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
   ))
 
-;; *** xterm re-bind
+;; **** xterm re-bind
 
 ;; Rebind "insert" refer key in terminal emacs to support yank&cut
 ;; communication with GUI.
@@ -1493,7 +1469,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
          [xterm-paste]
          #'entropy/emacs-basic-xterm-term-S-insert-sshsession))))))
 
-;; ** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
+;; *** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
 (when (and sys/win32p (not (version< emacs-version "26.1")))
   (defun entropy/emacs-basic-y-or-n-p (prompt)
     (let ((judge (completing-read prompt '("yes" "no") nil t)))
@@ -1505,7 +1481,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
   ;; using any key-bindings when active "C-<lwindow>-g" in WINDOWS
   (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
 
-;; ** Epa (emacs gpg assistant)
+;; *** Epa (emacs gpg assistant)
 (use-package epa
   :ensure nil
   :init
@@ -1522,8 +1498,8 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
        '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-wsl-apps))
        '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-wsl-apps))))))
 
-;; ** Emacs process and system proced manager hacking
-;; *** process
+;; *** Emacs process and system proced manager hacking
+;; **** process
 (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
  'process-menu-mode 'simple process-menu-mode-map t
  '("Basic"
@@ -1542,7 +1518,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
     ("}" tabulated-list-widen-current-column "Widen the current tabulated-list column by N chars."
      :enable t :exit t :map-inject t))))
 
-;; *** proced
+;; **** proced
 (use-package proced
   :ensure nil
   :commands (proced-process-attributes)
@@ -1643,7 +1619,7 @@ otherwise returns nil."
          (entropy/emacs-basic-proced-auto-startwith
           (car el) (cdr el)))))))
 
-;; ** Improve captialize function
+;; *** Improve captialize function
 
 ;; Due to the convention while want to capitalize or uper-case the
 ;; word just has been done, building follow two function to enhance
@@ -1690,7 +1666,7 @@ otherwise returns nil."
      :enable t
      :exit t))))
 
-;; ** autocompression moode
+;; *** Autocompression moode
 
 ;; Force refresh autocompression mode enabling status as that the
 ;; initialization for its refers procedure can not cover fully
@@ -1707,6 +1683,43 @@ otherwise returns nil."
         "autocompression-mode"
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
+
+;; ** eemacs basic hydra-hollow instances
+
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'eemacs-basic-config-core nil nil
+ '("Eemacs Basic Core"
+   (("C-x 1" entropy/emacs-basic-kill-other-window
+     "delete-other-window"
+     :enable t :exit t :global-bind t)
+    ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("<f6>" entropy/emacs-basic-loop-alpha
+     "Frame Alpha"
+     :enable t
+     :toggle entropy/emacs-basic-loop-alpha-did
+     :global-bind t)
+    ("<f7>" entropy/emacs-basic-major-mode-reload
+     "Reload Major"
+     :enable t :exit t :global-bind t)
+    ("C-<f9>" toggle-truncate-lines "toggle truncate"
+     :enable t :toggle truncate-lines :global-bind t)
+    ("SPC" entropy/emacs-basic-mark-set
+     "Mark Set"
+     :enable t :eemacs-top-bind t :exit t)
+    ("C-c s s" list-processes "List Process"
+     :enable t :exit t :global-bind t))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b m"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'eemacs-basic-config-core))
+     "misc operations"
+     :enable t :exit t))))
 
 ;; * provide
 (provide 'entropy-emacs-basic)
