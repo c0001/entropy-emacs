@@ -569,8 +569,8 @@ this variable used to patching for origin `counsel-git'.")
         (lambda (cand) (get-buffer cand))
         :delimiter "\t")))))
 
-;; ** use helm ag or pt search
-;; *** Preparation
+;; ** Powerful searcher
+;; *** helm ag
 (defun entropy/emacs-ivy--helm-ag--edit-commit ()
   "Funciton to be redefine body of `helm-ag--edit-commit'.
 
@@ -621,59 +621,64 @@ Adding buffer unlock and wind narrowed region feature."
         (message "%d files are read-only and be lift a ban." read-only-files)
       (message "Success update"))))
 
+(use-package helm-ag
+  :if (string= entropy/emacs-search-program "ag")
+  :commands (helm-do-ag helm-do-ag-project-root)
+  :init
+  ;; case-sensitive for ag search command.
+  (setq helm-ag-base-command
+        "ag --nocolor --nogroup --case-sensitive"
+        helm-ag-use-grep-ignore-list t)
+  :config
+  (dolist (el '(helm-do-ag helm-do-ag-project-root))
+    (advice-add el :around
+                #'entropy/emacs-lang-use-utf-8-ces-around-advice))
 
-;; *** libraries
-(defun entropy/emacs-ivy--use-pt-common ()
-  (use-package helm-pt
-    :commands (helm-do-pt helm-projectile-pt)
-    :eemacs-tpha
-    (((:enable t))
-     ("Utils"
-      (("C-c j" helm-do-pt "Helm source for platinum searcher"
-        :enable t :exit t :global-bind t)
-       ("C-c k" helm-projectile-pt "Helm version of projectile-pt"
-        :enable t :exit t :global-bind t))))
-    :config
-    (when sys/win32p
-      (dolist (el '(helm-do-pt helm-projectile-pt))
-        (advice-add el :around
-                    #'entropy/emacs-lang-use-locale-ces-around-advice)))))
-
-(defun entropy/emacs-ivy--use-ag-common ()
-  (use-package helm-ag
-    :commands (helm-do-ag helm-do-ag-project-root)
-    :eemacs-tpha
-    (((:enable t))
-     ("Utils"
-      (("C-c j" helm-do-ag "Helm AG Search"
-        :enable t :exit t :global-bind t)
-       ("C-c k" helm-do-ag-project-root "Helm AG search for project root"
-        :enable t :exit t :global-bind t))))
-    :init
-    ;; case-sensitive for ag search command.
-    (setq helm-ag-base-command
-          "ag --nocolor --nogroup --case-sensitive"
-          helm-ag-use-grep-ignore-list t)
-    :config
-    (dolist (el '(helm-do-ag helm-do-ag-project-root))
-      (advice-add el :around
-                  #'entropy/emacs-lang-use-utf-8-ces-around-advice))
-
-    (defun helm-ag--edit-commit ()
-      "Note: this function has been re-define for compat with
+  (defun helm-ag--edit-commit ()
+    "Note: this function has been re-define for compat with
 entropy-emacs which force inhibit readonly mode while operating
-corresponding buffer."
-      (interactive)
-      (funcall #'entropy/emacs-ivy--helm-ag--edit-commit))))
+corresponding buffer, and forcely `widen' the reflected buffers so
+that the replacement POS can be find absolutely."
+    (interactive)
+    (funcall #'entropy/emacs-ivy--helm-ag--edit-commit)))
 
-;; *** Main
-(cond
- ((string= entropy/emacs-search-program "pt")
-  (entropy/emacs-ivy--use-pt-common))
- ((string= entropy/emacs-search-program "ag")
-  (entropy/emacs-ivy--use-ag-common)))
+;; *** rg
 
+(use-package rg
+  :if (string= entropy/emacs-search-program "rg")
+  :commands
+  (rg
+   rg-project)
+  :config
+  (dolist (func '(rg rg-project))
+    (advice-add func
+                :around
+                #'entropy/emacs-lang-use-utf-8-ces-around-advice)))
 
+;; *** hydra for searcher
+
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'powerful-searcher nil nil
+ (if (eq entropy/emacs-search-program "ag")
+     '("Powerful Searcher"
+       (("C-c j" helm-do-ag "Helm AG Search"
+         :enable t :exit t :global-bind t)
+        ("C-c k" helm-do-ag-project-root "Helm AG search for project root"
+         :enable t :exit t :global-bind t)))
+   '("Powerful Searcher"
+     (("C-c j" rg "Ripgrep for location selected"
+       :enable t :exit t :global-bind t)
+      ("C-c k" rg-project "Ripgrep for current project"
+       :enable t :exit t :global-bind t)))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Utils"
+   (("u s"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'powerful-searcher))
+     "Powerful searcher"
+     :enable t :exit t))))
 ;; ** using find-file with counsel
 (use-package find-file-in-project
   :defines (ffip-project-root)

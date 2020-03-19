@@ -648,12 +648,13 @@ Default size was 10, the upper limit was 15."
   :group 'entropy/emacs-customize-font)
 
 ;; **** project search exec
-(defcustom entropy/emacs-search-program "ag"
-  "Search engine choices:
-1. ag
-2. pt
+(defcustom entropy/emacs-search-program "rg"
+  "The project search engine used for =entropy-emacs=.
 
-Default is ag"
+The valid value are \"ag\" (i.e. the silver_searcher) or \"rg\"
+(i.e. the ripgrep searcher), default for using ripgrep which is
+the fasest way.
+"
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 

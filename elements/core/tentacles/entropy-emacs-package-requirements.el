@@ -132,7 +132,6 @@
         helm
         helm-ag
         helm-core
-        helm-pt
         hide-mode-line
         highlight-indent-guides
         highlight-parentheses
@@ -205,6 +204,7 @@
         rainbow-delimiters
         rainbow-mode
         ripgrep
+        rg
         s
         search-web
         shackle
@@ -244,6 +244,7 @@
         web-mode
         web-server
         websocket
+        wgrep
         which-key
         windresize
         with-editor
