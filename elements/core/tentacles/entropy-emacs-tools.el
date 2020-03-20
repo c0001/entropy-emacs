@@ -311,13 +311,23 @@ like `recenter-top-bottom'."
 ;; visual feedback directly in the buffer.
 (use-package visual-regexp
   :commands (vr/replace vr/query-replace)
-  :eemacs-tpha
-  (((:enable t))
-   ("Utils"
+  :eemacs-indhc
+  (((:enable t)
+    (visual-regexp))
+   ("Basic"
     (("C-c r" vr/replace "Regexp-replace with live visual feedback"
       :enable t :exit t :global-bind t)
      ("C-c q" vr/query-replace "Use vr/query-replace like you would use query-replace-regexp"
       :enable t :exit t :global-bind t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u r"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'visual-regexp))
+      "Visual regexp query/replace"
+      :enable t :exit t))))
   :config
   (dolist (el '(vr--do-replace vr--perform-query-replace vr--interactive-get-args))
     (advice-add el :around #'entropy/emacs-case-fold-focely-around-advice)))
@@ -377,13 +387,22 @@ like `recenter-top-bottom'."
 ;; *** Discover key bindings and their meaning for the current Emacs major mode
 (use-package discover-my-major
   :commands (discover-my-major discover-my-mode)
-  :eemacs-tpha
-  (((:enable t))
+  :eemacs-indhc
+  (((:enable t)
+    (discover-my-major))
    ("Basic"
     (("C-h M-m" discover-my-major "Create a makey popup listing all major-mode"
       :enable t :exit t :global-bind t)
      ("C-h M-M" discover-my-mode "Create a makey popup listing all minor-mode"
       :enable t :exit t :global-bind t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("b d"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'discover-my-major))
+      "Discover modes key-bindings"))))
 
   :config
 
@@ -601,6 +620,8 @@ which determined by the scale count 0.3 "
     ("C-c M-y" entropy/emacs-tools-dict-search-with-prompt
      "Search dict for user specified with prompts"
      :enable t :global-bind t :exit t)
+    ("C-x y" entropy/cndt-query "Simple Translate Chinese at point"
+     :enable t :exit t :global-bind t)
     ("t"
      (let* ((candis '("sdcv" "youdao" "bing" "google"))
             (chosen (completing-read
@@ -788,15 +809,10 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
              (not (entropy/sdcv-backends--sdcv-auto-search-dicts)))
          (setq entropy/sdcv-default-query-backend-name 'youdao))))
 
-;; *** chinese dict
+;; **** chinese dict
 (use-package entropy-cn-dict
   :ensure nil
-  :commands entropy/cndt-query
-  :eemacs-tpha
-  (((:enable t))
-   ("Utils"
-    (("C-x y" entropy/cndt-query "Simple Translate Chinese at point"
-      :enable t :exit t :global-bind t)))))
+  :commands entropy/cndt-query)
 
 ;; *** Log keyboard commands to buffer
 ;;     Show event history and command history of some or all buffers.
@@ -994,6 +1010,28 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
    ("Visual"
     (("v" visual-ascii-mode "Visualize ascii code on buffer"
       :enable t :exit t :map-inject t)))))
+
+;; *** view emacs memory map
+(use-package memory-usage
+  :commands (memory-usage memory-usage-find-large-variables)
+  :eemacs-indhc
+  (((:enable t)
+    (memory-usage))
+   ("Basic"
+    (("u" memory-usage "Show current emacs session memory map"
+      :enable t :exit t)
+     ("v" memory-usage-find-large-variables
+      "Find variables whose printed representation takes over 100KB"
+      :enable t :exit t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u m"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'memory-usage))
+      "Emacs memory usage view"
+      :enable t :exit t)))))
 
 ;; ** entropy-emacs self packages
 

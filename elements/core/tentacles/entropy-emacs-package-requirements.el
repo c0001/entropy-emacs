@@ -172,6 +172,7 @@
         markdown-preview-mode
         material-theme
         memoize
+        memory-usage
         multi-term
         multiple-cursors
         names
