@@ -1705,7 +1705,10 @@ otherwise returns nil."
 ;; Delete selection if you insert
 (use-package delsel
   :ensure nil
-  :hook (after-init . delete-selection-mode))
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   delsel-mode-init
+   (delete-selection-mode 1)))
 
 ;; *** Inhibit gui dialog
 (setq use-file-dialog nil
