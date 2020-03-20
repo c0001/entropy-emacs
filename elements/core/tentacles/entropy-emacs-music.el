@@ -194,5 +194,29 @@ Add current music to queue when its not in thus."
     (kbd "RET") nil))
 
 
+;; ** bongo
+(use-package bongo
+  :config
+  (entropy/emacs-lazy-load-simple dired
+    (with-no-warnings
+      (defun bongo-add-dired-files ()
+        "Add marked files to the Bongo library."
+        (interactive)
+        (bongo-buffer)
+        (let (file (files nil))
+          (dired-map-over-marks
+           (setq file (dired-get-filename)
+                 files (append files (list file)))
+           nil t)
+          (with-bongo-library-buffer
+           (mapc 'bongo-insert-file files)))
+        (bongo-switch-buffers))
+      (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+       'dired-mode 'dired 'dired-mode-map
+       '("Misc."
+         (("m b" bongo-add-dired-files
+           "Add marked files to the Bongo library."
+           :enable t :exit t)))))))
+
 ;; * provide
 (provide 'entropy-emacs-music)

@@ -73,35 +73,30 @@
   :eemacs-mmphc
   (((:enable t)
     (dired-mode dired dired-mode-map t (3 3 3)))
-   ("Open item"
+   ("Basic"
     (("RET" dired-find-file "Open item dwim"
       :enable t
       :exit t
-      :map-inject t))
-    "Delete Node"
-    (("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
+      :map-inject t)
+     ("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
       :enable t
       :map-inject t
       :exit t)
      ("M-d" entropy/emacs-basic-dired-delete-file-refers "Delete refers"
       :enable t
       :map-inject t
-      :exit t))
-    "Add Node"
-    (("+" dired-create-directory "Create directory"
+      :exit t)
+     ("+" dired-create-directory "Create directory"
       :enable t
       :map-inject t
-      :exit t))
-    "Sort"
-    (("S" hydra-dired-quick-sort/body "Sort dired with hydra dispatch"
-      :enable (not sys/win32p) :map-inject t :exit t))
-    "Navigation"
-    (("M-<up>" dired-up-directory "Up directory"
+      :exit t)
+     ("S" hydra-dired-quick-sort/body "Sort dired with hydra dispatch"
+      :enable (not sys/win32p) :map-inject t :exit t)
+     ("M-<up>" dired-up-directory "Up directory"
       :enable t
       :map-inject t
-      :exit t))
-    "Backup"
-    (("B" entropy/emacs-basic-backup-files "Common Backup"
+      :exit t)
+     ("B" entropy/emacs-basic-backup-files "Common Backup"
       :enable t
       :map-inject t
       :exit t))
@@ -469,6 +464,24 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
   :config
   (setq dired-omit-size-limit nil)
   (setq dired-omit-extensions nil))
+
+;; **** dired-subtree
+;; Org mode like dired subtree fold/expand
+(use-package dired-subtree
+  :after dired
+  :commands
+  (dired-subtree-toggle
+   dired-subtree-cycle)
+  :eemacs-mmphca
+  (((:enable t)
+    (dired-mode dired dired-mode-map))
+   ("Basic"
+    (("<tab>" dired-subtree-toggle
+      "Insert subtree at point or remove it if it was not present."
+      :enable t :map-inject t :exit t)
+     ("<backtab>" dired-subtree-cycle
+      "Org-mode like cycle visibilitya"
+      :enable t :map-inject t :exit t)))))
 
 ;; *** Image-mode
 (use-package image-mode
@@ -1024,6 +1037,48 @@ This function has redefined for adapting to
                                         (/ (window-width) entropy/emacs-window-center-integer)
                                         (/ (window-width) entropy/emacs-window-center-integer)))
                 (switch-to-buffer parent))))))))
+
+;; *** Rectangle manipulation
+
+(use-package rect
+  :ensure nil
+  :eemacs-indhc
+  (((:enable t)
+    (rectangle-mode))
+   ("Move"
+    (("h" backward-char "←"
+      :enable t)
+     ("j" next-line "↓"
+      :enable t)
+     ("k" previous-line "↑"
+      :enable t)
+     ("l" forward-char "→"
+      :enable t))
+    "Action"
+    (("C-x r w" copy-rectangle-as-kill "copy"
+      :enable t :global-bind t :exit t)
+     ("C-x r y" yank-rectangle "yank"
+      :enable t :global-bind t :exit t)
+     ("C-x r t" string-rectangle "string"
+      :enable t :global-bind t :exit t)
+     ("C-x r d" kill-rectangle "kill"
+      :enable t :global-bind t :exit t)
+     ("C-x r c" clear-rectangle "clear"
+      :enable t :global-bind t :exit t)
+     ("C-x r o" open-rectangle "open"
+      :enable t :global-bind t :exit t)
+     ("C-x r N" rectangle-number-lines "number lines"
+      :enable t :global-bind t :exit t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u r"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'rectangle-mode))
+      "Rectangle region manipulation"
+      :enable t :exit t)))))
+
 
 ;; *** Auto-sudoedit
 (use-package auto-sudoedit
@@ -1645,6 +1700,25 @@ otherwise returns nil."
         "autocompression-mode"
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
+
+;; *** Replace follow input in region
+;; Delete selection if you insert
+(use-package delsel
+  :ensure nil
+  :hook (after-init . delete-selection-mode))
+
+;; *** Inhibit gui dialog
+(setq use-file-dialog nil
+      use-dialog-box nil)
+
+;; *** A minor-mode menu for the mode line
+(use-package minions
+  :commands (minions-minor-modes-menu)
+  :init
+  (global-set-key [S-down-mouse-3] 'minions-minor-modes-menu)
+  (entropy/emacs-lazy-load-simple doom-modeline
+    (add-hook 'doom-modeline-mode-hook
+              #'minions-mode)))
 
 ;; ** eemacs basic hydra-hollow instances
 

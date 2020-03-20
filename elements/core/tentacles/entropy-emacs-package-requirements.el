@@ -79,6 +79,7 @@
         company-irony
         company-lsp
         company-php
+        company-prescient
         company-quickhelp
         company-shell
         company-tern
@@ -197,6 +198,7 @@
         popwin
         pos-tip
         powerline
+        prescient
         pretty-hydra
         projectile
         pyim

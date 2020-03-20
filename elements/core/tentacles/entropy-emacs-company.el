@@ -307,6 +307,13 @@
   (setq company-quickhelp-delay 1)
   (company-quickhelp-mode 1))
 
+;; ** company enhancement
+;; Better sorting and filtering
+(use-package company-prescient
+  :after company
+  :init
+  (company-prescient-mode 1))
+
 ;; ** company-lsp
 (use-package company-lsp
   :if (and (>= emacs-major-version 25)
