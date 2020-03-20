@@ -222,7 +222,7 @@
   :eemacs-tpha
   (((:enable t))
    ("WI&BUF"
-    (("w"
+    (("C-c w"
       (:eval
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'eyebrowse-mode))
