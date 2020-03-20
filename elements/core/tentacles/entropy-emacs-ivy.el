@@ -152,7 +152,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
 (use-package swiper
   :bind (("C-s" . swiper)
-         ("C-S-s" . swiper-all)
+         ("C-M-s" . swiper-all)
          :map swiper-map
          ("M-%" . swiper-query-replace))
   :init
@@ -333,8 +333,9 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
 ;; **** advice counsel--M-x-externs for it's bad lagging perfomance
 
-  ;; because `counsel--M-x-externs' has the `require' function for it's contained condition context
-  ;; so it will lagging like previous version of `ivy--add-face'.
+  ;; because `counsel--M-x-externs' has the `require' function for
+  ;; it's contained condition context so it will lagging like previous
+  ;; version of `ivy--add-face'.
   (defun entropy/emacs-ivy--counsel--M-x-externs ()
     nil)
   (advice-add 'counsel--M-x-externs
@@ -416,7 +417,7 @@ this variable used to patching for origin `counsel-git'.")
 (use-package counsel-css
   :after css-mode
   :hook (css-mode . counsel-css-imenu-setup)
-  :eemacs-indhca
+  :eemacs-mmphca
   (((:enable t)
     (css-mode css-mode css-mode-map))
    ("Misc."
@@ -679,21 +680,38 @@ that the replacement POS can be find absolutely."
        'powerful-searcher))
      "Powerful searcher"
      :enable t :exit t))))
-;; ** using find-file with counsel
+;; ** Powerful find-file
 (use-package find-file-in-project
   :defines (ffip-project-root)
   :commands (ffip-find-files
              entropy/emacs-ivy-ffip
              entropy/emacs-ivy-ffip-directory-only)
-  :eemacs-tpha
-  (((:enable t))
-   ("Utils"
+  :eemacs-indhc
+  (((:enable t)
+    (recursive-find-file))
+   ("Recursive file system search (find-file recursive match)"
     (("C-x M-f" entropy/emacs-ivy-ffip "Fuzzy Open File"
       :enable t :exit t :global-bind t)
      ("C-x M-d" entropy/emacs-ivy-ffip-directory-only "Fuzzy Open File Under Directory"
       :enable t :exit t :global-bind t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Utils"
+    (("u f"
+      (:eval (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+              'recursive-find-file))
+      "Find file recursively in specified root"
+      :enable t :exit t))))
+  :init
+  ;; Using rust 'fd' for perfomance improving
+  (when (executable-find "fd")
+    (setq ffip-use-rust-fd t))
   :config
   (defun entropy/emacs-ivy-ffip (_interaction)
+    "Find file using `find-file-in-project' in place.
+
+Just find directory when _INTERACTION was non-nil (the prefix
+with `C-u')."
     (interactive "P")
     (let (prompt-func)
       (setq prompt-func
@@ -713,9 +731,9 @@ that the replacement POS can be find absolutely."
           (ffip-find-files nil nil)))))
 
   (defun entropy/emacs-ivy-ffip-directory-only ()
+    "Find directory using `find-file-in-project' in place."
     (interactive)
     (funcall-interactively 'entropy/emacs-ivy-ffip t)))
-
 
 ;; ** provide
 (provide 'entropy-emacs-ivy)
