@@ -65,6 +65,7 @@
         bind-key
         bing-dict
         birds-of-paradise-plus-theme
+        bongo
         browse-at-remote
         browse-kill-ring
         buffer-move
