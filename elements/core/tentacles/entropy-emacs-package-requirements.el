@@ -99,6 +99,7 @@
         dired-hacks-utils
         dired-quick-sort
         dired-rainbow
+        dired-subtree
         diredfl
         disable-mouse
         discover-my-major
@@ -175,6 +176,7 @@
         material-theme
         memoize
         memory-usage
+        minions
         multi-term
         multiple-cursors
         names
