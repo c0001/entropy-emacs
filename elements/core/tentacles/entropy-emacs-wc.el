@@ -850,6 +850,7 @@ without derived slot."
 
   :init
   (setq olivetti-minimum-body-width 10)
+  (setq-default olivetti-body-width 0.8)
   (add-hook 'olivetti-mode-hook
             #'entropy/emacs-wc--calc-olivetti-body-width))
 

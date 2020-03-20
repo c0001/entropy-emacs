@@ -265,9 +265,127 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
           (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))))
+;; ***** doom-modeline hydra
+  :eemacs-indhc
+  (((:enable t)
+    (doom-modeline-dispatch))
+   ("Icon"
+    (("i" (setq doom-modeline-icon (not doom-modeline-icon))
+      "display icons" :toggle doom-modeline-icon :enable t)
+     ("u" (setq doom-modeline-unicode-fallback (not doom-modeline-unicode-fallback))
+      "unicode fallback" :toggle doom-modeline-unicode-fallback :enable t)
+     ("m" (setq doom-modeline-major-mode-icon (not doom-modeline-major-mode-icon))
+      "major mode" :toggle doom-modeline-major-mode-icon :enable t)
+     ("c" (setq doom-modeline-major-mode-color-icon (not doom-modeline-major-mode-color-icon))
+      "colorful major mode" :toggle doom-modeline-major-mode-color-icon :enable t)
+     ("s" (setq doom-modeline-buffer-state-icon (not doom-modeline-buffer-state-icon))
+      "buffer state" :toggle doom-modeline-buffer-state-icon :enable t)
+     ("o" (setq doom-modeline-buffer-modification-icon (not doom-modeline-buffer-modification-icon))
+      "modification" :toggle doom-modeline-buffer-modification-icon :enable t)
+     ("v" (setq doom-modeline-modal-icon (not doom-modeline-modal-icon))
+      "modal" :toggle doom-modeline-modal-icon :enable t))
+    "Segment"
+    (("M" (setq doom-modeline-minor-modes (not doom-modeline-minor-modes))
+      "minor modes" :toggle doom-modeline-minor-modes :enable t)
+     ("W" (setq doom-modeline-enable-word-count (not doom-modeline-enable-word-count))
+      "word count" :toggle doom-modeline-enable-word-count :enable t)
+     ("E" (setq doom-modeline-buffer-encoding (not doom-modeline-buffer-encoding))
+      "encoding" :toggle doom-modeline-buffer-encoding :enable t)
+     ("I" (setq doom-modeline-indent-info (not doom-modeline-indent-info))
+      "indent" :toggle doom-modeline-indent-info :enable t)
+     ("L" (setq doom-modeline-lsp (not doom-modeline-lsp))
+      "lsp" :toggle doom-modeline-lsp :enable t)
+     ("P" (setq doom-modeline-persp-name (not doom-modeline-persp-name))
+      "perspective" :toggle doom-modeline-persp-name :enable t)
+     ("G" (setq doom-modeline-github (not doom-modeline-github))
+      "github" :toggle doom-modeline-github :enable t)
+     ("N" (setq doom-modeline-gnus (not doom-modeline-gnus))
+      "gnus" :toggle doom-modeline-gnus :enable t)
+     ("U" (setq doom-modeline-mu4e (not doom-modeline-mu4e))
+      "mu4e" :toggle doom-modeline-mu4e :enable t)
+     ("R" (setq doom-modeline-irc (not doom-modeline-irc))
+      "irc" :toggle doom-modeline-irc :enable t)
+     ("F" (setq doom-modeline-irc-buffers (not doom-modeline-irc-buffers))
+      "irc buffers" :toggle doom-modeline-irc-buffers :enable t)
+     ("S" (progn
+            (setq doom-modeline-checker-simple-format (not doom-modeline-checker-simple-format))
+            (and (bound-and-true-p flycheck-mode) (flycheck-buffer)))
+      "simple checker" :toggle doom-modeline-checker-simple-format :enable t)
+     ("V" (setq doom-modeline-env-version (not doom-modeline-env-version))
+      "version" :toggle doom-modeline-env-version :enable t))
+    "Style"
+    (("a" (setq doom-modeline-buffer-file-name-style 'auto)
+      "auto"
+      :toggle (eq doom-modeline-buffer-file-name-style 'auto) :enable t)
+     ("b" (setq doom-modeline-buffer-file-name-style 'buffer-name)
+      "buffer name"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'buffer-name))
+     ("f" (setq doom-modeline-buffer-file-name-style 'file-name)
+      "file name"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'file-name))
+     ("t u" (setq doom-modeline-buffer-file-name-style 'truncate-upto-project)
+      "truncate upto project"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'truncate-upto-project))
+     ("t f" (setq doom-modeline-buffer-file-name-style 'truncate-from-project)
+      "truncate from project"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'truncate-from-project))
+     ("t w" (setq doom-modeline-buffer-file-name-style 'truncate-with-project)
+      "truncate with project"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'truncate-with-project))
+     ("t e" (setq doom-modeline-buffer-file-name-style 'truncate-except-project)
+      "truncate except project"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'truncate-except-project))
+     ("t r" (setq doom-modeline-buffer-file-name-style 'truncate-upto-root)
+      "truncate upto root"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'truncate-upto-root))
+     ("t a" (setq doom-modeline-buffer-file-name-style 'truncate-all)
+      "truncate all"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'truncate-all))
+     ("r f" (setq doom-modeline-buffer-file-name-style 'relative-from-project)
+      "relative from project"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'relative-from-project))
+     ("r t" (setq doom-modeline-buffer-file-name-style 'relative-to-project)
+      "relative to project"
+      :enable t :toggle (eq doom-modeline-buffer-file-name-style 'relative-to-project)))
+    "Project Detection"
+    (("p f" (setq doom-modeline-project-detection 'ffip)
+      "ffip"
+      :enable t :toggle (eq doom-modeline-project-detection 'ffip))
+     ("p t" (setq doom-modeline-project-detection 'projectile)
+      "projectile"
+      :enable t :toggle (eq doom-modeline-project-detection 'projectile))
+     ("p p" (setq doom-modeline-project-detection 'project)
+      "project"
+      :enable t :toggle (eq doom-modeline-project-detection 'project))
+     ("p n" (setq doom-modeline-project-detection nil)
+      "disable"
+      :enable t :toggle (eq doom-modeline-project-detection nil)))
+    "Misc"
+    (("g" (progn
+            (message "Fetching GitHub notifications...")
+            (run-with-timer 300 nil #'doom-modeline--github-fetch-notifications)
+            (browse-url "https://github.com/notifications"))
+      "github notifications" :exit t :enable t)
+     ("e" (if (bound-and-true-p flycheck-mode)
+              (flycheck-list-errors)
+            (flymake-show-diagnostics-buffer))
+      "list errors" :exit t :enable t)
+     ("B" (if (bound-and-true-p grip-mode)
+              (grip-browse-preview)
+            (message "Not in preview"))
+      "browse preview" :exit t :enable t)
+     ("z h" (counsel-read-setq-expression 'doom-modeline-height) "set height" :enable t)
+     ("z w" (counsel-read-setq-expression 'doom-modeline-bar-width) "set bar width" :enable t)
+     ("z g" (counsel-read-setq-expression 'doom-modeline-github-interval) "set github interval" :enable t)
+     ("z n" (counsel-read-setq-expression 'doom-modeline-gnus-timer) "set gnus interval" :enable t))))
+
+
+
+;; ***** init
   :init
   (setq doom-modeline-unicode-fallback t)
 
+;; ***** config
   :config
   (unless entropy/emacs-modeline--doom-modeline-spec-done
     (entropy/emacs-modeline--doom-modeline-specification))
@@ -425,72 +543,83 @@ style which defined in `entropy/emacs-modeline-style'."
  (redisplay t))
 
 ;; ** toggle function
-(when entropy/emacs-enable-modeline-toggle
+(defun entropy/emacs-modeline--mdl-tidy-spec ()
+  (pcase entropy/emacs-mode-line-sticker
+    ("powerline"
+     (entropy/emacs-modeline--powerline-spec-clean))
+    ("spaceline"
+     (entropy/emacs-modeline--spaceline-spec-clean))
+    ("doom" (doom-modeline-mode 0))
+    ("origin" (entropy/emacs-modeline--origin-spec-clean))
+    (_ nil)))
 
-  (defun entropy/emacs-modeline--mdl-tidy-spec ()
-    (pcase entropy/emacs-mode-line-sticker
-      ("powerline"
-       (entropy/emacs-modeline--powerline-spec-clean))
-      ("spaceline"
-       (entropy/emacs-modeline--spaceline-spec-clean))
-      ("doom" (doom-modeline-mode 0))
-      ("origin" (entropy/emacs-modeline--origin-spec-clean))
-      (_ nil)))
+(defmacro entropy/emacs-modeline--define-toggle (name spec-form init-var enable-form &rest body)
+  `(defun ,(intern (concat "entropy/emacs-modeline-mdl-" name "-toggle")) ()
+     (interactive)
+     (entropy/emacs-modeline--mdl-tidy-spec)
+     (setq entropy/emacs-mode-line-sticker ,name)
+     ,spec-form
+     (unwind-protect
+         (progn
+           (setq ,init-var t)
+           ,@body
+           ,enable-form)
+       (progn (setq ,init-var nil)))))
 
-  (defmacro entropy/emacs-modeline--define-toggle (name spec-form init-var enable-form &rest body)
-    `(defun ,(intern (concat "entropy/emacs-modeline-mdl-" name "-toggle")) ()
-       (interactive)
-       (entropy/emacs-modeline--mdl-tidy-spec)
-       (setq entropy/emacs-mode-line-sticker ,name)
-       ,spec-form
-       (unwind-protect
-           (progn
-             (setq ,init-var t)
-             ,@body
-             ,enable-form)
-         (progn (setq ,init-var nil)))))
+(advice-add 'spaceline-spacemacs-theme
+            :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
+(entropy/emacs-modeline--define-toggle
+ "spaceline"
+ (entropy/emacs-modeline--spaceline-specification)
+ entropy/emacs-modeline--spaceline-spec-done
+ (spaceline-spacemacs-theme))
 
-  (advice-add 'spaceline-spacemacs-theme
-              :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
-  (entropy/emacs-modeline--define-toggle
-   "spaceline"
-   (entropy/emacs-modeline--spaceline-specification)
-   entropy/emacs-modeline--spaceline-spec-done
-   (spaceline-spacemacs-theme))
+(advice-add 'entropy/emacs-modeline-do-powerline-set
+            :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
+(entropy/emacs-modeline--define-toggle
+ "powerline"
+ nil entropy/emacs-modeline--powerline-spec-done
+ (entropy/emacs-modeline-do-powerline-set))
 
-  (advice-add 'entropy/emacs-modeline-do-powerline-set
-              :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
-  (entropy/emacs-modeline--define-toggle
-   "powerline"
-   nil entropy/emacs-modeline--powerline-spec-done
-   (entropy/emacs-modeline-do-powerline-set))
+(entropy/emacs-modeline--define-toggle
+ "doom"
+ (entropy/emacs-modeline--doom-modeline-specification)
+ entropy/emacs-modeline--doom-modeline-spec-done
+ (doom-modeline-mode +1))
 
-  (entropy/emacs-modeline--define-toggle
-   "doom"
-   (entropy/emacs-modeline--doom-modeline-specification)
-   entropy/emacs-modeline--doom-modeline-spec-done
-   (doom-modeline-mode +1))
+(advice-add 'entropy/emacs-mode-line-origin-theme
+            :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
+(entropy/emacs-modeline--define-toggle
+ "origin" nil entropy/emacs-modeline--origin-spec-done
+ (entropy/emacs-mode-line-origin-theme))
 
-  (advice-add 'entropy/emacs-mode-line-origin-theme
-              :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
-  (entropy/emacs-modeline--define-toggle
-   "origin" nil entropy/emacs-modeline--origin-spec-done
-   (entropy/emacs-mode-line-origin-theme))
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'eemacs-modeline-toggle nil nil
+ '("All"
+   (("m m d t" entropy/emacs-modeline-mdl-doom-toggle
+     "Toggle modeline type to [doom-mode-line] type"
+     :enable t :toggle (string= entropy/emacs-mode-line-sticker "doom"))
+    ("m m d d"
+     (:eval (entropy/emacs-hydra-hollow-category-common-individual-get-caller 'doom-modeline-dispatch))
+     "Call the dispatch for [doom-mode-line]."
+     :enable t :exit t)
+    ("m m s t" entropy/emacs-modeline-mdl-spaceline-toggle
+     "Toggle modeline type to [spacemacs line] type"
+     :enable t :toggle (string= entropy/emacs-mode-line-sticker "spaceline"))
+    ("m m p t" entropy/emacs-modeline-mdl-powerline-toggle
+     "Toggle modeline type to [powerline (riched modeline)] type"
+     :enable t :toggle (string= entropy/emacs-mode-line-sticker "powerline"))
+    ("m m o t" entropy/emacs-modeline-mdl-origin-toggle
+     "Toggle modeline type to [entropy emacs origin] type"
+     :enable t :toggle (string= entropy/emacs-mode-line-sticker "origin")))))
 
-  (entropy/emacs-hydra-hollow-add-for-top-dispatch
-   '("Misc."
-     (("m m d" entropy/emacs-modeline-mdl-doom-toggle
-       "Toggle modeline type to [doom-mode-line] type"
-       :enable t)
-      ("m m s" entropy/emacs-modeline-mdl-spaceline-toggle
-       "Toggle modeline type to [spacemacs line] type"
-       :enable t)
-      ("m m p" entropy/emacs-modeline-mdl-powerline-toggle
-       "Toggle modeline type to [powerline (riched modeline)] type"
-       :enable t)
-      ("m m o" entropy/emacs-modeline-mdl-origin-toggle
-       "Toggle modeline type to [entropy emacs origin] type"
-       :enable t)))))
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("WI&BUF"
+   (("C-c m"
+     (:eval (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+             'eemacs-modeline-toggle))
+     "Toggle mode line type"
+     :enable t :eemacs-top-bind t :exit t))))
 
 ;; ** modeline-hide feature
 (use-package hide-mode-line
