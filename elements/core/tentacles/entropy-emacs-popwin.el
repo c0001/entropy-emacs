@@ -57,9 +57,10 @@
              popwin:find-file
              popwin:display-buffer)
 
-  :eemacs-tpha
-  (((:enable t))
-   ("WI&BUF"
+  :eemacs-indhc
+  (((:enable t)
+    (popwin-dispatch))
+   ("Popwin popuping "
     (("p o" popwin:display-buffer "Popup for buffers"
       :enable t :exit t :eemacs-top-bind t)
      ("p f" popwin:find-file "Popup for files"
@@ -68,6 +69,15 @@
       :enable t :exit t :eemacs-top-bind t)
      ("p l" popwin:popup-last-buffer "Popup last popuped buffer"
       :enable t :exit t :eemacs-top-bind t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("p"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'popwin-dispatch))
+      "Popup window or buffer"
+      :enable t :exit t))))
 
   :init
 
@@ -177,9 +187,10 @@
     (let ((map (make-sparse-keymap)))
       map))
 
-  :eemacs-tpha
-  (((:enable t))
-   ("WI&BUF"
+  :eemacs-indhc
+  (((:enable t)
+    (shackle-dispatch))
+   ("Shackle popuping"
     (("p o" shackle-popup-buffer "Popup for buffers"
       :enable t :exit t :eemacs-top-bind t)
      ("p f" shackle-popup-find-file "Popup for files"
@@ -188,6 +199,15 @@
       :enable t :exit t :eemacs-top-bind t)
      ("p l" shackle-last-popup-buffer "Popup last popuped buffer"
       :enable t :exit t :eemacs-top-bind t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("p"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'shackle-dispatch))
+      "Popup window or buffer"
+      :enable t :exit t))))
 
   :init
   (defvar shackle--popup-window-list nil) ; all popup windows
