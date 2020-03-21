@@ -2025,9 +2025,7 @@ if Optional arguments NOT-MERGE is non-nil. "
         (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
         (entropy/emacs-!set-key
           (kbd "h")
-          ctg-top-pretty-hydra-category-hydra-caller-name)
-        (entropy/emacs-hydra-hollow-advice-for-call-union-form
-         ctg-top-pretty-hydra-category-hydra-caller-name)))))
+          ctg-top-pretty-hydra-category-hydra-caller-name)))))
 
 (defun entropy/emacs-hydra-hollow-add-for-top-dispatch
     (pretty-hydra-cabinet)
@@ -2055,9 +2053,6 @@ if Optional arguments NOT-MERGE is non-nil. "
 ;; entropy-emacs for calling for arbitrary buffer with its
 ;; major-mode. We call this hydra type
 ;; =entropy/emacs-pretty-hydra-for-major-mode=
-
-(entropy/emacs-hydra-hollow-advice-for-call-union-form
- #'entropy/emacs-hydra-hollow-category-major-mode-hydra)
 
 (defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
 
