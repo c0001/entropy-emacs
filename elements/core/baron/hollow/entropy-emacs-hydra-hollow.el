@@ -429,8 +429,10 @@ delivered by PRETTY-HYDRA-CABINET."
 
 ;; *Data-type:*
 ;; - =pretty-hydra-category=
+;; - =pretty-hydra-category-hook=
 ;; - =pretty-hydra-category-name-prefix=
 ;; - =pretty-hydra-category-name=
+;; - =pretty-hydra-category-hook-name=
 ;; - =pretty-hydra-category-hydra-name=
 ;; - =pretty-hydra-category-hydra-body=
 ;; - =pretty-hydra-category-hydra-body-name=
@@ -615,6 +617,16 @@ PRETTY-HYDRA-CATEGORY-NAME-PREFIX."
     (intern
      (format entropy/emacs-hydra-hollow-pretty-hydra-category-name-format
              pretty-hydra-category-name-prefix pretty-hydra-category-depth))))
+
+(defun entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-hook-name
+    (pretty-hydra-category-name-prefix &optional pretty-hydra-category-depth)
+  "Get the =pretty-hydra-category-hook-name= through
+PRETTY-HYDRA-CATEGORY-NAME-PREFIX."
+  (let ((pretty-hydra-category-depth (number-to-string (or pretty-hydra-category-depth 0))))
+    (intern
+     (format "%s-hook"
+             (format entropy/emacs-hydra-hollow-pretty-hydra-category-name-format
+                     pretty-hydra-category-name-prefix pretty-hydra-category-depth)))))
 
 (defun entropy/emacs-hydra-hollow-category-get-hydra-branch-name
     (pretty-hydra-category-name-prefix branch &optional pretty-hydra-category-depth)
@@ -1092,7 +1104,10 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
          pretty-hydra-category-name
          pretty-hydra-category-next-category-name
          cur-hydra-keymap-name
-         )
+         (cur-ctg-hook-name
+          (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-hook-name
+           pretty-hydra-category-name-prefix
+           pretty-hydra-category-depth)))
 
     ;; get category map
     (cond ((eq t ctg-indc)
@@ -1195,7 +1210,6 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
           ,cur-head-group)))
 
     ;; bind rate key and patch rate title
-
     (entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
      pretty-hydra-category-hydra-caller-name cur-head-group)
 
@@ -1229,13 +1243,16 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
      :pretty-hydra-category-hydra-caller-name pretty-hydra-category-hydra-caller-name
      :pretty-hydra-category-base-pretty-hydra-body pretty-hydra-body
      :pretty-hydra-category-cabinet-unit-names-list (cl-loop for item in cur-head-group
-                               when (not (listp item))
-                               collect item)
+                                                             when (not (listp item))
+                                                             collect item)
      :pretty-hydra-category-depth pretty-hydra-category-depth
      :pretty-hydra-category-width cur-ctg-indc
      :pretty-hydra-category-previous-category-name pretty-hydra-category-previous-category-name
      :pretty-hydra-category-next-category-name pretty-hydra-category-next-category-name)
 
+    ;; call its hook
+    (when (not (null (ignore-errors (symbol-value cur-ctg-hook-name))))
+      (run-hooks cur-ctg-hook-name))
     ))
 
 (defun entropy/emacs-hydra-hollow-category-frame-work-define+
@@ -1261,9 +1278,18 @@ Optional arguments are all type of
           (entropy/emacs-hydra-hollow-partion-pretty-hydra-cabinet
            pretty-hydra-cabinet)))
     (unless top-category-exists-p
-      (entropy/emacs-hydra-hollow-category-frame-work-define
-       pretty-hydra-category-name-prefix pretty-hydra-body pretty-hydra-cabinet
-       nil nil pretty-hydra-category-width-indicator-for-build))
+      (let ((ctg-hook-name
+             (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-hook-name
+              pretty-hydra-category-name-prefix)))
+        (unless (boundp ctg-hook-name)
+          (set ctg-hook-name nil))
+        (set ctg-hook-name
+             (append (symbol-value ctg-hook-name)
+                     `((lambda ()
+                         (entropy/emacs-hydra-hollow-category-frame-work-define+
+                          ',pretty-hydra-category-name-prefix ',pretty-hydra-body ',pretty-hydra-cabinet
+                          ',pretty-hydra-category-width-indicator-for-build
+                          ',pretty-hydra-category-width-indicator-for-inject)))))))
     (when top-category-exists-p
       (dolist (part-ctg ctgs)
         (let* ((group (car part-ctg))

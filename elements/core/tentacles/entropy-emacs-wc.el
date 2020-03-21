@@ -705,7 +705,7 @@ without derived slot."
         'winner-mode))
       "Winner Mode"
       :enable t :exit t))))
-  :eemacs-indhca
+  :eemacs-indhc
   (((:enable t)
     (winner-mode))
    ("Basic"
