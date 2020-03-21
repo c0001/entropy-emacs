@@ -1372,7 +1372,6 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
     (liberime (setq pyim-default-scheme 'rime-quanpin)))
 
   ;;  use popup or posframe for pyim tooltip show
-
   (if (version< emacs-version "26")
       (if (or (eq entropy/emacs-pyim-tooltip 'posframe)
               (not entropy/emacs-pyim-tooltip))
@@ -1383,10 +1382,15 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
           (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
         (setq pyim-page-tooltip 'posframe))))
 
+  ;; customized dcache directory
   (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir)
 
   ;; 5 candidates shown for pyim tooltip
   (setq pyim-page-length 8)
+
+  ;; Using thread for loading dache
+  (when (version< "26" emacs-version)
+    (setq pyim-prefer-emacs-thread t))
 
 ;; ***** config
   :config

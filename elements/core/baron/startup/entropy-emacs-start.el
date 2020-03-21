@@ -40,14 +40,6 @@
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-message)
 
-(let ((args-filter (mapcar (lambda (x) (string-match-p "dump-emacs-portable" x))
-                           command-line-args)))
-  (catch :exit
-    (dolist (filter args-filter)
-      (when (not (null filter))
-        (setq entropy/emacs-fall-love-with-pdumper t)
-        (throw :exit nil)))))
-
 (progn (when (and entropy/emacs-fall-love-with-pdumper
                   entropy/emacs-custom-enable-lazy-load)
          (setq entropy/emacs-custom-enable-lazy-load nil))
@@ -105,17 +97,17 @@ we inject it into pdumper session initialize procedure. "))
 (when sys/win32p
   (defun entropy/emacs-start-w32-ime-enable (&optional silence)
     (interactive)
-    (if (> (car (w32-version)) 9)
-        (if silence
-            (w32-send-sys-command #xF000)
-          (if (yes-or-no-p "Do you really want to enable w32? ")
-              (let (buff)
-                (setq buff (get-buffer-create "*entropy/emacs-w32-prompt*"))
-                (switch-to-buffer buff)
-                (with-current-buffer "*entropy/emacs-w32-prompt*"
-                  (org-mode)
-                  (insert
-                   "
+    (when (> (car (w32-version)) 9)
+      (if silence
+          (w32-send-sys-command #xF000)
+        (if (yes-or-no-p "Do you really want to enable w32? ")
+            (let (buff)
+              (setq buff (get-buffer-create "*entropy/emacs-w32-prompt*"))
+              (switch-to-buffer buff)
+              (with-current-buffer "*entropy/emacs-w32-prompt*"
+                (org-mode)
+                (insert
+                 "
 
 Quote:
 
@@ -153,13 +145,11 @@ Trying insert some words in below are:
 
 
 ")
-                  (w32-send-sys-command #xF000)))))))
-  (when entropy/emacs-win-init-ime-enable ()
-        (add-hook 'emacs-startup-hook #'(lambda () (entropy/emacs-start-w32-ime-enable t)))
-        (global-set-key (kbd "C-\\") #'(lambda ()
-                                         (interactive)
-                                         (entropy/emacs-start-w32-ime-enable t)))))
-
+                (w32-send-sys-command #xF000)))))))
+  (when entropy/emacs-win-init-ime-enable
+    (entropy/emacs-lazy-with-load-trail
+     patch-and-enable-w32-ime
+     (entropy/emacs-start-w32-ime-enable))))
 
 
 ;; *** Diable linux tty swiching keybinding
@@ -209,8 +199,8 @@ Emacs\" buffer's local `browse-url-browse-function' to
 
 (defun entropy/emacs-start--check-init-with-install-p ()
   "When X start emacs with installing, prompt user to reboot emacs.
-and save the compiling log into `user-emacs-dir' named as
-'compile_$date.log'."
+and save the compiling log into `entropy/emacs-stuffs-topdir'
+named as 'compile_$date.log'."
   (let ((buflist (mapcar #'buffer-name (buffer-list))))
     (when (member "*Compile-Log*" buflist)
       ;; First recorde compiling log
