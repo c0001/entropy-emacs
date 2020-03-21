@@ -157,18 +157,21 @@ type. Each key's value can be omitted thus the 'common' meaning."
   "Return non-nil if `all-the-icons' is displayable."
   (and entropy/emacs-use-icon
        (display-graphic-p)
-       (let ((rtn t))
-         (catch :exit
-           (dolist (font-name '("github-octicons"
-                                "FontAwesome"
-                                "file-icons"
-                                "Weather Icons"
-                                "Material Icons"
-                                "all-the-icons"))
-             (unless (find-font (font-spec :name font-name))
-               (setq rtn nil)
-               (throw :exit nil))))
-         rtn)))
+       ;; Fixme: `find-font' can not be used in emacs batch mode.
+       (or (and entropy/emacs-fall-love-with-pdumper
+                entropy/emacs-pdumper-in-in-X)
+           (let ((rtn t))
+             (catch :exit
+               (dolist (font-name '("github-octicons"
+                                    "FontAwesome"
+                                    "file-icons"
+                                    "Weather Icons"
+                                    "Material Icons"
+                                    "all-the-icons"))
+                 (unless (find-font (font-spec :name font-name))
+                   (setq rtn nil)
+                   (throw :exit nil))))
+             rtn))))
 
 ;; *** key bindings
 (defmacro entropy/emacs-!set-key (key command)
