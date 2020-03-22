@@ -496,10 +496,11 @@ this variable used to patching for origin `counsel-git'.")
       "Avy Pos Jump"
       :enable t :exit t)))))
 
-;; ** ivy all the icons
+;; ** Ivy UI Enhancement
 ;; *** all the icons ivy
 (use-package all-the-icons-ivy
-  :if (eq entropy/emacs-ivy-rich-type 'all-the-icons-ivy)
+  :if (and (eq entropy/emacs-ivy-rich-type 'all-the-icons-ivy)
+           (entropy/emacs-icons-displayable-p))
   :commands (all-the-icons-ivy-setup)
   :init
   (entropy/emacs-lazy-load-simple ivy
@@ -547,6 +548,8 @@ this variable used to patching for origin `counsel-git'.")
 
 (use-package all-the-icons-ivy-rich
   :commands all-the-icons-ivy-rich-mode
+  :if (and (entropy/emacs-icons-displayable-p)
+           (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode))
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ivy-rich-mode

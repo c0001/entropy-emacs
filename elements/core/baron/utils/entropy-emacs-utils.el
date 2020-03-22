@@ -355,7 +355,7 @@
           (height (or height 1.0))
           (v-adjust (or v-adjust 0.0)))
       (concat
-       (when (and (display-graphic-p) icon-type icon-name)
+       (when (and (entropy/emacs-icons-displayable-p) icon-type icon-name)
          (let ((f (intern (format "all-the-icons-%s" icon-type))))
            (when (fboundp f)
              (concat
@@ -366,7 +366,7 @@
 (cl-defun entropy/emacs-pretty-hydra-make-title-for-major-mode-common
     (mode title-str &key face height v-adjust)
   (require 'faces)
-  (let* ((display-graphic-p (display-graphic-p))
+  (let* ((icon-display-p (entropy/emacs-icons-displayable-p))
          (face (or face 'entropy/emacs-defface-face-for-hydra-orange-face))
          (icon (if (fboundp 'all-the-icons-icon-for-mode)
                    (ignore-errors
@@ -374,10 +374,10 @@
                       mode
                       :face face :height (or height 1)
                       :v-adjust (or v-adjust 0)))
-                 (when display-graphic-p
+                 (when icon-display-p
                    (error "Function <all-the-icons-icon-for-mode> not found!")))))
     (concat
-     (when display-graphic-p
+     (when icon-display-p
        (if (not (stringp icon))
            "[unmached icon]"
          icon))

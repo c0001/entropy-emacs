@@ -65,7 +65,7 @@
 
 ;; ** ibuffer all the icons feature
 (use-package all-the-icons-ibuffer
-  :if (display-graphic-p)
+  :if (entropy/emacs-icons-displayable-p)
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ibuffer
