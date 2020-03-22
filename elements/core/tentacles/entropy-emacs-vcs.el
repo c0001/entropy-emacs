@@ -190,7 +190,84 @@
 
   :init
   ;; Use magit-show-commit for showing status/diff commands
-  (setq git-messenger:use-magit-popup t))
+  (setq git-messenger:show-detail t
+        git-messenger:use-magit-popup t)
+
+  :config
+  (with-no-warnings
+    (with-eval-after-load 'hydra
+      (defhydra git-messenger-hydra (:color blue)
+        ("s" git-messenger:popup-show "show")
+        ("c" git-messenger:copy-commit-id "copy hash")
+        ("m" git-messenger:copy-message "copy message")
+        ("," (catch 'git-messenger-loop (git-messenger:show-parent)) "go parent")
+        ("q" git-messenger:popup-close "quit")))
+
+    (defun entropy/emacs-vcs--git-messenger:format-detail (vcs commit-id author message)
+      (if (eq vcs 'git)
+          (let ((date (git-messenger:commit-date commit-id))
+                (colon (propertize ":" 'face 'font-lock-comment-face)))
+            (concat
+             (format "%s%s %s \n%s%s %s\n%s  %s %s \n"
+                     (propertize "Commit" 'face 'font-lock-keyword-face) colon
+                     (propertize (substring commit-id 0 8) 'face 'font-lock-comment-face)
+                     (propertize "Author" 'face 'font-lock-keyword-face) colon
+                     (propertize author 'face 'font-lock-string-face)
+                     (propertize "Date" 'face 'font-lock-keyword-face) colon
+                     (propertize date 'face 'font-lock-string-face))
+             (propertize (make-string 38 ?─) 'face 'font-lock-comment-face)
+             message
+             (propertize "\nPress q to quit" 'face '(:inherit (font-lock-comment-face italic)))))
+        (git-messenger:format-detail vcs commit-id author message)))
+
+    (defun entropy/emacs-vcs--git-messenger:popup-message ()
+      "Popup message with `posframe', `pos-tip', `lv' or `message', and dispatch actions with `hydra'."
+      (interactive)
+      (let* ((vcs (git-messenger:find-vcs))
+             (file (buffer-file-name (buffer-base-buffer)))
+             (line (line-number-at-pos))
+             (commit-info (git-messenger:commit-info-at-line vcs file line))
+             (commit-id (car commit-info))
+             (author (cdr commit-info))
+             (msg (git-messenger:commit-message vcs commit-id))
+             (popuped-message
+              (if (git-messenger:show-detail-p commit-id)
+                  (entropy/emacs-vcs--git-messenger:format-detail vcs commit-id author msg)
+                (cl-case vcs
+                  (git msg)
+                  (svn (if (string= commit-id "-")
+                           msg
+                         (git-messenger:svn-message msg)))
+                  (hg msg)))))
+        (setq git-messenger:vcs vcs
+              git-messenger:last-message msg
+              git-messenger:last-commit-id commit-id)
+        (run-hook-with-args 'git-messenger:before-popup-hook popuped-message)
+        (git-messenger-hydra/body)
+        (cond ((and (fboundp 'posframe-workable-p) (posframe-workable-p))
+               (let ((buffer-name "*git-messenger*"))
+                 (posframe-show buffer-name
+                                :string popuped-message
+                                :left-fringe 8
+                                :right-fringe 8
+                                :internal-border-color (face-foreground 'default)
+                                :internal-border-width 1)
+                 (unwind-protect
+                     (push (read-event) unread-command-events)
+                   (posframe-delete buffer-name))))
+              ((and (fboundp 'pos-tip-show) (display-graphic-p))
+               (pos-tip-show popuped-message))
+              ((fboundp 'lv-message)
+               (lv-message popuped-message)
+               (unwind-protect
+                   (push (read-event) unread-command-events)
+                 (lv-delete-window)))
+              (t (message "%s" popuped-message)))
+        (run-hook-with-args 'git-messenger:after-popup-hook popuped-message)))
+    (advice-add #'git-messenger:popup-close :override #'ignore)
+    (advice-add #'git-messenger:popup-message :override #'entropy/emacs-vcs--git-messenger:popup-message))
+
+  )
 
 ;; **** Walk through git revisions of a file
 (use-package git-timemachine
@@ -211,6 +288,86 @@
       :enable t :exit t :global-bind t)
      ("C-x v r" smeargle-clear "Clear smeargle overlays in current buffer"
       :enable t :exit t :global-bind t)))))
+
+;; **** Smerge mode (vcs merge tool)
+
+;; Resolve diff3 conflicts
+(use-package smerge-mode
+  :ensure nil
+  :diminish t
+  :eemacs-indhc
+  (((:enable t)
+    (smerge-mode))
+   ("Move"
+    (("n" smerge-next "next"
+      :enable t :map-inject t)
+     ("p" smerge-prev "previous"
+      :enable t :map-inject t))
+    "Keep"
+    (("b" smerge-keep-base "base"
+      :enable t :map-inject t)
+     ("u" smerge-keep-upper "upper"
+      :enable t :map-inject t)
+     ("l" smerge-keep-lower "lower"
+      :enable t :map-inject t)
+     ("a" smerge-keep-all "all"
+      :enable t :map-inject t)
+     ("RET" smerge-keep-current "current"
+      :enable t :map-inject t)
+     ("C-m" smerge-keep-current "current"
+      :enable t :map-inject t))
+    "Diff"
+    (("<" smerge-diff-base-upper "upper/base"
+      :enable t :map-inject t)
+     ("=" smerge-diff-upper-lower "upper/lower"
+      :enable t :map-inject t)
+     (">" smerge-diff-base-lower "upper/lower"
+      :enable t :map-inject t)
+     ("R" smerge-refine "refine"
+      :enable t :map-inject t)
+     ("E" smerge-ediff "ediff"
+      :enable t :map-inject t))
+    "Other"
+    (("C" smerge-combine-with-next "combine"
+      :enable t :map-inject t)
+     ("r" smerge-resolve "resolve"
+      :enable t :map-inject t)
+     ("k" smerge-kill-current "kill"
+      :enable t :map-inject t)
+     ("ZZ" (lambda ()
+             (interactive)
+             (save-buffer)
+             (bury-buffer))
+      "Save and bury buffer"
+      :enable t :map-inject t :exit t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Vcs"
+    (("C-x v m"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'smerge-mode))
+      "Merge diffing"
+      :enable t :global-bind t :exit t))))
+  :preface
+  (defun entropy/emacs-vcs--smerge-auto-open-for-buffer ()
+    (require 'smerge-mode)
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward "^<<<<<<< " nil t)
+        (smerge-mode 1))))
+
+  (defun entropy/emacs-vcs--smerge-hydra-popup ()
+    (require 'smerge-mode)
+    (when smerge-mode
+      (funcall
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'smerge-mode))))
+
+  :hook ((find-file . entropy/emacs-vcs--smerge-auto-open-for-buffer)
+         (magit-diff-visit-file
+          .
+          entropy/emacs-vcs--smerge-hydra-popup)))
 
 ;; **** Git major modes
 (use-package gitattributes-mode
