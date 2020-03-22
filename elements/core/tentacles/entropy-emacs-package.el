@@ -91,7 +91,11 @@
      entropy/emacs-package-archive-repo)))
 
 ;; *** Format package-gnupghome-dir format for Msys2
-(defun entropy/emacs-package--refresh-gnupg-homedir  ()
+(defun entropy/emacs-package--refresh-gnupg-homedir ()
+  "We don't use the default `package-gnupghome-dir' when
+`entropy/emacs-wsl-enable' for the reason that the gnupg exec in
+`entropy/emacs-wsl-apps' can not recognize the corrent path
+argument."
   (when (and entropy/emacs-wsl-enable
              entropy/emacs-wsl-apps
              (executable-find "gpg")
@@ -116,11 +120,17 @@
 (defvar entropy/emacs-package-prepare-done nil)
 
 (defun entropy/emacs-package-prepare-foras (&optional force)
+  "Prepare for package referred operation when
+`entropy/emacs-package-prepare-done' was nil, or set FORCE for
+the force way.
+
+This procedure will refresh all packages status."
   (when (or (null entropy/emacs-package-prepare-done)
             force)
     (entropy/emacs-set-package-user-dir)
     (entropy/emacs-package--initial-package-archive)
-    (entropy/emacs-package--refresh-gnupg-homedir)
+    (when sys/win32p
+      (entropy/emacs-package--refresh-gnupg-homedir))
     (entropy/emacs-package--package-initialize t)
     (unless entropy/emacs-package-prepare-done
       (setq entropy/emacs-package-prepare-done t))))
@@ -130,7 +140,9 @@
 (defvar entropy/emacs-package-install-failed-list nil)
 
 (defun entropy/emacs-package-package-archive-empty-p ()
-  (entropy/emacs-set-package-user-dir)
+  "Check the package archive dir status in `package-user-dir'.
+
+Return t for exists status or nil for otherwise."
   (let ((pkg-archive-dir (expand-file-name "archives" package-user-dir)))
     (if (and (file-exists-p pkg-archive-dir)
              (entropy/emacs-list-files-recursive-for-list pkg-archive-dir))
@@ -138,13 +150,30 @@
       t)))
 
 (defun entropy/emacs-package-install-package (update &rest args)
+  "Install/update package of pkg in car of ARGS.
+
+Update package when UPDATE was non-nil.
+
+When installing encounters the fatal error, put the pkg into
+`entropy/emacs-package-install-failed-list'."
   (let ((current-pkgs (copy-tree package-alist))
         (pkg (car args))
-        install-pass)
+        install-pass
+        install-core-func)
+    (setq install-core-func
+          (lambda (&optional not-prompt)
+            (setq install-pass
+                  (condition-case nil
+                      (let ((inhibit-message not-prompt))
+                        (apply 'package-install args))
+                    (error 'notpassed)))
+            (when (eq install-pass 'notpassed)
+              (push pkg
+                    entropy/emacs-package-install-failed-list))))
     (when update
       (package-delete (car (alist-get pkg current-pkgs)) t))
     (if (not noninteractive)
-        (apply 'package-install args)
+        (funcall install-core-func)
       (entropy/emacs-message-do-message
        "[%s] package '%s' ..."
        (blue (if update "Updating" "Installing"))
@@ -154,16 +183,12 @@
              (entropy/emacs-message-do-message
               (dark (white "⚠ ALREADY INSTALLED"))))
             (t
-             (setq install-pass
-                   (condition-case nil
-                       (let ((inhibit-message t)) (apply 'package-install args))
-                     (error 'notpassed)))
+             (funcall install-core-func t)
              (if (not (eq install-pass 'notpassed))
                  (entropy/emacs-message-do-message
                   (green "✓ DONE"))
                (entropy/emacs-message-do-message
-                (red "✕ FAILED"))
-               (push pkg entropy/emacs-package-install-failed-list)))))))
+                (red "✕ FAILED"))))))))
 
 ;; *** error prompt for failing items
 
@@ -190,6 +215,8 @@
       (dolist (package entropy-emacs-packages)
         (unless (or (null package)
                     (package-installed-p package))
+          ;; install package before package archvie contents refresh
+          ;; when needed.
           (if (ignore-errors (assoc package package-archive-contents))
               (ignore-errors (entropy/emacs-package-install-package nil package))
             (package-refresh-contents)

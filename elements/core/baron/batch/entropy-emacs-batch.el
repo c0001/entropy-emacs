@@ -42,6 +42,9 @@
 (require 'entropy-emacs-coworker)
 (require 'entropy-emacs-ext)
 
+;; prepare for package operation
+(entropy/emacs-package-prepare-foras)
+
 ;; ** defvar
 ;; ** library
 ;; *** section prompting
