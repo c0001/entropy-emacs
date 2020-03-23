@@ -187,18 +187,21 @@
    "org-mode"
    "org-mode"
    (when entropy/emacs-fall-love-with-pdumper
-     (entropy/emacs-org-do-load-org-babels))
-   (entropy/emacs-!set-key (kbd "<f2>") #'org-toggle-link-display))
+     (entropy/emacs-org-do-load-org-babels)))
 
 ;; **** configs
   :config
 ;; ***** basic setting
-  (setq-default org-agenda-span (quote day)) ;Set agenda daily show as default
-  (setq org-log-done 'time)                  ;insert time-stamp when toggle 'TODO' to 'DONE'
-  (setq org-link-search-must-match-exact-headline nil) ;using fuzzy match for org external link
-                                                       ;which support the link type:
-                                                       ;'file:xxx.org::str'
 
+  ;;Insert time-stamp when toggle 'TODO' to 'DONE'
+  (setq org-log-done 'time)
+
+  ;; Using fuzzy match for org external link
+  ;; which support the link type:
+  ;; 'file:xxx.org::str'
+  (setq org-link-search-must-match-exact-headline nil)
+
+  ;; Forcely trucate line for `org-mode' buffer
   (setq org-startup-truncated t)
 
   ;; Choosing org formula convertor
@@ -210,86 +213,15 @@
     (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2)))
 
 
-  (setq-default org-hide-block-startup t) ;Hiding block details at init-time
-  (setq org-export-headline-levels 8)     ;Export heading level counts same as raw org that maximum for 8
-  (setq org-cycle-separator-lines 30) ;Set the empty line number between the headline without visible
+  (setq-default org-hide-block-startup t)                         ;Hiding block details at init-time
+  (setq org-export-headline-levels 8)                             ;Export heading level counts same as raw org that maximum for 8
+  (setq org-cycle-separator-lines 30)                             ;Set the empty line number between the headline without visible
   (setq-default org-cycle-include-plain-lists 'integrate)         ;Vixual cycle with plain list
-  (setq-default org-complete-tags-always-offer-all-agenda-tags t) ;Gloable tags match
-  (add-to-list 'org-export-backends 'md) ;Adding org export file type - markdown
+  (add-to-list 'org-export-backends 'md)                          ;Adding org export file type - markdown
 
   (setq org-imenu-depth 8) ; The default depth shown for integrating
                            ; org heading line to imenu while be within
                            ; org-mode
-
-;; ***** org-capture about
-;; ****** hook for org-capture
-  (defun entropy/emacs-org--capture-indent-buffer (&optional arg)
-    "Indent org capture buffer when finished capture editting."
-    (when org-adapt-indentation
-      (let ((pm (point-min))
-            (pb (point-max)))
-        (org-indent-region pm pb)
-        (goto-char (point-max))
-        (insert "\n"))))
-  (add-hook 'org-capture-prepare-finalize-hook #'entropy/emacs-org--capture-indent-buffer)
-
-  (defun entropy/emacs-org--capture-set-tags (&rest args)
-    "Adding org tags using `counsel-org-tag' and save point where current it is.
-
-This function was the after advice for `org-capture-template'."
-    (condition-case error
-        (let ((pi (point)))
-          (funcall #'counsel-org-tag)
-          (goto-char pi))
-      ((error quit)
-       (message "Cancel adding headline tags."))))
-
-  (advice-add 'org-capture-place-template
-              :after #'entropy/emacs-org--capture-set-tags)
-
-;; ****** Do not using `org-toggle-link-display' in capture buffer.
-
-  ;; Because of that if do this will lost the buffer font-lock effecting(all buffer be non-font-lock
-  ;; visual) and do not have the recovery method unless reopen capture operation.w
-
-  (defun entropy/emacs-org--capture-forbidden-toggle-link-display (&rest rest-args)
-    "Advice for `org-toggle-link-display' for forbidden it when in capture buffer.
-
-Because of that if do this will lost the buffer font-lock
-effecting(all buffer be non-font-lock visual) and do not have the
-recovery method unless reopen capture operation.w
-"
-    (when (and (string-match-p "^CAPTURE-" (buffer-name))
-               (eq major-mode 'org-mode))
-      (user-error "Do not toggle link display in 'org capture' buffer.")))
-
-  (advice-add 'org-toggle-link-display :before #'entropy/emacs-org--capture-forbidden-toggle-link-display)
-
-;; ***** let org-heading insert without new blank always
-  ;; ==================================================
-  ;; The principle for follow function was like below code block:
-  ;; (setq org-blank-before-new-entry
-  ;;       '((headding . nil)
-  ;;         (plain-list-item . nil)))
-  ;; ==================================================
-
-  (defun entropy/emacs-org--call-rebinding-org-blank-behaviour (fn)
-    (let ((org-blank-before-new-entry
-           (copy-tree org-blank-before-new-entry)))
-      (rplacd (assoc 'heading org-blank-before-new-entry) nil)
-      (rplacd (assoc 'plain-list-item org-blank-before-new-entry) nil)
-      (call-interactively fn)))
-
-  (defun entropy/emacs-org-smart-meta-return-dwim ()
-    (interactive)
-    (entropy/emacs-org--call-rebinding-org-blank-behaviour 'org-meta-return))
-
-  (defun entropy/emacs-org-smart-insert-todo-heading-dwim ()
-    (interactive)
-    (entropy/emacs-org--call-rebinding-org-blank-behaviour 'org-insert-todo-heading))
-
-  (define-key org-mode-map (kbd "M-RET") 'entropy/emacs-org-smart-meta-return-dwim)
-
 
 ;; ***** define 'end' key to `org-end-of-line'
   (define-key org-mode-map (kbd "<end>") 'org-end-of-line)
@@ -307,7 +239,6 @@ recovery method unless reopen capture operation.w
              nil)
             (t t))))
       (org-open-at-point)))
-  (define-key org-mode-map (kbd "C-c C-o") 'entropy/emacs-org-open-at-point)
 
   ;; using entropy-open-with to open org link
   (defun entropy/emacs-org-eow ()
@@ -324,61 +255,17 @@ recovery method unless reopen capture operation.w
                                         ((string-match-p "https?" link-type)
                                          (concat link-type ":" path))
                                         (t (error (format "Invalid file type '%s'!" link-type)))))))
-  (define-key org-mode-map (kbd "C-c M-o") 'entropy/emacs-org-eow)
-
-;; ***** clear key-map of 'C-c C-w'
-
-  ;; delete keybind `C-c C-w' of org-capture-refile for fix the
-  ;; contradiction with eyebrowse.
-  (entropy/emacs-lazy-load-simple org-capture
-    (define-key org-capture-mode-map (kbd "C-c C-w") nil))
-
-  ;; delete keybind of org-mode
-  (define-key org-mode-map (kbd "C-c C-w") nil)
-
-  ;; delete keybind of org-agenda
-  (entropy/emacs-lazy-load-simple org-agenda
-    (define-key org-agenda-mode-map (kbd "C-c C-w") nil))
 
 ;; ***** org-priority-setting
   (setq org-lowest-priority 90)         ;lowset prioty was 'Z'
   (setq org-default-priority 67)        ;default prioty was 'C'
 
-;; ***** org-agenda-setting
-;; ****** org-agenda-prefix
-  (if sys/is-graphic-support
-      (progn
-        (setq org-agenda-prefix-format
-              '((agenda . " ✪ %?-12t% s")
-                (todo . " ✈ ")
-                (tags . " ☯ ")
-                (search . " ✔ "))))
-    (setq org-agenda-prefix-format
-          '((agenda . " agenda: %?-12t% s")
-            (todo . " Plan: ")
-            (tags . " Tags-Match: ")
-            (search . " Search: "))))
-  (if (not (version< emacs-version "26.1"))
-      (add-hook 'org-agenda-mode-hook #'(lambda () (display-line-numbers-mode 0))))
-
-;; ****** org-tags-match-list-sublevels
-  (setq org-tags-match-list-sublevels nil)
-  (defun entropy/emacs-org-toggle-agenda-subshow-and-heading-levels ()
-    "Toggle `org-agenda' tag exhibited visual type."
-    (interactive)
-    (if (string= "*Org Agenda*" (buffer-name))
-        (progn
-          (if (eq org-tags-match-list-sublevels nil)
-              (setq org-tags-match-list-sublevels 'indented)
-            (setq org-tags-match-list-sublevels nil))
-          (org-agenda-redo-all))
-      (error "You must use it in org agenda buffer!")))
-
 
 ;; ***** org heading face
 
-  ;; Some emacs-theme will adjust heading height for obtain better visual sense, but it will break
-  ;; the text align state, so using follow function to avoid it.
+  ;; Some emacs-theme will adjust heading height for obtain better
+  ;; visual sense, but it will break the text align state, so using
+  ;; follow function to avoid it.
 
   (add-hook 'org-mode-hook 'entropy/emacs-adjust-org-heading-scale)
 
@@ -391,198 +278,6 @@ recovery method unless reopen capture operation.w
 
   (setq org-url-hexify-p nil)
   (setq-default org-link-file-path-type (quote relative))
-
-;; ***** org babel src mode engines
-  ;; ---------with the bug of none highlites in org mode src html block
-  ;; ---------and the issue with none aspiration of web-mode maintainer with link
-  ;; ----------------------------->`https://github.com/fxbois/web-mode/issues/636'
-  ;; (add-to-list 'org-src-lang-modes '("html" . web))
-
-
-;; ***** org babel evaluate confirm
-  (entropy/emacs-lazy-load-simple org
-    (when (not (version< org-version "9.1.9"))
-      (defvar entropy/emacs-org--src-info nil
-        "Current org babel info using for `entropy/emacs-org--babel-comfirm-evaluate'.")
-
-      (defun entropy/emacs-org--set-src-info (old-func &rest args)
-        "Around advice for func `org-babel-get-src-block-info'
-for obtain current src block info for redistrict into
-`entropy/emacs-org--src-info'.
-
-This func built for the reason the unknown mechanism that clean
-the block info name part while transport into babel confirmation
-func so that the confirming prompt string will not given the
-babel name, this will confusing for the user to distinguish which
-block current prompting is and then how to judge whether to
-evaluate it.. "
-        (let ((info (apply old-func args)))
-          (setq entropy/emacs-org--src-info info)
-          info))
-
-      (advice-add 'org-babel-get-src-block-info :around #'entropy/emacs-org--set-src-info)
-
-      (defun entropy/emacs-org--babel-comfirm-evaluate (old-func info)
-        "This function was the around advice func for
-`org-babel-confirm-evaluate' func.
-
-For forcing query prompt whether evaluating src block when dealing
-with process of exporting.
-
-
-============================
-For Org version be 9.1.13 or 9.1.19:
-
-Original mechanism for org export will ignore all src evaluating
-confirm prompting while src language was indicated in
-`org-babel-load-languages' and be loaded by
-`org-babel-load-languages'.
-
-The core reason was that the variable `org-export-use-babel' of
-these org version was the pointer for controlling whether export
-with evaluating src (inline or block) and the default value of it
-was 't'. These org version modified lots of internal process
-logical which not as that prompt for evaluating just rely on
-variable `org-confirm-babel-evaluate' value in 8.xx version.
-
-#+BEGIN_QUOTE
- You can see functon's top branch diversion condition of func
- =org-babel-exp-process-buffer= for proving what I expression.
-#+END_QUOTE
-
-This will cause some serious problem when evaluating some
-dangerous src block which not indicated the block arg ':eval
-query' which variable `org-export-use-babel' declared.
-
-This func forcing setting variable `org-confirm-babel-evaluate'
-to t during the comfirmation process, because the core problem
-indicated above is that whomever clean the comfirmation value to
-nil of this variable before the comfirming process so that the
-func `org-babel-confirm-evaluate' was suppressed while evaluating
-the block, I think the whom was the variable
-`org-export-use-babel' setting state according to the above
-problem description.
-
-This function also using `entropy/emacs-org--src-info' passing
-for sub-func instead of the origin derived 'info' value as the
-reason, please see the docstring refer."
-        (let ((org-confirm-babel-evaluate t))
-          (funcall old-func entropy/emacs-org--src-info)))
-
-      (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org--babel-comfirm-evaluate)))
-
-;; ***** org global export macro
-  (entropy/emacs-lazy-load-simple ox
-    (add-to-list 'org-export-global-macros
-                 '("kbd" . "@@html:<code>$1</code>@@")))
-
-;; ***** html export
-;; ****** html exported head coding
-  (setq org-html-coding-system 'utf-8-unix)
-
-  ;; inhibit org self default html style
-  (setq org-html-head-include-scripts nil
-        org-html-head-include-default-style nil)
-
-;; ****** solve the bug when cjk paragraph exported to html has the auto newline space char including.
-  ;; This hacking refer to https://emacs-china.org/t/org-mode-html/7174#breadcrumb-0
-  ;; and raw from spacemac layer: https://github.com/syl20bnr/spacemacs/blob/develop/layers/+intl/chinese/packages.el#L104
-  (defadvice org-html-paragraph (before org-html-paragraph-advice
-                                        (paragraph contents info) activate)
-    "Join consecutive Chinese lines into a single long line without
-unwanted space when exporting org-mode to html."
-    (let* ((origin-contents (ad-get-arg 1))
-           (fix-regexp "[[:multibyte:]]")
-           (fixed-contents
-            (replace-regexp-in-string
-             (concat
-              "\\(" fix-regexp "\\) *\n *\\(" fix-regexp "\\)") "\\1\\2" origin-contents)))
-      (ad-set-arg 1 fixed-contents)))
-
-
-;; ****** org export html open function
-
-  ;; If `entropy/emacs-browse-url-function' is detectived then open
-  ;; exported html file with it instead of using default apps or
-  ;; system type.
-
-  (defun entropy/emacs-org--hexpt-use-external-type ()
-    "
-returning the type of exec for open exported html file, they are:
-
-- \"personal\": using `entropy/emacs-browse-url-function' to open the
-  exported html file.
-
-- \"automatic\": using the way by `org-open-file' to automatilly
-  open exported file."
-    (if (and entropy/emacs-enable-personal-browse-url-function
-             (functionp entropy/emacs-browse-url-function))
-        "personal"
-      "automatic"))
-
-  (defun entropy/emacs-org--hexpt-function (&optional path link)
-    "Function embeded into `org-file-apps', used for
-`entropy/emacs-org--hexpt-advice' to open html file using
-`entropy/emacs-browse-url-function'."
-    (require 'entropy-common-library-const)
-    (if link
-        (if (yes-or-no-p "Open html file with entropy/emacs-browse-url-function ? ")
-            (funcall entropy/emacs-browse-url-function
-                     (concat "file:///" (url-hexify-string link entropy/cl-url--allowed-chars)))
-          (org-open-file path 'system))
-      (error "Invalid link!")))
-
-  (defun entropy/emacs-org--hexpt-advice (orig-func &rest orig-args)
-    "Advice for `org-open-file' for changing the \"html\"
-    associtated function when exporting html file from org file
-    or open html file link in org-mode.
-
-    This function use `entropy/emacs-org--hexpt-function' to judge the exec
-    type for chosen the way whether embeded it into `org-file-apps'."
-    (let* ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org--hexpt-function))
-           (type (entropy/emacs-org--hexpt-use-external-type))
-           (process-connection-type nil))
-      (when (string-match "\\.\\(x\\|m\\)?html?$" (car orig-args))
-        (cond ((string= "personal" type)
-               (when (not (member embeded org-file-apps))
-                 (add-to-list 'org-file-apps embeded)
-                 (message "Using `entropy/emacs-browse-url-function' to open exported html file.")))
-              ("automatic"
-               (message
-                "Using automatic method to open exported html file! "))))
-      (unwind-protect
-          (apply orig-func orig-args)
-        (when (member embeded org-file-apps)
-          (setq org-file-apps (delete embeded org-file-apps))))))
-
-  (advice-add 'org-open-file :around #'entropy/emacs-org--hexpt-advice)
-
-;; ****** org ignore broken links
-  (setq org-export-with-broken-links 'mark)
-
-;; ***** org publish config
-
-  ;; Force using the utf-8 coding system while publish process
-  (advice-add 'org-publish :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-
-  ;; Around advice for `org-publish-cache-file-needs-publishing'
-  ;; for adding query whether force re publishing unmodified
-  ;; cached refer file.
-  (defun entropy/emacs-org--publish-check-timestamp-around_advice
-      (oldfun &rest args)
-    "The advice around the org publish cache file timestamp check
-    function `org-publish-cache-file-needs-publishing'."
-    (let* ((check-result (apply oldfun args))
-           (fname (car args))
-           (manually-judgement nil))
-      (if (not check-result)
-          (setq manually-judgement
-                (yes-or-no-p (format "Do you want to Re-publish '%s' ?" fname)))
-        (setq manually-judgement check-result))
-      manually-judgement))
-
-  (advice-add 'org-publish-cache-file-needs-publishing
-              :around #'entropy/emacs-org--publish-check-timestamp-around_advice)
 
 ;; ***** org-counsel-set-tag
 
@@ -682,7 +377,328 @@ file which do not already have one. Only adds ids if the
 
 ;; ***** fix bugs of open directory using external apps in windows
   (when sys/win32p
-    (add-to-list 'org-file-apps '(directory . emacs))))
+    (add-to-list 'org-file-apps '(directory . emacs)))
+
+
+  )
+
+;; *** org-agenda
+(use-package org-agenda
+  :ensure nil
+  :after org
+  :commands
+  (org-agenda)
+  :hook
+  ((org-agenda-mode . hl-line-mode))
+  :init
+
+  ;; Set agenda daily show as defaulta
+  (setq-default org-agenda-span 'day)
+
+  ;; Gloable tags match
+  (setq-default org-complete-tags-always-offer-all-agenda-tags t)
+
+  ;; Agenda prefix visual type
+  (if sys/is-graphic-support
+      (progn
+        (setq org-agenda-prefix-format
+              '((agenda . " ✪ %?-12t% s")
+                (todo . " ✈ ")
+                (tags . " ☯ ")
+                (search . " ✔ "))))
+    (setq org-agenda-prefix-format
+          '((agenda . " agenda: %?-12t% s")
+            (todo . " Plan: ")
+            (tags . " Tags-Match: ")
+            (search . " Search: "))))
+
+  ;; org-tags-match-list-sublevels
+  (setq org-tags-match-list-sublevels nil)
+  (defun entropy/emacs-org-toggle-agenda-subshow-and-heading-levels ()
+    "Toggle `org-agenda' tag exhibited visual type."
+    (interactive)
+    (if (string= "*Org Agenda*" (buffer-name))
+        (progn
+          (if (eq org-tags-match-list-sublevels nil)
+              (setq org-tags-match-list-sublevels 'indented)
+            (setq org-tags-match-list-sublevels nil))
+          (org-agenda-redo-all))
+      (error "You must use it in org agenda buffer!"))))
+
+;; *** org-capture
+(use-package org-capture
+  :ensure nil
+  :after org
+  :commands (org-capture)
+  :config
+;; **** org-capture about
+;; ***** hook for org-capture
+  (defun entropy/emacs-org--capture-indent-buffer (&optional arg)
+    "Indent org capture buffer when finished capture editting."
+    (when org-adapt-indentation
+      (let ((pm (point-min))
+            (pb (point-max)))
+        (org-indent-region pm pb)
+        (goto-char (point-max))
+        (insert "\n"))))
+  (add-hook 'org-capture-prepare-finalize-hook #'entropy/emacs-org--capture-indent-buffer)
+
+  (defun entropy/emacs-org--capture-set-tags (&rest args)
+    "Adding org tags using `counsel-org-tag' and save point where current it is.
+
+This function was the after advice for `org-capture-template'."
+    (condition-case error
+        (let ((pi (point)))
+          (funcall #'counsel-org-tag)
+          (goto-char pi))
+      ((error quit)
+       (message "Cancel adding headline tags."))))
+
+  (advice-add 'org-capture-place-template
+              :after #'entropy/emacs-org--capture-set-tags)
+
+;; ***** Do not using `org-toggle-link-display' in capture buffer.
+
+  ;; Because of that if do this will lost the buffer font-lock effecting(all buffer be non-font-lock
+  ;; visual) and do not have the recovery method unless reopen capture operation.w
+
+  (defun entropy/emacs-org--capture-forbidden-toggle-link-display (&rest rest-args)
+    "Advice for `org-toggle-link-display' for forbidden it when in capture buffer.
+
+Because of that if do this will lost the buffer font-lock
+effecting(all buffer be non-font-lock visual) and do not have the
+recovery method unless reopen capture operation.w
+"
+    (when (and (string-match-p "^CAPTURE-" (buffer-name))
+               (eq major-mode 'org-mode))
+      (user-error "Do not toggle link display in 'org capture' buffer.")))
+
+  (advice-add 'org-toggle-link-display
+              :before
+              #'entropy/emacs-org--capture-forbidden-toggle-link-display)
+
+  )
+
+
+;; *** org-babel
+(use-package ob
+  :ensure nil
+  :after org
+  :config
+;; **** org babel evaluate confirm
+  (entropy/emacs-lazy-load-simple org
+    (when (not (version< org-version "9.1.9"))
+      (defvar entropy/emacs-org--src-info nil
+        "Current org babel info using for `entropy/emacs-org--babel-comfirm-evaluate'.")
+
+      (defun entropy/emacs-org--set-src-info (old-func &rest args)
+        "Around advice for func `org-babel-get-src-block-info'
+for obtain current src block info for redistrict into
+`entropy/emacs-org--src-info'.
+
+This func built for the reason the unknown mechanism that clean
+the block info name part while transport into babel confirmation
+func so that the confirming prompt string will not given the
+babel name, this will confusing for the user to distinguish which
+block current prompting is and then how to judge whether to
+evaluate it.. "
+        (let ((info (apply old-func args)))
+          (setq entropy/emacs-org--src-info info)
+          info))
+
+      (advice-add 'org-babel-get-src-block-info :around #'entropy/emacs-org--set-src-info)
+
+      (defun entropy/emacs-org--babel-comfirm-evaluate (old-func info)
+        "This function was the around advice func for
+`org-babel-confirm-evaluate' func.
+
+For forcing query prompt whether evaluating src block when dealing
+with process of exporting.
+
+
+============================
+For Org version be 9.1.13 or 9.1.19:
+
+Original mechanism for org export will ignore all src evaluating
+confirm prompting while src language was indicated in
+`org-babel-load-languages' and be loaded by
+`org-babel-load-languages'.
+
+The core reason was that the variable `org-export-use-babel' of
+these org version was the pointer for controlling whether export
+with evaluating src (inline or block) and the default value of it
+was 't'. These org version modified lots of internal process
+logical which not as that prompt for evaluating just rely on
+variable `org-confirm-babel-evaluate' value in 8.xx version.
+
+#+BEGIN_QUOTE
+ You can see functon's top branch diversion condition of func
+ =org-babel-exp-process-buffer= for proving what I expression.
+#+END_QUOTE
+
+This will cause some serious problem when evaluating some
+dangerous src block which not indicated the block arg ':eval
+query' which variable `org-export-use-babel' declared.
+
+This func forcing setting variable `org-confirm-babel-evaluate'
+to t during the comfirmation process, because the core problem
+indicated above is that whomever clean the comfirmation value to
+nil of this variable before the comfirming process so that the
+func `org-babel-confirm-evaluate' was suppressed while evaluating
+the block, I think the whom was the variable
+`org-export-use-babel' setting state according to the above
+problem description.
+
+This function also using `entropy/emacs-org--src-info' passing
+for sub-func instead of the origin derived 'info' value as the
+reason, please see the docstring refer."
+        (let ((org-confirm-babel-evaluate t))
+          (funcall old-func entropy/emacs-org--src-info)))
+
+      (advice-add 'org-babel-confirm-evaluate :around #'entropy/emacs-org--babel-comfirm-evaluate)))
+
+;; **** org global export macro
+  (entropy/emacs-lazy-load-simple ox
+    (add-to-list 'org-export-global-macros
+                 '("kbd" . "@@html:<code>$1</code>@@")))
+
+;; **** org babel src mode engines
+  ;; ---------with the bug of none highlites in org mode src html block
+  ;; ---------and the issue with none aspiration of web-mode maintainer with link
+  ;; ----------------------------->`https://github.com/fxbois/web-mode/issues/636'
+  ;; (add-to-list 'org-src-lang-modes '("html" . web))
+
+  )
+
+;; *** org-export
+
+(use-package ox
+  :ensure nil
+  :after org
+  :config
+;; **** html export
+;; ***** html exported head coding
+  (setq org-html-coding-system 'utf-8-unix)
+
+  ;; inhibit org self default html style
+  (setq org-html-head-include-scripts nil
+        org-html-head-include-default-style nil)
+
+;; ***** solve the bug when cjk paragraph exported to html has the auto newline space char including.
+  ;; This hacking refer to https://emacs-china.org/t/org-mode-html/7174#breadcrumb-0
+  ;; and raw from spacemac layer: https://github.com/syl20bnr/spacemacs/blob/develop/layers/+intl/chinese/packages.el#L104
+  (defadvice org-html-paragraph (before org-html-paragraph-advice
+                                        (paragraph contents info) activate)
+    "Join consecutive Chinese lines into a single long line without
+unwanted space when exporting org-mode to html."
+    (let* ((origin-contents (ad-get-arg 1))
+           (fix-regexp "[[:multibyte:]]")
+           (fixed-contents
+            (replace-regexp-in-string
+             (concat
+              "\\(" fix-regexp "\\) *\n *\\(" fix-regexp "\\)") "\\1\\2" origin-contents)))
+      (ad-set-arg 1 fixed-contents)))
+
+
+;; ***** org export html open function
+
+  ;; If `entropy/emacs-browse-url-function' is detectived then open
+  ;; exported html file with it instead of using default apps or
+  ;; system type.
+
+  (defun entropy/emacs-org--hexpt-use-external-type ()
+    "
+returning the type of exec for open exported html file, they are:
+
+- \"personal\": using `entropy/emacs-browse-url-function' to open the
+  exported html file.
+
+- \"automatic\": using the way by `org-open-file' to automatilly
+  open exported file."
+    (if (and entropy/emacs-enable-personal-browse-url-function
+             (functionp entropy/emacs-browse-url-function))
+        "personal"
+      "automatic"))
+
+  (defun entropy/emacs-org--hexpt-function (&optional path link)
+    "Function embeded into `org-file-apps', used for
+`entropy/emacs-org--hexpt-advice' to open html file using
+`entropy/emacs-browse-url-function'."
+    (require 'entropy-common-library-const)
+    (if link
+        (if (yes-or-no-p "Open html file with entropy/emacs-browse-url-function ? ")
+            (funcall entropy/emacs-browse-url-function
+                     (concat "file:///" (url-hexify-string link entropy/cl-url--allowed-chars)))
+          (org-open-file path 'system))
+      (error "Invalid link!")))
+
+  (defun entropy/emacs-org--hexpt-advice (orig-func &rest orig-args)
+    "Advice for `org-open-file' for changing the \"html\"
+    associtated function when exporting html file from org file
+    or open html file link in org-mode.
+
+    This function use `entropy/emacs-org--hexpt-function' to judge the exec
+    type for chosen the way whether embeded it into `org-file-apps'."
+    (let* ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org--hexpt-function))
+           (type (entropy/emacs-org--hexpt-use-external-type))
+           (process-connection-type nil))
+      (when (string-match "\\.\\(x\\|m\\)?html?$" (car orig-args))
+        (cond ((string= "personal" type)
+               (when (not (member embeded org-file-apps))
+                 (add-to-list 'org-file-apps embeded)
+                 (message "Using `entropy/emacs-browse-url-function' to open exported html file.")))
+              ("automatic"
+               (message
+                "Using automatic method to open exported html file! "))))
+      (unwind-protect
+          (apply orig-func orig-args)
+        (when (member embeded org-file-apps)
+          (setq org-file-apps (delete embeded org-file-apps))))))
+
+  (advice-add 'org-open-file :around #'entropy/emacs-org--hexpt-advice)
+
+;; ***** org ignore broken links
+  (setq org-export-with-broken-links 'mark))
+
+
+;; *** org-publish
+(use-package org-publish
+  :ensure nil
+  :after org
+  :commands
+  (org-publish-current-file
+   org-publish-all
+   org-publish
+   org-publish-project
+   org-publish-current-project
+   )
+  :config
+  ;; Force using the utf-8 coding system while publish process
+  (advice-add 'org-publish :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+
+  ;; Around advice for `org-publish-cache-file-needs-publishing'
+  ;; for adding query whether force re publishing unmodified
+  ;; cached refer file.
+  (defun entropy/emacs-org--publish-check-timestamp-around_advice
+      (oldfun &rest args)
+    "The advice around the org publish cache file timestamp check
+    function `org-publish-cache-file-needs-publishing'."
+    (let* ((check-result (apply oldfun args))
+           (fname (car args))
+           (manually-judgement nil))
+      (if (not check-result)
+          (setq manually-judgement
+                (yes-or-no-p (format "Do you want to Re-publish '%s' ?" fname)))
+        (setq manually-judgement check-result))
+      manually-judgement))
+
+  (advice-add 'org-publish-cache-file-needs-publishing
+              :around #'entropy/emacs-org--publish-check-timestamp-around_advice)
+
+  )
+
+
+
 
 ;; *** keymap hydra reflect
 ;; **** library
@@ -945,7 +961,11 @@ file which do not already have one. Only adds ids if the
     (("C-c C-x q" org-toggle-tags-groups
       "Toggle support for group tags"
       :enable t :map-inject t :exit t) ;; All the other keys
-     ("C-c C-q" org-set-tags-command
+     ("C-c C-q"
+      (call-interactively
+       (if (fboundp 'counsel-org-tag)
+           'counsel-org-tag
+         'org-set-tags-command))
       "Set the tags for the current visible entry"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c C-c" org-ctrl-c-ctrl-c
@@ -1146,6 +1166,9 @@ file which do not already have one. Only adds ids if the
      ("C-c C-x C-p" org-previous-link
       "Move backward to the previous link"
       :enable t :map-inject t :exit t) ;; All the other keys
+     ("<f2>" org-toggle-link-display
+      "Toggle the literal or descriptive display of links"
+      :enable t :eemacs-top-bind t :exit t)
      )))
 
 
