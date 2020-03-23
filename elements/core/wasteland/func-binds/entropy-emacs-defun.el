@@ -159,7 +159,7 @@ type. Each key's value can be omitted thus the 'common' meaning."
        (display-graphic-p)
        ;; Fixme: `find-font' can not be used in emacs batch mode.
        (or (and entropy/emacs-fall-love-with-pdumper
-                entropy/emacs-pdumper-in-in-X)
+                entropy/emacs-do-pdumper-in-X)
            (let ((rtn t))
              (catch :exit
                (dolist (font-name '("github-octicons"
