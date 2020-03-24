@@ -416,16 +416,18 @@ enabled =pretty-hydra-head= or any pure empty
                rtn))))
     rtn))
 
-(defmacro entropy/emacs-hydra-hollow-with-enabled-pretty-hydra-caskets-list
+(defmacro entropy/emacs-hydra-hollow-with-normalized-pretty-hydra-caskets-list
     (pretty-hydra-cabinet &rest body)
-  "With all enabled =pretty-hydra-head= in PRETTY-HYDRA-CABINET do
+  "With all normalized =pretty-hydra-head= in PRETTY-HYDRA-CABINET do
 the BODY.
 
 Its a macro with one built-in available manipulative variable
-=$internally/enabled-pretty-hydra-caskets-list= which was one
+=$internally/normalized-pretty-hydra-caskets-list= which was one
 =pretty-hydra-caskets-list= which each =pretty-hydra-casket= are
-enabled, or its nil that no enaled =pretty-hydra-head= found
-delivered by PRETTY-HYDRA-CABINET."
+normalized.
+
+The normalizing procedure provided by
+`entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet'."
   `(let (($internally/normalized-pretty-hydra-caskets-list
           (entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet
            ,pretty-hydra-cabinet t)))
@@ -1932,7 +1934,7 @@ if Optional arguments NOT-MERGE is non-nil. "
   (when (or (not (listp riched-pretty-hydra-casket-predicate-pattern))
             (null (cl-delete nil riched-pretty-hydra-casket-predicate-pattern)))
     (error "riched-pretty-hydra-casket-predicate-pattern was fake!"))
-  (entropy/emacs-hydra-hollow-with-enabled-pretty-hydra-caskets-list
+  (entropy/emacs-hydra-hollow-with-normalized-pretty-hydra-caskets-list
    pretty-hydra-cabinet
    (let ((sp-heads $internally/normalized-pretty-hydra-caskets-list)
          (rshpp (entropy/emacs-hydra-hollow--sort-riched-pretty-hydra-casket-predicate-pattern
