@@ -1081,15 +1081,7 @@ This function has redefined for adapting to
 
 
 ;; *** Auto-sudoedit
-(use-package auto-sudoedit
-  :commands (auto-sudoedit-mode)
-  :if (not sys/is-win-group)
-  :init
-  (entropy/emacs-lazy-initial-advice-before
-   '(find-file dired)
-   "autosudoedit"
-   "autosudoedit"
-   (auto-sudoedit-mode +1)))
+
 
 ;; *** Clear killring
 ;;     From the forum of stackexchange
