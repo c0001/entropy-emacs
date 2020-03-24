@@ -743,12 +743,13 @@ returning the type of exec for open exported html file, they are:
     rtn-gps))
 
 
-;; **** sub-groups
-;; ***** org basic manipulation
-;; ****** sub-groups
-;; ******* common group
-;; ******** sub-groups
-;; ********* common insert
+;; **** org-mode
+;; ***** sub-groups
+;; ****** org basic manipulation
+;; ******* sub-groups
+;; ******** common group
+;; ********* sub-groups
+;; ********** common insert
 
 (defvar entropy/emacs-org-keymap-group-$common-insert
   '("Common Insert"
@@ -769,7 +770,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; RET/<return> key with modifiers
      )))
 
-;; ********* common copy
+;; ********** common copy
 
 (defvar entropy/emacs-org-keymap-group-$common-copy&paste
   '("Common copy and paste"
@@ -789,7 +790,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ********* common move
+;; ********** common move
 
 (defvar entropy/emacs-org-keymap-group-$common-move
   '("Common move"
@@ -815,7 +816,7 @@ returning the type of exec for open exported html file, they are:
       "Promote the entire subtree"
       :enable t :map-inject t :exit t))))
 
-;; ********* common archive
+;; ********** common archive
 
 (defvar entropy/emacs-org-keymap-group-$common-archive
   '("Common archive"
@@ -839,7 +840,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ********* common toggle
+;; ********** common toggle
 
 (defvar entropy/emacs-org-keymap-group-$common-toggle
   '("Common toggle"
@@ -865,7 +866,7 @@ returning the type of exec for open exported html file, they are:
       "Insert separator line in table or modify bullet status of line"
       :enable t :map-inject t :exit t))))
 
-;; ********* common attachments
+;; ********** common attachments
 
 (defvar entropy/emacs-org-keymap-group-$common-attachments
   '("Common attachments"
@@ -873,7 +874,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ********* common sort
+;; ********** common sort
 (defvar entropy/emacs-org-keymap-group-$common-sort
     '("Common sort"
       (("C-c ^" org-sort
@@ -881,7 +882,7 @@ returning the type of exec for open exported html file, they are:
         :enable t :map-inject t :exit t) ;; All the other keys
        )))
 
-;; ********* common open
+;; ********** common open
 (defvar entropy/emacs-org-keymap-group-$common-open
   '("Common open"
     (("C-c C-o" entropy/emacs-org-open-at-point
@@ -892,7 +893,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :exit t :map-inject t)
      )))
 
-;; ********* common edit
+;; ********** common edit
 (defvar entropy/emacs-org-keymap-group-$common-edit
   '("Common edit"
     (("C-c '" org-edit-special "Call a special editor for the element at point"
@@ -908,7 +909,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******** define
+;; ********* define
 (defvar entropy/emacs-org-keymap-group--$common-infos
   '((entropy/emacs-org-keymap-group-$common-insert      "c i" "Common Insert")
     (entropy/emacs-org-keymap-group-$common-edit        "c e" "Common Edit")
@@ -925,7 +926,7 @@ returning the type of exec for open exported html file, they are:
    "Common Manipulations"
    entropy/emacs-org-keymap-group--$common-infos))
 
-;; ******* babel
+;; ******** babel
 (defvar entropy/emacs-org-keymap-group-$babel
   '("Babel"
     (("C-c C-x [" org-reftex-citation
@@ -933,7 +934,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******* time stamp
+;; ******** time stamp
 (defvar entropy/emacs-org-keymap-group-$time-stamp
   '("Time stamp"
     (("C-c ." org-time-stamp "Prompt for a date/time and insert a time stamp"
@@ -955,7 +956,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
      )))
 
-;; ******* headline tag
+;; ******** headline tag
 (defvar entropy/emacs-org-keymap-group-$headline-tag
   '("Headline tag"
     (("C-c C-x q" org-toggle-tags-groups
@@ -974,7 +975,7 @@ returning the type of exec for open exported html file, they are:
      )))
 
 
-;; ******* plain list
+;; ******** plain list
 (defvar entropy/emacs-org-keymap-group-$plain-list
   '("Plain list"
     (("M-S-<right>" org-shiftmetaright
@@ -985,7 +986,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
      )))
 
-;; ******* headline drawer property
+;; ******** headline drawer property
 (defvar entropy/emacs-org-keymap-group-$drawer&property
   '("Drawer and property"
     (("C-c C-x d" org-insert-drawer
@@ -1008,7 +1009,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******* inline image
+;; ******** inline image
 
 (defvar entropy/emacs-org-keymap-group-$inline-image
   '("Inline image"
@@ -1020,9 +1021,9 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******* table
-;; ******** subgroups
-;; ********* table create&covert
+;; ******** table
+;; ********* subgroups
+;; ********** table create&covert
 
 (defvar entropy/emacs-org-keymap-group-$table-create&convert
   '("Table create&convert"
@@ -1035,7 +1036,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ********* table edit
+;; ********** table edit
 
 (defvar entropy/emacs-org-keymap-group-$table-edit
   '("Table edit"
@@ -1074,7 +1075,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
      )))
 
-;; ********* table eval
+;; ********** table eval
 (defvar entropy/emacs-org-keymap-group-$table-eval
   '("Table eval"
     (("C-c =" org-table-eval-formula
@@ -1091,7 +1092,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ********* table view
+;; ********** table view
 (defvar entropy/emacs-org-keymap-group-$table-view
   '("Table view"
     (("C-c }" org-table-toggle-coordinate-overlays
@@ -1102,7 +1103,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ********* table move
+;; ********** table move
 
 (defvar entropy/emacs-org-keymap-group-$table-move
   '("Table move "
@@ -1122,7 +1123,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; TAB key with modifiers
      )))
 
-;; ******** define
+;; ********* define
 
 (defvar entropy/emacs-org-keymap-group--$table-infos
   '((entropy/emacs-org-keymap-group-$table-create&convert
@@ -1136,7 +1137,7 @@ returning the type of exec for open exported html file, they are:
   (entropy/emacs-org-gen-pretty-hydra-group
    "Table" entropy/emacs-org-keymap-group--$table-infos))
 
-;; ******* dynamic block
+;; ******** dynamic block
 (defvar entropy/emacs-org-keymap-group-$dynamic-block
   '("Dynamic block"
     (("C-c C-x x" org-dynamic-block-insert-dblock
@@ -1147,7 +1148,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******* link
+;; ******** link
 
 (defvar entropy/emacs-org-keymap-group-$link
   '("Link"
@@ -1172,7 +1173,7 @@ returning the type of exec for open exported html file, they are:
      )))
 
 
-;; ******* note
+;; ******** note
 (defvar entropy/emacs-org-keymap-group-$note
   '("Note"
     (("C-c C-z" org-add-note
@@ -1183,7 +1184,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ****** define
+;; ******* define
 (defvar entropy/emacs-org-keymap-group--$basic-manipulation-infos
   '((entropy/emacs-org-keymap-group-$common          "b c" "Common Manipulation")
     (entropy/emacs-org-keymap-group-$link            "b u" "Link Manipulation")
@@ -1201,9 +1202,9 @@ returning the type of exec for open exported html file, they are:
   (entropy/emacs-org-gen-pretty-hydra-group
    "Basic" entropy/emacs-org-keymap-group--$basic-manipulation-infos))
 
-;; ***** org buffer navigation (guide)
-;; ****** sub-groups
-;; ******* sparse tree
+;; ****** org buffer navigation (guide)
+;; ******* sub-groups
+;; ******** sparse tree
 (defvar entropy/emacs-org-keymap-group-$sparse-tree
   '("Sparse tree"
     (("C-c \\" org-match-sparse-tree
@@ -1220,7 +1221,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******* cycle
+;; ******** cycle
 (defvar entropy/emacs-org-keymap-group-$cycle
   '("Cycle"
     (("<tab>" org-cycle
@@ -1237,7 +1238,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******* goto
+;; ******** goto
 (defvar entropy/emacs-org-keymap-group-$goto
   '("Goto"
     (("C-c C-j" org-goto
@@ -1277,7 +1278,7 @@ returning the type of exec for open exported html file, they are:
      )))
 
 
-;; ******* mark
+;; ******** mark
 (defvar entropy/emacs-org-keymap-group-$mark
   '("Mark"
     (("ESC h" org-mark-element
@@ -1298,7 +1299,7 @@ returning the type of exec for open exported html file, they are:
      )))
 
 
-;; ******* narrow
+;; ******** narrow
 (defvar entropy/emacs-org-keymap-group-$narrow
   '("Narrow"
     (("C-x n b" org-narrow-to-block
@@ -1312,7 +1313,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; Narrowing bindings
      )))
 
-;; ******* block jump
+;; ******** block jump
 (defvar entropy/emacs-org-keymap-group-$block-jump
   '("Block Jump"
     (("C-c M-f" org-next-block
@@ -1323,7 +1324,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ****** define
+;; ******* define
 
 (defvar entropy/emacs-org-keymap-group--$buffer-navigation-infos
   '((entropy/emacs-org-keymap-group-$sparse-tree "n s" "Sparse Tree Viewer")
@@ -1338,9 +1339,9 @@ returning the type of exec for open exported html file, they are:
    "Buffer Navigation"
    entropy/emacs-org-keymap-group--$buffer-navigation-infos))
 
-;; ***** org task function
-;; ****** sub-groups
-;; ******* timer
+;; ****** org task function
+;; ******* sub-groups
+;; ******** timer
 (defvar entropy/emacs-org-keymap-group-$timer
   '("Timer"
     (("C-c C-x ." org-timer
@@ -1363,7 +1364,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******* clock
+;; ******** clock
 (defvar entropy/emacs-org-keymap-group-$clock
   '("Clock"
     (("C-c C-x C-q" org-clock-cancel
@@ -1398,7 +1399,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
      )))
 
-;; ******* todo
+;; ******** todo
 
 (defvar entropy/emacs-org-keymap-group-$todo
   '("Todo"
@@ -1443,7 +1444,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; Cursor keys with modifiers
      )))
 
-;; ******* agenda
+;; ******** agenda
 (defvar entropy/emacs-org-keymap-group-$agenda
   '("Agenda"
     (("C-c [" org-agenda-file-to-front
@@ -1460,7 +1461,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ******* schedule
+;; ******** schedule
 
 (defvar entropy/emacs-org-keymap-group-$schedule
   '("Schedule"
@@ -1473,7 +1474,7 @@ returning the type of exec for open exported html file, they are:
      )))
 
 
-;; ****** define
+;; ******* define
 
 (defvar entropy/emacs-org-keymap-group--$task-manipulation-infos
   '((entropy/emacs-org-keymap-group-$todo "t t" "Todo manipulation")
@@ -1487,7 +1488,7 @@ returning the type of exec for open exported html file, they are:
    entropy/emacs-org-keymap-group--$task-manipulation-infos))
 
 
-;; ***** org rss
+;; ****** org rss
 (defvar entropy/emacs-org-keymap-group-$org-rss
   '("Rss"
     (("C-c C-x G" org-feed-goto-inbox
@@ -1498,7 +1499,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ***** org export and preview
+;; ****** org export and preview
 
 (defvar entropy/emacs-org-keymap-group-$export-and-preview
   '("Export&Preview"
@@ -1510,7 +1511,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; ***** org misc.
+;; ****** org misc.
 
 (defvar entropy/emacs-org-keymap-group-$misc
   '("Misc"
@@ -1522,7 +1523,7 @@ returning the type of exec for open exported html file, they are:
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
-;; **** define-hydra
+;; ***** define-hydra
 
 (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
  'org-mode 'org 'org-mode-map t
