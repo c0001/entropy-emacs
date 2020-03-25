@@ -328,111 +328,6 @@ with specified indicator."
                        (funcall (plist-get matched :notation) pretty-hydra-head-notation))))
     (format fmstr icon notation)))
 
-;; **** wapper
-
-(defun entropy/emacs-hydra-hollow-normalize-pretty-hydra-caskets-list
-    (pretty-hydra-caskets-list)
-  "Generized each =pretty-hydra-casket= of PRETTY-HYDRA-CASKETS-LIST.
-
-The generization aiming for use
-`entropy/emacs-hydra-hollow--common-judge-p' to expand the slot
-of =pretty-hydra-casket= for group-name, key-stroke and its
-notation, especially for the command slot that will preserve its
-symbol type or form type when its a symbol or a native form,
-otherwise as other purpose for.
-"
-  (let (rtn)
-    (dolist (sp-head pretty-hydra-caskets-list)
-      (let* ((group (car sp-head))
-             (new-group (entropy/emacs-hydra-hollow--common-judge-p
-                         group))
-             (pattern (caadr sp-head))
-             (ptt-plist (cdddr pattern))
-             (key (car pattern))
-             (new-key (entropy/emacs-hydra-hollow--common-judge-p
-                       key))
-             (command (cadr pattern))
-             (new-command (or (ignore-errors
-                                (when (eq :eval (car command))
-                                  (entropy/emacs-hydra-hollow--common-judge-p
-                                   command)))
-                              command))
-             (notation (caddr pattern))
-             (new-notation (entropy/emacs-hydra-hollow--common-judge-p
-                            notation))
-             )
-
-        (setq rtn
-              (append
-               rtn
-               (if (null new-key)
-                   `((,new-group nil))
-                 `((,new-group ((,new-key ,new-command ,new-notation ,@ptt-plist)))))))))
-    rtn))
-
-(defun entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet
-    (pretty-hydra-cabinet &optional no-merge)
-  "Normalizes PRETTY-HYDRA-CABINET.
-
-It return a new normalized =pretty-hydra-cabinet= or for a
-=pretty-hydra-caskets-list= when optional arg NO-MERGE non-nil,
-further more return nil when normalized of a 'content-empty'
-PRETTY-HYDRA-CABINET.
-
-Normalizing procedure definition:
-
-For each =pretty-hydra-head='s :enable slot's pattern's result
-evaluated by `entropy/emacs-hydra-hollow--common-judge-p' was
-non-nil, or the pure empty =pretty-hydra-cabinet-unit=, gathering
-them into a =pretty-hydra-caskets-list= and transfers it into
-`entropy/emacs-hydra-hollow-normalize-pretty-hydra-caskets-list'
-for normalizing.
-
-Thus a 'content-empty' =pretty-hydra-cabinet= was that doesn't has
-enabled =pretty-hydra-head= or any pure empty
-=pretty-hydra-cabinet-unit=.
- "
-  (let ((pretty-hydra-caskets-list
-         (entropy/emacs-hydra-hollow-make-pretty-hydra-caskets-list
-          pretty-hydra-cabinet))
-        rtn)
-    (dolist (sp-head pretty-hydra-caskets-list)
-      (let* ((group (car sp-head))
-             (head-pattern (cdddr (caadr sp-head)))
-             (enable (let ((enable-slot (plist-get head-pattern :enable)))
-                       (entropy/emacs-hydra-hollow--common-judge-p
-                        enable-slot))))
-        (if enable
-            (setq rtn (append rtn `((,group ,(cadr sp-head)))))
-          (when (null (cadr sp-head))
-            (setq rtn (append rtn (list sp-head)))))))
-    (when (not (null rtn))
-      (setq rtn
-            (entropy/emacs-hydra-hollow-normalize-pretty-hydra-caskets-list
-             rtn))
-      (unless no-merge
-        (setq rtn
-              (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
-               rtn))))
-    rtn))
-
-(defmacro entropy/emacs-hydra-hollow-with-normalized-pretty-hydra-caskets-list
-    (pretty-hydra-cabinet &rest body)
-  "With all normalized =pretty-hydra-head= in PRETTY-HYDRA-CABINET do
-the BODY.
-
-Its a macro with one built-in available manipulative variable
-=$internally/normalized-pretty-hydra-caskets-list= which was one
-=pretty-hydra-caskets-list= which each =pretty-hydra-casket= are
-normalized.
-
-The normalizing procedure provided by
-`entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet'."
-  `(let (($internally/normalized-pretty-hydra-caskets-list
-          (entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet
-           ,pretty-hydra-cabinet t)))
-     ,@body))
-
 ;; **** category framework
 
 ;; This section defined entropy-emacs main pretty-hydra *define* and
@@ -1538,6 +1433,111 @@ backend instead of `pretty-hydra-define+'."
       :color ambranth
       :quit-key "q"
       :separator "═")))
+
+;; **** wapper
+
+(defun entropy/emacs-hydra-hollow-normalize-pretty-hydra-caskets-list
+    (pretty-hydra-caskets-list)
+  "Generized each =pretty-hydra-casket= of PRETTY-HYDRA-CASKETS-LIST.
+
+The generization aiming for use
+`entropy/emacs-hydra-hollow--common-judge-p' to expand the slot
+of =pretty-hydra-casket= for group-name, key-stroke and its
+notation, especially for the command slot that will preserve its
+symbol type or form type when its a symbol or a native form,
+otherwise as other purpose for.
+"
+  (let (rtn)
+    (dolist (sp-head pretty-hydra-caskets-list)
+      (let* ((group (car sp-head))
+             (new-group (entropy/emacs-hydra-hollow--common-judge-p
+                         group))
+             (pattern (caadr sp-head))
+             (ptt-plist (cdddr pattern))
+             (key (car pattern))
+             (new-key (entropy/emacs-hydra-hollow--common-judge-p
+                       key))
+             (command (cadr pattern))
+             (new-command (or (ignore-errors
+                                (when (eq :eval (car command))
+                                  (entropy/emacs-hydra-hollow--common-judge-p
+                                   command)))
+                              command))
+             (notation (caddr pattern))
+             (new-notation (entropy/emacs-hydra-hollow--common-judge-p
+                            notation))
+             )
+
+        (setq rtn
+              (append
+               rtn
+               (if (null new-key)
+                   `((,new-group nil))
+                 `((,new-group ((,new-key ,new-command ,new-notation ,@ptt-plist)))))))))
+    rtn))
+
+(defun entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet
+    (pretty-hydra-cabinet &optional no-merge)
+  "Normalizes PRETTY-HYDRA-CABINET.
+
+It return a new normalized =pretty-hydra-cabinet= or for a
+=pretty-hydra-caskets-list= when optional arg NO-MERGE non-nil,
+further more return nil when normalized of a 'content-empty'
+PRETTY-HYDRA-CABINET.
+
+Normalizing procedure definition:
+
+For each =pretty-hydra-head='s :enable slot's pattern's result
+evaluated by `entropy/emacs-hydra-hollow--common-judge-p' was
+non-nil, or the pure empty =pretty-hydra-cabinet-unit=, gathering
+them into a =pretty-hydra-caskets-list= and transfers it into
+`entropy/emacs-hydra-hollow-normalize-pretty-hydra-caskets-list'
+for normalizing.
+
+Thus a 'content-empty' =pretty-hydra-cabinet= was that doesn't has
+enabled =pretty-hydra-head= or any pure empty
+=pretty-hydra-cabinet-unit=.
+ "
+  (let ((pretty-hydra-caskets-list
+         (entropy/emacs-hydra-hollow-make-pretty-hydra-caskets-list
+          pretty-hydra-cabinet))
+        rtn)
+    (dolist (sp-head pretty-hydra-caskets-list)
+      (let* ((group (car sp-head))
+             (head-pattern (cdddr (caadr sp-head)))
+             (enable (let ((enable-slot (plist-get head-pattern :enable)))
+                       (entropy/emacs-hydra-hollow--common-judge-p
+                        enable-slot))))
+        (if enable
+            (setq rtn (append rtn `((,group ,(cadr sp-head)))))
+          (when (null (cadr sp-head))
+            (setq rtn (append rtn (list sp-head)))))))
+    (when (not (null rtn))
+      (setq rtn
+            (entropy/emacs-hydra-hollow-normalize-pretty-hydra-caskets-list
+             rtn))
+      (unless no-merge
+        (setq rtn
+              (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
+               rtn))))
+    rtn))
+
+(defmacro entropy/emacs-hydra-hollow-with-normalized-pretty-hydra-caskets-list
+    (pretty-hydra-cabinet &rest body)
+  "With all normalized =pretty-hydra-head= in PRETTY-HYDRA-CABINET do
+the BODY.
+
+Its a macro with one built-in available manipulative variable
+=$internally/normalized-pretty-hydra-caskets-list= which was one
+=pretty-hydra-caskets-list= which each =pretty-hydra-casket= are
+normalized.
+
+The normalizing procedure provided by
+`entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet'."
+  `(let (($internally/normalized-pretty-hydra-caskets-list
+          (entropy/emacs-hydra-hollow-normalize-pretty-hydra-cabinet
+           ,pretty-hydra-cabinet t)))
+     ,@body))
 
 ;; **** heads predicate
 
