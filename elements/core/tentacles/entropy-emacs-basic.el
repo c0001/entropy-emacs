@@ -476,7 +476,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
   (((:enable t)
     (dired-mode dired dired-mode-map))
    ("Basic"
-    (("<tab>" dired-subtree-toggle
+    (("TAB" dired-subtree-toggle
       "Insert subtree at point or remove it if it was not present."
       :enable t :map-inject t :exit t)
      ("<backtab>" dired-subtree-cycle
