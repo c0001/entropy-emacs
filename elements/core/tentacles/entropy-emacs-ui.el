@@ -35,8 +35,8 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defface)
 
-(when (and (display-graphic-p)
-           (not entropy/emacs-fall-love-with-pdumper))
+(when
+    (not entropy/emacs-fall-love-with-pdumper)
   (scroll-bar-mode 0)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
