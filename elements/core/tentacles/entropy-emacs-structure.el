@@ -357,6 +357,7 @@ moving operation will cause non-terminated looping proceeding."
    ("C-x n s" . org-narrow-to-subtree)
    ("C-<f7>" . entropy/emacs-structure--outshine-reload-major))
 
+;; *** preface
   :preface
   (defvar-local entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode nil)
 
@@ -387,6 +388,7 @@ moving operation will cause non-terminated looping proceeding."
     (when (bound-and-true-p outshine-mode)
       (outshine-imenu)))
 
+;; *** eemacs top key bind
   :eemacs-tpha
   (((:enable t))
    ("Structure"
@@ -400,6 +402,8 @@ moving operation will cause non-terminated looping proceeding."
       :enable t
       :exit t
       :eemacs-top-bind t))))
+
+;; *** init
 
   :init
 
@@ -417,9 +421,23 @@ moving operation will cause non-terminated looping proceeding."
                (outshine-mode +1))))
          (buffer-list)))
 
+;; *** config
+
   :config
 
+;; **** eemacs outshine head regexp defination
+
   (setq outshine-max-level 100)
+
+  ;; Notice here's doc, its necessary for eemacs specification
+  (defvar outshine-regexp-base ""
+    "Actual base for calculating the outline-regexp
+
+The regexp form must obeyed the formular as:
+
+   [spec-char]{1,max-level}SPC
+
+This is required for eemacs specification.")
 
   (setq outshine-default-outline-regexp-base
         (format "[%s]\\{1,%d\\}"
@@ -428,84 +446,9 @@ moving operation will cause non-terminated looping proceeding."
   (setq outshine-oldschool-elisp-outline-regexp-base
         (format "[;]\\{1,%d\\}" outshine-max-level))
 
-  (outshine-define-key outshine-mode-map
-    (kbd "<backtab>") 'outshine-cycle-buffer
-    (or (outline-on-heading-p) (bobp)
-        (error "Using it out of the headline was not supported.")))
+;; **** eemacs outshine core subroutines
 
-  (defun entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-head-stick
-      (orig-func &rest orig-args)
-    (let ((rtn (apply orig-func orig-args)))
-      (unless (string-match-p "^\\^" rtn)
-        (setq rtn (concat "^" rtn)))
-      rtn))
-
-  (cl-loop for advice in '(entropy/emacs-structure--outshine-advice-for-outline-regexp-calc-of-head-stick)
-           do (advice-add 'outshine-calc-outline-regexp :around advice))
-
-  (defmacro entropy/emacs-structure--outshine-with-nontrailing-space-otreg (&rest body)
-    "The specific subroutine for outshine 'demote' or 'promote' head level.
-
-The trailing white-space was the outline 'demote' and 'promote'
-bug trace core in outshine, that the origin mechinsm of outline
-to re-generate the head level sign was using 'substring' function
-manipulate the outline-regexp matced group of the asterisk
-sequence, the trailing white space will be recognized as the
-'level' sign char, thus any demote will mess as the scene.
-
-     (defun outline-invent-heading (head up)
-       \"Create a heading by using heading HEAD as a template.
-     When UP is non-nil, the created heading will be one level above.
-     Otherwise, it will be one level below.\"
-       (save-match-data
-         ;; Let's try to invent one by repeating or deleting the last char.
-         (let ((new-head (if up (substring head 0 -1)
-         >>>>>>>>>>>>>>>>>>>>>>>*_notice here_
-                           (concat head (substring head -1)))))
-           (if (string-match (concat \"\\`\\(?:\" outline-regexp \"\\)\")
-                             new-head)
-               ;; Why bother checking that it is indeed higher/lower level ?
-               new-head
-             ;; Didn't work, so ask what to do.
-             (read-string (format-message \"%s heading for `%s': \"
-                                          (if up \"Parent\" \"Demoted\") head)
-                          head nil nil t)))))"
-    `(let ((outline-regexp (let ((rtn outline-regexp))
-                             (when (string-match-p " +$" rtn)
-                               (setq
-                                rtn
-                                (replace-regexp-in-string
-                                 "\\( +\\)$" "" rtn)))
-                             rtn)))
-       ,@body))
-
-  (defun entropy/emacs-structure--outshine-back-to-head ()
-    (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
-     (outline-back-to-heading)))
-
-  (defun entropy/emacs-structure--outshine-demote (&optional which)
-    (interactive
-     (list (if (and transient-mark-mode mark-active) 'region
-                    (entropy/emacs-structure--outshine-back-to-head)
-                    (if current-prefix-arg nil 'subtree))))
-    (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
-     (funcall 'outline-demote which)))
-
-  (defun entropy/emacs-structure--outshine-promote (&optional which)
-    (interactive
-     (list (if (and transient-mark-mode mark-active) 'region
-                    (entropy/emacs-structure--outshine-back-to-head)
-                    (if current-prefix-arg nil 'subtree))))
-    (entropy/emacs-structure--outshine-with-nontrailing-space-otreg
-     (funcall 'outline-promote which)))
-
-  (outshine-define-key outshine-mode-map
-    (kbd "M-S-<left>") 'entropy/emacs-structure--outshine-promote
-    (outline-on-heading-p))
-  (outshine-define-key outshine-mode-map
-    (kbd "M-S-<right>") 'entropy/emacs-structure--outshine-demote
-    (outline-on-heading-p))
-
+;; ***** eemacs outshine heading regexp generator
   (defun entropy/emacs-structure--outshine-modern-header-style-in-elisp-p (&optional buffer)
     "Return nil, if there is no match for a outshine-style header.
 Searches in BUFFER if given, otherwise in current buffer for 0 or
@@ -580,8 +523,138 @@ structure type for elisp."
               :around
               'entropy/emacs-structure--outshine-set-outline-regexp-base)
 
+;; ***** eemacs outshine head inventing
+  (defun entropy/emacs-structure--outshine-invent-heading (head up)
+    "Create a heading by using heading HEAD as a template.
+When UP is non-nil, the created heading will be one level above.
+Otherwise, it will be one level below.
+
+This function was a outshine specifed based on
+`outline-invent-heading' that for be suitable with the
+`outline-regexp' generated by `outshine-calc-outline-regexp'
+which forcely using the trailing white-space as head indicator."
+    (save-match-data
+      ;; Let's try to invent one by repeating or deleting the last char.
+      (let ((new-head (if up (concat (substring head 0 -2) " ")
+                        (concat (replace-regexp-in-string "\\s-$" "" head)
+                                outshine-regexp-base-char
+                                " "))))
+        (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
+                          new-head)
+            ;; Why bother checking that it is indeed higher/lower level ?
+            new-head
+          ;; Didn't work, so ask what to do.
+          (read-string (format-message "%s heading for `%s': "
+                                       (if up "Parent" "Demoted") head)
+                       head nil nil t)))))
+
+;; ***** eemacs outshine head demote/promote
+  (defun entropy/emacs-structure--outshine-sub-of-outline-demote (&optional which)
+    "Demote headings lower down the tree.
+If `transient-mark-mode' is on, and mark is active, demote
+headings in the region (from a Lisp program, pass `region' for
+WHICH).  Otherwise: without prefix argument, demote current
+heading and all headings in the subtree (from a Lisp program,
+pass `subtree' for WHICH); with prefix argument, demote just the
+current heading (from a Lisp program, pass nil for WHICH, or do
+not pass any argument).
+
+This function is as the origin `outline-demote' but using
+`entropy/emacs-structure--outshine-invent-heading' instead
+`outline-invent-heading' for outshine specification."
+    (interactive
+     (list (if (and transient-mark-mode mark-active) 'region
+             (outline-back-to-heading)
+             (if current-prefix-arg nil 'subtree))))
+    (cond
+     ((eq which 'region)
+      (outline-map-region 'entropy/emacs-structure--outshine-sub-of-outline-demote
+                          (region-beginning) (region-end)))
+     (which
+      (outline-map-region 'entropy/emacs-structure--outshine-sub-of-outline-demote
+                          (point)
+                          (save-excursion (outline-get-next-sibling) (point))))
+     (t
+      (let* ((head (match-string-no-properties 0))
+             (level (save-match-data (funcall outline-level)))
+             (down-head
+              (or (outline-head-from-level (1+ level) head)
+                  (save-excursion
+                    (save-match-data
+                      (while (and (progn (outline-next-heading) (not (eobp)))
+                                  (<= (funcall outline-level) level)))
+                      (when (eobp)
+                        ;; Try again from the beginning of the buffer.
+                        (goto-char (point-min))
+                        (while (and (progn (outline-next-heading) (not (eobp)))
+                                    (<= (funcall outline-level) level))))
+                      (unless (eobp)
+                        (looking-at outline-regexp)
+                        (match-string-no-properties 0))))
+                  ;; Bummer!! There is no higher-level heading in the buffer.
+                  (entropy/emacs-structure--outshine-invent-heading head nil)
+                  )))
+
+        (unless (rassoc level outline-heading-alist)
+          (push (cons head level) outline-heading-alist))
+        (replace-match down-head nil t)))))
+
+  (defun entropy/emacs-structure--outshine-sub-of-outline-promote (&optional which)
+    "Promote headings higher up the tree.
+If `transient-mark-mode' is on, and mark is active, promote
+headings in the region (from a Lisp program, pass `region' for
+WHICH).  Otherwise: without prefix argument, promote current
+heading and all headings in the subtree (from a Lisp program,
+pass `subtree' for WHICH); with prefix argument, promote just the
+current heading (from a Lisp program, pass nil for WHICH, or do
+not pass any argument).
+
+This function is as the origin `outline-promote' but using
+`entropy/emacs-structure--outshine-invent-heading' instead
+`outline-invent-heading' for outshine specification."
+    (interactive
+     (list (if (and transient-mark-mode mark-active) 'region
+             (outline-back-to-heading)
+             (if current-prefix-arg nil 'subtree))))
+    (cond
+     ((eq which 'region)
+      (outline-map-region 'entropy/emacs-structure--outshine-sub-of-outline-promote
+                          (region-beginning) (region-end)))
+     (which
+      (outline-map-region 'entropy/emacs-structure--outshine-sub-of-outline-promote
+                          (point)
+                          (save-excursion (outline-get-next-sibling) (point))))
+     (t
+      (outline-back-to-heading t)
+      (let* ((head (match-string-no-properties 0))
+             (level (save-match-data (funcall outline-level)))
+             (up-head (or (outline-head-from-level (1- level) head)
+                          ;; Use the parent heading, if it is really
+                          ;; one level less.
+                          (save-excursion
+                            (save-match-data
+                              (outline-up-heading 1 t)
+                              (and (= (1- level) (funcall outline-level))
+                                   (match-string-no-properties 0))))
+                          ;; Bummer!! There is no lower level heading.
+                          (entropy/emacs-structure--outshine-invent-heading
+                           head 'up))))
+
+        (unless (rassoc level outline-heading-alist)
+          (push (cons head level) outline-heading-alist))
+
+        (replace-match up-head nil t)))))
+
+;; ***** eemacs outshine heading face generator
+
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
-    (let ((outline-regex-head (substring outline-regexp 0 -10))
+    (let ((outline-regex-head (substring outline-regexp
+                                         0
+                                         (- 0
+                                            (+ 7
+                                               (length
+                                                (number-to-string
+                                                 outshine-max-level))))))
           func rtn)
       (setq func
             (lambda (level)
@@ -599,17 +672,110 @@ structure type for elisp."
                do (push (funcall func level) rtn))
       (nreverse rtn)))
 
+  (defun entropy/emacs-structure--outshine-get-level-face-max-suffix ()
+    "Find the max level outshine-level-NUM face's level."
+    (let ((level 1))
+      (while (facep (intern (format "outshine-level-%s" level)))
+        (cl-incf level))
+      (- level 1)))
+  (defvar entropy/emacs-structure--outshine-face-level-max-level
+    (entropy/emacs-structure--outshine-get-level-face-max-suffix)
+    "The max level outshine-level-NUM face's level")
+
+  (defvar entropy/emacs-structure--outshine-level-face-has-generated nil)
+  (defun entropy/emacs-structure--outshine-batch-gen-outshine-level-faces ()
+    "Batch generate outshine-level face according to `outshine-max-level'."
+    (when (and (> outshine-max-level
+                  entropy/emacs-structure--outshine-face-level-max-level)
+               (null entropy/emacs-structure--outshine-level-face-has-generated))
+      (let* ((max-face-level entropy/emacs-structure--outshine-face-level-max-level)
+             (overflow (- outshine-max-level max-face-level))
+             (top-map (cl-loop for step from (+ max-face-level 1) to outshine-max-level
+                               collect step))
+             (cnt 0)
+             (turn 1)
+             maplist)
+        ;; generate face suffix number maplist as
+        ;; '((9 10 11 12 13 14 15 16) (17 18 19 20 21 22 23 24) ...)
+        (while (<= cnt (- (length top-map) 1))
+          (let (var_tmp)
+            (while (and (not (= (+ 1 cnt) (- (* turn (+ max-face-level 1)) (- turn 1))))
+                        (<= cnt (- (length top-map) 1)))
+              (push (nth cnt top-map) var_tmp)
+              (cl-incf cnt))
+            (push (reverse var_tmp) maplist)
+            (cl-incf turn)))
+        (setq maplist (reverse maplist))
+        (dolist (map maplist)
+          (let ((face-inherit-indicator 1))
+            (dolist (face-suffix map)
+              (funcall
+               `(lambda ()
+                  (defface ,(intern (format "outshine-level-%s" face-suffix))
+                    '((t ()))
+                    ,(format "Face used for level %s headlines"
+                             face-suffix))
+                  (set-face-attribute
+                   ',(intern (format "outshine-level-%s" face-suffix))
+                   nil
+                   :inherit
+                   ',(intern (format "outshine-level-%s"
+                                     face-inherit-indicator)))))
+              (cl-incf face-inherit-indicator))))))
+    (setq entropy/emacs-structure--outshine-level-face-has-generated t))
+
   (defun entropy/emacs-structure--outshine-fontify-headlines (orig-func &rest orig-args)
     "Calculate heading regexps for font-lock mode."
+    (entropy/emacs-structure--outshine-batch-gen-outshine-level-faces)
     (let* ((outline-regexp (car orig-args))
            (font-lock-new-keywords
-            (entropy/emacs-structure--outshine-gen-face-keywords outline-regexp 8)))
+            (entropy/emacs-structure--outshine-gen-face-keywords
+             outline-regexp
+             outshine-max-level)))
       (add-to-list 'outshine-font-lock-keywords font-lock-new-keywords)
       (font-lock-add-keywords nil font-lock-new-keywords)
       (outshine-font-lock-flush)))
   (advice-add 'outshine-fontify-headlines
               :around
-              #'entropy/emacs-structure--outshine-fontify-headlines))
+              #'entropy/emacs-structure--outshine-fontify-headlines)
+
+
+
+;; **** interactive operation
+  (defun entropy/emacs-structure--outshine-demote (&optional which)
+    (interactive
+     (list (if (and transient-mark-mode mark-active) 'region
+             (outline-back-to-heading)
+             (if current-prefix-arg nil 'subtree))))
+    (funcall 'entropy/emacs-structure--outshine-sub-of-outline-demote
+             which))
+
+  (defun entropy/emacs-structure--outshine-promote (&optional which)
+    (interactive
+     (list (if (and transient-mark-mode mark-active) 'region
+             (outline-back-to-heading)
+             (if current-prefix-arg nil 'subtree))))
+    (funcall 'entropy/emacs-structure--outshine-sub-of-outline-promote
+             which))
+
+  (outshine-define-key outshine-mode-map
+    (kbd "M-S-<left>") 'entropy/emacs-structure--outshine-promote
+    (outline-on-heading-p))
+  (outshine-define-key outshine-mode-map
+    (kbd "M-S-<right>") 'entropy/emacs-structure--outshine-demote
+    (outline-on-heading-p))
+
+  (outshine-define-key outshine-mode-map
+    (kbd "<backtab>") 'outshine-cycle-buffer
+    (or (outline-on-heading-p) (bobp)
+        (error "Using it out of the headline was not supported.")))
+
+  (outshine-define-key outshine-mode-map
+    (kbd "C-c C-p") 'outline-up-heading
+    t)
+
+
+  )
 
 ;; * provide
 (provide 'entropy-emacs-structure)
