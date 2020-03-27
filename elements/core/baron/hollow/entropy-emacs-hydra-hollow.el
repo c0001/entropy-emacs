@@ -40,10 +40,17 @@
 (require 'use-package)
 
 ;; ** libraries
+;; *** basic library
 (defvar entropy/emacs-hydra-hollow-union-form
   '(lambda (&rest _))
   "A lambda form stored some predicated procedure that will run
 at some proper time.")
+
+(defvar entropy/emacs-hydra-hollow-random-func-name-number-register nil
+  "The register for the random number suffix as name for random
+function naming.
+
+Do not manually modify this variable or risking on your self.")
 
 (defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
   "Call `entropy/emacs-hydra-hollow-union-form' recursively til
@@ -109,7 +116,8 @@ arguments can be evaluated before the macro expanding."
 ;; 2) Add category page navigability feature for restructing
 ;;    pretty-hydra group arrangement
 
-;; **** core
+;; **** core defination
+;; ***** core protocols
 
 ;; This section was the core API for entropy-emacs pretty hyra
 ;; superstructer that define the core data type and their
@@ -328,7 +336,7 @@ with specified indicator."
                        (funcall (plist-get matched :notation) pretty-hydra-head-notation))))
     (format fmstr icon notation)))
 
-;; **** category framework
+;; ***** category framework
 
 ;; This section defined entropy-emacs main pretty-hydra *define* and
 ;; *define+* function for replace the ~pretty-hydra-define~ and
@@ -336,8 +344,8 @@ with specified indicator."
 ;; hydra superstructuer feature i.e. the hydra group or category
 ;; paging type.
 
-;; ***** library
-;; ****** core
+;; ****** library
+;; ******* core
 
 ;; This section gives the =pretty-hydra-category= prototype and their
 ;; method.
@@ -365,7 +373,7 @@ with specified indicator."
 ;; - =pretty-hydra-category-base-pretty-hydra-body=
 ;; - =pretty-hydra-category-width-indicator=
 
-;; ******* category prototype
+;; ******** category prototype
 
 (defvar entropy/emacs-hydra-hollow-category-default-width 4
   "The default pretty-hydra-category-width.")
@@ -487,7 +495,7 @@ Slots description:
         (plist-put (symbol-value pretty-hydra-category-name)
                    (car el) (symbol-value (cadr el))))))))
 
-;; ******* category names get
+;; ******** category names get
 ;; This section makes the core defination for =pretty-hydra-category=
 ;; name convention.
 
@@ -616,7 +624,7 @@ BRANCH argument type."
            pretty-hydra-category-name-prefix pretty-hydra-category-depth))))
     nil))
 
-;; ******* category width normalize
+;; ******** category width normalize
 
 (defun entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
     (pretty-hydra-category-width-indicator)
@@ -657,7 +665,7 @@ returning the result.
            (setq rtn t)))
     rtn))
 
-;; ******* category navigation set
+;; ******** category navigation set
 
 (defun entropy/emacs-hydra-hollow-category-concat-title-for-nav
     (title &rest nav)
@@ -697,7 +705,7 @@ returning the result.
     (when (not (null down-caller))
       (define-key keymap (kbd "<down>") down-caller))))
 
-;; ******* categor baron set
+;; ******** categor baron set
 
 (defun entropy/emacs-hydra-hollow-category-define-rate-key
     (keymap category-baron)
@@ -724,7 +732,7 @@ returning the result.
             (plist-put new-pretty-hydra-body :title new-title)))
     new-pretty-hydra-body))
 
-;; ******* category recursive match
+;; ******** category recursive match
 
 (defun entropy/emacs-hydra-hollow-category-recursive-match-group
     (pretty-hydra-category-name-prefix pretty-hydra-category-cabinet-unit-name)
@@ -766,7 +774,7 @@ Return a plist as the matching report who has two slot:
                       :pretty-hydra-category-depth pretty-hydra-category-depth)))
     rtn))
 
-;; ******* category manipulation
+;; ******** category manipulation
 
 (defmacro entropy/emacs-hydra-hollow-category-with-category
     (pretty-hydra-category-name-prefix pretty-hydra-category-depth &rest body)
@@ -984,7 +992,7 @@ the internally subroutines of this macro, they are:
                       (setq $internally/pretty-hydra-category-baron-name->new
                             ',pretty-hydra-category-baron-name)))))))))))
 
-;; ****** define hydra hollow category
+;; ******* define hydra hollow category
 
 (defun entropy/emacs-hydra-hollow-category-frame-work-define
     (pretty-hydra-category-name-prefix
@@ -1293,7 +1301,7 @@ Optional arguments are all type of
                            new-ctg-name))))))))))))))
 
 
-;; ***** major-mode pretty hydra core
+;; ****** major-mode pretty hydra core
 ;; This section gives the method to directed define a entropy-emacs
 ;; superstructure pretty hydra for a major-mode or even for a
 ;; arbitray mode but not recommended for the context term restriction.
@@ -1369,7 +1377,7 @@ backend instead of `pretty-hydra-define+'."
   (kbd "m")
   #'entropy/emacs-hydra-hollow-category-major-mode-hydra)
 
-;; ***** individual pretty hydra core
+;; ****** individual pretty hydra core
 
 ;; This section gives the method to define individual entropy-emacs
 ;; superstructure pretty hyra, with follow data type defined:
@@ -1434,7 +1442,7 @@ backend instead of `pretty-hydra-define+'."
       :quit-key "q"
       :separator "═")))
 
-;; **** wapper
+;; ***** base /pretty-hydra-cabinet/ normalization defination
 
 (defun entropy/emacs-hydra-hollow-normalize-pretty-hydra-caskets-list
     (pretty-hydra-caskets-list)
@@ -1467,6 +1475,17 @@ otherwise as other purpose for.
              (new-notation (entropy/emacs-hydra-hollow--common-judge-p
                             notation))
              )
+
+        ;; Notice Here: inject ':exit' key and non-nil value
+        ;; to the head prevent recursive hydra map calling
+        ;; bug.
+        (when (and
+               (symbolp new-command)
+               (entropy/emacs-hydra-hollow-pretty-hydra-category-hydra-name-p
+                new-command))
+          (unless (plist-get ptt-plist :exit)
+            (setq ptt-plist
+                  (plist-put ptt-plist :exit t))))
 
         (setq rtn
               (append
@@ -1539,19 +1558,13 @@ The normalizing procedure provided by
            ,pretty-hydra-cabinet t)))
      ,@body))
 
-;; **** heads predicate
+;; ***** heads predicate
 
 ;; This sectioin defined the predicate handle for
 ;; =pretty-hydra-head=, aiming for handling more entropy-emacs
 ;; specified head key slot.
 
-;; ***** library
-
-(defvar entropy/emacs-hydra-hollow-random-func-name-number-register nil
-  "The register for the random number suffix as name for random
-function naming.
-
-Do not manually modify this variable or risking on your self.")
+;; ****** library
 
 (defun entropy/emacs-hydra-hollow-define-key (keymap key form)
   "Bind KEY to KEYMAP with FORM.
@@ -1612,7 +1625,7 @@ KEYMAP was a keymap, a keymap symbol or for some meaningful usage:
            (kbd key) command))))
     ))
 
-;; ***** predicate defination
+;; ****** predicate defination
 
 ;; *Data type*
 
@@ -1897,7 +1910,7 @@ as for judging with 't' or 'nil'.
           :pretty-hydra-casket
           `(,group ((,key ,command ,notation ,@pretty-hydra-casket-plist))))))
 
-;; ***** batch patch pretty-hydra-casket
+;; ****** batch patch pretty-hydra-casket
 ;; This section provide a method to handle the =pretty-hydra-cabinet=
 ;; with =pretty-hydra-head-predicate-func=.
 
@@ -1967,7 +1980,268 @@ if Optional arguments NOT-MERGE is non-nil. "
          (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
           new-pretty-hydra-caskets-list))))))
 
-;; ** apis
+;; **** core hydra builder defination
+
+
+(defvar entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook nil
+  "Hook for normalize a =pretty-hydra-cabinet= with customized way.
+
+Each function must just has one argumentm, a
+=pretty-hydra-cabinet-name=, which is the symbol host that
+=pretty-hydra-cabinet=.")
+
+(defun entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
+    (pretty-hydra-cabinet-name)
+  "Run hook
+`entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook'"
+  (let ()
+    (run-hook-with-args
+     'entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook
+     pretty-hydra-cabinet-name)))
+
+;; ***** hydra builder for individual
+
+;; This section provide a method to define a somewhat hydra using
+;; entropy-emacs pretty hydra supperstructure. We call this hydra
+;; type =entropy/emacs-pretty-hydra-for-individual=
+
+(defun entropy/emacs-hydra-hollow-common-individual-hydra-define
+    (individual-hydra-name feature keymap heads-plist
+                           &optional pretty-hydra-body pretty-hydra-category-width-indicator)
+  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
+   'heads-plist)
+  (let ((has-defined (fboundp (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+                               individual-hydra-name)))
+        (patched-heads-group
+         (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
+          heads-plist
+          `((:map-inject . (,feature ,keymap))
+            (:global-bind)
+            (:eemacs-top-bind))))
+        (body (or pretty-hydra-body
+                  (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+                   individual-hydra-name))))
+    (if (null has-defined)
+        (entropy/emacs-hydra-hollow-category-common-individual-define
+         individual-hydra-name body patched-heads-group
+         pretty-hydra-category-width-indicator)
+      (entropy/emacs-hydra-hollow-category-common-individual-define+
+       individual-hydra-name body patched-heads-group
+       pretty-hydra-category-width-indicator))))
+
+(defun entropy/emacs-hydra-hollow-common-individual-hydra-define+
+    (individual-hydra-name feature keymap heads-plist
+                           &optional
+                           pretty-hydra-body
+                           pretty-hydra-category-width-indicator-for-build
+                           pretty-hydra-category-width-indicator-for-inject)
+  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
+   'heads-plist)
+  (let ((patched-heads-group
+         (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
+          heads-plist
+          `((:map-inject . (,feature ,keymap))
+            (:global-bind)
+            (:eemacs-top-bind))))
+        (body (or pretty-hydra-body
+                  (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+                   individual-hydra-name))))
+    (entropy/emacs-hydra-hollow-category-common-individual-define+
+     individual-hydra-name body patched-heads-group
+     pretty-hydra-category-width-indicator-for-build
+     pretty-hydra-category-width-indicator-for-inject)))
+
+
+(defun entropy/emacs-hydra-hollow-get-random-individual-hydra-name ()
+  (let ((suffix (or (ignore-errors
+                      (+ 1
+                         (apply 'max
+                                entropy/emacs-hydra-hollow-random-func-name-number-register)))
+                    1)))
+    (push suffix entropy/emacs-hydra-hollow-random-func-name-number-register)
+    (intern
+     (format "entropy/emacs-individual-hydra-random-name-of-%s" suffix))))
+
+(defun entropy/emacs-hydra-hollow-build-random-individual-hydra
+    (pretty-hydra-cabinet &optional pretty-hydra-category-width-indicator)
+  (let ((random-name (entropy/emacs-hydra-hollow-get-random-individual-hydra-name)))
+    (entropy/emacs-hydra-hollow-common-individual-hydra-define
+     random-name
+     nil nil
+     pretty-hydra-cabinet
+     nil
+     pretty-hydra-category-width-indicator)
+    (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+     random-name)))
+
+
+;; ***** hydra builder for major-mode
+
+;; This section defines the unified major-mode dispatch used for
+;; entropy-emacs for calling for arbitrary buffer with its
+;; major-mode. We call this hydra type
+;; =entropy/emacs-pretty-hydra-for-major-mode=
+
+(defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
+
+;; ******* define major mode hydra
+;; This section provide the method for how to define a
+;; =entropy/emacs-pretty-hydra-for-major-mode=.
+
+(defun entropy/emacs-hydra-hollow-define-major-mode-hydra
+    (mode feature mode-map body heads-plist &optional ctg-width-indc)
+  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
+   'heads-plist)
+  (let ((patched-heads-group
+         (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
+          heads-plist
+          `((:map-inject . (,feature ,mode-map))
+            (:global-bind)
+            (:eemacs-top-bind)))))
+    (let ()
+      (funcall
+       (if (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
+                     mode))
+           'entropy/emacs-hydra-hollow-category-major-mode-define+
+         'entropy/emacs-hydra-hollow-category-major-mode-define)
+       mode
+       body
+       patched-heads-group
+       ctg-width-indc)
+      (unless (alist-get mode entropy/emacs-hydra-hollow-major-mode-body-register)
+        (push (cons mode body)
+              entropy/emacs-hydra-hollow-major-mode-body-register)))))
+
+;; ******* add major mode hydra
+;; This section provide the method for how to add a
+;; =pretty-hydr-cabinet= into
+;; =entropy/emacs-pretty-hydra-for-major-mode=.
+
+(defun entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+    (mode feature mode-map heads-plist
+          &optional
+          pretty-hydra-body
+          pretty-hydra-category-width-indicator-for-build
+          pretty-hydra-category-width-indicator-for-inject)
+  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
+   'heads-plist)
+  (let ((patched-heads-group
+         (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
+          heads-plist
+          `((:map-inject . (,feature ,mode-map))
+            (:global-bind)
+            (:eemacs-top-bind))))
+        (body (or pretty-hydra-body
+                  (alist-get
+                   mode
+                   entropy/emacs-hydra-hollow-major-mode-body-register)
+                  (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
+                   mode))))
+    (entropy/emacs-hydra-hollow-category-major-mode-define+
+     mode
+     body
+     patched-heads-group
+     pretty-hydra-category-width-indicator-for-build
+     pretty-hydra-category-width-indicator-for-inject)))
+
+;; **** miscellanies
+
+;; ***** Recursive cabinet
+
+(defun entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet
+    (pretty-hydra-cabinet-name)
+  "Recursively expand the nested =pretty-hydra-cabinet= of
+PRETTY-HYDRA-CABINET-NAME.
+
+A nested =pretty-hydra-cabinet= who has at least one
+=pretty-hydra-head= whose =pretty-hydra-head-command= was a plist
+whose car was the key =:pretty-hydra-cabinet= and its value is a
+pattern prepared for evaluating by
+`entropy/emacs-hydra-hollow--common-judge-p' and its return must
+be a =pretty-hydra-cabinet=.
+
+Other valid key to this plist type =pretty-hydra-head-command=:
+
+- =:pretty-hydra-category-width-indicator=
+
+
+Internal expanding mechanism:
+
+Using `entropy/emacs-hydra-hollow-build-random-individual-hydra'
+to build a =pretty-hydra= according to the evaluated value of the
+=:pretty-hydra-cabinet= slot's pattern and replace current nested
+=pretty-hydra-head-command= for the 'expanded' (i.e. the real
+hydra body caller) =pretty-hydra-head-command=.
+"
+  (let* ((pretty-hydra-cabinet (symbol-value pretty-hydra-cabinet-name))
+         (pretty-hydra-caskets-list
+          (entropy/emacs-hydra-hollow-make-pretty-hydra-caskets-list
+           pretty-hydra-cabinet))
+         (command-is-nest-func
+          (lambda (command)
+            (and (listp command)
+                 (eq (car command) :pretty-hydra-cabinet))))
+         new-pretty-hydra-caskets-list)
+
+    (dolist (pretty-hydra-casket
+             pretty-hydra-caskets-list)
+      (let* ((group-name (car pretty-hydra-casket))
+             (casket-pattern (caadr pretty-hydra-casket))
+             (command
+              (nth 1 casket-pattern))
+             (key (car casket-pattern))
+             (notation (nth 2 casket-pattern))
+             (rest-keypairs (cdddr casket-pattern)))
+        (if (funcall command-is-nest-func command)
+            (let* ((sub-cabinet (entropy/emacs-hydra-hollow--common-judge-p
+                                 (plist-get command :pretty-hydra-cabinet)))
+                   (sub-ctg-width-indicator (plist-get command :pretty-hydra-category-width-indicator))
+                   (sub-casket-lists
+                    (entropy/emacs-hydra-hollow-make-pretty-hydra-caskets-list
+                     sub-cabinet))
+                   non-nested-subcabinet)
+              (if (catch :exit
+                    (dolist (el sub-casket-lists)
+                      (let ((sub-command
+                             (nth 1 (caadr el))))
+                        (when (funcall command-is-nest-func sub-command)
+                          (throw :exit t)))))
+                  (setq non-nested-subcabinet
+                        (entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet
+                         'sub-cabinet))
+                (setq non-nested-subcabinet sub-cabinet))
+              (let ((new-pretty-hydra-casket-pattern
+                     (list
+                      key
+                      (entropy/emacs-hydra-hollow-build-random-individual-hydra
+                       non-nested-subcabinet
+                       sub-ctg-width-indicator)
+                      notation)))
+
+                (unless (null rest-keypairs)
+                  (setq new-pretty-hydra-casket-pattern
+                        (append new-pretty-hydra-casket-pattern
+                                rest-keypairs)))
+
+                (setq new-pretty-hydra-caskets-list
+                      (append new-pretty-hydra-caskets-list
+                              (list
+                               (list
+                                group-name
+                                (list
+                                 new-pretty-hydra-casket-pattern)))))))
+          (setq new-pretty-hydra-caskets-list
+                (append new-pretty-hydra-caskets-list
+                        (list pretty-hydra-casket))))))
+    (set pretty-hydra-cabinet-name
+         (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
+          new-pretty-hydra-caskets-list))))
+
+(add-hook 'entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook
+          #'entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet)
+
+
+;; ** pre hydra hollow platform
 
 ;; This section gives entropy-emacs specified hydra defination
 ;; platform for other entropy-emacs config to attend in. Including
@@ -2050,78 +2324,15 @@ if Optional arguments NOT-MERGE is non-nil. "
        (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
         pretty-hydra-caskets-list)))))
 
-;; *** majro mode dispacher
-;; This section defines the unified major-mode dispatch used for
-;; entropy-emacs for calling for arbitrary buffer with its
-;; major-mode. We call this hydra type
-;; =entropy/emacs-pretty-hydra-for-major-mode=
 
-(defvar entropy/emacs-hydra-hollow-major-mode-body-register nil)
-
-;; **** define major mode hydra
-;; This section provide the method for how to define a
-;; =entropy/emacs-pretty-hydra-for-major-mode=.
-
-(defun entropy/emacs-hydra-hollow-define-major-mode-hydra
-    (mode feature mode-map body heads-plist &optional ctg-width-indc)
-  (let ((patched-heads-group
-         (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
-          heads-plist
-          `((:map-inject . (,feature ,mode-map))
-            (:global-bind)
-            (:eemacs-top-bind)))))
-    (let ()
-      (funcall
-       (if (fboundp (entropy/emacs-hydra-hollow-category-get-major-mode-caller
-                     mode))
-           'entropy/emacs-hydra-hollow-category-major-mode-define+
-         'entropy/emacs-hydra-hollow-category-major-mode-define)
-       mode
-       body
-       patched-heads-group
-       ctg-width-indc)
-      (unless (alist-get mode entropy/emacs-hydra-hollow-major-mode-body-register)
-        (push (cons mode body)
-              entropy/emacs-hydra-hollow-major-mode-body-register)))))
-
-;; **** add major mode hydra
-;; This section provide the method for how to add a
-;; =pretty-hydr-cabinet= into
-;; =entropy/emacs-pretty-hydra-for-major-mode=.
-
-(defun entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-    (mode feature mode-map heads-plist
-          &optional
-          pretty-hydra-body
-          pretty-hydra-category-width-indicator-for-build
-          pretty-hydra-category-width-indicator-for-inject)
-  (let ((patched-heads-group
-         (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
-          heads-plist
-          `((:map-inject . (,feature ,mode-map))
-            (:global-bind)
-            (:eemacs-top-bind))))
-        (body (or pretty-hydra-body
-                  (alist-get
-                   mode
-                   entropy/emacs-hydra-hollow-major-mode-body-register)
-                  (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
-                   mode))))
-    (entropy/emacs-hydra-hollow-category-major-mode-define+
-     mode
-     body
-     patched-heads-group
-     pretty-hydra-category-width-indicator-for-build
-     pretty-hydra-category-width-indicator-for-inject)))
-
-;; **** sparse tree builder
+;; *** sparse tree builder
 
 ;; This section provide a method for defining one
 ;; =entropy/emacs-pretty-hydra-for-major-mode= with builtin
 ;; =pretty-hydra-cabinet-unit=.
 
 (defun entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-core
-    (mode &optional pretty-hydra-category-width-indicator)
+    (mode feature mode-map &optional pretty-hydra-category-width-indicator)
   (let ((body
          (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
           mode)))
@@ -2130,8 +2341,8 @@ if Optional arguments NOT-MERGE is non-nil. "
         (push (cons mode
                     body)
               entropy/emacs-hydra-hollow-major-mode-body-register))
-      (entropy/emacs-hydra-hollow-category-major-mode-define
-       mode
+      (entropy/emacs-hydra-hollow-define-major-mode-hydra
+       mode feature mode-map
        body
        '("Help"
          nil)
@@ -2155,7 +2366,7 @@ if Optional arguments NOT-MERGE is non-nil. "
            mode))))
     (unless (or has-defined do-not-build-sparse-tree)
       (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-core
-       mode pretty-hydra-category-width-indicator-for-build))
+       mode feature mode-map pretty-hydra-category-width-indicator-for-build))
     (if (and (null do-not-build-sparse-tree)
              (null has-defined))
         (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
@@ -2165,54 +2376,6 @@ if Optional arguments NOT-MERGE is non-nil. "
       (entropy/emacs-hydra-hollow-define-major-mode-hydra
        mode feature mode-map pretty-hydra-body heads
        pretty-hydra-category-width-indicator-for-build))))
-
-;; *** individual common hydra define&define+
-
-;; This section provide a method to define a somewhat hydra using
-;; entropy-emacs pretty hydra supperstructure. We call this hydra
-;; type =entropy/emacs-pretty-hydra-for-individual=
-
-(defun entropy/emacs-hydra-hollow-common-individual-hydra-define
-    (individual-hydra-name feature keymap heads-plist
-                           &optional pretty-hydra-body pretty-hydra-category-width-indicator)
-  (let ((has-defined (fboundp (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-                               individual-hydra-name)))
-        (patched-heads-group
-         (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
-          heads-plist
-          `((:map-inject . (,feature ,keymap))
-            (:global-bind)
-            (:eemacs-top-bind))))
-        (body (or pretty-hydra-body
-                  (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
-                   individual-hydra-name))))
-    (if (null has-defined)
-        (entropy/emacs-hydra-hollow-category-common-individual-define
-         individual-hydra-name body patched-heads-group
-         pretty-hydra-category-width-indicator)
-      (entropy/emacs-hydra-hollow-category-common-individual-define+
-       individual-hydra-name body patched-heads-group
-       pretty-hydra-category-width-indicator))))
-
-(defun entropy/emacs-hydra-hollow-common-individual-hydra-define+
-    (individual-hydra-name feature keymap heads-plist
-                           &optional
-                           pretty-hydra-body
-                           pretty-hydra-category-width-indicator-for-build
-                           pretty-hydra-category-width-indicator-for-inject)
-  (let ((patched-heads-group
-         (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
-          heads-plist
-          `((:map-inject . (,feature ,keymap))
-            (:global-bind)
-            (:eemacs-top-bind))))
-        (body (or pretty-hydra-body
-                  (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
-                   individual-hydra-name))))
-    (entropy/emacs-hydra-hollow-category-common-individual-define+
-     individual-hydra-name body patched-heads-group
-     pretty-hydra-category-width-indicator-for-build
-     pretty-hydra-category-width-indicator-for-inject)))
 
 
 ;; *** use-package extended
