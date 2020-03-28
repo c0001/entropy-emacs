@@ -701,48 +701,6 @@ returning the type of exec for open exported html file, they are:
 
 
 ;; *** keymap hydra reflect
-;; **** library
-(defun entropy/emacs-org-gen-pretty-hydra-group
-    (group-name sub-group-infos)
-  (let ((get-name-prefix-func
-         (lambda (name)
-           (let (rtn
-                 (name-prefix
-                  (replace-regexp-in-string
-                   "entropy/emacs-org-keymap-group-\\$\\(.*\\)"
-                   "\\1" (symbol-name name))))
-             (setq rtn (intern (format "org-mode-eemacs-map-$%s" name-prefix)))
-             rtn)))
-        (rtn-form '(lambda nil))
-        rtn-gps)
-    (dolist (gp sub-group-infos)
-      (let* ((gp-sym (car gp))
-             (gp-key (cadr gp))
-             (gp-des (caddr gp))
-             (gp-ctg-width-indc (cadddr gp))
-             (gp-name-prefix (funcall get-name-prefix-func gp-sym))
-             (gp-value (symbol-value gp-sym)))
-        (setq rtn-form
-              (append
-               rtn-form
-               `((entropy/emacs-hydra-hollow-common-individual-hydra-define
-                  ',gp-name-prefix 'org 'org-mode-map
-                  ',gp-value
-                  nil ',gp-ctg-width-indc))))
-        (setq rtn-gps
-              (append
-               rtn-gps
-               `((,gp-key
-                  ,(entropy/emacs-hydra-hollow-category-common-individual-get-caller
-                    gp-name-prefix)
-                  ,gp-des
-                  :enable t :exit t))))))
-    (setq rtn-gps
-          (list group-name rtn-gps))
-    (funcall rtn-form)
-    rtn-gps))
-
-
 ;; **** org-mode
 ;; ***** sub-groups
 ;; ****** org basic manipulation
@@ -910,21 +868,27 @@ returning the type of exec for open exported html file, they are:
      )))
 
 ;; ********* define
-(defvar entropy/emacs-org-keymap-group--$common-infos
-  '((entropy/emacs-org-keymap-group-$common-insert      "c i" "Common Insert")
-    (entropy/emacs-org-keymap-group-$common-edit        "c e" "Common Edit")
-    (entropy/emacs-org-keymap-group-$common-copy&paste  "c y" "Common copy and paste")
-    (entropy/emacs-org-keymap-group-$common-move        "c m" "Common Move")
-    (entropy/emacs-org-keymap-group-$common-open        "c o" "Common Open")
-    (entropy/emacs-org-keymap-group-$common-sort        "c s" "Common Sort ")
-    (entropy/emacs-org-keymap-group-$common-toggle      "c t" "Common Toggle")
-    (entropy/emacs-org-keymap-group-$common-archive     "c a" "Common Archive")
-    (entropy/emacs-org-keymap-group-$common-attachments "c n" "Common attachments")))
 
 (defvar entropy/emacs-org-keymap-group-$common
-  (entropy/emacs-org-gen-pretty-hydra-group
-   "Common Manipulations"
-   entropy/emacs-org-keymap-group--$common-infos))
+  '("Common Manipulations"
+    (("c i" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-insert) "Common Insert"
+      :enable t :exit t)
+     ("c e" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-edit) "Common Edit"
+      :enable t :exit t)
+     ("c y" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-copy&paste) "Common copy and paste"
+      :enable t :exit t)
+     ("c m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-move) "Common Move"
+      :enable t :exit t)
+     ("c o" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-open) "Common Open"
+      :enable t :exit t)
+     ("c s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-sort) "Common Sort"
+      :enable t :exit t)
+     ("c t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-toggle) "Common Toggle"
+      :enable t :exit t)
+     ("c a" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-archive) "Common Archive"
+      :enable t :exit t)
+     ("c n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-attachments) "Common attachments"
+      :enable t :exit t))))
 
 ;; ******** babel
 (defvar entropy/emacs-org-keymap-group-$babel
@@ -1125,17 +1089,19 @@ returning the type of exec for open exported html file, they are:
 
 ;; ********* define
 
-(defvar entropy/emacs-org-keymap-group--$table-infos
-  '((entropy/emacs-org-keymap-group-$table-create&convert
-     "c" "Create&Convert Table")
-    (entropy/emacs-org-keymap-group-$table-edit "e" "Edit Table ")
-    (entropy/emacs-org-keymap-group-$table-move "m" "Move Elements")
-    (entropy/emacs-org-keymap-group-$table-eval "f" "Table Evaluate")
-    (entropy/emacs-org-keymap-group-$table-view "v" "Table rich view")))
-
 (defvar entropy/emacs-org-keymap-group-$table
-  (entropy/emacs-org-gen-pretty-hydra-group
-   "Table" entropy/emacs-org-keymap-group--$table-infos))
+  '("Table"
+    (("c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-create&convert)
+      "Create&Convert Table"
+      :enable t :exit t)
+     ("e" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-edit) "Edit Table "
+      :enable t :exit t)
+     ("m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-move) "Move Elements"
+      :enable t :exit t)
+     ("f" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-eval) "Table Evaluate"
+      :enable t :exit t)
+     ("v" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-view) "Table rich view"
+      :enable t :exit t))))
 
 ;; ******** dynamic block
 (defvar entropy/emacs-org-keymap-group-$dynamic-block
@@ -1185,22 +1151,31 @@ returning the type of exec for open exported html file, they are:
      )))
 
 ;; ******* define
-(defvar entropy/emacs-org-keymap-group--$basic-manipulation-infos
-  '((entropy/emacs-org-keymap-group-$common          "b c" "Common Manipulation")
-    (entropy/emacs-org-keymap-group-$link            "b u" "Link Manipulation")
-    (entropy/emacs-org-keymap-group-$table           "b t" "Table Manipulation")
-    (entropy/emacs-org-keymap-group-$plain-list      "b l" "Plain List Manipulation")
-    (entropy/emacs-org-keymap-group-$note            "b n" "Note Manipulation")
-    (entropy/emacs-org-keymap-group-$headline-tag    "b g" "Tag Manipulation")
-    (entropy/emacs-org-keymap-group-$drawer&property "b d" "Drawer&Property Manipulation")
-    (entropy/emacs-org-keymap-group-$time-stamp      "b s" "Time Stamp Manipulation")
-    (entropy/emacs-org-keymap-group-$inline-image    "b i" "Inline Image manipulation")
-    (entropy/emacs-org-keymap-group-$dynamic-block   "b y" "Dynamic Block manipulation")
-    (entropy/emacs-org-keymap-group-$babel           "b b" "Babel Manipulation")))
 
 (defvar entropy/emacs-org-keymap-group-$basic-manipulation
-  (entropy/emacs-org-gen-pretty-hydra-group
-   "Basic" entropy/emacs-org-keymap-group--$basic-manipulation-infos))
+  '("Basic"
+    (("b c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common) "Common Manipulation"
+      :enable t :exit t)
+     ("b u" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$link) "Link Manipulation"
+      :enable t :exit t)
+     ("b t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table) "Table Manipulation"
+      :enable t :exit t)
+     ("b l" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$plain-list) "Plain List Manipulation"
+      :enable t :exit t)
+     ("b n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$note) "Note Manipulation"
+      :enable t :exit t)
+     ("b g" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$headline-tag) "Tag Manipulation"
+      :enable t :exit t)
+     ("b d" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$drawer&property) "Drawer&Property Manipulation"
+      :enable t :exit t)
+     ("b s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$time-stamp) "Time Stamp Manipulation"
+      :enable t :exit t)
+     ("b i" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$inline-image) "Inline Image manipulation"
+      :enable t :exit t)
+     ("b y" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$dynamic-block) "Dynamic Block manipulation"
+      :enable t :exit t)
+     ("b b" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$babel) "Babel Manipulation"
+      :enable t :exit t))))
 
 ;; ****** org buffer navigation (guide)
 ;; ******* sub-groups
@@ -1326,18 +1301,20 @@ returning the type of exec for open exported html file, they are:
 
 ;; ******* define
 
-(defvar entropy/emacs-org-keymap-group--$buffer-navigation-infos
-  '((entropy/emacs-org-keymap-group-$sparse-tree "n s" "Sparse Tree Viewer")
-    (entropy/emacs-org-keymap-group-$cycle       "n c" "Cycle Through Buffer")
-    (entropy/emacs-org-keymap-group-$goto        "n g" "Goto Buffer POS")
-    (entropy/emacs-org-keymap-group-$mark        "n m" "Mark Up Org Buffer")
-    (entropy/emacs-org-keymap-group-$narrow      "n n" "Narrow Org Buffer")
-    (entropy/emacs-org-keymap-group-$block-jump  "n j" "Block Jump")))
-
 (defvar entropy/emacs-org-keymap-group-$buffer-navigation
-  (entropy/emacs-org-gen-pretty-hydra-group
-   "Buffer Navigation"
-   entropy/emacs-org-keymap-group--$buffer-navigation-infos))
+  '("Buffer Navigation"
+    (("n s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$sparse-tree) "Sparse Tree Viewer"
+      :enable t :exit t)
+     ("n c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$cycle) "Cycle Through Buffer"
+      :enable t :exit t)
+     ("n g" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$goto) "Goto Buffer POS"
+      :enable t :exit t)
+     ("n m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$mark) "Mark Up Org Buffer"
+      :enable t :exit t)
+     ("n n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$narrow) "Narrow Org Buffer"
+      :enable t :exit t)
+     ("n j" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$block-jump) "Block Jump"
+      :enable t :exit t))))
 
 ;; ****** org task function
 ;; ******* sub-groups
@@ -1476,16 +1453,16 @@ returning the type of exec for open exported html file, they are:
 
 ;; ******* define
 
-(defvar entropy/emacs-org-keymap-group--$task-manipulation-infos
-  '((entropy/emacs-org-keymap-group-$todo "t t" "Todo manipulation")
-    (entropy/emacs-org-keymap-group-$clock "t c" "Clock Operation")
-    (entropy/emacs-org-keymap-group-$agenda "t a" "Agenda Refer")
-    (entropy/emacs-org-keymap-group-$timer "t m" "Timer manipulation")))
-
 (defvar entropy/emacs-org-keymap-group-$task-manipulation
-  (entropy/emacs-org-gen-pretty-hydra-group
-   "Task Manipulation"
-   entropy/emacs-org-keymap-group--$task-manipulation-infos))
+  '("Task Manipulation"
+    (("t t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$todo) "Todo manipulation"
+      :enable t :exit t)
+     ("t c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$clock) "Clock Operation"
+      :enable t :exit t)
+     ("t a" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$agenda) "Agenda Refer"
+      :enable t :exit t)
+     ("t m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$timer) "Timer manipulation"
+      :enable t :exit t))))
 
 
 ;; ****** org rss
