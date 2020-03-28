@@ -2193,8 +2193,9 @@ hydra body caller) =pretty-hydra-head-command=.
              (notation (nth 2 casket-pattern))
              (rest-keypairs (cdddr casket-pattern)))
         (if (funcall command-is-nest-func command)
-            (let* ((sub-cabinet (entropy/emacs-hydra-hollow--common-judge-p
-                                 (plist-get command :pretty-hydra-cabinet)))
+            (let* ((sub-cabinet (car
+                                 (entropy/emacs-hydra-hollow--common-judge-p
+                                  (plist-get command :pretty-hydra-cabinet))))
                    (sub-ctg-width-indicator (plist-get command :pretty-hydra-category-width-indicator))
                    (sub-casket-lists
                     (entropy/emacs-hydra-hollow-make-pretty-hydra-caskets-list
