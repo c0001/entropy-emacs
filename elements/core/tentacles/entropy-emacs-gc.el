@@ -71,16 +71,27 @@
         (+ 2000000
            gc-cons-threshold)))
 
-(defun entropy/emacs-gc--idle-time-recovery ()
-  (entropy/emacs-gc--with-record
-    (garbage-collect)
-    (setq gc-cons-threshold
-          entropy/emacs-gc-threshold-basic)))
-
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
         (run-with-idle-timer (if sec sec entropy/emacs-garbage-collection-delay)
                              t #'entropy/emacs-gc--idle-time-recovery)))
+
+(defun entropy/emacs-gc--idle-time-recovery ()
+  (entropy/emacs-gc--with-record
+    (garbage-collect)
+    (setq gc-cons-threshold
+          entropy/emacs-gc-threshold-basic))
+  ;; remove duplicate timemr when detected
+  (let (duplicate-timerp)
+    (dolist (timer timer-idle-list)
+      (let ((timer-func (aref timer 5)))
+        (when (eq timer-func 'entropy/emacs-gc--idle-time-recovery)
+          (push timer duplicate-timerp))))
+    (when (and duplicate-timerp
+               (> (length duplicate-timerp) 1))
+      (dolist (timer duplicate-timerp)
+        (cancel-timer timer))
+      (entropy/emacs-gc--init-idle-gc))))
 
 (defun entropy/emacs-gc--focus-in-reset ()
   (entropy/emacs-gc--init-idle-gc entropy/emacs-garbage-collection-delay))
