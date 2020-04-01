@@ -394,5 +394,10 @@
     :quit-key "q"
     :separator "═"))
 
+;; ** xclip activation
+(use-package xclip
+  :commands
+  (xclip-mode))
+
 ;; * provide
 (provide 'entropy-emacs-utils)

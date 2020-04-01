@@ -939,9 +939,41 @@ the string passed to `kbd'."
             (kbd (car key-bind)) (cdr key-bind)))))))
 
 ;; ** cli compatibale
-(defvar entropy/emacs--xterm-clipboard-head nil)
+(defvar entropy/emacs--xterm-clipboard-head nil
+  "The string of the head of the last event paste part of
+`xterm-paste'.")
+
+(defun entropy/emacs-xterm-external-satisfied-p ()
+  "Judge whether emacs to use external kits to assistant the
+xterm-session yank/paste operation."
+  (let ((judger
+         '(or
+           ;; darwin (macos platform)
+           (and (and (eq system-type 'darwin)
+                     (executable-find "pbcopy"))
+                'pbpaste)
+           ;; cygwin (windows posix emulator)
+           (and (eq system-type 'cygwin)
+                (executable-find "getclip")
+                'getclip)
+           ;; android termux emulator
+           (and (executable-find "termux-clipboard-get")
+                'termux-clipboard-get)
+           ;; gnu/linux platform
+           (and (eq system-type 'gnu/linux)
+                (or
+                 (and (executable-find "xclip") 'xclip)
+                 (and (executable-find "xsel") 'xsel))))))
+    (when (and (not (display-graphic-p))
+               (fboundp 'xterm-paste)
+               (ignore-errors
+                 (progn (require 'xclip)
+                        (xclip-mode 1))))
+      judger)))
 
 (defun entropy/emacs-xterm-paste-core (event)
+  "The eemacs subroutine for `xterm-paste' event to automatically
+traceback to `kill-ring'."
   (let* ((paste-str (nth 1 event)))
     (with-temp-buffer
       (if (not (equal paste-str
@@ -952,16 +984,19 @@ the string passed to `kbd'."
         (yank)))))
 
 (defun entropy/emacs-xterm-paste (event)
-  "Prefer to use `kill-ring` to yank instead of event get thus."
+  "eemacs wrapper for `xterm-paste' based on the subroutine of
+`entropy/emacs-xterm-paste-core'.
+"
   (interactive "e")
   (entropy/emacs-xterm-paste-core event)
   (yank))
 
 (defun entropy/emacs-xterm-term-S-insert (event)
+  "eemacs wrapper for `term-send-raw-string' based on the
+subroutine of `entropy/emacs-xterm-paste-core'.
+"
   (interactive "e")
-  (when (and (fboundp #'xterm-paste)
-             (not (executable-find "xclip")))
-    (entropy/emacs-xterm-paste-core event))
+  (entropy/emacs-xterm-paste-core event)
   (let* ((paste (with-temp-buffer
                   (yank)
                   (car kill-ring))))
