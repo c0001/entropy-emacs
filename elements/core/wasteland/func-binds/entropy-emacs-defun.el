@@ -976,12 +976,12 @@ xterm-session yank/paste operation."
 traceback to `kill-ring'."
   (let* ((paste-str (nth 1 event)))
     (with-temp-buffer
-      (if (not (equal paste-str
-                      entropy/emacs--xterm-clipboard-head))
-          (progn (setq entropy/emacs--xterm-clipboard-head
-                       paste-str)
-                 (xterm-paste event))
-        (yank)))))
+      (unless (equal paste-str
+                     entropy/emacs--xterm-clipboard-head)
+        (progn (setq entropy/emacs--xterm-clipboard-head
+                     paste-str)
+               (xterm-paste event)))
+      (yank))))
 
 (defun entropy/emacs-xterm-paste (event)
   "eemacs wrapper for `xterm-paste' based on the subroutine of
@@ -1000,7 +1000,8 @@ subroutine of `entropy/emacs-xterm-paste-core'.
   (let* ((paste (with-temp-buffer
                   (yank)
                   (car kill-ring))))
-    (when (stringp paste)
+    (when (and (stringp paste)
+               (not (string= "" paste)))
       (setq paste (substring-no-properties paste))
       (term-send-raw-string paste))))
 

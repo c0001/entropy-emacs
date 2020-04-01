@@ -1445,30 +1445,41 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
 
 (entropy/emacs-lazy-with-load-trail
  xterm-rebind
- (if (not (entropy/emacs-is-ssh-session))
-     (when (entropy/emacs-xterm-external-satisfied-p)
-       (define-key global-map [xterm-paste]
-         #'entropy/emacs-xterm-paste))
-   (define-key global-map [xterm-paste]
-     #'entropy/emacs-xterm-paste-sshsession))
+ (entropy/emacs-xterm-external-satisfied-p)
+ (define-key global-map [xterm-paste]
+   #'entropy/emacs-xterm-paste)
 
  (entropy/emacs-lazy-load-simple term
-   (cond
-    ((not (entropy/emacs-is-ssh-session))
-     (when (entropy/emacs-xterm-external-satisfied-p)
-       (define-key term-raw-map
-         [S-insert]
-         #'entropy/emacs-xterm-term-S-insert)
-       (define-key term-raw-map
-         [xterm-paste]
-         #'entropy/emacs-xterm-term-S-insert)))
-    (t
-     (define-key term-raw-map
-       [S-insert]
-       #'entropy/emacs-basic-xterm-term-S-insert-sshsession)
-     (define-key term-raw-map
-       [xterm-paste]
-       #'entropy/emacs-basic-xterm-term-S-insert-sshsession)))))
+   (define-key term-raw-map
+     [S-insert]
+     #'entropy/emacs-xterm-term-S-insert)
+   (define-key term-raw-map
+     [xterm-paste]
+     #'entropy/emacs-xterm-term-S-insert))
+
+ ;; (if (not (entropy/emacs-is-ssh-session))
+ ;;     (define-key global-map [xterm-paste]
+ ;;       #'entropy/emacs-xterm-paste)
+ ;;   (define-key global-map [xterm-paste]
+ ;;     #'entropy/emacs-xterm-paste-sshsession))
+
+ ;; (entropy/emacs-lazy-load-simple term
+ ;;   (cond
+ ;;    ((not (entropy/emacs-is-ssh-session))
+ ;;     (define-key term-raw-map
+ ;;       [S-insert]
+ ;;       #'entropy/emacs-xterm-term-S-insert)
+ ;;     (define-key term-raw-map
+ ;;       [xterm-paste]
+ ;;       #'entropy/emacs-xterm-term-S-insert))
+ ;;    (t
+ ;;     (define-key term-raw-map
+ ;;       [S-insert]
+ ;;       #'entropy/emacs-basic-xterm-term-S-insert-sshsession)
+ ;;     (define-key term-raw-map
+ ;;       [xterm-paste]
+ ;;       #'entropy/emacs-basic-xterm-term-S-insert-sshsession))))
+ )
 
 ;; *** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
 (when (and sys/win32p (not (version< emacs-version "26.1")))
