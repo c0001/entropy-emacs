@@ -262,6 +262,10 @@ https://github.com/akermu/emacs-libvterm/issues/55#issuecomment-468833300"
                #'(lambda (&rest _)
                    (eq major-mode 'vterm-mode)))
 
+  (add-to-list 'entropy/emacs-xterm-paste-yank-replacement-register
+               (cons (lambda () (eq major-mode 'vterm-mode))
+                     #'vterm-yank))
+
   :config
   (defun entropy/emacs-shell--vterm-mode-around-advice (orig-func &rest orig-args)
     "prevent `vterm-mode` calling in vterm-mode from causing

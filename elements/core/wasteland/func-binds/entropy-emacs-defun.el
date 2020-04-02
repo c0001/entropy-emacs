@@ -943,6 +943,19 @@ the string passed to `kbd'."
   "The string of the head of the last event paste part of
 `xterm-paste'.")
 
+(defvar entropy/emacs-xterm-paste-inhibit-read-only-filter nil
+  "The conditions for judge whether xterm-paste with
+`inhibit-read-only'.
+
+Eacch condition is a function with one arg, the paste event.")
+
+(defvar entropy/emacs-xterm-paste-yank-replacement-register nil
+  "List of predicate pattern cons for using instead of `yank'.
+
+Which each car of the pattern was a condition, may be 'nil' or
+'t' or a function for be evaluated for the boolean result, and
+the cdr was the replacement yank function")
+
 (defun entropy/emacs-xterm-external-satisfied-p ()
   "Judge whether emacs to use external kits to assistant the
 xterm-session yank/paste operation."
@@ -971,12 +984,6 @@ xterm-session yank/paste operation."
                         (xclip-mode 1))))
       judger)))
 
-(defvar entropy/emacs-xterm-paste-inhibit-read-only-filter nil
-  "The conditions for judge whether xterm-paste with
-`inhibit-read-only'.
-
-Eacch condition is a function with one arg, the paste event.")
-
 (defun entropy/emacs-xterm-paste-core (event)
   "The eemacs subroutine for `xterm-paste' event to automatically
 traceback to `kill-ring'."
@@ -987,35 +994,53 @@ traceback to `kill-ring'."
         (progn (setq entropy/emacs--xterm-clipboard-head
                      paste-str)
                (xterm-paste event)))
-      (let ((inhibit-read-only
-             (condition-case :exit
-                 (dolist (filter entropy/emacs-xterm-paste-inhibit-read-only-filter)
-                   (when (and (functionp filter)
-                              (funcall filter event))
-                     (throw :exit t))))))
-        (yank)))))
+      (yank))))
+
+(defmacro entropy/emacs--with-xterm-paste-core (event &rest body)
+  `(let ((inhibit-read-only
+          (catch :exit
+            (dolist (filter entropy/emacs-xterm-paste-inhibit-read-only-filter)
+              (when (and (functionp filter)
+                         (funcall filter event))
+                (throw :exit t))))))
+     (entropy/emacs-xterm-paste-core ,event)
+     ,@body))
 
 (defun entropy/emacs-xterm-paste (event)
   "eemacs wrapper for `xterm-paste' based on the subroutine of
 `entropy/emacs-xterm-paste-core'.
 "
   (interactive "e")
-  (entropy/emacs-xterm-paste-core event)
-  (yank))
+  (entropy/emacs--with-xterm-paste-core
+   event
+   (let (yank-func)
+     (catch :exit
+       (dolist (pattern entropy/emacs-xterm-paste-yank-replacement-register)
+         (when
+             (cond ((functionp (car pattern))
+                    (funcall (car pattern)))
+                   (t
+                    (car pattern)))
+           (setq yank-func (cdr pattern))
+           (throw :exit nil))))
+     (if (functionp yank-func)
+         (funcall yank-func)
+       (yank)))))
 
 (defun entropy/emacs-xterm-term-S-insert (event)
   "eemacs wrapper for `term-send-raw-string' based on the
 subroutine of `entropy/emacs-xterm-paste-core'.
 "
   (interactive "e")
-  (entropy/emacs-xterm-paste-core event)
-  (let* ((paste (with-temp-buffer
-                  (yank)
-                  (car kill-ring))))
-    (when (and (stringp paste)
-               (not (string= "" paste)))
-      (setq paste (substring-no-properties paste))
-      (term-send-raw-string paste))))
+  (entropy/emacs--with-xterm-paste-core
+   event
+   (let* ((paste (with-temp-buffer
+                   (yank)
+                   (car kill-ring))))
+     (when (and (stringp paste)
+                (not (string= "" paste)))
+       (setq paste (substring-no-properties paste))
+       (term-send-raw-string paste)))))
 
 (defun entropy/emacs-xterm-paste-sshsession ()
   (interactive)
