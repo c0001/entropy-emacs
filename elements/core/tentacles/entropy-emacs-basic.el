@@ -1455,31 +1455,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
      #'entropy/emacs-xterm-term-S-insert)
    (define-key term-raw-map
      [xterm-paste]
-     #'entropy/emacs-xterm-term-S-insert))
-
- ;; (if (not (entropy/emacs-is-ssh-session))
- ;;     (define-key global-map [xterm-paste]
- ;;       #'entropy/emacs-xterm-paste)
- ;;   (define-key global-map [xterm-paste]
- ;;     #'entropy/emacs-xterm-paste-sshsession))
-
- ;; (entropy/emacs-lazy-load-simple term
- ;;   (cond
- ;;    ((not (entropy/emacs-is-ssh-session))
- ;;     (define-key term-raw-map
- ;;       [S-insert]
- ;;       #'entropy/emacs-xterm-term-S-insert)
- ;;     (define-key term-raw-map
- ;;       [xterm-paste]
- ;;       #'entropy/emacs-xterm-term-S-insert))
- ;;    (t
- ;;     (define-key term-raw-map
- ;;       [S-insert]
- ;;       #'entropy/emacs-basic-xterm-term-S-insert-sshsession)
- ;;     (define-key term-raw-map
- ;;       [xterm-paste]
- ;;       #'entropy/emacs-basic-xterm-term-S-insert-sshsession))))
- )
+     #'entropy/emacs-xterm-term-S-insert)))
 
 ;; *** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
 (when (and sys/win32p (not (version< emacs-version "26.1")))

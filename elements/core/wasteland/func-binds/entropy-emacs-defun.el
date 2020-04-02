@@ -971,6 +971,12 @@ xterm-session yank/paste operation."
                         (xclip-mode 1))))
       judger)))
 
+(defvar entropy/emacs-xterm-paste-inhibit-read-only-filter nil
+  "The conditions for judge whether xterm-paste with
+`inhibit-read-only'.
+
+Eacch condition is a function with one arg, the paste event.")
+
 (defun entropy/emacs-xterm-paste-core (event)
   "The eemacs subroutine for `xterm-paste' event to automatically
 traceback to `kill-ring'."
@@ -981,7 +987,13 @@ traceback to `kill-ring'."
         (progn (setq entropy/emacs--xterm-clipboard-head
                      paste-str)
                (xterm-paste event)))
-      (yank))))
+      (let ((inhibit-read-only
+             (condition-case :exit
+                 (dolist (filter entropy/emacs-xterm-paste-inhibit-read-only-filter)
+                   (when (and (functionp filter)
+                              (funcall filter event))
+                     (throw :exit t))))))
+        (yank)))))
 
 (defun entropy/emacs-xterm-paste (event)
   "eemacs wrapper for `xterm-paste' based on the subroutine of

@@ -258,6 +258,10 @@ https://github.com/akermu/emacs-libvterm/issues/55#issuecomment-468833300"
   ;; prevent the large buffer content remainin lag (possibile)
   (setq vterm-max-scrollback 1000)
 
+  (add-to-list 'entropy/emacs-xterm-paste-inhibit-read-only-filter
+               #'(lambda (&rest _)
+                   (eq major-mode 'vterm-mode)))
+
   :config
   (defun entropy/emacs-shell--vterm-mode-around-advice (orig-func &rest orig-args)
     "prevent `vterm-mode` calling in vterm-mode from causing
