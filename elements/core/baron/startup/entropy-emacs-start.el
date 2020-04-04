@@ -288,7 +288,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
     (cond
      ((not (version< emacs-version "26"))
       (setq entropy/emacs-start--pyim-timer-26+
-            (run-with-timer
+            (run-with-idle-timer
              1 200
              #'entropy/emacs-start--pyim-init-after-loaded-cache-26+)))
      ((version< emacs-version "26")
