@@ -2063,11 +2063,11 @@ Each function must just has one argumentm, a
      (format "entropy/emacs-individual-hydra-random-name-of-%s" suffix))))
 
 (defun entropy/emacs-hydra-hollow-build-random-individual-hydra
-    (pretty-hydra-cabinet &optional pretty-hydra-category-width-indicator)
+    (pretty-hydra-cabinet &optional pretty-hydra-category-width-indicator feature keymap)
   (let ((random-name (entropy/emacs-hydra-hollow-get-random-individual-hydra-name)))
     (entropy/emacs-hydra-hollow-common-individual-hydra-define
      random-name
-     nil nil
+     feature keymap
      pretty-hydra-cabinet
      nil
      pretty-hydra-category-width-indicator)
@@ -2197,6 +2197,7 @@ hydra body caller) =pretty-hydra-head-command=.
                     (entropy/emacs-hydra-hollow--common-judge-p
                      (plist-get command :pretty-hydra-cabinet)))
                    (sub-ctg-width-indicator (plist-get command :pretty-hydra-category-width-indicator))
+                   (sub-rest-args (plist-get command :other-rest-args))
                    (sub-casket-lists
                     (entropy/emacs-hydra-hollow-make-pretty-hydra-caskets-list
                      sub-cabinet))
@@ -2214,9 +2215,10 @@ hydra body caller) =pretty-hydra-head-command=.
               (let ((new-pretty-hydra-casket-pattern
                      (list
                       key
-                      (entropy/emacs-hydra-hollow-build-random-individual-hydra
-                       non-nested-subcabinet
-                       sub-ctg-width-indicator)
+                      (apply 'entropy/emacs-hydra-hollow-build-random-individual-hydra
+                             non-nested-subcabinet
+                             sub-ctg-width-indicator
+                             sub-rest-args)
                       notation)))
 
                 (unless (null rest-keypairs)
