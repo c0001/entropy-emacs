@@ -39,6 +39,19 @@
 ;; *** core
 (use-package markdown-mode
   :commands (markdown-mode)
+
+  :preface
+  (defun entropy/emacs-markdown-preview-before-advice (&rest _)
+    (if (executable-find "multimarkdown")
+        (setq markdown-command "multimarkdown")
+      (setq markdown-command "markdown"))
+    (unless (executable-find markdown-command)
+      (error "Mardown executable can not be found, you must
+either install 'markdown' or 'multimarkdown' from your system
+package management!"))
+    (message "Transferring current buffer using '%s'  ..." markdown-command)
+    (sleep-for 3))
+
   :hook (markdown-mode . markdown-toggle-url-hiding)
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
@@ -48,8 +61,9 @@
   ;; Change face for markdown code,pre,inline-code face for using `entropy/emacs-default-latin-font'
   (set-face-attribute 'fixed-pitch nil :family entropy/emacs-default-latin-font)
 
-  (when (executable-find "multimarkdown")
-    (setq markdown-command "multimarkdown"))
+  ;; prompt for markdown-command whether installed before previewer
+  ;; transferring
+  (advice-add 'markdown :before #'entropy/emacs-markdown-preview-before-advice)
 
   ;; seting export html styl-sheet
   (setq markdown-command-needs-filename t)
