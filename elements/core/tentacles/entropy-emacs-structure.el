@@ -346,7 +346,9 @@ moving operation will cause non-terminated looping proceeding."
    (conf-toml-mode . outshine-mode)
    (conf-unix-mode . outshine-mode)
    (conf-windows-mode . outshine-mode)
-   (conf-xdefaults-mode . outshine-mode))
+   (conf-xdefaults-mode . outshine-mode)
+   (makefile-mode . outshine-mode)
+   (cmake-mode . outshine-mode))
   :bind
   (:map org-mode-map
    ("C-c M-t" . nil)
