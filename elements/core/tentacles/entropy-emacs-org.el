@@ -700,6 +700,33 @@ returning the type of exec for open exported html file, they are:
 
 
 
+;; *** org-ctags
+(use-package org-ctags
+  :after org
+  :preface
+  (defun entropy/emacs-org--ctags-disable ()
+    "Disable `org-ctags' for reset some pollution from here."
+    (setplist
+     'org-mode
+     (let (rtn
+           (pt 0)
+           (sym-plist (symbol-plist 'org-mode)))
+       (while (< pt (- (length sym-plist) 1))
+         (when (not (eq (nth pt sym-plist) 'find-tag-default-function))
+           (setq rtn (append rtn (list (nth pt sym-plist))))
+           (unless (null (nth (+ 1 pt) sym-plist))
+             (setq rtn (append rtn (list (nth (+ 1 pt) sym-plist))))))
+         (setq pt (+ 2 pt)))
+       rtn))
+    (setq org-ctags-enabled-p nil)
+    (dolist (fn org-ctags-open-link-functions)
+      (remove-hook 'org-open-link-functions fn)))
+  :init
+  (when entropy/emacs-fall-love-with-pdumper
+    (entropy/emacs-lazy-with-load-trail
+     disable-org-ctags
+     (entropy/emacs-org--ctags-disable))))
+
 ;; *** keymap hydra reflect
 ;; **** org-mode
 ;; ***** sub-groups
@@ -1514,11 +1541,24 @@ returning the type of exec for open exported html file, they are:
  '(3 2 2)
  '(3 2 2))
 
-;; ** Redefun the org-id-new for use '-' instead of ':'
+;; ** org-id
 (use-package org-id
   :ensure nil
   :commands org-id-new
   :config
+
+  (defun entropy/emacs-org-id-add-location-around-advice
+      (orig-func &rest orig-args)
+    "Around advice for `org-id-add-location' for preventing error
+popup when in non-file buffer."
+    (if (buffer-file-name (current-buffer))
+        (apply orig-func orig-args)
+      (ignore-errors (apply orig-func orig-args))))
+  (advice-add 'org-id-add-location
+              :around
+              #'entropy/emacs-org-id-add-location-around-advice)
+
+  ;; Redefun the org-id-new for use '-' instead of ':'
   (defun org-id-new (&optional prefix)
     "Create a new globally unique ID.
 
