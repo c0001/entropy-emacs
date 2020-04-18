@@ -106,7 +106,6 @@
         doneburn-theme
         doom-modeline
         doom-themes
-        el2org
         eldoc-eval
         elfeed
         elisp-refs

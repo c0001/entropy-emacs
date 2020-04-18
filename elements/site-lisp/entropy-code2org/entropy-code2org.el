@@ -46,10 +46,47 @@
 ;; Just ~(require 'entropy-code2org)~
 ;;
 ;; * Code:
-
+;; ** Require
 (require 'outline)
 (require 'outorg)
 
+
+(defun entropy/code2org--beforeadvice-for-outorg-convert-to-org (&rest _)
+  "Prunning current buffer's emtpy commented line for
+preventing uncommenting funciton throw out the current marker
+which will make outorg's 'looping' procedure can not terminated
+in correct way.
+
+Example in lisp mode buffer:
+
+#+BEGIN_SRC emacs-lisp
+  ;;; code
+  ;;
+  ;; Test outorg transfer to org context
+  ;;
+  ;;; Foobar
+  ;;
+  ;; test
+#+END_SRC
+
+Line 2 and 4 even for 6, can not uncomment by
+`uncomment-region-default-1' for commonly result, it will
+warnning for prompt \"Beginning of buffer\" which will overwrite
+the outorg convert procedure (i.e. `outorg-convert-to-org')
+temporal marker which indicates the comment beginning, thus the
+following marker moving operation will cause non-terminated
+looping proceeding."
+  (with-current-buffer (current-buffer)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward
+              (format "^%s+ *$" (regexp-quote comment-start)) nil t)
+        (replace-match "")))))
+
+(advice-add 'outorg-convert-to-org
+            :before #'entropy/code2org--beforeadvice-for-outorg-convert-to-org)
+
+;; ** Customize
 (defgroup entropy/code2org-customize-group nil
   "Customized variable group for `entropy-code2org'."
   :group 'outline)
@@ -87,6 +124,7 @@ all the predicate will be wrapped into thus. "
   :type 'list
   :group 'entropy/code2org-customize-group)
 
+;; ** Internal library
 (defun entropy/code2org--replace-special-context (buffer-or-name)
   (with-current-buffer buffer-or-name
     (let (predicate
@@ -162,6 +200,7 @@ all the predicate will be wrapped into thus. "
      (with-current-buffer output
        ,@body)))
 
+;; ** Autoloads
 ;;;###autoload
 
 (defun entropy/code2org-convert-current-buffer ()

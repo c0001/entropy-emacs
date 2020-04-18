@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs.el
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;; * Commentary:
 ;; :PROPERTIES:
 ;; :CUSTOM_ID: h-97799a98-4215-47dc-820d-87518a590fbe
@@ -33,7 +33,7 @@
 ;; brief introduction for developer or package user to understanding
 ;; the basic runtime logic for it.
 ;;
-;; ** Top initialize 
+;; ** Top initialize
 ;; :PROPERTIES:
 ;; :CUSTOM_ID: h-aa9843f8-b690-444c-9537-6849afcee347
 ;; :END:
@@ -65,7 +65,7 @@
 ;; =entropy-emacs= they are registerred in
 ;; `entropy-emacs-defface.el'.
 ;;
-;; ** Func-binds 
+;; ** Func-binds
 ;; :PROPERTIES:
 ;; :CUSTOM_ID: h-9283a47f-0bcd-420c-a3f8-f718346e6288
 ;; :END:
@@ -74,12 +74,12 @@
 ;; for [[h-c70c8556-6957-48bd-883b-25c6c5d7f594][tetacles]] for reducing duplicated coding snippets, and unified
 ;; internal features as provision of a framework.
 ;;
-;; - `entropy-emacs-message.el' 
+;; - `entropy-emacs-message.el'
 ;;
 ;;   The unified emacs-message system using both of interacive or
 ;;   non-interactive session.
 ;;
-;; - `entropy-emacs-defun.el' 
+;; - `entropy-emacs-defun.el'
 ;;
 ;;   The collection of internal shared functions.
 ;;
@@ -108,6 +108,7 @@
        (subs-dep
         '("entropy-adblockP-rule-analysis"
           "entropy-cn-dict"
+          "entropy-code2org"
           "entropy-common-library"
           "entropy-counsel-stuffs"
           "entropy-dired-cp-or-mv"

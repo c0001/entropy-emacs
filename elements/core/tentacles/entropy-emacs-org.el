@@ -66,8 +66,7 @@
 ;; **** init
   :ensure nil
   :defines  (org-mode-map)
-  :commands (orgstruct-mode
-             org-mode
+  :commands (org-mode
              org-store-link
              org-agenda
              org-capture
@@ -76,7 +75,6 @@
              org-next-item
              org-toggle-link-display
              org-babel-result-hide-all)
-  :diminish orgstruct-mode
 
 ;; **** eemacs top binding keys
 
@@ -697,12 +695,10 @@ returning the type of exec for open exported html file, they are:
 
   )
 
-
-
-
 ;; *** org-ctags
 (use-package org-ctags
   :after org
+  :ensure nil
   :preface
   (defun entropy/emacs-org--ctags-disable ()
     "Disable `org-ctags' for reset some pollution from here."

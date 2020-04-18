@@ -290,7 +290,7 @@ moving operation will cause non-terminated looping proceeding."
     (with-current-buffer (current-buffer)
       (save-excursion
         (goto-char (point-min))
-        (while (re-search-forward (format "^%s+ *$" comment-start) nil t)
+        (while (re-search-forward (format "^%s+ *$" (regexp-quote comment-start)) nil t)
           (replace-match "")))))
   (advice-add 'outorg-convert-oldschool-elisp-buffer-to-outshine
               :before

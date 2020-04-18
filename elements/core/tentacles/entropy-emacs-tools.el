@@ -943,29 +943,40 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   :commands (esup))
 
 ;; *** for generate elisp source file's commentry structure to org file
-(use-package el2org
-  :commands (el2org-generate-html
-             el2org-generate-org
-             el2org-generate-readme)
+(use-package entropy-code2org
+  :ensure nil
+  :commands (entropy/code2org-export-cur-to-README
+             entropy/code2org-export-cur-to-html-file
+             entropy/code2org-export-cur-to-org-file)
   :preface
-  (defun entropy/emacs-tools-gen-el-readme ()
-    "Transfered current elisp buffer to markdown README file. "
-    (interactive)
-    (require 'entropy-emacs-emacs-lisp)
-    (when (eq major-mode 'emacs-lisp-mode)
-      (let ((buffer (funcall 'entropy/emacs-elisp-toggle-outline-struct-style nil t)))
-        (with-current-buffer buffer
-          (el2org-generate-readme)))))
-  :eemacs-mmphca
+  (defun entropy/emacs-tools--before-advice-for-code2org (orig-func &rest _)
+    (if (member
+         major-mode
+         '(emacs-lisp-mode lisp-interaction-mode lisp-mode))
+        (with-current-buffer
+            (entropy/emacs-elisp-toggle-outline-struct-style t 'modern)
+          (funcall orig-func))
+      (funcall orig-func)))
+
+  :eemacs-indhca
   (((:enable t)
-    (emacs-lisp-mode elisp-mode emacs-lisp-mode-map))
-   ("Convert"
-    (("c o" el2org-generate-org "Generate org file from current elisp file"
+    (eemacs-basic-config-core))
+   ("Export outline style code buffer into other kinds"
+    (("c o" entropy/code2org-export-cur-to-org-file "Generate org file from current code buffer"
       :enable t :exit t)
-     ("c h" el2org-generate-html "Generate html file from current elisp file"
+     ("c h" entropy/code2org-export-cur-to-html-file "Generate html file from current code buffer"
       :enable t :exit t)
-     ("c r" entropy/emacs-tools-gen-el-readme "Generate readme file from current elisp file"
-      :enable t :exit t)))))
+     ("c r" entropy/code2org-export-cur-to-README "Generate readme file from current code buffer"
+      :enable t :exit t))))
+
+  :config
+  (dolist (func '(entropy/code2org-export-cur-to-README
+                  entropy/code2org-export-cur-to-html-file
+                  entropy/code2org-export-cur-to-org-file))
+    (advice-add
+     func
+     :around
+     #'entropy/emacs-tools--before-advice-for-code2org)))
 
 
 ;; ****  require by el2org for generate source to readme which be with the github style md file

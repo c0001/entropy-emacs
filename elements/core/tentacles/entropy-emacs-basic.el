@@ -1728,7 +1728,7 @@ otherwise returns nil."
      (:eval
       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
        'eemacs-basic-config-core))
-     "misc operations"
+     "Core Operations"
      :enable t :exit t))))
 
 ;; * provide
