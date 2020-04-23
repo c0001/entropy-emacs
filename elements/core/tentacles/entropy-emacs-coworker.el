@@ -42,207 +42,318 @@
 (require 'entropy-emacs-message)
 
 ;; ** library
-(defun entropy/emacs-coworker--coworker-install-warn (task-name proc-buffer)
-  (with-current-buffer proc-buffer
-    (goto-char (point-min))
-    (if (re-search-forward (rx (or (regexp "[^a-z]Error") "ERR!" "No matching"))
-                           nil t)
-        (let ((debug-on-error nil)
-              (stdrr (buffer-substring-no-properties (point-min) (point-max))))
-          (when noninteractive
-            (entropy/emacs-message-do-message
-             "%s"
-             (red stdrr)))
-          (princ "\n")
-          (if (not noninteractive)
-              (error
-               (format
-                "%s %s %s %s %s"
-                "Fatal do with coworker install task for"
-                (format "<%s>" task-name)
-                ", check callback buffer"
-                (format "'%s'" (buffer-name (get-buffer proc-buffer)))
-                "for more details"))
-            (error (format "Fatal during task '%s'" task-name))))
-      (entropy/emacs-message-do-message
-       "%s %s %s"
-       (green "Install coworker")
-       (yellow (format "<%s>" task-name))
-       (green "successfully")))))
+;; *** subroutines
+;; **** individual
+(defun entropy/emacs-coworker--coworker-message-install-success (task-name-string)
+  (entropy/emacs-message-do-message
+   "%s %s %s"
+   (green "Coworker install task")
+   (yellow (format "<%s>" task-name-string))
+   (green "Installed successfully!")))
 
-(defun entropy/emacs-coworker--coworker-bins-execp (bins)
-  (let (rtn)
-    (catch :exit
-      (dolist (el bins)
-        (unless (executable-find el)
-          (setq rtn t)
-          (throw :exit nil))))
-    (if rtn nil t)))
+(defun entropy/emacs-coworker--coworker-message-existed (task-name-string)
+  (entropy/emacs-message-do-message
+   "%s %s %s"
+   (green "Coworker install task")
+   (yellow (format "<%s>" task-name-string))
+   (green "has been installed")))
 
-(defun entropy/emacs-coworker--coworker-files-existp (files)
-  (let (rtn)
-    (catch :exit
-      (dolist (el files)
-        (unless (file-exists-p el)
-          (setq rtn t)
-          (throw :exit nil))))
-    (if rtn nil t)))
+(defun entropy/emacs-coworker--coworker-message-do-task (task-name-string)
+  (entropy/emacs-message-do-message
+   "%s %s %s"
+   (green "Do coworker install task")
+   (yellow (format "<%s>" task-name-string))
+   (green "...")))
 
 (defun entropy/emacs-coworker--coworker-alist-judge (svalist)
-  (let (rtn)
+  (let (rtn
+        (file-judge-func
+         (lambda (files)
+           (let (rtn)
+             (catch :exit
+               (dolist (el files)
+                 (unless (file-exists-p el)
+                   (setq rtn t)
+                   (throw :exit nil))))
+             (if rtn nil t))))
+        (exec-judge-func
+         (lambda (bins)
+           (let (rtn)
+             (catch :exit
+               (dolist (el bins)
+                 (unless (executable-find el)
+                   (setq rtn t)
+                   (throw :exit nil))))
+             (if rtn nil t)))))
     (catch :exit
       (dolist (el svalist)
         (cond ((eq 'file (car el))
-               (unless (entropy/emacs-coworker--coworker-files-existp (cdr el))
+               (unless (funcall file-judge-func (cdr el))
                  (setq rtn t)
                  (throw :exit nil)))
               ((eq 'exec (car el))
-               (unless (entropy/emacs-coworker--coworker-bins-execp (cdr el))
+               (unless (funcall exec-funge-func (cdr el))
                  (setq rtn t)
                  (throw :exit nil))))))
     (if rtn nil t)))
 
-(defmacro entropy/emacs-coworker--coworker-search
-    (task-name-string task-buffer server-alist install-cmd
-               before-install after-install proc-workdir
-               &rest install-args)
-  `(let ((task-buffer (get-buffer-create ,task-buffer)))
-     (with-current-buffer task-buffer
-       (when buffer-read-only
-         (read-only-mode 0))
-       (goto-char (point-min))
-       (erase-buffer))
-     (funcall ,before-install)
-     (if (not (entropy/emacs-coworker--coworker-alist-judge ,server-alist))
-         (let ((default-directory ,proc-workdir))
-           (entropy/emacs-message-do-message
-            "%s %s %s"
-            (green "Do coworker install task")
-            (yellow (format "<%s>" ,task-name-string))
-            (green "..."))
-           (sleep-for 2)
-           (call-process ,install-cmd nil ,task-buffer t ,@install-args)
-           (entropy/emacs-coworker--coworker-install-warn
-            ,task-name-string task-buffer))
-       (entropy/emacs-message-do-message
-        "%s %s %s"
-        (green "Coworker install task")
-        (yellow (format "<%s>" ,task-name-string))
-        (green "has been installed")))
-     (funcall ,after-install)))
+;; **** Lsp callers refactory
+;; ***** pypi
+;; ****** patch python installed bins for import portable "sys.path"
+(defun entropy/emacs-coworker--patch-python-bin-for-pythonpath (pyfile site-packages-path)
+  "Patch python file PYFILE for add =sys.path= for SITE-PACKAGES-PATH"
+  (unless (file-exists-p pyfile)
+    (error "Pyfile '%s' not existed!" pyfile))
+  (with-current-buffer (find-file-noselect pyfile)
+    (let ((inhibit-read-only t)
+          (inst-str (format "sys.path.insert(0,\"%s\")"
+                            (expand-file-name site-packages-path)))
+          (inst-entry-regexp "^import sys")
+          (inst-new nil))
+      (goto-char (point-min))
+      (unless (re-search-forward inst-entry-regexp nil t)
+        (setq inst-new t))
+      (if inst-new
+          (progn
+            (goto-char (point-min))
+            (insert "import sys\n\n")
+            (insert (concat inst-str "\n\n")))
+        (goto-char (line-end-position))
+        (newline)
+        (insert inst-str))
+      (save-buffer)
+      (kill-buffer))))
 
-(defmacro entropy/emacs-coworker--coworker-install-by-npm
-    (server-name-string server-bins server-repo-string)
-  (if (not (or sys/win32p sys/cygwinp))
-      `(entropy/emacs-coworker--coworker-search
-        ,server-name-string
-        (concat "*eemacs " ,server-name-string " install*")
-        (list (cons 'file
-                    (mapcar
-                     (lambda (x)
-                       (expand-file-name
-                        (format "node_modules/.bin/%s" x)
-                        entropy/emacs-coworker-lib-host-root))
-                     ',server-bins)))
-        "npm"
-        (lambda ()
-          (mkdir entropy/emacs-coworker-bin-host-path t)
-          (mkdir (expand-file-name "node_modules" entropy/emacs-coworker-lib-host-root) t)
-          (let ((lock-package-file
-                 (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root)))
-            (when (file-exists-p lock-package-file)
-              (delete-file lock-package-file t))))
-        (lambda ()
-          (dolist (el ',server-bins)
-            (make-symbolic-link (expand-file-name
-                                 (format "node_modules/.bin/%s" el)
-                                 entropy/emacs-coworker-lib-host-root)
-                                (expand-file-name
-                                 el
-                                 entropy/emacs-coworker-bin-host-path)
-                                t))
-          (let ((lock-package-file
-                 (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root)))
-            (when (file-exists-p lock-package-file)
-              (delete-file lock-package-file t))))
-        entropy/emacs-coworker-lib-host-root
-        "install" ,server-repo-string)
-    `(entropy/emacs-coworker--coworker-search
-      ,server-name-string
-      (concat "*eemacs " ,server-name-string " install*")
-      (list (cons 'exec ',server-bins))
-      "npm" (lambda () nil) (lambda () nil)
-      default-directory
-      "install" "-g" ,server-repo-string)))
+;; ****** generate w32 python installed bins cmd wrapper
+(defun entropy/emacs-coworker--gen-python-w32-cmd-bin (cmd-bin-file bin-file-abspath site-packages-abspath)
+  "Generate windows cmd batch CMD-BIN-FILE for python callers in
+windows platform and using library path SITE-PAKCAGE-ABSPATH."
+  (let ((template
+         "@ECHO off
+CALL :find_dp0
 
-(defmacro entropy/emacs-coworker--coworker-install-by-pip
+SETLOCAL
+
+SET \"PYTHONPATH=%s;%%PYTHONPATH%%\"
+cd %s
+.\\%s %%*
+
+ENDLOCAL
+EXIT /b %%errorlevel%%
+:find_dp0
+SET dp0=%%~dp0
+EXIT /b
+"
+         ))
+
+    (with-current-buffer (find-file-noselect cmd-bin-file)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (goto-char (point-min))
+        (insert
+         (format template
+                 site-packages-abspath
+                 (file-name-directory bin-file-abspath)
+                 (file-name-base bin-file-abspath)))
+        (save-buffer)
+        (kill-buffer)))))
+;; *** package install branches
+;; **** npm install
+(defun entropy/emacs-coworker--coworker-install-by-npm
     (server-name-string server-bins server-repo-string)
-  (if (not (or sys/win32p sys/cygwinp))
-      `(entropy/emacs-coworker--coworker-search
-        ,server-name-string
-        (format "*eemacs %s install <pip>*" ,server-name-string)
-        (list (cons 'file
-                    (mapcar
-                     (lambda (x)
-                       (expand-file-name
-                        x
-                        entropy/emacs-coworker-bin-host-path))
-                     ',server-bins)))
-        "pip"
-        (lambda () nil)
-        (lambda ()
-          (dolist (el ',server-bins)
-            (unless (file-exists-p
-                     (expand-file-name el entropy/emacs-coworker-bin-host-path))
-              (make-symbolic-link
-               (expand-file-name el
-                                 (expand-file-name "bin" entropy/emacs-coworker-host-root))
-               (expand-file-name el entropy/emacs-coworker-bin-host-path)
-               t))))
-        default-directory
-        "--isolated"
-        "install" "-I"
-        ,server-repo-string "--prefix" entropy/emacs-coworker-host-root
-        "--no-compile")
-    `(entropy/emacs-coworker--coworker-search
-      ,server-name-string
-      (format "*eemacs %s install <pip>*" ,server-name-string)
-      (list (cons 'exec ',server-bins))
-      "pip"
-      (lambda () nil)
-      (lambda () nil)
-      default-directory
-      "install" ,server-repo-string "--no-compile")))
+  (let* ((server-lostp
+          (not
+           (entropy/emacs-coworker--coworker-alist-judge
+            (list (cons 'file
+                        (mapcar
+                         (lambda (x)
+                           (expand-file-name
+                            (format "node_modules/.bin/%s" x)
+                            entropy/emacs-coworker-lib-host-root))
+                         server-bins))))))
+         (lock-package-file
+          (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root))
+         (pkg-json-del
+          `(lambda ()
+             (when (file-exists-p ,lock-package-file)
+               (delete-file ,lock-package-file t)))))
+    (if server-lostp
+        (entropy/emacs-make-process
+         `(:name
+           ,server-name-string
+           :synchronously t
+           :command '("npm" "install" ,server-repo-string)
+           :buffer (get-buffer-create "*eemacs-coworker-npm-install-proc*")
+           :default-directory entropy/emacs-coworker-lib-host-root
+           :prepare
+           (entropy/emacs-coworker--coworker-message-do-task
+            ,server-name-string)
+           (condition-case error
+               (progn
+                 (mkdir entropy/emacs-coworker-bin-host-path t)
+                 (mkdir (expand-file-name "node_modules" entropy/emacs-coworker-lib-host-root) t)
+                 (funcall ',pkg-json-del)
+                 t)
+             (error
+              (error "eemacs coworker init task for '%s' did with fatal!"
+                     ,server-name-string)))
+           :after
+           (dolist (el ',server-bins)
+             (make-symbolic-link (expand-file-name
+                                  (format "node_modules/.bin/%s" el)
+                                  entropy/emacs-coworker-lib-host-root)
+                                 (expand-file-name
+                                  el
+                                  entropy/emacs-coworker-bin-host-path)
+                                 t))
+           (entropy/emacs-coworker--coworker-message-install-success
+            ,server-name-string)
+           :error
+           (with-current-buffer $sentinel/destination
+             (let ((msg (buffer-substring (point-min) (point-max))))
+               (entropy/emacs-message-do-message
+                "%s"
+                (red msg))))
+           :cleanup
+           (when (buffer-live-p $sentinel/destination)
+             (kill-buffer $sentinel/destination))))
+      (entropy/emacs-coworker--coworker-message-existed
+       server-name-string))))
+
+;; **** pip install
+(defun entropy/emacs-coworker--coworker-install-by-pip
+    (server-name-string server-bins server-repo-string)
+  (let* ((server-lostp
+          (not
+           (entropy/emacs-coworker--coworker-alist-judge
+            (list (cons 'file
+                        (mapcar
+                         (lambda (x)
+                           (expand-file-name
+                            x
+                            entropy/emacs-coworker-bin-host-path))
+                         server-bins)))))))
+    (if server-lostp
+        (entropy/emacs-make-process
+         `(:name
+           ,server-name-string
+           :synchronously t
+           :command
+           '("pip"
+             "--isolated"
+             "install" "-I" ,server-repo-string
+             "--prefix" ,entropy/emacs-coworker-host-root
+             "--no-compile")
+           :buffer (get-buffer-create "*eemacs-coworker-pip-install-proc*")
+           :prepare
+           (entropy/emacs-coworker--coworker-message-do-task ,server-name-string)
+           t
+           :after
+           (let ((site-packages-path
+                  (if (not sys/is-win-group)
+                      (expand-file-name
+                       (car (file-expand-wildcards
+                             (expand-file-name "python[0-9]*/site-packages"
+                                               entropy/emacs-coworker-lib-host-root))))
+                    (expand-file-name "Lib/site-packages" entropy/emacs-coworker-host-root)))
+                 (w32-pyexecs-dir
+                  (expand-file-name "Scripts" entropy/emacs-coworker-host-root)))
+             (dolist (el ',server-bins)
+               (let ((bin-path
+                      (expand-file-name
+                       el
+                       entropy/emacs-coworker-bin-host-path)))
+                 (cond
+                  ((not sys/is-win-group)
+                   (entropy/emacs-coworker--patch-python-bin-for-pythonpath
+                    bin-path site-packages-path))
+                  (sys/is-win-group
+                   (let ((w32-exec-name
+                          (expand-file-name
+                           (concat el ".exe")
+                           w32-pyexecs-dir)))
+                     (entropy/emacs-coworker--gen-python-w32-cmd-bin
+                      (concat bin-path ".cmd")
+                      w32-exec-name site-packages-path)))))))
+           (entropy/emacs-coworker--coworker-message-install-success ,server-name-string)
+           :error
+           (with-current-buffer $sentinel/destination
+             (let ((msg (buffer-substring (point-min) (point-max))))
+               (entropy/emacs-message-do-message
+                "%s"
+                (red msg))))
+           :cleanup
+           (when (buffer-live-p $sentinel/destination)
+             (kill-buffer $sentinel/destination))))
+      (entropy/emacs-coworker--coworker-message-existed
+       server-name-string))))
+
+;; **** archive download
+
+(defun entropy/emacs-coworker--coworker-install-by-archive-get
+    (server-name-string server-archive-name server-host-url server-archive-type)
+  (let* (download-cbk
+         (tmp-download-fname
+          (format "eemacs-coworker_random_download_file_for_%s_%s" server-archive-name (random)))
+         (tmp-download-file
+          (expand-file-name
+           tmp-download-fname
+           entropy/emacs-coworker-archive-host-root))
+         (server-extract-dir (expand-file-name server-archive-name entropy/emacs-coworker-archive-host-root)))
+    (unless (file-exists-p entropy/emacs-coworker-archive-host-root)
+      (make-directory entropy/emacs-coworker-archive-host-root t))
+    (entropy/emacs-coworker--coworker-message-do-task server-name-string)
+    (if (file-exists-p server-extract-dir)
+        (entropy/emacs-coworker--coworker-message-existed server-name-string)
+      (message "Downloading lsp archive for '%s' ..." server-name-string)
+      (setq download-cbk
+            (entropy/emacs-network-download-file
+             server-host-url
+             tmp-download-file))
+      (unless (eq (symbol-value download-cbk) 'success)
+        (user-error "'%s' lsp server download with fatal!" server-name-string))
+      (make-directory server-extract-dir t)
+      (entropy/emacs-archive-dowith
+       server-archive-type
+       tmp-download-file
+       server-extract-dir
+       :extract)
+      (entropy/emacs-coworker--coworker-message-install-success
+       server-name-string))))
 
 ;; ** instances
 
 (defun entropy/emacs-coworker-check-tern-server (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
-   "tern-server-install" ("tern") "tern"))
+   "tern-server-install" '("tern") "tern"))
 
 (defun entropy/emacs-coworker-check-web-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
-   "html-lsp-server" ("html-languageserver") "vscode-html-languageserver-bin")
+   "html-lsp-server" '("html-languageserver") "vscode-html-languageserver-bin")
   (entropy/emacs-coworker--coworker-install-by-npm
-   "css-lsp-server" ("css-languageserver") "vscode-css-languageserver-bin"))
+   "css-lsp-server" '("css-languageserver") "vscode-css-languageserver-bin"))
 
 (defun entropy/emacs-coworker-check-js-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
    "typescript-base"
-   ("tsc" "tsserver")
+   '("tsc" "tsserver")
    "typescript")
   (entropy/emacs-coworker--coworker-install-by-npm
    "js-lsp-server"
-   ("typescript-language-server")
-   "typescript-language-server"))
+   '("typescript-language-server")
+   "typescript-language-server")
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "vue-lsp-server"
+   '("vls")
+   "vls"))
 
 (defun entropy/emacs-coworker-check-php-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
-   "php-lsp-server" ("intelephense") "intelephense"))
+   "php-lsp-server" '("intelephense") "intelephense"))
 
 (defun entropy/emacs-coworker-check-clangd-lsp (&rest _)
   (interactive)
@@ -257,21 +368,57 @@
 (defun entropy/emacs-coworker-check-python-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-pip
-   "pyls-lsp" ("pyls") "python-language-server"))
+   "pyls-lsp" '("pyls") "python-language-server"))
+
+(defun entropy/emacs-coworker-check-cmake-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-pip
+   "cmake-lsp" '("cmake-language-server" "cmake-format") "cmake-language-server"))
 
 (defun entropy/emacs-coworker-check-bash-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
    "bash-language-server"
-   ("bash-language-server")
+   '("bash-language-server")
    "bash-language-server"))
 
 (defun entropy/emacs-coworker-check-json-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
    "json-lsp"
-   ("vscode-json-languageserver")
+   '("vscode-json-languageserver")
    "vscode-json-languageserver"))
+
+(defun entropy/emacs-coworker-check-java-lsp (&rest _)
+  (entropy/emacs-coworker--coworker-install-by-archive-get
+   "java lsp"
+   "jdt-lsp"
+   "http://download.eclipse.org/jdtls/milestones/0.9.0/jdt-language-server-0.9.0-201711302113.tar.gz"
+   'tgz))
+(when (eq entropy/emacs-use-ide-type 'lsp)
+  (unless entropy/emacs-ext-use-eemacs-lsparc
+    (setq lsp-java-server-install-dir
+          (expand-file-name
+           "jdt-lsp"
+           entropy/emacs-coworker-archive-host-root))))
+
+(defun entropy/emacs-coworker-check-pwsh-lsp (&rest _)
+  (entropy/emacs-coworker--coworker-install-by-archive-get
+   "pwsh lsp"
+   "pwsh-lsp"
+   "https://github.com/PowerShell/PowerShellEditorServices/releases/download/v2.1.0/PowerShellEditorServices.zip"
+   'zip))
+(when (eq entropy/emacs-use-ide-type 'lsp)
+  (entropy/emacs-lazy-load-simple lsp-pwsh
+    (unless (file-exists-p lsp-pwsh-log-path)
+      ;; ensure that the log path exist or will make pwsh-ls start fail
+      (mkdir lsp-pwsh-log-path 'create-parent)))
+  (unless entropy/emacs-ext-use-eemacs-lsparc
+    (setq lsp-pwsh-dir
+          (expand-file-name
+           "pwsh-lsp/PowerShellEditorServices"
+           entropy/emacs-coworker-archive-host-root))))
+
 
 ;; * provide
 (provide 'entropy-emacs-coworker)

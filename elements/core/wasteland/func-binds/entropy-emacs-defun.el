@@ -172,6 +172,282 @@ type. Each key's value can be omitted thus the 'common' meaning."
                    (setq rtn nil)
                    (throw :exit nil))))
              rtn))))
+;; *** plist manipulation
+(defun entropy/emacs-get-plist-form
+    (form-plist key &optional car no-error)
+  "Like  `plist-get' but for getting the rest form of a key slot.
+
+Do as the same as `plist-get' when CAR was non-nil.
+
+Return a `progn' form or a nil-lambda form if the slot's rest form
+are empty, or a nil.
+
+If NO-ERROR was non-nil, press all the error asserts, otherwise
+when KEY can not be found in FORM-PLIST, throw out an error, in
+that case return nil."
+  (let ((rest (cdr (member key form-plist)))
+        (pt 0)
+        rtn)
+    (catch :exit
+      (when (null rest)
+        (when no-error
+          (throw :exit nil))
+        (user-error "Can not match '%s's form!" key))
+      (while (and (not (and
+                        (symbolp (nth pt rest))
+                        (string-match "^:" (symbol-name (nth pt rest)))))
+                  (not (null (nth pt rest))))
+        (push (nth pt rest) rtn)
+        (cl-incf pt))
+      (if (null rtn)
+          (setq rtn
+                (if (null car) (lambda () nil) nil))
+        (setq rtn
+              (if (null car)
+                  `(progn
+                     ,@(reverse rtn))
+                (car (reverse rtn)))))
+      rtn)))
+
+(defun entropy/emacs-inject-plist-form (form-plist key &rest inject-forms)
+  "Inject forms INJECT-FORMS into a plist in place of key slot
+KEY, if key can not be matched then append the KEY and thus. This
+function return a form-plist."
+  (let (key-pt
+        key-next-pt
+        (cnt 0)
+        rtn)
+    ;; get key slot place
+    (catch :exit
+      (while (<= cnt (- (length form-plist) 1))
+        (when (eq (nth cnt form-plist) key)
+          (setq key-pt cnt)
+          (throw :exit nil))
+        (cl-incf cnt)))
+
+    (when key-pt
+      ;; get next key slot place
+      (setq cnt (+ key-pt 1))
+      (catch :exit
+        (while (<= cnt (- (length form-plist) 1))
+          (when (and (symbolp (nth cnt form-plist))
+                     (string-match-p "^:" (symbol-name (nth cnt form-plist))))
+            (setq key-next-pt cnt)
+            (throw :exit nil))
+          (cl-incf cnt))))
+
+    (cond
+     ((null key-next-pt)
+      (setq rtn
+            (if key-pt
+                (append form-plist
+                        inject-forms)
+              (append form-plist
+                      (list key)
+                      inject-forms))))
+     (t
+      (let* ((head-list
+              (cl-loop for pt from 0 to (- key-next-pt 1)
+                       collect (nth pt form-plist)))
+             (tail-list
+              (member (nth key-next-pt form-plist) form-plist)))
+        (setq rtn
+              (append head-list
+                      inject-forms
+                      tail-list)))))
+    rtn))
+
+;; *** process manipulation
+(defun entropy/emacs-chained-eemacs-make-proc-args (eemacs-make-proc-args-list)
+  "Chained sets of `eemacs-make-proc-args-list' one by one
+ordered of a list of thus of EEMACS-MAKE-PROC-ARGS-LIST."
+  (let* ((tail-pt (- (length eemacs-make-proc-args-list) 1))
+         (head-pt (- (length eemacs-make-proc-args-list) 2))
+         rtn)
+    (cond ((< head-pt 0)
+           (setq rtn (car eemacs-make-proc-args-list)))
+          (t
+           (setq )
+           (while (>= head-pt 0)
+             (cond ((ignore-errors (= tail-pt (- (length eemacs-make-proc-args-list) 1)))
+                    (setq rtn
+                          (entropy/emacs-inject-plist-form
+                           (nth head-pt eemacs-make-proc-args-list)
+                           :after
+                           `(entropy/emacs-make-process
+                             ',(nth tail-pt eemacs-make-proc-args-list))))
+                    (setq tail-pt nil))
+                   (t
+                    (setq rtn
+                          (entropy/emacs-inject-plist-form
+                           (nth head-pt eemacs-make-proc-args-list)
+                           :after
+                           `(entropy/emacs-make-process
+                             ',rtn)))))
+             (setq
+              head-pt (1- head-pt)))))
+    rtn))
+
+(defun entropy/emacs-make-process
+    (eemacs-make-proc-args)
+  "Make a asynchronous process or a synchronous one using the
+args in EEMACS-MAKE-PROC-ARGS.
+
+Introduction of EEMACS-MAKE-PROC-ARGS:
+
+It's an arglist whose partition as the `make-process' arglist, but
+combined with `call-process' key-pair factored arglist and further
+more flexible process chained key slots.
+
+Used all `make-process' key-slots and must set the slot value
+formed like _what to do for directly calling `make-process'_.
+
+Factored `call-process' args as:
+- INFILE to :infile
+- DESTINATION to :destination
+- DISPLAY to :display
+- COMMAND to :command
+- PROGRAM to use the :command slot's car of what `make-process' requests
+- ARGS to use the :command slot's cdr of what `make-process'
+  requests
+
+And the slots value injecting form for `call-process' factored key
+slots dealing as what mentioned in value form injection for
+make-process part.
+
+For chaining the processes in one space, there has a :after key
+does for that, thus you can inject any lisp _forms_ into that
+place when the head process has ran finished successfully, even
+for injecting a new process, otherwise calling the error procedure
+by the forms of the key :error. Finally a :prepare key can be set
+to indicate whether running the process as a preparation.
+
+If you want to specify the process working directory, set the
+value of key slot of :default-directory, the place hold a atom or
+a form.
+
+Further more key :synchronously indicate whether call with
+synchronously, the place hold a atom or a form.
+
+If you wish to do sth both for finished or errored status with
+`unwind-protect', inject forms to :cleanup slot.
+
+*Interally variable:*
+
+For some occasions, you want to write some procedure with the proc
+bindings, thus for this function provide some internally variables
+can be used into your form:
+
+1) =$sentinel/proc=
+   * description: the process current running
+   * limitation: just used for async process
+   * Slots support: =:after=, =:cleanup=, =:sentinel=
+
+2) =$sentinel/event=
+   * description: the process returned event string
+   * limitation: just used for async process
+   * Slots support: =:after=, =:cleanup=, =:sentinel=
+
+3) =$sentinel/destination=
+   * description: its a process buffer or for the meaning for the
+     of `call-process' =destination= arg when calling process
+     synchronously.
+   * limitation: both async and sync process calling type
+   * Slots support: =:after=, =:cleanup=, =:sentinel=
+"
+  (let ((prepare-form
+         (or (entropy/emacs-get-plist-form
+              eemacs-make-proc-args :prepare nil t)
+             (lambda () t)))
+        (after-form
+         (or (entropy/emacs-get-plist-form
+              eemacs-make-proc-args :after nil t)
+             (lambda () t)))
+        (error-form
+         (or (entropy/emacs-get-plist-form
+              eemacs-make-proc-args :error nil t)
+             (lambda () t)))
+        (clean-form
+         (or (entropy/emacs-get-plist-form
+              eemacs-make-proc-args :cleanup nil t)
+             (lambda () t)))
+        (synchronously
+         (eval (entropy/emacs-get-plist-form
+                eemacs-make-proc-args :synchronously t t)))
+        (default-directory
+          (or (eval (entropy/emacs-get-plist-form
+                     eemacs-make-proc-args :default-directory t t))
+              default-directory))
+        ;; make-proc args
+        ($make_proc_name (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :name t t)))
+        ($make_proc_buffer (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :buffer t t)))
+        ($make_proc_command (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t)))
+        ($make_proc_coding (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :coding t t)))
+        ($make_proc_noquery (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :noquery t t)))
+        ($make_proc_stop (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :stop t t)))
+        ($make_proc_connection-type (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :connection-type t t)))
+        ($make_proc_filter (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :filter t t)))
+        ($make_proc_sentinel (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :sentinel t t)))
+
+        ;; call-process arg
+        ($call_proc_destination (or (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :destination t t))
+                                    (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :buffer t t))))
+        ($call_proc_infile (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :infile t t)))
+        ($call_proc_display (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :display t t)))
+        ($call_proc_command (car (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
+        ($call_proc_args (cdr (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
+
+        )
+    (when (eval prepare-form)
+      (cond
+       ((null synchronously)
+        (make-process
+         :name $make_proc_name
+         :buffer $make_proc_buffer
+         :command $make_proc_command
+         :coding $make_proc_coding
+         :noquery $make_proc_noquery
+         :stop $make_proc_stop
+         :connection-type $make_proc_connection-type
+         :filter $make_proc_filter
+         :sentinel
+         `(lambda ($sentinel/proc $sentinel/event)
+            (let ((orig-sentinel
+                   ,$make_proc_sentinel)
+                  ($sentinel/destination (process-buffer $sentinel/proc)))
+              (unwind-protect
+                  (progn
+                    (when (functionp orig-sentinel)
+                      (apply orig-sentinel
+                             $sentinel/proc $sentinel/event))
+                    (cond ((string-match-p "finished\n" $sentinel/event)
+                           ,after-form)
+                          ((string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" $sentinel/event)
+                           ,error-form)))
+                ,clean-form)))))
+       (t
+        (let (($sentinel/destination
+               $call_proc_destination))
+          (unwind-protect
+              (if (=
+                   (apply 'call-process
+                          $call_proc_command
+                          $call_proc_infile
+                          $call_proc_destination
+                          $call_proc_display
+                          $call_proc_args)
+                   0)
+                  (eval after-form)
+                (eval error-form))
+            (eval clean-form))))))))
+
+(defun entropy/emacs-make-chained-processes (eemacs-make-proc-args-list)
+  "Chained batch of processes one by one powered by
+`entropy/emacs-make-process' using a list of
+=eemacs-make-proc-args= of EEMACS-MAKE-PROC-ARGS-LIST."
+  (entropy/emacs-make-process
+   (entropy/emacs-chained-eemacs-make-proc-args
+    eemacs-make-proc-args-list)))
 
 ;; *** key bindings
 (defmacro entropy/emacs-!set-key (key command)
@@ -709,6 +985,166 @@ by `entropy/emacs-lang-set'"
      ,@body))
 
 
+
+;; ** newwork manipulation
+;; *** network status checker
+(defun entropy/emacs-network-canbe-connected-?-p (hostname)
+  (let ((ping-args-core (if sys/win32p '("-n" "1" "-w" "10")
+                          '("-c" "1" "-W" "10"))))
+    (= 0 (apply 'call-process `("ping" nil nil nil ,@ping-args-core
+                                ,hostname)))))
+
+(defun entropy/emacs-network-connected-p ()
+  (or (entropy/emacs-network-canbe-connected-?-p "www.baidu.com")
+      (entropy/emacs-network-canbe-connected-?-p "www.google.com")))
+
+;; *** download file
+(defun entropy/emacs-network-download-file
+    (url destination &optional use-curl async verify)
+  "Download file from URL to DESTINATION via alternative
+synchronous or async method using emacs native `url-retrieve' or
+curl subprocess when USE-CURL non-nil, then verify the donwload
+file via the VERIFY function with a single argument the
+DESTINATION file-name.
+
+This function return a callback status of a random symbol whose
+valid value are 'success' and 'failed' or nil while download
+process doesn't finished."
+  (let* ((tmp-file (expand-file-name
+                    (format "eemacs-download-tmpfile_[%s]"
+                            (format-time-string "%Y%m%d%H%M%S"))
+                    temporary-file-directory))
+         (cbk-symbol (let ((sym (intern (format "eemacs-network-download-random-cbk_%s"
+                                                (random)))))
+                       (set sym nil)
+                       sym))
+         (move-to-des-func
+          `(lambda ()
+             (condition-case error
+                 (progn
+                   (message "Moving to '%s' ..." ,destination)
+                   (rename-file ,tmp-file (expand-file-name ,destination))
+                   (message "Moving to '%s' done!" ,destination)
+                   (when (file-exists-p ,tmp-file)
+                     (delete-file ,tmp-file)
+                     (message "Deleted temp download file!"))
+                   (if (functionp ,verify)
+                       (if (funcall ,verify destination)
+                           (setq ,cbk-symbol 'success)
+                         (setq ,cbk-symbol 'failed))
+                     (setq ,cbk-symbol 'success)))
+               (error
+                (message (car (cdr error)))
+                (setq ,cbk-symbol 'failed)
+                (when (file-exists-p ,tmp-file)
+                  (delete-file ,tmp-file)))))))
+    (let* ((proc-buffer (get-buffer-create "*---eemacs-url-donwload---*"))
+           (inhibit-read-only t)
+           (success-message (format "Download from '%s' finished" url))
+           (success-func `(lambda ()
+                            (message ,success-message)
+                            (funcall ,move-to-des-func)))
+           (fatal-message (format "Download file form '%s' failed!" url))
+           (fatal-func `(lambda ()
+                          (setq ,cbk-symbol 'failed)
+                          (message ,fatal-message)
+                          (when (file-exists-p ,tmp-file)
+                            (delete-file ,tmp-file))))
+           proc)
+      (with-current-buffer proc-buffer
+        (erase-buffer))
+      (cond
+       (async
+        (if use-curl
+            (progn
+              (setq
+               proc
+               (make-process
+                :name "eemacs url download"
+                :buffer proc-buffer
+                :command `("curl" "--connect-timeout" "10" ,url "-o" ,tmp-file)))
+              (set-process-sentinel
+               proc
+               `(lambda (proc status)
+                  (if (string= status "finished\n")
+                      (funcall ,success-func)
+                    (when (string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" status)
+                      (funcall ,fatal-func))))))
+          (setq proc-buffer
+            (url-retrieve
+             url
+             `(lambda (status &rest _)
+                (let ((error-p (alist-get :error status)))
+                  (if error-p
+                      (funcall ,fatal-func)
+                    (re-search-forward "\r?\n\r?\n")
+                    (write-region (point) (point-max) ,tmp-file)
+                    (funcall ,success-func)
+                    )))))))
+       (t
+        (if use-curl
+            (if (eq (call-process
+                     "curl" nil nil nil
+                     "--connect-timeout" "10"
+                     url "-o" tmp-file)
+                    0)
+                (funcall success-func)
+              (funcall fatal-func))
+          (condition-case error
+              (progn
+                (url-copy-file url tmp-file)
+                (funcall success-func))
+            (error
+             (funcall fatal-func)))))))
+    cbk-symbol))
+
+
+
+;; ** compress or decompress file
+
+(defvar entropy/emacs-archive-dowith-alist
+  '((tar
+     :compress "tar -cf %o %i"
+     :extract  "tar -xf %i -C %o")
+    (tgz
+     :compress "tar -zcf %o %i"
+     :extract  "tar -zxf %i -C %o")
+    (txz
+     :compress "tar -Jcf %o %i"
+     :extract  "tar -Jxf %i -C %o")
+    (zip
+     :compress "zip %o -r --filesync %i"
+     :extract  "unzip -o %i -d %o")))
+
+(defun entropy/emacs-gen-archive-dowith-shell-command
+    (archive-type input output dowith)
+  (let* ((archive-dowith-plist
+          (alist-get archive-type
+                     entropy/emacs-archive-dowith-alist))
+         (command-fmstr
+          (plist-get archive-dowith-plist dowith)))
+    (replace-regexp-in-string
+     "%o" (shell-quote-argument output)
+     (replace-regexp-in-string
+      "%i" (shell-quote-argument input)
+      command-fmstr nil t)
+     nil t)))
+
+(defun entropy/emacs-archive-dowith
+    (archive-type input output dowith)
+  (if (= 0 (call-process-shell-command
+            (entropy/emacs-gen-archive-dowith-shell-command
+             archive-type input output dowith)))
+      (message "%s file %s to %s successfully"
+               (if (eq dowith :compress)
+                   "Compress"
+                 "Uncompress")
+               input output)
+    (user-error "%s file %s to %s with fatal ⚠"
+                (if (eq dowith :compress)
+                    "Compress"
+                  "Uncompress")
+                input output)))
 
 ;; ** Org face reset
 (defvar entropy/emacs-defun--ohrsc-previous-theme nil)

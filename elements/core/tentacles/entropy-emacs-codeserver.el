@@ -140,6 +140,7 @@ It is the recommendation of irony-mode official introduction."
 
 ;; ** microsoft language server
 ;; *** lsp-client
+;; **** lsp-mode
 (use-package lsp-mode
   :if (and (>= emacs-major-version 25)
            (eq entropy/emacs-use-ide-type 'lsp))
@@ -162,6 +163,12 @@ nervous."
      (yellow (buffer-name))
      (green "...")))
 
+  (defun entropy/emacs-codeserver--lsp-deferred-exclude (orig-func &rest orig-args)
+    (unless (member major-mode '(emacs-lisp-mode
+                                 lisp-interaction-mode
+                                 lisp-mode))
+      (apply orig-func orig-args)))
+
   :init
   (setq lsp-auto-guess-root t)
   (setq lsp-auto-configure t)
@@ -182,8 +189,11 @@ nervous."
   :config
   (advice-add 'lsp-deferred
               :before
-              #'entropy/emacs-codeserver--lsp-deferred-promt))
-
+              #'entropy/emacs-codeserver--lsp-deferred-promt)
+  (advice-add 'lsp-deferred
+              :around
+              #'entropy/emacs-codeserver--lsp-deferred-exclude))
+;; **** lsp-ui
 (use-package lsp-ui
   :if (and (>= emacs-major-version 25)
            (eq entropy/emacs-use-ide-type 'lsp))
@@ -196,6 +206,13 @@ nervous."
               ("C-c u" . lsp-ui-imenu))
   :init
   (setq lsp-ui-doc-position 'top))
+
+;; **** lsp extensions
+;; ***** lsp java
+(use-package lsp-java)
+
+;; ***** lsp python ms
+(use-package lsp-python-ms)
 
 ;; *** lsp instances
 ;; **** lsp html&css
@@ -245,6 +262,14 @@ nervous."
                   :before
                   #'entropy/emacs-coworker-check-clangd-lsp))))
 
+;; **** lsp cmake
+(when (and (eq entropy/emacs-use-ide-type 'lsp)
+           entropy/emacs-install-coworker-immediately)
+  (entropy/emacs-lazy-load-simple cmake-mode
+    (advice-add 'cmake-mode
+                :before
+                #'entropy/emacs-coworker-check-cmake-lsp)))
+
 ;; **** lsp python
 (when (eq entropy/emacs-use-ide-type 'lsp)
   (when entropy/emacs-install-coworker-immediately
@@ -252,6 +277,14 @@ nervous."
       (advice-add 'python-mode
                   :before
                   #'entropy/emacs-coworker-check-python-lsp))))
+
+;; **** lsp powershell
+(when (and (eq entropy/emacs-use-ide-type 'lsp)
+           entropy/emacs-install-coworker-immediately)
+  (entropy/emacs-lazy-load-simple powershell-mode
+    (advice-add 'powershell-mode
+                :before
+                #'entropy/emacs-coworker-check-pwsh-lsp)))
 
 ;; * provide
 (provide 'entropy-emacs-codeserver)

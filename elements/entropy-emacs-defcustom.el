@@ -865,9 +865,7 @@ elfeed proxy setting."
   :group 'entropy/emacs-coworkers-group)
 
 (defcustom entropy/emacs-coworker-host-root
-  (if (eq system-type 'windows-nt)
-      (getenv "APPDATA")
-    (expand-file-name ".local" (getenv "HOME")))
+  (expand-file-name ".eemacs-local" (getenv "HOME"))
   "The coworker host root dir."
   :type 'string
   :group 'entropy/emacs-coworkers-group)

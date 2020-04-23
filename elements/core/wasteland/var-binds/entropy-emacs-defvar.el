@@ -253,16 +253,24 @@ margin width.")
   (expand-file-name "lib" entropy/emacs-coworker-host-root)
   "The default libs host root for coworker")
 
+(defvar entropy/emacs-coworker-archive-host-root
+  (expand-file-name "archive" entropy/emacs-coworker-host-root)
+  "The default libs host root for coworker")
+
 (defmacro entropy/emacs-with-coworker-host (newhost &rest body)
   (declare (indent defun))
   `(let ()
      (if (and (not (null ,newhost))
-              (file-exists-p ,newhost))
+              (progn
+                (make-directory ,newhost t)
+                t))
          (let* ((entropy/emacs-coworker-host-root ,newhost)
                 (entropy/emacs-coworker-bin-host-path
                  (expand-file-name "bin" entropy/emacs-coworker-host-root))
                 (entropy/emacs-coworker-lib-host-root
-                 (expand-file-name "lib" entropy/emacs-coworker-host-root)))
+                 (expand-file-name "lib" entropy/emacs-coworker-host-root))
+                (entropy/emacs-coworker-archive-host-root
+                 (expand-file-name "archive" entropy/emacs-coworker-host-root)))
            ,@body)
        ,@body)))
 

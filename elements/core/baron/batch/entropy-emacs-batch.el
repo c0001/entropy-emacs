@@ -121,7 +121,10 @@
                      ("php-lsp" . entropy/emacs-coworker-check-php-lsp)
                      ("bash-lsp" . entropy/emacs-coworker-check-bash-lsp)
                      ("python-lsp" . entropy/emacs-coworker-check-python-lsp)
-                     ("clangd-lsp" . entropy/emacs-coworker-check-clangd-lsp))))
+                     ("cmake-lsp" . entropy/emacs-coworker-check-cmake-lsp)
+                     ("clangd-lsp" . entropy/emacs-coworker-check-clangd-lsp)
+                     ("java-lsp" . entropy/emacs-coworker-check-java-lsp)
+                     ("pwsh-lsp" . entropy/emacs-coworker-check-pwsh-lsp))))
     (entropy/emacs-with-coworker-host
       newhost
       (dolist (el task-list)

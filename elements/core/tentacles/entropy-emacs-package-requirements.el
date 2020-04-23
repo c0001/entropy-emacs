@@ -91,6 +91,7 @@
         counsel-ffdata
         counsel-projectile
         counsel-world-clock
+        dap-mode
         darkokai-theme
         dash
         dash-functional
@@ -158,7 +159,9 @@
         klere-theme
         log4e
         loop
+        lsp-java
         lsp-mode
+        lsp-python-ms
         lsp-treemacs
         lsp-ui
         lua-mode
@@ -208,8 +211,9 @@
         pythonic
         rainbow-delimiters
         rainbow-mode
-        ripgrep
+        request
         rg
+        ripgrep
         s
         search-web
         shackle
