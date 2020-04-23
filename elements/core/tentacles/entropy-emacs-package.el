@@ -202,7 +202,10 @@ When installing encounters the fatal error, put the pkg into
          (red "failed to install pkg")
          (yellow (symbol-name pkg)))
         (cl-incf count)))
-    (error "")))
+    (if noninteractive
+        (error "")
+      (switch-to-buffer "*Messages*")
+      (top-level))))
 
 ;; *** install
 (defun entropy/emacs-package-install-all-packages ()
