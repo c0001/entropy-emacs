@@ -73,6 +73,7 @@
   (setq ivy-height 10)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-on-del-error-function nil)
+  (setq ivy-dynamic-exhibit-delay-ms 2) ;prevent immediacy dnynamic process fetching crash.
 
   ;; using fuzzy matching
   (setq ivy-re-builders-alist
