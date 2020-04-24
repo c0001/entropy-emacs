@@ -292,5 +292,44 @@ nervous."
                 :before
                 #'entropy/emacs-coworker-check-pwsh-lsp)))
 
+;; *** lsp debug
+
+(use-package dap-mode
+  :functions dap-hydra/nil
+  :diminish
+  :bind (:map lsp-mode-map
+              ;; ("<f5>" . dap-debug)
+              ;; ("M-<f5>" . dap-hydra)
+              )
+  :hook ((dap-mode . dap-ui-mode)
+         (dap-session-created . (lambda (_args) (dap-hydra)))
+         (dap-stopped . (lambda (_args) (dap-hydra)))
+         (dap-terminated . (lambda (_args) (dap-hydra/nil)))
+
+         (python-mode . (lambda () (require 'dap-python)))
+         (ruby-mode . (lambda () (require 'dap-ruby)))
+         (go-mode . (lambda () (require 'dap-go)))
+         (java-mode . (lambda () (require 'dap-java)))
+         ((c-mode c++-mode objc-mode swift-mode) . (lambda () (require 'dap-lldb)))
+         (php-mode . (lambda () (require 'dap-php)))
+         (elixir-mode . (lambda () (require 'dap-elixir)))
+         ((js-mode js2-mode) . (lambda () (require 'dap-chrome)))
+         (powershell-mode . (lambda () (require 'dap-pwsh)))))
+
+;; `lsp-mode' and `treemacs' integration
+(use-package lsp-treemacs
+  :after lsp-mode
+  :bind (:map lsp-mode-map
+              ;; ("C-<f8>" . lsp-treemacs-errors-list)
+              ;; ("M-<f8>" . lsp-treemacs-symbols)
+              ;; ("s-<f8>" . lsp-treemacs-java-deps-list)
+              )
+  :config
+  (with-eval-after-load 'ace-window
+    (when (boundp 'aw-ignored-buffers)
+      (push 'lsp-treemacs-symbols-mode aw-ignored-buffers)
+      (push 'lsp-treemacs-java-deps-mode aw-ignored-buffers))))
+
+
 ;; * provide
 (provide 'entropy-emacs-codeserver)
