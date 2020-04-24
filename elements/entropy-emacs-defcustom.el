@@ -870,6 +870,20 @@ elfeed proxy setting."
   :type 'string
   :group 'entropy/emacs-coworkers-group)
 
+;; *** Codeserver
+(defgroup entropy/emacs-codeserver-group nil
+  "Group for eemacs code server refer customized variables."
+  :group 'extensions)
+
+(defcustom entropy/emacs-codeserver-prefer-pyls-type 'pyls
+  "Choose preferred python language server type:
+
+- 'mspyls': microsoft python lanuage server
+- 'pyls':   official python language server (used as default)"
+  :type 'symbol
+  :group 'entropy/emacs-codeserver-group)
+
+
 ;; *** IDE
 (defgroup entropy/emacs-ide-config nil
   "The IDE configurations group"

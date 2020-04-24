@@ -209,10 +209,16 @@ nervous."
 
 ;; **** lsp extensions
 ;; ***** lsp java
-(use-package lsp-java)
+(use-package lsp-java
+  :hook (java-mode . (lambda () (require 'lsp-java))))
 
 ;; ***** lsp python ms
-(use-package lsp-python-ms)
+;; Microsoft python-language-server support
+(use-package lsp-python-ms
+  :hook (python-mode . (lambda () (require 'lsp-python-ms)))
+  :init
+  (when (executable-find "python3")
+    (setq lsp-python-ms-python-executable-cmd "python3")))
 
 ;; *** lsp instances
 ;; **** lsp html&css

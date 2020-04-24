@@ -97,6 +97,19 @@
                  (throw :exit nil))))))
     (if rtn nil t)))
 
+(defun entropy/emacs-coworker--common-proc-warn (proc-buffer)
+  (with-current-buffer proc-buffer
+    (entropy/emacs-message-do-message
+     "%s"
+     (red
+      (buffer-substring-no-properties
+       (point-min)
+       (point-max)))))
+  (if noninteractive
+      (error "")
+    (switch-to-buffer "*Messages*")
+    (top-level)))
+
 ;; **** Lsp callers refactory
 ;; ***** pypi
 ;; ****** patch python installed bins for import portable "sys.path"
@@ -322,12 +335,13 @@ EXIT /b
        server-name-string))))
 
 ;; ** instances
-
+;; *** tern
 (defun entropy/emacs-coworker-check-tern-server (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
    "tern-server-install" '("tern") "tern"))
 
+;; *** web
 (defun entropy/emacs-coworker-check-web-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
@@ -335,6 +349,7 @@ EXIT /b
   (entropy/emacs-coworker--coworker-install-by-npm
    "css-lsp-server" '("css-languageserver") "vscode-css-languageserver-bin"))
 
+;; *** js
 (defun entropy/emacs-coworker-check-js-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
@@ -350,11 +365,13 @@ EXIT /b
    '("vls")
    "vls"))
 
+;; *** php
 (defun entropy/emacs-coworker-check-php-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
    "php-lsp-server" '("intelephense") "intelephense"))
 
+;; *** clangd
 (defun entropy/emacs-coworker-check-clangd-lsp (&rest _)
   (interactive)
   (if (executable-find "clangd")
@@ -365,16 +382,14 @@ EXIT /b
        (green "."))
     (error "Please using system package management install '<clangd>'.")))
 
-(defun entropy/emacs-coworker-check-python-lsp (&rest _)
-  (interactive)
-  (entropy/emacs-coworker--coworker-install-by-pip
-   "pyls-lsp" '("pyls") "python-language-server"))
+;; *** cmake
 
 (defun entropy/emacs-coworker-check-cmake-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-pip
    "cmake-lsp" '("cmake-language-server" "cmake-format") "cmake-language-server"))
 
+;; *** bash
 (defun entropy/emacs-coworker-check-bash-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
@@ -382,6 +397,7 @@ EXIT /b
    '("bash-language-server")
    "bash-language-server"))
 
+;; *** json
 (defun entropy/emacs-coworker-check-json-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
@@ -389,6 +405,7 @@ EXIT /b
    '("vscode-json-languageserver")
    "vscode-json-languageserver"))
 
+;; *** java
 (defun entropy/emacs-coworker-check-java-lsp (&rest _)
   (entropy/emacs-coworker--coworker-install-by-archive-get
    "java lsp"
@@ -402,6 +419,7 @@ EXIT /b
            "jdt-lsp"
            entropy/emacs-coworker-archive-host-root))))
 
+;; *** powershell
 (defun entropy/emacs-coworker-check-pwsh-lsp (&rest _)
   (entropy/emacs-coworker--coworker-install-by-archive-get
    "pwsh lsp"
@@ -418,6 +436,113 @@ EXIT /b
           (expand-file-name
            "pwsh-lsp/PowerShellEditorServices"
            entropy/emacs-coworker-archive-host-root))))
+
+;; *** python
+;; **** python language server types
+;; ***** pyls
+(defun entropy/emacs-coworker-check-pyls-lsp (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-pip
+   "pyls-lsp" '("pyls") "python-language-server"))
+
+;; ***** pyls-ms
+(defvar entropy/emacs-coworker--pyls-ms-archive-dir
+  (expand-file-name
+   "python-language-server"
+   entropy/emacs-coworker-archive-host-root))
+
+(defvar entropy/emacs-coworker--pyls-ms-release-name
+  (format "%s-x64"
+          (cond ((eq system-type 'darwin)  "osx")
+                ((eq system-type 'gnu/linux) "linux")
+                ((eq system-type 'windows-nt) "win")
+                (t (user-error "Unsupported system: %s" system-type)))))
+
+(defvar entropy/emacs-coworker--pyls-ms-exec-path
+  (expand-file-name
+   (format "output/bin/Release/%s/publish/" entropy/emacs-coworker--pyls-ms-release-name)
+   entropy/emacs-coworker--pyls-ms-archive-dir))
+
+(defun entropy/emacs-coworker--pyls-ms-existed-p ()
+  (let (rtn)
+    (unless (file-exists-p
+           entropy/emacs-coworker--pyls-ms-archive-dir)
+      (setq rtn "not-cloned"))
+    (when (null rtn)
+      (unless (file-exists-p
+               entropy/emacs-coworker--pyls-ms-exec-path)
+        (setq rtn "not-compile")))
+    (if rtn
+        rtn
+      t)))
+
+(defun entropy/emacs-coworker-check-pyls-ms-lsp (&rest _)
+  (let ((pyls-ms-archive
+         entropy/emacs-coworker--pyls-ms-archive-dir)
+        (task-name "pyls-lsp-ms")
+        clone-task compile-task)
+    (unless (file-exists-p entropy/emacs-coworker-archive-host-root)
+      (make-directory entropy/emacs-coworker-archive-host-root t))
+    (setq clone-task
+          `(:name
+            "git clone pyls-lsp-ms"
+            :default-directory entropy/emacs-coworker-archive-host-root
+            :command
+            '("git" "clone" "https://github.com/Microsoft/python-language-server.git")
+            :synchronously t
+            :buffer (get-buffer-create "eemacs clone pyls-ms")
+            :prepare
+            (entropy/emacs-message-do-message
+             "%s"
+             (green "Git clone pyls-lsp-ms ..."))
+            :error
+            (entropy/emacs-coworker--common-proc-warn
+             $sentinel/destination))
+          compile-task
+          `(:name
+            "dotnet compile pyls-lsp-ms"
+            :default-directory
+            ,(expand-file-name "src/LanguageServer/Impl/" pyls-ms-archive)
+            :command
+            '("dotnet" "publish" "-c" "Release" "-r"
+              ,entropy/emacs-coworker--pyls-ms-release-name)
+            :synchronously t
+            :buffer (get-buffer-create "eemacs compile pyls-ms")
+            :prepare
+            (entropy/emacs-message-do-message
+             "%s"
+             (green "Compile pyls-lsp-ms ..."))
+            :error
+            (entropy/emacs-coworker--common-proc-warn
+             $sentinel/destination)
+            :after
+            (entropy/emacs-coworker--coworker-message-install-success
+             ,task-name)))
+    (let ((pyls-ms-cur-status (entropy/emacs-coworker--pyls-ms-existed-p)))
+      (if (eq pyls-ms-cur-status t)
+          (entropy/emacs-coworker--coworker-message-existed
+           task-name)
+        (entropy/emacs-coworker--coworker-message-do-task
+         task-name)
+        (entropy/emacs-make-chained-processes
+         (cond ((string= pyls-ms-cur-status "not-cloned")
+                (list clone-task
+                      compile-task))
+               ((string= pyls-ms-cur-status "not-compile")
+                (list compile-task))))))))
+(entropy/emacs-lazy-load-simple lsp-python-ms
+  (setq lsp-python-ms-dir
+        (expand-file-name
+         "output/bin/Release/linux-x64/publish/"
+         entropy/emacs-coworker--pyls-ms-archive-dir)))
+
+;; **** main
+
+(defun entropy/emacs-coworker-check-python-lsp (&rest _)
+  (cl-case entropy/emacs-codeserver-prefer-pyls-type
+    (mspyls (entropy/emacs-coworker-check-pyls-ms-lsp))
+    (pyls (entropy/emacs-coworker-check-pyls-lsp))))
+
 
 
 ;; * provide
