@@ -1,4 +1,4 @@
-;;; liberime.el --- Rime elisp binding
+;;; liberime.el --- Rime elisp binding    -*- lexical-binding: t; -*-
 
 ;; Author: A.I.
 ;; Keywords: input method, rime
@@ -28,7 +28,9 @@ more detail can be found in `liberime-get-module-file'."
   :type 'file)
 
 (defcustom liberime-shared-data-dir nil
-  "Data directory on the system."
+  "Data directory on the system.
+
+More info: https://github.com/rime/home/wiki/SharedData"
   :group 'liberime
   :type 'file)
 
@@ -38,19 +40,31 @@ more detail can be found in `liberime-get-module-file'."
   :group 'liberime
   :type 'file)
 
+(defcustom liberime-auto-build nil
+  "If set to t, try build when module file not found in the system."
+  :group 'liberime
+  :type 'boolean)
+
 (defvar liberime-message
   "Liberime can not load properly, please check:
 1. Does your emacs support dynamic module?
-   a. Emacs should build with \"--with-modules\".
-   b. Variable `module-file-suffix' should return non-nil.
+   a. Emacs should build with modules support.
+   b. When Emacs support dynamic module, variable
+      `module-file-suffix' should non-nil.
 2. Does liberime-core module compile and load properly?
    a. User should install librime, gcc and cmake,
       then build liberime-core module according to README.org,
       Shortcut: (liberime-open-package-readme)
    b. User can try (liberime-build) shortcut function.
-   c. Function (liberime-workable-p) should return non-nil.
+   c. Function (liberime-workable-p) should return t.
 3. When liberime works, call (liberime-load) to load it."
   "The message which will be showed when `liberime-load' failure.")
+
+(defvar liberime-select-schema-timer nil
+  "Timer used by `liberime-select-schema'.")
+
+(defvar liberime-current-schema nil
+  "The rime schema set by `liberime-select-schema'.")
 
 (defun liberime-get-library-directory ()
   "Return the liberime package direcory."
@@ -100,6 +114,8 @@ if NAMES is nil, \"rime-data\" as fallback."
     (unless (file-directory-p directory)
       (make-directory directory))
     directory))
+
+(declare-function w32-shell-execute "w32fns")
 
 (defun liberime-open-directory (directory)
   "Open DIRECTORY with external app."
@@ -178,6 +194,8 @@ if NAMES is nil, \"rime-data\" as fallback."
         (user-dir (liberime-get-user-data-dir)))
     (message "Liberime: start with shared dir %S, user dir: %S" shared-dir user-dir)
     (liberime-start shared-dir user-dir)
+    (when liberime-current-schema
+      (liberime-select-schema liberime-current-schema))
     (run-hooks 'liberime-after-start-hook)))
 
 ;;;###autoload
@@ -189,13 +207,15 @@ if NAMES is nil, \"rime-data\" as fallback."
       (unless (featurep 'liberime-core)
         (load-file (liberime-get-module-file)))))
   (if (not (featurep 'liberime-core))
-      (when (> (length liberime-message) 0)
-        (let ((buf (get-buffer-create "*liberime message*")))
-          (with-current-buffer buf
-            (erase-buffer)
-            (insert liberime-message)
-            (goto-char (point-min)))
-          (pop-to-buffer buf)))
+      (if liberime-auto-build
+          (liberime-build)
+        (when (> (length liberime-message) 0)
+          (let ((buf (get-buffer-create "*liberime message*")))
+            (with-current-buffer buf
+              (erase-buffer)
+              (insert liberime-message)
+              (goto-char (point-min)))
+            (pop-to-buffer buf))))
     (liberime--start)))
 
 (liberime-load)
@@ -249,7 +269,33 @@ you also need to call liberime-deploy to make it take affect
 you only need to do this once.
 "
   (interactive "P")
-  (liberime-set-user-config "default.custom" "patch/menu/page_size" (or page-size 100) "int"))
+  (liberime-set-user-config "default.custom" "patch/menu/page_size" (or page-size 10) "int"))
+
+(defun liberime-select-schema-1 (orig_fun schema_id)
+  "Advice function of `liberime-select-schema'."
+  (let ((n 1))
+    (setq liberime-current-schema schema_id)
+    (when liberime-select-schema-timer
+      (cancel-timer liberime-select-schema-timer))
+    (setq liberime-select-schema-timer
+          (run-with-timer
+           1 2
+           (lambda ()
+             (let ((id (alist-get 'schema_id (ignore-errors (liberime-get-status)))))
+               (cond ((or (equal id schema_id)
+                          (> n 10))
+                      (if (> n 10)
+                          (message "Liberime: fail to select schema %S." schema_id)
+                        (message "Liberime: success to select schema %S." schema_id))
+                      (message "")
+                      (cancel-timer liberime-select-schema-timer)
+                      (setq liberime-select-schema-timer nil))
+                     (t (message "Liberime: try (n=%s) to select schema %S ..." n schema_id)
+                        (ignore-errors (funcall orig_fun schema_id))))
+               (setq n (+ n 1))))))
+    t))
+
+(advice-add 'liberime-select-schema :around #'liberime-select-schema-1)
 
 ;;;###autoload
 (defun liberime-select-schema-interactive ()
@@ -263,9 +309,8 @@ you only need to do this once.
     (if schema-list
         (let* ((schema-name (completing-read "Rime schema: " schema-list))
                (schema (alist-get schema-name schema-list nil nil #'equal)))
-          (liberime-select-schema schema)
-          (message "Liberime: select %s schema." schema-name))
-      (message "Liberime: schema %S is not found, ignore." schema))))
+          (liberime-select-schema schema))
+      (message "Liberime: no schema has been found, ignore."))))
 
 ;;;###autoload
 (defun liberime-sync ()
