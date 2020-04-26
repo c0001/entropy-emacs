@@ -72,6 +72,7 @@
         cal-china-x
         chinese-word-at-point
         chocolate-theme
+        cmake-mode
         color-theme-sanityinc-tomorrow
         command-log-mode
         company
@@ -203,6 +204,7 @@
         popwin
         pos-tip
         powerline
+        powershell
         prescient
         pretty-hydra
         projectile

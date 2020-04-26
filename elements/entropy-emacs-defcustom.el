@@ -889,12 +889,38 @@ elfeed proxy setting."
   "The IDE configurations group"
   :group 'extensions)
 
-(defcustom entropy/emacs-use-ide-type 'traditional
-  "IDE integration type.
+(defvar entropy/emacs-ide-for-them
+  '(c-mode
+    c++-mode cmake-mode
+    java-mode go-mode
+    python-mode php-mode
+    js2-mode json-mode css-mode web-mode
+    sh-mode powershell-mode))
 
-Valid value are 'traditional' and 'lsp'"
-  :type 'symbol
-  :group 'entropy/emacs-ide-config)
+(defvar entropy/emacs-use-ide-conditions nil)
+(defun entropy/emacs-get-ide-condition-symbol (major-mode)
+  (intern (format "entropy/emacs-use-ide-type-for-%s" major-mode)))
+(defun entropy/emacs-get-use-ide-type (major-mode)
+  (symbol-value
+   (entropy/emacs-get-ide-condition-symbol major-mode)))
+
+(let (forms)
+  (dolist (el entropy/emacs-ide-for-them)
+    (let ((sym (entropy/emacs-get-ide-condition-symbol el)))
+      (push sym
+            entropy/emacs-use-ide-conditions)
+      (push
+       `(defcustom ,sym 'lsp
+          ,(format "The IDE chosen type for major-mode '%s'
+
+Valid type are 'traditional' or 'lsp' which default to use lsp.
+"
+                   el)
+          :type 'symbol
+          :group 'entropy/emacs-ide-config)
+       forms)))
+  (dolist (form forms)
+    (eval form)))
 
 ;; **** code folding group
 (defgroup entropy/emacs-code-folding nil
@@ -1641,6 +1667,8 @@ under the symbolink root dir."
                   (gamegrid-user-score-file-directory . "games")
                   ;; vimish
                   (vimish-fold-dir . "vimish-fold")
+                  ;; anaconda installation dir
+                  (anaconda-mode-installation-directory . "anaconda-mode")
                   ))
     (set (car item) (expand-file-name (cdr item) top)))
 

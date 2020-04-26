@@ -215,17 +215,6 @@
    (entropy/emacs-company-yas-for-docs-init)
    (entropy/emacs-!set-key (kbd "]") #'entropy/emacs-company-files))
 
-  (when (eq entropy/emacs-use-ide-type 'traditional)
-    (entropy/emacs-lazy-load-simple
-        (elisp-mode company)
-      (dolist (hook '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
-        (add-hook
-         hook
-         #'(lambda ()
-             (add-to-list
-              'company-backends
-              entropy/emacs-company-elisp-top-backends))))))
-
   (when (or (equal entropy/emacs-use-extensions-type 'submodules)
             entropy/emacs-fall-love-with-pdumper)
     (entropy/emacs-company-require-subs))
@@ -316,8 +305,7 @@
 
 ;; ** company-lsp
 (use-package company-lsp
-  :if (and (>= emacs-major-version 25)
-           (eq entropy/emacs-use-ide-type 'lsp))
+  :if (>= emacs-major-version 25)
   :init
   (entropy/emacs-lazy-load-simple lsp-mode
     (advice-add 'lsp--auto-configure
@@ -362,7 +350,7 @@
 
 ;; *** shell
 (use-package company-shell
-  :if (eq entropy/emacs-use-ide-type 'traditional)
+  :if (eq (entropy/emacs-get-use-ide-type 'sh-mode) 'traditional)
   :after company
   :defines (sh-mode-hook)
   :commands (company-shell company-shell-env company-fish-shell)
@@ -376,7 +364,6 @@
 ;; *** web refer
 ;; **** web/html&css
 (use-package company-web
-  :if (eq entropy/emacs-use-ide-type 'traditional)
   :after company
   :defines (company-web-html
             company-web-jade
@@ -385,8 +372,10 @@
             css-mode-hook)
   :commands company-web
   :init
-  (add-hook 'web-mode-hook #'entropy/emacs-company-web-add-all-backends)
-  (add-hook 'css-mode-hook #'entropy/emacs-company-web-add-css-backend)
+  (if (eq (entropy/emacs-get-use-ide-type 'web-mode) 'traditional)
+      (add-hook 'web-mode-hook #'entropy/emacs-company-web-add-all-backends))
+  (if (eq (entropy/emacs-get-use-ide-type 'css-mode) 'traditional)
+      (add-hook 'css-mode-hook #'entropy/emacs-company-web-add-css-backend))
 
   (defun entropy/emacs-company-web-add-html-backend ()
     (make-local-variable 'company-backends)
@@ -408,7 +397,7 @@
 
 ;; **** javascript
 (use-package company-tern
-  :if (eq entropy/emacs-use-ide-type 'traditional)
+  :if (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
   :after company
   :defines js2-mode-hook
   :commands company-tern
@@ -443,7 +432,7 @@ entropy-emacs."
 
 ;; **** php
 (use-package company-php
-  :if (eq entropy/emacs-use-ide-type 'traditional)
+  :if (eq (entropy/emacs-get-use-ide-type 'php-mode) 'traditional)
   :defines php-mode-hook
   :commands company-ac-php-backend
   :init
@@ -456,7 +445,7 @@ entropy-emacs."
 ;; **** C(PP)
 ;; ***** headers
 (use-package company-c-headers
-  :if (eq entropy/emacs-use-ide-type 'traditional)
+  :if (eq (entropy/emacs-get-use-ide-type 'c-mode) 'traditional)
   :after company
   :defines (c-mode-hook c++-mode-hook)
   :commands company-c-headers
@@ -468,7 +457,7 @@ entropy-emacs."
 
 ;; ***** company irony
 (use-package company-irony
-  :if (eq entropy/emacs-use-ide-type 'traditional)
+  :if (eq (entropy/emacs-get-use-ide-type 'c-mode) 'traditional)
   :after company
   :defines (c-mode-hook c++-mode-hook)
   :commands commpany-irony
@@ -486,7 +475,7 @@ and c++ mode."
 ;; **** Java
 ;; **** Python
 (use-package company-anaconda
-  :if (eq entropy/emacs-use-ide-type 'traditional)
+  :if (eq (entropy/emacs-get-use-ide-type 'python-mode) 'traditional)
   :after company
   :defines anaconda-mode-hook
   :commands company-anaconda

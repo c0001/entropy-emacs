@@ -102,7 +102,8 @@
       :exit t))))
 
   :eemacs-mmphca
-  (((:enable (eq entropy/emacs-use-ide-type 'traditional))
+  (((:enable (eq (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
+                 'traditional))
     (web-mode web-mode web-mode-map))
    ("Company"
     (("M-t" company-tern "Company Tern"

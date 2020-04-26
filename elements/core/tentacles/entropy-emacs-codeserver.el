@@ -72,7 +72,6 @@ It is the recommendation of irony-mode official introduction."
 (defun entropy/emacs-codeserver-usepackage-irony ()
   "Function for enabling irony mode for c and c++ mode."
   (use-package irony
-    :if (eq entropy/emacs-use-ide-type 'traditional)
     :commands (irony-mode)
     :hook ((c-mode . irony-mode)
            (c++-mode . irony-mode)
@@ -119,31 +118,35 @@ It is the recommendation of irony-mode official introduction."
                  (subword-mode 1)))))
 
 ;; *** startup
-(when (eq entropy/emacs-use-ide-type 'traditional)
+
+(when (eq (entropy/emacs-get-use-ide-type 'c-mode) 'traditional)
   (cond
    ((and sys/win32p
          entropy/emacs-win-portable-mingw-enable
          (file-exists-p (concat entropy/emacs-win-portable-mingw-path "libclang.dll")))
     (entropy/emacs-codeserver-usepackage-irony))
    (sys/is-posix-compatible
-    (entropy/emacs-codeserver-usepackage-irony)))
+    (entropy/emacs-codeserver-usepackage-irony))))
 
-  (entropy/emacs-codeserver-usepackage-tern)
-  (entropy/emacs-codeserver-usepackage-anaconda)
-  (entropy/emacs-codeserver-usepackage-ac-php)
+(when (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
+  (entropy/emacs-codeserver-usepackage-tern))
+(when (eq (entropy/emacs-get-use-ide-type 'python-mode) 'traditional)
+  (entropy/emacs-codeserver-usepackage-anaconda))
+(when (eq (entropy/emacs-get-use-ide-type 'php-mode) 'traditional)
+  (entropy/emacs-codeserver-usepackage-ac-php))
 
-  (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple js2-mode
-      (advice-add 'js2-mode
-                  :before
-                  #'entropy/emacs-coworker-check-tern-server))))
+(when (and entropy/emacs-install-coworker-immediately
+           (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional))
+  (entropy/emacs-lazy-load-simple js2-mode
+    (advice-add 'js2-mode
+                :before
+                #'entropy/emacs-coworker-check-tern-server)))
 
 ;; ** microsoft language server
 ;; *** lsp-client
 ;; **** lsp-mode
 (use-package lsp-mode
-  :if (and (>= emacs-major-version 25)
-           (eq entropy/emacs-use-ide-type 'lsp))
+  :if (and (>= emacs-major-version 25))
   :preface
   (defun entropy/emacs-codeserver-lsp-mode-remove-session-file ()
     (when (and (boundp 'lsp-session-file)
@@ -152,7 +155,6 @@ It is the recommendation of irony-mode official introduction."
 
   :diminish lsp-mode
   :commands (lsp lsp-mode lsp-deferred)
-  :hook (prog-mode . lsp-deferred)
   :preface
   (defun entropy/emacs-codeserver--lsp-deferred-promt (&rest _)
     "Prompting for `lsp-deferred' starting for prevent lagging
@@ -179,6 +181,12 @@ nervous."
   (add-hook 'kill-emacs-hook
             #'entropy/emacs-codeserver-lsp-mode-remove-session-file)
 
+  (dolist (el entropy/emacs-ide-for-them)
+    (when (eq (entropy/emacs-get-use-ide-type el) 'lsp)
+      (add-hook
+       (intern (format "%s-hook" el))
+       #'lsp-deferred)))
+
   (entropy/emacs-lazy-initial-advice-before
    '(lsp)
    "lsp-enable-yas"
@@ -195,8 +203,7 @@ nervous."
               #'entropy/emacs-codeserver--lsp-deferred-exclude))
 ;; **** lsp-ui
 (use-package lsp-ui
-  :if (and (>= emacs-major-version 25)
-           (eq entropy/emacs-use-ide-type 'lsp))
+  :if (>= emacs-major-version 25)
   :commands (lsp-ui-peek-find-definitions
              lsp-ui-peek-find-references
              lsp-ui-imenu)
@@ -222,43 +229,46 @@ nervous."
 
 ;; *** lsp instances
 ;; **** lsp html&css
-(when (eq entropy/emacs-use-ide-type 'lsp)
-  (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple web-mode
-      (advice-add 'web-mode
-                  :before
-                  #'entropy/emacs-coworker-check-web-lsp))
-    (entropy/emacs-lazy-load-simple css-mode
-      (advice-add 'css-mode
-                  :before
-                  #'entropy/emacs-coworker-check-web-lsp))))
+(when (and (eq (entropy/emacs-get-use-ide-type 'web-mode) 'lsp)
+           entropy/emacs-install-coworker-immediately)
+  (entropy/emacs-lazy-load-simple web-mode
+    (advice-add 'web-mode
+                :before
+                #'entropy/emacs-coworker-check-web-lsp)))
+
+(when (and (eq (entropy/emacs-get-use-ide-type 'css-mode) 'lsp)
+           entropy/emacs-install-coworker-immediately)
+  (entropy/emacs-lazy-load-simple css-mode
+    (advice-add 'css-mode
+                :before
+                #'entropy/emacs-coworker-check-web-lsp)))
 
 ;; **** lsp javascript
-(when (eq entropy/emacs-use-ide-type 'lsp)
+(when (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'lsp)
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple js2-mode
       (advice-add 'js2-mode :before #'entropy/emacs-coworker-check-js-lsp))))
 
 ;; **** lsp json
-(when (eq entropy/emacs-use-ide-type 'lsp)
+(when (eq (entropy/emacs-get-use-ide-type 'json-mode) 'lsp)
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple json-mode
       (advie-add 'json-mode :before #'entropy/emacs-coworker-check-json-lsp))))
 
 ;; **** lsp bash
-(when (eq entropy/emacs-use-ide-type 'lsp)
+(when (eq (entropy/emacs-get-use-ide-type 'sh-mode) 'lsp)
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple sh-mode
       (advie-add 'sh-mode :before #'entropy/emacs-coworker-check-bash-lsp))))
 
 ;; **** lsp php
-(when (eq entropy/emacs-use-ide-type 'lsp)
+(when (eq (entropy/emacs-get-use-ide-type 'php-mode) 'lsp)
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple php-mode
       (advice-add 'php-mode :before #'entropy/emacs-coworker-check-php-lsp))))
 
 ;; **** lsp clangd
-(when (eq entropy/emacs-use-ide-type 'lsp)
+(when (eq (entropy/emacs-get-use-ide-type 'c-mode) 'lsp)
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple cc-mode
       (advice-add 'c-mode
@@ -269,7 +279,7 @@ nervous."
                   #'entropy/emacs-coworker-check-clangd-lsp))))
 
 ;; **** lsp cmake
-(when (and (eq entropy/emacs-use-ide-type 'lsp)
+(when (and (eq (entropy/emacs-get-use-ide-type 'cmake-mode) 'lsp)
            entropy/emacs-install-coworker-immediately)
   (entropy/emacs-lazy-load-simple cmake-mode
     (advice-add 'cmake-mode
@@ -277,7 +287,7 @@ nervous."
                 #'entropy/emacs-coworker-check-cmake-lsp)))
 
 ;; **** lsp python
-(when (eq entropy/emacs-use-ide-type 'lsp)
+(when (eq (entropy/emacs-get-use-ide-type 'python-mode) 'lsp)
   (when entropy/emacs-install-coworker-immediately
     (entropy/emacs-lazy-load-simple python
       (advice-add 'python-mode
@@ -285,7 +295,7 @@ nervous."
                   #'entropy/emacs-coworker-check-python-lsp))))
 
 ;; **** lsp powershell
-(when (and (eq entropy/emacs-use-ide-type 'lsp)
+(when (and (eq (entropy/emacs-get-use-ide-type 'powershell-mode) 'lsp)
            entropy/emacs-install-coworker-immediately)
   (entropy/emacs-lazy-load-simple powershell-mode
     (advice-add 'powershell-mode

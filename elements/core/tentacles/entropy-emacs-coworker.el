@@ -412,7 +412,7 @@ EXIT /b
    "jdt-lsp"
    "http://download.eclipse.org/jdtls/milestones/0.9.0/jdt-language-server-0.9.0-201711302113.tar.gz"
    'tgz))
-(when (eq entropy/emacs-use-ide-type 'lsp)
+(when (eq (entropy/emacs-get-use-ide-type 'java-mode) 'lsp)
   (unless entropy/emacs-ext-use-eemacs-lsparc
     (setq lsp-java-server-install-dir
           (expand-file-name
@@ -426,7 +426,7 @@ EXIT /b
    "pwsh-lsp"
    "https://github.com/PowerShell/PowerShellEditorServices/releases/download/v2.1.0/PowerShellEditorServices.zip"
    'zip))
-(when (eq entropy/emacs-use-ide-type 'lsp)
+(when (eq (entropy/emacs-get-use-ide-type 'powershell-mode) 'lsp)
   (entropy/emacs-lazy-load-simple lsp-pwsh
     (unless (file-exists-p lsp-pwsh-log-path)
       ;; ensure that the log path exist or will make pwsh-ls start fail
