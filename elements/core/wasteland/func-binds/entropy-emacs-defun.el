@@ -932,7 +932,7 @@ in case that file does not provide any feature."
   (if (string-match-p
        "\\*e?shell\\*\\|\\*eshell-.*?\\*\\|\\(^\\*ansi-term-.*\\)\\|\\(\\*terminal\\)"
        (format "%s" (buffer-list)))
-      (error "Can not use this function cause shell buffer exist, please kill it and try again!")
+      (user-error "Can not use this function cause shell buffer exist, please kill it and try again!")
     (cond
      ((string= lang "UTF-8")
       (set-language-environment "UTF-8")
@@ -946,7 +946,7 @@ in case that file does not provide any feature."
         (prefer-coding-system entropy/emacs-locale-coding-system)
         (setq default-file-name-coding-system 'utf-8-unix)
         (message "Setting language environment to '%s'." entropy/emacs-locale-language-environment)))
-     (t (error "Invalid LANG arg")))))
+     (t (user-error "Invalid LANG arg")))))
 
 (defun entropy/emacs-lang-set-utf-8 (&rest args)
   "Setting language envrionment to unix-8-unix, supported
@@ -957,8 +957,9 @@ by `entropy/emacs-lang-set'"
 (defun entropy/emacs-lang-set-local (&rest args)
   "Setting language environment to `locale' specification from
 `entropy/emacs-locale-language-environment'. "
-  (if (and entropy/emacs-custom-language-environment-enable
-           (not (null entropy/emacs-locale-language-environment)))
+  (if (ignore-errors
+        (not (string= current-language-environment
+                      entropy/emacs-locale-language-environment)))
       (entropy/emacs-lang-set "LOCAL")))
 
 ;; common around advice for wrapper function into utf-8 environment

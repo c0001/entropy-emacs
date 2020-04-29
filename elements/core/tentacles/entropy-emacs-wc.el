@@ -755,21 +755,13 @@ without derived slot."
   :ensure nil
   :commands (desktop-save-mode)
   :init
-  (cond
-   (entropy/emacs-fall-love-with-pdumper
-    (add-hook 'entropy/emacs-pdumper-load-hook
-              #'desktop-save-mode))
-   (t (desktop-save-mode +1)))
+  (entropy/emacs-lazy-with-load-trail
+   desktop-save-mode
+   (desktop-save-mode 1))
 
   :config
   ;; Restore frames into their original displays (if possible)
   (setq desktop-restore-in-current-display nil)
-
-  ;; Load custom theme
-  (add-hook 'desktop-after-read-hook
-            (lambda ()
-              (dolist (theme custom-enabled-themes)
-                (load-theme theme t))))
 
   ;; Don't save/restore frames in tty
   (unless (display-graphic-p)

@@ -198,7 +198,7 @@ Emacs\" buffer's local `browse-url-browse-function' to
   "Judgement of whether X start emacs with installing new packages")
 
 (defun entropy/emacs-start--check-init-with-install-p ()
-  "When X start emacs with installing, prompt user to reboot emacs.
+  "When start emacs with installing, prompt user to reboot emacs.
 and save the compiling log into `entropy/emacs-stuffs-topdir'
 named as 'compile_$date.log'."
   (let ((buflist (mapcar #'buffer-name (buffer-list))))

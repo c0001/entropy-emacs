@@ -48,6 +48,150 @@
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-hydra-hollow)
 
+;; ** library
+(setq entropy/emacs-popwin-union-rule-map
+      '((:regexp
+         :all (lambda (x rule) (list :regexp x)))
+        (:select
+         :popwin (lambda (x rule) (list :noselect (not x)))
+         :shackle (lambda (x rule) (list :select x)))
+        (:align
+         :popwin (lambda (x rule) (list :position x))
+         :shackle (lambda (x rule)
+                    (list :align
+                          (cl-case x
+                            (bottom (quote 'below))
+                            (top (quote 'above))
+                            (t
+                             (quote (quote x)))))))
+        (:size
+         :popwin (lambda (x rule)
+                   (list (if (member (plist-get (cdr rule) :align) '(bottom top))
+                             :height
+                           :width)
+                         x))
+         :shackle (lambda (x rule) (list :size x)))
+        (:autoclose
+         :popwin (lambda (x rule) (list :stick x))
+         :shackle (lambda (x rule) (list :autoclose x)))
+        (:dedicated
+         :popwin (lambda (x rule) (list :dedicated x))
+         :shackle (lambda (x rule) (list :popup (null x))))))
+
+(defun entropy/emacs-popwin-make-rule-spec
+    (type eemacs-popwin-rule-list)
+  (let (rtn)
+    (dolist (rule eemacs-popwin-rule-list)
+      (let* ((condition (car rule))
+             (attrs (cdr rule))
+             (cnt 0)
+             (maxlen (length attrs))
+             (rule-transed (list condition)))
+        (while (<= cnt (- maxlen 2))
+          (let* ((slot (nth cnt attrs))
+                 (slot-value (nth (+ 1 cnt) attrs))
+                 (trans-func (or (plist-get
+                                  (alist-get slot entropy/emacs-popwin-union-rule-map)
+                                  type)
+                                 (plist-get
+                                  (alist-get slot entropy/emacs-popwin-union-rule-map)
+                                  :all))))
+            (setq rule-transed
+                  (append rule-transed
+                          (funcall trans-func slot-value rule))
+                  cnt (+ 2 cnt))))
+        (setq rtn (append rtn (list rule-transed)))))
+    rtn))
+
+(setq entropy/emacs-popwin-regists
+      '(;; Emacs
+        ("*Help*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
+        ("*Messages*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
+        ("*compilation*" :dedicated t :align bottom :autoclose t :select nil :size 0.4)
+        ("*Compile-Log*" :dedicated t :align bottom :autoclose t :select nil :size 0.4)
+        ("*Warnings*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*Completions*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*Shell Command Output*" :dedicated t :align bottom :autoclose t :select nil)
+        ("\\*Async Shell Command\\*.+" :regexp t :align bottom :autoclose t :select nil)
+        ("^*Man.+*$" :regexp t :align bottom :autoclose nil :select t :size 0.4)
+        ("^*WoMan.+*$" :regexp t :align bottom :select t :size 0.4 :autoclose t)
+        ("^*Backtrace.+*$" :regexp t :dedicated t :align bottom :autoclose t :select nil)
+
+        ;; Kill Ring
+        ("*Kill Ring*" :dedicated t :align bottom :autoclose t)
+
+        ;; Flycheck
+        ("\\*flycheck errors\\*.+*$" :regexp t :align bottom :autoclose t :select nil)
+
+        ;; Youdao dict
+        ("*Youdao Dictionary*" :dedicated t :align bottom :autoclose t)
+
+        ;; Google translate
+        ("*Google Translate*" :dedicated t :align bottom :size 0.4 :autoclose t)
+
+        ;; Moedict
+        ("*[萌典] 查詢結果*" :dedicated t :align bottom :autoclose t)
+
+        ;; Paradox
+        ("*Paradox Report*" :dedicated t :align bottom :select nil :autoclose t)
+
+        ;; Diff
+        ("*Diff*" :dedicated t :align bottom :select nil :autoclose t)
+
+        ;; List
+        ("*Colors*" :dedicated t :align bottom :autoclose t)
+        ("*Process List*" :dedicated t :align bottom :autoclose t)
+        ("*Process-Environment*" :dedicated t :align bottom :autoclose t)
+
+        ;; undo-tree
+        (" *undo-tree*" :dedicated t :align right :autoclose t :select nil :size 60)
+
+        ;; Search
+        ("*grep*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*ag search*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
+        ("*rg*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
+        ("*pt-search*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
+        ("*Occur*" :dedicated t :align bottom :autoclose t :select t)
+        ("\\*ivy-occur.+*$" :regexp t :align bottom :autoclose t :select nil)
+        ("*xref*" :dedicated t :align bottom :autoclose t :select t)
+
+        ;; VC
+        ("*vc-diff*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*vc-change-log*" :dedicated t :align bottom :autoclose t :select nil)
+
+        ;; Magit
+        (magit-status-mode :dedicated t :align bottom :autoclose t :select t :size 0.5)
+        (magit-diff-mode :dedicated t :align bottom :autoclose t :select t :size 0.5)
+
+        ;; Script
+        ("*shell*" :dedicated t :align bottom :autoclose t :select t)
+        ("*Python*" :dedicated t :align bottom :autoclose t :select t)
+        ("*Ruby*" :dedicated t :align bottom :autoclose t :select t)
+        ("*quickrun*" :dedicated t :align bottom :autoclose t :select t)
+
+        ;; Go
+        ("^*godoc.+*$" :regexp t :align bottom :autoclose nil :select nil)
+        ("*golint*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*govet*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*go-guru-output*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*Gofmt Errors*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*Go Test*" :dedicated t :align bottom :autoclose t :select nil)
+
+        ;; Test
+        ("*ert*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*nosetests*" :dedicated t :align bottom :autoclose t :select nil)
+
+        ;; Entropy refer
+        ("^\\*entropy/cpmv" :dedicated t :regexp t :align bottom :autoclose nil :select nil)
+        ("^\\*entropy/cndt" :dedicated t :regexp t :align bottom :autoclose nil :select nil)
+        ("^\\*entropy/sdcv" :dedicated t :regexp t :align bottom :autoclose nil :select nil)
+
+        ;; sbcl-mode
+        ("^\\*slime-" :regexp t :autoclose t :align bottom :select nil :size 0.4)
+        ("^\\*sldb" :regexp t :autoclose t :align bottom :select nil :size 0.4)
+        ))
+
+
 ;; ** popwin-mode
 (use-package popwin
   :if (eq entropy/emacs-use-popup-window-framework 'popwin)
@@ -88,92 +232,8 @@
   :config
   ;; don't use default value but manage it ourselves
   (setq popwin:special-display-config
-        '(;; Emacs
-          ("*Help*" :dedicated t :position bottom :stick nil :noselect nil :height 0.4)
-          ("*Messages*" :dedicated t :position bottom :stick nil :noselect nil :height 0.4)
-          ("*compilation*" :dedicated t :position bottom :stick t :noselect t :height 0.4)
-          ("*Compile-Log*" :dedicated t :position bottom :stick t :noselect t :height 0.4)
-          ("*Warnings*" :dedicated t :position bottom :stick t :noselect t)
-          ("*Completions*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*Shell Command Output*" :dedicated t :position bottom :stick t :noselect nil)
-          ("\\*Async Shell Command\\*.+" :regexp t :position bottom :stick t :noselect nil)
-          ("^*Man.+*$" :regexp t :position bottom :stick nil :noselect nil :height 0.4)
-          ("^*WoMan.+*$" :regexp t :position bottom)
-          ("^*Backtrace.+*$" :regexp t :dedicated t :position bottom :stick t :noselect nil)
-
-          ;; Kill Ring
-          ("*Kill Ring*" :dedicated t :position bottom)
-
-          ;; Flycheck
-          ("\\*flycheck errors\\*.+*$" :regexp t :position bottom :stick t :noselect nil)
-
-          ;; Youdao dict
-          ("*Youdao Dictionary*" :dedicated t :position bottom)
-
-          ;; Google translate
-          ("*Google Translate*" :dedicated t :position bottom :height 0.4)
-
-          ;; Moedict
-          ("*[萌典] 查詢結果*" :dedicated t :position bottom)
-
-          ;; Paradox
-          ("*Paradox Report*" :dedicated t :position bottom :noselect nil)
-
-          ;; Diff
-          ("*Diff*" :dedicated t :position bottom :noselect nil)
-
-          ;; List
-          ("*Colors*" :dedicated t :position bottom)
-          ("*Process List*" :dedicated t :position bottom)
-          ("*Process-Environment*" :dedicated t :position bottom)
-
-          ;; undo-tree
-          (" *undo-tree*" :dedicated t :position right :stick t :noselect nil :width 60)
-
-          ;; Search
-          ("*grep*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*ag search*" :dedicated t :position bottom :stick t :noselect nil :height 0.4)
-          ("*rg*" :dedicated t :position bottom :stick t :noselect nil :height 0.4)
-          ("*pt-search*" :dedicated t :position bottom :stick t :noselect nil :height 0.4)
-          ("*Occur*" :dedicated t :position bottom :stick t :noselect nil)
-          ("\\*ivy-occur.+*$" :regexp t :position bottom :stick t :noselect nil)
-          ;; ("*xref*" :dedicated t :position bottom :stick nil :noselect nil)
-
-          ;; VC
-          ("*vc-diff*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*vc-change-log*" :dedicated t :position bottom :stick t :noselect nil)
-
-          ;; Magit
-          ;; (magit-status-mode :dedicated t :position bottom :stick t :height 0.5)
-          ;; (magit-diff-mode :dedicated t :position bottom :stick t :noselect t :height 0.5)
-
-          ;; Script
-          ("*shell*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*Python*" :dedicated t :position bottom :stick t :noselect t)
-          ("*Ruby*" :dedicated t :position bottom :stick t :noselect t)
-          ("*quickrun*" :dedicated t :position bottom :stick t :noselect t)
-
-          ;; Go
-          ("^*godoc.+*$" :regexp t :position bottom :stick nil :noselect nil)
-          ("*golint*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*govet*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*go-guru-output*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*Gofmt Errors*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*Go Test*" :dedicated t :position bottom :stick t :noselect nil)
-
-          ;; Test
-          ("*ert*" :dedicated t :position bottom :stick t :noselect nil)
-          ("*nosetests*" :dedicated t :position bottom :stick t :noselect nil)
-
-          ;; Entropy refer
-          ("^\\*entropy/cpmv" :regexp t :position bottom :stick nil :noselect nil)
-          ("^\\*entropy/cndt" :regexp t :position bottom :stick nil :noselect nil)
-          ("^\\*entropy/sdcv" :regexp t :position bottom :stick nil :noselect nil)
-
-          ;; sbcl-mode
-          ("^\\*slime-" :regexp t :stick t :position bottom :noselect nil :height 0.4)
-          ("^\\*sldb" :regexp t :stick t :position bottom :noselect nil :height 0.4)
-          )))
+        (entropy/emacs-popwin-make-rule-spec
+         :popwin entropy/emacs-popwin-regists)))
 
 ;; ** shackle mode
 (use-package shackle
@@ -301,52 +361,8 @@
   (setq shackle-default-alignment 'below)
   (setq shackle-default-rule nil)
   (setq shackle-rules
-        '(("*Help*" :select t :align 'below :autoclose t :size 0.4)
-          ("*compilation*" :align 'below :autoclose t)
-          ("*Completions*" :align 'below :autoclose t)
-          ("*Pp Eval Output*" :size 15 :align 'below :autoclose t)
-          ("*ert*" :align 'below :autoclose t)
-          ("*Backtrace*" :select t :size 15 :align 'below)
-          ("*Warnings*" :align 'below :autoclose t)
-          ("*Messages*" :align 'below :autoclose t :size 0.4)
-          ("^\\*.*Shell Command.*\\*$" :regexp t :align 'below :autoclose t)
-          ("\\*[Wo]*Man.*\\*" :regexp t :select t :align 'below :autoclose t)
-          ("^\\*Man .*\\*" :regexp t :select t :align 'below :autoclose t)
-          ("*Calendar*" :select t :align 'below)
-          ("\\*ivy-occur .*\\*" :regexp t :size 0.4 :select t :align 'below)
-          (" *undo-tree*" :select t :align 'right)
-          ("*Paradox Report*" :align 'below :autoclose t)
-          ("*quickrun*" :select t :size 15 :align 'below)
-          ("*tldr*" :align 'below :autoclose t)
-          ("*Youdao Dictionary*" :align 'below :autoclose t)
-          ("*Google Translate*" :align 'below :select t :size 0.4 :autoclose t)
-          ("*Finder*" :select t :align 'below :autoclose t)
-          ("^\\*elfeed-entry" :regexp t :size 0.7 :align 'below :autoclose t)
-          ("*lsp-help*" :align 'below :autoclose t)
-          ("*lsp session*" :size 0.4 :align 'below :autoclose t)
-          (" *Org todo*" :select t :size 4 :align 'below :autoclose t)
-          ("*Org Dashboard*" :select t :size 0.4 :align 'below :autoclose t)
-          ("^\\*entropy/cpmv" :regexp t :select t :size 0.4 :align 'below :autoclose t)
-          ("^\\*entropy/cndt" :regexp t :select t :size 0.4 :align 'below :autoclose t)
-          ("^\\*entropy/sdcv" :regexp t :select t :size 0.4 :align 'below :autoclose t)
-          ("^\\*slime-" :regexp t :select t :size 0.4 :align 'below :autoclose t)
-          ("^\\*sldb" :regexp t :select t :size 0.4 :align 'below :autoclose t)
-
-          (ag-mode :select t :align 'below)
-          (grep-mode :select t :align 'below)
-          (pt-mode :select t :align 'below)
-          (rg-mode :select t :align 'below)
-
-          (flycheck-error-list-mode :select t :align 'below :autoclose t)
-          (flymake-diagnostics-buffer-mode :select t :align 'below :autoclose t)
-
-          (Buffer-menu-mode :select t :size 20 :align 'below :autoclose t)
-          (comint-mode :align 'below)
-          (helpful-mode :select t :size 0.4 :align 'below :autoclose t)
-          (process-menu-mode :select t :align 'below :autoclose t)
-          (list-environment-mode :select t :align 'below :autoclose t)
-          (profiler-report-mode :select t :size 0.5 :align 'below)
-          (tabulated-list-mode :align 'below))))
+        (entropy/emacs-popwin-make-rule-spec
+         :shackle entropy/emacs-popwin-regists)))
 
 ;; * provide
 (provide 'entropy-emacs-popwin)

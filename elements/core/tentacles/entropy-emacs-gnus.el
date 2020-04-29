@@ -47,7 +47,7 @@
   (setq gnus-kill-files-directory (plist-get entropy/emacs-gnus-init-config :gnus-news-dir))
   ;; gnus mail dir
   (setq mail-source-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
-  (setq mail-default-directory (plist-get entropy/emacs-gnus-init-config :mail-temp-dir)) ;setting mail source library 'sendmail' default-directory
+  (setq mail-default-directory (plist-get entropy/emacs-gnus-init-config :mail-temp-dir))
   (setq message-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
   (setq nnfolder-directory (plist-get entropy/emacs-gnus-init-config :mail-dir))
   ;; gnus-init config file

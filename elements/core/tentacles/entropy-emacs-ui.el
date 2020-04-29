@@ -64,11 +64,13 @@
     (error "Your default font size is too large, you must set it smaller than 15.")))
 
 (defun entropy/emacs-ui-set-frame-position ()
-  "Reset frame's position and size by the constraint of `entropy/emacs-init-frame-width-scale',
+  "Reset frame's position and size by the constraint of
+`entropy/emacs-init-frame-width-scale',
 `entropy/emacs-init-frame-height-scale'
 
-And the aim effection for it is that let frame be in the middle of current displayer you be in with
-the specific height and width determined by above variable you setted."
+And the aim effection for it is that let frame be in the middle
+of current displayer you be in with the specific height and width
+determined by above variable you setted."
   (interactive)
   (let (x y width height)
     ;; widht height, coordinate calculate.

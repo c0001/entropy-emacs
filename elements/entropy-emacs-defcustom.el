@@ -41,13 +41,13 @@
 ;;
 ;;
 ;; * Code:
-;; ** require
+;; ** Require
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
 
-;; ** customizable variables
-;; *** basic
+;; ** Customizable Variables
+;; *** Basic
 (defgroup entropy/emacs-custom-variable-basic nil
   "Personal Emacs configurations."
   :group 'extensions)
@@ -120,11 +120,6 @@ for entropy-emacs."
           (const :tag "Melpa" melpa)
           (const :tag "Emacs-China" emacs-china)
           (const :tag "Tuna" tuna))
-  :group 'entropy/emacs-customize-fundametal)
-
-(defcustom entropy/emacs-initialize-benchmark-enable nil
-  "Enable the init benchmark or not."
-  :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-use-popup-window-framework 'shackle
@@ -202,7 +197,7 @@ problem, =basic= type is simple but without fully featured.
   :type 'symbol
   :group 'entropy/emacs-tree-visual-group)
 
-(defcustom entropy/emacs-neotree-text-scale -2
+(defcustom entropy/emacs-tree-neotree-text-scale -2
   "The text-scale for neotree buffer."
   :type 'integer
   :group 'entropy/emacs-tree-visual-group)
@@ -1304,6 +1299,7 @@ git-for-windows-sdk `git-bash.exe'"
   "Set up texlive path in windows"
   :type 'string
   :group 'entropy/emacs-win)
+
 ;; **** enable grep in windows
 (defcustom entropy/emacs-win-portable-grep-enable nil
   "Enable windows grep program"
@@ -1629,46 +1625,58 @@ under the symbolink root dir."
   (unless (file-exists-p top)
     (make-directory top))
   ;; subs host
-  (dolist (item '((bookmark-file . "bookmarks")
+  (dolist (item `((bookmark-file . "bookmarks")
                   (recentf-save-file . "recentf")
                   (tramp-persistency-file-name . "tramp")
-                  (auto-save-list-file-prefix . "auto-save-list/.saves-")
+                  (auto-save-list-file-prefix
+                   .
+                   ,(cond ((eq system-type 'ms-dos)
+                           ;; MS-DOS cannot have initial dot, and allows only 8.3 names
+                           "auto-save.list/_s")
+                          (t
+                           "auto-save-list/.saves-")))
                   ;; savehist caches
                   (savehist-file . "history")
                   (save-place-file . "places")
                   ;; emms caches
-                  (emms-directory . "emms")
+                  (emms-directory . "emms/")
                   ;; eshell files
-                  (eshell-directory-name . "eshell")
+                  (eshell-directory-name . "eshell/")
                   ;; transient files
                   (transient-levels-file . "transient/levels.el")
                   (transient-values-file . "transient/values.el")
                   (transient-history-file . "transient/history.el")
                   ;; url caches
-                  (url-configuration-directory . "url")
+                  (url-configuration-directory . "url/")
+                  (nsm-settings-file . "network-security.data")
                   ;; lsp mode
-                  (lsp-session-file . ".lsp-session-v1")
-                  (lsp-intelephense-storage-path . "lsp-cache")
-                  (lsp-server-install-dir . "cache/lsp")
+                  (lsp-session-file . "lsp/lsp-session-v1")
+                  (lsp-intelephense-storage-path . "lsp/cache/intelephense")
+                  (lsp-server-install-dir . "lsp/cache/install/")
+                  (lsp-java-workspace-dir . "lsp/workspace/")
                   ;; async log file
                   (async-byte-compile-log-file . "async-bytecomp.log")
                   ;; slime
-                  (slime-repl-history-file . ".slime-history.eld")
+                  (slime-repl-history-file . "slime-history.eld")
                   ;; irony srever dir
                   (irony-user-dir . "irony/")
-                  ;; treemacs persist file
-                  (treemacs-persist-file . "cache/treemacs-persist")
-                  (treemacs-last-error-persist-file . "cache/treemacs-persist-at-last-error")
-                  ;; projetile eld file
-                  (projectile-known-projects-file . "projectile-bookmarks.eld")
+                  ;; treemacs
+                  (treemacs-persist-file . "treemacs/treemacs-persist")
+                  (treemacs-last-error-persist-file . "treemacs/treemacs-persist-at-last-error")
+                  ;; projetile
+                  (projectile-known-projects-file . "projectile/projectile-bookmarks.eld")
                   ;; image dired
-                  (image-dired-dir . "image-dired")
+                  (image-dired-dir . "image-dired/")
                   ;; game dir
-                  (gamegrid-user-score-file-directory . "games")
+                  (gamegrid-user-score-file-directory . "games/")
                   ;; vimish
-                  (vimish-fold-dir . "vimish-fold")
-                  ;; anaconda installation dir
-                  (anaconda-mode-installation-directory . "anaconda-mode")
+                  (vimish-fold-dir . "vimish-fold/")
+                  ;; anaconda mode
+                  (anaconda-mode-installation-directory . "anaconda-mode/")
+                  ;; newsticker archive dir
+                  (newsticker-dir . "newsticker/")
+                  ;; miscellanies
+                  (idlwave-config-directory . "idlwave/")
                   ))
     (set (car item) (expand-file-name (cdr item) top)))
 

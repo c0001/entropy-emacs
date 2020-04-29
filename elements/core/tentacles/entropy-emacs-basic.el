@@ -557,11 +557,11 @@ Temp file was \"~/~entropy-artist.txt\""
     (setq cursor-type t)))
 
 ;; *** Global display line number mode
-(if (>= emacs-major-version 26)
-    (progn
-      (setq-default display-line-numbers-width-start t)
-      (when entropy/emacs-init-display-line-mode
-        (global-display-line-numbers-mode))))
+(when (>= emacs-major-version 26)
+  (progn
+    (setq-default display-line-numbers-width-start t)
+    (when entropy/emacs-init-display-line-mode
+      (global-display-line-numbers-mode))))
 
 ;; *** Backup setting
 (setq-default auto-save-default nil)    ; disable it for preventing typing lagging

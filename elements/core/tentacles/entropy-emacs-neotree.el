@@ -218,14 +218,14 @@ Globally close neotree buffer while selected window was
                        (display-graphic-p))
             (with-current-buffer neo-buffer-name
               (cond
-               ((> entropy/emacs-neotree-text-scale 0)
-                (text-scale-increase entropy/emacs-neotree-text-scale))
-               ((< entropy/emacs-neotree-text-scale 0)
-                (text-scale-decrease (abs entropy/emacs-neotree-text-scale)))
-               ((= entropy/emacs-neotree-text-scale 0)
+               ((> entropy/emacs-tree-neotree-text-scale 0)
+                (text-scale-increase entropy/emacs-tree-neotree-text-scale))
+               ((< entropy/emacs-tree-neotree-text-scale 0)
+                (text-scale-decrease (abs entropy/emacs-tree-neotree-text-scale)))
+               ((= entropy/emacs-tree-neotree-text-scale 0)
                 nil)
-               ((not (integerp entropy/emacs-neotree-text-scale))
-                (error "Wrong type of argument for 'entropy/emacs-neotree-text-scale'"))))
+               ((not (integerp entropy/emacs-tree-neotree-text-scale))
+                (error "Wrong type of argument for 'entropy/emacs-tree-neotree-text-scale'"))))
             (setq entropy/emacs-neotree--neo-textscaled t))))))))
 
 (provide 'entropy-emacs-neotree)

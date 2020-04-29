@@ -289,14 +289,7 @@ When installing encounters the fatal error, put the pkg into
   (use-package diminish
     :commands (diminish))
   (use-package bind-key
-    :commands (bind-key))
-
-  ;; Initialization benchmark
-  (when entropy/emacs-initialize-benchmark-enable
-    (use-package benchmark-init
-      :init
-      (benchmark-init/activate)
-      (add-hook 'after-init-hook #'benchmark-init/deactivate))))
+    :commands (bind-key)))
 
 ;; ** common start
 
