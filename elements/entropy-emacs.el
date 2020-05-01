@@ -128,6 +128,7 @@
           "entropy-sdcv"
           "entropy-shellpop"
           "entropy-unfill"
+          "company-tern"
           "fakecygpty"
           "undo-tree-eemacs"
           "liberime"

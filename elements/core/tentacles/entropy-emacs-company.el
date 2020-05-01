@@ -396,41 +396,41 @@
     (entropy/emacs-company-web-add-css-backend)))
 
 ;; **** javascript
-(when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
-  (use-package company-tern
-    :if (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
-    :after company
-    :defines js2-mode-hook
-    :commands company-tern
-    :init
-    (add-hook 'js2-mode-hook #'entropy/emacs-company-tern-add-tern-backend)
-    (defun entropy/emacs-company-tern-add-tern-backend ()
-      (make-local-variable 'company-backends)
-      (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-tern)
-                  company-backends))
+(use-package company-tern
+  :ensure nil
+  :if (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
+  :after company
+  :defines js2-mode-hook
+  :commands company-tern
+  :init
+  (add-hook 'js2-mode-hook #'entropy/emacs-company-tern-add-tern-backend)
+  (defun entropy/emacs-company-tern-add-tern-backend ()
+    (make-local-variable 'company-backends)
+    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-tern)
+                company-backends))
 
-    :config
-    (defun entropy/emacs-company-create-tern-project-file (&rest _)
-      "Auto create '.tern-project' file in current dir.
+  :config
+  (defun entropy/emacs-company-create-tern-project-file (&rest _)
+    "Auto create '.tern-project' file in current dir.
 
 Notice: this automatically created file was simple, you should
 modify it by personal customization.
 
 And this automatically created file was the file within
 entropy-emacs."
-      (let ((tern-template (expand-file-name ".tern-project" entropy/emacs-templates-dir)))
-        (when (buffer-file-name)
-          (unless (file-exists-p (expand-file-name ".tern-project" default-directory))
-            (if (file-exists-p tern-template)
-                (progn
-                  (copy-file tern-template
-                             (expand-file-name ".tern-project" default-directory))
-                  (message "Succeed to create .tern-project in this folder!"))
-              (message "Can not find origin .tern-project file from %s"
-                       (file-name-directory tern-template)))))))
+    (let ((tern-template (expand-file-name ".tern-project" entropy/emacs-templates-dir)))
+      (when (buffer-file-name)
+        (unless (file-exists-p (expand-file-name ".tern-project" default-directory))
+          (if (file-exists-p tern-template)
+              (progn
+                (copy-file tern-template
+                           (expand-file-name ".tern-project" default-directory))
+                (message "Succeed to create .tern-project in this folder!"))
+            (message "Can not find origin .tern-project file from %s"
+                     (file-name-directory tern-template)))))))
 
-    (advice-add 'company-tern :before
-                #'entropy/emacs-company-create-tern-project-file)))
+  (advice-add 'company-tern :before
+              #'entropy/emacs-company-create-tern-project-file))
 
 ;; **** php
 (use-package company-php

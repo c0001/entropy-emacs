@@ -143,9 +143,6 @@
         ("*Process List*" :dedicated t :align bottom :autoclose t)
         ("*Process-Environment*" :dedicated t :align bottom :autoclose t)
 
-        ;; undo-tree
-        (" *undo-tree*" :dedicated t :align right :autoclose t :select nil :size 60)
-
         ;; Search
         ("*grep*" :dedicated t :align bottom :autoclose t :select nil)
         ("*ag search*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
