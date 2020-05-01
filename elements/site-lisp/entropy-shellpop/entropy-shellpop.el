@@ -215,14 +215,13 @@
          (if judge nil t))))
 
 ;; Prevent vterm compiling time modify the popup window configuration
-(with-eval-after-load 'vterm-module-make
-  (advice-add
-   'vterm-module-compile
-   :around
-   (lambda (orig-func &rest orig-args)
-     (save-excursion
-       (save-window-excursion
-         (apply orig-func orig-args))))))
+(advice-add
+ 'vterm-module-compile
+ :around
+ (lambda (orig-func &rest orig-args)
+   (save-excursion
+     (save-window-excursion
+       (apply orig-func orig-args)))))
 
 ;;;; require
 (require 'cl-lib)

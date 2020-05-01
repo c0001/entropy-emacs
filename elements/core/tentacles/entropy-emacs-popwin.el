@@ -161,7 +161,7 @@
 
         ;; Magit
         (magit-status-mode :dedicated t :align bottom :autoclose t :select t :size 0.5)
-        (magit-diff-mode :dedicated t :align bottom :autoclose t :select t :size 0.5)
+        (magit-diff-mode :dedicated t :align bottom :autoclose t :select nil :size 0.5)
 
         ;; Script
         ("*shell*" :dedicated t :align bottom :autoclose t :select t)
@@ -184,7 +184,7 @@
         ;; Entropy refer
         ("^\\*entropy/cpmv" :dedicated t :regexp t :align bottom :autoclose nil :select nil)
         ("^\\*entropy/cndt" :dedicated t :regexp t :align bottom :autoclose nil :select nil)
-        ("^\\*entropy/sdcv" :dedicated t :regexp t :align bottom :autoclose nil :select nil)
+        ("^\\*entropy/sdcv" :dedicated t :regexp t :align bottom :autoclose t :select t)
 
         ;; sbcl-mode
         ("^\\*slime-" :regexp t :autoclose t :align bottom :select nil :size 0.4)
