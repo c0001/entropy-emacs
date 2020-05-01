@@ -180,12 +180,17 @@
 ;; mind.
 
 ;;; Changelog
+;; - [2020-05-01 Fri 16:54:34] Do not require vterm at load-time.
+
+;;   * Declare vterm functions.
+;;   * Save window configuration when compile vterm module
+
 ;; - [2020-01-18] bug fixed
 
 ;;   Remove ansiterm and vterm shellpop types enabled in windows.
 
 ;; - [2020-01-09] bug fixed
-  
+
 ;;   Remove vterm feature on non `--with-modules` feature emacs session
 
 ;; - [2020-01-08] Add support for `vterm`
@@ -209,12 +214,24 @@
                (throw :exit nil))))
          (if judge nil t))))
 
+;; Prevent vterm compiling time modify the popup window configuration
+(with-eval-after-load 'vterm-module-make
+  (advice-add
+   'vterm-module-compile
+   :around
+   (lambda (orig-func &rest orig-args)
+     (save-excursion
+       (save-window-excursion
+         (apply orig-func orig-args))))))
+
 ;;;; require
 (require 'cl-lib)
 (require 'shackle)
-(when (entropy/shellpop--vterm-supported)
-  (require 'vterm))
 (require 'entropy-common-library)
+
+(declare-function vterm-mode "vterm")
+(declare-function vterm-send-string "vterm")
+(declare-function vterm-send-return "vterm")
 
 ;;;; defcustom
 (defgroup entropy/shellpop-customized-group nil
@@ -599,6 +616,8 @@ shellpop type")
          (buffern-regexp (entropy/shellpop--gen-buffn-regexp type-name)))
     (list
      `(defun ,(intern func-name-core) (&optional index)
+        (unless shackle-mode
+          (shackle-mode t))
         (let* ((shackle-rules '((,buffern-regexp :regexp t
                                                  :select t
                                                  :align ,type-align
