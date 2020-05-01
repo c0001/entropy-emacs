@@ -84,7 +84,8 @@
         company-prescient
         company-quickhelp
         company-shell
-        company-tern
+        ,(when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+           'company-tern)
         company-web
         copyit
         counsel

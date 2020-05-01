@@ -286,6 +286,7 @@ default one."
 
 (defcustom entropy/emacs-solaire-themes-regex-list
   '("^doom-"
+    "^atom-one-dark"
     "^spacemacs-")
   "Themes name regex matchs for solaire-mode."
   :type 'sexp

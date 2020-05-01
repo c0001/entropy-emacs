@@ -33,6 +33,10 @@
 (require 'entropy-emacs-defconst)
 
 ;; ** individuals
+(defvar entropy/emacs-startup-done nil
+  "while nil in startup procedure or t indicates the final
+successfully.")
+
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
   "The top keymap for entropy-emacs holding the global
 commands.")

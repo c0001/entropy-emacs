@@ -1321,7 +1321,7 @@ when changing theme."
                                nil :background (face-background 'mode-line nil t))
            (doom-modeline-refresh-bars)))))
 
-(defun entropy/emacs-solaire-specific-for-themes ()
+(defun entropy/emacs-solaire-specific-for-themes (&rest _)
   (when (entropy/emacs-theme-adapted-to-solaire)
     (require 'hl-line)
     (require 'solaire-mode)

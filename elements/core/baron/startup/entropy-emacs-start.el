@@ -476,7 +476,9 @@ Emacs will auto close after 6s ......")))
 (defun entropy/emacs-start-do-load ()
   (when (entropy/emacs-ext-main)
     (require 'entropy-emacs-path)
-    (entropy/emacs-start--init-bingo)))
+    (entropy/emacs-start--init-bingo)
+    (unless entropy/emacs-fall-love-with-pdumper
+      (setq entropy/emacs-startup-done t))))
 
 (if entropy/emacs-fall-love-with-pdumper
     (entropy/emacs-start-do-load)

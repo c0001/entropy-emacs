@@ -37,6 +37,7 @@
 (require 'entropy-emacs-defun)
 
 ;; ** Theme
+;; *** defined themes
 (use-package doom-themes
   :preface (defvar region-fg nil) ; bug from: `url:https://github.com/hlissner/emacs-doom-themes/issues/166'
   :init
@@ -80,7 +81,91 @@
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-face-specifix)
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-modeline-specifix)
 
-;; *** Initialize theme and adapting to the daemon init
+;; ** Solaire mode for focus visual style
+(use-package solaire-mode
+  :commands (solaire-mode
+             solaire-mode-swap-bg
+             solaire-global-mode
+             turn-on-solaire-mode)
+  :preface
+  (defvar entropy/emacs-themes-solaire-startup-timer nil)
+  (defun entropy/emacs-themes-solaire-after-load-theme-adapts (&rest _)
+    (if (entropy/emacs-theme-adapted-to-solaire)
+        (let (timer)
+          (unless solaire-global-mode
+            (solaire-global-mode t))
+          (condition-case error
+              (if entropy/emacs-startup-done
+                  (setq timer
+                        (run-with-idle-timer 2 nil #'solaire-mode-swap-bg))
+                (setq entropy/emacs-themes-solaire-startup-timer
+                      (run-with-idle-timer
+                       2 t
+                       #'(lambda ()
+                           (when entropy/emacs-startup-done
+                             (solaire-mode-swap-bg)
+                             (cancel-timer
+                              entropy/emacs-themes-solaire-startup-timer))))))
+            (error
+             (when (timerp timer)
+               (cancel-timer timer)))))
+      (solaire-global-mode 0)))
+
+  (defun entropy/emacs-solaire-call-stuff-when-adapted
+      (orig-func &rest orig-args)
+     (when (entropy/emacs-theme-adapted-to-solaire)
+       (apply orig-func orig-args)))
+
+  :hook (((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
+         (minibuffer-setup . solaire-mode-in-minibuffer))
+  :init
+  (setq solaire-mode-remap-fringe nil
+        solaire-mode-remap-modeline nil)
+  (setq solaire-mode-real-buffer-fn
+        (lambda ()
+          (or (buffer-file-name)
+              (member major-mode
+                      '(dired-mode
+                        w3m-mode
+                        eww-mode
+                        elfeed-mode
+                        magit-status-mode)))))
+  (entropy/emacs-lazy-with-load-trail
+   solaire-mode-init
+   (add-hook 'entropy/emacs-theme-load-after-hook-end-1
+             #'entropy/emacs-themes-solaire-after-load-theme-adapts)
+   (add-hook 'entropy/emacs-theme-load-after-hook-end-2
+             #'entropy/emacs-solaire-specific-for-themes)
+   (solaire-global-mode))
+
+  :config
+  (advice-add 'turn-on-solaire-mode
+              :around
+              #'entropy/emacs-solaire-call-stuff-when-adapted)
+  (advice-add 'solaire-mode-in-minibuffer
+              :around
+              #'entropy/emacs-solaire-call-stuff-when-adapted))
+
+;; ** Page-break-lines style form Purcell
+;;
+;;     This Emacs library provides a global mode which displays ugly form feed characters as tidy
+;;     horizontal rules.
+(use-package page-break-lines
+  :diminish page-break-lines-mode
+  :commands (global-page-break-lines-mode)
+  :init
+
+  (setq page-break-lines-modes
+        '(emacs-lisp-mode
+          lisp-mode
+          scheme-mode
+          compilation-mode outline-mode))
+
+  (entropy/emacs-lazy-with-load-trail
+   PageBreakLines
+   (global-page-break-lines-mode +1)))
+
+;; ** Initialize theme and adapting to the daemon init
 
 ;; spacemacs theme has the best tui adaptable
 (unless (display-graphic-p)
@@ -117,138 +202,6 @@
                      (select-frame
                       frame)
                      (load-theme entropy/emacs-theme-options)))))))
-
-;; ** solaire mode for focus visual style
-(use-package solaire-mode
-  :commands (solaire-mode
-             solaire-mode-swap-bg
-             solaire-global-mode
-             turn-on-solaire-mode)
-  :preface
-
-  ;; eemacs solaire optimized library
-  (defun entropy/emacs-theme--solaire-get-origin-faces ()
-    (cl-loop for ((orig-face solaire-face) . judge) in solaire-mode-remap-alist
-             when (eval judge)
-             collect solaire-face))
-
-  (defun entropy/emacs-theme--solaire-force-set-faces (cur-theme)
-    (let ((settings (get cur-theme 'theme-settings))
-          (solaire-faces
-           (entropy/emacs-theme--solaire-get-origin-faces)))
-      (dolist (s settings)
-        (let* ((face (cadr s))
-               (face-spec (cadddr s)))
-          (when (member face solaire-faces)
-                   (face-spec-set face face-spec))))))
-
-  (defun entropy/emacs-theme--recovery-solaire-faces ()
-    (when (entropy/emacs-theme-adapted-to-solaire)
-      (entropy/emacs-theme--solaire-force-set-faces
-       entropy/emacs-theme-sticker))
-    ;; recover stock themes
-    (dolist (el '(default hl-line mode-line tooltip))
-      (let ((face-spec (entropy/emacs-get-theme-face
-                        entropy/emacs-theme-sticker el)))
-        (when face-spec (face-spec-set el face-spec))))
-    (entropy/emacs-solaire-specific-for-themes))
-
-  ;; solaire entropy-emacs configuration
-
-  (defvar entropy/emacs-theme--solaire-is-enabled nil
-    "Transient variable for indicating buffer `solaire-mode'
-status.")
-
-  (defun entropy/emacs-theme--solaire-enable ()
-    (when (entropy/emacs-theme-adapted-to-solaire)
-      (let (is-swaped)
-        (mapc
-         (lambda (x)
-           (when (buffer-file-name x)
-             (with-current-buffer x
-               (solaire-mode +1)
-               (unless is-swaped
-                 (solaire-mode-swap-bg)
-                 (setq is-swaped t)))))
-         (buffer-list)))))
-
-  (defun entropy/emacs-theme--solaire-disable ()
-    (when (entropy/emacs-theme-adapted-to-solaire)
-      (when (bound-and-true-p solaire-global-mode)
-        (solaire-global-mode -1))
-      (mapc
-       (lambda (x)
-         (with-current-buffer x
-           (when (bound-and-true-p solaire-mode)
-             (solaire-mode -1))))
-       (buffer-list))))
-
-  (defun entropy/emacs-theme--solaire-enable-single ()
-    (when (entropy/emacs-theme-adapted-to-solaire)
-      (solaire-mode +1)))
-
-  (defun entropy/emacs-theme--solaire-initial-hooks ()
-    (dolist (el entropy/emacs-enable-solaire-registers)
-      (dolist (hook (cdr el))
-        (eval-after-load (car el)
-          `(add-hook ',hook #'entropy/emacs-theme--solaire-enable-single)))))
-
-  (defun entropy/emacs-theme--initilized-start-solaire-mode ()
-    (when (entropy/emacs-theme-adapted-to-solaire)
-      (with-temp-buffer
-        (solaire-mode +1)
-        (solaire-mode-swap-bg))
-      (redisplay t))
-    (entropy/emacs-theme--solaire-initial-hooks)
-    (add-hook 'change-major-mode-hook
-              #'(lambda ()
-                  (when (bound-and-true-p solaire-mode)
-                    (setq entropy/emacs-theme--solaire-is-enabled t))))
-    (add-hook 'after-change-major-mode-hook
-              #'(lambda ()
-                  (unwind-protect
-                      (when entropy/emacs-theme--solaire-is-enabled
-                        (entropy/emacs-theme--solaire-enable-single))
-                    (setq entropy/emacs-theme--solaire-is-enabled nil))))
-    (add-hook 'entropy/emacs-theme-load-before-hook
-              #'entropy/emacs-theme--solaire-disable)
-    (add-hook 'entropy/emacs-theme-load-after-hook-end-1
-              #'entropy/emacs-theme--solaire-enable)
-    (entropy/emacs-solaire-specific-for-themes))
-
-  :init
-  (setq solaire-mode-remap-fringe nil
-        solaire-mode-remap-modeline nil)
-  (setq solaire-mode-real-buffer-fn
-        (lambda ()
-          t))
-
-  (entropy/emacs-lazy-with-load-trail
-   solaire-mode
-   (entropy/emacs-theme--initilized-start-solaire-mode)
-   (add-hook 'entropy/emacs-theme-load-after-hook-end-2
-             #'entropy/emacs-solaire-specific-for-themes)
-   (add-hook 'entropy/emacs-theme-load-after-hook-end-2
-             #'entropy/emacs-theme--recovery-solaire-faces)))
-
-;; ** page-break-lines style form Purcell
-;;
-;;     This Emacs library provides a global mode which displays ugly form feed characters as tidy
-;;     horizontal rules.
-(use-package page-break-lines
-  :diminish page-break-lines-mode
-  :commands (global-page-break-lines-mode)
-  :init
-
-  (setq page-break-lines-modes
-        '(emacs-lisp-mode
-          lisp-mode
-          scheme-mode
-          compilation-mode outline-mode))
-
-  (entropy/emacs-lazy-with-load-trail
-   PageBreakLines
-   (global-page-break-lines-mode +1)))
 
 ;; * provide
 (provide 'entropy-emacs-themes)

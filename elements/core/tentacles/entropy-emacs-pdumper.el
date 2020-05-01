@@ -195,7 +195,8 @@ configuration.")
       (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
       (garbage-collect))
     (defun entropy/emacs-pdumper--recovery ()
-      nil)))
+      nil)
+    (setq entropy/emacs-startup-done t)))
 
 ;; ** load-files
 (defmacro entropy/emacs-pdumper--load-files-core (top-dir files)
