@@ -89,6 +89,22 @@
              turn-on-solaire-mode)
   :preface
   (defvar entropy/emacs-themes-solaire-startup-timer nil)
+
+  (defun entropy/emacs-themes--solaire-swap-bg-needed ()
+    (member entropy/emacs-theme-sticker
+            '(doom-dark+
+              doom-molokai
+              doom-horizon
+              doom-Iosvkem
+              doom-gruvbox
+              doom-nova
+              doom-solarized-light
+              doom-vibrant)))
+
+  (defun entropy/emacs-themes--solaire-swap-bg ()
+    (unless (entropy/emacs-themes--solaire-swap-bg-needed)
+      (solaire-mode-swap-bg)))
+
   (defun entropy/emacs-themes-solaire-after-load-theme-adapts (&rest _)
     (if (entropy/emacs-theme-adapted-to-solaire)
         (let (timer)
@@ -97,13 +113,13 @@
           (condition-case error
               (if entropy/emacs-startup-done
                   (setq timer
-                        (run-with-idle-timer 2 nil #'solaire-mode-swap-bg))
+                        (run-with-idle-timer 0.01 nil #'entropy/emacs-themes--solaire-swap-bg))
                 (setq entropy/emacs-themes-solaire-startup-timer
                       (run-with-idle-timer
-                       2 t
+                       0.01 t
                        #'(lambda ()
                            (when entropy/emacs-startup-done
-                             (solaire-mode-swap-bg)
+                             (entropy/emacs-themes--solaire-swap-bg)
                              (cancel-timer
                               entropy/emacs-themes-solaire-startup-timer))))))
             (error
@@ -115,6 +131,11 @@
       (orig-func &rest orig-args)
      (when (entropy/emacs-theme-adapted-to-solaire)
        (apply orig-func orig-args)))
+
+  (defun entropy/emacs-themes-solaire-swap-bg ()
+    "Interacive wrapper for `solaire-mode-swap-bg'"
+    (interactive)
+    (solaire-mode-swap-bg))
 
   :hook (((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
          (minibuffer-setup . solaire-mode-in-minibuffer))
