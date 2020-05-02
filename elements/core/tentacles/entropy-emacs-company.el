@@ -297,11 +297,63 @@
   (company-quickhelp-mode 1))
 
 ;; ** company enhancement
-;; Better sorting and filtering
+;; *** Better sorting and filtering
 (use-package company-prescient
   :after company
   :init
   (company-prescient-mode 1))
+
+;; *** company in minibuffer
+
+;; Stolen from https://gist.github.com/Bad-ptr/7787596#file-company-minibuffer-el
+(entropy/emacs-lazy-load-simple company
+  (defvar-local entropy/emacs-company--minibuffer-command nil)
+
+  (defun entropy/emacs-company-elisp-minibuffer (command &optional arg &rest ignored)
+    "`company-mode' completion back-end for Emacs Lisp in the
+minibuffer."
+    (interactive (list 'interactive))
+    (case command
+      ('prefix (and (minibufferp)
+                    (case entropy/emacs-company--minibuffer-command
+                      ('execute-extended-command (company-grab-symbol))
+                      (t (company-capf `prefix)))))
+      ('candidates
+       (case entropy/emacs-company--minibuffer-command
+         ('execute-extended-command (all-completions arg obarray 'commandp))
+         (t nil)))))
+
+  (defun entropy/emacs-active-minibuffer-company-elisp ()
+    "Active `company-mode' in minibuffer only for elisp
+completion when calling: 'execute-extended-command' or
+'eval-expression'."
+    (unless company-mode
+      (when (and global-company-mode (or (eq this-command #'execute-extended-command)
+                                         (eq this-command #'eval-expression)))
+
+        (setq-local entropy/emacs-company--minibuffer-command this-command)
+
+        (setq-local completion-at-point-functions
+                    (list (if (fboundp 'elisp-completion-at-point)
+                              #'elisp-completion-at-point
+                            #'lisp-completion-at-point) t))
+
+        (setq-local company-show-numbers nil)
+        (setq-local company-backends '((entropy/emacs-company-elisp-minibuffer
+                                        company-capf)))
+        (setq-local company-tooltip-limit 8)
+        (setq-local company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
+                                        company-preview-if-just-one-frontend))
+
+        (company-mode 1)
+        (when (eq this-command #'execute-extended-command)
+          (company-complete)))))
+
+  (add-hook 'minibuffer-setup-hook
+            #'entropy/emacs-active-minibuffer-company-elisp)
+  ;; (add-hook 'eval-expression-minibuffer-setup-hook
+  ;;           #'entropy/emacs-active-minibuffer-company-elisp)
+  )
 
 ;; ** company-lsp
 (use-package company-lsp
