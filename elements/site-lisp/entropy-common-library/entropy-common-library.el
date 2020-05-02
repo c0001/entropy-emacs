@@ -1285,21 +1285,41 @@ Note the location must end with '/'."
 
 
 ;;;;; backup files
-(defun entropy/cl-backup-file (FILE)
-  "Backup file with named it by the form of
-\"xxx-backup_20180713_Fri_21-28-20\""
-  (if (and (file-exists-p FILE) FILE)
-      (let* ((backup-name
-              (concat FILE "-backup_" (format-time-string "%Y%m%d_%a_%H-%M-%S")))
-             (backup-base (file-name-nondirectory backup-name))
-             (file-base (file-name-nondirectory FILE)))
-        (copy-file FILE backup-name)
+(defun entropy/cl-backup-file (file-path)
+  "Backup file or directory with named it by the form of
+\"xxx-backup_20180713_Fri_21-28-20\"
+
+If the generated backup name exists in filesystem then add a
+random suffix.
+
+Notice there's no backup naming regexp convention guarantee! "
+  (if (and file-path (file-exists-p file-path))
+      (let* ((file-name
+              (if (file-directory-p file-path)
+                  (directory-file-name file-path)
+                file-path))
+             (backup-name
+              (let ((rtn
+                     (concat
+                      file-name
+                      "-backup_"
+                      (format-time-string "%Y%m%d_%a_%H-%M-%S"))))
+                (while (file-exists-p rtn)
+                  (setq rtn
+                        (format "%s_(random_suffix_%s)" rtn
+                                (random most-positive-fixnum))))
+                rtn))
+             (backup-base
+              (file-name-base backup-name))
+             (file-base (file-name-base file-name)))
+        (if (file-directory-p file-path)
+            (copy-directory file-path backup-name nil nil t)
+          (copy-file file-path backup-name))
         (message (format "Backup '%1$s' to '%2$s'"
                          file-base backup-base)))
-    (user-error (format "Buffer '%s' is not one exists file's mirror buffer." (buffer-name)))))
-
-
-
+    (user-error
+     (format "File or directory '%s' doesn't exists, thus can no be backuped!"
+             file-path))))
 
 ;;;;; check-filename legal
 (defun entropy/cl-check-filename-legal (filename &optional non-error)
