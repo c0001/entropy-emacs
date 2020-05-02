@@ -149,7 +149,7 @@ i.e. @strong{init config} and @strong{self buit pakages}.
 The @samp{init config} conceptual thoughts from @samp{centaur-emacs's} design
 philosophy, as it's original intention for building the simple and
 pure as origin emacs like configs, in @samp{entropy-emacs}, they
-abbreviated as @samp{entropy-emacs-xxx.el}. 
+abbreviated as @samp{entropy-emacs-xxx.el}.
 
 @samp{entropy-emacs} using the three bind-level core packages managements
 design to separate individual source files in @samp{elements/core} root
@@ -201,109 +201,109 @@ There's the list of the tentacles and their description:
 @headitem @strong{Category}
 @tab @strong{init package}
 @tab @strong{package description}
-@item 
+@item
 @tab entropy-emacs-basic.el
 @tab basic setting for @samp{entropy-emacs}
 @item basic config
 @tab entropy-emacs-ui.el
 @tab ui defination with the customized startup screen design
-@item 
+@item
 @tab entropy-emacs-themes.el
 @tab theme collections and startup default theme sets
-@item 
+@item
 @tab entropy-emacs-modeline.el
 @tab modeline themes collection and default modeline theme setes
-@item 
+@item
 @tab entropy-emacs-path.el
 @tab path configs for @samp{entropy-emacs} specfic environment
-@item 
-@tab 
-@tab 
+@item
+@tab
+@tab
 @item window conigurations
 @tab entropy-emacs-wc.el
 @tab The emacs window moving and workaround emulator configuration
-@item 
+@item
 @tab entropy-emacs-popup.el
 @tab The popuped window procedure defination
-@item 
-@tab 
-@tab 
-@item 
+@item
+@tab
+@tab
+@item
 @tab entropy-emacs-ivy.el
 @tab @uref{https://github.com/abo-abo/swiper, ivy} mode configs and others refer enhancements
 @item interactive chains
 @tab entropy-emacs-company.el
 @tab @uref{https://github.com/company-mode/company-mode, company-mode} confifs and other refer enhancements
-@item 
+@item
 @tab entropy-emacs-yas.el
 @tab @uref{https://github.com/joaotavora/yasnippet, yasnippet for emacs} configs and other refer enhancements
-@item 
-@tab 
-@tab 
-@item 
+@item
+@tab
+@tab
+@item
 @tab entropy-emacs-org.el
 @tab emacs org mode configs
-@item 
+@item
 @tab entropy-emacs-markdown.el
 @tab emacs markdown mode configs
 @item major modes
 @tab entropy-emacs-c.el
 @tab C/C++ mode configs with @samp{irony} completion chians
-@item 
+@item
 @tab entropy-emacs-lisp.el
 @tab emacs lisp mode configs
-@item 
+@item
 @tab entropy-emacs-web.el
 @tab web mode (web front/back end) configs (inclues js css html php)
-@item 
+@item
 @tab entropy-emacs-python.el
 @tab python mode config with @samp{company-anaconda} completion chain
-@item 
+@item
 @tab entropy-emacs-lua.el
 @tab lua mode configs
-@item 
-@tab 
-@tab 
-@item 
+@item
+@tab
+@tab
+@item
 @tab entropy-emacs-shell.el
 @tab emacs internal shell front-end enhancements
 @item tool-chains
 @tab entropy-emacs-vcs.el
 @tab git/svn codes version control with @samp{magit}
-@item 
+@item
 @tab entropy-emacs-structure.el
 @tab programme editting structs fold/expanding feature package
-@item 
+@item
 @tab entropy-emacs-highlight.el
 @tab codes snippet highlighting guide feature provider
-@item 
+@item
 @tab entropy-emacs-dash.el
 @tab dashboard of api query prompt powerd by external tool @uref{https://github.com/zealdocs/zeal, zeal}
-@item 
-@tab 
-@tab 
+@item
+@tab
+@tab
 @item entertainments
 @tab entropy-emacs-emms.el
 @tab gnu emms as media play control panel @samp{entropy-emacs} specifics
-@item 
+@item
 @tab entropy-emacs-game.el
 @tab emacs internal game setting config optimization
-@item 
-@tab 
-@tab 
+@item
+@tab
+@tab
 @item fundamental
 @tab entropy-emacs-package.el
 @tab on-line packages mirror management and local featuere loaded configs
-@item 
+@item
 @tab entropy-emacs-custom.el
 @tab custom file loading setting with alternative custom file specific
-@item 
-@tab 
-@tab 
+@item
+@tab
+@tab
 @item code server
 @tab entropy-emacs-coworker.el
 @tab third-party language server query insall library.
-@item 
+@item
 @tab entropy-emacs-codeserver.el
 @tab the dashboard for language server installer
 @end multitable
@@ -489,7 +489,7 @@ workspace
 @item
 modeline specific
 @item
-global buffer lock 
+global buffer lock
 @item
 input method of chinese refer
 @item
@@ -562,7 +562,7 @@ other emacs intern toolchain.
 
 @itemize
 @item
-@strong{eyebrowse's workspace dash list:} 
+@strong{eyebrowse's workspace dash list:}
 
 @enumerate
 @item
@@ -1041,10 +1041,10 @@ Using minibuffer be the widget as:
 +----------------------------+
 |                            |
 | xxx|                       |
-|                            |                                        
-|                            |                                        
-|                            |                                        
-|----------------------------|                                        
+|                            |
+|                            |
+|                            |
+|----------------------------|
 | 1.word1 2.word2 .......   <------minibuffer pyim pinyin candidate list
 +----------------------------+
 @end example
@@ -1117,7 +1117,7 @@ steps are easily and thus as:
 given the rime schemes host in operation system for variable
 @samp{entropy/emacs-pyim-liberime-scheme-data}.
 @item
-Setting the specific rime scheme selected 
+Setting the specific rime scheme selected
 @item
 Optionally give the rime cache dir value to
 @samp{entropy/emacs-pyim-liberime-cache-dir}.
@@ -1373,7 +1373,7 @@ place follow codes snippet into your custom file"
 @lisp
 (setq entropy/emacs-disable-org-heading-scale nil)
 
-;; Reload major-mode for current to trigger the hook 
+;; Reload major-mode for current to trigger the hook
 (funcall major-mode)
 @end lisp
 
@@ -1924,7 +1924,7 @@ the LSP as the IDE core component, its powerful with unified
 crossplatform protocol defination and ripened communitiy driven. But
 for those old IDE configuration (i.e. individually un-unified code
 sever) were remained in @samp{entropy-emacs} and with full supported as
-before. 
+before.
 
 The switcher for @samp{lsp} and the old IDE configuration is customized
 variable @samp{entropy/emacs-use-ide-type} whose valid values are 'lsp or
@@ -1958,17 +1958,17 @@ been enhanced the extending feature details informations.
 @tab @uref{https://github.com/Sarcasm/irony-mode, irony-mode}
 @tab yes
 @tab yes
-@item 
-@tab 
-@tab 
-@tab 
+@item
+@tab
+@tab
+@tab
 @end multitable
 
 @itemize
 @item
 @strong{Lsp-mode for cland eemacs configuration:}
 
-Common lsp-mode configuration. 
+Common lsp-mode configuration.
 
 @item
 @strong{irony-mode eemacs configuration:}
@@ -1989,10 +1989,6 @@ linux with dependencies installed e.g. cmake, clang @dots{} (We do not
 packing the server binary on linux because for ths platform across
 conflicated, thus x86 and arm or other cpu platform can not using the
 same binary.)
-
-Other feature extending are minor, simple file compiling on WINDOWS OS
-was given as function @code{entropy/emacs-c-win-c-compiler} which using
-mingw gcc for the compiler and with fixed library linking as for.
 @end itemize
 
 @node Php
@@ -2058,7 +2054,7 @@ npm refer packages installed.
 @tab html: no
 @tab yes (@uref{https://github.com/osv/company-web, company-web})
 @tab no
-@item 
+@item
 @tab css:  no
 @tab yes (company-capf)
 @tab no
