@@ -4,7 +4,7 @@
 
 ;; Author: Shuai Wu <ws.horton@gmail.com>
 ;; Changed by: Entropy
-;; URL: 
+;; URL:
 ;; Version: 0.1.0
 ;; Package-Requires: ((company "0.8.0")(cl-lib "0.5.0"))
 
@@ -39,16 +39,15 @@
 
 (defun company-en-words (command &optional arg &rest ignored)
   (interactive (list 'interactive))
-  (cl-case command 
+  (cl-case command
     (interactive (company-begin-backend 'company-en-words))
     (prefix (company-grab-word))
-    (candidates 
+    (candidates
      (company-en-words--cl-compatible-for-rmifnot
-      (lambda (c) (string-prefix-p (downcase arg) c))  
+      (lambda (c) (string-prefix-p (downcase arg) c))
       en-words-completions))
-    (sorted t)
-    (ignore-case 'keep-prefix)))
-    
+    (sorted t)))
+
 (defun company-en-words-enable ()
   (interactive)
   (add-to-list 'company-backends 'company-en-words))
