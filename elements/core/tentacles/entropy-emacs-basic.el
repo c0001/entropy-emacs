@@ -588,7 +588,6 @@ Filename are \".scratch_entropy\" host in `entropy/emacs-stuffs-topdir'.
             (with-current-buffer (find-file-noselect fname)
               (if buffer-read-only (read-only-mode 0))
               (auto-save-mode 0)
-              (erase-buffer)
               (rename-buffer "*scratch*")
               (lisp-interaction-mode)
               (insert initial-scratch-message)))
