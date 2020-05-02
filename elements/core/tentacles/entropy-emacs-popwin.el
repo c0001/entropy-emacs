@@ -105,87 +105,87 @@
 
 (setq entropy/emacs-popwin-regists
       '(;; Emacs
-        ("*Help*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
-        ("*Messages*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
-        ("*compilation*" :dedicated t :align bottom :autoclose t :select nil :size 0.4)
-        ("*Compile-Log*" :dedicated t :align bottom :autoclose t :select nil :size 0.4)
-        ("*Warnings*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*Completions*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*Shell Command Output*" :dedicated t :align bottom :autoclose t :select nil)
-        ("\\*Async Shell Command\\*.+" :regexp t :align bottom :autoclose t :select nil)
-        ("^*Man.+*$" :regexp t :align bottom :autoclose nil :select t :size 0.4)
-        ("^*WoMan.+*$" :regexp t :align bottom :select t :size 0.4 :autoclose t)
-        ("^*Backtrace.+*$" :regexp t :dedicated t :align bottom :autoclose t :select nil)
+        ("*Help*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*Messages*"                  :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*compilation*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Compile-Log*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Warnings*"                  :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Completions*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Shell Command Output*"      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("\\*Async Shell Command\\*.+" :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("^*Man.+*$"                   :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^*WoMan.+*$"                 :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^*Backtrace.+*$"             :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Kill Ring
-        ("*Kill Ring*" :dedicated t :align bottom :autoclose t)
+        ("*Kill Ring*"                 :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Flycheck
-        ("\\*flycheck errors\\*.+*$" :regexp t :align bottom :autoclose t :select nil)
+        ("\\*flycheck errors\\*.+*$"   :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Youdao dict
-        ("*Youdao Dictionary*" :dedicated t :align bottom :autoclose t)
+        ("*Youdao Dictionary*"         :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Google translate
-        ("*Google Translate*" :dedicated t :align bottom :size 0.4 :autoclose t)
+        ("*Google Translate*"          :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Moedict
-        ("*[萌典] 查詢結果*" :dedicated t :align bottom :autoclose t)
+        ("*[萌典] 查詢結果*"           :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Paradox
-        ("*Paradox Report*" :dedicated t :align bottom :select nil :autoclose t)
+        ("*Paradox Report*"            :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Diff
-        ("*Diff*" :dedicated t :align bottom :select nil :autoclose t)
+        ("*Diff*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; List
-        ("*Colors*" :dedicated t :align bottom :autoclose t)
-        ("*Process List*" :dedicated t :align bottom :autoclose t)
-        ("*Process-Environment*" :dedicated t :align bottom :autoclose t)
+        ("*Colors*"                    :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Process List*"              :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Process-Environment*"       :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Search
-        ("*grep*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*ag search*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
-        ("*rg*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
-        ("*pt-search*" :dedicated t :align bottom :autoclose t :select t :size 0.4)
-        ("*Occur*" :dedicated t :align bottom :autoclose t :select t)
-        ("\\*ivy-occur.+*$" :regexp t :align bottom :autoclose t :select nil)
-        ("*xref*" :dedicated t :align bottom :autoclose t :select t)
+        ("*grep*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*ag search*"                 :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*rg*"                        :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*pt-search*"                 :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*Occur*"                     :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("\\*ivy-occur.+*$"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*xref*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; VC
-        ("*vc-diff*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*vc-change-log*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*vc-diff*"                   :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*vc-change-log*"             :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Magit
-        (magit-status-mode :dedicated t :align bottom :autoclose t :select t :size 0.5)
-        (magit-diff-mode :dedicated t :align bottom :autoclose t :select nil :size 0.5)
+        (magit-status-mode             :regexp nil :dedicated t :align bottom :size 0.5 :autoclose t   :select t)
+        (magit-diff-mode               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Script
-        ("*shell*" :dedicated t :align bottom :autoclose t :select t)
-        ("*Python*" :dedicated t :align bottom :autoclose t :select t)
-        ("*Ruby*" :dedicated t :align bottom :autoclose t :select t)
-        ("*quickrun*" :dedicated t :align bottom :autoclose t :select t)
+        ("*shell*"                     :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*Python*"                    :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*Ruby*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("*quickrun*"                  :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Go
-        ("^*godoc.+*$" :regexp t :align bottom :autoclose nil :select nil)
-        ("*golint*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*govet*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*go-guru-output*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*Gofmt Errors*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*Go Test*" :dedicated t :align bottom :autoclose t :select nil)
+        ("^*godoc.+*$"                 :regexp t   :dedicated t :align bottom :size 0.4 :autoclose nil :select nil)
+        ("*golint*"                    :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*govet*"                     :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*go-guru-output*"            :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Gofmt Errors*"              :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Go Test*"                   :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Test
-        ("*ert*" :dedicated t :align bottom :autoclose t :select nil)
-        ("*nosetests*" :dedicated t :align bottom :autoclose t :select nil)
+        ("*ert*"                       :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*nosetests*"                 :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
         ;; Entropy refer
-        ("^\\*entropy/cpmv" :dedicated t :regexp t :align bottom :autoclose nil :select nil)
-        ("^\\*entropy/cndt" :dedicated t :regexp t :align bottom :autoclose nil :select nil)
-        ("^\\*entropy/sdcv" :dedicated t :regexp t :align bottom :autoclose t :select t)
+        ("^\\*entropy/cpmv"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose nil :select nil)
+        ("^\\*entropy/cndt"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^\\*entropy/sdcv"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; sbcl-mode
-        ("^\\*slime-" :regexp t :autoclose t :align bottom :select nil :size 0.4)
-        ("^\\*sldb" :regexp t :autoclose t :align bottom :select nil :size 0.4)
+        ("^\\*slime-"                  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("^\\*sldb"                    :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ))
 
 
