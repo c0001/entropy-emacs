@@ -211,7 +211,7 @@
      ("f a" vimish-fold-refold-all "Refold all closed folds in current buffer"
       :enable t :exit t))
     "Vimish unfold"
-    (("u c" vimish-fold-unfold "Delete all ‘vimish-fold--folded’ overlays at point"
+    (("u c" vimish-fold-unfold "Unfold at point"
       :enable t :exit t)
      ("u a" vimish-fold-unfold-all "Unfold all folds in current buffer"
       :enable t :exit t))))
@@ -229,7 +229,13 @@
   ;; Disable vimish native kemap that conflict with eemacs
   ;; specification
   (define-key vimish-fold-folded-keymap [67108960] nil)
-  (define-key vimish-fold-unfolded-keymap [67108960] nil))
+  (define-key vimish-fold-unfolded-keymap [67108960] nil)
+
+  ;; fake advice for 'vimish-fold--read-only for text replaceable
+  (advice-add 'vimish-fold--read-only
+              :around
+              (lambda (&rest _)
+                t)))
 
 ;; ** outorg
 (use-package outorg
