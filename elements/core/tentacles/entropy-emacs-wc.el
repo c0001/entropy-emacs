@@ -152,6 +152,7 @@
 ;; ** window config
 ;; *** eyebrowse ----> for save the window config(workspace group)
 (use-package eyebrowse
+;; **** commands
   :commands (eyebrowse--current-window-config
              eyebrowse--delete-window-config
              eyebrowse--dotted-list-p
@@ -191,6 +192,7 @@
              eyebrowse-switch-to-window-config-8
              eyebrowse-switch-to-window-config-9)
 
+;; **** preface
   :preface
 
   (setq entropy/emacs-wc-eyebrowse-mode-map
@@ -219,6 +221,7 @@
     (define-key entropy/emacs-wc-eyebrowse-mode-map
       (kbd (car bind)) (cdr bind)))
 
+;; **** eemacs-tpha
   :eemacs-tpha
   (((:enable t))
    ("WI&BUF"
@@ -231,6 +234,7 @@
       :exit t
       :eemacs-top-bind t))))
 
+;; **** eemacs-indhc
   :eemacs-indhc
   (((:enable t)
     (eyebrowse-mode eyebrowse entropy/emacs-wc-eyebrowse-mode-map))
@@ -332,6 +336,7 @@
       :exit t
       :map-inject t))))
 
+;; **** init
   :init
 
   (setq eyebrowse-keymap-prefix (kbd "s-w"))
@@ -340,6 +345,7 @@
    eyebrowse-enable
    (eyebrowse-mode +1))
 
+;; **** config
   :config
   (setq eyebrowse-mode-line-style nil
         eyebrowse-new-workspace
@@ -348,7 +354,7 @@
             entropy/emacs-eyebrowse-new-workspace-init-function
           t))
 
-  ;; debug for improving eyebrowse's user experience
+;; ***** Debugs for improving eyebrowse's user experience
   (defun eyebrowse--read-slot ()
     "Read in a window config SLOT to switch to.
   A formatted list of window configs is presented as candidates.
@@ -382,6 +388,7 @@
       (or choice (eyebrowse--string-to-number candidate)
           (user-error "Invalid slot number"))))
 
+;; ***** Create window config
   (defun entropy/emacs-basic-eyebrowse-create-window-config ()
     "Creates a window config at a yet unoccupied slot and named
     this work space."
@@ -391,7 +398,8 @@
           (tag (read-string "Tag: ")))
       (apply #'eyebrowse-rename-window-config `(,slot ,tag))))
 
-  (defun entropy/emacs-basic--eyebrowse-show-current-slot ()
+;; ***** Show slot information
+  (defun entropy/emacs-basic-eyebrowse-show-current-slot ()
     "Show current eyebrowse workspace slot and tag info."
     (interactive)
     (let* ((entropy/emacs-basic--eyebrowse-slot-result (eyebrowse--get 'current-slot))
@@ -399,15 +407,16 @@
            (window-config (assoc (eyebrowse--get 'current-slot) window-configs))
            (current-tag (nth 2 window-config)))
       (message "Slot:%s  Tag:%s" entropy/emacs-basic--eyebrowse-slot-result current-tag)))
-  (global-set-key (kbd "C-c M-s") 'entropy/emacs-basic--eyebrowse-show-current-slot)
 
-  (defun entropy/emacs-basic--eyebrowse-kill-all-group ()
+;; ***** kill all eyebrowse window configs
+  (defun entropy/emacs-basic-eyebrowse-kill-all-group ()
     "Kill all eyebrowse window config"
     (interactive)
     (dolist (item (eyebrowse--get 'window-configs))
       (eyebrowse--delete-window-config (car item)))
     (eyebrowse-init))
 
+;; ***** Batch create eyerbrowse window configs
   (defun entropy/emacs-basic-eyebrowse-create-workspaces (&optional ws-list $confirm)
     "Batch create eyebrowse workspace with name input prompt
 powered by `entropy/cl-repeated-read'.
@@ -424,7 +433,7 @@ confirmation when sets it to 't'."
     (when $confirm
       (unless (yes-or-no-p "Do you want to clean all workspace and buiding new workspaces? ")
         (error "Canceld rebuild workspaces.")))
-    (entropy/emacs-basic--eyebrowse-kill-all-group)
+    (entropy/emacs-basic-eyebrowse-kill-all-group)
     (let ((current-slot (eyebrowse--get 'current-slot ))
           (ws (if ws-list
                   ws-list
@@ -440,7 +449,7 @@ confirmation when sets it to 't'."
             (setq current-slot (+ 1 current-slot)))))
       (eyebrowse-switch-to-window-config-1)))
 
-
+;; ***** Batch remove eyebrowse window configs
   (defvar entropy/emacs-basic--eyebrowse-config-selected '()
     "Contained selected eyebrowse workspace config.")
 
@@ -504,7 +513,8 @@ This was the one action in `ivy-read'."
       (dolist (el entropy/emacs-basic--eyebrowse-config-selected)
         (eyebrowse--delete-window-config (cdr (assoc el candi))))))
 
-
+;; ***** Derived eyebrowse window config feature
+;; ****** Library
   (defun eyebrowse-free-slot (slots)
     "Returns a yet unoccupied slot.
 The specific behaviour is tmux-like.
@@ -524,7 +534,7 @@ Note: this function has been redefine for
             (setq slots (cdr slots)))
           (floor (1+ last))))))
 
-
+;; ****** Create derived eyebrowse window configs
   (defun entropy/emacs-basic-eyebrowse-create-derived ()
     "Create derived workspace basic from the current main workspace.
 
@@ -617,6 +627,7 @@ The reason for this limit was that two points follow:
                        (concat "☛" custr)
                      "")))))))
 
+;; ****** Switch derived eyebrowse window configs
   (defun entropy/emacs-basic-eyebrowse-switch-derived ()
     "Switch to derived workspace rely on current basic workspace."
     (interactive)
@@ -648,7 +659,6 @@ The reason for this limit was that two points follow:
          (t (error "No derived work-space."))))
       (setq choice (completing-read "Choose derived: " derived-named-list nil t))
       (eyebrowse-switch-to-window-config (cdr (assoc choice derived-named-list)))))
-
 
   (defun entropy/emacs-basic-eyebrowse-switch-basic-window ()
     "Switch to basic workspace which has the prompt candidates
@@ -744,7 +754,9 @@ without derived slot."
           "*Buffer List*"
           "*Ibuffer*"
           "*esh command on file*"
-          "*Backtrace*")
+          "*Backtrace*"
+          "*rg*"
+          "*Messages*")
         winner-boring-buffers-regexp
         (rx (or (seq line-start "magit: ")))))
 

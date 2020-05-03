@@ -68,6 +68,19 @@
         (apply orig-func orig-args)
       (setq treemacs--ready-to-follow t)))
 
+  (defun entropy/emacs-treemacs-toggle-treemacs ()
+    (interactive)
+    (require 'treemacs)
+    (pcase (treemacs-current-visibility)
+      ('visible (delete-window (treemacs-get-local-window)))
+      ('exists  (if (entropy/emacs-treemacs--buffer-in-project-p)
+                    (treemacs-select-window)
+                  (let ((current-prefix-arg t))
+                    (funcall-interactively
+                     'treemacs-add-project-to-workspace
+                     (read-directory-name "Get project root: " nil nil t)))))
+      ('none    (treemacs--init))))
+
   :eemacs-indhc
   (((:enable t)
     (treemacs))
@@ -93,18 +106,16 @@
 
   :init
 
-  (defun entropy/emacs-treemacs-toggle-treemacs ()
-    (interactive)
-    (require 'treemacs)
-    (pcase (treemacs-current-visibility)
-      ('visible (delete-window (treemacs-get-local-window)))
-      ('exists  (if (entropy/emacs-treemacs--buffer-in-project-p)
-                    (treemacs-select-window)
-                  (let ((current-prefix-arg t))
-                    (funcall-interactively
-                     'treemacs-add-project-to-workspace
-                     (read-directory-name "Get project root: " nil nil t)))))
-      ('none    (treemacs--init))))
+  (defun entropy/emacs-treemacs-delete-other-window-patch (&rest _)
+    (let ((wlens (length (window-list))))
+      (when (eq major-mode 'treemacs-mode)
+        (cond
+         ((> wlens 1)
+          (other-window 1))
+         ((= wlens 1)
+          (treemacs-quit))))))
+  (add-hook 'eyebrowse-pre-window-switch-hook
+            #'entropy/emacs-treemacs-delete-other-window-patch)
 
   :config
   (advice-add 'treemacs--init :around #'entropy/emacs-treemacs--unwind-for-init)

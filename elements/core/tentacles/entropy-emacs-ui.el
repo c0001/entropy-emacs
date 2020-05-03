@@ -116,6 +116,23 @@ determined by above variable you setted."
   (defvar entropy/emacs-ui--dashboard-width (window-width)
     "Default entropy emacs initial dashboard width. ")
 
+;; *** initial buffer minor mode
+  (defvar entropy/emacs-ui-dashboard-mode-map
+    (let ((keymap (make-sparse-keymap)))
+      (define-key keymap
+        (kbd "q")
+        (lambda (&rest _)
+          (interactive)
+          (when (buffer-live-p (get-buffer "*scratch*"))
+            (switch-to-buffer
+             "*scratch*"))))
+      keymap))
+
+  (define-minor-mode entropy/emacs-ui-dashboard-mode
+    "Minor mode for `entropy/emacs-dashboard-buffer-name'."
+    :init-value nil
+    :global nil)
+
 ;; *** libraries
 
   (defun entropy/emacs-ui--dashboard-gen-widget-entry-info-list ()
@@ -428,7 +445,8 @@ widget used func `entropy/emacs-ui--dashboard-create-widget'."
         (read-only-mode 1)
         (unless (display-graphic-p)
           (setq-local browse-url-browser-function
-                      'eww-browse-url)))
+                      'eww-browse-url))
+        (entropy/emacs-ui-dashboard-mode))
       buffer))
 
   (defun entropy/emacs-ui--dashboard-wc-change-func ()

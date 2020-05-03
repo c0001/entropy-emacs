@@ -1587,6 +1587,10 @@ under the symbolink root dir."
 (let ((cus entropy/emacs-custom-common-file))
   (setq-default custom-file entropy/emacs-custom-common-file)
   (when (file-exists-p cus)
+    (message "")
+    (message "====================================")
+    (message "[Loading] custom specifications ...")
+    (message "====================================\n")
     (load cus)))
 
 ;; *** add eemacs texinfo to info-path
@@ -1625,7 +1629,7 @@ under the symbolink root dir."
 (let ((top entropy/emacs-stuffs-topdir))
   (unless (file-exists-p top)
     (make-directory top))
-  ;; subs host
+  ;; root dir host in `top'
   (dolist (item `((bookmark-file . "bookmarks")
                   (recentf-save-file . "recentf")
                   (tramp-persistency-file-name . "tramp")
@@ -1666,6 +1670,7 @@ under the symbolink root dir."
                   (treemacs-last-error-persist-file . "treemacs/treemacs-persist-at-last-error")
                   ;; projetile
                   (projectile-known-projects-file . "projectile/projectile-bookmarks.eld")
+                  (projectile-cache-file . "projectile/projectile.cache")
                   ;; image dired
                   (image-dired-dir . "image-dired/")
                   ;; game dir
@@ -1679,9 +1684,16 @@ under the symbolink root dir."
                   ;; miscellanies
                   (idlwave-config-directory . "idlwave/")
                   ))
-    (set (car item) (expand-file-name (cdr item) top)))
+    (let* ((var-sym (car item))
+           (path (expand-file-name (cdr item) top))
+           (path-root (file-name-directory path)))
+      (set var-sym path)
+      ;; create each subs path chain for preventing unconditionally
+      ;; file create fatal from thus.
+      (unless (file-directory-p path-root)
+        (make-directory path-root t))))
 
-  ;; directory host
+  ;; directly set root dir using `top' dir
   (dolist (item '(eww-bookmarks-directory))
     (set item top)))
 

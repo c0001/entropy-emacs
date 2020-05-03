@@ -96,10 +96,7 @@
       :exit t))
     "Emmet" ()
     "Navigation" ()
-    "Company"
-    (("M-/" company-complete "Common Complete"
-      :enable t
-      :exit t))))
+    ))
 
   :eemacs-mmphca
   (((:enable (eq (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)

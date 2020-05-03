@@ -205,13 +205,13 @@ non-solaired buffer.
 
 Resolutions:
 
-Pdumper session will lost some face specification of specific theme
-when change theme, it's a bug (don't find some refer in mailing list
-now), get the origin face SPEC in the theme source and reload it
-solved as.
+Its because of that the function ~solaire-mode-swap-bg~ can not used
+in theme after procedure hook, in eemacs like
+=entropy/emacs-theme-load-after-hook=, its may be a bug that the we
+should do the ~solaire-mode-swap-bg~ operation using the idle timer.
 
-
-** Face spec for posframe not effectived for =posframe= in *pdumper* session
+** DONE Face spec for posframe not effectived for =posframe= in *pdumper* session
+CLOSED: [2020-05-04 Mon 18:56]
 :PROPERTIES:
 :CUSTOM_ID: h-9ea04c28-bdbe-4099-80b2-c97ba373e62b
 :END:
@@ -226,8 +226,13 @@ This bug may has the same core issue with [[h-86e0180b-bcf0-484d-bc21-9502d8abeb
    `entropy/emacs-ivy-counsel-load-theme', this bug occurred for while
    the fixing patch for [[h-86e0180b-bcf0-484d-bc21-9502d8abeb58][this]].
 
-** DOING Hydra ruby doc area can not using underscore char '_' as key notation
 
+Bug has been fixed by [[h-86e0180b-bcf0-484d-bc21-9502d8abeb58][this issue]]
+
+** DONE Hydra ruby doc area can not using underscore char '_' as key notation
+CLOSED: [2020-05-04 Mon 18:53]
+
+- State "DONE"       from "DOING"      [2020-05-04 Mon 18:53]
 - State "DOING"      from              [2020-03-05 Thu 21:07]
 This bug was push the issue to hydra official project page's [[https://github.com/abo-abo/hydra/issues/366][issue
 block]].
@@ -261,6 +266,7 @@ I known this issue was strained, but what I want is let 'hydra' be more stronger
 Thanks for your greate contribution!
 #+end_example
 
+Bug has been fixed by upstream.
 
 ** DOING Hydra can not bind key with underscore char "_"
 

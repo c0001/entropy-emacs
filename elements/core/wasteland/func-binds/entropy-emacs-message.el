@@ -193,6 +193,6 @@ interactive session."
   `(progn
      (entropy/emacs-message-do-message
       ,message ,@args)
-     (error "")))
+     (user-error "")))
 
 (provide 'entropy-emacs-message)

@@ -177,7 +177,14 @@
      ("M-\\" company-dabbrev "dabbrev-like ‘company-mode’ completion backend"
       :enable t :global-bind t :exit t)
      ("C-c C-y" company-yasnippet "‘company-mode’ backend for ‘yasnippet’"
-      :enable t :global-bind t :exit t))))
+      :enable t :global-bind t :exit t)
+     ("]" entropy/emacs-company-files "Auto complete file path at point"
+      :enable t :eemacs-top-bind t :exit t)
+     ("M-]" company-en-words "Auto complete english word at point."
+      :enable t :global-bind t :exit t)
+     ("M-p" entropy/emacs-company-toggle-idledelay
+      "Turn on/off automatically company completion (prefix key for set idle delay)."
+      :enable t :eemacs-top-bind t :exit t))))
 
   :eemacs-tpha
   (((:enable t))
@@ -188,6 +195,7 @@
         'company-auto-completion))
       "Auto completion operations"
       :enable t :exit t))))
+
 ;; *** preface
 
   :preface
@@ -212,8 +220,7 @@
                             entropy/emacs-company-elisp-top-backends)
                )))
          (buffer-list))
-   (entropy/emacs-company-yas-for-docs-init)
-   (entropy/emacs-!set-key (kbd "]") #'entropy/emacs-company-files))
+   (entropy/emacs-company-yas-for-docs-init))
 
   (when (or (equal entropy/emacs-use-extensions-type 'submodules)
             entropy/emacs-fall-love-with-pdumper)
@@ -261,9 +268,6 @@
        (blue "set")
        (yellow (symbol-name 'company-idle-delay))
        (red (number-to-string company-idle-delay)))))
-
-  (entropy/emacs-!set-key (kbd "M-p")
-    #'entropy/emacs-company-toggle-idledelay)
 
   ;; Support yas in commpany
   (setq company-backends
@@ -329,14 +333,16 @@ completion when calling: 'execute-extended-command' or
 'eval-expression'."
     (unless company-mode
       (when (and global-company-mode (or (eq this-command #'execute-extended-command)
-                                         (eq this-command #'eval-expression)))
+                                         (eq this-command #'eval-expression)
+                                         (eq this-command #'eldoc-eval-expression)))
 
         (setq-local entropy/emacs-company--minibuffer-command this-command)
 
         (setq-local completion-at-point-functions
                     (list (if (fboundp 'elisp-completion-at-point)
                               #'elisp-completion-at-point
-                            #'lisp-completion-at-point) t))
+                            #'lisp-completion-at-point)
+                          t))
 
         (setq-local company-show-numbers nil)
         (setq-local company-backends '((entropy/emacs-company-elisp-minibuffer
@@ -397,8 +403,7 @@ completion when calling: 'execute-extended-command' or
 (use-package company-en-words
   :after company
   :ensure nil
-  :commands company-en-words
-  :bind ("M-]" . company-en-words))
+  :commands company-en-words)
 
 ;; *** shell
 (use-package company-shell

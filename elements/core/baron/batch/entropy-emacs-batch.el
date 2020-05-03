@@ -157,35 +157,12 @@
 (when (entropy/emacs-ext-main)
   (let ((type (entropy/emacs-is-make-session)))
     (cond
-     ((equal type "All")
-      ;; install packages
-      (if (entropy/emacs-package-package-archive-empty-p)
-          (progn
-            (entropy/emacs-batch--prompts-for-ext-install-section
-             (entropy/emacs-package-install-all-packages)))
-        (entropy/emacs-batch--prompts-for-ext-install-section
-         (entropy/emacs-package-install-all-packages))
-        (entropy/emacs-batch--prompts-for-ext-update-section
-         (entropy/emacs-batch--backup-extensions)
-         (entropy/emacs-package-update-all-packages)))
-      ;; install coworkes
-      (entropy/emacs-batch--prompts-for-coworkers-installing-section
-       (entropy/emacs-batch--install-coworkers))
-      ;; make dump file
-      (entropy/emacs-batch--prompts-for-dump-section
-       (entropy/emacs-batch--dump-emacs)))
-
-     ((equal type "Dump")
-      ;; make dump file
-      (entropy/emacs-batch--prompts-for-dump-section
-       (entropy/emacs-batch--dump-emacs)))
-
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
-       (entropy/emacs-package-install-all-packages))
+       (entropy/emacs-package-install-all-packages)))
+     ((equal type "Install-Coworkers")
       (entropy/emacs-batch--prompts-for-coworkers-installing-section
        (entropy/emacs-batch--install-coworkers)))
-
      ((equal type "Update")
       (if (entropy/emacs-package-package-archive-empty-p)
           (entropy/emacs-message-do-error
@@ -193,6 +170,10 @@
         (entropy/emacs-batch--prompts-for-ext-update-section
          (entropy/emacs-batch--backup-extensions)
          (entropy/emacs-package-update-all-packages))))
+     ((equal type "Dump")
+      ;; make dump file
+      (entropy/emacs-batch--prompts-for-dump-section
+       (entropy/emacs-batch--dump-emacs)))
      (t
       (entropy/emacs-message-do-error
        (red (format "Unknown making type '%s'" type)))))))

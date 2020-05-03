@@ -48,8 +48,7 @@
   (((:enable t)
     (python-mode python python-mode-map t (2 1)))
    ("Basic"
-    (("M-/" company-complete "Auto completion"
-      :enable t :exit t :map-inject t))
+    nil
     "Repl"
     (("C-c C-p" run-python "Run an inferior Python process"
       :enable t :exit t :map-inject t))

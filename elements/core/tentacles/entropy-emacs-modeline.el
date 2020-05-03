@@ -395,17 +395,16 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (doom-modeline-def-segment company-indicator
     "Company mode backends indicator."
     (let ((company-lighter-base
-           (propertize "✪ company"
+           (propertize "✪"
                        'face
                        (if (doom-modeline--active)
                            'mode-line-emphasis
                          'mode-line-inactive)))
           (company-backend-abbrev-indicatior
            (lambda (x_str)
-             (format "%s%s%s"
-                     (propertize "✚ ❮" 'face 'mode-line-emphasis)
-                     (propertize x_str 'face 'diary)
-                     (propertize "❯" 'face 'mode-line-emphasis))))
+             (format
+              "%s"
+              (propertize x_str 'face 'diary))))
           (cur_info nil))
       (if (not (bound-and-true-p company-mode))
           ""

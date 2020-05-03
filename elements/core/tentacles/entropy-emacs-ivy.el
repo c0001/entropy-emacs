@@ -91,7 +91,8 @@
 `ivy-read-action'."
     (catch 'ivy-quit
       (if (or (eq this-command 'ivy-dispatching-done)
-              (eq this-command 'ivy-occur))
+              (eq this-command 'ivy-occur)
+              (string-match-p "^ivy-read-action/" (symbol-name this-command)))
           (progn
             (user-error "Ivy-quit!")
             (throw 'ivy-quit "Ivy-quit!")))))

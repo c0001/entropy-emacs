@@ -576,7 +576,8 @@ Temp file was \"~/~entropy-artist.txt\""
 (defun entropy/emacs-basic--scratch-buffer-file-binding ()
   "Corresponded *scratch* buffer to one temp-file.
 
-Filename are \".scratch_entropy\" host in `entropy/emacs-stuffs-topdir'.
+Filename are \".scratch_entropy\" host in
+`entropy/emacs-stuffs-topdir'.
 "
   (let ((bfn "*scratch*"))
     (if (entropy/emacs-buffer-exists-p "*scratch*")
@@ -596,9 +597,15 @@ Filename are \".scratch_entropy\" host in `entropy/emacs-stuffs-topdir'.
           (auto-save-mode 0)
           (rename-buffer "*scratch*")
           (lisp-interaction-mode)
-          (goto-char (point-min))
-          (unless (re-search-forward (regexp-quote initial-scratch-message) nil t)
-            (insert initial-scratch-message)))))
+          (save-excursion
+            (goto-char (point-min))
+            (unless (string-match-p
+                     (concat
+                      (car (split-string (regexp-quote initial-scratch-message) "^$" t))
+                      ".*")
+                     (buffer-substring-no-properties
+                      (point-min) (point-max)))
+              (insert initial-scratch-message))))))
     bfn))
 
 (entropy/emacs-lazy-with-load-trail
@@ -773,30 +780,41 @@ as thus."
 
 ;; *** Kill-other-windowss spec
 
-(defun entropy/emacs-basic-kill-other-window ()
+(defun entropy/emacs-basic-kill-other-window (orig-func &rest orig-args)
   "Delete other window and do again using
 `delete-other-windows-internal' if non-effect.
 
-This affected by `neotree' window sticking with `eyebrowse'
-layout switching conflicts."
+This affected by `neotree' or `treemacs' window sticking with
+`eyebrowse' layout switching conflicts."
   (interactive)
   (let ((wdc (length (window-list)))
-        neo-exist)
+        neo-exist
+        (map-func
+         (lambda (regexp)
+           (let (_var rtn)
+             (setq _var (mapcar
+                         (lambda (x)
+                           (string-match-p
+                            regexp
+                            (buffer-name (window-buffer x))))
+                         (window-list)))
+             (dolist (elt _var)
+               (unless (null elt)
+                 (setq rtn t)))
+             rtn))))
     (unless (eq wdc 1)
-      (delete-other-windows)
+      (ignore-errors (apply orig-func orig-args))
       (when (and (= wdc (length (window-list)))
-                 (bound-and-true-p neo-buffer-name)
-                 (not (let (_var rtn)
-                        (setq _var (mapcar
-                                    (lambda (x)
-                                      (equal neo-buffer-name
-                                             (buffer-name (window-buffer x))))
-                                    (window-list)))
-                        (dolist (elt _var)
-                          (unless (null elt)
-                            (setq rtn t)))
-                        rtn)))
-        (delete-other-windows-internal)))))
+                 (or
+                  (and (bound-and-true-p neo-buffer-name)
+                       (funcall map-func (regexp-quote neo-buffer-name)))
+                  (and (bound-and-true-p treemacs--buffer-name-prefix)
+                       (funcall map-func (regexp-quote treemacs--buffer-name-prefix)))))
+        (when (not (member major-mode '(treemacs-mode neotree-mode)))
+          (delete-other-windows-internal))))))
+(advice-add 'delete-other-windows
+            :around
+            #'entropy/emacs-basic-kill-other-window)
 
 ;; *** Set defualt tab size
 ;; Do not use `indent-tabs-mode' by default for compatibility meaning
@@ -930,7 +948,7 @@ layout switching conflicts."
   (setq display-time-day-and-date t)
   ;; 24hr format
   (setq display-time-24hr-format t)
-  (setq display-time-format "%e %b %Y %H:%M:%S")
+  (setq display-time-format " %e %b %Y %H:%M:%S ")
   (display-time))
 
 ;; *** Input time into buffer
@@ -1595,7 +1613,8 @@ otherwise returns nil."
       "Renice the processes in PROCESS-ALIST to PRIORITY."
       :enable t :exit t :map-inject t))
     ))
-
+  :hook
+  (proced-mode . hl-line-mode)
   :init
   (setq-default proced-format 'medium)
   (entropy/emacs-lazy-with-load-trail
@@ -1698,7 +1717,7 @@ otherwise returns nil."
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'eemacs-basic-config-core nil nil
  '("Eemacs Basic Core"
-   (("C-x 1" entropy/emacs-basic-kill-other-window
+   (("C-x 1" delete-other-windows
      "delete-other-window"
      :enable t :exit t :global-bind t)
     ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"

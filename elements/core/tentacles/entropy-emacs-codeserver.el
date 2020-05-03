@@ -37,7 +37,43 @@
 (require 'entropy-emacs-message)
 (require 'entropy-emacs-coworker)
 
-;; ** library
+;; ** xref jumping
+(use-package xref
+  :ensure nil
+  :commands
+  (xref-show-location-at-point
+   xref-query-replace-in-results
+   xref-find-definitions-other-window
+   xref-prev-line
+   xref-revert-buffer
+   xref-find-apropos
+   xref-find-references
+   xref-find-definitions-at-mouse
+   xref-next-line
+   xref-etags-mode
+   xref-find-definitions-other-frame
+   xref-goto-xref
+   xref-quit-and-goto-xref
+   xref-pop-marker-stack
+   xref-find-definitions)
+  :eemacs-indhc
+  (((:enable t)
+    (xref-mode))
+   ("Identifier find"
+    (("M-." xref-find-definitions "Find the definition of the identifier at point"
+      :enable t :exit t :global-bind t)
+     ("M-," xref-pop-marker-stack "Pop back to where M-. was last invoked"
+      :enable t :exit t :global-bind t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("b x"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'xref-mode))
+      "Xref referrence jumping"
+      :enable t :exit t)))))
+
 ;; ** common server
 ;; *** individual servers
 ;; **** irony server

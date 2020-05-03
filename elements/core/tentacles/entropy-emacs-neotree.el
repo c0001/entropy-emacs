@@ -97,6 +97,17 @@
         neo-hidden-regexp-list nil
         neo-auto-indent-point t)
 
+  (defun entropy/emacs-neotree-delete-other-window-patch (&rest _)
+    (let ((wlens (length (window-list))))
+      (when (eq major-mode 'neotree-mode)
+        (cond
+         ((> wlens 1)
+          (other-window 1))
+         ((= wlens 1)
+          (neotree-hide))))))
+  (add-hook 'eyebrowse-pre-window-switch-hook
+            #'entropy/emacs-neotree-delete-other-window-patch)
+
   :config
 
   ;; key register
