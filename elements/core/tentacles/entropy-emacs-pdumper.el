@@ -50,15 +50,15 @@
 ;; ** defvar
 (defvar entropy/emacs-pdumper--upstream-els nil)
 (defvar entropy/emacs-pdumper--upstream-top-dir
-  (if (entropy/emacs-package-is-upstream)
+  (if (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
       (progn (entropy/emacs-set-package-user-dir)
              package-user-dir)
     (cond
-     ((eq entropy/emacs-use-extensions-type 'submodules)
+     ((eq entropy/emacs-ext-elpkg-get-type 'submodules)
       (error "Pdumper can not dump extensions with submodule
-archived option of `entropy/emacs-use-extensions-type'"))
+archived option of `entropy/emacs-ext-elpkg-get-type'"))
      (t (error "Wrong type of extension type chosen '%s' for pdumper"
-               entropy/emacs-use-extensions-type)))))
+               entropy/emacs-ext-elpkg-get-type)))))
 
 (defvar entropy/emacs-pdumper--loads-log-file
   (file-truename

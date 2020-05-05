@@ -222,7 +222,7 @@
          (buffer-list))
    (entropy/emacs-company-yas-for-docs-init))
 
-  (when (or (equal entropy/emacs-use-extensions-type 'submodules)
+  (when (or (equal entropy/emacs-ext-elpkg-get-type 'submodules)
             entropy/emacs-fall-love-with-pdumper)
     (entropy/emacs-company-require-subs))
   (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)

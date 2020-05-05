@@ -73,8 +73,10 @@ return t otherwise for nil. "
 inject into HOOK wrapped BODY."
     (let ()
       `(let ((prefix-name
-              (intern (format "entropy/emacs-fake-lambda-nil-%s-function"
-                              (symbol-name ',name))))
+              (intern (format
+                       "entropy/emacs-fake-lambda-nil-for-%s-/random-as-%s-function"
+                       (symbol-name ',name)
+                       (random most-positive-fixnum))))
              func-define)
          (setq func-define
                (list 'defun prefix-name '()
@@ -82,6 +84,28 @@ inject into HOOK wrapped BODY."
          (eval func-define)
          (add-hook ',hook
                    prefix-name)))))
+
+(defun entropy/emacs-icons-displayable-p ()
+  "Return non-nil if `all-the-icons' is displayable."
+  (and entropy/emacs-use-icon
+       (display-graphic-p)
+       ;; Fixme: `find-font' can not be used in emacs batch mode.
+       (or (and entropy/emacs-fall-love-with-pdumper
+                entropy/emacs-do-pdumper-in-X)
+           (let ((rtn t))
+             (catch :exit
+               (dolist (font-name '("github-octicons"
+                                    "FontAwesome"
+                                    "file-icons"
+                                    "Weather Icons"
+                                    "Material Icons"
+                                    "all-the-icons"))
+                 (unless (find-font (font-spec :name font-name))
+                   (setq rtn nil)
+                   (throw :exit nil))))
+             rtn))))
+
+;; *** plist manipulation
 
 (defun entropy/emacs-strict-plistp (arg)
   "Strict plist true-p checker.
@@ -153,26 +177,6 @@ type. Each key's value can be omitted thus the 'common' meaning."
         t)))
    (t nil)))
 
-(defun entropy/emacs-icons-displayable-p ()
-  "Return non-nil if `all-the-icons' is displayable."
-  (and entropy/emacs-use-icon
-       (display-graphic-p)
-       ;; Fixme: `find-font' can not be used in emacs batch mode.
-       (or (and entropy/emacs-fall-love-with-pdumper
-                entropy/emacs-do-pdumper-in-X)
-           (let ((rtn t))
-             (catch :exit
-               (dolist (font-name '("github-octicons"
-                                    "FontAwesome"
-                                    "file-icons"
-                                    "Weather Icons"
-                                    "Material Icons"
-                                    "all-the-icons"))
-                 (unless (find-font (font-spec :name font-name))
-                   (setq rtn nil)
-                   (throw :exit nil))))
-             rtn))))
-;; *** plist manipulation
 (defun entropy/emacs-get-plist-form
     (form-plist key &optional car no-error)
   "Like  `plist-get' but for getting the rest form of a key slot.
@@ -451,6 +455,8 @@ can be used into your form:
 
 ;; *** key bindings
 (defmacro entropy/emacs-!set-key (key command)
+  "The specified `define-key' like key builder for
+`entropy/emacs-top-keymap'."
   (declare (indent defun))
   `(define-key entropy/emacs-top-keymap ,key ,command))
 
@@ -463,7 +469,7 @@ directory."
                (file-directory-p dir-root))
       (setq rtn-full (directory-files dir-root t))
       (dolist (el rtn-full)
-        (if (not (string-match-p "\\(\\.$\\|\\.\\.$\\)" el))
+        (if (not (string-match-p "\\(\\\\\\|/\\)\\(\\.\\|\\.\\.\\)$" el))
             (push el rtn-lite)))
       (if rtn-lite
           (progn
@@ -476,7 +482,7 @@ directory."
 
 
 (defun entropy/emacs-list-subdir (dir-root)
-  "List subdir of root dir DIR-ROOT"
+  "List subdir of root dir DIR-ROOT, ordered by alphabetic."
   (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
         (rtn nil))
     (if dirlist
@@ -485,11 +491,12 @@ directory."
             (if (equal "D" (car el))
                 (push (cdr el) rtn)))
           (if rtn
-              rtn
+              (reverse rtn)
             nil))
       nil)))
 
 (defun entropy/emacs-list-subfiles (dir-root)
+  "Return a list of file(not directory) under directory DIR-ROOT."
   (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
         (rtn nil))
     (if dirlist
@@ -503,6 +510,10 @@ directory."
       nil)))
 
 (defun entropy/emacs-list-dir-recursively (top-dir)
+  "List directory TOP-DIR's sub-dirctorys recursively, return a
+=dir-spec=, whose car was a path for one dirctory and the cdr was
+a list of =dir-spec= or nil if no sub-dir under it. The structure
+of return is ordered by alphabetic."
   (let ((subdirs (entropy/emacs-list-subdir top-dir))
         rtn)
     (catch :exit
@@ -516,6 +527,9 @@ directory."
     (reverse rtn)))
 
 (defun entropy/emacs-list-dir-recursive-for-list (top-dir)
+  "list sub-directorys under directory TOP-DIR recursively, and
+return the list. The structure of return is ordered by
+alphabetic."
   (let ((dir-struct (entropy/emacs-list-dir-recursively top-dir))
         ext-func)
     (setq
@@ -534,6 +548,8 @@ directory."
     (funcall ext-func dir-struct)))
 
 (defun entropy/emacs-list-files-recursive-for-list (top-dir)
+  "list files under directory TOP-DIR recursively, and return the
+list. The structure of return is ordered by alphabetic."
   (let ((dir-list (entropy/emacs-list-dir-recursive-for-list top-dir))
         rtn)
     (dolist (dir dir-list)
@@ -557,7 +573,7 @@ type:
 
 - 'parent-dir':
 
-  Return its parent directory path using `file-name-directory'"
+  Return its parent directory path."
   (let (rtn (fname (replace-regexp-in-string "\\(\\\\\\|/\\)$" "" file-name)))
     (cl-case type
       ('non-trail-slash
@@ -630,17 +646,21 @@ with '0' as alignment state."
   "Macro for be forward compatibility of `cl.el' with `cl-lib.el'
 in new emacs-version."
   `(let (abbrevp cl-func-use)
-     (cond ((and (fboundp ',cl-func)
+     (cond ((and (require 'cl-lib)
                  (not (null (entropy/emacs-cl-findnew-p ',cl-func))))
-            (setq cl-func-use ',cl-func))
-           (t
-            (require 'cl-lib)
-            (setq cl-func-use
-                  (entropy/emacs-cl-findnew-p ',cl-func))))
+            (setq cl-func-use (entropy/emacs-cl-findnew-p ',cl-func))
+            (unless (fboundp cl-func-use)
+              (user-error "Can not find cl function `%s'" cl-func-use)))
+           ((fboundp ',cl-func)
+            (setq cl-func-use ',cl-func)))
      (funcall cl-func-use ,@args)))
 
 ;; *** nth remap with `car' and `cdr'
 (defun entropy/emacs-remap-for-nth (pos list-var)
+  "Since `nth' can not be used into `setf' place holder, this
+function let a `nth' form remaped for a equivalent one suitable
+for `setf', the argument list is the same as `nth', see its
+doc-string for details."
   (let (final-form)
     (cond ((and (> pos 0)
                 (= pos 1))
@@ -657,6 +677,9 @@ in new emacs-version."
     final-form))
 
 (defun entropy/emacs-setf-for-nth (pos replace list-var)
+  "Setf for position POS with the replacement REPLACE in list
+LIST-VAR. POS was a positive integer and indexed start at 0,
+meaning as same as what in `nth' arglists."
   (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
     (eval `(setf ,remap-form replace))))
 
@@ -674,6 +697,16 @@ in new emacs-version."
 ;; *** form manipulation
 (defun entropy/emacs-replace-form-symbol
     (form sub-elt replace &optional parse-append)
+  "Replace symbol SUB-ELT occurrences in form FORM with
+replacement REPLACE recursively.
+
+Form was a sequence, which must validated by data predicate
+`sequencep', otherwise throw out a error.
+
+If optional argument PARSE-APPEND is non-nil, the replacement is
+appended injecting into the form."
+  (unless (sequencep form)
+    (error "Wrong type of argument: sequencep, %s" form))
   (let (form-patch
         (vector-form-p (vectorp form)))
     (mapc
@@ -701,6 +734,23 @@ in new emacs-version."
 ;; *** dolist macro progn sequence expand type
 (defun entropy/emacs--progn-seq-dolist-core
     (looper body-list &optional not-do parse-append)
+  "Put pices of forms with same structure together into a progn
+form, as `dolist' but without using `while' as looper procedure,
+its generate plenty forms with the looper replacement by LOOPER,
+its useful to generate a non-loop batch procedure.
+
+LOOPER is a two elements list whose car was a symbol indicate the
+lexical looper var and the cdr was a list of the replacement.
+
+If optional argument NOT-DO is non-nil, this function return a
+form represent the procedure, so that you can evaluate later or
+used in other cases.
+
+If optional argument PARSE-APPEND is non-nil, the replacement for
+the looper will inject into the form using appended way, for
+example, if form '(a b c)'s looper 'b' will be replaced by '(1
+2)', when this arg was non-nil, the returned form will be '(a 1 2
+c)'."
   (let ((sub-elt (car looper))
         (map-seq (cadr looper))
         forms)
@@ -882,44 +932,34 @@ in case that file does not provide any feature."
 
 (defvar entropy/emacs--package-user-dir-setted nil)
 
-(defun entropy/emacs--guard-ext-use-type ()
-  (unless (member entropy/emacs-use-extensions-type
-                  '(origin submodules submodules-melpa-local))
-    (error "Invalid value for `entropy/emacs-use-extensions-type'")))
-
-(defun entropy/emacs-package-is-upstream ()
-  "Judges whether `entropy/emacs-use-extensions-type' is based on
-`package.el'."
-  (or (eq entropy/emacs-use-extensions-type 'origin)
-      (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)))
-
 (defun entropy/emacs--set-user-package-dir-common (version)
   "Setting `package-user-dir' based on emacs version"
   (setq package-user-dir
         (expand-file-name
          (concat "elpa-" version)
-         (expand-file-name entropy/emacs-ext-extensions-elpa-dir))))
+         (expand-file-name entropy/emacs-ext-emacs-pkgel-get-pkgs-root))))
 
 (defun entropy/emacs-set-package-user-dir ()
   (unless entropy/emacs--package-user-dir-setted
-    (entropy/emacs--guard-ext-use-type)
+    (entropy/emacs-ext-elpkg-get-type-valid-p)
     (if (and (member emacs-version '("25.2.1" "25.3.1" "26.1" "26.2" "27.0.50" "28.0.50"))
-             (entropy/emacs-package-is-upstream))
+             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
         (entropy/emacs--set-user-package-dir-common emacs-version)
       (cond
        ((and (equal emacs-version "25.2.2")
-             (entropy/emacs-package-is-upstream))
+             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
         (entropy/emacs--set-user-package-dir-common "25.2.1"))
        ((and (equal emacs-version "26.3")
-             (entropy/emacs-package-is-upstream))
+             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
         (entropy/emacs--set-user-package-dir-common "26.2"))
        ((and (or (equal emacs-version "27.0.60")
-                 (equal emacs-version "27.0.90"))
-             (entropy/emacs-package-is-upstream))
+                 (equal emacs-version "27.0.90")
+                 (equal emacs-version "27.0.91"))
+             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
         (entropy/emacs--set-user-package-dir-common "27.0.50"))
-       ((entropy/emacs-package-is-upstream)
+       ((entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
         (error "Unsupport emacs version '%s'" emacs-version))))
-    (when (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+    (when (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
       (setq package-user-dir
             (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
                                       "_MelpaLocal")

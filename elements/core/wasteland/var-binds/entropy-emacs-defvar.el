@@ -373,12 +373,12 @@ and the cdr is the list of hook belong to that feature. ")
   "The fully preserved `load-path' for pdumper session, this
 variable is assigned while pdumper procedure triggered, append
 emacs internal load path and the subdirs of
-`entropy/emacs-ext-extensions-elpa-dir' (i.e. the current
+`entropy/emacs-ext-emacs-pkgel-get-pkgs-root' (i.e. the current
 `package-user-dir' specified by what you settng for
-`entropy/emacs-use-extensions-type').
+`entropy/emacs-ext-elpkg-get-type').
 
 Note that the entorpy-emacs just use the malpa-local type of
-`entropy/emacs-use-extensions-type' to dumping as, thus the
+`entropy/emacs-ext-elpkg-get-type' to dumping as, thus the
 submodules pre-loading is not supported for entropy-emacs
 pdumper feature.")
 

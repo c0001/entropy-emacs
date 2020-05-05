@@ -207,15 +207,42 @@ problem, =basic= type is simple but without fully featured.
   "Customized extensions variable group configured for entropy-emacs."
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/emacs-use-extensions-type 'origin
-  "Init emacs with extensions from entropy-emacs submodules or
-elpa place.
+(defcustom entropy/emacs-ext-elpkg-get-type 'origin
+  "Init emacs with elisp extensions from entropy-emacs-extensions or
+elpa and melpa.
 
-Available value are 'submodules' 'submodules-melpa-local' and 'origin'."
+Available value are 'submodules' 'submodules-melpa-local' and
+'origin'.
+
+Type of 'submodules' and 'submodules-melpa-local' indicates to use
+=entropy-emacs-extensions= (see
+`entropy/emacs-ext-eemacs-elpkg-archive-project-dir' for its brief
+introduction) to initialize the elisp extensions, which type
+'submodules-melpa-local' means to use that as a remote elisp
+packges archive host like what 'elpa' and 'melpa' did. If use type
+of 'submodules' that emacs will start using elisp packages git
+repo directly within =entropy-emacs-extensions=.
+
+For thus all, you can use original emacs package.el to download
+all =entropy-emacs= required elisp packages by set the type of
+'origin'.
+"
   :type 'symbol
   :group 'entropy/emacs-extensions-customize)
 
-(defcustom entropy/emacs-ext-extensions-dir
+(defun entropy/emacs-ext-elpkg-get-type-valid-p ()
+  "The data predicate for `entropy/emacs-ext-elpkg-get-type'."
+  (unless (member entropy/emacs-ext-elpkg-get-type
+                  '(origin submodules submodules-melpa-local))
+    (error "Invalid value for `entropy/emacs-ext-elpkg-get-type'")))
+
+(defun entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p ()
+  "Judges whether `entropy/emacs-ext-elpkg-get-type' is based on
+`package.el'."
+  (or (eq entropy/emacs-ext-elpkg-get-type 'origin)
+      (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)))
+
+(defcustom entropy/emacs-ext-eemacs-elpkg-archive-project-dir
   (expand-file-name
    "entropy-emacs-extensions"
    "~/.config/entropy-emacs")
@@ -223,11 +250,17 @@ Available value are 'submodules' 'submodules-melpa-local' and 'origin'."
 collection used to retrieving all entropy-emacs elpa or melpa
 extensions' repos as submodules archived as one single project
 using for studying or giving the pr to the origin host when you
-found the bug or want to give the improvements.
+found the bug or want to give the improvements. You can get it
+from 'https://github.com/c0001/entropy-emacs-extensions'.
 
 This archive used then type of 'submodules' to customized
-variable `entropy/emacs-use-extensions-type'."
+variable `entropy/emacs-ext-elpkg-get-type'."
 
+  :type 'string
+  :group 'entropy/emacs-extensions-customize)
+
+(defcustom entropy/emacs-ext-use-eemacs-lsparc nil
+  "Whether to use archived lanuguage servers."
   :type 'string
   :group 'entropy/emacs-extensions-customize)
 
@@ -241,12 +274,7 @@ may download from
   :type 'string
   :group 'entropy/emacs-extensions-customize)
 
-(defcustom entropy/emacs-ext-use-eemacs-lsparc nil
-  "Whether to use archived lanuguage servers."
-  :type 'string
-  :group 'entropy/emacs-extensions-customize)
-
-(defcustom entropy/emacs-ext-extensions-elpa-dir
+(defcustom entropy/emacs-ext-emacs-pkgel-get-pkgs-root
   (expand-file-name
    "entropy-emacs-extensions-elpa"
    "~/.config/entropy-emacs")

@@ -181,6 +181,13 @@ EXIT /b
                         (mapcar
                          (lambda (x)
                            (expand-file-name
+                            x
+                            entropy/emacs-coworker-bin-host-path))
+                         server-bins))
+                  (cons 'file
+                        (mapcar
+                         (lambda (x)
+                           (expand-file-name
                             (format "node_modules/.bin/%s" x)
                             entropy/emacs-coworker-lib-host-root))
                          server-bins))))))
@@ -212,13 +219,15 @@ EXIT /b
                      ,server-name-string)))
            :after
            (dolist (el ',server-bins)
+             (message "Make symbolic for server bin '%s' ..."  el)
              (make-symbolic-link (expand-file-name
                                   (format "node_modules/.bin/%s" el)
                                   entropy/emacs-coworker-lib-host-root)
                                  (expand-file-name
                                   el
                                   entropy/emacs-coworker-bin-host-path)
-                                 t))
+                                 t)
+             (message "Make symbolic for server bin '%s' done!"  el))
            (entropy/emacs-coworker--coworker-message-install-success
             ,server-name-string)
            :error

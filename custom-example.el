@@ -38,7 +38,7 @@
 
 (setq entropy/emacs-do-pdumper-in-X t)
 
-(setq entropy/emacs-use-extensions-type 'origin)
+(setq entropy/emacs-ext-elpkg-get-type 'origin)
 
 (setq entropy/emacs-package-archive-repo 'melpa)
 
@@ -48,4 +48,4 @@
 (setq entropy/emacs-modeline-style "doom")
 
 (setq entropy/emacs-dired-visual-type
-      (if (display-graphic-p) "all-the-icons" "simple-rainbow")
+      (if (display-graphic-p) "all-the-icons" "simple-rainbow"))

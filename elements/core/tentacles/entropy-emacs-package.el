@@ -86,7 +86,7 @@
   (message "Set package archives to '%s'." archives))
 
 (defun entropy/emacs-package--initial-package-archive ()
-  (unless (eq entropy/emacs-use-extensions-type 'submodules-melpa-local)
+  (unless (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
     (entropy/emacs-package-set-package-archive-location
      entropy/emacs-package-archive-repo)))
 
@@ -104,7 +104,7 @@ argument."
 
 ;; *** Initialize packages
 (defun entropy/emacs-package--package-initialize (&optional force)
-  (when (entropy/emacs-package-is-upstream)
+  (when (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
     (unless (version< emacs-version "27")
       (setq package-quickstart nil))
     (when force
@@ -210,7 +210,7 @@ When installing encounters the fatal error, put the pkg into
 ;; *** install
 (defun entropy/emacs-package-install-all-packages ()
   (entropy/emacs-package-prepare-foras)
-  (when (entropy/emacs-package-is-upstream)
+  (when (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
     (entropy/emacs-message-do-message
      (blue "Checking extensions satisfied status ..."))
     (require 'entropy-emacs-package-requirements)
@@ -232,7 +232,7 @@ When installing encounters the fatal error, put the pkg into
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
   (entropy/emacs-package-prepare-foras)
-  (when (entropy/emacs-package-is-upstream)
+  (when (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
     (let ((current-pkgs (copy-tree package-alist))
           (new-pkgs (progn (package-refresh-contents)
                            (copy-tree package-archive-contents)))
@@ -275,7 +275,7 @@ When installing encounters the fatal error, put the pkg into
 
 (defun entropy/emacs-package-init-use-package  ()
   (require 'use-package)
-  (if (or (eq entropy/emacs-use-extensions-type 'submodules)
+  (if (or (eq entropy/emacs-ext-elpkg-get-type 'submodules)
           entropy/emacs-fall-love-with-pdumper)
       (setq use-package-always-ensure nil)
     (setq use-package-always-ensure t))

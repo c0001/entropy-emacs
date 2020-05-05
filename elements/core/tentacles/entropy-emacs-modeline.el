@@ -207,7 +207,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (set (car el) (cdr el)))
   (entropy/emacs-modeline-restore-default-mdlfmt))
 
-(if (eq entropy/emacs-use-extensions-type 'submodules)
+(if (eq entropy/emacs-ext-elpkg-get-type 'submodules)
     (use-package spaceline
       :init
       (use-package spaceline-config

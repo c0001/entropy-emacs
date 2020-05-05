@@ -847,7 +847,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
       :enable t :exit t :global-bind t)))))
 
 ;; *** maple preview
-(when (equal entropy/emacs-use-extensions-type 'submodules)
+(when (equal entropy/emacs-ext-elpkg-get-type 'submodules)
   (use-package maple-preview
     :ensure nil
     :commands (maple-preview-mode)
