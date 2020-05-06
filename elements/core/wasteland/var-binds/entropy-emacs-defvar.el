@@ -349,20 +349,6 @@ is ran after the registering procedure done within `progn' scope."
 
 (advice-add 'load-theme :around #'entropy/emacs-theme-load-advice)
 
-(defvar entropy/emacs-enable-solaire-registers
-  '((files . (find-file-hook))
-    (magit-files . (magit-find-file-hook))
-    (dired . (dired-mode-hook))
-    (w3m . (w3m-mode-hook))
-    (eww . (eww-mode-hook))
-    (elfeed . (elfeed-search-mode-hook elfeed-show-mode-hook))
-    (gnus-group . (gnus-group-mode-hook))
-    (gnus-sum . (gnus-summary-mode-hook)))
-  "Registers list for activing the `solaire-mode'
-
-Each register is one cons whose car was the load feature symbol
-and the cdr is the list of hook belong to that feature. ")
-
 ;; ** modeline refer
 
 (defvar entropy/emacs-mode-line-sticker ""

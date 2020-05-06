@@ -101,33 +101,67 @@
               doom-solarized-light
               doom-vibrant)))
 
-  (defun entropy/emacs-themes--solaire-swap-bg ()
+  (defun entropy/emacs-themes--enable-solaire-global-mode ()
+    (when (entropy/emacs-theme-adapted-to-solaire)
+      (unless solaire-global-mode
+        (solaire-global-mode t)))
     (unless (entropy/emacs-themes--solaire-swap-bg-needed)
       (solaire-mode-swap-bg)))
 
+  (defvar entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay 0.01)
   (defun entropy/emacs-themes-solaire-after-load-theme-adapts (&rest _)
-    (if (entropy/emacs-theme-adapted-to-solaire)
-        (let (timer)
-          (unless solaire-global-mode
-            (solaire-global-mode t))
-          (condition-case error
-              (if entropy/emacs-startup-done
-                  (setq timer
-                        (run-with-idle-timer 0.01 nil #'entropy/emacs-themes--solaire-swap-bg))
-                (setq entropy/emacs-themes-solaire-startup-timer
+    (when (entropy/emacs-theme-adapted-to-solaire)
+      (let (timer)
+        (condition-case error
+            (if entropy/emacs-startup-done
+                (setq timer
                       (run-with-idle-timer
-                       0.01 t
-                       #'(lambda ()
-                           (when entropy/emacs-startup-done
-                             (entropy/emacs-themes--solaire-swap-bg)
-                             (cancel-timer
-                              entropy/emacs-themes-solaire-startup-timer))))))
-            (error
-             (when (timerp timer)
-               (cancel-timer timer)))))
-      (solaire-global-mode 0)))
+                       entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay
+                       nil #'entropy/emacs-themes--enable-solaire-global-mode))
+              (setq entropy/emacs-themes-solaire-startup-timer
+                    (run-with-idle-timer
+                     entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay
+                     t
+                     #'(lambda ()
+                         (when entropy/emacs-startup-done
+                           (entropy/emacs-themes--enable-solaire-global-mode)
+                           (cancel-timer
+                            entropy/emacs-themes-solaire-startup-timer))))))
+          (error
+           (message "Error when swap solaire backgroud colors.")
+           (when (timerp timer)
+             (cancel-timer timer)))))))
 
-  (defun entropy/emacs-solaire-call-stuff-when-adapted
+  (defun entropy/emacs-themes-solaire-around-advice-for-make-frame
+      (orig-func &rest orig-args)
+    (let* ((face-reset nil)
+           (new-frame (apply orig-func orig-args)))
+      (unwind-protect
+          (progn
+            (mapcar
+             (lambda (x)
+               (let ((map (car x))
+                     (enable (cdr x)))
+                 (when enable
+                   (dolist (face map)
+                     (when (facep face)
+                       (push (cons face (face-attribute face :background))
+                             face-reset))))))
+             solaire-mode-remap-alist)
+            (dolist (face '(ivy-current-match))
+              (when (facep face)
+                (push (cons face (face-attribute face :background))
+                      face-reset)))
+            (dolist (pair face-reset)
+              (set-face-attribute
+               (car pair)
+               new-frame
+               :background
+               (cdr pair)))
+            new-frame)
+        new-frame)))
+
+  (defun entropy/emacs-themes--solaire-call-stuff-when-adapted
       (orig-func &rest orig-args)
      (when (entropy/emacs-theme-adapted-to-solaire)
        (apply orig-func orig-args)))
@@ -153,19 +187,27 @@
                         magit-status-mode)))))
   (entropy/emacs-lazy-with-load-trail
    solaire-mode-init
+   (add-hook 'entropy/emacs-theme-load-before-hook
+             (lambda nil
+               (if solaire-global-mode
+                   (progn
+                     (solaire-global-mode 0)))))
    (add-hook 'entropy/emacs-theme-load-after-hook-end-1
              #'entropy/emacs-themes-solaire-after-load-theme-adapts)
    (add-hook 'entropy/emacs-theme-load-after-hook-end-2
              #'entropy/emacs-solaire-specific-for-themes)
+   (advice-add 'make-frame
+               :around
+               #'entropy/emacs-themes-solaire-around-advice-for-make-frame)
    (solaire-global-mode))
 
   :config
   (advice-add 'turn-on-solaire-mode
               :around
-              #'entropy/emacs-solaire-call-stuff-when-adapted)
+              #'entropy/emacs-themes--solaire-call-stuff-when-adapted)
   (advice-add 'solaire-mode-in-minibuffer
               :around
-              #'entropy/emacs-solaire-call-stuff-when-adapted))
+              #'entropy/emacs-themes--solaire-call-stuff-when-adapted))
 
 ;; ** Page-break-lines style form Purcell
 ;;
