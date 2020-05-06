@@ -535,12 +535,6 @@ style which defined in `entropy/emacs-modeline-style'."
     (unless cancel-branch
       (funcall `(lambda () ,entropy/emacs-modeline--mdl-init-caller)))))
 
-(entropy/emacs-lazy-with-load-trail
- eemacs-modeline-init
- (redisplay t)
- (entropy/emacs-modeline--mdl-init)
- (redisplay t))
-
 ;; ** toggle function
 (defun entropy/emacs-modeline--mdl-tidy-spec ()
   (pcase entropy/emacs-mode-line-sticker
@@ -552,18 +546,23 @@ style which defined in `entropy/emacs-modeline-style'."
     ("origin" (entropy/emacs-modeline--origin-spec-clean))
     (_ nil)))
 
-(defmacro entropy/emacs-modeline--define-toggle (name spec-form init-var enable-form &rest body)
-  `(defun ,(intern (concat "entropy/emacs-modeline-mdl-" name "-toggle")) ()
-     (interactive)
-     (entropy/emacs-modeline--mdl-tidy-spec)
-     (setq entropy/emacs-mode-line-sticker ,name)
-     ,spec-form
-     (unwind-protect
-         (progn
-           (setq ,init-var t)
-           ,@body
-           ,enable-form)
-       (progn (setq ,init-var nil)))))
+(defvar entropy/emacs-modeline--toggle-type-register nil)
+
+(defmacro entropy/emacs-modeline--define-toggle
+    (name spec-form init-var enable-form &rest body)
+  (let ((func-name (intern (concat "entropy/emacs-modeline-mdl-" name "-toggle"))))
+    (push (cons name func-name) entropy/emacs-modeline--toggle-type-register)
+    `(defun ,func-name ()
+       (interactive)
+       (entropy/emacs-modeline--mdl-tidy-spec)
+       (setq entropy/emacs-mode-line-sticker ,name)
+       ,spec-form
+       (unwind-protect
+           (progn
+             (setq ,init-var t)
+             ,@body
+             ,enable-form)
+         (progn (setq ,init-var nil))))))
 
 (advice-add 'spaceline-spacemacs-theme
             :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
@@ -624,6 +623,20 @@ style which defined in `entropy/emacs-modeline-style'."
 (use-package hide-mode-line
   :commands (hide-mode-line-mode)
   :hook (((completion-list-mode completion-in-region-mode) . hide-mode-line-mode)))
+
+;; ** init procedure
+(entropy/emacs-lazy-with-load-trail
+ eemacs-modeline-init
+ (redisplay t)
+ (entropy/emacs-modeline--mdl-init)
+ (redisplay t)
+ (entropy/emacs-with-daemon-make-frame-done
+  'eemacs-modeline-init nil nil
+  '(progn
+     (entropy/emacs-modeline--mdl-tidy-spec)
+     (funcall (alist-get entropy/emacs-mode-line-sticker
+                         entropy/emacs-modeline--toggle-type-register
+                         nil nil 'string=)))))
 
 ;; * provide
 (provide 'entropy-emacs-modeline)

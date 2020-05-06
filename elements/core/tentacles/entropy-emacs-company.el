@@ -275,14 +275,27 @@
                 company-backends)))
 
 ;; *** Using company-posframe to speedup company candidates window show and scrolling
-(when (and (not (version< emacs-version "26.1"))
-           entropy/emacs-company-posframe-mode)
-  (use-package company-posframe
-    :after company
-    :commands (company-posframe-mode)
-    :diminish company-posframe-mode
-    :init (company-posframe-mode 1)))
 
+(use-package company-posframe
+  :after company
+  :commands (company-posframe-mode)
+  :diminish company-posframe-mode
+  :init
+
+  (entropy/emacs-lazy-with-load-trail
+   company-posframe-mode
+   (let ((condition (and (entropy/emacs-posframe-adapted-p)
+                         entropy/emacs-company-posframe-mode)))
+     (when condition
+       (if (null (daemonp))
+           (when (display-graphic-p)
+             (company-posframe-mode 1))
+         (entropy/emacs-with-daemon-make-frame-done
+          'company-posframe-mode
+          '(when (bound-and-true-p company-posframe-mode)
+             (company-posframe-mode 0))
+          `(unless (bound-and-true-p company-posframe-mode)
+             (company-posframe-mode 1))))))))
 
 ;; *** Popup documentation for completion candidates
 (use-package company-quickhelp

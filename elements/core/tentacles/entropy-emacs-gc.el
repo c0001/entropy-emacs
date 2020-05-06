@@ -125,8 +125,9 @@ delay seconds SECS."
 (entropy/emacs-lazy-with-load-trail
  gc-message
  (setq garbage-collection-messages entropy/emacs-garbage-collection-message-p)
- (add-hook 'focus-out-hook #'entropy/emacs-gc--focus-out-hook)
- (add-hook 'focus-in-hook #'entropy/emacs-gc--focus-in-reset)
+ (unless (daemonp)
+   (add-hook 'focus-out-hook #'entropy/emacs-gc--focus-out-hook)
+   (add-hook 'focus-in-hook #'entropy/emacs-gc--focus-in-reset))
  (add-hook 'post-command-hook #'entropy/emacs-gc--increase-cons-threshold)
  (entropy/emacs-gc--init-idle-gc))
 

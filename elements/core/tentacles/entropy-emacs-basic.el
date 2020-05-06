@@ -59,9 +59,28 @@
 
 (entropy/emacs-lazy-with-load-trail
  top-keybinding
- (define-key (current-global-map)
-   (kbd entropy/emacs-top-key)
-  entropy/emacs-top-keymap))
+ (if (null (daemonp))
+     (define-key (current-global-map)
+       (kbd entropy/emacs-top-key)
+       entropy/emacs-top-keymap)
+   ;;------------ set basic key-binds for daemon session------------
+   ;;; redefine kill emacs bindings to frame delete that follow the
+   ;;; default daemon session convention.
+   (define-key (current-global-map)
+     [remap save-buffers-kill-terminal] #'delete-frame)
+   ;;; remap `entropy/emacs-top-key' for daemon session
+   (entropy/emacs-with-daemon-make-frame-done
+    'top-key-bind nil nil
+    '(progn
+       (setq entropy/emacs-top-key
+             (if (display-graphic-p)
+                 (car entropy/emacs-top-prefix-key-cons)
+               (cdr entropy/emacs-top-prefix-key-cons)))
+       (define-key
+         (current-global-map)
+         (kbd
+          entropy/emacs-top-key)
+         entropy/emacs-top-keymap)))))
 
 ;; ** Basic major-modes spec
 ;; *** Dired config
@@ -420,14 +439,29 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
    (diredfl-global-mode 1)))
 
 (use-package all-the-icons-dired
-  :if
-  (and (display-graphic-p)
-       (entropy/emacs-icons-displayable-p))
   :commands (all-the-icons-dired-mode)
-  :hook (dired-mode . all-the-icons-dired-mode)
   :init
   (when sys/win32p
     (require 'font-lock+))
+
+  (if (daemonp)
+      (entropy/emacs-with-daemon-make-frame-done
+       'all-the-icon-dired-mode
+       '(when (boundp 'dired-mode-hook)
+         (when (member 'all-the-icons-dired-mode dired-mode-hook)
+           (setq dired-mode-hook
+                 (delete 'all-the-icons-dired-mode dired-mode-hook))
+           (mapc
+            (lambda (buffer)
+              (with-current-buffer buffer
+                (when (bound-and-true-p all-the-icons-dired-mode)
+                  (all-the-icons-dired-mode 0))))
+            (buffer-list))))
+       '(when (entropy/emacs-icons-displayable-p)
+          (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)))
+    (when (entropy/emacs-icons-displayable-p)
+      (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)))
+
   :config
   (with-no-warnings
     (defun entropy/emacs-basic--all-the-icons-dired-refresh ()
@@ -1110,11 +1144,7 @@ This function has redefined for adapting to
 
 ;; *** Mark-sexp
 (entropy/emacs-!set-key
-  ;; Set the default region mark enable key stroke to the double of
-  ;; `entropy/emacs-top-key' i.e. double hints that.
-  ;;
-  ;; This is key-stroke was easy to remeber, greate!
-  (kbd entropy/emacs-top-key)
+  (kbd "1")
   'set-mark-command)
 
 (defun entropy/emacs-basic-mark-set ()

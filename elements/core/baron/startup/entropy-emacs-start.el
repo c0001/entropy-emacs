@@ -53,6 +53,10 @@ we inject it into pdumper session initialize procedure. "))
          (add-hook 'entropy/emacs-pdumper-load-end-hook
                    #'entropy/emacs-basic-pyim-start)))
 
+(when (daemonp)
+  (when entropy/emacs-custom-enable-lazy-load
+    (setq entropy/emacs-custom-enable-lazy-load nil)))
+
 ;; *** load core library
 (require 'entropy-emacs-defun)
 
@@ -87,7 +91,8 @@ we inject it into pdumper session initialize procedure. "))
     (entropy/emacs-start--require-prompt feature)))
 
 (defun entropy/emacs-start--initial-redisplay-advice (orig-func &rest orig-args)
-  (if entropy/emacs-fall-love-with-pdumper
+  (if (or entropy/emacs-fall-love-with-pdumper
+          (daemonp))
       (entropy/emacs-message-do-message
        (red "Redisplay disabled in pdumper procedure."))
     (apply orig-func orig-args)))
@@ -480,7 +485,8 @@ Emacs will auto close after 6s ......")))
     (unless entropy/emacs-fall-love-with-pdumper
       (setq entropy/emacs-startup-done t))))
 
-(if entropy/emacs-fall-love-with-pdumper
+(if (or entropy/emacs-fall-love-with-pdumper
+        (daemonp))
     (entropy/emacs-start-do-load)
   (run-with-idle-timer
    0.1 nil

@@ -65,11 +65,18 @@
 
 ;; ** ibuffer all the icons feature
 (use-package all-the-icons-ibuffer
-  :if (entropy/emacs-icons-displayable-p)
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ibuffer
-   (all-the-icons-ibuffer-mode 1)))
+   (if (null (daemonp))
+       (when (entropy/emacs-icons-displayable-p)
+         (all-the-icons-ibuffer-mode 1))
+     (entropy/emacs-with-daemon-make-frame-done
+      'all-the-icons-ibuffer
+      '(when (bound-and-true-p all-the-icons-ibuffer-mode)
+         (all-the-icons-ibuffer-mode 0))
+      '(when (entropy/emacs-icons-displayable-p)
+         (all-the-icons-ibuffer-mode 1))))))
 
 ;; ** ibuffer-projectitle display
 (use-package ibuffer-projectile

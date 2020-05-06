@@ -660,9 +660,9 @@ which determined by the scale count 0.3 "
   (defun entropy/emacs-tools-youdao-search-at-point ()
     (interactive)
     (call-interactively
-     (if (fboundp 'company-posframe-mode)
+     (if (entropy/emacs-posframe-adapted-p)
          'youdao-dictionary-search-at-point-posframe
-       'youdao-dictionary-search-at-point-tooltip)))
+       'youdao-dictionary-search-at-point+)))
 
   :init
   (setq url-automatic-caching t)
@@ -794,8 +794,14 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
              entropy/sdcv-search-input-adjacent
              entropy/sdcv-autoshow-mode)
   :init
-  (unless (display-graphic-p)
-    (setq entropy/sdcv-default-show-tooltip-method 'popup))
+  (if (null (daemonp))
+      (unless (display-graphic-p)
+        (setq entropy/sdcv-default-show-tooltip-method 'popup))
+    (entropy/emacs-with-daemon-make-frame-done
+     'entropy-sdcv
+     '(setq entropy/sdcv-default-show-tooltip-method 'popup)
+     '(when (entropy/emacs-posframe-adapted-p)
+        (setq entropy/sdcv-default-show-tooltip-method 'posframe))))
 
   (dolist (item '((eww . eww-mode-hook) (w3m . w3m-mode-hook)
                   (info . Info-mode-hook) (markdown-mode . markdown-mode-hook)))

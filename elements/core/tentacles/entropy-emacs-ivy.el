@@ -613,13 +613,23 @@ this variable used to patching for origin `counsel-git'.")
 
 (use-package all-the-icons-ivy-rich
   :commands all-the-icons-ivy-rich-mode
-  :if (and (entropy/emacs-icons-displayable-p)
-           (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode))
+  :if
+  (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ivy-rich-mode
-   (entropy/emacs-lazy-load-simple ivy
-     (all-the-icons-ivy-rich-mode 1)))
+   (let* ((enable-func
+           (lambda ()
+             (entropy/emacs-lazy-load-simple ivy
+               (all-the-icons-ivy-rich-mode 1)))))
+     (if (daemonp)
+         (entropy/emacs-with-daemon-make-frame-done
+          'all-the-icon-ivy-rich-mode
+          '(when (bound-and-true-p all-the-icons-ivy-rich-mode)
+             (all-the-icons-ivy-rich-mode 0))
+          `(funcall ,enable-func))
+       (when (entropy/emacs-icons-displayable-p)
+         (funcall enable-func)))))
 
   :config
   (entropy/emacs-lazy-load-simple all-the-icons-ivy-rich

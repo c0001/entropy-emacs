@@ -118,7 +118,7 @@
   :config
   (when (display-graphic-p)
     (entropy/emacs-add-hook-lambda-nil
-     web-mode-enable-development-env web-mode-hook
+     web-mode-enable-development-env web-mode-hook 'append
      (setq-local entropy/emacs-web-development-environment
                  t))))
 
@@ -175,7 +175,7 @@
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
     (entropy/emacs-add-hook-lambda-nil
-     js2-initialized-common js2-mode-hook
+     js2-initialized-common js2-mode-hook 'append
      (setq-local js2-basic-offset 4)
      (js2-highlight-unused-variables-mode 1)
      (js2-imenu-extras-mode 1))))

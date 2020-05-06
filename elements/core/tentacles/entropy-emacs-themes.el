@@ -238,33 +238,44 @@
  enable-theme
  (redisplay t)
  (mapc #'disable-theme custom-enabled-themes)
- (condition-case nil
-     (progn
-       (load-theme entropy/emacs-theme-options t)
-       (redisplay t))
-   (error "Problem loading theme %s"
-          (symbol-name entropy/emacs-theme-options)))
- (when (and (fboundp 'powerline-reset)
-            (string-match-p
-             "space\\|powerline"
-             entropy/emacs-modeline-style))
-   (powerline-reset))
- (entropy/emacs-theme-load-face-specifix
-  (symbol-name entropy/emacs-theme-options))
- (when (daemonp)
+ (defun entropy/emacs-themes--init-setup ()
+   (condition-case nil
+       (progn
+         (load-theme entropy/emacs-theme-options t)
+         (redisplay t))
+     (error "Problem loading theme %s"
+            (symbol-name entropy/emacs-theme-options)))
+   (when (and (fboundp 'powerline-reset)
+              (string-match-p
+               "space\\|powerline"
+               entropy/emacs-modeline-style))
+     (powerline-reset))
+   (entropy/emacs-theme-load-face-specifix
+    (symbol-name entropy/emacs-theme-options)))
+ (if (null (daemonp))
+     (entropy/emacs-themes--init-setup)
    ;; This issue refer to
    ;; `https://github.com/hlissner/emacs-doom-themes/issues/125'.
 
    ;; For generally about, this issue brought the bad theme
    ;; presentation in daemon mode of init of emacs session.
 
+   ;; (defvar entropy/emacs-themes--timer-for-daemon-theme-reload nil)
+   (defvar entropy/emacs-themes--theme-init-setup-for-daemon-done nil)
    (add-hook 'after-make-frame-functions
-             #'(lambda (frame)
-                 (when (eq (length (frame-list)) 2)
-                   (progn
-                     (select-frame
-                      frame)
-                     (load-theme entropy/emacs-theme-options)))))))
+             #'(lambda (&optional frame)
+                 (redisplay t)
+                 (let ((daemon-init-theme-load-func
+                        `(lambda ()
+                           (unwind-protect
+                               (progn
+                                 (select-frame (or ,frame (selected-frame)))
+                                 (if entropy/emacs-themes--theme-init-setup-for-daemon-done
+                                     (load-theme entropy/emacs-theme-sticker 'non-confirm)
+                                   (entropy/emacs-themes--init-setup)
+                                   (setq entropy/emacs-themes--theme-init-setup-for-daemon-done
+                                         t)))))))
+                   (funcall daemon-init-theme-load-func))))))
 
 ;; * provide
 (provide 'entropy-emacs-themes)

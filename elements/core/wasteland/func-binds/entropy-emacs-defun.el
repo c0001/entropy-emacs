@@ -68,22 +68,31 @@ return t otherwise for nil. "
       nil)))
 
 (eval-when-compile
-  (defmacro entropy/emacs-add-hook-lambda-nil (name hook &rest body)
+  (defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)
     "Biuld auto-named function prefixed by NAME a symbol and
 inject into HOOK wrapped BODY."
     (let ()
-      `(let ((prefix-name
-              (intern (format
-                       "entropy/emacs-fake-lambda-nil-for-%s-/random-as-%s-function"
-                       (symbol-name ',name)
-                       (random most-positive-fixnum))))
-             func-define)
+      `(let* ((prefix-name-func
+               (lambda ()
+                 (intern (format
+                          "entropy/emacs-fake-lambda-nil-for-%s-/random-as-%s-function"
+                          (symbol-name ',name)
+                          (random most-positive-fixnum)))))
+              (prefix-name (funcall prefix-name-func))
+              func-define)
+         (when (fboundp prefix-name)
+           (while (fboundp prefix-name)
+             (setq prefix-name
+                   (funcall prefix-name-func))))
          (setq func-define
                (list 'defun prefix-name '()
                      '(progn ,@body)))
          (eval func-define)
-         (add-hook ',hook
-                   prefix-name)))))
+         (if ,as-append
+             (setq ,hook
+                   (append ,hook (list prefix-name)))
+           (add-hook ',hook
+                     prefix-name))))))
 
 (defun entropy/emacs-icons-displayable-p ()
   "Return non-nil if `all-the-icons' is displayable."
@@ -813,6 +822,13 @@ c)'."
                       ,@body)))))
     forms))
 
+;; *** hook refer
+
+(defun entropy/emacs-add-hook (hook function &rest _)
+  (set hook
+       (append (symbol-value hook)
+               (list function))))
+
 ;; ** lazy load branch
 (defmacro entropy/emacs-lazy-load-simple (feature &rest body)
   "Execute BODY after/require FILE is loaded.
@@ -1055,8 +1071,15 @@ process doesn't finished."
                     (format "eemacs-download-tmpfile_[%s]"
                             (format-time-string "%Y%m%d%H%M%S"))
                     temporary-file-directory))
-         (cbk-symbol (let ((sym (intern (format "eemacs-network-download-random-cbk_%s"
-                                                (random)))))
+         (cbk-symbol (let ((make-sym-func
+                            (lambda ()
+                              (intern (format "eemacs-network-download-random-cbk_%s"
+                                              (random)))))
+                           sym)
+                       (setq sym (funcall make-sym-func))
+                       (when (boundp sym)
+                         (while (boundp sym)
+                           (setq sym (funcall make-sym-func))))
                        (set sym nil)
                        sym))
          (move-to-des-func
@@ -1537,6 +1560,27 @@ subroutine of `entropy/emacs-xterm-paste-core'.
            (setq paste (substring-no-properties paste))
            (term-send-raw-string paste)))))
   (keyboard-quit))
+
+;; ** emacs daemon refer
+(defun entropy/emacs-with-daemon-make-frame-done
+    (name et-form ec-form &optional common-form)
+  "Do sth after emacs daemon make a new frame.
+
+- 'ET-FORM' is the form for cli emacs session
+- 'EC-FORM' is the form for gui emacs-session
+
+Optional form COMMON-FORM run directly with any condition
+judgements."
+  (let* ((name (intern
+                (format "%s-for-emacs-daemon"
+                        (symbol-name name)))))
+    (eval
+     `(entropy/emacs-add-hook-lambda-nil
+       ,name entropy/emacs-daemon-server-after-make-frame-hook 'append
+       (if (display-graphic-p)
+           ,ec-form
+         ,et-form)
+       ,common-form))))
 
 ;; ** miscellaneous
 (defun entropy/emacs-transfer-wvol (file)

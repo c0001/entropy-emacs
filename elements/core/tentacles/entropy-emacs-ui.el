@@ -107,7 +107,8 @@ determined by above variable you setted."
 (setq fancy-splash-image entropy/emacs-fancy-splash-logo-file)
 
 ;; ** initial buffer
-(when entropy/emacs-enable-initial-dashboard
+(when (and entropy/emacs-enable-initial-dashboard
+           (not (daemonp)))
 
 ;; *** varaible defination
   (defvar entropy/emacs-ui--dashboard-last-width nil

@@ -306,7 +306,12 @@
    posframe-poshandler-window-top-right-corner
    posframe-run-poshandler
    posframe-show
-   posframe-workable-p))
+   posframe-workable-p)
+  :preface
+  (defun entropy/emacs-posframe-adapted-p ()
+    "Judge whether posframe can be used in current emacs session."
+    (and (not (version< emacs-version "26.1"))
+         (display-graphic-p))))
 
 ;; ** hydra
 ;; *** hydra core

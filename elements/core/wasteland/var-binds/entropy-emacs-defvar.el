@@ -368,5 +368,52 @@ Note that the entorpy-emacs just use the malpa-local type of
 submodules pre-loading is not supported for entropy-emacs
 pdumper feature.")
 
+;; ** daemon refer
+(when (version< emacs-version "27")
+  (defvar server-after-make-frame-hook nil
+    "Hook run when the Emacs server creates a client frame.
+The created frame is selected when the hook is called.
+
+This hook was not native for current emacs version but back
+patched for be compatible with 27.1.
+")
+  (defun entropy/emacs-server-make-frame-around-advice
+      (orig-func &rest orig-args)
+    (let ((rtn (apply orig-func orig-args)))
+      (unwind-protect
+          (progn
+            (run-hooks 'server-after-make-frame-hook)
+            rtn)
+        rtn)))
+  (advice-add 'server-execute
+              :around
+              #'entropy/emacs-server-make-frame-around-advice))
+
+(defvar entropy/emacs-daemon-server-after-make-frame-hook nil
+  "Normal hooks run after a emacs daemon session create a client
+frame.
+
+For conventionally, you should inject any function into it by
+using `entropy/emacs-with-daemon-make-frame-done', see its
+docstring for details.
+")
+
+(add-hook 'server-after-make-frame-hook
+          (lambda ()
+            (when (daemonp)
+              (if (not (and server-clients
+                            (> (length server-clients) 1)))
+                  (when entropy/emacs-daemon-server-after-make-frame-hook
+                    (run-hooks 'entropy/emacs-daemon-server-after-make-frame-hook))
+                (warn "
+===========[*entropy emacs daemon warn*]==============
+Please close another daemon clients first!
+Before did thus, some feature can not enable properly!
+------------------------------------------------------
+"
+                      )))))
+
+
+
 ;; * provide
 (provide 'entropy-emacs-defvar)
