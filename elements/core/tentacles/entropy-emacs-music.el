@@ -71,7 +71,7 @@ Add current music to queue when its not in thus."
        (call-interactively #'mpc-songs-jump-to)
        (call-interactively #'mpc-select-toggle))))
 
-  (defun entropy/emacs-music-increae-volume ()
+  (defun entropy/emacs-music-mpc-increae-volume ()
     (interactive)
     (let* ((curvol (string-to-number (cdr (assq 'volume mpc-status))))
            (newvol (+ curvol 5))
@@ -81,7 +81,7 @@ Add current music to queue when its not in thus."
                         'mpc-status-refresh)
         (message "Warn: mpc vol was loudest!"))))
 
-  (defun entropy/emacs-music-decrease-volume ()
+  (defun entropy/emacs-music-mpc-decrease-volume ()
     (interactive)
     (let* ((curvol (string-to-number (cdr (assq 'volume mpc-status))))
            (newvol (- curvol 5))
@@ -100,20 +100,29 @@ Add current music to queue when its not in thus."
      (mpc-status-mode mpc mpc-status-mode-map t (3 2 2))))
    ("Common"
     (("P" mpc-pause "Pause playing" :enable t :exit t :map-inject t)
-     ("t" mpc-toggle-play "Toggle between play and pause"
-      :enable t :exit t :map-inject t)
      ("n" mpc-next "next song" :enable t :exit t :map-inject t)
      ("p" (mpc-proc-cmd "previous") "previous song"
-      :enable t :exit t :map-inject t))
+      :enable t :exit t :map-inject t)
+     ("t t" mpc-toggle-play "Toggle between play and pause"
+      :enable t :exit t :map-inject nil)
+     ("t r" mpc-toggle-repeat "Toggle repeat play"
+      :enable t :exit nil :map-inject nil
+      :toggle (if (string= "0" (cdr (assq 'repeat (mpc-cmd-status)))) nil t))
+     ("t a" mpc-toggle-single "Toggle single play for repeat mode"
+      :enable t :exit nil :map-inject nil
+      :toggle (if (string= "0" (cdr (assq 'single (mpc-cmd-status)))) nil t))
+     ("t s" mpc-toggle-shuffle "Toggle shuffle play"
+      :enable t :exit nil :map-inject nil
+      :toggle (if (string= "0" (cdr (assq 'random (mpc-cmd-status)))) nil t)))
 
     "Seek&volume"
     ((">" (mpc-seek-current "+10") "Seek forward 10s"
       :enable t :map-inject t)
      ("<" (mpc-seek-current "-10") "Seek backward 10s"
       :enable t :map-inject t)
-     ("+" entropy/emacs-music-increae-volume "increase volume"
+     ("+" entropy/emacs-music-mpc-increae-volume "increase volume"
       :enable t :map-inject t)
-     ("-" entropy/emacs-music-decrease-volume "decrease volume"
+     ("-" entropy/emacs-music-mpc-decrease-volume "decrease volume"
       :enable t :map-inject t)
      ("m m"
       (mpc-proc-cmd

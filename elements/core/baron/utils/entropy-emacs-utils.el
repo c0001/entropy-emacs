@@ -165,7 +165,17 @@
                '(nov-mode all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1 :face all-the-icons-green))
 
   (add-to-list 'all-the-icons-mode-icon-alist
-               '(gfm-mode all-the-icons-octicon "markdown" :face all-the-icons-blue)))
+               '(gfm-mode all-the-icons-octicon "markdown" :face all-the-icons-blue))
+
+  (dolist (music-mode '(mpc-mode
+                        mpc-mode-menu
+                        mpc-tagbrowser-mode
+                        mpc-songs-mode
+                        mpc-status-mode
+                        mpc-tagbrowser-dir-mode
+                        ))
+    (add-to-list 'all-the-icons-mode-icon-alist
+                 `(,music-mode all-the-icons-faicon "music" :face all-the-icons-blue))))
 
 ;; ** eldoc-eval
 (use-package eldoc-eval
