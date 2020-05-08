@@ -238,6 +238,7 @@
  enable-theme
  (redisplay t)
  (mapc #'disable-theme custom-enabled-themes)
+
  (defun entropy/emacs-themes--init-setup ()
    (condition-case nil
        (progn
@@ -252,6 +253,7 @@
      (powerline-reset))
    (entropy/emacs-theme-load-face-specifix
     (symbol-name entropy/emacs-theme-options)))
+
  (if (null (daemonp))
      (entropy/emacs-themes--init-setup)
    ;; This issue refer to
@@ -262,20 +264,24 @@
 
    ;; (defvar entropy/emacs-themes--timer-for-daemon-theme-reload nil)
    (defvar entropy/emacs-themes--theme-init-setup-for-daemon-done nil)
+   (defun entropy/emacs-themes--load-theme-for-daemon-client (&optional frame)
+     (redisplay t)
+     (let ()
+       (progn
+         (select-frame (or frame (selected-frame)))
+         (if entropy/emacs-themes--theme-init-setup-for-daemon-done
+             (when (or (not entropy/emacs-daemon-main-client-indicator)
+                       ;; We must forcely reload theme to gurantee the
+                       ;; gui daemon client created successfully for
+                       ;; some bug of doom-themes.
+                       (display-graphic-p))
+               (load-theme entropy/emacs-theme-sticker 'non-confirm))
+           (entropy/emacs-themes--init-setup)
+           (setq entropy/emacs-themes--theme-init-setup-for-daemon-done
+                 t)))))
+
    (add-hook 'after-make-frame-functions
-             #'(lambda (&optional frame)
-                 (redisplay t)
-                 (let ((daemon-init-theme-load-func
-                        `(lambda ()
-                           (unwind-protect
-                               (progn
-                                 (select-frame (or ,frame (selected-frame)))
-                                 (if entropy/emacs-themes--theme-init-setup-for-daemon-done
-                                     (load-theme entropy/emacs-theme-sticker 'non-confirm)
-                                   (entropy/emacs-themes--init-setup)
-                                   (setq entropy/emacs-themes--theme-init-setup-for-daemon-done
-                                         t)))))))
-                   (funcall daemon-init-theme-load-func))))))
+             #'entropy/emacs-themes--load-theme-for-daemon-client)))
 
 ;; * provide
 (provide 'entropy-emacs-themes)

@@ -87,73 +87,85 @@ If you want to use your own font config please disable it.
 
 (defun entropy/emacs-font-set-setfont-core (&optional frame)
   (interactive)
-  (setq use-default-font-for-symbols nil)
-  ;; preventing unicode cusor move lagging for
-  ;; windows refer to mailing list
-  ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2016-11/msg00471.html
-  (setq inhibit-compacting-font-caches t)
+  (let ()
+    (when (and (display-graphic-p)
+               (not (entropy/emacs-font-set--pre-fonts-check)))
+      (setq use-default-font-for-symbols nil)
+      ;; preventing unicode cusor move lagging for
+      ;; windows refer to mailing list
+      ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2016-11/msg00471.html
+      (setq inhibit-compacting-font-caches t)
 
-  ;; Setting English Font
-  (set-face-attribute
-   'default nil
-   :family
-   (intern entropy/emacs-default-latin-font) :font entropy/emacs-default-latin-font)
+      ;; Setting English Font
+      (set-fontset-font
+       nil
+       'latin
+       (font-spec :family entropy/emacs-default-latin-font)
+       frame)
 
-  (set-face-attribute
-   'variable-pitch nil
-   :family
-   (intern entropy/emacs-default-latin-font) :font entropy/emacs-default-latin-font)
+      ;; default interface font spec
+      (mapc (lambda (type)
+              (set-fontset-font
+               type 'latin
+               (font-spec :family entropy/emacs-default-latin-font)
+               (or frame (selected-frame))))
+            '("fontset-default" "fontset-startup" "fontset-standard"))
 
-  ;; default interface font spec
-  (mapc (lambda (type)
-          (set-fontset-font
-           type 'latin
-           (font-spec :family entropy/emacs-default-latin-font)))
-        '("fontset-default" "fontset-startup" "fontset-standard"))
+      ;;Setting cjk
+      (dolist (charset '(han cjk-misc kana kanbun bopomofo))
+        (set-fontset-font nil
+                          charset
+                          (font-spec
+                           :family
+                           entropy/emacs-default-cjk-cn-font)
+                          (or frame (selected-frame))))
 
-  ;;Setting cjk
-  (dolist (charset '(han cjk-misc kana kanbun bopomofo))
-    (set-fontset-font (frame-parameter nil 'font)
-                      charset
-                      (font-spec
-                       :family
-                       entropy/emacs-default-cjk-cn-font)))
+      (set-fontset-font nil
+                        '(?ぁ . ?ヶ)
+                        (font-spec
+                         :family
+                         entropy/emacs-default-cjk-jp-font)
+                        (or frame (selected-frame)))
 
-  (set-fontset-font (frame-parameter nil 'font)
-                    '(?ぁ . ?ヶ)
-                    (font-spec
-                     :family
-                     entropy/emacs-default-cjk-jp-font))
+      (set-fontset-font nil
+                        'hangul
+                        (font-spec :family entropy/emacs-default-cjk-kr-font)
+                        (or frame (selected-frame)))
 
-  (set-fontset-font (frame-parameter nil 'font)
-                    'hangul
-                    (font-spec :family entropy/emacs-default-cjk-kr-font))
 
-  (when (display-graphic-p)
-    (setq face-font-rescale-alist `((,entropy/emacs-default-cjk-cn-font . 1.2)
-                                    (,entropy/emacs-default-cjk-tc-font . 1.2)
-                                    (,entropy/emacs-default-cjk-jp-font . 1.2)
-                                    (,entropy/emacs-default-cjk-kr-font . 1.2))))
+      (setq face-font-rescale-alist `((,entropy/emacs-default-cjk-cn-font . 1.2)
+                                      (,entropy/emacs-default-cjk-tc-font . 1.2)
+                                      (,entropy/emacs-default-cjk-jp-font . 1.2)
+                                      (,entropy/emacs-default-cjk-kr-font . 1.2)))
 
-  ;; setting unicode symbol font
-  (set-fontset-font (frame-parameter nil 'font)
-                    'symbol
-                    (font-spec :family "Symbola"))
+      ;; setting unicode symbol font
+      (set-fontset-font nil
+                        'symbol
+                        (font-spec :family "Symbola")
+                        (or frame (selected-frame)))
 
-  (set-fontset-font (frame-parameter nil 'font)
-                    ?“
-                    (font-spec :family entropy/emacs-default-cjk-cn-font))
-  (set-fontset-font (frame-parameter nil 'font)
-                    ?”
-                    (font-spec :family entropy/emacs-default-cjk-cn-font)))
+      (set-fontset-font nil
+                        ?“
+                        (font-spec :family entropy/emacs-default-cjk-cn-font)
+                        (or frame (selected-frame)))
+
+      (set-fontset-font nil
+                        ?”
+                        (font-spec :family entropy/emacs-default-cjk-cn-font)
+                        (or frame (selected-frame)))
+
+      (if (< entropy/emacs-font-size-default 15)
+          (set-face-attribute 'default (or frame (selected-frame))
+                              :height (ceiling (* entropy/emacs-font-size-default 10)))
+        (warn
+         "Your default font size is too large, you must set it smaller than 15 for adapting to other entropy-emacs settings.")))))
 
 (defun entropy/emacs-font-set--setfont-initial ()
-  (when (and entropy/emacs-font-setting-enable
-             (display-graphic-p))
-    (let ((missing (entropy/emacs-font-set--pre-fonts-check)))
-      (unless missing
-        (entropy/emacs-font-set-setfont-core)
-        (add-to-list 'after-make-frame-functions 'entropy/emacs-font-set-setfont-core)))))
+  (when entropy/emacs-font-setting-enable
+    (if (daemonp)
+        (add-hook 'after-make-frame-functions
+                  #'entropy/emacs-font-set-setfont-core)
+      (entropy/emacs-font-set-setfont-core))))
 
 (entropy/emacs-lazy-with-load-trail
  eemacs-fontset

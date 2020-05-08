@@ -1143,9 +1143,16 @@ This function has redefined for adapting to
   (progn (setq kill-ring nil) (garbage-collect)))
 
 ;; *** Mark-sexp
-(entropy/emacs-!set-key
-  (kbd "1")
-  'set-mark-command)
+(defun entropy/emacs-basic-set-mark-command ()
+  (entropy/emacs-!set-key
+    (kbd entropy/emacs-top-key)
+    'set-mark-command))
+
+(if (daemonp)
+  (entropy/emacs-with-daemon-make-frame-done
+   'set-mark-command nil nil
+   '(entropy/emacs-basic-set-mark-command))
+  (entropy/emacs-basic-set-mark-command))
 
 (defun entropy/emacs-basic-mark-set ()
   "Mark the current point and push it to mark ring so that this

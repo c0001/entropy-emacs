@@ -58,11 +58,6 @@
 
 ;; ** init-frame position and width and height
 
-(when (display-graphic-p)
-  (if (< entropy/emacs-font-size-default 15)
-      (set-face-attribute 'default nil :height (ceiling (* entropy/emacs-font-size-default 10)))
-    (error "Your default font size is too large, you must set it smaller than 15.")))
-
 (defun entropy/emacs-ui-set-frame-position ()
   "Reset frame's position and size by the constraint of
 `entropy/emacs-init-frame-width-scale',

@@ -398,20 +398,127 @@ using `entropy/emacs-with-daemon-make-frame-done', see its
 docstring for details.
 ")
 
-(add-hook 'server-after-make-frame-hook
-          (lambda ()
-            (when (daemonp)
-              (if (not (and server-clients
-                            (> (length server-clients) 1)))
-                  (when entropy/emacs-daemon-server-after-make-frame-hook
-                    (run-hooks 'entropy/emacs-daemon-server-after-make-frame-hook))
-                (warn "
-===========[*entropy emacs daemon warn*]==============
-Please close another daemon clients first!
-Before did thus, some feature can not enable properly!
+(defun entropy/emacs-daemon-create-daemon-client-plist ()
+  "Create an entropy-emacs specified representation of a daemon client, a plist.
+
+There's two key slots for this plist, ':frame' for theh current
+main daemon client's frame object. ':gui-p' for whether thus is
+`display-graphic-p'"
+  (list :frame (selected-frame)
+        :gui-p (display-graphic-p)))
+
+(defvar entropy/emacs-daemon-main-client-indicator nil
+  "Non-nil is a plist representation for current main daemon
+client built by
+`entropy/emacs-daemon-create-daemon-client-plist'.")
+
+(defvar entropy/emacs-daemon-legal-clients nil
+  "A list of legal daemon clients representation.")
+
+(defun entropy/emacs-daemon-current-is-main-client ()
+  "Judge whether current frame is the frame of current daemon
+main client."
+  (let ((main-judge
+         (eq (selected-frame)
+             (plist-get
+              entropy/emacs-daemon-main-client-indicator
+              :frame))))
+    main-judge))
+
+(defun entropy/emacs-daemon-reset-main-client-indicator
+    (orig-func &rest orig-args)
+  "Reset `entropy/emacs-daemon-main-client-indicator' when the frame of
+current daemon main client prepare to close, and the car of
+`entropy/emacs-daemon-legal-clients' will be the assignment if
+non-nil, i.e. the new main daemon client."
+  (let (temp_var)
+    ;; pop out current daemon client from
+    ;; `entropy/emacs-daemon-legal-clients'.
+    (when (not (null entropy/emacs-daemon-legal-clients))
+      (dolist (el entropy/emacs-daemon-legal-clients)
+        (unless (eq (selected-frame) (plist-get el :frame))
+          (push el temp_var)))
+      (setq entropy/emacs-daemon-legal-clients
+            temp_var))
+    ;; Reset `entropy/emacs-daemon-main-client-indicator'.
+    (when (entropy/emacs-daemon-current-is-main-client)
+      (setq entropy/emacs-daemon-main-client-indicator nil)
+      (when (not (null entropy/emacs-daemon-legal-clients))
+        (catch :exit
+          (while entropy/emacs-daemon-legal-clients
+            (if (frame-live-p
+                 (plist-get
+                  (car entropy/emacs-daemon-legal-clients) :frame))
+                (progn
+                  (setq entropy/emacs-daemon-main-client-indicator
+                        (car entropy/emacs-daemon-legal-clients))
+                  (throw :exit nil))
+              (pop entropy/emacs-daemon-legal-clients))))))
+    (apply orig-func orig-args)))
+
+(advice-add 'delete-frame
+            :around
+            #'entropy/emacs-daemon-reset-main-client-indicator)
+
+(defun entropy/emacs-daemon-client-initialize ()
+  (when (daemonp)
+    ;; fix problem when main daemon client is dead
+    (when entropy/emacs-daemon-main-client-indicator
+      (unless (frame-live-p (plist-get entropy/emacs-daemon-main-client-indicator :frame))
+        (setq entropy/emacs-daemon-main-client-indicator nil)))
+    ;; fix problem when there's dead daemon clients in register.
+    (when entropy/emacs-daemon-legal-clients
+      (let (temp_var)
+        (dolist (clts entropy/emacs-daemon-legal-clients)
+          (when (frame-live-p (plist-get clts :frame))
+            (push clts temp_var)))
+        (setq entropy/emacs-daemon-legal-clients temp_var)))
+    ;; startup daemon specification
+    (if (or (not entropy/emacs-daemon-main-client-indicator)
+            (eq (display-graphic-p)
+                (plist-get entropy/emacs-daemon-main-client-indicator
+                           :gui-p)))
+        (let ((daemon-client-obj (entropy/emacs-daemon-create-daemon-client-plist)))
+          (push daemon-client-obj entropy/emacs-daemon-legal-clients)
+          (unless entropy/emacs-daemon-main-client-indicator
+            (setq entropy/emacs-daemon-main-client-indicator
+                  daemon-client-obj))
+          (when entropy/emacs-daemon-server-after-make-frame-hook
+            (run-hooks 'entropy/emacs-daemon-server-after-make-frame-hook)))
+      (let ((frame (selected-frame)))
+        (unless (entropy/emacs-daemon-current-is-main-client)
+          (with-selected-frame frame
+            (warn "
+===========[*entropy emacs daemonwarn*]==============
+
+Please close another '%s' daemon clients first before creating a
+'%s' daemon client. Before did thus, some feature can not enable
+properly!
+
+That's because of the each daemon specification will just load
+once for the main daemon client (the specified recognized daemon
+client of entropy-emacs created by `emacsclient'), thus you
+should close the origin main daemon client so that you can create
+a new main daemon client instead.
+
+For the main reason, emacs can not set frame-local variables,
+that entropy-emacs forbidden create more than one daemon clients
+at the same time, to prevent messing configuration up from
+creating tty and gui daemon clients at same time, because tty and
+gui session has huge sets of differents in entropy-emacs.
+
 ------------------------------------------------------
 "
-                      )))))
+                  (if (plist-get entropy/emacs-daemon-main-client-indicator
+                                 :gui-p)
+                      "GUI"
+                    "TTY")
+                  (if (display-graphic-p)
+                      "GUI"
+                    "TTY"))))))))
+
+(add-hook 'server-after-make-frame-hook
+          #'entropy/emacs-daemon-client-initialize)
 
 
 

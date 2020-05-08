@@ -1359,6 +1359,11 @@ visual distinction of `ivy-current-match' covered upon the
     (when (not (featurep 'hl-line))
       (require 'hl-line))
     (set-face-attribute 'hl-line nil :background "moccasin"))
+   ((string= "doom-Iosvkem" x)
+    (with-eval-after-load 'ivy
+      (set-face-attribute 'ivy-current-match nil
+                          :background "RosyBrown"
+                          :foreground "grey6")))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
