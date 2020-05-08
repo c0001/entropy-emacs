@@ -1465,23 +1465,23 @@ the cdr was the replacement yank function")
   "Judge whether emacs to use external kits to assistant the
 xterm-session yank/paste operation."
   (let ((judger
-         '(or
-           ;; darwin (macos platform)
-           (and (and (eq system-type 'darwin)
-                     (executable-find "pbcopy"))
-                'pbpaste)
-           ;; cygwin (windows posix emulator)
-           (and (eq system-type 'cygwin)
-                (executable-find "getclip")
-                'getclip)
-           ;; android termux emulator
-           (and (executable-find "termux-clipboard-get")
-                'termux-clipboard-get)
-           ;; gnu/linux platform
-           (and (eq system-type 'gnu/linux)
-                (or
-                 (and (executable-find "xclip") 'xclip)
-                 (and (executable-find "xsel") 'xsel))))))
+         (or
+          ;; darwin (macos platform)
+          (and (and (eq system-type 'darwin)
+                    (executable-find "pbcopy"))
+               'pbpaste)
+          ;; cygwin (windows posix emulator)
+          (and (eq system-type 'cygwin)
+               (executable-find "getclip")
+               'getclip)
+          ;; android termux emulator
+          (and (executable-find "termux-clipboard-get")
+               'termux-clipboard-get)
+          ;; gnu/linux platform
+          (and (eq system-type 'gnu/linux)
+               (or
+                (and (executable-find "xclip") 'xclip)
+                (and (executable-find "xsel") 'xsel))))))
     (when (and (not (display-graphic-p))
                (fboundp 'xterm-paste)
                (ignore-errors

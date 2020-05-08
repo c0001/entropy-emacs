@@ -1499,17 +1499,52 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
 
 (entropy/emacs-lazy-with-load-trail
  xterm-rebind
- (entropy/emacs-xterm-external-satisfied-p)
- (define-key global-map [xterm-paste]
-   #'entropy/emacs-xterm-paste)
-
- (entropy/emacs-lazy-load-simple term
-   (define-key term-raw-map
-     [S-insert]
-     #'entropy/emacs-xterm-term-S-insert)
-   (define-key term-raw-map
-     [xterm-paste]
-     #'entropy/emacs-xterm-term-S-insert)))
+ (let* ((cli-enable-func
+         (lambda ()
+           (define-key global-map [xterm-paste]
+             #'entropy/emacs-xterm-paste)))
+        (cli-disable-func
+         (lambda ()
+           (define-key global-map [xterm-paste]
+             #'xterm-paste)))
+        (term-enable-func
+         (lambda ()
+           (require 'term)
+           (define-key term-raw-map
+             [S-insert]
+             #'entropy/emacs-xterm-term-S-insert)
+           (define-key term-raw-map
+             [xterm-paste]
+             #'entropy/emacs-xterm-term-S-insert)))
+        (term-disable-func
+         (lambda ()
+           (require 'term)
+           (define-key term-raw-map
+             [S-insert]
+             #'term-paste)
+           (define-key term-raw-map
+             [xterm-paste]
+             #'term-paste)))
+        (enable-func
+         `(lambda ()
+            (funcall ,cli-enable-func)
+            (funcall ,term-enable-func)))
+        (disable-func
+         `(lambda ()
+            (funcall ,cli-disable-func)
+            (funcall ,term-disable-func))))
+   (if (null (daemonp))
+       (when (entropy/emacs-xterm-external-satisfied-p)
+         (funcall enable-func))
+     (defvar entropy/emacs-basic--xterm-paste-rebinded nil)
+     (entropy/emacs-with-daemon-make-frame-done
+      'xterm-paste-bind
+      `(when (entropy/emacs-xterm-external-satisfied-p)
+         (funcall ,enable-func)
+         (setq entropy/emacs-basic--xterm-paste-rebinded t))
+      `(when entropy/emacs-basic--xterm-paste-rebinded
+         (funcall ,disable-func)
+         (setq entropy/emacs-basic--xterm-paste-rebinded nil))))))
 
 ;; *** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
 (when (and sys/win32p (not (version< emacs-version "26.1")))
