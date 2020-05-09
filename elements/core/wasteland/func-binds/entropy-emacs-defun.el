@@ -1418,17 +1418,6 @@ when changing theme."
                rtn)
       (setq case-fold-search _case_type))))
 
-
-;; ** common face setting
-(defun entropy/emacs-set-fixed-pitch-serif-face-to-monospace ()
-  "Set info-mode font-lock spec face `fixed-pitch-serif' to
-entropy-emacs specific monospace style.
-
-This funciton will solve the problem that the symbol pattern
-display ugly and small in info-mode."
-  (set-face-attribute 'fixed-pitch-serif nil
-                      :family "Monospace" :slant 'italic))
-
 ;; ** key map refer
 (defun entropy/emacs-batch-define-key (key-obj-list)
   "Define key to keymap for batching way.

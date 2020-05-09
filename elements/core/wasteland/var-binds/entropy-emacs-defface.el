@@ -40,6 +40,15 @@
   "Face for the tail prompt requiring advice
 `entropy/emacs-require-loadding")
 
+(defun entropy/emacs-set-fixed-pitch-serif-face-to-monospace ()
+  "Set info-mode font-lock spec face `fixed-pitch-serif' to
+entropy-emacs specific monospace style.
+
+This funciton will solve the problem that the symbol pattern
+display ugly and small in info-mode."
+  (set-face-attribute 'fixed-pitch-serif nil
+                      :family "Monospace" :slant 'italic))
+
 (entropy/emacs-lazy-load-simple faces
   (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))
 
