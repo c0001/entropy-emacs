@@ -186,7 +186,6 @@ was found."
 ;; ** term configuration
 (use-package eterm-256color
   ;; enable 256 color for emacs term
-  :if (display-graphic-p)
   :commands (eterm-256color-mode)
   :hook (term-mode . eterm-256color-mode))
 
