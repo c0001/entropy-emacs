@@ -57,12 +57,26 @@
            (display-graphic-p))
   (setq entropy/emacs-indicate-sshd-session nil))
 
+(defun entropy/emacs-basic-set-mark-command ()
+  (entropy/emacs-!set-key
+    (kbd entropy/emacs-top-key)
+    'set-mark-command))
+
+(defun entropy/emacs-basic-mark-set ()
+  "Mark the current point and push it to mark ring so that this
+place can be easily found by other interactive command."
+  (interactive)
+  (save-excursion
+    (push-mark)))
+
 (entropy/emacs-lazy-with-load-trail
  top-keybinding
  (if (null (daemonp))
-     (define-key (current-global-map)
-       (kbd entropy/emacs-top-key)
-       entropy/emacs-top-keymap)
+     (progn
+       (define-key (current-global-map)
+         (kbd entropy/emacs-top-key)
+         entropy/emacs-top-keymap)
+       (entropy/emacs-basic-set-mark-command))
    ;;------------ set basic key-binds for daemon session------------
    ;;; redefine kill emacs bindings to frame delete that follow the
    ;;; default daemon session convention.
@@ -80,7 +94,11 @@
          (current-global-map)
          (kbd
           entropy/emacs-top-key)
-         entropy/emacs-top-keymap)))))
+         entropy/emacs-top-keymap)))
+   ;; after set the top key, rebind the `set-mark-command' key-bind
+   (entropy/emacs-with-daemon-make-frame-done
+    'set-mark-command nil nil
+    '(entropy/emacs-basic-set-mark-command))))
 
 ;; ** Basic major-modes spec
 ;; *** Dired config
@@ -1141,25 +1159,6 @@ This function has redefined for adapting to
 (defun entropy/emacs-basic-clear-kill-ring ()
   (interactive)
   (progn (setq kill-ring nil) (garbage-collect)))
-
-;; *** Mark-sexp
-(defun entropy/emacs-basic-set-mark-command ()
-  (entropy/emacs-!set-key
-    (kbd entropy/emacs-top-key)
-    'set-mark-command))
-
-(if (daemonp)
-  (entropy/emacs-with-daemon-make-frame-done
-   'set-mark-command nil nil
-   '(entropy/emacs-basic-set-mark-command))
-  (entropy/emacs-basic-set-mark-command))
-
-(defun entropy/emacs-basic-mark-set ()
-  "Mark the current point and push it to mark ring so that this
-place can be easily found by other interactive command."
-  (interactive)
-  (save-excursion
-    (push-mark)))
 
 ;; *** Forbidden view-hello-file for W32 platform
 
