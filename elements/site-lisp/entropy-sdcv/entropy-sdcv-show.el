@@ -46,7 +46,8 @@ posframe or popup shown mechanism."
         (feedback (plist-get show-instance :feedback))
         (show-predicate (plist-get show-instance :show-predicate))
         (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'adjacent-common)))
-    (when (facep face)
+    (when (and (facep face)
+               (not (eq face 'entropy/sdcv-core-common-face)))
       (setq feedback
             (propertize feedback 'face face)))
     (with-current-buffer buffer
