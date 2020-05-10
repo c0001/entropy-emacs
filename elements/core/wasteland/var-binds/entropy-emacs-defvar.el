@@ -381,7 +381,10 @@ enable this as default one.")
   "Set the JP script font, default was \"Noto Sans Mono CJK JP\"")
 
 (defvar entropy/emacs-default-cjk-kr-font "Noto Sans Mono CJK KR"
-  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK KR\"")
+  "Set the hangul script font, default was \"Noto Sans Mono CJK KR\"")
+
+(defvar entropy/emacs-default-extra-fonts nil
+  "Extra fonts list.")
 
 ;; ** pdumper
 (defvar entropy/emacs-pdumper-pre-lpth nil

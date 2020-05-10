@@ -1044,8 +1044,8 @@ This affected by `neotree' or `treemacs' window sticking with
   :init
   (entropy/emacs-lazy-with-load-trail which-key (which-key-mode t))
   (setq which-key-popup-type 'side-window
-        which-key-side-window-location 'top
-        which-key-idle-delay 0.32
+        which-key-side-window-location 'bottom
+        which-key-idle-delay 0.8
         which-key-idle-secondary-delay nil
         which-key-side-window-max-height 0.15
         which-key-echo-keystrokes 0.005

@@ -64,10 +64,31 @@ it.
                 :jp "Sarasa Mono J" :kr "Sarasa Mono K")
         (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
                 :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
-                :symbol "Noto Sans Symbols")
+                :symbol "Noto Sans Symbols"
+                :extra ("Symbola")
+                :after
+                (lambda (frame)
+                  (dolist (char '(?← ?→ ?↑ ?↓))
+                    (set-fontset-font nil char (font-spec :family "Symbola")))
+                  (when (alist-get "Symbola" face-font-rescale-alist nil nil #'string=)
+                    (setq face-font-rescale-alist
+                          (assoc-delete-all
+                           "Symbola"
+                           face-font-rescale-alist #'string=)))
+                  (add-to-list 'face-font-rescale-alist (cons "Symbola" 0.85))))
         (fira-code :latin "Fira Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
                    :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
-                   :symbol "Noto Sans Symbols")))
+                   :symbol "Noto Sans Symbols"
+                   :after
+                   (lambda (frame)
+                     (dolist (char '(?← ?→ ?↑ ?↓))
+                       (set-fontset-font nil char (font-spec :family "Symbola")))
+                     (when (alist-get "Symbola" face-font-rescale-alist nil nil #'string=)
+                       (setq face-font-rescale-alist
+                             (assoc-delete-all
+                              "Symbola"
+                              face-font-rescale-alist #'string=)))
+                     (add-to-list 'face-font-rescale-alist (cons "Symbola" 0.85))))))
 
 (defun entropy/emacs-font-set-register ()
   (when (eq entropy/emacs-font-setting-enable t)
@@ -88,7 +109,9 @@ it.
           entropy/emacs-default-cjk-kr-font
           (plist-get group :kr)
           entropy/emacs-default-symbol-font
-          (plist-get group :symbol))
+          (plist-get group :symbol)
+          entropy/emacs-default-extra-fonts
+          (plist-get group :extra))
     (setq entropy/emacs-default-cjk-cn-font
           (if (eq entropy/emacs-font-chinese-type 'sc)
               entropy/emacs-default-cjk-sc-font
@@ -105,7 +128,11 @@ it.
       (when (stringp font-name)
         (unless (find-font (font-spec :name font-name))
           (push font-name judge))))
-
+    (when entropy/emacs-default-extra-fonts
+      (dolist (font-name entropy/emacs-default-extra-fonts)
+        (when (stringp font-name)
+          (unless (find-font (font-spec :name font-name))
+            (push font-name judge)))))
     (when judge
       (mapc (lambda (font-name)
               (setq prompt (concat prompt (number-to-string count) ": " font-name " missing.\n"))
@@ -117,7 +144,9 @@ it.
 
 (defun entropy/emacs-font-set-setfont-core (&optional frame)
   (interactive)
-  (let ()
+  (let ((after-do (plist-get (alist-get entropy/emacs-font-setting-enable
+                                        entropy/emacs-font-set-fontset-group-alias)
+                             :after)))
     (when (and (display-graphic-p)
                (not (entropy/emacs-font-set--pre-fonts-check)))
 
@@ -190,6 +219,10 @@ it.
                         ?”
                         (font-spec :family entropy/emacs-default-cjk-cn-font)
                         (or frame (selected-frame)))
+
+      ;; extra spec setting
+      (when (and after-do (functionp after-do))
+        (funcall after-do (or frame (selected-frame))))
 
       (if (< entropy/emacs-font-size-default 15)
           (let ((height (ceiling (* entropy/emacs-font-size-default 10))))
