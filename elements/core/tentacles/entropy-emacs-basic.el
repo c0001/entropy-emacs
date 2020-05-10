@@ -1043,7 +1043,31 @@ This affected by `neotree' or `treemacs' window sticking with
   :commands which-key-mode
   :init
   (entropy/emacs-lazy-with-load-trail which-key (which-key-mode t))
-  (setq which-key-popup-type 'side-window))
+  (setq which-key-popup-type 'side-window
+        which-key-side-window-location 'top
+        which-key-idle-delay 0.32
+        which-key-idle-secondary-delay nil
+        which-key-side-window-max-height 0.15
+        which-key-echo-keystrokes 0.005
+        which-key-separator "->"
+        which-key-show-remaining-keys t
+        which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
+
+  (entropy/emacs-lazy-load-simple help
+    (global-set-key (kbd "C-h C-h") nil))
+
+  :config
+  ;; Disable `after-make-frame-functions' when popup which-key dim
+  ;; using frame feature.
+  (defun entropy/emacs-basic--which-key-inhibit-stuffs
+      (orig-func &rest orig-args)
+    (let ((after-make-frame-functions nil))
+      (apply orig-func orig-args)))
+  (dolist (func '(which-key--show-buffer-new-frame
+                  which-key--show-buffer-reuse-frame))
+    (advice-add func
+                :around
+                #'entropy/emacs-basic--which-key-inhibit-stuffs)))
 
 ;; *** Undo tree
 (use-package undo-tree
