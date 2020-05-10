@@ -52,28 +52,59 @@
 
 (defvar entropy/emacs-font-set--warn
   "Because you enabled `entropy/emacs-font-setting-enable' , but
-you didn't install all fonts file from
-'https://sourceforge.net/projects/entropy-emax64/files/entropy-emacs_dependency/entropy-emacs_fonts.tgz/download'
-so this warning occurring.
+you didn't install all fonts file in your system, so this warning
+occurring. If you want to use your own font config please disable
+it.
 
-Now entropy-emacs allow you specific latin and chinese font, and
-their defualt font chosen respectively were:
-- latin: Liberation Mono
-- han:   Droid Sans
-
-If you want to use your own font config please disable it.
+===== Missing fonts list: =====
 ")
 
+(setq entropy/emacs-font-set-fontset-group-alias
+      '((sarasa :latin "Sarasa Mono SC" :sc "Sarasa Mono SC" :tc "Sarasa Mono TC"
+                :jp "Sarasa Mono J" :kr "Sarasa Mono K")
+        (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
+                :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
+                :symbol "Noto Sans Symbols")
+        (fira-code :latin "Fira Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
+                   :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
+                   :symbol "Noto Sans Symbols")))
+
+(defun entropy/emacs-font-set-register ()
+  (when (eq entropy/emacs-font-setting-enable t)
+    (setq entropy/emacs-font-setting-enable 'google))
+  (let ((group (alist-get entropy/emacs-font-setting-enable
+                          entropy/emacs-font-set-fontset-group-alias)))
+    (unless group
+      (user-error "Invalid arg value for `entropy/emacs-font-setting-enable' to '%s'"
+                  entropy/emacs-font-setting-enable))
+    (setq entropy/emacs-default-latin-font
+          (plist-get group :latin)
+          entropy/emacs-default-cjk-sc-font
+          (plist-get group :sc)
+          entropy/emacs-default-cjk-tc-font
+          (plist-get group :tc)
+          entropy/emacs-default-cjk-jp-font
+          (plist-get group :jp)
+          entropy/emacs-default-cjk-kr-font
+          (plist-get group :kr)
+          entropy/emacs-default-symbol-font
+          (plist-get group :symbol))
+    (setq entropy/emacs-default-cjk-cn-font
+          (if (eq entropy/emacs-font-chinese-type 'sc)
+              entropy/emacs-default-cjk-sc-font
+            entropy/emacs-default-cjk-tc-font))))
+
 (defun entropy/emacs-font-set--pre-fonts-check ()
+  (entropy/emacs-font-set-register)
   (let (judge (prompt "")  (count 1))
-    (dolist (font-name '("Noto Mono"
-                         "Symbola"
-                         "Noto Sans Mono CJK SC"
-                         "Noto Sans Mono CJK TC"
-                         "Noto Sans Mono CJK JP"
-                         "Noto Sans Mono CJK KR"))
-      (unless (find-font (font-spec :name font-name))
-        (push font-name judge)))
+    (dolist (font-name `(,entropy/emacs-default-latin-font
+                         ,entropy/emacs-default-cjk-cn-font
+                         ,entropy/emacs-default-cjk-jp-font
+                         ,entropy/emacs-default-cjk-kr-font
+                         ,entropy/emacs-default-symbol-font))
+      (when (stringp font-name)
+        (unless (find-font (font-spec :name font-name))
+          (push font-name judge))))
 
     (when judge
       (mapc (lambda (font-name)
@@ -84,24 +115,25 @@ If you want to use your own font config please disable it.
        (format "%s\n%s" entropy/emacs-font-set--warn prompt)))
     judge))
 
-
 (defun entropy/emacs-font-set-setfont-core (&optional frame)
   (interactive)
   (let ()
     (when (and (display-graphic-p)
                (not (entropy/emacs-font-set--pre-fonts-check)))
-      (setq use-default-font-for-symbols nil)
+
       ;; preventing unicode cusor move lagging for
       ;; windows refer to mailing list
       ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2016-11/msg00471.html
       (setq inhibit-compacting-font-caches t)
 
-      ;; Setting English Font
-      (set-fontset-font
-       nil
-       'latin
-       (font-spec :family entropy/emacs-default-latin-font)
-       frame)
+      ;; Setting latin Font
+      (set-fontset-font nil 'latin
+                        (font-spec :family entropy/emacs-default-latin-font)
+                        (or frame (selected-frame)))
+      (set-face-attribute
+       'variable-pitch
+       (or frame (selected-frame))
+       :family entropy/emacs-default-latin-font)
 
       ;; default interface font spec
       (mapc (lambda (type)
@@ -132,17 +164,22 @@ If you want to use your own font config please disable it.
                         (font-spec :family entropy/emacs-default-cjk-kr-font)
                         (or frame (selected-frame)))
 
-
-      (setq face-font-rescale-alist `((,entropy/emacs-default-cjk-cn-font . 1.2)
-                                      (,entropy/emacs-default-cjk-tc-font . 1.2)
-                                      (,entropy/emacs-default-cjk-jp-font . 1.2)
-                                      (,entropy/emacs-default-cjk-kr-font . 1.2)))
+      (if (eq entropy/emacs-font-setting-enable 'sarasa)
+          (setq face-font-rescale-alist nil)
+        (setq face-font-rescale-alist
+              `((,entropy/emacs-default-cjk-sc-font . 1.2)
+                (,entropy/emacs-default-cjk-tc-font . 1.2)
+                (,entropy/emacs-default-cjk-jp-font . 1.2)
+                (,entropy/emacs-default-cjk-kr-font . 1.2))))
 
       ;; setting unicode symbol font
-      (set-fontset-font nil
-                        'symbol
-                        (font-spec :family "Symbola")
-                        (or frame (selected-frame)))
+      (if entropy/emacs-default-symbol-font
+          (progn (setq use-default-font-for-symbols nil)
+                 (set-fontset-font nil
+                                   'symbol
+                                   (font-spec :family entropy/emacs-default-symbol-font)
+                                   (or frame (selected-frame))))
+        (setq use-default-font-for-symbols t))
 
       (set-fontset-font nil
                         ?“
@@ -155,8 +192,29 @@ If you want to use your own font config please disable it.
                         (or frame (selected-frame)))
 
       (if (< entropy/emacs-font-size-default 15)
-          (set-face-attribute 'default (or frame (selected-frame))
-                              :height (ceiling (* entropy/emacs-font-size-default 10)))
+          (let ((height (ceiling (* entropy/emacs-font-size-default 10))))
+            (when (eq entropy/emacs-font-setting-enable 'sarasa)
+              (setq height
+                    (cond
+                     ((and (<= height 110)
+                           (>= height 100))
+                      108)
+                     ((and (<= height 120)
+                           (>= height 110))
+                      117)
+                     ((and (<= height 130)
+                           (>= height 120))
+                      124)
+                     ((and (<= height 140)
+                           (>= height 150))
+                      148)
+                     ((and (<= height 150)
+                           (>= height 140))
+                      148))))
+            (when height
+              (set-face-attribute 'default (or frame (selected-frame))
+                                  :height
+                                  height)))
         (warn
          "Your default font size is too large, you must set it smaller than 15 for adapting to other entropy-emacs settings.")))))
 

@@ -354,6 +354,35 @@ is ran after the registering procedure done within `progn' scope."
 (defvar entropy/emacs-mode-line-sticker ""
   "Sticker for current modeline style")
 
+;; ** font refer
+(defvar entropy/emacs-default-latin-font "Noto Mono"
+  "Setting the default latin script font, when you enabled
+`entropy/emacs-font-setting-enable'.
+
+Defualt for \"Noto Mono\"")
+
+(defvar entropy/emacs-default-symbol-font "Noto Sans Symbols"
+  "Setting the default symbol script font, when you enabled
+`entropy/emacs-font-setting-enable'.
+
+Defualt for \"Noto Mono Symbols\"")
+
+(defvar entropy/emacs-default-cjk-sc-font "Noto Sans Mono CJK SC"
+  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK SC\"")
+
+(defvar entropy/emacs-default-cjk-tc-font "Noto Sans Mono CJK TC"
+  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK TC\"
+
+By default `entropy/emacs-default-cjk-sc-font' preceded for this
+setting to display chinese characters, unset 'sc' font setting to
+enable this as default one.")
+
+(defvar entropy/emacs-default-cjk-jp-font "Noto Sans Mono CJK JP"
+  "Set the JP script font, default was \"Noto Sans Mono CJK JP\"")
+
+(defvar entropy/emacs-default-cjk-kr-font "Noto Sans Mono CJK KR"
+  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK KR\"")
+
 ;; ** pdumper
 (defvar entropy/emacs-pdumper-pre-lpth nil
   "The fully preserved `load-path' for pdumper session, this
