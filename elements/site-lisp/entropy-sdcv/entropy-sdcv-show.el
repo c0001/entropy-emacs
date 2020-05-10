@@ -78,28 +78,23 @@ posframe or popup shown mechanism."
          (show-predicate (plist-get show-instance :show-predicate))
          (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'posframe))
          (predicate (entropy/sdcv-show--response-predicate-gen show-predicate feedback posframe))
-         (buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-tooltip-buffer)))
-    (cond ((eq face nil)
-           (posframe-show buffer
-                          :string feedback
-                          :position (point)
-                          :internal-border-width entropy/sdcv-show-posframe-border-width
-                          :initialize predicate))
-          ((facep face)
-           (posframe-show buffer
-                          :string feedback
-                          :position (point)
-                          :background-color (face-attribute face :background)
-                          :foreground-color (face-attribute face :foreground)
-                          :internal-border-width entropy/sdcv-show-posframe-border-width
-                          :initialize predicate)))
+         (buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-tooltip-buffer))
+         (common-fg (face-attribute 'entropy/sdcv-core-common-face :foreground))
+         (common-bg (face-attribute 'entropy/sdcv-core-common-face :background)))
+    (posframe-show buffer
+                   :string feedback
+                   :position (point)
+                   :background-color (face-attribute face :background)
+                   :foreground-color (face-attribute face :foreground)
+                   :internal-border-width entropy/sdcv-show-posframe-border-width
+                   :initialize predicate)
     (setq entropy/sdcv-show--posframe-last-point (point)
           entropy/sdcv-show--posframe-last-scroll-offset (window-start))
     (add-hook 'post-command-hook 'entropy/sdcv-show--posframe-hide-after-move)))
 
 (defun entropy/sdcv-show--posframe-hide-after-move ()
   "Quit and delete `entropy/sdcv-show-tooltip-buffer' of posframe
-show-type whatever keys touching with. 
+show-type whatever keys touching with.
 
 This func was automatically added into `post-command-hook' by
 `entropy/sdcv-show--show-with-posframe'."
@@ -128,7 +123,9 @@ proper stretching."
          (feedback (plist-get show-instance :feedback))
          (w-h (pos-tip-string-width-height feedback))
          (show-predicate (plist-get show-instance :show-predicate))
-         (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'pos-tip)))
+         (face (entropy/sdcv-core-use-face
+                (plist-get show-instance :show-face)
+                'pos-tip)))
     (setq feedback (funcall (entropy/sdcv-show--response-predicate-gen
                              show-predicate feedback pos-tip)))
     (pos-tip-show-no-propertize
@@ -156,15 +153,13 @@ proper stretching."
         (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'popup)))
     (setq feedback (funcall (entropy/sdcv-show--response-predicate-gen
                              show-predicate feedback popup)))
-    (if (null (facep face))
-        (popup-tip feedback :point (point) :margin 1 :truncate t)
-      (set-face-attribute 'popup-tip-face nil
-                          :foreground (face-attribute face :foreground)
-                          :background (face-attribute face :background))
-      (popup-tip feedback :point (point) :margin 1 :truncate t)
-      (set-face-attribute 'popup-tip-face nil
-                          :foreground (car $pface_temp)
-                          :background (cdr $pface_temp)))))
+    (set-face-attribute 'popup-tip-face nil
+                        :foreground (face-attribute face :foreground)
+                        :background (face-attribute face :background))
+    (popup-tip feedback :point (point) :margin 1 :truncate t)
+    (set-face-attribute 'popup-tip-face nil
+                        :foreground (car $pface_temp)
+                        :background (cdr $pface_temp))))
 
 
 ;;; minibuffer show
@@ -178,7 +173,8 @@ proper stretching."
     (setq feedback (funcall
                     (entropy/sdcv-show--response-predicate-gen
                      show-predicate feedback minibuffer-common)))
-    (when (facep face)
+    (when (and (facep face)
+               (not (eq face 'entropy/sdcv-core-common-face)))
       (setq feedback
             (propertize feedback 'face face)))
     (message feedback)))

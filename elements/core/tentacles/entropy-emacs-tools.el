@@ -614,7 +614,7 @@ which determined by the scale count 0.3 "
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'eemacs-dict-search nil nil
  '("Basic"
-   (("C-c y" entropy/emacs-tools-dict-search-at-point
+   (("C-c f" entropy/emacs-tools-dict-search-at-point
      "Search dict for thing at current point"
      :enable t :global-bind t :exit t)
     ("C-c M-y" entropy/emacs-tools-dict-search-with-prompt

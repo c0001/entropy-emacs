@@ -5,21 +5,21 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; Created:       2019-11-02
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 
 ;; The core defination framework for =entropy-sdcv.el=.
@@ -28,7 +28,7 @@
 
 ;; We defined below four top category protocols, each of them may
 ;; have the subroutine protocols as the components role, but they
-;; are individually for usage. 
+;; are individually for usage.
 
 ;; + DICT-BACKEND
 
@@ -41,7 +41,7 @@
 
 ;;   1) DICT-NAME
 
-;;      A symbol to indicate the DICT-BACKEND as the name denotation. 
+;;      A symbol to indicate the DICT-BACKEND as the name denotation.
 
 ;;   2) DICT-INSTANCE
 
@@ -98,7 +98,7 @@
 ;;; Configuration:
 ;;
 ;; See ~entropy/sdcv-core-group~ variable group.
-;; 
+;;
 ;;; code
 ;;;; require
 
@@ -305,12 +305,21 @@ downcase the query string."
     rtn))
 
 (defun entropy/sdcv-core-gen-common-face ()
-  (let ((spec (entropy/sdcv-core-automatic-faceSet)))
+  (let ((spec (entropy/sdcv-core-automatic-faceSet))
+        (inverse (face-attribute 'tooltip :inverse-video))
+        bgcolor fgcolor)
+    (if (or (not (eq inverse 'unspecified))
+            (null inverse))
+        (progn
+          (setq bgcolor (face-attribute 'tooltip :foreground))
+          (setq fgcolor (face-attribute 'tooltip :background)))
+      (setq bgcolor (face-attribute 'tooltip :background))
+      (setq fgcolor (face-attribute 'tooltip :foreground)))
     (set-face-attribute
      'entropy/sdcv-core-common-face
      nil
-     :foreground (plist-get spec :fg)
-     :background (plist-get spec :bg))
+     :foreground (or fgcolor (plist-get spec :fg))
+     :background (or bgcolor (plist-get spec :bg)))
     'entropy/sdcv-core-common-face))
 
 (defun entropy/sdcv-core-common-propertize-feedback (feedback)
@@ -321,8 +330,11 @@ downcase the query string."
   (or (and (null show-face) nil)
       (and (facep show-face) show-face)
       (and (functionp show-face)
-           (facep (funcall show-face show-method))
-           (funcall show-face show-method))))
+           (let ((face (funcall show-face show-method)))
+             (when (facep face)
+               face)))
+      'entropy/sdcv-core-common-face))
+
 
 ;;;;; query with backend
 

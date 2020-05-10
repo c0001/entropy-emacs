@@ -135,30 +135,41 @@
   (defun entropy/emacs-themes-solaire-around-advice-for-make-frame
       (orig-func &rest orig-args)
     (let* ((face-reset nil)
+           (frame-bg (alist-get 'background-color (car orig-args)))
+           (frame-fg (alist-get 'foreground-color (car orig-args)))
+           (cur-frame-bg (frame-parameter nil 'background-color))
+           (cur-frame-fg (frame-parameter nil 'foreground-color))
            (new-frame (apply orig-func orig-args)))
       (unwind-protect
           (progn
-            (mapcar
-             (lambda (x)
-               (let ((map (car x))
-                     (enable (cdr x)))
-                 (when enable
-                   (dolist (face map)
-                     (when (facep face)
-                       (push (cons face (face-attribute face :background))
-                             face-reset))))))
-             solaire-mode-remap-alist)
-            (dolist (face '(ivy-current-match))
-              (when (facep face)
-                (push (cons face (face-attribute face :background))
-                      face-reset)))
-            (dolist (pair face-reset)
-              (set-face-attribute
-               (car pair)
-               new-frame
-               :background
-               (cdr pair)))
-            new-frame)
+            (let ()
+              (mapcar
+               (lambda (x)
+                 (let ((map (car x))
+                       (enable (cdr x)))
+                   (when enable
+                     (dolist (face map)
+                       (when (facep face)
+                         (push (cons face (face-attribute face :background))
+                               face-reset))))))
+               solaire-mode-remap-alist)
+              (dolist (face '(ivy-current-match))
+                (when (facep face)
+                  (push (cons face (face-attribute face :background))
+                        face-reset)))
+              (dolist (pair face-reset)
+                (set-face-attribute
+                 (car pair)
+                 new-frame
+                 :background
+                 (cdr pair)))
+              (when (and frame-bg cur-frame-bg
+                         (not (equal frame-bg cur-frame-bg)))
+                (set-frame-parameter new-frame 'background-color frame-bg))
+              (when (and frame-fg cur-frame-fg
+                         (not (equal frame-fg cur-frame-fg)))
+                (set-frame-parameter new-frame 'foreground-color frame-fg))
+              new-frame))
         new-frame)))
 
   (defun entropy/emacs-themes--solaire-call-stuff-when-adapted
