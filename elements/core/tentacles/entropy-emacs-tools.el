@@ -614,10 +614,10 @@ which determined by the scale count 0.3 "
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'eemacs-dict-search nil nil
  '("Basic"
-   (("C-c f" entropy/emacs-tools-dict-search-at-point
+   (("C-c C-f" entropy/emacs-tools-dict-search-at-point
      "Search dict for thing at current point"
      :enable t :global-bind t :exit t)
-    ("C-c M-y" entropy/emacs-tools-dict-search-with-prompt
+    ("C-c M-f" entropy/emacs-tools-dict-search-with-prompt
      "Search dict for user specified with prompts"
      :enable t :global-bind t :exit t)
     ("C-x y" entropy/cndt-query "Simple Translate Chinese at point"
@@ -629,7 +629,18 @@ which determined by the scale count 0.3 "
                      candis nil t "sdcv")))
        (setq entropy/emacs-tools-dict-sticker (intern chosen)))
      "Toggle entropy-emacs dict search backend"
-     :enable t :exit t))))
+     :enable t :exit t))
+   "Entropy Sdcv"
+   (("s t" entropy/sdcv-toggle-backend "Toggle dict-backends"
+     :enable t :exit t)
+    ("s s" entropy/sdcv-toggle-show-tooltip-method "Toggle show method"
+     :enable t :exit t)
+    ("s a" entropy/sdcv-autoshow-mode "Auto translate"
+     :enable t :exit nil
+     :toggle
+     (if (bound-and-true-p entropy/sdcv-autoshow-mode)
+         t
+       nil)))))
 
 (entropy/emacs-hydra-hollow-add-for-top-dispatch
  '("Basic"
