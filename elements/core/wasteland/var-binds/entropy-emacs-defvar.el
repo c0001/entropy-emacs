@@ -64,12 +64,6 @@ margin width.")
 (defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Title of entropy-emacs initial dashboard buffer. ")
 
-(defvar entropy/emacs-default-cjk-cn-font
-  (or entropy/emacs-default-cjk-sc-font
-      entropy/emacs-default-cjk-tc-font)
-  "The default font for chinese lang-script, using
-`entropy/emacs-default-cjk-tc-font' when SC was nil.")
-
 ;; ** cl-* compatible
 
 (defvar entropy/emacs-cl-compatible-reflects
@@ -376,6 +370,13 @@ Defualt for \"Noto Mono Symbols\"")
 By default `entropy/emacs-default-cjk-sc-font' preceded for this
 setting to display chinese characters, unset 'sc' font setting to
 enable this as default one.")
+
+(defvar entropy/emacs-default-cjk-cn-font
+  (or entropy/emacs-default-cjk-sc-font
+      entropy/emacs-default-cjk-tc-font)
+  "The default font for chinese lang-script, using
+`entropy/emacs-default-cjk-tc-font' when
+`entropy/emacs-font-chinese-type' was 'tc'.")
 
 (defvar entropy/emacs-default-cjk-jp-font "Noto Sans Mono CJK JP"
   "Set the JP script font, default was \"Noto Sans Mono CJK JP\"")
