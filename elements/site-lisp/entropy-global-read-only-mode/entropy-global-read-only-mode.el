@@ -293,9 +293,6 @@ This function was used for
                cur-buffn))
          (not (string-match-p
                "\\*Minibuf.*\\*"
-               cur-buffn))
-         (not (string-match-p
-               "\\*scratch\\*"
                cur-buffn)))))
 
 (cl-defun entropy/grom-read-only-mode-enable (&key message)
