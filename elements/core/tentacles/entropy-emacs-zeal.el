@@ -1,10 +1,10 @@
-;;; entropy-emacs-dash.el --- entropy-emacs external API query config
+;;; entropy-emacs-zeal.el --- entropy-emacs external API query config
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
-;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-dash.el
+;; URL:           https://github.com/c0001/entropy-emacs/blob/master/elements/entropy-emacs-zeal.el
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 (require 'entropy-emacs-defcustom)
 
 ;; * main
-(defun entropy/emacs-dash--use-zeal-at-point ()
+(defun entropy/emacs-zeal--use-zeal-at-point ()
   "Use-package zeal-at-point."
   (if (not (executable-find "zeal"))
       (warn "Can not find 'zeal' in path.")
@@ -50,10 +50,10 @@
 
 
 (when (and sys/win32p entropy/emacs-win-portable-zeal-enable)
-  (entropy/emacs-dash--use-zeal-at-point))
+  (entropy/emacs-zeal--use-zeal-at-point))
 
 (when sys/linux-x-p
-  (entropy/emacs-dash--use-zeal-at-point))
+  (entropy/emacs-zeal--use-zeal-at-point))
 
 
-(provide 'entropy-emacs-dash)
+(provide 'entropy-emacs-zeal)

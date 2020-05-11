@@ -430,7 +430,7 @@ Emacs will auto close after 6s ......")))
   (require 'entropy-emacs-markdown)
   (require 'entropy-emacs-emacs-lisp)
   (require 'entropy-emacs-lua)
-  (require 'entropy-emacs-dash)
+  (require 'entropy-emacs-zeal)
   (require 'entropy-emacs-go)
   ;; For tramp
   (require 'entropy-emacs-tramp)

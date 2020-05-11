@@ -135,7 +135,7 @@ There's the list of the tentacles and their description:
 | tool-chains          | entropy-emacs-vcs.el        | git/svn codes version control with =magit=                           |
 |                      | entropy-emacs-structure.el  | programme editting structs fold/expanding feature package            |
 |                      | entropy-emacs-highlight.el  | codes snippet highlighting guide feature provider                    |
-|                      | entropy-emacs-dash.el       | dashboard of api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]           |
+|                      | entropy-emacs-zeal.el       | external api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]               |
 |                      |                             |                                                                      |
 |----------------------+-----------------------------+----------------------------------------------------------------------|
 | entertainments       | entropy-emacs-emms.el       | gnu emms as media play control panel =entropy-emacs= specifics       |

@@ -277,8 +277,8 @@ There's the list of the tentacles and their description:
 @tab entropy-emacs-highlight.el
 @tab codes snippet highlighting guide feature provider
 @item
-@tab entropy-emacs-dash.el
-@tab dashboard of api query prompt powerd by external tool @uref{https://github.com/zealdocs/zeal, zeal}
+@tab entropy-emacs-zeal.el
+@tab external api query prompt powerd by external tool @uref{https://github.com/zealdocs/zeal, zeal}
 @item
 @tab
 @tab
