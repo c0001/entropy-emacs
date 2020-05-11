@@ -614,12 +614,12 @@ which determined by the scale count 0.3 "
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'eemacs-dict-search nil nil
  '("Basic"
-   (("C-c C-f" entropy/emacs-tools-dict-search-at-point
+   (("C-f" entropy/emacs-tools-dict-search-at-point
      "Search dict for thing at current point"
-     :enable t :global-bind t :exit t)
-    ("C-c M-f" entropy/emacs-tools-dict-search-with-prompt
+     :enable t :eemacs-top-bind t :exit t)
+    ("M-f" entropy/emacs-tools-dict-search-with-prompt
      "Search dict for user specified with prompts"
-     :enable t :global-bind t :exit t)
+     :enable t :eemacs-top-bind t :exit t)
     ("C-x y" entropy/cndt-query "Simple Translate Chinese at point"
      :enable t :exit t :global-bind t)
     ("t"
