@@ -107,7 +107,8 @@
       (unless solaire-global-mode
         (solaire-global-mode t)))
     (unless (entropy/emacs-themes--solaire-swap-bg-needed)
-      (solaire-mode-swap-bg)))
+      (solaire-mode-swap-bg))
+    (entropy/emacs-solaire-specific-for-themes))
 
   (defvar entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay 0.01)
   (defun entropy/emacs-themes-solaire-after-load-theme-adapts (&rest _)
@@ -206,8 +207,6 @@
                      (solaire-global-mode 0)))))
    (add-hook 'entropy/emacs-theme-load-after-hook-end-1
              #'entropy/emacs-themes-solaire-after-load-theme-adapts)
-   (add-hook 'entropy/emacs-theme-load-after-hook-end-2
-             #'entropy/emacs-solaire-specific-for-themes)
    (advice-add 'make-frame
                :around
                #'entropy/emacs-themes-solaire-around-advice-for-make-frame)
@@ -242,9 +241,14 @@
 
 ;; ** Initialize theme and adapting to the daemon init
 
-;; spacemacs theme has the best tui adaptable
-(unless (display-graphic-p)
-  (setq entropy/emacs-theme-options 'spacemacs-dark))
+(defun entropy/emacs-themes-strictly-load-theme
+    (theme &optional no-confirm no-enable)
+  "Load theme as `load-theme' but strictly using special theme
+for tui emacs session."
+  (let ((theme theme))
+    (unless (display-graphic-p)
+      (setq theme 'spacemacs-dark))
+    (load-theme theme no-confirm no-enable)))
 
 (entropy/emacs-lazy-with-load-trail
  enable-theme
@@ -254,7 +258,8 @@
  (defun entropy/emacs-themes--init-setup ()
    (condition-case nil
        (progn
-         (load-theme entropy/emacs-theme-options t)
+         (entropy/emacs-themes-strictly-load-theme
+          entropy/emacs-theme-options t)
          (redisplay t))
      (error "Problem loading theme %s"
             (symbol-name entropy/emacs-theme-options)))
@@ -287,7 +292,8 @@
                        ;; gui daemon client created successfully for
                        ;; some bug of doom-themes.
                        (display-graphic-p))
-               (load-theme entropy/emacs-theme-sticker 'non-confirm))
+               (entropy/emacs-themes-strictly-load-theme
+                entropy/emacs-theme-sticker 'non-confirm))
            (entropy/emacs-themes--init-setup)
            (setq entropy/emacs-themes--theme-init-setup-for-daemon-done
                  t)))))

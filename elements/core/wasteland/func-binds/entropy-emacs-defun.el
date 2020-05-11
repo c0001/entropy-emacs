@@ -1315,24 +1315,20 @@ relative to the other text when
 `entropy/emacs-disable-org-heading-scale' was non-nil."
   (require 'outline)
   (require 'org-faces)
-  (cond
-   (entropy/emacs-disable-org-heading-scale
-    (entropy/emacs-defun--ohrsc-backup-org-header-face)
-    (entropy/emacs-defun--ohrsc-cancel-org-header-face-scale))
-   ((null entropy/emacs-disable-org-heading-scale)
-    (when (and
-           (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
-           (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
-      (entropy/emacs-defun--ohrsc-recovery-org-header-face-scale)))))
+  (when (display-graphic-p)
+    (cond
+     (entropy/emacs-disable-org-heading-scale
+      (entropy/emacs-defun--ohrsc-backup-org-header-face)
+      (entropy/emacs-defun--ohrsc-cancel-org-header-face-scale))
+     ((null entropy/emacs-disable-org-heading-scale)
+      (when (and
+             (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
+             (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
+        (entropy/emacs-defun--ohrsc-recovery-org-header-face-scale))))))
 
 ;; ** theme loading specific
 (defun entropy/emacs-theme-load-face-specifix (&optional x)
-  "Advice for `counsel-load-theme-action' that setting face of
-`ivy-current-match' for spacemacs themes.
-
-Reason of this setting was that spacemacs has the un-obviouse
-visual distinction of `ivy-current-match' covered upon the
-`ivy-minibuffer-match-highlight'."
+  "Sets of specification for themes loading done. "
   (unless x
     (setq x (symbol-name entropy/emacs-theme-sticker)))
   (cond
@@ -1347,7 +1343,7 @@ visual distinction of `ivy-current-match' covered upon the
    ((string-match-p "darkokai" x)
     (with-eval-after-load 'ivy
       (set-face-attribute 'ivy-current-match nil
-                          :background "#65a7e2")))
+                          :background "#2B2F31" :foreground "#BBF7EF")))
    ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" x)
     (with-eval-after-load 'ivy
       (if (equal 'dark (frame-parameter nil 'background-mode))
@@ -1358,18 +1354,17 @@ visual distinction of `ivy-current-match' covered upon the
    ((string= "doom-solarized-light" x)
     (when (not (featurep 'hl-line))
       (require 'hl-line))
-    (set-face-attribute 'hl-line nil :background "moccasin"))
+    (set-face-attribute 'hl-line nil :background "LightGoldenrod2"))
    ((string= "doom-Iosvkem" x)
     (with-eval-after-load 'ivy
       (set-face-attribute 'ivy-current-match nil
-                          :background "RosyBrown"
-                          :foreground "grey6")))
+                          :background "grey8"
+                          :distant-foreground "grey7")))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
 (defun entropy/emacs-theme-load-modeline-specifix (&optional arg)
-  "Advice of auto refresh doom-modeline bar background color
-when changing theme."
+  "Sets of specification for modeline after loaded a new theme."
   (unless arg
     (setq arg (symbol-name entropy/emacs-theme-sticker)))
   (progn
@@ -1390,7 +1385,10 @@ when changing theme."
            (doom-modeline-refresh-bars)))))
 
 (defun entropy/emacs-solaire-specific-for-themes (&rest _)
-  (when (entropy/emacs-theme-adapted-to-solaire)
+  "Sets of specification after loaded a new theme for specified
+stuffs on `solaire-mode' when `solaire-global-mode' was non-nil."
+  (when (and (entropy/emacs-theme-adapted-to-solaire)
+             (bound-and-true-p solaire-global-mode))
     (require 'hl-line)
     (require 'solaire-mode)
     (cond
