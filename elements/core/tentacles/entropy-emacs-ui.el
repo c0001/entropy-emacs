@@ -78,14 +78,28 @@ determined by above variable you setted."
     (set-frame-height (selected-frame) height nil t)
     (set-frame-position (selected-frame) x y)))
 
+(defvar entropy/emacs-ui--init-frame-maximized nil)
+(when (and (display-graphic-p)
+           (not entropy/emacs-fall-love-with-pdumper))
+  ;; gurantee all init promting showed available since the small
+  ;; startup frame size was ugly.
+  (toggle-frame-maximized)
+  (setq entropy/emacs-ui--init-frame-maximized t)
+  ;; gurantee for toggled done!
+  (sleep-for 0.1)
+  (redisplay t))
+
 (entropy/emacs-lazy-with-load-trail
- frame-pos-init
+ frame-reset-size&width
  (when (display-graphic-p)
-   (if (and entropy/emacs-init-fpos-enable
-            (< entropy/emacs-init-frame-width-scale 1))
-       (entropy/emacs-ui-set-frame-position)
-     (setq initial-frame-alist (quote ((fullscreen . maximized))))
-     (setq default-frame-alist initial-frame-alist))))
+   (when (and entropy/emacs-init-fpos-enable
+              (< entropy/emacs-init-frame-width-scale 1))
+     (when entropy/emacs-ui--init-frame-maximized
+       (toggle-frame-maximized))
+     (sleep-for 0.1)
+     (redisplay t)
+     (entropy/emacs-ui-set-frame-position)
+     (redisplay t))))
 
 ;; ** elisp show parent
 (unless entropy/emacs-use-highlight-features
@@ -482,12 +496,11 @@ for adding to variable `window-size-change-functions' and hook
 
   (defun entropy/emacs-ui--init-welcom-init-core ()
     (setq initial-buffer-choice #'entropy/emacs-ui--init-welcom-initial-buffer)
-    (add-hook 'window-setup-hook
-              #'entropy/emacs-ui--init-welcom-resize-run))
+    (entropy/emacs-ui--init-welcom-resize-run))
 
   (if entropy/emacs-fall-love-with-pdumper
       (entropy/emacs-lazy-with-load-trail
-       welcom-buffer
+       welcome-buffer
        (setq entropy/emacs-ui--init-welcom-width (window-width))
        (setq entropy/emacs-ui--init-welcom-widget-entry-info-list
              (entropy/emacs-ui--init-welcom-gen-widget-entry-info-list))
@@ -498,7 +511,7 @@ for adding to variable `window-size-change-functions' and hook
            (switch-to-buffer buffer))))
     (entropy/emacs-ui--init-welcom-init-core)
     (entropy/emacs-lazy-with-load-trail
-     welcom-buffer-refresh
+     welcome-buffer-refresh
      (kill-buffer entropy/emacs-init-welcom-buffer-name)
      (setq entropy/emacs-ui--init-welcom-widget-entry-info-list
            (entropy/emacs-ui--init-welcom-gen-widget-entry-info-list))
@@ -528,9 +541,12 @@ for adding to variable `window-size-change-functions' and hook
       (dashboard-insert-startupify-lists)
       (switch-to-buffer "*dashboard*")
       (goto-char (point-min))
-      (redisplay))
+      (redisplay t))
     (add-hook 'entropy/emas-package-common-start-after-hook
-              #'entropy/emacs-rich-dashboard-init)))
+              #'entropy/emacs-rich-dashboard-init)
+    (add-hook 'window-size-change-functions
+              'dashboard-resize-on-hook)))
+
 ;; ** Title
 (entropy/emacs-lazy-with-load-trail
  frame-title-set

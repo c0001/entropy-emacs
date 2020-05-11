@@ -453,7 +453,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 (use-package diredfl
   :init
   (entropy/emacs-lazy-with-load-trail
-   diredfl-colorful-ini
+   diredfl-colorful-init
    (diredfl-global-mode 1)))
 
 (use-package all-the-icons-dired
