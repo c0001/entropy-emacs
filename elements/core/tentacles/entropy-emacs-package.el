@@ -292,10 +292,14 @@ When installing encounters the fatal error, put the pkg into
     :commands (bind-key)))
 
 ;; ** common start
+(defvar entropy/emas-package-common-start-after-hook nil
+  "Hooks run after the entropy-emacs elisp packages initialized
+ done while calling `entropy/emacs-package-common-start'.")
 
 (defun entropy/emacs-package-common-start ()
   (entropy/emacs-package-install-all-packages)
-  (entropy/emacs-package-init-use-package))
+  (entropy/emacs-package-init-use-package)
+  (run-hooks 'entropy/emas-package-common-start-after-hook))
 
 ;; * Provide
 (provide 'entropy-emacs-package)

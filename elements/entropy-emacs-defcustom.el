@@ -300,9 +300,16 @@ designation."
 
 ;; **** ui theme and modeline style
 ;; ***** enable initial dashboard
-(defcustom entropy/emacs-enable-initial-dashboard t
+(defcustom entropy/emacs-enable-initial-dashboard 'rich
   "Enable entropy emacs initial dashboard instead of emacs
-default one."
+default one.
+
+Valid value are 't' or 'rich', otherwise disable this
+feature.
+
+When value are either 't' or 'rich', a fancy simple splash buffer
+`entropy/emacs-init-welcom-buffer-name' will startup firstly, and
+then enable the rich dashbord contents when value is 'rich'."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 

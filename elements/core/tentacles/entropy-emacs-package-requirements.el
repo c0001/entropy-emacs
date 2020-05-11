@@ -94,6 +94,7 @@
         dap-mode
         darkokai-theme
         dash
+        dashboard
         dash-functional
         diff-hl
         diminish

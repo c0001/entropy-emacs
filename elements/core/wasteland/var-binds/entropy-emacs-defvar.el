@@ -61,7 +61,7 @@ specific browser to visualize current file.")
   "The number to split the `window-width' for calculating the
 margin width.")
 
-(defvar entropy/emacs-dashboard-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
+(defvar entropy/emacs-init-welcom-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Title of entropy-emacs initial dashboard buffer. ")
 
 ;; ** cl-* compatible

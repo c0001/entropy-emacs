@@ -68,14 +68,9 @@ we inject it into pdumper session initialize procedure. "))
 
 ;; *** Enable entropy emacs UI configuration
 
-(cond (entropy/emacs-fall-love-with-pdumper
-       ;; Load fontset specification before UI initilization prevent
-       ;; drawer bug for pdumper session
-       (require 'entropy-emacs-font-set)
-       (require 'entropy-emacs-ui))
-      (t
-       (require 'entropy-emacs-ui)
-       (require 'entropy-emacs-font-set)))
+;; load fontset fistly prevents ui position calculating bug.
+(require 'entropy-emacs-font-set)
+(require 'entropy-emacs-ui)
 (redisplay t)
 
 ;; *** preface advice

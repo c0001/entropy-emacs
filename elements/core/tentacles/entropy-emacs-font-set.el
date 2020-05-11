@@ -253,13 +253,11 @@ it.
 
 (defun entropy/emacs-font-set--setfont-initial ()
   (when entropy/emacs-font-setting-enable
-    (if (daemonp)
-        (add-hook 'after-make-frame-functions
-                  #'entropy/emacs-font-set-setfont-core)
-      (entropy/emacs-font-set-setfont-core))))
+    (unless (daemonp)
+      (entropy/emacs-font-set-setfont-core))
+    (add-hook 'entropy/emacs-theme-load-after-hook
+              #'entropy/emacs-font-set-setfont-core)))
 
-(entropy/emacs-lazy-with-load-trail
- eemacs-fontset
- (entropy/emacs-font-set--setfont-initial))
+(entropy/emacs-font-set--setfont-initial)
 
 (provide 'entropy-emacs-font-set)
