@@ -511,20 +511,9 @@ style which defined in `entropy/emacs-modeline-style'."
             '(entropy/emacs-mode-line-origin-theme)))
 
      ;; init doom-modeline
-     ((and (string= entropy/emacs-modeline-style "doom")
-           (not (version= emacs-version "25.3.1")))
+     ((string= entropy/emacs-modeline-style "doom")
       (setq entropy/emacs-modeline--mdl-init-caller
             '(doom-modeline-mode 1)))
-
-     ;; if detective init doom-modline in emacs-25.3.1 then warning.
-     ((and (string= entropy/emacs-modeline-style "doom")
-           (version= emacs-version "25.3.1"))
-      (warn "You are in emacs veresion 25.3.1 and couldn't use
-  doom-modeline because this version can not shown
-  all-the-icons-fonts correnctly.")
-      (setq entropy/emacs-modeline-style "origin"
-            cancel-branch t)
-      (entropy/emacs-modeline--mdl-init))
 
      ;; any other type was unsupport
      (t (warn (format "entropy/emacs-modeline-style's value '%s' is invalid." entropy/emacs-modeline-style))

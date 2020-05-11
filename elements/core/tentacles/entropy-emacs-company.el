@@ -376,7 +376,6 @@ completion when calling: 'execute-extended-command' or
 
 ;; ** company-lsp
 (use-package company-lsp
-  :if (>= emacs-major-version 25)
   :init
   (entropy/emacs-lazy-load-simple lsp-mode
     (advice-add 'lsp--auto-configure

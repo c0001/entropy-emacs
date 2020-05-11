@@ -182,7 +182,6 @@ It is the recommendation of irony-mode official introduction."
 ;; *** lsp-client
 ;; **** lsp-mode
 (use-package lsp-mode
-  :if (and (>= emacs-major-version 25))
   :preface
   (defun entropy/emacs-codeserver-lsp-mode-remove-session-file ()
     (when (and (boundp 'lsp-session-file)
@@ -239,7 +238,6 @@ nervous."
               #'entropy/emacs-codeserver--lsp-deferred-exclude))
 ;; **** lsp-ui
 (use-package lsp-ui
-  :if (>= emacs-major-version 25)
   :commands (lsp-ui-peek-find-definitions
              lsp-ui-peek-find-references
              lsp-ui-imenu)
