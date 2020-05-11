@@ -258,16 +258,6 @@
   (setq org-lowest-priority 90)         ;lowset prioty was 'Z'
   (setq org-default-priority 67)        ;default prioty was 'C'
 
-
-;; ***** org heading face
-
-  ;; Some emacs-theme will adjust heading height for obtain better
-  ;; visual sense, but it will break the text align state, so using
-  ;; follow function to avoid it.
-
-  (add-hook 'org-mode-hook 'entropy/emacs-adjust-org-heading-scale)
-
-
 ;; ***** org-refile gloable and 9 depths
   (setq org-refile-targets '((nil :maxlevel . 9)
                              (org-agenda-files :maxlevel . 9)))

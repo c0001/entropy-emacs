@@ -1209,7 +1209,10 @@ process doesn't finished."
                 input output)))
 
 ;; ** Org face reset
-(defvar entropy/emacs-defun--ohrsc-previous-theme nil)
+(defvar entropy/emacs-defun--ohrsc-current-theme nil
+  "Emacsc theme name for whose org or outline level face has been
+backuped in faces of list of face
+`entropy/emacs-defun--ohrsc-org-header-backup-faces'.")
 
 (defconst entropy/emacs-defun--ohrsc-org-header-faces
   (list 'org-level-1
@@ -1270,15 +1273,19 @@ process doesn't finished."
       (cl-incf count))))
 
 (defun entropy/emacs-defun--ohrsc-org-header-face-backuped-p ()
-  (let (judge)
-    (setq judge
-          (catch :exit
-            (dolist (face entropy/emacs-defun--ohrsc-org-header-backup-faces)
-              (unless (facep face)
-                (throw :exit 'lost)))))
-    (if (eq judge 'lost)
-        nil
-      t)))
+  (if (eq entropy/emacs-theme-sticker entropy/emacs-defun--ohrsc-current-theme)
+      (let (judge)
+        (setq judge
+              (catch :exit
+                (dolist (face entropy/emacs-defun--ohrsc-org-header-backup-faces)
+                  (unless (facep face)
+                    (throw :exit 'lost)))))
+        (if (eq judge 'lost)
+            nil
+          t))
+    (setq entropy/emacs-defun--ohrsc-current-theme
+          entropy/emacs-theme-sticker)
+    nil))
 
 (defun entropy/emacs-defun--ohrsc-org-header-faces-modified-p ()
   (let ((count 0)
@@ -1294,33 +1301,28 @@ process doesn't finished."
       nil)))
 
 (defun entropy/emacs-defun--ohrsc-backup-org-header-face ()
-  (let ((count 0))
-    (dolist (face entropy/emacs-defun--ohrsc-org-header-faces)
-      (let ((face-bcp (nth count entropy/emacs-defun--ohrsc-org-header-backup-faces)))
-        (copy-face face face-bcp))
-      (cl-incf count))))
+  (unless
+   (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
+   (let ((count 0))
+     (dolist (face entropy/emacs-defun--ohrsc-org-header-faces)
+       (let ((face-bcp (nth count entropy/emacs-defun--ohrsc-org-header-backup-faces)))
+         (copy-face face face-bcp))
+       (cl-incf count)))))
 
 (defun entropy/emacs-adjust-org-heading-scale ()
   "Stop the org-level headers from increasing in height
 relative to the other text when
 `entropy/emacs-disable-org-heading-scale' was non-nil."
-  (when (null entropy/emacs-defun--ohrsc-previous-theme)
-    (setq entropy/emacs-defun--ohrsc-previous-theme
-          entropy/emacs-theme-sticker))
-  (when (and (not (null entropy/emacs-defun--ohrsc-previous-theme))
-             (not (equal entropy/emacs-theme-sticker
-                         entropy/emacs-defun--ohrsc-previous-theme)))
-    (entropy/emacs-defun--ohrsc-backup-org-header-face)
-    (setq entropy/emacs-defun--ohrsc-previous-theme
-          entropy/emacs-theme-sticker))
+  (require 'outline)
+  (require 'org-faces)
   (cond
    (entropy/emacs-disable-org-heading-scale
-    (unless (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
-      (entropy/emacs-defun--ohrsc-backup-org-header-face))
+    (entropy/emacs-defun--ohrsc-backup-org-header-face)
     (entropy/emacs-defun--ohrsc-cancel-org-header-face-scale))
    ((null entropy/emacs-disable-org-heading-scale)
-    (when (and (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
-               (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
+    (when (and
+           (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
+           (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
       (entropy/emacs-defun--ohrsc-recovery-org-header-face-scale)))))
 
 ;; ** theme loading specific

@@ -80,6 +80,7 @@
 
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-face-specifix)
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-modeline-specifix)
+(add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-adjust-org-heading-scale)
 
 ;; ** Solaire mode for focus visual style
 (use-package solaire-mode

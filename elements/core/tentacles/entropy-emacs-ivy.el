@@ -355,12 +355,9 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
 ;; **** counsel-load-theme
   (defun entropy/emacs-ivy-counsel-load-theme ()
-    "Load theme with reset the org-headline face for disabled the
-font style and height."
+    "Load theme with some stuffs patching."
     (interactive)
-    (counsel-load-theme)
-    (ignore-errors
-      (entropy/emacs-adjust-org-heading-scale)))
+    (counsel-load-theme))
 
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-wsl-enable)
