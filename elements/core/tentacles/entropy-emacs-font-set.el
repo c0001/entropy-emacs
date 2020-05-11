@@ -253,7 +253,7 @@ it.
 
 (defun entropy/emacs-font-set--setfont-initial ()
   (when entropy/emacs-font-setting-enable
-    (unless (daemonp)
+    (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
       (entropy/emacs-font-set-setfont-core))
     (add-hook 'entropy/emacs-theme-load-after-hook
               #'entropy/emacs-font-set-setfont-core)))

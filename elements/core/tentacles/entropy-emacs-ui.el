@@ -526,28 +526,37 @@ for adding to variable `window-size-change-functions' and hook
 (when (and (eq entropy/emacs-enable-initial-dashboard 'rich)
            (not (daemonp)))
 
-  (with-eval-after-load 'entropy-emacs-package
-    (defun entropy/emacs-rich-dashboard-init ()
-      (require 'dashboard)
-      (setq dashboard-startup-banner entropy/emacs-fancy-splash-logo-file
-            dashboard-center-content t
-            dashboard-banner-logo-title "Welcom To Entropy-Emacs")
-      (setq dashboard-items '((recents  . 5)
-                              (bookmarks . 5)
-                              ;; (projects . 5)
-                              ;; (agenda . 5)
-                              (registers . 5)))
-      (when (display-graphic-p)
-        (setq dashboard-set-heading-icons t)
-        (setq dashboard-set-file-icons t))
-      (dashboard-insert-startupify-lists)
-      (switch-to-buffer "*dashboard*")
-      (goto-char (point-min))
-      (redisplay t))
-    (add-hook 'entropy/emas-package-common-start-after-hook
-              #'entropy/emacs-rich-dashboard-init)
-    (add-hook 'window-size-change-functions
-              'dashboard-resize-on-hook)))
+  (defun entropy/emacs-rich-dashboard-init ()
+    (require 'dashboard)
+    (setq dashboard-startup-banner entropy/emacs-fancy-splash-logo-file
+          dashboard-center-content t
+          dashboard-banner-logo-title "Welcom To Entropy-Emacs")
+    (setq dashboard-items '((recents  . 5)
+                            (bookmarks . 5)
+                            ;; (projects . 5)
+                            ;; (agenda . 5)
+                            (registers . 5)))
+    (when (display-graphic-p)
+      (setq dashboard-set-heading-icons t)
+      (setq dashboard-set-file-icons t))
+    (dashboard-insert-startupify-lists)
+    (switch-to-buffer "*dashboard*")
+    (goto-char (point-min))
+    (redisplay t))
+
+  (if entropy/emacs-fall-love-with-pdumper
+      (progn
+        (require 'dashboard)
+        (entropy/emacs-lazy-with-load-trail
+         rich-dashboard
+         (entropy/emacs-rich-dashboard-init)
+         (add-hook 'window-size-change-functions
+                   'dashboard-resize-on-hook)))
+    (with-eval-after-load 'entropy-emacs-package
+      (add-hook 'entropy/emas-package-common-start-after-hook
+                #'entropy/emacs-rich-dashboard-init)
+      (add-hook 'window-size-change-functions
+                'dashboard-resize-on-hook))))
 
 ;; ** Title
 (entropy/emacs-lazy-with-load-trail
