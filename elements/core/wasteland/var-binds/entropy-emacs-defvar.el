@@ -33,9 +33,6 @@
 (require 'entropy-emacs-defconst)
 
 ;; ** individuals
-(defvar entropy/emacs-startup-done nil
-  "while nil in startup procedure or t indicates the final
-successfully.")
 
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
   "The top keymap for entropy-emacs holding the global
@@ -63,6 +60,19 @@ margin width.")
 
 (defvar entropy/emacs-init-welcom-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Title of entropy-emacs initial dashboard buffer. ")
+
+;; ** startup done
+(defvar entropy/emacs-startup-done nil
+  "while nil in startup procedure or t indicates the startup done
+successfully. The meaning for startup done is that all procedure
+within `entropy/emacs-startup-hook' are running done.")
+
+(defvar entropy/emacs-startup-end-hook nil
+  "Hook ran after entropy-emacs finally initial-done, all the
+functions hosted in this Hook will ran after whatever after-load
+procedure which registed in `entropy/emacs-init-mini-hook',
+`entropy/emacs-init-X-hook', `entropy/emacs-pdumper-load-hook',
+`entropy/emacs-pdumper-load-end-hook'.")
 
 ;; ** cl-* compatible
 

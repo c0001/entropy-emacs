@@ -91,6 +91,8 @@ determined by above variable you setted."
 
 (entropy/emacs-lazy-with-load-trail
  frame-reset-size&width
+ :start-end t
+ :body
  (when (display-graphic-p)
    (when (and entropy/emacs-init-fpos-enable
               (< entropy/emacs-init-frame-width-scale 1))

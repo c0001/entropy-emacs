@@ -192,29 +192,28 @@ type. Each key's value can be omitted thus the 'common' meaning."
 
 Do as the same as `plist-get' when CAR was non-nil.
 
-Return a `progn' form or a nil-lambda form if the slot's rest form
+Return a `progn' form or nil if the slot's rest form
 are empty, or a nil.
 
-If NO-ERROR was non-nil, press all the error asserts, otherwise
-when KEY can not be found in FORM-PLIST, throw out an error, in
-that case return nil."
-  (let ((rest (cdr (member key form-plist)))
-        (pt 0)
-        rtn)
+If NO-ERROR was non-nil, press all the error asserts, in that
+case return nil, otherwise when KEY can not be found in
+FORM-PLIST, throw out an error."
+  (let* ((match (member key form-plist))
+         (rest (cdr match))
+         (pt 0)
+         rtn)
     (catch :exit
-      (when (null rest)
-        (when no-error
+      (when (null match)
+        (when (or no-error car)
           (throw :exit nil))
-        (user-error "Can not match '%s's form!" key))
-      (while (and (not (and
+        (error "Can not match key '%s' in form-plist!" key))
+      (while (and (not (null (nth pt rest)))
+                  (not (and
                         (symbolp (nth pt rest))
-                        (string-match "^:" (symbol-name (nth pt rest)))))
-                  (not (null (nth pt rest))))
+                        (string-match "^:" (symbol-name (nth pt rest))))))
         (push (nth pt rest) rtn)
         (cl-incf pt))
-      (if (null rtn)
-          (setq rtn
-                (if (null car) (lambda () nil) nil))
+      (unless (null rtn)
         (setq rtn
               (if (null car)
                   `(progn
@@ -855,24 +854,61 @@ in case that file does not provide any feature."
        ,@body))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
+  "Wrapping BODY to a function named with suffix by NAME into
+=entropy-emacs= startup trail hook.
+
+=entropy-emacs= trail hook are `entropy/emacs-init-mini-hook',
+`entropy/emacs-init-X-hook', `entropy/emacs-pdumper-load-hook' and
+`entropy/emacs-startup-end-hook', see their their doc-string for
+details.
+
+BODY can be forms or a expanded FORM-PLIST (see
+`entropy/emacs-get-plist-form') in which case there's some keys on
+functional aim to:
+
+- ':doc-string' :: host the function defination will be created
+  for function of BODY.
+
+- ':body' :: slot host forms, this key was necessary if BODY is a
+  expanded FORM-PLIST.
+
+- ':start-end' :: inject function of BODY into
+  `entropy/emacs-startup-end-hook'. defaultly function of that
+  BODY will be injected into other =entropy-emacs= trail hook,
+  but with this key non-nil or a form which evaluated result is
+  non-nil."
   (let ((func (intern
                (concat "entropy/emacs-lazy-trail-to-"
                        (symbol-name name))))
-        (msg-str (symbol-name name)))
+        (msg-str (symbol-name name))
+        (inject-to-start-end
+         (entropy/emacs-get-plist-form body :start-end t))
+        (doc-string
+         (entropy/emacs-get-plist-form body :doc-string t))
+        (body (let ((body-form (entropy/emacs-get-plist-form body :body nil t)))
+                (if body-form
+                    (cdr body-form)
+                  body))))
     `(progn
-       (defun ,func ()
-         (entropy/emacs-message-do-message
-          "%s '%s' %s"
-          (blue "Start")
-          (yellow ,msg-str)
-          (blue "..."))
-         ,@body
-         (entropy/emacs-message-do-message
-          "%s '%s' %s"
-          (blue "Start")
-          (yellow ,msg-str)
-          (blue "done!")))
+       (eval
+        '(defun ,func ()
+           ,(or doc-string "")
+           (entropy/emacs-message-do-message
+            "%s '%s' %s"
+            (blue "Start")
+            (yellow ,msg-str)
+            (blue "..."))
+           ,@body
+           (entropy/emacs-message-do-message
+            "%s '%s' %s"
+            (blue "Start")
+            (yellow ,msg-str)
+            (blue "done!"))))
        (cond
+        (,inject-to-start-end
+         (setq entropy/emacs-startup-end-hook
+               (append entropy/emacs-startup-end-hook
+                       '(,func))))
         (entropy/emacs-fall-love-with-pdumper
          (setq entropy/emacs-pdumper-load-hook
                (append entropy/emacs-pdumper-load-hook
