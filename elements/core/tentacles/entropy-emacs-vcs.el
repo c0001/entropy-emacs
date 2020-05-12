@@ -55,11 +55,20 @@
       :enable t :exit t :global-bind t))))
   :init
 
-  ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
-  (entropy/emacs-lazy-load-simple magit
-    (advice-add 'magit-status :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-    (advice-add 'magit-dispatch-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-    (advice-add 'magit-file-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
+  (entropy/emacs-lazy-with-load-trail
+   magit-init
+   (require 'magit)
+   (transient--init-objects 'magit-dispatch nil nil)
+   ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
+   (progn
+     (advice-add 'magit-status :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+     (advice-add 'magit-dispatch-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+     (advice-add 'magit-file-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
+   ;;disabled 'M-1' key-binding with conflicated with
+   ;;`entropy/emacs-quick-readonly-global'
+   (progn
+     (define-key magit-mode-map (kbd "M-1") nil)
+     (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation
   (progn
@@ -83,13 +92,7 @@
     (define-key global-map (kbd "C-x v v") nil)
     (define-key global-map (kbd "C-x v x") nil)
     (define-key global-map (kbd "C-x v ~") nil)
-    (define-key global-map (kbd "C-x v i") nil))
-
-  ;;disabled 'M-1' key-binding with conflicated with
-  ;;`entropy/emacs-quick-readonly-global'
-  (entropy/emacs-lazy-load-simple magit
-    (define-key magit-mode-map (kbd "M-1") nil)
-    (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)))
+    (define-key global-map (kbd "C-x v i") nil)))
 
 (use-package ssh-agency
   :commands (ssh-agency-ensure)
