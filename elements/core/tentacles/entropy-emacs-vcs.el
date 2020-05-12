@@ -53,22 +53,28 @@
       :enable t :exit t :global-bind t)
      ("C-x M-g" magit-dispatch "Invoke a Magit command from a list of available commands"
       :enable t :exit t :global-bind t))))
-  :init
+  :preface
+  (defun entropy/emacs-vcs--magit-init ()
+    (require 'magit)
+    ;; pre generate `magit-dispatch' object (used quickly)
+    (transient--init-objects 'magit-dispatch nil nil)
+    ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
+    (progn
+      (advice-add 'magit-status :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+      (advice-add 'magit-dispatch-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+      (advice-add 'magit-file-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
+    ;;disabled 'M-1' key-binding with conflicated with
+    ;;`entropy/emacs-quick-readonly-global'
+    (progn
+      (define-key magit-mode-map (kbd "M-1") nil)
+      (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)))
 
-  (entropy/emacs-lazy-with-load-trail
-   magit-init
-   (require 'magit)
-   (transient--init-objects 'magit-dispatch nil nil)
-   ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
-   (progn
-     (advice-add 'magit-status :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-     (advice-add 'magit-dispatch-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-     (advice-add 'magit-file-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
-   ;;disabled 'M-1' key-binding with conflicated with
-   ;;`entropy/emacs-quick-readonly-global'
-   (progn
-     (define-key magit-mode-map (kbd "M-1") nil)
-     (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)))
+  :init
+  (if entropy/emacs-fall-love-with-pdumper
+      (entropy/emacs-vcs--magit-init)
+    (entropy/emacs-lazy-with-load-trail
+     magit-init
+     (entropy/emacs-vcs--magit-init)))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation
   (progn

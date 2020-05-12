@@ -1643,5 +1643,10 @@ for otherwise."
             (eq major-mode 'lisp-mode)
             (eq major-mode 'lisp-interaction-mode)))))
 
+(defun entropy/emacs-echo-startup-done ()
+  (entropy/emacs-message-do-message
+   "%s"
+   (green "entropy-emacs startup done!")))
+
 ;; * provide
 (provide 'entropy-emacs-defun)

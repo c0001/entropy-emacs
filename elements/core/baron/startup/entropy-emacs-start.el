@@ -478,7 +478,8 @@ Emacs will auto close after 6s ......")))
     (require 'entropy-emacs-path)
     (entropy/emacs-start--init-bingo)
     (unless entropy/emacs-fall-love-with-pdumper
-      (run-hooks 'entropy/emacs-startup-end-hook))
+      (run-hooks 'entropy/emacs-startup-end-hook)
+      (entropy/emacs-echo-startup-done))
     (unless entropy/emacs-fall-love-with-pdumper
       (setq entropy/emacs-startup-done t))))
 

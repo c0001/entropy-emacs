@@ -41,6 +41,14 @@
 
 (when sys/win32p
   (require 'font-lock+))
+;; ** memoize
+(use-package memoize
+  :commands
+  (memoize
+   memoize-restore
+   memoize-by-buffer-contents--wrap
+   memoize--wrap
+   memoize-by-buffer-contents))
 
 ;; ** all-the-icons
 (use-package all-the-icons
@@ -179,7 +187,9 @@
 
 ;; *** memoize missing funcs
 
-  (memoize 'all-the-icons-icon-for-dir))
+  (dolist (func '(all-the-icons-icon-for-dir))
+    (unless (get func :memoize-original-function)
+      (memoize func))))
 
 ;; ** eldoc-eval
 (use-package eldoc-eval

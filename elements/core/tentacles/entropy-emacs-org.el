@@ -149,7 +149,6 @@
                         lilypond
                         ledger
                         latex
-                        keys
                         js
                         java
                         io

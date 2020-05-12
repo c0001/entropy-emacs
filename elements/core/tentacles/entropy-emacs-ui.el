@@ -548,7 +548,6 @@ for adding to variable `window-size-change-functions' and hook
 
   (if entropy/emacs-fall-love-with-pdumper
       (progn
-        (require 'dashboard)
         (entropy/emacs-lazy-with-load-trail
          rich-dashboard
          (entropy/emacs-rich-dashboard-init)
