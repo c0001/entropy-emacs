@@ -236,7 +236,7 @@
   (setq
    company-tooltip-limit 20  ; bigger popup window
    company-echo-delay 0      ; remove annoying blinking
-   company-idle-delay nil
+   company-idle-delay 0.65
    company-dabbrev-code-everywhere t
    company-minimum-prefix-length 2
    company-require-match nil
