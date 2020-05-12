@@ -82,7 +82,8 @@ configuration.")
 
 ;; *** extract files
 
-(defmacro entropy/emacs-pdumper--extract-files-with-dir (top-dir exc-filters inc-filters &optional full-path)
+(defmacro entropy/emacs-pdumper--extract-files-with-dir
+    (top-dir exc-filters inc-filters &optional full-path)
   `(let* ((files (entropy/emacs-list-files-recursive-for-list ,top-dir))
           rtn)
      (dolist (file files)
@@ -109,14 +110,15 @@ configuration.")
   (let ((exc-filters `(,(rx (or (seq "autoloads.el" line-end)
                                 (seq "pkg.el" line-end)
                                 (seq line-start "test.el")
-                                (seq line-start "company-lsp")
-                                (seq line-start "lsp-")
                                 (seq line-start "doom-themes-ext")))))
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "counsel"
-                                     "dired" "all-the-icon"
+                                     "dired" "all-the-icon" "cal-china"
                                      "use-package" "diminish" "bind-key"
-                                     "doom" "company" "treemacs" "entropy")
-                                 "-"
+                                     "doom" "company" "treemacs" "entropy"
+                                     "rg" "wgrep" "dashboard"
+                                     "youdao" "google" "bing"
+                                     "projectile" "lsp" "dap" "company")
+                                 (? "-")
                                  (* any)
                                  (seq ".elc" line-end))))))
     (entropy/emacs-pdumper--extract-files-with-dir
