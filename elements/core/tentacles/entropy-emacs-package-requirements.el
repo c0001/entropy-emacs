@@ -169,8 +169,6 @@
         lv
         macrostep
         magit
-        magit-gitflow
-        magit-popup
         magit-svn
         major-mode-hydra
         makey

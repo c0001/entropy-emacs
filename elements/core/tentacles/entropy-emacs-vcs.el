@@ -61,7 +61,7 @@
     (advice-add 'magit-dispatch-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
     (advice-add 'magit-file-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
 
-  ;; Disabled vc.el key bindings for prevent to accidental actived
+  ;; Disabled vc.el key bindings for prevent to accidental activation
   (progn
     (define-key global-map (kbd "C-x v =") nil)
     (define-key global-map (kbd "C-x v +") nil)
@@ -99,76 +99,6 @@
   :config
   (setenv "SSH_ASKPASS" "git-gui--askpass"))
 
-;; **** magit-popup toolchain
-
-(use-package magit-files
-  :if (executable-find "git")
-  :ensure nil
-  :eemacs-tpha
-  (((:enable t))
-   ("Vcs"
-    (("C-c M-g" magit-file-popup "Popup console for Magit commands in file-visiting buffers"
-      :enable t :exit t :global-bind t))))
-  :commands
-  (magit-file-popup))
-
-(use-package magit-popup
-  :if (executable-find "git")
-  :commands
-  (magit-define-popup-keys-deferred)
-  :config
-  (require 'magit)
-  ;; The newest (20190214.2056) [[2019-02-15 Fri 23:07:07]] magit
-  ;; doesn't provide this function, defined it from older magit
-  ;; version (20190202.1535).
-  (magit-define-popup magit-file-popup
-    "Popup console for Magit commands in file-visiting buffers."
-    :actions '((?s "Stage"     magit-stage-file)
-               (?D "Diff..."   magit-diff-buffer-file-popup)
-               (?L "Log..."    magit-log-buffer-file-popup)
-               (?B "Blame..."  magit-blame-popup) nil
-               (?u "Unstage"   magit-unstage-file)
-               (?d "Diff"      magit-diff-buffer-file)
-               (?l "Log"       magit-log-buffer-file)
-               (?b "Blame"     magit-blame-addition)
-               (?p "Prev blob" magit-blob-previous)
-               (?c "Commit"    magit-commit-popup) nil
-               (?t "Trace"     magit-log-trace-definition)
-               (?r (lambda ()
-                     (with-current-buffer magit-pre-popup-buffer
-                       (and (not buffer-file-name)
-                            (propertize "...removal" 'face 'default))))
-                   magit-blame-removal)
-               (?n "Next blob" magit-blob-next)
-               (?e "Edit line" magit-edit-line-commit)
-               nil nil
-               (?f (lambda ()
-                     (with-current-buffer magit-pre-popup-buffer
-                       (and (not buffer-file-name)
-                            (propertize "...reverse" 'face 'default))))
-                   magit-blame-reverse)
-               nil)
-    :max-action-columns 5))
-
-;; **** Gitflow externsion for Magit
-(use-package magit-gitflow
-  :diminish magit-gitflow-mode
-  :commands (magit-gitflow-popup
-             turn-on-magit-gitflow)
-
-  :eemacs-mmphca
-  (((:enable t)
-    (magit-status-mode magit-status magit-status-mode-map))
-   ("Gitflow"
-    (("G" magit-gitflow-popup "Popup console for GitFlow commands"
-      :enable t :exit t :map-inject t))))
-
-  :init (add-hook 'magit-mode-hook #'turn-on-magit-gitflow)
-  :config
-  (magit-define-popup-action 'magit-dispatch-popup
-    ?G "GitFlow" #'magit-gitflow-popup ?!))
-
-
 ;; **** Git-Svn extension for Magit
 (use-package magit-svn
   :diminish magit-svn-mode
@@ -179,9 +109,6 @@
 ;; **** Pop up last commit information of current line
 (use-package git-messenger
   :commands git-messenger:copy-message
-  :bind (:map git-messenger-map
-              ("m" . git-messenger:copy-message))
-
   :eemacs-tpha
   (((:enable t))
    ("Vcs"
@@ -265,16 +192,36 @@
               (t (message "%s" popuped-message)))
         (run-hook-with-args 'git-messenger:after-popup-hook popuped-message)))
     (advice-add #'git-messenger:popup-close :override #'ignore)
-    (advice-add #'git-messenger:popup-message :override #'entropy/emacs-vcs--git-messenger:popup-message))
-
-  )
+    (advice-add #'git-messenger:popup-message :override
+                #'entropy/emacs-vcs--git-messenger:popup-message)))
 
 ;; **** Walk through git revisions of a file
 (use-package git-timemachine
   :commands
   (git-timemachine
    git-timemachine-switch-branch
-   git-timemachine-toggle))
+   git-timemachine-toggle)
+  :eemacs-indhc
+  (((:enable t)
+    (git-timemachine))
+   ("Common histroy"
+    (("t" git-timemachine "view history" :enable t :exit t)
+     ("?" git-timemachine-help "Show git-timemachine help (use in thus mode enable)"
+      :enable t :exit t))
+    "Branch history"
+    (("b" git-timemachine-switch-branch "view another branch history"
+      :enable t :exit t))
+    "Toggle"
+    (("r" git-timemachine-toggle "Quit or re-inject timemachine"
+      :enable t :exit t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("Vcs"
+    (("C-x v t"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'git-timemachine))
+      "git timemachine" :enable t :global-bind t :exit t)))))
 
 ;; **** Highlighting regions by last updated time
 (use-package smeargle
