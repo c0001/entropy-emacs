@@ -175,7 +175,11 @@
                         mpc-tagbrowser-dir-mode
                         ))
     (add-to-list 'all-the-icons-mode-icon-alist
-                 `(,music-mode all-the-icons-faicon "music" :face all-the-icons-blue))))
+                 `(,music-mode all-the-icons-faicon "music" :face all-the-icons-blue)))
+
+;; *** memoize missing funcs
+
+  (memoize 'all-the-icons-icon-for-dir))
 
 ;; ** eldoc-eval
 (use-package eldoc-eval

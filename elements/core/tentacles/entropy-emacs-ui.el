@@ -530,11 +530,12 @@ for adding to variable `window-size-change-functions' and hook
     (require 'dashboard)
     (setq dashboard-startup-banner entropy/emacs-fancy-splash-logo-file
           dashboard-center-content t
-          dashboard-banner-logo-title "Welcom To Entropy-Emacs")
-    (setq dashboard-items '((recents  . 5)
+          dashboard-banner-logo-title "Welcom To Entropy-Emacs"
+          dashboard-page-separator "\n\n")
+    (setq dashboard-items '((recents  . 10)
                             (bookmarks . 5)
-                            ;; (projects . 5)
-                            ;; (agenda . 5)
+                            (agenda . 5)
+                            (projects . 5)
                             (registers . 5)))
     (when (display-graphic-p)
       (setq dashboard-set-heading-icons t)
@@ -542,6 +543,7 @@ for adding to variable `window-size-change-functions' and hook
     (dashboard-insert-startupify-lists)
     (switch-to-buffer "*dashboard*")
     (goto-char (point-min))
+    (hl-line-mode 1)
     (redisplay t))
 
   (if entropy/emacs-fall-love-with-pdumper
