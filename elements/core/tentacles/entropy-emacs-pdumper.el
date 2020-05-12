@@ -111,7 +111,7 @@ configuration.")
                                 (seq "pkg.el" line-end)
                                 (seq line-start "test.el")
                                 (seq line-start "doom-themes-ext")))))
-        (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "counsel"
+        (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "transient" "counsel"
                                      "dired" "all-the-icon" "cal-china"
                                      "use-package" "diminish" "bind-key"
                                      "doom" "company" "treemacs" "entropy"
