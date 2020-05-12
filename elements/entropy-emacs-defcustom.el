@@ -80,7 +80,7 @@ key-stroke experience."
   :type 'cons
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-garbage-collection-delay 1.2
+(defcustom entropy/emacs-garbage-collection-delay 5
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs."
   :type 'integer
