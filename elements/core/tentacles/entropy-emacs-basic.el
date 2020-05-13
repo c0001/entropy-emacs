@@ -451,6 +451,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
     (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")))
 
 (use-package diredfl
+  :commands (diredfl-global-mode)
   :init
   (entropy/emacs-lazy-with-load-trail
    diredfl-colorful-init
@@ -1800,7 +1801,8 @@ otherwise returns nil."
 
 ;; *** A minor-mode menu for the mode line
 (use-package minions
-  :commands (minions-minor-modes-menu)
+  :commands (minions-minor-modes-menu
+             minions-mode)
   :init
   (global-set-key [S-down-mouse-3] 'minions-minor-modes-menu)
   (entropy/emacs-lazy-load-simple doom-modeline

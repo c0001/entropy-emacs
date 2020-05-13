@@ -317,6 +317,7 @@
 ;; *** Better sorting and filtering
 (use-package company-prescient
   :after company
+  :commands (company-prescient-mode)
   :init
   (company-prescient-mode 1))
 

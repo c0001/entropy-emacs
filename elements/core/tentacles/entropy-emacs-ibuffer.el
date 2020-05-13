@@ -65,6 +65,7 @@
 
 ;; ** ibuffer all the icons feature
 (use-package all-the-icons-ibuffer
+  :commands (all-the-icons-ibuffer-mode)
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ibuffer

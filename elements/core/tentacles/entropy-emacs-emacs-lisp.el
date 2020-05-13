@@ -246,11 +246,13 @@ For lisp coding aim, always return the transfered buffer.
   (setq inferior-lisp-program entropy/emacs-inferior-lisp-program)
   (setq slime-lisp-implementations
         entropy/emacs-slime-lisp-implementations)
-  (dolist (contrib '(slime-repl slime-autodoc))
-    (add-to-list 'slime-contribs contrib))
   (add-hook 'lisp-mode-hook #'slime-mode)
 
   :config
+  ;; Add more extensions for SLIME
+  (dolist (contrib '(slime-repl slime-autodoc))
+    (add-to-list 'slime-contribs contrib))
+
   (defun entropy/emacs-lisp--slime-env-symbols ()
     (slime-simple-completions ""))
 

@@ -183,7 +183,8 @@
    '(org-mode)
    "org-mode"
    "org-mode"
-   (when entropy/emacs-fall-love-with-pdumper
+   (when (and (not entropy/emacs-fall-love-with-pdumper)
+              (not entropy/emacs-custom-enable-lazy-load))
      (entropy/emacs-org-do-load-org-babels)))
 
 ;; **** configs
