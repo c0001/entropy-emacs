@@ -189,20 +189,15 @@ configuration.")
     (menu-bar-mode 0)
     (redisplay t)
     (setq entropy/emacs-fall-love-with-pdumper nil)
-    ;; the very ending procedure
-    (run-hooks 'entropy/emacs-pdumper-load-end-hook)
     (entropy/emacs-message-do-message (green "Initialized pdumper session"))
-
-    ;; finally run start-end hook
-    (run-hooks 'entropy/emacs-startup-end-hook)
     (when entropy/emacs-pdumper--rec-timer
       (cancel-timer entropy/emacs-pdumper--rec-timer)
       (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
       (garbage-collect))
     (defun entropy/emacs-pdumper--recovery ()
       nil)
-    (entropy/emacs-echo-startup-done)
-    (setq entropy/emacs-startup-done t)))
+    ;; finally run start-end hook
+    (entropy/emacs-run-startup-end-hook)))
 
 ;; ** load-files
 (defmacro entropy/emacs-pdumper--load-files-core (top-dir files)

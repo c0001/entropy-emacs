@@ -416,7 +416,7 @@ moving operation will cause non-terminated looping proceeding."
   :init
 
   (entropy/emacs-lazy-initial-for-hook
-   '(emacs-lisp-mode-hook lisp-interaction-mode-hook)
+   (emacs-lisp-mode-hook lisp-interaction-mode-hook)
    "outshine-mode" "outshine-mode"
    (outshine-mode +1)
    (add-hook 'emacs-lisp-mode-hook 'outshine-mode)

@@ -497,8 +497,11 @@ for adding to variable `window-size-change-functions' and hook
     (entropy/emacs-ui--init-welcom-resize-hook))
 
   (defun entropy/emacs-ui--init-welcom-init-core ()
-    (setq initial-buffer-choice #'entropy/emacs-ui--init-welcom-initial-buffer)
+    ;; (setq initial-buffer-choice #'entropy/emacs-ui--init-welcom-initial-buffer)
+    (switch-to-buffer (entropy/emacs-ui--init-welcom-initial-buffer))
     (entropy/emacs-ui--init-welcom-resize-run))
+
+  (setq inhibit-startup-screen t)
 
   (if entropy/emacs-fall-love-with-pdumper
       (entropy/emacs-lazy-with-load-trail
@@ -556,8 +559,10 @@ for adding to variable `window-size-change-functions' and hook
     (with-eval-after-load 'entropy-emacs-package
       (add-hook 'entropy/emas-package-common-start-after-hook
                 #'entropy/emacs-rich-dashboard-init)
-      (add-hook 'window-size-change-functions
-                'dashboard-resize-on-hook))))
+      (entropy/emacs-lazy-with-load-trail
+       rich-dashboard
+       (add-hook 'window-size-change-functions
+                 'dashboard-resize-on-hook)))))
 
 ;; ** Title
 (entropy/emacs-lazy-with-load-trail
@@ -586,4 +591,5 @@ for adding to variable `window-size-change-functions' and hook
     (message "current-line:%s current-row:%s" line row)))
 
 ;; * provide
+
 (provide 'entropy-emacs-ui)

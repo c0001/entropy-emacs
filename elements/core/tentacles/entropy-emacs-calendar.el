@@ -44,7 +44,7 @@
   :commands cal-china-x-setup
   :init
   (entropy/emacs-lazy-initial-for-hook
-   '(calendar-mode-hook)
+   (calendar-mode-hook)
    "calendar-chinaX-mode"
    "calendar-chinaX-mode"
    (cal-china-x-setup))

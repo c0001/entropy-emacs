@@ -223,7 +223,7 @@ nervous."
        #'lsp-deferred)))
 
   (entropy/emacs-lazy-initial-advice-before
-   '(lsp)
+   (lsp)
    "lsp-enable-yas"
    "lsp-enable-yas"
    (require 'yasnippet)

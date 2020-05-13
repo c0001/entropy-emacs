@@ -40,21 +40,12 @@
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-message)
 
-(progn (when (and entropy/emacs-fall-love-with-pdumper
-                  entropy/emacs-custom-enable-lazy-load)
-         (setq entropy/emacs-custom-enable-lazy-load nil))
-
-       (when (and entropy/emacs-fall-love-with-pdumper
-                  entropy/emacs-enable-pyim)
-         (setq entropy/emacs-enable-pyim nil)
-         (entropy/emacs-message-do-message
-          (red "You can not enable pyim in pdumper procedure, but
-we inject it into pdumper session initialize procedure. "))
-         (add-hook 'entropy/emacs-pdumper-load-end-hook
-                   #'entropy/emacs-basic-pyim-start)))
-
-(when (daemonp)
-  (when entropy/emacs-custom-enable-lazy-load
+;; forbidden `entropy/emacs-custom-enable-lazy-load' at special
+;; session.
+(progn
+  (when (and (or entropy/emacs-fall-love-with-pdumper
+                 (daemonp))
+             entropy/emacs-custom-enable-lazy-load)
     (setq entropy/emacs-custom-enable-lazy-load nil)))
 
 ;; *** load core library
@@ -202,6 +193,8 @@ Emacs\" buffer's local `browse-url-browse-function' to
 and save the compiling log into `entropy/emacs-stuffs-topdir'
 named as 'compile_$date.log'."
   (let ((buflist (mapcar #'buffer-name (buffer-list))))
+    (when entropy/emacs-package-install-success-list
+      (setq entropy/emacs-start--is-init-with-install t))
     (when (member "*Compile-Log*" buflist)
       ;; First recorde compiling log
       (let (($f (expand-file-name (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
@@ -214,101 +207,85 @@ named as 'compile_$date.log'."
           (goto-char (point-min))
           (insert buff_content)
           (save-buffer)
-          (kill-buffer)))
-      (setq entropy/emacs-start--is-init-with-install t)))
+          (kill-buffer)))))
   (defun entropy/emacs-start--check-init-with-install-p ()
     "This function has been unloaded."
     nil)
   (when entropy/emacs-start--is-init-with-install
     (run-with-timer 6 nil #'kill-emacs)))
 
-;; *** start type choice
-;; **** status of pyim loading
-(when entropy/emacs-enable-pyim
-  ;; for emacs 26 and higher version
-  (defvar entropy/emacs-start--pyim-timer-26+ nil)
-  (defvar entropy/emacs-start--pyim-init-done-26+ nil)
+(defun entropy/emacs-start--warn-with-pkg-install ()
+  (entropy/emacs-start--check-init-with-install-p)
+  (when entropy/emacs-start--is-init-with-install
+    (if (entropy/emacs-is-make-session)
+        (entropy/emacs-message-do-message
+         "%s"
+         (red "Remaining procedure can not loaded in this
+session because of you have installed some stuffs in this
+session, please restart thus, and it will be well."))
+      (warn "You init with installing new packages, please reopen emacs!
 
-  (defvar entropy/emacs-start--pyim-init-prompt-buffer "*pyim-cache-loading*")
+Emacs will auto close after 6s ......"))
+    (top-level)))
 
-  (defun entropy/emacs-start--pyim-init-after-loaded-cache-26+ ()
-    "Trace pyim loading thread til it's done as giving the
+;; *** status of pyim loading
+(defvar entropy/emacs-start--pyim-timer nil)
+(defvar entropy/emacs-start--pyim-init-done nil)
+
+(defvar entropy/emacs-start--pyim-init-prompt-buffer
+  (get-buffer-create "*pyim-cache-loading*"))
+
+(defun entropy/emacs-start--pyim-init-after-loaded-cache ()
+  "Trace pyim loading thread til it's done as giving the
 notation.
 
 (specific for emacs version uper than '26' or included '26'.)"
-    (when (< (length (all-threads)) 2)
-      (setq entropy/emacs-start--pyim-init-done-26+ t)
-      (when (bound-and-true-p entropy/emacs-start--pyim-timer-26+)
-        (cancel-function-timers #'entropy/emacs-start--pyim-init-after-loaded-cache-26+))
-      (when (buffer-live-p entropy/emacs-start--pyim-init-prompt-buffer)
-        (switch-to-buffer entropy/emacs-start--pyim-init-prompt-buffer)
-        (kill-buffer-and-window))
-      (entropy/emacs-message-do-message (green "pyim loading down."))
-      (defun entropy/emacs-start--pyim-init-after-loaded-cache-26+ ()
-        (entropy/emacs-message-do-message
-         (yellow "This function has been unloaded.")))))
-
-  ;; for emacs 25 and lower version
-  (defun entropy/emacs-start--pyim-init-after-loaded-cache-26- ()
-    "Giving the notation when loaded pyim cache.
-
-(specific for emacs version under '26')"
+  (when (< (length (all-threads)) 2)
+    (setq entropy/emacs-start--pyim-init-done t)
+    (when (bound-and-true-p entropy/emacs-start--pyim-timer)
+      (cancel-function-timers #'entropy/emacs-start--pyim-init-after-loaded-cache))
+    (when (buffer-live-p entropy/emacs-start--pyim-init-prompt-buffer)
+      (switch-to-buffer entropy/emacs-start--pyim-init-prompt-buffer)
+      (kill-buffer-and-window))
     (entropy/emacs-message-do-message (green "pyim loading down."))
-    (defun entropy/emacs-start--pyim-init-after-loaded-cache-26- ()
+    (defun entropy/emacs-start--pyim-init-after-loaded-cache ()
       (entropy/emacs-message-do-message
-       (yellow "This function has been unloaded."))))
+       (yellow "This function has been unloaded.")))))
 
-  (defun entropy/emacs-start--pyim-initialize ()
-    "Make prompt when loading and loded pyim cache for emacs init time.
+(defun entropy/emacs-start--pyim-initialize ()
+  "Make prompt when loading and loded pyim cache for emacs init time.
 
 For different emacs version using different tracing method:
-- for 26+: `entropy/emacs-start--pyim-init-after-loaded-cache-26+'
+- for 26+: `entropy/emacs-start--pyim-init-after-loaded-cache'
 - for 26-: `entropy/emacs-pyim-init-after-loaded-cache-26_'
 
 It's for that emacs version uper than 26 as pyim using thread for loading cache."
-    ;; preparation prompt loading pyim cache.
-    (cond
-     ((not (version< emacs-version "26"))
-      (let ((buffer (get-buffer-create entropy/emacs-start--pyim-init-prompt-buffer)))
-        (setq entropy/emacs-start--pyim-init-prompt-buffer buffer)
-        (with-current-buffer buffer
-          (insert (propertize "Loading pyim cache, please waiting ......" 'face 'warning)))
-        (split-window-vertically (- (window-total-height) 4))
-        (other-window 1)
-        (switch-to-buffer buffer)
-        (redisplay t)))
-     ((version< emacs-version "26")
-      (entropy/emacs-message-do-message
-       (blue (bold "Loading pyim cache ......")))))
+  ;; preparation prompt loading pyim cache.
+  (let ((buffer entropy/emacs-start--pyim-init-prompt-buffer))
+    (with-current-buffer buffer
+      (insert (propertize "Loading pyim cache, please waiting ......" 'face 'warning)))
+    (split-window-vertically (- (window-total-height) 4))
+    (other-window 1)
+    (switch-to-buffer buffer)
+    (redisplay t))
 
-    ;; initialize pyim
-    (entropy/emacs-basic-pyim-start)
+  ;; initialize pyim
+  (entropy/emacs-basic-pyim-start)
 
-    ;; prompt for loading pyim cache done.
-    (cond
-     ((not (version< emacs-version "26"))
-      (setq entropy/emacs-start--pyim-timer-26+
-            (run-with-idle-timer
-             1 200
-             #'entropy/emacs-start--pyim-init-after-loaded-cache-26+)))
-     ((version< emacs-version "26")
-      (entropy/emacs-start--pyim-init-after-loaded-cache-26-)))
-    ;; reset function
-    (defun entropy/emacs-start--pyim-initialize ()
-      (message "This function has been unloaded."))))
+  ;; prompt for loading pyim cache done.
+  (setq entropy/emacs-start--pyim-timer
+        (run-with-idle-timer
+         1 200
+         #'entropy/emacs-start--pyim-init-after-loaded-cache))
+  ;; reset function
+  (defun entropy/emacs-start--pyim-initialize ()
+    (message "This function has been unloaded.")))
 
 
-;; **** after load procedure
+;; *** after load procedure
 
 (defun entropy/emacs-start--init-after-load-initialze-process (enable aft-hook)
   (when enable
-    ;; check start with package install status
-    (when (not (entropy/emacs-is-make-session))
-      (entropy/emacs-start--check-init-with-install-p)
-      (when entropy/emacs-start--is-init-with-install
-        (warn "You init with installing new packages, please reopen emacs!
-
-Emacs will auto close after 6s ......")))
     ;; run after init hooks
     (unless entropy/emacs-start--is-init-with-install
       (entropy/emacs-message-do-message
@@ -319,10 +296,11 @@ Emacs will auto close after 6s ......")))
     ;; start pyim
     (when (and entropy/emacs-enable-pyim
                (not entropy/emacs-start--is-init-with-install))
-      (entropy/emacs-start--pyim-initialize))))
+      (add-hook 'entropy/emacs-startup-end-hook
+                #'entropy/emacs-start--pyim-initialize))))
 
-;; **** start up branch
-;; ***** mini start
+;; *** start up branch
+;; **** mini start
 (defun entropy/emacs-start-M-enable ()
   (entropy/emacs-message-do-message
    "%s %s"
@@ -331,8 +309,12 @@ Emacs will auto close after 6s ......")))
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
   (advice-add 'redisplay :around #'entropy/emacs-start--initial-redisplay-advice)
 
-  ;; parse installed packages
+  ;; packages initializing
   (require 'entropy-emacs-package)
+  ;;; breaking remaining procedure while new package intalled within
+  ;;; this session, because some messy.
+  (add-hook 'entropy/emas-package-common-start-after-hook
+            #'entropy/emacs-start--warn-with-pkg-install)
   (entropy/emacs-package-common-start)
 
   ;; external depedencies scan and loading
@@ -383,7 +365,7 @@ Emacs will auto close after 6s ......")))
    (white "⮞")
    (green "Minimal start completed.")))
 
-;; ***** x enable
+;; **** x enable
 (defun entropy/emacs-start-X-enable ()
   (interactive)
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
@@ -447,7 +429,7 @@ Emacs will auto close after 6s ......")))
    (white "⮞")
    (green "Full start completed.")))
 
-;; **** startup main function
+;; *** startup main function
 (defun entropy/emacs-start--init-X ()
   (entropy/emacs-start-M-enable)
   (entropy/emacs-start-X-enable))
@@ -478,10 +460,7 @@ Emacs will auto close after 6s ......")))
     (require 'entropy-emacs-path)
     (entropy/emacs-start--init-bingo)
     (unless entropy/emacs-fall-love-with-pdumper
-      (run-hooks 'entropy/emacs-startup-end-hook)
-      (entropy/emacs-echo-startup-done))
-    (unless entropy/emacs-fall-love-with-pdumper
-      (setq entropy/emacs-startup-done t))))
+      (entropy/emacs-run-startup-end-hook))))
 
 (if (or entropy/emacs-fall-love-with-pdumper
         (daemonp))

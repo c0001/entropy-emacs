@@ -543,7 +543,7 @@ this variable used to patching for origin `counsel-git'.")
               #'entropy/emacs-ivy--enable-ivy-rich-common))
    (t
     (entropy/emacs-lazy-initial-advice-before
-     '(ivy-read)
+     (ivy-read)
      "ivy-rich" "ivy-rich"
      (entropy/emacs-ivy--enable-ivy-rich-common))))
 

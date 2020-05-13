@@ -92,7 +92,11 @@ for entropy-emacs."
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-custom-enable-lazy-load t
-  "Enable lazy load for entropy-emacs"
+  "Enable lazy load for entropy-emacs when non-nil.
+
+Notice: when `entropy/emacs-fall-love-with-pdumper' is non-nil or
+in daemon session, this variable will be pressed whatever init
+value assignments into."
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
@@ -100,17 +104,19 @@ for entropy-emacs."
   (expand-file-name
    "custom.el"
    entropy/emacs-user-emacs-directory)
-  "entropy-emacs common custom file"
+  "The value for `custom-file' but specified for =entropy-emacs=."
   :type 'string
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-user-full-name nil
-  "Set user full name."
+  "The value for `user-full-name' but specified for
+=entropy-emacs=."
   :type 'string
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-user-mail-address nil
-  "Set user email address."
+  "The value for `user-mail-address' but specified for
+=entropy-emacs=."
   :type 'string
   :group 'entropy/emacs-customize-fundametal)
 
@@ -123,19 +129,29 @@ for entropy-emacs."
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-use-popup-window-framework 'shackle
-  "Using popup window enhancement framework of `popwin-mode' or
-  `shackle-mode'."
+  "Using popup window enhancement framework of `popwin-mode' with
+value 'popwin' or `shackle-mode' with value 'shackle'.
+
+Since `popwin' is not under maintaining anymore, defualtly using
+`shacle-mode' and it's the suggested."
   :type 'symbol
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-init-display-line-mode nil
-  "Enable `global-display-line-numbers-mode' at start up time when in
-emacs 26 or higher emacs version."
+(defcustom entropy/emacs-init-display-line-numbers-mode t
+  "Enable `global-display-line-numbers-mode' at start up time
+when in emacs 26 or higher emacs version."
+  :type 'boolean
+  :group 'entropy/emacs-customize-fundametal)
+
+(defcustom entropy/emacs-init-hl-line-mode t
+  "Enable `global-hl-line-mode' at start up time
+when in emacs 26 or higher emacs version."
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-fill-paragraph-width 70
-  "Setting fill-paragraph width, default 100."
+  "Setting fill-paragraph width, default 70 to follow the emacs
+convention."
   :type 'integer
   :group 'entropy/emacs-customize-fundametal)
 
@@ -1507,15 +1523,33 @@ git-for-windows-sdk `git-bash.exe'"
 (defvar entropy/emacs-init-X-hook '()
   "Hooks of entropy-emacs X init.")
 
-(defun entropy/emacs-select-x-hook ()
-  "Automatically selects after-load hook registry. Return for
-`entropy/emacs-init-mini-hook' and `entropy/emacs-init-X-hook'."
-  (if entropy/emacs-minimal-start
-      'entropy/emacs-init-mini-hook
-    'entropy/emacs-init-X-hook))
-
 (defvar entropy/emacs-pdumper-load-hook nil
   "Hook for run with pdumper session startup.")
+
+(defun entropy/emacs-select-trail-hook ()
+  "Automatically selects a hook specified meaning of a
+=entropy-emacs= trail hook. Return for
+`entropy/emacs-init-mini-hook' and `entropy/emacs-init-X-hook' if
+`entropy/emacs-fall-love-with-pdumper' is nil.
+
+At any time, only one of those hook is recongnized as
+=entropy-emacs= trail hook, and it is a hook for trigger
+configration enable when all the preparations have done.
+
+See `entropy/emacs-startup-end-hook' either."
+  (if entropy/emacs-fall-love-with-pdumper
+      'entropy/emacs-pdumper-load-hook
+    (if entropy/emacs-minimal-start
+        'entropy/emacs-init-mini-hook
+      'entropy/emacs-init-X-hook)))
+
+(defvar entropy/emacs-startup-end-hook nil
+  "Hook ran after entropy-emacs finally initial-done, all the
+functions hosted in this Hook will ran after =entropy-emacs= trail
+hook.
+
+Also see `entropy/emacs-run-startup-end-hook' for restriction
+description.")
 
 (defvar entropy/emacs-pdumper-load-end-hook nil
   "Hook for run after pdumper session startup.")
@@ -1601,9 +1635,14 @@ under the symbolink root dir."
 ;; *** fake display-graphic
 (defun entropy/emacs-display-graphic-fake-advice
     (orig-func &rest orig-args)
+  "The `display-graphic-p' around advice for some case that needs
+to forcely judge as a displayable status.
+
+This also affects `display-multi-font-p' because it's an alias of
+that."
   (cond
    ((and (or entropy/emacs-fall-love-with-pdumper
-             (entropy/emacs-is-make-session))
+             (equal (entropy/emacs-is-make-session) "Dump"))
          entropy/emacs-do-pdumper-in-X)
     t)
    (t
@@ -1613,9 +1652,16 @@ under the symbolink root dir."
             :around
             #'entropy/emacs-display-graphic-fake-advice)
 
-(dolist (hook `(entropy/emacs-pdumper-load-end-hook
-                entropy/emacs-init-mini-hook
-                entropy/emacs-init-X-hook))
+;; Disable `entropy/emacs-display-graphic-fake-advice' when common
+;; start procedure (before any other trail hook run) finished, thus
+;; when pdumper session start, `display-graphic-p' function will not
+;; cause some issue e.g. `window-font-width' will throw out error that
+;; the very beginning of pdumper session is starting on cli status so
+;; that `font-info' will retrieve 'nil' as the callback of
+;; `face-font'.
+(let ((hook (if entropy/emacs-minimal-start
+                'entropy/emacs-init-mini-hook
+              'entropy/emacs-init-X-hook)))
   (add-hook hook
             #'(lambda ()
                 (advice-remove

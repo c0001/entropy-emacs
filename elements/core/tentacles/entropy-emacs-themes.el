@@ -91,7 +91,7 @@
   :preface
   (defvar entropy/emacs-themes-solaire-startup-timer nil)
 
-  (defun entropy/emacs-themes--solaire-swap-bg-needed ()
+  (defun entropy/emacs-themes--solaire-swap-bg-un-needed ()
     (member entropy/emacs-theme-sticker
             '(doom-dark+
               doom-molokai
@@ -102,12 +102,17 @@
               doom-solarized-light
               doom-vibrant)))
 
+  (defun entropy/emacs-themes--solaire-swap-bg ()
+    (when (and (not (entropy/emacs-themes--solaire-swap-bg-un-needed))
+               (entropy/emacs-theme-adapted-to-solaire))
+      (solaire-mode-swap-bg)
+      (message "Solaire swap bg done!")))
+
   (defun entropy/emacs-themes--enable-solaire-global-mode ()
     (when (entropy/emacs-theme-adapted-to-solaire)
       (unless solaire-global-mode
         (solaire-global-mode t)))
-    (unless (entropy/emacs-themes--solaire-swap-bg-needed)
-      (solaire-mode-swap-bg))
+    (entropy/emacs-themes--solaire-swap-bg)
     (entropy/emacs-solaire-specific-for-themes))
 
   (defvar entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay 0.01)
@@ -200,6 +205,8 @@
                         magit-status-mode)))))
   (entropy/emacs-lazy-with-load-trail
    solaire-mode-init
+   :start-end t
+   :body
    (add-hook 'entropy/emacs-theme-load-before-hook
              (lambda nil
                (if solaire-global-mode
@@ -210,7 +217,8 @@
    (advice-add 'make-frame
                :around
                #'entropy/emacs-themes-solaire-around-advice-for-make-frame)
-   (solaire-global-mode))
+   (solaire-global-mode)
+   (entropy/emacs-themes--solaire-swap-bg))
 
   :config
   (advice-add 'turn-on-solaire-mode

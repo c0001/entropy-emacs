@@ -34,6 +34,10 @@
 
 ;; ** individuals
 
+(defvar entropy/emas-package-common-start-after-hook nil
+  "Hooks run after the entropy-emacs elisp packages initialized
+ done while calling `entropy/emacs-package-common-start'.")
+
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
   "The top keymap for entropy-emacs holding the global
 commands.")
@@ -65,14 +69,17 @@ margin width.")
 (defvar entropy/emacs-startup-done nil
   "while nil in startup procedure or t indicates the startup done
 successfully. The meaning for startup done is that all procedure
-within `entropy/emacs-startup-hook' are running done.")
+within `entropy/emacs-startup-end-hook' are running done.")
 
-(defvar entropy/emacs-startup-end-hook nil
-  "Hook ran after entropy-emacs finally initial-done, all the
-functions hosted in this Hook will ran after whatever after-load
-procedure which registed in `entropy/emacs-init-mini-hook',
-`entropy/emacs-init-X-hook', `entropy/emacs-pdumper-load-hook',
-`entropy/emacs-pdumper-load-end-hook'.")
+(defun entropy/emacs-run-startup-end-hook ()
+  "Run `entropy/emacs-startup-end-hook'.
+
+Please only use this function for doing thus, do not run that
+hook using `run-hooks' or any other methods or may cause some
+messy."
+  (run-hooks 'entropy/emacs-startup-end-hook)
+  (entropy/emacs-echo-startup-done)
+  (setq entropy/emacs-startup-done t))
 
 ;; ** cl-* compatible
 

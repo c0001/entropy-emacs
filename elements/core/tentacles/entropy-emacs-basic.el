@@ -610,11 +610,61 @@ Temp file was \"~/~entropy-artist.txt\""
     (setq cursor-type t)))
 
 ;; *** Global display line number mode
-(when (>= emacs-major-version 26)
-  (progn
-    (setq-default display-line-numbers-width-start t)
-    (when entropy/emacs-init-display-line-mode
-      (global-display-line-numbers-mode))))
+(defun entropy/emacs-basic--dspln-mode-around-advice
+    (orig-func &rest orig-args)
+  "Filters for `display-line-numbers-mode' to press it for some
+occasions. "
+  (unless (or (member major-mode
+                      '(vterm-mode
+                        shell-mode
+                        eshell-mode
+                        term-mode
+                        treemacs-mode
+                        neotree-mode
+                        dashboard-mode
+                        dired-mode
+                        eww-mode
+                        w3m-mode))
+              (bound-and-true-p entropy/emacs-ui-init-welcom-mode))
+    (apply orig-func orig-args)))
+
+(advice-add 'display-line-numbers-mode
+            :around
+            #'entropy/emacs-basic--dspln-mode-around-advice)
+
+(entropy/emacs-lazy-with-load-trail
+ global-display-line-numbers-mode
+ (setq-default display-line-numbers-width-start t)
+ (when entropy/emacs-init-display-line-numbers-mode
+   (global-display-line-numbers-mode)))
+
+;; *** Global hl-line mode
+(defun entropy/emacs-turn-on-hl-line-mode ()
+  "The filter for `hl-line-mode' available option in triggered
+buffer, in that case any conditions don't match the filter then
+`hl-line-mode' will be enabled."
+  (unless (or (member major-mode
+                      '(vterm-mode
+                        shell-mode
+                        eshell-mode
+                        term-mode
+                        dashboard-mode))
+              (bound-and-true-p entropy/emacs-ui-init-welcom-mode))
+    (hl-line-mode 1)))
+
+;; Build `hl-line-mode' based global mode, that it is different from
+;; `global-hl-line-mode' which use `global-hl-line-highlight-all' as
+;; the subroutine. So that we can toggle line highlight feature
+;; without global status restriction anti from what
+;; `global-hl-line-mode' did.
+(define-globalized-minor-mode entropy/emacs-hl-line-global-mode
+  hl-line-mode
+  entropy/emacs-turn-on-hl-line-mode)
+
+(entropy/emacs-lazy-with-load-trail
+ global-hl-line-mode
+ (when entropy/emacs-init-hl-line-mode
+   (entropy/emacs-hl-line-global-mode 1)))
 
 ;; *** Backup setting
 (setq-default auto-save-default nil)    ; disable it for preventing typing lagging
@@ -675,7 +725,7 @@ Filename are \".scratch_entropy\" host in
   (lisp-interaction-mode)
   (message "Create *scratch* buffer"))
 
-;; *** Highlight current line
+;; *** Highlight current line and display line numbers
 (defun entropy/emacs-basic--dhl-judge-state ()
   (let ((hlmp (ignore-errors hl-line-mode))
         (dlmp display-line-numbers)
@@ -694,31 +744,27 @@ Filename are \".scratch_entropy\" host in
 
 (defun entropy/emacs-basic-dhl-toggle ($Prefix)
   (interactive "P")
-  (if (not (version< emacs-version "26.1"))
-      (if (not $Prefix)
-          (cl-case (entropy/emacs-basic--dhl-judge-state)
-            (1
-             (hl-line-mode 1))
-            (2
-             (hl-line-mode 1))
-            (3
-             (hl-line-mode 0))
-            (4
-             (hl-line-mode 0)))
-        (cl-case (entropy/emacs-basic--dhl-judge-state)
-          (1
-           (hl-line-mode 1)
-           (display-line-numbers-mode 1))
-          (2
-           (hl-line-mode 1))
-          (3
-           (display-line-numbers-mode 1))
-          (4
-           (hl-line-mode 0)
-           (display-line-numbers-mode 0))))
-    (if (not (ignore-errors hl-line-mode))
-        (hl-line-mode 1)
-      (hl-line-mode 0))))
+  (if (not $Prefix)
+      (cl-case (entropy/emacs-basic--dhl-judge-state)
+        (1
+         (hl-line-mode 1))
+        (2
+         (hl-line-mode 1))
+        (3
+         (hl-line-mode 0))
+        (4
+         (hl-line-mode 0)))
+    (cl-case (entropy/emacs-basic--dhl-judge-state)
+      (1
+       (hl-line-mode 1)
+       (display-line-numbers-mode 1))
+      (2
+       (hl-line-mode 1))
+      (3
+       (display-line-numbers-mode 1))
+      (4
+       (hl-line-mode 0)
+       (display-line-numbers-mode 0)))))
 
 ;; *** Smooth scrolling
 
@@ -1022,7 +1068,7 @@ This affected by `neotree' or `treemacs' window sticking with
   :commands (entropy-grom-mode)
   :init
   (entropy/emacs-lazy-initial-advice-before
-   '(find-file push-button find-library-name)
+   (find-file push-button find-library-name)
    "entropy-grom"
    "entropy-grom"
    (entropy-grom-mode +1))
@@ -1033,7 +1079,7 @@ This affected by `neotree' or `treemacs' window sticking with
 ;; *** Revert buffer automatically
 
 (entropy/emacs-lazy-initial-for-hook
- '(find-file-hook)
+ (find-file-hook)
  "GlbAutoRevertMode"
  "GlbAutoRevertMode-enabled"
  (global-auto-revert-mode +1))
@@ -1587,7 +1633,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
   :ensure nil
   :init
   (entropy/emacs-lazy-initial-for-hook
-   '(dired-mode-hook find-file-hook)
+   (dired-mode-hook find-file-hook)
    "epa-mode" "epa-mode"
    (epa-file-enable))
 
@@ -1780,7 +1826,7 @@ otherwise returns nil."
                      (auto-compression-mode 1))))
       (t
        (entropy/emacs-lazy-initial-advice-before
-        '(push-button load-library find-library)
+        (push-button load-library find-library)
         "autocompression-mode"
         "autocompression-mode"
         (auto-compression-mode 0)

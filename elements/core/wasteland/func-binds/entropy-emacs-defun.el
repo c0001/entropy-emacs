@@ -798,27 +798,37 @@ c)'."
 
 ;; *** batch `eval-after-load'
 (defmacro entropy/emacs-eval-after-load (feature &rest body)
-  (let (forms (cnt 1) bound)
-    (cond ((symbolp feature)
+  "Wrap BODY into FEATURE using `eval-after-load'.
+
+Feature is can be a FILE arg of `eval-after-load' or a list of
+that (note that this is a macro that if feature is a list, it
+means its a form of a list)."
+  (let (forms
+        (extract-item
+         (lambda (file)
+           (if (stringp file)
+               file
+             `(quote ,file)))))
+    (cond ((not (listp feature))
            (setq forms
-                 `(eval-after-load ',feature
+                 `(eval-after-load ,(funcall extract-item feature)
+                    (lambda ()
+                      ,@body))))
+          ((and (listp feature)
+                (= 1 (length feature)))
+           (setq forms
+                 `(eval-after-load ,(funcall extract-item (car feature))
                     (lambda ()
                       ,@body))))
           ((and (listp feature)
                 (> (length feature) 1))
            (setq feature (reverse feature)
-                 forms `(eval-after-load ',(car feature) (lambda () ,@body))
-                 bound (length (cdr feature)))
-           (dolist (load (cdr feature))
+                 forms `(eval-after-load ,(funcall extract-item (car feature))
+                          (lambda () ,@body)))
+           (dolist (file (cdr feature))
              (setq forms
-                   `(eval-after-load ',load
-                      ,forms))))
-          ((and (listp feature)
-                (= 1 (length feature)))
-           (setq forms
-                 `(eval-after-load ',(car feature)
-                    (lambda ()
-                      ,@body)))))
+                   `(eval-after-load ,(funcall extract-item file)
+                      ,forms)))))
     forms))
 
 ;; *** hook refer
@@ -857,10 +867,8 @@ in case that file does not provide any feature."
   "Wrapping BODY to a function named with suffix by NAME into
 =entropy-emacs= startup trail hook.
 
-=entropy-emacs= trail hook are `entropy/emacs-init-mini-hook',
-`entropy/emacs-init-X-hook', `entropy/emacs-pdumper-load-hook' and
-`entropy/emacs-startup-end-hook', see their their doc-string for
-details.
+See `entropy/emacs-select-trail-hook' for details of what is
+=entropy-emacs= trail hook.
 
 BODY can be forms or a expanded FORM-PLIST (see
 `entropy/emacs-get-plist-form') in which case there's some keys on
@@ -909,26 +917,79 @@ functional aim to:
          (setq entropy/emacs-startup-end-hook
                (append entropy/emacs-startup-end-hook
                        '(,func))))
-        (entropy/emacs-fall-love-with-pdumper
-         (setq entropy/emacs-pdumper-load-hook
-               (append entropy/emacs-pdumper-load-hook
-                       '(,func))))
         (t
-         (set (entropy/emacs-select-x-hook)
-              (append (symbol-value (entropy/emacs-select-x-hook))
+         (set (entropy/emacs-select-trail-hook)
+              (append (symbol-value (entropy/emacs-select-trail-hook))
                       '(,func))))))))
 
 (defun entropy/emacs-lazy-initial-form
-    (list-var initial-func-suffix-name initial-var-suffix-name abbrev-name adder-name &rest form_args)
+    (list-var
+     initial-func-suffix-name initial-var-suffix-name
+     abbrev-name adder-name
+     &rest form_args)
+  "Generate a form whose functional is to wrap some forms into a
+GENED-FUNTION who named with ABBREV-NAME and INITIAL-SUFFIX-NAME
+(a non empty string) and add it with some *tricks* to
+=entropy-emacs= trial hook (see
+`entropy/emacs-lazy-with-load-trail') with *once calling* feature
+for =entropy-emacs= lazy-load meaning.
+
+The '&rest' type FORM-ARGS is orderd with ADDER-TYPE ADDER-FLAG
+and BODY.
+
+ADDER-TYPE is a symbol of either 'add-hook' or 'advice-add'.
+
+When ADDER-FLAG is non-nil, whatever value it hosted is meaning
+for a `advice-add's WHERE argument defination.
+
+There's two tricks:
+
+1. Directly add GENED-FUNCTION into the =entropy-emacs= trail hook
+   when `entropy/emacs-custom-enable-lazy-load' is non-nil.
+
+2. Using LIST-VAR and consider each element of it is a hook (when
+   the ADDER-FLAG is nil) or a function (when ADDER-TYPE is
+   non-nil), and add the GENED-FUNCTION into the hook or the
+   advice env respectively using a ADDER-FUNCION named with the
+   GENED-FUNCTION name suffixing on ADDER-NAME (a non empty
+   string) for insteadly add it into =entropy-emacs= trail hook to
+   get the lazy load effection.
+
+The GENED-FUNCTION has the '&rest' type argument
+'$_|internal-args' which has different meaning for different value
+of ADDER-TYPE, it's meaningless when ADDER-TYPE is `add-hook',
+otherwise it has the meaning for `add-function' remaining.
+
+The GENED-FUNCTION is invocated just once that's why it is used
+for lazy-loading. This functional based on the INITIAL-VAR which
+named with ABBREV-NAME and INITIAL-VAR-SUFFIX-NAME (a non empty
+string), BODY is wrapped into a form like:
+#+begin_src emacs-lisp
+  (unless INITIAL-VAR
+    ,@BODY
+    (setq INITIAL-VAR t))
+#+end_src
+
+At last, ABBREV-NAME is feature based name string so that other
+macro or function can use this function to generate the
+GENED-FUNCTION with their own name abbreviated."
+
   (let* ((func (intern (concat abbrev-name "_" initial-func-suffix-name)))
          (adder-func (intern (concat (symbol-name func) "_" adder-name)))
          (var (intern (concat abbrev-name "_+" initial-var-suffix-name)))
          (adder-type (car form_args))
          (adder-flag (cadr form_args))
          (func-body (nth 2 form_args)))
+    (unless (member adder-type '(add-hook advice-add))
+      (error "Wrong adder-type for lazy-initial form '%s'"
+             abbrev-name))
+    (when (and (eq adder-type 'add-hook)
+               (not (null adder-flag)))
+      (error "Non-nil flag for 'add-hook' adder-type for lazy-initial form '%s'"
+             abbrev-name))
     `(progn
        (defvar ,var nil)
-       (defun ,func (&rest _)
+       (defun ,func (&rest $_|internal-args)
          (let ((head-time (time-to-seconds))
                end-time)
            (unless ,var
@@ -949,13 +1010,12 @@ functional aim to:
               (cyan (format "%f" (- end-time head-time)))
               (green "seconds."))
              (redisplay t))))
-       (let ((hook (entropy/emacs-select-x-hook)))
+       (let ((hook (entropy/emacs-select-trail-hook)))
          (cond
-          ((and (not entropy/emacs-custom-enable-lazy-load)
-                (not entropy/emacs-fall-love-with-pdumper))
+          ((not entropy/emacs-custom-enable-lazy-load)
            (set hook (append (symbol-value hook) '(,func))))
           (t (defun ,adder-func ()
-               (dolist (item ,list-var)
+               (dolist (item ',list-var)
                  (if (not (null ,adder-flag))
                      (,adder-type item ,adder-flag ',func)
                    (,adder-type item ',func))))

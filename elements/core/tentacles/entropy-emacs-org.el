@@ -180,7 +180,7 @@
          'org-babel-load-languages ob-lang))))
 
   (entropy/emacs-lazy-initial-advice-before
-   '(org-mode)
+   (org-mode)
    "org-mode"
    "org-mode"
    (when (and (not entropy/emacs-fall-love-with-pdumper)

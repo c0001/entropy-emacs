@@ -37,18 +37,6 @@
 (require 'entropy-emacs-defun)
 (require 'entropy-emacs-message)
 
-;; ** Patched for selected-packages
-;; FIXME: DO NOT copy package-selected-packages to init/custom file forcibly.
-;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
-(entropy/emacs-lazy-load-simple package
-  (defun package--save-selected-packages (&optional value)
-    "Set and (don't!) save `package-selected-packages' to VALUE."
-    (when value
-      (setq package-selected-packages value))
-    (unless after-init-time
-      (add-hook 'after-init-hook #'package--save-selected-packages))))
-
-;;
 ;; ** Prepare
 ;; *** Package archive set
 ;;
@@ -138,6 +126,7 @@ This procedure will refresh all packages status."
 ;; ** Package install subroutines
 ;; *** core
 (defvar entropy/emacs-package-install-failed-list nil)
+(defvar entropy/emacs-package-install-success-list nil)
 
 (defun entropy/emacs-package-package-archive-empty-p ()
   "Check the package archive dir status in `package-user-dir'.
@@ -165,7 +154,8 @@ When installing encounters the fatal error, put the pkg into
             (setq install-pass
                   (condition-case nil
                       (let ((inhibit-message not-prompt))
-                        (apply 'package-install args))
+                        (apply 'package-install args)
+                        (push pkg entropy/emacs-package-install-success-list))
                     (error 'notpassed)))
             (when (eq install-pass 'notpassed)
               (push pkg
@@ -293,10 +283,6 @@ When installing encounters the fatal error, put the pkg into
     :commands (bind-key)))
 
 ;; ** common start
-(defvar entropy/emas-package-common-start-after-hook nil
-  "Hooks run after the entropy-emacs elisp packages initialized
- done while calling `entropy/emacs-package-common-start'.")
-
 (defun entropy/emacs-package-common-start ()
   (entropy/emacs-package-install-all-packages)
   (entropy/emacs-package-init-use-package)
