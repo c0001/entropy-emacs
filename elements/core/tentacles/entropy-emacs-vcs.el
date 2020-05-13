@@ -70,11 +70,9 @@
       (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)))
 
   :init
-  (if entropy/emacs-fall-love-with-pdumper
-      (entropy/emacs-vcs--magit-init)
-    (entropy/emacs-lazy-with-load-trail
-     magit-init
-     (entropy/emacs-vcs--magit-init)))
+  (entropy/emacs-lazy-with-load-trail
+   magit-init
+   (entropy/emacs-vcs--magit-init))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation
   (progn
