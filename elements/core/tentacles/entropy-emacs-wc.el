@@ -788,7 +788,13 @@ without derived slot."
     (("C-<f10>" windresize "Resize Window"
       :enable t
       :global-bind t
-      :exit t)))))
+      :exit t))))
+  :config
+  ;; define missing <return> key as `windresize-exit' that prevent
+  ;; that key stroken calling from current major-mode map e.g. vterm
+  ;; has bind it.
+  (define-key windresize-map
+    (kbd "<return>") #'windresize-exit))
 
 ;; ** Exchange window
 (use-package buffer-move
