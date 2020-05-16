@@ -1550,9 +1550,6 @@ hook.
 Also see `entropy/emacs-run-startup-end-hook' for restriction
 description.")
 
-(defvar entropy/emacs-pdumper-load-end-hook nil
-  "Hook for run after pdumper session startup.")
-
 ;; *** making procedure
 (defun entropy/emacs-is-make-session ()
   "Obtained the 'EEMACS_MAKE' env variable value if valid
