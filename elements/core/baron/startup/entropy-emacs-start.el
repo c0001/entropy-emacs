@@ -321,8 +321,6 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   (when entropy/emacs-fall-love-with-pdumper
     (require 'entropy-emacs-pdumper))
 
-  (require 'entropy-emacs-hydra-hollow)
-
   ;; basic feature defination
   (require 'entropy-emacs-basic)
 
