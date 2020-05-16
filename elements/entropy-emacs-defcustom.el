@@ -137,15 +137,13 @@ Since `popwin' is not under maintaining anymore, defualtly using
   :type 'symbol
   :group 'entropy/emacs-customize-fundametal)
 
-(defcustom entropy/emacs-init-display-line-numbers-mode t
-  "Enable `global-display-line-numbers-mode' at start up time
-when in emacs 26 or higher emacs version."
+(defcustom entropy/emacs-init-display-line-numbers-mode nil
+  "Enable `global-display-line-numbers-mode' at start up time."
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-init-hl-line-mode t
-  "Enable `global-hl-line-mode' at start up time
-when in emacs 26 or higher emacs version."
+  "Enable `global-hl-line-mode' at start up time."
   :type 'boolean
   :group 'entropy/emacs-customize-fundametal)
 
