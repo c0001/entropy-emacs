@@ -143,12 +143,14 @@ configuration.")
 (defun entropy/emacs-pdumper--extract-eemacs-deps-packages ()
   (let* ((eemacs-deps-top-dir
           entropy/emacs-site-lisp-path)
-         (exc-filters `(,(rx (seq line-start
-                                  (or "liberime"
-                                      "fakecygpty"
-                                      "font-lock"
-                                      "test")
-                                  (* any)))))
+         (exc-filters `(,(rx (or (seq line-start
+                                      (or "liberime"
+                                          "fakecygpty"
+                                          "font-lock"
+                                          "test")
+                                      (* any)
+                                      line-end)
+                                 (seq "pkg.el" line-end)))))
          (inc-filters `(,(rx (seq line-start "entropy-" (* any))
                              (seq ".el" line-end)))))
     (entropy/emacs-pdumper--extract-files-with-dir
