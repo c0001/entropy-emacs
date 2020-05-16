@@ -217,7 +217,7 @@
    (advice-add 'make-frame
                :around
                #'entropy/emacs-themes-solaire-around-advice-for-make-frame)
-   (solaire-global-mode)
+   (entropy/emacs-themes--enable-solaire-global-mode)
    (entropy/emacs-themes--solaire-swap-bg))
 
   :config
