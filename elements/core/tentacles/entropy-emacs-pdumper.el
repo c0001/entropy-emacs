@@ -178,6 +178,10 @@ configuration.")
     (global-font-lock-mode +1)
     (transient-mark-mode +1)
     (setq load-path entropy/emacs-pdumper-pre-lpth)
+    (scroll-bar-mode 0)
+    (tool-bar-mode 0)
+    (menu-bar-mode 0)
+    (redisplay t)
 
     ;; TODO ...body
 
@@ -186,10 +190,6 @@ configuration.")
     (run-hooks 'entropy/emacs-pdumper-load-hook)
     ;; trail dealing
     (load-library "tramp")              ;reload tramp for enable `auto-sudoedit'
-    (scroll-bar-mode 0)
-    (tool-bar-mode 0)
-    (menu-bar-mode 0)
-    (redisplay t)
     (setq entropy/emacs-fall-love-with-pdumper nil)
     (entropy/emacs-message-do-message (green "Initialized pdumper session"))
     (when entropy/emacs-pdumper--rec-timer

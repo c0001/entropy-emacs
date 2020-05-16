@@ -383,8 +383,9 @@ for a long time and so as the bad head dispersion."
   :group 'entropy/emacs-customize-modeline)
 
 ;; ***** display time in modeline
-(defcustom entropy/emacs-display-time-modeline t
-  "Whether show the Real-time TIME in mode line."
+(defcustom entropy/emacs-display-time-modeline nil
+  "Whether show the Real-time TIME in mode line, it's suggest not
+set for that messy with modeline type, default to nil."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 

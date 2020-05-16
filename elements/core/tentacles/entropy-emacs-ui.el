@@ -496,9 +496,10 @@ for adding to variable `window-size-change-functions' and hook
       (add-hook 'window-size-change-functions 'entropy/emacs-ui--init-welcom-resize-hook))
     (entropy/emacs-ui--init-welcom-resize-hook))
 
-  (defun entropy/emacs-ui--init-welcom-init-core ()
-    ;; (setq initial-buffer-choice #'entropy/emacs-ui--init-welcom-initial-buffer)
-    (switch-to-buffer (entropy/emacs-ui--init-welcom-initial-buffer))
+  (defun entropy/emacs-ui--init-welcom-init-core (&optional initial)
+    (if initial
+        (setq initial-buffer-choice #'entropy/emacs-ui--init-welcom-initial-buffer)
+      (switch-to-buffer (entropy/emacs-ui--init-welcom-initial-buffer)))
     (entropy/emacs-ui--init-welcom-resize-run))
 
   (setq inhibit-startup-screen t)
@@ -507,22 +508,8 @@ for adding to variable `window-size-change-functions' and hook
       (entropy/emacs-lazy-with-load-trail
        welcome-buffer
        (setq entropy/emacs-ui--init-welcom-width (window-width))
-       (setq entropy/emacs-ui--init-welcom-widget-entry-info-list
-             (entropy/emacs-ui--init-welcom-gen-widget-entry-info-list))
-       (entropy/emacs-ui--init-welcom-init-core)
-       (entropy/emacs-ui--init-welcom-resize-run)
-       (let ((buffer (entropy/emacs-ui--init-welcom-initial-buffer)))
-         (unless (eq entropy/emacs-enable-initial-dashboard 'rich)
-           (switch-to-buffer buffer))))
-    (entropy/emacs-ui--init-welcom-init-core)
-    (entropy/emacs-lazy-with-load-trail
-     welcome-buffer-refresh
-     (kill-buffer entropy/emacs-init-welcom-buffer-name)
-     (setq entropy/emacs-ui--init-welcom-widget-entry-info-list
-           (entropy/emacs-ui--init-welcom-gen-widget-entry-info-list))
-     (let ((buffer (entropy/emacs-ui--init-welcom-initial-buffer)))
-       (unless (eq entropy/emacs-enable-initial-dashboard 'rich)
-         (switch-to-buffer buffer))))))
+       (entropy/emacs-ui--init-welcom-init-core))
+    (entropy/emacs-ui--init-welcom-init-core)))
 
 ;; *** emacs dashboard
 

@@ -40,6 +40,7 @@
 ;; ** require
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-message)
+(require 'entropy-emacs-defun)
 
 ;; ** library
 ;; *** subroutines
@@ -436,7 +437,9 @@ EXIT /b
    "https://github.com/PowerShell/PowerShellEditorServices/releases/download/v2.1.0/PowerShellEditorServices.zip"
    'zip))
 (when (eq (entropy/emacs-get-use-ide-type 'powershell-mode) 'lsp)
-  (entropy/emacs-lazy-load-simple lsp-pwsh
+  (with-eval-after-load 'lsp-pwsh       ;do not using
+                                        ;`entropy/emacs-lazy-load-simple',
+                                        ;thats will force load 'lsp' while pdumper procedure
     (unless (file-exists-p lsp-pwsh-log-path)
       ;; ensure that the log path exist or will make pwsh-ls start fail
       (mkdir lsp-pwsh-log-path 'create-parent)))
@@ -539,11 +542,12 @@ EXIT /b
                       compile-task))
                ((string= pyls-ms-cur-status "not-compile")
                 (list compile-task))))))))
-(entropy/emacs-lazy-load-simple lsp-python-ms
-  (setq lsp-python-ms-dir
-        (expand-file-name
-         "output/bin/Release/linux-x64/publish/"
-         entropy/emacs-coworker--pyls-ms-archive-dir)))
+
+(setq lsp-python-ms-dir
+      (expand-file-name
+       "output/bin/Release/linux-x64/publish/"
+       entropy/emacs-coworker--pyls-ms-archive-dir))
+
 
 ;; **** main
 

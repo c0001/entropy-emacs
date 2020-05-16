@@ -38,6 +38,9 @@
   "Hooks run after the entropy-emacs elisp packages initialized
  done while calling `entropy/emacs-package-common-start'.")
 
+(defvar entropy/emacs-font-set-end-hook nil
+  "Hooks run after `entropy/emacs-font-set-setfont-core'.")
+
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
   "The top keymap for entropy-emacs holding the global
 commands.")

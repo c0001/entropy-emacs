@@ -249,7 +249,10 @@ it.
                                   :height
                                   height)))
         (warn
-         "Your default font size is too large, you must set it smaller than 15 for adapting to other entropy-emacs settings.")))))
+         "Your default font size is too large,
+you must set it smaller than 15 for adapting to other entropy-emacs settings."))
+      ;; run font-set after hooks
+      (run-hooks 'entropy/emacs-font-set-end-hook))))
 
 (defun entropy/emacs-font-set--setfont-initial ()
   (when entropy/emacs-font-setting-enable

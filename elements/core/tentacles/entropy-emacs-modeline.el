@@ -385,6 +385,13 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   :init
   (setq doom-modeline-unicode-fallback t)
 
+  (when (equal entropy/emacs-modeline-style "doom")
+    (entropy/emacs-lazy-load-simple doom-modeline
+      (add-hook 'entropy/emacs-font-set-end-hook
+                #'doom-modeline-refresh-font-width-cache)
+      (add-hook 'entropy/emacs-startup-end-hook
+                #'doom-modeline-refresh-font-width-cache)))
+
 ;; ***** config
   :config
   (unless entropy/emacs-modeline--doom-modeline-spec-done
