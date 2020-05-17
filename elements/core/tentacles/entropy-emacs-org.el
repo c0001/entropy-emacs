@@ -183,12 +183,11 @@
   :init
   (entropy/emacs-lazy-initial-advice-before
    (org-mode)
-   "org-mode"
-   "org-mode"
-   (entropy/emacs-run-hooks-with-prompt
-    (when (and (not entropy/emacs-fall-love-with-pdumper)
-               (not entropy/emacs-custom-enable-lazy-load))
-      (entropy/emacs-org-do-load-org-babels))))
+   "org-mode-load-babel"
+   "org-mode-load-babel"
+   (when (and (not entropy/emacs-fall-love-with-pdumper)
+              (not entropy/emacs-custom-enable-lazy-load))
+     (entropy/emacs-org-do-load-org-babels)))
 
   (entropy/emacs-lazy-load-simple org
     (unless (or entropy/emacs-fall-love-with-pdumper
