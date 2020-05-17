@@ -59,36 +59,29 @@ it.
 ===== Missing fonts list: =====
 ")
 
-(setq entropy/emacs-font-set-fontset-group-alias
-      '((sarasa :latin "Sarasa Mono SC" :sc "Sarasa Mono SC" :tc "Sarasa Mono TC"
-                :jp "Sarasa Mono J" :kr "Sarasa Mono K")
-        (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
-                :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
-                :symbol "Noto Sans Symbols"
-                :extra ("Symbola")
-                :after
-                (lambda (frame)
-                  (dolist (char '(?← ?→ ?↑ ?↓))
-                    (set-fontset-font nil char (font-spec :family "Symbola")))
-                  (when (alist-get "Symbola" face-font-rescale-alist nil nil #'string=)
-                    (setq face-font-rescale-alist
-                          (assoc-delete-all
-                           "Symbola"
-                           face-font-rescale-alist #'string=)))
-                  (add-to-list 'face-font-rescale-alist (cons "Symbola" 0.85))))
-        (fira-code :latin "Fira Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
-                   :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
-                   :symbol "Noto Sans Symbols"
-                   :after
-                   (lambda (frame)
-                     (dolist (char '(?← ?→ ?↑ ?↓))
-                       (set-fontset-font nil char (font-spec :family "Symbola")))
-                     (when (alist-get "Symbola" face-font-rescale-alist nil nil #'string=)
-                       (setq face-font-rescale-alist
-                             (assoc-delete-all
-                              "Symbola"
-                              face-font-rescale-alist #'string=)))
-                     (add-to-list 'face-font-rescale-alist (cons "Symbola" 0.85))))))
+(defvar entropy/emacs-font-set-fontset-group-alias
+  '((sarasa :latin "Sarasa Mono SC" :sc "Sarasa Mono SC" :tc "Sarasa Mono TC"
+            :jp "Sarasa Mono J" :kr "Sarasa Mono K")
+    (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
+            :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
+            :symbol "Symbola")
+    (fira-code :latin "Fira Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
+               :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
+               :symbol "Symbola"))
+  "Alist of each fontset group for =entropy-emacs=.
+
+ Each element is a cons of a type symbol and a group instance
+ plist with following valid keys:
+
+ - ':latin': latin script font family name string.
+ - ':sc': simplified chinese font family name string.
+ - ':tc': traditional chinese font family name string.
+ - ':jp': japanese font family name string.
+ - ':kr': korean font family name string.
+ - ':symbol': symbol script font family name string.
+ - ':extra': needed extra font family name strings list.
+ - ':after': a function with one argument of a frame selected be
+   called when this fontset type group is set.")
 
 (defun entropy/emacs-font-set-register ()
   (when (eq entropy/emacs-font-setting-enable t)

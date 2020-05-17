@@ -1598,13 +1598,26 @@ as the hypenation."
 
 ;; ** entropy-emacs additional function
 ;; *** tags align
-(defun entropy/emacs-org-tags-align ()
+(defun entropy/emacs-org-tags-align (&optional all)
   "Align all tags in one org-mode buffer with align column prompt
-inputting."
-  (interactive)
+inputting, the align number must be positive as that it will be
+automatically transferred to the value adapted to
+`org-tags-column'."
+  (interactive "P")
   (let ((org-tags-column (string-to-number
-                          (read-string "please insert the tag align column: "))))
-    (org-set-tags 'universal-argument t)))
+                          (concat "-"
+                                  (read-string
+                                   "please insert the tag align column: ")))))
+    (if (and (not all) (org-at-heading-p))
+        (org--align-tags-here org-tags-column)
+      (save-excursion
+        (if all
+            (progn
+              (goto-char (point-min))
+              (while (re-search-forward org-tag-line-re nil t)
+                (org--align-tags-here org-tags-column)))
+          (org-back-to-heading t)
+          (org--align-tags-here org-tags-column))))))
 
 ;; *** org file images checking
 ;; **** extract all images from org file
@@ -1685,22 +1698,45 @@ Now just supply localization image file analyzing."
 
 
 ;; ** org-bullets
-(when (and (display-graphic-p)
-           entropy/emacs-enable-org-bullets)
-  (use-package org-bullets
-    :commands (org-bullets-mode)
-    :hook (org-mode . (lambda () (org-bullets-mode 1)))
-    :config
-    (if (not (string= entropy/emacs-org-bullets-type "roman"))
-        (setq org-bullets-bullet-list '("⓪" "①" "②" "③"
-                                        "④" "⑤" "⑥" "⑦"
-                                        "⑧" "⑨" "⑩" "⑪"
-                                        "⑫" "⑬" "⑭"
-                                        "⑮" "⑯" "⑰"
-                                        "⑱" "⑲" "⑳"))
-      (setq org-bullets-bullet-list '("●" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ"
-                                      "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ"
-                                      "Ⅹ" "Ⅺ" "Ⅻ")))))
+(use-package org-bullets
+  :commands (org-bullets-mode)
+  :hook (org-mode . (lambda () (org-bullets-mode 1)))
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   org-bullet-mode-init
+   (if (daemonp)
+       (entropy/emacs-with-daemon-make-frame-done
+        'org-bullet-mode-init
+        '(progn
+           (remove-hook 'org-mode-hook #'org-bullets-mode)
+           (mapc
+            (lambda (buffer)
+              (with-current-buffer buffer
+                (when (and (eq major-mode 'org-mode)
+                           (bound-and-true-p org-bullets-mode))
+                  (org-bullets-mode 0))))
+            (buffer-list)))
+        '(progn
+           (add-hook 'org-mode-hook #'org-bullets-mode)
+           (mapc
+            (lambda (buffer)
+              (with-current-buffer buffer
+                (when (and (eq major-mode 'org-mode)
+                           (null (bound-and-true-p org-bullets-mode)))
+                  (org-bullets-mode 1))))
+            (buffer-list))))
+     (add-hook 'org-mode #'org-bullets-mode)))
+  :config
+  (if (not (string= entropy/emacs-org-bullets-type "roman"))
+      (setq org-bullets-bullet-list '("⓪" "①" "②" "③"
+                                      "④" "⑤" "⑥" "⑦"
+                                      "⑧" "⑨" "⑩" "⑪"
+                                      "⑫" "⑬" "⑭"
+                                      "⑮" "⑯" "⑰"
+                                      "⑱" "⑲" "⑳"))
+    (setq org-bullets-bullet-list '("●" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ"
+                                    "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ"
+                                    "Ⅹ" "Ⅺ" "Ⅻ"))))
 
 ;; ** ox-reveal
 (use-package ox-reveal
