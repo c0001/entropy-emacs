@@ -455,7 +455,7 @@ which determined by the scale count 0.3 "
 
 (entropy/emacs-hydra-hollow-add-for-top-dispatch
  '("WI&BUF"
-   (("C-x M-3" entropy/emacs-tools-horizonal-split-window
+   (("C-x M-1" entropy/emacs-tools-horizonal-split-window
      "Split the single window to two windows with different size"
      :enable t :exit t :global-bind t))))
 
@@ -478,8 +478,9 @@ which determined by the scale count 0.3 "
   (let ((time (format-time-string "%Y-%m-%d %a %H:%M:%S")))
     (message "Now is %s" time)))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
+(entropy/emacs-hydra-hollow-common-individual-hydra-define+
+ 'eemacs-basic-config-core nil nil
+ '("Eemacs Basic Core"
    (("<f12>" entropy/emacs-tools-time-show
      "Show current time with date information also"
      :enable t :exit t :global-bind t))))

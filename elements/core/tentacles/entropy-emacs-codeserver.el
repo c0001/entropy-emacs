@@ -182,15 +182,51 @@ It is the recommendation of irony-mode official introduction."
 ;; *** lsp-client
 ;; **** lsp-mode
 (use-package lsp-mode
+  :diminish lsp-mode
+  :commands (lsp lsp-mode lsp-deferred
+
+                 lsp-disconnect
+                 lsp-rename
+                 lsp-document-highlight
+                 lsp-signature-activate
+                 lsp-organize-imports
+                 lsp-execute-code-action
+
+                 lsp-workspace-restart
+                 lsp-workspace-shutdown
+                 lsp-workspace-folders-add
+                 lsp-workspace-folders-remove
+                 lsp-workspace-blacklist-remove
+
+                 lsp-describe-session
+                 lsp-describe-thing-at-point
+
+                 lsp-format-buffer
+                 lsp-format-region
+
+                 lsp-lens-mode
+                 lsp-avy-lens
+
+                 lsp-toggle-trace-io
+                 lsp-toggle-symbol-highlight
+                 lsp-toggle-signature-auto-activate
+                 lsp-toggle-on-type-formatting
+
+                 lsp-treemacs-sync-mode
+                 lsp-treemacs-call-hierarchy
+                 lsp-treemacs-errors-list
+
+                 lsp-find-definition
+                 lsp-find-references
+                 lsp-find-implementation
+                 lsp-find-type-definition
+                 lsp-find-declaration)
   :preface
   (defun entropy/emacs-codeserver-lsp-mode-remove-session-file ()
     (when (and (boundp 'lsp-session-file)
                (file-exists-p lsp-session-file))
       (delete-file lsp-session-file)))
 
-  :diminish lsp-mode
-  :commands (lsp lsp-mode lsp-deferred)
-  :preface
   (defun entropy/emacs-codeserver--lsp-deferred-promt (&rest _)
     "Prompting for `lsp-deferred' starting for prevent lagging
 nervous."
@@ -205,6 +241,86 @@ nervous."
                                  lisp-interaction-mode
                                  lisp-mode))
       (apply orig-func orig-args)))
+
+  :eemacs-indhc
+  (((:enable t)
+    (lsp-mode nil nil nil (2 2 2 1 1)))
+   ("Basic"
+    (("b s" lsp "Start lsp server for current workspace"
+      :enable t :exit t)
+     ("b d" lsp-disconnect "Disconnect lsp server for current workspace"
+      :enable t :exit t)
+     ("b r" lsp-rename "Rename the symbol (and all references to it)"
+      :enable t :exit t)
+     ("b h" lsp-document-highlight "Highlight all relevant references at point"
+      :enable t :exit t))
+    "Workspace"
+    (("w r" lsp-workspace-restart "Restart the workspace WORKSPACE"
+      :enable t :exit t)
+     ("w s" lsp-workspace-shutdown "Shut the workspace WORKSPACE"
+      :enable t :exit t)
+     ("w a" lsp-workspace-folders-add "Add PROJECT-ROOT to the list of workspace folders"
+      :enable t :exit t)
+     ("w d" lsp-workspace-folders-remove "Remove PROJECT-ROOT from the list of workspace folders"
+      :enable t :exit t)
+     ("w l" lsp-workspace-blacklist-remove "Remove PROJECT-ROOT from the workspace blacklist"
+      :enable t :exit t))
+    "Describe"
+    (("d s" lsp-describe-session "Describes current 'lsp-session'"
+      :enable t :exit t)
+     ("d t" lsp-describe-thing-at-point "Display the type signature and documentation"
+      :enable t :exit t))
+    "Format"
+    (("f b" lsp-format-buffer "Ask the server to format this document"
+      :enable t :exit t)
+     ("f r" lsp-format-region "Ask the server to format the region"
+      :enable t :exit t))
+    "Lens"
+    (("l m" lsp-lens-mode "Toggle code-lens overlays"
+      :enable t :exit t
+      :toggle
+      (if (bound-and-true-p lsp-lens-mode)
+          t
+        nil))
+     ("l a" lsp-avy-lens "Click lsp lens using 'avy' package"
+      :enable t :exit t))
+    "Toggle"
+    (("t t" lsp-toggle-trace-io "Toggle client-server protocol logging"
+      :enable t :exit t)
+     ("t h" lsp-toggle-symbol-highlight "Toggle symbol highlighting"
+      :enable t :exit t)
+     ("t s" lsp-toggle-signature-auto-activate "Toggle signature auto activate"
+      :enable t :exit t)
+     ("t f" lsp-toggle-on-type-formatting "Toggle on type formatting"
+      :enable t :exit t))
+    "Treemacs integrates "
+    (("e m" lsp-treemacs-sync-mode "synchronizing lsp-mode workspace folders and treemacs projects"
+      :enable t :exit t)
+     ("e c" lsp-treemacs-call-hierarchy "Show the incoming call hierarchy for the symbol at point"
+      :enable t :exit t)
+     ("e e" lsp-treemacs-errors-list "Display error list in treemacs"
+      :enable t :exit t))
+    "Find"
+    (("f d" lsp-find-definition "Find definitions of the symbol under point"
+      :enable t :exit t)
+     ("f r" lsp-find-references "Find references of the symbol under point"
+      :enable t :exit t)
+     ("f i" lsp-find-implementation "Find implementations of the symbol under point"
+      :enable t :exit t)
+     ("f t" lsp-find-type-definition "Find type definitions of the symbol under point"
+      :enable t :exit t)
+     ("f c" lsp-find-declaration "Find declarations of the symbol under point"
+      :enable t :exit t))))
+
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("b l"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'lsp-mode))
+      "Lsp command map"
+      :enable t :exit t))))
 
   :init
   (setq lsp-auto-guess-root t)
