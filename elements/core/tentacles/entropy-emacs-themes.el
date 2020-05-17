@@ -209,16 +209,14 @@
    :body
    (add-hook 'entropy/emacs-theme-load-before-hook
              (lambda nil
-               (if solaire-global-mode
-                   (progn
-                     (solaire-global-mode 0)))))
+               (when (bound-and-true-p solaire-global-mode)
+                 (solaire-global-mode 0))))
    (add-hook 'entropy/emacs-theme-load-after-hook-end-1
              #'entropy/emacs-themes-solaire-after-load-theme-adapts)
    (advice-add 'make-frame
                :around
                #'entropy/emacs-themes-solaire-around-advice-for-make-frame)
-   (entropy/emacs-themes--enable-solaire-global-mode)
-   (entropy/emacs-themes--solaire-swap-bg))
+   (entropy/emacs-themes--enable-solaire-global-mode))
 
   :config
   (advice-add 'turn-on-solaire-mode

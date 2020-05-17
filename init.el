@@ -34,7 +34,6 @@
 ;; configuration
 
 ;; * Code:
-
 ;; ** multi-version emacs compatible
 
 ;; *** make `setq-local' compatible

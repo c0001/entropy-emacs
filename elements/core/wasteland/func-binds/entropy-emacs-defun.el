@@ -847,12 +847,14 @@ in case that file does not provide any feature."
   (cond
    (entropy/emacs-custom-enable-lazy-load
     `(when (not (null ',feature))
-       (entropy/emacs-eval-after-load ,feature
-         ,@body
-         (message "with lazy loading configs for feature '%s' ..."
-                  (if (symbolp ',feature)
-                      (symbol-name ',feature)
-                    ',feature)))))
+       (entropy/emacs-eval-after-load
+        ,feature
+        (message "with lazy loading configs for feature '%s' ..."
+                 (if (symbolp ',feature)
+                     (symbol-name ',feature)
+                   ',feature))
+        (redisplay t)
+        ,@body)))
    ((null entropy/emacs-custom-enable-lazy-load)
     `(when (not (null ',feature))
        (message "force load configs for feature '%s'" (symbol-name ',feature))

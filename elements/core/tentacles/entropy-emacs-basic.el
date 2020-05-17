@@ -649,7 +649,8 @@ buffer, in that case any conditions don't match the filter then
                         eshell-mode
                         term-mode
                         dashboard-mode))
-              (bound-and-true-p entropy/emacs-ui-init-welcom-mode))
+              (bound-and-true-p entropy/emacs-ui-init-welcom-mode)
+              (window-minibuffer-p))
     (hl-line-mode 1)))
 
 ;; Build `hl-line-mode' based global mode, that it is different from
@@ -713,9 +714,7 @@ Filename are \".scratch_entropy\" host in
 
 (entropy/emacs-lazy-with-load-trail
  init-eemamcs-scratch-buffer
- (entropy/emacs-lazy-load-simple entropy-emacs-structure
-   (redisplay t)
-   (entropy/emacs-basic--scratch-buffer-file-binding)))
+ (entropy/emacs-basic--scratch-buffer-file-binding))
 
 ;; Create a new scratch buffer
 (defun entropy/emacs-basic-create-scratch-buffer ()

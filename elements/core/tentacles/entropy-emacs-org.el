@@ -63,7 +63,6 @@
 ;; ** main
 ;; *** core
 (use-package org
-;; **** init
   :ensure nil
   :defines  (org-mode-map)
   :commands (org-mode
@@ -97,6 +96,7 @@
 ;; **** hook
   :hook ((org-mode . org-babel-result-hide-all))
 
+;; **** preface
   :preface
   (defun entropy/emacs-org-do-load-org-babels ()
     "Load all org-babels."
@@ -179,13 +179,29 @@
         (org-babel-do-load-languages
          'org-babel-load-languages ob-lang))))
 
+;; **** init
+  :init
   (entropy/emacs-lazy-initial-advice-before
    (org-mode)
    "org-mode"
    "org-mode"
-   (when (and (not entropy/emacs-fall-love-with-pdumper)
-              (not entropy/emacs-custom-enable-lazy-load))
-     (entropy/emacs-org-do-load-org-babels)))
+   (entropy/emacs-run-hooks-with-prompt
+    (when (and (not entropy/emacs-fall-love-with-pdumper)
+               (not entropy/emacs-custom-enable-lazy-load))
+      (entropy/emacs-org-do-load-org-babels))))
+
+  (entropy/emacs-lazy-load-simple org
+    (unless (or entropy/emacs-fall-love-with-pdumper
+                (not entropy/emacs-custom-enable-lazy-load))
+      (defvar entropy/emacs-org--org-mode-fist-calling-done nil)
+      (advice-add 'org-mode
+                  :around
+                  #'(lambda (orig-func &rest orig-args)
+                      (if entropy/emacs-org--org-mode-fist-calling-done
+                          (progn (apply orig-func orig-args))
+                        (entropy/emacs-run-hooks-with-prompt
+                         (setq entropy/emacs-org--org-mode-fist-calling-done t)
+                         (apply orig-func orig-args)))))))
 
 ;; **** configs
   :config

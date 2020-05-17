@@ -332,8 +332,11 @@ moving operation will cause non-terminated looping proceeding."
 ;; ** outshine-mode
 
 (use-package outshine
+  :commands (outshine-mode)
   :hook
-  ((sh-mode . outshine-mode)
+  ((emacs-lisp-mode . outshine-mode)
+   (lisp-interaction-mode . outshine-mode)
+   (sh-mode . outshine-mode)
    (c-mode . outshine-mode)
    (c++-mode . outshine-mode)
    (java-mode . outshine-mode)
@@ -414,18 +417,11 @@ moving operation will cause non-terminated looping proceeding."
 ;; *** init
 
   :init
-
-  (entropy/emacs-lazy-initial-for-hook
-   (emacs-lisp-mode-hook lisp-interaction-mode-hook)
-   "outshine-mode" "outshine-mode"
-   (outshine-mode +1)
-   (add-hook 'emacs-lisp-mode-hook 'outshine-mode)
-   (add-hook 'lisp-interaction-mode-hook 'outshine-mode))
   (entropy/emacs-lazy-with-load-trail
-   enable-outshine-for-scratch-buffer
+   enable-outshine-for-opened-buffer
    (mapc (lambda (buffer)
-           (when (string= (buffer-name buffer) "*scratch*")
-             (with-current-buffer buffer
+           (with-current-buffer buffer
+             (when (member major-mode '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
                (outshine-mode +1))))
          (buffer-list)))
 

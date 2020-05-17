@@ -1515,6 +1515,43 @@ git-for-windows-sdk `git-bash.exe'"
       "entropy-emacs-doc/org/entropy-emacs_introduction.info"
       entropy/emacs-site-lisp-path)))
 
+;; *** run-hooks with prompt
+(defun entropy/emacs-run-hooks-prompt (orig-func &rest orig-args)
+  "Prompt for `run-hooks' for reduce lagging nervous. It's a
+advice wrapper, do not calling it in the normal way"
+  (let ((condis (lambda ()
+                  (or noninteractive
+                      (window-minibuffer-p))))
+        (indicator (car orig-args))
+        rtn)
+    (unless (funcall condis)
+      (if (symbolp indicator)
+          (message "Running hooks '%s' ..." indicator)
+        (message "Running hooks ..."))
+      (redisplay t)
+      (sleep-for 0.0001))
+    (setq rtn (apply orig-func orig-args))
+    (unless (funcall condis)
+      (message ""))
+    rtn))
+
+(defmacro entropy/emacs-run-hooks-with-prompt (&rest body)
+  "Do BODY with `run-hooks' with prompts feature based on
+`entropy/emacs-run-hooks-prompt'."
+  `(let (rtn)
+     (advice-add 'run-hooks :around
+                 #'entropy/emacs-run-hooks-prompt)
+     (unwind-protect
+         (progn
+           (setq rtn
+                 (progn
+                   ,@body))
+           (advice-remove 'run-hooks
+                          #'entropy/emacs-run-hooks-prompt)
+           rtn)
+       (advice-remove 'run-hooks
+                      #'entropy/emacs-run-hooks-prompt))))
+
 ;; *** entropy-emacs init hooks
 (defvar entropy/emacs-init-mini-hook '()
   "Hooks for minimal start.")
@@ -1609,6 +1646,7 @@ under the symbolink root dir."
             (not (file-directory-p filename)))))
       (apply orig-func orig-args))))
 (advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
+
 
 ;; *** load specifications
 (let ((cus entropy/emacs-custom-common-file))
