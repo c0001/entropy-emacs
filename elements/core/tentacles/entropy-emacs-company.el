@@ -203,7 +203,7 @@
     (interactive (list 'interactive))
     (unless (or buffer-read-only
                 (equal (buffer-name)
-                       entropy/emacs-init-welcom-buffer-name))
+                       entropy/emacs-init-welcome-buffer-name))
       (company-files command)))
 
 ;; *** init for load

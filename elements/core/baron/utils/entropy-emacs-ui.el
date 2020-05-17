@@ -125,7 +125,7 @@ determined by above variable you setted."
 ;; **** varaible defination
   (defvar entropy/emacs-ui--init-welcom-last-width nil
     "Remain the window size of previous (the last) buffer
-    `entropy/emacs-init-welcom-buffer-name''s widnow.")
+    `entropy/emacs-init-welcome-buffer-name''s widnow.")
   (defvar entropy/emacs-ui--init-welcom-width (window-width)
     "Default entropy emacs initial dashboard width. ")
 
@@ -142,7 +142,7 @@ determined by above variable you setted."
       keymap))
 
   (define-minor-mode entropy/emacs-ui-init-welcom-mode
-    "Minor mode for `entropy/emacs-init-welcom-buffer-name'."
+    "Minor mode for `entropy/emacs-init-welcome-buffer-name'."
     :init-value nil
     :global nil)
 
@@ -404,10 +404,10 @@ text logo module was one plist which has three keys:
     "Create entroy-emacs initial buffer.
 
 First insert entropy-emacs logo into initial buffer
-`entropy/emacs-init-welcom-buffer-name', and then insert 'welcom' title
+`entropy/emacs-init-welcome-buffer-name', and then insert 'welcom' title
 and entropy-emacs version with tag description. Last to insert
 widget used func `entropy/emacs-ui--init-welcom-create-widget'."
-    (let ((buffer (get-buffer-create entropy/emacs-init-welcom-buffer-name))
+    (let ((buffer (get-buffer-create entropy/emacs-init-welcome-buffer-name))
           (img (ignore-errors (create-image entropy/emacs-fancy-splash-logo-file)))
           (title " WELCOME TO ENTROPY-EMACS ")
           (version entropy/emacs-ecv))
@@ -467,12 +467,12 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
 was changed, the window modification detector was the variable
 `entropy/emacs-ui--init-welcom-last-width' which stored the lates initial
 buffer window size."
-    (let ((buffer-exists (buffer-live-p (get-buffer entropy/emacs-init-welcom-buffer-name))))
+    (let ((buffer-exists (buffer-live-p (get-buffer entropy/emacs-init-welcome-buffer-name))))
       (when (or (not (eq entropy/emacs-ui--init-welcom-last-width (window-width)))
                 (not buffer-exists))
         (setq entropy/emacs-ui--init-welcom-width (window-width)
               entropy/emacs-ui--init-welcom-last-width entropy/emacs-ui--init-welcom-width)
-        (with-current-buffer (get-buffer-create entropy/emacs-init-welcom-buffer-name)
+        (with-current-buffer (get-buffer-create entropy/emacs-init-welcome-buffer-name)
           (let ((buffer-read-only nil))
             (erase-buffer)
             (entropy/emacs-ui--init-welcom-initial-buffer))))))
@@ -481,7 +481,7 @@ buffer window size."
     "Hook useing the core func `entropy/emacs-ui--init-welcom-wc-change-func'
 for adding to variable `window-size-change-functions' and hook
 `window-setup-hook'."
-    (let ((win-spec (get-buffer-window entropy/emacs-init-welcom-buffer-name))
+    (let ((win-spec (get-buffer-window entropy/emacs-init-welcome-buffer-name))
           (frame-spec (frame-selected-window)))
       (when (and win-spec
                  (not (window-minibuffer-p frame-spec)))
