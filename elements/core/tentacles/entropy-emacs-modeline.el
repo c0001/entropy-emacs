@@ -265,6 +265,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
           (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))))
+
 ;; ***** doom-modeline hydra
   :eemacs-indhc
   (((:enable t)

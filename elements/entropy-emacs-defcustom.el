@@ -1521,7 +1521,7 @@ git-for-windows-sdk `git-bash.exe'"
 advice wrapper, do not calling it in the normal way"
   (let ((condis (lambda ()
                   (or noninteractive
-                      (window-minibuffer-p))))
+                      (minibufferp))))
         (indicator (car orig-args))
         rtn)
     (unless (funcall condis)

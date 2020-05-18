@@ -85,7 +85,9 @@ Posix emulator supports for:
 - 'Msys' or 'Msys2'")
 
 (defconst sys/is-graphic-support
-  (or sys/win32p sys/linux-x-p sys/mac-x-p)
+  (or (or sys/is-win-group sys/linux-x-p sys/mac-x-p) ;FIXME: get DESKTOP_SESSION like env var on MACOS
+      (not (string-empty-p (getenv "DESKTOP_SESSION")))
+      (not (string-empty-p (getenv "XDG_CURRENT_DESKTOP"))))
   "System group filter for graphic supported platforms.")
 
 ;; ** others

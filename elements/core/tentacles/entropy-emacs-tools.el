@@ -43,7 +43,7 @@
 ;; *** openwith external apps
 ;; **** openwith config
 (use-package openwith
-  :if (display-graphic-p)
+  :if sys/is-graphic-support
   :commands openwith-make-extension-regexp
   :init
   (add-hook 'dired-mode-hook #'openwith-mode)
@@ -85,7 +85,7 @@ each an argument to COMMAND."
 
 ;; **** Function manually
 ;; ***** open in external apps
-(when  (display-graphic-p)
+(when sys/is-graphic-support
   (defun entropy/emacs-tools-open-in-external-app (&optional files)
     "Open the current file or dired marked files in external app.
 The app is chosen from your OS's preference.  URL
@@ -129,7 +129,7 @@ Version 2016-10-15"
        :enable t :exit t :map-inject t)))))
 
 ;; ***** Open in desktop manager
-(when (display-graphic-p)
+(when sys/is-graphic-support
   (defun entropy/emacs-tools-show-in-desktop (&optional dpath)
     "Show current file in desktop.
  (Mac Finder, Windows Explorer, Linux file manager)
@@ -172,67 +172,73 @@ Version 2017-12-23"
        :enable t :exit t :map-inject t)))))
 
 ;; ***** Open in terminal
-(when (display-graphic-p)
-  (defun entropy/emacs-tools-open-in-terminal ()
-    "Open the current dir in a new terminal window.
+(defun entropy/emacs-tools-open-in-terminal ()
+  "Open the current dir in a new terminal window.
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
+  (interactive)
+  (cond
+   ((string-equal system-type "windows-nt")
+    ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
+    (let* (($path-o (if (string-match-p "^~/" default-directory)
+                        (replace-regexp-in-string
+                         "^~"
+                         (expand-file-name "~")
+                         default-directory)
+                      default-directory))
+           ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
+           ($path (concat "\"" $path-backslash "\"")))
+      (if entropy/emacs-wsl-terminal-enable
+          (if (string-match-p "msys2_shell" entropy/emacs-wsl-terminal)
+              ;; using msys2 mintty
+              (w32-shell-execute
+               "open"
+               entropy/emacs-wsl-terminal
+               (concat
+                (completing-read "Choosing shell type: "
+                                 '("-mingw32"
+                                   "-mingw64"
+                                   "-msys2")
+                                 nil t)
+                " -where "
+                $path))
+            ;; using git-for-windows terminal
+            (w32-shell-execute "open" entropy/emacs-wsl-terminal))
+
+        ;; using cmd
+        (w32-shell-execute "open" "cmd" $path))))
+
+   ((string-equal system-type "darwin")
+    (let ((process-connection-type nil))
+      (start-process "" nil "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" default-directory)))
+
+   ((string-equal system-type "gnu/linux")
+    (let ((process-connection-type nil))
+      (start-process "" nil "gnome-terminal" default-directory)))))
+
+(when sys/win32p
+  (defun entropy/emacs-tools-cmd()
     (interactive)
-    (cond
-     ((string-equal system-type "windows-nt")
-      ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
-      (let* (($path-o (if (string-match-p "^~/" default-directory)
-                          (replace-regexp-in-string "^~"
-                                                    (expand-file-name "~")
-                                                    default-directory)
-                        default-directory))
-             ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
-             ($path (concat "\"" $path-backslash "\"")))
-        (if entropy/emacs-wsl-terminal-enable
-            (if (string-match-p "msys2_shell" entropy/emacs-wsl-terminal)
-                ;; using msys2 mintty
-                (w32-shell-execute "open" entropy/emacs-wsl-terminal
-                                   (concat
-                                    (completing-read "Choosing shell type: "
-                                                     '("-mingw32"
-                                                       "-mingw64"
-                                                       "-msys2")
-                                                     nil t)
-
-                                    " -where "
-                                    $path))
-              ;; using git-for-windows terminal
-              (w32-shell-execute "open" entropy/emacs-wsl-terminal))
-
-          ;; using cmd
-          (w32-shell-execute "open" "cmd" $path))))
-
-     ((string-equal system-type "darwin")
-      (let ((process-connection-type nil))
-        (start-process "" nil "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" default-directory)))
-
-     ((string-equal system-type "gnu/linux")
-      (let ((process-connection-type nil))
-        (start-process "" nil "gnome-terminal" default-directory)))))
-
-  (entropy/emacs-hydra-hollow-add-for-top-dispatch
-   '("Basic"
-     (("C-;" entropy/emacs-tools-open-in-terminal
-       "Open the current location in a new terminal window"
-       :enable t :exit t :global-bind t))))
-
-  (when sys/win32p
-    (defun entropy/emacs-tools-cmd()
-      (interactive)
-      (if entropy/emacs-Cmder-enable
-          (let (($path default-directory))
-            (w32-shell-execute "open" entropy/emacs-Cmder-path (replace-regexp-in-string "/" "\\" $path t t)))
+    (if entropy/emacs-Cmder-enable
         (let (($path default-directory))
-          (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t)))))))
+          (w32-shell-execute "open" entropy/emacs-Cmder-path (replace-regexp-in-string "/" "\\" $path t t)))
+      (let (($path default-directory))
+        (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t))))))
+
+(entropy/emacs-hydra-hollow-common-individual-hydra-define+
+ 'eemacs-basic-config-core nil nil
+ '("Eemacs Basic Core"
+   (("C-;" entropy/emacs-tools-open-in-terminal
+     "Open the current location in a new terminal window"
+     :enable t :exit t :global-bind t)
+    ("C--" entropy/emacs-tools-cmd
+     "Open the current location in a new windows cmdproxy"
+     :enable (when sys/win32p) :exit t :global-bind t))))
+
 
 ;; **** entropy-open-with
 (use-package entropy-open-with
-  :if (or (display-graphic-p)
+  :if (or sys/is-graphic-support
           entropy/emacs-use-emacs-in-terminal-with-graphic-features)
   :ensure nil
   :commands (entropy/open-with-dired-open

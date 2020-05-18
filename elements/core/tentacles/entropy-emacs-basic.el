@@ -650,7 +650,7 @@ buffer, in that case any conditions don't match the filter then
                         term-mode
                         dashboard-mode))
               (bound-and-true-p entropy/emacs-ui-init-welcom-mode)
-              (window-minibuffer-p))
+              (minibufferp))
     (hl-line-mode 1)))
 
 ;; Build `hl-line-mode' based global mode, that it is different from
