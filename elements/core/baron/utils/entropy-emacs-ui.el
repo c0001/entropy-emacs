@@ -563,9 +563,8 @@ for adding to variable `window-size-change-functions' and hook
 
 ;; ** Misc
 ;; *** minor misc
-(size-indication-mode 1)                ;Toggle buffer size display in the mode line (Size Indication mode).
-(setq track-eol t)                      ; Keep cursor at end of lines. Require line-move-visual is nil.
-(setq line-move-visual nil)
+;; **** indication mode
+(size-indication-mode 1)                ; Toggle buffer size display in the mode line (Size Indication mode).
 
 (defun entropy/emacs-show-col-row ()
   "Display buffer-position."
@@ -576,6 +575,31 @@ for adding to variable `window-size-change-functions' and hook
     (setq row (propertize row 'face 'epa-mark))
     (setq line (propertize line 'face 'epa-mark))
     (message "current-line:%s current-row:%s" line row)))
+
+;; **** line move visual type
+(setq track-eol t)                      ; Keep cursor at end of lines. Require line-move-visual is nil.
+(setq-default line-move-visual nil)     ; Defaultly disable it for performance issue
+
+(defun entropy/emacs-ui--guard-for-line-move-visual-mode ()
+  "Enable `line-move-visual' when current-buffer matching some
+rules.
+
+It's a guard timer function for timer
+`entropy/emacs-ui--line-move-visual-guard-timer'. Do not run it
+manually."
+  (with-current-buffer (current-buffer)
+    (unless (minibufferp)
+      (save-excursion
+        (goto-char (point-min))
+        (if (re-search-forward "" nil t)
+            (setq-local line-move-visual t)
+          (setq-local line-move-visual nil))))))
+
+(setq entropy/emacs-ui--line-move-visual-guard-timer
+      (run-with-idle-timer 0.1 t
+                           #'entropy/emacs-ui--guard-for-line-move-visual-mode))
+
+
 
 ;; * provide
 
