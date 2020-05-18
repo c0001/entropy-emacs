@@ -36,6 +36,7 @@
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-message)
 (require 'entropy-emacs-coworker)
+(require 'entropy-emacs-hydra-hollow)
 
 ;; ** xref jumping
 (use-package xref
@@ -361,6 +362,56 @@ nervous."
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references] . lsp-ui-peek-find-references)
               ("C-c u" . lsp-ui-imenu))
+  :eemacs-indhc
+  (((:enable t)
+    (lsp-ui-mode nil nil nil (1 2 2)))
+   ("Doc (Basic)"
+    (("d t" lsp-ui-mode "Toggle language server UI mode on or off"
+      :enable t :exit t :toggle (if (bound-and-true-p lsp-ui-mode) t nil))
+     ("d d" lsp-ui-doc-mode "Minor mode for showing hover information in child frame"
+      :enable t :exit t :toggle (if (bound-and-true-p lsp-ui-doc-mode) t nil))
+     ("d f" lsp-ui-doc-frame-mode "Marker mode to add additional key bind for lsp-ui-doc-frame"
+      :enable t :exit t :toggle (if (bound-and-true-p lsp-ui-doc-frame-mode) t nil))
+     ("d g" lsp-ui-doc-glance "Trigger display hover information popup and hide it on next typing"
+      :enable t :exit t)
+     ("d s" lsp-ui-doc-show "Trigger display hover information popup"
+      :enable t :exit t)
+     ("d h" lsp-ui-doc-hide "Hide hover information popup"
+      :enable t :exit t))
+    "Imenu"
+    (("i o" lsp-ui-imenu "Open ui-imenu in side window" :enable t :exit t))
+    "Peek"
+    (("p d" lsp-ui-peek-find-definitions "Find definitions to the IDENTIFIER at point"
+      :enable t :exit t)
+     ("p i" lsp-ui-peek-find-implementation "Find implementation locations of the symbol at point"
+      :enable t :exit t)
+     ("p r" lsp-ui-peek-find-references "Find references to the IDENTIFIER at point"
+      :enable t :exit t)
+     ("p s" lsp-ui-peek-find-workspace-symbol "Find symbols in the worskpace"
+      :enable t :exit t))
+    "Side Line"
+    (("s t" lsp-ui-sideline-mode "Minor mode for showing information for current line"
+      :enable t :exit t :toggle (if (bound-and-true-p lsp-ui-sideline-mode) t nil))
+     ("s a" lsp-ui-sideline-apply-code-actions "Choose and apply code action(s) on the current line"
+      :enable t :exit t)
+     ("s i" lsp-ui-sideline-toggle-symbols-info "Toggle display of symbols information"
+      :enable t :exit t))
+    "Find"
+    (("f n" lsp-ui-find-next-reference "Find next reference of the symbol at point"
+      :enable t :exit t)
+     ("f p" lsp-ui-find-prev-reference "Find previous reference of the symbol at point"
+      :enable t :exit t)
+     ("f s" lsp-ui-find-workspace-symbol "List project-wide symbols matching the query string PATTERN"
+      :enable t :exit t))))
+  :eemacs-indhca
+  (((:enable t)
+    (lsp-mode))
+   ("Basic"
+    (("b u"
+      (:eval (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+              'lsp-ui-mode))
+      "lsp ui command map"
+      :enable t :exit t))))
   :init
   (setq lsp-ui-doc-position 'top))
 
