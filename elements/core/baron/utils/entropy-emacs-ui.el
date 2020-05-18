@@ -596,7 +596,7 @@ manually."
           (setq-local line-move-visual nil))))))
 
 (setq entropy/emacs-ui--line-move-visual-guard-timer
-      (run-with-idle-timer 0.1 t
+      (run-with-idle-timer 1 t
                            #'entropy/emacs-ui--guard-for-line-move-visual-mode))
 
 

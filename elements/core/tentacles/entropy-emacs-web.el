@@ -84,20 +84,145 @@
 ;; **** web-mode
 (use-package web-mode
   :commands web-mode
+;; ***** mode declaration
   :mode
   ("\\.\\(phtml\\|[gj]sp\\|as[cp]x\\|erb\\|djhtml\\|html?\\|hbs\\|ejs\\|jade\\|swig\\|tm?pl\\)$"
    .
    web-mode)
+;; ***** eemacs mmphc
   :eemacs-mmphc
-  (((:enable t))
+  (((:enable t)
+    (web-mode web-mode web-mode-map t (1 2 1 1 2)))
    ("Basic"
     (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
       :enable t
       :exit t))
-    "Emmet" ()
-    "Navigation" ()
-    ))
+    "Attribute"
+    (("C-c C-a b" web-mode-attribute-beginning "Fetch html attribute beginning"
+      :enable t :map-inject t :exit t)
+     ("C-c C-a e" web-mode-attribute-end "Fetch html attribute end"
+      :enable t :map-inject t :exit t)
+     ("C-c C-a i" web-mode-attribute-insert "Insert an attribute inside current tag"
+      :enable t :map-inject t :exit t)
+     ("C-c C-a n" web-mode-attribute-next "Fetch next attribute"
+      :enable t :map-inject t :exit t)
+     ("C-c C-a s" web-mode-attribute-select "Select the current html attribute"
+      :enable t :map-inject t :exit t)
+     ("C-c C-a k" web-mode-attribute-kill "Kill the current html attribute"
+      :enable t :map-inject t :exit t)
+     ("C-c C-a p" web-mode-attribute-previous "Fetch previous attribute"
+      :enable t :map-inject t :exit t)
+     ("C-c C-a t" web-mode-attribute-transpose "Transpose the current html attribute"
+      :enable t :map-inject t :exit t))
+    "Block"
+    (("C-c C-b b" web-mode-block-beginning "Move point to the beginning of the current block"
+      :enable t :map-inject t :exit t)
+     ("C-c C-b c" web-mode-block-close "Close the first unclosed control block"
+      :enable t :map-inject t :exit t)
+     ("C-c C-b e" web-mode-block-end "Move point to the end of the current block"
+      :enable t :map-inject t :exit t)
+     ("C-c C-b k" web-mode-block-kill "Kill the current block"
+      :enable t :map-inject t :exit t)
+     ("C-c C-b n" web-mode-block-next "Move point to the beginning of the next block"
+      :enable t :map-inject t :exit t)
+     ("C-c C-b p" web-mode-block-previous "Move point to the beginning of the previous block"
+      :enable t :map-inject t :exit t)
+     ("C-c C-b s" web-mode-block-select "Select the current block"
+      :enable t :map-inject t :exit t))
+    "DOM"
+    (("C-c C-d a" web-mode-dom-apostrophes-replace "Replace char(') with its symbol type in the html contents of the buffer."
+      :enable t :map-inject t :exit t)
+     ("C-c C-d d" web-mode-dom-errors-show "Show unclosed tags"
+      :enable t :map-inject t :exit t)
+     ("C-c C-d e" web-mode-dom-entities-replace "Replace html entities (e.g. &eacute; &#233; or &#x00E9; become é)"
+      :enable t :map-inject t :exit t)
+     ("C-c C-d n" web-mode-dom-normalize "Normalize buffer"
+      :enable t :map-inject t :exit t)
+     ("C-c C-d q" web-mode-dom-quotes-replace "Replace dumb quotes"
+      :enable t :map-inject t :exit t)
+     ("C-c C-d t" web-mode-dom-traverse "Traverse html dom tree"
+      :enable t :map-inject t :exit t)
+     ("C-c C-d x" web-mode-dom-xpath "Display html path"
+      :enable t :map-inject t :exit t))
+    "Element"
+    (("C-c C-e /" web-mode-element-close "Close html element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e a" web-mode-element-content-select "Select the content of a html element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e b" web-mode-element-beginning "Move to beginning of element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e c" web-mode-element-clone "Clone the current html element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e d" web-mode-element-child "Fetch child element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e e" web-mode-element-end "Move to end of element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e f" web-mode-element-children-fold-or-unfold "Fold/Unfold all the children of the current html element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e i" web-mode-element-insert "Insert an html element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e I" web-mode-element-insert-at-point "Replace the word at point with a html tag of it"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e k" web-mode-element-kill "Kill the current html element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e m" web-mode-element-mute-blanks "Mute blanks"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e n" web-mode-element-next "Fetch next element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e p" web-mode-element-previous "Fetch previous element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e r" web-mode-element-rename "Rename the current html element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e s" web-mode-element-select "Select the current html element (including opening and closing tags)"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e t" web-mode-element-transpose "Transpose two html elements"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e u" web-mode-element-parent "Fetch parent element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e v" web-mode-element-vanish "Vanish the current html element. The content of the element is kept"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e w" web-mode-element-wrap "Wrap current REGION with start and end tags"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e +" web-mode-element-extract "Flatten element"
+      :enable t :map-inject t :exit t)
+     ("C-c C-e -" web-mode-element-contract "Flatten elements"
+      :enable t :map-inject t :exit t))
+    "Tag"
+    (("C-c C-t a" web-mode-tag-attributes-sort "Sort the attributes inside the current html tag"
+      :enable t :map-inject t :exit t)
+     ("C-c C-t b" web-mode-tag-beginning "Fetch current html tag beg"
+      :enable t :map-inject t :exit t)
+     ("C-c C-t e" web-mode-tag-end "Fetch current html tag end"
+      :enable t :map-inject t :exit t)
+     ("C-c C-t m" web-mode-tag-match "Move point to the matching opening/closing tag"
+      :enable t :map-inject t :exit t)
+     ("C-c C-t n" web-mode-tag-next "Fetch next tag. Might be html comment or server tag (e.g. jsp)"
+      :enable t :map-inject t :exit t)
+     ("C-c C-t p" web-mode-tag-previous "Fetch previous tag"
+      :enable t :map-inject t :exit t)
+     ("C-c C-t s" web-mode-tag-select "Select the current html tag"
+      :enable t :map-inject t :exit t))
+    "Misc."
+    (("C-c C-f" web-mode-fold-or-unfold "Toggle folding on an html element or a control block"
+      :enable t :map-inject t :exit t)
+     ("C-c C-i" web-mode-buffer-indent "Indent all buffer"
+      :enable t :map-inject t :exit t)
+     ("C-c C-j" web-mode-jshint "Run JSHint on all the JavaScript parts"
+      :enable t :map-inject t :exit t)
+     ("C-c C-l" web-mode-file-link "Insert a link to a file in html document"
+      :enable t :map-inject t :exit t)
+     ("C-c C-m" web-mode-mark-and-expand "Mark and expand"
+      :enable t :map-inject t :exit t)
+     ("C-c C-n" web-mode-navigate "Move point to the matching opening/closing tag/block"
+      :enable t :map-inject t :exit t)
+     ("C-c C-r" web-mode-reload "Reload web-mode"
+      :enable t :map-inject t :exit t)
+     ("C-c C-s" web-mode-snippet-insert "Insert a snippet"
+      :enable t :map-inject t :exit t)
+     ("C-c C-w" web-mode-whitespaces-show "Toggle whitespaces"
+      :enable t :map-inject t :exit t))))
 
+;; ***** eemacs mmphca
   :eemacs-mmphca
   (((:enable (eq (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
                  'traditional))
@@ -112,9 +237,12 @@
       :exit t
       :map-inject t))))
 
+;; ***** init
   :init
   (add-hook 'web-mode-hook
             'entropy/emacs-web--web-mode-start-hook)
+
+;; ***** config
   :config
   (when (display-graphic-p)
     (entropy/emacs-add-hook-lambda-nil
@@ -128,6 +256,12 @@
   :commands emmet-mode
   :hook ((web-mode . emmet-mode)
          (html-mode . emmet-mode))
+  :eemacs-mmphca
+  (((:enable t)
+    (web-mode emmet-mode emmet-mode-keymap))
+   ("Basic"
+    (("C-j" emmet-expand-line "Emmet expanding (intelligent)"
+      :enable t :map-inject t :exit t))))
   :config
   (define-key emmet-mode-keymap "C-c w" nil))
 
@@ -274,35 +408,35 @@ format."
      (js2-mode js2-mode js2-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-js "Beautify Js"
-       :enable t
+       :enable (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
        :exit t
        :map-inject t))))
    (((:enable t)
      (json-mode json-mode json-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-js "Beautify Json"
-       :enable t
+       :enable (eq (entropy/emacs-get-use-ide-type 'json-mode) 'traditional)
        :exit t
        :map-inject t))))
    (((:enable t)
      (web-mode web-mode web-mode-map))
     ("Web Beautify"
-     (("C-c C-b" web-beautify-html "Beautify html"
-       :enable t
+     (("C-c C-0" web-beautify-html "Beautify html"
+       :enable (eq (entropy/emacs-get-use-ide-type 'web-mode) 'traditional)
        :exit t
        :map-inject t))))
    (((:enable t)
-     (sgml-mode sgml-mode sgml-mode-map))
+     (nxml-mode nxml-mode nxml-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-html "Beautify Xml"
-       :enable t
+       :enable (eq (entropy/emacs-get-use-ide-type 'nxml-mode) 'traditional)
        :exit t
        :map-inject t))))
    (((:enable t)
      (css-mode css-mode css-mode-map))
     ("Web Beautify"
      (("C-c C-b" web-beautify-html "Beautify Css"
-       :enable t
+       :enable (eq (entropy/emacs-get-use-ide-type 'css-mode) 'traditional)
        :exit t
        :map-inject t)))))
 

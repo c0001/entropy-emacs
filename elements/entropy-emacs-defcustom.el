@@ -902,7 +902,7 @@ elfeed proxy setting."
     c++-mode cmake-mode
     java-mode go-mode
     python-mode php-mode
-    js2-mode json-mode css-mode web-mode
+    js2-mode json-mode css-mode web-mode nxml-mode
     sh-mode powershell-mode))
 
 (defvar entropy/emacs-use-ide-conditions nil)

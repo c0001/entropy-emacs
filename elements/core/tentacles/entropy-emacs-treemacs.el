@@ -126,7 +126,7 @@
         ;; treemacs-is-never-other-window   t
         treemacs-silent-filewatch        t
         treemacs-silent-refresh          t
-        treemacs-width                   36
+        treemacs-width                   25
         treemacs-indentation             1
         treemacs-show-cursor             t
         treemacs-recenter-after-file-follow    t
