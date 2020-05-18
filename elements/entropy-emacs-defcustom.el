@@ -1516,6 +1516,8 @@ git-for-windows-sdk `git-bash.exe'"
       entropy/emacs-site-lisp-path)))
 
 ;; *** run-hooks with prompt
+(defvar entropy/emacs--run-hooks-cache nil)
+
 (defun entropy/emacs-run-hooks-prompt (orig-func &rest orig-args)
   "Prompt for `run-hooks' for reduce lagging nervous. It's a
 advice wrapper, do not calling it in the normal way"
@@ -1524,11 +1526,12 @@ advice wrapper, do not calling it in the normal way"
                       (minibufferp))))
         (indicator (car orig-args))
         rtn)
+    (push (cons (format-time-string "[%Y-%m-%d %a %H:%M:%S]") orig-args)
+          entropy/emacs--run-hooks-cache)
     (unless (funcall condis)
       (if (symbolp indicator)
           (message "Running hooks '%s' ..." indicator)
         (message "Running hooks ..."))
-      (redisplay t)
       (sleep-for 0.0001))
     (setq rtn (apply orig-func orig-args))
     (unless (funcall condis)

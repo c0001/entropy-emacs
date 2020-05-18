@@ -34,6 +34,113 @@
 ;; configuration
 
 ;; * Code:
+;; ** prepare
+;; *** Pre comprehensively loads org-mode
+
+;; Org-mode is a buntch of things which will freeze emacs for a while
+;; when it's first startup time, those because that =org-mode= relys
+;; on and invoking sets of built-in libraris those rarely used,
+;; there's also lots of hooks for run when thus, there're one major
+;; issues caused that:
+
+;; #+begin_quote
+;; Sets of common hooks interned by babels loading and org-modules
+;; invoking will be calling while the first enable time, you can see
+;; what a hell that if sets of packages inject those hooks after
+;; emacs init.
+;; #+end_quote
+
+;; Thus for all, we use preload all of stuffs that org used in a
+;; clean emacs ENV i.e. the very ahead of the startup procedure, so
+;; that all hooks are clean with default value injected, thus all the
+;; org init preparation will be did after that.
+
+(defun entropy/emacs-org-do-load-org-babels ()
+  "Load all org-babels."
+  (interactive)
+  (let ((prop-format (lambda (msg-str)
+                       (redisplay t)
+                       (message
+                        (format
+                         "*Lazy loading*: %s ... [this may cost some time, take a coffee -v-]"
+                         (propertize msg-str
+                                     'face
+                                     'font-lock-type-face)))
+                       (redisplay t))))
+    (funcall prop-format "org-core")
+    (require 'org)
+    (funcall prop-format "org-ob-core")
+    (require 'ob)
+    (funcall prop-format "org-babels")
+    (let ((ob-lang (mapcar
+                    #'(lambda (x) (cons x t))
+                    '(vala
+                      tangle
+                      table
+                      stan
+                      sqlite
+                      sql
+                      shen
+                      shell
+                      sed
+                      screen
+                      scheme
+                      sass
+                      ruby
+                      ref
+                      python
+                      processing
+                      plantuml
+                      picolisp
+                      perl
+                      org
+                      octave
+                      ocaml
+                      mscgen
+                      maxima
+                      matlab
+                      makefile
+                      lua
+                      lob
+                      lisp
+                      lilypond
+                      ledger
+                      latex
+                      js
+                      java
+                      io
+                      hledger
+                      haskell
+                      groovy
+                      gnuplot
+                      fortran
+                      forth
+                      exp
+                      eval
+                      emacs-lisp
+                      ebnf
+                      dot
+                      ditaa
+                      css
+                      core
+                      coq
+                      comint
+                      clojure
+                      calc
+                      awk
+                      asymptote
+                      abc
+                      R
+                      J
+                      C))))
+      (org-babel-do-load-languages
+       'org-babel-load-languages ob-lang))))
+
+(entropy/emacs-org-do-load-org-babels)
+
+;; Pre enable `org-mode' for forcely loading `org-modules'.
+(with-temp-buffer (org-mode))
+
 ;; ** multi-version emacs compatible
 
 ;; *** make `setq-local' compatible

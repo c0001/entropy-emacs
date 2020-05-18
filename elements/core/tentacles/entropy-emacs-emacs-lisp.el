@@ -166,7 +166,8 @@ For lisp coding aim, always return the transfered buffer.
                   (eq (treemacs-current-visibility) 'visible))))
         (if treemacs-active-p
             (eldoc-in-minibuffer-mode +1)
-          (eldoc-in-minibuffer-mode -1)))))
+          (when (bound-and-true-p eldoc-in-minibuffer-mode) ;judge before did for reducing performance loosing
+            (eldoc-in-minibuffer-mode -1))))))
   :init
   ;; set large amount to mode line show time for preventing cut the
   ;; show state when noticed for long time, 100 sec was enough.

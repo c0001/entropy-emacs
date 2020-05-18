@@ -98,96 +98,10 @@
 
 ;; **** preface
   :preface
-  (defun entropy/emacs-org-do-load-org-babels ()
-    "Load all org-babels."
-    (interactive)
-    (let ((prop-format (lambda (msg-str)
-                         (redisplay t)
-                         (message
-                          (format
-                           "*Lazy loading*: %s ... [this may cost some time, take a coffee -v-]"
-                           (propertize msg-str
-                                       'face
-                                       'font-lock-type-face)))
-                         (redisplay t))))
-      (funcall prop-format "org-core")
-      (require 'org)
-      (funcall prop-format "org-ob-core")
-      (require 'ob)
-      (funcall prop-format "org-babels")
-      (let ((ob-lang (mapcar
-                      #'(lambda (x) (cons x t))
-                      '(vala
-                        tangle
-                        table
-                        stan
-                        sqlite
-                        sql
-                        shen
-                        shell
-                        sed
-                        screen
-                        scheme
-                        sass
-                        ruby
-                        ref
-                        python
-                        processing
-                        plantuml
-                        picolisp
-                        perl
-                        org
-                        octave
-                        ocaml
-                        mscgen
-                        maxima
-                        matlab
-                        makefile
-                        lua
-                        lob
-                        lisp
-                        lilypond
-                        ledger
-                        latex
-                        js
-                        java
-                        io
-                        hledger
-                        haskell
-                        groovy
-                        gnuplot
-                        fortran
-                        forth
-                        exp
-                        eval
-                        emacs-lisp
-                        ebnf
-                        dot
-                        ditaa
-                        css
-                        core
-                        coq
-                        comint
-                        clojure
-                        calc
-                        awk
-                        asymptote
-                        abc
-                        R
-                        J
-                        C))))
-        (org-babel-do-load-languages
-         'org-babel-load-languages ob-lang))))
+
 
 ;; **** init
   :init
-  (entropy/emacs-lazy-initial-advice-before
-   (org-mode)
-   "org-mode-load-babel"
-   "org-mode-load-babel"
-   (when (and (not entropy/emacs-fall-love-with-pdumper)
-              (not entropy/emacs-custom-enable-lazy-load))
-     (entropy/emacs-org-do-load-org-babels)))
 
   (entropy/emacs-lazy-load-simple org
     (unless (or entropy/emacs-fall-love-with-pdumper
