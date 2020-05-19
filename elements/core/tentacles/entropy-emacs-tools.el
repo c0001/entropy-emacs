@@ -123,9 +123,9 @@ Version 2016-10-15"
 
   (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
    'dired-mode 'dired 'dired-mode-map
-   '("Open item"
+   '("Misc."
      (("<C-return>" entropy/emacs-tools-open-in-external-app
-       "Open the current file or dired marked files in external app"
+       "Open dired marked files in external app"
        :enable t :exit t :map-inject t)))))
 
 ;; ***** Open in desktop manager
@@ -166,7 +166,7 @@ Version 2017-12-23"
 
   (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
    'dired-mode 'dired 'dired-mode-map
-   '("Open item"
+   '("Misc."
      (("C-=" entropy/emacs-tools-show-in-desktop
        "Show current file in desktaop"
        :enable t :exit t :map-inject t)))))
@@ -253,7 +253,7 @@ Version 2017-10-09"
   :eemacs-mmphca
   (((:enable t)
     (dired-mode dired dired-mode-map))
-   ("Open item"
+   ("Misc."
     (("M-RET" entropy/open-with-dired-open "Dired open with portable apps"
       :enable t :exit t :map-inject t))))
 

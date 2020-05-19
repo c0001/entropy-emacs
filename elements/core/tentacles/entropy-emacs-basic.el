@@ -530,7 +530,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
     (dired-mode dired dired-mode-map))
    ("Basic"
     (("TAB" dired-subtree-toggle
-      "Insert subtree at point or remove it if it was not present."
+      "Insert subtree at point (vice versa)."
       :enable t :map-inject t :exit t)
      ("<backtab>" dired-subtree-cycle
       "Org-mode like cycle visibilitya"
