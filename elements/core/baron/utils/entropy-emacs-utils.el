@@ -360,7 +360,22 @@
    pretty-hydra--merge-heads
    )
   :init
-  (setq pretty-hydra-enable-use-package t))
+  (setq pretty-hydra-enable-use-package t)
+
+  :config
+  (defun entropy/emacs-pretty-hydra--patch-1 (orig-func &rest orig-args)
+    "The around advice for inhibit any restriction for
+`prin1-to-string' while generate pretty-hydra doc-string, thus
+for that there's some un-investigated causes during the pretty
+hydra docstring title generation that pollute the sexp printing
+format which caused by set the restriction for thus."
+    (let* ((print-level nil)
+           (print-length nil))
+      (apply orig-func orig-args)))
+
+  (advice-add 'pretty-hydra--generate
+              :around
+              #'entropy/emacs-pretty-hydra--patch-1))
 
 ;; *** major-hydra
 
