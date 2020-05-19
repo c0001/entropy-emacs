@@ -426,7 +426,7 @@ this variable used to patching for origin `counsel-git'.")
   :eemacs-mmphca
   (((:enable t)
     (css-mode css-mode css-mode-map))
-   ("Misc."
+   ("Basic"
     (("C-c M-d" counsel-css "Jump to a css selector"
       :enable t
       :exit t

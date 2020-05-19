@@ -269,12 +269,41 @@
 (use-package css-mode
   :ensure nil
   :eemacs-mmphc
-  (((:enable t)) nil)
+  (((:enable t)
+    (nil nil nil t))
+   ("Basic"
+    (("C-c C-f" css-cycle-color-format "Cycle the color at point between different CSS color formats"
+      :enable t :map-inject t :exit t)
+     ("C-c C-o" css-lookup-symbol "Display the CSS documentation for SYMBOL, as found on MDN"
+      :enable t :map-inject t :exit t))))
   :init (setq css-indent-offset 2))
 
 ;; *** JSON mode
 (use-package json-mode
-  :commands (json-mode))
+  :commands (json-mode)
+  :eemacs-mmphc
+  (((:enable t)
+    (nil nil nil t))
+   ("Basic"
+    (("C-c C-p" json-mode-show-path
+      "Print the path to the node at point to the minibuffer, and yank to the kill ring"
+      :enable t :map-inject t :exit t)
+     ("C-c P" json-mode-kill-path "Yank current object key"
+      :enable t :map-inject t :exit t)
+     ("C-c C-f" json-mode-beautify
+      "Beautify / pretty-print the active region (or the entire buffer if no active region)"
+      :enable t :map-inject t :exit t)
+     ("C-c C-t" json-toggle-boolean
+      "If point is on 'true' or 'false', toggle it"
+      :enable t :map-inject t :exit t)
+     ("C-c C-k" json-nullify-sexp
+      "Replace the sexp at point with 'null'"
+      :enable t :map-inject t :exit t)
+     ("C-c C-i" json-increment-number-at-point
+      "Add DELTA to the number at point; DELTA defaults to 1"
+      :enable t :map-inject t :exit t)
+     ("C-c C-d" json-decrement-number-at-point "Decrement the number at point"
+      :enable t :map-inject t :exit t)))))
 
 ;; *** js-mode
 ;; Improved JavaScript editing mode
@@ -284,7 +313,7 @@
   :interpreter "node"
   :eemacs-mmphc
   (((:enable t)
-    (nil nil nil t (2 2)))
+    (nil nil nil t (1 1 3)))
    ("Basic"
     (("C-c C-w" js2-mode-toggle-warnings-and-errors "Toggle the display of warnings and errors"
       :enable t :exit t :map-inject t))
