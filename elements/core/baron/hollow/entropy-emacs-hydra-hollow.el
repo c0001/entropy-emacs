@@ -1241,7 +1241,6 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
 (defun entropy/emacs-hydra-hollow-category-frame-work-define+
     (pretty-hydra-category-name-prefix pretty-hydra-body pretty-hydra-cabinet
                           &optional
-                          pretty-hydra-category-width-indicator-for-build
                           pretty-hydra-category-width-indicator-for-inject)
   "Add hydras into a spec =pretty-hydra-category= by
 PRETTY-HYDRA-CATEGORY-NAME-PREFIX.
@@ -1271,7 +1270,6 @@ Optional arguments are all type of
                      `((lambda ()
                          (entropy/emacs-hydra-hollow-category-frame-work-define+
                           ',pretty-hydra-category-name-prefix ',pretty-hydra-body ',pretty-hydra-cabinet
-                          ',pretty-hydra-category-width-indicator-for-build
                           ',pretty-hydra-category-width-indicator-for-inject)))))))
     (when top-category-exists-p
       (dolist (part-ctg ctgs)
@@ -1402,7 +1400,6 @@ backend instead of `pretty-hydra-define'."
 (defun entropy/emacs-hydra-hollow-category-major-mode-define+
     (mode pretty-hydra-body pretty-hydra-cabinet
           &optional
-          pretty-hydra-category-width-indicator-for-build
           pretty-hydra-category-width-indicator-for-inject)
     "Like `major-mode-hydra-define+' but use
 `entropy/emacs-hydra-hollow-category-frame-work-define+' as
@@ -1412,7 +1409,6 @@ backend instead of `pretty-hydra-define+'."
           mode)))
     (entropy/emacs-hydra-hollow-category-frame-work-define+
      ctg-name-prefix pretty-hydra-body pretty-hydra-cabinet
-     pretty-hydra-category-width-indicator-for-build
      pretty-hydra-category-width-indicator-for-inject)))
 
 
@@ -1481,14 +1477,12 @@ backend instead of `pretty-hydra-define+'."
 (defun entropy/emacs-hydra-hollow-category-common-individual-define+
     (individual-hydra-name pretty-hydra-body pretty-hydra-cabinet
                            &optional
-                           pretty-hydra-category-width-indicator-for-build
                            pretty-hydra-category-width-indicator-for-inject)
   (let* ((name-prefix
           (entropy/emacs-hydra-hollow-category-common-individual-get-name-prefix
            individual-hydra-name)))
     (entropy/emacs-hydra-hollow-category-frame-work-define+
      name-prefix pretty-hydra-body pretty-hydra-cabinet
-     pretty-hydra-category-width-indicator-for-build
      pretty-hydra-category-width-indicator-for-inject)))
 
 (defun entropy/emacs-hydra-hollow-category-common-individual-make-title-common
@@ -2125,7 +2119,6 @@ Each function must just has one argumentm, a
     (individual-hydra-name hydra-injector heads-plist
                            &optional
                            pretty-hydra-body
-                           pretty-hydra-category-width-indicator-for-build
                            pretty-hydra-category-width-indicator-for-inject)
   (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
    'heads-plist)
@@ -2140,7 +2133,6 @@ Each function must just has one argumentm, a
                    individual-hydra-name))))
     (entropy/emacs-hydra-hollow-category-common-individual-define+
      individual-hydra-name body patched-heads-group
-     pretty-hydra-category-width-indicator-for-build
      pretty-hydra-category-width-indicator-for-inject)))
 
 
@@ -2221,7 +2213,6 @@ HYDRA-INJECTOR, they are used as the same meaning as for
     (mode hydra-injector heads-plist
           &optional
           pretty-hydra-body
-          pretty-hydra-category-width-indicator-for-build
           pretty-hydra-category-width-indicator-for-inject)
   (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
    'heads-plist)
@@ -2241,7 +2232,6 @@ HYDRA-INJECTOR, they are used as the same meaning as for
      mode
      body
      patched-heads-group
-     pretty-hydra-category-width-indicator-for-build
      pretty-hydra-category-width-indicator-for-inject)))
 
 ;; **** miscellanies
@@ -2473,8 +2463,7 @@ hydra body caller) =pretty-hydra-head-command=.
     (if (and (null do-not-build-sparse-tree)
              (null has-defined))
         (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-         mode hydra-injector heads
-         nil nil
+         mode hydra-injector heads nil
          pretty-hydra-category-width-indicator-for-inject)
       (entropy/emacs-hydra-hollow-define-major-mode-hydra
        mode hydra-injector pretty-hydra-body heads
@@ -2802,7 +2791,6 @@ evaluated result as its value.
     '(
       mode hydra-injector
       pretty-hydra-body
-      pretty-hydra-category-width-indicator-for-build
       pretty-hydra-category-width-indicator-for-inject)
   #+end_src
 
@@ -2829,10 +2817,8 @@ evaluated result as its value.
                   (mode (car requests))
                   (hydra-injector (cadr requests))
                   (pretty-hydra-body (nth 2 requests))
-                  (pretty-hydra-category-width-indicator-for-build
-                   (nth 3 requests))
                   (pretty-hydra-category-width-indicator-for-inject
-                   (nth 4 requests))
+                   (nth 3 requests))
                   (heads (cadr island))
                   run-call)
              (when enable
@@ -2843,7 +2829,6 @@ evaluated result as its value.
                                  (list 'quote
                                        (list mode hydra-injector heads
                                              pretty-hydra-body
-                                             pretty-hydra-category-width-indicator-for-build
                                              pretty-hydra-category-width-indicator-for-inject)))))
                (push run-call _callers))))
          (when (not (null _callers))
@@ -2908,7 +2893,7 @@ evaluated result as its value.
     '(
       individual-hydra-name hydra-injector
       pretty-hydra-body
-      pretty-hydra-category-width-indicator-for-build
+      pretty-hydra-category-width-indicator
      )
   #+end_src
 
@@ -2999,7 +2984,6 @@ evaluated result as its value.
     '(
       individual-hydra-name hydra-injector
       pretty-hydra-body
-      pretty-hydra-category-width-indicator-for-build
       pretty-hydra-category-width-indicator-for-inject)
   #+end_src
 
@@ -3022,8 +3006,7 @@ evaluated result as its value.
              (individual-hydra-name (car requests))
              (hydra-injector (cadr requests))
              (pretty-hydra-body (caddr requests))
-             (ctg-width-indc-for-build (nth 3 requests))
-             (ctg-width-indc-for-inject (nth 4 requests)))
+             (ctg-width-indc-for-inject (nth 3 requests)))
         (when enable
           (setq init-form
                 (append init-form
@@ -3032,7 +3015,6 @@ evaluated result as its value.
                            ',hydra-injector
                            ',heads
                            ',pretty-hydra-body
-                           ',ctg-width-indc-for-build
                            ',ctg-width-indc-for-inject)))))))
     (use-package-concat
      rest-body

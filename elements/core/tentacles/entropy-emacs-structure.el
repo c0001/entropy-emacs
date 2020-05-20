@@ -218,7 +218,7 @@
 
   :eemacs-mmphca
   (((:enable t)
-    (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map) nil nil (2)))
+    (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map) nil (2)))
    ("Doc string"
     (("C-c C-o"
       entropy/emacs-structure-vimish-fold-lisp-doc-string
