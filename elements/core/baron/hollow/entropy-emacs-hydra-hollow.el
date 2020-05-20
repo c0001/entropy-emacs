@@ -668,25 +668,32 @@ returning the result.
 ;; ******** category navigation set
 
 (defun entropy/emacs-hydra-hollow-category-concat-title-for-nav
-    (title &rest nav)
-  (let* ((up-hint (car nav))
+    (title depth &rest nav)
+  (let* ((title-str (substring-no-properties (eval title)))
+         (up-hint (car nav))
          (down-hint (cadr nav))
-         (fmstr "[%s]: %s page"))
+         (fmstr "[%s]: %s page")
+         (fmregx-up (rx (seq "[UP]: previous page")))
+         (fmregx-next (rx (seq "[DOWN]: next page"))))
     (cond
      ((and (not (null up-hint))
+           (not (string-match-p fmregx-up title-str))
            (null down-hint))
       (setq title
             `(concat ,title " "
                      ,(propertize (format fmstr "UP" "previous")
                                   'face 'warning))))
      ((and (not (null down-hint))
+           (not (string-match-p fmregx-next title-str))
            (null up-hint))
       (setq title
             `(concat ,title " "
                      ,(propertize (format fmstr "DOWN" "next")
                                   'face 'warning))))
      ((and (not (null up-hint))
-           (not (null down-hint)))
+           (not (string-match-p fmregx-up title-str))
+           (not (null down-hint))
+           (not (string-match-p fmregx-next title-str)))
       (setq title
             `(concat ,title " "
                      ,(propertize (format fmstr "UP" "previous")
@@ -694,6 +701,14 @@ returning the result.
                      " "
                      ,(propertize (format fmstr "DOWN" "next")
                                   'face 'warning)))))
+    (when (and depth
+               (or up-hint down-hint))
+      (let ((num-fmstr (rx line-start "[" (group (any "0-9")) "] ")))
+        (unless (string-match-p num-fmstr title-str)
+          (require 'transient)
+          (setq title `(concat (propertize (format "[%s]" ,depth)
+                                           'face 'transient-disabled-suffix)
+                               " " ,title)))))
     title))
 
 (defun entropy/emacs-hydra-hollow-category-define-nav-key
@@ -992,6 +1007,45 @@ the internally subroutines of this macro, they are:
                       (setq $internally/pretty-hydra-category-baron-name->new
                             ',pretty-hydra-category-baron-name)))))))))))
 
+;; ******** category interactive advice
+
+(defun entropy/emacs-hydra-hollow-category-advice-for-ctg-choice
+    (pretty-hydra-category-name-prefix &optional pretty-hydra-category-depth)
+  (let* ((orig-caller (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+                       pretty-hydra-category-name-prefix t pretty-hydra-category-depth))
+         (name (intern (format "%s--|ctg-choice-around-adv"
+                               orig-caller))))
+    (defalias name
+      `(lambda (orig-func &rest orig-args)
+         (let ((init-depth (or ,pretty-hydra-category-depth 0))
+               (depth (or ,pretty-hydra-category-depth 0))
+               multi-p)
+           (while (fboundp (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+                            ',pretty-hydra-category-name-prefix t depth))
+             (cl-incf depth))
+           (setq depth (- depth 1))
+           (setq multi-p (not (= depth init-depth)))
+           (if (or (not multi-p)
+                   (string-match-p entropy/emacs-hydra-hollow-pretty-hydra-category-name-regexp
+                                   (symbol-name last-command))
+                   (null current-prefix-arg))
+               (progn
+                 (setq terminated t)
+                 (apply orig-func orig-args))
+             (let ((cnt init-depth)
+                   candis choice caller-name)
+               (while (<= cnt depth)
+                 (setq candis (append candis (list (number-to-string cnt))))
+                 (cl-incf cnt))
+               (setq choice (string-to-number (completing-read "Choose category slot: " candis nil t))
+                     caller-name
+                     (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
+                      ',pretty-hydra-category-name-prefix t choice))
+               (setq current-prefix-arg nil) ;prevent re-choose candis for thus category
+               (apply (if (= choice init-depth) orig-func caller-name)
+                      orig-args))))))
+    (advice-add orig-caller :around name)))
+
 ;; ******* define hydra hollow category
 
 (defun entropy/emacs-hydra-hollow-category-frame-work-define
@@ -1091,7 +1145,8 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
 
       (setq new-title
             (entropy/emacs-hydra-hollow-category-concat-title-for-nav
-             new-title pretty-hydra-category-previous-category-name rest-head-group))
+             new-title pretty-hydra-category-depth
+             pretty-hydra-category-previous-category-name rest-head-group))
 
       (setq body-patch
             (plist-put
@@ -1136,6 +1191,11 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
     (entropy/emacs-hydra-hollow-category-try-bind-rate-to-baron
      pretty-hydra-category-hydra-caller-name cur-head-group)
 
+    ;; advice for multi-choice interaction
+    (when (eq pretty-hydra-category-depth 0)
+      (entropy/emacs-hydra-hollow-category-advice-for-ctg-choice
+       pretty-hydra-category-name-prefix))
+
     ;; advice for calling union form
     (when (eq pretty-hydra-category-depth 0)
       (entropy/emacs-hydra-hollow-advice-for-call-union-form
@@ -1158,7 +1218,7 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
        pretty-hydra-category-name-prefix pretty-hydra-body rest-head-group
        (+ pretty-hydra-category-depth 1) pretty-hydra-category-name rest-ctg-inc))
 
-    ;; return category plist
+    ;; set this object
     (entropy/emacs-hydra-hollow-set-pretty-hydra-category-name
      pretty-hydra-category-name
      :pretty-hydra-category-name-prefix pretty-hydra-category-name-prefix
@@ -1296,6 +1356,7 @@ Optional arguments are all type of
                             :title
                             (entropy/emacs-hydra-hollow-category-concat-title-for-nav
                              tail-category-used-pretty-hydra-body-title
+                             $internally/pretty-hydra-category-depth
                              nil t))
                            $internally/pretty-hydra-category-next-category-name->new
                            new-ctg-name))))))))))))))
