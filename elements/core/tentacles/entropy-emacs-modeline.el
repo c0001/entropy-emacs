@@ -589,7 +589,7 @@ style which defined in `entropy/emacs-modeline-style'."
  (entropy/emacs-mode-line-origin-theme))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-modeline-toggle nil nil
+ 'eemacs-modeline-toggle nil
  '("All"
    (("m m d t" entropy/emacs-modeline-mdl-doom-toggle
      "Toggle modeline type to [doom-mode-line] type"

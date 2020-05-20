@@ -813,23 +813,23 @@ returning the type of exec for open exported html file, they are:
 
 (defvar entropy/emacs-org-keymap-group-$common
   '("Common Manipulations"
-    (("c i" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-insert :other-rest-args (org org-mode-map)) "Common Insert"
+    (("c i" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-insert :other-rest-args ((org org-mode-map))) "Common Insert"
       :enable t :exit t)
-     ("c e" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-edit :other-rest-args (org org-mode-map)) "Common Edit"
+     ("c e" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-edit :other-rest-args ((org org-mode-map))) "Common Edit"
       :enable t :exit t)
-     ("c y" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-copy&paste :other-rest-args (org org-mode-map)) "Common copy and paste"
+     ("c y" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-copy&paste :other-rest-args ((org org-mode-map))) "Common copy and paste"
       :enable t :exit t)
-     ("c m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-move :other-rest-args (org org-mode-map)) "Common Move"
+     ("c m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-move :other-rest-args ((org org-mode-map))) "Common Move"
       :enable t :exit t)
-     ("c o" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-open :other-rest-args (org org-mode-map)) "Common Open"
+     ("c o" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-open :other-rest-args ((org org-mode-map))) "Common Open"
       :enable t :exit t)
-     ("c s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-sort :other-rest-args (org org-mode-map)) "Common Sort"
+     ("c s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-sort :other-rest-args ((org org-mode-map))) "Common Sort"
       :enable t :exit t)
-     ("c t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-toggle :other-rest-args (org org-mode-map)) "Common Toggle"
+     ("c t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-toggle :other-rest-args ((org org-mode-map))) "Common Toggle"
       :enable t :exit t)
-     ("c a" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-archive :other-rest-args (org org-mode-map)) "Common Archive"
+     ("c a" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-archive :other-rest-args ((org org-mode-map))) "Common Archive"
       :enable t :exit t)
-     ("c n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-attachments :other-rest-args (org org-mode-map)) "Common attachments"
+     ("c n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common-attachments :other-rest-args ((org org-mode-map))) "Common attachments"
       :enable t :exit t))))
 
 ;; ******** babel
@@ -1033,16 +1033,16 @@ returning the type of exec for open exported html file, they are:
 
 (defvar entropy/emacs-org-keymap-group-$table
   '("Table"
-    (("c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-create&convert :other-rest-args (org org-mode-map))
+    (("c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-create&convert :other-rest-args ((org org-mode-map)))
       "Create&Convert Table"
       :enable t :exit t)
-     ("e" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-edit :other-rest-args (org org-mode-map)) "Edit Table "
+     ("e" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-edit :other-rest-args ((org org-mode-map))) "Edit Table "
       :enable t :exit t)
-     ("m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-move :other-rest-args (org org-mode-map)) "Move Elements"
+     ("m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-move :other-rest-args ((org org-mode-map))) "Move Elements"
       :enable t :exit t)
-     ("f" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-eval :other-rest-args (org org-mode-map)) "Table Evaluate"
+     ("f" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-eval :other-rest-args ((org org-mode-map))) "Table Evaluate"
       :enable t :exit t)
-     ("v" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-view :other-rest-args (org org-mode-map)) "Table rich view"
+     ("v" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table-view :other-rest-args ((org org-mode-map))) "Table rich view"
       :enable t :exit t))))
 
 ;; ******** dynamic block
@@ -1096,27 +1096,27 @@ returning the type of exec for open exported html file, they are:
 
 (defvar entropy/emacs-org-keymap-group-$basic-manipulation
   '("Basic"
-    (("b c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common :other-rest-args (org org-mode-map)) "Common Manipulation"
+    (("b c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$common :other-rest-args ((org org-mode-map))) "Common Manipulation"
       :enable t :exit t)
-     ("b u" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$link :other-rest-args (org org-mode-map)) "Link Manipulation"
+     ("b u" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$link :other-rest-args ((org org-mode-map))) "Link Manipulation"
       :enable t :exit t)
-     ("b t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table :other-rest-args (org org-mode-map)) "Table Manipulation"
+     ("b t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$table :other-rest-args ((org org-mode-map))) "Table Manipulation"
       :enable t :exit t)
-     ("b l" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$plain-list :other-rest-args (org org-mode-map)) "Plain List Manipulation"
+     ("b l" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$plain-list :other-rest-args ((org org-mode-map))) "Plain List Manipulation"
       :enable t :exit t)
-     ("b n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$note :other-rest-args (org org-mode-map)) "Note Manipulation"
+     ("b n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$note :other-rest-args ((org org-mode-map))) "Note Manipulation"
       :enable t :exit t)
-     ("b g" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$headline-tag :other-rest-args (org org-mode-map)) "Tag Manipulation"
+     ("b g" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$headline-tag :other-rest-args ((org org-mode-map))) "Tag Manipulation"
       :enable t :exit t)
-     ("b d" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$drawer&property :other-rest-args (org org-mode-map)) "Drawer&Property Manipulation"
+     ("b d" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$drawer&property :other-rest-args ((org org-mode-map))) "Drawer&Property Manipulation"
       :enable t :exit t)
-     ("b s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$time-stamp :other-rest-args (org org-mode-map)) "Time Stamp Manipulation"
+     ("b s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$time-stamp :other-rest-args ((org org-mode-map))) "Time Stamp Manipulation"
       :enable t :exit t)
-     ("b i" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$inline-image :other-rest-args (org org-mode-map)) "Inline Image manipulation"
+     ("b i" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$inline-image :other-rest-args ((org org-mode-map))) "Inline Image manipulation"
       :enable t :exit t)
-     ("b y" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$dynamic-block :other-rest-args (org org-mode-map)) "Dynamic Block manipulation"
+     ("b y" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$dynamic-block :other-rest-args ((org org-mode-map))) "Dynamic Block manipulation"
       :enable t :exit t)
-     ("b b" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$babel :other-rest-args (org org-mode-map)) "Babel Manipulation"
+     ("b b" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$babel :other-rest-args ((org org-mode-map))) "Babel Manipulation"
       :enable t :exit t))))
 
 ;; ****** org buffer navigation (guide)
@@ -1245,17 +1245,17 @@ returning the type of exec for open exported html file, they are:
 
 (defvar entropy/emacs-org-keymap-group-$buffer-navigation
   '("Buffer Navigation"
-    (("n s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$sparse-tree :other-rest-args (org org-mode-map)) "Sparse Tree Viewer"
+    (("n s" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$sparse-tree :other-rest-args ((org org-mode-map))) "Sparse Tree Viewer"
       :enable t :exit t)
-     ("n c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$cycle :other-rest-args (org org-mode-map)) "Cycle Through Buffer"
+     ("n c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$cycle :other-rest-args ((org org-mode-map))) "Cycle Through Buffer"
       :enable t :exit t)
-     ("n g" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$goto :other-rest-args (org org-mode-map)) "Goto Buffer POS"
+     ("n g" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$goto :other-rest-args ((org org-mode-map))) "Goto Buffer POS"
       :enable t :exit t)
-     ("n m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$mark :other-rest-args (org org-mode-map)) "Mark Up Org Buffer"
+     ("n m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$mark :other-rest-args ((org org-mode-map))) "Mark Up Org Buffer"
       :enable t :exit t)
-     ("n n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$narrow :other-rest-args (org org-mode-map)) "Narrow Org Buffer"
+     ("n n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$narrow :other-rest-args ((org org-mode-map))) "Narrow Org Buffer"
       :enable t :exit t)
-     ("n j" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$block-jump :other-rest-args (org org-mode-map)) "Block Jump"
+     ("n j" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$block-jump :other-rest-args ((org org-mode-map))) "Block Jump"
       :enable t :exit t))))
 
 ;; ****** org task function
@@ -1397,13 +1397,13 @@ returning the type of exec for open exported html file, they are:
 
 (defvar entropy/emacs-org-keymap-group-$task-manipulation
   '("Task Manipulation"
-    (("t t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$todo :other-rest-args (org org-mode-map)) "Todo manipulation"
+    (("t t" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$todo :other-rest-args ((org org-mode-map))) "Todo manipulation"
       :enable t :exit t)
-     ("t c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$clock :other-rest-args (org org-mode-map)) "Clock Operation"
+     ("t c" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$clock :other-rest-args ((org org-mode-map))) "Clock Operation"
       :enable t :exit t)
-     ("t a" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$agenda :other-rest-args (org org-mode-map)) "Agenda Refer"
+     ("t a" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$agenda :other-rest-args ((org org-mode-map))) "Agenda Refer"
       :enable t :exit t)
-     ("t m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$timer :other-rest-args (org org-mode-map)) "Timer manipulation"
+     ("t m" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$timer :other-rest-args ((org org-mode-map))) "Timer manipulation"
       :enable t :exit t))))
 
 
@@ -1445,7 +1445,7 @@ returning the type of exec for open exported html file, they are:
 ;; ***** define-hydra
 
 (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
- 'org-mode 'org 'org-mode-map t
+ 'org-mode '(org org-mode-map) t
  (append
   entropy/emacs-org-keymap-group-$basic-manipulation
   entropy/emacs-org-keymap-group-$buffer-navigation

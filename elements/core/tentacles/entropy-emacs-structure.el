@@ -194,7 +194,7 @@
 
   :eemacs-indhc
   (((:enable t)
-    (vimish-fold vimish-fold vimish-fold-folded-keymap nil (2 2)))
+    (vimish-fold (vimish-fold vimish-fold-folded-keymap) nil (2 2)))
    ("Vimish toggle"
     (("<C-tab>" entropy/emacs-structure-vimish-toggle
       "Automatically vimish fold/show region"
@@ -218,7 +218,7 @@
 
   :eemacs-mmphca
   (((:enable t)
-    (emacs-lisp-mode elisp-mode emacs-lisp-mode-map nil nil (2)))
+    (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map) nil nil (2)))
    ("Doc string"
     (("C-c C-o"
       entropy/emacs-structure-vimish-fold-lisp-doc-string

@@ -57,7 +57,7 @@
 
   :eemacs-indhc
   (((:enable t)
-    (projectile-mode projectile projectile-mode-map nil (2)))
+    (projectile-mode (projectile projectile-mode-map) nil (2)))
    ("projectile Switch"
     (("C-c p p p" counsel-projectile-switch-project "Switch To Other Project"
       :enable t :exit t :eemacs-top-bind t)

@@ -1625,6 +1625,62 @@ KEYMAP was a keymap, a keymap symbol or for some meaningful usage:
            (kbd key) command))))
     ))
 
+(defun entropy/emacs-hydra-hollow-build-hydra-injector (hydra-injector key command)
+  (let ()
+    (cond
+     ((and (listp hydra-injector)
+           (and (listp (car hydra-injector))
+                (not (null (car hydra-injector)))))
+      (dolist (pair hydra-injector)
+        (eval
+         `(entropy/emacs-lazy-load-simple ,(car pair)
+            (entropy/emacs-hydra-hollow-define-key
+             ',(cadr pair)
+             ,(or (plist-get (cddr pair) :inject-key) key)
+             #',command)))))
+     ((and (listp hydra-injector)
+           (not (null hydra-injector)))
+      (eval
+       `(entropy/emacs-lazy-load-simple ,(car hydra-injector)
+          (entropy/emacs-hydra-hollow-define-key
+           ',(cadr hydra-injector)
+           ,(or (plist-get (cddr hydra-injector) :inject-key) key)
+           #',command))))
+     (t
+      (error "Wrong type of argument: hydra-injector-p %s" hydra-injector)))))
+
+(defun entropy/emacs-hydra-hollow-make-hydra-injector (hydra-injector feature-replace map-replace)
+  (let (rtn)
+    (cond
+     ((and (listp hydra-injector)
+           (and (listp (car hydra-injector))
+                (not (null (car hydra-injector)))))
+      (dolist (pair hydra-injector)
+        (cond ((and (null (car pair))
+                    (not (null (cadr pair))))
+               (setq rtn (append rtn (list `(,feature-replace ,(cadr pair) . ,(cddr pair))))))
+              ((and (null (cadr pair))
+                    (not (null (car pair))))
+               (setq rtn (append rtn (list `(,(car pair) ,map-replace . ,(cddr pair))))))
+              ((and (null (cadr pair))
+                    (null (car pair)))
+               (setq rtn (append rtn (list `(,feature-replace ,map-replace . ,(cddr pair))))))
+              (t (setq rtn (append rtn (list pair)))))))
+     ((listp hydra-injector)
+      (cond ((and (null (car hydra-injector))
+                  (not (null (cadr hydra-injector))))
+             (setq rtn (append rtn (list `(,feature-replace ,(cadr hydra-injector) . ,(cddr hydra-injector))))))
+            ((and (null (cadr hydra-injector))
+                  (not (null (car hydra-injector))))
+             (setq rtn (append rtn (list `(,(car hydra-injector) ,map-replace . ,(cddr hydra-injector))))))
+            ((and (null (cadr hydra-injector))
+                  (null (car hydra-injector)))
+             (setq rtn (append rtn (list `(,feature-replace ,map-replace . ,(cddr hydra-injector))))))
+            (t (setq rtn (append rtn (list hydra-injector))))))
+     (t
+      (error "Wrong type of argument: hydra-injector-p %s" hydra-injector)))
+    rtn))
+
 ;; ****** predicate defination
 
 ;; *Data type*
@@ -1734,10 +1790,8 @@ Restriction:
 Maybe enable restrict plist's :map-inject-notation-beautified
 slot.
 
-Rest arguments:
-
-- feature :: a feature symbol or a list of feature symbols.
-- keymap :: the specified keymap to bind into.
+Rest arguments: the car was a =hydra-injector=, the rest aren't
+specified yet.
 
 Key description:
 
@@ -1758,13 +1812,7 @@ valid result type are:
    * :do-beautify-notation :: when non-nil, beautify the notation
      for that head.
 
-   * :do-inject-spec-maps :: its a list of manully spec map
-     injection, each element's car was the feature and the cadr
-     was the map, feature and map obeyed the defination of the
-     rest-args requirements of current
-     =pretty-hydra-head-predicate-func=. So that each element will
-     be used to bind head's key to associate keymap with after
-     load feature.
+   * :do-spec-hydra-injector :: a =hydra-injector=
 
    * :do-inherit-predicate :: when non-nill, inject the head's key
      to the keymap with afterload feature, keymap and feature are
@@ -1790,62 +1838,45 @@ valid result type are:
                                  :map-inject)))
          ;; :rest-args
          (rest-args (plist-get riched-pretty-hydra-casket :rest-args))
-         (feature (car rest-args))
-         (map (cadr rest-args))
-         )
-    (when (and feature map)
-      (cond
-       ((eq map-inject t)
-        (setq notation
-              (entropy/emacs-hydra-hollow-pretty-hydra-head-notation-handler
-               notation 'mode-map-inject
-               (and (member :global-bind-notation-beautified restrict)
-                    (entropy/emacs-hydra-hollow--common-judge-p
-                     (plist-get restrict :global-bind-notation-beautified)))))
-        (setq restrict
-              (append restrict '(:map-inject-notation-beautified t)))
-        (funcall
-         `(lambda nil
-            (entropy/emacs-lazy-load-simple ,feature
-              (entropy/emacs-hydra-hollow-define-key
-               ',map ,key ',command)))))
-       ((entropy/emacs-common-plistp map-inject)
-        (let ((do-beautify-notation
-               (entropy/emacs-hydra-hollow--common-judge-p
-                (plist-get map-inject :do-beautify-notation)))
-              (do-inject-spec-maps
-               (entropy/emacs-hydra-hollow--common-judge-p
-                (plist-get map-inject :do-inject-spec-maps)))
-              (do-inherit-predicate
-               (entropy/emacs-hydra-hollow--common-judge-p
-                (plist-get map-inject :do-inherit-predicate))))
-          (when do-beautify-notation
-            (setq notation
-                  (entropy/emacs-hydra-hollow-pretty-hydra-head-notation-handler
-                   notation 'mode-map-inject
-                   (member :global-bind-notation-beautified restrict)))
-            (setq restrict
-                  (append restrict '(:map-inject-notation-beautified t))))
-          (when do-inherit-predicate
-            (funcall
-             `(lambda nil
-                (entropy/emacs-lazy-load-simple ,feature
-                  (entropy/emacs-hydra-hollow-define-key
-                   ',map ,key ',command)))))
-          (when do-inject-spec-maps
-            (when (and (listp do-inject-spec-maps)
-                       (listp (car do-inject-spec-maps)))
-              (dolist (item do-inject-spec-maps)
-                (let ((feature (car item))
-                      (map-for (cadr item))
-                      (key-for (or (nth 2 item) key)))
-                  (funcall
-                   `(lambda nil
-                      (entropy/emacs-lazy-load-simple ,feature
-                        (entropy/emacs-hydra-hollow-define-key
-                         ',map-for ,key-for ',command))))
-                  ))))))))
-
+         (hydra-injector (car rest-args)))
+    (cond
+     ((eq map-inject t)
+      (setq notation
+            (entropy/emacs-hydra-hollow-pretty-hydra-head-notation-handler
+             notation 'mode-map-inject
+             (and (member :global-bind-notation-beautified restrict)
+                  (entropy/emacs-hydra-hollow--common-judge-p
+                   (plist-get restrict :global-bind-notation-beautified)))))
+      (setq restrict
+            (append restrict '(:map-inject-notation-beautified t)))
+      (entropy/emacs-hydra-hollow-build-hydra-injector
+       hydra-injector
+       key command))
+     ((entropy/emacs-common-plistp map-inject)
+      (let ((do-beautify-notation
+             (entropy/emacs-hydra-hollow--common-judge-p
+              (plist-get map-inject :do-beautify-notation)))
+            (do-spec-hydra-injector
+             (entropy/emacs-hydra-hollow--common-judge-p
+              (plist-get map-inject :do-spec-hydra-injector)))
+            (do-inherit-predicate
+             (entropy/emacs-hydra-hollow--common-judge-p
+              (plist-get map-inject :do-inherit-predicate))))
+        (when do-beautify-notation
+          (setq notation
+                (entropy/emacs-hydra-hollow-pretty-hydra-head-notation-handler
+                 notation 'mode-map-inject
+                 (member :global-bind-notation-beautified restrict)))
+          (setq restrict
+                (append restrict '(:map-inject-notation-beautified t))))
+        (when do-inherit-predicate
+          (entropy/emacs-hydra-hollow-build-hydra-injector
+           hydra-injector
+           key command))
+        (when do-spec-hydra-injector
+          (entropy/emacs-hydra-hollow-build-hydra-injector
+           do-spec-hydra-injector
+           key command)))))
     (list :restrict restrict
           :pretty-hydra-casket
           `(,group ((,key ,command ,notation ,@pretty-hydra-casket-plist)))
@@ -1981,7 +2012,7 @@ if Optional arguments NOT-MERGE is non-nil. "
           new-pretty-hydra-caskets-list))))))
 
 ;; **** core hydra builder defination
-
+;; ***** library
 
 (defvar entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook nil
   "Hook for normalize a =pretty-hydra-cabinet= with customized way.
@@ -2006,7 +2037,7 @@ Each function must just has one argumentm, a
 ;; type =entropy/emacs-pretty-hydra-for-individual=
 
 (defun entropy/emacs-hydra-hollow-common-individual-hydra-define
-    (individual-hydra-name feature keymap heads-plist
+    (individual-hydra-name hydra-injector heads-plist
                            &optional pretty-hydra-body pretty-hydra-category-width-indicator)
   (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
    'heads-plist)
@@ -2015,7 +2046,7 @@ Each function must just has one argumentm, a
         (patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
           heads-plist
-          `((:map-inject . (,feature ,keymap))
+          `((:map-inject ,hydra-injector)
             (:global-bind)
             (:eemacs-top-bind))))
         (body (or pretty-hydra-body
@@ -2030,7 +2061,7 @@ Each function must just has one argumentm, a
        pretty-hydra-category-width-indicator))))
 
 (defun entropy/emacs-hydra-hollow-common-individual-hydra-define+
-    (individual-hydra-name feature keymap heads-plist
+    (individual-hydra-name hydra-injector heads-plist
                            &optional
                            pretty-hydra-body
                            pretty-hydra-category-width-indicator-for-build
@@ -2040,7 +2071,7 @@ Each function must just has one argumentm, a
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
           heads-plist
-          `((:map-inject . (,feature ,keymap))
+          `((:map-inject ,hydra-injector)
             (:global-bind)
             (:eemacs-top-bind))))
         (body (or pretty-hydra-body
@@ -2063,19 +2094,19 @@ Each function must just has one argumentm, a
      (format "entropy/emacs-individual-hydra-random-name-of-%s" suffix))))
 
 (defun entropy/emacs-hydra-hollow-build-random-individual-hydra
-    (pretty-hydra-cabinet &optional pretty-hydra-category-width-indicator feature keymap)
+    (pretty-hydra-cabinet &optional pretty-hydra-category-width-indicator hydra-injector)
   "Create a individual entropy-emacs superstructure hydra using a
 =pretty-hydra-cabinet=, with a random =individual-hydra-name=
 created by
 `entropy/emacs-hydra-hollow-get-random-individual-hydra-name'.
 
 Optional args are a =pretty-hydra-category-width-indicator=, a
-FEATURE and a KEYMAP, they are used as the same meaning as for
+HYDRA-INJECTOR, they are used as the same meaning as for
 `entropy/emacs-hydra-hollow-common-individual-hydra-define'."
   (let ((random-name (entropy/emacs-hydra-hollow-get-random-individual-hydra-name)))
     (entropy/emacs-hydra-hollow-common-individual-hydra-define
      random-name
-     feature keymap
+     hydra-injector
      pretty-hydra-cabinet
      nil
      pretty-hydra-category-width-indicator)
@@ -2097,13 +2128,13 @@ FEATURE and a KEYMAP, they are used as the same meaning as for
 ;; =entropy/emacs-pretty-hydra-for-major-mode=.
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra
-    (mode feature mode-map body heads-plist &optional ctg-width-indc)
+    (mode hydra-injector body heads-plist &optional ctg-width-indc)
   (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
    'heads-plist)
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
           heads-plist
-          `((:map-inject . (,feature ,mode-map))
+          `((:map-inject ,hydra-injector)
             (:global-bind)
             (:eemacs-top-bind)))))
     (let ()
@@ -2126,7 +2157,7 @@ FEATURE and a KEYMAP, they are used as the same meaning as for
 ;; =entropy/emacs-pretty-hydra-for-major-mode=.
 
 (defun entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-    (mode feature mode-map heads-plist
+    (mode hydra-injector heads-plist
           &optional
           pretty-hydra-body
           pretty-hydra-category-width-indicator-for-build
@@ -2136,7 +2167,7 @@ FEATURE and a KEYMAP, they are used as the same meaning as for
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
           heads-plist
-          `((:map-inject . (,feature ,mode-map))
+          `((:map-inject ,hydra-injector)
             (:global-bind)
             (:eemacs-top-bind))))
         (body (or pretty-hydra-body
@@ -2343,7 +2374,7 @@ hydra body caller) =pretty-hydra-head-command=.
 ;; =pretty-hydra-cabinet-unit=.
 
 (defun entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-core
-    (mode feature mode-map &optional pretty-hydra-category-width-indicator)
+    (mode hydra-injector &optional pretty-hydra-category-width-indicator)
   (let ((body
          (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
           mode)))
@@ -2353,14 +2384,14 @@ hydra body caller) =pretty-hydra-head-command=.
                     body)
               entropy/emacs-hydra-hollow-major-mode-body-register))
       (entropy/emacs-hydra-hollow-define-major-mode-hydra
-       mode feature mode-map
+       mode hydra-injector
        body
        '("Help"
          nil)
        pretty-hydra-category-width-indicator))))
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-    (mode feature mode-map do-not-build-sparse-tree
+    (mode hydra-injector do-not-build-sparse-tree
           &optional
           heads
           pretty-hydra-category-width-indicator-for-build
@@ -2377,15 +2408,15 @@ hydra body caller) =pretty-hydra-head-command=.
            mode))))
     (unless (or has-defined do-not-build-sparse-tree)
       (entropy/emacs-hydra-hollow--define-major-mode-hydra-common-sparse-tree-core
-       mode feature mode-map pretty-hydra-category-width-indicator-for-build))
+       mode hydra-injector pretty-hydra-category-width-indicator-for-build))
     (if (and (null do-not-build-sparse-tree)
              (null has-defined))
         (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-         mode feature mode-map heads
+         mode hydra-injector heads
          nil nil
          pretty-hydra-category-width-indicator-for-inject)
       (entropy/emacs-hydra-hollow-define-major-mode-hydra
-       mode feature mode-map pretty-hydra-body heads
+       mode hydra-injector pretty-hydra-body heads
        pretty-hydra-category-width-indicator-for-build))))
 
 
@@ -2610,7 +2641,7 @@ evaluated result as its value.
 
   #+begin_src emacs-lisp
     '(
-      mode feature map do-not-build-sparse-tree
+      mode hydra-injector do-not-build-sparse-tree
       pretty-hydra-category-width-indicator-for-build
       pretty-hydra-category-width-indicator-for-inject)
   #+end_src
@@ -2633,23 +2664,25 @@ evaluated result as its value.
              (requests (cadr baron))
              (mode (or (car requests)
                        use-name))
-             (feature (or (cadr requests)
-                          use-name))
-             (map (or (caddr requests)
-                      (intern (format "%s-map" (symbol-name use-name)))))
+             (hydra-injector (cadr requests))
              (do-not-build-sparse-tree
-              (cadddr requests))
+              (caddr requests))
              (ctg-width-indc-for-build
-              (nth 4 requests))
+              (nth 3 requests))
              (ctg-width-indc-for-inject
-              (nth 5 requests))
+              (nth 4 requests))
              (heads (cadr island)))
+        (setq hydra-injector
+              (entropy/emacs-hydra-hollow-make-hydra-injector
+               hydra-injector
+               use-name
+               (intern (format "%s-map" (symbol-name use-name)))))
         (setq
          init-form
          (append init-form
                  `((when (not (null ',enable))
                      (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-                      ',mode ',feature ',map ',do-not-build-sparse-tree ',heads
+                      ',mode ',hydra-injector ',do-not-build-sparse-tree ',heads
                       ',ctg-width-indc-for-build
                       ',ctg-width-indc-for-inject)))))))
     (use-package-concat
@@ -2706,7 +2739,7 @@ evaluated result as its value.
 
   #+begin_src emacs-lisp
     '(
-      mode feature map
+      mode hydra-injector
       pretty-hydra-body
       pretty-hydra-category-width-indicator-for-build
       pretty-hydra-category-width-indicator-for-inject)
@@ -2733,13 +2766,12 @@ evaluated result as its value.
                              enable-slot)))
                   (requests (cadr baron))
                   (mode (car requests))
-                  (feature (cadr requests))
-                  (map (caddr requests))
-                  (pretty-hydra-body (nth 3 requests))
+                  (hydra-injector (cadr requests))
+                  (pretty-hydra-body (nth 2 requests))
                   (pretty-hydra-category-width-indicator-for-build
-                   (nth 4 requests))
+                   (nth 3 requests))
                   (pretty-hydra-category-width-indicator-for-inject
-                   (nth 5 requests))
+                   (nth 4 requests))
                   (heads (cadr island))
                   run-call)
              (when enable
@@ -2748,7 +2780,7 @@ evaluated result as its value.
                            (list 'apply
                                  (list 'function 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra)
                                  (list 'quote
-                                       (list mode feature map heads
+                                       (list mode hydra-injector heads
                                              pretty-hydra-body
                                              pretty-hydra-category-width-indicator-for-build
                                              pretty-hydra-category-width-indicator-for-inject)))))
@@ -2813,7 +2845,7 @@ evaluated result as its value.
 
   #+begin_src emacs-lisp
     '(
-      individual-hydra-name feature keymap
+      individual-hydra-name hydra-injector
       pretty-hydra-body
       pretty-hydra-category-width-indicator-for-build
      )
@@ -2837,17 +2869,20 @@ evaluated result as its value.
              (heads (cadr island))
              (requests (cadr baron))
              (individual-hydra-name (car requests))
-             (feature (cadr requests))
-             (keymap (caddr requests))
-             (pretty-hydra-body (cadddr requests))
-             (ctg-width-indc (nth 4 requests)))
+             (hydra-injector (cadr requests))
+             (pretty-hydra-body (caddr requests))
+             (ctg-width-indc (nth 3 requests)))
+        (setq hydra-injector
+              (entropy/emacs-hydra-hollow-make-hydra-injector
+               hydra-injector
+               use-name
+               (intern (format "%s-map" (symbol-name use-name)))))
         (when enable
           (setq init-form
                 (append init-form
                         `((entropy/emacs-hydra-hollow-common-individual-hydra-define
                            ',individual-hydra-name
-                           ',feature
-                           ',keymap
+                           ',hydra-injector
                            ',heads
                            ',pretty-hydra-body
                            ',ctg-width-indc)))))))
@@ -2901,7 +2936,7 @@ evaluated result as its value.
 
   #+begin_src emacs-lisp
     '(
-      individual-hydra-name feature keymap
+      individual-hydra-name hydra-injector
       pretty-hydra-body
       pretty-hydra-category-width-indicator-for-build
       pretty-hydra-category-width-indicator-for-inject)
@@ -2924,18 +2959,16 @@ evaluated result as its value.
              (heads (cadr island))
              (requests (cadr baron))
              (individual-hydra-name (car requests))
-             (feature (cadr requests))
-             (keymap (caddr requests))
-             (pretty-hydra-body (cadddr requests))
-             (ctg-width-indc-for-build (nth 4 requests))
-             (ctg-width-indc-for-inject (nth 5 requests)))
+             (hydra-injector (cadr requests))
+             (pretty-hydra-body (caddr requests))
+             (ctg-width-indc-for-build (nth 3 requests))
+             (ctg-width-indc-for-inject (nth 4 requests)))
         (when enable
           (setq init-form
                 (append init-form
                         `((entropy/emacs-hydra-hollow-common-individual-hydra-define+
                            ',individual-hydra-name
-                           ',feature
-                           ',keymap
+                           ',hydra-injector
                            ',heads
                            ',pretty-hydra-body
                            ',ctg-width-indc-for-build

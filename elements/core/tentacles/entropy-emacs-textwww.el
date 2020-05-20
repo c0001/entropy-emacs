@@ -52,7 +52,7 @@
   (let ()
     `(progn
        (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-        ',mode ',feature ',mode-map t
+        ',mode '(,feature ,mode-map) t
         '("Page Move"
           (("l" ,previous-page "Previous Page" :enable t :exit t)
            ("n" ,next-page "Next Page" :enable t :exit t)

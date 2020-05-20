@@ -47,7 +47,7 @@
   :ensure nil
   :eemacs-mmphc
   (((:enable t)
-    (python-mode python python-mode-map t (2 1)))
+    (python-mode (python python-mode-map) t (2 1)))
    ("Basic"
     nil
     "Repl"

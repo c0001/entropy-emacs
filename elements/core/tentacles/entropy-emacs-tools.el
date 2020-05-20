@@ -122,7 +122,7 @@ Version 2016-10-15"
            $file-list))))))
 
   (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   'dired-mode 'dired 'dired-mode-map
+   'dired-mode '(dired dired-mode-map)
    '("Misc."
      (("<C-return>" entropy/emacs-tools-open-in-external-app
        "Open dired marked files in external app"
@@ -165,7 +165,7 @@ Version 2017-12-23"
         ))))
 
   (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   'dired-mode 'dired 'dired-mode-map
+   'dired-mode '(dired dired-mode-map)
    '("Misc."
      (("C-=" entropy/emacs-tools-show-in-desktop
        "Show current file in desktaop"
@@ -226,7 +226,7 @@ Version 2017-10-09"
         (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t))))))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-basic-config-core nil nil
+ 'eemacs-basic-config-core nil
  '("Eemacs Basic Core"
    (("C-;" entropy/emacs-tools-open-in-terminal
      "Open the current location in a new terminal window"
@@ -252,7 +252,7 @@ Version 2017-10-09"
 
   :eemacs-mmphca
   (((:enable t)
-    (dired-mode dired dired-mode-map))
+    (dired-mode (dired dired-mode-map)))
    ("Misc."
     (("M-RET" entropy/open-with-dired-open "Dired open with portable apps"
       :enable t :exit t :map-inject t))))
@@ -283,7 +283,7 @@ like `recenter-top-bottom'."
   (recenter-top-bottom -1))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-center-line-position nil nil
+ 'eemacs-center-line-position nil
  '("Eemacs Center Line"
    (("C-l" entropy/emacs-tools-vertical-center "Vertical center buffer"
      :enable t :exit t :global-bind t)
@@ -485,7 +485,7 @@ which determined by the scale count 0.3 "
     (message "Now is %s" time)))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-basic-config-core nil nil
+ 'eemacs-basic-config-core nil
  '("Eemacs Basic Core"
    (("<f12>" entropy/emacs-tools-time-show
      "Show current time with date information also"
@@ -571,7 +571,7 @@ which determined by the scale count 0.3 "
 
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'tools-coding-refactor nil nil
+ 'tools-coding-refactor nil
  '("DOS2UNIX"
    (("d i" entropy/emacs-tools-dos2unix-internal
      "Exchange the buffer end-of-line type to unix sytle internally"
@@ -619,7 +619,7 @@ which determined by the scale count 0.3 "
       ('bing (call-interactively 'entropy/emacs-tools-bing-dict-brief-prompt)))))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-dict-search nil nil
+ 'eemacs-dict-search nil
  '("Basic"
    (("C-f" entropy/emacs-tools-dict-search-at-point
      "Search dict for thing at current point"
@@ -1041,7 +1041,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   :commands (global-visual-ascii-mode visual-ascii-mode)
   :eemacs-mmphca
   (((:enable t)
-    (help-mode help-mode help-mode-map))
+    (help-mode (help-mode help-mode-map)))
    ("Visual"
     (("v" visual-ascii-mode "Visualize ascii code on buffer"
       :enable t :exit t :map-inject t)))))
@@ -1087,13 +1087,13 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 
   :eemacs-mmphca
   ((((:enable t)
-     (eww-mode eww eww-mode-map))
+     (eww-mode (eww eww-mode-map)))
     ("Proxy"
      (("p" entropy/proxy-url-switch-proxy-for-eww-group
        "Toggle proxy type"
        :enable t :map-inject t :exit t))))
    (((:enable t)
-     (w3m-mode w3m w3m-mode-map))
+     (w3m-mode (w3m w3m-mode-map)))
     ("Proxy"
      (("p" entropy/emacs-tools-w3m-toggle-proxy
        "Toggle proxy type"
@@ -1174,7 +1174,7 @@ can't visit one page suddenly."
   :commands entropy/org-batch-refile-tags-read-and-do
   :eemacs-mmphca
   (((:enable t)
-    (org-mode org org-mode-map))
+    (org-mode (org org-mode-map)))
    ("Org Refile"
     (("r b" entropy/org-batch-refile-tags-read-and-do
       "Refile by specifying the tag matched"
@@ -1187,7 +1187,7 @@ can't visit one page suddenly."
              entropy/cpmv-to-current)
   :eemacs-mmphca
   (((:enable t)
-    (dired-mode dired dired-mode-map))
+    (dired-mode (dired dired-mode-map)))
    ("Misc."
     (("m c" entropy/cpmv-dired-get-files-list
       "Get files list for cp or mv"

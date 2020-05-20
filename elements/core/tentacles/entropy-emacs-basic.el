@@ -109,7 +109,7 @@ place can be easily found by other interactive command."
 ;; ***** pretty-hydra
   :eemacs-mmphc
   (((:enable t)
-    (dired-mode dired dired-mode-map t (3 3 3)))
+    (dired-mode (dired dired-mode-map) t (3 3 3)))
    ("Basic"
     (("RET" dired-find-file "Open item dwim"
       :enable t
@@ -527,7 +527,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
    dired-subtree-cycle)
   :eemacs-mmphca
   (((:enable t)
-    (dired-mode dired dired-mode-map))
+    (dired-mode (dired dired-mode-map)))
    ("Basic"
     (("TAB" dired-subtree-toggle
       "Insert subtree at point (vice versa)."
@@ -1647,7 +1647,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
 ;; *** Emacs process and system proced manager hacking
 ;; **** process
 (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
- 'process-menu-mode 'simple process-menu-mode-map t
+ 'process-menu-mode '(simple process-menu-mode-map) t
  '("Basic"
    (("S" tabulated-list-sort "Sort Tabulated List entries by the column at point"
      :enable t :exit t :map-inject t)
@@ -1695,7 +1695,7 @@ otherwise returns nil."
 
   :eemacs-mmphc
   (((:enable t)
-    (proced-mode proced proced-mode-map t (2 2 2 2)))
+    (proced-mode (proced proced-mode-map) t (2 2 2 2)))
    ("Marking"
     (("m" proced-mark "Mark the current (or next COUNT) processes"
       :enable t :exit t :map-inject t)
@@ -1785,7 +1785,7 @@ otherwise returns nil."
 (entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'words-manipulation nil nil
+ 'words-manipulation nil
  '("Basic"
    (("M-c" entropy/emacs-basic-toggle-case-for-capitalize
      "Captalize Word"
@@ -1857,7 +1857,7 @@ otherwise returns nil."
 ;; ** eemacs basic hydra-hollow instances
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-basic-config-core nil nil
+ 'eemacs-basic-config-core nil
  '("Eemacs Basic Core"
    (("C-x 1" delete-other-windows
      "delete-other-window"

@@ -229,7 +229,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
   :eemacs-indhc
   (((:enable t)
-    (counsel-mode counsel counsel-mode-map nil (2 2 2)))
+    (counsel-mode (counsel counsel-mode-map) nil (2 2 2)))
    (
     ;; FILE group -- prefix 'f'
     "Counsel File Manipulation"
@@ -425,7 +425,7 @@ this variable used to patching for origin `counsel-git'.")
   :hook (css-mode . counsel-css-imenu-setup)
   :eemacs-mmphca
   (((:enable t)
-    (css-mode css-mode css-mode-map))
+    (css-mode (css-mode css-mode-map)))
    ("Basic"
     (("C-c M-d" counsel-css "Jump to a css selector"
       :enable t
@@ -447,7 +447,7 @@ this variable used to patching for origin `counsel-git'.")
   :commands  (counsel-world-clock)
   :eemacs-indhca
   (((:enable t)
-    (counsel-mode counsel counsel-mode-map))
+    (counsel-mode (counsel counsel-mode-map)))
    ("Counsel Miscellaneous"
     (("C-c c m c" counsel-world-clock "Display time in different time zone in echo area"
       :enable t :exit t :eemacs-top-bind t)))))
@@ -459,7 +459,7 @@ this variable used to patching for origin `counsel-git'.")
 
   :eemacs-indhca
   (((:enable t)
-    (counsel-mode counsel counsel-mode-map))
+    (counsel-mode (counsel counsel-mode-map)))
    ("Counsel Miscellaneous"
     (("C-c c m f b" counsel-ffdata-firefox-bookmarks "Search your Firefox bookmarks"
       :enable t :exit t :eemacs-top-bind t)
@@ -734,7 +734,7 @@ that the replacement POS can be find absolutely."
 ;; *** hydra for searcher
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'powerful-searcher nil nil
+ 'powerful-searcher nil
  (if (eq entropy/emacs-search-program "ag")
      '("Powerful Searcher"
        (("C-c j" helm-do-ag "Helm AG Search"

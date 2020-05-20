@@ -92,7 +92,7 @@
 ;; ***** eemacs mmphc
   :eemacs-mmphc
   (((:enable t)
-    (web-mode web-mode web-mode-map t (1 2 1 1 2)))
+    (web-mode (web-mode web-mode-map) t (1 2 1 1 2)))
    ("Basic"
     (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
       :enable t
@@ -226,7 +226,7 @@
   :eemacs-mmphca
   (((:enable (eq (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
                  'traditional))
-    (web-mode web-mode web-mode-map))
+    (web-mode (web-mode web-mode-map)))
    ("Company"
     (("M-t" company-tern "Company Tern"
       :enable t
@@ -258,7 +258,7 @@
          (html-mode . emmet-mode))
   :eemacs-mmphca
   (((:enable t)
-    (web-mode emmet-mode emmet-mode-keymap))
+    (web-mode (emmet-mode emmet-mode-keymap)))
    ("Basic"
     (("C-j" emmet-expand-line "Emmet expanding (intelligent)"
       :enable t :map-inject t :exit t))))
@@ -270,7 +270,7 @@
   :ensure nil
   :eemacs-mmphc
   (((:enable t)
-    (nil nil nil t))
+    (nil nil t))
    ("Basic"
     (("C-c C-f" css-cycle-color-format "Cycle the color at point between different CSS color formats"
       :enable t :map-inject t :exit t)
@@ -283,7 +283,7 @@
   :commands (json-mode)
   :eemacs-mmphc
   (((:enable t)
-    (nil nil nil t))
+    (nil nil t))
    ("Basic"
     (("C-c C-p" json-mode-show-path
       "Print the path to the node at point to the minibuffer, and yank to the kill ring"
@@ -313,7 +313,7 @@
   :interpreter "node"
   :eemacs-mmphc
   (((:enable t)
-    (nil nil nil t (1 1 3)))
+    (nil nil t (1 1 3)))
    ("Basic"
     (("C-c C-w" js2-mode-toggle-warnings-and-errors "Toggle the display of warnings and errors"
       :enable t :exit t :map-inject t))
@@ -434,7 +434,7 @@ format."
 
   :eemacs-mmphca
   ((((:enable t)
-     (js2-mode js2-mode js2-mode-map))
+     (js2-mode (js2-mode js2-mode-map)))
     ("Web Beautify"
      (("C-c C-b" web-beautify-js "Beautify Js"
        :enable (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)

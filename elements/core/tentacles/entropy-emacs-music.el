@@ -93,11 +93,11 @@ Add current music to queue when its not in thus."
 
   :eemacs-mmphc
   ((((:enable t)
-     (mpc-songs-mode mpc mpc-songs-mode-map t (3 2 2)))
+     (mpc-songs-mode (mpc mpc-songs-mode-map) t (3 2 2)))
     ((:enable t)
-     (mpc-tagbrowser-mode mpc mpc-tagbrowser-mode-map t (3 2 2)))
+     (mpc-tagbrowser-mode (mpc mpc-tagbrowser-mode-map) t (3 2 2)))
     ((:enable t)
-     (mpc-status-mode mpc mpc-status-mode-map t (3 2 2))))
+     (mpc-status-mode (mpc mpc-status-mode-map) t (3 2 2))))
    ("Common"
     (("P" mpc-pause "Pause playing" :enable t :exit t :map-inject t)
      ("n" mpc-next "next song" :enable t :exit t :map-inject t)
@@ -161,12 +161,12 @@ Add current music to queue when its not in thus."
 
   :eemacs-mmphca
   ((((:enable t)
-     (mpc-tagbrowser-mode mpc mpc-tagbrowser-mode-map))
+     (mpc-tagbrowser-mode (mpc mpc-tagbrowser-mode-map)))
     ("Common"
      (("RET" mpc-select "Select the tag value at point"
        :enable t :map-inject t :exit t))))
    (((:enable t)
-     (mpc-songs-mode mpc mpc-songs-mode-map))
+     (mpc-songs-mode (mpc mpc-songs-mode-map)))
     ("Common"
      (("RET" entropy/emacs-music-mpc-auto-add-and-play
        "Play current music."
@@ -221,7 +221,7 @@ Add current music to queue when its not in thus."
            (mapc 'bongo-insert-file files)))
         (bongo-switch-buffers))
       (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-       'dired-mode 'dired 'dired-mode-map
+       'dired-mode '(dired dired-mode-map)
        '("Misc."
          (("m b" bongo-add-dired-files
            "Add marked files to the Bongo library."

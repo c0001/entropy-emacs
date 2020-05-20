@@ -57,7 +57,7 @@
 
   :eemacs-mmphc
   (((:enable t)
-    (elfeed-search-mode elfeed elfeed-search-mode-map t))
+    (elfeed-search-mode (elfeed elfeed-search-mode-map) t))
    ("Feed"
     (("A" elfeed-add-feed "Add feed" :enable t :exit t)
      ("D" entropy/emacs-rss-elfeed-remove-feed "Delete feed commonly" :enable t :exit t)

@@ -109,7 +109,7 @@ For lisp coding aim, always return the transfered buffer.
   :ensure nil
   :eemacs-mmphc
   (((:enable t)
-    (emacs-lisp-mode nil emacs-lisp-mode-map t))
+    (emacs-lisp-mode (nil emacs-lisp-mode-map) t))
    ("IELM"
     (("C-c C-z" ielm "Open IELM"
       :enable t
@@ -130,7 +130,7 @@ For lisp coding aim, always return the transfered buffer.
       :map-inject t))))
   :eemacs-mmphca
   (((:enable t)
-    (lisp-interaction-mode elisp-mode lisp-interaction-mode-map))
+    (lisp-interaction-mode (elisp-mode lisp-interaction-mode-map)))
    ("Eval"
     (("C-c C-c" eval-defun "Eval wrapping context"
       :enable t
@@ -183,9 +183,9 @@ For lisp coding aim, always return the transfered buffer.
   :commands (macrostep-expand)
   :eemacs-mmphca
   ((((:enable t)
-     (emacs-lisp-mode elisp-mode emacs-lisp-mode-map))
+     (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map)))
     ((:enable t)
-     (lisp-interaction-mode elisp-mode lisp-interaction-mode-map)))
+     (lisp-interaction-mode (elisp-mode lisp-interaction-mode-map))))
    ("Macro"
     (("C-c e" macrostep-expand "Expand Macro At Point"
       :enable t
@@ -226,7 +226,7 @@ For lisp coding aim, always return the transfered buffer.
   :commands (slime slime-mode)
   :eemacs-mmphc
   (((:enable t)
-    (lisp-mode nil slime-mode-map))
+    (lisp-mode (nil slime-mode-map)))
    ("Slime"
     (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol
       "Slime Describe Symbols"

@@ -121,7 +121,7 @@
 
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-window-config nil nil
+ 'eemacs-window-config nil
  '("Jump To Window"
    (("C-x <up>" entropy/emacs-basic-windmove-up-cycle
      "Move To Up Window"
@@ -237,7 +237,7 @@
 ;; **** eemacs-indhc
   :eemacs-indhc
   (((:enable t)
-    (eyebrowse-mode eyebrowse entropy/emacs-wc-eyebrowse-mode-map))
+    (eyebrowse-mode (eyebrowse entropy/emacs-wc-eyebrowse-mode-map)))
    ("Common Switch"
     (("C-o" entropy/emacs-basic-eyebrowse-switch-top
       "Switch to Workspace Top"
@@ -868,7 +868,7 @@ without derived slot."
 ;; ** key bind
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-window-config nil nil
+ 'eemacs-window-config nil
  '("Align Buffer"
    (("C-c M-<up>"
      (:eval

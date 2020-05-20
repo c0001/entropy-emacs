@@ -842,7 +842,8 @@ means its a form of a list)."
 (defmacro entropy/emacs-lazy-load-simple (feature &rest body)
   "Execute BODY after/require FILE is loaded.
 FILE is normally a feature name, but it can also be a file name,
-in case that file does not provide any feature."
+in case that file does not provide any feature, further more FILE
+can be a list for thus which nested in ordered by that."
   (declare (indent 1) (debug t))
   (cond
    (entropy/emacs-custom-enable-lazy-load

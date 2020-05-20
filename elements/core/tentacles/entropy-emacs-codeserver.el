@@ -245,7 +245,7 @@ nervous."
 
   :eemacs-indhc
   (((:enable t)
-    (lsp-mode nil nil nil (2 2 2 1 1)))
+    (lsp-mode nil nil (2 2 2 1 1)))
    ("Basic"
     (("b s" lsp "Start lsp server for current workspace"
       :enable t :exit t)
@@ -364,7 +364,7 @@ nervous."
               ("C-c u" . lsp-ui-imenu))
   :eemacs-indhc
   (((:enable t)
-    (lsp-ui-mode nil nil nil (1 2 2)))
+    (lsp-ui-mode nil nil (1 2 2)))
    ("Doc (Basic)"
     (("d t" lsp-ui-mode "Toggle language server UI mode on or off"
       :enable t :exit t :toggle (if (bound-and-true-p lsp-ui-mode) t nil))

@@ -166,7 +166,7 @@ package management!"))
 
 ;; ***** hydra-define
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'markdown-mode-style-map nil nil
+ 'markdown-mode-style-map nil
  entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-style-map
  nil '(2 2 2 2))
 
@@ -220,7 +220,7 @@ package management!"))
 
 ;; ***** hydra-define
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'markdown-mode-command-map nil nil
+ 'markdown-mode-command-map nil
  entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-command)
 
 ;; **** markdown-mode top dispatch hydra
@@ -420,7 +420,7 @@ package management!"))
 ;; ***** hydra defiens
 (entropy/emacs-hydra-hollow-define-major-mode-hydra
  'markdown-mode
- 'markdown-mode 'markdown-mode-map
+ '(markdown-mode markdown-mode-map)
  (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
   'markdown-mode)
  entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-map
@@ -444,7 +444,7 @@ package management!"))
     (user-error "Please install grip by 'pip install grip'.")))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'markdown-mode-command-map nil nil
+ 'markdown-mode-command-map nil
  '("Preview"
    (("p g" entropy/emacs-markdown-preview-grip
      "Preview markdown buffer using python grip"
