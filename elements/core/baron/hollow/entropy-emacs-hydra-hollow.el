@@ -2064,6 +2064,14 @@ Each function must just has one argumentm, a
 
 (defun entropy/emacs-hydra-hollow-build-random-individual-hydra
     (pretty-hydra-cabinet &optional pretty-hydra-category-width-indicator feature keymap)
+  "Create a individual entropy-emacs superstructure hydra using a
+=pretty-hydra-cabinet=, with a random =individual-hydra-name=
+created by
+`entropy/emacs-hydra-hollow-get-random-individual-hydra-name'.
+
+Optional args are a =pretty-hydra-category-width-indicator=, a
+FEATURE and a KEYMAP, they are used as the same meaning as for
+`entropy/emacs-hydra-hollow-common-individual-hydra-define'."
   (let ((random-name (entropy/emacs-hydra-hollow-get-random-individual-hydra-name)))
     (entropy/emacs-hydra-hollow-common-individual-hydra-define
      random-name
