@@ -237,7 +237,11 @@
 ;; **** eemacs-indhc
   :eemacs-indhc
   (((:enable t)
-    (eyebrowse-mode (eyebrowse entropy/emacs-wc-eyebrowse-mode-map)))
+    (eyebrowse-mode
+     (eyebrowse entropy/emacs-wc-eyebrowse-mode-map)
+     nil
+     ((3 :width-desc "Common switch && A/R workspace && Derived workspace manipulation")
+      (1 :width-desc "Quick briefly numeric switch keys"))))
    ("Common Switch"
     (("C-o" entropy/emacs-basic-eyebrowse-switch-top
       "Switch to Workspace Top"

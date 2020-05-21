@@ -382,6 +382,7 @@ with specified indicator."
     (pretty-hydra-category-name
      &key
      pretty-hydra-category-name-prefix
+     pretty-hydra-category-description
      pretty-hydra-category-hydra-name
      pretty-hydra-category-hydra-caller-name
      pretty-hydra-category-base-pretty-hydra-body
@@ -408,8 +409,12 @@ Slots description:
 
 - =pretty-hydra-category-name-prefix=
 
-  The prefix name to build this =pretty-hyra-cagtegory=, it's a
+  The prefix name to build this =pretty-hydra-category=, it's a
   symbol.
+
+- =pretty-hydra-category-description=
+
+  The description string for this =pretty-hydra-category=.
 
 - =pretty-hydra-category-hydra-name=
 
@@ -466,6 +471,7 @@ Slots description:
     (set pretty-hydra-category-name
          (list
           :pretty-hydra-category-name-prefix pretty-hydra-category-name-prefix
+          :pretty-hydra-category-description pretty-hydra-category-description
           :pretty-hydra-category-name pretty-hydra-category-name
           :pretty-hydra-category-hydra-name pretty-hydra-category-hydra-name
           :pretty-hydra-category-hydra-caller-name pretty-hydra-category-hydra-caller-name
@@ -481,6 +487,7 @@ Slots description:
     (dolist
         (el
          '((:pretty-hydra-category-name-prefix pretty-hydra-category-name-prefix)
+           (:pretty-hydra-category-description pretty-hydra-category-description)
            (:pretty-hydra-category-name pretty-hydra-category-name)
            (:pretty-hydra-category-hydra-name pretty-hydra-category-hydra-name)
            (:pretty-hydra-category-hydra-caller-name pretty-hydra-category-hydra-caller-name)
@@ -628,41 +635,96 @@ BRANCH argument type."
 
 (defun entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
     (pretty-hydra-category-width-indicator)
-  "Normalizeds PRETTY-CATEGORY-WIDTH-INDICATOR.
+  "Normalizeds PRETTY-CATEGORY-WIDTH-INDICATOR for arranging the
+cabinet width for a =pretty-hydra-category= or all chained of
+thus.
 
-=pretty-category-width-indicator= is t or nil even can be a
-list. when its value is 't' return 't' that indicated for do not
-restrict the width for associated =pretty-hydra-category=
-initializing procedure, nil for use
-`entropy/emacs-hydra-hollow-category-default-width' for all the
-chains for that =pretty-hydra-category=.
+Basiclly a =pretty-category-width-indicator= is a *width-sign* of
+t, nil or an positive integer, further more for a *rich-list* a
+list which car is one of thus and the rest was a plist whom have
+the slot =:width-desc= (value of a string) or omitted.
 
-List type description:
+Specially a =pretty-category-width-indicator= also can be a list
+of it-self internally called *self-list* type.
 
-Each item in list was a integer for width manually spec or t-nil
-spec as metioned above. Each item was a pattern transferred into
-`entropy/emacs-hydra-hollow--common-judge-p' for evaluating and
-returning the result.
+=====================================
+Introduction for a *width-sign* type:
+-------------------------------------
+
+when it's 't', this means that there's no limitation for a
+=pretty-hdyra-category='s max width restriction, otherwise while
+it's 'nil' says that all the categories chained by a
+=pretty-hydra-category-name-prefix= whose max width restriction
+are setted with
+`entropy/emacs-hydra-hollow-category-default-width'. Lastly, when
+It's a integer, the significant is as same as what when it's 'nil'
+on, but for the specified restriction on the value it represented.
+
+#+begin_quote
+Specially, when the =width-sign= in a *rich-list* was 't', it will
+be fallback to `entropy/emacs-hydra-hollow-category-default-width'
+since that the no restriction was meaning less for a *rich-list*,
+see the rest sections for more details.
+#+end_quote
+
+==================================
+Introduction for *rich-list* type
+----------------------------------
+
+A *rich-list* type of a =pretty-hydra-category-width-indicator= is
+one a data type for extending the =width-sign= with more
+attributes, there's now just one attribute given out, the
+':width-desc' the description of the current
+=pretty-hydra-category= or all the chained nodes when it is out of
+a =self-list= type.
+
+===================================
+Introduction for *self-list* type:
+-----------------------------------
+
+Each element of this list type is a *width-sign* or a *rich-list*
+type data, and either of them within this list just servered for
+the current =pretty-hydra-category=, thus when a *width-sign*
+within this list is value of 't' will be fallback to
+`entropy/emacs-hydra-hollow-category-default-width', in the other
+hand, either 't' or 'nil' is for that.
 "
-  (let (rtn)
-    (cond ((and (listp pretty-hydra-category-width-indicator)
-                (not (null pretty-hydra-category-width-indicator)))
-           (dolist (el pretty-hydra-category-width-indicator)
-             (let ((el-var (entropy/emacs-hydra-hollow--common-judge-p
-                            el)))
-               (cond ((and (integerp el-var)
-                           (> el-var 0))
-                      (push el-var rtn))
-                     ((null el-var)
-                      (push entropy/emacs-hydra-hollow-category-default-width
-                            rtn))
-                     (t
-                      (push t rtn)))))
-           (setq rtn (reverse rtn)))
-          ((null pretty-hydra-category-width-indicator)
-           (setq rtn nil))
-          (t
-           (setq rtn t)))
+  (let ((ctg-width-indc pretty-hydra-category-width-indicator)
+        rtn width-sign width-desc
+        (rich-func
+         (lambda (x)
+           (and (listp x)
+                (or
+                 (entropy/emacs-strict-plistp (cdr x))
+                 (and (eq 1 (length x))
+                      (not (listp (car x))))))))
+        (eval-form-p (lambda (x) (ignore-errors (eq :eval (car x))))))
+    (cond
+     ((funcall rich-func ctg-width-indc)
+      (let ((plist (cdr ctg-width-indc)))
+        (setq width-sign (entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
+                          (entropy/emacs-hydra-hollow--common-judge-p (car ctg-width-indc)))
+              width-desc (entropy/emacs-hydra-hollow--common-judge-p (plist-get plist :width-desc))
+              width-sign (if (eq width-sign t) entropy/emacs-hydra-hollow-category-default-width
+                           width-sign)
+              rtn (list width-sign :width-desc width-desc))))
+     ((funcall eval-form-p ctg-width-indc)
+      (setq rtn (entropy/emacs-hydra-hollow--common-judge-p ctg-width-indc)))
+     ((or (member ctg-width-indc '(t nil))
+          (integerp ctg-width-indc))
+      (setq rtn (or ctg-width-indc entropy/emacs-hydra-hollow-category-default-width)))
+     ((listp ctg-width-indc)
+      (dolist (el ctg-width-indc)
+        (setq rtn
+              (append
+               rtn
+               (list (entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
+                      el)))))
+      (setq rtn
+            (mapcar (lambda (x)
+                      (if (eq x t) entropy/emacs-hydra-hollow-category-default-width
+                        x))
+                    rtn))))
     rtn))
 
 ;; ******** category navigation set
@@ -1035,9 +1097,30 @@ the internally subroutines of this macro, they are:
              (let ((cnt init-depth)
                    candis choice caller-name)
                (while (<= cnt depth)
-                 (setq candis (append candis (list (number-to-string cnt))))
+                 (setq candis
+                       (append candis
+                               (list
+                                (cons cnt
+                                      (or
+                                       (plist-get
+                                        (symbol-value
+                                         (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-name
+                                          ',pretty-hydra-category-name-prefix cnt))
+                                        :pretty-hydra-category-description)
+                                       "None description found for this depth category")))))
                  (cl-incf cnt))
-               (setq choice (string-to-number (completing-read "Choose category slot: " candis nil t))
+
+               (setq candis
+                     (mapcar
+                      (lambda (x)
+                        (let* ((depth (car x))
+                               (desc (cdr x))
+                               (candi (format "%s: %s" depth desc)))
+                          (cons candi depth)))
+                      candis))
+
+               (setq choice (alist-get (completing-read "Choose category slot: " candis nil t)
+                                       candis nil nil 'string=)
                      caller-name
                      (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
                       ',pretty-hydra-category-name-prefix t choice))
@@ -1060,11 +1143,10 @@ the internally subroutines of this macro, they are:
 Like ~pretty-hydra-define~ but used as a function and richly
 featured for =pretty-hydra-category=.
 
-Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
-=pretty-hydra-category-width= group wrapper used for
+Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is a
+=pretty-hydra-category-width-indicator= type used for
 `entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator'.
-
-  "
+"
   (let* ((ctgs (entropy/emacs-hydra-hollow-partion-pretty-hydra-cabinet
                 pretty-hydra-cabinet))
          (ctg-len (length ctgs))
@@ -1079,6 +1161,7 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
          pretty-hydra-category-hydra-name
          pretty-hydra-category-hydra-caller-name
          pretty-hydra-category-name
+         pretty-hydra-category-description
          pretty-hydra-category-next-category-name
          cur-hydra-keymap-name
          (cur-ctg-hook-name
@@ -1093,13 +1176,27 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
           ((null ctg-indc)
            (setq cur-ctg-indc
                  entropy/emacs-hydra-hollow-category-default-width
-                 rest-ctg-inc nil))
+                 rest-ctg-inc
+                 entropy/emacs-hydra-hollow-category-default-width))
           ((integerp ctg-indc)
            (setq cur-ctg-indc ctg-indc
                  rest-ctg-inc ctg-indc))
-          (t
+          ((and (listp ctg-indc)
+                (entropy/emacs-strict-plistp (cdr ctg-indc)))
            (setq cur-ctg-indc (car ctg-indc)
+                 pretty-hydra-category-description (plist-get (cdr ctg-indc) :width-desc)
+                 rest-ctg-inc cur-ctg-indc))
+          (t
+           (setq cur-ctg-indc (or (ignore-errors (caar ctg-indc))
+                                  (car ctg-indc))
+                 pretty-hydra-category-description (ignore-errors (plist-get (cdar ctg-indc) :width-desc))
                  rest-ctg-inc (cdr ctg-indc))))
+
+    ;; immediately throw out error of the wrong type *width-sign*
+    (unless (or (member cur-ctg-indc '(t nil))
+                (and (integerp cur-ctg-indc)
+                     (> cur-ctg-indc 0)))
+      (error "wrong type of argument: *width-sign*-p %s" cur-ctg-indc))
 
     ;; get manipulated heads
     (cond
@@ -1109,26 +1206,11 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
                do (setq cur-head-group
                         (append cur-head-group item))))
      ((or (null cur-ctg-indc)
-          (and (integerp cur-ctg-indc)
-               (<= cur-ctg-indc 0))
-          (floatp cur-ctg-indc))
+          (integerp cur-ctg-indc))
       (let ((cnt 0))
         (while (<= (+ cnt 1)
-                   entropy/emacs-hydra-hollow-category-default-width)
-          (setq cur-head-group
-                (append cur-head-group
-                        (nth cnt ctgs)))
-          (cl-incf cnt))
-        (while (not (null (nth cnt ctgs)))
-          (setq rest-head-group
-                (append rest-head-group
-                        (nth cnt ctgs)))
-          (cl-incf cnt))))
-     ((and (integerp cur-ctg-indc)
-           (> cur-ctg-indc 0))
-      (let ((cnt 0))
-        (while (<= (+ cnt 1)
-                   cur-ctg-indc)
+                   (or cur-ctg-indc
+                       entropy/emacs-hydra-hollow-category-default-width))
           (setq cur-head-group
                 (append cur-head-group
                         (nth cnt ctgs)))
@@ -1222,6 +1304,7 @@ Optional argument PRETTY-HYDRA-CATEGORY-INDICATOR was a
     (entropy/emacs-hydra-hollow-set-pretty-hydra-category-name
      pretty-hydra-category-name
      :pretty-hydra-category-name-prefix pretty-hydra-category-name-prefix
+     :pretty-hydra-category-description pretty-hydra-category-description
      :pretty-hydra-category-hydra-name pretty-hydra-category-hydra-name
      :pretty-hydra-category-hydra-caller-name pretty-hydra-category-hydra-caller-name
      :pretty-hydra-category-base-pretty-hydra-body pretty-hydra-body
@@ -1248,8 +1331,8 @@ PRETTY-HYDRA-CATEGORY-NAME-PREFIX.
 Like ~pretty-hydra-define+~ but be with function usage and richly
 for =pretty-hydra-category=.
 
-Optional arguments are all type of
-=pretty-hydra-category-width-indicator= which used for
+Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is type
+of =pretty-hydra-category-width-indicator= which used for
 `entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator'."
   (let* ((top-pretty-hydra-category-name
           (entropy/emacs-hydra-hollow-category-get-pretty-hydra-category-name
@@ -2388,7 +2471,12 @@ hydra body caller) =pretty-hydra-head-command=.
          "Misc."     ()
          )
        nil nil
-       '(2 2 4 2 2))
+       '((2 :width-desc "Basic & window or buffer")
+         (2 :width-desc "highlight or useful utils")
+         (4 :width-desc "Common knifes")
+         (2 :width-desc "Version controll and remote connection")
+         (2 :width-desc "Projectile and Org")
+         (2 :width-desc "IME and miscellaneous")))
 
       (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
         (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)

@@ -229,7 +229,7 @@ package management!"))
 
 (defvar entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-map
   '(
-    ;; ***** Markup insertion & removal
+;; ****** Markup insertion & removal
 
     "Markup insertion & removal"
     (("C-c C-s"
@@ -253,7 +253,7 @@ package management!"))
       "Kill thing at point and add important text, without markup, to kill ring"
       :enable t :exit t :map-inject t))
 
-    ;; ***** Promotion, demotion, and cycling
+;; ****** Promotion, demotion, and cycling
 
     "Promotion, demotion, and cycling"
     (("C-c C--" markdown-promote
@@ -267,7 +267,7 @@ package management!"))
       :enable t :exit t :map-inject t)
      )
 
-    ;; ***** Following and doing things
+;; ****** Following and doing things
 
     "Following and doing things"
     (("C-c C-o" markdown-follow-thing-at-point
@@ -281,7 +281,7 @@ package management!"))
       :enable t :exit t :map-inject t)
      )
 
-    ;; ***** Indentation
+;; ****** Indentation
 
     "Indentation"
     (("C-m" markdown-enter-key
@@ -297,7 +297,7 @@ package management!"))
       "Call ‘markdown-indent-region’ on region from BEG to END with prefix"
       :enable t :exit t :map-inject t))
 
-    ;; ***** Visibility cycling
+;; ****** Visibility cycling
 
     "Visibility cycling"
     (("TAB" markdown-cycle "Visibility cycling for Markdown mode"
@@ -307,7 +307,7 @@ package management!"))
      ("<backtab>" markdown-shifttab "Handle S-TAB keybinding based on context"
       :enable t :exit t :map-inject t))
 
-    ;; ***** Heading and list navigation
+;; ****** Heading and list navigation
 
     "Heading and list navigation"
     (("C-c C-n" markdown-outline-next
@@ -326,7 +326,7 @@ package management!"))
       "Move to previous list item, when in a list, or next heading"
       :enable t :exit t :map-inject t))
 
-    ;; ***** Subtree, list, and table editing
+;; ****** Subtree, list, and table editing
 
     "Subtree, list, and table editing"
     (("C-c <up>" markdown-move-up "Move thing at point up"
@@ -354,7 +354,7 @@ package management!"))
      ("C-c C-j" markdown-insert-list-item "Insert a new list item"
       :enable t :exit t :map-inject t))
 
-    ;; ***** Blocks (one or more paragraphs)
+;; ****** Blocks (one or more paragraphs)
     "Blocks (one or more paragraphs)"
     (("C-M-{" markdown-backward-block
       "Move the point to the start of the current Markdown block"
@@ -369,7 +369,7 @@ package management!"))
       "Make text outside current block invisible"
       :enable t :exit t :map-inject t))
 
-    ;; ***** Link Movement
+;; ****** Link Movement
 
     "Link Movement"
     (("M-n" markdown-next-link
@@ -379,7 +379,7 @@ package management!"))
       "Jump to previous wiki link"
       :enable t :exit t :map-inject t))
 
-    ;; ***** Toggling functionality
+;; ****** Toggling functionality
 
     "Toggling functionality"
     (("C-c C-x C-e" markdown-toggle-math
@@ -398,7 +398,7 @@ package management!"))
       "Toggle the display or hiding of markup"
       :enable t :exit t :map-inject t))
 
-    ;; ***** Alternative keys (in case of problems with the arrow keys)
+;; ****** Alternative keys (in case of problems with the arrow keys)
 
     "Alternative keys (in case of problems with the arrow keys)"
     (("C-c C-x u" markdown-move-up
@@ -424,7 +424,12 @@ package management!"))
  (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
   'markdown-mode)
  entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-map
- '(2 2 2 2 2 2))
+ '((2 :width-desc "Markup insertion & removal && Promotion, demotion, and cycling")
+   (2 :width-desc "Following and doing things && Indention")
+   (2 :width-desc "Visibility cycle and heading or listing navigation")
+   (2 :width-desc "Subtree, list and table editting && Blocks editting")
+   (2 :width-desc "Link movement && Toggleing functionality ")
+   (2 :width-desc "Alternatives")))
 
 ;; ** markdown preview
 ;; *** simple preview

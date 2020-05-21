@@ -124,7 +124,8 @@ car of it was key, each key was a symbol must using the ':xx'
 type. Each key's value was grouped that say the key's 2-step
 after place must be key as well, thus the 'strict' meaning."
   (cond
-   ((not (listp arg))
+   ((or (not (listp arg))
+        (null arg))
     nil)
    ((and (listp arg)
          (= (/ (length arg) 2.0) (/ (length arg) 2)))
