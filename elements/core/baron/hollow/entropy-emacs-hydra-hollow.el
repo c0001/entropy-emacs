@@ -105,6 +105,22 @@ arguments can be evaluated before the macro expanding."
       (pretty-hydra-define+
         ,name ,body ,heads-plist))))
 
+(defun entropy/emacs-hydra-hollow-self-list-type-p (data)
+  "The =self-list= data type predicate function.
+
+A =self-list= data type is a abstract data type which served for
+some data-type which either a list of *itself*.
+
+A valid =self-list= data is a list which car must `eq' to
+':self-list' and its cdr can not be nil that indicate for that the
+rest must at least including one *itself*.
+
+There's no restriction for what *itself* is."
+  (let ()
+    (and (listp data)
+         (eq (car data) :self-list)
+         (> (length data) 1))))
+
 ;; *** entropy-emacs pretty hydra superstructure
 
 ;; This section gives a riched pretty-hydra topside framework to
@@ -1703,7 +1719,7 @@ The normalizing procedure provided by
 ;; specified head key slot.
 
 ;; ****** library
-
+;; ******* extra define key
 (defun entropy/emacs-hydra-hollow-define-key (keymap key form)
   "Bind KEY to KEYMAP with FORM.
 
@@ -1763,37 +1779,92 @@ KEYMAP was a keymap, a keymap symbol or for some meaningful usage:
            (kbd key) command))))
     ))
 
+;; ******* hydra-injector
+
+(defun entropy/emacs-hydra-hollow-hydra-injector-valid-p (hydra-injector)
+  "Predicate function judger for HYDRA-INJECATOR of data type
+=hydra-injector=.
+
+A =hydra-injector= is a data type for host a recorde for a
+external map key-binding, it can be a self-list (see
+`entropy/emacs-hydra-hollow-self-list-type-p') data type.
+
+Basiclly, it is a list of three parts:
+1) *car* of a feature information served by
+   `entropy/emacs-lazy-load-simple'.
+2) *cadr* of a keymap information, it can be a keymap symbol or its
+   value.
+3) The rest is a plist which can host slot ':inject-key' and
+   ':inject-command'.
+
+   * ':inject-key': is a key-sequence used for binding commad of
+     ':inject-command' into the keymap.
+
+   * ':inject-command': is a function or a form which will be
+     wrapped into a random function.
+"
+  (let ((judger
+         (lambda (x)
+           (unless (and (listp x)
+                        (not (null x)))
+             (error "Wrong type of argument: hydra-injector-P '%s'" x))
+           (let ((feature (car x))
+                 (map (cadr x)))
+             (unless (or (and (symbolp feature)
+                              (not (null feature)))
+                         (and (listp feature)
+                              (not (null feature))
+                              (not (member nil feature))))
+               (error "Wrong type of argument: hydra-injector-feature-P '%s'"
+                      feature))
+             (unless (not (null map))
+               (error "Wrong type of argument: hydra-injector-map-P '%s'" map))
+             t))))
+    (cond
+     ((entropy/emacs-hydra-hollow-self-list-type-p hydra-injector)
+      (let ((value (cdr hydra-injector)))
+        (dolist (var value)
+          (funcall judger var))
+        :self-list))
+     (t
+      (funcall judger hydra-injector)))))
+
 (defun entropy/emacs-hydra-hollow-build-hydra-injector (hydra-injector key command)
+  "Build a =hydra-injector= (see
+`entropy/emacs-hydra-hollow-hydra-injector-valid-p' for details)
+HYDRA-INJECTOR with key KEY and command COMMAND.
+
+Both KEY and COMMAND can be nil expect that the ':inject-key' and
+':inject-command' slot in the HYDRA-INJECTOR are non-nil.
+"
   (let ()
     (cond
-     ((and (listp hydra-injector)
-           (and (listp (car hydra-injector))
-                (not (null (car hydra-injector)))))
-      (dolist (pair hydra-injector)
+     ((eq (entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
+          :self-list)
+      (dolist (pair (cdr hydra-injector))
         (eval
          `(entropy/emacs-lazy-load-simple ,(car pair)
             (entropy/emacs-hydra-hollow-define-key
              ',(cadr pair)
              ,(or (plist-get (cddr pair) :inject-key) key)
              #',command)))))
-     ((and (listp hydra-injector)
-           (not (null hydra-injector)))
+     ((entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
       (eval
        `(entropy/emacs-lazy-load-simple ,(car hydra-injector)
           (entropy/emacs-hydra-hollow-define-key
            ',(cadr hydra-injector)
            ,(or (plist-get (cddr hydra-injector) :inject-key) key)
-           #',command))))
-     (t
-      (error "Wrong type of argument: hydra-injector-p %s" hydra-injector)))))
+           #',command)))))))
 
-(defun entropy/emacs-hydra-hollow-make-hydra-injector (hydra-injector feature-replace map-replace)
+(defun entropy/emacs-hydra-hollow-make-hydra-injector
+    (hydra-injector-maybe feature-replace map-replace)
+  "Make the data HYDRA-INJECTOR-MAYBE which maybe a
+=hydra-injector= be the equality one with feature
+FEATURE-REPLACCE and keymap data MAP-REPLACE."
   (let (rtn)
     (cond
-     ((and (listp hydra-injector)
-           (and (listp (car hydra-injector))
-                (not (null (car hydra-injector)))))
-      (dolist (pair hydra-injector)
+     ((entropy/emacs-hydra-hollow-self-list-type-p hydra-injector-maybe)
+      (dolist (pair (cdr hydra-injector-maybe))
         (cond ((and (null (car pair))
                     (not (null (cadr pair))))
                (setq rtn (append rtn (list `(,feature-replace ,(cadr pair) . ,(cddr pair))))))
@@ -1804,19 +1875,20 @@ KEYMAP was a keymap, a keymap symbol or for some meaningful usage:
                     (null (car pair)))
                (setq rtn (append rtn (list `(,feature-replace ,map-replace . ,(cddr pair))))))
               (t (setq rtn (append rtn (list pair)))))))
-     ((listp hydra-injector)
-      (cond ((and (null (car hydra-injector))
-                  (not (null (cadr hydra-injector))))
-             (setq rtn (append rtn (list `(,feature-replace ,(cadr hydra-injector) . ,(cddr hydra-injector))))))
-            ((and (null (cadr hydra-injector))
-                  (not (null (car hydra-injector))))
-             (setq rtn (append rtn (list `(,(car hydra-injector) ,map-replace . ,(cddr hydra-injector))))))
-            ((and (null (cadr hydra-injector))
-                  (null (car hydra-injector)))
-             (setq rtn (append rtn (list `(,feature-replace ,map-replace . ,(cddr hydra-injector))))))
-            (t (setq rtn (append rtn (list hydra-injector))))))
+     ((listp hydra-injector-maybe)
+      (cond ((and (null (car hydra-injector-maybe))
+                  (not (null (cadr hydra-injector-maybe))))
+             (setq rtn (append rtn (list `(,feature-replace ,(cadr hydra-injector-maybe) . ,(cddr hydra-injector-maybe))))))
+            ((and (null (cadr hydra-injector-maybe))
+                  (not (null (car hydra-injector-maybe))))
+             (setq rtn (append rtn (list `(,(car hydra-injector-maybe) ,map-replace . ,(cddr hydra-injector-maybe))))))
+            ((and (null (cadr hydra-injector-maybe))
+                  (null (car hydra-injector-maybe)))
+             (setq rtn (append rtn (list `(,feature-replace ,map-replace . ,(cddr hydra-injector-maybe))))))
+            (t (setq rtn (append rtn (list hydra-injector-maybe))))))
      (t
-      (error "Wrong type of argument: hydra-injector-p %s" hydra-injector)))
+      (error "Wrong type of argument: hydra-injector-p '%s'" hydra-injector-maybe)))
+    (add-to-list 'rtn :self-list)
     rtn))
 
 ;; ****** predicate defination
