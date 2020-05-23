@@ -229,7 +229,8 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
       (dolist (el troubles)
         (insert (concat (car el) ": "
                         (cdr el) "\n\n"))))
-    (cond ((entropy/emacs-is-make-session)
+    (cond ((or noninteractive
+               (daemonp))
            (with-current-buffer buffer
              (let ((content (buffer-substring-no-properties
                              (point-min)
