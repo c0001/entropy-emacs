@@ -96,8 +96,28 @@
    all-the-icons-auto-mode-match?
    all-the-icons-fileicon
    all-the-icons-alltheicon
-   all-the-icons-icon-for-dir
-   )
+   all-the-icons-icon-for-dir)
+
+  :init
+  ;; Patching dir icon list for fix some icon filter bugs
+  (setq all-the-icons-dir-icon-alist
+        '(("^[Tt]rash$" all-the-icons-faicon "trash-o" :height 1.2 :v-adjust -0.1)
+          ("dropbox" all-the-icons-faicon "dropbox" :height 1.0 :v-adjust -0.1)
+          ("google[ _-]drive" all-the-icons-alltheicon "google-drive" :height 1.0 :v-adjust -0.1)
+          ("^atom$" all-the-icons-alltheicon "atom" :height 1.2 :v-adjust -0.1)
+          ("^[Dd]ocuments$" all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1)
+          ("^[Dd]ownload$" all-the-icons-faicon "cloud-download" :height 0.9 :v-adjust -0.1)
+          ("^[dD]esktop$" all-the-icons-octicon "device-desktop" :height 1.0 :v-adjust -0.1)
+          ("^[pP]ictures$" all-the-icons-faicon "picture-o" :height 0.9 :v-adjust -0.2)
+          ("^[pP]hotos$" all-the-icons-faicon "camera-retro" :height 1.0 :v-adjust -0.1)
+          ("^[mM]usic$" all-the-icons-faicon "music" :height 1.0 :v-adjust -0.1)
+          ("^[mM]ovies$" all-the-icons-faicon "film" :height 0.9 :v-adjust -0.1)
+          ("code" all-the-icons-octicon "code" :height 1.1 :v-adjust -0.1)
+          ("workspace" all-the-icons-octicon "code" :height 1.1 :v-adjust -0.1)
+          ("^[Tt]est$" all-the-icons-fileicon "test-dir" :height 0.9)
+          ("\\.git" all-the-icons-alltheicon "git" :height 1.0)
+          (".?" all-the-icons-octicon "file-directory" :height 1.0 :v-adjust -0.1)))
+
   :config
 ;; *** icons specification
   (add-to-list 'all-the-icons-mode-icon-alist
