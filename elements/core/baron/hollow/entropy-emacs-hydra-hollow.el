@@ -31,7 +31,52 @@
 ;; * Configuration:
 ;;
 ;; Designed for =entropy-emacs= only, recommend for using as reference.
-;;
+
+;; * Todo Lists
+;; ** TODO Update hydra-hollow category title patch mechnaism
+
+;; Origin navigation and page indicator for the hydra-hollow category
+;; are gernerated by the simple concatenate method, which just using
+;; regexp matching the current status via its represented string, in
+;; this case there's two main problems:
+
+;; 1) It can not arrange the multi indicator concatenate sequence
+;;    order when the new injection arrived.
+;; 2) It do not bind with category object modification, so that its
+;;    static for now which must be dynamically in full implements
+;;    required for this package.
+
+;; Plan:
+
+;; Using the concatenate abstract form to represent the hydra body
+;; title to register it into category object for as the current hydra
+;; body title status which can be used to inspet and upon to the
+;; provenance for modification.
+
+;; Since we using simple `concat' function to patch the hydra body
+;; title here, that in astract way we anc illustrate a patch as:
+;; #+begin_example
+;; (+ title flag-a flag-b ...)
+
+;; (+ flag-c (+ title flag-a flag-b ...))
+
+;; ...
+;; #+end_example
+
+;; Using thus flag to relect a specific patching, in this case we can
+;; let =flag-a= as 'upon' navigation patching sign and =flag-b= as
+;; the opposed, and let =flag-c= as the page number indicator patch
+;; sign.
+
+;; We generate a new key-slot for a =pretty-hydra-category= object,
+;; the =:pretty-hydra-category-title-abstract-form= which based on
+;; =:pretty-hydra-category-base-pretty-hydra-body= plist key :title
+;; value as its 'title' original type. And then when patching the
+;; title by a specified type handler can be modify the
+;; title-abstract-form with the refer flag matched by that handler,
+;; and then expand the abstract form into the instance and update the
+;; abstract form for current new status lastly.
+
 ;; * Code
 ;; ** require
 (require 'entropy-emacs-defun)
