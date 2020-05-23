@@ -783,9 +783,9 @@ hand, either 't' or 'nil' is for that.
                (or up-hint down-hint))
       (let ((num-fmstr (rx line-start "[" (group (any "0-9")) "] ")))
         (unless (string-match-p num-fmstr title-str)
-          (require 'transient)
+          (require 'faces)
           (setq title `(concat (propertize (format "[%s]" ,depth)
-                                           'face 'transient-disabled-suffix)
+                                           'face 'show-paren-mismatch)
                                " " ,title)))))
     title))
 
