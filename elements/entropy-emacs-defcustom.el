@@ -1002,7 +1002,7 @@ automatically avoiding startup of `company-quickhelp-mode'."
   :group 'entropy/emacs-highlight)
 
 ;; ***** hl-todo-mode
-(defcustom entropy/emacs-hl-todo-enable-at-startup nil
+(defcustom entropy/emacs-hl-todo-enable-at-startup t
   "Enable hl-todo highlight feature which can show color of
   `TODO' keywords universal not only the org file"
   :type 'boolean
