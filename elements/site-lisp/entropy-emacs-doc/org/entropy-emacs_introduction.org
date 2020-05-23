@@ -62,92 +62,132 @@ permitted.
 :CUSTOM_ID: h-badd8396-e6da-45a3-8176-901a5110f898
 :END:
 
-=entropy-emacs= host configs file divided into three categories,
-i.e. *init config* and *self buit pakages*.
+=entropy-emacs= host configs file divided into four categories within
+ordered priority, i.e. the initial level *Initial*, the core apis
+collection *Wasteland* , the dispatcher level *Baron* and the
+functional recipes *Tentacles*.
 
-The =init config= conceptual thoughts from =centaur-emacs's= design
-philosophy, as it's original intention for building the simple and
-pure as origin emacs like configs, in =entropy-emacs=, they
-abbreviated as =entropy-emacs-xxx.el=.
+The *Initial* category served for intial all customizable
+specifications, and provide sets of essential apis for the rest
+levels.
 
-=entropy-emacs= using the three bind-level core packages managements
-design to separate individual source files in =elements/core= root
-path, they are the =initial level=, =binds-level= and the =tentacle
-level=, the loading sequence was followed the mentioned order.
+The *Wasteland* category served for giving a basic apis i.e. native
+variables defination, functions and macros, and the defined frameworks
+used for building its variants that reducing duplicated partial
+creates.
 
-On the startup time, fistly loading the =initial-level= which try to
-customizing next loading environment and inizilized some internal
-requested specification, and providing the top-level apis for
-subroutines. The seconed time loading the basic core functions,
-internal-variables defination used for rest tentacles, so as called it
-=binds-level=, finally loading each entropy-emacs recipes called
-=tentacle-level=.
+The *Baron* category served as a bridge between the *Initial* category
+level and the follow *Tentacles* category level. It used *Initial*
+part's customization to invoking the tentacles under the user
+specification initialize choice and creates the basic unified
+platforms for those rest parts to implement the instances.
 
-For now, the =initial-level= was injected for
-=entropy-emaacs-defcustom.el=, and the =binds-level= are hosted in
-follow three files:
+*Baron* category has five sub-categories that listed as:
 
-1. *The var binds*
-   1) =entropy-emacs-defvar.el=
-   2) =entropy-emacs-defconst.el=
+1) *utils* : The basic third-party apis provision. These apis are
+   internally required for the rest part and obtained from others
+   packages mainly getted from some opensource communities.
 
-2. *The function binds*
-   1) =entropy-emacs-defun.el=
-   2) =entropy-emacs-message.el=
+   File:  =entropy-emacs-utils.el=
+
+2) *summon* : The basic emacs extensions management institution.
+
+   Files:
+   | file                                    | description                                             |
+   |-----------------------------------------+---------------------------------------------------------|
+   | =entropy-emacs-packages.el=             | the emacs `package.el' second wrapper                   |
+   | =entropy-emacs-package-requirements.el= | the forced elisp extensions requirements                |
+   | =entropy-emacs-ext.el=                  | other extensions get methods for specified archive type |
+   | =entropy-emacs-coworker.el=             | get required stuffs did from arbitray type              |
+
+3) *startup* : The =entropy-emacs= specified emacs ui, enviroment
+   initialize processors.
+
+   Files:
+   | file                        | description                                  |
+   |-----------------------------+----------------------------------------------|
+   | =entropy-emacs-startup.el=  | the top dispacher for startup                |
+   | =entropy-emacs-ui.el=       | the startup UI presentation                  |
+   | =entropy-emacs-font-set.el= | the startup font settings                    |
+   | =entropy-emacs-path.el=     | the startup $PATH environment initialization |
+
+4) *batch* : The cli interface for =entropy-emacs=, file
+   =entropy-emacs-batch.el=.
+
+5) *hollow* : The unified functional platform which needs tentacles to
+   adding their own seeds.
+
+   | file                            | description               |
+   |---------------------------------+---------------------------|
+   | =entropy-emacs-hydra-hollow.el= | the pretty hydra platform |
+
+
+For now, the *Initial* part was injected by one file i.e.
+=entropy-emaacs-defcustom.el=, and the *Wasteland* part are hosted in
+follow four files:
+
+1. The basic var binds
+   1) =entropy-emacs-defvar.el= : All pre-defined internal dynamic variables.
+   2) =entropy-emacs-defconst.el= : All native const variables.
+
+2. The basic functional binds
+   1) =entropy-emacs-defun.el= : All pre-defined functions, macros, and frameworks.
+   2) =entropy-emacs-message.el= : The =entropy-emacs= basic echoing
+      functional parts, it provides the unified interaction and
+      non-interaction /message/ apis.
 
 For file named convention, =entropy-emacs-xxx.el= files are named with
 'xxx' as the suffix for distinguishing with each other, for
 convenience, suffix of them were point to their config direction
 directly, such as =entropy-emacs-org.el='s suffix =org= was implicit
-it's the init config file for feature =org-mode=, and so as on for
-others init files.
+it's the config file for feature =org-mode=, and so as on for others
+config files.
 
-There's the list of the tentacles and their description:
+The last, *Tentacles* category served for implement individual aims
+that the following table illustrates those tentacles and their
+description:
 
-| *Category*           | *init package*              | *package description*                                                |
-|----------------------+-----------------------------+----------------------------------------------------------------------|
-|                      | entropy-emacs-basic.el      | basic setting for =entropy-emacs=                                    |
-| basic config         | entropy-emacs-ui.el         | ui defination with the customized startup screen design              |
-|                      | entropy-emacs-themes.el     | theme collections and startup default theme sets                     |
-|                      | entropy-emacs-modeline.el   | modeline themes collection and default modeline theme setes          |
-|                      | entropy-emacs-path.el       | path configs for =entropy-emacs= specfic environment                 |
-|                      |                             |                                                                      |
-|----------------------+-----------------------------+----------------------------------------------------------------------|
-| window conigurations | entropy-emacs-wc.el         | The emacs window moving and workaround emulator configuration        |
-|                      | entropy-emacs-popup.el      | The popuped window procedure defination                              |
-|                      |                             |                                                                      |
-|----------------------+-----------------------------+----------------------------------------------------------------------|
-|                      | entropy-emacs-ivy.el        | [[https://github.com/abo-abo/swiper][ivy]] mode configs and others refer enhancements                       |
-| interactive chains   | entropy-emacs-company.el    | [[https://github.com/company-mode/company-mode][company-mode]] confifs and other refer enhancements                    |
-|                      | entropy-emacs-yas.el        | [[https://github.com/joaotavora/yasnippet][yasnippet for emacs]] configs and other refer enhancements             |
-|                      |                             |                                                                      |
-|----------------------+-----------------------------+----------------------------------------------------------------------|
-|                      | entropy-emacs-org.el        | emacs org mode configs                                               |
-|                      | entropy-emacs-markdown.el   | emacs markdown mode configs                                          |
-| major modes          | entropy-emacs-c.el          | C/C++ mode configs with =irony= completion chians                    |
-|                      | entropy-emacs-lisp.el       | emacs lisp mode configs                                              |
-|                      | entropy-emacs-web.el        | web mode (web front/back end) configs (inclues js css html php)      |
-|                      | entropy-emacs-python.el     | python mode config with =company-anaconda= completion chain          |
-|                      | entropy-emacs-lua.el        | lua mode configs                                                     |
-|                      |                             |                                                                      |
-|----------------------+-----------------------------+----------------------------------------------------------------------|
-|                      | entropy-emacs-shell.el      | emacs internal shell front-end enhancements                          |
-| tool-chains          | entropy-emacs-vcs.el        | git/svn codes version control with =magit=                           |
-|                      | entropy-emacs-structure.el  | programme editting structs fold/expanding feature package            |
-|                      | entropy-emacs-highlight.el  | codes snippet highlighting guide feature provider                    |
-|                      | entropy-emacs-zeal.el       | external api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]               |
-|                      |                             |                                                                      |
-|----------------------+-----------------------------+----------------------------------------------------------------------|
-| entertainments       | entropy-emacs-emms.el       | gnu emms as media play control panel =entropy-emacs= specifics       |
-|                      | entropy-emacs-game.el       | emacs internal game setting config optimization                      |
-|                      |                             |                                                                      |
-|----------------------+-----------------------------+----------------------------------------------------------------------|
-| fundamental          | entropy-emacs-package.el    | on-line packages mirror management and local featuere loaded configs |
-|                      | entropy-emacs-custom.el     | custom file loading setting with alternative custom file specific    |
-|                      |                             |                                                                      |
-|----------------------+-----------------------------+----------------------------------------------------------------------|
-| code server          | entropy-emacs-coworker.el   | third-party language server query insall library.                    |
-|                      | entropy-emacs-codeserver.el | the dashboard for language server installer                          |
+| *Category*           | *init package*              | *package description*                                             |
+|----------------------+-----------------------------+-------------------------------------------------------------------|
+|                      | entropy-emacs-basic.el      | basic setting for =entropy-emacs=                                 |
+| basic config         | entropy-emacs-themes.el     | theme collections and startup default theme sets                  |
+|                      | entropy-emacs-modeline.el   | modeline themes collection and default modeline theme setes       |
+|                      |                             |                                                                   |
+|----------------------+-----------------------------+-------------------------------------------------------------------|
+| window conigurations | entropy-emacs-wc.el         | The emacs window moving and workaround emulator configuration     |
+|                      | entropy-emacs-popup.el      | The popuped window procedure defination                           |
+|                      |                             |                                                                   |
+|----------------------+-----------------------------+-------------------------------------------------------------------|
+|                      | entropy-emacs-ivy.el        | [[https://github.com/abo-abo/swiper][ivy]] mode configs and others refer enhancements                    |
+| interactive chains   | entropy-emacs-company.el    | [[https://github.com/company-mode/company-mode][company-mode]] confifs and other refer enhancements                 |
+|                      | entropy-emacs-yas.el        | [[https://github.com/joaotavora/yasnippet][yasnippet for emacs]] configs and other refer enhancements          |
+|                      |                             |                                                                   |
+|----------------------+-----------------------------+-------------------------------------------------------------------|
+|                      | entropy-emacs-org.el        | emacs org mode configs                                            |
+|                      | entropy-emacs-markdown.el   | emacs markdown mode configs                                       |
+| major modes          | entropy-emacs-c.el          | C/C++ mode configs with =irony= completion chians                 |
+|                      | entropy-emacs-lisp.el       | emacs lisp mode configs                                           |
+|                      | entropy-emacs-web.el        | web mode (web front/back end) configs (inclues js css html php)   |
+|                      | entropy-emacs-python.el     | python mode config with =company-anaconda= completion chain       |
+|                      | entropy-emacs-lua.el        | lua mode configs                                                  |
+|                      |                             |                                                                   |
+|----------------------+-----------------------------+-------------------------------------------------------------------|
+|                      | entropy-emacs-shell.el      | emacs internal shell front-end enhancements                       |
+| tool-chains          | entropy-emacs-vcs.el        | git/svn codes version control with =magit=                        |
+|                      | entropy-emacs-structure.el  | programme editting structs fold/expanding feature package         |
+|                      | entropy-emacs-highlight.el  | codes snippet highlighting guide feature provider                 |
+|                      | entropy-emacs-zeal.el       | external api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]            |
+|                      |                             |                                                                   |
+|----------------------+-----------------------------+-------------------------------------------------------------------|
+| entertainments       | entropy-emacs-emms.el       | gnu emms as media play control panel =entropy-emacs= specifics    |
+|                      | entropy-emacs-game.el       | emacs internal game setting config optimization                   |
+|                      |                             |                                                                   |
+|----------------------+-----------------------------+-------------------------------------------------------------------|
+| fundamental          | entropy-emacs-custom.el     | custom file loading setting with alternative custom file specific |
+|                      |                             |                                                                   |
+|----------------------+-----------------------------+-------------------------------------------------------------------|
+| code server          | entropy-emacs-codeserver.el | the dashboard for language server installer                       |
+|                      |                             |                                                                   |
 
 
 * Self built packages
@@ -190,6 +230,9 @@ Now, I built serveral packages shown as below table:
 | entropy-shellpop                | the yet-another [[http://github.com/kyagi/shell-pop-el][shell-pop]] toolkit replacement for using [[https://github.com/wasamasa/shackle][shackle]] as the popup method               |
 
 * Eemacs top-key map
+:PROPERTIES:
+:CUSTOM_ID: h-529128fc-775c-4067-86b3-f783e7c26fe1
+:END:
 
 For unified emacs experience both of CLI and GUI, =entropy-emacs=
 using the auto-adaptable key =entropy/emacs-top-key= as the the
@@ -201,6 +244,132 @@ GUI, all of them are reflected with physical key hints =C-`= on your
 keyboard. We make the convention that string =[eprefix]= indicate the
 hint =entropy/emacs-top-key= , that example =[eprefix] w= means hint
 =entropy/emacs-top-key= and =w= sequentially.
+
+* Eemacs hdyra hollow
+:PROPERTIES:
+:CUSTOM_ID: h-71c58a60-0826-4dc5-914e-fcb7ba183884
+:END:
+
+=entropy-emacs= using *hydra-hollow* platform to manage hundreds
+key-bindings so that the user can found them easily and can always get
+a properly way to remember the road-map for specific key-binding, let
+it be obviously and clearly.
+
+The *hydra-hollow* platform built on the elpa [[https://github.com/abo-abo/hydra][hydra]] package and melpa
+[[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]] which also based on =hdyra=.
+
+=hdyra= was a package whcih provide apis to solve the pain of emacs
+keybinding searching, it gives a interaction popup buffer which showed
+a collection of key-bindings, and the popup buffer way is a function,
+whcih can inject into the global-map, that's all, specially that those
+collection of key-bindings do not pollute any exists keymap, they are
+hosted on a transient map i.e. a hydra keymap, and those key-bindings
+called hydra-heads, and that's why it is named as *hydra*.
+
+=pretty-hydra= was a secondary encapsulation for =hydra=, it make the
+hydra-heads into groups, with more beautiful title patching ability
+and annotation mechanism.
+
+You do not need to know the underline of those package details, pick
+up above briefly introduction only is enough.
+
+*What's hydra-hollow:*
+
+Since there's sets of major-modes that user encounterred everyday
+within developments in emacs, and each major-modes has its own key
+map, sets of keybindings hosted on the key-map, you saw that? we must
+remember each keybinding we needed in each major-modes! It's pain!
+Even that we do not calculates any minor modes' key-maps, and the
+extensions counts growing up in our own emacs configuration.
+
+We hope to find a way to approach a command in one step or 2 more
+limitted under 4, also with categorized prompts with those commands we
+needed in any occurrence. And that's what *hdyra-hollow* do, 'hollow'
+means its a unified platform, a framework or a system.
+
+*Hydra-Hollow UI:*
+
+#+begin_example
+  +---------------------------------------------------------------------------------------------------------------------+
+  | [page indicator] eemacs top dispacher [up]: previous page [down]: next page                                         |
+  |                                                                                                                     |
+  |                                                                                                                     |
+  |  Basic                                       WI&BUF                                                                 |
+  |=====================================================================================================================|
+  |                                                                                                                     |
+  | b w : Words manipulation                    C-c m : [e]Toggle mode line type                                        |
+  | b m : Core Operations                       M-w : Rich command for (window buffer) Dwim                             |
+  | b a : Avy Pos Jump                          C-x M-o : [g]Switch to Another Window                                   |
+  | b q : Vimish Mode                           C-c w : [e]Eyerbowse Map                                                |
+  | b y : Yasnippet Actions                     i w_: Winner Mode                                                       |
+  | b x : Xref referrence jumping               C-<f10> : [g]Resize Window                                              |
+  | b l : Lsp command map                       p : Popup window or buffer                                              |
+  | b c : Auto completion operations            C-x C-b : [g]Begin using Ibuffer to edit a list of buffers              |
+  | b t : Slide Filesystem Tree                 M-1 : [e]Buffer open with portable apps                                 |
+  | b v : Show entropy-emacs version            i l : Center buffer line                                                |
+  | b o : Dict search with sets of backends     C-x M-1 : [g]Split the single window to two windows with different size |
+  | b h : Open HOME Directory                                                                                           |
+  |                                                                                                                     |
+  +---------------------------------------------------------------------------------------------------------------------+
+
+#+end_example
+
+Above illustrator gives a simple *hydr-hollow* instance UI
+overlay. The title of current page is inserted at the top of the popup
+buffer, title consists of the page order indicator, the main title
+information, and the page navigation prompts. The rest part is the
+cabinet content of current page, for example here, there's two drawers
+i.e. the /basic/ and /win&buff/.
+
+We called such the page is a hydra-hollow category, and the rest part
+contained thus drawers is the hydra-hollow category cabinet. A
+hydr-hollow category also is a node of a chained hydra-hollow
+categories, those categories who concatenating siblings to a chain
+that how the navigation pages implemented. In that categories chain,
+you can using <UP> or <DOWN> key stroking to navigate to previous or
+next category respectively.
+
+Each key-binding in the hydra-hollow canbinet also can be hydra-hollow
+category, this makes the category be cross-referrence, which build a
+hierarchical key-map navigation system, and we called the origin
+category the *baron* category. When you stroke a key through a baron
+category to a sub-category, you can stroke <UP> key to return back.
+
+In some hydr-hollow category chain may has large counts of categories
+that may have pain to navigate one by one from the top category to the
+aim one. In that case, you can stroke the =universal-argument=
+i.e. =C-u= before invoking the specific category chain, and thus it
+will be auto completion system poped out with all categories'
+description as candidates for you to choose and after the choice, you
+will directly go to the aim node.
+
+*Hydra-Hollow category categories in entropy-emacs:*
+
+In the global area, there's a top-level hydra-hollow dispatcher called
+=eemacs-top-dispacher= which contained global key-bindings and those
+included in =entropy/emacs-top-keymap= or some global commands without
+global-map injected. You can invoke it by tap =[eprefix] h=.
+
+For major-modes spec, =entropy-emacs= build individual hydra-hollow
+category chain for them but with a unified key-binding to invoking
+them, the =[eprefix] m=.
+
+*Hydra map injecting:*
+
+Although its beneficial to group all keybindings into a hydra-hollow
+instance, but we do not want to give out of the emacs native
+keybinding mapping methods (i.e. reset them to nil state),
+=entropy-emacs= did a hydra map injecting tunnel to solve that
+problem. As the expample in the hydra-hollow UI introduction, there's
+some keybinding's brief description prefixed by a flag 'e' or 'g',
+they are the indicator to prompt user that this keybinding is inject
+into =entropy/emacs-top-keymap= or 'global-map' as well, so you can
+directly stroke the same key to call that command without calling on
+such hydra-hollow category.
+
+There's also a 'm' flag for a major-mode hydra-hollow category's
+heads, that say this keybinding is injected into current
+'major-mode-map' already.
 
 * Custom =entropy-emacs=
 :PROPERTIES:
@@ -229,7 +398,7 @@ as custom file for convenience.
 :END:
 
 =entropy-emacs= allow user to modified internal config files but this
-is not suggested by. Sets of =entrop-emacs= was corresponding to each
+is not suggested by. Sets of =entropy-emacs= was corresponding to each
 other frequencly which shown as that if you modified one code snippet
 while you are not familiar with details logic designation of
 =entropy-emacs=, you will get mess with the functional in some place.
@@ -625,7 +794,6 @@ way for solving that problem was what it is.
 | origin-specific | origin          | minor extended origin `mode-line-format`                            |
 | doom-modeline   | doom            | morden simply mode-line style extracted from [[https://github.com/hlissner/doom-emacs][doom-emacs]]             |
 | sapceline       | spaceline       | morden extensible mode-line style of [[https://www.spacemacs.org/][spacemacs]]                      |
-| spaceline-icons | spaceline-icons | [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] patched =spaceline=                                   |
 | powerline       | powerline       | the enhanced exensible mordern mode-line based used for =spaceline= |
 
 
@@ -645,10 +813,10 @@ derived logic widget(see [[#h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb][entropy-emac
 default setting was aimed with keeping balance with emacs performance
 and visualization experience.
 
-Spaceline (or xxx-icons) was the wild used modeline of other users's
-custom emacs config, but in =entropy-emacs=, it is not recommended for
-using this as the default modeline style, because it lagging with huge
-process garbage collection idle slate during commonly emacs using
+Spaceline was the wild used modeline of other users's custom emacs
+config, but in =entropy-emacs=, it is not recommended for using this
+as the default modeline style, because it lagging with huge process
+garbage collection idle slate during commonly emacs using
 occurence. This was caused by sets of segments of spaceline for what
 was lead to this issue. Another icons version spaceline was not
 recommendation for as, the font default required for and the based
@@ -662,7 +830,7 @@ instead because spaceline was extension from it and powerline origin
 segment corresponding was pure and simple which may be without lagging
 performance as what gets into spaceline.
 
-the Toggle func for switching different modeline at real time was
+The Toggle func for switching different modeline at real time was
 supported with bounds of func:
 - =entropy/emacs-modeline-mdl-origin= :\\
   Toggle to origin-specific modeline style.
@@ -672,21 +840,9 @@ supported with bounds of func:
   Toggle to powerline modeline style.
 - =entropy/emacs-modeline-mdl-spaceline= :\\
   Toggle to spaceline modeline style.
-- =entropy/emacs-modeline-mdl-spaceline-all-the-icons= :\\
-  Toggle to spaceline-all-the-icons modeline style.
 
 
-By defualt modeline style toggle funcs was all disabled unless you set
-custom-variable =entropy/emacs-enable-modeline-toggle= to 't'. And for
-specific emacs version, =entropy-emacs= gives different modeline style
-pre setting;
-- emacs version =25.2.1= : doom
-- emacs version =25.3.1= : origin
-- emacs version =26.1= and above: doom
-
-This specification was rely on the unicode font render effection
-activation reason that =25.3.1= version was specially not support as
-what, so as it.
+Defaulty, we use [[https://github.com/seagle0128/doom-modeline][doom-modeline]] as the default modeline type.
 
 *** Chinse input method
 :PROPERTIES:
@@ -724,16 +880,16 @@ emacs interanl chinese input methods as the list below:
 + =chinese-ziranma=
 + =chinese-zozy=
 
-You don't have to know the each knowledge about them, but the most pop
-used one was =chinese-py= which was aslo the most popular method for
-chinese people for using as the default chinese hans char input
-method.
+You don't have to know the each knowledge about them, but the most
+popular used one was =chinese-py= which was aslo the most popular
+method for chinese people for using as the default chinese hans char
+input method.
 
 Although =chinese-py= input method was pure and powerful for basic
 using, if onece you get it on your scatter doing, you will find it was
 really simple and crude which can not be used as the daily tool for
 thus. As the result, =entropy-emacs= usig the most powerful and
-comprehensive 'pinyin' function built melpa extentioin [[https://github.com/tumashu/pyim][pyim]] :
+comprehensive 'pinyin' support melpa extentioin [[https://github.com/tumashu/pyim][pyim]] :
 
 #+BEGIN_EXAMPLE
   这是一段中文说明，你好shijie
@@ -812,7 +968,7 @@ widgets for chosen:
 
 + *using liberime as rime backend for pyim*
 
-  Except for plain text dictionary as cacheing method, the another
+  Except for plain text dictionary as caching method, the another
   project [[https://github.com/merrickluo/liberime][liberime-config]] gives the ability to get IME query
   candicates from native [[https://rime.im][rime]] engine [[https://github.com/rime/librime][librime]], and the configuration
   steps are easily and thus as:
@@ -1194,10 +1350,10 @@ config for kinds of aspects of it.
 
   Org file as the simple rich txt file can be referred with images,
   files, or other file type, the default inserting way was using the
-  manually type coding with the format as =[[link location][content description]]=, or
-  you can drop down the file with gui mounse refers as other gui
-  application does, this feature provided by melpa package
-  [[https://github.com/abo-abo/org-download][org-download]] but just with image thing as.
+  manually type coding with the format as =[[link location][content
+  description]]=, or you can drop down the file with gui mounse refers
+  as other gui application does, this feature provided by melpa
+  package [[https://github.com/abo-abo/org-download][org-download]] but just with image thing as.
 
   1) image drop and down by local (just support on emacs gui port)
   2) image download from url
@@ -1493,42 +1649,21 @@ This section was the introduction for thus.
 :END:
 
 Emacs support multibyte fonts setting and the rich features for each
-part of face refer.
+part of face refer. =entropy-emacs='s initial config file
+=entropy-emacs-font-set.el= was the collection fonts config for as.
 
-=entropy-emacs='s initial config file =entropy-emacs-font-set.el= was the
-collection fonts config for as.
+Internally, emacs using a =fontset= data structure to represent its
+font founding mechanism to support the multi-language support for a
+single lanuguage-environment. A FONTSET is a group of various font
+families of various lanuage scripts so that a FONTSET can decoding any
+charsets if setted properly with unlimited FONT-SPECs (i.e. the emacs
+internal font representation data structure).
 
-=entropy-emacs= given the default ttf/otf fonts provission internally,
-all the fonts given were opensource type without any warranty. we use
-them for the defautls font setting turns on with custom variable
-=entropy/emacs-font-setting-enable= which was the key for using us
-defautl font setting layout.
-
-Our fonts config feature provide three type of language scripts type:
-
-- latin
-- cjk
-- symbol chars
-
-While the latin was the most wild using script covered over code
-source and doc built or read. We using 'Noto' from google, 'Source
-code pro' from Adobe be choices for latin script fonts specification.
-
-And then cjk script was using for multibyte and unicode language
-encoding char presentation, emacs needed hands specific for it as the
-especially on windows platfrom that will going wrong when cjk fonts
-config with mistake or uncomfortable. we use 'Droid Sans' for chinese
-and japanese, 'Noto Serif CJK KR' for Korea.
-
-some symbol char refer to unicode will be lost of system font list, we
-use 'symbola' one of the wild unicode encoding covering font
-collection.
-
-when your first using =entropy-emacs=, if you want to using our font
-config, you may want to manually install all the fonts archived
-[[https://sourceforge.net/projects/entropy-emax64/files/entropy-emacs_hitch/20190505/][here]]. Or you will recieve the warning at the startup but without any
-feature lost, thus you can install them in any time.
-
+Thus for, =entropy-emacs= patch the emacs per-frame default FONTSET
+with sets of FONT-SPECs to support CJK, LATIN, SYMBOL
+simultaneously. We use the group font family data structer for
+representing thus patch, variable =entropy/emacs-font-setting-enable=
+(see its docstring for more details) did as that.
 
 ** Major modes for programming
 :PROPERTIES:
@@ -1536,39 +1671,45 @@ feature lost, thus you can install them in any time.
 :END:
 
 Most major-modes contained the basic coding experience as syntax
-highlight and the xref code snippet defination jumping
-functional. Although it's the basic not upper to full sensitively
-cheerful user experience.
+highlight and the 'xref' code defination jumping functional. Although
+it's the basic which doesn't upper to full sensitively cheerful user
+experience.
 
 =entropy-emacs= using dozen melpa extensions to extending the
 presented major modes' feature for enhancing more and more modes
 experience individually. The main extending purpose was sticking on
-the coding completion, based on =company-mode= which was the coding
-completion framework for any scences.As well, eachs major modes
+the coding completion, based on [[http://company-mode.github.io/][company-mode]] which was the coding
+completion framework for any scences. As well, eachs major modes
 extending were including the coding interactive sth refer, coding
 folding and expanding uppon the region or pair punctuations are adding
-so.
+so, even for debug tool-chains.
 
 =entropy-emacs= treats emacs as the IDE (i.e. integrated development
 environment), extended with third-party lanuage servers, with the
-quickly ripened for [[https://github.com/microsoft/language-server-protocol][Microsoft language server]], we are trending to use
-the LSP as the IDE core component, its powerful with unified
-crossplatform protocol defination and ripened communitiy driven. But
-for those old IDE configuration (i.e. individually un-unified code
-sever) were remained in =entropy-emacs= and with full supported as
-before.
+quickly ripened opensource lanugue protocol [[https://github.com/microsoft/language-server-protocol][Microsoft language server]]
+(LSP), we are trending to use the LSP as the IDE core component, its
+powerful with unified crossplatform protocol defination and ripened
+communitiy driven. But for those old IDE configuration
+(i.e. individually un-unified code sever) were remained in
+=entropy-emacs= and with full supported as before.
 
 The switcher for =lsp= and the old IDE configuration is customized
-variable =entropy/emacs-use-ide-type= whose valid values are 'lsp or
-'traditional.
+variable =entropy/emacs-use-ide-type-for-MAJOR-MODE= whose valid
+values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
+wildcards like, which case that if you want to use a LSP ide type for
+major-mode =c-mode=, the corresponding customized variable is
+=entropy/emacs-use-ide-type-for-c-mode= and manually set it to
+'traditional'. By defaultly the, we use LSP as for all major-modes.
 
 Follow sections given the description for each major modes which have
-been enhanced the extending feature details informations.
+been enhanced the extending feature details.
 
 *** C and C++
 :PROPERTIES:
 :CUSTOM_ID: h-686dc5e1-06c9-4681-9f7f-b7f0e130d900
 :END:
+
+Use ide type customized variable: =entropy/emacs-use-ide-type-for-[c/c++]-mode=.
 
 | *IDE type*  | *language server* | *completion support* | *xref-defination support* |
 |-------------+-------------------+----------------------+---------------------------|
@@ -1586,20 +1727,22 @@ been enhanced the extending feature details informations.
   1) Using [[https://github.com/Sarcasm/irony-mode][irony-mode]] to giving the project code defination review and
      jumping feature.
 
-  2) Using =company-c-headers= to giving the project header file query
+  2) Using [[https://github.com/randomphrase/company-c-headers][company-c-headers]] to giving the project header file query
      completions.
 
-  =irony-mode= based on the irony-server which has been compiled for w32
-  platform within =entropy-emacs=, but needed compiling manually on
-  linux with dependencies installed e.g. cmake, clang ... (We do not
-  packing the server binary on linux because for ths platform across
-  conflicated, thus x86 and arm or other cpu platform can not using the
-  same binary.)
+  =irony-mode= based on the /irony-server/ which has been compiled for
+  w32 platform within =entropy-emacs= (see project [[https://sourceforge.net/projects/entropy-emax64/][entropy-emax64]] for
+  details), but needed compiling manually on linux with dependencies
+  installed e.g. cmake, clang ... (We do not packing the server binary
+  on linux because for ths platform across conflicated, thus x86 and
+  arm or other cpu platform can not using the same binary.)
 
 *** Php
 :PROPERTIES:
 :CUSTOM_ID: h-660173e6-8597-435a-ab32-82a327fdfc6a
 :END:
+
+Use ide type customized variable: =entropy/emacs-use-ide-type-for-php-mode=.
 
 | *IDE type*      | *language server*   | *completion support* | *xref-defination support* |
 |-----------------+---------------------+----------------------+---------------------------|
@@ -1625,22 +1768,27 @@ for giving thus. Binding with =M-p= for activation.
 :CUSTOM_ID: h-90e8b37b-f8ef-41db-92fb-df349125f5da
 :END:
 
+Use ide type customized variable:
+=entropy/emacs-use-ide-type-for-web-mode= and
+=entropy/emacs-use-ide-type-for-css-mode=.
+
 emacs internal default web front-end major modes html and css mode are
 user basically with simple func interactively support, we use melpa
 package [[http://web-mode.org][web-mode]] for the enhancements for html group markup language
 but for css as.
 
-web-mode provide sets of mordern features as for.  Tag folding and
+web-mode provide sets of mordern features as for. Tag folding and
 expanding with [[https://github.com/smihica/emmet-mode][emmet-mode]]'s abbrevation tag editting, giving the more
 sensitive web refer coding.
 
 Our self built func ~entropy/emacs-web-browse-web-buffer~ can quickly
 browse the current html page out of using external browser for
-previewing as the way of quickly did. it's binding to =C-<f1>=.
+previewing as the way of quickly did.
 
 Both of html and css buffer can be tidy up with normally code style
 using [[https://github.com/yasuyk/web-beautify][web-beautify]] package which required nodejs path searched and the
-npm refer packages installed.
+npm refer packages installed or using the function =lsp-format-buffer=
+when use ide type of LSP for those major-modes.
 
 | *IDE type*  | *language server* | *completion support* | *xref-defination support* |
 |-------------+-------------------+----------------------+---------------------------|
@@ -1653,6 +1801,8 @@ npm refer packages installed.
 :PROPERTIES:
 :CUSTOM_ID: h-c913cd4b-1228-4981-86ac-e6a4ddee5564
 :END:
+
+Use ide type customized variable: =entropy/emacs-use-ide-type-for-js2-mode=.
 
 JS development IDE [[https://github.com/mooz/js2-mode/][js2-mode]] was the one for given such as repl and
 syntax checking and morden syntax highlighting feature for js coding
@@ -1781,10 +1931,12 @@ providing the web front-end realtime previewer feature.
   for the meaning as just for the single file previewing as the css
   html js all in one embedding file as for.
 
-*** Python anaconda
+*** Python
 :PROPERTIES:
 :CUSTOM_ID: h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c
 :END:
+
+Use ide type customized variable: =entropy/emacs-use-ide-type-for-python-mode=.
 
 We using emacs built-in major-mode =python-mode= for coding python codes.
 

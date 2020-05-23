@@ -27,6 +27,7 @@
 * Main config files::
 * Self built packages::
 * Eemacs top-key map::
+* Eemacs hdyra hollow::
 * Custom @samp{entropy-emacs}::
 * Hacking for @samp{entropy-emacs}::
 * Config feature specifiction introduction::
@@ -64,7 +65,7 @@ Major modes for programming
 * Html and Css::
 * Javascript::
 * Web front-end realtime previewer::
-* Python anaconda::
+* Python::
 
 Packages enhancements and introduction
 
@@ -143,48 +144,111 @@ permitted.
 @node Main config files
 @chapter Main config files
 
-@samp{entropy-emacs} host configs file divided into three categories,
-i.e. @strong{init config} and @strong{self buit pakages}.
+@samp{entropy-emacs} host configs file divided into four categories within
+ordered priority, i.e. the initial level @strong{Initial}, the core apis
+collection @strong{Wasteland} , the dispatcher level @strong{Baron} and the
+functional recipes @strong{Tentacles}.
 
-The @samp{init config} conceptual thoughts from @samp{centaur-emacs's} design
-philosophy, as it's original intention for building the simple and
-pure as origin emacs like configs, in @samp{entropy-emacs}, they
-abbreviated as @samp{entropy-emacs-xxx.el}.
+The @strong{Initial} category served for intial all customizable
+specifications, and provide sets of essential apis for the rest
+levels.
 
-@samp{entropy-emacs} using the three bind-level core packages managements
-design to separate individual source files in @samp{elements/core} root
-path, they are the @samp{initial level}, @samp{binds-level} and the @samp{tentacle
-level}, the loading sequence was followed the mentioned order.
+The @strong{Wasteland} category served for giving a basic apis i.e. native
+variables defination, functions and macros, and the defined frameworks
+used for building its variants that reducing duplicated partial
+creates.
 
-On the startup time, fistly loading the @samp{initial-level} which try to
-customizing next loading environment and inizilized some internal
-requested specification, and providing the top-level apis for
-subroutines. The seconed time loading the basic core functions,
-internal-variables defination used for rest tentacles, so as called it
-@samp{binds-level}, finally loading each entropy-emacs recipes called
-@samp{tentacle-level}.
+The @strong{Baron} category served as a bridge between the @strong{Initial} category
+level and the follow @strong{Tentacles} category level. It used @strong{Initial}
+part's customization to invoking the tentacles under the user
+specification initialize choice and creates the basic unified
+platforms for those rest parts to implement the instances.
 
-For now, the @samp{initial-level} was injected for
-@samp{entropy-emaacs-defcustom.el}, and the @samp{binds-level} are hosted in
-follow three files:
+@strong{Baron} category has five sub-categories that listed as:
 
 @enumerate
 @item
-@strong{The var binds}
+@strong{utils} : The basic third-party apis provision. These apis are
+internally required for the rest part and obtained from others
+packages mainly getted from some opensource communities.
+
+File:  @samp{entropy-emacs-utils.el}
+
+@item
+@strong{summon} : The basic emacs extensions management institution.
+
+Files:
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem file
+@tab description
+@item @samp{entropy-emacs-packages.el}
+@tab the emacs `package.el' second wrapper
+@item @samp{entropy-emacs-package-requirements.el}
+@tab the forced elisp extensions requirements
+@item @samp{entropy-emacs-ext.el}
+@tab other extensions get methods for specified archive type
+@item @samp{entropy-emacs-coworker.el}
+@tab get required stuffs did from arbitray type
+@end multitable
+
+@item
+@strong{startup} : The @samp{entropy-emacs} specified emacs ui, enviroment
+initialize processors.
+
+Files:
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem file
+@tab description
+@item @samp{entropy-emacs-startup.el}
+@tab the top dispacher for startup
+@item @samp{entropy-emacs-ui.el}
+@tab the startup UI presentation
+@item @samp{entropy-emacs-font-set.el}
+@tab the startup font settings
+@item @samp{entropy-emacs-path.el}
+@tab the startup $PATH environment initialization
+@end multitable
+
+@item
+@strong{batch} : The cli interface for @samp{entropy-emacs}, file
+@samp{entropy-emacs-batch.el}.
+
+@item
+@strong{hollow} : The unified functional platform which needs tentacles to
+adding their own seeds.
+
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem file
+@tab description
+@item @samp{entropy-emacs-hydra-hollow.el}
+@tab the pretty hydra platform
+@end multitable
+@end enumerate
+
+
+For now, the @strong{Initial} part was injected by one file i.e.
+@samp{entropy-emaacs-defcustom.el}, and the @strong{Wasteland} part are hosted in
+follow four files:
+
 @enumerate
 @item
-@samp{entropy-emacs-defvar.el}
+The basic var binds
+@enumerate
 @item
-@samp{entropy-emacs-defconst.el}
+@samp{entropy-emacs-defvar.el} : All pre-defined internal dynamic variables.
+@item
+@samp{entropy-emacs-defconst.el} : All native const variables.
 @end enumerate
 
 @item
-@strong{The function binds}
+The basic functional binds
 @enumerate
 @item
-@samp{entropy-emacs-defun.el}
+@samp{entropy-emacs-defun.el} : All pre-defined functions, macros, and frameworks.
 @item
-@samp{entropy-emacs-message.el}
+@samp{entropy-emacs-message.el} : The @samp{entropy-emacs} basic echoing
+functional parts, it provides the unified interaction and
+non-interaction @emph{message} apis.
 @end enumerate
 @end enumerate
 
@@ -192,10 +256,12 @@ For file named convention, @samp{entropy-emacs-xxx.el} files are named with
 'xxx' as the suffix for distinguishing with each other, for
 convenience, suffix of them were point to their config direction
 directly, such as @samp{entropy-emacs-org.el}'s suffix @samp{org} was implicit
-it's the init config file for feature @samp{org-mode}, and so as on for
-others init files.
+it's the config file for feature @samp{org-mode}, and so as on for others
+config files.
 
-There's the list of the tentacles and their description:
+The last, @strong{Tentacles} category served for implement individual aims
+that the following table illustrates those tentacles and their
+description:
 
 @multitable {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem @strong{Category}
@@ -205,17 +271,11 @@ There's the list of the tentacles and their description:
 @tab entropy-emacs-basic.el
 @tab basic setting for @samp{entropy-emacs}
 @item basic config
-@tab entropy-emacs-ui.el
-@tab ui defination with the customized startup screen design
-@item
 @tab entropy-emacs-themes.el
 @tab theme collections and startup default theme sets
 @item
 @tab entropy-emacs-modeline.el
 @tab modeline themes collection and default modeline theme setes
-@item
-@tab entropy-emacs-path.el
-@tab path configs for @samp{entropy-emacs} specfic environment
 @item
 @tab
 @tab
@@ -292,20 +352,17 @@ There's the list of the tentacles and their description:
 @tab
 @tab
 @item fundamental
-@tab entropy-emacs-package.el
-@tab on-line packages mirror management and local featuere loaded configs
-@item
 @tab entropy-emacs-custom.el
 @tab custom file loading setting with alternative custom file specific
 @item
 @tab
 @tab
 @item code server
-@tab entropy-emacs-coworker.el
-@tab third-party language server query insall library.
-@item
 @tab entropy-emacs-codeserver.el
 @tab the dashboard for language server installer
+@item
+@tab
+@tab
 @end multitable
 
 @node Self built packages
@@ -383,6 +440,130 @@ keyboard. We make the convention that string @samp{[eprefix]} indicate the
 hint @samp{entropy/emacs-top-key} , that example @samp{[eprefix] w} means hint
 @samp{entropy/emacs-top-key} and @samp{w} sequentially.
 
+@node Eemacs hdyra hollow
+@chapter Eemacs hdyra hollow
+
+@samp{entropy-emacs} using @strong{hydra-hollow} platform to manage hundreds
+key-bindings so that the user can found them easily and can always get
+a properly way to remember the road-map for specific key-binding, let
+it be obviously and clearly.
+
+The @strong{hydra-hollow} platform built on the elpa @uref{https://github.com/abo-abo/hydra, hydra} package and melpa
+@uref{https://github.com/jerrypnz/major-mode-hydra.el, pretty-hydra} which also based on @samp{hdyra}.
+
+@samp{hdyra} was a package whcih provide apis to solve the pain of emacs
+keybinding searching, it gives a interaction popup buffer which showed
+a collection of key-bindings, and the popup buffer way is a function,
+whcih can inject into the global-map, that's all, specially that those
+collection of key-bindings do not pollute any exists keymap, they are
+hosted on a transient map i.e. a hydra keymap, and those key-bindings
+called hydra-heads, and that's why it is named as @strong{hydra}.
+
+@samp{pretty-hydra} was a secondary encapsulation for @samp{hydra}, it make the
+hydra-heads into groups, with more beautiful title patching ability
+and annotation mechanism.
+
+You do not need to know the underline of those package details, pick
+up above briefly introduction only is enough.
+
+@strong{What's hydra-hollow:}
+
+Since there's sets of major-modes that user encounterred everyday
+within developments in emacs, and each major-modes has its own key
+map, sets of keybindings hosted on the key-map, you saw that? we must
+remember each keybinding we needed in each major-modes! It's pain!
+Even that we do not calculates any minor modes' key-maps, and the
+extensions counts growing up in our own emacs configuration.
+
+We hope to find a way to approach a command in one step or 2 more
+limitted under 4, also with categorized prompts with those commands we
+needed in any occurrence. And that's what @strong{hdyra-hollow} do, 'hollow'
+means its a unified platform, a framework or a system.
+
+@strong{Hydra-Hollow UI:}
+
+@example
++---------------------------------------------------------------------------------------------------------------------+
+| [page indicator] eemacs top dispacher [up]: previous page [down]: next page                                         |
+|                                                                                                                     |
+|                                                                                                                     |
+|  Basic                                       WI&BUF                                                                 |
+|=====================================================================================================================|
+|                                                                                                                     |
+| b w : Words manipulation                    C-c m : [e]Toggle mode line type                                        |
+| b m : Core Operations                       M-w : Rich command for (window buffer) Dwim                             |
+| b a : Avy Pos Jump                          C-x M-o : [g]Switch to Another Window                                   |
+| b q : Vimish Mode                           C-c w : [e]Eyerbowse Map                                                |
+| b y : Yasnippet Actions                     i w_: Winner Mode                                                       |
+| b x : Xref referrence jumping               C-<f10> : [g]Resize Window                                              |
+| b l : Lsp command map                       p : Popup window or buffer                                              |
+| b c : Auto completion operations            C-x C-b : [g]Begin using Ibuffer to edit a list of buffers              |
+| b t : Slide Filesystem Tree                 M-1 : [e]Buffer open with portable apps                                 |
+| b v : Show entropy-emacs version            i l : Center buffer line                                                |
+| b o : Dict search with sets of backends     C-x M-1 : [g]Split the single window to two windows with different size |
+| b h : Open HOME Directory                                                                                           |
+|                                                                                                                     |
++---------------------------------------------------------------------------------------------------------------------+
+
+@end example
+
+Above illustrator gives a simple @strong{hydr-hollow} instance UI
+overlay. The title of current page is inserted at the top of the popup
+buffer, title consists of the page order indicator, the main title
+information, and the page navigation prompts. The rest part is the
+cabinet content of current page, for example here, there's two drawers
+i.e. the @emph{basic} and @emph{win&buff}.
+
+We called such the page is a hydra-hollow category, and the rest part
+contained thus drawers is the hydra-hollow category cabinet. A
+hydr-hollow category also is a node of a chained hydra-hollow
+categories, those categories who concatenating siblings to a chain
+that how the navigation pages implemented. In that categories chain,
+you can using <UP> or <DOWN> key stroking to navigate to previous or
+next category respectively.
+
+Each key-binding in the hydra-hollow canbinet also can be hydra-hollow
+category, this makes the category be cross-referrence, which build a
+hierarchical key-map navigation system, and we called the origin
+category the @strong{baron} category. When you stroke a key through a baron
+category to a sub-category, you can stroke <UP> key to return back.
+
+In some hydr-hollow category chain may has large counts of categories
+that may have pain to navigate one by one from the top category to the
+aim one. In that case, you can stroke the @samp{universal-argument}
+i.e. @samp{C-u} before invoking the specific category chain, and thus it
+will be auto completion system poped out with all categories'
+description as candidates for you to choose and after the choice, you
+will directly go to the aim node.
+
+@strong{Hydra-Hollow category categories in entropy-emacs:}
+
+In the global area, there's a top-level hydra-hollow dispatcher called
+@samp{eemacs-top-dispacher} which contained global key-bindings and those
+included in @samp{entropy/emacs-top-keymap} or some global commands without
+global-map injected. You can invoke it by tap @samp{[eprefix] h}.
+
+For major-modes spec, @samp{entropy-emacs} build individual hydra-hollow
+category chain for them but with a unified key-binding to invoking
+them, the @samp{[eprefix] m}.
+
+@strong{Hydra map injecting:}
+
+Although its beneficial to group all keybindings into a hydra-hollow
+instance, but we do not want to give out of the emacs native
+keybinding mapping methods (i.e. reset them to nil state),
+@samp{entropy-emacs} did a hydra map injecting tunnel to solve that
+problem. As the expample in the hydra-hollow UI introduction, there's
+some keybinding's brief description prefixed by a flag 'e' or 'g',
+they are the indicator to prompt user that this keybinding is inject
+into @samp{entropy/emacs-top-keymap} or 'global-map' as well, so you can
+directly stroke the same key to call that command without calling on
+such hydra-hollow category.
+
+There's also a 'm' flag for a major-mode hydra-hollow category's
+heads, that say this keybinding is injected into current
+'major-mode-map' already.
+
 @node Custom @samp{entropy-emacs}
 @chapter Custom @samp{entropy-emacs}
 
@@ -407,7 +588,7 @@ as custom file for convenience.
 @chapter Hacking for @samp{entropy-emacs}
 
 @samp{entropy-emacs} allow user to modified internal config files but this
-is not suggested by. Sets of @samp{entrop-emacs} was corresponding to each
+is not suggested by. Sets of @samp{entropy-emacs} was corresponding to each
 other frequencly which shown as that if you modified one code snippet
 while you are not familiar with details logic designation of
 @samp{entropy-emacs}, you will get mess with the functional in some place.
@@ -854,7 +1035,7 @@ respectively.
 
 @samp{entropy-emacs} provide four kinds modeline style:
 
-@multitable {aaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaaaaaaa} {aaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem name
 @tab tag
 @tab description
@@ -867,9 +1048,6 @@ respectively.
 @item sapceline
 @tab spaceline
 @tab morden extensible mode-line style of @uref{https://www.spacemacs.org/, spacemacs}
-@item spaceline-icons
-@tab spaceline-icons
-@tab @uref{https://github.com/domtronn/all-the-icons.el, all-the-icons} patched @samp{spaceline}
 @item powerline
 @tab powerline
 @tab the enhanced exensible mordern mode-line based used for @samp{spaceline}
@@ -892,10 +1070,10 @@ derived logic widget(see @ref{Eyebrowse, , entropy-emacs eyebrowse introduction}
 default setting was aimed with keeping balance with emacs performance
 and visualization experience.
 
-Spaceline (or xxx-icons) was the wild used modeline of other users's
-custom emacs config, but in @samp{entropy-emacs}, it is not recommended for
-using this as the default modeline style, because it lagging with huge
-process garbage collection idle slate during commonly emacs using
+Spaceline was the wild used modeline of other users's custom emacs
+config, but in @samp{entropy-emacs}, it is not recommended for using this
+as the default modeline style, because it lagging with huge process
+garbage collection idle slate during commonly emacs using
 occurence. This was caused by sets of segments of spaceline for what
 was lead to this issue. Another icons version spaceline was not
 recommendation for as, the font default required for and the based
@@ -909,7 +1087,7 @@ instead because spaceline was extension from it and powerline origin
 segment corresponding was pure and simple which may be without lagging
 performance as what gets into spaceline.
 
-the Toggle func for switching different modeline at real time was
+The Toggle func for switching different modeline at real time was
 supported with bounds of func:
 @itemize
 @item
@@ -924,28 +1102,10 @@ Toggle to powerline modeline style.
 @item
 @samp{entropy/emacs-modeline-mdl-spaceline} :@*
 Toggle to spaceline modeline style.
-@item
-@samp{entropy/emacs-modeline-mdl-spaceline-all-the-icons} :@*
-Toggle to spaceline-all-the-icons modeline style.
 @end itemize
 
 
-By defualt modeline style toggle funcs was all disabled unless you set
-custom-variable @samp{entropy/emacs-enable-modeline-toggle} to 't'. And for
-specific emacs version, @samp{entropy-emacs} gives different modeline style
-pre setting;
-@itemize
-@item
-emacs version @samp{25.2.1} : doom
-@item
-emacs version @samp{25.3.1} : origin
-@item
-emacs version @samp{26.1} and above: doom
-@end itemize
-
-This specification was rely on the unicode font render effection
-activation reason that @samp{25.3.1} version was specially not support as
-what, so as it.
+Defaulty, we use @uref{https://github.com/seagle0128/doom-modeline, doom-modeline} as the default modeline type.
 
 @node Chinse input method
 @subsection Chinse input method
@@ -1008,16 +1168,16 @@ emacs interanl chinese input methods as the list below:
 @samp{chinese-zozy}
 @end itemize
 
-You don't have to know the each knowledge about them, but the most pop
-used one was @samp{chinese-py} which was aslo the most popular method for
-chinese people for using as the default chinese hans char input
-method.
+You don't have to know the each knowledge about them, but the most
+popular used one was @samp{chinese-py} which was aslo the most popular
+method for chinese people for using as the default chinese hans char
+input method.
 
 Although @samp{chinese-py} input method was pure and powerful for basic
 using, if onece you get it on your scatter doing, you will find it was
 really simple and crude which can not be used as the daily tool for
 thus. As the result, @samp{entropy-emacs} usig the most powerful and
-comprehensive 'pinyin' function built melpa extentioin @uref{https://github.com/tumashu/pyim, pyim} :
+comprehensive 'pinyin' support melpa extentioin @uref{https://github.com/tumashu/pyim, pyim} :
 
 @example
 这是一段中文说明，你好shijie
@@ -1107,7 +1267,7 @@ about 0.8 million entries.
 @item
 @strong{using liberime as rime backend for pyim}
 
-Except for plain text dictionary as cacheing method, the another
+Except for plain text dictionary as caching method, the another
 project @uref{https://github.com/merrickluo/liberime, liberime-config} gives the ability to get IME query
 candicates from native @uref{https://rime.im, rime} engine @uref{https://github.com/rime/librime, librime}, and the configuration
 steps are easily and thus as:
@@ -1521,10 +1681,10 @@ insertting as for @samp{C-c C-q}.
 
 Org file as the simple rich txt file can be referred with images,
 files, or other file type, the default inserting way was using the
-manually type coding with the format as @samp{[[link location][content description]]}, or
-you can drop down the file with gui mounse refers as other gui
-application does, this feature provided by melpa package
-@uref{https://github.com/abo-abo/org-download, org-download} but just with image thing as.
+manually type coding with the format as @samp{[[link location][content
+  description]]}, or you can drop down the file with gui mounse refers
+as other gui application does, this feature provided by melpa
+package @uref{https://github.com/abo-abo/org-download, org-download} but just with image thing as.
 
 @enumerate
 @item
@@ -1859,79 +2019,58 @@ with yanking choosing functional.
 @subsection Font specific
 
 Emacs support multibyte fonts setting and the rich features for each
-part of face refer.
+part of face refer. @samp{entropy-emacs}'s initial config file
+@samp{entropy-emacs-font-set.el} was the collection fonts config for as.
 
-@samp{entropy-emacs}'s initial config file @samp{entropy-emacs-font-set.el} was the
-collection fonts config for as.
+Internally, emacs using a @samp{fontset} data structure to represent its
+font founding mechanism to support the multi-language support for a
+single lanuguage-environment. A FONTSET is a group of various font
+families of various lanuage scripts so that a FONTSET can decoding any
+charsets if setted properly with unlimited FONT-SPECs (i.e. the emacs
+internal font representation data structure).
 
-@samp{entropy-emacs} given the default ttf/otf fonts provission internally,
-all the fonts given were opensource type without any warranty. we use
-them for the defautls font setting turns on with custom variable
-@samp{entropy/emacs-font-setting-enable} which was the key for using us
-defautl font setting layout.
-
-Our fonts config feature provide three type of language scripts type:
-
-@itemize
-@item
-latin
-@item
-cjk
-@item
-symbol chars
-@end itemize
-
-While the latin was the most wild using script covered over code
-source and doc built or read. We using 'Noto' from google, 'Source
-code pro' from Adobe be choices for latin script fonts specification.
-
-And then cjk script was using for multibyte and unicode language
-encoding char presentation, emacs needed hands specific for it as the
-especially on windows platfrom that will going wrong when cjk fonts
-config with mistake or uncomfortable. we use 'Droid Sans' for chinese
-and japanese, 'Noto Serif CJK KR' for Korea.
-
-some symbol char refer to unicode will be lost of system font list, we
-use 'symbola' one of the wild unicode encoding covering font
-collection.
-
-when your first using @samp{entropy-emacs}, if you want to using our font
-config, you may want to manually install all the fonts archived
-@uref{https://sourceforge.net/projects/entropy-emax64/files/entropy-emacs_hitch/20190505/, here}. Or you will recieve the warning at the startup but without any
-feature lost, thus you can install them in any time.
+Thus for, @samp{entropy-emacs} patch the emacs per-frame default FONTSET
+with sets of FONT-SPECs to support CJK, LATIN, SYMBOL
+simultaneously. We use the group font family data structer for
+representing thus patch, variable @samp{entropy/emacs-font-setting-enable}
+(see its docstring for more details) did as that.
 
 @node Major modes for programming
 @section Major modes for programming
 
 Most major-modes contained the basic coding experience as syntax
-highlight and the xref code snippet defination jumping
-functional. Although it's the basic not upper to full sensitively
-cheerful user experience.
+highlight and the 'xref' code defination jumping functional. Although
+it's the basic which doesn't upper to full sensitively cheerful user
+experience.
 
 @samp{entropy-emacs} using dozen melpa extensions to extending the
 presented major modes' feature for enhancing more and more modes
 experience individually. The main extending purpose was sticking on
-the coding completion, based on @samp{company-mode} which was the coding
-completion framework for any scences.As well, eachs major modes
+the coding completion, based on @uref{http://company-mode.github.io/, company-mode} which was the coding
+completion framework for any scences. As well, eachs major modes
 extending were including the coding interactive sth refer, coding
 folding and expanding uppon the region or pair punctuations are adding
-so.
+so, even for debug tool-chains.
 
 @samp{entropy-emacs} treats emacs as the IDE (i.e. integrated development
 environment), extended with third-party lanuage servers, with the
-quickly ripened for @uref{https://github.com/microsoft/language-server-protocol, Microsoft language server}, we are trending to use
-the LSP as the IDE core component, its powerful with unified
-crossplatform protocol defination and ripened communitiy driven. But
-for those old IDE configuration (i.e. individually un-unified code
-sever) were remained in @samp{entropy-emacs} and with full supported as
-before.
+quickly ripened opensource lanugue protocol @uref{https://github.com/microsoft/language-server-protocol, Microsoft language server}
+(LSP), we are trending to use the LSP as the IDE core component, its
+powerful with unified crossplatform protocol defination and ripened
+communitiy driven. But for those old IDE configuration
+(i.e. individually un-unified code sever) were remained in
+@samp{entropy-emacs} and with full supported as before.
 
 The switcher for @samp{lsp} and the old IDE configuration is customized
-variable @samp{entropy/emacs-use-ide-type} whose valid values are 'lsp or
-'traditional.
+variable @samp{entropy/emacs-use-ide-type-for-MAJOR-MODE} whose valid
+values are 'lsp or 'traditional, where the 'MAJOR-MODE' place is
+wildcards like, which case that if you want to use a LSP ide type for
+major-mode @samp{c-mode}, the corresponding customized variable is
+@samp{entropy/emacs-use-ide-type-for-c-mode} and manually set it to
+'traditional'. By defaultly the, we use LSP as for all major-modes.
 
 Follow sections given the description for each major modes which have
-been enhanced the extending feature details informations.
+been enhanced the extending feature details.
 
 @menu
 * C and C++::
@@ -1939,11 +2078,13 @@ been enhanced the extending feature details informations.
 * Html and Css::
 * Javascript::
 * Web front-end realtime previewer::
-* Python anaconda::
+* Python::
 @end menu
 
 @node C and C++
 @subsection C and C++
+
+Use ide type customized variable: @samp{entropy/emacs-use-ide-type-for-[c/c++]-mode}.
 
 @multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem @strong{IDE type}
@@ -1979,20 +2120,22 @@ Using @uref{https://github.com/Sarcasm/irony-mode, irony-mode} to giving the pro
 jumping feature.
 
 @item
-Using @samp{company-c-headers} to giving the project header file query
+Using @uref{https://github.com/randomphrase/company-c-headers, company-c-headers} to giving the project header file query
 completions.
 @end enumerate
 
-@samp{irony-mode} based on the irony-server which has been compiled for w32
-platform within @samp{entropy-emacs}, but needed compiling manually on
-linux with dependencies installed e.g. cmake, clang @dots{} (We do not
-packing the server binary on linux because for ths platform across
-conflicated, thus x86 and arm or other cpu platform can not using the
-same binary.)
+@samp{irony-mode} based on the @emph{irony-server} which has been compiled for
+w32 platform within @samp{entropy-emacs} (see project @uref{https://sourceforge.net/projects/entropy-emax64/, entropy-emax64} for
+details), but needed compiling manually on linux with dependencies
+installed e.g. cmake, clang @dots{} (We do not packing the server binary
+on linux because for ths platform across conflicated, thus x86 and
+arm or other cpu platform can not using the same binary.)
 @end itemize
 
 @node Php
 @subsection Php
+
+Use ide type customized variable: @samp{entropy/emacs-use-ide-type-for-php-mode}.
 
 @multitable {aaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem @strong{IDE type}
@@ -2024,22 +2167,27 @@ for giving thus. Binding with @samp{M-p} for activation.
 @node Html and Css
 @subsection Html and Css
 
+Use ide type customized variable:
+@samp{entropy/emacs-use-ide-type-for-web-mode} and
+@samp{entropy/emacs-use-ide-type-for-css-mode}.
+
 emacs internal default web front-end major modes html and css mode are
 user basically with simple func interactively support, we use melpa
 package @uref{http://web-mode.org, web-mode} for the enhancements for html group markup language
 but for css as.
 
-web-mode provide sets of mordern features as for.  Tag folding and
+web-mode provide sets of mordern features as for. Tag folding and
 expanding with @uref{https://github.com/smihica/emmet-mode, emmet-mode}'s abbrevation tag editting, giving the more
 sensitive web refer coding.
 
 Our self built func @code{entropy/emacs-web-browse-web-buffer} can quickly
 browse the current html page out of using external browser for
-previewing as the way of quickly did. it's binding to @samp{C-<f1>}.
+previewing as the way of quickly did.
 
 Both of html and css buffer can be tidy up with normally code style
 using @uref{https://github.com/yasuyk/web-beautify, web-beautify} package which required nodejs path searched and the
-npm refer packages installed.
+npm refer packages installed or using the function @samp{lsp-format-buffer}
+when use ide type of LSP for those major-modes.
 
 @multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem @strong{IDE type}
@@ -2062,6 +2210,8 @@ npm refer packages installed.
 
 @node Javascript
 @subsection Javascript
+
+Use ide type customized variable: @samp{entropy/emacs-use-ide-type-for-js2-mode}.
 
 JS development IDE @uref{https://github.com/mooz/js2-mode/, js2-mode} was the one for given such as repl and
 syntax checking and morden syntax highlighting feature for js coding
@@ -2208,8 +2358,10 @@ for the meaning as just for the single file previewing as the css
 html js all in one embedding file as for.
 @end itemize
 
-@node Python anaconda
-@subsection Python anaconda
+@node Python
+@subsection Python
+
+Use ide type customized variable: @samp{entropy/emacs-use-ide-type-for-python-mode}.
 
 We using emacs built-in major-mode @samp{python-mode} for coding python codes.
 
