@@ -114,6 +114,11 @@ inject into HOOK wrapped BODY."
                    (throw :exit nil))))
              rtn))))
 
+(defun entropy/emacs-idle-cleanup-echo-area ()
+  "Cleanup remaining echo area message when bussy done for some
+tasks 'ing' refer prompts."
+  (run-with-idle-timer 0.2 nil (lambda () (message ""))))
+
 ;; *** plist manipulation
 
 (defun entropy/emacs-strict-plistp (arg)
@@ -856,7 +861,10 @@ can be a list for thus which nested in ordered by that."
                      (symbol-name ',feature)
                    ',feature))
         (redisplay t)
-        ,@body)))
+        ,@body
+        ;; clear zombie echo area 'ing' prompts
+        (message "")
+        (redisplay t))))
    ((null entropy/emacs-custom-enable-lazy-load)
     `(when (not (null ',feature))
        (message "force load configs for feature '%s'" ',feature)
@@ -1012,8 +1020,9 @@ GENED-FUNCTION with their own name abbreviated."
               (yellow ,initial-func-suffix-name)
               (green "within")
               (cyan (format "%f" (- end-time head-time)))
-              (green "seconds."))
-             (redisplay t))))
+              (green "seconds. (Maybe running rest tasks ...)"))
+             (redisplay t)
+             (entropy/emacs-idle-cleanup-echo-area))))
        (let ((hook (entropy/emacs-select-trail-hook)))
          (cond
           ((not entropy/emacs-custom-enable-lazy-load)

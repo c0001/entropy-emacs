@@ -231,16 +231,28 @@ It is the recommendation of irony-mode official introduction."
   (defun entropy/emacs-codeserver--lsp-deferred-promt (&rest _)
     "Prompting for `lsp-deferred' starting for prevent lagging
 nervous."
+    (redisplay t)
     (entropy/emacs-message-do-message
      "%s <%s> %s"
      (green "Lsp check for buffer")
      (yellow (buffer-name))
-     (green "...")))
+     (green "..."))
+    (redisplay t))
 
-  (defun entropy/emacs-codeserver--lsp-deferred-exclude (orig-func &rest orig-args)
+  (defun entropy/emacs-codeserver--lsp-start-promt (&rest _)
+    "Prompting for `lsp' starting for prevent lagging nervous."
+    (redisplay t)
+    (entropy/emacs-message-do-message
+     "%s %s"
+     (green "Lsp starting")
+     (green "..."))
+    (redisplay t))
+
+  (defun entropy/emacs-codeserver--lsp-exclude (orig-func &rest orig-args)
     (unless (member major-mode '(emacs-lisp-mode
                                  lisp-interaction-mode
-                                 lisp-mode))
+                                 lisp-mode
+                                 org-mode))
       (apply orig-func orig-args)))
 
   :eemacs-indhc
@@ -350,9 +362,13 @@ nervous."
   (advice-add 'lsp-deferred
               :before
               #'entropy/emacs-codeserver--lsp-deferred-promt)
-  (advice-add 'lsp-deferred
+  (advice-add 'lsp
               :around
-              #'entropy/emacs-codeserver--lsp-deferred-exclude))
+              #'entropy/emacs-codeserver--lsp-exclude)
+  (advice-add 'lsp
+              :before
+              #'entropy/emacs-codeserver--lsp-start-promt))
+
 ;; **** lsp-ui
 (use-package lsp-ui
   :commands (lsp-ui-peek-find-definitions
