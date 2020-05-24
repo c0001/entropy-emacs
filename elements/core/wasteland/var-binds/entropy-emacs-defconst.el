@@ -96,6 +96,9 @@ Posix emulator supports for:
 (defconst entropy/emacs-ecv "VERSION: 0.1.0 Tag: ONEPIECE"
   "Version of entropy-emacs.")
 
+(defconst entropy/emacs-home-page "https://github.com/c0001/entropy-emacs"
+  "The =entropy-emacs= project home page uri.")
+
 ;; * provide
 (provide 'entropy-emacs-defconst)
 

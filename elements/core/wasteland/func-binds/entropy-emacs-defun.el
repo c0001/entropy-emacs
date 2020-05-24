@@ -859,7 +859,7 @@ can be a list for thus which nested in ordered by that."
         ,@body)))
    ((null entropy/emacs-custom-enable-lazy-load)
     `(when (not (null ',feature))
-       (message "force load configs for feature '%s'" (symbol-name ',feature))
+       (message "force load configs for feature '%s'" ',feature)
        (cond ((listp ',feature)
               (dolist (el ',feature)
                 (require el)))

@@ -516,17 +516,58 @@ for adding to variable `window-size-change-functions' and hook
 (when (and (eq entropy/emacs-enable-initial-dashboard 'rich)
            (not (daemonp)))
 
+  (advice-add #'dashboard-get-banner-path
+              :override
+              (lambda (&rest _)
+                (let* ((logo-obj
+                       (entropy/emacs-ui--init-welcom-extract-text-logo 3))
+                       logo-txt
+                       (file (expand-file-name "entropy-emacs-temp-txt-banner.txt"
+                                               entropy/emacs-stuffs-topdir)))
+                  (dolist (str (plist-get (car logo-obj) :str))
+                    (setq logo-txt (concat logo-txt str "\n")))
+                  (with-current-buffer
+                      (find-file-noselect file t t)
+                    (let ((inhibit-read-only t))
+                      (erase-buffer)
+                      (insert logo-txt)
+                      (insert "\n")
+                      (save-buffer)
+                      (kill-buffer)))
+                  file)))
+
+  (defun entropy/emacs-rich-dashboard-set-button ()
+    (setq
+     dashboard-navigator-buttons
+     `(((,(when (entropy/emacs-icons-displayable-p)
+            (all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0))
+         "Homepage" "Browse homepage"
+         (lambda (&rest _) (browse-url entropy/emacs-home-page)))
+
+        (,(when (entropy/emacs-icons-displayable-p)
+            (all-the-icons-octicon "tools" :height 1.0 :v-adjust 0.0))
+         "Settings" "Open custom file"
+         (lambda (&rest _) (find-file custom-file)))
+
+        (,(if (entropy/emacs-icons-displayable-p)
+              (all-the-icons-faicon "question" :height 1.2 :v-adjust -0.1)
+            "?")
+         "" "Help (?/h)"
+         (lambda (&rest _)
+           (info (plist-get entropy/emacs-doc-path :texinfo)))
+         font-lock-string-face)))))
+
   (defun entropy/emacs-rich-dashboard-init ()
     (require 'dashboard)
     (setq dashboard-startup-banner entropy/emacs-fancy-splash-logo-file
           dashboard-center-content t
-          dashboard-banner-logo-title "Welcom To Entropy-Emacs"
-          dashboard-page-separator "\n\n")
+          dashboard-banner-logo-title "Welcome To Entropy-Emacs"
+          dashboard-page-separator "\n\n"
+          dashboard-set-navigator t)
+    (entropy/emacs-rich-dashboard-set-button)
     (setq dashboard-items '((recents  . 10)
                             (bookmarks . 5)
-                            (agenda . 5)
-                            (projects . 5)
-                            (registers . 5)))
+                            (projects . 5)))
     (when (display-graphic-p)
       (setq dashboard-set-heading-icons t)
       (setq dashboard-set-file-icons t))
@@ -534,6 +575,14 @@ for adding to variable `window-size-change-functions' and hook
     (switch-to-buffer "*dashboard*")
     (goto-char (point-min))
     (hl-line-mode 1)
+    ;; kill dashboard org pre load opened buffers for let them
+    ;; encounter rest org specification in `entropy-emacs-org.el'
+    (mapc
+      (lambda (buffer)
+        (with-current-buffer buffer
+          (when (eq major-mode 'org-mode)
+            (kill-buffer buffer))))
+      (buffer-list))
     (redisplay t))
 
   (if entropy/emacs-fall-love-with-pdumper

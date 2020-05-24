@@ -637,10 +637,8 @@ returning the type of exec for open exported html file, they are:
     (dolist (fn org-ctags-open-link-functions)
       (remove-hook 'org-open-link-functions fn)))
   :init
-  (when entropy/emacs-fall-love-with-pdumper
-    (entropy/emacs-lazy-with-load-trail
-     disable-org-ctags
-     (entropy/emacs-org--ctags-disable))))
+  (entropy/emacs-lazy-load-simple (org org-ctags)
+    (entropy/emacs-org--ctags-disable)))
 
 ;; *** keymap hydra reflect
 ;; **** org-mode
@@ -1614,7 +1612,6 @@ Now just supply localization image file analyzing."
 ;; ** org-bullets
 (use-package org-bullets
   :commands (org-bullets-mode)
-  :hook (org-mode . (lambda () (org-bullets-mode 1)))
   :init
   (entropy/emacs-lazy-with-load-trail
    org-bullet-mode-init
@@ -1639,7 +1636,16 @@ Now just supply localization image file analyzing."
                            (null (bound-and-true-p org-bullets-mode)))
                   (org-bullets-mode 1))))
             (buffer-list))))
-     (add-hook 'org-mode #'org-bullets-mode)))
+     (add-hook 'org-mode-hook #'org-bullets-mode)
+     ;; update opened org-buffer bullet status
+     (mapc
+      (lambda (buffer)
+        (with-current-buffer buffer
+          (when (eq major-mode 'org-mode)
+            (unless (bound-and-true-p org-bullets-mode)
+              (org-bullets-mode 1)))))
+      (buffer-list))))
+
   :config
   (if (not (string= entropy/emacs-org-bullets-type "roman"))
       (setq org-bullets-bullet-list '("⓪" "①" "②" "③"
