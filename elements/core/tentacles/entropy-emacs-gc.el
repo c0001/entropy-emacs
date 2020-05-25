@@ -47,6 +47,18 @@
 
 (defvar entropy/emacs-gc-records nil)
 
+(advice-add 'garbage-collect
+            :around
+            (lambda (orig-func &rest orig-args)
+              (when entropy/emacs-garbage-collection-message-p
+                (redisplay t)
+                (message "Garbage-collecting ..."))
+              (entropy/emacs-gc--with-record
+                (apply orig-func orig-args))
+              (when entropy/emacs-garbage-collection-message-p
+                (redisplay t)
+                (message "Garbage-collecting done"))))
+
 (defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
   `(let* (duration
@@ -124,7 +136,7 @@ delay seconds SECS."
 
 (entropy/emacs-lazy-with-load-trail
  gc-message
- (setq garbage-collection-messages entropy/emacs-garbage-collection-message-p)
+ (setq garbage-collection-messages nil)
  (unless (daemonp)
    (add-hook 'focus-out-hook #'entropy/emacs-gc--focus-out-hook)
    (add-hook 'focus-in-hook #'entropy/emacs-gc--focus-in-reset))
