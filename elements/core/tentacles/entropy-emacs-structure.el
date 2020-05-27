@@ -746,6 +746,54 @@ This function is as the origin `outline-promote' but using
 
 
 ;; **** interactive operation
+
+  (unless (fboundp 'outshine-define-key)
+    (defmacro outshine-define-key (keymap key def condition &optional mode)
+      "Define key with fallback.
+
+Binds KEY to definition DEF in keymap KEYMAP, the binding is
+active when the CONDITION is true. Otherwise turns MODE off and
+re-enables previous definition for KEY. If MODE is nil, tries to
+recover it by stripping off \"-map\" from KEYMAP name.
+
+DEF must be a quoted symbol of an interactive command.
+
+This interns a named function `outshine-kbd-[key-name]' with the
+appropriate docstring so that calling `describe-key' on KEY
+produces a more informative output."
+      (declare (indent defun))
+      (let ((fn-name
+             (intern (format "outshine-kbd-%s"
+                             (if (eq (car-safe key) 'kbd)
+                                 (cadr key)
+                               key))))
+            (docstring
+             (format "Run the interactive command `%s' if the following condition \
+is satisfied:\n\n    %s\n
+Otherwise, fallback to the original binding of %s in the current mode."
+                     (cadr def) ;; def is a quoted symbol (quote sym)
+                     condition key))
+            (mode-name
+             (cond (mode mode)
+                   ((string-match
+                     (rx (group (1+ any)) "-map" eol) (symbol-name keymap))
+                    (intern (match-string 1 (symbol-name keymap))))
+                   (t (error "Could not deduce mode name from keymap name")))))
+        `(progn
+           (defun ,fn-name ()
+             ,docstring
+             (interactive)
+             (call-interactively
+              (if ,condition
+                  ,def
+                ;; turn mode off and recover the original function
+                (let ((,mode-name nil))
+                  (or (key-binding ,key)
+                      ,(if (equal (kbd "<tab>") key)
+                           (key-binding (kbd "TAB")))
+                      (lambda nil (interactive) (message "`%s' can do nothing useful here." (key-description ,key))))))))
+           (define-key ,keymap ,key (quote ,fn-name))))))
+
   (defun entropy/emacs-structure--outshine-demote (&optional which)
     (interactive
      (list (if (and transient-mark-mode mark-active) 'region

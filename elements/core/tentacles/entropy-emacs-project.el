@@ -42,7 +42,7 @@
 (use-package projectile
   :diminish
   :commands (projectile-find-file
-             projectile-command-map)
+             projectile-mode)
   :bind
 
   :eemacs-tpha

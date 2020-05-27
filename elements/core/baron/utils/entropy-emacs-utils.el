@@ -55,7 +55,6 @@
   :commands
   (all-the-icons-octicon-family
    all-the-icons-octicon
-   all-the-icons-dired--display
    all-the-icons-icon-for-buffer
    all-the-icons-icon-family-for-buffer
    all-the-icons-icon-family
@@ -72,7 +71,6 @@
    all-the-icons-icon-for-weather
    all-the-icons-fileicon-family
    all-the-icons-insert
-   all-the-icons-dired-mode
    all-the-icons-icon-for-mode
    all-the-icons-icon-for-file
    all-the-icons-match-to-alist
@@ -90,7 +88,6 @@
    all-the-icons-insert-faicon
    all-the-icons-ivy-setup
    all-the-icons-dir-is-submodule
-   all-the-icons-dired--reset
    all-the-icons-faicon-data
    all-the-icons-material-data
    all-the-icons-auto-mode-match?
