@@ -330,24 +330,25 @@ effective then adding option of personal browse url function that be in ordered 
 `entropy/emacs-browse-url-function'
 "
   (interactive)
-  (let* ((list-of-choice (cond ((and entropy/emacs-enable-personal-browse-url-function
-                                     entropy/emacs-browse-url-function
-                                     (not (executable-find "w3m")))
-                                '("personal"
-                                  "eww"
-                                  "default"))
-                               ((and entropy/emacs-enable-personal-browse-url-function
-                                     entropy/emacs-browse-url-function
-                                     (executable-find "w3m"))
-                                '("personal"
-                                  "w3m"
-                                  "eww"
-                                  "default"))
-                               ((executable-find "w3m")
-                                '("w3m"
-                                  "eww"
-                                  "default"))
-                               (t '("eww" "default"))))
+  (let* ((list-of-choice
+          (cond ((and entropy/emacs-enable-personal-browse-url-function
+                      entropy/emacs-browse-url-function
+                      (not (executable-find "w3m")))
+                 '("personal"
+                   "eww"
+                   "default"))
+                ((and entropy/emacs-enable-personal-browse-url-function
+                      entropy/emacs-browse-url-function
+                      (executable-find "w3m"))
+                 '("personal"
+                   "w3m"
+                   "eww"
+                   "default"))
+                ((executable-find "w3m")
+                 '("w3m"
+                   "eww"
+                   "default"))
+                (t '("eww" "default"))))
          (choice
           (ivy-read "Choose the function you want: " list-of-choice)))
         (cond
@@ -370,12 +371,14 @@ effective then adding option of personal browse url function that be in ordered 
    (("C-c M-w" entropy/emacs-textwww-toggle-default-browser
      "Toggle default browser."
      :enable t
+     :global-bind t
      :exit t))))
 
+;; advantage of using w3m as default browser
 (when (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
   (if (not (executable-find "w3m"))
       (entropy/emacs-textwww--setting-default-browser entropy/emacs-browse-url-function)
-    (if (display-graphic-p)
+    (if sys/is-graphic-support
         (entropy/emacs-textwww--setting-default-browser entropy/emacs-browse-url-function)
       (entropy/emacs-textwww--setting-default-browser 'entropy/emacs-textwww--w3m-browse-url))))
 
