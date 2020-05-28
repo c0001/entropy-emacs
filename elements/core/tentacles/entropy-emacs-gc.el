@@ -47,36 +47,40 @@
 
 (defvar entropy/emacs-gc-records nil)
 
-(advice-add 'garbage-collect
-            :around
-            (lambda (orig-func &rest orig-args)
-              (when entropy/emacs-garbage-collection-message-p
-                (redisplay t)
-                (message "Garbage-collecting ..."))
-              (entropy/emacs-gc--with-record
-                (apply orig-func orig-args))
-              (when entropy/emacs-garbage-collection-message-p
-                (redisplay t)
-                (message "Garbage-collecting done"))))
-
 (defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
-  `(let* (duration
-          (cur-time (current-time))
-          (cur-time-human (format-time-string "[%Y-%m-%d %a %H:%M:%S]"))
-          (start cur-time))
+  `(let* (--duration--
+          (--cur-time-- (current-time))
+          (--cur-time-human-- (format-time-string "[%Y-%m-%d %a %H:%M:%S]"))
+          (--start-- --cur-time--))
 
      (when (> (length entropy/emacs-gc-records) 1000)
        (setq entropy/emacs-gc-records nil))
 
      ,@body
-     (setq duration
+     (setq --duration--
            (float-time
             (time-subtract
-             (current-time) start)))
-     (push (list :stamp cur-time-human :duration duration
+             (current-time) --start--)))
+     (push (list :stamp --cur-time-human-- :duration --duration--
                  :idle-delay entropy/emacs-garbage-collection-delay)
            entropy/emacs-gc-records)))
+
+(defun entropy/emacs-gc-wrapper (orig-func &rest orig-args)
+  (let (rtn)
+    (when entropy/emacs-garbage-collection-message-p
+      (redisplay t)
+      (message "Garbage-collecting ..."))
+    (entropy/emacs-gc--with-record
+      (setq rtn (apply orig-func orig-args)))
+    (when entropy/emacs-garbage-collection-message-p
+      (redisplay t)
+      (message "Garbage-collecting done"))
+    rtn))
+
+(advice-add 'garbage-collect
+            :around
+            #'entropy/emacs-gc-wrapper)
 
 (defun entropy/emacs-gc--increase-cons-threshold ()
   (setq gc-cons-threshold
