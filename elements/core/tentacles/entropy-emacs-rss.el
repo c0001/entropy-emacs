@@ -124,37 +124,6 @@
   :config
 ;; *** core advice
 
-  (defvar entropy/emacs-rss--elfeed-init nil
-    "whether the firt time calling `elfeed'.")
-
-  (defun entropy/emacs-rss--elfeed-db-load (&rest rest)
-    "'BEFORE' advice for elfeed for fix bug of `elfeed-db-load'
-read wrong buffer stirng for `elfeed-db' at init time.
-
-This may be the problem of `use-package' lazy loading of elfeed
-and macro expand of it."
-    (when (not entropy/emacs-rss--elfeed-init)
-      (let ((index (expand-file-name "index" elfeed-db-directory))
-            (enable-local-variables nil))
-        (when (file-exists-p index)
-          (with-current-buffer (find-file-noselect index :nowarn :rawfile)
-            (goto-char (point-min))
-            (require 'elfeed-db)
-            (if (eql elfeed-db-version 4)
-                ;; May need to skip over dummy database
-                (let ((db-1 (read (current-buffer)))
-                      (db-2 (ignore-errors (read (current-buffer)))))
-                  (setf elfeed-db (or db-2 db-1)))
-              ;; Just load first database
-              (setf elfeed-db (read (current-buffer))))
-            (kill-buffer))
-          (setf elfeed-db-feeds (plist-get elfeed-db :feeds)
-                elfeed-db-entries (plist-get elfeed-db :entries)
-                elfeed-db-index (plist-get elfeed-db :index))))
-      (setq entropy/emacs-rss--elfeed-init t)))
-
-  (advice-add 'elfeed :before #'entropy/emacs-rss--elfeed-db-load)
-
 ;; *** utilities
   (defun entropy/emacs-rss--elfeed-list-feeds ()
     "List feeds using for querying promt."
