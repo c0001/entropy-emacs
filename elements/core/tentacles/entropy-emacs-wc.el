@@ -763,7 +763,8 @@ without derived slot."
           "*Messages*")
         winner-boring-buffers-regexp
         (rx (or (seq line-start "magit: ")
-                "*eemacs-"))))
+                "*eemacs-"
+                "magit:"))))
 
 ;; *** desktop mode
 
