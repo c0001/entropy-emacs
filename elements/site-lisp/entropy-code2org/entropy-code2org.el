@@ -261,9 +261,9 @@ the buffer name if its no related file visited bounding."
     (entropy/code2org--with-current-buffer-output
      (let ()
        (org-export-to-file
-           'gfm
+           'md
            (expand-file-name
-            (format "%s.md" item-name)
+            (format "README.md" item-name)
             archive-root))))))
 
 ;; * provide
