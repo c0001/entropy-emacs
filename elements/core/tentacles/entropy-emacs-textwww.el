@@ -170,7 +170,7 @@
    :search-query eww)
 
 ;; **** eww search engine
-  (if entropy/emacs-eww-search-engine-customize
+  (if entropy/emacs-enable-eww-search-engine-customize
       (setq eww-search-prefix entropy/emacs-eww-search-engine))
 
 ;; **** disable eww image animation for reducing the performance lagging

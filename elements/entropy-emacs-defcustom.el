@@ -517,7 +517,7 @@ Configurations for `eww' `w3m' `search-web' etc.
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; ***** eww search engine set
-(defcustom entropy/emacs-eww-search-engine-customize t
+(defcustom entropy/emacs-enable-eww-search-engine-customize t
   "Enable eww search prefix customized"
   :type 'boolean
   :group 'entropy/emacs-web)

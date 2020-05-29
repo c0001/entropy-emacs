@@ -460,5 +460,22 @@ format which caused by set the restriction for thus."
   :commands
   (xclip-mode))
 
+;; ** wgrep
+
+(use-package wgrep
+  :commands
+  (wgrep-save-all-buffers
+   wgrep-exit
+   wgrep-change-to-wgrep-mode
+   wgrep-finish-edit
+   wgrep-toggle-readonly-area
+   wgrep-remove-all-change
+   wgrep-mark-deletion
+   wgrep-remove-change
+   wgrep-abort-changes)
+  :init
+  (setq wgrep-auto-save-buffer t
+        wgrep-change-readonly-file t))
+
 ;; * provide
 (provide 'entropy-emacs-utils)
