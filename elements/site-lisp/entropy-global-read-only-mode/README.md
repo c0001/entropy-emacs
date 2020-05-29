@@ -1,24 +1,15 @@
-Note: this file is auto converted from entropy-global-read-only-mode.el by [el2org](https://github.com/tumashu/el2org), please do not edit it by hand!!!
-
 # Table of Contents
 
-1.  [entropy-global-readonly-mode &#x2014; Simple global read-only mode](#orgde94689)
-2.  [Copyright (C) 20200221  Entropy](#org5ccf5d0)
-3.  [Commentary:](#orgfa2427a)
-    1.  [Requirements](#orgb8d9652)
-    2.  [Installation](#orgbc2014b)
-    3.  [Configuration](#orgd05627d)
-    4.  [Interaction](#org0fd8257)
-    5.  [Redefine functions and advices tracking](#orgabf487f)
-4.  [Changelog:](#orgb24d638)
+1.  [Copyright (C) 20200221  Entropy](#orge97a2d2)
+2.  [Commentary:](#org800302f)
+    1.  [Requirements](#org800263a)
+    2.  [Installation](#org4a1406f)
+    3.  [Configuration](#orga771c22)
+    4.  [Interaction](#org7037192)
+    5.  [Redefine functions and advices tracking](#org83a393a)
+3.  [Changelog:](#orgb8fbbcd)
 
-
-<a id="orgde94689"></a>
-
-# entropy-global-readonly-mode &#x2014; Simple global read-only mode
-
-
-<a id="org5ccf5d0"></a>
+<a id="orge97a2d2"></a>
 
 # Copyright (C) 20200221  Entropy
 
@@ -44,7 +35,7 @@ Note: this file is auto converted from entropy-global-read-only-mode.el by [el2o
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="orgfa2427a"></a>
+<a id="org800302f"></a>
 
 # Commentary:
 
@@ -71,7 +62,7 @@ The rule base for is follow the below two way:
     list regexp matching for.
 
 
-<a id="orgb8d9652"></a>
+<a id="org800263a"></a>
 
 ## Requirements
 
@@ -82,7 +73,7 @@ utilies. But all the re-defun procedure are just enabled when `org`
 loaded, there's no need to require `org` with the manually way.
 
 
-<a id="orgbc2014b"></a>
+<a id="org4a1406f"></a>
 
 ## Installation
 
@@ -90,7 +81,7 @@ Download main [source file](entropy-global-read-only-mode.el) to your load-path 
 the most easy way.
 
 
-<a id="orgd05627d"></a>
+<a id="orga771c22"></a>
 
 ## Configuration
 
@@ -101,7 +92,7 @@ type value for as:
 -   "modes" :
 
     Initializing read-only type for the major-modes list in
-    `entropy/grom-mode-list` and it's default value is:
+    `entropy/grom-mode-hooks-list` and it's default value is:
 
         emacs-lisp-mode-hook
         c-mode-hook
@@ -123,7 +114,7 @@ type value for as:
 
     Initialize all file opening read-only type based on the wide rule
     set of the buffer name filters
-    `entropy/grom-find-file-except-bfregexp-list`.
+    `entropy/grom-customizable-except-buffer-name-regexp-list`.
 
 You can select one of them be the global-read-only-type for as.
 
@@ -136,7 +127,7 @@ The `use-packge` configure management type demo as:
       :init (add-hook 'after-init-hook #'entropy-grom-mode))
 
 
-<a id="org0fd8257"></a>
+<a id="org7037192"></a>
 
 ## Interaction
 
@@ -149,9 +140,9 @@ The `use-packge` configure management type demo as:
 
     Toggle global buffers read-only status in `buffer-list` basic on
     the buffer name regexp matching regexp rule set of that one is
-    `entropy/grom-toggle-except-bfregexp-list` the basically core
+    `entropy/grom--toggle-except-bfregexp-list` the basically core
     native builtin one and what you can customizable one
-    `entropy/grom-find-file-except-bfregexp-list`.
+    `entropy/grom-customizable-except-buffer-name-regexp-list`.
 
 -   Function: `entropy/grom-read-only-buffer`
 
@@ -164,7 +155,7 @@ The `use-packge` configure management type demo as:
     `entropy/grom-toggle-read-only`.
 
 
-<a id="orgabf487f"></a>
+<a id="org83a393a"></a>
 
 ## Redefine functions and advices tracking
 
@@ -182,9 +173,17 @@ unlock codes into them respectively. The defination will be
 recovered when `entropy/grom-mode` disabled.
 
 
-<a id="orgb24d638"></a>
+<a id="orgb8fbbcd"></a>
 
 # Changelog:
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2020-05-29 Fri 20:13] </span></span> Optimize namespace
+    -   Make internal librariese follow conventions by emacs
+        non-provided named specification rule.
+
+    -   Fix logical bug.
+
+    -   Add treemacs-persist file match rule detection.
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2020-04-04 Sat 08:05] </span></span> Bump to version 0.1.1
     1.  Subroutines mechnism update
@@ -198,4 +197,4 @@ recovered when `entropy/grom-mode` disabled.
 -   <span class="timestamp-wrapper"><span class="timestamp">[2018-08-01 Wed] </span></span> version 0.1.0 release
 
 
-<a id="org066cc5a"></a>
+<a id="orgb9fafb9"></a>

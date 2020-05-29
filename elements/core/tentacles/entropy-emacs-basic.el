@@ -1065,15 +1065,33 @@ This affected by `neotree' or `treemacs' window sticking with
 (use-package entropy-global-read-only-mode
   :ensure nil
   :commands (entropy-grom-mode)
+  :eemacs-indhc
+  (((:enable t)
+    (entropy-grom-mode))
+   ("Basic"
+    (("<f1>" entropy/grom-read-only-buffer "Toggle buffer read-only status"
+      :enable t :global-bind t :exit t
+      :toggle buffer-read-only)
+     ("t" entropy/grom-toggle-read-only "Toggle global buffers read-only status"
+      :enable t :exit t)
+     ("M-1" entropy/grom-quick-readonly-global
+      "Quickly lock all buffers in current emacs session with internal rules matched"
+      :enable t :global-bind t :exit t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("L"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'entropy-grom-mode))
+      "Buffer locker both for single or global buffer-list"
+      :enable t :exit t))))
   :init
   (entropy/emacs-lazy-initial-advice-before
    (find-file push-button find-library-name)
    "entropy-grom"
    "entropy-grom"
-   (entropy-grom-mode +1))
-  :config
-  (add-to-list 'entropy/grom-find-file-except-bfregexp-list
-               "treemacs-persist"))
+   (entropy-grom-mode +1)))
 
 ;; *** Revert buffer automatically
 

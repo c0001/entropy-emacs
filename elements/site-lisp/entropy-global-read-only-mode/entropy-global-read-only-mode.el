@@ -70,7 +70,7 @@
 ;; - "modes" :
 
 ;;   Initializing read-only type for the major-modes list in
-;;   =entropy/grom-mode-list= and it's default value is:
+;;   =entropy/grom-mode-hooks-list= and it's default value is:
 ;;   #+BEGIN_EXAMPLE
 ;;     emacs-lisp-mode-hook
 ;;     c-mode-hook
@@ -94,7 +94,7 @@
 
 ;;   Initialize all file opening read-only type based on the wide rule
 ;;   set of the buffer name filters
-;;   =entropy/grom-find-file-except-bfregexp-list=.
+;;   =entropy/grom-customizable-except-buffer-name-regexp-list=.
 
 
 ;; You can select one of them be the global-read-only-type for as.
@@ -119,9 +119,9 @@
 
 ;;   Toggle global buffers read-only status in =buffer-list= basic on
 ;;   the buffer name regexp matching regexp rule set of that one is
-;;   =entropy/grom-toggle-except-bfregexp-list= the basically core
+;;   =entropy/grom--toggle-except-bfregexp-list= the basically core
 ;;   native builtin one and what you can customizable one
-;;   =entropy/grom-find-file-except-bfregexp-list=.
+;;   =entropy/grom-customizable-except-buffer-name-regexp-list=.
 
 ;; - Function: ~entropy/grom-read-only-buffer~
 
@@ -150,6 +150,16 @@
 
 ;;; Changelog:
 
+;; - [2020-05-29 Fri 20:13:23] Optimize namespace
+
+;;   * Make internal librariese follow conventions by emacs
+;;     non-provided named specification rule.
+
+;;   * Fix logical bug.
+
+;;   * Add treemacs-persist file match rule detection.
+
+
 ;; - [2020-04-04 Sat 08:05:27] Bump to version 0.1.1
 
 ;;   1) Subroutines mechnism update
@@ -168,7 +178,7 @@
 (require 'cl-lib)
 
 ;;;; declare variable
-(defvar entropy/grom-toggle-except-bfregexp-list
+(defvar entropy/grom--toggle-except-bfregexp-list
   '(
     "\\*Minibuf.*\\*"
     "\\*Echo Area"
@@ -194,27 +204,48 @@
     "\\*company-posframe-buffer\\*"
     "\\*entity\\*"
     "\\*w3m-"
+    "treemacs-persist"
     "\\*nntp"
     "newsrc"
     "\\*gnus"
+    ;; pre-defined find file expection
+    "autoloads\\.el"
+    "\\*Compile-.*\\*"
+    "loaddefs\\.el"
     "COMMIT_EDITMSG"
+    "treemacs-persist"
     "_archive"
+    ;; for all special buffers which start with wildards follow emacs
+    ;; internal conventions
     "^ *\\*.*?\\* *$"
     )
   "The list is used by `entropy/grom-toggle-read-only' for excluding
 buffer with BUFFER-NAME REGXP in this list, basiclly this variable
 was the core buffer name regexp matching list for \"all\" type of
-`entropy/grom-readonly-type'.")
+`entropy/grom-readonly-type'.
+
+Do not modify it manually, or will messy up with risky on
+your-self way. If need to do that, add rules into customizable
+variable `entropy/grom-customizable-except-buffer-name-regexp-list' instead.")
 
 (defvar entropy/grom-buffer-true-name-pair-list nil
   "This list contains the FILENAME of the all buffer name
 BUFFER-NAME in current frame and obtained by
-`entropy/grom-get-true-buffer-name-pair-list'")
+`entropy/grom--get-true-buffer-name-pair-list'")
 
-(defvar entropy/grom-advice-register nil)
-(defvar entropy/grom-add-hook-register nil)
+(defvar entropy/grom--advice-register nil
+  "Register for adivce information built by `entropy/grom--add-advice'.")
+(defvar entropy/grom--add-hook-register nil
+  "Register for adivce information built by `entropy/grom--add-hook'.")
+(defvar entropy/grom--external-patch-register nil
+  "Register of sets of grom-patch information.
 
-(defvar entropy/grom-external-patch-register nil)
+A grom-patch is a plist with bellow falid key slots:
+- ':init' : a function to enable the patcher or nil.
+- ':setoff' : a function to disable the patcher or nil.
+
+Each grom-patch will enabled by `entropy/grom--enable-patcher' and
+disabled by `entropy/grom--disable-patcher'.")
 
 ;;;; custom variable
 (defgroup entropy-global-read-only-mode nil
@@ -227,12 +258,12 @@ Choose the type of init-read-only method:
 There's two choice:
 1. 'all':   Let find-file be default the read-only mode.
 2. 'modes': Use the list of major-modes' hooks to embend it in.
-            The list variable is `entropy/grom-mode-list'
+            The list variable is `entropy/grom-mode-hooks-list'
 "
   :type 'string
   :group 'entropy-global-read-only-mode)
 
-(defcustom entropy/grom-mode-list
+(defcustom entropy/grom-mode-hooks-list
   '(emacs-lisp-mode-hook
     c-mode-hook
     php-mode-hook
@@ -245,30 +276,47 @@ There's two choice:
     markdown-mode-hook
     bat-mode-hook
     text-mode-hook)
-  "The list of which major mode to be read-only at start-up"
+  "The list of which major mode hook to be injected read-only
+functional hook at start-up."
   :type 'sexp
   :group 'entropy-global-read-only-mode)
 
-(defcustom entropy/grom-find-file-except-bfregexp-list
-  `(,(regexp-quote "autoloads.el")
-    "\\*Compile-.*\\*"
-    "loaddefs\\.el"
-    "COMMIT_EDITMSG"
-    "_archive"
-    "^ *\\*.*?\\* *$")
-  "Except buffer name list for `entropy/grom-find-file-hook'."
+(defcustom entropy/grom-customizable-except-buffer-name-regexp-list nil
+  "External except buffer name regexp list excluding when enable
+read-only mode while `entropy-grom-mode' enabled.
+
+Its defaultly empty of no problem or added as your own
+specification, all rules list in here will be combined with
+`entropy/grom--toggle-except-bfregexp-list' for expection dealing
+with."
   :type 'sexp
   :group 'entropy-global-read-only-mode)
 
 ;;;; library
 
-(defun entropy/grom-get-excepted-buffer-name-regexp-list ()
-  (let ((whole-init (copy-tree entropy/grom-toggle-except-bfregexp-list)))
-    (dolist (el entropy/grom-find-file-except-bfregexp-list)
+(defun entropy/grom--get-excepted-buffer-name-regexp-list ()
+  "Combined `entropy/grom-customizable-except-buffer-name-regexp-list' with
+`entropy/grom--toggle-except-bfregexp-list' to generating the
+whole expections rules."
+  (let ((whole-init (copy-tree entropy/grom--toggle-except-bfregexp-list)))
+    (dolist (el entropy/grom-customizable-except-buffer-name-regexp-list)
       (add-to-list 'whole-init el t 'string=))
     whole-init))
 
-(defun entropy/grom-get-true-buffer-name-pair-list ()
+(defun entropy/grom--buffer-special-p (buffer)
+  (if (equal entropy/grom-readonly-type "all")
+      (let ((buffer-name
+             (or (and (stringp buffer) buffer)
+                 (and (bufferp buffer)
+                      (buffer-name buffer))
+                 (error "Wrong type of argument: bufferp--> '%s'" buffer))))
+        (catch :exit
+          (dolist (rule (entropy/grom--get-excepted-buffer-name-regexp-list))
+            (when (string-match-p rule buffer-name)
+              (throw :exit t)))))
+    nil))
+
+(defun entropy/grom--get-true-buffer-name-pair-list ()
   "Getting current frame's actived buffer true name with
 `buffer-file-name' and push them into
 `entropy/grom-buffer-true-name-pair-list'
@@ -285,88 +333,82 @@ This function was used for
                     nil)))
       (add-to-list 'entropy/grom-buffer-true-name-pair-list `(,tbname ,buffer)))))
 
-
-(defun entropy/grom-not-common-special-buffer-p ()
-  (let ((cur-buffn (buffer-name (current-buffer))))
-    (and (not (string-match-p
-               "CAPTURE-.*\\.org$"
-               cur-buffn))
-         (not (string-match-p
-               "\\*Minibuf.*\\*"
-               cur-buffn)))))
-
-(cl-defun entropy/grom-read-only-mode-enable (&key message)
-  (if (not (entropy/grom-not-common-special-buffer-p))
-      (when message
-        (warn "You can not make '%s' read only, because this
+(cl-defun entropy/grom--enable-read-only (&key message buffer no-check)
+  (let ((buffer (or buffer (current-buffer))))
+    (if (null no-check)
+        (if (entropy/grom--buffer-special-p buffer)
+            (when message
+              (warn "You can not make '%s' read only, because this
 operation may cause some risk. ('M-x read-only-mode' for forcely)"
-              (buffer-name)))
-    (read-only-mode 1)
-    (when message
-      (message "Lock current buffer successfully"))))
+                    (buffer-name)))
+          (with-current-buffer buffer
+            (read-only-mode 1))
+          (when message
+            (message "Lock current buffer successfully")))
+      (read-only-mode 1))))
 
-(defun entropy/grom-find-file-hook ()
+(defun entropy/grom--find-file-guard ()
   "Hooks for find-file with global readonly mode type \"all\" using
 except buffer-name regexp matching list obtained by
-`entropy/grom-get-excepted-buffer-name-regexp-list'."
+`entropy/grom--get-excepted-buffer-name-regexp-list'."
   (let (p
         (cur_bfname (buffer-name)))
     (catch :exit
-      (dolist (match (entropy/grom-get-excepted-buffer-name-regexp-list))
+      (dolist (match (entropy/grom--get-excepted-buffer-name-regexp-list))
         (when (string-match-p match cur_bfname)
           (setq p t)
           (throw :exit nil))))
     (unless p
-      (entropy/grom-read-only-mode-enable))))
+      (entropy/grom--enable-read-only))))
 
 
-(defun entropy/grom-add-hook (hook function)
-  (add-to-list 'entropy/grom-add-hook-register
+(defun entropy/grom--add-hook (hook function)
+  (add-to-list 'entropy/grom--add-hook-register
                (list hook function))
   (add-hook hook function))
 
-(defun entropy/grom-add-advice (symbol where function)
-  (add-to-list 'entropy/grom-advice-register
+(defun entropy/grom--add-advice (symbol where function)
+  (add-to-list 'entropy/grom--advice-register
                (list symbol function))
   (advice-add symbol where function))
 
-(defun entropy/grom-remove-hook-and-advice ()
+(defun entropy/grom--remove-hook-and-advice ()
   (mapc (lambda (grom-hook-registor)
           (apply 'remove-hook grom-hook-registor))
-        entropy/grom-add-hook-register)
-  (setq entropy/grom-add-hook-register nil)
+        entropy/grom--add-hook-register)
+  (setq entropy/grom--add-hook-register nil)
   (mapc (lambda (grom-advice-registor)
           (apply 'advice-remove grom-advice-registor))
-        entropy/grom-advice-register)
-  (setq entropy/grom-advice-register nil))
+        entropy/grom--advice-register)
+  (setq entropy/grom--advice-register nil))
 
-(defun entropy/grom-enable-patcher ()
-  (dolist (patcher entropy/grom-external-patch-register)
+(defun entropy/grom--enable-patcher ()
+  (dolist (patcher entropy/grom--external-patch-register)
     (let ((init (plist-get patcher :init)))
       (when (functionp init)
         (funcall init)))))
 
-(defun entropy/grom-disable-patcher ()
-  (dolist (patcher entropy/grom-external-patch-register)
+(defun entropy/grom--disable-patcher ()
+  (dolist (patcher entropy/grom--external-patch-register)
     (let ((setoff (plist-get patcher :setoff)))
       (when (functionp setoff)
         (funcall setoff)))))
 
 ;;;; Read-only minor tools
-;;;;; Buffer lock quick way with <f1>
-(global-set-key (kbd "<f1>") 'entropy/grom-read-only-buffer)
+;;;;; Buffer lock status toggle quick way
+;;;###autoload
 (defun entropy/grom-read-only-buffer ()
   (interactive)
   (if buffer-read-only
       (read-only-mode 0)
-    (entropy/grom-read-only-mode-enable :message t)))
-
+    (entropy/grom--enable-read-only :message t)))
 
 ;;;;; Global read only toggle function
+;;;###autoload
 (defun entropy/grom-toggle-read-only (&optional readonly editted current-buffer-ndwp cury)
   "Toggle readonly-or-not for all buffers except for the buffer-name
 witin the full buffer name regexp matching list obtained by
-`entropy/grom-get-excepted-buffer-name-regexp-list'.
+`entropy/grom--get-excepted-buffer-name-regexp-list'.
 
 There's four optional argument for this function:
 
@@ -400,7 +442,7 @@ There's four optional argument for this function:
     (let ((p-buffer-list (mapcar (function buffer-name) (buffer-list))))
       (dolist (value (copy-tree p-buffer-list))
         (catch :exit
-          (dolist (cache (entropy/grom-get-excepted-buffer-name-regexp-list))
+          (dolist (cache (entropy/grom--get-excepted-buffer-name-regexp-list))
             (when (string-match-p cache value)
               (setq p-buffer-list (delete value p-buffer-list))
               (throw :exit nil)))))
@@ -415,9 +457,9 @@ There's four optional argument for this function:
                ((string= read "global read only")
                 (when (not buffer-read-only)
                   (if (not (string= current-buffer buffer))
-                      (entropy/grom-read-only-mode-enable)
+                      (entropy/grom--enable-read-only :no-check t)
                     (when (eq cury-did-for t)
-                      (entropy/grom-read-only-mode-enable)))))
+                      (entropy/grom--enable-read-only :no-check t)))))
                ((string= read "global editted")
                 (when buffer-read-only
                   (if (not (string= current-buffer buffer))
@@ -425,6 +467,7 @@ There's four optional argument for this function:
                     (when (eq cury-did-for t)
                       (read-only-mode 0)))))))))))))
 
+;;;###autoload
 (defun entropy/grom-quick-readonly-global ()
   "Do readonly for all buffers include current-buffer.
 
@@ -432,34 +475,22 @@ This function are basically rely on `entropy/grom-toggle-read-only'."
   (interactive)
   (entropy/grom-toggle-read-only t nil t t)
   (message "All buffers have been read-only!"))
-(global-set-key (kbd "M-1") 'entropy/grom-quick-readonly-global)
-
-
-;;;; Global-readonly-mode
-
-(defun entropy/grom-init ()
-  (cond
-   ((string= entropy/grom-readonly-type "modes")
-    (dolist (mode-hook entropy/grom-mode-list)
-      (entropy/grom-add-hook mode-hook #'entropy/grom-read-only-mode-enable)))
-   ((string= entropy/grom-readonly-type "all")
-    (entropy/grom-add-hook 'find-file-hook 'entropy/grom-find-file-hook))))
 
 ;;;; Global read only excepted feature
 ;;;;; Adjust org mode
 ;;;;;; library
 
-(defvar entropy/grom-org-agenda-files-true-name-list nil
+(defvar entropy/grom--org-agenda-files-true-name-list nil
   "This list contains the FILENAME of `org-agenda-files' and
 obtained by `entropy/grom-get-true-agenda-file-name-list'")
 
-(defvar entropy/grom-org-agenda-actived-buffer-list nil
+(defvar entropy/grom--org-agenda-actived-buffer-list nil
   "This list contains buffer name BUFFERNAME which mirrored with
 `org-agenda-files' in current frame, and optained by
-`entropy/grom-get-actived-agenda-buffers-list'")
+`entropy/grom--get-actived-agenda-buffers-list'")
 
 
-(defvar entropy/grom-current-agenda-buffer nil
+(defvar entropy/grom--current-agenda-buffer nil
   "Current manipulation agenda buffer with `org-agenda'.
 
 Note: Don't manually assign value to this variable.
@@ -467,44 +498,45 @@ Note: Don't manually assign value to this variable.
 This variable will be auto-clean when agenda manipulation
 finished.")
 
-(defun entropy/grom-get-true-agenda-files-name-list ()
+(defun entropy/grom--get-true-agenda-files-name-list ()
   "Getting FILENAME of `org-agenda-files' and push them in
-`entropy/grom-org-agenda-files-true-name-list'
+`entropy/grom--org-agenda-files-true-name-list'
 
-This function was used for `entropy/grom-get-actived-agenda-buffers-list'.
+This function was used for
+`entropy/grom--get-actived-agenda-buffers-list'.
 "
   (interactive)
-  (setq entropy/grom-org-agenda-files-true-name-list nil)
+  (setq entropy/grom--org-agenda-files-true-name-list nil)
   (let ((agenda-files org-agenda-files))
     (dolist (oname agenda-files)
       (let((nname (file-truename oname)))
-        (add-to-list 'entropy/grom-org-agenda-files-true-name-list nname)))))
+        (add-to-list 'entropy/grom--org-agenda-files-true-name-list nname)))))
 
-(defun entropy/grom-get-actived-agenda-buffers-list ()
+(defun entropy/grom--get-actived-agenda-buffers-list ()
   "Getting activated `org-agenda-files' true name of `buffer-list'
 in current frame."
   (interactive)
-  (setq entropy/grom-org-agenda-actived-buffer-list nil)
-  (entropy/grom-get-true-agenda-files-name-list)
-  (entropy/grom-get-true-buffer-name-pair-list)
-  (dolist (aname entropy/grom-org-agenda-files-true-name-list)
+  (setq entropy/grom--org-agenda-actived-buffer-list nil)
+  (entropy/grom--get-true-agenda-files-name-list)
+  (entropy/grom--get-true-buffer-name-pair-list)
+  (dolist (aname entropy/grom--org-agenda-files-true-name-list)
     (dolist (bname entropy/grom-buffer-true-name-pair-list)
       (when (stringp (car bname))
         (when (string-match-p (regexp-quote aname) (car bname))
-          (add-to-list 'entropy/grom-org-agenda-actived-buffer-list (nth 1 bname)))))))
+          (add-to-list 'entropy/grom--org-agenda-actived-buffer-list (nth 1 bname)))))))
 
-(defun entropy/grom-unlock-actived-agenda-file-buffers ()
+(defun entropy/grom--unlock-actived-agenda-file-buffers ()
   "Unlock all agenda files"
   (interactive)
-  (entropy/grom-get-actived-agenda-buffers-list)
-  (dolist (buffer entropy/grom-org-agenda-actived-buffer-list)
+  (entropy/grom--get-actived-agenda-buffers-list)
+  (dolist (buffer entropy/grom--org-agenda-actived-buffer-list)
     (with-current-buffer buffer
       (if buffer-read-only
           (read-only-mode 0)))))
 
-(defun entropy/grom-agenda-unlock-current-entry (&rest arg-reset)
+(defun entropy/grom--agenda-unlock-current-entry (&rest arg-reset)
   "Unlock current entry in agenda view panel when global
-readonly mode."
+readonly mode is on."
   (interactive)
   (if (and
        (string= entropy/grom-readonly-type "all")
@@ -512,7 +544,7 @@ readonly mode."
       (let ((etb (or (if (org-get-at-bol 'org-hd-marker)
                          (buffer-name
                           (marker-buffer (org-get-at-bol 'org-hd-marker))))
-                     entropy/grom-current-agenda-buffer)))
+                     entropy/grom--current-agenda-buffer)))
         (if (not etb)
             (progn
               (org-agenda-redo-all)
@@ -524,45 +556,45 @@ readonly mode."
                   (read-only-mode 0)
                   (message "Unlock buffer '%s' !" etb))
               (message "No need to unlock buffer '%s' -v-" etb))))
-        (setq entropy/grom-current-agenda-buffer etb))))
+        (setq entropy/grom--current-agenda-buffer etb))))
 
-(defun entropy/grom-agenda-lock-current-entry (&rest arg-rest)
+(defun entropy/grom--agenda-lock-current-entry (&rest arg-rest)
   "Relock current agenda entry by manipulation according to
-`entropy/grom-current-agenda-buffer'."
+`entropy/grom--current-agenda-buffer'."
   (interactive)
   (when (and (equal major-mode 'org-agenda-mode)
-             (not (null entropy/grom-current-agenda-buffer))
-             (buffer-live-p (get-buffer entropy/grom-current-agenda-buffer)))
-    (let ((etb entropy/grom-current-agenda-buffer))
+             (not (null entropy/grom--current-agenda-buffer))
+             (buffer-live-p (get-buffer entropy/grom--current-agenda-buffer)))
+    (let ((etb entropy/grom--current-agenda-buffer))
       (with-current-buffer etb
         (if (not buffer-read-only)
-            (entropy/grom-read-only-mode-enable))))
-    (setq entropy/grom-current-agenda-buffer nil)))
+            (entropy/grom--enable-read-only))))
+    (setq entropy/grom--current-agenda-buffer nil)))
 
 ;;;;;; enable org grom patch
 ;;;;;;; main
-(defun entropy/grom-org-init ()
+(defun entropy/grom--org-patch-init ()
 ;;;;;;;; agenda function advice for unlock current entry
   (when
       (string= entropy/grom-readonly-type "all")
     (with-eval-after-load 'org-agenda
-      (define-key org-agenda-mode-map (kbd "C-d") #'entropy/grom-unlock-actived-agenda-file-buffers)
+      (define-key org-agenda-mode-map (kbd "C-d") #'entropy/grom--unlock-actived-agenda-file-buffers)
 
       ;; org-agenda-todo advice
-      (entropy/grom-add-advice 'org-agenda-todo :before #'entropy/grom-agenda-unlock-current-entry)
-      (entropy/grom-add-advice 'org-agenda-todo :after #'entropy/grom-agenda-lock-current-entry)
+      (entropy/grom--add-advice 'org-agenda-todo :before #'entropy/grom--agenda-unlock-current-entry)
+      (entropy/grom--add-advice 'org-agenda-todo :after #'entropy/grom--agenda-lock-current-entry)
 
 
       ;; ============note behaviour ==============
       ;; -----------------------------------------
       ;; org-agenda-add-not advice
-      (entropy/grom-add-advice 'org-agenda-add-note :before #'entropy/grom-agenda-unlock-current-entry)
+      (entropy/grom--add-advice 'org-agenda-add-note :before #'entropy/grom--agenda-unlock-current-entry)
 
       ;; org-add-log-note
-      (entropy/grom-add-advice 'org-add-log-note :before #'entropy/grom-agenda-unlock-current-entry)
+      (entropy/grom--add-advice 'org-add-log-note :before #'entropy/grom--agenda-unlock-current-entry)
 
       ;; org-sore-log-note
-      (entropy/grom-add-advice 'org-store-log-note :after #'entropy/grom-agenda-lock-current-entry)))
+      (entropy/grom--add-advice 'org-store-log-note :after #'entropy/grom--agenda-lock-current-entry)))
 
 
 ;;;;;;;; Redefine org-capture about function for adapting for global-readonly-mode
@@ -598,10 +630,11 @@ was the override function for `org-capture-place-template' by
         (org-capture-mode 1)
         (setq-local org-capture-current-plist org-capture-plist))
 
-      (entropy/grom-add-advice 'org-capture-place-template :override
+      (entropy/grom--add-advice 'org-capture-place-template :override
                                #'entropy/grom--org-capture-place-template)
 
-      (defun entropy/org-capture-put-target-region-and-position-after-advice (&rest args)
+      (defun entropy/grom--org-capture-put-target-region-and-position-after-advice
+          (&rest args)
         "Adding buffer unlock for narrowed org capture buffer.
 
 This func was advice for func
@@ -609,14 +642,14 @@ This func was advice for func
         (when buffer-read-only
           (read-only-mode 0)))
 
-      (entropy/grom-add-advice 'org-capture-put-target-region-and-position
-                  :after #'entropy/org-capture-put-target-region-and-position-after-advice))
+      (entropy/grom--add-advice 'org-capture-put-target-region-and-position
+                  :after #'entropy/grom--org-capture-put-target-region-and-position-after-advice))
 
     (with-eval-after-load 'org-datetree
       (defun entropy/grom--org-datetree-before-advice ()
         (if buffer-read-only
             (read-only-mode 0)))
-      (entropy/grom-add-advice
+      (entropy/grom--add-advice
        'org-datetree--find-create
        :before
        #'entropy/grom--org-datetree-before-advice))))
@@ -624,24 +657,29 @@ This func was advice for func
 
 ;;;;;;; add to external patch
 
-(add-to-list 'entropy/grom-external-patch-register
+(add-to-list 'entropy/grom--external-patch-register
              '(:init
-               entropy/grom-org-init
+               entropy/grom--org-patch-init
                :setoff nil))
 
 ;;;; mode defination
-(defun entropy/grom-mode-enable ()
+(defun entropy/grom--mode-enable ()
   "Enable entropy-grom-mode."
   (progn
-    (entropy/grom-init)
-    (entropy/grom-enable-patcher)
+    (cond
+     ((string= entropy/grom-readonly-type "modes")
+      (dolist (mode-hook entropy/grom-mode-hooks-list)
+        (entropy/grom--add-hook mode-hook #'entropy/grom--enable-read-only)))
+     ((string= entropy/grom-readonly-type "all")
+      (entropy/grom--add-hook 'find-file-hook 'entropy/grom--find-file-guard)))
+    (entropy/grom--enable-patcher)
     (message "Global read only mode enable!")))
 
-(defun entropy/grom-mode-disable ()
+(defun entropy/grom--mode-disable ()
   "Disable entropy-grom-mode."
   (progn
-    (entropy/grom-disable-patcher)
-    (entropy/grom-remove-hook-and-advice)
+    (entropy/grom--remove-hook-and-advice)
+    (entropy/grom--disable-patcher)
     (message "Global read only mode disable!")))
 
 ;;;###autoload
@@ -651,8 +689,8 @@ This func was advice for func
   :lighter "GROM"
   :global t
   (if entropy-grom-mode
-      (entropy/grom-mode-enable)
-    (entropy/grom-mode-disable)))
+      (entropy/grom--mode-enable)
+    (entropy/grom--mode-disable)))
 
 ;;; provide
 (provide 'entropy-global-read-only-mode)
