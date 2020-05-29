@@ -593,7 +593,7 @@ for adding to variable `window-size-change-functions' and hook
          (add-hook 'window-size-change-functions
                    'dashboard-resize-on-hook)))
     (with-eval-after-load 'entropy-emacs-package
-      (add-hook 'entropy/emas-package-common-start-after-hook
+      (add-hook 'entropy/emacs-package-common-start-after-hook
                 #'entropy/emacs-rich-dashboard-init)
       (entropy/emacs-lazy-with-load-trail
        rich-dashboard

@@ -98,7 +98,9 @@ looping proceeding."
      (lambda ()
        ;; Deal with first line if it prefix with ";;;"
        (goto-char (point-min))
-       (while (re-search-forward "^;;;.*---[ ]+" (line-end-position) t)
+       (while (if (save-excursion (re-search-forward ";;[ ]?\\*+" (line-end-position) t))
+                  (re-search-forward "^;;[ ]?\\*+.*---[ ]+" (line-end-position) t)
+                (re-search-forward "^;;;.*---[ ]+" (line-end-position) t))
          (replace-match ";; #+TITLE: " nil t))
        ;; Remove lexical-binding string
        (goto-char (point-min))

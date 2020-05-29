@@ -313,7 +313,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   (require 'entropy-emacs-package)
   ;;; breaking remaining procedure while new package intalled within
   ;;; this session, because some messy.
-  (add-hook 'entropy/emas-package-common-start-after-hook
+  (add-hook 'entropy/emacs-package-common-start-after-hook
             #'entropy/emacs-start--warn-with-pkg-install)
   (entropy/emacs-package-common-start)
 

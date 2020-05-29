@@ -70,7 +70,7 @@
                              ("org"   . "http://mirrors.cloud.tencent.com/elpa/org/")
                              )))
    (t
-    (error "Unknown archives: '%s'" archives)))
+    (setq package-archives archives)))
   (message "Set package archives to '%s'." archives))
 
 (defun entropy/emacs-package--initial-package-archive ()
@@ -286,7 +286,7 @@ When installing encounters the fatal error, put the pkg into
 (defun entropy/emacs-package-common-start ()
   (entropy/emacs-package-install-all-packages)
   (entropy/emacs-package-init-use-package)
-  (run-hooks 'entropy/emas-package-common-start-after-hook))
+  (run-hooks 'entropy/emacs-package-common-start-after-hook))
 
 ;; * Provide
 (provide 'entropy-emacs-package)

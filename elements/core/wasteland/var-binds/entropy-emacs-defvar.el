@@ -34,7 +34,7 @@
 
 ;; ** individuals
 
-(defvar entropy/emas-package-common-start-after-hook nil
+(defvar entropy/emacs-package-common-start-after-hook nil
   "Hooks run after the entropy-emacs elisp packages initialized
  done while calling `entropy/emacs-package-common-start'.")
 

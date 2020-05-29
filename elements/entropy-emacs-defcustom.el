@@ -121,11 +121,28 @@ value assignments into."
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-package-archive-repo 'melpa
-  "Set package archives from which to fetch."
+  "Set package archives from which to fetch.
+
+  It can be a symbol to indicate the archive repo name or a list
+  obey the form as the same as `package-archives' does.
+
+  If its a repo name, valid values are:
+
+  - 'melpa'       : Using melpa and elpa official archive remote host.
+
+  - 'emacs-china' : Using melpa and elpa mirror archive remote host
+                    of 'https://elpa.emacs-china.org/'.
+
+  - 'tuna'        : Using melpa and elpa mirror archive remote host
+                    of 'https://mirrors.tuna.tsinghua.edu.cn/help/elpa/'.
+
+  - 'tencent'     : Using melpa and elpa mirror archive remote host
+                    of 'https://mirrors.cloud.tencent.com/help/elpa.html'."
   :type '(choice
           (const :tag "Melpa" melpa)
           (const :tag "Emacs-China" emacs-china)
-          (const :tag "Tuna" tuna))
+          (const :tag "Tuna" tuna)
+          (const :tag "Tencent" tencent))
   :group 'entropy/emacs-customize-fundametal)
 
 (defcustom entropy/emacs-use-popup-window-framework 'shackle
@@ -267,7 +284,7 @@ using for studying or giving the pr to the origin host when you
 found the bug or want to give the improvements. You can get it
 from 'https://github.com/c0001/entropy-emacs-extensions'.
 
-This archive used then type of 'submodules' to customized
+This archive used when type of 'submodules' is set to customized
 variable `entropy/emacs-ext-elpkg-get-type'."
 
   :type 'string
