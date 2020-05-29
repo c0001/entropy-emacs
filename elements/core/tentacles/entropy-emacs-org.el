@@ -652,7 +652,7 @@ returning the type of exec for open exported html file, they are:
 (defvar entropy/emacs-org-keymap-group-$common-insert
   '("Common Insert"
     (("C-<return>" org-insert-heading-respect-content
-      "Insert heading with ‘org-insert-heading-respect-content’ set to t"
+      "Insert heading with 'org-insert-heading-respect-content' set to t"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c C-," org-insert-structure-template
       "Insert a block structure of the type which babel defined so"
@@ -672,7 +672,7 @@ returning the type of exec for open exported html file, they are:
 
 (defvar entropy/emacs-org-keymap-group-$common-copy&paste
   '("Common copy and paste"
-    (("C-c M-w" org-copy "Like ‘org-refile’, but copy"
+    (("C-c M-w" org-copy "Like 'org-refile', but copy"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c C-w" org-refile "Move the entry or entries at point to another heading"
       :enable t :map-inject t :exit t) ;; All the other keys
@@ -776,7 +776,7 @@ returning the type of exec for open exported html file, they are:
 (defvar entropy/emacs-org-keymap-group-$common-sort
     '("Common sort"
       (("C-c ^" org-sort
-        "Call ‘org-sort-entries’, ‘org-table-sort-lines’ or ‘org-sort-list’"
+        "Call 'org-sort-entries', 'org-table-sort-lines' or 'org-sort-list'"
         :enable t :map-inject t :exit t) ;; All the other keys
        )))
 
@@ -787,7 +787,7 @@ returning the type of exec for open exported html file, they are:
       "Open link, timestamp, footnote or tags at point"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c M-o" entropy/emacs-org-eow
-      "Open link in org-mode using ‘entropy/open-with-port"
+      "Open link in org-mode using 'entropy/open-with-port"
       :enable t :exit t :map-inject t)
      )))
 
@@ -1062,10 +1062,10 @@ returning the type of exec for open exported html file, they are:
       "Insert a link.  At the prompt, enter the link"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c C-M-l" org-insert-all-links
-      "Insert all links in ‘org-stored-links’"
+      "Insert all links in 'org-stored-links'"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c M-l" org-insert-last-stored-link
-      "Insert the last link stored in ‘org-stored-links’"
+      "Insert the last link stored in 'org-stored-links'"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c C-x C-n" org-next-link
       "Move forward to the next link"
@@ -1146,10 +1146,10 @@ returning the type of exec for open exported html file, they are:
       "TAB-action and visibility cycling for Org mode"
       :enable t :map-inject t :exit t) ;; TAB key with modifiers
      ("C-'" org-cycle-agenda-files
-      "Cycle through the files in ‘org-agenda-files’"
+      "Cycle through the files in 'org-agenda-files'"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-," org-cycle-agenda-files
-      "Cycle through the files in ‘org-agenda-files’"
+      "Cycle through the files in 'org-agenda-files'"
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
@@ -1330,7 +1330,7 @@ returning the type of exec for open exported html file, they are:
       "Insert a new heading with the same level and TODO state as current heading"
       :enable t :map-inject t :exit t) ;; RET/<return> key with modifiers
      ("C-S-<return>" org-insert-todo-heading-respect-content
-      "Insert TODO heading with ‘org-insert-heading-respect-content’ set to t"
+      "Insert TODO heading with 'org-insert-heading-respect-content' set to t"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c #" org-update-statistics-cookies
       "Update the statistics cookie, either from TODO or from checkboxes"
@@ -1374,7 +1374,7 @@ returning the type of exec for open exported html file, they are:
       "Set restriction lock for agenda to current subtree or file"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c ]" org-remove-file
-      "Remove current file from the list of files in variable ‘org-agenda-files’"
+      "Remove current file from the list of files in variable 'org-agenda-files'"
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 
@@ -1412,7 +1412,7 @@ returning the type of exec for open exported html file, they are:
       "Go to the inbox that captures the feed named FEED"
       :enable t :map-inject t :exit t) ;; All the other keys
      ("C-c C-x g" org-feed-update-all
-      "Get inbox items from all feeds in ‘org-feed-alist’"
+      "Get inbox items from all feeds in 'org-feed-alist'"
       :enable t :map-inject t :exit t) ;; All the other keys
      )))
 

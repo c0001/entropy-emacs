@@ -282,7 +282,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c e p" counsel-package "Install or delete packages"
       :enable t :exit t :eemacs-top-bind t)
-     ("C-c c e s" counsel-list-processes "Offer completion for ‘process-list’"
+     ("C-c c e s" counsel-list-processes "Offer completion for 'process-list'"
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c e t" entropy/emacs-ivy-counsel-load-theme "Load specific emacs theme"
       :enable t :exit t :eemacs-top-bind t)

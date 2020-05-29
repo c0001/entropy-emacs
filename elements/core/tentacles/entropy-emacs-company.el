@@ -174,9 +174,9 @@
     (("M-/" company-complete
       "Insert the common part of all candidates or the current selection"
       :enable t :global-bind t :exit t)
-     ("M-\\" company-dabbrev "dabbrev-like ‘company-mode’ completion backend"
+     ("M-\\" company-dabbrev "dabbrev-like 'company-mode' completion backend"
       :enable t :global-bind t :exit t)
-     ("C-c C-y" company-yasnippet "‘company-mode’ backend for ‘yasnippet’"
+     ("C-c C-y" company-yasnippet "'company-mode' backend for 'yasnippet'"
       :enable t :global-bind t :exit t)
      ("]" entropy/emacs-company-files "Auto complete file path at point"
       :enable t :eemacs-top-bind t :exit t)

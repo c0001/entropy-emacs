@@ -1072,7 +1072,7 @@ difference.
   "application/xhtml+xml"
   "Content type string for the http-equiv header in XHTML output.
 When set to an empty string, this attribute is omitted.  Defaults to
-‘text/html’."
+'text/html'."
   :type 'string
   :group 'entropy/emacs-markdown-mode-spec)
 

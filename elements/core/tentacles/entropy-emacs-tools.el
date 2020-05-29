@@ -581,10 +581,10 @@ which determined by the scale count 0.3 "
      :enable t :exit t))
    "Convert To Utf-8"
    (("u i" entropy/emacs-tools-save-buffer-as-utf8-internal
-     "Revert a buffer with ‘CODING-SYSTEM’ and save as UTF-8 internally"
+     "Revert a buffer with 'CODING-SYSTEM' and save as UTF-8 internally"
      :enable t :exit t)
     ("u e" entropy/emacs-tools-save-buffer-as-utf8-external
-     "Revert a buffer with ‘CODING-SYSTEM’ and save as UTF-8 externally"
+     "Revert a buffer with 'CODING-SYSTEM' and save as UTF-8 externally"
      :enable t :exit t))))
 
 (entropy/emacs-hydra-hollow-add-for-top-dispatch
@@ -934,23 +934,23 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
     (copyit))
    ("File Copyit"
     (("u" copyit-file-as-data-uri
-      "Copy ‘FILE-PATH’ content as Data URI format"
+      "Copy 'FILE-PATH' content as Data URI format"
       :enable t :exit t)
      ("c" copyit-file-content
-      "Copy ‘FILE-PATH’ content"
+      "Copy 'FILE-PATH' content"
       :enable t :exit t)
      ("e" copyit-file-exif-information
-      "Copy exif-information by ‘FILE-PATH’"
+      "Copy exif-information by 'FILE-PATH'"
       :enable t :exit t)
      ("p" copyit-file-pathname
-      "Copy ‘FILE-PATH’"
+      "Copy 'FILE-PATH'"
       :enable t :exit t))
     "Misc."
     (("s" copyit-ssh
       "Copy ssh file"
       :enable t :exit t)
      ("v" copyit-variable
-      "Copy pretty-printed value ‘SYMBOL’s variable"
+      "Copy pretty-printed value 'SYMBOL's variable"
       :enable t :exit t))))
   :eemacs-tpha
   (((:enable t))

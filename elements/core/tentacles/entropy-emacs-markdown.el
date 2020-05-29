@@ -175,22 +175,22 @@ package management!"))
 (defvar entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-command
   '("Basic"
     (("b m" markdown-other-window
-      "Run ‘markdown-command’ on current buffer and display in other window"
+      "Run 'markdown-command' on current buffer and display in other window"
       :enable t :exit t)
      ("b e" markdown-export
       "Run Markdown on the current buffer, save to file, and return the filename"
       :enable t :exit t)
      ("b o" markdown-open
-      "Open file for the current buffer with ‘markdown-open-command’"
+      "Open file for the current buffer with 'markdown-open-command'"
       :enable t :exit t)
      ("b w" markdown-kill-ring-save
       "Run Markdown on file and store output in the kill ring"
       :enable t :exit t)
      ("b c" markdown-check-refs
-      "Show all undefined Markdown references in current ‘markdown-mode’ buffer"
+      "Show all undefined Markdown references in current 'markdown-mode' buffer"
       :enable t :exit t)
      ("b u" markdown-unused-refs
-      "Show all unused Markdown references in current ‘markdown-mode’ buffer"
+      "Show all unused Markdown references in current 'markdown-mode' buffer"
       :enable t :exit t)
      ("b n" markdown-cleanup-list-numbers
       "Update the numbering of ordered lists"
@@ -209,10 +209,10 @@ package management!"))
       :enable t :exit t))
     "Preview"
     (("p c" markdown-preview
-      "Run ‘markdown-command’ on the current buffer and view output in browser"
+      "Run 'markdown-command' on the current buffer and view output in browser"
       :enable t :exit t)
      ("p e" markdown-export-and-preview
-      "Export to XHTML using ‘markdown-export’ and browse the resulting file"
+      "Export to XHTML using 'markdown-export' and browse the resulting file"
       :enable t :exit t)
      ("p l" markdown-live-preview-mode
       "Toggle native previewing on save for a specific markdown file"
@@ -294,7 +294,7 @@ package management!"))
       "Indent the region from BEG to END using some heuristics"
       :enable t :exit t :map-inject t)
      ("C-c <" markdown-outdent-region
-      "Call ‘markdown-indent-region’ on region from BEG to END with prefix"
+      "Call 'markdown-indent-region' on region from BEG to END with prefix"
       :enable t :exit t :map-inject t))
 
 ;; ****** Visibility cycling

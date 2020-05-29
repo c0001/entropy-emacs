@@ -153,7 +153,7 @@
    ("Auto yasnippet"
     (("M-p" aya-create "Create a snippet from the text between BEG and END"
       :enable t :exit t :global-bind t)
-     ("M-e" aya-expand "Insert the last yasnippet created by ‘aya-create’"
+     ("M-e" aya-expand "Insert the last yasnippet created by 'aya-create'"
       :enable t :exit t :global-bind t)
      ("M-o" entropy/emacs-yas-aya-choose-snippet "Choose aya snippet by recorded history"
       :enable t :exit t :global-bind t))))

@@ -198,7 +198,7 @@ replacement for func `dired-do-delete', this func's advantageous
 than it was given the deletion failed handle for responding to
 some directory.
 
-Error handle will switching to special buffer ‘*[w32-resmon]*’
+Error handle will switching to special buffer '*[w32-resmon]*'
 buffer with minor mode `entropy/emacs-basic--dired-delete-file-mode' for
 prompting for how to resolving deletions problems.
 
@@ -1669,7 +1669,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
  '("Basic"
    (("S" tabulated-list-sort "Sort Tabulated List entries by the column at point"
      :enable t :exit t :map-inject t)
-    ("d" process-menu-delete-process "Kill process at point in a ‘list-processes’ buffer."
+    ("d" process-menu-delete-process "Kill process at point in a 'list-processes' buffer."
      :enable t :exit t :map-inject t)
     ("g" revert-buffer "Refresh process buffer"
      :enable t :exit t :map-inject t)

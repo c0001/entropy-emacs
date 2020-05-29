@@ -290,10 +290,10 @@ protocal prefix appended. "
 (defcustom entropy/proxy-url-initial-typesource 'regexp
   "If none-nil enable proxy for two type:
 
-- symbol ‘regexp’: proxy url matched by regexp of list
+- symbol 'regexp': proxy url matched by regexp of list
   `entropy/proxy-url-gfw-regexp-alist'
 
-- symbol ‘t’: proxy for all searching"
+- symbol 't': proxy for all searching"
   :type 'symbol
   :group 'entropy/proxy-url-group)
 
