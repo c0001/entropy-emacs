@@ -458,23 +458,12 @@ package management!"))
 ;; *** synchronization previewing
 (use-package markdown-preview-mode
   :after markdown-mode
-  :commands (markdown-preview-mode)
-  :bind (:map markdown-mode-command-map
-              ("P" . markdown-preview-mode))
-  :eemacs-indhca
-  (((:enable t)
-    (markdown-mode-command-map))
-   ("Preview"
-    (("p p" markdown-preview-mode
-      "Live preview markdown buffer with external browser"
-      :enable t :exit t))))
+  :preface
+  (defun entropy/emacs-markdown--with-default-browser
+      (orig-func &rest orig-args)
+    (let ((browse-url-browser-function 'browse-url-default-browser))
+      (apply orig-func orig-args)))
 
-  :config
-  (setq markdown-preview-stylesheets
-        entropy/emacs-markdown-preview-stylesheets)
-
-  (setq markdown-preview-javascript
-        entropy/emacs-markdown-preview-javascript)
 
   (defun entropy/emacs-markdown--mdp-before-advice (&rest args)
     "Before advice for `markdown-preview-mode' when it trigger
@@ -488,9 +477,31 @@ This issue refer to
      (markdown-preview-mode
       (markdown-preview-cleanup)
       (message "Clean up all markdown preview websockets done!"))))
+
+  :commands (markdown-preview-mode)
+  :bind (:map markdown-mode-command-map
+              ("P" . markdown-preview-mode))
+  :eemacs-indhca
+  (((:enable t)
+    (markdown-mode-command-map))
+   ("Preview"
+    (("p p" markdown-preview-mode
+      "Live preview markdown buffer with external browser"
+      :enable t :exit t))))
+
+  :config
+  (setq markdown-preview-stylesheets
+        entropy/emacs-markdown-preview-stylesheets
+        markdown-preview-javascript
+        entropy/emacs-markdown-preview-javascript)
+
   (advice-add 'markdown-preview-mode
               :before
               #'entropy/emacs-markdown--mdp-before-advice)
+
+  (advice-add 'markdown-preview-mode
+              :around
+              #'entropy/emacs-markdown--with-default-browser)
 
   (advice-add 'markdown-preview-mode
               :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
