@@ -637,12 +637,18 @@ It's a guard timer function for timer
 `entropy/emacs-ui--line-move-visual-guard-timer'. Do not run it
 manually."
   (with-current-buffer (current-buffer)
-    (unless (minibufferp)
+    (unless (or (minibufferp)
+                ;; Notice: it's can not be unset in magit section
+                ;; toggle context which need it be enabled
+                (string-match-p "magit" (symbol-name major-mode)))
       (save-excursion
-        (goto-char (point-min))
-        (if (re-search-forward "" nil t)
-            (setq-local line-move-visual t)
-          (setq-local line-move-visual nil))))))
+        (save-restriction
+          (goto-char (point-min))
+          (if (re-search-forward
+               ""
+               nil t)
+              (setq-local line-move-visual t)
+            (setq-local line-move-visual nil)))))))
 
 (setq entropy/emacs-ui--line-move-visual-guard-timer
       (run-with-idle-timer 1 t
