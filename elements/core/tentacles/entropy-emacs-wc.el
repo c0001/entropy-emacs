@@ -764,6 +764,7 @@ without derived slot."
         winner-boring-buffers-regexp
         (rx (or (seq line-start "magit: ")
                 "*eemacs-"
+                "*entropy/"
                 "magit:"))))
 
 ;; *** desktop mode
