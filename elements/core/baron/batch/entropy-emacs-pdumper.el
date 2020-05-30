@@ -117,7 +117,8 @@ configuration.")
                                      "doom" "company" "treemacs" "entropy"
                                      "rg" "wgrep" "dashboard"
                                      "youdao" "google" "bing"
-                                     "projectile" "lsp" "dap" "company")
+                                     "projectile" "lsp" "dap" "company"
+                                     (seq line-start "slime"))
                                  (? "-")
                                  (* any)
                                  (seq ".elc" line-end))))))

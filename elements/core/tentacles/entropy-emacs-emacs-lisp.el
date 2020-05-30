@@ -226,7 +226,7 @@ For lisp coding aim, always return the transfered buffer.
   :commands (slime slime-mode)
   :eemacs-mmphc
   (((:enable t)
-    (lisp-mode (nil slime-mode-map)))
+    (lisp-mode (nil slime-mode-map) t))
    ("Slime"
     (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol
       "Slime Describe Symbols"
