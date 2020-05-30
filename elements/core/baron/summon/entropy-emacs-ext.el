@@ -87,7 +87,7 @@ loading.")
                :repo-lc entropy/emacs-ext-eemacs-elpkg-archive-project-dir
                :version-lc (expand-file-name "version"
                                              entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
-               :version "0.2.1"
+               :version "0.2.2"
                :indicator-lc (expand-file-name "entropy-emacs-extensions"
                                                entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
                :inited-indicator-lc (expand-file-name "init"
