@@ -1138,62 +1138,42 @@ This affected by `neotree' or `treemacs' window sticking with
   :diminish undo-tree-mode
   :ensure nil
   :commands (global-undo-tree-mode undo-tree-visualize)
-  :defines (entropy/emacs-basic-undo-tree-margin-detective)
-  :hook ((undo-tree-mode . (lambda () (define-key undo-tree-map (kbd "C-x u") nil))))
+  :preface
+
+  (defvar entropy/emacs-basic--undo-tree-stick-window-configuration nil
+    "The window configuration before calling `undo-tree-visualize'.")
+
+  (defun entropy/emacs-basic--save-window-cfg-for-undo-tree
+      (orig-func &rest orig-args)
+    (setq entropy/emacs-basic--undo-tree-stick-window-configuration
+          (current-window-configuration))
+    (apply orig-func orig-args))
+
+  (defun entropy/emacs-basic--restore-window-cfg-for-undo-tree
+      (orig-func &rest orig-args)
+    (let ((rtn (apply orig-func orig-args)))
+      (when (window-configuration-p
+             entropy/emacs-basic--undo-tree-stick-window-configuration)
+        (set-window-configuration
+         entropy/emacs-basic--undo-tree-stick-window-configuration))
+      (setq entropy/emacs-basic--undo-tree-stick-window-configuration nil)
+      rtn))
+
   :init
   (entropy/emacs-lazy-with-load-trail
    undo-tree-enable
-   (global-undo-tree-mode t))
-
-  (if (eq entropy/emacs-align-window-center-with? 'basic)
-      (global-set-key (kbd "C-x u") #'entropy/emacs-basic-undo-tree)
-    (global-set-key (kbd "C-x u") #'undo-tree-visualize))
+   (global-undo-tree-mode t)
+   (global-set-key (kbd "C-x u") #'undo-tree-visualize))
 
   :config
-  (when (eq entropy/emacs-align-window-center-with? 'basic)
-    (defun entropy/emacs-basic-undo-tree ()
-      (interactive)
-      (if (car (window-margins))
-          (progn
-            (setq entropy/emacs-basic-undo-tree-margin-detective t)
-            (entropy/emacs-basic-center-text-clear)
-            (undo-tree-visualize))
-        (progn
-          (setq entropy/emacs-basic-undo-tree-margin-detective nil)
-          (undo-tree-visualize))))
 
-    (defun undo-tree-visualizer-quit ()
-      "Quit the undo-tree visualizer.
+  (advice-add 'undo-tree-visualize
+              :around
+              #'entropy/emacs-basic--save-window-cfg-for-undo-tree)
 
-Note:
-
-This function has redefined for adapting to
-`entropy/emacs-basic-center-text'."
-      (interactive)
-      (unless (eq major-mode 'undo-tree-visualizer-mode)
-        (user-error "Undo-tree mode not enabled in buffer"))
-      (undo-tree-clear-visualizer-data buffer-undo-tree)
-      ;; remove kill visualizer hook from parent buffer
-      (unwind-protect
-          (with-current-buffer undo-tree-visualizer-parent-buffer
-            (remove-hook 'before-change-functions 'undo-tree-kill-visualizer t))
-        ;; kill diff buffer, if any
-        (when undo-tree-visualizer-diff (undo-tree-visualizer-hide-diff))
-        (let ((parent undo-tree-visualizer-parent-buffer)
-              window)
-          ;; kill visualizer buffer
-          (kill-buffer nil)
-          ;; switch back to parent buffer
-          (unwind-protect
-              ;; (if (setq window (get-buffer-window parent))
-              ;;     (select-window window))
-              (if entropy/emacs-basic-undo-tree-margin-detective
-                  (progn
-                    (switch-to-buffer parent)
-                    (set-window-margins (car (get-buffer-window-list (current-buffer) nil t))
-                                        (/ (window-width) entropy/emacs-window-center-integer)
-                                        (/ (window-width) entropy/emacs-window-center-integer)))
-                (switch-to-buffer parent))))))))
+  (advice-add 'undo-tree-visualizer-quit
+              :around
+              #' entropy/emacs-basic--restore-window-cfg-for-undo-tree))
 
 ;; *** Rectangle manipulation
 
