@@ -234,28 +234,16 @@ was found."
     "vterm env title debug log var.")
 
   (defun entropy/emacs-shell-vterm--cd-to-directory-in-title (title)
-    "Change into directory extracted from path info in TITLE, so
-that vterm buffer's `default-directory' will update
-automatically.
-
-The format of TITLE of this function  is expected to be '<user>@<host>:path'
-
-TITLE is based on the xterm style window title, set via the
-shell. See sections 3 and 4 on this page for how to set the TITLE
-via the shell:
-http://www.faqs.org/docs/Linux-mini/Xterm-Title.html
-
-gitub issue link:
-https://github.com/akermu/emacs-libvterm/issues/55#issuecomment-468833300"
-    (setq entropy/emacs-shell--vterm-title-log  title)
-    (let ((dir (concat (nth 1 (split-string title ":")) "/")))
-      (cd dir)))
-  (add-hook 'vterm-set-title-functions
-            #'entropy/emacs-shell-vterm--cd-to-directory-in-title)
+    (let ((path (vterm--get-directory title)))
+      (setq entropy/emacs-shell--vterm-title-log path)
+      (when (and (not (file-remote-p path))
+                 (file-exists-p path))
+        (cd path))))
 
   :init
-  ;; prevent the large buffer content remainin lag (possibile)
-  (setq vterm-max-scrollback 1000)
+  (setq
+   ;; prevent the large buffer content remainin lag (possibile)
+   vterm-max-scrollback 1000)
 
   (add-to-list 'entropy/emacs-xterm-paste-inhibit-read-only-filter
                #'(lambda (&rest _)
@@ -266,6 +254,11 @@ https://github.com/akermu/emacs-libvterm/issues/55#issuecomment-468833300"
                      #'vterm-yank))
 
   :config
+  ;; Auto `cd' to new `default-directory' when its shell path change
+  (advice-add 'vterm--set-title
+              :before
+              #'entropy/emacs-shell-vterm--cd-to-directory-in-title)
+
   (defun entropy/emacs-shell--vterm-mode-around-advice (orig-func &rest orig-args)
     "prevent `vterm-mode` calling in vterm-mode from causing
 segmentation fault."
@@ -379,7 +372,10 @@ segmentation fault."
            :shackle-align bottom
            :type-keybind entropy/emacs-shell--shellpop-bindkey-for-vterm
            :type-body
-           (vterm-mode))))
+           (let
+               (;; prevent vterm auto rename buffer that lost register linkage
+                (vterm-buffer-name-string nil))
+             (vterm-mode)))))
 
   (entropy/emacs-lazy-with-load-trail
    shellpop-feature

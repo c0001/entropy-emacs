@@ -281,7 +281,10 @@
               :shackle-align bottom
               :type-keybind ,entropy/shellpop-vterm-popup-key
               :type-body
-              (vterm-mode))))))
+              (let
+                  (;; prevent vterm auto rename buffer that lost register linkage
+                   (vterm-buffer-name-string nil))
+                (vterm-mode)))))))
     (append register (list (alist-get 'eshell types)))
     (when (entropy/shellpop--vterm-supported)
       (append register (list (alist-get 'vterm types))))
@@ -358,8 +361,11 @@ shellpop type")
 
 ;;;;; cdw functions
 (defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given prompt &rest body)
-  `(unless (equal (expand-file-name default-directory)
-                  (expand-file-name ,path-given))
+  `(unless (eq
+            (file-equal-p
+             (expand-file-name default-directory)
+             (expand-file-name ,path-given))
+            t)
      (cond (,prompt
             (when (entropy/shellpop--confirm
                    (format "CD to '%s'" ,path-given))
