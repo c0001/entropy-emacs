@@ -34,7 +34,7 @@
 ;; This package injecting the specifics gc functions to hooks with
 ;; the finger typed-increased `gc-threshold' assignment mechanism for
 ;; rejecting the gc occurred in typing-time, and actives the 'gc' in
-;; idle time and the focus-out scene.
+;; idle time.
 ;;
 ;; * Configuration:
 ;;
@@ -109,18 +109,6 @@
         (cancel-timer timer))
       (entropy/emacs-gc--init-idle-gc))))
 
-(defun entropy/emacs-gc--focus-in-reset ()
-  (entropy/emacs-gc--init-idle-gc entropy/emacs-garbage-collection-delay))
-
-(defun entropy/emacs-gc--focus-out-hook ()
-  (entropy/emacs-gc--with-record
-    (garbage-collect)
-    (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
-    (garbage-collect))
-  (when (timerp entropy/emacs-garbage-collect-idle-timer)
-    (cancel-timer entropy/emacs-garbage-collect-idle-timer)
-    (setq entropy/emacs-garbage-collect-idle-timer nil)))
-
 (defun entropy/emacs-gc-set-idle-gc (secs)
   "Re-set the garbage collecton timer
 `entropy/emacs-garbage-collect-idle-timer' with specific idle
@@ -141,9 +129,6 @@ delay seconds SECS."
 (entropy/emacs-lazy-with-load-trail
  gc-message
  (setq garbage-collection-messages nil)
- (unless (daemonp)
-   (add-hook 'focus-out-hook #'entropy/emacs-gc--focus-out-hook)
-   (add-hook 'focus-in-hook #'entropy/emacs-gc--focus-in-reset))
  (add-hook 'post-command-hook #'entropy/emacs-gc--increase-cons-threshold)
  (entropy/emacs-gc--init-idle-gc))
 
