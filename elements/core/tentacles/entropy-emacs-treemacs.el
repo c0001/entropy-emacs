@@ -51,6 +51,7 @@
   :bind (("M-0"       . treemacs-select-window)
          :map treemacs-mode-map
          ([mouse-1]   . treemacs-single-click-expand-action))
+;; *** preface
   :preface
 
   (defun entropy/emacs-treemacs--get-buffer-path ()
@@ -81,6 +82,7 @@
                      (read-directory-name "Get project root: " nil nil t)))))
       ('none    (treemacs--init))))
 
+;; *** eemacs-indhc
   :eemacs-indhc
   (((:enable t)
     (treemacs))
@@ -94,6 +96,8 @@
       :enable t
       :exit t
       :global-bind t))))
+
+;; *** eemacs-tpha
   :eemacs-tpha
   (((:enable t))
    ("Basic"
@@ -104,6 +108,119 @@
       "Slide Filesystem Tree"
       :enable t :exit t))))
 
+;; *** eemacs-mphc
+
+  :eemacs-mmphc
+  (((:enable t)
+    (treemacs-mode
+     (treemacs treemacs-mode-map) t
+     ((4 :width-desc "Basic operations ")
+      (4 :width-desc "Project refer and Misc."))))
+   ("Navigation"
+    (("n" treemacs-next-line "next line"
+      :enable t :map-inject t :exit t)
+     ("p" treemacs-previous-line "previous line"
+      :enable t :map-inject t :exit t)
+     ("M-n" treemacs-next-neighbour "next neighbour"
+      :enable t :map-inject t :exit t)
+     ("M-p" treemacs-previous-neighbour "previous neighbour"
+      :enable t :map-inject t :exit t)
+     ("u" treemacs-goto-parent-node "goto parent"
+      :enable t :map-inject t :exit t)
+     ("M-N" treemacs-next-line-other-window "down next window"
+      :enable t :map-inject t :exit t)
+     ("M-P" treemacs-previous-line-other-window "up next window"
+      :enable t :map-inject t :exit t))
+    "Opening Nodes "
+    (("TAB" treemacs-TAB-action "dwim TAB"
+      :enable t :map-inject t :exit t)
+     ("RET" treemacs-RET-action "dwim RET"
+      :enable t :map-inject t :exit t)
+     ("o o" treemacs-visit-node-no-split "open no split"
+      :enable t :map-inject t :exit t)
+     ("o h" treemacs-visit-node-horizontal-split "open horizontal"
+      :enable t :map-inject t :exit t)
+     ("o v" treemacs-visit-node-vertical-split "open vertical"
+      :enable t :map-inject t :exit t)
+     ("o a a" treemacs-visit-node-ace "open ace"
+      :enable t :map-inject t :exit t)
+     ("o a h" treemacs-visit-node-ace-horizontal-split "open ace horizontal"
+      :enable t :map-inject t :exit t)
+     ("o a v" treemacs-visit-node-ace-vertical-split "open ace vertical"
+      :enable t :map-inject t :exit t)
+     ("o r" treemacs-visit-node-in-most-recently-used-window "open mru window"
+      :enable t :map-inject t :exit t)
+     ("o x" treemacs-visit-node-in-external-application "open externally"
+      :enable t :map-inject t :exit t)
+     ("H" treemacs-collapse-parent-node "close parent"
+      :enable t :map-inject t :exit t))
+    "File Management"
+    (("c f" treemacs-create-file "create file"
+      :enable t :map-inject t :exit t)
+     ("c d" treemacs-create-dir "create dir"
+      :enable t :map-inject t :exit t)
+     ("R" treemacs-rename "rename"
+      :enable t :map-inject t :exit t)
+     ("d" treemacs-delete "delete"
+      :enable t :map-inject t :exit t)
+     ("y f" treemacs-copy-file "copy"
+      :enable t :map-inject t :exit t)
+     ("m" treemacs-move-file "move"
+      :enable t :map-inject t :exit t))
+    "Toggles"
+    (("t f" treemacs-follow-mode "follow mode"
+      :enable t :map-inject t :toggle (if (bound-and-true-p treemacs-follow-mode) t nil)
+      :exit t)
+     ("t a" treemacs-filewatch-mode "filewatch mode"
+      :enable t :map-inject t :toggle (if (bound-and-true-p treemacs-filewatch-mode) t nil)
+      :exit t)
+     ("t g" treemacs-git-mode "git mode"
+      :enable t :map-inject t :toggle (if (bound-and-true-p treemacs-git-mode) t nil)
+      :exit t)
+     ("t h" treemacs-toggle-show-dotfiles "show dotfiles"
+      :enable t :map-inject t :toggle (if (bound-and-true-p treemacs-show-hidden-files) t nil)
+      :exit t)
+     ("t w" treemacs-toggle-fixed-width "resizability"
+      :enable t :map-inject t :toggle (if (bound-and-true-p treemacs--width-is-locked) t nil)
+      :exit t)
+     ("t v" treemacs-fringe-indicator-mode "fringe indicator"
+      :enable t :map-inject t :toggle (if (bound-and-true-p treemacs-fringe-indicator-mode) t nil)
+      :exit t))
+    "Projects"
+    (("C-c C-p a" treemacs-add-project-to-workspace "add project"
+      :enable t :map-inject t :exit t)
+     ("C-c C-p d" treemacs-remove-project-from-workspace "remove project"
+      :enable t :map-inject t :exit t)
+     ("C-c C-p r" treemacs-rename-project "rename project"
+      :enable t :map-inject t :exit t))
+    "Workspaces"
+    (("C-c C-w e" treemacs-edit-workspaces "Edit Workspaces"
+      :enable t :map-inject t :exit t)
+     ("C-c C-w a" treemacs-create-workspace "Create Workspaces"
+      :enable t :map-inject t :exit t)
+     ("C-c C-w d" treemacs-remove-workspace "Remove Workspaces"
+      :enable t :map-inject t :exit t)
+     ("C-c C-w r" treemacs-rename-workspace "Rename Workspace"
+      :enable t :map-inject t :exit t)
+     ("C-c C-w s" treemacs-switch-workspace "Switch Workspace"
+      :enable t :map-inject t :exit t)
+     ("C-c C-w f" treemacs-set-fallback-workspace "Set Fallback"
+      :enable t :map-inject t :exit t))
+    "Misc."
+    (("g" treemacs-refresh "refresh"
+      :enable t :map-inject t :exit t)
+     ("w" treemacs-set-width "(re)set width"
+      :enable t :map-inject t :exit t)
+     ("y y" treemacs-copy-path-at-point "copy path"
+      :enable t :map-inject t :exit t)
+     ("y r" treemacs-copy-project-root "copy root"
+      :enable t :map-inject t :exit t)
+     ("s" treemacs-resort "re-sort"
+      :enable t :map-inject t :exit t)
+     ("b" treemacs-add-bookmark "bookmark"
+      :enable t :map-inject t :exit t))))
+
+;; *** init
   :init
 
   (defun entropy/emacs-treemacs-delete-other-window-patch (&rest _)
@@ -117,6 +234,7 @@
   (add-hook 'eyebrowse-pre-window-switch-hook
             #'entropy/emacs-treemacs-delete-other-window-patch)
 
+;; *** config
   :config
   (advice-add 'treemacs--init :around #'entropy/emacs-treemacs--unwind-for-init)
 
