@@ -411,14 +411,7 @@ this variable used to patching for origin `counsel-git'.")
     "
     (with-ivy-window
       (let ((default-directory entropy/emacs-ivy-counsel-git-root))
-        (find-file x)
-        ;; prompt in echo area for foce refresh modeline selected
-        ;; window referrence status to prevent modeline status doesn't
-        ;; update in some occasions e.g. treemacs auto follow
-        ;; procedure.
-        (message "Opened vcs controlled file \"%s\" in git root \"%s\""
-                 (file-name-base x)
-                 entropy/emacs-ivy-counsel-git-root)))))
+        (find-file x)))))
 
 ;; *** use counsel css for quickly search css selector
 (use-package counsel-css

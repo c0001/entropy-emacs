@@ -69,6 +69,26 @@
         (apply orig-func orig-args)
       (setq treemacs--ready-to-follow t)))
 
+  (defun entropy/emacs-treemacs--after-file-follow-do-mode-line-update
+      (orig-func &rest orig-args)
+    (let* ((cur-buff (current-buffer))
+           (cur-window (get-buffer-window cur-buff))
+           (rtn (apply orig-func orig-args)))
+      (when (and (treemacs-get-local-window)
+                 (not (active-minibuffer-window))
+                 (not (eq major-mode 'treemacs-mode))
+                 (buffer-file-name cur-buff))
+        (if (window-live-p cur-window)
+            (set-frame-selected-window nil cur-window)
+          (catch :exit
+            (dolist (el-buff (buffer-list))
+              (when (eq el-buff cur-buff)
+                (let ((el-win (get-buffer-window el-buff)))
+                  (set-frame-selected-window nil el-win)
+                  (throw :exit nil))))))
+        (force-mode-line-update t))
+      rtn))
+
   (defun entropy/emacs-treemacs-toggle-treemacs ()
     (interactive)
     (require 'treemacs)
@@ -237,6 +257,8 @@
 ;; *** config
   :config
   (advice-add 'treemacs--init :around #'entropy/emacs-treemacs--unwind-for-init)
+  (advice-add 'treemacs--follow
+              :around #'entropy/emacs-treemacs--after-file-follow-do-mode-line-update)
 
   (setq treemacs-collapse-dirs           (if treemacs-python-executable 3 0)
         treemacs-sorting                 'alphabetic-case-insensitive-desc
