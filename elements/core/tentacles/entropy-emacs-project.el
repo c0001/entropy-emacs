@@ -136,10 +136,26 @@
    counsel-projectile-rg
    counsel-projectile-org-agenda
    counsel-projectile-grep)
+
+  :preface
+  (defun entropy/emacs-project--counsel-projectile-open-project-root-external
+      (project-dir)
+    "Open projet root dir use external explorer based on
+`counsel-loate-action-extern'."
+    (when (fboundp 'counsel-locate-action-extern)
+      (counsel-locate-action-extern
+       (expand-file-name project-dir))))
+
   :init
   (entropy/emacs-lazy-with-load-trail
    counsel-projectile
-   (counsel-projectile-mode +1)))
+   (counsel-projectile-mode +1))
+
+  :config
+  (ivy-add-actions
+   'counsel-projectile-switch-project
+   '(("C-=" entropy/emacs-project--counsel-projectile-open-project-root-external
+      "Open project root with external if available"))))
 
 ;; ** entropy-project-manager
 (use-package entropy-prjm

@@ -47,6 +47,7 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
+(require 'entropy-emacs-utils)
 
 ;; ** ivy
 (use-package ivy
@@ -514,6 +515,7 @@ this variable used to patching for origin `counsel-git'.")
 
 ;; *** ivy rich mode
 
+;; **** core
 ;; config inspired by the ivy config of *centaur-emacs* (https://github.com/seagle0128/.emacs.d)
 
 (use-package ivy-rich
@@ -607,14 +609,37 @@ this variable used to patching for origin `counsel-git'.")
             (ivy-rich-package-install-summary
              (:face font-lock-doc-face)))))))
 
-
+;; **** all the icons ivy rich
 (use-package all-the-icons-ivy-rich
   :commands all-the-icons-ivy-rich-mode
   :if
   (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)
+  :preface
+  (defun entropy/emacs-ivy--all-the-icon-ivy-rich-common-dir-icon
+      (candi)
+    (all-the-icons-ivy-rich--format-icon
+     (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01)))
+
+  (defun entropy/emacs-ivy--all-the-icons-ivy-rich-common-file-icon (candidate)
+    "Display file icon from CANDIDATE in `ivy-rich'."
+    (let* ((path (concat ivy--directory candidate))
+           (file (file-name-nondirectory path))
+           (icon (cond
+                  ((file-directory-p path)
+                   (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
+                  ((string-match-p "^/.*:$" path)
+                   (all-the-icons-octicon "radio-tower" :height 1.0 :v-adjust 0.01))
+                  ((not (string-empty-p file))
+                   (all-the-icons-icon-for-file file :v-adjust -0.05)))))
+      (all-the-icons-ivy-rich--format-icon
+       (if (symbolp icon)
+           (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :v-adjust 0.0)
+         icon))))
+
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ivy-rich-mode
+   (memoize 'entropy/emacs-ivy--all-the-icons-ivy-rich-common-file-icon)
    (let* ((enable-func
            (lambda ()
              (entropy/emacs-lazy-load-simple ivy
@@ -629,21 +654,43 @@ this variable used to patching for origin `counsel-git'.")
          (funcall enable-func)))))
 
   :config
-  (entropy/emacs-lazy-load-simple all-the-icons-ivy-rich
-    (setq
-     all-the-icons-ivy-rich-display-transformers-list
-     (plist-put
-      all-the-icons-ivy-rich-display-transformers-list
-      'ivy-switch-buffer
-      '(:columns
-        ((all-the-icons-ivy-rich-buffer-icon)
-         (ivy-rich-candidate (:width 30))
-         (ivy-rich-switch-buffer-size (:width 7))
-         (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-         (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
-        :predicate
-        (lambda (cand) (get-buffer cand))
-        :delimiter "\t")))))
+  ;; patch `all-the-icons-ivy-rich-display-transformers-list' for
+  ;; reducing performace lagging
+  (let ((orig-ivy-rich-trans-list
+         (copy-tree all-the-icons-ivy-rich-display-transformers-list)))
+    (dolist
+        (item
+         '((ivy-switch-buffer
+            (:columns
+             ((all-the-icons-ivy-rich-buffer-icon)
+              (ivy-rich-candidate (:width 30))
+              (ivy-rich-switch-buffer-size (:width 7))
+              (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
+              (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
+             :predicate
+             (lambda (cand) (get-buffer cand))
+             :delimiter "\t"))
+           (counsel-projectile-switch-project
+            (:columns
+             ((entropy/emacs-ivy--all-the-icon-ivy-rich-common-dir-icon)
+              (ivy-rich-candidate))
+             :delimiter "\t"))
+           (counsel-projectile-find-file
+            (:columns
+             ((entropy/emacs-ivy--all-the-icons-ivy-rich-common-file-icon)
+              (counsel-projectile-find-file-transformer))
+             :delimiter "\t"))
+           (counsel-projectile-find-dir
+            (:columns
+             ((all-the-icons-ivy-rich-project-icon)
+              (counsel-projectile-find-dir-transformer))
+             :delimiter "\t"))))
+      (setq orig-ivy-rich-trans-list
+            (plist-put orig-ivy-rich-trans-list
+                       (car item)
+                       (cadr item))))
+    (setq all-the-icons-ivy-rich-display-transformers-list
+          orig-ivy-rich-trans-list)))
 
 ;; ** Powerful searcher
 ;; *** helm ag
