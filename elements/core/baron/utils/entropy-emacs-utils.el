@@ -109,7 +109,7 @@
           ("^[pP]hotos$" all-the-icons-faicon "camera-retro" :height 1.0 :v-adjust -0.1)
           ("^[mM]usic$" all-the-icons-faicon "music" :height 1.0 :v-adjust -0.1)
           ("^[mM]ovies$" all-the-icons-faicon "film" :height 0.9 :v-adjust -0.1)
-          ("code" all-the-icons-octicon "code" :height 1.1 :v-adjust -0.1)
+          ("^[Cc]ode$" all-the-icons-octicon "code" :height 1.1 :v-adjust -0.1)
           ("workspace" all-the-icons-octicon "code" :height 1.1 :v-adjust -0.1)
           ("^[Tt]est$" all-the-icons-fileicon "test-dir" :height 0.9)
           ("\\.git" all-the-icons-alltheicon "git" :height 1.0)
