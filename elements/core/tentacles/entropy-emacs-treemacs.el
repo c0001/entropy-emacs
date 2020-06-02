@@ -251,8 +251,9 @@
           (other-window 1))
          ((= wlens 1)
           (treemacs-quit))))))
-  (add-hook 'eyebrowse-pre-window-switch-hook
-            #'entropy/emacs-treemacs-delete-other-window-patch)
+  (entropy/emacs-lazy-load-simple eyebrowse
+    (add-hook 'eyebrowse-pre-window-switch-hook
+              #'entropy/emacs-treemacs-delete-other-window-patch))
 
 ;; *** config
   :config
