@@ -157,30 +157,38 @@
               (throw :exit nil)))))
       rtn))
 
-  (defun entropy/emacs-structure-vimish-toggle (beg end)
-    (interactive "r")
+  (defun entropy/emacs-structure-vimish-toggle (&optional beg end)
+    (interactive)
     (require 'vimish-fold)
-    (deactivate-mark)
     (if (entropy/emacs-structure--vimish-folded-p
          (line-beginning-position)
          (line-end-position))
-        (call-interactively #'vimish-fold-toggle)
-      (vimish-fold beg end)))
+        (progn
+          (message "Vimish toggling ... ")
+          (vimish-fold-toggle)
+          (message "Vimish toggled!"))
+      (let ((beg (or beg (region-beginning)))
+            (end (or end (region-end))))
+        (when (and beg end)
+          (vimish-fold beg end)
+          (message "Vimish folded current region.")))))
 
-  (defun entropy/emacs-structure-vimish-fold-lisp-doc-string ()
+  (defun entropy/emacs-structure-vimish-fold-double-quote-string ()
     "Fold lisp type doc string block using `vimish'."
     (interactive)
     (require 'vimish-fold)
     (let ((head-dquote-pt
-           (save-excursion (re-search-backward "^\\s-*\"")))
+           (save-excursion (re-search-backward "[^\\\\]\"")))
           (end-dquote-pt
-           (save-excursion (re-search-forward "\"\\s-*$"))))
+           (save-excursion (re-search-forward "[^\\\\]\""))))
       (if (entropy/emacs-structure--vimish-folded-p
            (line-beginning-position)
            (line-end-position))
           (call-interactively #'entropy/emacs-structure-vimish-toggle)
-        (entropy/emacs-structure-vimish-toggle
-         head-dquote-pt end-dquote-pt))))
+        (when (and head-dquote-pt end-dquote-pt)
+          (entropy/emacs-structure-vimish-toggle
+           (save-excursion (goto-char head-dquote-pt) (line-beginning-position))
+           (save-excursion (goto-char end-dquote-pt) (line-end-position)))))))
 
   :eemacs-tpha
   (((:enable t))
@@ -209,21 +217,16 @@
     (("f c" vimish-fold "Fold active region staring at BEG, ending at END"
       :enable t :exit t)
      ("f a" vimish-fold-refold-all "Refold all closed folds in current buffer"
-      :enable t :exit t))
+      :enable t :exit t)
+     ("f s"
+      entropy/emacs-structure-vimish-fold-double-quote-string
+      "Quickly vimish fold double quote string."
+      :enable t :exit t :map-inject t))
     "Vimish unfold"
     (("u c" vimish-fold-unfold "Unfold at point"
       :enable t :exit t)
      ("u a" vimish-fold-unfold-all "Unfold all folds in current buffer"
       :enable t :exit t))))
-
-  :eemacs-mmphca
-  (((:enable t)
-    (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map) nil (2)))
-   ("Doc string"
-    (("C-c C-o"
-      entropy/emacs-structure-vimish-fold-lisp-doc-string
-      "Quickly vimish fold doc string."
-      :enable t :exit t :map-inject t))))
 
   :config
   ;; Disable vimish native kemap that conflict with eemacs
