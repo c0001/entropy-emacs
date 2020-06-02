@@ -108,6 +108,7 @@
         doneburn-theme
         doom-modeline
         doom-themes
+        edit-indirect
         eldoc-eval
         elfeed
         elisp-refs

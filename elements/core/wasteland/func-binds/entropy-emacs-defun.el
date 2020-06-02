@@ -119,6 +119,16 @@ inject into HOOK wrapped BODY."
 tasks 'ing' refer prompts."
   (run-with-idle-timer 0.2 nil (lambda () (message ""))))
 
+(defun entropy/emacs-make-function-inhibit-readonly
+    (func)
+  "Make function FUNC adviced around by a let wrapper with
+`inhibit-read-only' enabled of lexical means."
+  (advice-add func
+              :around
+              '(lambda (orig-func &rest orig-args)
+                 (let ((inhibit-read-only t))
+                   (apply orig-func orig-args)))))
+
 ;; *** plist manipulation
 
 (defun entropy/emacs-strict-plistp (arg)

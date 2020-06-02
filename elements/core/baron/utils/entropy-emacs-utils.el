@@ -477,5 +477,16 @@ format which caused by set the restriction for thus."
   (setq wgrep-auto-save-buffer t
         wgrep-change-readonly-file t))
 
+;; ** edit-indirect
+(use-package edit-indirect
+  :commands
+  (edit-indirect-save
+   edit-indirect-abort
+   edit-indirect-commit
+   edit-indirect-region)
+  :config
+  (entropy/emacs-make-function-inhibit-readonly
+   'edit-indirect-commit))
+
 ;; * provide
 (provide 'entropy-emacs-utils)
