@@ -237,8 +237,8 @@
   :if (eq entropy/emacs-use-popup-window-framework 'shackle)
   :commands (shackle-mode
              shackle-display-buffer
-             shackle-popup-buffer
-             shackle-popup-find-file)
+             entropy/emacs-popwin-shackle-popup-buffer
+             entropy/emacs-popwin-shackle-popup-find-file)
   :preface
   (defvar shackle-popup-mode-map
     (let ((map (make-sparse-keymap)))
@@ -248,13 +248,13 @@
   (((:enable t)
     (shackle-dispatch))
    ("Shackle popuping"
-    (("p o" shackle-popup-buffer "Popup for buffers"
+    (("p o" entropy/emacs-popwin-shackle-popup-buffer "Popup for buffers"
       :enable t :exit t :eemacs-top-bind t)
-     ("p f" shackle-popup-find-file "Popup for files"
+     ("p f" entropy/emacs-popwin-shackle-popup-find-file "Popup for files"
       :enable t :exit t :eemacs-top-bind t)
-     ("p e" shackle-popup-message "Popup message buffer"
+     ("p e" entropy/emacs-popwin-shackle-popup-message "Popup message buffer"
       :enable t :exit t :eemacs-top-bind t)
-     ("p l" shackle-last-popup-buffer "Popup last popuped buffer"
+     ("p l" entropy/emacs-popwin-shackle-show-last-popup-buffer "Popup last popuped buffer"
       :enable t :exit t :eemacs-top-bind t))))
   :eemacs-tpha
   (((:enable t))
@@ -267,62 +267,85 @@
       :enable t :exit t))))
 
   :init
-  (defvar shackle--popup-window-list nil) ; all popup windows
-  (defvar-local shackle--current-popup-window nil) ; current popup window
-  (put 'shackle--current-popup-window 'permanent-local t)
-
   (entropy/emacs-lazy-with-load-trail
    shackle-mode
    (shackle-mode t))
 
   :config
+  (defvar entropy/emacs-popwin--shackle-popup-buffer-history nil) ; all popup windows
+  (defvar-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p nil) ; current popup window
+  (put 'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p 'permanent-local t)
 
-  (defun shackle-last-popup-buffer ()
+  (defun entropy/emacs-popwin--shackle-display-buffer-hack
+      (fn buffer alist plist)
+    "Patch to `shackle-display-buffer' for adding ':autoclose'
+key slot support."
+    (let ((buff-lp (get-buffer-window buffer))
+          (window (funcall fn buffer alist plist)))
+      (with-current-buffer buffer
+        ;; Do not recognize displaed buffer as popuped buffer.
+        (unless buff-lp
+          (setq-local
+           entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
+           t)
+          (when (plist-get plist :autoclose)
+            (add-to-list 'entropy/emacs-popwin--shackle-popup-buffer-history
+                         buffer))))
+      window))
+
+  (defun entropy/emacs-popwin--shackle-close-popup-window-hack (&rest _)
+    "Close current popup window via `C-g'."
+    ;; pruning origin history list
+    (setq entropy/emacs-popwin--shackle-popup-buffer-history
+          (cl-loop for buffer in entropy/emacs-popwin--shackle-popup-buffer-history
+                   if (window-live-p (get-buffer-window buffer))
+                   collect buffer))
+    ;; main filter
+    (when (and (called-interactively-p 'interactive)
+               (not (region-active-p))
+               (not (active-minibuffer-window)))
+      (let ((host-buffer (current-buffer)) buffer)
+        (cond
+         ((one-window-p)
+          (message "Auto hiding popuped buffer ...")
+          (progn (setq buffer (current-buffer))
+                 (when  (buffer-local-value
+                         'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
+                         buffer)
+                   (winner-undo))))
+         ((buffer-local-value
+           'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
+           (current-buffer))
+          (message "Auto hiding popuped buffer ...")
+          (setq buffer (current-buffer))
+          (delete-window))
+         ((not (one-window-p))
+          (setq buffer (car entropy/emacs-popwin--shackle-popup-buffer-history))
+          (when (buffer-live-p buffer)
+            (unless (eq buffer host-buffer)
+              (let ((window (get-buffer-window buffer)))
+                (when (window-live-p window)
+                  (delete-window window))
+                (with-selected-window (get-buffer-window host-buffer)
+                  (recenter-top-bottom '(middle))))))))
+        (when (buffer-live-p buffer)
+          (with-current-buffer buffer
+            (setq-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
+                        nil)))
+        (pop entropy/emacs-popwin--shackle-popup-buffer-history))))
+
+  (advice-add #'keyboard-quit
+              :before #'entropy/emacs-popwin--shackle-close-popup-window-hack)
+  (advice-add #'shackle-display-buffer
+              :around #'entropy/emacs-popwin--shackle-display-buffer-hack)
+
+  (defun entropy/emacs-popwin-shackle-show-last-popup-buffer ()
     "View last popup buffer."
     (interactive)
     (ignore-errors
       (display-buffer shackle-last-buffer)))
 
-  ;; Add keyword: `autoclose'
-  (defun shackle-display-buffer-hack (fn buffer alist plist)
-    (let ((window (funcall fn buffer alist plist)))
-      (setq shackle--current-popup-window window)
-
-      (when (plist-get plist :autoclose)
-        (push (cons window buffer) shackle--popup-window-list))
-      window))
-
-  (defun shackle-close-popup-window-hack (&rest _)
-    "Close current popup window via `C-g'."
-    (setq shackle--popup-window-list
-          (cl-loop for (window . buffer) in shackle--popup-window-list
-                   if (and (window-live-p window)
-                           (equal (window-buffer window) buffer))
-                   collect (cons window buffer)))
-    ;; `C-g' can deactivate region
-    (when (and (called-interactively-p 'interactive)
-               (not (region-active-p)))
-      (let (window buffer)
-        (if (one-window-p)
-            (progn
-              (setq window (selected-window))
-              (when (equal (buffer-local-value 'shackle--current-popup-window
-                                               (window-buffer window))
-                           window)
-                (winner-undo)))
-          (setq window (caar shackle--popup-window-list))
-          (setq buffer (cdar shackle--popup-window-list))
-          (when (and (window-live-p window)
-                     (equal (window-buffer window) buffer))
-            (delete-window window)
-
-            (pop shackle--popup-window-list)
-            (recenter-top-bottom '(middle)))))))
-
-  (advice-add #'keyboard-quit :before #'shackle-close-popup-window-hack)
-  (advice-add #'shackle-display-buffer :around #'shackle-display-buffer-hack)
-
-  (defun shackle-popup-buffer ()
+  (defun entropy/emacs-popwin-shackle-popup-buffer ()
     (interactive)
     (let* ((buff-name (completing-read "Buffer choosing: " 'internal-complete-buffer))
            (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
@@ -333,14 +356,14 @@
         (with-current-buffer buff-name
           (solaire-mode +1)))))
 
-  (defun shackle-popup-find-file ()
+  (defun entropy/emacs-popwin-shackle-popup-find-file ()
     (interactive)
     (let* ((file (completing-read "Buffer choosing: " 'read-file-name-internal))
            (buff-name (buffer-name (find-file-noselect file)))
            (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
       (display-buffer buff-name)))
 
-  (defun shackle-popup-message ()
+  (defun entropy/emacs-popwin-shackle-popup-message ()
     (interactive)
     (let* ((buff-name (buffer-name (get-buffer-create "*Messages*")))
            (shackle-rules `((,buff-name

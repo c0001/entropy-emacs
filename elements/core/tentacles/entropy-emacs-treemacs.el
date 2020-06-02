@@ -69,24 +69,30 @@
         (apply orig-func orig-args)
       (setq treemacs--ready-to-follow t)))
 
+  (defvar entropy/emacs-treemacs--current-focused-buffer nil
+    "Focused buffer that treemacs followed.")
   (defun entropy/emacs-treemacs--after-file-follow-do-mode-line-update
       (orig-func &rest orig-args)
+    "Switch buffer to the origin buffer the buffer of before
+treemacs does file follow action within the newly(may be)
+`selected-window' only once compare with the focused buffer
+cached in
+`entropy/emacs-treemacs--after-file-follow-do-mode-line-update'.
+
+The exists meaning for this wrapper is that the function
+`treemacs--follow' will cause mode line format update with
+unpredictable render bug, so that force redirect
+window-configuration can fix this problem on interface, its purely
+may be a emacs native bug."
     (let* ((cur-buff (current-buffer))
-           (cur-window (get-buffer-window cur-buff))
-           (rtn (apply orig-func orig-args)))
+           (rtn (save-selected-window (apply orig-func orig-args))))
       (when (and (treemacs-get-local-window)
                  (not (active-minibuffer-window))
                  (not (eq major-mode 'treemacs-mode))
                  (buffer-file-name cur-buff))
-        (if (window-live-p cur-window)
-            (set-frame-selected-window nil cur-window)
-          (catch :exit
-            (dolist (el-buff (buffer-list))
-              (when (eq el-buff cur-buff)
-                (let ((el-win (get-buffer-window el-buff)))
-                  (set-frame-selected-window nil el-win)
-                  (throw :exit nil))))))
-        (force-mode-line-update t))
+        (unless (eq cur-buff entropy/emacs-treemacs--current-focused-buffer)
+          (switch-to-buffer cur-buff)
+          (setq entropy/emacs-treemacs--current-focused-buffer cur-buff)))
       rtn))
 
   (defun entropy/emacs-treemacs-toggle-treemacs ()
