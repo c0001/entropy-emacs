@@ -1424,19 +1424,17 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
 
   :preface
 
-  (defvar entropy/emacs-basic-pyim-has-initialized nil)
-
   (entropy/emacs-hydra-hollow-add-for-top-dispatch
    '("Pyim"
      (("c c" entropy/emacs-basic-pyim-start
        "Enable Pyim"
        :enable t
-       :toggle entropy/emacs-basic-pyim-has-initialized
+       :toggle entropy/emacs-pyim-has-initialized
        :exit t))))
 
   (defun entropy/emacs-basic-pyim-start ()
     (interactive)
-    (unless entropy/emacs-basic-pyim-has-initialized
+    (unless entropy/emacs-pyim-has-initialized
       (require 'pyim)
       (cond ((eq entropy/emacs-pyim-use-backend 'internal)
              (setq pyim-dicts entropy/emacs-pyim-dicts))
@@ -1445,7 +1443,11 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
              (entropy/emacs-basic-pyim-load-rime))
             (t
              (pyim-basedict-enable)))
-      (set-input-method "pyim")
+
+      ;; init pyim at temp buffer for preventing polluting
+      ;; current-input-method in current buffer.
+      (with-temp-buffer
+        (set-input-method "pyim"))
 
       ;; keybinding reflect
       (entropy/emacs-hydra-hollow-add-for-top-dispatch
@@ -1466,7 +1468,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
            :enable t
            :toggle (eq (car pyim-punctuation-translate-p) 'yes)))))
 
-      (setq entropy/emacs-basic-pyim-has-initialized t)))
+      (setq entropy/emacs-pyim-has-initialized t)))
 
 ;; ***** init
   :init

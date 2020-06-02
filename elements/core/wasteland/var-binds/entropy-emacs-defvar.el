@@ -68,7 +68,7 @@ margin width.")
 (defvar entropy/emacs-init-welcome-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Title of entropy-emacs initial dashboard buffer. ")
 
-;; ** startup done
+;; ** startup done refer
 (defvar entropy/emacs-startup-done nil
   "while nil in startup procedure or t indicates the startup done
 successfully. The meaning for startup done is that all procedure
@@ -83,6 +83,9 @@ messy."
   (run-hooks 'entropy/emacs-startup-end-hook)
   (entropy/emacs-echo-startup-done)
   (setq entropy/emacs-startup-done t))
+
+(defvar entropy/emacs-pyim-has-initialized nil
+  "variable indicate that pyim has started down for init.")
 
 ;; ** cl-* compatible
 

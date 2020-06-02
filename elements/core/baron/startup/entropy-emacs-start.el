@@ -240,26 +240,25 @@ Emacs will auto close after 6s ......"))
 notation.
 
 (specific for emacs version uper than '26' or included '26'.)"
-  (when (< (length (all-threads)) 2)
+  (when (bound-and-true-p entropy/emacs-pyim-has-initialized)
     (setq entropy/emacs-start--pyim-init-done t)
     (when (bound-and-true-p entropy/emacs-start--pyim-timer)
       (cancel-function-timers #'entropy/emacs-start--pyim-init-after-loaded-cache))
     (when (buffer-live-p entropy/emacs-start--pyim-init-prompt-buffer)
-      (switch-to-buffer entropy/emacs-start--pyim-init-prompt-buffer)
-      (kill-buffer-and-window))
+      (with-current-buffer entropy/emacs-start--pyim-init-prompt-buffer
+        (redisplay t)
+        (message "Killing pyim prompt buffer ...")
+        (if (get-buffer-window entropy/emacs-start--pyim-init-prompt-buffer)
+            (kill-buffer-and-window)
+          (kill-buffer))
+        (message "Kill pyim prompt buffer done!")))
     (entropy/emacs-message-do-message (green "pyim loading down."))
     (defun entropy/emacs-start--pyim-init-after-loaded-cache ()
       (entropy/emacs-message-do-message
        (yellow "This function has been unloaded.")))))
 
 (defun entropy/emacs-start--pyim-initialize ()
-  "Make prompt when loading and loded pyim cache for emacs init time.
-
-For different emacs version using different tracing method:
-- for 26+: `entropy/emacs-start--pyim-init-after-loaded-cache'
-- for 26-: `entropy/emacs-pyim-init-after-loaded-cache-26_'
-
-It's for that emacs version uper than 26 as pyim using thread for loading cache."
+  "Make prompt when loading and loded pyim cache for emacs init time."
   ;; preparation prompt loading pyim cache.
   (let ((buffer entropy/emacs-start--pyim-init-prompt-buffer))
     (with-current-buffer buffer
@@ -275,7 +274,7 @@ It's for that emacs version uper than 26 as pyim using thread for loading cache.
   ;; prompt for loading pyim cache done.
   (setq entropy/emacs-start--pyim-timer
         (run-with-idle-timer
-         1 200
+         1 t
          #'entropy/emacs-start--pyim-init-after-loaded-cache))
   ;; reset function
   (defun entropy/emacs-start--pyim-initialize ()
