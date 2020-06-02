@@ -434,7 +434,15 @@ nervous."
 ;; **** lsp extensions
 ;; ***** lsp java
 (use-package lsp-java
-  :hook (java-mode . (lambda () (require 'lsp-java))))
+  :hook (java-mode . (lambda () (require 'lsp-java)))
+  :config
+  ;; create boot-server directory prevent `lsp-java-boot' throw out its error
+  (let ((boot-server-dir
+         (expand-file-name
+          "boot-server"
+          lsp-java-server-install-dir)))
+    (unless (file-exists-p boot-server-dir)
+      (make-directory boot-server-dir t))))
 
 ;; ***** lsp python ms
 ;; Microsoft python-language-server support
