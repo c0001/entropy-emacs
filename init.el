@@ -55,6 +55,13 @@
 ;; that all hooks are clean with default value injected, thus all the
 ;; org init preparation will be did after that.
 
+(setq org-export-backends
+      ;; set this before org.el loaded obey the order for its
+      ;; docstring.
+      '(ascii beamer html icalendar latex man md odt org texinfo
+              confluence deck freemind groff koma-letter rss s5
+              taskjuggler))
+
 (defun entropy/emacs-org-do-load-org-babels ()
   "Load all org-babels."
   (interactive)

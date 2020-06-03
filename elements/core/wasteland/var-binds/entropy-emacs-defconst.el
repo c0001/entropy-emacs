@@ -99,6 +99,10 @@ Posix emulator supports for:
 (defconst entropy/emacs-home-page "https://github.com/c0001/entropy-emacs"
   "The =entropy-emacs= project home page uri.")
 
+(defconst entropy/emacs-imagemagick-feature-p
+  (image-type-available-p 'imagemagick)
+  "Whether support imagemagick on this emacs session.")
+
 ;; * provide
 (provide 'entropy-emacs-defconst)
 

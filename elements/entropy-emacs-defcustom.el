@@ -629,12 +629,6 @@ For example:
   :type 'string
   :group 'entropy/emacs-customize-org)
 
-(defcustom entropy/emacs-win-org-download-screenshot-method "SnippingTool.exe"
-  "Setting screenshot tool in windows and default be SnippingTool
-  which is the componets of windows inside."
-  :type 'string
-  :group 'entropy/emacs-customize-org)
-
 ;; ***** org header scale
 (defcustom entropy/emacs-disable-org-heading-scale t
   "Diable org heading auto-scale face feature."
