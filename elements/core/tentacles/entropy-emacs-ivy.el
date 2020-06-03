@@ -65,15 +65,15 @@
   ;; ivy initial char inserting was using for regex like searching,
   ;; and it's also be '^' for ahead searching, but when you want to
   ;; searching no limited in ahead type we must force disable it.
-  (setq ivy-initial-inputs-alist nil) ; disable "^" for heading begining search
+  (setq ivy-initial-inputs-alist nil)   ;disable "^" for heading begining search
 
   ;; ivy details
-  (setq enable-recursive-minibuffers nil) ; Allow commands in minibuffers
-  (setq ivy-use-selectable-prompt t)
-  (setq ivy-use-virtual-buffers t)    ; Enable bookmarks and recentf
+  (setq enable-recursive-minibuffers t) ;Allow commands in minibuffers
+  (setq ivy-use-selectable-prompt nil)
+  (setq ivy-use-virtual-buffers t)      ;Enable bookmarks and recentf
   (setq ivy-height 10)
-  (setq ivy-count-format "(%d/%d) ")
-  (setq ivy-on-del-error-function nil)
+  (setq ivy-count-format "%-5d ")
+  (setq ivy-on-del-error-function nil)  ;Disable back-delete exit when empty input.
   (setq ivy-dynamic-exhibit-delay-ms 2) ;prevent immediacy dnynamic process fetching crash.
 
   ;; using fuzzy matching
@@ -82,22 +82,50 @@
           ;; using elisp regex match candidates
           (t . ivy--regex)))
 
-  (setq swiper-action-recenter t)
+  (setq swiper-action-recenter t)       ;recenter buffer after swiper jumping to the match
 
 ;; *** ivy config
   :config
 
-  (defun entropy/emacs-ivy--ivy-read-action-after-advice (&rest args)
+  (defun entropy/emacs-ivy--ivy-read-quit-after-dispatch-actions
+      (&rest args)
     "Interrupting rest process when `this-command' was
-`ivy-read-action'."
-    (catch 'ivy-quit
-      (if (or (eq this-command 'ivy-dispatching-done)
-              (eq this-command 'ivy-occur)
-              (string-match-p "^ivy-read-action/" (symbol-name this-command)))
-          (progn
-            (user-error "Ivy-quit!")
-            (throw 'ivy-quit "Ivy-quit!")))))
-  (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-action-after-advice)
+`ivy-dispatching-done' or `ivy-occur' or any extra ivy read
+actions.
+
+Originally, after each ivy-action did done from the ivy-dispatch
+will go on for the rest procedure if exists, it originally was the
+designation logic what ivy suggested that each function based on
+ivy-framework should end with the `ivy-read' point i.e. there
+shouldn't have any rest part after thus, which indicates that any
+action after the `ivy-read' candi match one must be transferred
+into the ':action' slot of `ivy-read' so that the procedure can be
+entirely quit just after `ivy-read' done.
+
+But not all the function builder follow this convention, and a
+effect does by enabling `ivy-mode' will enhance the internal
+`completing-read' experience and also can using some native
+ivy extra actions throw ivy-dispatch, but almost all function
+which invoking the `completing-read' just use it as the candi
+chosen interaction, and injects rest functional part follow that,
+that meaning that when we calling any extra ivy actions after that
+part of the ivy enhanced `completing-read' procedure, the rest
+will go on doing, that's dangerous because we usually just want
+call those extra ivy actions to finish some minor work and do not
+want do the origin process what the function designed.
+
+Thus for all, this after type advice for `ivy-read' will focely
+quit to the top-level when thus done.
+
+Notice that this wrapper designation was not suggested by the
+upstream and may be make risky follow the ivy updates.
+"
+    (if (or (eq this-command 'ivy-dispatching-done)
+            (eq this-command 'ivy-occur)
+            (string-match-p "^ivy-read-action/" (symbol-name this-command)))
+        (progn
+          (user-error "Ivy-quit!"))))
+  (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-quit-after-dispatch-actions)
 
   ;; top level for ivy-mode-map
   (entropy/emacs-lazy-load-simple ivy
@@ -110,8 +138,14 @@
   ;; for 'TAB'.
 
   (defun ivy-partial-or-done ()
-    "Complete the minibuffer text as much as possible.
-If the text hasn't changed as a result, forward to `ivy-alt-done'."
+    "Complete the minibuffer text as much as possible.  If the text
+hasn't changed as a result, forward to a handy message prompt.
+
+Notice, this function has been redefined by =entropy-emacs= for
+modifying the TAB double hints while `ivy-read' procedure, the
+origin was foward to the `ivy-alt-done' at the same occurrence as
+the title mentioned, has reason for that user usually take mistake
+for that hints habit will run the canid selected unpredictable."
     (interactive)
     (cond
      ((and completion-cycle-threshold (< (length ivy--all-candidates) completion-cycle-threshold))
@@ -145,6 +179,9 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
     ;; `ivy-dispatching-done' can not display minibuffer hint prompt
     ;; when emacs version upper than 26. see
     ;; https://github.com/abo-abo/swiper/issues/2397 for details
+    ;; ---------------------------------------------------------
+    ;; [2020-06-03 Wed 18:06:44] for now above issue seems be fixed,
+    ;; but still using the patch for more enhancement.
     (entropy/emacs-lazy-load-simple ivy
       (require 'ivy-hydra)
       (when (fboundp 'ivy-hydra-read-action)
@@ -154,6 +191,26 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 ;; ** swiper
 
 (use-package swiper
+  :commands (swiper swiper-all)
+  :preface
+  (defvar entropy/emacs-ivy--swiper-all-complete-did-p nil
+    "Indicator for that `swiper-all' was did complete which not
+unwind occasion.")
+  (defun entropy/emacs-ivy--swiper-all-restore-wfg (orig-func &rest orig-args)
+    "Restore origin window-configuration when unwind of `swiper-all'."
+    (let (rtn
+          (cur-wfg (current-window-configuration)))
+      (unwind-protect
+          (progn
+            (setq entropy/emacs-ivy--swiper-all-complete-did-p
+                  nil)
+            (setq rtn (apply orig-func orig-args)
+                  entropy/emacs-ivy--swiper-all-complete-did-p
+                  t)
+            rtn)
+        (unless entropy/emacs-ivy--swiper-all-complete-did-p
+          (set-window-configuration cur-wfg)))))
+
   :bind (("C-s" . swiper)
          ("C-M-s" . swiper-all)
          :map swiper-map
@@ -163,8 +220,10 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
     (ivy-mode +1))
 
   :config
-  ;; ==assign format-function to swiper for fix some-bug==
+  ;; make `swiper-all' restore origin window-configuration when unwind
+  (advice-add 'swiper-all :around #'entropy/emacs-ivy--swiper-all-restore-wfg)
 
+  ;; ==assign format-function to swiper for fix some-bug==
   ;; when using `all-the-icons-dired' with swiper, icons displayed in
   ;; associate dired-buffer are mapped with all-the-icons spec fonts
   ;; which can not rendered correctly for other fonts. ivy's defaut
@@ -173,7 +232,6 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   ;; default face as font-lock atribtue, it will corrupts the
   ;; correctly font displaying when set spec font to this default
   ;; face.
-
   (entropy/emacs-lazy-load-simple all-the-icons-dired
     (defun entropy/emacs-ivy--swiper-format-function-for-dired (cands)
       "Transform CANDS into a string for minibuffer."
@@ -199,7 +257,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
 ;; *** bind-key
   :bind (("M-x"     . counsel-M-x)
-         ("C-c M-t" . entropy/emacs-ivy-counsel-load-theme)
+         ("C-c M-t" . counsel-load-theme)
          ("C-c g"   . counsel-git)
          ("C-x d"   . counsel-dired)
          ("C-x C-f" . counsel-find-file)
@@ -285,7 +343,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c e s" counsel-list-processes "Offer completion for 'process-list'"
       :enable t :exit t :eemacs-top-bind t)
-     ("C-c c e t" entropy/emacs-ivy-counsel-load-theme "Load specific emacs theme"
+     ("C-c c e t" counsel-load-theme "Load specific emacs theme"
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c e u" counsel-unicode-char "Insert COUNT copies of a Unicode character at point"
       :enable t :exit t :eemacs-top-bind t)
@@ -306,7 +364,9 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
      ("C-c c m o" counsel-outline "Jump to an outline heading with completion"
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c m w" counsel-colors-web "Show a list of all W3C web colors for use in CSS"
-      :enable t :exit t :eemacs-top-bind t))))
+      :enable t :exit t :eemacs-top-bind t)
+     ("<M-up>" counsel-linux-app "Launch a Linux desktop application"
+      :enable sys/linux-x-p :exit t :eemacs-top-bind t))))
 
 ;; *** hooks
   :hook ((ivy-mode . counsel-mode))
@@ -321,9 +381,6 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (entropy/emacs-lazy-load-simple counsel
     (ivy-mode +1))
 
-  (unless sys/win32p
-    (entropy/emacs-!set-key (kbd "<M-up>") #'counsel-linux-app))
-
 ;; **** counsel-git with utf-8
 
   (advice-add 'counsel-git :around
@@ -331,34 +388,28 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
 
 ;; *** config
   :config
-;; **** reset `ivy-initial-inputs-alist'
-  (setq ivy-initial-inputs-alist nil)
 
 ;; **** advice counsel--M-x-externs for it's bad lagging perfomance
 
   ;; because `counsel--M-x-externs' has the `require' function for
   ;; it's contained condition context so it will lagging like previous
   ;; version of `ivy--add-face'.
-  (defun entropy/emacs-ivy--counsel--M-x-externs ()
+  (defun entropy/emacs-ivy--counsel--M-x-externs (&rest _)
     nil)
   (advice-add 'counsel--M-x-externs
               :override
               #'entropy/emacs-ivy--counsel--M-x-externs)
 
-;; **** windows not to use grep because there's no grep in windows
-  (when sys/win32p
-    (defun entropy/emacs-ivy-counsel-grep-or-swiper (orig-func &rest orig-args)
-      (interactive)
-      (apply 'swiper orig-args))
-    (advice-add 'counsel-grep-or-swiper
-                :around
-                #'entropy/emacs-ivy-counsel-grep-or-swiper))
+;; **** do not active swiper grep function when not grep exec found
 
-;; **** counsel-load-theme
-  (defun entropy/emacs-ivy-counsel-load-theme ()
-    "Load theme with some stuffs patching."
+  (defun entropy/emacs-ivy-counsel-grep-or-swiper (orig-func &rest orig-args)
     (interactive)
-    (counsel-load-theme))
+    (if (executable-find "grep")
+        (apply 'counsel-grep orig-args)
+      (apply 'swiper orig-args)))
+  (advice-add 'counsel-grep-or-swiper
+              :around
+              #'entropy/emacs-ivy-counsel-grep-or-swiper)
 
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-wsl-enable)
@@ -370,6 +421,7 @@ Note: This function has been modified for transfer volum's type
 of msys2 or other window-gnu-enviroment to windows origin volum
 type by function `entropy/emacs-transfer-wvol'"
       (interactive)
+      (counsel--locate-updatedb)
       (ivy-read "Locate: " #'counsel-locate-function
                 :initial-input initial-input
                 :dynamic-collection t
@@ -400,14 +452,14 @@ this variable used to patching for origin `counsel-git'.")
   (defun counsel-git-action (x)
     "Find file X in current Git repository.
 
-    Note: this function has been modified by entropy-emacs because of:
+Note: this function has been modified by entropy-emacs because of:
 
-    ivy version 0.11.0 and counsel version 0.11.0 has the bug that
-    using wrong root-dir for find git repo's file that will cause file
-    not existed error and creating new buffer with that actual name,
-    this problem caused by origin `counsel-git-action' using
-    `ivy-last''s directory slot as the default diretory on the 0.11.0
-    version of ivy framework updating.
+ivy version 0.11.0 and counsel version 0.11.0 has the bug that
+using wrong root-dir for find git repo's file that will cause
+file not existed error and creating new buffer with that actual
+name, this problem caused by origin `counsel-git-action' using
+`ivy-last''s directory slot as the default diretory on the 0.11.0
+version of ivy framework updating.
     "
     (with-ivy-window
       (let ((default-directory entropy/emacs-ivy-counsel-git-root))
@@ -424,15 +476,11 @@ this variable used to patching for origin `counsel-git'.")
     (("C-c M-d" counsel-css "Jump to a css selector"
       :enable t
       :exit t
-      :map-inject t))))
-
-  :init
-  (when entropy/emacs-fall-love-with-pdumper
-    (require 'css-mode)))
-
+      :map-inject t)))))
 
 ;; *** use ivy-xref for quickly find defination and reference
 (use-package ivy-xref
+  :after ivy
   :commands (ivy-xref-show-xrefs)
   :init (setq xref-show-xrefs-function 'ivy-xref-show-xrefs))
 
@@ -687,56 +735,6 @@ this variable used to patching for origin `counsel-git'.")
 
 ;; ** Powerful searcher
 ;; *** helm ag
-(defun entropy/emacs-ivy--helm-ag--edit-commit ()
-  "Funciton to be redefine body of `helm-ag--edit-commit'.
-
-Adding buffer unlock and wind narrowed region feature."
-  (goto-char (point-min))
-  (let ((read-only-files 0)
-        (saved-buffers nil)
-        (regexp (helm-ag--match-line-regexp))
-        (default-directory helm-ag--default-directory)
-        (line-deletes (make-hash-table :test #'equal))
-        (kept-buffers (buffer-list))
-        open-buffers)
-    (while (re-search-forward regexp nil t)
-      (let* ((file (or (match-string-no-properties 1) helm-ag--search-this-file-p))
-             (line (string-to-number (match-string-no-properties 2)))
-             (body (match-string-no-properties 3))
-             (ovs (overlays-at (line-beginning-position))))
-        (with-current-buffer (find-file-noselect file)
-          (message "Handling with buffer '%s' ......" (current-buffer))
-          (cl-pushnew (current-buffer) open-buffers)
-          (when buffer-read-only
-            (progn
-              (cl-incf read-only-files)
-              (read-only-mode 0)))
-          (when (buffer-narrowed-p)
-            (widen))
-          (goto-char (point-min))
-          (let ((deleted-lines (gethash file line-deletes 0))
-                (deleted (and ovs (overlay-get (car ovs) 'helm-ag-deleted))))
-            (forward-line (- line 1 deleted-lines))
-            (delete-region (line-beginning-position) (line-end-position))
-            (if (not deleted)
-                (insert body)
-              (let ((beg (point)))
-                (forward-line 1)
-                (delete-region beg (point))
-                (puthash file (1+ deleted-lines) line-deletes)))
-            (cl-pushnew (current-buffer) saved-buffers)))))
-    (when helm-ag-edit-save
-      (dolist (buf saved-buffers)
-        (with-current-buffer buf
-          (save-buffer))))
-    (dolist (buf open-buffers)
-      (unless (memq buf kept-buffers)
-        (kill-buffer buf)))
-    (helm-ag--exit-from-edit-mode)
-    (if (not (zerop read-only-files))
-        (message "%d files are read-only and be lift a ban." read-only-files)
-      (message "Success update"))))
-
 (use-package helm-ag
   :if (string= entropy/emacs-search-program "ag")
   :commands (helm-do-ag helm-do-ag-project-root)
@@ -748,15 +746,7 @@ Adding buffer unlock and wind narrowed region feature."
   :config
   (dolist (el '(helm-do-ag helm-do-ag-project-root))
     (advice-add el :around
-                #'entropy/emacs-lang-use-utf-8-ces-around-advice))
-
-  (defun helm-ag--edit-commit ()
-    "Note: this function has been re-define for compat with
-entropy-emacs which force inhibit readonly mode while operating
-corresponding buffer, and forcely `widen' the reflected buffers so
-that the replacement POS can be find absolutely."
-    (interactive)
-    (funcall #'entropy/emacs-ivy--helm-ag--edit-commit)))
+                #'entropy/emacs-lang-use-utf-8-ces-around-advice)))
 
 ;; *** rg
 
@@ -775,7 +765,7 @@ that the replacement POS can be find absolutely."
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'powerful-searcher nil
- (if (eq entropy/emacs-search-program "ag")
+ (if (string= entropy/emacs-search-program "ag")
      '("Powerful Searcher"
        (("C-c j" helm-do-ag "Helm AG Search"
          :enable t :exit t :global-bind t)

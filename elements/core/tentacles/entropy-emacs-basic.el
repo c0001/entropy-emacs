@@ -1276,15 +1276,15 @@ operation system"
   :ensure nil
   :init (entropy/emacs-lazy-with-load-trail savehist-init (savehist-mode t))
   :config
-  (setq enable-recursive-minibuffers t ; Allow commands in minibuffers
-        history-length 1000
-        savehist-additional-variables
-        '(mark-ring
-          global-mark-ring
-          search-ring
-          regexp-search-ring
-          extended-command-history)
-        savehist-autosave-interval 60))
+  (setq
+   history-length 1000
+   savehist-additional-variables
+   '(mark-ring
+     global-mark-ring
+     search-ring
+     regexp-search-ring
+     extended-command-history)
+   savehist-autosave-interval 60))
 
 ;; *** Bookmarks
 (setq bookmark-save-flag 1)
@@ -1542,17 +1542,18 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
 
 ;; *** Key modification
 
+;; **** more conventions
+(global-set-key (kbd "C-M-g") 'keyboard-quit) ; when unintended active this, using 'QUIT' as 'C-g'
+(global-set-key (kbd "C-s-g") 'keyboard-quit) ; same as above of super key intended active
+(global-set-key (kbd "A-C-g") 'keyboard-quit) ; same as above of super key intended active
+
 ;; **** key re-mapping
 ;; Binding 'super' and 'hyper' on win32 and mac.
 ;;   the idea form `http://ergoemacs.org/emacs/emacs_hyper_super_keys.html'
 (cond
  (sys/win32p
   (setq w32-apps-modifier 'hyper) ; Menu/App key
-  (global-set-key (kbd "C-M-g") 'keyboard-quit) ; when unintended active this, using 'QUIT' as 'C-g'
-  (global-set-key (kbd "C-s-g") 'keyboard-quit) ; same as above of super key intended active
-  (global-set-key (kbd "A-C-g") 'keyboard-quit) ; same as above of super key intended active
   )
-
  (sys/macp
   ;; set keys for Apple keyboard, for emacs in OS X
   (setq mac-command-modifier 'meta) ; make cmd key do Meta
