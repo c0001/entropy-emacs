@@ -65,7 +65,11 @@
   ;; ivy initial char inserting was using for regex like searching,
   ;; and it's also be '^' for ahead searching, but when you want to
   ;; searching no limited in ahead type we must force disable it.
-  (setq ivy-initial-inputs-alist nil)   ;disable "^" for heading begining search
+  (setq ivy-initial-inputs-alist nil)
+  (entropy/emacs-lazy-load-simple counsel
+    ;; we must set it nil again when loaded `counsel' which will
+    ;; inject its own types
+    (setq ivy-initial-inputs-alist nil))
 
   ;; ivy details
   (setq enable-recursive-minibuffers t) ;Allow commands in minibuffers
@@ -404,8 +408,9 @@ unwind occasion.")
 
   (defun entropy/emacs-ivy-counsel-grep-or-swiper (orig-func &rest orig-args)
     (interactive)
-    (if (executable-find "grep")
-        (apply 'counsel-grep orig-args)
+    (if (and (executable-find "grep")
+             buffer-file-name)
+        (apply orig-func orig-args)
       (apply 'swiper orig-args)))
   (advice-add 'counsel-grep-or-swiper
               :around
