@@ -95,6 +95,17 @@ may be a emacs native bug."
           (setq entropy/emacs-treemacs--current-focused-buffer cur-buff)))
       rtn))
 
+  (defun entropy/emacs-treemacs-auto-focus-on-common-buffer (&rest _)
+    "Auto change focus point on common buffer (i.e. not treemacs
+buffer) for some special hook."
+    (let ((wlens (length (window-list))))
+      (when (eq major-mode 'treemacs-mode)
+        (cond
+         ((> wlens 1)
+          (other-window 1))
+         ((= wlens 1)
+          (treemacs-quit))))))
+
   (defun entropy/emacs-treemacs-toggle-treemacs ()
     (interactive)
     (require 'treemacs)
@@ -249,24 +260,15 @@ may be a emacs native bug."
 ;; *** init
   :init
 
-  (defun entropy/emacs-treemacs-delete-other-window-patch (&rest _)
-    (let ((wlens (length (window-list))))
-      (when (eq major-mode 'treemacs-mode)
-        (cond
-         ((> wlens 1)
-          (other-window 1))
-         ((= wlens 1)
-          (treemacs-quit))))))
   (entropy/emacs-lazy-load-simple eyebrowse
     (add-hook 'eyebrowse-pre-window-switch-hook
-              #'entropy/emacs-treemacs-delete-other-window-patch))
+              #'entropy/emacs-treemacs-auto-focus-on-common-buffer))
 
 ;; *** config
   :config
-  (advice-add 'treemacs--init :around #'entropy/emacs-treemacs--unwind-for-init)
-  (advice-add 'treemacs--follow
-              :around #'entropy/emacs-treemacs--after-file-follow-do-mode-line-update)
 
+  ;; set customized var after load `treemacs' so that some internal
+  ;; vars are initialized
   (setq treemacs-collapse-dirs           (if treemacs-python-executable 3 0)
         treemacs-sorting                 'alphabetic-case-insensitive-desc
         treemacs-follow-after-init       t
@@ -281,6 +283,10 @@ may be a emacs native bug."
         treemacs-recenter-after-project-jump   t
         treemacs-recenter-after-tag-follow     t
         treemacs-show-edit-workspace-help t)
+
+  (advice-add 'treemacs--init :around #'entropy/emacs-treemacs--unwind-for-init)
+  (advice-add 'treemacs--follow
+              :around #'entropy/emacs-treemacs--after-file-follow-do-mode-line-update)
 
   (treemacs-follow-mode t)
   (treemacs-filewatch-mode t)
