@@ -509,7 +509,7 @@ This was the one action in `ivy-read'."
       (dolist (el wcon)
         (when (not (= (car el) (eyebrowse--get 'current-slot)))
           (push `(,(concat (number-to-string (car el)) ":" (nth 2 el)) . ,(car el)) candi)))
-      (setq candi (entropy/cl-reverse-list candi))
+      (setq candi (reverse candi))
       (setq candin (mapcar 'car candi))
       (ivy-read "Delete worksapce (%d/%d): " candin
                 :require-match t

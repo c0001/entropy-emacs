@@ -57,6 +57,10 @@
 ;;
 ;;; Change log:
 
+;; - [2020-06-05 Fri 06:13:06]
+
+;;   *Bug fix, context update and remove useless or inferior apis*
+
 ;; - [2020-03-11 Wed 18:18:15]
 
 ;;   *Bug fix*
@@ -112,14 +116,14 @@
 
 ;;; Code:
 
-;;; require
+;;;; require
 (require 'dash)
 (if (version< emacs-version "27")
     (require 'cl)
-  (require 'cl-macs))
+  (require 'cl-lib))
 (require 'ivy)
 
-;;; deprecated compatibility
+;;;; deprecated compatibility
 (defun entropy/cl-remove-duplicates (cl-seq &rest cl-keys)
   "The wrapper for `remove-duplicates' and `cl-remove-duplicates'.
 
@@ -131,13 +135,13 @@ deprecated origin `cl' package instead of `cl-macs'."
         ((fboundp 'remove-duplicates)
          (apply 'remove-duplicates cl-seq cl-keys))))
 
-;;; Internal Functions
+;;;; Internal Functions
 ;;
 ;;    This part defined some functions used only for this package for
 ;;    providing middle functional utilities to other Apis.
 ;;
 ;;
-;;; System environment checker
+;;;; System environment checker
 (defun entropy/cl-checking-system-utf8-supply ()
   "Checking operation system envrionment lanuguage support full
 'utf-8' surroundings, it's useful for emacs process starting or
@@ -155,81 +159,37 @@ Return non-nil as supported as."
          (setq rtn t))))
     rtn))
 
-;;; elisp data type operation
-;;;; list
-;;;;; list reverse
-(defun entropy/cl-reverse-list (list)
-  "reverse the sequence of one list and return the result but
-  without replacing the original list LIST."
-  (let* (rlist)
-    (dolist (el list)
-      (push el rlist))
-    rlist))
-
-
-;;;;; list uniquely creator
+;;;; elisp data type operation
+;;;;; list
+;;;;;; list uniquely creator
 (defun entropy/cl-make-identify-list (list)
   "Adding identifier for each element of list LIST and return new list.
 
-Identifier now was the amount of string value type, the return list are like
-follow former:
+Identifier was the number of string value type, the return list
+are like follow former:
 
-((0 el0) (1 el1) (2 el2) ...)
+((\"0\" el0) (\"1\" el1) (\"2\" el2) ...)
 
-Each elements can be list or any single one."
+This function make each element of list are uniquely, which also
+used for build candidates in `completing-read'.
+"
   (let* (rlist (count 0))
     (dolist (el list)
       (push `(,(number-to-string count) ,el) rlist)
       (setq count (+ 1 count)))
-    (setq rlist (entropy/cl-reverse-list rlist))))
+    (setq rlist (reverse rlist))))
 
-(defun entropy/cl-extract-idlist (idlist se)
-  "Id list produced by `entropy/cl-make-identify-list' was aimed to make every
-  element be unique even there's two element has the same value.
+;;;;;; list make name alist
+(defun entropy/cl-make-name-alist (olist &optional naming-func)
+  "Make a named alist from a list OLIST.
 
-  This function exract the id with one abbreviated elements info which was the
-  sequenced sub-element in the element enetry of origin none-identified list.
+The named alist is a alist which each car of the element is a
+specified name object which defaultly is a unique order number for
+current position of OLIST if optional NAMING-FUNC was unset.
 
-  Thus like idlist:
-
-  '((0 (\"hello\" \"vt.\"))
-    (1 (\"happy\" \"adj.\"))
-    (2 (\"apple\" \"n.\"))
-    (3 (\"hello\" \"vt.\")))
-
-  was the words with words-property list.
-
-  This function was aimed to produce one string list for some emacs completion
-  function like ivy to both show the id and abbrev info like:
-
-  '(\"0:hello\"
-    \"1:happy\"
-    \"2:apple\"
-    \"3:hello\")"
-  (let* (rlist)
-    (dolist (el idlist)
-      (let* ((se-id (concat (car el) ":"))
-             (subel (nth se (nth 1 el)))
-             (full (concat se-id subel)))
-        (push full rlist)))
-    (setq rlist (entropy/cl-reverse-list rlist))))
-
-
-;;;;; list member checker
-(defun entropy/cl-unique-list (unit list)
-  "Justify whether has the unit in list LIST."
-  (let (($return nil))
-    (dolist (el list)
-      (if (equal unit el)
-          (setq $return t)))
-    $return))
-
-;;;;; list make name alist
-(defun entropy/cl-make-name-alist (olist naming-func)
-  "Make name-alist from one pure vector OLIST.
-
-Function NAMEING-FUNC was provided by youself which has the
-single argument to accepting one element of OLIST.
+Optional argument NAMEING-FUNC is a function provided by youself
+which has the single argument to accepting one extracted element
+of OLIST and return the name object of current element.
 
 Demo:
 
@@ -238,24 +198,28 @@ then retun name-alist:
 
 ((2 . 1) (3. 2) (4. 3) (5. 4) (6. 5))
 "
-  (let* (rtn)
+  (let* (rtn
+         (count -1))
     (dolist (el olist)
-      (push `(,(funcall naming-func el) . ,el)
+      (push `(,(if (functionp naming-func)
+                   (funcall naming-func el)
+                 (cl-incf count))
+              .
+              ,el)
             rtn))
     (if rtn
-        rtn
+        (reverse rtn)
       (error "entropy/cl-make-name-alist: Occur wrong!"))))
 
-;;;;; list capture region map
+;;;;;; list capture region map
 (defun entropy/cl-capture-list-by-region-map (list-var region-map)
   "Capture list LIST-VAR with region map REGION-TYPE and return
 the grouped pair list type value.
 
 Arg REGION-MAP:
 
-This variable are list of integers (can be both single element or
-multi ones). Integers summer must be equal or lessan than the
-length of LIST-VAR.
+This variable are list of integers. Integers SUM must be equal or
+lessan than the length of LIST-VAR.
 
 Demo:
 
@@ -279,8 +243,8 @@ List var (1 2 3 4 5 6 7 8 9) maped by (1 2 3) will return
     (reverse rtn)))
 
 
-;;;; alist
-;;;;; numberic alist sorting
+;;;;; alist
+;;;;;; numberic alist sorting
 (defun entropy/cl-sort-numberic-alist (numberic-alist &optional reverse only-cdr)
  "Sorting numberic alist which the car of each associate element
 was numberic and return the sorted alist.
@@ -324,7 +288,7 @@ Duplicated numberic order!"))
                (push (cdr el) rtn))
              rtn)))))
 
-;;;; plist
+;;;;; plist
 (defun entropy/cl-plistp (plist-var &optional strict)
   "Return non-nil while PLIST-VAR whether is plist type.
 
@@ -497,43 +461,44 @@ return them into list ordered as original case."
              do (push (nth pos plist-var) rtn))
     (reverse rtn)))
 
-;;;; string operation
+;;;;; string operation
 (defun entropy/cl-get-string-lines (str)
-  "Get string STR line count while displayed in buffer."
+  "Get string STR buffer end line number while displayed in buffer."
   (let (line-count)
     (with-temp-buffer
       (insert str)
       (goto-char (point-max))
-      (setq line-count(line-number-at-pos (point)))
-      (kill-buffer))
+      (setq line-count (line-number-at-pos (point))))
     line-count))
 
 (defun entropy/cl-get-string-max-width (str &optional max-indication)
-  "Get string width module with plist value return.
+  "Get string width module by `string-width'.
 
-  Without arg MAX-INDICATION sepcification will return the default
-  module plist as '(:max-width max-len :match-max-lines max-lines-number-list)'
+Without arg MAX-INDICATION sepcification will return the default
+module plist as '(:max-width max-len :match-max-lines max-lines-number-list)'
 
-  With arg MAX-INDICATION indicated for, the return plist will
-  append of ':match-overflow overflow-len' and
-  ':match-overflow-lines overflow-lines-number-list'.
+With arg MAX-INDICATION indicated for, the return plist will
+append of ':match-overflow overflow-len' and
+':match-overflow-lines overflow-lines-number-list'.
 
-  String width module can be illustrated as
+String width module can be illustrated as
 
-  #+BEGIN_EXAMPLE
-      String buffer displayed square:
+#+BEGIN_EXAMPLE
+  String buffer displayed square:
 
-    lines:+-------------+
-        1.|abcdefg      |<------match-overflow: 7
-        2.|agcd         |<-------------------------overflow
-        3.|absdfsdfsdfsf| <-----max-width: 14
-        4.|asdfsdfsdf   |<-------------------------overflow
-        5.|asdfasdfasdff| <-----max-width: 14
-          +-------------+
+  >  We set match-overflow to 7 chars
 
-    Result: (:match-width 14 :match-max-lines (3 5) :match-overflow 7 :match-overflow-lines (2 4))
-  #+END_EXAMPLE
-  "
+  lines:+----------------+
+      1.|abcdefg         |
+      2.|agcdsdfa        |<-------------------------overflow
+      3.|absdfsdfsdfsf   |<-----max-width: 14
+      4.|asdfsdfsdfa     |<-------------------------overflow
+      5.|asdfasdfasdff   |<-----max-width: 14
+        +----------------+
+
+  Result: (:match-width 14 :match-max-lines (3 5) :match-overflow 7 :match-overflow-lines (2 4))
+#+END_EXAMPLE
+"
   (let (str-len-list str-attr-list str-split max-len rtn rtn-overflow (count 1))
     (setq str-split (split-string str "\n"))
     (cond
@@ -568,19 +533,18 @@ return them into list ordered as original case."
     rtn))
 
  (defun entropy/cl-get-current-line-string ()
- "Return current line buffer string within current buffer. "
+ "Return current line buffer string within current buffer."
  (let ((p-head (line-beginning-position))
        (p-end (line-end-position))
        rtn)
    (setq rtn (buffer-substring p-head p-end))
    rtn))
 
-
  (defun entropy/cl-concat-char (char-string times)
  "Concat char-string CHAR-STRING do times TIMES with.
 
- CHAR was single type string as \"a\", and TIMES was number
- positive."
+CHAR was single type string as \"a\", and TIMES was number
+positive."
  (let (rtn)
    (unless (and (stringp char-string)
                 (> times 1))
@@ -592,7 +556,7 @@ return them into list ordered as original case."
    rtn))
 
 
-;;;;; truncate string
+;;;;;; truncate string
 (defun entropy/cl-truncate-string-with-length (str length &optional line-indication)
   "Truncate string STR with length LENGTH rescursively and be
 without destroying string struct.
@@ -629,7 +593,7 @@ case) to truncate."
           (t (setq rtn (car rtn))))
     rtn))
 
-;;;;; string replace
+;;;;;; string replace
 
 (defun entropy/cl-replace-buffer-substr-with-face (beg end regexp rep indicated-face times)
   "Replace buffer substring from BEG to END matched by regexp REGEXP
@@ -803,9 +767,130 @@ ending of buffer ending. "
           (cl-incf p_cur))))
     (setq rtn (buffer-string))
     rtn))
-;;; file and dir operation
-;;;; dir
-;;;;; list dir
+
+;;;; file and dir operation
+;;;;; union exist checker
+(defun entropy/cl-file-exists-p (f-or-dir)
+  "Judge whether a file F-OR-DIR is existed.
+
+This function is a patcher for emacs naive function
+`file-exists-p' which treat dir and file differently (obviously
+in *nix platform) that when a file 'test.txt' is exist then it
+treats a dir named same as 'test.txt/' is non-exit."
+  (file-exists-p
+   (replace-regexp-in-string "[/\\\\]$" "" f-or-dir)))
+
+;;;;; read file or dirctory name
+(defun entropy/cl-read-file-name (file-type &optional existed)
+  "Repeatly read file (or dir) name from minibuffer with internal
+file name completion table.
+
+FILE-TYPE was \"file\" string or arbitrary value demoting for
+directory type, using string \"dir\" by habitually.
+
+Optional arg EXISTED indicated for require-matching for current
+candidates from `read-file-name-internal', and satisfied its
+FILE-TYPE.
+
+None existed manaully read case will obey the FILE-TYPE by
+following rule-set:
+
+1) \"file\" type and read as existed one:
+
+   while the read existed as one directory, show prompt in mode
+   line and request repeatly inputtng.
+
+2) \"file\" type and read as non-existed:
+
+   while the read string matched the tail slash, repeatly
+   inputting.
+
+3) \"dir\" type and exsited read:
+
+   while the read existed as one file(not directory), do repeatly
+   inputting.
+
+4) Other any read case was legal."
+
+  (let* ((init-file
+          (completing-read
+           (if (equal file-type "file")
+               "Input file: "
+             "Input directory: ")
+           'read-file-name-internal))
+         (abbrev-func
+          (lambda (file &optional tail-slash)
+            (if (directory-name-p file)
+                (if tail-slash
+                    (or
+                     (and (or (string= "/" file)
+                              (string-match-p "[a-zA-Z]:[/\\\\]" file))
+                          file)
+                     (replace-regexp-in-string
+                      "^.+[/\\\\]\\([^/\\\\]+\\)\\([/\\\\]\\)$" "\\1\\2"
+                      file))
+                  (file-name-nondirectory (directory-file-name file)))
+              (file-name-nondirectory file))))
+         (judge-func (if (equal file-type "file")
+                         (lambda (x) (and (entropy/cl-file-exists-p x)
+                                          (not (file-directory-p x))))
+                       'file-directory-p))
+         (repeat-existed-func
+          (lambda ()
+            (while (not (funcall judge-func init-file))
+              (let ((mode-line-format
+                     (if (equal file-type "file")
+                         (if (file-exists-p init-file)
+                             (list "%e" (propertize "Please choose 'FILE' not the directory location!"
+                                                    'face 'warning))
+                           (list "%e" '(:eval
+                                        (propertize (format "File not exists '%s'"
+                                                            (funcall abbrev-func init-file))
+                                                    'face 'warning))))
+                       (if (entropy/cl-file-exists-p init-file)
+                           (list "%e" (propertize "Please choose 'DIR' not the file location!"
+                                                  'face 'warning))
+                         (list "%e" '(:eval (propertize
+                                             (format "Direcory not exists '%s'"
+                                                     (funcall abbrev-func init-file t))
+                                             'face 'warning)))))))
+                (setq init-file
+                      (completing-read (if (equal file-type "file")
+                                           "Choosing file: "
+                                         "Choosing directory: ")
+                                       'read-file-name-internal))))))
+         (repeat-manually-func
+          (lambda ()
+            (let ((slash-tail-warn (list "%e"
+                                         (propertize "Please input 'FILE' not the directory location!"
+                                                     'face 'warning)))
+                  (file-warn (list "%e"
+                                   '(:eval
+                                     (propertize
+                                      (format "File '%s' existed which can not be created as a directory!"
+                                              (funcall abbrev-func init-file))
+                                      'face 'warning)))))
+              (cond ((equal "file" file-type)
+                     (while (string-match-p "/$" init-file)
+                       (let ((mode-line-format slash-tail-warn))
+                         (setq init-file
+                               (completing-read "Input file: " 'read-file-name-internal)))))
+                    (t
+                     (while (and (entropy/cl-file-exists-p init-file)
+                                 (not (file-directory-p init-file)))
+                       (let ((mode-line-format file-warn))
+                         (setq init-file
+                               (completing-read "Input directory: "
+                                                'read-file-name-internal))))))))))
+    (if existed
+        (funcall repeat-existed-func)
+      (funcall repeat-manually-func))
+    (if (string= file-type "file")
+        (replace-regexp-in-string "[/\\\\]$" "" init-file)
+      init-file)))
+
+;;;;; dir
+;;;;;; list dir
 (defun entropy/cl-list-dir-lite (dir-root)
   "Return directory list with type of whichever file or
 directory."
@@ -863,32 +948,36 @@ return the path list. "
         (setq rtn $files)))
     rtn))
 
-;;;;; checking duplicated files
+;;;;;; checking duplicated files
 (defun entropy/cl--sdpf-car-duplicated (cons-list)
-  (let ((rtn nil)
+  (let ((rtn nil) stack final-rtn
         (rest-cons (cdr cons-list))
         (head-item (car cons-list)))
     (unless (or (equal 1 (length cons-list))
                 (null cons-list))
-      (dolist (el rest-cons)
-        (when (equal (car head-item) (car el))
-          (cond
-           ((null rtn)
-            (push (cons (car head-item) (list (cdr head-item) (cdr el))) rtn))
-           (rtn
-            (setf (cdr (car rtn))
-                  (push (cdr el) (cdr (car rtn))))))))
-      (setq rest-cons
-            (let ((temp_rest rest-cons))
-              (dolist (el rest-cons)
-                (when (equal (car head-item)
-                             (car el))
-                  (setq temp_rest
-                        (delete el temp_rest))))
-              temp_rest))
-      (setq rtn (append rtn
-                        (entropy/cl--sdpf-car-duplicated rest-cons))))
-    rtn))
+      (while rest-cons
+        (dolist (el rest-cons)
+          (when (equal (car head-item) (car el))
+            (cond
+             ((null rtn)
+              (push (cons (car head-item) (list (cdr head-item) (cdr el))) rtn))
+             (rtn
+              (push (cdr el) (cdr (car rtn)))))))
+        (when rtn (setq final-rtn (append final-rtn rtn)))
+        (setq rtn nil)
+        (setq stack
+              (let ((temp_rest (copy-tree rest-cons)))
+                (dolist (el rest-cons)
+                  (when (equal (car head-item)
+                               (car el))
+                    (setq temp_rest
+                          (delete el temp_rest))))
+                temp_rest)
+              head-item
+              (car stack)
+              rest-cons
+              (cdr stack))))
+    final-rtn))
 
 
 (defun entropy/cl-search-duplicated-files (root-dir &optional sha_compare)
@@ -948,100 +1037,99 @@ Non-nil value.
           (let ((shell-cbk (entropy/cl-file-validation el)))
             (push (cons shell-cbk (cons (file-name-nondirectory el) el))
                   compare-list)))
-         (entropy/cl--sdpf-car-duplicated compare-list))))))
+        (entropy/cl--sdpf-car-duplicated compare-list))))))
 
-;;;;; dirs relative relationship
+;;;;;; dirs relative relationship
 (defvar entropy/cl-dir-relativity-log nil
   "Func `entropy/cl-dir-relativity-number''s log variable for
-  debugging used.")
+debugging used.")
 
 (defun entropy/cl-dir-relativity-number (base-dir-location external-dir-location)
   "Return the alist as relativity hierachy between two directory.
 
 
-  For example:
+For example:
 
-  If BASE-DIR was '/usr/bin' and EXTERNAL-DIR was '/etc' then return
-  alist (-2 . \"etc\" nil).
+If BASE-DIR was '/usr/bin' and EXTERNAL-DIR was '/etc' then return
+alist (-2 . \"etc\" nil).
 
-  If two dir was not below the root, return nil, this often occurred
-  on WINDOWS plattform that basic and external dir was stored in
-  different drive because WINDOWS use different drive letter for
-  identifying each disk partion uniquely as 'c:' 'd:' so on.
+If two dir was not below the root, return nil, this often occurred
+on WINDOWS plattform that basic and external dir was stored in
+different drive because WINDOWS use different drive letter for
+identifying each disk partion uniquely as 'c:' 'd:' so on.
 
-  NOTE: both of base-dir and external-dir must be
-  absolute-format and do not using other web protocol uri, this func
-  only supported windows and unix-like path type.
-
-
-  Details:
-
-  The path core type on whatever plattform are, was both have the
-  root node '/' or 'DRIVE-NAME:/', so the method for parse the
-  relative type between two directory was really simple, that just
-  be on what basic as current basdir BASE-DIR, and then compare each
-  node of them respectively and then calculate parent path part, the
-  last basic on the parent part, generate the relative result number
-  for indicating the relative nodes interval with both positive or
-  negative number for.
-
-  The return relative result was one list contain the relative
-  number (negative number indicate that external-dir was not
-  deliver from current dir 'base-dir', the other wise was
-  oppsite.), and the rest was the path tail with branch
-  indication t or nil (t for same branch, nil for the otherwise),
-  path tail was not always exist, as that the cases of same
-  comparation and the same branch with negative relative number,
-  it' s always the nil (as 'nil' was list with null as \"'()\").
-
-  As that:
-
-  BASE-DIR and EXTERNAL-DIR can in two state: 1) in same branch 2)
-  in different branch
-
-  #+BEGIN_EXAMPLE
-                root                                            root
-                 o                                                o
-              +--+---+                                         +--+---+
-              |  |   |                                         |  |   |
-              |  o   | public parent path                      |  o   | public parent path
-              |  |   |                                         |  |   |
-              +--|---+                                         +--|---+
-    external <---o                                        +-------o
-     dir         |                                        |       |
-                 |                                        |       |
-                 o                                        |       |
-                 |                              external  |       |
-                 |                                 dir    o       o base-dir
-                 o----->base-dir
-                                                        different branch state
-           same branch state
-  #+END_EXAMPLE
+NOTE: both of base-dir and external-dir must be
+absolute-format and do not using other web protocol uri, this func
+only supported windows and unix-like path type.
 
 
-  *same branch:*
-  - base-dir: '/usr/share'
-  - external-dir: '/usr/share/lib'
-  - result: '(1 (\"lib\") t)
+Details:
 
-  - base-dir: '/usr/share'
-  - external-dir: '/usr/share/'
-  - result: '(0 nil t)
+The path core type on whatever plattform are, was both have the
+root node '/' or 'DRIVE-NAME:/', so the method for parse the
+relative type between two directory was really simple, that just
+be on what basic as current basdir BASE-DIR, and then compare each
+node of them respectively and then calculate parent path part, the
+last basic on the parent part, generate the relative result number
+for indicating the relative nodes interval with both positive or
+negative number for.
 
-  - base-dir: '/usr/share/lib'
-  - external-dir: '/usr/share'
-  - result: '(-1 nil t)
+The return relative result was one list contain the relative
+number (negative number indicate that external-dir was not
+deliver from current dir 'base-dir', the other wise was
+oppsite.), and the rest was the path tail with branch
+indication t or nil (t for same branch, nil for the otherwise),
+path tail was not always exist, as that the cases of same
+comparation and the same branch with negative relative number,
+it' s always the nil (as 'nil' was list with null as \"'()\").
 
-  *different branch:*
-  - base-dir: '/usr/share/lib'
-  - external-dir: '/usr/share/applications/icons'
-  - result: '(-1 (\"application\" \"icons\") nil)
+As that:
 
-  *both as equalization:*
-  - base-dir: '/usr/bin'
-  - external-dir: '/usr/bin'
-  - result: '(0 (\"same\") t)
-  "
+BASE-DIR and EXTERNAL-DIR can in two state: 1) in same branch 2)
+in different branch
+
+#+BEGIN_EXAMPLE
+              root                                            root
+               o                                                o
+            +--+---+                                         +--+---+
+            |  |   |                                         |  |   |
+            |  o   | public parent path                      |  o   | public parent path
+            |  |   |                                         |  |   |
+            +--|---+                                         +--|---+
+  external <---o                                        +-------o
+   dir         |                                        |       |
+               |                                        |       |
+               o                                        |       |
+               |                              external  |       |
+               |                                 dir    o       o base-dir
+               o----->base-dir
+                                                      different branch state
+         same branch state
+#+END_EXAMPLE
+
+
+*same branch:*
+- base-dir: '/usr/share'
+- external-dir: '/usr/share/lib'
+- result: '(1 (\"lib\") t)
+
+- base-dir: '/usr/share'
+- external-dir: '/usr/share/'
+- result: '(0 nil t)
+
+- base-dir: '/usr/share/lib'
+- external-dir: '/usr/share'
+- result: '(-1 nil t)
+
+*different branch:*
+- base-dir: '/usr/share/lib'
+- external-dir: '/usr/share/applications/icons'
+- result: '(-1 (\"application\" \"icons\") nil)
+
+*both as equalization:*
+- base-dir: '/usr/bin'
+- external-dir: '/usr/bin'
+- result: '(0 (\"same\") t)"
   (setq entropy/cl-dir-relativity-log nil)
   (let* (blist
          elist
@@ -1187,8 +1275,8 @@ otherwise for nil."
            nil))))
 
 
-;;;; file
-;;;;; file modification state check
+;;;;; file
+;;;;;; file modification state check
 (defun entropy/cl-file-last-modification-time (file)
   "Indicated the last modification time of file FILE.
 
@@ -1212,8 +1300,6 @@ Thus the example '(2018 8 21 14 47 05)."
        tlist))
     (setq tlist (reverse tlist))))
 
-
-
 (defun entropy/cl-file-modified (file file-time)
   "Justify whether file FILE was midified after last time
 FILE-TIME.
@@ -1233,58 +1319,7 @@ FILE-TIME was produced by `entropy/cl-file-last-modification-time'."
           (setq rtn t)))
     rtn))
 
-;;;;; automatically create file
-(defun entropy/cl-create-file (&optional file-name target-location)
-  "Create file with follow options:
-
-- create file with named rely on `buffer-name' of `current-buffer' in `default-directory'
-- create file with specific file-name in  default-directory.
-- create file with named rely on `buffer-name' of `current-buffer' in specific location.
-- create file with specific file-name in specific location.
-
-Note the location must end with '/'."
-  (let* ($return)
-    (if (and (not file-name) (not target-location))
-        (let ((crn (concat default-directory (entropy/cl-generate-attach-name (buffer-name)))))
-          (if (file-exists-p crn)
-              (error (format "File %s exists in %s ." crn default-directory))
-            (find-file crn)
-            (save-buffer)
-            (kill-buffer)
-            (setq $return crn)))
-      (cond
-       ((and file-name target-location)
-        (let ((crn (concat target-location file-name)))
-          (if (file-exists-p crn)
-              (error (format "File %s exists in %s " file-name target-location))
-            (entropy/cl-check-filename-legal crn)
-            (find-file crn)
-            (save-buffer)
-            (kill-buffer)
-            (setq $return crn))))
-       ((and file-name (not target-location))
-        (let ((crn (concat default-directory file-name)))
-          (if (file-exists-p crn)
-              (error (format "File %s exists in %s ." file-name default-directory))
-            (entropy/cl-check-filename-legal crn)
-            (find-file crn)
-            (save-buffer)
-            (kill-buffer)
-            (setq $return crn))))
-       ((and (not file-name) target-location)
-        (let ((crn (concat target-location (entropy/cl-generate-attach-name (buffer-name)))))
-          (if (file-exists-p crn)
-              (error (format "File %s exists in %s ." (file-name-nondirectory crn) target-location))
-            (entropy/cl-check-filename-legal crn)
-            (find-file crn)
-            (save-buffer)
-            (kill-buffer)
-            (setq $return crn))))
-       (t (error "Invalid arg state"))))))
-
-
-
-;;;;; backup files
+;;;;;; backup files
 (defun entropy/cl-backup-file (file-path)
   "Backup file or directory with named it by the form of
 \"xxx-backup_20180713_Fri_21-28-20\"
@@ -1321,8 +1356,8 @@ Notice there's no backup naming regexp convention guarantee! "
      (format "File or directory '%s' doesn't exists, thus can no be backuped!"
              file-path))))
 
-;;;;; check-filename legal
-(defun entropy/cl-check-filename-legal (filename &optional non-error)
+;;;;;; check-filename legal
+(defun entropy/cl-check-filename-whether-illegal (filename &optional non-error)
   "Check filename legally for current operation system platform.
 
 This function refused the invalid file-name which un-compat for
@@ -1366,7 +1401,7 @@ otherwise return nil."
 Notice: untill now [2018-10-15 Mon 02:05:33] just judging whether
 filename type was win32 type, if as then return nil, otherwise
 return t."
-  (if (string-match-p "^.+?:\\(/\\|\\\\\\)" filename)
+  (if (string-match-p "^.:\\(/\\|\\\\\\)" filename)
       nil
     t))
 
@@ -1374,14 +1409,16 @@ return t."
 (defun entropy/cl-check-filename-w32-legal (filename)
   "Check filename FILENAEM type whether suites as windows path type.
 
-  The return are t or nil for follow meaning:
-  1. 't': filename was both of be compat for current system platform
-          and can be created.
-  2. 'nil': filename was one of below situation:
-     * filename was not compat for current system platform.
-     * filaname can not be created that was indicated that the
-       drive path was not detected.
-  "
+The return are t or nil for follow meaning:
+1. 't': filename was both of be compat for current system platform
+        and can be created.
+2. 'nil': filename was one of below situation:
+   * filename was not compat for current system platform.
+   * filaname can not be created that was indicated that the
+     drive path was not detected.
+
+NOTE: this function just gurantee the effection on WINDOWS
+platform."
   (let ((rtn nil))
     (cond
      ((string-match-p "^\\(/\\|\\\\\\)" filename)
@@ -1400,11 +1437,14 @@ return t."
 
 (defun entropy/cl-get-w32-drives-legal-list ()
   "Check windows drives which are detective and return regexp
-  list form like:
+list form like:
 
 '(\"\\(m\\|M\\)\" \"\\(f\\|F\\)\" \"\\(z\\|Z\\)\")
 
-That indicated that drive 'm' 'f' 'z' were detected."
+That indicated that drive 'm' 'f' 'z' were detected.
+
+NOTE: this function just gurantee the effection on WINDOWS
+platform."
   (let ((full-drive-list
          '(("a:/" . "\\(^a\\|^A\\)") ("b:/" . "\\(^b\\|^B\\)") ("c:/" . "\\(^c\\|^C\\)") ("d:/" . "\\(^d\\|^D\\)") ("e:/" . "\\(^e\\|^E\\)")
            ("f:/" . "\\(^f\\|^F\\)") ("g:/" . "\\(^g\\|^G\\)") ("h:/" . "\\(^h\\|^H\\)") ("i:/" . "\\(^i\\|^I\\)") ("j:/" . "\\(^j\\|^J\\)")
@@ -1417,7 +1457,8 @@ That indicated that drive 'm' 'f' 'z' were detected."
       (when (file-exists-p (car el))
         (add-to-list 'rtn (cdr el) t)))
     rtn))
-;;;;; file-sha-or-md5 checking
+
+;;;;;; file-sha-or-md5 checking
 (defun entropy/cl-file-validation (file &optional vtool)
   "Using validation tool generated the file validation codes.
 
@@ -1455,12 +1496,12 @@ When optional arg VTOOL nil for, using md5sum as default choice.
       (setq validation (replace-regexp-in-string "\n" "" validation)))
     validation))
 
-;;; window and buffer operaion
-;;;; buffer operation
-;;;;; buffer name uniquely checker
+;;;; window and buffer operaion
+;;;;; buffer operation
+;;;;;; buffer name uniquely checker
 (defun entropy/cl-ununiquify-bfn (buffer-name)
   "ununiquify buffer name which auto produced the extension name
-  components rely on `uniquify-buffer-name-style-unique'."
+components rely on `uniquify-buffer-name-style-unique'."
   (let* ((uni-rex "\\( *<.*>\\)")
          rtn)
     (setq rtn (replace-regexp-in-string uni-rex "" buffer-name))
@@ -1477,24 +1518,13 @@ When optional arg VTOOL nil for, using md5sum as default choice.
           (error "Buffer name not uniquify! please close other buffer which as named as current buffer.")))
     (message "Uniquely buffer-name: %s" (buffer-name))))
 
-;;;;; buffer exist check
-(defun entropy/cl-buffer-exists-p (buffername)
-  "Judge whether buffer BUFFERNAME existed!"
-  (let* ((bfl (mapcar 'buffer-name (buffer-list))))
-    (if (-filter '(lambda (bname)
-                    (if (string= buffername bname) t nil))
-                 bfl)
-        t
-      nil)))
-
-
-;;;;; replacing buffer string
+;;;;;; replacing buffer string
 (defun entropy/cl-replacing-buffer (re-rules-alist)
   "Replacing by regexp rule within whole buffer.
 
-  The rule-set are formatted as bellow:
+The rule-set are formatted as bellow:
 
-  '(\"^\\(\\.*\\)123$\" . \"\\1Hello World\")"
+'(\"^\\(\\.*\\)123$\" . \"\\1Hello World\")"
   (when buffer-read-only
     (read-only-mode 0))
   (goto-char (point-min))
@@ -1503,9 +1533,9 @@ When optional arg VTOOL nil for, using md5sum as default choice.
 
 
 
-;;; completion framework
-;;;; ivy development
-;;;;; ivy repeatly read former
+;;;; completion framework
+;;;;; ivy development
+;;;;;; ivy repeatly read former
 (defun entropy/cl-ivy-read-repeatedly-function
     (read candidates-recorded prompt-abbrev &optional selected-shorten-function)
   "Common repeatedly read action for `ivy-read'.
@@ -1571,8 +1601,8 @@ Just symbol and string type supported for candidates-recoreded."))))
                         prompt))
             rtn)))
 
-;;;; Internal completion method
-;;;;; Read string
+;;;;; Internal completion method
+;;;;;; Read string
 (defun entropy/cl-repeated-read (initial-input-prompt)
   "Repeated read strings by `read-string' with typing history prompt,
 after type nothing, return the string list in order to the typing
@@ -1582,7 +1612,7 @@ sequence."
     (while (not (string= read ""))
       (if rtn
           (setq input-prompt (format (concat initial-input-prompt " (%s)")
-                                     (mapconcat #'identity (entropy/cl-reverse-list rtn) ","))))
+                                     (mapconcat #'identity (reverse rtn) ","))))
       (setq read
             (read-string (format "%s: " input-prompt)))
 
@@ -1590,13 +1620,13 @@ sequence."
           (push read rtn)))
     (if (> (length rtn) 1)
         (progn
-          (setq rtn (entropy/cl-reverse-list rtn))
+          (setq rtn (reverse rtn))
           rtn)
       (if rtn
           rtn
         (error "No input data!")))))
 
-;;; place and form manipulation
+;;;; place and form manipulation
 (defun entropy/cl-gen-get-nested-append-form-place-form (pos depth form)
   "Get place for neseted append form generated by
 `entropy/cl-gen-nested-append-form'.
@@ -1704,105 +1734,7 @@ non-nil, the =temp/nested-append-form= was generated for:
          (error "[entropy/cl-gen-nested-form]: wrong type of 'replace'"))))
 
 
-;;; mischellaneous
-(defun entropy/cl-gen-time-str (&optional format-string)
-  "generate one time-string from the default style or the
-customized specific format-string FORMAT-STRING."
-  (let ($return)
-    (if (not format-string)
-        (setq $return (format-time-string "%H%M%S-%e%m%Y"))
-      (setq $return (format-time-string format-string)))))
-
-(defun entropy/cl-generate-attach-name (origin-name &optional suffix)
-  "Generate one name according the origin one you specific with
-  the specific suffix string SUFFIX.
-
-If SUFFIX was nill auto use date-time-sec for suffix."
-  (let ($return
-        (orname (replace-regexp-in-string "\\(\\*\\|<\\|>\\)" "" origin-name)))
-    (if (not suffix)
-        (setq $return (concat orname "_" (entropy/cl-gen-time-str)))
-      (setq $return (concat orname suffix)))))
-
-(defun entropy/cl-read-file-name (file-type &optional existed)
- "Repeaatly read file (or dir) name from minibuffer with internal
-file name completion table.
-
-FILE-TYPE was \"file\" string or arbitrary value demoting for
-directory type, using string \"dir\" by habitually.
-
-Optional arg EXISTED indicated for require-matching for current
-candidates from `read-file-name-internal', and satisfied its
-FILE-TYPE.
-
-None existed manaully read case will obey the FILE-TYPE by
-following rule-set:
-
-1) \"file\" type and read as existed one:
-
-   while the read existed as one directory, show prompt in mode
-   line and request repeatly inputtng.
-
-2) \"file\" type and read as non-existed:
-
-   while the read string matched the tail slash, repeatly
-   inputting.
-
-3) \"dir\" type and exsited read:
-
-   while the read existed as one file(not directory), do repeatly
-   inputting.
-
-4) Other any read case was legal."
-
-  (let* ((init-file
-          (completing-read
-           (if (equal file-type "file")
-               "Choosing file: "
-             "Choosing directory: ")
-           'read-file-name-internal))
-         (judge-func (if (equal file-type "file")
-                         (lambda (x) (and (file-exists-p x)
-                                          (not (file-directory-p x))))
-                       'file-directory-p))
-         (repeat-existed-func
-          (lambda ()
-            (while (not (funcall judge-func init-file))
-              (let ((mode-line-format
-                     (if (equal file-type "file")
-                         (if (file-exists-p init-file)
-                             (list "%e" (propertize "Please choose 'FILE' not the directory location!" 'face 'warning))
-                           (list "%e" (propertize (format "File not exists '%s'" init-file) 'face 'warning)))
-                       (if (file-exists-p init-file)
-                           (list "%e" (propertize "Please choose 'DIR' not the file location!" 'face 'warning))
-                         (list "%e" (propertize (format "Direcory not exists '%s'" init-file) 'face 'warning))))))
-                (setq init-file
-                      (completing-read (if (equal file-type "file")
-                                           "Choosing file: "
-                                         "Choosing directory: ")
-                                       'read-file-name-internal))))))
-         (repeat-manually-func
-          (lambda ()
-            (let ((slash-tail-warn (list "%e" (propertize "Please input 'FILE' not the directory location!" 'face 'warning)))
-                  (file-warn (list "%e" (propertize (format "Please input 'DIR', file existed '%s'!" init-file) 'face 'warning))))
-              (cond ((equal "file" file-type)
-                     (while (string-match-p "/$" init-file)
-                       (let ((mode-line-format slash-tail-warn))
-                         (setq init-file
-                               (completing-read "Input file: " 'read-file-name-internal)))))
-                    (t
-                     (while (and (file-exists-p init-file)
-                                 (not (file-directory-p init-file)))
-                       (let ((mode-line-format file-warn))
-                         (setq init-file
-                               (completing-read "Input directory: "
-                                                'read-file-name-internal))))))))))
-    (if existed
-        (funcall repeat-existed-func)
-      (funcall repeat-manually-func))
-    init-file))
-
-;;; color refer
+;;;; color refer
 (defun entropy/cl-color-name-to-hsv (color_name)
   "Transfer color COLOR_NAME to hsv format."
   (let* ((Crgb (color-name-to-rgb color_name))
@@ -1832,7 +1764,7 @@ non-detectivation."
         'light
       'dark)))
 
-;;; url refer
+;;;; url refer
 (defun entropy/cl-url-transfer-region-entities (&optional region)
   "Transfer region-selected text into entities form and push it into
 kill-ring.
@@ -1861,6 +1793,14 @@ instead of the interactive way."
                    (kill-ring-save p1 p2))))
       (error "Non valid region argument given."))))
 
+
+;;;; mischellaneous
+(defun entropy/cl-gen-time-str (&rest _)
+  "generate one time-string from the style internally.
+
+NOTE: there's no guarantee for the default time-string style
+returned."
+  (format-time-string "%H:%M:%S_%Y-%m-%d"))
 
 ;;; provide
 (provide 'entropy-common-library)

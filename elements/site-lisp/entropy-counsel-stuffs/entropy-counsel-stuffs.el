@@ -10,21 +10,21 @@
 ;; Created:       2018-month-date hour:min:sec
 ;; Compatibility: GNU Emacs 24;
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5") (org "9.1"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 ;;;; What is stuffs this case shown for?
 ;;
@@ -68,7 +68,7 @@
 ;; Required package =ivy= was elpa accredited third-party emacs extension
 ;; built by [[https://github.com/abo-abo][abo-abo]], you can download it from melpa directly.
 ;;
-;;;; Installation 
+;;;; Installation
 ;;
 ;; It's recommended using =use-package= to config the initialize config
 ;; of this file as the code snippet below shown:
@@ -107,12 +107,12 @@
 ;;     :CSTYPE:   url
 ;;     :LOCATION: C:/temp/
 ;;     :END:
-;; #+END_SRC 
+;; #+END_SRC
 ;;
 ;;; Introduction fo above tempalte:*
 ;;
 ;; The title was indicated the top level 1st info of current database
-;; brief description. 
+;; brief description.
 ;;
 ;; Heading =heading 1= was one stuff entry recorde which has the the
 ;; attributes "custom_id","category","cstype","location" representing as
@@ -128,7 +128,7 @@
 ;;   manually when you manipulate the database raw file manually, it's
 ;;   recommended to setting this id sequence using emacs org-mode
 ;;   internal api ~org-id-new~ or using the bash script snippet:
-;;   
+;;
 ;;   : cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1
 ;;
 ;; - CATEGORY
@@ -166,7 +166,7 @@
 ;;   string format e.g. 'file://xxxxxxxx' used for local file
 ;;   'https://xxxxxxxx' used for web urls. And now
 ;;   =entropy-counsel-stuffs= only support this two protocol string.
-;;   
+;;
 ;;;; Interactivation
 ;;
 ;; =entropy-counsel-stuffs= using sets of interaction 'autoload' to
@@ -226,7 +226,7 @@
 ;; interaction process, with the method both of manually seperated
 ;; inputted string with semicolon or with candidates (match requiring)
 ;; selecting repeatly with ~ivy-call~ (binding with =ivy-minibuffer-map=
-;; 'C-M-m') and showing with the brief prompting string as: 
+;; 'C-M-m') and showing with the brief prompting string as:
 ;;
 ;; #+attr_org: :width 600px
 ;; #+attr_html: :width 600px
@@ -243,13 +243,13 @@
 ;; one or sets of stuffs recorded information, you get the first reaction
 ;; for doing with raw database file editting manually. But there's the
 ;; readymade stuff modication interactivation function
-;; ~entropy/cs-modifiy~ for thus on. Calling it while you wish to. 
+;; ~entropy/cs-modifiy~ for thus on. Calling it while you wish to.
 ;;
-;;  
-;;;; Apis 
+;;
+;;;; Apis
 ;;
 ;; This package can be used as the fundametal library (or dependencies)
-;; for other emacs packages' developments. 
+;; for other emacs packages' developments.
 ;;
 ;; Even though, this package gives the comprehensive independent
 ;; interaction functional experience, I setted the core library of it as
@@ -278,7 +278,7 @@
 ;;     (let ((entropy/cs-entry-recorde-file chosen_file)
 ;;           (entropy/cs-cached-alist  nil))
 ;;       (entropy/cs-open-all)))
-;; #+END_SRC 
+;; #+END_SRC
 ;;
 ;; With the obviously another notice following the 'pointer' file let
 ;; form, cache list =entropy/cs-cached-alist= must be cleaned out before
@@ -311,7 +311,7 @@
 ;;    .
 ;;    .
 ;;    .)
-;; #+END_SRC 
+;; #+END_SRC
 ;;
 ;; This cache list getted by func ~entropy/cs-get-cached-list~ without
 ;; any arguments need for inputting in, as the narratation that it
@@ -369,14 +369,14 @@
 ;; variable =entropy/cs-entry-recorde-file= which denoted as the stuffs
 ;; collection database mentioned in the preamble section. The value of it
 ;; was path string of the database org file.(the default value was
-;; "~/Entropy-mini/20171116235728/org/bookmarks.org") 
+;; "~/Entropy-mini/20171116235728/org/bookmarks.org")
 ;;
 ;; By the way, while you calling any interaction func of this package
 ;; will check the database file if be existing as is, and auto create it
 ;; at the opposite, so you may not need to create the database file
 ;; manually unless you wish to located the database file to the specific
 ;; location.
-;; 
+;;
 ;;; Code:
 ;;;; require
 (require 'entropy-open-with)
@@ -421,6 +421,41 @@
 
 
 ;;;; main library
+
+(defun entropy/cs-extract-idlist (idlist se)
+  "Id list produced by `entropy/cl-make-identify-list' was aimed to
+make every element be unique even there's two element has the same
+value.
+
+This function exract the id with one abbreviated elements info
+which was the sequenced sub-element in the element enetry of
+origin none-identified list.
+
+Thus like idlist:
+
+'((0 (\"hello\" \"vt.\"))
+  (1 (\"happy\" \"adj.\"))
+  (2 (\"apple\" \"n.\"))
+  (3 (\"hello\" \"vt.\")))
+
+was the words with words-property list.
+
+This function was aimed to produce one string list for some emacs
+completion function like ivy to both show the id and abbrev info
+like:
+
+'(\"0:hello\"
+  \"1:happy\"
+  \"2:apple\"
+  \"3:hello\")"
+  (let* (rlist)
+    (dolist (el idlist)
+      (let* ((se-id (concat (car el) ":"))
+             (subel (nth se (nth 1 el)))
+             (full (concat se-id subel)))
+        (push full rlist)))
+    (setq rlist (reverse rlist))))
+
 (defun entropy/cs-get-default-category (&optional cached)
   "Get all customized org categories-name of
 `entropy-counsel-stuffs'.
@@ -442,7 +477,7 @@ categories in all `org-agenda-files'."
       (dolist (el rlist)
         (let ((sp (split-string (nth 1 el) ";")))
           (dolist (el1 sp)
-            (if (not (entropy/cl-unique-list el1 rslist))
+            (if (not (member el1 rslist))
                 (push el1 rslist)))))
       (if rslist
           rslist
@@ -506,7 +541,7 @@ one list returned by `entropy/cs-get-original-alist'"
                           nil)))
         (if (and id-pair item-pair)
             (push `(,id-pair ,item-pair) rlist))))
-    (setq rlist (entropy/cl-reverse-list rlist))))
+    (setq rlist (reverse rlist))))
 
 (defun entropy/cs-justify-key-p (key ecs-entry)
   "Justify one key KEY is activated in one
@@ -622,7 +657,7 @@ Args description:
     (newline)
     (forward-line 0)
     (insert (format "** %s" name))
-    (save-excursion 
+    (save-excursion
       (insert
        (format
         "
@@ -665,7 +700,7 @@ Args description:
                      (ivy-read "Adding category: " (entropy/cs-get-default-category t)
                                :action 'entropy/cs-read-category)
                      (let ((rtn nil))
-                       (dolist (el (entropy/cl-reverse-list entropy/cs-read-temp))
+                       (dolist (el (reverse entropy/cs-read-temp))
                          (let* ((el-1 (replace-regexp-in-string "\\(^;+\\|;+$\\)" "" el))
                                 (element (replace-regexp-in-string ";+" ";" el-1)))
                            (if rtn
@@ -699,7 +734,7 @@ Args description:
                      (ivy-read "Input category: " (entropy/cs-get-default-category t)
                                :action 'entropy/cs-read-category)
                      (let ((rtn nil))
-                       (dolist (el (entropy/cl-reverse-list entropy/cs-read-temp))
+                       (dolist (el (reverse entropy/cs-read-temp))
                          (let* ((el-1 (replace-regexp-in-string "\\(^;+\\|;+$\\)" "" el))
                                 (element (replace-regexp-in-string ";+" ";" el-1)))
                            (if rtn
@@ -744,7 +779,7 @@ Args description:
          ;; idlist
          (idlist (entropy/cs-get-alist-id-name alist))
          (iidlist (entropy/cl-make-identify-list idlist))
-         (nlist (entropy/cl-extract-idlist iidlist 1))
+         (nlist (entropy/cs-extract-idlist iidlist 1))
          (choice (ivy-read "Choose which item you want to modified: " nlist))
          chidet)
     (dolist (el iidlist)
@@ -764,7 +799,7 @@ Args description:
                                      :initial-input ocategory
                                      :action 'entropy/cs-read-category)
                            (let ((rtn nil))
-                             (dolist (el (entropy/cl-reverse-list entropy/cs-read-temp))
+                             (dolist (el (reverse entropy/cs-read-temp))
                                (if rtn
                                    (setq rtn (concat rtn ";" el))
                                  (setq rtn el)))
@@ -806,7 +841,7 @@ Args description:
   (let* ((alist (entropy/cs-get-original-alist))
          (idlist (entropy/cs-get-alist-id-name alist))
          (iidlist (entropy/cl-make-identify-list idlist))
-         (nlist (entropy/cl-extract-idlist iidlist 1))
+         (nlist (entropy/cs-extract-idlist iidlist 1))
          (choice (ivy-read "Choose which item you want to modified: " nlist))
          chidet)
     (dolist (el iidlist)

@@ -1680,7 +1680,7 @@ Now just supply localization image file analyzing."
               (let ((default-directory base-dir))
                 (push (expand-file-name non-abbrev) links)))
              (t
-              (unless (entropy/cl-check-filename-legal non-abbrev t)
+              (unless (entropy/cl-check-filename-whether-illegal non-abbrev t)
                 (push non-abbrev links))))))))
     links))
 
