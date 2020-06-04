@@ -1506,7 +1506,8 @@ When optional arg VTOOL nil for, using md5sum as default choice.
 ;;; completion framework
 ;;;; ivy development
 ;;;;; ivy repeatly read former
-(defun entropy/cl-ivy-read-repeatedly-function (read candidates-recorded prompt-abbrev &optional selected-shorten-function)
+(defun entropy/cl-ivy-read-repeatedly-function
+    (read candidates-recorded prompt-abbrev &optional selected-shorten-function)
   "Common repeatedly read action for `ivy-read'.
 
 Arguments:
@@ -1526,9 +1527,10 @@ Arguments:
   (if (and (not (member read (symbol-value candidates-recorded)))
            (not (string= "" read)))
       (push read (symbol-value candidates-recorded)))
-  (let ((prompt (entropy/cl-ivy-read-repeatedly-prompt-expand prompt-abbrev candidates-recorded selected-shorten-function)))
+  (let ((prompt (entropy/cl-ivy-read-repeatedly-prompt-expand
+                 prompt-abbrev candidates-recorded selected-shorten-function)))
     (setf (ivy-state-prompt ivy-last) prompt)
-    (setq ivy--prompt (concat "(%d/%d) " prompt)))
+    (setq ivy--prompt (concat ivy-count-format " " prompt)))
   (cond
    ((memq this-command '(ivy-done ivy-alt-done 'ivy-immediate-done))
     t)
@@ -1536,10 +1538,13 @@ Arguments:
     (with-selected-window (active-minibuffer-window)
       (delete-minibuffer-contents)))))
 
-(defun entropy/cl-ivy-read-repeatedly-prompt-expand (prompt-abbrev candidates-recorded &optional shorten-function)
-  "Make incremented prompt string for function `entropy/cl-ivy-read-repeatedly-function'.
+(defun entropy/cl-ivy-read-repeatedly-prompt-expand
+    (prompt-abbrev candidates-recorded &optional shorten-function)
+  "Make incremented prompt string for function
+`entropy/cl-ivy-read-repeatedly-function'.
 
-You can see the details of arguments with above mentioned function docstring."
+You can see the details of arguments with above mentioned
+function docstring."
   (format (concat prompt-abbrev " (%s) : ")
           (let ((olist (symbol-value candidates-recorded))
                 mlist
