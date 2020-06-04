@@ -120,13 +120,18 @@ tasks 'ing' refer prompts."
   (run-with-idle-timer 0.2 nil (lambda () (message ""))))
 
 (defun entropy/emacs-make-function-inhibit-readonly
-    (func)
+    (func &optional inhibit-local)
   "Make function FUNC adviced around by a let wrapper with
-`inhibit-read-only' enabled of lexical means."
+`inhibit-read-only' enabled of lexical means.
+
+If optional argument INHIBIT-LOCAL is non-nil, its also press on
+the buffer-locally variable `buffer-read-only'."
   (advice-add func
               :around
-              '(lambda (orig-func &rest orig-args)
-                 (let ((inhibit-read-only t))
+              `(lambda (orig-func &rest orig-args)
+                 (let ((inhibit-read-only t)
+                       (buffer-read-only
+                        (if ,inhibit-local nil buffer-read-only)))
                    (apply orig-func orig-args)))))
 
 ;; *** plist manipulation

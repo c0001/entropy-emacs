@@ -308,29 +308,11 @@ moving operation will cause non-terminated looping proceeding."
               :before
               #'entropy/emacs-structure--copied-filter)
 
-  (defun entropy/emacs-structure--outorg-edit-unlock-buffer (&rest _)
-    (when buffer-read-only
-      (if (not (y-or-n-p "Buffer is read-only - make writable "))
-          (error "Cannot edit read-only buffer")
-        (with-current-buffer (current-buffer)
-          (read-only-mode 0)))))
-  (advice-add 'outorg-edit-as-org
-              :before
-              'entropy/emacs-structure--outorg-edit-unlock-buffer)
+  (entropy/emacs-make-function-inhibit-readonly
+   'outorg-edit-as-org t)
 
-  (defun entropy/emacs-structure--outorg-edit-exit-unlock-code-buffer (&rest _)
-    (let ((buffer (marker-buffer outorg-code-buffer-point-marker)))
-      ;; unlock source code buffer
-      (when (and (buffer-live-p (get-buffer buffer))
-                 (with-current-buffer buffer buffer-read-only))
-        (with-current-buffer buffer
-          (read-only-mode 0)))
-
-      ;; unlock edit buffer
-      (when buffer-read-only
-        (read-only-mode 0))))
-  (advice-add 'outorg-copy-edits-and-exit :before
-              #'entropy/emacs-structure--outorg-edit-exit-unlock-code-buffer))
+  (entropy/emacs-make-function-inhibit-readonly
+   'outorg-copy-edits-and-exit t))
 
 ;; ** outshine-mode
 
