@@ -21,7 +21,7 @@
 ;; along with this program.  If not, see
 ;; <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 ;; This package was the default interface of =entropy-prjm-core=, as
 ;; the same prominent position as =entropy-prjm-core= does.Packages
@@ -31,7 +31,7 @@
 ;; OFC, as needed for every =entropy-project-management= referrenced
 ;; packages, this package requiring (deriving from)
 ;; =entropy-prjm-core=. Using its prototype and expanding them to
-;; building interaction apis framework. 
+;; building interaction apis framework.
 ;;
 ;; The interaction aspects of entropy-project-management are:
 ;; - QUERY-ALL
@@ -87,13 +87,13 @@
 ;; database location for portable purpose.
 ;;
 ;; (*natively relative path format:* ../[../ ...]xxxx or ./xxx)
-;; #+END_QUOTE  
-;; 
+;; #+END_QUOTE
+;;
 ;; For operation =QUERY-ALL=, the only argument it recieved is one
 ;; =db-expression=, but this package doesn't give the database
 ;; managing feature, thus for this, another api 'database retrieving
 ;; operation'. There's two operation type for it:
-;; 
+;;
 ;; - "get-all" operation
 ;;
 ;;   Require non-argument, as that this function need to returns all
@@ -107,7 +107,7 @@
 ;;
 ;;   This function requried one string type argument, for matcing the
 ;;   corresponding db-expression as that this string was the db-name
-;;   of that database. 
+;;   of that database.
 ;;
 ;; For the instance for databse-retrieveing function, by the requests
 ;; of above database operation type list, there needs two instance
@@ -133,7 +133,7 @@
 ;; variable, notice for that all of them are type of plist-key
 ;; e.g. =:Prj_Name=.
 ;;
-;;  
+;;
 ;;
 ;;; Configuration:
 ;;
@@ -159,12 +159,12 @@ Operation type are:
 
 
 The associated value of each key was one corresponding function
-with speicfic interface regulation. 
+with speicfic interface regulation.
 
 *get-all* type operation:
 
 Function with no arguments, return list of =db-expression= (see
-`entropy/prjm-db-expression-prototype'). 
+`entropy/prjm-db-expression-prototype').
 
 *get-by-name* type operation:
 
@@ -185,10 +185,10 @@ For `entropy-prjm-interaction', there're five standard operation
 for manipulating with project database:
 
 - \"QUERY-ALL\": Query projects information of single database
-- \"ADD\": Add prj into specific database. 
-- \"DELETE\": Delete prj into specific database. 
-- \"UPDATE\": Update prj into specific database. 
-- \"OPEN\": Open project's location. 
+- \"ADD\": Add prj into specific database.
+- \"DELETE\": Delete prj into specific database.
+- \"UPDATE\": Update prj into specific database.
+- \"OPEN\": Open project's location.
 
 As that, each type of value is function, and the instanced
 rule-set shown in below table:
@@ -231,7 +231,7 @@ some situations that user orgnize some projects relative by
 database location for portable purpose.
 
 (*natively relative path format:* ../[../ ...]xxxx or ./xxx)
-#+END_QUOTE  
+#+END_QUOTE
 "
   :type 'sexp
   :group 'entropy/prjm-group)
@@ -265,6 +265,24 @@ database location for portable purpose.
 (defvar entropy/prjm--inct-prj-template
   (expand-file-name "prj-template" (file-name-directory load-file-name)))
 
+;;;;; prj type and thus with icon reflects
+
+(defvar entropy/prjm--inct-prj-types
+  '("wiki" "doc" "note"
+    "config" "music" "video" "photo"
+    "code" "common"))
+
+(defvar entropy/prjm--inct-prj-type-icon-reflects
+  '(("wiki" (all-the-icons-faicon "wikipedia-w" :height 0.75 :face 'all-the-icons-lcyan))
+    ("doc" (all-the-icons-fileicon "word" :face 'all-the-icons-cyan-alt))
+    ("note" (all-the-icons-fileicon "onenote" :face 'all-the-icons-dpink))
+    ("config" (all-the-icons-fileicon "config" :face 'all-the-icons-yellow))
+    ("music" (all-the-icons-faicon "music" :face 'all-the-icons-red))
+    ("video" (all-the-icons-fileicon "video" :face 'all-the-icons-green))
+    ("photo" (all-the-icons-material "photo_library" :face 'all-the-icons-lorange))
+    ("code"  (all-the-icons-octicon "code" :face 'all-the-icons-blue))
+    ("common" (all-the-icons-material "folder_special" :face 'all-the-icons-lsilver))))
+
 ;;;; library
 ;;;;; common library
 (defun entropy/prjm--inct-get-db-prj-operator (prj-operation)
@@ -297,16 +315,12 @@ database location for portable purpose.
   (let (rtn)
     (if (not (display-graphic-p))
         ""
-      (setq rtn (or (ignore-errors (all-the-icons-fileicon prj-type))
-                    (ignore-errors (all-the-icons-alltheicon prj-type))
-                    (ignore-errors (all-the-icons-faicon prj-type))
-                    (ignore-errors (all-the-icons-material prj-type))
-                    (ignore-errors (all-the-icons-octicon prj-type))
-                    (ignore-errors (all-the-icons-wicon prj-type))))
+      (setq rtn (eval (cadr (assoc prj-type entropy/prjm--inct-prj-type-icon-reflects))))
       (cond ((not (null rtn))
              (format "%s\t%s" rtn " "))
             (t
-             (concat (all-the-icons-faicon "folder") "\t "))))))
+             (concat (eval (cadr (assoc "common" entropy/prjm--inct-prj-type-icon-reflects)))
+                     "\t "))))))
 
 (defun entropy/prjm--inct-get-prj-attrs ()
   (let ((prj-column-exp (entropy/prjm-prj-column-expression-prototype))
@@ -365,7 +379,7 @@ none-matched column of prj-obj-prototype '%s'" (symbol-name el)))
 
 (defun entropy/prjm--inct-choose-attrs ()
   (let ((attr-keys (entropy/prjm--inct-get-prj-attrs))
-        selected-keys (prompt-abbrev "Choosing attrs")
+        selected-keys (prompt-abbrev "Choosing attrs: ")
         repeating-func rtn)
     (setq repeating-func
           (lambda (x)
@@ -537,15 +551,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
             (entropy/prjm--inct-read-string
              prompt
              nil initial nil
-             (funcall (lambda ()
-                        (let (candi)
-                          (dolist (el (all-the-icons--read-candidates))
-                            (push (car (if (display-graphic-p)
-                                           (split-string  (car el) "\t")
-                                         (mapcar 'substring-no-properties
-                                                 (split-string  (car el) "\t"))))
-                                  candi))
-                          candi))))))
+             entropy/prjm--inct-prj-types)))
           ((eq column entropy/prjm--inct-prj-uri-column)
            (let* ((type-list '("manually-local" "auto-local" "exists-local" "remote"))
                   (type-choose (completing-read "Choosing uri type: " type-list
@@ -655,7 +661,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
             (let ((db-obj (entropy/prjm-gen-db-obj
                            (funcall candi-db-exp-get-func db-name))))
               (plist-get db-obj :db-des)))))
-    
+
     (ivy--format-function-generic
      (lambda (db-name)
        (concat (car entropy/prjm--inct-ui-pointer-style)
@@ -722,7 +728,7 @@ did by `entropy/prjm--inct-addprj-create-template'."
 
 (defun entropy/prjm--inct-lprjs-get-prjs-NmId-align-format (db-cache-obj)
   (let ((brief-prjs-info (entropy/prjm--inct-lprjs-list-brief-prjs-info db-cache-obj))
-        ids names id-max-len name-max-len) 
+        ids names id-max-len name-max-len)
     (dolist (el brief-prjs-info)
       (push (car el) ids)
       (push (cadr el) names))
