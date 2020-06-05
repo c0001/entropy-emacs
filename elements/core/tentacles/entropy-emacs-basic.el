@@ -1064,7 +1064,9 @@ This affected by `neotree' or `treemacs' window sticking with
 ;; *** Global read only mode
 (use-package entropy-global-read-only-mode
   :ensure nil
-  :commands (entropy-grom-mode)
+  :commands (entropy-grom-mode
+             entropy/grom-read-only-buffer
+             entropy/grom-quick-readonly-global)
   :eemacs-indhc
   (((:enable t)
     (entropy-grom-mode))
