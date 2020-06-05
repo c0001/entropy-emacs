@@ -332,7 +332,8 @@ key slot support."
           (with-current-buffer buffer
             (setq-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
                         nil)))
-        (pop entropy/emacs-popwin--shackle-popup-buffer-history))))
+        (setq entropy/emacs-popwin--shackle-popup-buffer-history
+              (delete buffer entropy/emacs-popwin--shackle-popup-buffer-history)))))
 
   (advice-add #'keyboard-quit
               :before #'entropy/emacs-popwin--shackle-close-popup-window-hack)
