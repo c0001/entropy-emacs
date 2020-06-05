@@ -253,7 +253,15 @@ database location for portable purpose.
 ;;;;; interaction pointer icon
 (defvar entropy/prjm--inct-ui-pointer-style
   (if (display-graphic-p)
-      (cons (concat (all-the-icons-faicon "hand-o-right") " ") "   ")
+      (cons (concat
+             "  "
+             (all-the-icons-faicon
+              "arrow-right"
+              :face 'all-the-icons-cyan
+              :height 0.6
+              :v-adjust 0.18)
+             " ")
+            "    ")
     (cons "--> " "    ")))
 
 ;;;;; temporally db refer var
@@ -273,14 +281,14 @@ database location for portable purpose.
     "code" "common"))
 
 (defvar entropy/prjm--inct-prj-type-icon-reflects
-  '(("wiki" (all-the-icons-faicon "wikipedia-w" :height 0.75 :face 'all-the-icons-lcyan))
-    ("doc" (all-the-icons-fileicon "word" :face 'all-the-icons-cyan-alt))
-    ("note" (all-the-icons-fileicon "onenote" :face 'all-the-icons-dpink))
+  '(("wiki" (all-the-icons-faicon "wikipedia-w" :height 0.75 :face 'all-the-icons-lcyan :v-adjust 0.001))
+    ("doc" (all-the-icons-fileicon "word" :face 'all-the-icons-cyan-alt :v-adjust 0.001))
+    ("note" (all-the-icons-fileicon "onenote" :face 'all-the-icons-dpink :v-adjust 0.001))
     ("config" (all-the-icons-fileicon "config" :face 'all-the-icons-yellow))
     ("music" (all-the-icons-faicon "music" :face 'all-the-icons-red))
     ("video" (all-the-icons-fileicon "video" :face 'all-the-icons-green))
     ("photo" (all-the-icons-material "photo_library" :face 'all-the-icons-lorange))
-    ("code"  (all-the-icons-octicon "code" :face 'all-the-icons-blue))
+    ("code"  (all-the-icons-octicon "code" :face 'all-the-icons-blue :v-adjust 0.02))
     ("common" (all-the-icons-material "folder_special" :face 'all-the-icons-lsilver))))
 
 ;;;; library
