@@ -93,12 +93,13 @@
        (if (consp backend) backend (list backend))
        '(:separate company-yasnippet)))))
 
+(defvar entropy/emacs-company-start-with-yas-done nil)
 (defun entropy/emacs-company-start-with-yas (&rest _)
-  (when (not (condition-case error
-                 (symbol-value yas-global-mode)
-               (error nil)))
+  (unless (or (bound-and-true-p yas-global-mode)
+              entropy/emacs-company-start-with-yas-done)
     (when (fboundp 'yas-global-mode)
-      (yas-global-mode))))
+      (yas-global-mode)
+      (setq entropy/emacs-company-start-with-yas-done t))))
 
 ;; *** company for docs modes
 
@@ -207,7 +208,9 @@
    (global-company-mode t)
    (entropy/emacs-company-yas-for-docs-init))
 
-  (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)
+  (dolist (func '(company-idle-begin company-complete))
+    (advice-add func
+                :before 'entropy/emacs-company-start-with-yas))
 
 ;; *** config for after-load
   :config
@@ -263,7 +266,6 @@
   :if (and (not entropy/emacs-company-posframe-mode)
            (display-graphic-p))
   :after company
-  :defines company-quickhelp-delay
   :commands (company-quickhelp-mode
              company-quickhelp-manual-begin)
   :bind (:map company-active-map
@@ -340,7 +342,7 @@ completion when calling: 'execute-extended-command' or
 (use-package company-lsp
   :init
   (entropy/emacs-lazy-load-simple lsp-mode
-    (advice-add 'lsp--auto-configure
+    (advice-add 'lsp
                 :after
                 #'entropy/emacs-company-add-lsp-backend))
 
@@ -349,25 +351,30 @@ completion when calling: 'execute-extended-command' or
   (setq company-lsp-cache-candidates t)
 
   (defun entropy/emacs-company-add-lsp-backend (&rest args)
+    (make-local-variable 'company-backends)
     (setq-local company-backends (remove 'company-lsp company-backends))
-    (cond ((eq major-mode 'sh-mode)
-           (add-to-list 'company-backends
-                        '(company-yasnippet company-files :separate company-lsp :with company-en-words)))
-          ((or (eq major-mode 'js2-mode)
-               (eq major-mode 'php-mode)
-               (eq major-mode 'python-mode)
-               (eq major-mode 'css-mode)
-               (eq major-mode 'html-mode)
-               (eq major-mode 'web-mode))
-           (add-to-list 'company-backends
-                        '(company-files company-lsp company-yasnippet :separate company-en-words)))
-          ((or (eq major-mode 'c-mode)
-               (eq major-mode 'c++-mode))
-           (add-to-list 'company-backends '(company-files company-lsp :with company-yasnippet)))
-          (t
-           (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-lsp) company-backends)))))
+    (add-to-list 'company-backends
+                 '(company-files
+                   company-lsp
+                   :separate company-dabbrev-code company-keywords
+                   :with company-yasnippet))))
 
 ;; ** Individual backends
+(defun entropy/emacs-company--default-traditional-backends-generator
+    (stick-backends)
+  (make-local-variable 'company-backends)
+  (setq-local
+   company-backends
+   `((company-files
+      ,@stick-backends
+      :separate
+      company-dabbrev-code
+      company-gtags
+      company-etags
+      company-keywords
+      :with company-yasnippet
+      ))))
+
 ;; *** miscelloneous
 ;; **** englishs dict quick completion
 (use-package company-en-words
@@ -380,64 +387,65 @@ completion when calling: 'execute-extended-command' or
   :if (or (eq (entropy/emacs-get-use-ide-type 'sh-mode) 'traditional)
           entropy/emacs-ide-suppressed)
   :after company
-  :defines (sh-mode-hook)
   :commands (company-shell company-shell-env company-fish-shell)
   :init
-  (add-hook 'sh-mode-hook #'entropy/emacs-company--add-shell-backend)
-  (defun entropy/emacs-company--add-shell-backend ()
-    (make-local-variable 'company-backends)
-                 ;; NOTE: this list order requested
-    (dolist (el '(company-shell-env company-shell))
-      (cl-pushnew (if (eq el 'company-shell) (entropy/emacs-company-use-yasnippet el) el)
-                  company-backends))))
+  (entropy/emacs-lazy-load-simple sh-script
+    (defun entropy/emacs-company--set-company-backends-for-sh-mode-in-traditional-way
+        ()
+      (entropy/emacs-company--default-traditional-backends-generator
+       '(company-shell company-shell-env)))
+    (add-hook
+     'sh-mode-hook
+     #'entropy/emacs-company--set-company-backends-for-sh-mode-in-traditional-way)))
 
 ;; *** web refer
 ;; **** web/html&css
 (use-package company-web
   :after company
-  :defines (company-web-html
-            company-web-jade
-            company-web-slim
-            web-mode-hook
-            css-mode-hook)
   :commands company-web
   :init
-  (if (eq (entropy/emacs-get-use-ide-type 'web-mode) 'traditional)
-      (add-hook 'web-mode-hook #'entropy/emacs-company-web-add-all-backends))
-  (if (eq (entropy/emacs-get-use-ide-type 'css-mode) 'traditional)
-      (add-hook 'css-mode-hook #'entropy/emacs-company-web-add-css-backend))
 
-  (defun entropy/emacs-company-web-add-html-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-web-html) company-backends))
-  (defun entropy/emacs-company-web-add-jade-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew 'company-web-jade company-backends))
-  (defun entropy/emacs-company-web-add-slim-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew 'company-web-slim company-backends))
-  (defun entropy/emacs-company-web-add-css-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew 'company-css company-backends))
-  (defun entropy/emacs-company-web-add-all-backends ()
-    (entropy/emacs-company-web-add-slim-backend)
-    (entropy/emacs-company-web-add-jade-backend)
-    (entropy/emacs-company-web-add-css-backend)
-    (entropy/emacs-company-web-add-html-backend)))
+  (autoload (function company-web-html) "company-web-html" nil t)
+  (autoload (function company-web-jade) "company-web-jade" nil t)
+  (autoload (function company-web-slim) "company-web-slim" nil t)
+
+  (entropy/emacs-lazy-load-simple web-mode
+    (when (eq (entropy/emacs-get-use-ide-type 'web-mode) 'traditional)
+      (defun entropy/emacs-company--set-company-backends-for-web-mode-in-traditional-way
+          ()
+        (entropy/emacs-company--default-traditional-backends-generator
+         '(company-web-html)))
+      (add-hook
+       'web-mode-hook
+       #'entropy/emacs-company--set-company-backends-for-web-mode-in-traditional-way)))
+
+  (entropy/emacs-lazy-load-simple css-mode
+    (when (eq (entropy/emacs-get-use-ide-type 'css-mode) 'traditional)
+      (defun entropy/emacs-company--set-company-backends-for-css-mode-in-traditional-way
+          ()
+        (entropy/emacs-company--default-traditional-backends-generator
+         '(company-css)))
+      (add-hook
+       'css-mode-hook
+       #'entropy/emacs-company--set-company-backends-for-css-mode-in-traditional-way)))
+
+  )
 
 ;; **** javascript
 (use-package company-tern
   :ensure nil
   :if (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
   :after company
-  :defines js2-mode-hook
   :commands company-tern
   :init
-  (add-hook 'js2-mode-hook #'entropy/emacs-company-tern-add-tern-backend)
-  (defun entropy/emacs-company-tern-add-tern-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-tern)
-                company-backends))
+  (entropy/emacs-lazy-load-simple js2-mode
+    (defun entropy/emacs-company--set-company-backends-for-js2-mode-in-traditional-way
+        ()
+      (entropy/emacs-company--default-traditional-backends-generator
+       '(company-tern)))
+    (add-hook
+     'js2-mode-hook
+     #'entropy/emacs-company--set-company-backends-for-js2-mode-in-traditional-way))
 
   :config
   (defun entropy/emacs-company-create-tern-project-file (&rest _)
@@ -465,57 +473,60 @@ entropy-emacs."
 ;; **** php
 (use-package company-php
   :if (eq (entropy/emacs-get-use-ide-type 'php-mode) 'traditional)
-  :defines php-mode-hook
   :commands company-ac-php-backend
   :init
-  (defun entropy/emacs-company-ac-php-add-acphp-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-ac-php-backend) company-backends))
-  (add-hook 'php-mode-hook #'entropy/emacs-company-ac-php-add-acphp-backend))
+  (entropy/emacs-lazy-load-simple php-mode
+    (defun entropy/emacs-company--set-company-backends-for-php-mode-in-traditional-way ()
+      (entropy/emacs-company--default-traditional-backends-generator
+       '(company-ac-php-backend)))
+    (add-hook
+     'php-mode-hook
+     #'entropy/emacs-company--set-company-backends-for-php-mode-in-traditional-way)))
 
 ;; *** C(PP) Java python
 ;; **** C(PP)
 ;; ***** headers
 (use-package company-c-headers
-  :if (eq (entropy/emacs-get-use-ide-type 'c-mode) 'traditional)
   :after company
-  :defines (c-mode-hook c++-mode-hook)
-  :commands company-c-headers
-  :init
-  (add-hook 'c-mode-hook 'entropy/emacs-company-c-headers-add-cheader-backend)
-  (defun entropy/emacs-company-c-headers-add-cheader-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-c-headers) company-backends)))
+  :commands company-c-headers)
 
 ;; ***** company irony
 (use-package company-irony
-  :if (eq (entropy/emacs-get-use-ide-type 'c-mode) 'traditional)
   :after company
-  :defines (c-mode-hook c++-mode-hook)
-  :commands commpany-irony
-  :init
-  (add-hook 'c-mode-hook 'entropy/emacs-company-irony-add-irony-backend)
-  (add-hook 'c++-mode-hook 'entropy/emacs-company-irony-add-irony-backend)
-  (defun entropy/emacs-company-irony-add-irony-backend ()
-    "Make local company-backends with yasnippet for irony in c
-and c++ mode."
-    (make-local-variable 'company-backends)
-    (when (or (eq major-mode 'c-mode)
-              (eq major-mode 'c++-mode))
-      (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-irony) company-backends))))
+  :commands commpany-irony)
+
+;; ***** main
+
+(defun entropy/emacs-company--set-company-backends-for-C-mode-in-traditional-way
+    ()
+  (entropy/emacs-company--default-traditional-backends-generator
+   '(company-c-headers company-irony)))
+
+(entropy/emacs-lazy-load-simple cc-mode
+  (dolist (item '((c-mode-hook . (eq (entropy/emacs-get-use-ide-type 'c-mode) 'traditional))
+                  (c++-mode-hook . (eq (entropy/emacs-get-use-ide-type 'c++-mode) 'traditional))))
+    (when (eval (cdr item))
+      (add-hook
+       (car item)
+       #'entropy/emacs-company--set-company-backends-for-C-mode-in-traditional-way
+       ))))
+
 
 ;; **** Java
 ;; **** Python
 (use-package company-anaconda
   :if (eq (entropy/emacs-get-use-ide-type 'python-mode) 'traditional)
   :after company
-  :defines anaconda-mode-hook
   :commands company-anaconda
   :init
-  (add-hook 'anaconda-mode-hook #'entropy/emacs-company-anaconda-add-anaconda-backend)
-  (defun entropy/emacs-company-anaconda-add-anaconda-backend ()
-    (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-anaconda) company-backends)))
+  (entropy/emacs-lazy-load-simple python
+    (defun entropy/emacs-company--set-company-backends-for-python-mode-in-traditional-way
+        ()
+      (entropy/emacs-company--default-traditional-backends-generator
+       '(company-anaconda)))
+    (add-hook
+     'anaconda-mode-hook
+     #'entropy/emacs-company--set-company-backends-for-python-mode-in-traditional-way)))
 
 ;; *** common lisp
 ;; slime repl completion
