@@ -210,7 +210,10 @@ Version 2017-10-09"
 
    ((string-equal system-type "darwin")
     (let ((process-connection-type nil))
-      (start-process "" nil "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" default-directory)))
+      (start-process
+       "" nil
+       "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
+       default-directory)))
 
    ((string-equal system-type "gnu/linux")
     (let ((process-connection-type nil))
@@ -221,9 +224,11 @@ Version 2017-10-09"
     (interactive)
     (if entropy/emacs-Cmder-enable
         (let (($path default-directory))
-          (w32-shell-execute "open" entropy/emacs-Cmder-path (replace-regexp-in-string "/" "\\" $path t t)))
+          (w32-shell-execute "open" entropy/emacs-Cmder-path
+                             (replace-regexp-in-string "/" "\\" $path t t)))
       (let (($path default-directory))
-        (w32-shell-execute "open" "cmd" (replace-regexp-in-string "/" "\\" $path t t))))))
+        (w32-shell-execute "open" "cmd"
+                           (replace-regexp-in-string "/" "\\" $path t t))))))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define+
  'eemacs-basic-config-core nil

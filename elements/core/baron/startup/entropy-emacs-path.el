@@ -85,93 +85,90 @@
 ;; *** w32 path set library
 ;; **** subrs
 (setq entropy/emacs-path-win32-shell-path-register
-  `((:trigger entropy/emacs-win-emacs-bin-path-add
-              :path invocation-directory
-              :env-order 1
-              :exec-order 1)
-    (:trigger entropy/emacs-wsl-enable-extra
-              :path ,(expand-file-name "usr/bin" entropy/emacs-wsl-apps-extra)
-              :env-order 2
-              :exec-order 2
-              :predicate
-              (lambda ()
-                (when (and entropy/emacs-wsl-enable-extra entropy/emacs-wsl-enable)
-                  (setq woman-manpath
-                        `(,(concat entropy/emacs-wsl-apps-extra "usr/man")
-                          ,(concat entropy/emacs-wsl-apps-extra "usr/share/man")
-                          ,(concat entropy/emacs-wsl-apps-extra "usr/local/man"))))))
-    (:trigger entropy/emacs-wsl-enable
-              :path entropy/emacs-wsl-apps
-              :env-order 3
-              :exec-order 3)
-    (:trigger entropy/emacs-win-fakecygpty-enable
-              :path entropy/emacs-win-fakecygpty-path
-              :env-order 4
-              :exec-order 4)
-    (:trigger entropy/emacs-win-portable-mingw-enable
-              :path entropy/emacs-win-portable-mingw-path
-              :env-order 5
-              :exec-order 5)
-    (:trigger entropy/emacs-git-portable
-              :path entropy/emacs-git-portable-path
-              :env-order 6
-              :exec-order 6)
-    (:trigger entropy/emacs-win-portable-texlive-enable
-              :path entropy/emacs-win-portable-texlive-path
-              :env-order 7
-              :exec-order 7)
-    (:trigger entropy/emacs-win-portable-php-enable
-              :path entropy/emacs-win-portable-php-path
-              :env-order 8
-              :exec-order 8)
-    (:trigger entropy/emacs-win-portable-pip-enable
-              :path entropy/emacs-win-portable-pip-path
-              :env-order 9
-              :exec-order 9)
-    (:trigger entropy/emacs-win-portable-python-enable
-              :path entropy/emacs-win-portable-python-path
-              :env-order 10
-              :exec-order 10)
-    (:trigger entropy/emacs-win-portable-grep-enable
-              :path entropy/emacs-win-portable-grep-path
-              :env-order 11
-              :exec-order 11)
-    (:trigger entropy/emacs-win-portable-ag-enable
-              :path entropy/emacs-win-portable-ag-path
-              :env-order -1
-              :exec-order -1)
-    (:trigger entropy/emacs-win-portable-rg-enable
-              :path entropy/emacs-win-portable-rg-path
-              :env-order 12
-              :exec-order 12)
-    (:trigger entropy/emacs-win-portable-pt-enable
-              :path entropy/emacs-win-portable-pt-path
-              :env-order 13
-              :exec-order 13)
-    (:trigger entropy/emacs-win-portable-nodejs-enable
-              :path entropy/emacs-win-portable-nodejs-path
-              :env-order 14
-              :exec-order 14)
-    (:trigger entropy/emacs-win-portable-opencc-enable
-              :path entropy/emacs-win-portable-opencc-path
-              :env-order 15
-              :exec-order 15)
-    (:trigger entropy/emacs-win-portable-pandoc-enable
-              :path entropy/emacs-win-portable-pandoc-path
-              :env-order 16
-              :exec-order 16)
-    (:trigger entropy/emacs-win-portable-jdk-enable
-              :path entropy/emacs-win-portable-jdk-path
-              :env-order 17
-              :exec-order 17)
-    (:trigger entropy/emacs-win-portable-zeal-enable
-              :path entropy/emacs-win-portable-zeal-path
-              :env-order 18
-              :exec-order 18)
-    (:trigger entropy/emacs-win-portable-putty-enable
-              :path entropy/emacs-win-portable-putty-path
-              :env-order 19
-              :exec-order 19)))
+      `((:trigger entropy/emacs-win-emacs-bin-path-add
+                  :path invocation-directory
+                  :env-order 1
+                  :exec-order 1)
+        (:trigger entropy/emacs-win-fakecygpty-enable
+                  :path entropy/emacs-win-fakecygpty-path
+                  :env-order 2
+                  :exec-order 2)
+        (:trigger entropy/emacs-win-portable-mingw-enable
+                  :path entropy/emacs-win-portable-mingw-path
+                  :env-order 3
+                  :exec-order 3)
+        (:trigger entropy/emacs-git-portable-enable
+                  :path entropy/emacs-git-portable-path
+                  :env-order 4
+                  :exec-order 4)
+        (:trigger entropy/emacs-win-portable-texlive-enable
+                  :path entropy/emacs-win-portable-texlive-path
+                  :env-order 5
+                  :exec-order 5)
+        (:trigger entropy/emacs-win-portable-php-enable
+                  :path entropy/emacs-win-portable-php-path
+                  :env-order 6
+                  :exec-order 6)
+        (:trigger entropy/emacs-win-portable-pip-enable
+                  :path entropy/emacs-win-portable-pip-path
+                  :env-order 7
+                  :exec-order 7)
+        (:trigger entropy/emacs-win-portable-python-enable
+                  :path entropy/emacs-win-portable-python-path
+                  :env-order 8
+                  :exec-order 8)
+        (:trigger entropy/emacs-win-portable-grep-enable
+                  :path entropy/emacs-win-portable-grep-path
+                  :env-order 9
+                  :exec-order 9)
+        (:trigger entropy/emacs-win-portable-ag-enable
+                  :path entropy/emacs-win-portable-ag-path
+                  :env-order -1
+                  :exec-order -1)
+        (:trigger entropy/emacs-win-portable-rg-enable
+                  :path entropy/emacs-win-portable-rg-path
+                  :env-order 10
+                  :exec-order 10)
+        (:trigger entropy/emacs-win-portable-nodejs-enable
+                  :path entropy/emacs-win-portable-nodejs-path
+                  :env-order 11
+                  :exec-order 11)
+        (:trigger entropy/emacs-win-portable-opencc-enable
+                  :path entropy/emacs-win-portable-opencc-path
+                  :env-order 12
+                  :exec-order 12)
+        (:trigger entropy/emacs-win-portable-pandoc-enable
+                  :path entropy/emacs-win-portable-pandoc-path
+                  :env-order 13
+                  :exec-order 13)
+        (:trigger entropy/emacs-win-portable-jdk-enable
+                  :path entropy/emacs-win-portable-jdk-path
+                  :env-order 14
+                  :exec-order 14)
+        (:trigger entropy/emacs-win-portable-zeal-enable
+                  :path entropy/emacs-win-portable-zeal-path
+                  :env-order 15
+                  :exec-order 15)
+        (:trigger entropy/emacs-win-portable-putty-enable
+                  :path entropy/emacs-win-portable-putty-path
+                  :env-order 16
+                  :exec-order 16)
+        (:trigger entropy/emacs-wsl-enable-extra
+                  :path ,(expand-file-name "usr/bin" entropy/emacs-wsl-apps-extra)
+                  :env-order 17
+                  :exec-order 17
+                  :predicate
+                  (lambda ()
+                    (when (and entropy/emacs-wsl-enable-extra entropy/emacs-wsl-enable)
+                      (setq woman-manpath
+                            `(,(concat entropy/emacs-wsl-apps-extra "usr/man")
+                              ,(concat entropy/emacs-wsl-apps-extra "usr/share/man")
+                              ,(concat entropy/emacs-wsl-apps-extra "usr/local/man"))))))
+        (:trigger entropy/emacs-wsl-enable
+                  :path entropy/emacs-wsl-apps
+                  :env-order 18
+                  :exec-order 18)
+        ))
 
 (defun entropy/emacs-path--w32-path-sort-predicate ()
   (let* ((orig-len (length entropy/emacs-path-win32-shell-path-register))

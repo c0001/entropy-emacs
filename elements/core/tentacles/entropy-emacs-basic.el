@@ -928,22 +928,16 @@ This affected by `neotree' or `treemacs' window sticking with
 ;; **** Default using UTF-8 encoding for basic environment
 ;; when `entropy/emacs-custom-language-environment-enable' was nil
 
-(unless (and entropy/emacs-custom-language-environment-enable
-             (ignore-errors (stringp entropy/emacs-locale-language-environment)))
+(unless entropy/emacs-custom-language-environment-enable
   (entropy/emacs-lang-set-utf-8))
 
 ;; **** Using customized basic encoding system
 ;; When `entropy/emacs-custom-language-environment-enable' was t
 
 (when (and entropy/emacs-custom-language-environment-enable
-           (ignore-errors (stringp entropy/emacs-locale-language-environment)))
+           (stringp entropy/emacs-locale-language-environment))
   ;; Customize language environment with user specification
   (entropy/emacs-lang-set-local))
-
-;; setting w32 shell lanuguage environment
-(when sys/win32p
-  (when entropy/emacs-win-env-lang-enable
-    (setenv "LANG" entropy/emacs-win-env-lang-set)))
 
 ;; ***** Specific cases to forceing using UTF-8 encoding environment
 

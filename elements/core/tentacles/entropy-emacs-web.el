@@ -441,28 +441,28 @@ format."
        :exit t
        :map-inject t))))
    (((:enable t)
-     (json-mode json-mode json-mode-map))
+     (json-mode (json-mode json-mode-map)))
     ("Web Beautify"
      (("C-c C-b" web-beautify-js "Beautify Json"
        :enable (eq (entropy/emacs-get-use-ide-type 'json-mode) 'traditional)
        :exit t
        :map-inject t))))
    (((:enable t)
-     (web-mode web-mode web-mode-map))
+     (web-mode (web-mode web-mode-map)))
     ("Web Beautify"
      (("C-c C-0" web-beautify-html "Beautify html"
        :enable (eq (entropy/emacs-get-use-ide-type 'web-mode) 'traditional)
        :exit t
        :map-inject t))))
    (((:enable t)
-     (nxml-mode nxml-mode nxml-mode-map))
+     (nxml-mode (nxml-mode nxml-mode-map)))
     ("Web Beautify"
      (("C-c C-b" web-beautify-html "Beautify Xml"
        :enable (eq (entropy/emacs-get-use-ide-type 'nxml-mode) 'traditional)
        :exit t
        :map-inject t))))
    (((:enable t)
-     (css-mode css-mode css-mode-map))
+     (css-mode (css-mode css-mode-map)))
     ("Web Beautify"
      (("C-c C-b" web-beautify-html "Beautify Css"
        :enable (eq (entropy/emacs-get-use-ide-type 'css-mode) 'traditional)

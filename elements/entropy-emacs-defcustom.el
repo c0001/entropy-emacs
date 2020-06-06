@@ -364,8 +364,7 @@ then enable the rich dashbord contents when value is 'rich'."
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/emacs-modeline-style "origin"
-  "
-Choose the modeline style:
+  "Choose the modeline style:
 
 You can choose below four choices:
 - spaceline-regular:                                  spaceline
@@ -908,6 +907,27 @@ elfeed proxy setting."
   "The IDE configurations group"
   :group 'extensions)
 
+(defcustom entropy/emacs-ide-suppressed t
+  "Inhibit =entropy-emacs= IDE configurations so that just
+make emacs simplify for coding."
+  :type 'boolean
+  :group 'entropy/emacs-ide-config)
+
+(defcustom entropy/emacs-ide-use-for-all 'lsp
+  "Enable =entropy-emacs= IDE configuration for all major-mode
+defined in `entropy/emacs-ide-for-them' with a same type.
+
+Valid value are:
+
+- 'lsp': use microsoft language server for all of them
+- 'traditional' use traditional way for all of them
+
+Although you've set this, you can still set them individually by
+each specific name of them, this just a common initializing
+option."
+  :type 'symbol
+  :group 'entropy/emacs-ide-config)
+
 (defvar entropy/emacs-ide-for-them
   '(c-mode
     c++-mode cmake-mode
@@ -920,26 +940,28 @@ elfeed proxy setting."
 (defun entropy/emacs-get-ide-condition-symbol (major-mode)
   (intern (format "entropy/emacs-use-ide-type-for-%s" major-mode)))
 (defun entropy/emacs-get-use-ide-type (major-mode)
-  (symbol-value
-   (entropy/emacs-get-ide-condition-symbol major-mode)))
+  (unless entropy/emacs-ide-suppressed
+    (symbol-value
+     (entropy/emacs-get-ide-condition-symbol major-mode))))
 
-(let (forms)
-  (dolist (el entropy/emacs-ide-for-them)
-    (let ((sym (entropy/emacs-get-ide-condition-symbol el)))
-      (push sym
-            entropy/emacs-use-ide-conditions)
-      (push
-       `(defcustom ,sym 'lsp
-          ,(format "The IDE chosen type for major-mode '%s'
+(defun entropy/emacs-ide-gen-customized-variables ()
+  (let (forms)
+    (dolist (el entropy/emacs-ide-for-them)
+      (let ((sym (entropy/emacs-get-ide-condition-symbol el)))
+        (push sym
+              entropy/emacs-use-ide-conditions)
+        (push
+         `(defcustom ,sym ',entropy/emacs-ide-use-for-all
+            ,(format "The IDE chosen type for major-mode '%s'
 
 Valid type are 'traditional' or 'lsp' which default to use lsp.
 "
-                   el)
-          :type 'symbol
-          :group 'entropy/emacs-ide-config)
-       forms)))
-  (dolist (form forms)
-    (eval form)))
+                     el)
+            :type 'symbol
+            :group 'entropy/emacs-ide-config)
+         forms)))
+    (dolist (form forms)
+      (eval form))))
 
 ;; **** code folding group
 (defgroup entropy/emacs-code-folding nil
@@ -1165,81 +1187,95 @@ When set to an empty string, this attribute is omitted.  Defaults to
 
 ;; **** w32 ime config
 (defcustom entropy/emacs-win-init-ime-enable nil
-  "Enable win32 ime at startup (offset to the bug of w32-ime)."
+  "Enable win32 IME bug fix maybe detection at startup (fix
+around of the bug of w32-ime)."
   :type 'boolean
-  :group 'entropy/emacs-win)
-
-;; **** emacs lang set for windows
-(defcustom entropy/emacs-win-env-lang-enable nil
-  "Whether enable customize shell lanugage environment for
-WINDOWS emacs session."
-  :type 'boolean
-  :group 'entropy/emacs-win)
-
-(defcustom entropy/emacs-win-env-lang-set "en_US.UTF-8"
-  "Setting emacs lang in windows operation system, its useful
-while you run a process communicates with the inferior daemon
-which has a special language environment request."
-  :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable wsl in windows
 (defcustom entropy/emacs-wsl-enable nil
-  "Set whether you want to use wsl?"
+  "Set whether you want to use =eemacs-wsl=, so that variable
+`entropy/emacs-wsl-apps' will be used.
+
+=eemacs-wsl= is a abstract of the *nix emulator for emacs on
+windows system, it brings up more benefits for windows emacs user
+to experience as the mostly as for *nix platform.
+"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-wsl-apps "c:/git-portable/usr/bin/"
-  "Set the baisic wsl apps path for basic shell-command using
-which also used in shell-buffer.
+(defcustom entropy/emacs-wsl-apps "c:/Msys2/usr/bin/"
+  "Set the baisic =eemacs-wsl= apps hosted path for basic
+shell-command using which also used in shell-buffer.
 
-Note: now it's just suitable for git-for-windows (no sdk-extra utilitie included)"
+That we suggested using the *nix emulator for windows i.e. Msys2
+as the apps hosted system, and set it 'usr/bin' path as the value
+of this variable. Defaulty value is \"c:/Msys2/usr/bin/\".
+
+For minimally use, you can obtain a minimal Msys2 env from
+git-for-windows-portable (https://git-scm.com/download/win).
+
+NOTE: this variable just be used when `entropy/emacs-wsl-enable'
+is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 
 (defcustom entropy/emacs-wsl-enable-extra nil
-  "Enable extra wsl apps.
+  "Enable extra =eemacs-wsl= apps usage then variable
+`entropy/emacs-wsl-apps-extra' will be used.
 
 This ON-OFF variable are setted for follow occurrence:
 
     If you setting `entropy/emacs-wsl-apps' to
-    'git-for-windows-minimal' which just contained the basic
-    UNIX-LIKE commands that doesn't contianed commands like 'man'
-    and 'tree' or sth else, you want to using them as well in
-    current emacs session.
+    'git-for-windows-portable' subroutine path which just
+    contained the basic UNIX-LIKE commands that doesn't contianed
+    commands like 'man' and 'tree' or sth else, you want to using
+    them as well in current emacs session.
 
 See customized variable `entropy/emacs-wsl-apps-extra' for
 details.
-  "
+"
   :type 'boolean
   :group 'entropy/emacs-win)
 
 
-(defcustom entropy/emacs-wsl-apps-extra ""
-  "Set the extra wsl apps path, used for woman or other
-subprocess of emacs that sth called lying on `exec-path'.
+(defcustom entropy/emacs-wsl-apps-extra "c:/Msys2/"
+  "Set the extra wsl apps path, used for some other subprocess of
+emacs called lying on `exec-path' of *nix utils which not include
+in mainly =eemacs-wsl= apps path `entropy/emacs-wsl-apps'.
 
-And this must using the type for the root of wsl-tool path(which
-we can search the folder stucter of 'usr/bin' under this root
-directly), like if you using msys2 , you must set this variable
-to like:
+And this must using the type for the root of utils path
+(i.e. which we can search the folder stucter of 'usr/bin' under
+this root directly), like if you using msys2 , you must set this
+variable to like:
 
 \"c:/msys2/\"
+
+NOTE: this variable just be used when
+`entropy/emacs-wsl-enable-extra' is non-nil.
 "
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; ***** windows git portable setting
-(defcustom entropy/emacs-git-portable nil
-  "Whether enable portable git application when you want to use
-  git portable "
+(defcustom entropy/emacs-git-portable-enable nil
+  "Whether enable portable git application usage on windows
+platform when you want to use the portable git-for-window, you
+can find it [[https://git-scm.com/download/win][here]], and then
+variable `entropy/emacs-git-portable-enable' will be used.
+"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-git-portable-path "c:/git-portable/cmd/"
-  "When you enable git-custom set the customize git applicaton's
-path default path was my git path please must modify it for yourself"
+(defcustom entropy/emacs-git-portable-path "c:/Git-Portable/cmd/"
+  "The customize git applicaton's path which take priority on the
+\"git\" command in `entrop/emacs-wsl-apps' when
+`entropy/emacs-wsl-enable' was non-nil.
+
+NOTE: this variable just be used when
+`entropy/emacs-git-portable-enable' is non-nil.
+"
   :type 'string
   :group 'entropy/emacs-win)
 
@@ -1251,230 +1287,435 @@ This ON-OFF varaible setted for adding emacs bin folder to both of
 `exec-path' and \"PATH\" system variable.
 
 It's useful that your can call emacs or other bult-in binary as
-'convert' of builtin imagemaick support.
-  "
+'convert' of builtin imagemaick support when emacs built with thus
+supported.
+"
   :type 'boolean
   :group 'entropy/emacs-win)
 
 ;; **** wsl terminal setting
 (defcustom entropy/emacs-wsl-terminal-enable nil
-  "Whether enable the wsl-bash,wsl path config worked when you set this `t'"
+  "Enable external *nix terminal emulator on windows platform and
+then variable `entropy/emacs-wsl-terminal' will be used."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-wsl-terminal "c:/git-portable/git-bash.exe"
-  "Set the default wsl bash applictions,it suggested to set same
-as the wsl-apps main controled applications which I suggested use
-git-for-windows-sdk `git-bash.exe'"
+(defcustom entropy/emacs-wsl-terminal "c:/Msys2/msys2_shell.cmd"
+  "Set the default *nix terminal emulator applictions, we recommend
+to use Msys2's main terminal as that as, defaultly use the cmd
+batch of Msys2 as \"c:/Msys2/msys2_shell.cmd\" which has the most
+functional has for.
+
+Other suggestion list:
+
+- =git-bash.exe= of git-for-windows
+- =mingw32/64.exe= of both Msys2 or git-for-windows
+
+Any other self specification are not with warranty.
+
+NOTE: this variable just be used when
+`entropy/emacs-wsl-terminal-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable fakecygpty
 (defcustom entropy/emacs-win-fakecygpty-enable nil
-  "Whether enable fake pty for enabling windows ansi-term."
+  "Enable fake pty wrapper which let emacs for windows support
+some (not complete) pty support, and then variable
+`entropy/emacs-win-fakecygpty-path' will be used."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-fakecygpty-path "c:/fakecgypty"
-  "The fakecygpty compiled binaries archive location."
+(defcustom entropy/emacs-win-fakecygpty-path "c:/Fakecgypty"
+  "The FAKECYGPTY compiled binaries archive location.
+
+FAKECYGPTY is a pty advice patch for windows platform which let
+emacs for windows can use some pty feature maily for use bash as
+term subprocess in major-mode `term' or `ansi-term' which not
+supported originally. It is a fake patcher which built a middle
+subroutine to camouflages a pty role to trick on emacs to use for
+as.
+
+The source of FAKECYGPTY is a open source software hosted on
+github https://github.com/d5884/fakecygpty but without any
+maintaining for some years, we fork it in =entropy-emacs=, you can
+directly find it under =entropy-emacs= subroutine dir
+`entropy/emacs-site-lisp-path'. Read its readme for compiling
+methods and understanding its notice.
+
+NOTE: this variable just be used when
+`entropy/emacs-win-fakecygpty-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
-;; **** gcc and mingw64 setting
+;; **** mingw setting
 (defcustom entropy/emacs-win-portable-mingw-enable nil
-  "Enable portable mingw64 in windows"
+  "Enable mingw portable release usage for emacs in windows and
+then variable `entropy/emacs-win-portable-mingw-path' will be
+used.
+
+As compare to =eemacs-wsl= apps `entropy/emacs-wsl-apps' does
+for, mingw was a *nix development toolchain emulator not at the
+usage aspect, so that like clang toolchain can be used for emacs
+in portable way."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-mingw-path "c:/mingw64/bin/"
-  "Setting the path of portable mingw64 for windows plattform
-  when `entropy/emacs-win-portable-mingw-enable' was set to 't'"
+(defcustom entropy/emacs-win-portable-mingw-path "c:/Mingw64/bin/"
+  "Setting the path of portable mingw for windows plattform.
+
+If your have set the `entropy/emacs-wsl-apps' so as on Msys2
+release, you may easily set its mingw path e.g
+\"c:/Msys2/mingw32/64\" for this vairable, or you can download
+fresh new mingw release from http://www.mingw.org/.
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-mingw-enable' is non-nil.
+"
   :type 'boolean
-  :group 'entropy/emacs-win)
-
-(defcustom entropy/emacs-win-gcc-parameter ""
-  "Setting the gcc compile parameter"
-  :type 'string
-  :group 'entropy/emacs-win)
-
-(defcustom entropy/emacs-win-g++-parameter ""
-  "Setting the g++ compile parameter"
-  :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** clang setting
 (defcustom entropy/emacs-win-portable-clang-enable nil
-  "Enable clang for windows plattform"
+  "Enable clang windows port usage in portable way for emacs on
+windows and then variable `entropy/emacs-win-portable-clang-path'
+will be used.
+
+In cases that when you has set
+`entropy/emacs-win-portable-mingw-path', you do not need to open
+this turn on-off, which you can download clang for windows within
+mingw it self directly."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/emacs-win-portable-clang-path ""
-  "Path for portable clang for windows plattform."
+(defcustom entropy/emacs-win-portable-clang-path "c:/Clang/bin"
+  "Path for portable clang for windows plattform.
+
+Its must be the \"bin\" subfolder path in the clang winport root
+folder, defaultly set to \"c:/Clang/bin\".
+
+You can download it from https://releases.llvm.org/download.html.
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-clang-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-custom-variable-basic)
 
 ;; **** windows texlive setting
 (defcustom entropy/emacs-win-portable-texlive-enable nil
-  "Whether to enable texlive in windows"
+  "Enable texlive portable release for emacs in windows and then
+variable `entropy/emacs-win-portable-texlive-path' will be used.
+
+In the case of that you've set the
+`entropy/emacs-win-portable-mingw-path', you do not need to turn
+on this variable which you can directly install texlive for
+windows within mingw release.
+"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-texlive-path "c:/texlive/bin"
-  "Set up texlive path in windows"
+(defcustom entropy/emacs-win-portable-texlive-path "c:/Texlive/bin"
+  "Portable texlive winport release archive directory /bin/
+path.
+
+You can download it from https://www.tug.org/texlive/acquire-netinstall.html
+
+NOTE: this varialbe just used when
+`entropy/emacs-win-portable-texlive-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable grep in windows
 (defcustom entropy/emacs-win-portable-grep-enable nil
-  "Enable windows grep program"
+  "Enable Gnu-grep for windows portable release for emacs in
+windows platform, and then variable
+`entropy/emacs-win-portable-grep-path' will be used.
+
+In the case of that you've set the `entropy/emacs-wsl-apps', you
+do not need to turn on this variable which almostly exists there
+already.
+"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-grep-path "c:/grep/bin"
-  "Set windows grep exec path"
+(defcustom entropy/emacs-win-portable-grep-path "c:/Gnu-grep/bin"
+  "Portable grep winport release archive directory /bin/ path.
+
+You can download the release from
+https://sourceforge.net/projects/ezwinports/files/ which obtained
+from windows Chocholatey project.
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-grep-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable ag in windows
 (defcustom entropy/emacs-win-portable-ag-enable nil
-  "Enable windows ag program"
+  "Enable silver_searcher portable winport release for emacs in
+windows platform, and then variable
+`entropy/emacs-win-portable-ag-path' will be used.
+
+In the case of that you've set the `entropy/emacs-wsl-apps', you
+do not need to turn on this variable which you can install it
+directly whithin it.
+"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-ag-path "~/.emacs.d/ag/bin/"
-  "Set windows ag (The Silver Searcher) path"
+(defcustom entropy/emacs-win-portable-ag-path "c:/Ag/"
+  "Portable silver_searcher winport release archive /bin/ path.
+
+You can download it from
+https://github.com/k-takata/the_silver_searcher-win32/releases
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-ag-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable rg in windows
 (defcustom entropy/emacs-win-portable-rg-enable nil
-  "Enable windows ripgrep program"
+  "Enable ripgrep portable winport release for emacs in windows
+platform, and then variable `entropy/emacs-win-portable-rg-path'
+will be used.
+
+In the case of that you've set the `entropy/emacs-wsl-apps', you
+do not need to turn on this variable which you can install it
+directly whithin it.
+"
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-rg-path "~/.emacs.d/rg/bin/"
-  "Set windows ag path"
-  :type 'string
-  :group 'entropy/emacs-win)
+(defcustom entropy/emacs-win-portable-rg-path "c:/Ripgrep/"
+  "Portable ripgrep winport release archive /bin/ path.
 
-;; **** enable pt in windows
-(defcustom entropy/emacs-win-portable-pt-enable nil
-  "Enable windows pt program"
-  :type 'boolean
-  :group 'entropy/emacs-win)
+You can download it from
+https://github.com/BurntSushi/ripgrep/releases
 
-(defcustom entropy/emacs-win-portable-pt-path "~/.emacs.d/pt/bin/"
-  "Set windows pt path"
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-rg-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable cmder in windows
 (defcustom entropy/emacs-Cmder-enable nil
-  "Enable windows Cmder program"
+  "Enable Cmder portable release usage for emacs in windows platform,
+and then variable `entropy/emacs-win-Cmder-path' will be used.
+
+Cmder is a enhanced windows CMD terminal."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-Cmder-path "c:/cmder/bin/Cmder.exe"
-  "Set windows Cmder path"
+(defcustom entropy/emacs-Cmder-path "c:/Cmder/bin/Cmder.exe"
+  "Portable Cmder release caller exec path.
+
+You can download Cmder from:
+https://github.com/cmderdev/cmder/releases
+
+NOTE: this variable just be used when
+`entropy/emacs-Cmder-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable php in windows
 (defcustom entropy/emacs-win-portable-php-enable nil
-  "Enable php portable in windows"
+  "Enable php winport release usage for emacs in windows and then
+variable `entropy/emacs-win-portable-php-path' will be used.
+
+In which case that PHP doesn't appear to exist on Msys2 or other
+windows *nix emulator official repository, so that this one as be
+for. But there's no need to turn on this if upstream of thus has
+been added. "
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-php-path "c:/php/"
-  "Setting the path of portable php executable"
+(defcustom entropy/emacs-win-portable-php-path "c:/Php/"
+  "Portable php winport release executable path.
+
+You can download it from:
+https://windows.php.net/download/
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-php-enable' is non-nil. "
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enbale pip in windows
 (defcustom entropy/emacs-win-portable-pip-enable nil
-  "Enable portable pip in windows"
+  "Enable external python pip winport portable release usage for
+emacs in emacs and then variable
+`entropy/emacs-win-portable-python-path' will be used.
+
+The exist meaning for this variable is that pip always not in the
+same location which python did for on windows platform, so that
+you need to set it manually along with you've set
+`entropy/emacs-win-portable-python-path' which has the location
+for its own pip version."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-pip-path "c:/python/bin/"
-  "Set protable pip path in windows"
+(defcustom entropy/emacs-win-portable-pip-path
+  "c:/Winpython/python-3.7.2.amd64/Scripts"
+  "External portable pip path whicn be along with the
+`entropy/emacs-win-portable-python-path'.
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-pip-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable python in windows
 (defcustom entropy/emacs-win-portable-python-enable nil
-  "Enable portable python in windows"
+  "Enable python winport release usage for emacs in windows and
+then variable `entropy/emacs-win-portable-python-path' will be
+used.
+
+In the case that you've set the `entropy/emacs-wsl-apps', there's
+no need to enable this so that you can directly install the
+python from that =eemacs-wsl= env."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-python-path "c:/python/bin/"
-  "Set protable python path in windows"
+(defcustom entropy/emacs-win-portable-python-path
+  "c:/Winpython/python-3.7.2.amd64/"
+  "Portable python winport /bin/ path.
+
+You can download it from https://winpython.github.io/
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-python-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable nodejs in windows
 (defcustom entropy/emacs-win-portable-nodejs-enable nil
-  "Enable nodejs portale in windows"
+  "Enable nodejs winport portable release usage for emacs in
+windows and then variable
+`entropy/emacs-win-portable-nodejs-path' will be used.
+
+The exist meaning for this variable is that the *nix emulator for
+windows like Msys2 doesn't has the nodejs archive for as, or if
+does otherwise that you do not need to turn on this when you
+enabled =eemacs-wsl=."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-nodejs-path "c:/nodejs/"
-  "Setting the path of protable nodejs in windows"
+(defcustom entropy/emacs-win-portable-nodejs-path "c:/Nodejs/"
+  "Portable python winport release archive root path.
+
+You can download it from https://nodejs.org/en/download/
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-nodejs-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable opencc in windows
 (defcustom entropy/emacs-win-portable-opencc-enable nil
-  "Enable opencc portale in windows"
+  "Enable opencc winport portable release usage for emacs in
+windows and then variable
+`entropy/emacs-win-portable-opencc-path' will be used.
+
+The exist meaning for this variable is that the *nix emulator for
+windows like Msys2 doesn't has the opencc archive for as, or if
+does otherwise that you do not need to turn on this when you
+enabled =eemacs-wsl=."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-opencc-path "c:/opencc/"
-  "Setting the path of protable opencc in windows"
+(defcustom entropy/emacs-win-portable-opencc-path "c:/Opencc/bin/"
+  "Portable opencc winport release /bin/ path.
+
+You can download it from https://github.com/BYVoid/OpenCC/wiki/Download
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-opencc-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable pandoc in windows
 (defcustom entropy/emacs-win-portable-pandoc-enable nil
-  "Enable portable pandoc in windows"
+  "Enable pandoc winport portable release usage for emacs in
+windows and then variable
+`entropy/emacs-win-portable-pandoc-path' will be used.
+
+The exist meaning for this variable is that the *nix emulator for
+windows like Msys2 doesn't has the pandoc archive for as, or if
+does otherwise that you do not need to turn on this when you
+enabled =eemacs-wsl=."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-pandoc-path nil
-  "Setting portble pandoc path for windows"
+(defcustom entropy/emacs-win-portable-pandoc-path "c:/Pandoc/"
+  "Portable pandoc winport release archive root path.
+
+You can download it from https://github.com/jgm/pandoc/releases
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-pandoc-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enbale portble jdk
 (defcustom entropy/emacs-win-portable-jdk-enable nil
-  "Enable using portble JDK"
+  "Enable java-jdk winport portable release usage for emacs in
+windows and then variable `entropy/emacs-win-portable-jdk-path'
+will be used.
+
+The exist meaning for this variable is that the *nix emulator for
+windows like Msys2 doesn't has the java-jdk archive for as, or if
+does otherwise that you do not need to turn on this, when you
+enabled =eemacs-wsl=."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-jdk-path "c:/JDK64/bin"
-  "Setting portble JDK pth"
+(defcustom entropy/emacs-win-portable-jdk-path "c:/Openjdk/bin"
+  "Portable java-jdk winport release /bin/ path.
+
+You can download it from: https://jdk.java.net/
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-jdk-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable zeal
 (defcustom entropy/emacs-win-portable-zeal-enable 'nil
-  "Enable zeal doc http://zealdocs.org/."
+  "Enable Zealdoc usage for emacs in windows and then variable
+`entropy/emacs-win-portable-zeal-path' will be used."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-zeal-path ""
-  "Setting zeal path on windows plattform."
+(defcustom entropy/emacs-win-portable-zeal-path "c:/Zeal-Portable/"
+  "Portable Zealdoc winport release archive root path.
+
+You can download it from http://zealdocs.org/
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-zeal-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
 ;; **** enable putty in windows
 (defcustom entropy/emacs-win-portable-putty-enable nil
-  "Enable putty portable on windows."
+  "Enable putty portable for emacs in windows for provide the
+putty tramp method instead of the lag ssh one on windows platform
+and then variable `entropy/emacs-win-portable-putty-path' will be
+used."
   :type 'boolean
   :group 'entropy/emacs-win)
 
-(defcustom entropy/emacs-win-portable-putty-path ""
-  "Windows portable putty path."
+(defcustom entropy/emacs-win-portable-putty-path "c:/Putty/"
+  "Portable putty winport release root path.
+
+You download the putty main caller and subroutines individually
+from:
+https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html
+and then gathering them into one place.
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-putty-enable' is non-nil."
   :type 'string
   :group 'entropy/emacs-win)
 
@@ -1670,7 +1911,8 @@ under the symbolink root dir."
     (message "====================================")
     (message "[Loading] custom specifications ...")
     (message "====================================\n")
-    (load cus)))
+    (load cus)
+    (entropy/emacs-ide-gen-customized-variables)))
 
 ;; *** add eemacs texinfo to info-path
 

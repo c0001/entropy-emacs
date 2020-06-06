@@ -160,7 +160,9 @@ It is the recommendation of irony-mode official introduction."
   (cond
    ((and sys/win32p
          entropy/emacs-win-portable-mingw-enable
-         (file-exists-p (concat entropy/emacs-win-portable-mingw-path "libclang.dll")))
+         (file-exists-p (expand-file-name
+                         "libclang.dll"
+                         entropy/emacs-win-portable-mingw-path)))
     (entropy/emacs-codeserver-usepackage-irony))
    (sys/is-posix-compatible
     (entropy/emacs-codeserver-usepackage-irony))))

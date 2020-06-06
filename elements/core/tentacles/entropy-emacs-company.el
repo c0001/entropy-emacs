@@ -72,21 +72,26 @@
 
 ;; ** defvar
 (defvar entropy/emacs-company-elisp-top-backends
-  '(company-files company-capf :with company-en-words))
+  '(company-files company-capf :with company-en-words)
+  "Basic top company-backend for all situations.")
+
+(entropy/emacs-lazy-load-simple company
+  (setq-default company-backends
+                (append (list entropy/emacs-company-elisp-top-backends)
+                        company-backends)))
 
 ;; ** libraries
 ;; *** yas load
 (defun entropy/emacs-company-use-yasnippet (backend &optional reverse)
   (if (and (listp backend) (member 'company-yasnippet backend))
       backend
-    (if  reverse
+    (if reverse
         (append
-         (if (consp backend) backend (list backend))
-         '(:with company-yasnippet))
+         '(company-yasnippet) '(:separate)
+         (if (consp backend) backend (list backend)))
       (append
-       '(company-yasnippet)
-       (if (consp backend) backend (list backend)))
-      )))
+       (if (consp backend) backend (list backend))
+       '(:separate company-yasnippet)))))
 
 (defun entropy/emacs-company-start-with-yas (&rest _)
   (when (not (condition-case error
@@ -95,42 +100,12 @@
     (when (fboundp 'yas-global-mode)
       (yas-global-mode))))
 
-;; *** company components load
-(defun entropy/emacs-company-require-subs ()
-  (entropy/emacs-lazy-load-simple company
-    (dolist (el '(company-abbrev
-                  company-bbdb
-                  company-capf
-                  company-clang
-                  company-cmake
-                  company-css
-                  company-dabbrev-code
-                  company-dabbrev
-                  company-eclim
-                  company-elisp
-                  company-etags
-                  company-files
-                  company-gtags
-                  company-ispell
-                  company-keywords
-                  company-nxml
-                  company-oddmuse
-                  company-semantic
-                  company-template
-                  company-tempo
-                  company-tng
-                  company-xcode
-                  company-yasnippet))
-      (require el))))
-
 ;; *** company for docs modes
-(defvar entropy/emacs-company-docs-separate-backends
-  '(company-files company-yasnippet :with company-en-words))
 
 (defun entropy/emacs-company-privilege-yas-for-docs ()
   (make-local-variable 'company-backends)
   (add-to-list 'company-backends
-               `(,@entropy/emacs-company-docs-separate-backends)))
+               '(company-files company-yasnippet :with company-en-words)))
 
 (defun entropy/emacs-company-yas-for-docs-init ()
   (let (macros)
@@ -142,21 +117,40 @@
        `(lambda ()
           (with-eval-after-load ',(car el)
             (add-hook ',(cdr el)
-                      #'entropy/emacs-company-privilege-yas-for-docs
-                      )))))
+                      #'entropy/emacs-company-privilege-yas-for-docs)))))
     (dolist (macro macros)
       (funcall macro))))
-
 
 ;; ** company core
 (use-package company
   ;; :diminish company-mode  ;;; This comment to diminish the modline
   :commands (global-company-mode
-             company-complete
-             company-dabbrev
-             company-files
-             company-yasnippet
-             company-active-map)
+             company-mode
+             company-complete)
+
+;; *** preface
+  :preface
+
+  (defun entropy/emacs-company-toggle-idledelay (&optional prefix)
+    (interactive "P")
+    (if (bound-and-true-p company-idle-delay)
+        (progn (setq company-idle-delay nil)
+               (message "turn off `company-idle-delay'"))
+      (setq company-idle-delay
+            (if prefix
+                (let ((secs (string-to-number
+                             (read-string "Input Company delay secs: "))))
+                  (if (and (numberp secs)
+                           (> secs 0))
+                      secs
+                    (message "Invalid company-delay secs '%s'" secs)
+                    entropy/emacs-company-idle-delay-default))
+              entropy/emacs-company-idle-delay-default))
+      (entropy/emacs-message-do-message
+       "%s '%s' to '%s'"
+       (blue "Set")
+       (yellow (symbol-name 'company-idle-delay))
+       (red (number-to-string company-idle-delay)))))
 
 ;; *** bind-key
   :bind (:map company-active-map
@@ -211,20 +205,8 @@
   (entropy/emacs-lazy-with-load-trail
    global-company-mode
    (global-company-mode t)
-   ;; init company backends for *scratch* buffer
-   (mapc (lambda (buffer)
-           (with-current-buffer buffer
-             (when (or (eq major-mode 'emacs-lisp-mode)
-                       (eq major-mode 'lisp-interaction-mode))
-               (add-to-list 'company-backends
-                            entropy/emacs-company-elisp-top-backends)
-               )))
-         (buffer-list))
    (entropy/emacs-company-yas-for-docs-init))
 
-  (when (or (equal entropy/emacs-ext-elpkg-get-type 'submodules)
-            entropy/emacs-fall-love-with-pdumper)
-    (entropy/emacs-company-require-subs))
   (advice-add 'company-complete :before 'entropy/emacs-company-start-with-yas)
 
 ;; *** config for after-load
@@ -246,33 +228,12 @@
 
   (if entropy/emacs-company-posframe-mode
       (setq company-tooltip-offset-display 'scrollbar)
-    (setq company-tooltip-offset-display 'lines))
+    (setq company-tooltip-offset-display 'lines)))
 
-  (defun entropy/emacs-company-toggle-idledelay (&optional prefix)
-    (interactive "P")
-    (if company-idle-delay
-        (progn (setq company-idle-delay nil)
-               (message "turn off `company-idle-delay'"))
-      (setq company-idle-delay
-            (if prefix
-                (let ((secs (string-to-number
-                             (read-string "Input Company delay secs: "))))
-                  (if (and (numberp secs)
-                           (> secs 0))
-                      secs
-                    (message "Invalid company-delay secs '%s'" secs)
-                    entropy/emacs-company-idle-delay-default))
-              entropy/emacs-company-idle-delay-default))
-      (entropy/emacs-message-do-message
-       "%s '%s' to '%s'"
-       (blue "Set")
-       (yellow (symbol-name 'company-idle-delay))
-       (red (number-to-string company-idle-delay)))))
-
-  ;; Support yas in commpany
-  (setq company-backends
-        (mapcar #'(lambda (x) (entropy/emacs-company-use-yasnippet x t))
-                company-backends)))
+;; *** company components function autoload
+(use-package company-dabbrev   :ensure nil :after company :commands company-dabbrev)
+(use-package company-files     :ensure nil :after company :commands company-files)
+(use-package company-yasnippet :ensure nil :after company :commands company-yasnippet)
 
 ;; *** Using company-posframe to speedup company candidates window show and scrolling
 
@@ -400,10 +361,6 @@ completion when calling: 'execute-extended-command' or
                (eq major-mode 'web-mode))
            (add-to-list 'company-backends
                         '(company-files company-lsp company-yasnippet :separate company-en-words)))
-          ((or (eq major-mode 'emacs-lisp-mode)
-               (eq major-mode 'lisp-interaction-mode))
-           (add-to-list 'company-backends
-                        entropy/emacs-company-elisp-top-backends))
           ((or (eq major-mode 'c-mode)
                (eq major-mode 'c++-mode))
            (add-to-list 'company-backends '(company-files company-lsp :with company-yasnippet)))
@@ -420,7 +377,8 @@ completion when calling: 'execute-extended-command' or
 
 ;; *** shell
 (use-package company-shell
-  :if (eq (entropy/emacs-get-use-ide-type 'sh-mode) 'traditional)
+  :if (or (eq (entropy/emacs-get-use-ide-type 'sh-mode) 'traditional)
+          entropy/emacs-ide-suppressed)
   :after company
   :defines (sh-mode-hook)
   :commands (company-shell company-shell-env company-fish-shell)
@@ -428,8 +386,10 @@ completion when calling: 'execute-extended-command' or
   (add-hook 'sh-mode-hook #'entropy/emacs-company--add-shell-backend)
   (defun entropy/emacs-company--add-shell-backend ()
     (make-local-variable 'company-backends)
-    (dolist (el '(company-shell company-shell-env company-fish-shell))
-      (cl-pushnew (entropy/emacs-company-use-yasnippet el) company-backends))))
+                 ;; NOTE: this list order requested
+    (dolist (el '(company-shell-env company-shell))
+      (cl-pushnew (if (eq el 'company-shell) (entropy/emacs-company-use-yasnippet el) el)
+                  company-backends))))
 
 ;; *** web refer
 ;; **** web/html&css
@@ -452,18 +412,18 @@ completion when calling: 'execute-extended-command' or
     (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-web-html) company-backends))
   (defun entropy/emacs-company-web-add-jade-backend ()
     (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-web-jade) company-backends))
+    (cl-pushnew 'company-web-jade company-backends))
   (defun entropy/emacs-company-web-add-slim-backend ()
     (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-web-slim) company-backends))
+    (cl-pushnew 'company-web-slim company-backends))
   (defun entropy/emacs-company-web-add-css-backend ()
     (make-local-variable 'company-backends)
-    (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-css) company-backends))
+    (cl-pushnew 'company-css company-backends))
   (defun entropy/emacs-company-web-add-all-backends ()
-    (entropy/emacs-company-web-add-html-backend)
-    (entropy/emacs-company-web-add-jade-backend)
     (entropy/emacs-company-web-add-slim-backend)
-    (entropy/emacs-company-web-add-css-backend)))
+    (entropy/emacs-company-web-add-jade-backend)
+    (entropy/emacs-company-web-add-css-backend)
+    (entropy/emacs-company-web-add-html-backend)))
 
 ;; **** javascript
 (use-package company-tern
@@ -540,8 +500,8 @@ entropy-emacs."
     "Make local company-backends with yasnippet for irony in c
 and c++ mode."
     (make-local-variable 'company-backends)
-    (when  (or (eq major-mode 'c-mode)
-               (eq major-mode 'c++-mode))
+    (when (or (eq major-mode 'c-mode)
+              (eq major-mode 'c++-mode))
       (cl-pushnew (entropy/emacs-company-use-yasnippet 'company-irony) company-backends))))
 
 ;; **** Java
