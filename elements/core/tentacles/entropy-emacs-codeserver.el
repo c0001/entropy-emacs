@@ -136,7 +136,8 @@ It is the recommendation of irony-mode official introduction."
   (use-package anaconda-mode
     :diminish anaconda-mode
     :commands anaconda-mode
-    :defines python-mode-hook
+    :bind (:map anaconda-mode-map
+                ("M-," . anaconda-mode-go-back))
     :init
     (add-hook 'python-mode-hook #'anaconda-mode)))
 
