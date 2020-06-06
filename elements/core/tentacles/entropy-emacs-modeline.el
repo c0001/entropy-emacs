@@ -212,12 +212,10 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
       :init
       (use-package spaceline-config
         :commands (spaceline-spacemacs-theme)
-        :defines spaceline-pre-hook
         :config
         (unless entropy/emacs-modeline--spaceline-spec-done
           (entropy/emacs-modeline--spaceline-specification))))
   (use-package spaceline
-    :defines spaceline-pre-hook
     :config
     (unless entropy/emacs-modeline--spaceline-spec-done
       (entropy/emacs-modeline--spaceline-specification))))

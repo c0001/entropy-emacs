@@ -210,7 +210,6 @@
 
 ;; ** eldoc-eval
 (use-package eldoc-eval
-  :defines eldoc-in-minibuffer-mode
   :commands (eldoc-in-minibuffer-mode
              eldoc-eval-expression)
   :config (setq eldoc-eval-preferred-function 'eval-expression))

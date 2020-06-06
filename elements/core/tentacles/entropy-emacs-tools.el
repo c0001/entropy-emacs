@@ -372,7 +372,6 @@ like `recenter-top-bottom'."
   ;; you can active follow code block for start atomic server with startup of emacs.
   ;;      :init (atomic-chrome-start-server)
   :commands (atomic-chrome-start-server)
-  :defines (atomic-chrome-server-atomic-chrome)
   :preface
   (defun entropy/emacs-tools-toggle-atomic-chrome ()
     (interactive)
@@ -847,7 +846,6 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 ;;     Show event history and command history of some or all buffers.
 (use-package command-log-mode
   :diminish (command-log-mode . "¢")
-  :defines (command-log-mode)
   :commands (command-log-mode)
   :eemacs-tpha
   (((:enable t))

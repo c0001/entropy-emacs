@@ -192,7 +192,6 @@
 ;; ** popwin-mode
 (use-package popwin
   :if (eq entropy/emacs-use-popup-window-framework 'popwin)
-  :defines (popwin:keymap)
   :commands (popwin-mode
              popwin:messages
              popwin:find-file

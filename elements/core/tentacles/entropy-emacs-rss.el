@@ -41,8 +41,6 @@
 
 ;; ** elfeed feed
 (use-package elfeed
-  :defines (elfeed-search-mode-hook
-            elfeed-show-mode-hook)
   :commands (elfeed)
   :bind (:map
          elfeed-show-mode-map

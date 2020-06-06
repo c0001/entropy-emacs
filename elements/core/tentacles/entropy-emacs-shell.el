@@ -302,7 +302,6 @@ segmentation fault."
 ;; ** Shell Pop
 (use-package entropy-shellpop
   :ensure nil
-  :defines (entropy-shellpop-mode-map)
   :commands (entropy/shellpop-start)
   :preface
 

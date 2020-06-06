@@ -64,7 +64,6 @@
 ;; *** core
 (use-package org
   :ensure nil
-  :defines  (org-mode-map)
   :commands (org-mode
              org-store-link
              org-agenda

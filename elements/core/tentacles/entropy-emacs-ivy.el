@@ -51,7 +51,6 @@
 
 ;; ** ivy
 (use-package ivy
-  :defines (ivy-mode-hook)
   :diminish ivy-mode
   :commands (ivy-mode ivy-switch-buffer ivy-resume)
   :bind (("C-c C-r" . ivy-resume)
@@ -566,9 +565,6 @@ version of ivy framework updating.
 
 (use-package ivy-rich
   :if (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)
-  :defines (all-the-icons-icon-alist
-            all-the-icons-dir-icon-alist
-            bookmark-alist)
   :commands (ivy-rich-mode)
   :init
 
@@ -792,7 +788,6 @@ version of ivy framework updating.
      :enable t :exit t))))
 ;; ** Powerful find-file
 (use-package find-file-in-project
-  :defines (ffip-project-root)
   :commands (ffip-find-files
              entropy/emacs-ivy-ffip
              entropy/emacs-ivy-ffip-directory-only)

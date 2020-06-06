@@ -120,7 +120,6 @@ It is the recommendation of irony-mode official introduction."
     (advice-add 'irony-mode :around #'entropy/emacs-codeserver-irony-refer-advice-around))
 
   (use-package irony-eldoc
-    :defines irony-mode-hook
     :commands (irony-eldoc)
     :hook (irony-mode . irony-eldoc)))
 
@@ -128,7 +127,6 @@ It is the recommendation of irony-mode official introduction."
 (defun entropy/emacs-codeserver-usepackage-tern ()
   (use-package tern
     :commands (tern-mode)
-    :defines js2-mode-hook
     :hook (js2-mode . tern-mode)))
 
 ;; **** anaconda server
@@ -145,7 +143,6 @@ It is the recommendation of irony-mode official introduction."
 (defun entropy/emacs-codeserver-usepackage-ac-php ()
   (use-package ac-php
     :requires php-mode
-    :defines php-mode-hook
     :commands ac-php-core-eldoc-setup
     :init
     (add-hook 'php-mode-hook '(lambda () (ac-php-core-eldoc-setup)))

@@ -252,7 +252,6 @@
 
 ;; **** Emmet-mode for quick edittng
 (use-package emmet-mode
-  :defines (web-mode-hook html-mode-hook)
   :commands emmet-mode
   :hook ((web-mode . emmet-mode)
          (html-mode . emmet-mode))
@@ -346,7 +345,6 @@
 ;; **** js2-refactor
 (use-package js2-refactor
   :requires js2-mode
-  :defines js2-mode-hook
   :commands (js2-refactor-mode)
   :diminish js2-refactor-mode
   :init (add-hook 'js2-mode-hook #'js2-refactor-mode)
