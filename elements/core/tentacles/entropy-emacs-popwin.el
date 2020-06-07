@@ -123,6 +123,9 @@
         ;; Flycheck
         ("\\*flycheck errors\\*.+*$"   :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
+        ;; Company mode
+        ("\\*company-documentation"    :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+
         ;; Youdao dict
         ("*Youdao Dictionary*"         :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 

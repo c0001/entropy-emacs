@@ -415,6 +415,46 @@ unwind occasion.")
               :around
               #'entropy/emacs-ivy-counsel-grep-or-swiper)
 
+;; **** enhance counsel company
+
+  (defvar entropy/emacs-ivy--counsel-company-candidates nil)
+  (defvar entropy/emacs-ivy--counsel-company-backend nil)
+
+  (defun entropy/emacs-ivy--counsel-company-wrapper
+      (orig-func &rest orig-args)
+    (let ()
+      (unless company-candidates
+        (company-complete))
+      (setq entropy/emacs-ivy--counsel-company-candidates company-candidates
+            entropy/emacs-ivy--counsel-company-backend company-backend)
+      (apply orig-func orig-args)))
+
+  (advice-add 'counsel-company :around #'entropy/emacs-ivy--counsel-company-wrapper)
+
+  (defun entropy/emacs-ivy--counsel-company-show-doc-action (candi)
+    (let* ((selection candi)
+           (company-candidates entropy/emacs-ivy--counsel-company-candidates)
+           (company-backend entropy/emacs-ivy--counsel-company-backend)
+           doc-buffer)
+      (cond ((member major-mode '(emacs-lisp-mode lisp-interaction-mode))
+             (let ((sym (intern-soft selection)))
+               (when sym
+                 (cond ((fboundp sym) (describe-function sym))
+                       ((featurep sym) (find-library selection))
+                       ((facep sym) (describe-face sym))
+                       ((boundp sym) (describe-variable sym))
+                       ((symbolp sym) (user-error "Interned symbol '%s'" sym))
+                       (t . nil)))))
+            (t
+             (setq doc-buffer
+                   (or (company-call-backend 'doc-buffer selection)
+                       (user-error "No documentation available")))
+             (pop-to-buffer doc-buffer)))))
+
+  (ivy-add-actions 'counsel-company
+                   '(("M-h" entropy/emacs-ivy--counsel-company-show-doc-action
+                      "Show docment if available")))
+
 ;; **** counsel-locate
   (when (and sys/win32p entropy/emacs-wsl-enable)
     (defun counsel-locate (&optional initial-input)

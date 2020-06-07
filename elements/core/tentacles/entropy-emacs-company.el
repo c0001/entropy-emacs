@@ -206,11 +206,13 @@
   (entropy/emacs-lazy-with-load-trail
    global-company-mode
    (global-company-mode t)
+   (dolist (func '(company-idle-begin company-complete))
+     (advice-add func
+                 :before 'entropy/emacs-company-start-with-yas))
    (entropy/emacs-company-yas-for-docs-init))
 
-  (dolist (func '(company-idle-begin company-complete))
-    (advice-add func
-                :before 'entropy/emacs-company-start-with-yas))
+  (entropy/emacs-lazy-load-simple (company counsel)
+    (define-key company-active-map (kbd "M-o") 'counsel-company))
 
 ;; *** config for after-load
   :config
@@ -288,23 +290,15 @@
   :after company
   :commands (company-box-mode)
   :preface
-  (defun entropy/emacs-company--company-box-update-selection-hook
-      (&rest _)
-    "The unpredictable and unsafe temporary patch for company-box
-to fix the render bug."
-    ;; remove oldest company-box frame maybe or force re-render that
-    (company-box-hide)
-    ;; try to fix scroll window remainng bug.
-    (when (window-live-p company-box--scrollbar-window)
-      (delete-window company-box--scrollbar-window)))
+  (defvar entropy/emacs-company--company-box-company-prefix nil)
+  (defvar entropy/emacs-company--company-box-company-candidates-length nil)
 
   :init
   (setq company-box-doc-delay
         entropy/emacs-company-quickhelp-delay-default
         company-box-max-candidates 20
         company-box-show-single-candidate t)
-  (add-hook 'company-box-selection-hook
-            #'entropy/emacs-company--company-box-update-selection-hook)
+
   (if (null (daemonp))
       (add-hook 'company-mode-hook
                 #'company-box-mode)
@@ -321,6 +315,47 @@ to fix the render bug."
      '(add-hook 'company-mode-hook
                 #'company-box-mode)))
   :config
+
+  (defun company-box-frontend (command)
+    "`company-mode' frontend using child-frame.
+COMMAND: See `company-frontends'.
+
+NOTE: this function has been redefined for temporal bug fake fix
+due to the emacs child-frame bug."
+    (unless (stringp entropy/emacs-company--company-box-company-prefix)
+      (setq entropy/emacs-company--company-box-company-prefix company-prefix))
+    (unless entropy/emacs-company--company-box-company-candidates-length
+      (setq entropy/emacs-company--company-box-company-candidates-length
+            company-candidates-length))
+    (cond
+     ((eq command 'hide)
+      (company-box-hide)
+      (setq entropy/emacs-company--company-box-company-prefix nil
+            entropy/emacs-company--company-box-company-candidates-length nil))
+     ((and (equal company-candidates-length 1)
+           (null company-box-show-single-candidate))
+      (company-box-hide))
+     ((eq command 'update)
+      (when (or
+             ;; (and (or (string-prefix-p entropy/emacs-company--company-box-company-prefix
+             ;;                           company-prefix)
+             ;;          (string-prefix-p company-prefix
+             ;;                           entropy/emacs-company--company-box-company-prefix))
+             ;;      (> (abs (- (length company-prefix)
+             ;;                 (length entropy/emacs-company--company-box-company-prefix)))
+             ;;         3))
+             nil
+             (>= (abs (- entropy/emacs-company--company-box-company-candidates-length
+                         company-candidates-length))
+                 1))
+        (setq entropy/emacs-company--company-box-company-prefix company-prefix)
+        (setq entropy/emacs-company--company-box-company-candidates-length
+              company-candidates-length)
+        (company-box-hide))
+      (company-box-show))
+     ((eq command 'post-command)
+      (company-box--post-command))))
+
   (with-no-warnings
     ;; Prettify icons
     (defun entropy/emacs-company--company-box-icons-elisp (candidate)
