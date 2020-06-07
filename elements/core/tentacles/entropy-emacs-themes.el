@@ -154,6 +154,7 @@
                (lambda (x)
                  (let ((map (car x))
                        (enable (cdr x)))
+                   (setq enable (if (listp enable) (eval enable) (symbol-value enable)))
                    (when enable
                      (dolist (face map)
                        (when (facep face)
@@ -170,10 +171,10 @@
                  new-frame
                  :background
                  (cdr pair)))
-              (when (and frame-bg cur-frame-bg
+              (when (and (and frame-bg (stringp frame-bg)) (and cur-frame-bg (stringp cur-frame-bg))
                          (not (equal frame-bg cur-frame-bg)))
                 (set-frame-parameter new-frame 'background-color frame-bg))
-              (when (and frame-fg cur-frame-fg
+              (when (and (and frame-fg (stringp frame-fg)) (and cur-frame-fg (stringp cur-frame-fg))
                          (not (equal frame-fg cur-frame-fg)))
                 (set-frame-parameter new-frame 'foreground-color frame-fg))
               new-frame))

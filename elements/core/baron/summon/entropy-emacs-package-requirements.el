@@ -77,6 +77,7 @@
         command-log-mode
         company
         company-anaconda
+        company-box
         company-c-headers
         company-irony
         company-lsp

@@ -983,19 +983,30 @@ features."
 for 'entropy-emacs'."
   :group 'entropy/emacs-ide-config)
 
-(defcustom entropy/emacs-company-posframe-mode nil
-  "Enable company-posframe.
+(defcustom entropy/emacs-company-tooltip-use-type 'default
+  "The tooltip kits used type for `company-mode'.
 
-Note:
+Company has the built-in popup display tooltip kit, which reflect
+to this variable of the value 'default'. Further more with the
+rich enhanced purpose there are two more options:
 
-company-posframe can not woring well with
-`company-quickhelp-mode', and when set this variable to 't' will
-automatically avoiding startup of `company-quickhelp-mode'."
+- 'company-posframe': the show type based on `posframe-show' with
+  more action added.
+
+- 'company-box' : the show type of more riched mordern
+  visualization, commonly sense of icons prefixed for each
+  canidates."
   :type 'boolean
   :group 'entropy/emacs-company-customized)
 
 (defcustom entropy/emacs-company-idle-delay-default 0.65
-  "default eemacs specified set for `company-idle-delay`."
+  "Default eemacs specified set for `company-idle-delay`."
+  :type 'sexp
+  :group 'entropy/emacs-company-customized)
+
+(defcustom entropy/emacs-company-quickhelp-delay-default 1.5
+  "Default unified company help-doc popup delay used for all type
+of `entropy/emacs-company-tooltip-use-type'."
   :type 'sexp
   :group 'entropy/emacs-company-customized)
 
