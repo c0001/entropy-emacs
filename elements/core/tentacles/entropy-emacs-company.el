@@ -552,7 +552,7 @@ completion when calling: 'execute-extended-command' or
         (candi)
       "Common text icon view for non-matched candi of dev env so
 that for en-words candi recognized "
-      'Text)
+      'Unknown)
     (setq company-box-icons-functions
           (append company-box-icons-functions
                   '(entropy/emacs-company--company-en-words-icons-for-company-box)))))
