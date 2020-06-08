@@ -141,6 +141,8 @@
 
   (defun entropy/emacs-themes-solaire-around-advice-for-make-frame
       (orig-func &rest orig-args)
+    "Around advice for `make-frame' to fix bug of that solaire
+face attributes and some refer is missing in the new frame."
     (let* ((face-reset nil)
            (frame-bg (alist-get 'background-color (car orig-args)))
            (frame-fg (alist-get 'foreground-color (car orig-args)))
@@ -149,35 +151,44 @@
            (new-frame (apply orig-func orig-args)))
       (unwind-protect
           (progn
-            (let ()
-              (mapcar
-               (lambda (x)
-                 (let ((map (car x))
-                       (enable (cdr x)))
-                   (setq enable (if (listp enable) (eval enable) (symbol-value enable)))
-                   (when enable
-                     (dolist (face map)
-                       (when (facep face)
-                         (push (cons face (face-attribute face :background))
-                               face-reset))))))
-               solaire-mode-remap-alist)
-              (dolist (face '(ivy-current-match))
-                (when (facep face)
-                  (push (cons face (face-attribute face :background))
-                        face-reset)))
-              (dolist (pair face-reset)
-                (set-face-attribute
-                 (car pair)
-                 new-frame
-                 :background
-                 (cdr pair)))
-              (when (and (and frame-bg (stringp frame-bg)) (and cur-frame-bg (stringp cur-frame-bg))
-                         (not (equal frame-bg cur-frame-bg)))
-                (set-frame-parameter new-frame 'background-color frame-bg))
-              (when (and (and frame-fg (stringp frame-fg)) (and cur-frame-fg (stringp cur-frame-fg))
-                         (not (equal frame-fg cur-frame-fg)))
-                (set-frame-parameter new-frame 'foreground-color frame-fg))
-              new-frame))
+            ;; Condition judger: commonly add exclusion of company
+            ;; childframe tooltip for company-box which has its own
+            ;; default frame background color face. So that any
+            ;; further one can easily adding to this `or' form.
+            (unless (or (and (bound-and-true-p company-candidates)
+                             (bound-and-true-p company-box-mode)))
+              (let ()
+                ;; map get enabled soloarized faces
+                (mapcar
+                 (lambda (x)
+                   (let ((map (car x))
+                         (enable (cdr x)))
+                     (setq enable (if (listp enable) (eval enable) (symbol-value enable)))
+                     (when enable
+                       (dolist (face map)
+                         (when (facep face)
+                           (push (cons face (face-attribute face :background))
+                                 face-reset))))))
+                 solaire-mode-remap-alist)
+                ;; more face specification
+                (dolist (face '(ivy-current-match))
+                  (when (facep face)
+                    (push (cons face (face-attribute face :background))
+                          face-reset)))
+                ;; do face reset for new frame
+                (dolist (pair face-reset)
+                  (set-face-attribute
+                   (car pair)
+                   new-frame
+                   :background
+                   (cdr pair)))
+                (when (and (and frame-bg (stringp frame-bg)) (and cur-frame-bg (stringp cur-frame-bg))
+                           (not (equal frame-bg cur-frame-bg)))
+                  (set-frame-parameter new-frame 'background-color frame-bg))
+                (when (and (and frame-fg (stringp frame-fg)) (and cur-frame-fg (stringp cur-frame-fg))
+                           (not (equal frame-fg cur-frame-fg)))
+                  (set-frame-parameter new-frame 'foreground-color frame-fg))))
+            new-frame)
         new-frame)))
 
   (defun entropy/emacs-themes--solaire-call-stuff-when-adapted
