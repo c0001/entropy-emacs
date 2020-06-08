@@ -312,12 +312,19 @@
                   (when (bound-and-true-p company-box-mode)
                     (company-box-mode 0))))
               (buffer-list)))
-     '(add-hook 'company-mode-hook
-                #'company-box-mode)))
+     '(progn
+        (add-hook 'company-mode-hook
+                  #'company-box-mode)
+        (mapc (lambda (buffer)
+                (with-current-buffer buffer
+                  (unless (bound-and-true-p company-box-mode)
+                    (company-box-mode 1))))
+              (buffer-list)))))
+
   :config
   (when sys/linuxp
     ;; Fix child-frame resize/reposition bug on linux
-    (if (bound-and-true-p x-gtk-resize-child-frames)
+    (if (boundp x-gtk-resize-child-frames)
         ;; FIXME: `x-gtk-resize-child-frames' option was one temporal
         ;; patch method invoking from emacs-devel commit c49d379f17bcb
         ;; which will eliminated in the future emacs version.
