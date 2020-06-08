@@ -296,7 +296,7 @@
   :init
   (setq company-box-doc-delay
         entropy/emacs-company-quickhelp-delay-default
-        company-box-max-candidates 20
+        company-box-max-candidates (if (boundp x-gtk-resize-child-frames) 100 20)
         company-box-show-single-candidate t)
 
   (if (null (daemonp))
@@ -315,46 +315,52 @@
      '(add-hook 'company-mode-hook
                 #'company-box-mode)))
   :config
-
-  (defun company-box-frontend (command)
-    "`company-mode' frontend using child-frame.
+  (when sys/linuxp
+    ;; Fix child-frame resize/reposition bug on linux
+    (if (bound-and-true-p x-gtk-resize-child-frames)
+        ;; FIXME: `x-gtk-resize-child-frames' option was one temporal
+        ;; patch method invoking from emacs-devel commit c49d379f17bcb
+        ;; which will eliminated in the future emacs version.
+        (setq x-gtk-resize-child-frames 'hide)
+      (defun company-box-frontend (command)
+        "`company-mode' frontend using child-frame.
 COMMAND: See `company-frontends'.
 
 NOTE: this function has been redefined for temporal bug fake fix
 due to the emacs child-frame bug."
-    (unless (stringp entropy/emacs-company--company-box-company-prefix)
-      (setq entropy/emacs-company--company-box-company-prefix company-prefix))
-    (unless entropy/emacs-company--company-box-company-candidates-length
-      (setq entropy/emacs-company--company-box-company-candidates-length
-            company-candidates-length))
-    (cond
-     ((eq command 'hide)
-      (company-box-hide)
-      (setq entropy/emacs-company--company-box-company-prefix nil
-            entropy/emacs-company--company-box-company-candidates-length nil))
-     ((and (equal company-candidates-length 1)
-           (null company-box-show-single-candidate))
-      (company-box-hide))
-     ((eq command 'update)
-      (when (or
-             ;; (and (or (string-prefix-p entropy/emacs-company--company-box-company-prefix
-             ;;                           company-prefix)
-             ;;          (string-prefix-p company-prefix
-             ;;                           entropy/emacs-company--company-box-company-prefix))
-             ;;      (> (abs (- (length company-prefix)
-             ;;                 (length entropy/emacs-company--company-box-company-prefix)))
-             ;;         3))
-             nil
-             (>= (abs (- entropy/emacs-company--company-box-company-candidates-length
-                         company-candidates-length))
-                 1))
-        (setq entropy/emacs-company--company-box-company-prefix company-prefix)
-        (setq entropy/emacs-company--company-box-company-candidates-length
-              company-candidates-length)
-        (company-box-hide))
-      (company-box-show))
-     ((eq command 'post-command)
-      (company-box--post-command))))
+        (unless (stringp entropy/emacs-company--company-box-company-prefix)
+          (setq entropy/emacs-company--company-box-company-prefix company-prefix))
+        (unless entropy/emacs-company--company-box-company-candidates-length
+          (setq entropy/emacs-company--company-box-company-candidates-length
+                company-candidates-length))
+        (cond
+         ((eq command 'hide)
+          (company-box-hide)
+          (setq entropy/emacs-company--company-box-company-prefix nil
+                entropy/emacs-company--company-box-company-candidates-length nil))
+         ((and (equal company-candidates-length 1)
+               (null company-box-show-single-candidate))
+          (company-box-hide))
+         ((eq command 'update)
+          (when (or
+                 ;; (and (or (string-prefix-p entropy/emacs-company--company-box-company-prefix
+                 ;;                           company-prefix)
+                 ;;          (string-prefix-p company-prefix
+                 ;;                           entropy/emacs-company--company-box-company-prefix))
+                 ;;      (> (abs (- (length company-prefix)
+                 ;;                 (length entropy/emacs-company--company-box-company-prefix)))
+                 ;;         3))
+                 nil
+                 (>= (abs (- entropy/emacs-company--company-box-company-candidates-length
+                             company-candidates-length))
+                     1))
+            (setq entropy/emacs-company--company-box-company-prefix company-prefix)
+            (setq entropy/emacs-company--company-box-company-candidates-length
+                  company-candidates-length)
+            (company-box-hide))
+          (company-box-show))
+         ((eq command 'post-command)
+          (company-box--post-command))))))
 
   (with-no-warnings
     ;; Prettify icons
