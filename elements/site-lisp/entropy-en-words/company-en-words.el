@@ -26,16 +26,38 @@
 
 ;; See the README for more details.
 
-(if (version< emacs-version "27")
-    (require 'cl)
-  (require 'cl-macs))
+(require 'cl-lib)
 (require 'company)
 (require 'company-en-words-data "./company-en-words-data.el")
 
-(defun company-en-words--cl-compatible-for-rmifnot (&rest args)
-  (if (fboundp 'cl-remove-if-not)
-      (apply 'cl-remove-if-not args)
-    (apply 'remove-if-not args)))
+(defvar company-en-words/var--doc-buffer-name "*company-en-words-doc*")
+(defvar company-en-words/var--riched-en-words-list nil)
+
+(defun company-en-words/lib--require-wudao ()
+  (let* ((wd-path (executable-find "wd"))
+         wd-host)
+    (when wd-path
+      (setq wd-host (file-name-directory
+                     (directory-file-name
+                      (file-name-directory
+                       (car (file-attributes wd-path))))))
+      (add-to-list 'load-path (expand-file-name "emacs" wd-host))
+      (require 'wudao-query nil t))))
+
+(defvar company-en-words/var--wudao-required
+  (company-en-words/lib--require-wudao))
+
+(defvar company-en-words/var--wudao-cached nil)
+
+(defun company-en-words/lib--prepare-wudao-dict ()
+  ;; require wudao dict to patch fully canids with fully dict property
+  (when company-en-words/var--wudao-required
+    (unless company-en-words/var--wudao-cached
+      (when (fboundp 'wudao/query-get-en-words-completion-table)
+        (setq company-en-words/var--riched-en-words-list
+              (wudao/query-get-en-words-completion-table
+               company-en-words-data/en-words-simple-list)
+              company-en-words/var--wudao-cached t)))))
 
 (defun company-en-words (command &optional arg &rest ignored)
   (interactive (list 'interactive))
@@ -43,19 +65,44 @@
     (interactive (company-begin-backend 'company-en-words))
     (prefix (company-grab-word))
     (candidates
-     (company-en-words--cl-compatible-for-rmifnot
-      (lambda (c) (string-prefix-p (downcase arg) c))
-      en-words-completions))
+     (company-en-words/lib--prepare-wudao-dict)
+     (let ((full-candis
+            (when (not (string-empty-p arg))
+              (cl-remove-if-not
+               (lambda (c) (string-prefix-p (downcase arg) c))
+               (or company-en-words/var--riched-en-words-list
+                   company-en-words-data/en-words-simple-list)))))
+       (when full-candis
+         (if (eq company-backend 'company-en-words)
+             full-candis
+           (reverse (last (reverse full-candis) 20))))))
+    (annotation
+     (company-en-words/lib--prepare-wudao-dict)
+     (when company-en-words/var--wudao-cached
+       (let ((props
+              (wudao/query-get-en-words-property
+               arg 'prop-list 'chinese-simplified)))
+         (format "%s"
+                 (or props "␀")))))
+    (doc-buffer
+     (company-en-words/lib--prepare-wudao-dict)
+     (when company-en-words/var--wudao-cached
+       (let ((buffer (get-buffer-create company-en-words/var--doc-buffer-name))
+             (inhibit-read-only t)
+             (short-trans
+              (wudao/query-get-en-words-property
+               arg 'short-trans
+               'chinese-simplified)))
+         (with-current-buffer buffer
+           (erase-buffer)
+           (insert
+            (format
+             "%s"
+             (or short-trans
+                 (propertize
+                  "In the beginning there's darkness!"
+                  'face 'warning)))))
+         buffer)))
     (sorted t)))
-
-(defun company-en-words-enable ()
-  (interactive)
-  (add-to-list 'company-backends 'company-en-words))
-
-(defun company-en-words-disable ()
-  (interactive)
-  (setq company-backends (remove 'company-en-words company-backends)))
-
-;;(add-to-list 'company-backends 'company-en-words)
 
 (provide 'company-en-words)

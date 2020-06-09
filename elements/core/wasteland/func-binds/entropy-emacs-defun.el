@@ -134,6 +134,23 @@ the buffer-locally variable `buffer-read-only'."
                         (if ,inhibit-local nil buffer-read-only)))
                    (apply orig-func orig-args)))))
 
+;; *** print
+
+(defun entropy/emacs-advice-func-around-for-print-limit
+    (func &optional level length)
+  "Make function func restricted by `print-level' LEVEL and
+`print-length' LENGTH.
+
+LEVEL and LENGTH are optional, if that fallback to 3 and 20 by
+defautly."
+  (advice-add
+   func
+   :around
+   `(lambda (orig-func &rest orig-args)
+      (let ((print-level (or ,level 3))
+            (print-length (or ,length 20)))
+        (apply orig-func orig-args)))))
+
 ;; *** plist manipulation
 
 (defun entropy/emacs-strict-plistp (arg)

@@ -1533,9 +1533,6 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
         (setq pyim-punctuation-translate-p '(yes no auto))
       (setq pyim-punctuation-translate-p '(no yes auto)))))
 
-;; *** Enable disabled commands
-(put 'narrow-to-region 'disabled nil)
-
 ;; *** Key modification
 
 ;; **** more conventions
@@ -1850,6 +1847,25 @@ otherwise returns nil."
   (entropy/emacs-lazy-load-simple doom-modeline
     (add-hook 'doom-modeline-mode-hook
               #'minions-mode)))
+
+;; *** Description | Help mode improvement
+;; **** restriction print level and length for help buffer
+
+(entropy/emacs-advice-func-around-for-print-limit
+ 'describe-variable)
+
+;; **** lagging prompts
+
+(defun entropy/emacs-basic--help-doc-lagging-prompt (&rest _)
+  (message "Prepare for help documents ...")
+  (redisplay t))
+(advice-add 'describe-variable
+            :before
+            #'entropy/emacs-basic--help-doc-lagging-prompt)
+
+;; *** Enable disabled commands
+(put 'narrow-to-region 'disabled nil)
+
 
 ;; ** eemacs basic hydra-hollow instances
 

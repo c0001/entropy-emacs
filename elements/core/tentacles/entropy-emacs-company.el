@@ -555,7 +555,12 @@ that for en-words candi recognized "
       'Unknown)
     (setq company-box-icons-functions
           (append company-box-icons-functions
-                  '(entropy/emacs-company--company-en-words-icons-for-company-box)))))
+                  '(entropy/emacs-company--company-en-words-icons-for-company-box)))
+    ;; add specific backends face in box
+    (add-to-list 'company-box-backends-colors
+                 '(company-en-words
+                   :all "DarkOrange" :selected
+                   (:background "firebrick" :foreground "black")))))
 
 ;; *** shell
 (use-package company-shell

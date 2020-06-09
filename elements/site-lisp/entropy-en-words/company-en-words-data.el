@@ -1,4 +1,4 @@
-(defconst en-words-completions
+(defconst company-en-words-data/en-words-simple-list
   '("A"
     "AOL"
     "Aachen"
