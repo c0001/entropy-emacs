@@ -999,12 +999,12 @@ rich enhanced purpose there are two more options:
   :type 'boolean
   :group 'entropy/emacs-company-customized)
 
-(defcustom entropy/emacs-company-idle-delay-default 0.65
+(defcustom entropy/emacs-company-idle-delay-default 0.12
   "Default eemacs specified set for `company-idle-delay`."
   :type 'sexp
   :group 'entropy/emacs-company-customized)
 
-(defcustom entropy/emacs-company-quickhelp-delay-default 1.5
+(defcustom entropy/emacs-company-quickhelp-delay-default 0.12
   "Default unified company help-doc popup delay used for all type
 of `entropy/emacs-company-tooltip-use-type'."
   :type 'sexp
