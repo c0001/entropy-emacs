@@ -1854,6 +1854,28 @@ otherwise returns nil."
 (entropy/emacs-advice-func-around-for-print-limit
  'describe-variable)
 
+
+;; **** prevent large variable displaying with company session actived
+
+(defun entropy/emacs-basic--help-doc-lgv-not-show
+    (orig-func &rest orig-args)
+  (if (and (bound-and-true-p company-emulation-alist)
+           (not (equal company-emulation-alist '((t . nil)))))
+      (let* ((--temp--string-- "Too large not show in company help buffer")
+             (wudao/cache--hash-file-desc --temp--string--)
+             (wudao/cache--hash-file-full --temp--string--)
+             (wudao/cache--hashed-desc --temp--string--)
+             (wudao/cache--hashed-full --temp--string--)
+             (wudao/query--hash-plist --temp--string--)
+             (company-en-words-data/en-words-simple-list --temp--string--)
+             (company-en-words/var--riched-en-words-list --temp--string--))
+        (apply orig-func orig-args))
+    (apply orig-func orig-args)))
+
+(advice-add 'describe-variable
+            :around
+            #'entropy/emacs-basic--help-doc-lgv-not-show)
+
 ;; **** lagging prompts
 
 (defun entropy/emacs-basic--help-doc-lagging-prompt (&rest _)

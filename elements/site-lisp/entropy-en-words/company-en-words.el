@@ -68,10 +68,12 @@
      (company-en-words/lib--prepare-wudao-dict)
      (let ((full-candis
             (when (not (string-empty-p arg))
-              (cl-remove-if-not
-               (lambda (c) (string-prefix-p (downcase arg) c))
-               (or company-en-words/var--riched-en-words-list
-                   company-en-words-data/en-words-simple-list)))))
+              (delete
+               nil
+               (mapcar
+                (lambda (c) (and (string-prefix-p (downcase arg) c) c))
+                (or company-en-words/var--riched-en-words-list
+                    company-en-words-data/en-words-simple-list))))))
        (when full-candis
          (if (eq company-backend 'company-en-words)
              full-candis

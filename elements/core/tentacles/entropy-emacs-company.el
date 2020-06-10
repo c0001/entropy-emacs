@@ -153,6 +153,21 @@
        (yellow (symbol-name 'company-idle-delay))
        (red (number-to-string company-idle-delay)))))
 
+  (defun entropy/emacs-company--gc-optimize ()
+    "Maximize `gc-cons-threshold' when company session is
+actived, as the rest that next garbage-collect operation til
+`entropy/emacs-gc--idle-time-recovery' triggered."
+    (when (and (bound-and-true-p company-emulation-alist)
+               (not (equal company-emulation-alist '((t . nil)))))
+      (setq gc-cons-threshold most-positive-fixnum)))
+
+  (defun entropy/emacs-company-files (command)
+    (interactive (list 'interactive))
+    (unless (or buffer-read-only
+                (equal (buffer-name)
+                       entropy/emacs-init-welcome-buffer-name))
+      (company-files command)))
+
 ;; *** bind-key
   :bind (:map company-active-map
          ("C-p" . company-select-previous)
@@ -191,16 +206,6 @@
       "Auto completion operations"
       :enable t :exit t))))
 
-;; *** preface
-
-  :preface
-  (defun entropy/emacs-company-files (command)
-    (interactive (list 'interactive))
-    (unless (or buffer-read-only
-                (equal (buffer-name)
-                       entropy/emacs-init-welcome-buffer-name))
-      (company-files command)))
-
 ;; *** init for load
   :init
   (entropy/emacs-lazy-with-load-trail
@@ -220,6 +225,10 @@
   ;; aligns annotation to the right hand side
   (setq company-tooltip-align-annotations t)
 
+  ;; optimized gc while company session for reducing lags
+  (add-hook 'post-command-hook #'entropy/emacs-company--gc-optimize)
+
+  ;; common internal customization
   (setq
    company-tooltip-limit 20  ; bigger popup window
    company-echo-delay 0      ; remove annoying blinking
@@ -559,8 +568,12 @@ that for en-words candi recognized "
     ;; add specific backends face in box
     (add-to-list 'company-box-backends-colors
                  '(company-en-words
-                   :all "DarkOrange" :selected
-                   (:background "firebrick" :foreground "black")))))
+                   :all "DarkOrange"
+                   :selected
+                   (:background "gray" :foreground "black")
+                   :annotation
+                   (:foreground "yellow")))
+    ))
 
 ;; *** shell
 (use-package company-shell
