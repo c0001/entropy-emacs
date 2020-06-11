@@ -186,6 +186,7 @@
         ("^\\*entropy/cpmv"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose nil :select nil)
         ("^\\*entropy/cndt"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("^\\*entropy/sdcv"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^\\*eemacs"                  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; sbcl-mode
         ("^\\*slime-"                  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
@@ -391,13 +392,26 @@ key slot support."
           (goto-char (point-max))))
       (display-buffer buff-name)))
 
+  (defun entropy/emacs-popwin--shackle-set-rule ()
+    (setq shackle-rules
+          (entropy/emacs-popwin-make-rule-spec
+           :shackle entropy/emacs-popwin-regists)))
+
+  (defun entropy/emacs-popwin-shackle-reset-rules ()
+    "Reset `shackle-rules' and enable them."
+    (interactive)
+    (let ((init-status shackle-mode))
+      (when init-status
+        (shackle-mode 0))
+      (entropy/emacs-popwin--shackle-set-rule)
+      (when init-status
+        (shackle-mode 1))))
+
   ;; rules
   (setq shackle-default-size 0.4)
   (setq shackle-default-alignment 'below)
   (setq shackle-default-rule nil)
-  (setq shackle-rules
-        (entropy/emacs-popwin-make-rule-spec
-         :shackle entropy/emacs-popwin-regists)))
+  (entropy/emacs-popwin--shackle-set-rule))
 
 ;; * provide
 (provide 'entropy-emacs-popwin)

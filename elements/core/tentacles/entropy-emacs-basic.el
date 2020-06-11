@@ -1926,5 +1926,35 @@ otherwise returns nil."
      "Core Operations"
      :enable t :exit t))))
 
+;; ** Basic minor interaction commands
+(defun entropy/emacs-basic-print-variable (variable)
+  "Print a variable into a transient buffer and popup to display
+it with focus on."
+  (interactive
+   (list
+    (intern
+     (completing-read "Chosen variable symbol: "
+                      obarray
+                      (lambda (x)
+                        (and (boundp x)
+                             x))))))
+  (let ((buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
+        (inhibit-read-only t)
+        (variable (symbol-value variable)))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (cond
+       ((sequencep variable)
+        (mapc
+         (lambda (x)
+           (print x (current-buffer)))
+         variable))
+       (t
+        (print variable (current-buffer))))
+      (read-only-mode 1))
+    (display-buffer buffer)
+    (select-window (get-buffer-window buffer))))
+
+
 ;; * provide
 (provide 'entropy-emacs-basic)
