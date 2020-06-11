@@ -54,10 +54,12 @@
   (when company-en-words/var--wudao-required
     (unless company-en-words/var--wudao-cached
       (when (fboundp 'wudao/query-get-en-words-completion-table)
-        (setq company-en-words/var--riched-en-words-list
-              (wudao/query-get-en-words-completion-table
-               company-en-words-data/en-words-simple-list)
-              company-en-words/var--wudao-cached t)))))
+        ;; restrict `gc-cons-threshold' prevents memory overflow
+        (let ((gc-cons-threshold 80000))
+          (setq company-en-words/var--riched-en-words-list
+                (wudao/query-get-en-words-completion-table
+                 company-en-words-data/en-words-simple-list)
+                company-en-words/var--wudao-cached t))))))
 
 (defun company-en-words (command &optional arg &rest ignored)
   (interactive (list 'interactive))
