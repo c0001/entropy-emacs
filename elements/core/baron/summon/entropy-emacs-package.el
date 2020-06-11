@@ -277,10 +277,75 @@ When installing encounters the fatal error, put the pkg into
     (setq use-package-expand-minimally t))
   (setq use-package-enable-imenu-support t)
 
+  ;; add self built `use-package' keys
+  (entropy/emacs-package--use-package-add-keyword :eemacs-functions)
+  (entropy/emacs-package--use-package-add-keyword :eemacs-macros)
+
   (use-package diminish
     :commands (diminish))
   (use-package bind-key
     :commands (bind-key)))
+
+(defun entropy/emacs-package--use-package-add-keyword (keyword &optional precedence)
+  (let ((precedence (or precedence :init)))
+    (setq use-package-keywords
+          ;; should go in the same location as :bind
+          (cl-loop for item in use-package-keywords
+                   if (eq item precedence)
+                   collect precedence and collect keyword
+                   else
+                   ;; don't add duplicates
+                   unless (eq item keyword)
+                   collect item))))
+
+(defalias 'use-package-normalize/:eemacs-functions
+  'use-package-normalize-symlist)
+
+(defun use-package-handler/:eemacs-functions (name _keyword arg rest state)
+  "The `use-package' handler for key ':eemacs-functions' which
+place can host a function symbol or a list of thus. All symbols
+are recognized as a normal function."
+  (use-package-concat
+   ;; Since we deferring load, establish any necessary autoloads, and also
+   ;; keep the byte-compiler happy.
+   (let ((name-string (use-package-as-string name)))
+     (cl-mapcan
+      #'(lambda (command)
+          (when (symbolp command)
+            (append
+             (unless (plist-get state :demand)
+               `((unless (fboundp ',command)
+                   (autoload #',command ,name-string))))
+             (when (bound-and-true-p byte-compile-current-file)
+               `((eval-when-compile
+                   (declare-function ,command ,name-string)))))))
+      (delete-dups arg)))
+   (use-package-process-keywords name rest state)))
+
+(defalias 'use-package-normalize/:eemacs-maros
+  'use-package-normalize-symlist)
+
+(defun use-package-handler/:eemacs-macros (name _keyword arg rest state)
+  "The `use-package' handler for key ':eemacs-macros' which place
+can host a macro symbol or a list of thus. All symbols are
+recognized as a normal macro."
+  (use-package-concat
+   ;; Since we deferring load, establish any necessary autoloads, and also
+   ;; keep the byte-compiler happy.
+   (let ((name-string (use-package-as-string name)))
+     (cl-mapcan
+      #'(lambda (command)
+          (when (symbolp command)
+            (append
+             (unless (plist-get state :demand)
+               `((unless (fboundp ',command)
+                   (autoload #',command ,name-string nil nil t))))
+             (when (bound-and-true-p byte-compile-current-file)
+               `((eval-when-compile
+                   (declare-function ,command ,name-string)))))))
+      (delete-dups arg)))
+   (use-package-process-keywords name rest state)))
+
 
 ;; ** common start
 (defun entropy/emacs-package-common-start ()

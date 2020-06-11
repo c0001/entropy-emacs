@@ -60,10 +60,10 @@
          :shackle (lambda (x rule)
                     (list :align
                           (cl-case x
-                            (bottom (quote 'below))
-                            (top (quote 'above))
+                            (bottom 'below)
+                            (top 'above)
                             (t
-                             (quote (quote x)))))))
+                             x)))))
         (:size
          :popwin (lambda (x rule)
                    (list (if (member (plist-get (cdr rule) :align) '(bottom top))
@@ -190,6 +190,9 @@
         ;; sbcl-mode
         ("^\\*slime-"                  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("^\\*sldb"                    :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+
+        ;; Bongo
+        ("^\\*Bongo"                   :regexp t   :dedicated t :align left :size 0.5   :autoclose t   :select t)
 
         ;; Msic.
         ("*Buffer Details*"            :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
@@ -356,7 +359,9 @@ key slot support."
   (defun entropy/emacs-popwin-shackle-popup-buffer ()
     (interactive)
     (let* ((buff-name (completing-read "Buffer choosing: " 'internal-complete-buffer))
-           (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
+           (shackle-rules
+            (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
+                `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
       (get-buffer-create buff-name)
       (display-buffer buff-name)
       (when (and (fboundp 'solaire-mode)
@@ -368,7 +373,9 @@ key slot support."
     (interactive)
     (let* ((file (completing-read "Buffer choosing: " 'read-file-name-internal))
            (buff-name (buffer-name (find-file-noselect file)))
-           (shackle-rules `((,buff-name :select t :align 'below :autoclose t))))
+           (shackle-rules
+            (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
+                `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
       (display-buffer buff-name)))
 
   (defun entropy/emacs-popwin-shackle-popup-message ()

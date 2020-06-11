@@ -205,27 +205,62 @@ Add current music to queue when its not in thus."
 
 ;; ** bongo
 (use-package bongo
-  :config
+;; *** defines
+  :commands
+  (bongo-switch-to-buffer
+   bongo-switch-buffers)
+  :eemacs-functions
+  (bongo-buffer
+   bongo-library-buffer
+   bongo-playlist-buffer)
+  :eemacs-macros
+  (with-bongo-library-buffer)
+
+;; *** init
+  :init
+
   (entropy/emacs-lazy-load-simple dired
     (with-no-warnings
-      (defun bongo-add-dired-files ()
-        "Add marked files to the Bongo library."
+      (defun entropy/emacs-music-bongo-add-dired-files ()
+        "Add marked files to the Bongo library and then popup the
+`bongo-library-buffer' which the buffer point position has been
+jumped to the main context."
         (interactive)
-        (bongo-buffer)
-        (let (file (files nil))
-          (dired-map-over-marks
-           (setq file (dired-get-filename)
-                 files (append files (list file)))
-           nil t)
-          (with-bongo-library-buffer
-           (mapc 'bongo-insert-file files)))
-        (bongo-switch-buffers))
+        (let ((buffer (bongo-library-buffer)))
+          (let (file (files nil))
+            (dired-map-over-marks
+             (setq file (dired-get-filename)
+                   files (append files (list file)))
+             nil t)
+            (with-bongo-library-buffer
+              (mapc 'bongo-insert-file files)
+              (goto-char (point-min))
+              ;; go to the head of the library content which will skip
+              ;; the bongo library header
+              (re-search-forward
+               (regexp-quote "  Report bugs to <bongo-devel@nongnu.org>."))
+              (next-line 2)))
+          (display-buffer buffer)))
+
       (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
        'dired-mode '(dired dired-mode-map)
        '("Misc."
-         (("m b" bongo-add-dired-files
+         (("m b" entropy/emacs-music-bongo-add-dired-files
            "Add marked files to the Bongo library."
-           :enable t :exit t)))))))
+           :enable t :exit t))))))
+
+;; *** config
+  :config
+
+  ;; focely disable bongo mode line indictor at startup time, because
+  ;; it may cause modeline format pollution and be with unstable xpm
+  ;; indictor image render function.
+  ;;
+  ;; We must set it after the `bongo.el' loaded to override what it
+  ;; will enable at the load time.
+  (setq bongo-mode-line-indicator-mode nil)
+
+  )
 
 ;; * provide
 (provide 'entropy-emacs-music)
