@@ -76,13 +76,6 @@
   (when (not (featurep feature))
     (entropy/emacs-start--require-prompt feature)))
 
-(defun entropy/emacs-start--initial-redisplay-advice (orig-func &rest orig-args)
-  (if (or entropy/emacs-fall-love-with-pdumper
-          (daemonp))
-      (entropy/emacs-message-do-message
-       (red "Redisplay disabled in pdumper procedure."))
-    (apply orig-func orig-args)))
-
 ;; ** Trail
 ;; *** Windows IME enable function
 (when sys/win32p
@@ -306,7 +299,6 @@ notation.
    (white "⮞")
    (blue "Loading minimal ...... "))
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
-  (advice-add 'redisplay :around #'entropy/emacs-start--initial-redisplay-advice)
 
   ;; packages initializing
   (require 'entropy-emacs-package)
@@ -348,7 +340,6 @@ notation.
 
   ;; ends for minimal start
   (advice-remove 'require #'entropy/emacs-start--require-loading)
-  (advice-remove 'redisplay #'entropy/emacs-start--initial-redisplay-advice)
 
   ;; after loading eemacs mini
   (entropy/emacs-start--init-after-load-initialze-process
@@ -366,7 +357,6 @@ notation.
 (defun entropy/emacs-start-X-enable ()
   (interactive)
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
-  (advice-add 'redisplay :around #'entropy/emacs-start--initial-redisplay-advice)
   (entropy/emacs-message-do-message
    "%s %s" (white "⮞") (blue "Loading rest ......"))
   ;; highlight
@@ -412,8 +402,6 @@ notation.
   (require 'entropy-emacs-game)
   ;; end
   (advice-remove 'require #'entropy/emacs-start--require-loading)
-  (advice-remove 'redisplay #'entropy/emacs-start--initial-redisplay-advice)
-
   (entropy/emacs-start--init-after-load-initialze-process
    (null entropy/emacs-minimal-start)
    'entropy/emacs-init-X-hook)
@@ -453,6 +441,7 @@ notation.
   (define-coding-system-alias 'cp65001 'utf-8))
 
 (defun entropy/emacs-start-do-load ()
+  (progn (message "Cat's eye opening ..."))
   (when (entropy/emacs-ext-main)
     (require 'entropy-emacs-path)
     (entropy/emacs-start--init-bingo)
