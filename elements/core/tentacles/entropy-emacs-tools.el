@@ -333,7 +333,7 @@ like `recenter-top-bottom'."
   :eemacs-tpha
   (((:enable t))
    ("Utils"
-    (("u r"
+    (("u v"
       (:eval
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'visual-regexp))

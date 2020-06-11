@@ -760,12 +760,47 @@ without derived slot."
           "*esh command on file*"
           "*Backtrace*"
           "*rg*"
-          "*Messages*")
+          "*Messages*"
+          "*Buffer Details*"
+          "*Memory Explorer*"
+          "*grep*"
+          "*ag search*"
+          "*rg*"
+          "*pt-search*"
+          "*Occur*"
+          "*xref*"
+          "*compilation*"
+          "*Compile-Log*"
+          "*Warnings*"
+          "*Completions*"
+          "*Shell Command Output*"
+          "*golint*"
+          "*govet*"
+          "*go-guru-output*"
+          "*Gofmt Errors*"
+          "*Go Test*"
+          "*shell*"
+          "*Python*"
+          "*Ruby*"
+          "*quickrun*"
+          "*Diff*"
+          "*Colors*"
+          "*Process List*"
+          "*Process-Environment*"
+          )
         winner-boring-buffers-regexp
-        (rx (or (seq line-start "magit: ")
-                "*eemacs-"
-                "*entropy/"
-                "magit:"))))
+        (rx (or
+             "*eemacs-"
+             "*entropy/"
+             (regexp "\\*Async Shell Command\\*.+" )
+             (regexp "^*Man.+*$")
+             (regexp "^*WoMan.+*$")
+             (regexp "^*Backtrace.+*$")
+             (regexp "^\\*vc-")
+             (regexp "\\*ivy-occur.+*$" )
+             (regexp "^*godoc.+*$")
+             (regexp
+              "^magit[-]?\\([a-z]+\\)?:")))))
 
 ;; *** desktop mode
 
