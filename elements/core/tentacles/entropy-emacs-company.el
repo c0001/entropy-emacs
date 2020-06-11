@@ -326,7 +326,9 @@ initial frame background face sets did by
 
   :init
   (setq company-box-doc-delay
-        entropy/emacs-company-quickhelp-delay-default
+        ;; FIXME: company box idle delay smaller than 0.42 will cause
+        ;; first candi doc not show
+        (max 0.42 entropy/emacs-company-quickhelp-delay-default)
         company-box-max-candidates (if (boundp x-gtk-resize-child-frames) 100 20)
         company-box-show-single-candidate t)
 
