@@ -413,6 +413,95 @@ moving operation will cause non-terminated looping proceeding."
 ;; *** config
 
   :config
+;; **** redefination
+  (defun outshine-calc-outline-level ()
+    "Calculate the right outline level for the outshine-regexp.
+
+NOTE: This function has been redefined to fix its bug for
+compatible with =entropy-emacs=."
+    (save-excursion
+      (save-match-data
+        (and
+         (looking-at (outshine-calc-outline-regexp))
+         (let* ((m-strg (match-string-no-properties 0))
+                (comment-starter
+                 (let (rtn)
+                   (if (> comment-add 0)
+                       (progn
+                         (dotimes (var (+ comment-add 1))
+                           (setq rtn
+                                 (concat (or rtn "") comment-start)))
+                         rtn)
+                     comment-start)))
+                (head-indc (replace-regexp-in-string
+                            (concat "^" (regexp-quote comment-starter))
+                            ""
+                            m-strg)))
+           (length (car (split-string head-indc nil 'omit-null))))))))
+
+  (defun outshine-cycle-buffer (&optional arg)
+    "Rotate the visibility state of the buffer through 3 states:
+
+- OVERVIEW: Show only top-level headlines.
+- CONTENTS: Show all headlines of all levels, but no body text.
+- SHOW ALL: Show everything.
+
+With a numeric prefix ARG, show all headlines up to that level.
+
+NOTE: this function has been redefined for bug fix to be
+compatible with =entropy-emacs=."
+    (interactive "P")
+    (save-excursion
+      (cond
+       ((integerp arg)
+        (outline-show-all)
+        (outline-hide-sublevels arg))
+       ((eq last-command 'outshine-cycle-overview)
+        ;; We just created the overview - now do table of contents
+        ;; This can be slow in very large buffers, so indicate action
+        (outshine--cycle-message "CONTENTS...")
+        ;; Visit all headings and show their offspring
+        (goto-char (point-max))
+        (while (not (bobp))
+          (condition-case nil
+              (progn
+                (outline-previous-visible-heading 1)
+                (outline-show-branches))
+            (error (goto-char (point-min)))))
+        (outshine--cycle-message "CONTENTS...done")
+        (setq this-command 'outshine-cycle-toc
+              outshine-current-buffer-visibility-state 'contents))
+       ((eq last-command 'outshine-cycle-toc)
+        ;; We just showed the table of contents - now show everything
+        (outline-show-all)
+        (outshine--cycle-message "SHOW ALL")
+        (setq this-command 'outshine-cycle-showall
+              outshine-current-buffer-visibility-state 'all))
+       (t
+        ;; Default action: go to overview
+        (let ((toplevel
+               (cond
+                (current-prefix-arg
+                 (prefix-numeric-value current-prefix-arg))
+                ((save-excursion
+                   (beginning-of-line)
+                   (looking-at outline-regexp))
+                 (max 1 (save-excursion (beginning-of-line) (funcall outline-level))))
+                (t
+                 ;; judge first head level if current buffer doesn't
+                 ;; use 1st level for first head
+                 (let ((first-level
+                        (save-excursion
+                          (save-match-data
+                            (goto-char (point-min))
+                            (when (re-search-forward outline-regexp nil t)
+                              (beginning-of-line)
+                              (outshine-calc-outline-level))))))
+                   (or first-level 1))))))
+          (outline-hide-sublevels toplevel))
+        (outshine--cycle-message "OVERVIEW")
+        (setq this-command 'outshine-cycle-overview
+              outshine-current-buffer-visibility-state 'overview)))))
 
 ;; **** eemacs outshine head regexp defination
 
@@ -810,6 +899,27 @@ Otherwise, fallback to the original binding of %s in the current mode."
   (outshine-define-key outshine-mode-map
     (kbd "C-c C-p") 'outline-up-heading
     t)
+
+;; **** sepcial hooks defination
+
+  (defun entropy/emacs-structure--outshine-comment-add-specification
+      ()
+    "Specified `comment-add' for some special cases for outshine-mode
+calculate `outline-regexp', such as elisp extension `bongo.el' use
+2 repeat of `comment-add' to render its headline but default is 1
+which can not be rendered correctly."
+    (cond
+     ((and (eq major-mode 'emacs-lisp-mode)
+           (buffer-file-name)
+           (string-match-p (concat (regexp-quote "bongo.el") "$")
+                           (buffer-file-name)))
+      (setq-local comment-add 2))
+     (t
+      nil)))
+
+  (add-hook 'outline-minor-mode-hook
+            #'entropy/emacs-structure--outshine-comment-add-specification)
+
 
 
   )
