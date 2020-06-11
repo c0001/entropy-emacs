@@ -87,7 +87,7 @@ loading.")
                :repo-lc entropy/emacs-ext-eemacs-elpkg-archive-project-dir
                :version-lc (expand-file-name "version"
                                              entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
-               :version "0.2.2"
+               :version "0.3.0"
                :indicator-lc (expand-file-name "entropy-emacs-extensions"
                                                entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
                :inited-indicator-lc (expand-file-name "init"
@@ -210,7 +210,11 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
           (cond
            ((version< (buffer-substring (point-min) (point-max)) version)
             (throw :exit 3))
-           ((version< version (buffer-substring (point-min) (point-max)))
+           ((and (version< version (buffer-substring (point-min) (point-max)))
+                 (not (entropy/emacs-version-compatible
+                       version
+                       (buffer-substring (point-min) (point-max))
+                       t)))
             (throw :exit 4)))))
       (unless (file-exists-p inited-indicator)
         (throw :exit 5))

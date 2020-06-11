@@ -198,13 +198,13 @@ convention."
 
 (defcustom entropy/emacs-indicate-sshd-session nil
   "Indicate whether current emacs session is on ssh remote
-  session."
+session."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/emacs-use-emacs-in-terminal-with-graphic-features nil
   "Using some eemacs features on graphic session in text-based
-  session."
+session."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 

@@ -21,7 +21,7 @@ This emacs personal configs can be used in:
 - Learning emacs.
 - HTML, CSS, JS, PHP, C , python etc. coding learning and testing.
 - Write article, recording content you captured and simple task
-  managter with configed Org-mode.
+  manager with configured Org-mode.
 - With some utilities by self and from web and others great idea which
   also be in github.
 
@@ -38,29 +38,38 @@ see [[file:elements/site-lisp/entropy-emacs-doc/org/entropy-emacs_introduction.o
 
 =entropy-emacs= using various third-party extensions from [[https://elpa.gnu.org/packages/][elpa]], [[https://melpa.org][melpa]],
 and some ones hosted on _gihtub.com_, thus most of them are not
-wrappered within this repo, for reason of moduling
-management. There're one main corresponding project tied with
+wrapped within this repo, for reason of module aspect
+management. There's one main corresponding project tied with
 =entropy-emacs= for as the archive of current using extensions
-collection: ([[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]]).
+collection: ([[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]]), for see its explicit meaning,
+see the commentary of [[file:elements/core/baron/summon/entropy-emacs-ext.el][entropy-emacs-ext.el]], and it's the
+stable(tested) extensions that entropy-emacs used for, it has its own
+host-server procedure which forked from '[[https://melpa.org/][melpa]]' to produce as what it
+means. You must make it before using it and make understanding by
+following its README.
 
-For see its explicit meaning, see the commentary of
-[[file:elements/core/tentacles/entropy-emacs-ext.el][entropy-emacs-ext.el]].
-
-Its the stable(tested) extensions that entropy-emacs used for, it has
-its own host-server procedure which forked from '[[https://melpa.org/][melpa]]' to produce as
-what it means. You must make it before using it follow its README.
+For case use =entropy-emacs-extension= in a released =entropy-emacs=,
+there's a version limit restriction usage for this case that each
+eemacs release was followed a version of =entropy-emacs-extension=
+release or the release referred updates version follow the "x.y.z"
+version naming convention, you should download the
+=entropy-emacs-extension= release which case this case specified.
 
 Or on the most used occasion, you don't need to retrieve that eemacs
 extension release project, just using the melpa *up-to-date* upstream
-but may have compability problem with current eemacs release version,
+but may have compatible problem with current eemacs release version,
 if that, please using eemacs git repo as your eemacs configuration
 workspace host to track update with =dev= branch, this may solve
-various compability issue or kick one issue on eemacs github page for
-quering on a resolution.
+various compatible issue or kick one issue on [[https://github.com/c0001/entropy-emacs/issues][eemacs issue page]] for
+querying/asking on a resolution.
 
 For switch this two extension usage type, the variable
 ~entropy/emacs-use-extensions-type~ are gives for you, the default
-type was using melpa upstream.
+type was using melpa upstream to give the default ignorance to
+=entropy-emacs-extension= manually download trouble, but in this case
+should notice the mentioned points.
+
+Current =entropy-emacs-extensions= release version required: =0.2.x=
 
 *Make entropy-emacs*
 
@@ -75,7 +84,7 @@ You can run ~make help~ to see the details.
 
 *Thanks to:* [[https://github.com/seagle0128/.emacs.d][Centaur emacs]]
 
-*Realease:*
+*Release:*
 
 Entropy(bmsac0001@gmail.com) @ [2019-11-25 Wed 15:39] © GPL/v3
 
