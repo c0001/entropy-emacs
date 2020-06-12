@@ -650,6 +650,12 @@ buffer, in that case any conditions don't match the filter then
                         term-mode
                         dashboard-mode))
               (bound-and-true-p entropy/emacs-ui-init-welcom-mode)
+              (eq major-mode 'eww-mode)
+              (let ((rtn
+                     (save-excursion
+                       (goto-char (point-max))
+                       (line-number-at-pos))))
+                (> rtn 2500))
               (minibufferp))
     (hl-line-mode 1)))
 

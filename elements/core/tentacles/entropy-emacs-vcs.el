@@ -150,7 +150,7 @@
                      (propertize "Date" 'face 'font-lock-keyword-face) colon
                      (propertize date 'face 'font-lock-string-face))
              (propertize (make-string 38 ?─) 'face 'font-lock-comment-face)
-             message
+             (propertize message 'face 'warning)
              (propertize "\nPress q to quit" 'face '(:inherit (font-lock-comment-face italic)))))
         (git-messenger:format-detail vcs commit-id author message)))
 
