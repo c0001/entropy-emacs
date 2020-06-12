@@ -157,8 +157,8 @@
     (defun entropy/emacs-vcs--git-messenger:popup-message ()
       "Popup message with `posframe', `pos-tip', `lv' or `message', and dispatch actions with `hydra'."
       (interactive)
-      (let* ((vcs (git-messenger:find-vcs))
-             (file (buffer-file-name (buffer-base-buffer)))
+      (let* ((vcs (or (git-messenger:find-vcs) (user-error "Not in vcs folder!")))
+             (file (or (buffer-file-name (buffer-base-buffer)) (user-error "Not a vcs file! ")))
              (line (line-number-at-pos))
              (commit-info (git-messenger:commit-info-at-line vcs file line))
              (commit-id (car commit-info))

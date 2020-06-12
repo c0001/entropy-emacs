@@ -1349,6 +1349,22 @@ process doesn't finished."
                   "Uncompress")
                 input output)))
 
+;; ** Face refer
+
+(defun entropy/emacs-get-face-attribute-alist (face &optional frame)
+  "Map face FACE all attributes into a alist with element formed
+as '(cons attr-key attr-value)' which can be used for
+`set-face-attribute' to loop did as."
+  (delete nil
+          (mapcar
+           (lambda (attr)
+             (let ((value (face-attribute face attr frame t)))
+               (if (eq value 'unspecified)
+                   (cond
+                    ((eq attr :foreground) (cons attr nil)))
+                 (cons attr value))))
+           entropy/emacs-face-attributes-list)))
+
 ;; ** Org face reset
 (defvar entropy/emacs-defun--ohrsc-current-theme nil
   "Emacsc theme name for whose org or outline level face has been

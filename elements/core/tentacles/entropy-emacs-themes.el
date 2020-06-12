@@ -159,29 +159,60 @@ face attributes and some refer is missing in the new frame."
                              (bound-and-true-p company-box-mode)))
               (let ()
                 ;; map get enabled soloarized faces
-                (mapcar
-                 (lambda (x)
-                   (let ((map (car x))
-                         (enable (cdr x)))
-                     (setq enable (if (listp enable) (eval enable) (symbol-value enable)))
-                     (when enable
-                       (dolist (face map)
-                         (when (facep face)
-                           (push (cons face (face-attribute face :background))
-                                 face-reset))))))
-                 solaire-mode-remap-alist)
+                (when (bound-and-true-p solaire-mode-remap-alist)
+                  (mapcar
+                   (lambda (x)
+                     (let ((map (car x))
+                           (enable (cdr x)))
+                       (setq enable (if (listp enable) (eval enable) (symbol-value enable)))
+                       (when enable
+                         (dolist (face map)
+                           (when (facep face)
+                             (push (cons face (entropy/emacs-get-face-attribute-alist face))
+                                   face-reset))))))
+                   solaire-mode-remap-alist))
                 ;; more face specification
-                (dolist (face '(ivy-current-match))
+                (dolist (face '(
+                                ;; ivy refer
+                                ivy-current-match
+                                ivy-yanked-word
+                                ivy-completions-annotations
+                                ivy-grep-line-number
+                                ivy-grep-info
+                                ivy-separator
+                                ivy-prompt-match
+                                ivy-highlight-face
+                                ivy-action
+                                ivy-virtual
+                                ivy-remote
+                                ivy-modified-outside-buffer
+                                ivy-modified-buffer
+                                ivy-org
+                                ivy-subdir
+                                ivy-match-required-face
+                                ivy-confirm-face
+                                ivy-minibuffer-match-face-4
+                                ivy-minibuffer-match-face-3
+                                ivy-minibuffer-match-face-2
+                                ivy-minibuffer-match-face-1
+                                ivy-minibuffer-match-highlight
+                                ivy-current-match
+                                ivy-cursor
+                                ;; native primitive face
+                                fringe))
                   (when (facep face)
-                    (push (cons face (face-attribute face :background))
+                    (push (cons face (entropy/emacs-get-face-attribute-alist face))
                           face-reset)))
                 ;; do face reset for new frame
                 (dolist (pair face-reset)
-                  (set-face-attribute
-                   (car pair)
-                   new-frame
-                   :background
-                   (cdr pair)))
+                  (let ((face (car pair))
+                        (attrs (cdr pair)))
+                    (dolist (attr attrs)
+                      (set-face-attribute
+                       face
+                       new-frame
+                       (car attr)
+                       (cdr attr)))))
                 (when (and (and frame-bg (stringp frame-bg)) (and cur-frame-bg (stringp cur-frame-bg))
                            (not (equal frame-bg cur-frame-bg)))
                   (set-frame-parameter new-frame 'background-color frame-bg))
@@ -297,27 +328,42 @@ for tui emacs session."
    ;; For generally about, this issue brought the bad theme
    ;; presentation in daemon mode of init of emacs session.
 
-   ;; (defvar entropy/emacs-themes--timer-for-daemon-theme-reload nil)
    (defvar entropy/emacs-themes--theme-init-setup-for-daemon-done nil)
-   (defun entropy/emacs-themes--load-theme-for-daemon-client (&optional frame)
+   (defun entropy/emacs-themes--load-theme-for-daemon-init (&optional frame)
      (redisplay t)
-     (let ()
-       (progn
-         (select-frame (or frame (selected-frame)))
-         (if entropy/emacs-themes--theme-init-setup-for-daemon-done
-             (when (or (not entropy/emacs-daemon-main-client-indicator)
-                       ;; We must forcely reload theme to gurantee the
-                       ;; gui daemon client created successfully for
-                       ;; some bug of doom-themes.
-                       (display-graphic-p))
-               (entropy/emacs-themes-strictly-load-theme
-                entropy/emacs-theme-sticker 'non-confirm))
+     (let ((frame (or frame (selected-frame))))
+       (select-frame frame)
+       (with-selected-frame (selected-frame)
+         (unless entropy/emacs-themes--theme-init-setup-for-daemon-done
+           (message "Daemon init theme ...")
            (entropy/emacs-themes--init-setup)
            (setq entropy/emacs-themes--theme-init-setup-for-daemon-done
-                 t)))))
+                 1)))))
+
+   (defvar entropy/emacs-themes--daemon-theme-reload-type nil)
+   (defun entropy/emacs-themes--load-theme-for-daemon-client-new ()
+     (let ()
+       (if (and (frame-parameter nil 'eemacs-current-frame-is-daemon-created)
+                ;; do not reload theme after dameon theme init by
+                ;; `entropy/emacs-themes--load-theme-for-daemon-init'
+                (eq entropy/emacs-themes--theme-init-setup-for-daemon-done 2))
+           ;; prevent reload theme for same status as previous client created is
+           (when (not (eq (null (display-graphic-p))
+                          (null entropy/emacs-themes--daemon-theme-reload-type)))
+             (message "Daemon reload theme ...")
+             (entropy/emacs-themes-strictly-load-theme
+              entropy/emacs-theme-sticker 'non-confirm)
+             (setq entropy/emacs-themes--daemon-theme-reload-type
+                   (display-graphic-p)))
+         (when (and (frame-parameter nil 'eemacs-current-frame-is-daemon-created)
+                    (eq entropy/emacs-themes--theme-init-setup-for-daemon-done 1))
+           (setq entropy/emacs-themes--theme-init-setup-for-daemon-done 2)))))
 
    (add-hook 'after-make-frame-functions
-             #'entropy/emacs-themes--load-theme-for-daemon-client)))
+             #'entropy/emacs-themes--load-theme-for-daemon-init)
+   (add-hook 'entropy/emacs-daemon-server-after-make-frame-hook
+             #'entropy/emacs-themes--load-theme-for-daemon-client-new)
+   ))
 
 ;; * provide
 (provide 'entropy-emacs-themes)

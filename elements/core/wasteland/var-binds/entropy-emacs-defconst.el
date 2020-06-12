@@ -103,6 +103,12 @@ Posix emulator supports for:
   (image-type-available-p 'imagemagick)
   "Whether support imagemagick on this emacs session.")
 
+(require 'faces)
+(defconst entropy/emacs-face-attributes-list
+  (mapcar (lambda (x) (car x)) face-attribute-name-alist)
+  "Emacs internally face attribte symbols list")
+
+
 ;; * provide
 (provide 'entropy-emacs-defconst)
 

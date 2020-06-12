@@ -471,11 +471,11 @@ client built by
 (defvar entropy/emacs-daemon-legal-clients nil
   "A list of legal daemon clients representation.")
 
-(defun entropy/emacs-daemon-current-is-main-client ()
+(defun entropy/emacs-daemon-current-is-main-client (&optional frame)
   "Judge whether current frame is the frame of current daemon
 main client."
   (let ((main-judge
-         (eq (selected-frame)
+         (eq (or frame (selected-frame))
              (plist-get
               entropy/emacs-daemon-main-client-indicator
               :frame))))
@@ -487,17 +487,17 @@ main client."
 current daemon main client prepare to close, and the car of
 `entropy/emacs-daemon-legal-clients' will be the assignment if
 non-nil, i.e. the new main daemon client."
-  (let (temp_var)
+  (let (temp_var (frame (or (car orig-args) (selected-frame))))
     ;; pop out current daemon client from
     ;; `entropy/emacs-daemon-legal-clients'.
     (when (not (null entropy/emacs-daemon-legal-clients))
       (dolist (el entropy/emacs-daemon-legal-clients)
-        (unless (eq (selected-frame) (plist-get el :frame))
+        (unless (eq frame (plist-get el :frame))
           (push el temp_var)))
       (setq entropy/emacs-daemon-legal-clients
             temp_var))
     ;; Reset `entropy/emacs-daemon-main-client-indicator'.
-    (when (entropy/emacs-daemon-current-is-main-client)
+    (when (entropy/emacs-daemon-current-is-main-client frame)
       (setq entropy/emacs-daemon-main-client-indicator nil)
       (when (not (null entropy/emacs-daemon-legal-clients))
         (catch :exit
@@ -518,6 +518,7 @@ non-nil, i.e. the new main daemon client."
 
 (defun entropy/emacs-daemon-client-initialize ()
   (when (daemonp)
+    (set-frame-parameter (selected-frame) 'eemacs-current-frame-is-daemon-created t)
     ;; fix problem when main daemon client is dead
     (when entropy/emacs-daemon-main-client-indicator
       (unless (frame-live-p (plist-get entropy/emacs-daemon-main-client-indicator :frame))
