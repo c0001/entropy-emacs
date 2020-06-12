@@ -454,11 +454,6 @@ format which caused by set the restriction for thus."
     :quit-key "q"
     :separator "═"))
 
-;; ** xclip activation
-(use-package xclip
-  :commands
-  (xclip-mode))
-
 ;; ** wgrep
 
 (use-package wgrep

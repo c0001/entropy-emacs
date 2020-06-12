@@ -1605,6 +1605,7 @@ Which each car of the pattern was a condition, may be 'nil' or
 't' or a function for be evaluated for the boolean result, and
 the cdr was the replacement yank function")
 
+(declare-function xclip-mode "xclip")
 
 ;; init `xclip-method' for gurantee its setting adapted to rest of
 ;; =entropy-emacs= context
