@@ -1605,6 +1605,26 @@ Which each car of the pattern was a condition, may be 'nil' or
 't' or a function for be evaluated for the boolean result, and
 the cdr was the replacement yank function")
 
+
+;; init `xclip-method' for gurantee its setting adapted to rest of
+;; =entropy-emacs= context
+(setq xclip-method
+      (or
+       (and (bound-and-true-p xclip-use-pbcopy&paste) 'pbpaste)
+       (and (eq system-type 'cygwin) (executable-find "getclip") 'getclip)
+       (and (executable-find "xclip") 'xclip)
+       (and (executable-find "xsel") 'xsel)
+       (and (executable-find "wl-copy") 'wl-copy) ;github.com/bugaevc/wl-clipboard
+       (and (executable-find "termux-clipboard-get") 'termux-clipboard-get)
+
+       ;; NOTE: we must disable the native gui support method to
+       ;; prevent it make a invisible frame to build connection with
+       ;; current tui session.
+       ;;
+       ;;(and (fboundp 'x-create-frame) (getenv "DISPLAY") 'emacs)
+       )
+      xclip-program xclip-method)
+
 (defun entropy/emacs-xterm-external-satisfied-p ()
   "Judge whether emacs to use external kits to assistant the
 xterm-session yank/paste operation."
@@ -1628,7 +1648,7 @@ xterm-session yank/paste operation."
                 (and (executable-find "xsel") 'xsel))))))
     (when (and (not (display-graphic-p))
                (fboundp 'xterm-paste)
-               (ignore-errors
+               (when (ignore-errors (executable-find xclip-program))
                  (progn (require 'xclip)
                         (xclip-mode 1))))
       judger)))
