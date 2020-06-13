@@ -112,8 +112,7 @@
 
   ;; key register
   ;; Make node item execution for neotree with `entropy-open-with'
-  (when (or sys/is-graphic-support
-            entropy/emacs-use-emacs-in-terminal-with-graphic-features)
+  (when sys/is-graphic-support
     (define-key neotree-mode-map (kbd "M-RET")
       (neotree-make-executor
        :file-fn 'entropy/emacs-neotree-neo-open-with

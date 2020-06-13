@@ -29,8 +29,6 @@
 
 (setq entropy/emacs-indicate-sshd-session nil)
 
-(setq entropy/emacs-use-emacs-in-terminal-with-graphic-features t)
-
 ;; Startup options
 (setq entropy/emacs-minimal-start nil)
 

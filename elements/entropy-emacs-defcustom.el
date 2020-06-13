@@ -202,12 +202,6 @@ session."
   :type 'boolean
   :group 'entropy/emacs-custom-variable-basic)
 
-(defcustom entropy/emacs-use-emacs-in-terminal-with-graphic-features nil
-  "Using some eemacs features on graphic session in text-based
-session."
-  :type 'boolean
-  :group 'entropy/emacs-custom-variable-basic)
-
 (defcustom entropy/emacs-align-window-center-with? 'olivetti
   "The window central visual toggler type, valid of 'olivetti' or 'basic'.
 

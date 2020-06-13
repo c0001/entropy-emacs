@@ -243,8 +243,7 @@ Version 2017-10-09"
 
 ;; **** entropy-open-with
 (use-package entropy-open-with
-  :if (or sys/is-graphic-support
-          entropy/emacs-use-emacs-in-terminal-with-graphic-features)
+  :if sys/is-graphic-support
   :ensure nil
   :commands (entropy/open-with-dired-open
              entropy/open-with-buffer)
