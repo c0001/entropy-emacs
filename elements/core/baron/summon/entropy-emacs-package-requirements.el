@@ -69,6 +69,7 @@
         browse-at-remote
         browse-kill-ring
         buffer-move
+        cal-china-x
         chinese-word-at-point
         chocolate-theme
         cmake-mode
