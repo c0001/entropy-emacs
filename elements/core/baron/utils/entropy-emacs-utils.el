@@ -41,6 +41,7 @@
 
 (when sys/win32p
   (require 'font-lock+))
+
 ;; ** memoize
 (use-package memoize
   :commands

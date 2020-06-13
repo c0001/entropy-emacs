@@ -38,7 +38,7 @@
 ;; *** basic conditions
 (defconst sys/win32p
   (eq system-type 'windows-nt)
-  "Are we running on a WinTel system?")
+  "Are we running on a Windows-NT system?")
 
 (defconst sys/linuxp
   (eq system-type 'gnu/linux)
@@ -73,7 +73,7 @@ Include all windows posix emulator environment, as 'Cygwin' or
 'Msys2'.")
 
 (defconst sys/is-posix-compatible
-  (or sys/linux-x-p sys/linuxp sys/mac-x-p sys/macp)
+  (or sys/linuxp sys/macp sys/cygwinp)
   "System type group filter for posix comptible system
 platforms even for posix emulators.
 
@@ -85,10 +85,41 @@ Posix emulator supports for:
 - 'Msys' or 'Msys2'")
 
 (defconst sys/is-graphic-support
-  (or (or sys/is-win-group sys/linux-x-p sys/mac-x-p) ;FIXME: get DESKTOP_SESSION like env var on MACOS
+  (or (or sys/win32p sys/linux-x-p sys/mac-x-p)
+
+      ;;FIXME: get DESKTOP_SESSION like env var on MACOS
+      ;; (not (string-empty-p (getenv "MACOS-DISPPLAY-TYPE")))
+
+      ;; FIXME: this windows display available judger may be not
+      ;; correct, this justice used to judge whether emacs built with
+      ;; a anti-`sys/win32p' type but running on a Windows-NT system
+      ;; which support display-graphic feature.
+      (and sys/is-win-group (string-match-p "Windows_NT" (or (getenv "OS") "")))
+
       (not (string-empty-p (getenv "DESKTOP_SESSION")))
       (not (string-empty-p (getenv "XDG_CURRENT_DESKTOP"))))
   "System group filter for graphic supported platforms.")
+
+(defconst sys/is-linux-and-graphic-support-p
+  (and sys/linuxp
+       sys/is-graphic-support)
+  "Systems type filter for judge current system whether is
+Gnu/linux based and its environment whether support graphic
+display.")
+
+(defconst sys/is-wingroup-and-graphic-support-p
+  (and sys/is-win-group
+       sys/is-graphic-support)
+  "Systems type filter for judge current system whether is
+WINDOWS based system i.e. satisfied `sys/is-win-group' and its
+environment whether support graphic display.")
+
+(defconst sys/is-mac-and-graphic-support-p
+  (and sys/macp
+       sys/is-graphic-support)
+  "Systems type filter for judge current system whether is Darwin
+kernel based and its environment whether support graphic
+display.")
 
 ;; ** others
 (defconst entropy/emacs-origin-load-path (copy-tree load-path))

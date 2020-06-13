@@ -1612,7 +1612,7 @@ the cdr was the replacement yank function")
 (setq xclip-method
       (or
        (and (bound-and-true-p xclip-use-pbcopy&paste) 'pbpaste)
-       (and (eq system-type 'cygwin) (executable-find "getclip") 'getclip)
+       (and sys/cygwinp (executable-find "getclip") 'getclip)
        (and (executable-find "xclip") 'xclip)
        (and (executable-find "xsel") 'xsel)
        (and (executable-find "wl-copy") 'wl-copy) ;github.com/bugaevc/wl-clipboard
@@ -1632,18 +1632,18 @@ xterm-session yank/paste operation."
   (let ((judger
          (or
           ;; darwin (macos platform)
-          (and (and (eq system-type 'darwin)
+          (and (and sys/macp
                     (executable-find "pbcopy"))
                'pbpaste)
           ;; cygwin (windows posix emulator)
-          (and (eq system-type 'cygwin)
+          (and sys/cygwinp
                (executable-find "getclip")
                'getclip)
           ;; android termux emulator
           (and (executable-find "termux-clipboard-get")
                'termux-clipboard-get)
           ;; gnu/linux platform
-          (and (eq system-type 'gnu/linux)
+          (and sys/linuxp
                (or
                 (and (executable-find "xclip") 'xclip)
                 (and (executable-find "xsel") 'xsel))))))

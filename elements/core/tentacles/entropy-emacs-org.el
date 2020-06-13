@@ -203,7 +203,7 @@ must satisfied follow requirements:
            (entropy/emacs-cl-compatible-apply acons 'file 'find-file org-link-frame-setup))
           (process-connection-type
            (cond
-            ((eq system-type 'gnu/linux)
+            (sys/linuxp
              nil)
             (t t))))
       (org-open-at-point)))

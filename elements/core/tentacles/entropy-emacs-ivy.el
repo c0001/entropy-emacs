@@ -369,7 +369,7 @@ unwind occasion.")
      ("C-c c m w" counsel-colors-web "Show a list of all W3C web colors for use in CSS"
       :enable t :exit t :eemacs-top-bind t)
      ("<M-up>" counsel-linux-app "Launch a Linux desktop application"
-      :enable sys/linux-x-p :exit t :eemacs-top-bind t))))
+      :enable sys/is-linux-and-graphic-support-p :exit t :eemacs-top-bind t))))
 
 ;; *** hooks
   :hook ((ivy-mode . counsel-mode))

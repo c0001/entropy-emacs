@@ -257,7 +257,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                   ('directory
                    (message (format "Delete directory '%s' done! -v-" file))))))
           (error
-           (cond ((eq system-type 'windows-nt)
+           (cond (sys/win32p
                   (let ((prompt-buffer (get-buffer-create "*[w32-resmon]*")))
                     (start-process-shell-command
                      "windows resource monitor"

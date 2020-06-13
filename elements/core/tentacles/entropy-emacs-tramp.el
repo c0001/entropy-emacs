@@ -143,7 +143,7 @@ This func divided this string into the return list as:
     (if (not host-address)
         (error "No address found!"))
     (setq tramp-method
-          (cond ((eq system-type 'windows-nt)
+          (cond (sys/win32p
                  (completing-read "choose tramp method: "
                                   '("pscp" "plink" "ssh")))
                 (t "ssh")))

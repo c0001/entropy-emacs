@@ -465,9 +465,9 @@ EXIT /b
 
 (defvar entropy/emacs-coworker--pyls-ms-release-name
   (format "%s-x64"
-          (cond ((eq system-type 'darwin)  "osx")
-                ((eq system-type 'gnu/linux) "linux")
-                ((eq system-type 'windows-nt) "win")
+          (cond (sys/macp  "osx")
+                (sys/linuxp "linux")
+                (sys/win32p "win")
                 (t (user-error "Unsupported system: %s" system-type)))))
 
 (defvar entropy/emacs-coworker--pyls-ms-exec-path

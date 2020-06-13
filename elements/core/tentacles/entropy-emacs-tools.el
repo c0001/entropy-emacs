@@ -103,18 +103,18 @@ Version 2016-10-15"
                        (y-or-n-p "Open more than 5 files?"))))
       (when $do-it-p
         (cond
-         ((string-equal system-type "windows-nt")
+         (sys/is-wingroup-and-graphic-support-p
           (mapc
            (lambda ($fpath)
              (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" $fpath t t)))
            $file-list))
-         ((string-equal system-type "darwin")
+         (sys/is-linux-and-graphic-support-p
           (mapc
            (lambda ($fpath)
              (shell-command
               (concat "open " (shell-quote-argument $fpath))))
            $file-list))
-         ((string-equal system-type "gnu/linux")
+         (sys/is-linux-and-graphic-support-p
           (mapc
            (lambda ($fpath)
              (let ((process-connection-type nil))
@@ -144,9 +144,9 @@ Version 2017-12-23"
                        default-directory )
                    dpath)))
       (cond
-       ((string-equal system-type "windows-nt")
+       (sys/is-wingroup-and-graphic-support-p
         (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
-       ((string-equal system-type "darwin")
+       (sys/is-mac-and-graphic-support-p
         (if (eq major-mode 'dired-mode)
             (let (($files (dired-get-marked-files )))
               (if (eq (length $files) 0)
@@ -156,7 +156,7 @@ Version 2017-12-23"
                  (concat "open -R " (car (dired-get-marked-files))))))
           (shell-command
            (concat "open -R " $path))))
-       ((string-equal system-type "gnu/linux")
+       (sys/is-linux-and-graphic-support-p
         (shell-command "gio open .")
         ;; gio open was the suggested command for now [2018-01-03 Wed 04:23:17]
         ;;
@@ -178,7 +178,7 @@ URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
   (interactive)
   (cond
-   ((string-equal system-type "windows-nt")
+   (sys/win32p
     ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
     (let* (($path-o (if (string-match-p "^~/" default-directory)
                         (replace-regexp-in-string
@@ -208,14 +208,14 @@ Version 2017-10-09"
         ;; using cmd
         (w32-shell-execute "open" "cmd" $path))))
 
-   ((string-equal system-type "darwin")
+   (sys/is-mac-and-graphic-support-p
     (let ((process-connection-type nil))
       (start-process
        "" nil
        "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
        default-directory)))
 
-   ((string-equal system-type "gnu/linux")
+   (sys/is-linux-and-graphic-support-p
     (let ((process-connection-type nil))
       (start-process "" nil "gnome-terminal" default-directory)))))
 
@@ -238,7 +238,7 @@ Version 2017-10-09"
      :enable t :exit t :global-bind t)
     ("C--" entropy/emacs-tools-cmd
      "Open the current location in a new windows cmdproxy"
-     :enable (when sys/win32p) :exit t :global-bind t))))
+     :enable sys/win32p :exit t :global-bind t))))
 
 
 ;; **** entropy-open-with

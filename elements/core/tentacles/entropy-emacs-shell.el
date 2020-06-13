@@ -333,7 +333,7 @@ segmentation fault."
           func))))
 
   (when (and (member "MODULES" (split-string system-configuration-features nil t))
-             (not (eq system-type 'windows-nt)))
+             (not sys/win32p))
     (defun entropy/emacs-shell--shellpop-bindkey-for-vterm (func)
       (entropy/emacs-hydra-hollow-add-for-top-dispatch
        `("Shellpop"
@@ -384,7 +384,7 @@ segmentation fault."
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
                       (plist-get entropy/emacs-shell--shpop-types :ansiterm)))
           (when (and (member "MODULES" (split-string system-configuration-features nil t))
-                     (not (eq system-type 'windows-nt))
+                     (not sys/win32p)
                      (let ((execs '("git" "cmake" "make" "gcc" "libtool"))
                            judge)
                        (catch :exit

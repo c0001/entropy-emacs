@@ -117,7 +117,7 @@
   (setq w3m-use-tab-menubar nil)
   (setq w3m-process-timeout 5)
   (setq w3m-pop-up-windows nil)
-  (when (and (eq system-type 'windows-nt)
+  (when (and sys/win32p
              (file-exists-p (concat invocation-directory "convert.exe")))
     (setq w3m-imagick-convert-program (concat invocation-directory "convert.exe")))
 
