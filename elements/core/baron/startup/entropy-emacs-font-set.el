@@ -219,24 +219,27 @@ it.
 
       (if (< entropy/emacs-font-size-default 15)
           (let ((height (ceiling (* entropy/emacs-font-size-default 10))))
-            (when (eq entropy/emacs-font-setting-enable 'sarasa)
-              (setq height
-                    (cond
-                     ((and (<= height 110)
-                           (>= height 100))
-                      108)
-                     ((and (<= height 120)
-                           (>= height 110))
-                      117)
-                     ((and (<= height 130)
-                           (>= height 120))
-                      124)
-                     ((and (<= height 140)
-                           (>= height 150))
-                      148)
-                     ((and (<= height 150)
-                           (>= height 140))
-                      148))))
+            ;; FIXME: remap height with unpredictable manually try but
+            ;; stable for me for the sake for make 'Latin' an 'CJK'
+            ;; can be strictly be 1:2 size linetype scale. Is there
+            ;; any commonly way to approach to this?
+            (setq height
+                  (cond
+                   ((and (<= height 110)
+                         (>= height 100))
+                    108)
+                   ((and (<= height 120)
+                         (>= height 110))
+                    117)
+                   ((and (<= height 130)
+                         (>= height 120))
+                    124)
+                   ((and (<= height 140)
+                         (>= height 150))
+                    148)
+                   ((and (<= height 150)
+                         (>= height 140))
+                    148)))
             (when height
               (set-face-attribute 'default (or frame (selected-frame))
                                   :height
