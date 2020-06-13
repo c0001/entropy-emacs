@@ -73,7 +73,24 @@
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'xref-mode))
       "Xref referrence jumping"
-      :enable t :exit t)))))
+      :enable t :exit t))))
+  :config
+  ;; Disable xref in minibuffer prevents nesting looping unpredictable.
+  (dolist (key (list "M-." "C-." "M-," "C-M-."))
+    (dolist (map-ob '((ivy-minibuffer-map . ivy)
+                      (minibuffer-inactive-mode-map . minibuffer)
+                      ;; Although its a native map but unified for
+                      ;; minibuffer feature autoloading as a fake did.
+                      (minibuffer-local-map . minibuffer)))
+      (eval
+       `(entropy/emacs-lazy-load-simple ,(cdr map-ob)
+          (define-key ,(car map-ob)
+            (kbd ,key)
+            (lambda ()
+              (interactive)
+              (message
+               "You can not using xref functions in minibuffer"
+               ))))))))
 
 ;; ** common server
 ;; *** individual servers
