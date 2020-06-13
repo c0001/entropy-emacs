@@ -1,0 +1,39 @@
+#+title: entrop-emacs maintaining introduction
+#+author: Entropy (bmsac0001@gmail.com)
+
+
++ =entropy-emacs= development follows the [[https://semver.org/][semantic version 2.0.0]]
+  protocol except that for the 0.x.x version release are majored via
+  the middle version number which say that the API are definitely
+  unstable until the fist 1.0.0 version has been released out.
+
++ There's only one API kind provide for end user, the customized
+  variables collection =entropy-emacs-defcustom.el= source file.
+
++ The internal configurations maintains must follow rules:
+
+  1. Try the best to insist on using internal core definition within
+     the coding context via =entropy-emacs-defconst=,
+     =entropy-emacs-defvar=, =entropy-emacs-defun=, and all mainly
+     declartion via the =elements/core/wasteland= folder.
+
+  2. Namespace abbreviation of all tentacles must follow
+     =entropy/emacs-MODULENAME=, and must obey the emacs internal API
+     naming convention which indicates that one dash as the linkage of
+     the abbreviation and the rest for exported API, two ore more
+     which just used in internal context.
+
+
+* TODO Release 0.2.0                                                :release:
+DEADLINE: <2020-07-01 Wed> SCHEDULED: <2020-06-14 Sun>
+
+Release aiming: (expect release date 2020-07-01)
+- [ ] Standardize all(try best) Api naming type
+- [ ] Troubleshoot all(try best) internal context error
+- [ ] Make main introduction document comprehensively
+
+* COMMENT Local Variable
+# Local Variables:
+# org-adapt-indentation: nil
+# fill-column: 70
+# End:
