@@ -1232,8 +1232,9 @@ as the hypenation."
      ("b l" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$plain-list :other-rest-args ((org org-mode-map))) "Plain List Manipulation"
       :enable t :exit t)
      ("b n" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$note :other-rest-args ((org org-mode-map))) "Note Manipulation"
-      :enable t :exit t)
-     ("b g" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$headline-tag :other-rest-args ((org org-mode-map))) "Tag Manipulation"
+      :enable t :exit t))
+    "Handy"
+    (("b g" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$headline-tag :other-rest-args ((org org-mode-map))) "Tag Manipulation"
       :enable t :exit t)
      ("b d" (:pretty-hydra-cabinet entropy/emacs-org-keymap-group-$drawer&property :other-rest-args ((org org-mode-map))) "Drawer&Property Manipulation"
       :enable t :exit t)
@@ -1260,6 +1261,9 @@ as the hypenation."
      ("C-c C-x C-c" org-columns
       "Turn on column view on an Org mode file"
       :enable t :map-inject t :exit t) ;; All the other keys
+     ("C-c C-x M-c" org-columns-remove-overlays
+      "Remove all currently active column overlays"
+      :enable t :map-inject t :exit t)
      ("C-c C-x b" org-tree-to-indirect-buffer
       "Create indirect buffer and narrow it to current subtree"
       :enable t :map-inject t :exit t) ;; All the other keys
@@ -1580,8 +1584,8 @@ as the hypenation."
   entropy/emacs-org-keymap-group-$org-rss
   entropy/emacs-org-keymap-group-$export-and-preview
   entropy/emacs-org-keymap-group-$misc)
- '(3 2 2)
- '(3 2 2))
+ '(4 2 2)
+ '(4 2 2))
 
 ;; ** entropy-emacs additional function
 ;; *** tags align
@@ -1671,7 +1675,7 @@ Now just supply localization image file analyzing."
         (push (plist-get el :link) links_temp)))
     (when links_temp
       (dolist (el links_temp)
-        (when (string-match "\\(svg\\|imagemagick\\|png\\|gif\\|tiff\\|jpeg\\|xpm\\|xbm\\|pbm\\)$"
+        (when (string-match "\\(svg\\|imagemagick\\|png\\|gif\\|tiff\\|jpeg\\|jpg\\|xpm\\|xbm\\|pbm\\)$"
                             el)
           (let ((non-abbrev (replace-regexp-in-string "^file:" "" el)))
             (cond

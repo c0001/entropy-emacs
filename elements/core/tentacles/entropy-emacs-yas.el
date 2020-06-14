@@ -66,7 +66,13 @@
       "Expand current point content with yasnippet"
       :enable t
       :exit t
-      :global-bind t))))
+      :global-bind t)
+     ("i" yas-insert-snippet "Choose a snippet to expand"
+      :enable t :exit t)
+     ("n" yas-new-snippet "Pop to writing a snippet"
+      :enable t :exit t)
+     ("v" yas-visit-snippet-file "Choose a snippet to edit"
+      :enable t :exit t))))
 
   :init
   (defun entropy/emacs-yas-enable-or-expand (&rest args)
@@ -101,7 +107,11 @@
   (progn
     (define-key yas-minor-mode-map [(tab)]        nil)
     (define-key yas-minor-mode-map (kbd "TAB")    nil)
-    (define-key yas-minor-mode-map (kbd "<tab>")  nil)))
+    (define-key yas-minor-mode-map (kbd "<tab>")  nil)
+    (define-key yas-minor-mode-map "\C-c&\C-s"  nil)
+    (define-key yas-minor-mode-map "\C-c&\C-n"  nil)
+    (define-key yas-minor-mode-map "\C-c&\C-v"  nil)
+    ))
 
 ;; ** auto-yasnippet
 ;;    This is a hybrid of keyboard macros and yasnippet. You create the snippet on the go, usually
