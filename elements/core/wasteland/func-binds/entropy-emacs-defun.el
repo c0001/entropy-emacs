@@ -35,106 +35,46 @@
 ;; Just requiring it before checking the file dependencies.
 ;;
 ;; * Code:
-;; ** require
+;; ** Require
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defvar)
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-message)
-(if (version< emacs-version "27")
-    (require 'cl)
-  (require 'cl-macs))
+(require 'cl-lib)
 (require 'rx)
 
-;; ** common library
-;; *** individuals
-(defun entropy/emacs-func-aliasp (func)
-  "Return non-nil if function FN is aliased to a function symbol."
-  (let ((val (symbol-function func)))
-    (and val
-         (symbolp val))))
+;; ** Common manipulations
+;; *** Cl-function compatible manipulation
+(defun entropy/emacs-cl-findnew-p (func)
+  (let (new-func)
+    (catch :exit
+      (dolist (ref entropy/emacs-cl-compatible-reflects)
+        (if (consp ref)
+            (when (eq func (car ref))
+              (setq new-func (cdr ref)))
+          (when (eq ref func)
+            (setq new-func
+                  (intern (format "cl-%s" (symbol-name func))))))
+        (when (not (null new-func))
+          (throw :exit nil))))
+    new-func))
 
-(defun entropy/emacs-theme-adapted-to-solaire ()
-  "Judge whether current theme loaded adapted to `solaire-mode',
-return t otherwise for nil. "
-  (let ((theme_cur (ignore-errors (symbol-name entropy/emacs-theme-sticker))))
-    ;; Condition judge for unconditional occurrence for theme loading,
-    ;; seem as in pdumper session.
-    (if (and (stringp theme_cur)
-             (not (eql 0 (length theme_cur))))
-        (catch :exit
-          (dolist (regex entropy/emacs-solaire-themes-regex-list)
-            (when (ignore-errors (string-match-p regex theme_cur))
-              (throw :exit t))))
-      nil)))
+(defmacro entropy/emacs-cl-compatible-apply (cl-func &rest args)
+  "Macro for be forward compatibility of `cl.el' with `cl-lib.el'
+in new emacs-version."
+  `(let (abbrevp cl-func-use)
+     (cond ((and (require 'cl-lib)
+                 (not (null (entropy/emacs-cl-findnew-p ',cl-func))))
+            (setq cl-func-use (entropy/emacs-cl-findnew-p ',cl-func))
+            (unless (fboundp cl-func-use)
+              (user-error "Can not find cl function `%s'" cl-func-use)))
+           ((fboundp ',cl-func)
+            (setq cl-func-use ',cl-func)))
+     (funcall cl-func-use ,@args)))
 
-(eval-when-compile
-  (defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)
-    "Biuld auto-named function prefixed by NAME a symbol and
-inject into HOOK wrapped BODY."
-    (let ()
-      `(let* ((prefix-name-func
-               (lambda ()
-                 (intern (format
-                          "entropy/emacs-fake-lambda-nil-for-%s-/random-as-%s-function"
-                          (symbol-name ',name)
-                          (random most-positive-fixnum)))))
-              (prefix-name (funcall prefix-name-func))
-              func-define)
-         (when (fboundp prefix-name)
-           (while (fboundp prefix-name)
-             (setq prefix-name
-                   (funcall prefix-name-func))))
-         (setq func-define
-               (list 'defun prefix-name '()
-                     '(progn ,@body)))
-         (eval func-define)
-         (if ,as-append
-             (setq ,hook
-                   (append ,hook (list prefix-name)))
-           (add-hook ',hook
-                     prefix-name))))))
 
-(defun entropy/emacs-icons-displayable-p ()
-  "Return non-nil if `all-the-icons' is displayable."
-  (and entropy/emacs-use-icon
-       (display-graphic-p)
-       ;; Fixme: `find-font' can not be used in emacs batch mode.
-       (or (and entropy/emacs-fall-love-with-pdumper
-                entropy/emacs-do-pdumper-in-X)
-           (let ((rtn t))
-             (catch :exit
-               (dolist (font-name '("github-octicons"
-                                    "FontAwesome"
-                                    "file-icons"
-                                    "Weather Icons"
-                                    "Material Icons"
-                                    "all-the-icons"))
-                 (unless (find-font (font-spec :name font-name))
-                   (setq rtn nil)
-                   (throw :exit nil))))
-             rtn))))
 
-(defun entropy/emacs-idle-cleanup-echo-area ()
-  "Cleanup remaining echo area message when bussy done for some
-tasks 'ing' refer prompts."
-  (run-with-idle-timer 0.2 nil (lambda () (message ""))))
-
-(defun entropy/emacs-make-function-inhibit-readonly
-    (func &optional inhibit-local)
-  "Make function FUNC adviced around by a let wrapper with
-`inhibit-read-only' enabled of lexical means.
-
-If optional argument INHIBIT-LOCAL is non-nil, its also press on
-the buffer-locally variable `buffer-read-only'."
-  (advice-add func
-              :around
-              `(lambda (orig-func &rest orig-args)
-                 (let ((inhibit-read-only t)
-                       (buffer-read-only
-                        (if ,inhibit-local nil buffer-read-only)))
-                   (apply orig-func orig-args)))))
-
-;; *** print
+;; *** Print manipulation
 
 (defun entropy/emacs-advice-func-around-for-print-limit
     (func &optional level length)
@@ -151,7 +91,62 @@ defautly."
             (print-length (or ,length 20)))
         (apply orig-func orig-args)))))
 
-;; *** plist manipulation
+;; *** List manipulation
+(defun entropy/emacs-numberic-list (list-var)
+  "Return list element mapped with numberic prefix which concated
+with '0' as alignment state."
+  (let* ((l-len (length list-var))
+         (register l-len)
+         (counter 0)
+         (step 1)
+         (zero-func
+          (lambda (counter str)
+            (let ((step (length str))
+                   (rtn str))
+              (while (< step counter)
+                (setq rtn (concat "0" rtn)
+                      step (+ 1 step)))
+              rtn)))
+         rtn)
+    (while (not (eq 0 register))
+      (setq register (/ register 10)
+            counter (+ 1 counter)))
+    (dolist (el list-var)
+      (push (cons (funcall zero-func counter (number-to-string step))
+                  el)
+            rtn)
+      (setq step (+ 1 step)))
+    (reverse rtn)))
+
+;; **** Nth remap with `car' and `cdr'
+(defun entropy/emacs-remap-for-nth (pos list-var)
+  "Since `nth' can not be used into `setf' place holder, this
+function let a `nth' form remaped for a equivalent one suitable
+for `setf', the argument list is the same as `nth', see its
+doc-string for details."
+  (let (final-form)
+    (cond ((and (> pos 0)
+                (= pos 1))
+           (setq final-form `(cadr ',list-var)))
+          ((= pos 0)
+           (setq final-form `(car ',list-var)))
+          ((> pos 1)
+           (let ((tmp-form `(cdr ',list-var)))
+             (cl-loop for ct from 2 to pos
+                      do (setq tmp-form
+                               (list 'cdr tmp-form)))
+             (setq final-form
+                   (list 'car tmp-form)))))
+    final-form))
+
+(defun entropy/emacs-setf-for-nth (pos replace list-var)
+  "Setf for position POS with the replacement REPLACE in list
+LIST-VAR. POS was a positive integer and indexed start at 0,
+meaning as same as what in `nth' arglists."
+  (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
+    (eval `(setf ,remap-form replace))))
+
+;; *** Plist manipulation
 
 (defun entropy/emacs-strict-plistp (arg)
   "Strict plist true-p checker.
@@ -307,7 +302,167 @@ function return a form-plist."
                       tail-list)))))
     rtn))
 
-;; *** process manipulation
+;; *** String manipulation
+(eval-when-compile
+  (defun entropy/emacs-map-string-match-p (str matches)
+    "Batch match a list of regexp strings of MATCHES to a
+specified string STR.
+
+Each element of MATCHES is a regexp string or a form to build a
+regexp string. Internally the match subroutine use
+`string-match-p'.
+
+Return t when one of MATCHES matched the target, nil for
+otherwise."
+    (let ((rtn 0))
+      (dolist (el matches)
+        (when (string-match-p (rx (regexp (eval el))) str)
+          (cl-incf rtn)))
+      (if (eq rtn 0)
+          nil
+        t))))
+
+;; *** File and directory manipulation
+(defun entropy/emacs-list-dir-lite (dir-root)
+  "Return directory list with type of whichever file or
+directory."
+  (let (rtn-full rtn-lite rtn-attr)
+    (when (and (file-exists-p dir-root)
+               (file-directory-p dir-root))
+      (setq rtn-full (directory-files dir-root t))
+      (dolist (el rtn-full)
+        (if (not (string-match-p "\\(\\\\\\|/\\)\\(\\.\\|\\.\\.\\)$" el))
+            (push el rtn-lite)))
+      (if rtn-lite
+          (progn
+            (dolist (el rtn-lite)
+              (if (file-directory-p el)
+                  (push `("D" . ,el) rtn-attr)
+                (push `("F" . ,el) rtn-attr)))
+            rtn-attr)
+        nil))))
+
+
+(defun entropy/emacs-list-subdir (dir-root)
+  "List subdir of root dir DIR-ROOT, ordered by alphabetic."
+  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
+        (rtn nil))
+    (if dirlist
+        (progn
+          (dolist (el dirlist)
+            (if (equal "D" (car el))
+                (push (cdr el) rtn)))
+          (if rtn
+              (reverse rtn)
+            nil))
+      nil)))
+
+(defun entropy/emacs-list-subfiles (dir-root)
+  "Return a list of file(not directory) under directory DIR-ROOT."
+  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
+        (rtn nil))
+    (if dirlist
+        (progn
+          (dolist (el dirlist)
+            (when (equal "F" (car el))
+              (push (cdr el) rtn)))
+          (if rtn
+              rtn
+            nil))
+      nil)))
+
+(defun entropy/emacs-list-dir-recursively (top-dir)
+  "List directory TOP-DIR's sub-dirctorys recursively, return a
+=dir-spec=, whose car was a path for one dirctory and the cdr was
+a list of =dir-spec= or nil if no sub-dir under it. The structure
+of return is ordered by alphabetic."
+  (let ((subdirs (entropy/emacs-list-subdir top-dir))
+        rtn)
+    (catch :exit
+      (add-to-list 'rtn top-dir)
+      (unless subdirs
+        (throw :exit nil))
+      (dolist (sub-dir subdirs)
+        (add-to-list
+         'rtn
+         (entropy/emacs-list-dir-recursively sub-dir))))
+    (reverse rtn)))
+
+(defun entropy/emacs-list-dir-recursive-for-list (top-dir)
+  "list sub-directorys under directory TOP-DIR recursively, and
+return the list. The structure of return is ordered by
+alphabetic."
+  (let ((dir-struct (entropy/emacs-list-dir-recursively top-dir))
+        ext-func)
+    (setq
+     ext-func
+     (lambda (node)
+       (let (rtn)
+         (catch :exit
+           (setq rtn (list (car node)))
+           (unless (cdr node)
+             (throw :exit nil))
+           (dolist (sub-node (cdr node))
+             (setq
+              rtn
+              (append rtn (funcall ext-func sub-node)))))
+         rtn)))
+    (funcall ext-func dir-struct)))
+
+(defun entropy/emacs-list-files-recursive-for-list (top-dir)
+  "list files under directory TOP-DIR recursively, and return the
+list. The structure of return is ordered by alphabetic."
+  (let ((dir-list (entropy/emacs-list-dir-recursive-for-list top-dir))
+        rtn)
+    (dolist (dir dir-list)
+      (setq rtn (append rtn (entropy/emacs-list-subfiles dir))))
+    rtn))
+
+(defun entropy/emacs-file-path-parser (file-name type)
+  "The file-path for 'entropy-emacs, functions for get base-name,
+shrink trail slash, and return the parent(up level) dir.
+
+
+type:
+
+- 'non-trail-slash':
+
+  Shrink the FILE-NAME path trail slash and return it.
+
+- 'file-name':
+
+  Return the file base name include its suffix type.
+
+- 'parent-dir':
+
+  Return its parent directory path."
+  (let (rtn (fname (replace-regexp-in-string "\\(\\\\\\|/\\)$" "" file-name)))
+    (cl-case type
+      ('non-trail-slash
+       (setq rtn fname))
+      ('file-name
+       (setq rtn
+             (replace-regexp-in-string
+              "^.*\\(\\\\\\|/\\)\\([^ /\\\\]+\\)$"
+              "\\2"
+              fname)))
+      ('parent-dir
+       (setq rtn (file-name-directory fname))))
+    rtn))
+
+(defun entropy/emacs-buffer-exists-p (buffername)
+  "Judge whether buffer BUFFERNAME existed!"
+  (let* ((bfl (mapcar 'buffer-name (buffer-list))))
+    (if (member
+         t
+         (mapcar #'(lambda (bname)
+                     (if (string= buffername bname) t nil))
+                 bfl))
+        t
+      nil)))
+
+
+;; *** Process manipulation
 (defun entropy/emacs-chained-eemacs-make-proc-args (eemacs-make-proc-args-list)
   "Chained sets of `eemacs-make-proc-args-list' one by one
 ordered of a list of thus of EEMACS-MAKE-PROC-ARGS-LIST."
@@ -499,248 +654,7 @@ can be used into your form:
    (entropy/emacs-chained-eemacs-make-proc-args
     eemacs-make-proc-args-list)))
 
-;; *** key bindings
-(defmacro entropy/emacs-!set-key (key command)
-  "The specified `define-key' like key builder for
-`entropy/emacs-top-keymap'."
-  (declare (indent defun))
-  `(define-key entropy/emacs-top-keymap ,key ,command))
-
-;; *** file and directories
-(defun entropy/emacs-list-dir-lite (dir-root)
-  "Return directory list with type of whichever file or
-directory."
-  (let (rtn-full rtn-lite rtn-attr)
-    (when (and (file-exists-p dir-root)
-               (file-directory-p dir-root))
-      (setq rtn-full (directory-files dir-root t))
-      (dolist (el rtn-full)
-        (if (not (string-match-p "\\(\\\\\\|/\\)\\(\\.\\|\\.\\.\\)$" el))
-            (push el rtn-lite)))
-      (if rtn-lite
-          (progn
-            (dolist (el rtn-lite)
-              (if (file-directory-p el)
-                  (push `("D" . ,el) rtn-attr)
-                (push `("F" . ,el) rtn-attr)))
-            rtn-attr)
-        nil))))
-
-
-(defun entropy/emacs-list-subdir (dir-root)
-  "List subdir of root dir DIR-ROOT, ordered by alphabetic."
-  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
-        (rtn nil))
-    (if dirlist
-        (progn
-          (dolist (el dirlist)
-            (if (equal "D" (car el))
-                (push (cdr el) rtn)))
-          (if rtn
-              (reverse rtn)
-            nil))
-      nil)))
-
-(defun entropy/emacs-list-subfiles (dir-root)
-  "Return a list of file(not directory) under directory DIR-ROOT."
-  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
-        (rtn nil))
-    (if dirlist
-        (progn
-          (dolist (el dirlist)
-            (when (equal "F" (car el))
-              (push (cdr el) rtn)))
-          (if rtn
-              rtn
-            nil))
-      nil)))
-
-(defun entropy/emacs-list-dir-recursively (top-dir)
-  "List directory TOP-DIR's sub-dirctorys recursively, return a
-=dir-spec=, whose car was a path for one dirctory and the cdr was
-a list of =dir-spec= or nil if no sub-dir under it. The structure
-of return is ordered by alphabetic."
-  (let ((subdirs (entropy/emacs-list-subdir top-dir))
-        rtn)
-    (catch :exit
-      (add-to-list 'rtn top-dir)
-      (unless subdirs
-        (throw :exit nil))
-      (dolist (sub-dir subdirs)
-        (add-to-list
-         'rtn
-         (entropy/emacs-list-dir-recursively sub-dir))))
-    (reverse rtn)))
-
-(defun entropy/emacs-list-dir-recursive-for-list (top-dir)
-  "list sub-directorys under directory TOP-DIR recursively, and
-return the list. The structure of return is ordered by
-alphabetic."
-  (let ((dir-struct (entropy/emacs-list-dir-recursively top-dir))
-        ext-func)
-    (setq
-     ext-func
-     (lambda (node)
-       (let (rtn)
-         (catch :exit
-           (setq rtn (list (car node)))
-           (unless (cdr node)
-             (throw :exit nil))
-           (dolist (sub-node (cdr node))
-             (setq
-              rtn
-              (append rtn (funcall ext-func sub-node)))))
-         rtn)))
-    (funcall ext-func dir-struct)))
-
-(defun entropy/emacs-list-files-recursive-for-list (top-dir)
-  "list files under directory TOP-DIR recursively, and return the
-list. The structure of return is ordered by alphabetic."
-  (let ((dir-list (entropy/emacs-list-dir-recursive-for-list top-dir))
-        rtn)
-    (dolist (dir dir-list)
-      (setq rtn (append rtn (entropy/emacs-list-subfiles dir))))
-    rtn))
-
-(defun entropy/emacs-file-path-parser (file-name type)
-  "The file-path for 'entropy-emacs, functions for get base-name,
-shrink trail slash, and return the parent(up level) dir.
-
-
-type:
-
-- 'non-trail-slash':
-
-  Shrink the FILE-NAME path trail slash and return it.
-
-- 'file-name':
-
-  Return the file base name include its suffix type.
-
-- 'parent-dir':
-
-  Return its parent directory path."
-  (let (rtn (fname (replace-regexp-in-string "\\(\\\\\\|/\\)$" "" file-name)))
-    (cl-case type
-      ('non-trail-slash
-       (setq rtn fname))
-      ('file-name
-       (setq rtn
-             (replace-regexp-in-string
-              "^.*\\(\\\\\\|/\\)\\([^ /\\\\]+\\)$"
-              "\\2"
-              fname)))
-      ('parent-dir
-       (setq rtn (file-name-directory fname))))
-    rtn))
-
-(defun entropy/emacs-buffer-exists-p (buffername)
-  "Judge whether buffer BUFFERNAME existed!"
-  (let* ((bfl (mapcar 'buffer-name (buffer-list))))
-    (if (member
-         t
-         (mapcar #'(lambda (bname)
-                     (if (string= buffername bname) t nil))
-                 bfl))
-        t
-      nil)))
-
-
-;; *** counter map list
-(defun entropy/emacs-numberic-list (list-var)
-  "Return list element mapped with numberic prefix which concated
-with '0' as alignment state."
-  (let* ((l-len (length list-var))
-         (register l-len)
-         (counter 0)
-         (step 1)
-         (zero-func
-          (lambda (counter str)
-            (let ((step (length str))
-                   (rtn str))
-              (while (< step counter)
-                (setq rtn (concat "0" rtn)
-                      step (+ 1 step)))
-              rtn)))
-         rtn)
-    (while (not (eq 0 register))
-      (setq register (/ register 10)
-            counter (+ 1 counter)))
-    (dolist (el list-var)
-      (push (cons (funcall zero-func counter (number-to-string step))
-                  el)
-            rtn)
-      (setq step (+ 1 step)))
-    (reverse rtn)))
-
-;; *** cl-wrapper for higher and slower emacs version compatible
-(defun entropy/emacs-cl-findnew-p (func)
-  (let (new-func)
-    (catch :exit
-      (dolist (ref entropy/emacs-cl-compatible-reflects)
-        (if (consp ref)
-            (when (eq func (car ref))
-              (setq new-func (cdr ref)))
-          (when (eq ref func)
-            (setq new-func
-                  (intern (format "cl-%s" (symbol-name func))))))
-        (when (not (null new-func))
-          (throw :exit nil))))
-    new-func))
-
-(defmacro entropy/emacs-cl-compatible-apply (cl-func &rest args)
-  "Macro for be forward compatibility of `cl.el' with `cl-lib.el'
-in new emacs-version."
-  `(let (abbrevp cl-func-use)
-     (cond ((and (require 'cl-lib)
-                 (not (null (entropy/emacs-cl-findnew-p ',cl-func))))
-            (setq cl-func-use (entropy/emacs-cl-findnew-p ',cl-func))
-            (unless (fboundp cl-func-use)
-              (user-error "Can not find cl function `%s'" cl-func-use)))
-           ((fboundp ',cl-func)
-            (setq cl-func-use ',cl-func)))
-     (funcall cl-func-use ,@args)))
-
-;; *** nth remap with `car' and `cdr'
-(defun entropy/emacs-remap-for-nth (pos list-var)
-  "Since `nth' can not be used into `setf' place holder, this
-function let a `nth' form remaped for a equivalent one suitable
-for `setf', the argument list is the same as `nth', see its
-doc-string for details."
-  (let (final-form)
-    (cond ((and (> pos 0)
-                (= pos 1))
-           (setq final-form `(cadr ',list-var)))
-          ((= pos 0)
-           (setq final-form `(car ',list-var)))
-          ((> pos 1)
-           (let ((tmp-form `(cdr ',list-var)))
-             (cl-loop for ct from 2 to pos
-                      do (setq tmp-form
-                               (list 'cdr tmp-form)))
-             (setq final-form
-                   (list 'car tmp-form)))))
-    final-form))
-
-(defun entropy/emacs-setf-for-nth (pos replace list-var)
-  "Setf for position POS with the replacement REPLACE in list
-LIST-VAR. POS was a positive integer and indexed start at 0,
-meaning as same as what in `nth' arglists."
-  (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
-    (eval `(setf ,remap-form replace))))
-
-;; *** map string match
-(eval-when-compile
-  (defun entropy/emacs-map-string-match-p (str matches)
-    (let ((rtn 0))
-      (dolist (el matches)
-        (when (string-match-p (rx (regexp (eval el))) str)
-          (cl-incf rtn)))
-      (if (eq rtn 0)
-          nil
-        t))))
-
-;; *** form manipulation
+;; *** Form manipulation
 (defun entropy/emacs-replace-form-symbol
     (form sub-elt replace &optional parse-append)
   "Replace symbol SUB-ELT occurrences in form FORM with
@@ -750,7 +664,8 @@ Form was a sequence, which must validated by data predicate
 `sequencep', otherwise throw out a error.
 
 If optional argument PARSE-APPEND is non-nil, the replacement is
-appended injecting into the form."
+appended injecting into the form but always do not did this way
+when the REPLACE is not a LIST."
   (unless (sequencep form)
     (error "Wrong type of argument: sequencep, %s" form))
   (let (form-patch
@@ -761,10 +676,12 @@ appended injecting into the form."
         ((and (symbolp el) (eq el sub-elt))
          (setq form-patch
                (append form-patch
-                       (if (null parse-append)
+                       (if (or (null parse-append)
+                               (not (listp replace)))
                            `(,replace)
                          replace))))
-        ((sequencep el)
+        ((and (sequencep el)
+              (not (stringp el)))
          (setq form-patch
                (append form-patch
                        `(,(entropy/emacs-replace-form-symbol
@@ -777,16 +694,19 @@ appended injecting into the form."
         (vconcat form-patch)
       form-patch)))
 
-;; *** dolist macro progn sequence expand type
+;; **** Dolist macro progn sequence port
 (defun entropy/emacs--progn-seq-dolist-core
     (looper body-list &optional not-do parse-append)
-  "Put pices of forms with same structure together into a progn
-form, as `dolist' but without using `while' as looper procedure,
-its generate plenty forms with the looper replacement by LOOPER,
-its useful to generate a non-loop batch procedure.
+  "Put pices of forms with same structure based on a list of
+forms BODY-LIST together into a progn form, as `dolist' but
+without using `while' as looper procedure, its generate plenty
+forms with the looper replacement by LOOPER, its useful to
+generate a non-loop batch procedure.
 
 LOOPER is a two elements list whose car was a symbol indicate the
-lexical looper var and the cdr was a list of the replacement.
+lexical looper var and the cdr was a quoted list of the
+replacement or a symbol whose value was a list, even for a form to
+generate a list.
 
 If optional argument NOT-DO is non-nil, this function return a
 form represent the procedure, so that you can evaluate later or
@@ -798,7 +718,7 @@ example, if form '(a b c)'s looper 'b' will be replaced by '(1
 2)', when this arg was non-nil, the returned form will be '(a 1 2
 c)'."
   (let ((sub-elt (car looper))
-        (map-seq (cadr looper))
+        (map-seq (eval (cadr looper)))
         forms)
     (dolist (replace map-seq)
       (push
@@ -817,30 +737,49 @@ c)'."
       (funcall forms))))
 
 (defmacro entropy/emacs-progn-seq-dolist (looper &rest body)
+  "A eemacs specified `dolist' macro, like `dolist' but mainly
+has difference without `while' did and used a top `progn' form
+includes all loop elements inside it separately.
+
+The arguments list is same as `dolist' unless there's no RESULT
+optional argument provided.
+
+See `entropy/emacs-progn-seq-dolist-not-do' for non-evaluated
+way.
+
+See `entropy/emacs-progn-seq-dolist-with-parse-append' for
+replacement appended way."
   `(entropy/emacs--progn-seq-dolist-core
     ',looper ',body))
 
 (defmacro entropy/emacs-progn-seq-dolist-with-parse-append
     (looper &rest body)
+  "Same as `entropy/emacs-progn-seq-dolist' but loop replacement
+will be append into the structure. "
   `(entropy/emacs--progn-seq-dolist-core
     ',looper ',body nil :parse-append))
 
 (defmacro entropy/emacs-progn-seq-dolist-not-do (looper &rest body)
+  "Same as `entropy/emacs-progn-seq-dolist' but do not evaluate
+the result, return a expanded batch progn type loop form."
   `(entropy/emacs--progn-seq-dolist-core
     ',looper ',body t))
 
 (defmacro entropy/emacs-progn-seq-dolist-not-do-with-parse-append
     (looper &rest body)
+  "Same as `entropy/emacs-progn-seq-dolist-with-parse-append' but
+do not evaluate the result, return a expanded batch progn type
+loop form."
   `(entropy/emacs--progn-seq-dolist-core
     ',looper ',body t :parse-append))
 
-;; *** batch `eval-after-load'
+;; **** `eval-after-load' batch port
 (defmacro entropy/emacs-eval-after-load (feature &rest body)
   "Wrap BODY into FEATURE using `eval-after-load'.
 
 Feature is can be a FILE arg of `eval-after-load' or a list of
 that (note that this is a macro that if feature is a list, it
-means its a form of a list)."
+means no quote needed to construct it)."
   (let (forms
         (extract-item
          (lambda (file)
@@ -869,332 +808,103 @@ means its a form of a list)."
                       ,forms)))))
     forms))
 
-;; *** hook refer
+;; *** Hook manipulation
 
-(defun entropy/emacs-add-hook (hook function &rest _)
-  (set hook
-       (append (symbol-value hook)
-               (list function))))
-
-;; ** lazy load branch
-(defmacro entropy/emacs-lazy-load-simple (feature &rest body)
-  "Execute BODY after/require FILE is loaded.
-FILE is normally a feature name, but it can also be a file name,
-in case that file does not provide any feature, further more FILE
-can be a list for thus which nested in ordered by that."
-  (declare (indent 1) (debug t))
-  (cond
-   (entropy/emacs-custom-enable-lazy-load
-    `(when (not (null ',feature))
-       (entropy/emacs-eval-after-load
-        ,feature
-        (message "with lazy loading configs for feature '%s' ..."
-                 (if (symbolp ',feature)
-                     (symbol-name ',feature)
-                   ',feature))
-        (redisplay t)
-        ,@body
-        ;; clear zombie echo area 'ing' prompts
-        (message "")
-        (redisplay t))))
-   ((null entropy/emacs-custom-enable-lazy-load)
-    `(when (not (null ',feature))
-       (message "force load configs for feature '%s'" ',feature)
-       (cond ((listp ',feature)
-              (dolist (el ',feature)
-                (require el)))
-             ((symbolp ',feature)
-              (require ',feature)))
-       ,@body))))
-
-(defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
-  "Wrapping BODY to a function named with suffix by NAME into
-=entropy-emacs= startup trail hook.
-
-See `entropy/emacs-select-trail-hook' for details of what is
-=entropy-emacs= trail hook.
-
-BODY can be forms or a expanded FORM-PLIST (see
-`entropy/emacs-get-plist-form') in which case there's some keys on
-functional aim to:
-
-- ':doc-string' :: host the function defination will be created
-  for function of BODY.
-
-- ':body' :: slot host forms, this key was necessary if BODY is a
-  expanded FORM-PLIST.
-
-- ':start-end' :: inject function of BODY into
-  `entropy/emacs-startup-end-hook'. defaultly function of that
-  BODY will be injected into other =entropy-emacs= trail hook,
-  but with this key non-nil or a form which evaluated result is
-  non-nil."
-  (let ((func (intern
-               (concat "entropy/emacs-lazy-trail-to-"
-                       (symbol-name name))))
-        (msg-str (symbol-name name))
-        (inject-to-start-end
-         (entropy/emacs-get-plist-form body :start-end t))
-        (doc-string
-         (entropy/emacs-get-plist-form body :doc-string t))
-        (body (let ((body-form (entropy/emacs-get-plist-form body :body nil t)))
-                (if body-form
-                    (cdr body-form)
-                  body))))
-    `(progn
-       (eval
-        '(defun ,func ()
-           ,(or doc-string "")
-           (entropy/emacs-message-do-message
-            "%s '%s' %s"
-            (blue "Start")
-            (yellow ,msg-str)
-            (blue "..."))
-           ,@body
-           (entropy/emacs-message-do-message
-            "%s '%s' %s"
-            (blue "Start")
-            (yellow ,msg-str)
-            (blue "done!"))))
-       (cond
-        (,inject-to-start-end
-         (setq entropy/emacs-startup-end-hook
-               (append entropy/emacs-startup-end-hook
-                       '(,func))))
-        (t
-         (set (entropy/emacs-select-trail-hook)
-              (append (symbol-value (entropy/emacs-select-trail-hook))
-                      '(,func))))))))
-
-(defun entropy/emacs-lazy-initial-form
-    (list-var
-     initial-func-suffix-name initial-var-suffix-name
-     abbrev-name adder-name
-     &rest form_args)
-  "Generate a form whose functional is to wrap some forms into a
-GENED-FUNTION who named with ABBREV-NAME and INITIAL-SUFFIX-NAME
-(a non empty string) and add it with some *tricks* to
-=entropy-emacs= trial hook (see
-`entropy/emacs-lazy-with-load-trail') with *once calling* feature
-for =entropy-emacs= lazy-load meaning.
-
-The '&rest' type FORM-ARGS is orderd with ADDER-TYPE ADDER-FLAG
-and BODY.
-
-ADDER-TYPE is a symbol of either 'add-hook' or 'advice-add'.
-
-When ADDER-FLAG is non-nil, whatever value it hosted is meaning
-for a `advice-add's WHERE argument defination.
-
-There's two tricks:
-
-1. Directly add GENED-FUNCTION into the =entropy-emacs= trail hook
-   when `entropy/emacs-custom-enable-lazy-load' is non-nil.
-
-2. Using LIST-VAR and consider each element of it is a hook (when
-   the ADDER-FLAG is nil) or a function (when ADDER-TYPE is
-   non-nil), and add the GENED-FUNCTION into the hook or the
-   advice env respectively using a ADDER-FUNCION named with the
-   GENED-FUNCTION name suffixing on ADDER-NAME (a non empty
-   string) for insteadly add it into =entropy-emacs= trail hook to
-   get the lazy load effection.
-
-The GENED-FUNCTION has the '&rest' type argument
-'$_|internal-args' which has different meaning for different value
-of ADDER-TYPE, it's meaningless when ADDER-TYPE is `add-hook',
-otherwise it has the meaning for `add-function' remaining.
-
-The GENED-FUNCTION is invocated just once that's why it is used
-for lazy-loading. This functional based on the INITIAL-VAR which
-named with ABBREV-NAME and INITIAL-VAR-SUFFIX-NAME (a non empty
-string), BODY is wrapped into a form like:
-#+begin_src emacs-lisp
-  (unless INITIAL-VAR
-    ,@BODY
-    (setq INITIAL-VAR t))
-#+end_src
-
-At last, ABBREV-NAME is feature based name string so that other
-macro or function can use this function to generate the
-GENED-FUNCTION with their own name abbreviated."
-
-  (let* ((func (intern (concat abbrev-name "_" initial-func-suffix-name)))
-         (adder-func (intern (concat (symbol-name func) "_" adder-name)))
-         (var (intern (concat abbrev-name "_+" initial-var-suffix-name)))
-         (adder-type (car form_args))
-         (adder-flag (cadr form_args))
-         (func-body (nth 2 form_args)))
-    (unless (member adder-type '(add-hook advice-add))
-      (error "Wrong adder-type for lazy-initial form '%s'"
-             abbrev-name))
-    (when (and (eq adder-type 'add-hook)
-               (not (null adder-flag)))
-      (error "Non-nil flag for 'add-hook' adder-type for lazy-initial form '%s'"
-             abbrev-name))
-    `(progn
-       (defvar ,var nil)
-       (defun ,func (&rest $_|internal-args)
-         (let ((head-time (time-to-seconds))
-               end-time)
-           (unless ,var
-             (redisplay t)
-             (entropy/emacs-message-do-message
-              "%s '%s' %s"
-              (blue "Loading and enable feature")
-              (yellow ,initial-func-suffix-name)
-              (blue "..."))
-             ,@func-body
-             (setq ,var t)
-             (setq end-time (time-to-seconds))
-             (entropy/emacs-message-do-message
-              "%s '%s' %s '%s' %s"
-              (green "Load done for")
-              (yellow ,initial-func-suffix-name)
-              (green "within")
-              (cyan (format "%f" (- end-time head-time)))
-              (green "seconds. (Maybe running rest tasks ...)"))
-             (redisplay t)
-             (entropy/emacs-idle-cleanup-echo-area))))
-       (let ((hook (entropy/emacs-select-trail-hook)))
-         (cond
-          ((not entropy/emacs-custom-enable-lazy-load)
-           (set hook (append (symbol-value hook) '(,func))))
-          (t (defun ,adder-func ()
-               (dolist (item ',list-var)
-                 (if (not (null ,adder-flag))
-                     (,adder-type item ,adder-flag ',func)
-                   (,adder-type item ',func))))
-             (set hook (append (symbol-value hook) '(,adder-func)))))))))
-
-(defmacro entropy/emacs-lazy-initial-for-hook
-    (hooks initial-func-suffix-name initial-var-suffix-name &rest body)
-  (entropy/emacs-lazy-initial-form
-   hooks initial-func-suffix-name initial-var-suffix-name
-   "entropy/emacs--hook-first-enable-for" "hook-adder"
-   'add-hook
-   nil
-   body))
-
-(defmacro entropy/emacs-lazy-initial-advice-before
-    (advice-fors initial-func-suffix-name initial-var-suffix-name &rest body)
-  (entropy/emacs-lazy-initial-form
-   advice-fors initial-func-suffix-name initial-var-suffix-name
-   "entropy/emacs--beforeADV-fisrt-enable-for"
-   "before-advice-adder"
-   'advice-add
-   :before
-   body))
-
-;; ** package user dir config
-
-(defvar entropy/emacs--package-user-dir-setted nil)
-
-(defun entropy/emacs--set-user-package-dir-common (version)
-  "Setting `package-user-dir' based on emacs version"
-  (setq package-user-dir
-        (expand-file-name
-         (concat "elpa-" version)
-         (expand-file-name entropy/emacs-ext-emacs-pkgel-get-pkgs-root))))
-
-(defun entropy/emacs-set-package-user-dir ()
-  (unless entropy/emacs--package-user-dir-setted
-    (entropy/emacs-ext-elpkg-get-type-valid-p)
-    (if (and (member emacs-version '("26.2" "27.0.50" "28.0.50"))
-             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
-        (entropy/emacs--set-user-package-dir-common emacs-version)
-      (cond
-       ((and (string-match-p "^26" emacs-version)
-             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
-        (entropy/emacs--set-user-package-dir-common "26.2"))
-       ((and (string-match-p "^27" emacs-version)
-             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
-        (entropy/emacs--set-user-package-dir-common "27.0.50"))
-       ((and (string-match-p "^28" emacs-version)
-             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
-        (entropy/emacs--set-user-package-dir-common "28.0.50"))
-       ((entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
-        (error "Unsupport emacs version '%s'" emacs-version))))
-    (when (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
-      (setq package-user-dir
-            (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
-                                      "_MelpaLocal")
-                              (entropy/emacs-file-path-parser package-user-dir 'parent-dir))))
-    (setq entropy/emacs--package-user-dir-setted t)))
-
-;; ** language environment set
-
-(defun entropy/emacs-lang-set (lang)
-  (if (string-match-p
-       "\\*e?shell\\*\\|\\*eshell-.*?\\*\\|\\(^\\*ansi-term-.*\\)\\|\\(\\*terminal\\)"
-       (format "%s" (buffer-list)))
-      (user-error "Can not use this function cause shell buffer exist, please kill it and try again!")
-    (cond
-     ((string= lang "UTF-8")
-      (set-language-environment "UTF-8")
-      (prefer-coding-system 'utf-8-unix)
-      (message "Setting language environment to 'utf-8-unix'."))
-     ((string= lang "LOCAL")
-      (when (and (not (null entropy/emacs-custom-language-environment-enable))
-                 (not (null entropy/emacs-locale-language-environment))
-                 (stringp entropy/emacs-locale-language-environment))
-        (set-language-environment entropy/emacs-locale-language-environment)
-        (prefer-coding-system entropy/emacs-locale-coding-system)
-        (setq default-file-name-coding-system 'utf-8-unix)
-        (message "Setting language environment to '%s'." entropy/emacs-locale-language-environment)))
-     (t (user-error "Invalid LANG arg")))))
-
-(defun entropy/emacs-lang-set-utf-8 (&rest args)
-  "Setting language envrionment to unix-8-unix, supported
-by `entropy/emacs-lang-set'"
-  (if (not (string= current-language-environment "UTF-8"))
-      (entropy/emacs-lang-set "UTF-8")))
-
-(defun entropy/emacs-lang-set-local (&rest args)
-  "Setting language environment to `locale' specification from
-`entropy/emacs-locale-language-environment'. "
-  (if (ignore-errors
-        (not (string= current-language-environment
-                      entropy/emacs-locale-language-environment)))
-      (entropy/emacs-lang-set "LOCAL")))
-
-;; common around advice for wrapper function into utf-8 environment
-(defun entropy/emacs-lang-use-utf-8-ces-around-advice (old-func &rest _)
-  (let* ((coding-system-for-read 'utf-8)
-         (coding-system-for-write 'utf-8))
-    (apply old-func _)))
-
-;; common around advice for wrapper funcion into locale language environment
-(defun entropy/emacs-lang-use-locale-ces-around-advice (old-func &rest _)
-  (let ((coding-system-for-read entropy/emacs-locale-coding-system)
-        (coding-system-for-write entropy/emacs-locale-coding-system))
-    (apply old-func _)))
-
-;; the 'with' macro
-(defmacro entropy/emacs-lang-with-utf-8-ces (&rest body)
-  `(let* ((coding-system-for-read 'utf-8)
-          (coding-system-for-write 'utf-8))
-     ,@body))
-
-(defmacro entropy/emacs-lang-with-locale-ces (&rest body)
-  `(let* ((coding-system-for-read entropy/emacs-locale-coding-system)
-          (coding-system-for-write entropy/emacs-locale-coding-system))
-     ,@body))
+(eval-when-compile
+  (defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)
+    "Biuld auto-named function prefixed by NAME a symbol and inject
+into HOOK wrapped BODY. Appended inject when AS-APPEND is non-nil."
+    (let ()
+      `(let* ((prefix-name-func
+               (lambda ()
+                 (intern (format
+                          "entropy/emacs-fake-lambda-nil-for-%s-/random-as-%s-function"
+                          (symbol-name ',name)
+                          (random most-positive-fixnum)))))
+              (prefix-name (funcall prefix-name-func))
+              func-define)
+         ;; Prevent duplicate fboundp
+         (when (fboundp prefix-name)
+           (while (fboundp prefix-name)
+             (setq prefix-name
+                   (funcall prefix-name-func))))
+         (setq func-define
+               (list 'defun prefix-name '()
+                     '(progn ,@body)))
+         (eval func-define)
+         (if ,as-append
+             (setq ,hook
+                   (append ,hook (list prefix-name)))
+           (add-hook ',hook
+                     prefix-name))))))
 
 
+;; *** Face manipulation
 
-;; ** newwork manipulation
-;; *** network status checker
+(defun entropy/emacs-get-face-attribute-alist (face &optional frame)
+  "Map face FACE all attributes into a alist with element formed
+as '(cons attr-key attr-value)' which can be used for
+`set-face-attribute' to loop did as."
+  (delete nil
+          (mapcar
+           (lambda (attr)
+             (let ((value (face-attribute face attr frame t)))
+               (if (eq value 'unspecified)
+                   (cond
+                    ((eq attr :foreground) (cons attr nil)))
+                 (cons attr value))))
+           entropy/emacs-face-attributes-list)))
+
+;; *** Theme manipulation
+
+(defun entropy/emacs-get-theme-face (theme face)
+  "Get a face from a specified theme THEME if it's enabled
+i.e. membered in `custom-enabled-themes'."
+  (let ((theme-settings (get theme 'theme-settings)))
+    (catch :exit
+      (dolist (theme-setting theme-settings)
+        (when (and (eq 'theme-face (car theme-setting))
+                   (eq face (cadr theme-setting)))
+          (throw :exit (cadddr theme-setting)))))))
+
+(defun entropy/emacs-theme-adapted-to-solaire ()
+  "Judge whether current theme loaded adapted to `solaire-mode',
+return t otherwise for nil. "
+  (let ((theme_cur (ignore-errors (symbol-name entropy/emacs-theme-sticker))))
+    ;; Condition judge for unconditional occurrence for theme loading,
+    ;; seem as in pdumper session.
+    (if (and (stringp theme_cur)
+             (not (eql 0 (length theme_cur))))
+        (catch :exit
+          (dolist (regex entropy/emacs-solaire-themes-regex-list)
+            (when (ignore-errors (string-match-p regex theme_cur))
+              (throw :exit t))))
+      nil)))
+
+;; *** Newtork manipulation
+;; **** network status checker
 (defun entropy/emacs-network-canbe-connected-?-p (hostname)
+  "Check hosted system whether can be connected to web sever
+HOSTNAME, a string to represent the server web address,
+e.g. \"www.google.com\".
+
+This function use wildly integrated system kit \"ping\" as the
+subroutine, throw out a error prompt when it can no be found on
+your system. Return non-nil for thus, or nil otherwise."
   (let ((ping-args-core (if sys/win32p '("-n" "1" "-w" "10")
                           '("-c" "1" "-W" "10"))))
+    (unless (executable-find "ping")
+      (error "Can not find 'ping' command in your system"))
     (= 0 (apply 'call-process `("ping" nil nil nil ,@ping-args-core
                                 ,hostname)))))
 
 (defun entropy/emacs-network-connected-p ()
+  "Judge whether emacs can be connected to the internet. Return
+non-nil for thus, or nil otherwise."
   (or (entropy/emacs-network-canbe-connected-?-p "www.baidu.com")
       (entropy/emacs-network-canbe-connected-?-p "www.google.com")))
 
-;; *** download file
+;; **** download file
 (defun entropy/emacs-network-download-file
     (url destination &optional use-curl async verify)
   "Download file from URL to DESTINATION via alternative
@@ -1301,9 +1011,27 @@ process doesn't finished."
              (funcall fatal-func)))))))
     cbk-symbol))
 
+;; *** Key map manipulation
+(defun entropy/emacs-batch-define-key (key-obj-list)
+  "Define key to keymap for batching way.
 
+KEY-OBJ-LIST's each element forms as (keymap . ((key func) ... )), 'key' was
+the string passed to `kbd'."
+  (dolist (key-obj key-obj-list)
+    (let ((key-map (car key-obj))
+          (key-binds (cdr key-obj)))
+      (when (boundp key-map)
+        (dolist (key-bind key-binds)
+          (define-key key-map
+            (kbd (car key-bind)) (cdr key-bind)))))))
 
-;; ** compress or decompress file
+(defmacro entropy/emacs-!set-key (key command)
+  "The specified `define-key' like key builder for
+`entropy/emacs-top-keymap'."
+  (declare (indent defun))
+  `(define-key entropy/emacs-top-keymap ,key ,command))
+
+;; *** Compress or decompress file
 
 (defvar entropy/emacs-archive-dowith-alist
   '((tar
@@ -1321,6 +1049,26 @@ process doesn't finished."
 
 (defun entropy/emacs-gen-archive-dowith-shell-command
     (archive-type input output dowith)
+  "Generate a shell command to do with an archive dealing
+procedure type DOWITH for archive type ARCHIVE-TYPE of the input
+file name INPUT. The shell command also want a output file name
+OUTPUT.
+
+The ARCHVE-TYPE can be one of internal support archive type that:
+1) 'tar' type: in which case, INPUT was a tar file commonly named
+   with \".tar\" as its suffix name.
+
+2) 'tgz' type: in which case, INPUT was a tar file compressed with
+   \"gzip\" method and commonly named with \".tgz\" or \".tar.gz\"
+   as its suffix name.
+
+3) 'txz' type: in which case, INPUT was a tar file compressed with
+   \"xz\" method and commonly named with \".txz\" or \".tar.xz\"
+   as its suffix name.
+
+4) 'zip' type: in which case, INPUT was a zipper compressed file
+   commonly named with \".zip\" as its suffix name.
+"
   (let* ((archive-dowith-plist
           (alist-get archive-type
                      entropy/emacs-archive-dowith-alist))
@@ -1335,6 +1083,15 @@ process doesn't finished."
 
 (defun entropy/emacs-archive-dowith
     (archive-type input output dowith)
+  "Process a file archive procedure using the shell command
+generated by `entropy/emacs-gen-archive-dowith-shell-command'
+with a success message prompt (i.e. commonly non-nil return) when
+command executed successfully or throw out an `user-error'
+otherwise.
+
+The arguments list is the same as thus of
+`entropy/emacs-gen-archive-dowith-shell-command', see it for
+their usage."
   (if (= 0 (call-process-shell-command
             (entropy/emacs-gen-archive-dowith-shell-command
              archive-type input output dowith)))
@@ -1349,23 +1106,443 @@ process doesn't finished."
                   "Uncompress")
                 input output)))
 
-;; ** Face refer
+;; ** eemacs specifications
+;; *** Individuals
 
-(defun entropy/emacs-get-face-attribute-alist (face &optional frame)
-  "Map face FACE all attributes into a alist with element formed
-as '(cons attr-key attr-value)' which can be used for
-`set-face-attribute' to loop did as."
-  (delete nil
-          (mapcar
-           (lambda (attr)
-             (let ((value (face-attribute face attr frame t)))
-               (if (eq value 'unspecified)
-                   (cond
-                    ((eq attr :foreground) (cons attr nil)))
-                 (cons attr value))))
-           entropy/emacs-face-attributes-list)))
+(defun entropy/emacs-transfer-wvol (file)
+  "Transfer linux type root path header into windows volumn
+format on windows platform."
+  (if (and (string-match-p "^/[a-z]/" file)
+           sys/win32p)
+      (let ((wvol (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:" file)))
+        (find-file wvol))
+    (find-file file)))
 
-;; ** Org face reset
+(defun entropy/emacs-buffer-is-lisp-like-p ()
+  "Justify current buffer is a lisp content buffer, any value for
+true, nil for otherwise."
+  (let ((lisp-file-regexp
+         (progn
+           (require 'rx)
+           (rx (or (seq ".el" line-end)
+                   (seq ".lisp" line-end)
+                   )))))
+    (or (and (buffer-file-name)
+             (string-match-p lisp-file-regexp (buffer-file-name)))
+        (or (eq major-mode 'emacs-lisp-mode)
+            (eq major-mode 'lisp-mode)
+            (eq major-mode 'lisp-interaction-mode)))))
+
+(defun entropy/emacs-func-aliasp (func)
+  "Return non-nil if function FN is aliased to a function symbol."
+  (let ((val (symbol-function func)))
+    (and val
+         (symbolp val))))
+
+(defun entropy/emacs-icons-displayable-p ()
+  "Return non-nil if `all-the-icons' is displayable."
+  (and entropy/emacs-use-icon
+       (display-graphic-p)
+       ;; FIXME: `find-font' can not be used in emacs batch mode.
+       (or (and entropy/emacs-fall-love-with-pdumper
+                entropy/emacs-do-pdumper-in-X)
+           (let ((rtn t))
+             (catch :exit
+               (dolist (font-name '("github-octicons"
+                                    "FontAwesome"
+                                    "file-icons"
+                                    "Weather Icons"
+                                    "Material Icons"
+                                    "all-the-icons"))
+                 (unless (find-font (font-spec :name font-name))
+                   (setq rtn nil)
+                   (throw :exit nil))))
+             rtn))))
+
+(defun entropy/emacs-idle-cleanup-echo-area ()
+  "Cleanup remaining echo area message when bussy done for some
+tasks 'ing' refer prompts."
+  (run-with-idle-timer 0.2 nil (lambda () (message ""))))
+
+(defun entropy/emacs-make-function-inhibit-readonly
+    (func &optional inhibit-local)
+  "Make function FUNC adviced around by a let wrapper with
+`inhibit-read-only' enabled of lexical means.
+
+If optional argument INHIBIT-LOCAL is non-nil, its also press on
+the buffer-locally variable `buffer-read-only'."
+  (advice-add func
+              :around
+              `(lambda (orig-func &rest orig-args)
+                 (let ((inhibit-read-only t)
+                       (buffer-read-only
+                        (if ,inhibit-local nil buffer-read-only)))
+                   (apply orig-func orig-args)))))
+
+;; *** Lazy load specification
+(defmacro entropy/emacs-lazy-load-simple (feature &rest body)
+  "Execute BODY after/require FILE is loaded.  FILE is normally a
+feature name, but it can also be a file name, in case that file
+does not provide any feature, further more FILE can be a list for
+thus and autoloads them follow the order of that.
+
+NOTE: Eventually BODY just be autoload when
+`entropy/emacs-custom-enable-lazy-load' is non-nil with two
+exceptions:
+
+1. `daemonp': Since there's no need to lazy load anything while a
+   daemon initialization.
+2. `entropy/emacs-fall-love-with-pdumper' is non-nil, in which case
+   eemacs initialization for a pdumper procedure, no need to do
+   thus as case 1.
+
+This function should always be used preferred to maintain eemacs
+internal context or API adding to thus, because any not be will
+pollute eemacs internal lazy load optimization."
+  (declare (indent 1) (debug t))
+  (cond
+   (entropy/emacs-custom-enable-lazy-load
+    `(when (not (null ',feature))
+       (entropy/emacs-eval-after-load
+        ,feature
+        (message "with lazy loading configs for feature '%s' ..."
+                 (if (symbolp ',feature)
+                     (symbol-name ',feature)
+                   ',feature))
+        (redisplay t)
+        ,@body
+        ;; clear zombie echo area 'ing' prompts
+        (message "")
+        (redisplay t))))
+   ((null entropy/emacs-custom-enable-lazy-load)
+    `(when (not (null ',feature))
+       (message "force load configs for feature '%s'" ',feature)
+       (cond ((listp ',feature)
+              (dolist (el ',feature)
+                (require el)))
+             ((symbolp ',feature)
+              (require ',feature)))
+       ,@body))))
+
+(defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
+  "Wrapping BODY to a function named with suffix by NAME into
+=entropy-emacs startup trail hook=.
+
+See `entropy/emacs-select-trail-hook' for details of what is
+=entropy-emacs startup trail hook=.
+
+BODY can be forms or a expanded FORM-PLIST (see
+`entropy/emacs-get-plist-form') in which case there's some keys on
+functional aim to:
+
+- ':doc-string' :: host the function defination will be created
+  for function of BODY.
+
+- ':body' :: slot host forms, this key was necessary if BODY is a
+  expanded FORM-PLIST.
+
+- ':start-end' :: inject function of BODY into
+  `entropy/emacs-startup-end-hook'. Defaultly, BODY will be
+  injected into =entropy-emacs stawrtup trail hook=, but with this
+  key non-nil or a form which evaluated result is non-nil."
+  (let ((func (intern
+               (concat "entropy/emacs-lazy-trail-to-"
+                       (symbol-name name))))
+        (msg-str (symbol-name name))
+        (inject-to-start-end
+         (entropy/emacs-get-plist-form body :start-end t))
+        (doc-string
+         (entropy/emacs-get-plist-form body :doc-string t))
+        (body (let ((body-form (entropy/emacs-get-plist-form body :body nil t)))
+                (if body-form
+                    (cdr body-form)
+                  body))))
+    `(progn
+       (eval
+        '(defun ,func ()
+           ,(or doc-string "")
+           (entropy/emacs-message-do-message
+            "%s '%s' %s"
+            (blue "Start")
+            (yellow ,msg-str)
+            (blue "..."))
+           ,@body
+           (entropy/emacs-message-do-message
+            "%s '%s' %s"
+            (blue "Start")
+            (yellow ,msg-str)
+            (blue "done!"))))
+       (cond
+        (,inject-to-start-end
+         (setq entropy/emacs-startup-end-hook
+               (append entropy/emacs-startup-end-hook
+                       '(,func))))
+        (t
+         (set (entropy/emacs-select-trail-hook)
+              (append (symbol-value (entropy/emacs-select-trail-hook))
+                      '(,func))))))))
+
+(defun entropy/emacs-lazy-initial-form
+    (list-var
+     initial-func-suffix-name initial-var-suffix-name
+     abbrev-name adder-name
+     &rest form_args)
+  "Generate a form whose functional is to wrap some forms into a
+GENED-FUNTION who named with ABBREV-NAME and INITIAL-SUFFIX-NAME
+(a non empty string) and add it with some *tricks* to
+=entropy-emacs startup trial hook= (see
+`entropy/emacs-select-trail-hook') with *once calling* feature
+for =entropy-emacs= lazy-load meaning.
+
+The '&rest' type FORM-ARGS is orderd with ADDER-TYPE ADDER-FLAG
+and BODY.
+
+ADDER-TYPE is a symbol of either 'add-hook' or 'advice-add'.
+
+When ADDER-FLAG is non-nil, whatever value it hosted is meaning
+for a `advice-add's WHERE argument defination.
+
+There's two tricks:
+
+1. Directly add GENED-FUNCTION into the =entropy-emacs startup
+   trail hook= when `entropy/emacs-custom-enable-lazy-load' is
+   non-nil.
+
+2. Using LIST-VAR and consider each element of it is a hook (when
+   the ADDER-FLAG is nil) or a function (when ADDER-TYPE is
+   non-nil), and add the GENED-FUNCTION into the hook or the
+   advice env respectively using a ADDER-FUNCION named with the
+   GENED-FUNCTION name suffixing on ADDER-NAME (a non empty
+   string) for insteadly add it into =entropy-emacs startup trail
+   hook= to get the lazy load effection.
+
+The GENED-FUNCTION has the '&rest' type argument
+'$_|internal-args' which has different meaning for different value
+of ADDER-TYPE, it's meaningless when ADDER-TYPE is `add-hook',
+otherwise it has the meaning for `add-function' remaining.
+
+The GENED-FUNCTION is invocated just once that's why it is used
+for lazy-loading. This functional based on the INITIAL-VAR which
+named with ABBREV-NAME and INITIAL-VAR-SUFFIX-NAME (a non empty
+string), BODY is wrapped into a form like:
+#+begin_src emacs-lisp
+  (unless INITIAL-VAR
+    ,@BODY
+    (setq INITIAL-VAR t))
+#+end_src
+
+At last, ABBREV-NAME is feature based name string so that other
+macro or function can use this function to generate the
+GENED-FUNCTION with their own name abbreviated."
+
+  (let* ((func (intern (concat abbrev-name "_" initial-func-suffix-name)))
+         (adder-func (intern (concat (symbol-name func) "_" adder-name)))
+         (var (intern (concat abbrev-name "_+" initial-var-suffix-name)))
+         (adder-type (car form_args))
+         (adder-flag (cadr form_args))
+         (func-body (nth 2 form_args)))
+    (unless (member adder-type '(add-hook advice-add))
+      (error "Wrong adder-type for lazy-initial form '%s'"
+             abbrev-name))
+    (when (and (eq adder-type 'add-hook)
+               (not (null adder-flag)))
+      (error "Non-nil flag for 'add-hook' adder-type for lazy-initial form '%s'"
+             abbrev-name))
+    `(progn
+       (defvar ,var nil)
+       (defun ,func (&rest $_|internal-args)
+         (let ((head-time (time-to-seconds))
+               end-time)
+           (unless ,var
+             (redisplay t)
+             (entropy/emacs-message-do-message
+              "%s '%s' %s"
+              (blue "Loading and enable feature")
+              (yellow ,initial-func-suffix-name)
+              (blue "..."))
+             ,@func-body
+             (setq ,var t)
+             (setq end-time (time-to-seconds))
+             (entropy/emacs-message-do-message
+              "%s '%s' %s '%s' %s"
+              (green "Load done for")
+              (yellow ,initial-func-suffix-name)
+              (green "within")
+              (cyan (format "%f" (- end-time head-time)))
+              (green "seconds. (Maybe running rest tasks ...)"))
+             (redisplay t)
+             (entropy/emacs-idle-cleanup-echo-area))))
+       (let ((hook (entropy/emacs-select-trail-hook)))
+         (cond
+          ((not entropy/emacs-custom-enable-lazy-load)
+           (set hook (append (symbol-value hook) '(,func))))
+          (t (defun ,adder-func ()
+               (dolist (item ',list-var)
+                 (if (not (null ,adder-flag))
+                     (,adder-type item ,adder-flag ',func)
+                   (,adder-type item ',func))))
+             (set hook (append (symbol-value hook) '(,adder-func)))))))))
+
+(defmacro entropy/emacs-lazy-initial-for-hook
+    (hooks initial-func-suffix-name initial-var-suffix-name &rest body)
+  "Wrap forms collection BODY into a auto-gened function named
+suffixed by INITIAL-FUNC-SUFFIX-NAME and then add it into a list
+of hooks HOOKS and just enable it oncely at the next time calling
+one of those hooks which commonly in usage time, this mechanism
+judged by the judger i.e. the enabled status indication variable
+named suffixed by INITIAL-VAR-SUFFIX-NAME."
+  (entropy/emacs-lazy-initial-form
+   hooks initial-func-suffix-name initial-var-suffix-name
+   "entropy/emacs--hook-first-enable-for" "hook-adder"
+   'add-hook
+   nil
+   body))
+
+(defmacro entropy/emacs-lazy-initial-advice-before
+    (advice-fors initial-func-suffix-name initial-var-suffix-name &rest body)
+  "Wrap forms collection BODY into a auto-gened function named
+suffixed by INITIAL-FUNC-SUFFIX-NAME and then advice it to a list
+of specific functions and just enable it oncely at the next time
+calling one of those function which commonly in usage time, this
+mechanism judged by the judger i.e. the enabled status indication
+variable named suffixed by INITIAL-VAR-SUFFIX-NAME."
+  (entropy/emacs-lazy-initial-form
+   advice-fors initial-func-suffix-name initial-var-suffix-name
+   "entropy/emacs--beforeADV-fisrt-enable-for"
+   "before-advice-adder"
+   'advice-add
+   :before
+   body))
+
+;; *** Package user dir specification
+
+(defvar entropy/emacs--package-user-dir-setted nil)
+
+(defun entropy/emacs--set-user-package-dir-common (version)
+  "Setting `package-user-dir' base name based on emacs version
+hosted in `entropy/emacs-ext-emacs-pkgel-get-pkgs-root'."
+  (setq package-user-dir
+        (expand-file-name
+         (concat "elpa-" version)
+         (expand-file-name entropy/emacs-ext-emacs-pkgel-get-pkgs-root))))
+
+(defun entropy/emacs-set-package-user-dir ()
+  "Set `package-user-dir' obey eemacs specified rule located in
+`entropy/emacs-ext-emacs-pkgel-get-pkgs-root'.
+
+NOTE: this is the only legal way to set `package-user-dir' in
+eemacs context."
+  (unless entropy/emacs--package-user-dir-setted
+    (entropy/emacs-ext-elpkg-get-type-valid-p)
+    (if (and (member emacs-version '("26.2" "27.0.50" "28.0.50"))
+             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
+        (entropy/emacs--set-user-package-dir-common emacs-version)
+      (cond
+       ((and (string-match-p "^26" emacs-version)
+             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
+        (entropy/emacs--set-user-package-dir-common "26.2"))
+       ((and (string-match-p "^27" emacs-version)
+             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
+        (entropy/emacs--set-user-package-dir-common "27.0.50"))
+       ((and (string-match-p "^28" emacs-version)
+             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
+        (entropy/emacs--set-user-package-dir-common "28.0.50"))
+       ((entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
+        (error "Unsupport emacs version '%s'" emacs-version))))
+    (when (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
+      (setq package-user-dir
+            (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
+                                      "_MelpaLocal")
+                              (entropy/emacs-file-path-parser package-user-dir 'parent-dir))))
+    (setq entropy/emacs--package-user-dir-setted t)))
+
+;; *** Language environment specification
+
+(defun entropy/emacs--lang-set (lang)
+  (if (string-match-p
+       "\\*e?shell\\*\\|\\*eshell-.*?\\*\\|\\(^\\*ansi-term-.*\\)\\|\\(\\*terminal\\)"
+       (format "%s" (buffer-list)))
+      (user-error "Can not use this function cause shell buffer exist, please kill it and try again!")
+    (cond
+     ((string= lang "UTF-8")
+      (set-language-environment "UTF-8")
+      (prefer-coding-system 'utf-8-unix)
+      (message "Setting language environment to 'utf-8-unix'."))
+     ((string= lang "LOCAL")
+      (when (and (not (null entropy/emacs-custom-language-environment-enable))
+                 (not (null entropy/emacs-locale-language-environment))
+                 (assoc entropy/emacs-locale-language-environment language-info-alist)
+                 (member entropy/emacs-locale-coding-system coding-system-list))
+        (set-language-environment entropy/emacs-locale-language-environment)
+        (prefer-coding-system entropy/emacs-locale-coding-system)
+        (setq default-file-name-coding-system 'utf-8-unix)
+        (message "Setting language environment to '%s'." entropy/emacs-locale-language-environment)))
+     (t (user-error "Invalid LANG arg")))))
+
+(defun entropy/emacs-lang-set-utf-8 (&rest args)
+  "Setting language envrionment to unix-8-unix in vanilla status.
+
+The vanilla status is for that excepts some special occasion and
+this is also the functional usage restriction declaiming e.g. for
+the situation when there's any process connection are built which
+we forbiddingly shouldn't reset the whole language environment for
+thus, if not, we will get messy with current emacs session.
+
+For temporally usage of this functional case, see
+`entropy/emacs-lang-use-utf-8-ces-around-advice'.
+"
+  (if (not (string= current-language-environment "UTF-8"))
+      (entropy/emacs--lang-set "UTF-8")))
+
+(defun entropy/emacs-lang-set-local (&rest args)
+  "Setting language envrionment to the local matched with system
+setting in vanilla status.
+
+The vanilla status is for that excepts some special occasion and
+this is also the functional usage restriction declaiming e.g. for
+the situation when there's any process connection are built which
+we forbiddingly shouldn't reset the whole language environment for
+thus, if not, we will get messy with current emacs session.
+
+For temporally usage of this functional case, see
+`entropy/emacs-lang-use-locale-ces-around-advice'.
+"
+  (if (ignore-errors
+        (not (string= current-language-environment
+                      entropy/emacs-locale-language-environment)))
+      (entropy/emacs--lang-set "LOCAL")))
+
+
+(defun entropy/emacs-lang-use-utf-8-ces-around-advice (old-func &rest _)
+  "Common around advice for wrapper function into utf-8
+environment."
+  (let* ((coding-system-for-read 'utf-8)
+         (coding-system-for-write 'utf-8))
+    (apply old-func _)))
+
+(defun entropy/emacs-lang-use-locale-ces-around-advice (old-func &rest _)
+  "Common around advice for wrapper funcion into locale language
+environment, determined by `entropy/emacs-locale-coding-system'."
+  (let ((coding-system-for-read entropy/emacs-locale-coding-system)
+        (coding-system-for-write entropy/emacs-locale-coding-system))
+    (apply old-func _)))
+
+;; the 'with' macro
+(defmacro entropy/emacs-lang-with-utf-8-ces (&rest body)
+  "Do BODY within a utf-8 coding system environment."
+  `(let* ((coding-system-for-read 'utf-8)
+          (coding-system-for-write 'utf-8))
+     ,@body))
+
+(defmacro entropy/emacs-lang-with-locale-ces (&rest body)
+  "Do BODY within a locale coding system environment determined
+by `entropy/emacs-locale-coding-system'."
+  `(let* ((coding-system-for-read entropy/emacs-locale-coding-system)
+          (coding-system-for-write entropy/emacs-locale-coding-system))
+     ,@body))
+
+;; *** Org face specification
+;; **** Cancel head face height rescale
 (defvar entropy/emacs-defun--ohrsc-current-theme nil
   "Emacsc theme name for whose org or outline level face has been
 backuped in faces of list of face
@@ -1483,9 +1660,13 @@ relative to the other text when
              (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
         (entropy/emacs-defun--ohrsc-recovery-org-header-face-scale))))))
 
-;; ** theme loading specific
+;; *** Theme loading specification
 (defun entropy/emacs-theme-load-face-specifix (&optional x)
-  "Sets of specification for themes loading done. "
+  "Sets of specification for eemacs native themes.
+
+This function should be invoked after a theme loaded done, and it
+will automatically recongnized current theme name and do the
+corresponding stuffs."
   (unless x
     (setq x (symbol-name entropy/emacs-theme-sticker)))
   (cond
@@ -1521,7 +1702,18 @@ relative to the other text when
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
 (defun entropy/emacs-theme-load-modeline-specifix (&optional arg)
-  "Sets of specification for modeline after loaded a new theme."
+  "Sets of specification for eemacs native modelines.
+
+This function should be invoked after a modeline type loaded done
+by any eemacs defined modeline toggle function which always named
+of abbreviated by \"entropy/emacs-modeline-mdl-NAME\" and it will
+automatically recongnized current modeline type and do the
+corresponding stuffs by obtained the modeline type from
+`entropy/emacs-mode-line-sticker', or it will do the same of thus
+but may be get the wrong context proper way that in which case,
+the mode line type obtained from
+`entropy/emacs-mode-line-sticker' may be not satisfied current
+situation."
   (unless arg
     (setq arg (symbol-name entropy/emacs-theme-sticker)))
   (progn
@@ -1561,7 +1753,7 @@ stuffs on `solaire-mode' when `solaire-global-mode' was non-nil."
                 "#293c44")))))
      (t nil))))
 
-;; ** advice around for case-fold-search
+;; *** Case fold search specification
 (defun entropy/emacs-case-fold-focely-around-advice (_old_func &rest _args)
   "Wrapper function to disable `case-fold-search' functional ability."
   (let ((_case_type case-fold-search)
@@ -1573,33 +1765,24 @@ stuffs on `solaire-mode' when `solaire-global-mode' was non-nil."
                rtn)
       (setq case-fold-search _case_type))))
 
-;; ** key map refer
-(defun entropy/emacs-batch-define-key (key-obj-list)
-  "Define key to keymap for batching way.
-
-KEY-OBJ-LIST's each element forms as (keymap . ((key func) ... )), 'key' was
-the string passed to `kbd'."
-  (dolist (key-obj key-obj-list)
-    (let ((key-map (car key-obj))
-          (key-binds (cdr key-obj)))
-      (when (boundp key-map)
-        (dolist (key-bind key-binds)
-          (define-key key-map
-            (kbd (car key-bind)) (cdr key-bind)))))))
-
-;; ** cli compatibale
+;; *** Cli compatibale specification
+;; **** `xterm-paste' wrappers
 (defvar entropy/emacs--xterm-clipboard-head nil
-  "The string of the head of the last event paste part of
-`xterm-paste'.")
+  "The string of the the last event paste part of `xterm-paste',
+setted by `entropy/emacs-xterm-paste-core'.")
 
 (defvar entropy/emacs-xterm-paste-inhibit-read-only-filter nil
   "The conditions for judge whether xterm-paste with
 `inhibit-read-only'.
 
-Eacch condition is a function with one arg, the paste event.")
+Eacch condition is a function with one arg, the paste event and it
+return non-nil for setting `inhibit-read-only' and nil for
+unsetting it temporally within
+`entropy/emacs-with-xterm-paste-core'.")
 
 (defvar entropy/emacs-xterm-paste-yank-replacement-register nil
-  "List of predicate pattern cons for using instead of `yank'.
+  "List of predicate pattern cons for using instead of `yank' used
+within `entropy/emacs-xterm-paste'.
 
 Which each car of the pattern was a condition, may be 'nil' or
 't' or a function for be evaluated for the boolean result, and
@@ -1624,7 +1807,7 @@ the cdr was the replacement yank function")
        ;;
        ;;(and (fboundp 'x-create-frame) (getenv "DISPLAY") 'emacs)
        )
-      xclip-program xclip-method)
+      xclip-program (symbol-name xclip-method))
 
 (defun entropy/emacs-xterm-external-satisfied-p ()
   "Judge whether emacs to use external kits to assistant the
@@ -1655,8 +1838,12 @@ xterm-session yank/paste operation."
       judger)))
 
 (defun entropy/emacs-xterm-paste-core (event)
-  "The eemacs subroutine for `xterm-paste' event to automatically
-traceback to `kill-ring'."
+  "The eemacs kill-ring update function for monitoring
+`xterm-paste' event to automatically traceback to `kill-ring'
+when the last event contet doesn't change, this useful to prevent
+yanking an obsolete entry from `kill-ring' when the emacs
+internal cut operation has updated the kill-ring but
+`xterm-paste' will still yank the previouse event content."
   (let* ((paste-str (nth 1 event)))
     (with-temp-buffer
       (unless (equal paste-str
@@ -1666,7 +1853,11 @@ traceback to `kill-ring'."
                (xterm-paste event)))
       (yank))))
 
-(defmacro entropy/emacs--with-xterm-paste-core (event &rest body)
+(defmacro entropy/emacs-with-xterm-paste-core (event &rest body)
+  "Do BODY within the `kill-ring' update by
+`entropy/emacs-xterm-paste-core' and with `inhibit-read-only' may
+be set while any judger of `entropy/emacs-xterm-paste-inhibit-read-only-filter'
+are triggered."
   `(let ((inhibit-read-only
           (catch :exit
             (dolist (filter entropy/emacs-xterm-paste-inhibit-read-only-filter)
@@ -1678,10 +1869,17 @@ traceback to `kill-ring'."
 
 (defun entropy/emacs-xterm-paste (event)
   "eemacs wrapper for `xterm-paste' based on the subroutine of
-`entropy/emacs-xterm-paste-core'.
+`entropy/emacs-xterm-paste-core' and
+`entropy/emacs-with-xterm-paste-core'.
+
+On the other hand, this function use `yank' or the specified yank
+like function in
+`entropy/emacs-xterm-paste-yank-replacement-register' to yank the
+content in `kill-ring' to adapt any occasion which the origin
+`xterm-paste' may no be proper as is.
 "
   (interactive "e")
-  (entropy/emacs--with-xterm-paste-core
+  (entropy/emacs-with-xterm-paste-core
    event
    (let (yank-func)
      (catch :exit
@@ -1702,7 +1900,7 @@ traceback to `kill-ring'."
 subroutine of `entropy/emacs-xterm-paste-core'.
 "
   (interactive "e")
-  (entropy/emacs--with-xterm-paste-core
+  (entropy/emacs-with-xterm-paste-core
    event
    (let* ((paste (with-temp-buffer
                    (yank)
@@ -1712,26 +1910,7 @@ subroutine of `entropy/emacs-xterm-paste-core'.
        (setq paste (substring-no-properties paste))
        (term-send-raw-string paste)))))
 
-(defun entropy/emacs-xterm-paste-sshsession ()
-  (interactive)
-  (let ()
-    (run-with-timer 0.01 nil #'yank)
-    (keyboard-quit)))
-
-(defun entropy/emacs-basic-xterm-term-S-insert-sshsession ()
-  (interactive)
-  (run-with-timer
-   0.01 nil
-   #'(lambda ()
-       (let* ((paste (with-temp-buffer
-                       (yank)
-                       (car kill-ring))))
-         (when (stringp paste)
-           (setq paste (substring-no-properties paste))
-           (term-send-raw-string paste)))))
-  (keyboard-quit))
-
-;; ** emacs daemon refer
+;; *** Emacs daemon specification
 (defun entropy/emacs-with-daemon-make-frame-done
     (name et-form ec-form &optional common-form)
   "Do sth after emacs daemon make a new frame.
@@ -1739,7 +1918,7 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 - 'ET-FORM' is the form for cli emacs session
 - 'EC-FORM' is the form for gui emacs-session
 
-Optional form COMMON-FORM run directly with any condition
+Optional form COMMON-FORM run directly without any condition
 judgements."
   (let* ((name (intern
                 (format "%s-for-emacs-daemon"
@@ -1752,43 +1931,6 @@ judgements."
          ,et-form)
        ,common-form))))
 
-;; ** miscellaneous
-(defun entropy/emacs-transfer-wvol (file)
-  "Transfer linux type root path header into windows volumn
-format on windows platform."
-  (if (and (string-match-p "^/[a-z]/" file)
-           sys/win32p)
-      (let ((wvol (replace-regexp-in-string "^/\\([a-z]\\)/" "\\1:" file)))
-        (find-file wvol))
-    (find-file file)))
-
-(defun entropy/emacs-get-theme-face (theme face)
-  (let ((theme-settings (get theme 'theme-settings)))
-    (catch :exit
-      (dolist (theme-setting theme-settings)
-        (when (and (eq 'theme-face (car theme-setting))
-                   (eq face (cadr theme-setting)))
-          (throw :exit (cadddr theme-setting)))))))
-
-(defun entropy/emacs-buffer-is-lisp-like-p ()
-  "Justify current buffer is lisp like, any value for true, nil
-for otherwise."
-  (let ((lisp-file-regexp
-         (progn
-           (require 'rx)
-           (rx (or (seq ".el" line-end)
-                   (seq ".lisp" line-end)
-                   )))))
-    (or (and (buffer-file-name)
-             (string-match-p lisp-file-regexp (buffer-file-name)))
-        (or (eq major-mode 'emacs-lisp-mode)
-            (eq major-mode 'lisp-mode)
-            (eq major-mode 'lisp-interaction-mode)))))
-
-(defun entropy/emacs-echo-startup-done ()
-  (entropy/emacs-message-do-message
-   "%s"
-   (green "entropy-emacs startup done!")))
 
 ;; * provide
 (provide 'entropy-emacs-defun)

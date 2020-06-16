@@ -1946,7 +1946,9 @@ it with focus on."
                              x))))))
   (let ((buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
         (inhibit-read-only t)
-        (variable (symbol-value variable)))
+        (variable (symbol-value variable))
+        (print-level nil)
+        (print-length nil))
     (with-current-buffer buffer
       (erase-buffer)
       (cond

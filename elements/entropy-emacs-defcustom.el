@@ -673,23 +673,46 @@ the fasest way.
 ;; **** language envrionment setting
 (defgroup entropy/emacs-customize-language nil
   "Customize variables group of language environment
-corresponding for 'entropy-emacs'."
+corresponding for =entropy-emacs=."
   :group 'entropy/emacs-custom-variable-basic)
 
 (defcustom entropy/emacs-custom-language-environment-enable nil
-  "Enable custome language environment"
+  "Enable custome language environment, used to customize
+`current-language-environment', and then variable
+`entropy/emacs-locale-language-environment' and
+`entropy/emacs-locale-coding-system' will be used."
   :type 'boolean
   :group 'entropy/emacs-customize-language)
 
 (defcustom entropy/emacs-locale-language-environment
   (copy-tree current-language-environment)
-  "Setting emacs language environment"
+  "The language environment follow current system locale, used to
+`set-language-environment', instantly getted before eemacs core
+procedure invoked.
+
+In most of case, you do not need to customize it, but it's
+allowed, if so as, the value must be one key of
+`language-info-alist'.
+
+NOTE: this variable just be used when init
+`entropy/emacs-custom-language-environment-enable' with non-nil
+value."
   :type 'string
   :group 'entropy/emacs-customize-language)
 
 (defcustom entropy/emacs-locale-coding-system
   (car default-process-coding-system)
-  "Setting locale coding system."
+  "The preferred coding system follow current system locale, used
+to `prefer-coding-system', instantly getted before eemacs core
+procedure invoked.
+
+In most of case, you do not need to customize it, but it's
+allowed, if so as, the value must be one of
+`coding-system-list'.
+
+NOTE: this variable just be used when init
+`entropy/emacs-custom-language-environment-enable' with non-nil
+value."
   :type 'string
   :group 'entropy/emacs-customize-language)
 

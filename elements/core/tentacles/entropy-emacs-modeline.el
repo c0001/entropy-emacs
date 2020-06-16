@@ -532,6 +532,9 @@ style which defined in `entropy/emacs-modeline-style'."
 
 (defmacro entropy/emacs-modeline--define-toggle
     (name spec-form init-var enable-form &rest body)
+  ;; NOTE: if change the auto gened function name format, you must
+  ;; update the doc-string corresponding part of
+  ;; `entropy/emacs-theme-load-modeline-specifix'
   (let ((func-name (intern (concat "entropy/emacs-modeline-mdl-" name "-toggle"))))
     (push (cons name func-name) entropy/emacs-modeline--toggle-type-register)
     `(defun ,func-name ()

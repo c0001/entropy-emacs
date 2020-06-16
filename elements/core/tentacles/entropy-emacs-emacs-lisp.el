@@ -202,9 +202,9 @@ For lisp coding aim, always return the transfered buffer.
                 ("C-h o" . elisp-slime-nav-describe-elisp-thing-at-point))
     :init
     (entropy/emacs-progn-seq-dolist
-     (hook (emacs-lisp-mode-hook
-            lisp-interaction-mode-hook
-            ielm-mode-hook))
+     (hook '(emacs-lisp-mode-hook
+             lisp-interaction-mode-hook
+             ielm-mode-hook))
      (add-hook 'hook #'turn-on-elisp-slime-nav-mode))))
 
 ;; Semantic code search for emacs lisp

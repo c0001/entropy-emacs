@@ -31,6 +31,7 @@
 ;;
 ;; * Code:
 (require 'entropy-emacs-defconst)
+(require 'entropy-emacs-message)
 
 ;; ** individuals
 
@@ -81,7 +82,9 @@ Please only use this function for doing thus, do not run that
 hook using `run-hooks' or any other methods or may cause some
 messy."
   (run-hooks 'entropy/emacs-startup-end-hook)
-  (entropy/emacs-echo-startup-done)
+  (entropy/emacs-message-do-message
+   "%s"
+   (green "entropy-emacs startup done!"))
   (setq entropy/emacs-startup-done t))
 
 (defvar entropy/emacs-pyim-has-initialized nil
