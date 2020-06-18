@@ -30,7 +30,7 @@
 ;;
 ;; Enable the main key for subs-config
 ;; i.e. `entropy/emacs-use-highlight-features', for subs, see
-;; customized variable group `entropy/emacs-highlight'.
+;; customized variable group `entropy/emacs-customize-group-for-highlight-features'.
 ;;
 ;; * Configuration:
 ;;

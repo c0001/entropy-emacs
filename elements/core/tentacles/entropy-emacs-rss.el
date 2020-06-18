@@ -469,6 +469,8 @@ function of `ivy-read'."
 ;; *** update specific feed through proxy
 
   (defvar entropy/emacs-rss--elfeed-backup-of-orig-urlproxy nil)
+  (defvar entropy/emacs-rss--elfeed-multi-update-feeds-list '()
+    "Elfeed Feeds for update.")
 
   (defun entropy/emacs-rss--elfeed-update-read-action (x)
     "Repeatly read action for updating feeds of `elfeed-feeds',
@@ -477,15 +479,15 @@ powered by `entropy/cl-ivy-read-repeatedly-function'."
     (let ((temp (cdr x)))
       (setq x temp))
     (entropy/cl-ivy-read-repeatedly-function
-     x 'entropy/emacs-elfeed-multi-update-feeds-list
+     x 'entropy/emacs-rss--elfeed-multi-update-feeds-list
      "Updating: "
      #'entropy/emacs-rss--elfeed-feed-of-url))
 
   (defun entropy/emacs-rss-elfeed-get-multi-update-feeds ()
     "Getting feeds needed for updating through querying with
-promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list'."
+promptings and injecting them into `entropy/emacs-rss--elfeed-multi-update-feeds-list'."
     (interactive)
-    (setq entropy/emacs-elfeed-multi-update-feeds-list nil
+    (setq entropy/emacs-rss--elfeed-multi-update-feeds-list nil
           entropy/emacs-rss--elfeed-feed-prompt-alist nil)
     (setq entropy/emacs-rss--elfeed-feed-prompt-alist (entropy/emacs-rss--elfeed-list-feeds))
     (ivy-read "Update feeds: " entropy/emacs-rss--elfeed-feed-prompt-alist
@@ -495,13 +497,13 @@ promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list
   (defun entropy/emacs-rss-elfeed-multi-update-feeds ()
     "Update feeds interactively by multiplied choicing from `entropy/emacs-rss--elfeed-feed-prompt-alist'."
     (interactive)
-    (setq entropy/emacs-elfeed-multi-update-feeds-list nil
+    (setq entropy/emacs-rss--elfeed-multi-update-feeds-list nil
           entropy/emacs-rss--elfeed-feed-prompt-alist nil)
     (setq entropy/emacs-rss--elfeed-feed-prompt-alist (entropy/emacs-rss--elfeed-list-feeds))
     (ivy-read "Update feeds: " entropy/emacs-rss--elfeed-feed-prompt-alist
               :require-match t
               :action #'entropy/emacs-rss--elfeed-update-read-action)
-    (dolist (el entropy/emacs-elfeed-multi-update-feeds-list)
+    (dolist (el entropy/emacs-rss--elfeed-multi-update-feeds-list)
       (elfeed-update-feed el)))
 
   (defun entropy/emacs-rss--elfeed-update-curl-proxy (url-lists proxy)
@@ -553,7 +555,7 @@ promptings and injecting them into `entropy/emacs-elfeed-multi-update-feeds-list
     "Update feeds using proxy."
     (interactive)
     (let ((ulist (if url-lists url-lists (progn (entropy/emacs-rss-elfeed-get-multi-update-feeds)
-                                                entropy/emacs-elfeed-multi-update-feeds-list))))
+                                                entropy/emacs-rss--elfeed-multi-update-feeds-list))))
       (if elfeed-use-curl
           (let ((proxy (if (not (string-match-p "^http://" entropy/emacs-elfeed-retrieve-proxy))
                            (concat "http://" entropy/emacs-elfeed-retrieve-proxy)
