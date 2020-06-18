@@ -576,17 +576,20 @@ Configurations for `eww' `w3m' `search-web' etc.
   :group 'entropy/emacs-web)
 ;; ***** personal browse-url function and varaiable
 (defcustom entropy/emacs-enable-personal-browse-url-function nil
-  "Whether enable personal browse-url function? If yes, set it to
-  be 't'"
+  "Enable personal browse url function like
+`browse-url-browser-function' but embedded with eemacs context,
+and then `entropy/emacs-browse-url-function' will be used."
   :type 'boolean
   :group ' entropy/emacs-web)
 
 (defcustom entropy/emacs-browse-url-function nil
-  "The specific browse-url-function by your self,
+  "The specific `browse-url-browser-function' by user specification
+for eemacs context, only used when
+`entropy/emacs-enable-personal-browse-url-function' init with
+non-nil value.
 
-Mostly of all, you should write your browse-url function with two args:
-- 'url'
-- '&rest args'
+Mostly of all, you should write your browse-url function with
+arguments list as '(url &rest args)'
 
 For example:
 
@@ -596,7 +599,11 @@ For example:
         \"open\"
         \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\"
         url))
-"
+
+In =entropy-emacs=, you should always preferred specified the url
+browse function in this variable than the emacs internal defined
+`browse-url-browser-function'. Eemacs arrange it to that in proper
+way but with more extensively meaning."
   :type 'sexp
   :group 'entropy/emacs-web)
 
@@ -895,13 +902,27 @@ elfeed proxy setting."
   :group 'extensions)
 
 (defcustom entropy/emacs-install-coworker-immediately nil
-  "Install coworker immediatly in needed while."
+  "Install coworker immediatly in needed while.
+
+Also see `entropy/emacs-coworker-host-root'."
   :type 'boolean
   :group 'entropy/emacs-coworkers-group)
 
 (defcustom entropy/emacs-coworker-host-root
   (expand-file-name ".eemacs-local" (getenv "HOME"))
-  "The coworker host root dir."
+  "The coworker host root dir.
+
+Coworker host dir is a eemacs specified folder to host any system
+wide dependencies independent from the native system environment,
+it works like a dot-local (~/.local) foler per-user did, but just
+used for =entropy-emacs=.
+
+For eemacs maintenance, all the sub-folders liek bin/, lib/ so on
+are pre-defined for reversing the namespace update possible:
+- bin/: `entropy/emacs-coworker-bin-host-path'
+- lib/: `entropy/emacs-coworker-lib-host-root'
+- archive/: `entropy/emacs-coworker-archive-host-root'.
+"
   :type 'string
   :group 'entropy/emacs-coworkers-group)
 

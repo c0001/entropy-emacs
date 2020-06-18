@@ -53,10 +53,26 @@
 
 (use-package mpc
   :ensure nil
+  :eemacs-functions mpc-songs-buf
   :commands
   (mpc
    mpc-seek-current)
   :preface
+  (defun entropy/emacs-music-mpc-patch-popuped-window-balance
+      (&rest _)
+    "Patch the origin mpc initialized windows layout for eemacs
+specification."
+    (let* ((buff (mpc-songs-buf))
+           (buff-win (ignore-errors (get-buffer-window buff))))
+      (when (and (buffer-live-p buff)
+                 buff-win)
+        (message "Balance mpc layout ... ")
+        (with-selected-window buff-win
+          (enlarge-window 10)
+          (goto-char (point-min)))
+        (select-window buff-win)
+        (message ""))))
+
   (defun entropy/emacs-music-mpc-auto-add-and-play ()
     "Play current music in `mpc-songs-mode'.
 
@@ -200,7 +216,11 @@ Add current music to queue when its not in thus."
   ;; RET in mpc-status-mode is meaningless and will messy the visual
   ;; experience.
   (define-key mpc-status-mode-map
-    (kbd "RET") nil))
+    (kbd "RET") nil)
+
+  (advice-add 'mpc
+              :after
+              #'entropy/emacs-music-mpc-patch-popuped-window-balance))
 
 
 ;; ** bongo

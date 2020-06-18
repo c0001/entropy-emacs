@@ -318,7 +318,7 @@ key slot support."
       (let ((host-buffer (current-buffer)) buffer)
         (cond
          ((one-window-p)
-          (message "Auto hiding popuped buffer ...")
+          (message "Auto hiding popuped buffer <one-window type> ...")
           (progn (setq buffer (current-buffer))
                  (when  (buffer-local-value
                          'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
@@ -327,7 +327,7 @@ key slot support."
          ((buffer-local-value
            'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
            (current-buffer))
-          (message "Auto hiding popuped buffer ...")
+          (message "Auto hiding popuped buffer <buffer-local type> ...")
           (setq buffer (current-buffer))
           (delete-window))
          ((not (one-window-p))
@@ -336,6 +336,7 @@ key slot support."
             (unless (eq buffer host-buffer)
               (let ((window (get-buffer-window buffer)))
                 (when (window-live-p window)
+                  (message "Auto hiding popuped buffer <multi-window type> ...")
                   (delete-window window))
                 (with-selected-window (get-buffer-window host-buffer)
                   (recenter-top-bottom '(middle))))))))

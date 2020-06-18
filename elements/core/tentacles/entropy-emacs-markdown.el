@@ -58,8 +58,11 @@ package management!"))
          ("\\.markdown\\'" . markdown-mode))
   :config
 
-  ;; Change face for markdown code,pre,inline-code face for using `entropy/emacs-default-latin-font'
-  (set-face-attribute 'fixed-pitch nil :family entropy/emacs-default-latin-font)
+  ;; Change face for markdown code,pre,inline-code face for using
+  ;; `entropy/emacs-fontsets-used-latin-font'
+  (when entropy/emacs-font-setting-enable
+    (set-face-attribute 'fixed-pitch nil
+                        :family entropy/emacs-fontsets-used-latin-font))
 
   ;; prompt for markdown-command whether installed before previewer
   ;; transferring

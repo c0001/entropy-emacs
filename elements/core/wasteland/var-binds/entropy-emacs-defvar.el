@@ -33,63 +33,6 @@
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-message)
 
-;; ** individuals
-
-(defvar entropy/emacs-package-common-start-after-hook nil
-  "Hooks run after the entropy-emacs elisp packages initialized
- done while calling `entropy/emacs-package-common-start'.")
-
-(defvar entropy/emacs-font-set-end-hook nil
-  "Hooks run after `entropy/emacs-font-set-setfont-core'.")
-
-(defvar entropy/emacs-top-keymap (make-sparse-keymap)
-  "The top keymap for entropy-emacs holding the global
-commands.")
-
-(defvar entropy/emacs-top-key
-  (if (display-graphic-p)
-      (car entropy/emacs-top-prefix-key-cons)
-    (cdr entropy/emacs-top-prefix-key-cons))
-  "Top key for entropy-emacs global keybind for
-`entropy/emacs-top-keymap'.
-
-It is a string used for `kbd'.")
-
-(defvar entropy/emacs-web-development-environment nil
-  "Whether using enable web-development envrionment.
-
-This variable is mainly for the judgement button for
-`entropy/emacs-browse-url-function' for determined whether to using the
-specific browser to visualize current file.")
-
-(defvar entropy/emacs-window-center-integer 10
-  "The number to split the `window-width' for calculating the
-margin width.")
-
-(defvar entropy/emacs-init-welcome-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
-  "Title of entropy-emacs initial dashboard buffer. ")
-
-;; ** startup done refer
-(defvar entropy/emacs-startup-done nil
-  "while nil in startup procedure or t indicates the startup done
-successfully. The meaning for startup done is that all procedure
-within `entropy/emacs-startup-end-hook' are running done.")
-
-(defun entropy/emacs-run-startup-end-hook ()
-  "Run `entropy/emacs-startup-end-hook'.
-
-Please only use this function for doing thus, do not run that
-hook using `run-hooks' or any other methods or may cause some
-messy."
-  (run-hooks 'entropy/emacs-startup-end-hook)
-  (entropy/emacs-message-do-message
-   "%s"
-   (green "entropy-emacs startup done!"))
-  (setq entropy/emacs-startup-done t))
-
-(defvar entropy/emacs-pyim-has-initialized nil
-  "variable indicate that pyim has started down for init.")
-
 ;; ** cl-* compatible
 
 (defvar entropy/emacs-cl-compatible-reflects
@@ -268,20 +211,92 @@ messy."
       incf
       ))
 
+;; ** individuals
+
+(defvar entropy/emacs-package-common-start-after-hook nil
+  "Hooks run after the entropy-emacs elisp packages initialized
+done while calling `entropy/emacs-package-common-start'.")
+
+(defvar entropy/emacs-font-set-end-hook nil
+  "Hooks run after `entropy/emacs-font-set-setfont-core'.")
+
+(defvar entropy/emacs-web-development-environment nil
+  "Whether using enable web-development envrionment.
+
+This varaible is a indication boolean variable who serves as a
+on/off offer to some eemacs context to catch a order to treat a
+procedure should be toggled into a branch which served on a sake
+of web development environment.")
+
+(defvar entropy/emacs-window-center-integer 10
+  "The integer number used for eemacs window centered operation to
+divide the `window-width' for calculating the margin width, that's
+say if `window-width' is 135 and this divider is 10 and then the
+margin both of left and right of the specified will-be centerred
+window will be set to 13.5.")
+
+(defvar entropy/emacs-init-welcome-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
+  "Buffer name of entropy-emacs initial welcome displaying buffer.")
+
+;; ** eemacs top keymap refer
+(defvar entropy/emacs-top-keymap (make-sparse-keymap)
+  "The top keymap for entropy-emacs holding the global
+commands.")
+
+(defvar entropy/emacs-top-key
+  (if (display-graphic-p)
+      (car entropy/emacs-top-prefix-key-cons)
+    (cdr entropy/emacs-top-prefix-key-cons))
+  "Top key for entropy-emacs global keybind for
+`entropy/emacs-top-keymap'.
+
+It is a string used for `kbd'.")
+
+;; ** startup done refer
+(defvar entropy/emacs-startup-done nil
+  "while nil in startup procedure or t indicates the startup done
+successfully. The meaning for startup done is that all procedure
+within `entropy/emacs-startup-end-hook' are running done.")
+
+(defun entropy/emacs-run-startup-end-hook ()
+  "Run `entropy/emacs-startup-end-hook' and mark it as done via
+`entropy/emacs-startup-done'.
+
+Please only use this function for doing thus, do not run that
+hook using `run-hooks' or any other methods or may cause some
+messy."
+  (run-hooks 'entropy/emacs-startup-end-hook)
+  (entropy/emacs-message-do-message
+   "%s"
+   (green "entropy-emacs startup done!"))
+  (setq entropy/emacs-startup-done t))
+
+(defvar entropy/emacs-pyim-has-initialized nil
+  "Variable indicate that pyim has started down for init.")
+
 ;; ** coworker refer
 (defvar entropy/emacs-coworker-bin-host-path
   (expand-file-name "bin" entropy/emacs-coworker-host-root)
-  "The coworker bin host.")
+  "The default bins host root for coworker based on
+`entropy/emacs-coworker-host-root'.")
 
 (defvar entropy/emacs-coworker-lib-host-root
   (expand-file-name "lib" entropy/emacs-coworker-host-root)
-  "The default libs host root for coworker")
+  "The default libs host root for coworker based on
+`entropy/emacs-coworker-host-root'.")
 
 (defvar entropy/emacs-coworker-archive-host-root
   (expand-file-name "archive" entropy/emacs-coworker-host-root)
-  "The default libs host root for coworker")
+  "The default libs host root for coworker based on
+`entropy/emacs-coworker-host-root'.")
 
 (defmacro entropy/emacs-with-coworker-host (newhost &rest body)
+  "Do BODY within the newest host root path specification of
+`entropy/emacs-coworker-host-root' temporally with NEWHOST, in
+which case variable: `entropy/emacs-coworker-bin-host-path',
+`entropy/emacs-coworker-lib-host-root',
+`entropy/emacs-coworker-archive-host-root' will be temporally set
+also."
   (declare (indent defun))
   `(let ()
      (if (and (not (null ,newhost))
@@ -298,7 +313,7 @@ messy."
            ,@body)
        ,@body)))
 
-;; ** garbage collection
+;; ** garbage collection refer
 
 (defvar entropy/emacs-gc-threshold-basic 2000000
   "The basic thredshold for the growth for `gc-cons-threshold'")
@@ -309,7 +324,12 @@ messy."
 ;; ** theme refer
 
 (defvar entropy/emacs-theme-sticker ""
-  "Current theme used for this session.")
+  "Current theme used for this session.
+
+It's a symbol of the theme feature, auto-assigned within
+eemacs-context, you shouldn't modify it manually.
+
+Also see `entropy/emacs-theme-load-advice'. ")
 
 (defvar entropy/emacs-theme-load-before-hook nil
   "Hook runs befor theme loading procedure built by `load-theme'.
@@ -372,60 +392,86 @@ is ran after the registering procedure done within `progn' scope."
 ;; ** modeline refer
 
 (defvar entropy/emacs-mode-line-sticker ""
-  "Sticker for current modeline style")
+  "Sticker for current modeline style, used for eemacs context to
+recognize which mode line type is used for now in current emacs
+session. It's a string, such as
+\"doom\",\"spaceline\",\"powerline\" etc.
+
+For conventionally, we gives each pre-defined name-reflect to its
+mode-line feature, to enhance the namespace unified ability and
+be good for maintenance:
+
+- \"doom\"      <---> feature: `doom-modeline'
+- \"spaceline\" <---> feature: `spaceline'
+- \"powerline\" <---> feature: `powerline'.")
 
 ;; ** font refer
-(defvar entropy/emacs-default-latin-font "Noto Mono"
-  "Setting the default latin script font, when you enabled
-`entropy/emacs-font-setting-enable'.
+(defvar entropy/emacs-fontsets-used-latin-font "Noto Mono"
+  "The latin script font used in eemacs context, set
+automatically followed by `entropy/emacs-font-setting-enable'.")
 
-Defualt for \"Noto Mono\"")
+(defvar entropy/emacs-fontsets-used-symbol-font "Noto Sans Symbols"
+  "The symbol script font name in eemacs context, set
+automatically followed by `entropy/emacs-font-setting-enable'.")
 
-(defvar entropy/emacs-default-symbol-font "Noto Sans Symbols"
-  "Setting the default symbol script font, when you enabled
-`entropy/emacs-font-setting-enable'.
+(defvar entropy/emacs-fontsets-used-cjk-sc-font "Noto Sans Mono CJK SC"
+  "The han(sc jp) script font in eemacs context, set
+automatically followed by `entropy/emacs-font-setting-enable'.")
 
-Defualt for \"Noto Mono Symbols\"")
-
-(defvar entropy/emacs-default-cjk-sc-font "Noto Sans Mono CJK SC"
-  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK SC\"")
-
-(defvar entropy/emacs-default-cjk-tc-font "Noto Sans Mono CJK TC"
-  "Set the han(sc jp) script font, default was \"Noto Sans Mono CJK TC\"
-
-By default `entropy/emacs-default-cjk-sc-font' preceded for this
-setting to display chinese characters, unset 'sc' font setting to
-enable this as default one.")
+(defvar entropy/emacs-fontsets-used-cjk-tc-font "Noto Sans Mono CJK TC"
+  "The han(sc jp) script font in eemacs context, set
+automatically followed by `entropy/emacs-font-setting-enable'.")
 
 (defvar entropy/emacs-default-cjk-cn-font
-  (or entropy/emacs-default-cjk-sc-font
-      entropy/emacs-default-cjk-tc-font)
-  "The default font for chinese lang-script, using
-`entropy/emacs-default-cjk-tc-font' when
-`entropy/emacs-font-chinese-type' was 'tc'.")
+  (or entropy/emacs-fontsets-used-cjk-sc-font
+      entropy/emacs-fontsets-used-cjk-tc-font)
+  "The font for chinese lang-script in eemacs context, set
+atutomatically followed by `entropy/emacs-font-setting-enable',
+using `entropy/emacs-fontsets-used-cjk-tc-font' when
+`entropy/emacs-font-chinese-type' was 'tc' or for using
+`entropy/emacs-fontsets-used-cjk-sc-font'.")
 
-(defvar entropy/emacs-default-cjk-jp-font "Noto Sans Mono CJK JP"
-  "Set the JP script font, default was \"Noto Sans Mono CJK JP\"")
+(defvar entropy/emacs-fontsets-used-cjk-jp-font "Noto Sans Mono CJK JP"
+  "The JP script font in eemacs context, set automatically
+followed by `entropy/emacs-font-setting-enable'.")
 
-(defvar entropy/emacs-default-cjk-kr-font "Noto Sans Mono CJK KR"
-  "Set the hangul script font, default was \"Noto Sans Mono CJK KR\"")
+(defvar entropy/emacs-fontsets-used-cjk-kr-font "Noto Sans Mono CJK KR"
+  "The hangul script font in eemacs context, set automatically
+followed by `entropy/emacs-font-setting-enable'.")
 
-(defvar entropy/emacs-default-extra-fonts nil
-  "Extra fonts list.")
+(defvar entropy/emacs-fontsets-used-extra-fonts nil
+  "Extra fonts list in eemacs conttext, set automatically
+followed by `entropy/emacs-font-setting-enable'.")
+
+(defvar entropy/emacs-fontsets-fonts-collection-alias
+  '((sarasa :latin "Sarasa Mono SC" :sc "Sarasa Mono SC" :tc "Sarasa Mono TC"
+            :jp "Sarasa Mono J" :kr "Sarasa Mono K")
+    (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
+            :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
+            :symbol "Symbola")
+    (fira-code :latin "Fira Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
+               :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
+               :symbol "Symbola"))
+  "Alist of each fontset group for =entropy-emacs=.
+
+ Each element is a cons of a type symbol and a group instance
+ plist with following valid keys:
+
+ - ':latin': latin script font family name string.
+ - ':sc': simplified chinese font family name string.
+ - ':tc': traditional chinese font family name string.
+ - ':jp': japanese font family name string.
+ - ':kr': korean font family name string.
+ - ':symbol': symbol script font family name string.
+ - ':extra': needed extra font family name strings list.
+ - ':after': a function with one argument of a frame selected be
+   called when this fontset type group is set.")
 
 ;; ** pdumper
 (defvar entropy/emacs-pdumper-pre-lpth nil
-  "The fully preserved `load-path' for pdumper session, this
-variable is assigned while pdumper procedure triggered, append
-emacs internal load path and the subdirs of
-`entropy/emacs-ext-emacs-pkgel-get-pkgs-root' (i.e. the current
-`package-user-dir' specified by what you settng for
-`entropy/emacs-ext-elpkg-get-type').
-
-Note that the entorpy-emacs just use the malpa-local type of
-`entropy/emacs-ext-elpkg-get-type' to dumping as, thus the
-submodules pre-loading is not supported for entropy-emacs
-pdumper feature.")
+  "The fully preserved `load-path' before pdumper dump procedure
+invoking. Used to get the copy of the normal eemacs `load-path'
+prepared for some emergency occasion.")
 
 ;; ** daemon refer
 (when (version< emacs-version "27")
@@ -436,7 +482,7 @@ The created frame is selected when the hook is called.
 This hook was not native for current emacs version but back
 patched for be compatible with 27.1.
 ")
-  (defun entropy/emacs-server-make-frame-around-advice
+  (defun entropy/emacs--server-make-frame-around-advice
       (orig-func &rest orig-args)
     (let ((rtn (apply orig-func orig-args)))
       (unwind-protect
@@ -446,7 +492,7 @@ patched for be compatible with 27.1.
         rtn)))
   (advice-add 'server-execute
               :around
-              #'entropy/emacs-server-make-frame-around-advice))
+              #'entropy/emacs--server-make-frame-around-advice))
 
 (defvar entropy/emacs-daemon-server-after-make-frame-hook nil
   "Normal hooks run after a emacs daemon session create a client
@@ -457,7 +503,7 @@ using `entropy/emacs-with-daemon-make-frame-done', see its
 docstring for details.
 ")
 
-(defun entropy/emacs-daemon-create-daemon-client-plist ()
+(defun entropy/emacs-daemon--create-daemon-client-plist ()
   "Create an entropy-emacs specified representation of a daemon client, a plist.
 
 There's two key slots for this plist, ':frame' for theh current
@@ -466,12 +512,12 @@ main daemon client's frame object. ':gui-p' for whether thus is
   (list :frame (selected-frame)
         :gui-p (display-graphic-p)))
 
-(defvar entropy/emacs-daemon-main-client-indicator nil
+(defvar entropy/emacs-daemon--main-client-indicator nil
   "Non-nil is a plist representation for current main daemon
 client built by
-`entropy/emacs-daemon-create-daemon-client-plist'.")
+`entropy/emacs-daemon--create-daemon-client-plist'.")
 
-(defvar entropy/emacs-daemon-legal-clients nil
+(defvar entropy/emacs-daemon--legal-clients nil
   "A list of legal daemon clients representation.")
 
 (defun entropy/emacs-daemon-current-is-main-client (&optional frame)
@@ -480,68 +526,68 @@ main client."
   (let ((main-judge
          (eq (or frame (selected-frame))
              (plist-get
-              entropy/emacs-daemon-main-client-indicator
+              entropy/emacs-daemon--main-client-indicator
               :frame))))
     main-judge))
 
-(defun entropy/emacs-daemon-reset-main-client-indicator
+(defun entropy/emacs-daemon--reset-main-client-indicator
     (orig-func &rest orig-args)
-  "Reset `entropy/emacs-daemon-main-client-indicator' when the frame of
+  "Reset `entropy/emacs-daemon--main-client-indicator' when the frame of
 current daemon main client prepare to close, and the car of
-`entropy/emacs-daemon-legal-clients' will be the assignment if
+`entropy/emacs-daemon--legal-clients' will be the assignment if
 non-nil, i.e. the new main daemon client."
   (let (temp_var (frame (or (car orig-args) (selected-frame))))
     ;; pop out current daemon client from
-    ;; `entropy/emacs-daemon-legal-clients'.
-    (when (not (null entropy/emacs-daemon-legal-clients))
-      (dolist (el entropy/emacs-daemon-legal-clients)
+    ;; `entropy/emacs-daemon--legal-clients'.
+    (when (not (null entropy/emacs-daemon--legal-clients))
+      (dolist (el entropy/emacs-daemon--legal-clients)
         (unless (eq frame (plist-get el :frame))
           (push el temp_var)))
-      (setq entropy/emacs-daemon-legal-clients
+      (setq entropy/emacs-daemon--legal-clients
             temp_var))
-    ;; Reset `entropy/emacs-daemon-main-client-indicator'.
+    ;; Reset `entropy/emacs-daemon--main-client-indicator'.
     (when (entropy/emacs-daemon-current-is-main-client frame)
-      (setq entropy/emacs-daemon-main-client-indicator nil)
-      (when (not (null entropy/emacs-daemon-legal-clients))
+      (setq entropy/emacs-daemon--main-client-indicator nil)
+      (when (not (null entropy/emacs-daemon--legal-clients))
         (catch :exit
-          (while entropy/emacs-daemon-legal-clients
+          (while entropy/emacs-daemon--legal-clients
             (if (frame-live-p
                  (plist-get
-                  (car entropy/emacs-daemon-legal-clients) :frame))
+                  (car entropy/emacs-daemon--legal-clients) :frame))
                 (progn
-                  (setq entropy/emacs-daemon-main-client-indicator
-                        (car entropy/emacs-daemon-legal-clients))
+                  (setq entropy/emacs-daemon--main-client-indicator
+                        (car entropy/emacs-daemon--legal-clients))
                   (throw :exit nil))
-              (pop entropy/emacs-daemon-legal-clients))))))
+              (pop entropy/emacs-daemon--legal-clients))))))
     (apply orig-func orig-args)))
 
 (advice-add 'delete-frame
             :around
-            #'entropy/emacs-daemon-reset-main-client-indicator)
+            #'entropy/emacs-daemon--reset-main-client-indicator)
 
-(defun entropy/emacs-daemon-client-initialize ()
+(defun entropy/emacs-daemon--client-initialize ()
   (when (daemonp)
     (set-frame-parameter (selected-frame) 'eemacs-current-frame-is-daemon-created t)
     ;; fix problem when main daemon client is dead
-    (when entropy/emacs-daemon-main-client-indicator
-      (unless (frame-live-p (plist-get entropy/emacs-daemon-main-client-indicator :frame))
-        (setq entropy/emacs-daemon-main-client-indicator nil)))
+    (when entropy/emacs-daemon--main-client-indicator
+      (unless (frame-live-p (plist-get entropy/emacs-daemon--main-client-indicator :frame))
+        (setq entropy/emacs-daemon--main-client-indicator nil)))
     ;; fix problem when there's dead daemon clients in register.
-    (when entropy/emacs-daemon-legal-clients
+    (when entropy/emacs-daemon--legal-clients
       (let (temp_var)
-        (dolist (clts entropy/emacs-daemon-legal-clients)
+        (dolist (clts entropy/emacs-daemon--legal-clients)
           (when (frame-live-p (plist-get clts :frame))
             (push clts temp_var)))
-        (setq entropy/emacs-daemon-legal-clients temp_var)))
+        (setq entropy/emacs-daemon--legal-clients temp_var)))
     ;; startup daemon specification
-    (if (or (not entropy/emacs-daemon-main-client-indicator)
+    (if (or (not entropy/emacs-daemon--main-client-indicator)
             (eq (display-graphic-p)
-                (plist-get entropy/emacs-daemon-main-client-indicator
+                (plist-get entropy/emacs-daemon--main-client-indicator
                            :gui-p)))
-        (let ((daemon-client-obj (entropy/emacs-daemon-create-daemon-client-plist)))
-          (push daemon-client-obj entropy/emacs-daemon-legal-clients)
-          (unless entropy/emacs-daemon-main-client-indicator
-            (setq entropy/emacs-daemon-main-client-indicator
+        (let ((daemon-client-obj (entropy/emacs-daemon--create-daemon-client-plist)))
+          (push daemon-client-obj entropy/emacs-daemon--legal-clients)
+          (unless entropy/emacs-daemon--main-client-indicator
+            (setq entropy/emacs-daemon--main-client-indicator
                   daemon-client-obj))
           (when entropy/emacs-daemon-server-after-make-frame-hook
             (run-hooks 'entropy/emacs-daemon-server-after-make-frame-hook)))
@@ -569,7 +615,7 @@ gui session has huge sets of differents in entropy-emacs.
 
 ------------------------------------------------------
 "
-                  (if (plist-get entropy/emacs-daemon-main-client-indicator
+                  (if (plist-get entropy/emacs-daemon--main-client-indicator
                                  :gui-p)
                       "GUI"
                     "TTY")
@@ -578,7 +624,7 @@ gui session has huge sets of differents in entropy-emacs.
                     "TTY"))))))))
 
 (add-hook 'server-after-make-frame-hook
-          #'entropy/emacs-daemon-client-initialize)
+          #'entropy/emacs-daemon--client-initialize)
 
 
 

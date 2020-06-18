@@ -59,70 +59,46 @@ it.
 ===== Missing fonts list: =====
 ")
 
-(defvar entropy/emacs-font-set-fontset-group-alias
-  '((sarasa :latin "Sarasa Mono SC" :sc "Sarasa Mono SC" :tc "Sarasa Mono TC"
-            :jp "Sarasa Mono J" :kr "Sarasa Mono K")
-    (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
-            :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
-            :symbol "Symbola")
-    (fira-code :latin "Fira Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
-               :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
-               :symbol "Symbola"))
-  "Alist of each fontset group for =entropy-emacs=.
-
- Each element is a cons of a type symbol and a group instance
- plist with following valid keys:
-
- - ':latin': latin script font family name string.
- - ':sc': simplified chinese font family name string.
- - ':tc': traditional chinese font family name string.
- - ':jp': japanese font family name string.
- - ':kr': korean font family name string.
- - ':symbol': symbol script font family name string.
- - ':extra': needed extra font family name strings list.
- - ':after': a function with one argument of a frame selected be
-   called when this fontset type group is set.")
-
 (defun entropy/emacs-font-set-register ()
   (when (eq entropy/emacs-font-setting-enable t)
     (setq entropy/emacs-font-setting-enable 'google))
   (let ((group (alist-get entropy/emacs-font-setting-enable
-                          entropy/emacs-font-set-fontset-group-alias)))
+                          entropy/emacs-fontsets-fonts-collection-alias)))
     (unless group
       (user-error "Invalid arg value for `entropy/emacs-font-setting-enable' to '%s'"
                   entropy/emacs-font-setting-enable))
-    (setq entropy/emacs-default-latin-font
+    (setq entropy/emacs-fontsets-used-latin-font
           (plist-get group :latin)
-          entropy/emacs-default-cjk-sc-font
+          entropy/emacs-fontsets-used-cjk-sc-font
           (plist-get group :sc)
-          entropy/emacs-default-cjk-tc-font
+          entropy/emacs-fontsets-used-cjk-tc-font
           (plist-get group :tc)
-          entropy/emacs-default-cjk-jp-font
+          entropy/emacs-fontsets-used-cjk-jp-font
           (plist-get group :jp)
-          entropy/emacs-default-cjk-kr-font
+          entropy/emacs-fontsets-used-cjk-kr-font
           (plist-get group :kr)
-          entropy/emacs-default-symbol-font
+          entropy/emacs-fontsets-used-symbol-font
           (plist-get group :symbol)
-          entropy/emacs-default-extra-fonts
+          entropy/emacs-fontsets-used-extra-fonts
           (plist-get group :extra))
     (setq entropy/emacs-default-cjk-cn-font
           (if (eq entropy/emacs-font-chinese-type 'sc)
-              entropy/emacs-default-cjk-sc-font
-            entropy/emacs-default-cjk-tc-font))))
+              entropy/emacs-fontsets-used-cjk-sc-font
+            entropy/emacs-fontsets-used-cjk-tc-font))))
 
 (defun entropy/emacs-font-set--pre-fonts-check ()
   (entropy/emacs-font-set-register)
   (let (judge (prompt "")  (count 1))
-    (dolist (font-name `(,entropy/emacs-default-latin-font
+    (dolist (font-name `(,entropy/emacs-fontsets-used-latin-font
                          ,entropy/emacs-default-cjk-cn-font
-                         ,entropy/emacs-default-cjk-jp-font
-                         ,entropy/emacs-default-cjk-kr-font
-                         ,entropy/emacs-default-symbol-font))
+                         ,entropy/emacs-fontsets-used-cjk-jp-font
+                         ,entropy/emacs-fontsets-used-cjk-kr-font
+                         ,entropy/emacs-fontsets-used-symbol-font))
       (when (stringp font-name)
         (unless (find-font (font-spec :name font-name))
           (push font-name judge))))
-    (when entropy/emacs-default-extra-fonts
-      (dolist (font-name entropy/emacs-default-extra-fonts)
+    (when entropy/emacs-fontsets-used-extra-fonts
+      (dolist (font-name entropy/emacs-fontsets-used-extra-fonts)
         (when (stringp font-name)
           (unless (find-font (font-spec :name font-name))
             (push font-name judge)))))
@@ -138,7 +114,7 @@ it.
 (defun entropy/emacs-font-set-setfont-core (&optional frame)
   (interactive)
   (let ((after-do (plist-get (alist-get entropy/emacs-font-setting-enable
-                                        entropy/emacs-font-set-fontset-group-alias)
+                                        entropy/emacs-fontsets-fonts-collection-alias)
                              :after)))
     (when (and (display-graphic-p)
                (not (entropy/emacs-font-set--pre-fonts-check)))
@@ -150,18 +126,18 @@ it.
 
       ;; Setting latin Font
       (set-fontset-font nil 'latin
-                        (font-spec :family entropy/emacs-default-latin-font)
+                        (font-spec :family entropy/emacs-fontsets-used-latin-font)
                         (or frame (selected-frame)))
       (set-face-attribute
        'variable-pitch
        (or frame (selected-frame))
-       :family entropy/emacs-default-latin-font)
+       :family entropy/emacs-fontsets-used-latin-font)
 
       ;; default interface font spec
       (mapc (lambda (type)
               (set-fontset-font
                type 'latin
-               (font-spec :family entropy/emacs-default-latin-font)
+               (font-spec :family entropy/emacs-fontsets-used-latin-font)
                (or frame (selected-frame))))
             '("fontset-default" "fontset-startup" "fontset-standard"))
 
@@ -178,28 +154,28 @@ it.
                         '(?ぁ . ?ヶ)
                         (font-spec
                          :family
-                         entropy/emacs-default-cjk-jp-font)
+                         entropy/emacs-fontsets-used-cjk-jp-font)
                         (or frame (selected-frame)))
 
       (set-fontset-font nil
                         'hangul
-                        (font-spec :family entropy/emacs-default-cjk-kr-font)
+                        (font-spec :family entropy/emacs-fontsets-used-cjk-kr-font)
                         (or frame (selected-frame)))
 
       (if (eq entropy/emacs-font-setting-enable 'sarasa)
           (setq face-font-rescale-alist nil)
         (setq face-font-rescale-alist
-              `((,entropy/emacs-default-cjk-sc-font . 1.2)
-                (,entropy/emacs-default-cjk-tc-font . 1.2)
-                (,entropy/emacs-default-cjk-jp-font . 1.2)
-                (,entropy/emacs-default-cjk-kr-font . 1.2))))
+              `((,entropy/emacs-fontsets-used-cjk-sc-font . 1.2)
+                (,entropy/emacs-fontsets-used-cjk-tc-font . 1.2)
+                (,entropy/emacs-fontsets-used-cjk-jp-font . 1.2)
+                (,entropy/emacs-fontsets-used-cjk-kr-font . 1.2))))
 
       ;; setting unicode symbol font
-      (if entropy/emacs-default-symbol-font
+      (if entropy/emacs-fontsets-used-symbol-font
           (progn (setq use-default-font-for-symbols nil)
                  (set-fontset-font nil
                                    'symbol
-                                   (font-spec :family entropy/emacs-default-symbol-font)
+                                   (font-spec :family entropy/emacs-fontsets-used-symbol-font)
                                    (or frame (selected-frame))))
         (setq use-default-font-for-symbols t))
 
