@@ -1861,23 +1861,28 @@ NOTE: this variable just be used when
 ;; *** top paths
 (defvar entropy/emacs-hosted-path
   (file-name-directory load-file-name)
-  "entropy-emacs hosted path")
+  "entropy-emacs hosted path.
+
+Eemacs self top root path.")
 
 (defvar entropy/emacs-core-components-hosted-path
   (expand-file-name "core" entropy/emacs-hosted-path)
   "entropy-emacs core library hosted path.")
 
 (defvar entropy/emacs-site-lisp-path
-  (expand-file-name "site-lisp" entropy/emacs-hosted-path))
+  (expand-file-name "site-lisp" entropy/emacs-hosted-path)
+  "Eemacs site-lisp path.
+
+The native binded emacs extensions hosted path.")
 
 (defvar entropy/emacs-fancy-splash-logo-file
   (expand-file-name "logo/logo.png" entropy/emacs-core-components-hosted-path)
-  "Set emacs logo. nil means official logo.")
+  "Eemacs fancy logo file.")
 
 (defvar entropy/emacs-fancy-splash-text-logo-file
   (expand-file-name "logo/logo.txt"
                     entropy/emacs-core-components-hosted-path)
-  "Text logo file.")
+  "Eemacs fancy logo text type file (used for TUI).")
 
 (defvar entropy/emacs-initial-theme-path
   (expand-file-name "startup-theme" entropy/emacs-core-components-hosted-path)
@@ -1887,7 +1892,7 @@ NOTE: this variable just be used when
   (expand-file-name "templates" entropy/emacs-core-components-hosted-path)
   "The sourced templated files archive location of entropy-emacs")
 
-(defvar entropy/emacs-doc-path
+(defvar entropy/emacs-core-doc-file-archives-plist
   `(:org
     ,(expand-file-name
       "entropy-emacs-doc/org/entropy-emacs_introduction.org"
@@ -1903,7 +1908,9 @@ NOTE: this variable just be used when
     :texinfo
     ,(expand-file-name
       "entropy-emacs-doc/org/entropy-emacs_introduction.info"
-      entropy/emacs-site-lisp-path)))
+      entropy/emacs-site-lisp-path))
+  "A plist stored variable number of archive formats of eemacs
+core document file.")
 
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)
@@ -1957,12 +1964,12 @@ advice wrapper, do not calling it in the normal way"
 
 (defun entropy/emacs-select-trail-hook ()
   "Automatically selects a hook specified meaning of a
-=entropy-emacs= trail hook. Return for
+=entropy-emacs-startup-trail-hook=. Return for
 `entropy/emacs-init-mini-hook' and `entropy/emacs-init-X-hook' if
 `entropy/emacs-fall-love-with-pdumper' is nil.
 
 At any time, only one of those hook is recongnized as
-=entropy-emacs= trail hook, and it is a hook for trigger
+=entropy-emacs-startup-trail-hook=, and it is a hook for trigger
 configration enable when all the preparations have done.
 
 See `entropy/emacs-startup-end-hook' either."
@@ -1974,8 +1981,8 @@ See `entropy/emacs-startup-end-hook' either."
 
 (defvar entropy/emacs-startup-end-hook nil
   "Hook ran after entropy-emacs finally initial-done, all the
-functions hosted in this Hook will ran after =entropy-emacs= trail
-hook.
+functions hosted in this Hook will ran after
+=entropy-emacs-startup-trail-hook=.
 
 Also see `entropy/emacs-run-startup-end-hook' for restriction
 description.")
@@ -2040,7 +2047,6 @@ under the symbolink root dir."
       (apply orig-func orig-args))))
 (advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
 
-
 ;; *** load specifications
 (let ((cus entropy/emacs-custom-common-file))
   (setq-default custom-file entropy/emacs-custom-common-file)
@@ -2057,7 +2063,7 @@ under the symbolink root dir."
 (setq Info-default-directory-list
       (append (list
                (file-name-directory
-                (plist-get entropy/emacs-doc-path :texinfo)))
+                (plist-get entropy/emacs-core-doc-file-archives-plist :texinfo)))
               Info-default-directory-list))
 
 ;; *** fake display-graphic

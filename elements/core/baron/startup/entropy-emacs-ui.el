@@ -152,13 +152,13 @@ determined by above variable you setted."
     `(((:str "- Read ")
        (:str "entropy-emacs introduction"
              :link-type file
-             :link ,(plist-get entropy/emacs-doc-path :org))
+             :link ,(plist-get entropy/emacs-core-doc-file-archives-plist :org))
        (:str ".")
        (:str "(view ")
        (:str "html version"
              :link-type web
              :link ,(concat "file://"
-                            (plist-get entropy/emacs-doc-path :html)))
+                            (plist-get entropy/emacs-core-doc-file-archives-plist :html)))
        (:str " go.) "))
 
       ((:str "- Get ")
@@ -554,7 +554,7 @@ for adding to variable `window-size-change-functions' and hook
             "?")
          "" "Help (?/h)"
          (lambda (&rest _)
-           (info (plist-get entropy/emacs-doc-path :texinfo)))
+           (info (plist-get entropy/emacs-core-doc-file-archives-plist :texinfo)))
          font-lock-string-face)))))
 
   (defun entropy/emacs-rich-dashboard-init ()

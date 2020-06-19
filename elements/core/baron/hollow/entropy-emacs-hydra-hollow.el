@@ -939,7 +939,6 @@ the internally subroutines of this macro, they are:
 - $internally/pretty-hydra-category-hydra-body
 - $internally/pretty-hydra-category-hydra-body-name
 - $internally/pretty-hydra-category-hydra-body->new :: side-effective
-- $internally/pretty-hydra-category-hydra-body-name
 - $internally/pretty-hydra-category-base-pretty-hydra-body
 - $internally/pretty-hydra-category-baron-name
 - $internally/pretty-hydra-category-baron-name->new :: side-effective

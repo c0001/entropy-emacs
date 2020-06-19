@@ -1226,10 +1226,10 @@ pollute eemacs internal lazy load optimization."
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
   "Wrapping BODY to a function named with suffix by NAME into
-=entropy-emacs startup trail hook=.
+=entropy-emacs-startup-trail-hook=.
 
 See `entropy/emacs-select-trail-hook' for details of what is
-=entropy-emacs startup trail hook=.
+=entropy-emacs-startup-trail-hook=.
 
 BODY can be forms or a expanded FORM-PLIST (see
 `entropy/emacs-get-plist-form') in which case there's some keys on
@@ -1243,7 +1243,7 @@ functional aim to:
 
 - ':start-end' :: inject function of BODY into
   `entropy/emacs-startup-end-hook'. Defaultly, BODY will be
-  injected into =entropy-emacs stawrtup trail hook=, but with this
+  injected into =entropy-emacs-startup-trail-hook=, but with this
   key non-nil or a form which evaluated result is non-nil."
   (let ((func (intern
                (concat "entropy/emacs-lazy-trail-to-"
@@ -1304,9 +1304,9 @@ for a `advice-add's WHERE argument defination.
 
 There's two tricks:
 
-1. Directly add GENED-FUNCTION into the =entropy-emacs startup
-   trail hook= when `entropy/emacs-custom-enable-lazy-load' is
-   non-nil.
+1. Directly add GENED-FUNCTION into the
+   =entropy-emacs-startup-trail-hook= when
+   `entropy/emacs-custom-enable-lazy-load' is non-nil.
 
 2. Using LIST-VAR and consider each element of it is a hook (when
    the ADDER-FLAG is nil) or a function (when ADDER-TYPE is
