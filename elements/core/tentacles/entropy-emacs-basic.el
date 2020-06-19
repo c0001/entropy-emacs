@@ -1093,6 +1093,7 @@ This affected by `neotree' or `treemacs' window sticking with
    (find-file push-button find-library-name)
    "entropy-grom"
    "entropy-grom"
+   prompt-popup
    (entropy-grom-mode +1)))
 
 ;; *** Revert buffer automatically
@@ -1101,6 +1102,7 @@ This affected by `neotree' or `treemacs' window sticking with
  (find-file-hook)
  "GlbAutoRevertMode"
  "GlbAutoRevertMode-enabled"
+ prompt-popup
  (global-auto-revert-mode +1))
 
 ;; *** Popup key stroking prompt
@@ -1633,7 +1635,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
   :init
   (entropy/emacs-lazy-initial-for-hook
    (dired-mode-hook find-file-hook)
-   "epa-mode" "epa-mode"
+   "epa-mode" "epa-mode" prompt-popup
    (epa-file-enable))
 
   (when (and entropy/emacs-wsl-enable
@@ -1828,6 +1830,7 @@ otherwise returns nil."
         (push-button load-library find-library)
         "autocompression-mode"
         "autocompression-mode"
+        prompt-popup
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
 

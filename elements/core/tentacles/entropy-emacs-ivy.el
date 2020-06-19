@@ -637,7 +637,7 @@ version of ivy framework updating.
    (t
     (entropy/emacs-lazy-initial-advice-before
      (ivy-read)
-     "ivy-rich" "ivy-rich"
+     "ivy-rich" "ivy-rich" prompt-echo
      (entropy/emacs-ivy--enable-ivy-rich-common))))
 
   :config

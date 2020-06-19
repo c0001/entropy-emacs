@@ -44,9 +44,9 @@
 
 ;; ** const define
 (defconst entropy/emacs-message-message-buffer
-  " *eemacs messages*")
+  "*eemacs messages*")
 
-(defconst entropy/emacs-message-message-fg
+(defconst entropy/emacs-message--message-fg
   '((reset      . 0)
     (black      . 30)
     (red        . 31)
@@ -58,7 +58,7 @@
     (white      . 37))
   "List of text colors.")
 
-(defconst entropy/emacs-message-message-bg
+(defconst entropy/emacs-message--message-bg
   '((on-black   . 40)
     (on-red     . 41)
     (on-green   . 42)
@@ -69,7 +69,7 @@
     (on-white   . 47))
   "List of colors to draw text on.")
 
-(defconst entropy/emacs-message-message-fx
+(defconst entropy/emacs-message--message-fx
   '((bold       . 1)
     (dark       . 2)
     (italic     . 3)
@@ -80,6 +80,9 @@
     (concealed  . 8)
     (strike     . 9))
   "List of styles.")
+
+;; ** variable declaration
+(defvar entropy/emacs-message-non-popup nil)
 
 ;; ** library
 ;; *** top advice
@@ -129,9 +132,9 @@
     (apply 'concat (nreverse result))))
 
 (defun entropy/emacs-message--ansi-format (code format &rest args)
-  (let ((rule (or (assq code entropy/emacs-message-message-fg)
-                  (assq code entropy/emacs-message-message-bg)
-                  (assq code entropy/emacs-message-message-fx))))
+  (let ((rule (or (assq code entropy/emacs-message--message-fg)
+                  (assq code entropy/emacs-message--message-bg)
+                  (assq code entropy/emacs-message--message-fx))))
     (format "\e[%dm%s\e[%dm"
             (cdr rule)
             (apply #'format format args)
@@ -142,9 +145,9 @@
 interactive session."
   `(cl-flet*
        (,@(cl-loop for rule
-                   in (append entropy/emacs-message-message-fg
-                              entropy/emacs-message-message-bg
-                              entropy/emacs-message-message-fx)
+                   in (append entropy/emacs-message--message-fg
+                              entropy/emacs-message--message-bg
+                              entropy/emacs-message--message-fx)
                    collect
                    `(,(car rule)
                      (lambda (message &rest args)
@@ -166,33 +169,56 @@ interactive session."
               (entropy/emacs-message-format-message ,message ,@args))))))
 
 (defmacro entropy/emacs-message--do-message-popup (message &rest args)
-  `(let ((buf (get-buffer-create entropy/emacs-message-message-buffer)))
-     (with-selected-window (display-buffer-at-bottom
-                            buf '((align . below)
-                                  (window-height . 0.3)))
-       (goto-char (point-max))
-       (insert (entropy/emacs-message--do-message-ansi-apply
-                ,message ,@args)))))
+  `(let ((buf (get-buffer-create entropy/emacs-message-message-buffer))
+         (message-str
+          (entropy/emacs-message--do-message-ansi-apply
+           ,message ,@args)))
+     (display-buffer-at-bottom
+      buf '((align . below)
+            (window-height . 0.3)))
+     (with-selected-window (get-buffer-window buf)
+       (with-current-buffer buf
+         (goto-char (point-max))
+         (insert message-str)
+         (insert "\n")))
+     (run-with-idle-timer
+      0.1 nil
+      `(lambda ()
+         (let ((win (ignore-errors (get-buffer-window ,buf))))
+           (when (and (bound-and-true-p entropy/emacs-startup-done)
+                      win)
+             (delete-window win)
+             (message "Happy hacking!")))))))
 
 ;; ** auto load
 ;;;###autoload
-(defmacro entropy/emacs-message-do-message-auto (message &rest args)
-  "An alternative to `message' that strips out ANSI codes if used in an
-interactive session."
-  `(if noninteractive
-       (message (entropy/emacs-message-format-message ,message ,@args))
-     (entropy/emacs-message--do-message-popup
-      ,message ,@args)))
-
 (defmacro entropy/emacs-message-do-message (message &rest args)
+  "An alternative to `message' that strips out ANSI codes, with popup
+window if in a interaction session and
+`entropy/emacs-message-non-popup' is `null'."
+  (if (and entropy/emacs-message-non-popup
+           (not noninteractive))
+      `(entropy/emacs-message-do-message-1
+        ,message ,@args)
+    `(if noninteractive
+         (message (entropy/emacs-message-format-message ,message ,@args))
+       (entropy/emacs-message--do-message-popup
+        ,message ,@args))))
+
+(defmacro entropy/emacs-message-do-message-1 (message &rest args)
+  "An alternative to `message' that strips out ANSI codes."
   `(message
     (entropy/emacs-message--do-message-ansi-apply
      ,message ,@args)))
 
 (defmacro entropy/emacs-message-do-error (message &rest args)
+  "An alternative to `user-error' that strips out ANSI codes.
+
+NOTE: Just use it in `noninteractive' session."
   `(progn
      (entropy/emacs-message-do-message
       ,message ,@args)
      (user-error "")))
 
+;; * provide
 (provide 'entropy-emacs-message)

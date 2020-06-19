@@ -1285,14 +1285,18 @@ functional aim to:
 (defun entropy/emacs-lazy-initial-form
     (list-var
      initial-func-suffix-name initial-var-suffix-name
-     abbrev-name adder-name
+     abbrev-name adder-name prompt-type
      &rest form_args)
   "Generate a form whose functional is to wrap some forms into a
 GENED-FUNTION who named with ABBREV-NAME and INITIAL-SUFFIX-NAME
 (a non empty string) and add it with some *tricks* to
-=entropy-emacs startup trial hook= (see
+=entropy-emacs-startup-trail-hook= (see
 `entropy/emacs-select-trail-hook') with *once calling* feature
 for =entropy-emacs= lazy-load meaning.
+
+PROMPT-TYPE can be either 'prompt-popup' or 'prompt-echo' for let
+the initial form invoking do prompting in popup window type or
+with origin message echo area with those specification.
 
 The '&rest' type FORM-ARGS is orderd with ADDER-TYPE ADDER-FLAG
 and BODY.
@@ -1352,6 +1356,8 @@ GENED-FUNCTION with their own name abbreviated."
        (defvar ,var nil)
        (defun ,func (&rest $_|internal-args)
          (let ((head-time (time-to-seconds))
+               (entropy/emacs-message-non-popup
+                (if (eq ',prompt-type 'prompt-popup) nil t))
                end-time)
            (unless ,var
              (redisplay t)
@@ -1384,35 +1390,50 @@ GENED-FUNCTION with their own name abbreviated."
              (set hook (append (symbol-value hook) '(,adder-func)))))))))
 
 (defmacro entropy/emacs-lazy-initial-for-hook
-    (hooks initial-func-suffix-name initial-var-suffix-name &rest body)
+    (hooks initial-func-suffix-name initial-var-suffix-name
+           prompt-type &rest body)
   "Wrap forms collection BODY into a auto-gened function named
 suffixed by INITIAL-FUNC-SUFFIX-NAME and then add it into a list
 of hooks HOOKS and just enable it oncely at the next time calling
 one of those hooks which commonly in usage time, this mechanism
 judged by the judger i.e. the enabled status indication variable
-named suffixed by INITIAL-VAR-SUFFIX-NAME."
-  (entropy/emacs-lazy-initial-form
-   hooks initial-func-suffix-name initial-var-suffix-name
-   "entropy/emacs--hook-first-enable-for" "hook-adder"
-   'add-hook
-   nil
-   body))
+named suffixed by INITIAL-VAR-SUFFIX-NAME.
+
+PROMPT-TYPE can be either 'prompt-popup' or 'prompt-echo' for let
+the initial form invoking do prompting in popup window type or
+with origin message echo area with those specification.
+"
+  `(eval
+    (eval
+     '(entropy/emacs-lazy-initial-form
+       ',hooks ',initial-func-suffix-name ',initial-var-suffix-name
+       "entropy/emacs--hook-first-enable-for" "hook-adder" ',prompt-type
+       'add-hook nil
+       ',body))))
 
 (defmacro entropy/emacs-lazy-initial-advice-before
-    (advice-fors initial-func-suffix-name initial-var-suffix-name &rest body)
+    (advice-fors initial-func-suffix-name initial-var-suffix-name
+                 prompt-type &rest body)
   "Wrap forms collection BODY into a auto-gened function named
 suffixed by INITIAL-FUNC-SUFFIX-NAME and then advice it to a list
 of specific functions and just enable it oncely at the next time
 calling one of those function which commonly in usage time, this
 mechanism judged by the judger i.e. the enabled status indication
-variable named suffixed by INITIAL-VAR-SUFFIX-NAME."
-  (entropy/emacs-lazy-initial-form
-   advice-fors initial-func-suffix-name initial-var-suffix-name
-   "entropy/emacs--beforeADV-fisrt-enable-for"
-   "before-advice-adder"
-   'advice-add
-   :before
-   body))
+variable named suffixed by INITIAL-VAR-SUFFIX-NAME.
+
+PROMPT-TYPE can be either 'prompt-popup' or 'prompt-echo' for let
+the initial form invoking do prompting in popup window type or
+with origin message echo area with those specification.
+"
+  `(eval
+    (eval
+     '(entropy/emacs-lazy-initial-form
+       ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
+       "entropy/emacs--beforeADV-fisrt-enable-for"
+       "before-advice-adder" ',prompt-type
+       'advice-add
+       :before
+       ',body))))
 
 ;; *** Package user dir specification
 

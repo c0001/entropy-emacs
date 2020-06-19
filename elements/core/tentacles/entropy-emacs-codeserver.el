@@ -372,6 +372,7 @@ nervous."
    (lsp)
    "lsp-enable-yas"
    "lsp-enable-yas"
+   prompt-popup
    (require 'yasnippet)
    (yas-global-mode))
 
