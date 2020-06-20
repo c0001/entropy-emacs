@@ -83,6 +83,8 @@
 
 ;; ** variable declaration
 (defvar entropy/emacs-message-non-popup nil)
+(defvar-local entropy/emacs-message--cur-buf-is-popup-p nil)
+(defvar entropy/emacs-message--idle-timer-for-hide-popup nil)
 
 ;; ** library
 
@@ -91,9 +93,7 @@
 
 ;; *** top advice
 (defun entropy/emacs-message-quit (&rest args)
-  (let ((echo-wd (get-buffer-window entropy/emacs-message-message-buffer)))
-    (when echo-wd
-      (delete-window echo-wd))))
+  (entropy/emacs-message-hide-popup t))
 
 (advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
 
@@ -198,30 +198,31 @@ interactive session."
      (redisplay t)
      (with-selected-window (get-buffer-window buf)
        (with-current-buffer buf
+         (setq-local entropy/emacs-message--cur-buf-is-popup-p t)
          (goto-char (point-max))
          (insert "-> ")
          (insert message-str)
          (insert "\n")))
      (redisplay t)
-     (run-with-idle-timer
-      0.1 nil
-      `(lambda ()
-         (let ((win (ignore-errors (get-buffer-window ,buf))))
-           (when (and (bound-and-true-p entropy/emacs-startup-done)
-                      win)
-             (delete-window win)
-             (message
-              (entropy/emacs-message--do-message-ansi-apply
-               "%s %s %s"
-               (magenta "♥")
-               (on-black "Happy hacking")
-               (magenta "♥")))))))))
+     (unless (timerp entropy/emacs-message--idle-timer-for-hide-popup)
+       (setq entropy/emacs-message--idle-timer-for-hide-popup
+             (run-with-idle-timer
+              0.1 t
+              #'entropy/emacs-message-hide-popup)))))
 
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
   "An alternative to `message' that strips out ANSI codes."
   `(message
     (entropy/emacs-message--do-message-ansi-apply
      ,message ,@args)))
+
+(advice-add 'set-window-configuration
+            :after
+            (progn
+              (defalias 'entropy/emacs-message--adaf-for-swc
+                (lambda (&rest _)
+                  (entropy/emacs-message-hide-popup t)))
+              'entropy/emacs-message--adaf-for-swc))
 
 ;; ** auto load
 ;;;###autoload
@@ -244,6 +245,26 @@ NOTE: Just use it in `noninteractive' session."
      (entropy/emacs-message-do-message
       ,message ,@args)
      (user-error "")))
+
+(defun entropy/emacs-message-hide-popup (&optional force)
+  "Hide popup window which display `entropy/emacs-message-message-buffer'."
+  (let* ((buf-name entropy/emacs-message-message-buffer)
+         (win (ignore-errors
+                (get-buffer-window buf-name))))
+    (when (and (bound-and-true-p entropy/emacs-startup-done)
+               win
+               (or force
+                   (with-current-buffer buf-name
+                     entropy/emacs-message--cur-buf-is-popup-p)))
+      (delete-window win)
+      (with-current-buffer buf-name
+        (setq-local entropy/emacs-message--cur-buf-is-popup-p nil))
+      (message
+       (entropy/emacs-message--do-message-ansi-apply
+        "%s %s %s"
+        (magenta "♥")
+        (on-black "Happy hacking")
+        (magenta "♥"))))))
 
 ;; * provide
 (provide 'entropy-emacs-message)

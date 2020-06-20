@@ -269,7 +269,8 @@ messy."
   (entropy/emacs-message-do-message
    "%s"
    (green "entropy-emacs startup done!"))
-  (setq entropy/emacs-startup-done t))
+  (setq entropy/emacs-startup-done t)
+  (entropy/emacs-message-hide-popup))
 
 (defvar entropy/emacs-pyim-has-initialized nil
   "Variable indicate that pyim has started down for init.")
