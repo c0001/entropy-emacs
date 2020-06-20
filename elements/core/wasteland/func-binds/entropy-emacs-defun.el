@@ -1205,10 +1205,11 @@ pollute eemacs internal lazy load optimization."
     `(when (not (null ',feature))
        (entropy/emacs-eval-after-load
         ,feature
-        (message "with lazy loading configs for feature '%s' ..."
-                 (if (symbolp ',feature)
-                     (symbol-name ',feature)
-                   ',feature))
+        (entropy/emacs-message-do-message
+         "with lazy loading configs for feature '%s' ..."
+         (if (symbolp ',feature)
+             (symbol-name ',feature)
+           ',feature))
         (redisplay t)
         ,@body
         ;; clear zombie echo area 'ing' prompts
@@ -1216,7 +1217,8 @@ pollute eemacs internal lazy load optimization."
         (redisplay t))))
    ((null entropy/emacs-custom-enable-lazy-load)
     `(when (not (null ',feature))
-       (message "force load configs for feature '%s'" ',feature)
+       (entropy/emacs-message-do-message
+        "force load configs for feature '%s'" ',feature)
        (cond ((listp ',feature)
               (dolist (el ',feature)
                 (require el)))
