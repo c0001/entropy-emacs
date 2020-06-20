@@ -85,6 +85,10 @@
 (defvar entropy/emacs-message-non-popup nil)
 
 ;; ** library
+
+(defun entropy/emacs-message--in-daemon-load-p ()
+  (and (daemonp) (null after-init-time)))
+
 ;; *** top advice
 (defun entropy/emacs-message-quit (&rest args)
   (let ((echo-wd (get-buffer-window entropy/emacs-message-message-buffer)))
@@ -160,13 +164,18 @@ interactive session."
      (format ,message ,@args)))
 
 (defmacro entropy/emacs-message--do-message-ansi-apply (message &rest args)
-  `(let (echo-string
-         (inhibit-read-only t))
+  `(let* (echo-string
+          (inhibit-read-only t)
+          (rtn-1 (entropy/emacs-message-format-message ,message ,@args))
+          (rtn
+           (entropy/emacs-message--ansi-color-apply-for-face
+            rtn-1)))
      (setq echo-string
-           (if noninteractive
-               (entropy/emacs-message-format-message ,message ,@args)
-             (entropy/emacs-message--ansi-color-apply-for-face
-              (entropy/emacs-message-format-message ,message ,@args))))))
+           (if (or noninteractive (entropy/emacs-message--in-daemon-load-p))
+               (if (entropy/emacs-message--in-daemon-load-p)
+                   (substring-no-properties rtn)
+                 rtn-1)
+             rtn))))
 
 (defmacro entropy/emacs-message--do-message-popup (message &rest args)
   `(let ((buf (get-buffer-create entropy/emacs-message-message-buffer))
@@ -208,26 +217,24 @@ interactive session."
                (on-black "Happy hacking")
                (magenta "♥")))))))))
 
+(defmacro entropy/emacs-message-do-message-1 (message &rest args)
+  "An alternative to `message' that strips out ANSI codes."
+  `(message
+    (entropy/emacs-message--do-message-ansi-apply
+     ,message ,@args)))
+
 ;; ** auto load
 ;;;###autoload
 (defmacro entropy/emacs-message-do-message (message &rest args)
   "An alternative to `message' that strips out ANSI codes, with popup
 window if in a interaction session and
 `entropy/emacs-message-non-popup' is `null'."
-  (if (and entropy/emacs-message-non-popup
-           (not noninteractive))
-      `(entropy/emacs-message-do-message-1
-        ,message ,@args)
-    `(if noninteractive
-         (message (entropy/emacs-message-format-message ,message ,@args))
-       (entropy/emacs-message--do-message-popup
-        ,message ,@args))))
-
-(defmacro entropy/emacs-message-do-message-1 (message &rest args)
-  "An alternative to `message' that strips out ANSI codes."
-  `(message
-    (entropy/emacs-message--do-message-ansi-apply
-     ,message ,@args)))
+  `(if (or noninteractive
+           (entropy/emacs-message--in-daemon-load-p)
+           entropy/emacs-message-non-popup)
+       (entropy/emacs-message-do-message-1 ,message ,@args)
+     (entropy/emacs-message--do-message-popup
+      ,message ,@args)))
 
 (defmacro entropy/emacs-message-do-error (message &rest args)
   "An alternative to `user-error' that strips out ANSI codes.
