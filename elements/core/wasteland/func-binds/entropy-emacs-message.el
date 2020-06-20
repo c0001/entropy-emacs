@@ -173,14 +173,27 @@ interactive session."
          (message-str
           (entropy/emacs-message--do-message-ansi-apply
            ,message ,@args)))
+     (with-current-buffer buf
+       (setq-local mode-line-format nil
+                   cursor-type nil))
+     (message nil)
+     (redisplay t)
      (display-buffer-at-bottom
-      buf '((align . below)
-            (window-height . 0.3)))
+      buf
+      `((align . below)
+        (window-height
+         .
+         ,(if (bound-and-true-p entropy/emacs-startup-done)
+              0.2
+            0.3))))
+     (redisplay t)
      (with-selected-window (get-buffer-window buf)
        (with-current-buffer buf
          (goto-char (point-max))
+         (insert "-> ")
          (insert message-str)
          (insert "\n")))
+     (redisplay t)
      (run-with-idle-timer
       0.1 nil
       `(lambda ()
@@ -188,7 +201,12 @@ interactive session."
            (when (and (bound-and-true-p entropy/emacs-startup-done)
                       win)
              (delete-window win)
-             (message "Happy hacking!")))))))
+             (message
+              (entropy/emacs-message--do-message-ansi-apply
+               "%s %s %s"
+               (magenta "♥")
+               (on-black "Happy hacking")
+               (magenta "♥")))))))))
 
 ;; ** auto load
 ;;;###autoload

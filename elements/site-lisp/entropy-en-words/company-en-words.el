@@ -47,15 +47,24 @@
 (defvar company-en-words/var--wudao-required
   (company-en-words/lib--require-wudao))
 
+(defvar company-en-words/var--use-wudao-confirmed nil)
 (defvar company-en-words/var--wudao-cached nil)
 
 (defun company-en-words/lib--prepare-wudao-dict ()
   ;; require wudao dict to patch fully canids with fully dict property
   (when company-en-words/var--wudao-required
-    (unless company-en-words/var--wudao-cached
-      (when (fboundp 'wudao/query-get-en-words-completion-table)
+    (unless (or company-en-words/var--wudao-cached
+                company-en-words/var--use-wudao-confirmed)
+      (setq company-en-words/var--wudao-cached nil)
+      (when (and (fboundp 'wudao/query-get-en-words-completion-table)
+                 (let ((confirmation
+                        (yes-or-no-p "Use riched company-en-words feature?(may take some time) ")))
+                   (setq company-en-words/var--use-wudao-confirmed t)
+                   confirmation))
         ;; restrict `gc-cons-threshold' prevents memory overflow
         (let ((gc-cons-threshold 80000))
+          (message nil)
+          (message "Please wait for thus done ... (be patient)")
           (setq company-en-words/var--riched-en-words-list
                 (wudao/query-get-en-words-completion-table
                  company-en-words-data/en-words-simple-list)
