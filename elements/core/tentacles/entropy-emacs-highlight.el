@@ -204,7 +204,31 @@
   (entropy/emacs-lazy-load-simple web-mode
     (add-hook 'web-mode-hook #'rainbow-mode))
   (entropy/emacs-lazy-load-simple css-mode
-    (add-hook 'css-mode-hook #'rainbow-mode)))
+    (add-hook 'css-mode-hook #'rainbow-mode))
+
+  ;; Reset `rainbow-x-colors-font-lock-keywords' when toggle daemon
+  ;; session graphic type since TUI has restriction show full colors
+  ;; which gui supported and thus like other wise.
+  (entropy/emacs-with-daemon-make-frame-done
+   'rainbow-x-color-reset
+   nil nil
+   '(let (enabled-buffs)
+      (mapc
+       (lambda (buff)
+         (with-current-buffer buff
+           (when (bound-and-true-p rainbow-mode)
+             (rainbow-mode 0)
+             (push buff enabled-buffs))))
+       (buffer-list))
+      (setq rainbow-x-colors-font-lock-keywords
+            `((,(regexp-opt (x-defined-colors) 'words)
+               (0 (rainbow-colorize-itself)))))
+      (mapc
+       (lambda (buff)
+         (with-current-buffer buff
+           (rainbow-mode 1)))
+       enabled-buffs)))
+  )
 
 ;; ** Highlight brackets according to their depth
 ;;
