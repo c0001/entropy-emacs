@@ -1943,16 +1943,20 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 
 Optional form COMMON-FORM run directly without any condition
 judgements."
-  (let* ((name (intern
-                (format "%s-for-emacs-daemon"
-                        (symbol-name name)))))
-    (eval
-     `(entropy/emacs-add-hook-lambda-nil
-       ,name entropy/emacs-daemon-server-after-make-frame-hook 'append
-       (if (display-graphic-p)
-           ,ec-form
-         ,et-form)
-       ,common-form))))
+  (when (daemonp)                       ;only inject hook when in daemon session
+    (let* ((--name--
+            (intern
+             (format "%s-for-emacs-daemon"
+                     (symbol-name name)))))
+      (eval
+       `(entropy/emacs-add-hook-lambda-nil
+         ,--name--
+         entropy/emacs-daemon-server-after-make-frame-hook
+         'append
+         (if (display-graphic-p)
+             ,ec-form
+           ,et-form)
+         ,common-form)))))
 
 
 ;; * provide

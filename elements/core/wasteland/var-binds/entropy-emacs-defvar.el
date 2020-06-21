@@ -566,8 +566,24 @@ non-nil, i.e. the new main daemon client."
             :around
             #'entropy/emacs-daemon--reset-main-client-indicator)
 
+(defvar entropy/emacs-daemon--dont-init-client nil
+  "Forbidden eemacs server client initialization specification
+when non-nil, mostly used in a lexical bind for temporally way.")
+
 (defun entropy/emacs-daemon--client-initialize ()
-  (when (daemonp)
+  (when (and (daemonp)
+             (null entropy/emacs-daemon--dont-init-client)
+             (and (frame-parameter nil 'visibility)
+                  ;; do not eval initialization when match some
+                  ;; special occasion by `last-command'
+                  (not (let ((rtn
+                              (mapcar
+                               (lambda (s)
+                                 (string-match-p
+                                  s
+                                  (symbol-name last-command)))
+                               '("^magit-"))))
+                         (delete nil rtn)))))
     (set-frame-parameter (selected-frame) 'eemacs-current-frame-is-daemon-created t)
     ;; fix problem when main daemon client is dead
     (when entropy/emacs-daemon--main-client-indicator
