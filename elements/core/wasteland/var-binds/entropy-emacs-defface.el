@@ -29,114 +29,92 @@
 ;; Just requiring it commonly.
 ;;
 ;; * Code:
-;; ** init faces
-(defface entropy/emacs-defface-face-for-require-faces-head-prompt
-  '((t :weight semi-bold :foreground "yellow1"))
-  "Face for the head prompt requiring advice
-`entropy/emacs-require-loadding")
-
-(defface entropy/emacs-defface-face-for-require-face-tail-prompt
-  '((t :weight semi-bold :foreground "linen" :underline t))
-  "Face for the tail prompt requiring advice
-`entropy/emacs-require-loadding")
+;; ** preparation
 
 (defun entropy/emacs-set-fixed-pitch-serif-face-to-monospace ()
-  "Set info-mode font-lock spec face `fixed-pitch-serif' to
-entropy-emacs specific monospace style.
+  "Set face `fixed-pitch-serif' to entropy-emacs specific monospace
+style.
 
 This funciton will solve the problem that the symbol pattern
-display ugly and small in info-mode."
+display ugly and small in `info-mode' or other simulate occasions."
   (set-face-attribute 'fixed-pitch-serif nil
                       :family "Monospace" :slant 'italic))
 
-(entropy/emacs-lazy-load-simple faces
+(with-eval-after-load 'faces
   (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))
 
-;; ** basic faces
-(defface entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_body '((t ()))
-  "Face for message body area with func `entropy/emacs-basic-eyebrowse-switch-top'")
+(defgroup entropy/emacs-defface-group nil
+  "Eemacs customizable faces group"
+  :group 'entropy-emacs-customize-top-group)
 
-(set-face-attribute 'entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_body
-                    nil :foreground "yellow")
+;; ** eyebrowse faces
+(defface entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body
+  '((t :foreground "yellow"))
+  "Face for message body area with func `entropy/emacs-basic-eyebrowse-switch-top'"
+  :group 'entropy/emacs-defface-group)
 
-(defface entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_content '((t ()))
-  "Face for message content area with func `entropy/emacs-basic-eyebrowse-switch-top'")
+(defface entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_content
+  '((t :foreground "green2"))
+  "Face for message content area with func `entropy/emacs-basic-eyebrowse-switch-top'"
+  :group 'entropy/emacs-defface-group)
 
-(set-face-attribute 'entropy/emacs-defface-face-for-basic-eyebrowse-back-top-wg-message-face_content
-                    nil :foreground "green2")
+;; ** welcome buffer
+(defface entropy/emacs-defface-face-for-welcome-buffer-title-face
+  '((t :height 2.5 :bold t :underline t :overline t))
+  "Face for entropy-emacs initial buffer title."
+  :group 'entropy/emacs-defface-group)
 
-
-;; ** ui faces
-(defface entropy/emacs-defface-face-for-ui-dashboard-title-face '((t ()))
-  "Face for entropy-emacs initial buffer title.")
-
-(set-face-attribute 'entropy/emacs-defface-face-for-ui-dashboard-title-face
-                    nil :height 2.5 :bold t :underline t :overline t)
 ;; ** modeline faces
-(defface entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main '((t ()))
-  "Face for eyebrowse main workspace segment of origin modeline")
+;; *** eyebrowse modeline indicator faces
+(defface entropy/emacs-defface-face-for-modeline-eyebrowse-face-main
+  '((t :foreground "DarkGoldenrod2" :background "black" :bold t))
+  "Face for eyebrowse main workspace segment of origin modeline"
+  :group 'entropy/emacs-defface-group)
 
-(set-face-attribute 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main nil
-                    :foreground "DarkGoldenrod2" :background "black" :bold t)
-
-(defface entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive '((t ()))
+(defface entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive
+  '((t :foreground "white" :background "brown"))
   "Face for eyebrowse main workspace segment while window
-inactive of origin modeline")
+inactive of origin modeline"
+  :group 'entropy/emacs-defface-group)
 
-(set-face-attribute 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive nil
-                    :foreground "white" :background "brown")
+(defface entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived
+  '((t :background "#deaa00" :foreground "purple4" :bold t))
+  "Face for eyebrowse derived workspace segment of origin modeline."
+  :group 'entropy/emacs-defface-group)
 
-(defface entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived '((t ()))
-  "Face for eyebrowse derived workspace segment of origin modeline.")
-
-(set-face-attribute 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived nil
-                    :background "#deaa00" :foreground "purple4" :bold t)
-
-(defface entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive '((t ()))
+(defface entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived_inactive
+  '((t :foreground "white" :background "DarkOrange4"))
   "Face for eyebrowse derived workspace segment while window
-inactive of origin modeline ")
-
-(set-face-attribute 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive nil
-                    :foreground "white" :background "DarkOrange4")
-
+inactive of origin modeline."
+  :group 'entropy/emacs-defface-group)
 
 ;; ** ivy faces
-(defface entropy/emacs-defface-face-for-swiper-dired-candi-inactive-face  '((t ()))
-  "Faces for swiper inactive entries  for dired-buffer.")
-
+(defface entropy/emacs-defface-face-for-swiper-dired-candi-inactive-face
+  '((t ()))
+  "Faces for swiper inactive entries for dired-buffer."
+  :group 'entropy/emacs-defface-group)
 
 ;; ** hydra face
 
-(defface entropy/emacs-defface-face-for-hydra-red-face '((t ()))
-  "face for hydra head 'red'")
+(defface entropy/emacs-defface-face-for-hydra-red-face
+  '((t :foreground "red" :weight bold))
+  "Face for hydra head 'red'"
+  :group 'entropy/emacs-defface-group)
 
-(set-face-attribute 'entropy/emacs-defface-face-for-hydra-red-face nil
-                    :foreground "red"
-                    :weight 'bold)
+(defface entropy/emacs-defface-face-for-hydra-blue-face
+  '((t :foreground "blue" :weight bold))
+  "Face for hydra head 'blue'"
+  :group 'entropy/emacs-defface-group)
 
+(defface entropy/emacs-defface-face-for-hydra-orange-face
+  '((t :foreground "orange" :weight bold))
+  "Face for hydra head 'orange'"
+  :group 'entropy/emacs-defface-group)
 
-(defface entropy/emacs-defface-face-for-hydra-blue-face '((t ()))
-  "face for hydra head 'blue'")
-
-(set-face-attribute 'entropy/emacs-defface-face-for-hydra-blue-face nil
-                    :foreground "blue"
-                    :weight 'bold)
-
-
-(defface entropy/emacs-defface-face-for-hydra-orange-face '((t ()))
-  "face for hydra head 'orange'")
-
-(set-face-attribute 'entropy/emacs-defface-face-for-hydra-orange-face nil
-                    :foreground "orange"
-                    :weight 'bold)
-
-(defface entropy/emacs-defface-face-for-hydra-grey-face '((t ()))
-  "face for hydra head 'grey'")
-
-(set-face-attribute 'entropy/emacs-defface-face-for-hydra-grey-face nil
-                    :foreground "grey"
-                    :weight 'bold)
-
+(defface entropy/emacs-defface-face-for-hydra-grey-face
+  '((t :foreground "grey" :weight bold))
+  "Face for hydra head 'grey'"
+  :group 'entropy/emacs-defface-group)
 
 ;; * provide
 (provide  'entropy-emacs-defface)

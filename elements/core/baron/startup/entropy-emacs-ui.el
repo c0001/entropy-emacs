@@ -438,13 +438,13 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
                              ;; from it's height.
                              (* (length title)
                                 (if (display-graphic-p)
-                                    (let ((height (face-attribute 'entropy/emacs-defface-face-for-ui-dashboard-title-face
+                                    (let ((height (face-attribute 'entropy/emacs-defface-face-for-welcome-buffer-title-face
                                                                   :height)))
                                       (if height height 1))
                                   1)))
                           2)))
                  ?\ ))
-        (insert (propertize title 'face 'entropy/emacs-defface-face-for-ui-dashboard-title-face))
+        (insert (propertize title 'face 'entropy/emacs-defface-face-for-welcome-buffer-title-face))
         (insert "\n")
         (insert (make-string (floor (/ (- entropy/emacs-ui--init-welcom-width (length version)) 2)) ?\ ))
         (insert entropy/emacs-ecv)

@@ -128,12 +128,12 @@
   (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
     (cond ((eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window)
            (if derived
-               'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived
-             'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main))
+               'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived
+             'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main))
           ((not (eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window))
            (if derived
-               'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive
-             'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive)))))
+               'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived_inactive
+             'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
 
 (defun entropy/emacs-modeline--mdl-egroup-eyebrowse-segment ()
   "Entropy-emacs specific modeline style.
@@ -450,12 +450,12 @@ eyerbowse improvement."
            (if (string-match-p "\\.[[:digit:]]" str)
                (cond
                 ((doom-modeline--active)
-                 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived)
-                (t 'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-derived_inactive))
+                 'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived)
+                (t 'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived_inactive))
              (cond ((doom-modeline--active)
-                    'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main)
+                    'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main)
                    (t
-                    'entropy/emacs-defface-face-for-modeline-mdl-eyebrowse-face-main_inactive)))))
+                    'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
       ""))
 
 ;; ***** eemacs doom-modeline type spec
