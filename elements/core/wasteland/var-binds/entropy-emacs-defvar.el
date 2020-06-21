@@ -568,12 +568,26 @@ non-nil, i.e. the new main daemon client."
 
 (defvar entropy/emacs-daemon--dont-init-client nil
   "Forbidden eemacs server client initialization specification
-when non-nil, mostly used in a lexical bind for temporally way.")
+when non-nil.
+
+EEMACS_MAINTENANCE:
+Please just use in debug way as may not work in lexical way.")
 
 (defun entropy/emacs-daemon--client-initialize ()
+  "Initial daemon client instance with eemacs specification
+creation procedure.
+
+NOTE: Do not use it in any entropy-emacs context, its just a
+unified specifically hook for `server-after-make-frame-hook'.
+
+EEMACS_MAINTENANCE:
+
+Please just leave it in `entropy-emacs-defvar' file as its
+internal functional."
   (when (and (daemonp)
              (null entropy/emacs-daemon--dont-init-client)
-             (and (frame-parameter nil 'visibility)
+             (and (or (frame-parameter nil 'visibility)
+                      (null noninteractive))
                   ;; do not eval initialization when match some
                   ;; special occasion by `last-command'
                   (not (let ((rtn

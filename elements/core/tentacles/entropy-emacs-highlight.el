@@ -270,7 +270,12 @@
   (when entropy/emacs-hl-todo-enable-at-startup
     (entropy/emacs-lazy-with-load-trail
      global-hl-todo
-     (global-hl-todo-mode t))))
+     (global-hl-todo-mode t)
+     (dolist (el '(("EEMACS_MAINTENANCE" . "green")
+                   ("EEMACS_BUG" . "red")
+                   ("EEMACS_REFERENCE" . "HotPink1")))
+       (add-to-list 'hl-todo-keyword-faces
+                    el)))))
 
 ;; ** Highlight uncommitted changes
 ;;
