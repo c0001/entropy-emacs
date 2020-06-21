@@ -197,6 +197,9 @@ interactive session."
             0.3))))
      (redisplay t)
      (with-selected-window (get-buffer-window buf)
+       (set-window-parameter
+        (selected-window)
+        'entropy/emacs-message--cur-win-is-popup-p t)
        (with-current-buffer buf
          (setq-local entropy/emacs-message--cur-buf-is-popup-p t)
          (goto-char (point-max))
@@ -254,6 +257,7 @@ NOTE: Just use it in `noninteractive' session."
     (when (and (bound-and-true-p entropy/emacs-startup-done)
                win
                (or force
+                   (window-parameter win 'entropy/emacs-message--cur-win-is-popup-p)
                    (with-current-buffer buf-name
                      entropy/emacs-message--cur-buf-is-popup-p)))
       (delete-window win)
