@@ -1,14 +1,32 @@
-# Local Variables:
-# fill-column: 70
-# org-adapt-indentation: nil
-# org-download-image-dir: "./img/"
-# eval: (auto-fill-mode)
-# End:
-#+title: entropy-org-widget
-#+author: Entropy
+#+TITLE: The org widget for entropy-emacs
 
+* Copyright (C) 20190911  Entropy
+#+BEGIN_EXAMPLE
+Author:        Entropy <bmsac0001@gmail.com>
+Maintainer:    Entropy <bmsac001@gmail.com>
+URL:           https://github.com/c0001/entropy-org-widget
+Package-Version: v0.1.1
+Created:       2018
+Compatibility: GNU Emacs 25;
+Package-Requires: ((emacs "25") (cl-lib "0.5") (org "9.1"))
 
-Chains for with Org buffer or Org files. 
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#+END_EXAMPLE
+
+* Commentary:
+
+Chains for with Org buffer or Org files.
 
 Org self provides various APIs given for emacs developer to extended
 Org as. This package was the one as what it is and with the defaultly
@@ -20,25 +38,27 @@ the functional sitemap with the concept follow that with the source
 content outlines seperated for. For generally of currently used
 categories for:
 
-- headline
+- Headline
 
   Functions for extending Org heads dealing with.
 
-- drawer
+- Drawer
 
   Functions for extending Org drawer dealing with.
 
-- links refer
+- Link
 
   Thus as above.
 
-* Requirements
+** Requirements
 
 Org only.
 
-* Installation
+** Installation
 
 Just downloading this package and then adding it to the load-path, the
 last ~require~ it.
 
+* Changelog:
 
+- [2020-06-22 Mon 22:01:26] context update and bugs fix & release 0.1.1
