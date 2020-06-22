@@ -194,10 +194,6 @@ set earlier in the 'setq-local'.  The return value of the
 (when (version< emacs-version "26")
   (error "This requires Emacs 26 and above!"))
 
-;; ** Optimize gc performance and loading speed:
-(defvar default-file-name-handler-alist file-name-handler-alist)
-(setq file-name-handler-alist nil)
-
 ;; ** Dry-land API defination
 
 (defun entropy/emacs-version-compatible
