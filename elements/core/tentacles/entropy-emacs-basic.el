@@ -1955,6 +1955,8 @@ it with focus on."
     (with-current-buffer buffer
       (erase-buffer)
       (cond
+       ((stringp variable)
+        (print variable (current-buffer)))
        ((sequencep variable)
         (mapc
          (lambda (x)
