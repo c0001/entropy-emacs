@@ -47,24 +47,47 @@
     (&key mode feature mode-map
           bookmark-library-view bookmark-add
           browse-with-external
+          toggle-inline-image toggle-image
           current-page-url current-link-url previous-page next-page goto-url
           search-query)
   (let ()
     `(progn
        (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
         ',mode '(,feature ,mode-map) t
-        '("Page Move"
-          (("l" ,previous-page "Previous Page" :enable t :exit t)
-           ("n" ,next-page "Next Page" :enable t :exit t)
-           ("e" ,browse-with-external "Browse Externally" :enable t :exit t))
+        '("Basic"
+          (("s" ,search-query "Search"
+            :enable (not (null ',search-query)) :map-inject (not (null ',mode-map))
+            :exit t)
+           ("t" ,toggle-inline-image "Toggle display current image"
+            :enable (not (null ',toggle-inline-image)) :map-inject (not (null ',mode-map))
+            :exit t)
+           ("T" ,toggle-image "Toggle display all images "
+            :enable (not (null ',toggle-image)) :map-inject (not (null ',mode-map))
+            :exit t))
+          "Page Move"
+          (("l" ,previous-page "Previous Page"
+            :enable (not (null ',previous-page)) :map-inject (not (null ',mode-map))
+            :exit t)
+           ("n" ,next-page "Next Page"
+            :enable (not (null ',next-page)) :map-inject (not (null ',mode-map))
+            :exit t)
+           ("e" ,browse-with-external "Browse Externally"
+            :enable (not (null ',browse-with-external)) :map-inject (not (null ',mode-map))
+            :exit t))
           "Link Retrieve"
-          (("c" ,current-page-url "Copy Current Page Url" :enable t :exit t)
-           ("u" ,current-link-url "Copy Current Link Url" :enable t :exit t))
+          (("c" ,current-page-url "Copy Current Page Url"
+            :enable (not (null ',current-page-url)) :map-inject (not (null ',mode-map))
+            :exit t)
+           ("u" ,current-link-url "Copy Current Link Url"
+            :enable (not (null ',current-link-url)) :map-inject (not (null ',mode-map))
+            :exit t))
           "Bookmark Operation"
-          (("b" ,bookmark-library-view "View Bookmarks" :enable t :exit t)
-           ("a" ,bookmark-add "Add Bookmark" :enable t :exit t))
-          "Search"
-          (("s" ,search-query "Search" :enable t :exit t)))))))
+          (("b" ,bookmark-library-view "View Bookmarks"
+            :enable (not (null ',bookmark-library-view)) :map-inject (not (null ',mode-map))
+            :exit t)
+           ("a" ,bookmark-add "Add Bookmark"
+            :enable (not (null ',bookmark-add)) :map-inject (not (null ',mode-map))
+            :exit t)))))))
 
 ;; ** browsers
 ;; *** emacs-w3m interface
@@ -92,6 +115,8 @@
    :mode w3m-mode
    :feature w3m
    :mode-map w3m-mode-map
+   :toggle-image w3m-toggle-inline-images
+   :toggle-inline-image w3m-toggle-inline-image
    :bookmark-library-view w3m-bookmark-view
    :bookmark-add w3m-bookmark-add-current-url
    :browse-with-external w3m-view-url-with-browse-url
@@ -133,7 +158,33 @@
                entropy/emacs-browse-url-function
              'browse-url-default-browser)))
       (call-interactively oldfunc)))
-  (advice-add 'w3m-view-url-with-browse-url :around #'entropy/emacs-textwww--w3m-external-advice))
+  (advice-add 'w3m-view-url-with-browse-url
+              :around #'entropy/emacs-textwww--w3m-external-advice)
+
+  ;; -----Quit window patch-----
+  ;;
+  ;;EEMACS_MAINTENANCE: Find a the core principle why this bug happen
+  ;; and rebuild this patch.
+  (require 'winner)
+  (winner-mode 1)
+  (defun entropy/emacs-textwww--w3m-quit-window (orig-func &rest orig-args)
+    "Quit w3m window use `winner-undo' (if available) when the
+internal methods are fatal as. This is used to fix the \"no
+parent window\" error prompt in some special cases."
+    (let (quit-fatal-p)
+      (condition-case nil
+          (apply orig-func orig-args)
+        (error
+         (setq quit-fatal-p t)))
+      (when quit-fatal-p
+        (condition-case nil
+            (winner-undo)               ;`winner-undo' may has the same problem
+          (error
+           (bury-buffer))))))
+  (advice-add 'w3m-close-window
+              :around
+              #'entropy/emacs-textwww--w3m-quit-window)
+  )
 
 
 ;; *** eww config
@@ -160,6 +211,7 @@
    :mode eww-mode
    :feature eww
    :mode-map eww-mode-map
+   :toggle-image entropy/emacs-textwww--eww-toggle-show-image-whole-page
    :bookmark-library-view eww-list-bookmarks
    :bookmark-add eww-add-bookmark
    :browse-with-external entropy/emacs-textwww-eww-open-url-external
@@ -204,6 +256,22 @@ Browser chosen based on variable
                (setq rtn (nth 1 (assoc rtn choices)))
                rtn)))
         (browse-url url))))
+
+;; **** eww toggle image display
+
+  (defun entropy/emacs-textwww--eww-toggle-show-image-whole-page ()
+    "Toggle whether display inline images in current eww buffer
+in whole page."
+    (interactive)
+    (let ()
+      (when (eq major-mode 'eww-mode)
+        (setq-local shr-inhibit-images (null shr-inhibit-images))
+        (eww-reload))))
+
+  ;; EEMACS_MAINTENANCE: Find way to toggle single inline image
+  ;; displayable at point within a eww buffer like what did in
+  ;; `w3m-mode'.
+
 
   )
 
