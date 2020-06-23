@@ -71,7 +71,7 @@
                              )))
    (t
     (setq package-archives archives)))
-  (message "Set package archives to '%s'." archives))
+  (entropy/emacs-message-do-message "Set package archives to '%s'." archives))
 
 (defun entropy/emacs-package--initial-package-archive ()
   (unless (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
@@ -100,9 +100,9 @@ argument."
       (setq load-path (copy-tree entropy/emacs-origin-load-path))
       (setq package-alist nil)
       (setq package-activated-list nil))
-    (message "Custom packages initializing ......")
+    (entropy/emacs-message-do-message "Custom packages initializing ......")
     (package-initialize)
-    (message "Custom packages initializing done!")))
+    (entropy/emacs-message-do-message "Custom packages initializing done!")))
 
 ;; *** prepare main
 (defvar entropy/emacs-package-prepare-done nil)

@@ -78,6 +78,11 @@ eemacs."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
+(defcustom entropy/emacs-disable-mouse-at-init-time nil
+  "Disable mounse event handler at startup when set non-nil."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
 (defcustom entropy/emacs-top-prefix-key-cons '("C-`" .  "C-@")
   "The cons stores the prefix key for `entropy/emacs-top-keymap',
 the car for GUI session, and cdr for TUI thus as well.

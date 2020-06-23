@@ -82,7 +82,16 @@
   "List of styles.")
 
 ;; ** variable declaration
-(defvar entropy/emacs-message-non-popup nil)
+(defvar entropy/emacs-message-non-popup nil
+  "Do not message with popup window, mostly used with lexical
+binding and be under suppressed by
+`entropy/emacs-message-non-popup-permanently'.")
+
+(defvar entropy/emacs-message-non-popup-permanently nil
+  "Permanently suppress popup window type for messaging, this
+setting will suppress `entropy/emacs-message-non-popup'
+functional whenever what it is.")
+
 (defvar-local entropy/emacs-message--cur-buf-is-popup-p nil)
 (defvar entropy/emacs-message--idle-timer-for-hide-popup nil)
 
@@ -185,7 +194,6 @@ interactive session."
      (with-current-buffer buf
        (setq-local mode-line-format nil
                    cursor-type nil))
-     (message nil)
      (redisplay t)
      (display-buffer-at-bottom
       buf
@@ -210,7 +218,7 @@ interactive session."
      (unless (timerp entropy/emacs-message--idle-timer-for-hide-popup)
        (setq entropy/emacs-message--idle-timer-for-hide-popup
              (run-with-idle-timer
-              0.1 t
+              0 t
               #'entropy/emacs-message-hide-popup)))))
 
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
@@ -220,11 +228,16 @@ interactive session."
      ,message ,@args)))
 
 (advice-add 'set-window-configuration
-            :after
+            :around
             (progn
               (defalias 'entropy/emacs-message--adaf-for-swc
-                (lambda (&rest _)
-                  (entropy/emacs-message-hide-popup t)))
+                (lambda (orig-func &rest orig-args)
+                  "Hide displayed window
+`entropy/emacs-message-message-buffer' after
+`set-window-configuration'."
+                  (let ((rtn (apply orig-func orig-args)))
+                    (entropy/emacs-message-hide-popup t)
+                    rtn)))
               'entropy/emacs-message--adaf-for-swc))
 
 ;; ** auto load
@@ -235,7 +248,8 @@ window if in a interaction session and
 `entropy/emacs-message-non-popup' is `null'."
   `(if (or noninteractive
            (entropy/emacs-message--in-daemon-load-p)
-           entropy/emacs-message-non-popup)
+           entropy/emacs-message-non-popup
+           entropy/emacs-message-non-popup-permanently)
        (entropy/emacs-message-do-message-1 ,message ,@args)
      (entropy/emacs-message--do-message-popup
       ,message ,@args)))
@@ -267,7 +281,7 @@ NOTE: Just use it in `noninteractive' session."
        (entropy/emacs-message--do-message-ansi-apply
         "%s %s %s"
         (magenta "♥")
-        (on-black "Happy hacking")
+        "Happy hacking"
         (magenta "♥"))))))
 
 ;; * provide

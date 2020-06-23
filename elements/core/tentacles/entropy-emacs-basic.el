@@ -1317,9 +1317,10 @@ way. "
   :diminish disable-mouse-global-mode
   :commands (global-disable-mouse-mode)
   :init
-  (entropy/emacs-lazy-with-load-trail
-   disable-mouse
-   (global-disable-mouse-mode t)))
+  (when entropy/emacs-disable-mouse-at-init-time
+    (entropy/emacs-lazy-with-load-trail
+     disable-mouse
+     (global-disable-mouse-mode t))))
 
 ;; *** Disable auto-window-vscroll
 

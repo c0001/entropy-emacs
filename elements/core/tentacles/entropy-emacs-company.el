@@ -147,11 +147,12 @@
                     (message "Invalid company-delay secs '%s'" secs)
                     entropy/emacs-company-idle-delay-default))
               entropy/emacs-company-idle-delay-default))
-      (entropy/emacs-message-do-message
-       "%s '%s' to '%s'"
-       (blue "Set")
-       (yellow (symbol-name 'company-idle-delay))
-       (red (number-to-string company-idle-delay)))))
+      (let ((entropy/emacs-message-non-popup t))
+        (entropy/emacs-message-do-message
+         "%s '%s' to '%s'"
+         (blue "Set")
+         (yellow (symbol-name 'company-idle-delay))
+         (red (number-to-string company-idle-delay))))))
 
   (defun entropy/emacs-company--gc-optimize ()
     "Maximize `gc-cons-threshold' when company session is

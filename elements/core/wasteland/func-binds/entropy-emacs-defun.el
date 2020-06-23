@@ -1192,6 +1192,8 @@ the buffer-locally variable `buffer-read-only'."
                    (apply orig-func orig-args)))))
 
 ;; *** Lazy load specification
+(defvar entropy/emacs--lazy-load-simple-feature-head nil)
+
 (defmacro entropy/emacs-lazy-load-simple (feature &rest body)
   "Execute BODY after/require FILE is loaded.  FILE is normally a
 feature name, but it can also be a file name, in case that file
@@ -1217,20 +1219,26 @@ pollute eemacs internal lazy load optimization."
     `(when (not (null ',feature))
        (entropy/emacs-eval-after-load
         ,feature
-        (entropy/emacs-message-do-message
-         "with lazy loading configs for feature '%s' ..."
-         (if (symbolp ',feature)
-             (symbol-name ',feature)
-           ',feature))
+        (unless (member ',feature (last entropy/emacs--lazy-load-simple-feature-head 3))
+          (entropy/emacs-message-do-message
+           "with lazy loading configs for feature '%s' ..."
+           ',feature)
+          (setq entropy/emacs--lazy-load-simple-feature-head
+                (append entropy/emacs--lazy-load-simple-feature-head
+                        '(,feature))))
         (redisplay t)
         ,@body
         ;; clear zombie echo area 'ing' prompts
-        (message "")
+        (message nil)
         (redisplay t))))
    ((null entropy/emacs-custom-enable-lazy-load)
     `(when (not (null ',feature))
-       (entropy/emacs-message-do-message
-        "force load configs for feature '%s'" ',feature)
+       (unless (member ',feature (last entropy/emacs--lazy-load-simple-feature-head 3))
+         (entropy/emacs-message-do-message
+          "force load configs for feature '%s'" ',feature)
+         (setq entropy/emacs--lazy-load-simple-feature-head
+               (append entropy/emacs--lazy-load-simple-feature-head
+                       '(,feature))))
        (cond ((listp ',feature)
               (dolist (el ',feature)
                 (require el)))

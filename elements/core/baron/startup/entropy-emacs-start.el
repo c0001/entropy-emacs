@@ -441,7 +441,7 @@ notation.
   (define-coding-system-alias 'cp65001 'utf-8))
 
 (defun entropy/emacs-start-do-load ()
-  (progn (message "Cat's eye opening ..."))
+  (entropy/emacs-message-do-message (yellow "Cat's eye opening ..."))
   (when (entropy/emacs-ext-main)
     (require 'entropy-emacs-path)
     (entropy/emacs-start--init-bingo)
@@ -452,7 +452,7 @@ notation.
         (daemonp))
     (entropy/emacs-start-do-load)
   (run-with-idle-timer
-   0.1 nil
+   0 nil
    #'entropy/emacs-start-do-load))
 
 ;; * provide
