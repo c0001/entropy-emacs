@@ -110,7 +110,6 @@
           "entropy-cn-dict"
           "entropy-code2org"
           "entropy-common-library"
-          "entropy-counsel-stuffs"
           "entropy-dired-cp-or-mv"
           "entropy-emacs-doc"
           "entropy-en-words"

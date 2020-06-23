@@ -1198,25 +1198,6 @@ can't visit one page suddenly."
       "Cp or Mv fils or directory"
       :enable t :exit t)))))
 
-;; *** entropy-counsel-stuffs
-(use-package entropy-counsel-stuffs
-  :ensure nil
-  :commands (entropy/cs-open-all
-             entropy/cs-filter-open
-             entropy/cs-recorde-entry
-             entropy/cs-converter
-             entropy/cs-modifiy
-             entropy/cs-delete)
-  :eemacs-tpha
-  (((:enable t))
-   ("Project"
-    (("M-<f12>" entropy/cs-recorde-entry
-      "Recorde stuff entry"
-      :enable t :exit t :global-bind t)
-     ("C-<f12>" entropy/cs-open-all
-      "Read all stuffs"
-      :enable t :exit t :global-bind t)))))
-
 ;; *** entropy-portableapps
 (use-package entropy-portableapps
   :if sys/is-win-group
