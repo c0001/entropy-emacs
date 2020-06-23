@@ -98,9 +98,8 @@ orderd in QUERY.
         (dolist (elm query)
           (dolist (el pl)
             (when (string= (car el) elm)
-              (add-to-list 'rlist `(,elm ,(cdr el)) t))))
-      (dolist (el pl)
-        (add-to-list 'rlist `(,(car el) ,(cdr el)) t)))
+              (add-to-list 'rlist (cons elm (cdr el)) t))))
+      (setq rlist pl))
     rlist))
 
 (defun entropy/ow-get-all-head-alist (&optional query)
