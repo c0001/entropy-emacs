@@ -91,7 +91,7 @@
                     (push (plist-get db-obj :db-name)
                           db-names))))
               (unless (eq (length db-names)
-                          (length (entropy/cl-remove-duplicates db-names)))
+                          (length (cl-remove-duplicates db-names)))
                 (setq rtn t))
               rtn)))
 

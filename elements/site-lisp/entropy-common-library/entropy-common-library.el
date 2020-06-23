@@ -123,24 +123,18 @@
   (require 'cl-lib))
 (require 'ivy)
 
-;;;; deprecated compatibility
-(defun entropy/cl-remove-duplicates (cl-seq &rest cl-keys)
-  "The wrapper for `remove-duplicates' and `cl-remove-duplicates'.
-
-Using `cl-remove-duplicates' as priority for emacs-version upper
-than 27, otherwise use `remove-duplicates', since emacs 27
-deprecated origin `cl' package instead of `cl-macs'."
-  (cond ((fboundp 'cl-remove-duplicates)
-         (apply 'cl-remove-duplicates cl-seq cl-keys))
-        ((fboundp 'remove-duplicates)
-         (apply 'remove-duplicates cl-seq cl-keys))))
-
 ;;;; Internal Functions
 ;;
 ;;    This part defined some functions used only for this package for
 ;;    providing middle functional utilities to other Apis.
 ;;
 ;;
+
+(defun entropy/cl--sign-error (signer message)
+  (error
+   (format "[[entropy-common-library]]--<<signer: %s>>: %s"
+           signer message)))
+
 ;;;; System environment checker
 (defun entropy/cl-checking-system-utf8-supply ()
   "Checking operation system envrionment lanuguage support full
@@ -209,7 +203,9 @@ then retun name-alist:
             rtn))
     (if rtn
         (reverse rtn)
-      (error "entropy/cl-make-name-alist: Occur wrong!"))))
+      (entropy/cl--sign-error
+       'entropy/cl-make-name-list
+       "Occur wrong!"))))
 
 ;;;;;; list capture region map
 (defun entropy/cl-capture-list-by-region-map (list-var region-map)
@@ -231,7 +227,9 @@ List var (1 2 3 4 5 6 7 8 9) maped by (1 2 3) will return
         (counter 0) (list-pointer 0)
         temp-var rtn)
     (unless (<= map-counter list-len)
-      (error "[entropy/cl-capture-list-by-map]: region-map overflow!"))
+      (entropy/cl--sign-error
+       'entropy/cl-capture-list-by-map
+       "region-map overflow!"))
     (dolist (el region-map)
       (setq counter list-pointer
             temp-var nil)
@@ -258,13 +256,14 @@ association's cdr."
   (let (numberic-list max-func rtn temp_var)
     (dolist (el numberic-alist)
       (unless (numberp (car el))
-        (error "<<entropy/cl-sort-numberic-alist>>:
-Wrong type of argument: numberp '%s'" (car el)))
+        (entropy/cl--sign-error
+         'entropy/cl-sort-numberic-alist
+         "Wrong type of argument: numberp '%s'"
+         (car el)))
       (push (car el) numberic-list))
     (unless (= (length numberic-alist)
-               (length (entropy/cl-remove-duplicates numberic-list :test 'eq)))
-      (error "<<entropy/cl-sort-numberic-alist>>:
-Duplicated numberic order!"))
+               (length (cl-remove-duplicates numberic-list :test 'eq)))
+      (entropy/cl--sign-error 'entropy/cl-sort-numberic-alist "Duplicated numberic order!"))
     (setq max-func
           (lambda (number-seq)
             (let (rtn)
@@ -375,7 +374,7 @@ sequence and return it.
 
 LIST-VAR's length must be the half of the length of plist-var."
   (unless (entropy/cl-plistp plist-var)
-    (error "entropy/cl-plist-batch-put: plist-var is not plist"))
+    (entropy/cl--sign-error 'entropy/cl--sign-error "plist-var is not plist"))
   (let* ((plist-len (length plist-var))
          (list-var-len (length list-var))
          plist-clauses
@@ -383,7 +382,9 @@ LIST-VAR's length must be the half of the length of plist-var."
          (counter-max (- plist-len 2))
          (counter 0))
     (unless (= (* 2 list-var-len) plist-len)
-      (error "entropy/cl-plist-batch-put: plist-var and list-var length not equalized."))
+      (entropy/cl--sign-error
+       'entropy/cl-plist-batch-put
+       "plist-var and list-var length not equalized."))
     (while (<= counter counter-max)
       (push (nth counter plist-var) plist-clauses)
       (setq counter (+ 2 counter)))
@@ -413,7 +414,9 @@ Return single pair list when optional argument PROP was non-nil
 for which key matched of PROP in PLIST-VAR, or return nil when
 not matched. "
   (unless (entropy/cl-plistp plist-var)
-    (error "[entropy/cl-get-plist-prop-pair]: wrong type of argument 'plistp'!"))
+    (entropy/cl--sign-error
+     'entropy/cl-get-plist-prop-pair
+     (format "Wrong type of argument 'plistp' %s !" plist-var)))
   (let ((pro-list (entropy/cl-get-plist-prop-list plist-var))
         rtn)
     (dolist (el pro-list)
@@ -429,7 +432,9 @@ not matched. "
   "Return list of all props of PLIST-VAR with its origin
 sequence."
   (unless (entropy/cl-plistp plist-var)
-    (error "[entropy/cl-get-plist-prop-list]: wrong type of argument 'plistp'!"))
+    (entropy/cl--sign-error
+     'entropy/cl-get-plist-prop-list
+     (format "Wrong type of argument 'plistp' %s !" plist-var)))
   (let* (plist-props
          (counter 0)
          (plist-len (length plist-var))
@@ -548,13 +553,14 @@ positive."
  (let (rtn)
    (unless (and (stringp char-string)
                 (> times 1))
-     (error "<entropy/cl-concat-char>: char-string or times specification error!"))
+     (entropy/cl--sign-error
+      'entropy/cl-concat-char
+      "Char-string or times specification error!"))
    (dotimes (el times nil)
      (if rtn
          (setq rtn (concat rtn char-string))
        (setq rtn char-string)))
    rtn))
-
 
 ;;;;;; truncate string
 (defun entropy/cl-truncate-string-with-length (str length &optional line-indication)
@@ -1586,8 +1592,9 @@ function docstring."
                    ((symbolp el)
                     (setq el (symbol-name el)))
                    (t
-                    (error "<<entropy/cl-ivy-read-repeatedly-prompt-expand>>:
-Just symbol and string type supported for candidates-recoreded."))))
+                    (entropy/cl--sign-error
+                     'entropy/cl-ivy-read-repeatedly-prompt-expand
+                     "Just symbol and string type supported for candidates-recoreded."))))
                 (setq prefix (if shorten-function
                                  (funcall shorten-function el)
                                el))
@@ -1634,12 +1641,12 @@ sequence."
 POS was the base formulation's nested subroutine's pos of each
 depth of nesting."
   (cond ((not (integerp depth))
-         (error "[entropy/cl-gen-form-place-macro]: depth must be integer"))
+         (entropy/cl--sign-error 'entropy/cl-gen-form-place-macro "depth must be integer"))
         ((< depth 1)
-         (error "[entropy/cl-gen-form-place-macro]: depth must 'gt' 0")))
+         (entropy/cl--sign-error 'entropy/cl-gen-form-place-macro "depth must 'gt' 0")))
 
   (unless (and pos (integerp pos) (> pos 0) (< pos (length form)))
-    (error "[entropy/cl-gen-form-place-macro]: wrong type of 'pos'"))
+    (entropy/cl--sign-error 'entropy/cl-gen-form-place-macro "wrong type of 'pos'"))
   (let (macro)
     (dotimes (step depth)
       (if (null macro)
@@ -1731,7 +1738,9 @@ non-nil, the =temp/nested-append-form= was generated for:
                                  `(,@form ',macro))))))
              macro)))
         (t
-         (error "[entropy/cl-gen-nested-form]: wrong type of 'replace'"))))
+         (entropy/cl--sign-error
+          'entropy/cl-gen-nested-append-form
+          "Wrong type of 'replace'"))))
 
 
 ;;;; color refer
