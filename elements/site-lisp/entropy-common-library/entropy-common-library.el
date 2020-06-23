@@ -165,17 +165,17 @@ Return non-nil as supported as."
 (defun entropy/cl-make-identify-list (list)
   "Adding identifier for each element of list LIST and return new list.
 
-Identifier was the number of string value type, the return list
-are like follow former:
+Identifier was the positive integer type, the return list are like
+follow former:
 
-((\"0\" el0) (\"1\" el1) (\"2\" el2) ...)
+((0 . el0) (1 . el1) (2 . el2) ...)
 
 This function make each element of list are uniquely, which also
 used for build candidates in `completing-read'.
 "
   (let* (rlist (count 0))
     (dolist (el list)
-      (push `(,(number-to-string count) ,el) rlist)
+      (push (cons count el) rlist)
       (setq count (+ 1 count)))
     (setq rlist (reverse rlist))))
 
