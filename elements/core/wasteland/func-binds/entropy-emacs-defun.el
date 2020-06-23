@@ -94,7 +94,19 @@ defautly."
 ;; *** List manipulation
 (defun entropy/emacs-numberic-list (list-var)
   "Return list element mapped with numberic prefix which concated
-with '0' as alignment state."
+with '0' as alignment indicator.
+
+For example, if a list formed as '(1 2 3 ... 100)', the returned
+list will formed as:
+
+#+BEGIN_SRC elisp
+  '((\"001\" . 1)
+    (\"002\" . 2)
+    (\"003\" . 3)
+    ...
+    (\"100\" . 100))
+#+END_SRC
+"
   (let* ((l-len (length list-var))
          (register l-len)
          (counter 0)
