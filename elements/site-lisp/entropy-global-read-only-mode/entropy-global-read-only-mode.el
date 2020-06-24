@@ -92,9 +92,13 @@
 
 ;; - "all" :
 
-;;   Initialize all file opening read-only type based on the wide rule
-;;   set of the buffer name filters
-;;   =entropy/grom-customizable-except-buffer-name-regexp-list=.
+;;   Initialize all file opening read-only type based on the wide
+;;   rule set of the buffer name filters
+;;   =entropy/grom-customizable-special-buffer-name-regexp-list=. Further
+;;   more, there's also an non-special exception option
+;;   =entropy/grom-customizable-nonspecial-buffer-name-regexp-list=
+;;   which let you add some exclusion that the special sepcification
+;;   wild included.
 
 
 ;; You can select one of them be the global-read-only-type for as.
@@ -119,9 +123,9 @@
 
 ;;   Toggle global buffers read-only status in =buffer-list= basic on
 ;;   the buffer name regexp matching regexp rule set of that one is
-;;   =entropy/grom--toggle-except-bfregexp-list= the basically core
+;;   =entropy/grom--internal-specified-special-bfregexp-list= the basically core
 ;;   native builtin one and what you can customizable one
-;;   =entropy/grom-customizable-except-buffer-name-regexp-list=.
+;;   =entropy/grom-customizable-special-buffer-name-regexp-list=.
 
 ;; - Function: ~entropy/grom-read-only-buffer~
 
@@ -149,6 +153,8 @@
 ;; recovered when =entropy/grom-mode= disabled.
 
 ;;; Changelog:
+
+;; - [2020-06-24 Wed 13:51:37] Add nonspecial customizable option and context update
 
 ;; - [2020-05-29 Fri 20:13:23] Optimize namespace
 
@@ -178,39 +184,25 @@
 (require 'cl-lib)
 
 ;;;; declare variable
-(defvar entropy/grom--toggle-except-bfregexp-list
+(defvar entropy/grom--internal-specified-special-bfregexp-list
   '(
+    ;; Some important special buffer
     "\\*Minibuf.*\\*"
     "\\*Echo Area"
     "\\*code-conversion-work\\*"
     "\\*Kill Ring"
-    "\\*Help\\*"
-    "\\*Backtrace\\*"
-    "\\*Messages\\*"
-    "\\*scratch\\*"
     "\\*which-key"
-    "\\*tip\\*"
-    "\\*Agenda Commands\\*"
-    "\\*urlparse-temp\\*"
-    "\\*Org todo\\*"
-    "\\*Org Agenda\\*"
+    "\\*shell"
+    "\\*ansi-term"
+    "\\*w3m-"
+    "\\*nntp"
+    "\\*gnus"
     "magit-process:"
     "magit:"
-    "\\*clang-output\\*"
-    "\\*shell"
-    "\\*terminal\\*"
-    "\\*ansi-term"
     "CAPTURE-.*\\.org$"
-    "\\*company-posframe-buffer\\*"
-    "\\*entity\\*"
-    "\\*w3m-"
     "treemacs-persist"
-    "\\*nntp"
     "newsrc"
-    "\\*gnus"
-    ;; pre-defined find file expection
     "autoloads\\.el"
-    "\\*Compile-.*\\*"
     "loaddefs\\.el"
     "COMMIT_EDITMSG"
     "treemacs-persist"
@@ -226,7 +218,7 @@ was the core buffer name regexp matching list for \"all\" type of
 
 Do not modify it manually, or will messy up with risky on
 your-self way. If need to do that, add rules into customizable
-variable `entropy/grom-customizable-except-buffer-name-regexp-list' instead.")
+variable `entropy/grom-customizable-special-buffer-name-regexp-list' instead.")
 
 (defvar entropy/grom-buffer-true-name-pair-list nil
   "This list contains the FILENAME of the all buffer name
@@ -248,20 +240,20 @@ Each grom-patch will enabled by `entropy/grom--enable-patcher' and
 disabled by `entropy/grom--disable-patcher'.")
 
 ;;;; custom variable
-(defgroup entropy-global-read-only-mode nil
-  "group for global-readonly-mode.")
+(defgroup entropy-grom nil
+  "Customizable group for `entropy-grom-mode'.")
 
 (defcustom entropy/grom-readonly-type "all"
-  "
-Choose the type of init-read-only method:
+  "Choose the type of init-read-only method:
 
 There's two choice:
 1. 'all':   Let find-file be default the read-only mode.
 2. 'modes': Use the list of major-modes' hooks to embend it in.
             The list variable is `entropy/grom-mode-hooks-list'
 "
-  :type 'string
-  :group 'entropy-global-read-only-mode)
+  :type '(choice (string :tag "For find file all" "all")
+                 (string :tag "For mode hook specified" "modes"))
+  :group 'entropy-grom)
 
 (defcustom entropy/grom-mode-hooks-list
   '(emacs-lisp-mode-hook
@@ -278,28 +270,37 @@ There's two choice:
     text-mode-hook)
   "The list of which major mode hook to be injected read-only
 functional hook at start-up."
-  :type 'sexp
-  :group 'entropy-global-read-only-mode)
+  :type '(repeat (symbol :tag "Mode hook symbol"))
+  :group 'entropy-grom)
 
-(defcustom entropy/grom-customizable-except-buffer-name-regexp-list nil
+(defcustom entropy/grom-customizable-special-buffer-name-regexp-list nil
   "External except buffer name regexp list excluding when enable
 read-only mode while `entropy-grom-mode' enabled.
 
 Its defaultly empty of no problem or added as your own
 specification, all rules list in here will be combined with
-`entropy/grom--toggle-except-bfregexp-list' for expection dealing
-with."
-  :type 'sexp
-  :group 'entropy-global-read-only-mode)
+`entropy/grom--internal-specified-special-bfregexp-list' for
+expection dealing with."
+  :type '(choice (const nil)
+                 (repeat (regexp :tag "Special buffer name regexp")))
+  :group 'entropy-grom)
+
+(defcustom entropy/grom-customizable-nonspecial-buffer-name-regexp-list
+  `(,(rx "*scratch*") "eemacs-")
+  "Specified permanently non-special meaningful buffer name regexp
+list."
+  :type '(choice (const nil)
+                 (repeat (regexp :tag "Non-special buffer name regexp")))
+  :group 'entropy-grom)
 
 ;;;; library
 
-(defun entropy/grom--get-excepted-buffer-name-regexp-list ()
-  "Combined `entropy/grom-customizable-except-buffer-name-regexp-list' with
-`entropy/grom--toggle-except-bfregexp-list' to generating the
+(defun entropy/grom--get-special-buffer-name-regexp-list ()
+  "Combined `entropy/grom-customizable-special-buffer-name-regexp-list' with
+`entropy/grom--internal-specified-special-bfregexp-list' to generating the
 whole expections rules."
-  (let ((whole-init (copy-tree entropy/grom--toggle-except-bfregexp-list)))
-    (dolist (el entropy/grom-customizable-except-buffer-name-regexp-list)
+  (let ((whole-init (copy-tree entropy/grom--internal-specified-special-bfregexp-list)))
+    (dolist (el entropy/grom-customizable-special-buffer-name-regexp-list)
       (add-to-list 'whole-init el t 'string=))
     whole-init))
 
@@ -311,8 +312,12 @@ whole expections rules."
                       (buffer-name buffer))
                  (error "Wrong type of argument: bufferp--> '%s'" buffer))))
         (catch :exit
-          (dolist (rule (entropy/grom--get-excepted-buffer-name-regexp-list))
-            (when (string-match-p rule buffer-name)
+          (dolist (rule (entropy/grom--get-special-buffer-name-regexp-list))
+            (when (and (string-match-p rule buffer-name)
+                       (not (catch :exit
+                              (dolist (el entropy/grom-customizable-nonspecial-buffer-name-regexp-list)
+                                (when (string-match-p el buffer-name)
+                                  (throw :exit t))))))
               (throw :exit t)))))
     nil))
 
@@ -320,9 +325,6 @@ whole expections rules."
   "Getting current frame's actived buffer true name with
 `buffer-file-name' and push them into
 `entropy/grom-buffer-true-name-pair-list'
-
-This function was used for
-`entropy/grom-get-unlock-agenda-buffers-list'.
 "
   (interactive)
   (setq entropy/grom-buffer-true-name-pair-list nil)
@@ -346,21 +348,6 @@ operation may cause some risk. ('M-x read-only-mode' for forcely)"
           (when message
             (message "Lock current buffer successfully")))
       (read-only-mode 1))))
-
-(defun entropy/grom--find-file-guard ()
-  "Hooks for find-file with global readonly mode type \"all\" using
-except buffer-name regexp matching list obtained by
-`entropy/grom--get-excepted-buffer-name-regexp-list'."
-  (let (p
-        (cur_bfname (buffer-name)))
-    (catch :exit
-      (dolist (match (entropy/grom--get-excepted-buffer-name-regexp-list))
-        (when (string-match-p match cur_bfname)
-          (setq p t)
-          (throw :exit nil))))
-    (unless p
-      (entropy/grom--enable-read-only))))
-
 
 (defun entropy/grom--add-hook (hook function)
   (add-to-list 'entropy/grom--add-hook-register
@@ -408,7 +395,7 @@ except buffer-name regexp matching list obtained by
 (defun entropy/grom-toggle-read-only (&optional readonly editted current-buffer-ndwp cury)
   "Toggle readonly-or-not for all buffers except for the buffer-name
 witin the full buffer name regexp matching list obtained by
-`entropy/grom--get-excepted-buffer-name-regexp-list'.
+`entropy/grom--get-special-buffer-name-regexp-list'.
 
 There's four optional argument for this function:
 
@@ -442,7 +429,7 @@ There's four optional argument for this function:
     (let ((p-buffer-list (mapcar (function buffer-name) (buffer-list))))
       (dolist (value (copy-tree p-buffer-list))
         (catch :exit
-          (dolist (cache (entropy/grom--get-excepted-buffer-name-regexp-list))
+          (dolist (cache (entropy/grom--get-special-buffer-name-regexp-list))
             (when (string-match-p cache value)
               (setq p-buffer-list (delete value p-buffer-list))
               (throw :exit nil)))))
@@ -671,7 +658,7 @@ This func was advice for func
       (dolist (mode-hook entropy/grom-mode-hooks-list)
         (entropy/grom--add-hook mode-hook #'entropy/grom--enable-read-only)))
      ((string= entropy/grom-readonly-type "all")
-      (entropy/grom--add-hook 'find-file-hook 'entropy/grom--find-file-guard)))
+      (entropy/grom--add-hook 'find-file-hook 'entropy/grom--enable-read-only)))
     (entropy/grom--enable-patcher)
     (message "Global read only mode enable!")))
 

@@ -1,15 +1,15 @@
 # Table of Contents
 
-1.  [Copyright (C) 20200221  Entropy](#orge97a2d2)
-2.  [Commentary:](#org800302f)
-    1.  [Requirements](#org800263a)
-    2.  [Installation](#org4a1406f)
-    3.  [Configuration](#orga771c22)
-    4.  [Interaction](#org7037192)
-    5.  [Redefine functions and advices tracking](#org83a393a)
-3.  [Changelog:](#orgb8fbbcd)
+1.  [Copyright (C) 20200221  Entropy](#org22b1c7d)
+2.  [Commentary:](#org056d590)
+    1.  [Requirements](#orge6a0ba2)
+    2.  [Installation](#org150db1d)
+    3.  [Configuration](#orgd6a3362)
+    4.  [Interaction](#org43c539a)
+    5.  [Redefine functions and advices tracking](#org027cb72)
+3.  [Changelog:](#org3298361)
 
-<a id="orge97a2d2"></a>
+<a id="org22b1c7d"></a>
 
 # Copyright (C) 20200221  Entropy
 
@@ -35,7 +35,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="org800302f"></a>
+<a id="org056d590"></a>
 
 # Commentary:
 
@@ -62,7 +62,7 @@ The rule base for is follow the below two way:
     list regexp matching for.
 
 
-<a id="org800263a"></a>
+<a id="orge6a0ba2"></a>
 
 ## Requirements
 
@@ -73,7 +73,7 @@ utilies. But all the re-defun procedure are just enabled when `org`
 loaded, there's no need to require `org` with the manually way.
 
 
-<a id="org4a1406f"></a>
+<a id="org150db1d"></a>
 
 ## Installation
 
@@ -81,7 +81,7 @@ Download main [source file](entropy-global-read-only-mode.el) to your load-path 
 the most easy way.
 
 
-<a id="orga771c22"></a>
+<a id="orgd6a3362"></a>
 
 ## Configuration
 
@@ -112,9 +112,13 @@ type value for as:
 
 -   "all" :
 
-    Initialize all file opening read-only type based on the wide rule
-    set of the buffer name filters
-    `entropy/grom-customizable-except-buffer-name-regexp-list`.
+    Initialize all file opening read-only type based on the wide
+    rule set of the buffer name filters
+    `entropy/grom-customizable-special-buffer-name-regexp-list`. Further
+    more, there's also an non-special exception option
+    `entropy/grom-customizable-nonspecial-buffer-name-regexp-list`
+    which let you add some exclusion that the special sepcification
+    wild included.
 
 You can select one of them be the global-read-only-type for as.
 
@@ -127,7 +131,7 @@ The `use-packge` configure management type demo as:
       :init (add-hook 'after-init-hook #'entropy-grom-mode))
 
 
-<a id="org7037192"></a>
+<a id="org43c539a"></a>
 
 ## Interaction
 
@@ -140,9 +144,9 @@ The `use-packge` configure management type demo as:
 
     Toggle global buffers read-only status in `buffer-list` basic on
     the buffer name regexp matching regexp rule set of that one is
-    `entropy/grom--toggle-except-bfregexp-list` the basically core
+    `entropy/grom--internal-specified-special-bfregexp-list` the basically core
     native builtin one and what you can customizable one
-    `entropy/grom-customizable-except-buffer-name-regexp-list`.
+    `entropy/grom-customizable-special-buffer-name-regexp-list`.
 
 -   Function: `entropy/grom-read-only-buffer`
 
@@ -155,7 +159,7 @@ The `use-packge` configure management type demo as:
     `entropy/grom-toggle-read-only`.
 
 
-<a id="org83a393a"></a>
+<a id="org027cb72"></a>
 
 ## Redefine functions and advices tracking
 
@@ -173,9 +177,11 @@ unlock codes into them respectively. The defination will be
 recovered when `entropy/grom-mode` disabled.
 
 
-<a id="orgb8fbbcd"></a>
+<a id="org3298361"></a>
 
 # Changelog:
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2020-06-24 Wed 13:51] </span></span> Add nonspecial customizable option and context update
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2020-05-29 Fri 20:13] </span></span> Optimize namespace
     -   Make internal librariese follow conventions by emacs
@@ -197,4 +203,4 @@ recovered when `entropy/grom-mode` disabled.
 -   <span class="timestamp-wrapper"><span class="timestamp">[2018-08-01 Wed] </span></span> version 0.1.0 release
 
 
-<a id="orgb9fafb9"></a>
+<a id="orgcd1801d"></a>

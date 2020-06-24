@@ -1088,13 +1088,22 @@ This affected by `neotree' or `treemacs' window sticking with
         'entropy-grom-mode))
       "Buffer locker both for single or global buffer-list"
       :enable t :exit t))))
+
   :init
   (entropy/emacs-lazy-initial-advice-before
    (find-file push-button find-library-name)
    "entropy-grom"
    "entropy-grom"
    prompt-popup
-   (entropy-grom-mode +1)))
+   (entropy-grom-mode +1))
+
+  :config
+  (dolist (rule `(,(rx "*outorg-edit-buffer*")
+                  ,(rx "*Buffer Details*")
+                  ,(rx "*Memory Explorer*")
+                  ,(rx "*poporg: ")))
+    (add-to-list 'entrop/grom-customizable-nonspecial-buffer-name-regexp-list
+                 rule)))
 
 ;; *** Revert buffer automatically
 
