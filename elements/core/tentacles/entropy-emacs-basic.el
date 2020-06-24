@@ -1102,7 +1102,7 @@ This affected by `neotree' or `treemacs' window sticking with
                   ,(rx "*Buffer Details*")
                   ,(rx "*Memory Explorer*")
                   ,(rx "*poporg: ")))
-    (add-to-list 'entrop/grom-customizable-nonspecial-buffer-name-regexp-list
+    (add-to-list 'entropy/grom-customizable-nonspecial-buffer-name-regexp-list
                  rule)))
 
 ;; *** Revert buffer automatically
