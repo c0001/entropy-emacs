@@ -108,7 +108,7 @@ Version 2016-10-15"
            (lambda ($fpath)
              (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" $fpath t t)))
            $file-list))
-         (sys/is-linux-and-graphic-support-p
+         (sys/is-mac-and-graphic-support-p
           (mapc
            (lambda ($fpath)
              (shell-command

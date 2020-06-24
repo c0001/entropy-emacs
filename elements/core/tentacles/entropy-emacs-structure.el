@@ -221,7 +221,7 @@
      ("f s"
       entropy/emacs-structure-vimish-fold-double-quote-string
       "Quickly vimish fold double quote string."
-      :enable t :exit t :map-inject t))
+      :enable t :exit t))
     "Vimish unfold"
     (("u c" vimish-fold-unfold "Unfold at point"
       :enable t :exit t)
