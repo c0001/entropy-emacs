@@ -1,4 +1,4 @@
-;;; entropy-open-with.el --- Open file by specific program  
+;;; entropy-open-with.el --- Open file by specific program
 ;;
 ;;; Copyright (C) 20190614  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -6,21 +6,21 @@
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-open-with/blob/master/entropy-open-with.el
 ;; Package-Requires: ((entropy-common-library "0.1.0"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 ;;
 ;; Open files with external executable applications on emacs interface.
@@ -59,7 +59,7 @@
 ;;     :bind (("C-M-1" . entropy/open-with-buffer))
 ;;     :init
 ;;     (with-eval-after-load 'dired
-;;       (define-key dired-mode-map 
+;;       (define-key dired-mode-map
 ;;         (kbd "<C-M-return>") 'entropy/open-with-dired-open)))
 ;; #+END_SRC
 ;;
@@ -99,7 +99,7 @@
 ;;    Called of application's absolute path.
 ;;
 ;; 3) *Command line filaname transfer heading type*
-;;   
+;;
 ;;    For some external application's URI args request as that file name
 ;;    must be concated with the special head prefix, e.g. for web browser
 ;;    that the local page file command line arg must have the prefix
@@ -124,8 +124,8 @@
 ;;
 ;;    - nil, passing origin path string to process.
 ;;
-;;    - Arbitrary function self specified, requesting one arg, the file path.  
-;;  
+;;    - Arbitrary function self specified, requesting one arg, the file path.
+;;
 ;; 4) *command argument string*
 ;;
 ;;    Argumet is the concated command arguments string, the single string
@@ -140,7 +140,7 @@
 ;;   the file candidates query filter prompt powered by [[https://github.com/abo-abo/swiper][ivy]] framework.
 ;;
 ;; - *Func:* ~entropy/open-with-dired-open~
-;;   
+;;
 ;;   Calling external application to open marked files in dired-mode.
 ;;
 ;; - *Func:* ~entropy/open-with-buffer~
@@ -153,12 +153,12 @@
 ;; or obey the previous installation init setup.
 ;;
 ;;
-;;;; Apis 
+;;;; Apis
 ;;
 ;; =entropy-open-with= was the minor tool for just giving fiews useful
 ;; api functions:
 ;;
-;; + Func ~entropy/open-with-match-open~ 
+;; + Func ~entropy/open-with-match-open~
 ;;
 ;;   This func was given the simple way for query input filename's
 ;;   corresponding 'open-with' type and then opened it immediately with
@@ -194,7 +194,7 @@
 ;;
 ;;     The other one =inemacs= gives the try for open specific file in
 ;;     emacs method.
-;;   
+;;
 ;;;; Limitation on windows platform:*
 ;;
 ;; In windows, the decoding method was using the one called =code pages=
@@ -234,7 +234,7 @@
 ;; #+END_SRC
 ;;
 ;; More details see below function definition.
-;; 
+;;
 ;;; Code:
 (require 'entropy-common-library)
 
@@ -326,9 +326,27 @@ The general list tpye as:
 Argumet is the concated command arguments string, the single
 string type.
 "
-  :type 'sexp
-  :group 'entropy/open-with)
+  :type '(choice
+          (const  :tag "Nothing specified" nil)
+          (repeat :tag "Open with specification groups list"
+                  (list :tag "Open with specification group"
+                        (repeat :tag "File name extension regexp list"
+                                (string   :tag "File name extension regexp"))
 
+                        (choice :tag "Open with exec"
+                                (string   :tag "Exec path or name")
+                                (const    :tag "Use system default" nil))
+
+                        (choice :tag "Path argument format method"
+                                (const    :tag "File protocol" file)
+                                (const    :tag "Shell argument quote" quote)
+                                (function :tag "Sepcified format method function")
+                                (const    :tag "Do not transferred" nil))
+
+                        (choice (const    :tag "No exec arguments" nil)
+                                (repeat   :tag "Exec arguments list"
+                                          (string :tag "Exec argument"))))))
+  :group 'entropy/open-with)
 
 (defvar entropy/open-with--type-list-full nil
   "Full list for `entropy/open-with-match-open' which gened by
@@ -365,7 +383,7 @@ each file suffix 'ext', like:
            (exec (nth 1 group))
            (path-transform (nth 2 group))
            (caller-pattern (nth 3 group)))
-      (when (and exec (stringp exec)) 
+      (when (and exec (stringp exec))
         (dolist (ext ext-list)
           (let (new-group-e)
             (push caller-pattern new-group-e)
@@ -469,7 +487,7 @@ pair list `entropy/open-with--type-list-full'.
 
 *Note:*
 
-ARG--> files: 
+ARG--> files:
 
     It's name coding type must be consistency with system local
     like \"Chiese-GBK\" or \"ASCII\" and mixtures both of them
@@ -579,5 +597,3 @@ details."
     (entropy/open-with-match-open (list tname))))
 
 (provide 'entropy-open-with)
-
-
