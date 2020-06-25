@@ -14,7 +14,8 @@
 ;;;; defcustom
 
 (defgroup entropy/sdcv-backends-group nil
-  "Customizable variable group for `entropy-sdcv-backends'")
+  "Customizable variable group for `entropy-sdcv-backends'"
+  :group 'entropy-sdcv)
 
 ;;;; library
 (defun entropy/sdcv-backends--org-colorful (feedback)
@@ -209,23 +210,24 @@
 (defcustom entropy/sdcv-backends-sdcv-common-dicts-host
   (expand-file-name ".stardict" (getenv "HOME"))
   "The common ruled stardict collections host directory."
-  :type 'string
+  :type 'directory
   :group 'entropy/sdcv-backends-group)
 
 (defcustom entropy/sdcv-backends-sdcv-user-dicts nil
   "User sdcv dicts directories list, it is priority than
 `entropy/sdcv-backends-sdcv-common-dicts-host'."
-  :type 'list
-  :group 'entroy/sdcv-backends-group)
-
-(defcustom entropy/sdcv-backends-sdcv-program (if (string-equal system-type "darwin") "/usr/local/bin/sdcv" "sdcv")
-  "Sdcv programe name custom specification, if it not in your
-  path, you are required to specify it's path with it's filename
-  e.g. '/bin/sdcv'."
-  :type 'string
+  :type '(choice (const nil) (repeat directory))
   :group 'entropy/sdcv-backends-group)
 
-(defcustom entropy/sdcv-backends-sdcv-command-prefix nil
+(defcustom entropy/sdcv-backends-sdcv-program
+  (if (string-equal system-type "darwin") "/usr/local/bin/sdcv" "sdcv")
+  "Sdcv programe name custom specification, if it not in your
+path, you are required to specify it's path with it's filename
+e.g. '/bin/sdcv'."
+  :type 'file
+  :group 'entropy/sdcv-backends-group)
+
+(defcustom entropy/sdcv-backends-sdcv-command-prefix ""
   "Prefix command argumetns for sdcv exec."
   :type 'string
   :group 'entropy/sdcv-backends-group)
@@ -244,7 +246,7 @@ explicit match any sdcv candidates.")
 (defface entropy/sdcv-backends--sdcv-box-face '((t :box t))
   "Face sytle with box enable.")
 
-;;;;;; error spec prompt 
+;;;;;; error spec prompt
 (defvar entropy/sdcv-backends--sdcv-call-sdcv-refer-is-errored nil)
 (defun entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message (format-string &rest args)
   (unless entropy/sdcv-backends--sdcv-call-sdcv-refer-is-errored
@@ -441,7 +443,7 @@ query dict recalling this again."
   "Extracting sdcv json response object string for filterable
 with lisp processing. And return the response final feedback
 string used for tooltip or adjacent buffer shown for. See also
-core func `entropy/sdcv-backends--sdcv-parse-response-json'. 
+core func `entropy/sdcv-backends--sdcv-parse-response-json'.
 "
   (let* ((json-list-ob (entropy/sdcv-backends--sdcv-parse-response-json json-response))
          rtn)
@@ -471,7 +473,7 @@ mapping for the json lisp corresponding vector parsed by
 `entropy/sdcv-backends--sdcv-parse-json-info' and returned it's alist, or t if
 with fuzzy match and confirm for fetch with other approach..
 
-Example: 
+Example:
 
   Sdcv query condition case arg '-j' will response the result with
   json object string which structed as:
@@ -489,7 +491,7 @@ Example:
   It's fuzzy match with un-explicitly one, then popup the
   confirmation with two mentod:
   - Query by using another approach (return t)
-  - Choose one fuzzy matched candidate (return normal as explicitly procedure) 
+  - Choose one fuzzy matched candidate (return normal as explicitly procedure)
   "
   (let* ((jsob (json-read-from-string json-response))
          (jsob-alist (mapcar 'entropy/sdcv-backends--sdcv-parse-json-info
@@ -563,7 +565,7 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
             (t t)))
     (catch :exit
       (if (null dict)
-          (and 
+          (and
            (setq rtn entropy/sdcv-core-response-null-prompt)
            (throw :exit nil))
         (setq shell-json-response
@@ -639,5 +641,3 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
   (add-to-list 'entropy/sdcv-core-query-backends-register el))
 
 (provide 'entropy-sdcv-backends)
-
-

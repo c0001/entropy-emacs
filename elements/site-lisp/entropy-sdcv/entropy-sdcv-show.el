@@ -5,16 +5,17 @@
 (condition-case nil (require 'posframe) (error (message "Warn: You haven't install posframe!")))
 
 ;;;; defcustom
-(defcustom entropy/sdcv-show-group nil
-  "Customizable variable group of `entropy-sdcv-show'.")
+(defgroup entropy/sdcv-show-group nil
+  "Customizable variable group of `entropy-sdcv-show'."
+  :group 'entropy-sdcv)
 
-(defcustom entropy/sdcv-show-tooltip-buffer "*entropy/sdcv-show-tooltip*"
+(defcustom entropy/sdcv-show-tooltip-buffer-name "*entropy/sdcv-show-tooltip*"
   "Entropy sdcv tooltip default buffer name. Both using for
 posframe or popup shown mechanism."
   :type 'string
   :group 'entropy/sdcv-show-group)
 
-(defcustom entropy/sdcv-show-showed-buffer "*entropy/sdcv-show-showed-buffer*"
+(defcustom entropy/sdcv-show-showed-buffer-name "*entropy/sdcv-show-showed-buffer*"
   "Entropy sdcv adjacent feedback presenting buffer name."
   :type 'string
   :group 'entropy/sdcv-show-group)
@@ -42,7 +43,7 @@ posframe or popup shown mechanism."
 ;;;; response adjacent buffer show
 ;;;;; adjacent-common
 (defun entropy/sdcv-show--show-with-buffer-common (show-instance)
-  (let ((buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-showed-buffer))
+  (let ((buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-showed-buffer-name))
         (feedback (plist-get show-instance :feedback))
         (show-predicate (plist-get show-instance :show-predicate))
         (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'adjacent-common)))
@@ -79,7 +80,7 @@ posframe or popup shown mechanism."
          (show-predicate (plist-get show-instance :show-predicate))
          (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'posframe))
          (predicate (entropy/sdcv-show--response-predicate-gen show-predicate feedback posframe))
-         (buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-tooltip-buffer))
+         (buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-tooltip-buffer-name))
          (common-fg (face-attribute 'entropy/sdcv-core-common-face :foreground))
          (common-bg (face-attribute 'entropy/sdcv-core-common-face :background)))
     (posframe-show buffer
@@ -94,19 +95,19 @@ posframe or popup shown mechanism."
     (add-hook 'post-command-hook 'entropy/sdcv-show--posframe-hide-after-move)))
 
 (defun entropy/sdcv-show--posframe-hide-after-move ()
-  "Quit and delete `entropy/sdcv-show-tooltip-buffer' of posframe
+  "Quit and delete `entropy/sdcv-show-tooltip-buffer-name' of posframe
 show-type whatever keys touching with.
 
 This func was automatically added into `post-command-hook' by
 `entropy/sdcv-show--show-with-posframe'."
   (ignore-errors
-    (when (get-buffer entropy/sdcv-show-tooltip-buffer)
+    (when (get-buffer entropy/sdcv-show-tooltip-buffer-name)
       (unless (and
                (equal (point) entropy/sdcv-show--posframe-last-point)
                (not (eq this-command 'keyboard-quit))
                (equal (window-start) entropy/sdcv-show--posframe-last-scroll-offset))
-        (posframe-delete entropy/sdcv-show-tooltip-buffer)
-        (kill-buffer entropy/sdcv-show-tooltip-buffer)))))
+        (posframe-delete entropy/sdcv-show-tooltip-buffer-name)
+        (kill-buffer entropy/sdcv-show-tooltip-buffer-name)))))
 
 ;;;;; pos-tip
 (defcustom entropy/sdcv-show-pos-tip-height-stretch 1.5
@@ -115,7 +116,7 @@ This func was automatically added into `post-command-hook' by
 Cause for the bug for `pos-tip-show-no-propertize' can not
 caculate the multibyte string block height, this var will do the
 proper stretching."
-  :type 'sexp
+  :type 'number
   :group 'entropy/sdcv-show-group)
 
 (defun entropy/sdcv-show--pos-tip-show (show-instance)

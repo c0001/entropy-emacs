@@ -130,12 +130,18 @@
               'installed)))))
 
 ;;;; variable declaration
-;;;;; group
-(defgroup entropy/sdcv-core-group nil
-  "Group for `entropy-sdcv' feature."
+;;;;; top group
+
+(defgroup entropy-sdcv nil
+  "Customizable variables group for `entropy-sdcv'."
   :group 'extensions)
 
 ;;;;; custom
+
+(defgroup entropy/sdcv-core-group nil
+  "Group for `entropy-sdcv' feature."
+  :group 'entropy-sdcv)
+
 (defcustom entropy/sdcv-core-source-language "zh-CN"
   "Mother tougue"
   :type 'string
@@ -155,15 +161,20 @@ plist of three slots, i.e. :query-function, :show-predicate and
 argument was string as dict quering, it return the FEEDBACK, and
 the second was the SHOW-METHOD.
 
-:show-predicate was the slot whose value was one function with two
-parameters i.e. FEEDBACK and SHOW-METHOD.
+:show-predicate was the slot whose value was one function with
+two parameters i.e. FEEDBACK and SHOW-METHOD, almostly it was the
+function to decorate the FEEDBACK query from current backend
+according to the SHOW-MEHOD but with further more tricks and must
+be matched with the corresponding SHOW-METHOD's orderings (see
+referred section below) or it can be nil (or omitted) which means
+do nothing in this context.
 
-:show-face slotted the showed string (the FEEDBACK) face or nil
-means using default setting, or it is a funciton which return one
-specified face with one argument of SHOW-METHOD.
+:show-face slotted the showed string (the FEEDBACK) face or
+nil (or omitted) means using default setting, or it is a funciton
+which return one specified face with one argument of SHOW-METHOD.
 
 FEEDBACK was string calling back from the specific DICT-BACKEND,
-commonly non-propertized, but can be fontlocked by the Backend
+commonly non-propertized, but can be fontlocked by the backend
 itself, after all it must be a string which can be validated by
 `stringp'.
 
@@ -171,7 +182,10 @@ SHOW-METHOD was a symbol for indicating how to show the FEEDBACK,
 the default valid value are showed in
 `entropy/sdcv-core-response-show-frontends' (see it for details).
 "
-  :type 'list
+  :type '(repeat :tag "Query backend object list"
+                 (cons :tag "Query backend"
+                       (symbol :tag "Name of current backend")
+                       (plist :tag "Query backend plist" :value-type sexp)))
   :group 'entropy/sdcv-core-group)
 
 (defcustom entropy/sdcv-core-response-show-frontends '()
@@ -203,21 +217,13 @@ usage detailes)
   does as what did in 'popup' way.
 
 You can add more SHOW-METHODs customizable using `add-to-list'."
-  :type 'list
+  :type '(alist
+          :key-type (symbol :tag "Show method name")
+          :value-type (function :tag "Show function"))
   :group 'entropy/sdcv-core-group)
 
 (defcustom entropy/sdcv-core-response-null-prompt "In the beginning, there's darkness!"
   "Feedback string for none-matching session."
-  :type 'string
-  :group 'entropy/sdcv-core-group)
-
-(defcustom entropy/sdcv-core-query-log nil
-  "Variable stored current query string for package debug using."
-  :type 'string
-  :group 'entropy/sdcv-core-group)
-
-(defcustom entropy/sdcv-core-response-log nil
-  "Variable stored current query response string for package debug using."
   :type 'string
   :group 'entropy/sdcv-core-group)
 
@@ -234,8 +240,18 @@ You can add more SHOW-METHODs customizable using `add-to-list'."
 (defcustom entropy/sdcv-core-response-column-width-max 60
   "Query feedback info definitions string overflow width used to
 fill lines destructively or display with truncated occur."
-  :type 'string
+  :type 'integer
   :group 'entropy/sdcv-core-group)
+
+;;;;; defvar
+
+(defvar entropy/sdcv-core-query-log nil
+  "Variable stored current query string for package debug using."
+  )
+
+(defvar entropy/sdcv-core-response-log nil
+  "Variable stored current query response string for package debug using."
+  )
 
 ;;;;; default face
 (defface entropy/sdcv-core-common-face '((t ()))
