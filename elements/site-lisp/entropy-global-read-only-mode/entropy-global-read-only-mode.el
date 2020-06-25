@@ -241,7 +241,8 @@ disabled by `entropy/grom--disable-patcher'.")
 
 ;;;; custom variable
 (defgroup entropy-grom nil
-  "Customizable group for `entropy-grom-mode'.")
+  "Customizable group for `entropy-grom-mode'."
+  :group 'extensions)
 
 (defcustom entropy/grom-readonly-type "all"
   "Choose the type of init-read-only method:

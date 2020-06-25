@@ -43,7 +43,7 @@
 ;; this package just implemented the html exporting treatment part, thus
 ;; follow instruction only has the html part.
 ;;
-;;;; Html part  
+;;;; Html part
 ;;
 ;; + Themes plist: =entropy/org-exptt-html-theme-plist=
 ;;
@@ -76,14 +76,14 @@
 ;;      That's demo denoted that this theme are designed into three way
 ;;      as what the category name presented
 ;;
-;;   3) =:theme_css= 
-;;      
+;;   3) =:theme_css=
+;;
 ;;      The css style list place. Each element of this key refer value is
 ;;      the css type string consists of the commonly html css embedded
 ;;      type as "<link href="">" external type or the
 ;;      "<style>...</style>" type as the full string stored . Notice, the
 ;;      href part must been exists of the external type.
-;;      
+;;
 ;;      Demo:
 ;;
 ;;      #+BEGIN_SRC elisp
@@ -118,7 +118,7 @@
 ;;            }
 ;;
 ;;
-;;            img{max-width: 700px} 
+;;            img{max-width: 700px}
 ;;
 ;;            h3 {
 ;;              margin-left: 0em
@@ -156,27 +156,27 @@
 ;;        </style>")
 ;;      #+END_SRC
 ;;
-;;   4) =:theme_js= 
-;;      
+;;   4) =:theme_js=
+;;
 ;;      The js part was fully similar with the css key expection that the
 ;;      'style' tag replaced as 'script'.
 ;;
 ;;      Demo:
-;;      
+;;
 ;;      #+BEGIN_SRC elisp
 ;;        :theme_js
 ;;        ("<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery-1.11.0.min.js\"></script>"
-;;         "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery-ui-1.10.2.min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.localscroll-min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.scrollTo-1.4.3.1-min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.zclip.min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/bigblow.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/hideshow.js\"></script>" 
+;;         "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery-ui-1.10.2.min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.localscroll-min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.scrollTo-1.4.3.1-min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.zclip.min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/bigblow.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/hideshow.js\"></script>"
 ;;         "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.min.js\"></script>")
 ;;      #+END_SRC
 ;;
 ;;   5) =:theme_mischellaneous=
-;;      
+;;
 ;;      Using for external 'link' tag list, as the css key does, but
 ;;      without cached (not implemented til now but for the furter.)
 ;;
 ;;      Demo:
-;;      
+;;
 ;;      #+BEGIN_SRC elisp
 ;;        :theme_mischellaneous
 ;;        ("<link rel=\"SHORTCUT ICON\" href=\"https://orgmode.org/org-mode-unicorn.ico\" type=\"image/x-icon\" />"
@@ -201,7 +201,7 @@
 ;;   elsewhere you wander for.
 ;;
 ;;
-;;;; Interaction 
+;;;; Interaction
 ;;
 ;; #+attr_org: :width 400px
 ;; #+attr_html: :width 800px
@@ -213,7 +213,8 @@
 
 ;;;; variable declaration
 (defgroup entropy/org-exp-theme-toggle nil
-  "Group for entropy-org-export-theme-toggle feature. ")
+  "Group for entropy-org-export-theme-toggle feature."
+  :group 'extensions)
 
 ;;;;; html export variable
 (defcustom entropy/org-exptt-html-theme-plist '()
@@ -227,7 +228,7 @@
     (make-directory "~/.org-themes")
     "~/.org-themes")
   "Local org html theme url retrieving cached dir"
-  :type 'string
+  :type 'directory
   :group 'entropy/org-exp-theme-toggle)
 
 ;;;;; external var required
@@ -258,7 +259,7 @@ THEME-PLIST."
          (head-list (append css js mischellaneous))
          (head-string nil))
     (dolist (el head-list)
-      (cond 
+      (cond
        ((not head-string)
         (setq head-string el))
        (t
@@ -350,14 +351,14 @@ See also function `entropy/org-exptth-theme-urls-combine-cache'."
                  (add-to-list 'css-snippets (list :url (match-string 1 el)))
                (add-to-list 'css-snippets (list :content el))))
            (setq css-snippets (reverse css-snippets))
-           
+
            (when (yes-or-no-p "Embedded js part? ")
              (dolist (el js)
                (if (string-match "src=\"\\(.*?\\)\"" el)
                    (add-to-list 'js-snippets (list :url (match-string 1 el)))
                  (add-to-list 'js-snippets (list :content el))))
              (setq js-snippets (reverse js-snippets)))
-           
+
            (setq css-cache (entropy/org-exptth-theme-urls-combine-cache css-snippets 'css)
                  js-cache
                  (when js-snippets

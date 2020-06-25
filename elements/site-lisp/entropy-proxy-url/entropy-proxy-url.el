@@ -202,7 +202,8 @@
 ;;;; variable declare
 ;;;;; customized var
 (defgroup entropy/proxy-url-group nil
-  "group of `entropy-proxy-url'")
+  "group of `entropy-proxy-url'"
+  :group 'extensions)
 
 (defcustom entropy/proxy-url-force-require-w3m t
   "Force require w3m without any compability check."

@@ -235,7 +235,7 @@
 ;;;; defcustom
 (defgroup entropy/shellpop-customized-group nil
   "entropy-shellpop customized variable group."
-  :group 'convenience)
+  :group 'extensions)
 
 (defcustom entropy/shellpop-eshell-popup-key
   (lambda (func) (global-set-key (kbd "<f9>") func))

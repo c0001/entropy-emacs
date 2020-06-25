@@ -9,21 +9,21 @@
 ;; Created:       2018
 ;; Compatibility: GNU Emacs 25;
 ;; Package-Requires: ((emacs "25") (cl-lib "0.5") (entropy-common-library "0.1.0"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 ;;
 ;; [[https://portableapps.com/][Portableapps]] platform gives dozen of portale applications those for
@@ -31,12 +31,12 @@
 ;; was the simple portableapps management both of query and open frontend
 ;; interface written by emacs lisp.
 ;;
-;;;; Requirements 
+;;;; Requirements
 ;;
 ;; Depended on =entropy-common-library= as various other entropy emacs
 ;; extensions.
 ;;
-;;;; Installation 
+;;;; Installation
 ;;
 ;; The =use-package= configuration form:
 ;;
@@ -115,20 +115,30 @@
 ;; directory.
 ;;
 ;; Another one was =entropy/poapps-exclude-list= to give the treatment
-;; for some no need binaries. 
+;; for some no need binaries.
 ;;
-;; 
+;;
 ;;; Code:
 
 (require 'entropy-common-library)
 
-(defvar entropy/poapps-root nil
-  "Portableapps folder root dir using for `entropy-portableapps'
-  package.")
+(defgroup entropy-portableapps-group nil
+  "Customized group for `entropy-portableapps'"
+  :group 'extensions)
 
-(defvar entropy/poapps-exclude-list nil
+(defcustom entropy/poapps-root nil
+  "Portableapps folder root dir using for `entropy-portableapps'
+package."
+  :type '(choice directory
+                 (const nil))
+  :group 'entropy-portableapps-group)
+
+(defcustom entropy/poapps-exclude-list nil
   "List of apps' name that would be used with
-  `entropy/poapps-query-open'")
+`entropy/poapps-query-open'"
+  :type '(choice (repeat (string :tag "AppName"))
+                 (const nil))
+  :group 'entropy-portableapps-group)
 
 (defun entropy/poapps-list-apps ()
   "List portable apps under folder `entropy/poapps-root'."

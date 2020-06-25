@@ -1,4 +1,4 @@
-;;; entropy-prjm.el ---  The integrated package for entropy project management subs 
+;;; entropy-prjm.el ---  The integrated package for entropy project management subs
 ;;
 ;;; Copyright (C) 20190511  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -7,7 +7,7 @@
 ;; URL:           https://github.com/c0001/entropy-project-manager/blob/master/entropy-prjm.el
 ;; Package-Version: v0.1.0
 ;; Package-Requires: ((entropy-common-library "0.1.0") (ivy "0.12.0"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -45,7 +45,7 @@
 ;; - sqlite: =entropy-prjm-sqlite.el=
 ;;
 ;;; Configuration:
-;; 
+;;
 ;; Following below simple config snippet:
 ;; #+BEGIN_SRC elisp
 ;;   ;; for traditionally config type
@@ -65,8 +65,8 @@
 ;;
 ;; For now just support 'sqlite3' database communicatiion backends,
 ;; you can using =M-x entropy/prjm-sqlite-create-databse= for create
-;; new database if you have none. 
-;; 
+;; new database if you have none.
+;;
 ;;; Code:
 
 
@@ -80,6 +80,9 @@
 (require 'entropy-prjm-sqlite)
 (require 'entropy-prjm-interaction)
 
+(defgroup entropy-prjm-group nil
+  "Top customized group for `entropy-prjm'."
+  :group 'extensions)
 
 ;;;; dbcc
 (setq entropy/prjm-dbcc-operation-alist
