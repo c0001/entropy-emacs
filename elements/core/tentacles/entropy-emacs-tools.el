@@ -177,47 +177,62 @@ Version 2017-12-23"
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
   (interactive)
-  (cond
-   (sys/win32p
-    ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
-    (let* (($path-o (if (string-match-p "^~/" default-directory)
-                        (replace-regexp-in-string
-                         "^~"
-                         (expand-file-name "~")
-                         default-directory)
-                      default-directory))
-           ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
-           ($path (concat "\"" $path-backslash "\"")))
-      (if entropy/emacs-wsl-terminal-enable
-          (if (string-match-p "msys2_shell" entropy/emacs-wsl-terminal)
-              ;; using msys2 mintty
-              (w32-shell-execute
-               "open"
-               entropy/emacs-wsl-terminal
-               (concat
-                (completing-read "Choosing shell type: "
-                                 '("-mingw32"
-                                   "-mingw64"
-                                   "-msys2")
-                                 nil t)
-                " -where "
-                $path))
-            ;; using git-for-windows terminal
-            (w32-shell-execute "open" entropy/emacs-wsl-terminal))
+  (let ((default-directory
+          (expand-file-name default-directory)))
+    (cond
+     (sys/win32p
+      ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
+      (let* (($path-o (if (string-match-p "^~/" default-directory)
+                          (replace-regexp-in-string
+                           "^~"
+                           (expand-file-name "~")
+                           default-directory)
+                        default-directory))
+             ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
+             ($path (concat "\"" $path-backslash "\"")))
+        (if entropy/emacs-wsl-terminal-enable
+            (if (string-match-p "msys2_shell" entropy/emacs-wsl-terminal)
+                ;; using msys2 mintty
+                (w32-shell-execute
+                 "open"
+                 entropy/emacs-wsl-terminal
+                 (concat
+                  (completing-read "Choosing shell type: "
+                                   '("-mingw32"
+                                     "-mingw64"
+                                     "-msys2")
+                                   nil t)
+                  " -where "
+                  $path))
+              ;; using git-for-windows terminal
+              (w32-shell-execute "open" entropy/emacs-wsl-terminal))
 
-        ;; using cmd
-        (w32-shell-execute "open" "cmd" $path))))
+          ;; using cmd
+          (w32-shell-execute "open" "cmd" $path))))
 
-   (sys/is-mac-and-graphic-support-p
-    (let ((process-connection-type nil))
-      (start-process
-       "" nil
-       "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
-       default-directory)))
+     (sys/is-mac-and-graphic-support-p
+      (let ((process-connection-type nil))
+        (start-process
+         "" nil
+         "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
+         default-directory)))
 
-   (sys/is-linux-and-graphic-support-p
-    (let ((process-connection-type nil))
-      (start-process "" nil "gnome-terminal" default-directory)))))
+     (sys/is-linux-and-graphic-support-p
+      (let ((process-connection-type nil)
+            (exec-and-arg
+             (or
+              (and (executable-find "kitty")
+                   `("kitty" "-d" ,default-directory))
+              (and (executable-find "alacritty")
+                   `("alacritty" "--working-directory" ,default-directory))
+              (and (executable-find "gnome-terminal")
+                   `("gnome-terminal" ,default-directory))
+              (and (executable-find "konsole")
+                   `("konsole ")))))
+        (unless exec-and-arg
+          (error "Can not find proper terminal emulator on your system."))
+        (apply 'start-process "" nil
+               exec-and-arg))))))
 
 (when sys/win32p
   (defun entropy/emacs-tools-cmd()
