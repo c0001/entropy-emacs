@@ -539,6 +539,47 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 ;; *** Image-mode
 (use-package image-mode
   :ensure nil
+  :eemacs-mmphc
+  (((:enable t)
+    (nil
+     nil
+     t
+     ((1 :width-desc "Navigation")
+      (1 :width-desc "Resize")
+      (1 :width-desc "Animation"))))
+   ("Navigation"
+    (("gn" image-next-file "Visit the next image in the same directory"
+      :enable t :map-inject t :exit t)
+     ("gN" image-previous-file "Visit the preceding image in the same directory"
+      :enable t :map-inject t :exit t))
+
+    "Resize"
+    (("t+" image-increase-size "Increase the image size by a factor of N."
+      :enable t :map-inject t :exit t)
+     ("t-" image-decrease-size "Decrease the image size by a factor of N."
+      :enable t :map-inject t :exit t)
+     ("tf" image-mode-fit-frame "Fit FRAME to the current image."
+      :enable t :map-inject t :exit t)
+     ("tr" image-transform-reset "Display the current image with the default size and rotation."
+      :enable t :map-inject t :exit t)
+     ("th" image-transform-fit-to-height "Fit the current image to the height of the current window."
+      :enable t :map-inject t :exit t)
+     ("tw" image-transform-fit-to-width "Fit the current image to the width of the current window."
+      :enable t :map-inject t :exit t)
+     ("ts" image-transform-set-scale "Prompt for a number, and resize the current image by that amount."
+      :enable t :map-inject t :exit t))
+
+    "Animation"
+    (("aa" image-toggle-animation "Start or stop animating the current image."
+      :enable t :map-inject t :exit t)
+     ("a+" image-increase-speed "Increase the speed of current animated image by a factor of 2."
+      :enable t :map-inject t :exit t)
+     ("a-" image-decrease-speed "Decrease the speed of current animated image by a factor of 2."
+      :enable t :map-inject t :exit t)
+     ("ar" image-reset-speed "Reset the animation speed of the current image."
+      :enable t :map-inject t :exit t))
+    ))
+
   :config
   (defun entropy/emacs-basic-image-gif-warn (&optional args)
     "Warn that gif animation by large gif file will freeze
