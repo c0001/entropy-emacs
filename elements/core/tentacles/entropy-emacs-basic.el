@@ -534,7 +534,31 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
       :enable t :map-inject t :exit t)
      ("<backtab>" dired-subtree-cycle
       "Org-mode like cycle visibilitya"
-      :enable t :map-inject t :exit t)))))
+      :enable t :map-inject t :exit t))))
+  :config
+  ;; FIXME:
+  ;;
+  ;; 1. Performance issue e.g. when the subtree too-long that the icon
+  ;;    refresh will lag emacs, we must find a way to restrict all the
+  ;;    icons refresh region limitted to the subtree block.
+  ;;
+  ;; 2. Subtree dir icon was wrong which using unkown file type.
+  (defun entropy/emacs-basic--dired-subtree-patch-1
+      (orig-func &rest orig-args)
+    "Reload `all-the-icons-dired-mode' after toggled subtree
+entries for fix some compatible problems."
+    (let ((use-icon (bound-and-true-p all-the-icons-dired-mode))
+          rtn)
+      (when use-icon
+        (all-the-icons-dired-mode 0))
+      (setq rtn (apply orig-func orig-args))
+      (when use-icon
+        (all-the-icons-dired-mode 1))
+      rtn))
+  (advice-add
+   'dired-subtree-toggle
+   :around
+   #'entropy/emacs-basic--dired-subtree-patch-1))
 
 ;; *** Image-mode
 (use-package image-mode
