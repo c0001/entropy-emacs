@@ -164,9 +164,9 @@
   ;; -----Quit window patch-----
   ;;
   ;;EEMACS_MAINTENANCE: Find a the core principle why this bug happen
-  ;; and rebuild this patch.
-  (require 'winner)
-  (winner-mode 1)
+  ;; and rebuild this patch. (mainly caused by the permanently side
+  ;; window existing status like treemacs or neotree did).
+
   (defun entropy/emacs-textwww--w3m-quit-window (orig-func &rest orig-args)
     "Quit w3m window use `winner-undo' (if available) when the
 internal methods are fatal as. This is used to fix the \"no
