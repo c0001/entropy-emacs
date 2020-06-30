@@ -1026,6 +1026,13 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
   :type 'directory
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
+(add-hook 'after-init-hook
+          ;; Pre checking the exists status of thus for preventing yas
+          ;; error prompt from yas loading case.
+          #'(lambda ()
+              (unless (file-directory-p entropy/emacs-yas-dir)
+                (mkdir entropy/emacs-yas-dir t))))
+
 ;; **** company mode config
 (defgroup entropy/emacs-customize-group-for-company-mode nil
   "Eemacs company-mode configuration customizable group."
