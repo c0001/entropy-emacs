@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-05-23 Sat 20:44 -->
+<!-- 2020-07-11 Sat 08:34 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>entropy emacs introduction</title>
@@ -1221,7 +1221,7 @@ img
 <p><img src="../annex/img/logo.png" alt="logo.png" width="300px" />
 </p>
 </div>
-<div id="outline-container-orgbccb294" class="outline-2">
+<div id="outline-container-org39acc47" class="outline-2">
 <h2 id="h-622e3623-f12f-46cd-95bd-925940a5e3e7"><span class="section-number-2">1</span> Preface</h2>
 <div class="outline-text-2" id="text-h-622e3623-f12f-46cd-95bd-925940a5e3e7">
 <p>
@@ -1246,7 +1246,7 @@ emacs. Along the way, I came for built it with thus on.
 </div>
 </div>
 
-<div id="outline-container-orga9922a8" class="outline-2">
+<div id="outline-container-org046860e" class="outline-2">
 <h2 id="h-99a2e999-07fd-4b3a-9528-21425fe3f86c"><span class="section-number-2">2</span> Repo folder struct</h2>
 <div class="outline-text-2" id="text-h-99a2e999-07fd-4b3a-9528-21425fe3f86c">
 <p>
@@ -1292,7 +1292,7 @@ permitted.
 </div>
 </div>
 
-<div id="outline-container-orgab7d541" class="outline-2">
+<div id="outline-container-orgb280a0b" class="outline-2">
 <h2 id="h-badd8396-e6da-45a3-8176-901a5110f898"><span class="section-number-2">3</span> Main config files</h2>
 <div class="outline-text-2" id="text-h-badd8396-e6da-45a3-8176-901a5110f898">
 <p>
@@ -1718,7 +1718,7 @@ description:
 </div>
 
 
-<div id="outline-container-org8595084" class="outline-2">
+<div id="outline-container-org565d998" class="outline-2">
 <h2 id="h-e2a984e4-c4e3-401a-afcb-7bb09be92512"><span class="section-number-2">4</span> Self built packages</h2>
 <div class="outline-text-2" id="text-h-e2a984e4-c4e3-401a-afcb-7bb09be92512">
 <p>
@@ -1776,11 +1776,6 @@ Now, I built serveral packages shown as below table:
 <tr>
 <td class="org-left">entropy-project-manager</td>
 <td class="org-left">simple project managements system</td>
-</tr>
-
-<tr>
-<td class="org-left">entropy-counsel-stuffs</td>
-<td class="org-left">stuffs managemetns as notes, bookmarks recording or modifying chain</td>
 </tr>
 
 <tr>
@@ -1847,7 +1842,7 @@ Now, I built serveral packages shown as below table:
 </div>
 </div>
 
-<div id="outline-container-org8e3198f" class="outline-2">
+<div id="outline-container-org5632fe1" class="outline-2">
 <h2 id="h-529128fc-775c-4067-86b3-f783e7c26fe1"><span class="section-number-2">5</span> Eemacs top-key map</h2>
 <div class="outline-text-2" id="text-h-529128fc-775c-4067-86b3-f783e7c26fe1">
 <p>
@@ -1867,7 +1862,7 @@ hint <code>entropy/emacs-top-key</code> , that example <code>[eprefix] w</code> 
 </div>
 </div>
 
-<div id="outline-container-org58a2f0f" class="outline-2">
+<div id="outline-container-orgbaba5fb" class="outline-2">
 <h2 id="h-71c58a60-0826-4dc5-914e-fcb7ba183884"><span class="section-number-2">6</span> Eemacs hdyra hollow</h2>
 <div class="outline-text-2" id="text-h-71c58a60-0826-4dc5-914e-fcb7ba183884">
 <p>
@@ -2031,7 +2026,7 @@ heads, that say this keybinding is injected into current
 </div>
 </div>
 
-<div id="outline-container-org411be66" class="outline-2">
+<div id="outline-container-org45328ed" class="outline-2">
 <h2 id="h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737"><span class="section-number-2">7</span> Custom <code>entropy-emacs</code></h2>
 <div class="outline-text-2" id="text-h-14aff6b0-41e5-4d32-a86d-43d4f0bb4737">
 <p>
@@ -2059,7 +2054,7 @@ as custom file for convenience.
 </div>
 </div>
 
-<div id="outline-container-org455d711" class="outline-2">
+<div id="outline-container-org1b5421b" class="outline-2">
 <h2 id="h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5"><span class="section-number-2">8</span> Hacking for <code>entropy-emacs</code></h2>
 <div class="outline-text-2" id="text-h-b1f9c62b-ddd7-40a3-92cb-a398de5aa2c5">
 <p>
@@ -2088,9 +2083,9 @@ stored the extern config files load function to it, i.e. some thing
 like below:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #579C4C;">;; </span><span style="color: #579C4C;">load "my_entropy-emacs_extern.el" after loading "custom.el" .</span>
-(<span style="color: #339CDB;">let</span> ((file (file-exists-p <span style="color: #DB8E73;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
-  (<span style="color: #339CDB;">when</span> (file-exists-p file)
+<pre class="src src-emacs-lisp"><span style="color: #008787; background-color: #262626;">;; </span><span style="color: #008787; background-color: #262626;">load "my_entropy-emacs_extern.el" after loading "custom.el" .</span>
+(<span style="color: #268bd2; font-weight: bold;">let</span> ((file (file-exists-p <span style="color: #2aa198;">"/xxx/xxxx/.../my_entropy-emacs_extern.el"</span>)))
+  (<span style="color: #268bd2; font-weight: bold;">when</span> (file-exists-p file)
     (load-file file)))
 </pre>
 </div>
@@ -2109,7 +2104,7 @@ secondary <code>init.el</code> or the secodary emacs config repo main thing.
 </div>
 </div>
 
-<div id="outline-container-orgf03a7c0" class="outline-2">
+<div id="outline-container-org75c2592" class="outline-2">
 <h2 id="h-c6193e3f-dade-485f-a82e-e12aa35543cc"><span class="section-number-2">9</span> Config feature specifiction introduction</h2>
 <div class="outline-text-2" id="text-h-c6193e3f-dade-485f-a82e-e12aa35543cc">
 <p>
@@ -2149,7 +2144,7 @@ sensing, happy hacking with <code>entropy-emacs</code>.
 </p>
 </div>
 
-<div id="outline-container-org0caede3" class="outline-3">
+<div id="outline-container-orgc41044b" class="outline-3">
 <h3 id="h-50f1e907-51ea-4e62-841b-2f7addb4c1d8"><span class="section-number-3">9.1</span> Internal basic setting specific</h3>
 <div class="outline-text-3" id="text-h-50f1e907-51ea-4e62-841b-2f7addb4c1d8">
 <p>
@@ -2177,7 +2172,7 @@ and was necessary be the part of core of this.
 </p>
 </div>
 
-<div id="outline-container-orgc3329ef" class="outline-4">
+<div id="outline-container-org72b7991" class="outline-4">
 <h4 id="h-cba6d0f3-2f63-4c83-990d-55b8a38e5104"><span class="section-number-4">9.1.1</span> Windows configuration and workspace defination</h4>
 <div class="outline-text-4" id="text-h-cba6d0f3-2f63-4c83-990d-55b8a38e5104">
 <p>
@@ -2212,7 +2207,7 @@ different windows was called window toggle.
 </p>
 </div>
 
-<div id="outline-container-orgaf2f43c" class="outline-5">
+<div id="outline-container-org8df13ef" class="outline-5">
 <h5 id="h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb"><span class="section-number-5">9.1.1.1</span> Eyebrowse</h5>
 <div class="outline-text-5" id="text-h-cb219a9b-12d6-4c3d-aa25-1db95537b1eb">
 <p>
@@ -2449,7 +2444,7 @@ less is more
 </div>
 </div>
 
-<div id="outline-container-orgb4d85b9" class="outline-5">
+<div id="outline-container-orgd32f243" class="outline-5">
 <h5 id="h-355d7f4b-95d4-49fe-bee3-63274a0a57b1"><span class="section-number-5">9.1.1.2</span> Buffer or Window switching</h5>
 <div class="outline-text-5" id="text-h-355d7f4b-95d4-49fe-bee3-63274a0a57b1">
 <p>
@@ -2584,7 +2579,7 @@ respectively.
 </div>
 </div>
 
-<div id="outline-container-org30e98dd" class="outline-4">
+<div id="outline-container-org50d80ba" class="outline-4">
 <h4 id="h-6d3f57a8-9eda-4ae2-bcae-e1707cd66434"><span class="section-number-4">9.1.2</span> Modeline themes toggle</h4>
 <div class="outline-text-4" id="text-h-6d3f57a8-9eda-4ae2-bcae-e1707cd66434">
 <p>
@@ -2642,10 +2637,10 @@ can set the custom-variable <code>entropy/emacs-modeline-style</code> with the
 tag symbole shown from above table:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #579C4C;">;; </span><span style="color: #579C4C;">demo modeline setting code snippets of entropy-emacs</span>
-(<span style="color: #339CDB;">setq</span> entropy/emacs-modeline-style 'powerline)
-(<span style="color: #339CDB;">setq</span> entropy/emacs-modeline-style 'spaceline)
-<span style="color: #579C4C;">;; </span><span style="color: #579C4C;">.... and so on</span>
+<pre class="src src-emacs-lisp"><span style="color: #008787; background-color: #262626;">;; </span><span style="color: #008787; background-color: #262626;">demo modeline setting code snippets of entropy-emacs</span>
+(<span style="color: #268bd2; font-weight: bold;">setq</span> entropy/emacs-modeline-style 'powerline)
+(<span style="color: #268bd2; font-weight: bold;">setq</span> entropy/emacs-modeline-style 'spaceline)
+<span style="color: #008787; background-color: #262626;">;; </span><span style="color: #008787; background-color: #262626;">.... and so on</span>
 </pre>
 </div>
 
@@ -2700,7 +2695,7 @@ Defaulty, we use <a href="https://github.com/seagle0128/doom-modeline">doom-mode
 </div>
 </div>
 
-<div id="outline-container-orga214229" class="outline-4">
+<div id="outline-container-org3f1192c" class="outline-4">
 <h4 id="h-85139937-9a4e-4f3b-b951-181051b2d454"><span class="section-number-4">9.1.3</span> Chinse input method</h4>
 <div class="outline-text-4" id="text-h-85139937-9a4e-4f3b-b951-181051b2d454">
 <p>
@@ -2808,7 +2803,7 @@ version below 26.1 and the oppsite using 'posframe'.
 
 <ul class="org-ul">
 <li><p>
-<b>Pyim dicts:</b> <a id="orga4ff3c0"></a>
+<b>Pyim dicts:</b> <a id="org16661e5"></a>
 </p>
 
 <p>
@@ -2888,7 +2883,7 @@ emacs startup finished i.e. <code>entropy/emacs-enable-pyim</code>, you can
 active it in your <code>custom.el</code> file, then the next time you start up
 or open new session of emacs , pyim will automatically startup using
 the default dicts specific by <code>entropy-emacs</code> as introduction form
-<a href="#orga4ff3c0">pyim dicts section</a>, or if you want to enable dicts specified by
+<a href="#org16661e5">pyim dicts section</a>, or if you want to enable dicts specified by
 yourself, you can setting up custom-variable
 <code>entropy/emacs-pyim-dicts</code>, the variable information and value
 format can be shown by touching <code>C-h v entropy/emacs-pyim-dicts
@@ -2954,7 +2949,7 @@ table in org mode.
 </div>
 </div>
 
-<div id="outline-container-orgb8cda1e" class="outline-4">
+<div id="outline-container-org3da7725" class="outline-4">
 <h4 id="h-7783929d-6dbd-4e40-bc32-f7d1247be222"><span class="section-number-4">9.1.4</span> Globally readonly mode</h4>
 <div class="outline-text-4" id="text-h-7783929d-6dbd-4e40-bc32-f7d1247be222">
 <p>
@@ -3023,8 +3018,8 @@ You will enable it do with filling follow elisp codes snippet into
 custom file:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #339CDB;">setq</span> entropy/grom-enable t)
-(<span style="color: #339CDB;">setq</span> entropy/grom-readonly-type <span style="color: #DB8E73;">"all"</span>)
+<pre class="src src-emacs-lisp">(<span style="color: #268bd2; font-weight: bold;">setq</span> entropy/grom-enable t)
+(<span style="color: #268bd2; font-weight: bold;">setq</span> entropy/grom-readonly-type <span style="color: #2aa198;">"all"</span>)
 </pre>
 </div>
 
@@ -3037,12 +3032,12 @@ was regexp string matched before <code>find-file</code> opens file.  Til now thi
 list shown as blow:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">'(<span style="color: #DB8E73;">"autoloads\\.el"</span>
-  <span style="color: #DB8E73;">"\\*Compile-.*\\*"</span>
-  <span style="color: #DB8E73;">"loaddefs\\.el"</span>
-  <span style="color: #DB8E73;">"COMMIT_EDITMSG"</span>
-  <span style="color: #DB8E73;">"_archive"</span>
-  <span style="color: #DB8E73;">"^ *\\*.*?\\* *$"</span>)
+<pre class="src src-emacs-lisp">'(<span style="color: #2aa198;">"autoloads\\.el"</span>
+  <span style="color: #2aa198;">"\\*Compile-.*\\*"</span>
+  <span style="color: #2aa198;">"loaddefs\\.el"</span>
+  <span style="color: #2aa198;">"COMMIT_EDITMSG"</span>
+  <span style="color: #2aa198;">"_archive"</span>
+  <span style="color: #2aa198;">"^ *\\*.*?\\* *$"</span>)
 </pre>
 </div>
 
@@ -3112,7 +3107,7 @@ gloal-readonly-mode again.
 </div>
 </div>
 
-<div id="outline-container-org284eb4a" class="outline-4">
+<div id="outline-container-org024cdc8" class="outline-4">
 <h4 id="h-2263f98f-eba0-4248-8dcd-03928af7978c"><span class="section-number-4">9.1.5</span> Org-mode</h4>
 <div class="outline-text-4" id="text-h-2263f98f-eba0-4248-8dcd-03928af7978c">
 <p>
@@ -3188,7 +3183,7 @@ Bullets shown style was the minor fancy setup, choosing the taste as
 your way. follow config codes snippet for doing thus:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #339CDB;">setq</span> entropy/emacs-org-bullets-type <span style="color: #DB8E73;">"roman"</span>) <span style="color: #579C4C;">; </span><span style="color: #579C4C;">or with "circle numberic"</span>
+<pre class="src src-emacs-lisp">(<span style="color: #268bd2; font-weight: bold;">setq</span> entropy/emacs-org-bullets-type <span style="color: #2aa198;">"roman"</span>) <span style="color: #008787; background-color: #262626;">; </span><span style="color: #008787; background-color: #262626;">or with "circle numberic"</span>
 </pre>
 </div></li>
 
@@ -3215,9 +3210,9 @@ place follow codes snippet into your custom file"
 </p>
 
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #339CDB;">setq</span> entropy/emacs-disable-org-heading-scale nil)
+<pre class="src src-emacs-lisp">(<span style="color: #268bd2; font-weight: bold;">setq</span> entropy/emacs-disable-org-heading-scale nil)
 
-<span style="color: #579C4C;">;; </span><span style="color: #579C4C;">Reload major-mode for current to trigger the hook</span>
+<span style="color: #008787; background-color: #262626;">;; </span><span style="color: #008787; background-color: #262626;">Reload major-mode for current to trigger the hook</span>
 (funcall major-mode)
 </pre>
 </div></li>
@@ -3500,9 +3495,9 @@ point:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #339CDB;">defun</span> <span style="color: #D9DAA2;">custom-org-download-method</span> (link)
+<pre class="src src-emacs-lisp">(<span style="color: #268bd2; font-weight: bold;">defun</span> <span style="color: #d75fd7; font-weight: bold;">custom-org-download-method</span> (link)
         (org-download--fullname (org-link-unescape link)))
-(<span style="color: #339CDB;">setq</span> org-download-method 'custom-org-download-method)
+(<span style="color: #268bd2; font-weight: bold;">setq</span> org-download-method 'custom-org-download-method)
 </pre>
 </div>
 
@@ -3575,20 +3570,20 @@ not working on the temporally buffer, the whole relative link
 path return snippet process will not worked as well yet:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #339CDB;">defun</span> <span style="color: #D9DAA2;">org-download-insert-link</span> (link filename)
-  (<span style="color: #339CDB;">if</span> (looking-back <span style="color: #DB8E73;">"^[ \t]+"</span> (line-beginning-position))
+<pre class="src src-emacs-lisp">(<span style="color: #268bd2; font-weight: bold;">defun</span> <span style="color: #d75fd7; font-weight: bold;">org-download-insert-link</span> (link filename)
+  (<span style="color: #268bd2; font-weight: bold;">if</span> (looking-back <span style="color: #2aa198;">"^[ \t]+"</span> (line-beginning-position))
       (delete-region (match-beginning 0) (match-end 0))
     (newline))
   (insert
    (concat
     (funcall org-download-annotate-function link)
-    <span style="color: #DB8E73;">"\n"</span>
-    (<span style="color: #339CDB;">if</span> (= org-download-image-html-width 0)
-        <span style="color: #DB8E73;">""</span>
-      (format <span style="color: #DB8E73;">"#+attr_html: :width %dpx\n"</span> org-download-image-html-width))
-    (<span style="color: #339CDB;">if</span> (= org-download-image-latex-width 0)
-        <span style="color: #DB8E73;">""</span>
-      (format <span style="color: #DB8E73;">"#+attr_latex: :width %dcm\n"</span> org-download-image-latex-width))
+    <span style="color: #2aa198;">"\n"</span>
+    (<span style="color: #268bd2; font-weight: bold;">if</span> (= org-download-image-html-width 0)
+        <span style="color: #2aa198;">""</span>
+      (format <span style="color: #2aa198;">"#+attr_html: :width %dpx\n"</span> org-download-image-html-width))
+    (<span style="color: #268bd2; font-weight: bold;">if</span> (= org-download-image-latex-width 0)
+        <span style="color: #2aa198;">""</span>
+      (format <span style="color: #2aa198;">"#+attr_latex: :width %dcm\n"</span> org-download-image-latex-width))
     (format org-download-link-format (file-relative-name filename (file-name-directory (buffer-name))))))
   (org-display-inline-images))
 </pre>
@@ -3701,7 +3696,7 @@ comment flags by keybinding <code>C-c "</code>.
 </div>
 </div>
 
-<div id="outline-container-org3cf460b" class="outline-4">
+<div id="outline-container-org6f60ba7" class="outline-4">
 <h4 id="h-dd1be778-45a9-451c-938c-e325bfe7ed1d"><span class="section-number-4">9.1.6</span> Miscellaneous emacs internal setting</h4>
 <div class="outline-text-4" id="text-h-dd1be778-45a9-451c-938c-e325bfe7ed1d">
 <p>
@@ -3857,7 +3852,7 @@ with yanking choosing functional.
 </div>
 </div>
 
-<div id="outline-container-orgdda570d" class="outline-4">
+<div id="outline-container-org03619db" class="outline-4">
 <h4 id="h-9246b459-6586-4464-b978-e8eba56658a6"><span class="section-number-4">9.1.7</span> Font specific</h4>
 <div class="outline-text-4" id="text-h-9246b459-6586-4464-b978-e8eba56658a6">
 <p>
@@ -3886,7 +3881,7 @@ representing thus patch, variable <code>entropy/emacs-font-setting-enable</code>
 </div>
 </div>
 
-<div id="outline-container-orgd3e389d" class="outline-3">
+<div id="outline-container-orga3320f0" class="outline-3">
 <h3 id="h-8002552d-95c4-4252-812b-e4909f055882"><span class="section-number-3">9.2</span> Major modes for programming</h3>
 <div class="outline-text-3" id="text-h-8002552d-95c4-4252-812b-e4909f055882">
 <p>
@@ -3934,7 +3929,7 @@ been enhanced the extending feature details.
 </p>
 </div>
 
-<div id="outline-container-org3431fae" class="outline-4">
+<div id="outline-container-org2f49d36" class="outline-4">
 <h4 id="h-686dc5e1-06c9-4681-9f7f-b7f0e130d900"><span class="section-number-4">9.2.1</span> C and C++</h4>
 <div class="outline-text-4" id="text-h-686dc5e1-06c9-4681-9f7f-b7f0e130d900">
 <p>
@@ -4019,7 +4014,7 @@ arm or other cpu platform can not using the same binary.)
 </div>
 </div>
 
-<div id="outline-container-org0fc9753" class="outline-4">
+<div id="outline-container-orgbc3b269" class="outline-4">
 <h4 id="h-660173e6-8597-435a-ab32-82a327fdfc6a"><span class="section-number-4">9.2.2</span> Php</h4>
 <div class="outline-text-4" id="text-h-660173e6-8597-435a-ab32-82a327fdfc6a">
 <p>
@@ -4089,7 +4084,7 @@ for giving thus. Binding with <code>M-p</code> for activation.
 </div>
 
 
-<div id="outline-container-orgb7df721" class="outline-4">
+<div id="outline-container-org4fee660" class="outline-4">
 <h4 id="h-90e8b37b-f8ef-41db-92fb-df349125f5da"><span class="section-number-4">9.2.3</span> Html and Css</h4>
 <div class="outline-text-4" id="text-h-90e8b37b-f8ef-41db-92fb-df349125f5da">
 <p>
@@ -4171,7 +4166,7 @@ when use ide type of LSP for those major-modes.
 </div>
 </div>
 
-<div id="outline-container-orgfd3112e" class="outline-4">
+<div id="outline-container-org3ae391d" class="outline-4">
 <h4 id="h-c913cd4b-1228-4981-86ac-e6a4ddee5564"><span class="section-number-4">9.2.4</span> Javascript</h4>
 <div class="outline-text-4" id="text-h-c913cd4b-1228-4981-86ac-e6a4ddee5564">
 <p>
@@ -4225,7 +4220,7 @@ mode.
 </div>
 </div>
 
-<div id="outline-container-orgcb070c1" class="outline-4">
+<div id="outline-container-orgc8b0fde" class="outline-4">
 <h4 id="h-6c7020ca-a20f-4536-a039-888650bf2849"><span class="section-number-4">9.2.5</span> Web front-end realtime previewer</h4>
 <div class="outline-text-4" id="text-h-6c7020ca-a20f-4536-a039-888650bf2849">
 <p>
@@ -4379,7 +4374,7 @@ html js all in one embedding file as for.
 </div>
 </div>
 
-<div id="outline-container-org777176e" class="outline-4">
+<div id="outline-container-org0497449" class="outline-4">
 <h4 id="h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c"><span class="section-number-4">9.2.6</span> Python</h4>
 <div class="outline-text-4" id="text-h-7e8a8310-b5e3-4a68-9ca9-34dfad26b34c">
 <p>
@@ -4440,11 +4435,11 @@ was the most recommendation for thus.
 </div>
 </div>
 
-<div id="outline-container-org1250516" class="outline-3">
+<div id="outline-container-orga1e30e6" class="outline-3">
 <h3 id="h-a628d8f1-df5e-4656-b779-24d53d0e37f1"><span class="section-number-3">9.3</span> Packages enhancements and introduction</h3>
 <div class="outline-text-3" id="text-h-a628d8f1-df5e-4656-b779-24d53d0e37f1">
 </div>
-<div id="outline-container-org5681a64" class="outline-4">
+<div id="outline-container-org8677648" class="outline-4">
 <h4 id="h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6"><span class="section-number-4">9.3.1</span> Ivy and Helm</h4>
 <div class="outline-text-4" id="text-h-7440e6e0-2ec1-4f33-9db0-38ef17a020f6">
 <p>
@@ -4611,8 +4606,8 @@ using the demo as <code>counsel-describe-face</code>:
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">(ivy-set-actions
  'counsel-describe-variable
- '((<span style="color: #DB8E73;">"I"</span> counsel-info-lookup-symbol <span style="color: #DB8E73;">"info"</span>)
-   (<span style="color: #DB8E73;">"d"</span> counsel--find-symbol <span style="color: #DB8E73;">"definition"</span>)))
+ '((<span style="color: #2aa198;">"I"</span> counsel-info-lookup-symbol <span style="color: #2aa198;">"info"</span>)
+   (<span style="color: #2aa198;">"d"</span> counsel--find-symbol <span style="color: #2aa198;">"definition"</span>)))
 </pre>
 </div></li>
 </ol></li>
@@ -4631,7 +4626,7 @@ binded to <code>C-c j</code>.
 
 
 
-<div id="outline-container-org935c9d2" class="outline-4">
+<div id="outline-container-orgf7cf026" class="outline-4">
 <h4 id="h-cfb1027d-8d50-4b33-be13-427d937130e3"><span class="section-number-4">9.3.2</span> Emacs-W3m</h4>
 <div class="outline-text-4" id="text-h-cfb1027d-8d50-4b33-be13-427d937130e3">
 <p>
@@ -4673,7 +4668,7 @@ And onekey for open it with <code>M-x w3m</code>. Go go go &#x2026;
 
 
 
-<div id="outline-container-orgfef3988" class="outline-4">
+<div id="outline-container-org447ca10" class="outline-4">
 <h4 id="h-58b8abfe-6b1f-401e-a673-43b5450678d3"><span class="section-number-4">9.3.3</span> Elfeed</h4>
 <div class="outline-text-4" id="text-h-58b8abfe-6b1f-401e-a673-43b5450678d3">
 <p>
@@ -4746,7 +4741,7 @@ All the feeds filter can be reset with short cut <code>S</code>.
 </div>
 </div>
 
-<div id="outline-container-org4e1d52a" class="outline-4">
+<div id="outline-container-org7897c49" class="outline-4">
 <h4 id="h-67b22622-81ed-4c2b-8f21-838b83e21769"><span class="section-number-4">9.3.4</span> Gnus</h4>
 <div class="outline-text-4" id="text-h-67b22622-81ed-4c2b-8f21-838b83e21769">
 <p>
@@ -4759,7 +4754,7 @@ details.
 </div>
 </div>
 
-<div id="outline-container-org0c078ab" class="outline-3">
+<div id="outline-container-org8b2768b" class="outline-3">
 <h3 id="h-098f1399-8e79-4027-88a6-395f80a528d4"><span class="section-number-3">9.4</span> Emacs on windows</h3>
 <div class="outline-text-3" id="text-h-098f1399-8e79-4027-88a6-395f80a528d4">
 <p>
@@ -4805,7 +4800,7 @@ for.
 </p>
 </div>
 
-<div id="outline-container-org3058660" class="outline-4">
+<div id="outline-container-org07db153" class="outline-4">
 <h4 id="h-e4748b27-6529-4913-a6cc-f9e13799f50e"><span class="section-number-4">9.4.1</span> Bash and unix tool chains for windows</h4>
 <div class="outline-text-4" id="text-h-e4748b27-6529-4913-a6cc-f9e13799f50e">
 <p>
@@ -4825,7 +4820,7 @@ the shell path detectived "PATH" obtained by <code>(getenv "PATH")</code> and th
 </div>
 </div>
 
-<div id="outline-container-orgb706117" class="outline-4">
+<div id="outline-container-orgbe8b44b" class="outline-4">
 <h4 id="h-cdbb7a64-c5fd-4ff2-b063-896397e74478"><span class="section-number-4">9.4.2</span> Portable emacs environment on windows</h4>
 <div class="outline-text-4" id="text-h-cdbb7a64-c5fd-4ff2-b063-896397e74478">
 <p>
@@ -4841,8 +4836,8 @@ those two variable to be the bridge to directed to the home path using
 the elisp code indicating:
 </p>
 <div class="org-src-container">
-<pre class="src src-emacs-lisp">(<span style="color: #339CDB;">defvar</span> <span style="color: #85DDFF;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #DB8E73;">"Msys2/"</span>))
-(setenv <span style="color: #DB8E73;">"HOME"</span> (expand-file-name (concat device-root <span style="color: #DB8E73;">"portable-HOME"</span>)))
+<pre class="src src-emacs-lisp">(<span style="color: #268bd2; font-weight: bold;">defvar</span> <span style="color: #8787d7;">device-root</span> (concat (substring invocation-directory 0 -11) <span style="color: #2aa198;">"Msys2/"</span>))
+(setenv <span style="color: #2aa198;">"HOME"</span> (expand-file-name (concat device-root <span style="color: #2aa198;">"portable-HOME"</span>)))
 </pre>
 </div>
 
@@ -4853,7 +4848,7 @@ setting.
 </div>
 </div>
 
-<div id="outline-container-orge343c40" class="outline-4">
+<div id="outline-container-orga1230e9" class="outline-4">
 <h4 id="h-d3f5382d-4bf9-4792-950c-217be00f0da6"><span class="section-number-4">9.4.3</span> Notice for key touching on windows</h4>
 <div class="outline-text-4" id="text-h-d3f5382d-4bf9-4792-950c-217be00f0da6">
 <p>
@@ -4878,7 +4873,7 @@ this by touching <code>win</code> key again.
 </div>
 </div>
 
-<div id="outline-container-orgb742a9d" class="outline-2">
+<div id="outline-container-orga670c4b" class="outline-2">
 <h2 id="h-3891c5d8-1486-407e-9d2c-0128d927b304"><span class="section-number-2">10</span> Docs refers</h2>
 <div class="outline-text-2" id="text-h-3891c5d8-1486-407e-9d2c-0128d927b304">
 </div>
@@ -4886,7 +4881,7 @@ this by touching <code>win</code> key again.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Entropy</p>
-<p class="date">Created: 2020-05-23 Sat 20:44</p>
+<p class="date">Created: 2020-07-11 Sat 08:34</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

@@ -398,8 +398,6 @@ Now, I built serveral packages shown as below table:
 @tab librarys for building other @samp{entropy-emacs} package
 @item entropy-project-manager
 @tab simple project managements system
-@item entropy-counsel-stuffs
-@tab stuffs managemetns as notes, bookmarks recording or modifying chain
 @item entropy-dired-cp-or-mv
 @tab dired copy or move files extension for enhancing based dired refer function
 @item entropy-epub2org

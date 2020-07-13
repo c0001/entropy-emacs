@@ -215,7 +215,6 @@ Now, I built serveral packages shown as below table:
 | entropy-sdcv                    | the emacs multi-dictionaries framework                                                            |
 | entropy-common-library          | librarys for building other =entropy-emacs= package                                               |
 | entropy-project-manager         | simple project managements system                                                                 |
-| entropy-counsel-stuffs          | stuffs managemetns as notes, bookmarks recording or modifying chain                               |
 | entropy-dired-cp-or-mv          | dired copy or move files extension for enhancing based dired refer function                       |
 | entropy-epub2org                | convert epub ebook into org-mode files format front-end                                           |
 | entropy-global-read-only-mode   | emacs globally readonly mode for forcing lock buffer while opening                                |
