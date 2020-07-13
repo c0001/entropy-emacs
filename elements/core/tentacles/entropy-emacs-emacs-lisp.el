@@ -168,6 +168,14 @@ For lisp coding aim, always return the transfered buffer.
             (eldoc-in-minibuffer-mode +1)
           (when (bound-and-true-p eldoc-in-minibuffer-mode) ;judge before did for reducing performance loosing
             (eldoc-in-minibuffer-mode -1))))))
+
+  (defun entropy/emacs-lisp-eldoc-eval-minibuffer-map-rejected-advice
+      (&rest _)
+    "Rebind \"C-@\" key injected by `eldoc-in-minibuffer-mode' to
+`minibuffer-local-map' to solve the conflict with
+`entropy/emacs-top-key' default value."
+    (define-key minibuffer-local-map (kbd "C-@") nil))
+
   :init
   ;; set large amount to mode line show time for preventing cut the
   ;; show state when noticed for long time, 100 sec was enough.
@@ -176,7 +184,12 @@ For lisp coding aim, always return the transfered buffer.
   (entropy/emacs-lazy-with-load-trail
    eldoc-minibuffer-show
    (add-hook 'window-configuration-change-hook
-             #'entropy/emacs-lisp-eldoc-minibuffer-mode-guard)))
+             #'entropy/emacs-lisp-eldoc-minibuffer-mode-guard)
+   (with-eval-after-load 'eldoc-eval
+     (advice-add 'eldoc-in-minibuffer-mode
+                 :after
+                 #'entropy/emacs-lisp-eldoc-eval-minibuffer-map-rejected-advice
+                 ))))
 
 ;; Interactive macro expander
 (use-package macrostep
