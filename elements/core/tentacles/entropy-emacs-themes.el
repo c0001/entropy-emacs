@@ -296,7 +296,7 @@ face attributes and some refer is missing in the new frame."
 for tui emacs session."
   (let ((theme theme))
     (unless (display-graphic-p)
-      (setq theme 'spacemacs-dark))
+      (setq theme 'doom-dark+))
     (load-theme theme no-confirm no-enable)))
 
 (entropy/emacs-lazy-with-load-trail
