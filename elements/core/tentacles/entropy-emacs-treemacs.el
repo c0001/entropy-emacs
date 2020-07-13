@@ -119,6 +119,17 @@ buffer) for some special hook."
                      (read-directory-name "Get project root: " nil nil t)))))
       ('none    (treemacs--init))))
 
+  (defun entropy/emacs-treemacs-open-with (&rest _)
+    "Open current node with external apps relying on
+`entropy/open-with-match-open'."
+    (interactive)
+    (let ((file-path
+           (treemacs-button-get (treemacs-current-button) :path)))
+      (unless (fboundp 'entropy/open-with-match-open)
+        (require 'entropy-open-with))
+      (entropy/open-with-match-open
+       (list file-path))))
+
 ;; *** eemacs-indhc
   :eemacs-indhc
   (((:enable t)
@@ -172,6 +183,8 @@ buffer) for some special hook."
     (("TAB" treemacs-TAB-action "dwim TAB"
       :enable t :map-inject t :exit t)
      ("RET" treemacs-RET-action "dwim RET"
+      :enable t :map-inject t :exit t)
+     ("M-RET" entropy/emacs-treemacs-open-with "open with external kits"
       :enable t :map-inject t :exit t)
      ("o o" treemacs-visit-node-no-split "open no split"
       :enable t :map-inject t :exit t)
