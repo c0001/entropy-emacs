@@ -167,7 +167,7 @@ Version 2017-12-23"
   (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
    'dired-mode '(dired dired-mode-map)
    '("Misc."
-     (("C-=" entropy/emacs-tools-show-in-desktop
+     (("M-=" entropy/emacs-tools-show-in-desktop
        "Show current file in desktaop"
        :enable t :exit t :map-inject t)))))
 

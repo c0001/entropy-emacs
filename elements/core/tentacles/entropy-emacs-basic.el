@@ -487,7 +487,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
       "Display the icons of files in a dired buffer."
       (all-the-icons-dired--remove-all-overlays)
       ;; NOTE: don't display icons it too many items
-      (if (<= (count-lines (point-min) (point-max)) 300)
+      (if (<= (count-lines (point-min) (point-max)) 50)
           (save-excursion
             ;; TRICK: Use TAB to align icons
             (setq-local tab-width 1)
@@ -516,7 +516,9 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
   :hook (dired-mode . dired-omit-mode)
   :config
   (setq dired-omit-size-limit nil)
-  (setq dired-omit-extensions nil))
+  (setq dired-omit-extensions nil)
+  ;; Just omit the current node point
+  (setq dired-omit-files "\\`[.][.]?\\'"))
 
 ;; **** dired-subtree
 ;; Org mode like dired subtree fold/expand
