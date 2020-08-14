@@ -1477,16 +1477,10 @@ NOTE: this is the only legal way to set `package-user-dir' in
 eemacs context."
   (unless entropy/emacs--package-user-dir-setted
     (entropy/emacs-ext-elpkg-get-type-valid-p)
-    (if (and (member emacs-version '("26.2" "27.0.50" "28.0.50"))
+    (if (and (member emacs-version '("27.1"))
              (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
         (entropy/emacs--set-user-package-dir-common emacs-version)
       (cond
-       ((and (string-match-p "^26" emacs-version)
-             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
-        (entropy/emacs--set-user-package-dir-common "26.2"))
-       ((and (string-match-p "^27" emacs-version)
-             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
-        (entropy/emacs--set-user-package-dir-common "27.0.50"))
        ((and (string-match-p "^28" emacs-version)
              (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
         (entropy/emacs--set-user-package-dir-common "28.0.50"))
