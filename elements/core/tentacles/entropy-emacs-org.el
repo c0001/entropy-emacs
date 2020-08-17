@@ -1287,6 +1287,17 @@ as the hypenation."
      )))
 
 ;; ******** goto
+
+(defun entropy/emacs-org-previous-visible-heading (arg)
+  "Like `org-previous-visible-heading' but goto to parent heading
+when prefix arg was 4."
+  (interactive "p")
+  (cond
+   ((= arg 4)
+    (outline-up-heading 1))
+   (t
+    (org-previous-visible-heading arg))))
+
 (defvar entropy/emacs-org-keymap-group-$goto
   '("Goto"
     (("C-c C-j" org-goto
@@ -1295,7 +1306,7 @@ as the hypenation."
      ("C-c >" org-goto-calendar
       "Go to the Emacs calendar at the current date"
       :enable t :map-inject t :exit t) ;; All the other keys
-     ("C-c C-p" org-previous-visible-heading
+     ("C-c C-p" entropy/emacs-org-previous-visible-heading
       "Move to the previous visible heading"
       :enable t :map-inject t :exit t)
      ("C-c C-n" org-next-visible-heading
@@ -1610,7 +1621,7 @@ automatically transferred to the value adapted to
           (org-back-to-heading t)
           (org--align-tags-here org-tags-column))))))
 
-;; *** org file images checking
+;; *** org file images management
 ;; **** extract all images from org file
 (defun entropy/emacs-org-ocii-extract-file-imgs-main ()
   "Extracting all images from one org file to the target location

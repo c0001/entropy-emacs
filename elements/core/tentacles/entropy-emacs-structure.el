@@ -924,5 +924,90 @@ which can not be rendered correctly."
 
   )
 
+;; ** benefit interactively functions
+;; *** subtree parse
+(defun entropy/emacs-structure-parse-subtree-simple (cur-prefix &optional calc-depth-1?)
+  "Parse outline subtree simply with follow two feedback:
+
+1. Refile specific subtree into a temporal buffer
+   \"*eemacs/org-subtree-counts-check*\". (we don't switch to it
+   automatically, you should check it out by yourself)
+2. ouput the subtree entries amounts
+
+Prefix key is supported to specify which outline heading to be
+focused on, defaultly to the current heading context, or with
+\"C-u\" or multiply thus or with the numeric prefix specification
+to specify its parent heading with Nth backing to.
+
+Optional argument CALC-DEPTH-1? is only used to the second option
+to restrict the entries counting behaviour, which will just
+enumerate the 1 depth sub-entries of current subtree and sum them
+amounts."
+  (interactive "P")
+  (save-excursion
+    (let* ((calc-depth-1?
+            (if (called-interactively-p 'any)
+                (not
+                 (yes-or-no-p
+                  "Count all nested subtree entries?(default to show 1 depth of subtree)"
+                  ))
+              calc-depth-1?))
+           (temp-buffer (get-buffer-create "*eemacs/org-subtree-counts-check*"))
+           (cur-mode major-mode)
+           (outline-raw-p (derived-mode-p 'outline-mode))
+           (cur-prefix
+            (if (and (listp cur-prefix) (not (null cur-prefix)))
+                (floor (log (car cur-prefix) 4))
+              cur-prefix))
+           (begin-pos
+            (cond
+             ((null cur-prefix)
+              (outline-back-to-heading)
+              (point))
+             (t
+              (outline-up-heading cur-prefix)
+              (point))))
+           (see-level
+            (lambda ()
+              (save-excursion
+                (if outline-raw-p
+                    (if (eq major-mode 'org-mode)
+                        (org-current-level)
+                      (outline-back-to-heading)
+                      (outline-level))
+                  (progn
+                    (require 'outshine)
+                    (outshine-mode 1)
+                    (outshine-calc-outline-level))))))
+           (cur-level
+            (funcall see-level))
+           (end-pos
+            (progn
+              (outline-end-of-subtree)
+              (point)))
+           (subtree-content
+            (buffer-substring begin-pos end-pos)))
+      (with-current-buffer temp-buffer
+        (let ((inhibit-read-only t)
+              (rtn 0))
+          (erase-buffer)
+          (insert subtree-content)
+          (funcall cur-mode)
+          (goto-char (point-min))
+          (outline-map-region
+           (if calc-depth-1?
+               (lambda (&rest _)
+                 (let* ((pos-level (funcall see-level)))
+                   (when (= (+ cur-level 1) pos-level)
+                     (cl-incf rtn))))
+             (lambda (&rest _)
+               (let* ((pos-level (funcall see-level)))
+                 (when (< cur-level pos-level)
+                   (cl-incf rtn)))))
+           (point-min) (point-max))
+          (message "Subtree entries counts: %s (with-prefix: %s)"
+                   rtn
+                   cur-prefix))))))
+
 ;; * provide
 (provide 'entropy-emacs-structure)
