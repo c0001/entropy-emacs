@@ -576,20 +576,36 @@ NOTE:
 This function is a around advice for function `dired-up-directory'."
     (let ((current-node (ignore-errors (dired-get-filename)))
           cur-node-parent)
-      (when current-node
-        (setq cur-node-parent
+      (setq cur-node-parent
+            (ignore-errors
               (file-name-directory
-               (directory-file-name current-node)))
-        (if (file-equal-p default-directory cur-node-parent)
-            (progn (apply orig-func orig-args)
-                   (message "%s" cur-node-parent))
-          (let* ((search-node
-                  (file-name-nondirectory
-                   (directory-file-name cur-node-parent))))
-            (while (not (file-equal-p (dired-get-filename) cur-node-parent))
-              (re-search-backward
-               (regexp-quote search-node)
-               nil t)))))))
+               (directory-file-name current-node))))
+      (if (or (null current-node)
+              (file-equal-p default-directory cur-node-parent))
+          (if (and
+               (save-excursion
+                 (forward-line 0)
+                 (let ((line-str (buffer-substring (point) (progn (end-of-line) (point)))))
+                   (if (string-empty-p line-str)
+                       t
+                     nil)))
+               (and (bound-and-true-p dired-subtree-overlays)
+                    (catch :exit
+                      (dolist (ov dired-subtree-overlays)
+                        (let ((ov-beg (overlay-start ov))
+                              (ov-end (overlay-end ov)))
+                          (when (and (<= (point) ov-end)
+                                     (>= (point) ov-beg))
+                            (throw :exit t)))))))
+              (progn (forward-line -1) (dired-move-to-filename))
+            (apply orig-func orig-args))
+        (let* ((search-node
+                (file-name-nondirectory
+                 (directory-file-name cur-node-parent))))
+          (while (not (file-equal-p (dired-get-filename) cur-node-parent))
+            (re-search-backward
+             (regexp-quote search-node)
+             nil t))))))
 
   (advice-add 'dired-up-directory
               :around
