@@ -538,6 +538,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
       "Org-mode like cycle visibilitya"
       :enable t :map-inject t :exit t))))
   :config
+;; ***** patched with all the icons
   ;; FIXME:
   ;;
   ;; 1. Performance issue e.g. when the subtree too-long that the icon
@@ -560,7 +561,85 @@ entries for fix some compatible problems."
   (advice-add
    'dired-subtree-toggle
    :around
-   #'entropy/emacs-basic--dired-subtree-patch-1))
+   #'entropy/emacs-basic--dired-subtree-patch-1)
+
+
+;; ***** patch `dired-up-directory'
+
+  (defun entropy/emacs-basic--dired-subtree-advice-for-dired-up-directory
+      (orig-func &rest orig-args)
+    "Move point to the parent node of current node in dired
+buffer without buffer content refreshing.
+
+NOTE:
+
+This function is a around advice for function `dired-up-directory'."
+    (let ((current-node (ignore-errors (dired-get-filename)))
+          cur-node-parent)
+      (when current-node
+        (setq cur-node-parent
+              (file-name-directory
+               (directory-file-name current-node)))
+        (if (file-equal-p default-directory cur-node-parent)
+            (progn (apply orig-func orig-args)
+                   (message "%s" cur-node-parent))
+          (let* ((search-node
+                  (file-name-nondirectory
+                   (directory-file-name cur-node-parent))))
+            (while (not (file-equal-p (dired-get-filename) cur-node-parent))
+              (re-search-backward
+               (regexp-quote search-node)
+               nil t)))))))
+
+  (advice-add 'dired-up-directory
+              :around
+              #'entropy/emacs-basic--dired-subtree-advice-for-dired-up-directory)
+
+;; ***** patch `dired-subtree--readin'
+
+  (defun entropy/emacs-basic--dired-subtree-readin-around-advice
+      (orig-func &rest orig-args)
+    "Around advice for `dired-subtree--readin' to put the
+'dired-filename' text property to the filename correctly.
+
+That origin function just listing the directory files with
+verbatim style which doesn't has ability to distinguish some
+filename start with space char, this is buggly that if thus,
+`dired' will using basically `dired-move-to-filename' to get the
+beginning of the filename position which will prompt a warning
+that show that filename wasn't exsited any more."
+    (let ((readin (apply orig-func orig-args))
+          (dirname (car orig-args))
+          fname-ps-list
+          rtn
+          (at-start t)
+          (inhibit-read-only t))
+      (if (string-empty-p readin)
+          readin
+        (with-temp-buffer
+          (insert readin)
+          (goto-char (point-min))
+          (while (or at-start (= (forward-line) 0))
+            (setq at-start nil)
+            (let ((fname-beg (save-excursion (dired-move-to-filename)))
+                  (fname-end (save-excursion (end-of-line) (point)))
+                  fname)
+              (if fname-beg
+                  (progn
+                    (setq fname (buffer-substring-no-properties fname-beg fname-end))
+                    (while (not (file-exists-p (expand-file-name fname dirname)))
+                      (setq fname-beg (1- fname-beg))
+                      (setq fname (buffer-substring-no-properties fname-beg fname-end)))
+                    (push (cons fname-beg fname-end) fname-ps-list))
+                (error "Fatal to recognize the filename on current line"))))
+          (dolist (item fname-ps-list)
+            (put-text-property (car item) (cdr item) 'dired-filename t))
+          (setq rtn (buffer-substring (point-min) (point-max)))
+          rtn))))
+  (advice-add 'dired-subtree--readin
+              :around
+              #'entropy/emacs-basic--dired-subtree-readin-around-advice)
+  )
 
 ;; *** Image-mode
 (use-package image-mode
