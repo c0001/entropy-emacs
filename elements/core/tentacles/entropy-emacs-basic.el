@@ -594,8 +594,10 @@ This function is a around advice for function `dired-up-directory'."
                       (dolist (ov dired-subtree-overlays)
                         (let ((ov-beg (overlay-start ov))
                               (ov-end (overlay-end ov)))
-                          (when (and (<= (point) ov-end)
-                                     (>= (point) ov-beg))
+                          (when (and
+                                 ov-beg ov-end  ;; prevent from null overlay instance
+                                 (and (<= (point) ov-end)
+                                      (>= (point) ov-beg)))
                             (throw :exit t)))))))
               (progn (forward-line -1) (dired-move-to-filename))
             (apply orig-func orig-args))
