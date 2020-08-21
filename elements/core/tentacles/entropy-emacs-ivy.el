@@ -384,8 +384,12 @@ unwind occasion.")
   (entropy/emacs-lazy-load-simple counsel
     (ivy-mode +1))
 
-;; **** counsel-git with utf-8
+  ;; let counsel grep base command treat some file as text, thus add
+  ;; '-a' option as thus for. This specify exist because of some large
+  ;; text file will treated as an binary file as mistake as grep does.
+  (setq counsel-grep-base-command "grep -a -E -n -e %s %s")
 
+  ;; counsel-git with utf-8
   (advice-add 'counsel-git :around
               #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
