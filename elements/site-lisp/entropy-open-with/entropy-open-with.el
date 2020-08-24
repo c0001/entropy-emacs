@@ -419,7 +419,7 @@ If not matched the exist file type then return nil."
                    (setq $file-pattern (shell-quote-argument file-path)))
                   ((functionp path-transform)
                    (setq $file-pattern (funcall path-transform file-path)))
-                  (t file-path))
+                  (t (setq $file-pattern file-path)))
             (setq rtn (list :caller exec :file-pattern $file-pattern
                             :caller-pattern caller-pattern
                             :open-with-arg (append caller-pattern (list $file-pattern))
