@@ -43,30 +43,28 @@
 ;; *** openwith external apps
 ;; **** openwith config
 (use-package openwith
-  :if sys/is-graphic-support
+  :if sys/is-graphic-support            ;just used in DE environment since sets of external program need graphical display
   :commands openwith-make-extension-regexp
   :init
   (add-hook 'dired-mode-hook #'openwith-mode)
   (setq openwith-associations
         (list
          (list (openwith-make-extension-regexp
-                '("mpg" "mpeg" "mp3" "mp4"
+                '(
+                  ;; audio files
+                  "mpg" "mpeg" "mp3" "mp4"
                   "avi" "wmv" "wav" "mov" "flv"
-                  "ogm" "ogg" "mkv" "m4a" "flac" "aac"))
-               ;;"mpv --audio-display=attachment"
+                  "ogm" "ogg" "mkv" "m4a" "flac" "aac"
+                  ;; documents
+                  "pdf" "djvu"
+                  ;; archive type
+                  "7z" "xz" "rar" "BAK"
+                  ))
+               ;; we use xdg-open(linux) and start(windows) as default mime handler
                (cond (sys/linuxp
                       "xdg-open")
-                     (t
-                      nil))
-               '(file))
-
-         (list (openwith-make-extension-regexp
-                '("pdf" "djvu"))
-               ;;"evince"
-               (cond (sys/linuxp
-                      "xdg-open")
-                     (t
-                      nil))
+                     (sys/is-win-group
+                      "start"))
                '(file))))
   :config
   (defun openwith-open-unix (command arglist)
