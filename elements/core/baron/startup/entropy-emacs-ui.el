@@ -640,7 +640,10 @@ manually."
     (unless (or (minibufferp)
                 ;; Notice: it's can not be unset in magit section
                 ;; toggle context which need it be enabled
-                (string-match-p "magit" (symbol-name major-mode)))
+                (string-match-p "magit" (symbol-name major-mode))
+                ;; may need to disable the feature in mpc referred
+                ;; major-modes for improving performance
+                (string-match-p "^mpc-" (symbol-name major-mode)))
       (save-excursion
         (save-restriction
           (goto-char (point-min))
