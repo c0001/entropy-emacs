@@ -626,12 +626,12 @@ filename start with space char, this is buggly that if thus,
 `dired' will using basically `dired-move-to-filename' to get the
 beginning of the filename position which will prompt a warning
 that show that filename wasn't exsited any more."
-    (let ((readin (apply orig-func orig-args))
-          (dirname (car orig-args))
-          fname-ps-list
-          rtn
-          (at-start t)
-          (inhibit-read-only t))
+    (let* ((readin (apply orig-func orig-args))
+           (dirname (car orig-args))
+           fname-ps-list
+           rtn
+           (at-start t)
+           (inhibit-read-only t))
       (if (string-empty-p readin)
           readin
         (with-temp-buffer
@@ -639,15 +639,26 @@ that show that filename wasn't exsited any more."
           (goto-char (point-min))
           (while (or at-start (= (forward-line) 0))
             (setq at-start nil)
-            (let ((fname-beg (save-excursion (dired-move-to-filename)))
-                  (fname-end (save-excursion (end-of-line) (point)))
-                  fname)
+            (let* ((fname-beg (save-excursion (dired-move-to-filename) (point)))
+                   (fname-end (save-excursion (end-of-line) (point)))
+                   (fname-end1 fname-end)
+                   fname)
               (if fname-beg
                   (progn
                     (setq fname (buffer-substring-no-properties fname-beg fname-end))
-                    (while (not (file-exists-p (expand-file-name fname dirname)))
-                      (setq fname-beg (1- fname-beg))
-                      (setq fname (buffer-substring-no-properties fname-beg fname-end)))
+                    (while (and (not (file-exists-p (expand-file-name fname dirname)))
+                                (or (> fname-beg 1)
+                                    (error "Fatal read current filename correctly in subtree routine")))
+                      (while (and (not (file-exists-p (expand-file-name fname dirname)))
+                                  (or (> fname-end1 fname-beg)
+                                      (error "Fatal read current filename correctly in subtree routine")))
+                        (setq fname-end1 (1- fname-end1))
+                        (setq fname (buffer-substring-no-properties fname-beg fname-end1)))
+                      (if (file-exists-p (expand-file-name fname dirname))
+                          (setq fname-end fname-end1)
+                        (setq fname-beg (1- fname-beg)
+                              fname-end1 fname-end)
+                        (setq fname (buffer-substring-no-properties fname-beg fname-end))))
                     (push (cons fname-beg fname-end) fname-ps-list))
                 (error "Fatal to recognize the filename on current line"))))
           (dolist (item fname-ps-list)
