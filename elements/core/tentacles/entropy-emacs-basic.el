@@ -514,11 +514,20 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
   :ensure nil
   :commands (dired-omit-mode)
   :hook (dired-mode . dired-omit-mode)
+  :eemacs-mmphca
+  (((:enable t)
+    (dired-mode (dired dired-mode-map)))
+   ("Misc."
+    (("o" dired-omit-mode "Toggle omission of uninteresting files in Dired (Dired-Omit mode)."
+      :enable t :toggle dired-omit-mode :map-inject t))))
   :config
   (setq dired-omit-size-limit nil)
   (setq dired-omit-extensions nil)
   ;; Just omit the current node point
-  (setq dired-omit-files "\\`[.][.]?\\'"))
+  (setq dired-omit-files "\\`[.][.]?\\'")
+  ;; remap `dired-omit-mode' command in `dired-mode-map' because of
+  ;; conflicted with `ace-window'
+  (define-key dired-mode-map "\C-x\M-o" nil))
 
 ;; **** dired-subtree
 ;; Org mode like dired subtree fold/expand
