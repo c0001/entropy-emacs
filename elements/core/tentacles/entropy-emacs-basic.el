@@ -668,7 +668,6 @@ that show that filename wasn't exsited any more."
                     (setq fname-end fname-end1)
                   (setq fname-beg (1- fname-beg)
                         fname-end1 fname-end)))
-              (push fname temp/xx)
               (push (cons fname-beg fname-end) fname-ps-list)))
           (dolist (item fname-ps-list)
             (put-text-property (car item) (cdr item) 'dired-filename t))

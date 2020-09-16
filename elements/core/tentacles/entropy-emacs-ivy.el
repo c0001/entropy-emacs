@@ -202,7 +202,8 @@ unwind occasion.")
   (defun entropy/emacs-ivy--swiper-all-restore-wfg (orig-func &rest orig-args)
     "Restore origin window-configuration when unwind of `swiper-all'."
     (let (rtn
-          (cur-wfg (current-window-configuration)))
+          (cur-wfg (current-window-configuration))
+          (cur-pt (point)))
       (unwind-protect
           (progn
             (setq entropy/emacs-ivy--swiper-all-complete-did-p
@@ -212,7 +213,8 @@ unwind occasion.")
                   t)
             rtn)
         (unless entropy/emacs-ivy--swiper-all-complete-did-p
-          (set-window-configuration cur-wfg)))))
+          (set-window-configuration cur-wfg)
+          (goto-char cur-pt)))))
 
   :bind (("C-s" . swiper)
          ("C-M-s" . swiper-all)
