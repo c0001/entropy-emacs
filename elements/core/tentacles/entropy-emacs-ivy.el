@@ -386,10 +386,12 @@ unwind occasion.")
   (entropy/emacs-lazy-load-simple counsel
     (ivy-mode +1))
 
-  ;; let counsel grep base command treat some file as text, thus add
-  ;; '-a' option as thus for. This specify exist because of some large
-  ;; text file will treated as an binary file as mistake as grep does.
-  (setq counsel-grep-base-command "grep -a -E -n -e %s %s")
+  ;; - let counsel grep base command treat some file as text, thus add
+  ;;   '-a' option as thus for. This specify exist because of some large
+  ;;   text file will treated as an binary file as mistake as grep does.
+  ;;
+  ;; - use perl regex match
+  (setq counsel-grep-base-command "grep -a -P -n -e %s %s")
 
   ;; counsel-git with utf-8
   (advice-add 'counsel-git :around
@@ -409,7 +411,7 @@ unwind occasion.")
               :override
               #'entropy/emacs-ivy--counsel--M-x-externs)
 
-;; **** do not active swiper grep function when not grep exec found
+;; **** do not active `counsel-grep' function when not grep exec found
 
   (defun entropy/emacs-ivy-counsel-grep-or-swiper (orig-func &rest orig-args)
     (interactive)
@@ -420,6 +422,36 @@ unwind occasion.")
   (advice-add 'counsel-grep-or-swiper
               :around
               #'entropy/emacs-ivy-counsel-grep-or-swiper)
+
+;; **** patches for `counsel-grep' and referred
+
+  (defun entropy/emacs-ivy--counsel-grep-patch-1 (orig-func &rest orig-args)
+    "The around advice for `counsel-grep' to widen the current
+buffer for preventing ivy framework highlights the wrong positon
+in current buffer."
+    (when (buffer-narrowed-p)
+      (widen))
+    (apply orig-func orig-args))
+
+  (advice-add 'counsel-grep :around #'entropy/emacs-ivy--counsel-grep-patch-1)
+
+  (defun entropy/emacs-ivy--counsel-grep-function (string)
+    "Grep in the current directory for STRING.
+
+NOTE:
+
+This is the override advice for `counsel-grep-function' to
+directly identified the input regexp string which do not be with
+`ivy--regex' feature."
+    (or
+     (ivy-more-chars)
+     (let ((regex (identity string)))
+       (counsel--async-command
+        (format counsel-grep-command (shell-quote-argument regex)))
+       nil)))
+
+  (advice-add 'counsel-grep-function :override #'entropy/emacs-ivy--counsel-grep-function)
+
 
 ;; **** enhance counsel company
 
