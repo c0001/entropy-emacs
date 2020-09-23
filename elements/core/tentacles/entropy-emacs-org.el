@@ -190,6 +190,7 @@ must satisfied follow requirements:
   (setq org-imenu-depth 8) ; The default depth shown for integrating
                            ; org heading line to imenu while be within
                            ; org-mode
+  (setq org-refile-use-outline-path 'file) ; allow refile to the root of an org file
 
 ;; ***** define 'end' key to `org-end-of-line'
   (define-key org-mode-map (kbd "<end>") 'org-end-of-line)
@@ -235,6 +236,10 @@ must satisfied follow requirements:
                              (org-agenda-files :maxlevel . 9)))
   (setq org-outline-path-complete-in-steps nil)         ; Refile in a single go
   (setq org-refile-use-outline-path t)                  ; Show full paths for refiling
+
+  ;; Make `org-refile' inhibiting the read only status
+  (entropy/emacs-make-function-inhibit-readonly
+   'org-refile)
 
 ;; ***** org tag set interaction enhancement
 
