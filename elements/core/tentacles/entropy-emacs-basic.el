@@ -204,14 +204,16 @@ prompting for how to resolving deletions problems.
 
 In win32 platform using 'resmon' for conflicates resolve tool.  "
     (interactive)
-    (let ((base-files (cond ((and (equal major-mode 'dired-mode)
-                                  (not pre-files))
-                             (dired-get-marked-files))
-                            ((and (not (null pre-files))
-                                  (listp pre-files))
-                             pre-files)
-                            (t (error "Dir list invalid!"))))
-          _file-type)
+    (let* ((base-files (cond ((and (equal major-mode 'dired-mode)
+                                   (not pre-files))
+                              (dired-get-marked-files))
+                             ((and (not (null pre-files))
+                                   (listp pre-files))
+                              pre-files)
+                             (t (error "Dir list invalid!"))))
+           _file-type
+           (did-times (length base-files))
+           (count 1))
 
       (unless just-kill-refers
         (entropy/emacs-basic--dired-delete-file-prompt base-files))
@@ -247,7 +249,8 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                       ((f-directory-p file)
                        (setq _file-type 'directory)
                        (delete-directory file t)))
-                (when (equal major-mode 'dired-mode)
+                (when (and (equal major-mode 'dired-mode)
+                           (= count did-times))
                   (revert-buffer))
                 (cl-case _file-type
                   ('symbol_link
@@ -255,7 +258,8 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                   ('file
                    (message (format "Delete file '%s' done! -v-" file)))
                   ('directory
-                   (message (format "Delete directory '%s' done! -v-" file))))))
+                   (message (format "Delete directory '%s' done! -v-" file))))
+                (cl-incf count)))
           (error
            (cond (sys/win32p
                   (let ((prompt-buffer (get-buffer-create "*[w32-resmon]*")))
