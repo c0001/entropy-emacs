@@ -198,6 +198,7 @@
         ;; Msic.
         ("*Buffer Details*"            :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*Memory Explorer*"           :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^ \\*Marked Files\\*$"       :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ))
 
 
