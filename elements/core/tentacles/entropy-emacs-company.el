@@ -361,7 +361,7 @@ initial frame background face sets did by
 
   (when sys/linuxp
     ;; Fix child-frame resize/reposition bug on linux
-    (if (boundp x-gtk-resize-child-frames)
+    (if (boundp 'x-gtk-resize-child-frames)
         ;; FIXME: `x-gtk-resize-child-frames' option was one temporal
         ;; patch method invoking from emacs-devel commit c49d379f17bcb
         ;; which will eliminated in the future emacs version.
@@ -473,46 +473,48 @@ minibuffer."
     (interactive (list 'interactive))
     (case command
       ('prefix (and (minibufferp)
-                    (case entropy/emacs-company--minibuffer-command
-                      ('execute-extended-command (company-grab-symbol))
-                      (t (company-capf `prefix)))))
+                    (company-grab-symbol)))
       ('candidates
        (case entropy/emacs-company--minibuffer-command
          ('execute-extended-command (all-completions arg obarray 'commandp))
-         (t nil)))))
+         (t (all-completions arg obarray))))))
 
   (defun entropy/emacs-active-minibuffer-company-elisp ()
     "Active `company-mode' in minibuffer only for elisp
 completion when calling: 'execute-extended-command' or
 'eval-expression'."
-    (unless company-mode
-      (when (and global-company-mode (or (eq this-command #'execute-extended-command)
-                                         (eq this-command #'eval-expression)
-                                         (eq this-command #'eldoc-eval-expression)))
+    (company-mode 0)
+    (when (and global-company-mode (or
+                                    (eq this-command #'execute-extended-command)
+                                    (eq this-command #'eval-expression)
+                                    (eq this-command #'eldoc-eval-expression)))
 
-        (setq-local entropy/emacs-company--minibuffer-command this-command)
+      (setq-local entropy/emacs-company--minibuffer-command this-command)
 
-        (setq-local completion-at-point-functions
-                    (list (if (fboundp 'elisp-completion-at-point)
-                              #'elisp-completion-at-point
-                            #'lisp-completion-at-point)
-                          t))
+      (setq-local completion-at-point-functions
+                  (list (if (fboundp 'elisp-completion-at-point)
+                            #'elisp-completion-at-point
+                          #'lisp-completion-at-point)
+                        t))
 
-        (setq-local company-show-numbers nil)
-        (setq-local company-backends '((entropy/emacs-company-elisp-minibuffer
-                                        company-capf)))
-        (setq-local company-tooltip-limit 8)
-        (setq-local company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
-                                        company-preview-if-just-one-frontend))
+      (setq-local company-show-numbers nil)
+      (setq-local company-backends '((entropy/emacs-company-elisp-minibuffer
+                                      company-capf)))
+      (setq-local company-tooltip-limit 6)
+      (setq-local company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
+                                      company-preview-if-just-one-frontend))
+      (company-mode 1)
 
-        (company-mode 1)
-        (when (eq this-command #'execute-extended-command)
-          (company-complete)))))
+      ;; We just use overlay render tooltip type because other
+      ;; child-frame ones can not show those frame at point of oneline
+      ;; height minibuffer window
+      (when (bound-and-true-p company-box-mode)
+        (company-box-mode 0))
+      (when (bound-and-true-p company-posframe-mode)
+        (company-posframe-mode 0))))
 
   (add-hook 'minibuffer-setup-hook
             #'entropy/emacs-active-minibuffer-company-elisp)
-  ;; (add-hook 'eval-expression-minibuffer-setup-hook
-  ;;           #'entropy/emacs-active-minibuffer-company-elisp)
   )
 
 ;; ** company-lsp
