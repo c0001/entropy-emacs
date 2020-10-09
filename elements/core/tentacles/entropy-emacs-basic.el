@@ -375,8 +375,32 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 
 ;; ****** dired auto revert after some operations
 
-  (defun entropy/emacs-basic--dired-revert-advice (&rest _)
-    (revert-buffer))
+  (defun entropy/emacs-basic--dired-revert-advice (orig-func &rest orig-args)
+    "Dired buffer revert around advice for various file create operation.
+
+Currently just auto revert the 'from' dired buffer after thus
+operations.
+
+This function temporally inhibits the `dired-omit-verbose' option
+to avoid the omitting status verbose messave while new file
+injection into the 'to' dired buffer(if it is visited which means
+the appropriate dired buffer is opened).
+
+TODO:
+
+- [] Support newfile created target dired buffer revert feature
+
+  This will be very hard to do that because the internal api
+  `dired-create-files' doesn't expose the target dired buffer
+  which we could not retrieve thus unless we dirty hacky on the
+  api, but it will lost the compatible ability later or may meet
+  some unexpected fatals."
+    (let* ((dired-omit-verbose nil)
+           (cur-buffer (current-buffer))
+           (rtn (apply orig-func orig-args)))
+      (with-current-buffer cur-buffer
+        (revert-buffer))
+      rtn))
   (dolist (el '(dired-do-rename
                 dired-do-rename-regexp
                 dired-do-copy
@@ -384,7 +408,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
                 dired-do-compress
                 dired-do-compress-to
                 dired-do-touch))
-    (advice-add el :after #'entropy/emacs-basic--dired-revert-advice))
+    (advice-add el :around #'entropy/emacs-basic--dired-revert-advice))
 
 ;; ****** patch for `dired-mark-pop-up'
 
