@@ -1506,13 +1506,17 @@ This affected by `neotree' or `treemacs' window sticking with
 ;; *** Auto-sudoedit
 
 
-;; *** Clear killring
+;; *** Kill ring config
+
+(setq kill-ring-max 10000)               ;increase kill ring length for more daily using comfort
+
 ;;     From the forum of stackexchange
 ;;     `https://superuser.com/questions/546619/clear-the-kill-ring-in-emacs'
 ;;     Or you just can use (setq kill-ring nil) only.
 (defun entropy/emacs-basic-clear-kill-ring ()
   (interactive)
-  (progn (setq kill-ring nil) (garbage-collect)))
+  (when (yes-or-no-p "Clean kill ring? ")
+    (setq kill-ring nil) (garbage-collect)))
 
 ;; *** Forbidden view-hello-file for W32 platform
 
@@ -1544,12 +1548,11 @@ operation system"
   :ensure nil
   :preface
   :init
-  (setq recentf-max-saved-items 300)
   (entropy/emacs-lazy-with-load-trail
    recentf-init
    (recentf-mode))
   :config
-  (setq recentf-max-saved-items 300
+  (setq recentf-max-saved-items 1000
         recentf-exclude
         `("\\.?cache" ".cask" "url" "COMMIT_EDITMSG\\'" "bookmarks"
           "\\.\\(?:gz\\|gif\\|svg\\|png\\|jpe?g\\|bmp\\|xpm\\)$"
@@ -1563,9 +1566,10 @@ operation system"
   :init (entropy/emacs-lazy-with-load-trail savehist-init (savehist-mode t))
   :config
   (setq
-   history-length 1000
+   history-length 10000
    savehist-additional-variables
    '(mark-ring
+     kill-ring
      global-mark-ring
      search-ring
      regexp-search-ring
