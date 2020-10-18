@@ -899,6 +899,8 @@ version of ivy framework updating.
   ;; Using rust 'fd' for perfomance improving
   (when (executable-find "fd")
     (setq ffip-use-rust-fd t))
+  ;; always show the executed command and debug information
+  (setq ffip-debug t)
   :config
   (defun entropy/emacs-ivy-ffip (_interaction)
     "Find file using `find-file-in-project' in place.
