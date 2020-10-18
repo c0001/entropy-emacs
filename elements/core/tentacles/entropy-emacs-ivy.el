@@ -873,6 +873,7 @@ version of ivy framework updating.
        'powerful-searcher))
      "Powerful searcher"
      :enable t :exit t))))
+
 ;; ** Powerful find-file
 (use-package find-file-in-project
   :commands (ffip-find-files
@@ -903,7 +904,11 @@ version of ivy framework updating.
     "Find file using `find-file-in-project' in place.
 
 Just find directory when _INTERACTION was non-nil (the prefix
-with `C-u')."
+with `C-u').
+
+NOTE: this function ignores all /ignore-patterns/ both included in
+`ffip-ignore-filenames' and `ffip-prune-patterns', which means
+that all file under place will be detected!"
     (interactive "P")
     (let (prompt-func)
       (setq prompt-func
@@ -917,7 +922,8 @@ with `C-u')."
                   (setq target (file-name-directory target)))
                 target)))
       (let ((ffip-project-root (funcall prompt-func))
-            (ffip-ignore-filenames nil))
+            (ffip-ignore-filenames nil)
+            (ffip-prune-patterns '("")))
         (if _interaction
             (ffip-find-files "" nil t)
           (ffip-find-files nil nil)))))
