@@ -475,7 +475,10 @@ modifcation is to remove this feature.
 
 ;; **** Use dired-aux to enable dired-isearch
 (entropy/emacs-lazy-load-simple dired
-  (require 'dired-aux))
+  (require 'dired-aux)
+  ;; disable '.' key binding with `dired-clean-directory' for dired
+  ;; mode for inadvertently press.
+  (define-key dired-mode-map (kbd ".") nil))
 
 ;; **** Quick sort dired buffers via hydra
   ;;; bind key: `S'
