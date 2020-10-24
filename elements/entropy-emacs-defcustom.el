@@ -46,6 +46,21 @@
     (require 'cl)
   (require 'cl-macs))
 
+(defconst entropy/emacs-custom-common-file
+  (expand-file-name
+   "custom.el"
+   entropy/emacs-user-emacs-directory)
+  "The value for `custom-file' but specified for =entropy-emacs=.")
+
+(let ((cus entropy/emacs-custom-common-file))
+  (setq-default custom-file entropy/emacs-custom-common-file)
+  (when (file-exists-p cus)
+    (message "")
+    (message "====================================")
+    (message "[Loading] custom specifications ...")
+    (message "====================================\n")
+    (load cus)))
+
 ;; ** Customizable Variables
 (defgroup entropy-emacs-customize-top-group nil
   "Eemacs customizable variables top group."
@@ -111,14 +126,6 @@ Notice: when `entropy/emacs-fall-love-with-pdumper' is non-nil or
 in daemon session, this variable will be pressed whatever init
 value assignments into."
   :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-custom-common-file
-  (expand-file-name
-   "custom.el"
-   entropy/emacs-user-emacs-directory)
-  "The value for `custom-file' but specified for =entropy-emacs=."
-  :type 'file
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
 (defcustom entropy/emacs-user-full-name (getenv "USERNAME")
@@ -1005,6 +1012,8 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
          forms)))
     (dolist (form forms)
       (eval form))))
+
+(entropy/emacs-ide-gen-customized-variables)
 
 ;; **** code folding group
 (defgroup entropy/emacs-customize-group-for-code-folding nil
@@ -2058,17 +2067,6 @@ under the symbolink root dir."
             (not (file-directory-p filename)))))
       (apply orig-func orig-args))))
 (advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
-
-;; *** load specifications
-(let ((cus entropy/emacs-custom-common-file))
-  (setq-default custom-file entropy/emacs-custom-common-file)
-  (when (file-exists-p cus)
-    (message "")
-    (message "====================================")
-    (message "[Loading] custom specifications ...")
-    (message "====================================\n")
-    (load cus)
-    (entropy/emacs-ide-gen-customized-variables)))
 
 ;; *** add eemacs texinfo to info-path
 
