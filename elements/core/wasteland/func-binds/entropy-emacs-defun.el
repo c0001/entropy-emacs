@@ -77,19 +77,33 @@ in new emacs-version."
 ;; *** Print manipulation
 
 (defun entropy/emacs-advice-func-around-for-print-limit
-    (func &optional level length)
+    (func-name &optional level length satisfy-func)
   "Make function func restricted by `print-level' LEVEL and
 `print-length' LENGTH.
 
 LEVEL and LENGTH are optional, if that fallback to 3 and 20 by
-defautly."
+defautly.
+
+Third optional arg SATISFY-FUNC is a function which used to judge
+whether enable the limitation when its return is non-nil,
+otherwise uses the original procedure."
   (advice-add
-   func
+   func-name
    :around
-   `(lambda (orig-func &rest orig-args)
-      (let ((print-level (or ,level 3))
-            (print-length (or ,length 20)))
-        (apply orig-func orig-args)))))
+   (let ((ad-name
+          (intern
+           (format "entropy/emacs-print-limit-advice-for-%s"
+                   func-name))))
+     (eval
+      `(defun ,ad-name (orig-func &rest orig-args)
+         (if (or (null ,satisfy-func)
+                 (and (functionp ,satisfy-func)
+                      (funcall ,satisfy-func)))
+             (let ((print-level (or ,level 3))
+                   (print-length (or ,length 20)))
+               (apply orig-func orig-args))
+           (apply orig-func orig-args))))
+     ad-name)))
 
 ;; *** List manipulation
 (defun entropy/emacs-numberic-list (list-var)

@@ -2151,7 +2151,12 @@ otherwise returns nil."
 ;; **** restriction print level and length for help buffer
 
 (entropy/emacs-advice-func-around-for-print-limit
- 'describe-variable)
+ 'describe-variable
+ nil nil
+ (lambda (&rest _)
+   (if (bound-and-true-p company-candidates)
+       t
+     nil)))
 
 
 ;; **** prevent large variable displaying with company session actived
