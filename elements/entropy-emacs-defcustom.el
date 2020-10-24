@@ -220,6 +220,12 @@ problem, =basic= type is simple but without fully featured.
           (const :tag "Basic simple way" basic))
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
+(defcustom entropy/emacs-kill-ring-persist-file
+  (expand-file-name "kill-ring.persist" entropy/emacs-stuffs-topdir)
+  "Persist cache file for storing `kill-ring'."
+  :type 'file
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
 ;; ***** emacs extension use options config
 (defgroup entropy/emacs-customize-group-for-emacs-extensions nil
   "Eemacs emacs extensions management configuration customizable group."
