@@ -44,7 +44,7 @@
 
 ;; ** const define
 (defconst entropy/emacs-message-message-buffer
-  "*eemacs messages*")
+  "*Eemacs Messages*")
 
 (defconst entropy/emacs-message--message-fg
   '((reset      . 0)
@@ -98,6 +98,12 @@ functional whenever what it is.")
 ;; ** library
 
 (defun entropy/emacs-message--in-daemon-load-p ()
+  "Judge whether current env is a daemon silence status e.g both
+satisficed `daemonp' and in emacs init time.
+
+This function used to give out a notation that in thus time we
+can not use popup message style where the emacs session do not
+have window feature started up."
   (and (daemonp) (null after-init-time)))
 
 ;; *** top advice
@@ -195,15 +201,16 @@ interactive session."
        (setq-local mode-line-format nil
                    cursor-type nil))
      (redisplay t)
-     (display-buffer-at-bottom
-      buf
-      `((align . below)
-        (window-height
-         .
-         ,(if (bound-and-true-p entropy/emacs-startup-done)
-              0.2
-            0.3))))
-     (redisplay t)
+     (unless (ignore-errors (get-buffer-window buf)) ;Prevent make redudant popup window
+       (display-buffer-at-bottom
+        buf
+        `((align . below)
+          (window-height
+           .
+           ,(if (bound-and-true-p entropy/emacs-startup-done)
+                0.2
+              0.3)))))
+     ;;(redisplay t)
      (with-selected-window (get-buffer-window buf)
        (set-window-parameter
         (selected-window)
@@ -214,31 +221,24 @@ interactive session."
          (insert "-> ")
          (insert message-str)
          (insert "\n")))
-     (redisplay t)
+     ;;(redisplay t)
+
+     ;; force hide window when message in idle time
+     (when (current-idle-time)
+       (entropy/emacs-message-hide-popup t))
+
      (unless (timerp entropy/emacs-message--idle-timer-for-hide-popup)
        (setq entropy/emacs-message--idle-timer-for-hide-popup
              (run-with-idle-timer
-              0 t
-              #'entropy/emacs-message-hide-popup)))))
+              0.15 t
+              #'entropy/emacs-message-hide-popup
+              )))))
 
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
   "An alternative to `message' that strips out ANSI codes."
   `(message
     (entropy/emacs-message--do-message-ansi-apply
      ,message ,@args)))
-
-(advice-add 'set-window-configuration
-            :around
-            (progn
-              (defalias 'entropy/emacs-message--adaf-for-swc
-                (lambda (orig-func &rest orig-args)
-                  "Hide displayed window
-`entropy/emacs-message-message-buffer' after
-`set-window-configuration'."
-                  (let ((rtn (apply orig-func orig-args)))
-                    (entropy/emacs-message-hide-popup t)
-                    rtn)))
-              'entropy/emacs-message--adaf-for-swc))
 
 ;; ** auto load
 ;;;###autoload
@@ -268,13 +268,17 @@ NOTE: Just use it in `noninteractive' session."
   (let* ((buf-name entropy/emacs-message-message-buffer)
          (win (ignore-errors
                 (get-buffer-window buf-name))))
-    (when (and (bound-and-true-p entropy/emacs-startup-done)
-               win
+    (when (and (and (bound-and-true-p entropy/emacs-startup-done)
+                    win)
                (or force
                    (window-parameter win 'entropy/emacs-message--cur-win-is-popup-p)
                    (with-current-buffer buf-name
                      entropy/emacs-message--cur-buf-is-popup-p)))
       (delete-window win)
+      ;; FIXME: prevent remaining thus exist, why need this?
+      (unless (ignore-errors
+                (get-buffer-window buf-name))
+        (entropy/emacs-message-hide-popup t))
       (with-current-buffer buf-name
         (setq-local entropy/emacs-message--cur-buf-is-popup-p nil))
       (message
