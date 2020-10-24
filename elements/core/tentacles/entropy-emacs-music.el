@@ -57,8 +57,12 @@
   :commands
   (mpc
    mpc-seek-current)
+;; *** preface
   :preface
-  (defun entropy/emacs-music-mpc-patch-popuped-window-balance
+
+  (defvar entropy/emacs-music-mpc--orig-window-configuration nil)
+
+  (defun entropy/emacs-music-mpc--patch-popuped-window-balance
       (&rest _)
     "Patch the origin mpc initialized windows layout for eemacs
 specification."
@@ -72,6 +76,21 @@ specification."
           (goto-char (point-min)))
         (select-window buff-win)
         (message ""))))
+
+  (defun entropy/emacs-music-mpc--patch-popuped-window-around-advice
+      (orig-func &rest orig-args)
+    (let* ((wfg-orig (current-window-configuration)))
+      (setq entropy/emacs-music-mpc--orig-window-configuration
+            wfg-orig)
+      (delete-other-windows-internal)
+      (apply orig-func orig-args)
+      (entropy/emacs-music-mpc--patch-popuped-window-balance)))
+
+  (defun entropy/emacs-music-mpc--patch-quit-around-advice (orig-func &rest orig-args)
+    (let* ()
+      (apply orig-func orig-args)
+      (set-window-configuration
+       entropy/emacs-music-mpc--orig-window-configuration)))
 
   (defun entropy/emacs-music-mpc-auto-add-and-play ()
     "Play current music in `mpc-songs-mode'.
@@ -107,6 +126,7 @@ Add current music to queue when its not in thus."
                         'mpc-status-refresh)
         (message "Warn: mpc vol was mute!"))))
 
+;; *** eemacs mmphc
   :eemacs-mmphc
   ((((:enable t)
      (mpc-songs-mode (mpc mpc-songs-mode-map) t (3 2 2)))
@@ -175,6 +195,7 @@ Add current music to queue when its not in thus."
      ("D" mpc-playlist-destroy "Delete playlist named NAME"
       :enable t :exit t))))
 
+;; *** eemacs mmphca
   :eemacs-mmphca
   ((((:enable t)
      (mpc-tagbrowser-mode (mpc mpc-tagbrowser-mode-map)))
@@ -188,11 +209,13 @@ Add current music to queue when its not in thus."
        "Play current music."
        :enable t :exit t :map-inject t)))))
 
+;; *** hook
   :hook
   ((mpc-songs-mode      . hl-line-mode)
    (mpc-status-mode     . hl-line-mode)
    (mpc-tagbrowser-mode . hl-line-mode))
 
+;; *** init
   :init
   (setq
    mpc-host
@@ -212,6 +235,7 @@ Add current music to queue when its not in thus."
      "Artist: %{Artist}"
      "%128{Cover}"))
 
+;; *** config
   :config
   ;; RET in mpc-status-mode is meaningless and will messy the visual
   ;; experience.
@@ -219,8 +243,11 @@ Add current music to queue when its not in thus."
     (kbd "RET") nil)
 
   (advice-add 'mpc
-              :after
-              #'entropy/emacs-music-mpc-patch-popuped-window-balance))
+              :around
+              #'entropy/emacs-music-mpc--patch-popuped-window-around-advice)
+  (advice-add 'mpc-quit
+              :around
+              #'entropy/emacs-music-mpc--patch-quit-around-advice))
 
 
 ;; ** bongo
