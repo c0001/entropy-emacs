@@ -80,7 +80,6 @@
         company-box
         company-c-headers
         company-irony
-        company-lsp
         company-php
         company-prescient
         company-quickhelp

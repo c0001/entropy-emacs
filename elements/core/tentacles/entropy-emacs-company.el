@@ -299,39 +299,17 @@ actived, as the rest that next garbage-collect operation til
   :if (eq entropy/emacs-company-tooltip-use-type 'company-box)
   :after company
   :commands (company-box-mode)
+;; **** preface
   :preface
-  (defvar entropy/emacs-company--company-box-company-prefix nil)
-  (defvar entropy/emacs-company--company-box-company-candidates-length nil)
-  (defun entropy/emacs-company--company-box-recover-bg ()
-    "Recovery background color for company-box frame after theme
-loading.
 
-The exists meaning for this function is that the
-company-box-frame and company-box-doc-frame was built tied to the
-orignal selected frame at once persistently, which also take
-affection of the theme loading which will make all frame's
-default background color changes so that also to change the
-initial frame background face sets did by
-`company-box--make-frame'."
-    (let ((main-bg (face-background 'company-box-background nil t)))
-      (dolist (frame (list (ignore-errors (company-box--get-frame))
-                           (frame-parameter nil 'company-box-doc-frame)))
-        (when (frame-live-p frame)
-          (message "company-box rec for frame '%s'" frame)
-          (with-selected-frame frame
-            (unless (equal main-bg (frame-parameter nil 'background-color))
-              (set-frame-parameter nil 'background-color
-                                   main-bg)
-              (message "company box bg for frame '%s' is set to %s" frame
-                       (frame-parameter nil 'background-color))))))))
-
+;; **** init
   :init
   (setq company-box-doc-delay
         ;; FIXME: company box idle delay smaller than 0.42 will cause
         ;; first candi doc not show
         (max 0.42 entropy/emacs-company-quickhelp-delay-default)
-        company-box-max-candidates (if (boundp x-gtk-resize-child-frames) 100 20)
-        company-box-show-single-candidate t)
+        company-box-max-candidates (if (boundp 'x-gtk-resize-child-frames) 100 20)
+        company-box-show-single-candidate 'always)
 
   (if (null (daemonp))
       (add-hook 'company-mode-hook
@@ -355,56 +333,58 @@ initial frame background face sets did by
                     (company-box-mode 1))))
               (buffer-list)))))
 
+;; **** config
   :config
+
+;; ***** common setting
   (add-hook 'entropy/emacs-theme-load-after-hook
             #'entropy/emacs-company--company-box-recover-bg)
+  (defun entropy/emacs-company--company-box-recover-bg ()
+    "Recovery background color for company-box frame after theme
+loading.
 
+The exists meaning for this function is that the
+company-box-frame and company-box-doc-frame was built tied to the
+orignal selected frame at once persistently, which also take
+affection of the theme loading which will make all frame's
+default background color changes so that also to change the
+initial frame background face sets did by
+`company-box--make-frame'."
+    (let ((main-bg (face-background 'company-box-background nil t)))
+      (dolist (frame (list (ignore-errors (company-box--get-frame))
+                           (frame-parameter nil 'company-box-doc-frame)))
+        (when (frame-live-p frame)
+          (message "company-box rec for frame '%s'" frame)
+          (with-selected-frame frame
+            (unless (equal main-bg (frame-parameter nil 'background-color))
+              (set-frame-parameter nil 'background-color
+                                   main-bg)
+              (message "company box bg for frame '%s' is set to %s" frame
+                       (frame-parameter nil 'background-color))))))))
+
+;; ***** show mechanism patch
   (when sys/linuxp
     ;; Fix child-frame resize/reposition bug on linux
     (if (boundp 'x-gtk-resize-child-frames)
         ;; FIXME: `x-gtk-resize-child-frames' option was one temporal
         ;; patch method invoking from emacs-devel commit c49d379f17bcb
         ;; which will eliminated in the future emacs version.
-        (setq x-gtk-resize-child-frames 'hide)
-      (defun company-box-frontend (command)
-        "`company-mode' frontend using child-frame.
-COMMAND: See `company-frontends'.
+        (setq x-gtk-resize-child-frames 'hide)))
 
-NOTE: this function has been redefined for temporal bug fake fix
-due to the emacs child-frame bug."
-        (unless (stringp entropy/emacs-company--company-box-company-prefix)
-          (setq entropy/emacs-company--company-box-company-prefix company-prefix))
-        (unless entropy/emacs-company--company-box-company-candidates-length
-          (setq entropy/emacs-company--company-box-company-candidates-length
-                company-candidates-length))
-        (cond
-         ((eq command 'hide)
-          (company-box-hide)
-          (setq entropy/emacs-company--company-box-company-prefix nil
-                entropy/emacs-company--company-box-company-candidates-length nil))
-         ((and (equal company-candidates-length 1)
-               (null company-box-show-single-candidate))
-          (company-box-hide))
-         ((eq command 'update)
-          (when (or
-                 ;; (and (or (string-prefix-p entropy/emacs-company--company-box-company-prefix
-                 ;;                           company-prefix)
-                 ;;          (string-prefix-p company-prefix
-                 ;;                           entropy/emacs-company--company-box-company-prefix))
-                 ;;      (> (abs (- (length company-prefix)
-                 ;;                 (length entropy/emacs-company--company-box-company-prefix)))
-                 ;;         3))
-                 nil
-                 (>= (abs (- entropy/emacs-company--company-box-company-candidates-length
-                             company-candidates-length))
-                     1))
-            (setq entropy/emacs-company--company-box-company-prefix company-prefix)
-            (setq entropy/emacs-company--company-box-company-candidates-length
-                  company-candidates-length)
-            (company-box-hide))
-          (company-box-show))
-         ((eq command 'post-command)
-          (company-box--post-command))))))
+  (defun entropy/emacs-company--company-box-content-length-restrict-advice (orig-func &rest orig-args)
+    "Restrict  company box content length to reduce lagging feels."
+    (if (bound-and-true-p company-box-mode)
+        (let* ((company-candidates (-take company-box-max-candidates company-candidates))
+               (company-candidates-length (length company-candidates)))
+          (apply orig-func orig-args))
+      (apply orig-func orig-args)))
+
+  (dolist (el '(company-box-show company-box--update company-set-selection))
+    (advice-add el
+                :around
+                #'entropy/emacs-company--company-box-content-length-restrict-advice))
+
+;; ***** icons patch
 
   (with-no-warnings
     ;; Prettify icons
@@ -518,25 +498,19 @@ completion when calling: 'execute-extended-command' or
   )
 
 ;; ** company-lsp
-(use-package company-lsp
-  :init
-  (entropy/emacs-lazy-load-simple lsp-mode
-    (advice-add 'lsp
-                :after
-                #'entropy/emacs-company-add-lsp-backend))
+(entropy/emacs-lazy-load-simple lsp-mode
+  (advice-add 'lsp
+              :after
+              #'entropy/emacs-company-add-lsp-backend))
 
-  ;; Forcely cache lsp auto-completions candi for prevent emacs
-  ;; lagging with frequency candi draging
-  (setq company-lsp-cache-candidates t)
-
-  (defun entropy/emacs-company-add-lsp-backend (&rest args)
-    (make-local-variable 'company-backends)
-    (setq-local company-backends (remove 'company-lsp company-backends))
-    (add-to-list 'company-backends
-                 '(company-files
-                   company-lsp
-                   :separate company-dabbrev-code company-keywords
-                   :with company-yasnippet))))
+(defun entropy/emacs-company-add-lsp-backend (&rest args)
+  (make-local-variable 'company-backends)
+  (setq-local company-backends (remove 'company-lsp company-backends))
+  (add-to-list 'company-backends
+               '(company-files
+                 company-capf
+                 :separate company-dabbrev-code company-keywords
+                 :with company-yasnippet)))
 
 ;; ** Individual backends
 (defun entropy/emacs-company--default-traditional-backends-generator
