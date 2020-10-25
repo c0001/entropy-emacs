@@ -85,13 +85,14 @@ unpredictable render bug, so that force redirect
 window-configuration can fix this problem on interface, its purely
 may be a emacs native bug."
     (let* ((cur-buff (current-buffer))
-           (rtn (save-selected-window (apply orig-func orig-args))))
+           (rtn (apply orig-func orig-args)))
       (when (and (treemacs-get-local-window)
                  (not (active-minibuffer-window))
                  (not (eq major-mode 'treemacs-mode))
                  (buffer-file-name cur-buff))
         (unless (eq cur-buff entropy/emacs-treemacs--current-focused-buffer)
           (switch-to-buffer cur-buff)
+          (message "")                  ;refresh window configuration
           (setq entropy/emacs-treemacs--current-focused-buffer cur-buff)))
       rtn))
 
