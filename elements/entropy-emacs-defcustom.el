@@ -825,13 +825,15 @@ height of dock:
   "Eemacs emacs frame background transparent configuration customizable group."
   :group 'entropy/emacs-customize-group-for-basic-configuration)
 
-(defcustom entropy/emacs-init-loop-alpha t
-  "Enable transparent at startup of emacs"
+(defcustom entropy/emacs-start-with-frame-transparent-action t
+  "Enable frame transparent at startup of =entropy-emacs=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-transparent-backgroud)
 
-(defcustom entropy/emacs-loop-alpha-value '((85 100) (100 100))
-  "The value of background transparent"
+(defcustom entropy/emacs-loop-alpha-value 85
+  "The default initialize integer value of frame background
+transparent, any customization of it may be restrict by the
+target process."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-transparent-backgroud)
 
