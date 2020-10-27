@@ -50,7 +50,7 @@
 ;;;;; youdao
 (defun entropy/sdcv-backends--query-with-youdao (query &rest _)
   (setq entropy/sdcv-core-response-log
-        (youdao-dictionary--format-result query)))
+        (youdao-dictionary--format-result (youdao-dictionary--request query))))
 
 (defun entropy/sdcv-backends--youdao-show-predicate (feedback show-method)
   (cl-case show-method
