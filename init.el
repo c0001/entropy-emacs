@@ -233,8 +233,13 @@ The compatible version comparation is rased on the two ways:
 for preventing unregular loading procedure by modification of
 emacs upstream")
 
-(require
- 'entropy-emacs
- (expand-file-name
-  "elements/entropy-emacs.el"
-  entropy/emacs-user-emacs-directory))
+(let ((use-dialog-box))                 ;inhibit dialog box for
+                                        ;entropy-emacs initialization
+                                        ;process to prevent judgment
+                                        ;interaction missing upon
+                                        ;emacs-28.
+  (require
+   'entropy-emacs
+   (expand-file-name
+    "elements/entropy-emacs.el"
+    entropy/emacs-user-emacs-directory)))
