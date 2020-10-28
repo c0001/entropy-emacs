@@ -1334,11 +1334,13 @@ If the generated backup name exists in filesystem then add a
 random suffix.
 
 Notice there's no backup naming regexp convention guarantee! "
-  (if (and file-path (file-exists-p file-path))
+  (if (and (stringp file-path)
+           (file-exists-p file-path))
       (let* ((file-name
               (if (file-directory-p file-path)
                   (directory-file-name file-path)
                 file-path))
+             (host-path (file-name-directory file-name))
              (backup-name
               (let ((rtn
                      (concat
@@ -1351,8 +1353,11 @@ Notice there's no backup naming regexp convention guarantee! "
                                 (random most-positive-fixnum))))
                 rtn))
              (backup-base
-              (file-name-base backup-name))
-             (file-base (file-name-base file-name)))
+              (file-name-nondirectory backup-name))
+             (file-base (file-name-nondirectory file-name)))
+        (when (file-exists-p backup-name)
+          (error (format "The backup file name has duplicated in host location '%s'"
+                         host-path)))
         (if (file-directory-p file-path)
             (copy-directory file-path backup-name nil nil t)
           (copy-file file-path backup-name))
