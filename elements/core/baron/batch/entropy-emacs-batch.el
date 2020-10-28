@@ -92,6 +92,17 @@
      (when (yes-or-no-p "Install them? ")
        ,@body)))
 
+(defmacro entropy/emacs-batch--prompts-for-native-compile
+    (&rest body)
+  `(let ()
+     (entropy/emacs-message-do-message
+      "\n%s\n%s\n%s\n"
+      (blue    "==================================================")
+      (yellow "       Section for native compiling `package-user-dir' ...")
+      (blue    "=================================================="))
+     (when (yes-or-no-p "Native compile `package-user-dir'? ")
+       ,@body)))
+
 ;; *** dump emacs
 (defun entropy/emacs-batch--dump-emacs-core ()
   (let ((dump-file (expand-file-name
@@ -155,6 +166,41 @@
      (yellow (format "'%s'" bcknew))
      (green "completely!"))))
 
+;; *** native compile  `package-user-dir'
+
+(defun entropy/emacs-batch--around-advice-for-native-compile (orig-func &rest orig-args)
+  (let ((file-or-func (caar comp-files-queue)))
+    (entropy/emacs-message-do-message
+     "%s%s%s"
+     "↳ "
+     (yellow (format "⚠ native compiling for %s :"
+                     (if (functionp file-or-func)
+                         "function"
+                       (if (ignore-errors (file-exists-p file-or-func))
+                           "file"
+                         "unkown object")
+                       )))
+     (if (ignore-errors (file-exists-p file-or-func))
+         (file-name-nondirectory file-or-func)
+       (format "%s" file-or-func)))
+    (apply orig-func orig-args)))
+
+(defun entropy/emacs-batch--native-compile-package-dir ()
+  (let* ((comp-verbose 0))
+    (unwind-protect
+        (progn
+          (advice-add 'comp-run-async-workers
+                      :around #'entropy/emacs-batch--around-advice-for-native-compile)
+          (native-compile-async package-user-dir 'recursively)
+          (while (or comp-files-queue
+                     (> (comp-async-runnings) 0))
+            (sleep-for 1)))
+      (progn
+        (advice-remove
+         'comp-run-async-workers
+         #'entropy/emacs-batch--around-advice-for-native-compile)))))
+
+
 ;; ** interactive
 (when (entropy/emacs-ext-main)
   (let ((type (entropy/emacs-is-make-session)))
@@ -176,6 +222,10 @@
       ;; make dump file
       (entropy/emacs-batch--prompts-for-dump-section
        (entropy/emacs-batch--dump-emacs)))
+     ((and (ignore-errors (native-comp-available-p))
+           (equal type "native-comp"))
+      (entropy/emacs-batch--prompts-for-native-compile
+       (entropy/emacs-batch--native-compile-package-dir)))
      (t
       (entropy/emacs-message-do-error
        (red (format "Unknown making type '%s'" type)))))))

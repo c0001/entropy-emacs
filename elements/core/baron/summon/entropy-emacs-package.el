@@ -42,7 +42,7 @@
 ;;
 (defvar-local entropy/emacs-package--package-archives-list '(melpa emacs-china tuna tencent))
 
-(defun entropy/emacs-package-set-package-archive-location (archives)
+(defun entropy/emacs-package-set-package-archive-repo (archives)
   "Switch to specific package ARCHIVES repository."
   (interactive
    (list
@@ -75,7 +75,7 @@
 
 (defun entropy/emacs-package--initial-package-archive ()
   (unless (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
-    (entropy/emacs-package-set-package-archive-location
+    (entropy/emacs-package-set-package-archive-repo
      entropy/emacs-package-archive-repo)))
 
 ;; *** Format package-gnupghome-dir format for Msys2

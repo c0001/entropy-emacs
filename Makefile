@@ -56,4 +56,9 @@ dump:
 	@export EEMACS_MAKE=Dump;\
 	$(EMACS_MAKE)
 
+native-comp:
+	$(info )
+	@export EEMACS_MAKE=native-comp;\
+	$(EMACS_MAKE)
+
 all:	install	install-coworkers update dump
