@@ -1,0 +1,37 @@
+                   Entropy-Emacs Make
+
+Welcom to Entropy-Emacs Make procedure, there's four core 'make'
+options provision that 'install', 'install-coworkers','update' and
+'dump', for each as install all elisp packges, install external
+depedencies and prompting for updaing packags and dumping emacs, or
+doing thus all using 'all' option, dump option for just dumping
+current eemacs status (notice for using 'install' operation firstly
+for check requirements dependencies or using 'all' operation dismiss
+the mistake steps instead).
+
+Example:
+
+       make all
+       make install
+       make install-coworkers
+       make update
+       make dump
+       make native-comp
+
+- 'native-comp' option will using gccemacs 'native-compile' func to
+  compile all packages hosted in `package-user-dir'. It's useful when
+  you use gccemacs.
+
+- 'install-coworkers' option will install all system-wide emacs
+  dependencies where entropy-emacs specified, you will do it when
+  you're missing any of libraries prompt internally of entropy-emacs
+  using.
+
+The dumped emacs binary file is stored in
+'entropy/emacs-user-emacs-directory' (i.e. the entropy-emacs specified
+`user-emacs-directory' and be equivalent to it in most of cases) with
+name-space as 'eemacs_YearDateTime.pdmp', start it with:
+
+-------
+       emacs --dump-file=eemacs_YearDateTime.pdmp
+-------
