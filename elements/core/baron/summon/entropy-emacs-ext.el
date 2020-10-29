@@ -108,6 +108,7 @@ loading.")
                :load-predicate (expand-file-name "eemacs-lsp-archive-load.el"
                                                  entropy/emacs-ext-lsp-archive-dir)
                :preface (lambda () (setq eemacs-lspa/subr-loader-indicator t))
+               :load-after-startup t
                )))
     (list :eemacs-ext eemacs-ext :eemacs-lsparc eemacs-lsparc)))
 
@@ -306,11 +307,19 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
     (when ext-plists
       (dolist (el ext-plists)
         (let ((loader (plist-get el :load-predicate))
-              (preface (plist-get el :preface)))
+              (preface (plist-get el :preface))
+              (load-after-startup (plist-get el :load-after-startup)))
           (when (ignore-errors (file-exists-p loader))
-            (when (functionp preface)
-              (funcall preface))
-            (load loader)))))))
+            (cond (load-after-startup
+                   (add-hook 'entropy/emacs-startup-end-hook
+                             `(lambda ()
+                                (when (functionp ,preface)
+                                  (funcall ,preface))
+                                (load ,loader))))
+                  (t
+                   (when (functionp preface)
+                     (funcall preface))
+                   (load loader)))))))))
 
 ;; ** main
 (defun entropy/emacs-ext-main ()
