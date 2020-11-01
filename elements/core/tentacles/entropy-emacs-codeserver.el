@@ -465,6 +465,7 @@ nervous."
 ;; ***** lsp python ms
 ;; Microsoft python-language-server support
 (use-package lsp-python-ms
+  :if (eq entropy/emacs-codeserver-prefer-pyls-type 'mspyls)
   :hook (python-mode . (lambda () (require 'lsp-python-ms)))
   :init
   (when (executable-find "python3")

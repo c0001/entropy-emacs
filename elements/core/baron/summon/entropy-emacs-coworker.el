@@ -583,7 +583,7 @@ EXIT /b
 
 (setq lsp-python-ms-dir
       (expand-file-name
-       "output/bin/Release/linux-x64/publish/"
+       (format "output/bin/Release/%s/publish/" entropy/emacs-coworker--pyls-ms-release-name)
        entropy/emacs-coworker--pyls-ms-archive-dir))
 
 
