@@ -313,6 +313,23 @@ also."
                  (expand-file-name "archive" entropy/emacs-coworker-host-root)))
            ,@body)
        ,@body)))
+;; ** codeserver refer
+(defvar entropy/emacs-codeserver-lsp-mode-extra-clients nil
+  "Extra `lsp-mode' compatible language server feature.
+
+Each element of this list is a feature name of which emacs
+extansion was a third-party extension for `lsp-mode'.
+
+All of them will be required by `lsp-mode' be its fistly starting
+in current emacs-session.
+
+NOTE: This variable used for `lsp-mode' be customized for
+relacing extra clients of internal officially registered ones or
+add the missing ones e.g. we may want to take high priority for
+`lsp-python-ms' with the internal registerred `lsp-pyls' to get
+more powerful features and add `lsp-java' to let `lsp-mode'
+support java support while it doesn't place it internally.")
+
 
 ;; ** garbage collection refer
 

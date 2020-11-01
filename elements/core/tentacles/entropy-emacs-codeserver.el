@@ -240,7 +240,11 @@ It is the recommendation of irony-mode official introduction."
                  lsp-find-type-definition
                  lsp-find-declaration)
   :preface
-  (defun entropy/emacs-codeserver-lsp-mode-remove-session-file ()
+  (defun entropy/emacs-codeserver--lsp-mode-load-extra-clients (&rest _)
+    (dolist (feature entropy/emacs-codeserver-lsp-mode-extra-clients)
+      (require feature)))
+
+  (defun entropy/emacs-codeserver--lsp-mode-remove-session-file ()
     (when (and (boundp 'lsp-session-file)
                (file-exists-p lsp-session-file))
       (delete-file lsp-session-file)))
@@ -360,7 +364,7 @@ nervous."
   ;; delete transient lsp session file for prevent lagging with large
   ;; amounts of folder parsing while next emacs session setup.
   (add-hook 'kill-emacs-hook
-            #'entropy/emacs-codeserver-lsp-mode-remove-session-file)
+            #'entropy/emacs-codeserver--lsp-mode-remove-session-file)
 
   (dolist (el entropy/emacs-ide-for-them)
     (when (eq (entropy/emacs-get-use-ide-type el) 'lsp)
@@ -385,7 +389,18 @@ nervous."
               #'entropy/emacs-codeserver--lsp-exclude)
   (advice-add 'lsp
               :before
-              #'entropy/emacs-codeserver--lsp-start-promt))
+              #'entropy/emacs-codeserver--lsp-start-promt)
+  (advice-add 'lsp
+              :before #'entropy/emacs-codeserver--lsp-mode-load-extra-clients)
+
+  ;; Remove clients not officially included in `lsp-mode' internal
+  ;; subroutine to prevent from coverring eemacs customizations.
+  (setq lsp-client-packages
+        (delete nil
+                (mapcar (lambda (x)
+                          (unless (member x '(ccls lsp-python-ms lsp-java))
+                            x))
+                        lsp-client-packages))))
 
 ;; **** lsp-ui
 (use-package lsp-ui
@@ -452,7 +467,9 @@ nervous."
 ;; **** lsp extensions
 ;; ***** lsp java
 (use-package lsp-java
-  :hook (java-mode . (lambda () (require 'lsp-java)))
+  :init
+  (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
+               'lsp-java)
   :config
   ;; create boot-server directory prevent `lsp-java-boot' throw out its error
   (let ((boot-server-dir
@@ -466,8 +483,9 @@ nervous."
 ;; Microsoft python-language-server support
 (use-package lsp-python-ms
   :if (eq entropy/emacs-codeserver-prefer-pyls-type 'mspyls)
-  :hook (python-mode . (lambda () (require 'lsp-python-ms)))
   :init
+  (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
+               'lsp-python-ms)
   (when (executable-find "python3")
     (setq lsp-python-ms-python-executable-cmd "python3")))
 
