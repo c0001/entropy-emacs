@@ -945,14 +945,17 @@ are pre-defined for reversing the namespace update possible:
   "Eemacs language servers integraged configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
-(defcustom entropy/emacs-codeserver-prefer-pyls-type 'pyls
+(defcustom entropy/emacs-codeserver-prefer-pyls-type 'pyright
   "Choose preferred python language server type:
 
-- 'mspyls': microsoft python lanuage server
-- 'pyls':   official python language server (used as default)"
+- 'mspyls':  microsoft python lanuage server
+- 'pyls':    official python language server
+- 'pyright': next generation vscode python language server (used as default)
+"
   :type '(choice
           (const :tag "pyls" pyls)
-          (const :tag "lsp-ms-pyls" mspyls))
+          (const :tag "lsp-ms-pyls" mspyls)
+          (const :tag "lsp-pyright" pyright))
   :group 'entropy/emacs-customize-group-for-codeserver)
 
 ;; *** IDE

@@ -163,6 +163,7 @@
         loop
         lsp-java
         lsp-mode
+        lsp-pyright
         lsp-python-ms
         lsp-treemacs
         lsp-ui

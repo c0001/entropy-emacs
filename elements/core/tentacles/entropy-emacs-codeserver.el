@@ -489,6 +489,13 @@ nervous."
   (when (executable-find "python3")
     (setq lsp-python-ms-python-executable-cmd "python3")))
 
+;; ***** lsp python pyright
+(use-package lsp-pyright
+  :if (eq entropy/emacs-codeserver-prefer-pyls-type 'pyright)
+  :init
+  (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
+               'lsp-pyright))
+
 ;; *** lsp instances
 ;; **** lsp html&css
 (when (and (eq (entropy/emacs-get-use-ide-type 'web-mode) 'lsp)

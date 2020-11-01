@@ -587,14 +587,19 @@ EXIT /b
        entropy/emacs-coworker--pyls-ms-archive-dir))
 
 
+;; ***** pyright
+(defun entropy/emacs-coworker-check-pyright-lsp ()
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "pyright-lsp" '("pyright" "pyright-langserver") "pyright"))
+
 ;; **** main
 
 (defun entropy/emacs-coworker-check-python-lsp (&rest _)
   (cl-case entropy/emacs-codeserver-prefer-pyls-type
     (mspyls (entropy/emacs-coworker-check-pyls-ms-lsp))
-    (pyls (entropy/emacs-coworker-check-pyls-lsp))))
-
-
+    (pyls (entropy/emacs-coworker-check-pyls-lsp))
+    (pyright (entropy/emacs-coworker-check-pyright-lsp))))
 
 ;; * provide
 (provide 'entropy-emacs-coworker)
