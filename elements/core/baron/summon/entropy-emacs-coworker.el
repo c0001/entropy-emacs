@@ -220,6 +220,8 @@ EXIT /b
                      ,server-name-string)))
            :after
            (dolist (el ',server-bins)
+             (when sys/is-win-group
+               (setq el (format "%s.cmd" el)))
              (message "Make symbolic for server bin '%s' ..."  el)
              (make-symbolic-link (expand-file-name
                                   (format "node_modules/.bin/%s" el)
@@ -278,7 +280,11 @@ EXIT /b
                        (car (file-expand-wildcards
                              (expand-file-name "python[0-9]*/site-packages"
                                                entropy/emacs-coworker-lib-host-root))))
-                    (expand-file-name "Lib/site-packages" entropy/emacs-coworker-host-root)))
+                    (let ((maybe-it-0 (expand-file-name "lib/site-packages" entropy/emacs-coworker-host-root))
+                          (maybe-it-1 (expand-file-name "Lib/site-packages" entropy/emacs-coworker-host-root)))
+                      (if (file-exists-p maybe-it-0)
+                          maybe-it-0
+                        maybe-it-1))))
                  (w32-pyexecs-dir
                   (expand-file-name "Scripts" entropy/emacs-coworker-host-root)))
              (dolist (el ',server-bins)

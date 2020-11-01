@@ -36,38 +36,40 @@ EMACS_MAKE=$(EMACS) --batch -l init.el
 
 ifeq ($(detected_OS),Windows)
 CAT=type
+EchoEmpty=echo.
 else
 CAT=cat
+EchoEmpty=echo
 endif
 
 # ** main
 help:
-	@$(CAT) ./make-help.txt
+	@$(CAT) make-help.txt
+	@$(EMACS) --version
 
+install: export EEMACS_MAKE = Install
 install:
-	$(info )
-	@export EEMACS_MAKE=Install;\
-	$(EMACS_MAKE)
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
 
-
+install-coworkers: export EEMACS_MAKE = Install-Coworkers
 install-coworkers:
-	$(info )
-	@export EEMACS_MAKE=Install-Coworkers;\
-	$(EMACS_MAKE)
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
 
+update: export EEMACS_MAKE = Update
 update:
-	$(info )
-	@export EEMACS_MAKE=Update;\
-	$(EMACS_MAKE)
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
 
+dump: export EEMACS_MAKE = Dump
 dump:
-	$(info )
-	@export EEMACS_MAKE=Dump;\
-	$(EMACS_MAKE)
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
 
+native-comp: export EEMACS_MAKE=native-comp
 native-comp:
-	$(info )
-	@export EEMACS_MAKE=native-comp;\
-	$(EMACS_MAKE)
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
 
-all:	install	install-coworkers update dump
+all: install install-coworkers update dump

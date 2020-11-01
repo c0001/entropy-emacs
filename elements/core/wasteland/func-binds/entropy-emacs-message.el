@@ -41,6 +41,7 @@
 ;; * Code:
 ;; ** require
 (require 'ansi-color)
+(require 'entropy-emacs-defconst)
 
 ;; ** const define
 (defconst entropy/emacs-message-message-buffer
@@ -187,7 +188,8 @@ interactive session."
             rtn-1)))
      (setq echo-string
            (if (or noninteractive (entropy/emacs-message--in-daemon-load-p))
-               (if (entropy/emacs-message--in-daemon-load-p)
+               (if (or (entropy/emacs-message--in-daemon-load-p)
+                       sys/win32p)
                    (substring-no-properties rtn)
                  rtn-1)
              rtn))))
