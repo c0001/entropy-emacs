@@ -73,7 +73,10 @@
            (let (rtn)
              (catch :exit
                (dolist (el files)
-                 (unless (file-exists-p el)
+                 (unless (or (file-exists-p el)
+                             ;; find file with more suffix for windows platform
+                             (file-exists-p (format "%s.cmd" el))
+                             (file-exists-p (format "%s.exe" el)))
                    (setq rtn t)
                    (throw :exit nil))))
              (if rtn nil t))))
