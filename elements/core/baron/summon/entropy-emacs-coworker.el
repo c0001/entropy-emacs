@@ -171,6 +171,24 @@ EXIT /b
                  (file-name-base bin-file-abspath)))
         (save-buffer)
         (kill-buffer)))))
+;; ***** npm
+;; ****** generate w32 node callers
+(defun entropy/emacs-coworker--gen-node-w32-cmd-bin (cmd-bin-file caller-path)
+  (let* ((template (with-current-buffer
+                       (find-file-noselect
+                        (expand-file-name "node-call_template.cmd"
+                                          entropy/emacs-templates-dir))
+                     (buffer-substring-no-properties (point-min) (point-max))))
+         (bin-content
+          (replace-regexp-in-string "\\$\\$\\$\\$COMMAND\\$\\$\\$\\$"
+                                    (replace-regexp-in-string "/" "\\\\\\\\" caller-path)
+                                    template t))
+         (inhibit-read-only t))
+    (with-current-buffer (find-file-noselect cmd-bin-file)
+      (erase-buffer)
+      (insert bin-content)
+      (save-buffer))))
+
 ;; *** package install branches
 ;; **** npm install
 (defun entropy/emacs-coworker--coworker-install-by-npm
@@ -222,15 +240,25 @@ EXIT /b
            (dolist (el ',server-bins)
              (when sys/is-win-group
                (setq el (format "%s.cmd" el)))
-             (message "Make symbolic for server bin '%s' ..."  el)
-             (make-symbolic-link (expand-file-name
-                                  (format "node_modules/.bin/%s" el)
-                                  entropy/emacs-coworker-lib-host-root)
-                                 (expand-file-name
-                                  el
-                                  entropy/emacs-coworker-bin-host-path)
-                                 t)
-             (message "Make symbolic for server bin '%s' done!"  el))
+             (message "Make final executable target for server bin '%s' ..."  el)
+             (cond (sys/is-win-group
+                    (entropy/emacs-coworker--gen-node-w32-cmd-bin
+                     (expand-file-name
+                      el
+                      entropy/emacs-coworker-bin-host-path)
+                     (expand-file-name
+                      (format "node_modules/.bin/%s" el)
+                      entropy/emacs-coworker-lib-host-root))
+                    (message "Make w32 caller for server bin '%s' done!" el))
+                   (t
+                    (make-symbolic-link (expand-file-name
+                                         (format "node_modules/.bin/%s" el)
+                                         entropy/emacs-coworker-lib-host-root)
+                                        (expand-file-name
+                                         el
+                                         entropy/emacs-coworker-bin-host-path)
+                                        t)
+                    (message "Make symbolic for server bin '%s' done!"  el))))
            (entropy/emacs-coworker--coworker-message-install-success
             ,server-name-string)
            :error
@@ -267,7 +295,8 @@ EXIT /b
            '("pip"
              "--isolated"
              "install" "-I" ,server-repo-string
-             "--prefix" ,entropy/emacs-coworker-host-root
+             "--prefix" ,(if sys/is-win-group (replace-regexp-in-string "/" "\\\\"  entropy/emacs-coworker-host-root)
+                           entropy/emacs-coworker-host-root)
              "--no-compile")
            :buffer (get-buffer-create "*eemacs-coworker-pip-install-proc*")
            :prepare
