@@ -866,6 +866,25 @@ Temp file was \"~/~entropy-artist.txt\""
   (advice-add #'gnutls-available-p :override #'ignore))
 
 
+;; **** Disable `auto-mode-alist' case fold search
+
+;; Disable case insensitive search mode for `auto-mode-case-fold' when
+;; possible
+;;
+;; The reason for that this one charge the behaviour of `find-file'
+;; where how to did with `auto-mode-alist', that each judgement of
+;; thus was a filename regexp match, for those special filename will
+;; encounter ridiculous conflict operation mistake such of which file
+;; named as 'ebrowse' will opened automatically by `ebrowse-tree-mode'
+;; becasue there's two injection from that within `auto-mode-alist'
+;; i.e. '("BROWSE\\'" . ebrowse-tree-mode) and '("\\.ebrowse\\'"
+;; . ebrowse-tree-mode), so funny.
+;;
+;; But this is not a bug, because on some platform (e.g. WINDOWS),
+;; file name is native case insensitive as is and there's no treatment
+;; for those situations.
+(setq auto-mode-case-fold nil)
+
 ;; *** Personal infomation
 (when (and entropy/emacs-user-full-name
            entropy/emacs-user-mail-address)
