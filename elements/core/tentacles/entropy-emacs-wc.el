@@ -789,6 +789,7 @@ without derived slot."
           "*Colors*"
           "*Process List*"
           "*Process-Environment*"
+          "*Eemacs Messages*"
           )
         winner-boring-buffers-regexp
         (rx (or
