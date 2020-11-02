@@ -299,6 +299,7 @@ actived, as the rest that next garbage-collect operation til
   :if (eq entropy/emacs-company-tooltip-use-type 'company-box)
   :after company
   :commands (company-box-mode)
+
 ;; **** preface
   :preface
 

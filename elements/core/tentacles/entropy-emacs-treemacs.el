@@ -85,16 +85,24 @@ unpredictable render bug, so that force redirect
 window-configuration can fix this problem on interface, its purely
 may be a emacs native bug."
     (let* ((cur-buff (current-buffer))
-           (rtn (apply orig-func orig-args)))
-      (when (and (treemacs-get-local-window)
-                 (not (active-minibuffer-window))
-                 (not (eq major-mode 'treemacs-mode))
-                 (buffer-file-name cur-buff))
-        (unless (eq cur-buff entropy/emacs-treemacs--current-focused-buffer)
-          (switch-to-buffer cur-buff)
-          (message "")                  ;refresh window configuration
-          (setq entropy/emacs-treemacs--current-focused-buffer cur-buff)))
-      rtn))
+           (buf-fname (buffer-file-name cur-buff))
+           rtn)
+      (if (ignore-errors
+            ;; NOTE: Suppress its file follow in `entropy/emacs-stuffs-topdir'
+            ;; EEMACS_MAINTENANCE: this part may have more conditions
+            (file-equal-p (expand-file-name (file-name-nondirectory buf-fname) entropy/emacs-stuffs-topdir)
+                          (expand-file-name buf-fname)))
+          (setq treemacs--follow-timer nil)
+        (setq rtn (apply orig-func orig-args))
+        (when (and (treemacs-get-local-window)
+                   (not (active-minibuffer-window))
+                   (not (eq major-mode 'treemacs-mode))
+                   (buffer-file-name cur-buff))
+          (unless (eq cur-buff entropy/emacs-treemacs--current-focused-buffer)
+            (set-buffer cur-buff)
+            (select-window (get-buffer-window cur-buff))
+            (setq entropy/emacs-treemacs--current-focused-buffer cur-buff)))
+        rtn)))
 
   (defun entropy/emacs-treemacs-auto-focus-on-common-buffer (&rest _)
     "Auto change focus point on common buffer (i.e. not treemacs

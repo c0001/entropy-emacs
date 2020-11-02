@@ -85,12 +85,14 @@
 (defvar entropy/emacs-modeline--mdl-egroup-selected-window
   (frame-selected-window))
 
-(defun entropy/emacs-modeline--mdl-egroup-set-selected-window (&rest _)
+(defun entropy/emacs-modeline--mdl-egroup-set-selected-window (&optional orig-func &rest orig-args)
   "Set `entropy/emacs-modeline--mdl-egroup' selected window indicator."
   (let ((win (frame-selected-window)))
     (unless (minibuffer-window-active-p win)
       (setq entropy/emacs-modeline--mdl-egroup-selected-window win)
-      (force-mode-line-update))))
+      (force-mode-line-update)))
+  (when orig-func
+    (apply orig-func orig-args)))
 
 (defun entropy/emacs-modeline--mdl-egroup-unset-selected-window ()
   "Unset `entropy/emacs-modeline--mdl-egroup' appropriately."
@@ -103,7 +105,7 @@
             :after
             #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
 (advice-add #'select-window
-            :after
+            :around
             #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
 
 (with-no-warnings
@@ -472,6 +474,11 @@ eyerbowse improvement."
 
 ;; ***** common spec
 
+  ;; Disable internally typo of wrong advice type for `select-window'
+  ;; using `:after' keyword without WINDOW return refers to githuh
+  ;; issue:
+  ;; https://github.com/seagle0128/doom-modeline/issues/386#issue-734308633
+  (advice-remove #'select-window #'doom-modeline-update-persp-name)
 
   )
 
