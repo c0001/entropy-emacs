@@ -77,6 +77,14 @@ specification."
         (select-window buff-win)
         (message ""))))
 
+  (defun entropy/emacs-music-mpc--exchage-window-buffers-init ()
+    (let* ((playlist-buf (mpc-proc-buffer (mpc-proc) 'Playlist))
+           (playlist-win (get-buffer-window playlist-buf))
+           (status-buf (mpc-proc-buffer (mpc-proc) 'status))
+           (status-win (get-buffer-window status-buf)))
+      (set-window-buffer status-win playlist-buf)
+      (set-window-buffer playlist-win status-buf)))
+
   (defun entropy/emacs-music-mpc--patch-popuped-window-around-advice
       (orig-func &rest orig-args)
     (let* ((wfg-orig (current-window-configuration)))
@@ -84,7 +92,8 @@ specification."
             wfg-orig)
       (delete-other-windows-internal)
       (apply orig-func orig-args)
-      (entropy/emacs-music-mpc--patch-popuped-window-balance)))
+      (entropy/emacs-music-mpc--patch-popuped-window-balance)
+      (entropy/emacs-music-mpc--exchage-window-buffers-init)))
 
   (defun entropy/emacs-music-mpc--patch-quit-around-advice (orig-func &rest orig-args)
     (let* ()
@@ -92,19 +101,92 @@ specification."
       (set-window-configuration
        entropy/emacs-music-mpc--orig-window-configuration)))
 
+  (defun entropy/emacs-music-mpc-unselect (&optional event)
+    "Unselect the tag value at point."
+    (interactive (list last-nonmenu-event))
+    (mpc-event-set-point event)
+    (if (and (bolp) (eobp)) (forward-line -1))
+    (mapc 'delete-overlay mpc-select)
+    (setq mpc-select nil))
+
+  (defvar entropy/emacs-music--mpc-goto-current-pos-fake nil)
+  (defun entropy/emacs-music--mpc-goto-current-pos ()
+    ;; return nil when fatal or a point that goes to
+    (unless entropy/emacs-music--mpc-goto-current-pos-fake
+      (ignore-errors
+        (with-current-buffer (mpc-proc-buffer (mpc-proc) 'songs)
+          (goto-char
+           (marker-position overlay-arrow-position))
+          (recenter-top-bottom '(middle))))))
+
+  (defun entropy/emacs-music-mpc-songs-buffer-refresh ()
+    (interactive)
+    (mpc-playlist)
+    (let* ((song-buff (get-buffer "*MPC-Songs*"))
+           (song-win (ignore-errors (get-buffer-window song-buff))))
+      (when (and song-win
+                 (with-current-buffer song-buff
+                   (eq major-mode 'mpc-songs-mode)))
+        (with-selected-window song-win
+          (when (with-current-buffer song-buff
+                  (entropy/emacs-music--mpc-goto-current-pos))
+            (recenter-top-bottom '(middle)))))))
+
+  (defvar entropy/emacs-music--mpc-auto-add-and-play-sinal nil)
   (defun entropy/emacs-music-mpc-auto-add-and-play ()
     "Play current music in `mpc-songs-mode'.
 
 Add current music to queue when its not in thus."
     (interactive)
     (condition-case nil
-        (call-interactively #'mpc-songs-jump-to)
+        (progn
+          (call-interactively #'mpc-songs-jump-to))
       (error
-       (when (null mpc-select)
-         (call-interactively #'mpc-select))
-       (mpc-playlist-add)
-       (call-interactively #'mpc-songs-jump-to)
-       (call-interactively #'mpc-select-toggle))))
+       (let ()
+         (when (null mpc-select)
+           (call-interactively #'mpc-select))
+         (let ((entropy/emacs-music--mpc-goto-current-pos-fake t))
+           (mpc-playlist-add))
+         (call-interactively #'mpc-songs-jump-to)
+         (call-interactively #'entropy/emacs-music-mpc-unselect))))
+    (setq entropy/emacs-music--mpc-auto-add-and-play-sinal t))
+
+  (defun entropy/emacs-music-mpc-delete-point-song-from-playlist ()
+    (interactive)
+    (let ((entropy/emacs-message-non-popup t)
+          cur-select
+          cur-select-pos
+          (cur-play-pos (alist-get 'Pos mpc-status))
+          (cur-line (line-number-at-pos)))
+      (if (not (eq major-mode 'mpc-songs-mode))
+          (entropy/emacs-message-do-message
+           "%s%s"
+           (red "Warn: ")
+           (yellow "You are not in *MPC-Songs* buffer!"))
+        (when (null mpc-select)
+          (call-interactively #'mpc-select))
+        (setq cur-select (list (car (mapcar #'cdr (mpc-songs-selection))))
+              cur-select-pos (car cur-select))
+        (when (ignore-errors (= cur-select-pos (string-to-number cur-play-pos)))
+          (unwind-protect
+              (unless (yes-or-no-p "Can not delete current tracked on song from playlist")
+                (user-error "Aborted operation!"))
+            (call-interactively #'entropy/emacs-music-mpc-unselect)))
+        (if (and (not (null (car cur-select)))
+                 (numberp (car cur-select)))
+            (mpc-cmd-delete cur-select mpc-songs-playlist)
+          (call-interactively #'entropy/emacs-music-mpc-unselect)
+          (cond
+           ((null cur-select)
+            (user-error "Playlist is empty"))
+           (t
+            (user-error
+             "Can not get call back from mpc daemon, please take a while and redo thus"))))
+        (call-interactively #'entropy/emacs-music-mpc-unselect)
+        (mpc-playlist)
+        (when (ignore-errors
+                (goto-line cur-line))
+          (recenter-top-bottom '(middle))))))
 
   (defun entropy/emacs-music-mpc-increae-volume ()
     (interactive)
@@ -135,12 +217,11 @@ Add current music to queue when its not in thus."
     ((:enable t)
      (mpc-status-mode (mpc mpc-status-mode-map) t (3 2 2))))
    ("Common"
-    (("P" mpc-pause "Pause playing" :enable t :exit t :map-inject t)
+    (("P" mpc-toggle-play "Toggle between play and pause"
+      :enable t :exit t :map-inject t)
      ("n" mpc-next "next song" :enable t :exit t :map-inject t)
      ("p" (mpc-proc-cmd "previous") "previous song"
       :enable t :exit t :map-inject t)
-     ("t t" mpc-toggle-play "Toggle between play and pause"
-      :enable t :exit t :map-inject nil)
      ("t r" mpc-toggle-repeat "Toggle repeat play"
       :enable t :exit nil :map-inject nil
       :toggle (if (string= "0" (cdr (assq 'repeat (mpc-cmd-status)))) nil t))
@@ -173,24 +254,22 @@ Add current music to queue when its not in thus."
       "Mute volume to 0"
       :enable t :exit t))
 
-    "Search"
+    "Search&Playlist"
     (("s" mpc-songs-search
       "Filter songs to those who include STRING in their metadata"
       :enable t :exit t :map-inject t)
      ("S" mpc-songs-kill-search
       "Turn off the current search restriction"
-      :enable t :exit t :map-inject t))
-
-    "Playlist"
-    (("g" mpc-playlist "Show the current playlist"
+      :enable t :exit t :map-inject t)
+     ("g"
+      entropy/emacs-music-mpc-songs-buffer-refresh
+      "Show the current played Song with refresh playlist buffer"
       :enable t :exit t :map-inject t)
      ("a" mpc-playlist-add "Add the selection to the playlist"
       :enable t :exit t)
      ("c" mpc-playlist-create "Save current playlist under name NAME"
       :enable t :exit t)
      ("r" mpc-playlist-rename "Rename playlist OLDNAME to NEWNAME"
-      :enable t :exit t)
-     ("d" mpc-playlist-delete "Remove the selected songs from the playlist"
       :enable t :exit t)
      ("D" mpc-playlist-destroy "Delete playlist named NAME"
       :enable t :exit t))))
@@ -207,7 +286,11 @@ Add current music to queue when its not in thus."
     ("Common"
      (("RET" entropy/emacs-music-mpc-auto-add-and-play
        "Play current music."
-       :enable t :exit t :map-inject t)))))
+       :enable t :exit t :map-inject t)
+      ("d" entropy/emacs-music-mpc-delete-point-song-from-playlist
+       "Delete the songs at positions SONG-POSS from PLAYLIST."
+       :enable t :exit t :map-inject t)
+      ))))
 
 ;; *** hook
   :hook
@@ -225,9 +308,9 @@ Add current music to queue when its not in thus."
    mpc-songs-format
    "%-5{Time} %25{Title} %20{Album} %20{Artist} %5{Date}"
    mpc-browser-tags
-   '(Genre
-     Artist|Composer|Performer
-     Album|Playlist)
+   '(Artist
+     Album
+     Playlist)
    mpc-status-buffer-format
    '("%-5{Time} / %{Duration} %2{Disc--}%4{Track}"
      "Title:  %{Title}"
@@ -247,7 +330,58 @@ Add current music to queue when its not in thus."
               #'entropy/emacs-music-mpc--patch-popuped-window-around-advice)
   (advice-add 'mpc-quit
               :around
-              #'entropy/emacs-music-mpc--patch-quit-around-advice))
+              #'entropy/emacs-music-mpc--patch-quit-around-advice)
+
+  (defun entropy/emacs-music--mpc-around-advice-for-mpc-volum-refresh
+      (orig-func &rest orig-args)
+    (condition-case error
+        (apply orig-func orig-args)
+      (error
+       (message "Warn: mpc callback with some fatal for `mpc-volumn-refresh'"))))
+
+  (advice-add 'mpc-volume-refresh
+              :around
+              #'entropy/emacs-music--mpc-around-advice-for-mpc-volum-refresh)
+
+  (defun entropy/emacs-music--mpc-around-advice-for-mpc--status-callback
+      (orig-func &rest orig-args)
+    (let ((rtn (apply orig-func orig-args)))
+      (prog1
+          rtn
+        (when entropy/emacs-music--mpc-auto-add-and-play-sinal
+          (entropy/emacs-music--mpc-goto-current-pos)
+          (setq entropy/emacs-music--mpc-auto-add-and-play-sinal nil)))))
+
+  (advice-add 'mpc--status-callback
+              :around
+              #'entropy/emacs-music--mpc-around-advice-for-mpc--status-callback)
+
+  ;; EEMACS_MAINTENANCE: For prevent from multi-same items pos jump,
+  ;; we disable the 'other' handle but there's may have a more
+  ;; excellent way?
+  (defun mpc-songpointer-refresh ()
+    (let ((buf (mpc-proc-buffer (mpc-proc) 'songs)))
+      (when (buffer-live-p buf)
+        (with-current-buffer buf
+          (let* ((pos (text-property-any
+                       (point-min) (point-max)
+                       'mpc-file (mpc-songs-hashcons
+                                  (cdr (assq 'file mpc-status)))))
+                 ;; (other (when pos
+                 ;;          (save-excursion
+                 ;;            (goto-char pos)
+                 ;;            (text-property-any
+                 ;;             (line-beginning-position 2) (point-max)
+                 ;;             'mpc-file (mpc-songs-hashcons
+                 ;;                        (cdr (assq 'file mpc-status)))))))
+                 )
+            ;; (if other
+            ;;     ;; The song appears multiple times in the buffer.
+            ;;     ;; We need to be careful to choose the right occurrence.
+            ;;     (mpc-proc-cmd "playlist" 'mpc-songpointer-refresh-hairy)
+            ;;   (mpc-songpointer-set pos))
+            (mpc-songpointer-set pos))))))
+  )
 
 
 ;; ** bongo
