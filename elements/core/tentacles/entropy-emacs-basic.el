@@ -1581,7 +1581,7 @@ error type to output symbol OUTPUT-SYM."
       (insert "(")
       (dolist (item kill-ring)
        (if (funcall printable-judge item 'print-error)
-           (progn (print item to-buffer))
+           (progn (print (substring-no-properties item) to-buffer))
          (entropy/emacs-message-do-message
           "%s%s%s%s"
           (red "⚠: ")
