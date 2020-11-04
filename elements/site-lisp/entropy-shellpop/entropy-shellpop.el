@@ -180,6 +180,10 @@
 ;; mind.
 
 ;;; Changelog
+;; - [2020-11-04 Wed 18:18:29]
+
+;;   Add `entropy-shellpop-mode' specific modeline
+
 ;; - [2020-11-04 Wed 12:42:27]
 
 ;;   * Comprehensively add `shell-mode' as a type of shellpop
@@ -781,7 +785,7 @@ shellpop type")
   :initial-value t
   :keymap entropy-shellpop-mode-map
   (if entropy-shellpop-mode
-      t
+      (entropy/shellpop--set-modeline-format)
     nil))
 
 (defun entropy/shellpop--define-key (key-maps)
@@ -796,7 +800,7 @@ shellpop type")
    ("C-h k" . describe-key)
    ("M-:" . eval-expression)))
 
-;;;;;; desc modefified
+;;;;;; shellpop description
 
 (defun entropy/shellpop--rename-index-desc-core (index shellpop-type-register)
   (let* ((type-name (car shellpop-type-register))
@@ -808,6 +812,13 @@ shellpop type")
     (setf (alist-get index type-indexs)
           new-desc)))
 
+(defun entropy/shellpop--get-index-desc-core (index shellpop-type-register)
+  (let* ((type-name (car shellpop-type-register))
+         (type-plist (cdr shellpop-type-register))
+         (type-indexs (plist-get type-plist :indexs))
+         (old-desc (alist-get index type-indexs nil nil 'equal)))
+    old-desc))
+
 (defun entropy/shellpop-rename-index-desc-within-mode ()
   (interactive)
   (let* ((buffn (buffer-name))
@@ -817,6 +828,15 @@ shellpop type")
      (cdr buffn-parse)
      type-register)))
 
+(defun entropy/shellpop-get-index-desc-within-mode ()
+  (let* ((buffn (buffer-name))
+         (buffn-parse (entropy/shellpop--parse-buffer-name-type buffn))
+         (type-register (assoc (car buffn-parse) entropy/shellpop--type-register)))
+    (entropy/shellpop--get-index-desc-core
+     (cdr buffn-parse)
+     type-register)))
+
+
 ;;;;;; register for delete other window
 
 (defun entropy/shellpop-delete-other-widnow ()
@@ -825,6 +845,47 @@ shellpop type")
     (let ((wfg-cur (current-window-configuration)))
       (setq entropy/shellpop--top-wcfg-register wfg-cur)
       (delete-other-windows))))
+
+;;;;;; shellpop modeline format
+
+(defun entropy/shellpop--set-modeline-format ()
+  (let* ((lhs '(format "%s %s%s %s%s  %s"
+                       (propertize "*Shellpop*" 'face 'tty-menu-enabled-face)
+                       (propertize "Desc: " 'face 'success)
+                       (let ((orig-desc (entropy/shellpop-get-index-desc-within-mode))
+                             unset-p)
+                         (when (or (null orig-desc)
+                                   (string-empty-p orig-desc))
+                           (setq orig-desc "[No desc yet]"
+                                 unset-p t))
+                         (if unset-p
+                             orig-desc
+                           (propertize orig-desc 'face 'warning)))
+                       (propertize "type: " 'face 'success)
+                       (propertize
+                        (car (entropy/shellpop--parse-buffer-name-type
+                              (buffer-name)))
+                        'face 'bold-italic)
+                       (format "@%s" major-mode)))
+         (rhs '(format "%s%s "
+                       (propertize "Index: " 'face 'success)
+                       (ignore-errors
+                         (number-to-string
+                          (cdr (entropy/shellpop--parse-buffer-name-type
+                                (buffer-name)))))))
+         (mid-str (propertize " "
+                              'display
+                              `((space
+                                 :align-to
+                                 (- (+ right right-fringe right-margin)
+                                    ,(string-width
+                                      (format-mode-line (list :eval rhs)))
+                                    ))))))
+    (setq-local mode-line-format
+                `("%e"
+                  (:eval ,lhs)
+                  ,mid-str
+                  (:eval ,rhs)))))
 
 ;;;; Auto Load
 
