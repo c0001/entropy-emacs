@@ -56,6 +56,7 @@
 
 ;; The internal builtin shell popup types are:
 
+;; - for shell-mode: =<f8>=
 ;; - for eshell: =<f9>=
 ;; - for ansi-term: =<f10>= (windows native exclude)
 ;; - for vterm: =<f12>= (windows native exclude)
@@ -89,7 +90,7 @@
 ;;                                ---------/        |        \---------
 ;;              eshell  ---------/             ansi | term             \---------  shell
 ;;          +----------/--+                  +------v------+                  +--\----------+
-;;          | shelltype 1 |                  | shelltype 1 |                  | shelltype 1 |
+;;          | shelltype 1 |                  | shelltype 2 |                  | shelltype 3 |
 ;;          +------+------+                  +------+------+                  +------+------+
 ;;                 |                                |                                |
 ;;       +---------+---------+            +---------+---------+            +---------+---------+
