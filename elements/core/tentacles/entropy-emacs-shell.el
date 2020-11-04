@@ -317,6 +317,18 @@ segmentation fault."
         (kbd (concat entropy/emacs-top-key " " "-"))
         func)))
 
+  (defun entropy/emacs-shell--shellpop-bindkey-for-shell (func)
+    (entropy/emacs-hydra-hollow-add-for-top-dispatch
+     `("Shellpop"
+       (("9" ,func "Shellpop For emacs shell-mode"
+         :enable t
+         :exit t
+         :eemacs-top-bind t))))
+    (unless (display-graphic-p)
+      (define-key entropy-shellpop-mode-map
+        (kbd (concat entropy/emacs-top-key " " "9"))
+        func)))
+
   (defun entropy/emacs-shell--shellpop-bindkey-for-ansiterm (func)
     (let ((key (if (member "MODULES" (split-string system-configuration-features nil t))
                    "M-0"
@@ -364,6 +376,14 @@ segmentation fault."
            :type-keybind entropy/emacs-shell--shellpop-bindkey-for-eshell
            :type-body
            (eshell))
+          :shell
+          (:type-name
+           "eemacs-shell"
+           :shackle-size 0.3
+           :shackle-align below
+           :type-keybind entropy/emacs-shell--shellpop-bindkey-for-shell
+           :type-body
+           (shell (current-buffer)))
           :vterm
           (:type-name
            "eemacs-vterm"
@@ -382,7 +402,8 @@ segmentation fault."
               (and sys/win32p (bound-and-true-p fakecygpty--activated)))
           (setq entropy/shellpop-pop-types
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
-                      (plist-get entropy/emacs-shell--shpop-types :ansiterm)))
+                      (plist-get entropy/emacs-shell--shpop-types :ansiterm)
+                      (plist-get entropy/emacs-shell--shpop-types :shell)))
           (when (and (member "MODULES" (split-string system-configuration-features nil t))
                      (not sys/win32p)
                      (let ((execs '("git" "cmake" "make" "gcc" "libtool"))
@@ -397,7 +418,8 @@ segmentation fault."
                          (plist-get entropy/emacs-shell--shpop-types :vterm))))
          (sys/win32p
           (setq entropy/shellpop-pop-types
-                (list (plist-get entropy/emacs-shell--shpop-types :eshell)))))
+                (list (plist-get entropy/emacs-shell--shpop-types :eshell)
+                      (plist-get entropy/emacs-shell--shpop-types :shell)))))
    (entropy/shellpop-start)))
 
 ;; ** provide

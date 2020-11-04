@@ -180,6 +180,14 @@
 ;; mind.
 
 ;;; Changelog
+;; - [2020-11-04 Wed 12:42:27]
+
+;;   * Comprehensively add `shell-mode' as a type of shellpop
+;;     operation
+
+;;   * Fix bug of cdw operation which do not clear current input
+;;     before did thus
+
 ;; - [2020-05-01 Fri 16:54:34] Do not require vterm at load-time.
 
 ;;   * Declare vterm functions.
@@ -223,6 +231,42 @@
      (save-window-excursion
        (apply orig-func orig-args)))))
 
+(defun entropy/shellpop--get-comint-mode-bol-pos ()
+  (let ((proc (or (get-buffer-process (current-buffer))
+                  (user-error "Current buffer has no process")))
+        rtn)
+    (setq rtn (ignore-errors (marker-position (process-mark proc))))
+    (unless (integerp rtn)
+      (error "Comint subprocess are missing!"))
+    rtn))
+
+(defun entropy/shellpop--delete-char-for-shell-mode
+    (n &optional killflag)
+  (interactive "p\nP")
+  (if (bound-and-true-p entropy-shellpop-mode)
+      (let ((comint-bol-pos (entropy/shellpop--get-comint-mode-bol-pos))
+            pos-offset)
+        (if (> comint-bol-pos (point))
+            (delete-backward-char n killflag)
+          (setq pos-offset (- (point) comint-bol-pos))
+          (when (< pos-offset 1) (user-error "Beginning of shell prompt line!"))
+          (when (> n pos-offset) (setq n pos-offset))
+          (delete-backward-char n killflag)))
+    (delete-backward-char n killflag)))
+
+(defun entropy/shellpop--comint-send-input ()
+  (interactive)
+  (let ((comint-bol-pos (entropy/shellpop--get-comint-mode-bol-pos)))
+    (if (>= (point) comint-bol-pos)
+        (comint-send-input)
+      (user-error "Can not operate `comint-send-input' in this point!"))))
+
+(with-eval-after-load 'shell
+  (define-key shell-mode-map (kbd "DEL")
+    #'entropy/shellpop--delete-char-for-shell-mode)
+  (define-key shell-mode-map (kbd "RET")
+    #'entropy/shellpop--comint-send-input))
+
 ;;;; require
 (require 'cl-lib)
 (require 'shackle)
@@ -236,6 +280,12 @@
 (defgroup entropy/shellpop-customized-group nil
   "entropy-shellpop customized variable group."
   :group 'extensions)
+
+(defcustom entropy/shellpop-shell-popup-key
+  (lambda (func) (global-set-key (kbd "<f8>") func))
+  "Default key sequence for popup eshell."
+  :type 'sexp
+  :group 'entropy/shellpop-customized-group)
 
 (defcustom entropy/shellpop-eshell-popup-key
   (lambda (func) (global-set-key (kbd "<f9>") func))
@@ -274,6 +324,14 @@
             :type-keybind ,entropy/shellpop-eshell-popup-key
             :type-body
             (eshell))
+           (shell
+            :type-name
+            "eemacs-shell"
+            :shackle-size 0.3
+            :shackle-align below
+            :type-keybind ,entropy/shellpop-shell-popup-key
+            :type-body
+            (shell (current-buffer)))
            `((vterm
               :type-name
               "eemacs-vterm"
@@ -286,6 +344,7 @@
                    (vterm-buffer-name-string nil))
                 (vterm-mode)))))))
     (append register (list (alist-get 'eshell types)))
+    (append register (list (alist-get 'shell types)))
     (when (entropy/shellpop--vterm-supported)
       (append register (list (alist-get 'vterm types))))
     (when (not (eq system-type 'windows-nt))
@@ -389,19 +448,22 @@ shellpop type")
    (insert (concat "cd " (shell-quote-argument cwd)))
    (let ((comint-process-echoes t))
      (comint-send-input))
-   (recenter 0)))
+   (recenter 1)))
 
 (defun entropy/shellpop--cd-to-cwd-term (cwd)
   (entropy/shellpop--cd-to-cwd-with-judge
    cwd t
+   (term-send-raw-string "\C-u")
    (term-send-raw-string (concat "cd " (shell-quote-argument cwd) "\n"))
    (term-send-raw-string "\C-l")))
 
 (defun entropy/shellpop--cd-to-cwd-vterm (cwd)
   (entropy/shellpop--cd-to-cwd-with-judge
    cwd t
+   (vterm-send-C-u)
    (vterm-send-string (concat "cd " (shell-quote-argument cwd)))
-   (vterm-send-return)))
+   (vterm-send-return)
+   (vterm-send-C-l)))
 
 (defun entropy/shellpop--cd-to-cwd (cwd buff)
   (with-current-buffer buff
@@ -730,7 +792,9 @@ shellpop type")
 (entropy/shellpop--define-key
  '(("<f1>" . entropy/shellpop-rename-index-desc-within-mode)
    ("C-x 1" . entropy/shellpop-delete-other-widnow)
-   ("\C-u" . universal-argument)))
+   ("\C-u" . universal-argument)
+   ("C-h k" . describe-key)
+   ("M-:" . eval-expression)))
 
 ;;;;;; desc modefified
 
