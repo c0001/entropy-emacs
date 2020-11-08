@@ -496,7 +496,7 @@ nervous."
 
   (defun entropy/emacs-codeserver--lsp-ui-doc-hide ()
     (let ((event last-input-event))
-      (unless (or (ignore-errors (mouse-event-p event))
+      (unless (or (ignore-errors (string-match-p "mouse" (symbol-name (car event))))
                   (eq (car-safe event) 'switch-frame))
         (setq entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
         (lsp-ui-doc-hide))))
