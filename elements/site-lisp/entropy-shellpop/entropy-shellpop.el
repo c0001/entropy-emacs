@@ -280,6 +280,8 @@
 (declare-function vterm-mode "vterm")
 (declare-function vterm-send-string "vterm")
 (declare-function vterm-send-return "vterm")
+(declare-function shrink-path-dirs "shrink-path")
+
 
 ;;;; defcustom
 (defgroup entropy/shellpop-customized-group nil
@@ -459,6 +461,7 @@ shellpop type")
   (entropy/shellpop--cd-to-cwd-with-judge
    cwd t
    (term-send-raw-string "\C-u")
+   (term-send-raw-string "\C-k")
    (term-send-raw-string (concat "cd " (shell-quote-argument cwd) "\n"))
    (term-send-raw-string "\C-l")))
 
@@ -466,6 +469,7 @@ shellpop type")
   (entropy/shellpop--cd-to-cwd-with-judge
    cwd t
    (vterm-send-C-u)
+   (vterm-send-C-k)
    (vterm-send-string (concat "cd " (shell-quote-argument cwd)))
    (vterm-send-return)
    (vterm-send-C-l)))
@@ -799,7 +803,8 @@ shellpop type")
    ("C-x 1" . entropy/shellpop-delete-other-widnow)
    ("\C-u" . universal-argument)
    ("C-h k" . describe-key)
-   ("M-:" . eval-expression)))
+   ("M-:" . eval-expression)
+   ("C-g" . keyboard-quit)))
 
 ;;;;;; shellpop description
 
@@ -849,8 +854,49 @@ shellpop type")
 
 ;;;;;; shellpop modeline format
 
+(defface entropy/shellpop--modeline-highlight-basic-face
+  '((((class color) (min-colors 88) (background light))
+     :weight light
+     :box (:line-width -1 :color "grey75" :style nil))
+    (((class color) (min-colors 88) (background dark) )
+     :weight light
+     :box (:line-width -1 :color "grey40" :style nil)))
+  "")
+
+(defface entropy/shellpop--modeline-highlight-major-mode-face
+  '((default
+      :inherit
+      entropy/shellpop--modeline-highlight-basic-face)
+    (((class color) (min-colors 88) (background light))
+     :weight bold :foreground "red"
+     :box (:line-width -1 :color "grey75" :style nil))
+    (((class color) (min-colors 88) (background dark) )
+     :weight bold :foreground "yellow"
+     :box (:line-width -1 :color "grey40" :style nil)))
+  "")
+
+(defface entropy/shellpop--modeline-highlight-working-on-face
+  '((default
+      :inherit
+      entropy/shellpop--modeline-highlight-basic-face)
+    (((class color) (min-colors 88) (background light))
+     :slant italic :weight bold)
+    (((class color) (min-colors 88) (background dark) )
+     :slant italic :weight bold))
+  "")
+
+(defface entropy/shellpop--modeline-highlight-default-directory-face
+  '((default
+      :inherit
+      entropy/shellpop--modeline-highlight-basic-face)
+    (((class color) (min-colors 88) (background light))
+     :slant italic :weight light)
+    (((class color) (min-colors 88) (background dark) )
+     :slant italic :weight light))
+  "")
+
 (defun entropy/shellpop--set-modeline-format ()
-  (let* ((lhs '(format "%s %s%s %s%s  %s"
+  (let* ((lhs '(format "%s %s%s %s%s %s%s%s"
                        (propertize "*Shellpop*" 'face 'tty-menu-enabled-face)
                        (propertize "Desc: " 'face 'success)
                        (let ((orig-desc (entropy/shellpop-get-index-desc-within-mode))
@@ -867,7 +913,14 @@ shellpop type")
                         (car (entropy/shellpop--parse-buffer-name-type
                               (buffer-name)))
                         'face 'bold-italic)
-                       (format "@%s" major-mode)))
+                       (propertize (format "@%s " major-mode)
+                                   'face 'entropy/shellpop--modeline-highlight-major-mode-face)
+                       (propertize "Working on: " 'face 'entropy/shellpop--modeline-highlight-working-on-face)
+                       (propertize (if (fboundp 'shrink-path-dirs)
+                                       (shrink-path-dirs default-directory)
+                                     default-directory)
+                                   'face
+                                   'entropy/shellpop--modeline-highlight-default-directory-face)))
          (rhs '(format "%s%s "
                        (propertize "Index: " 'face 'success)
                        (ignore-errors
