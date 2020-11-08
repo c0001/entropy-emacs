@@ -318,10 +318,15 @@ like `recenter-top-bottom'."
 
 ;; *** beacon cursor blanking
 (use-package beacon
+  :preface
+  (defvar entropy/emacs-tools-beacon-blink-ignore nil
+    "ignore condition signal to `beacon-blink' which press it off
+any way.")
   :commands (beacon-mode beacon-blink)
   :init
   (defun entropy/emacs-tools--beacon-blink-advice (&rest _)
-    (unless (not (fboundp 'beacon-blink))
+    (unless (or (not (fboundp 'beacon-blink))
+                entropy/emacs-tools-beacon-blink-ignore)
       (beacon-blink)))
   (advice-add 'windmove-do-window-select :after
               #'entropy/emacs-tools--beacon-blink-advice)

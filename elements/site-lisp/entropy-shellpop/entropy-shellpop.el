@@ -697,7 +697,8 @@ shellpop type")
         (let* ((shackle-rules '((,buffern-regexp :regexp t
                                                  :select t
                                                  :align ,type-align
-                                                 :size ,type-size)))
+                                                 :size ,type-size
+                                                 :autoclose t)))
                (cur-workdir (expand-file-name default-directory))
                (buffer-ob (entropy/shellpop--get-type-buffer-obj ,type-name index))
                (buffn (plist-get buffer-ob :buffer-name))
