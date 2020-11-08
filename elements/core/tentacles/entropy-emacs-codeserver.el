@@ -360,6 +360,7 @@ nervous."
   (setq lsp-auto-guess-root t)
   (setq lsp-auto-configure t)
   (setq lsp-prefer-flymake nil)
+  (setq lsp-eldoc-enable-hover nil)
 
   ;; delete transient lsp session file for prevent lagging with large
   ;; amounts of folder parsing while next emacs session setup.
@@ -404,6 +405,8 @@ nervous."
 
 ;; **** lsp-ui
 (use-package lsp-ui
+  :preface
+  (defvar entropy/emacs-codeserver-lsp-ui-doc-timer nil)
   :commands (lsp-ui-peek-find-definitions
              lsp-ui-peek-find-references
              lsp-ui-imenu)
@@ -462,7 +465,78 @@ nervous."
       "lsp ui command map"
       :enable t :exit t))))
   :init
-  (setq lsp-ui-doc-position 'top))
+  (setq lsp-ui-doc-position 'top
+        lsp-ui-doc-delay 0.2)
+  :config
+  (defvar entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
+  (defun entropy/emacs-codeserver--lsp-ui-doc-make-request nil
+    "Request the documentation to the LS."
+    (let ((buf (current-buffer)))
+      (when (and (bound-and-true-p lsp-ui-doc-mode)
+                 (not (eq this-command 'lsp-ui-doc-hide))
+                 (not (eq this-command 'keyboard-quit))
+                 (not (bound-and-true-p lsp-ui-peek-mode))
+                 (lsp--capability "hoverProvider"))
+        (-if-let (bounds (or (and (symbol-at-point) (bounds-of-thing-at-point 'symbol))
+                             (and (looking-at "[[:graph:]]") (cons (point) (1+ (point))))))
+            (unless (equal entropy/emacs-codeserver--lsp-ui-doc--bounds
+                           bounds)
+              (setq entropy/emacs-codeserver--lsp-ui-doc--bounds bounds)
+              (lsp-ui-doc--hide-frame)
+              (lsp-request-async
+                   "textDocument/hover"
+                   (lsp--text-document-position-params)
+                   `(lambda (hover)
+                      (when (equal ,buf (current-buffer))
+                        (lsp-ui-doc--callback hover ',bounds (current-buffer))))
+                   :mode 'tick
+                   :cancel-token :lsp-ui-doc-hover))
+          (lsp-ui-doc-hide)
+          (setq entropy/emacs-codeserver--lsp-ui-doc--bounds nil)))))
+
+  (defun entropy/emacs-codeserver--lsp-ui-doc-hide ()
+    (let ((event last-input-event))
+      (unless (or (ignore-errors (mouse-event-p event))
+                  (eq (car-safe event) 'switch-frame))
+        (setq entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
+        (lsp-ui-doc-hide))))
+
+  (defun entropy/emacs-codeserver--lsp-ui-doc-mode-around-advice
+      (orig-func &rest orig-args)
+    "Remove lagging post command hooker
+`lsp-ui-doc--make-request' and using eemacs sepcified popup
+mechanism which purely use idle-timer to do thus.
+
+EEMACS_MAINTENANCE: this may need update follow `lsp-ui' package
+updating."
+    (let ((rtn (apply orig-func orig-args)))
+      (if (not (bound-and-true-p lsp-ui-doc-mode))
+          (progn
+            (remove-hook 'post-command-hook 'entropy/emacs-codeserver--lsp-ui-doc-hide t)
+            (unless (let (rtn)
+                      (mapc (lambda (buffer)
+                              (with-current-buffer buffer
+                                (when (bound-and-true-p lsp-ui-doc-mode)
+                                  (setq rtn t))))
+                            (buffer-list))
+                      rtn)
+              (when (timerp entropy/emacs-codeserver-lsp-ui-doc-timer)
+                (cancel-timer entropy/emacs-codeserver-lsp-ui-doc-timer)
+                (setq entropy/emacs-codeserver-lsp-ui-doc-timer nil))))
+        (remove-hook 'post-command-hook 'lsp-ui-doc--make-request t)
+        (add-hook 'post-command-hook 'entropy/emacs-codeserver--lsp-ui-doc-hide nil t)
+        (and (timerp entropy/emacs-codeserver-lsp-ui-doc-timer)
+             (cancel-timer entropy/emacs-codeserver-lsp-ui-doc-timer))
+        (setq entropy/emacs-codeserver-lsp-ui-doc-timer
+              (run-with-idle-timer lsp-ui-doc-delay t
+                                   #'entropy/emacs-codeserver--lsp-ui-doc-make-request)))
+      rtn))
+
+  (advice-add 'lsp-ui-doc-mode
+              :around
+              #'entropy/emacs-codeserver--lsp-ui-doc-mode-around-advice)
+
+  )
 
 ;; **** lsp extensions
 ;; ***** lsp java

@@ -102,7 +102,7 @@
 (add-hook 'window-configuration-change-hook
           #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
 (advice-add #'handle-switch-frame
-            :after
+            :around
             #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
 (advice-add #'select-window
             :around
