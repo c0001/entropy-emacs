@@ -1209,10 +1209,10 @@ can't visit one page suddenly."
   (((:enable t)
     (dired-mode (dired dired-mode-map)))
    ("Misc."
-    (("m c" entropy/cpmv-dired-get-files-list
+    (("c c" entropy/cpmv-dired-get-files-list
       "Get files list for cp or mv"
       :enable t :exit t)
-     ("m t" entropy/cpmv-to-current
+     ("c t" entropy/cpmv-to-current
       "Cp or Mv fils or directory"
       :enable t :exit t)))))
 

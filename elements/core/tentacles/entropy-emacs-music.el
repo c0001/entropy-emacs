@@ -426,7 +426,7 @@ jumped to the main context."
       (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
        'dired-mode '(dired dired-mode-map)
        '("Misc."
-         (("m b" entropy/emacs-music-bongo-add-dired-files
+         (("c b" entropy/emacs-music-bongo-add-dired-files
            "Add marked files to the Bongo library."
            :enable t :exit t))))))
 

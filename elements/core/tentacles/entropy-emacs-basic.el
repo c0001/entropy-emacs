@@ -109,12 +109,14 @@ place can be easily found by other interactive command."
 ;; ***** pretty-hydra
   :eemacs-mmphc
   (((:enable t)
-    (dired-mode (dired dired-mode-map) t (3 3 3)))
+    (dired-mode (dired dired-mode-map) t (2 2)))
    ("Basic"
     (("RET" dired-find-file "Open item dwim"
       :enable t
       :exit t
       :map-inject t)
+     ("R" dired-do-rename "Rename current file or all marked (or next ARG) files"
+      :enable t :map-inject t :exit t)
      ("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
       :enable t
       :map-inject t
@@ -137,6 +139,97 @@ place can be easily found by other interactive command."
       :enable t
       :map-inject t
       :exit t))
+    "Useful"
+    (("g" revert-buffer "Refresh current dired buffer"
+      :enable t :map-inject t :exit t)
+     ("m" (:pretty-hydra-cabinet
+           (:data
+            "Dired basic mark commands"
+            (("m" dired-mark "Mark the file at point in the Dired buffer"
+              :enable t :map-inject t :exit t)
+             ("t" dired-toggle-marks "Marked files become unmarked, and vice versa"
+              :enable t :map-inject t :exit t)
+             ("u" dired-unmark "Unmark the file at point in the Dired buffer"
+              :enable t :map-inject t :exit t)
+             ("U" dired-unmark-all-marks "Remove all marks from all files in the Dired buffer"
+              :enable t :map-inject t :exit t))
+            "Dired rich mark commands"
+            (("* %" dired-mark-files-regexp "Mark all files matching REGEXP for use in later commands"
+              :enable t :map-inject t :exit t)
+             ("* *" dired-mark-executables "Mark all executable files"
+              :enable t :map-inject t :exit t)
+             ("* ." dired-mark-extension "Mark all files with a certain EXTENSION for use in later commands"
+              :enable t :map-inject t :exit t)
+             ("* /" dired-mark-directories "Mark all directory file lines except ‘.’ and ‘..’"
+              :enable t :map-inject t :exit t)
+             ("* @" dired-mark-symlinks "Mark all symbolic links"
+              :enable t :map-inject t :exit t)
+             ("* N" dired-number-of-marked-files "Display the number and total size of the marked files"
+              :enable t :map-inject t :exit t)))
+           :other-rest-args
+           ((dired dired-mode-map)))
+      "Dired mark commands"
+      :enable t :exit t)
+     ("w" dired-copy-filename-as-kill "Copy names of marked (or next ARG) files into the kill ring"
+      :enable t :map-inject t :exit t)
+     ("y" dired-show-file-type "Print the type of FILE, according to the ‘file’ command"
+      :enable t :map-inject t :exit t)
+     ("C" dired-do-copy "Copy all marked (or next ARG) files, or copy the current file"
+      :enable t :map-inject t :exit t)
+     ("L" dired-do-load "Load the marked (or next ARG) Emacs Lisp files"
+      :enable t :map-inject t :exit t)
+     ("Z" dired-do-compress "Compress or uncompress marked (or next ARG) files"
+      :enable t :map-inject t :exit t)
+     ("M-(" dired-mark-sexp "Mark files for which PREDICATE returns non-nil"
+      :enable t :map-inject t :exit t)
+     (":" (:pretty-hydra-cabinet
+           (:data
+            "Dired EPA(gnupg elisp Binding) commands"
+            ((":d" epa-dired-do-decrypt "Decrypt marked files"
+              :enable t :map-inject t :exit t)
+             (":v" epa-dired-do-verify "Verify marked files"
+              :enable t :map-inject t :exit t)
+             (":s" epa-dired-do-sign "Sign marked files"
+              :enable t :map-inject t :exit t)
+             (":e" epa-dired-do-encrypt "Encrypt marked files"
+              :enable t :map-inject t :exit t)))
+           :other-rest-args
+           ((dired dired-mode-map)))
+      "Dired EPA(gnupg elisp Binding) commands"
+      :enable t :exit t)
+     ("i" (:pretty-hydra-cabinet
+           (:data
+            "dired image viewer commands"
+            (("C-t d" image-dired-display-thumbs "Display thumbnails of all marked files"
+              :enable t :map-inject t :exit t)
+             ("C-t t" image-dired-tag-files "Tag marked file(s) in dired"
+              :enable t :map-inject t :exit t)
+             ("C-t r" image-dired-delete-tag "Remove tag for selected file(s)"
+              :enable t :map-inject t :exit t)
+             ("C-t j" image-dired-jump-thumbnail-buffer "Jump to thumbnail buffer"
+              :enable t :map-inject t :exit t)
+             ("C-t i" image-dired-dired-display-image "Display current image file"
+              :enable t :map-inject t :exit t)
+             ("C-t x" image-dired-dired-display-external "Display file at point using an external viewer"
+              :enable t :map-inject t :exit t)
+             ("C-t a" image-dired-display-thumbs-append "Append thumbnails to ‘image-dired-thumbnail-buffer’"
+              :enable t :map-inject t :exit t)
+             ("C-t ." image-dired-display-thumb "Shorthand for ‘image-dired-display-thumbs’ with prefix argument"
+              :enable t :map-inject t :exit t)
+             ("C-t c" image-dired-dired-comment-files "Add comment to current or marked files in dired"
+              :enable t :map-inject t :exit t)
+             ("C-t f" image-dired-mark-tagged-files "Use regexp to mark files with matching tag"
+              :enable t :map-inject t :exit t)
+             ("C-t C-t" image-dired-dired-toggle-marked-thumbs
+              "Toggle thumbnails in front of file names in the dired buffer"
+              :enable t :map-inject t :exit t)
+             ("C-t e" image-dired-dired-edit-comment-and-tags
+              "Edit comment and tags of current or marked image files"
+              :enable t :map-inject t :exit t)))
+           :other-rest-args
+           ((dired dired-mode-map)))
+      "Image dired commands"
+      :enable t :exit t))
     "Misc."
     (("0" entropy/emacs-basic-get-dired-fpath "Get Node Path"
       :enable t
@@ -289,6 +382,21 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
 
 ;; ***** config
   :config
+;; ****** unbind some unusual keys which may cause mistakes or its dangerous
+
+  (dolist (key (list
+                ;; letter bounds
+                "a" "c" "d" "e" "f" "h" "i" "j" "k"
+                "l" "n" "p" "q" "s" "v" "x"
+                ;; case letter bounds
+                "A" "F" "G" "H" "I" "M" "N" "O" "P"
+                "T" "V" "W" "X" "Y"
+                ;; special key-sequence
+                "M-)" "~" "C-M-d" "C-o" "M-s a C-s" "M-s a M-C-s"
+                "M-s f C-s" "M-s f M-C-s" "\M-\C-?" "\M-\C-d" "\M-\C-u"
+                "\M-\C-n" "\M-\C-p" "\M-{" "\M-}" "%"))
+    (define-key dired-mode-map (kbd key) nil))
+
 ;; ****** Set unit of dired inode for human readable
   (add-hook 'dired-mode-hook #'dired-hide-details-mode)
 
