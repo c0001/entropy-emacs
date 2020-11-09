@@ -320,11 +320,17 @@ like `recenter-top-bottom'."
 (use-package beacon
   :preface
   (defvar entropy/emacs-tools-beacon-blink-ignore nil
-    "ignore condition signal to `beacon-blink' which press it off
-any way.")
+    "Non-nill to give out an ignore condition signal to
+`beacon-blink' which press it off any way.")
+
+  (defvar entropy/emacs-tools-beacon-blink-top-hook nil
+    "List of functions to run before `beacon-blink', you may want
+to use it as enable `entropy/emacs-tools-beacon-blink-ignore'
+dynamically.")
   :commands (beacon-mode beacon-blink)
   :init
   (defun entropy/emacs-tools--beacon-blink-advice (&rest _)
+    (run-hooks 'entropy/emacs-tools-beacon-blink-top-hook)
     (unless (or (not (fboundp 'beacon-blink))
                 entropy/emacs-tools-beacon-blink-ignore)
       (beacon-blink)))
