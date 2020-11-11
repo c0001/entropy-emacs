@@ -331,6 +331,20 @@ more powerful features and add `lsp-java' to let `lsp-mode'
 support java support while it doesn't place it internally.")
 
 
+;; ** window refer
+
+(defvar entropy/emacs-delete-other-windows-before-hook nil
+  "The hook run before `delete-other-windows', this hook was invoked
+by =entropy-emacs= so that the efficient just worked after
+=entropy-emacs= has loading done i.e. while
+`entropy/emacs-startup-done' is non-nil.")
+
+(defvar entropy/emacs-delete-other-windows-after-hook nil
+  "The hook run after `delete-other-windows', this hook was invoked
+by =entropy-emacs= so that the efficient just worked after
+=entropy-emacs= has loading done i.e. while
+`entropy/emacs-startup-done' is non-nil.")
+
 ;; ** garbage collection refer
 
 (defvar entropy/emacs-gc-threshold-basic 2000000

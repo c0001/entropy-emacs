@@ -1292,7 +1292,12 @@ as thus."
 `delete-other-windows-internal' if non-effect.
 
 This affected by `neotree' or `treemacs' window sticking with
-`eyebrowse' layout switching conflicts."
+`eyebrowse' layout switching conflicts.
+
+NOTE:
+
+This function is a around advice for `delete-other-windows' and
+externally add two hooks for be more benefit with =entropy-emacs=."
   (interactive)
   (let ((wdc (length (window-list)))
         neo-exist
@@ -1310,6 +1315,7 @@ This affected by `neotree' or `treemacs' window sticking with
                  (setq rtn t)))
              rtn))))
     (unless (eq wdc 1)
+      (run-hooks 'entropy/emacs-delete-other-windows-before-hook)
       (ignore-errors (apply orig-func orig-args))
       (when (and (= wdc (length (window-list)))
                  (or
@@ -1318,7 +1324,8 @@ This affected by `neotree' or `treemacs' window sticking with
                   (and (bound-and-true-p treemacs--buffer-name-prefix)
                        (funcall map-func (regexp-quote treemacs--buffer-name-prefix)))))
         (when (not (member major-mode '(treemacs-mode neotree-mode)))
-          (delete-other-windows-internal))))))
+          (delete-other-windows-internal)))
+      (run-hooks 'entropy/emacs-delete-other-windows-after-hook))))
 (advice-add 'delete-other-windows
             :around
             #'entropy/emacs-basic-kill-other-window)

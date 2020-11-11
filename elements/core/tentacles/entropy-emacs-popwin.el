@@ -333,10 +333,26 @@ key slot support."
     "Close current popup window via `C-g'."
     ;; pruning origin history list
     (setq entropy/emacs-popwin--shackle-popup-buffer-history
-          (cl-loop for (buffer . window) in entropy/emacs-popwin--shackle-popup-buffer-history
-                   if (or (window-live-p (get-buffer-window buffer))
-                          (window-live-p window))
-                   collect (cons buffer window)))
+          (let (buffer
+                window rtn
+                (rec-func
+                 (lambda ()
+                   (with-current-buffer buffer
+                     (setq-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
+                                 nil)))))
+            (dolist (el entropy/emacs-popwin--shackle-popup-buffer-history)
+              (setq buffer (car el)
+                    window (cdr el))
+              (if (or (window-live-p (get-buffer-window buffer))
+                      (window-live-p window))
+                  (progn
+                    (if (and (buffer-live-p buffer)
+                             (not (window-live-p (get-buffer-window buffer))))
+                        (funcall rec-func))
+                    (push el rtn))
+                (when (buffer-live-p buffer)
+                  (funcall rec-func))))
+            rtn))
     ;; main filter
     (let (close-done stick-buffer stick-window)
       (when (and (called-interactively-p 'interactive)
@@ -402,6 +418,15 @@ key slot support."
               :before #'entropy/emacs-popwin--shackle-close-popup-window-hack)
   (advice-add #'shackle-display-buffer
               :around #'entropy/emacs-popwin--shackle-display-buffer-hack)
+
+  ;; hook for `delete-other-windows' to delete the shackle popuped
+  ;; buffer before thus where preventing it from some unforeseen
+  ;; situations.
+  (add-hook 'entropy/emacs-delete-other-windows-before-hook
+            #'(lambda ()
+                (unless (entropy/emacs-popwin--shacke-is-popup-p (current-buffer))
+                  (funcall-interactively
+                   #'entropy/emacs-popwin--shackle-close-popup-window-hack))))
 
   (defun entropy/emacs-popwin-shackle-show-last-popup-buffer ()
     "View last popup buffer."
