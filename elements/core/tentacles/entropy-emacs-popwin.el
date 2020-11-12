@@ -385,11 +385,11 @@ key slot support."
                     stick-window (ignore-errors (get-buffer-window stick-buffer))
                     window-refer (cdar entropy/emacs-popwin--shackle-popup-buffer-history))
               (when (ignore-errors (buffer-live-p stick-buffer))
-                (when (window-live-p stick-window)
+                (when (ignore-errors (window-live-p stick-window))
                   (message "Auto hiding popuped buffer <multi-window type> ...")
                   (delete-window stick-window)
                   (setq close-done t)))
-              (when (window-live-p window-refer)
+              (when (ignore-errors (window-live-p window-refer))
                 (with-selected-window window-refer
                   (set-window-parameter (selected-window)
                                         'entropy/emacs-popwin--shackle-window-is-popup-window-p
@@ -401,11 +401,11 @@ key slot support."
                   (recenter-top-bottom '(middle)))))))
 
           (when close-done
-            (when (buffer-live-p stick-buffer)
+            (when (ignore-errors (buffer-live-p stick-buffer))
               (with-current-buffer stick-buffer
                 (setq-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
                             nil)))
-            (when (window-live-p stick-window)
+            (when (ignore-errors (window-live-p stick-window))
               (set-window-parameter stick-window
                                     'entropy/emacs-popwin--shackle-window-is-popup-window-p
                                     nil)))))
