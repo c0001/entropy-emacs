@@ -168,9 +168,9 @@
   ;; window existing status like treemacs or neotree did).
 
   (defun entropy/emacs-textwww--w3m-quit-window (orig-func &rest orig-args)
-    "Quit w3m window use `winner-undo' (if available) when the
-internal methods are fatal as. This is used to fix the \"no
-parent window\" error prompt in some special cases."
+    "Quit w3m window use `quit-window' when the internal methods are
+fatal as. This is used to fix the \"no parent window\" error
+prompt in some special cases."
     (let (quit-fatal-p)
       (condition-case nil
           (apply orig-func orig-args)
@@ -178,7 +178,7 @@ parent window\" error prompt in some special cases."
          (setq quit-fatal-p t)))
       (when quit-fatal-p
         (condition-case nil
-            (winner-undo)               ;`winner-undo' may has the same problem
+            (quit-window)
           (error
            (bury-buffer))))))
   (advice-add 'w3m-close-window
