@@ -1287,7 +1287,8 @@ as thus."
 
 ;; *** Kill-other-windowss spec
 
-(defun entropy/emacs-basic-kill-other-window (orig-func &rest orig-args)
+(defun entropy/emacs-basic--delete-other-windows-around-advice
+    (orig-func &rest orig-args)
   "Delete other window and do again using
 `delete-other-windows-internal' if non-effect.
 
@@ -1328,7 +1329,7 @@ externally add two hooks for be more benefit with =entropy-emacs=."
       (run-hooks 'entropy/emacs-delete-other-windows-after-hook))))
 (advice-add 'delete-other-windows
             :around
-            #'entropy/emacs-basic-kill-other-window)
+            #'entropy/emacs-basic--delete-other-windows-around-advice)
 
 ;; *** Set defualt tab size
 ;; Do not use `indent-tabs-mode' by default for compatibility meaning
