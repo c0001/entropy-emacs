@@ -264,6 +264,8 @@
       :enable t :exit t :eemacs-top-bind t)
      ("p f" entropy/emacs-popwin-shackle-popup-find-file "Popup for files"
       :enable t :exit t :eemacs-top-bind t)
+     ("p d" entropy/emacs-popwin-shackle-popup-dired "Popup for dired"
+      :enable t :exit t :eemacs-top-bind t)
      ("p e" entropy/emacs-popwin-shackle-popup-message "Popup message buffer"
       :enable t :exit t :eemacs-top-bind t)
      ("p l" entropy/emacs-popwin-shackle-show-last-popup-buffer "Popup last popuped buffer"
@@ -463,6 +465,7 @@ specification."
       (display-buffer shackle-last-buffer)))
 
   (defun entropy/emacs-popwin-shackle-popup-buffer ()
+    "Display buffer with popuped behaviour powered by `shackle'."
     (interactive)
     (let* ((buff-name (completing-read "Buffer choosing: " 'internal-complete-buffer))
            (shackle-rules
@@ -476,6 +479,7 @@ specification."
           (solaire-mode +1)))))
 
   (defun entropy/emacs-popwin-shackle-popup-find-file ()
+    "Find file with popup window powered by `shackle'."
     (interactive)
     (let* ((file (completing-read "Buffer choosing: " 'read-file-name-internal))
            (buff-name (buffer-name (find-file-noselect file)))
@@ -484,7 +488,18 @@ specification."
                 `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
       (display-buffer buff-name)))
 
+  (defun entropy/emacs-popwin-shackle-popup-dired ()
+    "Dired with popup window powered by `shackle'."
+    (interactive)
+    (let* ((dir (read-directory-name "Location choosing: "))
+           (buff-name (buffer-name (dired-noselect dir)))
+           (shackle-rules
+            (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
+                `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
+      (display-buffer buff-name)))
+
   (defun entropy/emacs-popwin-shackle-popup-message ()
+    "Display message buffer with popup type powerd by `shackle'."
     (interactive)
     (let* ((buff-name (buffer-name (get-buffer-create "*Messages*")))
            (shackle-rules `((,buff-name
