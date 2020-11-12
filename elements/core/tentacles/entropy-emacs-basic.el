@@ -1317,6 +1317,8 @@ externally add two hooks for be more benefit with =entropy-emacs=."
              rtn))))
     (unless (eq wdc 1)
       (run-hooks 'entropy/emacs-delete-other-windows-before-hook)
+      (setq entropy/emacs-origin-window-configuration-before-delete-other-windows
+            (current-window-configuration))
       (ignore-errors (apply orig-func orig-args))
       (when (and (= wdc (length (window-list)))
                  (or

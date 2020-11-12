@@ -190,10 +190,7 @@
 
 (declare-function url-retrieve-internal 'url)
 
-(dolist (el '(w3m-goto-mailto-url
-              w3m-goto-ftp-url w3m--goto-url--valid-url
-              w3m-goto-url w3m-goto-url-new-session
-              w3m-goto-url-with-timer))
+(dolist (el '(w3m-goto-url))
   (funcall
    `(lambda ()
       (declare-function ,el 'w3m))))
@@ -480,9 +477,7 @@ do proxy for current transferring URL."
   '(:group-name
     w3m-group
     :advice-fors
-    (w3m-goto-mailto-url
-     w3m-goto-ftp-url w3m--goto-url--valid-url
-     w3m-goto-url w3m-goto-url-new-session w3m-goto-url-with-timer)
+    (w3m-goto-url)
     :type-source
     entropy/proxy-url-typesource-for-w3m
     :proxy-mechanism

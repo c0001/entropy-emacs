@@ -146,6 +146,11 @@
              (file-exists-p (concat invocation-directory "convert.exe")))
     (setq w3m-imagick-convert-program (concat invocation-directory "convert.exe")))
 
+  ;; disable this to prevent its lagging on because of that
+  ;; `w3m-redisplay-pages-automatically' is a hook arranged into
+  ;; `window-configuration-change-hook'.
+  (setq w3m-redisplay-pages-automatically-p nil)
+
   ;; session configuration
   (setq w3m-session-autosave nil)
   (setq w3m-session-deleted-save nil)
@@ -168,9 +173,9 @@
   ;; window existing status like treemacs or neotree did).
 
   (defun entropy/emacs-textwww--w3m-quit-window (orig-func &rest orig-args)
-    "Quit w3m window use `quit-window' when the internal methods are
-fatal as. This is used to fix the \"no parent window\" error
-prompt in some special cases."
+    "Quit w3m window using specified way when the internal
+methods are fatal as. This is used to fix the deleting main window
+erros."
     (let (quit-fatal-p)
       (condition-case nil
           (apply orig-func orig-args)
@@ -178,12 +183,21 @@ prompt in some special cases."
          (setq quit-fatal-p t)))
       (when quit-fatal-p
         (condition-case nil
-            (quit-window)
+            (let ((treemacs-active-p (ignore-errors (eq 'visible (treemacs-current-visibility))))
+                  (neotree-active-p
+                   (ignore-errors
+                     (window-live-p (get-buffer-window (neo-global--get-buffer))))))
+              (when (or treemacs-active-p neotree-active-p)
+                (switch-to-prev-buffer (selected-window))))
           (error
            (bury-buffer))))))
   (advice-add 'w3m-close-window
               :around
               #'entropy/emacs-textwww--w3m-quit-window)
+  (advice-add 'w3m-quit
+              :around
+              #'entropy/emacs-textwww--w3m-quit-window)
+
   )
 
 
