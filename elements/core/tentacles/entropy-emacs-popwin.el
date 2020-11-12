@@ -284,18 +284,22 @@
    (shackle-mode t))
 
   :config
-  (defvar entropy/emacs-popwin--shackle-popup-buffer-history nil) ; all popup windows
-  (defvar-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p nil) ; current popup window
+  ;; history of list of shackle popuped object formed as (buffer . buffer-window)
+  (defvar entropy/emacs-popwin--shackle-popup-buffer-history nil)
+  ;; the local variable which indicate that `current-buffer' is a
+  ;; displayed by shackle when non-nil
+  (defvar-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p nil)
   (put 'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p 'permanent-local t)
 
   (defun entropy/emacs-popwin--shackle-display-buffer-hack
       (fn buffer alist plist)
-    "Patch to `shackle-display-buffer' for adding ':autoclose'
-key slot support."
+    "Patch to `shackle-display-buffer' for =entropy-emacs=
+specification."
     (let ((buff-lp (get-buffer-window buffer))
+          (orig-window (selected-window))
           (window (funcall fn buffer alist plist)))
       (with-current-buffer buffer
-        ;; Do not recognize displaed buffer as popuped buffer.
+        ;; Do not recognize displayed buffer as popuped buffer.
         (unless buff-lp
           (when (plist-get plist :autoclose)
             (setq-local
@@ -303,7 +307,12 @@ key slot support."
              t)
             (add-to-list 'entropy/emacs-popwin--shackle-popup-buffer-history
                          (cons buffer window))
-            (set-window-parameter window 'entropy/emacs-popwin--shackle-window-is-popup-window-p t))))
+            (set-window-parameter window
+                                  'entropy/emacs-popwin--shackle-window-is-popup-window-p
+                                  t)
+            (set-window-parameter window
+                                  'entropy/emacs-popwin--shackle-origin-selected-window
+                                  orig-window))))
       window))
 
   (defun entropy/emacs-popwin--shacke-is-popup-p (buffer)
@@ -376,8 +385,14 @@ key slot support."
             (setq stick-buffer (current-buffer)
                   stick-window (get-buffer-window stick-buffer))
             (message "Auto hiding popuped buffer <buffer-local type> ...")
-            (delete-window stick-window)
-            (setq close-done t))
+            (let ((window-prev
+                   (window-parameter
+                    stick-window
+                    'entropy/emacs-popwin--shackle-origin-selected-window)))
+              (delete-window stick-window)
+              (setq close-done t)
+              (when (ignore-errors (window-live-p window-prev))
+                (select-window window-prev))))
 
            ((not (one-window-p))
             (let ()
