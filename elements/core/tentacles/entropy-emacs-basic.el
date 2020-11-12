@@ -392,7 +392,7 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                 "A" "F" "G" "H" "I" "M" "N" "O" "P"
                 "T" "V" "W" "X" "Y"
                 ;; special key-sequence
-                "M-)" "~" "C-M-d" "C-o" "M-s a C-s" "M-s a M-C-s"
+                "M-)" "~" "=" "C-M-d" "C-o" "M-s a C-s" "M-s a M-C-s"
                 "M-s f C-s" "M-s f M-C-s" "\M-\C-?" "\M-\C-d" "\M-\C-u"
                 "\M-\C-n" "\M-\C-p" "\M-{" "\M-}" "%"))
     (define-key dired-mode-map (kbd key) nil))
