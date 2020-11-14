@@ -1592,6 +1592,46 @@ by `entropy/emacs-locale-coding-system'."
           (coding-system-for-write entropy/emacs-locale-coding-system))
      ,@body))
 
+;; *** `select-window' patch
+
+(defun entropy/emacs--select-window-around-advice
+    (orig-func &rest orig-args)
+  (let ((cur-window (selected-window))
+        (window (car orig-args))
+        (rtn (apply orig-func orig-args)))
+    (set-window-parameter cur-window 'eemacs-current-window nil)
+    (when (window-live-p window)
+      (set-window-parameter window 'eemacs-current-window t))
+    rtn))
+
+(advice-add 'select-window :around #'entropy/emacs--select-window-around-advice)
+
+(defun entropy/emacs-current-window-is-selected-common-override-advice
+    (orig-func &rest orig-args)
+  "The common advice for function who return t or nil just be for
+the sake of getting the 'current-window' status.
+
+*DESIGNATION*:
+
+In some situations, the `selected-window' is not what window
+current use i.e. the cursor focus on in where if there's a side
+window injected into current root window of current frame when
+reuse thus buffer by poping out (e.g. show mpc-song buffer
+replaced insome splitted window in current root window), we don't
+know if this is a bug, or just a conflicted issue which may be
+following on.
+
+EEMACS_MAINTENANCE: this may be fixed by more underlying researches
+"
+  (let (_)
+    (or (apply orig-func orig-args)
+        (ignore-errors
+          ;; weh use the mode-line local buffer window as review
+          ;; object since the return `selected-window' has no
+          ;; reference value in this case.
+          (window-parameter (get-buffer-window (current-buffer))
+                            'eemacs-current-window)))))
+
 ;; *** Org face specification
 ;; **** Cancel head face height rescale
 (defvar entropy/emacs-defun--ohrsc-current-theme nil

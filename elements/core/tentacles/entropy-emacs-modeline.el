@@ -66,6 +66,9 @@
   (setq-default
    mode-line-format
    entropy/emacs-modeline-default-modeline-formt)
+  ;; diable the buffer local binding which will messy up other mode
+  ;; line format injecting during `setq-default'.
+  (kill-local-variable 'mode-line-format)
   (dolist (bname '("*scratch*" "*Messages*"))
     (if (buffer-live-p (get-buffer bname))
         (with-current-buffer bname
@@ -85,19 +88,36 @@
 (defvar entropy/emacs-modeline--mdl-egroup-selected-window
   (frame-selected-window))
 
+(defun entropy/emacs-modeline--mdl-egroup-get-current-window ()
+  ;; Get the current window but should exclude on the child frame.
+  (if (and (fboundp 'frame-parent) (frame-parent))
+      (frame-selected-window (frame-parent))
+    (frame-selected-window)))
+
 (defun entropy/emacs-modeline--mdl-egroup-set-selected-window (&optional orig-func &rest orig-args)
   "Set `entropy/emacs-modeline--mdl-egroup' selected window indicator."
-  (let ((win (frame-selected-window)))
+  (let ((rtn (when orig-func
+               (apply orig-func orig-args)))
+        (win
+         (entropy/emacs-modeline--mdl-egroup-get-current-window)))
     (unless (minibuffer-window-active-p win)
       (setq entropy/emacs-modeline--mdl-egroup-selected-window win)
-      (force-mode-line-update)))
-  (when orig-func
-    (apply orig-func orig-args)))
+      (force-mode-line-update))
+    rtn))
 
 (defun entropy/emacs-modeline--mdl-egroup-unset-selected-window ()
   "Unset `entropy/emacs-modeline--mdl-egroup' appropriately."
   (setq entropy/emacs-modeline--mdl-egroup-selected-window nil)
   (force-mode-line-update))
+
+(defun entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p? ()
+  (and entropy/emacs-modeline--mdl-egroup-selected-window
+       (eq (entropy/emacs-modeline--mdl-egroup-get-current-window)
+           entropy/emacs-modeline--mdl-egroup-selected-window)))
+
+(advice-add 'entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p?
+            :around
+            #'entropy/emacs-current-window-is-selected-common-override-advice)
 
 (add-hook 'window-configuration-change-hook
           #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
@@ -128,11 +148,11 @@
 ;; **** common eyebrowse segment
 (defun entropy/emacs-modeline--mdl-egroup-eyebrowse-face-dynamic (tag)
   (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
-    (cond ((eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window)
+    (cond ((entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p?)
            (if derived
                'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived
              'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main))
-          ((not (eq (selected-window) entropy/emacs-modeline--mdl-egroup-selected-window))
+          (t
            (if derived
                'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived_inactive
              'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
@@ -179,7 +199,11 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
             (entropy/emacs-modeline--mdl-egroup-eyebrowse-segment)))
         powerline-spec))))
 
-  :commands (powerline-default-theme))
+  :commands (powerline-default-theme)
+  :config
+  (advice-add 'powerline-selected-window-active
+              :around
+              #'entropy/emacs-current-window-is-selected-common-override-advice))
 
 ;; ***** spaceline
 (defvar entropy/emacs-modeline--spaceline-spec-done nil)
@@ -399,6 +423,12 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
     (entropy/emacs-modeline--doom-modeline-specification))
 
 ;; ***** eemacs doom-modeline segments spec
+;; ****** advices
+
+  (advice-add 'doom-modeline--active
+              :around
+              #'entropy/emacs-current-window-is-selected-common-override-advice)
+
 ;; ****** company-indicator
   (doom-modeline-def-segment company-indicator
     "Company mode backends indicator."
@@ -531,7 +561,7 @@ style which defined in `entropy/emacs-modeline-style'."
      (entropy/emacs-modeline--powerline-spec-clean))
     ("spaceline"
      (entropy/emacs-modeline--spaceline-spec-clean))
-    ("doom" (doom-modeline-mode 0))
+    ("doom" (progn (doom-modeline-mode 0) (kill-local-variable 'mode-line-format)))
     ("origin" (entropy/emacs-modeline--origin-spec-clean))
     (_ nil)))
 
