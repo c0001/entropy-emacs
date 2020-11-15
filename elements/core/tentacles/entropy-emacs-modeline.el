@@ -57,34 +57,135 @@
 ;;     using modern one , you can choose spaceline which gives you the
 ;;     similar sensitive as spacemacs.
 ;; *** eemaac-specification
-;; **** restore origninal mode-line-format
 
-(defvar entropy/emacs-modeline-default-modeline-formt
-  (copy-tree mode-line-format))
-
-(defun entropy/emacs-modeline-restore-default-mdlfmt ()
-  (setq-default
-   mode-line-format
-   entropy/emacs-modeline-default-modeline-formt)
-  ;; diable the buffer local binding which will messy up other mode
-  ;; line format injecting during `setq-default'.
-  (kill-local-variable 'mode-line-format)
-  (dolist (bname '("*scratch*" "*Messages*"))
-    (if (buffer-live-p (get-buffer bname))
-        (with-current-buffer bname
-          (setq mode-line-format
-                entropy/emacs-modeline-default-modeline-formt)))))
-
-;; **** Common set mode line format
+;; **** Advices after swither
 
 (defun entropy/emacs-modeline--set-mdlfmt-after-advice (&rest _)
+  "After advice for each mode line type switcher."
   (let ((cur-mdl-fmt (default-value 'mode-line-format)))
+    ;; Manually set the `mode-line-format' in some buffer since they
+    ;; doesn't changed automatically after the mode line type switcher.
     (dolist (bname '("*scratch*" "*Messages*"))
       (if (buffer-live-p (get-buffer bname))
           (with-current-buffer bname
             (setq mode-line-format cur-mdl-fmt))))))
 
-;; **** selected window set
+
+;; **** common eemacs spec eyebrowse segment
+(defun entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen (tag)
+  (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
+    (cond ((entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p?)
+           (if derived
+               'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived
+             'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main))
+          (t
+           (if derived
+               'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived_inactive
+             'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
+
+(defun entropy/emacs-modeline--mdl-common-eyebrowse-segment ()
+  "Entropy-emacs specific modeline style.
+
+This customization mainly adding the eyebrowse slot and tagging name show function."
+  (let* ((cs (eyebrowse--get 'current-slot))
+         (window-configs (eyebrowse--get 'window-configs))
+         (window-config (assoc cs window-configs))
+         (current-tag (nth 2 window-config))
+         (mdlface (entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen
+                   (number-to-string cs)))
+         rtn)
+    (setq rtn (concat
+               (propertize (concat " " (number-to-string cs) ":") 'face mdlface)
+               (propertize (concat current-tag " ") 'face mdlface)
+               " "))
+    rtn))
+
+
+;; *** modeline type defined
+;; **** powerline group
+;; ***** powerline
+(use-package powerline
+  :preface
+  (defvar entropy/emacs-modeline--powerline-spec-done nil)
+  (defvar entropy/emacs-modeline--powerline-enable-done nil)
+  (defun entropy/emacs-modeline--powerline-spec-clean ()
+    (entropy/emacs-modeline-restore-default-mdlfmt)
+    (setq entropy/emacs-modeline--powerline-enable-done nil
+          entropy/emacs-modeline--powerline-spec-done nil))
+
+  (defun entropy/emacs-modeline-do-powerline-set ()
+    (interactive)
+    (require 'powerline)
+    (powerline-default-theme)
+    (let* ((cur-mdl-fmt (default-value 'mode-line-format))
+           (powerline-spec (cadr cur-mdl-fmt)))
+      (setq-default
+       mode-line-format
+       (list
+        "%e"
+        '(:eval
+          (when (bound-and-true-p eyebrowse-mode)
+            (entropy/emacs-modeline--mdl-common-eyebrowse-segment)))
+        powerline-spec))))
+
+  :commands (powerline-default-theme)
+  :config
+  (advice-add 'powerline-selected-window-active
+              :around
+              #'entropy/emacs-current-window-is-selected-common-around-advice))
+
+;; ***** spaceline
+(defvar entropy/emacs-modeline--spaceline-spec-done nil)
+(defvar entropy/emacs-modeline--spaceline-enable-done nil)
+(defvar entropy/emacs-modeline--spaceline-spec-list
+  '())
+
+(defun entropy/emacs-modeline--spaceline-specification ()
+  ;; powerline specification
+  (require 'powerline)
+  (setq entropy/emacs-modeline--spaceline-spec-list nil)
+
+  ;; backup the origin powerline configs where spaceline will modify
+  ;; for.
+  (push (cons 'powerline-default-separator
+              powerline-default-separator)
+        entropy/emacs-modeline--spaceline-spec-list)
+  (push (cons 'powerline-image-apple-rgb
+              powerline-image-apple-rgb)
+        entropy/emacs-modeline--spaceline-spec-list)
+
+  ;; spaceline specification for powerline config
+  (setq powerline-default-separator (if window-system 'arrow 'utf-8))
+  (setq powerline-image-apple-rgb sys/mac-x-p)
+
+  ;; spaceline internal setup
+  (add-hook 'spaceline-pre-hook #'powerline-reset) ; For changing themes
+  (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified))
+
+(defun entropy/emacs-modeline--spaceline-spec-clean ()
+  ;; restore the origin powerline configs where spaceline has modified
+  ;; for.
+  (dolist (el entropy/emacs-modeline--spaceline-spec-list)
+    (set (car el) (cdr el)))
+  (entropy/emacs-modeline-restore-default-mdlfmt)
+  (setq entropy/emacs-modeline--spaceline-enable-done nil
+        entropy/emacs-modeline--spaceline-spec-done nil))
+
+(if (eq entropy/emacs-ext-elpkg-get-type 'submodules)
+    (use-package spaceline
+      :init
+      (use-package spaceline-config
+        :commands (spaceline-spacemacs-theme)
+        :config
+        (unless entropy/emacs-modeline--spaceline-spec-done
+          (entropy/emacs-modeline--spaceline-specification))))
+  (use-package spaceline
+    :config
+    (unless entropy/emacs-modeline--spaceline-spec-done
+      (entropy/emacs-modeline--spaceline-specification))))
+
+;; **** origin type
+;; ***** egroup core
 (defvar entropy/emacs-modeline--mdl-egroup-selected-window
   (frame-selected-window))
 
@@ -117,7 +218,7 @@
 
 (advice-add 'entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p?
             :around
-            #'entropy/emacs-current-window-is-selected-common-override-advice)
+            #'entropy/emacs-current-window-is-selected-common-around-advice)
 
 (add-hook 'window-configuration-change-hook
           #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
@@ -138,127 +239,26 @@
       (setq entropy/emacs-modeline--mdl-egroup-selected-window nil)
       (cl-loop for frame in (frame-list)
                if (eq (frame-focus-state frame) t)
-               return (setq entropy/emacs-modeline--mdl-egroup-selected-window
-                            (frame-selected-window frame)))
-      (force-mode-line-update))
+               return (entropy/emacs-modeline--mdl-egroup-set-selected-window)))
     (add-function :after after-focus-change-function
                   #'entropy/emacs-modeline--mdl-egroup-refresh-frame)))
 
 
-;; **** common eyebrowse segment
-(defun entropy/emacs-modeline--mdl-egroup-eyebrowse-face-dynamic (tag)
-  (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
-    (cond ((entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p?)
-           (if derived
-               'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived
-             'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main))
-          (t
-           (if derived
-               'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived_inactive
-             'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
-
-(defun entropy/emacs-modeline--mdl-egroup-eyebrowse-segment ()
-  "Entropy-emacs specific modeline style.
-
-This customization mainly adding the eyebrowse slot and tagging name show function."
-  (let* ((cs (eyebrowse--get 'current-slot))
-         (window-configs (eyebrowse--get 'window-configs))
-         (window-config (assoc cs window-configs))
-         (current-tag (nth 2 window-config))
-         (mdlface (entropy/emacs-modeline--mdl-egroup-eyebrowse-face-dynamic
-                   (number-to-string cs)))
-         rtn)
-    (setq rtn (concat
-               (propertize (concat " " (number-to-string cs) ":") 'face mdlface)
-               (propertize (concat current-tag " ") 'face mdlface)
-               " "))
-    rtn))
-
-
-;; *** modeline type defined
-;; **** powerline group
-;; ***** powerline
-(use-package powerline
-  :preface
-  (defvar entropy/emacs-modeline--powerline-spec-done nil)
-  (defun entropy/emacs-modeline--powerline-spec-clean ()
-    (entropy/emacs-modeline-restore-default-mdlfmt))
-
-  (defun entropy/emacs-modeline-do-powerline-set ()
-    (interactive)
-    (require 'powerline)
-    (powerline-default-theme)
-    (let* ((cur-mdl-fmt (default-value 'mode-line-format))
-           (powerline-spec (cadr cur-mdl-fmt)))
-      (setq-default
-       mode-line-format
-       (list
-        "%e"
-        '(:eval
-          (when (bound-and-true-p eyebrowse-mode)
-            (entropy/emacs-modeline--mdl-egroup-eyebrowse-segment)))
-        powerline-spec))))
-
-  :commands (powerline-default-theme)
-  :config
-  (advice-add 'powerline-selected-window-active
-              :around
-              #'entropy/emacs-current-window-is-selected-common-override-advice))
-
-;; ***** spaceline
-(defvar entropy/emacs-modeline--spaceline-spec-done nil)
-(defvar entropy/emacs-modeline--spaceline-spec-list
-  '())
-
-(defun entropy/emacs-modeline--spaceline-specification ()
-  ;; powerline specification
-  (require 'powerline)
-  (setq entropy/emacs-modeline--spaceline-spec-list nil)
-  (push (cons 'powerline-default-separator
-              powerline-default-separator)
-        entropy/emacs-modeline--spaceline-spec-list)
-
-  (push (cons 'powerline-image-apple-rgb
-              powerline-image-apple-rgb)
-        entropy/emacs-modeline--spaceline-spec-list)
-
-  ;; self specification
-  (setq powerline-default-separator (if window-system 'arrow 'utf-8))
-  (setq powerline-image-apple-rgb sys/mac-x-p)
-  (add-hook 'spaceline-pre-hook #'powerline-reset) ; For changing themes
-  (setq spaceline-highlight-face-func 'spaceline-highlight-face-modified))
-
-(defun entropy/emacs-modeline--spaceline-spec-clean ()
-  (dolist (el entropy/emacs-modeline--spaceline-spec-list)
-    (set (car el) (cdr el)))
-  (entropy/emacs-modeline-restore-default-mdlfmt))
-
-(if (eq entropy/emacs-ext-elpkg-get-type 'submodules)
-    (use-package spaceline
-      :init
-      (use-package spaceline-config
-        :commands (spaceline-spacemacs-theme)
-        :config
-        (unless entropy/emacs-modeline--spaceline-spec-done
-          (entropy/emacs-modeline--spaceline-specification))))
-  (use-package spaceline
-    :config
-    (unless entropy/emacs-modeline--spaceline-spec-done
-      (entropy/emacs-modeline--spaceline-specification))))
-
-;; **** origin type
-
+;; ***** egroup main
 (defvar entropy/emacs-modeline--origin-spec-done nil)
+(defvar entropy/emacs-modeline--origin-enable-done nil)
 
 (defun entropy/emacs-modeline--origin-spec-clean ()
-  (entropy/emacs-modeline-restore-default-mdlfmt))
+  (entropy/emacs-modeline-restore-default-mdlfmt)
+  (setq entropy/emacs-modeline--origin-spec-done nil
+        entropy/emacs-modeline--origin-enable-done nil))
 
 (defun entropy/emacs-mode-line-origin-theme ()
   (setq-default mode-line-format
                 '("%e"
                   ;; mode-line-front-space
                   (:eval (when (bound-and-true-p eyebrowse-mode)
-                           (entropy/emacs-modeline--mdl-egroup-eyebrowse-segment)))
+                           (entropy/emacs-modeline--mdl-common-eyebrowse-segment)))
                   mode-line-mule-info
                   mode-line-client
                   mode-line-modified "  "
@@ -279,6 +279,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   :preface
 
   (defvar entropy/emacs-modeline--doom-modeline-spec-done nil)
+  (defvar entropy/emacs-modeline--doom-modeline-enable-done nil)
 
   (defun entropy/emacs-modeline--doom-modeline-specification ()
     (setq doom-modeline-height 10
@@ -289,6 +290,13 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
           (or (display-graphic-p)
               (and entropy/emacs-fall-love-with-pdumper
                    entropy/emacs-do-pdumper-in-X))))
+
+  (defun entropy/emacs-modeline--doom-modeline-spec-clean ()
+    (let (_)
+      (doom-modeline-mode 0)
+      (entropy/emacs-modeline-restore-default-mdlfmt)
+      (setq entropy/emacs-modeline--doom-modeline-spec-done nil
+            entropy/emacs-modeline--doom-modeline-enable-done nil)))
 
 ;; ***** doom-modeline hydra
   :eemacs-indhc
@@ -422,14 +430,13 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (unless entropy/emacs-modeline--doom-modeline-spec-done
     (entropy/emacs-modeline--doom-modeline-specification))
 
-;; ***** eemacs doom-modeline segments spec
 ;; ****** advices
-
   (advice-add 'doom-modeline--active
               :around
-              #'entropy/emacs-current-window-is-selected-common-override-advice)
+              #'entropy/emacs-current-window-is-selected-common-around-advice)
 
-;; ****** company-indicator
+;; ****** eemacs doom-modeline segments spec
+;; ******* company-indicator
   (doom-modeline-def-segment company-indicator
     "Company mode backends indicator."
     (let ((company-lighter-base
@@ -458,7 +465,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
                (funcall company-backend-abbrev-indicatior
                         cur_info))))))
 
-;; ****** workspace-number
+;; ******* workspace-number
   (doom-modeline-def-segment workspace-number
     "The current workspace name or number. Requires
 `eyebrowse-mode' to be enabled.
@@ -490,7 +497,7 @@ eyerbowse improvement."
                     'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
       ""))
 
-;; ***** eemacs doom-modeline type spec
+;; ****** eemacs doom-modeline type spec
   (doom-modeline-def-modeline 'main
    '(bar workspace-number window-number
          matches buffer-info remote-host buffer-position parrot
@@ -502,7 +509,7 @@ eyerbowse improvement."
     '(bar workspace-number window-number buffer-default-directory)
     '(misc-info mu4e github debug major-mode process))
 
-;; ***** common spec
+;; ****** common spec
 
   ;; Disable internally typo of wrong advice type for `select-window'
   ;; using `:after' keyword without WINDOW return refers to githuh
@@ -512,48 +519,6 @@ eyerbowse improvement."
 
   )
 
-;; *** init load conditions
-(defvar entropy/emacs-modeline--mdl-init-caller nil
-  "The form for enable modeline which obtained by
-`entropy/emacs-modeline--mdl-init'.")
-
-(defun entropy/emacs-modeline--mdl-init ()
-  "Init modeline style specified by `entropy/emacs-modeline-style'.
-
-If the specific modeline style is not compat with current emacs
-version, then warning with reset modeline style to \"origin\"
-style which defined in `entropy/emacs-modeline-style'."
-  (let (cancel-branch)
-    (cond
-     ;; init spaceline
-     ((string= entropy/emacs-modeline-style "spaceline")
-      (setq entropy/emacs-modeline--mdl-init-caller
-            '(spaceline-spacemacs-theme)))
-
-     ;; init powerline
-     ((string= entropy/emacs-modeline-style "powerline")
-      (setq entropy/emacs-modeline--mdl-init-caller
-            '(entropy/emacs-modeline-do-powerline-set)))
-
-     ;; init-origin style
-     ((string= entropy/emacs-modeline-style "origin")
-      (setq entropy/emacs-modeline--mdl-init-caller
-            '(entropy/emacs-mode-line-origin-theme)))
-
-     ;; init doom-modeline
-     ((string= entropy/emacs-modeline-style "doom")
-      (setq entropy/emacs-modeline--mdl-init-caller
-            '(doom-modeline-mode 1)))
-
-     ;; any other type was unsupport
-     (t (warn (format "entropy/emacs-modeline-style's value '%s' is invalid." entropy/emacs-modeline-style))
-        (setq entropy/emacs-modeline-style "origin"
-              cancel-branch t)
-        (entropy/emacs-modeline--mdl-init)))
-    (setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style)
-    (unless cancel-branch
-      (funcall `(lambda () ,entropy/emacs-modeline--mdl-init-caller)))))
-
 ;; ** toggle function
 (defun entropy/emacs-modeline--mdl-tidy-spec ()
   (pcase entropy/emacs-mode-line-sticker
@@ -561,56 +526,90 @@ style which defined in `entropy/emacs-modeline-style'."
      (entropy/emacs-modeline--powerline-spec-clean))
     ("spaceline"
      (entropy/emacs-modeline--spaceline-spec-clean))
-    ("doom" (progn (doom-modeline-mode 0) (kill-local-variable 'mode-line-format)))
+    ("doom" (entropy/emacs-modeline--doom-modeline-spec-clean))
     ("origin" (entropy/emacs-modeline--origin-spec-clean))
     (_ nil)))
 
 (defvar entropy/emacs-modeline--toggle-type-register nil)
 
 (defmacro entropy/emacs-modeline--define-toggle
-    (name spec-form init-var enable-form &rest body)
+    (name spec-form spec-done-indcator enable-done-indicator
+          &rest enable-form)
   ;; NOTE: if change the auto gened function name format, you must
   ;; update the doc-string corresponding part of
   ;; `entropy/emacs-theme-load-modeline-specifix'
+  "Define a modeline toggling function named with NAME as a type
+indicator.
+
+Arg SPEC-FORM is a list of a form to do the specifications
+procedure before the modeline type would do of which NAME
+indicated.
+
+Arg SPEC-DONE-INDICATOR is a variable name which is a variable to
+indicate whether the specification did by SPEC-FORM has already
+done, if thus, the SPEC-FORM will not be proceed in this time
+since the duplicate specification may cause some problems.
+
+Arg ENABLE-DONE-INDICATOR has the same meaning as what
+SPEC-DONE-INDICATOR has but for tided to ENABLE-FORM only.
+
+Arg ENABLE-FORM is the body of this macro used to do the modeline
+format enabling process.
+"
   (let ((func-name (intern (concat "entropy/emacs-modeline-mdl-" name "-toggle"))))
     (push (cons name func-name) entropy/emacs-modeline--toggle-type-register)
     `(defun ,func-name ()
        (interactive)
        (entropy/emacs-modeline--mdl-tidy-spec)
        (setq entropy/emacs-mode-line-sticker ,name)
-       ,spec-form
-       (unwind-protect
-           (progn
-             (setq ,init-var t)
-             ,@body
-             ,enable-form)
-         (progn (setq ,init-var nil))))))
+       (let (_)
+         (progn
+           ,spec-form
+           (setq ,spec-done-indcator t)
+           (if ,enable-done-indicator
+               (message
+                "You modeline has been toggled to '%s' yet,\
+ do not duplicate such operation" ,name)
+             ,@enable-form
+             (setq ,enable-done-indicator t)
+             (message "Toggle modeline type to '%s' successfully"
+                      ,name)))))))
 
+;; toggle functionn for spaceline
 (advice-add 'spaceline-spacemacs-theme
             :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
 (entropy/emacs-modeline--define-toggle
  "spaceline"
  (entropy/emacs-modeline--spaceline-specification)
  entropy/emacs-modeline--spaceline-spec-done
+ entropy/emacs-modeline--spaceline-enable-done
  (spaceline-spacemacs-theme))
 
+;; toggle functionn for powerline
 (advice-add 'entropy/emacs-modeline-do-powerline-set
             :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
 (entropy/emacs-modeline--define-toggle
  "powerline"
- nil entropy/emacs-modeline--powerline-spec-done
+ nil
+ entropy/emacs-modeline--powerline-spec-done
+ entropy/emacs-modeline--powerline-enable-done
  (entropy/emacs-modeline-do-powerline-set))
 
+;; toggle functionn for doom-modeline
 (entropy/emacs-modeline--define-toggle
  "doom"
  (entropy/emacs-modeline--doom-modeline-specification)
  entropy/emacs-modeline--doom-modeline-spec-done
+ entropy/emacs-modeline--doom-modeline-enable-done
  (doom-modeline-mode +1))
 
+;; toggle functionn for eemacs-egroup
 (advice-add 'entropy/emacs-mode-line-origin-theme
             :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
 (entropy/emacs-modeline--define-toggle
- "origin" nil entropy/emacs-modeline--origin-spec-done
+ "origin" nil
+ entropy/emacs-modeline--origin-spec-done
+ entropy/emacs-modeline--origin-enable-done
  (entropy/emacs-mode-line-origin-theme))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
@@ -640,6 +639,48 @@ style which defined in `entropy/emacs-modeline-style'."
              'eemacs-modeline-toggle))
      "Toggle mode line type"
      :enable t :eemacs-top-bind t :exit t))))
+
+;; ** init load conditions
+(defvar entropy/emacs-modeline--mdl-init-caller nil
+  "The form for enable modeline which obtained by
+`entropy/emacs-modeline--mdl-init'.")
+
+(defun entropy/emacs-modeline--mdl-init ()
+  "Init modeline style specified by `entropy/emacs-modeline-style'.
+
+If the specific modeline style is not compat with current emacs
+version, then warning with reset modeline style to \"origin\"
+style which defined in `entropy/emacs-modeline-style'."
+  (let (cancel-branch)
+    (cond
+     ;; init spaceline
+     ((string= entropy/emacs-modeline-style "spaceline")
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(entropy/emacs-modeline-mdl-spaceline-toggle)))
+
+     ;; init powerline
+     ((string= entropy/emacs-modeline-style "powerline")
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(entropy/emacs-modeline-mdl-powerline-toggle)))
+
+     ;; init-origin style
+     ((string= entropy/emacs-modeline-style "origin")
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(entropy/emacs-modeline-mdl-origin-toggle)))
+
+     ;; init doom-modeline
+     ((string= entropy/emacs-modeline-style "doom")
+      (setq entropy/emacs-modeline--mdl-init-caller
+            '(entropy/emacs-modeline-mdl-doom-toggle)))
+
+     ;; any other type was unsupport
+     (t (warn (format "entropy/emacs-modeline-style's value '%s' is invalid." entropy/emacs-modeline-style))
+        (setq entropy/emacs-modeline-style "origin"
+              cancel-branch t)
+        (entropy/emacs-modeline--mdl-init)))
+    (setq entropy/emacs-mode-line-sticker entropy/emacs-modeline-style)
+    (unless cancel-branch
+      (funcall `(lambda () ,entropy/emacs-modeline--mdl-init-caller)))))
 
 ;; ** modeline-hide feature
 (use-package hide-mode-line

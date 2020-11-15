@@ -85,59 +85,35 @@
 ;; ** Solaire mode for focus visual style
 (use-package solaire-mode
   :commands (solaire-mode
-             solaire-mode-swap-bg
              solaire-global-mode
              turn-on-solaire-mode)
   :preface
   (defvar entropy/emacs-themes-solaire-startup-timer nil)
 
-  (defun entropy/emacs-themes--solaire-swap-bg-un-needed ()
-    (member entropy/emacs-theme-sticker
-            '(doom-dark+
-              doom-molokai
-              doom-horizon
-              doom-Iosvkem
-              doom-gruvbox
-              doom-nova
-              doom-solarized-light
-              doom-vibrant)))
-
-  (defun entropy/emacs-themes--solaire-swap-bg ()
-    (when (and (not (entropy/emacs-themes--solaire-swap-bg-un-needed))
-               (entropy/emacs-theme-adapted-to-solaire))
-      (solaire-mode-swap-bg)
-      (message "Solaire swap bg done!")))
-
   (defun entropy/emacs-themes--enable-solaire-global-mode ()
     (when (entropy/emacs-theme-adapted-to-solaire)
       (unless solaire-global-mode
         (solaire-global-mode t)))
-    (entropy/emacs-themes--solaire-swap-bg)
     (entropy/emacs-solaire-specific-for-themes))
 
   (defvar entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay 0.01)
   (defun entropy/emacs-themes-solaire-after-load-theme-adapts (&rest _)
     (when (entropy/emacs-theme-adapted-to-solaire)
       (let (timer)
-        (condition-case error
-            (if entropy/emacs-startup-done
-                (setq timer
-                      (run-with-idle-timer
-                       entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay
-                       nil #'entropy/emacs-themes--enable-solaire-global-mode))
-              (setq entropy/emacs-themes-solaire-startup-timer
-                    (run-with-idle-timer
-                     entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay
-                     t
-                     #'(lambda ()
-                         (when entropy/emacs-startup-done
-                           (entropy/emacs-themes--enable-solaire-global-mode)
-                           (cancel-timer
-                            entropy/emacs-themes-solaire-startup-timer))))))
-          (error
-           (message "Error when swap solaire backgroud colors.")
-           (when (timerp timer)
-             (cancel-timer timer)))))))
+        (if entropy/emacs-startup-done
+            (setq timer
+                  (run-with-idle-timer
+                   entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay
+                   nil #'entropy/emacs-themes--enable-solaire-global-mode))
+          (setq entropy/emacs-themes-solaire-startup-timer
+                (run-with-idle-timer
+                 entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay
+                 t
+                 #'(lambda ()
+                     (when entropy/emacs-startup-done
+                       (entropy/emacs-themes--enable-solaire-global-mode)
+                       (cancel-timer
+                        entropy/emacs-themes-solaire-startup-timer)))))))))
 
   (defun entropy/emacs-themes-solaire-around-advice-for-make-frame
       (orig-func &rest orig-args)
@@ -156,7 +132,9 @@ face attributes and some refer is missing in the new frame."
             ;; default frame background color face. So that any
             ;; further one can easily adding to this `or' form.
             (unless (or (and (bound-and-true-p company-candidates)
-                             (bound-and-true-p company-box-mode)))
+                             (or (bound-and-true-p company-box-mode)
+                                 (bound-and-true-p company-posframe-mode)))
+                        entropy/emacs-frame-be-made-is-child-frame)
               (let ()
                 ;; map get enabled soloarized faces
                 (when (bound-and-true-p solaire-mode-remap-alist)
@@ -227,11 +205,6 @@ face attributes and some refer is missing in the new frame."
      (when (entropy/emacs-theme-adapted-to-solaire)
        (apply orig-func orig-args)))
 
-  (defun entropy/emacs-themes-solaire-swap-bg ()
-    "Interacive wrapper for `solaire-mode-swap-bg'"
-    (interactive)
-    (solaire-mode-swap-bg))
-
   :hook (((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
          (minibuffer-setup . solaire-mode-in-minibuffer))
   :init
@@ -246,6 +219,26 @@ face attributes and some refer is missing in the new frame."
                         eww-mode
                         elfeed-mode
                         magit-status-mode)))))
+
+  (setq solaire-mode-auto-swap-bg t
+        solaire-mode-themes-to-face-swap
+        (let ((exclusion '(doom-dark+
+                           doom-molokai
+                           doom-horizon
+                           doom-Iosvkem
+                           doom-gruvbox
+                           doom-nova
+                           doom-solarized-light
+                           doom-vibrant))
+              (all-themes (custom-available-themes)))
+          (delete nil
+                  (mapcar (lambda (theme)
+                            (unless (or (member theme exclusion)
+                                        (not (entropy/emacs-theme-adapted-to-solaire
+                                              theme)))
+                              (regexp-quote (symbol-name theme))))
+                          all-themes))))
+
   (entropy/emacs-lazy-with-load-trail
    solaire-mode-init
    :start-end t

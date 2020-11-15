@@ -893,10 +893,13 @@ i.e. membered in `custom-enabled-themes'."
                    (eq face (cadr theme-setting)))
           (throw :exit (cadddr theme-setting)))))))
 
-(defun entropy/emacs-theme-adapted-to-solaire ()
+(defun entropy/emacs-theme-adapted-to-solaire (&optional theme)
   "Judge whether current theme loaded adapted to `solaire-mode',
 return t otherwise for nil. "
-  (let ((theme_cur (ignore-errors (symbol-name entropy/emacs-theme-sticker))))
+  (let ((theme_cur (if theme
+                       (symbol-name theme)
+                     (ignore-errors
+                       (symbol-name entropy/emacs-theme-sticker)))))
     ;; Condition judge for unconditional occurrence for theme loading,
     ;; seem as in pdumper session.
     (if (and (stringp theme_cur)
@@ -1606,7 +1609,7 @@ by `entropy/emacs-locale-coding-system'."
 
 (advice-add 'select-window :around #'entropy/emacs--select-window-around-advice)
 
-(defun entropy/emacs-current-window-is-selected-common-override-advice
+(defun entropy/emacs-current-window-is-selected-common-around-advice
     (orig-func &rest orig-args)
   "The common advice for function who return t or nil just be for
 the sake of getting the 'current-window' status.
@@ -1750,6 +1753,46 @@ relative to the other text when
              (entropy/emacs-defun--ohrsc-org-header-face-backuped-p)
              (entropy/emacs-defun--ohrsc-org-header-faces-modified-p))
         (entropy/emacs-defun--ohrsc-recovery-org-header-face-scale))))))
+
+;; *** MODE LINE
+(defun entropy/emacs-modeline-judge-modeline-special-p ()
+  "Judge whether in current status the `mode-line-format' is special
+all cases is defined in
+`entropy/emacs-modeline-cases-of-spec-modeline'."
+  (let (rtn)
+    (catch :exit
+      (dolist (this-case entropy/emacs-modeline-cases-of-spec-modeline)
+        (cond ((symbolp this-case)
+               (setq rtn (funcall this-case)))
+              ((listp this-case)
+               (setq rtn (eval this-case)))
+              (t
+               (user-error "Wrong type of eemacs special modeline case, please check \
+`entropy/emacs-modeline-cases-of-spec-modeline'")))
+        (when rtn (throw :exit nil))))
+    rtn))
+
+(defun entropy/emacs-modeline-restore-default-mdlfmt ()
+  "Restore defaut `mode-line-format' in the default-value slot of
+`mode-line-format'.
+
+This function used to clean the specification did by other
+modeline swither."
+  (setq-default
+   mode-line-format
+   entropy/emacs-modeline-default-modeline-formt)
+  ;; diable the buffer local binding which will messy up other mode
+  ;; line format injecting during `setq-default'.
+  (mapc (lambda (buffer)
+          (with-current-buffer buffer
+            (unless (entropy/emacs-modeline-judge-modeline-special-p)
+              (kill-local-variable 'mode-line-format))))
+        (buffer-list))
+  (dolist (bname '("*scratch*" "*Messages*"))
+    (if (buffer-live-p (get-buffer bname))
+        (with-current-buffer bname
+          (setq mode-line-format
+                entropy/emacs-modeline-default-modeline-formt)))))
 
 ;; *** Theme loading specification
 (defun entropy/emacs-theme-load-face-specifix (&optional x)

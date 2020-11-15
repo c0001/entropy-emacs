@@ -362,7 +362,7 @@ after =entropy-emacs= has loading done i.e. while
 
 ;; ** theme refer
 
-(defvar entropy/emacs-theme-sticker ""
+(defvar entropy/emacs-theme-sticker nil
   "Current theme used for this session.
 
 It's a symbol of the theme feature, auto-assigned within
@@ -418,10 +418,15 @@ theme symbol, you can use it in the after hook
 `entropy/emacs-theme-load-after-hook', which means that that hook
 is ran after the registering procedure done within `progn' scope."
   (run-hooks 'entropy/emacs-theme-load-before-hook)
-  (apply old-func args)
   (progn
+    (when entropy/emacs-theme-sticker
+      ;; Disable origin theme before load a new theme to prevent from
+      ;; messing up the new one
+      (when (member entropy/emacs-theme-sticker custom-enabled-themes)
+        (disable-theme entropy/emacs-theme-sticker)))
     (let ((theme-load (car args)))
-      (setq entropy/emacs-theme-sticker theme-load))
+      (setq entropy/emacs-theme-sticker theme-load)
+      (apply old-func args))
     (run-hooks 'entropy/emacs-theme-load-after-hook)
     (run-hooks 'entropy/emacs-theme-load-after-hook-end-1)
     (run-hooks 'entropy/emacs-theme-load-after-hook-end-2)))
@@ -443,6 +448,28 @@ be good for maintenance:
 - \"doom\"      <---> feature: `doom-modeline'
 - \"spaceline\" <---> feature: `spaceline'
 - \"powerline\" <---> feature: `powerline'.")
+
+(defvar entropy/emacs-modeline-default-modeline-formt
+  (copy-tree mode-line-format)
+  "The emacs default `mode-line-format'.")
+
+(defvar entropy/emacs-modeline-cases-of-spec-modeline
+  '(
+    ;; special major-mode enabled in `current-buffer'
+    (member major-mode '(treemacs-mode
+                         neotree-mode
+                         mpc-mode
+                         mpc-tagbrowser-mode
+                         mpc-songs-mode
+                         mpc-status-mode
+                         mpc-tagbrowser-dir-mode))
+    ;; special minor-mode enabled in current-buffer
+    (or (bound-and-true-p entropy-shellpop-mode))
+    )
+  "list of predicates for compute to judge whether in this case
+the `mode-line-format' is special when the return is non-nil.
+
+Each predicate can be a form or a function name.")
 
 ;; ** font refer
 (defvar entropy/emacs-fontsets-used-latin-font "Noto Mono"
@@ -511,6 +538,27 @@ followed by `entropy/emacs-font-setting-enable'.")
   "The fully preserved `load-path' before pdumper dump procedure
 invoking. Used to get the copy of the normal eemacs `load-path'
 prepared for some emergency occasion.")
+
+;; ** frame refer
+
+(defvar entropy/emacs-frame-be-made-is-child-frame nil
+  "The indicator for `make-frame' wrapper to judge whether
+current frame is maked as a child frame.
+
+NOTE: this variable is setted automatically so as do not modify
+it manually or will hit a monster.")
+
+(defun entropy/emacs-defvar--around-advice-for-child-frame-make
+    (orig-func &rest orig-args)
+  (let (rtn)
+    (setq entropy/emacs-frame-be-made-is-child-frame t)
+    (unwind-protect
+        (setq rtn (apply orig-func orig-args))
+      (setq entropy/emacs-frame-be-made-is-child-frame nil))
+    rtn))
+(advice-add 'display-buffer-in-child-frame
+            :around
+            #'entropy/emacs-defvar--around-advice-for-child-frame-make)
 
 ;; ** daemon refer
 (when (version< emacs-version "27")
