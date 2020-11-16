@@ -430,10 +430,59 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (unless entropy/emacs-modeline--doom-modeline-spec-done
     (entropy/emacs-modeline--doom-modeline-specification))
 
+  ;; Sync doom-modeline internal default `mode-line-format' cache to
+  ;; eemacs spec, it's needed becasue of that eemacs will recovery the
+  ;; emacs default `mode-line-format' before any eemacs defined mode
+  ;; line type switcher in which case `doom-modeline-mode' also did
+  ;; that, we do not want to see different default `mode-line-format'
+  ;; after the processing both of them.
+  (when (boundp 'doom-modeline--default-format)
+    (setq doom-modeline--default-format
+          entropy/emacs-modeline-default-modeline-formt))
+
 ;; ****** advices
   (advice-add 'doom-modeline--active
               :around
               #'entropy/emacs-current-window-is-selected-common-around-advice)
+  (defun entropy/emacs-modeline--doom-modeline-set-around-advice
+      (orig-func &rest orig-args)
+    "Around advice for `doom-modeline-set-modeline' which use
+default variable set type for type 'main' which do not pollute
+some cases."
+    (let ((key (car orig-args)))
+      (if (eq key 'main)
+          (apply orig-func `(,key set-as-default))
+        (apply orig-func orig-args))))
+  (advice-add 'doom-modeline-set-modeline
+              :around
+              #'entropy/emacs-modeline--doom-modeline-set-around-advice)
+
+  (defun entropy/emacs-modeline--doom-modeline-mode-around-advice
+      (orig-func &rest orig-args)
+    "The around advice for `doom-modeline-mode' to recovery the
+`current-buffer' local `mode-line-format' when needed since
+`doom-modeline' will recover the current-buffer `mode-line-format'
+to its own origin `mode-line-format' of the load time which is a
+internal indiscretion stick where do not think about there's
+customized buffer local `mode-line-format' has been set after
+enable it which do not want to be unset yet."
+    (let ((current-buffer-in-special-case
+           (with-current-buffer (current-buffer)
+             (entropy/emacs-modeline-judge-modeline-special-p)))
+          (current-local-mdlfmt
+           (copy-tree (buffer-local-value
+                       'mode-line-format
+                       (current-buffer))))
+          rtn)
+      (setq rtn (apply orig-func orig-args))
+      (when (and current-buffer-in-special-case
+                 current-local-mdlfmt)
+        (setq-local mode-line-format
+                    current-local-mdlfmt))
+      rtn))
+  (advice-add 'doom-modeline-mode
+              :around
+              #'entropy/emacs-modeline--doom-modeline-mode-around-advice)
 
 ;; ****** eemacs doom-modeline segments spec
 ;; ******* company-indicator
