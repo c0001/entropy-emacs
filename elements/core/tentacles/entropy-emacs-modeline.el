@@ -171,18 +171,36 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
   (setq entropy/emacs-modeline--spaceline-enable-done nil
         entropy/emacs-modeline--spaceline-spec-done nil))
 
-(if (eq entropy/emacs-ext-elpkg-get-type 'submodules)
-    (use-package spaceline
-      :init
-      (use-package spaceline-config
-        :commands (spaceline-spacemacs-theme)
-        :config
-        (unless entropy/emacs-modeline--spaceline-spec-done
-          (entropy/emacs-modeline--spaceline-specification))))
-  (use-package spaceline
-    :config
-    (unless entropy/emacs-modeline--spaceline-spec-done
-      (entropy/emacs-modeline--spaceline-specification))))
+(defun entropy/emacs-modeline--spaceline-defsegment-for-workspace ()
+  (spaceline-define-segment workspace-number
+    "The current workspace name or number. Requires `eyebrowse-mode' to be
+enabled."
+    (when (and (bound-and-true-p eyebrowse-mode)
+               (<= 1 (length (eyebrowse--get 'window-configs))))
+      (let* ((num (eyebrowse--get 'current-slot))
+             (tag (when num (nth 2 (assoc num (eyebrowse--get 'window-configs)))))
+             (str (if (and tag (< 0 (length tag)))
+                      (if num
+                          (concat (int-to-string num) ":" tag)
+                        tag)
+                    (when num (int-to-string num)))))
+        (or (when spaceline-workspace-numbers-unicode
+              (spaceline--unicode-number str))
+            (propertize str 'face 'bold))))))
+(eval
+ (delete
+  nil
+  `(use-package spaceline
+     :init
+     ,(if (eq entropy/emacs-ext-elpkg-get-type 'submodules)
+          '(use-package spaceline-config
+             :commands (spaceline-spacemacs-theme))
+        '(ignore))
+     :config
+     (with-eval-after-load 'spaceline-segments
+       (entropy/emacs-modeline--spaceline-defsegment-for-workspace))
+     )))
+
 
 ;; **** origin type
 ;; ***** egroup core
