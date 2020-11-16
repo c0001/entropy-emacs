@@ -246,7 +246,11 @@ face attributes and some refer is missing in the new frame."
    (add-hook 'entropy/emacs-theme-load-before-hook
              (lambda nil
                (when (bound-and-true-p solaire-global-mode)
-                 (solaire-global-mode 0))))
+                 (solaire-global-mode 0)
+                 ;; disable remanding solair spec themes prevent from
+                 ;; pollute the non solair adapted theme default bg
+                 ;; colors
+                 (disable-theme 'solaire-swap-bg-theme))))
    (add-hook 'entropy/emacs-theme-load-after-hook-end-1
              #'entropy/emacs-themes-solaire-after-load-theme-adapts)
    (advice-add 'make-frame

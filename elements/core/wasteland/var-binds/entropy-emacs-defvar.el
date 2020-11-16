@@ -370,6 +370,9 @@ eemacs-context, you shouldn't modify it manually.
 
 Also see `entropy/emacs-theme-load-advice'. ")
 
+(defvar entropy/emacs-theme-load-before-hook-head-1 nil
+  "Hook runs before `entropy/emacs-theme-load-before-hook'.")
+
 (defvar entropy/emacs-theme-load-before-hook nil
   "Hook runs befor theme loading procedure built by `load-theme'.
 
@@ -383,6 +386,9 @@ The follow auto-laod wrapper may be used in `custom-file'
     (add-hook 'entropy/emacs-theme-load-before-hook symbol-you-specified))
 #+END_SRC
   ")
+
+(defvar entropy/emacs-theme-load-after-hook-head-1 nil
+  "Hooks run before hook `entropy/emacs-theme-load-after-hook'.")
 
 (defvar entropy/emacs-theme-load-after-hook nil
   "Hook runs after theme loading procedure built by `load-theme'.
@@ -417,6 +423,7 @@ dynamic variabe `entropy/emacs-theme-sticker' for current enabled
 theme symbol, you can use it in the after hook
 `entropy/emacs-theme-load-after-hook', which means that that hook
 is ran after the registering procedure done within `progn' scope."
+  (run-hooks 'entropy/emacs-theme-load-before-hook-head-1)
   (run-hooks 'entropy/emacs-theme-load-before-hook)
   (progn
     (when entropy/emacs-theme-sticker
@@ -427,6 +434,7 @@ is ran after the registering procedure done within `progn' scope."
     (let ((theme-load (car args)))
       (setq entropy/emacs-theme-sticker theme-load)
       (apply old-func args))
+    (run-hooks 'entropy/emacs-theme-load-after-hook-head-1)
     (run-hooks 'entropy/emacs-theme-load-after-hook)
     (run-hooks 'entropy/emacs-theme-load-after-hook-end-1)
     (run-hooks 'entropy/emacs-theme-load-after-hook-end-2)))

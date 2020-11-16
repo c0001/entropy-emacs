@@ -881,6 +881,65 @@ as '(cons attr-key attr-value)' which can be used for
                  (cons attr value))))
            entropy/emacs-face-attributes-list)))
 
+(defvar entropy/emacs-set-face-attribute--internal-log-for-setted-faces nil)
+(when (custom-theme-enabled-p 'eemacs-cover-theme-0)
+  (disable-theme 'eemacs-cover-theme-0))
+(custom-declare-theme 'eemacs-cover-theme-0 nil)
+(put 'eemacs-cover-theme-0 'theme-settings nil)
+;; enable `theme-immediate' to the internal cover theme which let any
+;; modify of the cover theme can take effects on the display status,
+;; see the function `custom-push-theme' body details.
+(put 'eemacs-cover-theme-0 'theme-immediate t)
+
+(defun entropy/emacs-defun--theme-cover-0-rest ()
+  (when entropy/emacs-set-face-attribute--internal-log-for-setted-faces
+    (dolist (fre entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
+      (let ((face (car fre))
+            (custom--inhibit-theme-enable nil))
+        (custom-theme-reset-faces
+         'eemacs-cover-theme-0
+         `(,face nil)))))
+  (setq entropy/emacs-set-face-attribute--internal-log-for-setted-faces nil)
+  (disable-theme 'eemacs-cover-theme-0))
+;; disable the internal cover theme must before any hooks running so
+(add-hook 'entropy/emacs-theme-load-after-hook-head-1
+          #'entropy/emacs-defun--theme-cover-0-rest)
+
+(defvar entropy/emacs--advice-priority-eemacs-cover-them-0-timer
+  (run-with-idle-timer 0 t #'entropy/emacs--advice-priority-eemacs-cover-them-0-timer))
+(defun entropy/emacs--advice-priority-eemacs-cover-them-0-timer ()
+  "Take advanced priority for the `eemacs-cover-theme-0' in
+`custom-enabled-themes' to guarantee the coverage feature."
+  (unless (and (custom-theme-enabled-p 'eemacs-cover-theme-0)
+               (eq 'eemacs-cover-theme-0 (car custom-enabled-themes)))
+    (enable-theme 'eemacs-cover-theme-0)))
+
+(defun entropy/emacs-set-face-attribute (face frame &rest args)
+  "=entropy-emacs= specified function same as `set-face-attribute'.
+
+But using a internal declared theme take priority over the
+`entropy/emacs-theme-sticker' when frame FRAME is nil. This
+specification will not pollute the default attribute of face FACE
+in the `selected-frame'.
+
+NOTE: any hook include this function injected into the
+'entropy/emacs-theme-load-(before/after)-hook-*' must injected
+after the hook `entropy/emacs-theme-load-after-hook-head-1' in
+where an internal reset function injected."
+  (let* ((this-spec `(,face ((t ,@args))))
+         (custom--inhibit-theme-enable nil))
+    (enable-theme 'eemacs-cover-theme-0)
+    (push (cons face args) entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
+    (if frame
+        (apply 'set-face-attribute face frame args)
+      (custom-theme-reset-faces
+       'eemacs-cover-theme-0
+       `(,face nil))
+      (custom-theme-set-faces
+       'eemacs-cover-theme-0
+       this-spec)
+      (custom-theme-recalc-face face))))
+
 ;; *** Theme manipulation
 
 (defun entropy/emacs-get-theme-face (theme face)
@@ -1806,32 +1865,38 @@ corresponding stuffs."
   (cond
    ((string-match-p "spacemacs-dark" x)
     (with-eval-after-load 'ivy
-      (set-face-attribute 'ivy-current-match nil
-                          :background "purple4" :bold t)))
-   ((string-match-p "spacemacs-light)" x)
+      (entropy/emacs-set-face-attribute
+       'ivy-current-match nil
+       :background "purple4" :bold t)))
+   ((string-match-p "spacemacs-light" x)
     (with-eval-after-load 'ivy
-     (set-face-attribute 'ivy-current-match nil
-                        :background "salmon" :bold t)))
+      (entropy/emacs-set-face-attribute
+       'ivy-current-match nil
+       :background "salmon" :bold t)))
    ((string-match-p "darkokai" x)
     (with-eval-after-load 'ivy
-      (set-face-attribute 'ivy-current-match nil
-                          :background "#2B2F31" :foreground "#BBF7EF")))
+      (entropy/emacs-set-face-attribute
+       'ivy-current-match nil
+       :background "#2B2F31" :foreground "#BBF7EF")))
    ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" x)
     (with-eval-after-load 'ivy
       (if (equal 'dark (frame-parameter nil 'background-mode))
-          (set-face-attribute 'ivy-current-match nil
-                              :background "#65a7e2" :foreground "black")
-        (set-face-attribute 'ivy-current-match nil
-                            :background "#1a4b77" :foreground "white"))))
+          (entropy/emacs-set-face-attribute
+           'ivy-current-match nil
+           :background "#65a7e2" :foreground "black")
+        (entropy/emacs-set-face-attribute
+         'ivy-current-match nil
+         :background "#1a4b77" :foreground "white"))))
    ((string= "doom-solarized-light" x)
     (when (not (featurep 'hl-line))
       (require 'hl-line))
-    (set-face-attribute 'hl-line nil :background "LightGoldenrod2"))
+    (entropy/emacs-set-face-attribute 'hl-line nil :background "LightGoldenrod2"))
    ((string= "doom-Iosvkem" x)
     (with-eval-after-load 'ivy
-      (set-face-attribute 'ivy-current-match nil
-                          :background "grey8"
-                          :distant-foreground "grey7")))
+      (entropy/emacs-set-face-attribute
+       'ivy-current-match nil
+       :background "grey8"
+       :distant-foreground "grey7")))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
@@ -1853,8 +1918,9 @@ situation."
   (progn
     (cond ((and (string= entropy/emacs-mode-line-sticker "doom")
                 (string-match-p "\\(ujelly\\)" arg))
-           (set-face-attribute 'doom-modeline-bar
-                               nil :background "black")
+           (entropy/emacs-set-face-attribute
+            'doom-modeline-bar
+            nil :background "black")
            (doom-modeline-refresh-bars))
           ((and (string= entropy/emacs-mode-line-sticker "doom")
                 (string-match-p "\\(spolsky\\)" arg))
@@ -1863,8 +1929,9 @@ situation."
                                           doom-modeline-bar-width
                                           doom-modeline-height)))
           ((string= entropy/emacs-mode-line-sticker "doom")
-           (set-face-attribute 'doom-modeline-bar
-                               nil :background (face-background 'mode-line nil t))
+           (entropy/emacs-set-face-attribute
+            'doom-modeline-bar
+            nil :background (face-background 'mode-line nil t))
            (doom-modeline-refresh-bars)))))
 
 (defun entropy/emacs-solaire-specific-for-themes (&rest _)
@@ -1876,15 +1943,18 @@ stuffs on `solaire-mode' when `solaire-global-mode' was non-nil."
     (require 'solaire-mode)
     (cond
      ((eq entropy/emacs-theme-sticker 'spacemacs-dark)
-      (dolist (x '(solaire-hl-line-face hl-line))
-        (set-face-attribute
-         x
+      (entropy/emacs-set-face-attribute
+         'hl-line
          nil
          :background
          (cond ((not (display-graphic-p))
-                "color-236")
+                "#333839")
                ((display-graphic-p)
-                "#293c44")))))
+                "#333340"))))
+     ((eq entropy/emacs-theme-sticker 'atom-one-dark)
+      (entropy/emacs-set-face-attribute
+       'hl-line nil
+       :background "#333839"))
      (t nil))))
 
 ;; *** Case fold search specification

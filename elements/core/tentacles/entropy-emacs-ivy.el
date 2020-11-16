@@ -411,6 +411,21 @@ unwind occasion.")
               :override
               #'entropy/emacs-ivy--counsel--M-x-externs)
 
+;; **** override `counsel-load-theme-action'
+  (defun counsel-load-theme-action (x)
+    "Disable current themes and load theme X.
+
+NOTE: this function has been overriden to remove the
+all-theme-disable preface in the origin procedure which will
+casue some error in eemacs-specification."
+    (condition-case nil
+        (progn
+          ;;(mapc #'disable-theme custom-enabled-themes)
+          (load-theme (intern x) t)
+          (when (fboundp 'powerline-reset)
+            (powerline-reset)))
+      (error "Problem loading theme %s" x)))
+
 ;; **** do not active `counsel-grep' function when not grep exec found
 
   (defun entropy/emacs-ivy-counsel-grep-or-swiper (orig-func &rest orig-args)
