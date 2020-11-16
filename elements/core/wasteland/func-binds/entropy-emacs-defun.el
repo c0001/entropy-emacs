@@ -1897,6 +1897,25 @@ corresponding stuffs."
        'ivy-current-match nil
        :background "grey8"
        :distant-foreground "grey7")))
+   ((string= "github" x)
+    (entropy/emacs-set-face-attribute
+     'mode-line nil
+     :background "#000000"
+     :foreground "#FFFFFF")
+    (entropy/emacs-set-face-attribute
+     'fringe nil
+     :background "WhiteSmoke"
+     :foreground "black")
+   (entropy/emacs-set-face-attribute
+     'ivy-minibuffer-match-face-4 nil
+     :background "#333333"
+     :foreground "LightGrey")
+   (entropy/emacs-set-face-attribute
+    'window-divider nil :inherit 'vertical-border)
+   (entropy/emacs-set-face-attribute
+    'window-divider-first-pixel nil :inherit 'window-divider)
+   (entropy/emacs-set-face-attribute
+    'window-divider-last-pixel nil :inherit 'window-divider))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
