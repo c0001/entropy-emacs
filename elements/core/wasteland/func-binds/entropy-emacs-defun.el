@@ -1846,12 +1846,7 @@ modeline swither."
           (with-current-buffer buffer
             (unless (entropy/emacs-modeline-judge-modeline-special-p)
               (kill-local-variable 'mode-line-format))))
-        (buffer-list))
-  (dolist (bname '("*scratch*" "*Messages*"))
-    (if (buffer-live-p (get-buffer bname))
-        (with-current-buffer bname
-          (setq mode-line-format
-                entropy/emacs-modeline-default-modeline-formt)))))
+        (buffer-list)))
 
 ;; *** Theme loading specification
 (defun entropy/emacs-theme-load-face-specifix (&optional x)
