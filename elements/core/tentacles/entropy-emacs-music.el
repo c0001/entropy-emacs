@@ -85,21 +85,51 @@ specification."
       (set-window-buffer status-win playlist-buf)
       (set-window-buffer playlist-win status-buf)))
 
+  (defvar entropy/emacs-music--mpc-mini-mode nil)
   (defun entropy/emacs-music-mpc--patch-popuped-window-around-advice
       (orig-func &rest orig-args)
     (let* ((wfg-orig (current-window-configuration)))
-      (setq entropy/emacs-music-mpc--orig-window-configuration
-            wfg-orig)
-      (delete-other-windows-internal)
-      (apply orig-func orig-args)
-      (entropy/emacs-music-mpc--patch-popuped-window-balance)
-      (entropy/emacs-music-mpc--exchage-window-buffers-init)))
+      (cond ((null entropy/emacs-music--mpc-mini-mode)
+             (setq entropy/emacs-music-mpc--orig-window-configuration
+                   wfg-orig)
+             (delete-other-windows-internal)
+             (apply orig-func orig-args)
+             (entropy/emacs-music-mpc--patch-popuped-window-balance)
+             (entropy/emacs-music-mpc--exchage-window-buffers-init))
+            (entropy/emacs-music--mpc-mini-mode
+             (setq entropy/emacs-music-mpc--orig-window-configuration
+                   nil)
+             (save-window-excursion
+               (apply orig-func orig-args))
+             (let ((status-buf (mpc-proc-buffer (mpc-proc) 'status))
+                   (songs-buf (mpc-proc-buffer (mpc-proc) 'songs))
+                   win-above win-below)
+               (delete-other-windows-internal)
+               (split-window (selected-window)
+                             (- (ceiling (* (window-width) 0.2))) 'left)
+               (select-window (window-in-direction 'left))
+               (split-window (selected-window)
+                             (- (ceiling (* (window-height) 0.3))) 'above)
+               (setq win-above (window-in-direction 'up)
+                     win-below (selected-window))
+               (set-window-buffer win-above status-buf)
+               (set-window-buffer win-below songs-buf)
+               (with-current-buffer songs-buf
+                 (entropy/emacs-music-mpc-songs-buffer-refresh)))))))
+
+  (defun entropy/emacs-music-mpc-mini ()
+    "The `mpc' mini tpype which just display side window group
+for the songs list and status callback."
+    (interactive)
+    (let ((entropy/emacs-music--mpc-mini-mode t))
+      (mpc)))
 
   (defun entropy/emacs-music-mpc--patch-quit-around-advice (orig-func &rest orig-args)
-    (let* ()
+    (let* (_)
       (apply orig-func orig-args)
-      (set-window-configuration
-       entropy/emacs-music-mpc--orig-window-configuration)))
+      (when entropy/emacs-music-mpc--orig-window-configuration
+        (set-window-configuration
+         entropy/emacs-music-mpc--orig-window-configuration))))
 
   (defun entropy/emacs-music-mpc-unselect (&optional event)
     "Unselect the tag value at point."
@@ -325,6 +355,7 @@ Add current music to queue when its not in thus."
   (define-key mpc-status-mode-map
     (kbd "RET") nil)
 
+;; **** advices
   (advice-add 'mpc
               :around
               #'entropy/emacs-music-mpc--patch-popuped-window-around-advice)
@@ -356,6 +387,7 @@ Add current music to queue when its not in thus."
               :around
               #'entropy/emacs-music--mpc-around-advice-for-mpc--status-callback)
 
+;; **** redefine
   ;; EEMACS_MAINTENANCE: For prevent from multi-same items pos jump,
   ;; we disable the 'other' handle but there's may have a more
   ;; excellent way?
@@ -381,6 +413,25 @@ Add current music to queue when its not in thus."
             ;;     (mpc-proc-cmd "playlist" 'mpc-songpointer-refresh-hairy)
             ;;   (mpc-songpointer-set pos))
             (mpc-songpointer-set pos))))))
+
+  (defun mpc--status-timer-run ()
+    "Refresh mpc status.
+
+NOTE: this function has been modified to continue
+`mpc--status-idle-timer' when the the status buffer or window has
+been killed."
+    (with-demoted-errors "MPC: %S"
+      (when (process-get (mpc-proc) 'ready)
+        (let* ((buf (mpc-proc-buffer (mpc-proc) 'status))
+               (win (get-buffer-window buf t))
+               (win-songs (get-buffer-window
+                           (mpc-proc-buffer (mpc-proc) 'songs))))
+          (if (and (not win)
+                   (not win-songs))
+              (mpc--status-timer-stop)
+            (with-local-quit (mpc-status-refresh)))))))
+
+
   )
 
 
