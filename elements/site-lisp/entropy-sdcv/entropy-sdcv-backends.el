@@ -247,12 +247,12 @@ explicit match any sdcv candidates.")
   "Face sytle with box enable.")
 
 ;;;;;; error spec prompt
-(defvar entropy/sdcv-backends--sdcv-call-sdcv-refer-is-errored nil)
-(defun entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message (format-string &rest args)
-  (unless entropy/sdcv-backends--sdcv-call-sdcv-refer-is-errored
-    (apply 'message format-string args)
-    (setq entropy/sdcv-backends--sdcv-call-sdcv-refer-is-errored t))
-  (message "Using external dict querying due to unavailable common procedure."))
+
+(defun entropy/sdcv-backends--common-message
+    (format-string &rest args)
+  "Internal common message function similar to `message' but just
+used in sdcv backedns context."
+  (apply 'message format-string args))
 
 ;;;;;; sdcv dictionaries looking up
 ;;;;;;; dictionary auto search
@@ -276,24 +276,22 @@ Func maily for setting the value of variable
                (dir-list (entropy/cl-list-subdir base-dir))
                (dict-info-list nil))
           (if (and (listp dir-list)
-                   (not (null dir-list))
-                   (not (member nil dir-list)))
+                   (not (null dir-list)))
               (dolist (el dir-list)
                 (let ((dict-info (entropy/sdcv-backends--sdcv-judge-dictp el)))
                   (when dict-info
                     (add-to-list 'dict-info-list dict-info))))
-            (entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message
+            (entropy/sdcv-backends--common-message
              "Could not auto search any dict!")
             (throw :exit nil))
-          (if (and dict-info-list
-                   (not (member nil dict-info-list)))
+          (if dict-info-list
               (setq entropy/sdcv-backends--sdcv-dicts-info-list dict-info-list)
-            (entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message
+            (entropy/sdcv-backends--common-message
              "No sdcv dict found!")
             (throw :exit nil)))
       (cond
        ((not (file-directory-p entropy/sdcv-backends-sdcv-common-dicts-host))
-        (entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message
+        (entropy/sdcv-backends--common-message
          "Can not find 'entropy/sdcv-backends-sdcv-common-dicts-host' folder.")
         (throw :exit nil))
        (entropy/sdcv-backends-sdcv-user-dicts
@@ -316,7 +314,7 @@ two main dict file named with extension '.idx' 'ifo'."
           (dolist (el sublist)
             (when (equal (car el) "F")
               (add-to-list 'flist (cdr el))))
-        (entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message
+        (entropy/sdcv-backends--common-message
          "Dir %s was empty!" dict-dir)
         (throw :exit nil))
       (if (not flist)
@@ -334,7 +332,7 @@ two main dict file named with extension '.idx' 'ifo'."
 (defun entropy/sdcv-backends--sdcv-get-dict-info (dict-dir)
   (catch :exit
     (unless (executable-find entropy/sdcv-backends-sdcv-program)
-      (entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message
+      (entropy/sdcv-backends--common-message
        "Could not found sdcv in your path.")
       (throw :exit nil))
     (let (sdcv-get dict-info rtn)
@@ -347,7 +345,7 @@ two main dict file named with extension '.idx' 'ifo'."
              "[ \t]+[0-9]+$" ""
              (nth 1 (split-string (string-trim sdcv-get) "\n"))))
       (when (not dict-info)
-        (entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message
+        (entropy/sdcv-backends--common-message
          "sdcv dict `%s` not a valid sdcv dict format"
          dict-dir)
         (throw :exit nil))
@@ -357,12 +355,15 @@ two main dict file named with extension '.idx' 'ifo'."
 ;;;;;;; dictionary check
 (defun entropy/sdcv-backends--sdcv-check-dicts ()
   "Check all dicts path stored in variable
-`entropy/sdcv-backends-sdcv-user-dicts' validation status and generate dict
-info list made for `entropy/sdcv-backends--sdcv-dicts-info-list'.
+`entropy/sdcv-backends-sdcv-user-dicts' validation status and
+generate dict info list made for
+`entropy/sdcv-backends--sdcv-dicts-info-list'.
 
-If `entropy/sdcv-backends-sdcv-user-dicts' was invalid type or nil, using func
-`entropy/sdcv-backends--sdcv-auto-search-dicts' auto finding valid dicts stored
-in 'entropy/sdcv-backends-sdcv-common-dicts-host' (see it for details)."
+If `entropy/sdcv-backends-sdcv-user-dicts' was invalid type or
+nil, using func `entropy/sdcv-backends--sdcv-auto-search-dicts'
+auto finding valid dicts stored in
+`entropy/sdcv-backends-sdcv-common-dicts-host' (see it for
+details)."
   (interactive)
   (catch :exit
     (setq entropy/sdcv-backends--sdcv-dicts-info-list nil)
@@ -371,8 +372,9 @@ in 'entropy/sdcv-backends-sdcv-common-dicts-host' (see it for details)."
       (unless (and entropy/sdcv-backends-sdcv-user-dicts
                    (listp entropy/sdcv-backends-sdcv-user-dicts)
                    (not (member nil entropy/sdcv-backends-sdcv-user-dicts)))
-        (entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message
-         "User sdcv dicts specfication error please check `entropy/sdcv-backends-sdcv-user-dicts'.")
+        (entropy/sdcv-backends--common-message
+         "User sdcv dicts specfication error please check \
+`entropy/sdcv-backends-sdcv-user-dicts'.")
         (throw :exit nil))
       (let ((valid-dicts nil))
         (dolist (el entropy/sdcv-backends-sdcv-user-dicts)
@@ -380,7 +382,7 @@ in 'entropy/sdcv-backends-sdcv-common-dicts-host' (see it for details)."
             (when dict-info
               (add-to-list 'valid-dicts dict-info))))
         (when (not valid-dicts)
-          (entropy/sdcv-backends--sdcv-call-sdcv-refer-error-message
+          (entropy/sdcv-backends--common-message
            "Can not found valid dicts.")
           (throw :exit nil))
         (setq entropy/sdcv-backends--sdcv-dicts-info-list valid-dicts)))
@@ -388,7 +390,7 @@ in 'entropy/sdcv-backends-sdcv-common-dicts-host' (see it for details)."
       (entropy/sdcv-backends--sdcv-auto-search-dicts)))))
 
 ;;;;;;; dictionaly chosen
-(defun entropy/sdcv-backends--sdcv-choose-dict (&optional call-with-interactive)
+(defun entropy/sdcv-backends-sdcv-choose-dict (&optional call-with-interactive)
   "Choose sdcv dict for initializing query state preparing for
 sub-procedure.
 
@@ -397,9 +399,7 @@ the following operation did with, that means you could change
 query dict recalling this again."
   (interactive
    (list t))
-  (unless (and entropy/sdcv-backends--sdcv-dicts-info-list
-               (listp entropy/sdcv-backends--sdcv-dicts-info-list)
-               (not (member nil entropy/sdcv-backends--sdcv-dicts-info-list)))
+  (when (null entropy/sdcv-backends--sdcv-dicts-info-list)
     (entropy/sdcv-backends--sdcv-check-dicts)
     (setq entropy/sdcv-backends--sdcv-stick-dict nil))
   (if (and (or (not entropy/sdcv-backends--sdcv-stick-dict)
@@ -555,7 +555,7 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
 
 ;;;;;; sdcv query
 (defun entropy/sdcv-backends--query-with-sdcv (query show-method)
-  (let* ((dict (entropy/sdcv-backends--sdcv-choose-dict))
+  (let* ((dict (entropy/sdcv-backends-sdcv-choose-dict))
          shell-json-response
          feedback
          rtn)

@@ -5,7 +5,7 @@
 ;; Author:           Entropy <bmsac0001@gmail.com>
 ;; Maintainer:       Entropy <bmsac001@gmail.com>
 ;; URL:              https://github.com/c0001/entropy-sdcv
-;; Package-Version:  20191116.2003
+;; Package-Version:  20201118.1000
 ;; Version:          0.1.1
 ;; Created:          2018-12-11 12:48:04
 ;; Keywords:         sdcv
@@ -99,6 +99,30 @@
 ;;
 ;;; Chanage log
 
+;; 2020/11/18
+;;      * Add timer to automatically tidy up
+;;        `entropy/sdcv-autoshow-timer-register' named
+;;        `entropy/sdcv-autoshow-clean-register-timer'
+;;      * New wrapper for coding system:
+;;        1) macro `entropy/sdcv-core-coding-with-locale-ces'
+;;        2) macro `entropy/sdcv-core-coding-with-utf-8-ces'
+
+;;        Due to this change there're follow obsolete features:
+;;        removed:
+;;        1) variables:
+;;           - `entropy/sdcv-core-origin-lang-env' and
+;;           - `entropy/sdcv-core-specific-lang'.
+
+;;        2) functions:
+;;           - `entropy/sdcv-core-recovery-user-origin-lang-env' and
+;;           - `entropy/sdcv-core-set-specific-lang-env'
+
+;;      * New api:
+;;        - variable: `entropy/sdcv-core--utf-8-backends-register'
+
+;;      * bugs fix for sdcv backend
+
+
 ;; 2019/11/27
 ;;      * Add `entropy/sdcv-autoshow-mode'
 ;;        - autoshow for all builtin dict backends.
@@ -156,21 +180,22 @@
   :group 'entropy/sdcv-interactive-group)
 
 ;;;; library
-(defun entropy/sdcv-lang-set-process-for-sdcv-backends (old-func &rest args)
-  "The around advice for set specification emacs lang set when
+(defun entropy/sdcv--process-coding-system-guard-for-backends (old-func &rest args)
+  "The around advice for set specification emacs coding system when
 calling query process for the reason that:
 
 sdcv cli responsed alwasys for utf-8 encoding information as, the
-none utf-8 lang set will not decoding the response string
+none utf-8 coding system will not decoding the response string
 correctly, the particular problem was for func
-`entropy/sdcv--sdcv-check-dicts' which will get the unicode
-rsepresentation dict name string when the emacs lang set was not
-the subject of utf-8 group."
-  (if (not (eq entropy/sdcv-default-query-backend-name 'sdcv))
-      (apply old-func args)
-    (entropy/sdcv-core-set-specific-lang-env)
-    (apply old-func args)
-    (entropy/sdcv-core-recovery-user-origin-lang-env)))
+`entropy/sdcv-backends--sdcv-check-dicts' which will get the
+unicode rsepresentation dict name string when the context's coding
+system in this case was not the subject of utf-8 group."
+  (if (member entropy/sdcv-default-query-backend-name
+              entropy/sdcv-core--utf-8-backends-register)
+      (entropy/sdcv-core-coding-with-utf-8-ces
+       (apply old-func args))
+    (entropy/sdcv-core-coding-with-locale-ces
+     (apply old-func args))))
 
 ;;;; lazy show mode
 
@@ -179,6 +204,9 @@ the subject of utf-8 group."
 
 (defvar entropy/sdcv-autoshow-last-query nil
   "The last query-word for `entropy/sdcv-autoshow-create'.")
+
+(defvar entropy/sdcv-autoshow-clean-register-timer nil
+  "The timer for `entropy/sdcv-clean-autoshow-timer-register'")
 
 (defun entropy/sdcv-autoshow-create (buff)
   `(lambda ()
@@ -201,6 +229,23 @@ the subject of utf-8 group."
             (cons 'minibuffer-common
                   show-instance)))))))
 
+(defun entropy/sdcv-clean-autoshow-timer-register ()
+  "Tidy up `entropy/sdcv-autoshow-timer-register' when some
+buffer with `entropy/sdcv-autoshow-mode' didn't existed any
+more."
+  (let (preserve-objs)
+    (dolist (item entropy/sdcv-autoshow-timer-register)
+      (let ((buff (car item))
+            (timer (cdr item)))
+        (if (buffer-live-p buff)
+            (push item preserve-objs)
+          (cancel-timer timer))))
+    (setq entropy/sdcv-autoshow-timer-register
+          preserve-objs)))
+(setq entropy/sdcv-autoshow-clean-register-timer
+      (run-with-idle-timer
+       1 t #'entropy/sdcv-clean-autoshow-timer-register))
+
 (define-minor-mode entropy/sdcv-autoshow-mode
   "Automatically show the translation based on point thing."
   nil nil nil
@@ -219,8 +264,8 @@ the subject of utf-8 group."
                     entropy/sdcv-autoshow-timer-register)))))
 
 ;;;; main
-(advice-add 'entropy/sdcv-search-at-point-tooltip :around #'entropy/sdcv-lang-set-process-for-sdcv-backends)
-(advice-add 'entropy/sdcv-search-input-adjacent :around #'entropy/sdcv-lang-set-process-for-sdcv-backends)
+(advice-add 'entropy/sdcv-search-at-point-tooltip :around #'entropy/sdcv--process-coding-system-guard-for-backends)
+(advice-add 'entropy/sdcv-search-input-adjacent :around #'entropy/sdcv--process-coding-system-guard-for-backends)
 
 ;;;###autoload
 (defun entropy/sdcv-search-at-point-tooltip ()

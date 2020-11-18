@@ -227,16 +227,6 @@ You can add more SHOW-METHODs customizable using `add-to-list'."
   :type 'string
   :group 'entropy/sdcv-core-group)
 
-(defcustom entropy/sdcv-core-origin-lang-env (getenv "LANG")
-  "Stored user origin specific env lang set."
-  :type 'string
-  :group 'entropy/sdcv-core-group)
-
-(defcustom entropy/sdcv-core-specific-lang "en_US.UTF-8"
-  "Pre ordered system lang set used during sdcv query process."
-  :type 'string
-  :group 'entropy/sdcv-core-group)
-
 (defcustom entropy/sdcv-core-response-column-width-max 60
   "Query feedback info definitions string overflow width used to
 fill lines destructively or display with truncated occur."
@@ -253,6 +243,15 @@ fill lines destructively or display with truncated occur."
   "Variable stored current query response string for package debug using."
   )
 
+(defvar entropy/sdcv-core--utf-8-backends-register '(sdcv)
+  "List of query response dictionary backends which must ran with
+utf-8 coding system, this is used for backends developer to ask
+for the specifications.
+
+If the backend not member in this list will be ran within the
+current local coding system which is obtained from
+`default-process-coding-system'.")
+
 ;;;;; default face
 (defface entropy/sdcv-core-common-face '((t ()))
   "The tooltip buffer common face.")
@@ -266,16 +265,19 @@ fill lines destructively or display with truncated occur."
   (face-attribute 'tooltip :background))
 
 ;;;; library
-;;;;; lang envrionment pre check
-(defun entropy/sdcv-core-set-specific-lang-env ()
-  (unless (equal entropy/sdcv-core-specific-lang
-                 (getenv "LANG"))
-    (setenv "LANG" entropy/sdcv-core-specific-lang)))
+;;;;; Coding system wrapper
 
-(defun entropy/sdcv-core-recovery-user-origin-lang-env ()
-  (unless (equal entropy/sdcv-core-origin-lang-env
-                 (getenv "LANG"))
-    (setenv "LANG" entropy/sdcv-core-origin-lang-env)))
+(defmacro entropy/sdcv-core-coding-with-utf-8-ces (&rest body)
+  "Do BODY within a utf-8 coding system environment."
+  `(let* ((coding-system-for-read 'utf-8)
+          (coding-system-for-write 'utf-8))
+     ,@body))
+
+(defmacro entropy/sdcv-core-coding-with-locale-ces (&rest body)
+  "Do BODY within a utf-8 coding system environment."
+  `(let* ((coding-system-for-read (car default-process-coding-system))
+          (coding-system-for-write (cdr default-process-coding-system)))
+     ,@body))
 
 ;;;;; string obtains
 (defun entropy/sdcv-core-get-word-or-region (&optional not_check_region)
