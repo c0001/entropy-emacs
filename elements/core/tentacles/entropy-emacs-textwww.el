@@ -176,7 +176,8 @@
     "Quit w3m window using specified way when the internal
 methods are fatal as. This is used to fix the deleting main window
 erros."
-    (let (quit-fatal-p)
+    (let (quit-fatal-p
+          (buf-cur (current-buffer)))
       (condition-case nil
           (apply orig-func orig-args)
         (error
@@ -188,7 +189,9 @@ erros."
                    (ignore-errors
                      (window-live-p (get-buffer-window (neo-global--get-buffer))))))
               (when (or treemacs-active-p neotree-active-p)
-                (switch-to-prev-buffer (selected-window))))
+                (switch-to-prev-buffer (selected-window)))
+              (when (eq (current-buffer) buf-cur)
+                (bury-buffer)))
           (error
            (bury-buffer))))))
   (advice-add 'w3m-close-window
