@@ -101,19 +101,40 @@ specification."
                    nil)
              (save-window-excursion
                (apply orig-func orig-args))
-             (let ((status-buf (mpc-proc-buffer (mpc-proc) 'status))
-                   (songs-buf (mpc-proc-buffer (mpc-proc) 'songs))
-                   win-above win-below)
-               (delete-other-windows-internal)
-               (split-window (selected-window)
-                             (- (ceiling (* (window-width) 0.2))) 'left)
-               (select-window (window-in-direction 'left))
-               (split-window (selected-window)
-                             (- (ceiling (* (window-height) 0.3))) 'above)
-               (setq win-above (window-in-direction 'up)
-                     win-below (selected-window))
-               (set-window-buffer win-above status-buf)
-               (set-window-buffer win-below songs-buf)
+             (let* ((status-buf (mpc-proc-buffer (mpc-proc) 'status))
+                    (songs-buf (mpc-proc-buffer (mpc-proc) 'songs))
+                    (bottom-enlarge
+                     (let ((height-top (frame-height))
+                           rtn)
+                       (setq rtn
+                             (- (* 0.7 height-top)
+                                (/ height-top 2)))
+                       (floor rtn)))
+                    win-above win-below)
+               (unless (and (buffer-live-p status-buf)
+                            (buffer-live-p songs-buf))
+                 (user-error "Mpc daemon is not running!"))
+               (setq win-above
+                     (display-buffer-in-side-window
+                      status-buf
+                      `((slot . 0)
+                        (side . left)
+                        (window-width
+                         .
+                         ,(ceiling (* (frame-width) 0.2))))))
+               (setq win-below
+                     (display-buffer-in-side-window
+                      songs-buf
+                      `((slot . 1)
+                        (side . left))))
+               (window-resize win-below bottom-enlarge)
+               (dolist (win (list win-above win-below))
+                 (set-window-parameter win 'no-delete-other-windows t))
+               ;; dedicated buffer with its window so that any buffer
+               ;; display can not reuse that window which is
+               ;; necessarily needed in this case
+               (dolist (win `(,win-above ,win-below))
+                 (set-window-dedicated-p win t))
                (with-current-buffer songs-buf
                  (entropy/emacs-music-mpc-songs-buffer-refresh)))))))
 
