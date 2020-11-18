@@ -287,7 +287,7 @@ expection dealing with."
   :group 'entropy-grom)
 
 (defcustom entropy/grom-customizable-nonspecial-buffer-name-regexp-list
-  `(,(rx "*scratch*") "eemacs-")
+  `(,(rx "*scratch*"))
   "Specified permanently non-special meaningful buffer name regexp
 list."
   :type '(choice (const nil)
