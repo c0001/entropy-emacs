@@ -1665,7 +1665,8 @@ value as optional interaction while `PREFIX' is non-nil."
 (defun entropy/emacs-basic-kill-ring-persist ()
   "Save `kill-ring' to persist file `entropy/emacs-kill-ring-persist-file'."
   (interactive)
-  (let* ((file entropy/emacs-kill-ring-persist-file)
+  (let* ((find-file-suppress-same-file-warnings t)
+         (file entropy/emacs-kill-ring-persist-file)
          (to-buffer (find-file-noselect file))
          (inhibit-read-only t)
          (top-message
@@ -1691,7 +1692,6 @@ error type to output symbol OUTPUT-SYM."
                     t)
                 ;; The attempt failed: the object is not printable.
                 (error (set output-sym error) nil))))))
-    (message "Save `kill-ring' to persist local file ......")
     (with-current-buffer to-buffer
       (erase-buffer)
       (insert top-message)
@@ -1708,8 +1708,10 @@ error type to output symbol OUTPUT-SYM."
           (format " can not be saved because of [%s] !" print-error))
          ))
       (insert ")")
-      (save-buffer))
-    (message "Save `kill-ring' to persist local file done!")))
+      (with-temp-message ""
+        (let ((inhibit-message t))
+          (save-buffer)))
+      )))
 
 (defun entropy/emacs-basic-read-kill-ring-from-persist ()
   "Restore `kill-ring' from persist file
