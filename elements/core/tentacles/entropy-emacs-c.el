@@ -37,8 +37,6 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
 
 ;; ** main
 (use-package cc-mode

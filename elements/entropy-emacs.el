@@ -104,6 +104,7 @@
 (let* ((subs-core
         '("wasteland/var-binds" "wasteland/func-binds"
           "baron/startup" "baron/batch" "baron/summon" "baron/utils" "baron/hollow"
+          "baron/basic-ui"
           "tentacles"))
        (subs-dep
         '("entropy-adblockP-rule-analysis"

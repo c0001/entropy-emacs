@@ -34,11 +34,11 @@
 ;; * Code:
 ;; ** Require
 
-;; *** customization read
-(require 'entropy-emacs-defcustom)
+;; *** load wasteland
+;; **** var binds
 (require 'entropy-emacs-defconst)
+(require 'entropy-emacs-defface)
 (require 'entropy-emacs-defvar)
-(require 'entropy-emacs-message)
 
 ;; forbidden `entropy/emacs-custom-enable-lazy-load' at special
 ;; session.
@@ -48,22 +48,88 @@
              entropy/emacs-custom-enable-lazy-load)
     (setq entropy/emacs-custom-enable-lazy-load nil)))
 
-;; *** load core library
+;; **** func binds
+(require 'entropy-emacs-message)
 (require 'entropy-emacs-defun)
 
-;; Increase the default gc-cons-percentage for more smooth typing
-;; experience
-(require 'entropy-emacs-gc)
-
-(require 'entropy-emacs-defface)
-(require 'entropy-emacs-window-parameter-memory)
-
-;; *** Enable entropy emacs UI configuration
-
+;; *** load ui
 ;; load fontset fistly prevents ui position calculating bug.
 (require 'entropy-emacs-font-set)
 (require 'entropy-emacs-ui)
 (redisplay t)
+
+;; *** load baron
+;; **** summons
+;; ***** elisp packages
+;; ****** require eemacs packages library
+(require 'entropy-emacs-package)
+
+;; ****** Quit emacs with installing new packages
+(defvar entropy/emacs-start--is-init-with-install nil
+  "Judgement of whether X start emacs with installing new packages")
+
+(defun entropy/emacs-start--check-init-with-install-p ()
+  "When start emacs with installing, prompt user to reboot emacs.
+and save the compiling log into `entropy/emacs-stuffs-topdir'
+named as 'compile_$date.log'."
+  (let ((buflist (mapcar #'buffer-name (buffer-list))))
+    (when entropy/emacs-package-install-success-list
+      (setq entropy/emacs-start--is-init-with-install t))
+    (when (member "*Compile-Log*" buflist)
+      ;; First recorde compiling log
+      (let (($f (expand-file-name (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
+                                  entropy/emacs-stuffs-topdir))
+            buff_content)
+        (with-current-buffer (find-file-noselect $f)
+          (with-current-buffer "*Compile-Log*"
+            (setq buff_content (buffer-substring-no-properties (point-min) (point-max))))
+          (read-only-mode 0)
+          (goto-char (point-min))
+          (insert buff_content)
+          (save-buffer)
+          (kill-buffer)))))
+
+  (defun entropy/emacs-start--check-init-with-install-p ()
+    "This function has been unloaded."
+    nil)
+  (when entropy/emacs-start--is-init-with-install
+    (run-with-timer 6 nil #'kill-emacs)))
+
+(defun entropy/emacs-start--warn-with-pkg-install ()
+  (entropy/emacs-start--check-init-with-install-p)
+  (when entropy/emacs-start--is-init-with-install
+    (if (entropy/emacs-is-make-session)
+        (entropy/emacs-message-do-message
+         "%s"
+         (red "Remaining procedure can not loaded in this
+session because of you have installed some stuffs in this
+session, please restart thus, and it will be well."))
+      (warn "You init with installing new packages, please reopen emacs!
+
+Emacs will auto close after 6s ......"))
+    (top-level)))
+
+;; breaking remaining procedure while new package intalled within this
+;; session, because some messy.
+(add-hook 'entropy/emacs-package-common-start-after-hook
+          #'entropy/emacs-start--warn-with-pkg-install)
+(entropy/emacs-package-common-start)
+
+;; ***** coworker
+
+(require 'entropy-emacs-coworker)
+
+;; **** top utils
+(require 'entropy-emacs-utils)
+
+;; **** startup
+(require 'entropy-emacs-gc)
+(require 'entropy-emacs-path)
+
+;; **** hollows
+(require 'entropy-emacs-window-parameter-memory)
+(require 'entropy-emacs-hydra-hollow)
+
 
 ;; *** preface advice
 (defun entropy/emacs-start--require-prompt (feature)
@@ -178,49 +244,6 @@ Emacs\" buffer's local `browse-url-browse-function' to
 (advice-add 'about-emacs :after #'entropy/emacs-start--about-emacs-after-advice)
 
 ;; ** start
-;; *** starting emacs with installing new packages
-(defvar entropy/emacs-start--is-init-with-install nil
-  "Judgement of whether X start emacs with installing new packages")
-
-(defun entropy/emacs-start--check-init-with-install-p ()
-  "When start emacs with installing, prompt user to reboot emacs.
-and save the compiling log into `entropy/emacs-stuffs-topdir'
-named as 'compile_$date.log'."
-  (let ((buflist (mapcar #'buffer-name (buffer-list))))
-    (when entropy/emacs-package-install-success-list
-      (setq entropy/emacs-start--is-init-with-install t))
-    (when (member "*Compile-Log*" buflist)
-      ;; First recorde compiling log
-      (let (($f (expand-file-name (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
-                                  entropy/emacs-stuffs-topdir))
-            buff_content)
-        (with-current-buffer (find-file-noselect $f)
-          (with-current-buffer "*Compile-Log*"
-            (setq buff_content (buffer-substring-no-properties (point-min) (point-max))))
-          (read-only-mode 0)
-          (goto-char (point-min))
-          (insert buff_content)
-          (save-buffer)
-          (kill-buffer)))))
-  (defun entropy/emacs-start--check-init-with-install-p ()
-    "This function has been unloaded."
-    nil)
-  (when entropy/emacs-start--is-init-with-install
-    (run-with-timer 6 nil #'kill-emacs)))
-
-(defun entropy/emacs-start--warn-with-pkg-install ()
-  (entropy/emacs-start--check-init-with-install-p)
-  (when entropy/emacs-start--is-init-with-install
-    (if (entropy/emacs-is-make-session)
-        (entropy/emacs-message-do-message
-         "%s"
-         (red "Remaining procedure can not loaded in this
-session because of you have installed some stuffs in this
-session, please restart thus, and it will be well."))
-      (warn "You init with installing new packages, please reopen emacs!
-
-Emacs will auto close after 6s ......"))
-    (top-level)))
 
 ;; *** status of pyim loading
 (defvar entropy/emacs-start--pyim-timer nil)
@@ -300,14 +323,6 @@ notation.
    (white "⮞")
    (blue "Loading minimal ...... "))
   (advice-add 'require :before #'entropy/emacs-start--require-loading)
-
-  ;; packages initializing
-  (require 'entropy-emacs-package)
-  ;;; breaking remaining procedure while new package intalled within
-  ;;; this session, because some messy.
-  (add-hook 'entropy/emacs-package-common-start-after-hook
-            #'entropy/emacs-start--warn-with-pkg-install)
-  (entropy/emacs-package-common-start)
 
   ;; external depedencies scan and loading
   (when entropy/emacs-fall-love-with-pdumper
@@ -444,7 +459,6 @@ notation.
 (defun entropy/emacs-start-do-load ()
   (entropy/emacs-message-do-message (yellow "Cat's eye opening ..."))
   (when (entropy/emacs-ext-main)
-    (require 'entropy-emacs-path)
     (entropy/emacs-start--init-bingo)
     (unless entropy/emacs-fall-love-with-pdumper
       (entropy/emacs-run-startup-end-hook))))

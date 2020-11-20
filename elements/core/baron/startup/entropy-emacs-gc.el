@@ -42,8 +42,6 @@
 ;; individual usage.
 ;;
 ;; * Code:
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defvar)
 
 (defvar entropy/emacs-gc-records nil)
 

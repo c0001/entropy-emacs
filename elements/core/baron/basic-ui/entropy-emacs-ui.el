@@ -516,25 +516,26 @@ for adding to variable `window-size-change-functions' and hook
 (when (and (eq entropy/emacs-enable-initial-dashboard 'rich)
            (not (daemonp)))
 
-  (advice-add #'dashboard-get-banner-path
-              :override
-              (lambda (&rest _)
-                (let* ((logo-obj
-                       (entropy/emacs-ui--init-welcom-extract-text-logo 3))
-                       logo-txt
-                       (file (expand-file-name "entropy-emacs-temp-txt-banner.txt"
-                                               entropy/emacs-stuffs-topdir)))
-                  (dolist (str (plist-get (car logo-obj) :str))
-                    (setq logo-txt (concat logo-txt str "\n")))
-                  (with-current-buffer
-                      (find-file-noselect file t t)
-                    (let ((inhibit-read-only t))
-                      (erase-buffer)
-                      (insert logo-txt)
-                      (insert "\n")
-                      (save-buffer)
-                      (kill-buffer)))
-                  file)))
+  (with-eval-after-load 'dashboard-widgets
+    (advice-add #'dashboard-get-banner-path
+                :override
+                (lambda (&rest _)
+                  (let* ((logo-obj
+                          (entropy/emacs-ui--init-welcom-extract-text-logo 3))
+                         logo-txt
+                         (file (expand-file-name "entropy-emacs-temp-txt-banner.txt"
+                                                 entropy/emacs-stuffs-topdir)))
+                    (dolist (str (plist-get (car logo-obj) :str))
+                      (setq logo-txt (concat logo-txt str "\n")))
+                    (with-current-buffer
+                        (find-file-noselect file t t)
+                      (let ((inhibit-read-only t))
+                        (erase-buffer)
+                        (insert logo-txt)
+                        (insert "\n")
+                        (save-buffer)
+                        (kill-buffer)))
+                    file))))
 
   (defun entropy/emacs-rich-dashboard-set-button ()
     (setq

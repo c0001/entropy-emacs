@@ -33,9 +33,6 @@
 ;;
 ;; * Code:
 ;; ** Require
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defun)
 
 ;; ** neotree
 (use-package neotree

@@ -33,14 +33,9 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
-(require 'entropy-emacs-coworker)
-(require 'entropy-emacs-utils)
-(require 'entropy-emacs-hydra-hollow)
 
 ;; ** Preparation
 (entropy/emacs-lazy-load-simple tern

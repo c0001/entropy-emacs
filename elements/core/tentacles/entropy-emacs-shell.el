@@ -33,9 +33,6 @@
 ;; * Code:
 ;;
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-hydra-hollow)
 
 ;; ** shell config
 (use-package shell

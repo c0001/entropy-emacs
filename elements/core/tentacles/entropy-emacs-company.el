@@ -65,10 +65,6 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-message)
-(require 'entropy-emacs-hydra-hollow)
 
 ;; ** defvar
 (defvar entropy/emacs-company-elisp-top-backends

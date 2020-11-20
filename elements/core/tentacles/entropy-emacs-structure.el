@@ -31,9 +31,6 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-hydra-hollow)
 
 ;; ** libraries
 ;; function for universal code folding

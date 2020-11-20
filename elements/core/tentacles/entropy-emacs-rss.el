@@ -34,10 +34,6 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defun)
-(require 'entropy-emacs-hydra-hollow)
 
 ;; ** elfeed feed
 (use-package elfeed

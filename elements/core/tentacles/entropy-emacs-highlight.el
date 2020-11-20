@@ -39,8 +39,6 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
 
 ;; ** Highlight symbols
 ;;

@@ -34,8 +34,6 @@
 ;; * Code:
 ;; ** require
 
-(require 'entropy-emacs-defcustom)
-
 ;; ** gnus
 (use-package gnus
   :ensure nil

@@ -47,11 +47,6 @@
 ;;
 ;; * Code
 ;; ** require
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defface)
-(require 'entropy-emacs-utils)
-(require 'entropy-emacs-hydra-hollow)
 
 (when (and entropy/emacs-indicate-sshd-session
            (display-graphic-p))

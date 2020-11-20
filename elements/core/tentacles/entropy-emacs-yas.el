@@ -32,11 +32,6 @@
 
 
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defun)
-(require 'entropy-emacs-utils)
-(require 'entropy-emacs-hydra-hollow)
 
 (entropy/emacs-hydra-hollow-category-common-individual-define
  'yasnippet-uniform

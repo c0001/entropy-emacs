@@ -32,12 +32,6 @@
 
 ;; ** require
 
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defvar)
-(require 'entropy-emacs-defun)
-(require 'entropy-emacs-hydra-hollow)
-
 ;; ** projectile
 (use-package projectile
   :diminish

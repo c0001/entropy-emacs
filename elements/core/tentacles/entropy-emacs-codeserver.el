@@ -32,12 +32,6 @@
 ;;
 ;; * Code:
 
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defvar)
-(require 'entropy-emacs-message)
-(require 'entropy-emacs-coworker)
-(require 'entropy-emacs-hydra-hollow)
-
 ;; ** xref jumping
 (use-package xref
   :ensure nil

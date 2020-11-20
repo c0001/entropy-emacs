@@ -39,11 +39,6 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defvar)
-(require 'entropy-emacs-defface)
-(require 'entropy-emacs-hydra-hollow)
 
 ;; ** init setting
 ;;

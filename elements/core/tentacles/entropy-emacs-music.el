@@ -37,12 +37,6 @@
 ;; * code
 
 ;; ** require
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defface)
-(require 'entropy-emacs-utils)
-(require 'entropy-emacs-hydra-hollow)
-
 
 ;; ** prepare
 
@@ -149,7 +143,8 @@ for the songs list and status callback."
   (defun entropy/emacs-music-mpc--patch-quit-around-advice (orig-func &rest orig-args)
     (let* (_)
       (apply orig-func orig-args)
-      (when entropy/emacs-music-mpc--orig-window-configuration
+      (when (and entropy/emacs-music-mpc--orig-window-configuration
+                 (not entropy/emacs-music--mpc-mini-mode))
         (set-window-configuration
          entropy/emacs-music-mpc--orig-window-configuration))))
 

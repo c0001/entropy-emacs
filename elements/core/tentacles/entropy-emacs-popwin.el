@@ -45,9 +45,6 @@
 ;; * Code:
 ;; ** require
 
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-hydra-hollow)
-
 ;; ** library
 (setq entropy/emacs-popwin-union-rule-map
       '((:regexp
