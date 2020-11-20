@@ -1194,6 +1194,37 @@ their usage."
                   "Uncompress")
                 input output)))
 
+;; *** Window manipulation
+
+(defun entropy/emacs-overview-live-side-windows ()
+  "Overview all lived side windows return an alist whose each
+element is formed as (window side-type . side-slot), if non lived side
+windows exist return nil."
+  (let (rtn)
+    (walk-window-tree
+     (lambda (win)
+       (let ((side-type (window-parameter win 'window-side))
+             (side-slot (window-parameter win 'window-slot)))
+         (when (and side-type
+                    (window-live-p win))
+           (push `(,win ,side-type . ,side-slot) rtn))))
+     (selected-frame))
+    rtn))
+
+(defun entropy/emacs-delete-side-windows (side-types)
+  "Delete all lived side windows matched the 'side-type' in a
+list SIDE-TYPES, 'side-type' is enumerated of (left right top
+bottom)."
+  (let ((side-types (delete-duplicates side-types :test 'eq))
+        (side-wins (entropy/emacs-overview-live-side-windows))
+        (ignore-window-parameters t))
+    (unless (null side-wins)
+      (dolist (side side-types)
+        (mapc (lambda (side-obj)
+                (when (eq side (cadr side-obj))
+                  (delete-window (car side-obj))))
+              side-wins)))))
+
 ;; ** eemacs specifications
 ;; *** Individuals
 

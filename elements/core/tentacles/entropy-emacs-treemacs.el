@@ -121,12 +121,15 @@ buffer) for some special hook."
     (pcase (treemacs-current-visibility)
       ('visible (delete-window (treemacs-get-local-window)))
       ('exists  (if (entropy/emacs-treemacs--buffer-in-project-p)
-                    (treemacs-select-window)
+                    (progn
+                      (entropy/emacs-delete-side-windows '(left))
+                      (treemacs-select-window))
                   (let ((current-prefix-arg t))
                     (funcall-interactively
                      'treemacs-add-project-to-workspace
                      (read-directory-name "Get project root: " nil nil t)))))
-      ('none    (treemacs--init))))
+      ('none    (entropy/emacs-delete-side-windows '(left))
+                (treemacs--init))))
 
   (defun entropy/emacs-treemacs-open-with (&rest _)
     "Open current node with external apps relying on

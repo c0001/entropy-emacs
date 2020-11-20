@@ -56,6 +56,7 @@
 (require 'entropy-emacs-gc)
 
 (require 'entropy-emacs-defface)
+(require 'entropy-emacs-window-parameter-memory)
 
 ;; *** Enable entropy emacs UI configuration
 

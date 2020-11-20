@@ -210,6 +210,7 @@ Globally close neotree buffer while selected window was
        ((equal buffer_ neo-global--buffer)
         (entropy/emacs-neotree-neotree-close))
        (t
+        (entropy/emacs-delete-side-windows '(left))
         (unless  (eq 'stick (entropy/emacs-neotree--neo-refresh-filter))
           (unless (neo-global--window-exists-p)
             (save-window-excursion

@@ -97,6 +97,7 @@ specification."
              (entropy/emacs-music-mpc--patch-popuped-window-balance)
              (entropy/emacs-music-mpc--exchage-window-buffers-init))
             (entropy/emacs-music--mpc-mini-mode
+             (entropy/emacs-delete-side-windows '(left))
              (setq entropy/emacs-music-mpc--orig-window-configuration
                    nil)
              (save-window-excursion

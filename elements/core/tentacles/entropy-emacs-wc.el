@@ -360,6 +360,23 @@
             entropy/emacs-eyebrowse-new-workspace-init-function
           t))
 
+;; ***** window parameter memory
+  (defun entropy/emacs-wc--eyebrowse-regist-wpamemory ()
+    (let ((cur-eslot (when (bound-and-true-p eyebrowse-mode)
+                       (eyebrowse--get 'current-slot))))
+      (entropy/emacs-wpamemory-regist-memory
+       'eyebrowse `(:eyebrowse-slot . ,cur-eslot))))
+
+  (defun entropy/emacs-wc--eyebrowse-resotre-wpamemory ()
+    (let ((cur-eslot (when (bound-and-true-p eyebrowse-mode)
+                       (eyebrowse--get 'current-slot))))
+      (entropy/emacs-wpamemory-restore-memory
+       'eyebrowse `(:eyebrowse-slot . ,cur-eslot))))
+
+
+  (add-hook 'eyebrowse-pre-window-switch-hook #'entropy/emacs-wc--eyebrowse-regist-wpamemory)
+  (add-hook 'eyebrowse-post-window-switch-hook #'entropy/emacs-wc--eyebrowse-resotre-wpamemory)
+
 ;; ***** Debugs for improving eyebrowse's user experience
   (defun eyebrowse--read-slot ()
     "Read in a window config SLOT to switch to.
@@ -907,7 +924,43 @@ without derived slot."
   (setq olivetti-minimum-body-width 10)
   (setq-default olivetti-body-width 0.8)
   (add-hook 'olivetti-mode-hook
-            #'entropy/emacs-wc--calc-olivetti-body-width))
+            #'entropy/emacs-wc--calc-olivetti-body-width)
+  :config
+  (defun entropy/emacs-wc--olivetti-around-advice-for-window-toggle-side-windows
+      (orig-func &rest orig-args)
+    "The around advice for `window-toggle-side-windows' placed by
+`olivetti-mode' which may cause its bug of polluting
+`window-state-put-list' when the olivetti-mode is actived for
+displayed buffers in where its 'window' is nil setted in some item
+in `window-state-put-list' which will cause error popup for the
+its subroutine `window--state-put-2'.
+
+EEMACS_BUG: This may be an internal emacs bug or caused by
+olivetti-mode itself responsibility."
+    (let* ((win-list (window-list))
+           (win-buffers (mapcar 'window-buffer win-list))
+           olive-cache)
+      ;; cancel all window's `olivetti-mode'
+      (dolist (buff win-buffers)
+        (with-current-buffer buff
+          (when (bound-and-true-p olivetti-mode)
+            (push (cons buff (buffer-local-value 'olivetti-body-width (current-buffer)))
+                  olive-cache)
+            (olivetti-mode 0))))
+      (unwind-protect
+          (apply orig-func orig-args)
+        ;; recover those buffer origin olivetti status
+        (dolist (cache olive-cache)
+          (let ((buff (car cache))
+                (body-width (cdr cache)))
+            ;; ensure origin buffer displayed as before
+            (when (and (buffer-live-p buff)
+                       (get-buffer-window buff))
+              (with-current-buffer buff
+                (olivetti-mode 1)
+                (olivetti-set-width body-width))))))))
+  (advice-add 'window-toggle-side-windows
+              :around #'entropy/emacs-wc--olivetti-around-advice-for-window-toggle-side-windows))
 
 
 ;; ** key bind
