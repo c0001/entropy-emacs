@@ -1279,55 +1279,6 @@ as thus."
 (global-set-key (kbd "C-x k") #'entropy/emacs-basic-kill-buffer)
 (global-set-key (kbd "C-x M-k") #'kill-buffer)
 
-
-;; *** Kill-other-windowss spec
-
-(defun entropy/emacs-basic--delete-other-windows-around-advice
-    (orig-func &rest orig-args)
-  "Delete other window and do again using
-`delete-other-windows-internal' if non-effect.
-
-This affected by `neotree' or `treemacs' window sticking with
-`eyebrowse' layout switching conflicts.
-
-NOTE:
-
-This function is a around advice for `delete-other-windows' and
-externally add two hooks for be more benefit with =entropy-emacs=."
-  (interactive)
-  (let ((wdc (length (window-list)))
-        neo-exist
-        (map-func
-         (lambda (regexp)
-           (let (_var rtn)
-             (setq _var (mapcar
-                         (lambda (x)
-                           (string-match-p
-                            regexp
-                            (buffer-name (window-buffer x))))
-                         (window-list)))
-             (dolist (elt _var)
-               (unless (null elt)
-                 (setq rtn t)))
-             rtn))))
-    (unless (eq wdc 1)
-      (run-hooks 'entropy/emacs-delete-other-windows-before-hook)
-      (setq entropy/emacs-origin-window-configuration-before-delete-other-windows
-            (current-window-configuration))
-      (ignore-errors (apply orig-func orig-args))
-      (when (and (= wdc (length (window-list)))
-                 (or
-                  (and (bound-and-true-p neo-buffer-name)
-                       (funcall map-func (regexp-quote neo-buffer-name)))
-                  (and (bound-and-true-p treemacs--buffer-name-prefix)
-                       (funcall map-func (regexp-quote treemacs--buffer-name-prefix)))))
-        (when (not (member major-mode '(treemacs-mode neotree-mode)))
-          (delete-other-windows-internal)))
-      (run-hooks 'entropy/emacs-delete-other-windows-after-hook))))
-(advice-add 'delete-other-windows
-            :around
-            #'entropy/emacs-basic--delete-other-windows-around-advice)
-
 ;; *** Set defualt tab size
 ;; Do not use `indent-tabs-mode' by default for compatibility meaning
 ;; that tabs visualization are not unified accorss editor.

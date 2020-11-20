@@ -352,6 +352,56 @@ after =entropy-emacs= has loading done i.e. while
 =entropy-emacs= has loading done i.e. while
 `entropy/emacs-startup-done' is non-nil.")
 
+(defvar entropy/emacs-delete-other-windows-ignore-pms-predicates nil
+  "List of functions called when judgeing whether ignore all
+window-parameters to `delete-other-windows', similar to use
+`delete-other-windows-internal'.
+
+Each function can be either a symbol or a form, and each call to
+them is wrapped with `ignore-errors' to prevent the messy by.")
+
+(defun entropy/emacs-defvar--delete-other-windows-around-advice
+    (orig-func &rest orig-args)
+  "Delete other window eemacs specification
+
+This function is a around advice for `delete-other-windows' and
+externally add below features:
+
+* hooks:
+- `entropy/emacs-delete-other-windows-before-hook'
+- `entropy/emacs-delete-other-windows-after-hook'
+
+* predicates: `entropy/emacs-delete-other-windows-ignore-pms-predicates'
+* Constant variable: `entropy/emacs-origin-window-configuration-before-delete-other-windows'
+"
+  (interactive)
+  (let* (this-rtn
+         (eemacs-popup-p
+          (and (not (null entropy/emacs-delete-other-windows-ignore-pms-predicates))
+               (catch :exit
+                 (let (judge)
+                   (dolist (func entropy/emacs-delete-other-windows-ignore-pms-predicates)
+                     (ignore-errors
+                       (if (symbolp func)
+                           (setq judge (funcall func))
+                         (setq judge (eval func))))
+                     (when judge
+                       (throw :exit judge)))
+                   judge))))
+         (ignore-window-parameters eemacs-popup-p))
+    (run-hooks 'entropy/emacs-delete-other-windows-before-hook)
+    (setq entropy/emacs-origin-window-configuration-before-delete-other-windows
+          (current-window-configuration))
+    (setq this-rtn (apply orig-func orig-args))
+    (run-hooks 'entropy/emacs-delete-other-windows-after-hook)
+    this-rtn))
+(advice-add 'delete-other-windows
+            :around
+            #'entropy/emacs-defvar--delete-other-windows-around-advice)
+
+
+
+
 ;; ** garbage collection refer
 
 (defvar entropy/emacs-gc-threshold-basic 2000000

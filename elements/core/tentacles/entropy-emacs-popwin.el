@@ -314,6 +314,8 @@ specification."
                                   orig-window))))
       window))
 
+  (add-to-list 'entropy/emacs-delete-other-windows-ignore-pms-predicates
+               '(entropy/emacs-popwin--shacke-is-popup-p (current-buffer)))
   (defun entropy/emacs-popwin--shacke-is-popup-p (buffer)
     (let ((buf-win (get-buffer-window buffer)))
       (if (and (windowp buf-win)
