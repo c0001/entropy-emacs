@@ -234,42 +234,7 @@ It is the recommendation of irony-mode official introduction."
                  lsp-find-type-definition
                  lsp-find-declaration)
   :preface
-  (defun entropy/emacs-codeserver--lsp-mode-load-extra-clients (&rest _)
-    (dolist (feature entropy/emacs-codeserver-lsp-mode-extra-clients)
-      (require feature)))
-
-  (defun entropy/emacs-codeserver--lsp-mode-remove-session-file ()
-    (when (and (boundp 'lsp-session-file)
-               (file-exists-p lsp-session-file))
-      (delete-file lsp-session-file)))
-
-  (defun entropy/emacs-codeserver--lsp-deferred-promt (&rest _)
-    "Prompting for `lsp-deferred' starting for prevent lagging
-nervous."
-    (redisplay t)
-    (entropy/emacs-message-do-message
-     "%s <%s> %s"
-     (green "Lsp check for buffer")
-     (yellow (buffer-name))
-     (green "..."))
-    (redisplay t))
-
-  (defun entropy/emacs-codeserver--lsp-start-promt (&rest _)
-    "Prompting for `lsp' starting for prevent lagging nervous."
-    (redisplay t)
-    (entropy/emacs-message-do-message
-     "%s %s"
-     (green "Lsp starting")
-     (green "..."))
-    (redisplay t))
-
-  (defun entropy/emacs-codeserver--lsp-exclude (orig-func &rest orig-args)
-    (unless (member major-mode '(emacs-lisp-mode
-                                 lisp-interaction-mode
-                                 lisp-mode
-                                 org-mode))
-      (apply orig-func orig-args)))
-
+;; ***** eemacs-indhc
   :eemacs-indhc
   (((:enable t)
     (lsp-mode nil nil (2 2 2 1 1)))
@@ -339,7 +304,7 @@ nervous."
       :enable t :exit t)
      ("f c" lsp-find-declaration "Find declarations of the symbol under point"
       :enable t :exit t))))
-
+;; ***** eemacs-tphs
   :eemacs-tpha
   (((:enable t))
    ("Basic"
@@ -349,17 +314,12 @@ nervous."
         'lsp-mode))
       "Lsp command map"
       :enable t :exit t))))
-
+;; ***** init
   :init
   (setq lsp-auto-guess-root t)
   (setq lsp-auto-configure t)
   (setq lsp-prefer-flymake nil)
   (setq lsp-eldoc-enable-hover nil)
-
-  ;; delete transient lsp session file for prevent lagging with large
-  ;; amounts of folder parsing while next emacs session setup.
-  (add-hook 'kill-emacs-hook
-            #'entropy/emacs-codeserver--lsp-mode-remove-session-file)
 
   (dolist (el entropy/emacs-ide-for-them)
     (when (eq (entropy/emacs-get-use-ide-type el) 'lsp)
@@ -375,19 +335,99 @@ nervous."
    (require 'yasnippet)
    (yas-global-mode))
 
+;; ***** config
   :config
+
+;; ****** advices
+;; ******* require extra clients
+  (advice-add 'lsp
+              :before
+              #'entropy/emacs-codeserver--lsp-mode-load-extra-clients)
+  (defun entropy/emacs-codeserver--lsp-mode-load-extra-clients (&rest _)
+    (dolist (feature entropy/emacs-codeserver-lsp-mode-extra-clients)
+      (require feature)))
+
+;; ******* remove the session file when close emacs
+  ;; delete transient lsp session file for prevent lagging with large
+  ;; amounts of folder parsing while next emacs session setup.
+  (add-hook 'kill-emacs-hook
+            #'entropy/emacs-codeserver--lsp-mode-remove-session-file)
+  (defun entropy/emacs-codeserver--lsp-mode-remove-session-file ()
+    (when (and (boundp 'lsp-session-file)
+               (file-exists-p lsp-session-file))
+      (delete-file lsp-session-file)))
+
+;; ******* eemacs lsp start prompting
   (advice-add 'lsp-deferred
               :before
               #'entropy/emacs-codeserver--lsp-deferred-promt)
-  (advice-add 'lsp
-              :around
-              #'entropy/emacs-codeserver--lsp-exclude)
+  (defun entropy/emacs-codeserver--lsp-deferred-promt (&rest _)
+    "Prompting for `lsp-deferred' starting for prevent lagging
+nervous."
+    (redisplay t)
+    (entropy/emacs-message-do-message
+     "%s <%s> %s"
+     (green "Lsp check for buffer")
+     (yellow (buffer-name))
+     (green "..."))
+    (redisplay t))
+
   (advice-add 'lsp
               :before
               #'entropy/emacs-codeserver--lsp-start-promt)
-  (advice-add 'lsp
-              :before #'entropy/emacs-codeserver--lsp-mode-load-extra-clients)
+  (defun entropy/emacs-codeserver--lsp-start-promt (&rest _)
+    "Prompting for `lsp' starting for prevent lagging nervous."
+    (redisplay t)
+    (entropy/emacs-message-do-message
+     "%s %s"
+     (green "Lsp starting")
+     (green "..."))
+    (redisplay t))
 
+;; ******* exclude `major-mode' for starting `lsp-mode'
+  (advice-add 'lsp
+              :around
+              #'entropy/emacs-codeserver--lsp-exclude)
+  (defun entropy/emacs-codeserver--lsp-exclude (orig-func &rest orig-args)
+    (unless (member major-mode '(emacs-lisp-mode
+                                 lisp-interaction-mode
+                                 lisp-mode
+                                 org-mode))
+      (apply orig-func orig-args)))
+
+;; ******* lsp idle hook specifications
+  (defvar entropy/emacs-codeserver--lsp-on-idle-cases
+    '(
+      ;; Remove `lsp--document-highlight' when current file is not
+      ;; writeable in which case that those clients can not parse the
+      ;; file in where frequently errors prompted.
+      (lambda ()
+        (unless (ignore-errors
+                  (file-writable-p
+                   (file-truename
+                    (buffer-file-name (current-buffer)))))
+          (remove-hook
+           'lsp-on-idle-hook
+           'lsp--document-highlight
+           t))))
+    "Cases of list of functions to run before hook `lsp-on-idle-hook' run."
+    )
+
+  (defun entropy/emacs-codeserver--run-lsp-on-idle-hooks-for-cases
+      (orig-func &rest orig-args)
+    "Around advice for `lsp--on-idle' for excuting further cases
+predicate when run it, see
+`entropy/emacs-codeserver--lsp-on-idle-cases'."
+    (let* (_)
+      (dolist (func entropy/emacs-codeserver--lsp-on-idle-cases)
+        (when (functionp func)
+          (funcall func)))
+      (apply orig-func orig-args)))
+  (advice-add 'lsp--on-idle
+              :around
+              #'entropy/emacs-codeserver--run-lsp-on-idle-hooks-for-cases)
+
+;; ****** others
   ;; Remove clients not officially included in `lsp-mode' internal
   ;; subroutine to prevent from coverring eemacs customizations.
   (setq lsp-client-packages
@@ -399,8 +439,12 @@ nervous."
 
 ;; **** lsp-ui
 (use-package lsp-ui
+;; ***** preface
+
   :preface
   (defvar entropy/emacs-codeserver-lsp-ui-doc-timer nil)
+
+;; ***** commands and binds
   :commands (lsp-ui-peek-find-definitions
              lsp-ui-peek-find-references
              lsp-ui-imenu)
@@ -408,6 +452,8 @@ nervous."
               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
               ([remap xref-find-references] . lsp-ui-peek-find-references)
               ("C-c u" . lsp-ui-imenu))
+
+;; ***** eemacs-indhc
   :eemacs-indhc
   (((:enable t)
     (lsp-ui-mode nil nil (1 2 2)))
@@ -449,6 +495,8 @@ nervous."
       :enable t :exit t)
      ("f s" lsp-ui-find-workspace-symbol "List project-wide symbols matching the query string PATTERN"
       :enable t :exit t))))
+
+;; ***** eemacs-indhca
   :eemacs-indhca
   (((:enable t)
     (lsp-mode))
@@ -458,10 +506,16 @@ nervous."
               'lsp-ui-mode))
       "lsp ui command map"
       :enable t :exit t))))
+
+;; ***** init
   :init
   (setq lsp-ui-doc-position 'top
         lsp-ui-doc-delay 0.2)
+
+;; ***** config
   :config
+
+;; ****** Doc timer
   (defvar entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
   (defun entropy/emacs-codeserver--lsp-ui-doc-make-request nil
     "Request the documentation to the LS."

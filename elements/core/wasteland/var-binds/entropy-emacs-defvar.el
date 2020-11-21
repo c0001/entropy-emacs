@@ -324,7 +324,7 @@ All of them will be required by `lsp-mode' be its fistly starting
 in current emacs-session.
 
 NOTE: This variable used for `lsp-mode' be customized for
-relacing extra clients of internal officially registered ones or
+replacing extra clients of internal officially registered ones or
 add the missing ones e.g. we may want to take high priority for
 `lsp-python-ms' with the internal registerred `lsp-pyls' to get
 more powerful features and add `lsp-java' to let `lsp-mode'
