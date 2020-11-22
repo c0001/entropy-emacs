@@ -273,7 +273,13 @@ messy."
   (entropy/emacs-message-hide-popup))
 
 (defvar entropy/emacs-pyim-has-initialized nil
-  "Variable indicate that pyim has started down for init.")
+  "Variable indicate that pyim has started down for init.
+
+When eq 't' indicates that the whole pyim initialization process
+ran with fully successful, or any non-nil value is a warning
+status existed
+
+When eq 'nil' that say the initialization is going on.")
 
 ;; ** coworker refer
 (defvar entropy/emacs-coworker-bin-host-path

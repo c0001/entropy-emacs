@@ -247,10 +247,6 @@ Emacs\" buffer's local `browse-url-browse-function' to
 
 ;; *** status of pyim loading
 (defvar entropy/emacs-start--pyim-timer nil)
-(defvar entropy/emacs-start--pyim-init-done nil)
-
-(defvar entropy/emacs-start--pyim-init-prompt-buffer
-  (get-buffer-create "*pyim-cache-loading*"))
 
 (defun entropy/emacs-start--pyim-init-after-loaded-cache ()
   "Trace pyim loading thread til it's done as giving the
@@ -258,18 +254,15 @@ notation.
 
 (specific for emacs version uper than '26' or included '26'.)"
   (when (bound-and-true-p entropy/emacs-pyim-has-initialized)
-    (setq entropy/emacs-start--pyim-init-done t)
-    (when (bound-and-true-p entropy/emacs-start--pyim-timer)
+    (when (timerp entropy/emacs-start--pyim-timer)
+      (cancel-timer entropy/emacs-start--pyim-timer)
       (cancel-function-timers #'entropy/emacs-start--pyim-init-after-loaded-cache))
-    (when (buffer-live-p entropy/emacs-start--pyim-init-prompt-buffer)
-      (with-current-buffer entropy/emacs-start--pyim-init-prompt-buffer
-        (redisplay t)
-        (message "Killing pyim prompt buffer ...")
-        (if (get-buffer-window entropy/emacs-start--pyim-init-prompt-buffer)
-            (kill-buffer-and-window)
-          (kill-buffer))
-        (message "Kill pyim prompt buffer done!")))
-    (entropy/emacs-message-do-message (green "pyim loading down."))
+    (if (eq entropy/emacs-pyim-has-initialized t)
+        (entropy/emacs-message-do-message (green "pyim loading down."))
+      (entropy/emacs-message-do-message
+       "%s: Pyim loading with status: %s, so that it's no been initialized!"
+       (yellow "warning")
+       (cyan (format "%s" entropy/emacs-pyim-has-initialized))))
     (defun entropy/emacs-start--pyim-init-after-loaded-cache ()
       (entropy/emacs-message-do-message
        (yellow "This function has been unloaded.")))))
@@ -277,17 +270,13 @@ notation.
 (defun entropy/emacs-start--pyim-initialize ()
   "Make prompt when loading and loded pyim cache for emacs init time."
   ;; preparation prompt loading pyim cache.
-  (let ((buffer entropy/emacs-start--pyim-init-prompt-buffer))
-    (with-current-buffer buffer
-      (insert (propertize "Loading pyim cache, please waiting ......" 'face 'warning)))
-    (split-window-vertically (- (window-total-height) 4))
-    (other-window 1)
-    (switch-to-buffer buffer)
+  (let (_)
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Loading pyim cache, please waiting ......"))
     (redisplay t))
-
   ;; initialize pyim
   (entropy/emacs-basic-pyim-start)
-
   ;; prompt for loading pyim cache done.
   (setq entropy/emacs-start--pyim-timer
         (run-with-idle-timer

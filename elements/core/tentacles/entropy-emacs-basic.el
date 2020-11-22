@@ -1804,7 +1804,6 @@ way. "
 (use-package liberime
   :if (not sys/is-win-group)
   :ensure nil
-  :commands (liberime-load)
   :preface
   (defvar entropy/emacs-basic-pyim-liberime-load-timer nil)
 
@@ -1837,19 +1836,51 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
     (liberime-select-schema
      "luna_pinyin_simp"))
 
-  (defun entropy/emacs-basic--pyim-first-build-timer ()
+  (defun entropy/emacs-basic--pyim-first-build-timer (&optional is-with-building)
     (setq entropy/emacs-basic-pyim-liberime-load-timer
           (run-with-timer
-           2 1
-           (lambda ()
-             (cancel-timer entropy/emacs-basic-pyim-liberime-load-timer)
-             (unless
-                 (ignore-errors
-                   (entropy/emacs-basic--pyim-set-rime-schema))
-               (entropy/emacs-basic--pyim-first-build-timer))))))
+           0 1
+           `(lambda ()
+              (let* ((proc (get-process "liberime-build"))
+                     (proc-status (when proc (process-status proc)))
+                     (proc-exited (when proc (eq proc-status 'exit)))
+                     proc-exit-signal)
+                (when (timerp entropy/emacs-basic-pyim-liberime-load-timer)
+                  (cancel-timer entropy/emacs-basic-pyim-liberime-load-timer))
+                (if (ignore-errors
+                      (entropy/emacs-basic--pyim-set-rime-schema))
+                    (progn
+                      (setq entropy/emacs-pyim-has-initialized t)
+                      (when (or proc ',is-with-building)
+                        (entropy/emacs-message-do-message
+                         "%s"
+                         (green "liberime build successfully"))))
+                  (cond
+                   (proc-exited
+                    (setq proc-exit-signal (process-exit-status proc))
+                    (if (= 0 proc-exit-signal)
+                        ;; in this case although the build is done but
+                        ;; the dynamic module has not been loaded done
+                        ;; so that we must wait for turns.
+                        (entropy/emacs-basic--pyim-first-build-timer
+                         t)
+                      (entropy/emacs-message-do-message
+                       "%s"
+                       (red (format "liberime build faild with exit status %s, \
+please check buffer '*liberime build*' for details"
+                                    proc-exit-signal)))
+                      (setq entropy/emacs-pyim-has-initialized 'liberime-build-failed)
+                      ))
+                   (t
+                    (entropy/emacs-basic--pyim-first-build-timer
+                     ',is-with-building)))))))))
 
   (defun entropy/emacs-basic-pyim-load-rime ()
-    ;; load liberim just needed to require it.
+    ;; load liberim just needed to require it. Set
+    ;; `liberime-auto-build' to t so that we do not get the build
+    ;; prompt messeges and auto-build the liberime-core so that we do
+    ;; not manually run `liberime-build' here directly.
+    (setq liberime-auto-build t)
     (require 'liberime)
     ;; set liberime schema and check dynamic module status and build
     ;; it when needed.
@@ -1858,7 +1889,6 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
           (not
            (ignore-errors
              (entropy/emacs-basic--pyim-set-rime-schema)))
-        (liberime-build)
         (setq building t))
       (when building
         (entropy/emacs-basic--pyim-first-build-timer))))
@@ -1906,12 +1936,14 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
     (unless entropy/emacs-pyim-has-initialized
       (require 'pyim)
       (cond ((eq entropy/emacs-pyim-use-backend 'internal)
-             (setq pyim-dicts entropy/emacs-pyim-dicts))
+             (setq pyim-dicts entropy/emacs-pyim-dicts)
+             (setq entropy/emacs-pyim-has-initialized t))
             ((and (eq entropy/emacs-pyim-use-backend 'liberime)
                   (not sys/win32p))
              (entropy/emacs-basic-pyim-load-rime))
             (t
-             (pyim-basedict-enable)))
+             (pyim-basedict-enable)
+             (setq entropy/emacs-pyim-has-initialized t)))
 
       ;; init pyim at temp buffer for preventing polluting
       ;; current-input-method in current buffer.
@@ -1937,7 +1969,7 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
            :enable t
            :toggle (eq (car pyim-punctuation-translate-p) 'yes)))))
 
-      (setq entropy/emacs-pyim-has-initialized t)))
+      ))
 
 ;; ***** init
   :init
