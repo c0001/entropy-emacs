@@ -103,11 +103,19 @@
           "Project: ")))
 
 ;; ** common ibuffer display
-(when (not entropy/emacs-enable-ibuffer-projectitle)
-  (defun entropy/emacs-ibuffer--init-common ()
-    (progn
-      (ibuffer-set-filter-groups-by-mode)
+(defun entropy/emacs-ibuffer--init-common ()
+  (let ((set-basic-format? (and (not all-the-icons-ibuffer-mode)
+                                (not entropy/emacs-enable-ibuffer-projectitle))))
 
+    ;; filter ibuffer using `major-mode' when `ibuffer-projectile' is
+    ;; disable.
+    (unless entropy/emacs-enable-ibuffer-projectitle
+      (ibuffer-set-filter-groups-by-mode))
+
+    ;; We set the eemacs default ibuffer style unless either
+    ;; `all-the-icons-ibuffer-mode' nor `ibuffer-projectile' was
+    ;; enable.
+    (when set-basic-format?
       ;; size readable form EmacsWiki `https://www.emacswiki.org/emacs/IbufferMode'
       ;; Use human readable Size column instead of original one
       (define-ibuffer-column size-h
@@ -117,7 +125,6 @@
          ((> (buffer-size) 100000) (format "%7.0fk" (/ (buffer-size) 1000.0)))
          ((> (buffer-size) 1000) (format "%7.1fk" (/ (buffer-size) 1000.0)))
          (t (format "%8d" (buffer-size)))))
-
       ;; Modify the default ibuffer-formats
       (setq ibuffer-formats
             '((mark modified read-only " "
@@ -127,9 +134,10 @@
                     " "
                     (mode 16 16 :left :elide)
                     " "
-                    filename-and-process)))))
-  (add-hook 'ibuffer-hook
-            #'entropy/emacs-ibuffer--init-common))
+                    filename-and-process))))))
+
+(add-hook 'ibuffer-hook
+          #'entropy/emacs-ibuffer--init-common)
 
 ;; * provide
 (provide 'entropy-emacs-ibuffer)
