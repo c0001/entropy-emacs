@@ -1916,7 +1916,13 @@ corresponding stuffs."
    ((string= "doom-solarized-light" x)
     (when (not (featurep 'hl-line))
       (require 'hl-line))
-    (entropy/emacs-set-face-attribute 'hl-line nil :background "LightGoldenrod2"))
+    (entropy/emacs-set-face-attribute
+     'hl-line nil
+     :background
+     "LightGoldenrod2")
+    (entropy/emacs-set-face-attribute
+     'solaire-hl-line-face nil
+     :background "#ffffe4e4b5b5"))
    ((string= "doom-Iosvkem" x)
     (with-eval-after-load 'ivy
       (entropy/emacs-set-face-attribute
