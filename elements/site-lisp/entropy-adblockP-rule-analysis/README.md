@@ -1,15 +1,12 @@
-- [entropy-adblock+-rule-analysis.el &#x2014; elisp extension to analyze adblock+ url rule set](#orgc44e9c8)
-- [Copyright (C) 20190530  Entropy](#org45f453c)
-- [Commentary:](#org51710a6)
-- [Configuration:](#org6e916d4)
-- [Changelog:](#org6344855)
+# Table of Contents
+
+1.  [Copyright (C) 20190530  Entropy](#org56ee506)
+2.  [Commentary:](#orgdb40b55)
+3.  [Configuration:](#org251a3ea)
+4.  [Changelog:](#org9df5450)
 
 
-<a id="orgc44e9c8"></a>
-
-# entropy-adblock+-rule-analysis.el &#x2014; elisp extension to analyze adblock+ url rule set
-
-<a id="org45f453c"></a>
+<a id="org56ee506"></a>
 
 # Copyright (C) 20190530  Entropy
 
@@ -33,29 +30,38 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="org51710a6"></a>
+<a id="orgdb40b55"></a>
 
 # Commentary:
 
-This package gives the ability to transfer adblock-plus simple url rule-set to the elisp regexp string foramt.
+This package gives the ability to transfer adblock-plus simple url
+rule-set to the elisp regexp string foramt.
 
 You can see all the adblock-plus rule set document [online](https://adblockplus.org/en/filters).
 
-For more, the transforming used to for simple pac(proxy auto configuration) used by [Switchy-Omega](https://github.com/FelisCatus/SwitchyOmega), which rely on the rule-list host on [GFWLIST](https://github.com/gfwlist/gfwlist).
+For more, the transforming used to for simple pac(proxy auto
+configuration) used by [Switchy-Omega](https://github.com/FelisCatus/SwitchyOmega), which rely on the rule-list
+host on [GFWLIST](https://github.com/gfwlist/gfwlist).
 
-This package was the apis orientated designation, the rules get func `entropy/adbp-rule-get-regexp-matchs-list` and url blacklist check func `entropy/adbp-rule-blacklist-match-url-p` are the mainly provision.
+This package was the apis orientated designation, the rules get func
+`entropy/adbp-rule-get-regexp-matchs-list` and url blacklist check
+func `entropy/adbp-rule-blacklist-match-url-p` are the mainly
+provision.
 
 
-<a id="org6e916d4"></a>
+<a id="org251a3ea"></a>
 
 # Configuration:
 
 
-<a id="org6344855"></a>
+<a id="org9df5450"></a>
 
 # Changelog:
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2020-11-25 Wed 06:30] </span></span> Update rulesets
+    -   Add \`entropy/adbp-rule-update' interaction feature.
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2020-03-11 Wed 10:50] </span></span> Version 0.1.0 release out
 
 
-<a id="org1cef872"></a>
+<a id="orgbd83dbf"></a>

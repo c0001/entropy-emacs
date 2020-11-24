@@ -42,6 +42,10 @@
 
 ;;; Changelog:
 
+;; - [2020-11-25 Wed 06:30:18] Update rulesets
+
+;;   * Add `entropy/adbp-rule-update' interaction feature.
+
 ;; - [2020-03-11 Wed 10:50:19] Version 0.1.0 release out
 
 ;;; Code:
@@ -66,6 +70,18 @@ attack or gnutls error in emacs batch mode)."
   :type 'boolean
   :group 'entropy/adbp-rule-group)
 
+(defcustom entropy/adbp-custom-rule-sets-blacklist nil
+  "User customized list of url regexp added to blacklist."
+  :type '(repeat
+          (regexp :tag "Regexp for a url added to blacklist "))
+  :group 'entropy/adbp-rule-group)
+
+(defcustom entropy/adbp-custom-rule-sets-whitelist nil
+  "User customized list of url regexp added to whitelist."
+  :type '(repeat
+          (const :tag "Regexp for a url added to whitelist " regexp))
+  :group 'entropy/adbp-rule-group)
+
 ;;;;; internal variables
 (defvar entropy/adbp-rule--gfw-list-upstream
   "https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt")
@@ -79,12 +95,12 @@ attack or gnutls error in emacs batch mode)."
 (defvar entropy/adbp-rule--whitelist-regexps-cache nil)
 
 (defvar entropy/adbp-rule--head-full-blacklist-regexp
-  '("^||\\([^|].*\\)$" . "^\\\\(https?://www\\\\.\\\\|ftp://\\\\)\\1"))
+  '("^||\\([^|].*\\)$" . "^\\\\(https?://\\\\(www\\\\.\\\\)?\\\\|ftp://\\\\)?\\1"))
 (defvar entropy/adbp-rule--head-blacklist-regexp '("^|\\([^|].*\\)$" . "^\\1"))
 (defvar entropy/adbp-rule--head-wild-blacklist-regexp '("^\\.\\([^\\.].*\\)$" . ".*\\1"))
 
 (defvar entropy/adbp-rule--head-full-whitelist-regexp
-  '("^@@||\\([^|].*\\)$" . "^\\\\(https?://www\\\\.\\\\|ftp://\\\\)\\1"))
+  '("^@@||\\([^|].*\\)$" . "^\\\\(https?://\\\\(www\\\\.\\\\)?\\\\|ftp://\\\\)?\\1"))
 (defvar entropy/adbp-rule--head-whitelist-regexp '("^@@|\\([^|].*\\)$" . "^\\1"))
 (defvar entropy/adbp-rule--head-wild-whitelist-regexp '("^@@\\.\\([^\\.].*\\)$" . ".*\\1"))
 
@@ -163,9 +179,15 @@ attack or gnutls error in emacs batch mode)."
       (dolist (el blacklist-rule-defination-list)
         (entropy/adbp-rule--extract-buffer-rule-entries
          el 'entropy/adbp-rule--blacklist-regexps-cache))
+      (dolist (regexp entropy/adbp-custom-rule-sets-blacklist)
+        (add-to-list 'entropy/adbp-rule--blacklist-regexps-cache
+                     regexp))
       (dolist (el whitelist-rule-defination-list)
         (entropy/adbp-rule--extract-buffer-rule-entries
-         el 'entropy/adbp-rule--whitelist-regexps-cache)))))
+         el 'entropy/adbp-rule--whitelist-regexps-cache))
+      (dolist (regexp entropy/adbp-custom-rule-sets-whitelist)
+        (add-to-list 'entropy/adbp-rule--whitelist-regexps-cache
+                     regexp)))))
 
 ;;;; main
 
@@ -227,6 +249,22 @@ attack or gnutls error in emacs batch mode)."
      (t
       nil))))
 (memoize #'entropy/adbp-rule-blacklist-match-url-p)
+
+;;;###autoload
+
+(defun entropy/adbp-rule-update ()
+  "Update rulesets prompted with whether follow upstream or with
+local cache only. "
+  (interactive)
+  (let ((match-core-memoized-p
+         (get 'entropy/adbp-rule-blacklist-match-url-p
+              :memoize-original-function)))
+    (when match-core-memoized-p
+      (memoize-restore 'entropy/adbp-rule-blacklist-match-url-p))
+    (let ((entropy/adbp-rule-use-upstream-rule-list
+           (yes-or-no-p "Use upstream rule list? ")))
+      (entropy/adbp-rule-get-regexp-matchs-list)
+      (memoize #'entropy/adbp-rule-blacklist-match-url-p))))
 
 ;;; provide
 (provide 'entropy-adblock+-rule-analysis)
