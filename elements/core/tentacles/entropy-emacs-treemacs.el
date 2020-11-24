@@ -65,39 +65,24 @@
         (apply orig-func orig-args)
       (setq treemacs--ready-to-follow t)))
 
-  (defvar entropy/emacs-treemacs--current-focused-buffer nil
-    "Focused buffer that treemacs followed.")
-  (defun entropy/emacs-treemacs--after-file-follow-do-mode-line-update
+  (defun entropy/emacs-treemacs--file-follow-guards
       (orig-func &rest orig-args)
-    "Switch buffer to the origin buffer the buffer of before
-treemacs does file follow action within the newly(may be)
-`selected-window' only once compare with the focused buffer
-cached in
-`entropy/emacs-treemacs--after-file-follow-do-mode-line-update'.
-
-The exists meaning for this wrapper is that the function
-`treemacs--follow' will cause mode line format update with
-unpredictable render bug, so that force redirect
-window-configuration can fix this problem on interface, its purely
-may be a emacs native bug."
+    "Extra conditions for `treemacs--follow' specified by
+=entropy-emacs=."
     (let* ((cur-buff (current-buffer))
            (buf-fname (buffer-file-name cur-buff))
            rtn)
       (if (ignore-errors
-            ;; NOTE: Suppress its file follow in `entropy/emacs-stuffs-topdir'
-            ;; EEMACS_MAINTENANCE: this part may have more conditions
-            (file-equal-p (expand-file-name (file-name-nondirectory buf-fname) entropy/emacs-stuffs-topdir)
-                          (expand-file-name buf-fname)))
-          (setq treemacs--follow-timer nil)
+            (or
+             ;; NOTE: Suppress its file follow in `entropy/emacs-stuffs-topdir'
+             ;; EEMACS_MAINTENANCE: this part may have more conditions
+             (file-equal-p (expand-file-name (file-name-nondirectory buf-fname) entropy/emacs-stuffs-topdir)
+                           (expand-file-name buf-fname))
+             (not buf-fname)))
+          (progn
+            (cancel-timer treemacs--follow-timer)
+            (setq treemacs--follow-timer nil))
         (setq rtn (apply orig-func orig-args))
-        (when (and (treemacs-get-local-window)
-                   (not (active-minibuffer-window))
-                   (not (eq major-mode 'treemacs-mode))
-                   (buffer-file-name cur-buff))
-          (unless (eq cur-buff entropy/emacs-treemacs--current-focused-buffer)
-            (set-buffer cur-buff)
-            (select-window (get-buffer-window cur-buff))
-            (setq entropy/emacs-treemacs--current-focused-buffer cur-buff)))
         rtn)))
 
   (defun entropy/emacs-treemacs-auto-focus-on-common-buffer (&rest _)
@@ -307,7 +292,7 @@ buffer) for some special hook."
 
   (advice-add 'treemacs--init :around #'entropy/emacs-treemacs--unwind-for-init)
   (advice-add 'treemacs--follow
-              :around #'entropy/emacs-treemacs--after-file-follow-do-mode-line-update)
+              :around #'entropy/emacs-treemacs--file-follow-guards)
 
   (treemacs-follow-mode t)
   (treemacs-filewatch-mode t)
