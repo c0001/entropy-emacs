@@ -79,8 +79,21 @@ specification."
       (set-window-buffer status-win playlist-buf)
       (set-window-buffer playlist-win status-buf)))
 
+  (defun entropy/emacs-music-mpc--status-buffer-create ()
+    "Create mpc status buffer with connection did on"
+    (let* ((proc (mpc-proc))
+           (buf (mpc-proc-buffer proc 'status))
+           (songs-buf (mpc-proc-buffer proc 'songs))
+           (songs-win (if songs-buf (get-buffer-window songs-buf 0))))
+      (unless (buffer-live-p buf)
+        (setq buf (get-buffer-create "*MPC-Status*"))
+        (with-current-buffer buf
+          (mpc-status-mode))
+        (mpc-proc-buffer proc 'status buf))
+      buf))
+
   (defvar entropy/emacs-music--mpc-mini-mode nil)
-  (defun entropy/emacs-music-mpc--patch-popuped-window-around-advice
+  (defun entropy/emacs-music-mpc--initialize-patch
       (orig-func &rest orig-args)
     (let* ((wfg-orig (current-window-configuration)))
       (cond ((null entropy/emacs-music--mpc-mini-mode)
@@ -92,10 +105,14 @@ specification."
              (entropy/emacs-music-mpc--exchage-window-buffers-init))
             (entropy/emacs-music--mpc-mini-mode
              (entropy/emacs-delete-side-windows '(right))
-             (setq entropy/emacs-music-mpc--orig-window-configuration
-                   nil)
-             (save-window-excursion
-               (apply orig-func orig-args))
+             ;; connect mpc daemon and create core buffers so that we
+             ;; do not need to use mpc internal window creation
+             ;; procedure to both reduce init time and prevent display
+             ;; extra non-need buffers
+             (progn
+               (entropy/emacs-music-mpc--status-buffer-create)
+               (mpc-status-refresh)
+               (mpc-songs-buf))
              (let* ((status-buf (mpc-proc-buffer (mpc-proc) 'status))
                     (songs-buf (mpc-proc-buffer (mpc-proc) 'songs))
                     (bottom-enlarge
@@ -124,7 +141,10 @@ specification."
                         (side . right))))
                (window-resize win-below bottom-enlarge)
                (dolist (win (list win-above win-below))
-                 (set-window-parameter win 'no-delete-other-windows t))
+                 (set-window-parameter win 'no-delete-other-windows t)
+                 ;; inidcate those window is used for mpc-mini-mode
+                 ;; specially on.
+                 (set-window-parameter win 'mpc-mini-mode t))
                ;; dedicated buffer with its window so that any buffer
                ;; display can not reuse that window which is
                ;; necessarily needed in this case
@@ -141,12 +161,24 @@ for the songs list and status callback."
       (mpc)))
 
   (defun entropy/emacs-music-mpc--patch-quit-around-advice (orig-func &rest orig-args)
-    (let* (_)
+    (let* ((select-window-mpc-mini-mode-p
+            (window-parameter (selected-window) 'mpc-mini-mode)))
+      ;; remove all mpc internal window configuration memory in which
+      ;; case we use
+      ;; `entropy/emacs-music-mpc--orig-window-configuration' mechanism instead.
+      (mapc (lambda (buff)
+              (with-current-buffer buff
+                (when (buffer-local-value 'mpc-previous-window-config buff)
+                  (kill-local-variable 'mpc-previous-window-config))))
+            (buffer-list))
       (apply orig-func orig-args)
-      (when (and entropy/emacs-music-mpc--orig-window-configuration
-                 (not entropy/emacs-music--mpc-mini-mode))
+      (when (and (window-configuration-p entropy/emacs-music-mpc--orig-window-configuration)
+                 ;; we do not recover origin window configuration when
+                 ;; current mpc in mini mode.
+                 (not select-window-mpc-mini-mode-p))
         (set-window-configuration
-         entropy/emacs-music-mpc--orig-window-configuration))))
+         entropy/emacs-music-mpc--orig-window-configuration)
+        (setq entropy/emacs-music-mpc--orig-window-configuration nil))))
 
   (defun entropy/emacs-music-mpc-unselect (&optional event)
     "Unselect the tag value at point."
@@ -375,7 +407,7 @@ Add current music to queue when its not in thus."
 ;; **** advices
   (advice-add 'mpc
               :around
-              #'entropy/emacs-music-mpc--patch-popuped-window-around-advice)
+              #'entropy/emacs-music-mpc--initialize-patch)
   (advice-add 'mpc-quit
               :around
               #'entropy/emacs-music-mpc--patch-quit-around-advice)
