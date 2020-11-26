@@ -214,7 +214,10 @@ face attributes and some refer is missing in the new frame."
                         w3m-mode
                         eww-mode
                         elfeed-mode
-                        magit-status-mode)))))
+                        magit-status-mode
+                        Info-mode
+                        Man-mode
+                        woman-mode)))))
 
   (setq solaire-mode-auto-swap-bg t
         solaire-mode-themes-to-face-swap
