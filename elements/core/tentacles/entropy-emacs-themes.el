@@ -204,7 +204,7 @@ face attributes and some refer is missing in the new frame."
   :hook (((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
          (minibuffer-setup . solaire-mode-in-minibuffer))
   :init
-  (setq solaire-mode-remap-fringe nil
+  (setq solaire-mode-remap-fringe t
         solaire-mode-remap-modeline nil)
   (setq solaire-mode-real-buffer-fn
         (lambda ()
