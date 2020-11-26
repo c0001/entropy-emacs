@@ -954,6 +954,28 @@ Temp file was \"~/~entropy-artist.txt\""
   (artist-mode))
 
 
+;; *** Man-mode
+(use-package man
+  :ensure nil
+  :commands man
+  :init
+  (setq Man-width-max nil))
+
+(use-package woman
+  :ensure nil
+  :commands woman
+  :init (setq woman-fill-column 100
+              woman-dired-keys nil)
+  :config
+  (defun entropy/emacs-basic-woman--no-warning-around-advice
+      (orig-func &rest orig-args)
+    "Suppress defalias warning for woman defined for."
+    (with-no-warnings
+      (apply orig-func orig-args)))
+  (advice-add 'woman
+              :around
+              #'entropy/emacs-basic-woman--no-warning-around-advice))
+
 ;; ** Basic global settings:
 ;; *** Temporal bug revert
 ;; **** gnutls bug for emacs version upper than '26.1'
