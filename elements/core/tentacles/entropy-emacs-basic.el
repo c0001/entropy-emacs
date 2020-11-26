@@ -1477,6 +1477,43 @@ value as optional interaction while `PREFIX' is non-nil."
  prompt-popup
  (global-auto-revert-mode +1))
 
+(defun entropy/emacs-basic-toggle-global-auto-revert-mode ()
+  "Toggle auto-revert global bounds of feature on or off.
+
+NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
+  (interactive)
+  (let ((gav-p (bound-and-true-p global-auto-revert-mode))
+        gav-on gav-off
+        (magit-gav-p (bound-and-true-p magit-auto-revert-mode))
+        mgav-on mgav-off)
+    (when (or gav-p magit-gav-p)
+      (when gav-p
+        (global-auto-revert-mode 0)
+        (setq gav-off t))
+      (when magit-gav-p
+        (magit-auto-revert-mode 0)
+        (setq mgav-off t)))
+    (when (and (null gav-p)
+               (null magit-gav-p))
+      (global-auto-revert-mode +1)
+      (setq gav-on t)
+      (when (fboundp 'magit-auto-revert-mode)
+        (magit-auto-revert-mode +1)
+        (setq mgav-on t)))
+    (cond
+     ((and gav-on mgav-on)
+      (message "Toggle `global-auto-revert-mode' and `magit-auto-revert-mode' on."))
+     (gav-on
+      (message "Toggle `global-auto-revert-mode' on."))
+     (mgav-on
+      (message "Toggle `magit-auto-revert-mode' on."))
+     ((and gav-off mgav-off)
+      (message "Toggle `global-auto-revert-mode' and `magit-auto-revert-mode' off."))
+     (gav-off
+      (message "Toggle `global-auto-revert-mode' off."))
+     (magav-off
+      (message "Toggle `magit-auto-revert-mode' off.")))))
+
 ;; *** Popup key stroking prompt
 (use-package which-key
   :diminish which-key-mode
