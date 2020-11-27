@@ -1948,6 +1948,18 @@ corresponding stuffs."
     'window-divider-first-pixel nil :inherit 'window-divider)
    (entropy/emacs-set-face-attribute
     'window-divider-last-pixel nil :inherit 'window-divider))
+   ((or (string= "sanityinc-tomorrow-bright" x)
+        (string= "sanityinc-tomorrow-night" x)
+        (string= "sanityinc-tomorrow-eighties" x))
+    (entropy/emacs-set-face-attribute
+     'tooltip nil
+     :background "white"
+     :foreground "grey21"))
+   ((string= "sanityinc-tomorrow-blue" x)
+    (entropy/emacs-set-face-attribute
+     'tooltip nil
+     :background "white"
+     :foreground "blue4"))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
