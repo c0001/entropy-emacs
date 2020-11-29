@@ -472,12 +472,14 @@ function of `ivy-read'."
     "Repeatly read action for updating feeds of `elfeed-feeds',
 powered by `entropy/cl-ivy-read-repeatedly-function'."
     (require 'entropy-common-library)
-    (let ((temp (cdr x)))
-      (setq x temp))
-    (entropy/cl-ivy-read-repeatedly-function
-     x 'entropy/emacs-rss--elfeed-multi-update-feeds-list
-     "Updating: "
-     #'entropy/emacs-rss--elfeed-feed-of-url))
+    (cond ((stringp x)
+           (user-error "Please choose one  matched canidate!"))
+          ((consp x)
+           (setq x (cdr x))
+           (entropy/cl-ivy-read-repeatedly-function
+            x 'entropy/emacs-rss--elfeed-multi-update-feeds-list
+            "Updating: "
+            #'entropy/emacs-rss--elfeed-feed-of-url))))
 
   (defun entropy/emacs-rss-elfeed-get-multi-update-feeds ()
     "Getting feeds needed for updating through querying with
@@ -493,12 +495,7 @@ promptings and injecting them into `entropy/emacs-rss--elfeed-multi-update-feeds
   (defun entropy/emacs-rss-elfeed-multi-update-feeds ()
     "Update feeds interactively by multiplied choicing from `entropy/emacs-rss--elfeed-feed-prompt-alist'."
     (interactive)
-    (setq entropy/emacs-rss--elfeed-multi-update-feeds-list nil
-          entropy/emacs-rss--elfeed-feed-prompt-alist nil)
-    (setq entropy/emacs-rss--elfeed-feed-prompt-alist (entropy/emacs-rss--elfeed-list-feeds))
-    (ivy-read "Update feeds: " entropy/emacs-rss--elfeed-feed-prompt-alist
-              :require-match t
-              :action #'entropy/emacs-rss--elfeed-update-read-action)
+    (entropy/emacs-rss-elfeed-get-multi-update-feeds)
     (dolist (el entropy/emacs-rss--elfeed-multi-update-feeds-list)
       (elfeed-update-feed el)))
 
