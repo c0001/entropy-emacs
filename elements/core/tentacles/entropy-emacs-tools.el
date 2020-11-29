@@ -294,12 +294,20 @@ like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom -1))
 
+(defun entropy/emacs-tools-vertical-to-top ()
+  "Just vertical-top buffer without further operation supplied
+like `recenter-top-bottom'."
+  (interactive)
+  (recenter-top-bottom 0))
+
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'eemacs-center-line-position nil
  '("Eemacs Center Line"
    (("C-l" entropy/emacs-tools-vertical-center "Vertical center buffer"
      :enable t :exit t :global-bind t)
-    ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter top bottom’"
+    ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter to window bottom’"
+     :enable t :exit t :global-bind t)
+    ("C-c C-l" entropy/emacs-tools-vertical-to-top "Recenter to window top’"
      :enable t :exit t :global-bind t))))
 
 (entropy/emacs-hydra-hollow-add-for-top-dispatch
