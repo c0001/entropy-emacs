@@ -1944,11 +1944,12 @@ please check buffer '*liberime build*' for details"
     ;; set liberime schema and check dynamic module status and build
     ;; it when needed.
     (let (building)
-      (when
+      (if
           (not
            (ignore-errors
              (entropy/emacs-basic--pyim-set-rime-schema)))
-        (setq building t))
+          (setq building t)
+        (setq entropy/emacs-pyim-has-initialized t))
       (when building
         (entropy/emacs-basic--pyim-first-build-timer))))
 
