@@ -1270,16 +1270,22 @@ retrieve from `window-list' larger than 1."
   (let ((buflist (window-list)))
     (if (> (length buflist) 1)
         (cond
-         ((and (eq (length buflist) 2)
-               (let (rtn)
-                 (mapc (lambda (window)
-                         (let ((buff (window-buffer window)))
-                           (when (window-parameter
-                                  (get-buffer-window buff)
-                                  'no-delete-other-windows)
-                             (setq rtn t))))
-                       buflist)
-                 rtn))
+         ((or
+           (and (eq (length buflist) 2)
+                (let (rtn)
+                  (mapc (lambda (window)
+                          (let ((buff (window-buffer window)))
+                            (when (window-parameter
+                                   (get-buffer-window buff)
+                                   'no-delete-other-windows)
+                              (setq rtn t))))
+                        buflist)
+                  rtn))
+           ;; when the window is the root window of current frame we
+           ;; just kill it.  NOTE: in some cases the main window may
+           ;; not be the only live window showed in current frame as
+           ;; messy.
+           (eq (window-main-window) (get-buffer-window (current-buffer))))
           (kill-buffer))
          (t
           (kill-buffer-and-window)))
