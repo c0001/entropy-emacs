@@ -514,6 +514,25 @@ predicate when run it, see
 
 ;; ***** config
   :config
+;; ****** advices
+  ;; EEMACS_MAINTENANCE: this patch need to follow update with `lsp-ui' upstream.
+  (defun lsp-ui-doc--hide-frame ()
+    "Hide the frame.
+
+NOTE: this function has been patched by eemacs to optimize performance."
+    (setq lsp-ui-doc--bounds nil)
+    (when (overlayp lsp-ui-doc--inline-ov)
+      (delete-overlay lsp-ui-doc--inline-ov))
+    (let ((doc-frame (lsp-ui-doc--get-frame)))
+      (when (and (framep doc-frame)
+                 ;; Judge whether the doc frame is visible instead of
+                 ;; use `make-frame-invisible' directly for
+                 ;; performance issue.
+                 (frame-visible-p doc-frame))
+        (unless lsp-ui-doc-use-webkit
+          (lsp-ui-doc--with-buffer
+           (erase-buffer)))
+        (make-frame-invisible doc-frame))))
 
 ;; ****** Doc timer
   (defvar entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
