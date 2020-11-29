@@ -112,7 +112,10 @@ inactive of origin modeline."
   :group 'entropy/emacs-defface-group)
 
 (defface entropy/emacs-defface-face-for-hydra-grey-face
-  '((t :foreground "grey" :weight bold))
+  '((((class color) (background dark))
+     :foreground "grey" :weight bold)
+    (((class color) (background light))
+     :foreground "grey18" :weight bold))
   "Face for hydra head 'grey'"
   :group 'entropy/emacs-defface-group)
 
