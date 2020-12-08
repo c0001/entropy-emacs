@@ -278,7 +278,8 @@ face attributes and some refer is missing in the new frame."
         '(emacs-lisp-mode
           lisp-mode
           scheme-mode
-          compilation-mode outline-mode))
+          compilation-mode outline-mode)
+        page-break-lines-max-width 70)
 
   (entropy/emacs-lazy-with-load-trail
    PageBreakLines
