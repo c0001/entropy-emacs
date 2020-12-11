@@ -105,6 +105,12 @@ otherwise uses the original procedure."
            (apply orig-func orig-args))))
      ad-name)))
 
+;; *** Symbol manupulation
+
+(defun entropy/emacs-get-symbol-defcustom-value (symbol)
+  "Get SYMBOL standard value setted by `defcustom'."
+  (eval (car (get symbol 'standard-value))))
+
 ;; *** List manipulation
 (defun entropy/emacs-numberic-list (list-var)
   "Return list element mapped with numberic prefix which concated

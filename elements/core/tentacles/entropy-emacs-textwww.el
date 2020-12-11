@@ -197,6 +197,37 @@ erros."
               :around
               #'entropy/emacs-textwww--w3m-quit-window)
 
+  ;; auto adjusting w3m page width while `text-scale-mode' is on
+  (defun entropy/emacs-textwww--w3m-calc-max-cols ()
+    (let* ((wwp (window-width nil t))
+           (fw (window-font-width))
+           max-cols)
+      (setq max-cols (floor (/ wwp fw)))))
+
+  (defun entropy/emacs-textwww--w3m-page-text-scale-hook ()
+    "Adjusting w3m buffer page width adapted to the window max
+columns width whens entering in or out of `text-scale-mode'.
+
+EEMACS_MAINTENANCE:
+
+Variable `w3m-fill-column' can not be local binding, it seems be
+used in process handler which has its own individual buffer whose
+value of it is not relavant to current buffer value."
+    (cond
+     ((and (eq major-mode 'w3m-mode)
+           (bound-and-true-p text-scale-mode))
+      (setq w3m-fill-column
+            (entropy/emacs-textwww--w3m-calc-max-cols))
+      (w3m-redisplay-this-page))
+     ((and (eq major-mode 'w3m-mode)
+           (not (bound-and-true-p text-scale-mode)))
+      (setq w3m-fill-column
+            (entropy/emacs-get-symbol-defcustom-value
+             'w3m-fill-column))
+      (w3m-redisplay-this-page))))
+  (add-hook 'text-scale-mode-hook
+            #'entropy/emacs-textwww--w3m-page-text-scale-hook)
+
   )
 
 
