@@ -379,6 +379,9 @@ unwind occasion.")
   (setq counsel-yank-pop-separator
         "\n────────\n")
 
+  ;; increasing swiper limit to has more convention
+  (setq counsel-grep-swiper-limit 10000000)
+
   (entropy/emacs-lazy-load-simple counsel
     (ivy-mode +1))
 
