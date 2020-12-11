@@ -633,7 +633,11 @@ version of ivy framework updating.
    ("Avy Core Actions"
     (("M-g l" avy-goto-line "Jump to a line start in current buffer"
       :enable t :exit t :global-bind t)
+     ("C-2" avy-goto-line "Jump to the line start in current buffer"
+      :enable t :exit t :global-bind t)
      ("M-g c" avy-goto-char "Jump to the currently visible CHAR"
+      :enable t :exit t :global-bind t)
+     ("C-1" avy-goto-char "Jump to the currently visible CHAR"
       :enable t :exit t :global-bind t))))
 
   :eemacs-tpha
