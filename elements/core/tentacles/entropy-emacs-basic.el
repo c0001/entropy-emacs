@@ -720,7 +720,7 @@ modifcation is to remove this feature.
   (setq dired-omit-size-limit nil)
   (setq dired-omit-extensions nil)
   ;; Just omit the current node point
-  (setq dired-omit-files "\\`[.][.]?\\'")
+  (setq dired-omit-files "\\`[[:space:]]*[.][.]?\\'")
   ;; remap `dired-omit-mode' command in `dired-mode-map' because of
   ;; conflicted with `ace-window'
   (define-key dired-mode-map "\C-x\M-o" nil))
@@ -804,8 +804,18 @@ This function is a around advice for function `dired-up-directory'."
                                  (and (<= (point) ov-end)
                                       (>= (point) ov-beg)))
                             (throw :exit t)))))))
+              ;; if current point in the subree overlay but not at an dired node
               (progn (forward-line -1) (dired-move-to-filename))
-            (apply orig-func orig-args))
+            ;; Apply orig func filtered by checking whether the up-dir exist?
+            (let* ((dir (dired-current-directory))
+                   (up (file-name-directory (directory-file-name dir))))
+              (if (file-directory-p up)
+                  (apply orig-func orig-args)
+                ;; kill other dired buffer as is or as subtree of thus dir
+                (let ((asoc-ups (dired-buffers-for-dir up)))
+                  (message "Up dir '%s' is not exsit, Abort!" up)
+                  (dolist (buff asoc-ups)
+                    (kill-buffer buff))))))
         (let* ((search-node
                 (file-name-nondirectory
                  (directory-file-name cur-node-parent))))
@@ -841,6 +851,38 @@ that show that filename wasn't exsited any more."
           readin
         (with-temp-buffer
           (insert readin)
+
+          ;; Pruning the dir list of '.' and '..'
+          ;;
+          ;; EEMACS_MAINTENANCE: some times the function
+          ;; `insert-directory' doesn't list the '.' '..' at top of
+          ;; the buffer, this need to investigating
+          (save-excursion
+            (goto-char (point-min))
+            (let (this-func)
+              (setq this-func
+                    (lambda ()
+                      (let ((fname-beg (save-excursion (dired-move-to-filename)))
+                            (fname-end (save-excursion (end-of-line) (point)))
+                            (kill-whole-line t))
+                        (when (integerp fname-beg)
+                          (when (or (string= (buffer-substring-no-properties fname-beg fname-end)
+                                             ".")
+                                    (string= (buffer-substring-no-properties fname-beg fname-end)
+                                             ".."))
+                            (forward-line 0)
+                            (kill-line)
+                            (funcall this-func))))))
+              (funcall this-func)
+              (while (= 0 (forward-line))
+                (funcall this-func))
+              ;; remove eob's blank line
+              (goto-char (point-max))
+              (when (looking-at "^$")
+                ;; ignore error when buffer is empty now
+                (ignore-errors
+                  (delete-char -1)))))
+
           (goto-char (point-min))
           (while (or at-start (= (forward-line) 0))
             (setq at-start nil)
