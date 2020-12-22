@@ -920,6 +920,55 @@ version of ivy framework updating.
   ;; always show the executed command and debug information
   (setq ffip-debug t)
   :config
+
+  (defun ffip-completing-read (prompt collection &optional action)
+    "Read a string in minibuffer, with completion.
+
+PROMPT is a string with same format parameters in `ido-completing-read'.
+COLLECTION is a list of strings.
+
+ACTION is a lambda function to call after selecting a result.
+
+This function returns the selected candidate or nil.
+
+NOTE: this function has been redefined by =entropy-emacs=."
+    (cond
+
+     ;;; NOTE: We comment this block for force check only one candi in
+     ;;; collection so that we can view the candi length in ivy
+     ;;; frame-work for more beneficent.
+     ;;; |||||
+     ;;; vvvv
+     ;; ((and action (= 1 (length collection)))
+     ;;  ;; open file directly
+     ;;  (funcall action (car collection))
+     ;;  (car collection))
+
+     ;; If user prefer `ido-mode' or there is no ivy,
+     ;; use `ido-completing-read'.
+     ((or ffip-prefer-ido-mode (not (fboundp 'ivy-read)))
+      ;; friendly UI for ido
+      (let* ((list-of-pair (consp (car collection)))
+             (ido-collection (if list-of-pair
+                                 (mapcar 'car collection)
+                               collection))
+             (ido-selected (ido-completing-read prompt ido-collection)))
+        (if (and ido-selected action)
+            (funcall action
+                     (if list-of-pair
+                         (cdar (delq nil
+                                     (mapcar (lambda (x)
+                                               (and (string= (car x)
+                                                             ido-selected)
+                                                    x))
+                                             collection)))
+                       ido-selected)))
+        ido-selected))
+     (t
+      (ivy-read prompt collection
+                :action action))))
+
+
   (defun entropy/emacs-ivy-ffip (_interaction)
     "Find file using `find-file-in-project' in place.
 
