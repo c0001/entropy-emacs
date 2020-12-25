@@ -235,6 +235,7 @@ actived, as the rest that next garbage-collect operation til
    company-tooltip-offset-display 'lines
    company-idle-delay entropy/emacs-company-idle-delay-default
    company-dabbrev-code-everywhere t
+   company-dabbrev-ignore-case t
    company-minimum-prefix-length 2
    company-require-match nil
    company-dabbrev-ignore-case nil
