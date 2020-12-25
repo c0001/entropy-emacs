@@ -603,6 +603,27 @@ updating."
               :around
               #'entropy/emacs-codeserver--lsp-ui-doc-mode-around-advice)
 
+  (defun entropy/emacs-codeserver--lsp-ui-doc-delay-var-wather
+      (symbol newval operation where)
+    "Automatically rebind
+`entropy/emacs-codeserver-lsp-ui-doc-timer' when
+`lsp-ui-doc-delay' has changed.
+
+NOTE: note this function is a variable watcher, do not call it manually!"
+    (when (and (eq operation 'set)
+               (timerp entropy/emacs-codeserver-lsp-ui-doc-timer))
+      (cancel-timer entropy/emacs-codeserver-lsp-ui-doc-timer)
+      (setq entropy/emacs-codeserver-lsp-ui-doc-timer
+            (run-with-idle-timer
+             newval
+             t
+             #'entropy/emacs-codeserver--lsp-ui-doc-make-request))
+      (message "Change `lsp-ui-doc-dealy' to %s" newval)))
+
+  (add-variable-watcher
+   'lsp-ui-doc-delay
+   #'entropy/emacs-codeserver--lsp-ui-doc-delay-var-wather)
+
   )
 
 ;; **** lsp extensions
