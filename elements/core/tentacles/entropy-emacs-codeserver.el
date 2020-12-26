@@ -319,7 +319,12 @@ It is the recommendation of irony-mode official introduction."
   (setq lsp-auto-guess-root t)
   (setq lsp-auto-configure t)
   (setq lsp-prefer-flymake nil)
-  (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-eldoc-enable-hover t)
+  (setq lsp-signature-auto-activate t
+        ;; Set `lsp-signature-doc-lines' to 0 to restrict the echo
+        ;; area lines to have more UI exps, so that only syntax line
+        ;; are echoed.
+        lsp-signature-doc-lines 0)
 
   (dolist (el entropy/emacs-ide-for-them)
     (when (eq (entropy/emacs-get-use-ide-type el) 'lsp)
