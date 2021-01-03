@@ -432,6 +432,10 @@ predicate when run it, see
               :around
               #'entropy/emacs-codeserver--run-lsp-on-idle-hooks-for-cases)
 
+
+;; ******* lsp rename without be under readonly pressure
+(entropy/emacs-make-function-inhibit-readonly 'lsp-rename t)
+
 ;; ****** others
   ;; Remove clients not officially included in `lsp-mode' internal
   ;; subroutine to prevent from coverring eemacs customizations.
