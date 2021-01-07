@@ -108,7 +108,7 @@ key-stroke experience."
   :type '(cons (key-sequence :tag "GUI bind") (key-sequence :tag "TUI bind"))
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-garbage-collection-delay 7
+(defcustom entropy/emacs-garbage-collection-delay 2
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs."
   :type 'integer
