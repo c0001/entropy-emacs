@@ -940,34 +940,15 @@ NOTE: this function has been redefined by =entropy-emacs=."
      ;;; |||||
      ;;; vvvv
      ;; ((and action (= 1 (length collection)))
-     ;;  ;; open file directly
-     ;;  (funcall action (car collection))
-     ;;  (car collection))
-
-     ;; If user prefer `ido-mode' or there is no ivy,
-     ;; use `ido-completing-read'.
-     ((or ffip-prefer-ido-mode (not (fboundp 'ivy-read)))
-      ;; friendly UI for ido
-      (let* ((list-of-pair (consp (car collection)))
-             (ido-collection (if list-of-pair
-                                 (mapcar 'car collection)
-                               collection))
-             (ido-selected (ido-completing-read prompt ido-collection)))
-        (if (and ido-selected action)
-            (funcall action
-                     (if list-of-pair
-                         (cdar (delq nil
-                                     (mapcar (lambda (x)
-                                               (and (string= (car x)
-                                                             ido-selected)
-                                                    x))
-                                             collection)))
-                       ido-selected)))
-        ido-selected))
+     ;;  ;; select the only candidate immediately
+     ;;  (setq selected (car collection)))
      (t
-      (ivy-read prompt collection
-                :action action))))
-
+      (setq selected (completing-read prompt collection))
+      (setq selected (or (assoc selected collection) selected))))
+    (when selected
+      ;; make sure only the string/file is passed to action
+      (let* ((default-directory (ffip-get-project-root-directory)))
+        (funcall action (if (consp selected) (cdr selected) selected)))))
 
   (defun entropy/emacs-ivy-ffip (_interaction)
     "Find file using `find-file-in-project' in place.
