@@ -294,7 +294,13 @@ segmentation fault."
   (define-key vterm-mode-map [M-right]
     #'entropy/emacs-shell-vterm-meta-right)
   (define-key vterm-mode-map [C-backspace]
-    #'entropy/emacs-shell-vterm-ctrl-backspace))
+    #'entropy/emacs-shell-vterm-ctrl-backspace)
+
+  ;; Remove conflicting f12 keybind via `vterm-mode-map' and function
+  ;; `entropy/emacs-tools-time-show'
+  (define-key vterm-mode-map (kbd "<f12>") nil)
+
+  )
 
 ;; ** Shell Pop
 (use-package entropy-shellpop
