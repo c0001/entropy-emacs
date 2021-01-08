@@ -231,6 +231,9 @@ Bug has been fixed by [[h-86e0180b-bcf0-484d-bc21-9502d8abeb58][this issue]]
 
 ** DONE Hydra ruby doc area can not using underscore char '_' as key notation
 CLOSED: [2020-05-04 Mon 18:53]
+:PROPERTIES:
+:CUSTOM_ID: h-a8ab8a75-1c4d-4df7-859f-a09c58345b82
+:END:
 
 - State "DONE"       from "DOING"      [2020-05-04 Mon 18:53]
 - State "DOING"      from              [2020-03-05 Thu 21:07]
@@ -269,6 +272,9 @@ Thanks for your greate contribution!
 Bug has been fixed by upstream.
 
 ** DOING Hydra can not bind key with underscore char "_"
+:PROPERTIES:
+:CUSTOM_ID: h-37da4ec7-7317-4172-b23c-c03de78760a5
+:END:
 
 - State "DOING"      from              [2020-03-05 Thu 21:08]
 
@@ -276,6 +282,30 @@ Bug has been fixed by upstream.
 
 This bug was the older one, that hasn't been fixed til now, you can
 found the reflect github issue [[https://github.com/abo-abo/hydra/issues/161][here]].
+
+** MARKING Treemacs overlay markers puts procedure interrupt while ~lsp-configure-buffer~
+:PROPERTIES:
+:CUSTOM_ID: h-6610e0a1-e68b-4541-a814-fe3214363866
+:END:
+
+- State "MARKING"    from "TODO"       [2021-01-08 Fri 23:30]
+
+
+This is a bug for treemacs that enable `lsp-configure-buffer' while
+`treemacs-follow-mode' is t at the same time, the overlay markers in
+treemacs buffer which will cause definitely internal error for the
+usage for treemacs after thus, including any face rendering and
+operations expecting the correct of overlay marks.
+
+Further more, this bug will may also raise up an strange bug that the
+point in treemacs buffer will jump to buffer top when typiing in an
+lsp enabled buffer.
+
+For now [2021-01-08 Fri 23:31:17] there's one temporally fixed up
+solution that temporally disable =treemacs-follow-mode= before lsp
+enable in certain buffer, and then reenable it after thus.
+
+NOTE: may need to report to treemacs author.
 
 * COMMENT Local Varaibles
 :PROPERTIES:

@@ -400,6 +400,24 @@ nervous."
                                  org-mode))
       (apply orig-func orig-args)))
 
+;; ******* temporally disable `treemacs-follow-mode' while lsp configure
+
+  (defun entropy/emacs-codeserver--around-advice-for-lsp-configure-buffer
+      (orig-func &rest orig-args)
+    "Around advice for `lsp-configure-buffer' for temporally fix
+some bugs."
+    (let ((tfp (bound-and-true-p treemacs-follow-mode)))
+      (when tfp
+        ;; EEMACS_MAINTENANCE: referred to bug.org h-6610e0a1-e68b-4541-a814-fe3214363866
+        (treemacs-follow-mode 0))
+      (apply orig-func orig-args)
+      (when tfp
+        (treemacs-follow-mode 1))))
+
+  (advice-add 'lsp-configure-buffer
+              :around
+              #'entropy/emacs-codeserver--around-advice-for-lsp-configure-buffer)
+
 ;; ******* lsp idle hook specifications
   (defvar entropy/emacs-codeserver--lsp-on-idle-cases
     '(
