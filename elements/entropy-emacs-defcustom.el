@@ -114,7 +114,7 @@ for entropy-emacs."
   :type 'integer
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-garbage-collection-message-p t
+(defcustom entropy/emacs-garbage-collection-message-p nil
   "whether echo garbage collection message."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
