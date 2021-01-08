@@ -537,7 +537,7 @@ predicate when run it, see
 ;; ***** init
   :init
   (setq lsp-ui-doc-position 'top
-        lsp-ui-doc-delay 0.2)
+        lsp-ui-doc-delay 1.5)
 
 ;; ***** config
   :config
