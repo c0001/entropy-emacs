@@ -70,6 +70,7 @@
         browse-kill-ring
         buffer-move
         cal-china-x
+        cfrs
         chinese-word-at-point
         chocolate-theme
         cmake-mode
