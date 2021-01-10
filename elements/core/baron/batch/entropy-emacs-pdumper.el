@@ -114,7 +114,7 @@ configuration.")
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "transient" "counsel"
                                      "dired" "all-the-icon" "cal-china"
                                      "use-package" "diminish" "bind-key"
-                                     "doom" "company" "treemacs" "entropy"
+                                     "doom" "company" "entropy"
                                      "rg" "wgrep" "dashboard"
                                      "youdao" "google" "bing"
                                      "projectile" "lsp" "dap" "company"

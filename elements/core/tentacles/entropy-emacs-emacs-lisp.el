@@ -155,16 +155,6 @@ For lisp coding aim, always return the transfered buffer.
 (use-package eldoc-eval
   :commands (eldoc-in-minibuffer-mode)
   :preface
-  (defun entropy/emacs-lisp-eldoc-minibuffer-mode-guard ()
-    (when (eq entropy/emacs-tree-visual-type 'treemacs)
-      (let ((treemacs-active-p
-             (and (fboundp 'treemacs-current-visibility)
-                  (eq (treemacs-current-visibility) 'visible))))
-        (if treemacs-active-p
-            (eldoc-in-minibuffer-mode +1)
-          (when (bound-and-true-p eldoc-in-minibuffer-mode) ;judge before did for reducing performance loosing
-            (eldoc-in-minibuffer-mode -1))))))
-
   (defun entropy/emacs-lisp-eldoc-eval-minibuffer-map-rejected-advice
       (&rest _)
     "Rebind \"C-@\" key injected by `eldoc-in-minibuffer-mode' to
@@ -179,8 +169,6 @@ For lisp coding aim, always return the transfered buffer.
 
   (entropy/emacs-lazy-with-load-trail
    eldoc-minibuffer-show
-   (add-hook 'window-configuration-change-hook
-             #'entropy/emacs-lisp-eldoc-minibuffer-mode-guard)
    (with-eval-after-load 'eldoc-eval
      (advice-add 'eldoc-in-minibuffer-mode
                  :after

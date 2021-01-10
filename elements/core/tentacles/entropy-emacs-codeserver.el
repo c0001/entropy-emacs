@@ -224,10 +224,6 @@ It is the recommendation of irony-mode official introduction."
                  lsp-toggle-signature-auto-activate
                  lsp-toggle-on-type-formatting
 
-                 lsp-treemacs-sync-mode
-                 lsp-treemacs-call-hierarchy
-                 lsp-treemacs-errors-list
-
                  lsp-find-definition
                  lsp-find-references
                  lsp-find-implementation
@@ -286,13 +282,6 @@ It is the recommendation of irony-mode official introduction."
       :enable t :exit t)
      ("t f" lsp-toggle-on-type-formatting "Toggle on type formatting"
       :enable t :exit t))
-    "Treemacs integrates "
-    (("e m" lsp-treemacs-sync-mode "synchronizing lsp-mode workspace folders and treemacs projects"
-      :enable t :exit t)
-     ("e c" lsp-treemacs-call-hierarchy "Show the incoming call hierarchy for the symbol at point"
-      :enable t :exit t)
-     ("e e" lsp-treemacs-errors-list "Display error list in treemacs"
-      :enable t :exit t))
     "Find"
     (("f d" lsp-find-definition "Find definitions of the symbol under point"
       :enable t :exit t)
@@ -304,6 +293,7 @@ It is the recommendation of irony-mode official introduction."
       :enable t :exit t)
      ("f c" lsp-find-declaration "Find declarations of the symbol under point"
       :enable t :exit t))))
+
 ;; ***** eemacs-tphs
   :eemacs-tpha
   (((:enable t))
@@ -324,7 +314,9 @@ It is the recommendation of irony-mode official introduction."
         ;; Set `lsp-signature-doc-lines' to 0 to restrict the echo
         ;; area lines to have more UI exps, so that only syntax line
         ;; are echoed.
-        lsp-signature-doc-lines 0)
+        lsp-signature-doc-lines 0
+        ;; forbidden auto enable `dap-mode'
+        lsp-enable-dap-auto-configure nil)
 
   ;; Inhibit auto header insertion via lsp-cland client refer to
   ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
@@ -404,23 +396,6 @@ nervous."
                                  org-mode))
       (apply orig-func orig-args)))
 
-;; ******* temporally disable `treemacs-follow-mode' while lsp configure
-
-  (defun entropy/emacs-codeserver--around-advice-for-lsp-configure-buffer
-      (orig-func &rest orig-args)
-    "Around advice for `lsp-configure-buffer' for temporally fix
-some bugs."
-    (let ((tfp (bound-and-true-p treemacs-follow-mode)))
-      (when tfp
-        ;; EEMACS_MAINTENANCE: referred to bug.org h-6610e0a1-e68b-4541-a814-fe3214363866
-        (treemacs-follow-mode 0))
-      (apply orig-func orig-args)
-      (when tfp
-        (treemacs-follow-mode 1))))
-
-  (advice-add 'lsp-configure-buffer
-              :around
-              #'entropy/emacs-codeserver--around-advice-for-lsp-configure-buffer)
 
 ;; ******* lsp idle hook specifications
   (defvar entropy/emacs-codeserver--lsp-on-idle-cases
@@ -658,20 +633,6 @@ NOTE: note this function is a variable watcher, do not call it manually!"
   )
 
 ;; **** lsp extensions
-;; ***** lsp java
-(use-package lsp-java
-  :init
-  (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
-               'lsp-java)
-  :config
-  ;; create boot-server directory prevent `lsp-java-boot' throw out its error
-  (let ((boot-server-dir
-         (expand-file-name
-          "boot-server"
-          lsp-java-server-install-dir)))
-    (unless (file-exists-p boot-server-dir)
-      (make-directory boot-server-dir t))))
-
 ;; ***** lsp python ms
 ;; Microsoft python-language-server support
 (use-package lsp-python-ms
@@ -763,44 +724,6 @@ NOTE: note this function is a variable watcher, do not call it manually!"
     (advice-add 'powershell-mode
                 :before
                 #'entropy/emacs-coworker-check-pwsh-lsp)))
-
-;; *** lsp debug
-
-(use-package dap-mode
-  :functions dap-hydra/nil
-  :diminish
-  :bind (:map lsp-mode-map
-              ;; ("<f5>" . dap-debug)
-              ;; ("M-<f5>" . dap-hydra)
-              )
-  :hook ((dap-mode . dap-ui-mode)
-         (dap-session-created . (lambda (_args) (dap-hydra)))
-         (dap-stopped . (lambda (_args) (dap-hydra)))
-         (dap-terminated . (lambda (_args) (dap-hydra/nil)))
-
-         (python-mode . (lambda () (require 'dap-python)))
-         (ruby-mode . (lambda () (require 'dap-ruby)))
-         (go-mode . (lambda () (require 'dap-go)))
-         (java-mode . (lambda () (require 'dap-java)))
-         ((c-mode c++-mode objc-mode swift-mode) . (lambda () (require 'dap-lldb)))
-         (php-mode . (lambda () (require 'dap-php)))
-         (elixir-mode . (lambda () (require 'dap-elixir)))
-         ((js-mode js2-mode) . (lambda () (require 'dap-chrome)))
-         (powershell-mode . (lambda () (require 'dap-pwsh)))))
-
-;; `lsp-mode' and `treemacs' integration
-(use-package lsp-treemacs
-  :after lsp-mode
-  :bind (:map lsp-mode-map
-              ;; ("C-<f8>" . lsp-treemacs-errors-list)
-              ;; ("M-<f8>" . lsp-treemacs-symbols)
-              ;; ("s-<f8>" . lsp-treemacs-java-deps-list)
-              )
-  :config
-  (with-eval-after-load 'ace-window
-    (when (boundp 'aw-ignored-buffers)
-      (push 'lsp-treemacs-symbols-mode aw-ignored-buffers)
-      (push 'lsp-treemacs-java-deps-mode aw-ignored-buffers))))
 
 
 ;; * provide

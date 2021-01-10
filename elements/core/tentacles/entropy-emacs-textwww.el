@@ -164,7 +164,7 @@
 
   ;; -----Quit window patch-----
   ;;
-  ;;EEMACS_MAINTENANCE: Find a the core principle why this bug happen
+  ;; EEMACS_MAINTENANCE: Find a the core principle why this bug happen
   ;; and rebuild this patch. (mainly caused by the permanently side
   ;; window existing status like treemacs or neotree did).
 
@@ -180,14 +180,8 @@ erros."
          (setq quit-fatal-p t)))
       (when quit-fatal-p
         (condition-case nil
-            (let ((treemacs-active-p (ignore-errors (eq 'visible (treemacs-current-visibility))))
-                  (neotree-active-p
-                   (ignore-errors
-                     (window-live-p (get-buffer-window (neo-global--get-buffer))))))
-              (when (or treemacs-active-p neotree-active-p)
-                (switch-to-prev-buffer (selected-window)))
-              (when (eq (current-buffer) buf-cur)
-                (bury-buffer)))
+            (when (eq (current-buffer) buf-cur)
+              (bury-buffer))
           (error
            (bury-buffer))))))
   (advice-add 'w3m-close-window

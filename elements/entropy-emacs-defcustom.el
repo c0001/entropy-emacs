@@ -728,23 +728,6 @@ the fasest way.
           (const :tag "The silver searcher" "ag"))
   :group 'entropy/emacs-customize-group-for-basic-configuration)
 
-;; **** tree side bar config
-(defgroup entropy/emacs-customize-group-for-tree-visual nil
-  "Eemacs tree-side-bar configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-(defcustom entropy/emacs-tree-visual-type 'treemacs
-  "'neotree' or 'treemacs' tree slide show type."
-  :type '(choice
-          (const :tag "Treemacs mode" treemacs)
-          (const :tag "Neotree mode" neotree))
-  :group 'entropy/emacs-customize-group-for-tree-visual)
-
-(defcustom entropy/emacs-tree-neotree-text-scale -2
-  "The text-scale for neotree buffer."
-  :type 'integer
-  :group 'entropy/emacs-customize-group-for-tree-visual)
-
 ;; **** ibuffer config
 (defcustom entropy/emacs-enable-ibuffer-projectitle nil
   "Enable ibuffer-projectitle in ibuffer
@@ -990,7 +973,7 @@ option."
 (defvar entropy/emacs-ide-for-them
   '(c-mode
     c++-mode cmake-mode
-    java-mode go-mode
+    go-mode
     python-mode php-mode
     js2-mode json-mode css-mode web-mode nxml-mode
     sh-mode powershell-mode))

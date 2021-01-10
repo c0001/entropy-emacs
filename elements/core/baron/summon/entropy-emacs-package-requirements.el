@@ -70,7 +70,6 @@
         browse-kill-ring
         buffer-move
         cal-china-x
-        cfrs
         chinese-word-at-point
         chocolate-theme
         cmake-mode
@@ -92,7 +91,6 @@
         counsel-ffdata
         counsel-projectile
         counsel-world-clock
-        dap-mode
         darkokai-theme
         dash
         dashboard
@@ -162,11 +160,9 @@
         klere-theme
         log4e
         loop
-        lsp-java
         lsp-mode
         lsp-pyright
         lsp-python-ms
-        lsp-treemacs
         lsp-ui
         lua-mode
         lv
@@ -240,8 +236,6 @@
         tern
         toc-org
         transient
-        treemacs
-        treemacs-projectile
         treepy
         ujelly-theme
         use-package

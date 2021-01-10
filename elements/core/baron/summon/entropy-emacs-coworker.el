@@ -453,20 +453,6 @@ EXIT /b
    '("vscode-json-languageserver")
    "vscode-json-languageserver"))
 
-;; *** java
-(defun entropy/emacs-coworker-check-java-lsp (&rest _)
-  (entropy/emacs-coworker--coworker-install-by-archive-get
-   "java lsp"
-   "jdt-lsp"
-   "http://download.eclipse.org/jdtls/milestones/0.9.0/jdt-language-server-0.9.0-201711302113.tar.gz"
-   'tgz))
-(when (eq (entropy/emacs-get-use-ide-type 'java-mode) 'lsp)
-  (unless entropy/emacs-ext-use-eemacs-lsparc
-    (setq lsp-java-server-install-dir
-          (expand-file-name
-           "jdt-lsp"
-           entropy/emacs-coworker-archive-host-root))))
-
 ;; *** powershell
 (defun entropy/emacs-coworker-check-pwsh-lsp (&rest _)
   (entropy/emacs-coworker--coworker-install-by-archive-get

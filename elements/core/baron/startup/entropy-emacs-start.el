@@ -380,8 +380,6 @@ notation.
   (require 'entropy-emacs-textwww)
   (require 'entropy-emacs-rss)
   (require 'entropy-emacs-gnus)
-  (require 'entropy-emacs-neotree)
-  (require 'entropy-emacs-treemacs)
   (require 'entropy-emacs-project)
   (require 'entropy-emacs-tools)
   (require 'entropy-emacs-music)

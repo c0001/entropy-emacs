@@ -40,21 +40,7 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
-        )
-  ;; slide tree doom visual
-  (cond ((eq entropy/emacs-tree-visual-type 'neotree)
-         (entropy/emacs-lazy-load-simple neotree
-           (setq doom-themes-neotree-file-icons
-                 (cond
-                  ((display-graphic-p)
-                   t)
-                  (t
-                   'nerd)))
-           (require 'doom-themes-ext-neotree)))
-        ((eq entropy/emacs-tree-visual-type 'treemacs)
-         (entropy/emacs-lazy-load-simple treemacs
-           (setq doom-theme-treeemacs-theme "doom-atom")
-           (require 'doom-themes-ext-treemacs)))))
+        ))
 
 (use-package doom-themes-ext-visual-bell
   :ensure nil
