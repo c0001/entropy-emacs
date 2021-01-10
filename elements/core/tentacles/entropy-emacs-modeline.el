@@ -559,6 +559,61 @@ eyerbowse improvement."
                     'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
       ""))
 
+
+;; ******* idle activated =buffer position= indicator
+
+  (doom-modeline-def-segment buffer-position
+    "The buffer position information."
+    (cond (entropy/emacs-current-session-is-idle
+           (let* ((active (doom-modeline--active))
+                  (lc '(line-number-mode
+                        (column-number-mode
+                         (doom-modeline-column-zero-based "%l:%c" "%l:%C")
+                         "%l")
+                        (column-number-mode (doom-modeline-column-zero-based ":%c" ":%C"))))
+                  (face (if active 'mode-line 'mode-line-inactive))
+                  (mouse-face 'mode-line-highlight)
+                  (local-map mode-line-column-line-number-mode-map))
+             (concat
+              (doom-modeline-spc)
+              (doom-modeline-spc)
+
+              (propertize (format-mode-line lc)
+                          'face face
+                          'help-echo "Buffer position\n\
+mouse-1: Display Line and Column Mode Menu"
+                          'mouse-face mouse-face
+                          'local-map local-map)
+
+              (cond ((and active
+                          (bound-and-true-p nyan-mode)
+                          (>= (window-width) nyan-minimum-window-width))
+                     (concat
+                      (doom-modeline-spc)
+                      (doom-modeline-spc)
+                      (propertize (nyan-create) 'mouse-face mouse-face)))
+                    ((and active
+                          (bound-and-true-p poke-line-mode)
+                          (>= (window-width) poke-line-minimum-window-width))
+                     (concat
+                      (doom-modeline-spc)
+                      (doom-modeline-spc)
+                      (propertize (poke-line-create) 'mouse-face mouse-face)))
+                    (t
+                     (when doom-modeline-percent-position
+                       (concat
+                        (doom-modeline-spc)
+                        (propertize (format-mode-line '("" doom-modeline-percent-position "%%"))
+                                    'face face
+                                    'help-echo "Buffer percentage\n\
+mouse-1: Display Line and Column Mode Menu"
+                                    'mouse-face mouse-face
+                                    'local-map local-map)))))
+              (when (or line-number-mode column-number-mode doom-modeline-percent-position)
+                (doom-modeline-spc)))))
+          (t
+           " ⨂")))
+
 ;; ****** eemacs doom-modeline type spec
   (doom-modeline-def-modeline 'main
    '(bar workspace-number window-number
