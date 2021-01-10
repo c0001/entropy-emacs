@@ -1966,6 +1966,10 @@ corresponding stuffs."
      'tooltip nil
      :background "white"
      :foreground "blue4"))
+   ((string= "ujelly" x)
+    (entropy/emacs-set-face-attribute
+     'term-color-blue nil
+     :foreground "#61AFEF"))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
