@@ -104,7 +104,7 @@ specification."
              (entropy/emacs-music-mpc--patch-popuped-window-balance)
              (entropy/emacs-music-mpc--exchage-window-buffers-init))
             (entropy/emacs-music--mpc-mini-mode
-             (entropy/emacs-delete-side-windows '(right))
+             (entropy/emacs-delete-side-windows '(left))
              ;; connect mpc daemon and create core buffers so that we
              ;; do not need to use mpc internal window creation
              ;; procedure to both reduce init time and prevent display
@@ -130,7 +130,7 @@ specification."
                      (display-buffer-in-side-window
                       status-buf
                       `((slot . 0)
-                        (side . right)
+                        (side . left)
                         (window-width
                          .
                          ,(ceiling (* (frame-width) 0.15))))))
@@ -138,7 +138,7 @@ specification."
                      (display-buffer-in-side-window
                       songs-buf
                       `((slot . 1)
-                        (side . right))))
+                        (side . left))))
                (window-resize win-below bottom-enlarge)
                (dolist (win (list win-above win-below))
                  (set-window-parameter win 'no-delete-other-windows t)
