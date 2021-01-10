@@ -1794,13 +1794,26 @@ original one in the same of host place)."
            (entropy/cl-backup-file entropy/emacs-kill-ring-persist-file)))))))
 
 ;; run it when init emacs
+(defvar entropy/emacs-basic-timer-of-kill-ring-persist)
 (defun entropy/emacs-basic--init-kill-ring-persist ()
   "Initialize =entropy-emacs= `kill-ring' persist feature."
+  (interactive)
   (entropy/emacs-basic-read-kill-ring-from-persist)
-  (defvar entropy/emacs-basic-timer-of-kill-ring-persist
-    (run-with-idle-timer 10 t #'entropy/emacs-basic-kill-ring-persist))
+  (setq entropy/emacs-basic-timer-of-kill-ring-persist
+        (run-with-idle-timer 10 t #'entropy/emacs-basic-kill-ring-persist))
   (add-hook 'kill-emacs-hook #'entropy/emacs-basic-kill-ring-persist))
 (add-hook 'entropy/emacs-startup-end-hook #'entropy/emacs-basic--init-kill-ring-persist)
+
+(defalias 'entropy/emacs-basic-start-kill-ring-persist
+  #'entropy/emacs-basic--init-kill-ring-persist)
+
+(defun entropy/emacs-basic-disable-kill-ring-persist ()
+  "Disable =entropy-emacs= `kill-ring' persist feature."
+  (interactive)
+  (entropy/emacs-basic-kill-ring-persist)
+  (when (timerp entropy/emacs-basic-timer-of-kill-ring-persist)
+    (cancel-timer entropy/emacs-basic-timer-of-kill-ring-persist))
+  (remove-hook 'kill-emacs-hook #'entropy/emacs-basic-kill-ring-persist))
 
 ;; *** Forbidden view-hello-file for W32 platform
 
