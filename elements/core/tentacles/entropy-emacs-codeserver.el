@@ -326,6 +326,10 @@ It is the recommendation of irony-mode official introduction."
         ;; are echoed.
         lsp-signature-doc-lines 0)
 
+  ;; Inhibit auto header insertion via lsp-cland client refer to
+  ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
+  (setq lsp-clients-clangd-args '("--header-insertion=never"))
+
   (dolist (el entropy/emacs-ide-for-them)
     (when (eq (entropy/emacs-get-use-ide-type el) 'lsp)
       (add-hook
