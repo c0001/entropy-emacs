@@ -238,6 +238,31 @@ window will be set to 13.5.")
 (defvar entropy/emacs-init-welcome-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Buffer name of entropy-emacs initial welcome displaying buffer.")
 
+(defvar entropy/emacs-current-session-is-idle nil
+  "The current emacs session idle signal, t for non-idle status
+indicator, nil for otherwise.
+
+Do not set this variable manually, it is assigned by
+=entropy-emacs= automatically.
+
+NOTE: this variable is useful to patch with some high performance
+required function when concurrency ocation to reduce system lag
+e.g. the modeline position indicator fresh function.")
+
+(defun entropy/emacs--reset-idle-signal ()
+  (setq entropy/emacs-current-session-is-idle nil))
+(defun entropy/emacs--set-idle-signal ()
+  (setq entropy/emacs-current-session-is-idle t))
+(add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal)
+(run-with-idle-timer 0.3 t #'entropy/emacs--set-idle-signal)
+(defun entropy/emacs--idle-var-guard (symbol newval operation where)
+  (if (eq newval t)
+      (force-mode-line-update)))
+(add-variable-watcher 'entropy/emacs-current-session-is-idle
+                      #'entropy/emacs--idle-var-guard)
+
+
+
 ;; ** eemacs top keymap refer
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
   "The top keymap for entropy-emacs holding the global
