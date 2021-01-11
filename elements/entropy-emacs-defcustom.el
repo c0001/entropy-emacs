@@ -165,17 +165,6 @@ value assignments into."
           (const :tag "Tencent" tencent))
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-use-popup-window-framework 'shackle
-  "Using popup window enhancement framework of `popwin-mode' with
-value 'popwin' or `shackle-mode' with value 'shackle'.
-
-Since `popwin' is not under maintaining anymore, defualtly using
-`shacle-mode' and it's the suggested."
-  :type '(choice
-          (const :tag "Shackle mode" shackle)
-          (const :tag "Popwin mode" popwin))
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
 (defcustom entropy/emacs-init-display-line-numbers-mode nil
   "Enable `global-display-line-numbers-mode' at start up time."
   :type 'boolean

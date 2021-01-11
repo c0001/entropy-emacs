@@ -50,10 +50,8 @@
       '((:regexp
          :all (lambda (x rule) (list :regexp x)))
         (:select
-         :popwin (lambda (x rule) (list :noselect (not x)))
          :shackle (lambda (x rule) (list :select x)))
         (:align
-         :popwin (lambda (x rule) (list :position x))
          :shackle (lambda (x rule)
                     (list :align
                           (cl-case x
@@ -62,17 +60,10 @@
                             (t
                              x)))))
         (:size
-         :popwin (lambda (x rule)
-                   (list (if (member (plist-get (cdr rule) :align) '(bottom top))
-                             :height
-                           :width)
-                         x))
          :shackle (lambda (x rule) (list :size x)))
         (:autoclose
-         :popwin (lambda (x rule) (list :stick x))
          :shackle (lambda (x rule) (list :autoclose x)))
         (:dedicated
-         :popwin (lambda (x rule) (list :dedicated x))
          :shackle (lambda (x rule) (list :popup (null x))))))
 
 (defun entropy/emacs-popwin-make-rule-spec
@@ -202,51 +193,8 @@
         ))
 
 
-;; ** popwin-mode
-(use-package popwin
-  :if (eq entropy/emacs-use-popup-window-framework 'popwin)
-  :commands (popwin-mode
-             popwin:messages
-             popwin:find-file
-             popwin:display-buffer)
-
-  :eemacs-indhc
-  (((:enable t)
-    (popwin-dispatch))
-   ("Popwin popuping "
-    (("p o" popwin:display-buffer "Popup for buffers"
-      :enable t :exit t :eemacs-top-bind t)
-     ("p f" popwin:find-file "Popup for files"
-      :enable t :exit t :eemacs-top-bind t)
-     ("p e" popwin:messages "Popup message buffer"
-      :enable t :exit t :eemacs-top-bind t)
-     ("p l" popwin:popup-last-buffer "Popup last popuped buffer"
-      :enable t :exit t :eemacs-top-bind t))))
-  :eemacs-tpha
-  (((:enable t))
-   ("WI&BUF"
-    (("p"
-      (:eval
-       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'popwin-dispatch))
-      "Popup window or buffer"
-      :enable t :exit t))))
-
-  :init
-
-  (entropy/emacs-lazy-with-load-trail
-   popwin-mode
-   (popwin-mode t))
-
-  :config
-  ;; don't use default value but manage it ourselves
-  (setq popwin:special-display-config
-        (entropy/emacs-popwin-make-rule-spec
-         :popwin entropy/emacs-popwin-regists)))
-
 ;; ** shackle mode
 (use-package shackle
-  :if (eq entropy/emacs-use-popup-window-framework 'shackle)
   :commands (shackle-mode
              shackle-display-buffer
              entropy/emacs-popwin-shackle-popup-buffer
@@ -357,7 +305,7 @@ specification."
                                 'entropy/emacs-popwin--shackle-window-is-popup-window-p))))))
 
   (defun entropy/emacs-popwin--shackle-popup-buffers-exist-then-ignore-beacon-blink ()
-    (let ()
+    (let (_)
       (setq entropy/emacs-tools-beacon-blink-ignore
             (catch :exit
               (dolist (hist entropy/emacs-popwin--shackle-popup-display-history)

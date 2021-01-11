@@ -188,7 +188,6 @@
         pomidor
         poporg
         popup
-        popwin
         pos-tip
         powerline
         powershell
