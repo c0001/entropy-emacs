@@ -845,7 +845,9 @@ means no quote needed to construct it)."
 (eval-when-compile
   (defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)
     "Biuld auto-named function prefixed by NAME a symbol and inject
-into HOOK wrapped BODY. Appended inject when AS-APPEND is non-nil."
+into HOOK wrapped BODY. Appended inject when AS-APPEND is non-nil.
+
+Return the defined function symbol. "
     (let ()
       `(let* ((prefix-name-func
                (lambda ()
@@ -868,7 +870,8 @@ into HOOK wrapped BODY. Appended inject when AS-APPEND is non-nil."
              (setq ,hook
                    (append ,hook (list prefix-name)))
            (add-hook ',hook
-                     prefix-name))))))
+                     prefix-name))
+         prefix-name))))
 
 
 ;; *** Face manipulation
@@ -2196,21 +2199,22 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 - 'EC-FORM' is the form for gui emacs-session
 
 Optional form COMMON-FORM run directly without any condition
-judgements."
-  (when (daemonp)                       ;only inject hook when in daemon session
-    (let* ((--name--
-            (intern
-             (format "%s-for-emacs-daemon"
-                     (symbol-name name)))))
-      (eval
-       `(entropy/emacs-add-hook-lambda-nil
-         ,--name--
-         entropy/emacs-daemon-server-after-make-frame-hook
-         'append
-         (if (display-graphic-p)
-             ,ec-form
-           ,et-form)
-         ,common-form)))))
+judgements.
+
+Return the hooker symbol."
+  (let* ((--name--
+          (intern
+           (format "%s-for-emacs-daemon"
+                   (symbol-name name)))))
+    (eval
+     `(entropy/emacs-add-hook-lambda-nil
+       ,--name--
+       entropy/emacs-daemon-server-after-make-frame-hook
+       'append
+       (if (display-graphic-p)
+           ,ec-form
+         ,et-form)
+       ,common-form))))
 
 
 ;; * provide

@@ -670,6 +670,11 @@ patched for be compatible with 27.1.
               :around
               #'entropy/emacs--server-make-frame-around-advice))
 
+(defvar entropy/emacs-daemon-server-init-done nil
+  "When non-nil indicate the daemon server has been initialized
+ i.e. has been first called done by open from 'emacsclient'
+ command, that's say this daemon has been used at thus.")
+
 (defvar entropy/emacs-daemon-server-after-make-frame-hook nil
   "Normal hooks run after a emacs daemon session create a client
 frame.
@@ -827,7 +832,10 @@ gui session has huge sets of differents in entropy-emacs.
                     "TTY")
                   (if (display-graphic-p)
                       "GUI"
-                    "TTY"))))))))
+                    "TTY"))))))
+    ;; finally we sign the init done for daemon for fist time.
+    (unless entropy/emacs-daemon-server-init-done
+      (setq entropy/emacs-daemon-server-init-done t))))
 
 (add-hook 'server-after-make-frame-hook
           #'entropy/emacs-daemon--client-initialize)

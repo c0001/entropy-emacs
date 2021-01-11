@@ -250,9 +250,58 @@ actived, as the rest that next garbage-collect operation til
 (use-package company-yasnippet :ensure nil :after company :commands company-yasnippet)
 
 ;; ** company enhancement
+;; ** toggle framework
+
+(defvar entropy/emacs-company--frontend-register nil)
+(defvar entropy/emacs-company--frontend-daemon-current-hook nil)
+(defvar entropy/emacs-company-frontend-sticker nil)
+
+(defun entropy/emacs-company-toggle-frontend (type)
+  (interactive
+   (list (intern
+          (completing-read "Choose valid company frontend: "
+                           (mapcar (lambda (x) (symbol-name (car x)))
+                                   entropy/emacs-company--frontend-register)))))
+  (let* ((cur-type entropy/emacs-company-frontend-sticker)
+         (cur-disable (plist-get (alist-get cur-type entropy/emacs-company--frontend-register)
+                                 :disable))
+         (chose-enable (plist-get (alist-get type entropy/emacs-company--frontend-register)
+                                  :enable))
+         (daemon-init (plist-get (alist-get type entropy/emacs-company--frontend-register)
+                                 :daemon-init)))
+    (when (and cur-type (not (functionp cur-disable)))
+      (error "Can not find associated disable function for company frontend '%s'"
+             cur-type))
+    (unless (functionp chose-enable)
+      (error "Can not find associated enable function for company frontend '%s'"
+             type))
+
+    (if (symbolp daemon-init)
+        ;; wrap daemon init to a form
+        (setq daemon-init `(lambda () (,daemon-init))))
+
+    (progn
+      (when cur-type
+        (funcall cur-disable)
+        (when entropy/emacs-company--frontend-daemon-current-hook
+          (remove-hook 'entropy/emacs-daemon-server-after-make-frame-hook
+                       entropy/emacs-company--frontend-daemon-current-hook)))
+      (cond ((and entropy/emacs-daemon-server-init-done (daemonp))
+             ;; is daemon and inited
+             (funcall chose-enable)
+             (setq entropy/emacs-company--frontend-daemon-current-hook
+                   (eval daemon-init)))
+            ((and (not entropy/emacs-daemon-server-init-done) (daemonp))
+             ;; is daemon but not inited
+             (setq entropy/emacs-company--frontend-daemon-current-hook
+                   (eval daemon-init)))
+            (t
+             (funcall chose-enable)))
+      (setq entropy/emacs-company-frontend-sticker type))
+    (message "OK: change company frontend from %s to %s done!" cur-type type)))
+
 ;; *** Popup documentation for completion candidates
 (use-package company-quickhelp
-  :if (eq entropy/emacs-company-tooltip-use-type 'default)
   :after company
   :commands (company-quickhelp-mode
              company-quickhelp-manual-begin)
@@ -260,46 +309,93 @@ actived, as the rest that next garbage-collect operation til
               ("M-h" . company-quickhelp-manual-begin)
               ("C-h" . nil)
               ("<f1>" . nil))
+  :preface
+  (defun entropy/emacs-company--default-enable ()
+    (when (display-graphic-p)
+      (company-quickhelp-mode 1)))
+  (defun entropy/emacs-company--default-disable ()
+    (when (bound-and-true-p company-quickhelp-mode)
+      (company-quickhelp-mode 0)))
+  (add-to-list 'entropy/emacs-company--frontend-register
+               '(default
+                  :enable entropy/emacs-company--default-enable
+                  :disable entropy/emacs-company--default-disable
+                  :daemon-init
+                  (entropy/emacs-with-daemon-make-frame-done
+                   'company-default-mode
+                   '(entropy/emacs-company--default-disable)
+                   '(entropy/emacs-company--default-enable))))
+
   :init
   (setq company-quickhelp-delay
-        entropy/emacs-company-quickhelp-delay-default)
-  (if (daemonp)
-      (entropy/emacs-with-daemon-make-frame-done
-       'company-quickhelp-mode
-       '(company-quickhelp-mode 0)
-       '(company-quickhelp-mode 1))
-    (when (display-graphic-p)
-      (company-quickhelp-mode 1))))
+        entropy/emacs-company-quickhelp-delay-default))
 
 ;; *** Company-posframe config
 
 (use-package company-posframe
-  :if (eq entropy/emacs-company-tooltip-use-type 'company-posframe)
   :after company
   :commands (company-posframe-mode)
   :diminish company-posframe-mode
+  :preface
+  (defun entropy/emacs-company--posframe-enable ()
+    (unless (bound-and-true-p company-posframe-mode)
+      (when (entropy/emacs-posframe-adapted-p)
+        (company-posframe-mode 1))))
+  (defun entropy/emacs-company--posframe-disable ()
+    (when (bound-and-true-p company-posframe-mode)
+      (company-posframe-mode 0)))
+
+  (add-to-list 'entropy/emacs-company--frontend-register
+               '(company-posframe
+                 :enable entropy/emacs-company--posframe-enable
+                 :disable entropy/emacs-company--posframe-disable
+                 :daemon-init
+                 (entropy/emacs-with-daemon-make-frame-done
+                  'company-posframe-mode
+                  '(entropy/emacs-company--posframe-disable)
+                  '(entropy/emacs-company--posframe-enable))))
+
   :init
   (setq company-posframe-quickhelp-delay
-        entropy/emacs-company-quickhelp-delay-default)
-  (if (null (daemonp))
-      (when (entropy/emacs-posframe-adapted-p)
-        (company-posframe-mode 1))
-    (entropy/emacs-with-daemon-make-frame-done
-     'company-posframe-mode
-     '(when (bound-and-true-p company-posframe-mode)
-        (company-posframe-mode 0))
-     `(unless (bound-and-true-p company-posframe-mode)
-        (company-posframe-mode 1)))))
+        entropy/emacs-company-quickhelp-delay-default))
 
 ;; *** Company-box config
 
 (use-package company-box
-  :if (eq entropy/emacs-company-tooltip-use-type 'company-box)
   :after company
   :commands (company-box-mode)
 
 ;; **** preface
   :preface
+
+  (defun entropy/emacs-company--box-disable ()
+    (progn
+      (remove-hook 'company-mode-hook
+                   #'company-box-mode)
+      (mapc (lambda (buffer)
+              (with-current-buffer buffer
+                (when (bound-and-true-p company-box-mode)
+                  (company-box-mode 0))))
+            (buffer-list))))
+
+  (defun entropy/emacs-company--box-enable ()
+    (when (entropy/emacs-posframe-adapted-p)
+      (add-hook 'company-mode-hook
+                #'company-box-mode)
+      (mapc (lambda (buffer)
+              (with-current-buffer buffer
+                (when (bound-and-true-p company-mode)
+                  (unless (bound-and-true-p company-box-mode)
+                    (company-box-mode 1)))))
+            (buffer-list))))
+  (add-to-list 'entropy/emacs-company--frontend-register
+               '(company-box :enable entropy/emacs-company--box-enable
+                             :disable entropy/emacs-company--box-disable
+                             :daemon-init
+                             (entropy/emacs-with-daemon-make-frame-done
+                              'company-box-mode
+                              '(entropy/emacs-company--box-disable)
+                              '(entropy/emacs-company--box-enable))))
 
 ;; **** init
   :init
@@ -309,28 +405,6 @@ actived, as the rest that next garbage-collect operation til
         (max 0.42 entropy/emacs-company-quickhelp-delay-default)
         company-box-max-candidates (if (boundp 'x-gtk-resize-child-frames) 100 20)
         company-box-show-single-candidate 'always)
-
-  (if (null (daemonp))
-      (add-hook 'company-mode-hook
-                #'company-box-mode)
-    (entropy/emacs-with-daemon-make-frame-done
-     'company-box-mode
-     '(progn
-        (remove-hook 'company-mode-hook
-                     #'company-box-mode)
-        (mapc (lambda (buffer)
-                (with-current-buffer buffer
-                  (when (bound-and-true-p company-box-mode)
-                    (company-box-mode 0))))
-              (buffer-list)))
-     '(progn
-        (add-hook 'company-mode-hook
-                  #'company-box-mode)
-        (mapc (lambda (buffer)
-                (with-current-buffer buffer
-                  (unless (bound-and-true-p company-box-mode)
-                    (company-box-mode 1))))
-              (buffer-list)))))
 
 ;; **** config
   :config
