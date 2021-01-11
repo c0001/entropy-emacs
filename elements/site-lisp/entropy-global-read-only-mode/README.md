@@ -1,22 +1,22 @@
 # Table of Contents
 
-1.  [Copyright (C) 20200221  Entropy](#org22b1c7d)
-2.  [Commentary:](#org056d590)
-    1.  [Requirements](#orge6a0ba2)
-    2.  [Installation](#org150db1d)
-    3.  [Configuration](#orgd6a3362)
-    4.  [Interaction](#org43c539a)
-    5.  [Redefine functions and advices tracking](#org027cb72)
-3.  [Changelog:](#org3298361)
+1.  [Copyright (C) 20200221  Entropy](#orgc5bf668)
+2.  [Commentary:](#org5fd8f4b)
+    1.  [Requirements](#org438ec70)
+    2.  [Installation](#orga52a314)
+    3.  [Configuration](#org030936c)
+    4.  [Interaction](#org2c13e2e)
+    5.  [Redefine functions and advices tracking](#org3ea1f8a)
+3.  [Changelog:](#org0c3ce03)
 
-<a id="org22b1c7d"></a>
+<a id="orgc5bf668"></a>
 
 # Copyright (C) 20200221  Entropy
 
     Author:        Entropy <bmsac0001@gmail.com>
     Maintainer:    Entropy <bmsac001@gmail.com>
     URL:           https://github.com/c0001/entropy-global-read-only-mode
-    Package-Version: 0.1.1
+    Package-Version: 0.1.2
     Created:       2018
     Compatibility: GNU Emacs 25;
     Package-Requires: ((emacs "25") (cl-lib "0.5"))
@@ -35,7 +35,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="org056d590"></a>
+<a id="org5fd8f4b"></a>
 
 # Commentary:
 
@@ -62,7 +62,7 @@ The rule base for is follow the below two way:
     list regexp matching for.
 
 
-<a id="orge6a0ba2"></a>
+<a id="org438ec70"></a>
 
 ## Requirements
 
@@ -73,7 +73,7 @@ utilies. But all the re-defun procedure are just enabled when `org`
 loaded, there's no need to require `org` with the manually way.
 
 
-<a id="org150db1d"></a>
+<a id="orga52a314"></a>
 
 ## Installation
 
@@ -81,7 +81,7 @@ Download main [source file](entropy-global-read-only-mode.el) to your load-path 
 the most easy way.
 
 
-<a id="orgd6a3362"></a>
+<a id="org030936c"></a>
 
 ## Configuration
 
@@ -131,7 +131,7 @@ The `use-packge` configure management type demo as:
       :init (add-hook 'after-init-hook #'entropy-grom-mode))
 
 
-<a id="org43c539a"></a>
+<a id="org2c13e2e"></a>
 
 ## Interaction
 
@@ -159,7 +159,7 @@ The `use-packge` configure management type demo as:
     `entropy/grom-toggle-read-only`.
 
 
-<a id="org027cb72"></a>
+<a id="org3ea1f8a"></a>
 
 ## Redefine functions and advices tracking
 
@@ -177,9 +177,13 @@ unlock codes into them respectively. The defination will be
 recovered when `entropy/grom-mode` disabled.
 
 
-<a id="org3298361"></a>
+<a id="org0c3ce03"></a>
 
 # Changelog:
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2021-01-11 Mon 19:18] </span></span> Use internal readonly routine
+    \`entropy/grom&#x2013;readonly-1&0' instead of commonly used
+    \`read-only-mode' to have more condition cases filter.
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2020-06-24 Wed 13:51] </span></span> Add nonspecial customizable option and context update
 
@@ -203,4 +207,4 @@ recovered when `entropy/grom-mode` disabled.
 -   <span class="timestamp-wrapper"><span class="timestamp">[2018-08-01 Wed] </span></span> version 0.1.0 release
 
 
-<a id="orgcd1801d"></a>
+<a id="org81aed28"></a>

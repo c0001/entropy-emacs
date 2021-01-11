@@ -5,7 +5,7 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-global-read-only-mode
-;; Package-Version: 0.1.1
+;; Package-Version: 0.1.2
 ;; Created:       2018
 ;; Compatibility: GNU Emacs 25;
 ;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
@@ -154,6 +154,10 @@
 
 ;;; Changelog:
 
+;; - [2021-01-11 Mon 19:18:25] Use internal readonly routine
+;;   `entropy/grom--readonly-1&0' instead of commonly used
+;;   `read-only-mode' to have more condition cases filter.
+
 ;; - [2020-06-24 Wed 13:51:37] Add nonspecial customizable option and context update
 
 ;; - [2020-05-29 Fri 20:13:23] Optimize namespace
@@ -223,7 +227,8 @@ variable `entropy/grom-customizable-special-buffer-name-regexp-list' instead.")
 (defvar entropy/grom-buffer-true-name-pair-list nil
   "This list contains the FILENAME of the all buffer name
 BUFFER-NAME in current frame and obtained by
-`entropy/grom--get-true-buffer-name-pair-list'")
+`entropy/grom--get-true-buffer-name-pair-list', which is a list of
+cons cell of (file_truename . buffer).")
 
 (defvar entropy/grom--advice-register nil
   "Register for adivce information built by `entropy/grom--add-advice'.")
@@ -296,6 +301,31 @@ list."
 
 ;;;; library
 
+(defun entropy/grom--readonly-1&0 (type)
+  "=entropy-grom= internal `read-only-mode' routine which specified
+read-only functions in cases dependent, and return an signal
+symbol to show which routine type used.
+
+For now valid signal are:
+- 'dired' : which use wdired-mode to lock(save) and unlock(edit)
+- 'nil'   : commonly use `read-only-mode'"
+  (let (func-enable func-disable rtn)
+    (cond ((or (derived-mode-p 'dired-mode)
+               (eq major-mode 'wdired-mode))
+           (setq func-enable 'wdired-finish-edit
+                 func-disable 'wdired-change-to-wdired-mode
+                 rtn 'dired))
+          (t
+           (setq func-enable '(lambda () (read-only-mode 1))
+                 func-disable '(lambda () (read-only-mode 0)))))
+    (cond ((= type 1)
+           (funcall func-enable))
+          ((= type 0)
+           (funcall func-disable))
+          (t
+           (error "[entropy/grom--readonly-1&0] Invalid mode type %s" type)))
+    rtn))
+
 (defun entropy/grom--get-special-buffer-name-regexp-list ()
   "Combined `entropy/grom-customizable-special-buffer-name-regexp-list' with
 `entropy/grom--internal-specified-special-bfregexp-list' to generating the
@@ -305,20 +335,20 @@ whole expections rules."
       (add-to-list 'whole-init el t 'string=))
     whole-init))
 
-(defun entropy/grom--buffer-special-p (buffer)
+(defun entropy/grom--buffer-special-p (buffer-or-name)
   (if (equal entropy/grom-readonly-type "all")
       (let ((buffer-name
-             (or (and (stringp buffer) buffer)
-                 (and (bufferp buffer)
-                      (buffer-name buffer))
-                 (error "Wrong type of argument: bufferp--> '%s'" buffer))))
+             (or (and (stringp buffer-or-name) buffer-or-name)
+                 (and (bufferp buffer-or-name)
+                      (buffer-name buffer-or-name))
+                 (error "Wrong type of argument: bufferp--> '%s'" buffer-or-name))))
         (catch :exit
           (dolist (rule (entropy/grom--get-special-buffer-name-regexp-list))
             (when (and (string-match-p rule buffer-name)
-                       (not (catch :exit
+                       (not (catch :exit-0
                               (dolist (el entropy/grom-customizable-nonspecial-buffer-name-regexp-list)
                                 (when (string-match-p el buffer-name)
-                                  (throw :exit t))))))
+                                  (throw :exit-0 t))))))
               (throw :exit t)))))
     nil))
 
@@ -334,10 +364,11 @@ whole expections rules."
                       (file-truename
                        (with-current-buffer buffer buffer-file-truename))
                     nil)))
-      (add-to-list 'entropy/grom-buffer-true-name-pair-list `(,tbname ,buffer)))))
+      (add-to-list 'entropy/grom-buffer-true-name-pair-list `(,tbname . ,buffer)))))
 
 (cl-defun entropy/grom--enable-read-only (&key message buffer no-check)
-  (let ((buffer (or buffer (current-buffer))))
+  (let ((buffer (or buffer (current-buffer)))
+        signal)
     (if (null no-check)
         (if (entropy/grom--buffer-special-p buffer)
             (when message
@@ -345,10 +376,10 @@ whole expections rules."
 operation may cause some risk. ('M-x read-only-mode' for forcely)"
                     (buffer-name)))
           (with-current-buffer buffer
-            (read-only-mode 1))
-          (when message
+            (setq signal (entropy/grom--readonly-1&0 1)))
+          (when (and message (null signal))
             (message "Lock current buffer successfully")))
-      (read-only-mode 1))))
+      (entropy/grom--readonly-1&0 1))))
 
 (defun entropy/grom--add-hook (hook function)
   (add-to-list 'entropy/grom--add-hook-register
@@ -388,7 +419,7 @@ operation may cause some risk. ('M-x read-only-mode' for forcely)"
 (defun entropy/grom-read-only-buffer ()
   (interactive)
   (if buffer-read-only
-      (read-only-mode 0)
+      (entropy/grom--readonly-1&0 0)
     (entropy/grom--enable-read-only :message t)))
 
 ;;;;; Global read only toggle function
@@ -451,9 +482,9 @@ There's four optional argument for this function:
                ((string= read "global editted")
                 (when buffer-read-only
                   (if (not (string= current-buffer buffer))
-                      (read-only-mode 0)
+                      (entropy/grom--readonly-1&0 0)
                     (when (eq cury-did-for t)
-                      (read-only-mode 0)))))))))))))
+                      (entropy/grom--readonly-1&0 0)))))))))))))
 
 ;;;###autoload
 (defun entropy/grom-quick-readonly-global ()
@@ -511,7 +542,7 @@ in current frame."
     (dolist (bname entropy/grom-buffer-true-name-pair-list)
       (when (stringp (car bname))
         (when (string-match-p (regexp-quote aname) (car bname))
-          (add-to-list 'entropy/grom--org-agenda-actived-buffer-list (nth 1 bname)))))))
+          (add-to-list 'entropy/grom--org-agenda-actived-buffer-list (cdr bname)))))))
 
 (defun entropy/grom--unlock-actived-agenda-file-buffers ()
   "Unlock all agenda files"
@@ -520,7 +551,7 @@ in current frame."
   (dolist (buffer entropy/grom--org-agenda-actived-buffer-list)
     (with-current-buffer buffer
       (if buffer-read-only
-          (read-only-mode 0)))))
+          (entropy/grom--readonly-1&0 0)))))
 
 (defun entropy/grom--agenda-unlock-current-entry (&rest arg-reset)
   "Unlock current entry in agenda view panel when global
@@ -541,7 +572,7 @@ readonly mode is on."
           (with-current-buffer etb
             (if buffer-read-only
                 (progn
-                  (read-only-mode 0)
+                  (entropy/grom--readonly-1&0 0)
                   (message "Unlock buffer '%s' !" etb))
               (message "No need to unlock buffer '%s' -v-" etb))))
         (setq entropy/grom--current-agenda-buffer etb))))
@@ -607,7 +638,7 @@ was the override function for `org-capture-place-template' by
 
         ;; Force un-readonly buffer
         (if buffer-read-only
-            (read-only-mode 0))
+            (entropy/grom--readonly-1&0 0))
 
         (pcase (org-capture-get :type)
           ((or `nil `entry) (org-capture-place-entry))
@@ -628,7 +659,7 @@ was the override function for `org-capture-place-template' by
 This func was advice for func
 `org-capture-put-target-region-and-position'."
         (when buffer-read-only
-          (read-only-mode 0)))
+          (entropy/grom--readonly-1&0 0)))
 
       (entropy/grom--add-advice 'org-capture-put-target-region-and-position
                   :after #'entropy/grom--org-capture-put-target-region-and-position-after-advice))
@@ -636,7 +667,7 @@ This func was advice for func
     (with-eval-after-load 'org-datetree
       (defun entropy/grom--org-datetree-before-advice ()
         (if buffer-read-only
-            (read-only-mode 0)))
+            (entropy/grom--readonly-1&0 0)))
       (entropy/grom--add-advice
        'org-datetree--find-create
        :before
