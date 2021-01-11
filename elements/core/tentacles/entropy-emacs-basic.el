@@ -1707,12 +1707,21 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
 
 (setq kill-ring-max 10000)               ;increase kill ring length for more daily using comfort
 
+
+(defun entropy/emacs-basic-kill-ring-persist-backup ()
+  (unless (fboundp 'entropy/cl-backup-file)
+    (require 'entropy-common-library))
+  (when (file-exists-p entropy/emacs-kill-ring-persist-file)
+    (entropy/cl-backup-file
+     entropy/emacs-kill-ring-persist-file)))
+
 ;;     From the forum of stackexchange
 ;;     `https://superuser.com/questions/546619/clear-the-kill-ring-in-emacs'
 ;;     Or you just can use (setq kill-ring nil) only.
 (defun entropy/emacs-basic-clear-kill-ring ()
   (interactive)
   (when (yes-or-no-p "Clean kill ring? ")
+    (entropy/emacs-basic-kill-ring-persist-backup)
     (setq kill-ring nil) (garbage-collect)))
 
 (defun entropy/emacs-basic-kill-ring-persist ()
@@ -1789,9 +1798,7 @@ original one in the same of host place)."
          (unless (= (buffer-size) 0)
            (warn (format "Read persit kill-ring fatal of [%s], fallen back to origin done!"
                          error))
-           (unless (fboundp 'entropy/cl-backup-file)
-             (require 'entropy-common-library))
-           (entropy/cl-backup-file entropy/emacs-kill-ring-persist-file)))))))
+           (entropy/emacs-basic-kill-ring-persist-backup)))))))
 
 ;; run it when init emacs
 (defvar entropy/emacs-basic-timer-of-kill-ring-persist)
