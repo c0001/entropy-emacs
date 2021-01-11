@@ -300,6 +300,11 @@ actived, as the rest that next garbage-collect operation til
       (setq entropy/emacs-company-frontend-sticker type))
     (message "OK: change company frontend from %s to %s done!" cur-type type)))
 
+(entropy/emacs-lazy-with-load-trail
+ company-frontend-set
+ (entropy/emacs-company-toggle-frontend
+  entropy/emacs-company-tooltip-use-type))
+
 ;; *** Popup documentation for completion candidates
 (use-package company-quickhelp
   :after company
@@ -311,11 +316,16 @@ actived, as the rest that next garbage-collect operation til
               ("<f1>" . nil))
   :preface
   (defun entropy/emacs-company--default-enable ()
-    (when (display-graphic-p)
-      (company-quickhelp-mode 1)))
+    (cond ((display-graphic-p)
+           (company-quickhelp-mode 1))
+          (t
+           (message
+            "NOTE: Can not enable company-quickhelp in non-gui session"))))
+
   (defun entropy/emacs-company--default-disable ()
     (when (bound-and-true-p company-quickhelp-mode)
       (company-quickhelp-mode 0)))
+
   (add-to-list 'entropy/emacs-company--frontend-register
                '(default
                   :enable entropy/emacs-company--default-enable
@@ -350,15 +360,18 @@ actived, as the rest that next garbage-collect operation til
             (buffer-list))))
 
   (defun entropy/emacs-company--box-enable ()
-    (when (entropy/emacs-posframe-adapted-p)
-      (add-hook 'company-mode-hook
-                #'company-box-mode)
-      (mapc (lambda (buffer)
-              (with-current-buffer buffer
-                (when (bound-and-true-p company-mode)
-                  (unless (bound-and-true-p company-box-mode)
-                    (company-box-mode 1)))))
-            (buffer-list))))
+    (cond ((entropy/emacs-posframe-adapted-p)
+           (add-hook 'company-mode-hook
+                     #'company-box-mode)
+           (mapc (lambda (buffer)
+                   (with-current-buffer buffer
+                     (when (bound-and-true-p company-mode)
+                       (unless (bound-and-true-p company-box-mode)
+                         (company-box-mode 1)))))
+                 (buffer-list)))
+          (t
+           (error "Can not enable company-box in non-gui session"))))
+
   (add-to-list 'entropy/emacs-company--frontend-register
                '(company-box :enable entropy/emacs-company--box-enable
                              :disable entropy/emacs-company--box-disable
