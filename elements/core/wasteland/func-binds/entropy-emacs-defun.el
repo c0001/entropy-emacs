@@ -1908,11 +1908,6 @@ corresponding stuffs."
       (entropy/emacs-set-face-attribute
        'ivy-current-match nil
        :background "salmon" :bold t)))
-   ((string-match-p "darkokai" x)
-    (with-eval-after-load 'ivy
-      (entropy/emacs-set-face-attribute
-       'ivy-current-match nil
-       :background "#2B2F31" :foreground "#BBF7EF")))
    ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" x)
     (with-eval-after-load 'ivy
       (if (equal 'dark (frame-parameter nil 'background-mode))
@@ -1938,25 +1933,6 @@ corresponding stuffs."
        'ivy-current-match nil
        :background "grey8"
        :distant-foreground "grey7")))
-   ((string= "github" x)
-    (entropy/emacs-set-face-attribute
-     'mode-line nil
-     :background "#000000"
-     :foreground "#FFFFFF")
-    (entropy/emacs-set-face-attribute
-     'fringe nil
-     :background "WhiteSmoke"
-     :foreground "black")
-   (entropy/emacs-set-face-attribute
-     'ivy-minibuffer-match-face-4 nil
-     :background "#333333"
-     :foreground "LightGrey")
-   (entropy/emacs-set-face-attribute
-    'window-divider nil :inherit 'vertical-border)
-   (entropy/emacs-set-face-attribute
-    'window-divider-first-pixel nil :inherit 'window-divider)
-   (entropy/emacs-set-face-attribute
-    'window-divider-last-pixel nil :inherit 'window-divider))
    ((or (string= "sanityinc-tomorrow-bright" x)
         (string= "sanityinc-tomorrow-night" x)
         (string= "sanityinc-tomorrow-eighties" x))
@@ -1998,12 +1974,6 @@ situation."
             'doom-modeline-bar
             nil :background "black")
            (doom-modeline-refresh-bars))
-          ((and (string= entropy/emacs-mode-line-sticker "doom")
-                (string-match-p "\\(spolsky\\)" arg))
-           (setq doom-modeline--bar-active
-                 (doom-modeline--make-xpm 'doom-modeline-inactive-bar
-                                          doom-modeline-bar-width
-                                          doom-modeline-height)))
           ((string= entropy/emacs-mode-line-sticker "doom")
            (entropy/emacs-set-face-attribute
             'doom-modeline-bar
@@ -2027,10 +1997,6 @@ stuffs on `solaire-mode' when `solaire-global-mode' was non-nil."
                 "#333839")
                ((display-graphic-p)
                 "#333340"))))
-     ((eq entropy/emacs-theme-sticker 'atom-one-dark)
-      (entropy/emacs-set-face-attribute
-       'hl-line nil
-       :background "#333839"))
      (t nil))))
 
 ;; *** Case fold search specification

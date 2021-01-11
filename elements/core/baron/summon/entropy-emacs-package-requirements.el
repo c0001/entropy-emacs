@@ -51,8 +51,6 @@
         all-the-icons-ivy-rich
         anaconda-mode
         async
-        atom-dark-theme
-        atom-one-dark-theme
         atomic-chrome
         auto-complete
         auto-sudoedit
@@ -63,14 +61,12 @@
         benchmark-init
         bind-key
         bing-dict
-        birds-of-paradise-plus-theme
         bongo
         browse-at-remote
         browse-kill-ring
         buffer-move
         cal-china-x
         chinese-word-at-point
-        chocolate-theme
         cmake-mode
         color-theme-sanityinc-tomorrow
         command-log-mode
@@ -90,7 +86,6 @@
         counsel-ffdata
         counsel-projectile
         counsel-world-clock
-        darkokai-theme
         dash
         dashboard
         dash-functional
@@ -103,7 +98,6 @@
         diredfl
         disable-mouse
         discover-my-major
-        doneburn-theme
         doom-modeline
         doom-themes
         edit-indirect
@@ -126,7 +120,6 @@
         git-timemachine
         gitattributes-mode
         gitconfig-mode
-        github-theme
         gitignore-mode
         gntp
         go-mode
@@ -156,7 +149,6 @@
         json-mode
         json-reformat
         json-snatcher
-        klere-theme
         log4e
         loop
         lsp-mode
@@ -172,7 +164,6 @@
         makey
         markdown-mode
         markdown-preview-mode
-        material-theme
         memoize
         memory-usage
         minions
@@ -229,7 +220,6 @@
         spinner
         srcery-theme
         ssh-agency
-        sublime-themes
         swiper
         symbol-overlay
         tern

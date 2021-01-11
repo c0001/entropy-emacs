@@ -58,6 +58,12 @@
    doom-org-specific
    (doom-themes-org-config)))
 
+(use-package ujelly-theme)
+(use-package color-theme-sanityinc-tomorrow)
+(use-package gotham-theme)
+(use-package srcery-theme)
+
+
 ;; *** theme load specifix
 
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-face-specifix)
