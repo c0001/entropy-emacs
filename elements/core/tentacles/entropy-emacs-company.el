@@ -250,7 +250,7 @@ actived, as the rest that next garbage-collect operation til
 (use-package company-yasnippet :ensure nil :after company :commands company-yasnippet)
 
 ;; ** company enhancement
-;; ** toggle framework
+;; *** toggle framework
 
 (defvar entropy/emacs-company--frontend-register nil)
 (defvar entropy/emacs-company--frontend-daemon-current-hook nil)
@@ -328,35 +328,6 @@ actived, as the rest that next garbage-collect operation til
 
   :init
   (setq company-quickhelp-delay
-        entropy/emacs-company-quickhelp-delay-default))
-
-;; *** Company-posframe config
-
-(use-package company-posframe
-  :after company
-  :commands (company-posframe-mode)
-  :diminish company-posframe-mode
-  :preface
-  (defun entropy/emacs-company--posframe-enable ()
-    (unless (bound-and-true-p company-posframe-mode)
-      (when (entropy/emacs-posframe-adapted-p)
-        (company-posframe-mode 1))))
-  (defun entropy/emacs-company--posframe-disable ()
-    (when (bound-and-true-p company-posframe-mode)
-      (company-posframe-mode 0)))
-
-  (add-to-list 'entropy/emacs-company--frontend-register
-               '(company-posframe
-                 :enable entropy/emacs-company--posframe-enable
-                 :disable entropy/emacs-company--posframe-disable
-                 :daemon-init
-                 (entropy/emacs-with-daemon-make-frame-done
-                  'company-posframe-mode
-                  '(entropy/emacs-company--posframe-disable)
-                  '(entropy/emacs-company--posframe-enable))))
-
-  :init
-  (setq company-posframe-quickhelp-delay
         entropy/emacs-company-quickhelp-delay-default))
 
 ;; *** Company-box config

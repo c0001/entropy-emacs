@@ -38,7 +38,6 @@
 (setq entropy-emacs-packages
       `(
         ;; elpa&melpa packags
-        ,(unless (version< emacs-version "26") 'company-posframe)
         ,(unless (version< emacs-version "26") 'posframe)
         ac-php
         ac-php-core

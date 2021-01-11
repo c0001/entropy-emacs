@@ -114,8 +114,7 @@ face attributes and some refer is missing in the new frame."
             ;; default frame background color face. So that any
             ;; further one can easily adding to this `or' form.
             (unless (or (and (bound-and-true-p company-candidates)
-                             (or (bound-and-true-p company-box-mode)
-                                 (bound-and-true-p company-posframe-mode)))
+                             (or (bound-and-true-p company-box-mode)))
                         entropy/emacs-frame-be-made-is-child-frame)
               (let ()
                 ;; map get enabled soloarized faces

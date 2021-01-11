@@ -1046,17 +1046,13 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
 
 Company has the built-in popup display tooltip kit, which reflect
 to this variable of the value 'default'. Further more with the
-rich enhanced purpose there are two more options:
-
-- 'company-posframe': the show type based on `posframe-show' with
-  more action added.
+rich enhanced purpose there are one another option:
 
 - 'company-box' : the show type of more riched mordern
   visualization, commonly sense of icons prefixed for each
   canidates."
   :type '(choice
           (const :tag "Company-mode native way" default)
-          (const :tag "With posframe" company-posframe)
           (const :tag "Rich-hence (company-box)" company-box))
   :group 'entropy/emacs-customize-group-for-company-mode)
 
