@@ -110,6 +110,10 @@ place can be easily found by other interactive command."
       :enable t
       :exit t
       :map-inject t)
+     ("M-o" dired-find-file-other-window "Open item in other window"
+      :enable t
+      :exit t
+      :map-inject t)
      ("R" dired-do-rename "Rename current file or all marked (or next ARG) files"
       :enable t :map-inject t :exit t)
      ("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
