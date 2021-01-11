@@ -208,6 +208,7 @@ actived, as the rest that next garbage-collect operation til
   (entropy/emacs-lazy-with-load-trail
    global-company-mode
    (global-company-mode t)
+   (setq company-echo-delay 1)          ;reduce lagging on increase company echo idle delay
    (dolist (func '(company-idle-begin company-complete))
      (advice-add func
                  :before 'entropy/emacs-company-start-with-yas))
@@ -367,7 +368,16 @@ initial frame background face sets did by
         ;; FIXME: `x-gtk-resize-child-frames' option was one temporal
         ;; patch method invoking from emacs-devel commit c49d379f17bcb
         ;; which will eliminated in the future emacs version.
-        (setq x-gtk-resize-child-frames 'hide)))
+        (if (and
+             (> emacs-major-version 26)
+             (string-match-p "GTK3" system-configuration-features)
+             (let ((value (getenv "XDG_CURRENT_DESKTOP")))
+               (and (stringp value)
+                    ;; It can be "ubuntu:GNOME".
+                    (string-match-p "GNOME" value))))
+            ;; Not future-proof, but we can use it now.
+            (setq x-gtk-resize-child-frames 'resize-mode)
+          (setq x-gtk-resize-child-frames 'hide))))
 
   (defun entropy/emacs-company--company-box-content-length-restrict-advice (orig-func &rest orig-args)
     "Restrict  company box content length to reduce lagging feels."

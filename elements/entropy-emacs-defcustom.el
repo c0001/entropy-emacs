@@ -1065,7 +1065,7 @@ rich enhanced purpose there are two more options:
   :type 'number
   :group 'entropy/emacs-customize-group-for-company-mode)
 
-(defcustom entropy/emacs-company-quickhelp-delay-default 0.25
+(defcustom entropy/emacs-company-quickhelp-delay-default 2
   "Default unified company help-doc popup delay used for all type
 of `entropy/emacs-company-tooltip-use-type'."
   :type 'number
