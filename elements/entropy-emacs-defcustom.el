@@ -323,7 +323,7 @@ then enable the rich dashbord contents when value is 'rich'."
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
 ;; ****** theme choise
-(defcustom entropy/emacs-theme-options 'doom-dark+
+(defcustom entropy/emacs-theme-options 'ujelly
   "Choice for emacs theme"
   :type 'symbol
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
