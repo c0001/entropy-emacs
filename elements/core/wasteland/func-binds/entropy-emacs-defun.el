@@ -1948,7 +1948,11 @@ corresponding stuffs."
    ((string= "ujelly" x)
     (entropy/emacs-set-face-attribute
      'term-color-blue nil
-     :foreground "#61AFEF"))
+     :foreground "#61AFEF")
+    (entropy/emacs-set-face-attribute
+     'tooltip nil
+     :background "grey6"
+     :foreground "white"))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
