@@ -874,6 +874,35 @@ Return the defined function symbol. "
          prefix-name))))
 
 
+(defmacro entropy/emacs-do-without-johns (!hooks-pattern &rest body)
+  "The macro for inhibit some johns in hooks and run body.
+
+!HOOKS-PATTERN is formed as:
+
+   hookname        inhibit-johns
+     |                  |
+     v                  v
+  ((hook0 (hook0-feature0 hook0-feature1 ...))
+   (hook1 (hook1-feature1 hook1-feature1 ...))
+    ...)
+
+While inhibit-johns can be either an list of thus or a single
+symbol t which means disable this hook before run BODY. "
+  (let (let-core)
+    (dolist (pattern !hooks-pattern)
+      (if (eq (cadr pattern) t)
+          (push `(,(car pattern) nil) let-core)
+        (push `(,(car pattern)
+                (delete*
+                 nil
+                 (mapcar (lambda (x)
+                           (unless (member x ',(cadr pattern))
+                             x))
+                         ,(car pattern))))
+              let-core)))
+    `(let ,let-core
+       ,@body)))
+
 ;; *** Face manipulation
 
 (defun entropy/emacs-get-face-attribute-alist (face &optional frame)
