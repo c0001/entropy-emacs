@@ -1981,7 +1981,31 @@ corresponding stuffs."
     (entropy/emacs-set-face-attribute
      'tooltip nil
      :background "grey6"
-     :foreground "white"))
+     :foreground "white")
+    (entropy/emacs-set-face-attribute
+     'border nil
+     :background "grey6"
+     :foreground "#505000000000")
+    (entropy/emacs-set-face-attribute
+     'internal-border nil
+     :background "grey6"
+     :foreground "#505000000000")
+    (entropy/emacs-set-face-attribute
+     'vertical-border nil
+     :background "grey6"
+     :foreground "#505000000000")
+    (entropy/emacs-set-face-attribute
+     'window-divider nil
+     :background "grey6"
+     :foreground "#505000000000")
+    (entropy/emacs-set-face-attribute
+     'window-divider-first-pixel nil
+     :background "grey6"
+     :foreground "#505000000000")
+    (entropy/emacs-set-face-attribute
+     'window-divider-last-pixel nil
+     :background "grey6"
+     :foreground "#505000000000"))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
