@@ -502,7 +502,7 @@ enable it which do not want to be unset yet."
   (doom-modeline-def-segment company-indicator
     "Company mode backends indicator."
     (let ((company-lighter-base
-           (propertize "✪"
+           (propertize "𝍎"
                        'face
                        (if (doom-modeline--active)
                            'mode-line-emphasis
