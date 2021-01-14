@@ -151,7 +151,21 @@ specification."
                (dolist (win `(,win-above ,win-below))
                  (set-window-dedicated-p win t))
                (with-current-buffer songs-buf
-                 (entropy/emacs-music-mpc-songs-buffer-refresh)))))))
+                 (entropy/emacs-music-mpc-songs-buffer-refresh)))))
+
+      ;; patch `mode-line-format' for performance consideration
+      (let ((song-buf (mpc-proc-buffer (mpc-proc) 'songs)))
+        (when (buffer-live-p song-buf)
+          (require 'dash)
+          (with-current-buffer song-buf
+            (setq-local
+             mode-line-format
+             (--map-when
+              (eq it 'mode-line-position)
+              '(:eval (if entropy/emacs-current-session-is-idle
+                          mode-line-position
+                        " ⨂"))
+              mode-line-format)))))))
 
   (defun entropy/emacs-music-mpc-mini ()
     "The `mpc' mini tpype which just display side window group
