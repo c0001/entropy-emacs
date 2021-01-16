@@ -86,6 +86,23 @@
                "You can not using xref functions in minibuffer"
                ))))))))
 
+
+;; ** eldoc
+(use-package eldoc
+  :ensure nil
+  :diminish eldoc-mode
+  :eemacs-tpha
+  (((:enable t))
+   ("Basic"
+    (("M-h" eldoc "Document thing at point."
+      :enable t
+      :exit t
+      :global-bind t))))
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   eldoc-mode
+   (global-eldoc-mode 1)))
+
 ;; ** common server
 ;; *** individual servers
 ;; **** irony server
@@ -193,6 +210,7 @@ It is the recommendation of irony-mode official introduction."
 ;; ** microsoft language server
 ;; *** lsp-client
 ;; **** lsp-mode
+;; ****** lsp-mode core
 (use-package lsp-mode
   :diminish lsp-mode
   :commands (lsp lsp-mode lsp-deferred
@@ -230,7 +248,7 @@ It is the recommendation of irony-mode official introduction."
                  lsp-find-type-definition
                  lsp-find-declaration)
   :preface
-;; ***** eemacs-indhc
+;; ******* eemacs-indhc
   :eemacs-indhc
   (((:enable t)
     (lsp-mode nil nil (2 2 2 1 1)))
@@ -294,7 +312,7 @@ It is the recommendation of irony-mode official introduction."
      ("f c" lsp-find-declaration "Find declarations of the symbol under point"
       :enable t :exit t))))
 
-;; ***** eemacs-tphs
+;; ******* eemacs-tphs
   :eemacs-tpha
   (((:enable t))
    ("Basic"
@@ -304,7 +322,7 @@ It is the recommendation of irony-mode official introduction."
         'lsp-mode))
       "Lsp command map"
       :enable t :exit t))))
-;; ***** init
+;; ******* init
   :init
   (setq lsp-auto-guess-root t)
   (setq lsp-auto-configure t)
@@ -316,7 +334,8 @@ It is the recommendation of irony-mode official introduction."
         ;; are echoed.
         lsp-signature-doc-lines 0
         ;; forbidden auto enable `dap-mode'
-        lsp-enable-dap-auto-configure nil)
+        lsp-enable-dap-auto-configure nil
+        lsp-idle-delay entropy/emacs-ide-diagnostic-delay)
 
   ;; Inhibit auto header insertion via lsp-cland client refer to
   ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
@@ -336,11 +355,11 @@ It is the recommendation of irony-mode official introduction."
    (require 'yasnippet)
    (yas-global-mode))
 
-;; ***** config
+;; ******* config
   :config
 
-;; ****** advices
-;; ******* require extra clients
+;; ******** advices
+;; ********* require extra clients
   (advice-add 'lsp
               :before
               #'entropy/emacs-codeserver--lsp-mode-load-extra-clients)
@@ -348,7 +367,7 @@ It is the recommendation of irony-mode official introduction."
     (dolist (feature entropy/emacs-codeserver-lsp-mode-extra-clients)
       (require feature)))
 
-;; ******* remove the session file when close emacs
+;; ********* remove the session file when close emacs
   ;; delete transient lsp session file for prevent lagging with large
   ;; amounts of folder parsing while next emacs session setup.
   (add-hook 'kill-emacs-hook
@@ -358,7 +377,7 @@ It is the recommendation of irony-mode official introduction."
                (file-exists-p lsp-session-file))
       (delete-file lsp-session-file)))
 
-;; ******* eemacs lsp start prompting
+;; ********* eemacs lsp start prompting
   (advice-add 'lsp-deferred
               :before
               #'entropy/emacs-codeserver--lsp-deferred-promt)
@@ -385,7 +404,7 @@ nervous."
      (green "..."))
     (redisplay t))
 
-;; ******* exclude `major-mode' for starting `lsp-mode'
+;; ********* exclude `major-mode' for starting `lsp-mode'
   (advice-add 'lsp
               :around
               #'entropy/emacs-codeserver--lsp-exclude)
@@ -397,7 +416,7 @@ nervous."
       (apply orig-func orig-args)))
 
 
-;; ******* lsp idle hook specifications
+;; ********* lsp idle hook specifications
   (defvar entropy/emacs-codeserver--lsp-on-idle-cases
     '(
       ;; Remove `lsp--document-highlight' when current file is not
@@ -430,10 +449,10 @@ predicate when run it, see
               #'entropy/emacs-codeserver--run-lsp-on-idle-hooks-for-cases)
 
 
-;; ******* lsp rename without be under readonly pressure
+;; ********* lsp rename without be under readonly pressure
 (entropy/emacs-make-function-inhibit-readonly 'lsp-rename t)
 
-;; ****** others
+;; ******** others
   ;; Remove clients not officially included in `lsp-mode' internal
   ;; subroutine to prevent from coverring eemacs customizations.
   (setq lsp-client-packages
@@ -443,14 +462,14 @@ predicate when run it, see
                             x))
                         lsp-client-packages))))
 
-;; **** lsp-ui
+;; ****** lsp-mode UI
 (use-package lsp-ui
-;; ***** preface
+;; ******* preface
 
   :preface
   (defvar entropy/emacs-codeserver-lsp-ui-doc-timer nil)
 
-;; ***** commands and binds
+;; ******* commands and binds
   :commands (lsp-ui-peek-find-definitions
              lsp-ui-peek-find-references
              lsp-ui-imenu)
@@ -459,7 +478,7 @@ predicate when run it, see
               ([remap xref-find-references] . lsp-ui-peek-find-references)
               ("C-c u" . lsp-ui-imenu))
 
-;; ***** eemacs-indhc
+;; ******* eemacs-indhc
   :eemacs-indhc
   (((:enable t)
     (lsp-ui-mode nil nil (1 2 2)))
@@ -502,7 +521,7 @@ predicate when run it, see
      ("f s" lsp-ui-find-workspace-symbol "List project-wide symbols matching the query string PATTERN"
       :enable t :exit t))))
 
-;; ***** eemacs-indhca
+;; ******* eemacs-indhca
   :eemacs-indhca
   (((:enable t)
     (lsp-mode))
@@ -513,14 +532,14 @@ predicate when run it, see
       "lsp ui command map"
       :enable t :exit t))))
 
-;; ***** init
+;; ******* init
   :init
   (setq lsp-ui-doc-position 'top
-        lsp-ui-doc-delay 1.5)
+        lsp-ui-doc-delay entropy/emacs-ide-doc-delay)
 
-;; ***** config
+;; ******* config
   :config
-;; ****** advices
+;; ******** advices
   ;; EEMACS_MAINTENANCE: this patch need to follow update with `lsp-ui' upstream.
   (defun lsp-ui-doc--hide-frame ()
     "Hide the frame.
@@ -540,7 +559,7 @@ NOTE: this function has been patched by eemacs to optimize performance."
            (erase-buffer)))
         (make-frame-invisible doc-frame))))
 
-;; ****** Doc timer
+;; ******** Doc timer
   (defvar entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
   (defun entropy/emacs-codeserver--lsp-ui-doc-make-request nil
     "Request the documentation to the LS."
@@ -632,8 +651,8 @@ NOTE: note this function is a variable watcher, do not call it manually!"
 
   )
 
-;; **** lsp extensions
-;; ***** lsp python ms
+;; ****** lsp-mode other extension
+;; ******* lsp python ms
 ;; Microsoft python-language-server support
 (use-package lsp-python-ms
   :if (eq entropy/emacs-codeserver-prefer-pyls-type 'mspyls)
@@ -643,12 +662,293 @@ NOTE: note this function is a variable watcher, do not call it manually!"
   (when (executable-find "python3")
     (setq lsp-python-ms-python-executable-cmd "python3")))
 
-;; ***** lsp python pyright
+;; ******* lsp python pyright
 (use-package lsp-pyright
   :if (eq entropy/emacs-codeserver-prefer-pyls-type 'pyright)
   :init
   (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
                'lsp-pyright))
+
+
+;; **** Eglot
+
+(use-package eglot
+  :commands (eglot eglot-ensure)
+  :init
+  (setq eglot-send-changes-idle-time
+        entropy/emacs-ide-diagnostic-delay)
+
+  ;; We stay out of company setting from eglot internal consistent
+  ;; specified since eemacs has its own specification.
+  (entropy/emacs-lazy-load-simple eglot
+    (dolist (item '(completion-styles company))
+      (add-to-list 'eglot-stay-out-of item)))
+
+  (dolist (el entropy/emacs-ide-for-them)
+    (when (eq (entropy/emacs-get-use-ide-type el) 'eglot)
+      (add-hook
+       (intern (format "%s-hook" el))
+       #'eglot-ensure)))
+
+  :config
+;; ***** mode spec framework
+  (defvar entropy/emacs-codeserver--eglot-modes-spec nil)
+  (defun entropy/emacs-codeserver--eglot-completion-with-placeholder
+      ()
+    "Add :usePlaceholders to the lsp SERVER specification which
+let eglot do completion with interface argument injection."
+    (mapc (lambda (eglot-pm)
+            (let* ((server-item (ignore-errors (cadr eglot-pm)))
+                   (server (cond
+                            ((stringp server-item)
+                             (make-symbol (format ":%s" server-item)))
+                            (t
+                             nil)))
+                   (spec-exist (alist-get server eglot-workspace-configuration)))
+              (when server
+                (cond (spec-exist
+                       (let ((spec-plist (car spec-exist)))
+                         (unless (member :usePlaceholders spec-plist)
+                           (plist-put spec-plist :usePlaceholders t))))
+                      (t
+                       (add-to-list
+                        'eglot-workspace-configuration
+                        `(,server (:usePlaceholders . t))))))))
+          eglot-server-programs))
+
+  (defun entropy/emacs-codeserver--eglot-top-prepare (&rest _)
+    (make-local-variable 'eglot-workspace-configuration)
+    (setq-local eldoc-idle-delay entropy/emacs-ide-doc-delay)
+    (entropy/emacs-company-start-with-yas)
+    (mapc
+     (lambda (it)
+       (when (ignore-errors
+               (or (eq (car it) major-mode)
+                   (member major-mode (car it))))
+         (let ((func-or-form (cdr it)))
+           (cond
+            ((symbolp func-or-form)
+             (funcall func-or-form))
+            ((listp func-or-form)
+             (eval func-or-form))))))
+     entropy/emacs-codeserver--eglot-modes-spec)
+    (entropy/emacs-codeserver--eglot-completion-with-placeholder))
+
+  (dolist (func '(eglot eglot-ensure))
+    (advice-add func :before
+                #'entropy/emacs-codeserver--eglot-top-prepare))
+
+;; ***** server chosen
+
+  (defun entropy/emacs-codeserver--eglot-server-chosen-hack
+      (mode concact)
+    (let* ((rtn (copy-tree eglot-server-programs)))
+      (make-local-variable 'eglot-server-programs)
+      (setq eglot-server-programs
+            (--map-when
+             (equal (car it) mode)
+             (cons (car it)
+                   concact)
+             rtn))
+      (unless (alist-get mode eglot-server-programs)
+        (setq eglot-server-programs
+              (append `((,mode . ,concact))
+                      eglot-server-programs)))))
+
+  (defun entropy/emacs-codeserver--eglot-server-chosen-for-PYTHON ()
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     'python-mode
+     (cl-case entropy/emacs-codeserver-prefer-pyls-type
+       (pyls ("pyls"))
+       (pyright '("pyright-langserver" "--stdio")))))
+  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+               '(python-mode
+                 . entropy/emacs-codeserver--eglot-server-chosen-for-PYTHON))
+
+  (defun entropy/emacs-codeserver--eglot-server-chosen-for-PHP ()
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     'php-mode
+     '("intelephense" "--stdio")))
+  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+               '(php-mode
+                 . entropy/emacs-codeserver--eglot-server-chosen-for-PHP))
+
+  (defun entropy/emacs-codeserver--eglot-server-chosen-for-C&CPP ()
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     '(c++-mode c-mode) '("clangd")))
+  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+               '((c++-mode c-mode)
+                 . entropy/emacs-codeserver--eglot-server-chosen-for-C&CPP))
+
+  (defun entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS ()
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     '(js-mode typescript-mode)
+     `("typescript-language-server" "--tsserver-path"
+       ,(executable-find "tsserver")
+       "--stdio"))
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     'js2-mode
+     `("typescript-language-server" "--tsserver-path"
+       ,(executable-find "tsserver")
+       "--stdio")))
+  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+               '((js-mode js2-mode typescript-mode)
+                 . entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS))
+
+
+
+;; ***** doc show
+
+  (defcustom entropy/emacs-eglot-doc-buffer-name "*eglot doc*"
+    "The name of eglot tooltip name."
+    :type 'string)
+
+  (defcustom entropy/emacs-eglot-doc-tooltip-timeout 30
+    "The timeout of eglot tooltip show time, in seconds."
+    :type 'integer)
+
+  (defcustom entropy/emacs-eglot-doc-tooltip-border-width 6
+    "The border width of eglot tooltip, default is 6 px."
+    :type 'integer)
+
+  (defun eglot-ui--show-doc-internal (string)
+    (let* (
+           ;;(bg-mode (frame-parameter nil 'background-mode))
+           (background-color (face-attribute 'tooltip :background)))
+      (cond
+       ((and (fboundp 'posframe-show) (display-graphic-p))
+        (require 'posframe)
+        (posframe-show
+         entropy/emacs-eglot-doc-buffer-name
+         :string string
+         :poshandler #'posframe-poshandler-frame-top-right-corner
+         :timeout entropy/emacs-eglot-doc-tooltip-timeout
+         :background-color background-color
+         :foreground-color (face-attribute 'default :foreground)
+         :internal-border-width
+         entropy/emacs-eglot-doc-tooltip-border-width
+         :hidehandler (lambda (&rest _) t))
+        (sit-for most-positive-fixnum t)
+        (posframe-hide entropy/emacs-eglot-doc-buffer-name))
+       ((fboundp 'popup-tip)
+        (require 'popup)
+        (let ((pop (popup-tip string :nowait t :margin 1)))
+          (sit-for most-positive-fixnum t)
+          (popup-delete pop)))
+       (t
+        (let ((win-cfg (current-window-configuration)))
+          (switch-to-buffer-other-window entropy/emacs-eglot-doc-buffer-name)
+          (with-current-buffer entropy/emacs-eglot-doc-buffer-name
+            (erase-buffer)
+            (insert string)
+            (beginning-of-buffer)
+            (read-only-mode t)
+            (local-set-key (kbd "q") 'kill-buffer-and-window)
+            (local-set-key (kbd "n") 'forward-line)
+            (local-set-key (kbd "j") 'forward-line)
+            (local-set-key (kbd "p") 'previous-line)
+            (local-set-key (kbd "k") 'previous-line)))))))
+
+  (defvar __this_eglot-show-doc--sig-showing nil)
+  (defvar __this_eglot-show-doc--this-buffer nil)
+  (defvar __this_eglot-show-doc--this-position-params nil)
+  (defvar __this_eglot-show-doc--this-server nil)
+  (defun eglot-ui-show-doc ()
+    "Show documentation at point, use by `posframe'."
+    (interactive)
+    (let* (_)
+      (setq __this_eglot-show-doc--this-buffer (current-buffer)
+            __this_eglot-show-doc--this-server (eglot--current-server-or-lose)
+            __this_eglot-show-doc--this-position-params (eglot--TextDocumentPositionParams)
+            __this_eglot-show-doc--sig-showing nil)
+      (cl-macrolet ((when-buffer-window
+                     (&body body) ; notice the exception when testing with `ert'
+                     `(when (or (get-buffer-window __this_eglot-show-doc--this-buffer)
+                                (ert-running-test))
+                        (with-current-buffer __this_eglot-show-doc--this-buffer ,@body))))
+        (when (eglot--server-capable :signatureHelpProvider)
+          (jsonrpc-async-request
+           __this_eglot-show-doc--this-server
+           :textDocument/signatureHelp __this_eglot-show-doc--this-position-params
+           :success-fn
+           (eglot--lambda ((SignatureHelp) signatures activeSignature activeParameter)
+             (when-buffer-window
+              (when (cl-plusp (length signatures))
+                (setq __this_eglot-show-doc--sig-showing t)
+                (eglot-ui--show-doc-internal
+                 (eglot--sig-info signatures activeSignature activeParameter)))))
+           :deferred :textDocument/signatureHelp))
+        (when (eglot--server-capable :hoverProvider)
+          (jsonrpc-async-request
+           __this_eglot-show-doc--this-server
+           :textDocument/hover __this_eglot-show-doc--this-position-params
+           :success-fn (eglot--lambda ((Hover) contents range)
+                         (unless __this_eglot-show-doc--sig-showing
+                           (when-buffer-window
+                            (when-let (info (and (not (seq-empty-p contents))
+                                                 (eglot--hover-info contents
+                                                                    range)))
+                              (eglot-ui--show-doc-internal info)))))
+           :deferred :textDocument/hover)))))
+
+
+  (defvar eglot-ui-doc-idle-timer nil)
+  (defvar eglot--ui-doc-enable-buffers nil)
+
+  (defun eglot-ui-doc-display ()
+    (when eglot-ui-doc-mode
+      (eglot--highlight-piggyback nil)
+      (eglot-ui-show-doc)))
+
+  (define-minor-mode eglot-ui-doc-mode
+    "Eglot hover doc show mode"
+    :init-value nil
+    :global nil
+    (cond ((null eglot-ui-doc-mode)
+           (progn
+             (when (and (timerp eglot-ui-doc-idle-timer)
+                        (null
+                         (setq eglot--ui-doc-enable-buffers
+                          (--filter (and (bufferp it) (buffer-live-p it))
+                                    (delete*
+                                     (current-buffer)
+                                     eglot--ui-doc-enable-buffers)))))
+               (cancel-timer eglot-ui-doc-idle-timer)
+               (setq eglot-ui-doc-idle-timer nil))
+             (eldoc-mode 1)))
+          (eglot-ui-doc-mode
+           (eldoc-mode 0)
+           (push (current-buffer)
+                 eglot--ui-doc-enable-buffers)
+           (unless (timerp eglot-ui-doc-idle-timer)
+             (setq eglot-ui-doc-idle-timer
+                   (run-with-idle-timer
+                    entropy/emacs-ide-doc-delay
+                    t
+                    #'eglot-ui-doc-display
+                    ))))))
+
+;; ***** Others spec
+  (with-eval-after-load 'markdown-mode
+    (defun markdown-fontify-hrs (last)
+      "Add text properties to horizontal rules from point to LAST.
+
+EEMACS_TEMPORALLY_HACK:
+NOTE: this function has been redefined by eemacs to temporally fix overflow hr line display in eldoc."
+      (when (markdown-match-hr last)
+        (let ((hr-char (markdown--first-displayable markdown-hr-display-char)))
+          (add-text-properties
+           (match-beginning 0) (match-end 0)
+           `(face markdown-hr-face
+                  font-lock-multiline t
+                  ,@(when (and markdown-hide-markup hr-char)
+                      `(display ,(make-string
+                                  (/ (window-body-width) 5)
+                                  hr-char)))))
+          t))))
+
+  )
+
 
 ;; *** lsp instances
 ;; **** lsp html&css

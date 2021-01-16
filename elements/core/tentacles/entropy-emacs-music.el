@@ -156,7 +156,6 @@ specification."
       ;; patch `mode-line-format' for performance consideration
       (let ((song-buf (mpc-proc-buffer (mpc-proc) 'songs)))
         (when (buffer-live-p song-buf)
-          (require 'dash)
           (with-current-buffer song-buf
             (setq-local
              mode-line-format

@@ -912,24 +912,6 @@ are pre-defined for reversing the namespace update possible:
   :type 'directory
   :group 'entropy/emacs-customize-group-for-coworkers)
 
-;; *** Codeserver
-(defgroup entropy/emacs-customize-group-for-codeserver nil
-  "Eemacs language servers integraged configuration customizable group."
-  :group 'entropy-emacs-customize-top-group)
-
-(defcustom entropy/emacs-codeserver-prefer-pyls-type 'pyright
-  "Choose preferred python language server type:
-
-- 'mspyls':  microsoft python lanuage server
-- 'pyls':    official python language server
-- 'pyright': next generation vscode python language server (used as default)
-"
-  :type '(choice
-          (const :tag "pyls" pyls)
-          (const :tag "lsp-ms-pyls" mspyls)
-          (const :tag "lsp-pyright" pyright))
-  :group 'entropy/emacs-customize-group-for-codeserver)
-
 ;; *** IDE
 (defgroup entropy/emacs-customize-group-for-IDE-configuration nil
   "Eemacs IDE integrated configuration customizable group."
@@ -942,20 +924,22 @@ make emacs simplify for coding."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
-(defcustom entropy/emacs-ide-use-for-all 'lsp
+(defcustom entropy/emacs-ide-use-for-all 'eglot
   "Enable =entropy-emacs= IDE configuration for all major-mode
 defined in `entropy/emacs-ide-for-them' with a same type.
 
 Valid value are:
 
-- 'lsp': use microsoft language server for all of them
-- 'traditional' use traditional way for all of them
+- 'lsp'         : use microsoft language server for all of them
+- 'eglot'       : use simple LSP client involved from gnu-elpa official suggestion
+- 'traditional' : use traditional way for all of them
 
 Although you've set this, you can still set them individually by
 each specific name of them, this just a common initializing
 option."
   :type '(choice
           (const :tag "microsoft language server protocol" lsp)
+          (const :tag "Simple official LSP client" eglot)
           (const :tag "Individual language servers (traditional way)" traditional))
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
@@ -997,6 +981,36 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
       (eval form))))
 
 (entropy/emacs-ide-gen-customized-variables)
+
+(defcustom entropy/emacs-ide-doc-delay 0.5
+  "Ide system doc helper show idle delay"
+  :type 'float
+  :group 'entropy/emacs-customize-group-for-IDE-configuration)
+
+(defcustom entropy/emacs-ide-diagnostic-delay 0.5
+  "Ide system parseer response idle delay"
+  :type 'float
+  :group 'entropy/emacs-customize-group-for-IDE-configuration)
+
+
+;; *** language server specification
+(defgroup entropy/emacs-customize-group-for-codeserver nil
+  "Eemacs language servers integraged configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-IDE-configuration)
+
+(defcustom entropy/emacs-codeserver-prefer-pyls-type 'pyright
+  "Choose preferred python language server type:
+
+- 'mspyls':  microsoft python lanuage server
+- 'pyls':    official python language server
+- 'pyright': next generation vscode python language server (used as default)
+"
+  :type '(choice
+          (const :tag "pyls" pyls)
+          (const :tag "lsp-ms-pyls" mspyls)
+          (const :tag "lsp-pyright" pyright))
+  :group 'entropy/emacs-customize-group-for-codeserver)
+
 
 ;; **** code folding group
 (defgroup entropy/emacs-customize-group-for-code-folding nil

@@ -295,6 +295,7 @@
      (global-hl-todo-mode t)
      (dolist (el '(("EEMACS_MAINTENANCE" . "green")
                    ("EEMACS_BUG" . "red")
+                   ("EEMACS_TEMPORALLY_HACK" . "yellow")
                    ("EEMACS_REFERENCE" . "HotPink1")))
        (add-to-list 'hl-todo-keyword-faces
                     el)))))

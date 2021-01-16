@@ -150,14 +150,6 @@
          (yellow (symbol-name 'company-idle-delay))
          (red (number-to-string company-idle-delay))))))
 
-  (defun entropy/emacs-company--gc-optimize ()
-    "Maximize `gc-cons-threshold' when company session is
-actived, as the rest that next garbage-collect operation til
-`entropy/emacs-gc--idle-time-recovery' triggered."
-    (when (and (bound-and-true-p company-emulation-alist)
-               (not (equal company-emulation-alist '((t . nil)))))
-      (setq gc-cons-threshold most-positive-fixnum)))
-
   (defun entropy/emacs-company-files (command)
     (interactive (list 'interactive))
     (unless (or buffer-read-only
@@ -209,6 +201,9 @@ actived, as the rest that next garbage-collect operation til
    global-company-mode
    (global-company-mode t)
    (setq company-echo-delay 1)          ;reduce lagging on increase company echo idle delay
+   ;; flex completion to company-capf (using completion-at-point-functions)
+   (add-to-list 'completion-styles
+                'flex)
    (dolist (func '(company-idle-begin company-complete))
      (advice-add func
                  :before 'entropy/emacs-company-start-with-yas))
@@ -222,9 +217,6 @@ actived, as the rest that next garbage-collect operation til
 ;; **** basic setting
   ;; aligns annotation to the right hand side
   (setq company-tooltip-align-annotations t)
-
-  ;; optimized gc while company session for reducing lags
-  (add-hook 'post-command-hook #'entropy/emacs-company--gc-optimize)
 
   ;; common internal customization
   (setq
@@ -568,10 +560,17 @@ completion when calling: 'execute-extended-command' or
   (advice-add 'lsp
               :after
               #'entropy/emacs-company-add-lsp-backend))
+(entropy/emacs-lazy-load-simple eglot
+  (dolist (func '(eglot eglot-ensure))
+    (advice-add func
+                :after
+                #'entropy/emacs-company-add-lsp-backend)))
 
 (defun entropy/emacs-company-add-lsp-backend (&rest args)
   (make-local-variable 'company-backends)
-  (setq-local company-backends (remove 'company-lsp company-backends))
+  (setq-local company-backends (remove 'company-lsp company-backends)
+              completion-ignore-case t
+              completion-styles '(flex basic partial-completion emacs22))
   (add-to-list 'company-backends
                '(company-files
                  company-capf

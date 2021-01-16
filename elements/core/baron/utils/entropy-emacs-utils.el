@@ -42,6 +42,9 @@
 (when sys/win32p
   (require 'font-lock+))
 
+;; ** dash
+(use-package dash :init (require 'dash))
+
 ;; ** memoize
 (use-package memoize
   :commands
@@ -353,6 +356,11 @@
     "Judge whether posframe can be used in current emacs session."
     (and (not (version< emacs-version "26.1"))
          (display-graphic-p))))
+
+;; ** popup
+
+(use-package popup
+  :commands (popup-tip))
 
 ;; ** hydra
 ;; *** hydra core

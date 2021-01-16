@@ -101,6 +101,7 @@
         doom-modeline
         doom-themes
         edit-indirect
+        eglot
         eldoc-eval
         elfeed
         elisp-refs
