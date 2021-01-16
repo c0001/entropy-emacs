@@ -121,7 +121,12 @@ This procedure will refresh all packages status."
       (entropy/emacs-package--refresh-gnupg-homedir))
     (entropy/emacs-package--package-initialize t)
     (unless entropy/emacs-package-prepare-done
-      (setq entropy/emacs-package-prepare-done t))))
+      (setq entropy/emacs-package-prepare-done t)))
+  ;; --- debug use ---
+  ;; (print package--downloads-in-progress)
+  ;; (print package-user-dir)
+  ;; (print package-archives)
+  )
 
 ;; ** Package install subroutines
 ;; *** core
@@ -138,7 +143,7 @@ Return t for exists status or nil for otherwise."
         nil
       t)))
 
-(defun entropy/emacs-package-install-package (update &rest args)
+(defun entropy/emacs-package-install-package (update print-prefix &rest args)
   "Install/update package of pkg in car of ARGS.
 
 Update package when UPDATE was non-nil.
@@ -148,26 +153,38 @@ When installing encounters the fatal error, put the pkg into
   (let ((current-pkgs (copy-tree package-alist))
         (pkg (car args))
         install-pass
-        install-core-func)
+        install-core-func
+        error-rtn)
     (setq install-core-func
           (lambda (&optional not-prompt)
             (setq install-pass
-                  (condition-case nil
+                  (condition-case error
                       (let ((inhibit-message not-prompt))
                         (apply 'package-install args)
                         (push pkg entropy/emacs-package-install-success-list))
-                    (error 'notpassed)))
+                    (t (prog1 'notpassed
+                         (setq error-rtn error)))))
             (when (eq install-pass 'notpassed)
-              (push pkg
+              (push (cons pkg error-rtn)
                     entropy/emacs-package-install-failed-list))))
     (when update
       (package-delete (car (alist-get pkg current-pkgs)) t))
+    ;; install package after package archvie contents refresh
+    ;; when needed.
+    (unless (ignore-errors (assoc package package-archive-contents))
+      (package-refresh-contents))
     (if (not noninteractive)
         (funcall install-core-func)
-      (entropy/emacs-message-do-message
-       "[%s] package '%s' ..."
-       (blue (if update "Updating" "Installing"))
-       (yellow (symbol-name pkg)))
+      (if print-prefix
+          (entropy/emacs-message-do-message
+           "%s [%s] package '%s' ..."
+           print-prefix
+           (blue (if update "Updating" "Installing"))
+           (yellow (symbol-name pkg)))
+        (entropy/emacs-message-do-message
+         "[%s] package '%s' ..."
+         (blue (if update "Updating" "Installing"))
+         (yellow (symbol-name pkg))))
       (cond ((and (package-installed-p pkg)
                   (null update))
              (entropy/emacs-message-do-message
@@ -178,19 +195,26 @@ When installing encounters the fatal error, put the pkg into
                  (entropy/emacs-message-do-message
                   (green "✓ DONE"))
                (entropy/emacs-message-do-message
-                (red "✕ FAILED"))))))))
+                "%s -- %s"
+                (red "✕ FAILED")
+                (cdr error-rtn))))))))
 
 ;; *** error prompt for failing items
 
 (defun entropy/emacs-package-prompt-install-fails ()
   (when entropy/emacs-package-install-failed-list
+    ;; Add stdout newline after install message when in batch-mode
+    (when noninteractive
+      (princ "\n")
+      (princ "\n"))
     (let ((count 1))
       (dolist (pkg entropy/emacs-package-install-failed-list)
         (entropy/emacs-message-do-message
-         "%s: %s '%s'"
+         "%s: %s '%s' because of '%s'"
          (yellow (number-to-string count))
          (red "failed to install pkg")
-         (yellow (symbol-name pkg)))
+         (yellow (symbol-name (car pkg)))
+         (cdr pkg))
         (cl-incf count)))
     (if noninteractive
         (error "")
@@ -204,17 +228,18 @@ When installing encounters the fatal error, put the pkg into
     (entropy/emacs-message-do-message
      (blue "Checking extensions satisfied status ..."))
     (require 'entropy-emacs-package-requirements)
-    (let ((package-check-signature nil))
+    (let ((package-check-signature nil)
+          (count 1))
       (dolist (package entropy-emacs-packages)
         (unless (or (null package)
                     (package-installed-p package))
-          ;; install package before package archvie contents refresh
-          ;; when needed.
-          (if (ignore-errors (assoc package package-archive-contents))
-              (ignore-errors (entropy/emacs-package-install-package nil package))
-            (package-refresh-contents)
-            (ignore-errors
-              (entropy/emacs-package-install-package nil package))))))
+          (ignore-errors
+            (entropy/emacs-package-install-package
+             nil
+             (format "[%s/%s]" count (length entropy-emacs-packages))
+             package
+             ))
+          (cl-incf count))))
     (entropy/emacs-package-prompt-install-fails)
     (entropy/emacs-message-do-message
      (green "All packages installed, congratulations 👏"))))
@@ -252,7 +277,7 @@ When installing encounters the fatal error, put the pkg into
                           " will be updated after 5 seconds")))
           (sleep-for 5)
           (dolist (pkg-id updates)
-            (entropy/emacs-package-install-package t pkg-id))
+            (entropy/emacs-package-install-package t nil pkg-id))
           (entropy/emacs-package-prompt-install-fails)
           ;;; FIXME: package reinitialize after updates cause error
           ;;; for `yasnippet-snippets' that for autroload deleted old

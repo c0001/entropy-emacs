@@ -116,7 +116,6 @@ Emacs will auto close after 6s ......"))
 (entropy/emacs-package-common-start)
 
 ;; ***** coworker
-
 (require 'entropy-emacs-coworker)
 
 ;; **** top utils

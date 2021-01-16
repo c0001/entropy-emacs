@@ -39,10 +39,6 @@
 ;; ** require
 (require 'entropy-emacs-message)
 (require 'entropy-emacs-package)
-
-;; prepare for package operation for other tentacles loading, it's
-;; needed.
-(entropy/emacs-package-prepare-foras)
 (require 'entropy-emacs-coworker)
 (require 'entropy-emacs-ext)
 

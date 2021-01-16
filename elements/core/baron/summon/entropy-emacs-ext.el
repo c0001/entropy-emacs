@@ -324,10 +324,10 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 ;; ** main
 (defun entropy/emacs-ext-main ()
   (let ((extras-status (entropy/emacs-ext--check-all-extras)))
-    (unless (eq extras-status t)
-      (entropy/emacs-ext--extra-prompt-troubel extras-status))
     (if (not (eq extras-status t))
-        nil
+        (prog1
+            nil
+          (entropy/emacs-ext--extra-prompt-troubel extras-status))
       (unless entropy/emacs-ext--loaded
         (entropy/emacs-ext--load-extra)
         (when (and entropy/emacs-ext-user-specific-load-paths
