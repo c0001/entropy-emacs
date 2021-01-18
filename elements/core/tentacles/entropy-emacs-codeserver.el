@@ -209,6 +209,42 @@ It is the recommendation of irony-mode official introduction."
 
 ;; ** microsoft language server
 ;; *** lsp-client
+
+;; **** uniform
+
+(defvar entropy/emacs-codeserver--LSP-doc-ui-timer-register nil)
+(defun entropy/emacs-codeserver--LSP-doc-ui-timer-watcher
+    (symbol newval operation where)
+  (when (eq operation 'set)
+    (let ((timer-obj (alist-get symbol entropy/emacs-codeserver--LSP-doc-ui-timer-register)))
+      (cond (timer-obj
+             (let ((timer-var (car timer-obj))
+                   (timer-func (cdr timer-obj)))
+               (when (timerp (symbol-value timer-var))
+                 (cancel-timer (symbol-value timer-var))
+                 (set timer-var nil)
+                 (cancel-function-timers timer-func)
+                 (set timer-var
+                      (run-with-idle-timer newval t timer-func)))))
+            ((eq symbol 'entropy/emacs-ide-doc-delay)
+             (let (_)
+               (dolist (item entropy/emacs-codeserver--LSP-doc-ui-timer-register)
+                 (let ((var (car item)))
+                   (set var newval)))
+               ))))))
+
+(defmacro entropy/emacs-coceserver--LSP-doc-ui-timer-watcher-regist
+    (idle-var idle-timer-var idle-timer-func)
+  `(progn
+     (add-to-list 'entropy/emacs-codeserver--LSP-doc-ui-timer-register
+                  '(,idle-var . (,idle-timer-var . ,idle-timer-func)))
+     (add-variable-watcher
+      ',idle-var #'entropy/emacs-codeserver--LSP-doc-ui-timer-watcher)))
+
+(add-variable-watcher
+ 'entropy/emacs-ide-doc-delay
+ #'entropy/emacs-codeserver--LSP-doc-ui-timer-watcher)
+
 ;; **** lsp-mode
 ;; ****** lsp-mode core
 (use-package lsp-mode
@@ -628,26 +664,10 @@ updating."
               :around
               #'entropy/emacs-codeserver--lsp-ui-doc-mode-around-advice)
 
-  (defun entropy/emacs-codeserver--lsp-ui-doc-delay-var-wather
-      (symbol newval operation where)
-    "Automatically rebind
-`entropy/emacs-codeserver-lsp-ui-doc-timer' when
-`lsp-ui-doc-delay' has changed.
-
-NOTE: note this function is a variable watcher, do not call it manually!"
-    (when (and (eq operation 'set)
-               (timerp entropy/emacs-codeserver-lsp-ui-doc-timer))
-      (cancel-timer entropy/emacs-codeserver-lsp-ui-doc-timer)
-      (setq entropy/emacs-codeserver-lsp-ui-doc-timer
-            (run-with-idle-timer
-             newval
-             t
-             #'entropy/emacs-codeserver--lsp-ui-doc-make-request))
-      (message "Change `lsp-ui-doc-dealy' to %s" newval)))
-
-  (add-variable-watcher
-   'lsp-ui-doc-delay
-   #'entropy/emacs-codeserver--lsp-ui-doc-delay-var-wather)
+  (entropy/emacs-coceserver--LSP-doc-ui-timer-watcher-regist
+   lsp-ui-doc-delay
+   entropy/emacs-codeserver-lsp-ui-doc-timer
+   entropy/emacs-codeserver--lsp-ui-doc-make-request)
 
   )
 
@@ -738,7 +758,7 @@ let eglot do completion with interface argument injection."
     (advice-add func :before
                 #'entropy/emacs-codeserver--eglot-top-prepare))
 
-;; ***** server chosen
+;; ***** server spec
 
   (defun entropy/emacs-codeserver--eglot-server-chosen-hack
       (mode concact)
@@ -755,6 +775,7 @@ let eglot do completion with interface argument injection."
               (append `((,mode . ,concact))
                       eglot-server-programs)))))
 
+;; ****** python
   (defun entropy/emacs-codeserver--eglot-server-chosen-for-PYTHON ()
     (entropy/emacs-codeserver--eglot-server-chosen-hack
      'python-mode
@@ -765,6 +786,7 @@ let eglot do completion with interface argument injection."
                '(python-mode
                  . entropy/emacs-codeserver--eglot-server-chosen-for-PYTHON))
 
+;; ****** php
   (defun entropy/emacs-codeserver--eglot-server-chosen-for-PHP ()
     (entropy/emacs-codeserver--eglot-server-chosen-hack
      'php-mode
@@ -773,6 +795,7 @@ let eglot do completion with interface argument injection."
                '(php-mode
                  . entropy/emacs-codeserver--eglot-server-chosen-for-PHP))
 
+;; ****** C and CPP
   (defun entropy/emacs-codeserver--eglot-server-chosen-for-C&CPP ()
     (entropy/emacs-codeserver--eglot-server-chosen-hack
      '(c++-mode c-mode) '("clangd")))
@@ -780,6 +803,7 @@ let eglot do completion with interface argument injection."
                '((c++-mode c-mode)
                  . entropy/emacs-codeserver--eglot-server-chosen-for-C&CPP))
 
+;; ****** JS
   (defun entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS ()
     (entropy/emacs-codeserver--eglot-server-chosen-hack
      '(js-mode typescript-mode)
@@ -795,6 +819,24 @@ let eglot do completion with interface argument injection."
                '((js-mode js2-mode typescript-mode)
                  . entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS))
 
+;; ****** Html
+  (defun entropy/emacs-codeserver--eglot-server-chosen-for-HTML ()
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     '(web-mode html-mode)
+     `("html-languageserver"
+       "--stdio")))
+  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+               '((web-mode html-mode)
+                 . entropy/emacs-codeserver--eglot-server-chosen-for-HTML))
+
+  (defun entropy/emacs-codeserver--eglot-server-chosen-for-CSS ()
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     'css-mode
+     `("css-languageserver"
+       "--stdio")))
+  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+               '(css-mode
+                 . entropy/emacs-codeserver--eglot-server-chosen-for-CSS))
 
 
 ;; ***** doc show
@@ -892,6 +934,7 @@ let eglot do completion with interface argument injection."
            :deferred :textDocument/hover)))))
 
 
+  (defvar eglot-ui-doc-idle-delay entropy/emacs-ide-doc-delay)
   (defvar eglot-ui-doc-idle-timer nil)
   (defvar eglot--ui-doc-enable-buffers nil)
 
@@ -923,10 +966,15 @@ let eglot do completion with interface argument injection."
            (unless (timerp eglot-ui-doc-idle-timer)
              (setq eglot-ui-doc-idle-timer
                    (run-with-idle-timer
-                    entropy/emacs-ide-doc-delay
+                    eglot-ui-doc-idle-delay
                     t
                     #'eglot-ui-doc-display
                     ))))))
+
+  (entropy/emacs-coceserver--LSP-doc-ui-timer-watcher-regist
+   eglot-ui-doc-idle-delay
+   eglot-ui-doc-idle-timer
+   eglot-ui-doc-display)
 
 ;; ***** Others spec
   (with-eval-after-load 'markdown-mode
@@ -946,6 +994,19 @@ NOTE: this function has been redefined by eemacs to temporally fix overflow hr l
                                   (/ (window-body-width) 5)
                                   hr-char)))))
           t))))
+
+  (defun eglot-shutdown--around-advice-0
+      (orig-func &rest orig-args)
+    "Remove symbol highlight and close idle doc show timer"
+    (mapc #'delete-overlay eglot--highlights)
+    (when eglot-ui-doc-mode
+      (eglot-ui-doc-mode 0))
+    (let ((rtn (apply orig-func orig-args)))
+      rtn))
+
+  (advice-add 'eglot-shutdown
+              :around
+              #'eglot-shutdown--around-advice-0)
 
   )
 
