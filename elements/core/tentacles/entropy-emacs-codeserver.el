@@ -957,6 +957,7 @@ let eglot do completion with interface argument injection."
                                      (current-buffer)
                                      eglot--ui-doc-enable-buffers)))))
                (cancel-timer eglot-ui-doc-idle-timer)
+               (cancel-function-timers 'eglot-ui-doc-display)
                (setq eglot-ui-doc-idle-timer nil))
              (eldoc-mode 1)))
           (eglot-ui-doc-mode
