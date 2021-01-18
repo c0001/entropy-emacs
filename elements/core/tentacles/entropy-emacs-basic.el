@@ -1239,38 +1239,40 @@ Filename are \".scratch_entropy\" host in
 
 ;; *** Smooth scrolling
 
+;; EEMACS_BUG: https://github.com/emacs-lsp/lsp-ui/issues/530#issuecomment-762305991
 ;; Force smooth mouse scroll experience
-(when (display-graphic-p)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
-        mouse-wheel-progressive-speed nil))
+;; (when (display-graphic-p)
+;;   (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
+;;         mouse-wheel-progressive-speed nil))
 
-(defvar entropy/emacs-basic-smooth-scrolling-mode nil
-  "Indicated whether smooth-scrolling enable.
+(defvar entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
+(defvar entropy/emacs-basic--redisplay-dont-pause-orig-value redisplay-dont-pause)
+(defvar entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
+(defvar entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
 
-Note:
-
-Manually edit this variable will not be any effection.")
-
-(setq scroll-step 0)
-(setq scroll-conservatively 0)
-
-(defun entropy/emacs-basic-smooth-scrolling ()
+(define-minor-mode entropy/emacs-basic-smooth-scrolling-mode
   "Toggle smooth-scrolling buffer scrolling view."
-  (interactive)
-  (setq redisplay-dont-pause t
-        scroll-margin 0
-        scroll-step   (if (equal scroll-step 0) 1 0)
-        scroll-conservatively (if (equal scroll-conservatively 0) 100000 0))
-  (if (and (equal scroll-step 1)
-           (equal scroll-conservatively 100000))
+  :init-value nil
+  :lighter "SM"
+  :global t
+  (if entropy/emacs-basic-smooth-scrolling-mode
       (progn
-        (setq entropy/emacs-basic-smooth-scrolling-mode t)
+        (setq
+         next-screen-context-lines 0
+         redisplay-dont-pause      t
+         scroll-margin             0
+         scroll-conservatively     100)
         (message "Smooth scrolling enabled!"))
     (progn
-      (setq entropy/emacs-basic-smooth-scrolling-mode nil)
+      (setq
+       next-screen-context-lines entropy/emacs-basic--next-screen-context-lines-orig-value
+       redisplay-dont-pause      entropy/emacs-basic--redisplay-dont-pause-orig-value
+       scroll-margin             entropy/emacs-basic--scroll-margin-orig-value
+       scroll-conservatively     entropy/emacs-basic--scroll-conservatively-orig-value)
       (message "Smooth scrolling disabled!"))))
 
-(entropy/emacs-basic-smooth-scrolling)
+(entropy/emacs-basic-smooth-scrolling-mode 1)
+
 
 ;; *** Kill-buffer-and-window spec
 
