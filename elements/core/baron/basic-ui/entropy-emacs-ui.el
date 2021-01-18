@@ -605,10 +605,7 @@ for adding to variable `window-size-change-functions' and hook
 (entropy/emacs-lazy-with-load-trail
  frame-title-set
  (setq frame-title-format
-       '("GNU Emacs " emacs-version "@" user-login-name " : "
-         (:eval (if (buffer-file-name)
-                    (abbreviate-file-name (buffer-file-name))
-                  "%b"))))
+       '("GNU Emacs " emacs-version "@" user-login-name))
  (setq icon-title-format frame-title-format))
 
 ;; ** Misc
