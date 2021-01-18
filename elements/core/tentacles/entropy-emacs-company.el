@@ -201,9 +201,7 @@
    global-company-mode
    (global-company-mode t)
    (setq company-echo-delay 1)          ;reduce lagging on increase company echo idle delay
-   ;; flex completion to company-capf (using completion-at-point-functions)
-   (add-to-list 'completion-styles
-                'flex)
+
    (dolist (func '(company-idle-begin company-complete))
      (advice-add func
                  :before 'entropy/emacs-company-start-with-yas))
@@ -570,7 +568,7 @@ completion when calling: 'execute-extended-command' or
   (make-local-variable 'company-backends)
   (setq-local company-backends (remove 'company-lsp company-backends)
               completion-ignore-case t
-              completion-styles '(flex basic partial-completion emacs22))
+              completion-styles '(basic partial-completion emacs22))
   (add-to-list 'company-backends
                '(company-files
                  company-capf
