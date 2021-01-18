@@ -924,7 +924,7 @@ make emacs simplify for coding."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
-(defcustom entropy/emacs-ide-use-for-all 'eglot
+(defcustom entropy/emacs-ide-use-for-all 'lsp
   "Enable =entropy-emacs= IDE configuration for all major-mode
 defined in `entropy/emacs-ide-for-them' with a same type.
 

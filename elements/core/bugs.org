@@ -307,6 +307,36 @@ enable in certain buffer, and then reenable it after thus.
 
 NOTE: may need to report to treemacs author.
 
+
+** MARKING =lsp-ui-doc-mode= mouse scroll while eobp freeze emacs
+:PROPERTIES:
+:CUSTOM_ID: h-c02794e4-bdb8-4510-84cb-d668873b02fc
+:END:
+
+- State "MARKING"    from              [2021-01-19 Tue 07:41]
+Related to bug ->
+https://github.com/emacs-lsp/lsp-ui/issues/530#issuecomment-762305991
+
+this will make lsp-ui-doc frame freeze emacs while `mwheel-scroll'
+down to the eobp of lsp-doc-buffer.
+
+#+begin_quote
+Of counse, the issue is referred to an monuse-wheel problem, after
+view hours investigating lsp-ui-doc source where I can not judge the
+problem sticker yet but finally focus on one emacs customization: the
+mouse-wheel-scroll-amount variable which is the pain for thus did
+occur on :
+
+You can set it with (setq mouse-wheel-scroll-amount '(1 ((shift)
+. 1))) while the amount default is 5, but many user including me set
+it to 1 or any other value less than 5 for the sake of "smooth
+scrolling" , Uh.. , the freezing occurred.
+
+This may an emacs internal bug, but I can not ensure that is it,
+because, it didn't occurred in the stable version of `lsp-ui' , just
+after we use the more mordern doc buffer renderring mechanism, is it?
+#+end_quote
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

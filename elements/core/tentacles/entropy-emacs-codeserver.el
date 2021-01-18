@@ -595,6 +595,24 @@ NOTE: this function has been patched by eemacs to optimize performance."
            (erase-buffer)))
         (make-frame-invisible doc-frame))))
 
+  (defun entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mounse
+      (orig-func &rest orig-args)
+    "Diable mouse wheel in lsp-ui-doc-frame while it has the bug of:
+
+EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
+ will make lsp-ui-doc frame freeze emacs while
+`mwheel-scroll' down to the eobp of lsp-doc-buffer"
+    (let ((rtn (apply orig-func orig-args)))
+      (unless (bound-and-true-p disable-mouse-mode)
+        (unless (fboundp 'disable-mouse-mode)
+          (require 'disable-mouse))
+        (disable-mouse-mode 1))
+      rtn))
+
+  (advice-add 'lsp-ui-doc-frame-mode
+              :around
+              #'entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mounse)
+
 ;; ******** Doc timer
   (defvar entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
   (defun entropy/emacs-codeserver--lsp-ui-doc-make-request nil
@@ -691,6 +709,17 @@ updating."
 
 
 ;; **** Eglot
+
+
+;; TODO:
+;;
+;; - [] Flex completion-at-point filter of command
+;; `eglot-completion-at-point' like what lsp did through
+;; `lsp-completion-filter-on-incomplete'
+;;
+;; - [] make html lsp work without initial error with 'css' undefined
+;; - [] tidy up native doc callback renderring type which can be
+;;      adviced from `lsp-ui'.
 
 (use-package eglot
   :commands (eglot eglot-ensure)
