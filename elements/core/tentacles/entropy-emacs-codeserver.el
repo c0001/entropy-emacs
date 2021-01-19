@@ -713,12 +713,12 @@ updating."
 
 ;; TODO:
 ;;
-;; - [] Flex completion-at-point filter of command
+;; - [ ] Flex completion-at-point filter of command
 ;; `eglot-completion-at-point' like what lsp did through
 ;; `lsp-completion-filter-on-incomplete'
 ;;
-;; - [] make html lsp work without initial error with 'css' undefined
-;; - [] tidy up native doc callback renderring type which can be
+;; - [x] make html lsp work without initial error with 'css' undefined
+;; - [ ] tidy up native doc callback renderring type which can be
 ;;      adviced from `lsp-ui'.
 
 (use-package eglot
@@ -783,9 +783,11 @@ let eglot do completion with interface argument injection."
      entropy/emacs-codeserver--eglot-modes-spec)
     (entropy/emacs-codeserver--eglot-completion-with-placeholder))
 
-  (dolist (func '(eglot eglot-ensure))
-    (advice-add func :before
-                #'entropy/emacs-codeserver--eglot-top-prepare))
+  ;; we grab the eglot init subroutine as advice object since `eglot'
+  ;; is an interactive function which use `eglot--guess-contact' as
+  ;; its `interactive' args init utility
+  (advice-add 'eglot--guess-contact :before
+              #'entropy/emacs-codeserver--eglot-top-prepare)
 
 ;; ***** server spec
 
@@ -849,14 +851,105 @@ let eglot do completion with interface argument injection."
                  . entropy/emacs-codeserver--eglot-server-chosen-for-JS&TS))
 
 ;; ****** Html
+;; ******* server defination
+
+  (defclass eglot-html-languageserver (eglot-lsp-server) ()
+    :documentation "Vscode html-languageserver class for eglot")
+  (cl-defmethod eglot-initialization-options ((server eglot-html-languageserver))
+    "`eglot-html-languageserver' initialization method"
+    '(:embeddedLanguages
+      (:css "true" :javascript "true")
+      :provideFormatte "true"
+      :settings (
+                 :html.customData []
+                 :html.format.enable "true"
+                 :html.format.wrapLineLength 120
+                 :html.format.unformatted "wbr"
+                 :html.format.contentUnformatted "pre,code,textarea"
+                 :html.format.indentInnerHtml "false"
+                 :html.format.preserveNewLines "true"
+                 :html.format.maxPreserveNewLines "null"
+                 :html.format.indentHandlebars "false"
+                 :html.format.endWithNewline "false"
+                 :html.format.extraLiners "head, body, /html"
+                 :html.format.wrapAttributes "auto"
+                 :html.suggest.html5 "true"
+                 :html.validate.scripts "true"
+                 :html.validate.styles "true"
+                 :css.customData []
+                 :css.completion.triggerPropertyValueCompletion "true"
+                 :css.completion.completePropertyWithSemicolon "true"
+                 :css.validate "true"
+                 :css.lint.compatibleVendorPrefixes "ignore"
+                 :css.lint.vendorPrefix "warning"
+                 :css.lint.duplicateProperties "ignore"
+                 :css.lint.emptyRules "warning"
+                 :css.lint.importStatement "ignore"
+                 :css.lint.boxModel "ignore"
+                 :css.lint.universalSelector "ignore"
+                 :css.lint.zeroUnits "ignore"
+                 :css.lint.fontFaceProperties "warning"
+                 :css.lint.hexColorLength "error"
+                 :css.lint.argumentsInColorFunction "error"
+                 :css.lint.unknownProperties "warning"
+                 :css.lint.validProperties []
+                 :css.lint.ieHack "ignore"
+                 :css.lint.unknownVendorSpecificProperties "ignore"
+                 :css.lint.propertyIgnoredDueToDisplay "warning"
+                 :css.lint.important "ignore"
+                 :css.lint.float "ignore"
+                 :css.lint.idSelector "ignore"
+                 :css.lint.unknownAtRules "warning"
+                 :javascript.referencesCodeLens.enabled "false"
+                 :javascript.referencesCodeLens.showOnAllFunctions "false"
+                 :javascript.suggest.completeFunctionCalls "false"
+                 :javascript.suggest.includeAutomaticOptionalChainCompletions "true"
+                 :javascript.suggest.names "true"
+                 :javascript.suggest.paths "true"
+                 :javascript.suggest.autoImports "true"
+                 :javascript.suggest.completeJSDocs "true"
+                 :javascript.suggest.enabled "true"
+                 :javascript.validate.enable "true"
+                 :javascript.format.enable "true"
+                 :javascript.format.insertSpaceAfterCommaDelimiter "true"
+                 :javascript.format.insertSpaceAfterConstructor "false"
+                 :javascript.format.insertSpaceAfterSemicolonInForStatements "true"
+                 :javascript.format.insertSpaceBeforeAndAfterBinaryOperators "true"
+                 :javascript.format.insertSpaceAfterKeywordsInControlFlowStatements "true"
+                 :javascript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions "false"
+                 :javascript.format.insertSpaceBeforeFunctionParenthesis "false"
+                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis "false"
+                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets "false"
+                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces "true"
+                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces "false"
+                 :javascript.format.insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces "false"
+                 :javascript.format.placeOpenBraceOnNewLineForFunctions "false"
+                 :javascript.format.placeOpenBraceOnNewLineForControlBlocks "false"
+                 :javascript.format.semicolons "ignore"
+                 :javascript.implicitProjectConfig.checkJs "true"
+                 :javascript.implicitProjectConfig.experimentalDecorators "false"
+                 :javascript.suggestionActions.enabled "true"
+                 :javascript.preferences.quoteStyle "single"
+                 :javascript.preferences.importModuleSpecifier "auto"
+                 :javascript.preferences.renameShorthandProperties "true"
+                 :javascript.updateImportsOnFileMove.enabled "prompt"
+                 )
+      ))
+
+ ;; ******* core
+
   (defun entropy/emacs-codeserver--eglot-server-chosen-for-HTML ()
     (entropy/emacs-codeserver--eglot-server-chosen-hack
      '(web-mode html-mode)
-     `("html-languageserver"
-       "--stdio")))
+     '(eglot-html-languageserver
+       .
+       ("html-languageserver"
+        "--stdio"))))
   (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
                '((web-mode html-mode)
                  . entropy/emacs-codeserver--eglot-server-chosen-for-HTML))
+
+;; ****** Css
 
   (defun entropy/emacs-codeserver--eglot-server-chosen-for-CSS ()
     (entropy/emacs-codeserver--eglot-server-chosen-hack
@@ -867,6 +960,26 @@ let eglot do completion with interface argument injection."
                '(css-mode
                  . entropy/emacs-codeserver--eglot-server-chosen-for-CSS))
 
+;; ****** json
+  (defun entropy/emacs-codeserver--eglot-server-chosen-for-JSON ()
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     'json-mode
+     `("vscode-json-languageserver"
+       "--stdio")))
+  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+               '(json-mode
+                 . entropy/emacs-codeserver--eglot-server-chosen-for-JSON))
+
+
+;; ****** Cmake
+
+  (defun entropy/emacs-codeserver--eglot-server-chosen-for-CMAKE ()
+    (entropy/emacs-codeserver--eglot-server-chosen-hack
+     'cmake-mode
+     `("cmake-language-server")))
+  (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
+               '(cmake-mode
+                 . entropy/emacs-codeserver--eglot-server-chosen-for-CMAKE))
 
 ;; ***** doc show
 
@@ -990,6 +1103,9 @@ let eglot do completion with interface argument injection."
                (setq eglot-ui-doc-idle-timer nil))
              (eldoc-mode 1)))
           (eglot-ui-doc-mode
+           (unless (bound-and-true-p eglot--managed-mode)
+             (user-error
+              "Eglot not enabled yet so that `eglot-ui-doc-mode' can not enable at once."))
            (eldoc-mode 0)
            (push (current-buffer)
                  eglot--ui-doc-enable-buffers)
@@ -1037,6 +1153,19 @@ NOTE: this function has been redefined by eemacs to temporally fix overflow hr l
   (advice-add 'eglot-shutdown
               :around
               #'eglot-shutdown--around-advice-0)
+
+  (defun entropy/emacs-codeserver--eldoc-shutdown-patch-of-eglot
+      (orig-func &rest orig-args)
+    "Cancel symbol highlight when `eldoc-mode' is set-off."
+    (let ((rtn (apply orig-func orig-args)))
+      (ignore-errors
+        (when (and (bound-and-true-p eglot--managed-mode)
+                   (null (bound-and-true-p eldoc-mode)))
+          (mapc #'delete-overlay eglot--highlights)))
+      rtn))
+
+  (advice-add 'eldoc-mode
+              :around #'entropy/emacs-codeserver--eldoc-shutdown-patch-of-eglot)
 
   )
 
