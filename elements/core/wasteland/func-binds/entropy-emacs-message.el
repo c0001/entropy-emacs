@@ -215,7 +215,7 @@ interactive session."
             (window-height
              .
              ,(if (bound-and-true-p entropy/emacs-startup-done)
-                  0.2
+                  0.1
                 0.3)))))
 
        (if (get-buffer-window buf)
