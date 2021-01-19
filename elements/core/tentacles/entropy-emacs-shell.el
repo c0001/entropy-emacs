@@ -296,6 +296,12 @@ segmentation fault."
   (define-key vterm-mode-map [C-backspace]
     #'entropy/emacs-shell-vterm-ctrl-backspace)
 
+  ;; Remap `vterm-copy-mode-done' to disable `vterm-copy-mode-done'
+  ;; features to disable auto kill-ring save feature while thus.
+  (define-key vterm-copy-mode-map
+    [remap vterm-copy-mode-done]
+    (lambda (&rest _) (interactive) (vterm-copy-mode 0)))
+
   ;; Remove conflicting f12 keybind via `vterm-mode-map' and function
   ;; `entropy/emacs-tools-time-show'
   (define-key vterm-mode-map (kbd "<f12>") nil)
