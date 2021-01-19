@@ -253,8 +253,14 @@ e.g. the modeline position indicator fresh function.")
   (setq entropy/emacs-current-session-is-idle nil))
 (defun entropy/emacs--set-idle-signal ()
   (setq entropy/emacs-current-session-is-idle t))
+(defvar entropy/emacs-safe-idle-minimal-secs 0.16
+  "The minimal idle timer SECS run with checking var
+`entropy/emacs-current-session-is-idle' which indicates that any
+specified timer function which would run with condition of thus
+must setted with SECS larger than or equal of this value.")
+
 (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal)
-(run-with-idle-timer 0.3 t #'entropy/emacs--set-idle-signal)
+(run-with-idle-timer 0.15 t #'entropy/emacs--set-idle-signal)
 (defun entropy/emacs--idle-var-guard (symbol newval operation where)
   (if (eq newval t)
       (force-mode-line-update)))

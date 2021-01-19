@@ -1198,8 +1198,8 @@ Filename are \".scratch_entropy\" host in
 
 ;; *** Highlight current line and display line numbers
 (defun entropy/emacs-basic--dhl-judge-state ()
-  (let ((hlmp (ignore-errors hl-line-mode))
-        (dlmp display-line-numbers)
+  (let ((hlmp (bound-and-true-p hl-line-mode))
+        (dlmp (bound-and-true-p display-line-numbers))
         rtn)
     (setq rtn (list hlmp dlmp))
     (cond
@@ -1214,6 +1214,8 @@ Filename are \".scratch_entropy\" host in
     rtn))
 
 (defun entropy/emacs-basic-dhl-toggle ($Prefix)
+  "Dwim enable/disable `hl-line-mode' while be on
+`display-line-numbers-mode' with prefix key enable."
   (interactive "P")
   (if (not $Prefix)
       (cl-case (entropy/emacs-basic--dhl-judge-state)
@@ -1236,6 +1238,54 @@ Filename are \".scratch_entropy\" host in
       (4
        (hl-line-mode 0)
        (display-line-numbers-mode 0)))))
+
+(defvar-local eemacs-hl-line-mode-enable nil)
+(defun entropy/emacs-basic--hl-line-mode-patcher-0
+    (orig-func &rest orig-args)
+  "Use `eemacs-hl-line-mode-enable' as the further indicator of
+`hl-line-mode'."
+  (let ((rtn (apply orig-func orig-args)))
+    (if (bound-and-true-p hl-line-mode)
+        (setq-local eemacs-hl-line-mode-enable t)
+      (setq-local eemacs-hl-line-mode-enable nil))
+    rtn))
+(with-eval-after-load 'hl-line
+  (advice-add 'hl-line-mode
+              :around #'entropy/emacs-basic--hl-line-mode-patcher-0))
+
+(defun entropy/emacs-basic--hl-line-mode-recover nil
+  "Timer function to recovery the `hl-line-mode' status when
+temporally shutdown by
+`entropy/emacs-basic--hl-line-disable-wrapper'."
+  (when (and (bound-and-true-p eemacs-hl-line-mode-enable)
+             (null (bound-and-true-p hl-line-mode))
+             entropy/emacs-current-session-is-idle)
+    (hl-line-mode 1)))
+(run-with-idle-timer
+ (max entropy/emacs-safe-idle-minimal-secs 0.25)
+ t #'entropy/emacs-basic--hl-line-mode-recover)
+
+(defun entropy/emacs-basic--hl-line-disable-wrapper
+    (orig-func &rest orig-args)
+  "Temporally disable `hl-line-mode' to satisfied more
+performance requests while ORIG-FUNC is called up.
+
+NOTE: this is a advice wrapper for any function."
+  (let (rtn)
+    (unwind-protect
+        (when (bound-and-true-p hl-line-mode)
+          (hl-line-mode 0)
+          (setq-local eemacs-hl-line-mode-enable t))
+      (setq rtn (apply orig-func orig-args)))
+    rtn))
+
+;; ---> Default wrapped for:
+(dolist (func '(previous-line next-line))
+  (advice-add func
+              :around #'entropy/emacs-basic--hl-line-disable-wrapper))
+(with-eval-after-load 'dired
+  (advice-add 'dired-next-line
+              :around #'entropy/emacs-basic--hl-line-disable-wrapper))
 
 ;; *** Smooth scrolling
 ;; Force smooth mouse scroll experience
