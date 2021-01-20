@@ -283,7 +283,30 @@ It is the recommendation of irony-mode official introduction."
                  lsp-find-implementation
                  lsp-find-type-definition
                  lsp-find-declaration)
+
+;; ******* preface
   :preface
+
+  (defun entropy/emacs-codeserver-lsp-mode-shutdown ()
+    "Fully disable all buffer's `lsp-mode' feature and shutdown
+those lsp client connections for the current lsp-mode workspace
+when available."
+    (interactive)
+    (let (cur-wps)
+      (when
+          (ignore-errors (setq cur-wps (lsp-workspaces)))
+        (dolist (wp cur-wps)
+          (mapc
+           (lambda (buffer)
+             (with-current-buffer buffer
+               (when (bound-and-true-p lsp-ui-mode)
+                 (lsp-ui-mode 0))
+               (when (bound-and-true-p lsp-mode)
+                 (lsp-mode 0))))
+           (lsp--workspace-buffers wp)))
+        (lsp-shutdown-workspace))))
+
+
 ;; ******* eemacs-indhc
   :eemacs-indhc
   (((:enable t)
@@ -300,7 +323,9 @@ It is the recommendation of irony-mode official introduction."
     "Workspace"
     (("w r" lsp-workspace-restart "Restart the workspace WORKSPACE"
       :enable t :exit t)
-     ("w s" lsp-workspace-shutdown "Shut the workspace WORKSPACE"
+     ("w s" lsp-workspace-shutdown "Shut the workspace WORKSPACE with selection"
+      :enable t :exit t)
+     ("w k" entropy/emacs-codeserver-lsp-mode-shutdown "Shut the *CURRENT* lsp WORKSPACE"
       :enable t :exit t)
      ("w a" lsp-workspace-folders-add "Add PROJECT-ROOT to the list of workspace folders"
       :enable t :exit t)
@@ -311,8 +336,8 @@ It is the recommendation of irony-mode official introduction."
     "Describe"
     (("d s" lsp-describe-session "Describes current 'lsp-session'"
       :enable t :exit t)
-     ("d t" lsp-describe-thing-at-point "Display the type signature and documentation"
-      :enable t :exit t))
+     ("M-h" lsp-describe-thing-at-point "Display the type signature and documentation"
+      :enable t :map-inject t :exit t))
     "Format"
     (("f b" lsp-format-buffer "Ask the server to format this document"
       :enable t :exit t)

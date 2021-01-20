@@ -146,7 +146,10 @@
         ("*xref*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Flymake
-        ("\\*Flymake diagnostics for"    :regexp t :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
+        ("\\*Flymake diagnostics for"  :regexp t :dedicated t :align bottom :size 0.2 :autoclose t     :select t)
+
+        ;; Lsp
+        ("*lsp-help*"                  :regexp nil :dedicated t :align bottom :size 0.3 :autoclose t   :select t)
 
         ;; VC
         ("*vc-diff*"                   :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
