@@ -235,4 +235,17 @@ you must set it smaller than 15 for adapting to other entropy-emacs settings."))
 
 (entropy/emacs-font-set--setfont-initial)
 
+(defun entropy/emacs-font-set--prog-font-set ()
+  "Remap `prog-mode' face font using mordern programming fonts
+when available."
+  (let ((font-familys '("Fira Code" "Source Code Pro" "JetBrains Mono")))
+    (catch :exit
+      (dolist (font-family font-familys)
+        (when (find-font (font-spec :family font-family))
+          (face-remap-add-relative
+           'default
+           :family font-family)
+          (throw :exit nil))))))
+(add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set)
+
 (provide 'entropy-emacs-font-set)

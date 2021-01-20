@@ -610,7 +610,7 @@ followed by `entropy/emacs-font-setting-enable'.")
     (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
             :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
             :symbol "Symbola")
-    (fira-code :latin "Fira Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
+    (fira-code :latin "Fira Code" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
                :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
                :symbol "Symbola"))
   "Alist of each fontset group for =entropy-emacs=.
