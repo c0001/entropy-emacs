@@ -44,6 +44,8 @@
 ;; * Code:
 
 (defvar entropy/emacs-gc-records nil)
+(defvar entropy/emacs-gc--idle-guard-removed nil)
+
 
 (defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
@@ -91,10 +93,9 @@
                              t #'entropy/emacs-gc--idle-time-recovery)))
 
 (defun entropy/emacs-gc--idle-time-recovery ()
-  (entropy/emacs-gc--with-record
-    (garbage-collect)
-    (setq gc-cons-threshold
-          entropy/emacs-gc-threshold-basic))
+  (garbage-collect)
+  (setq gc-cons-threshold
+          entropy/emacs-gc-threshold-basic)
   ;; remove duplicate timemr when detected
   (let (duplicate-timerp)
     (dolist (timer timer-idle-list)
@@ -105,7 +106,21 @@
                (> (length duplicate-timerp) 1))
       (dolist (timer duplicate-timerp)
         (cancel-timer timer))
-      (entropy/emacs-gc--init-idle-gc))))
+      (entropy/emacs-gc--init-idle-gc)))
+  ;; after all idle progress, we enable gc in rest idle time step by
+  ;; step as an daemon gc guard for watching in non-busy stat and will
+  ;; be killed by `entropy/emacs-gc--remove-idle-guard'.
+  (run-with-timer 1 1 #'garbage-collect)
+  (setq entropy/emacs-gc--idle-guard-removed nil))
+
+(defun entropy/emacs-gc--remove-idle-guard
+    (symbol newval operation where)
+  (when (and (null newval)
+             (null entropy/emacs-gc--idle-guard-removed))
+    (cancel-function-timers #'garbage-collect)
+    (setq entropy/emacs-gc--idle-guard-removed t)))
+(add-variable-watcher 'entropy/emacs-current-session-is-idle
+                      #'entropy/emacs-gc--remove-idle-guard)
 
 (defun entropy/emacs-gc-set-idle-gc (secs)
   "Re-set the garbage collecton timer

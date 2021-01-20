@@ -516,12 +516,13 @@ enable it which do not want to be unset yet."
       (if (not (bound-and-true-p company-mode))
           ""
         (setq cur_info
-              (if (consp company-backend)
-                  (company--group-lighter (nth company-selection
-                                               company-candidates)
-                                          "company")
-                (symbol-name company-backend)))
-        (cond ((equal cur_info "nil")
+              (when entropy/emacs-current-session-is-idle
+                (if (consp company-backend)
+                    (company--group-lighter (nth company-selection
+                                                 company-candidates)
+                                            "company")
+                  (symbol-name company-backend))))
+        (cond ((or (null cur_info) (equal cur_info "nil"))
                company-lighter-base)
               (t
                (funcall company-backend-abbrev-indicatior
