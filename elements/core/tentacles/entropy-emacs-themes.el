@@ -58,7 +58,14 @@
    doom-org-specific
    (doom-themes-org-config)))
 
-(use-package ujelly-theme)
+(use-package ujelly-theme
+  :config
+  (custom-theme-set-variables
+   'ujelly
+   '(ansi-color-names-vector ["#323f4e" "#fb0120" "#a1c659" "#fda331" "#6fb3d2" "#d381c3" "#6fb3d2" "#e0e0e0"])
+   '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold]))
+  )
+
 (use-package color-theme-sanityinc-tomorrow)
 (use-package gotham-theme)
 (use-package srcery-theme)
