@@ -377,7 +377,7 @@
         ;; FIXME: company box idle delay smaller than 0.42 will cause
         ;; first candi doc not show
         (max 0.42 entropy/emacs-company-quickhelp-delay-default)
-        company-box-max-candidates (if (boundp 'x-gtk-resize-child-frames) 100 20)
+        company-box-max-candidates (if (boundp 'x-gtk-resize-child-frames) 30 20)
         company-box-show-single-candidate 'always)
 
 ;; **** config
