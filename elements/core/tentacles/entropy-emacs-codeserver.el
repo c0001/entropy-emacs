@@ -32,6 +32,22 @@
 ;;
 ;; * Code:
 
+;; ** hydra hollow
+
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'eemacs-ide-hydra nil
+ '("Server" ()
+   "Diagnostics" ()))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b l"
+     (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'eemacs-ide-hydra))
+     "eemacs IDE dispatcher"
+     :enable t))))
+
 ;; ** xref jumping
 (use-package xref
   :ensure nil
@@ -102,6 +118,35 @@
   (entropy/emacs-lazy-with-load-trail
    eldoc-mode
    (global-eldoc-mode 1)))
+
+;; ** Diagnostics
+
+;; *** eemacs diagnostics framework
+
+(defun entropy/emacs-codeserver-show-diagnostics ()
+  "Show diagnostics for `current-buffer' when availalble eemacs
+diagnostic feature is actived."
+  (interactive)
+  (cond
+   ((bound-and-true-p flymake-mode)
+    (flymake-show-diagnostics-buffer))
+   (t
+    (user-error "can not show diagnostics for current buffer! \
+Because of no suitable backend actived yet."))))
+
+(entropy/emacs-hydra-hollow-common-individual-hydra-define+
+ 'eemacs-ide-hydra nil
+ '("Diagnostics"
+   (("M-e" entropy/emacs-codeserver-show-diagnostics
+     "Show diagnostics for current-buffer"
+     :enable t
+     :exit t
+     :eemacs-top-bind t))))
+
+;; **** flymake
+(use-package flymake
+  :ensure nil
+  :commands (flymake-show-diagnostics-buffer))
 
 ;; ** common server
 ;; *** individual servers
@@ -373,16 +418,18 @@ when available."
      ("f c" lsp-find-declaration "Find declarations of the symbol under point"
       :enable t :exit t))))
 
-;; ******* eemacs-tphs
-  :eemacs-tpha
-  (((:enable t))
-   ("Basic"
-    (("b l"
+;; ******* eemacs-indhca
+  :eemacs-indhca
+  (((:enable t)
+    (eemacs-ide-hydra))
+   ("Server"
+    (("s l"
       (:eval
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'lsp-mode))
       "Lsp command map"
       :enable t :exit t))))
+
 ;; ******* init
   :init
   (setq lsp-auto-guess-root t)
@@ -747,7 +794,35 @@ updating."
 ;;      adviced from `lsp-ui'.
 
 (use-package eglot
-  :commands (eglot eglot-ensure)
+  :commands (eglot eglot-ensure eglot-shutdown
+                   eglot-ui-doc-mode)
+
+;; ***** eemacs indhc
+  :eemacs-indhc
+  (((:enable t)
+    (eglot))
+   ("Basic"
+    (("b s" eglot "Start eglot lsp server"
+      :enable t :exit t)
+     ("b d" eglot-shutdown "Politely ask eglot SERVER to quit"
+      :enable t :exit t)
+     ("b u" eglot-ui-doc-mode "Turn on/off popuped doc ui"
+      :enable t :toggle eglot-ui-doc-mode))))
+
+;; ***** eemacs indhca
+  :eemacs-indhca
+  (((:enable t)
+    (eemacs-ide-hydra))
+   ("Server"
+    (("s e"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'eglot))
+      "Eglot command map"
+      :enable t :exit t))))
+
+;; ***** init & config
+
   :init
   (setq eglot-send-changes-idle-time
         entropy/emacs-ide-diagnostic-delay)
