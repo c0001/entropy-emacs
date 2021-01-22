@@ -63,8 +63,9 @@
 (defvar company-en-words/var--trie-inited nil)
 (defun company-en-words/lib--init-trie ()
   (unless company-en-words/var--trie-inited
+    (message "Make company-en-words trie table ...")
+    (sleep-for 1)
     (let ((gc-cons-threshold 8000))     ;reduce memory leak
-      (message "Make company-en-words trie table ...")
       (dolist (el company-en-words-data/en-words-simple-list)
         (trie-insert company-en-words/lib--en-words-trie-obj
                      (car el)))
