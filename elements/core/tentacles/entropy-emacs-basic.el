@@ -2548,31 +2548,7 @@ otherwise returns nil."
  'describe-variable
  nil nil
  (lambda (&rest _)
-   (if (bound-and-true-p company-candidates)
-       t
-     nil)))
-
-
-;; **** prevent large variable displaying with company session actived
-
-(defun entropy/emacs-basic--help-doc-lgv-not-show
-    (orig-func &rest orig-args)
-  (if (and (bound-and-true-p company-emulation-alist)
-           (not (equal company-emulation-alist '((t . nil)))))
-      (let* ((--temp--string-- "Too large not show in company help buffer")
-             (wudao/cache--hash-file-desc --temp--string--)
-             (wudao/cache--hash-file-full --temp--string--)
-             (wudao/cache--hashed-desc --temp--string--)
-             (wudao/cache--hashed-full --temp--string--)
-             (wudao/query--hash-plist --temp--string--)
-             (company-en-words-data/en-words-simple-list --temp--string--)
-             (company-en-words/var--riched-en-words-list --temp--string--))
-        (apply orig-func orig-args))
-    (apply orig-func orig-args)))
-
-(advice-add 'describe-variable
-            :around
-            #'entropy/emacs-basic--help-doc-lgv-not-show)
+   t))
 
 ;; **** lagging prompts
 
@@ -2625,6 +2601,9 @@ otherwise returns nil."
      :enable t :exit t))))
 
 ;; ** Basic minor interaction commands
+
+(defvar entropy/emacs-basic-print-variable-history nil)
+
 (defun entropy/emacs-basic-print-variable (variable)
   "Print a variable into a transient buffer and popup to display
 it with focus on."
@@ -2635,13 +2614,17 @@ it with focus on."
                       obarray
                       (lambda (x)
                         (and (boundp x)
-                             x))))))
+                             x))
+                      t
+                      nil
+                      'entropy/emacs-basic-print-variable-history))))
   (let ((buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
         (inhibit-read-only t)
         (variable (symbol-value variable))
         (print-level nil)
         (print-length nil))
     (with-current-buffer buffer
+      (fundamental-mode)
       (erase-buffer)
       (cond
        ((stringp variable)
@@ -2653,6 +2636,33 @@ it with focus on."
          variable))
        (t
         (print variable (current-buffer))))
+
+      ;; truncate column while long line detected prevents lagging and
+      ;; freezing and restore theh overflow content to button help
+      ;; echo
+      (goto-char (point-min))
+      (while (not (eobp))
+        (let ((line-width (- (line-end-position)
+                             (line-beginning-position)))
+              (over-contents ""))
+          (when (> line-width (frame-width))
+            (goto-char (+ (point) (frame-width)))
+            (setq over-contents
+                  (buffer-substring (- (point) 3)
+                                    (line-end-position)))
+            (replace-region-contents
+             (- (point) 3)
+             (line-end-position)
+             (lambda (&rest _) ""))
+            (insert-button "..."
+                           'action
+                           `(lambda (&rest _)
+                              (print ,over-contents))
+                           'help-echo
+                           (concat "mouse-2, RET: "
+                                   "Follow this link")
+                           'follow-link t))
+          (forward-line 1)))
       (read-only-mode 1))
     (display-buffer buffer)
     (select-window (get-buffer-window buffer))))
