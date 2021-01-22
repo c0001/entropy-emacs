@@ -126,6 +126,7 @@
         go-mode
         google-translate
         gotham-theme
+        heap
         helm
         helm-ag
         helm-core
@@ -198,6 +199,7 @@
         pyim
         pyim-basedict
         pythonic
+        queue
         rainbow-delimiters
         rainbow-mode
         request
@@ -223,9 +225,11 @@
         swiper
         symbol-overlay
         tern
+        tNFA
         toc-org
         transient
         treepy
+        trie
         ujelly-theme
         use-package
         vimish-fold

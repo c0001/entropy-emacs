@@ -54,6 +54,13 @@
    memoize--wrap
    memoize-by-buffer-contents))
 
+
+;; ** trie
+
+(use-package trie
+  :commands
+  (make-trie trie-insert trie-complete))
+
 ;; ** all-the-icons
 (use-package all-the-icons
   :commands

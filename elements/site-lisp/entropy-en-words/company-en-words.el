@@ -25,9 +25,17 @@
 
 (require 'cl-lib)
 (require 'company)
+(require 'memoize)
+(require 'trie)
 (require 'company-en-words-data "./company-en-words-data.el")
 
 (defvar company-en-words/var--doc-buffer-name "*company-en-words-doc*")
+
+(defvar company-en-words/var--candi-max-len
+  (length company-en-words-data/en-words-simple-list))
+
+(defvar company-en-words/lib--en-words-trie-obj
+  (make-trie '<))
 
 (defun company-en-words/lib--require-wudao ()
   (let* ((wd-path (executable-find "wd"))
@@ -40,6 +48,41 @@
       (add-to-list 'load-path (expand-file-name "emacs" wd-host))
       (require 'wudao-query nil t))))
 
+(defun company-en-words/lib--get-word-props (word)
+  (alist-get word
+             company-en-words-data/en-words-simple-list
+             nil nil 'string=))
+
+;; We use `memoize' to store the alist-get props for word query to
+;; reduce company pseudo tooltip lagging, since each selection
+;; operation will re-call `company-en-words/lib--get-word-props' to
+;; retrieve the prop again.
+(memoize 'company-en-words/lib--get-word-props)
+
+
+(defvar company-en-words/var--trie-inited nil)
+(defun company-en-words/lib--init-trie ()
+  (unless company-en-words/var--trie-inited
+    (let ((gc-cons-threshold 8000))     ;reduce memory leak
+      (message "Make company-en-words trie table ...")
+      (dolist (el company-en-words-data/en-words-simple-list)
+        (trie-insert company-en-words/lib--en-words-trie-obj
+                     (car el)))
+      (setq company-en-words/var--trie-inited t))))
+
+(defun company-en-words/lib--query-candis-core (word maxnum)
+  (company-en-words/lib--init-trie)
+  (mapcar 'car
+          (trie-complete
+           company-en-words/lib--en-words-trie-obj
+           word
+           :maxnum maxnum)))
+
+(defun company-en-words/lib--query-candis (word &optional maxnum)
+  (company-en-words/lib--query-candis-core
+   word (or maxnum
+            company-en-words/var--candi-max-len)))
+
 (defvar company-en-words/var--wudao-required
   (company-en-words/lib--require-wudao))
 
@@ -49,24 +92,16 @@
     (interactive (company-begin-backend 'company-en-words))
     (prefix (company-grab-word))
     (candidates
-     (let ((full-candis
-            (when (not (string-empty-p arg))
-              (delete
-               nil
-               (mapcar
-                (lambda (c) (and (string-prefix-p (downcase arg) (car c)) (car c)))
-                company-en-words-data/en-words-simple-list)))))
-       (when full-candis
-         (if (eq company-backend 'company-en-words)
-             full-candis
-           ;; reduce company tooltip laggy from reduce the candis
-           ;; return while in multi backends calling status.
-           (reverse (last (reverse full-candis) 10))))))
+     (when (and (stringp arg)
+                (not (string-empty-p arg)))
+       (if (eq company-backend 'company-en-words)
+           (company-en-words/lib--query-candis arg)
+         ;; reduce company tooltip laggy from reduce the candis
+         ;; return while in multi backends calling status.
+         (company-en-words/lib--query-candis arg 10))))
     (annotation
      (let ((props
-            (alist-get arg
-                       company-en-words-data/en-words-simple-list
-                       nil nil 'string=)))
+            (company-en-words/lib--get-word-props arg)))
        (format "%s"
                (or props "␀"))))
     (doc-buffer

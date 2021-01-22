@@ -67,13 +67,16 @@
 ;; ** require
 
 ;; ** defvar
-(defvar entropy/emacs-company-elisp-top-backends
-  '(company-files company-capf :with company-en-words)
+(defvar entropy/emacs-company-top-initial-backends
+  '(company-files company-capf :separate company-en-words)
   "Basic top company-backend for all situations.")
+
+(defvar entropy/emacs-company-max-candidates 30
+  "The companys max canids length restriction.")
 
 (entropy/emacs-lazy-load-simple company
   (setq-default company-backends
-                (append (list entropy/emacs-company-elisp-top-backends)
+                (append (list entropy/emacs-company-top-initial-backends)
                         company-backends)))
 
 ;; ** libraries
@@ -102,7 +105,8 @@
 (defun entropy/emacs-company-privilege-yas-for-docs ()
   (make-local-variable 'company-backends)
   (add-to-list 'company-backends
-               '(company-files company-yasnippet :with company-en-words)))
+               '(company-files company-yasnippet company-dabbrev
+                               :separate company-en-words)))
 
 (defun entropy/emacs-company-yas-for-docs-init ()
   (let (macros)
@@ -117,6 +121,34 @@
                       #'entropy/emacs-company-privilege-yas-for-docs)))))
     (dolist (macro macros)
       (funcall macro))))
+
+
+;; *** Candidates length restriction
+
+(defvar-local entropy/company--this-candi-length nil)
+
+(defun entropy/emacs-company--company-candis-restrict-advice
+    (orig-func &rest orig-args)
+  "Restrict company content to reduce lagging feels.
+
+NOTE: this function is an around advice wrapper."
+  (let* ((company-candidates
+          (-take entropy/emacs-company-max-candidates
+                 company-candidates))
+         (company-candidates-length
+          (setq entropy/company--this-candi-length
+                (length company-candidates))))
+    (apply orig-func orig-args)))
+
+(defun entropy/emacs-company--company-candis-length-follow-advice
+    (orig-func &rest orig-args)
+  "Follow candis length via `entropy/company--this-candi-length'.
+
+NOTE: this function is an around advice wrapper."
+  (let* ((company-candidates-length
+          entropy/company--this-candi-length))
+    (apply orig-func orig-args)))
+
 
 ;; ** company core
 (use-package company
@@ -219,9 +251,8 @@
   ;; common internal customization
   (setq
    company-tooltip-limit 20  ; bigger popup window
-   company-echo-delay 0      ; remove annoying blinking
    company-tooltip-maximum-width 70
-   company-tooltip-minimum-width 55
+   company-tooltip-minimum-width 20
    company-tooltip-align-annotations t
    company-tooltip-offset-display 'lines
    company-idle-delay entropy/emacs-company-idle-delay-default
@@ -232,6 +263,16 @@
    company-dabbrev-ignore-case nil
    company-dabbrev-downcase nil
    company-dabbrev-char-regexp "\\sw[-_]*")
+
+;; **** advices
+
+  (advice-add 'company-pseudo-tooltip-frontend
+              :around
+              #'entropy/emacs-company--company-candis-restrict-advice)
+  (advice-add 'company-set-selection
+              :around
+              #'entropy/emacs-company--company-candis-length-follow-advice)
+
   )
 
 ;; *** company components function autoload
@@ -301,20 +342,24 @@
   :commands (company-quickhelp-mode
              company-quickhelp-manual-begin)
   :bind (:map company-active-map
-              ("M-h" . company-quickhelp-manual-begin)
-              ("C-h" . nil)
               ("<f1>" . nil))
   :preface
   (defun entropy/emacs-company--default-enable ()
     (cond ((display-graphic-p)
-           (company-quickhelp-mode 1))
+           (company-quickhelp-mode 1)
+           (define-key company-active-map
+             (kbd "C-h")
+             'company-quickhelp-manual-begin))
           (t
            (message
             "NOTE: Can not enable company-quickhelp in non-gui session"))))
 
   (defun entropy/emacs-company--default-disable ()
     (when (bound-and-true-p company-quickhelp-mode)
-      (company-quickhelp-mode 0)))
+      (company-quickhelp-mode 0)
+      (define-key company-active-map
+             (kbd "C-h")
+             'company-show-doc-buffer)))
 
   (add-to-list 'entropy/emacs-company--frontend-register
                '(default
@@ -328,7 +373,8 @@
 
   :init
   (setq company-quickhelp-delay
-        entropy/emacs-company-quickhelp-delay-default))
+        entropy/emacs-company-quickhelp-delay-default
+        company-quickhelp-use-propertized-text t))
 
 ;; *** Company-box config
 
@@ -347,7 +393,10 @@
               (with-current-buffer buffer
                 (when (bound-and-true-p company-box-mode)
                   (company-box-mode 0))))
-            (buffer-list))))
+            (buffer-list))
+      (define-key company-active-map
+             (kbd "C-h")
+             'company-show-doc-buffer)))
 
   (defun entropy/emacs-company--box-enable ()
     (cond ((entropy/emacs-posframe-adapted-p)
@@ -358,7 +407,10 @@
                      (when (bound-and-true-p company-mode)
                        (unless (bound-and-true-p company-box-mode)
                          (company-box-mode 1)))))
-                 (buffer-list)))
+                 (buffer-list))
+           (define-key company-active-map
+             (kbd "C-h")
+             'company-box-doc-manually))
           (t
            (error "Can not enable company-box in non-gui session"))))
 
@@ -377,7 +429,6 @@
         ;; FIXME: company box idle delay smaller than 0.42 will cause
         ;; first candi doc not show
         (max 0.42 entropy/emacs-company-quickhelp-delay-default)
-        company-box-max-candidates (if (boundp 'x-gtk-resize-child-frames) 30 20)
         company-box-show-single-candidate 'always)
 
 ;; **** config
@@ -427,18 +478,13 @@ initial frame background face sets did by
             (setq x-gtk-resize-child-frames 'resize-mode)
           (setq x-gtk-resize-child-frames 'hide))))
 
-  (defun entropy/emacs-company--company-box-content-length-restrict-advice (orig-func &rest orig-args)
-    "Restrict  company box content length to reduce lagging feels."
-    (if (bound-and-true-p company-box-mode)
-        (let* ((company-candidates (-take company-box-max-candidates company-candidates))
-               (company-candidates-length (length company-candidates)))
-          (apply orig-func orig-args))
-      (apply orig-func orig-args)))
 
-  (dolist (el '(company-box-show company-box--update company-set-selection))
-    (advice-add el
-                :around
-                #'entropy/emacs-company--company-box-content-length-restrict-advice))
+  (advice-add 'company-box-show
+              :around
+              #'entropy/emacs-company--company-candis-restrict-advice)
+  (advice-add 'company-box--update
+              :around
+              #'entropy/emacs-company--company-candis-length-follow-advice)
 
 ;; ***** icons patch
 
