@@ -21,17 +21,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-;; put this file in a path, for example "~/Dropbox/Emacs/"
-;; (load "~/Dropbox/Emacs/company-words")
-
-;; See the README for more details.
+;;; code
 
 (require 'cl-lib)
 (require 'company)
 (require 'company-en-words-data "./company-en-words-data.el")
 
 (defvar company-en-words/var--doc-buffer-name "*company-en-words-doc*")
-(defvar company-en-words/var--riched-en-words-list nil)
 
 (defun company-en-words/lib--require-wudao ()
   (let* ((wd-path (executable-find "wd"))
@@ -47,65 +43,39 @@
 (defvar company-en-words/var--wudao-required
   (company-en-words/lib--require-wudao))
 
-(defvar company-en-words/var--use-wudao-confirmed nil)
-(defvar company-en-words/var--wudao-cached nil)
-
-(defun company-en-words/lib--prepare-wudao-dict ()
-  ;; require wudao dict to patch fully canids with fully dict property
-  (when company-en-words/var--wudao-required
-    (unless (or company-en-words/var--wudao-cached
-                company-en-words/var--use-wudao-confirmed)
-      (setq company-en-words/var--wudao-cached nil)
-      (when (and (fboundp 'wudao/query-get-en-words-completion-table)
-                 (let ((confirmation
-                        (yes-or-no-p "Use riched company-en-words feature?(may take some time) ")))
-                   (setq company-en-words/var--use-wudao-confirmed t)
-                   confirmation))
-        ;; restrict `gc-cons-threshold' prevents memory overflow
-        (let ((gc-cons-threshold 80000))
-          (message nil)
-          (message "Please wait for thus done ... (be patient)")
-          (setq company-en-words/var--riched-en-words-list
-                (wudao/query-get-en-words-completion-table
-                 company-en-words-data/en-words-simple-list)
-                company-en-words/var--wudao-cached t))))))
-
 (defun company-en-words (command &optional arg &rest ignored)
   (interactive (list 'interactive))
   (cl-case command
     (interactive (company-begin-backend 'company-en-words))
     (prefix (company-grab-word))
     (candidates
-     (company-en-words/lib--prepare-wudao-dict)
      (let ((full-candis
             (when (not (string-empty-p arg))
               (delete
                nil
                (mapcar
-                (lambda (c) (and (string-prefix-p (downcase arg) c) c))
-                (or company-en-words/var--riched-en-words-list
-                    company-en-words-data/en-words-simple-list))))))
+                (lambda (c) (and (string-prefix-p (downcase arg) (car c)) (car c)))
+                company-en-words-data/en-words-simple-list)))))
        (when full-candis
          (if (eq company-backend 'company-en-words)
              full-candis
-           (reverse (last (reverse full-candis) 20))))))
+           ;; reduce company tooltip laggy from reduce the candis
+           ;; return while in multi backends calling status.
+           (reverse (last (reverse full-candis) 10))))))
     (annotation
-     (company-en-words/lib--prepare-wudao-dict)
-     (when company-en-words/var--wudao-cached
-       (let ((props
-              (wudao/query-get-en-words-property
-               arg 'prop-list 'chinese-simplified)))
-         (format "%s"
-                 (or props "␀")))))
+     (let ((props
+            (alist-get arg
+                       company-en-words-data/en-words-simple-list
+                       nil nil 'string=)))
+       (format "%s"
+               (or props "␀"))))
     (doc-buffer
-     (company-en-words/lib--prepare-wudao-dict)
-     (when company-en-words/var--wudao-cached
+     (when company-en-words/var--wudao-required
        (let ((buffer (get-buffer-create company-en-words/var--doc-buffer-name))
              (inhibit-read-only t)
              (short-trans
-              (wudao/query-get-en-words-property
-               arg 'short-trans
-               'chinese-simplified)))
+              (wudao/query-word-by-command
+               arg)))
          (with-current-buffer buffer
            (erase-buffer)
            (insert
