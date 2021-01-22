@@ -107,6 +107,7 @@
 (use-package eldoc
   :ensure nil
   :diminish eldoc-mode
+  :commands (eldoc eldoc-mode global-eldoc-mode)
   :eemacs-tpha
   (((:enable t))
    ("Basic"
