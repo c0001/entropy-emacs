@@ -215,7 +215,12 @@
 
 ;; *** memoize missing funcs
 
-  (dolist (func '(all-the-icons-icon-for-dir))
+  (dolist (func '(all-the-icons-icon-for-dir
+                  all-the-icons-material
+                  all-the-icons-faicon
+                  all-the-icons-octicon
+                  all-the-icons-material
+                  ))
     (unless (get func :memoize-original-function)
       (memoize func))))
 
