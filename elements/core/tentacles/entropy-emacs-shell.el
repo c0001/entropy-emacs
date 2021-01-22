@@ -305,6 +305,8 @@ segmentation fault."
   ;; Remove conflicting f12 keybind via `vterm-mode-map' and function
   ;; `entropy/emacs-tools-time-show'
   (define-key vterm-mode-map (kbd "<f12>") nil)
+  ;; similarly for <f11>
+  (define-key vterm-mode-map (kbd "<f11>") nil)
 
   )
 
