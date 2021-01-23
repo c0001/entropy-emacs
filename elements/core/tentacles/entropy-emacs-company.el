@@ -273,6 +273,35 @@ NOTE: this function is an around advice wrapper."
               :around
               #'entropy/emacs-company--company-candis-length-follow-advice)
 
+  (defun company--perform ()
+    "NOTE: this function has been patched for be suitable for
+eemacs.
+
+Patched for: *use `entropy/emacs-run-at-idle-immediately' delay update command*
+
+Origin of this function will call company-backend while each
+event hints, so that fast continuous will lagging on."
+    (cond
+     (company-candidates
+      (company--continue))
+     ((company--should-complete)
+      (company--begin-new)))
+    (if (not company-candidates)
+        (setq company-backend nil)
+      (setq company-point (point)
+            company--point-max (point-max))
+      (company-ensure-emulation-alist)
+      (company-enable-overriding-keymap company-active-map)
+      ;; Ran update just after idle time immediately for reducing
+      ;; laggging on fast continuous typing
+      ;;
+      ;; EEMACS_MAINTENANCE: turn on
+      ;; `entropy/emacs-session-idle-trigger-debug' to see internal
+      ;; debug informations when needed.
+      (entropy/emacs-run-at-idle-immediately company-update
+       (when (company-call-backend 'prefix)
+         (company-call-frontends 'update)))))
+
   )
 
 ;; *** company components function autoload
@@ -506,6 +535,36 @@ initial frame background face sets did by
                 :override
                 #'entropy/emacs-company--company-box-icons-elisp))
 
+;; ***** temp
+  (defun company-box-doc (selection frame)
+    "NOTE: this function has been redefined for adapting to
+eemacs.
+
+Patched for: *use `entropy/emacs-run-at-idle-immediately' to delay the body run*
+
+The origin `company-box-doc' has preparation with doc frame
+visible checking with function `frame-local-get' which mapped
+local frame obarray to search local varaible which has bad
+benchmark performance as an scroll lagging reason when toggle on
+`company-box-doc-enable', further more any rest frame hide or
+timer reset body is so on.
+
+EEMACS_MAINTENANCE: need patching updately with `company-box'
+upstream."
+    (when company-box-doc-enable
+      (eval
+       `(entropy/emacs-run-at-idle-immediately
+         company-box-doc-enable
+         (-when-let (doc-frame (frame-local-getq company-box-doc-frame ,frame))
+           (make-frame-invisible doc-frame))
+         (when (timerp company-box-doc--timer)
+           (cancel-timer company-box-doc--timer))
+         (setq company-box-doc--timer
+               (run-with-timer
+                company-box-doc-delay nil
+                (lambda nil
+                  (company-box-doc--show ',selection ,frame)
+                  (company-ensure-emulation-alist))))))))
   )
 
 ;; *** Better sorting and filtering

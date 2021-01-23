@@ -249,10 +249,32 @@ NOTE: this variable is useful to patch with some high performance
 required function when concurrency ocation to reduce system lag
 e.g. the modeline position indicator fresh function.")
 
+(defvar entropy/emacs-session-idle-trigger-hook nil
+  "Hook ran immediately while current emacs-session is idle.
+
+This hook must be injected while emacs is not idle e.g. injected
+into it in `post-command-hook' or `pre-command-hook' and will be
+cleaned up after the all the hooker ran up whenever what errors
+happened.
+
+NOTE: Any error occurred in this hook will be ignored unless
+`entropy/emacs-session-idle-trigger-debug' is not NULL.")
+(defvar entropy/emacs-session-idle-trigger-debug nil
+  "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
+
 (defun entropy/emacs--reset-idle-signal ()
   (setq entropy/emacs-current-session-is-idle nil))
+
 (defun entropy/emacs--set-idle-signal ()
-  (setq entropy/emacs-current-session-is-idle t))
+  (setq entropy/emacs-current-session-is-idle t)
+  (if entropy/emacs-session-idle-trigger-debug
+      (unwind-protect
+          (run-hooks 'entropy/emacs-session-idle-trigger-hook)
+        (setq entropy/emacs-session-idle-trigger-hook nil))
+    (ignore-errors
+      (run-hooks 'entropy/emacs-session-idle-trigger-hook)
+      (setq entropy/emacs-session-idle-trigger-hook nil))))
+
 (defvar entropy/emacs-safe-idle-minimal-secs 0.16
   "The minimal idle timer SECS run with checking var
 `entropy/emacs-current-session-is-idle' which indicates that any
@@ -267,7 +289,20 @@ must setted with SECS larger than or equal of this value.")
 (add-variable-watcher 'entropy/emacs-current-session-is-idle
                       #'entropy/emacs--idle-var-guard)
 
+(defmacro entropy/emacs-run-at-idle-immediately
+    (name &rest body)
+  "Run body defination as NAME while current emacs session ran
+into idle status immediately.
 
+NOTE: each NAME in que is uniquely i.e. duplicated injection will
+remove the oldest one and then injecting new one."
+  `(let (_)
+     (defalias ',name
+       (lambda (&rest _)
+         ,@body))
+     (remove-hook 'entropy/emacs-session-idle-trigger-hook ',name)
+     (add-hook 'entropy/emacs-session-idle-trigger-hook
+               ',name)))
 
 ;; ** eemacs top keymap refer
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
