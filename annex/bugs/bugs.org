@@ -337,6 +337,33 @@ because, it didn't occurred in the stable version of `lsp-ui' , just
 after we use the more mordern doc buffer renderring mechanism, is it?
 #+end_quote
 
+*** Update: 2021-01-23 Sat 15:34:16
+
+This caused by both of above and follow:
+#+BEGIN_SRC emacs-lisp
+  (setq mouse-wheel-progressive-speed nil)
+#+END_SRC
+
+Thus for now we can built the reproducible template via vanilla emacs:
+
+[[file:lsp-ui-bug530.el][lsp-ui-bug530.el]]
+
+Run it with:
+#+BEGIN_SRC sh
+emacs -q -l lsp-ui-bug530.el
+#+END_SRC
+
+With manually hover reproduced of:
+#+begin_quote
+Please hover the mounse on the symbol `scanf' or `main' on test.c
+buffer thens scroll the lsp-ui-doc frame window by mounse-wheel,
+then the bug will be occurred with freezing session, and beeping
+sequentially while emacs bell ring is not null.
+
+If the bug not occurred try enter <f11> let emacs judging into
+fullscreen and redo above section, this may occurred as well.
+#+end_quote
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

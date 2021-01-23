@@ -1291,10 +1291,6 @@ NOTE: this is a advice wrapper for any function."
 ;; Force smooth mouse scroll experience
 (when (display-graphic-p)
   (setq
-   ;; EEMACS_BUG:
-   ;; https://github.com/emacs-lsp/lsp-ui/issues/530#issuecomment-762305991
-   ;; this will make lsp-ui-doc frame freeze emacs while
-   ;; `mwheel-scroll' down to the eobp of lsp-doc-buffer
    mouse-wheel-scroll-amount '(1 ((shift) . 1))
    mouse-wheel-progressive-speed nil))
 

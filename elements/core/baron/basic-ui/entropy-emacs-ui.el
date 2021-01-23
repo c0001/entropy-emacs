@@ -627,36 +627,6 @@ for adding to variable `window-size-change-functions' and hook
 (setq track-eol t)                      ; Keep cursor at end of lines. Require line-move-visual is nil.
 (setq-default line-move-visual nil)     ; Defaultly disable it for performance issue
 
-(defun entropy/emacs-ui--guard-for-line-move-visual-mode ()
-  "Enable `line-move-visual' when current-buffer matching some
-rules.
-
-It's a guard timer function for timer
-`entropy/emacs-ui--line-move-visual-guard-timer'. Do not run it
-manually."
-  (with-current-buffer (current-buffer)
-    (unless (or (minibufferp)
-                ;; Notice: it's can not be unset in magit section
-                ;; toggle context which need it be enabled
-                (string-match-p "magit" (symbol-name major-mode))
-                ;; may need to disable the feature in mpc referred
-                ;; major-modes for improving performance
-                (string-match-p "^mpc-" (symbol-name major-mode)))
-      (save-excursion
-        (save-restriction
-          (goto-char (point-min))
-          (if (re-search-forward
-               ""
-               nil t)
-              (setq-local line-move-visual t)
-            (setq-local line-move-visual nil)))))))
-
-(setq entropy/emacs-ui--line-move-visual-guard-timer
-      (run-with-idle-timer 1 t
-                           #'entropy/emacs-ui--guard-for-line-move-visual-mode))
-
-
-
 ;; * provide
 
 (provide 'entropy-emacs-ui)
