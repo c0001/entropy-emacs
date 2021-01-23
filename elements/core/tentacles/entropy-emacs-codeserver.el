@@ -32,6 +32,42 @@
 ;;
 ;; * Code:
 
+;; ** libraries
+
+(defun entropy/emacs-codeserver--bounds-same-p
+    (cur-bounds orig-bounds)
+  "Judge the symbol bounds whether is same as each other
+i.e. before change and after thus.
+
+Bounds is an cons of (beg . end) point of `current-buffer'"
+  (ignore-errors
+    (and
+     ;; current bound head is same or larger than orig bounds head
+     (>= (car cur-bounds) (car orig-bounds))
+     (or
+      ;; -- current bound tail is witin the orig one
+      (<= (cdr cur-bounds) (cdr orig-bounds))
+      ;; -- out of range but on the same line and point at
+      ;;    non-symbol place or the continuous of previous hints
+      (and
+       ;; current position is in the same line as orig-bounds at
+       (< (save-excursion
+            (re-search-backward "\n" nil t)
+            (point))
+          (car orig-bounds))
+       (or
+        ;; and there's on non symbol place
+        (not
+         (and (symbol-at-point)
+              (bounds-of-thing-at-point 'symbol)))
+        (string-prefix-p (buffer-substring
+                          (car orig-bounds)
+                          (cdr orig-bounds))
+                         (buffer-substring
+                          (car cur-bounds)
+                          (cdr cur-bounds))))
+       )))))
+
 ;; ** hydra hollow
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
@@ -687,7 +723,8 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
               #'entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mounse)
 
 ;; ******** Doc timer
-  (defvar entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
+  (defvar-local entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
+
   (defun entropy/emacs-codeserver--lsp-ui-doc-make-request nil
     "Request the documentation to the LS."
     (let ((buf (current-buffer)))
@@ -696,10 +733,13 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
                  (not (eq this-command 'keyboard-quit))
                  (not (bound-and-true-p lsp-ui-peek-mode))
                  (lsp--capability "hoverProvider"))
-        (-if-let (bounds (or (and (symbol-at-point) (bounds-of-thing-at-point 'symbol))
-                             (and (looking-at "[[:graph:]]") (cons (point) (1+ (point))))))
-            (unless (equal entropy/emacs-codeserver--lsp-ui-doc--bounds
-                           bounds)
+        (-if-let (bounds (or (and (symbol-at-point)
+                                  (bounds-of-thing-at-point 'symbol))
+                             (and (looking-at "[[:graph:]]")
+                                  (cons (point) (1+ (point))))))
+            (unless (entropy/emacs-codeserver--bounds-same-p
+                     bounds
+                     entropy/emacs-codeserver--lsp-ui-doc--bounds)
               (setq entropy/emacs-codeserver--lsp-ui-doc--bounds bounds)
               (lsp-ui-doc--hide-frame)
               (lsp-request-async
@@ -717,8 +757,22 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
     (let ((event last-input-event))
       (unless (or (ignore-errors (string-match-p "mouse" (symbol-name (car event))))
                   (eq (car-safe event) 'switch-frame))
-        (setq entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
-        (lsp-ui-doc-hide))))
+        (unless (member this-command
+                        ;; preserve the bounds log when these commands
+                        ;; trigger since each of these commands may
+                        ;; not change the bounds via
+                        ;; `entropy/emacs-codeserver--bounds-same-p'
+                        `(outshine-self-insert-command
+                          self-insert-command
+                          right-char left-char
+                          forward-char backward-char
+                          forward-word backward-word
+                          ,(lookup-key (current-local-map) (kbd "DEL"))
+                          keyboard-quit
+                          ))
+          (setq entropy/emacs-codeserver--lsp-ui-doc--bounds
+                nil))
+          (lsp-ui-doc-hide))))
 
   (defun entropy/emacs-codeserver--lsp-ui-doc-mode-around-advice
       (orig-func &rest orig-args)
