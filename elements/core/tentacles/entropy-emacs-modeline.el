@@ -524,9 +524,11 @@ enable it which do not want to be unset yet."
                   (symbol-name company-backend))))
         (cond ((or (null cur_info) (equal cur_info "nil"))
                company-lighter-base)
-              (t
+              ((bound-and-true-p company-candidates)
                (funcall company-backend-abbrev-indicatior
-                        cur_info))))))
+                        cur_info))
+              (t
+               "")))))
 
 ;; ******* workspace-number
   (doom-modeline-def-segment workspace-number
@@ -563,9 +565,12 @@ eyerbowse improvement."
 
 ;; ******* idle activated =buffer position= indicator
 
+  ;; EEMACS_MAINTENANCE: update folllow upstream internal defination
   (doom-modeline-def-segment buffer-position
     "The buffer position information."
-    (cond (entropy/emacs-current-session-is-idle
+    (cond ((and entropy/emacs-current-session-is-idle
+                (doom-modeline--active) ;EEMACS_MAINTENANCE: update folllow upstream internal defination
+                (not (bound-and-true-p company-candidates)))
            (let* ((active (doom-modeline--active))
                   (lc '(line-number-mode
                         (column-number-mode
@@ -613,7 +618,7 @@ mouse-1: Display Line and Column Mode Menu"
               (when (or line-number-mode column-number-mode doom-modeline-percent-position)
                 (doom-modeline-spc)))))
           (t
-           " ⨂")))
+           " ......... ")))
 
 ;; ****** eemacs doom-modeline type spec
   (doom-modeline-def-modeline 'main
