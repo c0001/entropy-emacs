@@ -82,13 +82,34 @@
             :around
             #'entropy/emacs-gc-wrapper)
 
-(defun entropy/emacs-gc--increase-cons-threshold ()
-  (setq gc-cons-threshold
-        (* 20 1024 1024)
-        ;; maximized gc portion percentage so that throw handing over
-        ;; the automatically gc task just for the `gc-cons-threshold'
-        ;; only
-        gc-cons-percentage 0.98))
+(defun entropy/emacs-gc--adjust-cons-threshold ()
+  (setq
+   ;; maximized gc portion percentage so that throw handing over
+   ;; the automatically gc task just for the `gc-cons-threshold'
+   ;; only
+   gc-cons-percentage 0.98)
+  (cond ((or
+          ;; minibuffer hooker like `ivy' will leak memory so that we
+          ;; restrict it further more we hope all procedure during
+          ;; `eval-expression' are gc restricted
+          (or (eq major-mode 'minibuffer-inactive-mode)
+              (minibuffer-window-active-p (selected-window)))
+          ;; like above for more eval restriction
+          (or (member this-command
+                      '(eval-last-sexp
+                        eval-region
+                        eval-defun
+                        eval-expression
+                        eval-print-last-sexp
+                        eval-buffer
+                        )))
+          ;; company frontend will leak memory too
+          (bound-and-true-p company-candidates))
+         (setq gc-cons-threshold
+               (* 100 1024)))
+        ((derived-mode-p 'prog-mode)
+         (setq gc-cons-threshold
+               most-positive-fixnum))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
@@ -147,7 +168,7 @@ delay seconds SECS."
 (entropy/emacs-lazy-with-load-trail
  gc-message
  (setq garbage-collection-messages nil)
- (add-hook 'pre-command-hook #'entropy/emacs-gc--increase-cons-threshold)
+ (add-hook 'post-command-hook #'entropy/emacs-gc--adjust-cons-threshold)
  (entropy/emacs-gc--init-idle-gc))
 
 (when entropy/emacs-fall-love-with-pdumper
