@@ -220,6 +220,7 @@
                   all-the-icons-faicon
                   all-the-icons-octicon
                   all-the-icons-material
+                  all-the-icons-alltheicon
                   ))
     (unless (get func :memoize-original-function)
       (memoize func))))

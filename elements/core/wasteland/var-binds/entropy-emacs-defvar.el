@@ -238,6 +238,7 @@ window will be set to 13.5.")
 (defvar entropy/emacs-init-welcome-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Buffer name of entropy-emacs initial welcome displaying buffer.")
 
+;; ** idle trigger
 (defvar entropy/emacs-current-session-is-idle nil
   "The current emacs session idle signal, t for non-idle status
 indicator, nil for otherwise.
@@ -275,14 +276,14 @@ NOTE: Any error occurred in this hook will be ignored unless
       (run-hooks 'entropy/emacs-session-idle-trigger-hook)
       (setq entropy/emacs-session-idle-trigger-hook nil))))
 
-(defvar entropy/emacs-safe-idle-minimal-secs 0.16
+(defvar entropy/emacs-safe-idle-minimal-secs 0.4
   "The minimal idle timer SECS run with checking var
 `entropy/emacs-current-session-is-idle' which indicates that any
 specified timer function which would run with condition of thus
 must setted with SECS larger than or equal of this value.")
 
 (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal)
-(run-with-idle-timer 0.15 t #'entropy/emacs--set-idle-signal)
+(run-with-idle-timer 0.3 t #'entropy/emacs--set-idle-signal)
 (defun entropy/emacs--idle-var-guard (symbol newval operation where)
   (if (eq newval t)
       (force-mode-line-update)))
@@ -476,8 +477,11 @@ externally add below features:
 
 ;; ** garbage collection refer
 
-(defvar entropy/emacs-gc-threshold-basic 2000000
+(defvar entropy/emacs-gc-threshold-basic (* 100 1024)
   "The basic thredshold for the growth for `gc-cons-threshold'")
+
+(defvar entropy/emacs-gc-percentage-basic 0.05
+  "The basic portion for the growth for `gc-cons-percentage'")
 
 (defvar entropy/emacs-garbage-collect-idle-timer nil
   "The garbage collection idle timer for entropy-emacs.")

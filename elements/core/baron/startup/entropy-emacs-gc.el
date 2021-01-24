@@ -84,7 +84,11 @@
 
 (defun entropy/emacs-gc--increase-cons-threshold ()
   (setq gc-cons-threshold
-        most-positive-fixnum))
+        (* 20 1024 1024)
+        ;; maximized gc portion percentage so that throw handing over
+        ;; the automatically gc task just for the `gc-cons-threshold'
+        ;; only
+        gc-cons-percentage 0.98))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
@@ -94,7 +98,9 @@
 (defun entropy/emacs-gc--idle-time-recovery ()
   (garbage-collect)
   (setq gc-cons-threshold
-          entropy/emacs-gc-threshold-basic)
+        entropy/emacs-gc-threshold-basic
+        gc-cons-percentage
+        entropy/emacs-gc-percentage-basic)
   ;; remove duplicate timemr when detected
   (let (duplicate-timerp)
     (dolist (timer timer-idle-list)
