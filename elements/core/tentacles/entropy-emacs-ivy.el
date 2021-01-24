@@ -665,6 +665,63 @@ version of ivy framework updating.
 
 ;; *** ivy rich mode
 
+;; **** all the icons ivy rich
+(use-package all-the-icons-ivy-rich
+  :commands
+  (all-the-icons-ivy-rich-mode
+   all-the-icons-ivy-rich-world-clock-icon
+   all-the-icons-ivy-rich-file-icon
+   all-the-icons-ivy-rich-mode-icon
+   all-the-icons-ivy-rich-buffer-icon
+   all-the-icons-ivy-rich-company-icon
+   all-the-icons-ivy-rich-git-branch-icon
+   all-the-icons-ivy-rich-package-icon
+   all-the-icons-ivy-rich-process-icon
+   all-the-icons-ivy-rich-font-icon
+   all-the-icons-ivy-rich-project-icon
+   all-the-icons-ivy-rich-function-icon
+   all-the-icons-ivy-rich-imenu-icon
+   all-the-icons-ivy-rich-tramp-icon
+   all-the-icons-ivy-rich-library-icon
+   all-the-icons-ivy-rich-align-icons
+   all-the-icons-ivy-rich-keybinding-icon
+   all-the-icons-ivy-rich-symbol-icon
+   all-the-icons-ivy-rich-theme-icon
+   all-the-icons-ivy-rich-variable-icon
+   )
+  :preface
+  (defun ya/all-the-icon-ivy-rich-common-dir-icon
+      (candi)
+    (all-the-icons-ivy-rich--format-icon
+     (all-the-icons-octicon "file-directory"
+                            :height 1.0 :v-adjust 0.01)))
+
+  (defun ya/all-the-icons-ivy-rich-common-file-icon (candidate)
+    "Display file icon from CANDIDATE in `ivy-rich'."
+    (let* ((path (expand-file-name candidate ivy--directory))
+           (file (file-name-nondirectory path))
+           (icon (cond
+                  ((file-directory-p path)
+                   (all-the-icons-octicon "file-directory"
+                                          :height 1.0 :v-adjust 0.01))
+                  ((string-match-p "^/.*:$" path)
+                   (all-the-icons-octicon "radio-tower"
+                                          :height 1.0 :v-adjust 0.01))
+                  ((not (string-empty-p file))
+                   (all-the-icons-icon-for-file file :v-adjust -0.05)))))
+      (all-the-icons-ivy-rich--format-icon
+       (if (symbolp icon)
+           (all-the-icons-faicon "file-o"
+                                 :face 'all-the-icons-dsilver :v-adjust 0.0)
+         icon))))
+
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   all-the-icons-ivy-rich-mode
+   (memoize
+    'ya/all-the-icons-ivy-rich-common-file-icon))
+  )
+
 ;; **** core
 ;; config inspired by the ivy config of *centaur-emacs* (https://github.com/seagle0128/.emacs.d)
 
@@ -701,143 +758,130 @@ version of ivy framework updating.
   (setq ivy-rich-parse-remote-buffer nil)
 
   ;; Initial eemacs specific ivy-rich columns
-  (setq ivy-rich-display-transformers-list
-        '(ivy-switch-buffer
-          (:columns
-           ((ivy-rich-candidate
-             (:width 30))
-            (ivy-rich-switch-buffer-size
-             (:width 7))
-            (ivy-rich-switch-buffer-indicators
-             (:width 4 :face error :align right))
-            (ivy-rich-switch-buffer-major-mode
-             (:width 12 :face warning)))
-           :predicate
-           (lambda
-             (cand)
-             (get-buffer cand)))
-          counsel-find-file
-          (:columns
-           ((ivy-read-file-transformer)
-            (ivy-rich-counsel-find-file-truename
-             (:face font-lock-doc-face))))
-          counsel-M-x
-          (:columns
-           ((counsel-M-x-transformer
-             (:width 40))
-            (ivy-rich-counsel-function-docstring
-             (:face font-lock-doc-face))))
-          counsel-describe-function
-          (:columns
-           ((counsel-describe-function-transformer
-             (:width 40))
-            (ivy-rich-counsel-function-docstring
-             (:face font-lock-doc-face))))
-          counsel-describe-variable
-          (:columns
-           ((counsel-describe-variable-transformer
-             (:width 40))
-            (ivy-rich-counsel-variable-docstring
-             (:face font-lock-doc-face))))
-          counsel-recentf
-          (:columns
-           ((ivy-rich-candidate
-             (:width 0.8))
-            (ivy-rich-file-last-modified-time
-             (:face font-lock-comment-face))))
-          package-install
-          (:columns
-           ((ivy-rich-candidate
-             (:width 30))
-            (ivy-rich-package-version
-             (:width 16 :face font-lock-comment-face))
-            (ivy-rich-package-archive-summary
-             (:width 7 :face font-lock-builtin-face))
-            (ivy-rich-package-install-summary
-             (:face font-lock-doc-face)))))))
+  (defvar entropy/ivy--ivy-rich-display-transformers-list nil)
+  (defvar entropy/ivy--ivy-rich-candi-width/non-docstring 70)
+  (defvar entropy/ivy--ivy-rich-candi-width/with-docstring 40)
+  (defcustom entropy/emacs-ivy-rich-show-docstring-p nil
+    "")
+  (defun _ivy-rich-use-doc-width ()
+    (if entropy/emacs-ivy-rich-show-docstring-p
+        entropy/ivy--ivy-rich-candi-width/with-docstring
+      entropy/ivy--ivy-rich-candi-width/non-docstring))
+  (defun _ivy-rich-use-doc-func-elisp-var ()
+    (if entropy/emacs-ivy-rich-show-docstring-p
+        'ivy-rich-counsel-variable-docstring
+      (lambda (&rest _) "")))
+  (defun _ivy-rich-use-doc-func-elisp-func ()
+    (if entropy/emacs-ivy-rich-show-docstring-p
+        'ivy-rich-counsel-function-docstring
+      (lambda (&rest _) "")))
+  (defun _ivy-rich-use-icon-func (icon-func &optional empty)
+    (if (or empty
+            (not (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)))
+        '((lambda (&rest _) ""))
+      `(,icon-func)))
 
-;; **** all the icons ivy rich
-(use-package all-the-icons-ivy-rich
-  :commands all-the-icons-ivy-rich-mode
-  :if
-  (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)
-  :preface
-  (defun entropy/emacs-ivy--all-the-icon-ivy-rich-common-dir-icon
-      (candi)
-    (all-the-icons-ivy-rich--format-icon
-     (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01)))
+  (defun entropy/ivy--ivy-rich-set-transformers-list ()
+    (let ((dcw-w entropy/ivy--ivy-rich-candi-width/with-docstring)
+          (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring))
+      `(ivy-switch-buffer
+        (:columns
+         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
+          (ivy-rich-candidate
+           (:width ,(max (- dcw-w 10) 30)))
+          (ivy-rich-switch-buffer-size
+           (:width 7))
+          (ivy-rich-switch-buffer-indicators
+           (:width 4 :face error :align right))
+          (ivy-rich-switch-buffer-major-mode
+           (:width 12 :face warning)))
+         :predicate
+         (lambda
+           (cand)
+           (get-buffer cand)))
+        counsel-find-file
+        (:columns
+         (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+          (ivy-read-file-transformer)
+          (ivy-rich-counsel-find-file-truename
+           (:face font-lock-doc-face))))
+        counsel-M-x
+        (:columns
+         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
+          (counsel-M-x-transformer
+           (:width ,(_ivy-rich-use-doc-width)))
+          (,(_ivy-rich-use-doc-func-elisp-func)
+           (:face font-lock-doc-face))))
+        counsel-describe-function
+        (:columns
+         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
+          (counsel-describe-function-transformer
+           (:width ,(_ivy-rich-use-doc-width)))
+          (,(_ivy-rich-use-doc-func-elisp-func)
+           (:face font-lock-doc-face))))
+        counsel-describe-variable
+        (:columns
+         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-variable-icon)
+          (counsel-describe-variable-transformer
+           (:width ,(_ivy-rich-use-doc-width)))
+          (,(_ivy-rich-use-doc-func-elisp-var)
+           (:face font-lock-doc-face))))
+        counsel-recentf
+        (:columns
+         (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+          (ivy-rich-candidate
+           (:width 0.8))
+          (ivy-rich-file-last-modified-time
+           (:face font-lock-comment-face))))
+        package-install
+        (:columns
+         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+          (ivy-rich-candidate
+           (:width 30))
+          (ivy-rich-package-version
+           (:width 16 :face font-lock-comment-face))
+          (ivy-rich-package-archive-summary
+           (:width 7 :face font-lock-builtin-face))
+          (ivy-rich-package-install-summary
+           (:face font-lock-doc-face))))
+        counsel-projectile-switch-project
+        (:columns
+         ((ya/all-the-icon-ivy-rich-common-dir-icon)
+          (ivy-rich-candidate))
+         :delimiter "\t")
+        counsel-projectile-find-file
+        (:columns
+         ((ya/all-the-icons-ivy-rich-common-file-icon)
+          (counsel-projectile-find-file-transformer))
+         :delimiter "\t")
+        counsel-projectile-find-dir
+        (:columns
+         ((all-the-icons-ivy-rich-project-icon)
+          (counsel-projectile-find-dir-transformer))
+         :delimiter "\t"))))
 
-  (defun entropy/emacs-ivy--all-the-icons-ivy-rich-common-file-icon (candidate)
-    "Display file icon from CANDIDATE in `ivy-rich'."
-    (let* ((path (concat ivy--directory candidate))
-           (file (file-name-nondirectory path))
-           (icon (cond
-                  ((file-directory-p path)
-                   (all-the-icons-octicon "file-directory" :height 1.0 :v-adjust 0.01))
-                  ((string-match-p "^/.*:$" path)
-                   (all-the-icons-octicon "radio-tower" :height 1.0 :v-adjust 0.01))
-                  ((not (string-empty-p file))
-                   (all-the-icons-icon-for-file file :v-adjust -0.05)))))
-      (all-the-icons-ivy-rich--format-icon
-       (if (symbolp icon)
-           (all-the-icons-faicon "file-o" :face 'all-the-icons-dsilver :v-adjust 0.0)
-         icon))))
+  (defun entrop/emacs-ivy-rich-toggle-doc-show (&optional type)
+    (interactive)
+    (progn
+      (ivy-rich-mode 0)
+      (setq entropy/emacs-ivy-rich-show-docstring-p
+            (if type
+                (cond ((eq type 'enable)
+                       t)
+                      ((eq type 'disable)
+                       nil))
+              (not entropy/emacs-ivy-rich-show-docstring-p)))
+      (setq
+       ivy-rich-display-transformers-list
+       (entropy/ivy--ivy-rich-set-transformers-list))
+      (ivy-rich-mode 1)))
 
-  :init
-  (entropy/emacs-lazy-with-load-trail
-   all-the-icons-ivy-rich-mode
-   (memoize 'entropy/emacs-ivy--all-the-icons-ivy-rich-common-file-icon)
-   (let* ((enable-func
-           (lambda ()
-             (entropy/emacs-lazy-load-simple ivy
-               (all-the-icons-ivy-rich-mode 1)))))
-     (if (daemonp)
-         (entropy/emacs-with-daemon-make-frame-done
-          'all-the-icon-ivy-rich-mode
-          '(when (bound-and-true-p all-the-icons-ivy-rich-mode)
-             (all-the-icons-ivy-rich-mode 0))
-          `(funcall ,enable-func))
-       (when (entropy/emacs-icons-displayable-p)
-         (funcall enable-func)))))
+  (setq
+   ivy-rich-display-transformers-list
+   (entropy/ivy--ivy-rich-set-transformers-list))
 
-  :config
-  ;; patch `all-the-icons-ivy-rich-display-transformers-list' for
-  ;; reducing performace lagging
-  (let ((orig-ivy-rich-trans-list
-         (copy-tree all-the-icons-ivy-rich-display-transformers-list)))
-    (dolist
-        (item
-         '((ivy-switch-buffer
-            (:columns
-             ((all-the-icons-ivy-rich-buffer-icon)
-              (ivy-rich-candidate (:width 30))
-              (ivy-rich-switch-buffer-size (:width 7))
-              (ivy-rich-switch-buffer-indicators (:width 4 :face error :align right))
-              (ivy-rich-switch-buffer-major-mode (:width 12 :face warning)))
-             :predicate
-             (lambda (cand) (get-buffer cand))
-             :delimiter "\t"))
-           (counsel-projectile-switch-project
-            (:columns
-             ((entropy/emacs-ivy--all-the-icon-ivy-rich-common-dir-icon)
-              (ivy-rich-candidate))
-             :delimiter "\t"))
-           (counsel-projectile-find-file
-            (:columns
-             ((entropy/emacs-ivy--all-the-icons-ivy-rich-common-file-icon)
-              (counsel-projectile-find-file-transformer))
-             :delimiter "\t"))
-           (counsel-projectile-find-dir
-            (:columns
-             ((all-the-icons-ivy-rich-project-icon)
-              (counsel-projectile-find-dir-transformer))
-             :delimiter "\t"))))
-      (setq orig-ivy-rich-trans-list
-            (plist-put orig-ivy-rich-trans-list
-                       (car item)
-                       (cadr item))))
-    (setq all-the-icons-ivy-rich-display-transformers-list
-          orig-ivy-rich-trans-list)))
+  )
+
 
 ;; ** Powerful searcher
 ;; *** helm ag
