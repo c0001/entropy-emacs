@@ -1266,6 +1266,12 @@ bottom)."
 ;; ** eemacs specifications
 ;; *** Individuals
 
+(defmacro entropy/emacs-general-with-gc-strict (&rest body)
+  "Strictly gc features when run BODY."
+  `(let ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
+         (gc-cons-percentage entropy/emacs-gc-percentage-basic))
+     ,@body))
+
 (defun entropy/emacs-transfer-wvol (file)
   "Transfer linux type root path header into windows volumn
 format on windows platform."
@@ -1372,7 +1378,8 @@ pollute eemacs internal lazy load optimization."
                 (append entropy/emacs--lazy-load-simple-feature-head
                         '(,feature))))
         (redisplay t)
-        ,@body
+        (entropy/emacs-general-with-gc-strict
+         ,@body)
         ;; clear zombie echo area 'ing' prompts
         (message nil)
         (redisplay t))))
@@ -1389,7 +1396,8 @@ pollute eemacs internal lazy load optimization."
                 (require el)))
              ((symbolp ',feature)
               (require ',feature)))
-       ,@body))))
+       (entropy/emacs-general-with-gc-strict
+        ,@body)))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
   "Wrapping BODY to a function named with suffix by NAME into
@@ -1433,7 +1441,8 @@ functional aim to:
             (blue "Start")
             (yellow ,msg-str)
             (blue "..."))
-           ,@body
+           (entropy/emacs-general-with-gc-strict
+            ,@body)
            (entropy/emacs-message-do-message
             "%s '%s' %s"
             (blue "Start")
@@ -1533,7 +1542,8 @@ GENED-FUNCTION with their own name abbreviated."
               (blue "Loading and enable feature")
               (yellow ,initial-func-suffix-name)
               (blue "..."))
-             ,@func-body
+             (entropy/emacs-general-with-gc-strict
+              ,@func-body)
              (setq ,var t)
              (setq end-time (time-to-seconds))
              (entropy/emacs-message-do-message

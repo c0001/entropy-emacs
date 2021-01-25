@@ -48,18 +48,6 @@
       (add-to-list 'load-path (expand-file-name "emacs" wd-host))
       (require 'wudao-query nil t))))
 
-(defun company-en-words/lib--get-word-props (word)
-  (alist-get word
-             company-en-words-data/en-words-simple-list
-             nil nil 'string=))
-
-;; We use `memoize' to store the alist-get props for word query to
-;; reduce company pseudo tooltip lagging, since each selection
-;; operation will re-call `company-en-words/lib--get-word-props' to
-;; retrieve the prop again.
-(memoize 'company-en-words/lib--get-word-props)
-
-
 (defvar company-en-words/var--trie-inited nil)
 (defun company-en-words/lib--init-trie ()
   (unless company-en-words/var--trie-inited

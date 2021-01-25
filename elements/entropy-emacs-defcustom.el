@@ -473,9 +473,10 @@ value."
   "Eemacs ivy-mode configuration customizable group."
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
+(defcustom entropy/emacs-ivy-rich-type nil
   "The enhancement for ivy-framework, icon abbreviation and other
-information displayed in candidates show.
+information displayed in candidates show. NIL for disabled this
+feature.
 
 Two valid value defaulted by `entropy-emacs':
 
@@ -490,7 +491,8 @@ Two valid value defaulted by `entropy-emacs':
   details."
   :type '(choice
           (const :tag "Simple ivy icons" all-the-icons-ivy)
-          (const :tag "Ivy rich mode" ivy-rich-mode))
+          (const :tag "Ivy rich mode" ivy-rich-mode)
+          (const :tag "Neither to use" nil))
   :group 'entropy/emacs-customize-group-for-ivy-mode)
 
 ;; ***** dictionary config
@@ -1044,7 +1046,7 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
   "Eemacs company-mode configuration customizable group."
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
-(defcustom entropy/emacs-company-tooltip-use-type 'default
+(defcustom entropy/emacs-company-tooltip-use-type 'company-box
   "The tooltip kits used type for `company-mode'.
 
 Company has the built-in popup display tooltip kit, which reflect

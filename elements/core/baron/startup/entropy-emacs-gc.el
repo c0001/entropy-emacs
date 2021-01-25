@@ -109,7 +109,7 @@
                (* 100 1024)))
         ((derived-mode-p 'prog-mode)
          (setq gc-cons-threshold
-               most-positive-fixnum))))
+               (* 2 1024 1024)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer

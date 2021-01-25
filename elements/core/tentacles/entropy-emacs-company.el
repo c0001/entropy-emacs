@@ -450,7 +450,12 @@ event hints, so that fast continuous will lagging on."
              (kbd "C-h")
              'company-box-doc-manually))
           (t
-           (error "Can not enable company-box in non-gui session"))))
+           (if entropy/emacs-startup-done
+               (error "Can not enable company-box in non-gui session")
+             (entropy/emacs-message-do-message
+              "%s"
+              (red
+               "Can not enable company-box in non-gui session"))))))
 
   (add-to-list 'entropy/emacs-company--frontend-register
                '(company-box :enable entropy/emacs-company--box-enable

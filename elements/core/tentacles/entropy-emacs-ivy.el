@@ -64,7 +64,10 @@
   (entropy/emacs-lazy-load-simple counsel
     ;; we must set it nil again when loaded `counsel' which will
     ;; inject its own types
-    (setq ivy-initial-inputs-alist nil))
+    (setq ivy-initial-inputs-alist nil)
+    ;; printable M-x candi sort default type by string less
+    (add-to-list 'ivy-sort-functions-alist
+                 '(counsel-M-x . ivy-string<)))
 
   ;; ivy details
   (setq enable-recursive-minibuffers t) ;Allow commands in minibuffers
@@ -656,12 +659,12 @@ version of ivy framework updating.
 ;; ** Ivy UI Enhancement
 ;; *** all the icons ivy
 (use-package all-the-icons-ivy
-  :if (and (eq entropy/emacs-ivy-rich-type 'all-the-icons-ivy)
-           (entropy/emacs-icons-displayable-p))
   :commands (all-the-icons-ivy-setup)
   :init
-  (entropy/emacs-lazy-load-simple ivy
-    (all-the-icons-ivy-setup)))
+  (if (and (eq entropy/emacs-ivy-rich-type 'all-the-icons-ivy)
+           (entropy/emacs-icons-displayable-p))
+      (entropy/emacs-lazy-load-simple ivy
+        (all-the-icons-ivy-setup))))
 
 ;; *** ivy rich mode
 
@@ -726,14 +729,8 @@ version of ivy framework updating.
 ;; config inspired by the ivy config of *centaur-emacs* (https://github.com/seagle0128/.emacs.d)
 
 (use-package ivy-rich
-  :if (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)
   :commands (ivy-rich-mode)
   :init
-
-  ;; Setting tab size to 1, to insert tabs as delimiters
-  (add-hook 'minibuffer-setup-hook
-            (lambda ()
-              (setq tab-width 1)))
 
   (defun entropy/emacs-ivy--enable-ivy-rich-common ()
     (require 'ivy)
@@ -743,15 +740,20 @@ version of ivy framework updating.
     (setq ivy-virtual-abbreviate
           (or (and ivy-rich-mode 'abbreviate) 'name)))
 
-  (cond
-   (entropy/emacs-fall-love-with-pdumper
-    (add-hook 'entropy/emacs-pdumper-load-hook
-              #'entropy/emacs-ivy--enable-ivy-rich-common))
-   (t
-    (entropy/emacs-lazy-initial-advice-before
-     (ivy-read)
-     "ivy-rich" "ivy-rich" prompt-echo
-     (entropy/emacs-ivy--enable-ivy-rich-common))))
+  (when (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)
+    ;; Setting tab size to 1, to insert tabs as delimiters
+    (add-hook 'minibuffer-setup-hook
+              (lambda ()
+                (setq tab-width 1)))
+    (cond
+     (entropy/emacs-fall-love-with-pdumper
+      (add-hook 'entropy/emacs-pdumper-load-hook
+                #'entropy/emacs-ivy--enable-ivy-rich-common))
+     (t
+      (entropy/emacs-lazy-initial-advice-before
+       (ivy-read)
+       "ivy-rich" "ivy-rich" prompt-echo
+       (entropy/emacs-ivy--enable-ivy-rich-common)))))
 
   :config
   ;; For better performance
