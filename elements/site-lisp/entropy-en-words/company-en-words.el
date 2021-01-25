@@ -68,16 +68,22 @@
     (let ((gc-cons-threshold 8000))     ;reduce memory leak
       (dolist (el company-en-words-data/en-words-simple-list)
         (trie-insert company-en-words/lib--en-words-trie-obj
-                     (car el)))
+                     (car el) (cdr el)))
       (setq company-en-words/var--trie-inited t))))
 
 (defun company-en-words/lib--query-candis-core (word maxnum)
   (company-en-words/lib--init-trie)
-  (mapcar 'car
-          (trie-complete
-           company-en-words/lib--en-words-trie-obj
-           word
-           :maxnum maxnum)))
+  (mapcar
+   (lambda (arg)
+     (let ((word (car arg))
+           (prop (cdr arg)))
+       (propertize word
+                   'prop
+                   prop)))
+   (trie-complete
+    company-en-words/lib--en-words-trie-obj
+    word
+    :maxnum maxnum)))
 
 (defun company-en-words/lib--query-candis (word &optional maxnum)
   (company-en-words/lib--query-candis-core
@@ -91,7 +97,9 @@
   (interactive (list 'interactive))
   (cl-case command
     (interactive (company-begin-backend 'company-en-words))
-    (prefix (company-grab-word))
+    (prefix
+     (let ((word (company-grab-word)))
+       word))
     (candidates
      (when (and (stringp arg)
                 (not (string-empty-p arg)))
@@ -101,10 +109,17 @@
          ;; return while in multi backends calling status.
          (company-en-words/lib--query-candis arg 10))))
     (annotation
-     (let ((props
-            (company-en-words/lib--get-word-props arg)))
-       (format "%s"
-               (or props "␀"))))
+     ;; show annotation just when `company-prefix' length larger/equal
+     ;; 2 in which case do not map thousands of candis to reduce
+     ;; lagging.
+     (unless (and company-prefix
+                  (< (length company-prefix) 2))
+       (let ((props
+              ;; ignore errors while arg may be nil
+              (ignore-errors
+                (get-text-property 0 'prop arg))))
+         (format "%s"
+                 (or props " ")))))
     (doc-buffer
      (when company-en-words/var--wudao-required
        (let ((buffer (get-buffer-create company-en-words/var--doc-buffer-name))
