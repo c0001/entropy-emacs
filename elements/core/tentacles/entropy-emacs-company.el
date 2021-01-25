@@ -292,15 +292,24 @@ event hints, so that fast continuous will lagging on."
             company--point-max (point-max))
       (company-ensure-emulation-alist)
       (company-enable-overriding-keymap company-active-map)
-      ;; Ran update just after idle time immediately for reducing
-      ;; laggging on fast continuous typing
-      ;;
-      ;; EEMACS_MAINTENANCE: turn on
-      ;; `entropy/emacs-session-idle-trigger-debug' to see internal
-      ;; debug informations when needed.
-      (entropy/emacs-run-at-idle-immediately company-update
-       (when (company-call-backend 'prefix)
-         (company-call-frontends 'update)))))
+      (if (bound-and-true-p company-box-mode)
+          ;; Ran update just after idle time immediately for reducing
+          ;; laggging on fast continuous typing
+          ;;
+          ;; EEMACS_MAINTENANCE: turn on
+          ;; `entropy/emacs-session-idle-trigger-debug' to see internal
+          ;; debug informations when needed.
+          (entropy/emacs-run-at-idle-immediately
+           company-update
+           (when (company-call-backend 'prefix)
+             (company-call-frontends 'update)))
+        ;;EEMACS_BUG: idle trigger not support to
+        ;;`company-pseudo-tooltip-unless-just-one-frontend' so that we
+        ;;leave it as original post. This may be corresponding to the
+        ;;the overlay update mechanism of this frontend's 'UPDTE'
+        ;;command, TODO for while we should create our own new pseudo
+        ;;tooltip frontend with delay trigger support replace it.
+        (company-call-frontends 'update))))
 
   )
 
