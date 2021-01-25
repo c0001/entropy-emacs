@@ -2663,6 +2663,25 @@ it with focus on."
     (display-buffer buffer)
     (select-window (get-buffer-window buffer))))
 
+(defvar entropy/emacs-basic--desc-current-var nil)
+(defun entropy/emacs-basic--desc-var-preserve-var
+    (orig-func &rest orig-args)
+  (let ((var (car orig-args)))
+    (setq entropy/emacs-basic--desc-current-var
+          var)
+    (apply orig-func orig-args)))
+
+(advice-add 'describe-variable
+            :around
+            #'entropy/emacs-basic--desc-var-preserve-var)
+
+(define-key help-mode-map
+  (kbd "p")
+  (lambda ()
+    (interactive)
+    (entropy/emacs-basic-print-variable
+     entropy/emacs-basic--desc-current-var)))
+
 
 ;; * provide
 (provide 'entropy-emacs-basic)
