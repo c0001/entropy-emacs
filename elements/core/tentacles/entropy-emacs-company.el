@@ -311,6 +311,33 @@ event hints, so that fast continuous will lagging on."
         ;;tooltip frontend with delay trigger support replace it.
         (company-call-frontends 'update))))
 
+  (defvar-local __company-delc-time-host nil)
+  (defun __company-delc-time-fly-p ()
+    "Judge whether the `delete-char' hit on flying while company
+actived status. Default time during set is less than 70ms."
+    (catch :exit
+      (let* ((time-old (or __company-delc-time-host
+                           (throw :exit nil)))
+             (time-now (current-time))
+             (duration (abs
+                        (- (caddr time-now)
+                           (caddr time-old)))))
+        (and
+         (equal (cadr time-now) (cadr time-old))
+         (< duration
+            entropy/emacs-company-delete-char-on-the-fly-duration)))))
+  (defun __company-delete-char (orig-func &rest orig-args)
+    (let (rtn)
+      (when (and (bound-and-true-p company-mode)
+                 (bound-and-true-p company-candidates))
+        (when (__company-delc-time-fly-p)
+          (company-abort)))
+      (setq rtn (apply orig-func orig-args)
+            __company-delc-time-host
+            (current-time))
+      rtn))
+  (advice-add 'delete-char :around #'__company-delete-char)
+
   )
 
 ;; *** company components function autoload
@@ -549,36 +576,85 @@ initial frame background face sets did by
                 :override
                 #'entropy/emacs-company--company-box-icons-elisp))
 
-;; ***** temp
+;; ***** company box doc hide when fly on editing
+
+  (defvar-local __local-company-box-doc-hided nil)
+  (defun __company-doc-show-timer-func (selection frame)
+    "`company-box-doc' delay show core subroutine.
+
+EEMACS_MAINTENANCE: may need update with company-box upstream."
+    (company-box-doc--show selection frame)
+    (company-ensure-emulation-alist))
   (defun company-box-doc (selection frame)
     "NOTE: this function has been redefined for adapting to
 eemacs.
 
-Patched for: *use `entropy/emacs-run-at-idle-immediately' to delay the body run*
+Patched for: Run doc frame hide just one time when consecutively
+fast hints.
 
 The origin `company-box-doc' has preparation with doc frame
 visible checking with function `frame-local-get' which mapped
 local frame obarray to search local varaible which has bad
 benchmark performance as an scroll lagging reason when toggle on
-`company-box-doc-enable', further more any rest frame hide or
-timer reset body is so on.
+`company-box-doc-enable'.
 
 EEMACS_MAINTENANCE: need patching updately with `company-box'
 upstream."
     (when company-box-doc-enable
       (eval
-       `(entropy/emacs-run-at-idle-immediately
-         company-box-doc-enable
-         (-when-let (doc-frame (frame-local-getq company-box-doc-frame ,frame))
-           (make-frame-invisible doc-frame))
-         (when (timerp company-box-doc--timer)
-           (cancel-timer company-box-doc--timer))
-         (setq company-box-doc--timer
-               (run-with-timer
-                company-box-doc-delay nil
-                (lambda nil
-                  (company-box-doc--show ',selection ,frame)
-                  (company-ensure-emulation-alist))))))))
+       `(progn
+          (unless __local-company-box-doc-hided
+            (let ((doc-frame
+                   (frame-local-getq company-box-doc-frame
+                                     ,frame)))
+              (make-frame-invisible doc-frame)
+              (setq __local-company-box-doc-hided t)))
+          (when (timerp company-box-doc--timer)
+            (cancel-timer company-box-doc--timer)
+            (cancel-function-timers '__company-doc-show-timer-func)
+            (setq company-box-doc--timer nil))
+          (setq company-box-doc--timer
+                (run-with-timer
+                 company-box-doc-delay nil
+                 #'__company-doc-show-timer-func
+                 ',selection ,frame))))))
+
+  (defun __local-company-box-doc-hided-rest
+      (orig-func &rest orig-args)
+    (let ((rtn (apply orig-func orig-args)))
+      (setq __local-company-box-doc-hided nil)
+      rtn))
+  (advice-add 'company-box-doc--show
+              :around #'__local-company-box-doc-hided-rest)
+
+  (defun __company-box-doc-hide--with-local-judge
+      (orig-func &rest orig-args)
+    (unless __local-company-box-doc-hided
+      (let ((rtn
+             (apply orig-func orig-args)))
+        (setq __local-company-box-doc-hided t)
+        rtn)))
+  (advice-add 'company-box-doc--hide
+              :around
+              #'__company-box-doc-hide--with-local-judge)
+
+  (defun __ya_company-box-doc-hide (&rest _)
+    (company-box-doc--hide (selected-frame)))
+  (defun entropy/emacs-company-box-hide-on-the-fly (&rest _)
+    "Hide company-box-doc frame when flying on the hints when the
+older doc show is actived since we delayed company update command
+while in `company-box-mode'."
+    (cond
+     ((bound-and-true-p company-box-mode)
+      (add-hook 'pre-command-hook
+                #'__ya_company-box-doc-hide nil t))
+     (t
+      (add-hook 'pre-command-hook
+                #'__ya_company-box-doc-hide nil t))))
+  (add-hook 'company-box-mode-hook
+            #'entropy/emacs-company-box-hide-on-the-fly)
+
+
   )
 
 ;; *** Better sorting and filtering

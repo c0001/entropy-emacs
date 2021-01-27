@@ -108,7 +108,7 @@ key-stroke experience."
   :type '(cons (key-sequence :tag "GUI bind") (key-sequence :tag "TUI bind"))
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-garbage-collection-delay 1.4
+(defcustom entropy/emacs-garbage-collection-delay 5
   "The defaults garbage collection idle delay secons setting
 for entropy-emacs."
   :type 'integer
@@ -1070,6 +1070,17 @@ rich enhanced purpose there are one another option:
   "Default unified company help-doc popup delay used for all type
 of `entropy/emacs-company-tooltip-use-type'."
   :type 'number
+  :group 'entropy/emacs-customize-group-for-company-mode)
+
+
+(defcustom entropy/emacs-company-delete-char-on-the-fly-duration
+  70000
+  "The flying on `delete-char' duration while company is actived
+on in which case `company-candidates' is non-nil.
+
+This integer is used to auto close company daemon so that flying
+on hits will not cause emacs lagging on."
+  :type 'integer
   :group 'entropy/emacs-customize-group-for-company-mode)
 
 ;; **** use highlight feature

@@ -517,11 +517,16 @@ enable it which do not want to be unset yet."
           ""
         (setq cur_info
               (when entropy/emacs-current-session-is-idle
-                (if (consp company-backend)
-                    (company--group-lighter (nth company-selection
-                                                 company-candidates)
-                                            "company")
-                  (symbol-name company-backend))))
+                ;; EEMACS_BUG:
+                ;; ignore-erros for company info get since some
+                ;; strange redisplay errors will occur.
+                (ignore-errors
+                  (if (consp company-backend)
+                      (company--group-lighter
+                       (nth company-selection
+                            company-candidates)
+                       "company")
+                    (symbol-name company-backend)))))
         (cond ((or (null cur_info) (equal cur_info "nil"))
                company-lighter-base)
               ((bound-and-true-p company-candidates)
