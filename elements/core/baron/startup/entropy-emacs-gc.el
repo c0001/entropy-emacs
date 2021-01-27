@@ -136,7 +136,7 @@
   ;; after all idle progress, we enable gc in rest idle time step by
   ;; step as an daemon gc guard for watching in non-busy stat and will
   ;; be killed by `entropy/emacs-gc--remove-idle-guard'.
-  (run-with-timer 1 5 #'garbage-collect)
+  (run-with-timer 1 60 #'garbage-collect)
   (setq entropy/emacs-gc--idle-guard-removed nil))
 
 (defun entropy/emacs-gc--remove-idle-guard
