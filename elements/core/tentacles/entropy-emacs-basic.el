@@ -2637,6 +2637,7 @@ it with focus on."
         (print-length nil))
     (with-current-buffer buffer
       (fundamental-mode)
+      (local-set-key (kbd "q") 'quit-window)
       (erase-buffer)
       (cond
        ((stringp variable)
