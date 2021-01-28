@@ -241,6 +241,8 @@ place can be easily found by other interactive command."
 
 ;; ***** init
   :init
+;; ***** config
+  :config
 ;; ****** Delete directory with force actions
   (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
 
@@ -262,13 +264,6 @@ place can be easily found by other interactive command."
     "Dired buffer killed by `entropy/emacs-basic--dired-delete-file-rescursie'
 log variable.")
 
-  (defun entropy/emacs-basic--dired-redelete-file ()
-    "Redeletting file specified by variable
-`entropy/emacs-basic--dired-file-current-delete'."
-    (interactive)
-    (kill-buffer)
-    (entropy/emacs-basic-dired-delete-file-recursive entropy/emacs-basic--dired-file-current-delete))
-
   (defun entropy/emacs-basic--dired-delete-file-prompt (files-list)
     "popup buffer to deleting with prompting and return the
 condition state for whether be continuing rest process."
@@ -276,25 +271,32 @@ condition state for whether be continuing rest process."
                            'delete
                            files-list
                            dired-deletion-confirmer
-                           (format "%s %s " "Deleting" (dired-mark-prompt nil files-list)))
+                           (format "%s %s " "Deleting"
+                                   (dired-mark-prompt nil files-list)))
         t
       (error "Cancel deleting files!")))
 
-  (defun entropy/emacs-basic-dired-delete-file-recursive (&optional pre-files just-kill-refers)
-    "Delete file recursively with refer buffer
-cleaned (i.e. files under this dir will cleaned their linked
-opened buffer within current emacs session.)
+  (defun entropy/emacs-basic-dired-delete-file-recursive
+      (&optional pre-files just-kill-refers)
+    "Delete file recursively with refer buffer cleaned (i.e. files
+under this dir will cleaned their corresponding buffers (file
+buffer and dir host dired buffer within current emacs session.)
 
-This func was binding to 'D' in `dired-mode-map' which be the
-replacement for func `dired-do-delete', this func's advantageous
-than it was given the deletion failed handle for responding to
-some directory.
+This func is the replacement for func `dired-do-delete', take
+advantage by giving the deletion failed handle for each fatal by
+showing up the failing error detailes and referred transaction
+suggestions.
 
-Error handle will switching to special buffer '*[w32-resmon]*'
-buffer with minor mode `entropy/emacs-basic--dired-delete-file-mode' for
-prompting for how to resolving deletions problems.
+Error handle will switching to special buffer '*eemacs delete file error*'
+buffer with minor mode
+`entropy/emacs-basic--dired-delete-file-mode'.
 
-In win32 platform using 'resmon' for conflicates resolve tool.  "
+For lisp code, optional args:
+
+- PRE-FILES: file list to deletion
+- JUST-KILL-REFERS: just kill file referred file buffer or hosted
+  dir's dired buffers.
+"
     (interactive)
     (let* ((base-files (cond ((and (equal major-mode 'dired-mode)
                                    (not pre-files))
@@ -303,8 +305,12 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                                    (listp pre-files))
                               pre-files)
                              (t (error "Dir list invalid!"))))
-           _file-type
            (did-times (length base-files))
+           _file-type
+           (pbufname "*eemacs delete file error*")
+           (prompt-buffer (get-buffer-create
+                           pbufname))
+           error-occurred
            (count 1))
 
       (unless just-kill-refers
@@ -316,20 +322,33 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
         (dolist (el (buffer-list))
           (let* ((buffer-file (buffer-file-name el)))
             (when (and buffer-file
-                       (string-match (regexp-quote file) buffer-file))
+                       (file-equal-p file buffer-file))
               (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-files
                            (cons (buffer-name el) (current-time-string)))
               (kill-buffer el))))
 
         ;; killed refer dired buffers
         (dolist (el dired-buffers)
-          (when (string-match (regexp-quote file) (car el))
-            (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers
-                         (cons el (current-time-string)))
-            (kill-buffer (cdr el))))
-
-        (condition-case nil
-            (when (not just-kill-refers)
+          (let ((dir (car el))
+                (buffer (cdr el)))
+            (when (and
+                   (buffer-live-p buffer)
+                   (if (eq major-mode 'dired-mode)
+                       (not (eq buffer (current-buffer)))
+                     t)
+                   (file-equal-p
+                    (if (or (file-directory-p file)
+                            ;; if file not exist then we match the name string
+                            (string-match-p "/\\|\\\\$" file))
+                        dir
+                      (expand-file-name
+                       (file-name-nondirectory file) dir))
+                    file))
+              (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers
+                           (cons el (current-time-string)))
+              (kill-buffer buffer))))
+        (when (not just-kill-refers)
+          (condition-case this-error
               (progn
                 (setq entropy/emacs-basic--dired-file-current-delete (list file))
                 (cond ((f-symlink-p file)
@@ -351,36 +370,33 @@ In win32 platform using 'resmon' for conflicates resolve tool.  "
                    (message (format "Delete file '%s' done! -v-" file)))
                   ('directory
                    (message (format "Delete directory '%s' done! -v-" file))))
-                (cl-incf count)))
-          (error
-           (cond (sys/win32p
-                  (let ((prompt-buffer (get-buffer-create "*[w32-resmon]*")))
-                    (start-process-shell-command
-                     "windows resource monitor"
-                     prompt-buffer
-                     "resmon")
-                    (switch-to-buffer prompt-buffer)
-                    (goto-char (point-min))
-                    (entropy/emacs-basic--dired-delete-file-mode)
-                    (insert
-                     (format
-                      (concat
-                       "==============Prompt Info=================\n\n"
-                       "Kill all handle refer file:\n %s\n"
-                       "with filter with windows resmon!\n\n"
-                       "And try again with answer minibuffer prompts delete again\n\n"
-                       "===============Prompt End=================")
-                      file))
-                    (entropy/emacs-basic--dired-redelete-file)))
-                 (t (message "Kill all refer task and try again!"))))))))
+                (cl-incf count))
+            (error
+             (setq error-occurred t)
+             (let* ((inhibit-read-only t))
+               (unless (buffer-live-p prompt-buffer)
+                 (error "buffer creation error for %s" pbufname))
+               (with-current-buffer prompt-buffer
+                 (entropy/emacs-basic--dired-delete-file-mode)
+                 (goto-char (point-min))
+                 (erase-buffer)
+                 (when (= count 1)
+                   (insert
+                    "========== File Deletion Error Handle Prompt Buffer ==========\n"))
+                 (insert
+                  (format "[%s] %s: %s deletion failed by %s \n"
+                          count _file-type file (cdr this-error)))))))))
+      (when error-occurred
+        (with-current-buffer prompt-buffer
+          (insert "========== Prompt End =========="))
+        (pop-to-buffer prompt-buffer))))
 
   (defun entropy/emacs-basic-dired-delete-file-refers ()
     "Kill all refers of dired markd file of directories."
     (interactive)
     (entropy/emacs-basic-dired-delete-file-recursive nil t))
 
-;; ***** config
-  :config
+
 ;; ****** unbind some unusual keys which may cause mistakes or its dangerous
 
   (dolist (key (list
