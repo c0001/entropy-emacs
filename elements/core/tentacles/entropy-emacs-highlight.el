@@ -92,18 +92,18 @@
       (if (bound-and-true-p symbol-overlay-mode)
           t
         nil))
-     ("C-c h s p" entropy/emacs-hl-symbol-overlay-put
+     ("C-c h s r" symbol-overlay-rename
+      "Rename symbol at point on all its occurrences."
+      :enable t
+      :eemacs-top-bind t
+      :exit t)
+     ("C-c h s u" entropy/emacs-hl-symbol-overlay-put
       "Toggle all overlays of symbol at point"
       :enable t
       :eemacs-top-bind t
       :exit t)
-     ("C-c h s r" entropy/emacs-hl-symbol-overlay-remove-all
+     ("C-c h s d" entropy/emacs-hl-symbol-overlay-remove-all
       "Remove all highlighted symbols in the buffer"
-      :enable t
-      :eemacs-top-bind t
-      :exit t)
-     ("C-c h s n" entropy/emacs-hl-symbol-overlay-jump-next
-      "Jump to the next location of symbol at point"
       :enable t
       :eemacs-top-bind t
       :exit t)
@@ -111,10 +111,25 @@
       "Jump to the previous location of symbol at point"
       :enable t
       :eemacs-top-bind t
+      :exit t)
+     ("C-c h s n" entropy/emacs-hl-symbol-overlay-jump-next
+      "Jump to the next location of symbol at point"
+      :enable t
+      :eemacs-top-bind t
       :exit t))))
   :init
-  (when entropy/emacs-hl-sysmbol-overlay-enable-at-startup
-    (add-hook 'prog-mode-hook #'symbol-overlay-mode)))
+  (if (and entropy/emacs-hl-sysmbol-overlay-enable-at-startup
+           ;; we just enable symbol-overlay for all mode derived from
+           ;; `prog-mode' when `entropy/emacs-ide-suppressed' is null
+           ;; in which case all those modes doesn't have native symbol
+           ;; highlight feature yet.
+           (null entropy/emacs-ide-suppressed))
+      (add-hook 'prog-mode-hook #'symbol-overlay-mode)
+    ;; emacs lisp mode doesn't have code-server support so we use
+    ;; `symbol-overlay-mode' forcely enable injections for those
+    ;; hooks.
+    (dolist (hook '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
+      (add-hook hook 'symbol-overlay-mode))))
 
 ;; ** Highlight matching paren
 (use-package paren
