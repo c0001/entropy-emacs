@@ -32,6 +32,8 @@
 ;; * Code:
 
 ;; ** require
+
+(require 'package)
 (require 'entropy-emacs-defconst)
 (require 'entropy-emacs-defcustom)
 (require 'entropy-emacs-defun)
@@ -137,6 +139,7 @@ This procedure will refresh all packages status."
   "Check the package archive dir status in `package-user-dir'.
 
 Return t for exists status or nil for otherwise."
+  (entropy/emacs-package-prepare-foras)
   (let ((pkg-archive-dir (expand-file-name "archives" package-user-dir)))
     (if (and (file-exists-p pkg-archive-dir)
              (entropy/emacs-list-files-recursive-for-list pkg-archive-dir))
