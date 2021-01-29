@@ -358,8 +358,6 @@ are recognized as a normal function."
 can host a macro symbol or a list of thus. All symbols are
 recognized as a normal macro."
   (use-package-concat
-   ;; Since we deferring load, establish any necessary autoloads, and also
-   ;; keep the byte-compiler happy.
    (let ((name-string (use-package-as-string name)))
      (cl-mapcan
       #'(lambda (command)
@@ -368,9 +366,7 @@ recognized as a normal macro."
              (unless (plist-get state :demand)
                `((unless (fboundp ',command)
                    (autoload #',command ,name-string nil nil t))))
-             (when (bound-and-true-p byte-compile-current-file)
-               `((eval-when-compile
-                   (declare-function ,command ,name-string)))))))
+             nil)))
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
