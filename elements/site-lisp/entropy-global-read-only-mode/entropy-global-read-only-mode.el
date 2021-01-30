@@ -45,12 +45,12 @@
 
 ;; 2) Lock files at startup for general view.
 
-;;    Sing the way for each file opening about, but the special buffer
-;;    list regexp matching for.
+;;    Single the way for each file opening about, but the special
+;;    buffer list regexp matching for.
 
 ;;;; Requirements
 
-;; The only one extra melpa extension [[https://github.com/m2ym/popwin-el/tree/95dea14c60019d6cccf9a3b33e0dec4e1f22c304][org]] is required. Org mode utilies
+;; The only one extra melpa extension [[https://orgmode.org/][org]] is required. Org mode utilies
 ;; need treating for specially read-only setting way, thus this package
 ;; will give some re-defun coding snippets for the ones member of those
 ;; utilies. But all the re-defun procedure are just enabled when =org=
@@ -139,11 +139,10 @@
 
 ;;;; Redefine functions and advices tracking
 
-;; There's some necessary case for redefining some package refered
-;; function when value of =entropy/grom-readonly-type= was "all", the
-;; majority occurrence one of them is that they operated buffer
-;; without buffer read-only status checking, thus they thrown out
-;; errors of unexpect process interrupted.
+;; There's some necessary case for redefining some packages refered
+;; functions, the majority occurrence one of them is that they
+;; operated buffer without buffer read-only status checking, thus
+;; they thrown out errors of unexpect process interrupted.
 
 ;; Til now in this package, all redefined function are all the
 ;; utilities of =org-mode=. Most of org buffer operation are not
@@ -153,6 +152,14 @@
 ;; recovered when =entropy/grom-mode= disabled.
 
 ;;; Changelog:
+
+;; - [2021-01-29 Fri 23:34:17] Support org patch to "modes" grom type
+
+;;   Others:
+
+;;   * Require features before patching them instead of autoloads with
+;;     `eval-after-load' so that we can disable it from patcher
+;;     register directly while disable grom-mode.
 
 ;; - [2021-01-11 Mon 19:18:25] Use internal readonly routine
 ;;   `entropy/grom--readonly-1&0' instead of commonly used
@@ -401,6 +408,25 @@ operation may cause some risk. ('M-x read-only-mode' for forcely)"
         entropy/grom--advice-register)
   (setq entropy/grom--advice-register nil))
 
+(defmacro entropy/grom--with-require-feature
+    (feature &rest body)
+  "Do body after FEATURE required if available, FEATURE can be a
+single one or a list of thus. "
+  (declare (indent defun))
+  `(let (feature-get
+         (feature-sets-p (listp ',feature))
+         (fatal nil))
+     (if feature-sets-p
+         (setq feature-get ',feature)
+       (setq feature-get (list ',feature)))
+     (mapc (lambda (fr)
+             (if (featurep fr)
+                 (require fr)
+               (setq fatal t)))
+           feature-get)
+     (unless fatal
+       ,@body)))
+
 (defun entropy/grom--enable-patcher ()
   (dolist (patcher entropy/grom--external-patch-register)
     (let ((init (plist-get patcher :init)))
@@ -595,8 +621,9 @@ readonly mode is on."
 (defun entropy/grom--org-patch-init ()
 ;;;;;;;; agenda function advice for unlock current entry
   (when
-      (string= entropy/grom-readonly-type "all")
-    (with-eval-after-load 'org-agenda
+      (or (string= entropy/grom-readonly-type "all")
+          (string= entropy/grom-readonly-type "modes"))
+    (entropy/grom--with-require-feature org-agenda
       (define-key org-agenda-mode-map (kbd "C-d") #'entropy/grom--unlock-actived-agenda-file-buffers)
 
       ;; org-agenda-todo advice
@@ -618,8 +645,9 @@ readonly mode is on."
 
 ;;;;;;;; Redefine org-capture about function for adapting for global-readonly-mode
   (when
-      (string= entropy/grom-readonly-type "all")
-    (with-eval-after-load 'org-capture
+      (or (string= entropy/grom-readonly-type "all")
+          (string= entropy/grom-readonly-type "modes"))
+    (entropy/grom--with-require-feature org-capture
       (defun entropy/grom--org-capture-place-template (&optional inhibit-wconf-store)
         "Insert the template at the target location, and display
 the buffer.  When `inhibit-wconf-store', don't store the window
@@ -650,7 +678,7 @@ was the override function for `org-capture-place-template' by
         (setq-local org-capture-current-plist org-capture-plist))
 
       (entropy/grom--add-advice 'org-capture-place-template :override
-                               #'entropy/grom--org-capture-place-template)
+                                #'entropy/grom--org-capture-place-template)
 
       (defun entropy/grom--org-capture-put-target-region-and-position-after-advice
           (&rest args)
@@ -662,9 +690,9 @@ This func was advice for func
           (entropy/grom--readonly-1&0 0)))
 
       (entropy/grom--add-advice 'org-capture-put-target-region-and-position
-                  :after #'entropy/grom--org-capture-put-target-region-and-position-after-advice))
+                                :after #'entropy/grom--org-capture-put-target-region-and-position-after-advice))
 
-    (with-eval-after-load 'org-datetree
+    (entropy/grom--with-require-feature org-datetree
       (defun entropy/grom--org-datetree-before-advice ()
         (if buffer-read-only
             (entropy/grom--readonly-1&0 0)))

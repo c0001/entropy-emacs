@@ -1,15 +1,15 @@
 # Table of Contents
 
-1.  [Copyright (C) 20200221  Entropy](#orgc5bf668)
-2.  [Commentary:](#org5fd8f4b)
-    1.  [Requirements](#org438ec70)
-    2.  [Installation](#orga52a314)
-    3.  [Configuration](#org030936c)
-    4.  [Interaction](#org2c13e2e)
-    5.  [Redefine functions and advices tracking](#org3ea1f8a)
-3.  [Changelog:](#org0c3ce03)
+1.  [Copyright (C) 20200221  Entropy](#orga3dd3dd)
+2.  [Commentary:](#org63062ed)
+    1.  [Requirements](#orgc728c62)
+    2.  [Installation](#org5e2340a)
+    3.  [Configuration](#orgc707caf)
+    4.  [Interaction](#orgf8f2a86)
+    5.  [Redefine functions and advices tracking](#orgc486bc1)
+3.  [Changelog:](#org2acf39c)
 
-<a id="orgc5bf668"></a>
+<a id="orga3dd3dd"></a>
 
 # Copyright (C) 20200221  Entropy
 
@@ -35,7 +35,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="org5fd8f4b"></a>
+<a id="org63062ed"></a>
 
 # Commentary:
 
@@ -58,22 +58,22 @@ The rule base for is follow the below two way:
 
 2.  Lock files at startup for general view.
 
-    Sing the way for each file opening about, but the special buffer
-    list regexp matching for.
+    Single the way for each file opening about, but the special
+    buffer list regexp matching for.
 
 
-<a id="org438ec70"></a>
+<a id="orgc728c62"></a>
 
 ## Requirements
 
-The only one extra melpa extension [org](https://github.com/m2ym/popwin-el/tree/95dea14c60019d6cccf9a3b33e0dec4e1f22c304) is required. Org mode utilies
+The only one extra melpa extension [org](https://orgmode.org/) is required. Org mode utilies
 need treating for specially read-only setting way, thus this package
 will give some re-defun coding snippets for the ones member of those
 utilies. But all the re-defun procedure are just enabled when `org`
 loaded, there's no need to require `org` with the manually way.
 
 
-<a id="orga52a314"></a>
+<a id="org5e2340a"></a>
 
 ## Installation
 
@@ -81,7 +81,7 @@ Download main [source file](entropy-global-read-only-mode.el) to your load-path 
 the most easy way.
 
 
-<a id="org030936c"></a>
+<a id="orgc707caf"></a>
 
 ## Configuration
 
@@ -131,7 +131,7 @@ The `use-packge` configure management type demo as:
       :init (add-hook 'after-init-hook #'entropy-grom-mode))
 
 
-<a id="org2c13e2e"></a>
+<a id="orgf8f2a86"></a>
 
 ## Interaction
 
@@ -159,15 +159,14 @@ The `use-packge` configure management type demo as:
     `entropy/grom-toggle-read-only`.
 
 
-<a id="org3ea1f8a"></a>
+<a id="orgc486bc1"></a>
 
 ## Redefine functions and advices tracking
 
-There's some necessary case for redefining some package refered
-function when value of `entropy/grom-readonly-type` was "all", the
-majority occurrence one of them is that they operated buffer
-without buffer read-only status checking, thus they thrown out
-errors of unexpect process interrupted.
+There's some necessary case for redefining some packages refered
+functions, the majority occurrence one of them is that they
+operated buffer without buffer read-only status checking, thus
+they thrown out errors of unexpect process interrupted.
 
 Til now in this package, all redefined function are all the
 utilities of `org-mode`. Most of org buffer operation are not
@@ -177,9 +176,17 @@ unlock codes into them respectively. The defination will be
 recovered when `entropy/grom-mode` disabled.
 
 
-<a id="org0c3ce03"></a>
+<a id="org2acf39c"></a>
 
 # Changelog:
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2021-01-29 Fri 23:34] </span></span> Support org patch to "modes" grom type
+
+    Others:
+
+    -   Require features before patching them instead of autoloads with
+        \`eval-after-load' so that we can disable it from patcher
+        register directly while disable grom-mode.
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2021-01-11 Mon 19:18] </span></span> Use internal readonly routine
     \`entropy/grom&#x2013;readonly-1&0' instead of commonly used
@@ -207,4 +214,4 @@ recovered when `entropy/grom-mode` disabled.
 -   <span class="timestamp-wrapper"><span class="timestamp">[2018-08-01 Wed] </span></span> version 0.1.0 release
 
 
-<a id="org81aed28"></a>
+<a id="org51bedfa"></a>
