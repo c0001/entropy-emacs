@@ -132,7 +132,8 @@
           "fakecygpty"
           "undo-tree-eemacs"
           "liberime"
-          "with-proxy.el"))
+          "with-proxy.el"
+          "lsp-java-simple"))
        (cur-path (expand-file-name (file-name-directory load-file-name)))
        (core-path (expand-file-name "core" cur-path))
        (deps-path (expand-file-name "site-lisp" cur-path)))

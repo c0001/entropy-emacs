@@ -131,6 +131,7 @@
                      ("python-lsp" . entropy/emacs-coworker-check-python-lsp)
                      ("python-pyright" . entropy/emacs-coworker-check-pyright-lsp)
                      ("cmake-lsp" . entropy/emacs-coworker-check-cmake-lsp)
+                     ("java-lsp"  . entropy/emacs-coworker-check-java-lsp)
                      ("pwsh-lsp" . entropy/emacs-coworker-check-pwsh-lsp)
                      ("python-lsp-ms" . entropy/emacs-coworker-check-pyls-ms-lsp)
                      ("clangd-lsp" . entropy/emacs-coworker-check-clangd-lsp))))

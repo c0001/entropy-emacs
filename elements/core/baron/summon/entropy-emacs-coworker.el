@@ -372,7 +372,9 @@ EXIT /b
              server-host-url
              tmp-download-file))
       (unless (eq (symbol-value download-cbk) 'success)
-        (user-error "'%s' lsp server download with fatal!" server-name-string))
+        (user-error "'%s' lsp server download with fatal with error type '%s'"
+                    server-name-string
+                    (get download-cbk 'error-type)))
       (make-directory server-extract-dir t)
       (entropy/emacs-archive-dowith
        server-archive-type
@@ -586,6 +588,25 @@ EXIT /b
     (mspyls (entropy/emacs-coworker-check-pyls-ms-lsp))
     (pyls (entropy/emacs-coworker-check-pyls-lsp))
     (pyright (entropy/emacs-coworker-check-pyright-lsp))))
+
+
+;; *** java
+(defun entropy/emacs-coworker-check-java-lsp (&rest _)
+  (entropy/emacs-coworker--coworker-install-by-archive-get
+   "java lsp"
+   "jdtls"
+   ;; we use 'entropy-emacs-cabinet' project's hosted jdtls which has
+   ;; full project with boot/test/compiler tools integrated instead of
+   ;; `lsp-java' github release stuff url which has significantly
+   ;; download speed restriction.
+   "https://sourceforge.net/projects/entropy-emacs-cabinet/files/LSP/lsp-java/lsp-java-v3.0_jdtls_release/lsp-java-v3.0_jdtls_release.tgz"
+   'tgz))
+(when (eq (entropy/emacs-get-use-ide-type 'java-mode) 'lsp)
+  (unless entropy/emacs-ext-use-eemacs-lsparc
+    (setq lsp-java-server-install-dir
+          (expand-file-name
+           "jdtls/jdt-lsp"
+           entropy/emacs-coworker-archive-host-root))))
 
 ;; * provide
 (provide 'entropy-emacs-coworker)

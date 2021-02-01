@@ -834,6 +834,20 @@ updating."
   (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
                'lsp-pyright))
 
+;; ******* lsp java
+
+(use-package lsp-java
+  ;; we use eemacs spec simple lsp-java so that do not ensure it since
+  ;; we purchasing it under eemacs itself yet.
+  :ensure nil
+  :init
+  ;; EEMACS_BUG:
+  ;; Currently we just use simple jdt feature because the boot server
+  ;; feature has lots of bug when init at boot time.
+  (setq lsp-java-boot-enabled nil)
+  (setq lsp-java-autobuild-enabled nil)
+  (with-eval-after-load 'lsp-mode
+    (require 'lsp-java-boot)))
 
 ;; **** Eglot
 
@@ -1399,6 +1413,14 @@ NOTE: this function has been redefined by eemacs to temporally fix overflow hr l
     (advice-add 'powershell-mode
                 :before
                 #'entropy/emacs-coworker-check-pwsh-lsp)))
+
+;; **** lsp java
+(when (and (eq (entropy/emacs-get-use-ide-type 'java-mode) 'lsp)
+           entropy/emacs-install-coworker-immediately)
+  (entropy/emacs-lazy-load-simple powershell-mode
+    (advice-add 'java-mode
+                :before
+                #'entropy/emacs-coworker-check-java-lsp)))
 
 
 ;; * provide

@@ -1041,7 +1041,28 @@ DESTINATION file-name.
 
 This function return a callback status of a random symbol whose
 valid value are 'success' and 'failed' or nil while download
-process doesn't finished."
+process doesn't finished. The callback symbol have special
+propties while any fatals occurred while either downloading or
+renaming to destination and they are:
+
+- 'error-type': indicate which error type while whole procedure,
+  valid value are:
+  + 'download' : procedure fatal occurred in download time
+  + 'move'     : procedure fatal occurred in move to destination time.
+  + 'verify'   : verify the download file fatal in which case
+
+- 'temp-file'  : the downloaded temp-file path, this value just
+  valid while the 'error-type' is 'move'.
+
+- 'curl-args'  : the curl subprocess spawn arguments list only
+  non-nil when 'error-type' eq to 'download', used to debug.
+
+Optional arg USE-CURL may be an plist to extended curl arguments,
+so that following keys are supported:
+
+- ':timeout' : an integer string to specified the curl timeout
+  option '--connect-timeout' so that we can handle the long await
+  url downloading. If not set, defaultly set with 10sec."
   (let* ((tmp-file (expand-file-name
                     (format "eemacs-download-tmpfile_[%s]"
                             (format-time-string "%Y%m%d%H%M%S"))
@@ -1070,22 +1091,38 @@ process doesn't finished."
                    (if (functionp ,verify)
                        (if (funcall ,verify destination)
                            (setq ,cbk-symbol 'success)
-                         (setq ,cbk-symbol 'failed))
+                         (setq ,cbk-symbol 'failed)
+                         (put ',cbk-symbol 'error-type 'verify))
                      (setq ,cbk-symbol 'success)))
                (error
                 (message (car (cdr error)))
                 (setq ,cbk-symbol 'failed)
+                (put ',cbk-symbol 'error-type
+                     'move)
+                (put ',cbk-symbol 'temp-file ,tmp-file)
                 (when (file-exists-p ,tmp-file)
                   (delete-file ,tmp-file)))))))
     (let* ((proc-buffer (get-buffer-create "*---eemacs-url-donwload---*"))
+           ;; '-L' option is required so that we can follow url
+           ;; redirection for such as download from sourceforge.net
+           (curl-args `("-L" "--connect-timeout"
+                        ,(if (and (entropy/emacs-strict-plistp use-curl)
+                                  (plist-get use-curl :timeout))
+                             (plist-get use-curl :timeout)
+                           "10")
+                        ,url "-o" ,tmp-file))
            (inhibit-read-only t)
            (success-message (format "Download from '%s' finished" url))
            (success-func `(lambda ()
                             (message ,success-message)
+                            (setq ,cbk-symbol 'success)
                             (funcall ,move-to-des-func)))
            (fatal-message (format "Download file form '%s' failed!" url))
            (fatal-func `(lambda ()
                           (setq ,cbk-symbol 'failed)
+                          (put ',cbk-symbol 'error-type 'download)
+                          (when',use-curl
+                           (put ',cbk-symbol 'curl-args ',curl-args))
                           (message ,fatal-message)
                           (when (file-exists-p ,tmp-file)
                             (delete-file ,tmp-file))))
@@ -1101,7 +1138,7 @@ process doesn't finished."
                (make-process
                 :name "eemacs url download"
                 :buffer proc-buffer
-                :command `("curl" "--connect-timeout" "10" ,url "-o" ,tmp-file)))
+                :command (cons "curl" curl-args)))
               (set-process-sentinel
                proc
                `(lambda (proc status)
@@ -1122,10 +1159,9 @@ process doesn't finished."
                     )))))))
        (t
         (if use-curl
-            (if (eq (call-process
-                     "curl" nil nil nil
-                     "--connect-timeout" "10"
-                     url "-o" tmp-file)
+            (if (eq (apply 'call-process
+                           "curl" nil nil nil
+                           curl-args)
                     0)
                 (funcall success-func)
               (funcall fatal-func))

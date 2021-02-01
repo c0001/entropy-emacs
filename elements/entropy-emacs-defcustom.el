@@ -946,7 +946,7 @@ option."
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
 (defvar entropy/emacs-ide-for-them
-  '(c-mode
+  '(c-mode java-mode
     c++-mode cmake-mode
     go-mode
     python-mode php-mode
@@ -2159,11 +2159,14 @@ that."
                   ;; url caches
                   (url-configuration-directory . "url/")
                   (nsm-settings-file . "network-security.data")
+
                   ;; lsp mode
                   (lsp-session-file . "lsp/lsp-session-v1")
                   (lsp-intelephense-storage-path . "lsp/cache/intelephense")
                   (lsp-server-install-dir . "lsp/cache/install/")
-                  (lsp-java-workspace-dir . "lsp/workspace/")
+                  ;; - lsp java
+                  (lsp-java-workspace-dir . "lsp/lsp-java-workspace/")
+
                   ;; async log file
                   (async-byte-compile-log-file . "async-bytecomp.log")
                   ;; slime
