@@ -309,7 +309,47 @@ moving operation will cause non-terminated looping proceeding."
    'outorg-edit-as-org t)
 
   (entropy/emacs-make-function-inhibit-readonly
-   'outorg-copy-edits-and-exit t))
+   'outorg-copy-edits-and-exit t)
+
+  (defvar __outorg-convert-back-to-code-start nil
+    "The indicator that the `outorg-convert-back-to-code' is
+starting when non-nil, and will be reset to nil while finished or
+any corruption occurred.")
+  (defun entropy/emacs-structure--outorg-convert-back-to-code
+      (orig-func &rest orig-args)
+    "Around advice for `outorg-convert-back-to-code' to query
+about whether comments the org source block in which case some
+occasions need to do thus e.g. since *COMMETARY* header do not
+want to preserve the source demo."
+    (unwind-protect
+        (progn
+          (setq __outorg-convert-back-to-code-start t)
+          (if (yes-or-no-p "Comment source block? ")
+              (apply orig-func orig-args)
+            (progn
+              (comment-region (point-min) (point-max))
+              (move-marker outorg-beginning-of-code nil)
+              (move-marker outorg-end-of-code nil)
+              ;; 2nd (optional) run: convert elisp headers to oldschool
+              (when outorg-oldschool-elisp-headers-p
+                (save-excursion
+                  (goto-char (point-min))
+                  (while (re-search-forward
+                          "\\(^;;\\)\\( [*]+\\)\\( \\)" nil 'NOERROR)
+                    (let* ((org-header-level (- (length (match-string-no-properties 0)) 4))
+                           (replacement-string
+                            (let ((strg ";"))
+                              (dotimes (i (1- org-header-level) strg)
+                                (setq strg (concat strg ";"))))))
+                      (replace-match replacement-string
+                                     nil nil nil 2)))))))
+          (message "Back to code buffer done!"))
+      (setq __outorg-convert-back-to-code-start nil)))
+  (advice-add 'outorg-convert-back-to-code
+              :around
+              #'entropy/emacs-structure--outorg-convert-back-to-code)
+
+  )
 
 ;; ** outshine-mode
 
