@@ -1102,6 +1102,11 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 ;; *** entropy-proxy-url
 (use-package entropy-proxy-url
   :ensure nil
+  :eemacs-macros
+  (entropy/proxy-url-with-url-proxy
+   entropy/proxy-url-with-w3m-proxy
+   entropy/proxy-url-with-socks-proxy
+   entropy/proxy-url-with-shell-proxy)
   :commands (entropy/proxy-url-make-builtin-recipes
              entropy/proxy-url-make-recipes)
   :preface

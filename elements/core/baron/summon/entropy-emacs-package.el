@@ -350,7 +350,7 @@ are recognized as a normal function."
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
-(defalias 'use-package-normalize/:eemacs-maros
+(defalias 'use-package-normalize/:eemacs-macros
   'use-package-normalize-symlist)
 
 (defun use-package-handler/:eemacs-macros (name _keyword arg rest state)
