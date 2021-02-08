@@ -27,82 +27,17 @@
 ;;; Code:
 
 (setq entropy/org-exptt-html-theme-plist
-      '((
-         :theme_name "Worg"
+      '(("Worg"
          :theme_css  ("<link rel=\"stylesheet\" title=\"Standard\" href=\"https://orgmode.org/worg/style/worg.css\" type=\"text/css\" />"
                       "<link rel=\"alternate stylesheet\" title=\"Zenburn\" href=\"https://orgmode.org/worg/style/worg-zenburn.css\" type=\"text/css\" />"
                       "<link rel=\"alternate stylesheet\" title=\"Classic\" href=\"https://orgmode.org/worg/style/worg-classic.css\" type=\"text/css\" />"
-                      "
-<style>
-    body #content {
-        padding-top: 0px;
-        width: 55%;
-        margin: 0 auto;
-        margin-top: 5em;
-        background-color: white;
-        padding: 2em;
-        ;; /* box-shadow: 3px 3px 5px #888; */
-    }
-
-    body #postamble.status {width:65%;margin:0 auto;padding:2em;border: 0px;}
-
-    pre.src
-    {
-      overflow-x: scroll;
-      overflow-y: scroll;
-      max-height: 400px;
-    }
-
-    pre.example
-    {
-      overflow-x: scroll;
-      overflow-y: scroll;
-      max-height: 400px;
-    }
-
-
-    img{max-width: 700px} 
-
-    h3 {
-      margin-left: 0em
-    }
-
-    h4,
-    h5 {
-      font-size: 1.2em;
-      margin-left: 0em
-    }
-
-    h6,
-    h7,
-    h8,
-    h9,
-    h10 {
-      font-size: 1.1em;
-      font-weight: bold;
-      color: crimson;
-      margin-left: 1.3em
-    }
-
-    blockquote
-    {
-      background-color: azure;
-      padding:2%;
-      border: 2px solid;
-      border-color: darkgrey;
-    }
-
-    .org-svg
-    {
-      max-width: 500px
-    }
-</style>")
-         :theme_js   nil
+                      )
+         :theme_js nil
          :theme_mischellaneous ("<link rel=\"SHORTCUT ICON\" href=\"https://orgmode.org/org-mode-unicorn.ico\" type=\"image/x-icon\" />"
                                 "<link rel=\"icon\" href=\"https://orgmode.org/org-mode-unicorn.ico\" type=\"image/ico\" />")
-         :theme_category ("index" "sub-file"))
-        (
-         :theme_name "read-the-org"
+         :theme_category ("index" "sub-file")
+         :theme_dontcache t)
+        ("read-the-org"
          :theme_css ("<link rel=\"stylesheet\" type=\"text/css\" href=\"https://www.pirilampo.org/styles/readtheorg/css/htmlize.css\"/>"
                      "<link rel=\"stylesheet\" type=\"text/css\" href=\"https://www.pirilampo.org/styles/readtheorg/css/readtheorg.css\"/>"
                      "
@@ -122,7 +57,7 @@
     }
 
 
-    #content img{max-width: 500px} 
+    #content img{max-width: 500px}
 
     .org-svg
     {
@@ -135,8 +70,7 @@
                      "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.min.js\"></script>"
                      "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/readtheorg/js/readtheorg.js\"></script>")
          :theme_category ("single-doc" "wiki"))
-        (
-         :theme_name "Bigblow"
+        ("Bigblow"
          :theme_css ("<link rel=\"stylesheet\" type=\"text/css\" href=\"https://www.pirilampo.org/styles/bigblow/css/htmlize.css\"/>"
                      "<link rel=\"stylesheet\" type=\"text/css\" href=\"https://www.pirilampo.org/styles/bigblow/css/bigblow.css\"/>"
                      "<link rel=\"stylesheet\" type=\"text/css\" href=\"https://www.pirilampo.org/styles/bigblow/css/hideshow.css\"/>"
@@ -157,7 +91,7 @@
     }
 
 
-    img{max-width: 500px} 
+    img{max-width: 500px}
 
     .org-svg
     {
@@ -167,7 +101,7 @@
                      )
          :theme_js ("<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery-1.11.0.min.js\"></script>"
                     "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery-ui-1.10.2.min.js\"></script>"
-                    
+
                     "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.localscroll-min.js\"></script>"
                     "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.scrollTo-1.4.3.1-min.js\"></script>"
                     "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.zclip.min.js\"></script>"
@@ -175,15 +109,15 @@
                     "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/hideshow.js\"></script>"
                     "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.min.js\"></script>")
          :theme_category ("index" "single-doc" "wiki"))
-        (
-         :theme_name "redsnapper"
-         :theme_css ("<link rel=\"stylesheet\" style=\"text/css\" href=\"https://gitcdn.link/repo/c0001/entropy-org-export-html-theme/master/elements/themes/redsnapper-theme/org-redsnapper-html.css\" />")
+        ("redsnapper"
+         :theme_css ("<link rel=\"stylesheet\" style=\"text/css\"
+href=\"https://raw.githubusercontent.com/c0001/entropy-org-export-html-theme/master/elements/themes/redsnapper-theme/org-redsnapper-html.css\" />")
          :theme_js nil
          :theme_category ("single-doc" "wiki"))
-        (:theme_name "redsnapper-index"
+        ("redsnapper-index"
          :theme_js nil
          :theme_css ("<link rel=\"stylesheet\" style=\"text/css\"
-href=\"https://gitcdn.xyz/repo/c0001/entropy-org-export-html-theme/master/elements/themes/redsnapper-theme/org-redsnapper-html-index.css\" />")
+href=\"https://raw.githubusercontent.com/c0001/entropy-org-export-html-theme/master/elements/themes/redsnapper-theme/org-redsnapper-html-index.css\" />")
          :theme_category ("index"))))
 
 

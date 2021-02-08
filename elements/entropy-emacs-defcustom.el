@@ -2191,6 +2191,7 @@ that."
                   (newsticker-dir . "newsticker/")
                   ;; miscellanies
                   (idlwave-config-directory . "idlwave/")
+                  (entropy/org-exptt-html-theme-cache-dir . "org-themes/org-html-themes")
                   ))
     (let* ((var-sym (car item))
            (path (expand-file-name (cdr item) top))
