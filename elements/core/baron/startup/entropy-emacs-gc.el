@@ -106,7 +106,7 @@
           ;; company frontend will leak memory too
           (bound-and-true-p company-candidates))
          (setq gc-cons-threshold
-               (* 100 1024)))
+               (* 800 1024)))
         ((derived-mode-p 'prog-mode)
          (setq gc-cons-threshold
                (* 2 1024 1024)))))
