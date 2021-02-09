@@ -179,10 +179,18 @@ configuration.")
     (global-font-lock-mode +1)
     (transient-mark-mode +1)
     (setq load-path entropy/emacs-pdumper-pre-lpth)
-    (scroll-bar-mode 0)
-    (tool-bar-mode 0)
-    (menu-bar-mode 0)
-    (redisplay t)
+    (unless (catch :exit
+              ;; we should judge whether the bar feature supported in
+              ;; current emacs build.
+              (dolist (func '(scroll-bar-mode
+                              tool-bar-mode
+                              menu-bar-mode))
+                (unless (fboundp func)
+                  (throw :exit t))))
+      (scroll-bar-mode 0)
+      (tool-bar-mode 0)
+      (menu-bar-mode 0)
+      (redisplay t))
 
     ;; TODO ...body
 
