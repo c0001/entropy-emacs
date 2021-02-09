@@ -235,6 +235,7 @@ interactive session."
        (when (current-idle-time)
          (entropy/emacs-message-hide-popup t))
 
+       ;; run an timer guard to force hide popuped message window
        (unless (timerp entropy/emacs-message--idle-timer-for-hide-popup)
          (setq entropy/emacs-message--idle-timer-for-hide-popup
                (run-with-idle-timer
@@ -253,9 +254,12 @@ interactive session."
 (defmacro entropy/emacs-message-do-message (message &rest args)
   "An alternative to `message' that strips out ANSI codes, with popup
 window if in a interaction session and
-`entropy/emacs-message-non-popup' is `null'."
+`entropy/emacs-message-non-popup' is `null', while entropy-emacs
+startup duration."
   `(if (or noninteractive
+           (minibuffer-window-active-p (selected-window))
            (entropy/emacs-message--in-daemon-load-p)
+           (bound-and-true-p entropy/emacs-startup-done)
            entropy/emacs-message-non-popup
            entropy/emacs-message-non-popup-permanently)
        (entropy/emacs-message-do-message-1 ,message ,@args)
@@ -285,6 +289,10 @@ NOTE: Just use it in `noninteractive' session."
       (delete-window win)
       (with-current-buffer buf-name
         (setq-local entropy/emacs-message--cur-buf-is-popup-p nil))
+      (when entropy/emacs-message--idle-timer-for-hide-popup
+        (cancel-timer entropy/emacs-message--idle-timer-for-hide-popup)
+        (setq entropy/emacs-message--idle-timer-for-hide-popup
+              nil))
       )))
 
 ;; * provide
