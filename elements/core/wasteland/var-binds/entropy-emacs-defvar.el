@@ -273,8 +273,8 @@ NOTE: Any error occurred in this hook will be ignored unless
           (run-hooks 'entropy/emacs-session-idle-trigger-hook)
         (setq entropy/emacs-session-idle-trigger-hook nil))
     (ignore-errors
-      (run-hooks 'entropy/emacs-session-idle-trigger-hook)
-      (setq entropy/emacs-session-idle-trigger-hook nil))))
+      (run-hooks 'entropy/emacs-session-idle-trigger-hook))
+    (setq entropy/emacs-session-idle-trigger-hook nil)))
 
 (defvar entropy/emacs-safe-idle-minimal-secs 0.4
   "The minimal idle timer SECS run with checking var

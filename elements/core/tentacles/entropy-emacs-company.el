@@ -254,7 +254,7 @@ NOTE: this function is an around advice wrapper."
    company-tooltip-maximum-width 70
    company-tooltip-minimum-width 20
    company-tooltip-align-annotations t
-   company-tooltip-offset-display 'lines
+   company-tooltip-offset-display nil   ;reducing selection fast hints laggy
    company-idle-delay entropy/emacs-company-idle-delay-default
    company-dabbrev-code-everywhere t
    company-dabbrev-ignore-case t
@@ -314,7 +314,7 @@ event hints, so that fast continuous will lagging on."
   (defvar-local __company-delc-time-host nil)
   (defun __company-delc-time-fly-p ()
     "Judge whether the `delete-char' hit on flying while company
-actived status. Default time during set is less than 70ms."
+activated status. Default time during set is less than 70ms."
     (catch :exit
       (let* ((time-old (or __company-delc-time-host
                            (throw :exit nil)))
@@ -337,6 +337,73 @@ actived status. Default time during set is less than 70ms."
             (current-time))
       rtn))
   (advice-add 'delete-char :around #'__company-delete-char)
+
+  (defun entropy/emacs-company-pseudo-tooltip-unhide-delay
+      (orig-func &rest orig-args)
+    "Delay show the pseudo tooltip for reducing fast hints laggy."
+    (let (_)
+      (if (or (eq this-command 'company-idle-begin)
+              (member this-command
+                      '(company-select-next
+                        company-select-previous
+                        company-select-previous-or-abort
+                        company-select-next-or-abort
+                        company-quickhelp-manual-begin))
+              ;; EEMACS_MAINTENANCE: may have goodies replaces this
+              ;; thoughtlessness condition to recognize the
+              ;; self-insert commands.
+              (not (string-match-p "self-insert-command"
+                                   (symbol-name this-command))))
+          (apply orig-func orig-args)
+        (eval
+         `(entropy/emacs-run-at-idle-immediately
+           company-pseudo-unhide-delay
+           (let (_)
+             (apply ',orig-func ',orig-args)))))))
+  (advice-add 'company-pseudo-tooltip-unhide
+              :around
+              #'entropy/emacs-company-pseudo-tooltip-unhide-delay)
+
+  ;; EEMACS_MAINTENANCE: this may update with upstream
+  (defun company--posn-col-row (posn)
+    "NOTE: this function has been redefined by eemacs to get more
+efficiently way."
+    (let* (;; calculate `posn-col-row' just once for reducing I/O periods.
+           (nominal-pos (posn-col-row posn))
+           (col (car nominal-pos))
+           ;; `posn-col-row' doesn't work well with lines of different height.
+           ;; `posn-actual-col-row' doesn't handle multiple-width characters.
+           (row (cdr (or (posn-actual-col-row posn)
+                         ;; When position is non-visible for some reason.
+                         nominal-pos))))
+      (when (and header-line-format (version< emacs-version "24.3.93.3"))
+        ;; http://debbugs.gnu.org/18384
+        (cl-decf row))
+      (when (bound-and-true-p display-line-numbers)
+        (cl-decf col (+ 2 (line-number-display-width))))
+      (cons (+ col (window-hscroll)) row)))
+
+  (defun entropy/emacs-company--pseudo-no-annotation
+      (orig-func &rest orig-args)
+    "Force disable annotation for pseudo tooltip for performance
+consideration.
+
+Reason:
+
+`company--create-lines' will call annotation query for each
+canididates which makes emacs laggy for each post-command while
+`company-pseudo-tooltip-unhide'."
+    (unless (and
+             (eq (car orig-args) 'annotation)
+             (or (eq (car company-frontends)
+                     'company-pseudo-tooltip-unless-just-one-frontend)
+                 (eq (car company-frontends)
+                     'company-pseudo-tooltip-unless-just-one-frontend-with-delay
+                     )))
+      (apply orig-func orig-args)))
+  (advice-add 'company-call-backend
+              :around
+              #'entropy/emacs-company--pseudo-no-annotation)
 
   )
 

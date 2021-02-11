@@ -109,7 +109,13 @@
                (* 800 1024)))
         ((derived-mode-p 'prog-mode)
          (setq gc-cons-threshold
-               (* 2 1024 1024)))))
+               (if (and (bound-and-true-p company-candidates)
+                        (ignore-errors
+                          (eq (car company-frontends)
+                              'company-pseudo-tooltip-unless-just-one-frontend)))
+                   ;; Reducing pseudo tooltip overlay move laggy
+                   (* 20 1024 1024)
+                 (* 2 1024 1024))))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
