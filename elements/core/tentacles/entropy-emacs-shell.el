@@ -226,16 +226,45 @@ was found."
            (member "MODULES" (split-string system-configuration-features nil t)))
   :commands (vterm vterm-mode)
   :preface
-
-  (defvar entropy/emacs-shell--vterm-title-log nil
-    "vterm env title debug log var.")
-
-  (defun entropy/emacs-shell-vterm--cd-to-directory-in-title (title)
-    (let ((path (vterm--get-directory title)))
-      (setq entropy/emacs-shell--vterm-title-log path)
-      (when (and (not (file-remote-p path))
-                 (file-exists-p path))
-        (cd path))))
+  ;; EEMACS_MAINTENANCE: add support to for-zsh and for-fishrc etc too.
+  (defun entropy/emacs-shell--vterm-pwd-hack-for-bashrc ()
+    "Hack for bashrc to support vterm pwd callback. details to see vterm's README."
+    (let* ((system-valid-p
+            (not (eq system-type 'windows-nt)))
+           (quried-flag (expand-file-name
+                         "vterm-hack-bashrc-confirmed"
+                         entropy/emacs-stuffs-topdir))
+           (hack_inject?
+            (and system-valid-p
+                 (not (file-exists-p quried-flag))
+                 (yes-or-no-p "Hack bashrc for support vterm pwd?\
+(note: this just quried once, do not do it if you have did thus.)")))
+           (content-injection
+            (and
+             hack_inject?
+             (with-temp-buffer
+               (insert-file-contents
+                (expand-file-name "vterm-bashrc" entropy/emacs-templates-dir))
+               (buffer-substring-no-properties
+                (point-min) (point-max))))))
+      (when hack_inject?
+        (let ((inhibit-read-only t)
+              (bashrc-buffer
+               (find-file-noselect "~/.bashrc" nil t))
+              (write-contents-functions nil)
+              (local-write-file-hooks nil)
+              (write-file-functions nil)
+              (before-save-hook nil)
+              (after-save-hook nil))
+          (with-current-buffer bashrc-buffer
+            (goto-char (point-max))
+            (insert (concat "\n\n" content-injection "\n"))
+            (save-buffer)
+            (kill-buffer))
+          (with-current-buffer (find-file-noselect quried-flag nil t)
+            (insert "Has quried yet")
+            (save-buffer)
+            (kill-buffer))))))
 
   :init
   (setq
@@ -250,11 +279,9 @@ was found."
                (cons (lambda () (eq major-mode 'vterm-mode))
                      #'vterm-yank))
 
+  (entropy/emacs-shell--vterm-pwd-hack-for-bashrc)
+
   :config
-  ;; Auto `cd' to new `default-directory' when its shell path change
-  (advice-add 'vterm--set-title
-              :before
-              #'entropy/emacs-shell-vterm--cd-to-directory-in-title)
 
   (defun entropy/emacs-shell--vterm-mode-around-advice (orig-func &rest orig-args)
     "prevent `vterm-mode` calling in vterm-mode from causing
