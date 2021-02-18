@@ -295,7 +295,7 @@ EXIT /b
            ,server-name-string
            :synchronously t
            :command
-           '("pip"
+           '("python3" "-m" "pip"
              "--isolated"
              "install" "-I" ,server-repo-string
              "--prefix" ,(if sys/is-win-group (replace-regexp-in-string "/" "\\\\"  entropy/emacs-coworker-host-root)
