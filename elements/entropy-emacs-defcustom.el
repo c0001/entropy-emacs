@@ -897,7 +897,7 @@ Also see `entropy/emacs-coworker-host-root'."
   :group 'entropy/emacs-customize-group-for-coworkers)
 
 (defcustom entropy/emacs-coworker-host-root
-  (expand-file-name ".eemacs-local" (getenv "HOME"))
+  (expand-file-name "entropy-emacs-local" "~/.config/entropy-emacs")
   "The coworker host root dir.
 
 Coworker host dir is a eemacs specified folder to host any system
