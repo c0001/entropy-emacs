@@ -1340,84 +1340,87 @@ NOTE: this function has been redefined by eemacs to temporally fix overflow hr l
 
 
 ;; *** lsp instances
+
+(defmacro entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately
+    (hook-mode &rest body)
+  (declare (indent defun))
+  `(when (and (member (entropy/emacs-get-use-ide-type ',hook-mode)
+                      '(lsp eglot))
+              entropy/emacs-install-coworker-immediately)
+     ,@body))
+
 ;; **** lsp html&css
-(when (and (eq (entropy/emacs-get-use-ide-type 'web-mode) 'lsp)
-           entropy/emacs-install-coworker-immediately)
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately web-mode
   (entropy/emacs-lazy-load-simple web-mode
     (advice-add 'web-mode
                 :before
                 #'entropy/emacs-coworker-check-web-lsp)))
 
-(when (and (eq (entropy/emacs-get-use-ide-type 'css-mode) 'lsp)
-           entropy/emacs-install-coworker-immediately)
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately css-mode
   (entropy/emacs-lazy-load-simple css-mode
     (advice-add 'css-mode
                 :before
                 #'entropy/emacs-coworker-check-web-lsp)))
 
 ;; **** lsp javascript
-(when (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'lsp)
-  (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple js2-mode
-      (advice-add 'js2-mode :before #'entropy/emacs-coworker-check-js-lsp))))
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately js2-mode
+  (entropy/emacs-lazy-load-simple js2-mode
+    (advice-add 'js2-mode :before #'entropy/emacs-coworker-check-js-lsp)))
 
 ;; **** lsp json
-(when (eq (entropy/emacs-get-use-ide-type 'json-mode) 'lsp)
-  (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple json-mode
-      (advie-add 'json-mode :before #'entropy/emacs-coworker-check-json-lsp))))
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately json-mode
+  (entropy/emacs-lazy-load-simple json-mode
+    (advice-add 'json-mode :before #'entropy/emacs-coworker-check-json-lsp)))
+
+;; **** lsp xml
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately nxml-mode
+  (entropy/emacs-lazy-load-simple nxml-mode
+    (advice-add 'nxml-mode :before #'entropy/emacs-coworker-check-xml-lsp)))
 
 ;; **** lsp bash
-(when (eq (entropy/emacs-get-use-ide-type 'sh-mode) 'lsp)
-  (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple sh-mode
-      (advie-add 'sh-mode :before #'entropy/emacs-coworker-check-bash-lsp))))
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately sh-mode
+  (entropy/emacs-lazy-load-simple sh-mode
+    (advice-add 'sh-mode :before #'entropy/emacs-coworker-check-bash-lsp)))
 
 ;; **** lsp php
-(when (eq (entropy/emacs-get-use-ide-type 'php-mode) 'lsp)
-  (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple php-mode
-      (advice-add 'php-mode :before #'entropy/emacs-coworker-check-php-lsp))))
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately php-mode
+  (entropy/emacs-lazy-load-simple php-mode
+    (advice-add 'php-mode :before #'entropy/emacs-coworker-check-php-lsp)))
 
 ;; **** lsp clangd
-(when (eq (entropy/emacs-get-use-ide-type 'c-mode) 'lsp)
-  (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple cc-mode
-      (advice-add 'c-mode
-                  :before
-                  #'entropy/emacs-coworker-check-clangd-lsp)
-      (advice-add 'c++-mode
-                  :before
-                  #'entropy/emacs-coworker-check-clangd-lsp))))
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately c-mode
+  (entropy/emacs-lazy-load-simple cc-mode
+    (advice-add 'c-mode
+                :before
+                #'entropy/emacs-coworker-check-clangd-lsp)
+    (advice-add 'c++-mode
+                :before
+                #'entropy/emacs-coworker-check-clangd-lsp)))
 
 ;; **** lsp cmake
-(when (and (eq (entropy/emacs-get-use-ide-type 'cmake-mode) 'lsp)
-           entropy/emacs-install-coworker-immediately)
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately cmake-mode
   (entropy/emacs-lazy-load-simple cmake-mode
     (advice-add 'cmake-mode
                 :before
                 #'entropy/emacs-coworker-check-cmake-lsp)))
 
 ;; **** lsp python
-(when (eq (entropy/emacs-get-use-ide-type 'python-mode) 'lsp)
-  (when entropy/emacs-install-coworker-immediately
-    (entropy/emacs-lazy-load-simple python
-      (advice-add 'python-mode
-                  :before
-                  #'entropy/emacs-coworker-check-python-lsp))))
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately python-mode
+  (entropy/emacs-lazy-load-simple python
+    (advice-add 'python-mode
+                :before
+                #'entropy/emacs-coworker-check-python-lsp)))
 
 ;; **** lsp powershell
-(when (and (eq (entropy/emacs-get-use-ide-type 'powershell-mode) 'lsp)
-           entropy/emacs-install-coworker-immediately)
-  (entropy/emacs-lazy-load-simple powershell-mode
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately powershell-mode
+  (entropy/emacs-lazy-load-simple powershell
     (advice-add 'powershell-mode
                 :before
                 #'entropy/emacs-coworker-check-pwsh-lsp)))
 
 ;; **** lsp java
-(when (and (eq (entropy/emacs-get-use-ide-type 'java-mode) 'lsp)
-           entropy/emacs-install-coworker-immediately)
-  (entropy/emacs-lazy-load-simple powershell-mode
+(entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately java-mode
+  (entropy/emacs-lazy-load-simple cc-mode
     (advice-add 'java-mode
                 :before
                 #'entropy/emacs-coworker-check-java-lsp)))

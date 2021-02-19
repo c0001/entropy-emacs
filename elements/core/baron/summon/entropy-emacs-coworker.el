@@ -375,12 +375,19 @@ EXIT /b
         (user-error "'%s' lsp server download with fatal with error type '%s'"
                     server-name-string
                     (get download-cbk 'error-type)))
-      (make-directory server-extract-dir t)
-      (entropy/emacs-archive-dowith
-       server-archive-type
-       tmp-download-file
-       server-extract-dir
-       :extract)
+      (cond ((eq server-archive-type 'identity)
+             (rename-file
+              tmp-download-file
+              (expand-file-name
+               server-archive-name
+               entropy/emacs-coworker-archive-host-root)))
+            (t
+             (make-directory server-extract-dir t)
+             (entropy/emacs-archive-dowith
+              server-archive-type
+              tmp-download-file
+              server-extract-dir
+              :extract)))
       (entropy/emacs-coworker--coworker-message-install-success
        server-name-string))))
 
@@ -455,6 +462,18 @@ EXIT /b
    '("vscode-json-languageserver")
    "vscode-json-languageserver"))
 
+;; *** xml
+
+(defun entropy/emacs-coworker-check-xml-lsp (&rest _)
+  (entropy/emacs-coworker--coworker-install-by-archive-get
+   "xml lsp"
+   "org.eclipse.lemminx-0.13.1-uber.jar"
+   "https://repo.eclipse.org/content/repositories/lemminx-releases/org/eclipse/lemminx/org.eclipse.lemminx/0.13.1/org.eclipse.lemminx-0.13.1-uber.jar"
+   'identity))
+(setq lsp-xml-jar-file
+      (expand-file-name "org.eclipse.lemminx-0.13.1-uber.jar"
+                        entropy/emacs-coworker-archive-host-root))
+
 ;; *** powershell
 (defun entropy/emacs-coworker-check-pwsh-lsp (&rest _)
   (entropy/emacs-coworker--coworker-install-by-archive-get
@@ -462,18 +481,18 @@ EXIT /b
    "pwsh-lsp"
    "https://github.com/PowerShell/PowerShellEditorServices/releases/download/v2.1.0/PowerShellEditorServices.zip"
    'zip))
-(when (eq (entropy/emacs-get-use-ide-type 'powershell-mode) 'lsp)
-  (with-eval-after-load 'lsp-pwsh       ;do not using
+
+(with-eval-after-load 'lsp-pwsh         ;do not using
                                         ;`entropy/emacs-lazy-load-simple',
                                         ;thats will force load 'lsp' while pdumper procedure
-    (unless (file-exists-p lsp-pwsh-log-path)
-      ;; ensure that the log path exist or will make pwsh-ls start fail
-      (mkdir lsp-pwsh-log-path 'create-parent)))
-  (unless entropy/emacs-ext-use-eemacs-lsparc
-    (setq lsp-pwsh-dir
-          (expand-file-name
-           "pwsh-lsp/PowerShellEditorServices"
-           entropy/emacs-coworker-archive-host-root))))
+  (unless (file-exists-p lsp-pwsh-log-path)
+    ;; ensure that the log path exist or will make pwsh-ls start fail
+    (mkdir lsp-pwsh-log-path 'create-parent)))
+(unless entropy/emacs-ext-use-eemacs-lsparc
+  (setq lsp-pwsh-dir
+        (expand-file-name
+         "pwsh-lsp/PowerShellEditorServices"
+         entropy/emacs-coworker-archive-host-root)))
 
 ;; *** python
 ;; **** python language server types
@@ -601,12 +620,11 @@ EXIT /b
    ;; download speed restriction.
    "https://sourceforge.net/projects/entropy-emacs-cabinet/files/LSP/lsp-java/lsp-java-v3.0_jdtls_release/lsp-java-v3.0_jdtls_release.tgz"
    'tgz))
-(when (eq (entropy/emacs-get-use-ide-type 'java-mode) 'lsp)
-  (unless entropy/emacs-ext-use-eemacs-lsparc
-    (setq lsp-java-server-install-dir
-          (expand-file-name
-           "jdtls/jdt-lsp"
-           entropy/emacs-coworker-archive-host-root))))
+(unless entropy/emacs-ext-use-eemacs-lsparc
+  (setq lsp-java-server-install-dir
+        (expand-file-name
+         "jdtls/jdt-lsp"
+         entropy/emacs-coworker-archive-host-root)))
 
 ;; * provide
 (provide 'entropy-emacs-coworker)
