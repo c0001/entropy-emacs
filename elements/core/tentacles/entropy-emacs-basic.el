@@ -2558,7 +2558,7 @@ otherwise returns nil."
 
 (entropy/emacs-advice-func-around-for-print-limit
  'describe-variable
- nil nil
+ nil 100
  (lambda (&rest _)
    t))
 
