@@ -249,6 +249,12 @@ interactive session."
     (entropy/emacs-message--do-message-ansi-apply
      ,message ,@args)))
 
+(defmacro entropy/emacs-message-do-warn-1 (message &rest args)
+  "An alternative to `message' that strips out ANSI codes."
+  `(warn
+    (entropy/emacs-message--do-message-ansi-apply
+     ,message ,@args)))
+
 ;; ** auto load
 ;;;###autoload
 (defmacro entropy/emacs-message-do-message (message &rest args)
@@ -265,6 +271,11 @@ startup duration."
        (entropy/emacs-message-do-message-1 ,message ,@args)
      (entropy/emacs-message--do-message-popup
       ,message ,@args)))
+
+(defmacro entropy/emacs-message-do-warn (message &rest args)
+  "An alternative `warn'that strips out ANSI codes. "
+  `(let (_)
+     (entropy/emacs-message-do-warn-1 ,message ,@args)))
 
 (defmacro entropy/emacs-message-do-error (message &rest args)
   "An alternative to `user-error' that strips out ANSI codes.

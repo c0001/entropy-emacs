@@ -902,11 +902,32 @@ updating."
     (dolist (item '(completion-styles company))
       (add-to-list 'eglot-stay-out-of item)))
 
+  (defvar __elgot-not-support-yet-prompted-alist nil)
+  (defun entropy/emacs-codeserver--eglot-non-support-prompt
+      (&rest _)
+    (unless (alist-get major-mode __elgot-not-support-yet-prompted-alist)
+      (entropy/emacs-message-do-warn
+       "%s: %s '%s' %s"
+       (yellow "WARNING")
+       (green "The major-mode")
+       (yellow (symbol-name major-mode))
+       (green "is not supported by eemacs eglot specification,
+but you specified eglot as default lsp-ide type for this major-mode,
+so that we just ignored what you specification, but you can [M-x lsp]
+to enable the lsp server for this major-mode supported by `lsp-mode'.
+(This warning just appeared once)."))
+      (add-to-list '__elgot-not-support-yet-prompted-alist
+                   (cons major-mode t))))
+
   (dolist (el entropy/emacs-ide-for-them)
+    (let ((hook (intern (format "%s-hook" el))))
     (when (eq (entropy/emacs-get-use-ide-type el) 'eglot)
-      (add-hook
-       (intern (format "%s-hook" el))
-       #'eglot-ensure)))
+      ;; TODO: bellow modes are not support with eglog
+      ;; yet, add supports for them in plan.
+      (if (member el '(java-mode powershell-mode nxml-mode go-mode))
+          (add-hook hook #'entropy/emacs-codeserver--eglot-non-support-prompt)
+        (add-hook
+         hook #'eglot-ensure)))))
 
   :config
 ;; ***** mode spec framework
