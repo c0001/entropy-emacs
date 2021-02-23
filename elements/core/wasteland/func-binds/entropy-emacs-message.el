@@ -209,14 +209,15 @@ interactive session."
                      cursor-type nil))
        (redisplay t)
        (unless (ignore-errors (get-buffer-window buf)) ;Prevent make redudant popup window
-         (display-buffer-at-bottom
-          buf
-          `((align . below)
-            (window-height
-             .
-             ,(if (bound-and-true-p entropy/emacs-startup-done)
-                  0.1
-                0.3)))))
+         (save-excursion                               ;prevent `current-buffer' pollution
+           (display-buffer-at-bottom
+            buf
+            `((align . below)
+              (window-height
+               .
+               ,(if (bound-and-true-p entropy/emacs-startup-done)
+                    0.1
+                  0.3))))))
 
        (if (get-buffer-window buf)
            (with-selected-window (get-buffer-window buf)
