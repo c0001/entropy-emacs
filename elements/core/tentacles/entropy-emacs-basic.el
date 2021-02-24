@@ -1776,8 +1776,13 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
 
 ;; *** Kill ring config
 
-(setq kill-ring-max 10000)               ;increase kill ring length for more daily using comfort
+(defvar entropy/emacs-basic-kill-ring-persist-lock-file
+  (expand-file-name
+   ".kill-ring-persist.lock"
+   entropy/emacs-stuffs-topdir)
+  "The persist kill ring file used indicator flag file.")
 
+(setq kill-ring-max 10000)               ;increase kill ring length for more daily using comfort
 
 (defun entropy/emacs-basic-kill-ring-persist-backup ()
   (unless (fboundp 'entropy/cl-backup-file)
@@ -1795,8 +1800,16 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
     (entropy/emacs-basic-kill-ring-persist-backup)
     (setq kill-ring nil) (garbage-collect)))
 
-(defun entropy/emacs-basic-kill-ring-persist ()
-  "Save `kill-ring' to persist file `entropy/emacs-kill-ring-persist-file'."
+(defun entropy/emacs-basic-kill-ring-persist (&optional remove-lock)
+  "Save `kill-ring' to persist file `entropy/emacs-kill-ring-persist-file'.
+
+Optional argument REMOVE-LOCK when non-nil will delete the persist
+kill-ring flag file
+`entropy/emacs-basic-kill-ring-persist-lock-file'.
+
+NOTE: do not do the REMOVE-LOCK operation unless you dont care
+another eemacs session covers the current kill-ring persist
+file."
   (interactive)
   (let* ((find-file-suppress-same-file-warnings t)
          (file entropy/emacs-kill-ring-persist-file)
@@ -1808,6 +1821,7 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
          (print-level nil)
          (print-length nil)
          print-error
+         (can-do-it t)
          (printable-judge
           (lambda (value output-sym)
             "Judge whether the print type of VALUE can be read
@@ -1825,61 +1839,97 @@ error type to output symbol OUTPUT-SYM."
                     t)
                 ;; The attempt failed: the object is not printable.
                 (error (set output-sym error) nil))))))
-    (with-current-buffer to-buffer
-      (erase-buffer)
-      (insert top-message)
-      (insert "\n\n")
-      (insert "(")
-      (dolist (item kill-ring)
-       (if (funcall printable-judge item 'print-error)
-           (progn (print (substring-no-properties item) to-buffer))
-         (entropy/emacs-message-do-message
-          "%s%s%s%s"
-          (red "⚠: ")
-          "kill ring item "
-          (yellow (format "'%s'" item))
-          (format " can not be saved because of [%s] !" print-error))
-         ))
-      (insert ")")
-      (with-temp-message ""
-        (let ((inhibit-message t))
-          (save-buffer)))
-      )))
+    (unless (buffer-live-p to-buffer)
+      (message "kill ring persist file can not be opened!")
+      (setq can-do-it nil))
+    (if can-do-it
+        (let (_)
+          (with-current-buffer to-buffer
+            (erase-buffer)
+            (insert top-message)
+            (insert "\n\n")
+            (insert "(")
+            (dolist (item kill-ring)
+              (if (funcall printable-judge item 'print-error)
+                  (progn (print (substring-no-properties item) to-buffer))
+                (entropy/emacs-message-do-message
+                 "%s%s%s%s"
+                 (red "⚠: ")
+                 "kill ring item "
+                 (yellow (format "'%s'" item))
+                 (format " can not be saved because of [%s] !" print-error))
+                ))
+            (insert ")")
+            (with-temp-message ""
+              (let ((inhibit-message t)
+                    (write-contents-functions nil)
+                    (local-write-file-hooks nil)
+                    (write-file-functions nil)
+                    (before-save-hook nil))
+                (save-buffer))))
+          (when remove-lock
+            (f-delete entropy/emacs-basic-kill-ring-persist-lock-file)))
+      (entropy/emacs-message-do-message
+       "%s"
+       (red "WARN: can not open the persist kill ring file!")))))
+
+(defalias 'entropy/emacs-basic-kill-ring-persist-after-kill-emacs
+  (lambda (&rest _)
+    "Save kill ring persist file and remove its lock file.
+
+NOTE: this function just injected into `kill-emacs-hook', do not
+used as common usage."
+    (entropy/emacs-basic-kill-ring-persist t)))
 
 (defun entropy/emacs-basic-read-kill-ring-from-persist ()
   "Restore `kill-ring' from persist file
 `entropy/emacs-kill-ring-persist-file' when possible (which means
 fallback to origin when restoring with fatal, if thus backup the
-original one in the same of host place)."
+original one in the same of host place).
+
+NOTE: this function run init at eemacs startup time, and do not
+use it within any time after that.
+
+the return value is t or nil while t indicates the read procedure
+successfully both of situation of read persisit of create an new."
   (interactive)
-  (let* ((file entropy/emacs-kill-ring-persist-file)
-         (find-file-suppress-same-file-warnings t) ;suppress the noisy same file warning
-         (buffer (find-file-noselect file))
-         (inhibit-read-only t)
-         kill-ring-read
-         (kill-ring-old (copy-tree kill-ring)))
-    (with-current-buffer buffer
-      (goto-char (point-min))
-      (condition-case error
-          (let ()
-            (setq kill-ring-read (read (current-buffer)))
-            (setq kill-ring kill-ring-read))
-        (error
-         (setq kill-ring kill-ring-old)
-         (unless (= (buffer-size) 0)
-           (warn (format "Read persit kill-ring fatal of [%s], fallen back to origin done!"
-                         error))
-           (entropy/emacs-basic-kill-ring-persist-backup)))))))
+  (if (file-exists-p entropy/emacs-basic-kill-ring-persist-lock-file)
+      (when (and (yes-or-no-p "It seems kill ring persist file is locked by another emacs session\
+, unlock it?(NOTE: it may cover the another emacs session's kill-ring persistence!)")
+                 (progn (delete-file entropy/emacs-basic-kill-ring-persist-lock-file)
+                        t))
+        (entropy/emacs-basic-read-kill-ring-from-persist))
+    (let* ((file entropy/emacs-kill-ring-persist-file)
+           (find-file-suppress-same-file-warnings t) ;suppress the noisy same file warning
+           (buffer (find-file-noselect file))
+           (inhibit-read-only t)
+           kill-ring-read
+           (kill-ring-old (copy-tree kill-ring)))
+      (with-current-buffer buffer
+        (goto-char (point-min))
+        (condition-case error
+            (let ()
+              (setq kill-ring-read (read (current-buffer)))
+              (setq kill-ring kill-ring-read))
+          (error
+           (setq kill-ring kill-ring-old)
+           (unless (= (buffer-size) 0)
+             (warn (format "Read persit kill-ring fatal of [%s], fallen back to origin done!"
+                           error))
+             (entropy/emacs-basic-kill-ring-persist-backup))))))
+    (f-touch entropy/emacs-basic-kill-ring-persist-lock-file)
+    t))
 
 ;; run it when init emacs
 (defvar entropy/emacs-basic-timer-of-kill-ring-persist)
 (defun entropy/emacs-basic--init-kill-ring-persist ()
   "Initialize =entropy-emacs= `kill-ring' persist feature."
   (interactive)
-  (entropy/emacs-basic-read-kill-ring-from-persist)
-  (setq entropy/emacs-basic-timer-of-kill-ring-persist
-        (run-with-idle-timer 10 t #'entropy/emacs-basic-kill-ring-persist))
-  (add-hook 'kill-emacs-hook #'entropy/emacs-basic-kill-ring-persist))
+  (when (entropy/emacs-basic-read-kill-ring-from-persist)
+    (setq entropy/emacs-basic-timer-of-kill-ring-persist
+          (run-with-idle-timer 10 t #'entropy/emacs-basic-kill-ring-persist))
+    (add-hook 'kill-emacs-hook
+              #'entropy/emacs-basic-kill-ring-persist-after-kill-emacs)))
 (add-hook 'entropy/emacs-startup-end-hook #'entropy/emacs-basic--init-kill-ring-persist)
 
 (defalias 'entropy/emacs-basic-start-kill-ring-persist
@@ -1890,8 +1940,11 @@ original one in the same of host place)."
   (interactive)
   (entropy/emacs-basic-kill-ring-persist)
   (when (timerp entropy/emacs-basic-timer-of-kill-ring-persist)
-    (cancel-timer entropy/emacs-basic-timer-of-kill-ring-persist))
-  (remove-hook 'kill-emacs-hook #'entropy/emacs-basic-kill-ring-persist))
+    (cancel-timer entropy/emacs-basic-timer-of-kill-ring-persist)
+    (setq entropy/emacs-basic-timer-of-kill-ring-persist nil))
+  (f-delete entropy/emacs-basic-kill-ring-persist-lock-file)
+  (remove-hook 'kill-emacs-hook
+               #'entropy/emacs-basic-kill-ring-persist-after-kill-emacs))
 
 ;; *** Forbidden view-hello-file for W32 platform
 

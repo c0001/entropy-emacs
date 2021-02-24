@@ -45,6 +45,9 @@
 ;; ** dash
 (use-package dash :init (require 'dash))
 
+;; ** f
+(use-package f :init (require 'f))
+
 ;; ** memoize
 (use-package memoize
   :commands
