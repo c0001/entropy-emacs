@@ -202,32 +202,38 @@ system in this case was not the subject of utf-8 group."
 (defvar entropy/sdcv-autoshow-timer-register nil
   "Timer register for `entropy/sdcv-autoshow-mode'.")
 
-(defvar entropy/sdcv-autoshow-last-query nil
+(defvar-local entropy/sdcv-autoshow-last-query nil
   "The last query-word for `entropy/sdcv-autoshow-create'.")
 
 (defvar entropy/sdcv-autoshow-clean-register-timer nil
   "The timer for `entropy/sdcv-clean-autoshow-timer-register'")
 
 (defun entropy/sdcv-autoshow-create (buff)
-  `(lambda ()
-     (let ((thing (entropy/sdcv-core-get-word-or-region t))
-           show-instance)
-       (when (and entropy/sdcv-autoshow-mode
-                  (eq ,buff (current-buffer))
-                  (stringp thing)
-                  (not (string= entropy/sdcv-autoshow-last-query thing))
-                  (fboundp 'bing-dict-brief))
-         (setq entropy/sdcv-autoshow-last-query thing)
-         (setq show-instance
-               (entropy/sdcv-core-query-backend
-                thing
-                entropy/sdcv-default-query-backend-name
-                'minibuffer-common))
-         (unless (string= (plist-get show-instance :feedback)
-                          entropy/sdcv-core-response-null-prompt)
-           (entropy/sdcv-core-response-show
-            (cons 'minibuffer-common
-                  show-instance)))))))
+  `(lambda (&rest _)                    ;additional arguments ignored
+                                        ;for some instance transferred
+                                        ;the arguments into.
+
+     (when (and entropy/sdcv-autoshow-mode   ;first check whether the minor
+                                             ;mode has been enabled for
+                                             ;preventing the performance
+                                             ;issue
+                (eq ,buff (current-buffer)))
+       (let ((thing (entropy/sdcv-core-get-word-or-region t))
+             show-instance)
+         (when (and (stringp thing)
+                    (not (string= entropy/sdcv-autoshow-last-query thing))
+                    (fboundp 'bing-dict-brief))
+           (setq entropy/sdcv-autoshow-last-query thing)
+           (setq show-instance
+                 (entropy/sdcv-core-query-backend
+                  thing
+                  entropy/sdcv-default-query-backend-name
+                  'minibuffer-common))
+           (unless (string= (plist-get show-instance :feedback)
+                            entropy/sdcv-core-response-null-prompt)
+             (entropy/sdcv-core-response-show
+              (cons 'minibuffer-common
+                    show-instance))))))))
 
 (defun entropy/sdcv-clean-autoshow-timer-register ()
   "Tidy up `entropy/sdcv-autoshow-timer-register' when some
