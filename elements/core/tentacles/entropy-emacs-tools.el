@@ -335,7 +335,14 @@ dynamically.")
   (defun entropy/emacs-tools--beacon-blink-advice (&rest _)
     (run-hooks 'entropy/emacs-tools-beacon-blink-top-hook)
     (unless (or (not (fboundp 'beacon-blink))
-                entropy/emacs-tools-beacon-blink-ignore)
+                entropy/emacs-tools-beacon-blink-ignore
+                ;; Disable beacon blink in mpc referred buffer for performance issue
+                (member major-mode '(mpc-mode
+                                     mpc-tagbrowser-mode
+                                     mpc-songs-mode
+                                     mpc-status-mode
+                                     mpc-tagbrowser-dir-mode
+                                     )))
       (beacon-blink)))
   (advice-add 'windmove-do-window-select :after
               #'entropy/emacs-tools--beacon-blink-advice)
