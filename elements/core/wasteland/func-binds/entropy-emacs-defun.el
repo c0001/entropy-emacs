@@ -2021,9 +2021,12 @@ corresponding stuffs."
      :background "white"
      :foreground "blue4"))
    ((string= "ujelly" x)
+    ;; term
     (entropy/emacs-set-face-attribute
      'term-color-blue nil
      :foreground "#61AFEF")
+
+    ;; border margin and fringe
     (entropy/emacs-set-face-attribute
      'tooltip nil
      :background "grey6"
@@ -2051,7 +2054,14 @@ corresponding stuffs."
     (entropy/emacs-set-face-attribute
      'window-divider-last-pixel nil
      :background "grey6"
-     :foreground "#505000000000"))
+     :foreground "#505000000000")
+
+    ;; symbol-overlay
+    (entropy/emacs-set-face-attribute
+     'symbol-overlay-default-face nil
+     :background "DarkOrange"
+     :foreground "black")
+    )
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
 
