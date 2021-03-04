@@ -2063,6 +2063,8 @@ only one for thus."
 ;; ** entropy-emacs initialize
 ;; *** intial advice
 ;; **** find file patch
+
+;; ***** find file path use absolute path
 (define-inline entropy/emacs--unslash-path (path)
   "Remove the final slash in PATH."
   (declare (pure t) (side-effect-free t))
@@ -2085,6 +2087,94 @@ under the symbolink root dir."
             (not (file-directory-p filename)))))
       (apply orig-func orig-args))))
 (advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
+
+;; ***** unreadable file detection
+
+(defvar __unreadable-file-long-threshold 700)
+(defvar __unreadable-file-judge-prepares
+  (cond ((and (not (eq system-type 'windows-nt))
+              (not (eq system-type 'ms-dos))
+              (executable-find "wc"))
+         (lambda (filename)
+           (ignore-errors
+             (< __unreadable-file-long-threshold
+                (string-to-number
+                 (car
+                  (split-string
+                   (shell-command-to-string
+                    (format "wc -L '%s'" filename))
+                   " ")))))))
+        ;; FIXME: add window 'wc -L' equivalent to get more performance
+        (t
+         ;; For backwards compatible we use `so-long.el' as the judger
+         ;; but with low performance maybe?
+         (require 'so-long)
+         (lambda (filename)
+           (let ((inhibit-read-only t)
+                 (so-long-threshold __unreadable-file-long-threshold))
+             (with-temp-buffer
+               (ignore-errors
+                 (insert-file-contents
+                  filename))
+               (so-long-detected-long-line-p)))))))
+
+(defun entropy/emacs-unreadable-file-judge (filename)
+  (let ((filesize (file-attribute-size
+                   (file-attributes
+                    filename))))
+    (if (and __unreadable-file-judge-prepares
+             (ignore-errors
+               (<= filesize large-file-warning-threshold)))
+        (funcall __unreadable-file-judge-prepares filename)
+      nil)))
+
+(defun entropy/emacs-ureadable-file-prompt (format &rest args)
+  (if (yes-or-no-p (format format args))
+      t
+    (user-error "Abort!")))
+
+(defun entropy/emacs-unreadable-file-advice-for-finid-file
+    (orig-func &rest orig-args)
+  (if __unreadable-file-judge-prepares
+      (let* ((error-fmtstr
+              "File '%s' is not readable e.g. its may freeze emacs, Abort!")
+             (filename (car orig-args))
+             (wildcards (cadr orig-args))
+             (unreadable (if wildcards 'multifiles
+                           (entropy/emacs-unreadable-file-judge
+                            filename))))
+        (cond ((null unreadable)
+               (apply orig-func orig-args))
+              ((eq unreadable 'multifiles)
+               (let ((files (condition-case nil
+                                (file-expand-wildcards filename t)
+                              (error (list filename))))
+                     (counts 0))
+                 (dolist (file files)
+                   (when (entropy/emacs-unreadable-file-judge file)
+                     (cl-incf counts)
+                     (warn
+                      (format "[%s] %s"
+                              counts
+                              (format error-fmtstr file)))))
+                 (when (> counts 0)
+                   (entropy/emacs-ureadable-file-prompt
+                    (format "There's %s file are unreadable e.g. which may freeze emacs, \
+for guaranteeing the current emacs session workable, eemacs refuse this find-file action. \
+Do you want to open it with messy?"
+                            counts)))
+                 (apply orig-func orig-args)))
+              (t
+               (entropy/emacs-ureadable-file-prompt
+                (format "File '%s' is not readable e.g. its may freeze emacs, \
+Do you want to open it with messy?"
+                        filename))
+               (apply orig-func orig-args))))
+    (apply orig-func orig-args)))
+
+(advice-add 'find-file
+            :around
+            #'entropy/emacs-unreadable-file-advice-for-finid-file)
 
 ;; *** add eemacs texinfo to info-path
 
