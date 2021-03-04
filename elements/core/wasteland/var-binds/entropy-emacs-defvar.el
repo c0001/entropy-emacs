@@ -620,7 +620,7 @@ automatically followed by `entropy/emacs-font-setting-enable'.")
 automatically followed by `entropy/emacs-font-setting-enable'.")
 
 (defvar entropy/emacs-fontsets-used-cjk-tc-font "Noto Sans Mono CJK TC"
-  "The han(sc jp) script font in eemacs context, set
+  "The han(tc jp) script font in eemacs context, set
 automatically followed by `entropy/emacs-font-setting-enable'.")
 
 (defvar entropy/emacs-default-cjk-cn-font
