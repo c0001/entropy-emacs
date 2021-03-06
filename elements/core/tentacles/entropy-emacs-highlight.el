@@ -308,12 +308,13 @@
     (entropy/emacs-lazy-with-load-trail
      global-hl-todo
      (global-hl-todo-mode t)
-     (dolist (el '(("EEMACS_MAINTENANCE" . "green")
-                   ("EEMACS_BUG" . "red")
-                   ("EEMACS_TEMPORALLY_HACK" . "yellow")
-                   ("EEMACS_REFERENCE" . "HotPink1")))
-       (add-to-list 'hl-todo-keyword-faces
-                    el)))))
+     (let ((eemacs-spec
+            '(("EEMACS_MAINTENANCE" . "green")
+              ("EEMACS_BUG" . "red")
+              ("EEMACS_TEMPORALLY_HACK" . "yellow")
+              ("EEMACS_REFERENCE" . "HotPink1"))))
+       (setq hl-todo-keyword-faces
+             (append eemacs-spec hl-todo-keyword-faces))))))
 
 ;; ** Highlight uncommitted changes
 ;;
