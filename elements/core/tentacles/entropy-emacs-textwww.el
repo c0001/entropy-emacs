@@ -45,7 +45,8 @@
           browse-with-external
           toggle-inline-image toggle-image
           current-page-url current-link-url previous-page next-page goto-url
-          search-query)
+          search-query
+          search-engine)
   (let ()
     `(progn
        (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
@@ -53,6 +54,9 @@
         '("Basic"
           (("s" ,search-query "Search"
             :enable (not (null ',search-query)) :map-inject (not (null ',mode-map))
+            :exit t)
+           ("S" ,search-engine "Toggle search engine"
+            :enable (not (null ',search-engine)) :map-inject (not (null ',mode-map))
             :exit t)
            ("t" ,toggle-inline-image "Toggle display current image"
             :enable (not (null ',toggle-inline-image)) :map-inject (not (null ',mode-map))
@@ -101,6 +105,17 @@
         ("<left>" . left-char)
         ("<right>" . right-char))
   :init
+  ;; basic initial value
+  (setq w3m-confirm-leaving-secure-page nil
+        w3m-image-no-idle-timer t
+        w3m-image-animate-seconds nil
+        w3m-show-graphic-icons-in-header-line nil
+        w3m-use-favicon nil
+        w3m-use-refresh nil
+        w3m-use-tab nil
+        w3m-use-tab-menubar nil
+        w3m-process-timeout 5
+        w3m-pop-up-windows nil)
 
   ;; w3m personal browse url function
   (defun entropy/emacs-textwww--w3m-browse-url (url &rest args)
@@ -120,7 +135,8 @@
    :current-link-url w3m-print-this-url
    :previous-page w3m-view-previous-page
    :next-page w3m-view-next-page
-   :search-query w3m-search)
+   :search-query w3m-search
+   :search-engine entropy/emacs-textwww-w3m-toggle-search-engine)
 
   ;; coding system specified to utf-8 when `current-language-environment' is thus.
   (when (string= current-language-environment "UTF-8")
@@ -137,20 +153,23 @@
 
   :config
 
+  ;; Search engine specified
   (entropy/emacs-lazy-load-simple w3m-search
+    ;; Default use Microsoft 'bing' search engine for compatible of
+    ;; proxy wild problem especially for chinese user.
     (add-to-list 'w3m-search-engine-alist
                  '("bing" "https://www.bing.com/search?q=%s" utf-8))
     (setq w3m-search-default-engine "bing"))
-  (setq w3m-confirm-leaving-secure-page nil)
-  (setq w3m-image-no-idle-timer t)
-  (setq w3m-image-animate-seconds nil)
-  (setq w3m-show-graphic-icons-in-header-line nil)
-  (setq w3m-use-favicon nil)
-  (setq w3m-use-refresh nil)
-  (setq w3m-use-tab nil)
-  (setq w3m-use-tab-menubar nil)
-  (setq w3m-process-timeout 5)
-  (setq w3m-pop-up-windows nil)
+
+  ;; As an implicit search engine toggle
+  (defun entropy/emacs-textwww-w3m-toggle-search-engine ()
+    "Choose with prompt for `w3m-search-default-engine'."
+    (interactive)
+    (let ((choice (completing-read "Choose search engine: "
+                                   w3m-search-engine-alist
+                                   nil t)))
+      (setq w3m-search-default-engine choice)))
+
   ;; shied windows internal synonyms 'convert.exe' with emacs internal
   ;; imagemagick "convert.exe".
   (when (and sys/win32p
@@ -271,7 +290,8 @@ value of it is not relavant to current buffer value."
    :current-link-url entropy/emacs-textwww-get-eww-url
    :previous-page eww-back-url
    :next-page eww-next-url
-   :search-query eww)
+   :search-query eww
+   :search-engine entropy/emacs-textwww-eww-toggle-default-search-engine)
 
 ;; **** eww search engine
   (if entropy/emacs-enable-eww-search-engine-customize
@@ -324,6 +344,21 @@ in whole page."
   ;; displayable at point within a eww buffer like what did in
   ;; `w3m-mode'.
 
+;; **** toggle search engine
+
+  (defun entropy/emacs-textwww-eww-toggle-default-search-engine ()
+    (interactive)
+    (let ((choice
+           (replace-regexp-in-string
+            "%s.*$" ""
+            (car
+             (alist-get
+              (completing-read "Choose search engine: "
+                               entropy/emacs-search-web-engines-internal
+                               nil t)
+              entropy/emacs-search-web-engines-internal
+              nil nil 'string=)))))
+      (setq eww-search-prefix choice)))
 
   )
 
