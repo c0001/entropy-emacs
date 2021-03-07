@@ -122,6 +122,19 @@
    :next-page w3m-view-next-page
    :search-query w3m-search)
 
+  ;; coding system specified to utf-8 when `current-language-environment' is thus.
+  (when (string= current-language-environment "UTF-8")
+    (setq w3m-coding-system 'utf-8
+          w3m-default-coding-system 'utf-8
+          w3m-file-coding-system 'utf-8
+          w3m-file-name-coding-system 'utf-8
+          w3m-input-coding-system 'utf-8
+          w3m-output-coding-system 'utf-8
+          w3m-bookmark-file-coding-system 'utf-8
+          w3m-url-coding-system-alist '((nil . utf-8))
+          w3m-command-arguments '("-I" "UTF-8" "-O" "UTF-8")
+          ))
+
   :config
 
   (entropy/emacs-lazy-load-simple w3m-search
@@ -138,6 +151,8 @@
   (setq w3m-use-tab-menubar nil)
   (setq w3m-process-timeout 5)
   (setq w3m-pop-up-windows nil)
+  ;; shied windows internal synonyms 'convert.exe' with emacs internal
+  ;; imagemagick "convert.exe".
   (when (and sys/win32p
              (file-exists-p (concat invocation-directory "convert.exe")))
     (setq w3m-imagick-convert-program (concat invocation-directory "convert.exe")))
@@ -221,7 +236,6 @@ value of it is not relavant to current buffer value."
       (w3m-redisplay-this-page))))
   (add-hook 'text-scale-mode-hook
             #'entropy/emacs-textwww--w3m-page-text-scale-hook)
-
   )
 
 
@@ -345,7 +359,7 @@ in whole page."
 
   ;; redefine search-web for compat with entropy-emacs
   (defun search-web (engine word)
-    "Note this function has been modified for compating with entropy-emacs.
+    "NOTE: this function has been modified for compating with entropy-emacs.
 
 The original one can't recovering default browser function,
 fixing it as thus. "
@@ -382,20 +396,26 @@ fixing it as thus. "
   ;; Optional choosing internal or external browser to follow the searching.
   (defun entropy/emacs-textwww-search-web-toggle ()
     (interactive)
-    (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
+    (let ((type (completing-read "Internal or External: "
+                                 '("Internal" "External") nil t)))
       (let* ((search-web-engines (cond
-                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
-                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
+                                  ((equal type "Internal")
+                                   entropy/emacs-search-web-engines-internal)
+                                  ((equal type "External")
+                                   entropy/emacs-search-web-engines-external)))
              (engine (entropy/emacs-textwww--search-web-query-egine type))
              (word (read-string "Searching for?: ")))
         (search-web engine word))))
 
   (defun entropy/emacs-textwww-search-web-region-toggle ()
     (interactive)
-    (let ((type (completing-read "Internal or External: " '("Internal" "External") nil t)))
+    (let ((type (completing-read "Internal or External: "
+                                 '("Internal" "External") nil t)))
       (let* ((search-web-engines (cond
-                                  ((equal type "Internal") entropy/emacs-search-web-engines-internal)
-                                  ((equal type "External") entropy/emacs-search-web-engines-external)))
+                                  ((equal type "Internal")
+                                   entropy/emacs-search-web-engines-internal)
+                                  ((equal type "External")
+                                   entropy/emacs-search-web-engines-external)))
              (engine (entropy/emacs-textwww--search-web-query-egine type)))
         (search-web-region engine))))
 
@@ -407,8 +427,10 @@ fixing it as thus. "
     (let* ((entropy/emacs-web-development-environment nil))
       (funcall oldfun)))
 
-  (advice-add 'entropy/emacs-textwww-search-web-toggle :around #'entropy/emacs-textwww--search-web--around)
-  (advice-add 'entropy/emacs-textwww-search-web-region-toggle :around #'entropy/emacs-textwww--search-web--around))
+  (advice-add 'entropy/emacs-textwww-search-web-toggle
+              :around #'entropy/emacs-textwww--search-web--around)
+  (advice-add 'entropy/emacs-textwww-search-web-region-toggle
+              :around #'entropy/emacs-textwww--search-web--around))
 
 ;; *** toggle the default browse in emacs
 (defun entropy/emacs-textwww--setting-default-browser (browser)
