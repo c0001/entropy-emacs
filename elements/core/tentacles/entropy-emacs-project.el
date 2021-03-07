@@ -105,7 +105,6 @@
     (when (or (executable-find "fd") (executable-find "rg"))
       (setq projectile-indexing-method 'alien
             projectile-enable-caching nil))
-
     ;; FIXME: too slow while getting submodule files on Windows
     (setq projectile-git-submodule-command nil))
 
@@ -143,6 +142,8 @@
   :init
   (entropy/emacs-lazy-with-load-trail
    counsel-projectile
+   ;; use ivy native matcher reduce lagging
+   (setq counsel-projectile-find-file-matcher 'ivy--re-filter)
    (counsel-projectile-mode +1))
 
   :config
