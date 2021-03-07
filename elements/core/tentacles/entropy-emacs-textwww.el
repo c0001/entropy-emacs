@@ -104,6 +104,8 @@
         ("<up>" . previous-line)
         ("<left>" . left-char)
         ("<right>" . right-char))
+
+;; **** init
   :init
   ;; basic initial value
   (setq w3m-confirm-leaving-secure-page nil
@@ -116,6 +118,22 @@
         w3m-use-tab-menubar nil
         w3m-process-timeout 5
         w3m-pop-up-windows nil)
+  ;; disable this to prevent its lagging on because of that
+  ;; `w3m-redisplay-pages-automatically' is a hook arranged into
+  ;; `window-configuration-change-hook'.
+  (setq w3m-redisplay-pages-automatically-p nil)
+
+  ;; session configuration
+  (setq w3m-session-autosave nil)
+  (setq w3m-session-deleted-save nil)
+  (setq w3m-session-crash-recovery nil)
+
+  ;; shied windows internal synonyms 'convert.exe' with emacs internal
+  ;; imagemagick "convert.exe".
+  (when (and sys/win32p
+             (file-exists-p (concat invocation-directory "convert.exe")))
+    (setq w3m-imagick-convert-program
+          (concat invocation-directory "convert.exe")))
 
   ;; w3m personal browse url function
   (defun entropy/emacs-textwww--w3m-browse-url (url &rest args)
@@ -148,12 +166,12 @@
           w3m-output-coding-system 'utf-8
           w3m-bookmark-file-coding-system 'utf-8
           w3m-url-coding-system-alist '((nil . utf-8))
-          w3m-command-arguments '("-I" "UTF-8" "-O" "UTF-8")
           ))
 
+;; **** config
   :config
 
-  ;; Search engine specified
+;; ***** Search engine specified
   (entropy/emacs-lazy-load-simple w3m-search
     ;; Default use Microsoft 'bing' search engine for compatible of
     ;; proxy wild problem especially for chinese user.
@@ -170,23 +188,7 @@
                                    nil t)))
       (setq w3m-search-default-engine choice)))
 
-  ;; shied windows internal synonyms 'convert.exe' with emacs internal
-  ;; imagemagick "convert.exe".
-  (when (and sys/win32p
-             (file-exists-p (concat invocation-directory "convert.exe")))
-    (setq w3m-imagick-convert-program (concat invocation-directory "convert.exe")))
-
-  ;; disable this to prevent its lagging on because of that
-  ;; `w3m-redisplay-pages-automatically' is a hook arranged into
-  ;; `window-configuration-change-hook'.
-  (setq w3m-redisplay-pages-automatically-p nil)
-
-  ;; session configuration
-  (setq w3m-session-autosave nil)
-  (setq w3m-session-deleted-save nil)
-  (setq w3m-session-crash-recovery nil)
-
-  ;; w3m external browser setting
+;; ***** w3m external browser setting
   (defun entropy/emacs-textwww--w3m-external-advice (oldfunc &rest args)
     (let ((browse-url-browser-function
            (if entropy/emacs-browse-url-function
@@ -196,8 +198,8 @@
   (advice-add 'w3m-view-url-with-browse-url
               :around #'entropy/emacs-textwww--w3m-external-advice)
 
-  ;; -----Quit window patch-----
-  ;;
+;; ***** Quit window patch
+
   ;; EEMACS_MAINTENANCE: Find a the core principle why this bug happen
   ;; and rebuild this patch. (mainly caused by the permanently side
   ;; window existing status like treemacs or neotree did).
@@ -225,7 +227,7 @@ erros."
               :around
               #'entropy/emacs-textwww--w3m-quit-window)
 
-  ;; auto adjusting w3m page width while `text-scale-mode' is on
+;; ***** Auto adjusting w3m page width while `text-scale-mode' is on
   (defun entropy/emacs-textwww--w3m-calc-max-cols ()
     (let* ((wwp (window-width nil t))
            (fw (window-font-width))
