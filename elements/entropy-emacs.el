@@ -101,6 +101,15 @@
 ;; immediately.
 ;;
 ;; * Code:
+;; ** Env variable declaration
+
+;; The eemacs specified envrionment to indicated all subprocess are
+;; ran in an eemacs session, in which case all subprocess can detected
+;; this variable to do some extra operations or something else.
+(setenv "EEMACS_ENV" "TRUE")
+
+
+;; ** INIT
 (let* ((subs-core
         '("wasteland/var-binds" "wasteland/func-binds"
           "baron/startup" "baron/batch" "baron/summon" "baron/utils" "baron/hollow"
