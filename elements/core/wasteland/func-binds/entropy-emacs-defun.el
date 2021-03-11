@@ -837,7 +837,7 @@ means no quote needed to construct it)."
            (dolist (file (cdr feature))
              (setq forms
                    `(eval-after-load ,(funcall extract-item file)
-                      ,forms)))))
+                      ',forms)))))
     forms))
 
 ;; *** Hook manipulation
