@@ -45,8 +45,7 @@
 ;; ** Pre advice
 (defun entropy/emacs-org--export-panel-around-advice (old-func &rest args)
   (unless (fboundp 'org-reveal-export-to-html)
-    (when (featurep 'ox-reveal)
-      (load-library "ox-reveal")))
+    (require 'ox-reveal))
   (let ((entropy/emacs-web-development-environment t))
     (apply old-func args)))
 
@@ -237,7 +236,10 @@ must satisfied follow requirements:
 
 ;; ***** org tag set interaction enhancement
 
-  (when (featurep 'counsel)
+  (when (and (or (featurep 'counsel)
+                 (ignore-errors (require 'counsel)))
+             (fboundp 'counsel-org-tag)
+             (fboundp 'counsel-org-tag-agenda))
     (entropy/emacs-lazy-load-simple org
       (define-key org-mode-map (kbd "C-c C-q") #'counsel-org-tag))
     (entropy/emacs-lazy-load-simple org-agenda

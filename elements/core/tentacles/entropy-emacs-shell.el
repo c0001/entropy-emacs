@@ -167,9 +167,9 @@ command will not be called for the instance as your expection."
 was found."
     (let ((pwd (eshell/pwd))
           shrink-pwd)
-      (when (featurep 'shrink-path)
-        (when (not (fboundp 'shrink-path-dirs))
-          (require 'shrink-path))
+      (when (and (or (featurep 'shrink-path)
+                     (ignore-errors (require 'shrink-path)))
+                 (fboundp 'shrink-path-dirs))
         (setq shrink-pwd (shrink-path-dirs pwd)))
       (if (and shrink-pwd
                (stringp shrink-pwd))

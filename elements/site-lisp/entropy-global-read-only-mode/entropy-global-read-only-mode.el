@@ -420,8 +420,8 @@ single one or a list of thus. "
          (setq feature-get ',feature)
        (setq feature-get (list ',feature)))
      (mapc (lambda (fr)
-             (if (featurep fr)
-                 (require fr)
+             (unless (or (featurep fr)
+                         (ignore-errors (require fr)))
                (setq fatal t)))
            feature-get)
      (unless fatal
