@@ -94,17 +94,16 @@ argument."
 
 ;; *** Initialize packages
 (defun entropy/emacs-package--package-initialize (&optional force)
-  (when (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
-    (unless (version< emacs-version "27")
-      (setq package-quickstart nil))
-    (when force
-      (setq package--initialized nil)
-      (setq load-path (copy-tree entropy/emacs-origin-load-path))
-      (setq package-alist nil)
-      (setq package-activated-list nil))
-    (entropy/emacs-message-do-message "Custom packages initializing ......")
-    (package-initialize)
-    (entropy/emacs-message-do-message "Custom packages initializing done!")))
+  (unless (version< emacs-version "27")
+    (setq package-quickstart nil))
+  (when force
+    (setq package--initialized nil)
+    (setq load-path (copy-tree entropy/emacs-origin-load-path))
+    (setq package-alist nil)
+    (setq package-activated-list nil))
+  (entropy/emacs-message-do-message "Custom packages initializing ......")
+  (package-initialize)
+  (entropy/emacs-message-do-message "Custom packages initializing done!"))
 
 ;; *** prepare main
 (defvar entropy/emacs-package-prepare-done nil)
@@ -227,74 +226,71 @@ When installing encounters the fatal error, put the pkg into
 ;; *** install
 (defun entropy/emacs-package-install-all-packages ()
   (entropy/emacs-package-prepare-foras)
-  (when (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
-    (entropy/emacs-message-do-message
-     (blue "Checking extensions satisfied status ..."))
-    (require 'entropy-emacs-package-requirements)
-    (let ((package-check-signature nil)
-          (count 1))
-      (dolist (package entropy-emacs-packages)
-        (unless (or (null package)
-                    (package-installed-p package))
-          (ignore-errors
-            (entropy/emacs-package-install-package
-             nil
-             (format "[%s/%s]" count (length entropy-emacs-packages))
-             package
-             ))
-          (cl-incf count))))
-    (entropy/emacs-package-prompt-install-fails)
-    (entropy/emacs-message-do-message
-     (green "All packages installed, congratulations 👏"))))
+  (entropy/emacs-message-do-message
+   (blue "Checking extensions satisfied status ..."))
+  (require 'entropy-emacs-package-requirements)
+  (let ((package-check-signature nil)
+        (count 1))
+    (dolist (package entropy-emacs-packages)
+      (unless (or (null package)
+                  (package-installed-p package))
+        (ignore-errors
+          (entropy/emacs-package-install-package
+           nil
+           (format "[%s/%s]" count (length entropy-emacs-packages))
+           package
+           ))
+        (cl-incf count))))
+  (entropy/emacs-package-prompt-install-fails)
+  (entropy/emacs-message-do-message
+   (green "All packages installed, congratulations 👏")))
 
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
   (entropy/emacs-package-prepare-foras)
-  (when (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
-    (let ((current-pkgs (copy-tree package-alist))
-          (new-pkgs (progn (package-refresh-contents)
-                           (copy-tree package-archive-contents)))
-          updates)
-      (dolist (pkg current-pkgs)
-        (let* ((pkg-id (car pkg))
-               (pkg-desc-cur (cadr pkg))
-               (pkg-desc-new (car (alist-get
-                                   pkg-id
-                                   new-pkgs)))
-               (outdated (ignore-errors
-                           (version-list-< (package-desc-version pkg-desc-cur)
-                                           (package-desc-version pkg-desc-new)))))
-          (when outdated
-            (push pkg-id updates))))
-      (if (null updates)
-          (entropy/emacs-message-do-message
-           (green "All packages are newest!"))
-        (progn
-          (entropy/emacs-message-do-message
-           "%s '%s' %s"
-           (green "There're")
-           (yellow (number-to-string (length updates)))
-           (green (concat (if (eq 1 (length updates))
-                              "package"
-                            "packages")
-                          " will be updated after 5 seconds")))
-          (sleep-for 5)
-          (dolist (pkg-id updates)
-            (entropy/emacs-package-install-package t nil pkg-id))
-          (entropy/emacs-package-prompt-install-fails)
+  (let ((current-pkgs (copy-tree package-alist))
+        (new-pkgs (progn (package-refresh-contents)
+                         (copy-tree package-archive-contents)))
+        updates)
+    (dolist (pkg current-pkgs)
+      (let* ((pkg-id (car pkg))
+             (pkg-desc-cur (cadr pkg))
+             (pkg-desc-new (car (alist-get
+                                 pkg-id
+                                 new-pkgs)))
+             (outdated (ignore-errors
+                         (version-list-< (package-desc-version pkg-desc-cur)
+                                         (package-desc-version pkg-desc-new)))))
+        (when outdated
+          (push pkg-id updates))))
+    (if (null updates)
+        (entropy/emacs-message-do-message
+         (green "All packages are newest!"))
+      (progn
+        (entropy/emacs-message-do-message
+         "%s '%s' %s"
+         (green "There're")
+         (yellow (number-to-string (length updates)))
+         (green (concat (if (eq 1 (length updates))
+                            "package"
+                          "packages")
+                        " will be updated after 5 seconds")))
+        (sleep-for 5)
+        (dolist (pkg-id updates)
+          (entropy/emacs-package-install-package t nil pkg-id))
+        (entropy/emacs-package-prompt-install-fails)
           ;;; FIXME: package reinitialize after updates cause error
           ;;; for `yasnippet-snippets' that for autroload deleted old
           ;;; version..
-          ;;(entropy/emacs-package--package-initialize t)
-          )))))
+        ;;(entropy/emacs-package--package-initialize t)
+        ))))
 
 ;; ** Use-package inititialize
 ;; Required by `use-package'
 
 (defun entropy/emacs-package-init-use-package  ()
   (require 'use-package)
-  (if (or (eq entropy/emacs-ext-elpkg-get-type 'submodules)
-          entropy/emacs-fall-love-with-pdumper)
+  (if entropy/emacs-fall-love-with-pdumper
       (setq use-package-always-ensure nil)
     (setq use-package-always-ensure t))
 

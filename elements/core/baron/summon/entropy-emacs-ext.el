@@ -87,7 +87,7 @@ loading.")
                :repo-lc entropy/emacs-ext-eemacs-elpkg-archive-project-dir
                :version-lc (expand-file-name "version"
                                              entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
-               :version "0.3.0"
+               :version "1.0.0"
                :indicator-lc (expand-file-name "entropy-emacs-extensions"
                                                entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
                :inited-indicator-lc (expand-file-name "init"
@@ -144,7 +144,7 @@ There's some entropy-emacs extras may need to download by your self:
 - entropy-emacs-extensions (https://github.com/c0001/entropy-emacs-extensions.git)
 
   (Notices: only when `entropy/emacs-ext-elpkg-get-type' eq
-  'submodules or 'submodules-melpa-local)
+   'submodules-melpa-local)
 
   Clone it into your home entropy-emacs config dir
   =~/.config/entropy-emacs/= and rename as
@@ -185,8 +185,7 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
     (setq rtn
           (cond ((eq entropy/emacs-ext-elpkg-get-type 'origin)
                  nil)
-                ((or (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
-                     (eq entropy/emacs-ext-elpkg-get-type 'submodules))
+                ((eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
                  (list (plist-get full-extras :eemacs-ext)))))
     (when entropy/emacs-ext-use-eemacs-lsparc
       (add-to-list 'rtn (plist-get full-extras :eemacs-lsparc)))

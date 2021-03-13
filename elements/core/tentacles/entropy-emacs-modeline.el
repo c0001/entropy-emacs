@@ -182,20 +182,15 @@ enabled."
         (or (when spaceline-workspace-numbers-unicode
               (spaceline--unicode-number str))
             (propertize str 'face 'bold))))))
-(eval
- (delete
-  nil
-  `(use-package spaceline
-     :init
-     ,(if (eq entropy/emacs-ext-elpkg-get-type 'submodules)
-          '(use-package spaceline-config
-             :commands (spaceline-spacemacs-theme))
-        '(ignore))
-     :config
-     (with-eval-after-load 'spaceline-segments
-       (entropy/emacs-modeline--spaceline-defsegment-for-workspace))
-     )))
 
+(use-package spaceline-config
+  :ensure nil
+  :commands (spaceline-spacemacs-theme))
+
+(use-package spaceline
+  :init
+  (with-eval-after-load 'spaceline-segments
+    (entropy/emacs-modeline--spaceline-defsegment-for-workspace)))
 
 ;; **** origin type
 ;; ***** egroup core

@@ -224,53 +224,53 @@ problem, =basic= type is simple but without fully featured.
   "Init emacs with elisp extensions from entropy-emacs-extensions or
 elpa and melpa.
 
-Available value are 'submodules' 'submodules-melpa-local' and
-'origin'.
+Available value are 'submodules-melpa-local' and 'origin'.
 
-Type of 'submodules' and 'submodules-melpa-local' indicates to use
+Type of 'submodules-melpa-local' indicates to use
 =entropy-emacs-extensions= (see
 `entropy/emacs-ext-eemacs-elpkg-archive-project-dir' for its brief
-introduction) to initialize the elisp extensions, which type
-'submodules-melpa-local' means to use that as a remote elisp
-packges archive host like what 'elpa' and 'melpa' did. If use type
-of 'submodules' that emacs will start using elisp packages git
-repo directly within =entropy-emacs-extensions=.
+introduction) to initialize the elisp extensions, which explicitly
+means to use that as a local elisp packges archive host like what
+'elpa' and 'melpa' did as an extenison ecosystem. This is the most
+recommended type for using eemacs, because eemacs are built with
+version controlled third-parties for be as stable , but you can
+also use original emacs `package.el' to download most of
+=entropy-emacs= required elisp packages by set the type of
+'origin' without any bug warranty because newest packages are
+without testing with eemacs maintainer.
 
-For thus all, you can use original emacs package.el to download
-all =entropy-emacs= required elisp packages by set the type of
-'origin'.
+If you persist using 'origin' type, the elpa and melpa mirror host
+retriever will obtained the url abided by
+`entropy/emacs-package-archive-repo'.
 "
   :type '(choice
           (const :tag "Use melpa and elpa" origin)
-          (const :tag "Use eemacs-ext local package system" submodules-melpa-local)
-          (const :tag "Use eemacs-ext archived package sources" submodules))
+          (const :tag "Use eemacs-ext local package system"
+                 submodules-melpa-local))
   :group 'entropy/emacs-customize-group-for-emacs-extensions)
 
-(defun entropy/emacs-ext-elpkg-get-type-valid-p ()
-  "The data predicate for `entropy/emacs-ext-elpkg-get-type'."
-  (unless (member entropy/emacs-ext-elpkg-get-type
-                  '(origin submodules submodules-melpa-local))
-    (error "Invalid value for `entropy/emacs-ext-elpkg-get-type'")))
+;; NOTE:
+;; We must strictly did judgement for packages refer setting to
+;; guarantee the package initialization procedure did correctly before
+;; any eemacs specification loading.
+(unless (member entropy/emacs-ext-elpkg-get-type
+                '(origin submodules-melpa-local))
+  (error "Invalid value for `entropy/emacs-ext-elpkg-get-type'"))
 
-(defun entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p ()
-  "Judges whether `entropy/emacs-ext-elpkg-get-type' is based on
-`package.el'."
-  (or (eq entropy/emacs-ext-elpkg-get-type 'origin)
-      (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)))
+(defvar __eemacs-ext-union-host "~/.config/entropy-emacs")
 
 (defcustom entropy/emacs-ext-eemacs-elpkg-archive-project-dir
   (expand-file-name
    "entropy-emacs-extensions"
-   "~/.config/entropy-emacs")
+   __eemacs-ext-union-host)
   "entropy-emacs extensions collection archive location. This
 collection used to retrieving all entropy-emacs elpa or melpa
 extensions' repos as submodules archived as one single project
-using for studying or giving the pr to the origin host when you
-found the bug or want to give the improvements. You can get it
-from 'https://github.com/c0001/entropy-emacs-extensions'.
+used for version controlling. You can get it from
+'https://github.com/c0001/entropy-emacs-extensions'.
 
-This archive used when type of 'submodules' is set to customized
-variable `entropy/emacs-ext-elpkg-get-type'."
+This archive used when type of 'submodules-melpa-local' is set to
+customized variable `entropy/emacs-ext-elpkg-get-type'."
 
   :type 'directory
   :group 'entropy/emacs-customize-group-for-emacs-extensions)
@@ -283,7 +283,7 @@ variable `entropy/emacs-ext-elpkg-get-type'."
 (defcustom entropy/emacs-ext-lsp-archive-dir
   (expand-file-name
    "entropy-emacs-lsp-archive"
-   "~/.config/entropy-emacs")
+   __eemacs-ext-union-host)
   "entropy emacs language server archives project location, you
 may download from
 'https://github.com/c0001/entropy-emacs-lsp-archive'."
@@ -293,7 +293,7 @@ may download from
 (defcustom entropy/emacs-ext-emacs-pkgel-get-pkgs-root
   (expand-file-name
    "entropy-emacs-extensions-elpa"
-   "~/.config/entropy-emacs")
+   __eemacs-ext-union-host)
   "entropy-emacs elpa extensions directory for hosting the
 upstream installed packages of `package.el'."
   :type 'directory

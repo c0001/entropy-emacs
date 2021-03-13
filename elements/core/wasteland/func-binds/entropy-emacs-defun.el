@@ -1667,21 +1667,19 @@ hosted in `entropy/emacs-ext-emacs-pkgel-get-pkgs-root'."
 NOTE: this is the only legal way to set `package-user-dir' in
 eemacs context."
   (unless entropy/emacs--package-user-dir-setted
-    (entropy/emacs-ext-elpkg-get-type-valid-p)
-    (if (and (string-match-p "^27" emacs-version)
-             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
+    (if (string-match-p "^27" emacs-version)
         (entropy/emacs--set-user-package-dir-common "27.1")
       (cond
-       ((and (string-match-p "^28" emacs-version)
-             (entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p))
+       ((string-match-p "^28" emacs-version)
         (entropy/emacs--set-user-package-dir-common "28.0.50"))
-       ((entropy/emacs-ext-elpkg-get-by-emacs-pkgel-p)
+       (t
         (error "Unsupport emacs version '%s'" emacs-version))))
     (when (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
       (setq package-user-dir
-            (expand-file-name (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
-                                      "_MelpaLocal")
-                              (entropy/emacs-file-path-parser package-user-dir 'parent-dir))))
+            (expand-file-name
+             (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)
+                     "_MelpaLocal")
+             (entropy/emacs-file-path-parser package-user-dir 'parent-dir))))
     (setq entropy/emacs--package-user-dir-setted t)))
 
 ;; *** Language environment specification
