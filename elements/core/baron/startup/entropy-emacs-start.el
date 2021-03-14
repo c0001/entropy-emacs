@@ -398,6 +398,7 @@ notation.
   (require 'entropy-emacs-lua)
   (require 'entropy-emacs-zeal)
   (require 'entropy-emacs-go)
+  (require 'entropy-emacs-yaml)
   ;; For tramp
   (require 'entropy-emacs-tramp)
   ;; For game

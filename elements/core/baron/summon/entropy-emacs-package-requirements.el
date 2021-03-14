@@ -252,6 +252,7 @@
         xr
         xterm-color
         yafolding
+        yaml-mode
         yasnippet
         yasnippet-snippets
         youdao-dictionary
