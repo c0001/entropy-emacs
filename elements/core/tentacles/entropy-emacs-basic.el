@@ -2061,7 +2061,7 @@ way. "
 ;; **** extra dependencies
 ;; ***** librime for pyim
 (use-package liberime
-  :if (and (not sys/is-win-group) entropy/emacs-enable-pyim)
+  :if (not sys/is-win-group)
   :ensure nil
   :preface
   (defvar entropy/emacs-basic-pyim-liberime-load-timer nil)
