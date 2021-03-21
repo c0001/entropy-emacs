@@ -123,19 +123,14 @@ For lisp coding aim, always return the transfered buffer.
      ("C-c M-r" eval-region "Eval Markup Region"
       :enable t
       :exit t
-      :map-inject t))))
-  :eemacs-mmphca
-  (((:enable t)
-    (lisp-interaction-mode (elisp-mode lisp-interaction-mode-map)))
-   ("Eval"
-    (("C-c C-c" eval-defun "Eval wrapping context"
-      :enable t
-      :exit t
       :map-inject t)
-     ("C-c C-b" eval-buffer "Eval Whole Buffer"
+     ("C-x C-e" eval-last-sexp "Evaluate sexp before point"
       :enable t
       :exit t
       :map-inject t))))
+  :config
+  ;; disbale `eval-last-sexp' in `ctl-x-map' for reducing mistakes
+  (define-key ctl-x-map "\C-e" nil)
   )
 
 (use-package eldoc-eval
