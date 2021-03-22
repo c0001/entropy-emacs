@@ -64,6 +64,13 @@
   :commands
   (make-trie trie-insert trie-complete))
 
+;; ** exec-path-from-shell
+(use-package exec-path-from-shell
+  :commands (exec-path-from-shell-copy-env
+             exec-path-from-shell-initialize
+             exec-path-from-shell-getenv
+             exec-path-from-shell-getenvs))
+
 ;; ** all-the-icons
 (use-package all-the-icons
   :commands

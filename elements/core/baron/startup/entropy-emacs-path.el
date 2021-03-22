@@ -56,9 +56,6 @@
 
 ;; ** variable
 
-(defvar entropy/emacs-path--altered-exec-path nil)
-(defvar entropy/emacs-path--altered-shell-path nil)
-
 ;; ** library
 ;; *** common path setting
 (defun entropy/emacs-path--common-path-register ()
@@ -67,7 +64,23 @@
         (coworker-bin-path (entropy/emacs-file-path-parser
                             entropy/emacs-coworker-bin-host-path
                             'non-trail-slash))
-        (env (getenv "PATH")))
+        (env (getenv "PATH"))
+        (exec-path-from-shell-variables
+         (append
+          '("PATH" "MANPATH"
+            ;; Go env setup
+            "GOPATH" "GO111MODULE" "GOPROXY"
+            ;; Rust env setup
+            "RUSTUP_DIST_SERVER"
+            ;; Nodejs env setup
+            "NPM_CONFIG_PREFIX"
+            ;; Music daemon setup
+            "MPD_HOST" "MPD_PORT"
+            )
+          entropy/emacs-willing-copy-shell-variables)))
+    ;; Firstly we copy the entire shell ENV
+    (exec-path-from-shell-initialize)
+    ;; Then we inject eemaacs spec ENV
     (when (string-match-p coworker-bin-path env)
       (setq coworker-env-exists-p t))
     (mapc
@@ -289,22 +302,15 @@
                     (mapcar 'symbol-value exec-neg-paths))))))
 
 ;; ** main
-;; path registering
-(entropy/emacs-path--common-path-register)
-(when sys/win32p
-  (entropy/emacs-path--w32-regist-path))
 
-
-;; path altering for pdumper session
-(when entropy/emacs-fall-love-with-pdumper
-  (setq entropy/emacs-path--altered-exec-path
-        (copy-tree exec-path))
-  (setq entropy/emacs-path--altered-shell-path
-        (copy-tree (getenv "PATH")))
-  (entropy/emacs-lazy-with-load-trail
-   path-register
-   (setenv "PATH" entropy/emacs-path--altered-shell-path)
-   (set 'exec-path entropy/emacs-path--altered-exec-path)))
+;; NOTE:
+;; We must init path setting afte eemacs load since pdumper will
+;; re-get ENV var after dump load.
+(entropy/emacs-lazy-with-load-trail
+ path-register
+ (entropy/emacs-path--common-path-register)
+ (when sys/win32p
+   (entropy/emacs-path--w32-regist-path)))
 
 ;; * provide
 (provide 'entropy-emacs-path)

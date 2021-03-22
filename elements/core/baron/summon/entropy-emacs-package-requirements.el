@@ -112,6 +112,7 @@
         epl
         esup
         eterm-256color
+        exec-path-from-shell
         eyebrowse
         f
         find-file-in-project

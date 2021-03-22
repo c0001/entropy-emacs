@@ -522,6 +522,27 @@ Two valid value defaulted by `entropy-emacs':
 
 
 
+;; **** shell env config
+
+(defgroup entropy/emacs-customize-group-for-ShellEnv-configuration nil
+  "Eemacs shell env configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-basic-configuration)
+
+(defcustom entropy/emacs-willing-copy-shell-variables nil
+  "Shell ENV variables willing to inject to current emacs session.
+
+This list of strings used for `setenv' to copy you default shell
+environment variables.
+
+The default shell is obtained from `shell-file-name' if setted
+yet, at leasst be from you SHELL env var of current emacs session
+as fallback.
+
+The env vars retrieving method made by logining into your default
+shell across a swan process under current emacs session."
+  :type '(repeat string)
+  :group 'entropy/emacs-customize-group-for-ShellEnv-configuration)
+
 ;; **** eyebrowse config
 (defgroup entropy/emacs-customize-group-for-eyebrowse-mode nil
   "Eemacs eyebrowse-mode configuration customizable group."
