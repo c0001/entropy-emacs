@@ -67,7 +67,7 @@
         (env (getenv "PATH"))
         (exec-path-from-shell-variables
          (append
-          '("PATH" "MANPATH"
+          '("PATH" "MANPATH" "LD_LIBRARY_PATH"
             ;; Go env setup
             "GOPATH" "GO111MODULE" "GOPROXY"
             ;; Rust env setup
