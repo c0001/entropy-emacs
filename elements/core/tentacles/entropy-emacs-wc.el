@@ -222,7 +222,15 @@
   :eemacs-tpha
   (((:enable t))
    ("WI&BUF"
-    (("C-c w"
+    (("C-c C-w"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'eyebrowse-mode))
+      "Eyerbowse Map"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)
+     ("C-c w"
       (:eval
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'eyebrowse-mode))
