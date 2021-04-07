@@ -493,6 +493,17 @@ type:
         t
       nil)))
 
+(defun entropy/emacs-file-equal-p (file1 file2)
+  "Alternative to `file-equal-p' but judge whether files existed
+status before judging to prevent the unexpection internal error
+hinttedd by `file-equal-p''s docstring, thus on, always return
+nil if two file are not equalization or either FILE1 or file2 is
+not existed."
+  (let ((file1-p (file-exists-p file1))
+        (file2-p (file-exists-p file2)))
+    (when (and file1-p file2-p)
+      (file-equal-p file1 file2))))
+
 
 ;; *** Process manipulation
 (defun entropy/emacs-chained-eemacs-make-proc-args (eemacs-make-proc-args-list)
