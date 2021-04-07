@@ -95,6 +95,19 @@ place can be easily found by other interactive command."
     'set-mark-command nil nil
     '(entropy/emacs-basic-set-mark-command))))
 
+;; EEMACS_MAINTENANCE
+(entropy/emacs-lazy-with-load-trail
+ disable-gvfs
+ ;; Since tramp archive using simple magick filename regexp
+ ;; matching, and its internal
+ ;; `tramp-archive-file-name-handler-alist''s each corresponding
+ ;; implementation can not follow the equalization API defination of
+ ;; origin function, thus for most of tramp internal errors will
+ ;; pollute the thread operations. (e.g. local directory naming as an
+ ;; archive name will also invoking tramp-archive methods which throw
+ ;; out many more problems while its magick filename I/O deals)
+ (setq tramp-archive-enabled nil))
+
 ;; ** Basic major-modes spec
 ;; *** Dired config
 ;; **** dired basic
