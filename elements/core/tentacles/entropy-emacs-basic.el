@@ -2204,6 +2204,7 @@ please check buffer '*liberime build*' for details"
     (interactive)
     (unless entropy/emacs-pyim-has-initialized
       (require 'pyim)
+      (require 'pyim-liberime)          ;needed for load liberime for pyim
       (cond ((eq entropy/emacs-pyim-use-backend 'internal)
              (setq pyim-dicts entropy/emacs-pyim-dicts)
              (setq entropy/emacs-pyim-has-initialized t))
