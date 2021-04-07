@@ -104,8 +104,10 @@ For lisp coding aim, always return the transfered buffer.
 (use-package elisp-mode
   :ensure nil
   :eemacs-mmphc
-  (((:enable t)
-    (emacs-lisp-mode (nil emacs-lisp-mode-map) t))
+  ((((:enable t)
+     (emacs-lisp-mode (nil emacs-lisp-mode-map) t))
+    ((:enable t)
+     (lisp-interaction-mode (elisp-mode lisp-interaction-mode-map) t)))
    ("IELM"
     (("C-c C-z" ielm "Open IELM"
       :enable t
