@@ -2092,7 +2092,7 @@ patch:
 See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5%AE%9A%E8%A3%BD%E7%B0%A1%E5%8C%96%E5%AD%97%E8%BC%B8%E5%87%BA][the rime wiki]] for details.
 
 "
-    (liberime-select-schema
+    (liberime-try-select-schema
      "luna_pinyin_simp"))
 
   (defun entropy/emacs-basic--pyim-first-build-timer (&optional is-with-building)
@@ -2105,7 +2105,8 @@ See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5
                      (proc-exited (when proc (eq proc-status 'exit)))
                      proc-exit-signal)
                 (when (timerp entropy/emacs-basic-pyim-liberime-load-timer)
-                  (cancel-timer entropy/emacs-basic-pyim-liberime-load-timer))
+                  (cancel-timer entropy/emacs-basic-pyim-liberime-load-timer)
+                  (setq entropy/emacs-basic-pyim-liberime-load-timer nil))
                 (if (ignore-errors
                       (entropy/emacs-basic--pyim-set-rime-schema))
                     (progn
