@@ -53,7 +53,7 @@
   (((:enable t)
     (projectile-mode (projectile projectile-mode-map) nil (2)))
    ("projectile Switch"
-    (("C-c p p p" counsel-projectile-switch-project "Switch To Other Project"
+    (("C-c p p p" projectile-switch-project "Switch To Other Project"
       :enable t :exit t :eemacs-top-bind t)
      ("C-c p p q" projectile-switch-open-project "Switch to a project we have currently opened"
       :enable t :exit t :eemacs-top-bind t)
@@ -144,6 +144,9 @@
    counsel-projectile
    ;; use ivy native matcher reduce lagging
    (setq counsel-projectile-find-file-matcher 'ivy--re-filter)
+   ;; disable default counsel-projectile rebinds of
+   ;; `projectile-mode-map'
+   (setq counsel-projectile-key-bindings nil)
    (counsel-projectile-mode +1))
 
   :config
