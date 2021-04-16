@@ -1803,7 +1803,8 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
    entropy/emacs-stuffs-topdir)
   "The persist kill ring file used indicator flag file.")
 
-(setq kill-ring-max 10000)               ;increase kill ring length for more daily using comfort
+;; restrict `kill-ring' length for reducing `browse-kill-ring' lag
+(setq kill-ring-max 300)
 
 (defun entropy/emacs-basic-kill-ring-persist-backup ()
   (unless (fboundp 'entropy/cl-backup-file)
