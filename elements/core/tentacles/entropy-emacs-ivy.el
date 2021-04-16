@@ -75,8 +75,13 @@
   (setq ivy-use-virtual-buffers t)      ;Enable bookmarks and recentf
   (setq ivy-height 10)
   (setq ivy-count-format "%-5d ")
-  (setq ivy-on-del-error-function nil)  ;Disable back-delete exit when empty input.
+  (setq ivy-on-del-error-function 'ignore)  ;Disable back-delete exit when empty input.
   (setq ivy-dynamic-exhibit-delay-ms 2) ;prevent immediacy dnynamic process fetching crash.
+
+  (setq ivy-add-newline-after-prompt t) ;enable newline for initial
+                                        ;prompt for preventing long
+                                        ;line prompt messy up candi
+                                        ;exhibits
 
   ;; using fuzzy matching
   (setq ivy-re-builders-alist
@@ -134,44 +139,22 @@ upstream and may be make risky follow the ivy updates.
     (define-key ivy-mode-map (kbd "ESC ESC") 'top-level))
 
 
-  ;;; *Redefine the ivy-partial-or-done to prevent double click '<tab>'*
-  ;; This portion give the minor changed for disabled double tab in
-  ;; ivy completion for preventing accidental operation of double hint
-  ;; for 'TAB'.
+  ;; Patch the `ivy-alt-done' to prevent double click '<tab>'
+  ;; triggered in `ivy-partial-or-done' i.e. This portion give the
+  ;; minor changed for disabled double tab in ivy completion for
+  ;; preventing accidental operation of double hint for 'TAB'.
 
-  (defun ivy-partial-or-done ()
-    "Complete the minibuffer text as much as possible.  If the text
-hasn't changed as a result, forward to a handy message prompt.
-
-Notice, this function has been redefined by =entropy-emacs= for
-modifying the TAB double hints while `ivy-read' procedure, the
-origin was foward to the `ivy-alt-done' at the same occurrence as
-the title mentioned, has reason for that user usually take mistake
-for that hints habit will run the canid selected unpredictable."
-    (interactive)
-    (cond
-     ((and completion-cycle-threshold (< (length ivy--all-candidates) completion-cycle-threshold))
-      (let ((ivy-wrap t))
-        (ivy-next-line)))
-     ((and (eq (ivy-state-collection ivy-last) #'read-file-name-internal)
-           (or (and (equal ivy--directory "/")
-                    (string-match-p "\\`[^/]+:.*\\'" ivy-text))
-               (= (string-to-char ivy-text) ?/)))
-      (let ((default-directory ivy--directory)
-            dir)
-        (minibuffer-complete)
-        (setq ivy-text (ivy--input))
-        (when (setq dir (ivy-expand-file-if-directory ivy-text))
-          (ivy--cd dir))))
-     (t
-      (or (ivy-partial)
-          (when (or (eq this-command last-command)
-                    (eq ivy--length 1))
-            (message ":) evil smile ^v^"))))))
+  (defun __adv/around/ivy-alt-done (orig-func &rest orig-args)
+    (let (_)
+      (if (eq this-command 'ivy-partial-or-done)
+          (message
+           (propertize
+            "⚠: no other accurate completion can be auto TAB"
+            'face 'warning))
+        (apply orig-func orig-args))))
+  (advice-add 'ivy-alt-done :around '__adv/around/ivy-alt-done)
 
   )
-
-
 
 ;; ** ivy hydra
 ;; Additional key bindings for Ivy
