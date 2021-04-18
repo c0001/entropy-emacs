@@ -639,10 +639,11 @@ modifcation is to remove this feature.
 ;; **** Use coloful dired ls
 
 (use-package dired-rainbow
-  :commands
-  (dired-rainbow-define dired-rainbow-define-chmod)
+  :eemacs-macros (dired-rainbow-define)
+  :commands (dired-rainbow-define-chmod)
   :init
   (entropy/emacs-lazy-load-simple dired
+    (require 'dired-rainbow)
     (dired-rainbow-define dotfiles "gray" "\\..*")
     (dired-rainbow-define
      web "#4e9a06"

@@ -312,7 +312,7 @@ When installing encounters the fatal error, put the pkg into
     :commands (bind-key)))
 
 (defun entropy/emacs-package--use-package-add-keyword (keyword &optional precedence)
-  (let ((precedence (or precedence :init)))
+  (let ((precedence (or precedence :commands)))
     (setq use-package-keywords
           ;; should go in the same location as :bind
           (cl-loop for item in use-package-keywords

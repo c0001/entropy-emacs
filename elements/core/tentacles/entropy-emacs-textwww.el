@@ -168,6 +168,11 @@
           w3m-url-coding-system-alist '((nil . utf-8))
           ))
 
+  ;; disable w3m update warning before w3m loading
+  (advice-add 'w3m-fix-melpa-installation
+              :around
+              (lambda (&rest _) nil))
+
 ;; **** config
   :config
 

@@ -1162,6 +1162,7 @@ can't visit one page suddenly."
 
   (entropy/emacs-lazy-load-simple w3m
     (unless (eq entropy/emacs-proxy-url-loaded t)
+      (require 'entropy-proxy-url)
       (entropy/proxy-url-make-builtin-recipes)
       (setq entropy/emacs-proxy-url-loaded t))
     (when (executable-find "w3m")
@@ -1169,13 +1170,10 @@ can't visit one page suddenly."
 
   (entropy/emacs-lazy-load-simple eww
     (unless (eq entropy/emacs-proxy-url-loaded t)
+      (require 'entropy-proxy-url)
       (entropy/proxy-url-make-builtin-recipes)
       (setq entropy/emacs-proxy-url-loaded t)))
-
-  ;; disable w3m update warning before w3m loading
-  (advice-add 'w3m-fix-melpa-installation
-              :around
-              (lambda (&rest _) nil)))
+  )
 
 
 ;; *** entropy-unfill
