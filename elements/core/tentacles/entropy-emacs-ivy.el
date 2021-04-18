@@ -704,6 +704,8 @@ version of ivy framework updating.
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ivy-rich-mode
+   :pdumper-no-end t
+   :body
    (memoize
     'ya/all-the-icons-ivy-rich-common-file-icon))
   )

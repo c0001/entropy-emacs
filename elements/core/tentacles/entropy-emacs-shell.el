@@ -437,6 +437,8 @@ segmentation fault."
 
   (entropy/emacs-lazy-with-load-trail
    shellpop-feature
+   :pdumper-no-end t
+   :body
    (cond ((or (not sys/win32p)
               (and sys/win32p (bound-and-true-p fakecygpty--activated)))
           (setq entropy/shellpop-pop-types

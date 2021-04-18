@@ -154,6 +154,8 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
   :init
   (entropy/emacs-lazy-with-load-trail
    eldoc-mode
+   :pdumper-no-end t
+   :body
    (global-eldoc-mode 1)))
 
 ;; ** Diagnostics

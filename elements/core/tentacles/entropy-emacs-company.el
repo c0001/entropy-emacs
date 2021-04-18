@@ -231,6 +231,8 @@ NOTE: this function is an around advice wrapper."
   :init
   (entropy/emacs-lazy-with-load-trail
    global-company-mode
+   :pdumper-no-end t
+   :body
    (global-company-mode t)
    (setq company-echo-delay 1)          ;reduce lagging on increase company echo idle delay
 

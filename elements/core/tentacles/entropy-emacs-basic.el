@@ -66,6 +66,8 @@ place can be easily found by other interactive command."
 
 (entropy/emacs-lazy-with-load-trail
  top-keybinding
+ :pdumper-no-end t
+ :body
  (if (null (daemonp))
      (progn
        (define-key (current-global-map)
@@ -98,6 +100,8 @@ place can be easily found by other interactive command."
 ;; EEMACS_MAINTENANCE
 (entropy/emacs-lazy-with-load-trail
  disable-gvfs
+ :pdumper-no-end t
+ :body
  ;; Since tramp archive using simple magick filename regexp
  ;; matching, and its internal
  ;; `tramp-archive-file-name-handler-alist''s each corresponding
@@ -692,6 +696,8 @@ modifcation is to remove this feature.
   :init
   (entropy/emacs-lazy-with-load-trail
    diredfl-colorful-init
+   :pdumper-no-end t
+   :body
    (diredfl-global-mode 1)))
 
 (use-package all-the-icons-dired
@@ -1224,6 +1230,8 @@ Filename are \".scratch_entropy\" host in
 
 (entropy/emacs-lazy-with-load-trail
  init-eemamcs-scratch-buffer
+ :pdumper-no-end t
+ :body
  (entropy/emacs-basic--scratch-buffer-file-binding))
 
 ;; Create a new scratch buffer
@@ -1682,7 +1690,11 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
   :diminish which-key-mode
   :commands which-key-mode
   :init
-  (entropy/emacs-lazy-with-load-trail which-key (which-key-mode t))
+  (entropy/emacs-lazy-with-load-trail
+   which-key
+   :pdumper-no-end t
+   :body
+   (which-key-mode t))
   (setq which-key-popup-type 'side-window
         which-key-side-window-location 'bottom
         which-key-idle-delay 0.8
@@ -1738,6 +1750,9 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
   :init
   (entropy/emacs-lazy-with-load-trail
    undo-tree-enable
+   ;; undo-tree can not enabled while pdumper
+   :pdumper-no-end nil
+   :body
    (global-undo-tree-mode t)
    (global-set-key (kbd "C-x u") #'undo-tree-visualize))
 
@@ -2009,6 +2024,8 @@ operation system"
   :init
   (entropy/emacs-lazy-with-load-trail
    recentf-init
+   :pdumper-no-end t
+   :body
    (recentf-mode))
   :config
   (setq recentf-max-saved-items 1000
@@ -2022,7 +2039,12 @@ operation system"
 
 (use-package savehist
   :ensure nil
-  :init (entropy/emacs-lazy-with-load-trail savehist-init (savehist-mode t))
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   savehist-init
+   :pdumper-no-end t
+   :body
+   (savehist-mode t))
   :config
   (setq
    history-length 10000
@@ -2356,6 +2378,8 @@ please check buffer '*liberime build*' for details"
 
 (entropy/emacs-lazy-with-load-trail
  xterm-rebind
+ :pdumper-no-end t
+ :body
  (let* ((cli-enable-func
          (lambda ()
            (define-key global-map [xterm-paste]
@@ -2627,6 +2651,8 @@ otherwise returns nil."
   :init
   (entropy/emacs-lazy-with-load-trail
    delsel-mode-init
+   :pdumper-no-end t
+   :body
    (delete-selection-mode 1)))
 
 ;; *** Inhibit gui dialog

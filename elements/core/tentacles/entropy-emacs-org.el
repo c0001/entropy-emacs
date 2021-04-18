@@ -1706,6 +1706,8 @@ Now just supply localization image file analyzing."
   :init
   (entropy/emacs-lazy-with-load-trail
    org-bullet-mode-init
+   :pdumper-no-end t
+   :body
    (if (daemonp)
        (entropy/emacs-with-daemon-make-frame-done
         'org-bullet-mode-init

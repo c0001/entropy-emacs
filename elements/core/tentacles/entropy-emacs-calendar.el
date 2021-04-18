@@ -42,6 +42,8 @@
   :init
   (entropy/emacs-lazy-with-load-trail
    china-calendar-init
+   :pdumper-no-end t
+   :body
    (cal-china-x-setup))
   :config
   (setq calendar-mark-holidays-flag t

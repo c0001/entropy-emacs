@@ -67,6 +67,8 @@
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ibuffer
+   :pdumper-no-end t
+   :body
    (if (null (daemonp))
        (when (entropy/emacs-icons-displayable-p)
          (all-the-icons-ibuffer-mode 1))

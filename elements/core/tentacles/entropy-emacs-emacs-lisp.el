@@ -152,6 +152,8 @@ For lisp coding aim, always return the transfered buffer.
 
   (entropy/emacs-lazy-with-load-trail
    eldoc-minibuffer-show
+   :pdumper-no-end t
+   :body
    (with-eval-after-load 'eldoc-eval
      (advice-add 'eldoc-in-minibuffer-mode
                  :after

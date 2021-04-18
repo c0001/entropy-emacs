@@ -134,7 +134,12 @@
 ;; ** Highlight matching paren
 (use-package paren
   :ensure nil
-  :init (entropy/emacs-lazy-with-load-trail show-paren-mode (show-paren-mode t))
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   show-paren-mode
+   :pdumper-no-end t
+   :body
+   (show-paren-mode t))
   :config
   (setq show-paren-when-point-inside-paren t)
   (setq show-paren-when-point-in-periphery t))
@@ -307,6 +312,8 @@
   (when entropy/emacs-hl-todo-enable-at-startup
     (entropy/emacs-lazy-with-load-trail
      global-hl-todo
+     :pdumper-no-end t
+     :body
      (global-hl-todo-mode t)
      (let ((eemacs-spec
             '(("EEMACS_MAINTENANCE" . "green")
@@ -368,6 +375,8 @@
   :init
   (entropy/emacs-lazy-with-load-trail
    global-diff-hl
+   :pdumper-no-end t
+   :body
    (global-diff-hl-mode t))
 
   ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
@@ -450,7 +459,12 @@
       (if (bound-and-true-p volatile-highlights-mode)
           t
         nil)))))
-  :init (entropy/emacs-lazy-with-load-trail volatile-hl-mode (volatile-highlights-mode t)))
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   volatile-hl-mode
+   :pdumper-no-end t
+   :body
+   (volatile-highlights-mode t)))
 
 ;; ** Visualize TAB, (HARD) SPACE, NEWLINE
 ;;

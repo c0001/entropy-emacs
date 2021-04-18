@@ -308,6 +308,8 @@
 ;; re-get ENV var after dump load.
 (entropy/emacs-lazy-with-load-trail
  path-register
+ :pdumper-no-end t
+ :body
  (entropy/emacs-path--common-path-register)
  (when sys/win32p
    (entropy/emacs-path--w32-regist-path)))

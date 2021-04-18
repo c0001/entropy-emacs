@@ -441,6 +441,8 @@ want to preserve the source demo."
   :init
   (entropy/emacs-lazy-with-load-trail
    enable-outshine-for-opened-buffer
+   :pdumper-no-end t
+   :body
    (mapc (lambda (buffer)
            (with-current-buffer buffer
              (when (member major-mode '(emacs-lisp-mode-hook lisp-interaction-mode-hook))

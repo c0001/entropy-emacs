@@ -82,6 +82,8 @@
 
   (entropy/emacs-lazy-with-load-trail
    projectile
+   :pdumper-no-end t
+   :body
    (setq projectile-mode-line-prefix ""
          projectile-sort-order 'recentf
          projectile-use-git-grep t
@@ -142,6 +144,8 @@
   :init
   (entropy/emacs-lazy-with-load-trail
    counsel-projectile
+   :pdumper-no-end t
+   :body
    ;; use ivy native matcher reduce lagging
    (setq counsel-projectile-find-file-matcher 'ivy--re-filter)
    ;; disable default counsel-projectile rebinds of

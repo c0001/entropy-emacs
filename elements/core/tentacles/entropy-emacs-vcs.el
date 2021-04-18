@@ -66,6 +66,8 @@
   :init
   (entropy/emacs-lazy-with-load-trail
    magit-init
+   :pdumper-no-end t
+   :body
    (entropy/emacs-vcs--magit-init))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation
