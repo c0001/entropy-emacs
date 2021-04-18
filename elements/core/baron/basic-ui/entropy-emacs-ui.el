@@ -58,10 +58,7 @@
       (add-to-list 'load-path initial-theme-path)
       (load-theme 'entropy-base16-theme-bright t))))
 
-(if entropy/emacs-fall-love-with-pdumper
-    (entropy/emacs-lazy-with-load-trail
-     load-basic-theme
-     (entropy/emacs-ui--load-basic-theme-core))
+(unless entropy/emacs-fall-love-with-pdumper
   (entropy/emacs-ui--load-basic-theme-core))
 
 ;; ** init-frame position and width and height

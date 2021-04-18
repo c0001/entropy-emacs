@@ -197,6 +197,7 @@ configuration.")
     (entropy/emacs-message-do-message (blue "Initializing pdumper session ..."))
     ;; fast up bootstrap
     (setq gc-cons-threshold most-positive-fixnum)
+    (entropy/emacs-themes-init-setup-user-theme)
     (entropy/emacs-message-do-message (green "Enabling fontlocks ..."))
     (global-font-lock-mode +1)
     (transient-mark-mode +1)
