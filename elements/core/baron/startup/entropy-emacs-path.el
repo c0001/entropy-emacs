@@ -304,11 +304,11 @@
 ;; ** main
 
 ;; NOTE:
-;; We must init path setting afte eemacs load since pdumper will
+;; We must init path setting after eemacs load since pdumper will
 ;; re-get ENV var after dump load.
 (entropy/emacs-lazy-with-load-trail
  path-register
- :pdumper-no-end t
+ :pdumper-no-end nil
  :body
  (entropy/emacs-path--common-path-register)
  (when sys/win32p

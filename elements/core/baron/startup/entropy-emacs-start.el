@@ -132,15 +132,18 @@ Emacs will auto close after 6s ......"))
 
 ;; *** preface advice
 (defun entropy/emacs-start--require-prompt (feature)
-  (let ((f-str (symbol-name feature)))
-    (when (if entropy/emacs-fall-love-with-pdumper
-              ;; reduce duplicated feature load prompts
-              (string-match-p "^entropy-" f-str)
-            t)
-      (entropy/emacs-message-do-message
-       "%s %s"
-       (green "Loading:")
-       (yellow f-str)))))
+  (when
+      ;; reducing duplicated feature loading prompts
+      (not (featurep feature))
+    (let ((f-str (symbol-name feature)))
+      (when (if entropy/emacs-fall-love-with-pdumper
+                ;; reduce duplicated feature load prompts
+                (string-match-p "^entropy-" f-str)
+              t)
+        (entropy/emacs-message-do-message
+         "%s %s"
+         (green "Loading:")
+         (yellow f-str))))))
 
 (defun entropy/emacs-start--require-loading (orig-func &rest orig-args)
   (let ((feature (car orig-args)))
