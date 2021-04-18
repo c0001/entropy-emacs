@@ -1466,7 +1466,10 @@ functional aim to:
 - ':start-end' :: inject function of BODY into
   `entropy/emacs-startup-end-hook'. Defaultly, BODY will be
   injected into =entropy-emacs-startup-trail-hook=, but with this
-  key non-nil or a form which evaluated result is non-nil."
+  key non-nil or a form which evaluated result is non-nil.
+
+- ':pdumper-no-end' :: specefied trail hook injection while
+  pdumper according to `entropy/emacs-select-trail-hook'."
   (let ((func (intern
                (concat "entropy/emacs-lazy-trail-to-"
                        (symbol-name name))))
@@ -1475,6 +1478,8 @@ functional aim to:
          (entropy/emacs-get-plist-form body :start-end t))
         (doc-string
          (entropy/emacs-get-plist-form body :doc-string t))
+        (pdumper-no-end
+         (entropy/emacs-get-plist-form body :pdumper-no-end t))
         (body (let ((body-form (entropy/emacs-get-plist-form body :body nil t)))
                 (if body-form
                     (cdr body-form)
@@ -1501,8 +1506,8 @@ functional aim to:
                (append entropy/emacs-startup-end-hook
                        '(,func))))
         (t
-         (set (entropy/emacs-select-trail-hook)
-              (append (symbol-value (entropy/emacs-select-trail-hook))
+         (set (entropy/emacs-select-trail-hook ,pdumper-no-end)
+              (append (symbol-value (entropy/emacs-select-trail-hook ,pdumper-no-end))
                       '(,func))))))))
 
 (defun entropy/emacs-lazy-initial-form
