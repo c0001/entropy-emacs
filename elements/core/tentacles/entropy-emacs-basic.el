@@ -1046,6 +1046,7 @@ Temp file was \"~/~entropy-artist.txt\""
 
 (use-package woman
   :ensure nil
+  :defer entropy/emacs-fall-love-with-pdumper
   :commands woman
   :init (setq woman-fill-column 100
               woman-dired-keys nil)
@@ -2085,6 +2086,7 @@ way. "
 (use-package liberime
   :if (not sys/is-win-group)
   :ensure nil
+  :defer (or entropy/emacs-fall-love-with-pdumper entropy/emacs-custom-enable-lazy-load)
   :preface
   (defvar entropy/emacs-basic-pyim-liberime-load-timer nil)
 
@@ -2111,8 +2113,11 @@ patch:
       states: [ 漢字, 汉字 ]
 #+end_example
 
-See [[https://github.com/rime/home/wiki/CustomizationGuide#%E4%B8%80%E4%BE%8B%E5%AE%9A%E8%A3%BD%E7%B0%A1%E5%8C%96%E5%AD%97%E8%BC%B8%E5%87%BA][the rime wiki]] for details.
-
+See [[https://github.com/rime/home/wiki/\
+CustomizationGuide#\
+%E4%B8%80%E4%BE%8B%E5%AE%9A\
+%E8%A3%BD%E7%B0%A1%E5%8C%96\
+%E5%AD%97%E8%BC%B8%E5%87%BA][the rime wiki]] for details.
 "
     (liberime-try-select-schema
      "luna_pinyin_simp"))

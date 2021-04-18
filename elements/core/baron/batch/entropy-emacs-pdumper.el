@@ -69,8 +69,23 @@ configuration.")
 ;; ** library
 ;; *** macro
 (cl-defmacro entropy/emacs-pdumper--with-load-path (top-dir &rest body)
-  `(let* ((load-path (append (and ,top-dir (entropy/emacs-list-dir-recursive-for-list ,top-dir))
-                             entropy/emacs-origin-load-path)))
+  `(let* ((load-path
+           (cond
+            ((stringp ,top-dir)
+             (append (entropy/emacs-list-dir-recursive-for-list ,top-dir)
+                     entropy/emacs-origin-load-path))
+            ((and ,top-dir
+                  (listp ,top-dir))
+             (let ((rtn entropy/emacs-origin-load-path))
+               (dolist (path ,top-dir)
+                 (setq rtn
+                       (append
+                        (and path
+                             (entropy/emacs-list-dir-recursive-for-list path))
+                        rtn)))
+               rtn))
+            (t
+             entropy/emacs-origin-load-path))))
      ,@body))
 
 ;; *** extract files
@@ -103,7 +118,15 @@ configuration.")
   (let ((exc-filters `(,(rx (or (seq "autoloads.el" line-end)
                                 (seq "pkg.el" line-end)
                                 (seq line-start "test.el")
-                                (seq line-start "doom-themes-ext")))))
+                                (seq line-start "doom-themes-ext")
+                                ;; vterm is an dynamic module which
+                                ;; can not be load while pdumper
+                                ;; session.
+                                (seq line-start "vterm")
+                                ;; `counsel-ffdata''s defcustom for
+                                ;; `counsel-ffdata-database-path' have
+                                ;; bug
+                                "counsel-ffdata"))))
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "transient" "counsel"
                                      "dired" "all-the-icon" "cal-china"
                                      "use-package" "diminish" "bind-key"
@@ -117,20 +140,6 @@ configuration.")
                                  (seq ".elc" line-end))))))
     (entropy/emacs-pdumper--extract-files-with-dir
      entropy/emacs-pdumper--upstream-top-dir
-     exc-filters
-     inc-filters)))
-
-(defun entropy/emacs-pdumper--extract-internal-packages ()
-  (let ((exc-filters `(,(rx (regexp (eval (regexp-quote (file-name-directory (locate-library "org"))))))
-                       ,(rx (or (eval
-                                 (if (not sys/win32p)
-                                     "w32"
-                                   "*eemacs-exlude-feature-indicator*"))))))
-        (inc-filters `(,(rx (seq (or "cl" "tramp" "file" "dired" "url" "eww" "eshell" "esh" "em-")
-                                 (* any)
-                                 (seq ".elc" line-end))))))
-    (entropy/emacs-pdumper--extract-files-with-dir
-     (file-name-directory (locate-library "window"))
      exc-filters
      inc-filters)))
 
@@ -169,8 +178,6 @@ configuration.")
 ;; *** recovery
 (defun entropy/emacs-pdumper--recovery ()
   (unless (entropy/emacs-in-pdumper-procedure-p)
-    (global-font-lock-mode +1)
-    (transient-mark-mode +1)
     (setq load-path entropy/emacs-pdumper-pre-lpth)
     (unless (catch :exit
               ;; we should judge whether the bar feature supported in
@@ -188,6 +195,14 @@ configuration.")
     ;; TODO ...body
 
     (entropy/emacs-message-do-message (blue "Initializing pdumper session ..."))
+    ;; fast up bootstrap
+    (setq gc-cons-threshold most-positive-fixnum)
+    (entropy/emacs-message-do-message (green "Enabling fontlocks ..."))
+    (global-font-lock-mode +1)
+    (transient-mark-mode +1)
+    (entropy/emacs-message-do-message (green "Enable fontlocks done"))
+
+    (message "****** Run intial hooks *****")
     ;; the pdumper session procedure
     (run-hooks 'entropy/emacs-pdumper-load-hook)
     ;; trail dealing
@@ -196,6 +211,8 @@ configuration.")
     (entropy/emacs-message-do-message (green "Initialized pdumper session"))
     (when entropy/emacs-pdumper--rec-timer
       (cancel-timer entropy/emacs-pdumper--rec-timer)
+      (setq entropy/emacs-pdumper--rec-timer nil)
+      ;; recover the gc restriction after bootstrap
       (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
       (garbage-collect))
     (defun entropy/emacs-pdumper--recovery ()
@@ -231,8 +248,11 @@ configuration.")
          (blue "🠶 [Pdumper] load-file:")
          (yellow feature-name))
         (let ((inhibit-message t))
-          (ignore-errors
-            (require feature)))))))
+          (condition-case error
+              (require feature)
+            (error
+             (let ((inhibit-message nil))
+               (message "error: %s" error)))))))))
 
 (defun entropy/emacs-pdumper--load-files (arg-list)
   (cl-loop for (load-dir . load-files) in arg-list
@@ -244,9 +264,8 @@ configuration.")
 (defvar entropy/emacs-pdumper--load-alist
   `((,entropy/emacs-pdumper--upstream-top-dir
      . ,(entropy/emacs-pdumper--extract-upstream-packages))
-    (,nil . ,(entropy/emacs-pdumper--extract-internal-packages))
     (,nil . ,(entropy/emacs-pdumper--extract-org-packages))
-    (,entropy/emacs-site-lisp-path
+    ((,entropy/emacs-site-lisp-path ,entropy/emacs-pdumper--upstream-top-dir)
      . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))))
 
 (entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
@@ -256,7 +275,7 @@ configuration.")
  entropy/emacs-pdumper-pre-lpth
  (copy-tree load-path)
  entropy/emacs-pdumper--rec-timer
- (run-with-idle-timer 1.1 t #'entropy/emacs-pdumper--recovery))
+ (run-with-idle-timer 0.1 t #'entropy/emacs-pdumper--recovery))
 
 ;; * provide
 (provide 'entropy-emacs-pdumper)

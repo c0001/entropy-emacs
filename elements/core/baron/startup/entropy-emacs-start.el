@@ -133,14 +133,27 @@ Emacs will auto close after 6s ......"))
 ;; *** preface advice
 (defun entropy/emacs-start--require-prompt (feature)
   (let ((f-str (symbol-name feature)))
-    (entropy/emacs-message-do-message
-     "%s %s"
-     (green "Loading:")
-     (yellow f-str))))
+    (when (if entropy/emacs-fall-love-with-pdumper
+              ;; reduce duplicated feature load prompts
+              (string-match-p "^entropy-" f-str)
+            t)
+      (entropy/emacs-message-do-message
+       "%s %s"
+       (green "Loading:")
+       (yellow f-str)))))
 
-(defun entropy/emacs-start--require-loading (feature &rest rest)
-  (when (not (featurep feature))
-    (entropy/emacs-start--require-prompt feature)))
+(defun entropy/emacs-start--require-loading (orig-func &rest orig-args)
+  (let ((feature (car orig-args)))
+    (when (if (not entropy/emacs-fall-love-with-pdumper)
+              t
+            (if (and
+                 (not (eq feature 'vterm))
+                 (not (eq feature 'liberime)))
+                t
+              (user-error "--> Skip for load C module <%s> file while pdumper!"
+                          feature)))
+      (entropy/emacs-start--require-prompt feature)
+      (apply orig-func orig-args))))
 
 ;; ** Trail
 ;; *** Windows IME enable function
@@ -310,7 +323,7 @@ notation.
    "%s %s"
    (white "⮞")
    (blue "Loading minimal ...... "))
-  (advice-add 'require :before #'entropy/emacs-start--require-loading)
+  (advice-add 'require :around #'entropy/emacs-start--require-loading)
 
   ;; external depedencies scan and loading
   (when entropy/emacs-fall-love-with-pdumper
@@ -360,7 +373,7 @@ notation.
 ;; **** x enable
 (defun entropy/emacs-start-X-enable ()
   (interactive)
-  (advice-add 'require :before #'entropy/emacs-start--require-loading)
+  (advice-add 'require :around #'entropy/emacs-start--require-loading)
   (entropy/emacs-message-do-message
    "%s %s" (white "⮞") (blue "Loading rest ......"))
   ;; highlight

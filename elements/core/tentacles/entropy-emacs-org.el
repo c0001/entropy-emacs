@@ -654,7 +654,7 @@ the exec type for chosen the way whether embeded it into
 
 
 ;; *** org-publish
-(use-package org-publish
+(use-package ox-publish
   :ensure nil
   :after org
   :commands

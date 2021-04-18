@@ -187,11 +187,11 @@ was found."
   :hook (term-mode . eterm-256color-mode))
 
 (use-package fakecygpty
-  :ensure nil
   :if (and sys/win32p
            entropy/emacs-win-fakecygpty-enable
            (executable-find "fakecygpty")
            (executable-find "qkill"))
+  :ensure nil
   :commands fakecygpty-activate
   :preface
   (defun entropy/emacs-shell--fakepty-cd-around-advice (old_func dir)
@@ -224,6 +224,7 @@ was found."
 (use-package vterm
   :if (and (not sys/win32p)
            (member "MODULES" (split-string system-configuration-features nil t)))
+  :defer (or entropy/emacs-fall-love-with-pdumper entropy/emacs-custom-enable-lazy-load)
   :commands (vterm vterm-mode)
   :preface
   ;; EEMACS_MAINTENANCE: add support to for-zsh and for-fishrc etc too.

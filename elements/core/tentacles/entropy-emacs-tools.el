@@ -42,6 +42,8 @@
   :commands openwith-make-extension-regexp
   :init
   (add-hook 'dired-mode-hook #'openwith-mode)
+
+  :config
   (setq openwith-associations
         (list
          (list (openwith-make-extension-regexp
@@ -61,7 +63,7 @@
                      (sys/is-win-group
                       "start"))
                '(file))))
-  :config
+
   (defun openwith-open-unix (command arglist)
     "Run external command COMMAND, in such a way that it is
 disowned from the parent Emacs process.  If Emacs dies, the

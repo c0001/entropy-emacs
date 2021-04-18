@@ -295,7 +295,8 @@ When installing encounters the fatal error, put the pkg into
     (setq use-package-always-ensure t))
 
   (setq use-package-always-defer entropy/emacs-custom-enable-lazy-load
-        use-package-always-demand entropy/emacs-custom-enable-lazy-load)
+        use-package-always-demand
+        (not entropy/emacs-custom-enable-lazy-load))
   (unless (or entropy/emacs-fall-love-with-pdumper
               (not entropy/emacs-custom-enable-lazy-load))
     (setq use-package-expand-minimally t))

@@ -172,7 +172,7 @@ delay seconds SECS."
    entropy/emacs-garbage-collection-delay))
 
 (entropy/emacs-lazy-with-load-trail
- gc-message
+ gc-optimization
  (setq garbage-collection-messages nil)
  (add-hook 'post-command-hook #'entropy/emacs-gc--adjust-cons-threshold)
  (entropy/emacs-gc--init-idle-gc))
