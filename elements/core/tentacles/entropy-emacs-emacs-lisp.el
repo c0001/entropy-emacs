@@ -136,7 +136,8 @@ For lisp coding aim, always return the transfered buffer.
   )
 
 (use-package eldoc-eval
-  :commands (eldoc-in-minibuffer-mode)
+  :commands (eldoc-in-minibuffer-mode
+             eldoc-eval-expression)
   :preface
   (defun entropy/emacs-lisp-eldoc-eval-minibuffer-map-rejected-advice
       (&rest _)
@@ -149,6 +150,8 @@ For lisp coding aim, always return the transfered buffer.
   ;; set large amount to mode line show time for preventing cut the
   ;; show state when noticed for long time, 100 sec was enough.
   (setq eldoc-show-in-mode-line-delay 100)
+
+  (setq eldoc-eval-preferred-function 'eval-expression)
 
   (entropy/emacs-lazy-with-load-trail
    eldoc-minibuffer-show

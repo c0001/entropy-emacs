@@ -235,11 +235,20 @@
     (unless (get func :memoize-original-function)
       (memoize func))))
 
-;; ** eldoc-eval
-(use-package eldoc-eval
-  :commands (eldoc-in-minibuffer-mode
-             eldoc-eval-expression)
-  :config (setq eldoc-eval-preferred-function 'eval-expression))
+;; ** eldoc
+(use-package eldoc
+  :ensure nil
+  :config
+  (defun __adv/around/eldoc-minibuffer-message
+      (orig-func &rest orig-args)
+    "Around advice for `eldoc-minibuffer-message' by eemacs."
+    (let ((message-truncate-lines
+           ;; truncate message lines in some cases
+           (or (bound-and-true-p lsp-mode))))
+      (apply orig-func orig-args)))
+  (advice-add 'eldoc-minibuffer-message
+              :around
+              #'__adv/around/eldoc-minibuffer-message))
 
 ;; ** shrink-path
 (use-package shrink-path
