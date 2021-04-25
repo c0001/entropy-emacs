@@ -202,9 +202,6 @@ unwind occasion.")
          ("C-M-s" . swiper-all)
          :map swiper-map
          ("M-%" . swiper-query-replace))
-  :init
-  (entropy/emacs-lazy-load-simple swiper
-    (ivy-mode +1))
 
   :config
   ;; make `swiper-all' restore origin window-configuration when unwind
@@ -355,8 +352,6 @@ unwind occasion.")
      ("<M-up>" counsel-linux-app "Launch a Linux desktop application"
       :enable sys/is-linux-and-graphic-support-p :exit t :eemacs-top-bind t))))
 
-;; *** hooks
-  :hook ((ivy-mode . counsel-mode))
 
 ;; *** init
   :init
@@ -368,9 +363,6 @@ unwind occasion.")
   ;; increasing swiper limit to has more convention
   (setq counsel-grep-swiper-limit 10000000)
 
-  (entropy/emacs-lazy-load-simple counsel
-    (ivy-mode +1))
-
   ;; - let counsel grep base command treat some file as text, thus add
   ;;   '-a' option as thus for. This specify exist because of some large
   ;;   text file will treated as an binary file as mistake as grep does.
@@ -381,6 +373,16 @@ unwind occasion.")
   ;; counsel-git with utf-8
   (advice-add 'counsel-git :around
               #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+
+  (entropy/emacs-lazy-with-load-trail
+   counsel-init
+   :pdumper-no-end t
+   :body
+   ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
+   (unless (bound-and-true-p ivy-mode)
+     (ivy-mode +1))
+   (unless (bound-and-true-p counsel-mode)
+     (counsel-mode +1)))
 
 ;; *** config
   :config
