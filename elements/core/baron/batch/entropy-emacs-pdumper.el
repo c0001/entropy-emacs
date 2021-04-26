@@ -126,7 +126,12 @@ configuration.")
                                 ;; `counsel-ffdata''s defcustom for
                                 ;; `counsel-ffdata-database-path' have
                                 ;; bug
-                                "counsel-ffdata"))))
+                                "counsel-ffdata"
+                                ;; `mgit-ediff' need emacs window
+                                ;; system initialized, so that we can
+                                ;; not force load it until pdumper
+                                ;; done.
+                                "magit-ediff"))))
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "transient" "counsel"
                                      "dired" "all-the-icon" "cal-china"
                                      "use-package" "diminish" "bind-key"
