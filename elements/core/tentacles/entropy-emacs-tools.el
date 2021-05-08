@@ -494,7 +494,7 @@ which determined by the scale count 0.3 "
   (if (> (length (window-list)) 1) (delete-other-windows))
   (progn
     (split-window-horizontally
-     (ceiling (* 0.3
+     (ceiling (* 0.18
                  (frame-width))))
     (other-window 1)))
 
