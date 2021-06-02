@@ -215,6 +215,19 @@ problem, =basic= type is simple but without fully featured.
   :type 'file
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
+(defcustom entropy/emacs-custom-comment-dwim-type 'separedit
+  "The comment-dwim type chosen, valid of `poporg' or
+`separedit' as default.
+
+NOTE: poporg is obsolete as an legacy option."
+  :type 'symbol
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
+(defcustom entropy/emacs-custom-comment-dwim-prefix "C-c \""
+  "The comment-dwim trigger keybind"
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
 ;; ***** emacs extension use options config
 (defgroup entropy/emacs-customize-group-for-emacs-extensions nil
   "Eemacs emacs extensions management configuration customizable group."

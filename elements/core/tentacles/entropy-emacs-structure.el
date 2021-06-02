@@ -959,7 +959,24 @@ which can not be rendered correctly."
   (add-hook 'outline-minor-mode-hook
             #'entropy/emacs-structure--outshine-comment-add-specification)
 
+;; **** outshine-mode advice
 
+  (defun entropy/emacs-structure--outshine-mode-around-adv
+      (orig-func &rest orig-args)
+    (let (_)
+      (cond
+       ((eq major-mode 'c-mode)
+        ;; temporally set the default comment style for c-mode used as
+        ;; heading line start.
+        (let ((comment-start "//")
+              (comment-end ""))
+          (apply orig-func orig-args)))
+       (t
+        (apply orig-func orig-args)))))
+
+  (advice-add 'outshine-mode
+              :around
+              #'entropy/emacs-structure--outshine-mode-around-adv)
 
   )
 

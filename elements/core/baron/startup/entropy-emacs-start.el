@@ -389,6 +389,7 @@ notation.
   (require 'entropy-emacs-yas)
   (require 'entropy-emacs-codeserver)
   (require 'entropy-emacs-company)
+  (require 'entropy-emacs-comments)
   ;; For useful tools
   (require 'entropy-emacs-shell)
   (require 'entropy-emacs-ibuffer)

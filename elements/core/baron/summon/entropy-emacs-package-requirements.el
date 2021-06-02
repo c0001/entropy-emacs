@@ -220,6 +220,7 @@
         spaceline
         spaceline-all-the-icons
         spacemacs-theme
+        separedit
         spinner
         srcery-theme
         ssh-agency

@@ -1374,6 +1374,20 @@ true, nil for otherwise."
 tasks 'ing' refer prompts."
   (run-with-idle-timer 0.2 nil (lambda () (message ""))))
 
+
+
+;; --------- make funciton inhibit internal ---------
+(defun entropy/emacs--make-function-inhibit-readonly-common
+    (orig-func &rest orig-args)
+  (let ((inhibit-read-only t))
+    (apply orig-func orig-args)))
+
+(defun entropy/emacs--make-function-inhibit-readonly-localalso
+    (orig-func &rest orig-args)
+  (let ((inhibit-read-only t)
+        (buffer-read-only nil))
+    (apply orig-func orig-args)))
+
 (defun entropy/emacs-make-function-inhibit-readonly
     (func &optional inhibit-local)
   "Make function FUNC adviced around by a let wrapper with
@@ -1381,13 +1395,12 @@ tasks 'ing' refer prompts."
 
 If optional argument INHIBIT-LOCAL is non-nil, its also press on
 the buffer-locally variable `buffer-read-only'."
-  (advice-add func
-              :around
-              `(lambda (orig-func &rest orig-args)
-                 (let ((inhibit-read-only t)
-                       (buffer-read-only
-                        (if ,inhibit-local nil buffer-read-only)))
-                   (apply orig-func orig-args)))))
+  (advice-add
+   func
+   :around
+   (if inhibit-local
+       #'entropy/emacs--make-function-inhibit-readonly-localalso
+     #'entropy/emacs--make-function-inhibit-readonly-common)))
 
 ;; *** Lazy load specification
 (defvar entropy/emacs--lazy-load-simple-feature-head nil)
