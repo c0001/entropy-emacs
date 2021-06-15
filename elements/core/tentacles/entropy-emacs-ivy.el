@@ -319,6 +319,8 @@ unwind occasion.")
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c e i" counsel-imenu "Jump to a buffer position indexed by imenu"
       :enable t :exit t :eemacs-top-bind t)
+     ("C-c c e k" counsel-kmacro "Interactively choose and run a keyboard macro."
+      :enable t :exit t :eemacs-top-bind t)
      ("C-c c e l" counsel-load-library "Load a selected the Emacs Lisp library"
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c e m" counsel-minor "Enable or disable minor mode"
@@ -548,7 +550,26 @@ version of ivy framework updating.
     "
     (with-ivy-window
       (let ((default-directory entropy/emacs-ivy-counsel-git-root))
-        (find-file x)))))
+        (find-file x))))
+
+;; **** redefine counsel-kmacro
+  (defun counsel-kmacro-action-run (x)
+    "Run keyboard macro.
+
+NOTE: this function has been redefined to compat with eemacs.
+
+Since we chosen the kmacro from ring, we set it as the
+`last-kbd-macro' for reputation later."
+    (let* ((actual-kmacro (cdr x))
+           (kmacro-keys (nth 0 actual-kmacro))
+           (kmacro-counter-format-start (nth 2 actual-kmacro)))
+      ;; EEMACS_TEMPORALLY_HACK: set current chosen as `last-kbd-macro'.
+      (kmacro-push-ring)
+      (kmacro-split-ring-element actual-kmacro)
+      ;; With prefix argument, call the macro that many times.
+      (kmacro-call-macro (or current-prefix-arg 1) t nil kmacro-keys)))
+
+  )
 
 ;; *** use counsel css for quickly search css selector
 (use-package counsel-css
@@ -613,6 +634,7 @@ version of ivy framework updating.
              (car (file-expand-wildcards
                    (expand-file-name "Mozilla/Firefox/Profiles/*/places.sqlite"
                                      (getenv "APPDATA")))))))))
+
 
 ;; ** avy
 (use-package avy
