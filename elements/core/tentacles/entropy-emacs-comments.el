@@ -144,6 +144,25 @@ region with error throw out in region selected occasion."
         separedit-continue-fill-column t
         separedit-write-file-when-execute-save t
         separedit-remove-trailing-spaces-in-comment t)
+
+  (setq separedit-comment-delimiter-alist
+      '((("//+!\\(?:<\\)?" "//+\\(?:<\\)?" "\\*+")
+         c-mode c++-mode csharp-mode css-mode go-mode
+         java-mode js-mode objc-mode php-mode rust-mode
+         rustic-mode swift-mode typescript-mode)
+        (("--")
+         applescript-mode haskell-mode lua-mode)
+        (("//+")
+         pascal-mode fsharp-mode)
+        ((";+\\(?:###autoload\\)?")
+         emacs-lisp-mode lisp-interaction-mode)
+        ((";+")
+         common-lisp racket-mode scheme-mode fennel-mode)
+        (("#+")
+         nix-mode python-mode ruby-mode
+         ;; add missing `sh-mode' and `conf-mode'
+         sh-mode conf-mode)))
+
   :config
   ;; Inhibit readonly when changes apply since `separedit.el' use
   ;; internal `separedit--inhibit-read-only' variable charges thus.
