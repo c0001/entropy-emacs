@@ -147,7 +147,7 @@ There's some entropy-emacs extras may need to download by your self:
    'submodules-melpa-local)
 
   Clone it into your home entropy-emacs config dir
-  =~/.config/entropy-emacs/= and rename as
+  =~/.config/entropy-config/entropy-emacs/= and rename as
   'entropy-emacs-extension' or adjusting customized variable
   `entropy/emacs-ext-eemacs-elpkg-archive-project-dir'.
 
@@ -159,7 +159,7 @@ There's some entropy-emacs extras may need to download by your self:
   (Notice: only when `entropy/emacs-ext-use-eemacs-lsparc' is
   enabled)
 
-  Clone it into your home config dir =~/.config/entropy-emacs/=
+  Clone it into your home config dir =~/.config/entropy-config/entropy-emacs/=
   and rename as 'entropy-emacs-lsp-archive' or adjusting
   customized variable `entropy/emacs-ext-lsp-archive-dir'"
     'face 'italic)))

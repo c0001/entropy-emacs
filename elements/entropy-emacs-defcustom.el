@@ -61,6 +61,9 @@
     (message "====================================\n")
     (load cus)))
 
+;; ** Internal init
+(defvar __eemacs-ext-union-host "~/.config/entropy-config/entropy-emacs")
+
 ;; ** Customizable Variables
 (defgroup entropy-emacs-customize-top-group nil
   "Eemacs customizable variables top group."
@@ -269,8 +272,6 @@ retriever will obtained the url abided by
 (unless (member entropy/emacs-ext-elpkg-get-type
                 '(origin submodules-melpa-local))
   (error "Invalid value for `entropy/emacs-ext-elpkg-get-type'"))
-
-(defvar __eemacs-ext-union-host "~/.config/entropy-emacs")
 
 (defcustom entropy/emacs-ext-eemacs-elpkg-archive-project-dir
   (expand-file-name
@@ -931,7 +932,7 @@ Also see `entropy/emacs-coworker-host-root'."
   :group 'entropy/emacs-customize-group-for-coworkers)
 
 (defcustom entropy/emacs-coworker-host-root
-  (expand-file-name "entropy-emacs-local" "~/.config/entropy-emacs")
+  (expand-file-name "entropy-emacs-local" __eemacs-ext-union-host)
   "The coworker host root dir.
 
 Coworker host dir is a eemacs specified folder to host any system
