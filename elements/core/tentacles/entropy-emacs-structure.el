@@ -453,6 +453,15 @@ want to preserve the source demo."
 
   :config
 ;; **** redefination
+
+  (defvar-local __outline_local_spec_comment_start_str nil
+    "The specified `comment-start' used for eemacs spec in
+outline mode or as its minor mode.
+
+Usually an buffer just indicate one value to the `comment-start', but
+in some case we should use another when we use multi-comments style
+`major-mode', thus this variable existed.")
+
   (defun outshine-calc-outline-level ()
     "Calculate the right outline level for the outshine-regexp.
 
@@ -463,6 +472,14 @@ compatible with =entropy-emacs=."
         (and
          (looking-at (outshine-calc-outline-regexp))
          (let* ((m-strg (match-string-no-properties 0))
+                (comment-start
+                 ;; use `__outline_local_spec_comment_start_str' as precedence.
+                 (or (and __outline_local_spec_comment_start_str
+                          (stringp __outline_local_spec_comment_start_str)
+                          __outline_local_spec_comment_start_str)
+                     comment-start
+                     (error
+                      "There's no valid `comment-start' indicated in this buffer.")))
                 (comment-starter
                  (let (rtn)
                    (if (> comment-add 0)
@@ -527,6 +544,7 @@ compatible with =entropy-emacs=."
                    (looking-at outline-regexp))
                  (max 1 (save-excursion (beginning-of-line) (funcall outline-level))))
                 (t
+                 ;; HACK:
                  ;; judge first head level if current buffer doesn't
                  ;; use 1st level for first head
                  (let ((first-level
@@ -765,13 +783,14 @@ This function is as the origin `outline-promote' but using
 ;; ***** eemacs outshine heading face generator
 
   (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
-    (let ((outline-regex-head (substring outline-regexp
-                                         0
-                                         (- 0
-                                            (+ 7
-                                               (length
-                                                (number-to-string
-                                                 outshine-max-level))))))
+    (let ((outline-regex-head
+           (substring outline-regexp
+                      0
+                      (- 0
+                         (+ 7
+                            (length
+                             (number-to-string
+                              outshine-max-level))))))
           func rtn)
       (setq func
             (lambda (level)
@@ -795,6 +814,7 @@ This function is as the origin `outline-promote' but using
       (while (facep (intern (format "outshine-level-%s" level)))
         (cl-incf level))
       (- level 1)))
+
   (defvar entropy/emacs-structure--outshine-face-level-max-level
     (entropy/emacs-structure--outshine-get-level-face-max-suffix)
     "The max level outshine-level-NUM face's level")
@@ -856,8 +876,6 @@ This function is as the origin `outline-promote' but using
               :around
               #'entropy/emacs-structure--outshine-fontify-headlines)
 
-
-
 ;; **** interactive operation
 
   (unless (fboundp 'outshine-define-key)
@@ -907,7 +925,7 @@ Otherwise, fallback to the original binding of %s in the current mode."
                       (lambda nil (interactive) (message "`%s' can do nothing useful here." (key-description ,key))))))))
            (define-key ,keymap ,key (quote ,fn-name))))))
 
-  (defun entropy/emacs-structure--outshine-demote (&optional which)
+  (defun entropy/emacs-structure-outshine-demote-command (&optional which)
     (interactive
      (list (if (and transient-mark-mode mark-active) 'region
              (outline-back-to-heading)
@@ -915,7 +933,7 @@ Otherwise, fallback to the original binding of %s in the current mode."
     (funcall 'entropy/emacs-structure--outshine-sub-of-outline-demote
              which))
 
-  (defun entropy/emacs-structure--outshine-promote (&optional which)
+  (defun entropy/emacs-structure-outshine-promote-command (&optional which)
     (interactive
      (list (if (and transient-mark-mode mark-active) 'region
              (outline-back-to-heading)
@@ -924,10 +942,10 @@ Otherwise, fallback to the original binding of %s in the current mode."
              which))
 
   (outshine-define-key outshine-mode-map
-    (kbd "M-S-<left>") 'entropy/emacs-structure--outshine-promote
+    (kbd "M-S-<left>") 'entropy/emacs-structure-outshine-promote-command
     (outline-on-heading-p))
   (outshine-define-key outshine-mode-map
-    (kbd "M-S-<right>") 'entropy/emacs-structure--outshine-demote
+    (kbd "M-S-<right>") 'entropy/emacs-structure-outshine-demote-command
     (outline-on-heading-p))
 
   (outshine-define-key outshine-mode-map
@@ -963,13 +981,20 @@ which can not be rendered correctly."
 
   (defun entropy/emacs-structure--outshine-mode-around-adv
       (orig-func &rest orig-args)
+    "The `outshine-mode' specification to do some top outline specification
+while in some special cases.
+
+This function is an around advice for `outshine-mode'."
     (let (_)
       (cond
+       ;; `c-mode' outline specification
        ((eq major-mode 'c-mode)
         ;; temporally set the default comment style for c-mode used as
         ;; heading line start.
         (let ((comment-start "//")
               (comment-end ""))
+          ;; make it as the specified `comment-start'
+          (setq-local __outline_local_spec_comment_start_str "//")
           (apply orig-func orig-args)))
        (t
         (apply orig-func orig-args)))))
