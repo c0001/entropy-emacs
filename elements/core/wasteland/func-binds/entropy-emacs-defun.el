@@ -2128,16 +2128,19 @@ stuffs on `entropy/emacs-solaire-mode' when
              (bound-and-true-p entropy/emacs-solaire-global-mode))
     (require 'hl-line)
     (cond
-     ((eq entropy/emacs-theme-sticker 'spacemacs-dark)
+     ((or (eq entropy/emacs-theme-sticker 'spacemacs-dark)
+          (eq entropy/emacs-theme-sticker 'spacemacs-light))
       (when (facep 'solaire-hl-line-face)
         (entropy/emacs-set-face-attribute
          'solaire-hl-line-face
          nil
          :background
-         (cond ((not (display-graphic-p))
-                "#333839")
-               ((display-graphic-p)
-                "#333340")))))
+         (if (eq entropy/emacs-theme-sticker 'spacemacs-light)
+             "#fbf8ef"
+           (cond ((not (display-graphic-p))
+                  "#333839")
+                 ((display-graphic-p)
+                  "#333340"))))))
      (t nil))))
 
 ;; *** Case fold search specification
