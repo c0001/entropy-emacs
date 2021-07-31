@@ -243,7 +243,13 @@ when available."
       (dolist (font-family font-familys)
         (when (find-font (font-spec :family font-family))
           (face-remap-add-relative
-           'default
+           (or
+            ;; remap for solaire if found
+            (and (facep 'solaire-default-face)
+                 (or (bound-and-true-p solaire-mode)
+                     (bound-and-true-p entropy/emacs-solaire-mode))
+                 'solaire-default-face)
+            'default)
            :family font-family)
           (throw :exit nil))))))
 (add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set)
