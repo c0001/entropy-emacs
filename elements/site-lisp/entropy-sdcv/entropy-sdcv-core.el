@@ -351,7 +351,12 @@ downcase the query string."
            (let ((face (funcall show-face show-method)))
              (when (facep face)
                face)))
-      'entropy/sdcv-core-common-face))
+      ;; using solaire theme in `solaire-mode' enabled buffer
+      (if (and (or (bound-and-true-p entropy/emacs-solaire-mode)
+                   (bound-and-true-p solaire-mode))
+               (facep 'solaire-tooltip-face))
+          'solaire-tooltip-face
+        'entropy/sdcv-core-common-face)))
 
 
 ;;;;; query with backend
