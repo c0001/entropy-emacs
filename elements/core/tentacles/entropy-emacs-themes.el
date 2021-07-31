@@ -78,190 +78,174 @@
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-adjust-org-heading-scale)
 
 ;; ** Solaire mode for focus visual style
-(use-package solaire-mode
-  :commands (solaire-mode
-             solaire-global-mode
-             turn-on-solaire-mode)
-  :preface
-  (defvar entropy/emacs-themes-solaire-startup-timer nil)
 
-  (defun entropy/emacs-themes--enable-solaire-global-mode ()
-    (when (entropy/emacs-theme-adapted-to-solaire)
-      (unless solaire-global-mode
-        (solaire-global-mode t)))
-    (entropy/emacs-solaire-specific-for-themes))
+(defgroup solaire-mode nil
+  "Options for solaire-mode."
+  :group 'faces)
 
-  (defvar entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay 0.01)
-  (defun entropy/emacs-themes-solaire-after-load-theme-adapts (&rest _)
-    (when (entropy/emacs-theme-adapted-to-solaire)
-      (let (timer)
-        (if entropy/emacs-startup-done
-            (setq timer
-                  (run-with-idle-timer
-                   entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay
-                   nil #'entropy/emacs-themes--enable-solaire-global-mode))
-          (setq entropy/emacs-themes-solaire-startup-timer
+(defface solaire-default-face '((t :inherit default))
+  "Alternative version of the `default' face."
+  :group 'solaire-mode)
+
+(defface solaire-fringe-face '((t :inherit solaire-default-face))
+  "Alternative version of the `fringe' face."
+  :group 'solaire-mode)
+
+(defface solaire-line-number-face
+  `((t :inherit (,(if (boundp 'display-line-numbers) 'line-number 'linum)
+                 solaire-default-face)))
+  "Alternative face for `line-number'.
+Used by native line numbers in Emacs 26+ and `linum'."
+  :group 'solaire-mode)
+
+(defface solaire-hl-line-face '((t :inherit hl-line))
+  "Alternative face for the current line, highlighted by `hl-line'."
+  :group 'solaire-mode)
+
+(defface solaire-tooltip-face '((t :inherit solaire-hl-line-face))
+  "Alternative face for the tooltip."
+  :group 'solaire-mode)
+
+(defface solaire-org-hide-face '((t :inherit org-hide))
+  "Alternative face for `org-hide'.
+Used to camoflauge the leading asterixes in `org-mode' when
+`org-hide-leading-stars' is non-nil."
+  :group 'solaire-mode)
+
+(defface solaire-region-face '((t :inherit region))
+  "Alternative face for `region' (the active selection)."
+  :group 'solaire-mode)
+
+(defface solaire-mode-line-face '((t :inherit mode-line))
+  "Alternative face for the `mode-line' face."
+  :group 'solaire-mode)
+
+(defface solaire-mode-line-inactive-face '((t :inherit mode-line-inactive))
+  "Alternative face for the `mode-line-inactive' face."
+  :group 'solaire-mode)
+
+(defface solaire-header-line-face '((t :inherit header-line))
+  "Alternative face for the `header-line' face."
+  :group 'solaire-mode)
+
+
+(defcustom entropy/emacs-solaire-remap-alist
+  `((default                    . solaire-default-face)
+    (hl-line                    . solaire-hl-line-face)
+    (tooltip                    . solaire-tooltip-face)
+    (region                     . solaire-region-face)
+    (org-hide                   . solaire-org-hide-face)
+    (org-indent                 . solaire-org-hide-face)
+    (linum                      . solaire-line-number-face)
+    (line-number                . solaire-line-number-face)
+    (header-line                . solaire-header-line-face)
+    (mode-line                  . solaire-mode-line-face)
+    (mode-line-inactive         . solaire-mode-line-inactive-face)
+    (highlight-indentation-face . solaire-hl-line-face)
+    ,@(unless (version<= emacs-version "26")
+        '((fringe               . solaire-fringe-face))))
+  "An alist of faces to remap when enabling `entropy/emacs-solaire-mode'."
+  :group 'solaire-mode
+  :type '(repeat (cons (face :tag "Source face")
+                       (face :tag "Destination face"))))
+
+(defvar-local entropy/emacs-solaire-mode--local-faces-remap-cookie nil
+  "The local `face-remapping-alist' generated sibling cookie for
+`entropy/emacs-solaire-mode', used for
+`face-remap-remove-relative'.")
+
+(define-minor-mode entropy/emacs-solaire-mode
+  "EEMACS specified `solaire-mode', simple and fast, without
+buggy face pollution and messy advices since we just use
+`face-remapping-alist' to do thus. The global mode is
+`entrorpy/emacs-solaire-global-mode' but use
+`entropy/emacs-themes-enable-solaire-global-mode-with-spec'
+instead and see it for details."
+  :lighter "" ; should be obvious it's on
+  :init-value nil
+  ;; Don't kick in if the current theme doesn't support solaire-mode.
+  (if (not (entropy/emacs-theme-adapted-to-solaire))
+      (setq entropy/emacs-solaire-mode nil)
+    (mapc #'face-remap-remove-relative
+          entropy/emacs-solaire-mode--local-faces-remap-cookie)
+    (setq entropy/emacs-solaire-mode--local-faces-remap-cookie nil)
+    (when entropy/emacs-solaire-mode
+      (dolist (remap entropy/emacs-solaire-remap-alist)
+        (when (cdr remap)
+          (push (face-remap-add-relative (car remap) (cdr remap))
+                entropy/emacs-solaire-mode--local-faces-remap-cookie))))))
+
+(defun entropy/emacs-solaire-mode-turn-on (&rest _)
+  "Turrn on `entropy/emacs-solaire-mode', the subroutine of
+`entropy/emacs-solaire-global-mode'."
+  (and (not entropy/emacs-solaire-mode)
+       (or (minibufferp)
+           (funcall
+            (lambda ()
+              (or (buffer-file-name)
+                  (member major-mode
+                          '(dired-mode
+                            w3m-mode
+                            eww-mode
+                            elfeed-mode
+                            magit-status-mode
+                            Info-mode
+                            Man-mode
+                            woman-mode))))))
+       (entropy/emacs-solaire-mode +1)))
+
+(define-globalized-minor-mode
+  entropy/emacs-solaire-global-mode
+  entropy/emacs-solaire-mode
+  entropy/emacs-solaire-mode-turn-on)
+
+
+(defun entropy/emacs-themes-enable-solaire-global-mode-with-spec ()
+  "Enable `entropy/emacs-solaire-global-mode' with
+specification. This is the only eemacs official
+`entropy/emacs-solaire-global-mode' enable caller."
+  (entropy/emacs-solaire-global-mode)
+  (entropy/emacs-solaire-specific-for-themes))
+
+(defvar
+  entropy/emacs-solaire-solaire-daemon-idle-delay
+  0.01
+  "Delay time of timer `entropy/emacs-themes-solaire-startup-timer'.")
+
+(defvar entropy/emacs-themes-solaire-startup-timer nil
+  "Timer for as an daemon to startup
+`entropy/emacs-solaire-global-mode' when eemacs startup indicated
+by `entropy/emacs-startup-done'.")
+
+(defun entropy/emacs-themes-startup-solaire-mode-as-daemon (&rest _)
+  "Startup `entropy/emacs-solaire-global-mode' as the subset of
+`entropy/emacs-themes-solaire-startup-timer'."
+  (when (entropy/emacs-theme-adapted-to-solaire)
+    (let (timer)
+      (if entropy/emacs-startup-done
+          (setq timer
                 (run-with-idle-timer
-                 entropy/emacs-themes-solaire-after-load-theme-adapts-idle-delay
-                 t
-                 #'(lambda ()
-                     (when entropy/emacs-startup-done
-                       (entropy/emacs-themes--enable-solaire-global-mode)
-                       (cancel-timer
-                        entropy/emacs-themes-solaire-startup-timer)))))))))
+                 entropy/emacs-solaire-solaire-daemon-idle-delay
+                 nil #'entropy/emacs-themes-enable-solaire-global-mode-with-spec))
+        (setq entropy/emacs-themes-solaire-startup-timer
+              (run-with-idle-timer
+               entropy/emacs-solaire-solaire-daemon-idle-delay
+               t
+               #'(lambda ()
+                   (when entropy/emacs-startup-done
+                     (entropy/emacs-themes-enable-solaire-global-mode-with-spec)
+                     (cancel-timer
+                      entropy/emacs-themes-solaire-startup-timer)))))))))
 
-  (defun entropy/emacs-themes-solaire-around-advice-for-make-frame
-      (orig-func &rest orig-args)
-    "Around advice for `make-frame' to fix bug of that solaire
-face attributes and some refer is missing in the new frame."
-    (let* ((face-reset nil)
-           (frame-bg (alist-get 'background-color (car orig-args)))
-           (frame-fg (alist-get 'foreground-color (car orig-args)))
-           (cur-frame-bg (frame-parameter nil 'background-color))
-           (cur-frame-fg (frame-parameter nil 'foreground-color))
-           (new-frame (apply orig-func orig-args)))
-      (unwind-protect
-          (progn
-            ;; Condition judger: commonly add exclusion of company
-            ;; childframe tooltip for company-box which has its own
-            ;; default frame background color face. So that any
-            ;; further one can easily adding to this `or' form.
-            (unless (or (and (bound-and-true-p company-candidates)
-                             (or (bound-and-true-p company-box-mode)))
-                        entropy/emacs-frame-be-made-is-child-frame)
-              (let ()
-                ;; map get enabled soloarized faces
-                (when (bound-and-true-p solaire-mode-remap-alist)
-                  (mapcar
-                   (lambda (x)
-                     (let ((map (car x))
-                           (enable (cdr x)))
-                       (setq enable (if (listp enable) (eval enable) (symbol-value enable)))
-                       (when enable
-                         (dolist (face map)
-                           (when (facep face)
-                             (push (cons face (entropy/emacs-get-face-attribute-alist face))
-                                   face-reset))))))
-                   solaire-mode-remap-alist))
-                ;; more face specification
-                (dolist (face '(
-                                ;; ivy refer
-                                ivy-current-match
-                                ivy-yanked-word
-                                ivy-completions-annotations
-                                ivy-grep-line-number
-                                ivy-grep-info
-                                ivy-separator
-                                ivy-prompt-match
-                                ivy-highlight-face
-                                ivy-action
-                                ivy-virtual
-                                ivy-remote
-                                ivy-modified-outside-buffer
-                                ivy-modified-buffer
-                                ivy-org
-                                ivy-subdir
-                                ivy-match-required-face
-                                ivy-confirm-face
-                                ivy-minibuffer-match-face-4
-                                ivy-minibuffer-match-face-3
-                                ivy-minibuffer-match-face-2
-                                ivy-minibuffer-match-face-1
-                                ivy-minibuffer-match-highlight
-                                ivy-current-match
-                                ivy-cursor
-                                ;; native primitive face
-                                fringe))
-                  (when (facep face)
-                    (push (cons face (entropy/emacs-get-face-attribute-alist face))
-                          face-reset)))
-                ;; do face reset for new frame
-                (dolist (pair face-reset)
-                  (let ((face (car pair))
-                        (attrs (cdr pair)))
-                    (dolist (attr attrs)
-                      (set-face-attribute
-                       face
-                       new-frame
-                       (car attr)
-                       (cdr attr)))))
-                (when (and (and frame-bg (stringp frame-bg)) (and cur-frame-bg (stringp cur-frame-bg))
-                           (not (equal frame-bg cur-frame-bg)))
-                  (set-frame-parameter new-frame 'background-color frame-bg))
-                (when (and (and frame-fg (stringp frame-fg)) (and cur-frame-fg (stringp cur-frame-fg))
-                           (not (equal frame-fg cur-frame-fg)))
-                  (set-frame-parameter new-frame 'foreground-color frame-fg))))
-            new-frame)
-        new-frame)))
-
-  (defun entropy/emacs-themes--solaire-call-stuff-when-adapted
-      (orig-func &rest orig-args)
-     (when (entropy/emacs-theme-adapted-to-solaire)
-       (apply orig-func orig-args)))
-
-  :hook (((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
-         (minibuffer-setup . solaire-mode-in-minibuffer))
-  :init
-  (setq solaire-mode-remap-fringe t
-        solaire-mode-remap-modeline nil)
-  (setq solaire-mode-real-buffer-fn
-        (lambda ()
-          (or (buffer-file-name)
-              (member major-mode
-                      '(dired-mode
-                        w3m-mode
-                        eww-mode
-                        elfeed-mode
-                        magit-status-mode
-                        Info-mode
-                        Man-mode
-                        woman-mode)))))
-
-  (setq solaire-mode-auto-swap-bg t
-        solaire-mode-themes-to-face-swap
-        (let ((exclusion '(doom-dark+
-                           doom-molokai
-                           doom-horizon
-                           doom-Iosvkem
-                           doom-gruvbox
-                           doom-nova
-                           doom-solarized-light
-                           doom-vibrant))
-              (all-themes (custom-available-themes)))
-          (delete nil
-                  (mapcar (lambda (theme)
-                            (unless (or (member theme exclusion)
-                                        (not (entropy/emacs-theme-adapted-to-solaire
-                                              theme)))
-                              (regexp-quote (symbol-name theme))))
-                          all-themes))))
-
-  (entropy/emacs-lazy-with-load-trail
-   solaire-mode-init
-   :start-end t
-   :body
-   (add-hook 'entropy/emacs-theme-load-before-hook
-             (lambda nil
-               (when (bound-and-true-p solaire-global-mode)
-                 (solaire-global-mode 0)
-                 ;; disable remanding solair spec themes prevent from
-                 ;; pollute the non solair adapted theme default bg
-                 ;; colors
-                 (disable-theme 'solaire-swap-bg-theme))))
-   (add-hook 'entropy/emacs-theme-load-after-hook-end-1
-             #'entropy/emacs-themes-solaire-after-load-theme-adapts)
-   (advice-add 'make-frame
-               :around
-               #'entropy/emacs-themes-solaire-around-advice-for-make-frame)
-   (entropy/emacs-themes--enable-solaire-global-mode))
-
-  :config
-  (advice-add 'turn-on-solaire-mode
-              :around
-              #'entropy/emacs-themes--solaire-call-stuff-when-adapted)
-  (advice-add 'solaire-mode-in-minibuffer
-              :around
-              #'entropy/emacs-themes--solaire-call-stuff-when-adapted))
+(entropy/emacs-lazy-with-load-trail
+ entropy/emacs-solaire-mode-init
+ :start-end t
+ :body
+ (add-hook 'entropy/emacs-theme-load-before-hook
+           #'(lambda nil
+               (entropy/emacs-solaire-global-mode 0)))
+ (add-hook 'entropy/emacs-theme-load-after-hook-end-1
+           #'entropy/emacs-themes-startup-solaire-mode-as-daemon))
 
 ;; ** Page-break-lines style form Purcell
 ;;

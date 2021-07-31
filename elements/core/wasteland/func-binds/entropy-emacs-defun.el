@@ -1002,7 +1002,7 @@ i.e. membered in `custom-enabled-themes'."
           (throw :exit (cadddr theme-setting)))))))
 
 (defun entropy/emacs-theme-adapted-to-solaire (&optional theme)
-  "Judge whether current theme loaded adapted to `solaire-mode',
+  "Judge whether current theme loaded adapted to `entropy/emacs-solaire-mode',
 return t otherwise for nil. "
   (let ((theme_cur (if theme
                        (symbol-name theme)
@@ -2122,11 +2122,11 @@ situation."
 
 (defun entropy/emacs-solaire-specific-for-themes (&rest _)
   "Sets of specification after loaded a new theme for specified
-stuffs on `solaire-mode' when `solaire-global-mode' was non-nil."
+stuffs on `entropy/emacs-solaire-mode' when
+`entropy/emacs-solaire-global-mode' was non-nil."
   (when (and (entropy/emacs-theme-adapted-to-solaire)
-             (bound-and-true-p solaire-global-mode))
+             (bound-and-true-p entropy/emacs-solaire-global-mode))
     (require 'hl-line)
-    (require 'solaire-mode)
     (cond
      ((eq entropy/emacs-theme-sticker 'spacemacs-dark)
       (entropy/emacs-set-face-attribute

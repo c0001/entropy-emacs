@@ -216,7 +216,6 @@
         slime
         slime-company
         smeargle
-        solaire-mode
         spaceline
         spaceline-all-the-icons
         spacemacs-theme

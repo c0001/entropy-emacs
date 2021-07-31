@@ -576,32 +576,6 @@ canididates which makes emacs laggy for each post-command while
 ;; **** config
   :config
 
-;; ***** common setting
-  (add-hook 'entropy/emacs-theme-load-after-hook
-            #'entropy/emacs-company--company-box-recover-bg)
-  (defun entropy/emacs-company--company-box-recover-bg ()
-    "Recovery background color for company-box frame after theme
-loading.
-
-The exists meaning for this function is that the
-company-box-frame and company-box-doc-frame was built tied to the
-orignal selected frame at once persistently, which also take
-affection of the theme loading which will make all frame's
-default background color changes so that also to change the
-initial frame background face sets did by
-`company-box--make-frame'."
-    (let ((main-bg (face-background 'company-box-background nil t)))
-      (dolist (frame (list (ignore-errors (company-box--get-frame))
-                           (frame-parameter nil 'company-box-doc-frame)))
-        (when (frame-live-p frame)
-          (message "company-box rec for frame '%s'" frame)
-          (with-selected-frame frame
-            (unless (equal main-bg (frame-parameter nil 'background-color))
-              (set-frame-parameter nil 'background-color
-                                   main-bg)
-              (message "company box bg for frame '%s' is set to %s" frame
-                       (frame-parameter nil 'background-color))))))))
-
 ;; ***** show mechanism patch
   (when sys/linuxp
     ;; Fix child-frame resize/reposition bug on linux

@@ -459,10 +459,10 @@ specification."
                 `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
       (get-buffer-create buff-name)
       (display-buffer buff-name)
-      (when (and (fboundp 'solaire-mode)
+      (when (and (fboundp 'entropy/emacs-solaire-mode)
                  (entropy/emacs-theme-adapted-to-solaire))
         (with-current-buffer buff-name
-          (solaire-mode +1)))))
+          (entropy/emacs-solaire-mode +1)))))
 
   (defun entropy/emacs-popwin-shackle-popup-find-file ()
     "Find file with popup window powered by `shackle'."
