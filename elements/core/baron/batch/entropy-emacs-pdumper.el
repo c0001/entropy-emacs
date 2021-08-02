@@ -182,49 +182,52 @@ configuration.")
 
 ;; *** recovery
 (defun entropy/emacs-pdumper--recovery ()
-  (unless (entropy/emacs-in-pdumper-procedure-p)
-    (setq load-path entropy/emacs-pdumper-pre-lpth)
-    (unless (catch :exit
-              ;; we should judge whether the bar feature supported in
-              ;; current emacs build.
-              (dolist (func '(scroll-bar-mode
-                              tool-bar-mode
-                              menu-bar-mode))
-                (unless (fboundp func)
-                  (throw :exit t))))
-      (scroll-bar-mode 0)
-      (tool-bar-mode 0)
-      (menu-bar-mode 0)
-      (redisplay t))
+  (let (
+        ;; silent bookmark reload prompt prevent session load fatal.
+        (bookmark-watch-bookmark-file 'silent))
+    (unless (entropy/emacs-in-pdumper-procedure-p)
+      (setq load-path entropy/emacs-pdumper-pre-lpth)
+      (unless (catch :exit
+                ;; we should judge whether the bar feature supported in
+                ;; current emacs build.
+                (dolist (func '(scroll-bar-mode
+                                tool-bar-mode
+                                menu-bar-mode))
+                  (unless (fboundp func)
+                    (throw :exit t))))
+        (scroll-bar-mode 0)
+        (tool-bar-mode 0)
+        (menu-bar-mode 0)
+        (redisplay t))
 
-    ;; TODO ...body
+      ;; TODO ...body
 
-    (entropy/emacs-message-do-message (blue "Initializing pdumper session ..."))
-    ;; fast up bootstrap
-    (setq gc-cons-threshold most-positive-fixnum)
-    (entropy/emacs-themes-init-setup-user-theme)
-    (entropy/emacs-message-do-message (green "Enabling fontlocks ..."))
-    (global-font-lock-mode +1)
-    (transient-mark-mode +1)
-    (entropy/emacs-message-do-message (green "Enable fontlocks done"))
+      (entropy/emacs-message-do-message (blue "Initializing pdumper session ..."))
+      ;; fast up bootstrap
+      (setq gc-cons-threshold most-positive-fixnum)
+      (entropy/emacs-themes-init-setup-user-theme)
+      (entropy/emacs-message-do-message (green "Enabling fontlocks ..."))
+      (global-font-lock-mode +1)
+      (transient-mark-mode +1)
+      (entropy/emacs-message-do-message (green "Enable fontlocks done"))
 
-    (message "****** Run intial hooks *****")
-    ;; the pdumper session procedure
-    (run-hooks 'entropy/emacs-pdumper-load-hook)
-    ;; trail dealing
-    (load-library "tramp")              ;reload tramp for enable `auto-sudoedit'
-    (setq entropy/emacs-fall-love-with-pdumper nil)
-    (entropy/emacs-message-do-message (green "Initialized pdumper session"))
-    (when entropy/emacs-pdumper--rec-timer
-      (cancel-timer entropy/emacs-pdumper--rec-timer)
-      (setq entropy/emacs-pdumper--rec-timer nil)
-      ;; recover the gc restriction after bootstrap
-      (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
-      (garbage-collect))
-    (defun entropy/emacs-pdumper--recovery ()
-      nil)
-    ;; finally run start-end hook
-    (entropy/emacs-run-startup-end-hook)))
+      (message "****** Run intial hooks *****")
+      ;; the pdumper session procedure
+      (run-hooks 'entropy/emacs-pdumper-load-hook)
+      ;; trail dealing
+      (load-library "tramp")              ;reload tramp for enable `auto-sudoedit'
+      (setq entropy/emacs-fall-love-with-pdumper nil)
+      (entropy/emacs-message-do-message (green "Initialized pdumper session"))
+      (when entropy/emacs-pdumper--rec-timer
+        (cancel-timer entropy/emacs-pdumper--rec-timer)
+        (setq entropy/emacs-pdumper--rec-timer nil)
+        ;; recover the gc restriction after bootstrap
+        (setq gc-cons-threshold entropy/emacs-gc-threshold-basic)
+        (garbage-collect))
+      (defun entropy/emacs-pdumper--recovery ()
+        nil)
+      ;; finally run start-end hook
+      (entropy/emacs-run-startup-end-hook))))
 
 ;; ** load-files
 (defmacro entropy/emacs-pdumper--load-files-core (top-dir files)

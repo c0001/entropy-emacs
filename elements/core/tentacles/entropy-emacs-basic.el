@@ -2025,7 +2025,9 @@ operation system"
   :init
   (entropy/emacs-lazy-with-load-trail
    recentf-init
-   :pdumper-no-end t
+   ;; injects into pdumper recovery session since the recentf is
+   ;; dynamic
+   :pdumper-no-end nil
    :body
    (recentf-mode))
   :config
