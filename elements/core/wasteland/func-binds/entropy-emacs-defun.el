@@ -1220,6 +1220,8 @@ the string passed to `kbd'."
      :compress "zip %o -r --filesync %i"
      :extract  "unzip -o %i -d %o")))
 
+;; FIXME: the replace may cover the filename which include the pseudo
+;; substitution
 (defun entropy/emacs-gen-archive-dowith-shell-command
     (archive-type input output dowith)
   "Generate a shell command to do with an archive dealing
