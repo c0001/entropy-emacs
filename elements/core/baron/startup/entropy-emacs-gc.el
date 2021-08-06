@@ -92,9 +92,10 @@
          ;; condition orderred by the performance sort from low to
          ;; high for preventing the judge performance issue
          (or
-          ;; company frontend will leak memory too
+          ;; company frontend will leak memory
           (bound-and-true-p company-candidates)
-          ;; like above for more eval restriction
+          ;; we hope all procedure during `eval-expression' are gc
+          ;; restricted
           (or (member this-command
                       '(eval-last-sexp
                         eval-region
@@ -103,24 +104,20 @@
                         eval-print-last-sexp
                         eval-buffer
                         )))
-          ;; minibuffer hooker like `ivy' will leak memory so that we
-          ;; restrict it further more we hope all procedure during
-          ;; `eval-expression' are gc restricted
-          (or (eq major-mode 'minibuffer-inactive-mode)
-              (minibuffer-window-active-p (selected-window)))
           )
          ;; restrict the gc threshold when matching above condidtions
          (setq gc-cons-threshold
                (* 800 1024)))
-        ((derived-mode-p 'prog-mode)
+        (t
          (setq gc-cons-threshold
-               (if (and (bound-and-true-p company-candidates)
-                        (ignore-errors
-                          (eq (car company-frontends)
-                              'company-pseudo-tooltip-unless-just-one-frontend)))
-                   ;; Reducing pseudo tooltip overlay move laggy
-                   (* 50 1024 1024)
-                 (* 20 1024 1024))))))
+               (cond
+                ((ignore-errors
+                   (eq (car company-frontends)
+                       'company-pseudo-tooltip-unless-just-one-frontend))
+                 ;; Reducing pseudo tooltip overlay move laggy
+                 (* 50 1024 1024))
+                (t
+                 (* 20 1024 1024)))))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
