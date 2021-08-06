@@ -255,13 +255,22 @@ type. Each key's value can be omitted thus the 'common' meaning."
     (form-plist key &optional type no-error)
   "Like  `plist-get' but for getting the rest form of a key slot.
 
+FORM-PLIST must be an list and no other restriction announced be,
+but the key must be an symbol and formed as ':key' which start
+with an colon which is what emacs plist key name convention, thus
+all, any colon prefixed symbol involved in is treated as an key,
+so as, if the rest args of an key whose has an member of colon
+prefixed symbol will not be getted, which must be an important
+restriction.
+
 Do as the same as `plist-get' when TYPE was 't' or 'car'.
 
 Return a `progn' form when TYPE was nil or omitted or eq 'progn',
 In this case the return form will be nil if the slot's rest form
 are empty, or just presented as an single nil.
 
-Return a list when TYPE was 'list'.
+Return a list when TYPE was 'list'. In this case the return list
+will be nil if the slot's rest form are empty.
 
 If NO-ERROR was non-nil, press all the error asserts, in that
 case return nil, otherwise when KEY can not be found in
