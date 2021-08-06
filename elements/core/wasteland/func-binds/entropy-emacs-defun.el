@@ -252,24 +252,31 @@ type. Each key's value can be omitted thus the 'common' meaning."
    (t nil)))
 
 (defun entropy/emacs-get-plist-form
-    (form-plist key &optional car no-error)
+    (form-plist key &optional type no-error)
   "Like  `plist-get' but for getting the rest form of a key slot.
 
-Do as the same as `plist-get' when CAR was non-nil.
+Do as the same as `plist-get' when TYPE was 't' or 'car'.
 
-Return a `progn' form or nil if the slot's rest form
-are empty, or a nil.
+Return a `progn' form when TYPE was nil or omitted or eq 'progn',
+In this case the return form will be nil if the slot's rest form
+are empty, or just presented as an single nil.
+
+Return a list when TYPE was 'list'.
 
 If NO-ERROR was non-nil, press all the error asserts, in that
 case return nil, otherwise when KEY can not be found in
-FORM-PLIST, throw out an error."
+FORM-PLIST when type is not an 'car' type described as above,
+throw out an error."
   (let* ((match (member key form-plist))
          (rest (cdr match))
+         (is-car (member type '(car t)))
+         (is-progn (or (null type) (eq type 'progn)))
+         (is-list (eq type 'list))
          (pt 0)
-         rtn)
+         (rtn nil))
     (catch :exit
       (when (null match)
-        (when (or no-error car)
+        (when (or no-error is-car)
           (throw :exit nil))
         (error "Can not match key '%s' in form-plist!" key))
       (while (and (not (null (nth pt rest)))
@@ -280,10 +287,17 @@ FORM-PLIST, throw out an error."
         (cl-incf pt))
       (unless (null rtn)
         (setq rtn
-              (if (null car)
+              (cond
+               (is-progn
+                (if (and (= (length rtn) 1)
+                         (null (car rtn)))
+                    nil
                   `(progn
-                     ,@(reverse rtn))
-                (car (reverse rtn)))))
+                     ,@(reverse rtn))))
+               (is-car
+                (car (reverse rtn)))
+               (is-list
+                `(,@(reverse rtn))))))
       rtn)))
 
 (defun entropy/emacs-inject-plist-form (form-plist key &rest inject-forms)
