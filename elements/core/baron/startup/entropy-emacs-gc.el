@@ -88,12 +88,12 @@
    ;; the automatically gc task just for the `gc-cons-threshold'
    ;; only
    gc-cons-percentage 0.98)
-  (cond ((or
-          ;; minibuffer hooker like `ivy' will leak memory so that we
-          ;; restrict it further more we hope all procedure during
-          ;; `eval-expression' are gc restricted
-          (or (eq major-mode 'minibuffer-inactive-mode)
-              (minibuffer-window-active-p (selected-window)))
+  (cond (
+         ;; condition orderred by the performance sort from low to
+         ;; high for preventing the judge performance issue
+         (or
+          ;; company frontend will leak memory too
+          (bound-and-true-p company-candidates)
           ;; like above for more eval restriction
           (or (member this-command
                       '(eval-last-sexp
@@ -103,8 +103,13 @@
                         eval-print-last-sexp
                         eval-buffer
                         )))
-          ;; company frontend will leak memory too
-          (bound-and-true-p company-candidates))
+          ;; minibuffer hooker like `ivy' will leak memory so that we
+          ;; restrict it further more we hope all procedure during
+          ;; `eval-expression' are gc restricted
+          (or (eq major-mode 'minibuffer-inactive-mode)
+              (minibuffer-window-active-p (selected-window)))
+          )
+         ;; restrict the gc threshold when matching above condidtions
          (setq gc-cons-threshold
                (* 800 1024)))
         ((derived-mode-p 'prog-mode)
@@ -114,8 +119,8 @@
                           (eq (car company-frontends)
                               'company-pseudo-tooltip-unless-just-one-frontend)))
                    ;; Reducing pseudo tooltip overlay move laggy
-                   (* 20 1024 1024)
-                 (* 2 1024 1024))))))
+                   (* 50 1024 1024)
+                 (* 20 1024 1024))))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
@@ -142,7 +147,7 @@
   ;; after all idle progress, we enable gc in rest idle time step by
   ;; step as an daemon gc guard for watching in non-busy stat and will
   ;; be killed by `entropy/emacs-gc--remove-idle-guard'.
-  (run-with-timer 1 60 #'garbage-collect)
+  (run-with-timer 1 10 #'garbage-collect)
   (setq entropy/emacs-gc--idle-guard-removed nil))
 
 (defun entropy/emacs-gc--remove-idle-guard
