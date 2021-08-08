@@ -721,6 +721,175 @@ can be used into your form:
     eemacs-make-proc-args-list)))
 
 ;; *** Form manipulation
+;; **** type spec eval
+
+(defun entropy/emacs-type-spec-eval (eemacs-type-spec)
+  "Get value by evaluating the eemacs specified data structure
+=eemacs-type-spec= which is an type indicating and flexible data
+structure, consisted of two part in generally, i.e. the *car* of _data
+type_ and *cdr* of the _structure expression_, each _data type_ can
+have several different style of _structure expression_.
+
+*data type*:
+
+- 'IDENTITY': the evaluated result is whatever is given
+- 'FUNC'    : the evaluated result is got from the return of specified function
+- 'FORM'    : the evaluated result is got from the return of specified elisp form
+
+#+begin_quote
+For briefly termnology says that we use *DT* as _data type_ and *exp*
+as _structure expression_.
+#+end_quote
+
+Each DT's exp is not fixed while extensible but truely back
+Compatible. That say the API of this function can be upgrade for
+adding more exps for specifoed DT but not break current convention.
+
+While the exp is the cdr of ans =eemacs-type-spec= , thus so, exp
+defined within cons style as an symbol or in an single symbol list
+style are equivalent most of cases, in which case we treat them as an
+single element as the same. Thus we called this type of exp defination
+is *single-el* as the term. (e.g. (TYPE . symbol) or (TYPE symbol))
+
+* =IDENTIFY= exp
+The exp for DT 'IDENTITY' is arbitrary since its defination, e.g. it
+can be an list, an symbol, an string, an number etc. And without the
+=single-el= treatment.
+
+* =FUNC= exp
+
+1) If the exp of FUNC DT is an =single-el=, thus the evaluated result
+   is the return of the `funcall' of the =single-el= without any
+   arguments assignment.
+
+2) Except from (1) occasion, we treat the exp as an commonly list with
+   the plist feature i.e. has colon prefixed key as the value hosted
+   indicator, and extract some internal defined keys and did
+   evalulation according to what is got. Valid keys are:
+
+   - =:predicate=
+
+     The host of an =eemacs-type-spec= to be evaluated by return
+     an function which will be applied with =:args= if exists or
+     just with funcall with it.
+
+   - =:args=
+
+     The host of the args will apply to the =:predicate=, each arg is
+     an =eemacs-type-spec= which will be constructed as an list of
+     evalusated value which apply to thus.
+
+
+* =FORM= exp
+
+The exp is arbitrary and will be involved into an progn form which
+will be evaluated as the result to return. But this is good context
+readable convention to write the forms after an =:body= key in the
+exp, and is useful for this DT further more features, see below:
+
+If an =:sbody= is presented in the exp, then it will concated to
+the tail of the =:body= and each item in =:sbody= is an
+=eemacs-type-spec= which will be evaluated to be item in the tail
+of the =:body= `progn' form. In this case, if no =:body= is
+indicated in exp, then any other spec will be ignored.
+
+*Restriction*:
+
+Since we use plist like form to build the data structure in term,
+thus if such an exp is used to constructed by that has element as
+the same key name of any of the specified exp specification,
+please using quote to wrapped it out e.g. `(quote :body)' if not
+effect the expection or try use another way to avoid this.
+"
+  (let ((type (ignore-errors (car eemacs-type-spec)))
+        (exp (ignore-errors (cdr eemacs-type-spec)))
+        (symbol-mean-p
+         (lambda (arg &optional get-val)
+           "judge the general mean of symbol in this function"
+           (let (rtn use-carp)
+             (setq
+              rtn
+              (or (and (symbolp arg) t)
+                  (and (listp arg)
+                       (= 1 (length arg))
+                       (symbolp (car arg))
+                       (setq use-carp t))))
+             (if rtn
+                 (if get-val
+                     (if use-carp
+                         (car arg)
+                       arg)
+                   t)
+               nil))))
+        (error-type-fatal
+         (lambda (type)
+           (error (format
+                   "\
+[error] EEMACS-TYPE-SPEC of <%s> is not recognized for spec '%s'"
+                   eemacs-type-spec))))
+        (rtn nil))
+    (cond
+     ;; function type
+     ((eq type 'FUNC)
+      (cond
+       ((or (funcall symbol-mean-p exp)
+            (functionp exp))
+        (setq rtn
+              (if (functionp exp)
+                  (funcall exp)
+                (funcall
+                 (funcall symbol-mean-p exp t)))))
+       ((listp exp)
+        (let ((args
+               (mapcar
+                (lambda (eemacs-type-spec)
+                  (entropy/emacs-type-spec-eval
+                   eemacs-type-spec))
+                (entropy/emacs-get-plist-form
+                 exp :args 'list t)))
+              (predicate
+               (entropy/emacs-type-spec-eval
+                (entropy/emacs-get-plist-form
+                 exp :predicate 'car t))))
+          (unless (functionp predicate)
+            (error
+             (format "[error] EEMACS-TYPE-SPEC of <FUNC> \
+whose predicate '%s' is not an function"
+                     predicate)))
+          (apply predicate args)))
+       (t
+        (error-type-fatal 'FUNC))))
+     ;; form type
+     ((eq type 'FORM)
+      (let ((body (entropy/emacs-get-plist-form exp :body 'list t))
+            (sbody (entropy/emacs-get-plist-form exp :sbody 'list t))
+            form-get)
+        (if (and (null body)
+                 (null sbody))
+            (setq form-get (append (list 'progn) exp))
+          (setq form-get
+                (if body
+                    (append (list 'progn)
+                            body)))
+          (when sbody
+            (setq form-get
+                  (append
+                   form-get
+                   (mapcar
+                    (lambda (eemacs-type-spec)
+                      (entropy/emacs-type-spec-eval
+                       eemacs-type-spec))
+                    sbody)))))
+        (eval form-get)))
+     ;; identity type
+     ((eq type 'IDENTITY)
+      exp)
+     (t
+      (error
+       (format "[error] EEMACS-TYPE-SPEC detected fatal of spec %s"
+               eemacs-type-spec))))))
+
+;; **** form item replace
 (defun entropy/emacs-replace-form-symbol
     (form sub-elt replace &optional parse-append)
   "Replace symbol SUB-ELT occurrences in form FORM with
