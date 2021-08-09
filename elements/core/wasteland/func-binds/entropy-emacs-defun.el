@@ -732,9 +732,9 @@ have several different style of _structure expression_.
 
 *data type*:
 
-- 'IDENTITY': the evaluated result is whatever is given
-- 'FUNC'    : the evaluated result is got from the return of specified function
-- 'FORM'    : the evaluated result is got from the return of specified elisp form
+- 'EEMACS-DT-IDENTITY': the evaluated result is whatever is given
+- 'EEMACS-DT-FUNC'    : the evaluated result is got from the return of specified function
+- 'EEMACS-DT-FORM'    : the evaluated result is got from the return of specified elisp form
 
 #+begin_quote
 For briefly termnology says that we use *DT* as _data type_ and *exp*
@@ -752,13 +752,13 @@ single element as the same. Thus we called this type of exp defination
 is *single-el* as the term. (e.g. (TYPE . symbol) or (TYPE symbol))
 
 * =IDENTIFY= exp
-The exp for DT 'IDENTITY' is arbitrary since its defination, e.g. it
+The exp for DT 'EEMACS-DT-IDENTITY' is arbitrary since its defination, e.g. it
 can be an list, an symbol, an string, an number etc. And without the
 =single-el= treatment.
 
-* =FUNC= exp
+* =EEMACS-DT-FUNC= exp
 
-1) If the exp of FUNC DT is an =single-el=, thus the evaluated result
+1) If the exp of EEMACS-DT-FUNC DT is an =single-el=, thus the evaluated result
    is the return of the `funcall' of the =single-el= without any
    arguments assignment.
 
@@ -780,7 +780,7 @@ can be an list, an symbol, an string, an number etc. And without the
      evalusated value which apply to thus.
 
 
-* =FORM= exp
+* =EEMACS-DT-FORM= exp
 
 The exp is arbitrary and will be involved into an progn form which
 will be evaluated as the result to return. But this is good context
@@ -830,7 +830,7 @@ effect the expection or try use another way to avoid this.
         (rtn nil))
     (cond
      ;; function type
-     ((eq type 'FUNC)
+     ((eq type 'EEMACS-DT-FUNC)
       (cond
        ((or (funcall symbol-mean-p exp)
             (functionp exp))
@@ -853,14 +853,14 @@ effect the expection or try use another way to avoid this.
                  exp :predicate 'car t))))
           (unless (functionp predicate)
             (error
-             (format "[error] EEMACS-TYPE-SPEC of <FUNC> \
+             (format "[error] EEMACS-TYPE-SPEC of <EEMACS-DT-FUNC> \
 whose predicate '%s' is not an function"
                      predicate)))
           (apply predicate args)))
        (t
-        (error-type-fatal 'FUNC))))
+        (error-type-fatal 'EEMACS-DT-FUNC))))
      ;; form type
-     ((eq type 'FORM)
+     ((eq type 'EEMACS-DT-FORM)
       (let ((body (entropy/emacs-get-plist-form exp :body 'list t))
             (sbody (entropy/emacs-get-plist-form exp :sbody 'list t))
             form-get)
@@ -882,7 +882,7 @@ whose predicate '%s' is not an function"
                     sbody)))))
         (eval form-get)))
      ;; identity type
-     ((eq type 'IDENTITY)
+     ((eq type 'EEMACS-DT-IDENTITY)
       exp)
      (t
       (error

@@ -369,7 +369,7 @@
                        (eyebrowse--get 'current-slot))))
       (entropy/emacs-wpamemory-regist-memory
        'eyebrowse
-       `(IDENTITY
+       `(EEMACS-DT-IDENTITY
          .
          (:eyebrowse-slot . ,cur-eslot)))))
 
@@ -378,7 +378,7 @@
                        (eyebrowse--get 'current-slot))))
       (entropy/emacs-wpamemory-restore-memory
        'eyebrowse
-       `(IDENTITY
+       `(EEMACS-DT-IDENTITY
          .
          (:eyebrowse-slot . ,cur-eslot)))))
 

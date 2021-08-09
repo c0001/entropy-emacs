@@ -81,7 +81,7 @@ not be duplicated, if so the new one replace the old one.")
 Those window parameter restoration causing some mistakes or just
 user specified.")
 
-(defvar entropy/emacs-wpamemory-default-type-role '(IDENTIFY . nil))
+(defvar entropy/emacs-wpamemory-default-type-role '(EEMACS-DT-IDENTITY . nil))
 
 (defun entropy/emacs-wpamemory-pruning-memory
     (memory-type &optional memory-type-role)
