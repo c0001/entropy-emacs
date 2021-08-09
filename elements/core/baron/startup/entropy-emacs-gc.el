@@ -82,8 +82,17 @@
             :around
             #'entropy/emacs-gc-wrapper)
 
+(defmacro  __ya/gc-threshold_setq (symbol value)
+  "yet another `setq' but spec for garbage collection referred
+variable with newvar set while the VALUE is not equal to the
+origin, since each set to the `gc-threshold' or
+`gc-cons-percentage' will make gc subrotine analysis(?)"
+  `(let ((newval ,value))
+     (unless (equal ,symbol newval)
+       (setq ,symbol newval))))
+
 (defun entropy/emacs-gc--adjust-cons-threshold ()
-  (setq
+  (__ya/gc-threshold_setq
    ;; maximized gc portion percentage so that throw handing over
    ;; the automatically gc task just for the `gc-cons-threshold'
    ;; only
@@ -106,18 +115,20 @@
                         )))
           )
          ;; restrict the gc threshold when matching above condidtions
-         (setq gc-cons-threshold
-               (* 800 1024)))
+         (__ya/gc-threshold_setq
+          gc-cons-threshold
+          (* 800 1024)))
         (t
-         (setq gc-cons-threshold
-               (cond
-                ((ignore-errors
-                   (eq (car company-frontends)
-                       'company-pseudo-tooltip-unless-just-one-frontend))
-                 ;; Reducing pseudo tooltip overlay move laggy
-                 (* 50 1024 1024))
-                (t
-                 (* 20 1024 1024)))))))
+         (__ya/gc-threshold_setq
+          gc-cons-threshold
+          (cond
+           ((ignore-errors
+              (eq (car company-frontends)
+                  'company-pseudo-tooltip-unless-just-one-frontend))
+            ;; Reducing pseudo tooltip overlay move laggy
+            (* 50 1024 1024))
+           (t
+            (* 20 1024 1024)))))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
