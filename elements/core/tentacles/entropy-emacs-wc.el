@@ -368,14 +368,19 @@
     (let ((cur-eslot (when (bound-and-true-p eyebrowse-mode)
                        (eyebrowse--get 'current-slot))))
       (entropy/emacs-wpamemory-regist-memory
-       'eyebrowse `(:eyebrowse-slot . ,cur-eslot))))
+       'eyebrowse
+       `(IDENTITY
+         .
+         (:eyebrowse-slot . ,cur-eslot)))))
 
   (defun entropy/emacs-wc--eyebrowse-resotre-wpamemory ()
     (let ((cur-eslot (when (bound-and-true-p eyebrowse-mode)
                        (eyebrowse--get 'current-slot))))
       (entropy/emacs-wpamemory-restore-memory
-       'eyebrowse `(:eyebrowse-slot . ,cur-eslot))))
-
+       'eyebrowse
+       `(IDENTITY
+         .
+         (:eyebrowse-slot . ,cur-eslot)))))
 
   (add-hook 'eyebrowse-pre-window-switch-hook #'entropy/emacs-wc--eyebrowse-regist-wpamemory)
   (add-hook 'eyebrowse-post-window-switch-hook #'entropy/emacs-wc--eyebrowse-resotre-wpamemory)
