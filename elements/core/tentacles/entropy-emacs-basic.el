@@ -1293,7 +1293,13 @@ Filename are \".scratch_entropy\" host in
 `hl-line-mode'."
   (let ((rtn (apply orig-func orig-args)))
     (if (bound-and-true-p hl-line-mode)
-        (setq-local eemacs-hl-line-mode-enable t)
+        (progn
+          (setq-local eemacs-hl-line-mode-enable t)
+          ;; since we use the idle timer to show hl-line, so we
+          ;; disable below unneeded hooks in `post-command-hook' for
+          ;; reduce redudant perfomance leak
+          (remove-hook 'post-command-hook #'hl-line-highlight t)
+          (remove-hook 'post-command-hook #'hl-line-maybe-unhighlight t))
       (setq-local eemacs-hl-line-mode-enable nil))
     rtn))
 (with-eval-after-load 'hl-line

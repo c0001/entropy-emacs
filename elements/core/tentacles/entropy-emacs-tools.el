@@ -893,10 +893,35 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   (defun entropy/emacs-tools-command-log-mode ()
     (interactive)
     (require 'command-log-mode)
-    (if (not command-log-mode)
-        (progn (command-log-mode)
-               (clm/toggle-command-log-buffer))
-      (command-log-mode 0))))
+    (if (not (bound-and-true-p command-log-mode))
+        (progn
+          (command-log-mode 1)
+          (unless (window-live-p
+                   (get-buffer-window
+                    (get-buffer-create " *command-log*")))
+            (clm/open-command-log-buffer)))
+      (command-log-mode 0)))
+
+  :config
+  ;; Remove the initial unneeded hook injector since they should do in
+  ;; the mode enable procedure.
+  (remove-hook 'post-command-hook 'clm/zap-recent-history)
+  (remove-hook 'pre-command-hook 'clm/log-command)
+
+  (defun __adv/around/command-log-mode (orig-func &rest orig-args)
+    "Around advice for inject/remove proper hook referred to
+`command-log-mode'."
+    (prog1
+        (apply orig-func orig-args)
+      (if (bound-and-true-p command-log-mode)
+          (progn
+            (add-hook 'post-command-hook 'clm/zap-recent-history)
+            (add-hook 'pre-command-hook 'clm/log-command))
+        (remove-hook 'post-command-hook 'clm/zap-recent-history)
+        (remove-hook 'pre-command-hook 'clm/log-command))))
+  (advice-add 'command-log-mode
+              :around
+              #'__adv/around/command-log-mode))
 
 ;; *** pomidor A simple and cool pomodoro timer
 (use-package pomidor
