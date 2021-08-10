@@ -121,14 +121,16 @@ origin, since each set to the `gc-threshold' or
         (t
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (cond
-           ((ignore-errors
-              (eq (car company-frontends)
-                  'company-pseudo-tooltip-unless-just-one-frontend))
-            ;; Reducing pseudo tooltip overlay move laggy
-            (* 50 1024 1024))
-           (t
-            (* 20 1024 1024)))))))
+          most-positive-fixnum
+          ;; (cond
+          ;;  ((ignore-errors
+          ;;     (eq (car company-frontends)
+          ;;         'company-pseudo-tooltip-unless-just-one-frontend))
+          ;;   ;; Reducing pseudo tooltip overlay move laggy
+          ;;   (* 50 1024 1024))
+          ;;  (t
+          ;;   (* 20 1024 1024)))
+          ))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
