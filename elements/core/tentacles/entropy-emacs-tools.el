@@ -907,6 +907,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   ;; the mode enable procedure.
   (remove-hook 'post-command-hook 'clm/zap-recent-history)
   (remove-hook 'pre-command-hook 'clm/log-command)
+  (remove-hook 'post-self-insert-hook 'clm/recent-history)
 
   (defun __adv/around/command-log-mode (orig-func &rest orig-args)
     "Around advice for inject/remove proper hook referred to
@@ -916,9 +917,11 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
       (if (bound-and-true-p command-log-mode)
           (progn
             (add-hook 'post-command-hook 'clm/zap-recent-history)
-            (add-hook 'pre-command-hook 'clm/log-command))
+            (add-hook 'pre-command-hook 'clm/log-command)
+            (add-hook 'post-self-insert-hook 'clm/recent-history))
         (remove-hook 'post-command-hook 'clm/zap-recent-history)
-        (remove-hook 'pre-command-hook 'clm/log-command))))
+        (remove-hook 'pre-command-hook 'clm/log-command)
+        (remove-hook 'post-self-insert-hook 'clm/recent-history))))
   (advice-add 'command-log-mode
               :around
               #'__adv/around/command-log-mode))
