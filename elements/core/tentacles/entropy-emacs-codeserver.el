@@ -706,7 +706,7 @@ NOTE: this function has been patched by eemacs to optimize performance."
            (erase-buffer)))
         (make-frame-invisible doc-frame))))
 
-  (defun entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mounse
+  (defun entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mouse
       (orig-func &rest orig-args)
     "Diable mouse wheel in lsp-ui-doc-frame while it has the bug of:
 
@@ -722,7 +722,7 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
 
   (advice-add 'lsp-ui-doc-frame-mode
               :around
-              #'entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mounse)
+              #'entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mouse)
 
 ;; ******** Doc timer
   (defvar-local entropy/emacs-codeserver--lsp-ui-doc--bounds nil)
