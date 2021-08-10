@@ -195,7 +195,24 @@ Because of no suitable backend actived yet."))))
 
 ;; **** flycheck
 (use-package flycheck
-  :commands (flycheck-list-errors))
+  :commands (flycheck-list-errors)
+  :config
+  (defun __adv/around/flycheck-buffer/0
+      (orig-func &rest orig-args)
+    "Remove error messsage while flycheck disabled with lsp mode,
+since `lsp-diagnostics--flycheck-report' will re-add
+`lsp-diagnostics--flycheck-buffer' to `lsp-on-idle-hook' even if
+`lsp-diagnostics-mode' is disabled while `lsp-managed-mode' is
+enabled.
+
+NOTE: its an `lsp-mode' bug."
+    (if (member 'lsp-on-change after-change-functions)
+        (if (bound-and-true-p flycheck-mode)
+            (apply orig-func orig-args))
+      (apply orig-func orig-args)))
+  (advice-add 'flycheck-buffer
+              :around
+              '__adv/around/flycheck-buffer/0))
 
 ;; ** common server
 ;; *** individual servers
@@ -607,7 +624,19 @@ predicate when run it, see
 
 
 ;; ********* lsp rename without be under readonly pressure
-(entropy/emacs-make-function-inhibit-readonly 'lsp-rename t)
+  (entropy/emacs-make-function-inhibit-readonly 'lsp-rename t)
+
+;; ********* fix bug of `lsp-diagnostics-flycheck-disable'
+  (defun __adv/lsp-diagnostics-flycheck-disable/0
+      (orig-func &rest orig-args)
+    "Around advice to fix typo of `lsp-diagnostics-flycheck-disable'."
+    (prog1
+        (apply orig-func orig-args)
+      (when (bound-and-true-p flycheck-mode)
+        (flycheck-mode 0))))
+  (advice-add 'lsp-diagnostics-flycheck-disable
+              :around
+              #'__adv/lsp-diagnostics-flycheck-disable/0)
 
 ;; ******** others
   ;; Remove clients not officially included in `lsp-mode' internal
@@ -692,7 +721,11 @@ predicate when run it, see
 ;; ******* init
   :init
   (setq lsp-ui-doc-position 'top
-        lsp-ui-doc-delay entropy/emacs-ide-doc-delay)
+        lsp-ui-doc-delay entropy/emacs-ide-doc-delay
+        lsp-ui-sideline-enable nil
+        lsp-ui-sideline-delay entropy/emacs-ide-doc-delay
+        lsp-ui-sideline-diagnostic-max-line-length 50
+        lsp-ui-sideline-diagnostic-max-lines 1)
 
 ;; ******* config
   :config
