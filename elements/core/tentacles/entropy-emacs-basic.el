@@ -1298,7 +1298,9 @@ Filename are \".scratch_entropy\" host in
           ;; since we use the idle timer to show hl-line, so we
           ;; disable below unneeded hooks in `post-command-hook' for
           ;; reduce redudant perfomance leak
-          (remove-hook 'post-command-hook #'hl-line-highlight t)
+
+          ;; preserve this for hl-line overlay move action
+          ;; (remove-hook 'post-command-hook #'hl-line-highlight t)
           (remove-hook 'post-command-hook #'hl-line-maybe-unhighlight t))
       (setq-local eemacs-hl-line-mode-enable nil))
     rtn))
@@ -1333,7 +1335,7 @@ NOTE: this is a advice wrapper for any function."
     rtn))
 
 ;; ---> Default wrapped for:
-(dolist (func '(previous-line next-line))
+(dolist (func '(previous-line next-line newline))
   (advice-add func
               :around #'entropy/emacs-basic--hl-line-disable-wrapper))
 (with-eval-after-load 'dired
