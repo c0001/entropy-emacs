@@ -116,6 +116,7 @@
         eyebrowse
         f
         find-file-in-project
+        flycheck
         ghub
         git-commit
         git-messenger

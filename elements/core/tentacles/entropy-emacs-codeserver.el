@@ -167,6 +167,12 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 diagnostic feature is actived."
   (interactive)
   (cond
+   ((and (bound-and-true-p flycheck-mode)
+         ;; just use flycheck as diagnostic show in lsp session while
+         ;; the lsp client is 'lsp-mode' since eglot use flymake by
+         ;; default.
+         (eq entropy/emacs-ide-use-for-all 'lsp))
+    (flycheck-list-errors))
    ((bound-and-true-p flymake-mode)
     (flymake-show-diagnostics-buffer))
    (t
@@ -186,6 +192,10 @@ Because of no suitable backend actived yet."))))
 (use-package flymake
   :ensure nil
   :commands (flymake-show-diagnostics-buffer))
+
+;; **** flycheck
+(use-package flycheck
+  :commands (flycheck-list-errors))
 
 ;; ** common server
 ;; *** individual servers
@@ -473,7 +483,7 @@ when available."
   :init
   (setq lsp-auto-guess-root t)
   (setq lsp-auto-configure t)
-  (setq lsp-prefer-flymake nil)
+  (setq lsp-diagnostics-provider :auto)
   (setq lsp-eldoc-enable-hover t)
   (setq lsp-signature-auto-activate t
         ;; Set `lsp-signature-doc-lines' to 0 to restrict the echo
