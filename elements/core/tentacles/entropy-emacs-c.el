@@ -45,7 +45,20 @@
   (defun entropy/emacs-c-cc-mode-common-set ()
     (c-set-style "bsd")
     (setq-local tab-width 4)
-    (setq-local c-basic-offset 4))
+    (setq-local c-basic-offset 4)
+    ;; EEMACS_MAINTENANCE: this patch is not under fully tested
+    ;; whether influence the other functionality for `c-mode'.
+    ;; ====== remove the lag core of `cc-mode' =====
+    ;; ----------> 1. fistly we remove the command post triggers
+    (remove-hook 'before-change-functions #'c-before-change t)
+    (remove-hook 'after-change-functions #'c-after-change t)
+    ;; ----------> 2. then remove the according facilities of (1)
+    (remove-hook 'change-major-mode-hook #'c-leave-cc-mode-mode)
+    (remove-hook 'font-lock-mode-hook #'c-after-font-lock-init t)
+    (setq-local font-lock-extend-after-change-region-function
+                nil
+                font-lock-fontify-region-function
+                'font-lock-default-fontify-region))
   :init
   (add-hook 'c-mode-common-hook
             #'entropy/emacs-c-cc-mode-common-set))

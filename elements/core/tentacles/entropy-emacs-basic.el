@@ -1736,26 +1736,6 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
   :ensure nil
   :commands (global-undo-tree-mode undo-tree-visualize)
   :preface
-
-  (defvar entropy/emacs-basic--undo-tree-stick-window-configuration nil
-    "The window configuration before calling `undo-tree-visualize'.")
-
-  (defun entropy/emacs-basic--save-window-cfg-for-undo-tree
-      (orig-func &rest orig-args)
-    (setq entropy/emacs-basic--undo-tree-stick-window-configuration
-          (current-window-configuration))
-    (apply orig-func orig-args))
-
-  (defun entropy/emacs-basic--restore-window-cfg-for-undo-tree
-      (orig-func &rest orig-args)
-    (let ((rtn (apply orig-func orig-args)))
-      (when (window-configuration-p
-             entropy/emacs-basic--undo-tree-stick-window-configuration)
-        (set-window-configuration
-         entropy/emacs-basic--undo-tree-stick-window-configuration))
-      (setq entropy/emacs-basic--undo-tree-stick-window-configuration nil)
-      rtn))
-
   :init
   (entropy/emacs-lazy-with-load-trail
    undo-tree-enable
@@ -1766,14 +1746,7 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
    (global-set-key (kbd "C-x u") #'undo-tree-visualize))
 
   :config
-
-  (advice-add 'undo-tree-visualize
-              :around
-              #'entropy/emacs-basic--save-window-cfg-for-undo-tree)
-
-  (advice-add 'undo-tree-visualizer-quit
-              :around
-              #' entropy/emacs-basic--restore-window-cfg-for-undo-tree))
+  )
 
 ;; *** Rectangle manipulation
 
@@ -2083,7 +2056,16 @@ way. "
   (if (not (string-match-p "^CAPTURE-" (buffer-name)))
       (let ((point (point))
             (mode major-mode))
-        (funcall mode)
+        (progn
+          (cond
+           ((derived-mode-p 'prog-mode)
+            ;; switch to `fundamental-mode' firstly for preventing
+            ;; some unexpected messy while prog modes is major-mode
+            ;; FIXME: why?
+            (fundamental-mode))
+           (t
+            t))
+          (funcall mode))
         (when (eq major-mode 'org-mode)
           (outline-show-all))
         (goto-char point)
