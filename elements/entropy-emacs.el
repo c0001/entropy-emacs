@@ -158,6 +158,17 @@
 (setq font-lock-maximum-decoration
       '((t . 2)))
 
+;; Optimize jit-lock-mode default configuration
+(setq jit-lock-defer-time 0.35
+      jit-lock-stealth-time 2
+      jit-lock-chunk-size 100
+      jit-lock-stealth-load 50
+      jit-lock-stealth-nice 3
+      jit-lock-contextually 'syntax-driven
+      jit-lock-context-time 0.5
+      jit-lock-antiblink-grace 2)
+
+;; start eemacs
 (if (entropy/emacs-is-make-session)
     (require 'entropy-emacs-batch)
   (require 'entropy-emacs-start))
