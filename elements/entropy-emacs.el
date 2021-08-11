@@ -154,6 +154,10 @@
 
 (require 'entropy-emacs-defcustom)
 
+;; Globally downgrade font-lock decoration to improve performance
+(setq font-lock-maximum-decoration
+      '((t . 2)))
+
 (if (entropy/emacs-is-make-session)
     (require 'entropy-emacs-batch)
   (require 'entropy-emacs-start))
