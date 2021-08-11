@@ -66,20 +66,10 @@
                             'non-trail-slash))
         (env (getenv "PATH"))
         (exec-path-from-shell-variables
-         (append
-          '("PATH" "MANPATH" "LD_LIBRARY_PATH"
-            ;; Go env setup
-            "GOPATH" "GO111MODULE" "GOPROXY"
-            ;; Rust env setup
-            "RUSTUP_DIST_SERVER"
-            ;; Nodejs env setup
-            "NPM_CONFIG_PREFIX"
-            ;; Music daemon setup
-            "MPD_HOST" "MPD_PORT"
-            )
-          entropy/emacs-willing-copy-shell-variables)))
+         entropy/emacs-willing-copy-shell-variables))
     ;; Firstly we copy the entire shell ENV
-    (exec-path-from-shell-initialize)
+    (when exec-path-from-shell-variables
+      (exec-path-from-shell-initialize))
     ;; Then we inject eemaacs spec ENV
     (when (string-match-p coworker-bin-path env)
       (setq coworker-env-exists-p t))
