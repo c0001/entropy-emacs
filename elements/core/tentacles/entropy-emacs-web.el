@@ -57,11 +57,11 @@
 
 (defun entropy/emacs-web--web-mode-start-hook ()
   ;; Set indent and tab-width
-  (setq web-mode-markup-indent-offset 4)
+  (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 4)
-  (setq web-mode-code-indent-offset 4)
+  (setq web-mode-code-indent-offset 2)
   (setq indent-tabs-mode nil)
-  (setq tab-width 4)
+  (setq tab-width 2)
   (progn
     (require 'yasnippet)
     (unless yas-minor-mode
@@ -328,13 +328,15 @@
     "Eval" nil
     "Web Beautify" nil))
   :init
+  ;; disable the parse error messy hightlighting
+  (setq js2-mode-show-parse-errors nil
+        js2-mode-show-strict-warnings nil)
   (entropy/emacs-lazy-load-simple js2-mode
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
     (entropy/emacs-add-hook-lambda-nil
      js2-initialized-common js2-mode-hook 'append
      (setq-local js2-basic-offset 4)
-     (js2-highlight-unused-variables-mode 1)
      (js2-imenu-extras-mode 1))))
 
 ;; **** js2-refactor
