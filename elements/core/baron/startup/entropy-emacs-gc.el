@@ -92,11 +92,6 @@ origin, since each set to the `gc-threshold' or
        (setq ,symbol newval))))
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
-  (__ya/gc-threshold_setq
-   ;; maximized gc portion percentage so that throw handing over
-   ;; the automatically gc task just for the `gc-cons-threshold'
-   ;; only
-   gc-cons-percentage 0.98)
   (cond (
          ;; condition orderred by the performance sort from low to
          ;; high for preventing the judge performance issue
@@ -117,11 +112,11 @@ origin, since each set to the `gc-threshold' or
          ;; restrict the gc threshold when matching above condidtions
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 800 1024)))
+          (* 2 1024 1024)))
         (t
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 100 1024 1024)
+          (* 20 1024 1024)
           ;; (cond
           ;;  ((ignore-errors
           ;;     (eq (car company-frontends)

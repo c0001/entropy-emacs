@@ -481,7 +481,7 @@ externally add below features:
 
 ;; ** garbage collection refer
 
-(defvar entropy/emacs-gc-threshold-basic (* 50 1024 1024)
+(defvar entropy/emacs-gc-threshold-basic (* 10 1024 1024)
   "The basic thredshold for the growth for `gc-cons-threshold'")
 
 (defvar entropy/emacs-gc-percentage-basic 0.05
