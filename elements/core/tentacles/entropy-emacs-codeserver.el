@@ -196,6 +196,20 @@ Because of no suitable backend actived yet."))))
 ;; **** flycheck
 (use-package flycheck
   :commands (flycheck-list-errors)
+  :init
+  (setq
+   ;; disable flycheck status mode line indicator
+   flycheck-mode-line nil
+   ;; disable buffer warning messy highlight
+   flycheck-highlighting-mode nil)
+
+  (defun __hook/flycheck-mode-hook/0 (&rest _)
+    "Trigger margin indicator on mode init.
+FIXME: this is needed while pdumper session, why?"
+    (when (bound-and-true-p flycheck-mode)
+      (flycheck-set-indication-mode 'left-margin)))
+  (add-hook 'flycheck-mode-hook #'__hook/flycheck-mode-hook/0)
+
   :config
   (defun __adv/around/flycheck-buffer/0
       (orig-func &rest orig-args)

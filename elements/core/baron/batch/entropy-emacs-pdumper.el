@@ -138,7 +138,7 @@ configuration.")
                                      "doom" "company" "entropy"
                                      "rg" "wgrep" "dashboard"
                                      "youdao" "google" "bing"
-                                     "projectile" "lsp" "dap" "company"
+                                     "projectile" "flycheck" "lsp" "dap" "company"
                                      (seq line-start "slime"))
                                  (? "-")
                                  (* any)

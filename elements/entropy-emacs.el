@@ -159,7 +159,7 @@
       '((t . 2)))
 
 ;; Optimize jit-lock-mode default configuration
-(setq jit-lock-defer-time 0.35
+(setq jit-lock-defer-time nil
       jit-lock-stealth-time 2
       jit-lock-chunk-size 100
       jit-lock-stealth-load 50
