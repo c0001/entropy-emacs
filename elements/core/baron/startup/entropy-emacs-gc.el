@@ -113,10 +113,10 @@ origin, since each set to the `gc-threshold' or
          (__ya/gc-threshold_setq
           gc-cons-threshold
           (* 2 1024 1024)))
-        (t
+        ((derived-mode-p 'prog-mode)
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 20 1024 1024)
+          (* 100 1024 1024)
           ;; (cond
           ;;  ((ignore-errors
           ;;     (eq (car company-frontends)
