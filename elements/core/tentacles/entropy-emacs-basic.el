@@ -1166,7 +1166,7 @@ buffer, in that case any conditions don't match the filter then
                      (save-excursion
                        (goto-char (point-max))
                        (line-number-at-pos))))
-                (> rtn 2500))
+                (> rtn 1000))
               (minibufferp))
     (hl-line-mode 1)))
 
