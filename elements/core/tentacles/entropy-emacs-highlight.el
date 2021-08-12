@@ -154,8 +154,22 @@
 
 ;; ****** after change hook modification
 
-  ;; we don't need the refrresh
+  ;; we don't need the refrresh globally
   (remove-hook 'after-change-functions 'symbol-overlay-refresh)
+  (defun __adv/around/symbol-overlay-mode/0
+      (orig-func &rest orig-args)
+    (prog1
+        (apply orig-func orig-args)
+      (cond ((bound-and-true-p symbol-overlay-mode)
+             (make-variable-buffer-local 'after-change-functions)
+             (add-hook 'after-change-functions
+                       'symbol-overlay-refresh nil t))
+            (t
+             (remove-hook 'after-change-functions
+                          'symbol-overlay-refresh t)))))
+  (advice-add 'symbol-overlay-mode
+              :around
+              #'__adv/around/symbol-overlay-mode/0)
   )
 
 ;; ** Highlight matching paren

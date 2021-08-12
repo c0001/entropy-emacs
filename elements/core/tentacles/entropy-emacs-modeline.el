@@ -272,11 +272,24 @@ enabled."
                   mode-line-modified "  "
                   ;;"remote:" mode-line-remote " "
                   ;; mode-line-frame-identification
-                  mode-line-modes
-                  (vc-mode vc-mode) " "
+                  ;; mode-line-modes
+                  (:eval
+                   (propertize
+                    (format " %s " major-mode)
+                    'face 'success))
                   "<" mode-line-buffer-identification "> "
-                  "[["mode-line-position"]]"
+                  (:eval
+                   (concat (propertize
+                            "POS:"
+                            'face 'link)
+                           " "))
+                  mode-line-position
                   mode-line-misc-info
+                  (:eval
+                   (propertize
+                    "VCS:"
+                    'face 'warning))
+                  vc-mode
                   mode-line-end-spaces)))
 
 ;; **** doom modeline
@@ -634,6 +647,25 @@ mouse-1: Display Line and Column Mode Menu"
                           (doom-modeline--symbol-overlay))))
         (or (and (not (equal meta "")) meta)
             (doom-modeline--buffer-size))))))
+
+;; ******* idle actived =buffer-info= indicator
+
+  (doom-modeline-def-segment buffer-info
+    "Combined information about the current buffer, including the
+current working directory, the file name, and its
+state (modified, read-only or non-existent).
+
+NOTE: this functio has been redefined by eemacs to run while idle
+while `entropy/emacs-current-session-is-idle' is non-nil."
+    (cond
+     ((not entropy/emacs-current-session-is-idle)
+      "🔃")
+     (t
+      (concat
+       (doom-modeline-spc)
+       (doom-modeline--buffer-mode-icon)
+       (doom-modeline--buffer-state-icon)
+       (doom-modeline--buffer-name)))))
 
 ;; ****** eemacs doom-modeline type spec
   (doom-modeline-def-modeline 'main

@@ -121,7 +121,7 @@ origin, since each set to the `gc-threshold' or
         (t
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          most-positive-fixnum
+          (* 100 1024 1024)
           ;; (cond
           ;;  ((ignore-errors
           ;;     (eq (car company-frontends)
