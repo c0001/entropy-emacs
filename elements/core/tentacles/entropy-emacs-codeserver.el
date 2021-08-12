@@ -523,7 +523,11 @@ when available."
         lsp-signature-doc-lines 0
         ;; forbidden auto enable `dap-mode'
         lsp-enable-dap-auto-configure nil
-        lsp-idle-delay entropy/emacs-ide-diagnostic-delay)
+        lsp-idle-delay entropy/emacs-ide-diagnostic-delay
+        ;; inhibit full workspace diagnostic clean for reduce lag
+        lsp-diagnostic-clean-after-change nil
+        ;; disable large verbose log
+        lsp-log-io nil)
 
   ;; disable redudant functionalities to improve performance
   (setq
