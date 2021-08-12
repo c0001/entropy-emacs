@@ -1717,9 +1717,9 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
   (entropy/emacs-lazy-load-simple help
     (global-set-key (kbd "C-h C-h") nil))
 
+;; **** config
   :config
-  ;; Disable `after-make-frame-functions' when popup which-key dim
-  ;; using frame feature.
+;; ***** Disable `after-make-frame-functions' when popup which-key dim using frame feature.
   (defun entropy/emacs-basic--which-key-inhibit-stuffs
       (orig-func &rest orig-args)
     (let ((after-make-frame-functions nil))
@@ -1728,7 +1728,31 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
                   which-key--show-buffer-reuse-frame))
     (advice-add func
                 :around
-                #'entropy/emacs-basic--which-key-inhibit-stuffs)))
+                #'entropy/emacs-basic--which-key-inhibit-stuffs))
+
+;; ***** trigger optimization
+
+  (defvar __patch/which-key-is-hided-p nil)
+
+  (defun __adv/around/which-key--update/0
+      (orig-func &rest orig-args)
+    (prog1
+        (apply orig-func orig-args)
+      (setq __patch/which-key-is-hided-p nil)))
+  (advice-add 'which-key--update
+              :around
+              #'__adv/around/which-key--update/0)
+
+  (defun __adv/around/which-key--hide-popup/0
+      (orig-func &rest orig-args)
+    (unless __patch/which-key-is-hided-p
+      (apply orig-func orig-args)
+      (setq __patch/which-key-is-hided-p t)))
+  (advice-add 'which-key--hide-popup
+              :around
+              '__adv/around/which-key--hide-popup/0)
+
+  )
 
 ;; *** Undo tree
 (use-package undo-tree

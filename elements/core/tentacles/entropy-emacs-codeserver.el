@@ -511,6 +511,15 @@ when available."
         lsp-enable-dap-auto-configure nil
         lsp-idle-delay entropy/emacs-ide-diagnostic-delay)
 
+  ;; disable redudant functionalities to improve performance
+  (setq
+   lsp-headerline-breadcrumb-enable nil
+   lsp-modeline-code-actions-enable nil
+   lsp-modeline-diagnostics-enable nil
+   lsp-modeline-workspace-status-enable nil
+   lsp-lens-enable nil
+   lsp-semantic-tokens-enable nil)
+
   ;; Inhibit auto header insertion via lsp-cland client refer to
   ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
   (setq lsp-clients-clangd-args '("--header-insertion=never"))

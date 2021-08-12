@@ -55,6 +55,7 @@
              symbol-overlay-put
              symbol-overlay-remove-all
              symbol-overlay-jump-prev)
+;; *** preface
   :preface
 
   (defun entropy/emacs-hl-symbol-overlay-toggle ()
@@ -81,6 +82,7 @@
       (symbol-overlay-mode +1))
     (symbol-overlay-jump-prev))
 
+;; *** eemacs hydra hollow
   :eemacs-tpha
   (((:enable t))
    ("Highlight"
@@ -117,6 +119,8 @@
       :enable t
       :eemacs-top-bind t
       :exit t))))
+
+;; *** init
   :init
   (if (and entropy/emacs-hl-sysmbol-overlay-enable-at-startup
            ;; we just enable symbol-overlay for all mode derived from
@@ -129,7 +133,30 @@
     ;; `symbol-overlay-mode' forcely enable injections for those
     ;; hooks.
     (dolist (hook '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
-      (add-hook hook 'symbol-overlay-mode))))
+      (add-hook hook 'symbol-overlay-mode)))
+
+;; *** config
+  :config
+
+;; ***** advices
+;; ****** timer reset
+  (defun __adv/around/symbol-overlay-cancel-timer/0
+      (orig-func &rest orig-args)
+    "Forcely reset `symbol-overly-timer' for bug fix."
+    (prog1
+        (apply orig-func orig-args)
+      ;; Force bind it to nil since the `cancel-timer' function not
+      ;; care about the symbol.
+      (setq-local symbol-overlay-timer nil)))
+  (advice-add 'symbol-overlay-cancel-timer
+              :around
+              #'__adv/around/symbol-overlay-cancel-timer/0)
+
+;; ****** after change hook modification
+
+  ;; we don't need the refrresh
+  (remove-hook 'after-change-functions 'symbol-overlay-refresh)
+  )
 
 ;; ** Highlight matching paren
 (use-package paren

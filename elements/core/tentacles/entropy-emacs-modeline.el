@@ -620,10 +620,26 @@ mouse-1: Display Line and Column Mode Menu"
           (t
            " ......... ")))
 
+
+;; ******* idle actived =matches= indicator
+
+  (doom-modeline-def-segment matches
+    "Redefined by eemacs to run while
+`entropy/emacs-current-session-is-idle' is non-nill"
+    (cond
+     ((not entropy/emacs-current-session-is-idle)
+      " ... ")
+     (t
+      (let ((meta (concat (doom-modeline--macro-recording)
+                          (doom-modeline--symbol-overlay))))
+        (or (and (not (equal meta "")) meta)
+            (doom-modeline--buffer-size))))))
+
 ;; ****** eemacs doom-modeline type spec
   (doom-modeline-def-modeline 'main
    '(bar workspace-number window-number
-         matches buffer-info remote-host buffer-position parrot
+         matches
+         buffer-info remote-host buffer-position parrot
          " " company-indicator selection-info)
    '(misc-info lsp irc mu4e github debug minor-modes
                input-method buffer-encoding major-mode process vcs checker))
