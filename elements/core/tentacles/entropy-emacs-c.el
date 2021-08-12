@@ -42,6 +42,22 @@
 (use-package cc-mode
   :ensure nil
   :preface
+  (defun entropy/emacs/c-mode/after-change-func
+      (&rest _)
+    ;; fontify the buffer context round at `current-point' with idle
+    ;; style
+    (entropy/emacs-run-at-idle-immediately
+     idle-fontify-c-type-buffer
+     (let ((cur-pos (point))
+           (cur-line (string-to-number (format-mode-line "%l"))))
+       (c-font-lock-fontify-region
+        (save-excursion
+          (forward-line -5)
+          (point))
+        (save-excursion
+          (forward-line 5)
+          (point))))))
+
   (defun entropy/emacs-c-cc-mode-common-set ()
     (c-set-style "bsd")
     (setq-local tab-width 4)
@@ -58,10 +74,17 @@
     (setq-local font-lock-extend-after-change-region-function
                 nil
                 font-lock-fontify-region-function
-                'font-lock-default-fontify-region))
+                'font-lock-default-fontify-region)
+    ;; add idle buffer fontify hook
+    (add-hook 'after-change-functions
+              #'entropy/emacs/c-mode/after-change-func
+              nil t))
+
   :init
   (add-hook 'c-mode-common-hook
-            #'entropy/emacs-c-cc-mode-common-set))
+            #'entropy/emacs-c-cc-mode-common-set)
+  :config
+  )
 
 ;; ** provide
 (provide 'entropy-emacs-c)

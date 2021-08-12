@@ -1871,6 +1871,16 @@ with origin message echo area with those specification.
        :before
        ',body))))
 
+;; *** Lazy execute specification
+;; ***** TODO accumulation execution
+
+;; (defmacro entropy/emacs-accumulation-execution-advice
+;;     (func_name iterate_times))
+
+;; ***** TODO idle execution
+;; (defmacro entropy/emacs-idle-execution-advice
+;;     (func_name iterate_times))
+
 ;; *** Package user dir specification
 
 (defvar entropy/emacs--package-user-dir-setted nil)

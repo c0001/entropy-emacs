@@ -674,22 +674,31 @@ predicate when run it, see
     "Speed up `line-number-at-pos' used in `lsp--cur-line' which
 perforrmed in every command post to improve buffer typing or
 scrolling performance in lsp actived buffer, using modeline
-substitutes while ORIG-ARGS is empty.
+substitutes while ORIG-ARGS is empty, in which case we have
+assumption that the lsp prober just use `current-point' to did
+those detection or in buffer visual part generally, and it is the
+most of cases we learn about the source code of `lsp-mode' but no
+guarantees of whole mechanism, thus, this patch may have messy on
+some special cases.
 
 [Stick from]:
 https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-number-at-pos-in-large-buffers
 "
     (let* ((buff (current-buffer))
-           (win (get-buffer-window buff)))
+           (win (get-buffer-window buff))
+           (pos (car orig-args)))
       (cond
        ((and
-         (null (car orig-args))
          (windowp win)
          (window-live-p win)
          ;; ensure the modeline arg expansion correct
          (eq win (selected-window)))
         (1-
-         (string-to-number (format-mode-line "%l"))))
+         (if pos
+             (save-excursion
+               (goto-char pos)
+               (string-to-number (format-mode-line "%l")))
+           (string-to-number (format-mode-line "%l")))))
        (t
         ;; (message "use origi `lsp--cur-line'")
         (apply orig-func orig-args)))))

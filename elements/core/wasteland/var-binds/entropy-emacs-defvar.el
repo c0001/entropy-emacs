@@ -301,9 +301,12 @@ remove the oldest one and then injecting new one."
      (defalias ',name
        (lambda (&rest _)
          ,@body))
-     (remove-hook 'entropy/emacs-session-idle-trigger-hook ',name)
-     (add-hook 'entropy/emacs-session-idle-trigger-hook
-               ',name)))
+     ;; use `delete' ad `push' to reduce lag
+     (setq entropy/emacs-session-idle-trigger-hook
+           (delete ',name
+                   entropy/emacs-session-idle-trigger-hook))
+     (push ',name
+           entropy/emacs-session-idle-trigger-hook)))
 
 ;; ** eemacs top keymap refer
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
