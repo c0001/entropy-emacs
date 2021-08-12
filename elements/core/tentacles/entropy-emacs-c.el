@@ -50,13 +50,14 @@
      idle-fontify-c-type-buffer
      (let ((cur-pos (point))
            (cur-line (string-to-number (format-mode-line "%l"))))
-       (c-font-lock-fontify-region
-        (save-excursion
-          (forward-line -5)
-          (point))
-        (save-excursion
-          (forward-line 5)
-          (point))))))
+       (save-excursion
+         (c-font-lock-fontify-region
+          (save-excursion
+            (forward-line -5)
+            (point))
+          (save-excursion
+            (forward-line 5)
+            (point)))))))
 
   (defun entropy/emacs-c-cc-mode-common-set ()
     (c-set-style "bsd")
