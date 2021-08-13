@@ -150,6 +150,19 @@ NOTE: this function is an around advice wrapper."
     (apply orig-func orig-args)))
 
 
+;; *** prunning `company-frontends'
+
+(defun entropy/emacs-company--set-only-one-frontend
+    (only-one)
+  (setq company-frontends (list only-one)))
+
+(defun entropy/emacs-company--set-only-one-frontend-all-buffers
+    (only-one)
+  (dolist (buff (buffer-list))
+    (when (bound-and-true-p company-mode)
+      (entropy/emacs-company--set-only-one-frontend
+       only-one))))
+
 ;; ** company core
 (use-package company
   ;; :diminish company-mode  ;;; This comment to diminish the modline
@@ -265,6 +278,16 @@ NOTE: this function is an around advice wrapper."
    company-dabbrev-ignore-case nil
    company-dabbrev-downcase nil
    company-dabbrev-char-regexp "\\sw[-_]*")
+
+  ;; disable common command before which the company begun to run
+  ;; EEMACS_MAINTENANCE: the variable `company--bein-inhibit-commands'
+  ;; is not the common API!
+  (dolist (command '(previous-line
+                     next-line
+                     left-char
+                     right-char))
+    (add-to-list 'company--begin-inhibit-commands
+                 command))
 
 ;; **** advices
 
@@ -478,7 +501,19 @@ canididates which makes emacs laggy for each post-command while
   :bind (:map company-active-map
               ("<f1>" . nil))
   :preface
+
+  (defun entropy/emacs-company--default-frontend-set-hook
+      (&rest _)
+    (entropy/emacs-company--set-only-one-frontend
+     'company-pseudo-tooltip-unless-just-one-frontend))
+
   (defun entropy/emacs-company--default-enable ()
+    ;; just use one frontends for reduce lagging
+    (add-hook 'company-mode-hook
+              #'entropy/emacs-company--default-frontend-set-hook)
+    ;; travel all buffers with `company-mode' enabled to set frontend.
+    (entropy/emacs-company--set-only-one-frontend
+     'company-pseudo-tooltip-unless-just-one-frontend)
     (cond ((display-graphic-p)
            (company-quickhelp-mode 1)
            (define-key company-active-map
@@ -489,6 +524,8 @@ canididates which makes emacs laggy for each post-command while
             "NOTE: Can not enable company-quickhelp in non-gui session"))))
 
   (defun entropy/emacs-company--default-disable ()
+    (remove-hook 'company-mode-hook
+                 #'entropy/emacs-company--default-frontend-set-hook)
     (when (bound-and-true-p company-quickhelp-mode)
       (company-quickhelp-mode 0)
       (define-key company-active-map
@@ -519,10 +556,17 @@ canididates which makes emacs laggy for each post-command while
 ;; **** preface
   :preface
 
+  (defun entropy/emacs-company--company-box-frontend-set-hook
+      (&rest _)
+    (entropy/emacs-company--set-only-one-frontend
+     'company-box-frontend))
+
   (defun entropy/emacs-company--box-disable ()
     (progn
       (remove-hook 'company-mode-hook
                    #'company-box-mode)
+      (remove-hook 'company-mode-hook
+                   #'entropy/emacs-company--company-box-frontend-set-hook)
       (mapc (lambda (buffer)
               (with-current-buffer buffer
                 (when (bound-and-true-p company-box-mode)
@@ -534,6 +578,12 @@ canididates which makes emacs laggy for each post-command while
 
   (defun entropy/emacs-company--box-enable ()
     (cond ((entropy/emacs-posframe-adapted-p)
+           ;; just use one frontends for reduce lagging
+           (add-hook 'company-mode-hook
+                     #'entropy/emacs-company--company-box-frontend-set-hook)
+           ;; travel all buffers with `company-mode' enabled to set frontend.
+           (entropy/emacs-company--set-only-one-frontend
+            'company-box-frontend)
            (add-hook 'company-mode-hook
                      #'company-box-mode)
            (mapc (lambda (buffer)
@@ -747,8 +797,7 @@ completion when calling: 'execute-extended-command' or
       (setq-local company-backends '((entropy/emacs-company-elisp-minibuffer
                                       company-capf)))
       (setq-local company-tooltip-limit 6)
-      (setq-local company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
-                                      company-preview-if-just-one-frontend))
+      (setq-local company-frontends '(company-pseudo-tooltip-unless-just-one-frontend))
       (company-mode 1)
 
       ;; We just use overlay render tooltip type because other
