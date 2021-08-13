@@ -127,7 +127,11 @@
            ;; `prog-mode' when `entropy/emacs-ide-suppressed' is null
            ;; in which case all those modes doesn't have native symbol
            ;; highlight feature yet.
-           (null entropy/emacs-ide-suppressed))
+           (null entropy/emacs-ide-suppressed)
+           ;; And not used in lsp related session, since lsp already
+           ;; have thus functionality.
+           (not (member entropy/emacs-ide-use-for-all
+                        '(lsp eglot))))
       (add-hook 'prog-mode-hook #'symbol-overlay-mode)
     ;; emacs lisp mode doesn't have code-server support so we use
     ;; `symbol-overlay-mode' forcely enable injections for those
