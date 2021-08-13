@@ -303,7 +303,7 @@ enabled."
   (defvar entropy/emacs-modeline--doom-modeline-enable-done nil)
 
   (defun entropy/emacs-modeline--doom-modeline-specification ()
-    (setq doom-modeline-height 10
+    (setq doom-modeline-height 25
           doom-modeline-bar-width 1
           doom-modeline-buffer-file-name-style 'buffer-name
           doom-modeline-major-mode-color-icon t
@@ -659,8 +659,12 @@ state (modified, read-only or non-existent).
 NOTE: this functio has been redefined by eemacs to run while idle
 while `entropy/emacs-current-session-is-idle' is non-nil."
     (cond
-     ((and entropy/emacs-current-session-is-idle
-           (doom-modeline--active))
+     ((or
+       ;; we do not inhibit show for some non frequency status
+       (or
+        (eq last-command 'entropy/grom-read-only-buffer))
+       (and entropy/emacs-current-session-is-idle
+            (doom-modeline--active)))
       (concat
        (doom-modeline-spc)
        (doom-modeline--buffer-mode-icon)
