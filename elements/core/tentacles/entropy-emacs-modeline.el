@@ -640,13 +640,14 @@ mouse-1: Display Line and Column Mode Menu"
     "Redefined by eemacs to run while
 `entropy/emacs-current-session-is-idle' is non-nill"
     (cond
-     ((not entropy/emacs-current-session-is-idle)
-      " ... ")
-     (t
+     ((and entropy/emacs-current-session-is-idle
+           (doom-modeline--active))
       (let ((meta (concat (doom-modeline--macro-recording)
                           (doom-modeline--symbol-overlay))))
         (or (and (not (equal meta "")) meta)
-            (doom-modeline--buffer-size))))))
+            (doom-modeline--buffer-size))))
+     (t
+      " ... ")))
 
 ;; ******* idle actived =buffer-info= indicator
 
@@ -658,16 +659,30 @@ state (modified, read-only or non-existent).
 NOTE: this functio has been redefined by eemacs to run while idle
 while `entropy/emacs-current-session-is-idle' is non-nil."
     (cond
-     ((not entropy/emacs-current-session-is-idle)
-      "🔃")
-     (t
+     ((and entropy/emacs-current-session-is-idle
+           (doom-modeline--active))
       (concat
        (doom-modeline-spc)
        (doom-modeline--buffer-mode-icon)
        (doom-modeline--buffer-state-icon)
-       (doom-modeline--buffer-name)))))
+       (doom-modeline--buffer-name)))
+     (t
+      "🔃")))
 
 ;; ****** eemacs doom-modeline type spec
+
+  (defun __adv/around/doom-modeline-format-just-in-selected-window
+      (orig-func &rest orig-args)
+    "Run 'doom-modeline-formt--*' class modline format focus in
+`selected-window' to reduce the perfomance issue."
+    (cond
+     ((and
+       ;; entropy/emacs-current-session-is-idle
+       (doom-modeline--active))
+      (apply orig-func orig-args))
+     (t
+      nil)))
+
   (doom-modeline-def-modeline 'main
    '(bar workspace-number window-number
          matches
@@ -679,6 +694,33 @@ while `entropy/emacs-current-session-is-idle' is non-nil."
   (doom-modeline-def-modeline 'project
     '(bar workspace-number window-number buffer-default-directory)
     '(misc-info mu4e github debug major-mode process))
+
+  (dolist (fmt-func-suffix
+           '(
+             pdf
+             vcs
+             helm
+             info
+             main
+             media
+             message
+             minimal
+             org-src
+             package
+             project
+             special
+             dashboard
+             timemachine
+             ))
+    (eval
+     `(let* ((func ',(intern
+                      (format "doom-modeline-format--%s"
+                              fmt-func-suffix))))
+        (when (fboundp func)
+          (advice-add
+           func
+           :around
+           #'__adv/around/doom-modeline-format-just-in-selected-window)))))
 
 ;; ****** common spec
 
