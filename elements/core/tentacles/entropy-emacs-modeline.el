@@ -685,7 +685,13 @@ while `entropy/emacs-current-session-is-idle' is non-nil."
        (doom-modeline--active))
       (apply orig-func orig-args))
      (t
-      nil)))
+      ;; The window line replace the complicated modeline format while
+      ;; the window is not in activation
+      (propertize
+       (make-string
+        (+ (window-width) 3) ?─ t)
+       'face
+       'error))))
 
   (doom-modeline-def-modeline 'main
    '(bar workspace-number window-number
