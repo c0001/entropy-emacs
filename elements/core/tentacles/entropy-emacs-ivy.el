@@ -73,7 +73,6 @@
   (setq enable-recursive-minibuffers t) ;Allow commands in minibuffers
   (setq ivy-use-selectable-prompt nil)
   (setq ivy-use-virtual-buffers t)      ;Enable bookmarks and recentf
-  (setq ivy-height 10)
   (setq ivy-count-format "%-5d ")
   (setq ivy-on-del-error-function 'ignore)  ;Disable back-delete exit when empty input.
   (setq ivy-dynamic-exhibit-delay-ms 2) ;prevent immediacy dnynamic process fetching crash.
@@ -82,6 +81,10 @@
                                         ;prompt for preventing long
                                         ;line prompt messy up candi
                                         ;exhibits
+  ;; Use limit candi exhibits to prevent visual messy
+  (setq ivy-height (if ivy-add-newline-after-prompt 4 3))
+  ;; Disable fancy highlight to the matched candidate for performance issue
+  (setq ivy-display-style nil)
 
   ;; using fuzzy matching
   (setq ivy-re-builders-alist
