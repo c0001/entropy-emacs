@@ -117,7 +117,9 @@
         w3m-use-tab nil
         w3m-use-tab-menubar nil
         w3m-process-timeout 5
-        w3m-pop-up-windows nil)
+        w3m-pop-up-windows nil
+        ;; disable the cursor move hook for reduce lagging
+        w3m-after-cursor-move-hook nil)
   ;; disable this to prevent its lagging on because of that
   ;; `w3m-redisplay-pages-automatically' is a hook arranged into
   ;; `window-configuration-change-hook'.
