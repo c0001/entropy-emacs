@@ -277,7 +277,7 @@ NOTE: this function is an around advice wrapper."
    company-require-match nil
    company-dabbrev-ignore-case nil
    company-dabbrev-downcase nil
-   company-dabbrev-char-regexp "\\sw[-_]*")
+   company-dabbrev-char-regexp "[-_/a-zA-Z0-9]+")
 
   ;; disable common command before which the company begun to run
   ;; EEMACS_MAINTENANCE: the variable `company--bein-inhibit-commands'
@@ -290,7 +290,7 @@ NOTE: this function is an around advice wrapper."
                  command))
 
 ;; **** advices
-
+;; ***** restrict company candidates length
   (advice-add 'company-pseudo-tooltip-frontend
               :around
               #'entropy/emacs-company--company-candis-restrict-advice)
@@ -298,7 +298,8 @@ NOTE: this function is an around advice wrapper."
               :around
               #'entropy/emacs-company--company-candis-length-follow-advice)
 
-  (defun company--perform ()
+;; ***** idle perfom `comany-perfom'
+  (defun __ya/company--perform ()
     "NOTE: this function has been patched for be suitable for
 eemacs.
 
@@ -336,6 +337,11 @@ event hints, so that fast continuous will lagging on."
         ;;tooltip frontend with delay trigger support replace it.
         (company-call-frontends 'update))))
 
+  (advice-add 'company--perform
+              :override
+              #'__ya/company--perform)
+
+;; ***** fly on type for `delete-char'
   (defvar-local __company-delc-time-host nil)
   (defun __company-delc-time-fly-p ()
     "Judge whether the `delete-char' hit on flying while company
@@ -363,6 +369,8 @@ activated status. Default time during set is less than 70ms."
       rtn))
   (advice-add 'delete-char :around #'__company-delete-char)
 
+;; ***** pseudo tooltip optimization
+;; ****** idle dislay pseudo tooltip overlay
   (defun entropy/emacs-company-pseudo-tooltip-unhide-delay
       (orig-func &rest orig-args)
     "Delay show the pseudo tooltip for reducing fast hints laggy."
@@ -389,25 +397,7 @@ activated status. Default time during set is less than 70ms."
               :around
               #'entropy/emacs-company-pseudo-tooltip-unhide-delay)
 
-  ;; EEMACS_MAINTENANCE: this may update with upstream
-  (defun company--posn-col-row (posn)
-    "NOTE: this function has been redefined by eemacs to get more
-efficiently way."
-    (let* (;; calculate `posn-col-row' just once for reducing I/O periods.
-           (nominal-pos (posn-col-row posn))
-           (col (car nominal-pos))
-           ;; `posn-col-row' doesn't work well with lines of different height.
-           ;; `posn-actual-col-row' doesn't handle multiple-width characters.
-           (row (cdr (or (posn-actual-col-row posn)
-                         ;; When position is non-visible for some reason.
-                         nominal-pos))))
-      (when (and header-line-format (version< emacs-version "24.3.93.3"))
-        ;; http://debbugs.gnu.org/18384
-        (cl-decf row))
-      (when (bound-and-true-p display-line-numbers)
-        (cl-decf col (+ 2 (line-number-display-width))))
-      (cons (+ col (window-hscroll)) row)))
-
+;; ****** remove annotation perform on pseudo frontend
   (defun entropy/emacs-company--pseudo-no-annotation
       (orig-func &rest orig-args)
     "Force disable annotation for pseudo tooltip for performance
@@ -429,6 +419,82 @@ canididates which makes emacs laggy for each post-command while
   (advice-add 'company-call-backend
               :around
               #'entropy/emacs-company--pseudo-no-annotation)
+
+;; ****** pseudo frontend subroutine performance optimization
+
+;; ******* simplify the pseudo candi line overlay generator
+  (defun __ya/company-fill-propertize (value annotation width selected left right)
+    "The simplify `company-fill-propertize'.
+
+EEMACS_MAINTENANCE: stick to upstream udpate"
+    (let* ((margin (length left))
+           (common (or (company-call-backend 'match value)
+                       (if company-common
+                           (string-width company-common)
+                         0)))
+           (_ (setq value (company-reformat (company--pre-render value))
+                    ;; annotation nil
+                    ))
+           (line (concat left
+                         (company-safe-substring
+                          value 0 width)
+                         right)))
+      (setq width (+ width margin (length right)))
+      (when selected
+        (add-face-text-property 0 width 'company-tooltip-selection t line))
+      (add-face-text-property 0 width 'company-tooltip t line)
+      line))
+
+  (advice-add
+   'company-fill-propertize
+   :override
+   #'__ya/company-fill-propertize)
+
+;; ******* optimization the interna substring routine
+  (defun __ya/company-safe-substring (str from &optional to)
+    "High performance versio of `company-safe-substring'.
+EEMACS_MAINTENANCE: stick to upstream udpate"
+    (let* ((str (substring-no-properties str))
+           (str-width (string-width str)))
+      (if (> from str-width)
+          ""
+        (if to
+            (concat
+             (if (<= str-width to)
+                 str
+               (substring str from to))
+             (let ((padding (- to (string-width str))))
+               (when (> padding 0)
+                 (company-space-string padding))))
+          str))))
+  (advice-add 'company-safe-substring
+              :override
+              #'__ya/company-safe-substring)
+
+;; ******* `company--posn-col-row' optimization
+  ;; EEMACS_MAINTENANCE: this may update with upstream
+  (defun __ya/company--posn-col-row (posn)
+    "NOTE: this function has been redefined by eemacs to get more
+efficiently way."
+    (let* (;; calculate `posn-col-row' just once for reducing I/O periods.
+           (nominal-pos (posn-col-row posn))
+           (col (car nominal-pos))
+           ;; `posn-col-row' doesn't work well with lines of different height.
+           ;; `posn-actual-col-row' doesn't handle multiple-width characters.
+           (row (cdr (or (posn-actual-col-row posn)
+                         ;; When position is non-visible for some reason.
+                         nominal-pos))))
+      (when (and header-line-format (version< emacs-version "24.3.93.3"))
+        ;; http://debbugs.gnu.org/18384
+        (cl-decf row))
+      (when (bound-and-true-p display-line-numbers)
+        (cl-decf col (+ 2 (line-number-display-width))))
+      (cons (+ col (window-hscroll)) row)))
+
+  (advice-add
+   'company--posn-col-row
+   :override
+   #'__ya/company--posn-col-row)
 
   )
 
