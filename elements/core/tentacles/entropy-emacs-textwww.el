@@ -118,8 +118,17 @@
         w3m-use-tab-menubar nil
         w3m-process-timeout 5
         w3m-pop-up-windows nil
-        ;; disable the cursor move hook for reduce lagging
-        w3m-after-cursor-move-hook nil)
+        )
+
+  ;; disable the cursor move hook for reduce lagging
+  ;; FIXME: we ensure set it after load w3m to take effecient, why?
+  (if entropy/emacs-fall-love-with-pdumper
+      (entropy/emacs-lazy-with-load-trail
+       unset-w3m-after-cursor-move-hook
+       (setq w3m-after-cursor-move-hook nil))
+    (entropy/emacs-lazy-load-simple w3m
+      (setq w3m-after-cursor-move-hook nil)))
+
   ;; disable this to prevent its lagging on because of that
   ;; `w3m-redisplay-pages-automatically' is a hook arranged into
   ;; `window-configuration-change-hook'.
