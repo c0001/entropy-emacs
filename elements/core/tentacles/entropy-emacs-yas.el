@@ -52,7 +52,7 @@
 ;; ** yasnippet
 (use-package yasnippet
   :diminish yas-minor-mode
-  :commands (yas-global-mode yas-expand)
+  :commands (yas-global-mode yas-minor-mode yas-expand)
   :eemacs-indhca
   (((:enable t)
     (yasnippet-uniform))
@@ -71,13 +71,13 @@
 
   :init
   (defun entropy/emacs-yas-enable-or-expand (&rest args)
-    "Auto enable `yas-global-mode' when not as it and call
+    "Auto enable `yas-minor-mode' when not as it and call
 `yas-expand'."
     (interactive)
     (require 'yasnippet)
     (cond
-     ((not yas-global-mode)
-      (yas-global-mode)
+     ((not yas-minor-mode)
+      (yas-minor-mode 1)
       (yas-expand))
      (t
       (yas-expand))))

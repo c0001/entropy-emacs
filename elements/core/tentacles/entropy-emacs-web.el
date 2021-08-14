@@ -65,7 +65,7 @@
   (progn
     (require 'yasnippet)
     (unless yas-minor-mode
-      (yas-minor-mode))
+      (yas-minor-mode 1))
     (yas-activate-extra-mode 'php-mode)
     (yas-activate-extra-mode 'js2-mode)
     (yas-activate-extra-mode 'css-mode))

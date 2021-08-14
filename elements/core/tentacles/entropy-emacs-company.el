@@ -92,13 +92,11 @@
        (if (consp backend) backend (list backend))
        '(:separate company-yasnippet)))))
 
-(defvar entropy/emacs-company-start-with-yas-done nil)
 (defun entropy/emacs-company-start-with-yas (&rest _)
-  (unless (or (bound-and-true-p yas-global-mode)
-              entropy/emacs-company-start-with-yas-done)
-    (when (fboundp 'yas-global-mode)
-      (yas-global-mode)
-      (setq entropy/emacs-company-start-with-yas-done t))))
+  (unless (bound-and-true-p yas-minor-mode)
+    (unless (fboundp 'yas-minor-mode)
+      (require 'yasnippet))
+    (yas-minor-mode 1)))
 
 ;; *** company for docs modes
 
@@ -265,6 +263,9 @@ NOTE: this function is an around advice wrapper."
 
   ;; common internal customization
   (setq
+   ;; just enable company in some prog referred modes
+   company-global-modes (append '(emacs-lisp-mode lisp-interaction-mode)
+                                entropy/emacs-ide-for-them)
    company-tooltip-limit 20  ; bigger popup window
    company-tooltip-maximum-width 70
    company-tooltip-minimum-width 20
@@ -650,8 +651,12 @@ efficiently way."
            ;; travel all buffers with `company-mode' enabled to set frontend.
            (entropy/emacs-company--set-only-one-frontend
             'company-box-frontend)
-           (add-hook 'company-mode-hook
-                     #'company-box-mode)
+           (add-hook
+            'company-mode-hook
+            #'(lambda ()
+                (if (bound-and-true-p company-mode)
+                    (company-box-mode 1)
+                  (company-box-mode 0))))
            (mapc (lambda (buffer)
                    (with-current-buffer buffer
                      (when (bound-and-true-p company-mode)
@@ -803,16 +808,18 @@ upstream."
     "Hide company-box-doc frame when flying on the hints when the
 older doc show is actived since we delayed company update command
 while in `company-box-mode'."
-    (cond
-     ((bound-and-true-p company-box-mode)
-      (add-hook 'pre-command-hook
-                #'__ya_company-box-doc-hide nil t))
-     (t
-      (add-hook 'pre-command-hook
-                #'__ya_company-box-doc-hide nil t))))
+    (if (bound-and-true-p company-box-mode)
+        (cond
+         ((bound-and-true-p company-box-mode)
+          (add-hook 'pre-command-hook
+                    #'__ya_company-box-doc-hide nil t))
+         (t
+          (add-hook 'pre-command-hook
+                    #'__ya_company-box-doc-hide nil t)))
+      (remove-hook 'pre-command-hook
+                   #'__ya_company-box-doc-hide t)))
   (add-hook 'company-box-mode-hook
             #'entropy/emacs-company-box-hide-on-the-fly)
-
 
   )
 

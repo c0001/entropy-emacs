@@ -554,7 +554,19 @@ when available."
    "lsp-enable-yas"
    prompt-popup
    (require 'yasnippet)
-   (yas-global-mode))
+   (unless (bound-and-true-p yas-minor-mode)
+     (yas-minor-mode 1)))
+
+  ;; fully quit `lsp-mode' charge
+  (entropy/emacs-add-hook-lambda-nil
+   disable-lsp-remains-when-quit
+   lsp-mode-hook
+   nil
+   (when (not (bound-and-true-p lsp-mode))
+     (if (bound-and-true-p lsp-diagnostics-mode)
+         (lsp-diagnostics-mode 0))
+     (if (bound-and-true-p lsp-managed-mode)
+         (lsp-managed-mode 0))))
 
 ;; ******* config
   :config
