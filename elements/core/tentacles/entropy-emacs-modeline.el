@@ -505,6 +505,25 @@ enable it which do not want to be unset yet."
               :around
               #'entropy/emacs-modeline--doom-modeline-mode-around-advice)
 
+  (defvar __ya/doom-modeline--font-width-cache nil)
+  (defun __adv/around/doom-modeline--font-width
+      (orig-func &rest orig-args)
+    "Cache the result of `doom-modeline--font-width' since it use
+`face-all-attributes' on modeline to generated the key to
+`doom-modeline--font-width-cache' for every modeline refresh
+which lag so much."
+    (if
+        (and entropy/emacs-current-session-is-idle
+             (doom-modeline--active))
+        (setq __ya/doom-modeline--font-width-cache
+              (apply orig-func orig-args))
+      (or __ya/doom-modeline--font-width-cache
+          (setq __ya/doom-modeline--font-width-cache
+                (apply orig-func orig-args)))))
+  (advice-add 'doom-modeline--font-width
+              :around
+              #'__adv/around/doom-modeline--font-width)
+
 ;; ****** eemacs doom-modeline segments spec
 ;; ******* company-indicator
   (doom-modeline-def-segment company-indicator
@@ -672,6 +691,23 @@ while `entropy/emacs-current-session-is-idle' is non-nil."
        (doom-modeline--buffer-name)))
      (t
       "🔃")))
+
+;; ******* idle actived =major-mode= indictor
+
+  (defun __ya/doom-modeline-segment--major-mode
+      (orig-func &rest orig-args)
+    (cond ((and entropy/emacs-current-session-is-idle
+                (doom-modeline--active))
+           (apply orig-func orig-args))
+          (t
+           mode-name)))
+  (if (fboundp 'doom-modeline-segment--major-mode)
+      (advice-add 'doom-modeline-segment--major-mode
+                  :around
+                  #'__ya/doom-modeline-segment--major-mode)
+    (error "EEMACS_MAINTENANCE: doom-modeline-segment--major-mode \
+function name has been changed, please update internal hack of \
+`__ya/doom-modeline-segment--major-mode'."))
 
 ;; ****** eemacs doom-modeline type spec
 
