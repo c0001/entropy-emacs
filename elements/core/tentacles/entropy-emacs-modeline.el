@@ -69,7 +69,7 @@
 ;; **** common eemacs spec eyebrowse segment
 (defun entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen (tag)
   (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
-    (cond ((entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p?)
+    (cond ((entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?)
            (if derived
                'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived
              'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main))
@@ -194,62 +194,67 @@ enabled."
 
 ;; **** origin type
 ;; ***** egroup core
-(defvar entropy/emacs-modeline--mdl-egroup-selected-window
+(defvar entropy/emacs-modeline--mdl-egroup-current-selected-window
   (frame-selected-window))
 
-(defun entropy/emacs-modeline--mdl-egroup-get-current-window ()
+(defun entropy/emacs-modeline--mdl-egroup/->get-current-window ()
   ;; Get the current window but should exclude on the child frame.
   (if (and (fboundp 'frame-parent) (frame-parent))
       (frame-selected-window (frame-parent))
     (frame-selected-window)))
 
-(defun entropy/emacs-modeline--mdl-egroup-set-selected-window (&optional orig-func &rest orig-args)
+(defun entropy/emacs-modeline--mdl-egroup/->set-selected-window
+    (&optional orig-func &rest orig-args)
   "Set `entropy/emacs-modeline--mdl-egroup' selected window indicator."
-  (let ((rtn (when orig-func
+  (let ((rtn (when (and orig-func
+                        (functionp orig-func))
                (apply orig-func orig-args)))
         (win
-         (entropy/emacs-modeline--mdl-egroup-get-current-window)))
+         (entropy/emacs-modeline--mdl-egroup/->get-current-window)))
     (unless (minibuffer-window-active-p win)
-      (setq entropy/emacs-modeline--mdl-egroup-selected-window win)
-      (force-mode-line-update))
+      (setq entropy/emacs-modeline--mdl-egroup-current-selected-window win)
+      ;; (force-mode-line-update)
+      )
     rtn))
 
-(defun entropy/emacs-modeline--mdl-egroup-unset-selected-window ()
+(defun entropy/emacs-modeline--mdl-egroup/->unset-selected-window ()
   "Unset `entropy/emacs-modeline--mdl-egroup' appropriately."
-  (setq entropy/emacs-modeline--mdl-egroup-selected-window nil)
-  (force-mode-line-update))
+  (setq entropy/emacs-modeline--mdl-egroup-current-selected-window nil)
+  ;; (force-mode-line-update)
+  )
 
-(defun entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p? ()
-  (and entropy/emacs-modeline--mdl-egroup-selected-window
-       (eq (entropy/emacs-modeline--mdl-egroup-get-current-window)
-           entropy/emacs-modeline--mdl-egroup-selected-window)))
+(defun entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p? ()
+  (and entropy/emacs-modeline--mdl-egroup-current-selected-window
+       (eq (entropy/emacs-modeline--mdl-egroup/->get-current-window)
+           entropy/emacs-modeline--mdl-egroup-current-selected-window)))
 
-(advice-add 'entropy/emacs-modeline--mdl-egroup-current-window-focus-on-p?
+(advice-add 'entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?
             :around
             #'entropy/emacs-current-window-is-selected-common-around-advice)
 
+;; hooks for set selected window var
 (add-hook 'window-configuration-change-hook
-          #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
+          #'entropy/emacs-modeline--mdl-egroup/->set-selected-window)
 (advice-add #'handle-switch-frame
             :around
-            #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
+            #'entropy/emacs-modeline--mdl-egroup/->set-selected-window)
 (advice-add #'select-window
             :around
-            #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
+            #'entropy/emacs-modeline--mdl-egroup/->set-selected-window)
 
 (with-no-warnings
   (if (not (boundp 'after-focus-change-function))
       (progn
-        (add-hook 'focus-in-hook  #'entropy/emacs-modeline--mdl-egroup-set-selected-window)
-        (add-hook 'focus-out-hook #'entropy/emacs-modeline--mdl-egroup-unset-selected-window))
+        (add-hook 'focus-in-hook  #'entropy/emacs-modeline--mdl-egroup/->set-selected-window)
+        (add-hook 'focus-out-hook #'entropy/emacs-modeline--mdl-egroup/->unset-selected-window))
 
-    (defun entropy/emacs-modeline--mdl-egroup-refresh-frame ()
-      (setq entropy/emacs-modeline--mdl-egroup-selected-window nil)
+    (defun entropy/emacs-modeline--mdl-egroup/->refresh-frame ()
+      (setq entropy/emacs-modeline--mdl-egroup-current-selected-window nil)
       (cl-loop for frame in (frame-list)
                if (eq (frame-focus-state frame) t)
-               return (entropy/emacs-modeline--mdl-egroup-set-selected-window)))
+               return (entropy/emacs-modeline--mdl-egroup/->set-selected-window)))
     (add-function :after after-focus-change-function
-                  #'entropy/emacs-modeline--mdl-egroup-refresh-frame)))
+                  #'entropy/emacs-modeline--mdl-egroup/->refresh-frame)))
 
 
 ;; ***** egroup main
@@ -460,6 +465,10 @@ enabled."
   (when (boundp 'doom-modeline--default-format)
     (setq doom-modeline--default-format
           entropy/emacs-modeline-default-modeline-formt))
+
+  ;; remove the ace-widnow hack from doom-modeline which cause some
+  ;; mistake
+  (advice-remove #'aw-update :override #'doom-modeline-aw-update)
 
 ;; ****** advices
   (advice-add 'doom-modeline--active
@@ -730,15 +739,18 @@ function name has been changed, please update internal hack of \
        'error))))
 
   (doom-modeline-def-modeline 'main
-   '(bar workspace-number window-number
-         matches
-         buffer-info remote-host buffer-position parrot
-         " " company-indicator selection-info)
-   '(misc-info lsp irc mu4e github debug minor-modes
-               input-method buffer-encoding major-mode process vcs checker))
+    '(bar workspace-number
+          ;;window-number
+          matches
+          buffer-info remote-host buffer-position parrot
+          " " company-indicator selection-info)
+    '(misc-info lsp irc mu4e github debug minor-modes
+                input-method buffer-encoding major-mode process vcs checker))
 
   (doom-modeline-def-modeline 'project
-    '(bar workspace-number window-number buffer-default-directory)
+    '(bar
+      ;; workspace-number
+      window-number buffer-default-directory)
     '(misc-info mu4e github debug major-mode process))
 
   (dolist (fmt-func-suffix
