@@ -272,7 +272,7 @@ NOTE: this function is an around advice wrapper."
    company-tooltip-align-annotations t
    company-tooltip-offset-display nil   ;reducing selection fast hints laggy
    company-idle-delay entropy/emacs-company-idle-delay-default
-   company-dabbrev-code-everywhere t
+   company-dabbrev-code-everywhere t    ;NOTE: this may make emacs lag
    company-dabbrev-ignore-case t
    company-minimum-prefix-length 2
    company-require-match nil
@@ -281,6 +281,9 @@ NOTE: this function is an around advice wrapper."
    )
 
   ;; FIXME: related to bug of h-f551b679-908f-4b64-b08e-e7074d17581e
+  ;; NOTE: Do not set this var too complicated which will make emacs
+  ;; lag since `company-dabbrev' use `looking-back' to search
+  ;; matching.
   (setq company-dabbrev-char-regexp "[-_/a-zA-Z0-9.><]")
 
   ;; disable common command before which the company begun to run
