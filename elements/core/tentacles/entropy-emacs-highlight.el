@@ -365,14 +365,16 @@
      global-hl-todo
      :pdumper-no-end t
      :body
-     (global-hl-todo-mode t)
-     (let ((eemacs-spec
-            '(("EEMACS_MAINTENANCE" . "green")
-              ("EEMACS_BUG" . "red")
-              ("EEMACS_TEMPORALLY_HACK" . "yellow")
-              ("EEMACS_REFERENCE" . "HotPink1"))))
-       (setq hl-todo-keyword-faces
-             (append eemacs-spec hl-todo-keyword-faces))))))
+     (global-hl-todo-mode t)))
+
+  :config
+  (let ((eemacs-spec
+         '(("EEMACS_MAINTENANCE" . "green")
+           ("EEMACS_BUG" . "red")
+           ("EEMACS_TEMPORALLY_HACK" . "yellow")
+           ("EEMACS_REFERENCE" . "HotPink1"))))
+    (setq hl-todo-keyword-faces
+          (append eemacs-spec hl-todo-keyword-faces))))
 
 ;; ** Highlight uncommitted changes
 ;;
