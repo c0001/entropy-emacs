@@ -468,7 +468,7 @@ enabled."
 
   ;; remove the ace-widnow hack from doom-modeline which cause some
   ;; mistake
-  (advice-remove #'aw-update :override #'doom-modeline-aw-update)
+  (advice-remove #'aw-update #'doom-modeline-aw-update)
 
 ;; ****** advices
   (advice-add 'doom-modeline--active
