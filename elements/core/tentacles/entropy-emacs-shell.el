@@ -335,6 +335,9 @@ segmentation fault."
   (define-key vterm-mode-map (kbd "<f12>") nil)
   ;; similarly for <f11>
   (define-key vterm-mode-map (kbd "<f11>") nil)
+  ;; extra keybinding exclusions
+  ;; --- FIXME: why 'M-O' conflicated with <f1> in `vterm-mode-map'?
+  (define-key vterm-mode-map (kbd "M-O") nil)
 
   )
 
