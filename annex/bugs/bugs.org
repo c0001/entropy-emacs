@@ -338,6 +338,9 @@ after we use the more mordern doc buffer renderring mechanism, is it?
 #+end_quote
 
 *** Update: 2021-01-23 Sat 15:34:16
+:PROPERTIES:
+:CUSTOM_ID: h-467a7c85-5c2b-4d84-97f4-82eb8f1cc418
+:END:
 
 This caused by both of above and follow:
 #+BEGIN_SRC emacs-lisp
@@ -364,12 +367,33 @@ If the bug not occurred try enter <f11> let emacs judging into
 fullscreen and redo above section, this may occurred as well.
 #+end_quote
 
+
+** TODO emacs internal api =looking-back= freeze emacs
+:PROPERTIES:
+:CUSTOM_ID: h-f551b679-908f-4b64-b08e-e7074d17581e
+:END:
+
+This bug caused from an =company-dabbrev-char-regexp= setting of
+regexp "[-_/a-zA-Z0-9]+", then the company's dabbrev backend will
+invoke the =looking-back= subrouine to determine its matching scope
+which used in function =company-grab= which invoked by function
+=company-dabbrev--prefix=.
+
+It seems related to the =looking-back= performance issue which
+discussed [[https://emacs.stackexchange.com/questions/12742/looking-back-performance][here]]. But since we used *LIMIT* optional in the invocation,
+it still lag on, which I'd thought its an emacs bug.
+
+*Reproduce steps:*
+
+Run the =run.sh= in =looking-back-bug_20210816=
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d
 :END:
 # Local Variables:
 # fill-column: 70
+# org-cycle-separator-lines: 8
 # org-adapt-indentation: nil
 # org-download-image-dir: "./img/"
 # eval: (auto-fill-mode)

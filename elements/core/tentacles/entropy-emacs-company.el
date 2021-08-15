@@ -278,7 +278,10 @@ NOTE: this function is an around advice wrapper."
    company-require-match nil
    company-dabbrev-ignore-case nil
    company-dabbrev-downcase nil
-   company-dabbrev-char-regexp "[-_/a-zA-Z0-9]+")
+   )
+
+  ;; FIXME: related to bug of h-f551b679-908f-4b64-b08e-e7074d17581e
+  (setq company-dabbrev-char-regexp "[-_/a-zA-Z0-9.><]")
 
   ;; disable common command before which the company begun to run
   ;; EEMACS_MAINTENANCE: the variable `company--bein-inhibit-commands'
