@@ -631,12 +631,21 @@ efficiently way."
     (entropy/emacs-company--set-only-one-frontend
      'company-box-frontend))
 
+  (defun __auto_enable_or_disable_company-box-mode
+      ()
+    (if (bound-and-true-p company-mode)
+        (company-box-mode 1)
+      (company-box-mode 0)))
+
   (defun entropy/emacs-company--box-disable ()
     (progn
       (remove-hook 'company-mode-hook
                    #'company-box-mode)
       (remove-hook 'company-mode-hook
                    #'entropy/emacs-company--company-box-frontend-set-hook)
+      (remove-hook
+       'company-mode-hook
+       '__auto_enable_or_disable_company-box-mode)
       (mapc (lambda (buffer)
               (with-current-buffer buffer
                 (when (bound-and-true-p company-box-mode)
@@ -656,10 +665,7 @@ efficiently way."
             'company-box-frontend)
            (add-hook
             'company-mode-hook
-            #'(lambda ()
-                (if (bound-and-true-p company-mode)
-                    (company-box-mode 1)
-                  (company-box-mode 0))))
+            '__auto_enable_or_disable_company-box-mode)
            (mapc (lambda (buffer)
                    (with-current-buffer buffer
                      (when (bound-and-true-p company-mode)
