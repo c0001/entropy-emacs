@@ -783,7 +783,13 @@ upstream."
             (let ((doc-frame
                    (frame-local-getq company-box-doc-frame
                                      ,frame)))
-              (make-frame-invisible doc-frame)
+              (when (and doc-frame
+                         (framep doc-frame)
+                         (frame-live-p frame)
+                         (frame-visible-p doc-frame)
+                         ;; to ensuer is not the root frame
+                         (framep (frame-parent doc-frame)))
+                (make-frame-invisible doc-frame))
               (setq __local-company-box-doc-hided t)))
           (when (timerp company-box-doc--timer)
             (cancel-timer company-box-doc--timer)
