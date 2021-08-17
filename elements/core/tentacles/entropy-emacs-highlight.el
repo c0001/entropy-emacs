@@ -379,6 +379,15 @@
         (add-to-list 'hl-todo-keyword-faces
                      el))))
 
+  (when entropy/emacs-hl-todo-enable-at-startup
+    (entropy/emacs-lazy-with-load-trail
+     global-hl-todo
+     :body
+     (progn
+       (entropy/emacs-hl-todo-keywords-add-term)
+       (global-hl-todo-mode t))))
+
+  :config
   ;; FIXME: too ensure the term adding for pdumper session
   (when entropy/emacs-fall-love-with-pdumper
     (defun __ya/hl-todo-mode (orig-func &rest orig-args)
@@ -389,15 +398,7 @@
     (advice-add 'hl-todo-mode
                 :around
                 #'__ya/hl-todo-mode))
-
-  (when entropy/emacs-hl-todo-enable-at-startup
-    (entropy/emacs-lazy-with-load-trail
-     global-hl-todo
-     :pdumper-no-end t
-     :body
-     (progn
-       (entropy/emacs-hl-todo-keywords-add-term)
-       (global-hl-todo-mode t)))))
+  )
 
 ;; ** Highlight uncommitted changes
 ;;
