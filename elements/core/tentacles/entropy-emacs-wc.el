@@ -77,11 +77,12 @@
       :exit t
       :global-bind t))))
   :init
-  (entropy/emacs-lazy-with-load-trail
-   ace-window-init
-   ;; NOTE: (FIXME) this mode will make each frame created be visible
-   ;; by `aw--after-make-frame', its may be a compatible problem.
-   (ace-window-display-mode +1)))
+  ;; (entropy/emacs-lazy-with-load-trail
+  ;;  ace-window-init
+  ;;  ;; NOTE: (FIXME) this mode will make each frame created be visible
+  ;;  ;; by `aw--after-make-frame', its may be a compatible problem.
+  ;;  (ace-window-display-mode +1))
+  )
 
 ;; *** Use windmove function stolen :) from `https://github.com/troydm/emacs-stuff/blob/master/windcycle.el'
 (defun entropy/emacs-basic-windmove-up-cycle ()
