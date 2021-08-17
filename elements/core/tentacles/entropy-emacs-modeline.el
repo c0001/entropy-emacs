@@ -266,6 +266,17 @@ enabled."
   (setq entropy/emacs-modeline--origin-spec-done nil
         entropy/emacs-modeline--origin-enable-done nil))
 
+(defvar __ya/mode-line-buffer-identification
+  (propertized-buffer-identification "%6b")
+  "Mode line construct for identifying the buffer being displayed.
+Its default value is (\"%6b\") with some text properties added.
+Major modes that edit things other than ordinary files may change this
+\(e.g. Info, Dired,...)")
+;;;###autoload
+(put '__ya/mode-line-buffer-identification 'risky-local-variable t)
+(make-variable-buffer-local '__ya/mode-line-buffer-identification)
+
+
 (defun entropy/emacs-mode-line-origin-theme ()
   (setq-default mode-line-format
                 '("%e"
@@ -274,7 +285,11 @@ enabled."
                            (entropy/emacs-modeline--mdl-common-eyebrowse-segment)))
                   mode-line-mule-info
                   mode-line-client
-                  mode-line-modified "  "
+                  mode-line-modified " "
+                  (:eval
+                   (if (buffer-narrowed-p)
+                       (propertize "><" 'face 'warning)
+                     (propertize "||" 'face 'success)))
                   ;;"remote:" mode-line-remote " "
                   ;; mode-line-frame-identification
                   ;; mode-line-modes
@@ -282,7 +297,7 @@ enabled."
                    (propertize
                     (format " %s " major-mode)
                     'face 'success))
-                  "<" mode-line-buffer-identification "> "
+                  "<" __ya/mode-line-buffer-identification "> "
                   (:eval
                    (concat (propertize
                             "POS:"
