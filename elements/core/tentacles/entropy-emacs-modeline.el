@@ -276,6 +276,15 @@ Major modes that edit things other than ordinary files may change this
 (put '__ya/mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local '__ya/mode-line-buffer-identification)
 
+(defun __ya/mdl-egroup/propertize-face (str face)
+  "Use `propertize' to decorate the STR with face FACE but
+inactive when
+`entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?'
+return nil"
+  (propertize str 'face
+              (if (entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?)
+                  face
+                'mode-line-inactive)))
 
 (defun entropy/emacs-mode-line-origin-theme ()
   (setq-default mode-line-format
@@ -288,28 +297,30 @@ Major modes that edit things other than ordinary files may change this
                   mode-line-modified " "
                   (:eval
                    (if (buffer-narrowed-p)
-                       (propertize "><" 'face 'warning)
-                     (propertize "||" 'face 'success)))
+                       (__ya/mdl-egroup/propertize-face "><" 'warning)
+                     (__ya/mdl-egroup/propertize-face "||" 'success)))
                   ;;"remote:" mode-line-remote " "
                   ;; mode-line-frame-identification
                   ;; mode-line-modes
                   (:eval
-                   (propertize
+                   (__ya/mdl-egroup/propertize-face
                     (format " %s " major-mode)
-                    'face 'success))
+                    'success))
                   "<" __ya/mode-line-buffer-identification "> "
                   (:eval
-                   (concat (propertize
+                   (concat (__ya/mdl-egroup/propertize-face
                             "POS:"
-                            'face 'link)
+                            'link)
                            " "))
                   mode-line-position
                   mode-line-misc-info
                   (:eval
-                   (propertize
-                    "VCS:"
-                    'face 'warning))
-                  vc-mode
+                   (when vc-mode
+                     (format "%s%s"
+                             (__ya/mdl-egroup/propertize-face
+                              "VCS:"
+                              'warning)
+                             vc-mode)))
                   mode-line-end-spaces)))
 
 ;; **** doom modeline
