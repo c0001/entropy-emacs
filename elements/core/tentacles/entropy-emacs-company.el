@@ -839,6 +839,18 @@ while in `company-box-mode'."
   (add-hook 'company-box-mode-hook
             #'entropy/emacs-company-box-hide-on-the-fly)
 
+;; ***** advices
+;; ****** ensuer the child-frame register is alive
+
+  (defun __ya/company-box--get-frame
+      (orig-func &rest orig-args)
+    (let ((frame (apply orig-func orig-args)))
+      (when (ignore-errors (frame-live-p frame))
+        frame)))
+  (advice-add 'company-box--get-frame
+              :around
+              #'__ya/company-box--get-frame)
+
   )
 
 ;; *** Better sorting and filtering
