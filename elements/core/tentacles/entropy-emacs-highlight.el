@@ -360,21 +360,44 @@
       :eemacs-top-bind t
       :exit t))))
   :init
+
+  (defvar entropy/emacs-hl-todo-keywords-faces
+    '(("EEMACS_MAINTENANCE" . "green")
+      ("EEMACS_BUG" . "red")
+      ("EEMACS_TEMPORALLY_HACK" . "yellow")
+      ("EEMACS_REFERENCE" . "HotPink1"))
+    "Specified eemacs stick term keywords with the faces spec to
+`hl-todo-mode'")
+
+  (defun entropy/emacs-hl-todo-keywords-add-term
+      ()
+    "Add `entropy/emacs-hl-todo-keywords-faces' to
+`hl-todo-keyword-faces'."
+    (let ((eemacs-spec
+           entropy/emacs-hl-todo-keywords-faces))
+      (dolist (el eemacs-spec)
+        (add-to-list 'hl-todo-keyword-faces
+                     el))))
+
+  ;; FIXME: too ensure the term adding for pdumper session
+  (when entropy/emacs-fall-love-with-pdumper
+    (defun __ya/hl-todo-mode (orig-func &rest orig-args)
+      (progn
+        (when (bound-and-true-p hl-todo-mode)
+          (entropy/emacs-hl-todo-keywords-add-term))
+        (apply orig-func orig-args)))
+    (advice-add 'hl-todo-mode
+                :around
+                #'__ya/hl-todo-mode))
+
   (when entropy/emacs-hl-todo-enable-at-startup
     (entropy/emacs-lazy-with-load-trail
      global-hl-todo
      :pdumper-no-end t
      :body
-     (global-hl-todo-mode t)))
-
-  :config
-  (let ((eemacs-spec
-         '(("EEMACS_MAINTENANCE" . "green")
-           ("EEMACS_BUG" . "red")
-           ("EEMACS_TEMPORALLY_HACK" . "yellow")
-           ("EEMACS_REFERENCE" . "HotPink1"))))
-    (setq hl-todo-keyword-faces
-          (append eemacs-spec hl-todo-keyword-faces))))
+     (progn
+       (entropy/emacs-hl-todo-keywords-add-term)
+       (global-hl-todo-mode t)))))
 
 ;; ** Highlight uncommitted changes
 ;;
