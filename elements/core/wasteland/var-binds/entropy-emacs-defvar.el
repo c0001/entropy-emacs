@@ -704,8 +704,8 @@ it manually or will hit a monster.")
     "Hook run when the Emacs server creates a client frame.
 The created frame is selected when the hook is called.
 
-This hook was not native for current emacs version but back
-patched for be compatible with 27.1.
+This hook was not native for current emacs version but backported
+from 27.1 for compatible reason.
 ")
   (defun entropy/emacs--server-make-frame-around-advice
       (orig-func &rest orig-args)
@@ -791,9 +791,10 @@ non-nil, i.e. the new main daemon client."
               (pop entropy/emacs-daemon--legal-clients))))))
     (apply orig-func orig-args)))
 
-(advice-add 'delete-frame
-            :around
-            #'entropy/emacs-daemon--reset-main-client-indicator)
+(when (daemonp)
+  (advice-add 'delete-frame
+              :around
+              #'entropy/emacs-daemon--reset-main-client-indicator))
 
 (defvar entropy/emacs-daemon--dont-init-client nil
   "Forbidden eemacs server client initialization specification
@@ -886,8 +887,9 @@ gui session has huge sets of differents in entropy-emacs.
     (unless entropy/emacs-daemon-server-init-done
       (setq entropy/emacs-daemon-server-init-done t))))
 
-(add-hook 'server-after-make-frame-hook
-          #'entropy/emacs-daemon--client-initialize)
+(when (daemonp)
+  (add-hook 'server-after-make-frame-hook
+            #'entropy/emacs-daemon--client-initialize))
 
 
 
