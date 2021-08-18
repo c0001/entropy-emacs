@@ -384,18 +384,23 @@
      global-hl-todo
      :body
      (progn
-       (entropy/emacs-hl-todo-keywords-add-term)
        (global-hl-todo-mode t))))
 
   :config
+  (entropy/emacs-hl-todo-keywords-add-term) ;add specified term after
+                                            ;load
+                                            ;`hl-todo-keyword-faces'
+
   ;; FIXME: too ensure the term adding for pdumper session
-  (when entropy/emacs-fall-love-with-pdumper
+  (unless (bound-and-true-p entropy/emacs-custom-enable-lazy-load)
     (defun __ya/hl-todo-mode (orig-func &rest orig-args)
       (progn
         (when (bound-and-true-p hl-todo-mode)
           (entropy/emacs-hl-todo-keywords-add-term))
         (apply orig-func orig-args)))
-    (advice-add 'hl-todo-mode
+    ;; EEMACS_MAINTENANCE: internally Api may need to update with
+    ;; upstream.
+    (advice-add 'hl-todo--setup
                 :around
                 #'__ya/hl-todo-mode))
   )
