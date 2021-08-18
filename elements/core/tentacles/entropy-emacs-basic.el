@@ -701,58 +701,6 @@ modifcation is to remove this feature.
    :body
    (diredfl-global-mode 1)))
 
-(use-package all-the-icons-dired
-  :commands (all-the-icons-dired-mode)
-  :init
-  (when sys/win32p
-    (require 'font-lock+))
-
-  (if (daemonp)
-      (entropy/emacs-with-daemon-make-frame-done
-       'all-the-icon-dired-mode
-       '(when (boundp 'dired-mode-hook)
-         (when (member 'all-the-icons-dired-mode dired-mode-hook)
-           (setq dired-mode-hook
-                 (delete 'all-the-icons-dired-mode dired-mode-hook))
-           (mapc
-            (lambda (buffer)
-              (with-current-buffer buffer
-                (when (bound-and-true-p all-the-icons-dired-mode)
-                  (all-the-icons-dired-mode 0))))
-            (buffer-list))))
-       '(when (entropy/emacs-icons-displayable-p)
-          (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)))
-    (when (entropy/emacs-icons-displayable-p)
-      (add-hook 'dired-mode-hook #'all-the-icons-dired-mode)))
-
-  :config
-  (with-no-warnings
-    (defun entropy/emacs-basic--all-the-icons-dired-refresh ()
-      "Display the icons of files in a dired buffer."
-      (all-the-icons-dired--remove-all-overlays)
-      ;; NOTE: don't display icons it too many items
-      (if (<= (count-lines (point-min) (point-max)) 50)
-          (save-excursion
-            ;; TRICK: Use TAB to align icons
-            (setq-local tab-width 1)
-
-            (goto-char (point-min))
-            (while (not (eobp))
-              (let ((file (dired-get-filename 'verbatim t)))
-                (when file
-                  (let ((icon (if (file-directory-p file)
-                                  (all-the-icons-icon-for-dir file nil "")
-                                (all-the-icons-icon-for-file
-                                 file
-                                 :v-adjust all-the-icons-dired-v-adjust))))
-                    (if (member file '("." ".."))
-                        (all-the-icons-dired--add-overlay (point) " \t")
-                      (all-the-icons-dired--add-overlay (point) (concat icon "\t"))))))
-              (dired-next-line 1)))
-        (message "Not display icons because of too many items.")))
-    (advice-add #'all-the-icons-dired--refresh
-                :override #'entropy/emacs-basic--all-the-icons-dired-refresh)))
-
 ;; **** dired-x
 (use-package dired-x
   :ensure nil
@@ -791,32 +739,6 @@ modifcation is to remove this feature.
       "Org-mode like cycle visibilitya"
       :enable t :map-inject t :exit t))))
   :config
-;; ***** patched with all the icons
-  ;; FIXME:
-  ;;
-  ;; 1. Performance issue e.g. when the subtree too-long that the icon
-  ;;    refresh will lag emacs, we must find a way to restrict all the
-  ;;    icons refresh region limitted to the subtree block.
-  ;;
-  ;; 2. Subtree dir icon was wrong which using unkown file type.
-  (defun entropy/emacs-basic--dired-subtree-patch-1
-      (orig-func &rest orig-args)
-    "Reload `all-the-icons-dired-mode' after toggled subtree
-entries for fix some compatible problems."
-    (let ((use-icon (bound-and-true-p all-the-icons-dired-mode))
-          rtn)
-      (when use-icon
-        (all-the-icons-dired-mode 0))
-      (setq rtn (apply orig-func orig-args))
-      (when use-icon
-        (all-the-icons-dired-mode 1))
-      rtn))
-  (advice-add
-   'dired-subtree-toggle
-   :around
-   #'entropy/emacs-basic--dired-subtree-patch-1)
-
-
 ;; ***** patch `dired-up-directory'
 
   (defun entropy/emacs-basic--dired-subtree-advice-for-dired-up-directory
