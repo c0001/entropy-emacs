@@ -67,7 +67,10 @@
   :init
   (entropy/emacs-lazy-with-load-trail
    all-the-icons-ibuffer
-   :pdumper-no-end t
+   ;; We must ensure this startup while pdumpre recovery hook since in
+   ;; any trail hook the `display-graphic-p' whill return nil while
+   ;; pdumper make session and daemon load session.
+   :pdumper-no-end nil
    :body
    (if (null (daemonp))
        (when (entropy/emacs-icons-displayable-p)

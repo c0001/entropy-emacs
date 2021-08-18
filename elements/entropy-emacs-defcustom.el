@@ -2245,12 +2245,12 @@ that."
             #'entropy/emacs-display-graphic-fake-advice)
 
 ;; Disable `entropy/emacs-display-graphic-fake-advice' when common
-;; start procedure (before any other trail hook run) finished, thus
+;; start procedure finished (before any other trail hook run), thus
 ;; when pdumper session start, `display-graphic-p' function will not
-;; cause some issue e.g. `window-font-width' will throw out error that
-;; the very beginning of pdumper session is starting on cli status so
-;; that `font-info' will retrieve 'nil' as the callback of
-;; `face-font'.
+;; cause some issue e.g. `window-font-width' will throw out error
+;; since the very beginning of pdumper session may(why?) starting on
+;; cli status so that `font-info' will retrieve 'nil' as the callback
+;; of `face-font'.
 (let ((hook (if entropy/emacs-minimal-start
                 'entropy/emacs-init-mini-hook
               'entropy/emacs-init-X-hook)))
