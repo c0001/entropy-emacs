@@ -337,11 +337,12 @@ It is the recommendation of irony-mode official introduction."
 
 ;; **** uniform
 
-(defvar entropy/emacs-codeserver--LSP-doc-ui-timer-register nil)
-(defun entropy/emacs-codeserver--LSP-doc-ui-timer-watcher
+;; ***** idle delay uniform
+(defvar entropy/emacs-codeserver--codeserver-doc-show-timer-watch-registry nil)
+(defun entropy/emacs-codeserver--codeserver-doc-show-delay-var-watcher
     (symbol newval operation where)
   (when (eq operation 'set)
-    (let ((timer-obj (alist-get symbol entropy/emacs-codeserver--LSP-doc-ui-timer-register)))
+    (let ((timer-obj (alist-get symbol entropy/emacs-codeserver--codeserver-doc-show-timer-watch-registry)))
       (cond (timer-obj
              (let ((timer-var (car timer-obj))
                    (timer-func (cdr timer-obj)))
@@ -353,22 +354,49 @@ It is the recommendation of irony-mode official introduction."
                       (run-with-idle-timer newval t timer-func)))))
             ((eq symbol 'entropy/emacs-ide-doc-delay)
              (let (_)
-               (dolist (item entropy/emacs-codeserver--LSP-doc-ui-timer-register)
+               (dolist (item entropy/emacs-codeserver--codeserver-doc-show-timer-watch-registry)
                  (let ((var (car item)))
                    (set var newval)))
                ))))))
 
-(defmacro entropy/emacs-coceserver--LSP-doc-ui-timer-watcher-regist
+(defmacro entropy/emacs-coceserver--codeserver-doc-show-timer-watcher-regist
     (idle-var idle-timer-var idle-timer-func)
+  "Watched the IDLE-VAR modification to auto re-trigger the
+IDLE-TIMER-FUNC ran as the subrotine of timer IDLE-TIMER-VAR.
+
+This macro is an uniform for eemacs to re-trigger codeserver doc
+show idle delay, thus so any modification of var
+`entropy/emacs-ide-doc-delay' will set the IDLE-VAR and
+re-trigger the timer IDLE-TIMER-VAR."
   `(progn
-     (add-to-list 'entropy/emacs-codeserver--LSP-doc-ui-timer-register
+     (add-to-list 'entropy/emacs-codeserver--codeserver-doc-show-timer-watch-registry
                   '(,idle-var . (,idle-timer-var . ,idle-timer-func)))
      (add-variable-watcher
-      ',idle-var #'entropy/emacs-codeserver--LSP-doc-ui-timer-watcher)))
+      ',idle-var #'entropy/emacs-codeserver--codeserver-doc-show-delay-var-watcher)))
 
 (add-variable-watcher
  'entropy/emacs-ide-doc-delay
- #'entropy/emacs-codeserver--LSP-doc-ui-timer-watcher)
+ #'entropy/emacs-codeserver--codeserver-doc-show-delay-var-watcher)
+
+
+;; ***** lsp defer condition filter
+
+(defun entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form
+    (orig-func &rest orig-args)
+  "Around advice for codeserver start for get exclusions for
+certain eemacs-spec conditions."
+  (let* ((buff (current-buffer))
+         (buff-name (buffer-name buff))
+         (buff-exclusions
+          (rx (or (seq line-start "*Org Src")
+                  (seq line-start " *org-src-fontification:")
+                  (seq line-start " markdown-code-fontification:")))))
+    (unless (and
+             ;; condierred a filename has same filter matched pass filter
+             (not (buffer-file-name))
+             (string-match-p buff-exclusions buff-name))
+      (apply orig-func orig-args))))
+
 
 ;; **** lsp-mode
 ;; ****** lsp-mode core
@@ -590,7 +618,8 @@ when available."
                (file-exists-p lsp-session-file))
       (delete-file lsp-session-file)))
 
-;; ********* eemacs lsp start prompting
+;; ********* eemacs lsp start hack
+;; ********** lsp start prompts
   (advice-add 'lsp-deferred
               :before
               #'entropy/emacs-codeserver--lsp-deferred-promt)
@@ -616,6 +645,15 @@ nervous."
      (green "Lsp starting")
      (green "..."))
     (redisplay t))
+
+;; ********** start conditions filter
+
+  (dolist (func '(lsp-deferred lsp))
+    (let (_)
+      (advice-add
+       func
+       :around
+       #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)))
 
 ;; ********* exclude `major-mode' for starting `lsp-mode'
   (advice-add 'lsp
@@ -934,7 +972,7 @@ updating."
               :around
               #'entropy/emacs-codeserver--lsp-ui-doc-mode-around-advice)
 
-  (entropy/emacs-coceserver--LSP-doc-ui-timer-watcher-regist
+  (entropy/emacs-coceserver--codeserver-doc-show-timer-watcher-regist
    lsp-ui-doc-delay
    entropy/emacs-codeserver-lsp-ui-doc-timer
    entropy/emacs-codeserver--lsp-ui-doc-make-request)
@@ -1053,6 +1091,11 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
           (add-hook hook #'entropy/emacs-codeserver--eglot-non-support-prompt)
         (add-hook
          hook #'eglot-ensure)))))
+
+  ;; union server start filter
+  (advice-add 'eglot-ensure
+              :around
+              #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)
 
   :config
 ;; ***** mode spec framework
@@ -1432,7 +1475,7 @@ let eglot do completion with interface argument injection."
                     #'eglot-ui-doc-display
                     ))))))
 
-  (entropy/emacs-coceserver--LSP-doc-ui-timer-watcher-regist
+  (entropy/emacs-coceserver--codeserver-doc-show-timer-watcher-regist
    eglot-ui-doc-idle-delay
    eglot-ui-doc-idle-timer
    eglot-ui-doc-display)
