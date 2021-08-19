@@ -102,13 +102,15 @@ configuration.")
            (if (string-match-p exc-rx file-name)
                (push t exc-passed)
              (push nil exc-passed)))
+         ;; we do not allow any exclution detected
          (setq exc-passed (not (member t exc-passed)))
 
          (dolist (inc-rx ,inc-filters)
            (if (string-match-p inc-rx file-name)
                (push t inc-passed)
              (push nil inc-passed)))
-         (setq inc-passed (not (member nil inc-passed)))
+         ;; vise versa, we allow any inclusion detected
+         (setq inc-passed (member t inc-passed))
 
          (when (and exc-passed inc-passed)
            (push file rtn))))
@@ -123,6 +125,11 @@ configuration.")
                                 ;; can not be load while pdumper
                                 ;; session.
                                 (seq line-start "vterm")
+                                ;; doom-modeline has such more dirty
+                                ;; hack for emacs which may not needed
+                                ;; for clean emacs session init and
+                                ;; for fast emacs performance issue
+                                (seq line-start "doom-modeline")
                                 ;; `counsel-ffdata''s defcustom for
                                 ;; `counsel-ffdata-database-path' have
                                 ;; bug

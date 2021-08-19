@@ -325,6 +325,10 @@ return nil"
 
 ;; **** doom modeline
 (use-package doom-modeline
+  ;; We indicate to let doom modeline always not be fully required
+  ;; unless user start it since its messy of its dirty hacking
+  :defer t
+  :demand nil
   :ensure nil
   :commands (doom-modeline-mode
              doom-modeline-refresh-bars)
@@ -470,12 +474,25 @@ return nil"
   :init
   (setq doom-modeline-unicode-fallback t)
 
-  (when (equal entropy/emacs-modeline-style "doom")
-    (entropy/emacs-lazy-load-simple doom-modeline
-      (add-hook 'entropy/emacs-font-set-end-hook
-                #'doom-modeline-refresh-font-width-cache)
-      (add-hook 'entropy/emacs-startup-end-hook
-                #'doom-modeline-refresh-font-width-cache)))
+  ;; use `with-eval-after-load' instead of
+  ;; `entropy/emacs-lazy-load-simple' since it will force requie the
+  ;; pakage but we don't want it to messy emacs with its dirty
+  ;; hacking injection at init time.
+  (with-eval-after-load 'doom-modeline
+    ;; modeline integration enhancement for `doom-modeline'
+    (when (fboundp 'minions-mode)
+      (add-hook 'doom-modeline-mode-hook
+                #'minions-mode))
+    (entropy/emacs-add-hook-lambda-nil
+     dml-refresh-fc-after-eemacs-fontset
+     entropy/emacs-font-set-end-hook
+     (when (bound-and-true-p doom-modeline-mode)
+       (doom-modeline-refresh-font-width-cache)))
+    (entropy/emacs-add-hook-lambda-nil
+     dml-refresh-fc-after-eemacs-startend
+     entropy/emacs-startup-end-hook
+     (when (bound-and-true-p doom-modeline-mode)
+       (doom-modeline-refresh-font-width-cache))))
 
 ;; ***** config
   :config
@@ -817,6 +834,17 @@ function name has been changed, please update internal hack of \
   )
 
 ;; ** toggle function
+
+(defun entropy/emacs-modeline--query-for-messy-modeline-enable
+    (modeline-name-str)
+  (if (yes-or-no-p
+       (format
+        "Mode line type of (%s) has dirty hack which \
+will messy emacs performance, really enable it?"
+        modeline-name-str))
+      t
+    (error "Cancled enable doom-modeline!")))
+
 (defun entropy/emacs-modeline--mdl-tidy-spec ()
   (pcase entropy/emacs-mode-line-sticker
     ("powerline"
@@ -857,6 +885,14 @@ format enabling process.
     (push (cons name func-name) entropy/emacs-modeline--toggle-type-register)
     `(defun ,func-name ()
        (interactive)
+       ;; warn for `doom-modeline' laggy
+       (defvar __doom-modeline-enabled-yet? nil)
+       (if (and (string= ,name "doom")
+                (null __doom-modeline-enabled-yet?))
+          (and (entropy/emacs-modeline--query-for-messy-modeline-enable
+                ,name)
+               (setq __doom-modeline-enabled-yet? t)))
+       ;; fistly tidy up the remaining spec of previous modeline type
        (entropy/emacs-modeline--mdl-tidy-spec)
        (setq entropy/emacs-mode-line-sticker ,name)
        (let (_)
@@ -916,7 +952,17 @@ format enabling process.
      "Toggle modeline type to [doom-mode-line] type"
      :enable t :toggle (string= entropy/emacs-mode-line-sticker "doom"))
     ("m m d d"
-     (:eval (entropy/emacs-hydra-hollow-category-common-individual-get-caller 'doom-modeline-dispatch))
+     (:eval
+      (prog1
+          '__doom-modeline--ensure-warn/hydra-func
+        (defalias '__doom-modeline--ensure-warn/hydra-func
+          (lambda nil
+            (interactive)
+            (if (bound-and-true-p doom-modeline-mode)
+                (funcall-interactively
+                 (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+                  'doom-modeline-dispatch))
+              (message "doom-modeline is no actived yet!"))))))
      "Call the dispatch for [doom-mode-line]."
      :enable t :exit t)
     ("m m s t" entropy/emacs-modeline-mdl-spaceline-toggle
@@ -932,8 +978,9 @@ format enabling process.
 (entropy/emacs-hydra-hollow-add-for-top-dispatch
  '("WI&BUF"
    (("C-c m"
-     (:eval (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-             'eemacs-modeline-toggle))
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+           'eemacs-modeline-toggle))
      "Toggle mode line type"
      :enable t :eemacs-top-bind t :exit t))))
 
@@ -967,6 +1014,13 @@ style which defined in `entropy/emacs-modeline-style'."
 
      ;; init doom-modeline
      ((string= entropy/emacs-modeline-style "doom")
+      (unless (ignore-errors
+                (entropy/emacs-modeline--query-for-messy-modeline-enable
+                 entropy/emacs-modeline-style))
+        (message "Fall back to use origin modeline ...")
+        (setq cancel-branch t
+              entropy/emacs-modeline-style "origin")
+        (entropy/emacs-modeline--mdl-init))
       (setq entropy/emacs-modeline--mdl-init-caller
             '(entropy/emacs-modeline-mdl-doom-toggle)))
 

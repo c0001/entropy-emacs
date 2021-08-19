@@ -2631,9 +2631,7 @@ otherwise returns nil."
              minions-mode)
   :init
   (global-set-key [S-down-mouse-3] 'minions-minor-modes-menu)
-  (entropy/emacs-lazy-load-simple doom-modeline
-    (add-hook 'doom-modeline-mode-hook
-              #'minions-mode)))
+  )
 
 ;; *** Description | Help mode improvement
 ;; **** restriction print level and length for help buffer
