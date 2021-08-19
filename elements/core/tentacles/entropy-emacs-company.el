@@ -242,7 +242,10 @@ NOTE: this function is an around advice wrapper."
   :init
   (entropy/emacs-lazy-with-load-trail
    global-company-mode
-   :pdumper-no-end t
+   ;; We must ensure the `global-company-mode' enabled in pdumper
+   ;; recovery hook since the `company-mode-on' need `noninteractive'
+   ;; is null.
+   :pdumper-no-end nil
    :body
    (global-company-mode t)
    (setq company-echo-delay 1)          ;reduce lagging on increase company echo idle delay
@@ -264,7 +267,11 @@ NOTE: this function is an around advice wrapper."
   ;; common internal customization
   (setq
    ;; just enable company in some prog referred modes
-   company-global-modes (append '(emacs-lisp-mode lisp-interaction-mode)
+   company-global-modes (append '(emacs-lisp-mode
+                                  lisp-interaction-mode
+                                  text-mode
+                                  org-mode
+                                  )
                                 entropy/emacs-ide-for-them)
    company-tooltip-limit 20  ; bigger popup window
    company-tooltip-maximum-width 70

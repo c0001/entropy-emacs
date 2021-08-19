@@ -1133,13 +1133,15 @@ Filename are \".scratch_entropy\" host in
               (if buffer-read-only (read-only-mode 0))
               (auto-save-mode 0)
               (rename-buffer "*scratch*")
-              (lisp-interaction-mode)
+              (unless (eq major-mode 'lisp-interaction-mode)
+                (lisp-interaction-mode))
               (insert initial-scratch-message)))
         (with-current-buffer (find-file-noselect fname)
           (if buffer-read-only (read-only-mode 0))
           (auto-save-mode 0)
           (rename-buffer "*scratch*")
-          (lisp-interaction-mode)
+          (unless (eq major-mode 'lisp-interaction-mode)
+            (lisp-interaction-mode))
           (save-excursion
             (goto-char (point-min))
             (unless (string-match-p

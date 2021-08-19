@@ -291,7 +291,13 @@ configuration.")
  entropy/emacs-pdumper-pre-lpth
  (copy-tree load-path)
  entropy/emacs-pdumper--rec-timer
- (run-with-idle-timer 0.1 t #'entropy/emacs-pdumper--recovery))
+ (run-with-idle-timer
+  0.1
+  ;; NOTE: do not use repeat idle here since interaction prompt may
+  ;; hold the recovery procedure thus the repeat idle call will messy
+  ;; the current interaction.
+  nil
+  #'entropy/emacs-pdumper--recovery))
 
 ;; * provide
 (provide 'entropy-emacs-pdumper)
