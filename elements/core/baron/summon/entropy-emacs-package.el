@@ -369,6 +369,12 @@ recognized as a normal macro."
 
 
 ;; ** common start
+
+;; Disable `help-mode' auto load library for its doc render request
+;; since we needed pure charge of how packages are loading for.
+(setq help-enable-autoload nil
+      help-enable-completion-autoload nil)
+
 (defun entropy/emacs-package-common-start ()
   (entropy/emacs-package-install-all-packages)
   (entropy/emacs-package-init-use-package)
