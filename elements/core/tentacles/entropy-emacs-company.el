@@ -704,14 +704,18 @@ efficiently way."
 
 ;; **** init
   :init
-  (setq company-box-doc-delay
-        ;; FIXME: company box idle delay smaller than 0.42 will cause
-        ;; first candi doc not show
-        (max 0.42 entropy/emacs-company-quickhelp-delay-default)
-        company-box-show-single-candidate 'always
-        company-box-enable-icon t
-        company-box-icons-alist 'company-box-icons-images
-        company-box-icon-right-margin 1)
+  (setq
+   company-box-doc-enable (if entropy/emacs-company-quickhelp-delay-default t)
+   company-box-doc-delay
+   ;; FIXME: company box idle delay smaller than 0.42 will cause
+   ;; first candi doc not show
+   (max 0.42 (or entropy/emacs-company-quickhelp-delay-default 0)))
+
+  (setq
+   company-box-show-single-candidate 'always
+   company-box-enable-icon t
+   company-box-icons-alist 'company-box-icons-images
+   company-box-icon-right-margin 1)
 
 ;; **** config
   :config

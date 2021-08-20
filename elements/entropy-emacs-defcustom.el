@@ -1101,9 +1101,10 @@ rich enhanced purpose there are one another option:
   :type 'number
   :group 'entropy/emacs-customize-group-for-company-mode)
 
-(defcustom entropy/emacs-company-quickhelp-delay-default 2
-  "Default unified company help-doc popup delay used for all type
-of `entropy/emacs-company-tooltip-use-type'."
+(defcustom entropy/emacs-company-quickhelp-delay-default nil
+  "Default unified company help-doc popup delay seconds used for
+all type of `entropy/emacs-company-tooltip-use-type', nil for
+disable help doc auto-show."
   :type 'number
   :group 'entropy/emacs-customize-group-for-company-mode)
 
