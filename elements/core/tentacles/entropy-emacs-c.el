@@ -49,15 +49,12 @@
     (entropy/emacs-run-at-idle-immediately
      idle-fontify-c-type-buffer
      (let ((cur-pos (point))
-           (cur-line (string-to-number (format-mode-line "%l"))))
+           ;; (cur-line (string-to-number (format-mode-line "%l")))
+           )
        (save-excursion
          (c-font-lock-fontify-region
-          (save-excursion
-            (forward-line -5)
-            (point))
-          (save-excursion
-            (forward-line 5)
-            (point)))))))
+          (line-beginning-position)
+          cur-pos)))))
 
   (defun entropy/emacs-c-cc-mode-common-set ()
     (c-set-style "bsd")
