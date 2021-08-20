@@ -74,6 +74,60 @@ in new emacs-version."
 
 
 
+;; *** Sexp read and print
+
+(defun entropy/emacs-read-base64-encoded-sexp-from-buffer
+    (&optional buff)
+  "Read base64 encoded sexp object getted from BUFFER which did
+by `entropy/emacs-generate-base64-encoded-sexp-buffer' and return
+it, use `current-buffer' when BUFFER is nil.
+
+NOTE: the sexp must readable or throw the error."
+  (let ((sexp-str
+         (decode-coding-string
+          (base64-decode-string
+           (read (with-current-buffer (or buff (current-buffer))
+                   (goto-char (point-min))
+                   (current-buffer))))
+          'utf-8-auto))
+        ;; Parent expects UTF-8 encoded text.
+        (coding-system-for-read 'utf-8-auto)
+        (coding-system-for-write 'utf-8-auto))
+    (read sexp-str)))
+
+(defun entropy/emacs-generate-base64-encoded-sexp-buffer
+    (sexp &optional buff)
+  "Encode an sexp of any list object with base64 method and
+insert into an fresh new created buffer or BUFF when
+specified (NOTE: the specified buff will be tidy up), and return
+the buffer with its current point at `point-min'.
+
+You can use `entropy/emacs-read-base64-encoded-sexp-from-buffer'
+to read the buffer directly to re-get the sexp in to
+current emacs session."
+  (let* ((inhibit-read-only t)
+         (buff (or (and (bufferp buff) (buffer-live-p buff)
+                        (with-current-buffer buff
+                          (erase-buffer)
+                          buff))
+                   (generate-new-buffer " *eemacs-sexp-enc*")))
+         (print-level nil)
+         (print-length nil)
+         (print-escape-nonascii t)
+         (print-circle t))
+    (prin1 sexp buff)
+    (with-current-buffer buff
+      ;; Just in case the string we're sending might contain EOF
+      (encode-coding-region (point-min) (point-max) 'utf-8-auto)
+      ;; base64 encoding
+      (base64-encode-region (point-min) (point-max) t)
+      ;; wrapper the result
+      (goto-char (point-min)) (insert ?\")
+      (goto-char (point-max)) (insert ?\" ?\n)
+      ;; finally goto the bob
+      (goto-char (point-min)))
+    buff))
+
 ;; *** Print manipulation
 
 (defun entropy/emacs-advice-func-around-for-print-limit
