@@ -142,12 +142,30 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 ;; ** eldoc
 (use-package eldoc
   :ensure nil
-  :diminish eldoc-mode
-  :commands (eldoc eldoc-mode global-eldoc-mode)
+  :preface
+  (defun entropy/emacs-eldoc-show-eldoc-for-current-point
+      (&optional inct)
+    "Like `eldoc' but do not needed `eldoc-mode' enabled at
+before invocation."
+    (interactive '(t))
+    (let ((buff (current-buffer))
+          (eldoc-enable-p (bound-and-true-p eldoc-mode))
+          (entropy/emacs-eldoc-inhibit-in-current-buffer nil))
+      (with-current-buffer buff
+        (unless eldoc-enable-p
+          (eldoc-mode 1)))
+      (funcall-interactively
+       'eldoc-print-current-symbol-info inct)
+      ;; unbind temporally `eldoc-mode' enabled in source buffer
+      (with-current-buffer buff
+        (unless eldoc-enable-p
+          (eldoc-mode 0)))))
+
   :eemacs-tpha
   (((:enable t))
    ("Basic"
-    (("M-h" eldoc "Document thing at point."
+    (("M-h" entropy/emacs-eldoc-show-eldoc-for-current-point
+      "Document thing at point."
       :enable t
       :exit t
       :global-bind t))))
@@ -1056,8 +1074,12 @@ updating."
 ;; ***** init & config
 
   :init
-  (setq eglot-send-changes-idle-time
-        entropy/emacs-ide-diagnostic-delay)
+  (setq eglot-send-changes-idle-time entropy/emacs-ide-diagnostic-delay
+        eglot-autoshutdown t
+        eglot-autoreconnect 4
+        eglot-events-buffer-size 2000000
+        eglot-connect-timeout 10
+        eglot-extend-to-xref nil)
 
   ;; We stay out of company setting from eglot internal consistent
   ;; specified since eemacs has its own specification.
@@ -1091,6 +1113,11 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
           (add-hook hook #'entropy/emacs-codeserver--eglot-non-support-prompt)
         (add-hook
          hook #'eglot-ensure)))))
+
+  ;; Disable `eldoc-mode' after eglot start
+  (advice-add 'eglot-ensure
+              :around
+              #'entropy/emacs-eldoc-inhibi-around-advice)
 
   ;; union server start filter
   (advice-add 'eglot-ensure
@@ -1459,7 +1486,9 @@ let eglot do completion with interface argument injection."
                (cancel-timer eglot-ui-doc-idle-timer)
                (cancel-function-timers 'eglot-ui-doc-display)
                (setq eglot-ui-doc-idle-timer nil))
-             (eldoc-mode 1)))
+             ;; ---> we do not recovery the host native eldoc-mode since its laggy
+             ;; (eldoc-mode 1)
+             ))
           (eglot-ui-doc-mode
            (unless (bound-and-true-p eglot--managed-mode)
              (user-error

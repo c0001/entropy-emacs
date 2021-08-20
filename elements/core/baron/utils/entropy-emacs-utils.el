@@ -238,6 +238,22 @@
 ;; ** eldoc
 (use-package eldoc
   :ensure nil
+  :diminish eldoc-mode
+  :commands (eldoc eldoc-mode global-eldoc-mode)
+  :preface
+  (defvar-local entropy/emacs-eldoc-inhibit-in-current-buffer nil)
+  (defun entropy/emacs-eldoc-inhibi-around-advice
+      (orig-func &rest orig-args)
+    "Around advice for disable `eldoc-mode' with the idlle time
+of `eldoc-idle-delay' after excute the ORIG-FUNC."
+    (unwind-protect
+        (apply orig-func orig-args)
+      (prog1
+          nil
+        (setq
+         entropy/emacs-eldoc-inhibit-in-current-buffer
+         t))))
+
   :config
   (defun __adv/around/eldoc-minibuffer-message
       (orig-func &rest orig-args)
@@ -248,7 +264,24 @@
       (apply orig-func orig-args)))
   (advice-add 'eldoc-minibuffer-message
               :around
-              #'__adv/around/eldoc-minibuffer-message))
+              #'__adv/around/eldoc-minibuffer-message)
+
+  (defun __adv/around/eldoc-schedule-timer/filter-run
+      (orig-func &rest orig-args)
+    "Around advice for `eldoc-schedule-timer' to disable
+`eldoc-mode' while filter the by eemacs internal spec."
+    (let (_)
+      (cond ((bound-and-true-p
+              entropy/emacs-eldoc-inhibit-in-current-buffer)
+             (eldoc-mode 0)
+             nil)
+            (t
+             (apply orig-func orig-args)))))
+  (advice-add 'eldoc-schedule-timer
+              :around
+              #'__adv/around/eldoc-schedule-timer/filter-run)
+
+  )
 
 ;; ** shrink-path
 (use-package shrink-path
