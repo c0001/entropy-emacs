@@ -260,11 +260,23 @@ happened.
 
 NOTE: Any error occurred in this hook will be ignored unless
 `entropy/emacs-session-idle-trigger-debug' is not NULL.")
+
+(defvar entropy/emacs-current-session-idle-hook-ran-done nil
+  "The indicator for indicate whether the
+`entropy/emacs-session-idle-trigger-hook' has been ran out
+finished done in which case the emacs is in an 'deep' sleep, t
+for say done of thus and nil for otherwise.
+
+NOTE: the indicator always be used in the idle time, since any
+command will reset the idle indicator
+`entropy/emacs-current-session-is-idle'.")
+
 (defvar entropy/emacs-session-idle-trigger-debug nil
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
 (defun entropy/emacs--reset-idle-signal ()
-  (setq entropy/emacs-current-session-is-idle nil))
+  (setq entropy/emacs-current-session-is-idle nil
+        entropy/emacs-current-session-idle-hook-ran-done nil))
 
 (defun entropy/emacs--set-idle-signal ()
   (setq entropy/emacs-current-session-is-idle t)
@@ -274,7 +286,8 @@ NOTE: Any error occurred in this hook will be ignored unless
         (setq entropy/emacs-session-idle-trigger-hook nil))
     (ignore-errors
       (run-hooks 'entropy/emacs-session-idle-trigger-hook))
-    (setq entropy/emacs-session-idle-trigger-hook nil)))
+    (setq entropy/emacs-session-idle-trigger-hook nil))
+  (setq entropy/emacs-current-session-idle-hook-ran-done t))
 
 (defvar entropy/emacs-safe-idle-minimal-secs 0.4
   "The minimal idle timer SECS run with checking var

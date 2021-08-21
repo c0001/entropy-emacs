@@ -161,6 +161,8 @@ upstream and may be make risky follow the ivy updates.
   (advice-add 'ivy-alt-done :around '__adv/around/ivy-alt-done)
 
 ;; **** idle post for `ivy--queue-exhibit'
+
+  (defvar-local __idle/ivy-queue-exhited-done nil)
   ;; EEMACS_MAINTENANCE: patching follow upstream please!
   (defun ivy--queue-exhibit ()
     "NOTE: this function has been redefined to get the idle post feature.
@@ -168,6 +170,7 @@ upstream and may be make risky follow the ivy updates.
 Insert Ivy completions display, possibly after a timeout for
 dynamic collections.
 Should be run via minibuffer `post-command-hook'."
+    (setq-local __idle/ivy-queue-exhited-done nil)
     (if (and (> ivy-dynamic-exhibit-delay-ms 0)
              (ivy-state-dynamic-collection ivy-last))
         (progn
@@ -183,8 +186,22 @@ Should be run via minibuffer `post-command-hook'."
                                  ivy-forward-char backward-char))
           (entropy/emacs-run-at-idle-immediately
            __idle/ivy--queue-exhibit
-           (ivy--exhibit))
-        (ivy--exhibit))))
+           (ivy--exhibit)
+           (setq-local __idle/ivy-queue-exhited-done t))
+        (ivy--exhibit)
+        (setq-local __idle/ivy-queue-exhited-done t))))
+
+  (defun __adv/around/ivy-done/for-idle-trigger (orig-func &rest orig-args)
+    "prompts for waiting for `ivy--exhibit' done while trigger
+`ivy-done' before thus."
+    (let (_)
+      (if __idle/ivy-queue-exhited-done
+          (apply orig-func orig-args)
+        (setq ivy--prompt-extra
+              " (waiting for exhibit done)"))))
+  (advice-add 'ivy-done
+              :around
+              #'__adv/around/ivy-done/for-idle-trigger)
   )
 
 ;; ** ivy hydra
