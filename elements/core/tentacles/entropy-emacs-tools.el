@@ -335,6 +335,9 @@ dynamically.")
   :commands (beacon-mode beacon-blink)
   :init
   (defun entropy/emacs-tools--beacon-blink-advice (&rest _)
+    ;; reset the ignore pattern since previous set by
+    ;; `entropy/emacs-tools-beacon-blink-top-hook'
+    (setq entropy/emacs-tools-beacon-blink-ignore nil)
     (run-hooks 'entropy/emacs-tools-beacon-blink-top-hook)
     (unless (or (not (fboundp 'beacon-blink))
                 entropy/emacs-tools-beacon-blink-ignore
