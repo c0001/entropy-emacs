@@ -487,7 +487,7 @@ value."
   "Eemacs ivy-mode configuration customizable group."
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-ivy-rich-type nil
+(defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
   "The enhancement for ivy-framework, icon abbreviation and other
 information displayed in candidates show. NIL for disabled this
 feature.
