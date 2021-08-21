@@ -82,7 +82,7 @@
                                         ;line prompt messy up candi
                                         ;exhibits
   ;; Use limit candi exhibits to prevent visual messy
-  (setq ivy-height (if ivy-add-newline-after-prompt 4 3))
+  (setq ivy-height (if ivy-add-newline-after-prompt 7 6))
   ;; Disable fancy highlight to the matched candidate for performance issue
   (setq ivy-display-style nil)
 
@@ -97,6 +97,8 @@
 ;; *** ivy config
   :config
 
+;; **** exit ivy procedure immediatly after the dispatch actions
+  ;; FIXME: do not use for all ivy caller, add filter for specified caller
   (defun entropy/emacs-ivy--ivy-read-quit-after-dispatch-actions
       (&rest args)
     "Interrupting rest process when `this-command' was
@@ -142,6 +144,7 @@ upstream and may be make risky follow the ivy updates.
     (define-key ivy-mode-map (kbd "ESC ESC") 'top-level))
 
 
+;; **** inhibit double tab trigger
   ;; Patch the `ivy-alt-done' to prevent double click '<tab>'
   ;; triggered in `ivy-partial-or-done' i.e. This portion give the
   ;; minor changed for disabled double tab in ivy completion for
@@ -157,6 +160,31 @@ upstream and may be make risky follow the ivy updates.
         (apply orig-func orig-args))))
   (advice-add 'ivy-alt-done :around '__adv/around/ivy-alt-done)
 
+;; **** idle post for `ivy--queue-exhibit'
+  ;; EEMACS_MAINTENANCE: patching follow upstream please!
+  (defun ivy--queue-exhibit ()
+    "NOTE: this function has been redefined to get the idle post feature.
+
+Insert Ivy completions display, possibly after a timeout for
+dynamic collections.
+Should be run via minibuffer `post-command-hook'."
+    (if (and (> ivy-dynamic-exhibit-delay-ms 0)
+             (ivy-state-dynamic-collection ivy-last))
+        (progn
+          (when ivy--exhibit-timer (cancel-timer ivy--exhibit-timer))
+          (setq ivy--exhibit-timer
+                (run-with-timer
+                 (/ ivy-dynamic-exhibit-delay-ms 1000.0)
+                 nil
+                 'ivy--exhibit)))
+      (if (member this-command '(self-insert-command
+                                 ivy-backward-delete-char
+                                 ;; ivy-backward-kill-word
+                                 ivy-forward-char backward-char))
+          (entropy/emacs-run-at-idle-immediately
+           __idle/ivy--queue-exhibit
+           (ivy--exhibit))
+        (ivy--exhibit))))
   )
 
 ;; ** ivy hydra
