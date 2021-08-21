@@ -398,6 +398,15 @@ specification."
             (if (eq buff-regist-win buff-cur-win)
                 (setq new-hist
                       (append new-hist (list el)))
+              (if buff-cur-win
+                  (progn
+                    (setq new-hist
+                          (append new-hist
+                                  (list (cons buff buff-cur-win))))
+                    (entropy/emacs-popwin--shackle-set-parameters-for-popup-buffer
+                     buff (window-parameter
+                           buff-cur-win
+                           'entropy/emacs-popwin--shackle-origin-selected-window))))
               (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
                buff-regist-win t)))))
       (setq entropy/emacs-popwin--shackle-popup-display-history
@@ -483,7 +492,7 @@ specification."
                    (window-parameter
                     stick-window
                     'entropy/emacs-popwin--shackle-origin-selected-window)))
-              (dolist (el (list stick-buffer stick-window window-prev))
+              (dolist (el (list stick-buffer stick-window))
                 (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
                  el))
               (delete-window stick-window)
