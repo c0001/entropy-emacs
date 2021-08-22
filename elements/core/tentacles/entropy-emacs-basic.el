@@ -1855,17 +1855,20 @@ error type to output symbol OUTPUT-SYM."
             (insert "\n\n")
             (insert "(")
             (dolist (item kill-ring)
-              (if (funcall printable-judge item 'print-error)
-                  (progn (prin1 (substring-no-properties item) to-buffer)
-                         (insert ?\n))
-                ;; Warn that item is not readable
-                (entropy/emacs-message-do-message
-                 "%s%s%s%s"
-                 (red "⚠: ")
-                 "kill ring item "
-                 (yellow (format "'%s'" item))
-                 (format " can not be saved because of [%s] !"
-                         print-error))))
+              (let ((item (substring-no-properties item)))
+                (if (funcall printable-judge
+                             item
+                             'print-error)
+                    (progn (prin1 item to-buffer)
+                           (insert ?\n))
+                  ;; Warn that item is not readable
+                  (entropy/emacs-message-do-message
+                   "%s%s%s%s"
+                   (red "⚠: ")
+                   "kill ring item "
+                   (yellow (format "'%s'" item))
+                   (format " can not be saved because of [%s] !"
+                           print-error)))))
             (insert ")")
             (with-temp-message ""
               (let ((inhibit-message t)
