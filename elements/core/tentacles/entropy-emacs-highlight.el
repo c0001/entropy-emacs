@@ -269,7 +269,9 @@
         nil)))))
   :init
   (add-hook 'emacs-lisp-mode-hook #'rainbow-mode)
-  (add-hook 'help-mode-hook #'rainbow-mode)
+  ;; Do not using rainbow mode in `help-mode' since it will messy the
+  ;; default face of string context of documentation.
+  ;; ;; (add-hook 'help-mode-hook #'rainbow-mode)
   (entropy/emacs-lazy-load-simple web-mode
     (add-hook 'web-mode-hook #'rainbow-mode))
   (entropy/emacs-lazy-load-simple css-mode
