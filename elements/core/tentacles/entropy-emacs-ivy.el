@@ -179,7 +179,12 @@ Should be run via minibuffer `post-command-hook'."
                 (run-with-timer
                  (/ ivy-dynamic-exhibit-delay-ms 1000.0)
                  nil
-                 'ivy--exhibit)))
+                 (lambda ()
+                   "timer idle show ivy candis and set the the
+queue done flag exposed to `ivy-done' idle trigger judger."
+                   (ivy--exhibit)
+                   (setq-local __idle/ivy-queue-exhited-done
+                               t)))))
       (if (member this-command '(self-insert-command
                                  ivy-backward-delete-char
                                  ;; ivy-backward-kill-word
