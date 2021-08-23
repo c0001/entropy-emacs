@@ -271,12 +271,34 @@ NOTE: the indicator always be used in the idle time, since any
 command will reset the idle indicator
 `entropy/emacs-current-session-is-idle'.")
 
+(defvar entropy/emacs-current-session-this-command-before-idle nil
+  "The `this-command' run before the idle time of current emacs
+session.
+
+This variable exists because the `this-command' will be set nil
+while idle time, but may hacks using
+`entropy/emacs-run-at-idle-immediately' on non-idle procedure
+indeed rely on the `this-command' value. Thus you can lexical
+rebind the `this-command' to this variable while such hasck."
+  )
+
+(defvar entropy/emacs-current-session-last-command-before-idle nil
+  "The `last-command' run before the idle time of current emacs
+session.
+
+Like `entropy/emacs-current-session-this-command-before-idle' but
+for `last-command'.
+"
+  )
+
 (defvar entropy/emacs-session-idle-trigger-debug nil
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
 (defun entropy/emacs--reset-idle-signal ()
   (setq entropy/emacs-current-session-is-idle nil
-        entropy/emacs-current-session-idle-hook-ran-done nil))
+        entropy/emacs-current-session-idle-hook-ran-done nil
+        entropy/emacs-current-session-this-command-before-idle this-command
+        entropy/emacs-current-session-last-command-before-idle last-command))
 
 (defun entropy/emacs--set-idle-signal ()
   (setq entropy/emacs-current-session-is-idle t)

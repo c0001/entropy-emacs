@@ -185,13 +185,42 @@ queue done flag exposed to `ivy-done' idle trigger judger."
                    (ivy--exhibit)
                    (setq-local __idle/ivy-queue-exhited-done
                                t)))))
-      (if (member this-command '(self-insert-command
-                                 ivy-backward-delete-char
-                                 ;; ivy-backward-kill-word
-                                 ivy-forward-char backward-char))
+      (if (and (member this-command '(self-insert-command
+                                      ivy-backward-delete-char
+                                      ;; ivy-backward-kill-word
+                                      ivy-forward-char backward-char))
+               ;; TODO: more conditions here
+               )
           (entropy/emacs-run-at-idle-immediately
            __idle/ivy--queue-exhibit
-           (ivy--exhibit)
+           (let* ((func/ivy-done-like-p
+                   (lambda (command)
+                     (member command
+                             '(ivy-alt-done
+                               ivy-mouse-done
+                               ivy-immediate-done
+                               ivy-done
+                               ivy-partial-or-done
+                               ivy-mouse-dispatching-done
+                               ivy-dispatching-done
+                               ))))
+                  ;; binding `this-command' to the
+                  ;; `entropy/emacs-current-session-this-command-before-idle'
+                  ;; since `this-command' is nil while idle time but
+                  ;; ivy subroutine need it to set.
+                  (this-command
+                   ;; bind to `self-insert-command' while `ivy-done' like trigger
+                   ;; since its an user messy.
+                   (if (funcall
+                        func/ivy-done-like-p
+                        entropy/emacs-current-session-this-command-before-idle)
+                       (if (funcall
+                            func/ivy-done-like-p
+                            entropy/emacs-current-session-last-command-before-idle)
+                           'self-insert-command
+                         entropy/emacs-current-session-last-command-before-idle)
+                     entropy/emacs-current-session-this-command-before-idle)))
+             (ivy--exhibit))
            (setq-local __idle/ivy-queue-exhited-done t))
         (ivy--exhibit)
         (setq-local __idle/ivy-queue-exhited-done t))))
@@ -202,8 +231,9 @@ queue done flag exposed to `ivy-done' idle trigger judger."
     (let (_)
       (if __idle/ivy-queue-exhited-done
           (apply orig-func orig-args)
-        (setq ivy--prompt-extra
-              " (waiting for exhibit done)"))))
+        (let ((prompt-str " (waiting for exhibit done)"))
+          (setq ivy--prompt-extra
+                prompt-str)))))
   (advice-add 'ivy-done
               :around
               #'__adv/around/ivy-done/for-idle-trigger)
