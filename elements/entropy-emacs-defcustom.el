@@ -178,6 +178,11 @@ value assignments into."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
+(defcustom entropy/emacs-init-beacon-blink nil
+  "Enable `beacon-blink' at start up time."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
 (defcustom entropy/emacs-fill-paragraph-width 70
   "Setting fill-paragraph width, default 70 to follow the emacs
 convention."
