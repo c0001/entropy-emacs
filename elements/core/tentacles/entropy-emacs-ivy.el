@@ -819,6 +819,7 @@ Since we chosen the kmacro from ring, we set it as the
    all-the-icons-ivy-rich-symbol-icon
    all-the-icons-ivy-rich-theme-icon
    all-the-icons-ivy-rich-variable-icon
+   all-the-icons-ivy-rich--format-icon
    )
   :preface
   (defun ya/all-the-icon-ivy-rich-common-dir-icon
