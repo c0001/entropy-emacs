@@ -35,4 +35,4 @@
 ;; ** main
 (use-package rust-mode)
 
-(provide 'entropy-emacs-game)
+(provide 'entropy-emacs-rust)
