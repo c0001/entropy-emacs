@@ -898,7 +898,8 @@ EEMACS_BUG: h-c02794e4-bdb8-4510-84cb-d668873b02fc
           (require 'disable-mouse))
         (disable-mouse-mode 1))
       rtn))
-
+  ;; since the advice we do not any mouse support by `lsp-ui'
+  (setq lsp-ui-doc-show-with-mouse nil)
   (advice-add 'lsp-ui-doc-frame-mode
               :around
               #'entropy/emacs-codeserver--lsp-ui-doc-frame-mode-disable-mouse)
