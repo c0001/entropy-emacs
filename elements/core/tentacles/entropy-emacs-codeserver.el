@@ -856,7 +856,8 @@ https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-nu
 
 ;; ******* init
   :init
-  (setq lsp-ui-doc-position 'top
+  (setq lsp-ui-doc-enable nil           ;disable the doc show defaulty
+        lsp-ui-doc-position 'top
         lsp-ui-doc-delay entropy/emacs-ide-doc-delay
         lsp-ui-sideline-enable nil
         lsp-ui-sideline-delay entropy/emacs-ide-doc-delay

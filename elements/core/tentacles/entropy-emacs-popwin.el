@@ -149,7 +149,7 @@
         ("^*Flycheck errors*$"         :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
 
         ;; Lsp
-        ("*lsp-help*"                  :regexp nil :dedicated t :align bottom :size 0.3 :autoclose t   :select t)
+        ("*lsp-help*"                  :regexp nil :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
 
         ;; VC
         ("*vc-diff*"                   :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
