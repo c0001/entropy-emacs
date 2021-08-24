@@ -477,26 +477,24 @@ specification."
               (dolist (el (list stick-buffer stick-window))
                 (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
                  el))
-              (when (bound-and-true-p winner-mode)
-                (winner-undo))
-              ;; treat this section has done whether the `winner-undo'
-              ;; can be executed nor just let it be a common buffer
-              ;; and window after thus.
-              (setq close-done t)))
+              (when (and (bound-and-true-p winner-mode)
+                         (window-live-p stick-window))
+                (winner-undo))))
 
            ((entropy/emacs-popwin--buffer-is-shackle-popup-p (current-buffer))
             (setq stick-buffer (current-buffer)
                   stick-window (get-buffer-window stick-buffer))
             (message "Auto hiding popuped buffer <buffer-local type> ...")
             (let ((window-prev
-                   (window-parameter
-                    stick-window
-                    'entropy/emacs-popwin--shackle-origin-selected-window)))
+                   (and (windowp stick-window)
+                        (window-parameter
+                         stick-window
+                         'entropy/emacs-popwin--shackle-origin-selected-window))))
               (dolist (el (list stick-buffer stick-window))
                 (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
                  el))
-              (delete-window stick-window)
-              (setq close-done t)
+              (when (window-live-p stick-window)
+                (delete-window stick-window))
               (when (ignore-errors (window-live-p window-prev))
                 (select-window window-prev))))
 
@@ -512,11 +510,11 @@ specification."
               (when (ignore-errors (buffer-live-p stick-buffer))
                 (when (ignore-errors (window-live-p stick-window))
                   (message "Auto hiding popuped buffer <multi-window type> ...")
-                  (delete-window stick-window)
-                  (setq close-done t)))
+                  (delete-window stick-window)))
               (when close-done
                 (with-selected-window (get-buffer-window host-buffer)
-                  (recenter-top-bottom '(middle)))))))))
+                  (recenter-top-bottom '(middle)))))))
+          ))
       ))
 
   (advice-add #'keyboard-quit
