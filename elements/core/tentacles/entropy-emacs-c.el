@@ -82,6 +82,22 @@
   (add-hook 'c-mode-common-hook
             #'entropy/emacs-c-cc-mode-common-set)
   :config
+
+  ;; Disable default c-bindings
+  (progn
+    (define-key c-mode-base-map "\C-c\C-\\" nil)
+    (define-key c-mode-base-map "\C-c\C-a"  nil)
+    (define-key c-mode-base-map "\C-c\C-b"  nil)
+    (define-key c-mode-base-map "\C-c\C-c"  nil)
+    (define-key c-mode-base-map "\C-c\C-l"  nil)
+    (define-key c-mode-base-map "\C-c\C-o"  nil)
+    (define-key c-mode-base-map "\C-c\C-q"  nil)
+    (define-key c-mode-base-map "\C-c\C-s"  nil)
+    (define-key c-mode-base-map "\C-c."     nil)
+    (define-key c-mode-base-map "\C-c\C-w" nil)
+    (define-key c-mode-base-map "\C-c\C-k" nil)
+    (define-key c-mode-base-map "\C-c\C-z" nil))
+
   )
 
 ;; ** provide
