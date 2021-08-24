@@ -174,9 +174,10 @@ for the songs list and status callback."
     (let ((entropy/emacs-music--mpc-mini-mode t))
       (mpc)))
 
-  (defun entropy/emacs-music-mpc--patch-quit-around-advice (orig-func &rest orig-args)
-    (let* ((select-window-mpc-mini-mode-p
-            (window-parameter (selected-window) 'mpc-mini-mode)))
+  (defun __mpc/disable-window-configuration-restore (&optional orig-func &rest orig-args)
+    (let (rtn)
+      (when (functionp orig-func)
+        (setq rtn (apply orig-func orig-args)))
       ;; remove all mpc internal window configuration memory in which
       ;; case we use
       ;; `entropy/emacs-music-mpc--orig-window-configuration' mechanism instead.
@@ -185,6 +186,12 @@ for the songs list and status callback."
                 (when (buffer-local-value 'mpc-previous-window-config buff)
                   (kill-local-variable 'mpc-previous-window-config))))
             (buffer-list))
+      rtn))
+
+  (defun entropy/emacs-music-mpc--patch-quit-around-advice (orig-func &rest orig-args)
+    (let* ((select-window-mpc-mini-mode-p
+            (window-parameter (selected-window) 'mpc-mini-mode)))
+      (__mpc/disable-window-configuration-restore)
       (apply orig-func orig-args)
       (when (and (window-configuration-p entropy/emacs-music-mpc--orig-window-configuration)
                  ;; we do not recover origin window configuration when
@@ -193,6 +200,18 @@ for the songs list and status callback."
         (set-window-configuration
          entropy/emacs-music-mpc--orig-window-configuration)
         (setq entropy/emacs-music-mpc--orig-window-configuration nil))))
+
+  (defun entropy/emacs-music-mpc--window-configuration-reset-hook
+      (&rest _)
+    "Reset `entropy/emacs-music-mpc--orig-window-configuration'
+as hook for commonly situation."
+    (setq
+     entropy/emacs-music-mpc--orig-window-configuration nil))
+
+  ;; the window configurtion can not be used cross workspace
+  (with-eval-after-load 'eyebrowse
+    (add-hook 'eyebrowse-pre-window-switch-hook
+              #'entropy/emacs-music-mpc--window-configuration-reset-hook))
 
 ;; **** Utils
 ;; ***** mpc select
@@ -599,6 +618,9 @@ Add current music to queue when its not in thus."
   (advice-add 'mpc
               :around
               #'entropy/emacs-music-mpc--initialize-patch)
+  (advice-add 'mpc
+              :around
+              #'__mpc/disable-window-configuration-restore)
   (advice-add 'mpc-quit
               :around
               #'entropy/emacs-music-mpc--patch-quit-around-advice)
