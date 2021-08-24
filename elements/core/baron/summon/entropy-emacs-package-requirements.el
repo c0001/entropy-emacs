@@ -206,6 +206,7 @@
         request
         rg
         ripgrep
+        rust-mode
         s
         search-web
         shackle

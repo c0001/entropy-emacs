@@ -989,6 +989,7 @@ option."
   '(c-mode java-mode
     c++-mode cmake-mode
     go-mode
+    rust-mode
     python-mode php-mode
     js2-mode json-mode css-mode web-mode nxml-mode
     sh-mode powershell-mode))
