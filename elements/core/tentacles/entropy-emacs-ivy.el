@@ -237,6 +237,44 @@ queue done flag exposed to `ivy-done' idle trigger judger."
   (advice-add 'ivy-done
               :around
               #'__adv/around/ivy-done/for-idle-trigger)
+
+
+;; **** fix bug of `ivy-reverse-i-search'
+
+  ;; EEMACS_MAINTENANCE: the patch must follow each update of `ivy'.
+  (defun ivy-reverse-i-search ()
+    "Enter a recursive `ivy-read' session using the current history.
+The selected history element will be inserted into the minibuffer.
+\\<ivy-reverse-i-search-map>
+You can also delete an element from history with \\[ivy-reverse-i-search-kill].
+
+NOTE: this function has been patched with always require match
+since the non-match candi action will cause ivy internal unknown
+bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
+    (interactive)
+    (cond
+     ((= (minibuffer-depth) 0)
+      (user-error
+       "This command is intended to be called from within `ivy-read'"))
+     ;; don't recur
+     ((and (> (minibuffer-depth) 1)
+           (eq (ivy-state-caller ivy-last) 'ivy-reverse-i-search)))
+     (t
+      (let ((enable-recursive-minibuffers t)
+            (old-last ivy-last))
+        (ivy-read "Reverse-i-search: "
+                  (ivy-history-contents (ivy-state-history ivy-last))
+                  :require-match t       ;EEMACS_BUG h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4
+                  :keymap ivy-reverse-i-search-map
+                  :action (lambda (x)
+                            (ivy--reset-state
+                             (setq ivy-last old-last))
+                            (delete-minibuffer-contents)
+                            (insert (substring-no-properties (car x)))
+                            (ivy--cd-maybe))
+                  :caller 'ivy-reverse-i-search)))))
+
+
   )
 
 ;; ** ivy hydra
