@@ -78,22 +78,27 @@
                'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived_inactive
              'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main_inactive)))))
 
+(defvar entropy/emacs-modeline--mdl-common-eyebrowse-segment nil)
 (defun entropy/emacs-modeline--mdl-common-eyebrowse-segment ()
   "Entropy-emacs specific modeline style.
 
 This customization mainly adding the eyebrowse slot and tagging name show function."
-  (let* ((cs (eyebrowse--get 'current-slot))
-         (window-configs (eyebrowse--get 'window-configs))
-         (window-config (assoc cs window-configs))
-         (current-tag (nth 2 window-config))
-         (mdlface (entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen
-                   (number-to-string cs)))
-         rtn)
-    (setq rtn (concat
-               (propertize (concat " " (number-to-string cs) ":") 'face mdlface)
-               (propertize (concat current-tag " ") 'face mdlface)
-               " "))
-    rtn))
+  (if (or (null entropy/emacs-modeline--mdl-common-eyebrowse-segment)
+          (bound-and-true-p entropy/emacs-current-session-is-idle))
+      (let* ((cs (eyebrowse--get 'current-slot))
+             (window-configs (eyebrowse--get 'window-configs))
+             (window-config (assoc cs window-configs))
+             (current-tag (nth 2 window-config))
+             (mdlface (entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen
+                       (number-to-string cs)))
+             rtn)
+        (setq rtn (concat
+                   (propertize (concat " " (number-to-string cs) ":") 'face mdlface)
+                   (propertize (concat current-tag " ") 'face mdlface)
+                   " "))
+        (setq entropy/emacs-modeline--mdl-common-eyebrowse-segment
+              rtn))
+    entropy/emacs-modeline--mdl-common-eyebrowse-segment))
 
 
 ;; *** modeline type defined
@@ -286,42 +291,59 @@ return nil"
                   face
                 'mode-line-inactive)))
 
+(setq
+ entropy/emacs-modeline--simple-mode-line-format
+ '("%e"
+   ;; mode-line-front-space
+   (:eval (if (and
+               (bound-and-true-p eyebrowse-mode)
+               ;; more conditions
+               )
+              (entropy/emacs-modeline--mdl-common-eyebrowse-segment)))
+   mode-line-mule-info
+   mode-line-client
+   mode-line-modified " "
+   (:eval
+    (if (buffer-narrowed-p)
+        (__ya/mdl-egroup/propertize-face "><" 'warning)
+      (__ya/mdl-egroup/propertize-face "||" 'success)))
+   ;;"remote:" mode-line-remote " "
+   ;; mode-line-frame-identification
+   ;; mode-line-modes
+   (:eval
+    (__ya/mdl-egroup/propertize-face
+     (format " %s " major-mode)
+     'success))
+   "<" __ya/mode-line-buffer-identification "> "
+   (:eval
+    (concat (__ya/mdl-egroup/propertize-face
+             "POS:"
+             'link)
+            " "))
+   mode-line-position
+   mode-line-misc-info
+   (:eval
+    (when vc-mode
+      (format "%s%s"
+              (__ya/mdl-egroup/propertize-face
+               "VCS:"
+               'warning)
+              vc-mode)))
+   mode-line-end-spaces))
+
 (defun entropy/emacs-mode-line-origin-theme ()
-  (setq-default mode-line-format
-                '("%e"
-                  ;; mode-line-front-space
-                  (:eval (when (bound-and-true-p eyebrowse-mode)
-                           (entropy/emacs-modeline--mdl-common-eyebrowse-segment)))
-                  mode-line-mule-info
-                  mode-line-client
-                  mode-line-modified " "
-                  (:eval
-                   (if (buffer-narrowed-p)
-                       (__ya/mdl-egroup/propertize-face "><" 'warning)
-                     (__ya/mdl-egroup/propertize-face "||" 'success)))
-                  ;;"remote:" mode-line-remote " "
-                  ;; mode-line-frame-identification
-                  ;; mode-line-modes
-                  (:eval
-                   (__ya/mdl-egroup/propertize-face
-                    (format " %s " major-mode)
-                    'success))
-                  "<" __ya/mode-line-buffer-identification "> "
-                  (:eval
-                   (concat (__ya/mdl-egroup/propertize-face
-                            "POS:"
-                            'link)
-                           " "))
-                  mode-line-position
-                  mode-line-misc-info
-                  (:eval
-                   (when vc-mode
-                     (format "%s%s"
-                             (__ya/mdl-egroup/propertize-face
-                              "VCS:"
-                              'warning)
-                             vc-mode)))
-                  mode-line-end-spaces)))
+  (setq-default
+   mode-line-format
+   '(:eval
+     (if (entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?)
+         (progn
+           (format-mode-line
+            entropy/emacs-modeline--simple-mode-line-format))
+       (propertize
+        (make-string
+         (+ (window-width) 3) ?─ t)
+        'face
+        'error)))))
 
 ;; **** doom modeline
 (use-package doom-modeline
