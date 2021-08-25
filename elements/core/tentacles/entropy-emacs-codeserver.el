@@ -734,46 +734,6 @@ predicate when run it, see
               #'__adv/lsp-diagnostics-flycheck-disable/0)
 
 
-;; ********* speed up `lsp--cur-line'
-
-  ;; EEMACS_MAINTENANCE: need to follow lsp updates
-  (defun __adv/around/lsp--cur-line/0
-      (orig-func &rest orig-args)
-    "Speed up `line-number-at-pos' used in `lsp--cur-line' which
-perforrmed in every command post to improve buffer typing or
-scrolling performance in lsp actived buffer, using modeline
-substitutes while ORIG-ARGS is empty, in which case we have
-assumption that the lsp prober just use `current-point' to did
-those detection or in buffer visual part generally, and it is the
-most of cases we learn about the source code of `lsp-mode' but no
-guarantees of whole mechanism, thus, this patch may have messy on
-some special cases.
-
-[Stick from]:
-https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-number-at-pos-in-large-buffers
-"
-    (let* ((buff (current-buffer))
-           (win (get-buffer-window buff))
-           (pos (car orig-args)))
-      (cond
-       ((and
-         (windowp win)
-         (window-live-p win)
-         ;; ensure the modeline arg expansion correct
-         (eq win (selected-window)))
-        (1-
-         (if pos
-             (save-excursion
-               (goto-char pos)
-               (string-to-number (format-mode-line "%l")))
-           (string-to-number (format-mode-line "%l")))))
-       (t
-        ;; (message "use origi `lsp--cur-line'")
-        (apply orig-func orig-args)))))
-  (advice-add 'lsp--cur-line
-              :around
-              #'__adv/around/lsp--cur-line/0)
-
 ;; ******** others
   ;; Remove clients not officially included in `lsp-mode' internal
   ;; subroutine to prevent from coverring eemacs customizations.
