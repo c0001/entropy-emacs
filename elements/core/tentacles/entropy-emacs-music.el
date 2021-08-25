@@ -505,7 +505,11 @@ Add current music to queue when its not in thus."
     "Seek&volume"
     ((">" (mpc-seek-current "+10") "Seek forward 10s"
       :enable t :map-inject t)
+     ("f" (mpc-seek-current "+10") "Seek forward 10s"
+      :enable t :map-inject t)
      ("<" (mpc-seek-current "-10") "Seek backward 10s"
+      :enable t :map-inject t)
+     ("b" (mpc-seek-current "-10") "Seek backward 10s"
       :enable t :map-inject t)
      ("+" entropy/emacs-music-mpc-increae-volume "increase volume"
       :enable t :map-inject t)
