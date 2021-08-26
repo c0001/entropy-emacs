@@ -1391,6 +1391,22 @@ as thus."
     (setq-default tab-width entropy/emacs-custom-tab-width)
   (setq-default indent-tabs-mode nil))
 
+;; *** disable `electric-indent-mode' by default
+
+;; Remove it globally since we do not use it frequently in non prog
+;; mode and it well inject to `post-self-insert-hook' to increase
+;; performance latency.
+(entropy/emacs-lazy-with-load-trail
+ __disable-electric-indent-mode
+ (when (bound-and-true-p electric-indent-mode)
+   (electric-indent-mode 0))
+ ;; add it locally to prog referred mode hook
+ (dolist (mode (append entropy/emacs-ide-for-them
+                       (list 'emacs-lisp-mode
+                             'lisp-interaction-mode)))
+   (add-hook (intern (format "%s-hook" mode))
+             'electric-indent-local-mode)))
+
 ;; *** Setting language encoding environment
 (setq system-time-locale "C") ;Use english format time string
 
