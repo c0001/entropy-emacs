@@ -734,6 +734,78 @@ predicate when run it, see
               #'__adv/lsp-diagnostics-flycheck-disable/0)
 
 
+;; ********* speed up `lsp--cur-line'
+
+  (defvar-local __eemacs-lsp-narrow-p nil)
+  (defun __adv/around/narrow-to-region/lsp-restriction-deal
+      (orig-func &rest orig-args)
+    (let ((rtn (apply orig-func orig-args)))
+      (setq __eemacs-lsp-narrow-p t)
+      rtn))
+  (dolist (func '(
+                  ;; FIXME: just advice to `narrow-to-region' can not
+                  ;; reflect it as the role of subroutine of other
+                  ;; functions?
+                  narrow-to-region
+                  narrow-to-defun
+                  narrow-to-page
+                  org-narrow-to-subtree
+                  ;; TODO: add more ...
+                  ))
+    (advice-add func
+                :around
+                #'__adv/around/narrow-to-region/lsp-restriction-deal))
+  (defun __adv/around/widen/lsp-restriction-deal
+      (orig-func &rest orig-args)
+    (let (_)
+      (when (eq this-command 'widen)
+        (setq __eemacs-lsp-narrow-p nil))
+      (apply orig-func orig-args)))
+  (advice-add 'widen
+              :around #'__adv/around/widen/lsp-restriction-deal)
+
+
+  ;; EEMACS_MAINTENANCE: need to follow lsp updates
+  (defun __adv/around/lsp--cur-line/0
+      (orig-func &rest orig-args)
+    "Speed up `line-number-at-pos' used in `lsp--cur-line' which
+perforrmed in every command post to improve buffer typing or
+scrolling performance in lsp actived buffer, using modeline
+substitutes while ORIG-ARGS is empty, in which case we have
+assumption that the lsp prober just use `current-point' to did
+those detection or in buffer visual part generally, and it is the
+most of cases we learn about the source code of `lsp-mode' but no
+guarantees of whole mechanism, thus, this patch may have messy on
+some special cases.
+
+[Stick from]:
+https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-number-at-pos-in-large-buffers
+"
+    (let* ((buff (current-buffer))
+           (win (get-buffer-window buff))
+           (pos (car orig-args)))
+      (cond
+       ((and
+         (not pos)
+         ;; do not patch while narrowed visualization, since the
+         ;; modeline substitution may not did that correctly within
+         ;; temporally `widen'
+         ;; e.g. `lsp-save-restriction-and-excursion'.
+         (not (bound-and-true-p __eemacs-lsp-narrow-p))
+         (windowp win)
+         (window-live-p win)
+         ;; ensure the modeline arg expansion correct
+         (eq win (selected-window)))
+        (1-
+         (string-to-number (format-mode-line "%l"))))
+       (t
+        ;; (message "use origi `lsp--cur-line'")
+        (apply orig-func orig-args)))))
+  (advice-add 'lsp--cur-line
+              :around
+              #'__adv/around/lsp--cur-line/0)
+
+
 ;; ******** others
   ;; Remove clients not officially included in `lsp-mode' internal
   ;; subroutine to prevent from coverring eemacs customizations.
