@@ -452,6 +452,14 @@ want to preserve the source demo."
 ;; *** config
 
   :config
+;; **** remove outshine remaps
+
+  ;; we remove those laggy remap include
+  ;; `outshine-self-insert-command' since we don't need them while
+  ;; ever use them.
+  (setq outshine-mode-map
+        (assq-delete-all 'remap outshine-mode-map))
+
 ;; **** redefination
 
   (defvar-local __outline_local_spec_comment_start_str nil
