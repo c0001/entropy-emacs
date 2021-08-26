@@ -340,8 +340,12 @@ remove the oldest one and then injecting new one."
      (setq entropy/emacs-session-idle-trigger-hook
            (delete ',name
                    entropy/emacs-session-idle-trigger-hook))
-     (push ',name
-           entropy/emacs-session-idle-trigger-hook)))
+     ;; We should append the hook to the tail since follow the time
+     ;; order.
+     (setq entropy/emacs-session-idle-trigger-hook
+           (append entropy/emacs-session-idle-trigger-hook
+                   (list ',name)))
+     ))
 
 ;; ** eemacs top keymap refer
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
