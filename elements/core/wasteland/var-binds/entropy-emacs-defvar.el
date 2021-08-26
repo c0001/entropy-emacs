@@ -294,11 +294,21 @@ for `last-command'.
 (defvar entropy/emacs-session-idle-trigger-debug nil
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
+(defvar __eemacs-session-idle-trigger-secs-class '(1 2))
+
 (defun entropy/emacs--reset-idle-signal ()
   (setq entropy/emacs-current-session-is-idle nil
         entropy/emacs-current-session-idle-hook-ran-done nil
         entropy/emacs-current-session-this-command-before-idle this-command
-        entropy/emacs-current-session-last-command-before-idle last-command))
+        entropy/emacs-current-session-last-command-before-idle last-command)
+  (dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
+    (let ((hook-idle-trigger-done-name
+           (intern
+            (format "entropy/emacs-current-session-idle-hook-%s-ran-done"
+                    idle-sec))))
+      (eval
+       `(when (bound-and-true-p ,hook-idle-trigger-done-name)
+         (setq ,hook-idle-trigger-done-name nil))))))
 
 (defun entropy/emacs--set-idle-signal ()
   (setq entropy/emacs-current-session-is-idle t)
@@ -325,27 +335,78 @@ must setted with SECS larger than or equal of this value.")
 (add-variable-watcher 'entropy/emacs-current-session-is-idle
                       #'entropy/emacs--idle-var-guard)
 
-(defmacro entropy/emacs-run-at-idle-immediately
-    (name &rest body)
+(dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
+  (let ((func-idle-trigger-name
+         (intern
+          (format "entropy/emacs--set-idle-signal-%s" idle-sec)))
+        (hook-idle-trigger-name
+         (intern
+          (format "entropy/emacs-session-idle-trigger-hook-%s" idle-sec)))
+        (hook-idle-trigger-done-name
+         (intern
+          (format "entropy/emacs-current-session-idle-hook-%s-ran-done"
+                  idle-sec))))
+    (eval
+     `(progn
+
+        (defvar ,hook-idle-trigger-name nil
+          (format "Like `entropy/emacs-session-idle-trigger-hook' \
+but for idle with %ss." ,idle-sec))
+
+        (defvar ,hook-idle-trigger-done-name nil
+          (format "Like `entropy/emacs-current-session-idle-hook-ran-done' but
+used for hook `%s'" ',hook-idle-trigger-name))
+
+        (defun ,func-idle-trigger-name (&rest _)
+          ,(format "Like `entropy/emacs--set-idle-signal' but latency of %s seconds."
+                   idle-sec)
+          (if entropy/emacs-session-idle-trigger-debug
+              (unwind-protect
+                  (run-hooks ',hook-idle-trigger-name)
+                (setq ,hook-idle-trigger-name nil))
+            (ignore-errors
+              (run-hooks ',hook-idle-trigger-name))
+            (setq ,hook-idle-trigger-name nil))
+          (setq ,hook-idle-trigger-done-name t))
+        (run-with-idle-timer ,idle-sec t #',func-idle-trigger-name)))))
+
+
+(defun __defvar/idle-part/cl-args-body (args)
+  "Remove key-value paire from ARGS."
+  (let ((it args))
+    (catch 'break
+      (while t
+        (if (keywordp (car it))
+            (setq it (cddr it))
+          (throw 'break it))))))
+
+(cl-defmacro entropy/emacs-run-at-idle-immediately
+    (name &rest body &key which-hook &allow-other-keys)
   "Run body defination as NAME while current emacs session ran
 into idle status immediately.
 
 NOTE: each NAME in que is uniquely i.e. duplicated injection will
 remove the oldest one and then injecting new one."
-  `(let (_)
-     (defalias ',name
-       (lambda (&rest _)
-         ,@body))
-     ;; use `delete' ad `push' to reduce lag
-     (setq entropy/emacs-session-idle-trigger-hook
-           (delete ',name
-                   entropy/emacs-session-idle-trigger-hook))
-     ;; We should append the hook to the tail since follow the time
-     ;; order.
-     (setq entropy/emacs-session-idle-trigger-hook
-           (append entropy/emacs-session-idle-trigger-hook
-                   (list ',name)))
-     ))
+  (let* ((hook (if which-hook
+                   (intern
+                    (format "entropy/emacs-session-idle-trigger-hook-%s"
+                            which-hook))
+                 'entropy/emacs-session-idle-trigger-hook))
+         (body (__defvar/idle-part/cl-args-body body)))
+    `(let (_)
+       (defalias ',name
+         (lambda (&rest _)
+           ,@body))
+       ;; use `delete' ad `push' to reduce lag
+       (setq ,hook
+             (delete ',name
+                     ,hook))
+       ;; We should append the hook to the tail since follow the time
+       ;; order.
+       (setq ,hook
+             (append ,hook
+                     (list ',name)))
+       )))
 
 ;; ** eemacs top keymap refer
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
