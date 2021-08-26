@@ -46,15 +46,20 @@
       (&rest _)
     ;; fontify the buffer context round at `current-point' with idle
     ;; style
-    (entropy/emacs-run-at-idle-immediately
-     idle-fontify-c-type-buffer
-     (let ((cur-pos (point))
-           ;; (cur-line (string-to-number (format-mode-line "%l")))
-           )
-       (save-excursion
-         (c-font-lock-fontify-region
-          (line-beginning-position)
-          cur-pos)))))
+    (eval
+     `(entropy/emacs-run-at-idle-immediately
+       idle-fontify-c-type-buffer
+       :which-hook 2
+       (let ((cur-pos ,(point))
+             ;; (cur-line (string-to-number (format-mode-line "%l")))
+             (buff ',(current-buffer))
+             )
+         (ignore-errors
+           (with-current-buffer buff
+             (save-excursion
+               (c-font-lock-fontify-region
+                (line-beginning-position)
+                cur-pos))))))))
 
   (defun entropy/emacs-c-cc-mode-common-set ()
     (c-set-style "bsd")
