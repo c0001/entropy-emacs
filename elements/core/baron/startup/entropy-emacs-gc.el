@@ -184,7 +184,7 @@ delay seconds SECS."
 (entropy/emacs-lazy-with-load-trail
  gc-optimization
  (setq garbage-collection-messages nil)
- (add-hook 'post-command-hook #'entropy/emacs-gc--adjust-cons-threshold)
+ ;;(add-hook 'post-command-hook #'entropy/emacs-gc--adjust-cons-threshold)
  (entropy/emacs-gc--init-idle-gc)
  (setq read-process-output-max (* 1024 1024)))
 
