@@ -514,6 +514,13 @@ Two valid value defaulted by `entropy-emacs':
           (const :tag "Neither to use" nil))
   :group 'entropy/emacs-customize-group-for-ivy-mode)
 
+(defcustom entropy/emacs-ivy-rich-extra-display-transformers-list
+  nil
+  "Extra `ivy-rich-display-transformers-list' specified which
+will combined with =entropy-emacs= internal specification."
+  :type '(repeat sexp)
+  :group 'entropy/emacs-customize-group-for-ivy-mode)
+
 ;; ***** dictionary config
 (defgroup entropy/emacs-customize-group-for-translate nil
   "Eemacs elfeed configuration customizable group."

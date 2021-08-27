@@ -208,7 +208,12 @@ For lisp coding aim, always return the transfered buffer.
 
 ;; *** common lisp
 (use-package slime
-  :commands (slime slime-mode)
+  :commands (slime
+             slime-mode
+             entropy/emacs-lisp--slime-env-symbols
+             entropy/emacs-lisp-slime-counsel-desc-symbol
+             )
+;; **** hydra
   :eemacs-mmphc
   (((:enable t)
     (lisp-mode (nil slime-mode-map) t))
@@ -227,6 +232,7 @@ For lisp coding aim, always return the transfered buffer.
       :exit t
       :map-inject t)
      ("C-c M-r" slime-repl "Slime repl" :enable t :map-inject t :exit t))))
+;; **** init
   :init
 
   (setq inferior-lisp-program entropy/emacs-inferior-lisp-program)
@@ -234,11 +240,25 @@ For lisp coding aim, always return the transfered buffer.
         entropy/emacs-slime-lisp-implementations)
   (add-hook 'lisp-mode-hook #'slime-mode)
 
+  ;; ivy-rich feature add
+  (add-to-list 'entropy/emacs-ivy-rich-extra-display-transformers-list
+               '(entropy/emacs-lisp-slime-counsel-desc-symbol
+                 (:columns
+                  (((lambda (&rest _)
+                      (all-the-icons-octicon
+                       "gear" :height 0.9 :v-adjust -0.05
+                       :face 'success)))
+                   (ivy-rich-candidate (:width 30)))
+                  :delimiter "\t")))
+
+;; **** config
   :config
-  ;; Add more extensions for SLIME
+;; ***** Add more extensions for SLIME
   (dolist (contrib '(slime-repl slime-autodoc))
     (add-to-list 'slime-contribs contrib))
 
+;; ****** more emacs like interactioin
+;; ******* symbol list
   (defun entropy/emacs-lisp--slime-env-symbols ()
     (slime-simple-completions ""))
 
@@ -264,21 +284,7 @@ For lisp coding aim, always return the transfered buffer.
                 :preselect (slime-symbol-at-point)
                 :action #'slime-describe-symbol
                 :caller 'entropy/emacs-lisp-slime-counsel-desc-symbol)))
-
-  (with-eval-after-load 'ivy-rich
-    (when (fboundp #'entropy/emacs-ivy--ivy-rich-variable-icon)
-      (setq ivy-rich-display-transformers-list
-            (append
-             '(entropy/emacs-lisp-slime-counsel-desc-symbol
-               (:columns
-                ((entropy/emacs-ivy--ivy-rich-symbol-icon)
-                 (ivy-rich-candidate (:width 30)))
-                :delimiter "\t"))
-             ivy-rich-display-transformers-list))
-      ;; renable `ivy-rich-mode' to enable new rich display rule
-      (when ivy-rich-mode
-        (ivy-rich-mode 0)
-        (ivy-rich-mode 1)))))
+  )
 
 ;; * provide
 (provide 'entropy-emacs-emacs-lisp)

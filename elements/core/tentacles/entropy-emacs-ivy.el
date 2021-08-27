@@ -916,84 +916,93 @@ Since we chosen the kmacro from ring, we set it as the
 
   (defun entropy/ivy--ivy-rich-set-transformers-list ()
     (let ((dcw-w entropy/ivy--ivy-rich-candi-width/with-docstring)
-          (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring))
-      `(ivy-switch-buffer
-        (:columns
-         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
-          (ivy-rich-candidate
-           (:width ,(max (- dcw-w 10) 30)))
-          (ivy-rich-switch-buffer-size
-           (:width 7))
-          (ivy-rich-switch-buffer-indicators
-           (:width 4 :face error :align right))
-          (ivy-rich-switch-buffer-major-mode
-           (:width 12 :face warning)))
-         :predicate
-         (lambda
-           (cand)
-           (get-buffer cand)))
-        counsel-find-file
-        (:columns
-         (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
-          (ivy-read-file-transformer)
-          (ivy-rich-counsel-find-file-truename
-           (:face font-lock-doc-face))))
-        counsel-M-x
-        (:columns
-         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
-          (counsel-M-x-transformer
-           (:width ,(_ivy-rich-use-doc-width)))
-          (,(_ivy-rich-use-doc-func-elisp-func)
-           (:face font-lock-doc-face))))
-        counsel-describe-function
-        (:columns
-         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
-          (counsel-describe-function-transformer
-           (:width ,(_ivy-rich-use-doc-width)))
-          (,(_ivy-rich-use-doc-func-elisp-func)
-           (:face font-lock-doc-face))))
-        counsel-describe-variable
-        (:columns
-         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-variable-icon)
-          (counsel-describe-variable-transformer
-           (:width ,(_ivy-rich-use-doc-width)))
-          (,(_ivy-rich-use-doc-func-elisp-var)
-           (:face font-lock-doc-face))))
-        counsel-recentf
-        (:columns
-         (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
-          (ivy-rich-candidate
-           (:width 0.8))
-          (ivy-rich-file-last-modified-time
-           (:face font-lock-comment-face))))
-        package-install
-        (:columns
-         (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
-          (ivy-rich-candidate
-           (:width 30))
-          (ivy-rich-package-version
-           (:width 16 :face font-lock-comment-face))
-          (ivy-rich-package-archive-summary
-           (:width 7 :face font-lock-builtin-face))
-          (ivy-rich-package-install-summary
-           (:face font-lock-doc-face))))
-        counsel-projectile-switch-project
-        (:columns
-         ((ya/all-the-icon-ivy-rich-common-dir-icon)
-          (ivy-rich-candidate))
-         :delimiter "\t")
-        counsel-projectile-find-file
-        (:columns
-         ((ya/all-the-icons-ivy-rich-common-file-icon)
-          (counsel-projectile-find-file-transformer))
-         :delimiter "\t")
-        counsel-projectile-find-dir
-        (:columns
-         ((all-the-icons-ivy-rich-project-icon)
-          (counsel-projectile-find-dir-transformer))
-         :delimiter "\t"))))
+          (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring)
+          rtn)
+      (setq rtn
+            `(ivy-switch-buffer
+              (:columns
+               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
+                (ivy-rich-candidate
+                 (:width ,(max (- dcw-w 10) 30)))
+                (ivy-rich-switch-buffer-size
+                 (:width 7))
+                (ivy-rich-switch-buffer-indicators
+                 (:width 4 :face error :align right))
+                (ivy-rich-switch-buffer-major-mode
+                 (:width 12 :face warning)))
+               :predicate
+               (lambda
+                 (cand)
+                 (get-buffer cand)))
+              counsel-find-file
+              (:columns
+               (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+                (ivy-read-file-transformer)
+                (ivy-rich-counsel-find-file-truename
+                 (:face font-lock-doc-face))))
+              counsel-M-x
+              (:columns
+               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
+                (counsel-M-x-transformer
+                 (:width ,(_ivy-rich-use-doc-width)))
+                (,(_ivy-rich-use-doc-func-elisp-func)
+                 (:face font-lock-doc-face))))
+              counsel-describe-function
+              (:columns
+               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-function-icon)
+                (counsel-describe-function-transformer
+                 (:width ,(_ivy-rich-use-doc-width)))
+                (,(_ivy-rich-use-doc-func-elisp-func)
+                 (:face font-lock-doc-face))))
+              counsel-describe-variable
+              (:columns
+               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-variable-icon)
+                (counsel-describe-variable-transformer
+                 (:width ,(_ivy-rich-use-doc-width)))
+                (,(_ivy-rich-use-doc-func-elisp-var)
+                 (:face font-lock-doc-face))))
+              counsel-recentf
+              (:columns
+               (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+                (ivy-rich-candidate
+                 (:width 0.8))
+                (ivy-rich-file-last-modified-time
+                 (:face font-lock-comment-face))))
+              package-install
+              (:columns
+               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-package-icon)
+                (ivy-rich-candidate
+                 (:width 30))
+                (ivy-rich-package-version
+                 (:width 16 :face font-lock-comment-face))
+                (ivy-rich-package-archive-summary
+                 (:width 7 :face font-lock-builtin-face))
+                (ivy-rich-package-install-summary
+                 (:face font-lock-doc-face))))
+              counsel-projectile-switch-project
+              (:columns
+               ((ya/all-the-icon-ivy-rich-common-dir-icon)
+                (ivy-rich-candidate))
+               :delimiter "\t")
+              counsel-projectile-find-file
+              (:columns
+               ((ya/all-the-icons-ivy-rich-common-file-icon)
+                (counsel-projectile-find-file-transformer))
+               :delimiter "\t")
+              counsel-projectile-find-dir
+              (:columns
+               ((all-the-icons-ivy-rich-project-icon)
+                (counsel-projectile-find-dir-transformer))
+               :delimiter "\t")))
 
-  (defun entrop/emacs-ivy-rich-toggle-doc-show (&optional type)
+      ;; append customized specification
+      (dolist (cus-spec
+               entropy/emacs-ivy-rich-extra-display-transformers-list)
+        (setq rtn
+              (append rtn cus-spec)))
+      rtn))
+
+  (defun entropy/emacs-ivy-rich-toggle-doc-show (&optional type)
     (interactive)
     (progn
       (ivy-rich-mode 0)
@@ -1009,10 +1018,19 @@ Since we chosen the kmacro from ring, we set it as the
        (entropy/ivy--ivy-rich-set-transformers-list))
       (ivy-rich-mode 1)))
 
-  (setq
-   ivy-rich-display-transformers-list
-   (entropy/ivy--ivy-rich-set-transformers-list))
-
+  ;; we must ensure that initial `ivy-rich-display-transformers-list'
+  ;; after all specification are injected into
+  ;; `entropy/emacs-ivy-rich-extra-display-transformers-list'.
+  (let ((body '(setq
+                ivy-rich-display-transformers-list
+                (entropy/ivy--ivy-rich-set-transformers-list))))
+    (if (bound-and-true-p entropy/emacs-custom-enable-lazy-load)
+        (eval body)
+      (eval
+       `(entropy/emacs-lazy-with-load-trail
+         __init_ivy-rich-display-transformers-list
+         :pdumper-no-end t
+         ,body))))
   )
 
 
