@@ -246,12 +246,17 @@ only which use both of margin and fringe since the fringe for
 flycheck show error indication will lost in pdumper session."
     (interactive)
     (setq mode 'left-margin)
-    (setq left-fringe-width 8 right-fringe-width 8
-          left-margin-width 2 right-margin-width 8)
+    (setq left-fringe-width 8 right-fringe-width 4
+          left-margin-width 2 right-margin-width 2)
     (setq-local flycheck-indication-mode mode)
     (flycheck-refresh-fringes-and-margins))
   (when entropy/emacs-fall-love-with-pdumper
-    (setq flycheck-indication-mode 'left-margin)
+    (defun __hook/flycheck-mode-hook/0 (&rest _)
+      "Trigger margin indicator on mode init.
+FIXME: this is needed while pdumper session, why?"
+      (when (bound-and-true-p flycheck-mode)
+        (flycheck-set-indication-mode 'left-margin)))
+    (add-hook 'flycheck-mode-hook #'__hook/flycheck-mode-hook/0)
     (advice-add 'flycheck-set-indication-mode
                 :override
                 #'__ya/flycheck-set-indication-mode/for-pdumper))
