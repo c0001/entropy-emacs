@@ -366,13 +366,16 @@ specification."
               (rassq-delete-all
                buffer-or-window
                entropy/emacs-popwin--shackle-popup-display-history))
+
+        ;; we should reset the parameter of whatever live or deleted
+        ;; window since the deleted window may be reactivated later.
+        (set-window-parameter buffer-or-window
+                              'entropy/emacs-popwin--shackle-window-is-popup-window-p
+                              nil)
+        (set-window-parameter buffer-or-window
+                              'entropy/emacs-popwin--shackle-origin-selected-window
+                              nil)
         (when (window-live-p buffer-or-window)
-          (set-window-parameter buffer-or-window
-                                'entropy/emacs-popwin--shackle-window-is-popup-window-p
-                                nil)
-          (set-window-parameter buffer-or-window
-                                'entropy/emacs-popwin--shackle-origin-selected-window
-                                nil)
           (unless _non_recursive
             (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
              (window-buffer buffer-or-window) t))))
@@ -395,11 +398,19 @@ specification."
         (let* ((buff (car el))
                (buff-regist-win (cdr el))
                (buff-cur-win (ignore-errors (get-buffer-window buff))))
-          (when (buffer-live-p buff)
-            (if (eq buff-regist-win buff-cur-win)
+          (when
+              ;; we just preserved the alive buffer record
+              (buffer-live-p buff)
+            (if
+                ;; in which case the record is efficient already
+                (eq buff-regist-win buff-cur-win)
                 (setq new-hist
                       (append new-hist (list el)))
-              (if buff-cur-win
+              ;; the otherwise, the record is broken
+              (if
+                  ;; if the recorded buffer is still displayed as
+                  ;; also, we fix its record with its new window
+                  buff-cur-win
                   (progn
                     (setq new-hist
                           (append new-hist
@@ -407,9 +418,33 @@ specification."
                     (entropy/emacs-popwin--shackle-set-parameters-for-popup-buffer
                      buff (window-parameter
                            buff-cur-win
-                           'entropy/emacs-popwin--shackle-origin-selected-window))))
-              (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
-               buff-regist-win t)))))
+                           'entropy/emacs-popwin--shackle-origin-selected-window))
+                    (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
+                     buff-regist-win t))
+                ;; otherwise, we replace the buffer of the record if
+                ;; its stick window displayed other buffer.
+                (progn
+                  (if (window-live-p buff-regist-win)
+                      (progn
+                        (setq new-hist
+                              (append
+                               new-hist
+                               (list (cons (window-buffer buff-regist-win)
+                                           buff-regist-win))))
+                        (entropy/emacs-popwin--shackle-set-parameters-for-popup-buffer
+                         (window-buffer buff-regist-win)
+                         (window-parameter
+                          buff-regist-win
+                          'entropy/emacs-popwin--shackle-origin-selected-window))
+                        (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
+                         buff t))
+                    (progn
+                      (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
+                       buff t)
+                      ;; unhack the deletd window since its may reactivated later.
+                      (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
+                       buff-regist-win t)))))
+              ))))
       (setq entropy/emacs-popwin--shackle-popup-display-history
             new-hist)))
 
