@@ -77,6 +77,15 @@
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-theme-load-modeline-specifix)
 (add-hook 'entropy/emacs-theme-load-after-hook #'entropy/emacs-adjust-org-heading-scale)
 
+;; TODO: accomplete this hook
+(defun entropy/emacs-themes-set-margin/fringe-width/style
+    (&rest _)
+  ;; reset the fringe style to default
+  (set-fringe-style))
+
+(add-hook 'entropy/emacs-theme-load-after-hook-end-2
+          #'entropy/emacs-themes-set-margin/fringe-width/style)
+
 ;; ** Solaire mode for focus visual style
 
 (defgroup solaire-mode nil
