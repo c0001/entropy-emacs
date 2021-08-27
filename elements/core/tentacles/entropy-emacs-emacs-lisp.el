@@ -207,6 +207,8 @@ For lisp coding aim, always return the transfered buffer.
   (byte-recompile-directory package-user-dir nil t))
 
 ;; *** common lisp
+
+;; TODO: add unique `company-box-icons-functions' for slime
 (use-package slime
   :commands (slime
              slime-mode

@@ -268,6 +268,7 @@ NOTE: this function is an around advice wrapper."
   (setq
    ;; just enable company in some prog referred modes
    company-global-modes (append '(emacs-lisp-mode
+                                  lisp-mode
                                   lisp-interaction-mode
                                   text-mode
                                   org-mode
