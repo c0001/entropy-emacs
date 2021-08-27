@@ -71,7 +71,7 @@
   '(company-files company-capf :separate company-en-words)
   "Basic top company-backend for all situations.")
 
-(defvar entropy/emacs-company-max-candidates 30
+(defvar entropy/emacs-company-max-candidates 12
   "The companys max canids length restriction.")
 
 (entropy/emacs-lazy-load-simple company
