@@ -301,7 +301,7 @@ for `last-command'.
 
 (defvar __eemacs-session-idle-trigger-secs-class '(1 2))
 
-(defun __eemacs--get-idle-hook-refer-symbol-name
+(defun __eemacs--get-idle-hook-refer-symbol-name_core
     (type idle-sec)
   (pcase type
     ('hook-trigger-func
@@ -321,9 +321,39 @@ for `last-command'.
           (format "entropy/emacs-session-idle-trigger-hook-of-%s-sec-error-list"
                   idle-sec)))
     (_
-     (error "__eemacs--get-idle-hook-refer-symbol-name: \
+     (error "__eemacs--get-idle-hook-refer-symbol-name_core: \
 wrong type of type: %s"
             type))))
+
+(defvar __eemacs_idle-hook-refer-symbol-name-cache
+  (let (rtn)
+    (dolist
+        (type '(hook-trigger-func
+                hook-trigger-hook-name
+                hook-trigger-done-var
+                hook-trigger-error-list))
+      (let ((sub-rtn nil))
+        (dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
+          (push (cons
+                 idle-sec
+                 (__eemacs--get-idle-hook-refer-symbol-name_core
+                  type idle-sec))
+                sub-rtn))
+        (push (cons type sub-rtn)
+              rtn)))
+    rtn)
+  "Use generated cache for speedup symbol-name get procedure
+since `intern' is laggy.")
+
+(defun __eemacs--get-idle-hook-refer-symbol-name (type idle-sec)
+  (or (alist-get
+       idle-sec
+       (alist-get
+        type
+        __eemacs_idle-hook-refer-symbol-name-cache))
+      (error "__eemacs--get-idle-hook-refer-symbol-name_core: \
+wrong type of type: %s of seconds: %s"
+             type idle-sec)))
 
 (defun entropy/emacs--reset-idle-signal ()
   (setq entropy/emacs-current-session-is-idle nil
