@@ -1102,7 +1102,7 @@ rich enhanced purpose there are one another option:
           (const :tag "Rich-hence (company-box)" company-box))
   :group 'entropy/emacs-customize-group-for-company-mode)
 
-(defcustom entropy/emacs-company-idle-delay-default 1.5
+(defcustom entropy/emacs-company-idle-delay-default 0.5
   "Default eemacs specified set for `company-idle-delay`."
   :type 'number
   :group 'entropy/emacs-customize-group-for-company-mode)
