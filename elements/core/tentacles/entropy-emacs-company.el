@@ -405,6 +405,7 @@ activated status. Default time during set is less than 70ms."
         (eval
          `(entropy/emacs-run-at-idle-immediately
            company-pseudo-unhide-delay
+           :current-buffer t
            (let (_)
              (apply ',orig-func ',orig-args)))))))
   (advice-add 'company-pseudo-tooltip-unhide

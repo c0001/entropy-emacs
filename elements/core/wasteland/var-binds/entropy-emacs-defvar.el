@@ -261,6 +261,11 @@ happened.
 NOTE: Any error occurred in this hook will be ignored unless
 `entropy/emacs-session-idle-trigger-debug' is not NULL.")
 
+(defvar entropy/emacs-session-idle-trigger-hook-error-list nil
+  "The error log list of
+`entropy/emacs-session-idle-trigger-hook', used when
+`entropy/emacs-session-idle-trigger-debug' is null.")
+
 (defvar entropy/emacs-current-session-idle-hook-ran-done nil
   "The indicator for indicate whether the
 `entropy/emacs-session-idle-trigger-hook' has been ran out
@@ -296,6 +301,30 @@ for `last-command'.
 
 (defvar __eemacs-session-idle-trigger-secs-class '(1 2))
 
+(defun __eemacs--get-idle-hook-refer-symbol-name
+    (type idle-sec)
+  (pcase type
+    ('hook-trigger-func
+     (intern
+      (format "entropy/emacs--set-idle-signal-of-%s-sec"
+              idle-sec)))
+    ('hook-trigger-hook-name
+     (intern
+      (format "entropy/emacs-session-idle-trigger-hook-of-%s-sec"
+              idle-sec)))
+    ('hook-trigger-done-var
+     (intern
+          (format "entropy/emacs-current-session-idle-hook-of-%s-sec-ran-done"
+                  idle-sec)))
+    ('hook-trigger-error-list
+     (intern
+          (format "entropy/emacs-session-idle-trigger-hook-of-%s-sec-error-list"
+                  idle-sec)))
+    (_
+     (error "__eemacs--get-idle-hook-refer-symbol-name: \
+wrong type of type: %s"
+            type))))
+
 (defun entropy/emacs--reset-idle-signal ()
   (setq entropy/emacs-current-session-is-idle nil
         entropy/emacs-current-session-idle-hook-ran-done nil
@@ -303,9 +332,8 @@ for `last-command'.
         entropy/emacs-current-session-last-command-before-idle last-command)
   (dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
     (let ((hook-idle-trigger-done-name
-           (intern
-            (format "entropy/emacs-current-session-idle-hook-%s-ran-done"
-                    idle-sec))))
+           (__eemacs--get-idle-hook-refer-symbol-name
+            'hook-trigger-done-var idle-sec)))
       (eval
        `(when (bound-and-true-p ,hook-idle-trigger-done-name)
          (setq ,hook-idle-trigger-done-name nil))))))
@@ -316,8 +344,11 @@ for `last-command'.
       (unwind-protect
           (run-hooks 'entropy/emacs-session-idle-trigger-hook)
         (setq entropy/emacs-session-idle-trigger-hook nil))
-    (ignore-errors
-      (run-hooks 'entropy/emacs-session-idle-trigger-hook))
+    (condition-case error
+        (run-hooks 'entropy/emacs-session-idle-trigger-hook)
+      (error
+       (push error
+             entropy/emacs-session-idle-trigger-hook-error-list)))
     (setq entropy/emacs-session-idle-trigger-hook nil))
   (setq entropy/emacs-current-session-idle-hook-ran-done t))
 
@@ -337,15 +368,17 @@ must setted with SECS larger than or equal of this value.")
 
 (dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
   (let ((func-idle-trigger-name
-         (intern
-          (format "entropy/emacs--set-idle-signal-%s" idle-sec)))
+         (__eemacs--get-idle-hook-refer-symbol-name
+            'hook-trigger-func idle-sec))
         (hook-idle-trigger-name
-         (intern
-          (format "entropy/emacs-session-idle-trigger-hook-%s" idle-sec)))
+         (__eemacs--get-idle-hook-refer-symbol-name
+            'hook-trigger-hook-name idle-sec))
         (hook-idle-trigger-done-name
-         (intern
-          (format "entropy/emacs-current-session-idle-hook-%s-ran-done"
-                  idle-sec))))
+         (__eemacs--get-idle-hook-refer-symbol-name
+            'hook-trigger-done-var idle-sec))
+        (hook-idle-trigger-error-list
+         (__eemacs--get-idle-hook-refer-symbol-name
+          'hook-trigger-error-list idle-sec)))
     (eval
      `(progn
 
@@ -357,6 +390,11 @@ but for idle with %ss." ,idle-sec))
           (format "Like `entropy/emacs-current-session-idle-hook-ran-done' but
 used for hook `%s'" ',hook-idle-trigger-name))
 
+        (defvar ,hook-idle-trigger-error-list nil
+          (format "Like `entropy/emacs-session-idle-trigger-hook-error-list' \
+but used for hook  `%s'."
+                  ',hook-idle-trigger-name))
+
         (defun ,func-idle-trigger-name (&rest _)
           ,(format "Like `entropy/emacs--set-idle-signal' but latency of %s seconds."
                    idle-sec)
@@ -364,8 +402,10 @@ used for hook `%s'" ',hook-idle-trigger-name))
               (unwind-protect
                   (run-hooks ',hook-idle-trigger-name)
                 (setq ,hook-idle-trigger-name nil))
-            (ignore-errors
-              (run-hooks ',hook-idle-trigger-name))
+            (condition-case error
+                (run-hooks ',hook-idle-trigger-name)
+              (error
+               (push error ,hook-idle-trigger-error-list)))
             (setq ,hook-idle-trigger-name nil))
           (setq ,hook-idle-trigger-done-name t))
         (run-with-idle-timer ,idle-sec t #',func-idle-trigger-name)))))
@@ -381,22 +421,54 @@ used for hook `%s'" ',hook-idle-trigger-name))
           (throw 'break it))))))
 
 (cl-defmacro entropy/emacs-run-at-idle-immediately
-    (name &rest body &key which-hook &allow-other-keys)
-  "Run body defination as NAME while current emacs session ran
+    (name &rest body
+          &key
+          which-hook
+          current-buffer
+          &allow-other-keys)
+  "Run BODY defination as NAME while current emacs session ran
 into idle status immediately.
+
+Optional key slot support:
+- which-hook: number of seconds of `__eemacs-session-idle-trigger-secs-class'
+
+- current-buffer: wrap BODY in `current-buffer' as constant
+  without any buffer live checker.
+
+When `entropy/emacs-session-idle-trigger-debug' is null, then any
+body is error ignored.
 
 NOTE: each NAME in que is uniquely i.e. duplicated injection will
 remove the oldest one and then injecting new one."
-  (let* ((hook (if which-hook
-                   (intern
-                    (format "entropy/emacs-session-idle-trigger-hook-%s"
-                            which-hook))
-                 'entropy/emacs-session-idle-trigger-hook))
-         (body (__defvar/idle-part/cl-args-body body)))
+  (let* ((hook
+          (if which-hook
+              (__eemacs--get-idle-hook-refer-symbol-name
+               'hook-trigger-hook-name which-hook)
+            'entropy/emacs-session-idle-trigger-hook))
+         (hook-error-list
+          (if which-hook
+              (__eemacs--get-idle-hook-refer-symbol-name
+               'hook-trigger-error-list which-hook)
+            'entropy/emacs-session-idle-trigger-hook-error-list))
+         (buff-stick-p current-buffer)
+         (buff (current-buffer))
+         (body (__defvar/idle-part/cl-args-body body))
+         (body-wrapper
+          `(if entropy/emacs-session-idle-trigger-debug
+               (progn
+                 ,@body)
+             (condition-case error
+                 (progn
+                   ,@body)
+               (error
+                (push error ,hook-error-list))))))
     `(let (_)
        (defalias ',name
          (lambda (&rest _)
-           ,@body))
+           (if ',buff-stick-p
+               (with-current-buffer ',buff
+                 ,body-wrapper)
+             ,body-wrapper)))
        ;; use `delete' ad `push' to reduce lag
        (setq ,hook
              (delete ',name
