@@ -471,6 +471,7 @@ format which caused by set the restriction for thus."
 
   (defvar entropy/emacs-pretty-hydra-posframe-visible-p nil)
   (defvar entropy/emacs-pretty-hydra-defined-indcator nil)
+  (defvar entropy/emacs-pretty-hydra-posframe-boder-color "red")
   (defvar entropy/emacs-pretty-hydra-posframe-args
     '((hydra-hint-display-type
        (if (and (display-graphic-p)
@@ -481,12 +482,32 @@ format which caused by set the restriction for thus."
        ;; EEMACS_MAINTENANCE: follow `hydra' updates
        (list
         :internal-border-width 1
-        :internal-border-color "red"
+        :internal-border-color entropy/emacs-pretty-hydra-posframe-boder-color
         ;; truncate line always in hydra posframe
         :lines-truncate t
         ;; stick on frame center always while show hydra posframe
         :poshandler 'posframe-poshandler-frame-center
         ))))
+
+  (defun __adv/around/hydra-posframe-show
+      (orig-func &rest orig-args)
+    "Reset the posframe `internal-border' face background color
+since the posframe resuse the invisible old created
+`posframe--frame' to speed reason, but it's parameter can be
+easily modified by others."
+    (let ((rtn (apply orig-func orig-args)))
+      (unless (framep rtn)
+        (error "Update the pretty-hydra hack on \
+`hydra-posframe-show' since internal api is changed"))
+      (set-face-background 'internal-border
+                           entropy/emacs-pretty-hydra-posframe-boder-color
+                           rtn)
+      rtn
+      ))
+  (advice-add 'hydra-posframe-show
+              :around
+              #'__adv/around/hydra-posframe-show)
+
   (defun entropy/emacs-pretty-hydra--patch-2
       (orig-func &rest orig-args)
     "Let all hydra defined by `pretty-hydra-define' show with
