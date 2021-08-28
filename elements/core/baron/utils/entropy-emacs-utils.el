@@ -440,16 +440,7 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
         "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?")
   :config
 
-  ;; EEMACS_MAINTENANCE: follow `hydra' updates
-  (setq hydra-posframe-show-params
-        (list
-         :internal-border-width 1
-         :internal-border-color "red"
-         ;; truncate line always in hydra posframe
-         :lines-truncate t
-         ;; stick on frame center always while show hydra posframe
-         :poshandler 'posframe-poshandler-frame-center
-         )))
+  )
 
 ;; *** pretty-hydra
 
@@ -474,10 +465,93 @@ format which caused by set the restriction for thus."
     (let* ((print-level nil)
            (print-length nil))
       (apply orig-func orig-args)))
-
   (advice-add 'pretty-hydra--generate
               :around
-              #'entropy/emacs-pretty-hydra--patch-1))
+              #'entropy/emacs-pretty-hydra--patch-1)
+
+  (defvar entropy/emacs-pretty-hydra-posframe-visible-p nil)
+  (defun entropy/emacs-pretty-hydra--patch-2
+      (orig-func &rest orig-args)
+    "Let all hydra defined by `pretty-hydra-define' show with
+posframe when available."
+    (let* ((name (car orig-args))
+           (body-func-name-str
+            (format "%S/body" name))
+           (body-adfunc-name
+            (intern
+             (format "__adv/around/%s/__use-posframe-show"
+                     body-func-name-str)))
+           (body-func-name nil)
+           rtn)
+      (progn
+        (setq rtn (apply orig-func orig-args))
+        ;; we just intern the adfunc when the hydra generator return
+        ;; success for preventing obarray messy.
+        (setq body-func-name
+              (intern body-func-name-str)))
+      ;; inject advice after the origin macro
+      (setq rtn
+            `(progn
+               ,rtn
+               (let (_)
+                 (defun ,body-adfunc-name
+                     (orig-func &rest orig-args)
+                   (let* ((hydra-hint-display-type
+                           (if (and (display-graphic-p)
+                                    (fboundp 'posframe-show))
+                               'posframe
+                             'lv))
+                          (hydra-posframe-show-params
+                           ;; EEMACS_MAINTENANCE: follow `hydra' updates
+                           (list
+                            :internal-border-width 1
+                            :internal-border-color "red"
+                            ;; truncate line always in hydra posframe
+                            :lines-truncate t
+                            ;; stick on frame center always while show hydra posframe
+                            :poshandler 'posframe-poshandler-frame-center
+                            )))
+                     (setq entropy/emacs-pretty-hydra-posframe-visible-p t)
+                     (apply orig-func orig-args)))
+                 (advice-add ',body-func-name
+                             :around
+                             ',body-adfunc-name))))
+      rtn))
+  (advice-add 'pretty-hydra--generate
+              :around
+              #'entropy/emacs-pretty-hydra--patch-2)
+
+
+  (defun __adv/around/hydra-posframe-hide/close-eemacs-pretty-hydra
+      (&rest _)
+    ;; EEMACS_MAINTENANCE: follow `hydra' updates
+    "Unset `entropy/emacs-pretty-hydra-posframe-visible-p' after
+close hydra posframe."
+    (require 'posframe)
+    (unless hydra--posframe-timer
+      (setq hydra--posframe-timer
+            (run-with-idle-timer
+             0 nil (lambda ()
+                     (setq hydra--posframe-timer nil)
+                     (posframe-hide " *hydra-posframe*")
+                     (setq entropy/emacs-pretty-hydra-posframe-visible-p
+                           nil))))))
+  (advice-add 'hydra-posframe-hide
+              :override
+              #'__adv/around/hydra-posframe-hide/close-eemacs-pretty-hydra)
+  (defun __adv/around/hydra-keyboard-quit/close-eemacs-pretty-hydra
+      (orig-func &rest orig-args)
+    "Bound `hydra-hint-display-type' to posframe when
+`entropy/emacs-pretty-hydra-posframe-visible-p' non-nil."
+    (let ()
+      (if entropy/emacs-pretty-hydra-posframe-visible-p
+          (let ((hydra-hint-display-type 'posframe))
+            (apply orig-func orig-args))
+        (apply orig-func orig-args))))
+  (advice-add 'hydra-keyboard-quit
+              :around
+              #'__adv/around/hydra-keyboard-quit/close-eemacs-pretty-hydra)
+  )
 
 ;; *** major-hydra
 
