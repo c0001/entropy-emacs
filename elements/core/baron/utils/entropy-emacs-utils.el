@@ -536,8 +536,8 @@ posframe when available."
                (let (_)
                  (defun ,body-adfunc-name
                      (orig-func &rest orig-args)
-                   (format "Around advice for `%s' to show with posframe if available."
-                           ',body-adfunc-name)
+                   ,(format "Around advice for `%s' to show with posframe if available."
+                            body-adfunc-name)
                    (let* (,@entropy/emacs-pretty-hydra-posframe-args)
                      (setq entropy/emacs-pretty-hydra-posframe-visible-p t)
                      (apply orig-func orig-args)))
@@ -566,8 +566,8 @@ posframe when available."
                 `(prog1
                      ,rtn
                    (defun ,name-adv (orig-func &rest orig-args)
-                     (format "pretty-hydra hacked around advice for `%s'."
-                             ',name-adv)
+                     ,(format "pretty-hydra hacked around advice for `%s'."
+                              name-adv)
                      (let* (,@entropy/emacs-pretty-hydra-posframe-args)
                        (apply orig-func orig-args)))
                    (advice-add ',name :around #',name-adv)))
