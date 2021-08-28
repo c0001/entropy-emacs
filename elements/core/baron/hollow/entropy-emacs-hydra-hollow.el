@@ -2603,13 +2603,11 @@ hydra body caller) =pretty-hydra-head-command=.
   (entropy/emacs-hydra-hollow-init-top-dispatch)
   (let* ((pretty-hydra-caskets-list
           (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
-           pretty-hydra-cabinet
+           ;; use copy-tree since its has side-effect to origin one
+           (copy-tree pretty-hydra-cabinet)
            '((:global-bind)
              (:eemacs-top-bind))
-           t))
-         (pretty-hydra-cabinet
-          (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
-           pretty-hydra-caskets-list)))
+           t)))
     (unless (null pretty-hydra-caskets-list)
       (dolist (sp-h pretty-hydra-caskets-list)
         (setq entropy/emacs-hydra-hollow-top-dispatch-register
