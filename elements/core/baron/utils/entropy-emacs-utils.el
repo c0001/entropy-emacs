@@ -437,7 +437,19 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
   ;;
   ;; This will remove when update hydra package.
   (setq hydra-key-regex
-        "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?"))
+        "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?")
+  :config
+
+  ;; EEMACS_MAINTENANCE: follow `hydra' updates
+  (setq hydra-posframe-show-params
+        (list
+         :internal-border-width 1
+         :internal-border-color "red"
+         ;; truncate line always in hydra posframe
+         :lines-truncate t
+         ;; stick on frame center always while show hydra posframe
+         :poshandler 'posframe-poshandler-frame-center
+         )))
 
 ;; *** pretty-hydra
 

@@ -1638,7 +1638,7 @@ backend instead of `pretty-hydra-define+'."
        "faicon" "certificate")
       :color ambranth
       :quit-key "q"
-      :separator "═")))
+      :separator "─")))
 
 ;; ***** base /pretty-hydra-cabinet/ normalization defination
 
@@ -2545,7 +2545,7 @@ hydra body caller) =pretty-hydra-head-command=.
 ;; entropy-emacs for calling globally. We call this hydra
 ;; =entropy/emacs-pretty-hydra-for-top-dispatch=.
 
-(defvar entropy/emacs-hydra-hollow-init-top-dispatch-ctg-name-prefix
+(defvar entropy/emacs-hydra-hollow-init-top-dispatch-individual-hydra-name
   'entropy/emacs-hydra-hollow-top-dispatch)
 
 (defvar entropy/emacs-hydra-hollow-top-dispatch-register nil)
@@ -2554,18 +2554,12 @@ hydra body caller) =pretty-hydra-head-command=.
 (defun entropy/emacs-hydra-hollow-init-top-dispatch (&optional force)
   (when (or (not entropy/emacs-hydra-hollow-top-dispatch-init-done)
             force)
-    (let* ((ctg-name-prefix entropy/emacs-hydra-hollow-init-top-dispatch-ctg-name-prefix)
-           (ctg-top-pretty-hydra-category-hydra-caller-name
-            (entropy/emacs-hydra-hollow-category-get-hydra-branch-name
-             ctg-name-prefix t)))
-      (entropy/emacs-hydra-hollow-category-frame-work-define
-       ctg-name-prefix
-       '(:title
-         (entropy/emacs-pretty-hydra-make-title
-          "eemacs top dispatch" "faicon" "toggle-on")
-         :color ambranth
-         :quit-key "q"
-         :separator "═")
+    (let* ((this-individual-hydra-name entropy/emacs-hydra-hollow-init-top-dispatch-individual-hydra-name)
+           (this-individual-hydra-caller
+            (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+             this-individual-hydra-name)))
+      (entropy/emacs-hydra-hollow-common-individual-hydra-define
+       this-individual-hydra-name nil
        '("Basic"     ()
          "WI&BUF"    ()
          ;; ---
@@ -2586,19 +2580,23 @@ hydra body caller) =pretty-hydra-head-command=.
          "Pyim"      ()
          "Misc."     ()
          )
-       nil nil
+       '(:title
+         (entropy/emacs-pretty-hydra-make-title
+          "eemacs top dispatch" "faicon" "toggle-on")
+         :color ambranth
+         :quit-key "q"
+         :separator "═")
        '((2 :width-desc "Basic & window or buffer")
          (2 :width-desc "highlight or useful utils")
          (4 :width-desc "Common knifes")
          (2 :width-desc "Version controll and remote connection")
          (2 :width-desc "Projectile and Org")
          (2 :width-desc "IME and miscellaneous")))
-
       (unless entropy/emacs-hydra-hollow-top-dispatch-init-done
         (setq entropy/emacs-hydra-hollow-top-dispatch-init-done t)
         (entropy/emacs-!set-key
           (kbd "h")
-          ctg-top-pretty-hydra-category-hydra-caller-name)))))
+          this-individual-hydra-caller)))))
 
 (defun entropy/emacs-hydra-hollow-add-for-top-dispatch
     (pretty-hydra-cabinet)
@@ -2608,18 +2606,19 @@ hydra body caller) =pretty-hydra-head-command=.
            pretty-hydra-cabinet
            '((:global-bind)
              (:eemacs-top-bind))
-           t)))
+           t))
+         (pretty-hydra-cabinet
+          (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
+           pretty-hydra-caskets-list)))
     (unless (null pretty-hydra-caskets-list)
       (dolist (sp-h pretty-hydra-caskets-list)
         (setq entropy/emacs-hydra-hollow-top-dispatch-register
               (append entropy/emacs-hydra-hollow-top-dispatch-register
                       `(,sp-h))))
 
-      (entropy/emacs-hydra-hollow-category-frame-work-define+
-       entropy/emacs-hydra-hollow-init-top-dispatch-ctg-name-prefix
-       nil
-       (entropy/emacs-hydra-hollow-merge-pretty-hydra-caskets-list
-        pretty-hydra-caskets-list)))))
+      (entropy/emacs-hydra-hollow-common-individual-hydra-define+
+       entropy/emacs-hydra-hollow-init-top-dispatch-individual-hydra-name
+       nil pretty-hydra-cabinet))))
 
 
 ;; *** sparse tree builder

@@ -223,22 +223,29 @@
   :eemacs-tpha
   (((:enable t))
    ("WI&BUF"
-    (("C-c C-w"
-      (:eval
-       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'eyebrowse-mode))
-      "Eyerbowse Map"
+    (("W"
+      (:pretty-hydra-cabinet
+       (:data
+        "Eyebrowse Keymap"
+        (("C-c C-w"
+          (:eval
+           (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+            'eyebrowse-mode))
+          "Eyerbowse key Map bind of <\C-c \C-w>"
+          :enable t
+          :exit t
+          :eemacs-top-bind t)
+         ("C-c w"
+          (:eval
+           (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+            'eyebrowse-mode))
+          "Eyerbowse key Map bind of <\C-cw>"
+          :enable t
+          :exit t
+          :eemacs-top-bind t))))
+      "Eyebrowe Dispatch Keymap"
       :enable t
-      :exit t
-      :eemacs-top-bind t)
-     ("C-c w"
-      (:eval
-       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'eyebrowse-mode))
-      "Eyerbowse Map"
-      :enable t
-      :exit t
-      :eemacs-top-bind t))))
+      :exit t))))
 
 ;; **** eemacs-indhc
   :eemacs-indhc
