@@ -99,25 +99,39 @@
       :enable t
       :eemacs-top-bind t
       :exit t)
-     ("C-c h s u" entropy/emacs-hl-symbol-overlay-put
-      "Toggle all overlays of symbol at point"
+     ("C-c h s a"
+      (:pretty-hydra-cabinet
+       (:data
+        "symbol overlay all-toggle"
+        (("C-c h s u" entropy/emacs-hl-symbol-overlay-put
+          "Toggle all overlays of symbol at point"
+          :enable t
+          :eemacs-top-bind t
+          :exit t)
+         ("C-c h s d" entropy/emacs-hl-symbol-overlay-remove-all
+          "Remove all highlighted symbols in the buffer"
+          :enable t
+          :eemacs-top-bind t
+          :exit t))))
+      "symbol overlay show/hide all of current point"
       :enable t
-      :eemacs-top-bind t
       :exit t)
-     ("C-c h s d" entropy/emacs-hl-symbol-overlay-remove-all
-      "Remove all highlighted symbols in the buffer"
+     ("C-c h s j"
+      (:pretty-hydra-cabinet
+       (:data
+        "symbol overlay jump"
+        (("C-c h s p" entropy/emacs-hl-symbol-overlay-jump-prev
+          "Jump to the previous location of symbol at point"
+          :enable t
+          :eemacs-top-bind t
+          :exit t)
+         ("C-c h s n" entropy/emacs-hl-symbol-overlay-jump-next
+          "Jump to the next location of symbol at point"
+          :enable t
+          :eemacs-top-bind t
+          :exit t))))
+      "symbol overlay jump"
       :enable t
-      :eemacs-top-bind t
-      :exit t)
-     ("C-c h s p" entropy/emacs-hl-symbol-overlay-jump-prev
-      "Jump to the previous location of symbol at point"
-      :enable t
-      :eemacs-top-bind t
-      :exit t)
-     ("C-c h s n" entropy/emacs-hl-symbol-overlay-jump-next
-      "Jump to the next location of symbol at point"
-      :enable t
-      :eemacs-top-bind t
       :exit t))))
 
 ;; *** init
