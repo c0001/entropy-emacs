@@ -831,7 +831,40 @@ https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-nu
                 (mapcar (lambda (x)
                           (unless (member x '(ccls lsp-python-ms lsp-java))
                             x))
-                        lsp-client-packages))))
+                        lsp-client-packages)))
+
+
+  ;; Hack for fixing lsp memory leak for reseponse handler
+  ;; suggested from:
+  ;; [[https://github.com/emacs-lsp/lsp-mode/issues/3062]]
+  (defun __hack/bug_fix/lsp-client-clear-leak-handlers (lsp-client)
+    "Clear leaking handlers in LSP-CLIENT."
+    (let ((response-handlers (lsp--client-response-handlers lsp-client))
+          to-delete-keys)
+      (maphash (lambda (key value)
+                 (when (> (time-convert (time-since (nth 3 value)) 'integer)
+                          (* 2 lsp-response-timeout))
+                   (push key to-delete-keys)))
+               response-handlers)
+      (when to-delete-keys
+        (let ((gc-keys-len (length to-delete-keys))
+              (client-id (lsp--client-server-id lsp-client)))
+          (message "Deleting %d handlers in %s lsp-client..."
+                   gc-keys-len
+                   client-id)
+          (mapc (lambda (k) (remhash k response-handlers))
+                to-delete-keys)
+          (message "")))))
+  (defun __hack/bug_fix/lsp-clear-leak ()
+    "Clear all leaks for all `lsp-clients'"
+    (maphash (lambda (_ client)
+               (__hack/bug_fix/lsp-client-clear-leak-handlers client))
+             lsp-clients))
+  (defvar __hack/bug_fix/lsp-clear-leak-timer nil)
+  (setq __hack/bug_fix/lsp-clear-leak-timer
+        (run-with-idle-timer 5 t #'__hack/bug_fix/lsp-clear-leak))
+
+  )
 
 ;; ****** lsp-mode UI
 (use-package lsp-ui
