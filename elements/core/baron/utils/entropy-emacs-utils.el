@@ -470,6 +470,23 @@ format which caused by set the restriction for thus."
               #'entropy/emacs-pretty-hydra--patch-1)
 
   (defvar entropy/emacs-pretty-hydra-posframe-visible-p nil)
+  (defvar entropy/emacs-pretty-hydra-defined-indcator nil)
+  (defvar entropy/emacs-pretty-hydra-posframe-args
+    '((hydra-hint-display-type
+       (if (and (display-graphic-p)
+                (fboundp 'posframe-show))
+           'posframe
+         'lv))
+      (hydra-posframe-show-params
+       ;; EEMACS_MAINTENANCE: follow `hydra' updates
+       (list
+        :internal-border-width 1
+        :internal-border-color "red"
+        ;; truncate line always in hydra posframe
+        :lines-truncate t
+        ;; stick on frame center always while show hydra posframe
+        :poshandler 'posframe-poshandler-frame-center
+        ))))
   (defun entropy/emacs-pretty-hydra--patch-2
       (orig-func &rest orig-args)
     "Let all hydra defined by `pretty-hydra-define' show with
@@ -492,25 +509,15 @@ posframe when available."
       ;; inject advice after the origin macro
       (setq rtn
             `(progn
-               ,rtn
+               (let ((entropy/emacs-pretty-hydra-defined-indcator
+                      t))
+                 ,rtn)
                (let (_)
                  (defun ,body-adfunc-name
                      (orig-func &rest orig-args)
-                   (let* ((hydra-hint-display-type
-                           (if (and (display-graphic-p)
-                                    (fboundp 'posframe-show))
-                               'posframe
-                             'lv))
-                          (hydra-posframe-show-params
-                           ;; EEMACS_MAINTENANCE: follow `hydra' updates
-                           (list
-                            :internal-border-width 1
-                            :internal-border-color "red"
-                            ;; truncate line always in hydra posframe
-                            :lines-truncate t
-                            ;; stick on frame center always while show hydra posframe
-                            :poshandler 'posframe-poshandler-frame-center
-                            )))
+                   (format "Around advice for `%s' to show with posframe if available."
+                           ',body-adfunc-name)
+                   (let* (,@entropy/emacs-pretty-hydra-posframe-args)
                      (setq entropy/emacs-pretty-hydra-posframe-visible-p t)
                      (apply orig-func orig-args)))
                  (advice-add ',body-func-name
@@ -521,6 +528,32 @@ posframe when available."
               :around
               #'entropy/emacs-pretty-hydra--patch-2)
 
+  (defun __adv/around/hydra--make-defun/for-pretty-hydra-patch
+      (orig-func &rest orig-args)
+    (if (not (bound-and-true-p
+              entropy/emacs-pretty-hydra-defined-indcator))
+        (apply orig-func orig-args)
+      (let ((rtn (apply orig-func orig-args)))
+        (unless (eq (car rtn) 'defun)
+          (error "Update the pretty-hydra hack on \
+`hydra--make-defun' since internal api is changed"))
+        (let* ((name (cadr rtn))
+               (name-adv (intern
+                          (format "__adv/around/%s/with-pretty-hydra-hack"
+                                  name))))
+          (setq rtn
+                `(prog1
+                     ,rtn
+                   (defun ,name-adv (orig-func &rest orig-args)
+                     (format "pretty-hydra hacked around advice for `%s'."
+                             ',name-adv)
+                     (let* (,@entropy/emacs-pretty-hydra-posframe-args)
+                       (apply orig-func orig-args)))
+                   (advice-add ',name :around #',name-adv)))
+          rtn))))
+  (advice-add 'hydra--make-defun
+              :around
+              #'__adv/around/hydra--make-defun/for-pretty-hydra-patch)
 
   (defun __adv/around/hydra-posframe-hide/close-eemacs-pretty-hydra
       (&rest _)
@@ -543,7 +576,7 @@ close hydra posframe."
       (orig-func &rest orig-args)
     "Bound `hydra-hint-display-type' to posframe when
 `entropy/emacs-pretty-hydra-posframe-visible-p' non-nil."
-    (let ()
+    (let (_)
       (if entropy/emacs-pretty-hydra-posframe-visible-p
           (let ((hydra-hint-display-type 'posframe))
             (apply orig-func orig-args))
