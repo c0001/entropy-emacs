@@ -945,7 +945,11 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 
 ;; *** maple preview
 (use-package maple-preview
-  :if (equal entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
+  :if (and
+       ;; disable defaulty since its obsolete almostly about 3 years
+       ;; since 2018, but still can be used to scratch studying.
+       nil
+       (equal entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local))
   :ensure nil
   :commands (maple-preview-mode)
   :init

@@ -261,7 +261,10 @@
         zeal-at-point
 
         ;; eemacs-ext archived packages
-        ,(when (not (eq entropy/emacs-ext-elpkg-get-type 'origin)) 'maple-preview)
+        ,@(when (not (eq entropy/emacs-ext-elpkg-get-type 'origin))
+            ;; disable maple preview as pre-request since its obsolete
+            ;; 'maple-preview
+            )
         ))
 
 ;; filter packages required tree to remove all nil entry

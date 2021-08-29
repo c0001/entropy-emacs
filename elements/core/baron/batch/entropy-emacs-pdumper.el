@@ -138,7 +138,13 @@ configuration.")
                                 ;; system initialized, so that we can
                                 ;; not force load it until pdumper
                                 ;; done.
-                                "magit-ediff"))))
+                                "magit-ediff"
+
+                                ;; disable it since its obsolete but
+                                ;; still scratch of studying
+                                (seq line-start "maple-preview")
+
+                                ))))
         (inc-filters `(,(rx (seq (or "ivy" "org" "magit" "transient" "counsel"
                                      "dired" "all-the-icon" "cal-china"
                                      "use-package" "diminish" "bind-key"
