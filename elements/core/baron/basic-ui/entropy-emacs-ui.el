@@ -135,20 +135,27 @@ determined by above variable you setted."
     "Default entropy emacs initial dashboard width. ")
 
 ;; **** initial buffer minor mode
+
+  (defun entropy/emacs-ui-init-welcom-mode-switch-to-scratch-buffer
+      ()
+    "Switch to scratch buffer."
+    (interactive)
+    (when (and (buffer-live-p (get-buffer "*scratch*"))
+               (bound-and-true-p entropy/emacs-ui-init-welcom-mode))
+      (switch-to-buffer
+       "*scratch*")))
+
   (defvar entropy/emacs-ui-init-welcom-mode-map
     (let ((keymap (make-sparse-keymap)))
       (define-key keymap
         (kbd "q")
-        (lambda (&rest _)
-          (interactive)
-          (when (buffer-live-p (get-buffer "*scratch*"))
-            (switch-to-buffer
-             "*scratch*"))))
+        #'entropy/emacs-ui-init-welcom-mode-switch-to-scratch-buffer)
       keymap))
 
   (define-minor-mode entropy/emacs-ui-init-welcom-mode
     "Minor mode for `entropy/emacs-init-welcome-buffer-name'."
     :init-value nil
+    :keymap entropy/emacs-ui-init-welcom-mode-map
     :global nil)
 
 ;; **** libraries
