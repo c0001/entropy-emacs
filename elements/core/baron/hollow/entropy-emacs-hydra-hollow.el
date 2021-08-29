@@ -1641,7 +1641,7 @@ backend instead of `pretty-hydra-define+'."
        "faicon" "certificate")
       :color ambranth
       :quit-key "q"
-      :separator "─")))
+      :separator "-")))
 
 ;; ***** base /pretty-hydra-cabinet/ normalization defination
 
@@ -2588,7 +2588,7 @@ hydra body caller) =pretty-hydra-head-command=.
           "eemacs top dispatch" "faicon" "toggle-on")
          :color ambranth
          :quit-key "q"
-         :separator "═")
+         :separator "=")
        '((2 :width-desc "Basic & window or buffer")
          (2 :width-desc "highlight or useful utils")
          (4 :width-desc "Common knifes")

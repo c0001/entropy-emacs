@@ -666,7 +666,7 @@ close hydra posframe."
       title)
     :color ambranth
     :quit-key "q"
-    :separator "═"))
+    :separator "."))
 
 ;; ** wgrep
 
