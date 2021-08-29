@@ -704,11 +704,9 @@ The minor changing was compat for above."
       "Read emacs about news"
       :enable t :exit t))))
   :init
-  (setq newsticker-url-list
+  (setq newsticker-url-list-defaults nil
+        newsticker-url-list
         '(("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
-          ("Mastering Emacs" "http://www.masteringemacs.org/feed/")
-          ("Oremacs" "https://oremacs.com/atom.xml")
-          ("EmacsCast" "https://pinecast.com/feed/emacscast")
           ("Emacs Reddit" "https://www.reddit.com/r/emacs.rss"))))
 
 
