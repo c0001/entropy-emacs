@@ -937,7 +937,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 (use-package pomidor
   :commands (pomidor)
   :eemacs-tpha
-  (((:enale t))
+  (((:enable t))
    ("Utils"
     (("C-c <f12>" pomidor
       "A simple and cool pomodoro technique timer"
