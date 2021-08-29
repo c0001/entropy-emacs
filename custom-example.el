@@ -43,7 +43,10 @@
 ;; Visual basic
 (setq entropy/emacs-enable-modeline-toggle t)
 
-(setq entropy/emacs-modeline-style "doom")
+;; High performance optimized self-origin type modeline is suggested,
+;; but `doom-modeline' has more rich feature but without performance
+;; guarantee, so stick on your choice.
+(setq entropy/emacs-modeline-style "origin")
 
 (setq entropy/emacs-dired-visual-type
       (if (display-graphic-p) "all-the-icons" "simple-rainbow"))
