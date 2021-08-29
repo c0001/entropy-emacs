@@ -100,7 +100,10 @@ Do not manually modify this variable or risking on your self.")
 (defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
   "Call `entropy/emacs-hydra-hollow-union-form' recursively til
 it becoming one empty form."
-  (let ((copy-union-form (copy-tree entropy/emacs-hydra-hollow-union-form)))
+  (let (
+        ;; NOTE: this is important to prevent hydra hollow init failure
+        (inhibit-quit t)
+        (copy-union-form (copy-tree entropy/emacs-hydra-hollow-union-form)))
     (unless (null (cddr copy-union-form))
       (progn
         (funcall entropy/emacs-hydra-hollow-union-form)
