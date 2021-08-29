@@ -822,13 +822,56 @@ Since we chosen the kmacro from ring, we set it as the
                                  :face 'all-the-icons-dsilver :v-adjust 0.0)
          icon))))
 
+  (defun __adv/around/icon-func-empty-display
+      (orig-func &rest orig-args)
+    "Around advice for such icon retrieve function to dynamic
+display icon or empty string while
+`entropy/emacs-icons-displayable-p' return non-nil."
+    (if (entropy/emacs-icons-displayable-p)
+        (apply orig-func orig-args)
+      ""))
+
   :init
-  (entropy/emacs-lazy-with-load-trail
-   all-the-icons-ivy-rich-mode
-   :pdumper-no-end t
-   :body
-   (memoize
-    'ya/all-the-icons-ivy-rich-common-file-icon))
+  ;; (entropy/emacs-lazy-with-load-trail
+  ;;  all-the-icons-ivy-rich-mode
+  ;;  :pdumper-no-end t
+  ;;  :body
+  ;;  (memoize
+  ;;   'ya/all-the-icons-ivy-rich-common-file-icon))
+
+  :config
+  ;; advice and memoize icon format functions
+  (dolist (icon-func
+           '(ya/all-the-icon-ivy-rich-common-dir-icon
+             ya/all-the-icons-ivy-rich-common-file-icon
+             all-the-icons-ivy-rich-world-clock-icon
+             all-the-icons-ivy-rich-file-icon
+             all-the-icons-ivy-rich-mode-icon
+             all-the-icons-ivy-rich-buffer-icon
+             all-the-icons-ivy-rich-company-icon
+             all-the-icons-ivy-rich-git-branch-icon
+             all-the-icons-ivy-rich-package-icon
+             all-the-icons-ivy-rich-process-icon
+             all-the-icons-ivy-rich-font-icon
+             all-the-icons-ivy-rich-project-icon
+             all-the-icons-ivy-rich-bookmark-icon
+             all-the-icons-ivy-rich-function-icon
+             all-the-icons-ivy-rich-imenu-icon
+             all-the-icons-ivy-rich-tramp-icon
+             all-the-icons-ivy-rich-library-icon
+             all-the-icons-ivy-rich-keybinding-icon
+             all-the-icons-ivy-rich-symbol-icon
+             all-the-icons-ivy-rich-theme-icon
+             all-the-icons-ivy-rich-variable-icon
+             ))
+    (advice-add icon-func
+                :around
+                #'__adv/around/icon-func-empty-display)
+    ;; memoize for buntch of this are laggy
+    ;; (memoize icon-func)
+
+    )
+
   )
 
 ;; **** core

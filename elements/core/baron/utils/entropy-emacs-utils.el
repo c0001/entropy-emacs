@@ -119,114 +119,75 @@
   :init
   ;; Patching dir icon list for fix some icon filter bugs
   (setq all-the-icons-dir-icon-alist
-        '(("^[Tt]rash$" all-the-icons-faicon "trash-o" :height 1.2 :v-adjust -0.1)
-          ("dropbox" all-the-icons-faicon "dropbox" :height 1.0 :v-adjust -0.1)
-          ("google[ _-]drive" all-the-icons-alltheicon "google-drive" :height 1.0 :v-adjust -0.1)
-          ("^atom$" all-the-icons-alltheicon "atom" :height 1.2 :v-adjust -0.1)
-          ("^[Dd]ocuments$" all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1)
-          ("^[Dd]ownload$" all-the-icons-faicon "cloud-download" :height 0.9 :v-adjust -0.1)
-          ("^[dD]esktop$" all-the-icons-octicon "device-desktop" :height 1.0 :v-adjust -0.1)
-          ("^[pP]ictures$" all-the-icons-faicon "picture-o" :height 0.9 :v-adjust -0.2)
-          ("^[pP]hotos$" all-the-icons-faicon "camera-retro" :height 1.0 :v-adjust -0.1)
-          ("^[mM]usic$" all-the-icons-faicon "music" :height 1.0 :v-adjust -0.1)
-          ("^[mM]ovies$" all-the-icons-faicon "film" :height 0.9 :v-adjust -0.1)
-          ("^[Cc]ode$" all-the-icons-octicon "code" :height 1.1 :v-adjust -0.1)
-          ("workspace" all-the-icons-octicon "code" :height 1.1 :v-adjust -0.1)
-          ("^[Tt]est$" all-the-icons-fileicon "test-dir" :height 0.9)
-          ("\\.git" all-the-icons-alltheicon "git" :height 1.0)
-          (".?" all-the-icons-octicon "file-directory" :height 1.0 :v-adjust -0.1)))
+        '(("^[Tt]rash$"       all-the-icons-faicon     "trash-o"        :height 1.2 :v-adjust -0.1)
+          ("dropbox"          all-the-icons-faicon     "dropbox"        :height 1.0 :v-adjust -0.1)
+          ("google[ _-]drive" all-the-icons-alltheicon "google-drive"   :height 1.0 :v-adjust -0.1)
+          ("^atom$"           all-the-icons-alltheicon "atom"           :height 1.2 :v-adjust -0.1)
+          ("^[Dd]ocuments$"   all-the-icons-faicon     "book"           :height 1.0 :v-adjust -0.1)
+          ("^[Dd]ownload$"    all-the-icons-faicon     "cloud-download" :height 0.9 :v-adjust -0.1)
+          ("^[dD]esktop$"     all-the-icons-octicon    "device-desktop" :height 1.0 :v-adjust -0.1)
+          ("^[pP]ictures$"    all-the-icons-faicon     "picture-o"      :height 0.9 :v-adjust -0.2)
+          ("^[pP]hotos$"      all-the-icons-faicon     "camera-retro"   :height 1.0 :v-adjust -0.1)
+          ("^[mM]usic$"       all-the-icons-faicon     "music"          :height 1.0 :v-adjust -0.1)
+          ("^[mM]ovies$"      all-the-icons-faicon     "film"           :height 0.9 :v-adjust -0.1)
+          ("^[Cc]ode$"        all-the-icons-octicon    "code"           :height 1.1 :v-adjust -0.1)
+          ("workspace"        all-the-icons-octicon    "code"           :height 1.1 :v-adjust -0.1)
+          ("^[Tt]est$"        all-the-icons-fileicon   "test-dir"       :height 0.9)
+          ("\\.git"           all-the-icons-alltheicon "git"            :height 1.0)
+          (".?"               all-the-icons-octicon    "file-directory" :height 1.0 :v-adjust -0.1)))
 
   :config
 ;; *** icons specification
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(vterm-mode all-the-icons-octicon "terminal" :v-adjust 0.2))
 
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(elfeed-search-mode all-the-icons-faicon "rss" :v-adjust 0.2))
+  (dolist (el
+           `(("\\.xpm$"     all-the-icons-octicon  "file-media"  :v-adjust 0.0 :face all-the-icons-dgreen)
+             ("\\.toml$"    all-the-icons-octicon  "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
+             ("\\.lua$"     all-the-icons-fileicon "lua"         :face all-the-icons-dblue)
+             ("\\.go$"      all-the-icons-fileicon "go"          :face all-the-icons-blue)
+             ("NEWS$"       all-the-icons-faicon   "newspaper-o" :height 0.9   :v-adjust -0.2)
+             ("Cask$"       all-the-icons-fileicon "elisp"       :height 1.0   :v-adjust -0.2 :face all-the-icons-blue)
+             (".*\\.ipynb$" all-the-icons-fileicon "jupyter"     :height 1.2   :face all-the-icons-orange)
+             ("\\.epub$"    all-the-icons-faicon   "book"        :height 1.0   :v-adjust -0.1 :face all-the-icons-green)))
+    (add-to-list 'all-the-icons-icon-alist
+                 el))
 
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(elfeed-show-mode all-the-icons-material "web" :v-adjust 0.0))
+  (dolist (el
+           `((cask-mode all-the-icons-fileicon                   "elisp"       :height 1.0   :v-adjust -0.2 :face all-the-icons-blue)
+             (lua-mode all-the-icons-fileicon                    "lua"         :face all-the-icons-dblue)
+             (conf-toml-mode all-the-icons-octicon               "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
+             (nov-mode all-the-icons-faicon                      "book"        :height 1.0   :v-adjust -0.1 :face all-the-icons-green)
+             (gfm-mode all-the-icons-octicon                     "markdown"    :face all-the-icons-blue)
+             (vterm-mode all-the-icons-octicon                   "terminal"    :v-adjust 0.2)
+             (elfeed-search-mode all-the-icons-faicon            "rss"         :v-adjust 0.2)
+             (elfeed-show-mode all-the-icons-material            "web"         :v-adjust 0.0)
+             (Info-mode all-the-icons-faicon                     "info-circle" :v-adjust 0.2)
+             (w3m-mode all-the-icons-faicon                      "chrome"      :v-adjust -0.2)
+             (gitignore-mode all-the-icons-alltheicon            "git"         :v-adjust 0.2)
+             (ein:notebooklist-mode all-the-icons-faicon         "book"        :face all-the-icons-orange)
+             (ein:notebook-mode all-the-icons-fileicon           "jupyter"     :height 1.2   :face all-the-icons-orange)
+             (ein:notebook-multilang-mode all-the-icons-fileicon "jupyter"     :height 1.2   :face all-the-icons-orange)
+             (go-mode all-the-icons-fileicon                     "go"          :face all-the-icons-blue)
+             (help-mode all-the-icons-faicon                     "info-circle" :height 1.1   :v-adjust -0.1 :face all-the-icons-purple)
+             (Info-mode all-the-icons-faicon                     "info-circle" :height 1.1   :v-adjust -0.1)
+             ,@(mapcar
+                (lambda (music-mode)
+                  (list music-mode 'all-the-icons-faicon "music" :face 'all-the-icons-blue))
+                '(mpc-mode
+                  mpc-mode-menu
+                  mpc-tagbrowser-mode
+                  mpc-songs-mode
+                  mpc-status-mode
+                  mpc-tagbrowser-dir-mode
+                  ))
+             ;; add more rules
+             ))
 
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(Info-mode all-the-icons-faicon "info-circle" :v-adjust 0.2))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(w3m-mode all-the-icons-faicon "chrome" :v-adjust -0.2))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(gitignore-mode all-the-icons-alltheicon "git" :v-adjust 0.2))
-
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.xpm$" all-the-icons-octicon "file-media" :v-adjust 0.0 :face all-the-icons-dgreen))
-
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.toml$" all-the-icons-octicon "settings" :v-adjust 0.0 :face all-the-icons-dyellow))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(conf-toml-mode all-the-icons-octicon "settings" :v-adjust 0.0 :face all-the-icons-dyellow))
-
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.lua$" all-the-icons-fileicon "lua" :face all-the-icons-dblue))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(lua-mode all-the-icons-fileicon "lua" :face all-the-icons-dblue))
-
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.go$" all-the-icons-fileicon "go" :face all-the-icons-blue))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(go-mode all-the-icons-fileicon "go" :face all-the-icons-blue))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(help-mode all-the-icons-faicon "info-circle" :height 1.1 :v-adjust -0.1 :face all-the-icons-purple))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(Info-mode all-the-icons-faicon "info-circle" :height 1.1 :v-adjust -0.1))
-
-  (add-to-list 'all-the-icons-icon-alist
-               '("NEWS$" all-the-icons-faicon "newspaper-o" :height 0.9 :v-adjust -0.2))
-
-  (add-to-list 'all-the-icons-icon-alist
-               '("Cask\\'" all-the-icons-fileicon "elisp" :height 1.0 :v-adjust -0.2 :face all-the-icons-blue))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(cask-mode all-the-icons-fileicon "elisp" :height 1.0 :v-adjust -0.2 :face all-the-icons-blue))
-
-  (add-to-list 'all-the-icons-icon-alist
-               '(".*\\.ipynb\\'" all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(ein:notebooklist-mode all-the-icons-faicon "book" :face all-the-icons-orange))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(ein:notebook-mode all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(ein:notebook-multilang-mode all-the-icons-fileicon "jupyter" :height 1.2 :face all-the-icons-orange))
-
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.epub\\'" all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1 :face all-the-icons-green))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(nov-mode all-the-icons-faicon "book" :height 1.0 :v-adjust -0.1 :face all-the-icons-green))
-
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(gfm-mode all-the-icons-octicon "markdown" :face all-the-icons-blue))
-
-  (dolist (music-mode '(mpc-mode
-                        mpc-mode-menu
-                        mpc-tagbrowser-mode
-                        mpc-songs-mode
-                        mpc-status-mode
-                        mpc-tagbrowser-dir-mode
-                        ))
     (add-to-list 'all-the-icons-mode-icon-alist
-                 `(,music-mode all-the-icons-faicon "music" :face all-the-icons-blue)))
+                 el))
 
-;; *** memoize missing funcs
+;; *** memoize internal icon render
 
-  (dolist (func '(all-the-icons-icon-for-dir
-                  all-the-icons-material
+  (dolist (func '(all-the-icons-material
                   all-the-icons-faicon
                   all-the-icons-octicon
                   all-the-icons-material
