@@ -60,8 +60,14 @@
     ;;disabled 'M-1' key-binding with conflicated with
     ;;`entropy/emacs-quick-readonly-global'
     (progn
+      ;; Disable 'M-1' binding for `magit-mode-map' since we bind it
+      ;; to `entropy/grom-quick-readonly-global' globally
       (define-key magit-mode-map (kbd "M-1") nil)
-      (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)))
+
+      (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)
+
+      (define-key magit-mode-map (kbd "<M-up>") #'magit-section-backward-sibling)
+      (define-key magit-mode-map (kbd "<M-down>") #'magit-section-forward-sibling)))
 
   :init
   (entropy/emacs-lazy-with-load-trail
