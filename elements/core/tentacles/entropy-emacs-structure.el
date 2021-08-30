@@ -388,13 +388,14 @@ want to preserve the source demo."
    ("C-c M-y" . nil)
    :map outshine-mode-map
    ("C-x n s" . org-narrow-to-subtree)
-   ("C-<f7>" . entropy/emacs-structure--outshine-reload-major))
+   ("C-<f7>" . entropy/emacs-structure-outshine-reload-major))
 
 ;; *** preface
   :preface
-  (defvar-local entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode nil)
+  (defvar-local entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode
+    nil)
 
-  (defun entropy/emacs-structure--outshine-reload-major ()
+  (defun entropy/emacs-structure-outshine-reload-major ()
     "Reload lisp(e.g. lisp elisp or more like one) buffer's outshine
     feataure with mordern \"*\" or old-school \";\" headline visual type
     set."
@@ -411,32 +412,168 @@ want to preserve the source demo."
           (outshine-mode)
           ))))
 
-  (defun entropy/emacs-structure--outshine-cycle-buffer (&optional arg)
-    (interactive "P")
-    (when (bound-and-true-p outshine-mode)
-      (funcall 'outshine-cycle-buffer arg)))
+  (defvar-local entropy/emacs-outshine-current-buffer-visibility-state
+    nil)
+  (defun entropy/emacs-outshine-cycle-buffer (&optional arg)
+    "like `outshine-cycle-bufer' but only based on `outline' so
+that it can be used in `org-mode' too.
 
-  (defun entropy/emacs-structure--outshine-pop-imenu (&optional args)
-    "Call `imenu' defautly unless `prefix-arg' is non-nil and
+Rotate the visibility state of the buffer through 3 states:
+
+- OVERVIEW: Show only top-level headlines matched specified header level.
+
+- CONTENTS: Show all headlines of all levels heading, but no body text.
+
+- SHOW ALL: Show everything.
+
+With a numeric prefix ARG and is numberic, show all headlines up
+to that level i.e. matched show type OVERVIEW, show 'SHOW ALL' if
+the the prefix ARG is list as '(4) i.e. the pure single `C-u'
+type, further more show CONTENTS if it is '(16) i.e. double
+prefix type, and any other prefix type fallback to OVERVIEW
+status use `prefix-numeric-value' to recalc the specified head
+level specification.
+"
+    (interactive "P")
+    (if (or (bound-and-true-p outline-mode)
+            (bound-and-true-p outshine-mode)
+            (bound-and-true-p outline-minor-mode)
+            (derived-mode-p 'outline-mode))
+        (let ((outline-level-get-func
+               (cond
+                ((bound-and-true-p outshine-mode)
+                 'outshine-calc-outline-level)
+                ((eq major-mode 'org-mode)
+                 'org-outline-level)
+                (t
+                 (lambda ()
+                   (save-excursion
+                     (save-restriction
+                       (widen)
+                       (forward-line 0)
+                       (progn (outline-back-to-heading)
+                              (outline-level)))))))))
+          (save-excursion
+            (cond
+             ;; condition (1)
+             ((integerp arg)
+              (outline-show-all)
+              (outline-hide-sublevels arg)
+              ;; HACK: also set this overview state like condition (5)
+              (setq this-command '__fake/outshine-cycle-overview
+                    entropy/emacs-outshine-current-buffer-visibility-state
+                    'overview))
+
+             ;; condition (2)
+             ((or
+               ;; HACK: ingore prefix did since condition (3)
+               (equal arg '(16))
+               (eq last-command '__fake/outshine-cycle-overview))
+              ;; We just created the overview - now do table of contents
+              ;; This can be slow in very large buffers, so indicate action
+              (message "CONTENTS...")
+
+              ;; HACK: firstly we must fold to top-level since the fully
+              ;; expanded children will not be fold while
+              ;; `outline-show-branches'
+              (condition-case error
+                  (outline-hide-sublevels
+                   ;; found the first head as the toplevel result since we
+                   ;; can not cycle through abnormal head structure.
+                   (save-excursion
+                     (save-match-data
+                       (goto-char (point-min))
+                       (when (re-search-forward outline-regexp nil t)
+                         (beginning-of-line)
+                         (funcall outline-level-get-func)))))
+                (error
+                 (user-error
+                  "No outline heading found in this buffer according to `outline-regexp': %s"
+                  outline-regexp)))
+
+              ;; Visit all headings and show their offspring
+              (goto-char (point-max))
+              (while (not (bobp))
+                (condition-case nil
+                    (progn
+                      (outline-previous-visible-heading 1)
+                      (outline-show-branches))
+                  (error (goto-char (point-min)))))
+              (message "CONTENTS...done")
+              (setq this-command '__fake/outshine-cycle-toc
+                    entropy/emacs-outshine-current-buffer-visibility-state
+                    'contents))
+
+             ;; condition (3)
+             ((or
+               ;; HACK: show all while `current-prefix-arg' is '(4) i.e. the
+               ;; single `C-u' type.
+               (equal arg '(4))
+               (eq last-command '__fake/outshine-cycle-toc))
+              ;; We just showed the table of contents - now show everything
+              (outline-show-all)
+              (message "SHOW ALL")
+              (setq this-command '__fake/outshine-cycle-showall
+                    entropy/emacs-outshine-current-buffer-visibility-state 'all))
+             (t
+              ;; Default action: go to overview
+              (let ((toplevel
+                     (cond
+                      ;; ;; HACK: we just show all content of buffer while
+                      ;; ;; the prefix non-numberic specified according to
+                      ;; ;; the condition (3). so we  just comment this.
+
+                      ;; (current-prefix-arg
+                      ;;  (prefix-numeric-value current-prefix-arg))
+                      ((save-excursion
+                         (beginning-of-line)
+                         (looking-at outline-regexp))
+                       (max 1 (save-excursion (beginning-of-line) (funcall outline-level))))
+                      (t
+                       ;; HACK:
+                       ;; judge first head level if current buffer doesn't
+                       ;; use 1st level for first head
+                       (let ((first-level
+                              (save-excursion
+                                (save-match-data
+                                  (goto-char (point-min))
+                                  (when (re-search-forward outline-regexp nil t)
+                                    (beginning-of-line)
+                                    (funcall outline-level-get-func))))))
+                         (or first-level 1))))))
+                (outline-hide-sublevels toplevel))
+              (message "OVERVIEW")
+              (setq this-command '__fake/outshine-cycle-overview
+                    entropy/emacs-outshine-current-buffer-visibility-state
+                    'overview)))
+            )
+          ;; HACK: recenter the buffer point since fully overviw or
+          ;; huge fold will let the buffer visibility empty that user
+          ;; need to scroll window to show the whole content.
+          (recenter-top-bottom '(middle)))
+      (user-error "Not in an outline based buffer!")))
+
+    (defun entropy/emacs-structure-outshine-pop-imenu (&optional args)
+      "Call `imenu' defautly unless `prefix-arg' is non-nil and
 `outshine-mode' is actived in `current-buffer' in which case we
 call `outshine-imenu' instead."
-    (interactive "P")
-    (cond ((and (bound-and-true-p outshine-mode)
-                args)
-           (outshine-imenu))
-          (t
-           (call-interactively 'imenu))))
+      (interactive "P")
+      (cond ((and (bound-and-true-p outshine-mode)
+                  args)
+             (outshine-imenu))
+            (t
+             (call-interactively 'imenu))))
 
 ;; *** eemacs top key bind
   :eemacs-tpha
   (((:enable t))
    ("Structure"
-    (("\\" entropy/emacs-structure--outshine-cycle-buffer
+    (("\\" entropy/emacs-outshine-cycle-buffer
       "Outshine Cycle"
       :enable t
       :exit t
       :eemacs-top-bind t)
-     ("M-i" entropy/emacs-structure--outshine-pop-imenu
+     ("M-i" entropy/emacs-structure-outshine-pop-imenu
       "Outshine popup imenu"
       :enable t
       :exit t
@@ -519,122 +656,7 @@ compatible with =entropy-emacs=."
                             m-strg)))
            (length (car (split-string head-indc nil 'omit-null))))))))
 
-  (defun outshine-cycle-buffer (&optional arg)
-    "Rotate the visibility state of the buffer through 3 states:
 
-NOTE: this function has been redefined for bug fix to be
-compatible with =entropy-emacs=.
-
-- OVERVIEW: Show only top-level headlines matched specified header level.
-
-- CONTENTS: Show all headlines of all levels heading, but no body text.
-
-- SHOW ALL: Show everything.
-
-With a numeric prefix ARG and is numberic, show all headlines up
-to that level i.e. matched show type OVERVIEW, show 'SHOW ALL' if
-the the prefix ARG is list as '(4) i.e. the pure single `C-u'
-type, further more show CONTENTS if it is '(16) i.e. double
-prefix type, and any other prefix type fallback to OVERVIEW
-status use `prefix-numeric-value' to recalc the specified head
-level specification.
-"
-    (interactive "P")
-    (save-excursion
-      (cond
-       ;; condition (1)
-       ((integerp arg)
-        (outline-show-all)
-        (outline-hide-sublevels arg)
-        ;; HACK: also set this overview state like condition (5)
-        (setq this-command 'outshine-cycle-overview
-              outshine-current-buffer-visibility-state 'overview))
-
-       ;; condition (2)
-       ((or
-         ;; HACK: ingore prefix did since condition (3)
-         (equal arg '(16))
-         (eq last-command 'outshine-cycle-overview))
-        ;; We just created the overview - now do table of contents
-        ;; This can be slow in very large buffers, so indicate action
-        (outshine--cycle-message "CONTENTS...")
-
-        ;; HACK: firstly we must fold to top-level since the fully
-        ;; expanded children will not be fold while
-        ;; `outline-show-branches'
-        (condition-case error
-            (outline-hide-sublevels
-             ;; found the first head as the toplevel result since we
-             ;; can not cycle through abnormal head structure.
-             (save-excursion
-               (save-match-data
-                 (goto-char (point-min))
-                 (when (re-search-forward outline-regexp nil t)
-                   (beginning-of-line)
-                   (outshine-calc-outline-level)))))
-          (error
-           (user-error
-            "No outline heading found in this buffer according to `outline-regexp': %s"
-            outline-regexp)))
-
-        ;; Visit all headings and show their offspring
-        (goto-char (point-max))
-        (while (not (bobp))
-          (condition-case nil
-              (progn
-                (outline-previous-visible-heading 1)
-                (outline-show-branches))
-            (error (goto-char (point-min)))))
-        (outshine--cycle-message "CONTENTS...done")
-        (setq this-command 'outshine-cycle-toc
-              outshine-current-buffer-visibility-state 'contents))
-
-       ;; condition (3)
-       ((or
-         ;; HACK: show all while `current-prefix-arg' is '(4) i.e. the
-         ;; single `C-u' type.
-         (equal arg '(4))
-         (eq last-command 'outshine-cycle-toc))
-        ;; We just showed the table of contents - now show everything
-        (outline-show-all)
-        (outshine--cycle-message "SHOW ALL")
-        (setq this-command 'outshine-cycle-showall
-              outshine-current-buffer-visibility-state 'all))
-       (t
-        ;; Default action: go to overview
-        (let ((toplevel
-               (cond
-                ;; ;; HACK: we just show all content of buffer while
-                ;; ;; the prefix non-numberic specified according to
-                ;; ;; the condition (3). so we  just comment this.
-
-                ;; (current-prefix-arg
-                ;;  (prefix-numeric-value current-prefix-arg))
-                ((save-excursion
-                   (beginning-of-line)
-                   (looking-at outline-regexp))
-                 (max 1 (save-excursion (beginning-of-line) (funcall outline-level))))
-                (t
-                 ;; HACK:
-                 ;; judge first head level if current buffer doesn't
-                 ;; use 1st level for first head
-                 (let ((first-level
-                        (save-excursion
-                          (save-match-data
-                            (goto-char (point-min))
-                            (when (re-search-forward outline-regexp nil t)
-                              (beginning-of-line)
-                              (outshine-calc-outline-level))))))
-                   (or first-level 1))))))
-          (outline-hide-sublevels toplevel))
-        (outshine--cycle-message "OVERVIEW")
-        (setq this-command 'outshine-cycle-overview
-              outshine-current-buffer-visibility-state 'overview)))
-      )
-    ;; HACK: recenter the buffer point since fully overviw or
-    ;; huge fold will let the buffer visibility empty that user
-    ;; need to scroll window to show the whole content.
-    (recenter-top-bottom '(middle)))
 
 ;; **** eemacs outshine head regexp defination
 
@@ -1025,7 +1047,7 @@ Otherwise, fallback to the original binding of %s in the current mode."
     (outline-on-heading-p))
 
   (outshine-define-key outshine-mode-map
-    (kbd "<backtab>") 'outshine-cycle-buffer
+    (kbd "<backtab>") 'entropy/emacs-outshine-cycle-buffer
     (or (outline-on-heading-p) (bobp)
         (error "Using it out of the headline was not supported.")))
 
