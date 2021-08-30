@@ -46,7 +46,7 @@
       (error "Mardown executable can not be found, you must
 either install 'markdown' or 'multimarkdown' from your system
 package management!"))
-    (message "Transferring current buffer using '%s'  ..." markdown-command)
+    (message "Transferring current buffer using '%s' ..." markdown-command)
     (sleep-for 3))
 
   :hook (markdown-mode . markdown-toggle-url-hiding)
@@ -58,8 +58,26 @@ package management!"))
   ;; Change face for markdown code,pre,inline-code face for using
   ;; `entropy/emacs-fontsets-used-latin-font'
   (when entropy/emacs-font-setting-enable
-    (set-face-attribute 'fixed-pitch nil
-                        :family entropy/emacs-fontsets-used-latin-font))
+    (defface entropy/emacs-markdown-face--fixed-pitch
+      '((t :inherit 'fixed-pitch))
+      "")
+    (set-face-attribute
+     'entropy/emacs-markdown-face--fixed-pitch
+     nil
+     :family entropy/emacs-fontsets-used-latin-font)
+    (defvar entropy/emacs-markdown--patch-fixed-pitch-face-font-remap-cache
+      nil)
+    (defun entropy/emacs-markdown--patch-fixed-pitch-face-font
+        (&rest _)
+      (if (bound-and-true-p markdown-mode)
+          (when entropy/emacs-markdown--patch-fixed-pitch-face-font-remap-cache
+            (face-remap-remove-relative
+             entropy/emacs-markdown--patch-fixed-pitch-face-font-remap-cache))
+        (setq entropy/emacs-markdown--patch-fixed-pitch-face-font-remap-cache
+              (face-remap-add-relative
+               'fixed-pitch 'entropy/emacs-markdown-face--fixed-pitch))))
+    (add-to-list 'markdown-mode-hook
+                 'entropy/emacs-markdown--patch-fixed-pitch-face-font))
 
   ;; prompt for markdown-command whether installed before previewer
   ;; transferring
