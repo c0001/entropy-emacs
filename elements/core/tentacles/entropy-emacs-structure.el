@@ -417,9 +417,15 @@ want to preserve the source demo."
       (funcall 'outshine-cycle-buffer arg)))
 
   (defun entropy/emacs-structure--outshine-pop-imenu (&optional args)
-    (interactive)
-    (when (bound-and-true-p outshine-mode)
-      (outshine-imenu)))
+    "Call `imenu' defautly unless `prefix-arg' is non-nil and
+`outshine-mode' is actived in `current-buffer' in which case we
+call `outshine-imenu' instead."
+    (interactive "P")
+    (cond ((and (bound-and-true-p outshine-mode)
+                args)
+           (outshine-imenu))
+          (t
+           (call-interactively 'imenu))))
 
 ;; *** eemacs top key bind
   :eemacs-tpha
@@ -443,11 +449,21 @@ want to preserve the source demo."
    enable-outshine-for-opened-buffer
    :pdumper-no-end t
    :body
+   ;; enable `outshine-mode' in pre-opened lisp buffer like
+   ;; `*scratch*' buffer since they are opened before
+   ;; `entropy/emacs-startup-done'.
    (mapc (lambda (buffer)
            (with-current-buffer buffer
-             (when (member major-mode '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
+             (when (member major-mode '(emacs-lisp-mode lisp-interaction-mode))
                (outshine-mode +1))))
-         (buffer-list)))
+         (buffer-list))
+
+   ;; let `outline-regexp' ignored as local variable since we hacked
+   ;; outshine to auto generated it in each buffer and risky while the
+   ;; local set.
+   (add-to-list 'ignored-local-variables
+                'outline-regexp)
+   )
 
 ;; *** config
 
@@ -506,24 +522,61 @@ compatible with =entropy-emacs=."
   (defun outshine-cycle-buffer (&optional arg)
     "Rotate the visibility state of the buffer through 3 states:
 
-- OVERVIEW: Show only top-level headlines.
-- CONTENTS: Show all headlines of all levels, but no body text.
+NOTE: this function has been redefined for bug fix to be
+compatible with =entropy-emacs=.
+
+- OVERVIEW: Show only top-level headlines matched specified header level.
+
+- CONTENTS: Show all headlines of all levels heading, but no body text.
+
 - SHOW ALL: Show everything.
 
-With a numeric prefix ARG, show all headlines up to that level.
-
-NOTE: this function has been redefined for bug fix to be
-compatible with =entropy-emacs=."
+With a numeric prefix ARG and is numberic, show all headlines up
+to that level i.e. matched show type OVERVIEW, show 'SHOW ALL' if
+the the prefix ARG is list as '(4) i.e. the pure single `C-u'
+type, further more show CONTENTS if it is '(16) i.e. double
+prefix type, and any other prefix type fallback to OVERVIEW
+status use `prefix-numeric-value' to recalc the specified head
+level specification.
+"
     (interactive "P")
     (save-excursion
       (cond
+       ;; condition (1)
        ((integerp arg)
         (outline-show-all)
-        (outline-hide-sublevels arg))
-       ((eq last-command 'outshine-cycle-overview)
+        (outline-hide-sublevels arg)
+        ;; HACK: also set this overview state like condition (5)
+        (setq this-command 'outshine-cycle-overview
+              outshine-current-buffer-visibility-state 'overview))
+
+       ;; condition (2)
+       ((or
+         ;; HACK: ingore prefix did since condition (3)
+         (equal arg '(16))
+         (eq last-command 'outshine-cycle-overview))
         ;; We just created the overview - now do table of contents
         ;; This can be slow in very large buffers, so indicate action
         (outshine--cycle-message "CONTENTS...")
+
+        ;; HACK: firstly we must fold to top-level since the fully
+        ;; expanded children will not be fold while
+        ;; `outline-show-branches'
+        (condition-case error
+            (outline-hide-sublevels
+             ;; found the first head as the toplevel result since we
+             ;; can not cycle through abnormal head structure.
+             (save-excursion
+               (save-match-data
+                 (goto-char (point-min))
+                 (when (re-search-forward outline-regexp nil t)
+                   (beginning-of-line)
+                   (outshine-calc-outline-level)))))
+          (error
+           (user-error
+            "No outline heading found in this buffer according to `outline-regexp': %s"
+            outline-regexp)))
+
         ;; Visit all headings and show their offspring
         (goto-char (point-max))
         (while (not (bobp))
@@ -535,7 +588,13 @@ compatible with =entropy-emacs=."
         (outshine--cycle-message "CONTENTS...done")
         (setq this-command 'outshine-cycle-toc
               outshine-current-buffer-visibility-state 'contents))
-       ((eq last-command 'outshine-cycle-toc)
+
+       ;; condition (3)
+       ((or
+         ;; HACK: show all while `current-prefix-arg' is '(4) i.e. the
+         ;; single `C-u' type.
+         (equal arg '(4))
+         (eq last-command 'outshine-cycle-toc))
         ;; We just showed the table of contents - now show everything
         (outline-show-all)
         (outshine--cycle-message "SHOW ALL")
@@ -545,8 +604,12 @@ compatible with =entropy-emacs=."
         ;; Default action: go to overview
         (let ((toplevel
                (cond
-                (current-prefix-arg
-                 (prefix-numeric-value current-prefix-arg))
+                ;; ;; HACK: we just show all content of buffer while
+                ;; ;; the prefix non-numberic specified according to
+                ;; ;; the condition (3). so we  just comment this.
+
+                ;; (current-prefix-arg
+                ;;  (prefix-numeric-value current-prefix-arg))
                 ((save-excursion
                    (beginning-of-line)
                    (looking-at outline-regexp))
@@ -566,7 +629,12 @@ compatible with =entropy-emacs=."
           (outline-hide-sublevels toplevel))
         (outshine--cycle-message "OVERVIEW")
         (setq this-command 'outshine-cycle-overview
-              outshine-current-buffer-visibility-state 'overview)))))
+              outshine-current-buffer-visibility-state 'overview)))
+      )
+    ;; HACK: recenter the buffer point since fully overviw or
+    ;; huge fold will let the buffer visibility empty that user
+    ;; need to scroll window to show the whole content.
+    (recenter-top-bottom '(middle)))
 
 ;; **** eemacs outshine head regexp defination
 
