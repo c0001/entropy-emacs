@@ -553,16 +553,28 @@ level specification.
           (recenter-top-bottom '(middle)))
       (user-error "Not in an outline based buffer!")))
 
-    (defun entropy/emacs-structure-outshine-pop-imenu (&optional args)
-      "Call `imenu' defautly unless `prefix-arg' is non-nil and
+  (defun entropy/outshine-previous-visible-heading (&optional arg)
+    "Like `outline-previous-visible-heading' but goto to parent
+heading as `entropy/emacs-org-previous-visible-heading' when
+prefix arg was '(4) i.e. the single `C-u' type."
+    (interactive "P")
+    (cond
+     ((equal arg '(4))
+      (outline-up-heading 1))
+     (t
+      (outline-previous-visible-heading
+       (prefix-numeric-value arg)))))
+
+  (defun entropy/emacs-structure-outshine-pop-imenu (&optional args)
+    "Call `imenu' defautly unless `prefix-arg' is non-nil and
 `outshine-mode' is actived in `current-buffer' in which case we
 call `outshine-imenu' instead."
-      (interactive "P")
-      (cond ((and (bound-and-true-p outshine-mode)
-                  args)
-             (outshine-imenu))
-            (t
-             (call-interactively 'imenu))))
+    (interactive "P")
+    (cond ((and (bound-and-true-p outshine-mode)
+                args)
+           (outshine-imenu))
+          (t
+           (call-interactively 'imenu))))
 
 ;; *** eemacs top key bind
   :eemacs-tpha
@@ -1051,9 +1063,18 @@ Otherwise, fallback to the original binding of %s in the current mode."
     (or (outline-on-heading-p) (bobp)
         (error "Using it out of the headline was not supported.")))
 
-  (outshine-define-key outshine-mode-map
-    (kbd "C-c C-p") 'outline-up-heading
-    t)
+  (define-key outshine-mode-map
+    (kbd "C-c C-p")
+    #'entropy/outshine-previous-visible-heading)
+  (define-key outshine-mode-map
+    [M-up]
+    #'entropy/outshine-previous-visible-heading)
+  (define-key outshine-mode-map
+    (kbd "C-c C-p")
+    #'outline-next-visible-heading)
+  (define-key outshine-mode-map
+    [M-down]
+    #'outline-next-visible-heading)
 
 ;; **** sepcial hooks defination
 

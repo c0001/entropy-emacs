@@ -1289,15 +1289,16 @@ as the hypenation."
 
 ;; ******** goto
 
-(defun entropy/emacs-org-previous-visible-heading (arg)
+(defun entropy/emacs-org-previous-visible-heading (&optional arg)
   "Like `org-previous-visible-heading' but goto to parent heading
-when prefix arg was 4."
-  (interactive "p")
+when prefix arg was '(4) i.e. the single `C-u' type."
+  (interactive "P")
   (cond
-   ((= arg 4)
+   ((equal arg '(4))
     (outline-up-heading 1))
    (t
-    (org-previous-visible-heading arg))))
+    (org-previous-visible-heading
+     (prefix-numeric-value arg)))))
 
 (defvar entropy/emacs-org-keymap-group-$goto
   '("Goto"
@@ -1310,7 +1311,13 @@ when prefix arg was 4."
      ("C-c C-p" entropy/emacs-org-previous-visible-heading
       "Move to the previous visible heading"
       :enable t :map-inject t :exit t)
+     ("<M-up>" entropy/emacs-org-previous-visible-heading
+      "Move to the previous visible heading"
+      :enable t :map-inject t :exit t)
      ("C-c C-n" org-next-visible-heading
+      "Move to the next visible heading"
+      :enable t :map-inject t :exit t)
+     ("<M-down>" org-next-visible-heading
       "Move to the next visible heading"
       :enable t :map-inject t :exit t)
      ("C-<up>" org-previous-item "Move to the beginning of the previous item"
