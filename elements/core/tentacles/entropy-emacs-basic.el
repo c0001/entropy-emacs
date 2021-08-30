@@ -266,7 +266,7 @@ place can be easily found by other interactive command."
   ;; TODO : comlete `entropy/emacs-basic--dired-delete-file-mode'
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
     "Minor mode for func `entropy/emacs-basic-dired-delete-file-recursive'."
-    :keymap 'entropy/emacs-basic--dired-delete-file-mode-map
+    :keymap entropy/emacs-basic--dired-delete-file-mode-map
     :global nil)
 
   (defvar entropy/emacs-basic--dired-file-current-delete nil

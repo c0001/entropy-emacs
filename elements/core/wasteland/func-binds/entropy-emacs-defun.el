@@ -412,8 +412,8 @@ function return a form-plist."
     rtn))
 
 ;; *** String manipulation
-(eval-when-compile
-  (defun entropy/emacs-map-string-match-p (str matches)
+
+(defun entropy/emacs-map-string-match-p (str matches)
     "Batch match a list of regexp strings of MATCHES to a
 specified string STR.
 
@@ -429,7 +429,7 @@ otherwise."
           (cl-incf rtn)))
       (if (eq rtn 0)
           nil
-        t))))
+        t)))
 
 ;; *** File and directory manipulation
 (defun entropy/emacs-list-dir-lite (dir-root)
@@ -1099,37 +1099,35 @@ means no quote needed to construct it)."
 
 ;; *** Hook manipulation
 
-(eval-when-compile
-  (defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)
-    "Biuld auto-named function prefixed by NAME a symbol and inject
+(defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)
+  "Biuld auto-named function prefixed by NAME a symbol and inject
 into HOOK wrapped BODY. Appended inject when AS-APPEND is non-nil.
 
 Return the defined function symbol. "
-    (let ()
-      `(let* ((prefix-name-func
-               (lambda ()
-                 (intern (format
-                          "entropy/emacs-fake-lambda-nil-for-%s-/random-as-%s-function"
-                          (symbol-name ',name)
-                          (random most-positive-fixnum)))))
-              (prefix-name (funcall prefix-name-func))
-              func-define)
-         ;; Prevent duplicate fboundp
-         (when (fboundp prefix-name)
-           (while (fboundp prefix-name)
-             (setq prefix-name
-                   (funcall prefix-name-func))))
-         (setq func-define
-               (list 'defun prefix-name '()
-                     '(progn ,@body)))
-         (eval func-define)
-         (if ,as-append
-             (setq ,hook
-                   (append ,hook (list prefix-name)))
-           (add-hook ',hook
-                     prefix-name))
-         prefix-name))))
-
+  (let ()
+    `(let* ((prefix-name-func
+             (lambda ()
+               (intern (format
+                        "entropy/emacs-fake-lambda-nil-for-%s-/random-as-%s-function"
+                        (symbol-name ',name)
+                        (random most-positive-fixnum)))))
+            (prefix-name (funcall prefix-name-func))
+            func-define)
+       ;; Prevent duplicate fboundp
+       (when (fboundp prefix-name)
+         (while (fboundp prefix-name)
+           (setq prefix-name
+                 (funcall prefix-name-func))))
+       (setq func-define
+             (list 'defun prefix-name '()
+                   '(progn ,@body)))
+       (eval func-define)
+       (if ,as-append
+           (setq ,hook
+                 (append ,hook (list prefix-name)))
+         (add-hook ',hook
+                   prefix-name))
+       prefix-name)))
 
 (defmacro entropy/emacs-do-without-johns (!hooks-pattern &rest body)
   "The macro for inhibit some johns in hooks and run body.
