@@ -51,13 +51,21 @@
 (defvar company-en-words/var--trie-inited nil)
 (defun company-en-words/lib--init-trie ()
   (unless company-en-words/var--trie-inited
-    (message "Make company-en-words trie table ...")
-    (sleep-for 1)
-    (let ((gc-cons-threshold 8000))     ;reduce memory leak
-      (dolist (el company-en-words-data/en-words-simple-list)
-        (trie-insert company-en-words/lib--en-words-trie-obj
-                     (car el) (cdr el)))
-      (setq company-en-words/var--trie-inited t))))
+    (let ((pgm (make-progress-reporter
+                "Make company-en-words trie table ..."
+                0 (length
+                   company-en-words-data/en-words-simple-list))))
+      (let ((gc-cons-threshold 8000))     ;reduce memory leak
+        (dolist-with-progress-reporter
+            (el company-en-words-data/en-words-simple-list)
+            pgm
+          (trie-insert company-en-words/lib--en-words-trie-obj
+                       (car el) (cdr el)))
+        (setq company-en-words/var--trie-inited t)))))
+
+;; initialize trie for entropy-emacs pdumper loading when detected
+(when (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+  (company-en-words/lib--init-trie))
 
 (defun company-en-words/lib--query-candis-core (word maxnum)
   (company-en-words/lib--init-trie)
