@@ -67,16 +67,12 @@
            entropy/emacs-gc-records)))
 
 (defun entropy/emacs-gc-wrapper (orig-func &rest orig-args)
-  (let (rtn)
-    (when entropy/emacs-garbage-collection-message-p
-      (redisplay t)
-      (message "Garbage-collecting ..."))
-    (entropy/emacs-gc--with-record
-      (setq rtn (apply orig-func orig-args)))
-    (when entropy/emacs-garbage-collection-message-p
-      (redisplay t)
-      (message "Garbage-collecting done"))
-    rtn))
+  (let (_)
+    (entropy/emacs-message-simple-progress-message
+     (if entropy/emacs-garbage-collection-message-p
+         "[gc]: Garbage-collecting")
+     (entropy/emacs-gc--with-record
+       (apply orig-func orig-args)))))
 
 (advice-add 'garbage-collect
             :around

@@ -655,31 +655,15 @@ when available."
 
 ;; ********* eemacs lsp start hack
 ;; ********** lsp start prompts
-  (advice-add 'lsp-deferred
-              :before
-              #'entropy/emacs-codeserver--lsp-deferred-promt)
-  (defun entropy/emacs-codeserver--lsp-deferred-promt (&rest _)
-    "Prompting for `lsp-deferred' starting for prevent lagging
-nervous."
-    (redisplay t)
-    (entropy/emacs-message-do-message
-     "%s <%s> %s"
-     (green "Lsp check for buffer")
-     (yellow (buffer-name))
-     (green "..."))
-    (redisplay t))
-
-  (advice-add 'lsp
-              :before
-              #'entropy/emacs-codeserver--lsp-start-promt)
-  (defun entropy/emacs-codeserver--lsp-start-promt (&rest _)
-    "Prompting for `lsp' starting for prevent lagging nervous."
-    (redisplay t)
-    (entropy/emacs-message-do-message
-     "%s %s"
-     (green "Lsp starting")
-     (green "..."))
-    (redisplay t))
+  (entropy/emacs-message-make-func-with-simple-progress-prompts
+   lsp-deferred
+   "%s <%s>"
+   (green "Lsp check for buffer")
+   (yellow (buffer-name)))
+  (entropy/emacs-message-make-func-with-simple-progress-prompts
+   lsp
+   "%s"
+   (green "Lsp starting"))
 
 ;; ********** start conditions filter
 

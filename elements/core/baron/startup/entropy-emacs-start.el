@@ -475,5 +475,9 @@ notation.
    0 nil
    #'entropy/emacs-start-do-load))
 
+;; make `load' progress visible
+(entropy/emacs-message-make-func-with-simple-progress-prompts
+ load)
+
 ;; * provide
 (provide 'entropy-emacs-start)

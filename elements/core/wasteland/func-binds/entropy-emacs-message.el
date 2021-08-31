@@ -113,7 +113,7 @@ have window feature started up."
 
 (advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
 
-;; *** core
+;; *** common ansi message wrapper core
 (defun entropy/emacs-message--ansi-color-apply-for-face (string)
   "The same as `ansi-color-apply', but using `face' instead of
 `font-lock-faace' for make `message' colorized."
@@ -256,7 +256,11 @@ interactive session."
     (entropy/emacs-message--do-message-ansi-apply
      ,message ,@args)))
 
+;; *** common progress message wrapper core
+
+
 ;; ** auto load
+;; *** common ansi message wrapper APIs
 ;;;###autoload
 (defmacro entropy/emacs-message-do-message (message &rest args)
   "An alternative to `message' that strips out ANSI codes, with popup
@@ -306,6 +310,54 @@ NOTE: Just use it in `noninteractive' session."
         (setq entropy/emacs-message--idle-timer-for-hide-popup
               nil))
       )))
+
+;; *** common progress message wrapper APIs
+
+(defmacro entropy/emacs-message-simple-progress-message
+    (message &rest body)
+  "Do BODY and return its result with progress prompt message
+MESSAGE using `make-progress-reporter'.
+
+Inhibit any prompts while message is nil in which case we just
+run BODY.
+"
+  `(let* ((---$$$message$$$--- ,message)
+          (---$$$progress-reporter$$$---
+           (when ---$$$message$$$---
+             (make-progress-reporter
+              (format "%s ... " ---$$$message$$$---)))))
+     (prog1
+         (let (_)
+           ,@body)
+       (when ---$$$progress-reporter$$$---
+         (progress-reporter-done
+          ---$$$progress-reporter$$$---)))))
+
+(defmacro entropy/emacs-message-make-func-with-simple-progress-prompts
+    (func-name &optional message &rest args)
+  "Make function named by FUNC-NAME executing return result with
+progress prompt using
+`entropy/emacs-message-simple-progress-message'."
+  (let ((func-adv-name
+         (intern (format "__adv/around/%s/for-progress-promtps__"
+                         func-name))))
+    `(let (_)
+       (defun ,func-adv-name (orig-func &rest orig-args)
+         (let (_)
+           (entropy/emacs-message-simple-progress-message
+            (if (not (null ',message))
+                ;; append user specified message with function name
+                (format "[`%s']: %s"
+                        ',func-name
+                        (entropy/emacs-message--do-message-ansi-apply
+                         ,message ,@args))
+              ;; use plain simplify message type
+              (format "Do `%s' executing" ',func-name))
+            (apply orig-func orig-args))))
+       (advice-add ',func-name
+                   :around
+                   #',func-adv-name)
+       )))
 
 ;; * provide
 (provide 'entropy-emacs-message)

@@ -1618,9 +1618,7 @@ true, nil for otherwise."
 (defun entropy/emacs-idle-cleanup-echo-area ()
   "Cleanup remaining echo area message when bussy done for some
 tasks 'ing' refer prompts."
-  (run-with-idle-timer 0.2 nil (lambda () (message ""))))
-
-
+  (run-with-idle-timer 0.2 nil (lambda () (message nil))))
 
 ;; --------- make funciton inhibit internal ---------
 (defun entropy/emacs--make-function-inhibit-readonly-common
@@ -1676,19 +1674,16 @@ pollute eemacs internal lazy load optimization."
     `(when (not (null ',feature))
        (entropy/emacs-eval-after-load
         ,feature
-        (unless (member ',feature (last entropy/emacs--lazy-load-simple-feature-head 3))
-          (entropy/emacs-message-do-message
-           "with lazy loading configs for feature '%s' ..."
-           ',feature)
-          (setq entropy/emacs--lazy-load-simple-feature-head
-                (append entropy/emacs--lazy-load-simple-feature-head
-                        '(,feature))))
-        (redisplay t)
-        (entropy/emacs-general-with-gc-strict
-         ,@body)
-        ;; clear zombie echo area 'ing' prompts
-        (message nil)
-        (redisplay t))))
+        (entropy/emacs-message-simple-progress-message
+         (unless (member ',feature (last entropy/emacs--lazy-load-simple-feature-head 3))
+           (setq entropy/emacs--lazy-load-simple-feature-head
+                 (append entropy/emacs--lazy-load-simple-feature-head
+                         '(,feature)))
+           (format
+            "with lazy loading configs for feature '%s'"
+            ',feature))
+         (entropy/emacs-general-with-gc-strict
+          ,@body)))))
    ((null entropy/emacs-custom-enable-lazy-load)
     `(when (not (null ',feature))
        (unless (member ',feature (last entropy/emacs--lazy-load-simple-feature-head 3))
