@@ -57,14 +57,16 @@
      (when (> (length entropy/emacs-gc-records) 1000)
        (setq entropy/emacs-gc-records nil))
 
-     ,@body
-     (setq --duration--
-           (float-time
-            (time-subtract
-             (current-time) --start--)))
-     (push (list :stamp --cur-time-human-- :duration --duration--
-                 :idle-delay entropy/emacs-garbage-collection-delay)
-           entropy/emacs-gc-records)))
+     (prog1
+         (progn
+           ,@body)
+       (setq --duration--
+             (float-time
+              (time-subtract
+               (current-time) --start--)))
+       (push (list :stamp --cur-time-human-- :duration --duration--
+                   :idle-delay entropy/emacs-garbage-collection-delay)
+             entropy/emacs-gc-records))))
 
 (defun entropy/emacs-gc-wrapper (orig-func &rest orig-args)
   (let (_)
