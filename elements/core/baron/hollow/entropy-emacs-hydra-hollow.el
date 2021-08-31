@@ -1891,6 +1891,7 @@ Both KEY and COMMAND can be nil expect that the ':inject-key' and
       (dolist (pair (cdr hydra-injector))
         (eval
          `(entropy/emacs-lazy-load-simple ,(car pair)
+            :no-message t
             (entropy/emacs-hydra-hollow-define-key
              ',(cadr pair)
              ,(or (plist-get (cddr pair) :inject-key) key)
@@ -1898,6 +1899,7 @@ Both KEY and COMMAND can be nil expect that the ':inject-key' and
      ((entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
       (eval
        `(entropy/emacs-lazy-load-simple ,(car hydra-injector)
+          :no-message t
           (entropy/emacs-hydra-hollow-define-key
            ',(cadr hydra-injector)
            ,(or (plist-get (cddr hydra-injector) :inject-key) key)

@@ -411,6 +411,30 @@ function return a form-plist."
                       tail-list)))))
     rtn))
 
+(defun entropy/emacs-get-plist-body (args)
+  "Get BODY inside of 'pre-plist' ARGS, commonly is the last non
+key-pair cdr.
+
+This functio is useful for cl-based def* args parsing like:
+
+#+begin_src emacs-lisp
+  (name &rest body
+        &key
+        key-1
+        key-2
+        ...
+        &allow-other-keys)
+#+end_src
+
+To get the real-body in BODY.
+"
+  (let ((it args))
+    (catch 'break
+      (while t
+        (if (keywordp (car it))
+            (setq it (cddr it))
+          (throw 'break it))))))
+
 ;; *** String manipulation
 
 (defun entropy/emacs-map-string-match-p (str matches)
@@ -1649,15 +1673,32 @@ the buffer-locally variable `buffer-read-only'."
 ;; *** Lazy load specification
 (defvar entropy/emacs--lazy-load-simple-feature-head nil)
 
-(defmacro entropy/emacs-lazy-load-simple (feature &rest body)
+(cl-defmacro entropy/emacs-lazy-load-simple
+    (feature &rest body
+             &key
+             non-message
+             always-lazy-load
+             &allow-other-keys)
   "Execute BODY after/require FILE is loaded.  FILE is normally a
 feature name, but it can also be a file name, in case that file
 does not provide any feature, further more FILE can be a list for
 thus and autoloads them follow the order of that.
 
+Optional key valid for:
+
+- NON-MESSAGE:
+
+  when non-nil do not show lazy loading config prompts.
+
+- ALWAYS-LAZY-LOAD:
+
+  when non-nil always lazy loading config after the featuer loaded
+  without any restriction (see below). so the basic functional is same
+  as `with-after-load'.
+
 NOTE: Eventually BODY just be autoload when
 `entropy/emacs-custom-enable-lazy-load' is non-nil with two
-exceptions:
+exceptions while ALWAYS-LAZY-LOAD is nil:
 
 1. `daemonp': Since there's no need to lazy load anything while a
    daemon initialization.
@@ -1669,36 +1710,41 @@ This function should always be used preferred to maintain eemacs
 internal context or API adding to thus, because any not be will
 pollute eemacs internal lazy load optimization."
   (declare (indent 1) (debug t))
-  (cond
-   (entropy/emacs-custom-enable-lazy-load
-    `(when (not (null ',feature))
-       (entropy/emacs-eval-after-load
-        ,feature
-        (entropy/emacs-message-simple-progress-message
+  (let ((body (entropy/emacs-get-plist-body body)))
+    (cond
+     ((or entropy/emacs-custom-enable-lazy-load
+          always-lazy-load)
+      `(when (not (null ',feature))
+         (entropy/emacs-eval-after-load
+          ,feature
+          (entropy/emacs-message-simple-progress-message
+           (unless (or
+                    (not (null ,non-message))
+                    (member ',feature
+                            (last entropy/emacs--lazy-load-simple-feature-head 3)))
+             (setq entropy/emacs--lazy-load-simple-feature-head
+                   (append entropy/emacs--lazy-load-simple-feature-head
+                           '(,feature)))
+             (format
+              "with lazy loading configs for feature '%s'"
+              ',feature))
+           (entropy/emacs-general-with-gc-strict
+            ,@body)))))
+     ((null entropy/emacs-custom-enable-lazy-load)
+      `(when (not (null ',feature))
          (unless (member ',feature (last entropy/emacs--lazy-load-simple-feature-head 3))
+           (entropy/emacs-message-do-message
+            "force load configs for feature '%s'" ',feature)
            (setq entropy/emacs--lazy-load-simple-feature-head
                  (append entropy/emacs--lazy-load-simple-feature-head
-                         '(,feature)))
-           (format
-            "with lazy loading configs for feature '%s'"
-            ',feature))
+                         '(,feature))))
+         (cond ((listp ',feature)
+                (dolist (el ',feature)
+                  (require el)))
+               ((symbolp ',feature)
+                (require ',feature)))
          (entropy/emacs-general-with-gc-strict
-          ,@body)))))
-   ((null entropy/emacs-custom-enable-lazy-load)
-    `(when (not (null ',feature))
-       (unless (member ',feature (last entropy/emacs--lazy-load-simple-feature-head 3))
-         (entropy/emacs-message-do-message
-          "force load configs for feature '%s'" ',feature)
-         (setq entropy/emacs--lazy-load-simple-feature-head
-               (append entropy/emacs--lazy-load-simple-feature-head
-                       '(,feature))))
-       (cond ((listp ',feature)
-              (dolist (el ',feature)
-                (require el)))
-             ((symbolp ',feature)
-              (require ',feature)))
-       (entropy/emacs-general-with-gc-strict
-        ,@body)))))
+          ,@body))))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
   "Wrapping BODY to a function named with suffix by NAME into
