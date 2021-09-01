@@ -1172,6 +1172,7 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
       (add-to-list '__elgot-not-support-yet-prompted-alist
                    (cons major-mode t))))
 
+  ;; prog mode hook injection to start eglot
   (dolist (el entropy/emacs-ide-for-them)
     (let ((hook (intern (format "%s-hook" el))))
     (when (eq (entropy/emacs-get-use-ide-type el) 'eglot)
@@ -1181,17 +1182,18 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
           (add-hook hook #'entropy/emacs-codeserver--eglot-non-support-prompt)
         (add-hook
          hook #'eglot-ensure)))))
-
-  ;; Disable `eldoc-mode' after eglot start
-  (advice-add 'eglot-ensure
-              :around
-              #'entropy/emacs-eldoc-inhibi-around-advice)
-
-  ;; union server start filter
   (advice-add
    'eglot-ensure
    :around
    #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)
+
+  ;; Disable `eldoc-mode' after eglot start
+  ;; NOTE: since `eglot--connect' is the only one subroutine coverred
+  ;; the all eglot start command, but it is not the exposed API which
+  ;; we must follow upstream updates.
+  (advice-add 'eglot--connect
+              :around
+              #'entropy/emacs-eldoc-inhibit-around-advice)
 
   :config
 ;; ***** mode spec framework

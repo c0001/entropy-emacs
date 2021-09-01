@@ -203,7 +203,7 @@
   :commands (eldoc eldoc-mode global-eldoc-mode)
   :preface
   (defvar-local entropy/emacs-eldoc-inhibit-in-current-buffer nil)
-  (defun entropy/emacs-eldoc-inhibi-around-advice
+  (defun entropy/emacs-eldoc-inhibit-around-advice
       (orig-func &rest orig-args)
     "Around advice for disable `eldoc-mode' with the idlle time
 of `eldoc-idle-delay' after excute the ORIG-FUNC."
