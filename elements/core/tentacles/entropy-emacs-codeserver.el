@@ -1592,12 +1592,18 @@ fix overflow hr line display in eldoc."
         (let ((hr-char (markdown--first-displayable markdown-hr-display-char)))
           (add-text-properties
            (match-beginning 0) (match-end 0)
-           `(face markdown-hr-face
-                  font-lock-multiline t
-                  ,@(when (and markdown-hide-markup hr-char)
-                      `(display ,(make-string
-                                  (/ (window-body-width) 5)
-                                  hr-char)))))
+           `(
+             ;; face spec
+             face
+             markdown-hr-face
+             ;; fontlock spec
+             font-lock-multiline t
+             ;; display spec
+             ,@(when (and markdown-hide-markup hr-char)
+                 `(display ,(make-string
+                             ;; HACK: reduce har-render width
+                             (/ (window-body-width) 5)
+                             hr-char)))))
           t))))
 
   (defun eglot-shutdown--around-advice-0
