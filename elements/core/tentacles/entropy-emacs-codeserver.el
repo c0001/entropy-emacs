@@ -1586,7 +1586,8 @@ let eglot do completion with interface argument injection."
       "Add text properties to horizontal rules from point to LAST.
 
 EEMACS_TEMPORALLY_HACK:
-NOTE: this function has been redefined by eemacs to temporally fix overflow hr line display in eldoc."
+NOTE: this function has been redefined by eemacs to temporally
+fix overflow hr line display in eldoc."
       (when (markdown-match-hr last)
         (let ((hr-char (markdown--first-displayable markdown-hr-display-char)))
           (add-text-properties
@@ -1607,7 +1608,6 @@ NOTE: this function has been redefined by eemacs to temporally fix overflow hr l
       (eglot-ui-doc-mode 0))
     (let ((rtn (apply orig-func orig-args)))
       rtn))
-
   (advice-add 'eglot-shutdown
               :around
               #'eglot-shutdown--around-advice-0)
@@ -1621,9 +1621,16 @@ NOTE: this function has been redefined by eemacs to temporally fix overflow hr l
                    (null (bound-and-true-p eldoc-mode)))
           (mapc #'delete-overlay eglot--highlights)))
       rtn))
-
   (advice-add 'eldoc-mode
               :around #'entropy/emacs-codeserver--eldoc-shutdown-patch-of-eglot)
+
+  (defun __ya/eglot--highlight-piggyback/disable
+      (&rest _)
+    "Disbale the overlay render"
+    nil)
+  (advice-add 'eglot--highlight-piggyback
+              :override
+              #'__ya/eglot--highlight-piggyback/disable)
 
   )
 
