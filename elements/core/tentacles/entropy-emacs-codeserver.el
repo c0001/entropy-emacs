@@ -425,10 +425,18 @@ certain eemacs-spec conditions."
          (buff-exclusions
           (rx (or (seq line-start "*Org Src")
                   (seq line-start " *org-src-fontification:")
-                  (seq line-start " markdown-code-fontification:")))))
+                  (seq line-start " markdown-code-fontification:"))))
+         (mode-exclusions
+          '(emacs-lisp-mode
+            lisp-interaction-mode
+            lisp-mode
+            org-mode)))
     (unless (and
-             ;; condierred a filename has same filter matched pass filter
+             ;; just buffer with file can be start codeserver
              (not (buffer-file-name))
+             ;; `major-mode' filter
+             (member major-mode mode-exclusions)
+             ;; `buffer-name' filter
              (string-match-p buff-exclusions buff-name))
       (apply orig-func orig-args))))
 
@@ -672,19 +680,8 @@ when available."
       (advice-add
        func
        :around
-       #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)))
-
-;; ********* exclude `major-mode' for starting `lsp-mode'
-  (advice-add 'lsp
-              :around
-              #'entropy/emacs-codeserver--lsp-exclude)
-  (defun entropy/emacs-codeserver--lsp-exclude (orig-func &rest orig-args)
-    (unless (member major-mode '(emacs-lisp-mode
-                                 lisp-interaction-mode
-                                 lisp-mode
-                                 org-mode))
-      (apply orig-func orig-args)))
-
+       #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form
+       )))
 
 ;; ********* lsp idle hook specifications
   (defvar entropy/emacs-codeserver--lsp-on-idle-cases
@@ -733,7 +730,6 @@ predicate when run it, see
   (advice-add 'lsp-diagnostics-flycheck-disable
               :around
               #'__adv/lsp-diagnostics-flycheck-disable/0)
-
 
 ;; ********* speed up `lsp--cur-line'
 
@@ -1034,7 +1030,8 @@ updating."
     (let ((rtn (apply orig-func orig-args)))
       (if (not (bound-and-true-p lsp-ui-doc-mode))
           (progn
-            (remove-hook 'post-command-hook 'entropy/emacs-codeserver--lsp-ui-doc-hide t)
+            (remove-hook 'post-command-hook
+                         'entropy/emacs-codeserver--lsp-ui-doc-hide t)
             (unless (let (rtn)
                       (mapc (lambda (buffer)
                               (with-current-buffer buffer
@@ -1050,8 +1047,9 @@ updating."
         (and (timerp entropy/emacs-codeserver-lsp-ui-doc-timer)
              (cancel-timer entropy/emacs-codeserver-lsp-ui-doc-timer))
         (setq entropy/emacs-codeserver-lsp-ui-doc-timer
-              (run-with-idle-timer lsp-ui-doc-delay t
-                                   #'entropy/emacs-codeserver--lsp-ui-doc-make-request)))
+              (run-with-idle-timer
+               lsp-ui-doc-delay t
+               #'entropy/emacs-codeserver--lsp-ui-doc-make-request)))
       rtn))
 
   (advice-add 'lsp-ui-doc-mode
@@ -1096,7 +1094,9 @@ updating."
   (setq lsp-java-boot-enabled nil)
   (setq lsp-java-autobuild-enabled nil)
   (with-eval-after-load 'lsp-mode
-    (require 'lsp-java-boot)))
+    (entropy/emacs-message-simple-progress-message
+     "require lsp-java"
+     (require 'lsp-java-boot))))
 
 ;; **** Eglot
 
@@ -1188,9 +1188,10 @@ to enable the lsp server for this major-mode supported by `lsp-mode'.
               #'entropy/emacs-eldoc-inhibi-around-advice)
 
   ;; union server start filter
-  (advice-add 'eglot-ensure
-              :around
-              #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)
+  (advice-add
+   'eglot-ensure
+   :around
+   #'entropy/emacs-codeserver--codeserver-union-startjudge-filter-advice-form)
 
   :config
 ;; ***** mode spec framework
