@@ -1090,7 +1090,38 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'memory-usage))
       "Emacs memory usage view"
-      :enable t :exit t)))))
+      :enable t :exit t))))
+  :init
+  :config
+  ;; readonly for popuped buffer and other hacking
+  (defun __adv/around/memory-usage-with-exploer-buffer
+      (orig-func &rest orig-args)
+    (let ((inhibit-read-only t))
+      (with-current-buffer
+          (get-buffer-create "*Memory Explorer*")
+        (read-only-mode 1)
+        (condition-case error
+            (entropy/emacs-message-simple-progress-message
+             "Memory find large variable"
+             (apply orig-func orig-args))
+          (error
+           (sort-numeric-fields 1 (point-min) (point-max))
+           (message "%s" error))))))
+  (advice-add 'memory-usage-find-large-variables
+              :around
+              #'__adv/around/memory-usage-with-exploer-buffer)
+  (defun __adv/around/memory-usage-with-Buffer-Details-buffer
+      (orig-func &rest orig-args)
+    (let ((inhibit-read-only t))
+      (with-current-buffer
+          (get-buffer-create "*Buffer Details*")
+        (read-only-mode 1)
+        (entropy/emacs-message-simple-progress-message
+         "Memory general overview"
+         (apply orig-func orig-args)))))
+  (advice-add 'memory-usage
+              :around
+              #'__adv/around/memory-usage-with-Buffer-Details-buffer))
 
 ;; ** entropy-emacs self packages
 
