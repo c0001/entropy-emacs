@@ -431,7 +431,7 @@ certain eemacs-spec conditions."
             lisp-interaction-mode
             lisp-mode
             org-mode)))
-    (unless (and
+    (unless (or
              ;; just buffer with file can be start codeserver
              (not (buffer-file-name))
              ;; `major-mode' filter
