@@ -341,7 +341,7 @@ event hints, so that fast continuous will lagging on."
           ;; `entropy/emacs-session-idle-trigger-debug' to see internal
           ;; debug informations when needed.
           (entropy/emacs-run-at-idle-immediately
-           company-update
+           __idle/company-post-frontend-update
            (when (company-call-backend 'prefix)
              (company-call-frontends 'update)))
         ;;EEMACS_BUG: idle trigger not support to
@@ -376,8 +376,19 @@ activated status. Default time during set is less than 70ms."
     (let (rtn)
       (when (and (bound-and-true-p company-mode)
                  (bound-and-true-p company-candidates))
-        (when (__company-delc-time-fly-p)
-          (company-abort)))
+        (when (or
+               ;; always abort while using the post-command respeced
+               ;; frontend e.g. pseudo tooltip, since
+               ;; `company-post-command' will trigger the
+               ;; ':post-command' slot of the frontend body in every
+               ;; hinted for delete refer command which will cause the
+               ;; delete char period time judge be useless.
+               (member (car company-frontends)
+                       '(company-pseudo-tooltip-unless-just-one-frontend
+                         company-pseudo-tooltip-unless-just-one-frontend-with-delay))
+               (__company-delc-time-fly-p))
+          (when (bound-and-true-p company-mode)
+            (company-abort))))
       (setq rtn (apply orig-func orig-args)
             __company-delc-time-host
             (current-time))
