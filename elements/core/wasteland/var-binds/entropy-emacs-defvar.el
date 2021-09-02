@@ -240,7 +240,7 @@ window will be set to 13.5.")
 
 ;; ** idle trigger
 (defvar entropy/emacs-current-session-is-idle nil
-  "The current emacs session idle signal, t for non-idle status
+  "The current emacs session idle signal, t for idle status
 indicator, nil for otherwise.
 
 Do not set this variable manually, it is assigned by
@@ -391,8 +391,8 @@ must setted with SECS larger than or equal of this value.")
 (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal)
 (run-with-idle-timer 0.15 t #'entropy/emacs--set-idle-signal)
 (defun entropy/emacs--idle-var-guard (symbol newval operation where)
-  (if (eq newval t)
-      (force-mode-line-update)))
+  (unless (null newval)
+    (force-mode-line-update)))
 (add-variable-watcher 'entropy/emacs-current-session-is-idle
                       #'entropy/emacs--idle-var-guard)
 
@@ -457,7 +457,9 @@ but used for hook  `%s'."
           current-buffer
           &allow-other-keys)
   "Run BODY defination as NAME while current emacs session ran
-into idle status immediately.
+into idle status immediately or just run as progn while the
+trigger of this macro is in idle time i.e. the
+`entropy/emacs-current-session-is-idle' is non-nil.
 
 Optional key slot support:
 - which-hook: number of seconds of `__eemacs-session-idle-trigger-secs-class'
@@ -493,22 +495,25 @@ remove the oldest one and then injecting new one."
                (error
                 (push error ,hook-error-list))))))
     `(let (_)
-       (defalias ',name
-         (lambda (&rest _)
-           (if ',buff-stick-p
-               (with-current-buffer ',buff
-                 ,body-wrapper)
-             ,body-wrapper)))
-       ;; use `delete' ad `push' to reduce lag
-       (setq ,hook
-             (delete ',name
-                     ,hook))
-       ;; We should append the hook to the tail since follow the time
-       ;; order.
-       (setq ,hook
-             (append ,hook
-                     (list ',name)))
-       )))
+       (if (bound-and-true-p entropy/emacs-current-session-is-idle)
+           (progn
+             ,@body)
+         (defalias ',name
+           (lambda (&rest _)
+             (if ',buff-stick-p
+                 (with-current-buffer ',buff
+                   ,body-wrapper)
+               ,body-wrapper)))
+         ;; use `delete' ad `push' to reduce lag
+         (setq ,hook
+               (delete ',name
+                       ,hook))
+         ;; We should append the hook to the tail since follow the time
+         ;; order.
+         (setq ,hook
+               (append ,hook
+                       (list ',name)))
+         ))))
 
 ;; ** eemacs top keymap refer
 (defvar entropy/emacs-top-keymap (make-sparse-keymap)
