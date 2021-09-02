@@ -382,14 +382,14 @@ wrong type of type: %s of seconds: %s"
     (setq entropy/emacs-session-idle-trigger-hook nil))
   (setq entropy/emacs-current-session-idle-hook-ran-done t))
 
-(defvar entropy/emacs-safe-idle-minimal-secs 0.25
+(defvar entropy/emacs-safe-idle-minimal-secs 0.1
   "The minimal idle timer SECS run with checking var
 `entropy/emacs-current-session-is-idle' which indicates that any
 specified timer function which would run with condition of thus
 must setted with SECS larger than or equal of this value.")
 
 (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal)
-(run-with-idle-timer 0.15 t #'entropy/emacs--set-idle-signal)
+(run-with-idle-timer 0.05 t #'entropy/emacs--set-idle-signal)
 (defun entropy/emacs--idle-var-guard (symbol newval operation where)
   (unless (null newval)
     (force-mode-line-update)))

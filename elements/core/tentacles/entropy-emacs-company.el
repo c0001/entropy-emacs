@@ -173,25 +173,29 @@ NOTE: this function is an around advice wrapper."
 
   (defun entropy/emacs-company-toggle-idledelay (&optional prefix)
     (interactive "P")
-    (if (bound-and-true-p company-idle-delay)
-        (progn (setq company-idle-delay nil)
-               (message "turn off `company-idle-delay'"))
-      (setq company-idle-delay
-            (if prefix
-                (let ((secs (string-to-number
-                             (read-string "Input Company delay secs: "))))
-                  (if (and (numberp secs)
-                           (> secs 0))
-                      secs
-                    (message "Invalid company-delay secs '%s'" secs)
-                    entropy/emacs-company-idle-delay-default))
-              entropy/emacs-company-idle-delay-default))
-      (let ((entropy/emacs-message-non-popup t))
-        (entropy/emacs-message-do-message
-         "%s '%s' to '%s'"
-         (blue "Set")
-         (yellow (symbol-name 'company-idle-delay))
-         (red (number-to-string company-idle-delay))))))
+    (let ((def-safe-idle-secs
+            (max (+ 0.1 entropy/emacs-safe-idle-minimal-secs)
+                 entropy/emacs-company-idle-delay-default)))
+      (if (and (not prefix)
+               (bound-and-true-p company-idle-delay))
+          (progn (setq company-idle-delay nil)
+                 (message "turn off `company-idle-delay'"))
+        (setq company-idle-delay
+              (if prefix
+                  (let ((secs (string-to-number
+                               (read-string "Input Company delay secs: "))))
+                    (if (and (numberp secs)
+                             (> secs entropy/emacs-safe-idle-minimal-secs))
+                        secs
+                      (message "Invalid company-delay secs '%s'" secs)
+                      def-safe-idle-secs))
+                def-safe-idle-secs))
+        (let ((entropy/emacs-message-non-popup t))
+          (entropy/emacs-message-do-message
+           "%s '%s' to '%s'"
+           (blue "Set")
+           (yellow (symbol-name 'company-idle-delay))
+           (red (number-to-string company-idle-delay)))))))
 
   (defun entropy/emacs-company-files (command)
     (interactive (list 'interactive))
