@@ -356,6 +356,64 @@ event hints, so that fast continuous will lagging on."
               :override
               #'__ya/company--perform)
 
+;; ***** strip `company--continue' trigger frequency
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun __ya/company--continue ()
+    "Like `company--continue' but with eemacs hacking on.
+
+This hack will make continuation of typing while
+`company-candidates' exists be forcely abort and just begin with
+the idle perform of `company--perform'.
+"
+    (when (company-call-backend 'no-cache company-prefix)
+      ;; Don't complete existing candidates, fetch new ones.
+      (setq company-candidates-cache nil))
+    (let* ((new-prefix (company-call-backend 'prefix))
+           (ignore-case (company-call-backend 'ignore-case))
+           (c (when (and (and
+                          ;; HACK: just did continuation while
+                          ;; backward scan i.e. delete-char since we
+                          ;; have `__company-delete-char' to
+                          ;; auto-abort while flying typed on.
+                          (or
+                           ;; manually call always begin continuation
+                           (eq real-this-command 'company-complete)
+                           (ignore-errors
+                             (< (length (company--prefix-str new-prefix))
+                                (length company-prefix))))
+                          (company--good-prefix-p new-prefix))
+                         (setq new-prefix (company--prefix-str new-prefix))
+                         (= (- (point) (length new-prefix))
+                            (- company-point (length company-prefix))))
+                (company-calculate-candidates new-prefix ignore-case))))
+      (cond
+       ((and company-abort-on-unique-match
+             (company--unique-match-p c new-prefix ignore-case))
+        ;; Handle it like completion was aborted, to differentiate from user
+        ;; calling one of Company's commands to insert the candidate,
+        ;; not to trigger template expansion, etc.
+        (company-cancel 'unique))
+       ((consp c)
+        ;; incremental match
+        (setq company-prefix new-prefix)
+        (company-update-candidates c)
+        c)
+       ((and (characterp last-command-event)
+             (company-auto-commit-p (string last-command-event)))
+        ;; auto-commit
+        (save-excursion
+          (goto-char company-point)
+          (company-complete-selection)
+          nil))
+       ((not (company--incremental-p))
+        (company-cancel))
+       (t (company--continue-failed new-prefix)))))
+  (advice-add 'company--continue
+              :override
+              #'__ya/company--continue)
+
+
 ;; ***** fly on type for `delete-char'
   (defvar-local __company-delc-time-host nil)
   (defun __company-delc-time-fly-p ()
