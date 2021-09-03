@@ -1,0 +1,13 @@
+This is the sicp texi format offline doc archive, eemacs place it here
+since emacser are also an programmer in which case every user of
+eemacs may curious about more of computer science.
+
+Originally the sicp doc is obey the [[https://creativecommons.org/licenses/by-sa/4.0/ ][creativecommons(cc)]] copyright as
+freedom document which you can found it in
+https://mitpress.mit.edu/sicp/, and then I found the texi format in
+[[https://github.com/GHolk/sicp][this github repo]] where is commented its source is getted from [[http://www.neilvandyke.org/sicp-texi/][here]].
+
+The [[file:Makefile][Makefile]] under this folder is used to generate further more doc
+type of the source.
+
+Happy with reading.

@@ -1970,25 +1970,44 @@ The native binded emacs extensions hosted path.")
   (expand-file-name "templates" entropy/emacs-core-components-hosted-path)
   "The sourced templated files archive location of entropy-emacs")
 
+(defvar entropy/emacs-doc-repo-path
+  (expand-file-name "entropy-emacs-doc"
+                    entropy/emacs-site-lisp-path)
+  "The whole eemacs specified doc repo path")
+
 (defvar entropy/emacs-core-doc-file-archives-plist
   `(:org
     ,(expand-file-name
-      "entropy-emacs-doc/org/entropy-emacs_introduction.org"
-      entropy/emacs-site-lisp-path)
+      "org/entropy-emacs_introduction.org"
+      entropy/emacs-doc-repo-path)
     :html
     ,(expand-file-name
-      "entropy-emacs-doc/org/entropy-emacs_introduction.html"
-      entropy/emacs-site-lisp-path)
+      "org/entropy-emacs_introduction.html"
+      entropy/emacs-doc-repo-path)
     :texi
     ,(expand-file-name
-      "entropy-emacs-doc/org/entropy-emacs_introduction.texi"
-      entropy/emacs-site-lisp-path)
+      "org/entropy-emacs_introduction.texi"
+      entropy/emacs-doc-repo-path)
     :texinfo
     ,(expand-file-name
-      "entropy-emacs-doc/org/entropy-emacs_introduction.info"
-      entropy/emacs-site-lisp-path))
+      "org/entropy-emacs_introduction.info"
+      entropy/emacs-doc-repo-path))
   "A plist stored variable number of archive formats of eemacs
 core document file.")
+
+(defvar entropy/emacs-extra-doc-file-archives-alist
+  `((sicp
+     :texi
+     ,(expand-file-name
+       "elements/sicp/sicp.texi"
+       entropy/emacs-doc-repo-path)
+     :texinfo
+     ,(expand-file-name
+       "elements/sicp/sicp.info"
+       entropy/emacs-doc-repo-path)))
+  "An alist stored doc path information of eemacs-specification
+whose car is an symbol indicate the doc name and the cdr is same
+as `entropy/emacs-core-doc-file-archives-plist'.")
 
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)
@@ -2234,11 +2253,30 @@ Do you want to open it with messy?"
 
 ;; *** add eemacs texinfo to info-path
 
-(setq Info-default-directory-list
-      (append (list
-               (file-name-directory
-                (plist-get entropy/emacs-core-doc-file-archives-plist :texinfo)))
-              Info-default-directory-list))
+(with-eval-after-load 'info
+  ;; append the eemacs intro doc
+  (setq Info-default-directory-list
+        (append Info-default-directory-list
+                (list
+                 (file-name-directory
+                  (plist-get
+                   entropy/emacs-core-doc-file-archives-plist
+                   :texinfo)))))
+
+  ;; append eemacs extra docs
+  (dolist (doc entropy/emacs-extra-doc-file-archives-alist)
+    (let* ((doc-name (car doc))
+           (doc-attr (cdr doc))
+           (doc-info-file (plist-get doc-attr :texinfo))
+           (doc-info-dir
+            (ignore-errors
+              (file-name-directory
+               doc-info-file))))
+      (when (file-exists-p doc-info-dir)
+        (setq Info-default-directory-list
+              (append
+               Info-default-directory-list
+               (list doc-info-dir)))))))
 
 ;; *** fake display-graphic
 (defun entropy/emacs-display-graphic-fake-advice
