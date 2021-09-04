@@ -319,7 +319,12 @@ NOTE: this function is an around advice wrapper."
 
 
 ;; ***** `company-post-command' idle trigger
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
   (defun __ya/company-post-command ()
+    "Yet another `company-post-command' which run with
+`entropy/emacs-run-at-idle-immediately' so that the sequentially
+fast hints not laggy by `candidates' re-calculation."
     (when (and company-candidates
                (null this-command))
       ;; Happens when the user presses `C-g' while inside
@@ -330,13 +335,41 @@ NOTE: this function is an around advice wrapper."
       (setq this-command 'company-abort))
     (entropy/emacs-run-at-idle-immediately
      __idle/company-post-command
-     :idle-when (not (member this-command
-                             '(company-select-next
-                               company-select-previous
-                               company-select-previous-or-abort
-                               company-select-next-or-abort
-                               company-quickhelp-manual-begin
-                               company-show-doc-buffer)))
+     :idle-when
+     ;; TODO: complete the precise conditions
+     (let ((special_key_p (member this-command
+                                  '(
+                                    ;; `company-active-map' hints
+                                    company-abort
+                                    company-select-next
+                                    company-select-previous
+                                    company-select-previous-or-abort
+                                    company-select-next-or-abort
+                                    company-next-page
+                                    company-previous-page
+                                    company-complete-mouse
+                                    company-select-mouse
+                                    company-complete-selection
+                                    company-quickhelp-manual-begin
+                                    company-show-doc-buffer
+                                    company-show-location
+                                    company-search-candidates
+                                    company-filter-candidates
+                                    company-complete-number
+                                    ;; `company-search-map' hints
+                                    company-search-other-char
+                                    company-search-delete-char
+                                    company-search-abort
+                                    company-search-repeat-forward
+                                    company-search-repeat-backward
+                                    company-search-toggle-filtering
+                                    company-search-printing-char
+                                    )))
+           (candi_exist_p (bound-and-true-p company-candidates)))
+       (cond
+        (special_key_p nil)
+        (candi_exist_p t)
+        (t nil)))
      (let ((this-command (if (bound-and-true-p entropy/emacs-current-session-is-idle)
                              entropy/emacs-current-session-this-command-before-idle
                            this-command))
@@ -344,7 +377,9 @@ NOTE: this function is an around advice wrapper."
                              entropy/emacs-current-session-last-command-before-idle
                            last-command)))
        (unless (company-keep this-command)
-         (condition-case-unless-debug err
+         ;; we just use `condition-case' since run within idle trigger
+         ;; wrapper as it has its own debug facilities.
+         (condition-case err
              (progn
                (unless (equal (point) company-point)
                  (let (company-idle-delay) ; Against misbehavior while debugging.
@@ -360,7 +395,8 @@ NOTE: this function is an around advice wrapper."
                              'company-idle-begin
                              (current-buffer) (selected-window)
                              (buffer-chars-modified-tick) (point))
-                          (cancel-timer company-timer)
+                          (when (timerp company-timer)
+                            (cancel-timer company-timer))
                           (setq company-timer nil)
                           (setq company-timer
                                 (run-with-timer
