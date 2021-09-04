@@ -148,18 +148,26 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
     "Like `eldoc' but do not needed `eldoc-mode' enabled at
 before invocation."
     (interactive '(t))
-    (let ((buff (current-buffer))
-          (eldoc-enable-p (bound-and-true-p eldoc-mode))
-          (entropy/emacs-eldoc-inhibit-in-current-buffer nil))
-      (with-current-buffer buff
-        (unless eldoc-enable-p
-          (eldoc-mode 1)))
-      (funcall-interactively
-       'eldoc-print-current-symbol-info inct)
-      ;; unbind temporally `eldoc-mode' enabled in source buffer
-      (with-current-buffer buff
-        (unless eldoc-enable-p
-          (eldoc-mode 0)))))
+    (condition-case error
+        (unless (or
+                 ;; do not invoking in company refer map
+                 (bound-and-true-p company-candidates)
+                 ;; TODO: more conditions
+                 )
+          (let ((buff (current-buffer))
+                (eldoc-enable-p (bound-and-true-p eldoc-mode))
+                (entropy/emacs-eldoc-inhibit-in-current-buffer nil))
+            (with-current-buffer buff
+              (unless eldoc-enable-p
+                (eldoc-mode 1)))
+            (funcall-interactively
+             'eldoc-print-current-symbol-info inct)
+            ;; unbind temporally `eldoc-mode' enabled in source buffer
+            (with-current-buffer buff
+              (unless eldoc-enable-p
+                (eldoc-mode 0)))))
+      (error
+       (message "%s" error))))
 
   :eemacs-tpha
   (((:enable t))
