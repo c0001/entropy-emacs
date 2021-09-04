@@ -453,6 +453,7 @@ but used for hook  `%s'."
 (cl-defmacro entropy/emacs-run-at-idle-immediately
     (name &rest body
           &key
+          ((:idle-when idle-p) t)
           which-hook
           current-buffer
           &allow-other-keys)
@@ -462,10 +463,21 @@ trigger of this macro is in idle time i.e. the
 `entropy/emacs-current-session-is-idle' is non-nil.
 
 Optional key slot support:
-- which-hook: number of seconds of `__eemacs-session-idle-trigger-secs-class'
 
-- current-buffer: wrap BODY in `current-buffer' as constant
-  without any buffer live checker.
+- idle-when:
+
+  Form for evaluated to non-nil from judging wherther to injection to
+  idle trigger or just directly do BODY like `progn'.
+
+- which-hook:
+
+  Number of seconds of `__eemacs-session-idle-trigger-secs-class' to
+  idicate whcih trigger hook to run.
+
+- current-buffer:
+
+  Wrap BODY in `current-buffer' as constant without any buffer live
+  checker.
 
 When `entropy/emacs-session-idle-trigger-debug' is null, then any
 body is error ignored.
@@ -495,7 +507,8 @@ remove the oldest one and then injecting new one."
                (error
                 (push error ,hook-error-list))))))
     `(let (_)
-       (if (bound-and-true-p entropy/emacs-current-session-is-idle)
+       (if (or (bound-and-true-p entropy/emacs-current-session-is-idle)
+               (ignore-errors (not ,idle-p)))
            (progn
              ,@body)
          (defalias ',name
