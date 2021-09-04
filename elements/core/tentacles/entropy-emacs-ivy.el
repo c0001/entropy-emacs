@@ -757,7 +757,12 @@ Since we chosen the kmacro from ring, we set it as the
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'avy))
       "Avy Pos Jump"
-      :enable t :exit t)))))
+      :enable t :exit t))))
+  :config
+  ;; misty keys touched for `avy-goto-char' which not explicit show to
+  ;; user but useful for preventing unmentionable hints
+  (dolist (misty-key '("C-s-r" "C-s-t" "C-s-e"))
+    (global-set-key (kbd misty-key) #'avy-goto-char)))
 
 ;; ** Ivy UI Enhancement
 ;; *** all the icons ivy
