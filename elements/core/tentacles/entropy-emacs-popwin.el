@@ -110,8 +110,8 @@
         ("*Kill Ring*"                 :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Company mode
-        ("\\*company-documentation"    :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
-        ("\\*company-en-words"         :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("\\*company-documentation"    :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
+        ("\\*company-en-words"         :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
 
         ;; Youdao dict
         ("*Youdao Dictionary*"         :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)

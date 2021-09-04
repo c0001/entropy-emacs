@@ -317,50 +317,67 @@ NOTE: this function is an around advice wrapper."
               :around
               #'entropy/emacs-company--company-candis-length-follow-advice)
 
-;; ***** idle perfom `comany-perfom'
-  (defun __ya/company--perform ()
-    "NOTE: this function has been patched for be suitable for
-eemacs.
 
-Patched for: *use `entropy/emacs-run-at-idle-immediately' delay update command*
+;; ***** `company-post-command' idle trigger
+  (defun __ya/company-post-command ()
+    (when (and company-candidates
+               (null this-command))
+      ;; Happens when the user presses `C-g' while inside
+      ;; `flyspell-post-command-hook', for example.
+      ;; Or any other `post-command-hook' function that can call `sit-for',
+      ;; or any quittable timer function.
+      (company-abort)
+      (setq this-command 'company-abort))
+    (entropy/emacs-run-at-idle-immediately
+     __idle/company-post-command
+     :idle-when (not (member this-command
+                             '(company-select-next
+                               company-select-previous
+                               company-select-previous-or-abort
+                               company-select-next-or-abort
+                               company-quickhelp-manual-begin
+                               company-show-doc-buffer)))
+     (let ((this-command (if (bound-and-true-p entropy/emacs-current-session-is-idle)
+                             entropy/emacs-current-session-this-command-before-idle
+                           this-command))
+           (last-command (if (bound-and-true-p entropy/emacs-current-session-is-idle)
+                             entropy/emacs-current-session-last-command-before-idle
+                           last-command)))
+       (unless (company-keep this-command)
+         (condition-case-unless-debug err
+             (progn
+               (unless (equal (point) company-point)
+                 (let (company-idle-delay) ; Against misbehavior while debugging.
+                   (company--perform)))
+               (if company-candidates
+                   (company-call-frontends 'post-command)
+                 (let ((delay (company--idle-delay)))
+                   (and (numberp delay)
+                        (not defining-kbd-macro)
+                        (company--should-begin)
+                        (if (current-idle-time)
+                            (funcall
+                             'company-idle-begin
+                             (current-buffer) (selected-window)
+                             (buffer-chars-modified-tick) (point))
+                          (cancel-timer company-timer)
+                          (setq company-timer nil)
+                          (setq company-timer
+                                (run-with-timer
+                                 delay nil
+                                 'company-idle-begin
+                                 (current-buffer) (selected-window)
+                                 (buffer-chars-modified-tick) (point))))
+                        ))))
+           (error (message "Company: An error occurred in post-command")
+                  (message "%s" (error-message-string err))
+                  (company-cancel))))
+       (company-install-map))))
 
-Origin of this function will call company-backend while each
-event hints, so that fast continuous will lagging on."
-    (cond
-     (company-candidates
-      (company--continue))
-     ((company--should-complete)
-      (company--begin-new)))
-    (if (not company-candidates)
-        (setq company-backend nil)
-      (setq company-point (point)
-            company--point-max (point-max))
-      (company-ensure-emulation-alist)
-      (company-enable-overriding-keymap company-active-map)
-      (if (bound-and-true-p company-box-mode)
-          ;; Ran update just after idle time immediately for reducing
-          ;; laggging on fast continuous typing
-          ;;
-          ;; EEMACS_MAINTENANCE: turn on
-          ;; `entropy/emacs-session-idle-trigger-debug' to see internal
-          ;; debug informations when needed.
-          (entropy/emacs-run-at-idle-immediately
-           __idle/company-post-frontend-update
-           (when (company-call-backend 'prefix)
-             (company-call-frontends 'update)))
-        ;;EEMACS_BUG: idle trigger not support to
-        ;;`company-pseudo-tooltip-unless-just-one-frontend' so that we
-        ;;leave it as original post. This may be corresponding to the
-        ;;the overlay update mechanism of this frontend's 'UPDTE'
-        ;;command, TODO for while we should create our own new pseudo
-        ;;tooltip frontend with delay trigger support replace it.
-        (company-call-frontends 'update))))
-
-  (advice-add 'company--perform
+  (advice-add 'company-post-command
               :override
-              #'__ya/company--perform)
+              #'__ya/company-post-command)
 
-;; ***** TODO strip `company--continue' trigger frequency
 
 
 ;; ***** fly on type for `delete-char'
@@ -403,34 +420,6 @@ activated status. Default time during set is less than 70ms."
   (advice-add 'delete-char :around #'__company-delete-char)
 
 ;; ***** pseudo tooltip optimization
-;; ****** idle dislay pseudo tooltip overlay
-  (defun entropy/emacs-company-pseudo-tooltip-unhide-delay
-      (orig-func &rest orig-args)
-    "Delay show the pseudo tooltip for reducing fast hints laggy."
-    (let (_)
-      (if (or (eq this-command 'company-idle-begin)
-              (member this-command
-                      '(company-select-next
-                        company-select-previous
-                        company-select-previous-or-abort
-                        company-select-next-or-abort
-                        company-quickhelp-manual-begin))
-              ;; EEMACS_MAINTENANCE: may have goodies replaces this
-              ;; thoughtlessness condition to recognize the
-              ;; self-insert commands.
-              (not (string-match-p "self-insert-command"
-                                   (symbol-name this-command))))
-          (apply orig-func orig-args)
-        (eval
-         `(entropy/emacs-run-at-idle-immediately
-           company-pseudo-unhide-delay
-           :current-buffer t
-           (let (_)
-             (apply ',orig-func ',orig-args)))))))
-  (advice-add 'company-pseudo-tooltip-unhide
-              :around
-              #'entropy/emacs-company-pseudo-tooltip-unhide-delay)
-
 ;; ****** remove annotation perform on pseudo frontend
   (defun entropy/emacs-company--pseudo-no-annotation
       (orig-func &rest orig-args)
@@ -455,7 +444,6 @@ canididates which makes emacs laggy for each post-command while
               #'entropy/emacs-company--pseudo-no-annotation)
 
 ;; ****** pseudo frontend subroutine performance optimization
-
 ;; ******* simplify the pseudo candi line overlay generator
   (defun __ya/company-fill-propertize (value annotation width selected left right)
     "The simplify `company-fill-propertize'.
@@ -485,24 +473,30 @@ EEMACS_MAINTENANCE: stick to upstream udpate"
    #'__ya/company-fill-propertize)
 
 ;; ******* optimization the interna substring routine
-  (defun __ya/company-safe-substring (str from &optional to)
-    "High performance versio of `company-safe-substring'.
+  (defun __ya/company-safe-substring (orig-func &rest orig-args)
+    "High performance version of `company-safe-substring'.
 EEMACS_MAINTENANCE: stick to upstream udpate"
-    (let* ((str (substring-no-properties str))
-           (str-width (string-width str)))
-      (if (> from str-width)
-          ""
-        (if to
-            (concat
-             (if (<= str-width to)
-                 str
-               (substring str from to))
-             (let ((padding (- to (string-width str))))
-               (when (> padding 0)
-                 (company-space-string padding))))
-          str))))
+    (let ((str (car orig-args))
+          (from (cadr orig-args))
+          (to (caddr orig-args)))
+      (if (string-match-p "\n" str)
+          (apply orig-func orig-args)
+        ;; the single line string can be hacked as manupulation with
+        ;; below high-performance replacements.
+        (let* ((str-width (string-width str)))
+          (if (> from str-width)
+              ""
+            (if to
+                (concat
+                 (if (<= str-width to)
+                     str
+                   (substring str from to))
+                 (let ((padding (- to (string-width str))))
+                   (when (> padding 0)
+                     (company-space-string padding))))
+              (substring str from)))))))
   (advice-add 'company-safe-substring
-              :override
+              :around
               #'__ya/company-safe-substring)
 
 ;; ******* `company--posn-col-row' optimization
@@ -529,6 +523,29 @@ efficiently way."
    'company--posn-col-row
    :override
    #'__ya/company--posn-col-row)
+
+;; ******* `company-show-doc-buffer' conflicts hack
+
+  (defun __ya/company-show-doc-buffer ()
+    "Redefine of `company-show-doc-buffer' since its conflicted
+with `shackle'."
+    (interactive)
+    (let ((other-window-scroll-buffer)
+          (selection (or company-selection 0)))
+      (let* ((selected (nth selection company-candidates))
+             (doc-buffer (company-call-backend 'doc-buffer selected))
+             start)
+        (when (consp doc-buffer)
+          (setq start (cdr doc-buffer)
+                doc-buffer (car doc-buffer)))
+        (company-abort)
+        (let ((win (display-buffer doc-buffer)))
+          (set-window-start
+           win
+           (if start start (point-min)))))))
+  (advice-add 'company-show-doc-buffer
+              :override
+              #'__ya/company-show-doc-buffer)
 
   )
 
