@@ -745,7 +745,15 @@ which determined by the scale count 0.3 "
       '(setq google-translate-base-url "http://translate.google.cn/translate_a/single"
              google-translate-listen-url "http://translate.google.cn/translate_tts"))
     (eval-after-load 'google-translate-tk
-      '(setq google-translate--tkk-url "http://translate.google.cn/")))
+      '(setq google-translate--tkk-url "http://translate.google.cn/"))
+
+    ;; Since we use google china ip, we can directly use curl to
+    ;; retrieve the result to speedup qury search which do not need to
+    ;; use interal proxy any way.
+    (when (executable-find "curl")
+      (setq google-translate-backend-method
+            'curl)))
+
   :config
 
   ;; HACK
