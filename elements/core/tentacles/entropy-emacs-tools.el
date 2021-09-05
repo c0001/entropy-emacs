@@ -748,6 +748,8 @@ which determined by the scale count 0.3 "
       '(setq google-translate--tkk-url "http://translate.google.cn/")))
   :config
 
+  ;; HACK
+  ;; EEMACS_MAINTENANCE: follow upstream updates
   (defun google-translate-json-suggestion (json)
     "Retrieve from JSON (which returns by the
 `google-translate-request' function) suggestion. This function
@@ -764,6 +766,13 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
       (if (and info (> (length info) 0))
           (aref info 1)
         nil)))
+
+  ;; HACK
+  ;; EEMACS_BUG: https://github.com/atykhonov/google-translate/issues/137
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun google-translate--search-tkk ()
+    "Search TKK."
+    (list 430675 2721866130))
 
   (defun entropy/emacs-tools-google-translate-at-point-direct-en-CN ()
     (interactive)
