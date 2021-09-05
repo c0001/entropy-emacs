@@ -38,7 +38,7 @@
 ;; those case, entropy-emacs using the above two variable to cover
 ;; the extension hosted meta types.
 
-;; - `entropy/emacs-ext-eemacs-elpkg-archive-project-dir' inidicates the local location
+;; - `entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path' inidicates the local location
 ;;   of project [[https://github.com/c0001/entropy-emacs-extensions][entropy-emacs-extensions]] which was the git repo of
 ;;   each elpa or melpa packages archved for the sake of tracking
 ;;   version peer point to each extension relied by
@@ -84,16 +84,16 @@ loading.")
 (defvar entropy/emacs-ext--extras
   (let ((eemacs-ext
          (list :item "entropy-emacs-extensions"
-               :repo-lc entropy/emacs-ext-eemacs-elpkg-archive-project-dir
+               :repo-lc entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path
                :version-lc (expand-file-name "version"
-                                             entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
+                                             entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path)
                :version "1.0.0"
                :indicator-lc (expand-file-name "entropy-emacs-extensions"
-                                               entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
+                                               entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path)
                :inited-indicator-lc (expand-file-name "init"
-                                                      entropy/emacs-ext-eemacs-elpkg-archive-project-dir)
+                                                      entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path)
                :load-predicate (expand-file-name "eemacs-ext-load.el"
-                                                 entropy/emacs-ext-eemacs-elpkg-archive-project-dir)))
+                                                 entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path)))
         (eemacs-lsparc
          (list :item "entropy-emacs-lsp-archive"
                :repo-lc entropy/emacs-ext-lsp-archive-dir
@@ -144,12 +144,12 @@ There's some entropy-emacs extras may need to download by your self:
 - entropy-emacs-extensions (https://github.com/c0001/entropy-emacs-extensions.git)
 
   (Notices: only when `entropy/emacs-ext-elpkg-get-type' eq
-   'submodules-melpa-local)
+   'entropy-emacs-extenisons-project)
 
   Clone it into your home entropy-emacs config dir
   =~/.config/entropy-config/entropy-emacs/= and rename as
   'entropy-emacs-extension' or adjusting customized variable
-  `entropy/emacs-ext-eemacs-elpkg-archive-project-dir'.
+  `entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path'.
 
   If the first time cloning it, please see its README and make it
   initialized.
@@ -183,9 +183,11 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
   (let ((full-extras entropy/emacs-ext--extras)
         rtn)
     (setq rtn
-          (cond ((eq entropy/emacs-ext-elpkg-get-type 'origin)
+          (cond ((memq entropy/emacs-ext-elpkg-get-type
+                       '(origin
+                         entropy-emacs-extensions-project-build))
                  nil)
-                ((eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
+                ((eq entropy/emacs-ext-elpkg-get-type 'entropy-emacs-extenisons-project)
                  (list (plist-get full-extras :eemacs-ext)))))
     (when entropy/emacs-ext-use-eemacs-lsparc
       (add-to-list 'rtn (plist-get full-extras :eemacs-lsparc)))

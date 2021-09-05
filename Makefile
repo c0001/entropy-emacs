@@ -57,6 +57,11 @@ install-coworkers:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
+install-eemacs-ext-build: export EEMACS_MAKE = Install-Eemacs-Ext-Build
+install-eemacs-ext-build:
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
+
 update: export EEMACS_MAKE = Update
 update:
 	@$(EchoEmpty)

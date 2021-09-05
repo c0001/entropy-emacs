@@ -14,6 +14,7 @@ Example:
        make all
        make install
        make install-coworkers
+       make install-eemacs-ext-build
        make update
        make dump
        make native-comp
@@ -27,6 +28,12 @@ Example:
   you're missing any of libraries prompt internally of entropy-emacs
   using.
 
+- 'install-eemacs-ext-build' option download specified
+  =entropy-emacs-extensions-project-build= to use as local melpa
+  mirror according current entropy-emacs version in which case after
+  successfully installed thus, entropy-emacs will use internal
+  specified packages version to get best experience for entropy-emacs.
+
 The dumped emacs binary file is stored in
 'entropy/emacs-user-emacs-directory' (i.e. the entropy-emacs specified
 `user-emacs-directory' and be equivalent to it in most of cases) with
@@ -35,4 +42,3 @@ name-space as 'eemacs_YearDateTime.pdmp', start it with:
 -------
        emacs --dump-file=eemacs_YearDateTime.pdmp
 -------
-

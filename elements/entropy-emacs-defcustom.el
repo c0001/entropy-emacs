@@ -46,6 +46,12 @@
     (require 'cl)
   (require 'cl-macs))
 
+(defconst entropy/emacs-custom-common-file-template
+  (expand-file-name
+   "custom-example.el"
+   entropy/emacs-user-emacs-directory)
+  "The `custom-file' template specified for =entropy-emacs=.")
+
 (defconst entropy/emacs-custom-common-file
   (expand-file-name
    "custom.el"
@@ -54,12 +60,15 @@
 
 (let ((cus entropy/emacs-custom-common-file))
   (setq-default custom-file entropy/emacs-custom-common-file)
-  (when (file-exists-p cus)
-    (message "")
-    (message "====================================")
-    (message "[Loading] custom specifications ...")
-    (message "====================================\n")
-    (load cus)))
+  (if (not (file-exists-p cus))
+      (copy-file entropy/emacs-custom-common-file-template
+                 entropy/emacs-custom-common-file
+                 nil t))
+  (message "")
+  (message "====================================")
+  (message "[Loading] custom specifications ...")
+  (message "====================================\n")
+  (load cus))
 
 ;; ** Internal init
 (defvar __eemacs-ext-union-host "~/.config/entropy-config/entropy-emacs")
@@ -241,15 +250,16 @@ NOTE: poporg is obsolete as an legacy option."
   "Eemacs emacs extensions management configuration customizable group."
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-ext-elpkg-get-type 'origin
+;; ****** elpkg get type
+(defcustom entropy/emacs-ext-elpkg-customized-get-type 'origin
   "Init emacs with elisp extensions from entropy-emacs-extensions or
 elpa and melpa.
 
-Available value are 'submodules-melpa-local' and 'origin'.
+Available value are 'entropy-emacs-extenisons-project' and 'origin'.
 
-Type of 'submodules-melpa-local' indicates to use
+Type of 'entropy-emacs-extenisons-project' indicates to use
 =entropy-emacs-extensions= (see
-`entropy/emacs-ext-eemacs-elpkg-archive-project-dir' for its brief
+`entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path' for its brief
 introduction) to initialize the elisp extensions, which explicitly
 means to use that as a local elisp packges archive host like what
 'elpa' and 'melpa' did as an extenison ecosystem. This is the most
@@ -267,7 +277,7 @@ retriever will obtained the url abided by
   :type '(choice
           (const :tag "Use melpa and elpa" origin)
           (const :tag "Use eemacs-ext local package system"
-                 submodules-melpa-local))
+                 entropy-emacs-extenisons-project))
   :group 'entropy/emacs-customize-group-for-emacs-extensions)
 
 ;; NOTE:
@@ -275,10 +285,10 @@ retriever will obtained the url abided by
 ;; guarantee the package initialization procedure did correctly before
 ;; any eemacs specification loading.
 (unless (member entropy/emacs-ext-elpkg-get-type
-                '(origin submodules-melpa-local))
+                '(origin entropy-emacs-extenisons-project))
   (error "Invalid value for `entropy/emacs-ext-elpkg-get-type'"))
 
-(defcustom entropy/emacs-ext-eemacs-elpkg-archive-project-dir
+(defcustom entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path
   (expand-file-name
    "entropy-emacs-extensions"
    __eemacs-ext-union-host)
@@ -288,11 +298,63 @@ extensions' repos as submodules archived as one single project
 used for version controlling. You can get it from
 'https://github.com/c0001/entropy-emacs-extensions'.
 
-This archive used when type of 'submodules-melpa-local' is set to
+This archive used when type of 'entropy-emacs-extenisons-project' is set to
 customized variable `entropy/emacs-ext-elpkg-get-type'."
 
   :type 'directory
   :group 'entropy/emacs-customize-group-for-emacs-extensions)
+
+(defvar entropy/emacs-ext-elpkg-get-type
+  entropy/emacs-ext-elpkg-customized-get-type
+  "The internal variant of variable
+`entropy/emacs-ext-elpkg-customized-get-type' which extended its
+value type according to non-defined internal definition")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path
+  (expand-file-name
+   ".eemacs-ext-build"
+   entropy/emacs-user-emacs-directory)
+  "")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator
+  (expand-file-name
+   "init"
+   entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
+  "")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url
+  "https://github.com/c0001/entropy-emacs-extensions/releases/download/v1.0.0/entropy-emacs-extensions_build_v1.0.0.tar.xz"
+  "")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum
+  "90a8b51ff7039c1686a3db70bc9c005d1d01ae2d19a090f49c1da7219ecd7934"
+  "")
+
+(when (file-exists-p
+       entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator)
+  (setq entropy/emacs-ext-elpkg-get-type
+        'entropy-emacs-extensions-project-build)
+  (let ((archive-fmt `(lambda (name)
+                        (expand-file-name
+                         name
+                         ,entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)))
+        )
+    (setq package-archives
+          `(("entropy-melpa"      . ,(funcall archive-fmt "melpa"))
+            ("entropy-elpa"       . ,(funcall archive-fmt "elpa"))
+            ("entropy-elpa-devel" . ,(funcall archive-fmt "elpa-devel"))))))
+
+;; ****** elpkg install location
+(defcustom entropy/emacs-ext-emacs-pkgel-get-pkgs-root
+  (expand-file-name
+   "entropy-emacs-extensions-elpa"
+   __eemacs-ext-union-host)
+  "entropy-emacs elpa extensions directory for hosting the
+upstream installed packages of `package.el'."
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-emacs-extensions)
+
+;; ****** eemacs-lsp-archive project archive location
 
 (defcustom entropy/emacs-ext-use-eemacs-lsparc nil
   "Whether to use archived lanuguage servers."
@@ -309,14 +371,8 @@ may download from
   :type 'directory
   :group 'entropy/emacs-customize-group-for-emacs-extensions)
 
-(defcustom entropy/emacs-ext-emacs-pkgel-get-pkgs-root
-  (expand-file-name
-   "entropy-emacs-extensions-elpa"
-   __eemacs-ext-union-host)
-  "entropy-emacs elpa extensions directory for hosting the
-upstream installed packages of `package.el'."
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-emacs-extensions)
+
+;; ****** extra customized load path
 
 (defcustom entropy/emacs-ext-user-specific-load-paths nil
   "Extra load path list for user specification.

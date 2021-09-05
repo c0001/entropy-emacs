@@ -2000,7 +2000,9 @@ eemacs context."
         (entropy/emacs--set-user-package-dir-common "28.0.50"))
        (t
         (error "Unsupport emacs version '%s'" emacs-version))))
-    (when (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
+    (when (memq entropy/emacs-ext-elpkg-get-type
+                '(entropy-emacs-extenisons-project
+                  entropy-emacs-extensions-project-build))
       (setq package-user-dir
             (expand-file-name
              (concat (entropy/emacs-file-path-parser package-user-dir 'file-name)

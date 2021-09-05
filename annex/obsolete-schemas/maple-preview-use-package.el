@@ -3,7 +3,7 @@
        ;; disable defaulty since its obsolete almostly about 3 years
        ;; since 2018, but still can be used to scratch studying.
        nil
-       (equal entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local))
+       (equal entropy/emacs-ext-elpkg-get-type 'entropy-emacs-extenisons-project))
   :ensure nil
   :commands (maple-preview-mode)
   :init

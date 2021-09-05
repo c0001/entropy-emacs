@@ -76,7 +76,10 @@
   (entropy/emacs-message-do-message "Set package archives to '%s'." archives))
 
 (defun entropy/emacs-package--initial-package-archive ()
-  (unless (eq entropy/emacs-ext-elpkg-get-type 'submodules-melpa-local)
+  (unless (or (eq entropy/emacs-ext-elpkg-get-type
+                  'entropy-emacs-extenisons-project)
+              (eq entropy/emacs-ext-elpkg-get-type
+                  'entropy-emacs-extensions-project-build))
     (entropy/emacs-package-set-package-archive-repo
      entropy/emacs-package-archive-repo)))
 

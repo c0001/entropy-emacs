@@ -99,6 +99,17 @@
      (when (yes-or-no-p "Native compile `package-user-dir'? ")
        ,@body)))
 
+(defmacro entropy/emacs-batch--prompts-for-eemacs-ext-build-repo-install
+    (&rest body)
+  `(let ()
+     (entropy/emacs-message-do-message
+      "\n%s\n%s\n%s\n"
+      (blue    "==================================================")
+      (yellow "       Section for install entropy-emacs-extensions stable build ...")
+      (blue    "=================================================="))
+     (when (yes-or-no-p "install eemacs-ext stable build? ")
+       ,@body)))
+
 ;; *** dump emacs
 (defun entropy/emacs-batch--dump-emacs-core ()
   (let ((dump-file (expand-file-name
@@ -198,6 +209,95 @@
          'comp-run-async-workers
          #'entropy/emacs-batch--around-advice-for-native-compile)))))
 
+;; *** get entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo
+
+(defun entrop/emacs-batch--install-eemacs-ext-stable-build-repo-core ()
+  (let* ((url entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url)
+         (host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
+         (dec-host
+          (make-temp-name (expand-file-name
+                           "eemacs-ext-stable-repo-ext_"
+                           entropy/emacs-stuffs-topdir)))
+         (tmp-name (make-temp-name (expand-file-name
+                                    "eemacs-ext-stable-repo-archive_"
+                                    entropy/emacs-stuffs-topdir)))
+         download-cbk)
+    ;; download archive
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Downloading eemacs-ext-stable repo ... "))
+    (setq download-cbk
+          (entropy/emacs-network-download-file
+           url tmp-name
+           nil nil
+           (lambda (file)
+             (let* ((inhibit-read-only t)
+                    (stick-hash
+                     entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum)
+                    (buff (create-file-buffer file))
+                    (cur-hash nil))
+               (with-current-buffer buff
+                 (erase-buffer)
+                 (insert-file-contents-literally file))
+               (setq cur-hash
+                     (secure-hash 'sha256 buff))
+               (unless (string= cur-hash stick-hash)
+                 (error "Sha256 hash verify for file <%s> \
+faild with hash '%s' which must match '%s'"
+                        file cur-hash stick-hash))
+               t))))
+    (unless (eq (symbol-value download-cbk) 'success)
+      (entropy/emacs-message-do-error
+       "%s: %s"
+       (red "Download fatal with")
+       (format "%s" (get download-cbk 'error-type))))
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Download eemacs-ext-stable repo done!"))
+    ;; extract archive
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Extract eemacs-ext-stable repo ..."))
+    (make-directory dec-host t)
+    (entropy/emacs-archive-dowith
+     'txz tmp-name dec-host :extract)
+    (let ((dirname
+           (entropy/emacs-file-path-parser
+            (car
+             (entropy/emacs-list-subdir
+              dec-host))
+            'non-trail-slash)))
+      (rename-file dirname host)
+      ;; generate inited indicator
+      (with-temp-buffer
+        (write-file
+         entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator
+         )))
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Get eemacs-ext-stable repo done!"))))
+
+
+(defun entrop/emacs-batch--install-eemacs-ext-stable-build-repo ()
+  (let ((host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
+        (did-p t))
+    (when (file-exists-p host)
+      (setq did-p
+            (yes-or-no-p
+             (format "Remove old install (%s)? "
+                     host)))
+      (and did-p
+           (rename-file
+            host
+            (concat host
+                    (format ".bak_%s"
+                            (format-time-string "%Y%m%d%H%M%S"))))))
+    (if did-p
+        (entrop/emacs-batch--install-eemacs-ext-stable-build-repo-core)
+      (entropy/emacs-message-do-message
+       "%s"
+       (yellow "Abort!")))))
+
 
 ;; ** interactive
 (when (entropy/emacs-ext-main)
@@ -209,6 +309,9 @@
      ((equal type "Install-Coworkers")
       (entropy/emacs-batch--prompts-for-coworkers-installing-section
        (entropy/emacs-batch--install-coworkers)))
+     ((equal type "Install-Eemacs-Ext-Build")
+      (entropy/emacs-batch--prompts-for-eemacs-ext-build-repo-install
+       (entrop/emacs-batch--install-eemacs-ext-stable-build-repo)))
      ((equal type "Update")
       (if (entropy/emacs-package-package-archive-empty-p)
           (entropy/emacs-message-do-error

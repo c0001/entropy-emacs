@@ -36,7 +36,7 @@
 
 (setq entropy/emacs-do-pdumper-in-X t)
 
-(setq entropy/emacs-ext-elpkg-get-type 'origin)
+(setq entropy/emacs-ext-elpkg-customized-get-type 'origin)
 
 (setq entropy/emacs-package-archive-repo 'melpa)
 
@@ -47,6 +47,3 @@
 ;; but `doom-modeline' has more rich feature but without performance
 ;; guarantee, so stick on your choice.
 (setq entropy/emacs-modeline-style "origin")
-
-(setq entropy/emacs-dired-visual-type
-      (if (display-graphic-p) "all-the-icons" "simple-rainbow"))
