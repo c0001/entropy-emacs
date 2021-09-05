@@ -1316,7 +1316,13 @@ non-nil for thus, or nil otherwise."
 synchronous or async method using emacs native `url-retrieve' or
 curl subprocess when USE-CURL non-nil, then verify the donwload
 file via the VERIFY function with a single argument the
-DESTINATION file-name.
+DESTINATION file-name whic return t or nil for valid or invalid
+verification status.
+
+NOTE:
+   The verification process will be pressed under `conditio-case'
+   since we do not allow any error corrupts whole download
+   procedure.
 
 This function return a callback status of a random symbol whose
 valid value are 'success' and 'failed' or nil while download
@@ -1368,7 +1374,19 @@ so that following keys are supported:
                      (delete-file ,tmp-file)
                      (message "Deleted temp download file!"))
                    (if (functionp ,verify)
-                       (if (funcall ,verify destination)
+                       (if (eq t
+                               ;; we must ignore errors for the
+                               ;; verifiction function run since it
+                               ;; will corrupt whole internal download
+                               ;; procedure then destroys the API
+                               ;; restriction.
+                               (condition-case error
+                                   (funcall ,verify destination)
+                                 (error
+                                  (entropy/emacs-message-do-message
+                                   "%s%s"
+                                   (red "archive verify function error: ")
+                                   (format "%s" error)))))
                            (setq ,cbk-symbol 'success)
                          (setq ,cbk-symbol 'failed)
                          (put ',cbk-symbol 'error-type 'verify))
