@@ -238,20 +238,31 @@ you must set it smaller than 15 for adapting to other entropy-emacs settings."))
 (defun entropy/emacs-font-set--prog-font-set ()
   "Remap `prog-mode' face font using mordern programming fonts
 when available."
-  (let ((font-familys '("Fira Code" "Source Code Pro" "JetBrains Mono")))
-    (catch :exit
-      (dolist (font-family font-familys)
-        (when (find-font (font-spec :family font-family))
-          (face-remap-add-relative
-           (or
-            ;; remap for solaire if found
-            (and (facep 'solaire-default-face)
-                 (or (bound-and-true-p solaire-mode)
-                     (bound-and-true-p entropy/emacs-solaire-mode))
-                 'solaire-default-face)
-            'default)
-           :family font-family)
-          (throw :exit nil))))))
-(add-hook 'prog-mode-hook #'entropy/emacs-font-set--prog-font-set)
+  (when (and (display-graphic-p)
+             (derived-mode-p 'prog-mode))
+    (let ((font-familys '("Fira Code" "Source Code Pro" "JetBrains Mono")))
+      (catch :exit
+        (dolist (font-family font-familys)
+          (when (find-font (font-spec :family font-family))
+            (face-remap-add-relative
+             (or
+              ;; remap for solaire if found
+              (and (facep 'solaire-default-face)
+                   (or (bound-and-true-p solaire-mode)
+                       (bound-and-true-p entropy/emacs-solaire-mode))
+                   'solaire-default-face)
+              'default)
+             :family font-family)
+            (throw :exit nil)))))))
+
+(entropy/emacs-lazy-with-load-trail
+ __set-prog-mode-font-set__
+ (add-hook 'prog-mode-hook
+           #'entropy/emacs-font-set--prog-font-set)
+ ;; enable font set to opened buffers
+ (dolist (buff (buffer-list))
+   (with-current-buffer buff
+     (when (derived-mode-p 'prog-mode)
+       (entropy/emacs-font-set--prog-font-set)))))
 
 (provide 'entropy-emacs-font-set)
