@@ -1783,6 +1783,18 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
 
 ;; *** Auto-sudoedit
 
+(use-package auto-sudoedit
+  :commands (entropy/emacs-sudoedit-current-path-maybe)
+  :config
+  (defun entropy/emacs-sudoedit-current-path-maybe (curr-path)
+    "Get su privileges for CURR-PATH if need to so."
+    (interactive (list (auto-sudoedit-current-path)))
+    (let ((path (auto-sudoedit-path curr-path)))
+      (if path
+          (find-file path)
+        (entropy/emacs-message-do-message
+         "no need to get sudo permission to edit path %s"
+         (green (format "%s" curr-path)))))))
 
 ;; *** Kill ring config
 
@@ -2698,28 +2710,35 @@ otherwise returns nil."
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'eemacs-basic-config-core nil
  '("Eemacs Basic Core"
-   (("C-x 1" delete-other-windows
-     "delete-other-window"
-     :enable t :exit t :global-bind t)
-    ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("<f6>" entropy/emacs-basic-loop-alpha
-     "Frame Alpha"
-     :enable t
-     :toggle entropy/emacs-basic-loop-alpha-did
-     :global-bind t)
-    ("<f7>" entropy/emacs-basic-major-mode-reload
-     "Reload Major"
-     :enable t :exit t :global-bind t)
-    ("C-<f9>" toggle-truncate-lines "toggle truncate"
-     :enable t :toggle truncate-lines :global-bind t)
-    ("SPC" entropy/emacs-basic-mark-set
-     "Mark Set"
-     :enable t :eemacs-top-bind t :exit t)
-    ("C-c s s" list-processes "List Process"
-     :enable t :exit t :global-bind t))))
+   (("f f"
+     (:pretty-hydra-cabinet
+      (:data
+       "Frequently used commands"
+       (("C-x 1" delete-other-windows
+         "delete-other-window"
+         :enable t :exit t :global-bind t)
+        ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
+         :enable t
+         :exit t
+         :global-bind t)
+        ("<f6>" entropy/emacs-basic-loop-alpha
+         "Frame Alpha"
+         :enable t
+         :toggle entropy/emacs-basic-loop-alpha-did
+         :global-bind t)
+        ("<f7>" entropy/emacs-basic-major-mode-reload
+         "Reload Major"
+         :enable t :exit t :global-bind t)
+        ("C-<f9>" toggle-truncate-lines "toggle truncate"
+         :enable t :toggle truncate-lines :global-bind t)
+        ("SPC" entropy/emacs-basic-mark-set
+         "Mark Set"
+         :enable t :eemacs-top-bind t :exit t)
+        ("C-c s s" list-processes "List Process"
+         :enable t :exit t :global-bind t))))
+     "Frequently used commands"
+     :enable t :exit t)))
+ nil '(2 2 2))
 
 (entropy/emacs-hydra-hollow-add-for-top-dispatch
  '("Basic"

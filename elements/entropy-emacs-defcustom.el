@@ -2209,14 +2209,16 @@ only one for thus."
 (defun entropy/emacs--dwim-abs-find-file (orig-func &rest orig-args)
   "Find file with enabled `find-file-visit-truename' when file
 under the symbolink root dir."
-  (let* ((filename (entropy/emacs--unslash-path (car orig-args)))
-         (rest (cdr orig-args))
-         (ftruename (entropy/emacs--unslash-path (file-truename filename))))
-    (let ((find-file-visit-truename
-           (and
-            (not (equal filename ftruename))
-            (not (file-directory-p filename)))))
-      (apply orig-func orig-args))))
+  (if (tramp-tramp-file-p (car orig-args))
+      (apply orig-func orig-args)
+    (let* ((filename (entropy/emacs--unslash-path (car orig-args)))
+           (rest (cdr orig-args))
+           (ftruename (entropy/emacs--unslash-path (file-truename filename))))
+      (let ((find-file-visit-truename
+             (and
+              (not (equal filename ftruename))
+              (not (file-directory-p filename)))))
+        (apply orig-func orig-args)))))
 (advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
 
 ;; ***** unreadable file detection
@@ -2250,14 +2252,17 @@ under the symbolink root dir."
                (so-long-detected-long-line-p)))))))
 
 (defun entropy/emacs-unreadable-file-judge (filename)
-  (let ((filesize (file-attribute-size
-                   (file-attributes
-                    filename))))
-    (if (and __unreadable-file-judge-prepares
-             (ignore-errors
-               (<= filesize large-file-warning-threshold)))
-        (funcall __unreadable-file-judge-prepares filename)
-      nil)))
+  (unless (tramp-tramp-file-p filename)
+    (let ((filesize (file-attribute-size
+                     (file-attributes
+                      filename)))
+          judge)
+      (setq judge (> filesize large-file-warning-threshold))
+      (unless judge
+        (when __unreadable-file-judge-prepares
+          (setq judge (funcall __unreadable-file-judge-prepares
+                               filename))))
+      judge)))
 
 (defun entropy/emacs-ureadable-file-prompt (format &rest args)
   (if (yes-or-no-p (format format args))
