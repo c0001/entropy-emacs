@@ -323,11 +323,11 @@ value type according to non-defined internal definition")
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url
-  "https://github.com/c0001/entropy-emacs-extensions/releases/download/v1.0.0/entropy-emacs-extensions_build_v1.0.0.tar.xz"
+  "https://github.com/c0001/entropy-emacs-extensions/releases/download/v1.0.1/entropy-emacs-extensions_build_v1.0.1.tar.xz"
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum
-  "90a8b51ff7039c1686a3db70bc9c005d1d01ae2d19a090f49c1da7219ecd7934"
+  "371fb80fca3e4a6b9efe936df9938fb5790a39ff3214a65d43875e86c4457d80"
   "")
 
 (when (file-exists-p
