@@ -1401,11 +1401,18 @@ as thus."
  (when (bound-and-true-p electric-indent-mode)
    (electric-indent-mode 0))
  ;; add it locally to prog referred mode hook
- (dolist (mode (append entropy/emacs-ide-for-them
-                       (list 'emacs-lisp-mode
-                             'lisp-interaction-mode)))
-   (add-hook (intern (format "%s-hook" mode))
-             'electric-indent-local-mode)))
+ (let ((spec-modes (append entropy/emacs-ide-for-them
+                           (list 'emacs-lisp-mode
+                                 'lisp-interaction-mode))))
+   ;; use `electric-indent-local-mode' for spec modes
+   (dolist (mode spec-modes)
+     (add-hook (intern (format "%s-hook" mode))
+               'electric-indent-local-mode))
+   ;; make exist opened buffer enable `electric-indent-local-mode'
+   (dolist (buff (buffer-list))
+     (with-current-buffer buff
+       (when (memq major-mode spec-modes)
+         (electric-indent-local-mode 1))))))
 
 ;; *** Setting language encoding environment
 (setq system-time-locale "C") ;Use english format time string
