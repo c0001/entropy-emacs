@@ -414,9 +414,14 @@ shellpop type")
       (apply 'delete-window `(,window))
       (throw :exit nil))
     (progn
-      (set-window-configuration
-       entropy/shellpop--top-wcfg-register)
-      (apply 'delete-window `(,window)))))
+      (cond ((window-configuration-p entropy/shellpop--top-wcfg-register)
+             (set-window-configuration
+              entropy/shellpop--top-wcfg-register)
+             (apply 'delete-window `(,window)))
+            (t
+             (message
+              "can not restore window-configuration \
+for current maximized pop-shell."))))))
 
 ;;;;; specific confirm function
 
