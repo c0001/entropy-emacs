@@ -387,7 +387,7 @@ it still lag on, which I'd thought its an emacs bug.
 
 Run the =run.sh= in =looking-back-bug_20210816=
 
-* TODO bug of ~ivy-reverse-i-search~ 'ivy-call: Wrong type argument: listp, "..."'
+** TODO bug of ~ivy-reverse-i-search~ 'ivy-call: Wrong type argument: listp, "..."'
 :PROPERTIES:
 :CUSTOM_ID: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4
 :END:
