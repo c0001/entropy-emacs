@@ -2257,12 +2257,13 @@ under the symbolink root dir."
                      (file-attributes
                       filename)))
           judge)
-      (setq judge (> filesize large-file-warning-threshold))
-      (unless judge
-        (when __unreadable-file-judge-prepares
-          (setq judge (funcall __unreadable-file-judge-prepares
-                               filename))))
-      judge)))
+      (when (numberp filesize)
+        (setq judge (> filesize large-file-warning-threshold))
+        (unless judge
+          (when __unreadable-file-judge-prepares
+            (setq judge (funcall __unreadable-file-judge-prepares
+                                 filename))))
+        judge))))
 
 (defun entropy/emacs-ureadable-file-prompt (format &rest args)
   (if (yes-or-no-p (format format args))
