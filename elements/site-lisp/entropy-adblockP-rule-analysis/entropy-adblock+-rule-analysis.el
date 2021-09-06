@@ -252,10 +252,11 @@ attack or gnutls error in emacs batch mode)."
 
 ;;;###autoload
 
-(defun entropy/adbp-rule-update ()
+(defun entropy/adbp-rule-update (&optional arg)
   "Update rulesets prompted with whether follow upstream or with
 local cache only. "
-  (interactive)
+  (interactive
+   (list t))
   (let ((match-core-memoized-p
          (get 'entropy/adbp-rule-blacklist-match-url-p
               :memoize-original-function)))
@@ -263,7 +264,7 @@ local cache only. "
       (memoize-restore 'entropy/adbp-rule-blacklist-match-url-p))
     (let ((entropy/adbp-rule-use-upstream-rule-list
            (yes-or-no-p "Use upstream rule list? ")))
-      (entropy/adbp-rule-get-regexp-matchs-list)
+      (entropy/adbp-rule-get-regexp-matchs-list (when arg t))
       (memoize #'entropy/adbp-rule-blacklist-match-url-p))))
 
 ;;; provide
