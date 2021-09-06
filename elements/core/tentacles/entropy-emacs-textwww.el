@@ -552,7 +552,7 @@ effective then adding option of personal browse url function that be in ordered 
    (("C-c M-w" entropy/emacs-textwww-toggle-default-browser
      "Toggle default browser."
      :enable t
-     :global-bind t
+     :eemacs-top-bind t
      :exit t))))
 
 ;; advantage of using w3m as default browser
