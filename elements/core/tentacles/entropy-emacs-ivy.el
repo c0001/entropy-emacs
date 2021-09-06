@@ -405,9 +405,7 @@ unwind occasion.")
 
     ;; Misc.Emacs group -- prefix 'e'
     "Counsel Emacs Manipulation"
-    (("C-c c e /" counsel-el "Elisp completion at point"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c c e c" counsel-faces "Complete faces with preview"
+    (("C-c c e c" counsel-faces "Complete faces with preview"
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c e f" counsel-fonts "Show a list of all supported font families"
       :enable t :exit t :eemacs-top-bind t)
