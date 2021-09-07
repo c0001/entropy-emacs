@@ -467,9 +467,26 @@ procedure who don't want to be as the state as what."
        ((entropy/open-with--on-win32)
         (w32-shell-execute "open" file-path))
        ((eq system-type 'gnu/linux)
-        (let ((process-connection-type nil))
-          (start-process "" nil "xdg-open" file-path)))
+        (let (
+              ;; preserve `process-connection-type' to t since while
+              ;; nil some unexpected occasion occurred like env
+              ;; inherited issue.
+              (process-connection-type t))
+          ;; use setsid to creat a new controlling terminal so that
+          ;; emacs not kill it while open since: gvfs-open and
+          ;; xdg-open return before their children are done
+          ;; working. Emacs might kill their controlling terminal when
+          ;; this happens, killing the children, and stopping refer
+          ;; application from opening properly. (see
+          ;; https://askubuntu.com/questions/646631/emacs-doesnot-work-with-xdg-open
+          ;; for more details)
+          (start-process
+           (format "eemacs-linux-open-with_xdg_for_file_%s"
+                   file-path)
+           (get-buffer-create " *eemacs-linux-open-with* ")
+           "setsid" "-w" "xdg-open" file-path)))
        ((eq system-type 'darwin)
+        ;; FIXME: its not asynchronously
         (shell-command (concat "open " file-path))))
       (unless (null entropy/open-with-type-list)
         (message "Can not match any open with type for file '%s', open with native MIME assoc."
