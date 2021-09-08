@@ -226,14 +226,20 @@
 (defun entrop/emacs-batch--install-eemacs-ext-stable-build-repo-core ()
   (let* ((url entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url)
          (host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
+         (stuff-dir
+          (make-temp-name (expand-file-name
+                           "eemacs-ext-stable-repo-ext-stuff_"
+                           entropy/emacs-stuffs-topdir)))
          (dec-host
           (make-temp-name (expand-file-name
                            "eemacs-ext-stable-repo-ext_"
-                           entropy/emacs-stuffs-topdir)))
-         (tmp-name (make-temp-name (expand-file-name
-                                    "eemacs-ext-stable-repo-archive_"
-                                    entropy/emacs-stuffs-topdir)))
+                           stuff-dir)))
+         (tmp-name
+          (make-temp-name (expand-file-name
+                           "eemacs-ext-stable-repo-archive_"
+                           stuff-dir)))
          download-cbk)
+    (make-directory stuff-dir t)
     ;; download archive
     (entropy/emacs-message-do-message
      "%s"
