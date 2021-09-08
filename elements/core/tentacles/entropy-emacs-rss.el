@@ -707,7 +707,8 @@ The minor changing was compat for above."
   (setq newsticker-url-list-defaults nil
         newsticker-url-list
         '(("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
-          ("Emacs Reddit" "https://www.reddit.com/r/emacs.rss"))))
+          ("Emacs Reddit" "https://www.reddit.com/r/emacs.rss")
+          ("EmacsTalk.github.io" "https://emacstalk.github.io/podcast/index.xml"))))
 
 
 ;; * provide
