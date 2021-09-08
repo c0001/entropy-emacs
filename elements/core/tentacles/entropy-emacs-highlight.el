@@ -170,6 +170,46 @@
               :around
               #'__adv/around/symbol-overlay-cancel-timer/0)
 
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun __ya/symbol-overlay-idle-timer (buf)
+    "Like `symbol-overlay-idle-timer' but more efficient."
+    (when
+        ;; HACK: firstly judge the `window-buffer' to speedup judger
+        ;; procedure.
+        (and (eq (window-buffer) buf)
+             (buffer-live-p buf))
+      (with-current-buffer buf
+        (symbol-overlay-maybe-put-temp))))
+  (advice-add 'symbol-overlay-idle-timer
+              :override
+              #'__ya/symbol-overlay-idle-timer)
+
+  (defun __hack/symbol-overlay-kill-buffer-hook ()
+    "Make sure no remaining timer run after buffer is killed."
+    (when (and (bound-and-true-p symbol-overlay-timer)
+               (timerp symbol-overlay-timer))
+      (symbol-overlay-cancel-timer)))
+  (add-hook 'kill-buffer-hook
+            #'__hack/symbol-overlay-kill-buffer-hook)
+
+  (defun entropy/emacs-highlight-kill-empty-symbol-overlay-timer
+      ()
+    "Remove all killed-buffer `symbol-overlay-idle-timer' since
+its a mistake in `symbol-overlay' which do not cancel the timer
+after buffer killed, but we hacked using
+`__hack/symbol-overlay-kill-buffer-hook' thus should no need to
+invoke this function any more isn't it?"
+    (interactive)
+    (dolist (timer timer-idle-list)
+      (let ((buff (car (timer--args timer)))
+            (func (timer--function timer)))
+        (when (and (eq 'symbol-overlay-idle-timer
+                       func)
+                   (bufferp buff))
+          (unless (buffer-live-p buff)
+            (cancel-timer timer))))))
+
 ;; ****** after change hook modification
 
   ;; BUG: we don't need the refrresh globally since it is hard coded in the
