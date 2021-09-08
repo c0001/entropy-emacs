@@ -157,7 +157,12 @@ have window feature started up."
                   (assq code entropy/emacs-message--message-fx))))
     (format "\e[%dm%s\e[%dm"
             (cdr rule)
-            (apply #'format format args)
+            ;; we shouldn't use `format' with only string type since
+            ;; any string contain format notaion will cause it
+            ;; corrupt.
+            (if args
+                (apply #'format format args)
+              format)
             0)))
 
 (defmacro entropy/emacs-message-format-message (message &rest args)
@@ -246,9 +251,15 @@ interactive session."
 
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
   "An alternative to `message' that strips out ANSI codes."
-  `(message
-    (entropy/emacs-message--do-message-ansi-apply
-     ,message ,@args)))
+  `(let (_)
+     ;; we shouldn't use `message' directly to touch the message in
+     ;; this place since any string contain format notaion will cause
+     ;; it corrupt, thus we use single `%s' to format the result.
+     (prog1
+         (message "%s"
+                  (entropy/emacs-message--do-message-ansi-apply
+                   ,message ,@args))
+       (redisplay t))))
 
 (defmacro entropy/emacs-message-do-warn-1 (message &rest args)
   "An alternative to `message' that strips out ANSI codes."
@@ -326,6 +337,7 @@ run BODY.
            (when ---$$$message$$$---
              (make-progress-reporter
               (format "%s ... " ---$$$message$$$---)))))
+     (redisplay t)
      (prog1
          (let (_)
            ,@body)

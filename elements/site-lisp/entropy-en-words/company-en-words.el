@@ -51,14 +51,20 @@
 (defvar company-en-words/var--trie-inited nil)
 (defun company-en-words/lib--init-trie ()
   (unless company-en-words/var--trie-inited
-    (let ((pgm (make-progress-reporter
-                "Make company-en-words trie table ..."
-                0 (length
-                   company-en-words-data/en-words-simple-list))))
+    ;; reset trie obj since previous aborting
+    (setq company-en-words/lib--en-words-trie-obj
+      (make-trie '<))
+    (let* ((inhibit-message nil)        ;make sure message workable
+           (pgm (make-progress-reporter
+                 "Make company-en-words trie table ..."
+                 0 (length
+                    company-en-words-data/en-words-simple-list))))
+      (redisplay t)
       (let ((gc-cons-threshold 8000))     ;reduce memory leak
         (dolist-with-progress-reporter
             (el company-en-words-data/en-words-simple-list)
             pgm
+          (redisplay t)
           (trie-insert company-en-words/lib--en-words-trie-obj
                        (car el) (cdr el)))
         (setq company-en-words/var--trie-inited t)))))
