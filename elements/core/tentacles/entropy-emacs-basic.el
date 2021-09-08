@@ -969,9 +969,73 @@ Temp file was \"~/~entropy-artist.txt\""
 ;; *** Man-mode
 (use-package man
   :ensure nil
-  :commands man
+  :commands (man
+             entropy/emacs-Man-mode-fit-to-window)
+  :eemacs-mmphc
+  (((:enable t)
+    (Man-mode (man Man-mode-map) t (1 2 2)))
+   ("Basic"
+    (("k"    Man-kill
+      "Kill the buffer containing the manpage."
+      :enable t :exit t :map-inject t)
+     ("u"    Man-update-manpage
+      "Reformat current manpage by calling the man command again synchronously."
+      :enable t :exit t :map-inject t)
+     ("f"    entropy/emacs-Man-mode-fit-to-window
+      "Fit current manpage to `window-width'."
+      :enable t :exit t :map-inject t)
+     ("m"    man
+      "Get a Un*x manual page and put it in a buffer."
+      :enable t :exit t :map-inject t))
+    "Navigation"
+    (("n"    Man-next-section "Next section"
+      :enable t :exit t :map-inject t)
+     ("p"    Man-previous-section "Previous section"
+      :enable t :exit t :map-inject t)
+     ("M-n"  Man-next-manpage "Next manpage"
+      :enable t :exit t :map-inject t)
+     ("M-p"  Man-previous-manpage "Previous Manpage"
+      :enable t :exit t :map-inject t)
+     ("."    beginning-of-buffer "Goto top"
+      :enable t :exit t :map-inject t))
+    "Jump referrence"
+    (("r"    Man-follow-manual-reference
+      "Get one of the manpages referred to in the \"SEE ALSO\" section"
+      :enable t :exit t :map-inject t)
+     ("g"    Man-goto-section
+      "Move point to SECTION."
+      :enable t :exit t :map-inject t)
+     ("s"    Man-goto-see-also-section
+      "Move point to the \"SEE ALSO\" section."
+      :enable t :exit t :map-inject t))))
+
   :init
-  (setq Man-width-max nil))
+  (setq Man-width-max nil)
+
+  :config
+  (defun __adv/around/Man-mode/disable-auto-window-fit
+      (orig-func &rest orig-args)
+    (prog1
+        (apply orig-func orig-args)
+      (remove-hook 'window-state-change-functions
+                   #'Man--window-state-change t)))
+  (advice-add 'Man-mode
+              :around
+              #'__adv/around/Man-mode/disable-auto-window-fit)
+
+  (defun entropy/emacs-Man-mode-fit-to-window
+      (&rest _)
+    "Manually fit current manpage to `window-width' like
+`Man-fit-to-window' and just support in an buffer that is
+`current-buffer' on which enabled `Man-mode'."
+    (interactive)
+    (with-current-buffer (current-buffer)
+      (when (eq major-mode 'Man-mode)
+        (Man-fit-to-window
+         (get-buffer-window
+          (current-buffer))))))
+
+  )
 
 (use-package woman
   :ensure nil
