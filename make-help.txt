@@ -15,6 +15,7 @@ Example:
        make install
        make install-coworkers
        make install-eemacs-ext-build
+       make install-eemacs-fonts
        make update
        make dump
        make native-comp
@@ -32,7 +33,14 @@ Example:
   =entropy-emacs-extensions-project-build= to use as local melpa
   mirror according current entropy-emacs version in which case after
   successfully installed thus, entropy-emacs will use internal
-  specified packages version to get best experience for entropy-emacs.
+  specified packages version to get best experience for
+  entropy-emacs. (If the old build installed detected, we backup it in
+  the same place and install the new one.)
+
+- 'install-eemacs-fonts' option download and install entropy-emacs
+  suggested free copyright fonts (NOTE: auto-install in *nix system
+  but WINDOWS etc. on which show the prompts for manually installing.)
+
 
 The dumped emacs binary file is stored in
 'entropy/emacs-user-emacs-directory' (i.e. the entropy-emacs specified
