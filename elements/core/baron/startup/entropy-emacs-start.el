@@ -407,6 +407,7 @@ notation.
   (require 'entropy-emacs-calendar)
 
   ;; For programing language
+  (require 'entropy-emacs-bash)
   (require 'entropy-emacs-web)
   (require 'entropy-emacs-python)
   (require 'entropy-emacs-c)
