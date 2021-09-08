@@ -1373,7 +1373,11 @@ so that following keys are supported:
                    (when (file-exists-p ,tmp-file)
                      (delete-file ,tmp-file)
                      (message "Deleted temp download file!"))
-                   (if (functionp ,verify)
+                   (if (and (functionp ,verify)
+                            (prog1
+                                t
+                              (message ">> verify the downloaded file <%s> ..."
+                                       ,destination)))
                        (if (eq t
                                ;; we must ignore errors for the
                                ;; verifiction function run since it
@@ -1381,7 +1385,7 @@ so that following keys are supported:
                                ;; procedure then destroys the API
                                ;; restriction.
                                (condition-case error
-                                   (funcall ,verify destination)
+                                   (funcall ,verify ,destination)
                                  (error
                                   (entropy/emacs-message-do-message
                                    "%s%s"
