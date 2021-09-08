@@ -38,6 +38,7 @@
 
 ;; ** require
 (require 'entropy-emacs-message)
+(require 'entropy-emacs-defun)
 (require 'entropy-emacs-package)
 (require 'entropy-emacs-coworker)
 (require 'entropy-emacs-ext)
@@ -108,6 +109,17 @@
       (yellow "       Section for install entropy-emacs-extensions stable build ...")
       (blue    "=================================================="))
      (when (yes-or-no-p "install eemacs-ext stable build? ")
+       ,@body)))
+
+(defmacro entropy/emacs-batch--prompts-for-eemacs-fonts-install
+    (&rest body)
+  `(let ()
+     (entropy/emacs-message-do-message
+      "\n%s\n%s\n%s\n"
+      (blue    "==================================================")
+      (yellow "       Section for install eemacs-fonts ...")
+      (blue    "=================================================="))
+     (when (yes-or-no-p "install eemacs-fonts? ")
        ,@body)))
 
 ;; *** dump emacs
@@ -299,6 +311,109 @@ faild with hash '%s' which must match '%s'"
        (yellow "Abort!")))))
 
 
+;; *** get eemacs-font
+
+(defun entrop/emacs-batch--install-eemacs-fonts ()
+  (let* ((url entropy/emacs-ext-eemacs-fonts-archive-url)
+         (stuff-dir
+          (make-temp-name
+           (expand-file-name
+            "eemacs-ext-fonts-temp-host_"
+            entropy/emacs-stuffs-topdir)))
+         (dec-host
+          (make-temp-name (expand-file-name
+                           "eemacs-ext-fonts-extract_"
+                           stuff-dir)))
+         (tmp-name
+          (make-temp-name (expand-file-name
+                           "eemacs-ext-fonts-archive_"
+                           stuff-dir)))
+         download-cbk)
+    (make-directory stuff-dir t)
+    ;; download archive
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Downloading eemacs-fonts archive ... "))
+    (setq download-cbk
+          (entropy/emacs-network-download-file
+           url tmp-name
+           nil nil
+           (lambda (file)
+             (let* ((inhibit-read-only t)
+                    (stick-hash
+                     entropy/emacs-ext-eemacs-fonts-archive-sha256sum)
+                    (buff (create-file-buffer file))
+                    (cur-hash nil))
+               (with-current-buffer buff
+                 (erase-buffer)
+                 (insert-file-contents-literally file))
+               (setq cur-hash
+                     (secure-hash 'sha256 buff))
+               (unless (string= cur-hash stick-hash)
+                 (error "Sha256 hash verify for file <%s> \
+faild with hash '%s' which must match '%s'"
+                        file cur-hash stick-hash))
+               t))))
+    (unless (eq (symbol-value download-cbk) 'success)
+      (entropy/emacs-message-do-error
+       "%s: %s"
+       (red "Download fatal with")
+       (format "%s" (get download-cbk 'error-type))))
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Download eemacs-fonts repo done!"))
+    ;; -------------------- extract archive
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Extract eemacs-fonts ..."))
+    (make-directory dec-host t)
+    (entropy/emacs-archive-dowith
+     'txz tmp-name dec-host :extract)
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Get eemacs-fonts done!"))
+    ;; -------------------- install fonts
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "Install eemacs-fonts  ..."))
+    (let ((repo-path (car (entropy/emacs-list-subdir
+                           dec-host))))
+      (if (file-directory-p repo-path)
+          (entropy/emacs-message-do-message
+           "%s"
+           (green (format "--> default-directory: %s"
+                          repo-path)))
+        (error "Internal fatal: <%s> not exists!"
+               repo-path))
+      (entropy/emacs-make-process
+       `(:name
+         " *install eemacs-fonts* "
+         :synchronously t
+         :buffer (get-buffer-create " *install eemacs-fonts process buffer* ")
+         :command '("sh" "-c" "./install.sh")
+         :default-directory ,repo-path
+         :after
+         (with-current-buffer $sentinel/destination
+           (let ((msg (buffer-substring-no-properties (point-min) (point-max))))
+             (entropy/emacs-message-do-message
+              "%s"
+              (blue msg)))
+           (entropy/emacs-message-do-message
+            "%s"
+            (green "Install eemacs-fonts done!")))
+         :error
+         (with-current-buffer $sentinel/destination
+           (let ((msg (buffer-substring-no-properties (point-min) (point-max))))
+             (entropy/emacs-message-do-message
+              "%s\n%s"
+              (yellow "Install eemacs-fonts ecounter fatal!")
+              (red msg)))
+           (entropy/emacs-message-do-error
+            "%s"
+            (red "Fatal abort!")))))
+      )
+    ))
+
 ;; ** interactive
 (when (entropy/emacs-ext-main)
   (let ((type (entropy/emacs-is-make-session)))
@@ -312,6 +427,9 @@ faild with hash '%s' which must match '%s'"
      ((equal type "Install-Eemacs-Ext-Build")
       (entropy/emacs-batch--prompts-for-eemacs-ext-build-repo-install
        (entrop/emacs-batch--install-eemacs-ext-stable-build-repo)))
+     ((equal type "Install-Eemacs-Fonts")
+      (entropy/emacs-batch--prompts-for-eemacs-fonts-install
+       (entrop/emacs-batch--install-eemacs-fonts)))
      ((equal type "Update")
       (if (entropy/emacs-package-package-archive-empty-p)
           (entropy/emacs-message-do-error

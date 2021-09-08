@@ -62,6 +62,11 @@ install-eemacs-ext-build:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
+install-eemacs-fonts: export EEMACS_MAKE = Install-Eemacs-Fonts
+install-eemacs-fonts:
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
+
 update: export EEMACS_MAKE = Update
 update:
 	@$(EchoEmpty)

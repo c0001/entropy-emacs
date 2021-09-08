@@ -354,7 +354,8 @@ upstream installed packages of `package.el'."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-emacs-extensions)
 
-;; ****** eemacs-lsp-archive project archive location
+;; ****** other extensions
+;; ******* eemacs-lsp-archive project archive location
 
 (defcustom entropy/emacs-ext-use-eemacs-lsparc nil
   "Whether to use archived lanuguage servers."
@@ -371,6 +372,15 @@ may download from
   :type 'directory
   :group 'entropy/emacs-customize-group-for-emacs-extensions)
 
+
+
+;; ******* eemacs fonts
+
+(defvar entropy/emacs-ext-eemacs-fonts-archive-url
+  "https://sourceforge.net/projects/entropy-emacs-cabinet/files/Font/entropy-emacs-fonts/v1.0.0/eemacs-fonts_v1.0.0.tar.xz/download"
+  )
+(defvar entropy/emacs-ext-eemacs-fonts-archive-sha256sum
+  "c3976b59208e0e26443fa8f3310895cc70f4f9750eca2d5d213bf69e353b362b")
 
 ;; ****** extra customized load path
 
