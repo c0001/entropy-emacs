@@ -716,7 +716,10 @@ The minor changing was compat for above."
           ("EmacsChina Posts" "https://emacs-china.org/posts.rss")
           ("EmacsChina latest" "https://emacs-china.org/latest.rss")
           ("Manateelazycat Blog" "https://manateelazycat.github.io/feed.xml")
-          )))
+          ))
+  :config
+  (entropy/emacs-make-function-inhibit-readonly
+   'newsticker-treeview-save))
 
 
 ;; * provide
