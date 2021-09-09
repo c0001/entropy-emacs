@@ -886,6 +886,28 @@ that show that filename wasn't exsited any more."
               #'entropy/emacs-basic--dired-subtree-readin-around-advice)
   )
 
+
+;; **** wdired
+
+(use-package wdired
+  :ensure nil
+  :commands
+  (wdired-mode
+   wdired-finish-edit)
+  :config
+  (defun __adv/around/wdired-finish-edit/for-window-recenter
+      (orig-func &rest orig-args)
+    "Recenter the window after `wdired-finish-edit' since it
+always revert buffer after change dired buffer in which case the
+window point not shown in nice place e.g. at window bottom."
+    (prog1
+        (apply orig-func orig-args)
+      (recenter-top-bottom '(middle))))
+  (advice-add 'wdired-finish-edit
+              :around
+              #'__adv/around/wdired-finish-edit/for-window-recenter)
+  )
+
 ;; *** Image-mode
 (use-package image-mode
   :ensure nil
