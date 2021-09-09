@@ -560,6 +560,7 @@ TODO:
 
 ;; ****** patch for `dired-mark-pop-up'
 
+  ;; EEMACS_MAINTENANCE: follow upstream updates
   (defun dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
     "Return FUNCTION's result on ARGS after showing which files are marked.
 Displays the file names in a window showing a buffer named
@@ -601,6 +602,7 @@ modifcation is to remove this feature.
         (with-displayed-buffer-window
             buffer
             (cons 'display-buffer-below-selected
+                  ;; HACK: just preserve size
                   '((preserve-size . (nil . t))))
             #'(lambda (window _value)
                 (with-selected-window window
