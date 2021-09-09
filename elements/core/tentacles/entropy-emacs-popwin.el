@@ -506,7 +506,7 @@ specification."
               (entropy/emacs-tools-beacon-blink-ignore t))
           (cond
            ((one-window-p)
-            (setq stick-buffer (current-buffer)
+            (setq stick-buffer (window-buffer)
                   stick-window (get-buffer-window stick-buffer))
             (when (entropy/emacs-popwin--buffer-is-shackle-popup-p stick-buffer)
               (message "Auto hiding popuped buffer <one-window type> ...")
@@ -517,8 +517,8 @@ specification."
                          (window-live-p stick-window))
                 (winner-undo))))
 
-           ((entropy/emacs-popwin--buffer-is-shackle-popup-p (current-buffer))
-            (setq stick-buffer (current-buffer)
+           ((entropy/emacs-popwin--buffer-is-shackle-popup-p (window-buffer))
+            (setq stick-buffer (window-buffer)
                   stick-window (get-buffer-window stick-buffer))
             (message "Auto hiding popuped buffer <buffer-local type> ...")
             (let ((window-prev
@@ -535,7 +535,7 @@ specification."
                 (select-window window-prev))))
 
            ((not (one-window-p))
-            (let ((host-buffer (current-buffer))
+            (let ((host-buffer (window-buffer))
                   window-refer)
               (setq stick-buffer (caar entropy/emacs-popwin--shackle-popup-display-history)
                     stick-window (ignore-errors (get-buffer-window stick-buffer))
