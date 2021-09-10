@@ -9,17 +9,18 @@
 
 #+BEGIN_QUOTE
 *Windows user:*
-Now you can download the encapsulation setting contain [[https://github.com/c0001/entropy-emacs][entropy-emacs]]
-and [[https://github.com/m-parashar/emax64][emax64]] and with msys2 with lots of stuffs contained proper [[https://sourceforge.net/projects/entropy-emax64/][here]].
+__Now you can download the encapsulation setting contain [[https://github.com/c0001/entropy-emacs][entropy-emacs]]
+and [[https://github.com/m-parashar/emax64][emax64]] and with msys2 with lots of stuffs contained proper [[https://sourceforge.net/projects/entropy-emax64/][here]].__ (obsolete)
 
 *Terms convention:*
-We call *eemacs* as the abbreviation of =entropy-emacs=.
+We call *eemacs* as the abbreviation of =entropy-emacs= or =eemacs=.
 #+END_QUOTE
 
-This emacs personal configs can be used in:
+This personal emacs distribution can be used in:
 
 - Learning emacs.
-- HTML, CSS, JS, PHP, C , python etc. coding learning and testing.
+- HTML, CSS, JS, PHP, C , PYTHON and more major-modes for coding
+  editing and testing.
 - Write article, recording content you captured and simple task
   manager with configured Org-mode.
 - With some utilities by self and from web and others great idea which
@@ -28,8 +29,8 @@ This emacs personal configs can be used in:
 Support platform:
 
 - GNU/Linux (fully support)
-- Windows7/8/8.1/10 (fully support)
-- Darwin(MacOS) (feature limited)
+- Windows7/8/8.1/10 (partial support)
+- Darwin(MacOS) (partial support and not testing)
 
 Support emacs version:
 
@@ -50,14 +51,16 @@ see the commentary of [[file:elements/core/baron/summon/entropy-emacs-ext.el][en
 stable(tested) extensions that entropy-emacs used for, it has its own
 host-server procedure which forked from '[[https://melpa.org/][melpa]]' to produce as what it
 means. You must make it before using it and make understanding by
-following its README.
+following its README or just install its stable release using the
+~make~ section of =eemacs= (see the make eemacs secion below).
 
-For case use =entropy-emacs-extension= in a released =entropy-emacs=,
-there's a version limit restriction usage for this case that each
-eemacs release was followed a version of =entropy-emacs-extension=
-release or the release referred updates version follow the "x.y.z"
-version naming convention, you should download the
-=entropy-emacs-extension= release which case this case specified.
+For case using by self downloading =entropy-emacs-extension= in a
+released =entropy-emacs=, there's a version limit restriction usage
+for this case that each eemacs release was followed a version of
+=entropy-emacs-extension= release or the release referred updates
+version follow the "x.y.z" version naming convention, you should
+download the =entropy-emacs-extension= release which case this case
+specified.
 
 Or on the most used occasion, you don't need to retrieve that eemacs
 extension release project, just using the melpa *up-to-date* upstream
@@ -68,21 +71,17 @@ various compatible issue or kick one issue on [[https://github.com/c0001/entropy
 querying/asking on a resolution.
 
 For switch this two extension usage type, the variable
-~entropy/emacs-use-extensions-type~ are gives for you, the default
-type was using melpa upstream to give the default ignorance to
+~entropy/emacs-ext-elpkg-get-type~ are gives for you, the default type
+was using melpa upstream to give the default ignorance to
 =entropy-emacs-extension= manually download trouble, but in this case
-should notice the mentioned points.
+should notice the above mentioned compatible issues.
 
-Current =entropy-emacs-extensions= release version required: =0.2.x=
+Current =entropy-emacs-extensions= release version required: =1.0.1=
 
 *Make entropy-emacs*
 
-entropy-emacs provide one simple =makefile= to batch interact with the
-recipes internal for the sake of below three options:
-
-- install all required packages
-- update all required packages
-- include above two and dump emacs (need emacs 27 or above)
+entropy-emacs use makefile to initialize with rich facilities for the
+sake of stick on eemacs internal mechanism.
 
 You can run ~make help~ to see the details.
 
