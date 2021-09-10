@@ -124,7 +124,7 @@ display.")
 ;; ** others
 (defconst entropy/emacs-origin-load-path (copy-tree load-path))
 
-(defconst entropy/emacs-ecv "VERSION: 0.1.0 Tag: ONEPIECE"
+(defconst entropy/emacs-ecv "VERSION: 1.0.0 Tag: ONEPIECE"
   "Version of entropy-emacs.")
 
 (defconst entropy/emacs-home-page "https://github.com/c0001/entropy-emacs"
