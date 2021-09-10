@@ -2391,7 +2391,9 @@ that."
   (unless (file-exists-p top)
     (make-directory top))
   ;; root dir host in `top'
-  (dolist (item `((bookmark-file . "bookmarks")
+  ;; NOTE: if item is a directory the notation of its path must tail with slash
+  (dolist (item `((package-user-dir . "elpa/")
+                  (bookmark-file . "bookmarks")
                   (recentf-save-file . "recentf")
                   (tramp-persistency-file-name . "tramp")
                   (auto-save-list-file-prefix
@@ -2415,6 +2417,7 @@ that."
                   ;; url caches
                   (url-configuration-directory . "url/")
                   (nsm-settings-file . "network-security.data")
+                  (request-storage-directory . "request/")
 
                   ;; lsp mode
                   (lsp-session-file . "lsp/lsp-session-v1")
@@ -2445,6 +2448,11 @@ that."
                   (anaconda-mode-installation-directory . "anaconda-mode/")
                   ;; newsticker archive dir
                   (newsticker-dir . "newsticker/")
+
+                  ;; pyim/liberime
+                  (liberime-user-data-dir . "rime")
+                  (pyim-dcache-directory . "pyim/dcache/")
+
                   ;; miscellanies
                   (idlwave-config-directory . "idlwave/")
                   (entropy/org-exptt-html-theme-cache-dir . "org-themes/org-html-themes")
@@ -2452,11 +2460,17 @@ that."
     (let* ((var-sym (car item))
            (path (expand-file-name (cdr item) top))
            (path-root (file-name-directory path)))
-      (set var-sym path)
+      (intern (symbol-name var-sym)) ;make sure interned as init
+      (set-default var-sym path)
       ;; create each subs path chain for preventing unconditionally
       ;; file create fatal from thus.
       (unless (file-directory-p path-root)
-        (make-directory path-root t))))
+        (make-directory path-root t))
+      ;; create the dir if item is an directory
+      (if (and (string-match-p "/$" (cdr item))
+               (null (file-exists-p path)))
+          (make-directory path t))
+      ))
 
   ;; directly set root dir using `top' dir
   (dolist (item '(eww-bookmarks-directory))
