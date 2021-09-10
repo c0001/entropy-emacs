@@ -284,9 +284,10 @@ retriever will obtained the url abided by
 ;; We must strictly did judgement for packages refer setting to
 ;; guarantee the package initialization procedure did correctly before
 ;; any eemacs specification loading.
-(unless (member entropy/emacs-ext-elpkg-get-type
+(unless (member entropy/emacs-ext-elpkg-customized-get-type
                 '(origin entropy-emacs-extenisons-project))
-  (error "Invalid value for `entropy/emacs-ext-elpkg-get-type'"))
+  (error "Invalid value for `entropy/emacs-ext-elpkg-customized-get-type': %s"
+         entropy/emacs-ext-elpkg-customized-get-type))
 
 (defcustom entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path
   (expand-file-name
