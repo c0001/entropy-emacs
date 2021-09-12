@@ -118,7 +118,7 @@ configuration.")
 
 (defun entropy/emacs-pdumper--extract-upstream-packages ()
   (let ((exc-filters `(,(rx (or (seq "autoloads.el" line-end)
-                                (seq "pkg.el" line-end)
+                                (seq "pkg.el" (? "c") line-end)
                                 (seq line-start "test.el")
                                 (seq line-start "doom-themes-ext")
                                 ;; vterm is an dynamic module which
