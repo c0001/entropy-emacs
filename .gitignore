@@ -4,6 +4,7 @@
 !/Makefile
 !/elements
 !/init.el
+!/early-init.el
 !/.gitignore
 !/custom-example.el
 !/README.org

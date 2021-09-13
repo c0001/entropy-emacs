@@ -40,6 +40,18 @@
 (require 'entropy-emacs-message)
 
 ;; ** Prepare
+;; *** Disable auto save `package-selected-packages'
+
+;; HACK: DO NOT copy package-selected-packages to init/custom file forcibly.
+;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
+(defun __adv/override/save-selected-packages/for-disable-auto-save (&optional value)
+  "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
+  (when value
+    (setq package-selected-packages value)))
+(advice-add 'package--save-selected-packages
+            :override
+            #'__adv/override/save-selected-packages/for-disable-auto-save)
+
 ;; *** Package archive set
 ;;
 (defvar-local entropy/emacs-package--package-archives-list '(melpa emacs-china tuna tencent))

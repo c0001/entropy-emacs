@@ -196,6 +196,7 @@
         powershell
         prescient
         pretty-hydra
+        project                         ;forcely install newer version of `project' since newer version flymake needed
         projectile
         pyim
         pyim-basedict

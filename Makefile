@@ -32,7 +32,7 @@ endif
 
 # ** variable
 EMACS := emacs
-EMACS_MAKE=$(EMACS) --batch -l init.el
+EMACS_MAKE=$(EMACS) -Q --batch -l init.el
 
 ifeq ($(detected_OS),Windows)
 CAT=type
