@@ -74,6 +74,10 @@
    magit-init
    :pdumper-no-end t
    :body
+   ;; preferred to use `magit-previous-window-configuration' to quit
+   ;; windows
+   (setq magit-bury-buffer-function
+         'magit-restore-window-configuration)
    (entropy/emacs-vcs--magit-init))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation
