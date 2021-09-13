@@ -311,9 +311,14 @@ customized variable `entropy/emacs-ext-elpkg-get-type'."
 `entropy/emacs-ext-elpkg-customized-get-type' which extended its
 value type according to non-defined internal definition")
 
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+  "v1.0.2"
+  "")
+
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path
   (expand-file-name
-   ".eemacs-ext-build"
+   (format ".eemacs-ext-build_%s"
+           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
    entropy/emacs-user-emacs-directory)
   "")
 
@@ -324,11 +329,15 @@ value type according to non-defined internal definition")
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url
-  "https://github.com/c0001/entropy-emacs-extensions/releases/download/v1.0.1/entropy-emacs-extensions_build_v1.0.1.tar.xz"
+  (format
+  "https://github.com/c0001/entropy-emacs-extensions/releases/\
+download/%s/entropy-emacs-extensions_build_%s.tar.xz"
+  entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+  entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum
-  "371fb80fca3e4a6b9efe936df9938fb5790a39ff3214a65d43875e86c4457d80"
+  "33cb935125d2b9c07f2e3d8f71debf14fd5b6e38c33d3dbae743cd81f30dd04c"
   "")
 
 (when (file-exists-p
