@@ -356,6 +356,10 @@ wrong type of type: %s of seconds: %s"
              type idle-sec)))
 
 (defun entropy/emacs--reset-idle-signal ()
+  ;; NOTE:
+  ;; firstly we press the `inhibit-read-only' for preventing any
+  ;; procedure enable this of which polluting next operation.
+  (setq inhibit-read-only nil)
   (setq entropy/emacs-current-session-is-idle nil
         entropy/emacs-current-session-idle-hook-ran-done nil
         entropy/emacs-current-session-this-command-before-idle this-command
