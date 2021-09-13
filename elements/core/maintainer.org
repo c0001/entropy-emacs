@@ -24,13 +24,21 @@
      which just used in internal context.
 
 
-* TODO Release 0.2.0                                                :release:
-DEADLINE: <2020-07-01 Wed> SCHEDULED: <2020-06-14 Sun>
+* CANCEL Release 0.2.0                                              :release:
+CLOSED: [2021-09-13 Mon 12:28] DEADLINE: <2020-07-01 Wed> SCHEDULED: <2020-06-14 Sun>
 
+- State "CANCEL"     from "TODO"       [2021-09-13 Mon 12:28] \\
+  obsolete
 Release aiming: (expect release date 2020-07-01)
 - [ ] Standardize all(try best) Api naming type
 - [ ] Troubleshoot all(try best) internal context error
 - [ ] Make main introduction document comprehensively
+
+
+* TODO Adding an union workspace framework
+DEADLINE: <2021-09-30 Thu> SCHEDULED: <2021-09-16 Thu>
+
+As frontend to those backend like =eyebrowse= and =persp-mode=
 
 * COMMENT Local Variable
 # Local Variables:
