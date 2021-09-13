@@ -448,7 +448,7 @@ specification."
       (setq entropy/emacs-popwin--shackle-popup-display-history
             new-hist)))
 
-;; **** buffer popup-p judger
+;; ***** buffer popup-p judger
   (defun entropy/emacs-popwin--buffer-is-shackle-popup-p (buffer)
     (let ((buf-win (get-buffer-window buffer)))
       (if (and (windowp buf-win)
@@ -458,9 +458,10 @@ specification."
           ;; the window buffer changed to the popuped buffer or the
           ;; buffer switched to popuped window which has been the root
           ;; window of `selected-frame'.
-          (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
-           buffer t)
-          nil
+          (progn
+            (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
+             buffer t)
+            nil)
         (ignore-errors
           (or (buffer-local-value
                'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
@@ -474,7 +475,7 @@ specification."
   ;; it in most of cases.
   (add-to-list 'entropy/emacs-delete-other-windows-ignore-pms-predicates
                '(entropy/emacs-popwin--buffer-is-shackle-popup-p
-                 (current-buffer)))
+                 (window-buffer)))
 
   ;; do not show baecon blink when popuped buffer exists for visual
   ;; experience adjustments
@@ -490,7 +491,7 @@ specification."
   (add-hook 'entropy/emacs-tools-beacon-blink-top-hook
             #'entropy/emacs-popwin--shackle-popup-buffers-exist-then-ignore-beacon-blink)
 
-;; **** autoclose `\C-g' bindings
+;; ***** autoclose `\C-g' bindings
   (defun entropy/emacs-popwin--shackle-close-popup-window-hack (&rest _)
     "Close current popup window via `C-g'."
     (entropy/emacs-popwin--shackle-prunning-popup-history)
