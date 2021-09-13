@@ -658,8 +658,10 @@ after =entropy-emacs= has loading done i.e. while
 window-parameters to `delete-other-windows', similar to use
 `delete-other-windows-internal'.
 
-Each function can be either a symbol or a form, and each call to
-them is wrapped with `ignore-errors' to prevent the messy by.")
+Each function can be either a function or a form (i.e. not match
+`functionp'), and each call to them is wrapped with
+`ignore-errors' to prevent the messy by. Each function get an
+argument the WINDOW of `delete-other-windows' optional slot.")
 
 (defun entropy/emacs-defvar--delete-other-windows-around-advice
     (orig-func &rest orig-args)
@@ -677,19 +679,20 @@ externally add below features:
 "
   (interactive)
   (let* (this-rtn
-         (eemacs-popup-p
+         (window (window-normalize-window (car orig-args)))
+         (ignore-wmpmts-p
           (and (not (null entropy/emacs-delete-other-windows-ignore-pms-predicates))
                (catch :exit
                  (let (judge)
                    (dolist (func entropy/emacs-delete-other-windows-ignore-pms-predicates)
                      (ignore-errors
-                       (if (symbolp func)
-                           (setq judge (funcall func))
+                       (if (functionp func)
+                           (setq judge (funcall func window))
                          (setq judge (eval func))))
                      (when judge
                        (throw :exit judge)))
                    judge))))
-         (ignore-window-parameters eemacs-popup-p))
+         (ignore-window-parameters ignore-wmpmts-p))
     (run-hooks 'entropy/emacs-delete-other-windows-before-hook)
     (setq entropy/emacs-origin-window-configuration-before-delete-other-windows
           (current-window-configuration))
