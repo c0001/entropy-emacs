@@ -711,6 +711,7 @@ The minor changing was compat for above."
           ;; global emacs forums and blogs
           ("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
           ("Emacs Reddit" "https://www.reddit.com/r/emacs.rss")
+          ("Emacs Stackexchange" "https://emacs.stackexchange.com/feeds")
           ("EmacsTalk.github.io" "https://emacstalk.github.io/podcast/index.xml")
           ;; chinese emacs forums and blogs
           ("EmacsChina Posts" "https://emacs-china.org/posts.rss")
