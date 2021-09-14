@@ -50,6 +50,7 @@
      :enable t :exit t))))
 
 ;; ** yasnippet
+
 (use-package yasnippet
   :diminish yas-minor-mode
   :commands (yas-global-mode yas-minor-mode yas-expand)
@@ -74,28 +75,29 @@
     "Auto enable `yas-minor-mode' when not as it and call
 `yas-expand'."
     (interactive)
-    (require 'yasnippet)
-    (cond
-     ((not yas-minor-mode)
-      (yas-minor-mode 1)
-      (yas-expand))
-     (t
-      (yas-expand))))
+    (when (not (bound-and-true-p yas-minor-mode))
+      (unless (featurep 'yasnippet)
+        (require 'yasnippet))
+      (yas-minor-mode 1))
+    (yas-expand))
 
   :config
-  (use-package yasnippet-snippets
-    :commands (yasnippet-snippets-initialize)
-    :init
-    (entropy/emacs-lazy-load-simple yasnippet
-      (yasnippet-snippets-initialize)))
-
-  (add-to-list 'yas-snippet-dirs entropy/emacs-yas-dir)
-
   ;; remove original internal const setting for 'snippets' dir
-  ;; auto-created in `user-emacs-directory'
+  ;; auto-created in `user-emacs-directory' since its an const set in
+  ;; the `yasnippet' source but we want it be customizable, thus we
+  ;; invoke `entropy/emacs-yas-dir' instead.
   (setq yas-snippet-dirs
         (remove yas--default-user-snippets-dir
                 yas-snippet-dirs))
+  (add-to-list 'yas-snippet-dirs 'entropy/emacs-yas-dir)
+  (yas-load-directory entropy/emacs-yas-dir t)
+  ;; Then we initialize the thirdparty yas collections
+  (use-package yasnippet-snippets
+    ;; We must declaration it within `yasnippet' package use-package after
+    ;; part since we are used its API after load `yasnippet'.
+    :commands (yasnippet-snippets-initialize)
+    :init
+    (yasnippet-snippets-initialize))
 
   ;; disable tab key in `yas-minor-mode' which will make conflict with `orgstruct-mode'
   ;; `https://stackoverflow.com/questions/14066526/unset-tab-binding-for-yasnippet'
@@ -103,9 +105,9 @@
     (define-key yas-minor-mode-map [(tab)]        nil)
     (define-key yas-minor-mode-map (kbd "TAB")    nil)
     (define-key yas-minor-mode-map (kbd "<tab>")  nil)
-    (define-key yas-minor-mode-map "\C-c&\C-s"  nil)
-    (define-key yas-minor-mode-map "\C-c&\C-n"  nil)
-    (define-key yas-minor-mode-map "\C-c&\C-v"  nil)
+    (define-key yas-minor-mode-map "\C-c&\C-s"    nil)
+    (define-key yas-minor-mode-map "\C-c&\C-n"    nil)
+    (define-key yas-minor-mode-map "\C-c&\C-v"    nil)
     ))
 
 ;; ** auto-yasnippet
