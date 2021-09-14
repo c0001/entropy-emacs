@@ -324,8 +324,9 @@ NOTE: this function is an around advice wrapper."
     "Yet another `company-post-command' which run with
 `entropy/emacs-run-at-idle-immediately' so that the sequentially
 fast hints not laggy by `candidates' re-calculation."
-    (when (and company-candidates
-               (null this-command))
+    (when (or (and company-candidates
+                   (null this-command))
+              (eq this-command 'keyboard-quit))
       ;; Happens when the user presses `C-g' while inside
       ;; `flyspell-post-command-hook', for example.
       ;; Or any other `post-command-hook' function that can call `sit-for',

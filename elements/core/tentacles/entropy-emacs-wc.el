@@ -783,7 +783,7 @@ without derived slot."
 
   :config
   (setq winner-boring-buffers
-        '("*Completions*"
+        `("*Completions*"
           "*Compile-Log*"
           "*inferior-lisp*"
           "*Fuzzy Completions*"
@@ -822,7 +822,7 @@ without derived slot."
           "*Colors*"
           "*Process List*"
           "*Process-Environment*"
-          "*Eemacs Messages*"
+          ,entropy/emacs-message-message-buffname
           )
         winner-boring-buffers-regexp
         (rx (or

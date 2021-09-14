@@ -561,7 +561,7 @@ hook using `run-hooks' or any other methods or may cause some
 messy."
   (run-hooks 'entropy/emacs-startup-end-hook)
   (setq entropy/emacs-startup-done t)
-  (entropy/emacs-message-hide-popup)
+  (entropy/emacs-message-hide-popup t)
   (let ((entropy/emacs-message-non-popup t))
     (entropy/emacs-message-do-message
      ">>> %s (using %s seconds) "

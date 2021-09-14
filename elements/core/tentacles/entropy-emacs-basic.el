@@ -1672,7 +1672,7 @@ value as optional interaction while `PREFIX' is non-nil."
    (find-file push-button find-library-name)
    "entropy-grom"
    "entropy-grom"
-   prompt-popup
+   prompt-echo
    (entropy-grom-mode +1))
 
   :config
@@ -1689,7 +1689,7 @@ value as optional interaction while `PREFIX' is non-nil."
  (find-file-hook)
  "GlbAutoRevertMode"
  "GlbAutoRevertMode-enabled"
- prompt-popup
+ prompt-echo
  (global-auto-revert-mode +1))
 
 (defun entropy/emacs-basic-toggle-global-auto-revert-mode ()
@@ -2525,7 +2525,7 @@ please check buffer '*liberime build*' for details"
   :init
   (entropy/emacs-lazy-initial-for-hook
    (dired-mode-hook find-file-hook)
-   "epa-mode" "epa-mode" prompt-popup
+   "epa-mode" "epa-mode" prompt-echo
    (epa-file-enable))
 
   (when (and entropy/emacs-wsl-enable
@@ -2720,7 +2720,7 @@ otherwise returns nil."
         (push-button load-library find-library)
         "autocompression-mode"
         "autocompression-mode"
-        prompt-popup
+        prompt-echo
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
 

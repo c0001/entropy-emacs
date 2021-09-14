@@ -2469,18 +2469,23 @@ that."
                   (elfeed-db-directory . "elfeed-db/")
                   ))
     (let* ((var-sym (car item))
-           (path (expand-file-name (cdr item) top))
-           (path-root (file-name-directory path)))
-      (intern (symbol-name var-sym)) ;make sure interned as init
-      (set-default var-sym path)
-      ;; create each subs path chain for preventing unconditionally
-      ;; file create fatal from thus.
-      (unless (file-directory-p path-root)
-        (make-directory path-root t))
-      ;; create the dir if item is an directory
-      (if (and (string-match-p "/$" (cdr item))
-               (null (file-exists-p path)))
-          (make-directory path t))
+           (path nil)
+           (path-root nil))
+      (unless
+          ;; avoid when user sets in `custom-file'
+          (boundp var-sym)
+        (setq path (expand-file-name (cdr item) top))
+        (setq path-root (file-name-directory path))
+        (intern (symbol-name var-sym)) ;make sure interned as init
+        (set-default var-sym path)
+        ;; create each subs path chain for preventing unconditionally
+        ;; file create fatal from thus.
+        (unless (file-directory-p path-root)
+          (make-directory path-root t))
+        ;; create the dir if item is an directory
+        (if (and (string-match-p "/$" (cdr item))
+                 (null (file-exists-p path)))
+            (make-directory path t)))
       ))
 
   ;; directly set root dir using `top' dir
