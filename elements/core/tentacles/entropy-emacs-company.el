@@ -252,13 +252,12 @@ NOTE: this function is an around advice wrapper."
    :pdumper-no-end nil
    :body
    (global-company-mode t)
-   (setq company-echo-delay 1)          ;reduce lagging on increase company echo idle delay
-
+   ;;reduce lagging on increase company echo idle delay
+   (setq company-echo-delay 1)
    (dolist (func '(company-idle-begin company-complete))
      (advice-add func
                  :before 'entropy/emacs-company-start-with-yas))
    (entropy/emacs-company-yas-for-docs-init))
-
   (entropy/emacs-lazy-load-simple (company counsel)
     (define-key company-active-map (kbd "M-o") 'counsel-company))
 

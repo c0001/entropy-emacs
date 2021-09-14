@@ -44,7 +44,7 @@
 (require 'entropy-emacs-defconst)
 
 ;; ** const define
-(defconst entropy/emacs-message-message-buffer
+(defconst entropy/emacs-message-message-buffname
   "*Eemacs Messages*")
 
 (defconst entropy/emacs-message--message-fg
@@ -83,10 +83,13 @@
   "List of styles.")
 
 ;; ** variable declaration
-(defvar entropy/emacs-message-non-popup nil
+(defvar entropy/emacs-message-non-popup t
   "Do not message with popup window, mostly used with lexical
 binding and be under suppressed by
-`entropy/emacs-message-non-popup-permanently'.")
+`entropy/emacs-message-non-popup-permanently'.
+
+Defaulty we disable popup message since it is not good idea in
+most of cases.")
 
 (defvar entropy/emacs-message-non-popup-permanently nil
   "Permanently suppress popup window type for messaging, this
@@ -109,8 +112,8 @@ have window feature started up."
 
 ;; *** top advice
 (defun entropy/emacs-message-quit (&rest args)
-  (entropy/emacs-message-hide-popup t))
-
+  (ignore-errors
+    (entropy/emacs-message-hide-popup t)))
 (advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
 
 ;; *** common ansi message wrapper core
@@ -200,58 +203,71 @@ interactive session."
              rtn))))
 
 (defmacro entropy/emacs-message--do-message-popup (message &rest args)
-  `(let ((buf (get-buffer-create entropy/emacs-message-message-buffer))
+  `(let ((buf (get-buffer-create entropy/emacs-message-message-buffname))
          break-p
          (message-str
           (entropy/emacs-message--do-message-ansi-apply
            ,message ,@args)))
      (unless (ignore-errors (buffer-live-p buf))
-       (message "Buffer `entropy/emacs-message-message-buffer' can not be create")
+       (message "Buffer `entropy/emacs-message-message-buffname' can not be create")
        (setq break-p t))
      (unless break-p
        (with-current-buffer buf
          (setq-local mode-line-format nil
                      cursor-type nil))
        (redisplay t)
-       (unless (ignore-errors (get-buffer-window buf)) ;Prevent make redudant popup window
-         (save-excursion                               ;prevent `current-buffer' pollution
-           (display-buffer-at-bottom
-            buf
-            `((align . below)
-              (window-height
-               .
-               ,(if (bound-and-true-p entropy/emacs-startup-done)
-                    0.1
-                  0.3))))))
+       (unless (ignore-errors
+                 (window-live-p (get-buffer-window buf)))
+         (save-selected-window
+           (save-excursion
+             (display-buffer
+              buf
+              (cons '(display-buffer-at-bottom)
+                    `((inhibit-switch-frame . t)
+                      ;; let this window be dedicated to the
+                      ;; `entropy/emacs-message-message-buffname' so that any
+                      ;; display buffer action before hide this window doesn't
+                      ;; operation on this window.
+                      (dedicated . t)
+                      (align . below)
+                      (window-height
+                       .
+                       ,(if (bound-and-true-p entropy/emacs-startup-done)
+                            0.1
+                          0.22))))
+              (selected-frame))))
+         (redisplay t))
 
-       (if (get-buffer-window buf)
+       (if (and (windowp (get-buffer-window buf))
+                (window-live-p (get-buffer-window buf)))
+           ;; we must do insert withins window selected since we can
+           ;; denote the current line of that window.
            (with-selected-window (get-buffer-window buf)
              (set-window-parameter
-              (selected-window)
+              (get-buffer-window buf)
               'entropy/emacs-message--cur-win-is-popup-p t)
              (with-current-buffer buf
                (setq-local entropy/emacs-message--cur-buf-is-popup-p t)
                (goto-char (point-max))
-               (insert "-> ")
-               (insert message-str)
-               (insert "\n")))
-         (message "Can not create an `entropy/emacs-message-message-buffer' window."))
-
-       ;; force hide window when message in idle time
-       (when (current-idle-time)
-         (entropy/emacs-message-hide-popup t))
+               (insert (concat "-> " message-str "\n"))
+               ;; ensure redisplay
+               (when (bound-and-true-p entropy/emacs-startup-done)
+                 (sit-for 0.1))
+               ))
+         (message "Can not create an `entropy/emacs-message-message-buffname' window."))
 
        ;; run an timer guard to force hide popuped message window
        (unless (timerp entropy/emacs-message--idle-timer-for-hide-popup)
          (setq entropy/emacs-message--idle-timer-for-hide-popup
                (run-with-idle-timer
-                0.15 t
+                0.05 t
                 #'entropy/emacs-message-hide-popup
                 ))))))
 
 (defmacro entropy/emacs-message-do-message-1 (message &rest args)
   "An alternative to `message' that strips out ANSI codes."
   `(let (_)
+     (redisplay t)
      ;; we shouldn't use `message' directly to touch the message in
      ;; this place since any string contain format notaion will cause
      ;; it corrupt, thus we use single `%s' to format the result.
@@ -274,16 +290,22 @@ interactive session."
 ;; *** common ansi message wrapper APIs
 ;;;###autoload
 (defmacro entropy/emacs-message-do-message (message &rest args)
-  "An alternative to `message' that strips out ANSI codes, with popup
-window if in a interaction session and
-`entropy/emacs-message-non-popup' is `null', while entropy-emacs
-startup duration."
-  `(if (or noninteractive
-           (minibuffer-window-active-p (selected-window))
-           (entropy/emacs-message--in-daemon-load-p)
-           (bound-and-true-p entropy/emacs-startup-done)
-           entropy/emacs-message-non-popup
-           entropy/emacs-message-non-popup-permanently)
+  "An alternative to `message' that strips out ANSI codes, with
+popup window if in a interaction session and
+`entropy/emacs-message-non-popup' is `null'. Use popup window
+whenever `entropy/emacs-startup-done' is not set"
+  `(if (or
+        ;; always disbale popup in `noninteractive' mode
+        noninteractive
+        ;; otherwise just use popup after `entropy/emacs-startup-done'
+        ;; and further conditions
+        (and
+         (bound-and-true-p entropy/emacs-startup-done)
+         (or
+          (minibuffer-window-active-p (selected-window))
+          (entropy/emacs-message--in-daemon-load-p)
+          entropy/emacs-message-non-popup
+          entropy/emacs-message-non-popup-permanently)))
        (entropy/emacs-message-do-message-1 ,message ,@args)
      (entropy/emacs-message--do-message-popup
       ,message ,@args)))
@@ -303,20 +325,23 @@ NOTE: Just use it in `noninteractive' session."
      (user-error "")))
 
 (defun entropy/emacs-message-hide-popup (&optional force)
-  "Hide popup window which display `entropy/emacs-message-message-buffer'."
-  (let* ((buf-name entropy/emacs-message-message-buffer)
+  "Hide popup window which display `entropy/emacs-message-message-buffname'."
+  (let* ((buf-name entropy/emacs-message-message-buffname)
          (win (ignore-errors
                 (get-buffer-window buf-name))))
     (when (and (and (bound-and-true-p entropy/emacs-startup-done)
-                    win)
+                    (windowp win))
                (or force
                    (window-parameter win 'entropy/emacs-message--cur-win-is-popup-p)
-                   (with-current-buffer buf-name
-                     entropy/emacs-message--cur-buf-is-popup-p)))
-      (delete-window win)
-      (with-current-buffer buf-name
-        (setq-local entropy/emacs-message--cur-buf-is-popup-p nil))
-      (when entropy/emacs-message--idle-timer-for-hide-popup
+                   (and (buffer-live-p (get-buffer buf-name))
+                        (with-current-buffer buf-name
+                          entropy/emacs-message--cur-buf-is-popup-p))))
+      (let ((ignore-window-parameters t))
+        (delete-window win))
+      (when (buffer-live-p (get-buffer buf-name))
+        (with-current-buffer (get-buffer buf-name)
+          (setq-local entropy/emacs-message--cur-buf-is-popup-p nil)))
+      (when (timerp entropy/emacs-message--idle-timer-for-hide-popup)
         (cancel-timer entropy/emacs-message--idle-timer-for-hide-popup)
         (setq entropy/emacs-message--idle-timer-for-hide-popup
               nil))

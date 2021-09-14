@@ -1954,13 +1954,12 @@ PROMPT-TYPE can be either 'prompt-popup' or 'prompt-echo' for let
 the initial form invoking do prompting in popup window type or
 with origin message echo area with those specification.
 "
-  `(eval
-    (eval
-     '(entropy/emacs-lazy-initial-form
-       ',hooks ',initial-func-suffix-name ',initial-var-suffix-name
-       "entropy/emacs--hook-first-enable-for" "hook-adder" ',prompt-type
-       'add-hook nil
-       ',body))))
+  (eval
+   `(entropy/emacs-lazy-initial-form
+     ',hooks ',initial-func-suffix-name ',initial-var-suffix-name
+     "entropy/emacs--hook-first-enable-for" "hook-adder" ',prompt-type
+     'add-hook nil
+     ',body)))
 
 (defmacro entropy/emacs-lazy-initial-advice-before
     (advice-fors initial-func-suffix-name initial-var-suffix-name
@@ -1976,15 +1975,14 @@ PROMPT-TYPE can be either 'prompt-popup' or 'prompt-echo' for let
 the initial form invoking do prompting in popup window type or
 with origin message echo area with those specification.
 "
-  `(eval
-    (eval
-     '(entropy/emacs-lazy-initial-form
-       ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
-       "entropy/emacs--beforeADV-fisrt-enable-for"
-       "before-advice-adder" ',prompt-type
-       'advice-add
-       :before
-       ',body))))
+  (eval
+   `(entropy/emacs-lazy-initial-form
+     ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
+     "entropy/emacs--beforeADV-fisrt-enable-for"
+     "before-advice-adder" ',prompt-type
+     'advice-add
+     :before
+     ',body)))
 
 ;; *** Lazy execute specification
 ;; ***** TODO accumulation execution

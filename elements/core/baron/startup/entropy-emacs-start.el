@@ -463,11 +463,16 @@ notation.
   (define-coding-system-alias 'cp65001 'utf-8))
 
 (defun entropy/emacs-start-do-load ()
-  (entropy/emacs-message-do-message (yellow "Cat's eye opening ..."))
-  (when (entropy/emacs-ext-main)
-    (entropy/emacs-start--init-bingo)
-    (unless entropy/emacs-fall-love-with-pdumper
-      (entropy/emacs-run-startup-end-hook))))
+  (let (
+        ;; We should ensure the load procedure not quits in anyway
+        ;; FIXME: this set can not inhibit quit in idle timer?
+        (quit-flag nil)
+        (inhibit-quit t))
+    (entropy/emacs-message-do-message (yellow "Cat's eye opening ..."))
+    (when (entropy/emacs-ext-main)
+      (entropy/emacs-start--init-bingo)
+      (unless entropy/emacs-fall-love-with-pdumper
+        (entropy/emacs-run-startup-end-hook)))))
 
 (if (or entropy/emacs-fall-love-with-pdumper
         (daemonp))

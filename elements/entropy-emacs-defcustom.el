@@ -2466,6 +2466,7 @@ that."
                   ;; miscellanies
                   (idlwave-config-directory . "idlwave/")
                   (entropy/org-exptt-html-theme-cache-dir . "org-themes/org-html-themes")
+                  (elfeed-db-directory . "elfeed-db/")
                   ))
     (let* ((var-sym (car item))
            (path (expand-file-name (cdr item) top))

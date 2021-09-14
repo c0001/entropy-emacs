@@ -90,6 +90,10 @@
         (remove yas--default-user-snippets-dir
                 yas-snippet-dirs))
   (add-to-list 'yas-snippet-dirs 'entropy/emacs-yas-dir)
+  (let ((entropy/emacs-message-non-popup nil))
+    (entropy/emacs-message-do-message
+     "%s"
+     (green "yas load customized snippets ...")))
   (yas-load-directory entropy/emacs-yas-dir t)
   ;; Then we initialize the thirdparty yas collections
   (use-package yasnippet-snippets
@@ -97,6 +101,10 @@
     ;; part since we are used its API after load `yasnippet'.
     :commands (yasnippet-snippets-initialize)
     :init
+    (let ((entropy/emacs-message-non-popup nil))
+      (entropy/emacs-message-do-message
+       "%s"
+       (green "yas load third-party snippets ...")))
     (yasnippet-snippets-initialize))
 
   ;; disable tab key in `yas-minor-mode' which will make conflict with `orgstruct-mode'

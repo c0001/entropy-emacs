@@ -560,11 +560,15 @@ Please only use this function for doing thus, do not run that
 hook using `run-hooks' or any other methods or may cause some
 messy."
   (run-hooks 'entropy/emacs-startup-end-hook)
-  (entropy/emacs-message-do-message
-   "%s"
-   (green "entropy-emacs startup done!"))
   (setq entropy/emacs-startup-done t)
-  (entropy/emacs-message-hide-popup))
+  (entropy/emacs-message-hide-popup)
+  (let ((entropy/emacs-message-non-popup t))
+    (entropy/emacs-message-do-message
+     ">>> %s (using %s seconds) "
+     (green "entropy-emacs startup done")
+     (yellow (float-time
+              (time-subtract (current-time)
+                             before-init-time))))))
 
 (defvar entropy/emacs-pyim-has-initialized nil
   "Variable indicate that pyim has started down for init.
