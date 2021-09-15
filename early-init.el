@@ -46,5 +46,9 @@
 (when (featurep 'ns)
   (push '(ns-transparent-titlebar . t) default-frame-alist))
 
+;; Inhibit dialog box for entropy-emacs initialization process to
+;; prevent judgment interaction missing upon emacs-28.
+(setq use-dialog-box nil)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here
