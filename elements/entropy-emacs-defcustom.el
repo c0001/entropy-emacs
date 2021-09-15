@@ -2215,6 +2215,15 @@ only one for thus."
 ;; *** intial advice
 ;; **** find file patch
 
+(defun __entropy/emacs-init-tramp-file-p (&rest args)
+  "Fake wrap for `tramp-tramp-file-p' when it's not found since
+the return for its invokation are always nil when it is not
+loaded as that we can be sure that there's neither any other
+tramp command be inovked."
+  (if (fboundp 'tramp-tramp-file-p)
+      (apply 'tramp-tramp-file-p args)
+    nil))
+
 ;; ***** find file path use absolute path
 (define-inline entropy/emacs--unslash-path (path)
   "Remove the final slash in PATH."
@@ -2229,7 +2238,7 @@ only one for thus."
 (defun entropy/emacs--dwim-abs-find-file (orig-func &rest orig-args)
   "Find file with enabled `find-file-visit-truename' when file
 under the symbolink root dir."
-  (if (tramp-tramp-file-p (car orig-args))
+  (if (__entropy/emacs-init-tramp-file-p (car orig-args))
       (apply orig-func orig-args)
     (let* ((filename (entropy/emacs--unslash-path (car orig-args)))
            (rest (cdr orig-args))
@@ -2272,7 +2281,7 @@ under the symbolink root dir."
                (so-long-detected-long-line-p)))))))
 
 (defun entropy/emacs-unreadable-file-judge (filename)
-  (unless (tramp-tramp-file-p filename)
+  (unless (__entropy/emacs-init-tramp-file-p filename)
     (let ((filesize (file-attribute-size
                      (file-attributes
                       filename)))
