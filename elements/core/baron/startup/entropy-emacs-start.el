@@ -478,7 +478,9 @@ notation.
         (daemonp))
     (entropy/emacs-start-do-load)
   (run-with-idle-timer
-   0 nil
+   ;; EEMACS_BUG: we can not set delay to 0 since bug:
+   ;; h-6d28b926-88c0-4286-a0de-9ee7b4a7516c
+   0.00001 nil
    #'entropy/emacs-start-do-load))
 
 ;; * provide

@@ -546,11 +546,12 @@ close hydra posframe."
     (unless hydra--posframe-timer
       (setq hydra--posframe-timer
             (run-with-idle-timer
-             0 nil (lambda ()
-                     (setq hydra--posframe-timer nil)
-                     (posframe-hide " *hydra-posframe*")
-                     (setq entropy/emacs-pretty-hydra-posframe-visible-p
-                           nil))))))
+             0.001 nil
+             (lambda ()
+               (setq hydra--posframe-timer nil)
+               (posframe-hide " *hydra-posframe*")
+               (setq entropy/emacs-pretty-hydra-posframe-visible-p
+                     nil))))))
   (advice-add 'hydra-posframe-hide
               :override
               #'__adv/around/hydra-posframe-hide/close-eemacs-pretty-hydra)

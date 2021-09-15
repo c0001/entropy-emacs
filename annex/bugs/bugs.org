@@ -430,6 +430,23 @@ input any code and =RET= trigger ~ivy-done~ then the error occurred
 For now mine temporally fixed method is to assign the =require-match=
 to its subroutine which forcely ignore any non-matched selection.
 
+** TODO bug of `run-with-idle-timer' with 0 idle delay in emacs start up time
+:PROPERTIES:
+:CUSTOM_ID: h-6d28b926-88c0-4286-a0de-9ee7b4a7516c
+:END:
+
+When emacs is startup with an idle timer as end procedure in
+=init.el=, then there're two pre-typed char =[= and =I= are preformed
+into the echo area of that timer.
+
+- Reproduce: [[file:0-idle-delay-init-bug/][here]]
+
+  We can not reproduce in arbitary environment, since it seems related
+  to the shell env the emacs start at, espacially in tmux session.
+
+- Temporally resolve dealing: set the idle delay closed to 0 but not
+  approach to it.
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

@@ -1223,7 +1223,9 @@ as '(cons attr-key attr-value)' which can be used for
           #'entropy/emacs-defun--theme-cover-0-rest)
 
 (defvar entropy/emacs--advice-priority-eemacs-cover-them-0-timer
-  (run-with-idle-timer 0 t #'entropy/emacs--advice-priority-eemacs-cover-them-0-timer))
+  (run-with-idle-timer
+   0.001 t
+   #'entropy/emacs--advice-priority-eemacs-cover-them-0-timer))
 (defun entropy/emacs--advice-priority-eemacs-cover-them-0-timer ()
   "Take advanced priority for the `eemacs-cover-theme-0' in
 `custom-enabled-themes' to guarantee the coverage feature."
