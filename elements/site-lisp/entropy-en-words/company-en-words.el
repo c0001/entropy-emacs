@@ -76,10 +76,13 @@
                        (car el) (cdr el)))
         (setq company-en-words/var--trie-inited t)))))
 
-;; initialize trie for entropy-emacs pdumper loading or daemon loading
-;; when detected
+;; initialize trie for entropy-emacs pdumper loading or daemon or
+;; eemacs non-lazy loading when detected
 (when (or (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
-          (daemonp))
+          (daemonp)
+          (and (boundp 'entropy/emacs-custom-enable-lazy-load)
+               (not (bound-and-true-p
+                     entropy/emacs-custom-enable-lazy-load))))
   (company-en-words/lib--init-trie))
 
 (defun company-en-words/lib--query-candis-core (word maxnum)

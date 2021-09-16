@@ -1920,7 +1920,10 @@ GENED-FUNCTION with their own name abbreviated."
                       ;; but in pdumper dump session we want it to run
                       (not entropy/emacs-fall-love-with-pdumper)
                       ;; but in daemon load session we want it run
-                      (not (daemonp))))
+                      (not (daemonp))
+                      ;; but in non-lazy enable mode we want it run
+                      (not (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load)))
+                      ))
            (let ((head-time (time-to-seconds))
                  (entropy/emacs-message-non-popup
                   (if (eq ',prompt-type 'prompt-popup) nil t))
