@@ -613,6 +613,20 @@ specification."
           (goto-char (point-max))))
       (display-buffer buff-name)))
 
+  ;; Enable ivy mode before calling these actions since the ivy-mode
+  ;; maybe delayed to enable
+  (dolist (func '(
+                  entropy/emacs-popwin-shackle-popup-buffer
+                  entropy/emacs-popwin-shackle-popup-dired
+                  entropy/emacs-popwin-shackle-popup-find-file
+                  entropy/emacs-popwin-shackle-popup-message
+                  ))
+    (advice-add func
+                :before
+                (lambda (&rest args)
+                  (unless (bound-and-true-p ivy-mode)
+                    (ivy-mode t)))))
+
 ;; **** reset rule action
 
   (defun entropy/emacs-popwin--shackle-set-rule ()

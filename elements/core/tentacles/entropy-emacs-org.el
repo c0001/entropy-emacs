@@ -1599,6 +1599,7 @@ when prefix arg was '(4) i.e. the single `C-u' type."
  "hydra-hollow-init-for-org"
  "hydra-hollow-init-for-org"
  prompt-echo
+ :pdumper-no-end t
  (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
   'org-mode '(org org-mode-map) t
   (append

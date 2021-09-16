@@ -98,10 +98,10 @@ place can be easily found by other interactive command."
     '(entropy/emacs-basic-set-mark-command))))
 
 ;; EEMACS_MAINTENANCE
-(entropy/emacs-lazy-with-load-trail
- disable-gvfs
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer ivy-read)
+ "disable-gvfs" "disable-gvfs" prompt-echo
  :pdumper-no-end t
- :body
  ;; Since tramp archive using simple magick filename regexp
  ;; matching, and its internal
  ;; `tramp-archive-file-name-handler-alist''s each corresponding
@@ -261,6 +261,7 @@ place can be easily found by other interactive command."
    "hydra-hollow-init-for-dired"
    "hydra-hollow-init-for-dired"
    prompt-echo
+   :pdumper-no-end t
    (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
     'dired-mode '(dired dired-mode-map) t
     entropy/emacs-basic-dired-hydra-hollow-cabinets
@@ -635,6 +636,7 @@ modifcation is to remove this feature.
 (entropy/emacs-lazy-initial-advice-before
  (dired) "dired-aux-init-for-dired" "dired-aux-init-for-dired"
  prompt-echo
+ :pdumper-no-end t
  (require 'dired-aux)
  ;; disable '.' key binding with `dired-clean-directory' for dired
  ;; mode for inadvertently press.
@@ -658,6 +660,7 @@ modifcation is to remove this feature.
    (dired)
    "dired-rainbow-init-for-dired" "dired-rainbow-init-for-dired"
    prompt-echo
+   :pdumper-no-end t
    (require 'dired-rainbow)
    (dired-rainbow-define dotfiles "gray" "\\..*")
    (dired-rainbow-define
@@ -714,6 +717,7 @@ modifcation is to remove this feature.
    (dired)
    "diredfl-init-for-dired" "diredfl-init-for-dired"
    prompt-echo
+   :pdumper-no-end t
    (diredfl-global-mode 1)))
 
 ;; **** dired-x
@@ -1166,8 +1170,12 @@ occasions. "
             :around
             #'entropy/emacs-basic--dspln-mode-around-advice)
 
-(entropy/emacs-lazy-with-load-trail
- global-display-line-numbers-mode
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer)
+ "global-display-line-numbers-mode"
+ "global-display-line-numbers-mode"
+ prompt-echo
+ :pdumper-no-end nil
  (setq-default display-line-numbers-width-start t)
  (when entropy/emacs-init-display-line-numbers-mode
    (global-display-line-numbers-mode)))
@@ -1202,8 +1210,10 @@ buffer, in that case any conditions don't match the filter then
   hl-line-mode
   entropy/emacs-turn-on-hl-line-mode)
 
-(entropy/emacs-lazy-with-load-trail
- global-hl-line-mode
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer)
+ "global-hl-line-mode" "global-hl-line-mode" prompt-echo
+ :pdumper-no-end nil
  (when entropy/emacs-init-hl-line-mode
    (entropy/emacs-hl-line-global-mode 1)))
 
@@ -1256,10 +1266,11 @@ Filename are \".scratch_entropy\" host in
               (insert initial-scratch-message))))))
     bfn))
 
-(entropy/emacs-lazy-with-load-trail
- init-eemamcs-scratch-buffer
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer ivy-read)
+ "init-eemamcs-scratch-buffer" "init-eemamcs-scratch-buffer"
+ prompt-echo
  :pdumper-no-end t
- :body
  (entropy/emacs-basic--scratch-buffer-file-binding))
 
 ;; Create a new scratch buffer
@@ -1499,8 +1510,11 @@ as thus."
 ;; Remove it globally since we do not use it frequently in non prog
 ;; mode and it well inject to `post-self-insert-hook' to increase
 ;; performance latency.
-(entropy/emacs-lazy-with-load-trail
- __disable-electric-indent-mode
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer)
+ "__disable-electric-indent-mode" "__disable-electric-indent-mode"
+ prompt-echo
+ :pdumper-no-end t
  (when (bound-and-true-p electric-indent-mode)
    (electric-indent-mode 0))
  ;; add it locally to prog referred mode hook
@@ -1688,6 +1702,7 @@ value as optional interaction while `PREFIX' is non-nil."
    "entropy-grom"
    "entropy-grom"
    prompt-echo
+   :pdumper-no-end t
    (entropy-grom-mode +1))
 
   :config
@@ -1809,11 +1824,13 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
       rtn))
 
   :init
-  (entropy/emacs-lazy-with-load-trail
-   undo-tree-enable
+  (entropy/emacs-lazy-initial-advice-before
+   (switch-to-buffer find-file)
+   "undo-tree-enable-init"
+   "undo-tree-enable-init"
+   prompt-echo
    ;; undo-tree can not enabled while pdumper
    :pdumper-no-end nil
-   :body
    (global-undo-tree-mode t)
    (global-set-key (kbd "C-x u") #'undo-tree-visualize))
 
@@ -2106,13 +2123,14 @@ operation system"
   :ensure nil
   :preface
   :init
-  (entropy/emacs-lazy-with-load-trail
-   recentf-init
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file switch-to-buffer)
+   "recentf-init" "recentf-init" prompt-echo
    ;; injects into pdumper recovery session since the recentf is
    ;; dynamic
    :pdumper-no-end nil
-   :body
    (recentf-mode))
+
   :config
   (setq recentf-max-saved-items 1000
         recentf-exclude
@@ -2126,11 +2144,15 @@ operation system"
 (use-package savehist
   :ensure nil
   :init
-  (entropy/emacs-lazy-with-load-trail
-   savehist-init
+
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file ivy-switch-buffer dired)
+   "savehist-init-for-find-file-refer"
+   "savehist-init-for-find-file-refer"
+   prompt-echo
    :pdumper-no-end t
-   :body
    (savehist-mode t))
+
   :config
   (setq
    history-length 10000
@@ -2736,6 +2758,7 @@ otherwise returns nil."
         "autocompression-mode"
         "autocompression-mode"
         prompt-echo
+        :pdumper-no-end t
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
 
@@ -2744,10 +2767,10 @@ otherwise returns nil."
 (use-package delsel
   :ensure nil
   :init
-  (entropy/emacs-lazy-with-load-trail
-   delsel-mode-init
+  (entropy/emacs-lazy-initial-advice-before
+   (yank xterm-paste)
+   "delsel-mode-init" "delsel-mode-init" prompt-echo
    :pdumper-no-end t
-   :body
    (delete-selection-mode 1)))
 
 ;; *** Inhibit gui dialog

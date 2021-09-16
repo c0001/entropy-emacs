@@ -240,10 +240,10 @@ invoke this function any more isn't it?"
 (use-package paren
   :ensure nil
   :init
-  (entropy/emacs-lazy-with-load-trail
-   show-paren-mode
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file switch-to-buffer)
+   "show-paren-mode" "show-paren-mode" prompt-echo
    :pdumper-no-end t
-   :body
    (show-paren-mode t))
   :config
   (setq show-paren-when-point-inside-paren t)
@@ -436,9 +436,10 @@ invoke this function any more isn't it?"
                      el))))
 
   (when entropy/emacs-hl-todo-enable-at-startup
-    (entropy/emacs-lazy-with-load-trail
-     global-hl-todo
-     :body
+    (entropy/emacs-lazy-initial-advice-before
+     (find-file)
+     "global-hl-todo" "global-hl-todo" prompt-echo
+     :pdumper-no-end t
      (progn
        (global-hl-todo-mode t))))
 
@@ -598,10 +599,10 @@ invoke this function any more isn't it?"
           t
         nil)))))
   :init
-  (entropy/emacs-lazy-with-load-trail
-   volatile-hl-mode
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file switch-to-buffer)
+   "volatile-hl-mode-init" "volatile-hl-mode-init" prompt-echo
    :pdumper-no-end t
-   :body
    (volatile-highlights-mode t)))
 
 ;; ** Visualize TAB, (HARD) SPACE, NEWLINE

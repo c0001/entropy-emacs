@@ -470,10 +470,10 @@ unwind occasion.")
   (advice-add 'counsel-git :around
               #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
-  (entropy/emacs-lazy-with-load-trail
-   counsel-init
+  (entropy/emacs-lazy-initial-advice-before
+   (ivy-read)
+   "counsel-init" "counsel-init" prompt-echo
    :pdumper-no-end t
-   :body
    ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
    (unless (bound-and-true-p ivy-mode)
      (ivy-mode +1))
@@ -891,6 +891,7 @@ display icon or empty string while
       (entropy/emacs-lazy-initial-advice-before
        (ivy-read)
        "ivy-rich" "ivy-rich" prompt-echo
+       :pdumper-no-end t
        (entropy/emacs-ivy--enable-ivy-rich-common)))))
 
   :config

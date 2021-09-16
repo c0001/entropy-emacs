@@ -244,20 +244,31 @@ NOTE: this function is an around advice wrapper."
 
 ;; *** init for load
   :init
-  (entropy/emacs-lazy-with-load-trail
-   global-company-mode
+  (defun entropy/emacs-company-global-init ()
+    (global-company-mode t)
+    ;;reduce lagging on increase company echo idle delay
+    (setq company-echo-delay 1)
+    (dolist (func '(company-idle-begin company-complete))
+      (advice-add func
+                  :before 'entropy/emacs-company-start-with-yas))
+    (entropy/emacs-company-yas-for-docs-init)
+    (entropy/emacs-company-toggle-frontend
+     (let ((orig-chosen entropy/emacs-company-tooltip-use-type)
+           rtn)
+       (if (and (not (display-graphic-p))
+                (eq orig-chosen 'company-box))
+           (setq rtn 'default)
+         (setq rtn orig-chosen))
+       rtn)))
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file switch-to-buffer)
+   "global-company-mode-init" "global-company-mode-init"
+   prompt-echo
    ;; We must ensure the `global-company-mode' enabled in pdumper
    ;; recovery hook since the `company-mode-on' need `noninteractive'
    ;; is null.
    :pdumper-no-end nil
-   :body
-   (global-company-mode t)
-   ;;reduce lagging on increase company echo idle delay
-   (setq company-echo-delay 1)
-   (dolist (func '(company-idle-begin company-complete))
-     (advice-add func
-                 :before 'entropy/emacs-company-start-with-yas))
-   (entropy/emacs-company-yas-for-docs-init))
+   (entropy/emacs-company-global-init))
   (entropy/emacs-lazy-load-simple (company counsel)
     (define-key company-active-map (kbd "M-o") 'counsel-company))
 
@@ -640,11 +651,6 @@ with `shackle'."
              (funcall chose-enable)))
       (setq entropy/emacs-company-frontend-sticker type))
     (message "OK: change company frontend from %s to %s done!" cur-type type)))
-
-(entropy/emacs-lazy-with-load-trail
- company-frontend-set
- (entropy/emacs-company-toggle-frontend
-  entropy/emacs-company-tooltip-use-type))
 
 ;; *** Popup documentation for completion candidates
 (use-package company-quickhelp

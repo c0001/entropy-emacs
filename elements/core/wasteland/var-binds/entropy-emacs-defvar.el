@@ -562,13 +562,19 @@ messy."
   (run-hooks 'entropy/emacs-startup-end-hook)
   (setq entropy/emacs-startup-done t)
   (entropy/emacs-message-hide-popup t)
-  (let ((entropy/emacs-message-non-popup t))
-    (entropy/emacs-message-do-message
-     ">>> %s (using %s seconds) "
-     (green "entropy-emacs startup done")
-     (yellow (float-time
-              (time-subtract (current-time)
-                             before-init-time))))))
+  (let ((entropy/emacs-message-non-popup t)
+        (msgstr
+         (entropy/emacs-message--do-message-ansi-apply
+          ">>> %s (using %s seconds) "
+          (green "entropy-emacs startup done")
+          (yellow (float-time
+                   (time-subtract (current-time)
+                                  before-init-time))))))
+    (unless (daemonp)
+      (setq-local
+       mode-line-format
+       msgstr))
+    (message "%s" msgstr)))
 
 (defvar entropy/emacs-pyim-has-initialized nil
   "Variable indicate that pyim has started down for init.

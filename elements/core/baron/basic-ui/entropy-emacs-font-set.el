@@ -255,8 +255,10 @@ when available."
              :family font-family)
             (throw :exit nil)))))))
 
-(entropy/emacs-lazy-with-load-trail
- __set-prog-mode-font-set__
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer)
+ "__set-prog-mode-font-set__" "__set-prog-mode-font-set__" prompt-echo
+ :pdumper-no-end t
  (add-hook 'prog-mode-hook
            #'entropy/emacs-font-set--prog-font-set)
  ;; enable font set to opened buffers

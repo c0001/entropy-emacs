@@ -415,7 +415,7 @@ function return a form-plist."
   "Get BODY inside of 'pre-plist' ARGS, commonly is the last non
 key-pair cdr.
 
-This functio is useful for cl-based def* args parsing like:
+This function is useful for cl-based def* args parsing like:
 
 #+begin_src emacs-lisp
   (name &rest body
@@ -1610,7 +1610,8 @@ bottom)."
 (defmacro entropy/emacs-general-with-gc-strict (&rest body)
   "Strictly gc features when run BODY."
   `(let ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
-         (gc-cons-percentage entropy/emacs-gc-percentage-basic))
+         (gc-cons-percentage entropy/emacs-gc-percentage-basic)
+         (inhibit-quit t))
      ,@body))
 
 (defun entropy/emacs-transfer-wvol (file)
@@ -1834,6 +1835,7 @@ functional aim to:
               (append (symbol-value (entropy/emacs-select-trail-hook ,pdumper-no-end))
                       '(,func))))))))
 
+(defvar entropy/emacs-lazy-initial-form-pdumper-no-end nil)
 (defun entropy/emacs-lazy-initial-form
     (list-var
      initial-func-suffix-name initial-var-suffix-name
@@ -1862,7 +1864,10 @@ There's two tricks:
 
 1. Directly add GENED-FUNCTION into the
    =entropy-emacs-startup-trail-hook= when
-   `entropy/emacs-custom-enable-lazy-load' is non-nil.
+   `entropy/emacs-custom-enable-lazy-load' is non-nil. (if
+   `entropy/emacs-lazy-initial-form-pdumper-no-end' is non-nil we also
+   set the optional arg PDUMPER-NO-END of
+   `entropy/emacs-select-trail-hook')
 
 2. Using LIST-VAR and consider each element of it is a hook (when
    the ADDER-FLAG is nil) or a function (when ADDER-TYPE is
@@ -1907,11 +1912,20 @@ GENED-FUNCTION with their own name abbreviated."
     `(progn
        (defvar ,var nil)
        (defun ,func (&rest $_|internal-args)
-         (let ((head-time (time-to-seconds))
-               (entropy/emacs-message-non-popup
-                (if (eq ',prompt-type 'prompt-popup) nil t))
-               end-time)
-           (unless ,var
+         (unless (or ,var
+                     ;; we just run intialform after eemacs startup
+                     ;; done to speedup eemacs startup.
+                     (and
+                      (not (bound-and-true-p entropy/emacs-startup-done))
+                      ;; but in pdumper dump session we want it to run
+                      (not entropy/emacs-fall-love-with-pdumper)
+                      ;; but in daemon load session we want it run
+                      (not (daemonp))))
+           (let ((head-time (time-to-seconds))
+                 (entropy/emacs-message-non-popup
+                  (if (eq ',prompt-type 'prompt-popup) nil t))
+                 end-time
+                 __func_rtn)
              (redisplay t)
              (entropy/emacs-message-do-message
               "%s '%s' %s"
@@ -1919,8 +1933,23 @@ GENED-FUNCTION with their own name abbreviated."
               (yellow ,initial-func-suffix-name)
               (blue "..."))
              (entropy/emacs-general-with-gc-strict
-              ,@func-body)
-             (setq ,var t)
+              (setq __func_rtn
+                    (prog1
+                        (progn
+                          ,@func-body)
+                      (setq ,var t)
+                      ;; fake the function after evaluated it.
+                      (defun ,func (&rest $_|internal-args)
+                        "this function has been faked since it just need to run once."
+                        nil)
+                      ;; finally we remove the initial injection
+                      (cond ((eq ',adder-type 'advice-add)
+                             (dolist (adfor-it ',list-var)
+                               (advice-remove adfor-it ',func)))
+                            ((eq ',adder-type 'add-hook)
+                             (dolist (adhfor-it ',list-var)
+                               (remove-hook adhfor-it ',func))))))
+              )
              (setq end-time (time-to-seconds))
              (entropy/emacs-message-do-message
               "%s '%s' %s '%s' %s"
@@ -1930,16 +1959,23 @@ GENED-FUNCTION with their own name abbreviated."
               (cyan (format "%f" (- end-time head-time)))
               (green "seconds. (Maybe running rest tasks ...)"))
              (redisplay t)
-             (entropy/emacs-idle-cleanup-echo-area))))
-       (let ((hook (entropy/emacs-select-trail-hook)))
+             (entropy/emacs-idle-cleanup-echo-area)
+             __func_rtn)))
+       (let ((hook (entropy/emacs-select-trail-hook
+                    ',entropy/emacs-lazy-initial-form-pdumper-no-end)))
          (cond
           ((not entropy/emacs-custom-enable-lazy-load)
            (set hook (append (symbol-value hook) '(,func))))
-          (t (defun ,adder-func ()
-               (dolist (item ',list-var)
-                 (if (not (null ,adder-flag))
-                     (,adder-type item ,adder-flag ',func)
-                   (,adder-type item ',func))))
+          (t (defun ,adder-func (&rest _)
+               (let ((inhibit-quit t))
+                 (dolist (item ',list-var)
+                   (if (not (null ,adder-flag))
+                       (,adder-type item ,adder-flag ',func)
+                     (,adder-type item ',func)))
+                 ;; fake it after evaluated it
+                 (defun ,adder-func (&rest _)
+                   "this function has been faked since it just need to run once."
+                   nil)))
              (set hook (append (symbol-value hook) '(,adder-func)))))))))
 
 (defmacro entropy/emacs-lazy-initial-for-hook
@@ -1963,9 +1999,11 @@ with origin message echo area with those specification.
      'add-hook nil
      ',body)))
 
-(defmacro entropy/emacs-lazy-initial-advice-before
+(cl-defmacro entropy/emacs-lazy-initial-advice-before
     (advice-fors initial-func-suffix-name initial-var-suffix-name
-                 prompt-type &rest body)
+                 prompt-type &rest body
+                 &key pdumper-no-end
+                 &allow-other-keys)
   "Wrap forms collection BODY into a auto-gened function named
 suffixed by INITIAL-FUNC-SUFFIX-NAME and then advice it to a list
 of specific functions and just enable it oncely at the next time
@@ -1976,15 +2014,23 @@ variable named suffixed by INITIAL-VAR-SUFFIX-NAME.
 PROMPT-TYPE can be either 'prompt-popup' or 'prompt-echo' for let
 the initial form invoking do prompting in popup window type or
 with origin message echo area with those specification.
+
+If key :pdumper-no-end is non-nil then the BODY in non lazy
+session is inject to the the common
+`entropy/emacs-select-trail-hook' so that they are evaluated
+while pdumper procedure.
 "
-  (eval
-   `(entropy/emacs-lazy-initial-form
-     ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
-     "entropy/emacs--beforeADV-fisrt-enable-for"
-     "before-advice-adder" ',prompt-type
-     'advice-add
-     :before
-     ',body)))
+  (let ((body-wrap (entropy/emacs-get-plist-body body)))
+    (eval
+     `(let ((entropy/emacs-lazy-initial-form-pdumper-no-end
+             ,pdumper-no-end))
+        (entropy/emacs-lazy-initial-form
+         ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
+         "entropy/emacs--beforeADV-fisrt-enable-for"
+         "before-advice-adder" ',prompt-type
+         'advice-add
+         :before
+         ',body-wrap)))))
 
 ;; *** Lazy execute specification
 ;; ***** TODO accumulation execution

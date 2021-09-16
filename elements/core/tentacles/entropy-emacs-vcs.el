@@ -337,6 +337,7 @@
    (find-file)
    "smerge-init-for-find-file-hook" "smerge-init-for-find-file-hook"
    prompt-echo
+   :pdumper-no-end t
    (add-hook 'find-file-hook
              'entropy/emacs-vcs--smerge-auto-open-for-buffer))
   )

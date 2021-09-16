@@ -296,10 +296,10 @@
 ;; NOTE:
 ;; We must init path setting after eemacs load since pdumper will
 ;; re-get ENV var after dump load.
-(entropy/emacs-lazy-with-load-trail
- path-register
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer dired ivy-mode counsel-mode entropy/shellpop-start)
+ "path-register" "path-register" prompt-echo
  :pdumper-no-end nil
- :body
  (entropy/emacs-path--common-path-register)
  (when sys/win32p
    (entropy/emacs-path--w32-regist-path)))

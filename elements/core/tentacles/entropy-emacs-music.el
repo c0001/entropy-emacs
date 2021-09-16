@@ -720,6 +720,7 @@ been killed."
   (entropy/emacs-lazy-initial-advice-before
    (dired)
    "bongo-dired-init" "bongo-dired-init" prompt-echo
+   :pdumper-no-end t
    (defun entropy/emacs-music-bongo-add-dired-files ()
      "Add marked files to the Bongo library and then popup the
 `bongo-library-buffer' which the buffer point position has been

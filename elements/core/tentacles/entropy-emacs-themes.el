@@ -46,16 +46,20 @@
   :ensure nil
   :commands (doom-themes-visual-bell-config)
   :init
-  (entropy/emacs-lazy-with-load-trail
-   doom-visual-bell
+  (entropy/emacs-lazy-initial-advice-before
+   (keyboard-quit)
+   "doom-visual-bell" "doom-visual-bell" prompt-echo
+   :pdumper-no-end t
    (doom-themes-visual-bell-config)))
 
 (use-package doom-themes-ext-org
   :ensure nil
   :commands (doom-themes-org-config)
   :init
-  (entropy/emacs-lazy-with-load-trail
-   doom-org-specific
+  (entropy/emacs-lazy-initial-advice-before
+   (org-mode)
+   "doom-org-specific" "doom-org-specific" prompt-echo
+   :pdumper-no-end t
    (doom-themes-org-config)))
 
 (use-package ujelly-theme
@@ -272,8 +276,10 @@ by `entropy/emacs-startup-done'.")
           compilation-mode outline-mode)
         page-break-lines-max-width 70)
 
-  (entropy/emacs-lazy-with-load-trail
-   PageBreakLines
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file)
+   "PageBreakLines" "PageBreakLines" prompt-echo
+   :pdumper-no-end t
    (global-page-break-lines-mode +1)))
 
 ;; ** Initialize theme and adapting to the daemon init

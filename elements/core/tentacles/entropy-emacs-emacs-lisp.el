@@ -153,15 +153,13 @@ For lisp coding aim, always return the transfered buffer.
 
   (setq eldoc-eval-preferred-function 'eval-expression)
 
-  (entropy/emacs-lazy-with-load-trail
-   eldoc-minibuffer-show
-   :pdumper-no-end t
-   :body
-   (with-eval-after-load 'eldoc-eval
-     (advice-add 'eldoc-in-minibuffer-mode
-                 :after
-                 #'entropy/emacs-lisp-eldoc-eval-minibuffer-map-rejected-advice
-                 ))))
+  (entropy/emacs-lazy-load-simple
+      eldoc-eval
+    (advice-add 'eldoc-in-minibuffer-mode
+                :after
+                #'entropy/emacs-lisp-eldoc-eval-minibuffer-map-rejected-advice
+                ))
+  )
 
 ;; Interactive macro expander
 (use-package macrostep

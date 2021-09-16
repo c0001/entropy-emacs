@@ -45,6 +45,7 @@
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))
+(require 'subr-x)
 
 (defconst entropy/emacs-custom-common-file-template
   (expand-file-name

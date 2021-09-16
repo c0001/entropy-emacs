@@ -80,10 +80,23 @@
 
   :init
 
-  (entropy/emacs-lazy-with-load-trail
-   projectile
+  (entropy/emacs-lazy-initial-advice-before
+   (counsel-projectile
+    counsel-projectile-ag
+    counsel-projectile-find-dir
+    counsel-projectile-find-file
+    counsel-projectile-find-file-dwim
+    counsel-projectile-git-grep
+    counsel-projectile-grep
+    counsel-projectile-mode
+    counsel-projectile-org-agenda
+    counsel-projectile-org-capture
+    counsel-projectile-rg
+    counsel-projectile-switch-project
+    counsel-projectile-switch-to-buffer
+    )
+   "projectile-init" "projectile-init" prompt-echo
    :pdumper-no-end t
-   :body
    (setq projectile-mode-line-prefix ""
          projectile-sort-order 'recentf
          projectile-use-git-grep t

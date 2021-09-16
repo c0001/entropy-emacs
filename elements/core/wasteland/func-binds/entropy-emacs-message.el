@@ -317,21 +317,26 @@ interactive session."
 popup window if in a interaction session and
 `entropy/emacs-message-non-popup' is `null'. Use popup window
 whenever `entropy/emacs-startup-done' is not set"
-  `(if (or
-        ;; always disbale popup in `noninteractive' mode
-        noninteractive
-        ;; otherwise just use popup after `entropy/emacs-startup-done'
-        ;; and further conditions
-        (and
-         (bound-and-true-p entropy/emacs-startup-done)
-         (or
-          (minibuffer-window-active-p (selected-window))
-          (entropy/emacs-message--in-daemon-load-p)
-          entropy/emacs-message-non-popup
-          entropy/emacs-message-non-popup-permanently)))
-       (entropy/emacs-message-do-message-1 ,message ,@args)
-     (entropy/emacs-message--do-message-popup
-      ,message ,@args)))
+  `(cond ;; ((and
+         ;;   nil
+         ;;   (not (bound-and-true-p entropy/emacs-startup-done)))
+         ;;  (message "Loading ..."))
+         ((or
+           ;; always disbale popup in `noninteractive' mode
+           noninteractive
+           ;; daemon loading
+           (entropy/emacs-message--in-daemon-load-p)
+           ;; otherwise just use popup after `entropy/emacs-startup-done'
+           ;; and further conditions
+           (and
+            (bound-and-true-p entropy/emacs-startup-done)
+            (or
+             (minibuffer-window-active-p (selected-window))
+             entropy/emacs-message-non-popup
+             entropy/emacs-message-non-popup-permanently)))
+          (entropy/emacs-message-do-message-1 ,message ,@args))
+         (t (entropy/emacs-message--do-message-popup
+             ,message ,@args))))
 
 (defmacro entropy/emacs-message-do-warn (message &rest args)
   "An alternative `warn'that strips out ANSI codes. "

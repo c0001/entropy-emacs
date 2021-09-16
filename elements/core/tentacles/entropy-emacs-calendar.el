@@ -40,10 +40,10 @@
   :after calendar
   :commands cal-china-x-setup
   :init
-  (entropy/emacs-lazy-with-load-trail
-   china-calendar-init
+  (entropy/emacs-lazy-initial-advice-before
+   (calendar)
+   "china-calendar-init" "china-calendar-init" prompt-echo
    :pdumper-no-end t
-   :body
    (cal-china-x-setup))
   :config
   (setq calendar-mark-holidays-flag t

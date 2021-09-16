@@ -30,6 +30,10 @@
 (setq entropy/emacs-indicate-sshd-session nil)
 
 ;; Startup options
+
+;; ;; enable rich dashboard to show recentf and projects but for more loading time
+;; (setq entropy/emacs-enable-initial-dashboard 'rich)
+
 (setq entropy/emacs-minimal-start nil)
 
 (setq entropy/emacs-custom-enable-lazy-load t)
@@ -47,3 +51,9 @@
 ;; but `doom-modeline' has more rich feature but without performance
 ;; guarantee, so stick on your choice.
 (setq entropy/emacs-modeline-style "origin")
+
+
+;; IDE options
+;; ;; enable eemacs IDE integration
+;; (setq entropy/emacs-ide-suppressed nil)
+(setq entropy/emacs-ide-use-for-all 'lsp)

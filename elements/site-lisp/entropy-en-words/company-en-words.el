@@ -76,8 +76,10 @@
                        (car el) (cdr el)))
         (setq company-en-words/var--trie-inited t)))))
 
-;; initialize trie for entropy-emacs pdumper loading when detected
-(when (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+;; initialize trie for entropy-emacs pdumper loading or daemon loading
+;; when detected
+(when (or (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+          (daemonp))
   (company-en-words/lib--init-trie))
 
 (defun company-en-words/lib--query-candis-core (word maxnum)
