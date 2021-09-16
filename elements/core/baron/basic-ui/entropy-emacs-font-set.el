@@ -258,7 +258,7 @@ when available."
 (entropy/emacs-lazy-initial-advice-before
  (find-file switch-to-buffer)
  "__set-prog-mode-font-set__" "__set-prog-mode-font-set__" prompt-echo
- :pdumper-no-end t
+ :pdumper-no-end nil
  (add-hook 'prog-mode-hook
            #'entropy/emacs-font-set--prog-font-set)
  ;; enable font set to opened buffers
