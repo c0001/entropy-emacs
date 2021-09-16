@@ -92,7 +92,10 @@ posframe or popup shown mechanism."
                    :initialize predicate)
     (setq entropy/sdcv-show--posframe-last-point (point)
           entropy/sdcv-show--posframe-last-scroll-offset (window-start))
-    (add-hook 'post-command-hook 'entropy/sdcv-show--posframe-hide-after-move)))
+    ;; add to global scope so that we can deletion any posfram related
+    (add-hook 'post-command-hook
+              'entropy/sdcv-show--posframe-hide-after-move
+              )))
 
 (defun entropy/sdcv-show--posframe-hide-after-move ()
   "Quit and delete `entropy/sdcv-show-tooltip-buffer-name' of posframe
@@ -102,12 +105,29 @@ This func was automatically added into `post-command-hook' by
 `entropy/sdcv-show--show-with-posframe'."
   (ignore-errors
     (when (get-buffer entropy/sdcv-show-tooltip-buffer-name)
-      (unless (and
-               (equal (point) entropy/sdcv-show--posframe-last-point)
-               (not (eq this-command 'keyboard-quit))
-               (equal (window-start) entropy/sdcv-show--posframe-last-scroll-offset))
-        (posframe-delete entropy/sdcv-show-tooltip-buffer-name)
-        (kill-buffer entropy/sdcv-show-tooltip-buffer-name)))))
+      (let ((del-func
+             (lambda (&rest _)
+               (posframe-delete entropy/sdcv-show-tooltip-buffer-name)
+               (kill-buffer entropy/sdcv-show-tooltip-buffer-name)))
+            (del-p nil))
+        (cond ((eq
+                ;; we should use `real-this-command' since some post
+                ;; command may modify the `this-command'.
+                real-this-command 'keyboard-quit)
+               (funcall del-func)
+               (setq del-p t))
+              ((not (and
+                     (equal (point) entropy/sdcv-show--posframe-last-point)
+                     (equal (window-start)
+                            entropy/sdcv-show--posframe-last-scroll-offset)))
+               (funcall del-func)
+               (setq del-p t)))
+        ;; ensure the deletion predicated then we can remove the hook
+        ;; for guaranteeing the performance
+        (when del-p
+          (remove-hook 'post-command-hook
+                       'entropy/sdcv-show--posframe-hide-after-move
+                       ))))))
 
 ;;;;; pos-tip
 (defcustom entropy/sdcv-show-pos-tip-height-stretch 1.5
