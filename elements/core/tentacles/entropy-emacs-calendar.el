@@ -37,7 +37,6 @@
 ;; ** main
 
 (use-package cal-china-x
-  :after calendar
   :commands cal-china-x-setup
   :init
   (entropy/emacs-lazy-initial-advice-before
