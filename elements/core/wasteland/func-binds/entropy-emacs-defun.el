@@ -1612,7 +1612,7 @@ windows exist return nil."
   "Delete all lived side windows matched the 'side-type' in a
 list SIDE-TYPES, 'side-type' is enumerated of (left right top
 bottom)."
-  (let ((side-types (delete-duplicates side-types :test 'eq))
+  (let ((side-types (cl-delete-duplicates side-types :test 'eq))
         (side-wins (entropy/emacs-overview-live-side-windows))
         (ignore-window-parameters t))
     (unless (null side-wins)
