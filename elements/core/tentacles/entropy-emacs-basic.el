@@ -2077,7 +2077,12 @@ successfully both of situation of read persisit of create an new."
           (run-with-idle-timer 10 t #'entropy/emacs-basic-kill-ring-persist))
     (add-hook 'kill-emacs-hook
               #'entropy/emacs-basic-kill-ring-persist-after-kill-emacs)))
-(add-hook 'entropy/emacs-startup-end-hook #'entropy/emacs-basic--init-kill-ring-persist)
+
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer ivy-read)
+ "kill-ring-persist-init" "kill-ring-persist-init"
+ :pdumper-no-end nil
+ (entropy/emacs-basic--init-kill-ring-persist))
 
 (defalias 'entropy/emacs-basic-start-kill-ring-persist
   #'entropy/emacs-basic--init-kill-ring-persist)
