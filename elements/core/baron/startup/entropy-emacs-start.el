@@ -337,18 +337,13 @@ notation.
 
   ;; ============================
   ;; mainly ui configuration
-  (redisplay t)
   (require 'entropy-emacs-modeline)
-  (redisplay t)
+
   ;; loading theme configuration after the modeline for loading theme
   ;; specifics for some mode-line adaption
   (require 'entropy-emacs-themes)
-  (redisplay t)
-
   (require 'entropy-emacs-wc)
-  (redisplay t)
   (require 'entropy-emacs-popwin)
-  (redisplay t)
   ;; =============================
 
   ;; ineractive
