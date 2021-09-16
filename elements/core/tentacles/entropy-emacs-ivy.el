@@ -872,7 +872,15 @@ display icon or empty string while
 
   (defun entropy/emacs-ivy--enable-ivy-rich-common ()
     (require 'ivy)
+    ;; ensure load the :config part
+    (require 'ivy-rich)
     (require 'all-the-icons)
+    ;; we must ensure that initial `ivy-rich-display-transformers-list'
+    ;; after all specification are injected into
+    ;; `entropy/emacs-ivy-rich-extra-display-transformers-list'.
+    (setq
+     ivy-rich-display-transformers-list
+     (entropy/ivy--ivy-rich-set-transformers-list))
     (ivy-rich-mode +1)
     (ivy-mode +1)
     (setq ivy-virtual-abbreviate
@@ -1122,20 +1130,6 @@ display icon or empty string while
        ivy-rich-display-transformers-list
        (entropy/ivy--ivy-rich-set-transformers-list))
       (ivy-rich-mode 1)))
-
-  ;; we must ensure that initial `ivy-rich-display-transformers-list'
-  ;; after all specification are injected into
-  ;; `entropy/emacs-ivy-rich-extra-display-transformers-list'.
-  (let ((body '(setq
-                ivy-rich-display-transformers-list
-                (entropy/ivy--ivy-rich-set-transformers-list))))
-    (if (bound-and-true-p entropy/emacs-custom-enable-lazy-load)
-        (eval body)
-      (eval
-       `(entropy/emacs-lazy-with-load-trail
-         __init_ivy-rich-display-transformers-list
-         :pdumper-no-end t
-         ,body))))
   )
 
 
