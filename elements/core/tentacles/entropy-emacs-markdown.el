@@ -436,18 +436,22 @@ package management!"))
 
 
 ;; ***** hydra defiens
-(entropy/emacs-hydra-hollow-define-major-mode-hydra
- 'markdown-mode
- '(markdown-mode markdown-mode-map)
- (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
-  'markdown-mode)
- entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-map
- '((2 :width-desc "Markup insertion & removal && Promotion, demotion, and cycling")
-   (2 :width-desc "Following and doing things && Indention")
-   (2 :width-desc "Visibility cycle and heading or listing navigation")
-   (2 :width-desc "Subtree, list and table editting && Blocks editting")
-   (2 :width-desc "Link movement && Toggleing functionality ")
-   (2 :width-desc "Alternatives")))
+(entropy/emacs-lazy-initial-advice-before
+ (markdown-mode)
+ "markdown-hydra-hollow-init" "markdown-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-define-major-mode-hydra
+  'markdown-mode
+  '(markdown-mode markdown-mode-map)
+  (entropy/emacs-pretty-hydra-make-body-for-major-mode-union
+   'markdown-mode)
+  entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-map
+  '((2 :width-desc "Markup insertion & removal && Promotion, demotion, and cycling")
+    (2 :width-desc "Following and doing things && Indention")
+    (2 :width-desc "Visibility cycle and heading or listing navigation")
+    (2 :width-desc "Subtree, list and table editting && Blocks editting")
+    (2 :width-desc "Link movement && Toggleing functionality ")
+    (2 :width-desc "Alternatives"))))
 
 ;; ** markdown preview
 ;; *** simple preview
