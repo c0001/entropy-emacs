@@ -471,7 +471,7 @@ unwind occasion.")
               #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
   (entropy/emacs-lazy-initial-advice-before
-   (ivy-read)
+   (ivy-read switch-to-buffer)
    "counsel-init" "counsel-init" prompt-echo
    :pdumper-no-end t
    ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
