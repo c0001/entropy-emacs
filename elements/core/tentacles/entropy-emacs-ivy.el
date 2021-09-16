@@ -376,7 +376,7 @@ unwind occasion.")
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c f f" counsel-fzf "Open a file using the fzf shell command"
       :enable t :exit t :eemacs-top-bind t)
-     ("C-c c f l" counsel-locate "Call the "locate" shell command."
+     ("C-c c f l" counsel-locate "Call the \"locate\" shell command."
       :enable t :exit t :eemacs-top-bind t)
      ("C-c c f m b" counsel-bookmark "View Emacs Bookmarks"
       :enable t :exit t :eemacs-top-bind t)
