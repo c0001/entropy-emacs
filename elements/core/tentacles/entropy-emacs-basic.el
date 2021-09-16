@@ -495,7 +495,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 
       (cond
        ((= (length rtn) 1)
-        (with-temp-buffer
+        (entropy/emacs-with-temp-buffer
           (when buffer-read-only
             (read-only-mode 0))
           (goto-char (point-min))
@@ -838,7 +838,7 @@ that show that filename wasn't exsited any more."
            (inhibit-read-only t))
       (if (string-empty-p readin)
           readin
-        (with-temp-buffer
+        (entropy/emacs-with-temp-buffer
           (insert readin)
 
           ;; Pruning the dir list of '.' and '..'
@@ -1966,7 +1966,7 @@ for kill-ring persistent at %s, do not edit it manually"
             "Judge whether the print type of VALUE can be read
 correctly, if thus return t otherwise for nil and transferred
 error type to output symbol OUTPUT-SYM."
-            (with-temp-buffer
+            (entropy/emacs-with-temp-buffer
               (condition-case error
                   (let (_)
                     ;; Print the value into a buffer...
@@ -2380,7 +2380,7 @@ please check buffer '*liberime build*' for details"
 
       ;; init pyim at temp buffer for preventing polluting
       ;; current-input-method in current buffer.
-      (with-temp-buffer
+      (entropy/emacs-with-temp-buffer
         (set-input-method "pyim"))
 
       ;; keybinding reflect

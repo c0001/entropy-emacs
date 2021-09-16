@@ -84,7 +84,7 @@ region with error throw out in region selected occasion."
         (when buffer-read-only
           (read-only-mode 0))
 
-        (with-temp-buffer
+        (entropy/emacs-with-temp-buffer
           (when buffer-read-only
             (read-only-mode 0))
           (erase-buffer)

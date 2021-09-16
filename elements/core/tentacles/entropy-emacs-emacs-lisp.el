@@ -266,7 +266,7 @@ For lisp coding aim, always return the transfered buffer.
   ;; (defun entropy/emacs-lisp--slime-filter-desc-brief (desc)
   ;;   (let (rtn)
   ;;     (when (string-match-p "Documentation:" desc)
-  ;;       (with-temp-buffer
+  ;;       (entropy/emacs-with-temp-buffer
   ;;         (insert desc)
   ;;         (goto-char (point-min))
   ;;         (re-search-forward "Documentation:" nil t)

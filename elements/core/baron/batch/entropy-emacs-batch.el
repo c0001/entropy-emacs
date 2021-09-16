@@ -287,7 +287,7 @@ faild with hash '%s' which must match '%s'"
             'non-trail-slash)))
       (rename-file dirname host)
       ;; generate inited indicator
-      (with-temp-buffer
+      (entropy/emacs-with-temp-buffer
         (write-file
          entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator
          )))

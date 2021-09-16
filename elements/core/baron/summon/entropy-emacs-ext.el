@@ -207,7 +207,7 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
         (throw :exit 1))
       (if (not (file-exists-p version_lc))
           (throw :exit 2)
-        (with-temp-buffer
+        (entropy/emacs-with-temp-buffer
           (insert-file-contents version_lc)
           (cond
            ((version< (buffer-substring (point-min) (point-max)) version)

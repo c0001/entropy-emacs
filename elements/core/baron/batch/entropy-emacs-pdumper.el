@@ -252,7 +252,7 @@ configuration.")
         (let ((inhibit-read-only t)
               (backup-inhibited t))
           (if (not (file-exists-p entropy/emacs-pdumper--loads-log-file))
-              (with-temp-buffer
+              (entropy/emacs-with-temp-buffer
                 (erase-buffer)
                 (goto-char (point-min))
                 (insert file)
