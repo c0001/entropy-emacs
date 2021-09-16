@@ -49,25 +49,30 @@
       :enable t :exit t :global-bind t))))
   :preface
   (defun entropy/emacs-vcs--magit-init ()
-    (require 'magit)
-    ;; pre generate `magit-dispatch' object (used quickly)
-    (transient--init-objects 'magit-dispatch nil nil)
-    ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
-    (progn
-      (advice-add 'magit-status :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-      (advice-add 'magit-dispatch-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-      (advice-add 'magit-file-popup :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
-    ;;disabled 'M-1' key-binding with conflicated with
-    ;;`entropy/emacs-quick-readonly-global'
-    (progn
-      ;; Disable 'M-1' binding for `magit-mode-map' since we bind it
-      ;; to `entropy/grom-quick-readonly-global' globally
-      (define-key magit-mode-map (kbd "M-1") nil)
-
-      (define-key magit-mode-map (kbd "M-0") #'magit-section-show-level-1-all)
-
-      (define-key magit-mode-map (kbd "<M-up>") #'magit-section-backward-sibling)
-      (define-key magit-mode-map (kbd "<M-down>") #'magit-section-forward-sibling)))
+    (with-eval-after-load 'magit
+      ;; Force using utf-8 environment to prevent causing unicode problem in git commit.
+      (progn
+        (advice-add 'magit-status
+                    :around
+                    #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+        (advice-add 'magit-dispatch-popup
+                    :around
+                    #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+        (advice-add 'magit-file-popup
+                    :around
+                    #'entropy/emacs-lang-use-utf-8-ces-around-advice))
+      ;;disabled 'M-1' key-binding with conflicated with
+      ;;`entropy/emacs-quick-readonly-global'
+      (progn
+        ;; Disable 'M-1' binding for `magit-mode-map' since we bind it
+        ;; to `entropy/grom-quick-readonly-global' globally
+        (define-key magit-mode-map (kbd "M-1") nil)
+        (define-key magit-mode-map (kbd "M-0")
+          #'magit-section-show-level-1-all)
+        (define-key magit-mode-map (kbd "<M-up>")
+          #'magit-section-backward-sibling)
+        (define-key magit-mode-map (kbd "<M-down>")
+          #'magit-section-forward-sibling))))
 
   :init
   (entropy/emacs-lazy-with-load-trail
@@ -324,10 +329,17 @@
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'smerge-mode))))
 
-  :hook ((find-file . entropy/emacs-vcs--smerge-auto-open-for-buffer)
-         (magit-diff-visit-file
+  :hook ((magit-diff-visit-file
           .
-          entropy/emacs-vcs--smerge-hydra-popup)))
+          entropy/emacs-vcs--smerge-hydra-popup))
+  :init
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file)
+   "smerge-init-for-find-file-hook" "smerge-init-for-find-file-hook"
+   prompt-echo
+   (add-hook 'find-file-hook
+             'entropy/emacs-vcs--smerge-auto-open-for-buffer))
+  )
 
 ;; **** Git major modes
 (use-package gitattributes-mode

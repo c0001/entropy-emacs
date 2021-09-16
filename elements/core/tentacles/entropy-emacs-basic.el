@@ -117,147 +117,155 @@ place can be easily found by other interactive command."
 ;; **** dired basic
 (use-package dired
   :ensure nil
-
-;; ***** pretty-hydra
-  :eemacs-mmphc
-  (((:enable t)
-    (dired-mode (dired dired-mode-map) t (2 2)))
-   ("Basic"
-    (("RET" dired-find-file "Open item dwim"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("M-o" dired-find-file-other-window "Open item in other window"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("R" dired-do-rename "Rename current file or all marked (or next ARG) files"
-      :enable t :map-inject t :exit t)
-     ("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
-      :enable t
-      :map-inject t
-      :exit t)
-     ("M-d" entropy/emacs-basic-dired-delete-file-refers "Delete refers"
-      :enable t
-      :map-inject t
-      :exit t)
-     ("+" dired-create-directory "Create directory"
-      :enable t
-      :map-inject t
-      :exit t)
-     ("S" hydra-dired-quick-sort/body "Sort dired with hydra dispatch"
-      :enable (not sys/win32p) :map-inject t :exit t)
-     ("M-<up>" dired-up-directory "Up directory"
-      :enable t
-      :map-inject t
-      :exit t)
-     ("B" entropy/emacs-basic-backup-files "Common Backup"
-      :enable t
-      :map-inject t
-      :exit t))
-    "Useful"
-    (("g" revert-buffer "Refresh current dired buffer"
-      :enable t :map-inject t :exit t)
-     ("m" (:pretty-hydra-cabinet
-           (:data
-            "Dired basic mark commands"
-            (("m" dired-mark "Mark the file at point in the Dired buffer"
-              :enable t :map-inject t :exit t)
-             ("t" dired-toggle-marks "Marked files become unmarked, and vice versa"
-              :enable t :map-inject t :exit t)
-             ("u" dired-unmark "Unmark the file at point in the Dired buffer"
-              :enable t :map-inject t :exit t)
-             ("U" dired-unmark-all-marks "Remove all marks from all files in the Dired buffer"
-              :enable t :map-inject t :exit t))
-            "Dired rich mark commands"
-            (("* %" dired-mark-files-regexp "Mark all files matching REGEXP for use in later commands"
-              :enable t :map-inject t :exit t)
-             ("* *" dired-mark-executables "Mark all executable files"
-              :enable t :map-inject t :exit t)
-             ("* ." dired-mark-extension "Mark all files with a certain EXTENSION for use in later commands"
-              :enable t :map-inject t :exit t)
-             ("* /" dired-mark-directories "Mark all directory file lines except ‘.’ and ‘..’"
-              :enable t :map-inject t :exit t)
-             ("* @" dired-mark-symlinks "Mark all symbolic links"
-              :enable t :map-inject t :exit t)
-             ("* N" dired-number-of-marked-files "Display the number and total size of the marked files"
-              :enable t :map-inject t :exit t)))
-           :other-rest-args
-           ((dired dired-mode-map)))
-      "Dired mark commands"
-      :enable t :exit t)
-     ("w" dired-copy-filename-as-kill "Copy names of marked (or next ARG) files into the kill ring"
-      :enable t :map-inject t :exit t)
-     ("y" dired-show-file-type "Print the type of FILE, according to the ‘file’ command"
-      :enable t :map-inject t :exit t)
-     ("C" dired-do-copy "Copy all marked (or next ARG) files, or copy the current file"
-      :enable t :map-inject t :exit t)
-     ("L" dired-do-load "Load the marked (or next ARG) Emacs Lisp files"
-      :enable t :map-inject t :exit t)
-     ("Z" dired-do-compress "Compress or uncompress marked (or next ARG) files"
-      :enable t :map-inject t :exit t)
-     ("M-(" dired-mark-sexp "Mark files for which PREDICATE returns non-nil"
-      :enable t :map-inject t :exit t)
-     (":" (:pretty-hydra-cabinet
-           (:data
-            "Dired EPA(gnupg elisp Binding) commands"
-            ((":d" epa-dired-do-decrypt "Decrypt marked files"
-              :enable t :map-inject t :exit t)
-             (":v" epa-dired-do-verify "Verify marked files"
-              :enable t :map-inject t :exit t)
-             (":s" epa-dired-do-sign "Sign marked files"
-              :enable t :map-inject t :exit t)
-             (":e" epa-dired-do-encrypt "Encrypt marked files"
-              :enable t :map-inject t :exit t)))
-           :other-rest-args
-           ((dired dired-mode-map)))
-      "Dired EPA(gnupg elisp Binding) commands"
-      :enable t :exit t)
-     ("i" (:pretty-hydra-cabinet
-           (:data
-            "dired image viewer commands"
-            (("C-t d" image-dired-display-thumbs "Display thumbnails of all marked files"
-              :enable t :map-inject t :exit t)
-             ("C-t t" image-dired-tag-files "Tag marked file(s) in dired"
-              :enable t :map-inject t :exit t)
-             ("C-t r" image-dired-delete-tag "Remove tag for selected file(s)"
-              :enable t :map-inject t :exit t)
-             ("C-t j" image-dired-jump-thumbnail-buffer "Jump to thumbnail buffer"
-              :enable t :map-inject t :exit t)
-             ("C-t i" image-dired-dired-display-image "Display current image file"
-              :enable t :map-inject t :exit t)
-             ("C-t x" image-dired-dired-display-external "Display file at point using an external viewer"
-              :enable t :map-inject t :exit t)
-             ("C-t a" image-dired-display-thumbs-append "Append thumbnails to ‘image-dired-thumbnail-buffer’"
-              :enable t :map-inject t :exit t)
-             ("C-t ." image-dired-display-thumb "Shorthand for ‘image-dired-display-thumbs’ with prefix argument"
-              :enable t :map-inject t :exit t)
-             ("C-t c" image-dired-dired-comment-files "Add comment to current or marked files in dired"
-              :enable t :map-inject t :exit t)
-             ("C-t f" image-dired-mark-tagged-files "Use regexp to mark files with matching tag"
-              :enable t :map-inject t :exit t)
-             ("C-t C-t" image-dired-dired-toggle-marked-thumbs
-              "Toggle thumbnails in front of file names in the dired buffer"
-              :enable t :map-inject t :exit t)
-             ("C-t e" image-dired-dired-edit-comment-and-tags
-              "Edit comment and tags of current or marked image files"
-              :enable t :map-inject t :exit t)))
-           :other-rest-args
-           ((dired dired-mode-map)))
-      "Image dired commands"
-      :enable t :exit t))
-    "Misc."
-    (("0" entropy/emacs-basic-get-dired-fpath "Get Node Path"
-      :enable t
-      :map-inject t
-      :exit t)
-     ("M-l" entropy/emacs-basic--dired-add-to-load-path "Add path"
-      :enable t
-      :map-inject t
-      :exit t))))
-
 ;; ***** init
   :init
+
+;; ****** pretty-hydra
+  (defvar entropy/emacs-basic-dired-hydra-hollow-cabinets
+    '("Basic"
+      (("RET" dired-find-file "Open item dwim"
+        :enable t
+        :exit t
+        :map-inject t)
+       ("M-o" dired-find-file-other-window "Open item in other window"
+        :enable t
+        :exit t
+        :map-inject t)
+       ("R" dired-do-rename "Rename current file or all marked (or next ARG) files"
+        :enable t :map-inject t :exit t)
+       ("D" entropy/emacs-basic-dired-delete-file-recursive "Delete recursive"
+        :enable t
+        :map-inject t
+        :exit t)
+       ("M-d" entropy/emacs-basic-dired-delete-file-refers "Delete refers"
+        :enable t
+        :map-inject t
+        :exit t)
+       ("+" dired-create-directory "Create directory"
+        :enable t
+        :map-inject t
+        :exit t)
+       ("S" hydra-dired-quick-sort/body "Sort dired with hydra dispatch"
+        :enable (not sys/win32p) :map-inject t :exit t)
+       ("M-<up>" dired-up-directory "Up directory"
+        :enable t
+        :map-inject t
+        :exit t)
+       ("B" entropy/emacs-basic-backup-files "Common Backup"
+        :enable t
+        :map-inject t
+        :exit t))
+      "Useful"
+      (("g" revert-buffer "Refresh current dired buffer"
+        :enable t :map-inject t :exit t)
+       ("m" (:pretty-hydra-cabinet
+             (:data
+              "Dired basic mark commands"
+              (("m" dired-mark "Mark the file at point in the Dired buffer"
+                :enable t :map-inject t :exit t)
+               ("t" dired-toggle-marks "Marked files become unmarked, and vice versa"
+                :enable t :map-inject t :exit t)
+               ("u" dired-unmark "Unmark the file at point in the Dired buffer"
+                :enable t :map-inject t :exit t)
+               ("U" dired-unmark-all-marks "Remove all marks from all files in the Dired buffer"
+                :enable t :map-inject t :exit t))
+              "Dired rich mark commands"
+              (("* %" dired-mark-files-regexp "Mark all files matching REGEXP for use in later commands"
+                :enable t :map-inject t :exit t)
+               ("* *" dired-mark-executables "Mark all executable files"
+                :enable t :map-inject t :exit t)
+               ("* ." dired-mark-extension "Mark all files with a certain EXTENSION for use in later commands"
+                :enable t :map-inject t :exit t)
+               ("* /" dired-mark-directories "Mark all directory file lines except ‘.’ and ‘..’"
+                :enable t :map-inject t :exit t)
+               ("* @" dired-mark-symlinks "Mark all symbolic links"
+                :enable t :map-inject t :exit t)
+               ("* N" dired-number-of-marked-files "Display the number and total size of the marked files"
+                :enable t :map-inject t :exit t)))
+             :other-rest-args
+             ((dired dired-mode-map)))
+        "Dired mark commands"
+        :enable t :exit t)
+       ("w" dired-copy-filename-as-kill "Copy names of marked (or next ARG) files into the kill ring"
+        :enable t :map-inject t :exit t)
+       ("y" dired-show-file-type "Print the type of FILE, according to the ‘file’ command"
+        :enable t :map-inject t :exit t)
+       ("C" dired-do-copy "Copy all marked (or next ARG) files, or copy the current file"
+        :enable t :map-inject t :exit t)
+       ("L" dired-do-load "Load the marked (or next ARG) Emacs Lisp files"
+        :enable t :map-inject t :exit t)
+       ("Z" dired-do-compress "Compress or uncompress marked (or next ARG) files"
+        :enable t :map-inject t :exit t)
+       ("M-(" dired-mark-sexp "Mark files for which PREDICATE returns non-nil"
+        :enable t :map-inject t :exit t)
+       (":" (:pretty-hydra-cabinet
+             (:data
+              "Dired EPA(gnupg elisp Binding) commands"
+              ((":d" epa-dired-do-decrypt "Decrypt marked files"
+                :enable t :map-inject t :exit t)
+               (":v" epa-dired-do-verify "Verify marked files"
+                :enable t :map-inject t :exit t)
+               (":s" epa-dired-do-sign "Sign marked files"
+                :enable t :map-inject t :exit t)
+               (":e" epa-dired-do-encrypt "Encrypt marked files"
+                :enable t :map-inject t :exit t)))
+             :other-rest-args
+             ((dired dired-mode-map)))
+        "Dired EPA(gnupg elisp Binding) commands"
+        :enable t :exit t)
+       ("i" (:pretty-hydra-cabinet
+             (:data
+              "dired image viewer commands"
+              (("C-t d" image-dired-display-thumbs "Display thumbnails of all marked files"
+                :enable t :map-inject t :exit t)
+               ("C-t t" image-dired-tag-files "Tag marked file(s) in dired"
+                :enable t :map-inject t :exit t)
+               ("C-t r" image-dired-delete-tag "Remove tag for selected file(s)"
+                :enable t :map-inject t :exit t)
+               ("C-t j" image-dired-jump-thumbnail-buffer "Jump to thumbnail buffer"
+                :enable t :map-inject t :exit t)
+               ("C-t i" image-dired-dired-display-image "Display current image file"
+                :enable t :map-inject t :exit t)
+               ("C-t x" image-dired-dired-display-external "Display file at point using an external viewer"
+                :enable t :map-inject t :exit t)
+               ("C-t a" image-dired-display-thumbs-append "Append thumbnails to ‘image-dired-thumbnail-buffer’"
+                :enable t :map-inject t :exit t)
+               ("C-t ." image-dired-display-thumb "Shorthand for ‘image-dired-display-thumbs’ with prefix argument"
+                :enable t :map-inject t :exit t)
+               ("C-t c" image-dired-dired-comment-files "Add comment to current or marked files in dired"
+                :enable t :map-inject t :exit t)
+               ("C-t f" image-dired-mark-tagged-files "Use regexp to mark files with matching tag"
+                :enable t :map-inject t :exit t)
+               ("C-t C-t" image-dired-dired-toggle-marked-thumbs
+                "Toggle thumbnails in front of file names in the dired buffer"
+                :enable t :map-inject t :exit t)
+               ("C-t e" image-dired-dired-edit-comment-and-tags
+                "Edit comment and tags of current or marked image files"
+                :enable t :map-inject t :exit t)))
+             :other-rest-args
+             ((dired dired-mode-map)))
+        "Image dired commands"
+        :enable t :exit t))
+      "Misc."
+      (("0" entropy/emacs-basic-get-dired-fpath "Get Node Path"
+        :enable t
+        :map-inject t
+        :exit t)
+       ("M-l" entropy/emacs-basic--dired-add-to-load-path "Add path"
+        :enable t
+        :map-inject t
+        :exit t))))
+
+  (entropy/emacs-lazy-initial-advice-before
+   (dired)
+   "hydra-hollow-init-for-dired"
+   "hydra-hollow-init-for-dired"
+   prompt-echo
+   (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+    'dired-mode '(dired dired-mode-map) t
+    entropy/emacs-basic-dired-hydra-hollow-cabinets
+    '(2 2)))
+
 ;; ***** config
   :config
 ;; ****** Delete directory with force actions
@@ -624,11 +632,13 @@ modifcation is to remove this feature.
   )
 
 ;; **** Use dired-aux to enable dired-isearch
-(entropy/emacs-lazy-load-simple dired
-  (require 'dired-aux)
-  ;; disable '.' key binding with `dired-clean-directory' for dired
-  ;; mode for inadvertently press.
-  (define-key dired-mode-map (kbd ".") nil))
+(entropy/emacs-lazy-initial-advice-before
+ (dired) "dired-aux-init-for-dired" "dired-aux-init-for-dired"
+ prompt-echo
+ (require 'dired-aux)
+ ;; disable '.' key binding with `dired-clean-directory' for dired
+ ;; mode for inadvertently press.
+ (define-key dired-mode-map (kbd ".") nil))
 
 ;; **** Quick sort dired buffers via hydra
   ;;; bind key: `S'
@@ -644,63 +654,66 @@ modifcation is to remove this feature.
   :eemacs-macros (dired-rainbow-define)
   :commands (dired-rainbow-define-chmod)
   :init
-  (entropy/emacs-lazy-load-simple dired
-    (require 'dired-rainbow)
-    (dired-rainbow-define dotfiles "gray" "\\..*")
-    (dired-rainbow-define
-     web "#4e9a06"
-     ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
-      "json" "asp" "aspx" "haml" "php" "jsp" "ts"
-      "coffee" "scss" "less" "phtml"))
-    (dired-rainbow-define
-     prog "yellow3"
-     ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
-      "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
-      "m" "cs" "mk" "make" "swift" "go" "java"
-      "asm" "robot" "yml" "yaml" "rake" "lua"))
-    (dired-rainbow-define
-     sh "green yellow"
-     ("sh" "bash" "zsh" "fish" "csh" "ksh"
-      "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
-    (dired-rainbow-define
-     text "yellow green"
-     ("txt" "md" "org" "ini" "conf" "rc"
-      "vim" "vimrc" "exrc"))
-    (dired-rainbow-define
-     doc "spring green"
-     ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
-      "csv" "rtf" "wps" "pdf" "texi" "tex"
-      "odt" "ott" "odp" "otp" "ods" "ots"
-      "odg" "otg"))
-    (dired-rainbow-define
-     misc "gray50"
-     ("DS_Store" "projectile" "cache" "elc"
-      "dat" "meta"))
-    (dired-rainbow-define
-     media "#ce5c00"
-     ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
-      "wmv" "mov" "3gp" "avi" "mpg" "mkv"
-      "flv" "ogg" "rm" "rmvb"))
-    (dired-rainbow-define
-     picture "purple3"
-     ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
-      "ico" "svg" "psd" "pcd" "raw" "exif"
-      "BMP" "JPG" "PNG"))
-    (dired-rainbow-define
-     archive "saddle brown"
-     ("zip" "tar" "gz" "tgz" "7z" "rar"
-      "gzip" "xz" "001" "ace" "bz2" "lz"
-      "lzma" "bzip2" "cab" "jar" "iso"))
-    ;; boring regexp due to lack of imagination
-    (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")))
+  (entropy/emacs-lazy-initial-advice-before
+   (dired)
+   "dired-rainbow-init-for-dired" "dired-rainbow-init-for-dired"
+   prompt-echo
+   (require 'dired-rainbow)
+   (dired-rainbow-define dotfiles "gray" "\\..*")
+   (dired-rainbow-define
+    web "#4e9a06"
+    ("htm" "html" "xhtml" "xml" "xaml" "css" "js"
+     "json" "asp" "aspx" "haml" "php" "jsp" "ts"
+     "coffee" "scss" "less" "phtml"))
+   (dired-rainbow-define
+    prog "yellow3"
+    ("el" "l" "ml" "py" "rb" "pl" "pm" "c"
+     "cpp" "cxx" "c++" "h" "hpp" "hxx" "h++"
+     "m" "cs" "mk" "make" "swift" "go" "java"
+     "asm" "robot" "yml" "yaml" "rake" "lua"))
+   (dired-rainbow-define
+    sh "green yellow"
+    ("sh" "bash" "zsh" "fish" "csh" "ksh"
+     "awk" "ps1" "psm1" "psd1" "bat" "cmd"))
+   (dired-rainbow-define
+    text "yellow green"
+    ("txt" "md" "org" "ini" "conf" "rc"
+     "vim" "vimrc" "exrc"))
+   (dired-rainbow-define
+    doc "spring green"
+    ("doc" "docx" "ppt" "pptx" "xls" "xlsx"
+     "csv" "rtf" "wps" "pdf" "texi" "tex"
+     "odt" "ott" "odp" "otp" "ods" "ots"
+     "odg" "otg"))
+   (dired-rainbow-define
+    misc "gray50"
+    ("DS_Store" "projectile" "cache" "elc"
+     "dat" "meta"))
+   (dired-rainbow-define
+    media "#ce5c00"
+    ("mp3" "mp4" "MP3" "MP4" "wav" "wma"
+     "wmv" "mov" "3gp" "avi" "mpg" "mkv"
+     "flv" "ogg" "rm" "rmvb"))
+   (dired-rainbow-define
+    picture "purple3"
+    ("bmp" "jpg" "jpeg" "gif" "png" "tiff"
+     "ico" "svg" "psd" "pcd" "raw" "exif"
+     "BMP" "JPG" "PNG"))
+   (dired-rainbow-define
+    archive "saddle brown"
+    ("zip" "tar" "gz" "tgz" "7z" "rar"
+     "gzip" "xz" "001" "ace" "bz2" "lz"
+     "lzma" "bzip2" "cab" "jar" "iso"))
+   ;; boring regexp due to lack of imagination
+   (dired-rainbow-define log (:inherit default :italic t) ".*\\.log")))
 
 (use-package diredfl
   :commands (diredfl-global-mode)
   :init
-  (entropy/emacs-lazy-with-load-trail
-   diredfl-colorful-init
-   :pdumper-no-end t
-   :body
+  (entropy/emacs-lazy-initial-advice-before
+   (dired)
+   "diredfl-init-for-dired" "diredfl-init-for-dired"
+   prompt-echo
    (diredfl-global-mode 1)))
 
 ;; **** dired-x
@@ -1213,7 +1226,9 @@ Filename are \".scratch_entropy\" host in
   (let ((bfn "*scratch*"))
     (if (entropy/emacs-buffer-exists-p "*scratch*")
         (kill-buffer "*scratch*"))
-    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir)))
+    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
+          ;; inhibit `find-file-hook' for speedup file create
+          (find-file-hook nil))
       (if (not (file-exists-p fname))
           (progn
             (write-region "" "" fname)
@@ -1748,7 +1763,7 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
         which-key-separator "->"
         which-key-show-remaining-keys t
         which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
-
+  :config
   (entropy/emacs-lazy-load-simple help
     (global-set-key (kbd "C-h C-h") nil))
 
@@ -2036,7 +2051,7 @@ successfully both of situation of read persisit of create an new."
       rtn)))
 
 ;; run it when init emacs
-(defvar entropy/emacs-basic-timer-of-kill-ring-persist)
+(defvar entropy/emacs-basic-timer-of-kill-ring-persist nil)
 (defun entropy/emacs-basic--init-kill-ring-persist ()
   "Initialize =entropy-emacs= `kill-ring' persist feature."
   (interactive)

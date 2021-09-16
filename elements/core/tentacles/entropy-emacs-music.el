@@ -717,35 +717,36 @@ been killed."
 ;; *** init
   :init
 
-  (entropy/emacs-lazy-load-simple dired
-    (with-no-warnings
-      (defun entropy/emacs-music-bongo-add-dired-files ()
-        "Add marked files to the Bongo library and then popup the
+  (entropy/emacs-lazy-initial-advice-before
+   (dired)
+   "bongo-dired-init" "bongo-dired-init" prompt-echo
+   (defun entropy/emacs-music-bongo-add-dired-files ()
+     "Add marked files to the Bongo library and then popup the
 `bongo-library-buffer' which the buffer point position has been
 jumped to the main context."
-        (interactive)
-        (let ((buffer (bongo-library-buffer)))
-          (let (file (files nil))
-            (dired-map-over-marks
-             (setq file (dired-get-filename)
-                   files (append files (list file)))
-             nil t)
-            (with-bongo-library-buffer
-              (mapc 'bongo-insert-file files)
-              (goto-char (point-min))
-              ;; go to the head of the library content which will skip
-              ;; the bongo library header
-              (re-search-forward
-               (regexp-quote "  Report bugs to <bongo-devel@nongnu.org>."))
-              (next-line 2)))
-          (display-buffer buffer)))
+     (interactive)
+     (let ((buffer (bongo-library-buffer)))
+       (let (file (files nil))
+         (dired-map-over-marks
+          (setq file (dired-get-filename)
+                files (append files (list file)))
+          nil t)
+         (with-bongo-library-buffer
+           (mapc 'bongo-insert-file files)
+           (goto-char (point-min))
+           ;; go to the head of the library content which will skip
+           ;; the bongo library header
+           (re-search-forward
+            (regexp-quote "  Report bugs to <bongo-devel@nongnu.org>."))
+           (next-line 2)))
+       (display-buffer buffer)))
 
-      (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-       'dired-mode '(dired dired-mode-map)
-       '("Misc."
-         (("c b" entropy/emacs-music-bongo-add-dired-files
-           "Add marked files to the Bongo library."
-           :enable t :exit t))))))
+   (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+    'dired-mode '(dired dired-mode-map)
+    '("Misc."
+      (("c b" entropy/emacs-music-bongo-add-dired-files
+        "Add marked files to the Bongo library."
+        :enable t :exit t)))))
 
 ;; *** config
   :config

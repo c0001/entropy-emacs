@@ -1594,17 +1594,22 @@ when prefix arg was '(4) i.e. the single `C-u' type."
 
 ;; ***** define-hydra
 
-(entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
- 'org-mode '(org org-mode-map) t
- (append
-  entropy/emacs-org-keymap-group-$basic-manipulation
-  entropy/emacs-org-keymap-group-$buffer-navigation
-  entropy/emacs-org-keymap-group-$task-manipulation
-  entropy/emacs-org-keymap-group-$org-rss
-  entropy/emacs-org-keymap-group-$export-and-preview
-  entropy/emacs-org-keymap-group-$misc)
- '(4 2 2)
- '(4 2 2))
+(entropy/emacs-lazy-initial-advice-before
+ (org-mode)
+ "hydra-hollow-init-for-org"
+ "hydra-hollow-init-for-org"
+ prompt-echo
+ (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+  'org-mode '(org org-mode-map) t
+  (append
+   entropy/emacs-org-keymap-group-$basic-manipulation
+   entropy/emacs-org-keymap-group-$buffer-navigation
+   entropy/emacs-org-keymap-group-$task-manipulation
+   entropy/emacs-org-keymap-group-$org-rss
+   entropy/emacs-org-keymap-group-$export-and-preview
+   entropy/emacs-org-keymap-group-$misc)
+  '(4 2 2)
+  '(4 2 2)))
 
 ;; ** entropy-emacs additional function
 ;; *** tags align

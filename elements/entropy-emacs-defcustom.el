@@ -404,7 +404,7 @@ designation."
 
 ;; ***** ui theme and modeline style config
 ;; ****** enable initial dashboard
-(defcustom entropy/emacs-enable-initial-dashboard 'rich
+(defcustom entropy/emacs-enable-initial-dashboard t
   "Enable entropy emacs initial dashboard instead of emacs
 default one.
 
