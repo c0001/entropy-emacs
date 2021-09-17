@@ -79,17 +79,33 @@
   "Eemacs customizable variables top group."
   :group 'extensions)
 
-;; *** Basic
-(defgroup entropy/emacs-customize-group-for-basic-configuration nil
-  "Eemacs basic configuration customizable group."
-  :group 'entropy-emacs-customize-top-group)
-
-;; **** fundamental config
+;; *** Fundamental
 (defgroup entropy/emacs-customize-group-for-fundametal-configuration nil
   "Eemacs fundamental configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
+  :group 'entropy-emacs-customize-top-group)
 
-;; ***** fundamental individuals
+(defcustom entropy/emacs-user-full-name (getenv "USERNAME")
+  "The value for `user-full-name' but specified for
+=entropy-emacs=."
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
+(defcustom entropy/emacs-user-mail-address "Thanos@comos.com"
+  "The value for `user-mail-address' but specified for
+=entropy-emacs=."
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
+(defcustom entropy/emacs-top-prefix-key-cons '("C-`" .  "C-@")
+  "The cons stores the prefix key for `entropy/emacs-top-keymap',
+the car for GUI session, and cdr for TUI thus as well.
+
+The intention to get different prefix key for GUI anD TUI is for
+that the terminal emulation used for emacs may not have the full
+key-stroke experience."
+  :type '(cons (key-sequence :tag "GUI bind") (key-sequence :tag "TUI bind"))
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
 (defcustom entropy/emacs-stuffs-topdir
   (expand-file-name "stuffs" entropy/emacs-user-emacs-directory)
   "The stuffs collection host path, for as `savehist-file',
@@ -109,16 +125,6 @@ eemacs."
 (defcustom entropy/emacs-disable-mouse-at-init-time nil
   "Disable mounse event handler at startup when set non-nil."
   :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-top-prefix-key-cons '("C-`" .  "C-@")
-  "The cons stores the prefix key for `entropy/emacs-top-keymap',
-the car for GUI session, and cdr for TUI thus as well.
-
-The intention to get different prefix key for GUI anD TUI is for
-that the terminal emulation used for emacs may not have the full
-key-stroke experience."
-  :type '(cons (key-sequence :tag "GUI bind") (key-sequence :tag "TUI bind"))
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
 (defcustom entropy/emacs-garbage-collection-delay 5
@@ -141,69 +147,6 @@ value assignments into."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-user-full-name (getenv "USERNAME")
-  "The value for `user-full-name' but specified for
-=entropy-emacs=."
-  :type 'string
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-user-mail-address "bmsac0001@gmail.com"
-  "The value for `user-mail-address' but specified for
-=entropy-emacs=."
-  :type 'string
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-package-archive-repo 'melpa
-  "Set package archives from which to fetch.
-
-  It can be a symbol to indicate the archive repo name or a list
-  obey the form as the same as `package-archives' does.
-
-  If its a repo name, valid values are:
-
-  - 'melpa'       : Using melpa and elpa official archive remote host.
-
-  - 'emacs-china' : Using melpa and elpa mirror archive remote host
-                    of 'https://elpa.emacs-china.org/'.
-
-  - 'tuna'        : Using melpa and elpa mirror archive remote host
-                    of 'https://mirrors.tuna.tsinghua.edu.cn/help/elpa/'.
-
-  - 'tencent'     : Using melpa and elpa mirror archive remote host
-                    of 'https://mirrors.cloud.tencent.com/help/elpa.html'."
-  :type '(choice
-          (const :tag "Melpa" melpa)
-          (const :tag "Emacs-China" emacs-china)
-          (const :tag "Tuna" tuna)
-          (const :tag "Tencent" tencent))
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-init-display-line-numbers-mode nil
-  "Enable `global-display-line-numbers-mode' at start up time."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-init-hl-line-mode t
-  "Enable `global-hl-line-mode' at start up time."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-init-beacon-blink nil
-  "Enable `beacon-blink' at start up time."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-fill-paragraph-width 70
-  "Setting fill-paragraph width, default 70 to follow the emacs
-convention."
-  :type 'integer
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-use-icon t
-  "Whether to use icon visualization when available."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
 (defcustom entropy/emacs-use-recentf t
   "Whether use recentf-mode after emacs init."
   :type 'boolean
@@ -215,49 +158,6 @@ session."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-(defcustom entropy/emacs-align-window-center-with? 'olivetti
-  "The window central visual toggler type, valid of 'olivetti' or 'basic'.
-
-=olivetti= was a riched window center align package which provide
-shrink and expand auto-key, and without alignment be killed
-problem, =basic= type is simple but without fully featured.
-"
-  :type '(choice
-          (const :tag "Olivetti mode" olivetti)
-          (const :tag "Basic simple way" basic))
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-kill-ring-persist-file
-  (expand-file-name "kill-ring.persist" entropy/emacs-stuffs-topdir)
-  "Persist cache file for storing `kill-ring'."
-  :type 'file
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-custom-comment-dwim-type 'separedit
-  "The comment-dwim type chosen, valid of `poporg' or
-`separedit' as default.
-
-NOTE: poporg is obsolete as an legacy option."
-  :type 'symbol
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-custom-comment-dwim-prefix "C-c \""
-  "The comment-dwim trigger keybind"
-  :type 'string
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-;; **** tab-width config
-(defcustom entropy/emacs-custom-tab-enable nil
-  "Enable indent-tab-mode"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-(defcustom entropy/emacs-custom-tab-width 4
-  "Set the customized tab width"
-  :type 'integer
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-;; **** start with config
 (defcustom entropy/emacs-startwith-apps nil
   "The external apps for entropy-emacs start with.
 
@@ -268,12 +168,17 @@ just it's name."
                  (repeat
                   (cons (string :tag "Process name")
                         (file :tag "Process executable file"))))
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
 ;; *** UI
 (defgroup entropy/emacs-customize-group-for-UI nil
   "Eemacs UI configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-use-icon t
+  "Whether to use icon visualization when available."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-UI)
 
 ;; **** Initial UI
 (defgroup entropy/emacs-customize-group-for-initial-ui nil
@@ -462,6 +367,23 @@ target process."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-transparent-backgroud)
 
+;; **** Window
+(defgroup entropy/emacs-customize-group-for-window-ui nil
+  "Eemacs general media player configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-UI)
+
+(defcustom entropy/emacs-align-window-center-with? 'olivetti
+  "The window central visual toggler type, valid of 'olivetti' or 'basic'.
+
+=olivetti= was a riched window center align package which provide
+shrink and expand auto-key, and without alignment be killed
+problem, =basic= type is simple but without fully featured.
+"
+  :type '(choice
+          (const :tag "Olivetti mode" olivetti)
+          (const :tag "Basic simple way" basic))
+  :group 'entropy/emacs-customize-group-for-window-ui)
+
 ;; *** M-x
 (defgroup entropy/emacs-customize-group-for-M-x nil
   "Eemacs completion framework configuration customizable group."
@@ -501,10 +423,112 @@ will combined with =entropy-emacs= internal specification."
   :type '(repeat sexp)
   :group 'entropy/emacs-customize-group-for-ivy-mode)
 
+;; *** Editor
+(defgroup entropy/emacs-customize-group-for-editor-common nil
+  "Eemacs common edidtor configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** tab-width config
+(defgroup entropy/emacs-customize-group-for-editor-tab-width nil
+  "Eemacs editor tab-width configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-custom-tab-enable nil
+  "Enable indent-tab-mode"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-editor-tab-width)
+
+(defcustom entropy/emacs-custom-tab-width 4
+  "Set the customized tab width"
+  :type 'integer
+  :group 'entropy/emacs-customize-group-for-editor-tab-width)
+
+;; **** line hints
+(defgroup entropy/emacs-customize-group-for-editor-line-hints nil
+  "Eemacs ivy-mode configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-editor-common)
+
+(defcustom entropy/emacs-init-display-line-numbers-mode nil
+  "Enable `global-display-line-numbers-mode' at start up time."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-editor-line-hints)
+
+(defcustom entropy/emacs-init-hl-line-mode t
+  "Enable `global-hl-line-mode' at start up time."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-editor-line-hints)
+
+(defcustom entropy/emacs-init-beacon-blink nil
+  "Enable `beacon-blink' at start up time."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-editor-line-hints)
+
+(defcustom entropy/emacs-fill-paragraph-width 70
+  "Setting fill-paragraph width, default 70 to follow the emacs
+convention."
+  :type 'integer
+  :group 'entropy/emacs-customize-group-for-editor-line-hints)
+
+;; **** kill-ring
+
+(defgroup entropy/emacs-customize-group-for-editor-kill-ring nil
+  "Eemacs kill-ring configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-editor-common)
+
+(defcustom entropy/emacs-kill-ring-persist-file
+  (expand-file-name "kill-ring.persist" entropy/emacs-stuffs-topdir)
+  "Persist cache file for storing `kill-ring'."
+  :type 'file
+  :group 'entropy/emacs-customize-group-for-editor-kill-ring)
+
+;; **** comments
+
+(defgroup entropy/emacs-customize-group-for-editor-comments nil
+  "Eemacs editor comments configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-editor-common)
+
+(defcustom entropy/emacs-custom-comment-dwim-type 'separedit
+  "The comment-dwim type chosen, valid of `poporg' or
+`separedit' as default.
+
+NOTE: poporg is obsolete as an legacy option."
+  :type 'symbol
+  :group 'entropy/emacs-customize-group-for-editor-comments)
+
+(defcustom entropy/emacs-custom-comment-dwim-prefix "C-c \""
+  "The comment-dwim trigger keybind"
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-editor-comments)
+
 ;; *** Emacs Extension
 (defgroup entropy/emacs-customize-group-for-emacs-extensions nil
   "Eemacs emacs extensions management configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-package-archive-repo 'melpa
+  "Set package archives from which to fetch.
+
+  It can be a symbol to indicate the archive repo name or a list
+  obey the form as the same as `package-archives' does.
+
+  If its a repo name, valid values are:
+
+  - 'melpa'       : Using melpa and elpa official archive remote host.
+
+  - 'emacs-china' : Using melpa and elpa mirror archive remote host
+                    of 'https://elpa.emacs-china.org/'.
+
+  - 'tuna'        : Using melpa and elpa mirror archive remote host
+                    of 'https://mirrors.tuna.tsinghua.edu.cn/help/elpa/'.
+
+  - 'tencent'     : Using melpa and elpa mirror archive remote host
+                    of 'https://mirrors.cloud.tencent.com/help/elpa.html'."
+  :type '(choice
+          (const :tag "Melpa" melpa)
+          (const :tag "Emacs-China" emacs-china)
+          (const :tag "Tuna" tuna)
+          (const :tag "Tencent" tencent))
+  :group 'entropy/emacs-customize-group-for-emacs-extensions)
 
 ;; **** elpkg get type
 (defcustom entropy/emacs-ext-elpkg-customized-get-type 'origin
@@ -1739,7 +1763,7 @@ In cases that when you has set
 this turn on-off, which you can download clang for windows within
 mingw it self directly."
   :type 'boolean
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
+  :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
 (defcustom entropy/emacs-win-portable-clang-path "c:/Clang/bin"
   "Path for portable clang for windows plattform.
@@ -1752,7 +1776,7 @@ You can download it from https://releases.llvm.org/download.html.
 NOTE: this variable just be used when
 `entropy/emacs-win-portable-clang-enable' init with non-nil value."
   :type 'directory
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
+  :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
 ;; ****** enable portable texlive
 (defcustom entropy/emacs-win-portable-texlive-enable nil
