@@ -253,13 +253,7 @@ NOTE: this function is an around advice wrapper."
                   :before 'entropy/emacs-company-start-with-yas))
     (entropy/emacs-company-yas-for-docs-init)
     (entropy/emacs-company-toggle-frontend
-     (let ((orig-chosen entropy/emacs-company-tooltip-use-type)
-           rtn)
-       (if (and (not (display-graphic-p))
-                (eq orig-chosen 'company-box))
-           (setq rtn 'default)
-         (setq rtn orig-chosen))
-       rtn)))
+     entropy/emacs-company-tooltip-use-type))
   (entropy/emacs-lazy-initial-advice-before
    (find-file switch-to-buffer)
    "global-company-mode-init" "global-company-mode-init"
