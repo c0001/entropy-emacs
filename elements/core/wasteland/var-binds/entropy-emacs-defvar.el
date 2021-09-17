@@ -552,6 +552,8 @@ It is a string used for `kbd'.")
 successfully. The meaning for startup done is that all procedure
 within `entropy/emacs-startup-end-hook' are running done.")
 
+(defvar entropy/emacs-run-startup-duration nil
+  "The whole seconds that eemacs startup")
 (defun entropy/emacs-run-startup-end-hook ()
   "Run `entropy/emacs-startup-end-hook' and mark it as done via
 `entropy/emacs-startup-done'.
@@ -562,19 +564,27 @@ messy."
   (run-hooks 'entropy/emacs-startup-end-hook)
   (setq entropy/emacs-startup-done t)
   (entropy/emacs-message-hide-popup t)
-  (let ((entropy/emacs-message-non-popup t)
-        (msgstr
-         (entropy/emacs-message--do-message-ansi-apply
-          ">>> %s (using %s seconds) "
-          (green "entropy-emacs startup done")
-          (yellow (float-time
-                   (time-subtract (current-time)
-                                  before-init-time))))))
+  (setq entropy/emacs-run-startup-duration
+        (float-time
+         (time-subtract (current-time)
+                        before-init-time)))
+  (let* ((entropy/emacs-message-non-popup t)
+         (base-str "entropy-emacs startup done")
+         (msgstr
+          (entropy/emacs-message--do-message-ansi-apply
+           ">>> %s (using %s seconds) "
+           (green base-str)
+           (yellow entropy/emacs-run-startup-duration))))
     (unless (daemonp)
       (setq-local
        mode-line-format
        msgstr))
-    (message "%s" msgstr)))
+    (entropy/emacs-message-do-message
+     "%s --- %s %s"
+     (bold base-str)
+     (magenta "Happy hacking")
+     "('C-h v entropy/emacs-run-startup-duration' see startup time)"
+     )))
 
 (defvar entropy/emacs-pyim-has-initialized nil
   "Variable indicate that pyim has started down for init.
