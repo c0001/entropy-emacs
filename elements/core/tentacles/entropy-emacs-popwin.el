@@ -97,7 +97,7 @@
         ("*Messages*"                  :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*compilation*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*Compile-Log*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
-        ("*Warnings*"                  :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("*Warnings*"                  :regexp nil :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
         ("*Completions*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*Shell Command Output*"      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("\\*Async Shell Command\\*.+" :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
