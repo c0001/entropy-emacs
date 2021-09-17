@@ -760,12 +760,13 @@ with `shackle'."
              (kbd "C-h")
              'company-box-doc-manually))
           (t
-           (if entropy/emacs-startup-done
-               (error "Can not enable company-box in non-gui session")
+           (let (_)
              (entropy/emacs-message-do-message
               "%s"
               (red
-               "Can not enable company-box in non-gui session"))))))
+               "Can not enable company-box in non-gui session for back to default type."
+               ))
+             (entropy/emacs-company--default-enable)))))
 
   (add-to-list 'entropy/emacs-company--frontend-register
                '(company-box :enable entropy/emacs-company--box-enable
