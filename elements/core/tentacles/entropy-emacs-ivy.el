@@ -320,7 +320,7 @@ unwind occasion.")
           (set-window-configuration cur-wfg)
           (goto-char cur-pt)))))
 
-  :bind (("C-s" . swiper)
+  :bind (("C-s" . counsel-grep-or-swiper)
          ("C-M-s" . swiper-all)
          :map swiper-map
          ("M-%" . swiper-query-replace))
@@ -404,7 +404,8 @@ This is for use in `ivy-re-builders-alist'."
 (use-package counsel
   :diminish counsel-mode
   :commands (counsel-mode
-             counsel-linux-app)
+             counsel-linux-app
+             counsel-grep-or-swiper)
 
 ;; *** bind-key
   :bind (("M-x"     . counsel-M-x)
@@ -420,10 +421,7 @@ This is for use in `ivy-re-builders-alist'."
          ("C-x j"   . counsel-mark-ring)
          ("C-x C-t" . counsel-find-file-extern)
          ("C-c M-b" . counsel-recentf)
-         ("C-c M-k" . counsel-yank-pop)
-
-         :map counsel-mode-map
-         ([remap swiper] . counsel-grep-or-swiper))
+         ("C-c M-k" . counsel-yank-pop))
 
 ;; *** entropy/emacs-top-keymap
 
