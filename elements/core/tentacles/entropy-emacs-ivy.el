@@ -374,14 +374,20 @@ This is for use in `ivy-re-builders-alist'."
               (counsel-fzf . ivy-prescient-non-fuzzy)
               (counsel-imenu . ivy-prescient-non-fuzzy)
               (counsel-yank-pop . ivy-prescient-non-fuzzy)
-              (swiper . ivy-prescient-non-fuzzy)
-              (swiper-isearch . ivy-prescient-non-fuzzy)
-              (swiper-all . ivy-prescient-non-fuzzy)
               (lsp-ivy-workspace-symbol . ivy-prescient-non-fuzzy)
               (lsp-ivy-global-workspace-symbol . ivy-prescient-non-fuzzy)
               (insert-char . ivy-prescient-non-fuzzy)
               (counsel-unicode-char . ivy-prescient-non-fuzzy)
-              (t . ivy-prescient-re-builder)))
+              (t . ivy-prescient-re-builder)
+              ;; NOTE:
+              ;; use default rebulder for swiper clusters since we use
+              ;; it native regexp builder for query-replace better
+              ;; than what provided by `prescient' which has multibyte
+              ;; unicode groups injection.
+              (swiper . ivy--regex)
+              (swiper-isearch . ivy--regex)
+              (swiper-all . ivy--regex)
+              ))
      (let ((caller (car re-builder))
            (builder (cdr re-builder)))
        (cond
