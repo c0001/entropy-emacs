@@ -151,6 +151,18 @@ place can be easily found by other interactive command."
 ;; for those situations.
 (setq auto-mode-case-fold nil)
 
+;; *** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
+(when (and sys/win32p (not (version< emacs-version "26.1")))
+  (defun entropy/emacs-basic-y-or-n-p (prompt)
+    (let ((judge (completing-read prompt '("yes" "no") nil t)))
+      (if (string= judge "yes")
+          t
+        nil)))
+
+  ;; adding advice ro y-or-n-p for temporarily fix bug of that can not
+  ;; using any key-bindings when active "C-<lwindow>-g" in WINDOWS
+  (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
+
 ;; ** Basic major-modes spec
 ;; *** Dired config
 ;; **** dired basic
@@ -1134,7 +1146,10 @@ Temp file was \"~/~entropy-artist.txt\""
               #'entropy/emacs-basic-woman--no-warning-around-advice))
 
 ;; ** Basic global settings:
-;; *** Set default cursor style
+
+;; *** Editor spec
+;; **** Buffer default UI
+;; ***** Set default cursor style
 (setq-default cursor-type t)
 
 (defun entropy/emacs-basic-toggle-cursor-type ()
@@ -1143,8 +1158,8 @@ Temp file was \"~/~entropy-artist.txt\""
       (setq cursor-type 'bar)
     (setq cursor-type t)))
 
-;; *** Hl-line And Line Numbers display
-;; **** Global display line number mode
+;; ***** Hl-line And Line Numbers display
+;; ****** Global display line number mode
 (defun entropy/emacs-basic--dspln-mode-around-advice
     (orig-func &rest orig-args)
   "Filters for `display-line-numbers-mode' to press it for some
@@ -1177,7 +1192,7 @@ occasions. "
  (when entropy/emacs-init-display-line-numbers-mode
    (global-display-line-numbers-mode)))
 
-;; **** Global hl-line mode
+;; ****** Global hl-line mode
 (defun entropy/emacs-turn-on-hl-line-mode ()
   "The filter for `hl-line-mode' available option in triggered
 buffer, in that case any conditions don't match the filter then
@@ -1214,7 +1229,7 @@ buffer, in that case any conditions don't match the filter then
  (when entropy/emacs-init-hl-line-mode
    (entropy/emacs-hl-line-global-mode 1)))
 
-;; **** Highlight current line and display line numbers
+;; ****** Highlight current line and display line numbers
 (defun entropy/emacs-basic--dhl-judge-state ()
   (let ((hlmp (bound-and-true-p hl-line-mode))
         (dlmp (bound-and-true-p display-line-numbers))
@@ -1313,6 +1328,256 @@ NOTE: this is a advice wrapper for any function."
   (advice-add 'dired-next-line
               :around #'entropy/emacs-basic--hl-line-disable-wrapper))
 
+;; ***** Smooth scrolling
+;; Force smooth mouse scroll experience
+(when (display-graphic-p)
+  (setq
+   mouse-wheel-scroll-amount '(1 ((shift) . 1))
+   mouse-wheel-progressive-speed nil))
+
+(defvar entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
+(defvar entropy/emacs-basic--redisplay-dont-pause-orig-value redisplay-dont-pause)
+(defvar entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
+(defvar entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
+
+(define-minor-mode entropy/emacs-basic-smooth-scrolling-mode
+  "Toggle smooth-scrolling buffer scrolling view."
+  :init-value nil
+  :lighter "SM"
+  :global t
+  (if entropy/emacs-basic-smooth-scrolling-mode
+      (progn
+        (setq
+         next-screen-context-lines 0
+         redisplay-dont-pause      t
+         scroll-margin             0
+         scroll-conservatively     100)
+        (message "Smooth scrolling enabled!"))
+    (progn
+      (setq
+       next-screen-context-lines entropy/emacs-basic--next-screen-context-lines-orig-value
+       redisplay-dont-pause      entropy/emacs-basic--redisplay-dont-pause-orig-value
+       scroll-margin             entropy/emacs-basic--scroll-margin-orig-value
+       scroll-conservatively     entropy/emacs-basic--scroll-conservatively-orig-value)
+      (message "Smooth scrolling disabled!"))))
+
+(entropy/emacs-basic-smooth-scrolling-mode 1)
+
+
+;; ***** Tab default visualization
+
+;; Do not use `indent-tabs-mode' by default for compatibility meaning
+;; that tabs visualization are not unified accorss editor.
+(if entropy/emacs-custom-tab-enable
+    (setq-default tab-width entropy/emacs-custom-tab-width)
+  (setq-default indent-tabs-mode nil))
+
+;; **** Buffer operations
+;; ***** Initiative operations
+;; ****** Input time into buffer
+(defun entropy/emacs-basic-now ()
+  "Insert string for the current time formatted like '2:34 PM'."
+  (interactive)                 ; permit invocation in minibuffer
+  (insert (format-time-string "[%Y-%m-%d %a %H:%M:%S]")))
+
+(defun entropy/emacs-basic-today ()
+  "Insert string for today's date nicely formatted in American style,
+ e.g. Sunday, September 17, 2000."
+  (interactive)                 ; permit invocation in minibuffer
+  (insert (format-time-string "%A, %B %e, %Y")))
+
+;; ****** Undo and Redo
+;; ******* Undo tree
+(use-package undo-tree
+  :diminish undo-tree-mode
+  :ensure nil
+  :commands (global-undo-tree-mode undo-tree-visualize)
+  :preface
+
+  (defvar entropy/emacs-basic--undo-tree-stick-window-configuration nil
+    "The window configuration before calling `undo-tree-visualize'.")
+
+  (defun entropy/emacs-basic--save-window-cfg-for-undo-tree
+      (orig-func &rest orig-args)
+    (setq entropy/emacs-basic--undo-tree-stick-window-configuration
+          (current-window-configuration))
+    (apply orig-func orig-args))
+
+  (defun entropy/emacs-basic--restore-window-cfg-for-undo-tree
+      (orig-func &rest orig-args)
+    (let ((rtn (apply orig-func orig-args)))
+      (when (window-configuration-p
+             entropy/emacs-basic--undo-tree-stick-window-configuration)
+        (set-window-configuration
+         entropy/emacs-basic--undo-tree-stick-window-configuration))
+      (setq entropy/emacs-basic--undo-tree-stick-window-configuration nil)
+      rtn))
+
+  :init
+  (entropy/emacs-lazy-initial-advice-before
+   (switch-to-buffer find-file)
+   "undo-tree-enable-init"
+   "undo-tree-enable-init"
+   prompt-echo
+   ;; undo-tree can not enabled while pdumper
+   :pdumper-no-end nil
+   (global-undo-tree-mode t)
+   (global-set-key (kbd "C-x u") #'undo-tree-visualize))
+
+  :config
+
+  (advice-add 'undo-tree-visualize
+              :around
+              #'entropy/emacs-basic--save-window-cfg-for-undo-tree)
+
+  (advice-add 'undo-tree-visualizer-quit
+              :around
+              #' entropy/emacs-basic--restore-window-cfg-for-undo-tree))
+
+;; ****** Case type toggle
+;; ******* Improve captialize function
+
+;; Due to the convention while want to capitalize or uper-case the
+;; word just has been done, building follow two function to enhance
+;; the origin function `capitalize-word' and `upercase-word' and
+;; `down-case'.
+
+(defmacro entropy/emacs-basic--build-case-toggle (type-name main-func)
+  `(defun ,(intern (concat "entropy/emacs-basic-toggle-case-for-" type-name))
+       (arg)
+     (interactive "P")
+     (left-word)
+     (call-interactively ',main-func t (vector arg))))
+
+(entropy/emacs-basic--build-case-toggle "capitalize" capitalize-word)
+(entropy/emacs-basic--build-case-toggle "upcase" upcase-word)
+(entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
+
+(entropy/emacs-hydra-hollow-common-individual-hydra-define
+ 'words-manipulation nil
+ '("Basic"
+   (("M-c" entropy/emacs-basic-toggle-case-for-capitalize
+     "Captalize Word"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("M-l" entropy/emacs-basic-toggle-case-for-downcase
+     "Down Case Word"
+     :enable t
+     :exit t
+     :global-bind t)
+    ("M-u" entropy/emacs-basic-toggle-case-for-upcase
+     "Upcase Word"
+     :enable t
+     :exit t
+     :global-bind t))))
+
+(entropy/emacs-hydra-hollow-add-for-top-dispatch
+ '("Basic"
+   (("b w"
+     (:eval
+      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+       'words-manipulation))
+     "Words manipulation"
+     :enable t
+     :exit t))))
+
+;; ***** Implicit trigger
+;; ****** Disable `electric-indent-mode' by default
+
+;; Remove it globally since we do not use it frequently in non prog
+;; mode and it well inject to `post-self-insert-hook' to increase
+;; performance latency.
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer)
+ "__disable-electric-indent-mode" "__disable-electric-indent-mode"
+ prompt-echo
+ :pdumper-no-end t
+ (when (bound-and-true-p electric-indent-mode)
+   (electric-indent-mode 0))
+ ;; add it locally to prog referred mode hook
+ (let ((spec-modes (append entropy/emacs-ide-for-them
+                           (list 'emacs-lisp-mode
+                                 'lisp-interaction-mode))))
+   ;; use `electric-indent-local-mode' for spec modes
+   (dolist (mode spec-modes)
+     (add-hook (intern (format "%s-hook" mode))
+               'electric-indent-local-mode))
+   ;; make exist opened buffer enable `electric-indent-local-mode'
+   (dolist (buff (buffer-list))
+     (with-current-buffer buff
+       (when (memq major-mode spec-modes)
+         (electric-indent-local-mode 1))))))
+
+;; ****** Auto wrap line
+(setq-default truncate-lines t)
+
+;; *** Paragraph fill size
+(setq-default fill-column entropy/emacs-fill-paragraph-width)
+
+;; ****** Auto clean whitespace after save buffer
+(use-package whitespace
+  :ensure nil
+  :commands (whitespace-cleanup)
+  :preface
+  (defun entropy/emacs-basic-simple-whitespace-clean ()
+    "Clean whitespace with the default `whitspace-style'."
+    (interactive)
+    (require 'whitespace)
+    (let ((whitespace-style (default-value 'whitespace-style)))
+      (with-current-buffer (current-buffer)
+        (let ((inhibit-read-only t))
+          (whitespace-cleanup)))))
+  :init
+  (add-hook 'before-save-hook
+            #'entropy/emacs-basic-simple-whitespace-clean))
+
+
+;; ****** Global read only mode
+(use-package entropy-global-read-only-mode
+  :ensure nil
+  :commands (entropy-grom-mode
+             entropy/grom-read-only-buffer
+             entropy/grom-quick-readonly-global)
+  :eemacs-indhc
+  (((:enable t)
+    (entropy-grom-mode))
+   ("Basic"
+    (("<f1>" entropy/grom-read-only-buffer "Toggle buffer read-only status"
+      :enable t :global-bind t :exit t
+      :toggle buffer-read-only)
+     ("t" entropy/grom-toggle-read-only "Toggle global buffers read-only status"
+      :enable t :exit t)
+     ("M-1" entropy/grom-quick-readonly-global
+      "Quickly lock all buffers in current emacs session with internal rules matched"
+      :enable t :global-bind t :exit t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("L"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'entropy-grom-mode))
+      "Buffer locker both for single or global buffer-list"
+      :enable t :exit t))))
+
+  :init
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file push-button find-library-name)
+   "entropy-grom"
+   "entropy-grom"
+   prompt-echo
+   :pdumper-no-end t
+   (entropy-grom-mode +1))
+
+  :config
+  (dolist (rule `(,(rx "*outorg-edit-buffer*")
+                  ,(rx "*Buffer Details*")
+                  ,(rx "*Memory Explorer*")
+                  ,(rx "*poporg: ")))
+    (add-to-list 'entropy/grom-customizable-nonspecial-buffer-name-regexp-list
+                 rule)))
+
 ;; *** Backup setting
 (setq-default auto-save-default nil)    ; disable it for preventing typing lagging
 (setq make-backup-files nil)
@@ -1376,42 +1641,6 @@ Filename are \".scratch_entropy\" host in
   (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
   (lisp-interaction-mode)
   (message "Create *scratch* buffer"))
-
-;; *** Smooth scrolling
-;; Force smooth mouse scroll experience
-(when (display-graphic-p)
-  (setq
-   mouse-wheel-scroll-amount '(1 ((shift) . 1))
-   mouse-wheel-progressive-speed nil))
-
-(defvar entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
-(defvar entropy/emacs-basic--redisplay-dont-pause-orig-value redisplay-dont-pause)
-(defvar entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
-(defvar entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
-
-(define-minor-mode entropy/emacs-basic-smooth-scrolling-mode
-  "Toggle smooth-scrolling buffer scrolling view."
-  :init-value nil
-  :lighter "SM"
-  :global t
-  (if entropy/emacs-basic-smooth-scrolling-mode
-      (progn
-        (setq
-         next-screen-context-lines 0
-         redisplay-dont-pause      t
-         scroll-margin             0
-         scroll-conservatively     100)
-        (message "Smooth scrolling enabled!"))
-    (progn
-      (setq
-       next-screen-context-lines entropy/emacs-basic--next-screen-context-lines-orig-value
-       redisplay-dont-pause      entropy/emacs-basic--redisplay-dont-pause-orig-value
-       scroll-margin             entropy/emacs-basic--scroll-margin-orig-value
-       scroll-conservatively     entropy/emacs-basic--scroll-conservatively-orig-value)
-      (message "Smooth scrolling disabled!"))))
-
-(entropy/emacs-basic-smooth-scrolling-mode 1)
-
 
 ;; *** Kill-buffer-and-window spec
 
@@ -1494,40 +1723,6 @@ as thus."
 (global-set-key (kbd "C-x k") #'entropy/emacs-basic-kill-buffer)
 (global-set-key (kbd "C-x M-k") #'kill-buffer)
 
-;; *** Set defualt tab size
-;; Do not use `indent-tabs-mode' by default for compatibility meaning
-;; that tabs visualization are not unified accorss editor.
-
-(if entropy/emacs-custom-tab-enable
-    (setq-default tab-width entropy/emacs-custom-tab-width)
-  (setq-default indent-tabs-mode nil))
-
-;; *** disable `electric-indent-mode' by default
-
-;; Remove it globally since we do not use it frequently in non prog
-;; mode and it well inject to `post-self-insert-hook' to increase
-;; performance latency.
-(entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer)
- "__disable-electric-indent-mode" "__disable-electric-indent-mode"
- prompt-echo
- :pdumper-no-end t
- (when (bound-and-true-p electric-indent-mode)
-   (electric-indent-mode 0))
- ;; add it locally to prog referred mode hook
- (let ((spec-modes (append entropy/emacs-ide-for-them
-                           (list 'emacs-lisp-mode
-                                 'lisp-interaction-mode))))
-   ;; use `electric-indent-local-mode' for spec modes
-   (dolist (mode spec-modes)
-     (add-hook (intern (format "%s-hook" mode))
-               'electric-indent-local-mode))
-   ;; make exist opened buffer enable `electric-indent-local-mode'
-   (dolist (buff (buffer-list))
-     (with-current-buffer buff
-       (when (memq major-mode spec-modes)
-         (electric-indent-local-mode 1))))))
-
 ;; *** Setting language encoding environment
 (setq system-time-locale "C") ;Use english format time string
 
@@ -1569,27 +1764,6 @@ as thus."
 ;; ****** let diff-buffer-with-file force run with unicode language environment
 (advice-add 'diff-buffer-with-file
             :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-
-;; *** Auto wrap line
-(setq-default truncate-lines t)
-
-;; *** Auto clean whitespace after save buffer
-(use-package whitespace
-  :ensure nil
-  :commands (whitespace-cleanup)
-  :preface
-  (defun entropy/emacs-basic-simple-whitespace-clean ()
-    "Clean whitespace with the default `whitspace-style'."
-    (interactive)
-    (require 'whitespace)
-    (let ((whitespace-style (default-value 'whitespace-style)))
-      (with-current-buffer (current-buffer)
-        (let ((inhibit-read-only t))
-          (whitespace-cleanup)))))
-  :init
-  (add-hook 'before-save-hook
-            #'entropy/emacs-basic-simple-whitespace-clean))
-
 
 ;; *** Set transparenct of emacs frame
 
@@ -1637,66 +1811,6 @@ value as optional interaction while `PREFIX' is non-nil."
   (entropy/emacs-lazy-with-load-trail
    loop-alpha
    (entropy/emacs-basic-loop-alpha)))
-
-;; *** Paragraph fill size
-(setq-default fill-column entropy/emacs-fill-paragraph-width)
-
-;; *** Input time into buffer
-(defun entropy/emacs-basic-now ()
-  "Insert string for the current time formatted like '2:34 PM'."
-  (interactive)                 ; permit invocation in minibuffer
-  (insert (format-time-string "[%Y-%m-%d %a %H:%M:%S]")))
-
-(defun entropy/emacs-basic-today ()
-  "Insert string for today's date nicely formatted in American style,
- e.g. Sunday, September 17, 2000."
-  (interactive)                 ; permit invocation in minibuffer
-  (insert (format-time-string "%A, %B %e, %Y")))
-
-;; *** Global read only mode
-(use-package entropy-global-read-only-mode
-  :ensure nil
-  :commands (entropy-grom-mode
-             entropy/grom-read-only-buffer
-             entropy/grom-quick-readonly-global)
-  :eemacs-indhc
-  (((:enable t)
-    (entropy-grom-mode))
-   ("Basic"
-    (("<f1>" entropy/grom-read-only-buffer "Toggle buffer read-only status"
-      :enable t :global-bind t :exit t
-      :toggle buffer-read-only)
-     ("t" entropy/grom-toggle-read-only "Toggle global buffers read-only status"
-      :enable t :exit t)
-     ("M-1" entropy/grom-quick-readonly-global
-      "Quickly lock all buffers in current emacs session with internal rules matched"
-      :enable t :global-bind t :exit t))))
-  :eemacs-tpha
-  (((:enable t))
-   ("WI&BUF"
-    (("L"
-      (:eval
-       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'entropy-grom-mode))
-      "Buffer locker both for single or global buffer-list"
-      :enable t :exit t))))
-
-  :init
-  (entropy/emacs-lazy-initial-advice-before
-   (find-file push-button find-library-name)
-   "entropy-grom"
-   "entropy-grom"
-   prompt-echo
-   :pdumper-no-end t
-   (entropy-grom-mode +1))
-
-  :config
-  (dolist (rule `(,(rx "*outorg-edit-buffer*")
-                  ,(rx "*Buffer Details*")
-                  ,(rx "*Memory Explorer*")
-                  ,(rx "*poporg: ")))
-    (add-to-list 'entropy/grom-customizable-nonspecial-buffer-name-regexp-list
-                 rule)))
 
 ;; *** Revert buffer automatically
 
@@ -1782,52 +1896,6 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
 
   )
 
-;; *** Undo tree
-(use-package undo-tree
-  :diminish undo-tree-mode
-  :ensure nil
-  :commands (global-undo-tree-mode undo-tree-visualize)
-  :preface
-
-  (defvar entropy/emacs-basic--undo-tree-stick-window-configuration nil
-    "The window configuration before calling `undo-tree-visualize'.")
-
-  (defun entropy/emacs-basic--save-window-cfg-for-undo-tree
-      (orig-func &rest orig-args)
-    (setq entropy/emacs-basic--undo-tree-stick-window-configuration
-          (current-window-configuration))
-    (apply orig-func orig-args))
-
-  (defun entropy/emacs-basic--restore-window-cfg-for-undo-tree
-      (orig-func &rest orig-args)
-    (let ((rtn (apply orig-func orig-args)))
-      (when (window-configuration-p
-             entropy/emacs-basic--undo-tree-stick-window-configuration)
-        (set-window-configuration
-         entropy/emacs-basic--undo-tree-stick-window-configuration))
-      (setq entropy/emacs-basic--undo-tree-stick-window-configuration nil)
-      rtn))
-
-  :init
-  (entropy/emacs-lazy-initial-advice-before
-   (switch-to-buffer find-file)
-   "undo-tree-enable-init"
-   "undo-tree-enable-init"
-   prompt-echo
-   ;; undo-tree can not enabled while pdumper
-   :pdumper-no-end nil
-   (global-undo-tree-mode t)
-   (global-set-key (kbd "C-x u") #'undo-tree-visualize))
-
-  :config
-
-  (advice-add 'undo-tree-visualize
-              :around
-              #'entropy/emacs-basic--save-window-cfg-for-undo-tree)
-
-  (advice-add 'undo-tree-visualizer-quit
-              :around
-              #' entropy/emacs-basic--restore-window-cfg-for-undo-tree))
 
 ;; *** Rectangle manipulation
 
@@ -2549,18 +2617,6 @@ please check buffer '*liberime build*' for details"
          (funcall ,disable-func)
          (setq entropy/emacs-basic--xterm-paste-rebinded nil))))))
 
-;; *** Adding advice for `y-or-n-p' for emacs 26 and higher in widnows plattform
-(when (and sys/win32p (not (version< emacs-version "26.1")))
-  (defun entropy/emacs-basic-y-or-n-p (prompt)
-    (let ((judge (completing-read prompt '("yes" "no") nil t)))
-      (if (string= judge "yes")
-          t
-        nil)))
-
-  ;; adding advice ro y-or-n-p for temporarily fix bug of that can not
-  ;; using any key-bindings when active "C-<lwindow>-g" in WINDOWS
-  (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
-
 ;; *** Epa (emacs gpg assistant)
 (use-package epa
   :ensure nil
@@ -2699,53 +2755,6 @@ otherwise returns nil."
        (when (executable-find (cdr el))
          (entropy/emacs-basic-proced-auto-startwith
           (car el) (cdr el)))))))
-
-;; *** Improve captialize function
-
-;; Due to the convention while want to capitalize or uper-case the
-;; word just has been done, building follow two function to enhance
-;; the origin function `capitalize-word' and `upercase-word' and
-;; `down-case'.
-
-(defmacro entropy/emacs-basic--build-case-toggle (type-name main-func)
-  `(defun ,(intern (concat "entropy/emacs-basic-toggle-case-for-" type-name))
-       (arg)
-     (interactive "P")
-     (left-word)
-     (call-interactively ',main-func t (vector arg))))
-
-(entropy/emacs-basic--build-case-toggle "capitalize" capitalize-word)
-(entropy/emacs-basic--build-case-toggle "upcase" upcase-word)
-(entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
-
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'words-manipulation nil
- '("Basic"
-   (("M-c" entropy/emacs-basic-toggle-case-for-capitalize
-     "Captalize Word"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("M-l" entropy/emacs-basic-toggle-case-for-downcase
-     "Down Case Word"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("M-u" entropy/emacs-basic-toggle-case-for-upcase
-     "Upcase Word"
-     :enable t
-     :exit t
-     :global-bind t))))
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b w"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'words-manipulation))
-     "Words manipulation"
-     :enable t
-     :exit t))))
 
 ;; *** Autocompression moode
 
