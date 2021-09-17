@@ -246,123 +246,6 @@ NOTE: poporg is obsolete as an legacy option."
   :type 'string
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-;; ***** font setting config
-(defgroup entropy/emacs-customize-group-for-eemacs-font-spec nil
-  "Eemacs font specifications configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-font-setting-enable nil
-  "Enable entropy-emacs specific font setting, when its non-nil.
-
-If its non-nil, the valid value are 'google' for using google noto
-family fonts, 'sarasa' for usign sarasa-gothic family which was a
-fork for google noto refer, or 'fira-code' which was better for
-daily development using.
-
-When its value is 't', then fallback its to 'google'."
-  :type '(choice
-          (const :tag "Disable" nil)
-          (const :tag "Default" t)
-          (const :tag "Google font family" google)
-          (const :tag "Sarasa font family" sarasa)
-          (const :tag "Fira code based" fira-code))
-  :group 'entropy/emacs-customize-group-for-eemacs-font-spec)
-
-(defcustom entropy/emacs-font-chinese-type 'sc
-  "The chinese font use type, 'sc' for simplified chinese, 'tc'
-for traditional chinse, default to 'sc' which wildly include the
-traditional chinese fonts already."
-  :type '(choice
-          (const :tag "Simplified chinese" sc)
-          (const :tag "traditional chinese" tc))
-  :group 'entropy/emacs-customize-group-for-eemacs-font-spec)
-
-(defcustom entropy/emacs-font-size-default 10
-  "Set the default font size for face-attribute.
-
-Default size was 10, the upper limit was 15."
-  :type 'integer
-  :group 'entropy/emacs-customize-group-for-eemacs-font-spec)
-
-;; ***** language envrionment config
-(defgroup entropy/emacs-customize-group-for-language-environment nil
-  "Eemacs language environment configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-custom-language-environment-enable nil
-  "Enable custome language environment, used to customize
-`current-language-environment', and then variable
-`entropy/emacs-locale-language-environment' and
-`entropy/emacs-locale-coding-system' will be used."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-language-environment)
-
-(defcustom entropy/emacs-locale-language-environment
-  (copy-tree current-language-environment)
-  "The language environment follow current system locale, used to
-`set-language-environment', instantly getted before eemacs core
-procedure invoked.
-
-In most of case, you do not need to customize it, but it's
-allowed, if so as, the value must be one key of
-`language-info-alist'.
-
-NOTE: this variable just be used when init
-`entropy/emacs-custom-language-environment-enable' with non-nil
-value."
-  :type 'string
-  :group 'entropy/emacs-customize-group-for-language-environment)
-
-(defcustom entropy/emacs-locale-coding-system
-  (car default-process-coding-system)
-  "The preferred coding system follow current system locale, used
-to `prefer-coding-system', instantly getted before eemacs core
-procedure invoked.
-
-In most of case, you do not need to customize it, but it's
-allowed, if so as, the value must be one of
-`coding-system-list'.
-
-NOTE: this variable just be used when init
-`entropy/emacs-custom-language-environment-enable' with non-nil
-value."
-  :type 'coding-system
-  :group 'entropy/emacs-customize-group-for-language-environment)
-
-
-;; ***** dictionary config
-(defgroup entropy/emacs-customize-group-for-translate nil
-  "Eemacs elfeed configuration customizable group."
-  :group 'entropy-emacs-customize-top-group)
-
-(defcustom entropy/emacs-dictionary-backend 'sdcv
-  "The dictionary tool type for chosen, valid type are
-
-- 'sdcv'
-- 'bing'
-- 'youdao'
-- 'google'
-"
-  :type '(choice
-          (const :tag "Sdcv local dictional" sdcv)
-          (const :tag "Bing online dictionary" bing)
-          (const :tag "Youdao online dictionary" youdao)
-          (const :tag "Google online dictionary" google))
-  :group 'entropy/emacs-customize-group-for-translate)
-
-(defcustom entropy/emacs-google-translate-toggle-patched-in-china t
-  "Enable google-translate in china. (GFW banned restriction break)"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-translate)
-
-
-
-;; **** desktop save config
-(defcustom entropy/emacs-desktop-enable nil
-  "Enable desktop-save-mode and persistent scratch buffer"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
 ;; **** tab-width config
 (defcustom entropy/emacs-custom-tab-enable nil
   "Enable indent-tab-mode"
@@ -374,10 +257,46 @@ value."
   :type 'integer
   :group 'entropy/emacs-customize-group-for-basic-configuration)
 
-;; **** init frame position config
+;; **** start with config
+(defcustom entropy/emacs-startwith-apps nil
+  "The external apps for entropy-emacs start with.
+
+This variable forms as one alist of each element's car was the
+process-name and the cdr was the executable full path string for
+just it's name."
+  :type '(choice (const nil)
+                 (repeat
+                  (cons (string :tag "Process name")
+                        (file :tag "Process executable file"))))
+  :group 'entropy/emacs-customize-group-for-basic-configuration)
+
+;; *** UI
+(defgroup entropy/emacs-customize-group-for-UI nil
+  "Eemacs UI configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** Initial UI
+(defgroup entropy/emacs-customize-group-for-initial-ui nil
+  "Eemacs initial ui configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-UI)
+
+(defcustom entropy/emacs-enable-initial-dashboard t
+  "Enable entropy emacs initial dashboard instead of emacs
+default one.
+
+Valid value are 't' or 'rich', otherwise disable this
+feature.
+
+When value are either 't' or 'rich', a fancy simple splash buffer
+`entropy/emacs-init-welcome-buffer-name' will startup firstly, and
+then enable the rich dashbord contents when value is 'rich'."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-initial-ui)
+
+;; ***** Frame Position
 (defgroup entropy/emacs-customize-group-for-initial-position nil
   "Eemacs emacs initial position configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
+  :group 'entropy/emacs-customize-group-for-initial-ui)
 
 (defcustom entropy/emacs-init-fpos-enable nil
   "Whether set init emacs position by `entropy/emacs-set-frame-position'."
@@ -422,74 +341,6 @@ height of dock:
 #+END_EXAMPLE"
   :type '(choice number (const :tag "Not set" nil))
   :group 'entropy/emacs-customize-group-for-initial-position)
-
-;; **** backgroud transparent config
-(defgroup entropy/emacs-customize-group-for-transparent-backgroud nil
-  "Eemacs emacs frame background transparent configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-(defcustom entropy/emacs-start-with-frame-transparent-action t
-  "Enable frame transparent at startup of =entropy-emacs=."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-transparent-backgroud)
-
-(defcustom entropy/emacs-loop-alpha-value 85
-  "The default initialize integer value of frame background
-transparent, any customization of it may be restrict by the
-target process."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-transparent-backgroud)
-
-;; **** mpd config
-(defgroup entropy/emacs-customize-group-for-mpd nil
-  "Eemacs MPD (music player daemon) configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-(defcustom entropy/emacs-mpd-host-url "127.0.0.1"
-  "Mpd host url defautl to 'localhost'."
-  :type 'string
-  :group 'entropy/emacs-customize-group-for-mpd)
-
-(defcustom entropy/emacs-mpd-host-port "9688"
-  "Mpd host port defautl to '9688'."
-  :type 'string
-  :group 'entropy/emacs-customize-group-for-mpd)
-
-;; **** start with config
-(defcustom entropy/emacs-startwith-apps nil
-  "The external apps for entropy-emacs start with.
-
-This variable forms as one alist of each element's car was the
-process-name and the cdr was the executable full path string for
-just it's name."
-  :type '(choice (const nil)
-                 (repeat
-                  (cons (string :tag "Process name")
-                        (file :tag "Process executable file"))))
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-;; *** UI
-(defgroup entropy/emacs-customize-group-for-UI nil
-  "Eemacs UI configuration customizable group."
-  :group 'entropy-emacs-customize-top-group)
-
-;; **** Initial UI
-(defgroup entropy/emacs-customize-group-for-initial-ui nil
-  "Eemacs initial ui configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-UI)
-
-(defcustom entropy/emacs-enable-initial-dashboard t
-  "Enable entropy emacs initial dashboard instead of emacs
-default one.
-
-Valid value are 't' or 'rich', otherwise disable this
-feature.
-
-When value are either 't' or 'rich', a fancy simple splash buffer
-`entropy/emacs-init-welcome-buffer-name' will startup firstly, and
-then enable the rich dashbord contents when value is 'rich'."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-initial-ui)
 
 ;; **** Themes
 (defgroup entropy/emacs-customize-group-for-ui-theme nil
@@ -555,6 +406,61 @@ for a long time and so as the bad head dispersion."
 set for that messy with modeline type, default to nil."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-modeline)
+
+;; **** Fonts
+(defgroup entropy/emacs-customize-group-for-eemacs-font-spec nil
+  "Eemacs font specifications configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-UI)
+
+(defcustom entropy/emacs-font-setting-enable nil
+  "Enable entropy-emacs specific font setting, when its non-nil.
+
+If its non-nil, the valid value are 'google' for using google noto
+family fonts, 'sarasa' for usign sarasa-gothic family which was a
+fork for google noto refer, or 'fira-code' which was better for
+daily development using.
+
+When its value is 't', then fallback its to 'google'."
+  :type '(choice
+          (const :tag "Disable" nil)
+          (const :tag "Default" t)
+          (const :tag "Google font family" google)
+          (const :tag "Sarasa font family" sarasa)
+          (const :tag "Fira code based" fira-code))
+  :group 'entropy/emacs-customize-group-for-eemacs-font-spec)
+
+(defcustom entropy/emacs-font-chinese-type 'sc
+  "The chinese font use type, 'sc' for simplified chinese, 'tc'
+for traditional chinse, default to 'sc' which wildly include the
+traditional chinese fonts already."
+  :type '(choice
+          (const :tag "Simplified chinese" sc)
+          (const :tag "traditional chinese" tc))
+  :group 'entropy/emacs-customize-group-for-eemacs-font-spec)
+
+(defcustom entropy/emacs-font-size-default 10
+  "Set the default font size for face-attribute.
+
+Default size was 10, the upper limit was 15."
+  :type 'integer
+  :group 'entropy/emacs-customize-group-for-eemacs-font-spec)
+
+;; **** Transparent
+(defgroup entropy/emacs-customize-group-for-transparent-backgroud nil
+  "Eemacs emacs frame background transparent configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-UI)
+
+(defcustom entropy/emacs-start-with-frame-transparent-action t
+  "Enable frame transparent at startup of =entropy-emacs=."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-transparent-backgroud)
+
+(defcustom entropy/emacs-loop-alpha-value 85
+  "The default initialize integer value of frame background
+transparent, any customization of it may be restrict by the
+target process."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-transparent-backgroud)
 
 ;; *** M-x
 (defgroup entropy/emacs-customize-group-for-M-x nil
@@ -978,6 +884,16 @@ open one new eyebrowse workspace"
   :type 'function
   :group 'entropy/emacs-customize-group-for-eyebrowse-mode)
 
+;; **** desktop save config
+(defgroup entropy/emacs-customize-group-for-desktop-save nil
+  "Eemacs `desktop-save' configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-workspace)
+
+(defcustom entropy/emacs-desktop-enable nil
+  "Enable desktop-save-mode and persistent scratch buffer"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-desktop-save)
+
 ;; *** Shell Env Config
 
 (defgroup entropy/emacs-customize-group-for-ShellEnv-configuration nil
@@ -998,6 +914,52 @@ The env vars retrieving method made by logining into your default
 shell across a swan process under current emacs session."
   :type '(repeat string)
   :group 'entropy/emacs-customize-group-for-ShellEnv-configuration)
+
+;; **** Language Envrionment
+(defgroup entropy/emacs-customize-group-for-language-environment nil
+  "Eemacs language environment configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-ShellEnv-configuration)
+
+(defcustom entropy/emacs-custom-language-environment-enable nil
+  "Enable custome language environment, used to customize
+`current-language-environment', and then variable
+`entropy/emacs-locale-language-environment' and
+`entropy/emacs-locale-coding-system' will be used."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-language-environment)
+
+(defcustom entropy/emacs-locale-language-environment
+  (copy-tree current-language-environment)
+  "The language environment follow current system locale, used to
+`set-language-environment', instantly getted before eemacs core
+procedure invoked.
+
+In most of case, you do not need to customize it, but it's
+allowed, if so as, the value must be one key of
+`language-info-alist'.
+
+NOTE: this variable just be used when init
+`entropy/emacs-custom-language-environment-enable' with non-nil
+value."
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-language-environment)
+
+(defcustom entropy/emacs-locale-coding-system
+  (car default-process-coding-system)
+  "The preferred coding system follow current system locale, used
+to `prefer-coding-system', instantly getted before eemacs core
+procedure invoked.
+
+In most of case, you do not need to customize it, but it's
+allowed, if so as, the value must be one of
+`coding-system-list'.
+
+NOTE: this variable just be used when init
+`entropy/emacs-custom-language-environment-enable' with non-nil
+value."
+  :type 'coding-system
+  :group 'entropy/emacs-customize-group-for-language-environment)
+
 
 ;; *** Pdumper
 (defgroup entropy/emacs-customize-group-for-pdumper nil
@@ -1504,19 +1466,81 @@ When set to an empty string, this attribute is omitted.  Defaults to
   :type 'sexp
   :group 'entropy/emacs-customize-group-for-common-lisp-mode)
 
-;; *** Specific for windows
-(defgroup entropy/emacs-customize-group-for-WINDOWS nil
-  "Eemacs Windows platform specifications configuration customizable group."
+;; *** Entertainments
+(defgroup entropy/emacs-customize-group-for-entertaiments nil
+  "Eemacs general entertainments configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
-;; **** w32 ime config
+;; **** media player
+
+(defgroup entropy/emacs-customize-group-for-media-player nil
+  "Eemacs general media player configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-entertaiments)
+
+;; ***** music
+
+(defgroup entropy/emacs-customize-group-for-media-music nil
+  "Eemacs general music configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-media-player)
+
+;; ****** mpc
+(defgroup entropy/emacs-customize-group-for-mpd nil
+  "Eemacs MPD (music player daemon) configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-media-music)
+
+(defcustom entropy/emacs-mpd-host-url "127.0.0.1"
+  "Mpd host url defautl to 'localhost'."
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-mpd)
+
+(defcustom entropy/emacs-mpd-host-port "9688"
+  "Mpd host port defautl to '9688'."
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-mpd)
+
+;; *** Translate
+(defgroup entropy/emacs-customize-group-for-translate nil
+  "Eemacs elfeed configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-dictionary-backend 'sdcv
+  "The dictionary tool type for chosen, valid type are
+
+- 'sdcv'
+- 'bing'
+- 'youdao'
+- 'google'
+"
+  :type '(choice
+          (const :tag "Sdcv local dictional" sdcv)
+          (const :tag "Bing online dictionary" bing)
+          (const :tag "Youdao online dictionary" youdao)
+          (const :tag "Google online dictionary" google))
+  :group 'entropy/emacs-customize-group-for-translate)
+
+(defcustom entropy/emacs-google-translate-toggle-patched-in-china t
+  "Enable google-translate in china. (GFW banned restriction break)"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-translate)
+
+;; *** Platform Spec
+(defgroup entropy/emacs-customize-group-for-platform-spec nil
+  "Eemacs cross platform configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** Specific for windows
+(defgroup entropy/emacs-customize-group-for-WINDOWS nil
+  "Eemacs Windows platform specifications configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-platform-spec)
+
+;; ***** w32 ime config
 (defcustom entropy/emacs-win-init-ime-enable nil
   "Enable win32 IME bug fix maybe detection at startup (fix
 around of the bug of w32-ime)."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-;; **** eemacs wsl config
+;; ***** eemacs wsl config
 (defcustom entropy/emacs-wsl-enable nil
   "Set whether you want to use =eemacs-wsl=, so that variable
 `entropy/emacs-wsl-apps' will be used.
@@ -1582,7 +1606,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-;; ***** windows git portable setting
+;; ****** windows git portable setting
 (defcustom entropy/emacs-git-portable-enable nil
   "Whether enable portable git application usage on windows
 platform when you want to use the portable git-for-window, you
@@ -1603,7 +1627,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-;; **** adding path for emacs built 'bin' folder
+;; ***** adding path for emacs built 'bin' folder
 (defcustom entropy/emacs-win-emacs-bin-path-add t
   "Whether adding emacs bin folder to path on windows platform.
 
@@ -1617,7 +1641,7 @@ supported.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-;; **** wsl terminal setting
+;; ***** wsl terminal setting
 (defcustom entropy/emacs-wsl-terminal-enable nil
   "Enable external *nix terminal emulator on windows platform and
 then variable `entropy/emacs-wsl-terminal' will be used."
@@ -1642,7 +1666,7 @@ NOTE: this variable just be used when
   :type 'file
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-;; **** enable fakecygpty
+;; ***** enable fakecygpty
 (defcustom entropy/emacs-win-fakecygpty-enable nil
   "Enable fake pty wrapper which let emacs for windows support
 some (not complete) pty support, and then variable
@@ -1672,12 +1696,12 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-;; **** w32 portable kits
+;; ***** w32 portable kits
 (defgroup entropy/emacs-customize-group-for-w32-portable-kits nil
   "Eemacs w32 portable environment configuration customizable group."
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-;; ***** enable portable mingw
+;; ****** enable portable mingw
 (defcustom entropy/emacs-win-portable-mingw-enable nil
   "Enable mingw portable release usage for emacs in windows and
 then variable `entropy/emacs-win-portable-mingw-path' will be
@@ -1704,7 +1728,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable clang
+;; ****** enable portable clang
 (defcustom entropy/emacs-win-portable-clang-enable nil
   "Enable clang windows port usage in portable way for emacs on
 windows and then variable `entropy/emacs-win-portable-clang-path'
@@ -1730,7 +1754,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-basic-configuration)
 
-;; ***** enable portable texlive
+;; ****** enable portable texlive
 (defcustom entropy/emacs-win-portable-texlive-enable nil
   "Enable texlive portable release for emacs in windows and then
 variable `entropy/emacs-win-portable-texlive-path' will be used.
@@ -1754,7 +1778,7 @@ NOTE: this varialbe just used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable grep
+;; ****** enable portable grep
 (defcustom entropy/emacs-win-portable-grep-enable nil
   "Enable Gnu-grep for windows portable release for emacs in
 windows platform, and then variable
@@ -1779,7 +1803,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable ag
+;; ****** enable portable ag
 (defcustom entropy/emacs-win-portable-ag-enable nil
   "Enable silver_searcher portable winport release for emacs in
 windows platform, and then variable
@@ -1803,7 +1827,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable rg
+;; ****** enable portable rg
 (defcustom entropy/emacs-win-portable-rg-enable nil
   "Enable ripgrep portable winport release for emacs in windows
 platform, and then variable `entropy/emacs-win-portable-rg-path'
@@ -1827,7 +1851,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable cmder
+;; ****** enable portable cmder
 (defcustom entropy/emacs-Cmder-enable nil
   "Enable Cmder portable release usage for emacs in windows platform,
 and then variable `entropy/emacs-win-Cmder-path' will be used.
@@ -1847,7 +1871,7 @@ NOTE: this variable just be used when
   :type 'file
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable php
+;; ****** enable portable php
 (defcustom entropy/emacs-win-portable-php-enable nil
   "Enable php winport release usage for emacs in windows and then
 variable `entropy/emacs-win-portable-php-path' will be used.
@@ -1870,7 +1894,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enbale portable pip
+;; ****** enbale portable pip
 (defcustom entropy/emacs-win-portable-pip-enable nil
   "Enable external python pip winport portable release usage for
 emacs in emacs and then variable
@@ -1894,7 +1918,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable python
+;; ****** enable portable python
 (defcustom entropy/emacs-win-portable-python-enable nil
   "Enable python winport release usage for emacs in windows and
 then variable `entropy/emacs-win-portable-python-path' will be
@@ -1917,7 +1941,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable nodejs
+;; ****** enable portable nodejs
 (defcustom entropy/emacs-win-portable-nodejs-enable nil
   "Enable nodejs winport portable release usage for emacs in
 windows and then variable
@@ -1940,7 +1964,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable opencc
+;; ****** enable portable opencc
 (defcustom entropy/emacs-win-portable-opencc-enable nil
   "Enable opencc winport portable release usage for emacs in
 windows and then variable
@@ -1963,7 +1987,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable pandoc
+;; ****** enable portable pandoc
 (defcustom entropy/emacs-win-portable-pandoc-enable nil
   "Enable pandoc winport portable release usage for emacs in
 windows and then variable
@@ -1986,7 +2010,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enbale portable jdk
+;; ****** enbale portable jdk
 (defcustom entropy/emacs-win-portable-jdk-enable nil
   "Enable java-jdk winport portable release usage for emacs in
 windows and then variable `entropy/emacs-win-portable-jdk-path'
@@ -2009,7 +2033,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable zeal
+;; ****** enable portable zeal
 (defcustom entropy/emacs-win-portable-zeal-enable 'nil
   "Enable Zealdoc usage for emacs in windows and then variable
 `entropy/emacs-win-portable-zeal-path' will be used."
@@ -2026,7 +2050,7 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; ***** enable portable putty
+;; ****** enable portable putty
 (defcustom entropy/emacs-win-portable-putty-enable nil
   "Enable putty portable for emacs in windows for provide the
 putty tramp method instead of the lag ssh one on windows platform
