@@ -66,11 +66,30 @@
 
 ;; ** prescient
 (use-package prescient
+  :commands
+  (prescient-sort
+   prescient-persist-mode
+   prescient-filter
+   prescient-remember
+   prescient-with-group
+   prescient-split-query
+   prescient-sort-compare
+   prescient-fuzzy-regexp
+   prescient-prefix-regexp
+   prescient-regexp-regexp
+   prescient-filter-regexps
+   prescient-literal-regexp
+   prescient-anchored-regexp
+   prescient-initials-regexp
+   prescient-literal-prefix-regexp
+   )
   :init
-  ;; global disable length sorting since it doesn't adapt to daily
-  ;; usage.
-  (setq prescient-sort-length-enable nil)
-  )
+  (entropy/emacs-lazy-initial-advice-before
+   (ivy-mode counsel-mode company-mode)
+   "prescient-mode-init"
+   "prescient-mode-init" prompt-echo
+   :pdumper-no-end t
+   (prescient-persist-mode 1)))
 
 ;; ** exec-path-from-shell
 (use-package exec-path-from-shell
