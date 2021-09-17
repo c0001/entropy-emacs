@@ -938,11 +938,16 @@ while in `company-box-mode'."
   )
 
 ;; *** Better sorting and filtering
+
+;; TODO: hack its performance to fit fast typing with `company-mode'.
 (use-package company-prescient
   :after company
   :commands (company-prescient-mode)
   :init
-  (company-prescient-mode 1))
+  ;; EEMACS_BUG: 2021-09-17 Fri 18:12:03
+  ;; we disable it temporally since its performance issue.
+  ;; (company-prescient-mode 1)
+  )
 
 ;; *** Company in minibuffer
 
