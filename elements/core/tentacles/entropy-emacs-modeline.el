@@ -336,9 +336,7 @@ return nil"
    mode-line-format
    '(:eval
      (if (entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?)
-         (progn
-           (format-mode-line
-            entropy/emacs-modeline--simple-mode-line-format))
+         entropy/emacs-modeline--simple-mode-line-format
        (propertize
         (make-string
          (+ (window-width) 3) ?─ t)
