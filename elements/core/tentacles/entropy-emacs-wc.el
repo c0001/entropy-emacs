@@ -781,7 +781,6 @@ without derived slot."
      enable-winner-mode
      (winner-mode +1))))
 
-  :config
   (setq winner-boring-buffers
         `("*Completions*"
           "*Compile-Log*"
@@ -836,7 +835,25 @@ without derived slot."
              (regexp "\\*ivy-occur.+*$" )
              (regexp "^*godoc.+*$")
              (regexp
-              "^magit[-]?\\([a-z]+\\)?:")))))
+              "^magit[-]?\\([a-z]+\\)?:"))))
+
+  :config
+  (defun __adv/around/winner-save-old-configurations/post-command-idle-trigger
+      (orig-func &rest orig-args)
+    "Trigger `winner-mode' `post-command-hook'
+`winner-save-old-configurations' with idle timer for perfomance
+issue."
+    (let (_)
+      (eval
+       `(entropy/emacs-run-at-idle-immediately
+         __idle/winner-save-old-config
+         :which-hook 0.4
+         (apply ',orig-func ',orig-args)))))
+  (advice-add 'winner-save-old-configurations
+              :around
+              #'__adv/around/winner-save-old-configurations/post-command-idle-trigger
+              )
+  )
 
 ;; *** desktop mode
 
