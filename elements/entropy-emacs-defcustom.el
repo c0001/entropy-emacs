@@ -1029,8 +1029,8 @@ wide dependencies independent from the native system environment,
 it works like a dot-local (~/.local) foler per-user did, but just
 used for =entropy-emacs=.
 
-For eemacs maintenance, all the sub-folders liek bin/, lib/ so on
-are pre-defined for reversing the namespace update possible:
+For eemacs maintenance, all the sub-folders like bin/, lib/ so on
+are pre-defined for preserving the namespace update possible:
 - bin/: `entropy/emacs-coworker-bin-host-path'
 - lib/: `entropy/emacs-coworker-lib-host-root'
 - archive/: `entropy/emacs-coworker-archive-host-root'.
@@ -1120,7 +1120,7 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
 
-;; *** language server specification
+;; **** language server specification
 (defgroup entropy/emacs-customize-group-for-codeserver nil
   "Eemacs language servers integraged configuration customizable group."
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
