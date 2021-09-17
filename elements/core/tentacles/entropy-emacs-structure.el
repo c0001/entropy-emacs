@@ -1072,7 +1072,7 @@ Otherwise, fallback to the original binding of %s in the current mode."
     [M-up]
     #'entropy/outshine-previous-visible-heading)
   (define-key outshine-mode-map
-    (kbd "C-c C-p")
+    (kbd "C-c C-n")
     #'outline-next-visible-heading)
   (define-key outshine-mode-map
     [M-down]
