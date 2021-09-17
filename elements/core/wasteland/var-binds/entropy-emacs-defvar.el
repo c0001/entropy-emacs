@@ -299,7 +299,8 @@ for `last-command'.
 (defvar entropy/emacs-session-idle-trigger-debug nil
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
-(defvar __eemacs-session-idle-trigger-secs-class '(1 2))
+(defvar __eemacs-session-idle-trigger-secs-class
+  '(0.2 0.3 0.4 0.5 1 2 3 4 5))
 
 (defun __eemacs--get-idle-hook-refer-symbol-name_core
     (type idle-sec)
@@ -350,7 +351,8 @@ since `intern' is laggy.")
        idle-sec
        (alist-get
         type
-        __eemacs_idle-hook-refer-symbol-name-cache))
+        __eemacs_idle-hook-refer-symbol-name-cache)
+       nil nil 'eql)
       (error "__eemacs--get-idle-hook-refer-symbol-name_core: \
 wrong type of type: %s of seconds: %s"
              type idle-sec)))
@@ -476,7 +478,7 @@ Optional key slot support:
 - which-hook:
 
   Number of seconds of `__eemacs-session-idle-trigger-secs-class' to
-  idicate whcih trigger hook to run.
+  idicate which trigger hook to run.
 
 - current-buffer:
 
