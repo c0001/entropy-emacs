@@ -625,211 +625,6 @@ will combined with =entropy-emacs= internal specification."
 
 
 
-;; **** shell env config
-
-(defgroup entropy/emacs-customize-group-for-ShellEnv-configuration nil
-  "Eemacs shell env configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-(defcustom entropy/emacs-willing-copy-shell-variables nil
-  "Shell ENV variables willing to inject to current emacs session.
-
-This list of strings used for `setenv' to copy you default shell
-environment variables.
-
-The default shell is obtained from `shell-file-name' if setted
-yet, at leasst be from you SHELL env var of current emacs session
-as fallback.
-
-The env vars retrieving method made by logining into your default
-shell across a swan process under current emacs session."
-  :type '(repeat string)
-  :group 'entropy/emacs-customize-group-for-ShellEnv-configuration)
-
-;; **** eyebrowse config
-(defgroup entropy/emacs-customize-group-for-eyebrowse-mode nil
-  "Eemacs eyebrowse-mode configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-(defcustom entropy/emacs-enable-eyebrowse-new-workspace-init-function nil
-  "Enable personal function for eyebrowse to creating new
-workspace."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-eyebrowse-mode)
-
-(defcustom entropy/emacs-eyebrowse-new-workspace-init-function
-  'entropy/emacs-create-scratch-buffer
-  "Create the init buffer or others with you own function when
-open one new eyebrowse workspace"
-  :type 'function
-  :group 'entropy/emacs-customize-group-for-eyebrowse-mode)
-
-;; **** pyim config
-(defgroup entropy/emacs-customize-group-for-pyim nil
-  "Eemacs PYIM configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-(defcustom entropy/emacs-enable-pyim nil
-  "Enable pyim be the default pyin input method"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-pyim)
-
-(defcustom entropy/emacs-pyim-use-backend 'internal
-  "The pyim backend type choosing configuration."
-  :type  '(choice
-           (const :tag "Native pyim backend" internal)
-           (const :tag "Liberime based on librime" liberime))
-  :group 'entropy/emacs-customize-group-for-pyim)
-
-(defcustom entropy/emacs-pyim-liberime-scheme-data
-  (cl-case system-type
-    (gnu/linux "/usr/share/rime-data")
-    (t nil))
-  "The rime scheme-data directory using for liberime"
-  :type '(choice
-          (const nil)
-          directory)
-  :group 'entropy/emacs-customize-group-for-pyim)
-
-(defcustom entropy/emacs-pyim-liberime-cache-dir
-  (expand-file-name "pyim/rime-cache" entropy/emacs-stuffs-topdir)
-  "The cache dir for liberime"
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-pyim)
-
-(defcustom entropy/emacs-pyim-dicts nil
-  "
-Setting pyim-dicts file, if nil then use basic dicts for
-minimal usage
-
-You can setting like this:
-
-  (setq entropy/emacs-pyim-dicts
-        '((:name \"popular\":file \"~/.emacs.d/pydict/sougou.pyim\")
-          (:name \"core\" :file \"~/.emacs.d/pydict/py++.pyim\")
-          (:name \"pyim-greatdict\" :file \"~/.emacs.d/pydict/pyim-greatdict.pyim\")))
-"
-  :type '(choice
-          (const nil)
-          (repeat
-           (list
-            (const :name)
-            (string :tag "Pyim dictionary name")
-            (const :file)
-            (file :tag "Pyim dictionary file"))))
-  :group 'entropy/emacs-customize-group-for-pyim)
-
-(defcustom entropy/emacs-pyim-cached-dir
-  (expand-file-name "pyim/internal-cache" entropy/emacs-stuffs-topdir)
-  "Set pyim cached dir, if nil use defaults setting (see
-`pyim-dcache-directory')"
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-pyim)
-
-(defcustom entropy/emacs-pyim-tooltip nil
-  "Setting the pyim toolitip method"
-  :type '(choice
-          (const :tag "Posframe (in gui)" posframe)
-          (const :tag "Popup (in tui)" popup)
-          (const :tag "Minibuffer (either tui or gui)" minibuffer)
-          (const :tag "Automatically set" nil))
-  :group 'entropy/emacs-customize-group-for-pyim)
-
-;; **** emacs web corresponding config
-(defgroup entropy/emacs-customize-group-for-web-refer nil
-  "Eemacs web referred configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-;; ***** eww search engine set
-(defcustom entropy/emacs-enable-eww-search-engine-customize t
-  "Enable eww search prefix customized"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-web-refer)
-
-(defcustom entropy/emacs-eww-search-engine "https://www.bing.com/search?q="
-  "Customized eww search prefix string and the default was 'bing.cn'"
-  :type 'string
-  :group 'entropy/emacs-customize-group-for-web-refer)
-
-;; ***** search-web search-engines setting
-(defcustom entropy/emacs-search-web-engines-internal
-  '(("php-manual" "http://php.net/manual-lookup.php?pattern=%s" In-Emacs)
-    ("MOZILA MDN" "http://developer.mozilla.org/en-US/search?q=%s" In-Emacs)
-    ("baidu" "http://www.baidu.com/s?wd=%s" In-Emacs)
-    ("google" "http://www.google.com/search?q=%s" In-Emacs)
-    ("google ja" "http://www.google.com/search?hl=ja&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
-    ("google en" "http://www.google.com/search?hl=en&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
-    ("stackoveflow en" "http://stackoverflow.com/search?q=%s" In-Emacs)
-    ("stackoveflow ja" "http://ja.stackoverflow.com/search?q=%s" In-Emacs)
-    ("elpa" "https://elpa.gnu.org/packages/%s.html" In-Emacs)
-    ("melpa" "https://melpa.org/#/?q=%s" In-Emacs))
-  "Internal search-web engines."
-  :type '(repeat
-          (list
-           (string :tag "Host description")
-           (string :tag "Host url")
-           (const In-Emacs)))
-  :group 'entropy/emacs-customize-group-for-web-refer)
-
-(defcustom entropy/emacs-search-web-engines-external
-  '(("MOZILA MDN" "https://developer.mozilla.org/en-US/search?q=%s" External)
-    ("php-manual" "https://php.net/manual-lookup.php?pattern=%s" External)
-    ("github-external" "https://github.com/search?&q=%s" External)
-    ("baidu" "http://www.baidu.com/s?wd=%s" External)
-    ("google" "https://www.google.com/search?q=%s" External)
-    ("google ja" "https://www.google.com/search?hl=ja&q=%s&ie=utf-8&oe=utf-8&gbv=1" External)
-    ("google en" "https://www.google.com/search?hl=en&q=%s&ie=utf-8&oe=utf-8&gbv=1" External)
-    ("google maps" "https://maps.google.co.jp/maps?hl=ja&q=%s" External)
-    ("google scholar" "https://scholar.google.co.jp/scholar?q=%s" External)
-    ("elpa" "https://elpa.gnu.org/packages/%s.html" External)
-    ("melpa" "https://melpa.org/#/?q=%s" External)
-    ("youtube" "https://www.youtube.com/results?search_type=&search_query=%s&aq=f" External)
-    ("twitter" "https://twitter.com/search?q=%s" External)
-    ("wikipedia en" "https://www.wikipedia.org/search-redirect.php?search=%s&language=en" External)
-    ("wikipedia ja" "https://www.wikipedia.org/search-redirect.php?search=%s&language=ja" External)
-    ("stackoveflow en" "https://stackoverflow.com/search?q=%s" External)
-    ("stackoveflow ja" "https://ja.stackoverflow.com/search?q=%s" External))
-  "External search-web engines"
-  :type '(repeat
-          (list
-           (string :tag "Host description")
-           (string :tag "Host url")
-           (const External)))
-  :group 'entropy/emacs-customize-group-for-web-refer)
-
-;; ***** personal browse-url function and varaiable
-(defcustom entropy/emacs-enable-personal-browse-url-function nil
-  "Enable personal browse url function like
-`browse-url-browser-function' but embedded with eemacs context,
-and then `entropy/emacs-browse-url-function' will be used."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-web-refer)
-
-(defcustom entropy/emacs-browse-url-function nil
-  "The specific `browse-url-browser-function' by user specification
-for eemacs context, only used when
-`entropy/emacs-enable-personal-browse-url-function' init with
-non-nil value.
-
-Mostly of all, you should write your browse-url function with
-arguments list as '(url &rest args)'
-
-For example:
-
-     (defun entropy/emacs-open-with-url (url &rest args)
-       (interactive (browse-url-interactive-arg \"URL: \"))
-       (w32-shell-execute
-        \"open\"
-        \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\"
-        url))
-
-In =entropy-emacs=, you should always preferred specified the url
-browse function in this variable than the emacs internal defined
-`browse-url-browser-function'. Eemacs arrange it to that in proper
-way but with more extensively meaning."
-  :type '(choice function (const nil))
-  :group 'entropy/emacs-customize-group-for-web-refer)
-
 ;; **** project search exec config
 (defcustom entropy/emacs-search-program "rg"
   "The project search engine used for =entropy-emacs=.
@@ -935,36 +730,6 @@ target process."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-transparent-backgroud)
 
-;; **** gnus config
-(defgroup entropy/emacs-customize-group-for-gnus nil
-  "Eemacs GNUS configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-(defcustom entropy/emacs-gnus-init-config
-  `(:gnus-home ,(expand-file-name "gnus" entropy/emacs-stuffs-topdir)
-    :gnus-news-dir ,(expand-file-name "gnus/News" entropy/emacs-stuffs-topdir)
-    :mail-dir ,(expand-file-name "gnus/Mail" entropy/emacs-stuffs-topdir)
-    :mail-temp-dir ,(expand-file-name "gnus/temp" entropy/emacs-stuffs-topdir)
-    :init-file ,(expand-file-name "gnus/gnus-config.el" entropy/emacs-stuffs-topdir)
-    :startup-file ,(expand-file-name "gnus/newsrc" entropy/emacs-stuffs-topdir)
-    :read-newsrc nil
-    :save-newsrc nil
-    :use-dribble t
-    :read-active-file t)
-  "Initial setting for gnus for entropy-emacs."
-  :type '(list
-          (const :gnus-home) directory
-          (const :gnus-news-dir) directory
-          (const :mail-dir) directory
-          (const :mail-temp-dir) directory
-          (const :init-file) file
-          (const :startup-file) file
-          (const :read-newsrc) boolean
-          (const :save-newsrc) boolean
-          (const :use-dribble) boolean
-          (const :read-active-file) boolean)
-  :group 'entropy/emacs-customize-group-for-gnus)
-
 ;; **** mpd config
 (defgroup entropy/emacs-customize-group-for-mpd nil
   "Eemacs MPD (music player daemon) configuration customizable group."
@@ -992,6 +757,251 @@ just it's name."
                   (cons (string :tag "Process name")
                         (file :tag "Process executable file"))))
   :group 'entropy/emacs-customize-group-for-basic-configuration)
+
+;; *** Gnus
+(defgroup entropy/emacs-customize-group-for-gnus nil
+  "Eemacs GNUS configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-gnus-init-config
+  `(:gnus-home ,(expand-file-name "gnus" entropy/emacs-stuffs-topdir)
+    :gnus-news-dir ,(expand-file-name "gnus/News" entropy/emacs-stuffs-topdir)
+    :mail-dir ,(expand-file-name "gnus/Mail" entropy/emacs-stuffs-topdir)
+    :mail-temp-dir ,(expand-file-name "gnus/temp" entropy/emacs-stuffs-topdir)
+    :init-file ,(expand-file-name "gnus/gnus-config.el" entropy/emacs-stuffs-topdir)
+    :startup-file ,(expand-file-name "gnus/newsrc" entropy/emacs-stuffs-topdir)
+    :read-newsrc nil
+    :save-newsrc nil
+    :use-dribble t
+    :read-active-file t)
+  "Initial setting for gnus for entropy-emacs."
+  :type '(list
+          (const :gnus-home) directory
+          (const :gnus-news-dir) directory
+          (const :mail-dir) directory
+          (const :mail-temp-dir) directory
+          (const :init-file) file
+          (const :startup-file) file
+          (const :read-newsrc) boolean
+          (const :save-newsrc) boolean
+          (const :use-dribble) boolean
+          (const :read-active-file) boolean)
+  :group 'entropy/emacs-customize-group-for-gnus)
+
+;; *** Web Corresponding Config
+(defgroup entropy/emacs-customize-group-for-web-refer nil
+  "Eemacs web referred configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** eww search engine set
+(defcustom entropy/emacs-enable-eww-search-engine-customize t
+  "Enable eww search prefix customized"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-web-refer)
+
+(defcustom entropy/emacs-eww-search-engine "https://www.bing.com/search?q="
+  "Customized eww search prefix string and the default was 'bing.cn'"
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-web-refer)
+
+;; **** search-web search-engines setting
+(defcustom entropy/emacs-search-web-engines-internal
+  '(("php-manual" "http://php.net/manual-lookup.php?pattern=%s" In-Emacs)
+    ("MOZILA MDN" "http://developer.mozilla.org/en-US/search?q=%s" In-Emacs)
+    ("baidu" "http://www.baidu.com/s?wd=%s" In-Emacs)
+    ("google" "http://www.google.com/search?q=%s" In-Emacs)
+    ("google ja" "http://www.google.com/search?hl=ja&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
+    ("google en" "http://www.google.com/search?hl=en&q=%s&ie=utf-8&oe=utf-8&gbv=1" In-Emacs)
+    ("stackoveflow en" "http://stackoverflow.com/search?q=%s" In-Emacs)
+    ("stackoveflow ja" "http://ja.stackoverflow.com/search?q=%s" In-Emacs)
+    ("elpa" "https://elpa.gnu.org/packages/%s.html" In-Emacs)
+    ("melpa" "https://melpa.org/#/?q=%s" In-Emacs))
+  "Internal search-web engines."
+  :type '(repeat
+          (list
+           (string :tag "Host description")
+           (string :tag "Host url")
+           (const In-Emacs)))
+  :group 'entropy/emacs-customize-group-for-web-refer)
+
+(defcustom entropy/emacs-search-web-engines-external
+  '(("MOZILA MDN" "https://developer.mozilla.org/en-US/search?q=%s" External)
+    ("php-manual" "https://php.net/manual-lookup.php?pattern=%s" External)
+    ("github-external" "https://github.com/search?&q=%s" External)
+    ("baidu" "http://www.baidu.com/s?wd=%s" External)
+    ("google" "https://www.google.com/search?q=%s" External)
+    ("google ja" "https://www.google.com/search?hl=ja&q=%s&ie=utf-8&oe=utf-8&gbv=1" External)
+    ("google en" "https://www.google.com/search?hl=en&q=%s&ie=utf-8&oe=utf-8&gbv=1" External)
+    ("google maps" "https://maps.google.co.jp/maps?hl=ja&q=%s" External)
+    ("google scholar" "https://scholar.google.co.jp/scholar?q=%s" External)
+    ("elpa" "https://elpa.gnu.org/packages/%s.html" External)
+    ("melpa" "https://melpa.org/#/?q=%s" External)
+    ("youtube" "https://www.youtube.com/results?search_type=&search_query=%s&aq=f" External)
+    ("twitter" "https://twitter.com/search?q=%s" External)
+    ("wikipedia en" "https://www.wikipedia.org/search-redirect.php?search=%s&language=en" External)
+    ("wikipedia ja" "https://www.wikipedia.org/search-redirect.php?search=%s&language=ja" External)
+    ("stackoveflow en" "https://stackoverflow.com/search?q=%s" External)
+    ("stackoveflow ja" "https://ja.stackoverflow.com/search?q=%s" External))
+  "External search-web engines"
+  :type '(repeat
+          (list
+           (string :tag "Host description")
+           (string :tag "Host url")
+           (const External)))
+  :group 'entropy/emacs-customize-group-for-web-refer)
+
+;; **** personal browse-url function and varaiable
+(defcustom entropy/emacs-enable-personal-browse-url-function nil
+  "Enable personal browse url function like
+`browse-url-browser-function' but embedded with eemacs context,
+and then `entropy/emacs-browse-url-function' will be used."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-web-refer)
+
+(defcustom entropy/emacs-browse-url-function nil
+  "The specific `browse-url-browser-function' by user specification
+for eemacs context, only used when
+`entropy/emacs-enable-personal-browse-url-function' init with
+non-nil value.
+
+Mostly of all, you should write your browse-url function with
+arguments list as '(url &rest args)'
+
+For example:
+
+     (defun entropy/emacs-open-with-url (url &rest args)
+       (interactive (browse-url-interactive-arg \"URL: \"))
+       (w32-shell-execute
+        \"open\"
+        \"a:/PortableApps/FirefoxPortable/FirefoxPortable.exe\"
+        url))
+
+In =entropy-emacs=, you should always preferred specified the url
+browse function in this variable than the emacs internal defined
+`browse-url-browser-function'. Eemacs arrange it to that in proper
+way but with more extensively meaning."
+  :type '(choice function (const nil))
+  :group 'entropy/emacs-customize-group-for-web-refer)
+
+;; *** IME
+(defgroup entropy/emacs-customize-group-for-IME nil
+  "Eemacs input method configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** pyim config
+(defgroup entropy/emacs-customize-group-for-pyim nil
+  "Eemacs PYIM configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-IME)
+
+(defcustom entropy/emacs-enable-pyim nil
+  "Enable pyim be the default pyin input method"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-pyim)
+
+(defcustom entropy/emacs-pyim-use-backend 'internal
+  "The pyim backend type choosing configuration."
+  :type  '(choice
+           (const :tag "Native pyim backend" internal)
+           (const :tag "Liberime based on librime" liberime))
+  :group 'entropy/emacs-customize-group-for-pyim)
+
+(defcustom entropy/emacs-pyim-liberime-scheme-data
+  (cl-case system-type
+    (gnu/linux "/usr/share/rime-data")
+    (t nil))
+  "The rime scheme-data directory using for liberime"
+  :type '(choice
+          (const nil)
+          directory)
+  :group 'entropy/emacs-customize-group-for-pyim)
+
+(defcustom entropy/emacs-pyim-liberime-cache-dir
+  (expand-file-name "pyim/rime-cache" entropy/emacs-stuffs-topdir)
+  "The cache dir for liberime"
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-pyim)
+
+(defcustom entropy/emacs-pyim-dicts nil
+  "
+Setting pyim-dicts file, if nil then use basic dicts for
+minimal usage
+
+You can setting like this:
+
+  (setq entropy/emacs-pyim-dicts
+        '((:name \"popular\":file \"~/.emacs.d/pydict/sougou.pyim\")
+          (:name \"core\" :file \"~/.emacs.d/pydict/py++.pyim\")
+          (:name \"pyim-greatdict\" :file \"~/.emacs.d/pydict/pyim-greatdict.pyim\")))
+"
+  :type '(choice
+          (const nil)
+          (repeat
+           (list
+            (const :name)
+            (string :tag "Pyim dictionary name")
+            (const :file)
+            (file :tag "Pyim dictionary file"))))
+  :group 'entropy/emacs-customize-group-for-pyim)
+
+(defcustom entropy/emacs-pyim-cached-dir
+  (expand-file-name "pyim/internal-cache" entropy/emacs-stuffs-topdir)
+  "Set pyim cached dir, if nil use defaults setting (see
+`pyim-dcache-directory')"
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-pyim)
+
+(defcustom entropy/emacs-pyim-tooltip nil
+  "Setting the pyim toolitip method"
+  :type '(choice
+          (const :tag "Posframe (in gui)" posframe)
+          (const :tag "Popup (in tui)" popup)
+          (const :tag "Minibuffer (either tui or gui)" minibuffer)
+          (const :tag "Automatically set" nil))
+  :group 'entropy/emacs-customize-group-for-pyim)
+
+;; *** Workspace
+(defgroup entropy/emacs-customize-group-for-workspace nil
+  "Eemacs worskpace configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** eyebrowse config
+(defgroup entropy/emacs-customize-group-for-eyebrowse-mode nil
+  "Eemacs eyebrowse-mode configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-workspace)
+
+(defcustom entropy/emacs-enable-eyebrowse-new-workspace-init-function nil
+  "Enable personal function for eyebrowse to creating new
+workspace."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-eyebrowse-mode)
+
+(defcustom entropy/emacs-eyebrowse-new-workspace-init-function
+  'entropy/emacs-create-scratch-buffer
+  "Create the init buffer or others with you own function when
+open one new eyebrowse workspace"
+  :type 'function
+  :group 'entropy/emacs-customize-group-for-eyebrowse-mode)
+
+;; *** Shell Env Config
+
+(defgroup entropy/emacs-customize-group-for-ShellEnv-configuration nil
+  "Eemacs shell env configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-willing-copy-shell-variables nil
+  "Shell ENV variables willing to inject to current emacs session.
+
+This list of strings used for `setenv' to copy you default shell
+environment variables.
+
+The default shell is obtained from `shell-file-name' if setted
+yet, at leasst be from you SHELL env var of current emacs session
+as fallback.
+
+The env vars retrieving method made by logining into your default
+shell across a swan process under current emacs session."
+  :type '(repeat string)
+  :group 'entropy/emacs-customize-group-for-ShellEnv-configuration)
 
 ;; *** Pdumper
 (defgroup entropy/emacs-customize-group-for-pdumper nil
