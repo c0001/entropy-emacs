@@ -334,6 +334,9 @@ unwind occasion.")
 (use-package ivy-prescient
   :commands (ivy-prescient-mode)
   :init
+  (setq ivy-prescient-sort-commands
+        '(:not swiper swiper-isearch ivy-switch-buffer
+               counsel-yank-pop))
   (entropy/emacs-lazy-initial-advice-before
    (ivy-mode)
    "ivy-prescient-init" "ivy-prescient-init" prompt-echo
