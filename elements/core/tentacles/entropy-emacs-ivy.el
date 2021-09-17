@@ -187,13 +187,14 @@ queue done flag exposed to `ivy-done' idle trigger judger."
                                t)))))
       (if (and (member this-command '(self-insert-command
                                       ivy-backward-delete-char
-                                      ;; ivy-backward-kill-word
-                                      ivy-forward-char backward-char))
+                                      ivy-backward-kill-word
+                                      ivy-forward-char
+                                      backward-char))
                ;; TODO: more conditions here
                )
           (entropy/emacs-run-at-idle-immediately
            __idle/ivy--queue-exhibit
-           :which-hook 0.3
+           :which-hook 0.33
            (let* ((func/ivy-done-like-p
                    (lambda (command)
                      (member command
@@ -239,6 +240,16 @@ queue done flag exposed to `ivy-done' idle trigger judger."
               :around
               #'__adv/around/ivy-done/for-idle-trigger)
 
+  (defun __ya/ivy-backward-kill-word (arg)
+    "Alternative for `ivy-bakward-kill-word' but not trigger
+`ivy--exhibit'."
+    (interactive "p")
+    (delete-region
+     (point)
+     (progn (forward-word (- arg)) (point))))
+  (advice-add 'ivy-backward-kill-word
+              :override
+              #'__ya/ivy-backward-kill-word)
 
 ;; **** fix bug of `ivy-reverse-i-search'
 

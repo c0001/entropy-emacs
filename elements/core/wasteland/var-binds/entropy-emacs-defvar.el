@@ -299,8 +299,8 @@ for `last-command'.
 (defvar entropy/emacs-session-idle-trigger-debug nil
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
-(defvar __eemacs-session-idle-trigger-secs-class
-  '(0.2 0.3 0.4 0.5 0.7 0.8 1 2 3 4 5))
+(defvar entropy/emacs-idle-session-trigger-delay-clusters
+  '(0.2 0.3 0.33 0.4 0.5 0.7 0.8 1 2 3 4 5))
 
 (defun __eemacs--get-idle-hook-refer-symbol-name_core
     (type idle-sec)
@@ -339,7 +339,7 @@ wrong type of type: %s"
                 hook-trigger-done-var
                 hook-trigger-error-list))
       (let ((sub-rtn nil))
-        (dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
+        (dolist (idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
           (push (cons
                  idle-sec
                  (__eemacs--get-idle-hook-refer-symbol-name_core
@@ -366,7 +366,7 @@ wrong type of type: %s of seconds: %s"
     (&optional idle-sec)
   "Judge whether eemacs is idle, optional IDEL-SEC indicate the
 idle seconds logged by
-`__eemacs-session-idle-trigger-secs-class', default return the
+`entropy/emacs-idle-session-trigger-delay-clusters', default return the
 topset trigger status which equality the point just idle
 indicator `entropy/emacs-current-session-is-idle-p'."
   (if (null idle-sec)
@@ -386,7 +386,7 @@ indicator `entropy/emacs-current-session-is-idle-p'."
         entropy/emacs-current-session-idle-hook-ran-done nil
         entropy/emacs-current-session-this-command-before-idle this-command
         entropy/emacs-current-session-last-command-before-idle last-command)
-  (dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
+  (dolist (idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
     (let ((hook-idle-trigger-start-varname
            (__eemacs--get-idle-hook-refer-symbol-name
             'hook-trigger-start-var idle-sec))
@@ -428,7 +428,7 @@ must setted with SECS larger than or equal of this value.")
 (add-variable-watcher 'entropy/emacs-current-session-is-idle-p
                       #'entropy/emacs--idle-var-guard)
 
-(dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
+(dolist (idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
   (let ((hook-idle-trigger-start-varname
          (__eemacs--get-idle-hook-refer-symbol-name
           'hook-trigger-start-var idle-sec))
@@ -510,7 +510,7 @@ Optional key slot support:
 
 - which-hook:
 
-  Number of seconds of `__eemacs-session-idle-trigger-secs-class' to
+  Number of seconds of `entropy/emacs-idle-session-trigger-delay-clusters' to
   idicate which trigger hook to run.
 
 - current-buffer:

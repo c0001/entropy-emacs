@@ -1903,6 +1903,7 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
 
 ;; *** Kill ring config
 
+;; **** persist kill ring
 (defvar entropy/emacs-basic-kill-ring-persist-lock-file
   (expand-file-name
    ".kill-ring-persist.lock"
@@ -2097,6 +2098,20 @@ successfully both of situation of read persisit of create an new."
   (f-delete entropy/emacs-basic-kill-ring-persist-lock-file)
   (remove-hook 'kill-emacs-hook
                #'entropy/emacs-basic-kill-ring-persist-after-kill-emacs))
+
+
+;; **** remove redundant kill-ring save operation
+
+(defun __ya/backward-kill-word (arg)
+    "Alternative for `backward-kill-word' but not trigger
+`kill-ring-save'."
+    (interactive "p")
+    (delete-region
+     (point)
+     (progn (forward-word (- arg)) (point))))
+
+(global-set-key [remap backward-kill-word]
+                #'__ya/backward-kill-word)
 
 ;; *** Forbidden view-hello-file for W32 platform
 
