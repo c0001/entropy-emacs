@@ -79,6 +79,7 @@
         company-quickhelp
         company-shell
         company-web
+        conda
         copyit
         counsel
         counsel-css
@@ -145,6 +146,7 @@
         irony-eldoc
         ivy
         ivy-hydra
+        ivy-prescient
         ivy-rich
         ivy-xref
         js2-mode

@@ -73,62 +73,79 @@
 and save the compiling log into `entropy/emacs-stuffs-topdir'
 named as 'compile_$date.log'."
   (let ((buflist (mapcar #'buffer-name (buffer-list))))
-    (when entropy/emacs-package-install-success-list
+    (when (> (length entropy/emacs-package-install-success-list) 0)
       (setq entropy/emacs-start--is-init-with-install t))
+    ;; persist save compile log for debugging
     (when (member "*Compile-Log*" buflist)
       ;; First recorde compiling log
-      (let (($f (expand-file-name (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
-                                  entropy/emacs-stuffs-topdir))
+      (let ((inhibit-read-only t)
+            ($f (expand-file-name
+                 (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
+                 entropy/emacs-stuffs-topdir))
             buff_content)
+        (with-current-buffer (get-buffer "*Compile-Log*")
+            (setq buff_content
+                  (buffer-substring-no-properties
+                   (point-min) (point-max))))
         (with-current-buffer (find-file-noselect $f)
-          (with-current-buffer "*Compile-Log*"
-            (setq buff_content (buffer-substring-no-properties (point-min) (point-max))))
-          (read-only-mode 0)
           (goto-char (point-min))
           (insert buff_content)
           (save-buffer)
           (kill-buffer)))))
-
+  ;; fake defun
   (defun entropy/emacs-start--check-init-with-install-p ()
     "This function has been unloaded."
     nil)
   (when entropy/emacs-start--is-init-with-install
-    (run-with-timer 6 nil #'kill-emacs)))
+    (run-with-timer 300 nil #'kill-emacs)))
 
 (defun entropy/emacs-start--warn-with-pkg-install ()
   (entropy/emacs-start--check-init-with-install-p)
   (when entropy/emacs-start--is-init-with-install
-    (if (entropy/emacs-is-make-session)
-        (entropy/emacs-message-do-message
-         "%s"
-         (red "Remaining procedure can not loaded in this
+    (entropy/emacs-message-do-message
+     "%s"
+     (underscore
+      (magenta
+       "Remaining procedure can not loaded in this
 session because of you have installed some stuffs in this
-session, please restart thus, and it will be well."))
-      (warn "You init with installing new packages, please reopen emacs!
-
-Emacs will auto close after 6s ......"))
-    (top-level)))
+session, please restart thus, and it will be well.")))
+    (when (not noninteractive)
+      (entropy/emacs-message-do-message
+       "%s%s"
+       (yellow (bold "Warn: "))
+       (yellow
+        "You init with installing new packages, please reopen emacs!
+Emacs will auto close after 5 minutes \
+or manually do 'C-x C-c' immediately.")))
+    (require 'cl-macs)
+    (cl-assert (entropy/emacs-message-focus-on-popup-window))))
 
 ;; breaking remaining procedure while new package intalled within this
 ;; session, because some messy.
 (add-hook 'entropy/emacs-package-common-start-after-hook
           #'entropy/emacs-start--warn-with-pkg-install)
-(entropy/emacs-package-common-start)
 
-;; ***** coworker
-(require 'entropy-emacs-coworker)
+(require 'entropy-emacs-ext)
+(defvar entropy/emacs-start-ext-available-p
+  (entropy/emacs-ext-main))
+(when entropy/emacs-start-ext-available-p
+  (entropy/emacs-package-common-start))
 
-;; **** top utils
-(require 'entropy-emacs-utils)
+;; ***** Then require top facilities
+(unless entropy/emacs-start--is-init-with-install
+  ;; coworker
+  (require 'entropy-emacs-coworker)
 
-;; **** startup
-(require 'entropy-emacs-gc)
-(require 'entropy-emacs-path)
+  ;; top utils
+  (require 'entropy-emacs-utils)
 
-;; **** hollows
-(require 'entropy-emacs-window-parameter-memory)
-(require 'entropy-emacs-hydra-hollow)
+  ;; startup
+  (require 'entropy-emacs-gc)
+  (require 'entropy-emacs-path)
 
+  ;; hollows
+  (require 'entropy-emacs-window-parameter-memory)
+  (require 'entropy-emacs-hydra-hollow))
 
 ;; *** preface advice
 (defun entropy/emacs-start--require-prompt (feature)
@@ -446,7 +463,6 @@ notation.
    (entropy/emacs-minimal-start
     (entropy/emacs-start--init-M))))
 
-(require 'entropy-emacs-ext)
 ;; On win10 there's default global utf-8 operation system based
 ;; language environment setting supporting option. As when it enable,
 ;; forcing reset emacs internal w32-code page setting to utf-8 which
@@ -459,8 +475,9 @@ notation.
 
 (defun entropy/emacs-start-do-load ()
   (let (_)
-    (entropy/emacs-message-do-message (yellow "Cat's eye opening ..."))
-    (when (entropy/emacs-ext-main)
+    (when (and entropy/emacs-start-ext-available-p
+               (not entropy/emacs-start--is-init-with-install))
+      (entropy/emacs-message-do-message (yellow "Cat's eye opening ..."))
       (entropy/emacs-start--init-bingo)
       (unless entropy/emacs-fall-love-with-pdumper
         (entropy/emacs-run-startup-end-hook)))))

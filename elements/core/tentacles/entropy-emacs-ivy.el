@@ -329,6 +329,17 @@ unwind occasion.")
   (advice-add 'swiper-all :around #'entropy/emacs-ivy--swiper-all-restore-wfg)
   )
 
+
+;; ** ivy-prescient
+(use-package ivy-prescient
+  :commands (ivy-prescient-mode)
+  :init
+  (entropy/emacs-lazy-initial-advice-before
+   (ivy-mode)
+   "ivy-prescient-init" "ivy-prescient-init" prompt-echo
+   :pdumper-no-end t
+   (ivy-prescient-mode 1)))
+
 ;; ** counsel
 (use-package counsel
   :diminish counsel-mode

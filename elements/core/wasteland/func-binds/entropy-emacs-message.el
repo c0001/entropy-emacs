@@ -338,6 +338,20 @@ whenever `entropy/emacs-startup-done' is not set"
          (t (entropy/emacs-message--do-message-popup
              ,message ,@args))))
 
+(defun entropy/emacs-message-focus-on-popup-window ()
+  "Focus on popuped `entropy/emacs-message-message-buffname'
+window if available, return non-nil for success, nil otherwise."
+  (let ((buff
+         (get-buffer-create
+          entropy/emacs-message-message-buffname)))
+    (when (and (buffer-live-p buff)
+               (window-live-p
+                (get-buffer-window buff)))
+      (select-window (get-buffer-window buff))
+      (with-selected-window (get-buffer-window buff)
+        (setq cursor-type t))
+      t)))
+
 (defmacro entropy/emacs-message-do-warn (message &rest args)
   "An alternative `warn'that strips out ANSI codes. "
   `(let (_)

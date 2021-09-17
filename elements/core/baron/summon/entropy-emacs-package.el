@@ -190,31 +190,31 @@ When installing encounters the fatal error, put the pkg into
     ;; when needed.
     (unless (ignore-errors (assoc package package-archive-contents))
       (package-refresh-contents))
-    (if (not noninteractive)
-        (funcall install-core-func)
-      (if print-prefix
-          (entropy/emacs-message-do-message
-           "%s [%s] package '%s' ..."
-           print-prefix
-           (blue (if update "Updating" "Installing"))
-           (yellow (symbol-name pkg)))
+    ;; installing/updating message
+    (if print-prefix
         (entropy/emacs-message-do-message
-         "[%s] package '%s' ..."
+         "%s [%s] package '%s' ..."
+         print-prefix
          (blue (if update "Updating" "Installing"))
-         (yellow (symbol-name pkg))))
-      (cond ((and (package-installed-p pkg)
-                  (null update))
-             (entropy/emacs-message-do-message
-              (dark (white "⚠ ALREADY INSTALLED"))))
-            (t
-             (funcall install-core-func t)
-             (if (not (eq install-pass 'notpassed))
-                 (entropy/emacs-message-do-message
-                  (green "✓ DONE"))
+         (yellow (symbol-name pkg)))
+      (entropy/emacs-message-do-message
+       "[%s] package '%s' ..."
+       (blue (if update "Updating" "Installing"))
+       (yellow (symbol-name pkg))))
+    ;; do installing/updating
+    (cond ((and (package-installed-p pkg)
+                (null update))
+           (entropy/emacs-message-do-message
+            (dark (white "⚠ ALREADY INSTALLED"))))
+          (t
+           (funcall install-core-func t)
+           (if (not (eq install-pass 'notpassed))
                (entropy/emacs-message-do-message
-                "%s -- %s"
-                (red "✕ FAILED")
-                (cdr error-rtn))))))))
+                (green "✓ DONE"))
+             (entropy/emacs-message-do-message
+              "%s -- %s"
+              (red "✕ FAILED")
+              (cdr error-rtn)))))))
 
 ;; *** error prompt for failing items
 
@@ -233,10 +233,10 @@ When installing encounters the fatal error, put the pkg into
          (yellow (symbol-name (car pkg)))
          (cdr pkg))
         (cl-incf count)))
-    (if noninteractive
-        (error "")
-      (switch-to-buffer "*Messages*")
-      (top-level))))
+    (let (
+          ;; ensure we do not need debug for this statement
+          (debug-on-error nil))
+      (error ""))))
 
 ;; *** install
 (defun entropy/emacs-package-install-all-packages ()
@@ -245,17 +245,22 @@ When installing encounters the fatal error, put the pkg into
    (blue "Checking extensions satisfied status ..."))
   (require 'entropy-emacs-package-requirements)
   (let ((package-check-signature nil)
+        (pkg-pre nil)
         (count 1))
+    ;; calulate packages need to be installing
     (dolist (package entropy-emacs-packages)
       (unless (or (null package)
                   (package-installed-p package))
-        (ignore-errors
-          (entropy/emacs-package-install-package
-           nil
-           (format "[%s/%s]" count (length entropy-emacs-packages))
-           package
-           ))
-        (cl-incf count))))
+        (push package pkg-pre)))
+    ;; do installing
+    (dolist (package pkg-pre)
+      (ignore-errors
+        (entropy/emacs-package-install-package
+         nil
+         (format "[%s/%s(general)]" count (length pkg-pre))
+         package))
+      (cl-incf count)))
+  ;; show fails
   (entropy/emacs-package-prompt-install-fails)
   (entropy/emacs-message-do-message
    (green "All packages installed, congratulations 👏")))
@@ -392,7 +397,11 @@ recognized as a normal macro."
 
 (defun entropy/emacs-package-common-start ()
   (entropy/emacs-package-install-all-packages)
-  (entropy/emacs-package-init-use-package)
+  (when
+      ;; just init `use-package' while no installing procedure sine
+      ;; `use-package' may not be detected in dependencies deficiency.
+      (not entropy/emacs-package-install-success-list)
+    (entropy/emacs-package-init-use-package))
   (run-hooks 'entropy/emacs-package-common-start-after-hook))
 
 ;; * Provide
