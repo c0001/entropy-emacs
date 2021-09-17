@@ -159,7 +159,7 @@ origin, since each set to the `gc-threshold' or
              (null entropy/emacs-gc--idle-guard-removed))
     (cancel-function-timers #'garbage-collect)
     (setq entropy/emacs-gc--idle-guard-removed t)))
-(add-variable-watcher 'entropy/emacs-current-session-is-idle
+(add-variable-watcher 'entropy/emacs-current-session-is-idle-p
                       #'entropy/emacs-gc--remove-idle-guard)
 
 (defun entropy/emacs-gc-set-idle-gc (secs)

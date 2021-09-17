@@ -239,7 +239,7 @@ window will be set to 13.5.")
   "Buffer name of entropy-emacs initial welcome displaying buffer.")
 
 ;; ** idle trigger
-(defvar entropy/emacs-current-session-is-idle nil
+(defvar entropy/emacs-current-session-is-idle-p nil
   "The current emacs session idle signal, t for idle status
 indicator, nil for otherwise.
 
@@ -274,7 +274,7 @@ for say done of thus and nil for otherwise.
 
 NOTE: the indicator always be used in the idle time, since any
 command will reset the idle indicator
-`entropy/emacs-current-session-is-idle'.")
+`entropy/emacs-current-session-is-idle-p'.")
 
 (defvar entropy/emacs-current-session-this-command-before-idle nil
   "The `this-command' run before the idle time of current emacs
@@ -300,14 +300,14 @@ for `last-command'.
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
 (defvar __eemacs-session-idle-trigger-secs-class
-  '(0.2 0.3 0.4 0.5 1 2 3 4 5))
+  '(0.2 0.3 0.4 0.5 0.7 0.8 1 2 3 4 5))
 
 (defun __eemacs--get-idle-hook-refer-symbol-name_core
     (type idle-sec)
   (pcase type
     ('hook-trigger-start-var
      (intern
-      (format "entropy/emacs-current-session-is-idle-of-%s-sec"
+      (format "entropy/emacs-current-session-is-idle-p-of-%s-sec"
               idle-sec)))
     ('hook-trigger-func
      (intern
@@ -362,15 +362,16 @@ since `intern' is laggy.")
 wrong type of type: %s of seconds: %s"
              type idle-sec)))
 
-(defun entropy/emacs-current-session-is-idle-judger
+(defun entropy/emacs-current-session-is-idle
     (&optional idle-sec)
   "Judge whether eemacs is idle, optional IDEL-SEC indicate the
 idle seconds logged by
 `__eemacs-session-idle-trigger-secs-class', default return the
-topset trigger status which equality the point just idle."
+topset trigger status which equality the point just idle
+indicator `entropy/emacs-current-session-is-idle-p'."
   (if (null idle-sec)
       (bound-and-true-p
-       entropy/emacs-current-session-is-idle)
+       entropy/emacs-current-session-is-idle-p)
     (let ((var (__eemacs--get-idle-hook-refer-symbol-name
                 'hook-trigger-start-var idle-sec)))
       (symbol-value
@@ -381,7 +382,7 @@ topset trigger status which equality the point just idle."
   ;; firstly we press the `inhibit-read-only' for preventing any
   ;; procedure enable this of which polluting next operation.
   (setq inhibit-read-only nil)
-  (setq entropy/emacs-current-session-is-idle nil
+  (setq entropy/emacs-current-session-is-idle-p nil
         entropy/emacs-current-session-idle-hook-ran-done nil
         entropy/emacs-current-session-this-command-before-idle this-command
         entropy/emacs-current-session-last-command-before-idle last-command)
@@ -400,7 +401,7 @@ topset trigger status which equality the point just idle."
             (setq ,hook-idle-trigger-done-varname nil)))))))
 
 (defun entropy/emacs--set-idle-signal ()
-  (setq entropy/emacs-current-session-is-idle t)
+  (setq entropy/emacs-current-session-is-idle-p t)
   (if entropy/emacs-session-idle-trigger-debug
       (unwind-protect
           (run-hooks 'entropy/emacs-session-idle-trigger-hook)
@@ -415,7 +416,7 @@ topset trigger status which equality the point just idle."
 
 (defvar entropy/emacs-safe-idle-minimal-secs 0.1
   "The minimal idle timer SECS run with checking var
-`entropy/emacs-current-session-is-idle' which indicates that any
+`entropy/emacs-current-session-is-idle-p' which indicates that any
 specified timer function which would run with condition of thus
 must setted with SECS larger than or equal of this value.")
 
@@ -424,7 +425,7 @@ must setted with SECS larger than or equal of this value.")
 (defun entropy/emacs--idle-var-guard (symbol newval operation where)
   (unless (null newval)
     (force-mode-line-update)))
-(add-variable-watcher 'entropy/emacs-current-session-is-idle
+(add-variable-watcher 'entropy/emacs-current-session-is-idle-p
                       #'entropy/emacs--idle-var-guard)
 
 (dolist (idle-sec __eemacs-session-idle-trigger-secs-class)
@@ -446,7 +447,7 @@ must setted with SECS larger than or equal of this value.")
     (eval
      `(progn
         (defvar ,hook-idle-trigger-start-varname nil
-          (format "Like `entropy/emacs-current-session-is-idle' \
+          (format "Like `entropy/emacs-current-session-is-idle-p' \
 but for idle with %ss." ,idle-sec))
 
         (defvar ,hook-idle-trigger-hookname nil
@@ -498,7 +499,7 @@ but used for hook  `%s'."
   "Run BODY defination as NAME while current emacs session ran
 into idle status immediately or just run as progn while the
 trigger of this macro is in idle time i.e. the
-`entropy/emacs-current-session-is-idle' is non-nil.
+`entropy/emacs-current-session-is-idle-p' is non-nil.
 
 Optional key slot support:
 
@@ -545,7 +546,7 @@ remove the oldest one and then injecting new one."
                (error
                 (push error ,hook-error-list))))))
     `(let (_)
-       (if (or (bound-and-true-p entropy/emacs-current-session-is-idle)
+       (if (or (bound-and-true-p entropy/emacs-current-session-is-idle-p)
                (ignore-errors (not ,idle-p)))
            (progn
              ,@body)

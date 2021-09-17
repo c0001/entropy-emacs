@@ -376,10 +376,10 @@ fast hints not laggy by `candidates' re-calculation."
         (special_key_p nil)
         (candi_exist_p t)
         (t nil)))
-     (let ((this-command (if (bound-and-true-p entropy/emacs-current-session-is-idle)
+     (let ((this-command (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
                              entropy/emacs-current-session-this-command-before-idle
                            this-command))
-           (last-command (if (bound-and-true-p entropy/emacs-current-session-is-idle)
+           (last-command (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
                              entropy/emacs-current-session-last-command-before-idle
                            last-command)))
        (unless (company-keep this-command)

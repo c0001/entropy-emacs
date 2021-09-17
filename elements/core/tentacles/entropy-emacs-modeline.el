@@ -84,7 +84,7 @@
 
 This customization mainly adding the eyebrowse slot and tagging name show function."
   (if (or (null entropy/emacs-modeline--mdl-common-eyebrowse-segment)
-          (bound-and-true-p entropy/emacs-current-session-is-idle))
+          (bound-and-true-p entropy/emacs-current-session-is-idle-p))
       (let* ((cs (eyebrowse--get 'current-slot))
              (window-configs (eyebrowse--get 'window-configs))
              (window-config (assoc cs window-configs))
@@ -587,7 +587,7 @@ enable it which do not want to be unset yet."
 `doom-modeline--font-width-cache' for every modeline refresh
 which lag so much."
     (if
-        (and entropy/emacs-current-session-is-idle
+        (and entropy/emacs-current-session-is-idle-p
              (doom-modeline--active))
         (setq __ya/doom-modeline--font-width-cache
               (apply orig-func orig-args))
@@ -617,7 +617,7 @@ which lag so much."
       (if (not (bound-and-true-p company-mode))
           ""
         (setq cur_info
-              (when entropy/emacs-current-session-is-idle
+              (when entropy/emacs-current-session-is-idle-p
                 ;; EEMACS_BUG:
                 ;; ignore-erros for company info get since some
                 ;; strange redisplay errors will occur.
@@ -674,7 +674,7 @@ eyerbowse improvement."
   ;; EEMACS_MAINTENANCE: update folllow upstream internal defination
   (doom-modeline-def-segment buffer-position
     "The buffer position information."
-    (cond ((and entropy/emacs-current-session-is-idle
+    (cond ((and entropy/emacs-current-session-is-idle-p
                 (doom-modeline--active) ;EEMACS_MAINTENANCE: update folllow upstream internal defination
                 (not (bound-and-true-p company-candidates)))
            (let* ((active (doom-modeline--active))
@@ -731,9 +731,9 @@ mouse-1: Display Line and Column Mode Menu"
 
   (doom-modeline-def-segment matches
     "Redefined by eemacs to run while
-`entropy/emacs-current-session-is-idle' is non-nill"
+`entropy/emacs-current-session-is-idle-p' is non-nill"
     (cond
-     ((and entropy/emacs-current-session-is-idle
+     ((and entropy/emacs-current-session-is-idle-p
            (doom-modeline--active))
       (let ((meta (concat (doom-modeline--macro-recording)
                           (doom-modeline--symbol-overlay))))
@@ -750,13 +750,13 @@ current working directory, the file name, and its
 state (modified, read-only or non-existent).
 
 NOTE: this functio has been redefined by eemacs to run while idle
-while `entropy/emacs-current-session-is-idle' is non-nil."
+while `entropy/emacs-current-session-is-idle-p' is non-nil."
     (cond
      ((or
        ;; we do not inhibit show for some non frequency status
        (or
         (eq last-command 'entropy/grom-read-only-buffer))
-       (and entropy/emacs-current-session-is-idle
+       (and entropy/emacs-current-session-is-idle-p
             (doom-modeline--active)))
       (concat
        (doom-modeline-spc)
@@ -770,7 +770,7 @@ while `entropy/emacs-current-session-is-idle' is non-nil."
 
   (defun __ya/doom-modeline-segment--major-mode
       (orig-func &rest orig-args)
-    (cond ((and entropy/emacs-current-session-is-idle
+    (cond ((and entropy/emacs-current-session-is-idle-p
                 (doom-modeline--active))
            (apply orig-func orig-args))
           (t
@@ -791,7 +791,7 @@ function name has been changed, please update internal hack of \
 `selected-window' to reduce the perfomance issue."
     (cond
      ((and
-       ;; entropy/emacs-current-session-is-idle
+       ;; entropy/emacs-current-session-is-idle-p
        (doom-modeline--active))
       (apply orig-func orig-args))
      (t

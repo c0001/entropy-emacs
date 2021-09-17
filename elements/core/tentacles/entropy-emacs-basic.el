@@ -1352,7 +1352,7 @@ temporally shutdown by
 `entropy/emacs-basic--hl-line-disable-wrapper'."
   (when (and (bound-and-true-p eemacs-hl-line-mode-enable)
              (null (bound-and-true-p hl-line-mode))
-             entropy/emacs-current-session-is-idle)
+             entropy/emacs-current-session-is-idle-p)
     (hl-line-mode 1)))
 (run-with-idle-timer
  (max entropy/emacs-safe-idle-minimal-secs 0.25)

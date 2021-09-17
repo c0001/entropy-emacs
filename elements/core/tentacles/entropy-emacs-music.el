@@ -380,7 +380,7 @@ specification."
              mode-line-format
              (--map-when
               (eq it 'mode-line-position)
-              '(:eval (if entropy/emacs-current-session-is-idle
+              '(:eval (if (entropy/emacs-current-session-is-idle 0.8)
                           mode-line-position
                         " ⨂"))
               mode-line-format)))))))
