@@ -112,6 +112,45 @@ place can be easily found by other interactive command."
  ;; out many more problems while its magick filename I/O deals)
  (setq tramp-archive-enabled nil))
 
+;; ** Personal infomation
+(when (and entropy/emacs-user-full-name
+           entropy/emacs-user-mail-address)
+  (setq user-full-name entropy/emacs-user-full-name)
+  (setq user-mail-address entropy/emacs-user-mail-address))
+
+;; ** Temporal bug revert
+;; *** gnutls bug for emacs version upper than '26.1'
+;;
+;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
+;;
+;; Refer:
+;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597
+;; For now [2019-08-08 Thu 19:23:42] it seems occur on w32 port only
+(when (and (or (version= "26.2" emacs-version)
+               (version= "26.3" emacs-version))
+           sys/win32p)
+  (advice-add #'gnutls-available-p :override #'ignore))
+
+
+;; *** Disable `auto-mode-alist' case fold search
+
+;; Disable case insensitive search mode for `auto-mode-case-fold' when
+;; possible
+;;
+;; The reason for that this one charge the behaviour of `find-file'
+;; where how to did with `auto-mode-alist', that each judgement of
+;; thus was a filename regexp match, for those special filename will
+;; encounter ridiculous conflict operation mistake such of which file
+;; named as 'ebrowse' will opened automatically by `ebrowse-tree-mode'
+;; becasue there's two injection from that within `auto-mode-alist'
+;; i.e. '("BROWSE\\'" . ebrowse-tree-mode) and '("\\.ebrowse\\'"
+;; . ebrowse-tree-mode), so funny.
+;;
+;; But this is not a bug, because on some platform (e.g. WINDOWS),
+;; file name is native case insensitive as is and there's no treatment
+;; for those situations.
+(setq auto-mode-case-fold nil)
+
 ;; ** Basic major-modes spec
 ;; *** Dired config
 ;; **** dired basic
@@ -1095,49 +1134,6 @@ Temp file was \"~/~entropy-artist.txt\""
               #'entropy/emacs-basic-woman--no-warning-around-advice))
 
 ;; ** Basic global settings:
-;; *** Temporal bug revert
-;; **** gnutls bug for emacs version upper than '26.1'
-;;
-;; Bug refer emacs `url.el' bug or possible for the gnutls bug override.
-;;
-;; Refer:
-;; @see https://github.com/magit/ghub/issues/81#issuecomment-488660597
-;; For now [2019-08-08 Thu 19:23:42] it seems occur on w32 port only
-(when (and (or (version= "26.2" emacs-version)
-               (version= "26.3" emacs-version))
-           sys/win32p)
-  (advice-add #'gnutls-available-p :override #'ignore))
-
-
-;; **** Disable `auto-mode-alist' case fold search
-
-;; Disable case insensitive search mode for `auto-mode-case-fold' when
-;; possible
-;;
-;; The reason for that this one charge the behaviour of `find-file'
-;; where how to did with `auto-mode-alist', that each judgement of
-;; thus was a filename regexp match, for those special filename will
-;; encounter ridiculous conflict operation mistake such of which file
-;; named as 'ebrowse' will opened automatically by `ebrowse-tree-mode'
-;; becasue there's two injection from that within `auto-mode-alist'
-;; i.e. '("BROWSE\\'" . ebrowse-tree-mode) and '("\\.ebrowse\\'"
-;; . ebrowse-tree-mode), so funny.
-;;
-;; But this is not a bug, because on some platform (e.g. WINDOWS),
-;; file name is native case insensitive as is and there's no treatment
-;; for those situations.
-(setq auto-mode-case-fold nil)
-
-;; *** Personal infomation
-(when (and entropy/emacs-user-full-name
-           entropy/emacs-user-mail-address)
-  (setq user-full-name entropy/emacs-user-full-name)
-  (setq user-mail-address entropy/emacs-user-mail-address))
-
-
-;; *** Show the column numberic in modeline
-(setq column-number-mode t)
-
 ;; *** Set default cursor style
 (setq-default cursor-type t)
 
@@ -1147,7 +1143,8 @@ Temp file was \"~/~entropy-artist.txt\""
       (setq cursor-type 'bar)
     (setq cursor-type t)))
 
-;; *** Global display line number mode
+;; *** Hl-line And Line Numbers display
+;; **** Global display line number mode
 (defun entropy/emacs-basic--dspln-mode-around-advice
     (orig-func &rest orig-args)
   "Filters for `display-line-numbers-mode' to press it for some
@@ -1180,7 +1177,7 @@ occasions. "
  (when entropy/emacs-init-display-line-numbers-mode
    (global-display-line-numbers-mode)))
 
-;; *** Global hl-line mode
+;; **** Global hl-line mode
 (defun entropy/emacs-turn-on-hl-line-mode ()
   "The filter for `hl-line-mode' available option in triggered
 buffer, in that case any conditions don't match the filter then
@@ -1217,71 +1214,7 @@ buffer, in that case any conditions don't match the filter then
  (when entropy/emacs-init-hl-line-mode
    (entropy/emacs-hl-line-global-mode 1)))
 
-;; *** Backup setting
-(setq-default auto-save-default nil)    ; disable it for preventing typing lagging
-(setq make-backup-files nil)
-
-;; *** Scratch buffer corresponding file
-;;
-;;     Amounts of company backend function can not functional
-;;     auto-completion in none file buffer, so corresponding one file
-;;     to *scratch* buffer.
-
-(defun entropy/emacs-basic--scratch-buffer-file-binding ()
-  "Corresponded *scratch* buffer to one temp-file.
-
-Filename are \".scratch_entropy\" host in
-`entropy/emacs-stuffs-topdir'.
-"
-  (let ((bfn "*scratch*"))
-    (if (entropy/emacs-buffer-exists-p "*scratch*")
-        (kill-buffer "*scratch*"))
-    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
-          ;; inhibit `find-file-hook' for speedup file create
-          (find-file-hook nil))
-      (if (not (file-exists-p fname))
-          (progn
-            (write-region "" "" fname)
-            (with-current-buffer (find-file-noselect fname)
-              (if buffer-read-only (read-only-mode 0))
-              (auto-save-mode 0)
-              (rename-buffer "*scratch*")
-              (unless (eq major-mode 'lisp-interaction-mode)
-                (lisp-interaction-mode))
-              (insert initial-scratch-message)))
-        (with-current-buffer (find-file-noselect fname)
-          (if buffer-read-only (read-only-mode 0))
-          (auto-save-mode 0)
-          (rename-buffer "*scratch*")
-          (unless (eq major-mode 'lisp-interaction-mode)
-            (lisp-interaction-mode))
-          (save-excursion
-            (goto-char (point-min))
-            (unless (string-match-p
-                     (concat
-                      (car (split-string (regexp-quote initial-scratch-message) "^$" t))
-                      ".*")
-                     (buffer-substring-no-properties
-                      (point-min) (point-max)))
-              (insert initial-scratch-message))))))
-    bfn))
-
-(entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer ivy-read)
- "init-eemamcs-scratch-buffer" "init-eemamcs-scratch-buffer"
- prompt-echo
- :pdumper-no-end t
- (entropy/emacs-basic--scratch-buffer-file-binding))
-
-;; Create a new scratch buffer
-(defun entropy/emacs-basic-create-scratch-buffer ()
-  "Create a scratch buffer."
-  (interactive)
-  (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
-  (lisp-interaction-mode)
-  (message "Create *scratch* buffer"))
-
-;; *** Highlight current line and display line numbers
+;; **** Highlight current line and display line numbers
 (defun entropy/emacs-basic--dhl-judge-state ()
   (let ((hlmp (bound-and-true-p hl-line-mode))
         (dlmp (bound-and-true-p display-line-numbers))
@@ -1379,6 +1312,70 @@ NOTE: this is a advice wrapper for any function."
 (with-eval-after-load 'dired
   (advice-add 'dired-next-line
               :around #'entropy/emacs-basic--hl-line-disable-wrapper))
+
+;; *** Backup setting
+(setq-default auto-save-default nil)    ; disable it for preventing typing lagging
+(setq make-backup-files nil)
+
+;; *** Scratch buffer corresponding file
+;;
+;;     Amounts of company backend function can not functional
+;;     auto-completion in none file buffer, so corresponding one file
+;;     to *scratch* buffer.
+
+(defun entropy/emacs-basic--scratch-buffer-file-binding ()
+  "Corresponded *scratch* buffer to one temp-file.
+
+Filename are \".scratch_entropy\" host in
+`entropy/emacs-stuffs-topdir'.
+"
+  (let ((bfn "*scratch*"))
+    (if (entropy/emacs-buffer-exists-p "*scratch*")
+        (kill-buffer "*scratch*"))
+    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
+          ;; inhibit `find-file-hook' for speedup file create
+          (find-file-hook nil))
+      (if (not (file-exists-p fname))
+          (progn
+            (write-region "" "" fname)
+            (with-current-buffer (find-file-noselect fname)
+              (if buffer-read-only (read-only-mode 0))
+              (auto-save-mode 0)
+              (rename-buffer "*scratch*")
+              (unless (eq major-mode 'lisp-interaction-mode)
+                (lisp-interaction-mode))
+              (insert initial-scratch-message)))
+        (with-current-buffer (find-file-noselect fname)
+          (if buffer-read-only (read-only-mode 0))
+          (auto-save-mode 0)
+          (rename-buffer "*scratch*")
+          (unless (eq major-mode 'lisp-interaction-mode)
+            (lisp-interaction-mode))
+          (save-excursion
+            (goto-char (point-min))
+            (unless (string-match-p
+                     (concat
+                      (car (split-string (regexp-quote initial-scratch-message) "^$" t))
+                      ".*")
+                     (buffer-substring-no-properties
+                      (point-min) (point-max)))
+              (insert initial-scratch-message))))))
+    bfn))
+
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer ivy-read)
+ "init-eemamcs-scratch-buffer" "init-eemamcs-scratch-buffer"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-basic--scratch-buffer-file-binding))
+
+;; Create a new scratch buffer
+(defun entropy/emacs-basic-create-scratch-buffer ()
+  "Create a scratch buffer."
+  (interactive)
+  (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
+  (lisp-interaction-mode)
+  (message "Create *scratch* buffer"))
 
 ;; *** Smooth scrolling
 ;; Force smooth mouse scroll experience
@@ -1643,18 +1640,6 @@ value as optional interaction while `PREFIX' is non-nil."
 
 ;; *** Paragraph fill size
 (setq-default fill-column entropy/emacs-fill-paragraph-width)
-
-;; *** Show time on mode line
-(when entropy/emacs-display-time-modeline
-  ;; enable time show when
-  (display-time-mode 1)
-  (setq-default display-time-interval 1)
-  ;; display time with date and real time infos
-  (setq display-time-day-and-date t)
-  ;; 24hr format
-  (setq display-time-24hr-format t)
-  (setq display-time-format " %e %b %Y %H:%M:%S ")
-  (display-time))
 
 ;; *** Input time into buffer
 (defun entropy/emacs-basic-now ()

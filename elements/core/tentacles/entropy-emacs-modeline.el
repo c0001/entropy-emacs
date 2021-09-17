@@ -51,6 +51,24 @@
 ;;     performance enhanced with emacs run time.  And if you want to
 ;;     using modern one , you can choose spaceline which gives you the
 ;;     similar sensitive as spacemacs.
+
+;; *** internal mode-line specifiations
+;; Show the column numberic in modeline
+(setq column-number-mode t)
+
+;; Show time on mode line
+(when entropy/emacs-display-time-modeline
+  ;; enable time show when
+  (display-time-mode 1)
+  (setq-default display-time-interval 1)
+  ;; display time with date and real time infos
+  (setq display-time-day-and-date t)
+  ;; 24hr format
+  (setq display-time-24hr-format t)
+  (setq display-time-format " %e %b %Y %H:%M:%S ")
+  (display-time))
+
+
 ;; *** eemaac-specification
 
 ;; **** Advices after swither
