@@ -334,14 +334,64 @@ unwind occasion.")
 (use-package ivy-prescient
   :commands (ivy-prescient-mode)
   :init
-  (setq ivy-prescient-sort-commands
-        '(:not swiper swiper-isearch ivy-switch-buffer
-               counsel-yank-pop))
+  (defun ivy-prescient-non-fuzzy (str)
+    "Generate an Ivy-formatted non-fuzzy regexp list for the given STR.
+This is for use in `ivy-re-builders-alist'."
+    (let ((prescient-filter-method '(literal regexp)))
+      (ivy-prescient-re-builder str)))
+
+  (setq
+   ivy-prescient-retain-classic-highlighting t
+   ivy-prescient-enable-sorting t
+   ivy-prescient-sort-commands
+   '(:not swiper swiper-isearch ivy-switch-buffer
+          lsp-ivy-workspace-symbol ivy-resume ivy--restore-session
+          counsel-grep counsel-git-grep counsel-rg counsel-ag
+          counsel-ack counsel-fzf counsel-pt counsel-imenu
+          counsel-org-capture counsel-outline counsel-org-goto
+          counsel-load-theme counsel-yank-pop
+          counsel-recentf counsel-buffer-or-recentf
+          centaur-load-theme)
+   ivy-prescient-enable-filtering nil)
+
   (entropy/emacs-lazy-initial-advice-before
    (ivy-mode)
    "ivy-prescient-init" "ivy-prescient-init" prompt-echo
    :pdumper-no-end t
-   (ivy-prescient-mode 1)))
+   (ivy-prescient-mode 1))
+
+  (entropy/emacs-lazy-initial-advice-after
+   (counsel-mode)
+   "ivy-prescient-rebuilder-init"
+   "ivy-prescient-rebuilder-init"
+   prompt-echo
+   :pdumper-no-end t
+   (dolist (re-builder
+            '((counsel-ag . ivy-prescient-non-fuzzy)
+              (counsel-rg . ivy-prescient-non-fuzzy)
+              (counsel-pt . ivy-prescient-non-fuzzy)
+              (counsel-grep . ivy-prescient-non-fuzzy)
+              (counsel-fzf . ivy-prescient-non-fuzzy)
+              (counsel-imenu . ivy-prescient-non-fuzzy)
+              (counsel-yank-pop . ivy-prescient-non-fuzzy)
+              (swiper . ivy-prescient-non-fuzzy)
+              (swiper-isearch . ivy-prescient-non-fuzzy)
+              (swiper-all . ivy-prescient-non-fuzzy)
+              (lsp-ivy-workspace-symbol . ivy-prescient-non-fuzzy)
+              (lsp-ivy-global-workspace-symbol . ivy-prescient-non-fuzzy)
+              (insert-char . ivy-prescient-non-fuzzy)
+              (counsel-unicode-char . ivy-prescient-non-fuzzy)
+              (t . ivy-prescient-re-builder)))
+     (let ((caller (car re-builder))
+           (builder (cdr re-builder)))
+       (cond
+        ((assoc caller ivy-re-builders-alist)
+         (setf (alist-get caller ivy-re-builders-alist) builder))
+        (t
+         (add-to-list
+          'ivy-re-builders-alist
+          re-builder))))))
+  )
 
 ;; ** counsel
 (use-package counsel

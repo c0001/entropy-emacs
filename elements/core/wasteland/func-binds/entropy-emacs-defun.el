@@ -2053,6 +2053,24 @@ while pdumper procedure.
          :before
          ',body-wrap)))))
 
+(cl-defmacro entropy/emacs-lazy-initial-advice-after
+    (advice-fors initial-func-suffix-name initial-var-suffix-name
+                 prompt-type &rest body
+                 &key pdumper-no-end
+                 &allow-other-keys)
+  "Like `entropy/emacs-lazy-initial-advice-before' but for :after place."
+  (let ((body-wrap (entropy/emacs-get-plist-body body)))
+    (eval
+     `(let ((entropy/emacs-lazy-initial-form-pdumper-no-end
+             ,pdumper-no-end))
+        (entropy/emacs-lazy-initial-form
+         ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
+         "entropy/emacs--AfterADV-fisrt-enable-for"
+         "after-advice-adder" ',prompt-type
+         'advice-add
+         :after
+         ',body-wrap)))))
+
 ;; *** Lazy execute specification
 ;; ***** TODO accumulation execution
 

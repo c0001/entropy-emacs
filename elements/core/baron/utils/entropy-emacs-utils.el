@@ -64,6 +64,14 @@
   :commands
   (make-trie trie-insert trie-complete))
 
+;; ** prescient
+(use-package prescient
+  :init
+  ;; global disable length sorting since it doesn't adapt to daily
+  ;; usage.
+  (setq prescient-sort-length-enable nil)
+  )
+
 ;; ** exec-path-from-shell
 (use-package exec-path-from-shell
   :commands (exec-path-from-shell-copy-env
