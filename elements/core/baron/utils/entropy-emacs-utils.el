@@ -241,7 +241,9 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
         (setq
          entropy/emacs-eldoc-inhibit-in-current-buffer
          t))))
-
+  :init
+  ;; increasing eldoc idle delay to reduce lag
+  (setq eldoc-idle-delay 1.5)
   :config
   (defun __adv/around/eldoc-minibuffer-message
       (orig-func &rest orig-args)
