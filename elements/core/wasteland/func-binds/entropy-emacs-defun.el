@@ -1713,6 +1713,36 @@ the buffer-locally variable `buffer-read-only'."
        #'entropy/emacs--make-function-inhibit-readonly-localalso
      #'entropy/emacs--make-function-inhibit-readonly-common)))
 
+(defun entropy/emacs-version-compatible
+    (version-limit version-current &optional strict)
+  "Versions compatible judger for version spec basing rule of
+commonly \"x.y.z\" convention to compared the required version
+VERSION-LIMIT and the queried version VERSION-CURRENT.
+
+The \"x.y.z\" version name convention defination is shown below:
+
+- z: Quality update, API not changed
+- y: Feature adding update, API not changed
+- x: Compatibility destructive update, API are changed, indicating
+     the fresh new version.
+
+The compatible version comparation is rased on the two ways:
+1. When optional argument STRICT is non-nil that just sub-version
+   variable \"z\" can be dynamic one.
+2. Vice-versa to case 1, \"y\" and \"z\" can be dynamically
+   changed."
+  (let* ((vl-1-regexp (regexp-quote
+                       (let ((vl-list (butlast (version-to-list version-limit))))
+                         (mapconcat 'number-to-string vl-list "."))))
+         (vl-2-regexp (regexp-quote
+                       (let ((vl-list (butlast (version-to-list version-limit) 2)))
+                         (mapconcat 'number-to-string vl-list ".")))))
+    (or (version= version-limit version-current)
+        (and (version< version-limit version-current)
+             (if strict
+                 (string-match-p vl-1-regexp version-current)
+               (string-match-p vl-2-regexp version-current))))))
+
 ;; *** Lazy load specification
 (defvar entropy/emacs--lazy-load-simple-feature-head nil)
 
