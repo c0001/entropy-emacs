@@ -2477,6 +2477,7 @@ that."
                   (idlwave-config-directory . "idlwave/")
                   (entropy/org-exptt-html-theme-cache-dir . "org-themes/org-html-themes")
                   (elfeed-db-directory . "elfeed-db/")
+                  (prescient-save-file . "var/prescient-save.el")
                   ))
     (let* ((var-sym (car item))
            (path nil)
