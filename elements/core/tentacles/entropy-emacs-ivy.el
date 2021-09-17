@@ -575,15 +575,27 @@ casue some error in eemacs-specification."
 
 ;; **** do not active `counsel-grep' function when not grep exec found
 
-  (defun entropy/emacs-ivy-counsel-grep-or-swiper (orig-func &rest orig-args)
+  (defun __ya/counsel-grep-or-swiper (&optional initial-input)
+    "Call `swiper-isearch' for small buffers and `counsel-grep' for large ones.
+When non-nil, INITIAL-INPUT is the initial search pattern."
     (interactive)
-    (if (and (executable-find "grep")
-             buffer-file-name)
-        (apply orig-func orig-args)
-      (apply 'swiper orig-args)))
+    (if (or (not buffer-file-name)
+            (buffer-narrowed-p)
+            (ignore-errors
+              (file-remote-p buffer-file-name))
+            (jka-compr-get-compression-info buffer-file-name)
+            (funcall counsel-grep-use-swiper-p))
+        (swiper-isearch initial-input)
+      (when (and (buffer-modified-p)
+                 (file-writable-p buffer-file-name)
+                 (or
+                  (yes-or-no-p "Save buffer before `counsel-grep'?")
+                  (user-error "Abort!")))
+        (save-buffer))
+      (counsel-grep initial-input)))
   (advice-add 'counsel-grep-or-swiper
-              :around
-              #'entropy/emacs-ivy-counsel-grep-or-swiper)
+              :override
+              #'__ya/counsel-grep-or-swiper)
 
 ;; **** patches for `counsel-grep' and referred
 
