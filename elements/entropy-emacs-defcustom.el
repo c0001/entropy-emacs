@@ -246,239 +246,6 @@ NOTE: poporg is obsolete as an legacy option."
   :type 'string
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
-;; ***** emacs extension use options config
-(defgroup entropy/emacs-customize-group-for-emacs-extensions nil
-  "Eemacs emacs extensions management configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-;; ****** elpkg get type
-(defcustom entropy/emacs-ext-elpkg-customized-get-type 'origin
-  "Init emacs with elisp extensions from entropy-emacs-extensions or
-elpa and melpa.
-
-Available value are 'entropy-emacs-extenisons-project' and 'origin'.
-
-Type of 'entropy-emacs-extenisons-project' indicates to use
-=entropy-emacs-extensions= (see
-`entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path' for its brief
-introduction) to initialize the elisp extensions, which explicitly
-means to use that as a local elisp packges archive host like what
-'elpa' and 'melpa' did as an extenison ecosystem. This is the most
-recommended type for using eemacs, because eemacs are built with
-version controlled third-parties for be as stable , but you can
-also use original emacs `package.el' to download most of
-=entropy-emacs= required elisp packages by set the type of
-'origin' without any bug warranty because newest packages are
-without testing with eemacs maintainer.
-
-If you persist using 'origin' type, the elpa and melpa mirror host
-retriever will obtained the url abided by
-`entropy/emacs-package-archive-repo'.
-"
-  :type '(choice
-          (const :tag "Use melpa and elpa" origin)
-          (const :tag "Use eemacs-ext local package system"
-                 entropy-emacs-extenisons-project))
-  :group 'entropy/emacs-customize-group-for-emacs-extensions)
-
-;; NOTE:
-;; We must strictly did judgement for packages refer setting to
-;; guarantee the package initialization procedure did correctly before
-;; any eemacs specification loading.
-(unless (member entropy/emacs-ext-elpkg-customized-get-type
-                '(origin entropy-emacs-extenisons-project))
-  (error "Invalid value for `entropy/emacs-ext-elpkg-customized-get-type': %s"
-         entropy/emacs-ext-elpkg-customized-get-type))
-
-(defcustom entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path
-  (expand-file-name
-   "entropy-emacs-extensions"
-   __eemacs-ext-union-host)
-  "entropy-emacs extensions collection archive location. This
-collection used to retrieving all entropy-emacs elpa or melpa
-extensions' repos as submodules archived as one single project
-used for version controlling. You can get it from
-'https://github.com/c0001/entropy-emacs-extensions'.
-
-This archive used when type of 'entropy-emacs-extenisons-project' is set to
-customized variable `entropy/emacs-ext-elpkg-get-type'."
-
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-emacs-extensions)
-
-(defvar entropy/emacs-ext-elpkg-get-type
-  entropy/emacs-ext-elpkg-customized-get-type
-  "The internal variant of variable
-`entropy/emacs-ext-elpkg-customized-get-type' which extended its
-value type according to non-defined internal definition")
-
-(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
-  "v1.0.2"
-  "")
-
-(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path
-  (expand-file-name
-   (format ".eemacs-ext-build_%s"
-           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
-   entropy/emacs-user-emacs-directory)
-  "")
-
-(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator
-  (expand-file-name
-   "init"
-   entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
-  "")
-
-(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url
-  (format
-  "https://github.com/c0001/entropy-emacs-extensions/releases/\
-download/%s/entropy-emacs-extensions_build_%s.tar.xz"
-  entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
-  entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
-  "")
-
-(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum
-  "33cb935125d2b9c07f2e3d8f71debf14fd5b6e38c33d3dbae743cd81f30dd04c"
-  "")
-
-(when (file-exists-p
-       entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator)
-  (setq entropy/emacs-ext-elpkg-get-type
-        'entropy-emacs-extensions-project-build)
-  (let ((archive-fmt `(lambda (name)
-                        (expand-file-name
-                         name
-                         ,entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)))
-        )
-    (setq package-archives
-          `(("entropy-melpa"      . ,(funcall archive-fmt "melpa"))
-            ("entropy-elpa"       . ,(funcall archive-fmt "elpa"))
-            ("entropy-elpa-devel" . ,(funcall archive-fmt "elpa-devel"))))))
-
-;; ****** elpkg install location
-(defcustom entropy/emacs-ext-emacs-pkgel-get-pkgs-root
-  (expand-file-name
-   "entropy-emacs-extensions-elpa"
-   __eemacs-ext-union-host)
-  "entropy-emacs elpa extensions directory for hosting the
-upstream installed packages of `package.el'."
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-emacs-extensions)
-
-;; ****** other extensions
-;; ******* eemacs-lsp-archive project archive location
-
-(defcustom entropy/emacs-ext-use-eemacs-lsparc nil
-  "Whether to use archived lanuguage servers."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-emacs-extensions)
-
-(defcustom entropy/emacs-ext-lsp-archive-dir
-  (expand-file-name
-   "entropy-emacs-lsp-archive"
-   __eemacs-ext-union-host)
-  "entropy emacs language server archives project location, you
-may download from
-'https://github.com/c0001/entropy-emacs-lsp-archive'."
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-emacs-extensions)
-
-
-
-;; ******* eemacs fonts
-
-(defvar entropy/emacs-ext-eemacs-fonts-archive-url
-  "https://sourceforge.net/projects/entropy-emacs-cabinet/files/Font/entropy-emacs-fonts/v1.0.0/eemacs-fonts_v1.0.0.tar.xz/download"
-  )
-(defvar entropy/emacs-ext-eemacs-fonts-archive-sha256sum
-  "c3976b59208e0e26443fa8f3310895cc70f4f9750eca2d5d213bf69e353b362b")
-
-;; ****** extra customized load path
-
-(defcustom entropy/emacs-ext-user-specific-load-paths nil
-  "Extra load path list for user specification.
-
-This feature usually used for emacs new feature adding test and
-designation."
-  :type '(repeat directory)
-  :group 'entropy/emacs-customize-group-for-emacs-extensions)
-
-;; ***** ui theme and modeline style config
-;; ****** enable initial dashboard
-(defcustom entropy/emacs-enable-initial-dashboard t
-  "Enable entropy emacs initial dashboard instead of emacs
-default one.
-
-Valid value are 't' or 'rich', otherwise disable this
-feature.
-
-When value are either 't' or 'rich', a fancy simple splash buffer
-`entropy/emacs-init-welcome-buffer-name' will startup firstly, and
-then enable the rich dashbord contents when value is 'rich'."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-;; ****** theme choise
-(defcustom entropy/emacs-theme-options 'ujelly
-  "Choice for emacs theme"
-  :type 'symbol
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-solaire-themes-regex-list
-  '("^doom-"
-    "^atom-one-dark"
-    "^spacemacs-")
-  "Themes name regex matchs for solaire-mode."
-  :type '(repeat string)
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-;; ****** modeline type choise
-(defgroup entropy/emacs-customize-group-for-modeline nil
-  "Eemacs mode-line configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-modeline-style "origin"
-  "Choose the modeline style:
-
-You can choose below four choices:
-- spaceline-regular:                                  spaceline
-- powerline-default:                                  powerline
-- origin with none modified until you do it yourself: origin
-- doom-modeline                                       doom
-
-
-Notice:
-
-- this variable's effectively was rely on the varaible
-  `entropy/emacs-enable-modeline-toggle' enabled, other wise any setting for this
-  variable were none-effectively."
-  :type '(choice
-          (const :tag "spaceline-regular" "spaceline")
-          (const :tag "spaceline-all-the-icons" "spaceline-icons")
-          (const :tag "powerline-default" "powerline")
-          (const :tag "Origin" "origin")
-          (const :tag "doom-modeline" "doom"))
-  :group 'entropy/emacs-customize-group-for-modeline)
-
-(defcustom entropy/emacs-enable-modeline-toggle t
-  "Enable modeline toggle function `entropy/emacs-mdl-powerline'
-and `entropy/emacs-mdl-spaceline' and the customized effectively
-of `entropy/emacs-modeline-style'.
-
-Note: spaceline and powerline will cause lagging performancs
-issue for emacs while you are in the low performance computer
-that you computer is with the older hardware or be out of repair
-for a long time and so as the bad head dispersion."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-modeline)
-
-;; ****** display time in modeline
-(defcustom entropy/emacs-display-time-modeline nil
-  "Whether show the Real-time TIME in mode line, it's suggest not
-set for that messy with modeline type, default to nil."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
 ;; ***** font setting config
 (defgroup entropy/emacs-customize-group-for-eemacs-font-spec nil
   "Eemacs font specifications configuration customizable group."
@@ -563,41 +330,6 @@ value."
   :group 'entropy/emacs-customize-group-for-language-environment)
 
 
-;; ***** ivy framework config
-
-(defgroup entropy/emacs-customize-group-for-ivy-mode nil
-  "Eemacs ivy-mode configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
-
-(defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
-  "The enhancement for ivy-framework, icon abbreviation and other
-information displayed in candidates show. NIL for disabled this
-feature.
-
-Two valid value defaulted by `entropy-emacs':
-
-- `all-the-icons-ivy'
-
-  The simple one for that, just ehance for `ivy-switch-buffer' and
-  `counsel-find-file'.
-
-- `ivy-rich-mode'
-
-  The fully riched mode for that, see its document for more
-  details."
-  :type '(choice
-          (const :tag "Simple ivy icons" all-the-icons-ivy)
-          (const :tag "Ivy rich mode" ivy-rich-mode)
-          (const :tag "Neither to use" nil))
-  :group 'entropy/emacs-customize-group-for-ivy-mode)
-
-(defcustom entropy/emacs-ivy-rich-extra-display-transformers-list
-  nil
-  "Extra `ivy-rich-display-transformers-list' specified which
-will combined with =entropy-emacs= internal specification."
-  :type '(repeat sexp)
-  :group 'entropy/emacs-customize-group-for-ivy-mode)
-
 ;; ***** dictionary config
 (defgroup entropy/emacs-customize-group-for-translate nil
   "Eemacs elfeed configuration customizable group."
@@ -624,28 +356,6 @@ will combined with =entropy-emacs= internal specification."
   :group 'entropy/emacs-customize-group-for-translate)
 
 
-
-;; **** project search exec config
-(defcustom entropy/emacs-search-program "rg"
-  "The project search engine used for =entropy-emacs=.
-
-The valid value are \"ag\" (i.e. the silver_searcher) or \"rg\"
-(i.e. the ripgrep searcher), default for using ripgrep which is
-the fasest way.
-"
-  :type '(choice
-          (const :tag "Ripgrep" "rg")
-          (const :tag "The silver searcher" "ag"))
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
-
-;; **** ibuffer config
-(defcustom entropy/emacs-enable-ibuffer-projectitle nil
-  "Enable ibuffer-projectitle in ibuffer
-
-Note: ibuffer-projectitle will cause the performance debug.
-"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-basic-configuration)
 
 ;; **** desktop save config
 (defcustom entropy/emacs-desktop-enable nil
@@ -758,35 +468,289 @@ just it's name."
                         (file :tag "Process executable file"))))
   :group 'entropy/emacs-customize-group-for-basic-configuration)
 
-;; *** Gnus
-(defgroup entropy/emacs-customize-group-for-gnus nil
-  "Eemacs GNUS configuration customizable group."
+;; *** UI
+(defgroup entropy/emacs-customize-group-for-UI nil
+  "Eemacs UI configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
-(defcustom entropy/emacs-gnus-init-config
-  `(:gnus-home ,(expand-file-name "gnus" entropy/emacs-stuffs-topdir)
-    :gnus-news-dir ,(expand-file-name "gnus/News" entropy/emacs-stuffs-topdir)
-    :mail-dir ,(expand-file-name "gnus/Mail" entropy/emacs-stuffs-topdir)
-    :mail-temp-dir ,(expand-file-name "gnus/temp" entropy/emacs-stuffs-topdir)
-    :init-file ,(expand-file-name "gnus/gnus-config.el" entropy/emacs-stuffs-topdir)
-    :startup-file ,(expand-file-name "gnus/newsrc" entropy/emacs-stuffs-topdir)
-    :read-newsrc nil
-    :save-newsrc nil
-    :use-dribble t
-    :read-active-file t)
-  "Initial setting for gnus for entropy-emacs."
-  :type '(list
-          (const :gnus-home) directory
-          (const :gnus-news-dir) directory
-          (const :mail-dir) directory
-          (const :mail-temp-dir) directory
-          (const :init-file) file
-          (const :startup-file) file
-          (const :read-newsrc) boolean
-          (const :save-newsrc) boolean
-          (const :use-dribble) boolean
-          (const :read-active-file) boolean)
-  :group 'entropy/emacs-customize-group-for-gnus)
+;; **** Initial UI
+(defgroup entropy/emacs-customize-group-for-initial-ui nil
+  "Eemacs initial ui configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-UI)
+
+(defcustom entropy/emacs-enable-initial-dashboard t
+  "Enable entropy emacs initial dashboard instead of emacs
+default one.
+
+Valid value are 't' or 'rich', otherwise disable this
+feature.
+
+When value are either 't' or 'rich', a fancy simple splash buffer
+`entropy/emacs-init-welcome-buffer-name' will startup firstly, and
+then enable the rich dashbord contents when value is 'rich'."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-initial-ui)
+
+;; **** Themes
+(defgroup entropy/emacs-customize-group-for-ui-theme nil
+  "Eemacs ui theme configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-UI)
+
+(defcustom entropy/emacs-theme-options 'ujelly
+  "Choice for emacs theme"
+  :type 'symbol
+  :group 'entropy/emacs-customize-group-for-ui-theme)
+
+(defcustom entropy/emacs-solaire-themes-regex-list
+  '("^doom-"
+    "^atom-one-dark"
+    "^spacemacs-")
+  "Themes name regex matchs for solaire-mode."
+  :type '(repeat string)
+  :group 'entropy/emacs-customize-group-for-ui-theme)
+
+;; **** Modeline
+(defgroup entropy/emacs-customize-group-for-modeline nil
+  "Eemacs mode-line configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-UI)
+
+(defcustom entropy/emacs-modeline-style "origin"
+  "Choose the modeline style:
+
+You can choose below four choices:
+- spaceline-regular:                                  spaceline
+- powerline-default:                                  powerline
+- origin with none modified until you do it yourself: origin
+- doom-modeline                                       doom
+
+
+Notice:
+
+- this variable's effectively was rely on the varaible
+  `entropy/emacs-enable-modeline-toggle' enabled, other wise any setting for this
+  variable were none-effectively."
+  :type '(choice
+          (const :tag "spaceline-regular" "spaceline")
+          (const :tag "spaceline-all-the-icons" "spaceline-icons")
+          (const :tag "powerline-default" "powerline")
+          (const :tag "Origin" "origin")
+          (const :tag "doom-modeline" "doom"))
+  :group 'entropy/emacs-customize-group-for-modeline)
+
+(defcustom entropy/emacs-enable-modeline-toggle t
+  "Enable modeline toggle function `entropy/emacs-mdl-powerline'
+and `entropy/emacs-mdl-spaceline' and the customized effectively
+of `entropy/emacs-modeline-style'.
+
+Note: spaceline and powerline will cause lagging performancs
+issue for emacs while you are in the low performance computer
+that you computer is with the older hardware or be out of repair
+for a long time and so as the bad head dispersion."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-modeline)
+
+
+(defcustom entropy/emacs-display-time-modeline nil
+  "Whether show the Real-time TIME in mode line, it's suggest not
+set for that messy with modeline type, default to nil."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-modeline)
+
+;; *** M-x
+(defgroup entropy/emacs-customize-group-for-M-x nil
+  "Eemacs completion framework configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** ivy
+(defgroup entropy/emacs-customize-group-for-ivy-mode nil
+  "Eemacs ivy-mode configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-M-x)
+
+(defcustom entropy/emacs-ivy-rich-type 'ivy-rich-mode
+  "The enhancement for ivy-framework, icon abbreviation and other
+information displayed in candidates show. NIL for disabled this
+feature.
+
+Two valid value defaulted by `entropy-emacs':
+
+- `all-the-icons-ivy'
+
+  The simple one for that, just ehance for `ivy-switch-buffer' and
+  `counsel-find-file'.
+
+- `ivy-rich-mode'
+
+  The fully riched mode for that, see its document for more
+  details."
+  :type '(choice
+          (const :tag "Simple ivy icons" all-the-icons-ivy)
+          (const :tag "Ivy rich mode" ivy-rich-mode)
+          (const :tag "Neither to use" nil))
+  :group 'entropy/emacs-customize-group-for-ivy-mode)
+
+(defcustom entropy/emacs-ivy-rich-extra-display-transformers-list
+  nil
+  "Extra `ivy-rich-display-transformers-list' specified which
+will combined with =entropy-emacs= internal specification."
+  :type '(repeat sexp)
+  :group 'entropy/emacs-customize-group-for-ivy-mode)
+
+;; *** Emacs Extension
+(defgroup entropy/emacs-customize-group-for-emacs-extensions nil
+  "Eemacs emacs extensions management configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** elpkg get type
+(defcustom entropy/emacs-ext-elpkg-customized-get-type 'origin
+  "Init emacs with elisp extensions from entropy-emacs-extensions or
+elpa and melpa.
+
+Available value are 'entropy-emacs-extenisons-project' and 'origin'.
+
+Type of 'entropy-emacs-extenisons-project' indicates to use
+=entropy-emacs-extensions= (see
+`entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path' for its brief
+introduction) to initialize the elisp extensions, which explicitly
+means to use that as a local elisp packges archive host like what
+'elpa' and 'melpa' did as an extenison ecosystem. This is the most
+recommended type for using eemacs, because eemacs are built with
+version controlled third-parties for be as stable , but you can
+also use original emacs `package.el' to download most of
+=entropy-emacs= required elisp packages by set the type of
+'origin' without any bug warranty because newest packages are
+without testing with eemacs maintainer.
+
+If you persist using 'origin' type, the elpa and melpa mirror host
+retriever will obtained the url abided by
+`entropy/emacs-package-archive-repo'.
+"
+  :type '(choice
+          (const :tag "Use melpa and elpa" origin)
+          (const :tag "Use eemacs-ext local package system"
+                 entropy-emacs-extenisons-project))
+  :group 'entropy/emacs-customize-group-for-emacs-extensions)
+
+;; NOTE:
+;; We must strictly did judgement for packages refer setting to
+;; guarantee the package initialization procedure did correctly before
+;; any eemacs specification loading.
+(unless (member entropy/emacs-ext-elpkg-customized-get-type
+                '(origin entropy-emacs-extenisons-project))
+  (error "Invalid value for `entropy/emacs-ext-elpkg-customized-get-type': %s"
+         entropy/emacs-ext-elpkg-customized-get-type))
+
+(defcustom entropy/emacs-ext-eemacs-elpkg-eemacs-ext-project-local-path
+  (expand-file-name
+   "entropy-emacs-extensions"
+   __eemacs-ext-union-host)
+  "entropy-emacs extensions collection archive location. This
+collection used to retrieving all entropy-emacs elpa or melpa
+extensions' repos as submodules archived as one single project
+used for version controlling. You can get it from
+'https://github.com/c0001/entropy-emacs-extensions'.
+
+This archive used when type of 'entropy-emacs-extenisons-project' is set to
+customized variable `entropy/emacs-ext-elpkg-get-type'."
+
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-emacs-extensions)
+
+(defvar entropy/emacs-ext-elpkg-get-type
+  entropy/emacs-ext-elpkg-customized-get-type
+  "The internal variant of variable
+`entropy/emacs-ext-elpkg-customized-get-type' which extended its
+value type according to non-defined internal definition")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+  "v1.0.2"
+  "")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path
+  (expand-file-name
+   (format ".eemacs-ext-build_%s"
+           entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
+   entropy/emacs-user-emacs-directory)
+  "")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator
+  (expand-file-name
+   "init"
+   entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
+  "")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url
+  (format
+  "https://github.com/c0001/entropy-emacs-extensions/releases/\
+download/%s/entropy-emacs-extensions_build_%s.tar.xz"
+  entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+  entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version)
+  "")
+
+(defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum
+  "33cb935125d2b9c07f2e3d8f71debf14fd5b6e38c33d3dbae743cd81f30dd04c"
+  "")
+
+(when (file-exists-p
+       entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator)
+  (setq entropy/emacs-ext-elpkg-get-type
+        'entropy-emacs-extensions-project-build)
+  (let ((archive-fmt `(lambda (name)
+                        (expand-file-name
+                         name
+                         ,entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)))
+        )
+    (setq package-archives
+          `(("entropy-melpa"      . ,(funcall archive-fmt "melpa"))
+            ("entropy-elpa"       . ,(funcall archive-fmt "elpa"))
+            ("entropy-elpa-devel" . ,(funcall archive-fmt "elpa-devel"))))))
+
+;; **** elpkg install location
+(defcustom entropy/emacs-ext-emacs-pkgel-get-pkgs-root
+  (expand-file-name
+   "entropy-emacs-extensions-elpa"
+   __eemacs-ext-union-host)
+  "entropy-emacs elpa extensions directory for hosting the
+upstream installed packages of `package.el'."
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-emacs-extensions)
+
+;; **** other extensions
+;; ***** eemacs-lsp-archive project archive location
+
+(defcustom entropy/emacs-ext-use-eemacs-lsparc nil
+  "Whether to use archived lanuguage servers."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-emacs-extensions)
+
+(defcustom entropy/emacs-ext-lsp-archive-dir
+  (expand-file-name
+   "entropy-emacs-lsp-archive"
+   __eemacs-ext-union-host)
+  "entropy emacs language server archives project location, you
+may download from
+'https://github.com/c0001/entropy-emacs-lsp-archive'."
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-emacs-extensions)
+
+
+
+;; ***** eemacs fonts
+
+(defvar entropy/emacs-ext-eemacs-fonts-archive-url
+  "https://sourceforge.net/projects/entropy-emacs-cabinet/files/Font/entropy-emacs-fonts/v1.0.0/eemacs-fonts_v1.0.0.tar.xz/download"
+  )
+(defvar entropy/emacs-ext-eemacs-fonts-archive-sha256sum
+  "c3976b59208e0e26443fa8f3310895cc70f4f9750eca2d5d213bf69e353b362b")
+
+;; **** extra customized load path
+
+(defcustom entropy/emacs-ext-user-specific-load-paths nil
+  "Extra load path list for user specification.
+
+This feature usually used for emacs new feature adding test and
+designation."
+  :type '(repeat directory)
+  :group 'entropy/emacs-customize-group-for-emacs-extensions)
 
 ;; *** Web Corresponding Config
 (defgroup entropy/emacs-customize-group-for-web-refer nil
@@ -958,6 +922,38 @@ You can setting like this:
           (const :tag "Minibuffer (either tui or gui)" minibuffer)
           (const :tag "Automatically set" nil))
   :group 'entropy/emacs-customize-group-for-pyim)
+
+;; *** Project
+(defgroup entropy/emacs-customize-group-for-project-management nil
+  "Eemacs project-management configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+;; **** ibuffer
+(defcustom entropy/emacs-enable-ibuffer-projectitle nil
+  "Enable ibuffer-projectitle in ibuffer
+
+Note: ibuffer-projectitle will cause the performance debug.
+"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-project-management)
+
+;; **** fuzzy search
+
+(defgroup entropy/emacs-customize-group-for-fuzzy-search nil
+  "Eemacs fuzzy search configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-project-management)
+
+(defcustom entropy/emacs-search-program "rg"
+  "The project search engine used for =entropy-emacs=.
+
+The valid value are \"ag\" (i.e. the silver_searcher) or \"rg\"
+(i.e. the ripgrep searcher), default for using ripgrep which is
+the fasest way.
+"
+  :type '(choice
+          (const :tag "Ripgrep" "rg")
+          (const :tag "The silver searcher" "ag"))
+  :group 'entropy/emacs-customize-group-for-fuzzy-search)
 
 ;; *** Workspace
 (defgroup entropy/emacs-customize-group-for-workspace nil
@@ -1305,7 +1301,7 @@ difference.
   "Eemacs Rss reader configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
-;; **** elfeed config
+;; **** Elfeed
 (defgroup entropy/emacs-customize-group-for-elfeed nil
   "Eemacs elfeed configuration customizable group."
   :group 'entropy/emacs-customize-group-for-RSS)
@@ -1329,6 +1325,36 @@ difference.
 elfeed proxy setting."
   :type 'string
   :group 'entropy/emacs-customize-group-for-elfeed)
+
+;; **** Gnus
+(defgroup entropy/emacs-customize-group-for-gnus nil
+  "Eemacs GNUS configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-RSS)
+
+(defcustom entropy/emacs-gnus-init-config
+  `(:gnus-home ,(expand-file-name "gnus" entropy/emacs-stuffs-topdir)
+    :gnus-news-dir ,(expand-file-name "gnus/News" entropy/emacs-stuffs-topdir)
+    :mail-dir ,(expand-file-name "gnus/Mail" entropy/emacs-stuffs-topdir)
+    :mail-temp-dir ,(expand-file-name "gnus/temp" entropy/emacs-stuffs-topdir)
+    :init-file ,(expand-file-name "gnus/gnus-config.el" entropy/emacs-stuffs-topdir)
+    :startup-file ,(expand-file-name "gnus/newsrc" entropy/emacs-stuffs-topdir)
+    :read-newsrc nil
+    :save-newsrc nil
+    :use-dribble t
+    :read-active-file t)
+  "Initial setting for gnus for entropy-emacs."
+  :type '(list
+          (const :gnus-home) directory
+          (const :gnus-news-dir) directory
+          (const :mail-dir) directory
+          (const :mail-temp-dir) directory
+          (const :init-file) file
+          (const :startup-file) file
+          (const :read-newsrc) boolean
+          (const :save-newsrc) boolean
+          (const :use-dribble) boolean
+          (const :read-active-file) boolean)
+  :group 'entropy/emacs-customize-group-for-gnus)
 
 ;; *** Major-modes
 (defgroup entropy/emacs-customize-group-for-major-modes nil
