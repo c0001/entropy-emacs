@@ -381,43 +381,43 @@ This is for use in `ivy-re-builders-alist'."
   ;;  :pdumper-no-end t
   ;;  (ivy-prescient-mode 1))
 
-  (entropy/emacs-lazy-initial-advice-after
-   (counsel-mode)
-   "ivy-prescient-rebuilder-init"
-   "ivy-prescient-rebuilder-init"
-   prompt-echo
-   :pdumper-no-end t
-   (dolist (re-builder
-            '((counsel-ag . ivy-prescient-non-fuzzy)
-              (counsel-rg . ivy-prescient-non-fuzzy)
-              (counsel-pt . ivy-prescient-non-fuzzy)
-              (counsel-grep . ivy-prescient-non-fuzzy)
-              (counsel-fzf . ivy-prescient-non-fuzzy)
-              (counsel-imenu . ivy-prescient-non-fuzzy)
-              (counsel-yank-pop . ivy-prescient-non-fuzzy)
-              (lsp-ivy-workspace-symbol . ivy-prescient-non-fuzzy)
-              (lsp-ivy-global-workspace-symbol . ivy-prescient-non-fuzzy)
-              (insert-char . ivy-prescient-non-fuzzy)
-              (counsel-unicode-char . ivy-prescient-non-fuzzy)
-              (t . ivy-prescient-re-builder)
-              ;; NOTE:
-              ;; use default rebulder for swiper clusters since we use
-              ;; it native regexp builder for query-replace better
-              ;; than what provided by `prescient' which has multibyte
-              ;; unicode groups injection.
-              (swiper . ivy--regex)
-              (swiper-isearch . ivy--regex)
-              (swiper-all . ivy--regex)
-              ))
-     (let ((caller (car re-builder))
-           (builder (cdr re-builder)))
-       (cond
-        ((assoc caller ivy-re-builders-alist)
-         (setf (alist-get caller ivy-re-builders-alist) builder))
-        (t
-         (add-to-list
-          'ivy-re-builders-alist
-          re-builder))))))
+  ;; (entropy/emacs-lazy-initial-advice-after
+  ;;  (counsel-mode)
+  ;;  "ivy-prescient-rebuilder-init"
+  ;;  "ivy-prescient-rebuilder-init"
+  ;;  prompt-echo
+  ;;  :pdumper-no-end t
+  ;;  (dolist (re-builder
+  ;;           '((counsel-ag . ivy-prescient-non-fuzzy)
+  ;;             (counsel-rg . ivy-prescient-non-fuzzy)
+  ;;             (counsel-pt . ivy-prescient-non-fuzzy)
+  ;;             (counsel-grep . ivy-prescient-non-fuzzy)
+  ;;             (counsel-fzf . ivy-prescient-non-fuzzy)
+  ;;             (counsel-imenu . ivy-prescient-non-fuzzy)
+  ;;             (counsel-yank-pop . ivy-prescient-non-fuzzy)
+  ;;             (lsp-ivy-workspace-symbol . ivy-prescient-non-fuzzy)
+  ;;             (lsp-ivy-global-workspace-symbol . ivy-prescient-non-fuzzy)
+  ;;             (insert-char . ivy-prescient-non-fuzzy)
+  ;;             (counsel-unicode-char . ivy-prescient-non-fuzzy)
+  ;;             (t . ivy-prescient-re-builder)
+  ;;             ;; NOTE:
+  ;;             ;; use default rebulder for swiper clusters since we use
+  ;;             ;; it native regexp builder for query-replace better
+  ;;             ;; than what provided by `prescient' which has multibyte
+  ;;             ;; unicode groups injection.
+  ;;             (swiper . ivy--regex)
+  ;;             (swiper-isearch . ivy--regex)
+  ;;             (swiper-all . ivy--regex)
+  ;;             ))
+  ;;    (let ((caller (car re-builder))
+  ;;          (builder (cdr re-builder)))
+  ;;      (cond
+  ;;       ((assoc caller ivy-re-builders-alist)
+  ;;        (setf (alist-get caller ivy-re-builders-alist) builder))
+  ;;       (t
+  ;;        (add-to-list
+  ;;         'ivy-re-builders-alist
+  ;;         re-builder))))))
   )
 
 ;; ** counsel
