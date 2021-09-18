@@ -603,6 +603,7 @@ messy."
         (float-time
          (time-subtract (current-time)
                         before-init-time)))
+  ;; startup done hints
   (let* ((entropy/emacs-message-non-popup t)
          (base-str "entropy-emacs startup done")
          (msgstr
@@ -619,7 +620,16 @@ messy."
      (bold base-str)
      (magenta "Happy hacking")
      "('C-h v entropy/emacs-run-startup-duration' see startup time)"
-     )))
+     ))
+  ;; Debug facilities
+  (when entropy/emacs-startup-benchmark-init
+    (benchmark-init/show-durations-tree)
+    (split-window-below)
+    (benchmark-init/show-durations-tabulated)
+    (benchmark-init/deactivate))
+  (when entropy/emacs-startup-debug-on-error
+    (setq debug-on-error nil))
+  )
 
 (defvar entropy/emacs-pyim-has-initialized nil
   "Variable indicate that pyim has started down for init.

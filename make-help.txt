@@ -50,3 +50,7 @@ name-space as 'eemacs_YearDateTime.pdmp', start it with:
 -------
        emacs --dump-file=eemacs_YearDateTime.pdmp
 -------
+
+MAINTAINS:
+
+        make debug: startup entropy-emacs with debug facilities

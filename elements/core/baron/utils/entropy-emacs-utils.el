@@ -687,5 +687,16 @@ close hydra posframe."
   (entropy/emacs-make-function-inhibit-readonly
    'edit-indirect-commit))
 
+
+;; ** Benchmark
+
+(use-package benchmark-init
+  :commands
+  (benchmark
+   benchmark-init/activate
+   benchmark-init/deactivate
+   benchmark-init/show-durations-tabulated
+   benchmark-init/show-durations-tree))
+
 ;; * provide
 (provide 'entropy-emacs-utils)

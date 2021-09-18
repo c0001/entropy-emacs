@@ -32,7 +32,11 @@ endif
 
 # ** variable
 EMACS := emacs
-EMACS_MAKE=$(EMACS) -Q --batch -l init.el
+EMACS_MAKE = $(EMACS) -Q --batch -l init.el
+
+DEBUG_FORM = '(progn\
+  (setq entropy/emacs-startup-benchmark-init t)\
+  (setq entropy/emacs-startup-debug-on-error t))'
 
 ifeq ($(detected_OS),Windows)
 CAT=type
@@ -83,3 +87,8 @@ native-comp:
 	@$(EMACS_MAKE)
 
 all: install install-coworkers update dump
+
+debug:
+	@$(EchoEmpty)
+	@$(EMACS) -Q --eval $(DEBUG_FORM) \
+	 -l init.el

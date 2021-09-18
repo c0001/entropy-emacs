@@ -138,6 +138,10 @@ or manually do 'C-x C-c' immediately.")))
 
   ;; top utils
   (require 'entropy-emacs-utils)
+  (when entropy/emacs-startup-benchmark-init
+    (benchmark-init/activate))
+  (when entropy/emacs-startup-debug-on-error
+    (setq debug-on-error t))
 
   ;; startup
   (require 'entropy-emacs-gc)

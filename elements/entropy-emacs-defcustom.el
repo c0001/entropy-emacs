@@ -2096,6 +2096,22 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
+;; *** Debug
+
+(defgroup entropy/emacs-customize-group-for-DEBUG nil
+  "entropy-emacs debug configurations"
+  :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-startup-benchmark-init nil
+  "Benchmark eemacs startup time?"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-DEBUG)
+
+(defcustom entropy/emacs-startup-debug-on-error nil
+  "Enable `debug-on-error' at eemacs startup time?"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-DEBUG)
+
 ;; ** Top APIs
 ;; *** top paths
 (defvar entropy/emacs-hosted-path
