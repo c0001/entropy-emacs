@@ -68,6 +68,13 @@
   (setq display-time-format " %e %b %Y %H:%M:%S ")
   (display-time))
 
+;; A minor-mode menu for the mode line
+(use-package minions
+  :commands (minions-minor-modes-menu
+             minions-mode)
+  :init
+  (global-set-key [S-down-mouse-3] 'minions-minor-modes-menu)
+  )
 
 ;; *** eemaac-specification
 

@@ -613,12 +613,60 @@ for adding to variable `window-size-change-functions' and hook
        (add-hook 'window-size-change-functions
                  'dashboard-resize-on-hook)))))
 
-;; ** Title
+;; ** Frame spec
+;; *** Title
 (entropy/emacs-lazy-with-load-trail
  frame-title-set
  (setq frame-title-format
        '("GNU Emacs " emacs-version "@" user-login-name))
  (setq icon-title-format frame-title-format))
+
+;; *** Transparence
+
+(defvar entropy/emacs-basic--loop-alpha-did nil)
+
+(defun entropy/emacs-basic-loop-alpha (&optional prefix)
+  "Toggle frame transparent status with specified transparent
+value as optional interaction while `PREFIX' is non-nil."
+  (interactive "P")
+  (setq entropy/emacs-basic--loop-alpha-did
+        (or prefix (null entropy/emacs-basic--loop-alpha-did)))
+  (let ((bgtr-default entropy/emacs-loop-alpha-value)
+        (bgtr
+         (when prefix
+           (string-to-number (read-string "Input bg trransparent var (75-95): ")))))
+    ;; Restrict transparent integer value be between 75 to 95 where is
+    ;; the best customization
+    (setq bgtr
+          (let ()
+            (if (not (integerp bgtr))
+                bgtr-default
+              (if (> bgtr 95)
+                  95
+                (if (<= bgtr 0)
+                    75
+                  bgtr)))))
+    (funcall
+     (lambda (a)
+       (unless entropy/emacs-basic--loop-alpha-did
+         (setq a 100))
+       (let ((alpha-items (mapcar (lambda (x) (when (eq (car x) 'alpha) x))
+                                  default-frame-alist)))
+         (dolist (el alpha-items)
+           (unless (null el)
+             (setq default-frame-alist
+                   (delete el default-frame-alist)))))
+       (set-frame-parameter (selected-frame) 'alpha (list a 100))
+       (add-to-list 'default-frame-alist (cons 'alpha (list a 100))))
+     bgtr)
+    (setq entropy/emacs-loop-alpha-value
+          bgtr)))
+
+(when (and entropy/emacs-start-with-frame-transparent-action
+           (display-graphic-p))
+  (entropy/emacs-lazy-with-load-trail
+   loop-alpha
+   (entropy/emacs-basic-loop-alpha)))
 
 ;; ** Misc
 ;; *** minor misc

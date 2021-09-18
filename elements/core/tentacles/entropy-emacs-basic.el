@@ -1482,167 +1482,93 @@ NOTE: this is a advice wrapper for any function."
      :enable t
      :exit t))))
 
-;; ***** Implicit trigger
-;; ****** Disable `electric-indent-mode' by default
 
-;; Remove it globally since we do not use it frequently in non prog
-;; mode and it well inject to `post-self-insert-hook' to increase
-;; performance latency.
-(entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer)
- "__disable-electric-indent-mode" "__disable-electric-indent-mode"
- prompt-echo
- :pdumper-no-end t
- (when (bound-and-true-p electric-indent-mode)
-   (electric-indent-mode 0))
- ;; add it locally to prog referred mode hook
- (let ((spec-modes (append entropy/emacs-ide-for-them
-                           (list 'emacs-lisp-mode
-                                 'lisp-interaction-mode))))
-   ;; use `electric-indent-local-mode' for spec modes
-   (dolist (mode spec-modes)
-     (add-hook (intern (format "%s-hook" mode))
-               'electric-indent-local-mode))
-   ;; make exist opened buffer enable `electric-indent-local-mode'
-   (dolist (buff (buffer-list))
-     (with-current-buffer buff
-       (when (memq major-mode spec-modes)
-         (electric-indent-local-mode 1))))))
+;; ****** Auto-sudoedit
 
-;; ****** Auto wrap line
-(setq-default truncate-lines t)
+(use-package auto-sudoedit
+  :commands (entropy/emacs-sudoedit-current-path-maybe)
+  :config
+  (defun entropy/emacs-sudoedit-current-path-maybe (curr-path)
+    "Get su privileges for CURR-PATH if need to so."
+    (interactive (list (auto-sudoedit-current-path)))
+    (let ((path (auto-sudoedit-path curr-path)))
+      (if path
+          (find-file path)
+        (entropy/emacs-message-do-message
+         "no need to get sudo permission to edit path %s"
+         (green (format "%s" curr-path)))))))
 
-;; *** Paragraph fill size
-(setq-default fill-column entropy/emacs-fill-paragraph-width)
 
-;; ****** Auto clean whitespace after save buffer
-(use-package whitespace
+;; ****** Rectangle manipulation
+
+(use-package rect
   :ensure nil
-  :commands (whitespace-cleanup)
-  :preface
-  (defun entropy/emacs-basic-simple-whitespace-clean ()
-    "Clean whitespace with the default `whitspace-style'."
-    (interactive)
-    (require 'whitespace)
-    (let ((whitespace-style (default-value 'whitespace-style)))
-      (with-current-buffer (current-buffer)
-        (let ((inhibit-read-only t))
-          (whitespace-cleanup)))))
-  :init
-  (add-hook 'before-save-hook
-            #'entropy/emacs-basic-simple-whitespace-clean))
-
-
-;; ****** Global read only mode
-(use-package entropy-global-read-only-mode
-  :ensure nil
-  :commands (entropy-grom-mode
-             entropy/grom-read-only-buffer
-             entropy/grom-quick-readonly-global)
   :eemacs-indhc
   (((:enable t)
-    (entropy-grom-mode))
-   ("Basic"
-    (("<f1>" entropy/grom-read-only-buffer "Toggle buffer read-only status"
-      :enable t :global-bind t :exit t
-      :toggle buffer-read-only)
-     ("t" entropy/grom-toggle-read-only "Toggle global buffers read-only status"
-      :enable t :exit t)
-     ("M-1" entropy/grom-quick-readonly-global
-      "Quickly lock all buffers in current emacs session with internal rules matched"
+    (rectangle-mode))
+   ("Move"
+    (("h" backward-char "←"
+      :enable t)
+     ("j" next-line "↓"
+      :enable t)
+     ("k" previous-line "↑"
+      :enable t)
+     ("l" forward-char "→"
+      :enable t))
+    "Action"
+    (("C-x r w" copy-rectangle-as-kill "copy"
+      :enable t :global-bind t :exit t)
+     ("C-x r y" yank-rectangle "yank"
+      :enable t :global-bind t :exit t)
+     ("C-x r t" string-rectangle "string"
+      :enable t :global-bind t :exit t)
+     ("C-x r d" kill-rectangle "kill"
+      :enable t :global-bind t :exit t)
+     ("C-x r c" clear-rectangle "clear"
+      :enable t :global-bind t :exit t)
+     ("C-x r o" open-rectangle "open"
+      :enable t :global-bind t :exit t)
+     ("C-x r N" rectangle-number-lines "number lines"
       :enable t :global-bind t :exit t))))
   :eemacs-tpha
   (((:enable t))
-   ("WI&BUF"
-    (("L"
+   ("Utils"
+    (("u r"
       (:eval
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'entropy-grom-mode))
-      "Buffer locker both for single or global buffer-list"
-      :enable t :exit t))))
+        'rectangle-mode))
+      "Rectangle region manipulation"
+      :enable t :exit t)))))
 
-  :init
-  (entropy/emacs-lazy-initial-advice-before
-   (find-file push-button find-library-name)
-   "entropy-grom"
-   "entropy-grom"
-   prompt-echo
-   :pdumper-no-end t
-   (entropy-grom-mode +1))
+;; ****** Major mode reload
+(defun entropy/emacs-basic-major-mode-reload ()
+  "Reload current `major-mode'.
 
-  :config
-  (dolist (rule `(,(rx "*outorg-edit-buffer*")
-                  ,(rx "*Buffer Details*")
-                  ,(rx "*Memory Explorer*")
-                  ,(rx "*poporg: ")))
-    (add-to-list 'entropy/grom-customizable-nonspecial-buffer-name-regexp-list
-                 rule)))
-
-;; *** Backup setting
-(setq-default auto-save-default nil)    ; disable it for preventing typing lagging
-(setq make-backup-files nil)
-
-;; *** Scratch buffer corresponding file
-;;
-;;     Amounts of company backend function can not functional
-;;     auto-completion in none file buffer, so corresponding one file
-;;     to *scratch* buffer.
-
-(defun entropy/emacs-basic--scratch-buffer-file-binding ()
-  "Corresponded *scratch* buffer to one temp-file.
-
-Filename are \".scratch_entropy\" host in
-`entropy/emacs-stuffs-topdir'.
-"
-  (let ((bfn "*scratch*"))
-    (if (entropy/emacs-buffer-exists-p "*scratch*")
-        (kill-buffer "*scratch*"))
-    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
-          ;; inhibit `find-file-hook' for speedup file create
-          (find-file-hook nil))
-      (if (not (file-exists-p fname))
-          (progn
-            (write-region "" "" fname)
-            (with-current-buffer (find-file-noselect fname)
-              (if buffer-read-only (read-only-mode 0))
-              (auto-save-mode 0)
-              (rename-buffer "*scratch*")
-              (unless (eq major-mode 'lisp-interaction-mode)
-                (lisp-interaction-mode))
-              (insert initial-scratch-message)))
-        (with-current-buffer (find-file-noselect fname)
-          (if buffer-read-only (read-only-mode 0))
-          (auto-save-mode 0)
-          (rename-buffer "*scratch*")
-          (unless (eq major-mode 'lisp-interaction-mode)
-            (lisp-interaction-mode))
-          (save-excursion
-            (goto-char (point-min))
-            (unless (string-match-p
-                     (concat
-                      (car (split-string (regexp-quote initial-scratch-message) "^$" t))
-                      ".*")
-                     (buffer-substring-no-properties
-                      (point-min) (point-max)))
-              (insert initial-scratch-message))))))
-    bfn))
-
-(entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer ivy-read)
- "init-eemamcs-scratch-buffer" "init-eemamcs-scratch-buffer"
- prompt-echo
- :pdumper-no-end t
- (entropy/emacs-basic--scratch-buffer-file-binding))
-
-;; Create a new scratch buffer
-(defun entropy/emacs-basic-create-scratch-buffer ()
-  "Create a scratch buffer."
+This function was usable for some occurrence that current mode
+functional part was missed or be without working on the proper
+way. "
   (interactive)
-  (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
-  (lisp-interaction-mode)
-  (message "Create *scratch* buffer"))
+  (if (not (string-match-p "^CAPTURE-" (buffer-name)))
+      (let ((point (point))
+            (mode major-mode))
+        (progn
+          (cond
+           ((derived-mode-p 'prog-mode)
+            ;; switch to `fundamental-mode' firstly for preventing
+            ;; some unexpected messy while prog modes is major-mode
+            ;; FIXME: why?
+            (fundamental-mode))
+           (t
+            t))
+          (funcall mode))
+        (when (eq major-mode 'org-mode)
+          (outline-show-all))
+        (goto-char point)
+        (message "Reloaded current major mode '%s'!" (symbol-name major-mode)))
+    (error "You can not refresh %s in this buffer, if did may cause some bug."
+           (symbol-name major-mode))))
 
-;; *** Kill-buffer-and-window spec
+;; ****** Kill-buffer-and-window spec
 
 (defun entropy/emacs-basic-kill-ansiterm-buffer ()
   "Kill `ansi-term' buffer with proper way.
@@ -1723,96 +1649,118 @@ as thus."
 (global-set-key (kbd "C-x k") #'entropy/emacs-basic-kill-buffer)
 (global-set-key (kbd "C-x M-k") #'kill-buffer)
 
-;; *** Setting language encoding environment
-(setq system-time-locale "C") ;Use english format time string
+;; ***** Implicit trigger
+;; ****** Disable `electric-indent-mode' by default
 
-;; **** Default using UTF-8 encoding for basic environment
-;; when `entropy/emacs-custom-language-environment-enable' was nil
+;; Remove it globally since we do not use it frequently in non prog
+;; mode and it well inject to `post-self-insert-hook' to increase
+;; performance latency.
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer)
+ "__disable-electric-indent-mode" "__disable-electric-indent-mode"
+ prompt-echo
+ :pdumper-no-end t
+ (when (bound-and-true-p electric-indent-mode)
+   (electric-indent-mode 0))
+ ;; add it locally to prog referred mode hook
+ (let ((spec-modes (append entropy/emacs-ide-for-them
+                           (list 'emacs-lisp-mode
+                                 'lisp-interaction-mode))))
+   ;; use `electric-indent-local-mode' for spec modes
+   (dolist (mode spec-modes)
+     (add-hook (intern (format "%s-hook" mode))
+               'electric-indent-local-mode))
+   ;; make exist opened buffer enable `electric-indent-local-mode'
+   (dolist (buff (buffer-list))
+     (with-current-buffer buff
+       (when (memq major-mode spec-modes)
+         (electric-indent-local-mode 1))))))
 
-(unless entropy/emacs-custom-language-environment-enable
-  (entropy/emacs-lang-set-utf-8))
+;; ****** Replace follow input in region
+;; Delete selection if you insert
+(use-package delsel
+  :ensure nil
+  :init
+  (entropy/emacs-lazy-initial-advice-before
+   (yank xterm-paste)
+   "delsel-mode-init" "delsel-mode-init" prompt-echo
+   :pdumper-no-end t
+   (delete-selection-mode 1)))
 
-;; **** Using customized basic encoding system
-;; When `entropy/emacs-custom-language-environment-enable' was t
+;; ****** Auto wrap line
+(setq-default truncate-lines t)
 
-(when (and entropy/emacs-custom-language-environment-enable
-           (stringp entropy/emacs-locale-language-environment))
-  ;; Customize language environment with user specification
-  (entropy/emacs-lang-set-local))
+;; ****** Paragraph fill size
+(setq-default fill-column entropy/emacs-fill-paragraph-width)
 
-;; ***** Specific cases to forceing using UTF-8 encoding environment
+;; ****** Auto clean whitespace after save buffer
+(use-package whitespace
+  :ensure nil
+  :commands (whitespace-cleanup)
+  :preface
+  (defun entropy/emacs-basic-simple-whitespace-clean ()
+    "Clean whitespace with the default `whitspace-style'."
+    (interactive)
+    (require 'whitespace)
+    (let ((whitespace-style (default-value 'whitespace-style)))
+      (with-current-buffer (current-buffer)
+        (let ((inhibit-read-only t))
+          (whitespace-cleanup)))))
+  :init
+  (add-hook 'before-save-hook
+            #'entropy/emacs-basic-simple-whitespace-clean))
 
-;; ****** Treat clipboard input as UTF-8 string first; compound text next, etc.
-(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
-;; ****** Force setting specific file type which must be opened with utf-8-unix encoding system.
-(dolist (suffix
-         '(;; document file
-           "\\.org$" "\\.md$"
-           ;; source file
-           "\\.html" "\\.css$" "\\.php$" "\\.js$" "\\.ts$"
-           "\\.c\\(p+\\)?$" "\\.py$" "\\.lisp$" "\\.el$"
-           "\\.sh$" "\\.bat$"
-           ))
-  (modify-coding-system-alist 'file suffix 'utf-8-unix))
+;; ****** Global read only mode
+(use-package entropy-global-read-only-mode
+  :ensure nil
+  :commands (entropy-grom-mode
+             entropy/grom-read-only-buffer
+             entropy/grom-quick-readonly-global)
+  :eemacs-indhc
+  (((:enable t)
+    (entropy-grom-mode))
+   ("Basic"
+    (("<f1>" entropy/grom-read-only-buffer "Toggle buffer read-only status"
+      :enable t :global-bind t :exit t
+      :toggle buffer-read-only)
+     ("t" entropy/grom-toggle-read-only "Toggle global buffers read-only status"
+      :enable t :exit t)
+     ("M-1" entropy/grom-quick-readonly-global
+      "Quickly lock all buffers in current emacs session with internal rules matched"
+      :enable t :global-bind t :exit t))))
+  :eemacs-tpha
+  (((:enable t))
+   ("WI&BUF"
+    (("L"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'entropy-grom-mode))
+      "Buffer locker both for single or global buffer-list"
+      :enable t :exit t))))
 
-;; ========================================================================
-;; Prompt: If you want all file to be one coding system you should do below
-;;(modify-coding-system-alist 'file "" 'utf-8-unix)
-;; ========================================================================
+  :init
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file push-button find-library-name)
+   "entropy-grom"
+   "entropy-grom"
+   prompt-echo
+   :pdumper-no-end t
+   (entropy-grom-mode +1))
 
-;; ****** let diff-buffer-with-file force run with unicode language environment
-(advice-add 'diff-buffer-with-file
-            :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+  :config
+  (dolist (rule `(,(rx "*outorg-edit-buffer*")
+                  ,(rx "*Buffer Details*")
+                  ,(rx "*Memory Explorer*")
+                  ,(rx "*poporg: ")))
+    (add-to-list 'entropy/grom-customizable-nonspecial-buffer-name-regexp-list
+                 rule)))
 
-;; *** Set transparenct of emacs frame
+;; ****** Auto-Save
+(setq-default auto-save-default nil)    ; disable it for preventing typing lagging
+(setq make-backup-files nil)
 
-(defvar entropy/emacs-basic--loop-alpha-did nil)
-
-(defun entropy/emacs-basic-loop-alpha (&optional prefix)
-  "Toggle frame transparent status with specified transparent
-value as optional interaction while `PREFIX' is non-nil."
-  (interactive "P")
-  (setq entropy/emacs-basic--loop-alpha-did
-        (or prefix (null entropy/emacs-basic--loop-alpha-did)))
-  (let ((bgtr-default entropy/emacs-loop-alpha-value)
-        (bgtr
-         (when prefix
-           (string-to-number (read-string "Input bg trransparent var (75-95): ")))))
-    ;; Restrict transparent integer value be between 75 to 95 where is
-    ;; the best customization
-    (setq bgtr
-          (let ()
-            (if (not (integerp bgtr))
-                bgtr-default
-              (if (> bgtr 95)
-                  95
-                (if (<= bgtr 0)
-                    75
-                  bgtr)))))
-    (funcall
-     (lambda (a)
-       (unless entropy/emacs-basic--loop-alpha-did
-         (setq a 100))
-       (let ((alpha-items (mapcar (lambda (x) (when (eq (car x) 'alpha) x))
-                                  default-frame-alist)))
-         (dolist (el alpha-items)
-           (unless (null el)
-             (setq default-frame-alist
-                   (delete el default-frame-alist)))))
-       (set-frame-parameter (selected-frame) 'alpha (list a 100))
-       (add-to-list 'default-frame-alist (cons 'alpha (list a 100))))
-     bgtr)
-    (setq entropy/emacs-loop-alpha-value
-          bgtr)))
-
-(when (and entropy/emacs-start-with-frame-transparent-action
-           (display-graphic-p))
-  (entropy/emacs-lazy-with-load-trail
-   loop-alpha
-   (entropy/emacs-basic-loop-alpha)))
-
-;; *** Revert buffer automatically
+;; ****** Revert buffer
 
 (entropy/emacs-lazy-initial-for-hook
  (find-file-hook)
@@ -1858,105 +1806,71 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
      (magav-off
       (message "Toggle `magit-auto-revert-mode' off.")))))
 
-;; *** Popup key stroking prompt
-(use-package which-key
-  :diminish which-key-mode
-  :commands which-key-mode
-  :init
-  (entropy/emacs-lazy-with-load-trail
-   which-key
-   :pdumper-no-end t
-   :body
-   (which-key-mode t))
-  (setq which-key-popup-type 'side-window
-        which-key-side-window-location 'bottom
-        which-key-idle-delay 0.8
-        which-key-idle-secondary-delay nil
-        which-key-side-window-max-height 0.15
-        which-key-echo-keystrokes 0.005
-        which-key-separator "->"
-        which-key-show-remaining-keys t
-        which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
-  :config
-  (entropy/emacs-lazy-load-simple help
-    (global-set-key (kbd "C-h C-h") nil))
+;; *** Emacs-wide spec
+;; **** Scratch buffer corresponding file
+;;
+;;     Amounts of company backend function can not functional
+;;     auto-completion in none file buffer, so corresponding one file
+;;     to *scratch* buffer.
 
-;; **** config
-  :config
-;; ***** Disable `after-make-frame-functions' when popup which-key dim using frame feature.
-  (defun entropy/emacs-basic--which-key-inhibit-stuffs
-      (orig-func &rest orig-args)
-    (let ((after-make-frame-functions nil))
-      (apply orig-func orig-args)))
-  (dolist (func '(which-key--show-buffer-new-frame
-                  which-key--show-buffer-reuse-frame))
-    (advice-add func
-                :around
-                #'entropy/emacs-basic--which-key-inhibit-stuffs))
+(defun entropy/emacs-basic--scratch-buffer-file-binding ()
+  "Corresponded *scratch* buffer to one temp-file.
 
-  )
+Filename are \".scratch_entropy\" host in
+`entropy/emacs-stuffs-topdir'.
+"
+  (let ((bfn "*scratch*"))
+    (if (entropy/emacs-buffer-exists-p "*scratch*")
+        (kill-buffer "*scratch*"))
+    (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
+          ;; inhibit `find-file-hook' for speedup file create
+          (find-file-hook nil))
+      (if (not (file-exists-p fname))
+          (progn
+            (write-region "" "" fname)
+            (with-current-buffer (find-file-noselect fname)
+              (if buffer-read-only (read-only-mode 0))
+              (auto-save-mode 0)
+              (rename-buffer "*scratch*")
+              (unless (eq major-mode 'lisp-interaction-mode)
+                (lisp-interaction-mode))
+              (insert initial-scratch-message)))
+        (with-current-buffer (find-file-noselect fname)
+          (if buffer-read-only (read-only-mode 0))
+          (auto-save-mode 0)
+          (rename-buffer "*scratch*")
+          (unless (eq major-mode 'lisp-interaction-mode)
+            (lisp-interaction-mode))
+          (save-excursion
+            (goto-char (point-min))
+            (unless (string-match-p
+                     (concat
+                      (car (split-string (regexp-quote initial-scratch-message) "^$" t))
+                      ".*")
+                     (buffer-substring-no-properties
+                      (point-min) (point-max)))
+              (insert initial-scratch-message))))))
+    bfn))
 
+(entropy/emacs-lazy-initial-advice-before
+ (find-file switch-to-buffer ivy-read)
+ "init-eemamcs-scratch-buffer" "init-eemamcs-scratch-buffer"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-basic--scratch-buffer-file-binding))
 
-;; *** Rectangle manipulation
-
-(use-package rect
-  :ensure nil
-  :eemacs-indhc
-  (((:enable t)
-    (rectangle-mode))
-   ("Move"
-    (("h" backward-char "←"
-      :enable t)
-     ("j" next-line "↓"
-      :enable t)
-     ("k" previous-line "↑"
-      :enable t)
-     ("l" forward-char "→"
-      :enable t))
-    "Action"
-    (("C-x r w" copy-rectangle-as-kill "copy"
-      :enable t :global-bind t :exit t)
-     ("C-x r y" yank-rectangle "yank"
-      :enable t :global-bind t :exit t)
-     ("C-x r t" string-rectangle "string"
-      :enable t :global-bind t :exit t)
-     ("C-x r d" kill-rectangle "kill"
-      :enable t :global-bind t :exit t)
-     ("C-x r c" clear-rectangle "clear"
-      :enable t :global-bind t :exit t)
-     ("C-x r o" open-rectangle "open"
-      :enable t :global-bind t :exit t)
-     ("C-x r N" rectangle-number-lines "number lines"
-      :enable t :global-bind t :exit t))))
-  :eemacs-tpha
-  (((:enable t))
-   ("Utils"
-    (("u r"
-      (:eval
-       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'rectangle-mode))
-      "Rectangle region manipulation"
-      :enable t :exit t)))))
+;; Create a new scratch buffer
+(defun entropy/emacs-basic-create-scratch-buffer ()
+  "Create a scratch buffer."
+  (interactive)
+  (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
+  (lisp-interaction-mode)
+  (message "Create *scratch* buffer"))
 
 
-;; *** Auto-sudoedit
+;; **** Kill ring config
 
-(use-package auto-sudoedit
-  :commands (entropy/emacs-sudoedit-current-path-maybe)
-  :config
-  (defun entropy/emacs-sudoedit-current-path-maybe (curr-path)
-    "Get su privileges for CURR-PATH if need to so."
-    (interactive (list (auto-sudoedit-current-path)))
-    (let ((path (auto-sudoedit-path curr-path)))
-      (if path
-          (find-file path)
-        (entropy/emacs-message-do-message
-         "no need to get sudo permission to edit path %s"
-         (green (format "%s" curr-path)))))))
-
-;; *** Kill ring config
-
-;; **** persist kill ring
+;; ***** persist kill ring
 (defvar entropy/emacs-basic-kill-ring-persist-lock-file
   (expand-file-name
    ".kill-ring-persist.lock"
@@ -2153,7 +2067,7 @@ successfully both of situation of read persisit of create an new."
                #'entropy/emacs-basic-kill-ring-persist-after-kill-emacs))
 
 
-;; **** remove redundant kill-ring save operation
+;; ***** remove redundant kill-ring save operation
 
 (defun __ya/backward-kill-word (arg)
     "Alternative for `backward-kill-word' but not trigger
@@ -2166,23 +2080,51 @@ successfully both of situation of read persisit of create an new."
 (global-set-key [remap backward-kill-word]
                 #'__ya/backward-kill-word)
 
-;; *** Forbidden view-hello-file for W32 platform
-
-;; `view-hello-file' will freeze WINDOWS emacs session, override it!
-(when sys/is-win-group
-  (defun view-hello-file ()
-    "Prompt emacs user do not use view-hello-file in windows
-operation system"
-    (interactive)
-    (message "Do not use view-hello-file in windows because of it will jamm windows and emacs")))
-
-;; *** Delete file to trash
+;; **** Delete file to trash
 (if entropy/emacs-dired-enable-trash
     (setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder but with some
                                                ; performance bug on windows plattform.
   )
 
-;; *** History && Recentf
+;; **** Epa (emacs gpg assistant)
+(use-package epa
+  :ensure nil
+  :init
+  (entropy/emacs-lazy-initial-for-hook
+   (dired-mode-hook find-file-hook)
+   "epa-mode" "epa-mode" prompt-echo
+   (epa-file-enable))
+
+  (when (and entropy/emacs-wsl-enable
+             (file-exists-p entropy/emacs-wsl-apps))
+    (entropy/emacs-lazy-load-simple custom
+      (custom-set-variables
+       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-wsl-apps))
+       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-wsl-apps))
+       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-wsl-apps))))))
+
+;; **** Autocompression moode
+
+;; Force refresh autocompression mode enabling status as that the
+;; initialization for its refers procedure can not cover fully
+;; functional of `auto-compression-mode'.
+(cond (entropy/emacs-fall-love-with-pdumper
+       (add-hook 'entropy/emacs-pdumper-load-hook
+                 #'(lambda ()
+                     (auto-compression-mode 0)
+                     (auto-compression-mode 1))))
+      (t
+       (entropy/emacs-lazy-initial-advice-before
+        (push-button load-library find-library)
+        "autocompression-mode"
+        "autocompression-mode"
+        prompt-echo
+        :pdumper-no-end t
+        (auto-compression-mode 0)
+        (auto-compression-mode 1))))
+
+
+;; **** History && Recentf
 (use-package saveplace
   :ensure nil
   :init
@@ -2239,38 +2181,7 @@ operation system"
    '(kill-ring)
    savehist-autosave-interval 60))
 
-;; *** Bookmarks
-(setq bookmark-save-flag 1)
-
-;; *** Major mode reload
-(defun entropy/emacs-basic-major-mode-reload ()
-  "Reload current `major-mode'.
-
-This function was usable for some occurrence that current mode
-functional part was missed or be without working on the proper
-way. "
-  (interactive)
-  (if (not (string-match-p "^CAPTURE-" (buffer-name)))
-      (let ((point (point))
-            (mode major-mode))
-        (progn
-          (cond
-           ((derived-mode-p 'prog-mode)
-            ;; switch to `fundamental-mode' firstly for preventing
-            ;; some unexpected messy while prog modes is major-mode
-            ;; FIXME: why?
-            (fundamental-mode))
-           (t
-            t))
-          (funcall mode))
-        (when (eq major-mode 'org-mode)
-          (outline-show-all))
-        (goto-char point)
-        (message "Reloaded current major mode '%s'!" (symbol-name major-mode)))
-    (error "You can not refresh %s in this buffer, if did may cause some bug."
-           (symbol-name major-mode))))
-
-;; *** Disable-mouse-wheel and more
+;; **** Disable-mouse-wheel and more
 (use-package disable-mouse
   :diminish disable-mouse-global-mode
   :commands (global-disable-mouse-mode)
@@ -2280,7 +2191,7 @@ way. "
      disable-mouse
      (global-disable-mouse-mode t))))
 
-;; *** Disable auto-window-vscroll
+;; **** Disable auto-window-vscroll
 
 ;; see
 ;; `https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag'
@@ -2292,9 +2203,306 @@ way. "
 
 (setq auto-window-vscroll nil)
 
-;; *** Use chinese pyim
-;; **** extra dependencies
-;; ***** librime for pyim
+;; **** Popup key stroking prompt
+(use-package which-key
+  :diminish which-key-mode
+  :commands which-key-mode
+  :init
+  (entropy/emacs-lazy-with-load-trail
+   which-key
+   :pdumper-no-end t
+   :body
+   (which-key-mode t))
+  (setq which-key-popup-type 'side-window
+        which-key-side-window-location 'bottom
+        which-key-idle-delay 0.8
+        which-key-idle-secondary-delay nil
+        which-key-side-window-max-height 0.15
+        which-key-echo-keystrokes 0.005
+        which-key-separator "->"
+        which-key-show-remaining-keys t
+        which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
+  :config
+  (entropy/emacs-lazy-load-simple help
+    (global-set-key (kbd "C-h C-h") nil))
+
+;; ***** config
+  :config
+;; ****** Disable `after-make-frame-functions' when popup which-key dim using frame feature.
+  (defun entropy/emacs-basic--which-key-inhibit-stuffs
+      (orig-func &rest orig-args)
+    (let ((after-make-frame-functions nil))
+      (apply orig-func orig-args)))
+  (dolist (func '(which-key--show-buffer-new-frame
+                  which-key--show-buffer-reuse-frame))
+    (advice-add func
+                :around
+                #'entropy/emacs-basic--which-key-inhibit-stuffs))
+
+  )
+
+
+;; **** Inhibit gui dialog
+(setq use-file-dialog nil
+      use-dialog-box nil)
+
+;; **** Key modification
+
+;; ***** more conventions
+(global-set-key (kbd "C-M-g") 'keyboard-quit) ; when unintended active this, using 'QUIT' as 'C-g'
+(global-set-key (kbd "C-s-g") 'keyboard-quit) ; same as above of super key intended active
+(global-set-key (kbd "A-C-g") 'keyboard-quit) ; same as above of super key intended active
+
+;; ***** key re-mapping
+;; Binding 'super' and 'hyper' on win32 and mac.
+;;   the idea form `http://ergoemacs.org/emacs/emacs_hyper_super_keys.html'
+(cond
+ (sys/win32p
+  (setq w32-apps-modifier 'hyper) ; Menu/App key
+  )
+ (sys/macp
+  ;; set keys for Apple keyboard, for emacs in OS X
+  (setq mac-command-modifier 'meta) ; make cmd key do Meta
+  (setq mac-option-modifier 'super) ; make opt key do Super
+  (setq mac-control-modifier 'control) ; make Control key do Control
+  (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
+  ))
+
+;; ***** xterm re-bind
+
+;; Rebind "insert" refer key in terminal emacs to support yank&cut
+;; communication with GUI.
+
+(entropy/emacs-lazy-with-load-trail
+ xterm-rebind
+ :pdumper-no-end t
+ :body
+ (let* ((cli-enable-func
+         (lambda ()
+           (define-key global-map [xterm-paste]
+             #'entropy/emacs-xterm-paste)))
+        (cli-disable-func
+         (lambda ()
+           (define-key global-map [xterm-paste]
+             #'xterm-paste)))
+        (term-enable-func
+         (lambda ()
+           (require 'term)
+           (define-key term-raw-map
+             [S-insert]
+             #'entropy/emacs-xterm-term-S-insert)
+           (define-key term-raw-map
+             [xterm-paste]
+             #'entropy/emacs-xterm-term-S-insert)))
+        (term-disable-func
+         (lambda ()
+           (require 'term)
+           (define-key term-raw-map
+             [S-insert]
+             #'term-paste)
+           (define-key term-raw-map
+             [xterm-paste]
+             #'term-paste)))
+        (enable-func
+         `(lambda ()
+            (funcall ,cli-enable-func)
+            (funcall ,term-enable-func)))
+        (disable-func
+         `(lambda ()
+            (funcall ,cli-disable-func)
+            (funcall ,term-disable-func))))
+   (if (null (daemonp))
+       (when (entropy/emacs-xterm-external-satisfied-p)
+         (funcall enable-func))
+     (defvar entropy/emacs-basic--xterm-paste-rebinded nil)
+     (entropy/emacs-with-daemon-make-frame-done
+      'xterm-paste-bind
+      `(when (entropy/emacs-xterm-external-satisfied-p)
+         (funcall ,enable-func)
+         (setq entropy/emacs-basic--xterm-paste-rebinded t))
+      `(when entropy/emacs-basic--xterm-paste-rebinded
+         (funcall ,disable-func)
+         (setq entropy/emacs-basic--xterm-paste-rebinded nil))))))
+
+;; **** Bookmarks
+(setq bookmark-save-flag 1)
+
+
+;; **** Description | Help mode improvement
+;; ***** Restriction print level and length for help buffer
+
+(entropy/emacs-advice-func-around-for-print-limit
+ 'describe-variable
+ nil 100
+ (lambda (&rest _)
+   t))
+
+;; ***** Print variable
+(defvar entropy/emacs-basic-print-variable-history nil)
+
+(defun entropy/emacs-basic-print-variable (variable)
+  "Print a variable into a transient buffer and popup to display
+it with focus on."
+  (interactive
+   (list
+    (intern
+     (completing-read "Chosen variable symbol: "
+                      obarray
+                      (lambda (x)
+                        (and (boundp x)
+                             x))
+                      t
+                      nil
+                      'entropy/emacs-basic-print-variable-history))))
+  (let ((buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
+        (inhibit-read-only t)
+        (variable (symbol-value variable))
+        (print-level nil)
+        (print-length nil))
+    (with-current-buffer buffer
+      (fundamental-mode)
+      (local-set-key (kbd "q") 'quit-window)
+      (erase-buffer)
+      (cond
+       ((stringp variable)
+        (print variable (current-buffer)))
+       ((sequencep variable)
+        (mapc
+         (lambda (x)
+           (print x (current-buffer)))
+         variable))
+       (t
+        (print variable (current-buffer))))
+
+      ;; truncate column while long line detected prevents lagging and
+      ;; freezing and restore theh overflow content to button help
+      ;; echo
+      (goto-char (point-min))
+      (while (not (eobp))
+        (let ((line-width (- (line-end-position)
+                             (line-beginning-position)))
+              (over-contents ""))
+          (when (> line-width (frame-width))
+            (goto-char (+ (point) (frame-width)))
+            (setq over-contents
+                  (buffer-substring (- (point) 3)
+                                    (line-end-position)))
+            (replace-region-contents
+             (- (point) 3)
+             (line-end-position)
+             (lambda (&rest _) ""))
+            (insert-button "..."
+                           'action
+                           `(lambda (&rest _)
+                              (print ,over-contents))
+                           'help-echo
+                           (concat "mouse-2, RET: "
+                                   "Follow this link")
+                           'follow-link t))
+          (forward-line 1)))
+      (read-only-mode 1))
+    (display-buffer buffer)
+    (select-window (get-buffer-window buffer))))
+
+(defvar entropy/emacs-basic--desc-current-var nil)
+(defun entropy/emacs-basic--desc-var-preserve-var
+    (orig-func &rest orig-args)
+  (let ((var (car orig-args)))
+    (setq entropy/emacs-basic--desc-current-var
+          var)
+    (apply orig-func orig-args)))
+
+(advice-add 'describe-variable
+            :around
+            #'entropy/emacs-basic--desc-var-preserve-var)
+
+(define-key help-mode-map
+  (kbd "p")
+  (lambda ()
+    (interactive)
+    (entropy/emacs-basic-print-variable
+     entropy/emacs-basic--desc-current-var)))
+
+;; ***** Lagging prompts
+
+(defun entropy/emacs-basic--help-doc-lagging-prompt (&rest _)
+  (message "Prepare for help documents ...")
+  (redisplay t))
+(advice-add 'describe-variable
+            :before
+            #'entropy/emacs-basic--help-doc-lagging-prompt)
+
+;; **** Minibuffer Setup
+
+;; Forcely rest plain input method while active minibuffer
+(defun entropy/emacs-basic--reset-ime-in-minibuffer
+    (&rest _)
+  (unless (null current-input-method)
+    (set-input-method nil)))
+(add-hook 'minibuffer-setup-hook
+          #'entropy/emacs-basic--reset-ime-in-minibuffer)
+
+;; **** Misc.
+;; ***** Forbidden view-hello-file for W32 platform
+
+;; `view-hello-file' will freeze WINDOWS emacs session, override it!
+(when sys/is-win-group
+  (defun view-hello-file ()
+    "Prompt emacs user do not use view-hello-file in windows
+operation system"
+    (interactive)
+    (message "Do not use view-hello-file in windows because of it will jamm windows and emacs")))
+
+;; ***** Enable disabled commands
+(put 'narrow-to-region 'disabled nil)
+
+;; *** System-wide spec
+;; **** Coding environment
+(setq system-time-locale "C") ;Use english format time string
+
+;; ***** Default using UTF-8 encoding for basic environment
+;; when `entropy/emacs-custom-language-environment-enable' was nil
+
+(unless entropy/emacs-custom-language-environment-enable
+  (entropy/emacs-lang-set-utf-8))
+
+;; ***** Using customized basic encoding system
+;; When `entropy/emacs-custom-language-environment-enable' was t
+
+(when (and entropy/emacs-custom-language-environment-enable
+           (stringp entropy/emacs-locale-language-environment))
+  ;; Customize language environment with user specification
+  (entropy/emacs-lang-set-local))
+
+;; ****** Specific cases to forceing using UTF-8 encoding environment
+
+;; ******* Treat clipboard input as UTF-8 string first; compound text next, etc.
+(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
+
+;; ******* Force setting specific file type which must be opened with utf-8-unix encoding system.
+(dolist (suffix
+         '(;; document file
+           "\\.org$" "\\.md$"
+           ;; source file
+           "\\.html" "\\.css$" "\\.php$" "\\.js$" "\\.ts$"
+           "\\.c\\(p+\\)?$" "\\.py$" "\\.lisp$" "\\.el$"
+           "\\.sh$" "\\.bat$"
+           ))
+  (modify-coding-system-alist 'file suffix 'utf-8-unix))
+
+;; ========================================================================
+;; Prompt: If you want all file to be one coding system you should do below
+;;(modify-coding-system-alist 'file "" 'utf-8-unix)
+;; ========================================================================
+
+;; ******* let diff-buffer-with-file force run with unicode language environment
+(advice-add 'diff-buffer-with-file
+            :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
+
+;; **** IME
+;; ***** Use chinese pyim
+;; ****** extra dependencies
+;; ******* librime for pyim
 (use-package liberime
   :if (not sys/is-win-group)
   :ensure nil
@@ -2399,17 +2607,17 @@ please check buffer '*liberime build*' for details"
         liberime-user-data-dir
         (expand-file-name entropy/emacs-pyim-liberime-cache-dir)))
 
-;; ***** pyim-basic
+;; ******* pyim-basic
 (use-package pyim-basedict
   :ensure nil
   :commands (pyim-basedict-enable))
 
-;; ***** simple chinese to traditional chinese
+;; ******* simple chinese to traditional chinese
 (use-package entropy-s2t
   :ensure nil
   :commands entropy/s2t-string)
 
-;; **** pyim main
+;; ****** pyim main
 (use-package pyim
   :diminish chinese-pyim-mode
   :commands (pyim-restart-1
@@ -2472,7 +2680,7 @@ please check buffer '*liberime build*' for details"
 
       ))
 
-;; ***** init
+;; ******* init
   :init
 
   ;; If didn't use pyim set input method to nil
@@ -2509,9 +2717,9 @@ please check buffer '*liberime build*' for details"
   (when (version< "26" emacs-version)
     (setq pyim-prefer-emacs-thread t))
 
-;; ***** config
+;; ******* config
   :config
-;; ****** toggle input method
+;; ******** toggle input method
   (defun entropy/emacs-basic-pyim-toggle ()
     (interactive)
     (if (string= current-input-method "pyim")
@@ -2520,18 +2728,18 @@ please check buffer '*liberime build*' for details"
         (set-input-method "pyim")
         (setq pyim-punctuation-escape-list nil))))
 
-;; ****** using 'C-g' to cancling any pyim manipulation
+;; ******** using 'C-g' to cancling any pyim manipulation
   (if (not (version< emacs-version "26"))
       (define-key pyim-mode-map (kbd "C-g") 'pyim-quit-clear))
 
-;; ****** s2t&t2s convertor
+;; ******** s2t&t2s convertor
   (defun entropy/emacs-basic-toggle-pyim-s2t ()
     (interactive)
     (if pyim-magic-converter
         (setq pyim-magic-converter nil)
       (setq pyim-magic-converter 'entropy/s2t-string)))
 
-;; ****** toglle punctuation between half and full way.
+;; ******** toglle punctuation between half and full way.
   (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
     (interactive)
     (if (or (eq (car pyim-punctuation-translate-p) 'no)
@@ -2539,103 +2747,8 @@ please check buffer '*liberime build*' for details"
         (setq pyim-punctuation-translate-p '(yes no auto))
       (setq pyim-punctuation-translate-p '(no yes auto)))))
 
-;; *** Key modification
-
-;; **** more conventions
-(global-set-key (kbd "C-M-g") 'keyboard-quit) ; when unintended active this, using 'QUIT' as 'C-g'
-(global-set-key (kbd "C-s-g") 'keyboard-quit) ; same as above of super key intended active
-(global-set-key (kbd "A-C-g") 'keyboard-quit) ; same as above of super key intended active
-
-;; **** key re-mapping
-;; Binding 'super' and 'hyper' on win32 and mac.
-;;   the idea form `http://ergoemacs.org/emacs/emacs_hyper_super_keys.html'
-(cond
- (sys/win32p
-  (setq w32-apps-modifier 'hyper) ; Menu/App key
-  )
- (sys/macp
-  ;; set keys for Apple keyboard, for emacs in OS X
-  (setq mac-command-modifier 'meta) ; make cmd key do Meta
-  (setq mac-option-modifier 'super) ; make opt key do Super
-  (setq mac-control-modifier 'control) ; make Control key do Control
-  (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
-  ))
-
-;; **** xterm re-bind
-
-;; Rebind "insert" refer key in terminal emacs to support yank&cut
-;; communication with GUI.
-
-(entropy/emacs-lazy-with-load-trail
- xterm-rebind
- :pdumper-no-end t
- :body
- (let* ((cli-enable-func
-         (lambda ()
-           (define-key global-map [xterm-paste]
-             #'entropy/emacs-xterm-paste)))
-        (cli-disable-func
-         (lambda ()
-           (define-key global-map [xterm-paste]
-             #'xterm-paste)))
-        (term-enable-func
-         (lambda ()
-           (require 'term)
-           (define-key term-raw-map
-             [S-insert]
-             #'entropy/emacs-xterm-term-S-insert)
-           (define-key term-raw-map
-             [xterm-paste]
-             #'entropy/emacs-xterm-term-S-insert)))
-        (term-disable-func
-         (lambda ()
-           (require 'term)
-           (define-key term-raw-map
-             [S-insert]
-             #'term-paste)
-           (define-key term-raw-map
-             [xterm-paste]
-             #'term-paste)))
-        (enable-func
-         `(lambda ()
-            (funcall ,cli-enable-func)
-            (funcall ,term-enable-func)))
-        (disable-func
-         `(lambda ()
-            (funcall ,cli-disable-func)
-            (funcall ,term-disable-func))))
-   (if (null (daemonp))
-       (when (entropy/emacs-xterm-external-satisfied-p)
-         (funcall enable-func))
-     (defvar entropy/emacs-basic--xterm-paste-rebinded nil)
-     (entropy/emacs-with-daemon-make-frame-done
-      'xterm-paste-bind
-      `(when (entropy/emacs-xterm-external-satisfied-p)
-         (funcall ,enable-func)
-         (setq entropy/emacs-basic--xterm-paste-rebinded t))
-      `(when entropy/emacs-basic--xterm-paste-rebinded
-         (funcall ,disable-func)
-         (setq entropy/emacs-basic--xterm-paste-rebinded nil))))))
-
-;; *** Epa (emacs gpg assistant)
-(use-package epa
-  :ensure nil
-  :init
-  (entropy/emacs-lazy-initial-for-hook
-   (dired-mode-hook find-file-hook)
-   "epa-mode" "epa-mode" prompt-echo
-   (epa-file-enable))
-
-  (when (and entropy/emacs-wsl-enable
-             (file-exists-p entropy/emacs-wsl-apps))
-    (entropy/emacs-lazy-load-simple custom
-      (custom-set-variables
-       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-wsl-apps))
-       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-wsl-apps))
-       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-wsl-apps))))))
-
-;; *** Emacs process and system proced manager hacking
-;; **** process
+;; **** Emacs process and system proced manager hacking
+;; ***** process
 (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
  'process-menu-mode '(simple process-menu-mode-map) t
  '("Basic"
@@ -2654,7 +2767,7 @@ please check buffer '*liberime build*' for details"
     ("}" tabulated-list-widen-current-column "Widen the current tabulated-list column by N chars."
      :enable t :exit t :map-inject t))))
 
-;; **** proced
+;; ***** proced
 (use-package proced
   :ensure nil
   :commands (proced-process-attributes)
@@ -2756,81 +2869,10 @@ otherwise returns nil."
          (entropy/emacs-basic-proced-auto-startwith
           (car el) (cdr el)))))))
 
-;; *** Autocompression moode
 
-;; Force refresh autocompression mode enabling status as that the
-;; initialization for its refers procedure can not cover fully
-;; functional of `auto-compression-mode'.
-(cond (entropy/emacs-fall-love-with-pdumper
-       (add-hook 'entropy/emacs-pdumper-load-hook
-                 #'(lambda ()
-                     (auto-compression-mode 0)
-                     (auto-compression-mode 1))))
-      (t
-       (entropy/emacs-lazy-initial-advice-before
-        (push-button load-library find-library)
-        "autocompression-mode"
-        "autocompression-mode"
-        prompt-echo
-        :pdumper-no-end t
-        (auto-compression-mode 0)
-        (auto-compression-mode 1))))
 
-;; *** Replace follow input in region
-;; Delete selection if you insert
-(use-package delsel
-  :ensure nil
-  :init
-  (entropy/emacs-lazy-initial-advice-before
-   (yank xterm-paste)
-   "delsel-mode-init" "delsel-mode-init" prompt-echo
-   :pdumper-no-end t
-   (delete-selection-mode 1)))
 
-;; *** Inhibit gui dialog
-(setq use-file-dialog nil
-      use-dialog-box nil)
-
-;; *** A minor-mode menu for the mode line
-(use-package minions
-  :commands (minions-minor-modes-menu
-             minions-mode)
-  :init
-  (global-set-key [S-down-mouse-3] 'minions-minor-modes-menu)
-  )
-
-;; *** Description | Help mode improvement
-;; **** restriction print level and length for help buffer
-
-(entropy/emacs-advice-func-around-for-print-limit
- 'describe-variable
- nil 100
- (lambda (&rest _)
-   t))
-
-;; **** lagging prompts
-
-(defun entropy/emacs-basic--help-doc-lagging-prompt (&rest _)
-  (message "Prepare for help documents ...")
-  (redisplay t))
-(advice-add 'describe-variable
-            :before
-            #'entropy/emacs-basic--help-doc-lagging-prompt)
-
-;; *** Minibuffer Setup
-
-;; Forcely rest plain input method while active minibuffer
-(defun entropy/emacs-basic--reset-ime-in-minibuffer
-    (&rest _)
-  (unless (null current-input-method)
-    (set-input-method nil)))
-(add-hook 'minibuffer-setup-hook
-          #'entropy/emacs-basic--reset-ime-in-minibuffer)
-
-;; *** Enable disabled commands
-(put 'narrow-to-region 'disabled nil)
-
-;; ** eemacs basic hydra-hollow instances
+;; ** Eemacs basic hydra-hollow instances
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'eemacs-basic-config-core nil
@@ -2873,94 +2915,6 @@ otherwise returns nil."
        'eemacs-basic-config-core))
      "Core Operations"
      :enable t :exit t))))
-
-;; ** Basic minor interaction commands
-
-(defvar entropy/emacs-basic-print-variable-history nil)
-
-(defun entropy/emacs-basic-print-variable (variable)
-  "Print a variable into a transient buffer and popup to display
-it with focus on."
-  (interactive
-   (list
-    (intern
-     (completing-read "Chosen variable symbol: "
-                      obarray
-                      (lambda (x)
-                        (and (boundp x)
-                             x))
-                      t
-                      nil
-                      'entropy/emacs-basic-print-variable-history))))
-  (let ((buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
-        (inhibit-read-only t)
-        (variable (symbol-value variable))
-        (print-level nil)
-        (print-length nil))
-    (with-current-buffer buffer
-      (fundamental-mode)
-      (local-set-key (kbd "q") 'quit-window)
-      (erase-buffer)
-      (cond
-       ((stringp variable)
-        (print variable (current-buffer)))
-       ((sequencep variable)
-        (mapc
-         (lambda (x)
-           (print x (current-buffer)))
-         variable))
-       (t
-        (print variable (current-buffer))))
-
-      ;; truncate column while long line detected prevents lagging and
-      ;; freezing and restore theh overflow content to button help
-      ;; echo
-      (goto-char (point-min))
-      (while (not (eobp))
-        (let ((line-width (- (line-end-position)
-                             (line-beginning-position)))
-              (over-contents ""))
-          (when (> line-width (frame-width))
-            (goto-char (+ (point) (frame-width)))
-            (setq over-contents
-                  (buffer-substring (- (point) 3)
-                                    (line-end-position)))
-            (replace-region-contents
-             (- (point) 3)
-             (line-end-position)
-             (lambda (&rest _) ""))
-            (insert-button "..."
-                           'action
-                           `(lambda (&rest _)
-                              (print ,over-contents))
-                           'help-echo
-                           (concat "mouse-2, RET: "
-                                   "Follow this link")
-                           'follow-link t))
-          (forward-line 1)))
-      (read-only-mode 1))
-    (display-buffer buffer)
-    (select-window (get-buffer-window buffer))))
-
-(defvar entropy/emacs-basic--desc-current-var nil)
-(defun entropy/emacs-basic--desc-var-preserve-var
-    (orig-func &rest orig-args)
-  (let ((var (car orig-args)))
-    (setq entropy/emacs-basic--desc-current-var
-          var)
-    (apply orig-func orig-args)))
-
-(advice-add 'describe-variable
-            :around
-            #'entropy/emacs-basic--desc-var-preserve-var)
-
-(define-key help-mode-map
-  (kbd "p")
-  (lambda ()
-    (interactive)
-    (entropy/emacs-basic-print-variable
-     entropy/emacs-basic--desc-current-var)))
-
 
 ;; * provide
 (provide 'entropy-emacs-basic)
