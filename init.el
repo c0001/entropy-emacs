@@ -84,44 +84,80 @@ set earlier in the 'setq-local'.  The return value of the
   (error "This requires Emacs 26 and above!"))
 
 ;; ** startup entropy-emacs
-(defvar entropy/emacs-user-emacs-directory
-  (file-name-directory load-file-name)
-  "Top eemacs host directory replaced of `user-emacs-directory'
+
+(defvar __inited-p? nil)
+
+;; forbidden redudant load e.g. pdumper recovery session
+(unless __inited-p?
+
+  ;; before/after init time bind
+  (defvar entropy/emacs-run-startup-beforeinit-timestamp
+    nil)
+  (when (daemonp)
+    (setq entropy/emacs-run-startup-beforeinit-timestamp
+          (current-time)))
+  (defvar entropy/emacs-run-startup-afterinit-timestamp
+    nil)
+
+  (defun entropy/emacs-get-before-init-time (&rest _)
+    (or entropy/emacs-run-startup-beforeinit-timestamp
+        before-init-time))
+  (defun entropy/emacs-get-after-init-time (&rest _)
+    (or entropy/emacs-run-startup-afterinit-timestamp
+        after-init-time))
+
+  ;; top eemacs host
+  (defvar entropy/emacs-user-emacs-directory
+    (file-name-directory load-file-name)
+    "Top eemacs host directory replaced of `user-emacs-directory'
 for preventing unregular loading procedure by modification of
 emacs upstream")
 
-;; load custom file
-(defconst entropy/emacs-custom-common-file-template
-  (expand-file-name
-   "custom-example.el"
-   entropy/emacs-user-emacs-directory)
-  "The `custom-file' template specified for =entropy-emacs=.")
+  ;; load custom file
+  (defconst entropy/emacs-custom-common-file-template
+    (expand-file-name
+     "custom-example.el"
+     entropy/emacs-user-emacs-directory)
+    "The `custom-file' template specified for =entropy-emacs=.")
 
-(defconst entropy/emacs-custom-common-file
-  (expand-file-name
-   "custom.el"
-   entropy/emacs-user-emacs-directory)
-  "The value for `custom-file' but specified for =entropy-emacs=.")
+  (defconst entropy/emacs-custom-common-file
+    (expand-file-name
+     "custom.el"
+     entropy/emacs-user-emacs-directory)
+    "The value for `custom-file' but specified for =entropy-emacs=.")
 
-(setq custom-file entropy/emacs-custom-common-file)
+  (setq custom-file entropy/emacs-custom-common-file)
 
-(let ((cus entropy/emacs-custom-common-file))
-  (if (not (file-exists-p cus))
-      (copy-file entropy/emacs-custom-common-file-template
-                 entropy/emacs-custom-common-file
-                 nil t))
-  (message "")
-  (message "====================================")
-  (message "[Loading] custom specifications ...")
-  (message "====================================\n")
-  (load cus))
+  (let ((cus entropy/emacs-custom-common-file))
+    (if (not (file-exists-p cus))
+        (copy-file entropy/emacs-custom-common-file-template
+                   entropy/emacs-custom-common-file
+                   nil t))
+    (message "")
+    (message "====================================")
+    (message "[Loading] custom specifications ...")
+    (message "====================================\n")
+    (load cus))
 
-;; load eemacs config
-(add-hook
- 'after-init-hook
- #'(lambda ()
-     (require
-      'entropy-emacs
-      (expand-file-name
-       "elements/entropy-emacs.el"
-       entropy/emacs-user-emacs-directory))))
+  ;; load eemacs config
+  (defun __init_emacs (&rest _)
+    "          init emacs          "
+    (require
+     'entropy-emacs
+     (expand-file-name
+      "elements/entropy-emacs.el"
+      entropy/emacs-user-emacs-directory)))
+
+  (setq __inited-p? t)
+  (cond
+   ((or noninteractive
+        (daemonp))
+    (when (daemonp)
+      (setq entropy/emacs-run-startup-afterinit-timestamp
+            (current-time)))
+    (funcall #'__init_emacs))
+   (t
+    (add-hook 'after-init-hook
+              #'__init_emacs)
+    ))
+  )
