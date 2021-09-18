@@ -1434,38 +1434,59 @@ NOTE: this is a advice wrapper for any function."
 
 ;; ****** Case type toggle
 ;; ******* Improve captialize function
+(defun entropy/emacs-basic-toggle-case-core (case-type)
+  "Toggle case type of region begin and end by CASE-TYPE while
+`region-active-p' return non nil, or use `backward-word' with arg
+1 as begin and the `current-point' as end.
 
-;; Due to the convention while want to capitalize or uper-case the
-;; word just has been done, building follow two function to enhance
-;; the origin function `capitalize-word' and `upercase-word' and
-;; `down-case'.
+CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
+  (let (region func)
+    ;; region set
+    (cond
+     ((region-active-p)
+      (setq region
+            (list (region-beginning)
+                  (region-end))))
+     (t
+      (setq region
+            (list (save-excursion
+                    (forward-word -1)
+                    (point))
+                  (point)))))
+    (pcase case-type
+      ('capitalize (setq func #'capitalize-region))
+      ('downcase (setq func #'downcase-region))
+      ('upcase (setq func #'upcase-region))
+      (_
+       (error "Wrong type of caes-type '%s'"
+              case-type)))
+    (apply func region)))
 
-(defmacro entropy/emacs-basic--build-case-toggle (type-name main-func)
-  `(defun ,(intern (concat "entropy/emacs-basic-toggle-case-for-" type-name))
-       (arg)
-     (interactive "P")
-     (left-word)
-     (call-interactively ',main-func t (vector arg))))
-
-(entropy/emacs-basic--build-case-toggle "capitalize" capitalize-word)
-(entropy/emacs-basic--build-case-toggle "upcase" upcase-word)
-(entropy/emacs-basic--build-case-toggle "downcase" downcase-word)
+(defun entropy/emacs-basic-toggle-case-for-capitalize ()
+  (interactive)
+  (entropy/emacs-basic-toggle-case-core 'capitalize))
+(defun entropy/emacs-basic-toggle-case-for-downcase ()
+  (interactive)
+  (entropy/emacs-basic-toggle-case-core 'downcase))
+(defun entropy/emacs-basic-toggle-case-for-upcase ()
+  (interactive)
+  (entropy/emacs-basic-toggle-case-core 'upcase))
 
 (entropy/emacs-hydra-hollow-common-individual-hydra-define
  'words-manipulation nil
  '("Basic"
    (("M-c" entropy/emacs-basic-toggle-case-for-capitalize
-     "Captalize Word"
+     "Captalize Word/Region"
      :enable t
      :exit t
      :global-bind t)
     ("M-l" entropy/emacs-basic-toggle-case-for-downcase
-     "Down Case Word"
+     "Down Case Word/Region"
      :enable t
      :exit t
      :global-bind t)
     ("M-u" entropy/emacs-basic-toggle-case-for-upcase
-     "Upcase Word"
+     "Upcase Word/Region"
      :enable t
      :exit t
      :global-bind t))))
@@ -1479,7 +1500,6 @@ NOTE: this is a advice wrapper for any function."
      "Words manipulation"
      :enable t
      :exit t))))
-
 
 ;; ****** Auto-sudoedit
 
