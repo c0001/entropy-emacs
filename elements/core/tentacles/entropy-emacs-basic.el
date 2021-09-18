@@ -46,7 +46,7 @@
 ;;
 ;;
 ;; * Code
-;; ** require
+;; ** Require
 
 (when (and entropy/emacs-indicate-sshd-session
            (display-graphic-p))
@@ -96,21 +96,6 @@ place can be easily found by other interactive command."
    (entropy/emacs-with-daemon-make-frame-done
     'set-mark-command nil nil
     '(entropy/emacs-basic-set-mark-command))))
-
-;; EEMACS_MAINTENANCE
-(entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer ivy-read)
- "disable-gvfs" "disable-gvfs" prompt-echo
- :pdumper-no-end t
- ;; Since tramp archive using simple magick filename regexp
- ;; matching, and its internal
- ;; `tramp-archive-file-name-handler-alist''s each corresponding
- ;; implementation can not follow the equalization API defination of
- ;; origin function, thus for most of tramp internal errors will
- ;; pollute the thread operations. (e.g. local directory naming as an
- ;; archive name will also invoking tramp-archive methods which throw
- ;; out many more problems while its magick filename I/O deals)
- (setq tramp-archive-enabled nil))
 
 ;; ** Personal infomation
 (when (and entropy/emacs-user-full-name
@@ -162,6 +147,19 @@ place can be easily found by other interactive command."
   ;; adding advice ro y-or-n-p for temporarily fix bug of that can not
   ;; using any key-bindings when active "C-<lwindow>-g" in WINDOWS
   (advice-add 'y-or-n-p :override #'entropy/emacs-basic-y-or-n-p))
+
+;; *** Disable gvfs
+
+;; EEMACS_MAINTENANCE
+;; Since tramp archive using simple magick filename regexp
+;; matching, and its internal
+;; `tramp-archive-file-name-handler-alist''s each corresponding
+;; implementation can not follow the equalization API defination of
+;; origin function, thus for most of tramp internal errors will
+;; pollute the thread operations. (e.g. local directory naming as an
+;; archive name will also invoking tramp-archive methods which throw
+;; out many more problems while its magick filename I/O deals)
+(setq tramp-archive-enabled nil)
 
 ;; ** Basic major-modes spec
 ;; *** Dired config
@@ -2888,10 +2886,10 @@ otherwise returns nil."
          :enable t
          :exit t
          :global-bind t)
-        ("<f6>" entropy/emacs-basic-loop-alpha
+        ("<f6>" entropy/emacs-ui-loop-alpha-selected-frame
          "Frame Alpha"
          :enable t
-         :toggle entropy/emacs-basic-loop-alpha-did
+         :toggle entropy/emacs-ui-loop-alpha-selected-frame-did
          :global-bind t)
         ("<f7>" entropy/emacs-basic-major-mode-reload
          "Reload Major"

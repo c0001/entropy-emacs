@@ -625,7 +625,7 @@ for adding to variable `window-size-change-functions' and hook
 
 (defvar entropy/emacs-basic--loop-alpha-did nil)
 
-(defun entropy/emacs-basic-loop-alpha (&optional prefix)
+(defun entropy/emacs-ui-loop-alpha-selected-frame (&optional prefix)
   "Toggle frame transparent status with specified transparent
 value as optional interaction while `PREFIX' is non-nil."
   (interactive "P")
@@ -666,7 +666,7 @@ value as optional interaction while `PREFIX' is non-nil."
            (display-graphic-p))
   (entropy/emacs-lazy-with-load-trail
    loop-alpha
-   (entropy/emacs-basic-loop-alpha)))
+   (entropy/emacs-ui-loop-alpha-selected-frame)))
 
 ;; ** Misc
 ;; *** minor misc
