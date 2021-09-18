@@ -54,3 +54,4 @@ name-space as 'eemacs_YearDateTime.pdmp', start it with:
 MAINTAINS:
 
         make debug: startup entropy-emacs with debug facilities
+
