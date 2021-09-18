@@ -2567,7 +2567,9 @@ that."
            (path-root nil))
       (unless
           ;; avoid when user sets in `custom-file'
-          (boundp var-sym)
+          (and (boundp var-sym)
+               ;; but for some non-customized pre-setted var
+               (not (eq var-sym 'auto-save-list-file-prefix)))
         (setq path (expand-file-name (cdr item) top))
         (setq path-root (file-name-directory path))
         (intern (symbol-name var-sym)) ;make sure interned as init
