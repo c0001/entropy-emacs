@@ -101,6 +101,10 @@
 ;; immediately.
 ;;
 ;; * Code:
+
+(defvar entropy/emacs-run-startup-top-init-timestamp (current-time)
+  "Time-stamp eemacs top init prepare")
+
 ;; ** Env variable declaration
 
 ;; The eemacs specified envrionment to indicated all subprocess are

@@ -588,7 +588,21 @@ successfully. The meaning for startup done is that all procedure
 within `entropy/emacs-startup-end-hook' are running done.")
 
 (defvar entropy/emacs-run-startup-duration nil
-  "The whole seconds that eemacs startup")
+  "The object represent eemacs startup time duration")
+
+(defvar entropy/emacs-run-startup-config-load-init-timestamp nil
+  "Time-stamp eemacs init load for all configs")
+(defvar entropy/emacs-run-startup-trail-hooks-init-timestamp nil
+  "Time-stamp eemacs init run trail hook")
+(defvar entropy/emacs-run-startup-pdumper-hooks-init-timestamp nil
+  "Time-stamp eemacs init run `entropy/emacs-pdumper-load-hook'")
+(defvar entropy/emacs-run-startup-trail-hooks-init-done-timestamp nil
+  "Time-stamp eemacs ran trail hook done")
+(defvar entropy/emacs-package-initialize-init-timestamp nil
+  "Time-stamp before run `package-initialize'")
+(defvar entropy/emacs-package-initialize-done-timestamp nil
+  "Time-stamp after ran `package-initialize'")
+
 (defun entropy/emacs-run-startup-end-hook ()
   "Run `entropy/emacs-startup-end-hook' and mark it as done via
 `entropy/emacs-startup-done'.
@@ -599,18 +613,85 @@ messy."
   (run-hooks 'entropy/emacs-startup-end-hook)
   (setq entropy/emacs-startup-done t)
   (entropy/emacs-message-hide-popup t)
-  (setq entropy/emacs-run-startup-duration
-        (float-time
-         (time-subtract (current-time)
-                        before-init-time)))
   ;; startup done hints
   (let* ((entropy/emacs-message-non-popup t)
-         (base-str "entropy-emacs startup done")
+         (this-time (current-time))
+         (emacs-pre-time
+          (format "%.2f"
+                  (float-time
+                   (time-subtract after-init-time
+                                  before-init-time))))
+         (pkg-init-time
+          (format "%.2f"
+                  (float-time
+                   (time-subtract entropy/emacs-package-initialize-done-timestamp
+                                  entropy/emacs-package-initialize-init-timestamp))))
+         (real-startup-time
+          (format "%.2f"
+                  (float-time
+                   (time-subtract this-time
+                                  after-init-time))))
+         (eemacs-init-time
+          (format "%.2f"
+                  (float-time (time-subtract
+                               entropy/emacs-run-startup-config-load-init-timestamp
+                               entropy/emacs-run-startup-top-init-timestamp
+                               ))))
+         (config-load-time
+          (format "%.2f"
+                  (float-time (time-subtract
+                                entropy/emacs-run-startup-trail-hooks-init-timestamp
+                                entropy/emacs-run-startup-config-load-init-timestamp
+                                ))))
+         (lazy-hook-time
+          (format "%.2f"
+                  (+
+                   (float-time (time-subtract
+                                entropy/emacs-run-startup-trail-hooks-init-done-timestamp
+                                entropy/emacs-run-startup-trail-hooks-init-timestamp
+                                ))
+                   (or (float-time
+                        (time-subtract
+                         this-time
+                         entropy/emacs-run-startup-pdumper-hooks-init-timestamp))
+                       0))))
+         (base-str "Inited")
          (msgstr
           (entropy/emacs-message--do-message-ansi-apply
-           ">>> %s (using %s seconds) "
+           "%s (using %s seconds \
+/ %s for package initialization \
+/ %s for do eemacs-tentacles-load \
+/ %s for run eemacs-lazy-hook \
+/ %s for eemacs-init \
+/ %s for Emacs-init)"
            (green base-str)
-           (yellow entropy/emacs-run-startup-duration))))
+           (yellow real-startup-time)
+           (cyan pkg-init-time)
+           (yellow config-load-time)
+           (yellow lazy-hook-time)
+           (yellow eemacs-init-time)
+           (red emacs-pre-time)
+           )))
+    (setq entropy/emacs-run-startup-duration
+          `((eemacs-startup :duration ,real-startup-time)
+            (pakage-initialize
+             :before ,entropy/emacs-package-initialize-init-timestamp
+             :after ,entropy/emacs-package-initialize-done-timestamp
+             :duration ,pkg-init-time)
+            (emacs-init
+             :before ,before-init-time :after ,after-init-time :duration ,emacs-pre-time)
+            (eemacs-init
+             :before ,entropy/emacs-run-startup-top-init-timestamp
+             :after ,entropy/emacs-run-startup-config-load-init-timestamp
+             :duration ,eemacs-init-time)
+            (eemacs-config-load
+             :before ,entropy/emacs-run-startup-config-load-init-timestamp
+             :after ,entropy/emacs-run-startup-trail-hooks-init-timestamp
+             :duration ,config-load-time)
+            (eemacs-trail-hook
+             :before ,entropy/emacs-run-startup-trail-hooks-init-timestamp
+             :after ,entropy/emacs-run-startup-trail-hooks-init-done-timestamp
+             :duratioin ,lazy-hook-time)))
     (unless (daemonp)
       (setq-local
        mode-line-format

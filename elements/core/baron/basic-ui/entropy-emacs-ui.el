@@ -529,6 +529,17 @@ for adding to variable `window-size-change-functions' and hook
            (not (daemonp)))
 
   (with-eval-after-load 'dashboard-widgets
+    (setq dashboard-init-info
+          (let ((package-count 0)
+                (time (float-time
+                       (time-subtract entropy/emacs-package-initialize-done-timestamp
+                                      entropy/emacs-package-initialize-init-timestamp))))
+            (when (bound-and-true-p package-alist)
+              (setq package-count (length package-activated-list)))
+            (if (zerop package-count)
+                (format "Emacs started in %s" time)
+              (format "%d packages loaded in %s" package-count time))))
+
     (advice-add #'dashboard-get-banner-path
                 :override
                 (lambda (&rest _)
@@ -598,20 +609,14 @@ for adding to variable `window-size-change-functions' and hook
       (buffer-list))
     (redisplay t))
 
-  (if entropy/emacs-fall-love-with-pdumper
-      (progn
-        (entropy/emacs-lazy-with-load-trail
-         rich-dashboard
-         (entropy/emacs-rich-dashboard-init)
-         (add-hook 'window-size-change-functions
-                   'dashboard-resize-on-hook)))
-    (with-eval-after-load 'entropy-emacs-package
-      (add-hook 'entropy/emacs-package-common-start-after-hook
-                #'entropy/emacs-rich-dashboard-init)
-      (entropy/emacs-lazy-with-load-trail
-       rich-dashboard
-       (add-hook 'window-size-change-functions
-                 'dashboard-resize-on-hook)))))
+  (let (_)
+    (entropy/emacs-lazy-with-load-trail
+     rich-dashboard-init
+     :start-end t
+     :body
+     (entropy/emacs-rich-dashboard-init)
+     (add-hook 'window-size-change-functions
+               'dashboard-resize-on-hook))))
 
 ;; ** Frame spec
 ;; *** Title

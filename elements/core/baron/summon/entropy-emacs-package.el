@@ -108,6 +108,7 @@ argument."
     (setq package-gnupghome-dir nil)))
 
 ;; *** Initialize packages
+(defvar __package-first-initialized nil)
 (defun entropy/emacs-package--package-initialize (&optional force)
   (unless (version< emacs-version "27")
     (setq package-quickstart nil))
@@ -117,7 +118,15 @@ argument."
     (setq package-alist nil)
     (setq package-activated-list nil))
   (entropy/emacs-message-do-message "Custom packages initializing ......")
+  (unless __package-first-initialized
+    (setq entropy/emacs-package-initialize-init-timestamp
+          (current-time)))
   (package-initialize)
+  (unless __package-first-initialized
+    (setq entropy/emacs-package-initialize-done-timestamp
+          (current-time)))
+  (unless __package-first-initialized
+    (setq __package-first-initialized t))
   (entropy/emacs-message-do-message "Custom packages initializing done!"))
 
 ;; *** prepare main

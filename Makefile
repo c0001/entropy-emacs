@@ -88,7 +88,7 @@ native-comp:
 
 all: install install-coworkers update dump
 
+debug: export EEMACS_DEBUG=1
 debug:
 	@$(EchoEmpty)
-	@$(EMACS) -Q --eval $(DEBUG_FORM) \
-	 -l init.el
+	@$(EMACS) --debug-init

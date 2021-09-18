@@ -86,8 +86,38 @@ set earlier in the 'setq-local'.  The return value of the
 for preventing unregular loading procedure by modification of
 emacs upstream")
 
-(require
- 'entropy-emacs
- (expand-file-name
-  "elements/entropy-emacs.el"
-  entropy/emacs-user-emacs-directory))
+;; load custom file
+(defconst entropy/emacs-custom-common-file-template
+  (expand-file-name
+   "custom-example.el"
+   entropy/emacs-user-emacs-directory)
+  "The `custom-file' template specified for =entropy-emacs=.")
+
+(defconst entropy/emacs-custom-common-file
+  (expand-file-name
+   "custom.el"
+   entropy/emacs-user-emacs-directory)
+  "The value for `custom-file' but specified for =entropy-emacs=.")
+
+(setq custom-file entropy/emacs-custom-common-file)
+
+(let ((cus entropy/emacs-custom-common-file))
+  (if (not (file-exists-p cus))
+      (copy-file entropy/emacs-custom-common-file-template
+                 entropy/emacs-custom-common-file
+                 nil t))
+  (message "")
+  (message "====================================")
+  (message "[Loading] custom specifications ...")
+  (message "====================================\n")
+  (load cus))
+
+;; load eemacs config
+(add-hook
+ 'after-init-hook
+ #'(lambda ()
+     (require
+      'entropy-emacs
+      (expand-file-name
+       "elements/entropy-emacs.el"
+       entropy/emacs-user-emacs-directory))))

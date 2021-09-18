@@ -195,6 +195,8 @@ configuration.")
 
 ;; *** recovery
 (defun entropy/emacs-pdumper--recovery ()
+  (setq entropy/emacs-run-startup-pdumper-hooks-init-timestamp
+        (current-time))
   (let (
         ;; silent bookmark reload prompt prevent session load fatal.
         (bookmark-watch-bookmark-file 'silent))

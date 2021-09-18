@@ -33,6 +33,8 @@
 ;;
 ;; * Code:
 ;; ** Require
+(when entropy/emacs-startup-debug-on-error
+  (setq debug-on-error t))
 
 ;; *** load wasteland
 ;; **** var binds
@@ -140,8 +142,6 @@ or manually do 'C-x C-c' immediately.")))
   (require 'entropy-emacs-utils)
   (when entropy/emacs-startup-benchmark-init
     (benchmark-init/activate))
-  (when entropy/emacs-startup-debug-on-error
-    (setq debug-on-error t))
 
   ;; startup
   (require 'entropy-emacs-gc)
@@ -331,9 +331,13 @@ notation.
     (unless entropy/emacs-start--is-init-with-install
       (entropy/emacs-message-do-message
        (cyan "After load initilizing ..."))
+      (setq entropy/emacs-run-startup-trail-hooks-init-timestamp
+            (current-time))
       (run-hooks aft-hook)
       (entropy/emacs-message-do-message
-       (green "After load initilized")))
+       (green "After load initilized"))
+      (setq entropy/emacs-run-startup-trail-hooks-init-done-timestamp
+            (current-time)))
     ;; start pyim
     (when (and entropy/emacs-enable-pyim
                (not entropy/emacs-start--is-init-with-install))
@@ -482,6 +486,8 @@ notation.
     (when (and entropy/emacs-start-ext-available-p
                (not entropy/emacs-start--is-init-with-install))
       (entropy/emacs-message-do-message (yellow "Cat's eye opening ..."))
+      (setq entropy/emacs-run-startup-config-load-init-timestamp
+            (current-time))
       (entropy/emacs-start--init-bingo)
       (unless entropy/emacs-fall-love-with-pdumper
         (entropy/emacs-run-startup-end-hook)))))

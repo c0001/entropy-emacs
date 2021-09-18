@@ -47,32 +47,9 @@
   (require 'cl-macs))
 (require 'subr-x)
 
-(defconst entropy/emacs-custom-common-file-template
-  (expand-file-name
-   "custom-example.el"
-   entropy/emacs-user-emacs-directory)
-  "The `custom-file' template specified for =entropy-emacs=.")
-
-(defconst entropy/emacs-custom-common-file
-  (expand-file-name
-   "custom.el"
-   entropy/emacs-user-emacs-directory)
-  "The value for `custom-file' but specified for =entropy-emacs=.")
-
-(let ((cus entropy/emacs-custom-common-file))
-  (setq-default custom-file entropy/emacs-custom-common-file)
-  (if (not (file-exists-p cus))
-      (copy-file entropy/emacs-custom-common-file-template
-                 entropy/emacs-custom-common-file
-                 nil t))
-  (message "")
-  (message "====================================")
-  (message "[Loading] custom specifications ...")
-  (message "====================================\n")
-  (load cus))
-
 ;; ** Internal init
-(defvar __eemacs-ext-union-host "~/.config/entropy-config/entropy-emacs")
+(defvar __eemacs-ext-union-host
+  (expand-file-name "~/.config/entropy-config/entropy-emacs"))
 
 ;; ** Customizable Variables
 (defgroup entropy-emacs-customize-top-group nil
@@ -185,7 +162,7 @@ just it's name."
   "Eemacs initial ui configuration customizable group."
   :group 'entropy/emacs-customize-group-for-UI)
 
-(defcustom entropy/emacs-enable-initial-dashboard t
+(defcustom entropy/emacs-enable-initial-dashboard 'rich
   "Enable entropy emacs initial dashboard instead of emacs
 default one.
 
@@ -1151,12 +1128,18 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
   :type 'directory
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
-(add-hook 'after-init-hook
+(add-hook 'entropy/emacs-startup-end-hook
           ;; Pre checking the exists status of thus for preventing yas
           ;; error prompt from yas loading case.
           #'(lambda ()
               (unless (file-directory-p entropy/emacs-yas-dir)
-                (mkdir entropy/emacs-yas-dir t))))
+                (condition-case error
+                    (mkdir entropy/emacs-yas-dir t)
+                  (error
+                   (warn
+                    (format
+                     "Can not creat non-exist `entropy/emacs-yas-dir' error of %s"
+                     error)))))))
 
 ;; **** company mode config
 (defgroup entropy/emacs-customize-group-for-company-mode nil
@@ -2102,12 +2085,12 @@ NOTE: this variable just be used when
   "entropy-emacs debug configurations"
   :group 'entropy-emacs-customize-top-group)
 
-(defcustom entropy/emacs-startup-benchmark-init nil
+(defcustom entropy/emacs-startup-benchmark-init (getenv "EEMACS_DEBUG")
   "Benchmark eemacs startup time?"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
 
-(defcustom entropy/emacs-startup-debug-on-error nil
+(defcustom entropy/emacs-startup-debug-on-error (getenv "EEMACS_DEBUG")
   "Enable `debug-on-error' at eemacs startup time?"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
