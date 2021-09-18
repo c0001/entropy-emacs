@@ -240,7 +240,8 @@
         vimish-fold
         visual-ascii-mode
         visual-regexp
-        volatile-highlights
+        ;; --> obsolete
+        ;; volatile-highlights
         vterm
         w3m
         web-beautify
