@@ -63,8 +63,14 @@
   (setq ivy-initial-inputs-alist nil)
   (entropy/emacs-lazy-load-simple counsel
     ;; we must set it nil again when loaded `counsel' which will
-    ;; inject its own types
+    ;; inject its own types but with some eemacs specified which need
+    ;; to use initial inputs.
     (setq ivy-initial-inputs-alist nil)
+    (dolist (cmd '(counsel-M-x
+                   counsel-describe-variable
+                   counsel-describe-function))
+      (add-to-list 'ivy-initial-inputs-alist
+                   (cons cmd "^")))
     ;; printable M-x candi sort default type by string less
     (add-to-list 'ivy-sort-functions-alist
                  '(counsel-M-x . ivy-string<)))
@@ -366,11 +372,14 @@ This is for use in `ivy-re-builders-alist'."
           centaur-load-theme)
    ivy-prescient-enable-filtering nil)
 
-  (entropy/emacs-lazy-initial-advice-before
-   (ivy-mode)
-   "ivy-prescient-init" "ivy-prescient-init" prompt-echo
-   :pdumper-no-end t
-   (ivy-prescient-mode 1))
+  ;; EEMACS_MAINTENANCE: temporally disable auto init
+  ;; `ivy-prescient-mode' since its laggy.
+  ;; TODO: hack on its laggy performance
+  ;; (entropy/emacs-lazy-initial-advice-before
+  ;;  (ivy-mode)
+  ;;  "ivy-prescient-init" "ivy-prescient-init" prompt-echo
+  ;;  :pdumper-no-end t
+  ;;  (ivy-prescient-mode 1))
 
   (entropy/emacs-lazy-initial-advice-after
    (counsel-mode)
