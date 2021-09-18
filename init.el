@@ -34,6 +34,10 @@
 ;; configuration
 
 ;; * Code:
+;; ** require
+(require 'cl-lib)
+(require 'subr-x)
+
 ;; ** prepare
 ;; *** multi-version emacs compatible
 ;; **** make `setq-local' compatible
