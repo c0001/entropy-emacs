@@ -269,8 +269,6 @@ NOTE: this function is an around advice wrapper."
 ;; *** config for after-load
   :config
 ;; **** basic setting
-  ;; aligns annotation to the right hand side
-  (setq company-tooltip-align-annotations t)
 
   ;; common internal customization
   (setq
@@ -566,7 +564,7 @@ efficiently way."
    :override
    #'__ya/company--posn-col-row)
 
-;; ******* `company-show-doc-buffer' conflicts hack
+;; ***** `company-show-doc-buffer' conflicts hack
 
   (defun __ya/company-show-doc-buffer ()
     "Redefine of `company-show-doc-buffer' since its conflicted
@@ -635,7 +633,9 @@ with `shackle'."
 
     (progn
       (when cur-type
+        ;; disable current frontend injections
         (funcall cur-disable)
+        ;; remove daemon init hook for current frontend type
         (when entropy/emacs-company--frontend-daemon-current-hook
           (remove-hook 'entropy/emacs-daemon-server-after-make-frame-hook
                        entropy/emacs-company--frontend-daemon-current-hook)))
@@ -661,7 +661,8 @@ with `shackle'."
       (setq entropy/emacs-company-frontend-sticker type))
     (message "OK: change company frontend from %s to %s done!" cur-type type)))
 
-;; *** Popup documentation for completion candidates
+;; *** default company frontend
+;; Popup documentation for completion candidates
 (use-package company-quickhelp
   :after company
   :commands (company-quickhelp-mode
@@ -940,6 +941,45 @@ while in `company-box-mode'."
             #'entropy/emacs-company-box-hide-on-the-fly)
 
 ;; ***** advices
+;; ****** make `company-box--set-mode' proper
+
+  ;; EEMACS_MAINTENANCE: should follow upstream updates
+  (defun __ya/company-box--set-mode (&optional frame)
+    (cond
+     ((and (bound-and-true-p company-box-mode) (not (display-graphic-p frame)))
+      (company-box-mode -1))
+     ((bound-and-true-p company-box-mode)
+      (company-box--tweak-external-packages)
+      (remove-hook 'after-make-frame-functions 'company-box--set-mode t)
+      (add-hook 'delete-frame-functions 'company-box--kill-buffer)
+      (add-hook 'buffer-list-update-hook 'company-box--handle-window-changes t)
+      ;; HACK: do not make `company-frontends' local
+      ;; (make-local-variable 'company-frontends)
+      (setq company-frontends (->> (delq 'company-pseudo-tooltip-frontend company-frontends)
+                                   (delq 'company-pseudo-tooltip-unless-just-one-frontend)))
+      (add-to-list 'company-frontends 'company-box-frontend)
+      (unless (assq 'company-box-frame frameset-filter-alist)
+        (push '(company-box-doc-frame . :never) frameset-filter-alist)
+        (push '(company-box-frame . :never) frameset-filter-alist)))
+     ((memq 'company-box-frontend company-frontends)
+      (setq company-frontends (delq 'company-box-frontend company-frontends))
+      (add-to-list 'company-frontends 'company-pseudo-tooltip-unless-just-one-frontend)))
+    ;; HACK: disable remapping since we bind it manually and
+    ;; Because
+    ;; EEMACS_BUG: `company-box-doc' permanently remap
+    ;; `company-show-doc-buffer' to its spec.
+    (when (equal
+           (lookup-key company-active-map
+                       [remap company-show-doc-buffer])
+           'company-box-doc-manually)
+      (define-key company-active-map
+        [remap company-show-doc-buffer]
+        nil)))
+
+  (advice-add 'company-box--set-mode
+              :override
+              #'__ya/company-box--set-mode)
+
 ;; ****** ensuer the child-frame register is alive
 
   (defun __ya/company-box--get-frame
