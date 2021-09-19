@@ -610,12 +610,18 @@ with `shackle'."
                            (mapcar (lambda (x) (symbol-name (car x)))
                                    entropy/emacs-company--frontend-register)))))
   (let* ((cur-type entropy/emacs-company-frontend-sticker)
-         (cur-disable (plist-get (alist-get cur-type entropy/emacs-company--frontend-register)
-                                 :disable))
-         (chose-enable (plist-get (alist-get type entropy/emacs-company--frontend-register)
-                                  :enable))
-         (daemon-init (plist-get (alist-get type entropy/emacs-company--frontend-register)
-                                 :daemon-init)))
+         (cur-disable
+          (plist-get
+           (alist-get cur-type entropy/emacs-company--frontend-register)
+           :disable))
+         (chose-enable
+          (plist-get
+           (alist-get type entropy/emacs-company--frontend-register)
+           :enable))
+         (daemon-init
+          (plist-get
+           (alist-get type entropy/emacs-company--frontend-register)
+           :daemon-init)))
     (when (and cur-type (not (functionp cur-disable)))
       (error "Can not find associated disable function for company frontend '%s'"
              cur-type))
@@ -623,9 +629,9 @@ with `shackle'."
       (error "Can not find associated enable function for company frontend '%s'"
              type))
 
-    (if (symbolp daemon-init)
-        ;; wrap daemon init to a form
-        (setq daemon-init `(lambda () (,daemon-init))))
+    (when (symbolp daemon-init)
+      ;; wrap daemon init to a form
+      (setq daemon-init `(funcall ,daemon-init)))
 
     (progn
       (when cur-type
@@ -633,16 +639,24 @@ with `shackle'."
         (when entropy/emacs-company--frontend-daemon-current-hook
           (remove-hook 'entropy/emacs-daemon-server-after-make-frame-hook
                        entropy/emacs-company--frontend-daemon-current-hook)))
-      (cond ((and entropy/emacs-daemon-server-init-done (daemonp))
+      (cond (
              ;; is daemon and inited
+             (and entropy/emacs-daemon-server-init-done (daemonp))
+             (message "Enable company frontend type '%s' after daemon make frame ..."
+                      type)
              (funcall chose-enable)
              (setq entropy/emacs-company--frontend-daemon-current-hook
                    (eval daemon-init)))
-            ((and (not entropy/emacs-daemon-server-init-done) (daemonp))
+            (
              ;; is daemon but not inited
+             (and (not entropy/emacs-daemon-server-init-done) (daemonp))
+             (message "Planning to enable company frontend type '%s' after daemon make frame ..."
+                      type)
              (setq entropy/emacs-company--frontend-daemon-current-hook
                    (eval daemon-init)))
             (t
+             (message "Enable company frontend type '%s' ..."
+                      type)
              (funcall chose-enable)))
       (setq entropy/emacs-company-frontend-sticker type))
     (message "OK: change company frontend from %s to %s done!" cur-type type)))
@@ -764,7 +778,7 @@ with `shackle'."
              (entropy/emacs-message-do-message
               "%s"
               (red
-               "Can not enable company-box in non-gui session for back to default type."
+               "Can not enable company-box in non-gui session, did nothing here."
                ))
              (entropy/emacs-company--default-enable)))))
 
