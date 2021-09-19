@@ -290,7 +290,7 @@ by `entropy/emacs-startup-done'.")
 for tui emacs session."
   (let ((theme theme))
     (unless (display-graphic-p)
-      (setq theme 'doom-dark+))
+      (setq theme 'ujelly))
     (load-theme theme no-confirm no-enable)))
 
 (defun entropy/emacs-themes-init-setup-user-theme ()
@@ -298,65 +298,65 @@ for tui emacs session."
 progress."
   (mapc #'disable-theme custom-enabled-themes)
   (condition-case nil
-       (progn
-         (entropy/emacs-themes-strictly-load-theme
-          entropy/emacs-theme-options t)
-         (redisplay t))
-     (error "Problem loading theme %s"
-            (symbol-name entropy/emacs-theme-options)))
-   (when (and (fboundp 'powerline-reset)
-              (string-match-p
-               "space\\|powerline"
-               entropy/emacs-modeline-style))
-     (powerline-reset))
-   (entropy/emacs-theme-load-face-specifix
-    (symbol-name entropy/emacs-theme-options)))
+      (progn
+        (entropy/emacs-themes-strictly-load-theme
+         entropy/emacs-theme-options t)
+        (redisplay t))
+    (error "Problem loading theme %s"
+           (symbol-name entropy/emacs-theme-options)))
+  (when (and (fboundp 'powerline-reset)
+             (string-match-p
+              "space\\|powerline"
+              entropy/emacs-modeline-style))
+    (powerline-reset))
+  (entropy/emacs-theme-load-face-specifix
+   (symbol-name entropy/emacs-theme-options)))
 
 (unless entropy/emacs-fall-love-with-pdumper
   (entropy/emacs-lazy-with-load-trail
    enable-theme
    (redisplay t)
    (if (null (daemonp))
+       ;; common status theme load process
        (entropy/emacs-themes-init-setup-user-theme)
-     ;; This issue refer to
-     ;; `https://github.com/hlissner/emacs-doom-themes/issues/125'.
-
-     ;; For generally about, this issue brought the bad theme
-     ;; presentation in daemon mode of init of emacs session.
-
+     ;; --------------------
+     ;; Daemon theme load specifications
+     ;; --------------------
      (defvar entropy/emacs-themes--theme-init-setup-for-daemon-done nil)
      (defun entropy/emacs-themes--load-theme-for-daemon-init (&optional frame)
-       (redisplay t)
        (let ((frame (or frame (selected-frame))))
-         (select-frame frame)
          (with-selected-frame (selected-frame)
            (unless entropy/emacs-themes--theme-init-setup-for-daemon-done
              (message "Daemon init theme ...")
              (entropy/emacs-themes-init-setup-user-theme)
              (setq entropy/emacs-themes--theme-init-setup-for-daemon-done
-                   1)))))
+                   'first-init)))))
 
      (defvar entropy/emacs-themes--daemon-theme-reload-type nil)
      (defun entropy/emacs-themes--load-theme-for-daemon-client-new ()
-       (let ()
+       (cond
+        ((null entropy/emacs-themes--theme-init-setup-for-daemon-done)
+         (entropy/emacs-themes--load-theme-for-daemon-init))
+        (t
          (if (and (frame-parameter nil 'eemacs-current-frame-is-daemon-created)
                   ;; do not reload theme after dameon theme init by
                   ;; `entropy/emacs-themes--load-theme-for-daemon-init'
-                  (eq entropy/emacs-themes--theme-init-setup-for-daemon-done 2))
-             ;; prevent reload theme for same status as previous client created is
-             (when (not (eq (null (display-graphic-p))
-                            (null entropy/emacs-themes--daemon-theme-reload-type)))
+                  (eq entropy/emacs-themes--theme-init-setup-for-daemon-done 'common))
+             ;; Reload theme since a theme is present differently from
+             ;; gui to tui and vice versa generally.
+             (when
+                 ;; prevent reload theme for same status as previous client created is
+                 (not (eq (display-graphic-p)
+                          entropy/emacs-themes--daemon-theme-reload-type))
                (message "Daemon reload theme ...")
                (entropy/emacs-themes-strictly-load-theme
                 entropy/emacs-theme-sticker 'non-confirm)
                (setq entropy/emacs-themes--daemon-theme-reload-type
                      (display-graphic-p)))
            (when (and (frame-parameter nil 'eemacs-current-frame-is-daemon-created)
-                      (eq entropy/emacs-themes--theme-init-setup-for-daemon-done 1))
-             (setq entropy/emacs-themes--theme-init-setup-for-daemon-done 2)))))
+                      (eq entropy/emacs-themes--theme-init-setup-for-daemon-done 'first-init))
+             (setq entropy/emacs-themes--theme-init-setup-for-daemon-done 'common))))))
 
-     (add-hook 'after-make-frame-functions
-               #'entropy/emacs-themes--load-theme-for-daemon-init)
      (add-hook 'entropy/emacs-daemon-server-after-make-frame-hook
                #'entropy/emacs-themes--load-theme-for-daemon-client-new)
      )))

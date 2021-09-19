@@ -1130,7 +1130,7 @@ from 27.1 for compatible reason.
 
 (defvar entropy/emacs-daemon-server-after-make-frame-hook nil
   "Normal hooks run after a emacs daemon session create a client
-frame.
+frame. The created frame is selected when the hook is called.
 
 For conventionally, you should inject any function into it by
 using `entropy/emacs-with-daemon-make-frame-done', see its
@@ -1165,12 +1165,12 @@ main client."
     main-judge))
 
 (defun entropy/emacs-daemon--reset-main-client-indicator
-    (orig-func &rest orig-args)
+    (frame-predel)
   "Reset `entropy/emacs-daemon--main-client-indicator' when the frame of
 current daemon main client prepare to close, and the car of
 `entropy/emacs-daemon--legal-clients' will be the assignment if
 non-nil, i.e. the new main daemon client."
-  (let (temp_var (frame (or (car orig-args) (selected-frame))))
+  (let (temp_var (frame frame-predel))
     ;; pop out current daemon client from
     ;; `entropy/emacs-daemon--legal-clients'.
     (when (not (null entropy/emacs-daemon--legal-clients))
@@ -1192,13 +1192,11 @@ non-nil, i.e. the new main daemon client."
                   (setq entropy/emacs-daemon--main-client-indicator
                         (car entropy/emacs-daemon--legal-clients))
                   (throw :exit nil))
-              (pop entropy/emacs-daemon--legal-clients))))))
-    (apply orig-func orig-args)))
+              (pop entropy/emacs-daemon--legal-clients))))))))
 
 (when (daemonp)
-  (advice-add 'delete-frame
-              :around
-              #'entropy/emacs-daemon--reset-main-client-indicator))
+  (add-to-list 'delete-frame-functions
+               #'entropy/emacs-daemon--reset-main-client-indicator))
 
 (defvar entropy/emacs-daemon--dont-init-client nil
   "Forbidden eemacs server client initialization specification
