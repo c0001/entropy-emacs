@@ -115,7 +115,7 @@ Used by native line numbers in Emacs 26+ and `linum'."
   "Alternative face for the current line, highlighted by `hl-line'."
   :group 'solaire-mode)
 
-(defface solaire-tooltip-face '((t :inherit solaire-hl-line-face))
+(defface solaire-tooltip-face '((t :inherit tooltip))
   "Alternative face for the tooltip."
   :group 'solaire-mode)
 

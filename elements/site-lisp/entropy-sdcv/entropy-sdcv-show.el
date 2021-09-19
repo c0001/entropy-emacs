@@ -48,7 +48,8 @@ posframe or popup shown mechanism."
         (show-predicate (plist-get show-instance :show-predicate))
         (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'adjacent-common)))
     (when (and (facep face)
-               (not (eq face 'entropy/sdcv-core-common-face)))
+               ;; do not use tooltip face to render buffer content
+               (not (eq face 'tooltip)))
       (setq feedback
             (propertize feedback 'face face)))
     (with-current-buffer buffer
@@ -196,7 +197,8 @@ proper stretching."
                     (entropy/sdcv-show--response-predicate-gen
                      show-predicate feedback minibuffer-common)))
     (when (and (facep face)
-               (not (eq face 'entropy/sdcv-core-common-face)))
+               ;; do not use `tool-tip' render content in minibuffer
+               (not (eq face 'tooltip)))
       (setq feedback
             (propertize feedback 'face face)))
     (message feedback)))

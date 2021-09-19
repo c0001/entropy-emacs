@@ -21,21 +21,22 @@
 (defun entropy/sdcv-backends--org-colorful (feedback)
   (with-temp-buffer
     (insert feedback)
-    (org-mode)
-    (org-font-lock-ensure)
-    (buffer-string)))
+    (let (
+          ;; restrict org feature since we just want to fontify the
+          ;; feedback
+          (org-mode-hook nil))
+      (org-mode)
+      ;; if found `org-bullets-mode' then we use its rich faces
+      (when (and (fboundp 'org-bullets-mode)
+                 (not (bound-and-true-p org-bullets-mode)))
+        (org-bullets-mode 1))
+      (org-font-lock-ensure)
+      (buffer-string))))
 
 (defun entropy/sdcv-backends--org-show-feedback ()
   (unless (eq major-mode 'org-mode)
     (org-mode)
     (outline-show-all)))
-
-(defun entropy/sdcv-backends--auto-face-common (show-method)
-  (cl-case show-method
-    (adjacent-common
-     nil)
-    (t
-     'entropy/sdcv-core-common-face)))
 
 (defun entropy/sdcv-backends--make-feedback-single-line (feedback &optional separator)
   (let* ((str-list (split-string feedback "\n" t))
@@ -537,8 +538,6 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
 (defun entropy/sdcv-backends--sdcv-show-predicate (feedback show-method)
   (entropy/sdcv-core-get-word-or-region)
   (cl-case show-method
-    ((pos-tip popup)
-     (entropy/sdcv-core-common-propertize-feedback feedback))
     (minibuffer-common
      (let ((feedback
             (replace-regexp-in-string
@@ -631,13 +630,15 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
                       :show-predicate entropy/sdcv-backends--wudao-show-predicate)
        (sdcv :query-function entropy/sdcv-backends--query-with-sdcv
              :show-predicate entropy/sdcv-backends--sdcv-show-predicate
-             :show-face entropy/sdcv-backends--auto-face-common)
+             )
        (youdao :query-function entropy/sdcv-backends--query-with-youdao
                :show-predicate entropy/sdcv-backends--youdao-show-predicate)
        (bing :query-function entropy/sdcv-backends--query-with-bing
              :show-predicate entropy/sdcv-backends--bing-show-predicate)
        (google :query-function entropy/sdcv-backends--query-with-google
-               :show-face entropy/sdcv-backends--auto-face-common)))
+               ;; TODO
+               ;; :show-predicate
+               )))
   (add-to-list 'entropy/sdcv-core-query-backends-register el))
 
 (provide 'entropy-sdcv-backends)

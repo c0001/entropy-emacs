@@ -152,12 +152,12 @@
   "List of dict type of quering for.
 
 Each of the dict type represented as one DICT-BACKEND in
-`entropy-sdcv.el', who is one alist whose car was the
-DICT-BACKEND-NAME a symbol to indicate this dict type and the cdr is
-plist of three slots, i.e. :query-function, :show-predicate and
-:show-face, this plist called DICT-INSTANCE.
+`entropy-sdcv.el', who is one alist whose car was the DICT-NAME a
+symbol to indicate this dict type and the cdr is plist of three
+slots, i.e. :query-function, :show-predicate and :show-face, this
+plist called DICT-INSTANCE.
 
-:query-function slotted one twwo argument function, the first
+:query-function slotted one two arguments function, the first
 argument was string as dict quering, it return the FEEDBACK, and
 the second was the SHOW-METHOD.
 
@@ -309,7 +309,7 @@ downcase the query string."
     rtn))
 
 ;;;;; common face
-(defun entropy/sdcv-core-automatic-faceSet ()
+(defun entropy/sdcv-core--automatic-faceSet ()
   (let ((Lbg_color (entropy/sdcv-core-common-face-bgLight-color))
         (Bbg_color (entropy/sdcv-core-common-face-bgDark-color))
         (rtn (list :bg nil :fg nil)))
@@ -323,7 +323,7 @@ downcase the query string."
     rtn))
 
 (defun entropy/sdcv-core-gen-common-face ()
-  (let ((spec (entropy/sdcv-core-automatic-faceSet))
+  (let ((spec (entropy/sdcv-core--automatic-faceSet))
         (inverse (face-attribute 'tooltip :inverse-video))
         bgcolor fgcolor)
     (if (or (not (eq inverse 'unspecified))
@@ -345,19 +345,32 @@ downcase the query string."
   (propertize feedback 'face 'entropy/sdcv-core-common-face))
 
 (defun entropy/sdcv-core-use-face (show-face &optional show-method)
-  (or (and (null show-face) nil)
-      (and (facep show-face) show-face)
-      (and (functionp show-face)
-           (let ((face (funcall show-face show-method)))
-             (when (facep face)
-               face)))
-      ;; using solaire theme in `solaire-mode' enabled buffer
-      (if (and (or (bound-and-true-p entropy/emacs-solaire-mode)
-                   (bound-and-true-p solaire-mode))
-               (facep 'solaire-tooltip-face))
-          'solaire-tooltip-face
-        'entropy/sdcv-core-common-face)))
-
+  "Return a face or nil (i.e. no valid one can be return)
+according to SHOW-FACE which is a valid face or a function to
+return a valid face or nil. Use `tooltip' face defautly if above
+filte return nil."
+  (let ((solaire-p
+         (and
+          (or (bound-and-true-p entropy/emacs-solaire-mode)
+              (bound-and-true-p solaire-mode))
+          (facep 'solaire-tooltip-face))))
+    (or (and (null show-face) nil)
+        (and (facep show-face) show-face)
+        (and (functionp show-face)
+             (let ((face (funcall show-face show-method)))
+               (when (facep face)
+                 face)))
+        ;; using solaire theme in `solaire-mode' enabled buffer
+        (cond
+         ((and solaire-p
+               (not (member show-method
+                            '(adjacent-common
+                              minibuffer-common))))
+          (if (eq show-method 'pos-tip)
+              'default
+            'solaire-tooltip-face))
+         (t
+          'tooltip)))))
 
 ;;;;; query with backend
 
