@@ -2834,17 +2834,24 @@ evaluated result as its value.
              (enable (let ((enable-slot (plist-get attr :enable)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
+             (defer (let ((defer-slot (plist-get attr :defer)))
+                      (entropy/emacs-hydra-hollow--common-judge-p
+                       defer-slot)))
              (heads (cadr island))
              (heads-append-arg `(,heads))
              (core-caller
-              `(entropy/emacs-lazy-load-simple ,use-name
-                 (apply
-                  'entropy/emacs-hydra-hollow-add-for-top-dispatch
-                  ',heads-append-arg))))
+              `(apply
+                'entropy/emacs-hydra-hollow-add-for-top-dispatch
+                ',heads-append-arg))
+             (main-caller
+              (if defer
+                  `(entropy/emacs-lazy-load-simple ,use-name
+                     ,core-caller)
+                core-caller)))
         (when enable
           (setq init-form
                 (append init-form
-                        `(,core-caller))))))
+                        `(,main-caller))))))
     (use-package-concat
      rest-body
      init-form)))
@@ -2918,6 +2925,8 @@ evaluated result as its value.
              (attr (car baron))
              (enable (entropy/emacs-hydra-hollow--common-judge-p
                       (plist-get attr :enable)))
+             (defer (entropy/emacs-hydra-hollow--common-judge-p
+                     (plist-get attr :defer)))
              (requests (cadr baron))
              (mode (or (car requests)
                        use-name))
@@ -2928,21 +2937,26 @@ evaluated result as its value.
               (nth 3 requests))
              (ctg-width-indc-for-inject
               (nth 4 requests))
-             (heads (cadr island)))
+             (heads (cadr island))
+             core-caller)
         (setq hydra-injector
               (entropy/emacs-hydra-hollow-make-hydra-injector
                hydra-injector
                use-name
                (intern (format "%s-map" (symbol-name use-name)))))
+        (setq core-caller
+              `(entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+                ',mode ',hydra-injector ',do-not-build-sparse-tree ',heads
+                ',ctg-width-indc-for-build
+                ',ctg-width-indc-for-inject))
         (setq
          init-form
          (append init-form
                  `((when (not (null ',enable))
-                     (entropy/emacs-lazy-load-simple ,use-name
-                       (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-                        ',mode ',hydra-injector ',do-not-build-sparse-tree ',heads
-                        ',ctg-width-indc-for-build
-                        ',ctg-width-indc-for-inject))))))))
+                     ,(if defer
+                          `(entropy/emacs-lazy-load-simple ,use-name
+                             ,core-caller)
+                        core-caller)))))))
     (use-package-concat
      init-form
      rest-body)))
@@ -3021,6 +3035,9 @@ evaluated result as its value.
                   (enable (let ((enable-slot (plist-get attr :enable)))
                             (entropy/emacs-hydra-hollow--common-judge-p
                              enable-slot)))
+                  (defer (let ((defer-slot (plist-get attr :defer)))
+                           (entropy/emacs-hydra-hollow--common-judge-p
+                            defer-slot)))
                   (requests (cadr baron))
                   (mode (car requests))
                   (hydra-injector (cadr requests))
@@ -3028,17 +3045,22 @@ evaluated result as its value.
                   (pretty-hydra-category-width-indicator-for-inject
                    (nth 3 requests))
                   (heads (cadr island))
-                  run-call)
+                  run-call
+                  core-caller)
+             (setq core-caller
+                   (list 'apply
+                         (list 'function 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra)
+                         (list 'quote
+                               (list mode hydra-injector heads
+                                     pretty-hydra-body
+                                     pretty-hydra-category-width-indicator-for-inject))))
              (when enable
                (setq run-call
-                     (list 'lambda '()
-                           (list 'entropy/emacs-lazy-load-simple ',use-name
-                                 (list 'apply
-                                       (list 'function 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra)
-                                       (list 'quote
-                                             (list mode hydra-injector heads
-                                                   pretty-hydra-body
-                                                   pretty-hydra-category-width-indicator-for-inject))))))
+                     (list 'lambda nil
+                           (if defer
+                               (list 'entropy/emacs-lazy-load-simple ',use-name
+                                     core-caller)
+                             core-caller)))
                (push run-call _callers))))
          (when (not (null _callers))
            (dolist (caller (reverse _callers))
@@ -3121,27 +3143,35 @@ evaluated result as its value.
              (enable (let ((enable-slot (plist-get attr :enable)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
+             (defer (let ((defer-slot (plist-get attr :defer)))
+                      (entropy/emacs-hydra-hollow--common-judge-p
+                       defer-slot)))
              (heads (cadr island))
              (requests (cadr baron))
              (individual-hydra-name (car requests))
              (hydra-injector (cadr requests))
              (pretty-hydra-body (caddr requests))
-             (ctg-width-indc (nth 3 requests)))
+             (ctg-width-indc (nth 3 requests))
+             core-caller)
         (setq hydra-injector
               (entropy/emacs-hydra-hollow-make-hydra-injector
                hydra-injector
                use-name
                (intern (format "%s-map" (symbol-name use-name)))))
+        (setq core-caller
+              `(entropy/emacs-hydra-hollow-common-individual-hydra-define
+                ',individual-hydra-name
+                ',hydra-injector
+                ',heads
+                ',pretty-hydra-body
+                ',ctg-width-indc))
         (when enable
           (setq init-form
                 (append init-form
-                        `((entropy/emacs-lazy-load-simple ,use-name
-                            (entropy/emacs-hydra-hollow-common-individual-hydra-define
-                             ',individual-hydra-name
-                             ',hydra-injector
-                             ',heads
-                             ',pretty-hydra-body
-                             ',ctg-width-indc))))))))
+                        (if defer
+                            `((entropy/emacs-lazy-load-simple ,use-name
+                                ,core-caller))
+                          `(,core-caller)))))))
     (use-package-concat
      rest-body
      init-form)))
@@ -3211,22 +3241,29 @@ evaluated result as its value.
              (enable (let ((enable-slot (plist-get attr :enable)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
+             (defer (let ((defer-slot (plist-get attr :defer)))
+                      (entropy/emacs-hydra-hollow--common-judge-p
+                       defer-slot)))
              (heads (cadr island))
              (requests (cadr baron))
              (individual-hydra-name (car requests))
              (hydra-injector (cadr requests))
              (pretty-hydra-body (caddr requests))
-             (ctg-width-indc-for-inject (nth 3 requests)))
+             (ctg-width-indc-for-inject (nth 3 requests))
+             (core-caller
+              `(entropy/emacs-hydra-hollow-common-individual-hydra-define+
+                ',individual-hydra-name
+                ',hydra-injector
+                ',heads
+                ',pretty-hydra-body
+                ',ctg-width-indc-for-inject)))
         (when enable
           (setq init-form
                 (append init-form
-                        `((entropy/emacs-lazy-load-simple ,use-name
-                            (entropy/emacs-hydra-hollow-common-individual-hydra-define+
-                             ',individual-hydra-name
-                             ',hydra-injector
-                             ',heads
-                             ',pretty-hydra-body
-                             ',ctg-width-indc-for-inject))))))))
+                        (if defer
+                            `((entropy/emacs-lazy-load-simple ,use-name
+                                ,core-caller))
+                          `(,core-caller)))))))
     (use-package-concat
      rest-body
      init-form)))
