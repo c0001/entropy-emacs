@@ -331,19 +331,15 @@ When installing encounters the fatal error, put the pkg into
     (setq use-package-expand-minimally t))
   (setq use-package-enable-imenu-support t)
 
-  ;; add self built `use-package' keys
-  (entropy/emacs-package--use-package-add-keyword :eemacs-functions)
-  (entropy/emacs-package--use-package-add-keyword :eemacs-macros)
-
   (use-package diminish
     :commands (diminish))
   (use-package bind-key
     :commands (bind-key)))
 
-(defun entropy/emacs-package--use-package-add-keyword (keyword &optional precedence)
+(defun entropy/emacs-package--use-package-add-keyword
+    (keyword &optional precedence)
   (let ((precedence (or precedence :commands)))
     (setq use-package-keywords
-          ;; should go in the same location as :bind
           (cl-loop for item in use-package-keywords
                    if (eq item precedence)
                    collect precedence and collect keyword
@@ -351,6 +347,13 @@ When installing encounters the fatal error, put the pkg into
                    ;; don't add duplicates
                    unless (eq item keyword)
                    collect item))))
+
+;; *** extra `use-package' keywords definition
+;; **** :eemacs-functions
+
+(with-eval-after-load 'use-package
+  (entropy/emacs-package--use-package-add-keyword
+   :eemacs-functions))
 
 (defalias 'use-package-normalize/:eemacs-functions
   'use-package-normalize-symlist)
@@ -376,6 +379,12 @@ are recognized as a normal function."
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
+;; **** :eemacs-macros
+
+(with-eval-after-load 'use-package
+  (entropy/emacs-package--use-package-add-keyword
+   :eemacs-macros))
+
 (defalias 'use-package-normalize/:eemacs-macros
   'use-package-normalize-symlist)
 
@@ -396,6 +405,110 @@ recognized as a normal macro."
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
+
+;; **** :eemacs-adrequire
+
+(with-eval-after-load 'use-package
+  (entropy/emacs-package--use-package-add-keyword
+   :eemacs-adrequire
+   :if))
+
+(defvar use-package-eemacs-adrequire/ad-random-ids nil)
+(defun use-package-eemacs-adrequire/gen-random-ad-prefix (adtype)
+  (let* ((id-pool use-package-eemacs-adrequire/ad-random-ids)
+         (id (if id-pool
+                 (+ (car id-pool))
+               0)))
+    (push id use-package-eemacs-adrequire/ad-random-ids)
+    (format "eemacs-use-package/:eemacs-adrequire/%s/id_%s"
+            adtype id)))
+
+(defun use-package-normalize/:eemacs-adrequire
+    (use-name key key-value)
+  (let (pattern)
+    (cond ((and (listp key-value)
+                (= 1 (length key-value)))
+           (let ((elts (car key-value)))
+             (dolist (ptr elts)
+               (let* ((enable (plist-get ptr :enable))
+                      (adfors (plist-get ptr :adfors))
+                      (adtype (plist-get ptr :adtype))
+                      (evfunc-0 (lambda (val)
+                                  (cond ((symbolp val)
+                                         val)
+                                        ((listp val)
+                                         (eval val)))))
+                      (evfunc-1 (lambda (val)
+                                  (cond ((symbolp val)
+                                         (symbol-value val))
+                                        ((listp val)
+                                         (eval val)))))
+                      (evfunc-2 (lambda (val)
+                                  (cond ((symbolp val)
+                                         (symbol-value val))
+                                        ((listp val)
+                                         (mapcar
+                                          (lambda (x)
+                                            (funcall evfunc-0 x))
+                                          val))))))
+                 (push
+                  (list :enable (funcall evfunc-1 enable)
+                        :adfors (funcall evfunc-2 adfors)
+                        :adtype (funcall evfunc-0 adtype)
+                        )
+                  pattern))))
+           (reverse pattern))
+          (t
+           (error
+            "eemacs use-package adrequire clause form wrong type for '%s' def!"
+            (symbol-name use-name))))))
+
+(defun use-package-handler/:eemacs-adrequire
+    (use-name key patterns rest state)
+  "Make force require USE-NAME by applying advice to the buntch
+of functions according to before or after advice type and these
+specification is termed of =eemacs-adrequire-patterns=.
+
+=eemacs-adrequire-patterns= is a list of plist, valid keys of the
+plist are:
+
+- :enable :: a var or a form be evaluted as result of t or nil
+  which be as an judger to perform the advice.
+
+- :adfors :: a list of symbol of a function or form which symbol
+  is identically return but form will be evaluated to a result of
+  a symbol as a function. And the evaluated of this slot will be
+  a list of function symbols.
+
+- :adtype :: a symbol or a form which symbol is identically
+  return but form will be evaluated to a result of a symbol, and
+  both of those type are indicate the `advice-add' type of
+  'before' or 'after'.
+"
+  (let* ((rest-body (use-package-process-keywords use-name rest state))
+         (init-form '()))
+    (dolist (ptr patterns)
+      (let* ((enable (plist-get ptr :enable))
+             (adfors (plist-get ptr :adfors))
+             (adtype (plist-get ptr :adtype))
+             (ad-wrapper (cond ((eq adtype 'before)
+                                'entropy/emacs-lazy-initial-advice-before)
+                               ((eq adtype 'after)
+                                'entropy/emacs-lazy-initial-advice-after)
+                               (t
+                                (error "wrong type of adwrapper type '%s'"
+                                       adtype))))
+             (adprefix (use-package-eemacs-adrequire/gen-random-ad-prefix
+                        adtype)))
+        (when enable
+          (setq init-form
+                (append init-form
+                        `((,ad-wrapper
+                           ,adfors ,adprefix ,adprefix prompt-echo
+                           (require ',use-name))))))))
+    (use-package-concat
+     rest-body
+     init-form)))
 
 ;; ** common start
 
