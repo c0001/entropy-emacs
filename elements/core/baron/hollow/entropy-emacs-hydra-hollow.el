@@ -2837,9 +2837,10 @@ evaluated result as its value.
              (heads (cadr island))
              (heads-append-arg `(,heads))
              (core-caller
-              `(apply
-                'entropy/emacs-hydra-hollow-add-for-top-dispatch
-                ',heads-append-arg)))
+              `(entropy/emacs-lazy-load-simple ,use-name
+                 (apply
+                  'entropy/emacs-hydra-hollow-add-for-top-dispatch
+                  ',heads-append-arg))))
         (when enable
           (setq init-form
                 (append init-form
@@ -2937,10 +2938,11 @@ evaluated result as its value.
          init-form
          (append init-form
                  `((when (not (null ',enable))
-                     (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-                      ',mode ',hydra-injector ',do-not-build-sparse-tree ',heads
-                      ',ctg-width-indc-for-build
-                      ',ctg-width-indc-for-inject)))))))
+                     (entropy/emacs-lazy-load-simple ,use-name
+                       (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+                        ',mode ',hydra-injector ',do-not-build-sparse-tree ',heads
+                        ',ctg-width-indc-for-build
+                        ',ctg-width-indc-for-inject))))))))
     (use-package-concat
      init-form
      rest-body)))
@@ -3030,12 +3032,13 @@ evaluated result as its value.
              (when enable
                (setq run-call
                      (list 'lambda '()
-                           (list 'apply
-                                 (list 'function 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra)
-                                 (list 'quote
-                                       (list mode hydra-injector heads
-                                             pretty-hydra-body
-                                             pretty-hydra-category-width-indicator-for-inject)))))
+                           (list 'entropy/emacs-lazy-load-simple ',use-name
+                                 (list 'apply
+                                       (list 'function 'entropy/emacs-hydra-hollow-add-to-major-mode-hydra)
+                                       (list 'quote
+                                             (list mode hydra-injector heads
+                                                   pretty-hydra-body
+                                                   pretty-hydra-category-width-indicator-for-inject))))))
                (push run-call _callers))))
          (when (not (null _callers))
            (dolist (caller (reverse _callers))
@@ -3132,12 +3135,13 @@ evaluated result as its value.
         (when enable
           (setq init-form
                 (append init-form
-                        `((entropy/emacs-hydra-hollow-common-individual-hydra-define
-                           ',individual-hydra-name
-                           ',hydra-injector
-                           ',heads
-                           ',pretty-hydra-body
-                           ',ctg-width-indc)))))))
+                        `((entropy/emacs-lazy-load-simple ,use-name
+                            (entropy/emacs-hydra-hollow-common-individual-hydra-define
+                             ',individual-hydra-name
+                             ',hydra-injector
+                             ',heads
+                             ',pretty-hydra-body
+                             ',ctg-width-indc))))))))
     (use-package-concat
      rest-body
      init-form)))
@@ -3216,12 +3220,13 @@ evaluated result as its value.
         (when enable
           (setq init-form
                 (append init-form
-                        `((entropy/emacs-hydra-hollow-common-individual-hydra-define+
-                           ',individual-hydra-name
-                           ',hydra-injector
-                           ',heads
-                           ',pretty-hydra-body
-                           ',ctg-width-indc-for-inject)))))))
+                        `((entropy/emacs-lazy-load-simple ,use-name
+                            (entropy/emacs-hydra-hollow-common-individual-hydra-define+
+                             ',individual-hydra-name
+                             ',hydra-injector
+                             ',heads
+                             ',pretty-hydra-body
+                             ',ctg-width-indc-for-inject))))))))
     (use-package-concat
      rest-body
      init-form)))
