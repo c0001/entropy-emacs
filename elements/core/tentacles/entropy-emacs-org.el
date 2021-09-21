@@ -71,7 +71,7 @@
 ;; **** eemacs top binding keys
 
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Org"
     (("C-c a" org-agenda "Dispatch agenda commands to collect entries to the agenda buffer"
       :enable t

@@ -989,44 +989,48 @@ format enabling process.
  entropy/emacs-modeline--origin-enable-done
  (entropy/emacs-mode-line-origin-theme))
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-modeline-toggle nil
- '("All"
-   (("m m d t" entropy/emacs-modeline-mdl-doom-toggle
-     "Toggle modeline type to [doom-mode-line] type"
-     :enable t :toggle (string= entropy/emacs-mode-line-sticker "doom"))
-    ("m m d d"
-     (:eval
-      (prog1
-          '__doom-modeline--ensure-warn/hydra-func
-        (defalias '__doom-modeline--ensure-warn/hydra-func
-          (lambda nil
-            (interactive)
-            (if (bound-and-true-p doom-modeline-mode)
-                (funcall-interactively
-                 (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-                  'doom-modeline-dispatch))
-              (message "doom-modeline is no actived yet!"))))))
-     "Call the dispatch for [doom-mode-line]."
-     :enable t :exit t)
-    ("m m s t" entropy/emacs-modeline-mdl-spaceline-toggle
-     "Toggle modeline type to [spacemacs line] type"
-     :enable t :toggle (string= entropy/emacs-mode-line-sticker "spaceline"))
-    ("m m p t" entropy/emacs-modeline-mdl-powerline-toggle
-     "Toggle modeline type to [powerline (riched modeline)] type"
-     :enable t :toggle (string= entropy/emacs-mode-line-sticker "powerline"))
-    ("m m o t" entropy/emacs-modeline-mdl-origin-toggle
-     "Toggle modeline type to [entropy emacs origin] type"
-     :enable t :toggle (string= entropy/emacs-mode-line-sticker "origin")))))
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-hydra-hollow-call-before-hook)
+ "modeline-hydra-hollow-init" "modeline-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'eemacs-modeline-toggle nil
+  '("All"
+    (("m m d t" entropy/emacs-modeline-mdl-doom-toggle
+      "Toggle modeline type to [doom-mode-line] type"
+      :enable t :toggle (string= entropy/emacs-mode-line-sticker "doom"))
+     ("m m d d"
+      (:eval
+       (prog1
+           '__doom-modeline--ensure-warn/hydra-func
+         (defalias '__doom-modeline--ensure-warn/hydra-func
+           (lambda nil
+             (interactive)
+             (if (bound-and-true-p doom-modeline-mode)
+                 (funcall-interactively
+                  (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+                   'doom-modeline-dispatch))
+               (message "doom-modeline is no actived yet!"))))))
+      "Call the dispatch for [doom-mode-line]."
+      :enable t :exit t)
+     ("m m s t" entropy/emacs-modeline-mdl-spaceline-toggle
+      "Toggle modeline type to [spacemacs line] type"
+      :enable t :toggle (string= entropy/emacs-mode-line-sticker "spaceline"))
+     ("m m p t" entropy/emacs-modeline-mdl-powerline-toggle
+      "Toggle modeline type to [powerline (riched modeline)] type"
+      :enable t :toggle (string= entropy/emacs-mode-line-sticker "powerline"))
+     ("m m o t" entropy/emacs-modeline-mdl-origin-toggle
+      "Toggle modeline type to [entropy emacs origin] type"
+      :enable t :toggle (string= entropy/emacs-mode-line-sticker "origin")))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("WI&BUF"
-   (("C-c m"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-           'eemacs-modeline-toggle))
-     "Toggle mode line type"
-     :enable t :eemacs-top-bind t :exit t))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("WI&BUF"
+    (("C-c m"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'eemacs-modeline-toggle))
+      "Toggle mode line type"
+      :enable t :eemacs-top-bind t :exit t)))))
 
 ;; ** init load conditions
 (defvar entropy/emacs-modeline--mdl-init-caller nil

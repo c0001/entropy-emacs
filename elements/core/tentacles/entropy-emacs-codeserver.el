@@ -70,22 +70,31 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 
 ;; ** hydra hollow
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-ide-hydra nil
- '("Server" ()
-   "Diagnostics" ()))
+(eval
+ `(entropy/emacs-lazy-initial-advice-before
+   ,(symbol-value 'entropy/emacs-ide-for-them)
+   "eemacs-IDE-dispatcher-hydra-hollow-init"
+   "eemacs-IDE-dispatcher-hydra-hollow-init"
+   prompt-echo
+   :pdumper-no-end t
+   (entropy/emacs-hydra-hollow-common-individual-hydra-define
+    'eemacs-ide-hydra nil
+    '("Server" ()
+      "Diagnostics" ()))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b l"
-     (:eval
-       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-        'eemacs-ide-hydra))
-     "eemacs IDE dispatcher"
-     :enable t))))
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    '("Basic"
+      (("b l"
+        (:eval
+         (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+          'eemacs-ide-hydra))
+        "eemacs IDE dispatcher"
+        :enable t))))))
 
 ;; ** xref jumping
 (use-package xref
+  :eemacs-adrequire
+  ((:enable t :adfors (prog-mode-hook) :adtype hook))
   :ensure nil
   :commands
   (xref-show-location-at-point
@@ -104,7 +113,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
    xref-pop-marker-stack
    xref-find-definitions)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (xref-mode))
    ("Identifier find"
     (("M-." xref-find-definitions "Find the definition of the identifier at point"
@@ -112,7 +121,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
      ("M-," xref-pop-marker-stack "Pop back to where M-. was last invoked"
       :enable t :exit t :global-bind t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Basic"
     (("b x"
       (:eval
@@ -170,7 +179,7 @@ before invocation."
        (message "%s" error))))
 
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Basic"
     (("M-h" entropy/emacs-eldoc-show-eldoc-for-current-point
       "Document thing at point."
@@ -178,10 +187,10 @@ before invocation."
       :exit t
       :global-bind t))))
   :init
-  (entropy/emacs-lazy-with-load-trail
-   eldoc-mode
+  (entropy/emacs-lazy-initial-for-hook
+   (prog-mode-hook)
+   "eldoc-mode-init" "eldoc-mode-init" prompt-echo
    :pdumper-no-end t
-   :body
    (global-eldoc-mode 1)))
 
 ;; ** Diagnostics
@@ -205,14 +214,20 @@ diagnostic feature is actived."
     (user-error "can not show diagnostics for current buffer! \
 Because of no suitable backend actived yet."))))
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-ide-hydra nil
- '("Diagnostics"
-   (("M-e" entropy/emacs-codeserver-show-diagnostics
-     "Show diagnostics for current-buffer"
-     :enable t
-     :exit t
-     :eemacs-top-bind t))))
+(entropy/emacs-lazy-initial-for-hook
+ (prog-mode-hook)
+ "emacs-ide-diagnostic-hydra-hollow-init"
+ "emacs-ide-diagnostic-hydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define+
+  'eemacs-ide-hydra nil
+  '("Diagnostics"
+    (("M-e" entropy/emacs-codeserver-show-diagnostics
+      "Show diagnostics for current-buffer"
+      :enable t
+      :exit t
+      :eemacs-top-bind t)))))
 
 ;; **** flymake
 (use-package flymake
@@ -513,7 +528,7 @@ when available."
 
 ;; ******* eemacs-indhc
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (lsp-mode nil nil (2 2 2 1 1)))
    ("Basic"
     (("b s" lsp "Start lsp server for current workspace"
@@ -579,7 +594,7 @@ when available."
 
 ;; ******* eemacs-indhca
   :eemacs-indhca
-  (((:enable t)
+  (((:enable t :defer t)
     (eemacs-ide-hydra))
    ("Server"
     (("s l"
@@ -873,7 +888,7 @@ https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-nu
 
 ;; ******* eemacs-indhc
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (lsp-ui-mode nil nil (1 2 2)))
    ("Doc (Basic)"
     (("d t" lsp-ui-mode "Toggle language server UI mode on or off"
@@ -916,7 +931,7 @@ https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-nu
 
 ;; ******* eemacs-indhca
   :eemacs-indhca
-  (((:enable t)
+  (((:enable t :defer t)
     (lsp-mode))
    ("Basic"
     (("b u"
@@ -1126,7 +1141,7 @@ updating."
 
 ;; ***** eemacs indhc
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (eglot))
    ("Basic"
     (("b s" eglot "Start eglot lsp server"
@@ -1138,7 +1153,7 @@ updating."
 
 ;; ***** eemacs indhca
   :eemacs-indhca
-  (((:enable t)
+  (((:enable t :defer t)
     (eemacs-ide-hydra))
    ("Server"
     (("s e"

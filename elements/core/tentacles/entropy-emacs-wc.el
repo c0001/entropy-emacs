@@ -42,26 +42,36 @@
 
 ;; ** require
 
-(let ((ind-hydra-name 'eemacs-window-config))
-  (entropy/emacs-hydra-hollow-category-common-individual-define
-   ind-hydra-name
-   (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
-    ind-hydra-name)
-   '("Move Window" nil
-     "Jump To Window" nil
-     "Align Buffer" nil))
-  (entropy/emacs-hydra-hollow-add-for-top-dispatch
-   `("WI&BUF"
-     (("M-w"
-       (:eval
-        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-         ',ind-hydra-name))
-       "Rich command for (window buffer) Dwim"
-       :enable t :exit t)))))
+(entropy/emacs-lazy-initial-for-hook
+ (window-configuration-change-hook)
+ "rich-window-config-hydra-hollow-top-init"
+ "rich-window-config-hydra-hollow-top-init" prompt-echo
+ :pdumper-no-end t
+ (let ((ind-hydra-name 'eemacs-window-config))
+   (entropy/emacs-hydra-hollow-category-common-individual-define
+    ind-hydra-name
+    (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+     ind-hydra-name)
+    '("Move Window" nil
+      "Jump To Window" nil
+      "Align Buffer" nil))
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    `("WI&BUF"
+      (("M-w"
+        (:eval
+         (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+          ',ind-hydra-name))
+        "Rich command for (window buffer) Dwim"
+        :enable t :exit t))))))
 
 ;; ** Window switch
 ;; *** window numberic indicator
 (use-package ace-window
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors (window-configuration-change-hook)
+    :adtype hook))
   :commands
   (ace-delete-other-windows
    ace-delete-window
@@ -70,7 +80,7 @@
    ace-window-display-mode
    ace-window)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("WI&BUF"
     (("C-x M-o" ace-window "Switch to Another Window"
       :enable t
@@ -118,30 +128,35 @@
                                (error (windmove-left))))))))))
 
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-window-config nil
- '("Jump To Window"
-   (("C-x <up>" entropy/emacs-basic-windmove-up-cycle
-     "Move To Up Window"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("C-x <down>" entropy/emacs-basic-windmove-down-cycle
-     "Move To Below Window"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("C-x <right>" entropy/emacs-basic-windmove-right-cycle
-     "Move To Right Window"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("C-x <left>" entropy/emacs-basic-windmove-left-cycle
-     "Move To Left Window"
-     :enable t
-     :exit t
-     :global-bind t)
-    )))
+(entropy/emacs-lazy-initial-for-hook
+ (window-configuration-change-hook)
+ "window-jump-extra-hydra-hollow-init"
+ "window-jump-extra-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define+
+  'eemacs-window-config nil
+  '("Jump To Window"
+    (("C-x <up>" entropy/emacs-basic-windmove-up-cycle
+      "Move To Up Window"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-x <down>" entropy/emacs-basic-windmove-down-cycle
+      "Move To Below Window"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-x <right>" entropy/emacs-basic-windmove-right-cycle
+      "Move To Right Window"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("C-x <left>" entropy/emacs-basic-windmove-left-cycle
+      "Move To Left Window"
+      :enable t
+      :exit t
+      :global-bind t)
+     ))))
 
 ;; **** Disable buffer reverse and turn by =C-x C-left= =C-x C-right=
 (global-set-key (kbd "C-x C-<left>") nil)
@@ -221,7 +236,7 @@
 
 ;; **** eemacs-tpha
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("WI&BUF"
     (("W"
       (:pretty-hydra-cabinet
@@ -249,7 +264,7 @@
 
 ;; **** eemacs-indhc
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (eyebrowse-mode
      (eyebrowse entropy/emacs-wc-eyebrowse-mode-map)
      nil
@@ -746,7 +761,7 @@ without derived slot."
   :ensure nil
   :commands (winner-mode)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("WI&BUF"
     (("i w"
       (:eval
@@ -755,7 +770,7 @@ without derived slot."
       "Winner Mode"
       :enable t :exit t))))
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (winner-mode))
    ("Basic"
     (("C-c <left>" winner-undo
@@ -876,9 +891,11 @@ issue."
 
 ;; ** Buffer window size setting
 (use-package windresize
+  :eemacs-adrequire
+  ((:enable t :adfors (window-configuration-change-hook) :adtype hook))
   :commands (windresize)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("WI&BUF"
     (("C-<f10>" windresize "Resize Window"
       :enable t
@@ -893,12 +910,14 @@ issue."
 
 ;; ** Exchange window
 (use-package buffer-move
+  :eemacs-adrequire
+  ((:enable t :adfors (window-configuration-change-hook) :adtype hook))
   :commands (buf-move-up
              buf-move-down
              buf-move-left
              buf-move-right)
   :eemacs-indhca
-  (((:enable t)
+  (((:enable t :defer t)
     (eemacs-window-config))
    ("Move Window"
     (("C-c <C-up>"     buf-move-up
@@ -998,43 +1017,50 @@ olivetti-mode itself responsibility."
 
 ;; ** key bind
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-window-config nil
- '("Align Buffer"
-   (("C-c M-<up>"
-     (:eval
-      (cond ((eq entropy/emacs-align-window-center-with? 'basic)
-             'entropy/emacs-basic-center-text)
-            ((eq entropy/emacs-align-window-center-with? 'olivetti)
-             '(olivetti-mode 1))))
-     "Center Window"
-     :enable (or (eq entropy/emacs-align-window-center-with? 'basic)
-                 (eq entropy/emacs-align-window-center-with? 'olivetti))
-     :exit t
-     :global-bind t)
-    ("C-c M-<down>"
-     (:eval
-      (cond ((eq entropy/emacs-align-window-center-with? 'basic)
-             'entropy/emacs-basic-center-text-clear)
-            ((eq entropy/emacs-align-window-center-with? 'olivetti)
-             '(olivetti-mode 0))))
-     "Clear Center Window"
-     :enable (or (eq entropy/emacs-align-window-center-with? 'basic)
-                 (eq entropy/emacs-align-window-center-with? 'olivetti))
-     :exit t
-     :global-bind t)
-    ("{" olivetti-shrink "Shrink align width"
-     :enable
-     (eq entropy/emacs-align-window-center-with? 'olivetti))
-    ("}" olivetti-expand "Expand align width"
-     :enable
-     (eq entropy/emacs-align-window-center-with? 'olivetti))
-    )))
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-hydra-hollow-call-before-hook)
+ "align-buffer-hydra-hollow-extra-init"
+ "align-buffer-hydra-hollow-extra-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define+
+  'eemacs-window-config nil
+  '("Align Buffer"
+    (("C-c M-<up>"
+      (:eval
+       (cond ((eq entropy/emacs-align-window-center-with? 'basic)
+              'entropy/emacs-basic-center-text)
+             ((eq entropy/emacs-align-window-center-with? 'olivetti)
+              '(olivetti-mode 1))))
+      "Center Window"
+      :enable (or (eq entropy/emacs-align-window-center-with? 'basic)
+                  (eq entropy/emacs-align-window-center-with? 'olivetti))
+      :exit t
+      :global-bind t)
+     ("C-c M-<down>"
+      (:eval
+       (cond ((eq entropy/emacs-align-window-center-with? 'basic)
+              'entropy/emacs-basic-center-text-clear)
+             ((eq entropy/emacs-align-window-center-with? 'olivetti)
+              '(olivetti-mode 0))))
+      "Clear Center Window"
+      :enable (or (eq entropy/emacs-align-window-center-with? 'basic)
+                  (eq entropy/emacs-align-window-center-with? 'olivetti))
+      :exit t
+      :global-bind t)
+     ("{" olivetti-shrink "Shrink align width"
+      :enable
+      (eq entropy/emacs-align-window-center-with? 'olivetti))
+     ("}" olivetti-expand "Expand align width"
+      :enable
+      (eq entropy/emacs-align-window-center-with? 'olivetti))
+     ))))
 
 ;; ** Window divider
 
-(entropy/emacs-lazy-with-load-trail
- win-divider
+(entropy/emacs-lazy-initial-for-hook
+ (window-configuration-change-hook)
+ "window-divider-mode-init" "window-divider-mode-init" prompt-echo
+ :pdumper-no-end t
  (window-divider-mode t))
 
 ;; * provide

@@ -33,21 +33,26 @@
 
 ;; ** require
 
-(entropy/emacs-hydra-hollow-category-common-individual-define
- 'yasnippet-uniform
- (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
-  'yasnippet-uniform)
- '("Basic" nil
-   "Auto yasnippet" nil))
+(entropy/emacs-lazy-initial-for-hook
+ (org-mode-hook prog-mode-hook)
+ "yas-uniform-hydra-hollow-init"
+ "yas-uniform-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-category-common-individual-define
+  'yasnippet-uniform
+  (entropy/emacs-hydra-hollow-category-common-individual-make-title-common
+   'yasnippet-uniform)
+  '("Basic" nil
+    "Auto yasnippet" nil))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b y"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'yasnippet-uniform))
-     "Yasnippet Actions"
-     :enable t :exit t))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Basic"
+    (("b y"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'yasnippet-uniform))
+      "Yasnippet Actions"
+      :enable t :exit t)))))
 
 ;; ** yasnippet
 
@@ -55,7 +60,7 @@
   :diminish yas-minor-mode
   :commands (yas-global-mode yas-minor-mode yas-expand)
   :eemacs-indhca
-  (((:enable t)
+  (((:enable t :defer t)
     (yasnippet-uniform))
    ("Basic"
     (("M-i" entropy/emacs-yas-enable-or-expand
@@ -90,7 +95,7 @@
         (remove yas--default-user-snippets-dir
                 yas-snippet-dirs))
   (add-to-list 'yas-snippet-dirs 'entropy/emacs-yas-dir)
-  (let ((entropy/emacs-message-non-popup nil))
+  (let ((entropy/emacs-message-non-popup t))
     (entropy/emacs-message-do-message
      "%s"
      (green "yas load customized snippets ...")))
@@ -101,7 +106,7 @@
     ;; part since we are used its API after load `yasnippet'.
     :commands (yasnippet-snippets-initialize)
     :init
-    (let ((entropy/emacs-message-non-popup nil))
+    (let ((entropy/emacs-message-non-popup t))
       (entropy/emacs-message-do-message
        "%s"
        (green "yas load third-party snippets ...")))
@@ -158,12 +163,20 @@
 ;;     ~`red'_total = get_total("`red'_values");~
 
 (use-package auto-yasnippet
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (yas-minor-mode
+     yas-global-mode)
+    :adtype after)
+   (:enable t :adfors (fundamental-mode) :adtype before))
   :commands
   (aya-create
    aya-expand
    entropy/emacs-yas-aya-choose-snippet)
   :eemacs-indhca
-  (((:enable t)
+  (((:enable t :defer t)
     (yasnippet-uniform))
    ("Auto yasnippet"
     (("M-p" aya-create "Create a snippet from the text between BEG and END"
