@@ -544,7 +544,7 @@ invoke this function any more isn't it?"
    prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-add-for-top-dispatch
-    '("Hightlight"
+    '("Highlight"
       (("C-c h d h" diff-hl-mode
         "Toggle VC diff highlighting"
         :enable t
