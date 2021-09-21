@@ -318,6 +318,7 @@ popup window if in a interaction session and
 `entropy/emacs-message-non-popup' is `null'. Use popup window
 whenever `entropy/emacs-startup-done' is not set"
   `(cond ((and
+           (not noninteractive)
            (not entropy/emacs-startup-with-Debug-p)
            (not (bound-and-true-p entropy/emacs-startup-done)))
           (message "Loading ..."))
