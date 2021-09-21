@@ -306,7 +306,7 @@ place can be easily found by other interactive command."
         :exit t))))
 
   (entropy/emacs-lazy-initial-advice-before
-   (dired)
+   (dired-mode)
    "hydra-hollow-init-for-dired"
    "hydra-hollow-init-for-dired"
    prompt-echo
@@ -1360,7 +1360,12 @@ NOTE: this is a advice wrapper for any function."
        scroll-conservatively     entropy/emacs-basic--scroll-conservatively-orig-value)
       (message "Smooth scrolling disabled!"))))
 
-(entropy/emacs-basic-smooth-scrolling-mode 1)
+(entropy/emacs-lazy-initial-for-hook
+ (pre-command-hook)
+ "eemacs-smooth-scrolling-mode-init"
+ "eemacs-smooth-scrolling-mode-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-basic-smooth-scrolling-mode 1))
 
 
 ;; ***** Tab default visualization
@@ -2303,10 +2308,10 @@ successfully both of situation of read persisit of create an new."
 ;; Rebind "insert" refer key in terminal emacs to support yank&cut
 ;; communication with GUI.
 
-(entropy/emacs-lazy-with-load-trail
- xterm-rebind
+(entropy/emacs-lazy-initial-advice-before
+ (xterm-paste yank)
+ "xterm-rebind-init" "xterm-rebind-init" prompt-echo
  :pdumper-no-end t
- :body
  (let* ((cli-enable-func
          (lambda ()
            (define-key global-map [xterm-paste]
@@ -2356,7 +2361,6 @@ successfully both of situation of read persisit of create an new."
 
 ;; **** Bookmarks
 (setq bookmark-save-flag 1)
-
 
 ;; **** Description | Help mode improvement
 ;; ***** Restriction print level and length for help buffer
@@ -2446,12 +2450,16 @@ it with focus on."
             :around
             #'entropy/emacs-basic--desc-var-preserve-var)
 
-(define-key help-mode-map
-  (kbd "p")
-  (lambda ()
-    (interactive)
-    (entropy/emacs-basic-print-variable
-     entropy/emacs-basic--desc-current-var)))
+(entropy/emacs-lazy-initial-advice-after
+ (help-mode)
+ "help-print-var-bind-init" "help-print-var-bind-init" prompt-echo
+ :pdumper-no-end t
+ (define-key help-mode-map
+   (kbd "p")
+   (lambda ()
+     (interactive)
+     (entropy/emacs-basic-print-variable
+      entropy/emacs-basic--desc-current-var))))
 
 ;; ***** Lagging prompts
 

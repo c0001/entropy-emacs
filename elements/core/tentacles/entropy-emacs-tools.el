@@ -698,7 +698,7 @@ which determined by the scale count 0.3 "
       ('bing (call-interactively 'entropy/emacs-tools-bing-dict-brief-prompt)))))
 
 (entropy/emacs-lazy-initial-for-hook
- (after-change-major-mode-hook)
+ (pre-command-hook)
  "entropy-dict-search-hydra-hollow-init"
  "entropy-dict-search-hydra-hollow-init"
  prompt-echo
