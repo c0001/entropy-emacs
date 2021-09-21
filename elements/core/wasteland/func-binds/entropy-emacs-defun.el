@@ -1625,8 +1625,9 @@ bottom)."
 ;; ** eemacs specifications
 ;; *** Individuals
 
-(defmacro entropy/emacs-general-with-gc-strict (&rest body)
-  "Strictly gc features when run BODY."
+(defmacro entropy/emacs-general-run-with-protect-and-gc-strict (&rest body)
+  "Run BODY with `inhibit-quit' and restrict with basic
+`gc-cons-threshold'."
   `(let ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
          (gc-cons-percentage entropy/emacs-gc-percentage-basic)
          (inhibit-quit t))
@@ -1801,7 +1802,7 @@ pollute eemacs internal lazy load optimization."
              (format
               "with lazy loading configs for feature '%s'"
               ',feature))
-           (entropy/emacs-general-with-gc-strict
+           (entropy/emacs-general-run-with-protect-and-gc-strict
             ,@body)))))
      ((null entropy/emacs-custom-enable-lazy-load)
       `(when (not (null ',feature))
@@ -1816,7 +1817,7 @@ pollute eemacs internal lazy load optimization."
                   (require el)))
                ((symbolp ',feature)
                 (require ',feature)))
-         (entropy/emacs-general-with-gc-strict
+         (entropy/emacs-general-run-with-protect-and-gc-strict
           ,@body))))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
@@ -1866,7 +1867,7 @@ functional aim to:
             (blue "Start")
             (yellow ,msg-str)
             (blue "..."))
-           (entropy/emacs-general-with-gc-strict
+           (entropy/emacs-general-run-with-protect-and-gc-strict
             ,@body)
            (entropy/emacs-message-do-message
             "%s '%s' %s"
@@ -1983,7 +1984,7 @@ GENED-FUNCTION with their own name abbreviated."
               (blue "Loading and enable feature")
               (yellow ,initial-func-suffix-name)
               (blue "..."))
-             (entropy/emacs-general-with-gc-strict
+             (entropy/emacs-general-run-with-protect-and-gc-strict
               (setq __func_rtn
                     (prog1
                         (progn

@@ -414,14 +414,14 @@ recognized as a normal macro."
    :if))
 
 (defvar use-package-eemacs-adrequire/ad-random-ids nil)
-(defun use-package-eemacs-adrequire/gen-random-ad-prefix (adtype)
+(defun use-package-eemacs-adrequire/gen-random-ad-prefix (use-name adtype)
   (let* ((id-pool use-package-eemacs-adrequire/ad-random-ids)
          (id (if id-pool
                  (+ (car id-pool) 1)
                0)))
     (push id use-package-eemacs-adrequire/ad-random-ids)
-    (format "eemacs-use-package/:eemacs-adrequire/%s/id_%s"
-            adtype id)))
+    (format "eemacs-use-package/:eemacs-adrequire/for-%s/adtype-of-%s/id_%s"
+            use-name adtype id)))
 
 (defun use-package-normalize/:eemacs-adrequire
     (use-name key key-value)
@@ -509,7 +509,7 @@ plist are:
                                 (error "wrong type of adwrapper type '%s'"
                                        adtype))))
              (adprefix (use-package-eemacs-adrequire/gen-random-ad-prefix
-                        adtype)))
+                        use-name adtype)))
         (when enable
           (setq init-form
                 (append init-form
