@@ -302,7 +302,6 @@ enabled."
 Its default value is (\"%6b\") with some text properties added.
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
-;;;###autoload
 (put '__ya/mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local '__ya/mode-line-buffer-identification)
 
