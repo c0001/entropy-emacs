@@ -2688,6 +2688,7 @@ hydra body caller) =pretty-hydra-head-command=.
 
 ;; **** library
 
+;; ***** pattern parse
 ;; For give the more powerful key slot form syntax, we defined a new
 ;; form-type =pretty-hydra-riched-usepackage-pattern=, see below
 ;; function's doc-string for more details.
@@ -2787,6 +2788,139 @@ both ommited, that as:
           (setq rtn (append rtn obtain))))))
     rtn))
 
+;; ***** defer parse
+
+(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-ids-pool nil)
+(defun  entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-prefix
+    (use-name adtype)
+  (let* ((id-pool
+          entropy/emacs-hydra-hollow/use-package/defer-parse-random-ids-pool)
+         (id (if id-pool
+                 (+ (car id-pool) 1)
+               0)))
+    (push id
+          entropy/emacs-hydra-hollow/use-package/defer-parse-random-ids-pool)
+    (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/adtype-of-%s/id_%s"
+            use-name adtype id)))
+
+(defun entropy/emacs-hydra-hollow/use-package/defer-parse/rebuild-pattern
+    (orig-pattern)
+  (let (pattern)
+    (cond ((and (listp orig-pattern)
+                (not (null orig-pattern)))
+           (let ((elts orig-pattern))
+             (dolist (ptr elts)
+               (let* ((enable       (plist-get ptr :enable))
+                      (adfors       (plist-get ptr :adfors))
+                      (adtype       (plist-get ptr :adtype))
+                      (pdump-no-end (plist-get ptr :pdumper-no-end))
+                      (evfunc-0 (lambda (val)
+                                  (cond ((symbolp val)
+                                         val)
+                                        ((listp val)
+                                         (eval val)))))
+                      (evfunc-1 (lambda (val)
+                                  (cond ((symbolp val)
+                                         (symbol-value val))
+                                        ((listp val)
+                                         (eval val)))))
+                      (evfunc-2 (lambda (val)
+                                  (cond ((symbolp val)
+                                         (symbol-value val))
+                                        ((listp val)
+                                         (mapcar
+                                          (lambda (x)
+                                            (funcall evfunc-0 x))
+                                          val))))))
+                 (push
+                  (list :enable         (funcall evfunc-1 enable)
+                        :adfors         (funcall evfunc-2 adfors)
+                        :adtype         (funcall evfunc-0 adtype)
+                        :pdumper-no-end (funcall evfunc-1 pdump-no-end)
+                        )
+                  pattern))))
+           (reverse pattern))
+          ((symbolp orig-pattern)
+           (if (eq t orig-pattern)
+               t
+             (if (symbol-value orig-pattern)
+                 t
+               nil)))
+          (t
+           (error
+            "eemacs hydra hollow adrequire clause form wrong type for '%s' def!"
+            (symbol-name use-name))))))
+
+(defun entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+    (use-name pattern form)
+  "Make force require USE-NAME by applying advice to the buntch
+of functions/hooks according to before or after advice type or
+hook injection which use core of FORM, and these specification is
+termed of =hydra-hollow-adrequire-patterns= i.e. the
+PATTERN. Return a new wrapped form.
+
+=hydra-hollow-adrequire-patterns= is a list of plist, valid keys of the
+plist are:
+
+- :adfors :: a list of symbol of a function/hook or form which
+  symbol is identically return but form will be evaluated to a
+  result of a symbol as a function/hook. And the evaluated of
+  this slot will be a list of function/hook symbols.
+
+- :adtype :: a symbol or a form which symbol is identically
+  return but form will be evaluated to a result of a symbol, and
+  both of those type are indicate the `advice-add' type of
+  'before' or 'after' or a symbol 'hook' indicate treat :adfors
+  as bunch of hooks to be injected.
+
+- :pdumper-no-end :: when non-nil do not inject adrequire into
+  `entropy/emacs-pdumper-load-hook' when
+  `entropy/emacs-custom-enable-lazy-load'.
+
+Further more if the PATTERN is t, we just wrapped FORM within
+`entropy/emacs-lazy-load-simple' which stick to USE-NAME.
+
+And if PATTERN is nil, then we return the form as is.
+"
+  (let* ((patterns
+          (entropy/emacs-hydra-hollow/use-package/defer-parse/rebuild-pattern
+           pattern))
+         rtn)
+    (cond
+     ((and (listp patterns)
+           (not (null patterns)))
+      (dolist (ptr patterns)
+        (let* ((adfors       (plist-get ptr :adfors))
+               (adtype       (plist-get ptr :adtype))
+               (pdump-no-end (plist-get ptr :pdumper-no-end))
+               (ad-wrapper (cond ((eq adtype 'before)
+                                  'entropy/emacs-lazy-initial-advice-before)
+                                 ((eq adtype 'after)
+                                  'entropy/emacs-lazy-initial-advice-after)
+                                 ((eq adtype 'hook)
+                                  'entropy/emacs-lazy-initial-for-hook)
+                                 (t
+                                  (error "wrong type of hydra-hollow adwrapper type '%s'"
+                                         adtype))))
+               (adprefix (entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-prefix
+                          use-name adtype)))
+          (push
+           `(,ad-wrapper
+             ,adfors ,adprefix ,adprefix prompt-echo
+             :pdumper-no-end ',pdump-no-end
+             ,form)
+           rtn)))
+      ;; progn wrap the result
+      (setq rtn
+            (append '(progn)
+                    (reverse rtn))))
+     ((eq patterns t)
+      (setq rtn
+            `(entropy/emacs-lazy-load-simple ,use-name
+               ,form)))
+     (t
+      (setq rtn form)))
+    rtn))
 
 ;; **** :eemacs-tpha
 ;; The use-package key =:eemacs-tpha= indicating to add some
@@ -2850,8 +2984,9 @@ evaluated result as its value.
                 ',heads-append-arg))
              (main-caller
               (if defer
-                  `(entropy/emacs-lazy-load-simple ,use-name
-                     ,core-caller)
+                  (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                   use-name defer
+                   core-caller)
                 core-caller)))
         (when enable
           (setq init-form
@@ -2959,8 +3094,9 @@ evaluated result as its value.
          (append init-form
                  `((when (not (null ',enable))
                      ,(if defer
-                          `(entropy/emacs-lazy-load-simple ,use-name
-                             ,core-caller)
+                          (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                           use-name defer
+                           core-caller)
                         core-caller)))))))
     (use-package-concat
      init-form
@@ -3063,8 +3199,9 @@ evaluated result as its value.
                (setq run-call
                      (list 'lambda nil
                            (if defer
-                               (list 'entropy/emacs-lazy-load-simple ',use-name
-                                     core-caller)
+                               (entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                                ',use-name defer
+                                core-caller)
                              core-caller)))
                (push run-call _callers))))
          (when (not (null _callers))
@@ -3174,8 +3311,9 @@ evaluated result as its value.
           (setq init-form
                 (append init-form
                         (if defer
-                            `((entropy/emacs-lazy-load-simple ,use-name
-                                ,core-caller))
+                            `(,(entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                                use-name defer
+                                core-caller))
                           `(,core-caller)))))))
     (use-package-concat
      rest-body
@@ -3266,8 +3404,9 @@ evaluated result as its value.
           (setq init-form
                 (append init-form
                         (if defer
-                            `((entropy/emacs-lazy-load-simple ,use-name
-                                ,core-caller))
+                            `(,(entropy/emacs-hydra-hollow/defer-parse/gen-wrapper
+                                use-name defer
+                                core-caller))
                           `(,core-caller)))))))
     (use-package-concat
      rest-body
