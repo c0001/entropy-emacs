@@ -2101,27 +2101,6 @@ while pdumper procedure.
          :after
          ',body-wrap)))))
 
-(cl-defmacro entropy/emacs-lazy-initial-advice-around
-    (advice-fors initial-func-suffix-name initial-var-suffix-name
-                 prompt-type &rest body
-                 &key pdumper-no-end
-                 &allow-other-keys)
-  "Like `entropy/emacs-lazy-initial-advice-before' but for :around place.
-Additionally let bound orig-func _ORIG-FUNC and orig-args
-_ORIG-ARGS can be used in BODY."
-  (let ((body-wrap (entropy/emacs-get-plist-body body)))
-    (eval
-     `(let ((entropy/emacs-lazy-initial-form-pdumper-no-end
-             ,pdumper-no-end))
-        (entropy/emacs-lazy-initial-form
-         ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
-         "entropy/emacs--AfterADV-fisrt-enable-for"
-         "after-advice-adder" ',prompt-type
-         'advice-add
-         :around
-         '((let ((_orig-func (car $_|internal-args))
-                 (_orig-args (cadr $_|internal-args)))
-             ,@body-wrap)))))))
 
 ;; *** Lazy execute specification
 ;; ***** TODO accumulation execution
