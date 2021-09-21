@@ -946,7 +946,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   ((:enable
     t
     :adfors
-    (pre-command-hook)
+    (entropy/emacs-hydra-hollow-call-before-hook)
     :adtype hook))
   :diminish (command-log-mode . "¢")
   :commands (command-log-mode)
@@ -1014,7 +1014,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 ;; *** copy path, url, etc.
 (use-package copyit
   :eemacs-adrequire
-  ((:enable t :adfors (pre-command-hook) :adtype hook))
+  ((:enable t :adfors (entropy/emacs-hydra-hollow-call-before-hook) :adtype hook))
   :commands
   (copyit-file-as-data-uri
    copyit-file-content
@@ -1157,7 +1157,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   ((:enable
     t
     :adfors
-    (pre-command-hook)
+    (entropy/emacs-hydra-hollow-call-before-hook)
     :adtype hook))
   :commands (memory-usage memory-usage-find-large-variables)
   :eemacs-indhc
@@ -1294,7 +1294,7 @@ can't visit one page suddenly."
   ((:enable
     t
     :adfors
-    (pre-command-hook)
+    (entropy/emacs-hydra-hollow-call-before-hook)
     :adtype hook))
   :ensure nil
   :commands (entropy/unfill-full-buffer-without-special-region
@@ -1385,7 +1385,7 @@ can't visit one page suddenly."
   ((:enable
     t
     :adfors
-    (pre-command-hook)
+    (entropy/emacs-hydra-hollow-call-before-hook)
     :adtype hook))
   :ensure nil
   :commands (entropy/ep2o-dispatcher

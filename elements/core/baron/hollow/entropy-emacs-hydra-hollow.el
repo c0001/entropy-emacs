@@ -91,6 +91,9 @@
   "A lambda form stored some predicated procedure that will run
 at some proper time.")
 
+(defvar entropy/emacs-hydra-hollow-call-before-hook nil
+  "Hook before run any eemacs-hydra-hollow instances")
+
 (defvar entropy/emacs-hydra-hollow-random-func-name-number-register nil
   "The register for the random number suffix as name for random
 function naming.
@@ -100,6 +103,8 @@ Do not manually modify this variable or risking on your self.")
 (defun entropy/emacs-hydra-hollow-call-union-form (&rest _)
   "Call `entropy/emacs-hydra-hollow-union-form' recursively til
 it becoming one empty form."
+  ;; Firstly we run the before hook before any operations
+  (run-hooks 'entropy/emacs-hydra-hollow-call-before-hook)
   (let (
         ;; NOTE: this is important to prevent hydra hollow init failure
         (inhibit-quit t)

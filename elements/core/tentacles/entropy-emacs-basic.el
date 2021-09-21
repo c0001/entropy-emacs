@@ -2662,7 +2662,7 @@ please check buffer '*liberime build*' for details"
   :preface
 
   (entropy/emacs-lazy-initial-for-hook
-   (pre-command-hook)
+   (entropy/emacs-hydra-hollow-call-before-hook)
    "pyim-hydra-hollow-init" "pyim-hydra-hollow-init" prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-add-for-top-dispatch
@@ -2914,7 +2914,8 @@ otherwise returns nil."
 ;; ** Eemacs basic hydra-hollow instances
 
 (entropy/emacs-lazy-initial-for-hook
- (pre-command-hook) "eemacs-basic-core-hydra-hollow-init"
+ (entropy/emacs-hydra-hollow-call-before-hook)
+ "eemacs-basic-core-hydra-hollow-init"
  "eemacs-basic-core-hydra-hollow-init" prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
