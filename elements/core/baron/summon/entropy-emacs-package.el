@@ -430,9 +430,10 @@ recognized as a normal macro."
                 (= 1 (length key-value)))
            (let ((elts (car key-value)))
              (dolist (ptr elts)
-               (let* ((enable (plist-get ptr :enable))
-                      (adfors (plist-get ptr :adfors))
-                      (adtype (plist-get ptr :adtype))
+               (let* ((enable       (plist-get ptr :enable))
+                      (adfors       (plist-get ptr :adfors))
+                      (adtype       (plist-get ptr :adtype))
+                      (pdump-no-end (plist-get ptr :pdumper-no-end))
                       (evfunc-0 (lambda (val)
                                   (cond ((symbolp val)
                                          val)
@@ -452,9 +453,10 @@ recognized as a normal macro."
                                             (funcall evfunc-0 x))
                                           val))))))
                  (push
-                  (list :enable (funcall evfunc-1 enable)
-                        :adfors (funcall evfunc-2 adfors)
-                        :adtype (funcall evfunc-0 adtype)
+                  (list :enable         (funcall evfunc-1 enable)
+                        :adfors         (funcall evfunc-2 adfors)
+                        :adtype         (funcall evfunc-0 adtype)
+                        :pdumper-no-end (funcall evfunc-1 pdump-no-end)
                         )
                   pattern))))
            (reverse pattern))
@@ -475,26 +477,34 @@ plist are:
 - :enable :: a var or a form be evaluted as result of t or nil
   which be as an judger to perform the advice.
 
-- :adfors :: a list of symbol of a function or form which symbol
-  is identically return but form will be evaluated to a result of
-  a symbol as a function. And the evaluated of this slot will be
-  a list of function symbols.
+- :adfors :: a list of symbol of a function/hook or form which
+  symbol is identically return but form will be evaluated to a
+  result of a symbol as a function/hook. And the evaluated of
+  this slot will be a list of function symbols.
 
 - :adtype :: a symbol or a form which symbol is identically
   return but form will be evaluated to a result of a symbol, and
   both of those type are indicate the `advice-add' type of
-  'before' or 'after'.
+  'before' or 'after' or a symbol 'hook' indicate treat :adfors
+  as bunch of hooks to be injected.
+
+- :pdumper-no-end :: when non-nil do not inject adrequire into
+  `entropy/emacs-pdumper-load-hook' when
+  `entropy/emacs-custom-enable-lazy-load'.
 "
   (let* ((rest-body (use-package-process-keywords use-name rest state))
          (init-form '()))
     (dolist (ptr patterns)
-      (let* ((enable (plist-get ptr :enable))
-             (adfors (plist-get ptr :adfors))
-             (adtype (plist-get ptr :adtype))
+      (let* ((enable       (plist-get ptr :enable))
+             (adfors       (plist-get ptr :adfors))
+             (adtype       (plist-get ptr :adtype))
+             (pdump-no-end (plist-get ptr :pdumper-no-end))
              (ad-wrapper (cond ((eq adtype 'before)
                                 'entropy/emacs-lazy-initial-advice-before)
                                ((eq adtype 'after)
                                 'entropy/emacs-lazy-initial-advice-after)
+                               ((eq adtype 'hook)
+                                'entropy/emacs-lazy-initial-for-hook)
                                (t
                                 (error "wrong type of adwrapper type '%s'"
                                        adtype))))
@@ -505,6 +515,7 @@ plist are:
                 (append init-form
                         `((,ad-wrapper
                            ,adfors ,adprefix ,adprefix prompt-echo
+                           :pdumper-no-end ',pdump-no-end
                            (require ',use-name))))))))
     (use-package-concat
      rest-body

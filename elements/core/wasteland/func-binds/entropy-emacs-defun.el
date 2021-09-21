@@ -2029,9 +2029,11 @@ GENED-FUNCTION with their own name abbreviated."
                    nil)))
              (set hook (append (symbol-value hook) '(,adder-func)))))))))
 
-(defmacro entropy/emacs-lazy-initial-for-hook
+(cl-defmacro entropy/emacs-lazy-initial-for-hook
     (hooks initial-func-suffix-name initial-var-suffix-name
-           prompt-type &rest body)
+           prompt-type &rest body
+           &key pdumper-no-end
+           &allow-other-keys)
   "Wrap forms collection BODY into a auto-gened function named
 suffixed by INITIAL-FUNC-SUFFIX-NAME and then add it into a list
 of hooks HOOKS and just enable it oncely at the next time calling
@@ -2042,13 +2044,21 @@ named suffixed by INITIAL-VAR-SUFFIX-NAME.
 PROMPT-TYPE can be either 'prompt-popup' or 'prompt-echo' for let
 the initial form invoking do prompting in popup window type or
 with origin message echo area with those specification.
+
+If key :pdumper-no-end is non-nil then the BODY in non lazy
+session is inject to the the common
+`entropy/emacs-select-trail-hook' so that they are evaluated
+while pdumper procedure.
 "
-  (eval
-   `(entropy/emacs-lazy-initial-form
-     ',hooks ',initial-func-suffix-name ',initial-var-suffix-name
-     "entropy/emacs--hook-first-enable-for" "hook-adder" ',prompt-type
-     'add-hook nil
-     ',body)))
+  (let ((body-wrap (entropy/emacs-get-plist-body body)))
+    (eval
+     `(let ((entropy/emacs-lazy-initial-form-pdumper-no-end
+             ,pdumper-no-end))
+        (entropy/emacs-lazy-initial-form
+         ',hooks ',initial-func-suffix-name ',initial-var-suffix-name
+         "entropy/emacs--hook-first-enable-for" "hook-adder" ',prompt-type
+         'add-hook nil
+         ',body-wrap)))))
 
 (cl-defmacro entropy/emacs-lazy-initial-advice-before
     (advice-fors initial-func-suffix-name initial-var-suffix-name

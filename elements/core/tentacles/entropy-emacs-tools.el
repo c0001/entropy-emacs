@@ -38,7 +38,9 @@
 ;; *** openwith external apps
 ;; **** openwith config
 (use-package openwith
-  :if sys/is-graphic-support            ;just used in DE environment since sets of external program need graphical display
+  ;; Just used in DE environment since sets of external program need
+  ;; graphical display
+  :if sys/is-graphic-support
   :commands openwith-make-extension-regexp
   :init
   (add-hook 'dired-mode-hook #'openwith-mode)
@@ -254,18 +256,23 @@ Version 2017-10-09"
 ;; **** entropy-open-with
 (use-package entropy-open-with
   :if sys/is-graphic-support
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors (dired-mode)
+    :adtype after))
   :ensure nil
   :commands (entropy/open-with-dired-open
              entropy/open-with-buffer)
 
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("WI&BUF"
     (("M-1" entropy/open-with-buffer "Buffer open with portable apps"
       :enable t :exit t :eemacs-top-bind t))))
 
   :eemacs-mmphca
-  (((:enable t)
+  (((:enable t :defer t)
     (dired-mode (dired dired-mode-map)))
    ("Misc."
     (("M-RET" entropy/open-with-dired-open "Dired open with portable apps"
@@ -363,9 +370,16 @@ dynamically.")
 ;; Visual-regexp for Emacs is like replace-regexp, but with live
 ;; visual feedback directly in the buffer.
 (use-package visual-regexp
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (switch-to-buffer find-file)
+    :adtype
+    after))
   :commands (vr/replace vr/query-replace)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (visual-regexp))
    ("Basic"
     (("C-c r" vr/replace "Regexp-replace with live visual feedback"
@@ -373,7 +387,7 @@ dynamically.")
      ("C-c q" vr/query-replace "Use vr/query-replace like you would use query-replace-regexp"
       :enable t :exit t :global-bind t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("u v"
       (:eval
@@ -388,9 +402,16 @@ dynamically.")
 
 ;; *** ialign
 (use-package ialign
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (find-file switch-to-buffer)
+    :adtype
+    after))
   :commands (ialign)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("C-c i" ialign "Interactively align region"
       :enable t :exit t :global-bind t)))))
@@ -411,8 +432,13 @@ dynamically.")
 ;;    Since v2.0.0, Atomic Chrome for Emacs supports Ghost Text as
 ;;    browser extension, bringing compatibility with Firefox, too.
 (use-package atomic-chrome
-  ;; you can active follow code block for start atomic server with startup of emacs.
-  ;;      :init (atomic-chrome-start-server)
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (prog-mode-hook)
+    :adtype
+    hook))
   :commands (atomic-chrome-start-server)
   :preface
   (defun entropy/emacs-tools-toggle-atomic-chrome ()
@@ -423,7 +449,7 @@ dynamically.")
       (atomic-chrome-start-server)))
 
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("u a" entropy/emacs-tools-toggle-atomic-chrome
       "Toggle websocket server for atomic-chrome"
@@ -438,23 +464,30 @@ dynamically.")
 
 ;; *** Discover key bindings and their meaning for the current Emacs major mode
 (use-package discover-my-major
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (after-change-major-mode-hook)
+    :adtype hook))
   :commands (discover-my-major discover-my-mode)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (discover-my-major))
-   ("Basic"
+   ("Discover major-mode map"
     (("C-h M-m" discover-my-major "Create a makey popup listing all major-mode"
       :enable t :exit t :global-bind t)
      ("C-h M-M" discover-my-mode "Create a makey popup listing all minor-mode"
       :enable t :exit t :global-bind t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Basic"
     (("b d"
       (:eval
        (entropy/emacs-hydra-hollow-category-common-individual-get-caller
         'discover-my-major))
-      "Discover modes key-bindings"))))
+      "Discover modes key-bindings"
+      :enable t))))
 
   :config
 
@@ -664,46 +697,51 @@ which determined by the scale count 0.3 "
       ('google (call-interactively 'entropy/emacs-tools-google-translate-prompt-direct-en-CN))
       ('bing (call-interactively 'entropy/emacs-tools-bing-dict-brief-prompt)))))
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-dict-search nil
- '("Basic"
-   (("C-f" entropy/emacs-tools-dict-search-at-point
-     "Search dict for thing at current point"
-     :enable t :eemacs-top-bind t :exit t)
-    ("M-f" entropy/emacs-tools-dict-search-with-prompt
-     "Search dict for user specified with prompts"
-     :enable t :eemacs-top-bind t :exit t)
-    ("C-x y" entropy/cndt-query "Simple Translate Chinese at point"
-     :enable t :exit t :global-bind t)
-    ("t"
-     (let* ((candis '("sdcv" "youdao" "bing" "google"))
-            (chosen (completing-read
-                     "Toggle dict backend to: "
-                     candis nil t "sdcv")))
-       (setq entropy/emacs-tools-dict-sticker (intern chosen)))
-     "Toggle entropy-emacs dict search backend"
-     :enable t :exit t))
-   "Entropy Sdcv"
-   (("s t" entropy/sdcv-toggle-backend "Toggle dict-backends"
-     :enable t :exit t)
-    ("s s" entropy/sdcv-toggle-show-tooltip-method "Toggle show method"
-     :enable t :exit t)
-    ("s a" entropy/sdcv-autoshow-mode "Auto translate"
-     :enable t :exit nil
-     :toggle
-     (if (bound-and-true-p entropy/sdcv-autoshow-mode)
-         t
-       nil)))))
+(entropy/emacs-lazy-initial-for-hook
+ (after-change-major-mode-hook)
+ "entropy-dict-search-hydra-hollow-init"
+ "entropy-dict-search-hydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'eemacs-dict-search nil
+  '("Basic"
+    (("C-f" entropy/emacs-tools-dict-search-at-point
+      "Search dict for thing at current point"
+      :enable t :eemacs-top-bind t :exit t)
+     ("M-f" entropy/emacs-tools-dict-search-with-prompt
+      "Search dict for user specified with prompts"
+      :enable t :eemacs-top-bind t :exit t)
+     ("C-x y" entropy/cndt-query "Simple Translate Chinese at point"
+      :enable t :exit t :global-bind t)
+     ("t"
+      (let* ((candis '("sdcv" "youdao" "bing" "google"))
+             (chosen (completing-read
+                      "Toggle dict backend to: "
+                      candis nil t "sdcv")))
+        (setq entropy/emacs-tools-dict-sticker (intern chosen)))
+      "Toggle entropy-emacs dict search backend"
+      :enable t :exit t))
+    "Entropy Sdcv"
+    (("s t" entropy/sdcv-toggle-backend "Toggle dict-backends"
+      :enable t :exit t)
+     ("s s" entropy/sdcv-toggle-show-tooltip-method "Toggle show method"
+      :enable t :exit t)
+     ("s a" entropy/sdcv-autoshow-mode "Auto translate"
+      :enable t :exit nil
+      :toggle
+      (if (bound-and-true-p entropy/sdcv-autoshow-mode)
+          t
+        nil)))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b o"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'eemacs-dict-search))
-     "Dict search with sets of backends "
-     :enable t :exit t))))
-
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Basic"
+    (("b o"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'eemacs-dict-search))
+      "Dict search with sets of backends "
+      :enable t :exit t)))))
 
 ;; **** yoaudao-dictionary
 (use-package youdao-dictionary
@@ -904,10 +942,16 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 ;; *** Log keyboard commands to buffer
 ;;     Show event history and command history of some or all buffers.
 (use-package command-log-mode
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (pre-command-hook)
+    :adtype hook))
   :diminish (command-log-mode . "¢")
   :commands (command-log-mode)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("u l" entropy/emacs-tools-command-log-mode
       "Toggle keyboard command logging"
@@ -952,9 +996,15 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 
 ;; *** pomidor A simple and cool pomodoro timer
 (use-package pomidor
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (pre-command-hook)
+    :adtype hook))
   :commands (pomidor)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("C-c <f12>" pomidor
       "A simple and cool pomodoro technique timer"
@@ -963,6 +1013,8 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 ;; ** Misc
 ;; *** copy path, url, etc.
 (use-package copyit
+  :eemacs-adrequire
+  ((:enable t :adfors (pre-command-hook) :adtype hook))
   :commands
   (copyit-file-as-data-uri
    copyit-file-content
@@ -971,7 +1023,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
    copyit-ssh
    copyit-variable)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (copyit))
    ("File Copyit"
     (("u" copyit-file-as-data-uri
@@ -1010,6 +1062,12 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 ;; *** for generate elisp source file's commentry structure to org file
 (use-package entropy-code2org
   :ensure nil
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (prog-mode)
+    :adtype after))
   :commands (entropy/code2org-export-cur-to-README
              entropy/code2org-export-cur-to-html-file
              entropy/code2org-export-cur-to-org-file)
@@ -1024,7 +1082,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
       (funcall orig-func)))
 
   :eemacs-indhca
-  (((:enable t)
+  (((:enable t :defer t)
     (eemacs-basic-config-core))
    ("Export outline style code buffer into other kinds"
     (("c o" entropy/code2org-export-cur-to-org-file "Generate org file from current code buffer"
@@ -1079,9 +1137,15 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   ;; sequence
 
 (use-package visual-ascii-mode
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (help-mode)
+    :adtype after))
   :commands (global-visual-ascii-mode visual-ascii-mode)
   :eemacs-mmphca
-  (((:enable t)
+  (((:enable t :defer t)
     (help-mode (help-mode help-mode-map)))
    ("Visual"
     (("v" visual-ascii-mode "Visualize ascii code on buffer"
@@ -1089,9 +1153,15 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 
 ;; *** view emacs memory map
 (use-package memory-usage
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (pre-command-hook)
+    :adtype hook))
   :commands (memory-usage memory-usage-find-large-variables)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (memory-usage))
    ("Basic"
     (("u" memory-usage "Show current emacs session memory map"
@@ -1100,7 +1170,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
       "Find variables whose printed representation takes over 100KB"
       :enable t :exit t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("u m"
       (:eval
@@ -1144,6 +1214,12 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 
 ;; *** entropy-proxy-url
 (use-package entropy-proxy-url
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (eww-mode w3m-mode)
+    :adtype after))
   :ensure nil
   :eemacs-macros
   (entropy/proxy-url-with-url-proxy
@@ -1163,13 +1239,13 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
             t)))
 
   :eemacs-mmphca
-  ((((:enable t)
+  ((((:enable t :defer t)
      (eww-mode (eww eww-mode-map)))
     ("Proxy"
      (("p" entropy/proxy-url-switch-proxy-for-eww-group
        "Toggle proxy type"
        :enable t :map-inject t :exit t))))
-   (((:enable t)
+   (((:enable t :defer t)
      (w3m-mode (w3m w3m-mode-map)))
     ("Proxy"
      (("p" entropy/emacs-tools-w3m-toggle-proxy
@@ -1214,12 +1290,18 @@ can't visit one page suddenly."
 
 ;; *** entropy-unfill
 (use-package entropy-unfill
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (pre-command-hook)
+    :adtype hook))
   :ensure nil
   :commands (entropy/unfill-full-buffer-without-special-region
              entropy/unfill-paragraph
              entropy/fill-full-buffer-without-special-region)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (entropy-unfill))
    ("Unfill"
     (("u" entropy/unfill-full-buffer-without-special-region
@@ -1234,7 +1316,7 @@ can't visit one page suddenly."
       :enable t :exit t))))
 
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("u x"
       (:eval
@@ -1245,10 +1327,16 @@ can't visit one page suddenly."
 
 ;; *** entropy-org-batch-refile
 (use-package entropy-org-batch-refile
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (org-mode-hook)
+    :adtype hook))
   :ensure nil
   :commands entropy/org-batch-refile-tags-read-and-do
   :eemacs-mmphca
-  (((:enable t)
+  (((:enable t :defer t)
     (org-mode (org org-mode-map)))
    ("Org Refile"
     (("r b" entropy/org-batch-refile-tags-read-and-do
@@ -1274,10 +1362,16 @@ can't visit one page suddenly."
 ;; *** entropy-portableapps
 (use-package entropy-portableapps
   :if sys/is-win-group
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (pre-command-hook)
+    :adtype hook))
   :ensure nil
   :commands (entropy/poapps-query-open)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Misc."
     (("<M-up>" entropy/poapps-query-open
       "Query and open portableapps"
@@ -1287,17 +1381,29 @@ can't visit one page suddenly."
 
 ;; *** entropy-epub2org
 (use-package entropy-epub2org
+  :eemacs-adrequire
+  ((:enable
+    t
+    :adfors
+    (pre-command-hook)
+    :adtype hook))
   :ensure nil
   :commands (entropy/ep2o-dispatcher
              entropy/ep2o-src-adjusting-manually)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Misc."
-    (("m e d" entropy/ep2o-dispatcher
-      "Convert epub book to org-files"
-      :enable t :exit t)
-     ("m e m" entropy/ep2o-src-adjusting-manually
-      "Re-adjust epub book org version"
+    (("m e"
+      (:pretty-hydra-cabinet
+       (:data
+        "Convert ebook to org files"
+        (("m e d" entropy/ep2o-dispatcher
+          "Convert epub book to org-files"
+          :enable t :exit t)
+         ("m e m" entropy/ep2o-src-adjusting-manually
+          "Re-adjust epub book org version"
+          :enable t :exit t))))
+      "Convert ebook to org files"
       :enable t :exit t))))
   :config
   (defun entropy/emacs-tools--ep2o-tidy-up-image-width-defaut ()

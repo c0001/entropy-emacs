@@ -1769,7 +1769,7 @@ as thus."
 
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (find-file push-button find-library-name)
+   (find-file push-button find-library-name switch-to-buffer)
    "entropy-grom"
    "entropy-grom"
    prompt-echo
@@ -1795,6 +1795,7 @@ as thus."
  "GlbAutoRevertMode"
  "GlbAutoRevertMode-enabled"
  prompt-echo
+ :pdumper-no-end t
  (global-auto-revert-mode +1))
 
 (defun entropy/emacs-basic-toggle-global-auto-revert-mode ()
@@ -2121,6 +2122,7 @@ successfully both of situation of read persisit of create an new."
   (entropy/emacs-lazy-initial-for-hook
    (dired-mode-hook find-file-hook)
    "epa-mode" "epa-mode" prompt-echo
+   :pdumper-no-end t
    (epa-file-enable))
 
   (when (and entropy/emacs-wsl-enable
@@ -2662,6 +2664,7 @@ please check buffer '*liberime build*' for details"
   (entropy/emacs-lazy-initial-for-hook
    (pre-command-hook)
    "pyim-hydra-hollow-init" "pyim-hydra-hollow-init" prompt-echo
+   :pdumper-no-end t
    (entropy/emacs-hydra-hollow-add-for-top-dispatch
     '("Pyim"
       (("c c" entropy/emacs-basic-pyim-start
@@ -2913,6 +2916,7 @@ otherwise returns nil."
 (entropy/emacs-lazy-initial-for-hook
  (pre-command-hook) "eemacs-basic-core-hydra-hollow-init"
  "eemacs-basic-core-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'eemacs-basic-config-core nil
   '("Eemacs Basic Core"
