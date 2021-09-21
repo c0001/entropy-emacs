@@ -417,7 +417,7 @@ recognized as a normal macro."
 (defun use-package-eemacs-adrequire/gen-random-ad-prefix (adtype)
   (let* ((id-pool use-package-eemacs-adrequire/ad-random-ids)
          (id (if id-pool
-                 (+ (car id-pool))
+                 (+ (car id-pool) 1)
                0)))
     (push id use-package-eemacs-adrequire/ad-random-ids)
     (format "eemacs-use-package/:eemacs-adrequire/%s/id_%s"

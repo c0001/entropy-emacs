@@ -86,7 +86,7 @@
    web-mode)
 ;; ***** eemacs mmphc
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (web-mode (web-mode web-mode-map) t (1 2 1 1 2)))
    ("Basic"
     (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
@@ -220,7 +220,8 @@
 ;; ***** eemacs mmphca
   :eemacs-mmphca
   (((:enable (eq (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional)
-                 'traditional))
+                 'traditional)
+     :defer t)
     (web-mode (web-mode web-mode-map)))
    ("Company"
     (("M-t" company-tern "Company Tern"
@@ -251,7 +252,7 @@
   :hook ((web-mode . emmet-mode)
          (html-mode . emmet-mode))
   :eemacs-mmphca
-  (((:enable t)
+  (((:enable t :defer t)
     (web-mode (emmet-mode emmet-mode-keymap)))
    ("Basic"
     (("C-j" emmet-expand-line "Emmet expanding (intelligent)"
@@ -263,7 +264,7 @@
 (use-package css-mode
   :ensure nil
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (nil nil t))
    ("Basic"
     (("C-c C-f" css-cycle-color-format "Cycle the color at point between different CSS color formats"
@@ -276,7 +277,7 @@
 (use-package json-mode
   :commands (json-mode)
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (nil nil t))
    ("Basic"
     (("C-c C-p" json-mode-show-path
@@ -306,7 +307,7 @@
   :mode "\\.js$"
   :interpreter "node"
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (nil nil t (1 1 3)))
    ("Basic"
     (("C-c C-w" js2-mode-toggle-warnings-and-errors "Toggle the display of warnings and errors"
@@ -428,7 +429,7 @@ format."
      "js-beautify"))
 
   :eemacs-mmphca
-  ((((:enable t)
+  ((((:enable t :defer t)
      (js2-mode (js2-mode js2-mode-map)))
     ("Web Beautify"
      (("C-c C-b" web-beautify-js "Beautify Js"

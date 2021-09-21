@@ -84,7 +84,7 @@
 
 ;; *** eemacs hydra hollow
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Highlight"
     (("C-c h s e" entropy/emacs-hl-symbol-overlay-toggle
       "Toggle symbol overlay mode"
@@ -261,20 +261,25 @@ invoke this function any more isn't it?"
 (use-package highlight-parentheses
   :diminish highlight-parentheses-mode
   :commands (highlight-parentheses-mode)
-  :eemacs-tpha
-  (((:enable t))
-   ("Highlight"
-    (("C-c h p e" highlight-parentheses-mode
-      "highlight the surrounding parentheses"
-      :enable t
-      :eemacs-top-bind t
-      :toggle
-      (if (bound-and-true-p highlight-parentheses-mode)
-          t
-        nil)))))
   :init
   (when entropy/emacs-hl-highlight-parentheses-mode-enable-at-startup
     (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
+
+  (entropy/emacs-lazy-initial-advice-after
+   (prog-mode) "highlight-parentheses-hydra-hollow-init"
+   "highlight-parentheses-hydra-hollow-init" prompt-echo
+   :pdumper-no-end t
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    '("Highlight"
+      (("C-c h p e" highlight-parentheses-mode
+        "highlight the surrounding parentheses"
+        :enable t
+        :eemacs-top-bind t
+        :toggle
+        (if (bound-and-true-p highlight-parentheses-mode)
+            t
+          nil))))))
+
   :config (set-face-attribute 'hl-paren-face nil :weight 'ultra-bold))
 
 ;; ** Highlight indentions
@@ -290,20 +295,27 @@ invoke this function any more isn't it?"
 
 (use-package highlight-indent-guides
   :commands (highlight-indent-guides-mode)
-  :eemacs-tpha
-  (((:enable t))
-   ("Highlight"
-    (("C-c h p i" highlight-indent-guides-mode
-      "Display indent guides in a buffer"
-      :enable t
-      :eemacs-top-bind t
-      :toggle
-      (if (bound-and-true-p highlight-indent-guides-mode)
-          t
-        nil)))))
   :init
   (when entropy/emacs-hl-highlight-indention-enable-at-startup
     (add-hook 'prog-mode-hook #'highlight-indent-guides-mode))
+
+  (entropy/emacs-lazy-initial-advice-after
+   (prog-mode)
+   "highlight-indent-guides-mode-hydra-hollow-init"
+   "highlight-indent-guides-mode-hydra-hollow-init"
+   prompt-echo
+   :pdumper-no-end t
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    '("Highlight"
+      (("C-c h p i" highlight-indent-guides-mode
+        "Display indent guides in a buffer"
+        :enable t
+        :eemacs-top-bind t
+        :toggle
+        (if (bound-and-true-p highlight-indent-guides-mode)
+            t
+          nil))))))
+
   :config (setq highlight-indent-guides-method 'character))
 
 ;; ** Colorize color names in buffers
@@ -315,7 +327,7 @@ invoke this function any more isn't it?"
   :diminish rainbow-mode
   :commands (rainbow-mode)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Highlight"
     (("C-c h p r" rainbow-mode
       "Turn on Rainbow-Mode"
@@ -370,20 +382,26 @@ invoke this function any more isn't it?"
 
 (use-package rainbow-delimiters
   :commands (rainbow-delimiters-mode)
-  :eemacs-tpha
-  (((:enable t))
-   ("Highlight"
-    (("C-c h p d" rainbow-delimiters-mode
-      "Toggle Rainbow-Delimiters mode"
-      :enable t
-      :eemacs-top-bind t
-      :toggle
-      (if (bound-and-true-p rainbow-delimiters-mode)
-          t
-        nil)))))
   :init
   (when entropy/emacs-hl-rainbow-delimiters-enable-at-startup
-    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)))
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
+  (entropy/emacs-lazy-initial-advice-after
+   (prog-mode)
+   "rainbow-delimeters-hydra-hollow-init"
+   "rainbow-delimeters-hydra-hollow-init"
+   prompt-echo
+   :pdumper-no-end t
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    '("Highlight"
+      (("C-c h p d" rainbow-delimiters-mode
+        "Toggle Rainbow-Delimiters mode"
+        :enable t
+        :eemacs-top-bind t
+        :toggle
+        (if (bound-and-true-p rainbow-delimiters-mode)
+            t
+          nil)))))))
 
 ;; ** Highlight TODO and similar keywords in comments and strings
 ;;
@@ -402,7 +420,7 @@ invoke this function any more isn't it?"
              hl-todo-next
              hl-todo-occur)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Highlight"
     (("C-c h t o" hl-todo-occur
       "Find All TODO Keywords"
@@ -496,35 +514,45 @@ invoke this function any more isn't it?"
 ;; In windows system
 
 (use-package diff-hl
-  :if (and (or (and entropy/emacs-wsl-enable
-                    sys/win32p)
-               sys/is-posix-compatible)
-           entropy/emacs-hl-diff-hl-enable-at-startup)
   :commands (global-diff-hl-mode
              diff-hl-mode)
   :bind (:map diff-hl-command-map
               ("SPC" . diff-hl-mark-hunk))
-  :eemacs-tpha
-  (((:enable t))
-   ("Hightlight"
-    (("C-c h d h" diff-hl-mode
-      "Toggle VC diff highlighting"
-      :enable t
-      :eemacs-top-bind t
-      :toggle
-      (if (bound-and-true-p diff-hl-mode)
-          t
-        nil)))))
   :init
-  (entropy/emacs-lazy-with-load-trail
-   global-diff-hl
-   :pdumper-no-end t
-   :body
-   (global-diff-hl-mode t))
+  (when (and (or (and entropy/emacs-wsl-enable
+                      sys/win32p)
+                 sys/is-posix-compatible)
+             entropy/emacs-hl-diff-hl-enable-at-startup)
+    (entropy/emacs-lazy-initial-advice-after
+     (find-file)
+     "global-diff-hl-hydra-hollow-init"
+     "global-diff-hl-hydra-hollow-init"
+     prompt-echo
+     :pdumper-no-end t
+     (global-diff-hl-mode t)))
 
+  ;; NOTE:
+  ;; ;; This may be cause dired be crash for big git
+  ;; ;; repo such as linux kernel repo
+  ;; TODO: hack on its performance in dired
   ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
-        ;;;; This may be cause dired be crash for big git
-        ;;;; repo such as linux kernel repo
+
+  (entropy/emacs-lazy-initial-advice-after
+   (find-file)
+   "diff-hl-mode-hydra-hollow-init"
+   "diff-hl-mode-hydra-hollow-init"
+   prompt-echo
+   :pdumper-no-end t
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    '("Hightlight"
+      (("C-c h d h" diff-hl-mode
+        "Toggle VC diff highlighting"
+        :enable t
+        :eemacs-top-bind t
+        :toggle
+        (if (bound-and-true-p diff-hl-mode)
+            t
+          nil))))))
 
   :config
   (diff-hl-flydiff-mode 1)
@@ -544,23 +572,30 @@ invoke this function any more isn't it?"
 ;; and NEWLINE).
 
 (use-package whitespace
-  :if entropy/emacs-hl-whitespace-enable-at-startup
   :ensure nil
   :diminish whitespace-mode
-  :eemacs-tpha
-  (((:enable t))
-   ("Highlight"
-    (("C-c h d w" whitespace-mode
-      "Toggle whitespace visualization"
-      :enable t
-      :eemacs-top-bind t
-      :toggle
-      (if (bound-and-true-p whitespace-mode)
-          t
-        nil)))))
   :init
-  (dolist (hook '(prog-mode-hook outline-mode-hook conf-mode-hook))
-    (add-hook hook #'whitespace-mode))
+  (when entropy/emacs-hl-whitespace-enable-at-startup
+    (dolist (hook '(prog-mode-hook outline-mode-hook conf-mode-hook))
+      (add-hook hook #'whitespace-mode)))
+
+  (entropy/emacs-lazy-initial-advice-after
+   (find-file)
+   "white-space-mode-hydra-hollow-init"
+   "white-space-mode-hydra-hollow-init"
+   prompt-echo
+   :pdumper-no-end t
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    '("Highlight"
+      (("C-c h d w" whitespace-mode
+        "Toggle whitespace visualization"
+        :enable t
+        :eemacs-top-bind t
+        :toggle
+        (if (bound-and-true-p whitespace-mode)
+            t
+          nil))))))
+
   :config
   (setq whitespace-line-column fill-column) ;; limit line length
   ;; automatically clean up bad whitespace

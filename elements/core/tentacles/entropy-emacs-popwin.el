@@ -217,7 +217,7 @@
 
 ;; *** keybindings
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (shackle-dispatch))
    ("Shackle popuping"
     (("p o" entropy/emacs-popwin-shackle-popup-buffer "Popup for buffers"
@@ -231,7 +231,7 @@
      ("p l" entropy/emacs-popwin-shackle-show-last-popup-buffer "Popup last popuped buffer"
       :enable t :exit t :eemacs-top-bind t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("WI&BUF"
     (("p"
       (:eval

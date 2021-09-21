@@ -104,9 +104,9 @@ For lisp coding aim, always return the transfered buffer.
 (use-package elisp-mode
   :ensure nil
   :eemacs-mmphc
-  ((((:enable t)
+  ((((:enable t :defer t)
      (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map) t))
-    ((:enable t)
+    ((:enable t :defer t)
      (lisp-interaction-mode (elisp-mode lisp-interaction-mode-map) t)))
    ("IELM"
     (("C-c C-z" ielm "Open IELM"
@@ -163,11 +163,17 @@ For lisp coding aim, always return the transfered buffer.
 
 ;; Interactive macro expander
 (use-package macrostep
+  :eemacs-adrequire
+  ((:enable t
+    :adfors
+    (emacs-lisp-mode
+     lisp-interaction-mode)
+    :adtype after))
   :commands (macrostep-expand)
   :eemacs-mmphca
-  ((((:enable t)
+  ((((:enable t :defer t)
      (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map)))
-    ((:enable t)
+    ((:enable t :defer t)
      (lisp-interaction-mode (elisp-mode lisp-interaction-mode-map))))
    ("Macro"
     (("C-c e" macrostep-expand "Expand Macro At Point"
@@ -215,7 +221,7 @@ For lisp coding aim, always return the transfered buffer.
              )
 ;; **** hydra
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (lisp-mode (nil slime-mode-map) t))
    ("Slime"
     (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol

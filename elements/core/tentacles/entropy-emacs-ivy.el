@@ -1264,28 +1264,33 @@ display icon or empty string while
 
 ;; *** hydra for searcher
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'powerful-searcher nil
- (if (string= entropy/emacs-search-program "ag")
-     '("Powerful Searcher"
-       (("C-c j" helm-do-ag "Helm AG Search"
-         :enable t :exit t :global-bind t)
-        ("C-c k" helm-do-ag-project-root "Helm AG search for project root"
-         :enable t :exit t :global-bind t)))
-   '("Powerful Searcher"
-     (("C-c j" rg "Ripgrep for location selected"
-       :enable t :exit t :global-bind t)
-      ("C-c k" rg-project "Ripgrep for current project"
-       :enable t :exit t :global-bind t)))))
+(entropy/emacs-lazy-initial-advice-after
+ (find-file)
+ "powerful-searcher-hydra-hollow-init"
+ "powerful-searcher-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'powerful-searcher nil
+  (if (string= entropy/emacs-search-program "ag")
+      '("Powerful Searcher"
+        (("C-c j" helm-do-ag "Helm AG Search"
+          :enable t :exit t :global-bind t)
+         ("C-c k" helm-do-ag-project-root "Helm AG search for project root"
+          :enable t :exit t :global-bind t)))
+    '("Powerful Searcher"
+      (("C-c j" rg "Ripgrep for location selected"
+        :enable t :exit t :global-bind t)
+       ("C-c k" rg-project "Ripgrep for current project"
+        :enable t :exit t :global-bind t)))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Utils"
-   (("u s"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'powerful-searcher))
-     "Powerful searcher"
-     :enable t :exit t))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Utils"
+    (("u s"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'powerful-searcher))
+      "Powerful searcher"
+      :enable t :exit t)))))
 
 ;; ** Powerful find-file
 (use-package find-file-in-project

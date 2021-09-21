@@ -705,8 +705,8 @@ modifcation is to remove this feature.
   :eemacs-macros (dired-rainbow-define)
   :commands (dired-rainbow-define-chmod)
   :init
-  (entropy/emacs-lazy-initial-advice-before
-   (dired)
+  (entropy/emacs-lazy-initial-advice-after
+   (dired-mode)
    "dired-rainbow-init-for-dired" "dired-rainbow-init-for-dired"
    prompt-echo
    :pdumper-no-end t
@@ -762,8 +762,8 @@ modifcation is to remove this feature.
 (use-package diredfl
   :commands (diredfl-global-mode)
   :init
-  (entropy/emacs-lazy-initial-advice-before
-   (dired)
+  (entropy/emacs-lazy-initial-advice-after
+   (dired-mode)
    "diredfl-init-for-dired" "diredfl-init-for-dired"
    prompt-echo
    :pdumper-no-end t
@@ -772,10 +772,11 @@ modifcation is to remove this feature.
 ;; **** dired-x
 (use-package dired-x
   :ensure nil
+  :eemacs-adrequire ((:enable t :adfors (dired-mode) :adtype after))
   :commands (dired-omit-mode)
   :hook (dired-mode . dired-omit-mode)
   :eemacs-mmphca
-  (((:enable t)
+  (((:enable t :defer t)
     (dired-mode (dired dired-mode-map)))
    ("Misc."
     (("o" dired-omit-mode "Toggle omission of uninteresting files in Dired (Dired-Omit mode)."
@@ -792,12 +793,12 @@ modifcation is to remove this feature.
 ;; **** dired-subtree
 ;; Org mode like dired subtree fold/expand
 (use-package dired-subtree
-  :after dired
+  :eemacs-adrequire ((:enable t :adfors (dired-mode) :adtype after))
   :commands
   (dired-subtree-toggle
    dired-subtree-cycle)
   :eemacs-mmphca
-  (((:enable t)
+  (((:enable t :defer t)
     (dired-mode (dired dired-mode-map)))
    ("Basic"
     (("TAB" dired-subtree-toggle
@@ -980,7 +981,7 @@ window point not shown in nice place e.g. at window bottom."
 (use-package image-mode
   :ensure nil
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (nil
      nil
      t
@@ -1062,7 +1063,7 @@ Temp file was \"~/~entropy-artist.txt\""
   :commands (man
              entropy/emacs-Man-mode-fit-to-window)
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (Man-mode (man Man-mode-map) t (1 2 2)))
    ("Basic"
     (("k"    Man-kill
@@ -1472,34 +1473,39 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
   (interactive)
   (entropy/emacs-basic-toggle-case-core 'upcase))
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'words-manipulation nil
- '("Basic"
-   (("M-c" entropy/emacs-basic-toggle-case-for-capitalize
-     "Captalize Word/Region"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("M-l" entropy/emacs-basic-toggle-case-for-downcase
-     "Down Case Word/Region"
-     :enable t
-     :exit t
-     :global-bind t)
-    ("M-u" entropy/emacs-basic-toggle-case-for-upcase
-     "Upcase Word/Region"
-     :enable t
-     :exit t
-     :global-bind t))))
+(entropy/emacs-lazy-initial-advice-after
+ (find-file switch-to-buffer prog-mode fundamental-mode)
+ "entropy-toggle-case-hydra-hollow-init"
+ "entropy-toggle-case-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'words-manipulation nil
+  '("Basic"
+    (("M-c" entropy/emacs-basic-toggle-case-for-capitalize
+      "Captalize Word/Region"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("M-l" entropy/emacs-basic-toggle-case-for-downcase
+      "Down Case Word/Region"
+      :enable t
+      :exit t
+      :global-bind t)
+     ("M-u" entropy/emacs-basic-toggle-case-for-upcase
+      "Upcase Word/Region"
+      :enable t
+      :exit t
+      :global-bind t))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b w"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'words-manipulation))
-     "Words manipulation"
-     :enable t
-     :exit t))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Basic"
+    (("b w"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'words-manipulation))
+      "Words manipulation"
+      :enable t
+      :exit t)))))
 
 ;; ****** Auto-sudoedit
 
@@ -1521,8 +1527,12 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
 
 (use-package rect
   :ensure nil
+  :eemacs-adrequire
+  ((:enable t
+    :adfors (find-file prog-mode fundamental-mode switch-to-buffer)
+    :adtype after))
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (rectangle-mode))
    ("Move"
     (("h" backward-char "←"
@@ -1549,7 +1559,7 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
      ("C-x r N" rectangle-number-lines "number lines"
       :enable t :global-bind t :exit t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("u r"
       (:eval
@@ -1736,7 +1746,7 @@ as thus."
              entropy/grom-read-only-buffer
              entropy/grom-quick-readonly-global)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (entropy-grom-mode))
    ("Basic"
     (("<f1>" entropy/grom-read-only-buffer "Toggle buffer read-only status"
@@ -1748,7 +1758,7 @@ as thus."
       "Quickly lock all buffers in current emacs session with internal rules matched"
       :enable t :global-bind t :exit t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("WI&BUF"
     (("L"
       (:eval
@@ -2649,13 +2659,16 @@ please check buffer '*liberime build*' for details"
 
   :preface
 
-  (entropy/emacs-hydra-hollow-add-for-top-dispatch
-   '("Pyim"
-     (("c c" entropy/emacs-basic-pyim-start
-       "Enable Pyim"
-       :enable t
-       :toggle entropy/emacs-pyim-has-initialized
-       :exit t))))
+  (entropy/emacs-lazy-initial-for-hook
+   (pre-command-hook)
+   "pyim-hydra-hollow-init" "pyim-hydra-hollow-init" prompt-echo
+   (entropy/emacs-hydra-hollow-add-for-top-dispatch
+    '("Pyim"
+      (("c c" entropy/emacs-basic-pyim-start
+        "Enable Pyim"
+        :enable t
+        :toggle entropy/emacs-pyim-has-initialized
+        :exit t)))))
 
   (defun entropy/emacs-basic-pyim-start ()
     (interactive)
@@ -2767,23 +2780,28 @@ please check buffer '*liberime build*' for details"
 
 ;; **** Emacs process and system proced manager hacking
 ;; ***** process
-(entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
- 'process-menu-mode '(simple process-menu-mode-map) t
- '("Basic"
-   (("S" tabulated-list-sort "Sort Tabulated List entries by the column at point"
-     :enable t :exit t :map-inject t)
-    ("d" process-menu-delete-process "Kill process at point in a 'list-processes' buffer."
-     :enable t :exit t :map-inject t)
-    ("g" revert-buffer "Refresh process buffer"
-     :enable t :exit t :map-inject t)
-    ("h" describe-mode "Display documentation of current major mode and minor modes."
-     :enable t :exit t :map-inject t)
-    ("q" quit-window "Quit WINDOW and bury its buffer."
-     :enable t :exit t :map-inject t)
-    ("{" tabulated-list-narrow-current-column "Narrow the current tabulated list column by N chars."
-     :enable t :exit t :map-inject t)
-    ("}" tabulated-list-widen-current-column "Widen the current tabulated-list column by N chars."
-     :enable t :exit t :map-inject t))))
+
+(entropy/emacs-lazy-initial-advice-after
+ (process-menu-mode)
+ "process-menu-mode-hydra-hollow-init" "process-menu-mode-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+  'process-menu-mode '(simple process-menu-mode-map) t
+  '("Basic"
+    (("S" tabulated-list-sort "Sort Tabulated List entries by the column at point"
+      :enable t :exit t :map-inject t)
+     ("d" process-menu-delete-process "Kill process at point in a 'list-processes' buffer."
+      :enable t :exit t :map-inject t)
+     ("g" revert-buffer "Refresh process buffer"
+      :enable t :exit t :map-inject t)
+     ("h" describe-mode "Display documentation of current major mode and minor modes."
+      :enable t :exit t :map-inject t)
+     ("q" quit-window "Quit WINDOW and bury its buffer."
+      :enable t :exit t :map-inject t)
+     ("{" tabulated-list-narrow-current-column "Narrow the current tabulated list column by N chars."
+      :enable t :exit t :map-inject t)
+     ("}" tabulated-list-widen-current-column "Widen the current tabulated-list column by N chars."
+      :enable t :exit t :map-inject t)))))
 
 ;; ***** proced
 (use-package proced
@@ -2815,7 +2833,7 @@ otherwise returns nil."
             "`entropy/emacs-basic-proced-auto-startwith' are just used in w32 platform")))))
 
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (proced-mode (proced proced-mode-map) t (2 2 2 2)))
    ("Marking"
     (("m" proced-mark "Mark the current (or next COUNT) processes"
@@ -2892,47 +2910,50 @@ otherwise returns nil."
 
 ;; ** Eemacs basic hydra-hollow instances
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-basic-config-core nil
- '("Eemacs Basic Core"
-   (("f f"
-     (:pretty-hydra-cabinet
-      (:data
-       "Frequently used commands"
-       (("C-x 1" delete-other-windows
-         "delete-other-window"
-         :enable t :exit t :global-bind t)
-        ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
-         :enable t
-         :exit t
-         :global-bind t)
-        ("<f6>" entropy/emacs-ui-loop-alpha-selected-frame
-         "Frame Alpha"
-         :enable t
-         :toggle entropy/emacs-ui-loop-alpha-selected-frame-did
-         :global-bind t)
-        ("<f7>" entropy/emacs-basic-major-mode-reload
-         "Reload Major"
-         :enable t :exit t :global-bind t)
-        ("C-<f9>" toggle-truncate-lines "toggle truncate"
-         :enable t :toggle truncate-lines :global-bind t)
-        ("SPC" entropy/emacs-basic-mark-set
-         "Mark Set"
-         :enable t :eemacs-top-bind t :exit t)
-        ("C-c s s" list-processes "List Process"
-         :enable t :exit t :global-bind t))))
-     "Frequently used commands"
-     :enable t :exit t)))
- nil '(2 2 2))
+(entropy/emacs-lazy-initial-for-hook
+ (pre-command-hook) "eemacs-basic-core-hydra-hollow-init"
+ "eemacs-basic-core-hydra-hollow-init" prompt-echo
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'eemacs-basic-config-core nil
+  '("Eemacs Basic Core"
+    (("f f"
+      (:pretty-hydra-cabinet
+       (:data
+        "Frequently used commands"
+        (("C-x 1" delete-other-windows
+          "delete-other-window"
+          :enable t :exit t :global-bind t)
+         ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
+          :enable t
+          :exit t
+          :global-bind t)
+         ("<f6>" entropy/emacs-ui-loop-alpha-selected-frame
+          "Frame Alpha"
+          :enable t
+          :toggle entropy/emacs-ui-loop-alpha-selected-frame-did
+          :global-bind t)
+         ("<f7>" entropy/emacs-basic-major-mode-reload
+          "Reload Major"
+          :enable t :exit t :global-bind t)
+         ("C-<f9>" toggle-truncate-lines "toggle truncate"
+          :enable t :toggle truncate-lines :global-bind t)
+         ("SPC" entropy/emacs-basic-mark-set
+          "Mark Set"
+          :enable t :eemacs-top-bind t :exit t)
+         ("C-c s s" list-processes "List Process"
+          :enable t :exit t :global-bind t))))
+      "Frequently used commands"
+      :enable t :exit t)))
+  nil '(2 2 2))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b m"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'eemacs-basic-config-core))
-     "Core Operations"
-     :enable t :exit t))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Basic"
+    (("b m"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'eemacs-basic-config-core))
+      "Core Operations"
+      :enable t :exit t)))))
 
 ;; * provide
 (provide 'entropy-emacs-basic)

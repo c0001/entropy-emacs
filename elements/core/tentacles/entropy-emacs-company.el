@@ -214,7 +214,7 @@ NOTE: this function is an around advice wrapper."
          ("C-n" . company-select-next))
 
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (company-auto-completion))
    ("Basic complete"
     (("M-/" company-complete
@@ -233,7 +233,7 @@ NOTE: this function is an around advice wrapper."
       :enable t :eemacs-top-bind t :exit t))))
 
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Basic"
     (("b c"
       (:eval

@@ -53,11 +53,11 @@
    mpc-seek-current)
 ;; *** eemacs mmphc
   :eemacs-mmphc
-  ((((:enable t)
+  ((((:enable t :defer t)
      (mpc-songs-mode (mpc mpc-songs-mode-map) t (2 2 2)))
-    ((:enable t)
+    ((:enable t :defer t)
      (mpc-tagbrowser-mode (mpc mpc-tagbrowser-mode-map) t (2 2 2)))
-    ((:enable t)
+    ((:enable t :defer t)
      (mpc-status-mode (mpc mpc-status-mode-map) t (2 2 2))))
    ("Common"
     (("P" mpc-toggle-play "Toggle between play and pause"
@@ -126,12 +126,12 @@
 
 ;; *** eemacs mmphca
   :eemacs-mmphca
-  ((((:enable t)
+  ((((:enable t :defer t)
      (mpc-tagbrowser-mode (mpc mpc-tagbrowser-mode-map)))
     ("Common"
      (("RET" mpc-select "Select the tag value at point"
        :enable t :map-inject t :exit t))))
-   (((:enable t)
+   (((:enable t :defer t)
      (mpc-songs-mode (mpc mpc-songs-mode-map)))
     ("Common"
      (("RET" entropy/emacs-music-mpc-auto-add-and-play

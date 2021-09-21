@@ -401,7 +401,7 @@ return nil"
 
 ;; ***** doom-modeline hydra
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (doom-modeline-dispatch))
    ("Icon"
     (("i" (setq doom-modeline-icon (not doom-modeline-icon))
