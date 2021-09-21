@@ -316,11 +316,21 @@ interactive session."
   "An alternative to `message' that strips out ANSI codes, with
 popup window if in a interaction session and
 `entropy/emacs-message-non-popup' is `null'. Use popup window
-whenever `entropy/emacs-startup-done' is not set"
-  `(cond ((and
-           (not noninteractive)
+whenever `entropy/emacs-startup-done' is not set while
+`entropy/emacs-startup-with-Debug-p' was non-nil."
+  `(cond (
+          ;; Simplifying the startup hints
+          (and
+           (not (bound-and-true-p entropy/emacs-startup-done))
+           ;; BUT:
+           ;; -- not in debug mode
            (not entropy/emacs-startup-with-Debug-p)
-           (not (bound-and-true-p entropy/emacs-startup-done)))
+           ;; -- not in daemon init type
+           (not
+            (and (daemonp)
+                 (not entropy/emacs-daemon-server-init-done)))
+           ;; -- not in other batch mode
+           (not noninteractive))
           (message "Loading ..."))
          ((or
            ;; always disbale popup in `noninteractive' mode
