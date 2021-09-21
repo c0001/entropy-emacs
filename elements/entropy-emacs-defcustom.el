@@ -2085,12 +2085,17 @@ NOTE: this variable just be used when
   "entropy-emacs debug configurations"
   :group 'entropy-emacs-customize-top-group)
 
-(defcustom entropy/emacs-startup-benchmark-init (getenv "EEMACS_DEBUG")
+(defcustom entropy/emacs-startup-with-Debug-p (getenv "EEMACS_DEBUG")
+  "Does eemacs start with debug mode?"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-DEBUG)
+
+(defcustom entropy/emacs-startup-benchmark-init entropy/emacs-startup-with-Debug-p
   "Benchmark eemacs startup time?"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
 
-(defcustom entropy/emacs-startup-debug-on-error (getenv "EEMACS_DEBUG")
+(defcustom entropy/emacs-startup-debug-on-error entropy/emacs-startup-with-Debug-p
   "Enable `debug-on-error' at eemacs startup time?"
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
