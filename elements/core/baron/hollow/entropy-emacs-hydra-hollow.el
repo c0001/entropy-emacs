@@ -2790,18 +2790,31 @@ both ommited, that as:
 
 ;; ***** defer parse
 
-(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-ids-pool nil)
-(defun  entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-prefix
+(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool nil)
+(defun  entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-funcname-prefix
     (use-name adtype)
   (let* ((id-pool
-          entropy/emacs-hydra-hollow/use-package/defer-parse-random-ids-pool)
+          entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool)
          (id (if id-pool
                  (+ (car id-pool) 1)
                0)))
     (push id
-          entropy/emacs-hydra-hollow/use-package/defer-parse-random-ids-pool)
-    (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/adtype-of-%s/id_%s"
+          entropy/emacs-hydra-hollow/use-package/defer-parse-random-func-ids-pool)
+    (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/adtype-of-%s/func-id_%s"
             use-name adtype id)))
+
+(defvar entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool nil)
+(defun  entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-judger-prefix
+    (use-name)
+  (let* ((id-pool
+          entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool)
+         (id (if id-pool
+                 (+ (car id-pool) 1)
+               0)))
+    (push id
+          entropy/emacs-hydra-hollow/use-package/defer-parse-random-judger-ids-pool)
+    (format "eemacs-use-package/hydra-hollow-defer-parse/for-%s/judger-id_%s"
+            use-name id)))
 
 (defun entropy/emacs-hydra-hollow/use-package/defer-parse/rebuild-pattern
     (orig-pattern)
@@ -2885,6 +2898,15 @@ And if PATTERN is nil, then we return the form as is.
   (let* ((patterns
           (entropy/emacs-hydra-hollow/use-package/defer-parse/rebuild-pattern
            pattern))
+         (judger-var
+          (intern
+           (entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-judger-prefix
+            use-name)))
+         (form-use-judge
+          `(unless (bound-and-true-p ,judger-var)
+             (prog1
+                 ,form
+               (setq ,judger-var t))))
          rtn)
     (cond
      ((and (listp patterns)
@@ -2902,13 +2924,13 @@ And if PATTERN is nil, then we return the form as is.
                                  (t
                                   (error "wrong type of hydra-hollow adwrapper type '%s'"
                                          adtype))))
-               (adprefix (entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-prefix
+               (adprefix (entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-funcname-prefix
                           use-name adtype)))
           (push
            `(,ad-wrapper
              ,adfors ,adprefix ,adprefix prompt-echo
              :pdumper-no-end ',pdump-no-end
-             ,form)
+             ,form-use-judge)
            rtn)))
       ;; progn wrap the result
       (setq rtn
@@ -2917,7 +2939,7 @@ And if PATTERN is nil, then we return the form as is.
      ((eq patterns t)
       (setq rtn
             `(entropy/emacs-lazy-load-simple ,use-name
-               ,form)))
+               ,form-use-judge)))
      (t
       (setq rtn form)))
     rtn))

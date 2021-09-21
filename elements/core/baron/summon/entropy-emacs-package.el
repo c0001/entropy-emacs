@@ -413,15 +413,25 @@ recognized as a normal macro."
    :eemacs-adrequire
    :if))
 
-(defvar use-package-eemacs-adrequire/ad-random-ids nil)
-(defun use-package-eemacs-adrequire/gen-random-ad-prefix (use-name adtype)
-  (let* ((id-pool use-package-eemacs-adrequire/ad-random-ids)
+(defvar use-package-eemacs-adrequire/ad-random-func-ids nil)
+(defun use-package-eemacs-adrequire/gen-random-ad-func-prefix (use-name adtype)
+  (let* ((id-pool use-package-eemacs-adrequire/ad-random-func-ids)
          (id (if id-pool
                  (+ (car id-pool) 1)
                0)))
-    (push id use-package-eemacs-adrequire/ad-random-ids)
-    (format "eemacs-use-package/:eemacs-adrequire/for-%s/adtype-of-%s/id_%s"
+    (push id use-package-eemacs-adrequire/ad-random-func-ids)
+    (format "eemacs-use-package/:eemacs-adrequire/for-%s/adtype-of-%s/func-id_%s"
             use-name adtype id)))
+
+(defvar use-package-eemacs-adrequire/ad-random-judger-ids nil)
+(defun use-package-eemacs-adrequire/gen-random-ad-judger-prefix (use-name)
+  (let* ((id-pool use-package-eemacs-adrequire/ad-random-judger-ids)
+         (id (if id-pool
+                 (+ (car id-pool) 1)
+               0)))
+    (push id use-package-eemacs-adrequire/ad-random-judger-ids)
+    (format "eemacs-use-package/:eemacs-adrequire/for-%s/judger-id_%s"
+            use-name id)))
 
 (defun use-package-normalize/:eemacs-adrequire
     (use-name key key-value)
@@ -492,7 +502,16 @@ plist are:
   `entropy/emacs-pdumper-load-hook' when
   `entropy/emacs-custom-enable-lazy-load'.
 "
-  (let* ((rest-body (use-package-process-keywords use-name rest state))
+  (let* ((judger-var
+          (intern
+           (use-package-eemacs-adrequire/gen-random-ad-judger-prefix
+            use-name)))
+         (rest-body (use-package-process-keywords use-name rest state))
+         (form
+          `(unless (bound-and-true-p judger-var)
+             (prog1
+                 (require ',use-name)
+               (setq ,judger-var t))))
          (init-form '()))
     (dolist (ptr patterns)
       (let* ((enable       (plist-get ptr :enable))
@@ -508,7 +527,7 @@ plist are:
                                (t
                                 (error "wrong type of adwrapper type '%s'"
                                        adtype))))
-             (adprefix (use-package-eemacs-adrequire/gen-random-ad-prefix
+             (adprefix (use-package-eemacs-adrequire/gen-random-ad-func-prefix
                         use-name adtype)))
         (when enable
           (setq init-form
@@ -516,7 +535,7 @@ plist are:
                         `((,ad-wrapper
                            ,adfors ,adprefix ,adprefix prompt-echo
                            :pdumper-no-end ',pdump-no-end
-                           (require ',use-name))))))))
+                           ,form)))))))
     (use-package-concat
      rest-body
      init-form)))
