@@ -60,7 +60,13 @@
   :diminish yas-minor-mode
   :commands (yas-global-mode yas-minor-mode yas-expand)
   :eemacs-indhca
-  (((:enable t :defer t)
+  (((:enable
+     t
+     :defer
+     (:data
+      (:adfors (prog-mode-hook)
+       :adtype hook
+       :pdumper-no-end t)))
     (yasnippet-uniform))
    ("Basic"
     (("M-i" entropy/emacs-yas-enable-or-expand
@@ -163,20 +169,24 @@
 ;;     ~`red'_total = get_total("`red'_values");~
 
 (use-package auto-yasnippet
-  :eemacs-adrequire
-  ((:enable
-    t
-    :adfors
-    (yas-minor-mode
-     yas-global-mode)
-    :adtype after)
-   (:enable t :adfors (fundamental-mode) :adtype before))
   :commands
   (aya-create
    aya-expand
    entropy/emacs-yas-aya-choose-snippet)
   :eemacs-indhca
-  (((:enable t :defer t)
+  (((:enable
+     t
+     :defer
+     (:data
+      (:adfors
+       (yas-minor-mode
+        yas-global-mode)
+       :adtype after
+       :pdumper-no-end t)
+      (:adfors
+       (prog-mode-hook window-configuration-change-hook)
+       :adtype hook
+       :pdumper-no-end t)))
     (yasnippet-uniform))
    ("Auto yasnippet"
     (("M-p" aya-create "Create a snippet from the text between BEG and END"
