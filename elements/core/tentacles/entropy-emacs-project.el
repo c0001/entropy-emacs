@@ -33,14 +33,66 @@
 ;; ** require
 
 ;; ** projectile
+;; *** core
 (use-package projectile
   :diminish
   :commands (projectile-find-file
              projectile-mode)
   :bind
+  :init
+  (setq projectile-mode-line-prefix ""
+        projectile-sort-order 'recentf
+        projectile-use-git-grep t
+        projectile-completion-system 'ivy
+        projectile-keymap-prefix nil)
 
+  :config
+
+  ;; Use the faster searcher to handle project files: ripgrep `rg'.
+  (when (and (not (executable-find "fd"))
+             (executable-find "rg"))
+    (setq projectile-generic-command
+          (let ((rg-cmd ""))
+            (dolist (dir projectile-globally-ignored-directories)
+              (setq rg-cmd (format "%s --glob '!%s'" rg-cmd dir)))
+            (concat "rg -0 --files --color=never --hidden" rg-cmd))))
+
+  ;; Faster searching on Windows
+  (when sys/win32p
+    (when (or (executable-find "fd") (executable-find "rg"))
+      (setq projectile-indexing-method 'alien
+            projectile-enable-caching nil))
+    ;; FIXME: too slow while getting submodule files on Windows
+    (setq projectile-git-submodule-command nil))
+
+  ;; Support Perforce project
+  (let ((val (or (getenv "P4CONFIG") ".p4config")))
+    (add-to-list 'projectile-project-root-files-bottom-up val))
+
+  ;; final initial
+  (projectile-mode +1))
+
+;; *** counsel projectile
+(use-package counsel-projectile
+  :commands
+  (counsel-projectile-mode
+   counsel-projectile-switch-to-buffer
+   counsel-projectile-switch-project
+   counsel-projectile-find-dir
+   counsel-projectile-git-grep
+   counsel-projectile-mode
+   counsel-projectile-find-file
+   counsel-projectile-org-capture
+   counsel-projectile-find-file-dwim
+   counsel-projectile-ag
+   counsel-projectile
+   counsel-projectile-rg
+   counsel-projectile-org-agenda
+   counsel-projectile-grep)
+
+;; **** eemacs hydra hollow
   :eemacs-tpha
-  (((:enable t :defer (:data (:adfors (pre-command-hook) :adtype hook :pdumper-no-end t))))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook))))
    ("Project"
     (("C-c p"
       (:eval
@@ -50,7 +102,7 @@
       :enable t :exit t))))
 
   :eemacs-indhc
-  (((:enable t :defer (:data (:adfors (pre-command-hook) :adtype hook :pdumper-no-end t)))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook)))
     (projectile-mode (projectile projectile-mode-map) nil (2)))
    ("projectile Switch"
     (("C-c p p p" counsel-projectile-switch-project "Switch To Other Project"
@@ -78,73 +130,7 @@
      ("C-c p s g" counsel-projectile-git-grep "Search the current project with git grep"
       :enable t :exit t :eemacs-top-bind t))))
 
-  :init
-
-  (entropy/emacs-lazy-initial-advice-before
-   (counsel-projectile
-    counsel-projectile-ag
-    counsel-projectile-find-dir
-    counsel-projectile-find-file
-    counsel-projectile-find-file-dwim
-    counsel-projectile-git-grep
-    counsel-projectile-grep
-    counsel-projectile-mode
-    counsel-projectile-org-agenda
-    counsel-projectile-org-capture
-    counsel-projectile-rg
-    counsel-projectile-switch-project
-    counsel-projectile-switch-to-buffer
-    )
-   "projectile-init" "projectile-init" prompt-echo
-   :pdumper-no-end t
-   (setq projectile-mode-line-prefix ""
-         projectile-sort-order 'recentf
-         projectile-use-git-grep t
-         projectile-completion-system 'ivy
-         projectile-keymap-prefix nil)
-   (projectile-mode +1))
-
-  :config
-
-  ;; Use the faster searcher to handle project files: ripgrep `rg'.
-  (when (and (not (executable-find "fd"))
-             (executable-find "rg"))
-    (setq projectile-generic-command
-          (let ((rg-cmd ""))
-            (dolist (dir projectile-globally-ignored-directories)
-              (setq rg-cmd (format "%s --glob '!%s'" rg-cmd dir)))
-            (concat "rg -0 --files --color=never --hidden" rg-cmd))))
-
-  ;; Faster searching on Windows
-  (when sys/win32p
-    (when (or (executable-find "fd") (executable-find "rg"))
-      (setq projectile-indexing-method 'alien
-            projectile-enable-caching nil))
-    ;; FIXME: too slow while getting submodule files on Windows
-    (setq projectile-git-submodule-command nil))
-
-  ;; Support Perforce project
-  (let ((val (or (getenv "P4CONFIG") ".p4config")))
-    (add-to-list 'projectile-project-root-files-bottom-up val)))
-
-
-(use-package counsel-projectile
-  :after projectile
-  :commands
-  (counsel-projectile-switch-to-buffer
-   counsel-projectile-switch-project
-   counsel-projectile-find-dir
-   counsel-projectile-git-grep
-   counsel-projectile-mode
-   counsel-projectile-find-file
-   counsel-projectile-org-capture
-   counsel-projectile-find-file-dwim
-   counsel-projectile-ag
-   counsel-projectile
-   counsel-projectile-rg
-   counsel-projectile-org-agenda
-   counsel-projectile-grep)
-
+;; **** preface
   :preface
   (defun entropy/emacs-project--counsel-projectile-open-project-root-external
       (project-dir)
@@ -154,24 +140,26 @@
       (counsel-locate-action-extern
        (expand-file-name project-dir))))
 
+;; **** init
   :init
-  (entropy/emacs-lazy-with-load-trail
-   counsel-projectile
-   :pdumper-no-end t
-   :body
    ;; use ivy native matcher reduce lagging
    (setq counsel-projectile-find-file-matcher 'ivy--re-filter)
    ;; disable default counsel-projectile rebinds of
    ;; `projectile-mode-map'
    (setq counsel-projectile-key-bindings nil)
-   (counsel-projectile-mode +1))
 
-  :config
+;; **** config
+   :config
+
+;; ***** extra ivy actions
+
   (ivy-add-actions
    'counsel-projectile-switch-project
    '(("C-=" entropy/emacs-project--counsel-projectile-open-project-root-external
       "Open project root with external if available")))
 
+;; ***** patches
+;; ****** Make projetile candi predicates persisted
   (defmacro entropy/emacs-projectile--gen-candi-persist-rule (adv-for &optional remove)
     "Make projetile candi predicates persisted in the completion
 framework to reduce lagging.
@@ -229,7 +217,7 @@ previous set."
      `(entropy/emacs-projectile--gen-candi-persist-rule
        ,el)))
 
-
+;; ***** simplify ivy transformer
   (defun counsel-projectile-find-file-transformer (str)
     "Transform non-visited file names with `ivy-virtual' face.
 
@@ -238,6 +226,8 @@ condition to reduce lag since `projectile-expand-root' has low
 benchmark while exhibits."
     (propertize str 'face 'ivy-virtual))
 
+;; ***** final init global mode
+  (counsel-projectile-mode +1)
   )
 
 ;; ** entropy-project-manager
@@ -245,7 +235,7 @@ benchmark while exhibits."
   :ensure nil
   :commands entropy/prjm-inct-chosen-db
   :eemacs-tpha
-  (((:enable t :defer (:data (:adfors (pre-command-hook) :adtype hook :pdumper-no-end t))))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook))))
    ("Project"
     (("C-c M-p" entropy/prjm-inct-chosen-db "Eemacs Project Management"
       :enable t :exit t :global-bind t)))))
