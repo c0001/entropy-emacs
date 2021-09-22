@@ -116,14 +116,7 @@ Version 2016-10-15"
            (lambda ($fpath)
              (let ((process-connection-type nil))
                (start-process "" nil "xdg-open" $fpath)))
-           $file-list))))))
-
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   'dired-mode '(dired dired-mode-map)
-   '("Misc."
-     (("<C-return>" entropy/emacs-tools-open-in-external-app
-       "Open dired marked files in external app"
-       :enable t :exit t :map-inject t)))))
+           $file-list)))))))
 
 ;; ***** Open in desktop manager
 (when sys/is-graphic-support
@@ -160,13 +153,7 @@ Version 2017-12-23"
         ;; 2013-02-10 (shell-command "xdg-open .")  sometimes froze
         ;; emacs till the folder is closed. eg with nautilus
         ))))
-
-  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
-   'dired-mode '(dired dired-mode-map)
-   '("Misc."
-     (("M-=" entropy/emacs-tools-show-in-desktop
-       "Show current file in desktaop"
-       :enable t :exit t :map-inject t)))))
+  )
 
 ;; ***** Open in terminal
 (defun entropy/emacs-tools-open-in-terminal ()
@@ -242,16 +229,36 @@ Version 2017-10-09"
         (w32-shell-execute "open" "cmd"
                            (replace-regexp-in-string "/" "\\" $path t t))))))
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-basic-config-core nil
- '("Eemacs Basic Core"
-   (("C-;" entropy/emacs-tools-open-in-terminal
-     "Open the current location in a new terminal window"
-     :enable t :exit t :global-bind t)
-    ("C--" entropy/emacs-tools-cmd
-     "Open the current location in a new windows cmdproxy"
-     :enable sys/win32p :exit t :global-bind t))))
+;; ***** hydra hollow instance
 
+(entropy/emacs-lazy-initial-advice-before
+ (dired-mode) "eemacs-tools-open-in-extapp-hydra-hollow-init"
+ "eemacs-tools-open-in-extapp-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
+  'dired-mode '(dired dired-mode-map)
+  '("Misc."
+    (("<C-return>" entropy/emacs-tools-open-in-external-app
+      "Open dired marked files in external app"
+      :enable sys/is-graphic-support :exit t :map-inject t)
+     ("M-=" entropy/emacs-tools-show-in-desktop
+      "Show current file in desktaop"
+      :enable sys/is-graphic-support :exit t :map-inject t)))))
+
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-after-startup-hook)
+ "eemacs-tools-external-terminal-hydra-hollow-init"
+ "eemacs-tools-external-terminal-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define+
+  'eemacs-basic-config-core nil
+  '("Eemacs Basic Core"
+    (("C-;" entropy/emacs-tools-open-in-terminal
+      "Open the current location in a new terminal window"
+      :enable sys/is-graphic-support :exit t :global-bind t)
+     ("C--" entropy/emacs-tools-cmd
+      "Open the current location in a new windows cmdproxy"
+      :enable sys/win32p :exit t :global-bind t)))))
 
 ;; **** entropy-open-with
 (use-package entropy-open-with
@@ -309,24 +316,30 @@ like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom 0))
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'eemacs-center-line-position nil
- '("Eemacs Center Line"
-   (("C-l" entropy/emacs-tools-vertical-center "Vertical center buffer"
-     :enable t :exit t :global-bind t)
-    ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter to window bottom’"
-     :enable t :exit t :global-bind t)
-    ("C-c C-l" entropy/emacs-tools-vertical-to-top "Recenter to window top’"
-     :enable t :exit t :global-bind t))))
+(entropy/emacs-lazy-initial-advice-before
+ (switch-to-buffer find-file)
+ "eemacs-buffer-window-recenter-hydra-hollow-init"
+ "eemacs-buffer-window-recenter-hydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'eemacs-center-line-position nil
+  '("Eemacs Center Line"
+    (("C-l" entropy/emacs-tools-vertical-center "Vertical center buffer"
+      :enable t :exit t :global-bind t)
+     ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter to window bottom’"
+      :enable t :exit t :global-bind t)
+     ("C-c C-l" entropy/emacs-tools-vertical-to-top "Recenter to window top’"
+      :enable t :exit t :global-bind t))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("WI&BUF"
-   (("i l"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'eemacs-center-line-position))
-     "Center buffer line"
-     :enable t :exit t))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("WI&BUF"
+    (("i l"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'eemacs-center-line-position))
+      "Center buffer line"
+      :enable t :exit t)))))
 
 ;; *** beacon cursor blanking
 (use-package beacon
@@ -538,24 +551,6 @@ which determined by the scale count 0.3 "
                  (frame-width))))
     (other-window 1)))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("WI&BUF"
-   (("C-x M-1" entropy/emacs-tools-horizonal-split-window
-     "Split the single window to two windows with different size"
-     :enable t :exit t :global-bind t))))
-
-;; **** entropy-emacs version show
-(defun entropy/emacs-tools-entropy-emacs-version ()
-  "Show entropy-emacs version."
-  (interactive)
-  (message entropy/emacs-ecv))
-
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b v" entropy/emacs-tools-entropy-emacs-version
-     "Show entropy-emacs version"
-     :enable t :exit t))))
-
 ;; **** show time
 (defun entropy/emacs-tools-time-show ()
   "Show current time with date information also."
@@ -563,12 +558,25 @@ which determined by the scale count 0.3 "
   (let ((time (format-time-string "%Y-%m-%d %a %H:%M:%S")))
     (message "Now is %s" time)))
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'eemacs-basic-config-core nil
- '("Eemacs Basic Core"
-   (("<f12>" entropy/emacs-tools-time-show
-     "Show current time with date information also"
-     :enable t :exit t :global-bind t))))
+;; **** hydra hollow instance
+
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-after-startup-hook)
+ "eemacs-tools-self-functions-hydra-hollow-init"
+ "eemacs-tools-self-functions-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define+
+  'eemacs-basic-config-core nil
+  '("Eemacs Basic Core"
+    (("<f12>" entropy/emacs-tools-time-show
+      "Show current time with date information also"
+      :enable t :exit t :global-bind t))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("WI&BUF"
+    (("C-x M-1" entropy/emacs-tools-horizonal-split-window
+      "Split the single window to two windows with different size"
+      :enable t :exit t :global-bind t))))
+ )
 
 ;; *** encoding and end-of-line conversation
 (defun entropy/emacs-tools-dos2unix-internal ()
@@ -649,31 +657,36 @@ which determined by the scale count 0.3 "
     (user-error "Please try corrected encoding! ")))
 
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'tools-coding-refactor nil
- '("DOS2UNIX"
-   (("d i" entropy/emacs-tools-dos2unix-internal
-     "Exchange the buffer end-of-line type to unix sytle internally"
-     :enable t :exit t)
-    ("d e" entropy/emacs-tools-dos2unix-external
-     "Exchange the buffer end-of-line type to unix sytle externally"
-     :enable t :exit t))
-   "Convert To Utf-8"
-   (("u i" entropy/emacs-tools-save-buffer-as-utf8-internal
-     "Revert a buffer with 'CODING-SYSTEM' and save as UTF-8 internally"
-     :enable t :exit t)
-    ("u e" entropy/emacs-tools-save-buffer-as-utf8-external
-     "Revert a buffer with 'CODING-SYSTEM' and save as UTF-8 externally"
-     :enable t :exit t))))
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-hydra-hollow-call-before-hook)
+ "eemacs-dos2unix-hydra-hollow-init" "eemacs-dos2unix-hydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'tools-coding-refactor nil
+  '("DOS2UNIX"
+    (("d i" entropy/emacs-tools-dos2unix-internal
+      "Exchange the buffer end-of-line type to unix sytle internally"
+      :enable t :exit t)
+     ("d e" entropy/emacs-tools-dos2unix-external
+      "Exchange the buffer end-of-line type to unix sytle externally"
+      :enable t :exit t))
+    "Convert To Utf-8"
+    (("u i" entropy/emacs-tools-save-buffer-as-utf8-internal
+      "Revert a buffer with 'CODING-SYSTEM' and save as UTF-8 internally"
+      :enable t :exit t)
+     ("u e" entropy/emacs-tools-save-buffer-as-utf8-external
+      "Revert a buffer with 'CODING-SYSTEM' and save as UTF-8 externally"
+      :enable t :exit t))))
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Utils"
-   (("u b"
-     (:eval
-      (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-       'tools-coding-refactor))
-     "Dos2unix and UTF-8 convertor"
-     :enable t :exit t))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Utils"
+    (("u b"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'tools-coding-refactor))
+      "Dos2unix and UTF-8 convertor"
+      :enable t :exit t)))))
 
 ;; *** Foreign language realtime translation
 
@@ -1046,7 +1059,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
       "Copy pretty-printed value 'SYMBOL's variable"
       :enable t :exit t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Utils"
     (("u p"
       (:eval
@@ -1126,10 +1139,16 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   'entropy/emacs-tools-goto-sys-home
   "Alias for entropy/emacs-tools-goto-sys-home.")
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("Basic"
-   (("b h" ehome "Open HOME Directory"
-     :enable t :exit t))))
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-hydra-hollow-call-before-hook)
+ "ehome-alias-hydra-hollow-init"
+ "ehome-alias-hydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Basic"
+    (("b h" ehome "Open HOME Directory"
+      :enable t :exit t)))))
 
 ;; *** visual-ascii-mode
 
@@ -1349,7 +1368,7 @@ can't visit one page suddenly."
   :commands (entropy/cpmv-dired-get-files-list
              entropy/cpmv-to-current)
   :eemacs-mmphca
-  (((:enable t)
+  (((:enable t :defer (:data (:adfors (dired-mode-hook) :adtype hook :pdumper-no-end t)))
     (dired-mode (dired dired-mode-map)))
    ("Misc."
     (("c c" entropy/cpmv-dired-get-files-list
