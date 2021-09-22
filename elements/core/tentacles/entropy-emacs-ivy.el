@@ -315,7 +315,7 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
 ;; ** swiper
 
 (use-package swiper
-  :commands (swiper swiper-all)
+  :commands (swiper swiper-all swiper-isearch)
   :preface
   (defvar entropy/emacs-ivy--swiper-all-complete-did-p nil
     "Indicator for that `swiper-all' was did complete which not
@@ -337,10 +337,9 @@ unwind occasion.")
           (set-window-configuration cur-wfg)
           (goto-char cur-pt)))))
 
-  :bind (("C-s" . counsel-grep-or-swiper)
-         ("C-M-s" . swiper-all)
+  :bind (("C-M-s" . swiper-all)
          :map swiper-map
-         ("M-%" . swiper-query-replace))
+         ("M-q" . swiper-query-replace))
 
   :config
   ;; make `swiper-all' restore origin window-configuration when unwind
@@ -431,6 +430,7 @@ This is for use in `ivy-re-builders-alist'."
 
 ;; *** bind-key
   :bind (("M-x"     . counsel-M-x)
+         ("C-s"     . counsel-grep-or-swiper)
          ("C-c M-t" . counsel-load-theme)
          ("C-c g"   . counsel-git)
          ("C-x d"   . counsel-dired)
@@ -561,8 +561,8 @@ This is for use in `ivy-re-builders-alist'."
   (advice-add 'counsel-git :around
               #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
-  (entropy/emacs-lazy-initial-advice-before
-   (ivy-read switch-to-buffer)
+  (entropy/emacs-lazy-initial-for-hook
+   (entropy/emacs-after-startup-hook)
    "counsel-init" "counsel-init" prompt-echo
    :pdumper-no-end t
    ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
@@ -992,23 +992,30 @@ display icon or empty string while
      ivy-rich-display-transformers-list
      (entropy/ivy--ivy-rich-set-transformers-list))
     (ivy-rich-mode +1)
-    (ivy-mode +1)
-    (setq ivy-virtual-abbreviate
-          (or (and ivy-rich-mode 'abbreviate) 'name)))
+    (unless (bound-and-true-p ivy-mode)
+      (ivy-mode +1)))
 
   (when (eq entropy/emacs-ivy-rich-type 'ivy-rich-mode)
     ;; Setting tab size to 1, to insert tabs as delimiters
     (add-hook 'minibuffer-setup-hook
               (lambda ()
-                (setq tab-width 1)))
+                (setq tab-width
+                      (or (and (bound-and-true-p ivy-rich-mode)
+                               1)
+                          (entropy/emacs-get-symbol-defcustom-value
+                           'tab-width)))))
+    (add-hook 'ivy-rich-mode-hook
+              (lambda (&rest _)
+                (setq ivy-virtual-abbreviate
+                      (or (and ivy-rich-mode 'abbreviate) 'name))))
     (cond
      (entropy/emacs-fall-love-with-pdumper
       (add-hook 'entropy/emacs-pdumper-load-hook
                 #'entropy/emacs-ivy--enable-ivy-rich-common))
      (t
-      (entropy/emacs-lazy-initial-advice-before
-       (ivy-read)
-       "ivy-rich" "ivy-rich" prompt-echo
+      (entropy/emacs-lazy-initial-for-hook
+       (ivy-mode-hook)
+       "ivy-rich-init" "ivy-rich-init" prompt-echo
        :pdumper-no-end t
        (entropy/emacs-ivy--enable-ivy-rich-common)))))
 

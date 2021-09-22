@@ -1746,7 +1746,7 @@ The compatible version comparation is rased on the two ways:
 
 ;; *** Lazy load specification
 (defvar entropy/emacs--lazy-load-simple-feature-head nil)
-
+(defvar entropy/emacs-lazy-load-simple-log-var nil)
 (cl-defmacro entropy/emacs-lazy-load-simple
     (feature &rest body
              &key
@@ -1784,7 +1784,16 @@ This function should always be used preferred to maintain eemacs
 internal context or API adding to thus, because any not be will
 pollute eemacs internal lazy load optimization."
   (declare (indent 1) (debug t))
-  (let ((body (entropy/emacs-get-plist-body body)))
+  (let ((body (entropy/emacs-get-plist-body body))
+        (this-load-fname
+         (and entropy/emacs-startup-with-Debug-p
+              (ignore-errors
+                (file-name-nondirectory load-file-name)))))
+    (when entropy/emacs-startup-with-Debug-p
+      (push (list :feature feature
+                  :load-in this-load-fname
+                  :body body)
+            entropy/emacs-lazy-load-simple-log-var))
     (cond
      ((or entropy/emacs-custom-enable-lazy-load
           always-lazy-load)
@@ -1799,9 +1808,14 @@ pollute eemacs internal lazy load optimization."
              (setq entropy/emacs--lazy-load-simple-feature-head
                    (append entropy/emacs--lazy-load-simple-feature-head
                            '(,feature)))
-             (format
-              "with lazy loading configs for feature '%s'"
-              ',feature))
+             (if entropy/emacs-startup-with-Debug-p
+                 (format
+                  "[gened-by: %s] with lazy loading configs for feature '%s'"
+                  ,this-load-fname
+                  ',feature)
+               (format
+                  "with lazy loading configs for feature '%s'"
+                  ',feature)))
            (entropy/emacs-general-run-with-protect-and-gc-strict
             ,@body)))))
      ((null entropy/emacs-custom-enable-lazy-load)

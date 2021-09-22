@@ -1363,7 +1363,7 @@ NOTE: this is a advice wrapper for any function."
       (message "Smooth scrolling disabled!"))))
 
 (entropy/emacs-lazy-initial-for-hook
- (pre-command-hook)
+ (window-configuration-change-hook)
  "eemacs-smooth-scrolling-mode-init"
  "eemacs-smooth-scrolling-mode-init" prompt-echo
  :pdumper-no-end t
@@ -2924,7 +2924,7 @@ otherwise returns nil."
 ;; ** Eemacs basic hydra-hollow instances
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-hydra-hollow-call-before-hook)
+ (entropy/emacs-after-startup-hook)
  "eemacs-basic-core-hydra-hollow-init"
  "eemacs-basic-core-hydra-hollow-init" prompt-echo
  :pdumper-no-end t

@@ -711,7 +711,7 @@ which determined by the scale count 0.3 "
       ('bing (call-interactively 'entropy/emacs-tools-bing-dict-brief-prompt)))))
 
 (entropy/emacs-lazy-initial-for-hook
- (pre-command-hook)
+ (entropy/emacs-after-startup-hook)
  "entropy-dict-search-hydra-hollow-init"
  "entropy-dict-search-hydra-hollow-init"
  prompt-echo
@@ -1009,15 +1009,12 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 
 ;; *** pomidor A simple and cool pomodoro timer
 (use-package pomidor
-  :eemacs-adrequire
-  ((:enable
-    t
-    :adfors
-    (pre-command-hook)
-    :adtype hook))
   :commands (pomidor)
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors
+                              (entropy/emacs-after-startup-hook)
+                              :adtype hook
+                              :pdumper-no-end t))))
    ("Utils"
     (("C-c <f12>" pomidor
       "A simple and cool pomodoro technique timer"
@@ -1381,16 +1378,14 @@ can't visit one page suddenly."
 ;; *** entropy-portableapps
 (use-package entropy-portableapps
   :if sys/is-win-group
-  :eemacs-adrequire
-  ((:enable
-    t
-    :adfors
-    (pre-command-hook)
-    :adtype hook))
   :ensure nil
   :commands (entropy/poapps-query-open)
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data
+                       (:adfors
+                        (entropy/emacs-after-startup-hook)
+                        :adtype hook
+                        :pdumper-no-end t))))
    ("Misc."
     (("<M-up>" entropy/poapps-query-open
       "Query and open portableapps"
