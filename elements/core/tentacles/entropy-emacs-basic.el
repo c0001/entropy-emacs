@@ -2016,7 +2016,8 @@ error type to output symbol OUTPUT-SYM."
                     (before-save-hook nil))
                 (save-buffer))))
           (when remove-lock
-            (f-delete entropy/emacs-basic-kill-ring-persist-lock-file)))
+            (when (file-exists-p entropy/emacs-basic-kill-ring-persist-lock-file)
+              (f-delete entropy/emacs-basic-kill-ring-persist-lock-file))))
       (entropy/emacs-message-do-message
        "%s"
        (red "WARN: can not open the persist kill ring file!")))))
@@ -2098,7 +2099,8 @@ successfully both of situation of read persisit of create an new."
   (when (timerp entropy/emacs-basic-timer-of-kill-ring-persist)
     (cancel-timer entropy/emacs-basic-timer-of-kill-ring-persist)
     (setq entropy/emacs-basic-timer-of-kill-ring-persist nil))
-  (f-delete entropy/emacs-basic-kill-ring-persist-lock-file)
+  (when (file-exists-p entropy/emacs-basic-kill-ring-persist-lock-file)
+    (f-delete entropy/emacs-basic-kill-ring-persist-lock-file t))
   (remove-hook 'kill-emacs-hook
                #'entropy/emacs-basic-kill-ring-persist-after-kill-emacs))
 
