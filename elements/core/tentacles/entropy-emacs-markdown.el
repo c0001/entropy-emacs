@@ -183,10 +183,17 @@ package management!"))
     ))
 
 ;; ***** hydra-define
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'markdown-mode-style-map nil
- entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-style-map
- nil '(2 2 2 2))
+
+(entropy/emacs-lazy-initial-advice-before
+ (markdown-mode)
+ "mdstyle-hydra-hollow-init"
+ "mdstyle-hydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'markdown-mode-style-map nil
+  entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-style-map
+  nil '(2 2 2 2)))
 
 ;; **** markdown-mode-command hydra
 ;; ***** hydra-heads define
@@ -237,9 +244,16 @@ package management!"))
       :enable t :exit t))))
 
 ;; ***** hydra-define
-(entropy/emacs-hydra-hollow-common-individual-hydra-define
- 'markdown-mode-command-map nil
- entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-command)
+
+(entropy/emacs-lazy-initial-advice-before
+ (markdown-mode)
+ "mdcmdmap-hydra-hollow-init"
+ "mdcmdmaphydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'markdown-mode-command-map nil
+  entropy/emacs-markdown-pretty-hydra-heads-group-for-markdown-mode-command))
 
 ;; **** markdown-mode top dispatch hydra
 
@@ -436,9 +450,9 @@ package management!"))
 
 
 ;; ***** hydra defiens
-(entropy/emacs-lazy-initial-advice-before
+(entropy/emacs-lazy-initial-advice-after
  (markdown-mode)
- "markdown-hydra-hollow-init" "markdown-hydra-hollow-init" prompt-echo
+ "markdown-mode-hydra-hollow-init" "markdown-mode-hydra-hollow-init" prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-define-major-mode-hydra
   'markdown-mode
@@ -470,12 +484,18 @@ package management!"))
                              (buffer-file-name)))))
     (user-error "Please install grip by 'pip install grip'.")))
 
-(entropy/emacs-hydra-hollow-common-individual-hydra-define+
- 'markdown-mode-command-map nil
- '("Preview"
-   (("p g" entropy/emacs-markdown-preview-grip
-     "Preview markdown buffer using python grip"
-     :enable t :exit t))))
+(entropy/emacs-lazy-initial-for-hook
+ (markdown-mode-hook)
+ "markdown-grip-preview-hydra-hollow-init"
+ "markdown-grip-preview-hydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define+
+  'markdown-mode-command-map nil
+  '("Preview"
+    (("p g" entropy/emacs-markdown-preview-grip
+      "Preview markdown buffer using python grip"
+      :enable t :exit t)))))
 
 ;; *** synchronization previewing
 (use-package markdown-preview-mode
@@ -504,7 +524,7 @@ This issue refer to
   :bind (:map markdown-mode-command-map
               ("P" . markdown-preview-mode))
   :eemacs-indhca
-  (((:enable t)
+  (((:enable t :defer (:data (:adfors (markdown-mode-hook) :adtype hook :pdumper-no-end t)))
     (markdown-mode-command-map))
    ("Preview"
     (("p p" markdown-preview-mode

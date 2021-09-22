@@ -104,9 +104,9 @@ For lisp coding aim, always return the transfered buffer.
 (use-package elisp-mode
   :ensure nil
   :eemacs-mmphc
-  ((((:enable t :defer t)
+  ((((:enable t :defer (:data (:adfors (emacs-lisp-mode-hook) :adtype hook :pdumper-no-end t)))
      (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map) t))
-    ((:enable t :defer t)
+    ((:enable t :defer (:data (:adfors (emacs-lisp-mode-hook) :adtype hook :pdumper-no-end t)))
      (lisp-interaction-mode (elisp-mode lisp-interaction-mode-map) t)))
    ("IELM"
     (("C-c C-z" ielm "Open IELM"

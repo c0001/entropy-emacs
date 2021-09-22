@@ -41,7 +41,8 @@
   (magit-status
    magit-dispatch)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (find-file-hook) :adtype hook :pdumper-no-end t)
+                             (:adfors (switch-to-buffer) :adtype after :pdumper-no-end t))))
    ("Vcs"
     (("C-x g" magit-status "Show the status of the current Git repository in a buffer"
       :enable t :exit t :global-bind t)
@@ -128,7 +129,8 @@
 (use-package git-messenger
   :commands git-messenger:copy-message
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (find-file-hook) :adtype hook :pdumper-no-end t)
+                             (:adfors (switch-to-buffer) :adtype after :pdumper-no-end t))))
    ("Vcs"
     (("C-x v p" git-messenger:popup-message "Git Messenger"
       :enable t :exit t :global-bind t))))
@@ -140,13 +142,14 @@
 
   :config
   (with-no-warnings
-    (with-eval-after-load 'hydra
-      (defhydra git-messenger-hydra (:color blue)
-        ("s" git-messenger:popup-show "show")
-        ("c" git-messenger:copy-commit-id "copy hash")
-        ("m" git-messenger:copy-message "copy message")
-        ("," (catch 'git-messenger-loop (git-messenger:show-parent)) "go parent")
-        ("q" git-messenger:popup-close "quit")))
+    (eval
+     '(with-eval-after-load 'hydra
+        (defhydra git-messenger-hydra (:color blue)
+          ("s" git-messenger:popup-show "show")
+          ("c" git-messenger:copy-commit-id "copy hash")
+          ("m" git-messenger:copy-message "copy message")
+          ("," (catch 'git-messenger-loop (git-messenger:show-parent)) "go parent")
+          ("q" git-messenger:popup-close "quit"))))
 
     (defun entropy/emacs-vcs--git-messenger:format-detail (vcs commit-id author message)
       (if (eq vcs 'git)
@@ -220,7 +223,8 @@
    git-timemachine-switch-branch
    git-timemachine-toggle)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer (:data (:adfors (find-file-hook) :adtype hook :pdumper-no-end t)
+                             (:adfors (switch-to-buffer) :adtype after :pdumper-no-end t)))
     (git-timemachine))
    ("Common histroy"
     (("t" git-timemachine "view history" :enable t :exit t)
@@ -233,7 +237,8 @@
     (("r" git-timemachine-toggle "Quit or re-inject timemachine"
       :enable t :exit t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (find-file-hook) :adtype hook :pdumper-no-end t)
+                             (:adfors (switch-to-buffer) :adtype after :pdumper-no-end t))))
    ("Vcs"
     (("C-x v t"
       (:eval
@@ -245,7 +250,8 @@
 (use-package smeargle
   :commands (smeargle smeargle-commits smeargle-clear)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (find-file-hook) :adtype hook :pdumper-no-end t)
+                             (:adfors (switch-to-buffer) :adtype after :pdumper-no-end t))))
    ("Vcs"
     (("C-x v s" smeargle "Highlight regions by last updated time"
       :enable t :exit t :global-bind t)
@@ -260,8 +266,9 @@
 (use-package smerge-mode
   :ensure nil
   :diminish t
+  :commands (smerge-mode)
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer t)
     (smerge-mode))
    ("Move"
     (("n" smerge-next "next"
@@ -306,7 +313,7 @@
       "Save and bury buffer"
       :enable t :map-inject t :exit t))))
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer t))
    ("Vcs"
     (("C-x v m"
       (:eval

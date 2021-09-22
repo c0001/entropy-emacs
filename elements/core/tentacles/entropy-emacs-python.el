@@ -43,7 +43,7 @@
 (use-package python
   :ensure nil
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer (:data (:adfors (python-mode-hook) :adtype hook :pdumper-no-end t)))
     (python-mode (python python-mode-map) t (2 1)))
    ("Basic"
     nil
