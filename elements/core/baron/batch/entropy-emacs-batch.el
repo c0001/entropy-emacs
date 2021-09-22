@@ -122,6 +122,17 @@
      (when (yes-or-no-p "install eemacs-fonts? ")
        ,@body)))
 
+(defmacro entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
+    (&rest body)
+  `(let ()
+     (entropy/emacs-message-do-message
+      "\n%s\n%s\n%s\n"
+      (blue    "==================================================")
+      (yellow "       Section for byte-compile eemacs internal ...")
+      (blue    "=================================================="))
+     (when (yes-or-no-p "Compile? ")
+       ,@body)))
+
 ;; *** dump emacs
 (defun entropy/emacs-batch--dump-emacs-core ()
   (let ((dump-file (expand-file-name
@@ -420,6 +431,44 @@ faild with hash '%s' which must match '%s'"
       )
     ))
 
+;; *** byte compile tentacles
+
+(defun entropy/emacs-batch--byte-compile-dir (dir)
+  (let* ((dir-cur (expand-file-name dir))
+         (dir-cur-P (unless (file-exists-p dir-cur)
+                      (error "Directory '%s' not exists!" dir-cur)))
+         (dir-list (directory-files (expand-file-name dir-cur)))
+         source-dirP)
+    (catch :exit
+      (dolist (el dir-list)
+        (when (string-match-p "\\.el$" el)
+          (setq source-dirP t)
+          (throw :exit nil))))
+    (when source-dirP
+      (byte-recompile-directory dir-cur 0 t))))
+
+(defun entropy/emacs-batch--recompile-tentacles (&rest _)
+  (let ((dir (expand-file-name
+              "elements/core/tentacles"
+              entropy/emacs-user-emacs-directory))
+        (log-file (expand-file-name
+                   (format "eemacs-tentacles-compile-%s.log"
+                           (format-time-string "%Y%m%d%H%M%S"))
+                   entropy/emacs-stuffs-topdir)))
+    ;; (setq debug-on-error t)
+    (entropy/emacs-package-common-start)
+    ;; EEMACS_MAINTENANCE: must follow the requirements part of `entropy-emacs-start.el'
+    (require 'entropy-emacs-utils)
+    (require 'entropy-emacs-path)
+    (require 'entropy-emacs-window-parameter-memory)
+    (require 'entropy-emacs-hydra-hollow)
+    (entropy/emacs-batch--byte-compile-dir dir)
+    (let* ((log-buff-name "*Compile-Log*")
+           (log-buff (get-buffer log-buff-name)))
+      (when (bufferp log-buff)
+        (with-current-buffer log-buff
+          (write-file log-file t))))))
+
 ;; ** interactive
 (when (entropy/emacs-ext-main)
   (let ((type (entropy/emacs-is-make-session)))
@@ -427,6 +476,9 @@ faild with hash '%s' which must match '%s'"
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
        (entropy/emacs-package-install-all-packages)))
+     ((equal type "compile")
+      (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
+       (entropy/emacs-batch--recompile-tentacles)))
      ((equal type "Install-Coworkers")
       (entropy/emacs-batch--prompts-for-coworkers-installing-section
        (entropy/emacs-batch--install-coworkers)))

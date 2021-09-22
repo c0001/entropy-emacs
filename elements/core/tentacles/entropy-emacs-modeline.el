@@ -899,7 +899,8 @@ will messy emacs performance, really enable it?"
     ("origin" (entropy/emacs-modeline--origin-spec-clean))
     (_ nil)))
 
-(defvar entropy/emacs-modeline--toggle-type-register nil)
+(eval-and-compile
+  (defvar entropy/emacs-modeline--toggle-type-register nil))
 
 (defmacro entropy/emacs-modeline--define-toggle
     (name spec-form spec-done-indcator enable-done-indicator

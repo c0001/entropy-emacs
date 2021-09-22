@@ -13,6 +13,7 @@ Example:
 
        make all
        make install
+       make compile
        make install-coworkers
        make install-eemacs-ext-build
        make install-eemacs-fonts
@@ -41,6 +42,8 @@ Example:
   suggested free copyright fonts (NOTE: auto-install in *nix system
   but WINDOWS etc. on which show the prompts for manually installing.)
 
+- 'compile' option compile entropy-emacs to get better startup speed
+  and running performance.
 
 The dumped emacs binary file is stored in
 'entropy/emacs-user-emacs-directory' (i.e. the entropy-emacs specified
@@ -54,4 +57,3 @@ name-space as 'eemacs_YearDateTime.pdmp', start it with:
 MAINTAINS:
 
         make debug: startup entropy-emacs with debug facilities
-

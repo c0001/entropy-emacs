@@ -56,6 +56,11 @@ install:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
+compile: export EEMACS_MAKE = compile
+compile:
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
+
 install-coworkers: export EEMACS_MAKE = Install-Coworkers
 install-coworkers:
 	@$(EchoEmpty)

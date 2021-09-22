@@ -597,9 +597,10 @@ with `shackle'."
 ;; ** company enhancement
 ;; *** toggle framework
 
-(defvar entropy/emacs-company--frontend-register nil)
-(defvar entropy/emacs-company--frontend-daemon-current-hook nil)
-(defvar entropy/emacs-company-frontend-sticker nil)
+(eval-and-compile
+  (defvar entropy/emacs-company--frontend-register nil)
+  (defvar entropy/emacs-company--frontend-daemon-current-hook nil)
+  (defvar entropy/emacs-company-frontend-sticker nil))
 
 (defun entropy/emacs-company-toggle-frontend (type)
   (interactive
