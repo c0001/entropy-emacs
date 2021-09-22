@@ -704,7 +704,7 @@ modifcation is to remove this feature.
 (use-package dired-rainbow
   :eemacs-macros (dired-rainbow-define)
   :eemacs-adrequire
-   ((:enable t :adfors (dired-mode-hook) :adtype hook))
+   ((:enable t :adfors (dired-mode-hook) :adtype hook :pdumper-no-end t))
   :commands (dired-rainbow-define-chmod)
   :init
   (defvar entropy/emacs-dired-rainbow-spec
@@ -774,7 +774,7 @@ modifcation is to remove this feature.
 ;; **** dired-x
 (use-package dired-x
   :ensure nil
-  :eemacs-adrequire ((:enable t :adfors (dired-mode) :adtype after))
+  :eemacs-adrequire ((:enable t :adfors (dired-mode) :adtype after :pdumper-no-end t))
   :commands (dired-omit-mode)
   :hook (dired-mode . dired-omit-mode)
   :eemacs-mmphca
@@ -795,12 +795,11 @@ modifcation is to remove this feature.
 ;; **** dired-subtree
 ;; Org mode like dired subtree fold/expand
 (use-package dired-subtree
-  :eemacs-adrequire ((:enable t :adfors (dired-mode) :adtype after))
   :commands
   (dired-subtree-toggle
    dired-subtree-cycle)
   :eemacs-mmphca
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (dired-mode-hook) :adtype hook :pdumper-no-end t)))
     (dired-mode (dired dired-mode-map)))
    ("Basic"
     (("TAB" dired-subtree-toggle
@@ -1536,8 +1535,9 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
   :ensure nil
   :eemacs-adrequire
   ((:enable t
-    :adfors (find-file prog-mode fundamental-mode switch-to-buffer)
-    :adtype after))
+    :adfors (transient-mark-mode-hook)
+    :adtype hook
+    :pdumper-no-end t))
   :eemacs-indhc
   (((:enable t :defer t)
     (rectangle-mode))

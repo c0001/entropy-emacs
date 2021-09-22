@@ -422,7 +422,7 @@ This is for use in `ivy-re-builders-alist'."
 ;; ** counsel
 (use-package counsel
   :eemacs-adrequire
-  ((:enable t :adfors (entropy/emacs-hydra-hollow-call-before-hook) :adtype hook))
+  ((:enable t :adfors (entropy/emacs-hydra-hollow-call-before-hook) :adtype hook :pdumper-no-end t))
   :diminish counsel-mode
   :commands (counsel-mode
              counsel-linux-app
@@ -770,11 +770,9 @@ Since we chosen the kmacro from ring, we set it as the
 
 ;; *** use counsel css for quickly search css selector
 (use-package counsel-css
-  :eemacs-adrequire
-  ((:enable t :adfors (css-mode-hook) :adtype hook))
   :hook (css-mode . counsel-css-imenu-setup)
   :eemacs-mmphca
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (css-mode-hook) :adtype hook :pdumper-no-end t)))
     (css-mode (css-mode css-mode-map)))
    ("Basic"
     (("C-c M-d" counsel-css "Jump to a css selector"
@@ -798,11 +796,9 @@ Since we chosen the kmacro from ring, we set it as the
 
 ;; *** use display world clock
 (use-package counsel-world-clock
-  :eemacs-adrequire
-  ((:enable t :adfors (counsel-mode-hook) :adtype hook))
   :commands  (counsel-world-clock)
   :eemacs-indhca
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (counsel-mode-hook) :adtype hook :pdumper-no-end t)))
     (counsel-mode (counsel counsel-mode-map)))
    ("Counsel Miscellaneous"
     (("C-c c m c" counsel-world-clock "Display time in different time zone in echo area"
@@ -810,13 +806,11 @@ Since we chosen the kmacro from ring, we set it as the
 
 ;; *** use firefox bookmarks and history query and open
 (use-package counsel-ffdata
-  :eemacs-adrequire
-  ((:enable t :adfors (counsel-mode-hook) :adtype hook))
   :commands (counsel-ffdata-firefox-bookmarks
              counsel-ffdata-firefox-history)
 
   :eemacs-indhca
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (counsel-mode-hook) :adtype hook :pdumper-no-end t)))
     (counsel-mode (counsel counsel-mode-map)))
    ("Counsel Miscellaneous"
     (("C-c c m f b" counsel-ffdata-firefox-bookmarks "Search your Firefox bookmarks"
@@ -840,12 +834,10 @@ Since we chosen the kmacro from ring, we set it as the
 
 ;; ** avy
 (use-package avy
-  :eemacs-adrequire
-  ((:enable t :adfors (counsel-mode-hook window-configuration-change-hook) :adtype hook))
   :commands
   (avy-goto-line avy-goto-char)
   :eemacs-indhc
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (counsel-mode-hook window-configuration-change-hook) :adtype hook :pdumper-no-end t)))
     (avy))
    ("Avy Core Actions"
     (("M-g l" avy-goto-line "Jump to a line start in current buffer"
@@ -1310,19 +1302,16 @@ display icon or empty string while
 
 ;; ** Powerful find-file
 (use-package find-file-in-project
-  :eemacs-adrequire
-  ((:enable
-    t
-    :adfors
-    (counsel-mode-hook
-     ivy-mode-hook
-     window-configuration-change-hook)
-    :adtype hook))
   :commands (ffip-find-files
              entropy/emacs-ivy-ffip
              entropy/emacs-ivy-ffip-directory-only)
   :eemacs-indhc
-  (((:enable t :defer t)
+  (((:enable t :defer (:data
+                       (:adfors
+                        (counsel-mode-hook
+                         ivy-mode-hook
+                         window-configuration-change-hook)
+                        :adtype hook)))
     (recursive-find-file))
    ("Recursive file system search (find-file recursive match)"
     (("C-x M-f" entropy/emacs-ivy-ffip "Fuzzy Open File"
@@ -1330,7 +1319,12 @@ display icon or empty string while
      ("C-x M-d" entropy/emacs-ivy-ffip-directory-only "Fuzzy Open File Under Directory"
       :enable t :exit t :global-bind t))))
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data
+                       (:adfors
+                        (counsel-mode-hook
+                         ivy-mode-hook
+                         window-configuration-change-hook)
+                        :adtype hook))))
    ("Utils"
     (("u f"
       (:eval (entropy/emacs-hydra-hollow-category-common-individual-get-caller

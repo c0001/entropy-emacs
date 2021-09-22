@@ -56,8 +56,6 @@
 
 (use-package hideshow
   :if (eq entropy/emacs-code-folding-type 'native)
-  :eemacs-adrequire
-  ((:enable t :adfors (org-mode-hook prog-mode-hook) :adtype hook))
   :ensure nil
   :diminish hs-minor-mode
   :commands hs-minor-mode
@@ -73,7 +71,7 @@
          (php-mode . hs-minor-mode)
          (python-mode . hs-minor-mode))
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("Structure"
     (("M--" entropy/emacs-structure-toggle-hiding
       "Hide Show For Hide"
@@ -90,8 +88,6 @@
 
 (use-package yafolding
   :if (eq entropy/emacs-code-folding-type 'yafolding)
-  :eemacs-adrequire
-  ((:enable t :adfors (org-mode-hook prog-mode-hook) :adtype hook))
   :commands (yafolding-toggle-element
              yafolding-show-all)
   :preface
@@ -113,7 +109,7 @@
       (funcall #'yafolding-show-all)))
 
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("Structure"
     (("M--" entropy/emacs-structure-yaf-toggle
       "yafold toggle hide/show"
@@ -129,8 +125,6 @@
 
 ;; ** vimish
 (use-package vimish-fold
-  :eemacs-adrequire
-  ((:enable t :adfors (org-mode-hook prog-mode-hook) :adtype hook))
   :commands
   (vimish-fold-mode
    vimish-fold-next-fold
@@ -194,7 +188,7 @@
            (save-excursion (goto-char end-dquote-pt) (line-end-position)))))))
 
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("Basic"
     (("b q"
       (:eval
@@ -204,7 +198,7 @@
       :enable t :exit t))))
 
   :eemacs-indhc
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t)))
     (vimish-fold (vimish-fold vimish-fold-folded-keymap) nil (2 2)))
    ("Vimish toggle"
     (("<C-tab>" entropy/emacs-structure-vimish-toggle
@@ -245,13 +239,11 @@
 
 ;; ** outorg
 (use-package outorg
-  :eemacs-adrequire
-  ((:enable t :adfors (org-mode-hook prog-mode-hook) :adtype hook))
   :commands (outorg-edit-as-org
              outorg-edit-comments-and-propagate-changes
              outorg-copy-edits-and-exit)
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("Structure"
     (("M-o" outorg-edit-as-org "Edit As Org Block"
       :enable t
@@ -362,8 +354,6 @@ want to preserve the source demo."
 ;; ** outshine-mode
 
 (use-package outshine
-  :eemacs-adrequire
-  ((:enable t :adfors (org-mode-hook prog-mode-hook) :adtype hook))
   :commands (outshine-mode)
   :hook
   ((emacs-lisp-mode . outshine-mode)
@@ -588,7 +578,7 @@ call `outshine-imenu' instead."
 
 ;; *** eemacs top key bind
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("Structure"
     (("\\" entropy/emacs-outshine-cycle-buffer
       "Outshine Cycle"

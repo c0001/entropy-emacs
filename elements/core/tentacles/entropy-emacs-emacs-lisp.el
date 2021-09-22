@@ -163,17 +163,19 @@ For lisp coding aim, always return the transfered buffer.
 
 ;; Interactive macro expander
 (use-package macrostep
-  :eemacs-adrequire
-  ((:enable t
-    :adfors
-    (emacs-lisp-mode
-     lisp-interaction-mode)
-    :adtype after))
   :commands (macrostep-expand)
   :eemacs-mmphca
-  ((((:enable t :defer t)
+  ((((:enable t :defer (:data (:adfors
+                               (emacs-lisp-mode
+                                lisp-interaction-mode)
+                               :adtype after
+                               :pdumper-no-end t)))
      (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map)))
-    ((:enable t :defer t)
+    ((:enable t :defer (:data (:adfors
+                               (emacs-lisp-mode
+                                lisp-interaction-mode)
+                               :adtype after
+                               :pdumper-no-end t)))
      (lisp-interaction-mode (elisp-mode lisp-interaction-mode-map))))
    ("Macro"
     (("C-c e" macrostep-expand "Expand Macro At Point"

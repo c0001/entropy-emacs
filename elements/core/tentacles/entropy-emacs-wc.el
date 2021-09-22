@@ -67,11 +67,6 @@
 ;; ** Window switch
 ;; *** window numberic indicator
 (use-package ace-window
-  :eemacs-adrequire
-  ((:enable
-    t
-    :adfors (window-configuration-change-hook)
-    :adtype hook))
   :commands
   (ace-delete-other-windows
    ace-delete-window
@@ -80,7 +75,13 @@
    ace-window-display-mode
    ace-window)
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable
+     t
+     :defer
+     (:data (:adfors
+             (window-configuration-change-hook)
+             :adtype hook
+             :pdumper-no-end t))))
    ("WI&BUF"
     (("C-x M-o" ace-window "Switch to Another Window"
       :enable t
@@ -891,11 +892,9 @@ issue."
 
 ;; ** Buffer window size setting
 (use-package windresize
-  :eemacs-adrequire
-  ((:enable t :adfors (window-configuration-change-hook) :adtype hook))
   :commands (windresize)
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors (window-configuration-change-hook) :adtype hook :pdumper-no-end t))))
    ("WI&BUF"
     (("C-<f10>" windresize "Resize Window"
       :enable t
@@ -910,14 +909,12 @@ issue."
 
 ;; ** Exchange window
 (use-package buffer-move
-  :eemacs-adrequire
-  ((:enable t :adfors (window-configuration-change-hook) :adtype hook))
   :commands (buf-move-up
              buf-move-down
              buf-move-left
              buf-move-right)
   :eemacs-indhca
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (window-configuration-change-hook) :adtype hook :pdumper-no-end t)))
     (eemacs-window-config))
    ("Move Window"
     (("C-c <C-up>"     buf-move-up
