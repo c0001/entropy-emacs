@@ -604,16 +604,28 @@ within `entropy/emacs-startup-end-hook' are running done.")
   "Time-stamp after ran `package-initialize'")
 
 (defun entropy/emacs-run-startup-end-hook ()
-  "Run `entropy/emacs-startup-end-hook' and mark it as done via
-`entropy/emacs-startup-done'.
+  "Run `entropy/emacs-startup-end-hook' just before mark
+`entropy/emacs-startup-done' as done.
 
-Please only use this function for doing thus, do not run that
-hook using `run-hooks' or any other methods or may cause some
-messy."
+   NOTE:
+   Please only use this function for doing thus, do not run that
+   hook using `run-hooks' or any other methods or may cause some
+   messy.
+
+And then make statistics of the startup duration to
+`entropy/emacs-run-startup-duration'.
+
+After that we run `entropy/emacs-after-startup-hook' to
+initialize the default non-lazy configs.
+"
+  (message "==================== eemacs trail hooks ran out ====================")
   (run-hooks 'entropy/emacs-startup-end-hook)
+  (message "==================== eemacs end hooks ran out ====================")
   (setq entropy/emacs-startup-done t)
+  ;; NOTE: we must hide popup after set `entropy/emacs-startup-done'
+  ;; since its API commentary.
   (entropy/emacs-message-hide-popup t)
-  ;; startup done hints
+  ;; ========== startup done hints
   (let* ((entropy/emacs-message-non-popup t)
          (this-time (current-time))
          ;; -----------------------
@@ -686,7 +698,7 @@ messy."
            "%s (using %s seconds \
 / %s for package initialization \
 / %s for do eemacs-tentacles-load \
-/ %s for run eemacs-lazy-hook \
+/ %s for run eemacs-trail-hook \
 / %s for eemacs-init \
 / %s for Emacs-init)"
            (green base-str)
@@ -733,7 +745,7 @@ messy."
      (magenta "Happy hacking")
      "('C-h v entropy/emacs-run-startup-duration' see startup time)"
      ))
-  ;; Debug facilities
+  ;; ========== Debug facilities
   (when entropy/emacs-startup-benchmark-init
     (benchmark-init/show-durations-tree)
     (split-window-below)
@@ -741,6 +753,8 @@ messy."
     (benchmark-init/deactivate))
   (when entropy/emacs-startup-debug-on-error
     (setq debug-on-error nil))
+  ;; ========== ran `entropy/emacs-after-startup-hook'
+  (run-hooks 'entropy/emacs-after-startup-hook)
   )
 
 (defvar entropy/emacs-pyim-has-initialized nil

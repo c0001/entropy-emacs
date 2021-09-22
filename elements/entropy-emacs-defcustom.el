@@ -2249,10 +2249,21 @@ See `entropy/emacs-startup-end-hook' either."
 (defvar entropy/emacs-startup-end-hook nil
   "Hook ran after entropy-emacs finally initial-done, all the
 functions hosted in this Hook will ran after
-=entropy-emacs-startup-trail-hook=.
+=entropy-emacs-startup-trail-hook= just before
+`entropy/emacs-startup-done' be bounded.
+
+This hook used to arrange hooks must ran after the
+=entropy-emacs-startup-trail-hook= be ran out in which case it is
+the final preparation to the startup eemacs.
 
 Also see `entropy/emacs-run-startup-end-hook' for restriction
 description.")
+
+(defvar entropy/emacs-after-startup-hook nil
+  "Hook ran after eemacs startup done
+i.e. `entropy/emacs-startup-done' is set, used to initialize
+startup after procedure of some defaults configs must be without
+lazy-load.")
 
 ;; *** making procedure
 (defun entropy/emacs-is-make-session ()
