@@ -93,8 +93,6 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 
 ;; ** xref jumping
 (use-package xref
-  :eemacs-adrequire
-  ((:enable t :adfors (prog-mode-hook) :adtype hook))
   :ensure nil
   :commands
   (xref-show-location-at-point
@@ -113,7 +111,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
    xref-pop-marker-stack
    xref-find-definitions)
   :eemacs-indhc
-  (((:enable t :defer t)
+  (((:enable t :defer (:data (:adfors (prog-mode-hook) :adtype hook :pdumper-no-end t)))
     (xref-mode))
    ("Identifier find"
     (("M-." xref-find-definitions "Find the definition of the identifier at point"
@@ -121,7 +119,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
      ("M-," xref-pop-marker-stack "Pop back to where M-. was last invoked"
       :enable t :exit t :global-bind t))))
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors (prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("Basic"
     (("b x"
       (:eval
@@ -179,7 +177,7 @@ before invocation."
        (message "%s" error))))
 
   :eemacs-tpha
-  (((:enable t :defer t))
+  (((:enable t :defer (:data (:adfors (prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("Basic"
     (("M-h" entropy/emacs-eldoc-show-eldoc-for-current-point
       "Document thing at point."

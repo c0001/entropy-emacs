@@ -43,14 +43,15 @@
          ("q" . entropy/emacs-rss-elfeed-kill-buffer))
 
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-hydra-hollow-call-before-hook)
+                                      :adtype hook :pdumper-no-end t))))
    ("Rss"
     (("r e" elfeed "Read Rss By Elfeed"
       :enable t
       :exit t))))
 
   :eemacs-mmphc
-  (((:enable t)
+  (((:enable t :defer t)
     (elfeed-search-mode (elfeed elfeed-search-mode-map) t))
    ("Feed"
     (("A" elfeed-add-feed "Add feed" :enable t :exit t)
@@ -699,7 +700,8 @@ The minor changing was compat for above."
 (use-package newsticker
   :ensure nil
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-hydra-hollow-call-before-hook)
+                                      :adtype hook :pdumper-no-end t))))
    ("Rss"
     (("r a" newsticker-show-news
       "Read emacs about news"

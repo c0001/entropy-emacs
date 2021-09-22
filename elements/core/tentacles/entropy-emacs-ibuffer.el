@@ -36,7 +36,13 @@
 (use-package ibuffer
   :ensure nil
   :eemacs-tpha
-  (((:enable t))
+  (((:enable
+     t
+     :defer
+     (:data
+      (:adfors
+       (entropy/emacs-hydra-hollow-call-before-hook)
+       :adtype hook :pdumper-no-end t))))
    ("WI&BUF"
     (("C-x C-b" ibuffer "Begin using Ibuffer to edit a list of buffers"
       :enable t

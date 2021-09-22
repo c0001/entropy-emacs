@@ -48,46 +48,50 @@
           search-query
           search-engine)
   (let ()
-    `(progn
-       (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
-        ',mode '(,feature ,mode-map) t
-        '("Basic"
-          (("s" ,search-query "Search"
-            :enable (not (null ',search-query)) :map-inject (not (null ',mode-map))
-            :exit t)
-           ("S" ,search-engine "Toggle search engine"
-            :enable (not (null ',search-engine)) :map-inject (not (null ',mode-map))
-            :exit t)
-           ("t" ,toggle-inline-image "Toggle display current image"
-            :enable (not (null ',toggle-inline-image)) :map-inject (not (null ',mode-map))
-            :exit t)
-           ("T" ,toggle-image "Toggle display all images "
-            :enable (not (null ',toggle-image)) :map-inject (not (null ',mode-map))
-            :exit t))
-          "Page Move"
-          (("l" ,previous-page "Previous Page"
-            :enable (not (null ',previous-page)) :map-inject (not (null ',mode-map))
-            :exit t)
-           ("n" ,next-page "Next Page"
-            :enable (not (null ',next-page)) :map-inject (not (null ',mode-map))
-            :exit t)
-           ("e" ,browse-with-external "Browse Externally"
-            :enable (not (null ',browse-with-external)) :map-inject (not (null ',mode-map))
-            :exit t))
-          "Link Retrieve"
-          (("c" ,current-page-url "Copy Current Page Url"
-            :enable (not (null ',current-page-url)) :map-inject (not (null ',mode-map))
-            :exit t)
-           ("u" ,current-link-url "Copy Current Link Url"
-            :enable (not (null ',current-link-url)) :map-inject (not (null ',mode-map))
-            :exit t))
-          "Bookmark Operation"
-          (("b" ,bookmark-library-view "View Bookmarks"
-            :enable (not (null ',bookmark-library-view)) :map-inject (not (null ',mode-map))
-            :exit t)
-           ("a" ,bookmark-add "Add Bookmark"
-            :enable (not (null ',bookmark-add)) :map-inject (not (null ',mode-map))
-            :exit t)))))))
+    `(entropy/emacs-lazy-initial-for-hook
+      (eww-mode-hook w3m-mode-hook)
+      "text-www-hydra-hollow-init"
+      "text-www-hydra-hollow-init" prompt-echo
+      :pdumper-no-end t
+      (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
+       ',mode '(,feature ,mode-map) t
+       '("Basic"
+         (("s" ,search-query "Search"
+           :enable (not (null ',search-query)) :map-inject (not (null ',mode-map))
+           :exit t)
+          ("S" ,search-engine "Toggle search engine"
+           :enable (not (null ',search-engine)) :map-inject (not (null ',mode-map))
+           :exit t)
+          ("t" ,toggle-inline-image "Toggle display current image"
+           :enable (not (null ',toggle-inline-image)) :map-inject (not (null ',mode-map))
+           :exit t)
+          ("T" ,toggle-image "Toggle display all images "
+           :enable (not (null ',toggle-image)) :map-inject (not (null ',mode-map))
+           :exit t))
+         "Page Move"
+         (("l" ,previous-page "Previous Page"
+           :enable (not (null ',previous-page)) :map-inject (not (null ',mode-map))
+           :exit t)
+          ("n" ,next-page "Next Page"
+           :enable (not (null ',next-page)) :map-inject (not (null ',mode-map))
+           :exit t)
+          ("e" ,browse-with-external "Browse Externally"
+           :enable (not (null ',browse-with-external)) :map-inject (not (null ',mode-map))
+           :exit t))
+         "Link Retrieve"
+         (("c" ,current-page-url "Copy Current Page Url"
+           :enable (not (null ',current-page-url)) :map-inject (not (null ',mode-map))
+           :exit t)
+          ("u" ,current-link-url "Copy Current Link Url"
+           :enable (not (null ',current-link-url)) :map-inject (not (null ',mode-map))
+           :exit t))
+         "Bookmark Operation"
+         (("b" ,bookmark-library-view "View Bookmarks"
+           :enable (not (null ',bookmark-library-view)) :map-inject (not (null ',mode-map))
+           :exit t)
+          ("a" ,bookmark-add "Add Bookmark"
+           :enable (not (null ',bookmark-add)) :map-inject (not (null ',mode-map))
+           :exit t)))))))
 
 ;; ** browsers
 ;; *** emacs-w3m interface
@@ -391,7 +395,7 @@ in whole page."
              entropy/emacs-textwww-search-web-region-toggle
              entropy/emacs-textwww-search-web-toggle)
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (prog-mode-hook) :adtype hook :pdumper-no-end t))))
    ("WWW"
     (("C-c w" entropy/emacs-textwww-search-web-toggle
       "Search For Web With Hint"
@@ -547,13 +551,18 @@ effective then adding option of personal browse url function that be in ordered 
 
 ;; init setting
 
-(entropy/emacs-hydra-hollow-add-for-top-dispatch
- '("WWW"
-   (("C-c M-w" entropy/emacs-textwww-toggle-default-browser
-     "Toggle default browser."
-     :enable t
-     :eemacs-top-bind t
-     :exit t))))
+(entropy/emacs-lazy-initial-for-hook
+ (eww-mode-hook w3m-mode-hook)
+ "default-browser-toggle-hydra-hollow-init"
+ "default-browser-toggle-hydra-hollow-init" prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("WWW"
+    (("C-c M-w" entropy/emacs-textwww-toggle-default-browser
+      "Toggle default browser."
+      :enable t
+      :eemacs-top-bind t
+      :exit t)))))
 
 ;; advantage of using w3m as default browser
 (when (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)

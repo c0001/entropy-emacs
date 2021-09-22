@@ -40,7 +40,7 @@
   :bind
 
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (pre-command-hook) :adtype hook :pdumper-no-end t))))
    ("Project"
     (("C-c p"
       (:eval
@@ -50,7 +50,7 @@
       :enable t :exit t))))
 
   :eemacs-indhc
-  (((:enable t)
+  (((:enable t :defer (:data (:adfors (pre-command-hook) :adtype hook :pdumper-no-end t)))
     (projectile-mode (projectile projectile-mode-map) nil (2)))
    ("projectile Switch"
     (("C-c p p p" counsel-projectile-switch-project "Switch To Other Project"
@@ -245,7 +245,7 @@ benchmark while exhibits."
   :ensure nil
   :commands entropy/prjm-inct-chosen-db
   :eemacs-tpha
-  (((:enable t))
+  (((:enable t :defer (:data (:adfors (pre-command-hook) :adtype hook :pdumper-no-end t))))
    ("Project"
     (("C-c M-p" entropy/prjm-inct-chosen-db "Eemacs Project Management"
       :enable t :exit t :global-bind t)))))
