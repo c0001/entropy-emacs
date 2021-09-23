@@ -722,7 +722,23 @@ The minor changing was compat for above."
           ))
   :config
   (entropy/emacs-make-function-inhibit-readonly
-   'newsticker-treeview-save))
+   'newsticker-treeview-save)
+
+  (defun __adv/after/newsticker-treeview-quit/stop-all (&rest _)
+    "Stop newsticker tickers and all lived related buffers and windows."
+    (dolist (buff newsticker--treeview-buffers)
+      (let ((kill-buffer-hook nil))
+        (kill-buffer buff)))
+    (dolist (win newsticker--treeview-windows)
+      (let (_)
+        (when (and (window-live-p win)
+                   (not (eq (window-main-window) win)))
+          (delete-window win))))
+    (newsticker-stop))
+  (advice-add 'newsticker-treeview-quit
+              :after
+              #'__adv/after/newsticker-treeview-quit/stop-all)
+  )
 
 
 ;; * provide
