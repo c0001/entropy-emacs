@@ -508,7 +508,7 @@ plist are:
             use-name)))
          (rest-body (use-package-process-keywords use-name rest state))
          (form
-          `(unless (bound-and-true-p judger-var)
+          `(unless (bound-and-true-p ,judger-var)
              (prog1
                  (require ',use-name)
                (setq ,judger-var t))))
