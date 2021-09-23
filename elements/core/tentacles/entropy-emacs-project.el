@@ -40,11 +40,52 @@
              projectile-mode)
   :bind
   :init
-  (setq projectile-mode-line-prefix ""
-        projectile-sort-order 'recentf
-        projectile-use-git-grep t
-        projectile-completion-system 'ivy
-        projectile-keymap-prefix nil)
+  (setq
+   ;; disable projectile mode-line indicator
+   projectile-mode-line-prefix ""
+   projectile-dynamic-mode-line nil
+   ;; projectile sort spec
+   projectile-sort-order 'recentf
+   ;; disable projectile auto check git status for reduce lag
+   projectile-use-git-grep nil
+   ;; completion framework spec
+   projectile-completion-system 'ivy
+   ;; disable pre-setted keymap
+   projectile-keymap-prefix nil
+   ;; auto update detected projects and its status
+   projectile-auto-update-cache t
+   projectile-auto-discover t
+   projectile-track-known-projects-automatically t)
+
+  (entropy/emacs-lazy-initial-advice-before
+   (dired-mode find-file switch-to-buffer)
+   "projectile-global-mode-init" "projectile-global-mode-init"
+   prompt-echo
+   :pdumper-no-end t
+   (advice-add 'projectile-mode
+               :after
+               ;; FIXME:
+               (progn
+                 (defalias '__adv/after/projectile-mode/for-dired-before-readin-hook
+                   (lambda
+                     (&rest _)
+                     "Advice for `projectile-mode' which has fatal of
+using local hook injection to `dired-before-readin-hook' which
+can not globally enable that hook and WHY?."
+                     (cond
+                      ((bound-and-true-p projectile-mode)
+                       (remove-hook 'dired-before-readin-hook
+                                    #'projectile-track-known-projects-find-file-hook t)
+                       (add-hook 'dired-before-readin-hook
+                                 #'projectile-track-known-projects-find-file-hook))
+                      (t
+                       (remove-hook 'dired-before-readin-hook
+                                    #'projectile-track-known-projects-find-file-hook)))))
+                 '__adv/after/projectile-mode/for-dired-before-readin-hook))
+   (unless (bound-and-true-p counsel-projectile-mode)
+     (counsel-projectile-mode t))
+   (unless (bound-and-true-p projectile-mode)
+     (projectile-mode t)))
 
   :config
 
@@ -67,10 +108,7 @@
 
   ;; Support Perforce project
   (let ((val (or (getenv "P4CONFIG") ".p4config")))
-    (add-to-list 'projectile-project-root-files-bottom-up val))
-
-  ;; final initial
-  (projectile-mode +1))
+    (add-to-list 'projectile-project-root-files-bottom-up val)))
 
 ;; *** counsel projectile
 (use-package counsel-projectile
@@ -226,8 +264,6 @@ condition to reduce lag since `projectile-expand-root' has low
 benchmark while exhibits."
     (propertize str 'face 'ivy-virtual))
 
-;; ***** final init global mode
-  (counsel-projectile-mode +1)
   )
 
 ;; ** entropy-project-manager
