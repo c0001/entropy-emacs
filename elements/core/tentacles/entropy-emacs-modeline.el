@@ -129,7 +129,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 ;; *** modeline type defined
 ;; **** powerline group
 ;; ***** powerline
-(use-package powerline
+(entropy/emacs-usepackage-with-permanently-defer powerline
   :preface
   (defvar entropy/emacs-modeline--powerline-spec-done nil)
   (defvar entropy/emacs-modeline--powerline-enable-done nil)
@@ -213,13 +213,14 @@ enabled."
               (spaceline--unicode-number str))
             (propertize str 'face 'bold))))))
 
-(use-package spaceline-config
+(entropy/emacs-usepackage-with-permanently-defer spaceline-config
   :ensure nil
   :commands (spaceline-spacemacs-theme))
 
-(use-package spaceline
+(entropy/emacs-usepackage-with-permanently-defer spaceline
   :init
-  (with-eval-after-load 'spaceline-segments
+  (entropy/emacs-lazy-load-simple spaceline-segments
+    :always-lazy-load t
     (entropy/emacs-modeline--spaceline-defsegment-for-workspace)))
 
 ;; **** origin type

@@ -130,6 +130,8 @@ configuration.")
                                 ;; for clean emacs session init and
                                 ;; for fast emacs performance issue
                                 (seq line-start "doom-modeline")
+                                (seq line-start "powerline")
+                                (seq line-start "spaceline")
                                 ;; `counsel-ffdata''s defcustom for
                                 ;; `counsel-ffdata-database-path' have
                                 ;; bug
