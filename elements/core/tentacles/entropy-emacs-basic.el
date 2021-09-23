@@ -2550,7 +2550,6 @@ operation system"
   :ensure nil
   :defer (or entropy/emacs-fall-love-with-pdumper entropy/emacs-custom-enable-lazy-load)
   :preface
-  (defvar entropy/emacs-basic-pyim-liberime-load-timer nil)
 
   (defun entropy/emacs-basic--pyim-set-rime-schema ()
     "Set rime input schema to 'luna_pinyin_simp' as that is the
@@ -2584,46 +2583,6 @@ CustomizationGuide#\
     (liberime-try-select-schema
      "luna_pinyin_simp"))
 
-  (defun entropy/emacs-basic--pyim-first-build-timer (&optional is-with-building)
-    (setq entropy/emacs-basic-pyim-liberime-load-timer
-          (run-with-timer
-           0 1
-           `(lambda ()
-              (let* ((proc (get-process "liberime-build"))
-                     (proc-status (when proc (process-status proc)))
-                     (proc-exited (when proc (eq proc-status 'exit)))
-                     proc-exit-signal)
-                (when (timerp entropy/emacs-basic-pyim-liberime-load-timer)
-                  (cancel-timer entropy/emacs-basic-pyim-liberime-load-timer)
-                  (setq entropy/emacs-basic-pyim-liberime-load-timer nil))
-                (if (ignore-errors
-                      (entropy/emacs-basic--pyim-set-rime-schema))
-                    (progn
-                      (setq entropy/emacs-pyim-has-initialized t)
-                      (when (or proc ',is-with-building)
-                        (entropy/emacs-message-do-message
-                         "%s"
-                         (green "liberime build successfully"))))
-                  (cond
-                   (proc-exited
-                    (setq proc-exit-signal (process-exit-status proc))
-                    (if (= 0 proc-exit-signal)
-                        ;; in this case although the build is done but
-                        ;; the dynamic module has not been loaded done
-                        ;; so that we must wait for turns.
-                        (entropy/emacs-basic--pyim-first-build-timer
-                         t)
-                      (entropy/emacs-message-do-message
-                       "%s"
-                       (red (format "liberime build faild with exit status %s, \
-please check buffer '*liberime build*' for details"
-                                    proc-exit-signal)))
-                      (setq entropy/emacs-pyim-has-initialized 'liberime-build-failed)
-                      ))
-                   (t
-                    (entropy/emacs-basic--pyim-first-build-timer
-                     ',is-with-building)))))))))
-
   (defun entropy/emacs-basic-pyim-load-rime ()
     ;; load liberim just needed to require it. Set
     ;; `liberime-auto-build' to t so that we do not get the build
@@ -2641,7 +2600,10 @@ please check buffer '*liberime build*' for details"
           (setq building t)
         (setq entropy/emacs-pyim-has-initialized t))
       (when building
-        (entropy/emacs-basic--pyim-first-build-timer))))
+        (warn "You need to build liberime firstly \
+when your `entropy/emacs-pyim-use-backend' is 'liberime' \
+by run command \"make liberime\" in eemacs root place")
+        (setq entropy/emacs-pyim-has-initialized 'liberime-no-build))))
 
   :init
   (setq liberime-shared-data-dir

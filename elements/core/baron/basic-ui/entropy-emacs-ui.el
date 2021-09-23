@@ -596,9 +596,14 @@ for adding to variable `window-size-change-functions' and hook
       (setq dashboard-set-heading-icons t)
       (setq dashboard-set-file-icons t))
     (dashboard-insert-startupify-lists)
-    (switch-to-buffer "*dashboard*")
-    (goto-char (point-min))
-    (hl-line-mode 1)
+    (let ((win (or (get-buffer-window entropy/emacs-init-welcome-buffer-name)
+                   (error "eemacs internal fatal of no welcom buffer window getted"))))
+      (set-window-buffer
+       win
+       "*dashboard*")
+      (with-selected-window win
+        (goto-char (point-min))
+        (hl-line-mode 1)))
     ;; kill dashboard org pre load opened buffers for let them
     ;; encounter rest org specification in `entropy-emacs-org.el'
     (mapc

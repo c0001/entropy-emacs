@@ -47,6 +47,9 @@ EchoEmpty=echo
 endif
 
 # ** main
+
+.PHONY:help install compile install-coworkers install-eemacs-ext-build install-eemacs-fonts update dump native-comp liberime all debug
+
 help:
 	@$(CAT) make-help.txt
 	@$(EMACS) --version
@@ -90,6 +93,9 @@ native-comp: export EEMACS_MAKE=native-comp
 native-comp:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
+
+liberime:
+	make -C elements/site-lisp/liberime/
 
 all: install install-coworkers update dump
 

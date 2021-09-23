@@ -282,27 +282,40 @@ Emacs\" buffer's local `browse-url-browse-function' to
 
 ;; ** start
 
+(defvar entropy/emacs-start--init-after-load-hook nil
+  "hooks injected to `entropy/emacs-after-startup-hook' after inited eemacs.")
+
 ;; *** status of pyim loading
 (defvar entropy/emacs-start--pyim-timer nil)
 
-(defun entropy/emacs-start--pyim-init-after-loaded-cache ()
+(defun entropy/emacs-start--pyim-init-status-guard ()
   "Trace pyim loading thread til it's done as giving the
 notation.
 
 (specific for emacs version uper than '26' or included '26'.)"
-  (when (bound-and-true-p entropy/emacs-pyim-has-initialized)
-    (when (timerp entropy/emacs-start--pyim-timer)
-      (cancel-timer entropy/emacs-start--pyim-timer)
-      (cancel-function-timers #'entropy/emacs-start--pyim-init-after-loaded-cache))
-    (if (eq entropy/emacs-pyim-has-initialized t)
-        (entropy/emacs-message-do-message (green "pyim loading down."))
-      (entropy/emacs-message-do-message
-       "%s: Pyim loading with status: %s, so that it's no been initialized!"
-       (yellow "warning")
-       (cyan (format "%s" entropy/emacs-pyim-has-initialized))))
-    (defun entropy/emacs-start--pyim-init-after-loaded-cache ()
-      (entropy/emacs-message-do-message
-       (yellow "This function has been unloaded.")))))
+  (let ((timer-stop-func
+         (lambda ()
+           (when (timerp entropy/emacs-start--pyim-timer)
+             (cancel-timer entropy/emacs-start--pyim-timer))
+           (setq entropy/emacs-start--pyim-timer nil)
+           (cancel-function-timers #'entropy/emacs-start--pyim-init-status-guard))))
+    (cond ((bound-and-true-p entropy/emacs-pyim-has-initialized)
+           (funcall timer-stop-func)
+           (if (eq entropy/emacs-pyim-has-initialized t)
+               (entropy/emacs-message-do-message (green "pyim loading down."))
+             (entropy/emacs-message-do-message
+              "%s: Pyim loading with status: %s, so that it's no been initialized!"
+              (yellow "warning")
+              (cyan (format "%s" entropy/emacs-pyim-has-initialized))))
+           (defun entropy/emacs-start--pyim-init-status-guard ()
+             (entropy/emacs-message-do-message
+              (yellow "This function has been unloaded."))))
+          (t
+           (funcall timer-stop-func)
+           (setq entropy/emacs-start--pyim-timer
+                 (run-with-timer
+                  1 nil
+                  #'entropy/emacs-start--pyim-init-status-guard))))))
 
 (defun entropy/emacs-start--pyim-initialize ()
   "Make prompt when loading and loded pyim cache for emacs init time."
@@ -317,12 +330,15 @@ notation.
   ;; prompt for loading pyim cache done.
   (setq entropy/emacs-start--pyim-timer
         (run-with-idle-timer
-         1 t
-         #'entropy/emacs-start--pyim-init-after-loaded-cache))
+         0.4 nil
+         #'entropy/emacs-start--pyim-init-status-guard))
   ;; reset function
   (defun entropy/emacs-start--pyim-initialize ()
     (message "This function has been unloaded.")))
 
+(when entropy/emacs-enable-pyim
+  (add-hook 'entropy/emacs-start--init-after-load-hook
+            #'entropy/emacs-start--pyim-initialize))
 
 ;; *** after load procedure
 
@@ -339,11 +355,11 @@ notation.
        (green "After load initilized"))
       (setq entropy/emacs-run-startup-trail-hooks-init-done-timestamp
             (current-time)))
-    ;; start pyim
-    (when (and entropy/emacs-enable-pyim
-               (not entropy/emacs-start--is-init-with-install))
-      (add-hook 'entropy/emacs-startup-end-hook
-                #'entropy/emacs-start--pyim-initialize))))
+    ;; append startup hook when there's no any installation detected
+    (when (not entropy/emacs-start--is-init-with-install)
+      (setq entropy/emacs-after-startup-hook
+            (append entropy/emacs-after-startup-hook
+                    entropy/emacs-start--init-after-load-hook)))))
 
 ;; *** start up branch
 ;; **** mini start

@@ -133,7 +133,8 @@
      (when (yes-or-no-p "Compile? ")
        ,@body)))
 
-;; *** dump emacs
+;; *** make sections
+;; **** dump emacs
 (defun entropy/emacs-batch--dump-emacs-core ()
   (let ((dump-file (expand-file-name
                     (format "eemacs_%s.pdmp" (format-time-string "%Y%m%d%H%M%S"))
@@ -149,7 +150,7 @@
       "You just can portable dump emacs while emacs version upon 27, abort")))
   (entropy/emacs-batch--dump-emacs-core))
 
-;; *** install coworkers
+;; **** install coworkers
 
 (defun entropy/emacs-batch--install-coworkers (&optional prefix)
   (interactive "P")
@@ -181,7 +182,7 @@
         (funcall (cdr el))
         (cl-incf count)))))
 
-;; *** backup `package-user-dir'
+;; **** backup `package-user-dir'
 (defun entropy/emacs-batch--backup-extensions ()
   (let* ((host-path (file-name-directory package-user-dir))
          (archive (file-name-nondirectory package-user-dir))
@@ -198,7 +199,7 @@
      (yellow (format "'%s'" bcknew))
      (green "completely!"))))
 
-;; *** native compile  `package-user-dir'
+;; **** native compile  `package-user-dir'
 
 (defun entropy/emacs-batch--around-advice-for-native-compile (orig-func &rest orig-args)
   (let ((file-or-func (caar comp-files-queue)))
@@ -232,7 +233,7 @@
          'comp-run-async-workers
          #'entropy/emacs-batch--around-advice-for-native-compile)))))
 
-;; *** get entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo
+;; **** get entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo
 
 (defun entrop/emacs-batch--install-eemacs-ext-stable-build-repo-core ()
   (let* ((url entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url)
@@ -328,7 +329,7 @@ faild with hash '%s' which must match '%s'"
        (yellow "Abort!")))))
 
 
-;; *** get eemacs-font
+;; **** get eemacs-font
 
 (defun entrop/emacs-batch--install-eemacs-fonts ()
   (let* ((url entropy/emacs-ext-eemacs-fonts-archive-url)
@@ -431,7 +432,7 @@ faild with hash '%s' which must match '%s'"
       )
     ))
 
-;; *** byte compile tentacles
+;; **** byte compile tentacles
 
 (defun entropy/emacs-batch--byte-compile-dir (dir)
   (let* ((dir-cur (expand-file-name dir))

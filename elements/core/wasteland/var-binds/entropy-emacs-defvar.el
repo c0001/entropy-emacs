@@ -736,9 +736,11 @@ initialize the default non-lazy configs.
                                ))
              :duratioin ,lazy-hook-time)))
     (unless (daemonp)
-      (setq-local
-       mode-line-format
-       msgstr))
+      (with-selected-window (selected-window)
+        (with-current-buffer (window-buffer)
+          (setq-local
+           mode-line-format
+           msgstr))))
     (entropy/emacs-message-do-message
      "%s --- %s %s"
      (bold base-str)

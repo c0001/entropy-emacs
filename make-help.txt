@@ -14,6 +14,7 @@ Example:
        make all
        make install
        make compile
+       make liberime
        make install-coworkers
        make install-eemacs-ext-build
        make install-eemacs-fonts
@@ -44,6 +45,13 @@ Example:
 
 - 'compile' option compile entropy-emacs to get better startup speed
   and running performance.
+
+- 'liberime' option compile 'liberime' emacs-module based on your
+  system, note that you should have 'librime' and its develop headers
+  installed on your system e.g. in debian `apt install librime-dev'.
+
+  On windows platform or looing for more details please see the README
+  file under "elements/site-lisp/liberime".
 
 The dumped emacs binary file is stored in
 'entropy/emacs-user-emacs-directory' (i.e. the entropy-emacs specified
