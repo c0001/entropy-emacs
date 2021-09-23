@@ -348,6 +348,24 @@ When installing encounters the fatal error, put the pkg into
                    unless (eq item keyword)
                    collect item))))
 
+;; *** use-package extended
+
+(defmacro entropy/emacs-usepackage-with-permanently-defer
+    (&rest form)
+  (declare (indent 1))
+  (let* ((old-use-package-defaults use-package-defaults))
+    (unwind-protect
+        (progn
+          (setq use-package-defaults
+                '(;; this '(t) has special meaning; see `use-package-handler/:config'
+                  (:config '(t) t)
+                  (:init nil t)
+                  (:catch t t)
+                  (:defer t t)
+                  (:demand nil t)))
+          (macroexpand-1 `(use-package ,@form)))
+      (setq use-package-defaults old-use-package-defaults))))
+
 ;; *** extra `use-package' keywords definition
 ;; **** :eemacs-functions
 

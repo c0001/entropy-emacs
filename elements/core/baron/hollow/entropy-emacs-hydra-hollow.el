@@ -2939,6 +2939,8 @@ And if PATTERN is nil, then we return the form as is.
      ((eq patterns t)
       (setq rtn
             `(entropy/emacs-lazy-load-simple ,use-name
+               ;; NOTE: always defer for require
+               :always-lazy-load t
                ,form-use-judge)))
      (t
       (setq rtn form)))

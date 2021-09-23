@@ -329,8 +329,15 @@ whenever `entropy/emacs-startup-done' is not set while
            (not
             (and (daemonp)
                  (not entropy/emacs-daemon-server-init-done)))
-           ;; -- not in other batch mode
-           (not noninteractive))
+           ;; -- not in make session
+           (not
+            (entropy/emacs-is-make-session))
+           ;; -- not when non-lazy-mode enabled in interactive session
+           ;;    since we should see the long terms of init.
+           (not
+            (and (null noninteractive)
+                 (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))))
+           )
           (message "Loading ..."))
          ((or
            ;; always disbale popup in `noninteractive' mode

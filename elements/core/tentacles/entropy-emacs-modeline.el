@@ -368,12 +368,9 @@ return nil"
         'error)))))
 
 ;; **** doom modeline
-(use-package doom-modeline
+(entropy/emacs-usepackage-with-permanently-defer doom-modeline
   ;; We indicate to let doom modeline always not be fully required
   ;; unless user start it since its messy of its dirty hacking
-  :defer t
-  :demand nil
-  :ensure nil
   :commands (doom-modeline-mode
              doom-modeline-refresh-bars)
   :preface
