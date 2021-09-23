@@ -352,6 +352,7 @@ When installing encounters the fatal error, put the pkg into
 
 (defmacro entropy/emacs-usepackage-with-permanently-defer
     (&rest form)
+  "Like `use-package' but always defer the package loading."
   (declare (indent 1))
   (let* ((old-use-package-defaults use-package-defaults))
     (unwind-protect
