@@ -2898,11 +2898,18 @@ otherwise returns nil."
     (("f f"
       (:pretty-hydra-cabinet
        (:data
-        "Frequently used commands"
+        "Window split/delete"
         (("C-x 1" delete-other-windows
           "delete-other-window"
           :enable t :exit t :global-bind t)
-         ("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
+         ("C-x 2" entropy/emacs-no-same-buffer-split-window-vertically
+          "delete-other-window"
+          :enable t :exit t :global-bind t)
+         ("C-x 3" entropy/emacs-no-same-buffer-split-window-horizontally
+          "delete-other-window"
+          :enable t :exit t :global-bind t))
+        "Frequently used Misc. commands"
+        (("<f2>" entropy/emacs-basic-dhl-toggle "hl line"
           :enable t
           :exit t
           :global-bind t)

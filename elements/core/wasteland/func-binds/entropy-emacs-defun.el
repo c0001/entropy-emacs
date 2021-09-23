@@ -1592,7 +1592,7 @@ their usage."
                 input output)))
 
 ;; *** Window manipulation
-
+;; **** Side window
 (defun entropy/emacs-overview-live-side-windows ()
   "Overview all lived side windows return an alist whose each
 element is formed as (window side-type . side-slot), if non lived side
@@ -1621,6 +1621,109 @@ bottom)."
                 (when (eq side (cadr side-obj))
                   (delete-window (car side-obj))))
               side-wins)))))
+
+;; **** split window
+
+(defvar entropy/emacs-split-window-default-exhaustion-buffname
+  "*eemacs-split-default-exhausted-buffer*")
+
+(defun entropy/emacs-no-same-buffer-split-window
+    (&optional window size side pixelwise buffname)
+  "Like `split-window' but not use same buffer in the new window,
+defaulty display the buffer
+`entropy/emacs-split-window-default-exhaustion-buffname' if
+optional argument BUFFNAME is not set.
+
+And if BUFFNAME is not specified, we set the `default-directory'
+of the new buffer on new-window which returned as the same as the
+original."
+  (let* ((orig-dfdir default-directory)
+         (orig-win (selected-window))
+         (bfname
+          (or buffname
+              entropy/emacs-split-window-default-exhaustion-buffname))
+         (buff (get-buffer-create bfname))
+         (window (apply 'split-window
+                        (list window size side pixelwise))))
+    (set-window-buffer window buff)
+    (unless buffname
+      (with-current-buffer buff
+        (setq-local default-directory orig-dfdir)
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert
+           (format "This is the temporally buffer exhausted to
+the new window splitted from origin window <%s>,
+you should switch to another buffer by [C-x b] or in other way
+because this buffer is auto-generated and has no meaning
+unless this hints."
+                   orig-win)))
+        (unless (bound-and-true-p buffer-read-only)
+          (setq-local buffer-read-only t))))
+    ;; finally return the WINDOW same as `split-window'
+    window))
+
+(defun entropy/emacs-no-same-buffer-split-window-horizontally
+    (&optional size)
+  "Like `split-window-horizontally' but uhkse
+`entropy/emacs-no-same-buffer-split-window' as subroutine."
+  (interactive "P")
+  (let ((old-window (selected-window))
+        (size (and size (prefix-numeric-value size)))
+        new-window)
+    (when (and size (< size 0) (< (- size) window-min-width))
+      ;; `split-window' would not signal an error here.
+      (error "Size of new window too small"))
+    (setq new-window (entropy/emacs-no-same-buffer-split-window
+                      nil size t))
+    ;; Always copy quit-restore parameter in interactive use.
+    (let ((quit-restore (window-parameter old-window 'quit-restore)))
+      (when quit-restore
+        (set-window-parameter new-window 'quit-restore quit-restore)))
+    new-window))
+
+(defun entropy/emacs-no-same-buffer-split-window-vertically
+    (&optional size)
+  "Like `split-window-vertically' but use
+`entropy/emacs-no-same-buffer-split-window' as subroutine."
+  (interactive "P")
+  (let ((old-window (selected-window))
+        (old-point (window-point))
+        (size (and size (prefix-numeric-value size)))
+        moved-by-window-height moved new-window bottom)
+    (when (and size (< size 0) (< (- size) window-min-height))
+      ;; `split-window' would not signal an error here.
+      (error "Size of new window too small"))
+    (setq new-window (entropy/emacs-no-same-buffer-split-window
+                      nil size))
+    (unless split-window-keep-point
+      (with-current-buffer (window-buffer)
+        ;; Use `save-excursion' around vertical movements below
+        ;; (Bug#10971).  Note: When the selected window's buffer has a
+        ;; header line, up to two lines of the buffer may not show up
+        ;; in the resulting configuration.
+        (save-excursion
+          (goto-char (window-start))
+          (setq moved (vertical-motion (window-height)))
+          (set-window-start new-window (point))
+          (when (> (point) (window-point new-window))
+            (set-window-point new-window (point)))
+          (when (= moved (window-height))
+            (setq moved-by-window-height t)
+            (vertical-motion -1))
+          (setq bottom (point)))
+        (and moved-by-window-height
+             (<= bottom (point))
+             (set-window-point old-window (1- bottom)))
+        (and moved-by-window-height
+             (<= (window-start new-window) old-point)
+             (set-window-point new-window old-point)
+             (select-window new-window))))
+    ;; Always copy quit-restore parameter in interactive use.
+    (let ((quit-restore (window-parameter old-window 'quit-restore)))
+      (when quit-restore
+        (set-window-parameter new-window 'quit-restore quit-restore)))
+    new-window))
 
 ;; ** eemacs specifications
 ;; *** Individuals
