@@ -238,6 +238,12 @@ window will be set to 13.5.")
 (defvar entropy/emacs-init-welcome-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Buffer name of entropy-emacs initial welcome displaying buffer.")
 
+;; ** byte compile refer
+
+(defvar entropy/emacs-session-in-byte-compile-tentacles nil
+  "whether current eemacs session is used to byte-compile eemacs
+tentacles.")
+
 ;; ** idle trigger
 (defvar entropy/emacs-current-session-is-idle-p nil
   "The current emacs session idle signal, t for idle status

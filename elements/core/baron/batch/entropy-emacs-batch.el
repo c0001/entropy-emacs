@@ -456,6 +456,8 @@ faild with hash '%s' which must match '%s'"
                    (format "eemacs-tentacles-compile-%s.log"
                            (format-time-string "%Y%m%d%H%M%S"))
                    entropy/emacs-stuffs-topdir)))
+    ;; declare this session status
+    (setq entropy/emacs-session-in-byte-compile-tentacles t)
     ;; (setq debug-on-error t)
     (entropy/emacs-package-common-start)
     ;; EEMACS_MAINTENANCE: must follow the requirements part of `entropy-emacs-start.el'
