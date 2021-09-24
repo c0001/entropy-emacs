@@ -134,7 +134,8 @@ or manually do 'C-x C-c' immediately.")))
   (entropy/emacs-package-common-start))
 
 ;; ***** Then require top facilities
-(unless entropy/emacs-start--is-init-with-install
+(unless (or entropy/emacs-start--is-init-with-install
+            (not entropy/emacs-start-ext-available-p))
   ;; coworker
   (require 'entropy-emacs-coworker)
 

@@ -324,20 +324,30 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 
 ;; ** main
 (defun entropy/emacs-ext-main ()
-  (let ((extras-status (entropy/emacs-ext--check-all-extras)))
-    (if (not (eq extras-status t))
-        (prog1
-            nil
-          (entropy/emacs-ext--extra-prompt-troubel extras-status))
-      (unless entropy/emacs-ext--loaded
-        (entropy/emacs-ext--load-extra)
-        (when (and entropy/emacs-ext-user-specific-load-paths
-                   (listp entropy/emacs-ext-user-specific-load-paths))
-          (dolist (el entropy/emacs-ext-user-specific-load-paths)
-            (when (ignore-errors (file-directory-p el))
-              (entropy/emacs-ext--load-path (expand-file-name el)))))
-        (setq entropy/emacs-ext--loaded t))
-      t)))
+  (let ((eemacs-make-env (entropy/emacs-is-make-session)))
+    (cond ((and eemacs-make-env
+                ;; In below make session we do not need to check the
+                ;; extensions status.
+                (member eemacs-make-env
+                        '("Install-Eemacs-Ext-Build"
+                          "Install-Coworkers"
+                          "Install-Eemacs-Fonts")))
+           t)
+          (t
+           (let ((extras-status (entropy/emacs-ext--check-all-extras)))
+             (if (not (eq extras-status t))
+                 (prog1
+                     nil
+                   (entropy/emacs-ext--extra-prompt-troubel extras-status))
+               (unless entropy/emacs-ext--loaded
+                 (entropy/emacs-ext--load-extra)
+                 (when (and entropy/emacs-ext-user-specific-load-paths
+                            (listp entropy/emacs-ext-user-specific-load-paths))
+                   (dolist (el entropy/emacs-ext-user-specific-load-paths)
+                     (when (ignore-errors (file-directory-p el))
+                       (entropy/emacs-ext--load-path (expand-file-name el)))))
+                 (setq entropy/emacs-ext--loaded t))
+               t))))))
 
 ;; ** provide
 (provide 'entropy-emacs-ext)
