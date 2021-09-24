@@ -1508,6 +1508,20 @@ the string passed to `kbd'."
           (define-key key-map
             (kbd (car key-bind)) (cdr key-bind)))))))
 
+(defmacro entropy/emacs-set-key-without-remap
+    (keymap key command)
+  "Like `define-key' but also remove any remap of COMMAND in
+KEYMAP before bind the new spec."
+  (declare (indent defun))
+  `(let (_)
+     ;; Firstly remove the remap since the new spec may be a remap
+     ;; also
+     (define-key ,keymap
+       (vector 'remap ,command)
+       nil)
+     ;; Then we injecting the spec
+     (define-key ,keymap ,key ,command)))
+
 (defmacro entropy/emacs-!set-key (key command)
   "The specified `define-key' like key builder for
 `entropy/emacs-top-keymap'."

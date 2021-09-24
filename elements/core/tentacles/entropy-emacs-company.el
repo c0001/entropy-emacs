@@ -686,7 +686,8 @@ with `shackle'."
      'company-pseudo-tooltip-unless-just-one-frontend)
     (cond ((display-graphic-p)
            (company-quickhelp-mode 1)
-           (define-key company-active-map
+           (entropy/emacs-set-key-without-remap
+             company-active-map
              (kbd "C-h")
              'company-quickhelp-manual-begin))
           (t
@@ -698,9 +699,10 @@ with `shackle'."
                  #'entropy/emacs-company--default-frontend-set-hook)
     (when (bound-and-true-p company-quickhelp-mode)
       (company-quickhelp-mode 0)
-      (define-key company-active-map
-             (kbd "C-h")
-             'company-show-doc-buffer)))
+      (entropy/emacs-set-key-without-remap
+        company-active-map
+        (kbd "C-h")
+        'company-show-doc-buffer)))
 
   (add-to-list 'entropy/emacs-company--frontend-register
                '(default
@@ -751,9 +753,10 @@ with `shackle'."
                 (when (bound-and-true-p company-box-mode)
                   (company-box-mode 0))))
             (buffer-list))
-      (define-key company-active-map
-             (kbd "C-h")
-             'company-show-doc-buffer)))
+      (entropy/emacs-set-key-without-remap
+        company-active-map
+        (kbd "C-h")
+        'company-show-doc-buffer)))
 
   (defun entropy/emacs-company--box-enable ()
     (cond ((entropy/emacs-posframe-adapted-p)
@@ -772,7 +775,8 @@ with `shackle'."
                        (unless (bound-and-true-p company-box-mode)
                          (company-box-mode 1)))))
                  (buffer-list))
-           (define-key company-active-map
+           (entropy/emacs-set-key-without-remap
+             company-active-map
              (kbd "C-h")
              'company-box-doc-manually))
           (t
@@ -964,18 +968,7 @@ while in `company-box-mode'."
         (push '(company-box-frame . :never) frameset-filter-alist)))
      ((memq 'company-box-frontend company-frontends)
       (setq company-frontends (delq 'company-box-frontend company-frontends))
-      (add-to-list 'company-frontends 'company-pseudo-tooltip-unless-just-one-frontend)))
-    ;; HACK: disable remapping since we bind it manually and
-    ;; Because
-    ;; EEMACS_BUG: `company-box-doc' permanently remap
-    ;; `company-show-doc-buffer' to its spec.
-    (when (equal
-           (lookup-key company-active-map
-                       [remap company-show-doc-buffer])
-           'company-box-doc-manually)
-      (define-key company-active-map
-        [remap company-show-doc-buffer]
-        nil)))
+      (add-to-list 'company-frontends 'company-pseudo-tooltip-unless-just-one-frontend))))
 
   (advice-add 'company-box--set-mode
               :override
@@ -992,6 +985,19 @@ while in `company-box-mode'."
               :around
               #'__ya/company-box--get-frame)
 
+;; ***** loading patch
+
+  ;; HACK: disable remapping since we bind it manually and
+  ;; Because
+  ;; EEMACS_BUG: `company-box-doc' permanently remap
+  ;; `company-show-doc-buffer' to its spec.
+  (when (equal
+         (lookup-key company-active-map
+                     [remap company-show-doc-buffer])
+         'company-box-doc-manually)
+    (define-key company-active-map
+      [remap company-show-doc-buffer]
+      nil))
   )
 
 ;; *** Better sorting and filtering
