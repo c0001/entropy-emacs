@@ -88,7 +88,7 @@ set earlier in the 'setq-local'.  The return value of the
 (defvar __inited-p? nil)
 
 ;; forbidden redudant load e.g. pdumper recovery session
-(unless __inited-p?
+(unless (bound-and-true-p __inited-p?)
 
   ;; before/after init time bind
   (defvar entropy/emacs-run-startup-beforeinit-timestamp
@@ -158,6 +158,7 @@ emacs upstream")
     (funcall #'__init_emacs))
    (t
     (add-hook 'after-init-hook
-              #'__init_emacs)
+              #'__init_emacs
+              t)
     ))
   )

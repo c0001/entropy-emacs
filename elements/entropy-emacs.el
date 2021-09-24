@@ -157,6 +157,14 @@
     (add-to-list 'load-path (expand-file-name sub-dep deps-path))))
 
 (require 'entropy-emacs-defcustom)
+(defvar entropy/emacs-run-startup-defcustom-load-done-timestamp (current-time)
+  "Time-stamp eemacs load defcustom config done done")
+
+(defvar entropy/emacs-run-startup-defcustom-load-duration
+  (float-time
+   (time-subtract
+    entropy/emacs-run-startup-defcustom-load-done-timestamp
+    entropy/emacs-run-startup-top-init-timestamp)))
 
 ;; ;; Globally downgrade font-lock decoration to improve performance
 ;; (setq font-lock-maximum-decoration

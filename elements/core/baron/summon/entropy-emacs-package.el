@@ -117,7 +117,9 @@ argument."
     (setq load-path (copy-tree entropy/emacs-origin-load-path))
     (setq package-alist nil)
     (setq package-activated-list nil))
-  (entropy/emacs-message-do-message "Custom packages initializing ......")
+  (entropy/emacs-message-do-message
+   "Custom packages initializing ......"
+   :force-message-while-eemacs-init t)
   (unless __package-first-initialized
     (setq entropy/emacs-package-initialize-init-timestamp
           (current-time)))
@@ -127,7 +129,9 @@ argument."
           (current-time)))
   (unless __package-first-initialized
     (setq __package-first-initialized t))
-  (entropy/emacs-message-do-message "Custom packages initializing done!"))
+  (entropy/emacs-message-do-message
+   "Custom packages initializing done!"
+   :force-message-while-eemacs-init t))
 
 ;; *** prepare main
 (defvar entropy/emacs-package-prepare-done nil)
@@ -255,7 +259,8 @@ When installing encounters the fatal error, put the pkg into
 (defun entropy/emacs-package-install-all-packages ()
   (entropy/emacs-package-prepare-foras)
   (entropy/emacs-message-do-message
-   (blue "Checking extensions satisfied status ..."))
+   (blue "Checking extensions satisfied status ...")
+   :force-message-while-eemacs-init t)
   (require 'entropy-emacs-package-requirements)
   (let ((package-check-signature nil)
         (pkg-pre nil)
@@ -276,7 +281,8 @@ When installing encounters the fatal error, put the pkg into
   ;; show fails
   (entropy/emacs-package-prompt-install-fails)
   (entropy/emacs-message-do-message
-   (green "All packages installed, congratulations 👏")))
+   (green "All packages installed, congratulations 👏")
+   :force-message-while-eemacs-init t))
 
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
@@ -298,7 +304,8 @@ When installing encounters the fatal error, put the pkg into
           (push pkg-id updates))))
     (if (null updates)
         (entropy/emacs-message-do-message
-         (green "All packages are newest!"))
+         (green "All packages are newest!")
+         :force-message-while-eemacs-init t)
       (progn
         (entropy/emacs-message-do-message
          "%s '%s' %s"
