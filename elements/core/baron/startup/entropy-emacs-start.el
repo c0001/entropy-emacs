@@ -36,11 +36,60 @@
 (when entropy/emacs-startup-debug-on-error
   (setq debug-on-error t))
 
+(defvar entropy/emacs-start--load-duration-log nil)
+(defmacro entropy/emacs-start--run-with-duration-log
+    (name &rest body)
+  `(if (bound-and-true-p entropy/emacs-startup-with-Debug-p)
+       (let ((_before-time (current-time)))
+         (prog1
+             (progn
+               ,@body)
+           (push (cons (float-time
+                        (time-subtract
+                         (current-time)
+                         _before-time))
+                       ;; strip quote of name pattern from require arg
+                       (if (and (listp ',name)
+                                (eq 2 (length ',name))
+                                (eq (car ',name) 'quote))
+                           (cadr ',name)
+                         ',name))
+                 entropy/emacs-start--load-duration-log)))
+     ,@body))
+
+(defmacro entropy/emacs-start--require-with-duration-log
+    (&rest args)
+  `(entropy/emacs-start--run-with-duration-log
+    ,(car args)
+    (require ,@args)))
+
+(defun entropy/emacs-start--sort-duration-log
+    (&rest _)
+  (let ((all-sec
+         (apply '+
+                (mapcar
+                 (lambda (x) (car x))
+                 entropy/emacs-start--load-duration-log
+                 ))))
+    (setq entropy/emacs-start--load-duration-log
+          (list
+           :sum all-sec
+           :details
+           (sort entropy/emacs-start--load-duration-log
+                 (lambda (el1 el2)
+                   (let ((el1-sec (car el1))
+                         (el2-sec (car el2)))
+                     (> el1-sec el2-sec))))))))
+
+(when (bound-and-true-p entropy/emacs-startup-with-Debug-p)
+  (add-hook 'entropy/emacs-after-startup-hook
+            #'entropy/emacs-start--sort-duration-log))
+
 ;; *** load wasteland
 ;; **** var binds
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defface)
-(require 'entropy-emacs-defvar)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-defconst)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-defface)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-defvar)
 
 ;; forbidden `entropy/emacs-custom-enable-lazy-load' at special
 ;; session.
@@ -51,20 +100,20 @@
     (setq entropy/emacs-custom-enable-lazy-load nil)))
 
 ;; **** func binds
-(require 'entropy-emacs-message)
-(require 'entropy-emacs-defun)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-message)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-defun)
 
 ;; *** load ui
 ;; load fontset fistly prevents ui position calculating bug.
-(require 'entropy-emacs-font-set)
-(require 'entropy-emacs-ui)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-font-set)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-ui)
 (redisplay t)
 
 ;; *** load baron
 ;; **** summons
 ;; ***** elisp packages
 ;; ****** require eemacs packages library
-(require 'entropy-emacs-package)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-package)
 
 ;; ****** Quit emacs with installing new packages
 (defvar entropy/emacs-start--is-init-with-install nil
@@ -121,7 +170,7 @@ session, please restart thus, and it will be well.")))
         "You init with installing new packages, please reopen emacs!
 Emacs will auto close after 5 minutes \
 or manually do 'C-x C-c' immediately.")))
-    (require 'cl-macs)
+    (entropy/emacs-start--require-with-duration-log 'cl-macs)
     (cl-assert (entropy/emacs-message-focus-on-popup-window))))
 
 ;; breaking remaining procedure while new package intalled within this
@@ -129,30 +178,34 @@ or manually do 'C-x C-c' immediately.")))
 (add-hook 'entropy/emacs-package-common-start-after-hook
           #'entropy/emacs-start--warn-with-pkg-install)
 
-(require 'entropy-emacs-ext)
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-ext)
 (defvar entropy/emacs-start-ext-available-p
-  (entropy/emacs-ext-main))
+  (entropy/emacs-start--run-with-duration-log
+   func/entropy/emacs-ext-main
+   (entropy/emacs-ext-main)))
 (when entropy/emacs-start-ext-available-p
-  (entropy/emacs-package-common-start))
+  (entropy/emacs-start--run-with-duration-log
+   func/entropy/emacs-package-common-start
+   (entropy/emacs-package-common-start)))
 
 ;; ***** Then require top facilities
 (unless (or entropy/emacs-start--is-init-with-install
             (not entropy/emacs-start-ext-available-p))
   ;; coworker
-  (require 'entropy-emacs-coworker)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-coworker)
 
   ;; top utils
-  (require 'entropy-emacs-utils)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-utils)
   (when entropy/emacs-startup-benchmark-init
     (benchmark-init/activate))
 
   ;; startup
-  (require 'entropy-emacs-gc)
-  (require 'entropy-emacs-path)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-gc)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-path)
 
   ;; hollows
-  (require 'entropy-emacs-window-parameter-memory)
-  (require 'entropy-emacs-hydra-hollow))
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-window-parameter-memory)
+  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-hydra-hollow))
 
 ;; *** preface advice
 (defun entropy/emacs-start--require-prompt (feature)
@@ -249,13 +302,15 @@ Trying insert some words in below are:
 ;; Disable virtual terminal tty switching keybinding on linux for
 ;; release more keybinding possibilitie.(see
 ;; <https://unix.stackexchange.com/questions/34158/rebinding-disabling-ctrlaltf-virtual-terminal-console-switching>)
-(when sys/linux-x-p
-  (entropy/emacs-lazy-with-load-trail
-   setxkbmap
-   (shell-command "setxkbmap -option srvrkeys:none")
-   (entropy/emacs-message-do-message
-    (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"
-            :force-message-while-eemacs-init t))))
+(entropy/emacs-start--run-with-duration-log
+ form/disable-virtual-terminal-tty-sh-command
+ (when sys/linux-x-p
+   (entropy/emacs-lazy-with-load-trail
+    setxkbmap
+    (shell-command "setxkbmap -option srvrkeys:none")
+    (entropy/emacs-message-do-message
+     (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"
+             :force-message-while-eemacs-init t)))))
 
 ;; *** Resetting browse-url-function in fancy-startup-screen
 
@@ -533,14 +588,16 @@ of founding its *.elc prior file in some special cases."
       (unless entropy/emacs-fall-love-with-pdumper
         (entropy/emacs-run-startup-end-hook)))))
 
-(if (or entropy/emacs-fall-love-with-pdumper
-        (daemonp))
-    (entropy/emacs-start-do-load)
-  (run-with-idle-timer
-   ;; EEMACS_BUG: we can not set delay to 0 since bug:
-   ;; h-6d28b926-88c0-4286-a0de-9ee7b4a7516c
-   0.00001 nil
-   #'entropy/emacs-start-do-load))
+(entropy/emacs-start--run-with-duration-log
+ form/start-tentacles
+ (if (or entropy/emacs-fall-love-with-pdumper
+         (daemonp))
+     (entropy/emacs-start-do-load)
+   (run-with-idle-timer
+    ;; EEMACS_BUG: we can not set delay to 0 since bug:
+    ;; h-6d28b926-88c0-4286-a0de-9ee7b4a7516c
+    0.00001 nil
+    #'entropy/emacs-start-do-load)))
 
 ;; * provide
 (provide 'entropy-emacs-start)
