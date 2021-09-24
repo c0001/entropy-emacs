@@ -624,9 +624,13 @@ And then make statistics of the startup duration to
 After that we run `entropy/emacs-after-startup-hook' to
 initialize the default non-lazy configs.
 "
-  (message "==================== eemacs trail hooks ran out ====================")
+  (entropy/emacs-message-do-message
+   "==================== eemacs trail hooks ran out ===================="
+   :force-message-while-eemacs-init t)
   (run-hooks 'entropy/emacs-startup-end-hook)
-  (message "==================== eemacs end hooks ran out ====================")
+  (entropy/emacs-message-do-message
+   "==================== eemacs end hooks ran out ===================="
+   :force-message-while-eemacs-init t)
   (setq entropy/emacs-startup-done t)
   ;; NOTE: we must hide popup after set `entropy/emacs-startup-done'
   ;; since its API commentary.

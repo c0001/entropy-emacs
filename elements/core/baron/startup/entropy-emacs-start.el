@@ -254,7 +254,8 @@ Trying insert some words in below are:
    setxkbmap
    (shell-command "setxkbmap -option srvrkeys:none")
    (entropy/emacs-message-do-message
-    (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"))))
+    (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"
+            :force-message-while-eemacs-init t))))
 
 ;; *** Resetting browse-url-function in fancy-startup-screen
 
@@ -346,19 +347,24 @@ notation.
 
 ;; *** after load procedure
 
-(defun entropy/emacs-start--init-after-load-initialze-process (enable aft-hook)
-  (when enable
+(defun entropy/emacs-start--init-after-load-initialze-process ()
+  (let (_)
     ;; run after init hooks
     (unless entropy/emacs-start--is-init-with-install
       (entropy/emacs-message-do-message
-       (cyan "After load initilizing ..."))
+       "==================== eemacs trail hooks running ===================="
+       :force-message-while-eemacs-init t)
+      (entropy/emacs-message-do-message
+       (cyan "After load initilizing ...")
+       :force-message-while-eemacs-init t)
       (setq entropy/emacs-run-startup-trail-hooks-init-timestamp
             (current-time))
-      (run-hooks aft-hook)
-      (entropy/emacs-message-do-message
-       (green "After load initilized"))
+      (run-hooks (entropy/emacs-select-trail-hook t))
       (setq entropy/emacs-run-startup-trail-hooks-init-done-timestamp
-            (current-time)))
+            (current-time))
+      (entropy/emacs-message-do-message
+       (green "After load initilized")
+       :force-message-while-eemacs-init t))
     ;; append startup hook when there's no any installation detected
     (when (not entropy/emacs-start--is-init-with-install)
       (setq entropy/emacs-after-startup-hook
@@ -382,6 +388,7 @@ of founding its *.elc prior file in some special cases."
 (defun entropy/emacs-start-M-enable ()
   (entropy/emacs-message-do-message
    "%s %s"
+   :force-message-while-eemacs-init t
    (white "⮞")
    (blue "Loading minimal ...... "))
   (advice-add 'require :around #'entropy/emacs-start--advice-for-require-prompt)
@@ -414,15 +421,12 @@ of founding its *.elc prior file in some special cases."
   ;; ends for minimal start
   (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
 
-  ;; after loading eemacs mini
-  (entropy/emacs-start--init-after-load-initialze-process
-   entropy/emacs-minimal-start 'entropy/emacs-init-mini-hook)
-
   (defun entropy/emacs-start-M-enable ()
     (interactive)
     (message "This function has been unloaded."))
   (entropy/emacs-message-do-message
    "%s %s"
+   :force-message-while-eemacs-init t
    (white "⮞")
    (green "Minimal start completed.")))
 
@@ -431,7 +435,9 @@ of founding its *.elc prior file in some special cases."
   (interactive)
   (advice-add 'require :around #'entropy/emacs-start--advice-for-require-prompt)
   (entropy/emacs-message-do-message
-   "%s %s" (white "⮞") (blue "Loading rest ......"))
+   "%s %s"
+   :force-message-while-eemacs-init t
+   (white "⮞") (blue "Loading rest ......"))
   ;; highlight
   (when entropy/emacs-use-highlight-features
     ;; highlight package will cause the low performance of emacs interpretering, so this be the
@@ -477,15 +483,13 @@ of founding its *.elc prior file in some special cases."
   (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-game)
   ;; end
   (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
-  (entropy/emacs-start--init-after-load-initialze-process
-   (null entropy/emacs-minimal-start)
-   'entropy/emacs-init-X-hook)
 
   (defun entropy/emacs-start-X-enable ()
     (interactive)
     (message "This function has been unloaded."))
   (entropy/emacs-message-do-message
    "%s %s"
+   :force-message-while-eemacs-init t
    (white "⮞")
    (green "Full start completed.")))
 
@@ -518,10 +522,14 @@ of founding its *.elc prior file in some special cases."
   (let (_)
     (when (and entropy/emacs-start-ext-available-p
                (not entropy/emacs-start--is-init-with-install))
-      (entropy/emacs-message-do-message (yellow "Cat's eye opening ..."))
+      (entropy/emacs-message-do-message
+       "==================== %s ===================="
+       :force-message-while-eemacs-init t
+       (yellow "Cat's eye opening"))
       (setq entropy/emacs-run-startup-config-load-init-timestamp
             (current-time))
       (entropy/emacs-start--init-bingo)
+      (entropy/emacs-start--init-after-load-initialze-process)
       (unless entropy/emacs-fall-love-with-pdumper
         (entropy/emacs-run-startup-end-hook)))))
 

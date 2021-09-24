@@ -339,6 +339,7 @@ interactive session."
 (cl-defmacro entropy/emacs-message-do-message
     (message &rest args
              &key (popup-while-eemacs-init-with-interactive nil)
+                  (force-message-while-eemacs-init nil)
              &allow-other-keys)
   "An alternative to `message' that strips out ANSI codes, with
 popup window if in a interaction session when
@@ -363,7 +364,11 @@ Optional key:
 
 - popup-while-eemacs-init-with-interactive :: using popup type for message forcely
 when in an interactive session and before eemacs startup done
-without respect `entropy/emacs-message-non-popup'."
+without respect `entropy/emacs-message-non-popup'.
+
+- force-message-while-eemacs-init :: forcely show the message
+  rather than the suppressed one while eemacs startup duration.
+"
   (let ((args (entropy/emacs-message--get-plist-body args)))
     `(cond (
             ;; ========== Simplifying the startup hints
@@ -387,6 +392,9 @@ without respect `entropy/emacs-message-non-popup'."
              ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
              (not (and (not entropy/emacs-startup-done)
                        ,popup-while-eemacs-init-with-interactive))
+             ;; -- not when key :force-message-while-eemacs-init is set while eemacs init
+             (not (and (not entropy/emacs-startup-done)
+                       ,force-message-while-eemacs-init))
              )
             (message "Loading ..."))
            (
@@ -411,6 +419,10 @@ without respect `entropy/emacs-message-non-popup'."
                   ;; allow popup in debug init
                   (and (not (bound-and-true-p entropy/emacs-startup-done))
                        entropy/emacs-startup-with-Debug-p)
+                  ;; allow popup when non-lazy interative init session
+                  (and (null noninteractive)
+                       (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+                       (not (bound-and-true-p entropy/emacs-startup-done)))
                   ;; allow popup when key :popup-while-eemacs-init-with-interactive is set
                   ;; while eemacs init time
                   (and (not (null ,popup-while-eemacs-init-with-interactive))

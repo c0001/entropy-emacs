@@ -922,7 +922,7 @@ effect the expection or try use another way to avoid this.
            (error (format
                    "\
 [error] EEMACS-TYPE-SPEC of <%s> is not recognized for spec '%s'"
-                   eemacs-type-spec))))
+                   eemacs-type-spec type))))
         (rtn nil))
     (cond
      ;; function type
@@ -954,7 +954,7 @@ whose predicate '%s' is not an function"
                      predicate)))
           (apply predicate args)))
        (t
-        (error-type-fatal 'EEMACS-DT-FUNC))))
+        (funcall error-type-fatal 'EEMACS-DT-FUNC))))
      ;; form type
      ((eq type 'EEMACS-DT-FORM)
       (let ((body (entropy/emacs-get-plist-form exp :body 'list t))
@@ -982,7 +982,8 @@ whose predicate '%s' is not an function"
       exp)
      (t
       (error
-       (format "[error] EEMACS-TYPE-SPEC detected fatal of spec %s"
+       "%s"
+       (format "ERROR: EEMACS-TYPE-SPEC detected fatal of spec %s"
                eemacs-type-spec))))))
 
 ;; **** form item replace
@@ -1188,20 +1189,22 @@ Return the defined function symbol. "
 
 While inhibit-johns can be either an list of thus or a single
 symbol t which means disable this hook before run BODY. "
-  (let (let-core)
-    (dolist (pattern !hooks-pattern)
-      (if (eq (cadr pattern) t)
-          (push `(,(car pattern) nil) let-core)
-        (push `(,(car pattern)
-                (delete*
-                 nil
-                 (mapcar (lambda (x)
-                           (unless (member x ',(cadr pattern))
-                             x))
-                         ,(car pattern))))
-              let-core)))
-    `(let ,let-core
-       ,@body)))
+  `(let (let-core
+         (body ',body))
+     (dolist (pattern ',!hooks-pattern)
+       (if (eq (cadr pattern) t)
+           (push `(,(car pattern) nil) let-core)
+         (push `(,(car pattern)
+                 (delete*
+                  nil
+                  (mapcar (lambda (x)
+                            (unless (member x ',(cadr pattern))
+                              x))
+                          ,(car pattern))))
+               let-core)))
+     (eval
+      `(let* ,(reverse let-core)
+         ,@body))))
 
 ;; *** Face manipulation
 
@@ -1914,45 +1917,47 @@ pollute eemacs internal lazy load optimization."
                   :load-in this-load-fname
                   :body body)
             entropy/emacs-lazy-load-simple-log-var))
-    (cond
-     ((or entropy/emacs-custom-enable-lazy-load
-          always-lazy-load)
-      `(when (not (null ',feature))
-         (entropy/emacs-eval-after-load
-          ,feature
-          (entropy/emacs-message-simple-progress-message
-           (unless (or
-                    (not (null ,non-message))
-                    (member ',feature
-                            (last entropy/emacs--lazy-load-simple-feature-head 3)))
-             (setq entropy/emacs--lazy-load-simple-feature-head
-                   (append entropy/emacs--lazy-load-simple-feature-head
-                           '(,feature)))
-             (if entropy/emacs-startup-with-Debug-p
+    ;; macro main
+    `(let ((feature-this ',feature))
+       (cond
+        ((or entropy/emacs-custom-enable-lazy-load
+             ,always-lazy-load)
+         (when (not (null feature-this))
+           (entropy/emacs-eval-after-load
+            ,feature
+            (entropy/emacs-message-simple-progress-message
+             (unless (or
+                      (not (null ',non-message))
+                      (member ',feature
+                              (last entropy/emacs--lazy-load-simple-feature-head 3)))
+               (setq entropy/emacs--lazy-load-simple-feature-head
+                     (append entropy/emacs--lazy-load-simple-feature-head
+                             (list ',feature)))
+               (if entropy/emacs-startup-with-Debug-p
+                   (format
+                    "[gened-by: %s] with lazy loading configs for feature '%s'"
+                    ,this-load-fname
+                    ',feature)
                  (format
-                  "[gened-by: %s] with lazy loading configs for feature '%s'"
-                  ,this-load-fname
-                  ',feature)
-               (format
                   "with lazy loading configs for feature '%s'"
                   ',feature)))
+             (entropy/emacs-general-run-with-protect-and-gc-strict
+              ,@body)))))
+        ((null entropy/emacs-custom-enable-lazy-load)
+         (when (not (null feature-this))
+           (unless (member feature-this (last entropy/emacs--lazy-load-simple-feature-head 3))
+             (entropy/emacs-message-do-message
+              "force load configs for feature '%s'" feature-this)
+             (setq entropy/emacs--lazy-load-simple-feature-head
+                   (append entropy/emacs--lazy-load-simple-feature-head
+                           '(,feature))))
+           (cond ((listp feature-this)
+                  (dolist (el feature-this)
+                    (require el)))
+                 ((symbolp feature-this)
+                  (require feature-this)))
            (entropy/emacs-general-run-with-protect-and-gc-strict
-            ,@body)))))
-     ((null entropy/emacs-custom-enable-lazy-load)
-      `(when (not (null ',feature))
-         (unless (member ',feature (last entropy/emacs--lazy-load-simple-feature-head 3))
-           (entropy/emacs-message-do-message
-            "force load configs for feature '%s'" ',feature)
-           (setq entropy/emacs--lazy-load-simple-feature-head
-                 (append entropy/emacs--lazy-load-simple-feature-head
-                         '(,feature))))
-         (cond ((listp ',feature)
-                (dolist (el ',feature)
-                  (require el)))
-               ((symbolp ',feature)
-                (require ',feature)))
-         (entropy/emacs-general-run-with-protect-and-gc-strict
-          ,@body))))))
+            ,@body)))))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
   "Wrapping BODY to a function named with suffix by NAME into
