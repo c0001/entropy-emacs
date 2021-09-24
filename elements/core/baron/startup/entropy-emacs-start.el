@@ -106,6 +106,7 @@ named as 'compile_$date.log'."
   (when entropy/emacs-start--is-init-with-install
     (entropy/emacs-message-do-message
      "%s"
+     :popup-while-eemacs-init-with-interactive t
      (underscore
       (magenta
        "Remaining procedure can not loaded in this
@@ -114,6 +115,7 @@ session, please restart thus, and it will be well.")))
     (when (not noninteractive)
       (entropy/emacs-message-do-message
        "%s%s"
+       :popup-while-eemacs-init-with-interactive t
        (yellow (bold "Warn: "))
        (yellow
         "You init with installing new packages, please reopen emacs!

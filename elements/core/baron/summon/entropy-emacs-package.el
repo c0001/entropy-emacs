@@ -203,11 +203,13 @@ When installing encounters the fatal error, put the pkg into
     (if print-prefix
         (entropy/emacs-message-do-message
          "%s [%s] package '%s' ..."
+         :popup-while-eemacs-init-with-interactive t
          print-prefix
          (blue (if update "Updating" "Installing"))
          (yellow (symbol-name pkg)))
       (entropy/emacs-message-do-message
        "[%s] package '%s' ..."
+       :popup-while-eemacs-init-with-interactive t
        (blue (if update "Updating" "Installing"))
        (yellow (symbol-name pkg))))
     ;; do installing/updating
@@ -219,9 +221,11 @@ When installing encounters the fatal error, put the pkg into
            (funcall install-core-func t)
            (if (not (eq install-pass 'notpassed))
                (entropy/emacs-message-do-message
-                (green "✓ DONE"))
+                (green "✓ DONE")
+                :popup-while-eemacs-init-with-interactive t)
              (entropy/emacs-message-do-message
               "%s -- %s"
+              :popup-while-eemacs-init-with-interactive t
               (red "✕ FAILED")
               (cdr error-rtn)))))))
 

@@ -110,6 +110,30 @@ can not use popup message style where the emacs session do not
 have window feature started up."
   (and (daemonp) (null after-init-time)))
 
+(defun entropy/emacs-message--get-plist-body (args)
+  "Get BODY inside of 'pre-plist' ARGS, commonly is the last non
+key-pair cdr.
+
+This function is useful for cl-based def* args parsing like:
+
+#+begin_src emacs-lisp
+  (name &rest body
+        &key
+        key-1
+        key-2
+        ...
+        &allow-other-keys)
+#+end_src
+
+To get the real-body in BODY.
+"
+  (let ((it args))
+    (catch 'break
+      (while t
+        (if (keywordp (car it))
+            (setq it (cddr it))
+          (throw 'break it))))))
+
 ;; *** top advice
 (defun entropy/emacs-message-quit (&rest args)
   (ignore-errors
@@ -312,49 +336,91 @@ interactive session."
 ;; ** auto load
 ;; *** common ansi message wrapper APIs
 ;;;###autoload
-(defmacro entropy/emacs-message-do-message (message &rest args)
+(cl-defmacro entropy/emacs-message-do-message
+    (message &rest args
+             &key (popup-while-eemacs-init-with-interactive nil)
+             &allow-other-keys)
   "An alternative to `message' that strips out ANSI codes, with
-popup window if in a interaction session and
-`entropy/emacs-message-non-popup' is `null'. Use popup window
-whenever `entropy/emacs-startup-done' is not set while
-`entropy/emacs-startup-with-Debug-p' was non-nil."
-  `(cond (
-          ;; Simplifying the startup hints
-          (and
-           (not (bound-and-true-p entropy/emacs-startup-done))
-           ;; BUT:
-           ;; -- not in debug mode
-           (not entropy/emacs-startup-with-Debug-p)
-           ;; -- not in daemon init type
-           (not
-            (and (daemonp)
-                 (not entropy/emacs-daemon-server-init-done)))
-           ;; -- not in make session
-           (not
-            (entropy/emacs-is-make-session))
-           ;; -- not when non-lazy-mode enabled in interactive session
-           ;;    since we should see the long terms of init.
-           (not
-            (and (null noninteractive)
-                 (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))))
-           )
-          (message "Loading ..."))
-         ((or
-           ;; always disbale popup in `noninteractive' mode
-           noninteractive
-           ;; daemon loading
-           (entropy/emacs-message--in-daemon-load-p)
-           ;; otherwise just use popup after `entropy/emacs-startup-done'
-           ;; and further conditions
-           (and
-            (bound-and-true-p entropy/emacs-startup-done)
+popup window if in a interaction session when
+`entropy/emacs-message-non-popup' is `nil' and follow the
+restriction as below:
+
+Disable popup feature forcly when in minibuffer window and any
+`noninteractive' session or daemon init procedure.
+
+Suppress any heavy message using simple prompts before
+`entropy/emacs-startup-done' (i.e. the emacs init duration) is
+set unless `entropy/emacs-startup-with-Debug-p' was non-nil in
+interactive session or
+   - in a daemon init session
+   - in a make session
+   - in a interactive session and
+     `entropy/emacs-custom-enable-lazy-load' is disabled in which
+     case we should see the heavy load procedure with explicitly
+     information.
+
+Optional key:
+
+- popup-while-eemacs-init-with-interactive :: using popup type for message forcely
+when in an interactive session and before eemacs startup done
+without respect `entropy/emacs-message-non-popup'."
+  (let ((args (entropy/emacs-message--get-plist-body args)))
+    `(cond (
+            ;; ========== Simplifying the startup hints
+            (and
+             (not (bound-and-true-p entropy/emacs-startup-done))
+             ;; BUT:
+             ;; -- not in debug mode
+             (not entropy/emacs-startup-with-Debug-p)
+             ;; -- not in daemon init type
+             (not
+              (and (daemonp)
+                   (not entropy/emacs-daemon-server-init-done)))
+             ;; -- not in make session
+             (not
+              (entropy/emacs-is-make-session))
+             ;; -- not when non-lazy-mode enabled in interactive session
+             ;;    since we should see the long terms of init.
+             (not
+              (and (null noninteractive)
+                   (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))))
+             ;; -- not when key :popup-while-eemacs-init-with-interactive is set while eemacs init
+             (not (and (not entropy/emacs-startup-done)
+                       ,popup-while-eemacs-init-with-interactive))
+             )
+            (message "Loading ..."))
+           (
+            ;; ========== Disable the popup feature when needed
             (or
+             ;; always disbale popup in `noninteractive' mode
+             noninteractive
+             ;; always disbale popup when daemon loading
+             (entropy/emacs-message--in-daemon-load-p)
+             ;; always disbale popup when in minibuffer window
              (minibuffer-window-active-p (selected-window))
-             entropy/emacs-message-non-popup
-             entropy/emacs-message-non-popup-permanently)))
-          (entropy/emacs-message-do-message-1 ,message ,@args))
-         (t (entropy/emacs-message--do-message-popup
-             ,message ,@args))))
+             )
+            (entropy/emacs-message-do-message-1 ,message ,@args))
+           (
+            ;; ========== Use popup feature in interactive session with some conditions
+            (and (null noninteractive)
+                 (or
+                  ;; allow popup when eemacs startup done
+                  (and (bound-and-true-p entropy/emacs-startup-done)
+                       (null entropy/emacs-message-non-popup)
+                       (null entropy/emacs-message-non-popup-permanently))
+                  ;; allow popup in debug init
+                  (and (not (bound-and-true-p entropy/emacs-startup-done))
+                       entropy/emacs-startup-with-Debug-p)
+                  ;; allow popup when key :popup-while-eemacs-init-with-interactive is set
+                  ;; while eemacs init time
+                  (and (not (null ,popup-while-eemacs-init-with-interactive))
+                       (not (bound-and-true-p entropy/emacs-startup-done)))))
+            (entropy/emacs-message--do-message-popup
+             ,message ,@args))
+           (
+            ;; ========== otherwise use echo area defaultly
+            t
+            (entropy/emacs-message-do-message-1 ,message ,@args)))))
 
 (defun entropy/emacs-message-focus-on-popup-window ()
   "Focus on popuped `entropy/emacs-message-message-buffname'
