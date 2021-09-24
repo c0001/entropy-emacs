@@ -1111,33 +1111,36 @@ loop form."
 Feature is can be a FILE arg of `eval-after-load' or a list of
 that (note that this is a macro that if feature is a list, it
 means no quote needed to construct it)."
-  (let (forms
-        (extract-item
-         (lambda (file)
-           (if (stringp file)
-               file
-             `(quote ,file)))))
-    (cond ((not (listp feature))
-           (setq forms
-                 `(eval-after-load ,(funcall extract-item feature)
-                    (lambda ()
-                      ,@body))))
-          ((and (listp feature)
-                (= 1 (length feature)))
-           (setq forms
-                 `(eval-after-load ,(funcall extract-item (car feature))
-                    (lambda ()
-                      ,@body))))
-          ((and (listp feature)
-                (> (length feature) 1))
-           (setq feature (reverse feature)
-                 forms `(eval-after-load ,(funcall extract-item (car feature))
-                          (lambda () ,@body)))
-           (dolist (file (cdr feature))
-             (setq forms
-                   `(eval-after-load ,(funcall extract-item file)
-                      ',forms)))))
-    forms))
+  (declare (indent defun))
+  `(let (forms
+         (feature ',feature)
+         (body ',body)
+         (extract-item-func
+          (lambda (file)
+            (if (stringp file)
+                file
+              (list 'quote file)))))
+     (cond ((not (listp feature))
+            (setq forms
+                  `(eval-after-load ,(funcall extract-item-func feature)
+                     (lambda ()
+                       ,@body))))
+           ((and (listp feature)
+                 (= 1 (length feature)))
+            (setq forms
+                  `(eval-after-load ,(funcall extract-item-func (car feature))
+                     (lambda ()
+                       ,@body))))
+           ((and (listp feature)
+                 (> (length feature) 1))
+            (setq feature (reverse feature)
+                  forms `(eval-after-load ,(funcall extract-item-func (car feature))
+                           (lambda () ,@body)))
+            (dolist (el (cdr feature))
+              (setq forms
+                    `(eval-after-load ,(funcall extract-item-func el)
+                       ',forms)))))
+     (eval forms)))
 
 ;; *** Hook manipulation
 
