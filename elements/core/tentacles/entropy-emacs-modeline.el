@@ -1006,7 +1006,7 @@ format enabling process.
            (lambda nil
              (interactive)
              (if (bound-and-true-p doom-modeline-mode)
-                 (funcall-interactively
+                 (funcall
                   (entropy/emacs-hydra-hollow-category-common-individual-get-caller
                    'doom-modeline-dispatch))
                (message "doom-modeline is no actived yet!"))))))

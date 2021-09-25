@@ -447,6 +447,11 @@ into the echo area of that timer.
 - Temporally resolve dealing: set the idle delay closed to 0 but not
   approach to it.
 
+** log: [2021-09-25 Sat 22:03:52]:
+
+It seems that the idle delay less than 0.001 also will trigger this
+bug.
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

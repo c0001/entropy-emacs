@@ -112,7 +112,7 @@ region with error throw out in region selected occasion."
           (delete-region orig-start orig-end)
           (insert new-cm-str)
           ;; reset region interactively
-          (funcall-interactively 'set-mark-command nil)
+          (deactivate-mark)
           (goto-char orig-start))
 
         (cond

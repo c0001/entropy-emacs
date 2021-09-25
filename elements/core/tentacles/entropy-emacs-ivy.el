@@ -1399,7 +1399,7 @@ that all file under place will be detected!"
   (defun entropy/emacs-ivy-ffip-directory-only ()
     "Find directory using `find-file-in-project' in place."
     (interactive)
-    (funcall-interactively 'entropy/emacs-ivy-ffip t)))
+    (funcall 'entropy/emacs-ivy-ffip t)))
 
 ;; ** provide
 (provide 'entropy-emacs-ivy)

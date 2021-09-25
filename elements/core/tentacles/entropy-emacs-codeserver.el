@@ -167,7 +167,7 @@ before invocation."
             (with-current-buffer buff
               (unless eldoc-enable-p
                 (eldoc-mode 1)))
-            (funcall-interactively
+            (funcall
              'eldoc-print-current-symbol-info inct)
             ;; unbind temporally `eldoc-mode' enabled in source buffer
             (with-current-buffer buff
