@@ -374,7 +374,7 @@ This function used by `entropy/cpmv-to-current'"
         (dolist (el plist)
           (insert  (eval (car el)))
           (insert "\n")))
-      (read-only-mode 1))))
+      (setq buffer-read-only t))))
 
 
 (defun entropy/cpmv--highlight-line (string file-type)

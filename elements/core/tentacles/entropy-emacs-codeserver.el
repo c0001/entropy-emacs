@@ -1504,7 +1504,7 @@ let eglot do completion with interface argument injection."
             (erase-buffer)
             (insert string)
             (beginning-of-buffer)
-            (read-only-mode t)
+            (setq buffer-read-only t)
             (local-set-key (kbd "q") 'kill-buffer-and-window)
             (local-set-key (kbd "n") 'forward-line)
             (local-set-key (kbd "j") 'forward-line)

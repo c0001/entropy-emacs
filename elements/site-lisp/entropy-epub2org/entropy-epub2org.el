@@ -515,17 +515,17 @@ And then run hook `entropy/ep2o-tidy-hook'."
     (with-current-buffer (find-file-noselect el)
       (entropy/ep2o-replacing-by-rules)
       (entropy/unfill-full-buffer-without-special-region)
-      (read-only-mode 0)
+      (setq buffer-read-only nil)
       (if (not indent-warn)
           (when (entropy/ep2o-tidy-org-indentation-warning
                  'entropy/ep2o-org-after-indent-list)
             (org-indent-region (point-min) (point-max))
             (entropy/fill-full-buffer-without-special-region)
-            (read-only-mode 0))
+            (setq buffer-read-only nil))
         (progn
           (org-indent-region (point-min) (point-max))
           (entropy/fill-full-buffer-without-special-region)
-          (read-only-mode 0)))
+          (setq buffer-read-only nil)))
       ;; fill foot note
       (progn
         (text-mode)
@@ -682,7 +682,7 @@ navpoint level."
          (tree (entropy/ep2o-get-nav-positive-tree navlist)))
     (with-current-buffer w-buffer
       (if buffer-read-only
-          (read-only-mode 0))
+          (setq buffer-read-only nil))
       (goto-char (point-min))
       (dolist (el tree)
         (insert (concat (entropy/ep2o-convert-index-to-string
@@ -945,7 +945,7 @@ dir/
             (with-current-buffer (find-file-noselect el)
               (let ((modified nil))
                 (if buffer-read-only
-                    (read-only-mode 0))
+                    (setq buffer-read-only nil))
                 (dolist (el re-list)
                   (goto-char (point-min))
                   (while (re-search-forward (car el) nil t)
@@ -954,16 +954,16 @@ dir/
                       (setq modified t))))
                 (when modified
                   (entropy/unfill-full-buffer-without-special-region)
-                  (read-only-mode 0)
+                  (setq buffer-read-only nil)
                   (if (not indent-all)
                       (when (entropy/ep2o-tidy-org-indentation-warning 'entropy/ep2o-org-after-indent-list)
                         (org-indent-region (point-min) (point-max))
                         (entropy/fill-full-buffer-without-special-region)
-                        (read-only-mode 0))
+                        (setq buffer-read-only nil))
                     (progn
                       (org-indent-region (point-min) (point-max))
                       (entropy/fill-full-buffer-without-special-region)
-                      (read-only-mode 0)))
+                      (setq buffer-read-only nil)))
                   ;; fill foot note
                   (progn
                     (text-mode)

@@ -256,7 +256,7 @@ based on current line."
 except for unfilling."
   (interactive)
   (let ((cur_major-mode major-mode))
-    (if buffer-read-only (read-only-mode 0))
+    (if buffer-read-only (setq buffer-read-only nil))
     (fundamental-mode)
     (entropy/unfill-recorde-feature-region-pair-points-in-full-buffer)
     (dolist (el entropy/unfill-feature-region-pair-points-list)
@@ -265,7 +265,7 @@ except for unfilling."
             (unfill-p (nth 2 el)))
         (if unfill-p (entropy/unfill-region start end))))
     (funcall cur_major-mode)
-    (read-only-mode 1)))
+    (setq buffer-read-only t)))
 
 
 (defun entropy/fill-full-buffer-without-special-region ()
@@ -273,7 +273,7 @@ except for unfilling."
 except for unfilling."
   (interactive)
   (let ((cur_major-mode major-mode))
-    (if buffer-read-only (read-only-mode 0))
+    (if buffer-read-only (setq buffer-read-only nil))
     (fundamental-mode)
     (entropy/unfill-recorde-feature-region-pair-points-in-full-buffer)
     (dolist (el entropy/unfill-feature-region-pair-points-list)
@@ -289,7 +289,7 @@ except for unfilling."
                  (fill-region start end)))))
           (t (when fill-p (fill-region start end))))))
     (funcall cur_major-mode)
-    (read-only-mode 1)))
+    (setq buffer-read-only t)))
 
 (defface entropy/fill-buffer-org-link-indicated-face
   '((t (:foreground "white" :background "red" :bold t)))

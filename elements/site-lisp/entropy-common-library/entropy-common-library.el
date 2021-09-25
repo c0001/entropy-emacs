@@ -1537,7 +1537,7 @@ The rule-set are formatted as bellow:
 
 '(\"^\\(\\.*\\)123$\" . \"\\1Hello World\")"
   (when buffer-read-only
-    (read-only-mode 0))
+    (setq buffer-read-only nil))
   (goto-char (point-min))
   (while (search-forward-regexp (car re-rules-alist) nil t)
     (replace-match (cdr re-rules-alist))))
@@ -1799,7 +1799,7 @@ instead of the interactive way."
         (progn (setq rtn (url-insert-entities-in-string region-selected))
                (with-temp-buffer
                  (if buffer-read-only
-                     (read-only-mode 0))
+                     (setq buffer-read-only nil))
                  (let (p1 p2)
                    (insert (replace-regexp-in-string "\"" "\"" rtn))
                    (setq p1 (point-min)

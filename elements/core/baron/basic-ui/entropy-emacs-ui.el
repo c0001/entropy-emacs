@@ -424,7 +424,7 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
           (title " WELCOME TO ENTROPY-EMACS ")
           (version entropy/emacs-ecv))
       (with-current-buffer buffer
-        (read-only-mode 0)
+        (setq buffer-read-only nil)
         (goto-char (point-min))
         (insert "\n\n\n")
         (forward-line 0)
@@ -467,7 +467,7 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
         (if (and view-read-only (not view-mode))
             (view-mode-enter nil 'kill-buffer))
         (goto-char (point-min))
-        (read-only-mode 1)
+        (setq buffer-read-only t)
         (unless (display-graphic-p)
           (setq-local browse-url-browser-function
                       'eww-browse-url))

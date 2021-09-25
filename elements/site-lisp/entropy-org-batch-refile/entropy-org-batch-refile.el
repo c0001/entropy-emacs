@@ -128,7 +128,7 @@
   "The macro of instantiation of tag matched for `org-refile' function."
   `(if (eq major-mode 'org-mode)
        (progn
-         (if buffer-read-only (read-only-mode 0))
+         (if buffer-read-only (setq buffer-read-only nil))
          (goto-char (point-min))
          (let* ((full-regexp (concat "^\\*+ .*" ,tag-regexp))
                 (model-list (entropy/obr--target-instantiation-model ,user-model))
@@ -148,7 +148,7 @@ https://mollermara.com/blog/Fast-refiling-in-org-mode-with-hydras/
 "
   (let* ((pos (save-excursion
                 (find-file file)
-                (read-only-mode 0)
+                (setq buffer-read-only nil)
                 (org-find-exact-headline-in-buffer headline))))
     (org-refile nil nil (list headline file nil pos))))
 ;;;;;; target model justify and return result function
@@ -198,7 +198,7 @@ This function return the a list of \"'(file head)\"
           (let* ((head-auto (entropy/obr--auto-create-headline-name))
                  (auto-hn (entropy/obr--headline-combine head-auto)))
             (with-current-buffer (find-file-noselect file)
-              (if buffer-read-only (read-only-mode 0))
+              (if buffer-read-only (setq buffer-read-only nil))
               (goto-char (point-max))
               (newline 2)
               (forward-line 0)
@@ -211,7 +211,7 @@ This function return the a list of \"'(file head)\"
       (if (and (file-exists-p file) head (equal (stringp head) t))
           (progn
             (with-current-buffer (find-file-noselect file)
-              (if buffer-read-only (read-only-mode 0))
+              (if buffer-read-only (setq buffer-read-only nil))
               (goto-char (point-max))
               (newline 2)
               (forward-line 0)
@@ -231,7 +231,7 @@ This function return the a list of \"'(file head)\"
             (progn
               (add-to-list 'model-list head)
               (with-current-buffer (find-file-noselect (nth 1 auto-refile-model-list))
-                (if buffer-read-only (read-only-mode 0))
+                (if buffer-read-only (setq buffer-read-only nil))
                 (goto-char (point-max))
                 (newline 2)
                 (forward-line 0)
@@ -284,7 +284,7 @@ It's return a list with head and file:
                                               ".org"))
       (setq refile-target-file-name (concat buffer "-refile" range-data ".org")))
     (with-temp-file (concat "./" refile-target-file-name)
-      (if buffer-read-only (read-only-mode 0))
+      (if buffer-read-only (setq buffer-read-only nil))
       (if auto-insert-enable
           (progn
             (goto-char (point-max))

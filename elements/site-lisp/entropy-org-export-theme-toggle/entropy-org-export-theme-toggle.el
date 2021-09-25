@@ -474,7 +474,7 @@ THEME-NAME specify the cached file name."
       (delete-file fname))
     (with-current-buffer (find-file-noselect fname)
       (when buffer-read-only
-        (read-only-mode 0))
+        (setq buffer-read-only nil))
       (insert content)
       (save-buffer)
       (kill-buffer))))

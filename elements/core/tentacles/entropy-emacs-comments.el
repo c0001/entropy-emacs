@@ -82,11 +82,11 @@ region with error throw out in region selected occasion."
              ;; (cur-mode major-mode)
              (ro-state buffer-read-only))
         (when buffer-read-only
-          (read-only-mode 0))
+          (setq buffer-read-only nil))
 
         (entropy/emacs-with-temp-buffer
           (when buffer-read-only
-            (read-only-mode 0))
+            (setq buffer-read-only nil))
           (erase-buffer)
           (goto-char (point-min))
           (insert cm-str)
@@ -116,8 +116,8 @@ region with error throw out in region selected occasion."
           (goto-char orig-start))
 
         (cond
-          ((eq ro-state nil) (read-only-mode 0))
-          ((eq ro-state t) (read-only-mode 1))))))
+          ((eq ro-state nil) (setq buffer-read-only nil))
+          ((eq ro-state t) (setq buffer-read-only t))))))
 
   (defun entropy/emacs-org--poporg-dwim-unnarrowed-buffer (&rest _)
     (with-current-buffer (current-buffer)

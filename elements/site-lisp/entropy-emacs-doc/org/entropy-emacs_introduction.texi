@@ -1429,7 +1429,7 @@ want to do so , calling it.
 
 Capture patching redefining func @code{org-capture-place-template} and the
 Org-mode internal unit @code{org-datetree--find-create}, both patching for
-them are minor just with adding @code{(read-only-mode 0)} to the key coding
+them are minor just with adding @code{(setq buffer-read-only nil)} to the key coding
 region.
 
 Rest modes of global-readonly-mode was the optionally not suggested

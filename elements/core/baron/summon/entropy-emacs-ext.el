@@ -263,7 +263,7 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
     (setq buffer (get-buffer-create bffN))
     (with-current-buffer buffer
       (when buffer-read-only
-        (read-only-mode 0))
+        (setq buffer-read-only nil))
       (goto-char (point-min))
       (insert entropy/emacs-ext--extra-trouble-prompt-head)
       (insert "\n\n")

@@ -590,10 +590,10 @@ which determined by the scale count 0.3 "
   (revert-buffer-with-coding-system 'dos t)
   (set-buffer-file-coding-system 'unix)
   (if buffer-read-only
-      (read-only-mode 0))
+      (setq buffer-read-only nil))
   (save-buffer)
   (revert-buffer nil 'revert-without-query)
-  (read-only-mode 1))
+  (setq buffer-read-only t))
 
 (defun entropy/emacs-tools-save-buffer-as-utf8-internal (coding-system)
   "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
@@ -604,10 +604,10 @@ which determined by the scale count 0.3 "
       (progn
         (set-buffer-file-coding-system 'utf-8-unix)
         (if buffer-read-only
-            (read-only-mode 0))
+            (setq buffer-read-only nil))
         (save-buffer)
         (revert-buffer nil 'revert-without-query)
-        (read-only-mode 1))
+        (setq buffer-read-only t))
     (user-error "Please try corrected encoding! ")))
 
 (defun entropy/emacs-tools-dos2unix-external (&optional no-backup)
@@ -1200,7 +1200,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
     (let ((inhibit-read-only t))
       (with-current-buffer
           (get-buffer-create "*Memory Explorer*")
-        (read-only-mode 1)
+        (setq buffer-read-only t)
         (condition-case error
             (entropy/emacs-message-simple-progress-message
              "Memory find large variable"
@@ -1216,7 +1216,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
     (let ((inhibit-read-only t))
       (with-current-buffer
           (get-buffer-create "*Buffer Details*")
-        (read-only-mode 1)
+        (setq buffer-read-only t)
         (entropy/emacs-message-simple-progress-message
          "Memory general overview"
          (apply orig-func orig-args)))))

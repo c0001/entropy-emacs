@@ -130,7 +130,7 @@ attack or gnutls error in emacs batch mode)."
                  entropy/adbp-rule--gfw-list-upstream))
       (with-temp-buffer
         (when buffer-read-only
-          (read-only-mode 0))
+          (setq buffer-read-only nil))
         (insert-file-contents entropy/adbp-rule--gfw-list-local)
         (setq rtn
               (base64-decode-string
@@ -174,7 +174,7 @@ attack or gnutls error in emacs batch mode)."
     (setq entropy/adbp-rule--blacklist-regexps-cache nil)
     (with-temp-buffer
       (when buffer-read-only
-        (read-only-mode 0))
+        (setq buffer-read-only nil))
       (insert origin-rule-set)
       (dolist (el blacklist-rule-defination-list)
         (entropy/adbp-rule--extract-buffer-rule-entries
@@ -207,7 +207,7 @@ attack or gnutls error in emacs batch mode)."
     (let ((buffer (get-buffer-create "*entropy/adbp-show-rules*")))
       (with-current-buffer buffer
         (when buffer-read-only
-          (read-only-mode 0))
+          (setq buffer-read-only nil))
         (erase-buffer)
         (goto-char (point-min))
         (insert "* =====blacklist=====\n")
