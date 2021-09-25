@@ -128,7 +128,6 @@
           "entropy-emacs-doc"
           "entropy-en-words"
           "entropy-epub2org"
-          "entropy-font-lock-plus"
           "entropy-global-read-only-mode"
           "entropy-open-with"
           "entropy-org-batch-refile"

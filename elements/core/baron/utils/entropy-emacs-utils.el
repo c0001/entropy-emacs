@@ -39,9 +39,6 @@
 (!eemacs-require 'entropy-emacs-defconst)
 (!eemacs-require 'entropy-emacs-defun)
 
-(when sys/win32p
-  (require 'font-lock+))
-
 ;; ** dash
 (use-package dash :init (require 'dash))
 
