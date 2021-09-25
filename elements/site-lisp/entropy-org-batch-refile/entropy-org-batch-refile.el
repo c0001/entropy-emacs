@@ -10,21 +10,21 @@
 ;; Created:       2018
 ;; Compatibility: GNU Emacs 25;
 ;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 ;;;; Preamble
 ;;
@@ -97,7 +97,7 @@
 ;;   head-string required by the case that head specification case 3
 ;;   has been given and whatever target file existed, other wise it's
 ;;   must be nil. Arg file-path must be set when the file specification
-;;   type was 't'. 
+;;   type was 't'.
 ;;
 ;;;;; Macro
 ;;
@@ -137,6 +137,7 @@
            (while (re-search-forward full-regexp nil t)
              (entropy/org-refile-specific-target head-name file-name))))
      (user-error "entropy/obr: You can not use this function in %s" major-mode)))
+
 ;;;;; library for main
 ;;;;;; refile function
 (defun entropy/org-refile-specific-target (headline file)
@@ -151,17 +152,18 @@ https://mollermara.com/blog/Fast-refiling-in-org-mode-with-hydras/
                 (setq buffer-read-only nil)
                 (org-find-exact-headline-in-buffer headline))))
     (org-refile nil nil (list headline file nil pos))))
+
 ;;;;;; target model justify and return result function
 ;;;;;;; user-model instantiation function
 (defun entropy/obr--target-instantiation-model (user-target-model)
   "
 User-target-model is a list within 3 elements:
 
-- model-type: 
+- model-type:
 
             this was one list contain two elements, they express
             the state of target for refilling.
-            
+
             The sequence of this list were:
 
             + nil/t: whether specific the exists file
@@ -241,11 +243,12 @@ This function return the a list of \"'(file head)\"
      ;; cond t
      (t (error "entropy/obr: user-target-model invalid! model: \"(cond t)\"")))
     model-list))
+
 ;;;;;;; justify whether head in file funciton
 (defun entropy/obr--justify-head-in-file (HEAD FILE)
   "Justify whether headline HEAD in file FILE.
 
-HEAD and FILE are both string type. 
+HEAD and FILE are both string type.
 
 Final return t or nil accroding the state of result with
 justifing.
@@ -262,13 +265,14 @@ justifing.
                      return-p))))
       (progn (setq return-p nil)
              return-p))))
+
 ;;;;;;; auto create refile file function
 (defun entropy/obr--auto-create-refile-file (&optional auto-insert-enable)
   " Auto create a refile file and alternatively for auto
 generating refile head line.
 
 It's return a list with head and file:
-  
+
    (head file)"
   ;; adjusting file name accroding to current buffer file name
   (let* ((buffer (buffer-name))
@@ -294,10 +298,11 @@ It's return a list with head and file:
             (setq return-list `(,auto-headline-name ,refile-target-file-name)))
         (setq return-list `(nil ,refile-target-file-name))))
     return-list))
+
 ;;;;;;; auto create headline name function
 (defun entropy/obr--auto-create-headline-name (&optional RANGE)
   "Generate one mechanical headline name and return it in string
-type. 
+type.
 
 The optional arg RANGE was user specific range data for using as
 the suffix data in head-name, nor will automatically create it
@@ -311,6 +316,7 @@ The return string format like: \"* Refile-20180604_Mon_135151\""
         (setq return-string (concat "Refile" RANGE))
       (setq return-string auto-headline-name))
     return-string))
+
 ;;;;;;; range data function
 (defun entropy/obr--range-data ()
   "Generate one ranger data for naming using and return it as
@@ -321,6 +327,7 @@ The return string format is like: \"-20180604_Mon_135151\"."
         return-data)
     (setq return-data (concat "-" time))
     return-data))
+
 ;;;;;;; headline hierachy combine
 (defun entropy/obr--headline-combine (head-name &optional hierachy)
   " Combine headline name to completely full format of org's
@@ -342,6 +349,7 @@ count was 1.
       (progn
         (setq return-head (concat "* " head-name))
         return-head))))
+
 ;;;; interactive funcion
 
 ;;;###autoload
