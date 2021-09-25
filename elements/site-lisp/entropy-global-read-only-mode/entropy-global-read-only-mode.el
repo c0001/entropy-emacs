@@ -323,8 +323,8 @@ For now valid signal are:
                  func-disable 'wdired-change-to-wdired-mode
                  rtn 'dired))
           (t
-           (setq func-enable '(lambda () (read-only-mode 1))
-                 func-disable '(lambda () (read-only-mode 0)))))
+           (setq func-enable '(lambda () (setq buffer-read-only t))
+                 func-disable '(lambda () (setq buffer-read-only nil)))))
     (cond ((= type 1)
            (funcall func-enable))
           ((= type 0)
@@ -364,7 +364,6 @@ whole expections rules."
 `buffer-file-name' and push them into
 `entropy/grom-buffer-true-name-pair-list'
 "
-  (interactive)
   (setq entropy/grom-buffer-true-name-pair-list nil)
   (dolist (buffer (mapcar (function buffer-name) (buffer-list)))
     (let ((tbname (if (with-current-buffer buffer buffer-file-truename)
@@ -543,24 +542,22 @@ Note: Don't manually assign value to this variable.
 This variable will be auto-clean when agenda manipulation
 finished.")
 
-(defun entropy/grom--get-true-agenda-files-name-list ()
+(defun entropy/grom--get-true-agenda-files-name-list (&rest _)
   "Getting FILENAME of `org-agenda-files' and push them in
 `entropy/grom--org-agenda-files-true-name-list'
 
 This function was used for
 `entropy/grom--get-actived-agenda-buffers-list'.
 "
-  (interactive)
   (setq entropy/grom--org-agenda-files-true-name-list nil)
   (let ((agenda-files org-agenda-files))
     (dolist (oname agenda-files)
       (let((nname (file-truename oname)))
         (add-to-list 'entropy/grom--org-agenda-files-true-name-list nname)))))
 
-(defun entropy/grom--get-actived-agenda-buffers-list ()
+(defun entropy/grom--get-actived-agenda-buffers-list (&rest _)
   "Getting activated `org-agenda-files' true name of `buffer-list'
 in current frame."
-  (interactive)
   (setq entropy/grom--org-agenda-actived-buffer-list nil)
   (entropy/grom--get-true-agenda-files-name-list)
   (entropy/grom--get-true-buffer-name-pair-list)
@@ -570,19 +567,17 @@ in current frame."
         (when (string-match-p (regexp-quote aname) (car bname))
           (add-to-list 'entropy/grom--org-agenda-actived-buffer-list (cdr bname)))))))
 
-(defun entropy/grom--unlock-actived-agenda-file-buffers ()
+(defun entropy/grom--unlock-actived-agenda-file-buffers (&rest _)
   "Unlock all agenda files"
-  (interactive)
   (entropy/grom--get-actived-agenda-buffers-list)
   (dolist (buffer entropy/grom--org-agenda-actived-buffer-list)
     (with-current-buffer buffer
       (if buffer-read-only
           (entropy/grom--readonly-1&0 0)))))
 
-(defun entropy/grom--agenda-unlock-current-entry (&rest arg-reset)
+(defun entropy/grom--agenda-unlock-current-entry (&rest _)
   "Unlock current entry in agenda view panel when global
 readonly mode is on."
-  (interactive)
   (if (and
        (string= entropy/grom-readonly-type "all")
        (equal major-mode 'org-agenda-mode))
@@ -603,10 +598,9 @@ readonly mode is on."
               (message "No need to unlock buffer '%s' -v-" etb))))
         (setq entropy/grom--current-agenda-buffer etb))))
 
-(defun entropy/grom--agenda-lock-current-entry (&rest arg-rest)
+(defun entropy/grom--agenda-lock-current-entry (&rest _)
   "Relock current agenda entry by manipulation according to
 `entropy/grom--current-agenda-buffer'."
-  (interactive)
   (when (and (equal major-mode 'org-agenda-mode)
              (not (null entropy/grom--current-agenda-buffer))
              (buffer-live-p (get-buffer entropy/grom--current-agenda-buffer)))
