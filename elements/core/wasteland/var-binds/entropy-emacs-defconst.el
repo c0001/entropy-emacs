@@ -32,7 +32,7 @@
 ;;
 ;; * Code:
 ;; ** require
-(require 'entropy-emacs-defcustom)
+(entropy/emacs-common-require-feature 'entropy-emacs-defcustom)
 
 ;; ** system type
 ;; *** basic conditions

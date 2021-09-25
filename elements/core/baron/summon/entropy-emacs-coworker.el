@@ -38,9 +38,9 @@
 ;;
 ;; * Code:
 ;; ** require
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-message)
-(require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-message)
+(!eemacs-require 'entropy-emacs-defun)
 
 ;; ** library
 ;; *** subroutines

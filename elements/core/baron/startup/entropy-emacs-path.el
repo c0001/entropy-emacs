@@ -50,9 +50,9 @@
 ;; * Code:
 ;;
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-defconst)
+(!eemacs-require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-defun)
 
 ;; ** variable
 

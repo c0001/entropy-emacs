@@ -71,9 +71,9 @@
 ;; * Code:
 
 
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defun)
-(require 'entropy-emacs-message)
+(!eemacs-require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-message)
 
 ;; ** defvar
 

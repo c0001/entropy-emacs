@@ -38,10 +38,10 @@
 ;;
 ;; * Code:
 ;; ** require
-(require 'entropy-emacs-defvar)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defun)
-(require 'entropy-emacs-defconst)
+(!eemacs-require 'entropy-emacs-defvar)
+(!eemacs-require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-defconst)
 (if (version< emacs-version "27")
     (require 'cl)
   (require 'cl-macs))

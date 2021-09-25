@@ -36,10 +36,10 @@
 ;;
 ;; * Code:
 ;; ** Require
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defvar)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-message)
+(entropy/emacs-common-require-feature 'entropy-emacs-defcustom)
+(entropy/emacs-common-require-feature 'entropy-emacs-defvar)
+(entropy/emacs-common-require-feature 'entropy-emacs-defconst)
+(entropy/emacs-common-require-feature 'entropy-emacs-message)
 (require 'cl-lib)
 (require 'rx)
 

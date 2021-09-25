@@ -30,8 +30,8 @@
 ;; No individually loading designation without `entropy-emacs'.
 ;;
 ;; * Code:
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-message)
+(entropy/emacs-common-require-feature 'entropy-emacs-defconst)
+(entropy/emacs-common-require-feature 'entropy-emacs-message)
 
 ;; ** cl-* compatible
 

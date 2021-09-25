@@ -36,8 +36,8 @@
 ;;
 ;; * Code:
 (require 'cl-lib)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-defconst)
+(!eemacs-require 'entropy-emacs-defun)
 
 (when sys/win32p
   (require 'font-lock+))

@@ -41,7 +41,7 @@
 ;; * Code:
 ;; ** require
 (require 'ansi-color)
-(require 'entropy-emacs-defconst)
+(entropy/emacs-common-require-feature 'entropy-emacs-defconst)
 
 ;; ** const define
 (defconst entropy/emacs-message-message-buffname

@@ -34,10 +34,10 @@
 ;; ** require
 
 (require 'package)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defun)
-(require 'entropy-emacs-message)
+(!eemacs-require 'entropy-emacs-defconst)
+(!eemacs-require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-message)
 
 ;; ** Prepare
 ;; *** Disable auto save `package-selected-packages'
@@ -261,7 +261,7 @@ When installing encounters the fatal error, put the pkg into
   (entropy/emacs-message-do-message
    (blue "Checking extensions satisfied status ...")
    :force-message-while-eemacs-init t)
-  (require 'entropy-emacs-package-requirements)
+  (!eemacs-require 'entropy-emacs-package-requirements)
   (let ((package-check-signature nil)
         (pkg-pre nil)
         (count 1))

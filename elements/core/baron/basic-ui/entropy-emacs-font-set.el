@@ -45,10 +45,10 @@
 ;;
 ;; * Code:
 
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defvar)
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-defvar)
+(!eemacs-require 'entropy-emacs-defconst)
+(!eemacs-require 'entropy-emacs-defun)
 
 (defvar entropy/emacs-font-set--warn
   "Because you enabled `entropy/emacs-font-setting-enable' , but

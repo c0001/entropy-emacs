@@ -79,8 +79,8 @@
 
 ;; * Code
 ;; ** require
-(require 'entropy-emacs-defun)
-(require 'entropy-emacs-utils)
+(!eemacs-require 'entropy-emacs-defun)
+(!eemacs-require 'entropy-emacs-utils)
 (require 'cl-lib)
 (require 'use-package)
 

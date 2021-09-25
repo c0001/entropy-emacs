@@ -31,9 +31,9 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-defconst)
-(require 'entropy-emacs-defcustom)
-(require 'entropy-emacs-defface)
+(!eemacs-require 'entropy-emacs-defconst)
+(!eemacs-require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-defface)
 
 (when
     (not entropy/emacs-fall-love-with-pdumper)

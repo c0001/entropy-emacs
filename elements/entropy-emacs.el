@@ -182,7 +182,7 @@
 
 ;; start eemacs
 (if (entropy/emacs-is-make-session)
-    (require 'entropy-emacs-batch)
-  (require 'entropy-emacs-start))
+    (!eemacs-require 'entropy-emacs-batch)
+  (!eemacs-require 'entropy-emacs-start))
 
 (provide 'entropy-emacs)

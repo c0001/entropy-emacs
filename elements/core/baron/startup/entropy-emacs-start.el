@@ -439,7 +439,7 @@ notation.
 
   ;; external depedencies scan and loading
   (when entropy/emacs-fall-love-with-pdumper
-    (require 'entropy-emacs-pdumper))
+    (!eemacs-require 'entropy-emacs-pdumper))
 
   ;; basic feature defination
   (entropy/emacs-common-require-feature 'entropy-emacs-basic)

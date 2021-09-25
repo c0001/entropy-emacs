@@ -31,7 +31,7 @@
 ;;
 ;; * Code:
 
-(require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-defcustom)
 
 (defvar entropy-emacs-packages nil)
 
