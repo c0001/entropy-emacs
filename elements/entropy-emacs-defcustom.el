@@ -2304,12 +2304,45 @@ only one for thus."
   "Judge whether in pdumper procedure according to the
 `command-line-args'."
   (let (rtn)
+    ;; dump manually from command line
     (catch :exit
       (dolist (arg command-line-args)
         (when (string-match-p "dump-emacs-portable" arg)
           (setq rtn t)
           (throw :exit nil))))
+    ;; eemacs internal detection
+    (setq rtn
+          (or rtn
+              (and noninteractive
+                   (bound-and-true-p
+                    entropy/emacs-fall-love-with-pdumper))))
     rtn))
+
+;; *** eemacs-require-func
+
+(defun entropy/emacs-common-require-feature
+    (feature &optional filename noerror)
+  "eemacs spec `require' facility , to prefer load the elisp
+source rather than its compiled version in some cases.
+
+NOTE: not support load dynamic module"
+  (let (_)
+    (cond
+     ((or entropy/emacs-startup-with-Debug-p
+          (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+          (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+          (or noninteractive
+              (daemonp)))
+      (require feature (or filename
+                           (format "%s.el" feature))
+               noerror))
+     (t
+      (require feature filename noerror)))))
+
+(defalias '!eemacs-require
+  #'entropy/emacs-common-require-feature
+  "Alias for `entropy/emacs-common-require-feature' but just used
+in baron part to simplify context distinction search")
 
 ;; ** entropy-emacs initialize
 ;; *** intial advice

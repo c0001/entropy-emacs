@@ -61,7 +61,7 @@
     (&rest args)
   `(entropy/emacs-start--run-with-duration-log
     ,(car args)
-    (require ,@args)))
+    (entropy/emacs-common-require-feature ,@args)))
 
 (defun entropy/emacs-start--sort-duration-log
     (&rest _)
@@ -428,17 +428,6 @@ notation.
 
 ;; *** start up branch
 
-(defun entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe
-    (single-feature)
-  "For eemacs tentacles `require' prefer to use *.el file instead
-of founding its *.elc prior file in some special cases."
-  (let ((fname (format "%s.el" single-feature)))
-    (if (or (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
-            (daemonp)
-            (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load)))
-        (require single-feature fname)
-      (require single-feature))))
-
 ;; **** mini start
 (defun entropy/emacs-start-M-enable ()
   (entropy/emacs-message-do-message
@@ -453,25 +442,25 @@ of founding its *.elc prior file in some special cases."
     (require 'entropy-emacs-pdumper))
 
   ;; basic feature defination
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-basic)
+  (entropy/emacs-common-require-feature 'entropy-emacs-basic)
 
   ;; ============================
   ;; mainly ui configuration
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-modeline)
+  (entropy/emacs-common-require-feature 'entropy-emacs-modeline)
 
   ;; loading theme configuration after the modeline for loading theme
   ;; specifics for some mode-line adaption
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-themes)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-wc)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-popwin)
+  (entropy/emacs-common-require-feature 'entropy-emacs-themes)
+  (entropy/emacs-common-require-feature 'entropy-emacs-wc)
+  (entropy/emacs-common-require-feature 'entropy-emacs-popwin)
   ;; =============================
 
   ;; ineractive
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-ivy)
+  (entropy/emacs-common-require-feature 'entropy-emacs-ivy)
   ;; org
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-org)
+  (entropy/emacs-common-require-feature 'entropy-emacs-org)
   ;; code folding
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-structure)
+  (entropy/emacs-common-require-feature 'entropy-emacs-structure)
 
   ;; ends for minimal start
   (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
@@ -497,45 +486,45 @@ of founding its *.elc prior file in some special cases."
   (when entropy/emacs-use-highlight-features
     ;; highlight package will cause the low performance of emacs interpretering, so this be the
     ;; choiced option
-    (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-highlight))
+    (entropy/emacs-common-require-feature 'entropy-emacs-highlight))
 
   ;; For code IDE
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-yas)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-codeserver)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-company)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-comments)
+  (entropy/emacs-common-require-feature 'entropy-emacs-yas)
+  (entropy/emacs-common-require-feature 'entropy-emacs-codeserver)
+  (entropy/emacs-common-require-feature 'entropy-emacs-company)
+  (entropy/emacs-common-require-feature 'entropy-emacs-comments)
   ;; For useful tools
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-shell)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-ibuffer)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-textwww)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-rss)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-gnus)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-project)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-tools)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-music)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-vcs)
+  (entropy/emacs-common-require-feature 'entropy-emacs-shell)
+  (entropy/emacs-common-require-feature 'entropy-emacs-ibuffer)
+  (entropy/emacs-common-require-feature 'entropy-emacs-textwww)
+  (entropy/emacs-common-require-feature 'entropy-emacs-rss)
+  (entropy/emacs-common-require-feature 'entropy-emacs-gnus)
+  (entropy/emacs-common-require-feature 'entropy-emacs-project)
+  (entropy/emacs-common-require-feature 'entropy-emacs-tools)
+  (entropy/emacs-common-require-feature 'entropy-emacs-music)
+  (entropy/emacs-common-require-feature 'entropy-emacs-vcs)
 
   ;; init-calendar was not adapt emacs 27 or higher and just adapt emacs 25 or earlier
   ;; [2018-03-09 Fri 13:35:45] it's be fixed by xwl (the maintainer)
   ;; issue url `https://github.com/xwl/cal-china-x/issues/12'
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-calendar)
+  (entropy/emacs-common-require-feature 'entropy-emacs-calendar)
 
   ;; For programing language
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-bash)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-web)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-python)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-c)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-markdown)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-emacs-lisp)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-lua)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-zeal)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-go)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-rust)
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-yaml)
+  (entropy/emacs-common-require-feature 'entropy-emacs-bash)
+  (entropy/emacs-common-require-feature 'entropy-emacs-web)
+  (entropy/emacs-common-require-feature 'entropy-emacs-python)
+  (entropy/emacs-common-require-feature 'entropy-emacs-c)
+  (entropy/emacs-common-require-feature 'entropy-emacs-markdown)
+  (entropy/emacs-common-require-feature 'entropy-emacs-emacs-lisp)
+  (entropy/emacs-common-require-feature 'entropy-emacs-lua)
+  (entropy/emacs-common-require-feature 'entropy-emacs-zeal)
+  (entropy/emacs-common-require-feature 'entropy-emacs-go)
+  (entropy/emacs-common-require-feature 'entropy-emacs-rust)
+  (entropy/emacs-common-require-feature 'entropy-emacs-yaml)
   ;; For tramp
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-tramp)
+  (entropy/emacs-common-require-feature 'entropy-emacs-tramp)
   ;; For game
-  (entropy/emacs-start/require/for/tentacles-requiring-use-elc-maybe 'entropy-emacs-game)
+  (entropy/emacs-common-require-feature 'entropy-emacs-game)
   ;; end
   (advice-remove 'require #'entropy/emacs-start--advice-for-require-prompt)
 

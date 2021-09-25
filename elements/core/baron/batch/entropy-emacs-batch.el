@@ -145,7 +145,8 @@
                     (format "eemacs_%s.pdmp" (format-time-string "%Y%m%d%H%M%S"))
                     entropy/emacs-user-emacs-directory)))
     (setq entropy/emacs-fall-love-with-pdumper t)
-    (require 'entropy-emacs-start)
+    (entropy/emacs-batch-require-prefer-use-source
+     'entropy-emacs-start)
     (dump-emacs-portable dump-file)))
 
 (defun entropy/emacs-batch--dump-emacs ()
@@ -494,7 +495,7 @@ faild with hash '%s' which must match '%s'"
                    t))
            (dolist (feature require-features)
              ;; require the feature in source
-             (require feature (format "%s.el" feature)))
+             (entropy/emacs-batch-require-prefer-use-source feature))
            (entropy/emacs-batch--byte-compile-dir dir)
            (let* ((log-buff-name "*Compile-Log*")
                   (log-buff (get-buffer log-buff-name)))
