@@ -2057,19 +2057,31 @@ successfully both of situation of read persisit of create an new."
            (rtn t))
       (with-current-buffer buffer
         (goto-char (point-min))
-        (condition-case error
-            (let ((coding-system-for-read 'utf-8-auto)
-                  (coding-system-for-write 'utf-8-auto))
-              (setq kill-ring-read (read (current-buffer)))
-              (setq kill-ring kill-ring-read))
-          (error
-           (setq kill-ring kill-ring-old
-                 rtn nil)
-           (unless (= (buffer-size) 0)
-             (warn (format "Read persit kill-ring fatal of [%s], fallen back to origin done!"
-                           error))
-             (entropy/emacs-basic-kill-ring-persist-backup)))))
-      (f-touch entropy/emacs-basic-kill-ring-persist-lock-file)
+        (if (or (string-empty-p (buffer-substring-no-properties
+                                 (point) (point-max)))
+                ;; just has comments content in this buffer
+                (null
+                 (save-excursion
+                   (re-search-forward "^[^;]" nil t))))
+            (progn
+              (message "Empty persist file")
+              (save-buffer)
+              (setq rtn t))
+          (condition-case error
+              (let ((coding-system-for-read 'utf-8-auto)
+                    (coding-system-for-write 'utf-8-auto))
+                (setq kill-ring-read (read (current-buffer)))
+                (setq kill-ring kill-ring-read))
+            (error
+             (setq kill-ring kill-ring-old
+                   rtn nil)
+             (unless (= (buffer-size) 0)
+               (warn (format "Read persit kill-ring fatal of [%s], fallen back to origin done!"
+                             error))
+               (entropy/emacs-basic-kill-ring-persist-backup))))))
+      ;; just generate the lock file while kill-ring init successfully
+      (when rtn
+        (f-touch entropy/emacs-basic-kill-ring-persist-lock-file))
       rtn)))
 
 ;; run it when init emacs
@@ -2084,7 +2096,14 @@ successfully both of situation of read persisit of create an new."
               #'entropy/emacs-basic-kill-ring-persist-after-kill-emacs)))
 
 (entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer ivy-read)
+ (
+  ;; yank query operations
+  yank-pop
+  counsel-yank-pop
+  ;; kill-ring side effects operations
+  kill-ring-save kill-line backward-kill-word
+  ;; yank operations
+  yank xterm-paste)
  "kill-ring-persist-init" "kill-ring-persist-init"
  :pdumper-no-end nil
  (entropy/emacs-basic--init-kill-ring-persist))
