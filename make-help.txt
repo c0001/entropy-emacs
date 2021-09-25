@@ -44,7 +44,8 @@ Example:
   but WINDOWS etc. on which show the prompts for manually installing.)
 
 - 'compile' option compile entropy-emacs to get better startup speed
-  and running performance.
+  and running performance. Use 'compile-clean' to clean the
+  bytecompile files.
 
 - 'liberime' option compile 'liberime' emacs-module based on your
   system, note that you should have 'librime' and its develop headers

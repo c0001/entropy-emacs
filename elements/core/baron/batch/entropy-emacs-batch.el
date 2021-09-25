@@ -37,11 +37,16 @@
 ;; * Code:
 
 ;; ** require
-(require 'entropy-emacs-message)
-(require 'entropy-emacs-defun)
-(require 'entropy-emacs-package)
-(require 'entropy-emacs-coworker)
-(require 'entropy-emacs-ext)
+
+(defun entropy/emacs-batch-require-prefer-use-source
+    (feature)
+  (require feature (format "%s.el" feature)))
+
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-message)
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-defun)
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-package)
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-coworker)
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-ext)
 
 ;; ** defvar
 ;; ** library
@@ -445,32 +450,105 @@ faild with hash '%s' which must match '%s'"
         (when (string-match-p "\\.el$" el)
           (setq source-dirP t)
           (throw :exit nil))))
-    (when source-dirP
-      (byte-recompile-directory dir-cur 0 t))))
+    (if source-dirP
+        (byte-recompile-directory dir-cur 0 t)
+      (error "Dir %s is not an elisp source dir"
+             dir))))
 
-(defun entropy/emacs-batch--recompile-tentacles (&rest _)
-  (let ((dir (expand-file-name
-              "elements/core/tentacles"
-              entropy/emacs-user-emacs-directory))
-        (log-file (expand-file-name
-                   (format "eemacs-tentacles-compile-%s.log"
-                           (format-time-string "%Y%m%d%H%M%S"))
-                   entropy/emacs-stuffs-topdir)))
-    ;; declare this session status
-    (setq entropy/emacs-session-in-byte-compile-tentacles t)
-    ;; (setq debug-on-error t)
-    (entropy/emacs-package-common-start)
-    ;; EEMACS_MAINTENANCE: must follow the requirements part of `entropy-emacs-start.el'
-    (require 'entropy-emacs-utils)
-    (require 'entropy-emacs-path)
-    (require 'entropy-emacs-window-parameter-memory)
-    (require 'entropy-emacs-hydra-hollow)
-    (entropy/emacs-batch--byte-compile-dir dir)
-    (let* ((log-buff-name "*Compile-Log*")
-           (log-buff (get-buffer log-buff-name)))
-      (when (bufferp log-buff)
-        (with-current-buffer log-buff
-          (write-file log-file t))))))
+(defvar entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
+  nil)
+(defun entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
+    (name host require-features &optional clean)
+  (let* ((dir (expand-file-name
+               (format "elements/core/%s" host)
+               entropy/emacs-user-emacs-directory))
+         (elcs (directory-files dir nil ".*\\.elc$"))
+         (log-file (expand-file-name
+                    (format "eemacs-%s-compile-%s.log"
+                            name
+                            (format-time-string "%Y%m%d%H%M%S"))
+                    entropy/emacs-stuffs-topdir)))
+    (cond (clean
+           (if (null elcs)
+               (entropy/emacs-message-do-message
+                "%s: %s"
+                (yellow "[WARN]")
+                (yellow "no compiled files need to be cleaned for dir %s"
+                        (blue "%s" dir)))
+             (dolist (file elcs)
+               (delete-file (expand-file-name file dir) t))
+             (entropy/emacs-message-do-message
+              "%s"
+              (green "Clean compile files for dir '%s' done"
+                     (blue "%s" dir)))))
+          (t
+           ;; declare this session status
+           (setq entropy/emacs-session-in-byte-compile-emacs-core-p t)
+           ;; (setq debug-on-error t)
+           (entropy/emacs-message-do-message
+            "\n==================== compile eemacs core/%s ... ===================="
+            (green host))
+           (unless entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
+             (entropy/emacs-package-common-start)
+             (setq entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
+                   t))
+           (dolist (feature require-features)
+             ;; require the feature in source
+             (require feature (format "%s.el" feature)))
+           (entropy/emacs-batch--byte-compile-dir dir)
+           (let* ((log-buff-name "*Compile-Log*")
+                  (log-buff (get-buffer log-buff-name)))
+             (when (bufferp log-buff)
+               (with-current-buffer log-buff
+                 (write-file log-file t)
+                 (kill-buffer log-buff))))))))
+
+(defvar entropy/emacs-batch--bytecompile-item-register
+  '(
+    (eemacs-baron-wasteland-var-binds
+     "wasteland/var-binds"
+     nil)
+
+    (eemacs-baron-wasteland-func-binds
+     "wasteland/func-binds"
+     nil)
+
+    (eemacs-baron-startup
+     "baron/startup"
+     nil)
+
+    (eemacs-baron-basic-ui
+     "baron/basic-ui"
+     nil)
+
+    (eemacs-baron-summon
+     "baron/summon"
+     nil)
+
+    (eemacs-baron-utils
+     "baron/utils"
+     nil)
+
+    (eemacs-baron-hollow
+     "baron/hollow"
+     nil)
+
+    (eemacs-tentacles
+     "tentacles"
+     (entropy-emacs-utils
+      entropy-emacs-path
+      entropy-emacs-window-parameter-memory
+      entropy-emacs-hydra-hollow))
+
+    ))
+
+(defun entropy/emacs-batch--do-bytecompile-eemacs-core
+    (&optional clean)
+  (dolist (item entropy/emacs-batch--bytecompile-item-register)
+    (apply 'entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
+           (if clean
+               (append item '(t))
+             item))))
 
 ;; ** interactive
 (when (entropy/emacs-ext-main)
@@ -481,7 +559,10 @@ faild with hash '%s' which must match '%s'"
        (entropy/emacs-package-install-all-packages)))
      ((equal type "compile")
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
-       (entropy/emacs-batch--recompile-tentacles)))
+       (entropy/emacs-batch--do-bytecompile-eemacs-core)))
+     ((equal type "compile-clean")
+      (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
+       (entropy/emacs-batch--do-bytecompile-eemacs-core t)))
      ((equal type "Install-Coworkers")
       (entropy/emacs-batch--prompts-for-coworkers-installing-section
        (entropy/emacs-batch--install-coworkers)))

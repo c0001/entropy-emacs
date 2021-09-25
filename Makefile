@@ -48,7 +48,7 @@ endif
 
 # ** main
 
-.PHONY:help install compile install-coworkers install-eemacs-ext-build install-eemacs-fonts update dump native-comp liberime all debug
+.PHONY:help install compile compile-clean install-coworkers install-eemacs-ext-build install-eemacs-fonts update dump native-comp liberime all debug
 
 help:
 	@$(CAT) make-help.txt
@@ -61,6 +61,11 @@ install:
 
 compile: export EEMACS_MAKE = compile
 compile:
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
+
+compile-clean: export EEMACS_MAKE = compile-clean
+compile-clean:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 

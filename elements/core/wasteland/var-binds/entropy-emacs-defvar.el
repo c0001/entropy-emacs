@@ -240,9 +240,9 @@ window will be set to 13.5.")
 
 ;; ** byte compile refer
 
-(defvar entropy/emacs-session-in-byte-compile-tentacles nil
+(defvar entropy/emacs-session-in-byte-compile-emacs-core-p nil
   "whether current eemacs session is used to byte-compile eemacs
-tentacles.")
+core.")
 
 ;; ** idle trigger
 (defvar entropy/emacs-current-session-is-idle-p nil
