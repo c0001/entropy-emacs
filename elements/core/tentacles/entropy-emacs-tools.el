@@ -327,7 +327,7 @@ vertical-top buffer."
   '("Eemacs Center Line"
     (("C-l" entropy/emacs-tools-vertical-center "Vertical center buffer"
       :enable t :exit t :global-bind t)
-     ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter to window bottom (use prefix to top)’"
+     ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter to window bottom (use prefix to top)"
       :enable t :exit t :global-bind t))))
 
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
