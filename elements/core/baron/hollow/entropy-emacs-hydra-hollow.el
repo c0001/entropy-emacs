@@ -2902,6 +2902,13 @@ And if PATTERN is nil, then we return the form as is.
           (intern
            (entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-judger-prefix
             use-name)))
+         (_ (eval `(defvar ,judger-var nil
+                     ,(format
+                       "the judger var for use-package \
+hydra hollow instance deferred creation for package '%s' \
+which non-nil indicate that \
+the instance has been created and the related form is banned."
+                       use-name))))
          (form-use-judge
           `(unless (bound-and-true-p ,judger-var)
              (prog1
