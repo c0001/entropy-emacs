@@ -200,7 +200,7 @@ queue done flag exposed to `ivy-done' idle trigger judger."
                )
           (entropy/emacs-run-at-idle-immediately
            __idle/ivy--queue-exhibit
-           :which-hook 0.33
+           :which-hook 0.2
            (let* ((func/ivy-done-like-p
                    (lambda (command)
                      (member command
