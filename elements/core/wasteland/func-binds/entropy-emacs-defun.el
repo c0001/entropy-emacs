@@ -2153,22 +2153,23 @@ GENED-FUNCTION with their own name abbreviated."
              (redisplay t)
              (entropy/emacs-idle-cleanup-echo-area)
              __func_rtn)))
+       (defun ,adder-func (&rest _)
+         (let ((inhibit-quit t))
+           (dolist (item ',list-var)
+             (if (not (null ,adder-flag))
+                 (,adder-type item ,adder-flag ',func)
+               (,adder-type item ',func)))
+           ;; fake it after evaluated it
+           (defun ,adder-func (&rest _)
+             "this function has been faked since it just need to run once."
+             nil)))
        (let ((hook (entropy/emacs-select-trail-hook
                     ',entropy/emacs-lazy-initial-form-pdumper-no-end)))
          (cond
           ((not entropy/emacs-custom-enable-lazy-load)
            (set hook (append (symbol-value hook) '(,func))))
-          (t (defun ,adder-func (&rest _)
-               (let ((inhibit-quit t))
-                 (dolist (item ',list-var)
-                   (if (not (null ,adder-flag))
-                       (,adder-type item ,adder-flag ',func)
-                     (,adder-type item ',func)))
-                 ;; fake it after evaluated it
-                 (defun ,adder-func (&rest _)
-                   "this function has been faked since it just need to run once."
-                   nil)))
-             (set hook (append (symbol-value hook) '(,adder-func)))))))))
+          (t
+           (,adder-func)))))))
 
 (cl-defmacro entropy/emacs-lazy-initial-for-hook
     (hooks initial-func-suffix-name initial-var-suffix-name
