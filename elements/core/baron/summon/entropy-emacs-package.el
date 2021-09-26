@@ -201,7 +201,7 @@ When installing encounters the fatal error, put the pkg into
       (package-delete (car (alist-get pkg current-pkgs)) t))
     ;; install package after package archvie contents refresh
     ;; when needed.
-    (unless (ignore-errors (assoc package package-archive-contents))
+    (unless (ignore-errors (assoc pkg package-archive-contents))
       (package-refresh-contents))
     ;; installing/updating message
     (if print-prefix

@@ -39,6 +39,7 @@
 (entropy/emacs-common-require-feature 'entropy-emacs-defcustom)
 (entropy/emacs-common-require-feature 'entropy-emacs-defvar)
 (entropy/emacs-common-require-feature 'entropy-emacs-defconst)
+(entropy/emacs-common-require-feature 'entropy-emacs-defface)
 (entropy/emacs-common-require-feature 'entropy-emacs-message)
 (require 'cl-lib)
 (require 'rx)

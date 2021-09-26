@@ -2817,7 +2817,7 @@ both ommited, that as:
             use-name id)))
 
 (defun entropy/emacs-hydra-hollow/use-package/defer-parse/rebuild-pattern
-    (orig-pattern)
+    (use-name orig-pattern)
   (let (pattern)
     (cond ((and (listp orig-pattern)
                 (not (null orig-pattern)))
@@ -2897,7 +2897,7 @@ And if PATTERN is nil, then we return the form as is.
 "
   (let* ((patterns
           (entropy/emacs-hydra-hollow/use-package/defer-parse/rebuild-pattern
-           pattern))
+           use-name pattern))
          (judger-var
           (intern
            (entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-judger-prefix

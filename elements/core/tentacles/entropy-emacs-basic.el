@@ -319,7 +319,8 @@ place can be easily found by other interactive command."
 ;; ***** config
   :config
 ;; ****** Delete directory with force actions
-  (setq entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap))
+  (defvar entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap)
+    "")
 
   ;; TODO : comlete `entropy/emacs-basic--dired-delete-file-mode'
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode

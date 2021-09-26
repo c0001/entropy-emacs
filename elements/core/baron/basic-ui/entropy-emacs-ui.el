@@ -350,7 +350,8 @@ module (see `entropy/emacs-ui--init-welcom-text-logo-align').
       (with-current-buffer (find-file-noselect $f)
         (goto-char (point-min))
         (while (re-search-forward "^<begin>" nil t)
-          (next-line)
+          (forward-line 1)
+          ;; ensure at the beginning of the line
           (forward-line 0)
           (let ((beg (point))
                 end)

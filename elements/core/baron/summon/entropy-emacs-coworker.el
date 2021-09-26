@@ -96,7 +96,7 @@
                  (setq rtn t)
                  (throw :exit nil)))
               ((eq 'exec (car el))
-               (unless (funcall exec-funge-func (cdr el))
+               (unless (funcall exec-judge-func (cdr el))
                  (setq rtn t)
                  (throw :exit nil))))))
     (if rtn nil t)))
