@@ -307,17 +307,14 @@ like `recenter-top-bottom'."
   (interactive)
   (recenter-top-bottom '(middle)))
 
-(defun entropy/emacs-tools-vertical-to-bottom ()
+(defun entropy/emacs-tools-vertical-to-bottom (&optional arg)
   "Just vertical-bottom buffer without further operation supplied
-like `recenter-top-bottom'."
-  (interactive)
-  (recenter-top-bottom -1))
-
-(defun entropy/emacs-tools-vertical-to-top ()
-  "Just vertical-top buffer without further operation supplied
-like `recenter-top-bottom'."
-  (interactive)
-  (recenter-top-bottom 0))
+like `recenter-top-bottom', if optional arg is non-nil then we
+vertical-top buffer."
+  (interactive "P")
+  (if arg
+      (recenter-top-bottom 0)
+    (recenter-top-bottom -1)))
 
 (entropy/emacs-lazy-initial-advice-before
  (switch-to-buffer find-file)
@@ -330,9 +327,7 @@ like `recenter-top-bottom'."
   '("Eemacs Center Line"
     (("C-l" entropy/emacs-tools-vertical-center "Vertical center buffer"
       :enable t :exit t :global-bind t)
-     ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter to window bottom’"
-      :enable t :exit t :global-bind t)
-     ("C-c C-l" entropy/emacs-tools-vertical-to-top "Recenter to window top’"
+     ("C-M-l" entropy/emacs-tools-vertical-to-bottom "Recenter to window bottom (use prefix to top)’"
       :enable t :exit t :global-bind t))))
 
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
