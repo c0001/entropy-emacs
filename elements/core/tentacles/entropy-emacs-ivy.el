@@ -1311,7 +1311,8 @@ display icon or empty string while
                         (counsel-mode-hook
                          ivy-mode-hook
                          window-configuration-change-hook)
-                        :adtype hook)))
+                        :adtype hook
+                        :pdumper-no-end t)))
     (recursive-find-file))
    ("Recursive file system search (find-file recursive match)"
     (("C-x M-f" entropy/emacs-ivy-ffip "Fuzzy Open File"
@@ -1324,7 +1325,8 @@ display icon or empty string while
                         (counsel-mode-hook
                          ivy-mode-hook
                          window-configuration-change-hook)
-                        :adtype hook))))
+                        :adtype hook
+                        :pdumper-no-end t))))
    ("Utils"
     (("u f"
       (:eval (entropy/emacs-hydra-hollow-category-common-individual-get-caller

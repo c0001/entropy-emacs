@@ -135,6 +135,8 @@
   (if entropy/emacs-fall-love-with-pdumper
       (entropy/emacs-lazy-with-load-trail
        unset-w3m-after-cursor-move-hook
+       :pdumper-no-end t
+       :body
        (setq w3m-after-cursor-move-hook nil))
     (entropy/emacs-lazy-load-simple w3m
       (setq w3m-after-cursor-move-hook nil)))

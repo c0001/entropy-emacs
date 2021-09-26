@@ -130,7 +130,7 @@ can not globally enable that hook and WHY?."
 
 ;; **** eemacs hydra hollow
   :eemacs-tpha
-  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook))))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook :pdumper-no-end t))))
    ("Project"
     (("C-c p"
       (:eval
@@ -140,7 +140,7 @@ can not globally enable that hook and WHY?."
       :enable t :exit t))))
 
   :eemacs-indhc
-  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook)))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook :pdumper-no-end t)))
     (projectile-mode (projectile projectile-mode-map) nil (2)))
    ("projectile Switch"
     (("C-c p p p" counsel-projectile-switch-project "Switch To Other Project"
@@ -271,7 +271,7 @@ benchmark while exhibits."
   :ensure nil
   :commands entropy/prjm-inct-chosen-db
   :eemacs-tpha
-  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook))))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook :pdumper-no-end t))))
    ("Project"
     (("C-c M-p" entropy/prjm-inct-chosen-db "Eemacs Project Management"
       :enable t :exit t :global-bind t)))))
