@@ -116,7 +116,12 @@
   (setq w3m-confirm-leaving-secure-page nil
         w3m-image-no-idle-timer t
         w3m-image-animate-seconds nil
-        w3m-show-graphic-icons-in-header-line nil
+
+        ;; header line icon disable
+        ;; -- emacs < 27 compatible
+        ;; w3m-show-graphic-icons-in-header-line nil
+        w3m-show-graphic-icons-in-tab-line nil
+
         w3m-use-favicon nil
         w3m-use-refresh nil
         w3m-use-tab nil

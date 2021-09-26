@@ -479,7 +479,8 @@ package management!"))
         (start-process "grip" "*gfm-to-html*" "grip" (buffer-file-name) port)
         (browse-url (format "http://localhost:%s/%s.%s"
                             port
-                            (file-name-base)
+                            (file-name-base
+                             (buffer-file-name))
                             (file-name-extension
                              (buffer-file-name)))))
     (user-error "Please install grip by 'pip install grip'.")))

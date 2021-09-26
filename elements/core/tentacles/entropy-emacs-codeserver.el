@@ -1503,7 +1503,7 @@ let eglot do completion with interface argument injection."
           (with-current-buffer entropy/emacs-eglot-doc-buffer-name
             (erase-buffer)
             (insert string)
-            (beginning-of-buffer)
+            (goto-char (point-min))
             (setq buffer-read-only t)
             (local-set-key (kbd "q") 'kill-buffer-and-window)
             (local-set-key (kbd "n") 'forward-line)

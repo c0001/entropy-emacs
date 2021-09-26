@@ -90,7 +90,7 @@ For lisp coding aim, always return the transfered buffer.
         (when (buffer-file-name)
           (save-buffer))
         (funcall enable-mode)
-        (if (interactive-p)
+        (if (called-interactively-p 'any)
             (let ((judge
                    (yes-or-no-p
                     (format "Create toggled buffer '%s'\nSwitch-To? " buffer))))
@@ -196,7 +196,7 @@ For lisp coding aim, always return the transfered buffer.
      (hook '(emacs-lisp-mode-hook
              lisp-interaction-mode-hook
              ielm-mode-hook))
-     (add-hook 'hook #'turn-on-elisp-slime-nav-mode))))
+     (add-hook 'hook #'elisp-slime-nav-mode))))
 
 ;; Semantic code search for emacs lisp
 (use-package elisp-refs

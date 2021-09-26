@@ -471,10 +471,11 @@ format."
 
   ;; install `js-beautify' coworker
   (when entropy/emacs-install-coworker-immediately
-    (advice-add
-     el
-     :before
-     #'entropy/emacs-web--check-js-beautify-coworker)))
+    (dolist (mode '(js-mode js2-mode css-mode html-mode web-mode))
+      (advice-add
+       mode
+       :before
+       #'entropy/emacs-web--check-js-beautify-coworker))))
 
 ;; ** web backend technologies
 ;; *** php

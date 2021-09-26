@@ -1417,7 +1417,7 @@ can't visit one page suddenly."
     (unless (equal major-mode 'org-mode)
       (org-mode)
       (outline-show-all)
-      (org-show-block-all))
+      (org-show-all))
     (add-file-local-variable 'org-image-actual-width 500))
   (add-hook 'entropy/ep2o-tidy-hook #'entropy/emacs-tools--ep2o-tidy-up-image-width-defaut))
 
