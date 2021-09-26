@@ -57,7 +57,7 @@
   (file-truename
    ;; using truename for opening log file for prevent link chase warning in cli
    (expand-file-name
-    (format "pdumper-loads-log_%s.txt"
+    (format "eemacs-pdumper-log/pdumper-loads-log/pdumper-loads-log_%s.txt"
             (format-time-string "%Y%m%d%H%M%S"))
     entropy/emacs-stuffs-topdir)))
 
@@ -260,8 +260,7 @@ configuration.")
                 (erase-buffer)
                 (goto-char (point-min))
                 (insert file)
-                (write-region
-                 nil nil
+                (entropy/emacs-write-file
                  entropy/emacs-pdumper--loads-log-file))
             (with-current-buffer (find-file-noselect entropy/emacs-pdumper--loads-log-file)
               (goto-char (point-max))

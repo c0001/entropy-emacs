@@ -246,15 +246,19 @@
          (host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
          (stuff-dir
           (make-temp-name (expand-file-name
-                           "eemacs-ext-stable-repo-ext-stuff_"
+                           (format
+                            "eemcs-ext-stable-build-cache\
+/eemacs-ext-build-%s_%s_"
+                            entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+                            (format-time-string "%Y%m%d%H%M%S"))
                            entropy/emacs-stuffs-topdir)))
          (dec-host
           (make-temp-name (expand-file-name
-                           "eemacs-ext-stable-repo-ext_"
+                           "eemacs-ext-stable-repo-decompress_"
                            stuff-dir)))
          (tmp-name
           (make-temp-name (expand-file-name
-                           "eemacs-ext-stable-repo-archive_"
+                           "eemacs-ext-stable-repo-archive.txz_"
                            stuff-dir)))
          download-cbk)
     (make-directory stuff-dir t)
@@ -342,7 +346,9 @@ faild with hash '%s' which must match '%s'"
          (stuff-dir
           (make-temp-name
            (expand-file-name
-            "eemacs-ext-fonts-temp-host_"
+            (format
+             "eemacs-exts-fonts-cache/eemacs-ext-fonts-temp-host_%s_"
+             (format-time-string "%Y%m%d%H%M%S"))
             entropy/emacs-stuffs-topdir)))
          (dec-host
           (make-temp-name (expand-file-name
@@ -350,7 +356,7 @@ faild with hash '%s' which must match '%s'"
                            stuff-dir)))
          (tmp-name
           (make-temp-name (expand-file-name
-                           "eemacs-ext-fonts-archive_"
+                           "eemacs-ext-fonts-archive.txz_"
                            stuff-dir)))
          download-cbk)
     (make-directory stuff-dir t)
@@ -458,6 +464,8 @@ faild with hash '%s' which must match '%s'"
 
 (defvar entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
   nil)
+(defvar entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/timestamp
+  (format-time-string "%Y%m%d%H%M%S"))
 (defun entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
     (name host require-features &optional clean)
   (let* ((dir (expand-file-name
@@ -465,7 +473,9 @@ faild with hash '%s' which must match '%s'"
                entropy/emacs-user-emacs-directory))
          (elcs (directory-files dir nil ".*\\.elc$"))
          (log-file (expand-file-name
-                    (format "eemacs-%s-compile-%s.log"
+                    (format "%s/date-%s/eemacs-%s-compile-%s.log"
+                            "eemacs-core-bytecompile-log"
+                            entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/timestamp
                             name
                             (format-time-string "%Y%m%d%H%M%S"))
                     entropy/emacs-stuffs-topdir)))
@@ -501,7 +511,7 @@ faild with hash '%s' which must match '%s'"
                   (log-buff (get-buffer log-buff-name)))
              (when (bufferp log-buff)
                (with-current-buffer log-buff
-                 (write-file log-file t)
+                 (entropy/emacs-write-file log-file t)
                  (kill-buffer log-buff))))))))
 
 (defvar entropy/emacs-batch--bytecompile-item-register

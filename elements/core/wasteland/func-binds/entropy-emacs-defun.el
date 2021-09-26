@@ -624,6 +624,15 @@ not existed."
     (when (and file1-p file2-p)
       (file-equal-p file1 file2))))
 
+(defun entropy/emacs-write-file
+    (filename &optional confirm)
+  "Like `write-file' but create its host place firstly when apply
+FILENAME to `file-name-directory' is non-nil"
+  (let ((f-host (file-name-directory filename)))
+    (when (and f-host
+               (not (file-exists-p f-host)))
+      (make-directory f-host t))
+    (write-file filename confirm)))
 
 ;; *** Process manipulation
 (defun entropy/emacs-chained-eemacs-make-proc-args (eemacs-make-proc-args-list)
