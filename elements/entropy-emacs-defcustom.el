@@ -185,7 +185,7 @@ then enable the rich dashbord contents when value is 'rich'."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-initial-position)
 
-(defcustom entropy/emacs-init-frame-width-scale 0.6
+(defcustom entropy/emacs-init-frame-width-scale 0.76
   "The init scale of frame width within the fully width of
 screen"
   :type 'number
