@@ -247,7 +247,7 @@
          (stuff-dir
           (make-temp-name (expand-file-name
                            (format
-                            "eemcs-ext-stable-build-cache\
+                            "eemacs-ext-stable-build-cache\
 /eemacs-ext-build-%s_%s_"
                             entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
                             (format-time-string "%Y%m%d%H%M%S"))
