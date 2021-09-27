@@ -544,7 +544,7 @@ FILENAME, if FILENAME was not exist then return error.
 
 When inemacs was non-nil open FILENAME in emacs.
 
-Tips: none-interactive state support open url.
+Tips: non-interactive state support open url.
 
 Note: this func redirected `default-directory' as
 `entropy/open-with-match-open' does so."
@@ -591,15 +591,23 @@ Note: this func redirected `default-directory' as
 
 
 ;;;###autoload
-(defun entropy/open-with-dired-open ()
+(defun entropy/open-with-dired-open (&optional prefix)
   "Dired open with portable apps.
 
 It's core function is `entropy/open-with-match-open', see it for
 details.
+
+Optional argument PREFIX if non-nil:
+
+- we use `dired-get-marked-files' to matched files and batch open
+  them, otherwise we just open the file at current line e.g. get
+  the filename by `dired-get-filename'.
 "
-  (interactive)
+  (interactive "P")
   (if (equal major-mode 'dired-mode)
-      (let ((files (dired-get-marked-files)))
+      (let ((files (if prefix
+                       (dired-get-marked-files)
+                     (list (dired-get-filename)))))
         (entropy/open-with-match-open files))
     (user-error "You are not in dired-mode!")))
 
