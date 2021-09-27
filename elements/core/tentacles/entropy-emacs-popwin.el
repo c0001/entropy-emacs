@@ -568,21 +568,19 @@ specification."
   (defun entropy/emacs-popwin-shackle-popup-buffer ()
     "Display buffer with popuped behaviour powered by `shackle'."
     (interactive)
-    (let* ((buff-name (completing-read "Buffer choosing: " 'internal-complete-buffer))
+    (let* ((buff-name (completing-read "Buffer choosing: "
+                                       'internal-complete-buffer))
            (shackle-rules
             (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
                 `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
       (get-buffer-create buff-name)
-      (display-buffer buff-name)
-      (when (and (fboundp 'entropy/emacs-solaire-mode)
-                 (entropy/emacs-theme-adapted-to-solaire))
-        (with-current-buffer buff-name
-          (entropy/emacs-solaire-mode +1)))))
+      (display-buffer buff-name)))
 
   (defun entropy/emacs-popwin-shackle-popup-find-file ()
     "Find file with popup window powered by `shackle'."
     (interactive)
-    (let* ((file (completing-read "Buffer choosing: " 'read-file-name-internal))
+    (let* ((file (completing-read "File choosing: " 'read-file-name-internal
+                                  nil nil nil 'file-name-history))
            (buff-name (buffer-name (find-file-noselect file)))
            (shackle-rules
             (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
@@ -592,7 +590,9 @@ specification."
   (defun entropy/emacs-popwin-shackle-popup-dired ()
     "Dired with popup window powered by `shackle'."
     (interactive)
-    (let* ((dir (read-directory-name "Location choosing: "))
+    (let* ((dir (completing-read "Dired choosing: " 'read-file-name-internal
+                                 'file-directory-p nil nil
+                                 'file-name-history))
            (buff-name (buffer-name (dired-noselect dir)))
            (shackle-rules
             (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
