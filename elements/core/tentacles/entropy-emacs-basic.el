@@ -2518,6 +2518,11 @@ operation system"
 ;; ***** Enable disabled commands
 (put 'narrow-to-region 'disabled nil)
 
+;; ***** Disable some annoying internal-keybindings
+
+;; Disable `view-emacs-FAQ' global keybinding
+(global-set-key (kbd "C-h C-f") nil)
+
 ;; *** System-wide spec
 ;; **** Coding environment
 (setq system-time-locale "C") ;Use english format time string
