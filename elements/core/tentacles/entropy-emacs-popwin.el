@@ -146,7 +146,7 @@
         ("\\*Flymake diagnostics for"  :regexp t :dedicated t :align bottom :size 0.2 :autoclose t     :select t)
         ;; Flycheck
         ("\\*flycheck errors\\*.+*$"   :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
-        ("^*Flycheck errors*$"         :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
+        ("^\\*Flycheck errors\\*$"     :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
 
         ;; Lsp
         ("*lsp-help*"                  :regexp nil :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
