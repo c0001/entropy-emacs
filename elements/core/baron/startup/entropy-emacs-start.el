@@ -302,15 +302,15 @@ Trying insert some words in below are:
 ;; Disable virtual terminal tty switching keybinding on linux for
 ;; release more keybinding possibilitie.(see
 ;; <https://unix.stackexchange.com/questions/34158/rebinding-disabling-ctrlaltf-virtual-terminal-console-switching>)
-(entropy/emacs-start--run-with-duration-log
- form/disable-virtual-terminal-tty-sh-command
- (when sys/linux-x-p
-   (entropy/emacs-lazy-with-load-trail
-    setxkbmap
-    (shell-command "setxkbmap -option srvrkeys:none")
-    (entropy/emacs-message-do-message
-     (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"
-             :force-message-while-eemacs-init t)))))
+  ;; (entropy/emacs-start--run-with-duration-log
+  ;;  form/disable-virtual-terminal-tty-sh-command
+  ;;  (when sys/linux-x-p
+  ;;    (entropy/emacs-lazy-with-load-trail
+  ;;     setxkbmap
+  ;;     (shell-command "setxkbmap -option srvrkeys:none")
+  ;;     (entropy/emacs-message-do-message
+  ;;      (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"
+  ;;              :force-message-while-eemacs-init t)))))
 
 ;; *** Resetting browse-url-function in fancy-startup-screen
 
