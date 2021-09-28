@@ -147,49 +147,46 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 
 
 ;; ** eldoc
-(use-package eldoc
-  :ensure nil
-  :preface
-  (defun entropy/emacs-eldoc-show-eldoc-for-current-point
-      (&optional inct)
-    "Like `eldoc' but do not needed `eldoc-mode' enabled at
-before invocation."
-    (interactive '(t))
-    (condition-case error
-        (unless (or
-                 ;; do not invoking in company refer map
-                 (bound-and-true-p company-candidates)
-                 ;; TODO: more conditions
-                 )
-          (let ((buff (current-buffer))
-                (eldoc-enable-p (bound-and-true-p eldoc-mode))
-                (entropy/emacs-eldoc-inhibit-in-current-buffer nil))
-            (with-current-buffer buff
-              (unless eldoc-enable-p
-                (eldoc-mode 1)))
-            (funcall
-             'eldoc-print-current-symbol-info inct)
-            ;; unbind temporally `eldoc-mode' enabled in source buffer
-            (with-current-buffer buff
-              (unless eldoc-enable-p
-                (eldoc-mode 0)))))
-      (error
-       (message "%s" error))))
 
-  :eemacs-tpha
-  (((:enable t :defer (:data (:adfors (prog-mode-hook) :adtype hook :pdumper-no-end t))))
-   ("Basic"
+(entropy/emacs-lazy-initial-for-hook
+ (prog-mode-hook)
+ "eldoc-mode-init" "eldoc-mode-init" prompt-echo
+ :pdumper-no-end t
+ (defun entropy/emacs-eldoc-show-eldoc-for-current-point
+     (&optional inct)
+   "Like `eldoc' but do not needed `eldoc-mode' enabled at
+before invocation."
+   (interactive '(t))
+   (condition-case error
+       (unless (or
+                ;; do not invoking in company refer map
+                (bound-and-true-p company-candidates)
+                ;; TODO: more conditions
+                )
+         (let ((buff (current-buffer))
+               (eldoc-enable-p (bound-and-true-p eldoc-mode))
+               (entropy/emacs-eldoc-inhibit-in-current-buffer nil))
+           (with-current-buffer buff
+             (unless eldoc-enable-p
+               (eldoc-mode 1)))
+           (funcall
+            'eldoc-print-current-symbol-info inct)
+           ;; unbind temporally `eldoc-mode' enabled in source buffer
+           (with-current-buffer buff
+             (unless eldoc-enable-p
+               (eldoc-mode 0)))))
+     (error
+      (message "%s" error))))
+
+ (global-eldoc-mode 1)
+
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Basic"
     (("M-h" entropy/emacs-eldoc-show-eldoc-for-current-point
       "Document thing at point."
       :enable t
       :exit t
-      :global-bind t))))
-  :init
-  (entropy/emacs-lazy-initial-for-hook
-   (prog-mode-hook)
-   "eldoc-mode-init" "eldoc-mode-init" prompt-echo
-   :pdumper-no-end t
-   (global-eldoc-mode 1)))
+      :global-bind t)))))
 
 ;; ** Diagnostics
 

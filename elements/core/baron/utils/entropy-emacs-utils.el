@@ -221,11 +221,16 @@
       (memoize func))))
 
 ;; ** eldoc
+;; *** Core
 (use-package eldoc
   :ensure nil
-  :diminish eldoc-mode
   :commands (eldoc eldoc-mode global-eldoc-mode)
-  :preface
+  :init
+
+  ;; increasing eldoc idle delay to reduce lag
+  (setq eldoc-idle-delay 1.5)
+
+  ;; ---------- Temporally eldoc-mode patch
   (defvar-local entropy/emacs-eldoc-inhibit-in-current-buffer nil)
   (defun entropy/emacs-eldoc-inhibit-around-advice
       (orig-func &rest orig-args)
@@ -238,10 +243,9 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
         (setq
          entropy/emacs-eldoc-inhibit-in-current-buffer
          t))))
-  :init
-  ;; increasing eldoc idle delay to reduce lag
-  (setq eldoc-idle-delay 1.5)
+
   :config
+  ;; ---------- Truncate lines for eldoc message when in some occasions
   (defun __adv/around/eldoc-minibuffer-message
       (orig-func &rest orig-args)
     "Around advice for `eldoc-minibuffer-message' by eemacs."
@@ -253,6 +257,7 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
               :around
               #'__adv/around/eldoc-minibuffer-message)
 
+  ;; ---------- Disable eldoc idle trigger in some occasions
   (defun __adv/around/eldoc-schedule-timer/filter-run
       (orig-func &rest orig-args)
     "Around advice for `eldoc-schedule-timer' to disable
@@ -267,8 +272,35 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
   (advice-add 'eldoc-schedule-timer
               :around
               #'__adv/around/eldoc-schedule-timer/filter-run)
-
   )
+
+;; *** Use new version of `eldoc'
+
+(defvar __new_pkg/eldoc
+  (expand-file-name
+   "eldoc.elc"
+   (package-desc-dir
+    (cadr (assq 'eldoc (package--alist)))))
+  "The elisp file of the new `eldoc' version")
+
+(defvar __ya/eldoc-newpkg-load-p nil)
+(defun __ya/eldoc-load-require
+    (orig-func &rest orig-args)
+  (let (_)
+    (unless (bound-and-true-p __ya/eldoc-newpkg-load-p)
+      (load __new_pkg/eldoc)
+      (setq __ya/eldoc-newpkg-load-p t))
+    (apply orig-func orig-args)))
+
+(cond ((bound-and-true-p entropy/emacs-custom-enable-lazy-load)
+       (dolist (cmd '(eldoc
+                      eldoc-mode global-eldoc-mode
+                      eldoc-print-current-symbol-info))
+         (advice-add cmd
+                     :around
+                     #'__ya/eldoc-load-require)))
+      (t
+       (load __new_pkg/eldoc)))
 
 ;; ** shrink-path
 (use-package shrink-path
