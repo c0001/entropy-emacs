@@ -102,6 +102,7 @@
         doom-themes
         edit-indirect
         eglot
+        eldoc ;force use new version of `eldoc' for new version of `eglot'
         eldoc-eval
         elfeed
         elisp-refs
@@ -117,6 +118,7 @@
         f
         find-file-in-project
         flycheck
+        flymake ;force use new version of `flymake' for new version of `eglot'
         ghub
         git-commit
         git-messenger
@@ -198,7 +200,7 @@
         powershell
         prescient
         pretty-hydra
-        project                         ;forcely install newer version of `project' since newer version flymake needed
+        project ;forcely install newer version of `project' since newer version flymake needed
         projectile
         pyim
         pyim-basedict
