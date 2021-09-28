@@ -449,7 +449,7 @@ specification."
             new-hist)))
 
 ;; ***** buffer popup-p judger
-  (defun entropy/emacs-popwin--buffer-is-shackle-popup-p (buffer)
+  (defun entropy/emacs-popwin--buffer-is-shackle-popup-p (buffer &optional strict)
     (let ((buf-win (get-buffer-window buffer)))
       (if (and (windowp buf-win)
                (eq buf-win (window-main-window (selected-frame))))
@@ -463,12 +463,14 @@ specification."
              buffer t)
             nil)
         (ignore-errors
-          (or (buffer-local-value
-               'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
-               buffer)
-              (window-parameter
-               buf-win
-               'entropy/emacs-popwin--shackle-window-is-popup-window-p))))))
+          (eval
+           `(,(if strict 'and 'or)
+             (buffer-local-value
+              'entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
+              ',buffer)
+             (window-parameter
+              ',buf-win
+              'entropy/emacs-popwin--shackle-window-is-popup-window-p)))))))
 
   ;; ignore the window parameters restriction while current buffer is
   ;; an shackle popuped buffer since we temporally needed to maximize
@@ -518,7 +520,15 @@ specification."
                          (window-live-p stick-window))
                 (winner-undo))))
 
-           ((entropy/emacs-popwin--buffer-is-shackle-popup-p (window-buffer))
+           (
+            ;; WHY?:
+            ;; Just recognize the buffer is shackle-popuped while its
+            ;; window is marked either for preventing messy judging
+            ;; while some internal unknown window display tricks like
+            ;; window reuse etc.
+            (entropy/emacs-popwin--buffer-is-shackle-popup-p
+             (window-buffer)
+             t)
             (setq stick-buffer (window-buffer)
                   stick-window (get-buffer-window stick-buffer))
             (message "Auto hiding popuped buffer <buffer-local type> ...")
