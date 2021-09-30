@@ -46,7 +46,8 @@
           toggle-inline-image toggle-image
           current-page-url current-link-url previous-page next-page goto-url
           search-query
-          search-engine)
+          search-engine
+          open-history)
   (let ()
     `(entropy/emacs-lazy-initial-for-hook
       (eww-mode-hook w3m-mode-hook)
@@ -92,6 +93,9 @@
            :exit t)
           ("a" ,bookmark-add "Add Bookmark"
            :enable (not (null ',bookmark-add)) :map-inject (not (null ',mode-map))
+           :exit t)
+          ("h" ,open-history "Open browse history"
+           :enable (not (null ',open-history)) :map-inject (not (null ',mode-map))
            :exit t)))))))
 
 ;; ** browsers
@@ -171,6 +175,7 @@
    :toggle-inline-image w3m-toggle-inline-image
    :bookmark-library-view w3m-bookmark-view
    :bookmark-add w3m-bookmark-add-current-url
+   :open-history w3m-history
    :browse-with-external w3m-view-url-with-browse-url
    :current-page-url w3m-print-current-url
    :current-link-url w3m-print-this-url
@@ -315,6 +320,7 @@ value of it is not relavant to current buffer value."
    :toggle-image entropy/emacs-textwww--eww-toggle-show-image-whole-page
    :bookmark-library-view eww-list-bookmarks
    :bookmark-add eww-add-bookmark
+   :open-history eww-list-histories
    :browse-with-external entropy/emacs-textwww-eww-open-url-external
    :current-page-url eww-copy-page-url
    :current-link-url entropy/emacs-textwww-get-eww-url
