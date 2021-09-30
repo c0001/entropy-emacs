@@ -201,9 +201,9 @@
   (((:enable t :defer (:data (:adfors (org-mode-hook prog-mode-hook) :adtype hook :pdumper-no-end t)))
     (vimish-fold (vimish-fold vimish-fold-folded-keymap) nil (2 2)))
    ("Vimish toggle"
-    (("<C-tab>" entropy/emacs-structure-vimish-toggle
+    (("TAB" entropy/emacs-structure-vimish-toggle
       "Automatically vimish fold/show region"
-      :enable t :global-bind t :exit t))
+      :enable t :eemacs-top-bind t :exit t))
     "Vimish delete"
     (("d c" vimish-fold-delete "Delete fold at point"
       :enable t :exit t)
