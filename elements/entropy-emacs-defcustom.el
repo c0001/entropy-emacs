@@ -162,7 +162,7 @@ just it's name."
   "Eemacs initial ui configuration customizable group."
   :group 'entropy/emacs-customize-group-for-UI)
 
-(defcustom entropy/emacs-enable-initial-dashboard 'rich
+(defcustom entropy/emacs-enable-initial-dashboard t
   "Enable entropy emacs initial dashboard instead of emacs
 default one.
 

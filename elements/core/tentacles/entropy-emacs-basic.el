@@ -2281,9 +2281,6 @@ successfully both of situation of read persisit of create an new."
         which-key-separator "->"
         which-key-show-remaining-keys t
         which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
-  :config
-  (entropy/emacs-lazy-load-simple help
-    (global-set-key (kbd "C-h C-h") nil))
 
 ;; ***** config
   :config
@@ -2522,6 +2519,7 @@ operation system"
 
 ;; Disable `view-emacs-FAQ' global keybinding
 (global-set-key (kbd "C-h C-f") nil)
+(global-set-key (kbd "C-h C-h") nil)
 
 ;; *** System-wide spec
 ;; **** Coding environment
@@ -2531,7 +2529,12 @@ operation system"
 ;; when `entropy/emacs-custom-language-environment-enable' was nil
 
 (unless entropy/emacs-custom-language-environment-enable
-  (entropy/emacs-lang-set-utf-8))
+  (entropy/emacs-lazy-initial-for-hook
+   (entropy/emacs-after-startup-hook)
+   "init-lang-set-for-utf8" "init-lang-set-for-utf8"
+   prompt-echo
+   :pdumper-no-end t
+   (entropy/emacs-lang-set-utf-8)))
 
 ;; ***** Using customized basic encoding system
 ;; When `entropy/emacs-custom-language-environment-enable' was t

@@ -583,6 +583,7 @@ for adding to variable `window-size-change-functions' and hook
          font-lock-string-face)))))
 
   (defun entropy/emacs-rich-dashboard-init ()
+    (message "========== init rich dashboard ==========")
     (require 'dashboard)
     (setq dashboard-startup-banner entropy/emacs-fancy-splash-logo-file
           dashboard-center-content t
