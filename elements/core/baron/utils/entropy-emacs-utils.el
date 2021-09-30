@@ -282,23 +282,20 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
    (package-desc-dir
     (cadr (assq 'eldoc (package--alist)))))
   "The elisp file of the new `eldoc' version")
-
 (defvar __ya/eldoc-newpkg-load-p nil)
-(defun __ya/eldoc-load-require
-    (orig-func &rest orig-args)
-  (let (_)
-    (unless (bound-and-true-p __ya/eldoc-newpkg-load-p)
-      (load __new_pkg/eldoc)
-      (setq __ya/eldoc-newpkg-load-p t))
-    (apply orig-func orig-args)))
-
 (cond ((bound-and-true-p entropy/emacs-custom-enable-lazy-load)
-       (dolist (cmd '(eldoc
-                      eldoc-mode global-eldoc-mode
-                      eldoc-print-current-symbol-info))
-         (advice-add cmd
-                     :around
-                     #'__ya/eldoc-load-require)))
+       (entropy/emacs-lazy-initial-advice-before
+        (
+         ;; it's an alias of `eldoc-print-current-symbol-info'
+         ;; eldoc
+         eldoc-mode global-eldoc-mode
+         eldoc-print-current-symbol-info)
+        "eldoc-new-version-load" "eldoc-new-version-load"
+        prompt-echo
+        (unless (bound-and-true-p __ya/eldoc-newpkg-load-p)
+          (eval
+           `(load ',__new_pkg/eldoc))
+          (setq __ya/eldoc-newpkg-load-p t))))
       (t
        (load __new_pkg/eldoc)))
 
