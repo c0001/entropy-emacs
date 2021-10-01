@@ -599,6 +599,8 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
   (cl-case show-method
     (minibuffer-common
      (entropy/sdcv-backends--make-feedback-single-line feedback))
+    (adjacent-common
+     (setq truncate-lines nil))
     (t
      feedback)))
 
