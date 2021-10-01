@@ -452,6 +452,11 @@ into the echo area of that timer.
 It seems that the idle delay less than 0.001 also will trigger this
 bug.
 
+** log: [2021-10-01 Fri 23:13:38]
+
+It seems related to X11 protocal on linux of gnome DE since it
+disappeared while using Xwayland gnome session.
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d
