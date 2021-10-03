@@ -150,7 +150,7 @@ origin, since each set to the `gc-threshold' or
   ;; after all idle progress, we enable gc in rest idle time step by
   ;; step as an daemon gc guard for watching in non-busy stat and will
   ;; be killed by `entropy/emacs-gc--remove-idle-guard'.
-  (run-with-timer 1 10 #'garbage-collect)
+  (run-with-timer 0.2 3600 #'garbage-collect)
   (setq entropy/emacs-gc--idle-guard-removed nil))
 
 (defun entropy/emacs-gc--remove-idle-guard
@@ -179,15 +179,28 @@ delay seconds SECS."
   (entropy/emacs-gc--init-idle-gc
    entropy/emacs-garbage-collection-delay))
 
-(entropy/emacs-lazy-with-load-trail
- gc-optimization
+
+;; --------------------------------------------------
+;; after init for eemacs gc init
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-after-startup-hook)
+ "eemacs-gc-optimization" "eemacs-gc-optimization" prompt-echo
+ :pdumper-no-end t
  (setq garbage-collection-messages nil)
  ;;(add-hook 'post-command-hook #'entropy/emacs-gc--adjust-cons-threshold)
  (entropy/emacs-gc--init-idle-gc)
  (setq read-process-output-max (* 1024 1024)))
-
-(when entropy/emacs-fall-love-with-pdumper
-  ;; upper gc threshold for pdumper procedure
-  (setq gc-cons-threshold 50000000))
+;; --------------------------------------------------
+;; init gc set
+(cond ((or entropy/emacs-fall-love-with-pdumper
+           (daemonp)
+           (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load)))
+       ;; restrict gc threshold for pdumper progress and daemon init
+       ;; progress even for non lazy init mode.
+       (setq gc-cons-threshold (* 2 1024 1024)))
+      (t
+       ;; enlarge the `gc-cons-threshold' for speedup startup progress
+       ;; while normal init mode.
+       (setq gc-cons-threshold most-positive-fixnum)))
 
 (provide 'entropy-emacs-gc)
