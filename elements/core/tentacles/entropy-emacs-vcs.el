@@ -111,6 +111,8 @@
     (define-key global-map (kbd "C-x v i") nil)))
 
 (use-package ssh-agency
+  ;; Windows only spec
+  :if sys/win32p
   :commands (ssh-agency-ensure)
   :init
   (entropy/emacs-lazy-load-simple magit
