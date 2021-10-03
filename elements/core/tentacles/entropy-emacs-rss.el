@@ -198,24 +198,23 @@ the current elfeed-show-buffer."
 
 ;; *** feeds-title config
 
-  (eval-when-compile
-    (defun entropy/emacs-rss--elfeed-string-style-hook (&rest args)
-      "Hooks for replace space to '-' when save `elfeed-db'."
-      (let ((feeds (if (hash-table-p elfeed-db-feeds)
-                       (hash-table-values elfeed-db-feeds)
-                     nil))
-            did)
-        (when feeds
-          (dolist (el feeds)
-            (let ((feed-title (elfeed-feed-title el))
-                  newtitle)
-              (when (and feed-title (string-match-p " " feed-title))
-                (setq newtitle (entropy/emacs-rss--elfeed-sc-str feed-title))
-                (setf (elfeed-feed-title el) newtitle)
-                (setq did t))))
-          (if did
-              t
-            nil)))))
+  (defun entropy/emacs-rss--elfeed-string-style-hook (&rest args)
+    "Hooks for replace space to '-' when save `elfeed-db'."
+    (let ((feeds (if (hash-table-p elfeed-db-feeds)
+                     (hash-table-values elfeed-db-feeds)
+                   nil))
+          did)
+      (when feeds
+        (dolist (el feeds)
+          (let ((feed-title (elfeed-feed-title el))
+                newtitle)
+            (when (and feed-title (string-match-p " " feed-title))
+              (setq newtitle (entropy/emacs-rss--elfeed-sc-str feed-title))
+              (setf (elfeed-feed-title el) newtitle)
+              (setq did t))))
+        (if did
+            t
+          nil))))
 
   (advice-add 'elfeed-db-load :after #'entropy/emacs-rss--elfeed-string-style-hook)
 
