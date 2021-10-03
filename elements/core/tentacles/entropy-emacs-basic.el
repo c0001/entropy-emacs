@@ -1198,20 +1198,27 @@ occasions. "
   "The filter for `hl-line-mode' available option in triggered
 buffer, in that case any conditions don't match the filter then
 `hl-line-mode' will be enabled."
-  (unless (or (member major-mode
-                      '(vterm-mode
-                        shell-mode
-                        eshell-mode
-                        term-mode
-                        dashboard-mode))
-              (bound-and-true-p entropy/emacs-ui-init-welcom-mode)
-              (eq major-mode 'eww-mode)
-              (let ((rtn
-                     (save-excursion
-                       (goto-char (point-max))
-                       (line-number-at-pos))))
-                (> rtn 1000))
-              (minibufferp))
+  (unless (or
+           ;; special modes and buffers
+           (member major-mode
+                   '(vterm-mode
+                     shell-mode
+                     eshell-mode
+                     term-mode
+                     dashboard-mode))
+           (bound-and-true-p entropy/emacs-ui-init-welcom-mode)
+           (eq major-mode 'eww-mode)
+           (minibufferp)
+           ;; large buffers
+           (let ((rtn
+                  (save-excursion
+                    (goto-char (point-max))
+                    (line-number-at-pos))))
+             (> rtn 1000))
+           ;; magit related buffers, since it has its own line highlight methods
+           (string-match-p "magit" (symbol-name major-mode))
+           ;; TODO: add more expections
+           )
     (hl-line-mode 1)))
 
 ;; Build `hl-line-mode' based global mode, that it is different from
@@ -1273,6 +1280,15 @@ buffer, in that case any conditions don't match the filter then
        (hl-line-mode 0)
        (display-line-numbers-mode 0)))))
 
+(defun __bugfix/hl-line-unhighlight/for-timer-var-clean ()
+  "Bug fix for `hl-line-unhighlight' missing timer unset procedure."
+  (when hl-line-overlay
+    (delete-overlay hl-line-overlay)
+    (setq hl-line-overlay nil)))
+(advice-add 'hl-line-overlay
+            :override
+            #'__bugfix/hl-line-unhighlight/for-timer-var-clean)
+
 (defvar-local eemacs-hl-line-mode-enable nil)
 (defun entropy/emacs-basic--hl-line-mode-patcher-0
     (orig-func &rest orig-args)
@@ -1325,9 +1341,14 @@ NOTE: this is a advice wrapper for any function."
 (dolist (func '(previous-line next-line newline))
   (advice-add func
               :around #'entropy/emacs-basic--hl-line-disable-wrapper))
-(with-eval-after-load 'dired
-  (advice-add 'dired-next-line
-              :around #'entropy/emacs-basic--hl-line-disable-wrapper))
+(entropy/emacs-lazy-initial-advice-before
+ (dired-mode)
+ "hl-line-spec-for-dired-init" "hl-line-spec-for-dired-init" prompt-echo
+ :pdumper-no-end t
+ (dolist (el '(dired-previous-line dired-next-line))
+   (advice-add el
+               :around
+               #'entropy/emacs-basic--hl-line-disable-wrapper)))
 
 ;; ***** Smooth scrolling
 ;; Force smooth mouse scroll experience
