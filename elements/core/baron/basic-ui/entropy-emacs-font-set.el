@@ -61,7 +61,7 @@ it.
 
 (defun entropy/emacs-font-set-register ()
   (when (eq entropy/emacs-font-setting-enable t)
-    (setq entropy/emacs-font-setting-enable 'google))
+    (setq entropy/emacs-font-setting-enable 'fira-code))
   (let ((group (alist-get entropy/emacs-font-setting-enable
                           entropy/emacs-fontsets-fonts-collection-alias)))
     (unless group
@@ -239,7 +239,13 @@ you must set it smaller than 15 for adapting to other entropy-emacs settings."))
   "Remap `prog-mode' face font using mordern programming fonts
 when available."
   (when (and (display-graphic-p)
-             (derived-mode-p 'prog-mode))
+             (derived-mode-p 'prog-mode)
+             ;; FIXME: face remap for font spec have performance laggy
+             (or (not entropy/emacs-font-setting-enable)
+                 (and entropy/emacs-font-setting-enable
+                      (not (eq entropy/emacs-font-setting-enable 'fira-code))
+                      ;; the default font is 'fira-code'
+                      (not (eq entropy/emacs-font-setting-enable t)))))
     (let ((font-familys '("Fira Code" "Source Code Pro" "JetBrains Mono")))
       (catch :exit
         (dolist (font-family font-familys)

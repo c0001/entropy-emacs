@@ -302,7 +302,18 @@ family fonts, 'sarasa' for usign sarasa-gothic family which was a
 fork for google noto refer, or 'fira-code' which was better for
 daily development using.
 
-When its value is 't', then fallback its to 'google'."
+When its value is 't', then fallback its to 'fira-code'.
+
+NOTE:
+
+1) 'sarasa' is CJK and latin width balance font spec, pretty
+aequilate table messed with thus are ok in `org-mode' etc.
+
+2) In old platform without high perfomance ssd and cpu
+supporting, using 'sarasa' fonts is not suggested since its size
+is so large for each font-family spec, and emacs will using much
+more time to loading and caching it while redisplay even for more
+gc time."
   :type '(choice
           (const :tag "Disable" nil)
           (const :tag "Default" t)
