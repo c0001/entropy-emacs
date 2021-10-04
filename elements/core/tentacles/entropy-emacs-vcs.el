@@ -55,12 +55,6 @@
       (progn
         (advice-add 'magit-status
                     :around
-                    #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-        (advice-add 'magit-dispatch-popup
-                    :around
-                    #'entropy/emacs-lang-use-utf-8-ces-around-advice)
-        (advice-add 'magit-file-popup
-                    :around
                     #'entropy/emacs-lang-use-utf-8-ces-around-advice))
       ;;disabled 'M-1' key-binding with conflicated with
       ;;`entropy/emacs-quick-readonly-global'
