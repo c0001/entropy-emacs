@@ -244,7 +244,7 @@
         visual-regexp
         ;; --> obsolete
         ;; volatile-highlights
-        vterm
+        ,(when (entropy/emacs-vterm-support-p) 'vterm)
         w3m
         web-beautify
         web-completion-data

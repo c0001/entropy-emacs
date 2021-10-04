@@ -222,8 +222,7 @@ was found."
 ;; ** vterm config
 
 (use-package vterm
-  :if (and (not sys/win32p)
-           (member "MODULES" (split-string system-configuration-features nil t)))
+  :if (entropy/emacs-vterm-support-p)
   :defer (or entropy/emacs-fall-love-with-pdumper entropy/emacs-custom-enable-lazy-load)
   :commands (vterm vterm-mode)
   :preface

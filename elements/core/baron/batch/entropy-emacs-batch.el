@@ -205,7 +205,7 @@
      (yellow (format "'%s'" bcknew))
      (green "completely!"))))
 
-;; **** native compile  `package-user-dir'
+;; **** native compile `package-user-dir'
 
 (defun entropy/emacs-batch--around-advice-for-native-compile (orig-func &rest orig-args)
   (let ((file-or-func (caar comp-files-queue)))
@@ -555,11 +555,22 @@ faild with hash '%s' which must match '%s'"
 
 (defun entropy/emacs-batch--do-bytecompile-eemacs-core
     (&optional clean)
-  (dolist (item entropy/emacs-batch--bytecompile-item-register)
-    (apply 'entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
-           (if clean
-               (append item '(t))
-             item))))
+  (let ((module-pkg-incs
+         (and (not clean)
+              (delete nil
+                      `(,(when (entropy/emacs-vterm-support-p)
+                           '(vterm ("cmake" ".") ("make"))))))))
+    ;; Compile dynamic modules firstly since the byte-compile process
+    ;; will load the module as well.
+    (when module-pkg-incs
+      (dolist (spec module-pkg-incs)
+        (entropy/emacs-package-compile-dynamic-module
+         (car spec) (cdr spec))))
+    (dolist (item entropy/emacs-batch--bytecompile-item-register)
+      (apply 'entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
+             (if clean
+                 (append item '(t))
+               item)))))
 
 ;; ** interactive
 (when (entropy/emacs-ext-main)

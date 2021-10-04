@@ -233,6 +233,64 @@ When installing encounters the fatal error, put the pkg into
               (red "✕ FAILED")
               (cdr error-rtn)))))))
 
+(defun entropy/emacs-package-compile-dynamic-module (pkg install-commands)
+  "Make dynamic module for package PKG through commands list
+INSTALL-COMMANDS whose each element is a list whose car was the
+command and rest of the command's arguments"
+  (entropy/emacs-package-prepare-foras)
+  (let ((pkg-dir
+         (package-desc-dir
+          (cadr (assq pkg (package--alist))))))
+    (unless (ignore-errors (file-exists-p pkg-dir))
+      (error "Package '%s' not installed yet" pkg))
+    (let* ((default-directory pkg-dir)
+           (process-format-func
+            (lambda (command uid)
+              `(:name
+                ,(format "eemacs-package-dynamic-module-make-for-pkg-%s/%s"
+                         pkg uid)
+                :default-directory ,default-directory
+                :command ',command
+                :synchronously t
+                :buffer (get-buffer-create
+                         ,(format
+                           "eemacs-package-dynamic-module-make-for-pkg-%s-process-buffer/%s"
+                           pkg uid))
+                :prepare
+                (entropy/emacs-message-do-message
+                 "%s"
+                 (magenta "Make dynamic module for package [%s] of command '%s' ..."
+                          ',pkg ',command))
+                :error
+                (with-current-buffer $sentinel/destination
+                  (entropy/emacs-message-do-message
+                   "%s"
+                   (red
+                    (buffer-substring-no-properties
+                     (point-min)
+                     (point-max))))
+                  (error ""))
+                ;; :cleanup
+                ;; (when (and
+                ;;        (buffer-live-p $sentinel/destination))
+                ;;   (kill-buffer $sentinel/destination))
+                )))
+           proc-chain-list)
+      (dotimes (uid (length install-commands))
+        (setq proc-chain-list
+              (append proc-chain-list
+                      (list
+                       (funcall process-format-func
+                                (nth uid install-commands)
+                                uid)))))
+      (entropy/emacs-make-chained-processes
+       proc-chain-list)
+      (entropy/emacs-message-do-message
+       "%s"
+       (green
+        "Make dynamic module for package [%s] successfully"
+        pkg)))))
+
 ;; *** error prompt for failing items
 
 (defun entropy/emacs-package-prompt-install-fails ()

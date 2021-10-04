@@ -2185,6 +2185,22 @@ core document file.")
 whose car is an symbol indicate the doc name and the cdr is same
 as `entropy/emacs-core-doc-file-archives-plist'.")
 
+;; *** emacs feature support judger
+(defun entropy/emacs-dynamic-module-support-p ()
+  "Return non-nil when current emacs session support load dynamic
+module."
+  (member "MODULES"
+          (split-string
+           system-configuration-features nil t)))
+
+(defun entropy/emacs-vterm-support-p ()
+  "Return non-nil when current emacs session support use
+`vterm'."
+  (and (entropy/emacs-dynamic-module-support-p)
+       (not (member system-type
+                    '(windows-nt
+                      ms-dos)))))
+
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)
 
