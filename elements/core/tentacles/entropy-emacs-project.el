@@ -57,8 +57,8 @@
    projectile-auto-discover t
    projectile-track-known-projects-automatically t)
 
-  (entropy/emacs-lazy-initial-advice-before
-   (dired-mode find-file switch-to-buffer)
+  (entropy/emacs-lazy-initial-for-hook
+   (entropy/emacs-after-startup-hook)
    "projectile-global-mode-init" "projectile-global-mode-init"
    prompt-echo
    :pdumper-no-end t
