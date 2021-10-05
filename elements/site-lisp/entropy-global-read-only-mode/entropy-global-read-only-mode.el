@@ -323,8 +323,8 @@ For now valid signal are:
                  func-disable 'wdired-change-to-wdired-mode
                  rtn 'dired))
           (t
-           (setq func-enable '(lambda () (setq buffer-read-only t))
-                 func-disable '(lambda () (setq buffer-read-only nil)))))
+           (setq func-enable #'(lambda () (setq buffer-read-only t))
+                 func-disable #'(lambda () (setq buffer-read-only nil)))))
     (cond ((= type 1)
            (funcall func-enable))
           ((= type 0)

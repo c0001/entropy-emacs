@@ -1815,8 +1815,8 @@ Now just supply localization image file analyzing."
 
     ;; Donwload annotation specifiction
     (setq org-download-annotate-function
-          '(lambda (link)
-             (org-download-annotate-default (org-link-unescape link)))))
+          #'(lambda (link)
+              (org-download-annotate-default (org-link-unescape link)))))
 
 ;; *** config
   :config

@@ -351,12 +351,12 @@ It is the recommendation of irony-mode official introduction."
     :requires php-mode
     :commands ac-php-core-eldoc-setup
     :init
-    (add-hook 'php-mode-hook '(lambda () (ac-php-core-eldoc-setup)))
+    (add-hook 'php-mode-hook #'(lambda () (ac-php-core-eldoc-setup)))
     (add-hook 'php-mode-hook
-              '(lambda ()
-                 (setq-local indent-tabs-mode nil)
-                 (setq-local c-basic-offset 4)
-                 (subword-mode 1)))))
+              #'(lambda ()
+                  (setq-local indent-tabs-mode nil)
+                  (setq-local c-basic-offset 4)
+                  (subword-mode 1)))))
 
 ;; *** startup
 
