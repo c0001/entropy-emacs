@@ -620,28 +620,11 @@ TODO:
 ;; ****** patch for `dired-mark-pop-up'
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
-  (defun dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
-    "Return FUNCTION's result on ARGS after showing which files are marked.
-Displays the file names in a window showing a buffer named
-BUFFER-OR-NAME; the default name being \" *Marked Files*\".  The
-window is not shown if there is just one file, `dired-no-confirm'
-is t, or OP-SYMBOL is a member of the list in `dired-no-confirm'.
-
-By default, Dired shrinks the display buffer to fit the marked files.
-To disable this, use the Customization interface to add a new rule
-to `display-buffer-alist' where condition regexp is \"^ \\*Marked Files\\*$\",
-action argument symbol is `window-height' and its value is nil.
-
-FILES is the list of marked files.  It can also be (t FILENAME)
-in the case of one marked file, to distinguish that from using
-just the current file.
-
-FUNCTION should not manipulate files, just read input (an
-argument or confirmation).
-
-NOTE:
-
-This function has been modified to be compat with =entropy-emacs=.
+  (eval
+   '(cond
+     ((version< emacs-version "28")
+      (defun __ya/dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
+        "Like `dired-mark-pop-up' but has been modified to be compat with =entropy-emacs=.
 
 Originally, this funciton using fully widnow size to fit the
 buffer content by using `fit-window-to-buffer', and thus this is
@@ -649,36 +632,80 @@ annoying when buffer size was large which will make some
 conflicates to other UI experience like `ivy-read'. Yeap, the
 modifcation is to remove this feature.
 "
-    (if (or (eq dired-no-confirm t)
-            (memq op-symbol dired-no-confirm)
-            ;; If FILES defaulted to the current line's file.
-            (= (length files) 1))
-        (apply function args)
-      (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*")))
-            ;; Mark *Marked Files* window as softly-dedicated, to prevent
-            ;; other buffers e.g. *Completions* from reusing it (bug#17554).
-            (display-buffer-mark-dedicated 'soft))
-        (with-displayed-buffer-window
-            buffer
-            (cons 'display-buffer-below-selected
-                  ;; HACK: just preserve size
-                  '((preserve-size . (nil . t))))
-            #'(lambda (window _value)
-                (with-selected-window window
-                  (unwind-protect
-                      (apply function args)
-                    (when (window-live-p window)
-                      (quit-restore-window window 'kill)))))
-          ;; Handle (t FILE) just like (FILE), here.  That value is
-          ;; used (only in some cases), to mean just one file that was
-          ;; marked, rather than the current line file.
-          (with-current-buffer buffer
-            (dired-format-columns-of-files
-             (if (eq (car files) t) (cdr files) files))
-            (remove-text-properties (point-min) (point-max)
-                                    '(mouse-face nil help-echo nil))
-            (setq tab-line-exclude nil))))))
+        (if (or (eq dired-no-confirm t)
+                (memq op-symbol dired-no-confirm)
+                ;; If FILES defaulted to the current line's file.
+                (= (length files) 1))
+            (apply function args)
+          (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*")))
+                ;; Mark *Marked Files* window as softly-dedicated, to prevent
+                ;; other buffers e.g. *Completions* from reusing it (bug#17554).
+                (display-buffer-mark-dedicated 'soft))
+            (with-displayed-buffer-window
+                buffer
+                (cons 'display-buffer-below-selected
+                      ;; HACK: just preserve size
+                      '((preserve-size . (nil . t))))
+                #'(lambda (window _value)
+                    (with-selected-window window
+                      (unwind-protect
+                          (apply function args)
+                        (when (window-live-p window)
+                          (quit-restore-window window 'kill)))))
+              ;; Handle (t FILE) just like (FILE), here.  That value is
+              ;; used (only in some cases), to mean just one file that was
+              ;; marked, rather than the current line file.
+              (with-current-buffer buffer
+                (dired-format-columns-of-files
+                 (if (eq (car files) t) (cdr files) files))
+                (remove-text-properties (point-min) (point-max)
+                                        '(mouse-face nil help-echo nil))
+                (setq tab-line-exclude nil)))))))
+     (t
+      (defun __ya/dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
+        "like `dired-mark-pop-up' but has been modified to be compat with =entropy-emacs=.
 
+Originally, this funciton using fully widnow size to fit the
+buffer content by using `fit-window-to-buffer', and thus this is
+annoying when buffer size was large which will make some
+conflicates to other UI experience like `ivy-read'. Yeap, the
+modifcation is to remove this feature.
+"
+        (if (or (eq dired-no-confirm t)
+                (memq op-symbol dired-no-confirm)
+                ;; If FILES defaulted to the current line's file.
+                (= (length files) 1))
+            (apply function args)
+          (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*")))
+                ;; Mark *Marked Files* window as softly-dedicated, to prevent
+                ;; other buffers e.g. *Completions* from reusing it (bug#17554).
+                (display-buffer-mark-dedicated 'soft))
+            (with-current-buffer-window
+                buffer
+                `(display-buffer-below-selected
+                  ;; HACK: we just want to preserve the size
+                  ;; (window-height . fit-window-to-buffer)
+                  (preserve-size . (nil . t))
+                  (body-function
+                   . ,#'(lambda (_window)
+                          ;; Handle (t FILE) just like (FILE), here.  That value is
+                          ;; used (only in some cases), to mean just one file that was
+                          ;; marked, rather than the current line file.
+                          (dired-format-columns-of-files
+                           (if (eq (car files) t) (cdr files) files))
+                          (remove-text-properties (point-min) (point-max)
+                                                  '(mouse-face nil help-echo nil))
+                          (setq tab-line-exclude nil))))
+                #'(lambda (window _value)
+                    (with-selected-window window
+                      (unwind-protect
+                          (apply function args)
+                        (when (window-live-p window)
+                          (quit-restore-window window 'kill))))))))))))
+
+  (advice-add 'dired-mark-pop-up
+                  :override
+                  #'__ya/dired-mark-pop-up)
 
   )
 
