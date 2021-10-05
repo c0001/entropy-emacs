@@ -276,28 +276,26 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
 
 ;; *** Use new version of `eldoc'
 
-(defvar __new_pkg/eldoc
-  (expand-file-name
-   "eldoc.elc"
-   (package-desc-dir
-    (cadr (assq 'eldoc (package--alist)))))
-  "The elisp file of the new `eldoc' version")
-(defvar __ya/eldoc-newpkg-load-p nil)
-(cond ((bound-and-true-p entropy/emacs-custom-enable-lazy-load)
-       (entropy/emacs-lazy-initial-advice-before
-        (
-         ;; it's an alias of `eldoc-print-current-symbol-info'
-         ;; eldoc
-         eldoc-mode global-eldoc-mode
-         eldoc-print-current-symbol-info)
-        "eldoc-new-version-load" "eldoc-new-version-load"
-        prompt-echo
-        (unless (bound-and-true-p __ya/eldoc-newpkg-load-p)
-          (eval
-           `(load ',__new_pkg/eldoc))
-          (setq __ya/eldoc-newpkg-load-p t))))
-      (t
-       (load __new_pkg/eldoc)))
+(when (version< emacs-version "28")
+  (defvar __new_pkg/eldoc
+    (expand-file-name
+     "eldoc.elc"
+     (package-desc-dir
+      (cadr (assq 'eldoc (package--alist)))))
+    "The elisp file of the new `eldoc' version")
+  (defvar __ya/eldoc-newpkg-load-p nil)
+  (cond ((and (bound-and-true-p entropy/emacs-custom-enable-lazy-load)
+              t)
+         (entropy/emacs-lazy-initial-for-hook
+          (entropy/emacs-after-startup-hook)
+          "eldoc-new-version-load" "eldoc-new-version-load"
+          prompt-echo
+          (unless (bound-and-true-p __ya/eldoc-newpkg-load-p)
+            (eval
+             `(load ',__new_pkg/eldoc))
+            (setq __ya/eldoc-newpkg-load-p t))))
+        (t
+         (load __new_pkg/eldoc))))
 
 ;; ** shrink-path
 (use-package shrink-path
