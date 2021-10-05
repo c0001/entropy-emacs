@@ -715,11 +715,14 @@ close hydra posframe."
 ;; ** Benchmark
 
 (use-package benchmark-init
+  :ensure nil
   :commands
-  (benchmark
-   benchmark-init/activate
-   benchmark-init/deactivate
-   benchmark-init/show-durations-tabulated
+  (benchmark-init/activate
+   benchmark-init/deactivate))
+(use-package benchmark-init-modes
+  :ensure nil
+  :commands
+  (benchmark-init/show-durations-tabulated
    benchmark-init/show-durations-tree))
 
 ;; * provide

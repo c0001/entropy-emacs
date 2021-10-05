@@ -57,7 +57,6 @@
         autothemer
         avy
         beacon
-        benchmark-init
         bind-key
         bing-dict
         bongo

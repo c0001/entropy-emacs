@@ -140,6 +140,7 @@
           "entropy-sdcv"
           "entropy-shellpop"
           "entropy-unfill"
+          "benchmark-init"
           "company-tern"
           "fakecygpty"
           "undo-tree-eemacs"
