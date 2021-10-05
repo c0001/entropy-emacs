@@ -33,6 +33,9 @@
 
 ;; ** require
 
+(defvar entropy/emacs-package-src-load-file-name
+  (eval 'load-file-name))
+
 (require 'package)
 (!eemacs-require 'entropy-emacs-defconst)
 (!eemacs-require 'entropy-emacs-defcustom)
@@ -698,7 +701,14 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
       help-enable-completion-autoload nil)
 
 (defun entropy/emacs-package-common-start ()
-  (entropy/emacs-package-install-all-packages)
+  (if
+      ;; Do not check extensions when boot from bytecode to speedup
+      ;; startup process.
+      (string-match-p
+       "\\.elc$"
+       entropy/emacs-package-src-load-file-name)
+      (entropy/emacs-package-prepare-foras)
+    (entropy/emacs-package-install-all-packages))
   (when
       ;; just init `use-package' while no installing procedure sine
       ;; `use-package' may not be detected in dependencies deficiency.
