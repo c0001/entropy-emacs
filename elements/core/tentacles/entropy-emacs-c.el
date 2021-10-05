@@ -42,14 +42,16 @@
 (use-package cc-mode
   :ensure nil
   :preface
+  (defvar-local entropy/emacs/c-mode/change-iterate 0)
   (defun entropy/emacs/c-mode/after-change-func
       (&rest _)
+    (cl-incf entropy/emacs/c-mode/change-iterate)
     ;; fontify the buffer context round at `current-point' with idle
     ;; style
     (eval
      `(entropy/emacs-run-at-idle-immediately
        idle-fontify-c-type-buffer
-       :which-hook 2
+       :which-hook 0.5
        (let ((cur-pos ,(point))
              ;; (cur-line (string-to-number (format-mode-line "%l")))
              (buff ',(current-buffer))
@@ -57,9 +59,16 @@
          (ignore-errors
            (with-current-buffer buff
              (save-excursion
-               (c-font-lock-fontify-region
-                (line-beginning-position)
-                cur-pos))))))))
+               (cond ((< ,entropy/emacs/c-mode/change-iterate 10)
+                      ;; (c-font-lock-fontify-region
+                      ;;  (line-beginning-position)
+                      ;;  cur-pos)
+                      )
+                     (t
+                      (c-font-lock-fontify-region
+                       (save-excursion (forward-line -20) (point))
+                       (save-excursion (forward-line 20) (point)))
+                      (setq entropy/emacs/c-mode/change-iterate 0))))))))))
 
   (defun entropy/emacs-c-cc-mode-common-set ()
     (c-set-style "bsd")
@@ -72,12 +81,13 @@
     (remove-hook 'before-change-functions #'c-before-change t)
     (remove-hook 'after-change-functions #'c-after-change t)
     ;; ----------> 2. then remove the according facilities of (1)
-    (remove-hook 'change-major-mode-hook #'c-leave-cc-mode-mode)
+    ;;;;(remove-hook 'change-major-mode-hook #'c-leave-cc-mode-mode)
     (remove-hook 'font-lock-mode-hook #'c-after-font-lock-init t)
     (setq-local font-lock-extend-after-change-region-function
                 nil
-                font-lock-fontify-region-function
-                'font-lock-default-fontify-region)
+                ;; font-lock-fontify-region-function
+                ;; 'font-lock-default-fontify-region
+                )
     ;; add idle buffer fontify hook
     (add-hook 'after-change-functions
               #'entropy/emacs/c-mode/after-change-func
