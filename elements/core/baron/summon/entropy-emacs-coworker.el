@@ -174,6 +174,7 @@ EXIT /b
                  (file-name-base bin-file-abspath)))
         (save-buffer)
         (kill-buffer)))))
+
 ;; ***** npm
 ;; ****** generate w32 node callers
 (defun entropy/emacs-coworker--gen-node-w32-cmd-bin (cmd-bin-file caller-path)
@@ -196,7 +197,15 @@ EXIT /b
 ;; **** npm install
 (defun entropy/emacs-coworker--coworker-install-by-npm
     (server-name-string server-bins server-repo-string)
-  (let* ((server-lostp
+  (let* (
+         ;; NOTE:
+         ;; We should use independently prefix for each node pacakge
+         ;; since each pacakge should has their own dependencies and
+         ;; shouldn't pollute other package's dependencies.
+         (this-npm-prefix
+          (expand-file-name (format "eemacs-node-lsp/%s" server-name-string)
+                            entropy/emacs-coworker-lib-host-root))
+         (server-lostp
           (not
            (entropy/emacs-coworker--coworker-alist-judge
             (list (cons 'file
@@ -211,14 +220,15 @@ EXIT /b
                          (lambda (x)
                            (expand-file-name
                             (format "node_modules/.bin/%s" x)
-                            entropy/emacs-coworker-lib-host-root))
+                            this-npm-prefix))
                          server-bins))))))
-         (lock-package-file
-          (expand-file-name "package-lock.json" entropy/emacs-coworker-lib-host-root))
-         (pkg-json-del
-          `(lambda ()
-             (when (file-exists-p ,lock-package-file)
-               (delete-file ,lock-package-file t)))))
+         ;; (lock-package-file
+         ;;  (expand-file-name "package-lock.json" this-npm-prefix))
+         ;; (pkg-json-del
+         ;;  `(lambda ()
+         ;;     (when (file-exists-p ,lock-package-file)
+         ;;       (delete-file ,lock-package-file t))))
+         )
     (if server-lostp
         (entropy/emacs-make-process
          `(:name
@@ -226,15 +236,15 @@ EXIT /b
            :synchronously t
            :command '("npm" "install" ,server-repo-string)
            :buffer (get-buffer-create "*eemacs-coworker-npm-install-proc*")
-           :default-directory entropy/emacs-coworker-lib-host-root
+           :default-directory ,this-npm-prefix
            :prepare
            (entropy/emacs-coworker--coworker-message-do-task
             ,server-name-string)
            (condition-case error
                (progn
                  (mkdir entropy/emacs-coworker-bin-host-path t)
-                 (mkdir (expand-file-name "node_modules" entropy/emacs-coworker-lib-host-root) t)
-                 (funcall ',pkg-json-del)
+                 (mkdir (expand-file-name "node_modules" ,this-npm-prefix) t)
+                 ;; (funcall ',pkg-json-del)
                  t)
              (error
               (error "eemacs coworker init task for '%s' did with fatal!"
@@ -251,12 +261,12 @@ EXIT /b
                       entropy/emacs-coworker-bin-host-path)
                      (expand-file-name
                       (format "node_modules/.bin/%s" el)
-                      entropy/emacs-coworker-lib-host-root))
+                      ,this-npm-prefix))
                     (message "Make w32 caller for server bin '%s' done!" el))
                    (t
                     (make-symbolic-link (expand-file-name
                                          (format "node_modules/.bin/%s" el)
-                                         entropy/emacs-coworker-lib-host-root)
+                                         ,this-npm-prefix)
                                         (expand-file-name
                                          el
                                          entropy/emacs-coworker-bin-host-path)
@@ -354,15 +364,27 @@ EXIT /b
 (defun entropy/emacs-coworker--coworker-install-by-archive-get
     (server-name-string server-archive-name server-host-url server-archive-type)
   (let* (download-cbk
-         (tmp-download-fname
-          (format "eemacs-coworker_random_download_file_for_%s_%s" server-archive-name (random)))
+         (tmp-download-host
+          (expand-file-name
+           "eemacs-tmp-download-cache"
+           entropy/emacs-coworker-archive-host-root))
+         (tmp-download-basename
+          (format "eemacs-coworker_random_download_file_for_%s_%s.%s"
+                  server-archive-name (random)
+                  server-archive-type))
          (tmp-download-file
           (expand-file-name
-           tmp-download-fname
-           entropy/emacs-coworker-archive-host-root))
-         (server-extract-dir (expand-file-name server-archive-name entropy/emacs-coworker-archive-host-root)))
+           tmp-download-basename
+           tmp-download-host))
+         (server-extract-dir (expand-file-name
+                              server-archive-name
+                              entropy/emacs-coworker-archive-host-root)))
+    ;; Firstly make stuff directory
     (unless (file-exists-p entropy/emacs-coworker-archive-host-root)
       (make-directory entropy/emacs-coworker-archive-host-root t))
+    (unless (file-exists-p tmp-download-host)
+      (make-directory tmp-download-host t))
+    ;; begin downloading
     (entropy/emacs-coworker--coworker-message-do-task server-name-string)
     (if (file-exists-p server-extract-dir)
         (entropy/emacs-coworker--coworker-message-existed server-name-string)
