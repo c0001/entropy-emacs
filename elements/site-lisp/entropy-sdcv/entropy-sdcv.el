@@ -254,7 +254,9 @@ more."
 
 (define-minor-mode entropy/sdcv-autoshow-mode
   "Automatically show the translation based on point thing."
-  nil nil nil
+  :init-value nil
+  :lighter "sdcv_auto"
+  :global nil
   (if entropy/sdcv-autoshow-mode
       (add-to-list 'entropy/sdcv-autoshow-timer-register
                    (cons (current-buffer)
