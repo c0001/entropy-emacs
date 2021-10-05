@@ -162,43 +162,87 @@ This procedure will refresh all packages status."
 (defvar entropy/emacs-package-install-failed-list nil)
 (defvar entropy/emacs-package-install-success-list nil)
 
-(defun entropy/emacs-package-package-archive-empty-p ()
+(defun entropy/emacs-package-package-archive-empty-p (&optional try-get)
   "Check the package archive dir status in `package-user-dir'.
 
-Return t for exists status or nil for otherwise."
+Return t for exists status or nil for otherwise.
+
+If optional TRY-GET in non-nil then run
+`package-refresh-contents' after checking if the result is nil
+and the return is the rechecking result like above."
   (entropy/emacs-package-prepare-foras)
-  (let ((pkg-archive-dir (expand-file-name "archives" package-user-dir)))
-    (if (and (file-exists-p pkg-archive-dir)
-             (entropy/emacs-list-files-recursive-for-list pkg-archive-dir))
-        nil
-      t)))
+  (let* ((pkg-archive-dir (expand-file-name "archives" package-user-dir))
+         (rtn
+          (if (and (file-exists-p pkg-archive-dir)
+                   (entropy/emacs-list-files-recursive-for-list pkg-archive-dir))
+              nil
+            t)))
+    (cond ((and try-get
+                rtn)
+           (package-refresh-contents)
+           (entropy/emacs-package-package-archive-empty-p))
+          (t
+           rtn))))
+
+(defun entropy/emacs-package-pkg-installed-p (pkg)
+  "Like `package-installed-p' but when PKG is `package-desc' and
+`package-installed-p' return nil, we check the `package-desc'
+with the version comparison in where `package-alist' and
+`package-archive-contents' to judger whether it is installed yet
+since the `package-desc' get from `package-archive-contents'
+didn't have an installing host meta but `package-installed-p' so
+as judge in this way for check the installing host whether
+exists simply."
+  (or (package-installed-p pkg)
+      (let ((pkg-cur-desc
+             (or
+              (and (package-desc-p pkg)
+                   (car (alist-get
+                         (package-desc-name pkg)
+                         package-alist)))
+              (car (alist-get pkg package-alist))))
+            pkg-archive-desc-list)
+        (when (package-desc-p pkg-cur-desc)
+          (setq pkg-archive-desc-list
+                (alist-get (package-desc-name pkg-cur-desc)
+                           package-archive-contents))
+          (catch :exit
+            (dolist (new-pkg-desc pkg-archive-desc-list)
+              (when (version-list-=
+                     (package-desc-version pkg-cur-desc)
+                     (package-desc-version new-pkg-desc))
+                (throw :exit t))))))))
 
 (defun entropy/emacs-package-install-package (update print-prefix &rest args)
-  "Install/update package of pkg in car of ARGS.
+  "Install/update package by apply ARGS to `package-install'.
 
 Update package when UPDATE was non-nil.
 
-When installing encounters the fatal error, put the pkg into
-`entropy/emacs-package-install-failed-list'."
-  (let ((current-pkgs (copy-tree package-alist))
-        (pkg (car args))
-        install-pass
-        install-core-func
-        error-rtn)
+When installing encounters the fatal error, put the pkg name and
+the error msg into `entropy/emacs-package-install-failed-list'."
+  (let* ((current-pkgs (copy-tree package-alist))
+         (pkg (car args))
+         (pkg-name (if (package-desc-p pkg)
+                       (package-desc-name pkg)
+                     pkg))
+         install-pass
+         install-core-func
+         error-rtn)
     (setq install-core-func
           (lambda (&optional not-prompt)
-            (setq install-pass
-                  (condition-case error
-                      (let ((inhibit-message not-prompt))
-                        (apply 'package-install args)
-                        (push pkg entropy/emacs-package-install-success-list))
-                    (t (prog1 'notpassed
-                         (setq error-rtn error)))))
-            (when (eq install-pass 'notpassed)
-              (push (cons pkg error-rtn)
-                    entropy/emacs-package-install-failed-list))))
+            (let (_)
+              (setq install-pass
+                    (condition-case error
+                        (let ((inhibit-message not-prompt))
+                          (apply 'package-install args)
+                          (push pkg-name entropy/emacs-package-install-success-list))
+                      (t (prog1 'notpassed
+                           (setq error-rtn error)))))
+              (when (eq install-pass 'notpassed)
+                (push (cons pkg-name error-rtn)
+                      entropy/emacs-package-install-failed-list)))))
     (when update
-      (package-delete (car (alist-get pkg current-pkgs)) t))
+      (package-delete (car (alist-get pkg-name current-pkgs)) t))
     ;; install package after package archvie contents refresh
     ;; when needed.
     (unless (ignore-errors (assoc pkg package-archive-contents))
@@ -210,14 +254,17 @@ When installing encounters the fatal error, put the pkg into
          :popup-while-eemacs-init-with-interactive t
          print-prefix
          (blue (if update "Updating" "Installing"))
-         (yellow (symbol-name pkg)))
+         (yellow
+          (if (package-desc-p pkg)
+              (format "%s ---> <%s>" pkg-name pkg)
+            (format "%s" pkg-name))))
       (entropy/emacs-message-do-message
        "[%s] package '%s' ..."
        :popup-while-eemacs-init-with-interactive t
        (blue (if update "Updating" "Installing"))
-       (yellow (symbol-name pkg))))
+       (yellow (symbol-name pkg-name))))
     ;; do installing/updating
-    (cond ((and (package-installed-p pkg)
+    (cond ((and (entropy/emacs-package-pkg-installed-p pkg)
                 (null update))
            (entropy/emacs-message-do-message
             (dark (white "⚠ ALREADY INSTALLED"))))
@@ -300,13 +347,13 @@ command and rest of the command's arguments"
       (princ "\n")
       (princ "\n"))
     (let ((count 1))
-      (dolist (pkg entropy/emacs-package-install-failed-list)
+      (dolist (pkg-err entropy/emacs-package-install-failed-list)
         (entropy/emacs-message-do-message
          "%s: %s '%s' because of '%s'"
          (yellow (number-to-string count))
          (red "failed to install pkg")
-         (yellow (symbol-name (car pkg)))
-         (cdr pkg))
+         (yellow (symbol-name (car pkg-err)))
+         (cdr pkg-err))
         (cl-incf count)))
     (let (
           ;; ensure we do not need debug for this statement
@@ -316,6 +363,7 @@ command and rest of the command's arguments"
 ;; *** install
 (defun entropy/emacs-package-install-all-packages ()
   (entropy/emacs-package-prepare-foras)
+  (entropy/emacs-package-package-archive-empty-p 'try-get)
   (entropy/emacs-message-do-message
    (blue "Checking extensions satisfied status ...")
    :force-message-while-eemacs-init t)
@@ -324,17 +372,24 @@ command and rest of the command's arguments"
         (pkg-pre nil)
         (count 1))
     ;; calulate packages need to be installing
-    (dolist (package entropy-emacs-packages)
-      (unless (or (null package)
-                  (package-installed-p package))
-        (push package pkg-pre)))
+    (dolist (pkgreqptr entropy-emacs-packages)
+      (unless (or (null pkgreqptr)
+                  (entropy/emacs-package-pkg-installed-p
+                   (or
+                    (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
+                     pkgreqptr :pkg-desc)
+                    (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
+                     pkgreqptr :name))))
+        (push (or (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot pkgreqptr :pkg-desc)
+                  (entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot pkgreqptr :name))
+              pkg-pre)))
     ;; do installing
-    (dolist (package pkg-pre)
+    (dolist (pkg pkg-pre)
       (ignore-errors
         (entropy/emacs-package-install-package
          nil
          (format "[%s/%s(general)]" count (length pkg-pre))
-         package))
+         pkg))
       (cl-incf count)))
   ;; show fails
   (entropy/emacs-package-prompt-install-fails)
@@ -345,6 +400,7 @@ command and rest of the command's arguments"
 ;; *** update
 (defun entropy/emacs-package-update-all-packages ()
   (entropy/emacs-package-prepare-foras)
+  (entropy/emacs-package-package-archive-empty-p 'try-get)
   (let ((current-pkgs (copy-tree package-alist))
         (new-pkgs (progn (package-refresh-contents)
                          (copy-tree package-archive-contents)))
@@ -359,7 +415,7 @@ command and rest of the command's arguments"
                          (version-list-< (package-desc-version pkg-desc-cur)
                                          (package-desc-version pkg-desc-new)))))
         (when outdated
-          (push pkg-id updates))))
+          (push pkg-desc-new updates))))
     (if (null updates)
         (entropy/emacs-message-do-message
          (green "All packages are newest!")
@@ -374,8 +430,8 @@ command and rest of the command's arguments"
                           "packages")
                         " will be updated after 5 seconds")))
         (sleep-for 5)
-        (dolist (pkg-id updates)
-          (entropy/emacs-package-install-package t nil pkg-id))
+        (dolist (pkg-desc updates)
+          (entropy/emacs-package-install-package t nil pkg-desc))
         (entropy/emacs-package-prompt-install-fails)
           ;;; FIXME: package reinitialize after updates cause error
           ;;; for `yasnippet-snippets' that for autroload deleted old

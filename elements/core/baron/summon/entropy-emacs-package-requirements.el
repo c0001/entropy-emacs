@@ -101,8 +101,14 @@
         doom-modeline
         doom-themes
         edit-indirect
-        eglot
-        eldoc ;force use new version of `eldoc' for new version of `eglot'
+        ;; force use new version of `eglot'
+        ,(list
+          :name 'eglot
+          :pkg-desc (lambda () (car (alist-get 'eglot package-archive-contents))))
+        ;; force use new version of `eldoc' for new version of `eglot'
+        ,(list
+          :name 'eldoc
+          :pkg-desc (lambda () (car (alist-get 'eldoc package-archive-contents))))
         eldoc-eval
         elfeed
         elisp-refs
@@ -118,7 +124,10 @@
         f
         find-file-in-project
         flycheck
-        flymake ;force use new version of `flymake' for new version of `eglot'
+        ;; force use new version of `flymake' for new version of `eglot'
+        ,(list
+          :name 'flymake
+          :pkg-desc (lambda () (car (alist-get 'flymake package-archive-contents))))
         ghub
         git-commit
         git-messenger
@@ -200,7 +209,10 @@
         powershell
         prescient
         pretty-hydra
-        project ;forcely install newer version of `project' since newer version flymake needed
+        ;; forcely install newer version of `project' since newer version flymake needed
+        ,(list
+          :name 'project
+          :pkg-desc (lambda () (car (alist-get 'project package-archive-contents))))
         projectile
         pyim
         pyim-basedict
@@ -280,5 +292,20 @@
       (push el rtn)))
   (setq entropy-emacs-packages rtn))
 
+(defun entropy/emacs-pkgreq-get-pkgreqptr-pkg-slot
+    (pkgreqptr slot)
+  (let ((rtn
+         (if (symbolp pkgreqptr)
+             (when (and slot
+                        (eq slot :name))
+               pkgreqptr)
+           (plist-get pkgreqptr slot))))
+    (when (and rtn
+               (eq slot :pkg-desc))
+      (setq rtn
+            (if (functionp rtn)
+                (funcall rtn)
+              rtn)))
+    rtn))
 
 (provide 'entropy-emacs-package-requirements)
