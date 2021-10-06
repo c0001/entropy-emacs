@@ -86,6 +86,28 @@
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
   (setq elfeed-curl-timeout 20)
 
+  ;; Pre-defined `elfeed-feeds' for user test when non customized
+  ;; feeds existed.
+  (unless (bound-and-true-p elfeed-feeds)
+    (setq elfeed-feeds
+          '(
+            ;; emacs information
+            "https://emacs-china.org/posts.rss"
+            "https://emacs-china.org/latest.rss"
+            "https://manateelazycat.github.io/feed.xml"
+            ;; english
+            "https://www.nasa.gov/rss/dyn/nasax_vodcast.rss"
+            "https://www.nasa.gov/rss/dyn/image_of_the_day.rss"
+            "http://feeds.bbci.co.uk/news/england/rss.xml"
+            "http://feeds.bbci.co.uk/news/world/europe/rss.xml"
+            ;; chinese
+            "https://www.douban.com/feed/review/book"
+            "https://www.ithome.com/rss/"
+            "http://rss.zol.com.cn/news.xml"
+            "https://feedx.net/rss/thepaper.xml"
+            "http://www.williamlong.info/blog/rss.xml"
+            )))
+
   ;; set curl path
   (let ((mingw-curl (if (and entropy/emacs-wsl-enable
                              (file-exists-p entropy/emacs-wsl-apps))
@@ -197,27 +219,27 @@ the current elfeed-show-buffer."
       rtn))
 
 ;; *** feeds-title config
-
-  (defun entropy/emacs-rss--elfeed-string-style-hook (&rest args)
-    "Hooks for replace space to '-' when save `elfeed-db'."
-    (let ((feeds (if (hash-table-p elfeed-db-feeds)
-                     (hash-table-values elfeed-db-feeds)
-                   nil))
-          did)
-      (when feeds
-        (dolist (el feeds)
-          (let ((feed-title (elfeed-feed-title el))
-                newtitle)
-            (when (and feed-title (string-match-p " " feed-title))
-              (setq newtitle (entropy/emacs-rss--elfeed-sc-str feed-title))
-              (setf (elfeed-feed-title el) newtitle)
-              (setq did t))))
-        (if did
-            t
-          nil))))
-
+  ;; FIXME: why need wrap with `eval-and-compile' or throw error about:
+  ;; > function \(setf\ \(elfeed-feed-title\)\) not defined?
+  (eval-and-compile
+    (defun entropy/emacs-rss--elfeed-string-style-hook (&rest args)
+      "Hooks for replace space to '-' when save `elfeed-db'."
+      (let ((feeds (if (hash-table-p elfeed-db-feeds)
+                       (hash-table-values elfeed-db-feeds)
+                     nil))
+            did)
+        (when feeds
+          (dolist (el feeds)
+            (let ((feed-title (elfeed-feed-title el))
+                  newtitle)
+              (when (and feed-title (string-match-p " " feed-title))
+                (setq newtitle (entropy/emacs-rss--elfeed-sc-str feed-title))
+                (setf (elfeed-feed-title el) newtitle)
+                (setq did t))))
+          (if did
+              t
+            nil)))))
   (advice-add 'elfeed-db-load :after #'entropy/emacs-rss--elfeed-string-style-hook)
-
 
   (defun entropy/emacs-rss-elfeed-format-feed-title ()
     "Interactively format feedtitle which has space."
