@@ -409,7 +409,7 @@ in whole page."
              entropy/emacs-textwww-search-web-region-toggle
              entropy/emacs-textwww-search-web-toggle)
   :eemacs-tpha
-  (((:enable t :defer (:data (:adfors (prog-mode-hook) :adtype hook :pdumper-no-end t))))
+  (((:enable t :defer (:data (:adfors (entropy/emacs-after-startup-hook) :adtype hook :pdumper-no-end t))))
    ("WWW"
     (("C-c w" entropy/emacs-textwww-search-web-toggle
       "Search For Web With Hint"
