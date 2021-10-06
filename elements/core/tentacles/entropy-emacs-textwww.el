@@ -580,12 +580,15 @@ effective then adding option of personal browse url function that be in ordered 
       :exit t)))))
 
 ;; advantage of using w3m as default browser
-(when (and entropy/emacs-browse-url-function entropy/emacs-enable-personal-browse-url-function)
+(when (and entropy/emacs-enable-personal-browse-url-function
+           (functionp entropy/emacs-browse-url-function))
   (if (not (executable-find "w3m"))
       (entropy/emacs-textwww--setting-default-browser entropy/emacs-browse-url-function)
     (if sys/is-graphic-support
-        (entropy/emacs-textwww--setting-default-browser entropy/emacs-browse-url-function)
-      (entropy/emacs-textwww--setting-default-browser 'entropy/emacs-textwww--w3m-browse-url))))
+        (entropy/emacs-textwww--setting-default-browser
+         entropy/emacs-browse-url-function)
+      (entropy/emacs-textwww--setting-default-browser
+       'entropy/emacs-textwww--w3m-browse-url))))
 
 
 ;; * provide
