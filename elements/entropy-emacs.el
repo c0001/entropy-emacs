@@ -180,6 +180,12 @@
 ;;       jit-lock-context-time 0.5
 ;;       jit-lock-antiblink-grace 2)
 
+;; inhibit fontlock render while fast hints
+(cond ((version< emacs-version "28")
+       (setq fast-but-imprecise-scrolling t))
+      (t
+       (setq redisplay-skip-fontification-on-input t)))
+
 ;; start eemacs
 (if (entropy/emacs-is-make-session)
     (!eemacs-require 'entropy-emacs-batch)

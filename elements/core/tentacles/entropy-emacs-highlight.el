@@ -244,11 +244,14 @@ invoke this function any more isn't it?"
 (use-package paren
   :ensure nil
   :init
-  (entropy/emacs-lazy-initial-advice-before
-   (find-file switch-to-buffer)
-   "show-paren-mode" "show-paren-mode" prompt-echo
-   :pdumper-no-end t
-   (show-paren-mode t))
+  ;; when under emacs 28, we need to manually toggle it on since
+  ;; emacs-28 enable it defaultly
+  (when (version< emacs-version "28")
+    (entropy/emacs-lazy-initial-advice-before
+     (find-file switch-to-buffer)
+     "show-paren-mode" "show-paren-mode" prompt-echo
+     :pdumper-no-end t
+     (show-paren-mode t)))
   :config
   (setq show-paren-when-point-inside-paren t)
   (setq show-paren-when-point-in-periphery t))

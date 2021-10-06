@@ -608,13 +608,21 @@ TODO:
       (with-current-buffer cur-buffer
         (revert-buffer))
       rtn))
-  (dolist (el '(dired-do-rename
-                dired-do-rename-regexp
-                dired-do-copy
-                dired-do-copy-regexp
-                dired-do-compress
-                dired-do-compress-to
-                dired-do-touch))
+
+  ;; emacs 28 has an `dired-do-revert-buffer' option to auto revert
+  ;; buffer opterations of 'dired-do-copy', 'dired-do-rename',
+  ;; 'dired-do-symlink', 'dired-do-hardlink'.
+  (when (not (version< emacs-version "28"))
+    (setq dired-do-revert-buffer t))
+  (dolist (el (delete nil `(,(when (version< emacs-version "28") 'dired-do-rename)
+                            dired-do-rename-regexp
+                            ,(when (version< emacs-version "28") 'dired-do-copy)
+                            dired-do-copy-regexp
+                            dired-do-compress
+                            dired-do-compress-to
+                            dired-do-touch
+                            ,(when (version< emacs-version "28") 'dired-do-symlink)
+                            ,(when (version< emacs-version "28") 'dired-do-hardlink))))
     (advice-add el :around #'entropy/emacs-basic--dired-revert-advice))
 
 ;; ****** patch for `dired-mark-pop-up'
