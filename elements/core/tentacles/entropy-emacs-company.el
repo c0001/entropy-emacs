@@ -974,7 +974,7 @@ while in `company-box-mode'."
               :override
               #'__ya/company-box--set-mode)
 
-;; ****** ensuer the child-frame register is alive
+;; ****** company-box child-frame patch
 
   (defun __ya/company-box--get-frame
       (orig-func &rest orig-args)
@@ -997,6 +997,15 @@ theme face spces."
         (frame-local-setq company-box-frame nil))))
   (add-hook 'entropy/emacs-theme-load-before-hook
             #'__company-box-remove-child-frame/before-load-theme)
+
+  (defun __company-box-make-child-frame-with-fontspec
+      (orig-func &rest orig-args)
+    (let ((company-box-frame-parameters
+           (append company-box-frame-parameters
+                   `((font . ,(frame-parameter nil 'font))))))
+      (apply orig-func orig-args)))
+  (advice-add 'company-box--make-frame
+              :around #'__company-box-make-child-frame-with-fontspec)
 
 ;; ***** loading patch
 

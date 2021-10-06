@@ -89,6 +89,7 @@ posframe or popup shown mechanism."
                    :position (point)
                    :background-color (face-attribute face :background)
                    :foreground-color (face-attribute face :foreground)
+                   :font (frame-parameter nil 'font)
                    :internal-border-width entropy/sdcv-show-posframe-border-width
                    :initialize predicate)
     (setq entropy/sdcv-show--posframe-last-point (point)
