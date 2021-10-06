@@ -2547,6 +2547,12 @@ it with focus on."
             :before
             #'entropy/emacs-basic--help-doc-lagging-prompt)
 
+;; ***** Misc.
+(unless (version< emacs-version "28")
+  ;; Enable outline view mode for long line keybindings description
+  ;; help when emacs version -le emacs 28.
+  (setq describe-bindings-outline t))
+
 ;; **** Minibuffer Setup
 
 ;; Forcely rest plain input method while active minibuffer
