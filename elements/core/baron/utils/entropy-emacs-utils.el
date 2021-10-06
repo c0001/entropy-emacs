@@ -495,6 +495,8 @@ format which caused by set the restriction for thus."
       (hydra-posframe-show-params
        ;; EEMACS_MAINTENANCE: follow `hydra' updates
        (list
+        ;; let font same as parent frame
+        :font (frame-parameter nil 'font)
         :internal-border-width 1
         :internal-border-color entropy/emacs-pretty-hydra-posframe-boder-color
         ;; truncate line always in hydra posframe
