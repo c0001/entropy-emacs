@@ -1022,11 +1022,11 @@ while in `company-box-mode'."
     "`company-mode' completion back-end for Emacs Lisp in the
 minibuffer."
     (interactive (list 'interactive))
-    (case command
+    (cl-case command
       ('prefix (and (minibufferp)
                     (company-grab-symbol)))
       ('candidates
-       (case entropy/emacs-company--minibuffer-command
+       (cl-case entropy/emacs-company--minibuffer-command
          ('execute-extended-command (all-completions arg obarray 'commandp))
          (t (all-completions arg obarray))))))
 
