@@ -424,31 +424,32 @@ in whole page."
 
   :config
 
-  (require 'cl)
-
 ;; **** default config
 
   ;; redefine search-web for compat with entropy-emacs
-  (defun search-web (engine word)
-    "NOTE: this function has been modified for compating with entropy-emacs.
-
-The original one can't recovering default browser function,
-fixing it as thus. "
+  (defun __ya/search-web (engine word)
+    "Like `search-web' but patch that the original one can't
+recovering default browser function, fixing it as thus. "
     (interactive (list
                   (search-web-query-engine)
                   (read-string "Search Word: " nil 'search-web-word-history)))
-    (destructuring-bind (engine url render)
-        (assoc engine search-web-engines)
-      (let* ((render
-              (case render
-                ((nil) search-web-default-browser)
-                (In-Emacs search-web-in-emacs-browser)
-                (External search-web-external-browser)
-                (t render))))
-        (setq browse-url-browser-function render)
-        (browse-url (format url (url-hexify-string word)))
-        (setq-default browse-url-browser-function search-web-default-browser))))
-
+    (let* ((pattern (assoc engine search-web-engines 'string=))
+           (engine (car pattern))
+           (url (cadr pattern))
+           (render-get (caddr pattern))
+           (render
+            (cl-case render-get
+              (nil search-web-default-browser)
+              (In-Emacs search-web-in-emacs-browser)
+              (External search-web-external-browser)
+              (t 'browse-url-default-browser)))
+           (orig-render browse-url-browser-function))
+      (unwind-protect
+          (progn
+            (setq browse-url-browser-function render)
+            (browse-url (format url (url-hexify-string word))))
+        (setq-default browse-url-browser-function orig-render))))
+  (advice-add 'search-web :override #'__ya/search-web)
 
   ;; redefine search query engine for force input comprehensive data
   (defun entropy/emacs-textwww--search-web-query-egine (type)
@@ -492,11 +493,11 @@ fixing it as thus. "
 
   (setq search-web-in-emacs-browser 'eww-browse-url)
 
-  (defun entropy/emacs-textwww--search-web--around (oldfun &rest arg-rest)
+  (defun entropy/emacs-textwww--search-web--around (orig-func &rest orig-args)
     "Partially cancel `entropy/emacs-web-development-environment' if
     it's actived."
     (let* ((entropy/emacs-web-development-environment nil))
-      (funcall oldfun)))
+      (apply orig-func orig-args)))
 
   (advice-add 'entropy/emacs-textwww-search-web-toggle
               :around #'entropy/emacs-textwww--search-web--around)
