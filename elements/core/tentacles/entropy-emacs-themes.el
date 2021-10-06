@@ -116,7 +116,11 @@ Used by native line numbers in Emacs 26+ and `linum'."
   :group 'solaire-mode)
 
 (defface solaire-tooltip-face '((t :inherit tooltip))
-  "Alternative face for the tooltip."
+  "Alternative face for the `tooltip'."
+  :group 'solaire-mode)
+
+(defface solaire-company-tooltip-face '((t :inherit solaire-tooltip-face))
+  "Alternative face for the `company-tooltip'."
   :group 'solaire-mode)
 
 (defface solaire-org-hide-face '((t :inherit org-hide))
@@ -146,6 +150,7 @@ Used to camoflauge the leading asterixes in `org-mode' when
   `((default                    . solaire-default-face)
     (hl-line                    . solaire-hl-line-face)
     (tooltip                    . solaire-tooltip-face)
+    (company-tooltip            . solaire-company-tooltip-face)
     (region                     . solaire-region-face)
     (org-hide                   . solaire-org-hide-face)
     (org-indent                 . solaire-org-hide-face)

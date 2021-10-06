@@ -985,6 +985,19 @@ while in `company-box-mode'."
               :around
               #'__ya/company-box--get-frame)
 
+  (defun __company-box-remove-child-frame/before-load-theme ()
+    "Remove company-box's frame before load a new theme since the we
+don't set a proper method to let preserved old frame use the new
+theme face spces."
+    (let ((frame (company-box--get-frame)))
+      (when (frame-live-p frame)
+        (when (bound-and-true-p company-candidates)
+          (company-abort))
+        (delete-frame frame)
+        (frame-local-setq company-box-frame nil))))
+  (add-hook 'entropy/emacs-theme-load-before-hook
+            #'__company-box-remove-child-frame/before-load-theme)
+
 ;; ***** loading patch
 
   ;; HACK: disable remapping since we bind it manually and
