@@ -1000,12 +1000,41 @@ theme face spces."
 
   (defun __company-box-make-child-frame-with-fontspec
       (orig-func &rest orig-args)
+    "Let `company-box--make-frame' use same font from its parent
+frame."
     (let ((company-box-frame-parameters
            (append company-box-frame-parameters
                    `((font . ,(frame-parameter nil 'font))))))
       (apply orig-func orig-args)))
   (advice-add 'company-box--make-frame
               :around #'__company-box-make-child-frame-with-fontspec)
+
+  (defun __company-box-make-child-frame-with-frame-indicator
+      (orig-func &rest orig-args)
+    "Let `company-box--make-frame' be explicitly with frame indicator
+as its `frame-parameter'."
+    (let ((company-box-frame-parameters
+           (append company-box-frame-parameters
+                   `((this-company-box-frame-p . t)))))
+      (apply orig-func orig-args)))
+  (advice-add 'company-box--make-frame
+              :around
+              #'__company-box-make-child-frame-with-frame-indicator)
+
+  (defun entropy/emacs-company-box-delete-all-child-frames
+      (&optional arg)
+    "[Debug only] Delete all company-box child frames."
+    (interactive "P")
+    (let ((frame-list (frame-list)))
+      (dolist (frame frame-list)
+        (when (and (frame-live-p frame)
+                   (frame-parameter
+                    frame
+                    'this-company-box-frame-p))
+          (entropy/emacs-message-do-message
+           "Deleting company-box child-frame <%s> ..."
+           (yellow frame))
+          (delete-frame frame t)))))
 
 ;; ***** loading patch
 

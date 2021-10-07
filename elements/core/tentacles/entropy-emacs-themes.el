@@ -348,17 +348,24 @@ progress."
           ((frame-parameter nil 'eemacs-current-frame-is-daemon-created)
            ;; Reload theme since a theme is present differently from
            ;; gui to tui and vice versa generally.
-           (unless
-               (or
+           (if
+               (not
                 ;; prevent reload theme for same status as previous client created is
                 (eq (display-graphic-p)
                     entropy/emacs-themes--daemon-theme-reload-type))
-             (when (= 1 (length entropy/emacs-daemon--legal-clients))
-               (message "Daemon reload theme ...")
-               (entropy/emacs-themes-strictly-load-theme
-                entropy/emacs-theme-sticker 'non-confirm)
-               (setq entropy/emacs-themes--daemon-theme-reload-type
-                     (display-graphic-p)))))
+               (when (= 1 (length entropy/emacs-daemon--legal-clients))
+                 (message "Daemon reload theme ...")
+                 (entropy/emacs-themes-strictly-load-theme
+                  entropy/emacs-theme-sticker 'non-confirm)
+                 (setq entropy/emacs-themes--daemon-theme-reload-type
+                       (display-graphic-p)))
+             ;; In other words, we need to reset the font spec for new
+             ;; created daemon frame even for the same display type
+             ;; since the new frame didn't inherit the previous one's
+             ;; font spec.
+             (when (bound-and-true-p entropy/emacs-font-setting-enable)
+               (message "Daemon enable eemacs font spec ...")
+               (entropy/emacs-font-set-setfont-core))))
           (t
            nil)))))
 
