@@ -197,19 +197,22 @@ instead and see it for details."
   "Turrn on `entropy/emacs-solaire-mode', the subroutine of
 `entropy/emacs-solaire-global-mode'."
   (and (not entropy/emacs-solaire-mode)
-       (or (minibufferp)
-           (funcall
-            (lambda ()
-              (or (buffer-file-name)
-                  (member major-mode
-                          '(dired-mode
-                            w3m-mode
-                            eww-mode
-                            elfeed-mode
-                            magit-status-mode
-                            Info-mode
-                            Man-mode
-                            woman-mode))))))
+       (or
+        ;; NOTE: do not use solaire in minibuffer since it's may need
+        ;; more works to do proper for that.
+        ;; ;; (minibufferp)
+        (funcall
+         (lambda ()
+           (or (buffer-file-name)
+               (member major-mode
+                       '(dired-mode
+                         w3m-mode
+                         eww-mode
+                         elfeed-mode
+                         magit-status-mode
+                         Info-mode
+                         Man-mode
+                         woman-mode))))))
        (entropy/emacs-solaire-mode +1)))
 
 (define-globalized-minor-mode

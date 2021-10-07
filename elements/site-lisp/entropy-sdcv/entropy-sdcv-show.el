@@ -83,12 +83,20 @@ posframe or popup shown mechanism."
          (predicate (entropy/sdcv-show--response-predicate-gen show-predicate feedback posframe))
          (buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-tooltip-buffer-name))
          (common-fg (face-attribute 'entropy/sdcv-core-common-face :foreground))
-         (common-bg (face-attribute 'entropy/sdcv-core-common-face :background)))
+         (common-bg (face-attribute 'entropy/sdcv-core-common-face :background))
+         (color-func
+          ;; posframe color spec can not be `undefined' in which case
+          ;; it will fallback to unspec which will not follow font
+          ;; spec in `:font'
+          (lambda (x p)
+            (let ((color (face-attribute x p)))
+              (and (stringp color)
+                   color)))))
     (posframe-show buffer
                    :string feedback
                    :position (point)
-                   :background-color (face-attribute face :background)
-                   :foreground-color (face-attribute face :foreground)
+                   :background-color (funcall color-func face :background)
+                   :foreground-color (funcall color-func face :foreground)
                    :font (frame-parameter nil 'font)
                    :internal-border-width entropy/sdcv-show-posframe-border-width
                    :initialize predicate)
