@@ -2718,6 +2718,23 @@ corresponding stuffs."
        'ivy-current-match nil
        :background "grey8"
        :distant-foreground "grey7")))
+   ((string= "doom-dark+" x)
+    (with-eval-after-load 'outline
+      (entropy/emacs-set-face-attribute
+       'outline-3 nil
+       :foreground "LawnGreen")))
+   ((string= "doom-1337" x)
+    (with-eval-after-load 'outline
+      (entropy/emacs-set-face-attribute
+       'ivy-current-match nil
+       :background "#2257A0"
+       :distant-foreground "#1B2229"))
+    (entropy/emacs-set-face-attribute
+     'highlight nil
+     :foreground "grey7")
+    (entropy/emacs-set-face-attribute
+     'region nil
+     :background "grey24"))
    ((or (string= "sanityinc-tomorrow-bright" x)
         (string= "sanityinc-tomorrow-night" x)
         (string= "sanityinc-tomorrow-eighties" x))

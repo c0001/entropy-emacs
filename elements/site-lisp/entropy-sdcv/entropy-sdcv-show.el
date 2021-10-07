@@ -95,8 +95,12 @@ posframe or popup shown mechanism."
     (posframe-show buffer
                    :string feedback
                    :position (point)
-                   :background-color (funcall color-func face :background)
-                   :foreground-color (funcall color-func face :foreground)
+                   :background-color (if (eq (face-attribute face :inverse-video) t)
+                                         (funcall color-func face :foreground)
+                                       (funcall color-func face :background))
+                   :foreground-color (if (eq (face-attribute face :inverse-video) t)
+                                         (funcall color-func face :background)
+                                       (funcall color-func face :foreground))
                    :font (frame-parameter nil 'font)
                    :internal-border-width entropy/sdcv-show-posframe-border-width
                    :initialize predicate)
