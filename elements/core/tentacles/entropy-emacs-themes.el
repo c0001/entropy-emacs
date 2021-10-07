@@ -181,12 +181,13 @@ buggy face pollution and messy advices since we just use
 instead and see it for details."
   :lighter "" ; should be obvious it's on
   :init-value nil
+  (progn
+    (mapc #'face-remap-remove-relative
+          entropy/emacs-solaire-mode--local-faces-remap-cookie)
+    (setq entropy/emacs-solaire-mode--local-faces-remap-cookie nil))
   ;; Don't kick in if the current theme doesn't support solaire-mode.
   (if (not (entropy/emacs-theme-adapted-to-solaire))
       (setq entropy/emacs-solaire-mode nil)
-    (mapc #'face-remap-remove-relative
-          entropy/emacs-solaire-mode--local-faces-remap-cookie)
-    (setq entropy/emacs-solaire-mode--local-faces-remap-cookie nil)
     (when entropy/emacs-solaire-mode
       (dolist (remap entropy/emacs-solaire-remap-alist)
         (when (cdr remap)
@@ -220,12 +221,26 @@ instead and see it for details."
   entropy/emacs-solaire-mode
   entropy/emacs-solaire-mode-turn-on)
 
-
 (defun entropy/emacs-themes-enable-solaire-global-mode-with-spec ()
   "Enable `entropy/emacs-solaire-global-mode' with
 specification. This is the only eemacs official
 `entropy/emacs-solaire-global-mode' enable caller."
   (entropy/emacs-solaire-global-mode)
+  ;; downgrade `company-tooltip' face when needed
+  (when (entropy/emacs-theme-adapted-to-solaire)
+    (entropy/emacs-face-bg-scale-when-same
+     'company-tooltip 'solaire-default-face
+     (cond
+      ((or (eq (frame-parameter nil 'background-mode) 'light)
+           (string-match-p "\\(light\\|day\\)"
+                           (symbol-name entropy/emacs-theme-sticker)))
+       0.95)
+      ((eq (frame-parameter nil 'background-mode) 'dark)
+       0.5))
+     nil
+     (when (member (face-attribute 'company-tooltip :background)
+                   '(unspecified nil))
+       t)))
   (entropy/emacs-solaire-specific-for-themes))
 
 (defvar
@@ -242,12 +257,9 @@ by `entropy/emacs-startup-done'.")
   "Startup `entropy/emacs-solaire-global-mode' as the subset of
 `entropy/emacs-themes-solaire-startup-timer'."
   (when (entropy/emacs-theme-adapted-to-solaire)
-    (let (timer)
+    (let (_)
       (if entropy/emacs-startup-done
-          (setq timer
-                (run-with-idle-timer
-                 entropy/emacs-solaire-solaire-daemon-idle-delay
-                 nil #'entropy/emacs-themes-enable-solaire-global-mode-with-spec))
+          (entropy/emacs-themes-enable-solaire-global-mode-with-spec)
         (setq entropy/emacs-themes-solaire-startup-timer
               (run-with-idle-timer
                entropy/emacs-solaire-solaire-daemon-idle-delay

@@ -1216,6 +1216,72 @@ symbol t which means disable this hook before run BODY. "
       `(let* ,(reverse let-core)
          ,@body))))
 
+;; *** Color operations
+
+(defun entropy/emacs-color-string-hex-p (color-hex-str-maybe)
+  "Check a string COLOR-HEX-STR-MAYBE whether is an hex color string."
+  (string-match-p "^#[0-9a-f]\\{3\\}[0-9a-f]*$"
+                  color-hex-str-maybe))
+
+(defun entropy/emacs-color-values-to-rgb (color-values)
+  "Transfer COLOR-VALUES which is the result of `color-values' to a
+RGB list which can be used to `color-rgb-to-hex'."
+  (let ((r (car color-values))
+        (g (cadr color-values))
+        (b (caddr color-values))
+        (full 65535.0))
+    (setq r (/ r full)
+          g (/ g full)
+          b (/ b full))
+    (list r g b)))
+
+(defun entropy/emacs-color-get-color-hex-string (color-str &optional frame)
+  "Transfer an color string COLOR-STR to hex color string,
+COLOR-STR can be an color name or a hex color string.
+
+Optional arg FRAME used for which frame specified as base to
+calculate the color values. If FRAME is omitted or nil, use the
+selected frame."
+  (cond
+   ((entropy/emacs-color-string-hex-p color-str)
+    (apply 'color-rgb-to-hex
+           (entropy/emacs-color-values-to-rgb
+            (color-values color-str frame))))
+   (t
+    (apply 'color-rgb-to-hex
+           (color-name-to-rgb color-str frame)))))
+
+(defun entropy/emacs-color-same-p
+    (color1 color2 &optional color1-frame color2-frame)
+  "Check whether two color COLOR1 and COLOR2 are same as each
+other, the color is the arg of type as the same as what
+`color-values' used.
+
+Two frame spec optional args individually spec which frame to to
+use when calculate the color values for each color. If FRAME is
+omitted or nil, use the selected frame.
+"
+  (require 'faces)
+  (let ((c1 (color-values color1 color1-frame))
+        (c2 (color-values color2 color2-frame)))
+    (equal c1 c2)))
+
+(defun entropy/emacs-color-scale-common (color factor &optional frame)
+  "Make color values of COLOR scaled by FACTOR of frame
+FRAME. Return a hex color string.
+
+Optional arg frame when specified we calculate the color value
+based the frame, nil for use selected frame."
+  (let* ((cv (color-values color frame))
+         (cl (entropy/emacs-color-values-to-rgb cv))
+         (r (car cl))
+         (g(cadr cl))
+         (b (caddr cl)))
+    (setq r (* r factor)
+          g (* g factor)
+          b (* b factor))
+    (apply 'color-rgb-to-hex (list r g b))))
+
 ;; *** Face manipulation
 
 (defun entropy/emacs-get-face-attribute-alist (face &optional frame)
@@ -1244,16 +1310,19 @@ as '(cons attr-key attr-value)' which can be used for
 
 (defun entropy/emacs-defun--theme-cover-0-rest ()
   (when entropy/emacs-set-face-attribute--internal-log-for-setted-faces
-    (dolist (fre entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
-      (let ((face (car fre))
-            (custom--inhibit-theme-enable nil))
-        (custom-theme-reset-faces
-         'eemacs-cover-theme-0
-         `(,face nil)))))
+    (let (log)
+      (dolist (fre entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
+        (let ((face (car fre))
+              (custom--inhibit-theme-enable nil))
+          (unless (member face log)
+            (custom-theme-reset-faces
+             'eemacs-cover-theme-0
+             `(,face nil))
+            (push face log))))))
   (setq entropy/emacs-set-face-attribute--internal-log-for-setted-faces nil)
   (disable-theme 'eemacs-cover-theme-0))
 ;; disable the internal cover theme must before any hooks running so
-(add-hook 'entropy/emacs-theme-load-after-hook-head-1
+(add-hook 'entropy/emacs-theme-load-before-hook-head-1
           #'entropy/emacs-defun--theme-cover-0-rest)
 
 (defvar entropy/emacs--advice-priority-eemacs-cover-them-0-timer
@@ -1277,11 +1346,10 @@ in the `selected-frame'.
 
 NOTE: any hook include this function injected into the
 'entropy/emacs-theme-load-(before/after)-hook-*' must injected
-after the hook `entropy/emacs-theme-load-after-hook-head-1' in
+after the hook `entropy/emacs-theme-load-before-hook-head-1' in
 where an internal reset function injected."
   (let* ((this-spec `(,face ((t ,@args))))
          (custom--inhibit-theme-enable nil))
-    (enable-theme 'eemacs-cover-theme-0)
     (push (cons face args) entropy/emacs-set-face-attribute--internal-log-for-setted-faces)
     (if frame
         (apply 'set-face-attribute face frame args)
@@ -1292,6 +1360,23 @@ where an internal reset function injected."
        'eemacs-cover-theme-0
        this-spec)
       (custom-theme-recalc-face face))))
+
+(defun entropy/emacs-face-bg-scale-when-same
+    (face1 face2 factor &optional face1-frame face1-inherit face2-frame face2-inherit)
+  "Scale face FACE1's background color with FACTOR when it's bg
+color is same as face FACE2's bg color.
+
+See optional args to specified each of frame spec and whether get
+the color inherited as what `face-attribute' did."
+  (let* ((c1 (face-attribute face1 :background face1-frame face1-inherit))
+         (c2 (face-attribute face2 :background face2-frame face2-inherit))
+         new-c-hex)
+    (when (entropy/emacs-color-same-p c1 c2)
+      (setq new-c-hex
+            (entropy/emacs-color-scale-common c1 factor face1-frame))
+      (entropy/emacs-set-face-attribute
+       face1 face1-frame
+       :background new-c-hex))))
 
 ;; *** Theme manipulation
 

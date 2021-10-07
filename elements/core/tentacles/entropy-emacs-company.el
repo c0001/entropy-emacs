@@ -976,6 +976,7 @@ while in `company-box-mode'."
 
 ;; ****** company-box child-frame patch
 
+;; ******* bug fix
   (defun __ya/company-box--get-frame
       (orig-func &rest orig-args)
     (let ((frame (apply orig-func orig-args)))
@@ -985,6 +986,9 @@ while in `company-box-mode'."
               :around
               #'__ya/company-box--get-frame)
 
+;; ******* core patch
+
+;; ******* recreate child frame after theme load
   (defun __company-box-remove-child-frame/before-load-theme ()
     "Remove company-box's frame before load a new theme since the we
 don't set a proper method to let preserved old frame use the new
@@ -998,17 +1002,7 @@ theme face spces."
   (add-hook 'entropy/emacs-theme-load-before-hook
             #'__company-box-remove-child-frame/before-load-theme)
 
-  (defun __company-box-make-child-frame-with-fontspec
-      (orig-func &rest orig-args)
-    "Let `company-box--make-frame' use same font from its parent
-frame."
-    (let ((company-box-frame-parameters
-           (append company-box-frame-parameters
-                   `((font . ,(frame-parameter nil 'font))))))
-      (apply orig-func orig-args)))
-  (advice-add 'company-box--make-frame
-              :around #'__company-box-make-child-frame-with-fontspec)
-
+;; ******* set child frame indicator
   (defun __company-box-make-child-frame-with-frame-indicator
       (orig-func &rest orig-args)
     "Let `company-box--make-frame' be explicitly with frame indicator
@@ -1021,6 +1015,19 @@ as its `frame-parameter'."
               :around
               #'__company-box-make-child-frame-with-frame-indicator)
 
+;; ******* frame font spec
+  (defun __company-box-make-child-frame-with-fontspec
+      (orig-func &rest orig-args)
+    "Let `company-box--make-frame' use same font from its parent
+frame."
+    (let ((company-box-frame-parameters
+           (append company-box-frame-parameters
+                   `((font . ,(frame-parameter nil 'font))))))
+      (apply orig-func orig-args)))
+  (advice-add 'company-box--make-frame
+              :around #'__company-box-make-child-frame-with-fontspec)
+
+;; ******* Debug
   (defun entropy/emacs-company-box-delete-all-child-frames
       (&optional arg)
     "[Debug only] Delete all company-box child frames."
