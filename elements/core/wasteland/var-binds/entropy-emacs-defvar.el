@@ -1109,25 +1109,6 @@ prepared for some emergency occasion.")
 
 ;; ** frame refer
 
-(defvar entropy/emacs-frame-be-made-is-child-frame nil
-  "The indicator for `make-frame' wrapper to judge whether
-current frame is maked as a child frame.
-
-NOTE: this variable is setted automatically so as do not modify
-it manually or will hit a monster.")
-
-(defun entropy/emacs-defvar--around-advice-for-child-frame-make
-    (orig-func &rest orig-args)
-  (let (rtn)
-    (setq entropy/emacs-frame-be-made-is-child-frame t)
-    (unwind-protect
-        (setq rtn (apply orig-func orig-args))
-      (setq entropy/emacs-frame-be-made-is-child-frame nil))
-    rtn))
-(advice-add 'display-buffer-in-child-frame
-            :around
-            #'entropy/emacs-defvar--around-advice-for-child-frame-make)
-
 ;; ** daemon refer
 (when (version< emacs-version "27")
   (defvar server-after-make-frame-hook nil
