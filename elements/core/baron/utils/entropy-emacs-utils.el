@@ -40,7 +40,14 @@
 (!eemacs-require 'entropy-emacs-defun)
 
 ;; ** dash
-(use-package dash :init (require 'dash))
+(use-package dash :init (require 'dash)
+  :config
+  (entropy/emacs-lazy-initial-for-hook
+   (emacs-lisp-mode-hook)
+   "dash-fontify-mode-init" "dash-fontify-mode-init"
+   prompt-echo
+   :pdumper-no-end t
+   (dash-fontify-mode)))
 
 ;; ** f
 (use-package f :init (require 'f))
