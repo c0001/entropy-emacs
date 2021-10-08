@@ -2874,6 +2874,7 @@ by run command \"make liberime\" in eemacs root place")
 (use-package proced
   :ensure nil
   :commands (proced-process-attributes)
+;; ****** preface
   :preface
   (defun entropy/emacs-basic-proced-processP (processName)
     "Return one alist collected the proced info of procssName,
@@ -2899,6 +2900,7 @@ otherwise returns nil."
         (t (message
             "`entropy/emacs-basic-proced-auto-startwith' are just used in w32 platform")))))
 
+;; ****** hydra hollow
   :eemacs-mmphc
   (((:enable t :defer t)
     (proced-mode (proced proced-mode-map) t (2 2 2 2)))
@@ -2960,8 +2962,12 @@ otherwise returns nil."
       "Renice the processes in PROCESS-ALIST to PRIORITY."
       :enable t :exit t :map-inject t))
     ))
+
+;; ****** hook
   :hook
   (proced-mode . hl-line-mode)
+
+;; ****** init
   :init
   (setq-default proced-format 'medium)
   (entropy/emacs-lazy-with-load-trail
@@ -2970,7 +2976,47 @@ otherwise returns nil."
      (dolist (el entropy/emacs-startwith-apps)
        (when (executable-find (cdr el))
          (entropy/emacs-basic-proced-auto-startwith
-          (car el) (cdr el)))))))
+          (car el) (cdr el))))))
+
+;; ****** config
+  :config
+
+;; ******* size unit indicator patch
+  (defface __proced-size-gb-unit-face
+    '((t (:foreground "Red"))) "")
+  (defface __proced-size-mb-unit-face
+    '((t (:foreground "yellow"))) "")
+  (defface __proced-size-kb-unit-face
+    '((t (:foreground "green"))) "")
+  (defun __proced-size-kb-to-dwim-human-readable (size)
+    (let* ((gb (/ size (expt 1024.0 2)))
+           (mb (/ size 1024.0))
+           (mbp (>= mb 1))
+           (gbp (>= gb 1)))
+      (cond
+       (gbp
+        (format "%.2f%s" (/ size (expt 1024.0 2))
+                (propertize "G" 'face
+                            '__proced-size-gb-unit-face)))
+       (mbp
+        (format "%.2f%s" (/ size 1024.0)
+                (propertize "M" 'face
+                            '__proced-size-mb-unit-face)))
+       (t
+        (format "%d%s" size
+                (propertize "K" 'face
+                            '__proced-size-kb-unit-face))))))
+
+  (let ((vsize '(cadr (alist-get 'vsize proced-grammar-alist)))
+        (rss '(cadr (alist-get 'rss proced-grammar-alist))))
+    (dolist (size-ptr '(vsize rss))
+      (when (eval size-ptr)
+        (funcall
+         `(lambda ()
+            (setf ,(symbol-value size-ptr)
+                  '__proced-size-kb-to-dwim-human-readable))))))
+;; ****** end
+  )
 
 
 
