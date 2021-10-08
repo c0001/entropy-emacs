@@ -470,23 +470,13 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
   (setq pretty-hydra-enable-use-package t)
 
   :config
-  (defun entropy/emacs-pretty-hydra--patch-1 (orig-func &rest orig-args)
-    "The around advice for inhibit any restriction for
-`prin1-to-string' while generate pretty-hydra doc-string, thus
-for that there's some un-investigated causes during the pretty
-hydra docstring title generation that pollute the sexp printing
-format which caused by set the restriction for thus."
-    (let* ((print-level nil)
-           (print-length nil))
-      (apply orig-func orig-args)))
-  (advice-add 'pretty-hydra--generate
-              :around
-              #'entropy/emacs-pretty-hydra--patch-1)
 
+;; **** Patch
+;; ***** core def
   (defvar entropy/emacs-pretty-hydra-posframe-visible-p nil)
   (defvar entropy/emacs-pretty-hydra-defined-indcator nil)
   (defvar entropy/emacs-pretty-hydra-posframe-boder-color "red")
-  (defvar entropy/emacs-pretty-hydra-posframe-args
+  (defvar entropy/emacs-pretty-hydra--hydra-hints-let-env
     '((hydra-hint-display-type
        (if (and (display-graphic-p)
                 (fboundp 'posframe-show))
@@ -505,6 +495,16 @@ format which caused by set the restriction for thus."
         :poshandler 'posframe-poshandler-frame-center
         ))))
 
+
+;; ***** hydra refer patch
+;; ****** hydra posframe patch
+;; ******* hydra posframe show patch
+  (defvar __hydra-posframe-buff-name " *hydra-posframe*")
+  (defun __hydra-posframe-buffer-live-p (&rest _)
+    (let ((buff (get-buffer __hydra-posframe-buff-name)))
+      (and (bufferp buff)
+           (buffer-live-p buff))))
+
   (defun __adv/around/hydra-posframe-show
       (orig-func &rest orig-args)
     "Reset the posframe `internal-border' face background color
@@ -518,12 +518,100 @@ easily modified by others."
       (set-face-background 'internal-border
                            entropy/emacs-pretty-hydra-posframe-boder-color
                            rtn)
-      rtn
-      ))
+      rtn))
   (advice-add 'hydra-posframe-show
               :around
               #'__adv/around/hydra-posframe-show)
+  ;; FIXME: Recreate the hydra-posframe before load a new theme since
+  ;; the new theme may cover someting patched yet e.g. the border
+  ;; face?
+  (add-hook 'entropy/emacs-theme-load-before-hook
+            #'(lambda (&rest _)
+                (when (and (__hydra-posframe-buffer-live-p)
+                           (fboundp 'posframe-delete-frame))
+                  (posframe-delete-frame
+                   __hydra-posframe-buff-name))))
 
+;; ******* hydra posframe hide patch
+
+  (defun __adv/around/hydra-posframe-hide/close-eemacs-pretty-hydra
+      (&rest _)
+    ;; EEMACS_MAINTENANCE: follow `hydra' updates
+    "Unset `entropy/emacs-pretty-hydra-posframe-visible-p' after
+close hydra posframe."
+    (require 'posframe)
+    (unless hydra--posframe-timer
+      (setq hydra--posframe-timer
+            (run-with-idle-timer
+             0.001 nil
+             (lambda ()
+               (setq hydra--posframe-timer nil)
+               (posframe-hide __hydra-posframe-buff-name)
+               (setq entropy/emacs-pretty-hydra-posframe-visible-p
+                     nil))))))
+  (advice-add 'hydra-posframe-hide
+              :override
+              #'__adv/around/hydra-posframe-hide/close-eemacs-pretty-hydra)
+  (defun __adv/around/hydra-keyboard-quit/close-eemacs-pretty-hydra
+      (orig-func &rest orig-args)
+    "Bound `hydra-hint-display-type' to posframe when
+`entropy/emacs-pretty-hydra-posframe-visible-p' non-nil."
+    (let (_)
+      (if entropy/emacs-pretty-hydra-posframe-visible-p
+          (let ((hydra-hint-display-type 'posframe))
+            (apply orig-func orig-args))
+        (apply orig-func orig-args))))
+  (advice-add 'hydra-keyboard-quit
+              :around
+              #'__adv/around/hydra-keyboard-quit/close-eemacs-pretty-hydra)
+
+;; ******* hydra posframe make-defun patch
+
+  (defun __adv/around/hydra--make-defun/for-pretty-hydra-patch
+      (orig-func &rest orig-args)
+    "Let the \"sub\" hydra defined by `pretty-hydra-define' be
+forcely follow the `entropy/emacs-pretty-hydra--hydra-hints-let-env'
+env."
+    (if (not (bound-and-true-p
+              entropy/emacs-pretty-hydra-defined-indcator))
+        (apply orig-func orig-args)
+      (let ((rtn (apply orig-func orig-args)))
+        (unless (eq (car rtn) 'defun)
+          (error "Update the pretty-hydra hack on \
+`hydra--make-defun' since internal api is changed"))
+        (let* ((name (cadr rtn))
+               (name-adv (intern
+                          (format "__adv/around/%s/with-pretty-hydra-hack"
+                                  name))))
+          (setq rtn
+                `(prog1
+                     ,rtn
+                   (defun ,name-adv (orig-func &rest orig-args)
+                     ,(format "pretty-hydra hacked around advice for `%s'."
+                              name-adv)
+                     (let* (,@entropy/emacs-pretty-hydra--hydra-hints-let-env)
+                       (apply orig-func orig-args)))
+                   (advice-add ',name :around #',name-adv)))
+          rtn))))
+  (advice-add 'hydra--make-defun
+              :around
+              #'__adv/around/hydra--make-defun/for-pretty-hydra-patch)
+
+;; ***** patch 1
+  (defun entropy/emacs-pretty-hydra--patch-1 (orig-func &rest orig-args)
+    "The around advice for inhibit any restriction for
+`prin1-to-string' while generate pretty-hydra doc-string, thus
+for that there's some un-investigated causes during the pretty
+hydra docstring title generation that pollute the sexp printing
+format which caused by set the restriction for thus."
+    (let* ((print-level nil)
+           (print-length nil))
+      (apply orig-func orig-args)))
+  (advice-add 'pretty-hydra--generate
+              :around
+              #'entropy/emacs-pretty-hydra--patch-1)
+
+;; ***** patch 2
   (defun entropy/emacs-pretty-hydra--patch-2
       (orig-func &rest orig-args)
     "Let all hydra defined by `pretty-hydra-define' show with
@@ -554,7 +642,7 @@ posframe when available."
                      (orig-func &rest orig-args)
                    ,(format "Around advice for `%s' to show with posframe if available."
                             body-adfunc-name)
-                   (let* (,@entropy/emacs-pretty-hydra-posframe-args)
+                   (let* (,@entropy/emacs-pretty-hydra--hydra-hints-let-env)
                      (setq entropy/emacs-pretty-hydra-posframe-visible-p t)
                      (apply orig-func orig-args)))
                  (advice-add ',body-func-name
@@ -565,63 +653,7 @@ posframe when available."
               :around
               #'entropy/emacs-pretty-hydra--patch-2)
 
-  (defun __adv/around/hydra--make-defun/for-pretty-hydra-patch
-      (orig-func &rest orig-args)
-    (if (not (bound-and-true-p
-              entropy/emacs-pretty-hydra-defined-indcator))
-        (apply orig-func orig-args)
-      (let ((rtn (apply orig-func orig-args)))
-        (unless (eq (car rtn) 'defun)
-          (error "Update the pretty-hydra hack on \
-`hydra--make-defun' since internal api is changed"))
-        (let* ((name (cadr rtn))
-               (name-adv (intern
-                          (format "__adv/around/%s/with-pretty-hydra-hack"
-                                  name))))
-          (setq rtn
-                `(prog1
-                     ,rtn
-                   (defun ,name-adv (orig-func &rest orig-args)
-                     ,(format "pretty-hydra hacked around advice for `%s'."
-                              name-adv)
-                     (let* (,@entropy/emacs-pretty-hydra-posframe-args)
-                       (apply orig-func orig-args)))
-                   (advice-add ',name :around #',name-adv)))
-          rtn))))
-  (advice-add 'hydra--make-defun
-              :around
-              #'__adv/around/hydra--make-defun/for-pretty-hydra-patch)
-
-  (defun __adv/around/hydra-posframe-hide/close-eemacs-pretty-hydra
-      (&rest _)
-    ;; EEMACS_MAINTENANCE: follow `hydra' updates
-    "Unset `entropy/emacs-pretty-hydra-posframe-visible-p' after
-close hydra posframe."
-    (require 'posframe)
-    (unless hydra--posframe-timer
-      (setq hydra--posframe-timer
-            (run-with-idle-timer
-             0.001 nil
-             (lambda ()
-               (setq hydra--posframe-timer nil)
-               (posframe-hide " *hydra-posframe*")
-               (setq entropy/emacs-pretty-hydra-posframe-visible-p
-                     nil))))))
-  (advice-add 'hydra-posframe-hide
-              :override
-              #'__adv/around/hydra-posframe-hide/close-eemacs-pretty-hydra)
-  (defun __adv/around/hydra-keyboard-quit/close-eemacs-pretty-hydra
-      (orig-func &rest orig-args)
-    "Bound `hydra-hint-display-type' to posframe when
-`entropy/emacs-pretty-hydra-posframe-visible-p' non-nil."
-    (let (_)
-      (if entropy/emacs-pretty-hydra-posframe-visible-p
-          (let ((hydra-hint-display-type 'posframe))
-            (apply orig-func orig-args))
-        (apply orig-func orig-args))))
-  (advice-add 'hydra-keyboard-quit
-              :around
-              #'__adv/around/hydra-keyboard-quit/close-eemacs-pretty-hydra)
+;; **** end
   )
 
 ;; *** major-hydra
