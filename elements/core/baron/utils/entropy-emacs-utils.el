@@ -47,7 +47,7 @@
    "dash-fontify-mode-init" "dash-fontify-mode-init"
    prompt-echo
    :pdumper-no-end t
-   (dash-fontify-mode)))
+   (global-dash-fontify-mode)))
 
 ;; ** f
 (use-package f :init (require 'f))
