@@ -3018,9 +3018,6 @@ otherwise returns nil."
 ;; ****** end
   )
 
-
-
-
 ;; ** Eemacs basic hydra-hollow instances
 
 (entropy/emacs-lazy-initial-for-hook
