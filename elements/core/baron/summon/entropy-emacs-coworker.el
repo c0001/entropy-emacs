@@ -534,7 +534,7 @@ EXIT /b
   (format "%s-x64"
           (cond (sys/macp  "osx")
                 (sys/linuxp "linux")
-                (sys/win32p "win")
+                (sys/is-win-group "win")
                 (t (user-error "Unsupported system: %s" system-type)))))
 
 (defvar entropy/emacs-coworker--pyls-ms-exec-path

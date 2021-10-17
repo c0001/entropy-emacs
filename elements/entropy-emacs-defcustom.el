@@ -2196,10 +2196,12 @@ module."
 (defun entropy/emacs-vterm-support-p ()
   "Return non-nil when current emacs session support use
 `vterm'."
-  (and (entropy/emacs-dynamic-module-support-p)
-       (not (member system-type
+  (and (not (member system-type
                     '(windows-nt
-                      ms-dos)))))
+                      ms-dos)))
+       (entropy/emacs-dynamic-module-support-p)
+       (and (executable-find "cmake")
+            (executable-find "make"))))
 
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)
