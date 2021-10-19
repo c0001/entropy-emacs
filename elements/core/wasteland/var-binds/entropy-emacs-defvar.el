@@ -238,6 +238,17 @@ window will be set to 13.5.")
 (defvar entropy/emacs-init-welcome-buffer-name  "*WELCOM TO ENTROPY-EMACS*"
   "Buffer name of entropy-emacs initial welcome displaying buffer.")
 
+(defun entropy/emacs-source-directory (&rest _)
+  "The `source-directory' of eemacs specification.
+
+Return the emacs source directory when using eemacs in cloned git
+repository and has submodule inited."
+  (let ((dir (expand-file-name "annex/emacs-src"
+                               entropy/emacs-user-emacs-directory)))
+    (and (file-exists-p
+          (expand-file-name "autogen.sh" dir))
+         dir)))
+
 ;; ** byte compile refer
 
 (defvar entropy/emacs-session-in-byte-compile-emacs-core-p nil

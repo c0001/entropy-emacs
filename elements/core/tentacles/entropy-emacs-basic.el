@@ -1900,6 +1900,21 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
       (message "Toggle `magit-auto-revert-mode' off.")))))
 
 ;; *** Emacs-wide spec
+;; **** emacs source dir
+;; Set `source-directory' to eemacs specified location
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-after-startup-hook)
+ "init-emacs-source-dir-set" "init-emacs-source-dir-set"
+ prompt-echo
+ :pdumper-no-end t
+ (setq source-directory
+       (entropy/emacs-source-directory))
+ ;; We must reeset this var since its preloaded before emacs startup.
+ ;; EEMACS_MAINTENANCE: follow emacs version
+ (setq find-function-C-source-directory
+       (let ((dir (expand-file-name "src" source-directory)))
+         (if (file-accessible-directory-p dir) dir))))
+
 ;; **** Scratch buffer corresponding file
 ;;
 ;;     Amounts of company backend function can not functional
