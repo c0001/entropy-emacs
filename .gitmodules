@@ -1,0 +1,4 @@
+[submodule "annex/emacs"]
+	path = annex/emacs-src
+	url = git://git.sv.gnu.org/emacs.git
+	branch = master
