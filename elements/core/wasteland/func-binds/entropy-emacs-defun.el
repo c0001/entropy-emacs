@@ -2378,7 +2378,16 @@ NOTE: this is the only legal way to set `package-user-dir' in
 eemacs context."
   (unless entropy/emacs--package-user-dir-setted
     (if (string-match-p "^27" emacs-version)
-        (entropy/emacs--set-user-package-dir-common "27.1")
+        (progn
+          (when (and (string= emacs-version "27.1")
+                     (display-graphic-p))
+            (warn "Please update to emacs 27.2 at least \
+since 27.1 has some fatal bug with gui session like posframe show
+non comprehesive content etc.
+
+Eemacs don't ban 27.1 version but that's strong recommendation of
+thus."))
+          (entropy/emacs--set-user-package-dir-common "27.1"))
       (cond
        ((string-match-p "^28" emacs-version)
         (entropy/emacs--set-user-package-dir-common "28.0.50"))

@@ -592,7 +592,8 @@ env."
                                   name))))
           (setq rtn
                 `(prog1
-                     ,rtn
+                     (progn
+                       ,rtn)
                    (defun ,name-adv (orig-func &rest orig-args)
                      ,(format "pretty-hydra hacked around advice for `%s'."
                               name-adv)
@@ -640,10 +641,10 @@ posframe when available."
               (intern body-func-name-str)))
       ;; inject advice after the origin macro
       (setq rtn
-            `(progn
-               (let ((entropy/emacs-pretty-hydra-defined-indcator
-                      t))
-                 ,rtn)
+            `(prog1
+                 (let ((entropy/emacs-pretty-hydra-defined-indcator
+                        t))
+                   ,rtn)
                (let (_)
                  (defun ,body-adfunc-name
                      (orig-func &rest orig-args)
