@@ -571,18 +571,25 @@ efficiently way."
 with `shackle'."
     (interactive)
     (let ((other-window-scroll-buffer)
-          (selection (or company-selection 0)))
+          (selection (or company-selection 0))
+          (orig-win (selected-window)))
       (let* ((selected (nth selection company-candidates))
-             (doc-buffer (company-call-backend 'doc-buffer selected))
-             start)
+             (doc-buffer (company-call-backend 'doc-buffer selected)))
         (when (consp doc-buffer)
-          (setq start (cdr doc-buffer)
-                doc-buffer (car doc-buffer)))
-        (company-abort)
-        (let ((win (display-buffer doc-buffer)))
-          (set-window-start
-           win
-           (if start start (point-min)))))))
+          (setq doc-buffer (car doc-buffer)))
+        (if (or (and (bufferp doc-buffer)
+                     (buffer-live-p doc-buffer))
+                ;; or the buffer is `buffer-name' then we also getted
+                (and (stringp doc-buffer)
+                     (bufferp (get-buffer doc-buffer))))
+            (let (_)
+              (with-current-buffer doc-buffer
+                (goto-char (point-min)))
+              (with-selected-window orig-win
+                (company-abort))
+              (display-buffer doc-buffer))
+          (message "can not fetch doc of current selection '%s'"
+                   selected)))))
   (advice-add 'company-show-doc-buffer
               :override
               #'__ya/company-show-doc-buffer)

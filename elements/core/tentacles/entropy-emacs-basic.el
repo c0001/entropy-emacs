@@ -2557,7 +2557,8 @@ it with focus on."
 
 (defun entropy/emacs-basic--help-doc-lagging-prompt (&rest _)
   (message "Prepare for help documents ...")
-  (redisplay t))
+  (when (display-graphic-p)
+    (redisplay t)))
 (advice-add 'describe-variable
             :before
             #'entropy/emacs-basic--help-doc-lagging-prompt)
