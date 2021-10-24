@@ -365,7 +365,8 @@ filte return nil."
          ((and solaire-p
                (not (member show-method
                             '(adjacent-common
-                              minibuffer-common))))
+                              minibuffer-common
+                              popup))))
           (if (eq show-method 'pos-tip)
               'default
             'solaire-tooltip-face))
