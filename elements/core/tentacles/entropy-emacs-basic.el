@@ -2405,7 +2405,7 @@ successfully both of situation of read persisit of create an new."
 ;; communication with GUI.
 
 (entropy/emacs-lazy-initial-advice-before
- (xterm-paste yank)
+ (xterm-paste kill-ring-save yank)
  "xterm-rebind-init" "xterm-rebind-init" prompt-echo
  :pdumper-no-end t
  (let* ((cli-enable-func
