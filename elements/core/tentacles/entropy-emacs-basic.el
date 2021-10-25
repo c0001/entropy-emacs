@@ -822,8 +822,12 @@ modifcation is to remove this feature.
   :config
   (setq dired-omit-size-limit nil)
   (setq dired-omit-extensions nil)
-  ;; Just omit the current node point
-  (setq dired-omit-files "\\`[[:space:]]*[.][.]?\\'")
+  ;; Just omit the current node point and some windows volumn auto
+  ;; created stuffs.
+  (setq dired-omit-files
+        "\\`\\([[:space:]]*[.][.]?\
+\\|System Volume Information\
+\\|\\$RECYCLE.BIN\\)\\'")
   ;; remap `dired-omit-mode' command in `dired-mode-map' because of
   ;; conflicted with `ace-window'
   (define-key dired-mode-map "\C-x\M-o" nil))
