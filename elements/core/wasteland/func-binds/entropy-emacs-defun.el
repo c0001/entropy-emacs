@@ -2945,8 +2945,8 @@ internal cut operation has updated the kill-ring but
 `xterm-paste' will still yank the previouse event content."
   (let* ((paste-str (nth 1 event)))
     (entropy/emacs-with-temp-buffer
-      (unless (equal paste-str
-                     entropy/emacs--xterm-clipboard-head)
+      (unless (string= paste-str
+                       entropy/emacs--xterm-clipboard-head)
         (progn (setq entropy/emacs--xterm-clipboard-head
                      paste-str)
                (xterm-paste event)))
