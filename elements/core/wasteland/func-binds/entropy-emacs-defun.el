@@ -2948,7 +2948,7 @@ xterm-session yank/paste operation."
 NOTE: no warranty use in other system."
   (entropy/emacs-with-temp-buffer
     (insert str)
-    (call-process
+    (call-process-region
      (point-min) (point-max)
      "clip.exe" nil 0)))
 
