@@ -2928,13 +2928,54 @@ xterm-session yank/paste operation."
           (and sys/linuxp
                (or
                 (and (executable-find "xclip") 'xclip)
-                (and (executable-find "xsel") 'xsel))))))
+                (and (executable-find "xsel") 'xsel)
+                (and (executable-find "wl-copy") 'wl-copy))))))
     (when (and (not (display-graphic-p))
                (fboundp 'xterm-paste)
                (when (ignore-errors (executable-find xclip-program))
-                 (progn (require 'xclip)
-                        (xclip-mode 1))))
+                 (if (bound-and-true-p xclip-mode)
+                     t
+                   (progn (require 'xclip)
+                          (xclip-mode 1)))))
       judger)))
+
+;; Inspired by
+;; https://emacs-china.org/t/wsl-emacs-windows/17375/3?u=angelaneia
+(defun entropy/emacs-windows-env/copy-to-clipboard-core
+    (str)
+  "Push string STR into WINDOWS system clipboard.
+
+NOTE: no warranty use in other system."
+  (entropy/emacs-with-temp-buffer
+    (insert str)
+    (call-process
+     (point-min) (point-max)
+     "clip.exe" nil 0)))
+
+(defun entropy/emacs-windows-env/get-from-clipboard-core
+    (&rest _)
+  "Get last clipbaord item form WINDOWS system.
+
+NOTE: no warranty use in other system."
+  (let ((coding-system-for-read 'dos))
+    ;; remove added trailing newline of CBK
+    (substring
+     (shell-command-to-string
+      "powershell.exe -Command Get-Clipboard")
+     0 -1)))
+
+(defun __adv/around/kill-new/windows-subsystem-env
+    (orig-func &rest orig-args)
+  "Kill things also put in windows system clipboard when
+`sys/wsl-env-p'."
+  (when (sys/wsl-env-p)
+    (let ((str (car orig-args)))
+      (entropy/emacs-windows-env/copy-to-clipboard-core
+       str)))
+  (apply orig-func orig-args))
+(advice-add 'kill-new
+            :around
+            #'__adv/around/kill-new/windows-subsystem-env)
 
 (defun entropy/emacs-xterm-paste-core (event)
   "The eemacs kill-ring update function for monitoring
