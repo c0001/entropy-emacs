@@ -1600,31 +1600,6 @@ let eglot do completion with interface argument injection."
    eglot-ui-doc-display)
 
 ;; ***** Others spec
-  (with-eval-after-load 'markdown-mode
-    (defun markdown-fontify-hrs (last)
-      "Add text properties to horizontal rules from point to LAST.
-
-EEMACS_TEMPORALLY_HACK:
-NOTE: this function has been redefined by eemacs to temporally
-fix overflow hr line display in eldoc."
-      (when (markdown-match-hr last)
-        (let ((hr-char (markdown--first-displayable markdown-hr-display-char)))
-          (add-text-properties
-           (match-beginning 0) (match-end 0)
-           `(
-             ;; face spec
-             face
-             markdown-hr-face
-             ;; fontlock spec
-             font-lock-multiline t
-             ;; display spec
-             ,@(when (and markdown-hide-markup hr-char)
-                 `(display ,(make-string
-                             ;; HACK: reduce har-render width
-                             (/ (window-body-width) 5)
-                             hr-char)))))
-          t))))
-
   (defun eglot-shutdown--around-advice-0
       (orig-func &rest orig-args)
     "Remove symbol highlight and close idle doc show timer"

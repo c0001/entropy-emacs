@@ -89,7 +89,33 @@ package management!"))
   (setq markdown-css-paths
         entropy/emacs-markdown-exp-css-paths)
   (setq markdown-xhtml-header-content
-        entropy/emacs-markdown-exp-header-content))
+        entropy/emacs-markdown-exp-header-content)
+
+  (defun __ya/markdown-fontify-hrs (last)
+    "Override advice for `makrdown-fontify-hrs' to temporally fix
+overflow hr line e.g. display in eldoc."
+    (when (markdown-match-hr last)
+      (let ((hr-char (markdown--first-displayable markdown-hr-display-char)))
+        (add-text-properties
+         (match-beginning 0) (match-end 0)
+         `(
+           ;; face spec
+           face
+           markdown-hr-face
+           ;; fontlock spec
+           font-lock-multiline t
+           ;; display spec
+           ,@(when (and markdown-hide-markup hr-char)
+               `(display ,(make-string
+                           ;; HACK: reduce har-render width
+                           (/ (window-body-width) 5)
+                           hr-char)))))
+        t)))
+  (advice-add 'markdown-fontify-hrs
+              :override
+              '__ya/markdown-fontify-hrs)
+
+  )
 
 
 ;; *** hydra hollow instance
