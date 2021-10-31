@@ -102,7 +102,15 @@
     (define-key global-map (kbd "C-x v v") nil)
     (define-key global-map (kbd "C-x v x") nil)
     (define-key global-map (kbd "C-x v ~") nil)
-    (define-key global-map (kbd "C-x v i") nil)))
+    (define-key global-map (kbd "C-x v i") nil))
+
+  :config
+  ;; windows wsl2 using `pinentry-emacs' as default gpg-agent passphrase
+  (when (sys/wsl-env-p)
+    (unless (pinentry-emacs-gpg-agent-conf-patched-p)
+      (pinentry-emacs-gpg-agent-conf-patch-func)))
+
+  )
 
 (use-package ssh-agency
   ;; Windows only spec

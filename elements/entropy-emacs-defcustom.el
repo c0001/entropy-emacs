@@ -2374,6 +2374,75 @@ NOTE: not support load dynamic module"
 in baron part to simplify context distinction search")
 
 ;; ** entropy-emacs initialize
+;; *** basic setting
+;; **** make sure gpg pinentry passphrase prompt using emacs minibuffer
+(setq epa-pinentry-mode 'loopback)
+;; The pinentry-emacs interface
+;; >>> https://github.com/ecraven/pinentry-emacs
+(defun pinentry-emacs (desc prompt ok error)
+  (let ((str (read-passwd
+              (concat
+               (replace-regexp-in-string
+                "%22" "\""
+                (replace-regexp-in-string "%0A" "\n" desc))
+               prompt ": "))))
+    str))
+
+(defvar pinentry-emacs-binary-path
+  (expand-file-name
+   "annex/pinentry-emacs/pinentry-emacs"
+   entropy/emacs-user-emacs-directory)
+  "The 'pinetry-emacs' binary path of eemacs specified
+
+NOTE: 'pinentry-emacs' is archived into eemacs yet")
+
+(defun pinentry-emacs-gpg-agent-conf-patched-p (&rest _)
+  "Judge whether current env use `pinetry-emacs' as gpg-agent
+pinentry passphrase prompt."
+  (let ((conf (expand-file-name "gpg-agent.conf" "~/.gnupg")))
+    (and (file-exists-p conf)
+         (with-temp-buffer
+           (insert-file-contents conf)
+           (goto-char (point-min))
+           (and
+            (re-search-forward "^pinentry-program \\(.*pinentry-emacs\\)$")
+            (file-exists-p (match-string 1)))))))
+
+(defun pinentry-emacs-gpg-agent-conf-patch-func (&rest _)
+  "Patch gpg-agent.conf under 'HOME/.gnupg' with using
+`pinentry-emacs' as default pinentry before makeing backup of
+origin config file."
+  (let* ((conf (expand-file-name "gpg-agent.conf" "~/.gnupg"))
+         (conf-bk-name
+          (concat
+           conf
+           (format
+            ".%s.orig"
+            (format-time-string "%Y-%m-%d %a %H:%M:%S"))))
+         (proc-buff (get-buffer-create
+                     "*eemacs-pinentry-emacs-gpg-agent-reload-cbk*"))
+         (inhibit-read-only t))
+    (when (file-exists-p conf)
+      (rename-file conf conf-bk-name))
+    (with-current-buffer (find-file-noselect conf)
+      (erase-buffer)
+      (insert "allow-emacs-pinentry\n")
+      (insert
+       (format "pinentry-program %s"
+               pinentry-emacs-binary-path))
+      (save-buffer)
+      (let ((kill-buffer-hook))
+        (kill-buffer)))
+    (with-current-buffer proc-buff
+      (erase-buffer))
+    (call-process-shell-command "gpgconf --reload gpg-agent" nil proc-buff)
+    (with-current-buffer proc-buff
+      (let ((cbk (buffer-substring (point-min) (point-max))))
+        (unless (string-empty-p cbk)
+          (user-error "Patch gpg-agent.conf fatal: %s" cbk))
+        (kill-buffer)
+        (message "Patch gpg-agent.conf successfully")))))
+
 ;; *** intial advice
 ;; **** find file patch
 
