@@ -124,8 +124,8 @@ Posix emulator supports for:
       ;; which support display-graphic feature.
       (and sys/is-win-group (string-match-p "Windows_NT" (or (getenv "OS") "")))
 
-      (not (string-empty-p (getenv "DESKTOP_SESSION")))
-      (not (string-empty-p (getenv "XDG_CURRENT_DESKTOP"))))
+      (not (string-empty-p (or (getenv "DESKTOP_SESSION") "")))
+      (not (string-empty-p (or (getenv "XDG_CURRENT_DESKTOP") ""))))
   "System group filter for graphic supported platforms.")
 
 (defconst sys/is-linux-and-graphic-support-p
