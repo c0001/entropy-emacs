@@ -3,5 +3,5 @@
   "Convert elisp file to org file"
   '((emacs "25.1") (outorg "20190720.2002"))
   :authors '(("Entropy" . "bmsac0001@gmail.com"))
-  :maintainer '("Entropy " . "tumashu@gmai.com")
+  :maintainer '("Entropy " . "bmsac0001@gmail.com")
   :keywords '("outline" "org"))
