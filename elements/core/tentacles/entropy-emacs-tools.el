@@ -202,7 +202,15 @@ Version 2017-10-09"
          default-directory)))
 
      (sys/is-linux-and-graphic-support-p
-      (let ((process-connection-type nil)
+      (let ((time-str
+             ;; unique process id
+             (format "%s.%s"
+                     (format-time-string "%Y%m%d%H%M%S")
+                     (random 10000)))
+            ;; preserve `process-connection-type' to t since while
+            ;; nil some unexpected occasion occurred like env
+            ;; inherited issue.
+            (process-connection-type t)
             (exec-and-arg
              (or
               (and (executable-find "kitty")
@@ -215,8 +223,24 @@ Version 2017-10-09"
                    `("konsole ")))))
         (unless exec-and-arg
           (error "Can not find proper terminal emulator on your system."))
-        (apply 'start-process "" nil
-               exec-and-arg))))))
+        (apply 'start-process
+               (format "eemacs-linux-terminal-popup_<%s>_%s"
+                       default-directory
+                       time-str)
+               (get-buffer-create
+                (format " *eemacs-linux-terminal-popup-proc-buffer_<%s>.%s* "
+                        default-directory
+                        time-str))
+               ;; use setsid to creat a new controlling terminal so that
+               ;; emacs not kill it while open since: gvfs-open and
+               ;; xdg-open return before their children are done
+               ;; working. Emacs might kill their controlling terminal when
+               ;; this happens, killing the children, and stopping refer
+               ;; application from opening properly. (see
+               ;; https://askubuntu.com/questions/646631/emacs-doesnot-work-with-xdg-open
+               ;; for more details)
+               (append '("setsid" "-w") exec-and-arg))
+        )))))
 
 (when sys/win32p
   (defun entropy/emacs-tools-cmd()
