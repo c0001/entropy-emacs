@@ -1273,7 +1273,7 @@ display icon or empty string while
 ;; *** hydra for searcher
 
 (entropy/emacs-lazy-initial-advice-after
- (find-file)
+ (find-file switch-to-buffer)
  "powerful-searcher-hydra-hollow-init"
  "powerful-searcher-hydra-hollow-init" prompt-echo
  :pdumper-no-end t
