@@ -161,17 +161,17 @@ Version 2017-12-23"
 URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
   (interactive)
-  (let ((default-directory
+  (let ((wcdir
           (expand-file-name default-directory)))
     (cond
      (sys/win32p
       ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
-      (let* (($path-o (if (string-match-p "^~/" default-directory)
+      (let* (($path-o (if (string-match-p "^~/" wcdir)
                           (replace-regexp-in-string
                            "^~"
                            (expand-file-name "~")
-                           default-directory)
-                        default-directory))
+                           wcdir)
+                        wcdir))
              ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
              ($path (concat "\"" $path-backslash "\"")))
         (if entropy/emacs-wsl-terminal-enable
@@ -199,7 +199,7 @@ Version 2017-10-09"
         (start-process
          "" nil
          "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
-         default-directory)))
+         wcdir)))
 
      (sys/is-linux-and-graphic-support-p
       (let ((time-str
@@ -213,23 +213,34 @@ Version 2017-10-09"
             (process-connection-type t)
             (exec-and-arg
              (or
+              ;; ----- use gpu accelerated terminal
               (and (executable-find "kitty")
-                   `("kitty" "-d" ,default-directory))
-              (and (executable-find "alacritty")
-                   `("alacritty" "--working-directory" ,default-directory))
+                   `("kitty" "-d" ,wcdir))
+              ;; EEMACS_BUG: alacritty may cause multi process spwan invoked why?
+              ;; (and (executable-find "alacritty")
+              ;;      `("alacritty" "--working-directory" ,wcdir))
+
+              ;; ----- use DE based terminal
               (and (executable-find "gnome-terminal")
-                   `("gnome-terminal" ,default-directory))
+                   `("gnome-terminal" ,wcdir))
               (and (executable-find "konsole")
-                   `("konsole ")))))
+                   `("konsole "))
+
+              ;; ----- fallback to use xterm
+              (and (executable-find "uxterm")
+                   ("uxterm"))
+              (and (executable-find "xterm")
+                   ("xterm"))
+              )))
         (unless exec-and-arg
           (error "Can not find proper terminal emulator on your system."))
         (apply 'start-process
                (format "eemacs-linux-terminal-popup_<%s>_%s"
-                       default-directory
+                       wcdir
                        time-str)
                (get-buffer-create
                 (format " *eemacs-linux-terminal-popup-proc-buffer_<%s>.%s* "
-                        default-directory
+                        wcdir
                         time-str))
                ;; use setsid to creat a new controlling terminal so that
                ;; emacs not kill it while open since: gvfs-open and
