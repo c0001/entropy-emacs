@@ -641,7 +641,7 @@ when available."
    (lsp)
    "lsp-enable-yas"
    "lsp-enable-yas"
-   prompt-popup
+   prompt-echo
    :pdumper-no-end t
    (require 'yasnippet)
    (unless (bound-and-true-p yas-minor-mode)
