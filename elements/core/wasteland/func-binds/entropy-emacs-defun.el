@@ -2391,6 +2391,8 @@ thus."))
       (cond
        ((string-match-p "^28" emacs-version)
         (entropy/emacs--set-user-package-dir-common "28.0.50"))
+       ((string-match-p "^29" emacs-version)
+        (entropy/emacs--set-user-package-dir-common "29.0.50"))
        (t
         (error "Unsupport emacs version '%s'" emacs-version))))
     (when (memq entropy/emacs-ext-elpkg-get-type
