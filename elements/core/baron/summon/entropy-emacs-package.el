@@ -126,7 +126,8 @@ argument."
   (unless __package-first-initialized
     (setq entropy/emacs-package-initialize-init-timestamp
           (current-time)))
-  (package-initialize)
+  (when (or force (not (bound-and-true-p __package-first-initialized)))
+    (package-initialize))
   (unless __package-first-initialized
     (setq entropy/emacs-package-initialize-done-timestamp
           (current-time)))

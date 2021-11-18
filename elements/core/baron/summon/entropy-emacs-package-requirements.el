@@ -35,6 +35,14 @@
 
 (defvar entropy-emacs-packages nil)
 
+(defun __entropy/emacs-requirements/pkgs_desc_get_statble (pkg-name)
+  (let ((pkg_descs (alist-get pkg-name package-archive-contents)))
+    (car (sort pkg_descs
+               (lambda (x y)
+                 (let ((x-v (package-desc-version x))
+                       (y-v (package-desc-version y)))
+                   (version-list-<= x-v y-v)))))))
+
 (setq entropy-emacs-packages
       `(
         ;; elpa&melpa packags
@@ -103,11 +111,11 @@
         ;; force use new version of `eglot'
         ,(list
           :name 'eglot
-          :pkg-desc (lambda () (car (alist-get 'eglot package-archive-contents))))
+          :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'eglot)))
         ;; force use new version of `eldoc' for new version of `eglot'
         ,(list
           :name 'eldoc
-          :pkg-desc (lambda () (car (alist-get 'eldoc package-archive-contents))))
+          :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'eldoc)))
         eldoc-eval
         elfeed
         elisp-refs
@@ -126,7 +134,7 @@
         ;; force use new version of `flymake' for new version of `eglot'
         ,(list
           :name 'flymake
-          :pkg-desc (lambda () (car (alist-get 'flymake package-archive-contents))))
+          :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'flymake)))
         ghub
         git-commit
         git-messenger
@@ -209,7 +217,7 @@
         ;; forcely install newer version of `project' since newer version flymake needed
         ,(list
           :name 'project
-          :pkg-desc (lambda () (car (alist-get 'project package-archive-contents))))
+          :pkg-desc (lambda () (__entropy/emacs-requirements/pkgs_desc_get_statble 'project)))
         projectile
         pyim
         pyim-basedict

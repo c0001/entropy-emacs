@@ -620,7 +620,9 @@ download/%s/entropy-emacs-extensions_build_%s.tar.xz"
     (setq package-archives
           `(("entropy-melpa"      . ,(funcall archive-fmt "melpa"))
             ("entropy-elpa"       . ,(funcall archive-fmt "elpa"))
-            ("entropy-elpa-devel" . ,(funcall archive-fmt "elpa-devel"))))))
+            ;; NOTE: disable elpa devel channel to avoid retrieving package updated with new emacs version.
+            ;; ("entropy-elpa-devel" . ,(funcall archive-fmt "elpa-devel"))
+            ))))
 
 ;; **** elpkg install location
 (defcustom entropy/emacs-ext-emacs-pkgel-get-pkgs-root
