@@ -131,9 +131,7 @@
         git-commit
         git-messenger
         git-timemachine
-        gitattributes-mode
-        gitconfig-mode
-        gitignore-mode
+        git-modes
         gntp
         go-mode
         google-translate

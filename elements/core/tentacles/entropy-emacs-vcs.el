@@ -354,29 +354,10 @@
   )
 
 ;; **** Git major modes
-(use-package gitattributes-mode
-  :commands gitattributes-mode
+(use-package git-modes
   :init
-  (dolist (pattern '("/\\.gitattributes\\'" "/info/attributes\\'" "/git/attributes\\'"))
-    (add-to-list 'auto-mode-alist (cons pattern #'gitattributes-mode))))
-
-(use-package gitconfig-mode
-  :commands gitconfig-mode
-  :init
-  (dolist (pattern
-           '("/\\.gitconfig\\'"
-             "/\\.git/config\\'"
-             "/modules/.*/config\\'"
-             "/git/config\\'"
-             "/\\.gitmodules\\'"
-             "/etc/gitconfig\\'"))
-    (add-to-list 'auto-mode-alist (cons pattern 'gitconfig-mode))))
-
-(use-package gitignore-mode
-  :commands gitignore-mode
-  :init
-  (dolist (pattern (list "/\\.gitignore\\'" "/info/exclude\\'" "/git/ignore\\'"))
-    (add-to-list 'auto-mode-alist (cons pattern 'gitignore-mode))))
+  (add-hook 'entropy/emacs-after-startup-hook
+            #'(lambda () (require 'git-modes))))
 
 
 ;; **** Open github/gitlab/bitbucket page
