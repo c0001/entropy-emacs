@@ -141,6 +141,23 @@ To get the real-body in BODY.
 (advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
 
 ;; *** common ansi message wrapper core
+
+;; define `ansi-color--find-face' while not found since its may obsolete while emacs-29
+(unless (fboundp 'ansi-color--find-face)
+  (defun ansi-color--find-face (codes)
+    "Return the face corresponding to CODES."
+    (let (faces)
+      (while codes
+        (let ((face (ansi-color-get-face-1 (pop codes))))
+          ;; In the (default underline) face, say, the value of the
+          ;; "underline" attribute of the `default' face wins.
+          (unless (eq face 'default)
+            (push face faces))))
+      ;; Avoid some long-lived conses in the common case.
+      (if (cdr faces)
+          (nreverse faces)
+        (car faces)))))
+
 (defun entropy/emacs-message--ansi-color-apply-for-face (string)
   "The same as `ansi-color-apply', but using `face' instead of
 `font-lock-faace' for make `message' colorized."

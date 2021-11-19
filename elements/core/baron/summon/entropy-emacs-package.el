@@ -708,13 +708,28 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
       (string-match-p
        "\\.elc$"
        entropy/emacs-package-src-load-file-name)
-      (entropy/emacs-package-prepare-foras)
+      (progn
+        (entropy/emacs-package-prepare-foras))
     (entropy/emacs-package-install-all-packages))
   (when
       ;; just init `use-package' while no installing procedure sine
       ;; `use-package' may not be detected in dependencies deficiency.
       (not entropy/emacs-package-install-success-list)
-    (entropy/emacs-package-init-use-package))
+    (condition-case error
+        (entropy/emacs-package-init-use-package)
+      (error
+       (if (string-match-p
+            "\\.elc$"
+            entropy/emacs-package-src-load-file-name)
+           (progn
+             ;; but still install package when there's no `use-package' checked out
+             ;; while unexpected `package-user-dir' broken while some
+             ;; mistake by user-end.
+             (entropy/emacs-package-install-all-packages)
+             (user-error
+              "Please re-make-compile and re-open eemacs since we've fixed the broken dependencies (error: %s)"
+              error))
+         (user-error "%s" error)))))
   (run-hooks 'entropy/emacs-package-common-start-after-hook))
 
 ;; * Provide
