@@ -225,19 +225,29 @@
     (apply orig-func orig-args)))
 
 (defun entropy/emacs-batch--native-compile-package-dir ()
-  (let* ((comp-verbose 0))
-    (unwind-protect
+  (let* ((comp-verbose 0)
+         (pkg-dirs `(,package-user-dir
+                     ,(file-name-directory
+                       (locate-library "subr")))))
+    (dolist (pkg-dir pkg-dirs)
+      (unwind-protect
+          (progn
+            (entropy/emacs-message-do-message
+             "%s '%s' %s"
+             (green "Do native compile for package dir")
+             (yellow  (format "%s" pkg-dir))
+             (green  "......"))
+            (sleep-for 3)
+            (advice-add 'comp-run-async-workers
+                        :around #'entropy/emacs-batch--around-advice-for-native-compile)
+            (native-compile-async pkg-dir 'recursively)
+            (while (or comp-files-queue
+                       (> (comp-async-runnings) 0))
+              (sleep-for 1)))
         (progn
-          (advice-add 'comp-run-async-workers
-                      :around #'entropy/emacs-batch--around-advice-for-native-compile)
-          (native-compile-async package-user-dir 'recursively)
-          (while (or comp-files-queue
-                     (> (comp-async-runnings) 0))
-            (sleep-for 1)))
-      (progn
-        (advice-remove
-         'comp-run-async-workers
-         #'entropy/emacs-batch--around-advice-for-native-compile)))))
+          (advice-remove
+           'comp-run-async-workers
+           #'entropy/emacs-batch--around-advice-for-native-compile))))))
 
 ;; **** get entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo
 
@@ -612,6 +622,8 @@ faild with hash '%s' which must match '%s'"
        (entropy/emacs-batch--dump-emacs)))
      ((and (ignore-errors (native-comp-available-p))
            (equal type "native-comp"))
+      ;; we must prepare for `package-user-dir' before native-comp
+      (entropy/emacs-package-install-all-packages)
       (entropy/emacs-batch--prompts-for-native-compile
        (entropy/emacs-batch--native-compile-package-dir)))
      (t

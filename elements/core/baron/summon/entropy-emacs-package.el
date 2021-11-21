@@ -310,8 +310,8 @@ command and rest of the command's arguments"
                 :prepare
                 (entropy/emacs-message-do-message
                  "%s"
-                 (magenta "Make dynamic module for package [%s] of command '%s' ..."
-                          ',pkg ',command))
+                 (magenta "Make dynamic module for package [%s] in working dir <%s> of command '%s' ..."
+                          ',pkg ,default-directory ',command))
                 :error
                 (with-current-buffer $sentinel/destination
                   (entropy/emacs-message-do-message
