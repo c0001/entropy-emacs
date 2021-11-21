@@ -38,6 +38,9 @@
 
 ;; ** require
 
+;; do not auto native-comp while we did batch make
+(setq native-comp-deferred-compilation nil)
+
 (defun entropy/emacs-batch-require-prefer-use-source
     (feature)
   (require feature (format "%s.el" feature)))

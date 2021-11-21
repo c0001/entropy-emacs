@@ -50,5 +50,11 @@
 ;; prevent judgment interaction missing upon emacs-28.
 (setq use-dialog-box nil)
 
+;; native comp refer
+(setq native-comp-deferred-compilation t)
+(setq native-comp-deferred-compilation-deny-list
+      ;; we must excluded eemacs code for native comp
+      '("entropy-emacs-.*"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here
