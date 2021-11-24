@@ -414,13 +414,14 @@ EXIT /b
        server-name-string))))
 
 ;; ** instances
-;; *** tern
+;; *** language server
+;; **** tern
 (defun entropy/emacs-coworker-check-tern-server (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
    "tern-server-install" '("tern") "tern"))
 
-;; *** web
+;; **** web
 (defun entropy/emacs-coworker-check-web-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
@@ -428,7 +429,7 @@ EXIT /b
   (entropy/emacs-coworker--coworker-install-by-npm
    "css-lsp-server" '("css-languageserver") "vscode-css-languageserver-bin"))
 
-;; *** js
+;; **** js
 (defun entropy/emacs-coworker-check-js-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
@@ -444,13 +445,13 @@ EXIT /b
    '("vls")
    "vls"))
 
-;; *** php
+;; **** php
 (defun entropy/emacs-coworker-check-php-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
    "php-lsp-server" '("intelephense") "intelephense"))
 
-;; *** clangd
+;; **** clangd
 (defun entropy/emacs-coworker-check-clangd-lsp (&rest _)
   (interactive)
   (if (executable-find "clangd")
@@ -461,14 +462,14 @@ EXIT /b
        (green "."))
     (error "Please using system package management install '<clangd>'.")))
 
-;; *** cmake
+;; **** cmake
 
 (defun entropy/emacs-coworker-check-cmake-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-pip
    "cmake-lsp" '("cmake-language-server" "cmake-format") "cmake-language-server"))
 
-;; *** bash
+;; **** bash
 (defun entropy/emacs-coworker-check-bash-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
@@ -476,7 +477,7 @@ EXIT /b
    '("bash-language-server")
    "bash-language-server"))
 
-;; *** json
+;; **** json
 (defun entropy/emacs-coworker-check-json-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
@@ -484,7 +485,7 @@ EXIT /b
    '("vscode-json-languageserver")
    "vscode-json-languageserver"))
 
-;; *** xml
+;; **** xml
 
 (defun entropy/emacs-coworker-check-xml-lsp (&rest _)
   (entropy/emacs-coworker--coworker-install-by-archive-get
@@ -496,7 +497,7 @@ EXIT /b
       (expand-file-name "org.eclipse.lemminx-0.13.1-uber.jar"
                         entropy/emacs-coworker-archive-host-root))
 
-;; *** powershell
+;; **** powershell
 (defun entropy/emacs-coworker-check-pwsh-lsp (&rest _)
   (entropy/emacs-coworker--coworker-install-by-archive-get
    "pwsh lsp"
@@ -516,15 +517,15 @@ EXIT /b
          "pwsh-lsp/PowerShellEditorServices"
          entropy/emacs-coworker-archive-host-root)))
 
-;; *** python
-;; **** python language server types
-;; ***** pyls
+;; **** python
+;; ***** python language server types
+;; ****** pyls
 (defun entropy/emacs-coworker-check-pyls-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-pip
    "pyls-lsp" '("pyls") "python-language-server"))
 
-;; ***** pyls-ms
+;; ****** pyls-ms
 (defvar entropy/emacs-coworker--pyls-ms-archive-dir
   (expand-file-name
    "python-language-server"
@@ -616,13 +617,13 @@ EXIT /b
        entropy/emacs-coworker--pyls-ms-archive-dir))
 
 
-;; ***** pyright
+;; ****** pyright
 (defun entropy/emacs-coworker-check-pyright-lsp ()
   (interactive)
   (entropy/emacs-coworker--coworker-install-by-npm
    "pyright-lsp" '("pyright" "pyright-langserver") "pyright"))
 
-;; **** main
+;; ***** main
 
 (defun entropy/emacs-coworker-check-python-lsp (&rest _)
   (cl-case entropy/emacs-codeserver-prefer-pyls-type
@@ -631,7 +632,7 @@ EXIT /b
     (pyright (entropy/emacs-coworker-check-pyright-lsp))))
 
 
-;; *** java
+;; **** java
 (defun entropy/emacs-coworker-check-java-lsp (&rest _)
   (entropy/emacs-coworker--coworker-install-by-archive-get
    "java lsp"
@@ -647,6 +648,16 @@ EXIT /b
         (expand-file-name
          "jdtls/jdt-lsp"
          entropy/emacs-coworker-archive-host-root)))
+
+
+;; *** exra tools
+;; **** wsl-open
+(defun entropy/emacs-coworker-check-wsl-open (&rest _)
+  (interactive)
+  (entropy/emacs-coworker--coworker-install-by-npm
+   "wsl-open"
+   '("wsl-open")
+   "wsl-open"))
 
 ;; * provide
 (provide 'entropy-emacs-coworker)

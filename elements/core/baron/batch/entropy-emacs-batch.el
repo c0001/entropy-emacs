@@ -166,30 +166,36 @@
   (let ((count 1)
         (newhost (when prefix
                    (read-directory-name "Coworker Host: " nil nil t)))
-        (task-list '(("tern" . entropy/emacs-coworker-check-tern-server)
-                     ("web-lsp" . entropy/emacs-coworker-check-web-lsp)
-                     ("js-lsp" . entropy/emacs-coworker-check-js-lsp)
-                     ("json-lsp" . entropy/emacs-coworker-check-json-lsp)
-                     ("xml-lsp" . entropy/emacs-coworker-check-xml-lsp)
-                     ("php-lsp" . entropy/emacs-coworker-check-php-lsp)
-                     ("bash-lsp" . entropy/emacs-coworker-check-bash-lsp)
-                     ("python-lsp" . entropy/emacs-coworker-check-python-lsp)
-                     ("python-pyright" . entropy/emacs-coworker-check-pyright-lsp)
-                     ("cmake-lsp" . entropy/emacs-coworker-check-cmake-lsp)
-                     ("java-lsp"  . entropy/emacs-coworker-check-java-lsp)
-                     ("pwsh-lsp" . entropy/emacs-coworker-check-pwsh-lsp)
-                     ("python-lsp-ms" . entropy/emacs-coworker-check-pyls-ms-lsp)
-                     ("clangd-lsp" . entropy/emacs-coworker-check-clangd-lsp))))
+        (task-list '((:name "tern"           :pred entropy/emacs-coworker-check-tern-server :enable (EEMACS-DT-IDENTITY t))
+                     (:name "web-lsp"        :pred entropy/emacs-coworker-check-web-lsp     :enable (EEMACS-DT-IDENTITY t))
+                     (:name "js-lsp"         :pred entropy/emacs-coworker-check-js-lsp      :enable (EEMACS-DT-IDENTITY t))
+                     (:name "json-lsp"       :pred entropy/emacs-coworker-check-json-lsp    :enable (EEMACS-DT-IDENTITY t))
+                     (:name "xml-lsp"        :pred entropy/emacs-coworker-check-xml-lsp     :enable (EEMACS-DT-IDENTITY t))
+                     (:name "php-lsp"        :pred entropy/emacs-coworker-check-php-lsp     :enable (EEMACS-DT-IDENTITY t))
+                     (:name "bash-lsp"       :pred entropy/emacs-coworker-check-bash-lsp    :enable (EEMACS-DT-IDENTITY t))
+                     (:name "python-lsp"     :pred entropy/emacs-coworker-check-python-lsp  :enable (EEMACS-DT-IDENTITY t))
+                     (:name "python-pyright" :pred entropy/emacs-coworker-check-pyright-lsp :enable (EEMACS-DT-IDENTITY t))
+                     (:name "cmake-lsp"      :pred entropy/emacs-coworker-check-cmake-lsp   :enable (EEMACS-DT-IDENTITY t))
+                     (:name "java-lsp"       :pred entropy/emacs-coworker-check-java-lsp    :enable (EEMACS-DT-IDENTITY t))
+                     (:name "clangd-lsp"     :pred entropy/emacs-coworker-check-clangd-lsp  :enable (EEMACS-DT-IDENTITY t))
+                     (:name "wsl-open"       :pred entropy/emacs-coworker-check-wsl-open    :enable (EEMACS-DT-FORM sys/wsl-env-p))
+                     (:name "pwsh-lsp"       :pred entropy/emacs-coworker-check-pwsh-lsp    :enable (EEMACS-DT-FORM (and (executable-find "pwsh")
+                                                                                                                         (executable-find "dotnet"))))
+                     (:name "python-lsp-ms"  :pred entropy/emacs-coworker-check-pyls-ms-lsp :enable (EEMACS-DT-FORM
+                                                                                                     (executable-find "dotnet")))
+
+                     )))
     (entropy/emacs-with-coworker-host
       newhost
       (dolist (el task-list)
-        (entropy/emacs-message-do-message
-         "%s %s %s"
-         (cyan (format "🏠 %s: " count))
-         (yellow (format "'%s'" (car el)))
-         (green "installing ..."))
-        (funcall (cdr el))
-        (cl-incf count)))))
+        (when (entropy/emacs-type-spec-eval (plist-get el :enable))
+          (entropy/emacs-message-do-message
+           "%s %s %s"
+           (cyan (format "🏠 %s: " count))
+           (yellow (format "'%s'" (plist-get el :name)))
+           (green "installing ..."))
+          (funcall (plist-get el :pred))
+          (cl-incf count))))))
 
 ;; **** backup `package-user-dir'
 (defun entropy/emacs-batch--backup-extensions ()
