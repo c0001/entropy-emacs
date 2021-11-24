@@ -2970,7 +2970,7 @@ NOTE: no warranty use in other system."
     (orig-func &rest orig-args)
   "Kill things also put in windows system clipboard when
 `sys/wsl-env-p'."
-  (when (sys/wsl-env-p)
+  (when sys/wsl-env-p
     (let ((str (car orig-args)))
       (entropy/emacs-windows-env/copy-to-clipboard-core
        str)))

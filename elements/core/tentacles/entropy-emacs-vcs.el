@@ -106,7 +106,7 @@
 
   :config
   ;; windows wsl2 using `pinentry-emacs' as default gpg-agent passphrase
-  (when (sys/wsl-env-p)
+  (when sys/wsl-env-p
     (unless (pinentry-emacs-gpg-agent-conf-patched-p)
       (pinentry-emacs-gpg-agent-conf-patch-func)))
 

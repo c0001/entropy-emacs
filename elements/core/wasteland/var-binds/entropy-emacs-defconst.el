@@ -64,33 +64,26 @@
   (string-equal "root" (getenv "USER"))
   "Are you using ROOT user?")
 
-;; NOTE: Judge wsl env use function since its may enlarge init time
-(defvar __sys/wsl-env-judge-did-p nil)
-(defvar __sys/wsl-env-p nil)
-(defun sys/wsl-env-p ()
+(defconst sys/wsl-env-p
+  (let ((wsl-indcf "/proc/version"))
+    (and
+     ;; use uname judge
+     (executable-find "uname")
+     (string-match-p
+      "Microsoft"
+      (shell-command-to-string "uname -a"))
+     ;; cat /proc/version file
+     (file-exists-p wsl-indcf)
+     (string-match-p
+      "\\(microsoft\\|Microsoft\\)"
+      (with-temp-buffer
+        (insert-file-contents wsl-indcf)
+        (buffer-substring
+         (point-min)
+         (point-max))))))
   "Judge whether current env is in WSL(windows subsystem linux)
 environment."
-  (if __sys/wsl-env-judge-did-p
-      __sys/wsl-env-p
-    (let ((wsl-indcf "/proc/version"))
-      (setq
-       __sys/wsl-env-judge-did-p t
-       __sys/wsl-env-p
-       (and
-        ;; use uname judge
-        (executable-find "uname")
-        (string-match-p
-         "Microsoft"
-         (shell-command-to-string "uname -a"))
-        ;; cat /proc/version file
-        (file-exists-p wsl-indcf)
-        (string-match-p
-         "\\(microsoft\\|Microsoft\\)"
-         (with-temp-buffer
-           (insert-file-contents wsl-indcf)
-           (buffer-substring
-            (point-min)
-            (point-max)))))))))
+  )
 
 ;; *** group filter
 (defconst sys/is-win-group
