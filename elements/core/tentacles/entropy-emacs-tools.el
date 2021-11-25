@@ -81,43 +81,6 @@ each an argument to COMMAND."
         " >/dev/null")))))
 
 ;; **** Function manually
-;; ***** open in external apps
-(when sys/is-graphic-support
-  (defun entropy/emacs-tools-open-in-external-app (&optional files)
-    "Open the current file or dired marked files in external app.
-The app is chosen from your OS's preference.  URL
-`http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
-Version 2016-10-15"
-    (interactive)
-    (let* (($file-list
-            (if (not files)
-                (if (and (string-equal major-mode "dired-mode"))
-                    (dired-get-marked-files)
-                  (list (buffer-file-name)))
-              files))
-           ($do-it-p (if (<= (length $file-list) 5)
-                         t
-                       (y-or-n-p "Open more than 5 files?"))))
-      (when $do-it-p
-        (cond
-         (sys/is-wingroup-and-graphic-support-p
-          (mapc
-           (lambda ($fpath)
-             (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" $fpath t t)))
-           $file-list))
-         (sys/is-mac-and-graphic-support-p
-          (mapc
-           (lambda ($fpath)
-             (shell-command
-              (concat "open " (shell-quote-argument $fpath))))
-           $file-list))
-         (sys/is-linux-and-graphic-support-p
-          (mapc
-           (lambda ($fpath)
-             (let ((process-connection-type nil))
-               (start-process "" nil "xdg-open" $fpath)))
-           $file-list)))))))
-
 ;; ***** Open in desktop manager
 (when sys/is-graphic-support
   (defun entropy/emacs-tools-show-in-desktop (&optional dpath)
@@ -273,10 +236,7 @@ Version 2017-10-09"
  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
   'dired-mode '(dired dired-mode-map)
   '("Misc."
-    (("<C-return>" entropy/emacs-tools-open-in-external-app
-      "Open dired marked files in external app"
-      :enable sys/is-graphic-support :exit t :map-inject t)
-     ("M-=" entropy/emacs-tools-show-in-desktop
+    (("M-=" entropy/emacs-tools-show-in-desktop
       "Show current file in desktaop"
       :enable sys/is-graphic-support :exit t :map-inject t)))))
 
@@ -297,27 +257,31 @@ Version 2017-10-09"
 
 ;; **** entropy-open-with
 (use-package entropy-open-with
-  :if sys/is-graphic-support
   :ensure nil
   :commands (entropy/open-with-dired-open
              entropy/open-with-buffer)
 
   :eemacs-tpha
-  (((:enable t :defer (:data
-                       (:adfors
-                        (dired-mode)
-                        :adtype after
-                        :pdumper-no-end t))))
+  (((:enable
+     sys/is-graphic-support
+     :defer (:data
+             (:adfors
+              (dired-mode)
+              :adtype after
+              :pdumper-no-end t))))
    ("WI&BUF"
     (("M-1" entropy/open-with-buffer "Buffer open with portable apps"
       :enable t :exit t :eemacs-top-bind t))))
 
   :eemacs-mmphca
-  (((:enable t :defer (:data
-                       (:adfors
-                        (dired-mode)
-                        :adtype after
-                        :pdumper-no-end t)))
+  (((:enable
+     (or sys/is-graphic-support
+         sys/wsl-env-p)
+     :defer (:data
+             (:adfors
+              (dired-mode)
+              :adtype after
+              :pdumper-no-end t)))
     (dired-mode (dired dired-mode-map)))
    ("Misc."
     (("M-RET" entropy/open-with-dired-open "Dired open with portable apps"

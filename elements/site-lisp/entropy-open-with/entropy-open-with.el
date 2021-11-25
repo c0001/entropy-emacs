@@ -358,6 +358,29 @@ string type.
 (defun entropy/open-with--on-win32 ()
   (member system-type '(windows-nt cygwin)))
 
+(defvar __entropy/open-with-wsl-env-judged nil)
+(defvar __entropy/open-with-wsl-env-p nil)
+(defun entropy/open-with-wsl-env-p ()
+  (if __entropy/open-with-wsl-env-judged
+      __entropy/open-with-wsl-env-p
+    (let ((wsl-indcf "/proc/version"))
+      (setq __entropy/open-with-wsl-env-p
+            (and
+             ;; use uname judge
+             (executable-find "uname")
+             (string-match-p
+              "Microsoft"
+              (shell-command-to-string "uname -a"))
+             ;; cat /proc/version file
+             (file-exists-p wsl-indcf)
+             (string-match-p
+              "\\(microsoft\\|Microsoft\\)"
+              (with-temp-buffer
+                (insert-file-contents wsl-indcf)
+                (buffer-substring
+                 (point-min)
+                 (point-max)))))))))
+
 (defun entropy/open-with--sudo-file-name-predicate (filename)
   "Shrink trmap path of sudo privilege type when on *NIX platform."
   (if (and (not (entropy/open-with--on-win32))
@@ -449,7 +472,10 @@ procedure who don't want to be as the state as what."
   (let ((file-plistp (entropy/cl-plistp file-plist))
         caller $file-pattern file-path)
     (cond
-     (file-plistp
+     ((and file-plistp
+           ;; we don't want wsl env to using app associated open-with
+           ;; refer since we must follow windows mimeapps settings
+           (not (entropy/open-with-wsl-env-p)))
       (setq caller (plist-get file-plist :caller)
             $file-pattern (expand-file-name (plist-get file-plist :file-pattern))
             open-with-arg-concated (plist-get file-plist :open-with-arg-concated)
@@ -485,6 +511,16 @@ procedure who don't want to be as the state as what."
                    file-path)
            (get-buffer-create " *eemacs-linux-open-with* ")
            "setsid" "-w" "xdg-open" file-path)))
+       ((entropy/open-with-wsl-env-p)
+        (unless (executable-find "wsl-open")
+          (user-error "You are in microsoft subsystem linux environment, please install 'wsl-open' \
+firstly using 'npm install -g wsl-open'"))
+        (let ((process-connection-type t))
+          (start-process
+           (format "eemacs-wsl-open-with_for_file_%s"
+                   file-path)
+           (get-buffer-create " *eemacs-wsl-open-with* ")
+           "setsid" "-w" "wsl-open" file-path)))
        ((eq system-type 'darwin)
         ;; FIXME: its not asynchronously
         (shell-command (concat "open " file-path))))
