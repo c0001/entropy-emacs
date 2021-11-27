@@ -66,19 +66,18 @@
                       "start"))
                '(file))))
 
-  (defun openwith-open-unix (command arglist)
-    "Run external command COMMAND, in such a way that it is
-disowned from the parent Emacs process.  If Emacs dies, the
-process spawned here lives on.  ARGLIST is a list of strings,
-each an argument to COMMAND."
+  (defun __ya/openwith-open-unix (command arglist)
+    "Patched without `process-connection-type'temporally"
     (let ((shell-file-name "/bin/sh")
+          ;; EEMACS_MAINTENANCE, FIXME
           (process-connection-type nil))
       (start-process-shell-command
        "openwith-process" nil
        (concat
         "exec nohup " command " "
         (mapconcat 'shell-quote-argument arglist " ")
-        " >/dev/null")))))
+        " >/dev/null"))))
+  (advice-add 'openwith-open-unix :override #'__ya/openwith-open-unix))
 
 ;; **** Function manually
 ;; ***** Open in desktop manager
