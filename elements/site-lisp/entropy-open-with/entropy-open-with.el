@@ -469,30 +469,43 @@ procedure who don't want to be as the state as what."
 
 
 (defun entropy/open-with--open-file-plist (file-plist)
-  (let ((file-plistp (entropy/cl-plistp file-plist))
-        caller $file-pattern file-path)
+  (let* ((file-plistp (entropy/cl-plistp file-plist))
+         caller file-pattern file-path
+         (error-pred (lambda (proc-name proc-buffer)
+                       (pop-to-buffer proc-buffer)
+                       (error "entropy-open-with <%s> exited with fatal"
+                              proc-name)))
+         (proc-sentinel
+          (lambda (proc _event)
+            (let ((proc-name (process-name proc))
+                  (proc-buffer (process-buffer proc))
+                  (proc-status (process-status proc)))
+              (cond ((and (eq 'exit proc-status)
+                          (not (= 0 (process-exit-status proc))))
+                     (funcall error-pred proc-name proc-buffer))
+                    ((member proc-status '(stop signal))
+                     (funcall error-pred proc-name proc-buffer))
+                    ((and (eq 'exit proc-status)
+                          (= 0 (process-exit-status proc)))
+                     (message "entropy-open-with <%s> open sucessfully"
+                              proc-name)))))))
     (cond
+     ;; ==================== plist assoc ====================
      ((and file-plistp
            ;; we don't want wsl env to using app associated open-with
            ;; refer since we must follow windows mimeapps settings
            (not (entropy/open-with-wsl-env-p)))
       (setq caller (plist-get file-plist :caller)
-            $file-pattern (expand-file-name (plist-get file-plist :file-pattern))
+            file-pattern (expand-file-name (plist-get file-plist :file-pattern))
             open-with-arg-concated (plist-get file-plist :open-with-arg-concated)
             open-with-arg (plist-get file-plist :open-with-arg))
       (cond
        ((entropy/open-with--on-win32)
-        (w32-shell-execute "open" caller open-with-arg-concated))
+        (set-process-sentinel
+         (w32-shell-execute "open" caller open-with-arg-concated)
+         proc-sentinel))
        ((or (eq system-type 'gnu/linux)
             (eq system-type 'darwin))
-        (let ((process-connection-type nil))
-          (apply 'start-process "" nil caller open-with-arg)))))
-     ((null file-plistp)
-      (setq file-path (expand-file-name file-plist))
-      (cond
-       ((entropy/open-with--on-win32)
-        (w32-shell-execute "open" file-path))
-       ((eq system-type 'gnu/linux)
         (let (
               ;; preserve `process-connection-type' to t since while
               ;; nil some unexpected occasion occurred like env
@@ -506,25 +519,52 @@ procedure who don't want to be as the state as what."
           ;; application from opening properly. (see
           ;; https://askubuntu.com/questions/646631/emacs-doesnot-work-with-xdg-open
           ;; for more details)
-          (start-process
-           (format "eemacs-linux-open-with_xdg_for_file_%s"
-                   file-path)
-           (get-buffer-create " *eemacs-linux-open-with* ")
-           "setsid" "-w" "xdg-open" file-path)))
+          (set-process-sentinel
+           (start-process
+            (format "eemacs-*nix-open-with_%s_for_file_%s"
+                    caller file-path)
+            (get-buffer-create " *eemacs-*nix-open-with* ")
+            "setsid" "-w" caller open-with-arg)
+           proc-sentinel)))))
+     ;; ==================== native open ====================
+     ((null file-plistp)
+      (setq file-path (expand-file-name file-plist))
+      (cond
+       ;; wsl
        ((entropy/open-with-wsl-env-p)
         (unless (executable-find "wsl-open")
           (user-error "You are in microsoft subsystem linux environment, please install 'wsl-open' \
 firstly using 'npm install -g wsl-open'"))
         (let ((process-connection-type t))
-          (start-process
-           (format "eemacs-wsl-open-with_for_file_%s"
-                   file-path)
-           (get-buffer-create " *eemacs-wsl-open-with* ")
-           "setsid" "-w" "wsl-open" file-path)))
+          (set-process-sentinel
+           (start-process
+            (format "eemacs-wsl-open-with_for_file_%s"
+                    file-path)
+            (get-buffer-create " *eemacs-wsl-open-with* ")
+            "setsid" "-w" "wsl-open" file-path)
+           proc-sentinel)))
+       ;; win32
+       ((entropy/open-with--on-win32)
+        (set-process-sentinel
+         (w32-shell-execute "open" file-path)
+         proc-sentinel))
+       ;; linux
+       ((eq system-type 'gnu/linux)
+        (let ((process-connection-type t))
+          (set-process-sentinel
+           (start-process
+            (format "eemacs-linux-open-with_xdg_for_file_%s"
+                    file-path)
+            (get-buffer-create " *eemacs-linux-open-with* ")
+            "setsid" "-w" "xdg-open" file-path)
+           proc-sentinel)))
+       ;; macos
        ((eq system-type 'darwin)
         ;; FIXME: its not asynchronously
         (shell-command (concat "open " file-path))))
-      (unless (null entropy/open-with-type-list)
+
+      ;; show warn when non caller found for file
+      (unless (not (null caller))
         (message "Can not match any open with type for file '%s', open with native MIME assoc."
                  file-path))))))
 
