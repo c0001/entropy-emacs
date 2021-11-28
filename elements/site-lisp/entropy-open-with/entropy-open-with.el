@@ -471,15 +471,15 @@ procedure who don't want to be as the state as what."
 (defun entropy/open-with--open-file-plist (file-plist)
   (let* ((file-plistp (entropy/cl-plistp file-plist))
          caller file-pattern file-path
-         (error-pred (lambda (proc-name proc-buffer)
-                       (pop-to-buffer proc-buffer)
-                       (error "entropy-open-with <%s> exited with fatal"
-                              proc-name)))
          (proc-sentinel
           (lambda (proc _event)
             (let ((proc-name (process-name proc))
                   (proc-buffer (process-buffer proc))
-                  (proc-status (process-status proc)))
+                  (proc-status (process-status proc))
+                  (error-pred (lambda (proc-name proc-buffer)
+                                (pop-to-buffer proc-buffer)
+                                (error "entropy-open-with <%s> exited with fatal"
+                                       proc-name))))
               (cond ((and (eq 'exit proc-status)
                           (not (= 0 (process-exit-status proc))))
                      (funcall error-pred proc-name proc-buffer))
