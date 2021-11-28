@@ -284,7 +284,14 @@ Version 2017-10-09"
     (dired-mode (dired dired-mode-map)))
    ("Misc."
     (("M-RET" entropy/open-with-dired-open "Dired open with portable apps"
-      :enable t :exit t :map-inject t))))
+      :enable
+      (if sys/is-graphic-support t)
+      :exit t :map-inject t)
+     ("M-o" entropy/open-with-dired-open "Dired open with portable apps"
+      :enable
+      (if (and sys/wsl-env-p (not (display-graphic-p))) t)
+      :exit t :map-inject t)
+     )))
 
   :config
   (defun entropy/emacs-tools--open-with-port-stuffs-around (oldfunc &rest arg-rest)
