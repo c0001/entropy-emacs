@@ -331,14 +331,22 @@ return nil"
    (:eval
     (if (buffer-narrowed-p)
         (__ya/mdl-egroup/propertize-face "><" 'warning)
-      (__ya/mdl-egroup/propertize-face "||" 'success)))
+      (__ya/mdl-egroup/propertize-face
+       "||"
+       (if (member entropy/emacs-theme-sticker '(doom-1337))
+         'highlight
+       'success))))
    ;;"remote:" mode-line-remote " "
    ;; mode-line-frame-identification
    ;; mode-line-modes
+   " "
    (:eval
     (__ya/mdl-egroup/propertize-face
-     (format " %s " major-mode)
-     'success))
+     (format "%s" major-mode)
+     (if (member entropy/emacs-theme-sticker '(doom-1337))
+         'highlight
+       'success)))
+   " "
    "<" __ya/mode-line-buffer-identification "> "
    (:eval
     (concat (__ya/mdl-egroup/propertize-face
