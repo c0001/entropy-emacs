@@ -54,7 +54,9 @@
 (setq native-comp-deferred-compilation t)
 (setq native-comp-deferred-compilation-deny-list
       ;; we must excluded eemacs code for native comp
-      '("entropy-emacs-.*"))
+      '("entropy-emacs-.*"
+        "liberime*"
+        "fakecygpty"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here

@@ -278,8 +278,6 @@ if NAMES is nil, \"rime-data\" as fallback."
           (goto-char (point-min)))
         (pop-to-buffer buf)))))
 
-(liberime-load)
-
 (defun liberime-get-preedit ()
   "Get rime preedit."
   (let* ((context (liberime-get-context))

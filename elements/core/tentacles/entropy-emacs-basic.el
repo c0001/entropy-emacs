@@ -2690,16 +2690,18 @@ CustomizationGuide#\
 %E8%A3%BD%E7%B0%A1%E5%8C%96\
 %E5%AD%97%E8%BC%B8%E5%87%BA][the rime wiki]] for details.
 "
-    (liberime-try-select-schema
-     "luna_pinyin_simp"))
-
-  (defun entropy/emacs-basic-pyim-load-rime ()
+    (require 'liberime)
     ;; load liberim just needed to require it. Set
     ;; `liberime-auto-build' to t so that we do not get the build
     ;; prompt messeges and auto-build the liberime-core so that we do
     ;; not manually run `liberime-build' here directly.
     (setq liberime-auto-build t)
-    (require 'liberime)
+    (liberime-load)
+    (liberime-try-select-schema
+     "luna_pinyin_simp")
+    t)
+
+  (defun entropy/emacs-basic-pyim-load-rime ()
     ;; set liberime schema and check dynamic module status and build
     ;; it when needed.
     (let (building)
