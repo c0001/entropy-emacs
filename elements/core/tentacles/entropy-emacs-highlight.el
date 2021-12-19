@@ -462,7 +462,7 @@ invoke this function any more isn't it?"
 
   (when entropy/emacs-hl-todo-enable-at-startup
     (entropy/emacs-lazy-initial-advice-before
-     (find-file)
+     (find-file prog-mode)
      "global-hl-todo" "global-hl-todo" prompt-echo
      :pdumper-no-end t
      (progn

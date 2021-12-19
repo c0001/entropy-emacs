@@ -179,8 +179,10 @@ Version 2017-10-09"
               (and (executable-find "kitty")
                    `("kitty" "-d" ,wcdir))
               ;; EEMACS_BUG: alacritty may cause multi process spwan invoked why?
-              ;; (and (executable-find "alacritty")
-              ;;      `("alacritty" "--working-directory" ,wcdir))
+              ;; - obviously in debian 11?
+              ;; - no bug in archlinux?
+              (and (executable-find "alacritty")
+                   `("alacritty" "--working-directory" ,wcdir))
 
               ;; ----- use DE based terminal
               (and (executable-find "gnome-terminal")
