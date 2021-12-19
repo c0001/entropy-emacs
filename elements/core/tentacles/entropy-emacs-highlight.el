@@ -473,18 +473,33 @@ invoke this function any more isn't it?"
                                             ;load
                                             ;`hl-todo-keyword-faces'
 
-  ;; FIXME: too ensure the term adding for pdumper session
-  (unless (bound-and-true-p entropy/emacs-custom-enable-lazy-load)
-    (defun __ya/hl-todo-mode (orig-func &rest orig-args)
-      (progn
-        (when (bound-and-true-p hl-todo-mode)
-          (entropy/emacs-hl-todo-keywords-add-term))
-        (apply orig-func orig-args)))
-    ;; EEMACS_MAINTENANCE: internally Api may need to update with
-    ;; upstream.
-    (advice-add 'hl-todo--setup
-                :around
-                #'__ya/hl-todo-mode))
+  ;; Ensure `hl-todo-keyword-faces' persist, FIXME: why?
+  (defun __ya/hl-todo-mode (orig-func &rest orig-args)
+    (progn
+      (when (bound-and-true-p hl-todo-mode)
+        (entropy/emacs-hl-todo-keywords-add-term))
+      (apply orig-func orig-args)))
+  ;; EEMACS_MAINTENANCE: internally Api may need to update with
+  ;; upstream.
+  (advice-add 'hl-todo--setup
+              :around
+              #'__ya/hl-todo-mode)
+  (defvar __global_hl_todo_mode_p nil)
+  (defun __global_hl_todo_mode_auto_enable_patch_with_eemacs_spec
+      (&rest _)
+    "Hooks for auto patch `hl-todo-keyword-faces' with eemacs spec
+while change themes."
+    (add-hook 'entropy/emacs-theme-load-before-hook
+              #'(lambda (&rest _)
+                  (setq __global_hl_todo_mode_p global-hl-todo-mode)
+                  (when __global_hl_todo_mode_p
+                    (global-hl-todo-mode -1))))
+    (add-hook 'entropy/emacs-theme-load-after-hook
+              #'(lambda (&rest _)
+                  (when __global_hl_todo_mode_p
+                    (global-hl-todo-mode 1)))))
+  (add-hook 'entropy/emacs-after-startup-hook
+            #'__global_hl_todo_mode_auto_enable_patch_with_eemacs_spec)
   )
 
 ;; ** Highlight uncommitted changes
