@@ -2273,7 +2273,7 @@ successfully both of situation of read persisit of create an new."
   :preface
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (find-file switch-to-buffer)
+   (find-file switch-to-buffer dired counsel-dired)
    "recentf-init" "recentf-init" prompt-echo
    ;; injects into pdumper recovery session since the recentf is
    ;; dynamic
@@ -2295,7 +2295,7 @@ successfully both of situation of read persisit of create an new."
   :init
 
   (entropy/emacs-lazy-initial-advice-before
-   (find-file ivy-switch-buffer dired)
+   (find-file ivy-switch-buffer dired counsel-dired)
    "savehist-init-for-find-file-refer"
    "savehist-init-for-find-file-refer"
    prompt-echo

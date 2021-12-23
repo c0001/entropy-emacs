@@ -1971,9 +1971,9 @@ The compatible version comparation is rased on the two ways:
              non-message
              always-lazy-load
              &allow-other-keys)
-  "Execute BODY after/require FILE is loaded.  FILE is normally a
+  "Execute BODY after/require FEAURE is loaded.  FEATURE is normally a
 feature name, but it can also be a file name, in case that file
-does not provide any feature, further more FILE can be a list for
+does not provide any feature, further more FEATURE can be a list for
 thus and autoloads them follow the order of that.
 
 Optional key valid for:

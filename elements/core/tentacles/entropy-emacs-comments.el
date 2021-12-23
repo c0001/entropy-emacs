@@ -33,6 +33,13 @@
 (define-key prog-mode-map
   (kbd entropy/emacs-custom-comment-dwim-prefix)
   'entropy-emacs-comment-dwim)
+;; assign extra non prog-modes with dwim comment operation
+(dolist (extra-mode '(conf-mode))
+  (eval
+   `(entropy/emacs-lazy-load-simple ,extra-mode
+      (define-key conf-mode-map
+        (kbd entropy/emacs-custom-comment-dwim-prefix)
+        'entropy-emacs-comment-dwim))))
 
 (defun entropy-emacs-comment-dwim (&rest args)
   (interactive)
