@@ -1304,7 +1304,8 @@ display icon or empty string while
 (use-package find-file-in-project
   :commands (ffip-find-files
              entropy/emacs-ivy-ffip
-             entropy/emacs-ivy-ffip-directory-only)
+             entropy/emacs-ivy-ffip-directory-only
+             entropy/emacs-ivy-ffip-symbolink-only)
   :eemacs-indhc
   (((:enable t :defer (:data
                        (:adfors
@@ -1318,6 +1319,8 @@ display icon or empty string while
     (("C-x M-f" entropy/emacs-ivy-ffip "Fuzzy Open File"
       :enable t :exit t :global-bind t)
      ("C-x M-d" entropy/emacs-ivy-ffip-directory-only "Fuzzy Open File Under Directory"
+      :enable t :exit t :global-bind t)
+     ("C-x M-l" entropy/emacs-ivy-ffip-symbolink-only "Fuzzy Open symbolinks Under Directory"
       :enable t :exit t :global-bind t))))
   :eemacs-tpha
   (((:enable t :defer (:data
@@ -1340,6 +1343,66 @@ display icon or empty string while
   ;; always show the executed command and debug information
   (setq ffip-debug t)
   :config
+
+  (defvar __ffip-find-symbolic-only-p nil)
+  ;; EEMACS_MAINTENANCE: follow upstream update
+  (defun __ffip-create-shell-command-for-symbolic (keyword find-directory-p)
+    "Like `ffip-create-shell-command' but for symolic only."
+    (let* (cmd fmt tgt)
+      (cond
+       (ffip-use-rust-fd
+        ;; `-H` => search hidden files
+        ;; `-E` => exclude pattern
+        ;; `-c` => color
+        ;; `-i` => case insensitive
+        ;; `-t` => directory (d) or file (f)
+        ;; `-p` => match full path
+        (setq fmt (concat "%s %s -c never -H -i -t %s %s %s %s"
+                          (if ffip-rust-fd-respect-ignore-files "" " -I")
+                          (if ffip-match-path-instead-of-filename " -p" "")
+                          " "
+                          ffip-rust-fd-extra-opts
+                          " %s"))
+        ;; fd use regular expression for target pattern (but glob pattern when excluding, sigh)
+        (setq tgt (if keyword (format "\".*%s\"" keyword) "")))
+       (t
+        (setq tgt
+              (if find-directory-p (format "-iwholename \"*%s\"" keyword)
+                (ffip--create-filename-pattern-for-gnufind keyword)))
+        (setq fmt (concat "%s "
+                          ffip-find-pre-path-options
+                          " . \\( %s \\) -prune -o -type %s %s %s %s %s -print"))))
+
+      (setq cmd (format fmt
+                        (ffip--executable-find)
+                        (ffip--prune-patterns)
+                        "l"
+                        (ffip--ignore-file-names)
+                        ffip-find-options
+                        (ffip--join-patterns ffip-patterns)
+                        tgt))
+      cmd))
+  (defun __ya/ffip-create-shell-command (orig-func &rest orig-args)
+    (if __ffip-find-symbolic-only-p
+        (apply '__ffip-create-shell-command-for-symbolic orig-args)
+      (apply orig-func orig-args)))
+  (advice-add 'ffip-create-shell-command :around #'__ya/ffip-create-shell-command)
+
+  ;; EEMACS_MAINTENANCE: follow upstream update
+  (defun __ya/ffip--prune-patterns (orig-func &rest orig-args)
+    "Bug fix when use rust fd as that `ffip-use-rust-fd' is non-nil
+which can not set -E with \"\" empty arg for find cause nothing
+to find as well."
+    (if (and (bound-and-true-p ffip-use-rust-fd)
+             (and (string-match-p
+                   "^ *$"
+                   (mapconcat (lambda (p)
+                                p)
+                              ffip-prune-patterns " "))))
+        ""
+      (apply orig-func orig-args)))
+  (advice-add 'ffip--prune-patterns :around #'__ya/ffip--prune-patterns)
+
 
   (defun ffip-completing-read (prompt collection &optional action)
     "Read a string in minibuffer, with completion.
@@ -1370,38 +1433,54 @@ NOTE: this function has been redefined by =entropy-emacs=."
       (let* ((default-directory (ffip-get-project-root-directory)))
         (funcall action (if (consp selected) (cdr selected) selected)))))
 
-  (defun entropy/emacs-ivy-ffip (_interaction)
+  (defun entropy/emacs-ivy-ffip (&optional _interaction)
     "Find file using `find-file-in-project' in place.
 
 Just find directory when _INTERACTION was non-nil (the prefix
 with `C-u').
 
-NOTE: this function ignores all /ignore-patterns/ both included in
-`ffip-ignore-filenames' and `ffip-prune-patterns', which means
-that all file under place will be detected!"
+NOTE: this function ignores all /ignore-patterns/ both included
+in `ffip-ignore-filenames' and `ffip-prune-patterns' even for
+`ffip-rust-fd-respect-ignore-files', which means that all file
+under place will be detected!"
     (interactive "P")
-    (let (prompt-func)
+    (let (prompt-func
+          (ffip-use-rust-fd (bound-and-true-p current-prefix-arg)))
       (setq prompt-func
             (lambda ()
               (let (target)
                 (setq target
                       (read-directory-name
-                       "Choose Place Root: "
+                       (format
+                        "[%s] Choose Place Root: "
+                        (if ffip-use-rust-fd "fd-find" "find"))
                        nil nil t))
                 (unless (file-directory-p target)
                   (setq target (file-name-directory target)))
                 target)))
       (let ((ffip-project-root (funcall prompt-func))
             (ffip-ignore-filenames nil)
+            (ffip-rust-fd-respect-ignore-files nil)
             (ffip-prune-patterns '("")))
-        (if _interaction
-            (ffip-find-files "" nil t)
-          (ffip-find-files nil nil)))))
+        (cond ((eq _interaction 'dir)
+               (ffip-find-files "" nil t))
+              ((eq _interaction 'symlnk)
+               (let ((__ffip-find-symbolic-only-p t))
+                 (ffip-find-files nil nil)))
+              (t
+               (ffip-find-files nil nil))))))
 
   (defun entropy/emacs-ivy-ffip-directory-only ()
     "Find directory using `find-file-in-project' in place."
     (interactive)
-    (funcall 'entropy/emacs-ivy-ffip t)))
+    (funcall 'entropy/emacs-ivy-ffip 'dir))
+
+  (defun entropy/emacs-ivy-ffip-symbolink-only ()
+    "Find directory using `find-file-in-project' in place."
+    (interactive)
+    (funcall 'entropy/emacs-ivy-ffip 'symlnk))
+
+  )
 
 ;; ** provide
 (provide 'entropy-emacs-ivy)
