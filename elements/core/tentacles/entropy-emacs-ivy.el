@@ -292,6 +292,18 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
                             (ivy--cd-maybe))
                   :caller 'ivy-reverse-i-search)))))
 
+;; **** fix lag on `ivy-thing-at-point'
+
+  (defun __ya/ivy-thing-at-point (orig-func &rest orig-args)
+    "Ignore `ivy-thing-at-point' when buffer is large than 1Mb since
+the internal `thing-at-point' is so laggy with large buffer."
+    (cond ((or (< (buffer-size) (* 1024 1024))
+               (eq major-mode 'emacs-lisp-mode))
+           (apply orig-func orig-args))
+          (t "")))
+  (advice-add 'ivy-thing-at-point
+              :around
+              #'__ya/ivy-thing-at-point)
 
   )
 
