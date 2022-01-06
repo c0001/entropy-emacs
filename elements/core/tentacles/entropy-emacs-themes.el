@@ -52,6 +52,25 @@
    :pdumper-no-end t
    (doom-themes-visual-bell-config)))
 
+(defvar __ring-bell-function nil)
+(defun entropy/emacs-themes-toggle-visual-bell (&rest _)
+  "Toggle visual bell functionality interactively."
+  (interactive)
+  (let ((rbf ring-bell-function)
+        (vbp visible-bell))
+    (cond
+     (vbp
+      (message "Disable visual bell ...")
+      (setq ring-bell-function nil
+            __ring-bell-function rbf
+            visible-bell nil)
+      (message "Disable visual bell done!"))
+     (t
+      (message "Start visual bell ...")
+      (setq ring-bell-function __ring-bell-function
+            visible-bell t)
+      (message "Start visual bell done!")))))
+
 (use-package doom-themes-ext-org
   :ensure nil
   :commands (doom-themes-org-config)
