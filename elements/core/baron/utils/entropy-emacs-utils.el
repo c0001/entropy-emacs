@@ -52,6 +52,19 @@
 ;; ** f
 (use-package f :init (require 'f))
 
+;; ** advice-patch
+;; This package builds on `advice-add' but instead of letting you add code
+;; before/after/around the body of the advised function, it lets you directly
+;; patch the inside of that function.
+;;
+;; This is inspired from [el-patch](https://github.com/raxod502/el-patch),
+;; but stripped down to its barest essentials.  `el-patch' provides many more
+;; features, especially to be notified when the advised function is modified
+;; and to help you update your patches accordingly.
+
+(use-package advice-patch
+  :eemacs-functions (advice--patch advice-patch))
+
 ;; ** memoize
 (use-package memoize
   :commands

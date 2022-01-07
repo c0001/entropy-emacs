@@ -50,6 +50,7 @@
         ac-php
         ac-php-core
         ace-window
+        advice-patch
         ag
         alert
         all-the-icons

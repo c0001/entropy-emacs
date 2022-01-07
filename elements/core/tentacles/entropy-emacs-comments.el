@@ -184,6 +184,24 @@ region with error throw out in region selected occasion."
 
   (add-hook 'separedit-buffer-creation-hook
             #'entropy/emacs-comments--separedit-org-mode-spec)
+
+  ;; EEMACS_TEMPORALLY_HACK:
+  ;; Patch `separedit--block-info' to ignore 'Wrong type argument:
+  ;; integer-or-marker-p, nil' error mesg for some major-modes.
+  ;;
+  ;; EEMACS_MAINTENANCE: need update follow with upstream
+  (advice-patch
+   'separedit--block-info
+   '(when (or (derived-mode-p 'prog-mode)
+              (memq major-mode
+                    '(gfm-mode
+                      markdown-mode org-mode
+                      conf-mode
+                      conf-unix-mode)))
+      (condition-case nil (separedit--comment-region) (user-error nil)))
+   '(when (or (derived-mode-p 'prog-mode)
+              (memq major-mode '(gfm-mode markdown-mode org-mode)))
+      (condition-case nil (separedit--comment-region) (user-error nil))))
   )
 
 ;; * provide
