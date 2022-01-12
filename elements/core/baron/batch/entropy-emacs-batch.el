@@ -191,7 +191,7 @@
         (when (entropy/emacs-type-spec-eval (plist-get el :enable))
           (entropy/emacs-message-do-message
            "%s %s %s"
-           (cyan (format "🏠 %s: " count))
+           (cyan (format ">> %s: " count))
            (yellow (format "'%s'" (plist-get el :name)))
            (green "installing ..."))
           (funcall (plist-get el :pred))

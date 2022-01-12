@@ -675,12 +675,9 @@ The reason for this limit was that two points follow:
           (eyebrowse-switch-to-window-config new-slot)
           (eyebrowse-rename-window-config
            new-slot
-           (concat "⛓"  (number-to-string floor-slot) ":"
-                   (if (and floor-tag (not (string= floor-tag "")))
-                                  (concat "\"" floor-tag "\"") "[]")
-                   (if (and custr (not (string= "" custr)))
-                       (concat "☛" custr)
-                     "")))))))
+           (if (and custr (not (string= "" custr)))
+               custr
+             ""))))))
 
 ;; ****** Switch derived eyebrowse window configs
   (defun entropy/emacs-basic-eyebrowse-switch-derived ()

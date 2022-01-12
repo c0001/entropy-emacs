@@ -196,23 +196,25 @@
                  el))
 
   (dolist (el
-           `((cask-mode all-the-icons-fileicon                   "elisp"       :height 1.0   :v-adjust -0.2 :face all-the-icons-blue)
-             (lua-mode all-the-icons-fileicon                    "lua"         :face all-the-icons-dblue)
-             (conf-toml-mode all-the-icons-octicon               "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
-             (nov-mode all-the-icons-faicon                      "book"        :height 1.0   :v-adjust -0.1 :face all-the-icons-green)
-             (gfm-mode all-the-icons-octicon                     "markdown"    :face all-the-icons-blue)
-             (vterm-mode all-the-icons-octicon                   "terminal"    :v-adjust 0.2)
-             (elfeed-search-mode all-the-icons-faicon            "rss"         :v-adjust 0.2)
-             (elfeed-show-mode all-the-icons-material            "web"         :v-adjust 0.0)
-             (Info-mode all-the-icons-faicon                     "info-circle" :v-adjust 0.2)
-             (w3m-mode all-the-icons-faicon                      "chrome"      :v-adjust -0.2)
-             (gitignore-mode all-the-icons-alltheicon            "git"         :v-adjust 0.2)
-             (ein:notebooklist-mode all-the-icons-faicon         "book"        :face all-the-icons-orange)
-             (ein:notebook-mode all-the-icons-fileicon           "jupyter"     :height 1.2   :face all-the-icons-orange)
-             (ein:notebook-multilang-mode all-the-icons-fileicon "jupyter"     :height 1.2   :face all-the-icons-orange)
-             (go-mode all-the-icons-fileicon                     "go"          :face all-the-icons-blue)
-             (help-mode all-the-icons-faicon                     "info-circle" :height 1.1   :v-adjust -0.1 :face all-the-icons-purple)
-             (Info-mode all-the-icons-faicon                     "info-circle" :height 1.1   :v-adjust -0.1)
+           `((cask-mode                   all-the-icons-fileicon   "elisp"       :height 1.0   :v-adjust -0.2 :face all-the-icons-blue)
+             (lua-mode                    all-the-icons-fileicon   "lua"         :face all-the-icons-dblue)
+             (conf-toml-mode              all-the-icons-octicon    "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
+             (nov-mode                    all-the-icons-faicon     "book"        :height 1.0   :v-adjust -0.1 :face all-the-icons-green)
+             (gfm-mode                    all-the-icons-octicon    "markdown"    :face all-the-icons-blue)
+             (vterm-mode                  all-the-icons-octicon    "terminal"    :v-adjust 0.2)
+             (elfeed-search-mode          all-the-icons-faicon     "rss"         :v-adjust 0.2)
+             (elfeed-show-mode            all-the-icons-material   "web"         :v-adjust 0.0)
+             (Info-mode                   all-the-icons-faicon     "info-circle" :v-adjust 0.2)
+             (w3m-mode                    all-the-icons-faicon     "chrome"      :v-adjust -0.2)
+             (gitignore-mode              all-the-icons-alltheicon "git"         :v-adjust 0.2)
+             (ein:notebooklist-mode       all-the-icons-faicon     "book"        :face all-the-icons-orange)
+             (ein:notebook-mode           all-the-icons-fileicon   "jupyter"     :height 1.2   :face all-the-icons-orange)
+             (ein:notebook-multilang-mode all-the-icons-fileicon   "jupyter"     :height 1.2   :face all-the-icons-orange)
+             (go-mode                     all-the-icons-fileicon   "go"          :face all-the-icons-blue)
+             (help-mode                   all-the-icons-faicon     "info-circle" :height 1.1   :v-adjust -0.1 :face all-the-icons-purple)
+             (Info-mode                   all-the-icons-faicon     "info-circle" :height 1.1   :v-adjust -0.1)
+             (conf-mode                   all-the-icons-octicon    "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
+             (conf-unix-mode              all-the-icons-octicon    "settings"    :v-adjust 0.0 :face all-the-icons-dyellow)
              ,@(mapcar
                 (lambda (music-mode)
                   (list music-mode 'all-the-icons-faicon "music" :face 'all-the-icons-blue))
@@ -231,14 +233,16 @@
 
 ;; *** memoize internal icon render
 
-  (dolist (func '(all-the-icons-material
-                  all-the-icons-faicon
-                  all-the-icons-octicon
-                  all-the-icons-material
-                  all-the-icons-alltheicon
-                  ))
-    (unless (get func :memoize-original-function)
-      (memoize func))))
+  ;; ;; FIXME: memoize all-the-icons-* casue emacs input lag
+  ;; (dolist (func '(all-the-icons-material
+  ;;                 all-the-icons-faicon
+  ;;                 all-the-icons-octicon
+  ;;                 all-the-icons-material
+  ;;                 all-the-icons-alltheicon
+  ;;                 ))
+  ;;   (unless (get func :memoize-original-function)
+  ;;     (memoize func)))
+  )
 
 ;; ** eldoc
 ;; *** Core

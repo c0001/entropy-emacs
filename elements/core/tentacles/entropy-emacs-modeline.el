@@ -316,6 +316,13 @@ return nil"
                   face
                 'mode-line-inactive)))
 
+(defun __ya/mdl-egroup/use-icon-or-plain
+    (icon plain)
+  "Use icon or plain text for modeline spec."
+  (if (entropy/emacs-icons-displayable-p)
+      icon
+    plain))
+
 (setq
  entropy/emacs-modeline--simple-mode-line-format
  '("%e"
@@ -331,37 +338,45 @@ return nil"
    (:eval
     (if (buffer-narrowed-p)
         (__ya/mdl-egroup/propertize-face "><" 'warning)
-      (__ya/mdl-egroup/propertize-face
-       "||"
-       (if (member entropy/emacs-theme-sticker '(doom-1337))
-         'highlight
-       'success))))
+      "↕"))
    ;;"remote:" mode-line-remote " "
    ;; mode-line-frame-identification
    ;; mode-line-modes
    " "
    (:eval
-    (__ya/mdl-egroup/propertize-face
-     (format "%s" major-mode)
-     (if (member entropy/emacs-theme-sticker '(doom-1337))
-         'highlight
-       'success)))
+    (__ya/mdl-egroup/use-icon-or-plain
+     (cond ((string-match-p "magit" (symbol-name major-mode))
+            (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
+           ((and (derived-mode-p 'prog-mode)
+                 (not (eq major-mode 'emacs-lisp-mode)))
+            (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
+           (t
+            (all-the-icons-icon-for-mode major-mode)))
+     (__ya/mdl-egroup/propertize-face
+      (format "%s" major-mode)
+      (if (member entropy/emacs-theme-sticker '(doom-1337))
+          'highlight
+        'success))))
    " "
-   "<" __ya/mode-line-buffer-identification "> "
+   "" __ya/mode-line-buffer-identification " "
    (:eval
-    (concat (__ya/mdl-egroup/propertize-face
-             "POS:"
-             'link)
-            " "))
+    (__ya/mdl-egroup/use-icon-or-plain
+     (concat (all-the-icons-faicon "pencil-square-o" :face 'all-the-icons-yellow :v-adjust -0.1) " ")
+     (concat (__ya/mdl-egroup/propertize-face
+              "POS:"
+              'link)
+             " ")))
    mode-line-position
-   mode-line-misc-info
    (:eval
     (when vc-mode
-      (format "%s%s"
-              (__ya/mdl-egroup/propertize-face
-               "VCS:"
-               'warning)
-              vc-mode)))
+      (__ya/mdl-egroup/use-icon-or-plain
+       (format " %s%s " (all-the-icons-octicon "git-branch" :v-adjust 0.01 :face 'all-the-icons-red)
+               vc-mode)
+       (format "%s "
+               (__ya/mdl-egroup/propertize-face
+                vc-mode
+                'warning)))))
+   mode-line-misc-info
    mode-line-end-spaces))
 
 (defun entropy/emacs-mode-line-origin-theme ()

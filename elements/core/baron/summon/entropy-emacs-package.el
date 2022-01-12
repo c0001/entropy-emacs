@@ -398,7 +398,7 @@ command and rest of the command's arguments"
   ;; show fails
   (entropy/emacs-package-prompt-install-fails)
   (entropy/emacs-message-do-message
-   (green "All packages installed, congratulations 👏")
+   (green "All packages installed, congratulations!")
    :force-message-while-eemacs-init t))
 
 ;; *** update
