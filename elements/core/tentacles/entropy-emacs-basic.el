@@ -1693,12 +1693,11 @@ collection."
   "Kill buffer, swtich to its hosted location `dired' buffer when
 its a exists file's buffer."
   (interactive)
-  (let ((buffn (buffer-name))
+  (let ((buff (current-buffer))
         (base-dir default-directory)
         (fname (buffer-file-name)))
-    (kill-buffer buffn)
-    (when (and (ignore-errors (stringp fname))
-               (file-writable-p fname))
+    (kill-buffer buff)
+    (when (file-exists-p fname)
       (dired base-dir))))
 
 (defun entropy/emacs-basic-kill-buffer-and-its-window-when-grids ()
