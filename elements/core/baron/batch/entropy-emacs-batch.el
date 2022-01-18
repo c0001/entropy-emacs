@@ -53,6 +53,14 @@
 
 ;; ** defvar
 ;; ** library
+;; *** common library
+(defun __entropy/emacs-batch--do-with-http-proxy
+    (orig-func &rest orig-args)
+  (apply
+   'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
+   (lambda nil t)
+   orig-func orig-args))
+
 ;; *** section prompting
 (defmacro entropy/emacs-batch--prompts-for-ext-install-section
     (&rest body)
@@ -336,7 +344,6 @@ faild with hash '%s' which must match '%s'"
      "%s"
      (green "Get eemacs-ext-stable repo done!"))))
 
-
 (defun entrop/emacs-batch--install-eemacs-ext-stable-build-repo ()
   (let ((host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
         (did-p t))
@@ -357,6 +364,9 @@ faild with hash '%s' which must match '%s'"
        "%s"
        (yellow "Abort!")))))
 
+(advice-add 'entrop/emacs-batch--install-eemacs-ext-stable-build-repo
+            :around
+            #'__entropy/emacs-batch--do-with-http-proxy)
 
 ;; **** get eemacs-font
 
@@ -462,6 +472,10 @@ faild with hash '%s' which must match '%s'"
             (red "Fatal abort!")))))
       )
     ))
+
+(advice-add 'entrop/emacs-batch--install-eemacs-fonts
+            :around
+            #'__entropy/emacs-batch--do-with-http-proxy)
 
 ;; **** byte compile tentacles
 

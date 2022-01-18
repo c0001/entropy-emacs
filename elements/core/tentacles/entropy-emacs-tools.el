@@ -1229,6 +1229,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 ;; *** entropy-proxy-url
 (use-package entropy-proxy-url
   :ensure nil
+  :if (plist-get entropy/emacs-union-http-proxy-plist :enable)
   :eemacs-macros
   (entropy/proxy-url-with-url-proxy
    entropy/proxy-url-with-w3m-proxy
@@ -1269,6 +1270,32 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
        :enable t :map-inject t :exit t)))))
 
   :init
+
+  (let ((http_proxy_host (or (plist-get entropy/emacs-union-http-proxy-plist :host) "127.0.0.1"))
+        (http_proxy_port (or (plist-get entropy/emacs-union-http-proxy-plist :port) 7890)))
+    (setq entropy/proxy-url-default-proxy-server-alist
+          `((emacs-url "http://" ,http_proxy_host ,http_proxy_port)
+            (shell-http  "http://" ,http_proxy_host ,http_proxy_port)
+            (emacs-w3m "http://" ,http_proxy_host ,http_proxy_port)))
+
+    (setq entropy/proxy-url-default-no-proxy-regexp-list
+          (mapcar (lambda (ip) (regexp-quote ip))
+                  (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs
+                   (or entropy/emacs-union-proxy-noproxy-list
+                       '("127.0.0.1" "localhost"))
+                   t))))
+
+  (when (plist-get entropy/emacs-union-socks-proxy-plist :enable)
+    (add-to-list 'entropy/proxy-url-default-proxy-server-alist
+                 `(emacs-socks
+                   ""
+                   (or (plist-get entropy/emacs-union-socks-proxy-plist :host) "127.0.0.1")
+                   (or (plist-get entropy/emacs-union-socks-proxy-plist :port) 7890)
+                   (or (number-to-string
+                        (plist-get entropy/emacs-union-socks-proxy-plist
+                                   :socks-version))
+                       "5")
+                   )))
 
   (defun entropy/emacs-tools--proxy-url-w3m-specific ()
     ;; recorde current retrieve url
