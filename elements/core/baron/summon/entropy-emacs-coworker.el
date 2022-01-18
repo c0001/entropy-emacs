@@ -416,19 +416,12 @@ EXIT /b
 
 ;; **** advice them using http proxy
 
-(defun __entropy/emacs-coworker--coworker-install-with-http-proxy
-    (orig-func &rest orig-args)
-  (apply
-   'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
-   (lambda nil t)
-   orig-func orig-args))
-
 (dolist (install-func  '(entropy/emacs-coworker--coworker-install-by-archive-get
                          entropy/emacs-coworker--coworker-install-by-npm
                          entropy/emacs-coworker--coworker-install-by-pip))
   (advice-add install-func
               :around
-              #'__entropy/emacs-coworker--coworker-install-with-http-proxy))
+              #'entropy/emacs-advice-for-common-do-with-http-proxy))
 
 ;; ** instances
 ;; *** language server

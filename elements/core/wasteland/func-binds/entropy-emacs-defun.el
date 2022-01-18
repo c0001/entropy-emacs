@@ -3305,5 +3305,14 @@ function called without any arguments) is non-nil."
         (apply orig-func orig-args))
     (apply orig-func orig-args)))
 
+(defun entropy/emacs-advice-for-common-do-with-http-proxy
+    (orig-func &rest orig-args)
+  "Around advice for ORIG-FUNC for let binding http_proxy with
+`entropy/emacs-union-http-proxy-plist'."
+  (apply
+   'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
+   (lambda nil t)
+   orig-func orig-args))
+
 ;; * provide
 (provide 'entropy-emacs-defun)

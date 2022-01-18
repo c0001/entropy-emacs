@@ -732,6 +732,13 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
          (user-error "%s" error)))))
   (run-hooks 'entropy/emacs-package-common-start-after-hook))
 
+(dolist (func '(entropy/emacs-package-compile-dynamic-module
+                entropy/emacs-package-install-package
+                entropy/emacs-package-update-all-packages))
+  (advice-add func
+              :around
+              #'entropy/emacs-advice-for-common-do-with-http-proxy))
+
 ;; * Provide
 (provide 'entropy-emacs-package)
 

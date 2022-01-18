@@ -54,12 +54,6 @@
 ;; ** defvar
 ;; ** library
 ;; *** common library
-(defun __entropy/emacs-batch--do-with-http-proxy
-    (orig-func &rest orig-args)
-  (apply
-   'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
-   (lambda nil t)
-   orig-func orig-args))
 
 ;; *** section prompting
 (defmacro entropy/emacs-batch--prompts-for-ext-install-section
@@ -366,7 +360,7 @@ faild with hash '%s' which must match '%s'"
 
 (advice-add 'entropy/emacs-batch--install-eemacs-ext-stable-build-repo
             :around
-            #'__entropy/emacs-batch--do-with-http-proxy)
+            #'entropy/emacs-advice-for-common-do-with-http-proxy)
 
 ;; **** get eemacs-font
 
@@ -475,7 +469,7 @@ faild with hash '%s' which must match '%s'"
 
 (advice-add 'entropy/emacs-batch--install-eemacs-fonts
             :around
-            #'__entropy/emacs-batch--do-with-http-proxy)
+            #'entropy/emacs-advice-for-common-do-with-http-proxy)
 
 ;; **** byte compile tentacles
 
