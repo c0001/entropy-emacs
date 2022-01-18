@@ -44,6 +44,23 @@
 
 (setq entropy/emacs-package-archive-repo 'melpa)
 
+
+;; Proxy options
+;; (setq entropy/emacs-union-http-proxy-plist
+;;       '(:enable
+;;         t
+;;         :host "127.0.0.1"
+;;         :port 7890
+;;         )
+;;       entropy/emacs-union-proxy-noproxy-list
+;;       '("127.0.0.1"
+;;         "localhost"
+;;         ((:type enum :enum_str_list ("192") :sep ".")
+;;          (:type enum :enum_str_list ("168") :sep ".")
+;;          (:type number_range :range (1 . 3) :sep ".")
+;;          (:type number_range :range (1 . 255) :sep "")
+;;          )))
+
 ;; Visual basic
 (setq entropy/emacs-enable-modeline-toggle t)
 
