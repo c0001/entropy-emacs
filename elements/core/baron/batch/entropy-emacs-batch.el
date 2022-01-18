@@ -268,7 +268,7 @@
 
 ;; **** get entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo
 
-(defun entrop/emacs-batch--install-eemacs-ext-stable-build-repo-core ()
+(defun entropy/emacs-batch--install-eemacs-ext-stable-build-repo-core ()
   (let* ((url entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url)
          (host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
          (stuff-dir
@@ -344,7 +344,7 @@ faild with hash '%s' which must match '%s'"
      "%s"
      (green "Get eemacs-ext-stable repo done!"))))
 
-(defun entrop/emacs-batch--install-eemacs-ext-stable-build-repo ()
+(defun entropy/emacs-batch--install-eemacs-ext-stable-build-repo ()
   (let ((host entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path)
         (did-p t))
     (when (file-exists-p host)
@@ -359,18 +359,18 @@ faild with hash '%s' which must match '%s'"
                     (format ".bak_%s"
                             (format-time-string "%Y%m%d%H%M%S"))))))
     (if did-p
-        (entrop/emacs-batch--install-eemacs-ext-stable-build-repo-core)
+        (entropy/emacs-batch--install-eemacs-ext-stable-build-repo-core)
       (entropy/emacs-message-do-message
        "%s"
        (yellow "Abort!")))))
 
-(advice-add 'entrop/emacs-batch--install-eemacs-ext-stable-build-repo
+(advice-add 'entropy/emacs-batch--install-eemacs-ext-stable-build-repo
             :around
             #'__entropy/emacs-batch--do-with-http-proxy)
 
 ;; **** get eemacs-font
 
-(defun entrop/emacs-batch--install-eemacs-fonts ()
+(defun entropy/emacs-batch--install-eemacs-fonts ()
   (let* ((url entropy/emacs-ext-eemacs-fonts-archive-url)
          (stuff-dir
           (make-temp-name
@@ -473,7 +473,7 @@ faild with hash '%s' which must match '%s'"
       )
     ))
 
-(advice-add 'entrop/emacs-batch--install-eemacs-fonts
+(advice-add 'entropy/emacs-batch--install-eemacs-fonts
             :around
             #'__entropy/emacs-batch--do-with-http-proxy)
 
@@ -628,10 +628,10 @@ faild with hash '%s' which must match '%s'"
        (entropy/emacs-batch--install-coworkers)))
      ((equal type "Install-Eemacs-Ext-Build")
       (entropy/emacs-batch--prompts-for-eemacs-ext-build-repo-install
-       (entrop/emacs-batch--install-eemacs-ext-stable-build-repo)))
+       (entropy/emacs-batch--install-eemacs-ext-stable-build-repo)))
      ((equal type "Install-Eemacs-Fonts")
       (entropy/emacs-batch--prompts-for-eemacs-fonts-install
-       (entrop/emacs-batch--install-eemacs-fonts)))
+       (entropy/emacs-batch--install-eemacs-fonts)))
      ((equal type "Update")
       (if (entropy/emacs-package-package-archive-empty-p)
           (entropy/emacs-message-do-error
