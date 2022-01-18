@@ -975,6 +975,65 @@ value."
   :group 'entropy/emacs-customize-group-for-language-environment)
 
 
+
+;; **** Internet Net Proxy
+(defgroup entropy/emacs-customize-group-for-internet-proxy nil
+  "Eemacs internet proxy configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-ShellEnv-configuration)
+
+(defcustom entropy/emacs-union-proxy-noproxy-list
+  '("127.0.0.1" "localhost")
+  "No_proxy list via using `entropy/emacs-union-http-proxy-plist'
+and `entropy/emacs-union-socks-proxy-plist'.
+
+Each elements of the list of no proxy is a ip address string or an
+list of range descriptions supported by
+`entropy/emacs-generate-symbols-or-strings-from-range-desc'."
+  :type '(repeat (choice (string :tag "Ip address for no proxy")
+                         (function :tag "A function to generate a list of ip address for no proxy")))
+  :group 'entropy/emacs-customize-group-for-internet-proxy)
+
+(defcustom entropy/emacs-union-http-proxy-plist
+  '(:enable
+    nil
+    :host "127.0.0.1" :port 7890
+    :no_proxy ("127.0.0.1" "localhost"))
+  "The plist for indicate eemacs union http proxy for internet connection.
+
+There're three valid key slots:
+
+- ':enable'    : whether to enable eemacs union http proxy setup
+- ':host'      : the proxy host address
+- ':port'      : the port number of the proxy host
+"
+  :type '(plist :options
+                (((const :tag "Enable" :enable) boolean)
+                 ((const :tag "Host Address" :host) string)
+                 ((const :tag "Host Port" :port) integer)
+                 ))
+  :group 'entropy/emacs-customize-group-for-internet-proxy)
+
+
+(defcustom entropy/emacs-union-socks-proxy-plist
+  '(:enable
+    nil
+    :host "127.0.0.1" :port 7890)
+  "The plist for indicate eemacs union socks proxy for internet connection.
+
+There're three valid key slots:
+
+- ':enable'    : whether to enable eemacs union socks proxy setup
+- ':host'      : the proxy host address
+- ':port'      : the port number of the proxy host
+- ':socks-veresion' : socks version specification (i.e. 4/5)
+"
+  :type '(plist :options
+                (((const :tag "Enable" :enable) boolean)
+                 ((const :tag "Host Address" :host) string)
+                 ((const :tag "Host Port" :port) integer)
+                 ((const :tag "Socks Version" :socks-version) integer)))
+  :group 'entropy/emacs-customize-group-for-internet-proxy)
+
 ;; *** Pdumper
 (defgroup entropy/emacs-customize-group-for-pdumper nil
   "Eemacs portable dump configuration customizable group."

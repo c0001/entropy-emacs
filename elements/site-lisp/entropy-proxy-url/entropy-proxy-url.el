@@ -315,17 +315,19 @@ The order of the sequence of the CARs of the entry were:
   :type 'list
   :group 'entropy/proxy-url-group)
 
-(defcustom entropy/proxy-url-default-http-sever-host&port-string "127.0.0.1:1081"
+(defconst entropy/proxy-url-default-http-sever-host&port-string "127.0.0.1:1081"
   "The default http proxy domain string with its port, no
-protocal prefix appended. "
-  :type 'string
-  :group 'entropy/proxy-url-group)
+protocal prefix appended.
 
-(defcustom entropy/proxy-url--with-proxy-socks-sever-host
+NOTE: this is a const var as fallback,
+if want to set specification please use `entropy/proxy-url-default-proxy-server-alist'")
+
+(defconst entropy/proxy-url-default-socks-sever-url-method-pattern
   '("Default server" "127.0.0.1" 1080 5)
-  "The default `socks-server' value injection."
-  :type 'string
-  :group 'entropy/proxy-url-group)
+  "The default `socks-server' value injection.
+
+NOTE: this is a const var as fallback,
+if want to set specification please use `entropy/proxy-url-default-proxy-server-alist'")
 
 (defcustom entropy/proxy-url-default-no-proxy-regexp-list
   '("localhost"
@@ -458,7 +460,7 @@ do proxy for current transferring URL."
   (let ((body1 (entropy/proxy-url--with-proxy-cl-args-body body)))
     `(let ((server-host1 (or (entropy/proxy-url--handle-server-host
                               ',server-host-list 'socks-server)
-                             entropy/proxy-url--with-proxy-socks-sever-host))
+                             entropy/proxy-url-default-socks-sever-url-method-pattern))
            (no-proxy1 (or ',no-proxy entropy/proxy-url-default-no-proxy-regexp-list)))
        (let ((url-gateway-method 'socks)
              (socks-noproxy no-proxy1)

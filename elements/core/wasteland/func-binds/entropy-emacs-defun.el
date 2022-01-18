@@ -1153,6 +1153,152 @@ means no quote needed to construct it)."
                        ',forms)))))
      (eval forms)))
 
+
+;; **** Range form generation
+;; ***** generate symbol/string from range description
+
+(defun entropy/emacs-generate-symbols-or-strings-from-range-desc
+    (this-range-descs &optional make-symbol concat concat-separater)
+  "Generate list of symbols or strings from RANGE-DESCS.
+
+RANGE-DESCS is a list of RANGE-DESC which formed as one of below:
+
+``` elisp
+(:type collection
+ :fmstr \"l0_%s\"
+ :range_descs ((:type number_range     :range (1 . 100))
+               (:type char_range       :range (65 . 90))
+               (:type func             :func funcname :argslist (arg1 arg2 arg3 ...))
+               (:type enum             :enum_str_list (el1 el2 el3 ...)))
+ :sep \".\")
+
+(:type number_range :fmstr \"l1_%s\" :range (10 . 90)   :sep \"...\")
+
+(:type char_range   :fmstr \"l2_%s\" :range (115 . 200) :sep \"___\")
+
+(:type enum
+ :enum_str_list (l3_0 l3_1 l3_2 ...)
+ :sep \" \")
+
+(:type func
+ :func funcname :argslist (arg1 arg2 ...)
+ :sep \"---\"
+```
+when MAKE-SYMBOL is non-nil we export a list of symbol, otherwise list of string.
+
+In list of string return type, when CONCAT is non-nil we return a
+string concated with each string of the list of string optional with
+separater CONCAT-SEPARATER when non-nil.
+"
+  (let* (sparse-list rtn
+         (gen/from/number_range
+          (lambda (range fmstr sep)
+            (cl-loop for var from (car range) to (cdr range)
+                     collect (format "%s%s" (format (or fmstr "%s") (number-to-string var))
+                                     (or sep "")))))
+         (gen/from/char_range
+          (lambda (range fmstr sep)
+            (cl-loop for var from (car range) to (cdr range)
+                     collect (format "%s%s" (format (or fmstr "%s") (format "%c" var))
+                                     (or sep "")))))
+         (gen/from/func
+          (lambda (func sep &rest args)
+            (mapcar (lambda (str) (format "%s%s" str (or sep "")))
+                    (apply func args))))
+
+         (gen/from/enum_str_list
+          (lambda (enum_str_list fmstr sep)
+            (mapcar (lambda (str)
+                      (format "%s%s" (format (or fmstr "%s") str) (or sep "")))
+                    enum_str_list)))
+
+         (gen/from/core-func
+          (lambda (subrange)
+            (let ((this-type (plist-get subrange :type)))
+              (cond ((eq this-type 'number_range)
+                     (funcall gen/from/number_range
+                              (plist-get subrange :range)
+                              (plist-get subrange :fmstr)
+                              (plist-get subrange :sep)))
+                    ((eq this-type 'char_range)
+                     (funcall gen/from/char_range
+                              (plist-get subrange :range)
+                              (plist-get subrange :fmstr)
+                              (plist-get subrange :sep)))
+                    ((eq this-type 'func)
+                     (funcall gen/from/func
+                              (plist-get subrange :func)
+                              (plist-get subrange :sep)
+                              (plist-get subrange :argslist)))
+                    ((eq this-type 'enum)
+                     (funcall gen/from/enum_str_list
+                              (plist-get subrange :enum_str_list)
+                              (plist-get subrange :fmstr)
+                              (plist-get subrange :sep)))))))
+
+         (gen/from/collection_type
+          (lambda (range-descs fmstr sep)
+            (let (group-rtn)
+              (dolist (subrange range-descs)
+                (setq group-rtn
+                      (append group-rtn
+                              (apply gen/from/core-func subrange))))
+              (mapcar (lambda (str) (format "%s%s" (format (or fmstr "%s") str) (or sep "")))
+                      group-rtn))))
+
+         (concat-func
+          (lambda (str-list1 str-list2)
+            (let (rtn)
+              (dolist (el1 str-list1)
+                (dolist (el2 str-list2)
+                  (setq rtn (append rtn (list (concat el1 el2))))))
+              rtn))))
+
+    (dolist (el this-range-descs)
+      (setq sparse-list
+            (append sparse-list
+                    (list
+                     (cond ((eq (plist-get el :type) 'collection)
+                            (funcall gen/from/collection_type
+                                     (plist-get el :range-descs)
+                                     (plist-get subrange :fmstr)
+                                     (plist-get subrange :sep)))
+                           (t
+                            (funcall gen/from/core-func el)))))))
+
+    (let ((count 0))
+      (while sparse-list
+        (let ((head-group (pop sparse-list))
+              sub-group)
+          (when (and (= 0 count) sparse-list)
+            (setq sub-group
+                  (when sparse-list (pop sparse-list))))
+          (cond (sub-group
+                 (setq rtn (funcall concat-func head-group sub-group)))
+                (t
+                 (if (null rtn)
+                     (setq rtn head-group)
+                   (setq rtn (funcall concat-func rtn head-group)))))
+          (cl-incf count))))
+    ;; return
+    (if make-symbol
+        (mapcar (lambda (str)
+                  (make-symbol str))
+                rtn)
+      (cond (concat
+             (let (str-rtn)
+               (mapc (lambda (str)
+                       (setq str-rtn
+                             (concat (or str-rtn "")
+                                     (if str-rtn
+                                         (or concat-separater "")
+                                       "")
+                                     str)))
+                     rtn)
+               str-rtn))
+            (t
+             rtn)))))
+
 ;; *** Hook manipulation
 
 (defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)
@@ -1906,7 +2052,7 @@ true, nil for otherwise."
 tasks 'ing' refer prompts."
   (run-with-idle-timer 0.2 nil (lambda () (message nil))))
 
-;; --------- make funciton inhibit internal ---------
+;; --------- make funciton inhibit readonly internal ---------
 (defun entropy/emacs--make-function-inhibit-readonly-common
     (orig-func &rest orig-args)
   (let ((inhibit-read-only t))
@@ -3078,6 +3224,86 @@ Return the hooker symbol."
          ,et-form)
        ,common-form))))
 
+
+
+;; *** Proxy specification
+;; **** process env with eemacs union internet proxy
+
+(defun entropy/emacs-gen-eemacs-union-proxy-noproxy-envs (noproxy-list &optional list-return)
+  "Generate comma separated no proxy patterns string from
+NOPROXY-LIST which usually obtained from `entropy/emacs-union-proxy-noproxy-list'.
+
+Return a list of thus when LIST-RETURN is non-nil."
+  (let ((noproxy-string "") list-rtn)
+    (dolist (el noproxy-list)
+      (cond ((and (listp el)
+                  (not (null el)))
+             (if list-return
+                 (let ((range-list
+                        (entropy/emacs-generate-symbols-or-strings-from-range-desc
+                         el)))
+                   (setq list-rtn (append list-rtn range-list)))
+               (let ((range-str
+                      (entropy/emacs-generate-symbols-or-strings-from-range-desc
+                       el nil t ",")))
+                 (setq noproxy-string
+                       (if (not (string-empty-p noproxy-string))
+                           (format "%s,%s" noproxy-string range-str)
+                         range-str)))))
+            ((stringp el)
+             (if list-return
+                 (setq list-rtn (append list-rtn (list el)))
+               (setq noproxy-string
+                     (if (string-empty-p noproxy-string)
+                         (format "%s" el)
+                       (format "%s,%s" noproxy-string el)))))))
+    (if list-return
+        list-rtn
+      noproxy-string)))
+
+(defun entropy/emacs-gen-eemacs-union-http-internet-proxy-envs ()
+  "Generate list of http proxy env var/value paires sourced from
+`entropy/emacs-union-http-proxy-plist'."
+  (let* ((proxy-plist entropy/emacs-union-http-proxy-plist)
+         (proxy-env
+          `(,(format "http_proxy=http://%s:%s"
+                     (plist-get proxy-plist :host)
+                     (number-to-string (plist-get proxy-plist :port)))
+            ,(format "https_proxy=http://%s:%s"
+                     (plist-get proxy-plist :host)
+                     (number-to-string (plist-get proxy-plist :port)))
+            ,(format "HTTP_PROXY=http://%s:%s"
+                     (plist-get proxy-plist :host)
+                     (number-to-string (plist-get proxy-plist :port)))
+            ,(format "HTTPS_PROXY=http://%s:%s"
+                     (plist-get proxy-plist :host)
+                     (number-to-string (plist-get proxy-plist :port))))))
+    ;; inject noproxy ip addresses
+    (let ((noproxy-list entropy/emacs-union-proxy-noproxy-list))
+      (when noproxy-list
+        (setq proxy-env
+              (append
+               proxy-env
+               (let ((noproxy-str (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs noproxy-list)))
+                 (list (format "no_proxy=%s" noproxy-str)
+                       (format "NO_PROXY=%s" noproxy-str)))))))
+    ;;return
+    proxy-env))
+
+(defun entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
+    (filter-func orig-func &rest orig-args)
+  "Funcall ORIG-FUNC with ORIG-ARGS using
+`entropy/emacs-union-http-proxy-plist' as source http_proxy
+descriptor used to wrapping them in let binding for
+`process-environment' when the return of FILTER-FUNC(i.e. a
+function called without any arguments) is non-nil."
+  (if (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
+           (funcall filter-func))
+      (let* ((proxy-env
+              (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs))
+             (process-environment (append proxy-env process-environment)))
+        (apply orig-func orig-args))
+    (apply orig-func orig-args)))
 
 ;; * provide
 (provide 'entropy-emacs-defun)
