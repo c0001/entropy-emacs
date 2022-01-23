@@ -349,11 +349,14 @@ This caused by both of above and follow:
 
 Thus for now we can built the reproducible template via vanilla emacs:
 
-[[file:lsp-ui-bug530.el][lsp-ui-bug530.el]]
+[[file:lsp-ui-bug530/lsp-ui-bug530.el][lsp-ui-bug530.el]]
 
-Run it with:
+Run it with follow methods:
 #+BEGIN_SRC sh
-emacs -q -l lsp-ui-bug530.el
+  # directly run the elisp file with
+  emacs -Q -l lsp-ui-bug530.el
+  # or run the init bash script under the same host of this elisp file
+  bash run.sh
 #+END_SRC
 
 With manually hover reproduced of:
@@ -447,12 +450,12 @@ into the echo area of that timer.
 - Temporally resolve dealing: set the idle delay closed to 0 but not
   approach to it.
 
-** log: [2021-09-25 Sat 22:03:52]:
+*** log: [2021-09-25 Sat 22:03:52]:
 
 It seems that the idle delay less than 0.001 also will trigger this
 bug.
 
-** log: [2021-10-01 Fri 23:13:38]
+*** log: [2021-10-01 Fri 23:13:38]
 
 It seems related to X11 protocal on linux of gnome DE since it
 disappeared while using Xwayland gnome session.

@@ -1,7 +1,7 @@
 ;; Bug reproduce emacs init.el related to
 ;; https://github.com/emacs-lsp/lsp-ui/issues/530
 ;;
-;; USAGE: emacs -q -l _path_of_this_file
+;; USAGE: emacs -Q -l _path_of_this_file
 ;;
 ;; Please hover the mounse on the symbol `scanf' or `main' on test.c
 ;; buffer thens scroll the lsp-ui-doc frame window by mounse-wheel,
