@@ -227,7 +227,15 @@ Because of no suitable backend actived yet."))))
 ;; **** flymake
 (use-package flymake
   :ensure nil
-  :commands (flymake-show-diagnostics-buffer))
+  :commands (flymake-show-diagnostics-buffer)
+  :init
+  ;; use eemacs union ide diagnostics idle delay
+  (setq flymake-no-changes-timeout entropy/emacs-ide-diagnostic-delay)
+
+  (setq flymake-start-on-flymake-mode t
+        flymake-start-on-save-buffer t
+        ;; disable the obsolete option which use `flymake-start-on-flymake-mode' instead
+        flymake-start-syntax-check-on-find-file nil))
 
 ;; **** flycheck
 (use-package flycheck
@@ -237,7 +245,11 @@ Because of no suitable backend actived yet."))))
    ;; disable flycheck status mode line indicator
    flycheck-mode-line nil
    ;; disable buffer warning messy highlight
-   flycheck-highlighting-mode nil)
+   flycheck-highlighting-mode nil
+   flycheck-idle-buffer-switch-delay 1
+   flycheck-display-errors-delay 0.9
+   ;; Use eemacs union diagnostics delay
+   flycheck-idle-change-delay entropy/emacs-ide-diagnostic-delay)
 
   :config
   (defun __adv/around/flycheck-buffer/0
@@ -601,35 +613,6 @@ when available."
 
 ;; ******* init
   :init
-  (setq lsp-auto-guess-root t)
-  (setq lsp-auto-configure t)
-  (setq lsp-diagnostics-provider :auto)
-  (setq lsp-eldoc-enable-hover t)
-  (setq lsp-signature-auto-activate t
-        ;; Set `lsp-signature-doc-lines' to 0 to restrict the echo
-        ;; area lines to have more UI exps, so that only syntax line
-        ;; are echoed.
-        lsp-signature-doc-lines 0
-        ;; forbidden auto enable `dap-mode'
-        lsp-enable-dap-auto-configure nil
-        lsp-idle-delay entropy/emacs-ide-diagnostic-delay
-        ;; inhibit full workspace diagnostic clean for reduce lag
-        lsp-diagnostic-clean-after-change nil
-        ;; disable large verbose log
-        lsp-log-io nil)
-
-  ;; disable redudant functionalities to improve performance
-  (setq
-   lsp-headerline-breadcrumb-enable nil
-   lsp-modeline-code-actions-enable nil
-   lsp-modeline-diagnostics-enable nil
-   lsp-modeline-workspace-status-enable nil
-   lsp-lens-enable nil
-   lsp-semantic-tokens-enable nil)
-
-  ;; Inhibit auto header insertion via lsp-cland client refer to
-  ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
-  (setq lsp-clients-clangd-args '("--header-insertion=never"))
 
   (dolist (el entropy/emacs-ide-for-them)
     (when (eq (entropy/emacs-get-use-ide-type el) 'lsp)
@@ -657,6 +640,52 @@ when available."
          (lsp-diagnostics-mode 0))
      (if (bound-and-true-p lsp-managed-mode)
          (lsp-managed-mode 0))))
+
+;; ******** lsp union set
+  (setq lsp-auto-guess-root t)
+  (setq lsp-auto-configure t)
+  (setq
+   ;; Disable large verbose log
+   lsp-log-io nil)
+
+;; ******** lsp diagnostics set
+  ;; Use flycheck prefer as diagnostics backend
+  (setq lsp-diagnostics-provider :auto
+        ;; Use eemacs specific union diagnostic idle delay
+        lsp-idle-delay entropy/emacs-ide-diagnostic-delay
+        ;; Inhibit full workspace diagnostic clean for reduce lag
+        lsp-diagnostic-clean-after-change nil)
+
+;; ******** lsp eldoc set
+  ;; Disable eldoc hover at init for reduce default lsp performance
+  (setq lsp-eldoc-enable-hover nil)
+
+;; ******** lsp signature set
+  (setq lsp-signature-auto-activate nil
+        ;; Set `lsp-signature-doc-lines' to 0 to restrict the echo
+        ;; area lines to have more UI exps, so that only syntax line
+        ;; are echoed.
+        lsp-signature-doc-lines 0
+        )
+
+;; ******** lsp dap-mode set
+  (setq
+   ;; Forbidden auto enable `dap-mode', since we do not use it in
+   ;; eemacs since its lag performance
+   lsp-enable-dap-auto-configure nil)
+
+;; ******** disable redudant functionalities to improve performance
+  (setq
+   lsp-headerline-breadcrumb-enable nil
+   lsp-modeline-code-actions-enable nil
+   lsp-modeline-diagnostics-enable nil
+   lsp-modeline-workspace-status-enable nil
+   lsp-lens-enable nil
+   lsp-semantic-tokens-enable nil)
+
+  ;; Inhibit auto header insertion via lsp-cland client refer to
+  ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
+  (setq lsp-clients-clangd-args '("--header-insertion=never"))
 
 ;; ******* config
   :config
