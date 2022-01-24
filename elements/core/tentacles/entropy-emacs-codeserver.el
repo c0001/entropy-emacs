@@ -247,6 +247,8 @@ Because of no suitable backend actived yet."))))
    ;; disable buffer warning messy highlight
    flycheck-highlighting-mode nil
    flycheck-idle-buffer-switch-delay 1
+   ;; defautly do not echo errors which is noisily
+   flycheck-display-errors-function nil
    flycheck-display-errors-delay 0.9
    ;; Use eemacs union diagnostics delay
    flycheck-idle-change-delay entropy/emacs-ide-diagnostic-delay)
