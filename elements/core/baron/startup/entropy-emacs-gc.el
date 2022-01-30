@@ -44,8 +44,6 @@
 ;; * Code:
 
 (defvar entropy/emacs-gc-records nil)
-(defvar entropy/emacs-gc--idle-guard-removed nil)
-
 
 (defmacro entropy/emacs-gc--with-record (&rest body)
   (declare (indent defun))
@@ -91,6 +89,7 @@ origin, since each set to the `gc-threshold' or
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (cond (
+         ;; -------------------- restrict status --------------------
          ;; condition orderred by the performance sort from low to
          ;; high for preventing the judge performance issue
          (or
@@ -111,19 +110,16 @@ origin, since each set to the `gc-threshold' or
          (__ya/gc-threshold_setq
           gc-cons-threshold
           (* 2 1024 1024)))
+        ;; -------------------- prog-mode --------------------
         ((derived-mode-p 'prog-mode)
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 100 1024 1024)
-          ;; (cond
-          ;;  ((ignore-errors
-          ;;     (eq (car company-frontends)
-          ;;         'company-pseudo-tooltip-unless-just-one-frontend))
-          ;;   ;; Reducing pseudo tooltip overlay move laggy
-          ;;   (* 50 1024 1024))
-          ;;  (t
-          ;;   (* 20 1024 1024)))
-          ))))
+          (* 100 1024 1024)))
+        ;; -------------------- default status --------------------
+        (t
+         (__ya/gc-threshold_setq
+          gc-cons-threshold
+          (* 10 1024 1024)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
@@ -146,21 +142,7 @@ origin, since each set to the `gc-threshold' or
                (> (length duplicate-timerp) 1))
       (dolist (timer duplicate-timerp)
         (cancel-timer timer))
-      (entropy/emacs-gc--init-idle-gc)))
-  ;; after all idle progress, we enable gc in rest idle time step by
-  ;; step as an daemon gc guard for watching in non-busy stat and will
-  ;; be killed by `entropy/emacs-gc--remove-idle-guard'.
-  (run-with-timer 0.2 3600 #'garbage-collect)
-  (setq entropy/emacs-gc--idle-guard-removed nil))
-
-(defun entropy/emacs-gc--remove-idle-guard
-    (symbol newval operation where)
-  (when (and (null newval)
-             (null entropy/emacs-gc--idle-guard-removed))
-    (cancel-function-timers #'garbage-collect)
-    (setq entropy/emacs-gc--idle-guard-removed t)))
-(add-variable-watcher 'entropy/emacs-current-session-is-idle-p
-                      #'entropy/emacs-gc--remove-idle-guard)
+      (entropy/emacs-gc--init-idle-gc))))
 
 (defun entropy/emacs-gc-set-idle-gc (secs)
   "Re-set the garbage collecton timer
@@ -187,7 +169,7 @@ delay seconds SECS."
  "eemacs-gc-optimization" "eemacs-gc-optimization" prompt-echo
  :pdumper-no-end t
  (setq garbage-collection-messages nil)
- ;;(add-hook 'post-command-hook #'entropy/emacs-gc--adjust-cons-threshold)
+ (add-hook 'post-command-hook #'entropy/emacs-gc--adjust-cons-threshold)
  (entropy/emacs-gc--init-idle-gc)
  (setq read-process-output-max (* 1024 1024)))
 ;; --------------------------------------------------
