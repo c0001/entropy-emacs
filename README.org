@@ -8,10 +8,6 @@
 
 
 #+BEGIN_QUOTE
-*Windows user:*
-__Now you can download the encapsulation setting contain [[https://github.com/c0001/entropy-emacs][entropy-emacs]]
-and [[https://github.com/m-parashar/emax64][emax64]] and with msys2 with lots of stuffs contained proper [[https://sourceforge.net/projects/entropy-emax64/][here]].__ (obsolete)
-
 *Terms convention:*
 We call *eemacs* as the abbreviation of =entropy-emacs= or =eemacs=.
 #+END_QUOTE
@@ -29,7 +25,7 @@ This personal emacs distribution can be used in:
 Support platform:
 
 - GNU/Linux (fully support)
-- Windows7/8/8.1/10 (partial support)
+- Windows7/8/8.1/10/11 (partial support)
 - Darwin(MacOS) (partial support and not testing)
 
 Support emacs version:
