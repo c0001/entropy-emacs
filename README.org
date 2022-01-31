@@ -19,8 +19,8 @@ This personal emacs distribution can be used in:
   editing and testing.
 - Write article, recording content you captured and simple task
   manager with configured Org-mode.
-- With some utilities by self and from web and others great idea which
-  also be in github.
+- Integrate with some utilities by self and be from web and others
+  great idea which also be in github.
 
 Support platform:
 
@@ -80,6 +80,19 @@ entropy-emacs use makefile to initialize with rich facilities for the
 sake of stick on eemacs internal mechanism.
 
 You can run ~make help~ to see the details.
+
+
+*TIPS:*
+
+1. emacs hang and can not handle terminate using =C-g=?
+
+   Try using ~pgrep~ to find the process id of current emacs session
+   and then run ~kill -s SIGUSR2 pid~ to trigger the emacs internal
+   terminate handle.
+
+
+
+
 
 *Thanks to:* [[https://github.com/seagle0128/.emacs.d][Centaur emacs]]
 

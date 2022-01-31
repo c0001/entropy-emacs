@@ -608,8 +608,14 @@ download/%s/entropy-emacs-extensions_build_%s.tar.xz"
   "1d3c59d3b4549632b67b21a20d13ed0e846e8e6ff86fd4acf082004c50267bb8"
   "")
 
-(when (file-exists-p
-       entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator)
+;; using `entropy-emacs-extensions-project-build' prefer when detected
+;; its archive while using `entropy-emacs-extensions-project' project.
+(when (and
+       (eq entropy/emacs-ext-elpkg-get-type
+           'entropy-emacs-extenisons-project)
+       (file-exists-p
+        entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path-comprehensive-indicator))
+
   (setq entropy/emacs-ext-elpkg-get-type
         'entropy-emacs-extensions-project-build)
   (let ((archive-fmt `(lambda (name)
