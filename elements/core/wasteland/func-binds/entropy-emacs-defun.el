@@ -1787,6 +1787,9 @@ KEYMAP before bind the new spec."
     (txz
      :compress "tar -Jcf %o %i"
      :extract  "tar -Jxf %i -C %o")
+    (t7z
+     :compress "tar -cf - %i | 7z a -si %o"
+     :extract  "7z x -so %i | tar -xf - -C %o")
     (zip
      :compress "zip %o -r --filesync %i"
      :extract  "unzip -o %i -d %o")))
@@ -1812,7 +1815,11 @@ The ARCHVE-TYPE can be one of internal support archive type that:
    \"xz\" method and commonly named with \".txz\" or \".tar.xz\"
    as its suffix name.
 
-4) 'zip' type: in which case, INPUT was a zipper compressed file
+4) 't7z' type: in which case, INPUT was a tar file compressed with
+   \"7z\" method and commonly named with \".t7z\" or \".tar.7z\"
+   as its suffix name.
+
+5) 'zip' type: in which case, INPUT was a zipper compressed file
    commonly named with \".zip\" as its suffix name.
 "
   (let* ((archive-dowith-plist
