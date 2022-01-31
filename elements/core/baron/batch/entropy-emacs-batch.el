@@ -390,7 +390,7 @@ faild with hash '%s' which must match '%s'"
     (setq download-cbk
           (entropy/emacs-network-download-file
            url tmp-name
-           nil nil
+           (when (executable-find "curl") t) nil
            (lambda (file)
              (let* ((inhibit-read-only t)
                     (stick-hash
