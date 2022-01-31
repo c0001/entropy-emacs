@@ -32,6 +32,7 @@ endif
 
 # ** variable
 EMACS := emacs
+EMACS_MAJOR_VERSION := 27
 EMACS_MAKE = $(EMACS) -Q --batch -l init.el
 
 DEBUG_FORM = '(progn\
@@ -54,55 +55,59 @@ help:
 	@$(CAT) make-help.txt
 	@$(EMACS) --version
 
-install: export EEMACS_MAKE = Install
+install: export EEMACS_MAKE=Install
 install:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
-compile: export EEMACS_MAKE = compile
+compile: export EEMACS_MAKE=Compile
 compile:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
-compile-clean: export EEMACS_MAKE = compile-clean
+compile-clean: export EEMACS_MAKE=Compile-Clean
 compile-clean:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
-install-coworkers: export EEMACS_MAKE = Install-Coworkers
+install-coworkers: export EEMACS_MAKE=Install-Coworkers
 install-coworkers:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
-install-eemacs-ext-build: export EEMACS_MAKE = Install-Eemacs-Ext-Build
+install-eemacs-ext-build: export EEMACS_MAKE=Install-Eemacs-Ext-Build
 install-eemacs-ext-build:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
-install-eemacs-fonts: export EEMACS_MAKE = Install-Eemacs-Fonts
+install-eemacs-fonts: export EEMACS_MAKE=Install-Eemacs-Fonts
 install-eemacs-fonts:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
-update: export EEMACS_MAKE = Update
+update: export EEMACS_MAKE=Update
 update:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
-dump: export EEMACS_MAKE = Dump
+dump: export EEMACS_MAKE=Dump
 dump:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
-native-comp: export EEMACS_MAKE=native-comp
+native-comp: export EEMACS_MAKE=Native-Comp
 native-comp:
 	@$(EchoEmpty)
 	@$(EMACS_MAKE)
 
+liberime: export EEMACS_MAKE=Liberime
 liberime:
-	make -C elements/site-lisp/liberime/
+	@$(EchoEmpty)
+	make EMACS='' EMACS_MAJOR_VERSION=$(EMACS_MAJOR_VERSION) -C elements/site-lisp/liberime/ clean
+	make EMACS='' EMACS_MAJOR_VERSION=$(EMACS_MAJOR_VERSION) -C elements/site-lisp/liberime/ all
 
-all: install install-coworkers update dump
+all: export EEMACS_MAKE_ALL=1
+all: install install-coworkers liberime compile
 
 debug: export EEMACS_DEBUG=1
 debug:

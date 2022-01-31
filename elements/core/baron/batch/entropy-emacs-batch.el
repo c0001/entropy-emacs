@@ -74,7 +74,7 @@
       (blue    "==================================================")
       (yellow "           Section for emacs dump ...")
       (blue    "=================================================="))
-     (when (yes-or-no-p "Dump eemacs? ")
+     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Dump eemacs? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-ext-update-section
@@ -85,7 +85,7 @@
       (blue    "==================================================")
       (yellow "       Section for extensions updating ...")
       (blue    "=================================================="))
-     (when (yes-or-no-p "Do package update? ")
+     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Do package update? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-coworkers-installing-section
@@ -96,7 +96,7 @@
       (blue    "==================================================")
       (yellow "       Section for coworkers installing ...")
       (blue    "=================================================="))
-     (when (yes-or-no-p "Install them? ")
+     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Install them? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-native-compile
@@ -107,7 +107,7 @@
       (blue    "==================================================")
       (yellow "       Section for native compiling `package-user-dir' ...")
       (blue    "=================================================="))
-     (when (yes-or-no-p "Native compile `package-user-dir'? ")
+     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Native compile `package-user-dir'? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-eemacs-ext-build-repo-install
@@ -118,7 +118,7 @@
       (blue    "==================================================")
       (yellow "       Section for install entropy-emacs-extensions stable build ...")
       (blue    "=================================================="))
-     (when (yes-or-no-p "install eemacs-ext stable build? ")
+     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "install eemacs-ext stable build? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-eemacs-fonts-install
@@ -129,7 +129,7 @@
       (blue    "==================================================")
       (yellow "       Section for install eemacs-fonts ...")
       (blue    "=================================================="))
-     (when (yes-or-no-p "install eemacs-fonts? ")
+     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "install eemacs-fonts? "))
        ,@body)))
 
 (defmacro entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
@@ -140,7 +140,7 @@
       (blue    "==================================================")
       (yellow "       Section for byte-compile eemacs internal ...")
       (blue    "=================================================="))
-     (when (yes-or-no-p "Compile? ")
+     (when (or (entropy/emacs-is-make-all-session) (yes-or-no-p "Compile? "))
        ,@body)))
 
 ;; *** make sections
@@ -606,7 +606,7 @@ faild with hash '%s' which must match '%s'"
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
        (entropy/emacs-package-install-all-packages)))
-     ((equal type "compile")
+     ((equal type "Compile")
       ;; we must check all depedencies firstly while compile
       (entropy/emacs-package-install-all-packages)
       (when entropy/emacs-package-install-success-list
@@ -614,7 +614,7 @@ faild with hash '%s' which must match '%s'"
          (red "Please re-do current make operation since we solved deps broken")))
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
        (entropy/emacs-batch--do-bytecompile-eemacs-core)))
-     ((equal type "compile-clean")
+     ((equal type "Compile-Clean")
       (entropy/emacs-batch--prompts-for-byte-compile-eemacs-internal
        (entropy/emacs-batch--do-bytecompile-eemacs-core t)))
      ((equal type "Install-Coworkers")
@@ -638,7 +638,7 @@ faild with hash '%s' which must match '%s'"
       (entropy/emacs-batch--prompts-for-dump-section
        (entropy/emacs-batch--dump-emacs)))
      ((and (ignore-errors (native-comp-available-p))
-           (equal type "native-comp"))
+           (equal type "Native-Comp"))
       ;; we must prepare for `package-user-dir' before native-comp
       (entropy/emacs-package-install-all-packages)
       (entropy/emacs-batch--prompts-for-native-compile

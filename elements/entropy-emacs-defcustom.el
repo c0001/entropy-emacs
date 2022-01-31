@@ -2374,11 +2374,35 @@ value of entropy emacs specified environment variable
 \"EEMACS_MAKE\".
 
 NOTE: you should always use this function to get thus variable
-value where there's no published for any of the insternal entropy
+value where there's no published for any of the internal entropy
 emacs specified environment variable references APIs, this is the
 only one for thus."
   (require 'subr-x)
   (let ((env-p (getenv "EEMACS_MAKE")))
+    (cond
+     ((or (null env-p)
+          (string-empty-p env-p))
+      nil)
+     (t
+      env-p))))
+
+(defun entropy/emacs-is-make-all-session ()
+  "Obtained the 'EEMACS_MAKE_ALL' env variable value if valid
+otherwise return nil.
+
+This function commonly used to judge whether start emacs in a
+`noninteractive' status but in daemon load procedure, where
+specially indicate to other subroutines to get the 'batch
+run' (e.g. use entropy emacs as a shell) type according to the
+value of entropy emacs specified environment variable
+\"EEMACS_MAKE_ALL\".
+
+NOTE: you should always use this function to get thus variable
+value where there's no published for any of the internal entropy
+emacs specified environment variable references APIs, this is the
+only one for thus."
+  (require 'subr-x)
+  (let ((env-p (getenv "EEMACS_MAKE_ALL")))
     (cond
      ((or (null env-p)
           (string-empty-p env-p))
