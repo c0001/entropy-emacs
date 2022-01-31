@@ -114,7 +114,7 @@ origin, since each set to the `gc-threshold' or
         ((derived-mode-p 'prog-mode)
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 100 1024 1024)))
+          (* 50 1024 1024)))
         ;; -------------------- default status --------------------
         (t
          (__ya/gc-threshold_setq
@@ -183,6 +183,8 @@ delay seconds SECS."
       (t
        ;; enlarge the `gc-cons-threshold' for speedup startup progress
        ;; while normal init mode.
-       (setq gc-cons-threshold most-positive-fixnum)))
+
+       ;; NOTE: do not use `most-positive-fixnum' here since its may make emacs hang
+       (setq gc-cons-threshold (* 100 (expt 1024 2)))))
 
 (provide 'entropy-emacs-gc)
