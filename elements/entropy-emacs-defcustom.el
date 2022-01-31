@@ -663,10 +663,10 @@ may download from
 ;; ***** eemacs fonts
 
 (defvar entropy/emacs-ext-eemacs-fonts-archive-url
-  "https://sourceforge.net/projects/entropy-emacs-cabinet/files/Font/entropy-emacs-fonts/v1.0.0/eemacs-fonts_v1.0.0.tar.xz/download"
+  "https://sourceforge.net/projects/entropy-emacs-cabinet/files/Font/entropy-emacs-fonts/v1.0.1/eemacs-fonts_v1.0.1.tar.xz/download"
   )
 (defvar entropy/emacs-ext-eemacs-fonts-archive-sha256sum
-  "c3976b59208e0e26443fa8f3310895cc70f4f9750eca2d5d213bf69e353b362b")
+  "0c95ab8acc67e5e98755eda5ea2b1ccefcbcc4a0fa876c07d0c599effd47f028")
 
 ;; **** extra customized load path
 
