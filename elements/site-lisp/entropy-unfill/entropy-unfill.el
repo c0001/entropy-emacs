@@ -1,4 +1,4 @@
-;;; entropy-unfill --- Unfill improvements for entropy-emacs 
+;;; entropy-unfill --- Unfill improvements for entropy-emacs
 ;;
 ;;; Copyright (C) 20190911  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -10,21 +10,21 @@
 ;; Created:       2018
 ;; Compatibility: GNU Emacs 25;
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5") (org "9.1") (entropy-common-library "0.1.0") (entropy-org-widget "0.1.0"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 ;;
 ;; Is there some times that you regret for filling the whole buffer
@@ -46,35 +46,35 @@
 ;;          +---------------------------------------------+
 ;;          | +-----------------------------------------+ |
 ;;          | |  part 1                           t   --+-+--------------------->  part-1 of this buffer was paragraph and it will be convert to unfill.
-;;          | |     xxxxxxxxxxxxxxxxxxxxxxxx            | |                        So the state of it was 't' .                                         
-;;          | +-----------------------------------------+ |                                                                                            
-;;          | +-----------------------------------------+ |                                                                                            
-;;          | |  part 2                                 | |                                                                                            
-;;          | |   #+begin_src                     nil --+-+--------------------->  part-2 was code area and do not convert it, state 'nil.             
-;;          | |      ......                             | |                                                                            
-;;          | |   #+end_src                             | |                                                                            
-;;          | +-----------------------------------------+ |                                                                            
-;;          | +-----------------------------------------+ |                                                                            
-;;          | |  part 3                                 | |                                                                            
+;;          | |     xxxxxxxxxxxxxxxxxxxxxxxx            | |                        So the state of it was 't' .
+;;          | +-----------------------------------------+ |
+;;          | +-----------------------------------------+ |
+;;          | |  part 2                                 | |
+;;          | |   #+begin_src                     nil --+-+--------------------->  part-2 was code area and do not convert it, state 'nil.
+;;          | |      ......                             | |
+;;          | |   #+end_src                             | |
+;;          | +-----------------------------------------+ |
+;;          | +-----------------------------------------+ |
+;;          | |  part 3                                 | |
 ;;          | |    - xxxxxx                       nil --+-+--------------------->  part-3 was list , so setting converted state to nil.
-;;          | |    - xxxxxx                             | |                                                                           
-;;          | +-----------------------------------------+ |                                                                           
-;;          | +-----------------------------------------+ |                                                                           
-;;          | |  part 4                                 | |                                                                  
-;;          | |                                         | |                                                                  
-;;          | |   | xx | xx | xx |                      | |                           
+;;          | |    - xxxxxx                             | |
+;;          | +-----------------------------------------+ |
+;;          | +-----------------------------------------+ |
+;;          | |  part 4                                 | |
+;;          | |                                         | |
+;;          | |   | xx | xx | xx |                      | |
 ;;          | |   |----|----|----|                nil --+-+--------------------->  part-4 was table formal so setting converted state to nil
-;;          | |   | xx | xx | xx |                      | |                                                                                 
-;;          | |   | xx | xx | xx |                      | |                                                                                 
-;;          | |                                         | |                                                                                 
-;;          | +-----------------------------------------+ |                                
-;;          | +-----------------------------------------+ |                                
-;;          | |  part 5                                 | |                      
-;;          | |                                         | |                      
+;;          | |   | xx | xx | xx |                      | |
+;;          | |   | xx | xx | xx |                      | |
+;;          | |                                         | |
+;;          | +-----------------------------------------+ |
+;;          | +-----------------------------------------+ |
+;;          | |  part 5                                 | |
+;;          | |                                         | |
 ;;          | |       ...............               t --+-+--------------------->  part-5 was specific area which must be converted to.
-;;          | |                                         | |                                  
-;;          | +-----------------------------------------+ |                                  
-;;          +---------------------------------------------+                                  
+;;          | |                                         | |
+;;          | +-----------------------------------------+ |
+;;          +---------------------------------------------+
 ;;
 ;; #+END_EXAMPLE
 ;;
@@ -93,10 +93,12 @@
 (require 'entropy-common-library)
 (require 'entropy-org-widget)
 ;;;; var declaration
-(defvar entropy/unfill-special-line-description nil
-  "This variable temporarily holded current-line's special line type which matching with
-  `entropy/unfill-special-line-regexp' and automatically operated by
-  `entropy/unfill-judge-special-line-type', so any manually setting for this will not be effective.")
+(defvar-local entropy/unfill-special-line-description nil
+  "This variable temporarily holded current-line's special line
+type which matching with `entropy/unfill-special-line-regexp' and
+automatically operated by
+`entropy/unfill-judge-special-line-type', so any manually setting
+for this will not be effective.")
 
 (defvar entropy/unfill-special-line-regexp
   '(("Return" "^ *?\\\\\\\\" "$")
@@ -126,8 +128,8 @@ create one personal function to toggle the various kind of
 setting of it.
 ")
 
-(defvar entropy/unfill-feature-region-pair-points-list nil
-  " Store buffer feature regions with it's begin and end point
+(defvar-local entropy/unfill-feature-region-pair-points-list nil
+  "Store buffer feature regions with it's begin and end point
 and the state variable for judging whether unfill it.
 
 It's coming automatically with function
@@ -249,6 +251,15 @@ based on current line."
         (goto-char (+ p2 1))))))
 
 
+;;;;; major-mode chagne wrapper
+
+(defun entropy/unfill--calling-major-mode (mode)
+  "Calling major-mode MODE with preserved `fill-column' from
+previous `major-mode'."
+  (let ((fcol fill-column))
+    (funcall mode)
+    (setq fill-column fcol)))
+
 ;;;;; main function
 ;;;###autoload
 (defun entropy/unfill-full-buffer-without-special-region ()
@@ -257,14 +268,14 @@ except for unfilling."
   (interactive)
   (let ((cur_major-mode major-mode))
     (if buffer-read-only (setq buffer-read-only nil))
-    (fundamental-mode)
+    (entropy/unfill--calling-major-mode 'fundamental-mode)
     (entropy/unfill-recorde-feature-region-pair-points-in-full-buffer)
     (dolist (el entropy/unfill-feature-region-pair-points-list)
       (let ((start (car el))
             (end (nth 1 el))
             (unfill-p (nth 2 el)))
         (if unfill-p (entropy/unfill-region start end))))
-    (funcall cur_major-mode)
+    (entropy/unfill--calling-major-mode cur_major-mode)
     (setq buffer-read-only t)))
 
 
@@ -274,7 +285,7 @@ except for unfilling."
   (interactive)
   (let ((cur_major-mode major-mode))
     (if buffer-read-only (setq buffer-read-only nil))
-    (fundamental-mode)
+    (entropy/unfill--calling-major-mode 'fundamental-mode)
     (entropy/unfill-recorde-feature-region-pair-points-in-full-buffer)
     (dolist (el entropy/unfill-feature-region-pair-points-list)
       (let ((start (car el))
@@ -288,7 +299,7 @@ except for unfilling."
                    (entropy/fill-buffer-replace-region-org-link start end)
                  (fill-region start end)))))
           (t (when fill-p (fill-region start end))))))
-    (funcall cur_major-mode)
+    (entropy/unfill--calling-major-mode cur_major-mode)
     (setq buffer-read-only t)))
 
 (defface entropy/fill-buffer-org-link-indicated-face
@@ -305,7 +316,7 @@ break as recognizing link type as the common word slot, thus, in
 this func's process replacing org bracket link as it's
 description string for preventing so."
   (let ((links (entropy/ow-get-str-links (buffer-substring-no-properties beg end))))
-    (fundamental-mode)
+    (entropy/unfill--calling-major-mode 'fundamental-mode)
     (when links
       (goto-char beg)
       (dolist (el links)
@@ -353,8 +364,8 @@ This command does the inverse of `fill-region'."
   "Takes a multi-line paragraph and makes it into a single line of text."
   (interactive (progn (barf-if-buffer-read-only) '(t)))
   (let ((fill-column (point-max))
-	;; This would override `fill-column' if it's an integer.
-	(emacs-lisp-docstring-fill-column t))
+        ;; This would override `fill-column' if it's an integer.
+        (emacs-lisp-docstring-fill-column t))
     (fill-paragraph nil region)))
 
 
