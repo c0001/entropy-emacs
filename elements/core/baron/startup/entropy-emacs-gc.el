@@ -114,12 +114,12 @@ origin, since each set to the `gc-threshold' or
         ((derived-mode-p 'prog-mode)
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 50 1024 1024)))
+          (* 10 1024 1024)))
         ;; -------------------- default status --------------------
         (t
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 10 1024 1024)))))
+          (* 5 1024 1024)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer

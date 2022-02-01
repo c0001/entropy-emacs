@@ -38,6 +38,9 @@
 (require 'cl-lib)
 (require 'subr-x)
 
+;; Debug emacs while hang on by send the SIGUSR2 process event
+(setq debug-on-event 'sigusr2)
+
 ;; ** prepare
 ;; *** multi-version emacs compatible
 ;; **** make `setq-local' compatible

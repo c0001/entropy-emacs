@@ -517,7 +517,6 @@ run BODY.
            (when ---$$$message$$$---
              (make-progress-reporter
               (format "%s ... " ---$$$message$$$---)))))
-     (redisplay t)
      (prog1
          (let (_)
            ,@body)
