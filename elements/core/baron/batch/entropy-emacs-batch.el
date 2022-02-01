@@ -392,16 +392,9 @@ faild with hash '%s' which must match '%s'"
            url tmp-name
            (when (executable-find "curl") t) nil
            (lambda (file)
-             (let* ((inhibit-read-only t)
-                    (stick-hash
+             (let* ((stick-hash
                      entropy/emacs-ext-eemacs-fonts-archive-sha256sum)
-                    (buff (create-file-buffer file))
-                    (cur-hash nil))
-               (with-current-buffer buff
-                 (erase-buffer)
-                 (insert-file-contents-literally file))
-               (setq cur-hash
-                     (secure-hash 'sha256 buff))
+                    (cur-hash (entropy/emacs-file-secure-hash file 'sha256 stick-hash nil t)))
                (unless (string= cur-hash stick-hash)
                  (error "Sha256 hash verify for file <%s> \
 faild with hash '%s' which must match '%s'"

@@ -634,6 +634,90 @@ FILENAME to `file-name-directory' is non-nil"
       (make-directory f-host t))
     (write-file filename confirm)))
 
+(defun entropy/emacs-file-secure-hash (file type hashstr &optional use-native return-curhash)
+  "Verify file with hash checker with TYPE supported by
+`secure-hash' compared to wanted HASHSTR, return t as verified
+and nil otherwise.
+
+If optional arg RETURN-CURHASH is non-nil return the checkout
+hash string instead and in whch case the HASHSTR can be omitted.
+
+Using spawn system caller defautly while USE-NATIVE is omitted,
+otherwise use `secure-hash' instead (NOTE: do not use native
+method while large file, since `secure-hash' use emacs buffer to
+store file content in which case system memory will not be enough
+to handle the operation.)"
+  (let* (cur-hash
+         rtn
+         (hashstr (or hashstr ""))
+         (native-method (lambda (f hstr)
+                          (let* ((inhibit-read-only t)
+                                 (buff (create-file-buffer f)))
+                            (with-current-buffer buff
+                              (erase-buffer)
+                              (insert-file-contents-literally file))
+                            (setq cur-hash
+                                  (secure-hash type buff))
+                            (let ((kill-buffer-hook nil))
+                              (kill-buffer buff))
+                            (setq rtn
+                                  (if (string= cur-hash hstr)
+                                      t nil))))))
+    (cond
+     (use-native (funcall native-method file hashstr))
+     (t
+      (let ((type-alist
+             '((md5 .
+                    (lambda (f)
+                      (unless (executable-find "md5sum")
+                        (error "No 'md5sum' command found in PATH of current emacs-session"))
+                      (car
+                       (split-string (shell-command-to-string (format "md5sum %s" (shell-quote-argument f)))
+                                     " " t))))
+               (sha1 .
+                     (lambda (f)
+                       (unless (executable-find "sha1sum")
+                         (error "No 'sha1sum' command found in PATH of current emacs-session"))
+                       (car
+                        (split-string (shell-command-to-string (format "sha1sum %s" (shell-quote-argument f)))
+                                      " " t))))
+               (sha224 .
+                       (lambda (f)
+                         (unless (executable-find "sha224sum")
+                           (error "No 'sha224sum' command found in PATH of current emacs-session"))
+                         (car
+                          (split-string (shell-command-to-string (format "sha224sum %s" (shell-quote-argument f)))
+                                        " " t))))
+               (sha256 .
+                       (lambda (f)
+                         (unless (executable-find "sha256sum")
+                           (error "No 'sha256sum' command found in PATH of current emacs-session"))
+                         (car
+                          (split-string (shell-command-to-string (format "sha256sum %s" (shell-quote-argument f)))
+                                        " " t))))
+               (sha384 .
+                       (lambda (f)
+                         (unless (executable-find "sha384sum")
+                           (error "No 'sha384sum' command found in PATH of current emacs-session"))
+                         (car
+                          (split-string (shell-command-to-string (format "sha384sum %s" (shell-quote-argument f)))
+                                        " " t))))
+               (sha512 .
+                       (lambda (f)
+                         (unless (executable-find "sha512sum")
+                           (error "No 'sha512sum' command found in PATH of current emacs-session"))
+                         (car
+                          (split-string (shell-command-to-string (format "sha512sum %s" (shell-quote-argument f)))
+                                        " " t)))))))
+        (setq cur-hash (funcall (alist-get type type-alist) file))
+        (setq rtn
+              (if (string= hashstr cur-hash)
+                  t
+                nil)))))
+    (if return-curhash
+        cur-hash
+      rtn)))
+
 ;; *** Process manipulation
 (defun entropy/emacs-chained-eemacs-make-proc-args (eemacs-make-proc-args-list)
   "Chained sets of `eemacs-make-proc-args-list' one by one
