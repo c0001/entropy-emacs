@@ -2573,63 +2573,44 @@ under the symbolink root dir."
 (advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
 
 ;; ***** unreadable file detection
+(setq large-file-warning-threshold (* 8 (expt 1024 2)))
 
-(defvar __unreadable-file-long-threshold 700)
-(defvar __unreadable-file-judge-prepares
-  (cond ((and (not (eq system-type 'windows-nt))
-              (not (eq system-type 'ms-dos))
-              (executable-find "wc"))
-         (lambda (filename)
-           (ignore-errors
-             (< __unreadable-file-long-threshold
-                (string-to-number
-                 (car
-                  (split-string
-                   (shell-command-to-string
-                    (format "wc -L '%s'" filename))
-                   " ")))))))
-        ;; FIXME: add window 'wc -L' equivalent to get more performance
-        (t
-         ;; For backwards compatible we use `so-long.el' as the judger
-         ;; but with low performance maybe?
-         (require 'so-long)
-         (lambda (filename)
-           (let ((inhibit-read-only t)
-                 (so-long-threshold __unreadable-file-long-threshold))
-             (with-temp-buffer
-               (ignore-errors
-                 (insert-file-contents
-                  filename))
-               (so-long-detected-long-line-p)))))))
+(defvar __unreadable-file-long-threshold 300)
+(defvar entropy/emacs-unreadable-file-judge-function
+  (lambda (filename)
+    (require 'so-long)
+    (let ((inhibit-read-only t)
+          (so-long-threshold __unreadable-file-long-threshold))
+      (with-temp-buffer
+        (ignore-errors
+          (insert-file-contents
+           filename))
+        (or (> (buffer-size) large-file-warning-threshold)
+            (so-long-detected-long-line-p))))))
 
-(defun entropy/emacs-unreadable-file-judge (filename)
-  (unless (__entropy/emacs-init-tramp-file-p filename)
-    (let ((filesize (file-attribute-size
-                     (file-attributes
-                      filename)))
-          judge)
-      (when (numberp filesize)
-        (setq judge (> filesize large-file-warning-threshold))
-        (unless judge
-          (when __unreadable-file-judge-prepares
-            (setq judge (funcall __unreadable-file-judge-prepares
-                                 filename))))
-        judge))))
+(defvar entropy/emacs-unreadable-buffer-judge-function
+  (lambda (buff)
+    (with-current-buffer buff
+      (or (> (buffer-size) large-file-warning-threshold)
+          (progn
+            (require 'so-long)
+            (let ((so-long-threshold __unreadable-file-long-threshold))
+              (so-long-detected-long-line-p)))))))
 
-(defun entropy/emacs-ureadable-file-prompt (format &rest args)
+(defun __ureadable-file-do-prompt-of-message (format &rest args)
   (if (yes-or-no-p (format format args))
       t
     (user-error "Abort!")))
 
 (defun entropy/emacs-unreadable-file-advice-for-finid-file
     (orig-func &rest orig-args)
-  (if __unreadable-file-judge-prepares
+  (if (functionp entropy/emacs-unreadable-file-judge-function)
       (let* ((error-fmtstr
               "File '%s' is not readable e.g. its may freeze emacs, Abort!")
              (filename (car orig-args))
              (wildcards (cadr orig-args))
              (unreadable (if wildcards 'multifiles
-                           (entropy/emacs-unreadable-file-judge
+                           (funcall entropy/emacs-unreadable-file-judge-function
                             filename))))
         (cond ((null unreadable)
                (apply orig-func orig-args))
@@ -2639,21 +2620,21 @@ under the symbolink root dir."
                               (error (list filename))))
                      (counts 0))
                  (dolist (file files)
-                   (when (entropy/emacs-unreadable-file-judge file)
+                   (when (funcall entropy/emacs-unreadable-file-judge-function file)
                      (cl-incf counts)
                      (warn
                       (format "[%s] %s"
                               counts
                               (format error-fmtstr file)))))
                  (when (> counts 0)
-                   (entropy/emacs-ureadable-file-prompt
+                   (__ureadable-file-do-prompt-of-message
                     (format "There's %s file are unreadable e.g. which may freeze emacs, \
 for guaranteeing the current emacs session workable, eemacs refuse this find-file action. \
 Do you want to open it with messy?"
                             counts)))
                  (apply orig-func orig-args)))
               (t
-               (entropy/emacs-ureadable-file-prompt
+               (__ureadable-file-do-prompt-of-message
                 (format "File '%s' is not readable e.g. its may freeze emacs, \
 Do you want to open it with messy?"
                         filename))
@@ -2663,6 +2644,24 @@ Do you want to open it with messy?"
 (advice-add 'find-file
             :around
             #'entropy/emacs-unreadable-file-advice-for-finid-file)
+
+(defun entropy/emacs--supress-fontlock-mode (orig-func &rest orig-args)
+  "Disable font-lock render if current-buffer is large"
+  (cond
+   ((functionp entropy/emacs-unreadable-buffer-judge-function)
+    (unless (funcall entropy/emacs-unreadable-buffer-judge-function (current-buffer))
+      (apply orig-func orig-args)))
+   (t
+    (apply orig-func orig-args))))
+
+(add-hook 'entropy/emacs-after-startup-hook
+          #'(lambda ()
+              (when (display-graphic-p)
+                (unless (bound-and-true-p global-font-lock-mode)
+                  (global-font-lock-mode +1))
+                (with-eval-after-load 'font-core
+                  (advice-add 'turn-on-font-lock
+                              :around #'entropy/emacs--supress-fontlock-mode)))))
 
 ;; *** add eemacs texinfo to info-path
 

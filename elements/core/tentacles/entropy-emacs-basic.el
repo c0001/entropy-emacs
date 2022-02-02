@@ -1401,33 +1401,36 @@ NOTE: this is a advice wrapper for any function."
 (defvar entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
 (defvar entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
 
+(defun entropy/emacs-basic-smooth-scrolling-mode-turn-on ()
+  (unless (funcall entropy/emacs-unreadable-buffer-judge-function (current-buffer))
+    (entropy/emacs-basic-smooth-scrolling-mode 1)))
+
 (define-minor-mode entropy/emacs-basic-smooth-scrolling-mode
   "Toggle smooth-scrolling buffer scrolling view."
-  :init-value nil
   :lighter "SM"
-  :global t
   (if entropy/emacs-basic-smooth-scrolling-mode
       (progn
-        (setq
+        (setq-local
          next-screen-context-lines 0
          redisplay-dont-pause      t
          scroll-margin             0
-         scroll-conservatively     100)
-        (message "Smooth scrolling enabled!"))
+         scroll-conservatively     100))
     (progn
-      (setq
+      (setq-local
        next-screen-context-lines entropy/emacs-basic--next-screen-context-lines-orig-value
        redisplay-dont-pause      entropy/emacs-basic--redisplay-dont-pause-orig-value
        scroll-margin             entropy/emacs-basic--scroll-margin-orig-value
        scroll-conservatively     entropy/emacs-basic--scroll-conservatively-orig-value)
-      (message "Smooth scrolling disabled!"))))
+      )))
 
-(entropy/emacs-lazy-initial-for-hook
- (window-configuration-change-hook)
- "eemacs-smooth-scrolling-mode-init"
- "eemacs-smooth-scrolling-mode-init" prompt-echo
- :pdumper-no-end t
- (entropy/emacs-basic-smooth-scrolling-mode 1))
+(define-globalized-minor-mode
+  entropy/emacs-basic-smooth-scrolling-global-mode
+  entropy/emacs-basic-smooth-scrolling-mode
+  entropy/emacs-basic-smooth-scrolling-mode-turn-on)
+
+(entropy/emacs-lazy-with-load-trail
+ eemacs-smooth-scrolling-mode-init
+ (entropy/emacs-basic-smooth-scrolling-global-mode 1))
 
 
 ;; ***** Tab default visualization
