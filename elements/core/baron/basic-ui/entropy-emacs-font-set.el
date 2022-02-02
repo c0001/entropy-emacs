@@ -122,7 +122,8 @@ it.
       ;; preventing unicode cusor move lagging for
       ;; windows refer to mailing list
       ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2016-11/msg00471.html
-      (setq inhibit-compacting-font-caches t)
+      (when sys/win32p
+        (setq inhibit-compacting-font-caches t))
 
       ;; Setting latin Font
       (set-fontset-font nil 'latin
@@ -230,10 +231,10 @@ you must set it smaller than 15 for adapting to other entropy-emacs settings."))
   (when entropy/emacs-font-setting-enable
     (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
       (entropy/emacs-font-set-setfont-core))
-    (add-hook 'entropy/emacs-theme-load-after-hook
-              #'entropy/emacs-font-set-setfont-core)))
-
-(entropy/emacs-font-set--setfont-initial)
+    (add-hook 'entropy/emacs-after-startup-hook
+              #'(lambda ()
+                  (add-hook 'entropy/emacs-theme-load-after-hook
+                            #'entropy/emacs-font-set-setfont-core)))))
 
 (defun entropy/emacs-font-set--prog-font-set ()
   "Remap `prog-mode' face font using mordern programming fonts

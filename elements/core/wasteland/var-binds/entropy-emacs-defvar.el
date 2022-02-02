@@ -1093,10 +1093,10 @@ followed by `entropy/emacs-font-setting-enable'.")
             :jp "Sarasa Mono J" :kr "Sarasa Mono K")
     (google :latin "Noto Mono" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
             :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
-            :symbol "Symbola")
+            :symbol "Noto Sans Symbols")
     (fira-code :latin "Fira Code" :sc "Noto Sans Mono CJK SC" :tc "Noto Sans Mono CJK TC"
                :jp "Noto Sans Mono CJK JP" :kr "Noto Sans Mono CJK KR"
-               :symbol "Symbola"))
+               :symbol "Noto Sans Symbols"))
   "Alist of each fontset group for =entropy-emacs=.
 
  Each element is a cons of a type symbol and a group instance

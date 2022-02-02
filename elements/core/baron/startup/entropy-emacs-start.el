@@ -463,6 +463,10 @@ notation.
   ;; loading theme configuration after the modeline for loading theme
   ;; specifics for some mode-line adaption
   (entropy/emacs-common-require-feature 'entropy-emacs-themes)
+  ;; FIXME: we must set up font initially after theme spec config load
+  ;; to take font set effectively WHY?
+  (entropy/emacs-font-set--setfont-initial)
+
   (entropy/emacs-common-require-feature 'entropy-emacs-wc)
   (entropy/emacs-common-require-feature 'entropy-emacs-popwin)
   ;; =============================
