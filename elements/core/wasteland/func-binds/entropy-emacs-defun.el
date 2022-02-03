@@ -3297,8 +3297,8 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 - 'ET-FORM' is the form for cli emacs session
 - 'EC-FORM' is the form for gui emacs-session
 
-Optional form COMMON-FORM run directly without any condition
-judgements.
+Optional form COMMON-FORM run directly after ET-FORM and EC-FORM
+without any condition judgements.
 
 Return the hooker symbol."
   (let* ((--name--
@@ -3314,8 +3314,6 @@ Return the hooker symbol."
            ,ec-form
          ,et-form)
        ,common-form))))
-
-
 
 ;; *** Proxy specification
 ;; **** process env with eemacs union internet proxy
