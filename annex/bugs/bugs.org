@@ -451,14 +451,47 @@ into the echo area of that timer.
   approach to it.
 
 *** log: [2021-09-25 Sat 22:03:52]:
+:PROPERTIES:
+:CUSTOM_ID: h-8b80c803-94a9-4208-b309-2c00aca1a784
+:END:
 
 It seems that the idle delay less than 0.001 also will trigger this
 bug.
 
 *** log: [2021-10-01 Fri 23:13:38]
+:PROPERTIES:
+:CUSTOM_ID: h-60551428-a42b-4c82-833f-d12c31372577
+:END:
 
 It seems related to X11 protocal on linux of gnome DE since it
 disappeared while using Xwayland gnome session.
+
+** TODO bug of system IME (e.g. fcitx) let emacs GUI fast hints hang without any response in linux desktop
+:PROPERTIES:
+:CUSTOM_ID: h-12379f67-4311-4433-86e3-a6fdfd886112
+:END:
+
+Some IME (input method editor) hang emacs without any response in GUI
+mode in Gnome shell while fast scroll screen using arrow down/up
+(i.e. ~next-line~ / ~previous-line~) with fast repeat key typing
+enable in system setting or keyboard hardware embedded utils.
+
+The only way currently to fix this is to disable the IME in whole
+emacs session's environment:
+#+begin_src shell
+unset GTL_IM_MODULE
+unset GTK_IM_MODULE
+unset QT_IM_MODULE
+unset XMODIFIERS
+exec emacs "$@"
+#+end_src
+
+Put above be the emacs.sh or other caller format with example or just
+unseet these two environment variable.
+
+Or modify the desktop file or the desktop custom keyboard shortcut for
+as ~EXEC=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs %F~ or
+~env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs~.
 
 * COMMENT Local Varaibles
 :PROPERTIES:

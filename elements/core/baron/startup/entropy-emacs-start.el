@@ -578,6 +578,82 @@ notation.
   (setq w32-system-coding-system 'utf-8)
   (define-coding-system-alias 'cp65001 'utf-8))
 
+(defun entropy/emacs-start-linux-DE-IME-warning (&optional force)
+  "Warnning for linux desktop IME bug of eemacs bug
+[h-12379f67-4311-4433-86e3-a6fdfd886112]."
+  (when (or sys/linux-x-p (and sys/linuxp force))
+    (let ((envars '("GTL_IM_MODULE"
+                    "GTK_IM_MODULE"
+                    "QT_IM_MODULE"
+                    "XMODIFIERS"))
+          (warn-head "\nLinux desktop IME framework detected, they may freeze gui emacs in\n\
+fast hint occation follow the\neemacs bug notaion of [h-12379f67-4311-4433-86e3-a6fdfd886112]:
+
+Some IME (input method editor) hang emacs without any response in GUI
+mode in Gnome shell while fast scroll screen using arrow down/up
+(i.e. ~next-line~ / ~previous-line~) with fast repeat key typing
+enable in system setting or keyboard hardware embedded utils.
+
+The only way currently to fix this is to disable the IME in whole
+emacs session's environment:
+#+begin_src shell
+unset GTL_IM_MODULE
+unset GTK_IM_MODULE
+unset QT_IM_MODULE
+unset XMODIFIERS
+exec emacs \"$@\"
+#+end_src
+
+Put above be the emacs.sh or other caller format with example or just
+unseet these two environment variable.
+
+Or modify the desktop file or the desktop custom keyboard shortcut for
+as ~EXEC=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs %F~ or
+~env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs~.
+
+Currently detected env variables:")
+          (msg ""))
+      (dolist (env envars)
+        (let ((val (getenv env)))
+          (when (and val
+                     (not (string-empty-p val)))
+            (setq msg (format "%s\n%s=%s" msg env val)))))
+      (unless (string-empty-p msg)
+        (warn "%s" (concat warn-head msg))))))
+
+(cond
+ ((daemonp)
+  (defvar __entropy/emacs-start-linux-DE-IME-warning_idle_timer nil)
+  (defvar __entropy/emacs-start-linux-DE-IME-warning_prompt_did nil)
+  (defvar __entropy/emacs-start-linux-DE-IME-warning_done nil)
+  (entropy/emacs-with-daemon-make-frame-done
+   'eemacs-linux-de-ime-warning
+   nil
+   '(progn
+      (setq __entropy/emacs-start-linux-DE-IME-warning_prompt_did nil)
+      (setq __entropy/emacs-start-linux-DE-IME-warning_done nil)
+      (setq __entropy/emacs-start-linux-DE-IME-warning_idle_timer
+            (run-with-idle-timer
+             3
+             t
+             (lambda ()
+               (when (null __entropy/emacs-start-linux-DE-IME-warning_done)
+                 (entropy/emacs-start-linux-DE-IME-warning t)
+                 (switch-to-buffer "*Warnings*")
+                 (delete-other-windows)
+                 (when (and
+                        (null __entropy/emacs-start-linux-DE-IME-warning_prompt_did)
+                        (setq __entropy/emacs-start-linux-DE-IME-warning_prompt_did t)
+                        (yes-or-no-p "Did you know that?"))
+                   (cancel-timer __entropy/emacs-start-linux-DE-IME-warning_idle_timer)
+                   (setq __entropy/emacs-start-linux-DE-IME-warning_idle_timer nil))))))
+      )))
+ ((bound-and-true-p entropy/emacs-fall-love-with-pdumper)
+  (add-hook 'entropy/emacs-pdumper-load-hook
+            #'entropy/emacs-start-linux-DE-IME-warning))
+ (t
+  (entropy/emacs-start-linux-DE-IME-warning)))
+
 (defun entropy/emacs-start-do-load ()
   (let (_)
     (when (and entropy/emacs-start-ext-available-p
