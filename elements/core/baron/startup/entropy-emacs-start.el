@@ -605,7 +605,7 @@ exec emacs \"$@\"
 #+end_src
 
 Put above be the emacs.sh or other caller format with example or just
-unseet these two environment variable.
+unseet these environment variable.
 
 Or modify the desktop file or the desktop custom keyboard shortcut for
 as ~EXEC=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs %F~ or
