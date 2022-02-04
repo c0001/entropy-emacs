@@ -1002,8 +1002,7 @@ list of range descriptions supported by
 (defcustom entropy/emacs-union-http-proxy-plist
   '(:enable
     nil
-    :host "127.0.0.1" :port 7890
-    :no_proxy ("127.0.0.1" "localhost"))
+    :host "127.0.0.1" :port 7890)
   "The plist for indicate eemacs union http proxy for internet connection.
 
 There're three valid key slots:
@@ -1367,9 +1366,16 @@ difference.
   :type '(repeat (string :tag "host url or domain wildcards"))
   :group 'entropy/emacs-customize-group-for-elfeed)
 
-(defcustom entropy/emacs-elfeed-retrieve-proxy "127.0.0.1:1081"
-  "The default proxy host domain and port concated string for
-elfeed proxy setting."
+(defcustom entropy/emacs-elfeed-retrieve-http-proxy "127.0.0.1:1081"
+  "The default http proxy host domain and port concated string for elfeed
+proxy setting, format as host:port e.g. 127.0.0.1:1081 .
+
+NOTE:
+
+This value is the fallback of `entropy/emacs-union-http-proxy-plist'
+i.e. if `entropy/emacs-union-http-proxy-plist' is non-nil, we use it
+as the cover to this variable with the :host and :port extracted by
+`entropy/emacs-union-http-proxy-plist'."
   :type 'string
   :group 'entropy/emacs-customize-group-for-elfeed)
 

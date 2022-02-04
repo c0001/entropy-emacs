@@ -486,6 +486,15 @@ function of `ivy-read'."
 
 ;; *** update specific feed through proxy
 
+  ;; use `entropy/emacs-union-http-proxy-plist' to specify proxy when enabled
+  (when (plist-get entropy/emacs-union-http-proxy-plist :enable)
+    (let ((host (plist-get entropy/emacs-union-http-proxy-plist :host))
+          (port (plist-get entropy/emacs-union-http-proxy-plist :port)))
+      (when (and (and host (stringp host) (not (string-empty-p host)))
+                 (and port (integerp port)))
+        (setq entropy/emacs-elfeed-retrieve-http-proxy
+              (format "%s:%s" host port)))))
+
   (defvar entropy/emacs-rss--elfeed-backup-of-orig-urlproxy nil)
   (defvar entropy/emacs-rss--elfeed-multi-update-feeds-list '()
     "Elfeed Feeds for update.")
@@ -550,9 +559,9 @@ promptings and injecting them into `entropy/emacs-rss--elfeed-multi-update-feeds
       (setq entropy/emacs-rss--elfeed-backup-of-orig-urlproxy
             copy-proxy)
       (setq url-proxy-services
-            (list (cons "http" entropy/emacs-elfeed-retrieve-proxy)
-                  (cons "https" entropy/emacs-elfeed-retrieve-proxy)
-                  (cons "ftp" entropy/emacs-elfeed-retrieve-proxy)
+            (list (cons "http" entropy/emacs-elfeed-retrieve-http-proxy)
+                  (cons "https" entropy/emacs-elfeed-retrieve-http-proxy)
+                  (cons "ftp" entropy/emacs-elfeed-retrieve-http-proxy)
                   (cons "no_proxy" (concat
                                     "^\\("
                                     (mapconcat
@@ -572,9 +581,9 @@ promptings and injecting them into `entropy/emacs-rss--elfeed-multi-update-feeds
     (let ((ulist (if url-lists url-lists (progn (entropy/emacs-rss-elfeed-get-multi-update-feeds)
                                                 entropy/emacs-rss--elfeed-multi-update-feeds-list))))
       (if elfeed-use-curl
-          (let ((proxy (if (not (string-match-p "^http://" entropy/emacs-elfeed-retrieve-proxy))
-                           (concat "http://" entropy/emacs-elfeed-retrieve-proxy)
-                         entropy/emacs-elfeed-retrieve-proxy)))
+          (let ((proxy (if (not (string-match-p "^http://" entropy/emacs-elfeed-retrieve-http-proxy))
+                           (concat "http://" entropy/emacs-elfeed-retrieve-http-proxy)
+                         entropy/emacs-elfeed-retrieve-http-proxy)))
             (entropy/emacs-rss--elfeed-update-curl-proxy ulist proxy))
         (entropy/emacs-rss--elfeed-update-urlretrieve-proxy ulist))))
 
