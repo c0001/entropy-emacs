@@ -2593,7 +2593,12 @@ under the symbolink root dir."
 (advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
 
 ;; ***** unreadable file detection
-(setq large-file-warning-threshold (* 8 (expt 1024 2)))
+
+(defvar entropy/emacs-large-file-warning-threshold (* 8 (expt 1024 2))
+  "Like `large-file-warning-threshold' but used in eemacs internal.")
+;; FIXME: `large-file-warning-threshold' is nil in some occasions even
+;; if we bind it in top level. Refer to bug id [h-ca204a62-9e15-4f3b-ae23-f31b6046a9c5]
+(setq large-file-warning-threshold entropy/emacs-large-file-warning-threshold)
 
 (defvar __unreadable-file-long-threshold 300)
 (defvar entropy/emacs-unreadable-file-judge-function
@@ -2605,13 +2610,13 @@ under the symbolink root dir."
         (ignore-errors
           (insert-file-contents
            filename))
-        (or (> (buffer-size) large-file-warning-threshold)
+        (or (> (buffer-size) entropy/emacs-large-file-warning-threshold)
             (so-long-detected-long-line-p))))))
 
 (defvar entropy/emacs-unreadable-buffer-judge-function
   (lambda (buff)
     (with-current-buffer buff
-      (or (> (buffer-size) large-file-warning-threshold)
+      (or (> (buffer-size) entropy/emacs-large-file-warning-threshold)
           (progn
             (require 'so-long)
             (let ((so-long-threshold __unreadable-file-long-threshold))
@@ -2667,12 +2672,14 @@ Do you want to open it with messy?"
 
 (defun entropy/emacs--supress-fontlock-mode (orig-func &rest orig-args)
   "Disable font-lock render if current-buffer is large"
-  (cond
-   ((functionp entropy/emacs-unreadable-buffer-judge-function)
-    (unless (funcall entropy/emacs-unreadable-buffer-judge-function (current-buffer))
-      (apply orig-func orig-args)))
-   (t
-    (apply orig-func orig-args))))
+  (let ((buff (current-buffer)))
+    (cond
+     ((and (get-buffer-window buff)
+           (functionp entropy/emacs-unreadable-buffer-judge-function))
+      (unless (funcall entropy/emacs-unreadable-buffer-judge-function buff)
+        (apply orig-func orig-args)))
+     (t
+      (apply orig-func orig-args)))))
 
 (add-hook 'entropy/emacs-after-startup-hook
           #'(lambda ()
