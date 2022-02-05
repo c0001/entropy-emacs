@@ -392,7 +392,7 @@ EXIT /b
       (setq download-cbk
             (entropy/emacs-network-download-file
              server-host-url
-             tmp-download-file))
+             tmp-download-file (executable-find "curl")))
       (unless (eq (symbol-value download-cbk) 'success)
         (user-error "'%s' lsp server download with fatal with error type '%s'"
                     server-name-string

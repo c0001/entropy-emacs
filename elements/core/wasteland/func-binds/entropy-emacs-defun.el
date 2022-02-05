@@ -788,7 +788,14 @@ value of key slot of :default-directory, the place hold a atom or
 a form.
 
 Further more key :synchronously indicate whether call with
-synchronously, the place hold a atom or a form.
+synchronously, the place hold a any atom (i.e. non-nil when set
+any atom but 'nil' atom) or a form. If :synchronously enabled by
+atom 't', then the synchronously method using `make-process' with
+spawn watchdog mechanism to emulate synchronization , otherwise
+using `call-process' to did the synchronization, this be
+presented since the `call-process' have the terminate
+non-effected problem in emacs batch-mode (see its doc for details
+refer the SIGINT and SIGKILL).
 
 If you wish to do sth both for finished or errored status with
 `unwind-protect', inject forms to :cleanup slot.
@@ -858,34 +865,61 @@ can be used into your form:
         ($call_proc_command (car (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
         ($call_proc_args (cdr (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
 
-        )
+        (__this_sync_sym (let ((make-sym-func
+                                (lambda ()
+                                  (intern (format "eemacs-make-process_%s_%s_%s_%s"
+                                                  (random) (random) (random) (random)))))
+                               sym)
+                           (setq sym (funcall make-sym-func))
+                           (when (boundp sym)
+                             (while (boundp sym)
+                               (setq sym (funcall make-sym-func))))
+                           (set sym nil)
+                           sym))
+        __this_proc
+        __this_proc_buffer)
     (when (eval prepare-form)
       (cond
-       ((null synchronously)
-        (make-process
-         :name $make_proc_name
-         :buffer $make_proc_buffer
-         :command $make_proc_command
-         :coding $make_proc_coding
-         :noquery $make_proc_noquery
-         :stop $make_proc_stop
-         :connection-type $make_proc_connection-type
-         :filter $make_proc_filter
-         :sentinel
-         `(lambda ($sentinel/proc $sentinel/event)
-            (let ((orig-sentinel
-                   ,$make_proc_sentinel)
-                  ($sentinel/destination (process-buffer $sentinel/proc)))
-              (unwind-protect
-                  (progn
-                    (when (functionp orig-sentinel)
-                      (apply orig-sentinel
-                             $sentinel/proc $sentinel/event))
-                    (cond ((string-match-p "finished\n" $sentinel/event)
-                           ,after-form)
-                          ((string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" $sentinel/event)
-                           ,error-form)))
-                ,clean-form)))))
+       ((or (null synchronously)
+            (eq synchronously t))
+        (setq __this_proc
+              (make-process
+               :name $make_proc_name
+               :buffer $make_proc_buffer
+               :command $make_proc_command
+               :coding $make_proc_coding
+               :noquery $make_proc_noquery
+               :stop $make_proc_stop
+               :connection-type $make_proc_connection-type
+               :filter $make_proc_filter
+               :sentinel
+               `(lambda ($sentinel/proc $sentinel/event)
+                  (let ((orig-sentinel
+                         ,$make_proc_sentinel)
+                        ($sentinel/destination (process-buffer $sentinel/proc)))
+                    (unwind-protect
+                        (progn
+                          (when (functionp orig-sentinel)
+                            (apply orig-sentinel
+                                   $sentinel/proc $sentinel/event))
+                          (cond ((string-match-p "finished\n" $sentinel/event)
+                                 (unless ',synchronously
+                                   ,after-form))
+                                ((string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" $sentinel/event)
+                                 ,error-form)))
+                      (unless ',synchronously
+                        ,clean-form)
+                      (when (eq ',synchronously t)
+                        (setq ,__this_sync_sym t))))))
+
+              __this_proc_buffer (process-buffer __this_proc))
+
+        (when (eq synchronously t)
+          (while (null (symbol-value __this_sync_sym)) (sleep-for 0.1))
+          (eval `(let (($sentinel/destination ',__this_proc_buffer))
+                   (progn
+                     ,after-form
+                     ,clean-form)))))
        (t
         (let (($sentinel/destination
                $call_proc_destination))
