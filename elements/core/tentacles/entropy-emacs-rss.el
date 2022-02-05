@@ -69,44 +69,21 @@
     "Update"
     (("u" entropy/emacs-rss-elfeed-multi-update-feeds "Update multiple feeds"
       :enable t :exit t)
-     ("U" elfeed-search-fetch "Update all feeds" :enable t :exit t)
-     ("g" entropy/emacs-rss-elfeed-format-feed-title "Refresh all feeds" :enable t :exit t)
-     ("M-u" entropy/emacs-rss-elfeed-update-proxy "Update multiple feeds by proxy"
-      :enable t :exit t)
-     ("M-U" entropy/emacs-rss-elfeed-proxy-update-all-nil-feeds "Update all failed feeds with proxy"
-      :enable t :exit t)
-     ("M-r" entropy/emacs-rss-elfeed-update-proxyfeeds-regexp-match "Update feeds by regexp match with proxy"
-      :enable t :exit t))
+     ("U" elfeed-update "Update all feeds" :enable t :exit t)
+     ("g" entropy/emacs-rss-elfeed-format-feed-title "Refresh all feeds" :enable t :exit t))
     "Entry"
     (("d" entropy/emacs-rss-elfeed-delete-entry "Delete current entry" :enable t :exit t)
      ("+" entropy/emacs-rss-elfeed-tag-selected "Add tag for current entry" :enable t :exit t)
      ("-" entropy/emacs-rss-elfeed-untag-selected "Delete tag for current entry" :enable t :exit t))))
 
   :init
+
+  (setq elfeed-feeds
+        (mapcar (lambda (x) (car x))
+                entropy/emacs-elfeed-feeds))
+
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
   (setq elfeed-curl-timeout 20)
-
-  ;; Pre-defined `elfeed-feeds' for user test when non customized
-  ;; feeds existed.
-  (unless (bound-and-true-p elfeed-feeds)
-    (setq elfeed-feeds
-          '(
-            ;; emacs information
-            "https://emacs-china.org/posts.rss"
-            "https://emacs-china.org/latest.rss"
-            "https://manateelazycat.github.io/feed.xml"
-            ;; english
-            "https://www.nasa.gov/rss/dyn/nasax_vodcast.rss"
-            "https://www.nasa.gov/rss/dyn/image_of_the_day.rss"
-            "http://feeds.bbci.co.uk/news/england/rss.xml"
-            "http://feeds.bbci.co.uk/news/world/europe/rss.xml"
-            ;; chinese
-            "https://www.douban.com/feed/review/book"
-            "https://www.ithome.com/rss/"
-            "http://rss.zol.com.cn/news.xml"
-            "https://feedx.net/rss/thepaper.xml"
-            "http://www.williamlong.info/blog/rss.xml"
-            )))
 
   ;; set curl path
   (let ((mingw-curl (if (and entropy/emacs-wsl-enable
@@ -484,18 +461,8 @@ function of `ivy-read'."
       (setq elfeed-feeds rtn)
       (customize-save-variable 'elfeed-feeds elfeed-feeds)))
 
-;; *** update specific feed through proxy
+;; *** multi read feeds framework
 
-  ;; use `entropy/emacs-union-http-proxy-plist' to specify proxy when enabled
-  (when (plist-get entropy/emacs-union-http-proxy-plist :enable)
-    (let ((host (plist-get entropy/emacs-union-http-proxy-plist :host))
-          (port (plist-get entropy/emacs-union-http-proxy-plist :port)))
-      (when (and (and host (stringp host) (not (string-empty-p host)))
-                 (and port (integerp port)))
-        (setq entropy/emacs-elfeed-retrieve-http-proxy
-              (format "%s:%s" host port)))))
-
-  (defvar entropy/emacs-rss--elfeed-backup-of-orig-urlproxy nil)
   (defvar entropy/emacs-rss--elfeed-multi-update-feeds-list '()
     "Elfeed Feeds for update.")
 
@@ -530,121 +497,38 @@ promptings and injecting them into `entropy/emacs-rss--elfeed-multi-update-feeds
     (dolist (el entropy/emacs-rss--elfeed-multi-update-feeds-list)
       (elfeed-update-feed el)))
 
-  (defun entropy/emacs-rss--elfeed-update-curl-proxy (url-lists proxy)
-    (when elfeed-curl-extra-arguments
-      (let (mlist (olist elfeed-curl-extra-arguments))
-        (dolist (el olist)
-          (when (string-match-p "-x.*://" el)
-            (setq elfeed-curl-extra-arguments (delete el elfeed-curl-extra-arguments))))))
-    (setq elfeed-curl-extra-arguments (append elfeed-curl-extra-arguments
-                                              (list (concat "-x" proxy))))
-    (dolist (el url-lists)
-      (elfeed-update-feed el)))
+;; *** update specific feed through proxy
 
+  (defsubst entropy/emacs-rss--elfeed-url-with-proxy-p (url)
+    (when (plist-get
+           (alist-get url entropy/emacs-elfeed-feeds nil nil 'string=)
+           :use-proxy)
+      (message "elfeed update feed '%s' through proxy ..." url)
+      t))
 
-  (defvar entropy/emacs-rss--elfeed-update-urlretrieve-proxy-timer)
-  (defun entropy/emacs-rss--elfeed-update-urlretrieve-proxy-reset-proxy-request ()
-    (when (and (timerp entropy/emacs-rss--elfeed-update-urlretrieve-proxy-timer)
-               (null url-queue))
-      (progn (cancel-timer entropy/emacs-rss--elfeed-update-urlretrieve-proxy-timer)
-             (setq entropy/emacs-rss--elfeed-update-urlretrieve-proxy-timer nil
-                   entropy/emacs-rss--elfeed-proxy-for-emacs-url nil
-                   url-proxy-services entropy/emacs-rss--elfeed-backup-of-orig-urlproxy))))
+  (defun __ya/elfeed-update-feed (orig-func &rest orig-args)
+    "Like `elfeed-update-feed' but with proxy while needed."
+    (let ((need-proxy-p (entropy/emacs-rss--elfeed-url-with-proxy-p (car orig-args))))
+      (if (or (not elfeed-use-curl)
+              need-proxy-p)
+          (let ((elfeed-use-curl nil))
+            (if need-proxy-p
+                (apply 'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
+                       (lambda nil t)
+                       orig-func orig-args)
+              (apply orig-func orig-args)))
+        ;; Do not use curl method to retrieve via proxy Since
+        ;; `elfeed-curl-retrieve' parent `elfeed-curl-enqueue' use
+        ;; idle timer to call it in which case we can not directly
+        ;; apply proxy process env with `elfeed-curl-enqueue' to take
+        ;; effective. And elfeed combine the feeds within an single
+        ;; curl process so that we can not judge whether use proxy for
+        ;; as.
+        (apply orig-func orig-args))))
 
-  (defun entropy/emacs-rss--elfeed-update-urlretrieve-proxy (url-lists)
-    (unless (< (length url-lists) 5)
-      (error "Too much feeds selected, it will cause lagging, reducing them under 5."))
-    (let ((elfeed-use-curl nil)
-          (copy-proxy (copy-tree url-proxy-services)))
-      (setq entropy/emacs-rss--elfeed-backup-of-orig-urlproxy
-            copy-proxy)
-      (setq url-proxy-services
-            (list (cons "http" entropy/emacs-elfeed-retrieve-http-proxy)
-                  (cons "https" entropy/emacs-elfeed-retrieve-http-proxy)
-                  (cons "ftp" entropy/emacs-elfeed-retrieve-http-proxy)
-                  (cons "no_proxy" (concat
-                                    "^\\("
-                                    (mapconcat
-                                     'identity entropy/emacs-elfeed-url-no-proxy
-                                     "\\|") "\\)"))))
-      (dolist (el url-lists)
-        (elfeed-update-feed el))
-      (setq entropy/emacs-rss--elfeed-update-urlretrieve-proxy-timer
-            (run-with-idle-timer
-             0.1 t
-             #'entropy/emacs-rss--elfeed-update-urlretrieve-proxy-reset-proxy-request))))
-
-
-  (defun entropy/emacs-rss-elfeed-update-proxy (&optional url-lists )
-    "Update feeds using proxy."
-    (interactive)
-    (let ((ulist (if url-lists url-lists (progn (entropy/emacs-rss-elfeed-get-multi-update-feeds)
-                                                entropy/emacs-rss--elfeed-multi-update-feeds-list))))
-      (if elfeed-use-curl
-          (let ((proxy (if (not (string-match-p "^http://" entropy/emacs-elfeed-retrieve-http-proxy))
-                           (concat "http://" entropy/emacs-elfeed-retrieve-http-proxy)
-                         entropy/emacs-elfeed-retrieve-http-proxy)))
-            (entropy/emacs-rss--elfeed-update-curl-proxy ulist proxy))
-        (entropy/emacs-rss--elfeed-update-urlretrieve-proxy ulist))))
-
-
-  (defun entropy/emacs-rss--elfeed-reset-curl-arg ()
-    (let ((judge nil)
-          (mlist nil))
-      (when elfeed-curl-extra-arguments
-        (dolist (el elfeed-curl-extra-arguments)
-          (when (string-match-p "-x.*://" el)
-            (setq judge t)
-            (push el mlist)))
-        (when judge
-          (cond
-           ((= 1 (length elfeed-curl-extra-arguments))
-            (setq elfeed-curl-extra-arguments nil))
-           (t
-            (dolist (el mlist)
-              (setq elfeed-curl-extra-arguments
-                    (delete el elfeed-curl-extra-arguments)))))))))
-
-  (advice-add 'elfeed-update :before #'entropy/emacs-rss--elfeed-reset-curl-arg)
-
-  (defun entropy/emacs-rss-elfeed-proxy-update-all-nil-feeds ()
-    "Update all empty feeds with proxy by `entropy/emacs-rss-elfeed-update-proxy'."
-    (interactive)
-    (let ((olist (entropy/emacs-rss--elfeed-list-feeds))
-          mlist rlist)
-      (dolist (el olist)
-        (when (string-match-p "☹nil" (car el))
-          (push (cdr el) mlist)))
-      (if mlist
-          (entropy/emacs-rss-elfeed-update-proxy mlist)
-        (message "None feeds need for updating with proxy."))))
-
-
-  (defun entropy/emacs-rss-elfeed-update-proxyfeeds-regexp-match ()
-    "Update feeds through proxy matched by regexp stored in
-`entropy/emacs-elfeed-proxyfeeds-regexp-list'.
-
-If hasn't setting the regexp list, prompting for input them
-repeatly and stored them in `cutom-file'."
-    (interactive)
-    (require 'entropy-common-library)
-    (let ((olist (elfeed-feed-list))
-          (relist entropy/emacs-elfeed-proxyfeeds-regexp-list)
-          ulist)
-      (unless relist
-        (setq relist (entropy/cl-repeated-read "Inputting regexp"))
-        (setq entropy/emacs-elfeed-proxyfeeds-regexp-list relist)
-        (customize-save-variable 'entropy/emacs-elfeed-proxyfeeds-regexp-list relist))
-      (when (yes-or-no-p "Do you want to adding some matching? ")
-        (setq relist (append relist (entropy/cl-repeated-read "Adding regexp")))
-        (setq entropy/emacs-elfeed-proxyfeeds-regexp-list relist)
-        (customize-save-variable 'entropy/emacs-elfeed-proxyfeeds-regexp-list relist))
-      (dolist (el olist)
-        (dolist (elm relist)
-          (when (string-match-p elm el)
-            (push el ulist))))
-      (when ulist
-        (entropy/emacs-rss-elfeed-update-proxy ulist))))
+  (advice-add 'elfeed-update-feed
+              :around
+              #'__ya/elfeed-update-feed)
 
 ;; *** default external browser for feed viewing
 

@@ -3317,67 +3317,137 @@ Return the hooker symbol."
 
 ;; *** Proxy specification
 ;; **** process env with eemacs union internet proxy
-
+(defvar __eemacs_cache_noproxy_list nil)
+(defvar __eemacs_cache_noproxy_string nil)
 (defun entropy/emacs-gen-eemacs-union-proxy-noproxy-envs (noproxy-list &optional list-return)
   "Generate comma separated no proxy patterns string from
 NOPROXY-LIST which usually obtained from `entropy/emacs-union-proxy-noproxy-list'.
 
 Return a list of thus when LIST-RETURN is non-nil."
-  (let ((noproxy-string "") list-rtn)
-    (dolist (el noproxy-list)
-      (cond ((and (listp el)
-                  (not (null el)))
-             (if list-return
-                 (let ((range-list
+  (catch :exit
+    (cond (list-return
+           (and __eemacs_cache_noproxy_list
+                (throw :exit __eemacs_cache_noproxy_list)))
+          (t
+           (and __eemacs_cache_noproxy_string
+                (throw :exit __eemacs_cache_noproxy_string))))
+    (let ((noproxy-string "") list-rtn)
+      (dolist (el noproxy-list)
+        (cond ((and (listp el)
+                    (not (null el)))
+               (if list-return
+                   (let ((range-list
+                          (entropy/emacs-generate-symbols-or-strings-from-range-desc
+                           el)))
+                     (setq list-rtn (append list-rtn range-list)))
+                 (let ((range-str
                         (entropy/emacs-generate-symbols-or-strings-from-range-desc
-                         el)))
-                   (setq list-rtn (append list-rtn range-list)))
-               (let ((range-str
-                      (entropy/emacs-generate-symbols-or-strings-from-range-desc
-                       el nil t ",")))
+                         el nil t ",")))
+                   (setq noproxy-string
+                         (if (not (string-empty-p noproxy-string))
+                             (format "%s,%s" noproxy-string range-str)
+                           range-str)))))
+              ((stringp el)
+               (if list-return
+                   (setq list-rtn (append list-rtn (list el)))
                  (setq noproxy-string
-                       (if (not (string-empty-p noproxy-string))
-                           (format "%s,%s" noproxy-string range-str)
-                         range-str)))))
-            ((stringp el)
-             (if list-return
-                 (setq list-rtn (append list-rtn (list el)))
-               (setq noproxy-string
-                     (if (string-empty-p noproxy-string)
-                         (format "%s" el)
-                       (format "%s,%s" noproxy-string el)))))))
-    (if list-return
-        list-rtn
-      noproxy-string)))
+                       (if (string-empty-p noproxy-string)
+                           (format "%s" el)
+                         (format "%s,%s" noproxy-string el)))))))
+      (if list-return
+          (setq __eemacs_cache_noproxy_list list-rtn)
+        (setq __eemacs_cache_noproxy_string noproxy-string)))))
 
+(defvar __eemacs_cache_proxy_env nil)
 (defun entropy/emacs-gen-eemacs-union-http-internet-proxy-envs ()
   "Generate list of http proxy env var/value paires sourced from
 `entropy/emacs-union-http-proxy-plist'."
-  (let* ((proxy-plist entropy/emacs-union-http-proxy-plist)
-         (proxy-env
-          `(,(format "http_proxy=http://%s:%s"
-                     (plist-get proxy-plist :host)
-                     (number-to-string (plist-get proxy-plist :port)))
-            ,(format "https_proxy=http://%s:%s"
-                     (plist-get proxy-plist :host)
-                     (number-to-string (plist-get proxy-plist :port)))
-            ,(format "HTTP_PROXY=http://%s:%s"
-                     (plist-get proxy-plist :host)
-                     (number-to-string (plist-get proxy-plist :port)))
-            ,(format "HTTPS_PROXY=http://%s:%s"
-                     (plist-get proxy-plist :host)
-                     (number-to-string (plist-get proxy-plist :port))))))
-    ;; inject noproxy ip addresses
-    (let ((noproxy-list entropy/emacs-union-proxy-noproxy-list))
-      (when noproxy-list
-        (setq proxy-env
-              (append
-               proxy-env
-               (let ((noproxy-str (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs noproxy-list)))
-                 (list (format "no_proxy=%s" noproxy-str)
-                       (format "NO_PROXY=%s" noproxy-str)))))))
-    ;;return
-    proxy-env))
+  (or __eemacs_cache_proxy_env
+      (let* ((proxy-plist entropy/emacs-union-http-proxy-plist)
+             (proxy-env
+              `(,(format "http_proxy=http://%s:%s"
+                         (plist-get proxy-plist :host)
+                         (number-to-string (plist-get proxy-plist :port)))
+                ,(format "https_proxy=http://%s:%s"
+                         (plist-get proxy-plist :host)
+                         (number-to-string (plist-get proxy-plist :port)))
+                ,(format "HTTP_PROXY=http://%s:%s"
+                         (plist-get proxy-plist :host)
+                         (number-to-string (plist-get proxy-plist :port)))
+                ,(format "HTTPS_PROXY=http://%s:%s"
+                         (plist-get proxy-plist :host)
+                         (number-to-string (plist-get proxy-plist :port))))))
+        ;; inject noproxy ip addresses
+        (let ((noproxy-list entropy/emacs-union-proxy-noproxy-list))
+          (when noproxy-list
+            (setq proxy-env
+                  (append
+                   proxy-env
+                   (let ((noproxy-str (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs noproxy-list)))
+                     (list (format "no_proxy=%s" noproxy-str)
+                           (format "NO_PROXY=%s" noproxy-str)))))))
+        ;;return
+        (setq __eemacs_cache_proxy_env proxy-env)
+        proxy-env)))
+
+(defvar __eemacs_cache_url_proxy_services nil)
+(defun entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services ()
+  "Generate a list formed to used for set `url-proxy-services'
+sourced from `entropy/emacs-union-http-proxy-plist'."
+  (or __eemacs_cache_url_proxy_services
+      (let* ((proxy-plist entropy/emacs-union-http-proxy-plist)
+             (target (format "%s:%s"
+                             (plist-get proxy-plist :host)
+                             (number-to-string (plist-get proxy-plist :port)))))
+        (setq __eemacs_cache_url_proxy_services
+              (list (cons "http" target)
+                    (cons "https" target)
+                    (cons "ftp" target)
+                    (cons "no_proxy" (concat
+                                      "^\\("
+                                      (mapconcat
+                                       'identity (entropy/emacs-gen-eemacs-union-proxy-noproxy-envs
+                                                  entropy/emacs-union-proxy-noproxy-list
+                                                  t)
+                                       "\\|")
+                                      "\\)"
+                                      )))))))
+
+(defvar __eemacs_union_http_url_retrieve_internal_enable_p nil)
+(defvar __ya/timer-set-function/with-url-poroxy/register nil)
+(defun __ya/timer-set-function/with-url-proxy (orig-func &rest orig-args)
+  "Like `timer-set-function' but patched with url proxy about of
+`entropy/emacs-funcall-with-eemacs-union-http-internet-proxy' for
+timer since timer is delayed call that can not inherit the
+lexical binding."
+  (if __eemacs_union_http_url_retrieve_internal_enable_p
+      (let ((url-proxy-services-this
+             (entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
+            (process-environment (append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
+                                         process-environment))
+            (func-call (nth 1 orig-args))
+            func)
+        (setq func `(lambda (&rest args)
+                      (let ((this-func ',func-call)
+                            (url-proxy-services ',url-proxy-services-this))
+                        (apply this-func args))))
+        (push (cons func-call func) __ya/timer-set-function/with-url-poroxy/register)
+        (apply orig-func (car orig-args) func (cddr orig-args)))
+    (apply orig-func orig-args)))
+(advice-add 'timer-set-function :around #'__ya/timer-set-function/with-url-proxy)
+
+(defun __ya/cancel-function-timers/with-url-proxy (orig-func &rest orig-args)
+  "Like  `cancel-function-timer' but since `__ya/timer-set-function/with-url-proxy'."
+  (let ((func (car orig-args))
+        remain)
+    (dolist (el __ya/timer-set-function/with-url-poroxy/register)
+      (if (eq (car el) func)
+          (apply orig-func (list (cdr el)))
+        (push el remain)))
+    (when remain
+      (setq __ya/timer-set-function/with-url-poroxy/register remain))
+    (apply orig-func orig-args)))
+(advice-add 'cancel-function-timers :around #'__ya/cancel-function-timers/with-url-proxy)
 
 (defun entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
     (filter-func orig-func &rest orig-args)
@@ -3388,7 +3458,10 @@ descriptor used to wrapping them in let binding for
 function called without any arguments) is non-nil."
   (if (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
            (funcall filter-func))
-      (let* ((proxy-env
+      (let* ((__eemacs_union_http_url_retrieve_internal_enable_p t)
+             (url-proxy-services
+              (entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
+             (proxy-env
               (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs))
              (process-environment (append proxy-env process-environment)))
         (apply orig-func orig-args))

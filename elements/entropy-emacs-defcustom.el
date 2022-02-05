@@ -1352,31 +1352,36 @@ difference.
   "Eemacs elfeed configuration customizable group."
   :group 'entropy/emacs-customize-group-for-RSS)
 
-(defcustom entropy/emacs-elfeed-proxyfeeds-regexp-list '()
-  "Regexp for matching the feeds which needed for updating through proxy."
-  :type '(choice (const nil) (repeat regexp))
-  :group 'entropy/emacs-customize-group-for-elfeed)
+(defcustom entropy/emacs-elfeed-feeds
+  '(
+    ;; emacs information
+    ("https://emacs-china.org/posts.rss" :name "emacs china posts" :use-proxy nil)
+    ("https://emacs-china.org/latest.rss" :name "emacs china latest" :use-proxy nil)
+    ("https://manateelazycat.github.io/feed.xml" :name "懒猫。。。" :use-proxy nil)
+    ;; english
+    ("https://www.nasa.gov/rss/dyn/nasax_vodcast.rss" :use-proxy t)
+    ("https://www.nasa.gov/rss/dyn/image_of_the_day.rss" :use-proxy t)
+    ("http://feeds.bbci.co.uk/news/england/rss.xml" :use-proxy t)
+    ("http://feeds.bbci.co.uk/news/world/europe/rss.xml" :use-proxy t)
+    ;; chinese
+    ("https://www.douban.com/feed/review/book" :use-proxy nil)
+    ("https://www.ithome.com/rss/" :use-proxy nil)
+    ("http://rss.zol.com.cn/news.xml" :use-proxy nil)
+    ("https://feedx.net/rss/thepaper.xml" :use-proxy nil)
+    ("http://www.williamlong.info/blog/rss.xml" :use-proxy nil)
+    )
+  "Like `elfeed-feeds' but with further more flexible setting for each feed.
 
-(defcustom entropy/emacs-elfeed-url-no-proxy
-  '("localhost"
-    "127.0.0.1"
-    "192.168.*"
-    "10.*")
-  "No proxy for elfeed proxy setting"
-  :type '(repeat (string :tag "host url or domain wildcards"))
-  :group 'entropy/emacs-customize-group-for-elfeed)
+Formed as '((feed-url0 :name xx :use-proxy t)
+            (feed-url1 :name yy :use-proxy nil))
 
-(defcustom entropy/emacs-elfeed-retrieve-http-proxy "127.0.0.1:1081"
-  "The default http proxy host domain and port concated string for elfeed
-proxy setting, format as host:port e.g. 127.0.0.1:1081 .
-
-NOTE:
-
-This value is the fallback of `entropy/emacs-union-http-proxy-plist'
-i.e. if `entropy/emacs-union-http-proxy-plist' is non-nil, we use it
-as the cover to this variable with the :host and :port extracted by
-`entropy/emacs-union-http-proxy-plist'."
-  :type 'string
+When key USE-PROXY is non-nil, we use
+`entropy/emacs-union-http-proxy-plist' as the proxy sourc."
+  :type '(repeat
+          (cons (string :tag "Feed Url")
+                (plist :options
+                       (((const :tag "Feed Name" :url) string)
+                        ((const :tag "Use Proxy" :use-proxy) boolean)))))
   :group 'entropy/emacs-customize-group-for-elfeed)
 
 ;; **** Gnus
