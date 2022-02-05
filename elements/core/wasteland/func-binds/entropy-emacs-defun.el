@@ -1787,6 +1787,12 @@ so that following keys are supported:
                           (message ,fatal-message)
                           (when (file-exists-p ,tmp-file)
                             (delete-file ,tmp-file))))
+           (common-sentinel
+            `(lambda (proc status)
+               (if (string= status "finished\n")
+                   (funcall ,success-func)
+                 (when (string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" status)
+                   (funcall ,fatal-func)))))
            proc)
       (with-current-buffer proc-buffer
         (erase-buffer))
@@ -1802,11 +1808,7 @@ so that following keys are supported:
                 :command (cons "curl" curl-args)))
               (set-process-sentinel
                proc
-               `(lambda (proc status)
-                  (if (string= status "finished\n")
-                      (funcall ,success-func)
-                    (when (string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" status)
-                      (funcall ,fatal-func))))))
+               common-sentinel))
           (setq proc-buffer
             (url-retrieve
              url
@@ -1820,12 +1822,26 @@ so that following keys are supported:
                     )))))))
        (t
         (if use-curl
-            (if (eq (apply 'call-process
-                           "curl" nil nil nil
-                           curl-args)
-                    0)
-                (funcall success-func)
-              (funcall fatal-func))
+            ;; FIXME: doi not use `call-process' here since in this
+            ;; case curl can not be terminated by SIGINT
+
+            ;; (if (eq (apply 'call-process
+            ;;                "curl" nil nil nil
+            ;;                curl-args)
+            ;;         0)
+            ;;     (funcall success-func)
+            ;;   (funcall fatal-func))
+            (progn
+              (setq
+               proc
+               (make-process
+                :name "eemacs url download"
+                :buffer proc-buffer
+                :command (cons "curl" curl-args)))
+              (set-process-sentinel
+               proc
+               common-sentinel)
+              (while (process-live-p proc) t))
           (condition-case error
               (progn
                 (url-copy-file url tmp-file)
