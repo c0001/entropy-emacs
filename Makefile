@@ -34,6 +34,7 @@ endif
 EMACS := emacs
 EMACS_MAJOR_VERSION := 27
 EMACS_MAKE = $(EMACS) -Q --batch -l init.el
+TERMINATE_WARN = $(EMACS) --batch -q --eval '(or (yes-or-no-p "Remember terminate by kill -9 this make process instead of Ctrl-c since curl do not capture SIGINT") (error "force abort!"))'
 
 DEBUG_FORM = '(progn\
   (setq entropy/emacs-startup-benchmark-init t)\
@@ -83,6 +84,7 @@ install-eemacs-ext-build:
 install-eemacs-fonts: export EEMACS_MAKE=Install-Eemacs-Fonts
 install-eemacs-fonts:
 	@$(EchoEmpty)
+	@$(TERMINATE_WARN)
 	@$(EMACS_MAKE)
 
 update: export EEMACS_MAKE=Update

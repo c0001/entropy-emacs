@@ -1704,6 +1704,7 @@ so that following keys are supported:
                             (format-time-string "%Y%m%d%H%M%S")
                             (random))
                     temporary-file-directory))
+         (default-directory temporary-file-directory)
          (cbk-symbol (let ((make-sym-func
                             (lambda ()
                               (intern (format "eemacs-network-download-random-cbk_%s"
