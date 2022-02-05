@@ -1841,7 +1841,10 @@ so that following keys are supported:
               (set-process-sentinel
                proc
                common-sentinel)
-              (while (process-live-p proc) t))
+              ;; wait for process done
+              (while (process-live-p proc) t)
+              ;; wait for sentinel done
+              (while (null cbk-symbol) t))
           (condition-case error
               (progn
                 (url-copy-file url tmp-file)
