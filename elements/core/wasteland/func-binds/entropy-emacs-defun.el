@@ -1774,12 +1774,23 @@ so that following keys are supported:
                         ,url "-o" ,tmp-file))
            (inhibit-read-only t)
            (success-message (format "Download from '%s' finished" url))
-           (success-or-fatal-func-call-done-p nil)
+           (success-or-fatal-func-call-done-p-sym
+            (let ((make-sym-func
+                   (lambda ()
+                     (intern (format "eemacs-network-download-random-internal-sync-indicator_%s"
+                                     (random)))))
+                  sym)
+              (setq sym (funcall make-sym-func))
+              (when (boundp sym)
+                (while (boundp sym)
+                  (setq sym (funcall make-sym-func))))
+              (set sym nil)
+              sym))
            (success-func `(lambda ()
                             (message ,success-message)
                             (setq ,cbk-symbol 'success)
                             (funcall ,move-to-des-func)
-                            (setq success-or-fatal-func-call-done-p t)))
+                            ))
            (fatal-message (format "Download file form '%s' failed!" url))
            (fatal-func `(lambda ()
                           (setq ,cbk-symbol 'failed)
@@ -1789,13 +1800,14 @@ so that following keys are supported:
                           (message ,fatal-message)
                           (when (file-exists-p ,tmp-file)
                             (delete-file ,tmp-file))
-                          (setq success-or-fatal-func-call-done-p t)))
+                          ))
            (common-sentinel
             `(lambda (proc status)
                (if (string= status "finished\n")
                    (funcall ,success-func)
                  (when (string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" status)
-                   (funcall ,fatal-func)))))
+                   (funcall ,fatal-func)))
+               (setq ,success-or-fatal-func-call-done-p-sym t)))
            proc)
       (with-current-buffer proc-buffer
         (erase-buffer))
@@ -1845,9 +1857,9 @@ so that following keys are supported:
                proc
                common-sentinel)
               ;; wait for process done
-              (while (process-live-p proc) t)
+              (while (process-live-p proc) (sleep-for 1))
               ;; wait for sentinel done
-              (while (null success-or-fatal-func-call-done-p) t)
+              (while (null (symbol-value success-or-fatal-func-call-done-p-sym)) (sleep-for 1))
               (sleep-for 2))
           (condition-case error
               (progn
