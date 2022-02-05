@@ -1774,10 +1774,12 @@ so that following keys are supported:
                         ,url "-o" ,tmp-file))
            (inhibit-read-only t)
            (success-message (format "Download from '%s' finished" url))
+           (success-or-fatal-func-call-done-p nil)
            (success-func `(lambda ()
                             (message ,success-message)
                             (setq ,cbk-symbol 'success)
-                            (funcall ,move-to-des-func)))
+                            (funcall ,move-to-des-func)
+                            (setq success-or-fatal-func-call-done-p t)))
            (fatal-message (format "Download file form '%s' failed!" url))
            (fatal-func `(lambda ()
                           (setq ,cbk-symbol 'failed)
@@ -1786,7 +1788,8 @@ so that following keys are supported:
                            (put ',cbk-symbol 'curl-args ',curl-args))
                           (message ,fatal-message)
                           (when (file-exists-p ,tmp-file)
-                            (delete-file ,tmp-file))))
+                            (delete-file ,tmp-file))
+                          (setq success-or-fatal-func-call-done-p t)))
            (common-sentinel
             `(lambda (proc status)
                (if (string= status "finished\n")
@@ -1844,7 +1847,8 @@ so that following keys are supported:
               ;; wait for process done
               (while (process-live-p proc) t)
               ;; wait for sentinel done
-              (while (null cbk-symbol) t))
+              (while (null success-or-fatal-func-call-done-p) t)
+              (sleep-for 2))
           (condition-case error
               (progn
                 (url-copy-file url tmp-file)
