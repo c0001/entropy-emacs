@@ -91,6 +91,15 @@ key-stroke experience."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-fundametal-configuration)
 
+(defcustom entropy/emacs-temporary-file-directory
+  (expand-file-name "tmp" entropy/emacs-stuffs-topdir)
+  "The emacs session spec tmp host path as the system '/tmp' dir."
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-fundametal-configuration)
+
+(make-directory entropy/emacs-temporary-file-directory t)
+(setq temporary-file-directory entropy/emacs-temporary-file-directory)
+
 (defcustom entropy/emacs-minimal-start nil
   "Whether start eemacs with minmal feature loaded.
 
@@ -2814,7 +2823,7 @@ that."
            (path nil)
            (path-root nil))
       (unless
-          ;; avoid when user sets in `custom-file'
+          ;; avoid when user pre sets in `custom-file'
           (and (boundp var-sym)
                ;; but for some non-customized pre-setted var
                (not (eq var-sym 'auto-save-list-file-prefix)))

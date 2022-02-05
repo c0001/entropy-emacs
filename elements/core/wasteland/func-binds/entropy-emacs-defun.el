@@ -1700,8 +1700,9 @@ so that following keys are supported:
   option '--connect-timeout' so that we can handle the long await
   url downloading. If not set, defaultly set with 10sec."
   (let* ((tmp-file (expand-file-name
-                    (format "eemacs-download-tmpfile_[%s]"
-                            (format-time-string "%Y%m%d%H%M%S"))
+                    (format "eemacs-download-tmpfile_[%s]_random_%s"
+                            (format-time-string "%Y%m%d%H%M%S")
+                            (random))
                     temporary-file-directory))
          (cbk-symbol (let ((make-sym-func
                             (lambda ()
@@ -1754,6 +1755,13 @@ so that following keys are supported:
                 (put ',cbk-symbol 'temp-file ,tmp-file)
                 (when (file-exists-p ,tmp-file)
                   (delete-file ,tmp-file)))))))
+    (while (file-exists-p tmp-file)
+      (setq tmp-file
+            (expand-file-name
+             (format "eemacs-download-tmpfile_[%s]_random_%s"
+                     (format-time-string "%Y%m%d%H%M%S")
+                     (random))
+             temporary-file-directory)))
     (let* ((proc-buffer (get-buffer-create "*---eemacs-url-donwload---*"))
            ;; '-L' option is required so that we can follow url
            ;; redirection for such as download from sourceforge.net
