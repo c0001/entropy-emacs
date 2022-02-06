@@ -324,6 +324,12 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 
 ;; ** main
 (defun entropy/emacs-ext-main ()
+  "Check and load further feature through
+`entropy/emacs-ext--extras', return t for all futher feature
+loaded, nil for fatal.
+
+Also load user extra emacs configuration when
+`entropy/emacs-ext-user-specific-load-paths' is set."
   (let ((eemacs-make-env (entropy/emacs-is-make-session)))
     (cond ((and eemacs-make-env
                 ;; In below make session we do not need to check the

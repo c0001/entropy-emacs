@@ -187,14 +187,11 @@ or manually do 'C-x C-c' immediately.")))
   (add-hook 'entropy/emacs-package-common-start-after-hook
             #'entropy/emacs-start--warn-with-pkg-install))
 
-(unless (entropy/emacs-start-bytecode-boot-p)
-  (entropy/emacs-start--require-with-duration-log 'entropy-emacs-ext))
+(entropy/emacs-start--require-with-duration-log 'entropy-emacs-ext)
 (defvar entropy/emacs-start-ext-available-p
-  (if (entropy/emacs-start-bytecode-boot-p)
-      t
-    (entropy/emacs-start--run-with-duration-log
-     func/entropy/emacs-ext-main
-     (entropy/emacs-ext-main))))
+  (entropy/emacs-start--run-with-duration-log
+   func/entropy/emacs-ext-main
+   (entropy/emacs-ext-main)))
 (when entropy/emacs-start-ext-available-p
   (entropy/emacs-start--run-with-duration-log
    func/entropy/emacs-package-common-start
