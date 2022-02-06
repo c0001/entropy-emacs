@@ -161,6 +161,59 @@ display.")
   (mapcar (lambda (x) (car x)) face-attribute-name-alist)
   "Emacs internally face attribte symbols list")
 
+(defconst entropy/emacs-org-babel-featurs
+  (delete nil
+          `(ob-fortran
+            ob-C
+            ob-python
+            ob-R
+            ob-ruby
+            ob-sass
+            ob-scheme
+            ob-screen
+            ob-sed
+            ob-shell
+            ob-sql
+            ob-sqlite
+            ob-table
+            ob-tangle
+            ob-lisp
+            ob-lob
+            ob-lua
+            ob-makefile
+            ob-matlab
+            ob-maxima
+            ob-ocaml
+            ob-octave
+            ob-org
+            ob-perl
+            ob-plantuml
+            ob-processing
+            ob-ref
+            ob-clojure
+            ob-core
+            ob-dot
+            ob-emacs-lisp
+            ob-eshell
+            ob-eval
+            ob-exp
+            ob-forth
+            ob-gnuplot
+            ob-groovy
+            ob-haskell
+            ob-java
+            ob-js
+            ,(unless (< emacs-major-version 28)
+               'ob-julia)
+            ob-latex
+            ob-lilypond
+            ob-awk
+            ob-calc
+            ob-comint
+            ob-css
+            ob-ditaa
+            ))
+          "The ob-* features list")
 
 ;; * provide
 (provide 'entropy-emacs-defconst)

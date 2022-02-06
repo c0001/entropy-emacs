@@ -109,6 +109,9 @@
                           (progn (apply orig-func orig-args))
                         (entropy/emacs-run-hooks-with-prompt
                          (setq entropy/emacs-org--org-mode-fist-calling-done t)
+                         ;; require all ob-* features
+                         (dolist (feature entropy/emacs-org-babel-featurs)
+                           (require feature))
                          (apply orig-func orig-args)))))))
 
 ;; **** configs
