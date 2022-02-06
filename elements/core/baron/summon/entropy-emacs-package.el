@@ -696,11 +696,6 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
 
 ;; ** common start
 
-;; Disable `help-mode' auto load library for its doc render request
-;; since we needed pure charge of how packages are loading for.
-(setq help-enable-autoload nil
-      help-enable-completion-autoload nil)
-
 (defun entropy/emacs-package-common-start ()
   (if
       ;; Do not check extensions when boot from bytecode to speedup

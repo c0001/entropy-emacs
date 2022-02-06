@@ -58,5 +58,12 @@
         "liberime*"
         "fakecygpty"))
 
+;; Disable `help-mode' auto load library for its doc render request
+;; since we needed pure charge of how packages are loading for.
+(setq help-enable-autoload nil
+      help-enable-completion-autoload nil
+      help-enable-symbol-autoload nil
+      )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here
