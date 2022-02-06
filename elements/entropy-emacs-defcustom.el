@@ -2600,7 +2600,7 @@ under the symbolink root dir."
 ;; if we bind it in top level. Refer to bug id [h-ca204a62-9e15-4f3b-ae23-f31b6046a9c5]
 (setq large-file-warning-threshold entropy/emacs-large-file-warning-threshold)
 
-(defvar __unreadable-file-long-threshold 300)
+(defvar __unreadable-file-long-threshold 700)
 (defvar entropy/emacs-unreadable-file-judge-function
   (lambda (filename)
     (require 'so-long)
@@ -2674,8 +2674,7 @@ Do you want to open it with messy?"
   "Disable font-lock render if current-buffer is large"
   (let ((buff (current-buffer)))
     (cond
-     ((and (get-buffer-window buff)
-           (functionp entropy/emacs-unreadable-buffer-judge-function))
+     ((functionp entropy/emacs-unreadable-buffer-judge-function)
       (unless (funcall entropy/emacs-unreadable-buffer-judge-function buff)
         (apply orig-func orig-args)))
      (t
