@@ -560,6 +560,21 @@ avoid it and bind =large-file-warning-threshold= value to its value at
 init time.
 
 
+
+** TODO newsticker buggy
+:PROPERTIES:
+:CUSTOM_ID: h-936e4fb3-57d7-4958-89d9-a1cdfb52c495
+:END:
+#+begin_example
+Error: HTML rendering failed: args-out-of-range, (*Newsticker Item* #<marker at 3538 in *Newsticker List*> #<marker (moves after insertion) at 3595 in *Newsticker List*>)
+#+end_example
+
+This bug when hint item in *Virtual Feeds* list.
+
+*Reproduction:*
+
+Run the bash file [[./h-936e4fb3-57d7-4958-89d9-a1cdfb52c495/start.sh]]
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

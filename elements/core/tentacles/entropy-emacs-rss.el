@@ -611,6 +611,9 @@ The minor changing was compat for above."
 ;; ** newsticker
 
 ;; used to read emacs related rss
+
+;; FIXME: newsticker is buggy in some way, see bug of [h-936e4fb3-57d7-4958-89d9-a1cdfb52c495]
+
 (use-package newsticker
   :ensure nil
   :commands (newsticker-show-news newsticker-treeview-quit)
