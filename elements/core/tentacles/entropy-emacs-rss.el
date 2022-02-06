@@ -613,6 +613,7 @@ The minor changing was compat for above."
 ;; used to read emacs related rss
 (use-package newsticker
   :ensure nil
+  :commands (newsticker-show-news newsticker-treeview-quit)
   :eemacs-tpha
   (((:enable t :defer (:data (:adfors (entropy/emacs-hydra-hollow-call-before-hook)
                                       :adtype hook :pdumper-no-end t))))
@@ -620,6 +621,7 @@ The minor changing was compat for above."
     (("r a" newsticker-show-news
       "Read emacs about news"
       :enable t :exit t))))
+;; *** init
   :init
   (setq newsticker-url-list-defaults nil
         newsticker-url-list
@@ -634,9 +636,14 @@ The minor changing was compat for above."
           ("EmacsChina latest" "https://emacs-china.org/latest.rss")
           ("Manateelazycat Blog" "https://manateelazycat.github.io/feed.xml")
           ))
-  :config
+
+;; *** config
+  ;; FIXME:  usepackage of `newsticker' take no effects in :config slot
   (entropy/emacs-make-function-inhibit-readonly
    'newsticker-treeview-save)
+
+  (entropy/emacs-make-function-inhibit-readonly
+   'newsticker-treeview-quit)
 
   (defun __adv/after/newsticker-treeview-quit/stop-all (&rest _)
     "Stop newsticker tickers and all lived related buffers and windows."
@@ -652,6 +659,7 @@ The minor changing was compat for above."
   (advice-add 'newsticker-treeview-quit
               :after
               #'__adv/after/newsticker-treeview-quit/stop-all)
+  :config
   )
 
 
