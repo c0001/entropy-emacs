@@ -2271,6 +2271,7 @@ successfully both of situation of read persisit of create an new."
 
 (use-package recentf
   :if entropy/emacs-use-recentf
+  :commands (recentf-mode)
   :ensure nil
   :preface
   :init

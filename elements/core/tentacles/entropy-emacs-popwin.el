@@ -636,6 +636,14 @@ specification."
     (advice-add func
                 :before
                 (lambda (&rest args)
+                  "Enable some features before eemacs popup operations startup"
+                  (when (and entropy/emacs-use-recentf
+                             (fboundp 'recentf-mode))
+                    (unless (bound-and-true-p recentf-mode)
+                      (recentf-mode)))
+                  (when (fboundp 'savehist-mode)
+                    (unless (bound-and-true-p savehist-mode)
+                      (savehist-mode)))
                   (unless (bound-and-true-p ivy-mode)
                     (ivy-mode t)))))
 

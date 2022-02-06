@@ -274,4 +274,13 @@ when available."
      (when (derived-mode-p 'prog-mode)
        (entropy/emacs-font-set--prog-font-set)))))
 
+(defun entropy/emacs--fontsize-set-guard (symbol newval operation where)
+  "`entropy/emacs-font-size-default' vairable wather guard to reset
+fontset using `entropy/emacs-font-set-setfont-core'."
+  (when (eq operation 'set)
+    (unless (eq newval (symbol-value symbol))
+      (run-with-idle-timer 0.1 nil #'entropy/emacs-font-set-setfont-core))))
+(add-variable-watcher 'entropy/emacs-font-size-default
+                      #'entropy/emacs--fontsize-set-guard)
+
 (provide 'entropy-emacs-font-set)
