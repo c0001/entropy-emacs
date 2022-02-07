@@ -1,0 +1,22 @@
+# emacs temporary files
+\#*\#
+.\#*
+*~
+
+# cmake build files
+build
+CMakeFiles/
+.envrc
+
+# ccls files
+.ccls-cache
+Debug
+
+/third_party_build/
+/src/*.o
+/src/*.so
+/src/*.dll
+/*.so
+/*.dll
+/*.zip
+/Makefile-liberime-build
