@@ -153,9 +153,8 @@
     (dolist (hook '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
       (add-hook hook 'symbol-overlay-mode)))
 
-  ;; Reduce frequency of refresh overlay-put for reduce performance
-  ;; laggy.
-  (setq symbol-overlay-idle-time 1.5)
+  ;; Use union IDE like setting for the idle delay time
+  (setq symbol-overlay-idle-time entropy/emacs-ide-diagnostic-delay)
 
 ;; *** config
   :config

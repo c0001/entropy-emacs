@@ -251,8 +251,8 @@
   :commands (eldoc eldoc-mode global-eldoc-mode)
   :init
 
-  ;; increasing eldoc idle delay to reduce lag
-  (setq eldoc-idle-delay 1.5)
+  ;; Use union IDE like doc delay setting
+  (setq eldoc-idle-delay entropy/emacs-ide-doc-delay)
 
   ;; ---------- Temporally eldoc-mode patch
   (defvar-local entropy/emacs-eldoc-inhibit-in-current-buffer nil)

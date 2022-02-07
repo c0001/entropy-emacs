@@ -1165,12 +1165,18 @@ Valid type are 'traditional' or 'lsp' which default to use lsp.
 (entropy/emacs-ide-gen-customized-variables)
 
 (defcustom entropy/emacs-ide-doc-delay 0.5
-  "Ide system doc helper show idle delay"
+  "Ide system doc helper show idle delay
+
+NOTE: large idle delay may help to reduce emacs pressure for
+emacs performance."
   :type 'float
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
 (defcustom entropy/emacs-ide-diagnostic-delay 0.5
-  "Ide system parseer response idle delay"
+  "Ide system parseer response idle delay
+
+NOTE: large idle delay may help to reduce emacs pressure for
+emacs performance."
   :type 'float
   :group 'entropy/emacs-customize-group-for-IDE-configuration)
 
