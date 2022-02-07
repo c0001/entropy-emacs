@@ -2159,14 +2159,18 @@ unless this hints."
 ;; *** Test emacs with pure env
 
 (defun entropy/emacs-test-emacs-with-pure-setup-with-form
-    (name form &rest use-current-package-user-dir)
+    (name form &optional use-current-package-user-dir emacs-invocation-name)
   "Invoke subprocess with process name string NAME to run a FORM
 within a virginal emacs env (i.e. emacs -Q). Return the process
 object.
 
 If USE-CURRENT-PACKAGE-USER-DIR is non-nill then, initialize
 packages with current emacs session's `package-user-dir' at the
-subprocess emacs initialization time."
+subprocess emacs initialization time.
+
+The `invocation-name' of the virginal emacs is as the same as
+current emacs session if optional arg EMACS-INVOCATION-NAME is
+not set, else using that as `invocation-name' for as."
   (let* (proc
          (buffer (generate-new-buffer
                   (format "*entropy/emacs-test-emacs-with-pure-setup-with-form/%s*"
@@ -2228,7 +2232,11 @@ object which can be used for `eval'."
           (make-process
            :name name
            :buffer buffer
-           :command `("emacs" "-Q" "-l" ,proc-eval-form-file)
+           :command `(
+                      ;; ensure use the same emacs version as current session
+                      ,(or emacs-invocation-name
+                           (expand-file-name invocation-name invocation-directory))
+                      "-Q" "-l" ,proc-eval-form-file)
            :sentinel nil))))
 
 ;; ** eemacs specifications
