@@ -280,7 +280,8 @@ if NAMES is nil, \"rime-data\" as fallback."
           (goto-char (point-min)))
         (pop-to-buffer buf)))))
 
-(liberime-load)
+;; NOTE: eemacs do not need this to auto compile liberime since its laggy
+;; (liberime-load)
 
 (defun liberime-get-preedit ()
   "Get rime preedit."
