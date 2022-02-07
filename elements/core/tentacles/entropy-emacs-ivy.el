@@ -170,12 +170,9 @@ upstream and may be make risky follow the ivy updates.
 
   (defvar-local __idle/ivy-queue-exhited-done nil)
   ;; EEMACS_MAINTENANCE: patching follow upstream please!
-  (defun ivy--queue-exhibit ()
-    "NOTE: this function has been redefined to get the idle post feature.
-
-Insert Ivy completions display, possibly after a timeout for
-dynamic collections.
-Should be run via minibuffer `post-command-hook'."
+  (defun __ya/ivy--queue-exhibit ()
+    "The override advice for `ivy--queue-exhibit' to exhibit the
+canidates idle after input event done by 0.2 seconds."
     (setq-local __idle/ivy-queue-exhited-done nil)
     (if (and (> ivy-dynamic-exhibit-delay-ms 0)
              (ivy-state-dynamic-collection ivy-last))
@@ -232,6 +229,10 @@ queue done flag exposed to `ivy-done' idle trigger judger."
            (setq-local __idle/ivy-queue-exhited-done t))
         (ivy--exhibit)
         (setq-local __idle/ivy-queue-exhited-done t))))
+
+  (advice-add 'ivy--queue-exhibit
+              :override
+              #'__ya/ivy--queue-exhibit)
 
   (defun __adv/around/ivy-done/for-idle-trigger (orig-func &rest orig-args)
     "prompts for waiting for `ivy--exhibit' done while trigger
