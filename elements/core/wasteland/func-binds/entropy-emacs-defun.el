@@ -2155,6 +2155,83 @@ unless this hints."
         (set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
+
+;; *** Test emacs with pure env
+
+(defun entropy/emacs-test-emacs-with-pure-setup-with-form
+    (name form &rest use-current-package-user-dir)
+  "Invoke subprocess with process name string NAME to run a FORM
+within a virginal emacs env (i.e. emacs -Q). Return the process
+object.
+
+If USE-CURRENT-PACKAGE-USER-DIR is non-nill then, initialize
+packages with current emacs session's `package-user-dir' at the
+subprocess emacs initialization time."
+  (let* (proc
+         (buffer (generate-new-buffer
+                  (format "*entropy/emacs-test-emacs-with-pure-setup-with-form/%s*"
+                          name)))
+         ;; -------------------- the read func --------------------
+         (read-base64-func-name '__this-read-base64-encoded-sexp-from-buffer)
+         (read-base64-func
+          `(defun ,read-base64-func-name
+               (base64-form-string)
+             "Read base64 encoded sexp object getted from
+BASE64-FORM-STRING which did by `coding-system-for-write' of
+utf-8-auto and return it.
+
+NOTE: the sexp must readable or throw the error."
+             (let ((sexp-str
+                    (decode-coding-string
+                     (base64-decode-string
+                      base64-form-string)
+                     'utf-8-auto))
+                   ;; Parent expects UTF-8 encoded text.
+                   (coding-system-for-read 'utf-8-auto)
+                   (coding-system-for-write 'utf-8-auto))
+               (read sexp-str))))
+         ;; -------------------- the use spec form --------------------
+         (form-encoded (with-current-buffer (entropy/emacs-generate-base64-encoded-sexp-buffer
+                                             (if use-current-package-user-dir
+                                                 `(let ((package-user-dir ,package-user-dir))
+                                                    (progn
+                                                      (package-initialize)
+                                                      ,form))
+                                             `(progn
+                                                ,form)))
+                         (prog1
+                             (read (current-buffer))
+                           (let ((kill-buffer-hook nil))
+                             (kill-buffer (current-buffer))))))
+         ;; -------------------- final eval form --------------------
+         (proc-eval-form
+          `(progn
+             ,read-base64-func
+             (setq __this_eval_form_str ,form-encoded)
+             (setq __this_eval_form
+                   (,read-base64-func-name __this_eval_form_str))
+             (eval __this_eval_form)))
+         (proc-eval-form-file
+          (entropy/emacs-with-temp-buffer
+            (let ((inhibit-read-only t)
+                  (print-level nil)
+                  (print-length nil)
+                  (print-escape-nonascii t)
+                  (print-circle t)
+                  (tmpfile
+                   (make-temp-file
+                    "emacs-test-emacs-with-pure-setup-with-form.")))
+              (goto-char (point-min))
+              (prin1 proc-eval-form (current-buffer))
+              (write-file tmpfile)
+              tmpfile))))
+    (setq proc
+          (make-process
+           :name name
+           :buffer buffer
+           :command `("emacs" "-Q" "-l" ,proc-eval-form-file)
+           :sentinel nil))))
+
 ;; ** eemacs specifications
 ;; *** Individuals
 
