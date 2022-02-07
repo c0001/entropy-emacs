@@ -2177,10 +2177,9 @@ subprocess emacs initialization time."
           `(defun ,read-base64-func-name
                (base64-form-string)
              "Read base64 encoded sexp object getted from
-BASE64-FORM-STRING which did by `coding-system-for-write' of
-utf-8-auto and return it.
-
-NOTE: the sexp must readable or throw the error."
+BASE64-FORM-STRING which originally encoded by
+`coding-system-for-write' using 'utf-8-auto and return the read
+object which can be used for `eval'."
              (let ((sexp-str
                     (decode-coding-string
                      (base64-decode-string
