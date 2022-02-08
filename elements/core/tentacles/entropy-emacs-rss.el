@@ -78,9 +78,19 @@
 
   :init
 
+  (defun entropy/emacs-elfeed-feeds-variable-watcher (symbol newval operation where)
+    "`entropy/emacs-elfeed-feeds' vairable wather guard to auto sync
+with `elfeed-feeds'."
+    (when (eq operation 'set)
+      (unless (eq newval (symbol-value symbol))
+        (setq elfeed-feeds
+              (mapcar (lambda (x) (car x))
+                      newval)))))
   (setq elfeed-feeds
         (mapcar (lambda (x) (car x))
                 entropy/emacs-elfeed-feeds))
+  (add-variable-watcher 'entropy/emacs-elfeed-feeds
+                        #'entropy/emacs-elfeed-feeds-variable-watcher)
 
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
   (setq elfeed-curl-timeout 20)
