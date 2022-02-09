@@ -398,7 +398,7 @@ For lisp code, optional args:
         (dolist (el (buffer-list))
           (let* ((buffer-file (buffer-file-name el)))
             (when (and buffer-file
-                       (entropy/emacs-file-equal-p file buffer-file))
+                       (entropy/emacs-existed-files-equal-p file buffer-file))
               (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-files
                            (cons (buffer-name el) (current-time-string)))
               (kill-buffer el))))
@@ -412,7 +412,7 @@ For lisp code, optional args:
                    (if (eq major-mode 'dired-mode)
                        (not (eq buffer (current-buffer)))
                      t)
-                   (entropy/emacs-file-equal-p
+                   (entropy/emacs-existed-files-equal-p
                     (if (or (file-directory-p file)
                             ;; if file not exist then we match the name string
                             (string-match-p "/\\|\\\\$" file))
@@ -866,7 +866,7 @@ This function is a around advice for function `dired-up-directory'."
               (file-name-directory
                (directory-file-name current-node))))
       (if (or (null current-node)
-              (entropy/emacs-file-equal-p default-directory cur-node-parent))
+              (entropy/emacs-existed-files-equal-p default-directory cur-node-parent))
           (if (and
                (save-excursion
                  (forward-line 0)
@@ -899,7 +899,7 @@ This function is a around advice for function `dired-up-directory'."
         (let* ((search-node
                 (file-name-nondirectory
                  (directory-file-name cur-node-parent))))
-          (while (not (entropy/emacs-file-equal-p (dired-get-filename) cur-node-parent))
+          (while (not (entropy/emacs-existed-files-equal-p (dired-get-filename) cur-node-parent))
             (re-search-backward
              (regexp-quote search-node)
              nil t))))))
@@ -1934,7 +1934,7 @@ Filename are \".scratch_entropy\" host in
 `entropy/emacs-stuffs-topdir'.
 "
   (let ((bfn "*scratch*"))
-    (if (entropy/emacs-buffer-exists-p "*scratch*")
+    (if (entropy/emacs-BufferName-match-live-buffer-p "*scratch*")
         (kill-buffer "*scratch*"))
     (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
           ;; inhibit `find-file-hook' for speedup file create
