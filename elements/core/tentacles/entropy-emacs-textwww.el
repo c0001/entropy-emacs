@@ -183,6 +183,8 @@
    :next-page w3m-view-next-page
    :search-query w3m-search
    :search-engine entropy/emacs-textwww-w3m-toggle-search-engine)
+  (add-to-list 'entropy/emacs-window-auto-center-commands-list
+               #'w3m-goto-url)
 
   ;; coding system specified to utf-8 when `current-language-environment' is thus.
   (when (string= current-language-environment "UTF-8")
@@ -328,6 +330,21 @@ value of it is not relavant to current buffer value."
    :next-page eww-next-url
    :search-query eww
    :search-engine entropy/emacs-textwww-eww-toggle-default-search-engine)
+
+  (add-to-list 'entropy/emacs-window-auto-center-commands-list
+               #'eww-browse-url)
+  (add-to-list 'entropy/emacs-window-auto-center-commands-list
+               #'eww)
+  ;; sicne `eww' invoke its `major-mode' after its buffer popuped, the
+  ;; `entropy/emacs-wc-center-window-mode' will be disabled after
+  ;; that, so we must manullay reinjected into that.
+  (add-hook 'eww-mode-hook
+            #'(lambda (&rest _)
+                (when (bound-and-true-p entropy/emacs-align-window-center-automatically-p)
+                  (when (eq (funcall #'entropy/emacs-wc-center-window-automatically-turn-on-judgements
+                                     (current-buffer))
+                            t)
+                    (entropy/emacs-wc-center-window-mode)))))
 
 ;; **** eww search engine
   (if entropy/emacs-enable-eww-search-engine-customize

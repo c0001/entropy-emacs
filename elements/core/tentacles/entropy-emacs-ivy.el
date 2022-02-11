@@ -100,6 +100,9 @@
 
   (setq swiper-action-recenter t)       ;recenter buffer after swiper jumping to the match
 
+  (add-to-list 'entropy/emacs-window-auto-center-commands-list
+               #'ivy-switch-buffer)
+
 ;; *** ivy config
   :config
 

@@ -95,6 +95,19 @@ with `elfeed-feeds'."
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
   (setq elfeed-curl-timeout 20)
 
+  ;; auto center window mode
+  (dolist (cmd '(
+                 ;; We don't patch for elfeed since elfeed change the
+                 ;; major-mode after popup the buffer which killed all
+                 ;; local settings. We advice for `elfeed' directly
+                 ;; for thus.
+                 ;;
+                 ;; elfeed
+
+                 elfeed-search-show-entry))
+    (add-to-list 'entropy/emacs-window-auto-center-commands-list
+                 cmd))
+
   ;; set curl path
   (let ((mingw-curl (if (and entropy/emacs-wsl-enable
                              (file-exists-p entropy/emacs-wsl-apps))
@@ -127,6 +140,17 @@ with `elfeed-feeds'."
 
   :config
 ;; *** core advice
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun __ya/elfeed (orig-func &rest orig-args)
+    "Like `elfeed' but adapt for eemacs specifications."
+    (prog1
+        (apply orig-func orig-args)
+      (entropy/emacs-wc-center-window-auto-mode-for-current-selected-window)
+      ;; truncate long lines in this summary buffer since some feeds
+      ;; title so long.
+      (setq truncate-lines t)))
+  (advice-add 'elfeed :around #'__ya/elfeed)
 
 ;; *** utilities
   (defun entropy/emacs-rss--elfeed-list-feeds ()

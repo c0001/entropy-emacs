@@ -2021,7 +2021,38 @@ their usage."
                   "Uncompress")
                 input output)))
 
+;; *** Frame manupulation
+(defun entropy/emacs-frame-is-fullscreen-p (&optional frame)
+  "Judge whether FRAME is fullscreen, return t for yes for as, nil
+for otherwise."
+  (and
+   (memq (frame-parameter frame 'fullscreen)
+         '(fullscreen fullboth))
+   t))
+
+(defun entropy/emacs-frame-is-maximized-p (&optional frame)
+    "Judge whether FRAME is maximized, return t for yes for as, nil
+for otherwise."
+  (eq (frame-parameter frame 'fullscreen)
+      'maximized))
+
 ;; *** Window manipulation
+;; **** Window width
+(defun entropy/emacs-window-no-margin-column-width (&optional window)
+  "Like `window-width''s no pixel set return but remove the
+`window-margins' effect, thus the return is the column with as
+the WINDOW is not margined even if has been margined by
+`set-window-margins'.
+
+WINDOW must be a live window and defaults to the selected one."
+  (let ((win (or window
+                 (selected-window))))
+    (+ (window-width win)
+       (or (car (window-margins win))
+           0)
+       (or (cdr (window-margins win))
+           0))))
+
 ;; **** Side window
 (defun entropy/emacs-overview-live-side-windows ()
   "Overview all lived side windows return an alist whose each

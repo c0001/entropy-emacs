@@ -34,6 +34,9 @@
 ;; ;; enable rich dashboard to show recentf and projects but for more loading time
 ;; (setq entropy/emacs-enable-initial-dashboard 'rich)
 
+;; ;; Automatically center window in some occasions
+;; (setq entropy/emacs-align-window-center-automatically-p t)
+
 (setq entropy/emacs-minimal-start nil)
 
 (setq entropy/emacs-custom-enable-lazy-load t)

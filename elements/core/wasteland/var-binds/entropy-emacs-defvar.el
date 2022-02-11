@@ -917,7 +917,89 @@ externally add below features:
             :around
             #'entropy/emacs-defvar--delete-other-windows-around-advice)
 
+(defvar entropy/emacs-window-auto-center-commands-list
+  '(find-file dired dired-find-file push-button)
+  "Auto advice commands to center the buffer window after
+predicated for as.
 
+All functions list here will be let binging for
+`entropy/emacs-wc-center-window-mode' auto mode.")
+
+(defvar entropy/emacs-window-auto-center-require-enable-p nil
+  "`let' binding idicator to enable
+`entropy/emacs-wc-center-window-mode' auto mode in body session,
+unless `entropy/emacs-window-force-inhibit-auto-center' is
+non-nil.")
+
+(defvar entropy/emacs-window-force-inhibit-auto-center nil
+  "Force inhibit `entropy/emacs-wc-center-window-mode' auto mode
+even if `entropy/emacs-window-auto-center-require-enable-p' is
+non-nil.")
+
+(defun entropy/emacs-window-auto-center-inhibit-around-advice
+    (orig-func &rest orig-args)
+  "Around advice to forbiddingly enable eemacs auto window center
+feature (i.e. `entropy/emacs-align-window-center-automatically-p'
+is non-nil) even if
+`entropy/emacs-window-auto-center-require-enable-p' is non-nil."
+  (let ((entropy/emacs-window-force-inhibit-auto-center t))
+    (apply orig-func orig-args)))
+
+(defvar entropy/emacs-window-center-enable-before-hook nil
+  "The hook run before `entropy/emacs-wc-center-window-mode' enable")
+(defvar entropy/emacs-window-center-enable-after-hook nil
+  "The hook run after `entropy/emacs-wc-center-window-mode' enabled")
+(defvar entropy/emacs-window-center-disable-before-hook nil
+  "The hook run before `entropy/emacs-wc-center-window-mode' disable")
+(defvar entropy/emacs-window-center-disable-after-hook nil
+  "The hook run after `entropy/emacs-wc-center-window-mode' disabled")
+
+(defvar entropy/emacs-window-center-inhibit-filter
+  '((lambda (buffer-or-name)
+      (with-current-buffer buffer-or-name
+        (catch :exit
+          (let* ((buff-name (if (bufferp buffer-or-name)
+                                (buffer-name buffer-or-name)
+                              buffer-or-name)))
+            (when (string-match-p "magit.*:" buff-name)
+              (throw :exit 'in-magit-refer-buffer))
+            (when (string-match-p "magit-.*-mode" (format "%s" major-mode))
+              (throw :exit 'in-magit-refer-modes)))
+          t))))
+  "List of filter function with one argument BUFFER-OR-NAME, and
+always return non-nil, t for should enable
+`entropy/emacs-wc-center-window-mode', use other symbol to
+indicate false meaning (see the default function listed in this
+list for details).")
+
+(defvar entropy/emacs-window-auto-center-turn-on-judgements
+  '(
+    ;; ---------- default filter
+    (lambda (buffer-or-name)
+      (catch :exit
+        (let* (win)
+          (unless (not (minibufferp (get-buffer buffer-or-name)))
+            (throw :exit 'minibufferp))
+          (unless (setq win (get-buffer-window buffer-or-name))
+            (throw :exit 'no-live-win))
+          (unless (or (entropy/emacs-frame-is-fullscreen-p)
+                      (entropy/emacs-frame-is-maximized-p))
+            (throw :exit 'frame-not-fullscreen))
+          (unless (= (entropy/emacs-window-no-margin-column-width win)
+                     (frame-width))
+            (throw :exit 'window-not-fullscreen))
+          t)))
+
+    ;; ---------- Others ...
+
+    )
+  "Like `entropy/emacs-window-center-inhibit-filter', a list of
+filter function with one argument BUFFER-OR-NAME, and always
+return non-nil, t for should enable
+`entropy/emacs-wc-center-window-mode' in auto mode (see
+`entropy/emacs-align-window-center-automatically-p' for details),
+use other symbol to indicate false meaning (see the default
+function listed in this list for details).")
 
 
 ;; ** garbage collection refer

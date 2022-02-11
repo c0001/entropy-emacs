@@ -144,6 +144,8 @@ determined by above variable you setted."
                (bound-and-true-p entropy/emacs-ui-init-welcom-mode))
       (switch-to-buffer
        "*scratch*")))
+  (add-to-list 'entropy/emacs-window-auto-center-commands-list
+               #'entropy/emacs-ui-init-welcom-mode-switch-to-scratch-buffer)
 
   (defvar entropy/emacs-ui-init-welcom-mode-map
     (let ((keymap (make-sparse-keymap)))

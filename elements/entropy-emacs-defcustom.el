@@ -381,6 +381,12 @@ problem, =basic= type is simple but without fully featured.
           (const :tag "Basic simple way" basic))
   :group 'entropy/emacs-customize-group-for-window-ui)
 
+
+(defcustom entropy/emacs-align-window-center-automatically-p nil
+  "Automatically center window in some occasions."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-window-ui)
+
 ;; *** M-x
 (defgroup entropy/emacs-customize-group-for-M-x nil
   "Eemacs completion framework configuration customizable group."

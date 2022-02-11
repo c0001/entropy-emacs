@@ -1463,11 +1463,18 @@ NOTE: this is a advice wrapper for any function."
   :commands (global-undo-tree-mode undo-tree-visualize)
   :preface
 
-  (defvar entropy/emacs-basic--undo-tree-stick-window-configuration nil
+  (defvar-local entropy/emacs-basic--undo-tree-stick-window-configuration nil
     "The window configuration before calling `undo-tree-visualize'.")
+
+  (defvar-local entropy/emacs-basic--undo-tree-stick-autocenter-mode nil
+    "Whether `entropy/emacs-wc-center-window-mode' is enabled in
+    `current-buffer'.")
 
   (defun entropy/emacs-basic--save-window-cfg-for-undo-tree
       (orig-func &rest orig-args)
+    (when (bound-and-true-p entropy/emacs-wc-center-window-mode)
+      (entropy/emacs-wc-center-window-mode 0)
+      (setq entropy/emacs-basic--undo-tree-stick-autocenter-mode t))
     (setq entropy/emacs-basic--undo-tree-stick-window-configuration
           (current-window-configuration))
     (apply orig-func orig-args))
@@ -1480,6 +1487,8 @@ NOTE: this is a advice wrapper for any function."
         (set-window-configuration
          entropy/emacs-basic--undo-tree-stick-window-configuration))
       (setq entropy/emacs-basic--undo-tree-stick-window-configuration nil)
+      (when entropy/emacs-basic--undo-tree-stick-autocenter-mode
+        (entropy/emacs-wc-center-window-mode))
       rtn))
 
   :init
@@ -1697,36 +1706,41 @@ collection."
 its a exists file's buffer."
   (interactive)
   (let ((buff (current-buffer))
-        (base-dir default-directory)
         (fname (buffer-file-name)))
     (kill-buffer buff)
     (when (file-exists-p fname)
-      (dired base-dir))))
+      (dired (file-name-directory fname)))))
 
 (defun entropy/emacs-basic-kill-buffer-and-its-window-when-grids ()
   "Kill buffer and close it's host window if windows conuts
 retrieve from `window-list' larger than 1."
   (interactive)
-  (let ((buflist (window-list)))
-    (if (> (length buflist) 1)
+  (let ((winlist (window-list)))
+    (if (> (length winlist) 1)
         (cond
+         ;; -------------------- grid case
          ((or
-           (and (eq (length buflist) 2)
+           ;; Two windows displayed and one is dedicated with
+           ;; `no-delete-other-windows'.
+           (and (eq (length winlist) 2)
                 (let (rtn)
-                  (mapc (lambda (window)
-                          (let ((buff (window-buffer window)))
-                            (when (window-parameter
-                                   (get-buffer-window buff)
-                                   'no-delete-other-windows)
-                              (setq rtn t))))
-                        buflist)
+                  (catch :exit
+                    (mapc (lambda (win)
+                            (let (_)
+                              (when (window-parameter
+                                     win
+                                     'no-delete-other-windows)
+                                (setq rtn t)
+                                (throw :exit nil))))
+                          winlist))
                   rtn))
            ;; when the window is the root window of current frame we
-           ;; just kill it.  NOTE: in some cases the main window may
-           ;; not be the only live window showed in current frame as
-           ;; messy.
+           ;; just kill it, but FIXME: in some cases the main window
+           ;; may not be the only live window showed in current frame
+           ;; as messy.
            (eq (window-main-window) (get-buffer-window (current-buffer))))
           (kill-buffer))
+         ;; ---------- default case
          (t
           (kill-buffer-and-window)))
       (kill-buffer))))
