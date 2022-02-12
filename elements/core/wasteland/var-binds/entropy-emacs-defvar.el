@@ -931,6 +931,32 @@ All functions list here will be let binging for
 unless `entropy/emacs-window-force-inhibit-auto-center' is
 non-nil.")
 
+(defun entropy/emacs-window-auto-center-around-advice
+    (orig-func &rest orig-args)
+  "Around advice to enable eemacs auto window center
+feature (i.e. `entropy/emacs-align-window-center-automatically-p'
+is non-nil)."
+  (let ((entropy/emacs-window-auto-center-require-enable-p t))
+    (apply orig-func orig-args)))
+
+(defmacro entropy/emacs-window-auto-center-make-around-advice-for-func
+    (name func &rest extra-body)
+  "Like `entropy/emacs-window-auto-center-around-advice' but is
+an macro and do with EXTRA-BODY for FUNC and auto make the unique
+advice NAME."
+  (let ((adv-name
+         (intern
+          (format
+           "entropy/emacs-window-auto-center-around-advice/for-%s-/with-extra-body/random-%s-%s"
+           name (random) (random)))))
+    `(progn
+       (defun ,adv-name (orig-func &rest orig-args)
+         (let ((entropy/emacs-window-auto-center-require-enable-p t))
+           (prog1
+               (apply orig-func orig-args)
+             ,@extra-body)))
+       (advice-add ',func :around #',adv-name))))
+
 (defvar entropy/emacs-window-force-inhibit-auto-center nil
   "Force inhibit `entropy/emacs-wc-center-window-mode' auto mode
 even if `entropy/emacs-window-auto-center-require-enable-p' is
@@ -964,7 +990,8 @@ is non-nil) even if
             (when (string-match-p "magit.*:" buff-name)
               (throw :exit 'in-magit-refer-buffer))
             (when (string-match-p "magit-.*-mode" (format "%s" major-mode))
-              (throw :exit 'in-magit-refer-modes)))
+              (throw :exit 'in-magit-refer-modes))
+            )
           t))))
   "List of filter function with one argument BUFFER-OR-NAME, and
 always return non-nil, t for should enable

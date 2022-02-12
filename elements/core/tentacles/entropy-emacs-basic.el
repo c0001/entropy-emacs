@@ -169,6 +169,10 @@ place can be easily found by other interactive command."
 ;; ***** init
   :init
 
+  ;; Enable `truncate-lines' in dired buffer
+  (add-hook 'dired-mode-hook
+            #'(lambda () (setq truncate-lines t)))
+
 ;; ****** pretty-hydra
   (defvar entropy/emacs-basic-dired-hydra-hollow-cabinets
     '("Basic"

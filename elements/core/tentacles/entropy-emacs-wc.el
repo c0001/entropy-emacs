@@ -1078,7 +1078,16 @@ indicate the false meaning."
   (add-hook 'olivetti-mode-hook
             #'entropy/emacs-wc--calc-olivetti-body-width)
 
-  (setq entropy/emacs-wc--center-window-function #'(lambda () (olivetti-mode 1)))
+  (setq entropy/emacs-wc--center-window-function
+        #'(lambda ()
+            (let ((tcl truncate-lines))
+              (prog1
+                  (olivetti-mode 1)
+                ;; FIXME: why enalble `olivetti-mode' will reset
+                ;; `truncate-lines' var even we can not find any
+                ;; setting in olivetti source code.
+                (unless (equal tcl truncate-lines)
+                  (setq truncate-lines tcl))))))
   (setq entropy/emacs-wc--uncenter-window-function #'(lambda () (olivetti-mode 0)))
   (setq entropy/emacs-wc--expand-center-window-function #'olivetti-expand)
   (setq entropy/emacs-wc--shrink-center-window-function #'olivetti-shrink)
@@ -1304,11 +1313,10 @@ NOTE: this is an internal macro, do not use it in else where but here."
 
 (add-hook 'entropy/emacs-after-startup-hook
           #'(lambda ()
-              (defun __adv/around/enable-eemacs-auto-center-window (orig-func &rest orig-args)
-                (let ((entropy/emacs-window-auto-center-require-enable-p t))
-                  (apply orig-func orig-args)))
               (dolist (inct-func entropy/emacs-window-auto-center-commands-list)
-                (advice-add inct-func :around #'__adv/around/enable-eemacs-auto-center-window))
+                (advice-add inct-func
+                            :around
+                            #'entropy/emacs-window-auto-center-around-advice))
               (add-hook 'entropy/emacs-delete-other-windows-after-hook
                         #'entropy/emacs-wc-center-window-auto-mode-for-current-selected-window)))
 
