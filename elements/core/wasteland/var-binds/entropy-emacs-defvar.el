@@ -1028,6 +1028,12 @@ return non-nil, t for should enable
 use other symbol to indicate false meaning (see the default
 function listed in this list for details).")
 
+(defun entropy/emacs-window-center-emulate-window-column-width-as-enabled ()
+  "caculate `window-width' by emulating when
+`entropy/emacs-wc-center-window-mode' init up."
+  (let ((ratio entropy/emacs-window-center-integer)
+        (wacw (entropy/emacs-window-no-margin-column-width)))
+    (- wacw (* 2 (/ wacw ratio)))))
 
 ;; ** garbage collection refer
 

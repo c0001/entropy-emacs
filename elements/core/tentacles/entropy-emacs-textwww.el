@@ -292,6 +292,83 @@ value of it is not relavant to current buffer value."
       (w3m-redisplay-this-page))))
   (add-hook 'text-scale-mode-hook
             #'entropy/emacs-textwww--w3m-page-text-scale-hook)
+
+;; ***** UI tweak
+;; ****** Loading message center method tweak
+  ;; EEMACS_MAINTENANCE: follow upstream
+  (defun __ya/w3m-display-progress-message (url)
+    "Like `w3m-display-progress-message' but respect
+`entropy/emacs-wc-center-window-mode' and enhance the message
+alignment."
+    (let* ((ecwidth (entropy/emacs-window-center-emulate-window-column-width-as-enabled))
+           (wwidth (window-width))
+           (urllen (length url))
+           ;; ----- prompts string-----
+           (info-str
+            (substitute-command-keys
+             (concat
+              "\
+Reading " url " ...\n\n"
+              "\
+Reading " (w3m-url-readable-string (w3m-url-strip-authinfo url)) " ...\n\n"
+              "\
+`\\<w3m-mode-map>\\[w3m-process-stop]' to abort this operation, or\n"
+              "\
+`\\<w3m-mode-map>\\[w3m-search-new-session]' to perform a search in a new buffer, or\n"
+              "\
+`\\<w3m-mode-map>\\[w3m-goto-url-new-session]' to visit a URL in a new buffer, or\n"
+              "\
+do any emacs work in any other buffer, or just wait ... ")))
+           ;; -------------------------
+           (max-line-len (save-mark-and-excursion
+                           (entropy/emacs-with-temp-buffer
+                             (let ((inhibit-read-only t)
+                                   cur-head-pt
+                                   len-stack)
+                               (insert info-str)
+                               (goto-char (point-min))
+                               (while (and (not (eobp)) t)
+                                 (setq cur-head-pt (point))
+                                 (end-of-line)
+                                 (push (- (point) cur-head-pt) len-stack)
+                                 (forward-line 1))
+                               (apply 'max len-stack)))))
+           (indent (make-string
+                    (max 0 (/ (- (cond
+                                  ;; set align width respect `entropy/emacs-wc-center-window-mode'
+                                  ((or (and (not entropy/emacs-window-force-inhibit-auto-center)
+                                            entropy/emacs-window-auto-center-require-enable-p)
+                                       (bound-and-true-p entropy/emacs-wc-center-window-mode))
+                                   ecwidth)
+                                  (t
+                                   wwidth))
+                                 max-line-len)
+                              2))
+                    ? ))
+           msg)
+      (setq msg
+            (save-mark-and-excursion
+              (let ((inhibit-read-only t))
+              (entropy/emacs-with-temp-buffer
+                (insert info-str)
+                (goto-char (point-min))
+                (while (and (not (eobp)) t)
+                  (unless (looking-at "^$")
+                    (insert indent))
+                  (forward-line 1))
+                (buffer-substring (point-min) (point-max))))))
+      ;; align window vertically
+      (insert-char ?\n (max 0 (- (/ (window-height) 2) 3)))
+      (insert msg)
+      ;; NOTE: w3m internal required to do this
+      (put-text-property (point-min) (point-max) 'w3m-progress-message t)
+      ;; ensure display
+      (sit-for 0)))
+
+  (advice-add 'w3m-display-progress-message
+              :override
+              #'__ya/w3m-display-progress-message)
+
   )
 
 
