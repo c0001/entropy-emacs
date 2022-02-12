@@ -72,6 +72,14 @@ And the aim effection for it is that let frame be in the middle
 of current displayer you be in with the specific height and width
 determined by above variable you setted."
   (interactive)
+  ;; FIXME: frame position set not effectually when in maximized or
+  ;; fullscreen status, so we must undo 'full' status.
+  (cond ((entropy/emacs-frame-is-maximized-p)
+         (toggle-frame-maximized))
+        ((entropy/emacs-frame-is-fullscreen-p)
+         (toggle-frame-fullscreen)
+         (when (entropy/emacs-frame-is-maximized-p)
+           (toggle-frame-maximized))))
   (let (x y width height)
     ;; widht height, coordinate calculate.
     (setq width (ceiling (* (x-display-pixel-width) entropy/emacs-init-frame-width-scale)))
