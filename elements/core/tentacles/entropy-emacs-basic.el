@@ -2001,6 +2001,25 @@ Filename are \".scratch_entropy\" host in
 
 
 ;; **** Kill ring config
+;; ***** basic
+
+;; Cutting and pasting uses the system clipboard
+(setq select-enable-clipboard t)
+
+;; save system existing clipboard text into kill ring before replacing
+;; it and clipboard data is only saved to the ‘kill-ring’ when its
+;; string length shorter than 2000.
+(setq save-interprogram-paste-before-kill 2000)
+
+;; Disable duplicates filter since we always want to see the 'cut' in
+;; last of `kill-ring'
+(setq kill-do-not-save-duplicates nil)
+
+;; restrict `kill-ring' length for reducing `browse-kill-ring' lag
+(setq kill-ring-max 300)
+
+;; Don't change the system clipboard when call yank refers in emacs
+(setq yank-pop-change-selection nil)
 
 ;; ***** persist kill ring
 (defvar entropy/emacs-basic-kill-ring-persist-lock-file
@@ -2008,9 +2027,6 @@ Filename are \".scratch_entropy\" host in
    ".kill-ring-persist.lock"
    entropy/emacs-stuffs-topdir)
   "The persist kill ring file used indicator flag file.")
-
-;; restrict `kill-ring' length for reducing `browse-kill-ring' lag
-(setq kill-ring-max 300)
 
 (defun entropy/emacs-basic-kill-ring-persist-backup ()
   (unless (fboundp 'entropy/cl-backup-file)
