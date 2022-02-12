@@ -2810,7 +2810,7 @@ by run command \"make liberime\" in eemacs root place")
            :global-bind t)
 
           ("c t" entropy/emacs-basic-toggle-pyim-s2t
-           "'Pyim' use traditional chinese"
+           "'Pyim' use traditional chinese (quckly use'C-r' within input)"
            :enable t
            :toggle (eq pyim-magic-converter 'entropy/s2t-string))
 
@@ -2877,8 +2877,13 @@ by run command \"make liberime\" in eemacs root place")
   (defun entropy/emacs-basic-toggle-pyim-s2t ()
     (interactive)
     (if pyim-magic-converter
-        (setq pyim-magic-converter nil)
-      (setq pyim-magic-converter 'entropy/s2t-string)))
+        (progn
+          (setq pyim-magic-converter nil)
+          (message "【简体中文】"))
+      (setq pyim-magic-converter 'entropy/s2t-string)
+      (message "【繁体中文】")))
+  ;; Quickly change 简体 <-> 繁体
+  (define-key pyim-mode-map (kbd "C-r") #'entropy/emacs-basic-toggle-pyim-s2t)
 
 ;; ******** toglle punctuation between half and full way.
   (defun entropy/emacs-basic-toggle-pyim-punctuation-half-or-full ()
