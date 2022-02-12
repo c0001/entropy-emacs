@@ -141,11 +141,20 @@ quit to the top-level when thus done.
 Notice that this wrapper designation was not suggested by the
 upstream and may be make risky follow the ivy updates.
 "
-    (if (or (eq this-command 'ivy-dispatching-done)
-            (eq this-command 'ivy-occur)
-            (string-match-p "^ivy-read-action/" (symbol-name this-command)))
+    (let ((this-caller (ivy-state-caller ivy-last)))
+      (when (and (or (eq this-command 'ivy-dispatching-done)
+                     (eq this-command 'ivy-occur)
+                     (string-match-p "^ivy-read-action/" (symbol-name this-command)))
+                 ;; TODO: filters
+                 (not (or
+                       ;; FIXME: Since kill-new's
+                       ;; `interprogram-cut-function' may not be ran
+                       ;; completely (why?) when emacs error
+                       ;; immediately. We must banned it.
+                       (eq this-caller 'counsel-yank-pop)
+                       )))
         (progn
-          (user-error "Ivy-quit!"))))
+          (user-error "Ivy quit for caller '%s'" this-caller)))))
   (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-quit-after-dispatch-actions)
 
   ;; top level for ivy-mode-map
