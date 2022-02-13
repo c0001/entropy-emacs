@@ -1208,7 +1208,7 @@ as the hypenation."
       :enable t :map-inject t :exit t) ;; All the other keys
      ("<f2>" org-toggle-link-display
       "Toggle the literal or descriptive display of links"
-      :enable t :eemacs-top-bind t :exit t)
+      :enable t :map-inject nil :exit t)
      )))
 
 
