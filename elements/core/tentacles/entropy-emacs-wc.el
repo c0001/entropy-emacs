@@ -1304,12 +1304,10 @@ NOTE: this is an internal macro, do not use it in else where but here."
 ;; cluster buffer replacement API like `switch-to-buffer'. We just
 ;; patch the `switch-to-buffer' API for that since `set-window-buffer'
 ;; patching is so dangerous and has no sense to ensuer the sagety.
-(eval-and-compile ; -- compile for eemacs byte-compile mode
-  (dolist (el '((display-buffer . 0)
-                (switch-to-buffer . 0)))
-    (eval
-     `(entropy/emacs-wc-center-window--auto-turn-on/advice-gen-macro
-       ,(car el) ,(cdr el)))))
+(entropy/emacs-wc-center-window--auto-turn-on/advice-gen-macro
+ display-buffer 0)
+(entropy/emacs-wc-center-window--auto-turn-on/advice-gen-macro
+ switch-to-buffer 0)
 
 (add-hook 'entropy/emacs-after-startup-hook
           #'(lambda ()
