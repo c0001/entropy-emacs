@@ -107,7 +107,7 @@
 ;;        1) macro `entropy/sdcv-core-coding-with-locale-ces'
 ;;        2) macro `entropy/sdcv-core-coding-with-utf-8-ces'
 
-;;        Due to this change there're follow obsolete features:
+;;        Due to this change there're follow obsolete features
 ;;        removed:
 ;;        1) variables:
 ;;           - `entropy/sdcv-core-origin-lang-env' and
