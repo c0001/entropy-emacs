@@ -152,6 +152,12 @@ upstream and may be make risky follow the ivy updates.
                        ;; completely (why?) when emacs error
                        ;; immediately. We must banned it.
                        (eq this-caller 'counsel-yank-pop)
+
+                       ;; Other filters for common counsel commands,
+                       ;; since common counsel commands are maintained
+                       ;; by `ivy' author who has no wrong uses for
+                       ;; `ivy-read'.
+                       (string-match-p "^counsel-.*$" (symbol-name this-caller))
                        )))
         (progn
           (user-error "Ivy quit for caller '%s'" this-caller)))))
