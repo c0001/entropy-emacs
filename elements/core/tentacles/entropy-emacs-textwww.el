@@ -336,9 +336,17 @@ do any emacs work in any other buffer, or just wait ... ")))
            (indent (make-string
                     (max 0 (/ (- (cond
                                   ;; set align width respect `entropy/emacs-wc-center-window-mode'
-                                  ((or (and (not entropy/emacs-window-force-inhibit-auto-center)
-                                            entropy/emacs-window-auto-center-require-enable-p)
-                                       (bound-and-true-p entropy/emacs-wc-center-window-mode))
+                                  ((or (and
+                                        (not entropy/emacs-window-force-inhibit-auto-center)
+                                        (and
+                                         entropy/emacs-window-auto-center-require-enable-p
+                                         (eq (entropy/emacs-wc-center-window-automatically-turn-on-judgements
+                                              (window-buffer))
+                                             t)))
+                                       (and (bound-and-true-p entropy/emacs-wc-center-window-mode)
+                                            (eq (entropy/emacs-wc-center-window-turn-on-judgements
+                                                 (window-buffer))
+                                                t)))
                                    ecwidth)
                                   (t
                                    wwidth))
