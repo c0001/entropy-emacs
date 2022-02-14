@@ -55,23 +55,27 @@
   (((:enable t :defer t)
     (elfeed-search-mode (elfeed elfeed-search-mode-map) t))
    ("Feed"
-    (("A" elfeed-add-feed "Add feed" :enable t :exit t)
-     ("D" entropy/emacs-rss-elfeed-remove-feed "Delete feed commonly" :enable t :exit t)
+    (("A" elfeed-add-feed "Add feed" :enable t :exit t :map-inject t)
+     ("D" entropy/emacs-rss-elfeed-remove-feed "Delete feed commonly" :enable t :exit t :map-inject t)
      ("M-d" entropy/emacs-rss-elfeed-remove-feed-by-regexp "Delete feed by regexp"
-      :enable t :exit t))
+      :enable t :exit t :map-inject t))
     "Filter"
     (("s" entropy/emacs-rss-elfeed-clean-filter "Clean current patched filter"
-      :enable t :exit t)
+      :enable t :exit t :map-inject t)
      ("t" entropy/emacs-rss-elfeed-filter-by-tag "Filter feeds by tag"
-      :enable t :exit t)
+      :enable t :exit t :map-inject t)
      ("f" entropy/emacs-rss-elfeed-filter-by-feedname "Filter feeds by name"
-      :enable t :exit t)
-     ("m" elfeed-search-set-filter "Filter feeds by hand" :enable t :exit t))
+      :enable t :exit t :map-inject t)
+     ("m" elfeed-search-set-filter "Filter feeds by hand" :enable t :exit t :map-inject t))
     "Update"
     (("u" entropy/emacs-rss-elfeed-multi-update-feeds "Update multiple feeds"
-      :enable t :exit t)
-     ("U" elfeed-update "Update all feeds" :enable t :exit t)
-     ("g" entropy/emacs-rss-elfeed-format-feed-title "Refresh all feeds" :enable t :exit t))
+      :enable t :exit t :map-inject t)
+     ("U" elfeed-update "Update all feeds"
+      :enable t :exit t :map-inject t)
+     ("g" entropy/emacs-rss-elfeed-format-feed-title "Refresh elfeed status"
+      :enable t :exit t :map-inject t)
+     ("G" (entropy/emacs-rss-elfeed-format-feed-title t) "Refresh elfeed status strongly"
+      :enable t :exit t :map-inject t))
     "Entry"
     (("d" entropy/emacs-rss-elfeed-delete-entry "Delete current entry" :enable t :exit t)
      ("+" entropy/emacs-rss-elfeed-tag-selected "Add tag for current entry" :enable t :exit t)
@@ -423,14 +427,21 @@ the current elfeed-show-buffer."
             nil)))))
   (advice-add 'elfeed-db-load :after #'entropy/emacs-rss--elfeed-string-style-hook)
 
-  (defun entropy/emacs-rss-elfeed-format-feed-title ()
-    "Interactively format feedtitle which has space."
-    (interactive)
+  (defun entropy/emacs-rss-elfeed-format-feed-title (&optional prefix)
+    "Interactively format feedtitle which has space.
+
+Optional arg PREFIX when non-nil will call `elfeed-unjam', since
+some times the elfeed has messy with procedure like
+`header-line-format' indicator be stuck when `elfeed' spawns
+sentinels fatal etc. and do it no need care for as."
+    (interactive "P")
     (if (equal major-mode 'elfeed-search-mode)
         (progn
           (entropy/emacs-rss--elfeed-string-style-hook)
           (elfeed-search-update--force))
-      (error "You are not in the 'elfeed-search-mode'!")))
+      (error "You are not in the 'elfeed-search-mode'!"))
+    (when prefix
+      (elfeed-unjam)))
 
 ;; *** query prompting filter function
   (defun entropy/emacs-rss--elfeed-get-all-entries ()
