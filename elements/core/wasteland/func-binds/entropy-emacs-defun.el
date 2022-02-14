@@ -3606,14 +3606,18 @@ sourced from `entropy/emacs-union-http-proxy-plist'."
                                       "\\)"
                                       )))))))
 
-(defvar __eemacs_union_http_url_retrieve_internal_enable_p nil)
+(defvar entropy/emacs-union-http-prroxy-internal-enable-p nil
+  "The internal set for
+`entropy/emacs-funcall-with-eemacs-union-http-internet-proxy'
+when the proxy env wrapping enabled")
+
 (defvar __ya/timer-set-function/with-url-poroxy/register nil)
 (defun __ya/timer-set-function/with-url-proxy (orig-func &rest orig-args)
   "Like `timer-set-function' but patched with url proxy about of
 `entropy/emacs-funcall-with-eemacs-union-http-internet-proxy' for
 timer since timer is delayed call that can not inherit the
 lexical binding."
-  (if __eemacs_union_http_url_retrieve_internal_enable_p
+  (if entropy/emacs-union-http-prroxy-internal-enable-p
       (let ((url-proxy-services-this
              (entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
             (process-environment (append (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs)
@@ -3622,6 +3626,9 @@ lexical binding."
             func)
         (setq func `(lambda (&rest args)
                       (let ((this-func ',func-call)
+                            (entropy/emacs-union-http-prroxy-internal-enable-p t)
+                            ;; disable `entropy-proxy-url' patch
+                            (entropy/proxy-url-user-proxy-match-func (lambda (&rest _) nil))
                             (url-proxy-services ',url-proxy-services-this))
                         (apply this-func args))))
         (push (cons func-call func) __ya/timer-set-function/with-url-poroxy/register)
@@ -3648,15 +3655,20 @@ lexical binding."
 `entropy/emacs-union-http-proxy-plist' as source http_proxy
 descriptor used to wrapping them in let binding for
 `process-environment' when the return of FILTER-FUNC(i.e. a
-function called without any arguments) is non-nil."
+function called without any arguments) is non-nil.
+
+Additionally, the ORIG-FUNC can retrieve whether proxy wrapper enabled
+by get `entropy/emacs-union-http-prroxy-internal-enable-p' non-nil."
   (if (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
            (funcall filter-func))
-      (let* ((__eemacs_union_http_url_retrieve_internal_enable_p t)
+      (let* ((entropy/emacs-union-http-prroxy-internal-enable-p t)
              (url-proxy-services
               (entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
              (proxy-env
               (entropy/emacs-gen-eemacs-union-http-internet-proxy-envs))
-             (process-environment (append proxy-env process-environment)))
+             (process-environment (append proxy-env process-environment))
+             ;; disable `entropy-proxy-url' patch
+             (entropy/proxy-url-user-proxy-match-func (lambda (&rest _) nil)))
         (apply orig-func orig-args))
     (apply orig-func orig-args)))
 

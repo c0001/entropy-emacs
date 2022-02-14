@@ -42,6 +42,7 @@
          elfeed-show-mode-map
          ("q" . entropy/emacs-rss-elfeed-kill-buffer))
 
+;; *** hydra hollow
   :eemacs-tpha
   (((:enable t :defer (:data (:adfors (entropy/emacs-hydra-hollow-call-before-hook)
                                       :adtype hook :pdumper-no-end t))))
@@ -76,21 +77,16 @@
      ("+" entropy/emacs-rss-elfeed-tag-selected "Add tag for current entry" :enable t :exit t)
      ("-" entropy/emacs-rss-elfeed-untag-selected "Delete tag for current entry" :enable t :exit t))))
 
+;; *** init
   :init
+  ;; show all feeds retrieve heath informations
+  (setq elfeed-log-level 'debug)
 
-  (defun entropy/emacs-elfeed-feeds-variable-watcher (symbol newval operation where)
-    "`entropy/emacs-elfeed-feeds' vairable wather guard to auto sync
-with `elfeed-feeds'."
-    (when (eq operation 'set)
-      (unless (eq newval (symbol-value symbol))
-        (setq elfeed-feeds
-              (mapcar (lambda (x) (car x))
-                      newval)))))
-  (setq elfeed-feeds
-        (mapcar (lambda (x) (car x))
-                entropy/emacs-elfeed-feeds))
-  (add-variable-watcher 'entropy/emacs-elfeed-feeds
-                        #'entropy/emacs-elfeed-feeds-variable-watcher)
+  (with-eval-after-load 'elfeed
+    (defun entropy/emacs-elfeed-show-log-buffer ()
+      "Display `elfeed-log-bfufer'."
+      (interactive)
+      (pop-to-buffer (elfeed-log-buffer))))
 
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
   (setq elfeed-curl-timeout 20)
@@ -152,9 +148,181 @@ with `elfeed-feeds'."
       (setq truncate-lines t)))
   (advice-add 'elfeed :around #'__ya/elfeed)
 
+  (defun entropy/emacs-rss--elfeed-url-hexify (url)
+    (require 'entropy-common-library-const)
+    (let ((hexi-url (url-hexify-string url entropy/cl-url--allowed-chars)))
+      hexi-url))
+
+  (defvar entropy/emamcs-rss--elfeed-save-custom t) ;default to `t' to suitable for subroutines patches
+  (defvar entropy/emacs-rss--elfeed-use-proxy-p nil)
+  (defvar entropy/emacs-rss--elfeed-gen-feeds-done nil
+    "NOTE: Internal indicator for eemacs elfeed config initial, do
+not modify it manually.")
+  (defvar entropy/emacs-rss--elfeed-use-prroxy-feeds nil)
+  (defvar entropy/emacs-rss--elfeed-non-prroxy-feeds nil)
+
+  (defun entropy/emacs-elfeed-feeds--gen-feeds (&optional regen user-feeds-plists)
+    "Generate `entropy/emacs-rss--elfeed-non-prroxy-feeds' and
+`entropy/emacs-rss--elfeed-non-prroxy-feeds' from
+USER-FEEDS-PLIST when `entropy/emacs-rss--elfeed-gen-feeds-done'
+is nil unless REGEN is set. Retun a undefined plist.
+
+When USER-FEEDS-PLISTS is not set, use
+`entropy/emacs-elfeed-feeds' instead in which case the
+`elfeed-feeds' will be synced as it.
+"
+    (when (or (not entropy/emacs-rss--elfeed-gen-feeds-done)
+              regen
+              user-feeds-plists)
+      (let (user-common-feeds user-proxy-feeds new-fp-rtn)
+        (unless user-feeds-plists
+          (setq entropy/emacs-rss--elfeed-use-prroxy-feeds nil)
+          (setq entropy/emacs-rss--elfeed-non-prroxy-feeds nil))
+        (mapc
+         (lambda (x)
+           (let* ((url (if entropy/emacs-rss--elfeed-gen-feeds-done
+                           (car x)
+                         (entropy/emacs-rss--elfeed-url-hexify (car x))))
+                  (attrs (cdr x))
+                  (new-fp (unless entropy/emacs-rss--elfeed-gen-feeds-done
+                            (cons url attrs)))
+                  (proxy? (plist-get attrs :use-proxy)))
+             (if proxy?
+                 (push url (if user-feeds-plists
+                               user-proxy-feeds
+                             entropy/emacs-rss--elfeed-use-prroxy-feeds))
+               (push url (if user-feeds-plists
+                             user-common-feeds
+                           entropy/emacs-rss--elfeed-non-prroxy-feeds)))
+             (when new-fp
+               (push new-fp new-fp-rtn))))
+         (or user-feeds-plists entropy/emacs-elfeed-feeds))
+        (unless (or entropy/emacs-rss--elfeed-gen-feeds-done
+                    user-feeds-plists)
+          (setq entropy/emacs-rss--elfeed-gen-feeds-done t))
+        (unless user-feeds-plists
+          (setq elfeed-feeds
+                (append entropy/emacs-rss--elfeed-non-prroxy-feeds
+                        entropy/emacs-rss--elfeed-use-prroxy-feeds)))
+        (when new-fp-rtn
+          (setq entropy/emacs-elfeed-feeds new-fp-rtn))
+        (if user-feeds-plists
+            (list :proxy-feeds user-proxy-feeds
+                  :common-feeds user-common-feeds)
+          (list :proxy-feeds entropy/emacs-rss--elfeed-use-prroxy-feeds
+                :common-feeds entropy/emacs-rss--elfeed-non-prroxy-feeds)))))
+
+  (defun entropy/emacs-elfeed-feeds-variable-watcher (symbol newval operation where)
+    "`entropy/emacs-elfeed-feeds' vairable wather guard to auto sync
+to `elfeed-feeds'."
+    (when (eq operation 'set)
+      (unless (eq newval (symbol-value symbol))
+        (let ((tmpvar newval))
+          (unless entropy/emacs-rss--elfeed-gen-feeds-done
+            (setq tmpvar nil)
+            (dolist (el newval)
+              (push (cons (entropy/emacs-rss--elfeed-url-hexify (car el))
+                          (cdr el))
+                    tmpvar)))
+          (setq entropy/emacs-elfeed-feeds tmpvar)
+          (when entropy/emamcs-rss--elfeed-save-custom
+            (customize-save-variable 'entropy/emacs-elfeed-feeds
+                                     tmpvar)))
+        (entropy/emacs-elfeed-feeds--gen-feeds t))))
+  (add-variable-watcher 'entropy/emacs-elfeed-feeds
+                        #'entropy/emacs-elfeed-feeds-variable-watcher)
+  (entropy/emacs-elfeed-feeds--gen-feeds) ;init `elfeed-feeds'
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (cl-defun __ya/elfeed-add-feed-around (url &key save)
+    "Like `elfeed-add-feed' but add to `entropy/emacs-elfeed-feeds'
+instead."
+    (interactive
+     (list
+      (let* ((feeds (elfeed-candidate-feeds))
+             (prompt (if feeds (concat "URL (default " (car feeds)  "): ")
+                       "URL: "))
+             (input (read-from-minibuffer prompt nil nil nil nil feeds))
+             (result (elfeed-cleanup input)))
+        (cond ((not (zerop (length result))) result)
+              (feeds (car feeds))
+              ((user-error "No feed to add"))))
+      :save t))
+    (let* ((hexi-url (entropy/emacs-rss--elfeed-url-hexify url))
+           (use-proxy-p (yes-or-no-p "With proxy?"))
+           (new-feeds-plists (list (list url :use-proxy use-proxy-p)))
+           (entropy/emamcs-rss--elfeed-save-custom save))
+      (setq entropy/emacs-elfeed-feeds
+            (append entropy/emacs-elfeed-feeds
+                    new-feeds-plists))
+      ))
+  (advice-add 'elfeed-add-feed :override
+              #'__ya/elfeed-add-feed-around)
+
+
+  (defun entropy/emacs-rss--elfeed-prun-feeds-plist (feeds &optional feeds-plist-name)
+    "Destructively prune FEEDS-PLIST-NAME's value by FEEDS, and
+return the pruned 'feeds-plist'.
+
+Optional arg FEEDS-PLIST-NAME if nil, pruning
+`entropy/emacs-elfeed-feeds' by default."
+    (let (
+          ;; disable `lexical-binding' since we need to use
+          ;; `symbol-value' inside for whatever type of symbol given.
+          (lexical-binding nil))
+      (let* (tmpvar
+             (feeds-plist-name (or feeds-plist-name
+                                  'entropy/emacs-elfeed-feeds))
+             (feeds-plist (symbol-value feeds-plist-name)))
+        (dolist (el feeds)
+          (when (setq tmpvar (assoc el feeds-plist 'string=))
+            (setq feeds-plist (delete tmpvar feeds-plist))))
+        (set feeds-plist-name feeds-plist)
+        (symbol-value feeds-plist-name))))
+
+  (defun entropy/emacs-rss--elfeed-arrange-feeds-plist (feeds)
+    (let ((user-common-feeds nil)
+          (user-proxy-feeds nil))
+      (dolist (el feeds)
+        (if (plist-get (alist-get el entropy/emacs-elfeed-feeds nil nil 'string=)
+                       :use-proxy)
+            (push el user-proxy-feeds)
+          (push el user-proxy-feeds)))
+      (list :proxy-feeds user-proxy-feeds
+            :common-feeds user-common-feeds)))
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun __ya/elfeed-updte (orig-func &rest orig-args)
+    (let ((common-feeds entropy/emacs-rss--elfeed-non-prroxy-feeds)
+          (proxy-feeds entropy/emacs-rss--elfeed-use-prroxy-feeds))
+      (let ((elfeed-feeds common-feeds)
+            (entropy/emacs-rss--elfeed-use-proxy-p nil))
+        (apply orig-func orig-args))
+      (let ((elfeed-feeds proxy-feeds)
+            (entropy/emacs-rss--elfeed-use-proxy-p t))
+        (apply orig-func orig-args))))
+
+  (advice-add 'elfeed-update
+              :around
+              #'__ya/elfeed-updte)
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun __ya/elfeed-update-feed (orig-func &rest orig-args)
+    "Like `elfeed-update-feed' but with proxy while needed."
+    (let* ((need-proxy-p entropy/emacs-rss--elfeed-use-proxy-p))
+      (if need-proxy-p
+          (apply 'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
+                 (lambda nil t)
+                 orig-func orig-args)
+        (apply orig-func orig-args))))
+
+  (advice-add 'elfeed-update-feed
+              :around
+              #'__ya/elfeed-update-feed)
+
 ;; *** utilities
   (defun entropy/emacs-rss--elfeed-list-feeds ()
-    "List feeds using for querying promt."
+    "List feeds using for querying prompt."
     (let ((feeds (hash-table-values (plist-get elfeed-db :feeds)))
           (rtn nil))
       (let ((mlist feeds))
@@ -178,18 +346,21 @@ with `elfeed-feeds'."
     "Clean invalid feeds which can not be retrieved.
 
 This function will remove 'as entry' both in `elfeed-db' and
-`elfeed-feeds' which also will automatically stored in
-`custom-file'."
+`elfeed-feeds' and `entropy/emacs-elfeed-feeds' which is also
+will be automatically modified in `custom-file'."
     (interactive)
     (let ((feeds (hash-table-values (plist-get elfeed-db :feeds)))
-          mlist)
+          mlist olist)
       (dolist (el feeds)
         (when (and (not (elfeed-feed-url el))
                    (member (elfeed-feed-id el) elfeed-feeds))
           (push `(,(elfeed-feed-id el) . ,el) mlist)))
       (dolist (el mlist)
-        (setq elfeed-feeds (delete (car el) elfeed-feeds)))
-      (customize-save-variable 'elfeed-feeds elfeed-feeds)
+        (setq elfeed-feeds (delete (car el) elfeed-feeds))
+        (push (car el) olist))
+      (customize-save-variable 'entropy/emacs-elfeed-feeds
+                               (entropy/emacs-rss--elfeed-prun-feeds-plist
+                                olist))
       (elfeed-db-gc-empty-feeds)))
 
   (defvar entropy/emacs-rss--elfeed-feed-prompt-alist '()
@@ -397,17 +568,6 @@ selecting existing tag or input the new one instead."
       (mapc #'elfeed-search-update-entry entries)
       (unless (use-region-p) (forward-line))))
 
-;; *** support multibyte entry
-  (defun entropy/emacs-rss-elfeed-add-feed-around (oldfunc url)
-    "Addding url and hexify it when it contained multi-byte
-string as CJK characters."
-    (interactive (list
-                  (read-string "Url: ")))
-    (require 'entropy-common-library-const)
-    (let ((hexi-url (url-hexify-string url entropy/cl-url--allowed-chars)))
-      (funcall oldfunc hexi-url :save t)))
-  (advice-add 'elfeed-add-feed :around #'entropy/emacs-rss-elfeed-add-feed-around)
-
 
 ;; *** delete entry
   (defun entropy/emacs-rss-elfeed-delete-entry ()
@@ -439,7 +599,7 @@ string as CJK characters."
   (defvar entropy/emacs-rss--elfeed-feed-remove-list '()
     "List stored feeds url of `elfeed-feeds' to remove.")
 
-  (defun entropy/emacs-rss--elfeed-feed-of-url (url)
+  (defun entropy/emacs-rss--elfeed-get-feed-title-name-by-feed-url (url)
     "Matching url's refer feed title name."
     (let* ((feeds (hash-table-values (plist-get elfeed-db :feeds)))
            (rtn nil))
@@ -459,11 +619,15 @@ powered by `entropy/cl-ivy-read-repeatedly-function'."
     (entropy/cl-ivy-read-repeatedly-function
      x 'entropy/emacs-rss--elfeed-feed-remove-list
      "Removing:"
-     #'entropy/emacs-rss--elfeed-feed-of-url))
+     #'entropy/emacs-rss--elfeed-get-feed-title-name-by-feed-url))
 
   (defun entropy/emacs-rss-elfeed-remove-feed ()
     "Remove elfeed feeds with multi-chosen by query prompted
-function of `ivy-read'."
+function of `ivy-read'.
+
+This function will remove 'as entry' both in `elfeed-db' and
+`elfeed-feeds' and `entropy/emacs-elfeed-feeds' which is also
+will automatically be modified in `custom-file'."
     (interactive)
     (setq entropy/emacs-rss--elfeed-feed-remove-list nil
           entropy/emacs-rss--elfeed-feed-prompt-alist nil)
@@ -475,12 +639,19 @@ function of `ivy-read'."
       (dolist (el entropy/emacs-rss--elfeed-feed-remove-list)
         (when (member el elfeed-feeds)
           (setq rtn (delete el rtn))))
-      (customize-save-variable 'elfeed-feeds rtn)
+      (setq elfeed-feeds rtn)
+      (customize-save-variable 'entropy/emacs-elfeed-feeds
+                               (entropy/emacs-rss--elfeed-prun-feeds-plist
+                                entropy/emacs-rss--elfeed-feed-remove-list))
       (when (yes-or-no-p "Do you want to remove all empty feeds? ")
         (elfeed-db-gc-empty-feeds))))
 
   (defun entropy/emacs-rss-elfeed-remove-feed-by-regexp ()
-    "Remove feeds matched of regexp expr inputted repeatlly."
+    "Remove feeds matched of regexp expr inputted repeatlly.
+
+This function will remove 'as entry' both in `elfeed-db' and
+`elfeed-feeds' and `entropy/emacs-elfeed-feeds' which is also
+will automatically be modified in `custom-file'."
     (interactive)
     (let* ((regexp (entropy/cl-repeated-read "Input regexp"))
            (feeds (elfeed-feed-list))
@@ -493,7 +664,9 @@ function of `ivy-read'."
       (dolist (el mlist)
         (setq rtn (delete el rtn)))
       (setq elfeed-feeds rtn)
-      (customize-save-variable 'elfeed-feeds elfeed-feeds)))
+      (customize-save-variable 'entropy/emacs-elfeed-feeds
+                               (entropy/emacs-rss--elfeed-prun-feeds-plist
+                                mlist))))
 
 ;; *** multi read feeds framework
 
@@ -511,58 +684,35 @@ powered by `entropy/cl-ivy-read-repeatedly-function'."
            (entropy/cl-ivy-read-repeatedly-function
             x 'entropy/emacs-rss--elfeed-multi-update-feeds-list
             "Updating: "
-            #'entropy/emacs-rss--elfeed-feed-of-url))))
+            #'entropy/emacs-rss--elfeed-get-feed-title-name-by-feed-url))))
 
-  (defun entropy/emacs-rss-elfeed-get-multi-update-feeds ()
+  (defun entropy/emacs-rss--elfeed-get-multi-update-feeds ()
     "Getting feeds needed for updating through querying with
 promptings and injecting them into `entropy/emacs-rss--elfeed-multi-update-feeds-list'."
-    (interactive)
     (setq entropy/emacs-rss--elfeed-multi-update-feeds-list nil
           entropy/emacs-rss--elfeed-feed-prompt-alist nil)
-    (setq entropy/emacs-rss--elfeed-feed-prompt-alist (entropy/emacs-rss--elfeed-list-feeds))
+    (setq entropy/emacs-rss--elfeed-feed-prompt-alist
+          (entropy/emacs-rss--elfeed-list-feeds))
     (ivy-read "Update feeds: " entropy/emacs-rss--elfeed-feed-prompt-alist
               :require-match t
-              :action #'entropy/emacs-rss--elfeed-update-read-action))
+              :action #'entropy/emacs-rss--elfeed-update-read-action
+              :caller #'entropy/emacs-rss--elfeed-get-multi-update-feeds))
 
   (defun entropy/emacs-rss-elfeed-multi-update-feeds ()
-    "Update feeds interactively by multiplied choicing from `entropy/emacs-rss--elfeed-feed-prompt-alist'."
+    "Update feeds interactively by multiplied choicing from
+`entropy/emacs-rss--elfeed-feed-prompt-alist'."
     (interactive)
-    (entropy/emacs-rss-elfeed-get-multi-update-feeds)
-    (dolist (el entropy/emacs-rss--elfeed-multi-update-feeds-list)
-      (elfeed-update-feed el)))
-
-;; *** update specific feed through proxy
-
-  (defsubst entropy/emacs-rss--elfeed-url-with-proxy-p (url)
-    (when (plist-get
-           (alist-get url entropy/emacs-elfeed-feeds nil nil 'string=)
-           :use-proxy)
-      (message "elfeed update feed '%s' through proxy ..." url)
-      t))
-
-  (defun __ya/elfeed-update-feed (orig-func &rest orig-args)
-    "Like `elfeed-update-feed' but with proxy while needed."
-    (let ((need-proxy-p (entropy/emacs-rss--elfeed-url-with-proxy-p (car orig-args))))
-      (if (or (not elfeed-use-curl)
-              need-proxy-p)
-          (let ((elfeed-use-curl nil))
-            (if need-proxy-p
-                (apply 'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
-                       (lambda nil t)
-                       orig-func orig-args)
-              (apply orig-func orig-args)))
-        ;; Do not use curl method to retrieve via proxy Since
-        ;; `elfeed-curl-retrieve' parent `elfeed-curl-enqueue' use
-        ;; idle timer to call it in which case we can not directly
-        ;; apply proxy process env with `elfeed-curl-enqueue' to take
-        ;; effective. And elfeed combine the feeds within an single
-        ;; curl process so that we can not judge whether use proxy for
-        ;; as.
-        (apply orig-func orig-args))))
-
-  (advice-add 'elfeed-update-feed
-              :around
-              #'__ya/elfeed-update-feed)
+    (let* ((feeds (progn (entropy/emacs-rss--elfeed-get-multi-update-feeds)
+                         entropy/emacs-rss--elfeed-multi-update-feeds-list))
+           (tmpvar (entropy/emacs-rss--elfeed-arrange-feeds-plist feeds))
+           (user-proxy-feeds (plist-get tmpvar :proxy-feeds))
+           (user-common-feeds (plist-get tmpvar :common-feeds)))
+      (let ((entropy/emacs-rss--elfeed-use-proxy-p nil))
+        (dolist (el user-common-feeds)
+          (elfeed-update-feed el))
+        (setq entropy/emacs-rss--elfeed-use-proxy-p t)
+        (dolist (el user-proxy-feeds)
+          (elfeed-update-feed el)))))
 
 ;; *** default external browser for feed viewing
 
