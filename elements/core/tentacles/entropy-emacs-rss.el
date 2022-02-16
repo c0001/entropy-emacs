@@ -70,7 +70,7 @@
     "Update"
     (("u" entropy/emacs-rss-elfeed-multi-update-feeds "Update multiple feeds"
       :enable t :exit t :map-inject t)
-     ("U" elfeed-update "Update all feeds"
+     ("U" entropy/emacs-rss-elfeed-update "Update all feeds"
       :enable t :exit t :map-inject t)
      ("g" entropy/emacs-rss-elfeed-format-feed-title "Refresh elfeed status"
       :enable t :exit t :map-inject t)
@@ -86,6 +86,9 @@
   ;; show all feeds retrieve heath informations
   (setq elfeed-log-level 'debug)
 
+  ;; Restrict curl connections for performance thoughts
+  (setq elfeed-curl-max-connections 5)
+
   (with-eval-after-load 'elfeed
     (defun entropy/emacs-elfeed-show-log-buffer ()
       "Display `elfeed-log-bfufer'."
@@ -93,7 +96,7 @@
       (pop-to-buffer (elfeed-log-buffer))))
 
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
-  (setq elfeed-curl-timeout 20)
+  (setq elfeed-curl-timeout 5)
 
   ;; auto center window mode
   (dolist (cmd '(
@@ -285,44 +288,114 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
         (symbol-value feeds-plist-name))))
 
   (defun entropy/emacs-rss--elfeed-arrange-feeds-plist (feeds)
+    "Gen an ELFEED-FEEDS-RICH from feeds"
     (let ((user-common-feeds nil)
           (user-proxy-feeds nil))
       (dolist (el feeds)
         (if (plist-get (alist-get el entropy/emacs-elfeed-feeds nil nil 'string=)
                        :use-proxy)
             (push el user-proxy-feeds)
-          (push el user-proxy-feeds)))
+          (push el user-common-feeds)))
       (list :proxy-feeds user-proxy-feeds
             :common-feeds user-common-feeds)))
 
-  ;; EEMACS_MAINTENANCE: follow upstream updates
-  (defun __ya/elfeed-updte (orig-func &rest orig-args)
-    (let ((common-feeds entropy/emacs-rss--elfeed-non-prroxy-feeds)
-          (proxy-feeds entropy/emacs-rss--elfeed-use-prroxy-feeds))
-      (let ((elfeed-feeds common-feeds)
-            (entropy/emacs-rss--elfeed-use-proxy-p nil))
-        (apply orig-func orig-args))
-      (let ((elfeed-feeds proxy-feeds)
-            (entropy/emacs-rss--elfeed-use-proxy-p t))
-        (apply orig-func orig-args))))
+  (defun entropy/emacs-rss--elfeed-process-stop-all ()
+    (let (_)
+      (when elfeed-use-curl
+        (mapc (lambda (x) (when (string-match-p "elfeed-curl" x)
+                            (delete-process x)))
+              (mapcar #'process-name (process-list))))
+      (elfeed-unjam)))
 
-  (advice-add 'elfeed-update
-              :around
-              #'__ya/elfeed-updte)
+  (defvar __elfeed-orig-curl-args nil)
+  (defvar __elfeed-orig-url-proxies nil)
+  (defun entropy/emacs-rss--elfeed-fetch-feeds (elfeed-feeds-rich)
+    "Synchronously fetch ELFEED-FEEDS-RICH."
+    (when (not (= (elfeed-queue-count-active) 0))
+      (user-error "Please wait for previous elfeed queue retrieve done!"))
+    (let ((common-feeds (plist-get elfeed-feeds-rich :common-feeds))
+          (proxy-feeds (plist-get elfeed-feeds-rich :proxy-feeds)))
+      (cond ((and proxy-feeds
+                  (plist-get entropy/emacs-union-http-proxy-plist :enable))
+             ;; common ways
+             (when common-feeds
+               (message "Update non-proxy feeds ...")
+               (setq entropy/emacs-rss--elfeed-use-proxy-p nil)
+               (let ((elfeed-feeds common-feeds))
+                 (elfeed-update))
+               (unwind-protect
+                   (progn
+                     (while (and (progn (sleep-for 2) t)
+                                 (not (= (elfeed-queue-count-active) 0)))
+                       (message "Waiting for non-proxy feeds retrieve done ..."))
+                     (message "Update non-proxy feeds done"))
+                 (setq entropy/emacs-rss--elfeed-use-proxy-p nil)
+                 (ignore-errors
+                   (entropy/emacs-rss--elfeed-process-stop-all))))
+             ;; proxy ways
+             (when proxy-feeds
+               (message "Update proxy feeds ...")
+               (setq entropy/emacs-rss--elfeed-use-proxy-p t)
+               (setq __elfeed-orig-curl-args elfeed-curl-extra-arguments
+                     __elfeed-orig-url-proxies url-proxy-services)
+               (setq elfeed-curl-extra-arguments
+                     `("-x" ,(format "http://%s:%s"
+                                     (plist-get entropy/emacs-union-http-proxy-plist :host)
+                                     (plist-get entropy/emacs-union-http-proxy-plist :port)))
+                     url-proxy-services
+                     (entropy/emacs-gen-eemacs-union-http-internet-proxy-url-proxy-services))
+               (let ((elfeed-feeds proxy-feeds))
+                 (elfeed-update))
+               (unwind-protect
+                   (progn
+                     (while (and (progn (sleep-for 2) t)
+                                 (not (= (elfeed-queue-count-active) 0)))
+                       (message "Waiting for proxy feeds retrieve done ..."))
+                     (message "Update proxy feeds done"))
+                 (setq elfeed-curl-extra-arguments __elfeed-orig-curl-args
+                       url-proxy-services __elfeed-orig-url-proxies)
+                 (ignore-errors
+                   (entropy/emacs-rss--elfeed-process-stop-all)))))
+            (t
+             (setq entropy/emacs-rss--elfeed-use-proxy-p nil)
+             (let ((elfeed-feeds common-feeds))
+               (elfeed-update))))
+      (message "Update %s feeds done"
+               (+ (length common-feeds)
+                  (length proxy-feeds)))))
 
-  ;; EEMACS_MAINTENANCE: follow upstream updates
-  (defun __ya/elfeed-update-feed (orig-func &rest orig-args)
-    "Like `elfeed-update-feed' but with proxy while needed."
-    (let* ((need-proxy-p entropy/emacs-rss--elfeed-use-proxy-p))
-      (if need-proxy-p
-          (apply 'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
-                 (lambda nil t)
-                 orig-func orig-args)
-        (apply orig-func orig-args))))
+  (defun entropy/emacs-rss-elfeed-update ()
+    "Like `elfeed-update' but specified for eemacs."
+    (interactive)
+    (let ((tmpvar (list :proxy-feeds entropy/emacs-rss--elfeed-use-prroxy-feeds
+                        :common-feeds entropy/emacs-rss--elfeed-non-prroxy-feeds)))
+      (entropy/emacs-rss--elfeed-fetch-feeds
+       tmpvar)))
 
-  (advice-add 'elfeed-update-feed
-              :around
-              #'__ya/elfeed-update-feed)
+  ;; EEMACS_MAINTENANCE: follow upstream
+  (defun __ya/elfeed-log (level fmt &rest objects)
+    "Like `elfeed-log' but patched for eemacs specs."
+    (let ((log-buffer (elfeed-log-buffer))
+          (log-level-face (cl-case level
+                            (debug 'elfeed-log-debug-level-face)
+                            (info 'elfeed-log-info-level-face)
+                            (warn 'elfeed-log-warn-level-face)
+                            (error 'elfeed-log-error-level-face)))
+          (inhibit-read-only t)
+          (use-proxy entropy/emacs-rss--elfeed-use-proxy-p))
+      (when (>= (elfeed-log--level-number level)
+                (elfeed-log--level-number elfeed-log-level))
+        (with-current-buffer log-buffer
+          (goto-char (point-max))
+          (insert
+           (format
+            (concat "[" (propertize "%s" 'face 'elfeed-log-date-face) "] "
+                    "[" (propertize "%s" 'face log-level-face) "]: %s %s\n")
+            (format-time-string "%Y-%m-%d %H:%M:%S")
+            level
+            (if use-proxy "<use-proxy>" "<non-proxy>")
+            (apply #'format fmt objects)))))))
+  (advice-add 'elfeed-log :override #'__ya/elfeed-log)
 
 ;; *** utilities
   (defun entropy/emacs-rss--elfeed-list-feeds ()
@@ -715,15 +788,9 @@ promptings and injecting them into `entropy/emacs-rss--elfeed-multi-update-feeds
     (interactive)
     (let* ((feeds (progn (entropy/emacs-rss--elfeed-get-multi-update-feeds)
                          entropy/emacs-rss--elfeed-multi-update-feeds-list))
-           (tmpvar (entropy/emacs-rss--elfeed-arrange-feeds-plist feeds))
-           (user-proxy-feeds (plist-get tmpvar :proxy-feeds))
-           (user-common-feeds (plist-get tmpvar :common-feeds)))
-      (let ((entropy/emacs-rss--elfeed-use-proxy-p nil))
-        (dolist (el user-common-feeds)
-          (elfeed-update-feed el))
-        (setq entropy/emacs-rss--elfeed-use-proxy-p t)
-        (dolist (el user-proxy-feeds)
-          (elfeed-update-feed el)))))
+           (tmpvar (entropy/emacs-rss--elfeed-arrange-feeds-plist feeds)))
+      (entropy/emacs-rss--elfeed-fetch-feeds
+       tmpvar)))
 
 ;; *** default external browser for feed viewing
 
