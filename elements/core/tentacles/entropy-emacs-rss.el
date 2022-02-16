@@ -315,7 +315,10 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
   (defvar __elfeed-orig-url-proxies nil)
   (defun entropy/emacs-rss--elfeed-fetch-feeds (elfeed-feeds-rich)
     "Synchronously fetch ELFEED-FEEDS-RICH."
-    (when (not (= (elfeed-queue-count-active) 0))
+    (when (not (<=
+                ;; Bug of `elfeed-queue-count-active'
+                ;; which may cause less than zero
+                (elfeed-queue-count-active) 0))
       (user-error "Please wait for previous elfeed queue retrieve done!"))
     (let ((common-feeds (plist-get elfeed-feeds-rich :common-feeds))
           (proxy-feeds (plist-get elfeed-feeds-rich :proxy-feeds)))
@@ -330,7 +333,7 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
                (unwind-protect
                    (progn
                      (while (and (progn (sleep-for 2) t)
-                                 (not (= (elfeed-queue-count-active) 0)))
+                                 (not (<= (elfeed-queue-count-active) 0)))
                        (message "Waiting for non-proxy feeds retrieve done ..."))
                      (message "Update non-proxy feeds done"))
                  (setq entropy/emacs-rss--elfeed-use-proxy-p nil)
@@ -353,7 +356,7 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
                (unwind-protect
                    (progn
                      (while (and (progn (sleep-for 2) t)
-                                 (not (= (elfeed-queue-count-active) 0)))
+                                 (not (<= (elfeed-queue-count-active) 0)))
                        (message "Waiting for proxy feeds retrieve done ..."))
                      (message "Update proxy feeds done"))
                  (setq elfeed-curl-extra-arguments __elfeed-orig-curl-args
