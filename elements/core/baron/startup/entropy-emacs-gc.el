@@ -84,7 +84,7 @@ variable with newvar set while the VALUE is not equal to the
 origin, since each set to the `gc-threshold' or
 `gc-cons-percentage' will make gc subrotine analysis(?)"
   `(let ((newval ,value))
-     (unless (equal ,symbol newval)
+     (unless (= ,symbol newval)
        (setq ,symbol newval))))
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
