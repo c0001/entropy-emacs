@@ -89,14 +89,18 @@
   ;; Restrict curl connections for performance thoughts
   (setq elfeed-curl-max-connections 5)
 
+  ;; shorten timeout for impatient
+  (setq elfeed-curl-timeout 5)
+
+  ;; center window for more comfortable visualization
   (with-eval-after-load 'elfeed
     (defun entropy/emacs-elfeed-show-log-buffer ()
       "Display `elfeed-log-bfufer'."
       (interactive)
       (pop-to-buffer (elfeed-log-buffer))))
 
+  ;; Nice time format string
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
-  (setq elfeed-curl-timeout 5)
 
   ;; auto center window mode
   (dolist (cmd '(
