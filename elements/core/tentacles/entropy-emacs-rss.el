@@ -72,14 +72,17 @@
       :enable t :exit t :map-inject t)
      ("U" entropy/emacs-rss-elfeed-update "Update all feeds"
       :enable t :exit t :map-inject t)
-     ("g" entropy/emacs-rss-elfeed-format-feed-title "Refresh elfeed status"
+     ("g" entropy/emacs-rss-elfeed-update-search-list-inct "Refresh elfeed status"
       :enable t :exit t :map-inject t)
-     ("G" (entropy/emacs-rss-elfeed-format-feed-title t) "Refresh elfeed status strongly"
+     ("G" (entropy/emacs-rss-elfeed-update-search-list-inct t) "Refresh elfeed status strongly"
       :enable t :exit t :map-inject t))
     "Entry"
-    (("d" entropy/emacs-rss-elfeed-delete-entry "Delete current entry" :enable t :exit t)
-     ("+" entropy/emacs-rss-elfeed-tag-selected "Add tag for current entry" :enable t :exit t)
-     ("-" entropy/emacs-rss-elfeed-untag-selected "Delete tag for current entry" :enable t :exit t))))
+    (("d" entropy/emacs-rss-elfeed-delete-entry "Delete current entry"
+      :enable t :exit t :map-inject nil)
+     ("+" entropy/emacs-rss-elfeed-tag-selected "Add tag for current entry"
+      :enable t :exit t :map-inject t)
+     ("-" entropy/emacs-rss-elfeed-untag-selected "Delete tag for current entry"
+      :enable t :exit t :map-inject t))))
 
 ;; *** init
   :init
@@ -163,6 +166,9 @@
     (require 'entropy-common-library-const)
     (let ((hexi-url (url-hexify-string url entropy/cl-url--allowed-chars)))
       hexi-url))
+
+  (defun entropy/emacs-rss--elfeed-search-update ()
+    (elfeed-search-update--force))
 
   (defvar entropy/emamcs-rss--elfeed-save-custom t) ;default to `t' to suitable for subroutines patches
   (defvar entropy/emacs-rss--elfeed-use-proxy-p nil)
@@ -266,6 +272,12 @@ instead."
       (setq entropy/emacs-elfeed-feeds
             (append entropy/emacs-elfeed-feeds
                     new-feeds-plists))
+      ;; Fetch the new feed
+      (progn
+        (elfeed-db-ensure)
+        (entropy/emacs-rss--elfeed-fetch-feeds
+         (entropy/emacs-rss--elfeed-arrange-feeds-plist
+          `(,url))))
       ))
   (advice-add 'elfeed-add-feed :override
               #'__ya/elfeed-add-feed-around)
@@ -321,7 +333,9 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
                 (elfeed-queue-count-active) 0))
       (user-error "Please wait for previous elfeed queue retrieve done!"))
     (let ((common-feeds (plist-get elfeed-feeds-rich :common-feeds))
-          (proxy-feeds (plist-get elfeed-feeds-rich :proxy-feeds)))
+          (proxy-feeds (plist-get elfeed-feeds-rich :proxy-feeds))
+          (orig-filter elfeed-search-filter))
+      ;; (elfeed-search-set-filter "")
       (cond ((and proxy-feeds
                   (plist-get entropy/emacs-union-http-proxy-plist :enable))
              ;; common ways
@@ -367,6 +381,10 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
              (setq entropy/emacs-rss--elfeed-use-proxy-p nil)
              (let ((elfeed-feeds common-feeds))
                (elfeed-update))))
+      ;; redraw the search buffer when database changed
+      (progn
+        (entropy/emacs-rss--elfeed-search-update)
+        (elfeed-search-set-filter orig-filter))
       (message "Update %s feeds done"
                (+ (length common-feeds)
                   (length proxy-feeds)))))
@@ -472,58 +490,38 @@ the current elfeed-show-buffer."
     (interactive)
     (elfeed-search-set-filter ""))
 
-  (defun entropy/emacs-rss--elfeed-sc-str (str)
-    "Replaces space for '-' when string STR indeed of that."
-    (let ((strlist (split-string str " "))
-          rtn)
-      (if (member "" strlist)
-          (setq strlist (delete "" strlist)))
-      (dolist (el strlist)
-        (if (not rtn)
-            (setq rtn el)
-          (setq rtn (concat rtn "-" el))))
+  (defun entropy/emacs-rss--elfeed-build-feedname-regexp-filter (feedname)
+    (replace-regexp-in-string " " ".*" feedname))
+
+  (defun entropy/emacs-rss--elfeed-build-tag-valid-name (tag)
+    (let* ((regex " ")
+           (tag-name (symbol-name tag))
+           rtn)
+      (if (string-match-p regex tag-name)
+          (progn
+            ;; NOTE: do not `unintern' the tag symbol, since it's
+            ;; maybe the internal API symbol name
+            ;;
+            ;; (unintern tag)
+            (setq rtn
+                  (intern
+                   (replace-regexp-in-string
+                    " " "_" (symbol-name tag)))))
+        (setq rtn tag))
       rtn))
 
-;; *** feeds-title config
-  ;; FIXME: why need wrap with `eval-and-compile' or throw error about:
-  ;; > function \(setf\ \(elfeed-feed-title\)\) not defined?
-  (eval-and-compile
-    (defun entropy/emacs-rss--elfeed-string-style-hook (&rest args)
-      "Hooks for replace space to '-' when save `elfeed-db'."
-      (let ((feeds (if (hash-table-p elfeed-db-feeds)
-                       (hash-table-values elfeed-db-feeds)
-                     nil))
-            did)
-        (when feeds
-          (dolist (el feeds)
-            (let ((feed-title (elfeed-feed-title el))
-                  newtitle)
-              (when (and feed-title (string-match-p " " feed-title))
-                (setq newtitle (entropy/emacs-rss--elfeed-sc-str feed-title))
-                (setf (elfeed-feed-title el) newtitle)
-                (setq did t))))
-          (if did
-              t
-            nil)))))
-  (advice-add 'elfeed-db-load :after #'entropy/emacs-rss--elfeed-string-style-hook)
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun __ya/elfeed-tag (orig-func &rest orig-args)
+    "Like `elfeed-tag' but convert invalid tag name to valid i.e. non
+space separator within it before adding to `elfeed-db'."
+    (let* ((tags (cdr orig-args))
+           (newtags (mapcar (lambda (x)
+                              (entropy/emacs-rss--elfeed-build-tag-valid-name
+                               x))
+                            tags)))
+      (apply orig-func (car orig-args) newtags)))
+  (advice-add 'elfeed-tag :around #'__ya/elfeed-tag)
 
-  (defun entropy/emacs-rss-elfeed-format-feed-title (&optional prefix)
-    "Interactively format feedtitle which has space.
-
-Optional arg PREFIX when non-nil will call `elfeed-unjam', since
-some times the elfeed has messy with procedure like
-`header-line-format' indicator be stuck when `elfeed' spawns
-sentinels fatal etc. and do it no need care for as."
-    (interactive "P")
-    (if (equal major-mode 'elfeed-search-mode)
-        (progn
-          (entropy/emacs-rss--elfeed-string-style-hook)
-          (elfeed-search-update--force))
-      (error "You are not in the 'elfeed-search-mode'!"))
-    (when prefix
-      (elfeed-unjam)))
-
-;; *** query prompting filter function
   (defun entropy/emacs-rss--elfeed-get-all-entries ()
     "Get all entries from `elfeed-db' and return it."
     (hash-table-values (plist-get elfeed-db :entries)))
@@ -537,10 +535,28 @@ sentinels fatal etc. and do it no need care for as."
       (if feed-title
           feed-title)))
 
-  (defun entropy/emacs-rss--elfeed-tags-choice (selected-entries &optional tag return-list prompt match)
-    "Query and selected tag from the list collected by
-SELECTED-ENTRIES. And final return the tag string or the list of
-matched entires by this tag.
+;; *** udpate search buffer
+
+  (defun entropy/emacs-rss-elfeed-update-search-list-inct (&optional prefix)
+    "Interactively format feedtitle which has space.
+
+Optional arg PREFIX when non-nil will call `elfeed-unjam', since
+some times the elfeed has messy with procedure like
+`header-line-format' indicator be stuck when `elfeed' spawns
+sentinels fatal etc. and do it no need care for as."
+    (interactive "P")
+    (if (equal major-mode 'elfeed-search-mode)
+        (entropy/emacs-rss--elfeed-search-update)
+      (error "You are not in the 'elfeed-search-mode'!"))
+    (when prefix
+      (elfeed-unjam)))
+
+;; *** query prompting filter function
+
+  (defun entropy/emacs-rss--elfeed-tags-choice
+      (selected-entries &optional tag return-list prompt match)
+    "Query and selected tag from the SELECTED-ENTRIES. And final
+return the tag symbol or the list of matched entires by this tag.
 
 Arguemnts:
 
@@ -568,15 +584,13 @@ Arguemnts:
                         (elfeed-entry-tags el)))))
           ;; read user choice
           (if (not tag)
-              (setq choice (ivy-read (if (not prompt)
-                                         "Choose tag: "
-                                       prompt)
-                                     tags-list
-                                     :require-match (if match t nil)))
+              (setq choice (completing-read
+                            (if (not prompt)
+                                "Choose tag: "
+                              prompt)
+                            tags-list nil
+                            (if match t nil)))
             (setq choice tag))
-
-          (when (string-match-p " " choice)
-            (setq choice (entropy/emacs-rss--elfeed-sc-str choice)))
 
           (if return-list
               ;; match entries of choice
@@ -612,10 +626,16 @@ Arguments:
 
       (if tname
           (setq choice tname)
-        (setq choice (ivy-read "Choose feed title: " feedtitle-name-list)))
-
-      (when (string-match-p " " choice)
-        (setq choice (entropy/emacs-rss--elfeed-sc-str choice)))
+        (setq choice (completing-read
+                      (if return-list "Choose feed title: "
+                        "Choose feed title or input: ")
+                      feedtitle-name-list
+                      nil t)))
+      (unless return-list
+        ;; return the feedname as an filter
+        (setq choice
+              (entropy/emacs-rss--elfeed-build-feedname-regexp-filter
+               choice)))
 
       (if return-list
           (dolist (el entries)
@@ -627,15 +647,16 @@ Arguments:
   (defun entropy/emacs-rss-elfeed-filter-by-tag (tag)
     "Filter with tag choosen, powered by `entropy/emacs-rss--elfeed-tags-choice'"
     (interactive
-     (list (entropy/emacs-rss--elfeed-tags-choice (entropy/emacs-rss--elfeed-get-all-entries))))
+     (list (entropy/emacs-rss--elfeed-tags-choice
+            (entropy/emacs-rss--elfeed-get-all-entries)
+            nil nil nil t)))
     (elfeed-search-set-filter (concat "+" (symbol-name tag))))
 
   (defun entropy/emacs-rss-elfeed-filter-by-feedname (feedname)
     "Filter with feedname, powered by `entropy/emacs-rss--elfeed-feedname-choice'."
     (interactive
-     (list (entropy/emacs-rss--elfeed-feedname-choice (entropy/emacs-rss--elfeed-get-all-entries))))
-    (if (entropy/emacs-rss--elfeed-string-style-hook)
-        (elfeed-search-update--force))
+     (list (entropy/emacs-rss--elfeed-feedname-choice
+            (entropy/emacs-rss--elfeed-get-all-entries))))
     (elfeed-search-set-filter (concat "=" feedname)))
 
   (defun entropy/emacs-rss-elfeed-untag-selected ()
@@ -643,7 +664,8 @@ Arguments:
 requiring matched."
     (interactive)
     (let* ((entries (elfeed-search-selected))
-           (choice (entropy/emacs-rss--elfeed-tags-choice entries nil nil "Choose tag for remove: " t)))
+           (choice (entropy/emacs-rss--elfeed-tags-choice
+                    entries nil nil "Choose tag for remove: " t)))
       (elfeed-untag entries choice)
       (mapc #'elfeed-search-update-entry entries)
       (unless (use-region-p) (forward-line))))
@@ -654,7 +676,8 @@ selecting existing tag or input the new one instead."
     (interactive)
     (let* ((entries (elfeed-search-selected))
            (full-entrylist (entropy/emacs-rss--elfeed-get-all-entries))
-           (tag (entropy/emacs-rss--elfeed-tags-choice full-entrylist nil nil "Choose tag or input one: ")))
+           (tag (entropy/emacs-rss--elfeed-tags-choice
+                 full-entrylist nil nil "Choose tag or input one: ")))
       (elfeed-tag entries tag)
       (mapc #'elfeed-search-update-entry entries)
       (unless (use-region-p) (forward-line))))
@@ -671,7 +694,7 @@ selecting existing tag or input the new one instead."
           (avl-tree-delete elfeed-db-index id)
           (remhash id n-entry)
           (setq elfeed-db-entries n-entry)
-          (entropy/emacs-rss-elfeed-format-feed-title))
+          (entropy/emacs-rss--elfeed-search-update))
       (let* ((entries (elfeed-search-selected))
              id
              (n-entry elfeed-db-entries))
@@ -682,9 +705,7 @@ selecting existing tag or input the new one instead."
         (dolist (el id)
           (remhash el n-entry))
         (setq elfeed-db-entries n-entry)
-        (entropy/emacs-rss-elfeed-format-feed-title))))
-
-  (define-key elfeed-search-mode-map (kbd "d") 'entropy/emacs-rss-elfeed-delete-entry)
+        (entropy/emacs-rss--elfeed-search-update))))
 
 ;; *** remove feed function
   (defvar entropy/emacs-rss--elfeed-feed-remove-list '()
@@ -759,7 +780,7 @@ will automatically be modified in `custom-file'."
                                (entropy/emacs-rss--elfeed-prun-feeds-plist
                                 mlist))))
 
-;; *** multi read feeds framework
+;; *** update feed function
 
   (defvar entropy/emacs-rss--elfeed-multi-update-feeds-list '()
     "Elfeed Feeds for update.")
