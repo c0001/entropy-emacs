@@ -164,7 +164,9 @@
 
   ;; w3m personal browse url function
   (defun entropy/emacs-textwww--w3m-browse-url (url &rest args)
-    (w3m-goto-url url))
+    (if (bound-and-true-p w3m-make-new-session)
+        (w3m-goto-url-new-session url)
+      (w3m-goto-url url)))
 
   ;; uniform
   (entropy/emacs-textwww--hydra-uniform
@@ -183,8 +185,11 @@
    :next-page w3m-view-next-page
    :search-query w3m-search
    :search-engine entropy/emacs-textwww-w3m-toggle-search-engine)
-  (add-to-list 'entropy/emacs-window-auto-center-commands-list
-               #'w3m-goto-url)
+
+  ;; make w3m window center for proper occasions
+  (dolist (func '(w3m-goto-url w3m-goto-url-new-session))
+    (add-to-list 'entropy/emacs-window-auto-center-commands-list
+                 func))
 
   ;; coding system specified to utf-8 when `current-language-environment' is thus.
   (when (string= current-language-environment "UTF-8")
@@ -281,6 +286,9 @@ value of it is not relavant to current buffer value."
     (cond
      ((and (eq major-mode 'w3m-mode)
            (bound-and-true-p text-scale-mode))
+      ;; disable window center mode since there's some visual bug
+      (when (bound-and-true-p entropy/emacs-wc-center-window-mode)
+        (entropy/emacs-wc-center-window-mode 0))
       (setq w3m-fill-column
             (entropy/emacs-textwww--w3m-calc-max-cols))
       (w3m-redisplay-this-page))
@@ -530,8 +538,12 @@ in whole page."
 
   ;; redefine search-web for compat with entropy-emacs
   (defun __ya/search-web (engine word)
-    "Like `search-web' but patch that the original one can't
-recovering default browser function, fixing it as thus. "
+    "Like `search-web' but patch for:
+
+- the original one can't recovering default browser function,
+fixing it as thus.
+
+- let `w3m' always make new session to open the search result."
     (interactive (list
                   (search-web-query-engine)
                   (read-string "Search Word: " nil 'search-web-word-history)))
@@ -548,8 +560,22 @@ recovering default browser function, fixing it as thus. "
            (orig-render browse-url-browser-function))
       (unwind-protect
           (progn
-            (setq browse-url-browser-function render)
-            (browse-url (format url (url-hexify-string word))))
+            (cond ((eql (car current-prefix-arg) 16)
+                   (let ((brs (completing-read
+                               "Choice browser:"
+                               '("eww" "w3m")
+                               nil t)))
+                     (setq browse-url-browser-function
+                           (cond
+                            ((string= brs "eww")
+                             'eww-browse-url)
+                            ((string= brs "w3m")
+                             'w3m-goto-url-new-session)
+                            ))))
+                  (t
+                   (setq browse-url-browser-function render)))
+            (let ((w3m-make-new-session t))
+              (browse-url (format url (url-hexify-string word)))))
         (setq-default browse-url-browser-function orig-render))))
   (advice-add 'search-web :override #'__ya/search-web)
 
@@ -568,10 +594,18 @@ recovering default browser function, fixing it as thus. "
                          nil))))
 
   ;; Optional choosing internal or external browser to follow the searching.
-  (defun entropy/emacs-textwww-search-web-toggle ()
-    (interactive)
-    (let ((type (completing-read "Internal or External: "
-                                 '("Internal" "External") nil t)))
+
+  (defvar entropy/emacs-textwww--search-web-default-engine-list nil)
+  (defun entropy/emacs-textwww--search-web-toggle-core (&optional region)
+    (let ((type (or (and
+                     ;; if prefix of 4, will reset the engine list
+                     (not (eql (car current-prefix-arg) 4))
+                     entropy/emacs-textwww--search-web-default-engine-list)
+                    (setq entropy/emacs-textwww--search-web-default-engine-list
+                          (completing-read "Internal or External: "
+                                           '("Internal"
+                                             "External")
+                                           nil t)))))
       (let* ((search-web-engines (cond
                                   ((equal type "Internal")
                                    entropy/emacs-search-web-engines-internal)
@@ -579,19 +613,28 @@ recovering default browser function, fixing it as thus. "
                                    entropy/emacs-search-web-engines-external)))
              (engine (entropy/emacs-textwww--search-web-query-egine type))
              (word (read-string "Searching for?: ")))
-        (search-web engine word))))
+        (if region
+            (search-web-region engine word)
+          (search-web engine word)))))
 
-  (defun entropy/emacs-textwww-search-web-region-toggle ()
-    (interactive)
-    (let ((type (completing-read "Internal or External: "
-                                 '("Internal" "External") nil t)))
-      (let* ((search-web-engines (cond
-                                  ((equal type "Internal")
-                                   entropy/emacs-search-web-engines-internal)
-                                  ((equal type "External")
-                                   entropy/emacs-search-web-engines-external)))
-             (engine (entropy/emacs-textwww--search-web-query-egine type)))
-        (search-web-region engine))))
+  (defun entropy/emacs-textwww-search-web-toggle (&optional prefix)
+    "Trigger `search-web'.
+
+Prefix meaning:
+
+- When single prefix, forcely query for which engine list to use,
+  default to use
+  `entropy/emacs-textwww--search-web-default-engine-list'.
+
+- When double prefix, query for external browser to use."
+    (interactive "P")
+    (entropy/emacs-textwww--search-web-toggle-core))
+
+  (defun entropy/emacs-textwww-search-web-region-toggle (&optional prefix)
+    "Like `entropy/emacs-textwww-search-web-toggle' but trigger
+`search-web-region' instead."
+    (interactive "P")
+    (entropy/emacs-textwww--search-web-toggle-core t))
 
   (setq search-web-in-emacs-browser 'eww-browse-url)
 
