@@ -1664,10 +1664,10 @@ around of the bug of w32-ime)."
 
 ;; ***** eemacs wsl config
 (defcustom entropy/emacs-microsoft-windows-unix-emulator-enable nil
-  "Set whether you want to use =eemacs-wsl=, so that variable
+  "Set whether you want to use =eemacs-msWinUnix-emulator=, so that variable
 `entropy/emacs-microsoft-windows-unix-emulator-apps' will be used.
 
-=eemacs-wsl= is a abstract of the *nix emulator for emacs on
+=eemacs-msWinUnix-emulator= is a abstract of the *nix emulator for emacs on
 windows system, it brings up more benefits for windows emacs user
 to experience as the mostly as for *nix platform.
 "
@@ -1675,7 +1675,7 @@ to experience as the mostly as for *nix platform.
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
 (defcustom entropy/emacs-microsoft-windows-unix-emulator-apps "c:/Msys2/usr/bin/"
-  "Set the baisic =eemacs-wsl= apps hosted path for basic
+  "Set the baisic =eemacs-msWinUnix-emulator= apps hosted path for basic
 shell-command using which also used in shell-buffer.
 
 That we suggested using the *nix emulator for windows i.e. Msys2
@@ -1692,7 +1692,7 @@ init with non-nil value."
 
 
 (defcustom entropy/emacs-microsoft-windows-unix-emulator-enable-extra nil
-  "Enable extra =eemacs-wsl= apps usage then variable
+  "Enable extra =eemacs-msWinUnix-emulator= apps usage then variable
 `entropy/emacs-microsoft-windows-unix-emulator-apps-extra' will be used.
 
 This ON-OFF variable are setted for follow occurrence:
@@ -1713,7 +1713,7 @@ details.
 (defcustom entropy/emacs-microsoft-windows-unix-emulator-apps-extra "c:/Msys2/"
   "Set the extra wsl apps path, used for some other subprocess of
 emacs called lying on `exec-path' of *nix utils which not include
-in mainly =eemacs-wsl= apps path `entropy/emacs-microsoft-windows-unix-emulator-apps'.
+in mainly =eemacs-msWinUnix-emulator= apps path `entropy/emacs-microsoft-windows-unix-emulator-apps'.
 
 And this must using the type for the root of utils path
 (i.e. which we can search the folder stucter of 'usr/bin' under
@@ -1829,7 +1829,7 @@ NOTE: this variable just be used when
 then variable `entropy/emacs-win-portable-mingw-path' will be
 used.
 
-As compare to =eemacs-wsl= apps `entropy/emacs-microsoft-windows-unix-emulator-apps' does
+As compare to =eemacs-msWinUnix-emulator= apps `entropy/emacs-microsoft-windows-unix-emulator-apps' does
 for, mingw was a *nix development toolchain emulator not at the
 usage aspect, so that like clang toolchain can be used for emacs
 in portable way."
@@ -2048,7 +2048,7 @@ used.
 
 In the case that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', there's
 no need to enable this so that you can directly install the
-python from that =eemacs-wsl= env."
+python from that =eemacs-msWinUnix-emulator= env."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
@@ -2072,7 +2072,7 @@ windows and then variable
 The exist meaning for this variable is that the *nix emulator for
 windows like Msys2 doesn't has the nodejs archive for as, or if
 does otherwise that you do not need to turn on this when you
-enabled =eemacs-wsl=."
+enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
@@ -2095,7 +2095,7 @@ windows and then variable
 The exist meaning for this variable is that the *nix emulator for
 windows like Msys2 doesn't has the opencc archive for as, or if
 does otherwise that you do not need to turn on this when you
-enabled =eemacs-wsl=."
+enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
@@ -2118,7 +2118,7 @@ windows and then variable
 The exist meaning for this variable is that the *nix emulator for
 windows like Msys2 doesn't has the pandoc archive for as, or if
 does otherwise that you do not need to turn on this when you
-enabled =eemacs-wsl=."
+enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
@@ -2141,7 +2141,7 @@ will be used.
 The exist meaning for this variable is that the *nix emulator for
 windows like Msys2 doesn't has the java-jdk archive for as, or if
 does otherwise that you do not need to turn on this, when you
-enabled =eemacs-wsl=."
+enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
