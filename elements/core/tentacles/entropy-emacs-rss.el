@@ -329,7 +329,11 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
             ;; Bug of `elfeed-queue-count-active' &
             ;; `elfeed-queue-count-total' which may
             ;; cause less than zero
-            (<= (elfeed-queue-count-active) 0)))
+            (<=
+             ;; NOTE FIXME: do not use `elfeed-queue-count-total' here
+             ;; since its may need long long time to eliminate each
+             ;; retrieving why?
+             (elfeed-queue-count-active) 0)))
           (curl-procs
            (when elfeed-use-curl
              (delete
