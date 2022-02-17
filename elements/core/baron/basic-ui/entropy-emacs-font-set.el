@@ -113,11 +113,14 @@ it.
 
 (defun entropy/emacs-font-set-setfont-core (&optional frame)
   (interactive)
-  (let ((after-do (plist-get (alist-get entropy/emacs-font-setting-enable
-                                        entropy/emacs-fontsets-fonts-collection-alias)
-                             :after)))
-    (when (and (display-graphic-p)
-               (not (entropy/emacs-font-set--pre-fonts-check)))
+  (let ((after-do (and entropy/emacs-font-setting-enable
+                       (plist-get (alist-get entropy/emacs-font-setting-enable
+                                             entropy/emacs-fontsets-fonts-collection-alias)
+                                  :after))))
+    (cond
+     ((and entropy/emacs-font-setting-enable
+           (display-graphic-p)
+           (not (entropy/emacs-font-set--pre-fonts-check)))
 
       ;; preventing unicode cusor move lagging for
       ;; windows refer to mailing list
@@ -163,23 +166,6 @@ it.
                         (font-spec :family entropy/emacs-fontsets-used-cjk-kr-font)
                         (or frame (selected-frame)))
 
-      (if (eq entropy/emacs-font-setting-enable 'sarasa)
-          (setq face-font-rescale-alist nil)
-        (setq face-font-rescale-alist
-              `((,entropy/emacs-fontsets-used-cjk-sc-font . 1.2)
-                (,entropy/emacs-fontsets-used-cjk-tc-font . 1.2)
-                (,entropy/emacs-fontsets-used-cjk-jp-font . 1.2)
-                (,entropy/emacs-fontsets-used-cjk-kr-font . 1.2))))
-
-      ;; setting unicode symbol font
-      (if entropy/emacs-fontsets-used-symbol-font
-          (progn (setq use-default-font-for-symbols nil)
-                 (set-fontset-font nil
-                                   'symbol
-                                   (font-spec :family entropy/emacs-fontsets-used-symbol-font)
-                                   (or frame (selected-frame))))
-        (setq use-default-font-for-symbols t))
-
       (set-fontset-font nil
                         ?“
                         (font-spec :family entropy/emacs-default-cjk-cn-font)
@@ -190,9 +176,27 @@ it.
                         (font-spec :family entropy/emacs-default-cjk-cn-font)
                         (or frame (selected-frame)))
 
+      ;; setting unicode symbol font
+      (if entropy/emacs-fontsets-used-symbol-font
+          (progn (setq use-default-font-for-symbols nil)
+                 (set-fontset-font nil
+                                   'symbol
+                                   (font-spec :family entropy/emacs-fontsets-used-symbol-font)
+                                   (or frame (selected-frame))))
+        (setq use-default-font-for-symbols t))
+
       ;; extra spec setting
       (when (and after-do (functionp after-do))
         (funcall after-do (or frame (selected-frame))))
+
+      ;; font size scaling
+      (if (eq entropy/emacs-font-setting-enable 'sarasa)
+          (setq face-font-rescale-alist nil)
+        (setq face-font-rescale-alist
+              `((,entropy/emacs-fontsets-used-cjk-sc-font . 1.2)
+                (,entropy/emacs-fontsets-used-cjk-tc-font . 1.2)
+                (,entropy/emacs-fontsets-used-cjk-jp-font . 1.2)
+                (,entropy/emacs-fontsets-used-cjk-kr-font . 1.2))))
 
       (if (< entropy/emacs-font-size-default 15)
           (let ((height (ceiling (* entropy/emacs-font-size-default 10))))
@@ -224,17 +228,22 @@ it.
         (warn
          "Your default font size is too large,
 you must set it smaller than 15 for adapting to other entropy-emacs settings."))
-      ;; run font-set after hooks
-      (run-hooks 'entropy/emacs-font-set-end-hook))))
+      )
+     (t
+      (let ((height (ceiling (* entropy/emacs-font-size-default 10))))
+        (set-face-attribute 'default (or frame (selected-frame))
+                            :height
+                            height))))
+    ;; run font-set after hooks
+    (run-hooks 'entropy/emacs-font-set-end-hook)))
 
 (defun entropy/emacs-font-set--setfont-initial ()
-  (when entropy/emacs-font-setting-enable
-    (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
-      (entropy/emacs-font-set-setfont-core))
-    (add-hook 'entropy/emacs-after-startup-hook
-              #'(lambda ()
-                  (add-hook 'entropy/emacs-theme-load-after-hook
-                            #'entropy/emacs-font-set-setfont-core)))))
+  (unless (or (daemonp) entropy/emacs-fall-love-with-pdumper)
+    (entropy/emacs-font-set-setfont-core))
+  (add-hook 'entropy/emacs-after-startup-hook
+            #'(lambda ()
+                (add-hook 'entropy/emacs-theme-load-after-hook
+                          #'entropy/emacs-font-set-setfont-core))))
 
 (defun entropy/emacs-font-set--prog-font-set ()
   "Remap `prog-mode' face font using mordern programming fonts

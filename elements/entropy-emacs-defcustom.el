@@ -343,7 +343,12 @@ traditional chinese fonts already."
 (defcustom entropy/emacs-font-size-default 10
   "Set the default font size for face-attribute.
 
-Default size was 10, the upper limit was 15."
+Default size was 10, the upper limit was 15.
+
+This variable is always useable whether
+`entropy/emacs-font-setting-enable' is setted but with special tweak
+when `entropy/emacs-font-setting-enable' is enabled, or just set the
+frame default font size."
   :type 'integer
   :group 'entropy/emacs-customize-group-for-eemacs-font-spec)
 
