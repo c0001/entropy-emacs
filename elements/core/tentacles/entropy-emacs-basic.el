@@ -2266,12 +2266,12 @@ successfully both of situation of read persisit of create an new."
    (epa-file-enable))
 
   (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
-             (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-apps))
+             (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path))
     (entropy/emacs-lazy-load-simple custom
       (custom-set-variables
-       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-microsoft-windows-unix-emulator-apps))
-       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-microsoft-windows-unix-emulator-apps))
-       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-microsoft-windows-unix-emulator-apps))))))
+       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-microsoft-windows-unix-emulator-bin-path))
+       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-microsoft-windows-unix-emulator-bin-path))
+       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-microsoft-windows-unix-emulator-bin-path))))))
 
 ;; **** Autocompression moode
 

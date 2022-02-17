@@ -195,7 +195,7 @@ was found."
   :commands fakecygpty-activate
   :preface
   (defun entropy/emacs-shell--fakepty-cd-around-advice (old_func dir)
-    (let ((wsl-root (substring (expand-file-name entropy/emacs-microsoft-windows-unix-emulator-apps) 0 -9)))
+    (let ((wsl-root entropy/emacs-microsoft-windows-unix-emulator-root-path))
       (cond ((string-match-p "^/.[^/]+" dir)
              (setq dir (expand-file-name (replace-regexp-in-string "^/" "" dir) wsl-root)))
             ((string-match-p "^/./" dir)
@@ -215,7 +215,7 @@ was found."
    fakecygpty
    (fakecygpty-activate)
    (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
-              (ignore-errors (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-apps)))
+              (ignore-errors (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path)))
      (advice-add 'cd :around 'entropy/emacs-shell--fakepty-cd-around-advice))))
 
 

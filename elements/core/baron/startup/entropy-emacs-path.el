@@ -97,7 +97,7 @@
                   :env-order 2
                   :exec-order 2)
         (:trigger entropy/emacs-win-portable-mingw-enable
-                  :path entropy/emacs-win-portable-mingw-path
+                  :path entropy/emacs-win-portable-mingw-bin-path
                   :env-order 3
                   :exec-order 3)
         (:trigger entropy/emacs-git-portable-enable
@@ -157,18 +157,18 @@
                   :env-order 16
                   :exec-order 16)
         (:trigger entropy/emacs-microsoft-windows-unix-emulator-enable-extra
-                  :path ,(expand-file-name "usr/bin" entropy/emacs-microsoft-windows-unix-emulator-apps-extra)
+                  :path ,(expand-file-name "usr/bin" entropy/emacs-microsoft-windows-unix-emulator-extra-root-path)
                   :env-order 17
                   :exec-order 17
                   :predicate
                   (lambda ()
                     (when (and entropy/emacs-microsoft-windows-unix-emulator-enable-extra entropy/emacs-microsoft-windows-unix-emulator-enable)
                       (setq woman-manpath
-                            `(,(concat entropy/emacs-microsoft-windows-unix-emulator-apps-extra "usr/man")
-                              ,(concat entropy/emacs-microsoft-windows-unix-emulator-apps-extra "usr/share/man")
-                              ,(concat entropy/emacs-microsoft-windows-unix-emulator-apps-extra "usr/local/man"))))))
+                            `(,(concat entropy/emacs-microsoft-windows-unix-emulator-extra-root-path "usr/man")
+                              ,(concat entropy/emacs-microsoft-windows-unix-emulator-extra-root-path "usr/share/man")
+                              ,(concat entropy/emacs-microsoft-windows-unix-emulator-extra-root-path "usr/local/man"))))))
         (:trigger entropy/emacs-microsoft-windows-unix-emulator-enable
-                  :path entropy/emacs-microsoft-windows-unix-emulator-apps
+                  :path entropy/emacs-microsoft-windows-unix-emulator-bin-path
                   :env-order 18
                   :exec-order 18)
         ))

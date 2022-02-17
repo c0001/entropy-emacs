@@ -1665,7 +1665,7 @@ around of the bug of w32-ime)."
 ;; ***** eemacs wsl config
 (defcustom entropy/emacs-microsoft-windows-unix-emulator-enable nil
   "Set whether you want to use =eemacs-msWinUnix-emulator=, so that variable
-`entropy/emacs-microsoft-windows-unix-emulator-apps' will be used.
+`entropy/emacs-microsoft-windows-unix-emulator-bin-path' will be used.
 
 =eemacs-msWinUnix-emulator= is a abstract of the *nix emulator for emacs on
 windows system, it brings up more benefits for windows emacs user
@@ -1674,13 +1674,15 @@ to experience as the mostly as for *nix platform.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-(defcustom entropy/emacs-microsoft-windows-unix-emulator-apps "c:/msys64/usr/bin/"
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-root-path "c:/msys64/"
   "Set the baisic =eemacs-msWinUnix-emulator= apps hosted path for basic
 shell-command using which also used in shell-buffer.
 
 That we suggested using the *nix emulator for windows i.e. Msys2
-as the apps hosted system, and set it 'usr/bin' path as the value
-of this variable. Defaulty value is \"c:/msys64/usr/bin/\".
+as the apps hosted system, and automatically set it's 'usr/bin'
+path as the value of
+`entropy/emacs-microsoft-windows-unix-emulator-bin-path'. Defaulty
+value is \"c:/msys64/\".
 
 For minimally use, you can obtain a minimal Msys2 env from
 git-for-windows-portable (https://git-scm.com/download/win).
@@ -1690,30 +1692,39 @@ init with non-nil value."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
+(defvar entropy/emacs-microsoft-windows-unix-emulator-bin-path
+  (expand-file-name "usr/bin" entropy/emacs-microsoft-windows-unix-emulator-root-path)
+  "The bin path of
+`entropy/emacs-microsoft-windows-unix-emulator-root-path',
+automatically calculated by eemacs."
+  )
 
 (defcustom entropy/emacs-microsoft-windows-unix-emulator-enable-extra nil
   "Enable extra =eemacs-msWinUnix-emulator= apps usage then variable
-`entropy/emacs-microsoft-windows-unix-emulator-apps-extra' will be used.
+`entropy/emacs-microsoft-windows-unix-emulator-extra-root-path' will be used.
 
 This ON-OFF variable are setted for follow occurrence:
 
-    If you setting `entropy/emacs-microsoft-windows-unix-emulator-apps' to
-    'git-for-windows-portable' subroutine path which just
-    contained the basic UNIX-LIKE commands that doesn't contianed
-    commands like 'man' and 'tree' or sth else, you want to using
-    them as well in current emacs session.
+    If you setting
+    `entropy/emacs-microsoft-windows-unix-emulator-root-path' to
+    'git-for-windows-portable' host which just contained the
+    basic UNIX-LIKE commands that doesn't contianed commands like
+    'man' and 'tree' or sth else, you want to using them as well
+    in current emacs session.
 
-See customized variable `entropy/emacs-microsoft-windows-unix-emulator-apps-extra' for
+See customized variable `entropy/emacs-microsoft-windows-unix-emulator-extra-root-path' for
 details.
 "
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
 
-(defcustom entropy/emacs-microsoft-windows-unix-emulator-apps-extra "c:/mingw64/"
-  "Set the extra wsl apps path, used for some other subprocess of
-emacs called lying on `exec-path' of *nix utils which not include
-in mainly =eemacs-msWinUnix-emulator= apps path `entropy/emacs-microsoft-windows-unix-emulator-apps'.
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-extra-root-path "c:/mingw64/"
+  "Set the extra =eemacs-msWinUnix-emulator= root path, used for
+some other subprocess of emacs called lying on `exec-path' of
+*nix utils which not include in mainly
+=eemacs-msWinUnix-emulator= apps path
+`entropy/emacs-microsoft-windows-unix-emulator-bin-path'.
 
 And this must using the type for the root of utils path
 (i.e. which we can search the folder stucter of 'usr/bin' under
@@ -1826,22 +1837,23 @@ NOTE: this variable just be used when
 ;; ****** enable portable mingw
 (defcustom entropy/emacs-win-portable-mingw-enable nil
   "Enable mingw portable release usage for emacs in windows and
-then variable `entropy/emacs-win-portable-mingw-path' will be
+then variable `entropy/emacs-win-portable-mingw-bin-path' will be
 used.
 
-As compare to =eemacs-msWinUnix-emulator= apps `entropy/emacs-microsoft-windows-unix-emulator-apps' does
+As compare to =eemacs-msWinUnix-emulator= apps `entropy/emacs-microsoft-windows-unix-emulator-bin-path' does
 for, mingw was a *nix development toolchain emulator not at the
 usage aspect, so that like clang toolchain can be used for emacs
 in portable way."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-mingw-path "c:/msys64/mingw64/bin"
+(defcustom entropy/emacs-win-portable-mingw-root-path "c:/msys64/mingw64/"
   "Setting the path of portable mingw for windows plattform.
 
-If your have set the `entropy/emacs-microsoft-windows-unix-emulator-apps' so as on Msys2
-release, you may easily set its mingw path e.g
-\"c:/msys64/mingw64/bin\" for this vairable, or you can download
+If your have set the
+`entropy/emacs-microsoft-windows-unix-emulator-root-path' so as
+on Msys2 release, you may easily set its mingw path e.g
+\"c:/msys64/mingw64\" for this vairable, or you can download
 fresh new mingw release from http://www.mingw.org/.
 
 NOTE: this variable just be used when
@@ -1850,6 +1862,12 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
+(defvar entropy/emacs-win-portable-mingw-bin-path
+  (expand-file-name "bin/" entropy/emacs-win-portable-mingw-root-path)
+  "The bin path of `entropy/emacs-win-portable-mingw-root-path',
+automatically calculated by eemacs."
+  )
+
 ;; ****** enable portable clang
 (defcustom entropy/emacs-win-portable-clang-enable nil
   "Enable clang windows port usage in portable way for emacs on
@@ -1857,7 +1875,7 @@ windows and then variable `entropy/emacs-win-portable-clang-path'
 will be used.
 
 In cases that when you has set
-`entropy/emacs-win-portable-mingw-path', you do not need to turn
+`entropy/emacs-win-portable-mingw-bin-path', you do not need to turn
 on this variable, which you can download clang for windows within
 mingw it self directly."
   :type 'boolean
@@ -1882,7 +1900,7 @@ NOTE: this variable just be used when
 variable `entropy/emacs-win-portable-texlive-path' will be used.
 
 In the case of that you've set the
-`entropy/emacs-win-portable-mingw-path', you do not need to turn
+`entropy/emacs-win-portable-mingw-bin-path', you do not need to turn
 on this variable which you can directly install texlive for
 windows within mingw release.
 "
@@ -1906,7 +1924,7 @@ NOTE: this varialbe just used when
 windows platform, and then variable
 `entropy/emacs-win-portable-grep-path' will be used.
 
-In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', you
+In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-bin-path', you
 do not need to turn on this variable which almostly exists there
 already.
 "
@@ -1931,7 +1949,7 @@ NOTE: this variable just be used when
 windows platform, and then variable
 `entropy/emacs-win-portable-ag-path' will be used.
 
-In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', you
+In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-bin-path', you
 do not need to turn on this variable which you can install it
 directly whithin it.
 "
@@ -1955,7 +1973,7 @@ NOTE: this variable just be used when
 platform, and then variable `entropy/emacs-win-portable-rg-path'
 will be used.
 
-In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', you
+In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-bin-path', you
 do not need to turn on this variable which you can install it
 directly whithin it.
 "
@@ -2046,7 +2064,7 @@ NOTE: this variable just be used when
 then variable `entropy/emacs-win-portable-python-path' will be
 used.
 
-In the case that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', there's
+In the case that you've set the `entropy/emacs-microsoft-windows-unix-emulator-bin-path', there's
 no need to enable this so that you can directly install the
 python from that =eemacs-msWinUnix-emulator= env."
   :type 'boolean

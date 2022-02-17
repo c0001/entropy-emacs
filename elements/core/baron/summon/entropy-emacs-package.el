@@ -102,10 +102,10 @@
 (defun entropy/emacs-package--refresh-gnupg-homedir ()
   "We don't use the default `package-gnupghome-dir' when
 `entropy/emacs-microsoft-windows-unix-emulator-enable' for the reason that the gnupg exec in
-`entropy/emacs-microsoft-windows-unix-emulator-apps' can not recognize the corrent path
+`entropy/emacs-microsoft-windows-unix-emulator-bin-path' can not recognize the corrent path
 argument."
   (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
-             entropy/emacs-microsoft-windows-unix-emulator-apps
+             entropy/emacs-microsoft-windows-unix-emulator-bin-path
              (executable-find "gpg")
              (string-match-p "^.:/.*usr/bin" (executable-find "gpg")))
     (setq package-gnupghome-dir nil)))
