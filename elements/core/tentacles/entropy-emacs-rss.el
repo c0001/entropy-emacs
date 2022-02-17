@@ -324,6 +324,7 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
       (elfeed-unjam)))
 
   (defun entropy/emacs-rss--elfeed-process-running-p ()
+    "Return non-nil when `elfeed' has remaining running process."
     (let ((elfeed-indicator
            (not
             ;; Bug of `elfeed-queue-count-active' &
@@ -331,9 +332,12 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
             ;; cause less than zero
             (<=
              ;; NOTE FIXME: do not use `elfeed-queue-count-total' here
-             ;; since its may need long long time to eliminate each
-             ;; retrieving why?
-             (elfeed-queue-count-active) 0)))
+             ;; while not use `curl' since its may need long long time
+             ;; to eliminate each retrieving why?
+             (if (not elfeed-use-curl)
+                 (elfeed-queue-count-active)
+               (elfeed-queue-count-total))
+             0)))
           (curl-procs
            (when elfeed-use-curl
              (delete
