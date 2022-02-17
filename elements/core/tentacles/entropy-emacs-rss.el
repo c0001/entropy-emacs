@@ -119,16 +119,16 @@
                  cmd))
 
   ;; set curl path
-  (let ((mingw-curl (if (and entropy/emacs-wsl-enable
-                             (file-exists-p entropy/emacs-wsl-apps))
+  (let ((mingw-curl (if (and entropy/emacs-microsoft-windows-unix-emulator-enable
+                             (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-apps))
                         (expand-file-name
                          "mingw64/bin/curl.exe"
-                         (substring (directory-file-name entropy/emacs-wsl-apps) 0 -7))
+                         (substring (directory-file-name entropy/emacs-microsoft-windows-unix-emulator-apps) 0 -7))
                       nil))
-        (msys2-curl (if (and entropy/emacs-wsl-enable
-                             (file-exists-p entropy/emacs-wsl-apps))
+        (msys2-curl (if (and entropy/emacs-microsoft-windows-unix-emulator-enable
+                             (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-apps))
                         (expand-file-name
-                         "curl.exe" entropy/emacs-wsl-apps)))
+                         "curl.exe" entropy/emacs-microsoft-windows-unix-emulator-apps)))
         (w32-curl "c:/WINDOWS/system32/curl.exe")
         (unix-curl "curl"))
     (cond

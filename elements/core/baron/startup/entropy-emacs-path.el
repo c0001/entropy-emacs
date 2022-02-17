@@ -156,19 +156,19 @@
                   :path entropy/emacs-win-portable-putty-path
                   :env-order 16
                   :exec-order 16)
-        (:trigger entropy/emacs-wsl-enable-extra
-                  :path ,(expand-file-name "usr/bin" entropy/emacs-wsl-apps-extra)
+        (:trigger entropy/emacs-microsoft-windows-unix-emulator-enable-extra
+                  :path ,(expand-file-name "usr/bin" entropy/emacs-microsoft-windows-unix-emulator-apps-extra)
                   :env-order 17
                   :exec-order 17
                   :predicate
                   (lambda ()
-                    (when (and entropy/emacs-wsl-enable-extra entropy/emacs-wsl-enable)
+                    (when (and entropy/emacs-microsoft-windows-unix-emulator-enable-extra entropy/emacs-microsoft-windows-unix-emulator-enable)
                       (setq woman-manpath
-                            `(,(concat entropy/emacs-wsl-apps-extra "usr/man")
-                              ,(concat entropy/emacs-wsl-apps-extra "usr/share/man")
-                              ,(concat entropy/emacs-wsl-apps-extra "usr/local/man"))))))
-        (:trigger entropy/emacs-wsl-enable
-                  :path entropy/emacs-wsl-apps
+                            `(,(concat entropy/emacs-microsoft-windows-unix-emulator-apps-extra "usr/man")
+                              ,(concat entropy/emacs-microsoft-windows-unix-emulator-apps-extra "usr/share/man")
+                              ,(concat entropy/emacs-microsoft-windows-unix-emulator-apps-extra "usr/local/man"))))))
+        (:trigger entropy/emacs-microsoft-windows-unix-emulator-enable
+                  :path entropy/emacs-microsoft-windows-unix-emulator-apps
                   :env-order 18
                   :exec-order 18)
         ))

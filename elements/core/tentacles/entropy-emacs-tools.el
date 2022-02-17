@@ -249,12 +249,12 @@ Version 2017-10-09"
                         wcdir))
              ($path-backslash (replace-regexp-in-string "/" "\\" $path-o t t))
              ($path (concat "\"" $path-backslash "\"")))
-        (if entropy/emacs-wsl-terminal-enable
-            (if (string-match-p "msys2_shell" entropy/emacs-wsl-terminal)
+        (if entropy/emacs-microsoft-windows-unix-emulator-terminal-enable
+            (if (string-match-p "msys2_shell" entropy/emacs-microsoft-windows-unix-emulator-terminal)
                 ;; using msys2 mintty
                 (w32-shell-execute
                  "open"
-                 entropy/emacs-wsl-terminal
+                 entropy/emacs-microsoft-windows-unix-emulator-terminal
                  (concat
                   (completing-read "Choosing shell type: "
                                    '("-mingw32"
@@ -264,7 +264,7 @@ Version 2017-10-09"
                   " -where "
                   $path))
               ;; using git-for-windows terminal
-              (w32-shell-execute "open" entropy/emacs-wsl-terminal))
+              (w32-shell-execute "open" entropy/emacs-microsoft-windows-unix-emulator-terminal))
 
           ;; using cmd
           (w32-shell-execute "open" "cmd" $path))))

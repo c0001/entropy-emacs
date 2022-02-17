@@ -536,7 +536,7 @@ while change themes."
   :bind (:map diff-hl-command-map
               ("SPC" . diff-hl-mark-hunk))
   :init
-  (when (and (or (and entropy/emacs-wsl-enable
+  (when (and (or (and entropy/emacs-microsoft-windows-unix-emulator-enable
                       sys/win32p)
                  sys/is-posix-compatible)
              entropy/emacs-hl-diff-hl-enable-at-startup)

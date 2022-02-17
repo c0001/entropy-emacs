@@ -101,11 +101,11 @@
 ;; *** Format package-gnupghome-dir format for Msys2
 (defun entropy/emacs-package--refresh-gnupg-homedir ()
   "We don't use the default `package-gnupghome-dir' when
-`entropy/emacs-wsl-enable' for the reason that the gnupg exec in
-`entropy/emacs-wsl-apps' can not recognize the corrent path
+`entropy/emacs-microsoft-windows-unix-emulator-enable' for the reason that the gnupg exec in
+`entropy/emacs-microsoft-windows-unix-emulator-apps' can not recognize the corrent path
 argument."
-  (when (and entropy/emacs-wsl-enable
-             entropy/emacs-wsl-apps
+  (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
+             entropy/emacs-microsoft-windows-unix-emulator-apps
              (executable-find "gpg")
              (string-match-p "^.:/.*usr/bin" (executable-find "gpg")))
     (setq package-gnupghome-dir nil)))

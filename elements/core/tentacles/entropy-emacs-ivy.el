@@ -727,7 +727,7 @@ directly identified the input regexp string which do not be with
                       "Show docment if available")))
 
 ;; **** counsel-locate
-  (when (and sys/win32p entropy/emacs-wsl-enable)
+  (when (and sys/win32p entropy/emacs-microsoft-windows-unix-emulator-enable)
     (defun counsel-locate (&optional initial-input)
       "Call the \"locate\" shell command.
 INITIAL-INPUT can be given as the initial minibuffer input.

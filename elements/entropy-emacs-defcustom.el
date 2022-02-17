@@ -1663,9 +1663,9 @@ around of the bug of w32-ime)."
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
 ;; ***** eemacs wsl config
-(defcustom entropy/emacs-wsl-enable nil
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-enable nil
   "Set whether you want to use =eemacs-wsl=, so that variable
-`entropy/emacs-wsl-apps' will be used.
+`entropy/emacs-microsoft-windows-unix-emulator-apps' will be used.
 
 =eemacs-wsl= is a abstract of the *nix emulator for emacs on
 windows system, it brings up more benefits for windows emacs user
@@ -1674,7 +1674,7 @@ to experience as the mostly as for *nix platform.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-(defcustom entropy/emacs-wsl-apps "c:/Msys2/usr/bin/"
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-apps "c:/Msys2/usr/bin/"
   "Set the baisic =eemacs-wsl= apps hosted path for basic
 shell-command using which also used in shell-buffer.
 
@@ -1685,35 +1685,35 @@ of this variable. Defaulty value is \"c:/Msys2/usr/bin/\".
 For minimally use, you can obtain a minimal Msys2 env from
 git-for-windows-portable (https://git-scm.com/download/win).
 
-NOTE: this variable just be used when `entropy/emacs-wsl-enable'
+NOTE: this variable just be used when `entropy/emacs-microsoft-windows-unix-emulator-enable'
 init with non-nil value."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
 
-(defcustom entropy/emacs-wsl-enable-extra nil
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-enable-extra nil
   "Enable extra =eemacs-wsl= apps usage then variable
-`entropy/emacs-wsl-apps-extra' will be used.
+`entropy/emacs-microsoft-windows-unix-emulator-apps-extra' will be used.
 
 This ON-OFF variable are setted for follow occurrence:
 
-    If you setting `entropy/emacs-wsl-apps' to
+    If you setting `entropy/emacs-microsoft-windows-unix-emulator-apps' to
     'git-for-windows-portable' subroutine path which just
     contained the basic UNIX-LIKE commands that doesn't contianed
     commands like 'man' and 'tree' or sth else, you want to using
     them as well in current emacs session.
 
-See customized variable `entropy/emacs-wsl-apps-extra' for
+See customized variable `entropy/emacs-microsoft-windows-unix-emulator-apps-extra' for
 details.
 "
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
 
-(defcustom entropy/emacs-wsl-apps-extra "c:/Msys2/"
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-apps-extra "c:/Msys2/"
   "Set the extra wsl apps path, used for some other subprocess of
 emacs called lying on `exec-path' of *nix utils which not include
-in mainly =eemacs-wsl= apps path `entropy/emacs-wsl-apps'.
+in mainly =eemacs-wsl= apps path `entropy/emacs-microsoft-windows-unix-emulator-apps'.
 
 And this must using the type for the root of utils path
 (i.e. which we can search the folder stucter of 'usr/bin' under
@@ -1723,7 +1723,7 @@ variable to like:
 \"c:/msys2/\"
 
 NOTE: this variable just be used when
-`entropy/emacs-wsl-enable-extra' init with non-nil value.
+`entropy/emacs-microsoft-windows-unix-emulator-enable-extra' init with non-nil value.
 "
   :type 'directory
   :group 'entropy/emacs-customize-group-for-WINDOWS)
@@ -1741,7 +1741,7 @@ variable `entropy/emacs-git-portable-enable' will be used.
 (defcustom entropy/emacs-git-portable-path "c:/Git-Portable/cmd/"
   "The customize git applicaton's path which take priority on the
 \"git\" command in `entrop/emacs-wsl-apps' when
-`entropy/emacs-wsl-enable' was non-nil.
+`entropy/emacs-microsoft-windows-unix-emulator-enable' was non-nil.
 
 NOTE: this variable just be used when
 `entropy/emacs-git-portable-enable' init with non-nil value.
@@ -1764,13 +1764,13 @@ supported.
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
 ;; ***** wsl terminal setting
-(defcustom entropy/emacs-wsl-terminal-enable nil
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-terminal-enable nil
   "Enable external *nix terminal emulator on windows platform and
-then variable `entropy/emacs-wsl-terminal' will be used."
+then variable `entropy/emacs-microsoft-windows-unix-emulator-terminal' will be used."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-(defcustom entropy/emacs-wsl-terminal "c:/Msys2/msys2_shell.cmd"
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-terminal "c:/Msys2/msys2_shell.cmd"
   "Set the default *nix terminal emulator applictions, we recommend
 to use Msys2's main terminal as that as, defaultly use the cmd
 batch of Msys2 as \"c:/Msys2/msys2_shell.cmd\" which has the most
@@ -1784,7 +1784,7 @@ Other suggestion list:
 Any other self specification are not with warranty.
 
 NOTE: this variable just be used when
-`entropy/emacs-wsl-terminal-enable' init with non-nil value."
+`entropy/emacs-microsoft-windows-unix-emulator-terminal-enable' init with non-nil value."
   :type 'file
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
@@ -1829,7 +1829,7 @@ NOTE: this variable just be used when
 then variable `entropy/emacs-win-portable-mingw-path' will be
 used.
 
-As compare to =eemacs-wsl= apps `entropy/emacs-wsl-apps' does
+As compare to =eemacs-wsl= apps `entropy/emacs-microsoft-windows-unix-emulator-apps' does
 for, mingw was a *nix development toolchain emulator not at the
 usage aspect, so that like clang toolchain can be used for emacs
 in portable way."
@@ -1839,7 +1839,7 @@ in portable way."
 (defcustom entropy/emacs-win-portable-mingw-path "c:/Mingw64/bin/"
   "Setting the path of portable mingw for windows plattform.
 
-If your have set the `entropy/emacs-wsl-apps' so as on Msys2
+If your have set the `entropy/emacs-microsoft-windows-unix-emulator-apps' so as on Msys2
 release, you may easily set its mingw path e.g
 \"c:/Msys2/mingw32/64\" for this vairable, or you can download
 fresh new mingw release from http://www.mingw.org/.
@@ -1906,7 +1906,7 @@ NOTE: this varialbe just used when
 windows platform, and then variable
 `entropy/emacs-win-portable-grep-path' will be used.
 
-In the case of that you've set the `entropy/emacs-wsl-apps', you
+In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', you
 do not need to turn on this variable which almostly exists there
 already.
 "
@@ -1931,7 +1931,7 @@ NOTE: this variable just be used when
 windows platform, and then variable
 `entropy/emacs-win-portable-ag-path' will be used.
 
-In the case of that you've set the `entropy/emacs-wsl-apps', you
+In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', you
 do not need to turn on this variable which you can install it
 directly whithin it.
 "
@@ -1955,7 +1955,7 @@ NOTE: this variable just be used when
 platform, and then variable `entropy/emacs-win-portable-rg-path'
 will be used.
 
-In the case of that you've set the `entropy/emacs-wsl-apps', you
+In the case of that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', you
 do not need to turn on this variable which you can install it
 directly whithin it.
 "
@@ -2046,7 +2046,7 @@ NOTE: this variable just be used when
 then variable `entropy/emacs-win-portable-python-path' will be
 used.
 
-In the case that you've set the `entropy/emacs-wsl-apps', there's
+In the case that you've set the `entropy/emacs-microsoft-windows-unix-emulator-apps', there's
 no need to enable this so that you can directly install the
 python from that =eemacs-wsl= env."
   :type 'boolean

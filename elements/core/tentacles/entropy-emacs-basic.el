@@ -2265,13 +2265,13 @@ successfully both of situation of read persisit of create an new."
    :pdumper-no-end t
    (epa-file-enable))
 
-  (when (and entropy/emacs-wsl-enable
-             (file-exists-p entropy/emacs-wsl-apps))
+  (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
+             (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-apps))
     (entropy/emacs-lazy-load-simple custom
       (custom-set-variables
-       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-wsl-apps))
-       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-wsl-apps))
-       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-wsl-apps))))))
+       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-microsoft-windows-unix-emulator-apps))
+       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-microsoft-windows-unix-emulator-apps))
+       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-microsoft-windows-unix-emulator-apps))))))
 
 ;; **** Autocompression moode
 
