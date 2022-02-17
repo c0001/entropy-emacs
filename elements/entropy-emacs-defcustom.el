@@ -1674,13 +1674,13 @@ to experience as the mostly as for *nix platform.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-(defcustom entropy/emacs-microsoft-windows-unix-emulator-apps "c:/Msys2/usr/bin/"
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-apps "c:/msys64/usr/bin/"
   "Set the baisic =eemacs-msWinUnix-emulator= apps hosted path for basic
 shell-command using which also used in shell-buffer.
 
 That we suggested using the *nix emulator for windows i.e. Msys2
 as the apps hosted system, and set it 'usr/bin' path as the value
-of this variable. Defaulty value is \"c:/Msys2/usr/bin/\".
+of this variable. Defaulty value is \"c:/msys64/usr/bin/\".
 
 For minimally use, you can obtain a minimal Msys2 env from
 git-for-windows-portable (https://git-scm.com/download/win).
@@ -1710,7 +1710,7 @@ details.
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
 
-(defcustom entropy/emacs-microsoft-windows-unix-emulator-apps-extra "c:/Msys2/"
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-apps-extra "c:/mingw64/"
   "Set the extra wsl apps path, used for some other subprocess of
 emacs called lying on `exec-path' of *nix utils which not include
 in mainly =eemacs-msWinUnix-emulator= apps path `entropy/emacs-microsoft-windows-unix-emulator-apps'.
@@ -1720,7 +1720,7 @@ And this must using the type for the root of utils path
 this root directly), like if you using msys2 , you must set this
 variable to like:
 
-\"c:/msys2/\"
+\"c:/mingw64/\"
 
 NOTE: this variable just be used when
 `entropy/emacs-microsoft-windows-unix-emulator-enable-extra' init with non-nil value.
@@ -1770,10 +1770,10 @@ then variable `entropy/emacs-microsoft-windows-unix-emulator-terminal' will be u
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-WINDOWS)
 
-(defcustom entropy/emacs-microsoft-windows-unix-emulator-terminal "c:/Msys2/msys2_shell.cmd"
+(defcustom entropy/emacs-microsoft-windows-unix-emulator-terminal "c:/msys64/msys2_shell.cmd"
   "Set the default *nix terminal emulator applictions, we recommend
 to use Msys2's main terminal as that as, defaultly use the cmd
-batch of Msys2 as \"c:/Msys2/msys2_shell.cmd\" which has the most
+batch of Msys2 as \"c:/msys64/msys2_shell.cmd\" which has the most
 functional has for.
 
 Other suggestion list:
@@ -1836,12 +1836,12 @@ in portable way."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-mingw-path "c:/Mingw64/bin/"
+(defcustom entropy/emacs-win-portable-mingw-path "c:/msys64/mingw64/bin"
   "Setting the path of portable mingw for windows plattform.
 
 If your have set the `entropy/emacs-microsoft-windows-unix-emulator-apps' so as on Msys2
 release, you may easily set its mingw path e.g
-\"c:/Msys2/mingw32/64\" for this vairable, or you can download
+\"c:/msys64/mingw64/bin\" for this vairable, or you can download
 fresh new mingw release from http://www.mingw.org/.
 
 NOTE: this variable just be used when
@@ -1857,13 +1857,13 @@ windows and then variable `entropy/emacs-win-portable-clang-path'
 will be used.
 
 In cases that when you has set
-`entropy/emacs-win-portable-mingw-path', you do not need to open
-this turn on-off, which you can download clang for windows within
+`entropy/emacs-win-portable-mingw-path', you do not need to turn
+on this variable, which you can download clang for windows within
 mingw it self directly."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-clang-path "c:/Clang/bin"
+(defcustom entropy/emacs-win-portable-clang-path "c:/eemacs-win-portable-apps/clang/bin"
   "Path for portable clang for windows plattform.
 
 Its must be the \"bin\" subfolder path in the clang winport root
@@ -1889,7 +1889,7 @@ windows within mingw release.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-texlive-path "c:/Texlive/bin"
+(defcustom entropy/emacs-win-portable-texlive-path "c:/eemacs-win-portable-apps/texlive/bin"
   "Portable texlive winport release archive directory /bin/
 path.
 
@@ -1913,7 +1913,7 @@ already.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-grep-path "c:/Gnu-grep/bin"
+(defcustom entropy/emacs-win-portable-grep-path "c:/eemacs-win-portable-apps/gnu-grep/bin"
   "Portable grep winport release archive directory /bin/ path.
 
 You can download the release from
@@ -1938,7 +1938,7 @@ directly whithin it.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-ag-path "c:/Ag/"
+(defcustom entropy/emacs-win-portable-ag-path "c:/eemacs-win-portable-apps/ag/"
   "Portable silver_searcher winport release archive /bin/ path.
 
 You can download it from
@@ -1962,7 +1962,7 @@ directly whithin it.
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-rg-path "c:/Ripgrep/"
+(defcustom entropy/emacs-win-portable-rg-path "c:/eemacs-win-portable-apps/ripgrep/"
   "Portable ripgrep winport release archive /bin/ path.
 
 You can download it from
@@ -1982,7 +1982,7 @@ Cmder is a enhanced windows CMD terminal."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-Cmder-path "c:/Cmder/bin/Cmder.exe"
+(defcustom entropy/emacs-Cmder-path "c:/eemacs-win-portable-apps/cmder/bin/Cmder.exe"
   "Portable Cmder release caller exec path.
 
 You can download Cmder from:
@@ -2005,7 +2005,7 @@ been added. "
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-php-path "c:/Php/"
+(defcustom entropy/emacs-win-portable-php-path "c:/eemacs-win-portable-apps/php/"
   "Portable php winport release executable path.
 
 You can download it from:
@@ -2031,7 +2031,7 @@ for its own pip version."
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
 (defcustom entropy/emacs-win-portable-pip-path
-  "c:/Winpython/python-3.7.2.amd64/Scripts"
+  "c:/eemacs-win-portable-apps/winpython/python-3.7.2.amd64/Scripts"
   "External portable pip path whicn be along with the
 `entropy/emacs-win-portable-python-path'.
 
@@ -2053,7 +2053,7 @@ python from that =eemacs-msWinUnix-emulator= env."
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
 (defcustom entropy/emacs-win-portable-python-path
-  "c:/Winpython/python-3.7.2.amd64/"
+  "c:/eemacs-win-portable-apps/winpython/python-3.7.2.amd64/"
   "Portable python winport /bin/ path.
 
 You can download it from https://winpython.github.io/
@@ -2076,7 +2076,7 @@ enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-nodejs-path "c:/Nodejs/"
+(defcustom entropy/emacs-win-portable-nodejs-path "c:/eemacs-win-portable-apps/nodejs/"
   "Portable python winport release archive root path.
 
 You can download it from https://nodejs.org/en/download/
@@ -2099,7 +2099,7 @@ enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-opencc-path "c:/Opencc/bin/"
+(defcustom entropy/emacs-win-portable-opencc-path "c:/eemacs-win-portable-apps/opencc/bin/"
   "Portable opencc winport release /bin/ path.
 
 You can download it from https://github.com/BYVoid/OpenCC/wiki/Download
@@ -2122,7 +2122,7 @@ enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-pandoc-path "c:/Pandoc/"
+(defcustom entropy/emacs-win-portable-pandoc-path "c:/eemacs-win-portable-apps/pandoc/"
   "Portable pandoc winport release archive root path.
 
 You can download it from https://github.com/jgm/pandoc/releases
@@ -2145,7 +2145,7 @@ enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-jdk-path "c:/Openjdk/bin"
+(defcustom entropy/emacs-win-portable-jdk-path "c:/eemacs-win-portable-apps/openjdk/bin"
   "Portable java-jdk winport release /bin/ path.
 
 You can download it from: https://jdk.java.net/
@@ -2162,7 +2162,7 @@ NOTE: this variable just be used when
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-zeal-path "c:/Zeal-Portable/"
+(defcustom entropy/emacs-win-portable-zeal-path "c:/eemacs-win-portable-apps/zeal/"
   "Portable Zealdoc winport release archive root path.
 
 You can download it from http://zealdocs.org/
@@ -2181,7 +2181,7 @@ used."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-putty-path "c:/Putty/"
+(defcustom entropy/emacs-win-portable-putty-path "c:/eemacs-win-portable-apps/putty/"
   "Portable putty winport release root path.
 
 You download the putty main caller and subroutines individually
