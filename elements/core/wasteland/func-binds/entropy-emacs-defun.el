@@ -63,6 +63,11 @@ temporally do and have better performance than origin."
            (and (buffer-name ,temp-buffer)
                 (kill-buffer ,temp-buffer)))))))
 
+(defun entropy/emacs-error-without-debug (string &rest args)
+  "Like `error' but always press `debug-on-error'"
+  (let ((debug-on-error nil))
+    (apply 'error string args)))
+
 ;; *** Cl-function compatible manipulation
 (defun entropy/emacs-cl-findnew-p (func)
   (let (new-func)
