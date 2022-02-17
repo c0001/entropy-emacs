@@ -2628,6 +2628,8 @@ with requests.")
 (defun entropy/emacs-unreadable-file-advice-for-finid-file
     (orig-func &rest orig-args)
   (if (and (functionp entropy/emacs-unreadable-file-judge-function)
+           ;; ignore any existed buffer matched FILENAME
+           (not (find-buffer-visiting (car orig-args)))
            ;; Not remote file
            (not (entropy/emacs-filename-is-remote-p (car orig-args)))
            ;; Not judge for magic filename handler for
@@ -2683,11 +2685,15 @@ Do you want to open it with messy?"
   "Like `abort-if-file-too-large' but escape judge when open with
 external app."
   (let ((__filename (nth 2 orig-args)))
-    (if (and (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p __filename)
-             ;; prevent duplicated call, since the
-             ;; `entropy/emacs-unreadable-file-advice-for-finid-file'
-             ;; may did the same
-             (not (= large-file-warning-threshold most-positive-fixnum)))
+    (if (and
+         ;; ignore any existed buffer matched FILENAME
+         (not (find-buffer-visiting __filename))
+         ;; ingore external open needed FILENAME
+         (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p __filename)
+         ;; prevent duplicated call, since the
+         ;; `entropy/emacs-unreadable-file-advice-for-finid-file'
+         ;; may did the same
+         (not (= large-file-warning-threshold most-positive-fixnum)))
         (let ((large-file-warning-threshold most-positive-fixnum))
           (apply orig-func orig-args))
       (apply orig-func orig-args))))
