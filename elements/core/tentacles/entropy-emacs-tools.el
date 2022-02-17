@@ -38,46 +38,141 @@
 ;; *** openwith external apps
 ;; **** openwith config
 (use-package openwith
-  ;; Just used in DE environment since sets of external program need
-  ;; graphical display
-  :if sys/is-graphic-support
+  :if (and sys/is-graphic-support
+           (if sys/linuxp
+               (executable-find "setsid")
+             t))
   :commands openwith-make-extension-regexp
   :init
-  (add-hook 'dired-mode-hook #'openwith-mode)
+
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file switch-to-buffer)
+   "enable-native-openwith-mode" "enable-native-openwith-mode"
+   prompt-echo
+   :pdumper-no-end t
+   (openwith-mode))
 
   :config
-  (setq openwith-associations
-        (list
-         (list (openwith-make-extension-regexp
-                '(
-                  ;; audio files
-                  "mpg" "mpeg" "mp3" "mp4"
-                  "avi" "wmv" "wav" "mov" "flv"
-                  "ogm" "ogg" "mkv" "m4a" "flac" "aac"
-                  ;; documents
-                  "pdf" "djvu"
-                  ;; archive type
-                  "7z" "xz" "rar" "BAK"
-                  ))
-               ;; we use xdg-open(linux) and start(windows) as default mime handler
-               (cond (sys/linuxp
-                      "xdg-open")
-                     (sys/is-win-group
-                      "start"))
-               '(file))))
+
+  (eval-when-compile (require 'rx))
+  (eval-and-compile
+    (setq openwith-associations
+          (list
+           (list
+            (concat "^.*\\.\\("
+                    (eval
+                     `(rx
+                       (or
+                        ,@'(
+                            ;; audio & video files
+                            "mpg" "mpeg" "mp3" "mp4" "rmvb"
+                            "avi" "wmv" "wav" "mov" "flv"
+                            "ogm" "ogg" "mkv" "m4a" "flac" "aac" "ape"
+                            ;; documents
+                            "pdf" "djvu" "odt"
+                            (regex "docx?") (regex "xslx?") (regex "pptx?")
+                            ;; archive type
+                            "zip" "7z" "xz" "rar" "bzip2"
+                            "tgz" "txz" "t7z" "tbz"
+                            (regex "tar\\..+")
+                            "bak"
+                            ))))
+                    "\\)$")
+            ;; we use xdg-open(linux) and start(windows) as default mime handler
+            (cond (sys/linuxp
+                   "xdg-open")
+                  (sys/is-win-group
+                   "start"))
+            '(file)))))
 
   (defun __ya/openwith-open-unix (command arglist)
-    "Patched without `process-connection-type'temporally"
-    (let ((shell-file-name "/bin/sh")
-          ;; EEMACS_MAINTENANCE, FIXME
-          (process-connection-type nil))
-      (start-process-shell-command
-       "openwith-process" nil
-       (concat
-        "exec nohup " command " "
-        (mapconcat 'shell-quote-argument arglist " ")
-        " >/dev/null"))))
-  (advice-add 'openwith-open-unix :override #'__ya/openwith-open-unix))
+    "like `openwith-open-unix' but use `start-process' to open the
+external COMMAND with ARGLIST."
+    (let* ((process-connection-type t)
+           (proc-name (format "openwith-process_%s:%s"
+                              command
+                              (mapconcat 'identity arglist "_")))
+           (proc-buff (generate-new-buffer "*openwith-process*"))
+           (proc-sentinel
+            (lambda (proc _event)
+              (let ((proc-name (process-name proc))
+                    (proc-buffer (process-buffer proc))
+                    (proc-status (process-status proc))
+                    (error-pred (lambda (proc-name proc-buffer)
+                                  (pop-to-buffer proc-buffer)
+                                  (let ((debug-on-error nil))
+                                    (error "openwith file handler for process <%s> exited with fatal"
+                                           proc-name)))))
+                (cond ((and (eq 'exit proc-status)
+                            (not (= 0 (process-exit-status proc))))
+                       (funcall error-pred proc-name proc-buffer))
+                      ((member proc-status '(stop signal))
+                       (funcall error-pred proc-name proc-buffer))
+                      ((and (eq 'exit proc-status)
+                            (= 0 (process-exit-status proc)))
+                       (when (buffer-live-p proc-buffer)
+                         (let ((kill-buffer-hook nil))
+                           (kill-buffer proc-buffer)))
+                       (message "openwith file handler for process <%s> open sucessfully"
+                                proc-name)))))))
+      (set-process-sentinel
+       (apply 'start-process
+              proc-name proc-buff
+              "setsid" "-w" command
+              arglist)
+       proc-sentinel)))
+  (advice-add 'openwith-open-unix :override #'__ya/openwith-open-unix)
+
+  (defun __ya/openwith-open-windows (command arglist)
+    "Like `openwith-open-windows' bug use support external COMMAND
+with ARGLIST."
+    (let* (_)
+      (w32-shell-execute
+       "open"
+       command
+       (mapconcat 'shell-quote-argument arglist " "))))
+  (advice-add 'openwith-open-windows :override #'__ya/openwith-open-windows)
+
+  (defun __ya/openwith-file-handler (operation &rest args)
+    "Like `openwith-file-handler' but enhanced"
+    (catch :exit
+      (when (and openwith-mode (not (buffer-modified-p)) (zerop (buffer-size)))
+        (let ((assocs openwith-associations)
+              (file (car args))
+              oa)
+          ;; do not use `dolist' here, since some packages (like cl)
+          ;; temporarily unbind it
+          (while assocs
+            (setq oa (car assocs)
+                  assocs (cdr assocs))
+            (when (let
+                      ;; we must ensure `case-fold-search' since the
+                      ;; extenxion have uppercaes variants
+                      ((case-fold-search t))
+                    (string-match-p (car oa) file))
+              (let ((params (mapcar (lambda (x) (if (eq x 'file) file x))
+                                    (nth 2 oa))))
+                (when (or (not openwith-confirm-invocation)
+                          (y-or-n-p (format "%s %s? " (cadr oa)
+                                            (mapconcat #'identity params " "))))
+                  (if (eq system-type 'windows-nt)
+                      (openwith-open-windows (cadr oa) params)
+                    (openwith-open-unix (cadr oa) params))
+                  (kill-buffer nil)
+                  (when (bound-and-true-p recentf-mode)
+                    (recentf-add-file file))
+                  ;; quit procedure while matched rules
+                  (top-level)))))))
+      ;; when no association was found, relay the operation to other handlers
+      (let ((inhibit-file-name-handlers
+             (cons 'openwith-file-handler
+                   (and (eq inhibit-file-name-operation operation)
+                        inhibit-file-name-handlers)))
+            (inhibit-file-name-operation operation))
+        (apply operation args))))
+  (advice-add 'openwith-file-handler :override #'__ya/openwith-file-handler)
+
+  )
 
 ;; **** Function manually
 ;; ***** Open in desktop manager
@@ -258,6 +353,10 @@ Version 2017-10-09"
 
 ;; **** entropy-open-with
 (use-package entropy-open-with
+  :if (and sys/is-graphic-support
+           (if sys/linuxp
+               (executable-find "setsid")
+             t))
   :ensure nil
   :commands (entropy/open-with-dired-open
              entropy/open-with-buffer)

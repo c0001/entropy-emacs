@@ -197,12 +197,10 @@ must satisfied follow requirements:
   (defun entropy/emacs-org-open-at-point ()
     (interactive)
     (let ((org-link-frame-setup
-           (entropy/emacs-cl-compatible-apply acons 'file 'find-file org-link-frame-setup))
-          (process-connection-type
-           (cond
-            (sys/linuxp
-             nil)
-            (t t))))
+           (entropy/emacs-cl-compatible-apply
+            acons
+            'file
+            'find-file org-link-frame-setup)))
       (org-open-at-point)))
 
   ;; using entropy-open-with to open org link

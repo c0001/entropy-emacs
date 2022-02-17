@@ -2569,40 +2569,11 @@ origin config file."
 ;; *** intial advice
 ;; **** find file patch
 
-(defun __entropy/emacs-init-tramp-file-p (&rest args)
-  "Fake wrap for `tramp-tramp-file-p' when it's not found since
-the return for its invokation are always nil when it is not
-loaded as that we can be sure that there's neither any other
-tramp command be inovked."
+(defun entropy/emacs-filename-is-remote-p (filename)
+  "Judge whether file name is remote style"
   (if (fboundp 'tramp-tramp-file-p)
-      (apply 'tramp-tramp-file-p args)
+      (tramp-tramp-file-p filename)
     nil))
-
-;; ***** find file path use absolute path
-(define-inline entropy/emacs--unslash-path (path)
-  "Remove the final slash in PATH."
-  (declare (pure t) (side-effect-free t))
-  (inline-letevals (path)
-    (inline-quote
-     (if (and (> (length ,path) 1)
-              (eq ?/ (aref ,path (1- (length ,path)))))
-         (substring ,path 0 -1)
-       ,path))))
-
-(defun entropy/emacs--dwim-abs-find-file (orig-func &rest orig-args)
-  "Find file with enabled `find-file-visit-truename' when file
-under the symbolink root dir."
-  (if (__entropy/emacs-init-tramp-file-p (car orig-args))
-      (apply orig-func orig-args)
-    (let* ((filename (entropy/emacs--unslash-path (car orig-args)))
-           (rest (cdr orig-args))
-           (ftruename (entropy/emacs--unslash-path (file-truename filename))))
-      (let ((find-file-visit-truename
-             (and
-              (not (equal filename ftruename))
-              (not (file-directory-p filename)))))
-        (apply orig-func orig-args)))))
-(advice-add 'find-file-noselect :around #'entropy/emacs--dwim-abs-find-file)
 
 ;; ***** unreadable file detection
 
@@ -2641,7 +2612,14 @@ under the symbolink root dir."
 
 (defun entropy/emacs-unreadable-file-advice-for-finid-file
     (orig-func &rest orig-args)
-  (if (functionp entropy/emacs-unreadable-file-judge-function)
+  (if (and (functionp entropy/emacs-unreadable-file-judge-function)
+           ;; Not remote file
+           (not (entropy/emacs-filename-is-remote-p (car orig-args)))
+           ;; Not judge for magic filename handler for
+           ;; `openwith-file-handler', since its open with external
+           ;; app.
+           (not (eq (find-file-name-handler (car orig-args) 'insert-file-contents)
+                    'openwith-file-handler)))
       (let* ((error-fmtstr
               "File '%s' is not readable e.g. its may freeze emacs, Abort!")
              (filename (car orig-args))
@@ -2669,18 +2647,34 @@ under the symbolink root dir."
 for guaranteeing the current emacs session workable, eemacs refuse this find-file action. \
 Do you want to open it with messy?"
                             counts)))
-                 (apply orig-func orig-args)))
+                 (let (
+                       ;; prevent internal `abort-if-file-too-large'
+                       ;; prompts since we've judged yet
+                       (large-file-warning-threshold most-positive-fixnum))
+                   (apply orig-func orig-args))))
               (t
                (__ureadable-file-do-prompt-of-message
                 (format "File '%s' is not readable e.g. its may freeze emacs, \
 Do you want to open it with messy?"
                         filename))
-               (apply orig-func orig-args))))
+               (let ((large-file-warning-threshold most-positive-fixnum))
+                 (apply orig-func orig-args)))))
     (apply orig-func orig-args)))
 
 (advice-add 'find-file
             :around
             #'entropy/emacs-unreadable-file-advice-for-finid-file)
+
+(defun entropy/emacs-abort-if-file-too-large (orig-func &rest orig-args)
+  "Like `abort-if-file-too-large' but escape judge when open with
+external app."
+  (let ((__filename (nth 2 orig-args)))
+    (if (eq (find-file-name-handler __filename 'insert-file-contents)
+            'openwith-file-handler)
+        (let ((large-file-warning-threshold most-positive-fixnum))
+          (apply orig-func orig-args))
+      (apply orig-func orig-args))))
+(advice-add 'abort-if-file-too-large :around #'entropy/emacs-abort-if-file-too-large)
 
 (defun entropy/emacs--supress-fontlock-mode (orig-func &rest orig-args)
   "Disable font-lock render if current-buffer is large"

@@ -381,12 +381,21 @@ string type.
                  (point-min)
                  (point-max)))))))))
 
-(defun entropy/open-with--sudo-file-name-predicate (filename)
-  "Shrink trmap path of sudo privilege type when on *NIX platform."
-  (if (and (not (entropy/open-with--on-win32))
-           (string-match-p "^/sudo:root@.*?:/" filename))
-      (replace-regexp-in-string "^/sudo:root@.*?:/" "/" filename)
-    filename))
+(defun entropy/open-with--filename-toplevel-predicate (filename)
+  "Predicate FILENAME for top-level judgemments, if no error,
+return the predicated filename."
+  (let (rtn)
+    (if (and (not (entropy/open-with--on-win32))
+             (string-match-p "^/sudo:root@.*?:/" filename))
+        (setq rtn (replace-regexp-in-string "^/sudo:root@.*?:/" "/" filename))
+      (setq rtn filename))
+    (cond ((and (require 'tramp)
+                (tramp-tramp-file-p rtn))
+           (error "can not open tramp file '%s'" rtn))
+          ((not (file-readable-p rtn))
+           (error "file '%s' is not readable" rtn))
+          (t
+           rtn))))
 
 (defun entropy/open-with--do-list ()
   "Expand `entropy/open-with-type-list' to `entropy/open-with--type-list-full'.
@@ -409,10 +418,7 @@ each file suffix 'ext', like:
       (when (and exec (stringp exec))
         (dolist (ext ext-list)
           (let (new-group-e)
-            (push caller-pattern new-group-e)
-            (push path-transform  new-group-e)
-            (push exec new-group-e)
-            (push ext new-group-e)
+            (setq new-group-e (list ext exec path-transform caller-pattern))
             (add-to-list 'entropy/open-with--type-list-full new-group-e)))))))
 
 (defun entropy/open-with--judge-file-type (filename)
@@ -423,11 +429,16 @@ state of file description for `entropy/open-with-match-open'.
 If not matched the exist file type then return nil."
   (let ((type-list (progn (entropy/open-with--do-list)
                           entropy/open-with--type-list-full))
-        (file-path (expand-file-name (entropy/open-with--sudo-file-name-predicate filename)))
+        (file-path (expand-file-name (entropy/open-with--filename-toplevel-predicate filename)))
         $file-pattern rtn)
     (catch :exit
       (dolist (type type-list)
-        (when (string-match (concat "\\." (car type) "$") file-path)
+        (when (let
+                  ;; we must ensure `case-fold-search' since the
+                  ;; extenxion have uppercaes variants
+                  ((case-fold-search t))
+                (string-match-p (concat "^.*\\." (car type) "$")
+                                file-path))
           (let ((exec (nth 1 type))
                 (path-transform (nth 2 type))
                 (caller-pattern (nth 3 type)))
@@ -443,7 +454,8 @@ If not matched the exist file type then return nil."
                   ((functionp path-transform)
                    (setq $file-pattern (funcall path-transform file-path)))
                   (t (setq $file-pattern file-path)))
-            (setq rtn (list :caller exec :file-pattern $file-pattern
+            (setq rtn (list :caller exec
+                            :file-pattern $file-pattern
                             :caller-pattern caller-pattern
                             :open-with-arg (append caller-pattern (list $file-pattern))
                             :open-with-arg-concated (concat
@@ -461,11 +473,23 @@ will be the current process handle which will protect it's handle
 associated file location be deleted by file removing operaion,
 this be for redirected the `default-directory' for each subprocess
 procedure who don't want to be as the state as what."
-  (cl-case system-type
-    (windows-nt
-     (getenv "TEMP"))
-    (t
-     "/tmp")))
+  (or (ignore-errors (or (and
+                          (file-directory-p temporary-file-directory)
+                          (file-writable-p temporary-file-directory)
+                          temporary-file-directory)
+                         (and
+                          (file-directory-p (getenv "TEMP"))
+                          (file-writable-p (getenv "TEMP"))
+                          (getenv "TEMP"))
+                         (and
+                          (file-directory-p "/tmp")
+                          (file-writable-p "/tmp")
+                          "/tmp")))
+      (error "We can not auto detect an temporally directory for
+entropy-open-with to run with!
+
+You should check whether `temporary-file-directory' is exist
+and writeable!")))
 
 
 (defun entropy/open-with--open-file-plist (file-plist)
@@ -501,9 +525,7 @@ procedure who don't want to be as the state as what."
             open-with-arg (plist-get file-plist :open-with-arg))
       (cond
        ((entropy/open-with--on-win32)
-        (set-process-sentinel
-         (w32-shell-execute "open" caller open-with-arg-concated)
-         proc-sentinel))
+        (w32-shell-execute "open" caller open-with-arg-concated))
        ((or (eq system-type 'gnu/linux)
             (eq system-type 'darwin))
         (let (
@@ -540,14 +562,12 @@ firstly using 'npm install -g wsl-open'"))
            (start-process
             (format "eemacs-wsl-open-with_for_file_%s"
                     file-path)
-            (get-buffer-create " *eemacs-wsl-open-with* ")
+            (get-buffer-create " *eemacs-wsl-open-with-native* ")
             "setsid" "-w" "wsl-open" file-path)
            proc-sentinel)))
        ;; win32
        ((entropy/open-with--on-win32)
-        (set-process-sentinel
-         (w32-shell-execute "open" file-path)
-         proc-sentinel))
+        (w32-shell-execute "open" file-path))
        ;; linux
        ((eq system-type 'gnu/linux)
         (let ((process-connection-type t))
@@ -555,13 +575,15 @@ firstly using 'npm install -g wsl-open'"))
            (start-process
             (format "eemacs-linux-open-with_xdg_for_file_%s"
                     file-path)
-            (get-buffer-create " *eemacs-linux-open-with* ")
+            (get-buffer-create " *eemacs-linux-open-with-nativ* ")
             "setsid" "-w" "xdg-open" file-path)
            proc-sentinel)))
        ;; macos
        ((eq system-type 'darwin)
         ;; FIXME: its not asynchronously
-        (shell-command (concat "open " file-path))))
+        (error "Sorry! We haven't implement the 'xdg-open' like native caller in darwin system yet!"
+               ))
+       )
 
       ;; show warn when non caller found for file
       (unless (not (null caller))
@@ -595,16 +617,15 @@ temp dir for preventing some file deleting operation conflicted
 occurrence.
 "
   (dolist (el files)
-    (setq el (entropy/open-with--sudo-file-name-predicate el))
-    (let (($dowith (cond ((entropy/open-with--judge-file-type el)
-                          (entropy/open-with--judge-file-type el))
+    (setq el (entropy/open-with--filename-toplevel-predicate el))
+    (let (($dowith (cond ((entropy/open-with--judge-file-type el))
                          ((ignore-errors (file-exists-p el))
                           el)
                          (t
                           nil)))
           (default-directory (entropy/open-with--process-default-dir)))
       (if (null $dowith)
-          (warn "File '%s' not exists" el)
+          (warn "File '%s' is not exist!" el)
         (entropy/open-with--open-file-plist $dowith)))))
 
 
@@ -625,7 +646,7 @@ Tips: non-interactive state support open url.
 Note: this func redirected `default-directory' as
 `entropy/open-with-match-open' does so."
   (if interact
-      (let ((accept (entropy/open-with--sudo-file-name-predicate
+      (let ((accept (entropy/open-with--filename-toplevel-predicate
                      (completing-read "Please input FILENAME: " 'read-file-name-internal
                                       nil t nil 'file-name-history))))
         (if (file-exists-p accept)
@@ -640,7 +661,7 @@ Note: this func redirected `default-directory' as
               (error "Abort operation.")))))
     (if (and filename
              (setq filename
-                   (entropy/open-with--sudo-file-name-predicate filename)))
+                   (entropy/open-with--filename-toplevel-predicate filename)))
         (if (or (and (file-exists-p filename)
                      (not (string= filename "")))
                 (string-match-p entropy/open-with-url-regexp filename))
