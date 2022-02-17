@@ -2583,6 +2583,21 @@ origin config file."
 ;; if we bind it in top level. Refer to bug id [h-ca204a62-9e15-4f3b-ae23-f31b6046a9c5]
 (setq large-file-warning-threshold entropy/emacs-large-file-warning-threshold)
 
+(defvar entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter nil
+  "The function to handler a filename whether need to open with
+external app used for
+`entropy/emacs-find-file-judge-filename-need-open-with-external-app-p'.
+
+NOTE: for eemacs developer notice of that this variable always
+need to be initial as nil before `entropy/emacs-startup-done',
+since at startup time we do not want to handle any external open
+with requests.")
+(defun entropy/emacs-find-file-judge-filename-need-open-with-external-app-p (filename)
+  "Judge whether open FILENAME externally"
+  (and (functionp entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter)
+       (funcall entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter
+                filename)))
+
 (defvar __unreadable-file-long-threshold 700)
 (defvar entropy/emacs-unreadable-file-judge-function
   (lambda (filename)
@@ -2618,8 +2633,7 @@ origin config file."
            ;; Not judge for magic filename handler for
            ;; `openwith-file-handler', since its open with external
            ;; app.
-           (not (eq (find-file-name-handler (car orig-args) 'insert-file-contents)
-                    'openwith-file-handler)))
+           (not (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p (car orig-args))))
       (let* ((error-fmtstr
               "File '%s' is not readable e.g. its may freeze emacs, Abort!")
              (filename (car orig-args))
@@ -2669,8 +2683,11 @@ Do you want to open it with messy?"
   "Like `abort-if-file-too-large' but escape judge when open with
 external app."
   (let ((__filename (nth 2 orig-args)))
-    (if (eq (find-file-name-handler __filename 'insert-file-contents)
-            'openwith-file-handler)
+    (if (and (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p __filename)
+             ;; prevent duplicated call, since the
+             ;; `entropy/emacs-unreadable-file-advice-for-finid-file'
+             ;; may did the same
+             (not (= large-file-warning-threshold most-positive-fixnum)))
         (let ((large-file-warning-threshold most-positive-fixnum))
           (apply orig-func orig-args))
       (apply orig-func orig-args))))

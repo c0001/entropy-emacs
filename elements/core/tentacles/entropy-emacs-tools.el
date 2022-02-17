@@ -133,6 +133,24 @@ with ARGLIST."
        (mapconcat 'shell-quote-argument arglist " "))))
   (advice-add 'openwith-open-windows :override #'__ya/openwith-open-windows)
 
+  (setq entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter
+        (lambda (filename)
+          (let ((assocs openwith-associations)
+                (file filename)
+                oa)
+            (catch :exit
+              ;; do not use `dolist' here, since some packages (like cl)
+              ;; temporarily unbind it
+              (while assocs
+                (setq oa (car assocs)
+                      assocs (cdr assocs))
+                (when (let
+                          ;; we must ensure `case-fold-search' since the
+                          ;; extenxion have uppercaes variants
+                          ((case-fold-search t))
+                        (string-match-p (car oa) file))
+                  (throw :exit t)))))))
+
   (defun __ya/openwith-file-handler (operation &rest args)
     "Like `openwith-file-handler' but enhanced"
     (catch :exit
