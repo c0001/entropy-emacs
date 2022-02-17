@@ -1656,7 +1656,7 @@ When set to an empty string, this attribute is omitted.  Defaults to
   :group 'entropy/emacs-customize-group-for-platform-spec)
 
 ;; ***** w32 ime config
-(defcustom entropy/emacs-win-init-ime-enable nil
+(defcustom entropy/emacs-microsoft-windows-native-ime-enhancement-enable nil
   "Enable win32 IME bug fix maybe detection at startup (fix
 around of the bug of w32-ime)."
   :type 'boolean

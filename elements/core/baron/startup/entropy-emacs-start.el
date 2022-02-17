@@ -300,7 +300,7 @@ Trying insert some words in below are:
 
 ")
                 (w32-send-sys-command #xF000)))))))
-  (when entropy/emacs-win-init-ime-enable
+  (when entropy/emacs-microsoft-windows-native-ime-enhancement-enable
     (entropy/emacs-lazy-with-load-trail
      patch-and-enable-w32-ime
      (entropy/emacs-start-w32-ime-enable))))
