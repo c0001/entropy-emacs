@@ -329,7 +329,7 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
             ;; Bug of `elfeed-queue-count-active' &
             ;; `elfeed-queue-count-total' which may
             ;; cause less than zero
-            (<= (elfeed-queue-count-total) 0)))
+            (<= (elfeed-queue-count-active) 0)))
           (curl-procs
            (when elfeed-use-curl
              (delete
@@ -348,6 +348,13 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
     "Synchronously fetch ELFEED-FEEDS-RICH."
     (when (entropy/emacs-rss--elfeed-process-running-p)
       (user-error "Please wait for previous elfeed queue retrieve done!"))
+    (unless (executable-find "curl")
+      (user-error "Eemacs just support elfeed run in 'curl' mode. \
+But we can not found curl in your PATH!"))
+    (unless elfeed-use-curl
+      (setq elfeed-use-curl t)
+      (message "Eemacs just support elfeed run in 'curl' mode, but you customize not to use it. \
+So we automatically help you to change to `curl' mode."))
     (let ((common-feeds (plist-get elfeed-feeds-rich :common-feeds))
           (proxy-feeds (plist-get elfeed-feeds-rich :proxy-feeds))
           (orig-filter elfeed-search-filter))
