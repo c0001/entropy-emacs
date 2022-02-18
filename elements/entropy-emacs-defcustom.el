@@ -2033,45 +2033,24 @@ NOTE: this variable just be used when
 `entropy/emacs-win-portable-php-enable' init with non-nil value. "
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
-
-;; ****** enbale portable pip
-(defcustom entropy/emacs-win-portable-pip-enable nil
-  "Enable external python pip winport portable release usage for
-emacs in emacs and then variable
-`entropy/emacs-win-portable-python-path' will be used.
-
-The exist meaning for this variable is that pip always not in the
-same location which python did for on windows platform, so that
-you need to set it manually along with you've set
-`entropy/emacs-win-portable-python-path' which has the location
-for its own pip version."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-w32-portable-kits)
-
-(defcustom entropy/emacs-win-portable-pip-path
-  "c:/eemacs-win-portable-apps/winpython/python-3.7.2.amd64/Scripts"
-  "External portable pip path whicn be along with the
-`entropy/emacs-win-portable-python-path'.
-
-NOTE: this variable just be used when
-`entropy/emacs-win-portable-pip-enable' init with non-nil value."
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-w32-portable-kits)
-
 ;; ****** enable portable python
+;; ******* python
 (defcustom entropy/emacs-win-portable-python-enable nil
   "Enable python winport release usage for emacs in windows and
 then variable `entropy/emacs-win-portable-python-path' will be
 used.
 
-In the case that you've set the `entropy/emacs-microsoft-windows-unix-emulator-bin-path', there's
+In the case that you've set the
+`entropy/emacs-microsoft-windows-unix-emulator-bin-path', there's
 no need to enable this so that you can directly install the
-python from that =eemacs-msWinUnix-emulator= env."
+python from that =eemacs-msWinUnix-emulator= env but for lsp
+client purpose you need to do this since mingw/msys2 python may
+running broken for interactiv with windows-emacs."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
 (defcustom entropy/emacs-win-portable-python-path
-  "c:/eemacs-win-portable-apps/winpython/python-3.7.2.amd64/"
+  "c:/eemacs-win-portable-apps/python"
   "Portable python winport /bin/ path.
 
 You can download it from https://winpython.github.io/
@@ -2080,6 +2059,39 @@ NOTE: this variable just be used when
 `entropy/emacs-win-portable-python-enable' init with non-nil value."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
+
+;; ******* pip
+(defcustom entropy/emacs-win-portable-pip-enable entropy/emacs-win-portable-python-enable
+  "Enable external python pip winport portable release usage for
+emacs in emacs and then variable
+`entropy/emacs-win-portable-python-path' will be used.
+
+The exist meaning for this variable is that pip always not in the
+same location which python did for on windows platform, so that
+you need to set it manually along with you've set
+`entropy/emacs-win-portable-python-path' which has the location
+for its own pip version.
+
+NOTE: this variable is automatically enabled by default when
+`entropy/emacs-win-portable-python-enable' is set at startup."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-w32-portable-kits)
+
+(defcustom entropy/emacs-win-portable-pip-host-path
+  (expand-file-name "Scripts" entropy/emacs-win-portable-python-path)
+  "External portable pip path whicn be along with the
+`entropy/emacs-win-portable-python-path'.
+
+This default value is automatically set according to
+`entropy/emacs-win-portable-python-path' by eemacs for the, so
+you may not need to manually set this unless be inconsistent with
+the actual occasions.
+
+NOTE: this variable just be used when
+`entropy/emacs-win-portable-pip-enable' init with non-nil value."
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-w32-portable-kits)
+
 
 ;; ****** enable portable nodejs
 (defcustom entropy/emacs-win-portable-nodejs-enable nil

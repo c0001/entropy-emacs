@@ -113,7 +113,7 @@
                   :env-order 6
                   :exec-order 6)
         (:trigger entropy/emacs-win-portable-pip-enable
-                  :path entropy/emacs-win-portable-pip-path
+                  :path entropy/emacs-win-portable-pip-host-path
                   :env-order 7
                   :exec-order 7)
         (:trigger entropy/emacs-win-portable-python-enable
