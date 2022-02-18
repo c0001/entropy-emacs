@@ -318,9 +318,13 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
   (defun entropy/emacs-rss--elfeed-process-stop-all ()
     (let (_)
       (when elfeed-use-curl
-        (mapc (lambda (x) (when (string-match-p "elfeed-curl" x)
-                            (delete-process x)))
-              (mapcar #'process-name (process-list))))
+        ;; do more times sincee elfeed recall `elfeed-curl--run-queue'
+        ;; in the curl cbk.
+        (dotimes (var 2)
+          (sleep-for 0.2)
+          (mapc (lambda (x) (when (string-match-p "elfeed-curl" x)
+                              (delete-process x)))
+                (mapcar #'process-name (process-list)))))
       (elfeed-unjam)))
 
   (defun entropy/emacs-rss--elfeed-process-running-p ()
@@ -379,14 +383,15 @@ So we automatically help you to change to `curl' mode."))
                  (unwind-protect
                      (progn
                        (while (entropy/emacs-rss--elfeed-process-running-p)
-                         (sleep-for 2)
+                         (sleep-for 0.1)
                          (message "Waiting for non-proxy feeds retrieve done ..."))
                        (setq success t)
                        (message "Update non-proxy feeds done"))
                    (setq entropy/emacs-rss--elfeed-use-proxy-p nil)
                    (unless success
-                     (ignore-errors
-                       (entropy/emacs-rss--elfeed-process-stop-all))
+                     (entropy/emacs-unwind-protect-body 10
+                       (ignore-errors
+                         (entropy/emacs-rss--elfeed-process-stop-all)))
                      (entropy/emacs-error-without-debug
                       "Abort fetching <non-proxy>!")))))
              ;; proxy ways
@@ -407,15 +412,16 @@ So we automatically help you to change to `curl' mode."))
                  (unwind-protect
                      (progn
                        (while (entropy/emacs-rss--elfeed-process-running-p)
-                         (sleep-for 2)
+                         (sleep-for 0.1)
                          (message "Waiting for proxy feeds retrieve done ..."))
                        (setq success t)
                        (message "Update proxy feeds done"))
                    (setq elfeed-curl-extra-arguments __elfeed-orig-curl-args
                          url-proxy-services __elfeed-orig-url-proxies)
                    (unless success
-                     (ignore-errors
-                       (entropy/emacs-rss--elfeed-process-stop-all))
+                     (entropy/emacs-unwind-protect-body 10
+                       (ignore-errors
+                         (entropy/emacs-rss--elfeed-process-stop-all)))
                      (entropy/emacs-error-without-debug
                       "Abort fetching <proxy>!"))))))
             (t

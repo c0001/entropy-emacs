@@ -68,6 +68,65 @@ temporally do and have better performance than origin."
   (let ((debug-on-error nil))
     (apply 'error string args)))
 
+(defvar entropy/emacs--unwind-protect-body-global-body-run-status-judgers nil)
+(defun entropy/emacs-unwind-protect-body-gen-nested-form (forms &optional level)
+  "Nested BODY `unwind-protect' form generator for
+`entropy/emacs-unwind-protect-body'."
+  (let* ((flag (intern
+                (format "___$___$_eemacs-unwind-protect-flags_%s"
+                        (length entropy/emacs--unwind-protect-body-global-body-run-status-judgers))))
+         (level (or level 0))
+         body
+         rtn)
+    (set flag nil)
+    (push flag entropy/emacs--unwind-protect-body-global-body-run-status-judgers)
+    (setq body `(unless (bound-and-true-p ,flag)
+                  (let (forms-rtn)
+                    (setq forms-rtn (progn ,@forms))
+                    (setq ,flag t)
+                    (throw :exit forms-rtn))))
+    (cond
+     ((<= level 1)
+      (setq rtn
+            `(unwind-protect
+                 ,body
+               ,body)))
+     ((> level 1)
+      (while (>= level 1)
+        (setq
+         rtn
+         (if rtn
+             `(unwind-protect
+                  ,body
+                ,rtn)
+           `(unwind-protect
+                ,body
+              ,body)))
+        (cl-decf level))))
+    `(catch :exit
+       ,rtn)))
+
+(defmacro entropy/emacs-unwind-protect-body (level &rest body)
+  "Like `unwind-protect' but treat the BODYFORM and UNWINDFORMS as
+one as a BODY. If BODY completes normally, its value is returned.
+
+LEVEL is an protect times, larger than 0, an integer. If LEVEL
+`eql' 1, then this macro do the same as `unwind-protect' of:
+
+#+begin_src emacs-lisp
+(unwind-protect
+    (progn
+      ,@body)
+  ,@body)
+#+end_src
+
+Or is 2 for nested the 1st level as BODY as the unwind forms protects
+the old-BODY, and so on for larger level.
+"
+  (declare (indent defun))
+  (entropy/emacs-unwind-protect-body-gen-nested-form
+   body level))
+
 ;; *** Cl-function compatible manipulation
 (defun entropy/emacs-cl-findnew-p (func)
   (let (new-func)
