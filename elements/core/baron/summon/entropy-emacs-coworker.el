@@ -289,7 +289,15 @@ EXIT /b
 ;; **** pip install
 (defun entropy/emacs-coworker--coworker-install-by-pip
     (server-name-string server-bins server-repo-string)
-  (let* ((server-lostp
+  (let* (
+         ;; NOTE: We should use independently prefix for each pypi
+         ;; pacakge since each pacakge should has their own
+         ;; dependencies and shouldn't pollute other package's
+         ;; dependencies.
+         (this-pip-prefix
+          (expand-file-name (format "eemacs-pypi-lsp/%s" server-name-string)
+                            entropy/emacs-coworker-lib-host-root))
+         (server-lostp
           (not
            (entropy/emacs-coworker--coworker-alist-judge
             (list (cons 'file
@@ -308,44 +316,65 @@ EXIT /b
            '("python3" "-m" "pip"
              "--isolated"
              "install" "-I" ,server-repo-string
-             "--prefix" ,(if sys/is-win-group (replace-regexp-in-string "/" "\\\\"  entropy/emacs-coworker-host-root)
-                           entropy/emacs-coworker-host-root)
+             "--prefix" ,(if sys/win32p (replace-regexp-in-string "/" "\\\\"  this-pip-prefix)
+                           this-pip-prefix)
              "--no-compile")
            :buffer (get-buffer-create "*eemacs-coworker-pip-install-proc*")
            :prepare
            (entropy/emacs-coworker--coworker-message-do-task ,server-name-string)
-           t
+           (progn
+             (condition-case error
+                 (progn
+                   (mkdir entropy/emacs-coworker-bin-host-path t)
+                   (mkdir entropy/emacs-coworker-lib-host-root t)
+                   (mkdir ,this-pip-prefix t)
+                   t)
+               (error
+                (error "eemacs coworker init task for '%s' did with fatal for mkdir!"
+                       ,server-name-string))))
            :after
            (let ((site-packages-path
-                  (if (not sys/is-win-group)
+                  (if (not sys/win32p)
                       (expand-file-name
                        (car (file-expand-wildcards
-                             (expand-file-name "python[0-9]*/site-packages"
-                                               entropy/emacs-coworker-lib-host-root))))
-                    (let ((maybe-it-0 (expand-file-name "lib/site-packages" entropy/emacs-coworker-host-root))
-                          (maybe-it-1 (expand-file-name "Lib/site-packages" entropy/emacs-coworker-host-root)))
+                             (expand-file-name "lib/python[0-9]*/site-packages"
+                                               ,this-pip-prefix))))
+                    (let ((maybe-it-0 (expand-file-name "lib/site-packages" ,this-pip-prefix))
+                          (maybe-it-1 (expand-file-name "Lib/site-packages" ,this-pip-prefix)))
                       (if (file-exists-p maybe-it-0)
                           maybe-it-0
                         maybe-it-1))))
                  (w32-pyexecs-dir
-                  (expand-file-name "Scripts" entropy/emacs-coworker-host-root)))
+                  (expand-file-name "Scripts" ,this-pip-prefix)))
+             (unless (file-exists-p site-packages-path)
+               (error "[%s] pypi site-pakcages dir %s not exited, this may an eemacs insternal bug!"
+                      ,server-name-string site-packages-path))
+             (when sys/win32p
+               (unless (file-exists-p site-packages-path)
+                 (error "[%s] win32 pypi bin dir %s not exited, this may an eemacs insternal bug!"
+                        ,server-name-string w32-pyexecs-dir)))
              (dolist (el ',server-bins)
                (let ((bin-path
                       (expand-file-name
                        el
-                       entropy/emacs-coworker-bin-host-path)))
+                       entropy/emacs-coworker-bin-host-path))
+                     (native-bin-path
+                      (expand-file-name
+                       (format (if sys/win32p "Scripts/%s"
+                                 "bin/%s")
+                               el)
+                       ,this-pip-prefix)))
                  (cond
-                  ((not sys/is-win-group)
+                  ((not sys/win32p)
+                   (make-symbolic-link native-bin-path bin-path)
                    (entropy/emacs-coworker--patch-python-bin-for-pythonpath
                     bin-path site-packages-path))
-                  (sys/is-win-group
-                   (let ((w32-exec-name
-                          (expand-file-name
-                           (concat el ".exe")
-                           w32-pyexecs-dir)))
+                  (sys/win32p
+                   (let ((w32-pyexec-path
+                          (concat native-bin-path ".exe")))
                      (entropy/emacs-coworker--gen-python-w32-cmd-bin
                       (concat bin-path ".cmd")
-                      w32-exec-name site-packages-path)))))))
+                      w32-pyexec-path site-packages-path)))))))
            (entropy/emacs-coworker--coworker-message-install-success ,server-name-string)
            :error
            (with-current-buffer $sentinel/destination
