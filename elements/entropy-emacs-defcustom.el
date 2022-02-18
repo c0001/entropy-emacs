@@ -2837,6 +2837,12 @@ that."
                   (nsm-settings-file . "network-security.data")
                   (request-storage-directory . "request/")
 
+                  ;; w3m
+                  (w3m-default-save-directory . "w3m/save/")
+                  (w3m-profile-directory . "w3m/profile/")
+                  (w3m-external-view-temp-directory . "w3m/temp/")
+                  (w3m-form-textarea-directory . "w3m/textarea/")
+
                   ;; lsp mode
                   (lsp-session-file . "lsp/lsp-session-v1")
                   (lsp-intelephense-storage-path . "lsp/cache/intelephense")
