@@ -293,16 +293,22 @@
 
 ;; ** main
 
-;; NOTE:
+(defun entropy/emacs-path-load-main ()
+  (entropy/emacs-path--common-path-register)
+  (when sys/win32p
+    (entropy/emacs-path--w32-regist-path)))
+
+(entropy/emacs-path-load-main)
+
+;; NOTE & FIXME:
 ;; We must init path setting after eemacs load since pdumper will
 ;; re-get ENV var after dump load.
-(entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer dired ivy-mode counsel-mode entropy/shellpop-start)
- "path-register" "path-register" prompt-echo
- :pdumper-no-end nil
- (entropy/emacs-path--common-path-register)
- (when sys/win32p
-   (entropy/emacs-path--w32-regist-path)))
+(when entropy/emacs-fall-love-with-pdumper
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file switch-to-buffer dired ivy-mode counsel-mode entropy/shellpop-start)
+   "path-register" "path-register" prompt-echo
+   :pdumper-no-end nil
+   (entropy/emacs-path-load-main)))
 
 ;; * provide
 (provide 'entropy-emacs-path)
