@@ -247,7 +247,11 @@ EXIT /b
          `(:name
            ,server-name-string
            :synchronously t
-           :command '("npm" "install" ,server-repo-string)
+           :command
+           '(,(if sys/win32p (expand-file-name "npm.cmd"
+                                               entropy/emacs-win-portable-nodejs-installation-host-path)
+                "npm")
+             "install" ,server-repo-string)
            :buffer (get-buffer-create "*eemacs-coworker-npm-install-proc*")
            :default-directory ,this-npm-prefix
            :prepare
@@ -264,10 +268,10 @@ EXIT /b
                      ,server-name-string)))
            :after
            (dolist (el ',server-bins)
-             (when sys/is-win-group
+             (when sys/win32p
                (setq el (format "%s.cmd" el)))
              (message "Make final executable target for server bin '%s' ..."  el)
-             (cond (sys/is-win-group
+             (cond (sys/win32p
                     (entropy/emacs-coworker--gen-node-w32-cmd-bin
                      (expand-file-name
                       el
@@ -335,7 +339,10 @@ EXIT /b
            ,server-name-string
            :synchronously t
            :command
-           '("python3" "-m" "pip"
+           '(,(if sys/win32p (expand-file-name "python3.exe"
+                                               entropy/emacs-win-portable-python-installation-host-path)
+                "python3")
+             "-m" "pip"
              "--isolated"
              "install" "-I" ,server-repo-string
              "--prefix" ,(if sys/win32p (replace-regexp-in-string "/" "\\\\"  this-pip-prefix)
