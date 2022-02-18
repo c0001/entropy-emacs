@@ -119,11 +119,11 @@
                  cmd))
 
   ;; set curl path
-  (let ((mingw-curl (if (and entropy/emacs-microsoft-windows-unix-emulator-enable
-                             (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path))
+  (let ((mingw-curl (if (and entropy/emacs-win-portable-mingw-enable
+                             (file-exists-p entropy/emacs-win-portable-mingw-bin-path))
                         (expand-file-name
-                         "mingw64/bin/curl.exe"
-                         entropy/emacs-microsoft-windows-unix-emulator-root-path)
+                         "curl.exe"
+                         entropy/emacs-win-portable-mingw-bin-path)
                       nil))
         (msys2-curl (if (and entropy/emacs-microsoft-windows-unix-emulator-enable
                              (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path))
@@ -132,9 +132,6 @@
         (w32-curl "c:/WINDOWS/system32/curl.exe")
         (unix-curl "curl"))
     (cond
-     ((ignore-errors (file-exists-p w32-curl))
-      (setq elfeed-curl-program-name w32-curl)
-      (setq elfeed-use-curl t))
      ((ignore-errors (file-exists-p mingw-curl))
       (setq elfeed-curl-program-name mingw-curl)
       (setq elfeed-use-curl t))
@@ -143,6 +140,9 @@
       (setq elfeed-use-curl t))
      ((ignore-errors (and (executable-find "curl")
                           sys/is-posix-compatible))
+      (setq elfeed-use-curl t))
+     ((ignore-errors (file-exists-p w32-curl))
+      (setq elfeed-curl-program-name w32-curl)
       (setq elfeed-use-curl t))
      (t
       (setq elfeed-use-curl nil))))
