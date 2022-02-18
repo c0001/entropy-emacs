@@ -195,7 +195,8 @@ EXIT /b
 
 ;; *** package install branches
 ;; **** npm install
-(defun entropy/emacs-coworker--coworker-install-by-npm
+;; ***** isolate type
+(defun entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
     (server-name-string server-bins server-repo-string)
   (when sys/win32p
     (unless (and entropy/emacs-win-portable-nodejs-enable
@@ -302,7 +303,8 @@ EXIT /b
        server-name-string))))
 
 ;; **** pip install
-(defun entropy/emacs-coworker--coworker-install-by-pip
+;; ***** isolate type
+(defun entropy/emacs-coworker--coworker-isolate-bins-install-by-pip
     (server-name-string server-bins server-repo-string)
   (when sys/win32p
     (unless (and entropy/emacs-win-portable-python-enable
@@ -476,8 +478,8 @@ EXIT /b
 ;; **** advice them using http proxy
 
 (dolist (install-func  '(entropy/emacs-coworker--coworker-install-by-archive-get
-                         entropy/emacs-coworker--coworker-install-by-npm
-                         entropy/emacs-coworker--coworker-install-by-pip))
+                         entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
+                         entropy/emacs-coworker--coworker-isolate-bins-install-by-pip))
   (advice-add install-func
               :around
               #'entropy/emacs-advice-for-common-do-with-http-proxy))
@@ -487,29 +489,29 @@ EXIT /b
 ;; **** tern
 (defun entropy/emacs-coworker-check-tern-server (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "tern-server-install" '("tern") "tern"))
 
 ;; **** web
 (defun entropy/emacs-coworker-check-web-lsp (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "html-lsp-server" '("html-languageserver") "vscode-html-languageserver-bin")
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "css-lsp-server" '("css-languageserver") "vscode-css-languageserver-bin"))
 
 ;; **** js
 (defun entropy/emacs-coworker-check-js-lsp (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "typescript-base"
    '("tsc" "tsserver")
    "typescript")
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "js-lsp-server"
    '("typescript-language-server")
    "typescript-language-server")
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "vue-lsp-server"
    '("vls")
    "vls"))
@@ -517,7 +519,7 @@ EXIT /b
 ;; **** php
 (defun entropy/emacs-coworker-check-php-lsp (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "php-lsp-server" '("intelephense") "intelephense"))
 
 ;; **** clangd
@@ -535,13 +537,13 @@ EXIT /b
 
 (defun entropy/emacs-coworker-check-cmake-lsp (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-pip
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-pip
    "cmake-lsp" '("cmake-language-server" "cmake-format") "cmake-language-server"))
 
 ;; **** bash
 (defun entropy/emacs-coworker-check-bash-lsp (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "bash-language-server"
    '("bash-language-server")
    "bash-language-server"))
@@ -549,7 +551,7 @@ EXIT /b
 ;; **** json
 (defun entropy/emacs-coworker-check-json-lsp (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "json-lsp"
    '("vscode-json-languageserver")
    "vscode-json-languageserver"))
@@ -591,7 +593,7 @@ EXIT /b
 ;; ****** pyls
 (defun entropy/emacs-coworker-check-pyls-lsp (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-pip
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-pip
    "pyls-lsp" '("pyls") "python-language-server"))
 
 ;; ****** pyls-ms
@@ -689,7 +691,7 @@ EXIT /b
 ;; ****** pyright
 (defun entropy/emacs-coworker-check-pyright-lsp ()
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "pyright-lsp" '("pyright" "pyright-langserver") "pyright"))
 
 ;; ***** main
@@ -723,7 +725,7 @@ EXIT /b
 ;; **** wsl-open
 (defun entropy/emacs-coworker-check-wsl-open (&rest _)
   (interactive)
-  (entropy/emacs-coworker--coworker-install-by-npm
+  (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
    "wsl-open"
    '("wsl-open")
    "wsl-open"))

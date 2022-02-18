@@ -424,7 +424,7 @@ format."
   :preface
   (defun entropy/emacs-web--check-js-beautify-coworker ()
     (interactive)
-    (entropy/emacs-coworker--coworker-install-by-npm
+    (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
      "js-beautify" ("css-beautify" "html-beautify" "js-beautify")
      "js-beautify"))
 
