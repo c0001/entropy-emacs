@@ -2323,7 +2323,10 @@ module."
                       ms-dos)))
        (entropy/emacs-dynamic-module-support-p)
        (and (executable-find "cmake")
-            (executable-find "make"))))
+            (executable-find "make")
+            (executable-find "libtool")
+            (executable-find "cmake"))
+       t))
 
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)
