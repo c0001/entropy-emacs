@@ -2037,7 +2037,7 @@ NOTE: this variable just be used when
 ;; ******* python
 (defcustom entropy/emacs-win-portable-python-enable nil
   "Enable python winport release usage for emacs in windows and
-then variable `entropy/emacs-win-portable-python-path' will be
+then variable `entropy/emacs-win-portable-python-installation-host-path' will be
 used.
 
 In the case that you've set the
@@ -2049,46 +2049,49 @@ running broken for interactiv with windows-emacs."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-python-path
+(defcustom entropy/emacs-win-portable-python-installation-host-path
   "c:/eemacs-win-portable-apps/python"
-  "Portable python winport /bin/ path.
+  "Portable win32 python installation dir root.
 
 You can download it from https://winpython.github.io/
 
+NOTE: when set this variable the
+`entropy/emacs-win-portable-pip-host-path' will be also setted
+automaticlaly by eemacs, so there's no need to set that var
+manually again or other occasions occurred (see
+`entropy/emacs-win-portable-pip-host-path' for details).
+
 NOTE: this variable just be used when
-`entropy/emacs-win-portable-python-enable' init with non-nil value."
+`entropy/emacs-win-portable-python-enable' init with non-nil value.
+
+NOTE: the installation must be python official site release
+i.e. retrieved from
+https://www.python.org/ftp/python/$version/python-$version-$arch.exe
+
+Tricks: you can install the 'pip' for this installation by follow steps
+
+#+begin_src bash
+  curl -sSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  python get-pip.py
+#+end_src
+"
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
 ;; ******* pip
-(defcustom entropy/emacs-win-portable-pip-enable entropy/emacs-win-portable-python-enable
-  "Enable external python pip winport portable release usage for
-emacs in emacs and then variable
-`entropy/emacs-win-portable-python-path' will be used.
-
-The exist meaning for this variable is that pip always not in the
-same location which python did for on windows platform, so that
-you need to set it manually along with you've set
-`entropy/emacs-win-portable-python-path' which has the location
-for its own pip version.
-
-NOTE: this variable is automatically enabled by default when
-`entropy/emacs-win-portable-python-enable' is set at startup."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
 (defcustom entropy/emacs-win-portable-pip-host-path
-  (expand-file-name "Scripts" entropy/emacs-win-portable-python-path)
+  (expand-file-name "Scripts" entropy/emacs-win-portable-python-installation-host-path)
   "External portable pip path whicn be along with the
-`entropy/emacs-win-portable-python-path'.
+`entropy/emacs-win-portable-python-installation-host-path'.
 
 This default value is automatically set according to
-`entropy/emacs-win-portable-python-path' by eemacs for the, so
-you may not need to manually set this unless be inconsistent with
-the actual occasions.
+`entropy/emacs-win-portable-python-installation-host-path' by eemacs
+for as, so you may not need to manually set this unless be
+inconsistent with the actual occasions.
 
 NOTE: this variable just be used when
-`entropy/emacs-win-portable-pip-enable' init with non-nil value."
+`entropy/emacs-win-portable-python-enable' init with non-nil value."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
@@ -2097,7 +2100,7 @@ NOTE: this variable just be used when
 (defcustom entropy/emacs-win-portable-nodejs-enable nil
   "Enable nodejs winport portable release usage for emacs in
 windows and then variable
-`entropy/emacs-win-portable-nodejs-path' will be used.
+`entropy/emacs-win-portable-nodejs-installation-host-path' will be used.
 
 The exist meaning for this variable is that the *nix emulator for
 windows like Msys2 doesn't has the nodejs archive for as, or if
@@ -2106,8 +2109,9 @@ enabled =eemacs-msWinUnix-emulator=."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-(defcustom entropy/emacs-win-portable-nodejs-path "c:/eemacs-win-portable-apps/nodejs/"
-  "Portable python winport release archive root path.
+(defcustom entropy/emacs-win-portable-nodejs-installation-host-path
+  "c:/eemacs-win-portable-apps/nodejs/"
+  "Portable nodejs winport release installation root path.
 
 You can download it from https://nodejs.org/en/download/
 

@@ -197,6 +197,19 @@ EXIT /b
 ;; **** npm install
 (defun entropy/emacs-coworker--coworker-install-by-npm
     (server-name-string server-bins server-repo-string)
+  (when sys/win32p
+    (unless (and entropy/emacs-win-portable-nodejs-enable
+                 (file-exists-p
+                  (expand-file-name
+                   "node.exe"
+                   entropy/emacs-win-portable-nodejs-installation-host-path))
+                 (file-exists-p
+                  (expand-file-name
+                   "npm.cmd"
+                   entropy/emacs-win-portable-nodejs-installation-host-path)))
+      (error "You must using 'npm' of \
+`entropy/emacs-win-portable-nodejs-enable' to install coworker <%s>"
+             server-name-string)))
   (let* (
          ;; NOTE:
          ;; We should use independently prefix for each node pacakge
@@ -289,6 +302,15 @@ EXIT /b
 ;; **** pip install
 (defun entropy/emacs-coworker--coworker-install-by-pip
     (server-name-string server-bins server-repo-string)
+  (when sys/win32p
+    (unless (and entropy/emacs-win-portable-python-enable
+                 (file-exists-p
+                  (expand-file-name
+                   "pip.exe"
+                   entropy/emacs-win-portable-pip-host-path)))
+      (error "You must using 'pip' of \
+`entropy/emacs-win-portable-python-enable' to install coworker <%s>"
+             server-name-string)))
   (let* (
          ;; NOTE: We should use independently prefix for each pypi
          ;; pacakge since each pacakge should has their own

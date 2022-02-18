@@ -112,12 +112,12 @@
                   :path entropy/emacs-win-portable-php-path
                   :env-order 6
                   :exec-order 6)
-        (:trigger entropy/emacs-win-portable-pip-enable
+        (:trigger entropy/emacs-win-portable-python-enable
                   :path entropy/emacs-win-portable-pip-host-path
                   :env-order 7
                   :exec-order 7)
         (:trigger entropy/emacs-win-portable-python-enable
-                  :path entropy/emacs-win-portable-python-path
+                  :path entropy/emacs-win-portable-python-installation-host-path
                   :env-order 8
                   :exec-order 8)
         (:trigger entropy/emacs-win-portable-grep-enable
@@ -133,7 +133,7 @@
                   :env-order 10
                   :exec-order 10)
         (:trigger entropy/emacs-win-portable-nodejs-enable
-                  :path entropy/emacs-win-portable-nodejs-path
+                  :path entropy/emacs-win-portable-nodejs-installation-host-path
                   :env-order 11
                   :exec-order 11)
         (:trigger entropy/emacs-win-portable-opencc-enable
