@@ -248,9 +248,7 @@ EXIT /b
            ,server-name-string
            :synchronously t
            :command
-           '(,(if sys/win32p (expand-file-name "npm.cmd"
-                                               entropy/emacs-win-portable-nodejs-installation-host-path)
-                "npm")
+           '("npm"
              "install" ,server-repo-string)
            :buffer (get-buffer-create "*eemacs-coworker-npm-install-proc*")
            :default-directory ,this-npm-prefix
@@ -339,8 +337,11 @@ EXIT /b
            ,server-name-string
            :synchronously t
            :command
-           '(,(if sys/win32p (expand-file-name "python3.exe"
-                                               entropy/emacs-win-portable-python-installation-host-path)
+           '(,(if sys/win32p
+                  ;; TODO: windows python release do not have the
+                  ;; python3 alias to python.exe, so we should do an
+                  ;; versionn check to this later.
+                  "python"
                 "python3")
              "-m" "pip"
              "--isolated"
