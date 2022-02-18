@@ -162,7 +162,9 @@
                   :exec-order 17
                   :predicate
                   (lambda ()
-                    (when (and entropy/emacs-microsoft-windows-unix-emulator-enable-extra entropy/emacs-microsoft-windows-unix-emulator-enable)
+                    (when (and sys/win32p
+                               entropy/emacs-microsoft-windows-unix-emulator-enable-extra
+                               entropy/emacs-microsoft-windows-unix-emulator-enable)
                       (setq woman-manpath
                             `(,(concat entropy/emacs-microsoft-windows-unix-emulator-extra-root-path "usr/man")
                               ,(concat entropy/emacs-microsoft-windows-unix-emulator-extra-root-path "usr/share/man")
