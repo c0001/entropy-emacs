@@ -164,7 +164,10 @@
 
   ;; w3m personal browse url function
   (defun entropy/emacs-textwww--w3m-browse-url (url &rest args)
-    (if (bound-and-true-p w3m-make-new-session)
+    (if (or (bound-and-true-p w3m-make-new-session)
+            ;; TODO: more conditions to use new session
+            (or (memq major-mode
+                      '(elfeed-show-mode elfeed-search-mode))))
         (w3m-goto-url-new-session url)
       (w3m-goto-url url)))
 
