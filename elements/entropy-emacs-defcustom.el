@@ -484,7 +484,7 @@ convention."
   :group 'entropy/emacs-customize-group-for-editor-common)
 
 (defcustom entropy/emacs-kill-ring-persist-file
-  (expand-file-name "kill-ring.persist" entropy/emacs-stuffs-topdir)
+  (expand-file-name "eemacs-kill-ring-persist/kill-ring.persist" entropy/emacs-stuffs-topdir)
   "Persist cache file for storing `kill-ring'."
   :type 'file
   :group 'entropy/emacs-customize-group-for-editor-kill-ring)

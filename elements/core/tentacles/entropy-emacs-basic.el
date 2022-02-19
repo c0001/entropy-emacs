@@ -2057,7 +2057,12 @@ file."
   (interactive)
   (let* ((find-file-suppress-same-file-warnings t)
          (file entropy/emacs-kill-ring-persist-file)
-         (to-buffer (find-file-noselect file))
+         (to-buffer (progn
+                      ;; create the kill-ring persist host root firstly
+                      (let ((file-host (file-name-directory file)))
+                        (unless (file-exists-p file-host)
+                          (make-directory file-host t)))
+                      (find-file-noselect file)))
          (inhibit-read-only t)
          ;; the `kill-ring' cache file header
          (top-message
