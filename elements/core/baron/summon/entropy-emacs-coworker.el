@@ -294,8 +294,12 @@ EXIT /b
            (with-current-buffer $sentinel/destination
              (let ((msg (buffer-substring (point-min) (point-max))))
                (entropy/emacs-message-do-message
-                "%s"
-                (red msg))))
+                "%s\n%s"
+                (red msg)
+                (red
+                 "[FATAL] NPM install fatal of process <%s> with package '%s'"
+                 ,server-name-string
+                 ,server-repo-string))))
            :cleanup
            (when (buffer-live-p $sentinel/destination)
              (kill-buffer $sentinel/destination))))
@@ -412,8 +416,12 @@ EXIT /b
            (with-current-buffer $sentinel/destination
              (let ((msg (buffer-substring (point-min) (point-max))))
                (entropy/emacs-message-do-message
-                "%s"
-                (red msg))))
+                "%s\n%s"
+                (red msg)
+                (red
+                 "[FATAL] PIP install fatal of process <%s> with package '%s'"
+                 ,server-name-string
+                 ,server-repo-string))))
            :cleanup
            (when (buffer-live-p $sentinel/destination)
              (kill-buffer $sentinel/destination))))

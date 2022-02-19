@@ -783,6 +783,30 @@ to handle the operation.)"
       rtn)))
 
 ;; *** Process manipulation
+
+(defun entropy/emacs-process-exit-with-fatal-p
+    (process &optional sentinel-event-string)
+  "Judge whether a PROCESS is ran out with abnormal status. Return
+non-nil if thus.
+
+Optional arguments SENTINEL-EVENT-STRING is the event-status
+string for normally getted from the PROCESS's sentinel."
+  (require 'rx)
+  (let* ((proc process)
+         (event sentinel-event-string)
+         (event-regexp
+          (rx (or "deleted" "killed" "core dumped"
+                  (regex "exited abnormally with code.*")
+                  (regex "failed with code.*")
+                  "connection broken by remote peer"
+                  ;; TODO: adding more to done as exhaustively
+                  )
+              (? "\n"))))
+    (if event
+        (or (not (= 0 (process-exit-status proc)))
+            (string-match-p event-regexp event))
+      (not (= 0 (process-exit-status proc))))))
+
 (defun entropy/emacs-chained-eemacs-make-proc-args (eemacs-make-proc-args-list)
   "Chained sets of `eemacs-make-proc-args-list' one by one
 ordered of a list of thus of EEMACS-MAKE-PROC-ARGS-LIST."
@@ -964,31 +988,44 @@ can be used into your form:
                :filter $make_proc_filter
                :sentinel
                `(lambda ($sentinel/proc $sentinel/event)
-                  (let ((orig-sentinel
-                         ,$make_proc_sentinel)
-                        ($sentinel/destination (process-buffer $sentinel/proc)))
+                  (let ((orig-sentinel ,$make_proc_sentinel)
+                        ($sentinel/destination (process-buffer $sentinel/proc))
+                        (ran-out-p nil))
                     (unwind-protect
-                        (progn
-                          (when (functionp orig-sentinel)
-                            (apply orig-sentinel
-                                   $sentinel/proc $sentinel/event))
+                        (unwind-protect
+                            ;; run user spec sentinel when pure async run
+                            (when (and (functionp orig-sentinel)
+                                       (not ',synchronously))
+                              (apply orig-sentinel
+                                     $sentinel/proc $sentinel/event))
+                          ;; run after/error when pure async run
                           (cond ((string-match-p "finished\n" $sentinel/event)
+                                 (setq ran-out-p t)
                                  (unless ',synchronously
                                    ,after-form))
-                                ((string-match-p "\\(exit\\|failed\\|exited\\|broken\\)" $sentinel/event)
+                                ((entropy/emacs-process-exit-with-fatal-p
+                                  $sentinel/proc $sentinel/event)
+                                 (setq ran-out-p
+                                       (list
+                                        :exit-code (process-exit-status $sentinel/proc)))
                                  ,error-form)))
-                      (unless ',synchronously
-                        ,clean-form)
-                      (when (eq ',synchronously t)
-                        (setq ,__this_sync_sym t))))))
+                      ;; do ran out procedures
+                      (when (and (eq ',synchronously t)
+                                 ran-out-p)
+                        (setq ,__this_sync_sym ran-out-p))
+                      (when (and (not ',synchronously)
+                                 ran-out-p)
+                        ,clean-form)))))
 
               __this_proc_buffer (process-buffer __this_proc))
 
         (when (eq synchronously t)
           (while (null (symbol-value __this_sync_sym)) (sleep-for 0.1))
           (eval `(let (($sentinel/destination ',__this_proc_buffer))
-                   (progn
-                     ,after-form
+                   (unwind-protect
+                       (if (eq ,__this_sync_sym t)
+                           ;; just ran after form when this process ran out successfully
+                           ,after-form)
                      ,clean-form)))))
        (t
         (let (($sentinel/destination
@@ -1002,6 +1039,7 @@ can be used into your form:
                           $call_proc_display
                           $call_proc_args)
                    0)
+                  ;; just ran after form when this process ran out successfully
                   (eval after-form)
                 (eval error-form))
             (eval clean-form))))))))
