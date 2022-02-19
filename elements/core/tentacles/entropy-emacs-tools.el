@@ -74,7 +74,10 @@
                             ;; archive type
                             "zip" "7z" "xz" "rar" "bzip2"
                             "tgz" "txz" "t7z" "tbz"
-                            (regex "tar\\..+")
+                            ;; NOTE: do not set 'tar\..+' regex since
+                            ;; the 'tar.sig' suffix is used for emacs
+                            ;; internal IO like `package-intall'.
+                            (regex "tar\\.\\(gz\\|xz\\|bz\\)")
                             "bak"
                             ))))
                     "\\)$")
