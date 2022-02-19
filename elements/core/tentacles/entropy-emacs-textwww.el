@@ -612,15 +612,16 @@ fixing it as thus.
                                   ((equal type "External")
                                    entropy/emacs-search-web-engines-external)))
              (engine (entropy/emacs-textwww--search-web-query-egine type))
-             (word (read-string
-                    (format "Searching for?[%s]: "
-                            ;; indicator browser use
-                            (if (not (eql (car current-prefix-arg) 16))
-                                entropy/emacs-textwww--search-web-default-engine-list
-                              "with choose extra browser")))))
-        (if region
-            (search-web-region engine word)
-          (search-web engine word)))))
+             (word (if region
+                       (buffer-substring-no-properties
+                        (region-beginning) (region-end))
+                     (read-string
+                      (format "Searching for?[%s]: "
+                              ;; indicator browser use
+                              (if (not (eql (car current-prefix-arg) 16))
+                                  entropy/emacs-textwww--search-web-default-engine-list
+                                "with choose extra browser"))))))
+        (search-web engine word))))
 
   (defun entropy/emacs-textwww-search-web-toggle (&optional prefix)
     "Trigger `search-web'.
