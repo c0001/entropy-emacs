@@ -313,7 +313,7 @@ for `last-command'.
 "
   )
 
-(defvar entropy/emacs-session-idle-trigger-debug nil
+(defvar entropy/emacs-session-idle-trigger-debug entropy/emacs-startup-with-Debug-p
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
 (defvar entropy/emacs-idle-session-trigger-delay-clusters
