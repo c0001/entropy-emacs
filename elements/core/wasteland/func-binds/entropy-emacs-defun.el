@@ -852,14 +852,16 @@ value of key slot of :default-directory, the place hold a atom or
 a form.
 
 Further more key :synchronously indicate whether call with
-synchronously, the place hold a any atom (i.e. non-nil when set
-any atom but 'nil' atom) or a form. If :synchronously enabled by
-atom 't', then the synchronously method using `make-process' with
-spawn watchdog mechanism to emulate synchronization , otherwise
-using `call-process' to did the synchronization, this be
-presented since the `call-process' have the terminate
-non-effected problem in emacs batch-mode (see its doc for details
-refer the SIGINT and SIGKILL).
+synchronously, the place hold a symbol or a single form to be
+evaled and use its result to indicate turn/off as that a non-nil
+result to turn on. If its result is 't' and current emacs-session
+is `noninteractive', then the synchronously method using
+`make-process' with spawn watchdog mechanism to emulate
+synchronization , otherwise using `call-process' to did the
+synchronization, this be presented since the `call-process' have
+the termination without kill its spawns problem in emacs
+`noninteractive' session like '--batch' mode (see its doc for
+details refer the SIGINT and SIGKILL).
 
 If you wish to do sth both for finished or errored status with
 `unwind-protect', inject forms to :cleanup slot.
@@ -945,7 +947,11 @@ can be used into your form:
     (when (eval prepare-form)
       (cond
        ((or (null synchronously)
-            (eq synchronously t))
+            (and (eq synchronously t)
+                 ;; NOTE & FIXME: sleep waiting for async in
+                 ;; interaction session may freeze emacs why? and thus
+                 ;; we just used this in noninteraction session.
+                 (bound-and-true-p noninteractive)))
         (setq __this_proc
               (make-process
                :name $make_proc_name
