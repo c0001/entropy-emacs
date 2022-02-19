@@ -2538,6 +2538,91 @@ NOTE: not support load dynamic module"
   "Alias for `entropy/emacs-common-require-feature' but just used
 in baron part to simplify context distinction search")
 
+;; *** remote refer apis
+
+(defun entropy/emacs-filename-is-remote-p (filename)
+  "Judge whether file name is remote style"
+  (if (fboundp 'tramp-tramp-file-p)
+      (tramp-tramp-file-p filename)
+    nil))
+
+;; *** large file/buffer detection
+
+(defun entropy/emacs-check-buffer-has-long-line-p
+    (&optional buffer-or-name long-threshold max-lines-to-detect)
+  "Decide whether buffer (default to `current-buffer' unless
+BUFFER-OR-NAME is set) has long line functionally by `so-long'.
+
+LONG-THREAD is used to set the `so-long-lines' and default to 1000.
+
+MAX-LINES-TO-DETECT is used when emacs-version lower than 28.0.91
+which has the same meaning as `so-long-max' and default to 1000."
+  (require 'so-long)
+  (let ((func (if (version< emacs-version "28.0.91")
+                  'so-long-detected-long-line-p
+                'so-long-statistics-excessive-p))
+        (so-long-threshold (or long-threshold 1000))
+        (so-long-max-lines (or max-lines-to-detect
+                               1000)))
+    (if buffer-or-name
+        (with-current-buffer buffer-or-name
+          (funcall func))
+      (funcall func))))
+
+(defvar entropy/emacs-large-file-warning-threshold (* 8 (expt 1024 2))
+  "Like `large-file-warning-threshold' but used in eemacs internal.")
+;; FIXME: `large-file-warning-threshold' is nil in some occasions even
+;; if we bind it in top level. Refer to bug id [h-ca204a62-9e15-4f3b-ae23-f31b6046a9c5]
+(setq large-file-warning-threshold entropy/emacs-large-file-warning-threshold)
+
+(defvar entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter nil
+  "The function to handler a filename whether need to open with
+external app used for
+`entropy/emacs-find-file-judge-filename-need-open-with-external-app-p'.
+
+NOTE: for eemacs developer notice of that this variable always
+need to be initial as nil before `entropy/emacs-startup-done',
+since at startup time we do not want to handle any external open
+with requests.")
+(defun entropy/emacs-find-file-judge-filename-need-open-with-external-app-p (filename)
+  "Judge whether open FILENAME externally"
+  (and (functionp entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter)
+       (funcall entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter
+                filename)))
+
+(defvar __unreadable-file-long-threshold 700)
+(defvar entropy/emacs-unreadable-file-judge-function nil)
+(setq entropy/emacs-unreadable-file-judge-function
+      (lambda (filename)
+        (let ((inhibit-read-only t)
+              (kill-buffer-hook nil))
+          (with-temp-buffer
+            (ignore-errors
+              (insert-file-contents
+               filename))
+            (or (> (buffer-size) entropy/emacs-large-file-warning-threshold)
+                (entropy/emacs-check-buffer-has-long-line-p
+                 nil
+                 __unreadable-file-long-threshold
+                 (when (version< emacs-version "28.0.91")
+                   (save-excursion
+                     (goto-char (point-max))
+                     (line-number-at-pos)))))))))
+
+(defvar entropy/emacs-unreadable-buffer-judge-function nil)
+(setq entropy/emacs-unreadable-buffer-judge-function
+      (lambda (buff)
+        (with-current-buffer buff
+          (or (> (buffer-size) entropy/emacs-large-file-warning-threshold)
+              (progn
+                (entropy/emacs-check-buffer-has-long-line-p
+                 nil
+                 __unreadable-file-long-threshold
+                 (when (version< emacs-version "28.0.91")
+                   (save-excursion
+                     (goto-char (point-max))
+                     (line-number-at-pos)))))))))
+
 ;; ** entropy-emacs initialize
 ;; *** basic setting
 ;; **** make sure gpg pinentry passphrase prompt using emacs minibuffer
@@ -2610,57 +2695,7 @@ origin config file."
 
 ;; *** intial advice
 ;; **** find file patch
-
-(defun entropy/emacs-filename-is-remote-p (filename)
-  "Judge whether file name is remote style"
-  (if (fboundp 'tramp-tramp-file-p)
-      (tramp-tramp-file-p filename)
-    nil))
-
 ;; ***** unreadable file detection
-
-(defvar entropy/emacs-large-file-warning-threshold (* 8 (expt 1024 2))
-  "Like `large-file-warning-threshold' but used in eemacs internal.")
-;; FIXME: `large-file-warning-threshold' is nil in some occasions even
-;; if we bind it in top level. Refer to bug id [h-ca204a62-9e15-4f3b-ae23-f31b6046a9c5]
-(setq large-file-warning-threshold entropy/emacs-large-file-warning-threshold)
-
-(defvar entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter nil
-  "The function to handler a filename whether need to open with
-external app used for
-`entropy/emacs-find-file-judge-filename-need-open-with-external-app-p'.
-
-NOTE: for eemacs developer notice of that this variable always
-need to be initial as nil before `entropy/emacs-startup-done',
-since at startup time we do not want to handle any external open
-with requests.")
-(defun entropy/emacs-find-file-judge-filename-need-open-with-external-app-p (filename)
-  "Judge whether open FILENAME externally"
-  (and (functionp entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter)
-       (funcall entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter
-                filename)))
-
-(defvar __unreadable-file-long-threshold 700)
-(defvar entropy/emacs-unreadable-file-judge-function
-  (lambda (filename)
-    (require 'so-long)
-    (let ((inhibit-read-only t)
-          (so-long-threshold __unreadable-file-long-threshold))
-      (with-temp-buffer
-        (ignore-errors
-          (insert-file-contents
-           filename))
-        (or (> (buffer-size) entropy/emacs-large-file-warning-threshold)
-            (so-long-detected-long-line-p))))))
-
-(defvar entropy/emacs-unreadable-buffer-judge-function
-  (lambda (buff)
-    (with-current-buffer buff
-      (or (> (buffer-size) entropy/emacs-large-file-warning-threshold)
-          (progn
-            (require 'so-long)
-            (let ((so-long-threshold __unreadable-file-long-threshold))
-              (so-long-detected-long-line-p)))))))
 
 (defun __ureadable-file-do-prompt-of-message (format &rest args)
   (if (yes-or-no-p (format format args))
