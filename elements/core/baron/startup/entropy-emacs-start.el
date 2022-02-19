@@ -140,17 +140,10 @@ named as 'compile_$date.log'."
       (let ((inhibit-read-only t)
             ($f (expand-file-name
                  (concat "compile_" (format-time-string "%Y-%m-%d_%a_%H%M%S") ".log")
-                 entropy/emacs-stuffs-topdir))
-            buff_content)
+                 (expand-file-name "eemacs-package-install-compile-logs"
+                                   entropy/emacs-stuffs-topdir))))
         (with-current-buffer (get-buffer "*Compile-Log*")
-            (setq buff_content
-                  (buffer-substring-no-properties
-                   (point-min) (point-max))))
-        (with-current-buffer (find-file-noselect $f)
-          (goto-char (point-min))
-          (insert buff_content)
-          (save-buffer)
-          (kill-buffer)))))
+          (entropy/emacs-write-file $f)))))
   ;; fake defun
   (defun entropy/emacs-start--check-init-with-install-p ()
     "This function has been unloaded."
