@@ -22,14 +22,14 @@
  ;;           \/__/        \/__/        \/__/        \/__/        \/__/
 
 
-;; Basic personal information
+;; * Basic personal information
 (setq entropy/emacs-user-full-name "Thanos")
 
 (setq entropy/emacs-user-mail-address "thanos@comos.com")
 
 (setq entropy/emacs-indicate-sshd-session nil)
 
-;; Startup options
+;; * Startup options
 
 ;; ;; enable rich dashboard to show recentf and projects but for more loading time
 ;; (setq entropy/emacs-enable-initial-dashboard 'rich)
@@ -43,12 +43,16 @@
 
 (setq entropy/emacs-do-pdumper-in-X t)
 
-(setq entropy/emacs-ext-elpkg-customized-get-type 'origin)
+(setq entropy/emacs-ext-elpkg-customized-get-type
+      ;; --- the origin type
+         'origin
+      ;; --- eemacs spec elpa/melpa mirro (download via 'make intall-eemacs-ext-build')
+      ;; 'entropy-emacs-extenisons-project
+      )
 
 (setq entropy/emacs-package-archive-repo 'melpa)
 
-
-;; Proxy options
+;; * Proxy options
 ;; (setq entropy/emacs-union-http-proxy-plist
 ;;       '(:enable
 ;;         t
@@ -64,7 +68,7 @@
 ;;          (:type number_range :range (1 . 255) :sep "")
 ;;          )))
 
-;; Visual basic
+;; * Visual basic
 (setq entropy/emacs-enable-modeline-toggle t)
 
 ;; High performance optimized self-origin type modeline is suggested,
@@ -72,8 +76,15 @@
 ;; guarantee, so stick on your choice.
 (setq entropy/emacs-modeline-style "origin")
 
+;; ;; set initialize frame centering feature
+;; (setq entropy/emacs-init-fpos-enable t
+;;       entropy/emacs-init-fpos-y 0
+;;       entropy/emacs-init-frame-height-scale 0.98
+;;       entropy/emacs-init-frame-width-scale 0.75)
 
-;; IDE options
+;; * IDE options
 ;; ;; enable eemacs IDE integration
 ;; (setq entropy/emacs-ide-suppressed nil)
 (setq entropy/emacs-ide-use-for-all 'lsp)
+
+;; * _
