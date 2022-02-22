@@ -85,6 +85,10 @@
 environment."
   )
 
+(defconst sys/wslg-env-p (and sys/wsl-env-p (display-graphic-p))
+  "Judge whether current env is in WSLg(windows subsystem linux
+gui) environment.")
+
 ;; *** group filter
 (defconst sys/is-win-group
   (or sys/win32p sys/cygwinp)

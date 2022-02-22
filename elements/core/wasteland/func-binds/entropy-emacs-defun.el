@@ -3429,28 +3429,9 @@ the cdr was the replacement yank function")
 
 (declare-function xclip-mode "xclip")
 
-;; init `xclip-method' for gurantee its setting adapted to rest of
-;; =entropy-emacs= context
-(setq xclip-method
-      (or
-       (and (bound-and-true-p xclip-use-pbcopy&paste) 'pbpaste)
-       (and sys/cygwinp (executable-find "getclip") 'getclip)
-       (and (executable-find "xclip") 'xclip)
-       (and (executable-find "xsel") 'xsel)
-       (and (executable-find "wl-copy") 'wl-copy) ;github.com/bugaevc/wl-clipboard
-       (and (executable-find "termux-clipboard-get") 'termux-clipboard-get)
-
-       ;; NOTE: we must disable the native gui support method to
-       ;; prevent it make a invisible frame to build connection with
-       ;; current tui session.
-       ;;
-       ;;(and (fboundp 'x-create-frame) (getenv "DISPLAY") 'emacs)
-       )
-      xclip-program (symbol-name xclip-method))
-
-(defun entropy/emacs-xterm-external-satisfied-p ()
-  "Judge whether emacs to use external kits to assistant the
-xterm-session yank/paste operation."
+(defun entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p ()
+  "Return non-nil when current non-gui emacs session support sync
+clipboard with native operation system."
   (let ((judger
          (or
           ;; darwin (macos platform)
@@ -3464,19 +3445,37 @@ xterm-session yank/paste operation."
           ;; android termux emulator
           (and (executable-find "termux-clipboard-get")
                'termux-clipboard-get)
+          ;; microsoft wsl env
+          (and sys/wsl-env-p
+               (executable-find "powershell.exe")
+               'powershell)
           ;; gnu/linux platform
           (and sys/linuxp
                (or
                 (and (executable-find "xclip") 'xclip)
                 (and (executable-find "xsel") 'xsel)
-                (and (executable-find "wl-copy") 'wl-copy))))))
-    (when (and (not (display-graphic-p))
-               (fboundp 'xterm-paste)
-               (when (ignore-errors (executable-find xclip-program))
-                 (if (bound-and-true-p xclip-mode)
-                     t
-                   (progn (require 'xclip)
-                          (xclip-mode 1)))))
+                (and (executable-find "wl-copy") 'wl-copy)))
+
+          ;; NOTE: we must disable the native gui support method to
+          ;; prevent it make a invisible frame to build connection with
+          ;; current tui session.
+          ;;
+          ;;(and (fboundp 'x-create-frame) (getenv "DISPLAY") 'emacs)
+          )))
+    (when (and
+           ;; just satisfied return when in non-gui session since the
+           ;; gui session has full support for system<->emacs
+           ;; clipboard sync functional
+           (not (display-graphic-p))
+           (fboundp 'xterm-paste)
+           (when (ignore-errors (executable-find (symbol-name judger)))
+             (if (bound-and-true-p xclip-mode)
+                 t
+               (progn (require 'xclip)
+                      (setq xclip-method judger
+                            xclip-program (symbol-name judger))
+                      (xclip-mode 1)
+                      t))))
       judger)))
 
 ;; Inspired by
@@ -3508,7 +3507,8 @@ NOTE: no warranty use in other system."
     (orig-func &rest orig-args)
   "Kill things also put in windows system clipboard when
 `sys/wsl-env-p'."
-  (when sys/wsl-env-p
+  ;; just WSLg env since `xclip-mode' not enabled in that case
+  (when sys/wslg-env-p
     (let ((str (car orig-args)))
       (entropy/emacs-windows-env/copy-to-clipboard-core
        str)))

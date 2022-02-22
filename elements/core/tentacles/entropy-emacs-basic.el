@@ -2485,12 +2485,12 @@ successfully both of situation of read persisit of create an new."
             (funcall ,cli-disable-func)
             (funcall ,term-disable-func))))
    (if (null (daemonp))
-       (when (entropy/emacs-xterm-external-satisfied-p)
+       (when (entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p)
          (funcall enable-func))
      (defvar entropy/emacs-basic--xterm-paste-rebinded nil)
      (entropy/emacs-with-daemon-make-frame-done
       'xterm-paste-bind
-      `(when (entropy/emacs-xterm-external-satisfied-p)
+      `(when (entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p)
          (funcall ,enable-func)
          (setq entropy/emacs-basic--xterm-paste-rebinded t))
       `(when entropy/emacs-basic--xterm-paste-rebinded
