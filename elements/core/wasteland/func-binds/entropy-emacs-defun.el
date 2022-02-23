@@ -3468,7 +3468,12 @@ clipboard with native operation system."
            ;; clipboard sync functional
            (not (display-graphic-p))
            (fboundp 'xterm-paste)
-           (when (ignore-errors (executable-find (symbol-name judger)))
+           (when (ignore-errors (or (executable-find (symbol-name judger))
+                                    ;; in windows wsl env we must use
+                                    ;; the `powershell' exe name to
+                                    ;; get it.
+                                    (when (eq judger 'powershell)
+                                      (executable-find "powershell.exe"))))
              (if (bound-and-true-p xclip-mode)
                  t
                (progn (require 'xclip)

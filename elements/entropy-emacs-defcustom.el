@@ -1751,8 +1751,10 @@ variable `entropy/emacs-git-portable-enable' will be used.
 
 (defcustom entropy/emacs-git-portable-path "c:/Git-Portable/cmd/"
   "The customize git applicaton's path which take priority on the
-\"git\" command in `entrop/emacs-wsl-apps' when
-`entropy/emacs-microsoft-windows-unix-emulator-enable' was non-nil.
+\"git\" command in
+`entropy/emacs-microsoft-windows-unix-emulator-bin-path' when
+`entropy/emacs-microsoft-windows-unix-emulator-enable' was
+non-nil.
 
 NOTE: this variable just be used when
 `entropy/emacs-git-portable-enable' init with non-nil value.
