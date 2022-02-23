@@ -1,20 +1,20 @@
 # Table of Contents
 
-1.  [Copyright (C) 20190906  Entropy](#orgbebb52a)
-2.  [Commentary:](#orgfa1b78e)
-    1.  [Eww and emacs-w3m proxy stuff](#orgcafe0da)
-    2.  [How this package working as?](#org8c13b55)
-    3.  [Methods given](#org0297ed2)
-        1.  [Manually proxy way](#org6fba170)
-        2.  [Proxy recipe](#org79a6427)
-    4.  [Proxy reset](#org9418d46)
-3.  [Configuration:](#org7cf8bb9)
-    1.  [Target operation advice](#orgcb2efa5)
-    2.  [customized varaibles](#org7afd271)
-    3.  [The regexp rule-set list data](#org9815e3e)
-4.  [Change log:](#orgd608187)
+1.  [Copyright (C) 20190906  Entropy](#org7c7cb47)
+2.  [Commentary:](#orgb1a3e47)
+    1.  [Eww and emacs-w3m proxy stuff](#org4461bbc)
+    2.  [How this package working as?](#orgeabf3e2)
+    3.  [Methods given](#orge454c79)
+        1.  [Manually proxy way](#org8dc572a)
+        2.  [Proxy recipe](#org5bd7fcd)
+    4.  [Proxy reset](#orga7bae34)
+3.  [Configuration:](#org3916d4a)
+    1.  [Target operation advice](#orgc9afbf2)
+    2.  [customized varaibles](#orge8454c3)
+    3.  [The regexp rule-set list data](#org1d1d423)
+4.  [Change log:](#orgb919873)
 
-<a id="orgbebb52a"></a>
+<a id="org7c7cb47"></a>
 
 # Copyright (C) 20190906  Entropy
 
@@ -40,7 +40,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="orgfa1b78e"></a>
+<a id="orgb1a3e47"></a>
 
 # Commentary:
 
@@ -50,7 +50,7 @@ pull down them into whole proxy tunnel.
 This package perform as the library role for the functional provision.
 
 
-<a id="orgcafe0da"></a>
+<a id="org4461bbc"></a>
 
 ## Eww and emacs-w3m proxy stuff
 
@@ -68,7 +68,7 @@ internal proxy mechanism, and the other one was based on the refer
 response creator's self mechanism.
 
 
-<a id="org8c13b55"></a>
+<a id="orgeabf3e2"></a>
 
 ## How this package working as?
 
@@ -106,12 +106,12 @@ or using the package built-in one which was the pre-fetched one, so it
 will not be the latest version.
 
 
-<a id="org0297ed2"></a>
+<a id="orge454c79"></a>
 
 ## Methods given
 
 
-<a id="org6fba170"></a>
+<a id="org8dc572a"></a>
 
 ### Manually proxy way
 
@@ -150,7 +150,7 @@ can use:
     ;; this will make an buffer to show the curl process retrieval
 
 
-<a id="org79a6427"></a>
+<a id="org5bd7fcd"></a>
 
 ### Proxy recipe
 
@@ -192,7 +192,7 @@ optional arg `unmake` means to disable those recipes if you want
 to disable any proxy patch feature in those recipes.
 
 
-<a id="org9418d46"></a>
+<a id="orga7bae34"></a>
 
 ## Proxy reset
 
@@ -205,14 +205,14 @@ functioin \`entropy/proxy-url-update-proxy-port' for quickly reset
 proxy port only.
 
 
-<a id="org7cf8bb9"></a>
+<a id="org3916d4a"></a>
 
 # Configuration:
 
 Just require it, and building `PROXY-RECIPE` you specified.
 
 
-<a id="orgcb2efa5"></a>
+<a id="orgc9afbf2"></a>
 
 ## Target operation advice
 
@@ -225,14 +225,14 @@ mentioned above, and use function `entropy/proxy-url-make-recipes`
 to buiding it(see its doc-string for more details).
 
 
-<a id="org7afd271"></a>
+<a id="orge8454c3"></a>
 
 ## customized varaibles
 
 See customized-variable-group `entropy/proxy-url-group` for them.
 
 
-<a id="org9815e3e"></a>
+<a id="org1d1d423"></a>
 
 ## The regexp rule-set list data
 
@@ -250,9 +250,13 @@ can refresh it by calling `entropy/adbp-rule-update` at any time
 for keeping your rule-set updating with upstream.
 
 
-<a id="orgd608187"></a>
+<a id="orgb919873"></a>
 
 # Change log:
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2022-02-24 Thu 01:22] </span></span> API add
+    -   Add `entropy/proxy-url-inhbit-all-proxy` to allow permanently
+        inhibit the proxy wrapper.
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2021-02-03 Wed 18:28] </span></span> context update
     -   Fix macro context without quoting in arglist now
@@ -286,4 +290,4 @@ for keeping your rule-set updating with upstream.
     First release out.
 
 
-<a id="org3c00cbf"></a>
+<a id="orgbedca8d"></a>

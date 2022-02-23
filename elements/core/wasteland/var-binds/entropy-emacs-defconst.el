@@ -217,7 +217,26 @@ display.")
             ob-css
             ob-ditaa
             ))
-          "The ob-* features list")
+  "The org ob-* features list")
+
+(defvar entropy/emacs-org-export-backends
+  (delete nil
+          `(ox-gfm
+            ox-texinfo
+            ox-odt
+            ox-publish
+            ox-org
+            ox-md
+            ox-man
+            ox-latex
+            ox-html
+            ,(unless (< emacs-major-version 28)
+               'ox-koma-letter)
+            ox-icalendar
+            ox-ascii
+            ox-beamer
+            ))
+  "The org ox-* features list")
 
 ;; * provide
 (provide 'entropy-emacs-defconst)

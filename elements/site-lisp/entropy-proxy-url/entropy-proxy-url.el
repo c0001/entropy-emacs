@@ -200,6 +200,11 @@
 ;; for keeping your rule-set updating with upstream.
 
 ;;; Change log:
+;;
+;; - [2022-02-24 Thu 01:22:50] API add
+;;
+;;   * Add =entropy/proxy-url-inhbit-all-proxy= to allow permanently
+;;     inhibit the proxy wrapper.
 
 ;; - [2021-02-03 Wed 18:28:21] context update
 ;;   * Fix macro context without quoting in arglist now
@@ -356,6 +361,12 @@ do proxy for current transferring URL."
   :type 'sexp
   :group 'entropy/proxy-url-group)
 
+(defvar entropy/proxy-url-inhbit-all-proxy nil
+  "Inhibit all proxy matching, thus any proxy group are forbidden
+
+Useful for be using with `let' binding to inbihit any
+`entropy-proxy-url' features.")
+
 ;;;; library
 ;;;;; core functional
 ;;;;;; common retrieve recovery
@@ -496,12 +507,13 @@ do proxy for current transferring URL."
     (url type-source proxy-mechanism server-host-alist browse-func args)
   (let ((judge-source (symbol-value type-source))
         judge form)
-    (if (eq judge-source t)
-        (setq judge t)
-      (when (eq judge-source 'regexp)
-        (if (functionp entropy/proxy-url-user-proxy-match-func)
-            (setq judge (funcall entropy/proxy-url-user-proxy-match-func url))
-          (setq judge (entropy/adbp-rule-blacklist-match-url-p url)))))
+    (unless entropy/proxy-url-inhbit-all-proxy
+      (if (eq judge-source t)
+          (setq judge t)
+        (when (eq judge-source 'regexp)
+          (if (functionp entropy/proxy-url-user-proxy-match-func)
+              (setq judge (funcall entropy/proxy-url-user-proxy-match-func url))
+            (setq judge (entropy/adbp-rule-blacklist-match-url-p url))))))
     (if judge
         (funcall `(lambda ()
                     (message "Proxy for url '%s' ..." ',url)

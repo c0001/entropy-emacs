@@ -564,20 +564,26 @@ some LANGs if `web-mode' is featured."
   )
 
 ;; *** org-export
-
+;; **** core
 (use-package ox
   :ensure nil
   :after org
+;; ***** config
   :config
-;; **** html export
-;; ***** html exported head coding
+;; ****** init all ox-* features
+
+  (dolist (feature entropy/emacs-org-export-backends)
+    (require feature))
+
+;; ****** html export
+;; ******* html exported head coding
   (setq org-html-coding-system 'utf-8-unix)
 
   ;; inhibit org self default html style
   (setq org-html-head-include-scripts nil
         org-html-head-include-default-style nil)
 
-;; ***** fix the bug when cjk paragraph exported to html has the auto newline space char including
+;; ******* fix the bug when cjk paragraph exported to html has the auto newline space char including
   ;; This hacking refer to https://emacs-china.org/t/org-mode-html/7174#breadcrumb-0
   ;; and raw from spacemac layer: https://github.com/syl20bnr/spacemacs/blob/develop/layers/+intl/chinese/packages.el#L104
   (defadvice org-html-paragraph (before org-html-paragraph-advice
@@ -593,7 +599,7 @@ unwanted space when exporting org-mode to html."
       (ad-set-arg 1 fixed-contents)))
 
 
-;; ***** org export html open function
+;; ******* org export html open function
 
   ;; If `entropy/emacs-browse-url-function' is detectived then open
   ;; exported html file with it instead of using default apps or
@@ -650,9 +656,31 @@ the exec type for chosen the way whether embeded it into
 
   (advice-add 'org-open-file :around #'entropy/emacs-org--hexpt-advice)
 
-;; ***** org ignore broken links
+;; ******* org ignore broken links
   (setq org-export-with-broken-links 'mark))
 
+
+;; **** ox-reveal
+(use-package ox-reveal
+  :after ox
+  :init
+  ;; adding the backends to the general variable
+  (add-to-list 'entropy/emacs-org-export-backends
+               'ox-reveal)
+  :config
+  (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
+  (setq org-reveal-theme "black")
+  (setq org-reveal-width 1200)
+  (setq org-reveal-height 1000)
+  (setq org-reveal-margin "0.1")
+  (setq org-reveal-min-scale "0.5")
+  (setq org-reveal-max-scale "2.5")
+  (setq org-reveal-transition "cube")
+  (setq org-reveal-plugins '(classList markdown zoom notes))
+  (setq org-reveal-control t)
+  (setq org-reveal-center t)
+  (setq org-reveal-progress t)
+  (setq org-reveal-history nil))
 
 ;; *** org-publish
 (use-package ox-publish
@@ -1764,23 +1792,6 @@ Now just supply localization image file analyzing."
     (setq org-bullets-bullet-list '("●" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ"
                                     "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ"
                                     "Ⅹ" "Ⅺ" "Ⅻ"))))
-
-;; ** ox-reveal
-(use-package ox-reveal
-  :config
-  (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
-  (setq org-reveal-theme "black")
-  (setq org-reveal-width 1200)
-  (setq org-reveal-height 1000)
-  (setq org-reveal-margin "0.1")
-  (setq org-reveal-min-scale "0.5")
-  (setq org-reveal-max-scale "2.5")
-  (setq org-reveal-transition "cube")
-  (setq org-reveal-plugins '(classList markdown zoom notes))
-  (setq org-reveal-control t)
-  (setq org-reveal-center t)
-  (setq org-reveal-progress t)
-  (setq org-reveal-history nil))
 
 ;; ** org-pomodoro
 (use-package org-pomodoro)
