@@ -32,13 +32,6 @@
 ;; immediately.
 ;;
 ;; * Code:
-
-;; Disable all auto native compilation bootstraps since we use union
-;; native comp procedure in the makefile's 'make native-comp' section.
-(when (featurep 'comp)
-  (setq native-comp-always-compile nil
-        native-comp-deferred-compilation nil))
-
 (defvar entropy/emacs-start-src-load-file-name
   (eval 'load-file-name))
 

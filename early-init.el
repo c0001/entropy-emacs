@@ -60,8 +60,10 @@
 
 ;;;; Native compile config
 
-;; native comp refer
-(setq native-comp-deferred-compilation t)
+;; Disable all auto native compilation bootstraps since we use union
+;; native comp procedure in the makefile's 'make native-comp' section.
+(setq native-comp-always-compile nil
+      native-comp-deferred-compilation nil)
 (setq native-comp-deferred-compilation-deny-list
       ;; we must excluded eemacs code for native comp
       '("entropy-emacs-.*"
