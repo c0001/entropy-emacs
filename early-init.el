@@ -66,7 +66,8 @@
       ;; we must excluded eemacs code for native comp
       '("entropy-emacs-.*"
         "liberime*"
-        "fakecygpty"))
+        "fakecygpty"
+        "\\.?dir-locals.el"))
 
 ;;;; Font lock mode config
 
