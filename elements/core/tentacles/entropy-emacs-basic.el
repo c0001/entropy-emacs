@@ -2889,13 +2889,14 @@ by run command \"make liberime\" in eemacs root place")
   ;; FIXME
   ;; EEMACS_BUG
   ;; EEMACS_TEMPORALLY_HACK
+  ;; EEMACS_MAINTENANCE: follow upstream
   (defun __ya/pyim-indicator-daemon-function ()
     "Like `pyim-indicator-daemon' but remove the `redisplay'
 procedure since it may cause emacs `font-lock-mode' pause for the
 current displayed buffer area wile
 `pyim-indicator-use-post-command-hook' is set and WHY?"
     (while-no-input
-      ;;(redisplay)
+      ;;(redisplay) <---- disable this
       (ignore-errors
         (let ((chinese-input-p
                (and (functionp pyim-indicator-daemon-function-argument)
