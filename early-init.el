@@ -67,7 +67,7 @@
       '("entropy-emacs-.*"
         "liberime*"
         "fakecygpty"
-        "\\.?dir-locals.el"))
+        "\\.?dir-locals\\.el$"))
 
 ;;;; Font lock mode config
 
