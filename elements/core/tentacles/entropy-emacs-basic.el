@@ -2806,15 +2806,17 @@ by run command \"make liberime\" in eemacs root place")
     (unless entropy/emacs-pyim-has-initialized
       (require 'pyim)
       (cond ((eq entropy/emacs-pyim-use-backend 'internal)
-             (setq pyim-dicts entropy/emacs-pyim-dicts)
+             (if entropy/emacs-pyim-dicts
+                 (setq pyim-dicts entropy/emacs-pyim-dicts)
+               (pyim-basedict-enable))
              (setq entropy/emacs-pyim-has-initialized t))
             ((and (eq entropy/emacs-pyim-use-backend 'liberime)
                   (not sys/win32p))
              (require 'pyim-liberime)          ;needed for load liberime for pyim
              (entropy/emacs-basic-pyim-load-rime))
             (t
-             (pyim-basedict-enable)
-             (setq entropy/emacs-pyim-has-initialized t)))
+             (error "Invalid `entropy/emacs-pyim-use-backend' value '%s'"
+                    entropy/emacs-pyim-use-backend)))
 
       ;; init pyim at temp buffer for preventing polluting
       ;; current-input-method in current buffer.
