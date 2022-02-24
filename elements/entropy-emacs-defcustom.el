@@ -2602,14 +2602,9 @@ with requests.")
             (ignore-errors
               (insert-file-contents
                filename))
-            (or (> (buffer-size) entropy/emacs-large-file-warning-threshold)
-                (entropy/emacs-check-buffer-has-long-line-p
-                 nil
-                 __unreadable-file-long-threshold
-                 (when (version< emacs-version "28.0.91")
-                   (save-excursion
-                     (goto-char (point-max))
-                     (line-number-at-pos)))))))))
+            (when (functionp entropy/emacs-unreadable-buffer-judge-function)
+              (funcall entropy/emacs-unreadable-buffer-judge-function
+                       (current-buffer)))))))
 
 (defvar entropy/emacs-unreadable-buffer-judge-function nil)
 (setq entropy/emacs-unreadable-buffer-judge-function

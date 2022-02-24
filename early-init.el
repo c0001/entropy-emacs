@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+;;;; Basic
 ;; Package initialize occurs automatically, before `user-init-file' is
 ;; loaded, but after `early-init-file'. We handle package
 ;; initialization, so we must prevent Emacs from doing it early!
@@ -50,6 +51,15 @@
 ;; prevent judgment interaction missing upon emacs-28.
 (setq use-dialog-box nil)
 
+;; Disable `help-mode' auto load library for its doc render request
+;; since we needed pure charge of how packages are loading for.
+(setq help-enable-autoload nil
+      help-enable-completion-autoload nil
+      help-enable-symbol-autoload nil
+      )
+
+;;;; Native compile config
+
 ;; native comp refer
 (setq native-comp-deferred-compilation t)
 (setq native-comp-deferred-compilation-deny-list
@@ -58,12 +68,32 @@
         "liberime*"
         "fakecygpty"))
 
-;; Disable `help-mode' auto load library for its doc render request
-;; since we needed pure charge of how packages are loading for.
-(setq help-enable-autoload nil
-      help-enable-completion-autoload nil
-      help-enable-symbol-autoload nil
+;;;; Font lock mode config
+
+;; ;; Globally downgrade font-lock decoration to improve performance
+;; (setq font-lock-maximum-decoration
+;;       '((t . 2)))
+
+;; Optimize jit-lock-mode default configuration
+(setq jit-lock-defer-time
+      ;; FIXME: emacs upper than 28 seems always defer jit-lock? and 0
+      ;; may cause font-lock not flush while idle?
+      (if (< emacs-major-version 28) 0 nil)
+
+      ;; jit-lock-stealth-time 2
+      ;; jit-lock-chunk-size 100
+      ;; jit-lock-stealth-load 50
+      ;; jit-lock-stealth-nice 3
+      ;; jit-lock-contextually 'syntax-driven
+      ;; jit-lock-context-time 0.5
+      ;; jit-lock-antiblink-grace 2
       )
+
+;; inhibit fontlock render while fast hints
+(cond ((version< emacs-version "28")
+       (setq fast-but-imprecise-scrolling t))
+      (t
+       (setq redisplay-skip-fontification-on-input t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here

@@ -166,31 +166,6 @@
     entropy/emacs-run-startup-defcustom-load-done-timestamp
     entropy/emacs-run-startup-top-init-timestamp)))
 
-;; ;; Globally downgrade font-lock decoration to improve performance
-;; (setq font-lock-maximum-decoration
-;;       '((t . 2)))
-
-;; Optimize jit-lock-mode default configuration
-(setq jit-lock-defer-time
-      ;; FIXME: emacs upper than 28 seems always defer jit-lock? and 0
-      ;; may cause font-lock not flush while idle?
-      (if (< emacs-major-version 28) 0 nil)
-
-      ;; jit-lock-stealth-time 2
-      ;; jit-lock-chunk-size 100
-      ;; jit-lock-stealth-load 50
-      ;; jit-lock-stealth-nice 3
-      ;; jit-lock-contextually 'syntax-driven
-      ;; jit-lock-context-time 0.5
-      ;; jit-lock-antiblink-grace 2
-      )
-
-;; inhibit fontlock render while fast hints
-(cond ((version< emacs-version "28")
-       (setq fast-but-imprecise-scrolling t))
-      (t
-       (setq redisplay-skip-fontification-on-input t)))
-
 ;; start eemacs
 (if (entropy/emacs-is-make-session)
     (!eemacs-require 'entropy-emacs-batch)
