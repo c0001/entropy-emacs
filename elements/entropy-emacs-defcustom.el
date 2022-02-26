@@ -798,6 +798,121 @@ way but with more extensively meaning."
   "Eemacs input method configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
+(defcustom entropy/emacs-internal-ime-use-rime-as 'emacs-rime
+  "The 'librime' based emacs dynamic model backend choice.
+
+Valid as:
+
+- 'emacs-rime': the modern emacs librime binding. (default)
+- 'emacs-liberime': the obsolete emacs librime binding.
+
+Leave it as nil to disable this option.
+"
+  :type '(choice
+           (const :tag "Use rime support by `emacs-rime' package" emacs-rime)
+           (const :tag "Use rime support by `pyim' package" liberime)
+           (const :tag "Disalble the rime support" nil))
+  :group 'entropy/emacs-customize-group-for-IME)
+
+(defcustom entropy/emacs-internal-ime-popup-type 'minibuffer
+  "The emacs internal IME candidates show type:
+
+- 'minibuffer': use emacs minibuffer echo area as the canididates exhaustion place
+- 'popup'     : use overlay `popup' render emulate an display area to exhaust the candidates.
+- 'posframe' : use child-frame powered by `posframe' to do so just
+               when in GUI env and `emacs-version' larger than 25.
+- 'nil'       : Automatically set.
+
+NOTE: for eemacs maintainer, using
+`entropy/emacs-internal-ime-popup-type-autoset' instead. Since we must
+check this variable while init any referred procedure for type
+suitability with the env."
+  :type '(choice
+          (const :tag "Posframe (in gui)" posframe)
+          (const :tag "Popup (in tui)" popup)
+          (const :tag "Minibuffer (either tui or gui)" minibuffer)
+          (const :tag "Automatically set" nil))
+  :group 'entropy/emacs-customize-group-for-IME)
+
+(defun entropy/emacs-internal-ime-popup-type-autoset ()
+  "Automatically set `entropy/emacs-internal-ime-popup-type' as
+eemacs internal procedure usage. (see
+`entropy/emacs-internal-ime-popup-type' for details)"
+  (or (and entropy/emacs-internal-ime-popup-type
+           (cond
+            ((eq entropy/emacs-internal-ime-popup-type 'posframe)
+             (if (and (not (version< emacs-version "26.1"))
+                      (display-graphic-p))
+                 'posframe
+               (warn "current emacs-%s can not using `posframe' as what you set, \
+fallback to 'popup' automatically.")
+               (setq entropy/emacs-internal-ime-popup-type 'popup)))
+            (t
+             entropy/emacs-internal-ime-popup-type)))
+      (cond ((and (not (version< emacs-version "26.1"))
+                  (display-graphic-p))
+             'posframe)
+            (t
+             'minibuffer))))
+
+(defcustom entropy/emacs-internal-ime-rime-system-share-data-host-path
+  (if (member system-type
+              '(gnu/linux gnu cygwin gnu/kfreebsd))
+      "/usr/share/rime-data"
+    nil)
+  "The rime scheme-data directory using for `entropy/emacs-internal-ime-use-rime-as'.
+
+Default to '/usr/share/rime-data'. There's no need to manually
+set it in linux environment since the default value is for as but
+manually set while WINDOWS or MASOS env.
+"
+  :type '(choice
+          (const :tag "automatically set" nil)
+          directory)
+  :group 'entropy/emacs-customize-group-for-IME)
+
+(defun entropy/emacs-internal-ime-rime-system-share-data-auto-set ()
+  "Automatically set
+`entropy/emacs-internal-ime-rime-system-share-data-host-path'
+according to `system-type' or the environment variable like
+'MSYSTEM_PREFIX' (msys2 host indicator), 'LIBRIME_ROOT' etc.
+
+Throw an error while noting found when trying out all methods."
+  (unless (and entropy/emacs-internal-ime-rime-system-share-data-host-path
+               (file-exists-p
+                entropy/emacs-internal-ime-rime-system-share-data-host-path))
+    (setq entropy/emacs-internal-ime-rime-system-share-data-host-path
+          (cl-case system-type
+            ('gnu/linux
+             (require 'xdg)
+             (cl-some (lambda (parent)
+                        (let ((dir (expand-file-name "rime-data" parent)))
+                          (when (file-directory-p dir)
+                            dir)))
+                      (if (fboundp 'xdg-data-dirs)
+                          (xdg-data-dirs)
+                        '("/usr/local/share" "/usr/share"))))
+            ('darwin
+             "/Library/Input Methods/Squirrel.app/Contents/SharedSupport")
+            ('windows-nt
+             (if (getenv "MSYSTEM_PREFIX")
+                 (concat (getenv "MSYSTEM_PREFIX") "/share/rime-data")
+               (if (getenv "LIBRIME_ROOT")
+                   (expand-file-name (concat (getenv "LIBRIME_ROOT") "/share/rime-data")))))))
+    (unless (and entropy/emacs-internal-ime-rime-system-share-data-host-path
+                 (file-exists-p
+                  entropy/emacs-internal-ime-rime-system-share-data-host-path))
+      (user-error "We can not found the valid path for\
+`entropy/emacs-internal-ime-rime-system-share-data-host-path'"))))
+
+(defcustom entropy/emacs-internal-ime-rime-user-data-host-path
+  (expand-file-name "rime/rime-user-data-dir" entropy/emacs-stuffs-topdir)
+  "The use data dir for 'librime' binding of
+`entropy/emacs-internal-ime-use-rime-as'."
+  :type 'directory
+  :group 'entropy/emacs-customize-group-for-pyim)
+
+
 ;; **** pyim config
 (defgroup entropy/emacs-customize-group-for-pyim nil
   "Eemacs PYIM configuration customizable group."
@@ -808,28 +923,23 @@ way but with more extensively meaning."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-pyim)
 
-(defcustom entropy/emacs-pyim-use-backend 'internal
+(defcustom entropy/emacs-pyim-use-backend
+  (if (eq entropy/emacs-internal-ime-use-rime-as 'emacs-liberime)
+      'liberime
+    'internal)
   "The pyim backend type choosing configuration."
   :type  '(choice
            (const :tag "Native pyim backend" internal)
            (const :tag "Liberime based on librime" liberime))
   :group 'entropy/emacs-customize-group-for-pyim)
 
-(defcustom entropy/emacs-pyim-liberime-scheme-data
-  (cl-case system-type
-    (gnu/linux "/usr/share/rime-data")
-    (t nil))
-  "The rime scheme-data directory using for liberime"
-  :type '(choice
-          (const nil)
-          directory)
-  :group 'entropy/emacs-customize-group-for-pyim)
+(defvar entropy/emacs-pyim-liberime-scheme-data
+  entropy/emacs-internal-ime-rime-system-share-data-host-path
+  "The rime scheme-data directory using for liberime")
 
-(defcustom entropy/emacs-pyim-liberime-cache-dir
-  (expand-file-name "pyim/rime-cache" entropy/emacs-stuffs-topdir)
-  "The cache dir for liberime"
-  :type 'directory
-  :group 'entropy/emacs-customize-group-for-pyim)
+(defvar entropy/emacs-pyim-liberime-cache-dir
+  entropy/emacs-internal-ime-rime-user-data-host-path
+  "The cache dir for liberime")
 
 (defcustom entropy/emacs-pyim-dicts nil
   "
@@ -860,14 +970,49 @@ You can setting like this:
   :type 'directory
   :group 'entropy/emacs-customize-group-for-pyim)
 
-(defcustom entropy/emacs-pyim-tooltip nil
-  "Setting the pyim toolitip method"
-  :type '(choice
-          (const :tag "Posframe (in gui)" posframe)
-          (const :tag "Popup (in tui)" popup)
-          (const :tag "Minibuffer (either tui or gui)" minibuffer)
-          (const :tag "Automatically set" nil))
-  :group 'entropy/emacs-customize-group-for-pyim)
+(defvar entropy/emacs-pyim-tooltip entropy/emacs-internal-ime-popup-type
+  "Setting the pyim toolitip method")
+
+
+;; **** emacs-rime config
+(defgroup entropy/emacs-customize-group-for-emacs-rime nil
+  "Eemacs `emacs-rime' configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-IME)
+
+(defcustom entropy/emacs-enable-emacs-rime nil
+  "Enable `emacs-rime' be the default pyin input method"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-emacs-rime)
+
+(defvar entropy/emacs-emacs-rime-liberime-scheme-data
+  entropy/emacs-internal-ime-rime-system-share-data-host-path
+  "The rime scheme-data directory using for `emacs-rime'")
+
+(defvar entropy/emacs-emacs-rime-cache-dir
+  entropy/emacs-internal-ime-rime-user-data-host-path
+  "The user cache dir for `emacs-rime'")
+
+(defvar entropy/emacs-emacs-rime-tooltip entropy/emacs-internal-ime-popup-type
+  "Setting the `emacs-rime' toolitip method")
+
+;; **** _union setting init
+
+(cond ((and entropy/emacs-enable-pyim
+            entropy/emacs-enable-emacs-rime)
+       (warn "Do not enable `entropy/emacs-enable-emacs-rime' and \
+`entropy/emacs-enable-pyim' both at same time, we are help you \
+choose `entropy/emacs-enable-emacs-rime' as current chosen.")
+       (set entropy/emacs-enable-pyim nil))
+      (t
+       t))
+
+(when (or entropy/emacs-enable-emacs-rime
+          (eq entropy/emacs-pyim-use-backend 'liberime))
+  (entropy/emacs-internal-ime-rime-system-share-data-auto-set)
+  (setq entropy/emacs-emacs-rime-liberime-scheme-data
+        entropy/emacs-internal-ime-rime-system-share-data-host-path
+        entropy/emacs-pyim-liberime-scheme-data
+        entropy/emacs-internal-ime-rime-system-share-data-host-path))
 
 ;; *** Project
 (defgroup entropy/emacs-customize-group-for-project-management nil
@@ -2959,6 +3104,28 @@ that."
   ;; directly set root dir using `top' dir
   (dolist (item '(eww-bookmarks-directory))
     (set item top)))
+
+
+;; mkdir for pre set
+(dolist (dir-obj '((entropy/emacs-internal-ime-rime-user-data-host-path
+                    .
+                    (lambda (dir)
+                      (and (bound-and-true-p
+                            entropy/emacs-internal-ime-use-rime-as)
+                           (stringp dir)
+                           (not (file-exists-p
+                                 dir))))))
+                 ;; TODO: add more to comprehensively for eemacs customs
+                 )
+  (let* ((dir-sym (car dir-obj))
+         (dir (or (and (stringp dir-sym)
+                       dir-sym)
+                  (and (functionp dir-sym)
+                       (funcall dir-sym))
+                  (symbol-value dir-sym))))
+    (when (funcall (cdr dir-obj) dir)
+      (make-directory dir t))))
+
 
 ;; * provide
 (provide 'entropy-emacs-defcustom)
