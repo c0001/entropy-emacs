@@ -2346,7 +2346,11 @@ successfully both of situation of read persisit of create an new."
 
   :config
   (setq
-   history-length 10000
+   history-length 100  ; NOTE: we strongly use shorter length to
+                       ; preserve current emacs session performance
+                       ; for long time sicne some package internal
+                       ; binding huge stakcs rely on this variable
+                       ; e.g. `ivy--sessions'.
    savehist-additional-variables
    '(mark-ring
      global-mark-ring
