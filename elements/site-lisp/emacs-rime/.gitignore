@@ -1,0 +1,19 @@
+# Compiled
+*.so
+*.dylib
+*.elc
+*.dll
+
+# Packaging
+.cask
+
+# Backup files
+*~
+\#*
+
+# Undo-tree save-files
+*.~undo-tree
+
+# ccls cache directory
+.ccls-cache
+*.eln
