@@ -523,6 +523,8 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
 ;; ***** hydra refer patch
 ;; ****** hydra posframe patch
 ;; ******* hydra posframe show patch
+
+  ;; EEMACS_MAINTENANCE: follow `hydra-posframe-show' internal buffer name updates
   (defvar __hydra-posframe-buff-name " *hydra-posframe*")
   (defun __hydra-posframe-buffer-live-p (&rest _)
     (let ((buff (get-buffer __hydra-posframe-buff-name)))
@@ -567,7 +569,7 @@ close hydra posframe."
     (unless hydra--posframe-timer
       (setq hydra--posframe-timer
             (run-with-idle-timer
-             0.001 nil
+             0 nil
              (lambda ()
                (setq hydra--posframe-timer nil)
                (posframe-hide __hydra-posframe-buff-name)
