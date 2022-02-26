@@ -2788,8 +2788,6 @@ by run command \"make liberime\" in eemacs root place")
              entropy/emacs-basic-toggle-pyim-s2t
              entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
              pyim-convert-string-at-point)
-  :bind
-  (("M-j" . pyim-convert-string-at-point))
 
   :preface
 
