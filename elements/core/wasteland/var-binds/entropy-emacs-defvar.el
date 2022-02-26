@@ -780,8 +780,9 @@ initialize the default non-lazy configs.
   (run-hooks 'entropy/emacs-after-startup-hook)
   )
 
-(defvar entropy/emacs-pyim-has-initialized nil
-  "Variable indicate that pyim has started down for init.
+(defvar entropy/emacs-IME-specs-initialized nil
+  "Variable indicate that eemacs IME specified features has started
+down for init.
 
 When eq 't' indicates that the whole pyim initialization process
 ran with fully successful, or any non-nil value is a warning

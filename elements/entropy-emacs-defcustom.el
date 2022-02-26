@@ -798,6 +798,35 @@ way but with more extensively meaning."
   "Eemacs input method configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
+(defcustom entropy/emacs-internal-ime-use-backend nil
+  "The eemacs emacs internal IME spec backend.
+
+There's two valid choice:
+- 'pyim': the old long time maintained chinese input method which
+  provide most riched features for input chinese chars.
+
+  It use plain text format of user dicts to handle the input event,
+  and aslo exposed an simple librime elisp binding to handle the
+  communication with system rime IME engine to enlarge its input
+  experience. (also see `entropy/emacs-pyim-use-backend' to customize
+  which pyim backend to use.)
+
+- 'emacs-rime': the pure elisp binding for liberime to handle
+  communication with system rime IME engine, its fast than 'pyim''s
+  rime dealing since its c part of lisp binding for librime is more
+  optimized than thus.
+
+- 'nil': disable this feature.
+
+NOTE: any rime category backend chosen requires emacs built with
+'dynamic module' support and the system has installed the librime
+depedencies."
+  :type '(choice
+          (const :tag "Use emac-rime" 'emacs-rime)
+          (const :tag "Use pyim" 'pyim)
+          (const :tag "disable" nil))
+  :group 'entropy/emacs-customize-group-for-IME)
+
 (defcustom entropy/emacs-internal-ime-use-rime-as 'emacs-rime
   "The 'librime' based emacs dynamic model backend choice.
 
@@ -918,10 +947,8 @@ Throw an error while noting found when trying out all methods."
   "Eemacs PYIM configuration customizable group."
   :group 'entropy/emacs-customize-group-for-IME)
 
-(defcustom entropy/emacs-enable-pyim nil
-  "Enable pyim be the default pyin input method"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-pyim)
+(defvar entropy/emacs-enable-pyim (eq entropy/emacs-internal-ime-use-backend 'pyim)
+  "Enable pyim be the default pyin input method")
 
 (defcustom entropy/emacs-pyim-use-backend
   (if (eq entropy/emacs-internal-ime-use-rime-as 'emacs-liberime)
@@ -979,10 +1006,8 @@ You can setting like this:
   "Eemacs `emacs-rime' configuration customizable group."
   :group 'entropy/emacs-customize-group-for-IME)
 
-(defcustom entropy/emacs-enable-emacs-rime nil
-  "Enable `emacs-rime' be the default pyin input method"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-emacs-rime)
+(defvar entropy/emacs-enable-emacs-rime (eq entropy/emacs-internal-ime-use-backend 'emacs-rime)
+  "Enable `emacs-rime' be the default pyin input method")
 
 (defvar entropy/emacs-emacs-rime-liberime-scheme-data
   entropy/emacs-internal-ime-rime-system-share-data-host-path

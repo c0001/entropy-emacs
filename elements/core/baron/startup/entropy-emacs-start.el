@@ -361,14 +361,14 @@ notation.
              (cancel-timer entropy/emacs-start--pyim-timer))
            (setq entropy/emacs-start--pyim-timer nil)
            (cancel-function-timers #'entropy/emacs-start--pyim-init-status-guard))))
-    (cond ((bound-and-true-p entropy/emacs-pyim-has-initialized)
+    (cond ((bound-and-true-p entropy/emacs-IME-specs-initialized)
            (funcall timer-stop-func)
-           (if (eq entropy/emacs-pyim-has-initialized t)
+           (if (eq entropy/emacs-IME-specs-initialized t)
                (entropy/emacs-message-do-message (green "pyim loading down."))
              (entropy/emacs-message-do-message
               "%s: Pyim loading with status: %s, so that it's no been initialized!"
               (yellow "warning")
-              (cyan (format "%s" entropy/emacs-pyim-has-initialized))))
+              (cyan (format "%s" entropy/emacs-IME-specs-initialized))))
            (defun entropy/emacs-start--pyim-init-status-guard ()
              (entropy/emacs-message-do-message
               (yellow "This function has been unloaded."))))

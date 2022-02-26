@@ -2756,12 +2756,12 @@ CustomizationGuide#\
            (ignore-errors
              (entropy/emacs-basic--pyim-set-rime-schema)))
           (setq building t)
-        (setq entropy/emacs-pyim-has-initialized t))
+        (setq entropy/emacs-IME-specs-initialized t))
       (when building
         (warn "You need to build liberime firstly \
 when your `entropy/emacs-pyim-use-backend' is 'liberime' \
 by run command \"make liberime\" in eemacs root place")
-        (setq entropy/emacs-pyim-has-initialized 'liberime-no-build))))
+        (setq entropy/emacs-IME-specs-initialized 'liberime-no-build))))
 
   :init
   (setq liberime-shared-data-dir
@@ -2800,18 +2800,18 @@ by run command \"make liberime\" in eemacs root place")
       (("c c" entropy/emacs-basic-pyim-start
         "Enable Pyim"
         :enable t
-        :toggle entropy/emacs-pyim-has-initialized
+        :toggle entropy/emacs-IME-specs-initialized
         :exit t)))))
 
   (defun entropy/emacs-basic-pyim-start ()
     (interactive)
-    (unless entropy/emacs-pyim-has-initialized
+    (unless entropy/emacs-IME-specs-initialized
       (require 'pyim)
       (cond ((eq entropy/emacs-pyim-use-backend 'internal)
              (if entropy/emacs-pyim-dicts
                  (setq pyim-dicts entropy/emacs-pyim-dicts)
                (pyim-basedict-enable))
-             (setq entropy/emacs-pyim-has-initialized t))
+             (setq entropy/emacs-IME-specs-initialized t))
             ((and (eq entropy/emacs-pyim-use-backend 'liberime)
                   (not sys/win32p))
              (require 'pyim-liberime)          ;needed for load liberime for pyim
