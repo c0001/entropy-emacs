@@ -2999,6 +2999,16 @@ This function will store the `rime' loading callback to
 ;; ****** init
   :init
 
+  (defun __eemacs-rime-poptype-translate (type)
+    "Translate popup type of `entropy/emacs-emacs-rime-tooltip' to
+`rime-show-candidate' defination with eemacs spec."
+    (if (eq type 'minibuffer)
+        ;; NOTE&FIXME: we translate the 'minibuffre' type to 'message'
+        ;; since the previous one may not work properly when the echo
+        ;; area has content.(why?)
+        'message
+      type))
+
   (defun entropy/emacs-basic--emacs-rime-prepare ()
     "Prepare env for `emacs-rime'"
     (when entropy/emacs-enable-emacs-rime
@@ -3006,13 +3016,17 @@ This function will store the `rime' loading callback to
     (setq rime-user-data-dir
           entropy/emacs-internal-ime-rime-user-data-host-path
           rime-show-candidate
-          entropy/emacs-emacs-rime-tooltip)
+          (__eemacs-rime-poptype-translate
+           entropy/emacs-emacs-rime-tooltip))
+
     (add-variable-watcher
      'entropy/emacs-emacs-rime-tooltip
      (lambda  (symbol newval operation where)
        (when (eq operation 'set)
          (unless (eq newval (symbol-value symbol))
-           (setq rime-show-candidate newval))))))
+           (setq rime-show-candidate
+                 (__eemacs-rime-poptype-translate
+                  newval)))))))
 
   (add-to-list 'entropy/emacs-basic-intenal-ime-unified-caller-register
                '(emacs-rime
