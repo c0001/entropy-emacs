@@ -145,6 +145,7 @@
           "fakecygpty"
           "undo-tree-eemacs"
           "liberime"
+          "emacs-rime"
           "with-proxy.el"
           "lsp-java-simple"))
        (cur-path (expand-file-name (file-name-directory load-file-name)))

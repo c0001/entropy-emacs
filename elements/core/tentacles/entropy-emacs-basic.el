@@ -2697,7 +2697,56 @@ operation system"
 (advice-add 'diff-buffer-with-file
             :around #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
-;; **** IME
+;; **** internal IME
+;; ***** Unified define
+
+(defvar entropy/emacs-basic-intenal-ime-unified-caller-register nil
+  "The unified startup caller register for =eemacs-internal-ime=
+
+Each element is formed as an name cons plist of:
+
+#+begin_src #+begin_src emacs-lisp
+'(name
+  :imestr      ime-registed-name-string
+  :enable      enable-var-sym
+  :prepare     prepare-func
+  :startup     startup-func
+  :toggle      toggle-func
+  :punctuation (:toggle          punctuation-toggle-func
+                :indictor        punctuation-type-indictor)
+  :chinese     (:s2t-toggle      s2t-toggles-func
+                :s2t-indicator   s2t-type-inidicator))
+#+end_src
+
+The =ime-registed-name-string= is the actual name registed to emacs by `register-input-method'.
+
+The =name= is the internal IME name as an symbol.
+
+The =enable-var-sym= is an symbol of a variable which indicate whether
+need to start the specfied IME.
+
+The =prepare-func= is an function to be called to prepare the
+specified internal IME env which may not be obeyed the
+=enable-var-sym='s value.
+
+The =startup-func= is function to start the ime of =name= which obeyed the
+=enable-var-sym=.
+
+The =toggle-func= is an function to toggle the non-ime and the specified ime =name=
+
+In =:punctuation= slot, is an plist for:
+1) =:toggle=: an function to toggle the status of punctuation status of full/half
+2) =:indicator=: an variable symbol whose value is non-nil when using
+   full type of punctuation inputs, or an form evaled to return as thus.
+
+In =:chinese= slot, is an plist only specifed for chinese input methodg:
+1) =:s2t-toggle=: an function to toggle the simplified or traditional
+   chinese inputs.
+2) =:s2t-indicator=: an variable symbol whose value is non-nil when
+   current using symplified chinese inputs, or an form evaled to return as thus.
+
+")
+
 ;; ***** Use chinese pyim
 ;; ****** extra dependencies
 ;; ******* librime for pyim
@@ -2708,34 +2757,8 @@ operation system"
   :preface
 
   (defun entropy/emacs-basic--pyim-set-rime-schema ()
-    "Set rime input schema to 'luna_pinyin_simp' as that is the
-only schema supported in entropy-emacs.
-
-Notice:
-
-If your input schema was traditional chinese, try to create
-'luna_pinyin.custom.yaml' in
-`entropy/emacs-pyim-liberime-cache-dir' with the content to:
-
-#+begin_example
-patch:
-  switches:                   # 注意縮進
-    - name: ascii_mode
-      reset: 0                # reset 0 的作用是當從其他輸入方案切換到本方案時，
-      states: [ 中文, 西文 ]  # 重設爲指定的狀態，而不保留在前一個方案中設定的狀態。
-    - name: full_shape        # 選擇輸入方案後通常需要立即輸入中文，故重設 ascii_mode = 0；
-      states: [ 半角, 全角 ]  # 而全／半角則可沿用之前方案中的用法。
-    - name: simplification
-      reset: 1                # 增加這一行：默認啓用「繁→簡」轉換。
-      states: [ 漢字, 汉字 ]
-#+end_example
-
-See [[https://github.com/rime/home/wiki/\
-CustomizationGuide#\
-%E4%B8%80%E4%BE%8B%E5%AE%9A\
-%E8%A3%BD%E7%B0%A1%E5%8C%96\
-%E5%AD%97%E8%BC%B8%E5%87%BA][the rime wiki]] for details.
-"
+    "Start and set rime input schema to
+`entropy/emacs-internal-ime-use-rime-default-schema'"
     (require 'liberime)
     ;; load liberim just needed to require it. Set
     ;; `liberime-auto-build' to t so that we do not get the build
@@ -2744,12 +2767,15 @@ CustomizationGuide#\
     (setq liberime-auto-build t)
     (liberime-load)
     (liberime-try-select-schema
-     "luna_pinyin_simp")
+     entropy/emacs-internal-ime-use-rime-default-schema)
     t)
 
   (defun entropy/emacs-basic-pyim-load-rime ()
-    ;; set liberime schema and check dynamic module status and build
-    ;; it when needed.
+    "Load `pyim' specified elisp rime binding `liberime' and set the
+schema by `entropy/emacs-basic--pyim-set-rime-schema'.
+
+This function will store the `liberime' loading callback to
+`entropy/emacs-IME-specs-initialized'(see it for details.)"
     (let (building)
       (if
           (not
@@ -2789,99 +2815,81 @@ by run command \"make liberime\" in eemacs root place")
              entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
              pyim-convert-string-at-point)
 
+;; ******* preface
   :preface
 
-  (entropy/emacs-lazy-initial-for-hook
-   (entropy/emacs-hydra-hollow-call-before-hook)
-   "pyim-hydra-hollow-init" "pyim-hydra-hollow-init" prompt-echo
-   :pdumper-no-end t
-   (entropy/emacs-hydra-hollow-add-for-top-dispatch
-    '("Pyim"
-      (("c c" entropy/emacs-basic-pyim-start
-        "Enable Pyim"
-        :enable t
-        :toggle entropy/emacs-IME-specs-initialized
-        :exit t)))))
+  (defun entropy/emacs-basic-pyim-start-pyim ()
+    "Start `pyim' with specified backend of `entropy/emacs-pyim-use-backend'.
 
-  (defun entropy/emacs-basic-pyim-start ()
-    (interactive)
-    (unless entropy/emacs-IME-specs-initialized
-      (require 'pyim)
-      (cond ((eq entropy/emacs-pyim-use-backend 'internal)
-             (if entropy/emacs-pyim-dicts
-                 (setq pyim-dicts entropy/emacs-pyim-dicts)
-               (pyim-basedict-enable))
-             (setq entropy/emacs-IME-specs-initialized t))
-            ((and (eq entropy/emacs-pyim-use-backend 'liberime)
-                  (not sys/win32p))
-             (require 'pyim-liberime)          ;needed for load liberime for pyim
-             (entropy/emacs-basic-pyim-load-rime))
-            (t
-             (error "Invalid `entropy/emacs-pyim-use-backend' value '%s'"
-                    entropy/emacs-pyim-use-backend)))
+This function will store the loading callback to
+`entropy/emacs-IME-specs-initialized'(see it for details.)"
+    (require 'pyim)
+    (cond ((eq entropy/emacs-pyim-use-backend 'internal)
+           (if entropy/emacs-pyim-dicts
+               (setq pyim-dicts entropy/emacs-pyim-dicts)
+             (pyim-basedict-enable))
+           (setq entropy/emacs-IME-specs-initialized t))
+          ((and (eq entropy/emacs-pyim-use-backend 'liberime)
+                (not sys/win32p))
+           (require 'pyim-liberime)          ;needed for load liberime for pyim
+           (entropy/emacs-basic-pyim-load-rime))
+          (t
+           (error "Invalid `entropy/emacs-pyim-use-backend' value '%s'"
+                  entropy/emacs-pyim-use-backend)))
 
-      ;; init pyim at temp buffer for preventing polluting
-      ;; current-input-method in current buffer.
-      (entropy/emacs-with-temp-buffer
-        (set-input-method "pyim"))
-
-      ;; keybinding reflect
-      (entropy/emacs-hydra-hollow-add-for-top-dispatch
-       '("Pyim"
-         (("C-\\" entropy/emacs-basic-pyim-toggle
-           "Set Inputmethod 'Pyim'"
-           :enable t
-           :toggle (string= current-input-method "pyim")
-           :global-bind t)
-
-          ("c t" entropy/emacs-basic-toggle-pyim-s2t
-           "'Pyim' use traditional chinese (quckly use'C-r' within input)"
-           :enable t
-           :toggle (eq pyim-magic-converter 'entropy/s2t-string))
-
-          ("c f" entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
-           "'Pyim' toggle punct full/half"
-           :enable t
-           :toggle (eq (car pyim-punctuation-translate-p) 'yes)))))
-
-      ))
+    ;; init pyim at temp buffer for preventing polluting
+    ;; current-input-method in current buffer.
+    (entropy/emacs-with-temp-buffer
+      (set-input-method "pyim")))
 
 ;; ******* init
   :init
 
-  ;; If didn't use pyim set input method to nil
-  (unless entropy/emacs-enable-pyim
-    (setq default-input-method nil))
+  (defun entropy/emacs-basic--pyim-prepare ()
+    "Prepare env for `pyim'"
+    ;; If didn't use pyim set input method to nil
+    (unless entropy/emacs-enable-pyim
+      (setq default-input-method nil))
+    ;;  Setting pyim as the default input method
+    (when entropy/emacs-enable-pyim
+      (setq default-input-method "pyim"))
+    ;;  pyim backend chosen
+    (cl-case entropy/emacs-pyim-use-backend
+      (internal (setq pyim-default-scheme 'quanpin))
+      (liberime (setq pyim-default-scheme 'rime-quanpin)))
+    ;;  use popup or posframe for pyim tooltip show
+    (if (version< emacs-version "26")
+        (if (or (eq entropy/emacs-pyim-tooltip 'posframe)
+                (not entropy/emacs-pyim-tooltip))
+            (setq pyim-page-tooltip 'popup)
+          (setq pyim-page-tooltip entropy/emacs-pyim-tooltip))
+      (progn
+        (if entropy/emacs-pyim-tooltip
+            (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
+          (setq pyim-page-tooltip 'posframe))))
+    ;; customized dcache directory
+    (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir)
+    ;; 5 candidates shown for pyim tooltip
+    (setq pyim-page-length 8)
+    ;; Using thread for loading dache
+    (when (version< "26" emacs-version)
+      (setq pyim-prefer-emacs-thread t)))
 
-  ;;  Setting pyim as the default input method
-  (when entropy/emacs-enable-pyim
-    (setq default-input-method "pyim"))
-
-  ;;  pyim backend chosen
-  (cl-case entropy/emacs-pyim-use-backend
-    (internal (setq pyim-default-scheme 'quanpin))
-    (liberime (setq pyim-default-scheme 'rime-quanpin)))
-
-  ;;  use popup or posframe for pyim tooltip show
-  (if (version< emacs-version "26")
-      (if (or (eq entropy/emacs-pyim-tooltip 'posframe)
-              (not entropy/emacs-pyim-tooltip))
-          (setq pyim-page-tooltip 'popup)
-        (setq pyim-page-tooltip entropy/emacs-pyim-tooltip))
-    (progn
-      (if entropy/emacs-pyim-tooltip
-          (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
-        (setq pyim-page-tooltip 'posframe))))
-
-  ;; customized dcache directory
-  (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir)
-
-  ;; 5 candidates shown for pyim tooltip
-  (setq pyim-page-length 8)
-
-  ;; Using thread for loading dache
-  (when (version< "26" emacs-version)
-    (setq pyim-prefer-emacs-thread t))
+  (add-to-list 'entropy/emacs-basic-intenal-ime-unified-caller-register
+               '(pyim
+                 :imestr "pyim"
+                 :enable entropy/emacs-enable-pyim
+                 :prepare entropy/emacs-basic--pyim-prepare
+                 :startup entropy/emacs-basic-pyim-start-pyim
+                 :toggle entropy/emacs-basic-pyim-toggle
+                 :punctuation (:toggle
+                               entropy/emacs-basic-toggle-pyim-punctuation-half-or-full
+                               :indicator
+                               (eq (car pyim-punctuation-translate-p) 'yes))
+                 :chinese (:s2t-toggle
+                           entropy/emacs-basic-toggle-pyim-s2t
+                           :s2t-indicator
+                           (eq pyim-magic-converter 'entropy/s2t-string))))
 
 ;; ******* config
   :config
@@ -2942,6 +2950,209 @@ current displayed buffer area wile
             (eq (car pyim-punctuation-translate-p) 'auto))
         (setq pyim-punctuation-translate-p '(yes no auto))
       (setq pyim-punctuation-translate-p '(no yes auto)))))
+
+;; ***** Use emacs rime
+
+(use-package rime
+  :eemacs-functions (rime-activate
+                     entropy/emacs-basic-emacs-rime-s2t-toggle
+                     entropy/emacs-basic-emacs-rime-CNschema-is-simplified)
+  :ensure nil
+;; ****** preface
+  :preface
+  (defun entropy/emacs-basic-emacs-rime-start ()
+    "Load `rime' and set the schema by
+`entropy/emacs-basic--pyim-set-rime-schema'.
+
+This function will store the `rime' loading callback to
+`entropy/emacs-IME-specs-initialized'(see it for details.)"
+    (unless entropy/emacs-IME-specs-initialized
+      (require 'rime)
+      (let ((build-func (lambda ()
+                          (let ((env (rime--build-compile-env))
+                                (process-environment process-environment)
+                                (default-directory rime--root))
+                            (cl-loop for pair in env
+                                     when pair
+                                     do (add-to-list 'process-environment pair))
+                            (if (zerop (shell-command "make lib"))
+                                (prog1
+                                    t
+                                  (message "Compile succeed!"))
+                              (entropy/emacs-message-do-warn
+                               "Compile Rime dynamic module failed")
+                              'emacs-rime-build-fatal)))))
+        (if (file-exists-p rime--module-path)
+            (setq entropy/emacs-IME-specs-initialized
+                  t)
+          (setq entropy/emacs-IME-specs-initialized
+                (funcall build-func)))
+        (when (eq entropy/emacs-IME-specs-initialized t)
+          (entropy/emacs-with-temp-buffer
+            (rime-activate nil)
+            (rime-lib-select-schema entropy/emacs-internal-ime-use-rime-default-schema)
+            (setq default-input-method "rime"))))))
+
+  (defun entropy/emacs-basic-emacs-rime-toggle ()
+    (interactive)
+    (if (string= current-input-method "rime")
+        (set-input-method nil)
+      (progn
+        (set-input-method "rime")
+        t)))
+
+;; ****** init
+  :init
+
+  (defun entropy/emacs-basic--emacs-rime-prepare ()
+    "Prepare env for `emacs-rime'"
+    (when entropy/emacs-enable-emacs-rime
+      (setq default-input-method "rime"))
+    (setq rime-user-data-dir
+          entropy/emacs-internal-ime-rime-user-data-host-path
+          rime-show-candidate
+          entropy/emacs-internal-ime-popup-type))
+
+  (add-to-list 'entropy/emacs-basic-intenal-ime-unified-caller-register
+               '(emacs-rime
+                 :imestr "rime"
+                 :enable entropy/emacs-enable-emacs-rime
+                 :prepare entropy/emacs-basic--emacs-rime-prepare
+                 :startup entropy/emacs-basic-emacs-rime-start
+                 :toggle entropy/emacs-basic-emacs-rime-toggle
+                 :punctuation (:toggle
+                               ;; TODO:
+                               #'(lambda () (interactive) t)
+                               :indicator
+                               ;; TODO:
+                               nil)
+                 :chinese (:s2t-toggle
+                           entropy/emacs-basic-emacs-rime-s2t-toggle
+                           :s2t-indicator
+                           (not
+                            (funcall
+                             'entropy/emacs-basic-emacs-rime-CNschema-is-simplified)))))
+
+;; ****** config
+  :config
+
+;; ******* core advice
+  (defvar __emacs-rime-current-schema nil
+    "The current `rime' schema selected.")
+
+  (defun __ya/rime-lib-select-schema (orig-func &rest orig-args)
+    "Like `rime-lib-select-schema' but memory its schema selection
+stored in `__emacs-rime-current-schema'."
+    (let ((schema (car orig-args)))
+      (prog1
+          (apply orig-func orig-args)
+        (setq __emacs-rime-current-schema schema))))
+  (advice-add 'rime-lib-select-schema
+              :around #'__ya/rime-lib-select-schema)
+
+;; ******* eemacs spec apis
+  ;; FIXME:
+  ;; TODO: we must use an unified wrapper to judge the result since
+  ;; rime support various chinese ime further than just 'luna_pyinyin'
+  ;; like 'cangjie' 'zhuyin' etc.
+  (defun __emacs-rime-is-use-cn-schema-p ()
+    (string-match-p "luna_pinyin" __emacs-rime-current-schema))
+  (defun entropy/emacs-basic-emacs-rime-CNschema-is-simplified ()
+    (string-match-p "luna_pinyin_simp" __emacs-rime-current-schema))
+  (defun entropy/emacs-basic-emacs-rime-s2t-toggle ()
+    (interactive)
+    (when (__emacs-rime-is-use-cn-schema-p)
+      (if (entropy/emacs-basic-emacs-rime-CNschema-is-simplified)
+          (prog1
+              (rime-lib-select-schema "luna_pinyin")
+            (message "【繁体中文】"))
+        (message "【简体中文】")
+        (rime-lib-select-schema "luna_pinyin_simp"))))
+  ;; Quickly change 简体 <-> 繁体
+  (define-key rime-active-mode-map (kbd "C-r") #'entropy/emacs-basic-emacs-rime-s2t-toggle)
+  )
+
+;; ***** _union setup
+
+(defun entropy/emacs-internal-ime-starter (&optional no-error)
+  "The =eemacs-intenal-IME= startup caller as the union wrapper for
+any of the `entropy/emacs-internal-ime-use-backend'.
+
+Throw an error while any core init procedure startup with
+fatal (i.e. `entropy/emacs-IME-specs-initialized' is get as
+whatever but 't') when optional argument NO-ERROR is unset.
+
+This function does nothing when
+`entropy/emacs-IME-specs-initialized' is t as already yet since
+we do not want to init as duplicated which will cause messy."
+  (interactive)
+  (unless entropy/emacs-IME-specs-initialized
+    (let ((core-init-juger
+           (lambda ()
+             (if (eq entropy/emacs-IME-specs-initialized t)
+                 t
+               (unless no-error
+                 (error "Enable eemacs internal IME spec [%s] with fatal of [%s]"
+                        entropy/emacs-internal-ime-use-backend
+                        entropy/emacs-IME-specs-initialized)))))
+          non-startup
+          register ime-enable ime-name ime-plist
+          hydra-heads hydra-group)
+
+      ;; Set `entropy/emacs-internal-ime-use-backend' when not enabled at eemacs startup time
+      (unless entropy/emacs-internal-ime-use-backend
+        (setq non-startup t)
+        (setq entropy/emacs-internal-ime-use-backend
+              (intern (completing-read "choose =eemacs-intenal-IME= backend"
+                                       '("pyim" "emacs-rime")
+                                       nil t))))
+      (setq register (assoc entropy/emacs-internal-ime-use-backend
+                            entropy/emacs-basic-intenal-ime-unified-caller-register)
+            ime-name (car register)
+            ime-plist (cdr register)
+            ime-enable (or (symbol-value (plist-get ime-plist :enable))
+                           (when non-startup
+                             (set (plist-get ime-plist :enable)
+                                  t))))
+      (when ime-enable
+        (setq hydra-heads
+              `(("C-\\" ,(plist-get ime-plist :toggle)
+                 ,(format "Set Inputmethod '%s'" ime-name)
+                 :enable t
+                 :toggle (string= current-input-method ,(plist-get ime-plist :imestr))
+                 :global-bind t)
+                ,(when (plist-get ime-plist :chinese)
+                   (list
+                    "c t" (plist-get (plist-get ime-plist :chinese) :s2t-toggle)
+                    (format "'%s' use traditional chinese (quckly use'C-r' within input)"
+                            ime-name)
+                    :enable t
+                    :toggle (plist-get (plist-get ime-plist :chinese) :s2t-indicator)))
+                ("c f" ,(plist-get (plist-get ime-plist :punctuation) :toggle)
+                 ,(format "'%s' toggle punct full/half" ime-name)
+                 :enable t
+                 :toggle ,(plist-get (plist-get ime-plist :punctuation) :indicator)))
+              hydra-group
+              (list "IME" (delete nil hydra-heads)))
+
+        (funcall (plist-get ime-plist :prepare))
+        (funcall (plist-get ime-plist :startup))
+        (when (funcall core-init-juger)
+          (entropy/emacs-hydra-hollow-add-for-top-dispatch
+           hydra-group))))))
+
+(entropy/emacs-lazy-initial-for-hook
+ (entropy/emacs-hydra-hollow-call-before-hook)
+ "eemacs-IMEspec-hydra-hollow-init" "eemacs-IMEspec-hydra-hollow-init"
+ prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("IME"
+    (("c c" entropy/emacs-internal-ime-starter
+      "Enable eemacs internal IME spec"
+      :enable t
+      :toggle entropy/emacs-IME-specs-initialized
+      :exit t)))))
 
 ;; **** Emacs process and system proced manager hacking
 ;; ***** process

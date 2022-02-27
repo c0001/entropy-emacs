@@ -827,6 +827,43 @@ depedencies."
           (const :tag "disable" nil))
   :group 'entropy/emacs-customize-group-for-IME)
 
+(defcustom entropy/emacs-internal-ime-use-rime-default-schema "luna_pinyin_simp"
+  "The default rime schema used for init
+`entropy/emacs-internal-ime-use-rime-as'. The specified rime schema
+must has been installed in your system, or will with messy with
+startup when `entropy/emacs-internal-ime-use-backend' is non-nil.
+
+*Tricks*:
+
+1. Use chinese simplified as default schema in rime conig
+
+If your input schema was =luna_pyinyin=, try to create
+'luna_pinyin.custom.yaml' in
+`entropy/emacs-internal-ime-rime-user-data-host-path' with the content
+to:
+
+#+begin_example
+patch:
+  switches:                   # 注意縮進
+    - name: ascii_mode
+      reset: 0                # reset 0 的作用是當從其他輸入方案切換到本方案時，
+      states: [ 中文, 西文 ]  # 重設爲指定的狀態，而不保留在前一個方案中設定的狀態。
+    - name: full_shape        # 選擇輸入方案後通常需要立即輸入中文，故重設 ascii_mode = 0；
+      states: [ 半角, 全角 ]  # 而全／半角則可沿用之前方案中的用法。
+    - name: simplification
+      reset: 1                # 增加這一行：默認啓用「繁→簡」轉換。
+      states: [ 漢字, 汉字 ]
+#+end_example
+
+See [[https://github.com/rime/home/wiki/\
+CustomizationGuide#\
+%E4%B8%80%E4%BE%8B%E5%AE%9A\
+%E8%A3%BD%E7%B0%A1%E5%8C%96\
+%E5%AD%97%E8%BC%B8%E5%87%BA][the rime wiki]] for details.
+"
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-IME)
+
 (defcustom entropy/emacs-internal-ime-use-rime-as 'emacs-rime
   "The 'librime' based emacs dynamic model backend choice.
 
@@ -872,17 +909,19 @@ eemacs internal procedure usage. (see
             ((eq entropy/emacs-internal-ime-popup-type 'posframe)
              (if (and (not (version< emacs-version "26.1"))
                       (display-graphic-p))
-                 'posframe
-               (warn "current emacs-%s can not using `posframe' as what you set, \
-fallback to 'popup' automatically.")
+                 (setq entropy/emacs-internal-ime-popup-type 'posframe)
                (setq entropy/emacs-internal-ime-popup-type 'popup)))
             (t
-             entropy/emacs-internal-ime-popup-type)))
+             (if (and (eq entropy/emacs-internal-ime-popup-type 'posframe)
+                      (not (display-graphic-p)))
+                 (setq entropy/emacs-internal-ime-popup-type 'popup)
+               (setq entropy/emacs-internal-ime-popup-type
+                     entropy/emacs-internal-ime-popup-type)))))
       (cond ((and (not (version< emacs-version "26.1"))
                   (display-graphic-p))
-             'posframe)
+             (setq entropy/emacs-internal-ime-popup-type 'posframe))
             (t
-             'minibuffer))))
+             (setq entropy/emacs-internal-ime-popup-type 'minibuffer)))))
 
 (defcustom entropy/emacs-internal-ime-rime-system-share-data-host-path
   (if (member system-type
@@ -1029,6 +1068,7 @@ You can setting like this:
 choose `entropy/emacs-enable-emacs-rime' as current chosen.")
        (set entropy/emacs-enable-pyim nil))
       (t
+       ;; TODO for the default condition
        t))
 
 (when (or entropy/emacs-enable-emacs-rime

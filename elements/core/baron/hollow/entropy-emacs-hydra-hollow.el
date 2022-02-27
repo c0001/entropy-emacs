@@ -2587,7 +2587,7 @@ hydra body caller) =pretty-hydra-head-command=.
          "Project"   ()
          "Org"       ()
          ;; ---
-         "Pyim"      ()
+         "IME"       ()
          "Misc."     ()
          )
        '(:title
