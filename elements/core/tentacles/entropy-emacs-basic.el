@@ -2863,7 +2863,7 @@ This function will store the loading callback to
            (setq pyim-page-tooltip newval)))))
 
     ;; customized dcache directory
-    (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir)
+    (setq pyim-dcache-directory entropy/emacs-pyim-dcache-host-path)
     ;; 5 candidates shown for pyim tooltip
     (setq pyim-page-length 8)
     ;; Using thread for loading dache

@@ -1040,15 +1040,16 @@ You can setting like this:
             (file :tag "Pyim dictionary file"))))
   :group 'entropy/emacs-customize-group-for-pyim)
 
-(defcustom entropy/emacs-pyim-cached-dir
+(defcustom entropy/emacs-pyim-dcache-host-path
   (expand-file-name "pyim/internal-cache" entropy/emacs-stuffs-topdir)
-  "Set pyim cached dir, if nil use defaults setting (see
-`pyim-dcache-directory')"
+  "Set pyim dcache dir, same as `pyim-dcache-directory' but used
+with eemacs customization procedure."
   :type 'directory
   :group 'entropy/emacs-customize-group-for-pyim)
 
 (defvar entropy/emacs-pyim-tooltip entropy/emacs-internal-ime-popup-type
-  "Setting the pyim toolitip method")
+  "Setting the pyim toolitip method, same as `pyim-page-tooltip'
+but used with eemacs customization procedure.")
 (add-to-list '__eemacs-internal-ime-popup-autoset-for-vars
              'entropy/emacs-pyim-tooltip)
 
