@@ -798,6 +798,8 @@ way but with more extensively meaning."
   "Eemacs input method configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
+;; **** union defination
+
 (defcustom entropy/emacs-internal-ime-use-backend nil
   "The eemacs emacs internal IME spec backend.
 
@@ -900,10 +902,16 @@ suitability with the env."
           (const :tag "Automatically set" nil))
   :group 'entropy/emacs-customize-group-for-IME)
 
+(defvar __eemacs-internal-ime-popup-autoset-for-vars nil)
 (defun entropy/emacs-internal-ime-popup-type-autoset ()
   "Automatically set `entropy/emacs-internal-ime-popup-type' as
 eemacs internal procedure usage. (see
-`entropy/emacs-internal-ime-popup-type' for details)"
+`entropy/emacs-internal-ime-popup-type' for details).
+
+EEMACS_MAINTENANCE: Further more, this function will set the var
+of `__eemacs-internal-ime-popup-autoset-for-vars' to the value
+even. So the eemacs maitainer must add the new backend
+corresponding var to thus."
   (or (and entropy/emacs-internal-ime-popup-type
            (cond
             ((eq entropy/emacs-internal-ime-popup-type 'posframe)
@@ -921,7 +929,9 @@ eemacs internal procedure usage. (see
                   (display-graphic-p))
              (setq entropy/emacs-internal-ime-popup-type 'posframe))
             (t
-             (setq entropy/emacs-internal-ime-popup-type 'minibuffer)))))
+             (setq entropy/emacs-internal-ime-popup-type 'minibuffer))))
+  (dolist (var __eemacs-internal-ime-popup-autoset-for-vars)
+    (set var entropy/emacs-internal-ime-popup-type)))
 
 (defcustom entropy/emacs-internal-ime-rime-system-share-data-host-path
   (if (member system-type
@@ -1038,6 +1048,8 @@ You can setting like this:
 
 (defvar entropy/emacs-pyim-tooltip entropy/emacs-internal-ime-popup-type
   "Setting the pyim toolitip method")
+(add-to-list '__eemacs-internal-ime-popup-autoset-for-vars
+             'entropy/emacs-pyim-tooltip)
 
 
 ;; **** emacs-rime config
@@ -1058,9 +1070,13 @@ You can setting like this:
 
 (defvar entropy/emacs-emacs-rime-tooltip entropy/emacs-internal-ime-popup-type
   "Setting the `emacs-rime' toolitip method")
+(add-to-list '__eemacs-internal-ime-popup-autoset-for-vars
+             'entropy/emacs-emacs-rime-tooltip)
 
 ;; **** _union setting init
 
+;; Fallback to default when multi backend enabled
+;; TODO: more intelligence such as detect rime support
 (cond ((and entropy/emacs-enable-pyim
             entropy/emacs-enable-emacs-rime)
        (warn "Do not enable `entropy/emacs-enable-emacs-rime' and \
@@ -1071,6 +1087,11 @@ choose `entropy/emacs-enable-emacs-rime' as current chosen.")
        ;; TODO for the default condition
        t))
 
+;; auto set popup type since the user setting messy
+(unless entropy/emacs-internal-ime-popup-type
+  (entropy/emacs-internal-ime-popup-type-autoset))
+
+;; auto set rime system schema data dir since user setting messy
 (when (or entropy/emacs-enable-emacs-rime
           (eq entropy/emacs-pyim-use-backend 'liberime))
   (entropy/emacs-internal-ime-rime-system-share-data-auto-set)
