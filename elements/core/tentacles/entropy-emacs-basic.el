@@ -3079,6 +3079,17 @@ stored in `__emacs-rime-current-schema'."
 ;; `default-input-method''s default value WHY?
 (setq default-input-method nil)
 
+(defun entropy/emacs-internal-ime-toggle-popup-type ()
+  (interactive)
+  (let ((chosen (completing-read "Choose popup type: "
+                                 '("minibuffer"
+                                   "popup"
+                                   "posframe"
+                                   )
+                                 nil t)))
+    (setq entropy/emacs-internal-ime-popup-type (intern chosen))
+    (entropy/emacs-internal-ime-popup-type-autoset)))
+
 (defun entropy/emacs-internal-ime-starter (&optional no-error)
   "The =eemacs-intenal-IME= startup caller as the union wrapper for
 any of the `entropy/emacs-internal-ime-use-backend'.
@@ -3144,7 +3155,10 @@ we do not want to init as duplicated which will cause messy."
                 ("c f" ,(plist-get (plist-get ime-plist :punctuation) :toggle)
                  ,(format "'%s' toggle punct full/half" ime-name)
                  :enable t
-                 :toggle ,(plist-get (plist-get ime-plist :punctuation) :indicator)))
+                 :toggle ,(plist-get (plist-get ime-plist :punctuation) :indicator))
+                ("c p" entropy/emacs-internal-ime-toggle-popup-type
+                 "Change =eemacs-intenal-IME= popup type"
+                 :enable t :exit t))
               hydra-group
               (list "IME" (delete nil hydra-heads)))
 
