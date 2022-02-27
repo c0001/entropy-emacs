@@ -906,7 +906,8 @@ suitability with the env."
 (defun entropy/emacs-internal-ime-popup-type-autoset ()
   "Automatically set `entropy/emacs-internal-ime-popup-type' as
 eemacs internal procedure usage. (see
-`entropy/emacs-internal-ime-popup-type' for details).
+`entropy/emacs-internal-ime-popup-type' for details) to adapt
+current emacs session env.
 
 EEMACS_MAINTENANCE: Further more, this function will set the var
 of `__eemacs-internal-ime-popup-autoset-for-vars' to the value

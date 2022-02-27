@@ -2817,7 +2817,6 @@ by run command \"make liberime\" in eemacs root place")
 
 ;; ******* preface
   :preface
-
   (defun entropy/emacs-basic-pyim-start-pyim ()
     "Start `pyim' with specified backend of `entropy/emacs-pyim-use-backend'.
 
@@ -2847,9 +2846,6 @@ This function will store the loading callback to
 
   (defun entropy/emacs-basic--pyim-prepare ()
     "Prepare env for `pyim'"
-    ;; If didn't use pyim set input method to nil
-    (unless entropy/emacs-enable-pyim
-      (setq default-input-method nil))
     ;;  Setting pyim as the default input method
     (when entropy/emacs-enable-pyim
       (setq default-input-method "pyim"))
@@ -2858,15 +2854,14 @@ This function will store the loading callback to
       (internal (setq pyim-default-scheme 'quanpin))
       (liberime (setq pyim-default-scheme 'rime-quanpin)))
     ;;  use popup or posframe for pyim tooltip show
-    (if (version< emacs-version "26")
-        (if (or (eq entropy/emacs-pyim-tooltip 'posframe)
-                (not entropy/emacs-pyim-tooltip))
-            (setq pyim-page-tooltip 'popup)
-          (setq pyim-page-tooltip entropy/emacs-pyim-tooltip))
-      (progn
-        (if entropy/emacs-pyim-tooltip
-            (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
-          (setq pyim-page-tooltip 'posframe))))
+    (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
+    (add-variable-watcher
+     'entropy/emacs-pyim-tooltip
+     (lambda  (symbol newval operation where)
+       (when (eq operation 'set)
+         (unless (eq newval (symbol-value symbol))
+           (setq pyim-page-tooltip newval)))))
+
     ;; customized dcache directory
     (setq pyim-dcache-directory entropy/emacs-pyim-cached-dir)
     ;; 5 candidates shown for pyim tooltip
@@ -3011,7 +3006,13 @@ This function will store the `rime' loading callback to
     (setq rime-user-data-dir
           entropy/emacs-internal-ime-rime-user-data-host-path
           rime-show-candidate
-          entropy/emacs-internal-ime-popup-type))
+          entropy/emacs-emacs-rime-tooltip)
+    (add-variable-watcher
+     'entropy/emacs-emacs-rime-tooltip
+     (lambda  (symbol newval operation where)
+       (when (eq operation 'set)
+         (unless (eq newval (symbol-value symbol))
+           (setq rime-show-candidate newval))))))
 
   (add-to-list 'entropy/emacs-basic-intenal-ime-unified-caller-register
                '(emacs-rime
@@ -3074,6 +3075,10 @@ stored in `__emacs-rime-current-schema'."
 
 ;; ***** _union setup
 
+;; FIXME: set input method to nil because emacs will change
+;; `default-input-method''s default value WHY?
+(setq default-input-method nil)
+
 (defun entropy/emacs-internal-ime-starter (&optional no-error)
   "The =eemacs-intenal-IME= startup caller as the union wrapper for
 any of the `entropy/emacs-internal-ime-use-backend'.
@@ -3115,6 +3120,14 @@ we do not want to init as duplicated which will cause messy."
                              (set (plist-get ime-plist :enable)
                                   t))))
       (when ime-enable
+        ;; auto reset the popup type while user messy setting
+        (entropy/emacs-internal-ime-popup-type-autoset)
+        ;; also reset popup type while emacs daemon type change
+        (entropy/emacs-with-daemon-make-frame-done
+         'eemacs-internal-ime-popuptype-autoreeset
+         (lambda nil nil) (lambda nil nil)
+         '(entropy/emacs-internal-ime-popup-type-autoset))
+
         (setq hydra-heads
               `(("C-\\" ,(plist-get ime-plist :toggle)
                  ,(format "Set Inputmethod '%s'" ime-name)
