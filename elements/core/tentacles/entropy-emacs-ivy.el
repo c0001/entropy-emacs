@@ -314,13 +314,12 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
 ;; **** fix lag on `ivy-thing-at-point'
 
   (defun __ya/ivy-thing-at-point (orig-func &rest orig-args)
-    "Ignore `ivy-thing-at-point' when buffer is large than 1Mb but
-some occasions since the internal `thing-at-point' is so laggy
-with large buffer."
+    "Ignore `ivy-thing-at-point' to return emtpy string but with some
+occasions since the internal `thing-at-point' is so laggy with
+large buffer."
     (cond ((or (member real-this-command
                        ;; enable for some subroutines
                        '(swiper-isearch-thing-at-point))
-               (< (buffer-size) (* 1024 1024))
                ;; ;; let `swiper' like function using origin since its
                ;; ;; internal needed in ivy source file
                ;; (memq (ivy-state-caller ivy-last)
