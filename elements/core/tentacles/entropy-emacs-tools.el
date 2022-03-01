@@ -82,9 +82,9 @@
                             ))))
                     "\\)$")
             ;; we use xdg-open(linux) and start(windows) as default mime handler
-            (cond (sys/linuxp
+            (cond (sys/is-linux-and-graphic-support-p
                    "xdg-open")
-                  (sys/is-win-group
+                  (sys/is-wingroup-and-graphic-support-p
                    "start"))
             '(file)))))
 
