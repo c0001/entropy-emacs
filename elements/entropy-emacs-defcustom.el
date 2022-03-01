@@ -2829,15 +2829,33 @@ with requests.")
 (defvar entropy/emacs-unreadable-file-judge-function nil)
 (setq entropy/emacs-unreadable-file-judge-function
       (lambda (filename)
-        (let ((inhibit-read-only t)
-              (kill-buffer-hook nil))
-          (with-temp-buffer
-            (ignore-errors
-              (insert-file-contents
-               filename))
-            (when (functionp entropy/emacs-unreadable-buffer-judge-function)
-              (funcall entropy/emacs-unreadable-buffer-judge-function
-                       (current-buffer)))))))
+        (let* ((inhibit-read-only t)
+               (kill-buffer-hook nil)
+               (f-readp (file-readable-p filename))
+               (f-existp (file-exists-p filename))
+               (fsize-max entropy/emacs-large-file-warning-threshold)
+               (fsize (and
+                       f-readp f-existp
+                       (file-attribute-size
+                        (file-attributes
+                         filename)))))
+          (cond (
+                 ;; Fistly we just determin the filesize limitation
+                 (and fsize
+                      (> fsize fsize-max))
+                 t)
+                ;; and then we detect the so-long status
+                (t
+                 (with-temp-buffer
+                   (when
+                       ;; Just judge existed and readable file so we
+                       ;; ignore errors for the reading procedure.
+                       (ignore-errors
+                         (insert-file-contents
+                          filename))
+                     (when (functionp entropy/emacs-unreadable-buffer-judge-function)
+                       (funcall entropy/emacs-unreadable-buffer-judge-function
+                                (current-buffer))))))))))
 
 (defvar entropy/emacs-unreadable-buffer-judge-function nil)
 (setq entropy/emacs-unreadable-buffer-judge-function
