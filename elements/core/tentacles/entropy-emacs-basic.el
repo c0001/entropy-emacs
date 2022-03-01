@@ -3093,6 +3093,20 @@ stored in `__emacs-rime-current-schema'."
 ;; `default-input-method''s default value WHY?
 (setq default-input-method nil)
 
+
+;; FIXME: when `ivy-dynamic-exhibit-delay-ms' is enabled, emacs-rime
+;; will cause eemacs bug of =h-1c9af04d-403f-4050-a8eb-778fc47ff8de=
+(setq __eemacs-internal-ime-union-registed-name-strings
+      (mapcar
+       (lambda (x)
+         (plist-get (cdr x) :imestr))
+       entropy/emacs-basic-intenal-ime-unified-caller-register))
+(add-to-list 'entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-conditions
+             #'(lambda ()
+                 (member current-input-method
+                         __eemacs-internal-ime-union-registed-name-strings)))
+
+
 (defun entropy/emacs-internal-ime-toggle-popup-type ()
   (interactive)
   (let ((chosen (completing-read "Choose popup type: "

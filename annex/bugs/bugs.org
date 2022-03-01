@@ -577,6 +577,35 @@ Issues on emacs versions: 27.2, 28.0.91
 
 Run the bash file [[./h-936e4fb3-57d7-4958-89d9-a1cdfb52c495/start.sh]]
 
+** TODO emacs-rime bug when =ivy-dynamic-exhibit-delay-ms= larger than 0
+:PROPERTIES:
+:CUSTOM_ID: h-1c9af04d-403f-4050-a8eb-778fc47ff8de
+:END:
+
+- emacs-vesion: any
+- system-platform: any
+
+
+*Bug description:*
+
+When =ivy-dynamic-exhibit-delay-ms= larger than 0 the emacs-rime
+~rime--minibuffer-message~ will trigger 'args-out-of-range' error for
+its ~delete-region~ subroutine for cleaning the current candidates
+prompts inserted as.
+
+This bug only triggering when using DEL keystroke in the middle of
+typing when in the minibuffr while some operation rely on ~ivy-read~
+(and aslo using ~completing-read~ when =ivy-mode= or =counsel-mode=
+enabled globally).
+
+This bug also messes up the minibuffer prompts region in the occasion
+descripted in above paragraph which points the pre-completion chars to
+the beginning of the minibuffer.
+
+*Reproduce:*
+
+Run: [[./h-1c9af04d-403f-4050-a8eb-778fc47ff8de/run.sh]]
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d

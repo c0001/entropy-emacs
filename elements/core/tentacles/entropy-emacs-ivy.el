@@ -193,6 +193,7 @@ upstream and may be make risky follow the ivy updates.
 canidates idle after input event done by 0.2 seconds."
     (setq-local __idle/ivy-queue-exhited-done nil)
     (if (and (> ivy-dynamic-exhibit-delay-ms 0)
+             (not (entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p))
              (ivy-state-dynamic-collection ivy-last))
         (progn
           (when ivy--exhibit-timer (cancel-timer ivy--exhibit-timer))
@@ -211,6 +212,13 @@ queue done flag exposed to `ivy-done' idle trigger judger."
                                       ivy-backward-kill-word
                                       ivy-forward-char
                                       backward-char))
+               ;; Using orig func when the dynamic caller is on since
+               ;; `entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p'
+               ;; inhbit the dynamic but we should respect the
+               ;; behavior as the origin func with customized as
+               ;; setting `ivy-dynamic-exhibit-delay-ms' is 0 (i.e. no
+               ;; dynamic to trigger).
+               (not (ivy-state-dynamic-collection ivy-last))
                ;; TODO: more conditions here
                )
           (entropy/emacs-run-at-idle-immediately

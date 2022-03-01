@@ -1429,5 +1429,25 @@ gui session has huge sets of differents in entropy-emacs.
 
 
 
+
+;; ** package patches refer
+
+(defvar entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-conditions nil
+  "List of functions to call without any args as an condition
+judger to judge whether inhibit the
+`ivy-dynamic-exhibit-delay-ms'.
+
+If one of the condition return non-nil then ignore rest
+conditions and consider that should be inhibited.")
+
+(defun entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p ()
+  "Return non-nil when we should inhibit
+`ivy-dynamic-exhibit-delay-ms' rely on
+`entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-conditions'."
+  (catch :exit
+    (dolist (func entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-conditions)
+      (when (funcall func)
+        (throw :exit t)))))
+
 ;; * provide
 (provide 'entropy-emacs-defvar)
