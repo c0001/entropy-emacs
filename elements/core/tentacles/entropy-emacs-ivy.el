@@ -403,6 +403,58 @@ unwind occasion.")
   :config
   ;; make `swiper-all' restore origin window-configuration when unwind
   (advice-add 'swiper-all :around #'entropy/emacs-ivy--swiper-all-restore-wfg)
+
+  (defun __ya/swiper-isearch-thing-at-point ()
+    "Like `swiper-isearch-thing-at-point' but with some eemacs patch
+and bug fix."
+    (interactive)
+    (let (_)
+      ;; do not duplicated insert the match when `last-command' is as is.
+      (when (eq last-command 'swiper-isearch-thing-at-point)
+        (delete-region (line-beginning-position)
+                       (line-end-position)))
+      ;; Prompts for insert boundary
+      (setq ivy--prompt "Swiper-isearch-thing-at-pt: (with 'C-u' to insert boundary)")
+      (if (window-minibuffer-p)
+          (let (bnd str regionp)
+            (with-ivy-window
+              (setq bnd
+                    (if (setq regionp (region-active-p))
+                        (prog1 (cons (region-beginning) (region-end))
+                          (deactivate-mark))
+                      (bounds-of-thing-at-point 'symbol)))
+              (setq str
+                    ;; EEMACS_TEMPORALLY_HACK: ignore erros when bound
+                    ;; are nil since thing can not get in empty area
+                    (ignore-errors
+                      (buffer-substring-no-properties (car bnd) (cdr bnd)))))
+            (if (not str)
+                (message "WARN: Noting at point!")
+              (insert str)
+              (unless regionp
+                ;; EEMACS_TEMPORALLY_HACK: just add ivy symbol
+                ;; boundaries when prefix arg since it can not search
+                ;; all matches while boundary is add, i.e. the
+                ;; boundary is used to restrict without part match
+                ;; like match 'abc' not match '0-abc-1' when boundary
+                ;; added through `swiper--re-builder'
+                (when current-prefix-arg
+                  (ivy--insert-symbol-boundaries)))))
+        (let (thing)
+          (if (use-region-p)
+              (progn
+                (setq thing (buffer-substring-no-properties
+                             (region-beginning) (region-end)))
+                (goto-char (region-beginning))
+                (deactivate-mark))
+            (let ((bnd (bounds-of-thing-at-point 'symbol)))
+              (when bnd
+                (goto-char (car bnd)))
+              (setq thing (ivy-thing-at-point))))
+          (swiper-isearch thing)))))
+  (advice-add 'swiper-isearch-thing-at-point
+              :override
+              #'__ya/swiper-isearch-thing-at-point)
   )
 
 
