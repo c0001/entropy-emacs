@@ -349,15 +349,7 @@ This caused by both of above and follow:
 
 Thus for now we can built the reproducible template via vanilla emacs:
 
-[[file:lsp-ui-bug530/lsp-ui-bug530.el][lsp-ui-bug530.el]]
-
-Run it with follow methods:
-#+BEGIN_SRC sh
-  # directly run the elisp file with
-  emacs -Q -l lsp-ui-bug530.el
-  # or run the init bash script under the same host of this elisp file
-  bash run.sh
-#+END_SRC
+Run [[./h-c02794e4-bdb8-4510-84cb-d668873b02fc/run.sh]]
 
 With manually hover reproduced of:
 #+begin_quote
@@ -388,7 +380,7 @@ it still lag on, which I'd thought its an emacs bug.
 
 *Reproduce steps:*
 
-Run the =run.sh= in =looking-back-bug_20210816=
+Run the =run.sh= in =./h-f551b679-908f-4b64-b08e-e7074d17581e=
 
 ** TODO bug of ~ivy-reverse-i-search~ 'ivy-call: Wrong type argument: listp, "..."'
 :PROPERTIES:
@@ -442,7 +434,7 @@ When emacs is startup with an idle timer as end procedure in
 =init.el=, then there're two pre-typed char =[= and =I= are preformed
 into the echo area of that timer.
 
-- Reproduce: [[file:0-idle-delay-init-bug/][here]]
+- Reproduce: [[./h-6d28b926-88c0-4286-a0de-9ee7b4a7516c/start-bug.sh]]
 
   We can not reproduce in arbitary environment, since it seems related
   to the shell env the emacs start at, espacially in tmux session.

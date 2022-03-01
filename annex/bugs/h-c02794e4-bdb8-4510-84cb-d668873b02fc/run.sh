@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # See https://stackoverflow.com/a/246128/3561275
 SOURCE="${BASH_SOURCE[0]}"
@@ -9,6 +9,4 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
-declare this_bug_loadfile="$DIR"/looking-back-bug_20210816.el
-
-emacs -Q -l "$this_bug_loadfile"
+env HOME="${DIR}" emacs -Q -l "${DIR}"/lsp-ui-bug530.el
