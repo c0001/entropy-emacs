@@ -409,14 +409,20 @@ unwind occasion.")
 and bug fix."
     (interactive)
     (let (_)
-      ;; do not duplicated insert the match when `last-command' is as is.
-      (when (eq last-command 'swiper-isearch-thing-at-point)
-        (delete-region (line-beginning-position)
-                       (line-end-position)))
-      ;; Prompts for insert boundary
-      (setq ivy--prompt "Swiper-isearch-thing-at-pt: (with 'C-u' to insert boundary)")
       (if (window-minibuffer-p)
           (let (bnd str regionp)
+            ;; Do not duplicated insert the match when reinvoke
+            (delete-region (line-beginning-position)
+                           (line-end-position))
+            ;; Prompts for insert boundary
+            (setq ivy--prompt
+                  (if (eq real-last-command 'swiper-isearch-thing-at-point)
+                      (concat
+                       ivy-count-format
+                       " Swiper-isearch-thing-at-pt: ")
+                    (concat
+                     ivy-count-format
+                     " Swiper-isearch-thing-at-pt: (with 'C-u' and invoking again to insert boundary)")))
             (with-ivy-window
               (setq bnd
                     (if (setq regionp (region-active-p))
