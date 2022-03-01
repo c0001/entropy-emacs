@@ -329,7 +329,11 @@ large buffer."
                        ;; enable for some subroutines
                        '(swiper-isearch-thing-at-point))
                ;; when using emacs internal description callers in
-               ;; `emacs-lisp-mode'
+               ;; `emacs-lisp-mode'.
+               ;;
+               ;; FIXME: shall we need to use `with-ivy-window' to
+               ;; stat the status in origin buffer since, but I test
+               ;; that there's no need and why?
                (and (eq major-mode 'emacs-lisp-mode)
                     (memq this-command
                           '(counsel-describe-variable
