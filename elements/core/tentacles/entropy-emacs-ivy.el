@@ -328,13 +328,19 @@ large buffer."
     (cond ((or (member real-this-command
                        ;; enable for some subroutines
                        '(swiper-isearch-thing-at-point))
-               ;; ;; let `swiper' like function using origin since its
-               ;; ;; internal needed in ivy source file
-               ;; (memq (ivy-state-caller ivy-last)
-               ;;       '(swiper
-               ;;         swiper-isearch
-               ;;         ;; TODO: more
-               ;;         ))
+               ;; when using emacs internal description callers in
+               ;; `emacs-lisp-mode'
+               (and (eq major-mode 'emacs-lisp-mode)
+                    (memq this-command
+                          '(counsel-describe-variable
+                            counsel-describe-function)))
+               ;; let `swiper' like function using origin since its
+               ;; internal needed in ivy source filea
+               (memq (ivy-state-caller ivy-last)
+                     '(swiper
+                       swiper-isearch
+                       ;; TODO: more
+                       ))
                )
            (apply orig-func orig-args))
           (t "")))
