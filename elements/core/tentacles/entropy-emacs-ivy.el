@@ -376,34 +376,16 @@ large buffer."
 (use-package swiper
   :commands (swiper swiper-all swiper-isearch)
   :preface
-  (defvar entropy/emacs-ivy--swiper-all-complete-did-p nil
-    "Indicator for that `swiper-all' was did complete which not
-unwind occasion.")
-  (defun entropy/emacs-ivy--swiper-all-restore-wfg (orig-func &rest orig-args)
-    "Restore origin window-configuration when unwind of `swiper-all'."
-    (let (rtn
-          (cur-wfg (current-window-configuration))
-          (cur-pt (point)))
-      (unwind-protect
-          (progn
-            (setq entropy/emacs-ivy--swiper-all-complete-did-p
-                  nil)
-            (setq rtn (apply orig-func orig-args)
-                  entropy/emacs-ivy--swiper-all-complete-did-p
-                  t)
-            rtn)
-        (unless entropy/emacs-ivy--swiper-all-complete-did-p
-          (set-window-configuration cur-wfg)
-          (goto-char cur-pt)))))
 
   :bind (("C-M-s" . swiper-all)
          :map swiper-map
          ("M-q" . swiper-query-replace))
 
+;; *** config
   :config
-  ;; make `swiper-all' restore origin window-configuration when unwind
-  (advice-add 'swiper-all :around #'entropy/emacs-ivy--swiper-all-restore-wfg)
 
+;; **** core advice
+;; ***** enhance `swiper-isearch-thing-at-point'
   (defun __ya/swiper-isearch-thing-at-point ()
     "Like `swiper-isearch-thing-at-point' but with some eemacs patch
 and bug fix."
@@ -461,6 +443,125 @@ and bug fix."
   (advice-add 'swiper-isearch-thing-at-point
               :override
               #'__ya/swiper-isearch-thing-at-point)
+
+;; ***** swiper all patch
+;; ****** core
+
+;; ******* More filters for `swiper-all-buffer-p'
+
+  (defvar __swiper-all-current-all-buffers nil)
+  (defvar __swiper-all-current-restrictions nil)
+  (defvar __swiper-all-eemacs-spec-filters
+    ;; each function must return t for buffer need to select
+    '((:name "mode restrictions"
+             :no-qurey nil
+             :func
+             (lambda ()
+               (let* ((buff-list __swiper-all-current-all-buffers)
+                      (modes-get (delete-dups
+                                  (delete
+                                   nil
+                                   (mapcar
+                                    (lambda (x)
+                                      (unless (minibufferp x)
+                                        (with-current-buffer x
+                                          major-mode)))
+                                    buff-list))))
+                      mode)
+                 (setq mode
+                       (completing-read "Which mode to swipr all?: "
+                                        modes-get nil t)
+                       mode (intern mode))
+                 `(lambda (buff)
+                    (with-current-buffer buff
+                      (eq major-mode ',mode))))))))
+
+  (defun __swiper-all-call-eemacs-spec-filters ()
+    (setq __swiper-all-current-all-buffers (buffer-list))
+    (let ((filters (copy-tree __swiper-all-eemacs-spec-filters))
+          (rtn-funcs nil))
+      (catch :exit
+        (while filters
+          (let* ((fplist (pop filters))
+                 (fname (plist-get fplist :name))
+                 (ffunc (plist-get fplist :func))
+                 (no-query (plist-get fplist :no-qurey)))
+            (when (or no-query
+                      (yes-or-no-p (format "do with <%s> " fname)))
+              (push (funcall ffunc) rtn-funcs)))))
+      (setq __swiper-all-current-restrictions
+            (reverse rtn-funcs))))
+
+  (defun __ya/swiper-all/eemacs-core-patch (orig-func &rest orig-args)
+    (setq __swiper-all-current-restrictions nil)
+    (let (_)
+      (when current-prefix-arg
+        (__swiper-all-call-eemacs-spec-filters))
+      (apply orig-func orig-args)))
+  (advice-add 'swiper-all :around #'__ya/swiper-all/eemacs-core-patch)
+
+  (defun __ya/swiper-all-buffer-p (orig-func &rest orig-args)
+    "Like `swiper-all-buffer-p' but with more filters adapted to eemacs."
+    (let ((orig-judge (apply orig-func orig-args))
+          (buffer (car orig-args)))
+      (when orig-judge
+        (let ((mode (buffer-local-value 'major-mode (get-buffer buffer)))
+              (buff-name (buffer-name buffer))
+              (buff-fname (buffer-file-name buffer)))
+          (and
+           ;; basic restricks
+           (cond (
+                  ;; ignore kill-ring persist file
+                  (and buff-fname
+                       (ignore-errors
+                         (file-equal-p
+                          buff-fname
+                          entropy/emacs-kill-ring-persist-file)))
+                  nil)
+                 ;; ignore any pre non visible buffer
+                 ((string-match-p "^ +\\*.+\\*.*" buff-name)
+                  nil)
+                 ;; otherwise for orig return
+                 (t
+                  orig-judge))
+           ;; eemacs union filters
+           (if (not __swiper-all-current-restrictions)
+               t
+             (catch :exit
+               (dolist (func __swiper-all-current-restrictions)
+                 (unless (funcall func buffer)
+                   (throw :exit nil)))
+               t)))))))
+  (advice-add 'swiper-all-buffer-p
+              :around
+              #'__ya/swiper-all-buffer-p)
+
+;; ****** window configuration restore when quit from `swiper-all'
+  (defvar entropy/emacs-ivy--swiper-all-complete-did-p nil
+    "Indicator for that `swiper-all' was did complete which not
+unwind occasion.")
+  (defun entropy/emacs-ivy--swiper-all-restore-wfg (orig-func &rest orig-args)
+    "Restore origin window-configuration when unwind of `swiper-all'."
+    (let (rtn
+          (cur-wfg (current-window-configuration))
+          (cur-pt (point)))
+      (unwind-protect
+          (progn
+            (setq entropy/emacs-ivy--swiper-all-complete-did-p
+                  nil)
+            (setq rtn (apply orig-func orig-args)
+                  entropy/emacs-ivy--swiper-all-complete-did-p
+                  t)
+            rtn)
+        (unless entropy/emacs-ivy--swiper-all-complete-did-p
+          (set-window-configuration cur-wfg)
+          (goto-char cur-pt)))))
+
+  ;; make `swiper-all' restore origin window-configuration when unwind
+  (advice-add 'swiper-all :around #'entropy/emacs-ivy--swiper-all-restore-wfg)
+
+
+
   )
 
 
