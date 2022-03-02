@@ -1560,6 +1560,10 @@ display icon or empty string while
     (setq ffip-use-rust-fd t))
   ;; always show the executed command and debug information
   (setq ffip-debug t)
+  ;; always disable `ffip-find-files-history' since its large when
+  ;; locating for large location which will enlarge emacs RAM usage.
+  (setq ffip-find-files-history-max-items 0)
+
   :config
 
   (defvar __ffip-find-symbolic-only-p nil)
