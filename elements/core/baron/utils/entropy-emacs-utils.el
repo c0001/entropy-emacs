@@ -500,24 +500,36 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
   (defvar entropy/emacs-pretty-hydra-posframe-visible-p nil)
   (defvar entropy/emacs-pretty-hydra-defined-indcator nil)
   (defvar entropy/emacs-pretty-hydra-posframe-boder-color "red")
+  (defun  entropy/emacs-pretty-hydra-posframe-canbe-use ()
+    "Return non-nil when current emacs-session can use
+`posframe-show' to show the pretty hydra."
+    (and
+     (display-graphic-p)
+     (fboundp 'posframe-show)))
+  (defvar entropy/emacs-pretty-hydra-inhibt-use-posframe nil
+    "Inhibit use `posframe-show' to show the hydra hints even if
+`entropy/emacs-pretty-hydra-posframe-canbe-use' is satisfied.")
   (defvar entropy/emacs-pretty-hydra--hydra-hints-let-env
     '((hydra-hint-display-type
-       (if (and (display-graphic-p)
-                (fboundp 'posframe-show))
+       (if (and (entropy/emacs-pretty-hydra-posframe-canbe-use)
+                (not entropy/emacs-pretty-hydra-inhibt-use-posframe))
            'posframe
          'lv))
       (hydra-posframe-show-params
        ;; EEMACS_MAINTENANCE: follow `hydra' updates
-       (list
-        ;; let font same as parent frame
-        :font (frame-parameter nil 'font)
-        :internal-border-width 1
-        :internal-border-color entropy/emacs-pretty-hydra-posframe-boder-color
-        ;; truncate line always in hydra posframe
-        :lines-truncate t
-        ;; stick on frame center always while show hydra posframe
-        :poshandler 'posframe-poshandler-frame-center
-        ))))
+       (when (eq hydra-hint-display-type 'posframe)
+         (list
+          ;; let font same as parent frame
+          :font (frame-parameter nil 'font)
+          :internal-border-width 1
+          :internal-border-color entropy/emacs-pretty-hydra-posframe-boder-color
+          ;; truncate line always in hydra posframe
+          :lines-truncate t
+          ;; stick on frame center always while show hydra posframe
+          :poshandler 'posframe-poshandler-frame-center
+          ))))
+    "The hydra referred `let*' bindings as an eemacs pretty hydra pre
+bindings for as.")
 
 
 ;; ***** hydra refer patch
