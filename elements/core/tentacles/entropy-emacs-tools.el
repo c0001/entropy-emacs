@@ -423,7 +423,19 @@ development web-browser."
   (entropy/emacs-lazy-load-simple entropy-open-with
     (advice-add 'entropy/open-with-port
                 :around
-                #'entropy/emacs-tools--open-with-port-stuffs-around)))
+                #'entropy/emacs-tools--open-with-port-stuffs-around))
+
+  (defun __ya/entropy/open-with-match-open (orig-func &rest orig-args)
+    "Like `entropy/open-with-match-open' but wrapped with
+`entropy/open-with-microsoft-native-when-wsl2-p' binding rely on
+`current-prefix'."
+    (let ((entropy/open-with-microsoft-native-when-wsl2-p
+           (not (null current-prefix-arg))))
+      (apply orig-func orig-args)))
+  (advice-add 'entropy/open-with-match-open
+              :around
+              #'__ya/entropy/open-with-match-open)
+  )
 
 ;; *** vertical center display
 (defun entropy/emacs-tools-vertical-center ()

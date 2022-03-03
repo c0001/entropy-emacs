@@ -580,7 +580,7 @@ and writeable!")))
            (start-process
             (format "eemacs-*nix-open-with_%s_for_file_%s"
                     caller file-path)
-            (get-buffer-create " *eemacs-*nix-open-with* ")
+            (generate-new-buffer " *eemacs-*nix-open-with-match* ")
             "setsid" "-w" caller open-with-arg)
            proc-sentinel)))
        (t
@@ -601,7 +601,7 @@ firstly using 'npm install -g wsl-open'"))
            (start-process
             (format "eemacs-wsl-open-with_for_file_%s"
                     file-path)
-            (get-buffer-create " *eemacs-wsl-open-with-native* ")
+            (generate-new-buffer " *eemacs-wsl-open-with-native* ")
             "setsid" "-w" "wsl-open" file-path)
            proc-sentinel)))
        ;; win32
@@ -614,7 +614,7 @@ firstly using 'npm install -g wsl-open'"))
            (start-process
             (format "eemacs-linux-open-with_xdg_for_file_%s"
                     file-path)
-            (get-buffer-create " *eemacs-linux-open-with-nativ* ")
+            (generate-new-buffer " *eemacs-linux-open-with-native* ")
             "setsid" "-w" "xdg-open" file-path)
            proc-sentinel)))
        ;; macos
