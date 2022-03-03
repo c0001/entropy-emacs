@@ -829,6 +829,12 @@ depedencies."
           (const :tag "disable" nil))
   :group 'entropy/emacs-customize-group-for-IME)
 
+(defcustom entropy/emacs-internal-ime-toggling-kbd-key "C-\\"
+  "The `kbd' recognied *single* key stroke for toggling the enable
+  status of `entropy/emacs-internal-ime-use-backend'."
+  :type 'string
+  :group 'entropy/emacs-customize-group-for-IME)
+
 (defcustom entropy/emacs-internal-ime-use-rime-default-schema "luna_pinyin_simp"
   "The default rime schema used for init
 `entropy/emacs-internal-ime-use-rime-as'. The specified rime schema

@@ -3066,6 +3066,23 @@ stored in `__emacs-rime-current-schema'."
               :around #'__ya/rime-lib-select-schema)
 
 ;; ******* candi show patch
+
+  (defun __rime--message-content-sit-for (secs)
+    "Wrapper for using `sit-for' inside of
+`rime--message-display-content' for the sake of fix display hints
+conflicts."
+    (if (memq last-input-event
+              `(
+                ;; EEMACS_TEMPORALLY_HACK: the `sit-for' will block
+                ;; the modline status refresh when toggle input
+                ;; method. And FIXME: why it will also block the
+                ;; following rime candi show with message?
+                ,(car (listify-key-sequence
+                       (kbd entropy/emacs-internal-ime-toggling-kbd-key)))))
+        (run-with-idle-timer
+         0 nil
+         'sit-for secs)
+      (sit-for secs)))
   (defun __ya/rime--message-display-content (content)
     "Like `rime--message-display-content', Fix bugs."
     (let ((message-log-max nil))
@@ -3091,11 +3108,11 @@ stored in `__emacs-rime-current-schema'."
                (let ((message-log-max nil))
                  (save-window-excursion
                    (with-temp-message msg
-                     (sit-for most-positive-fixnum)))))
+                     (__rime--message-content-sit-for most-positive-fixnum)))))
            content)
         (save-window-excursion
           (with-temp-message content
-            (sit-for most-positive-fixnum))))))
+            (__rime--message-content-sit-for most-positive-fixnum))))))
   (advice-add 'rime--message-display-content
               :override #'__ya/rime--message-display-content)
 
@@ -3202,7 +3219,7 @@ we do not want to init as duplicated which will cause messy."
          '(entropy/emacs-internal-ime-popup-type-autoset))
 
         (setq hydra-heads
-              `(("C-\\" ,(plist-get ime-plist :toggle)
+              `((,entropy/emacs-internal-ime-toggling-kbd-key ,(plist-get ime-plist :toggle)
                  ,(format "Set Inputmethod '%s'" ime-name)
                  :enable t
                  :toggle (string= current-input-method ,(plist-get ime-plist :imestr))
