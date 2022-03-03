@@ -736,7 +736,7 @@ Note: this func redirected `default-directory' as
 It's core function is `entropy/open-with-match-open', see it for
 details.
 
-Optional argument PREFIX if non-nil:
+Optional argument PREFIX if doubled i.e. eq '(16):
 
 - we use `dired-get-marked-files' to matched files and batch open
   them, otherwise we just open the file at current line e.g. get
@@ -744,7 +744,11 @@ Optional argument PREFIX if non-nil:
 "
   (interactive "P")
   (if (equal major-mode 'dired-mode)
-      (let ((files (if prefix
+      (let ((files (if (and (eq (car prefix) 16)
+                            ;; treat as notice since amounts of
+                            ;; process open will cause system
+                            ;; performance issues.
+                            (yes-or-no-p "open all marked files?"))
                        (dired-get-marked-files)
                      (list (dired-get-filename)))))
         (entropy/open-with-match-open files))

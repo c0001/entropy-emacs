@@ -401,12 +401,14 @@ Version 2017-10-09"
 ;; **** entropy-open-with
 (use-package entropy-open-with
   :if (and sys/is-graphic-support
-           (if sys/linuxp
+           (if (or sys/linuxp
+                   sys/wsl2-env-p)
                (executable-find "setsid")
              t))
   :ensure nil
   :commands (entropy/open-with-dired-open
-             entropy/open-with-buffer)
+             entropy/open-with-buffer
+             entropy/open-with-dired-open/with-wsl2-native)
 
   :eemacs-tpha
   (((:enable
@@ -434,10 +436,14 @@ Version 2017-10-09"
     (("M-RET" entropy/open-with-dired-open "Dired open with portable apps"
       :enable
       (when (or sys/is-graphic-support
-                (and sys/wsl2-env-p (not (display-graphic-p))))
+                sys/wsl2-env-p)
         t)
       :exit t :map-inject t)
-     )))
+     ("C-<return>" entropy/open-with-dired-open/with-wsl2-native
+      "Dired open with portable apps with windows native apps in wsl2 env."
+      :enable
+      sys/wsl2-env-p
+      :exit t :map-inject t))))
 
   :config
   (defun entropy/emacs-tools--open-with-port-stuffs-around (oldfunc &rest arg-rest)
@@ -451,16 +457,14 @@ development web-browser."
                 :around
                 #'entropy/emacs-tools--open-with-port-stuffs-around))
 
-  (defun __ya/entropy/open-with-match-open (orig-func &rest orig-args)
-    "Like `entropy/open-with-match-open' but wrapped with
-`entropy/open-with-microsoft-native-when-wsl2-p' binding rely on
-`current-prefix'."
+  (defun entropy/open-with-dired-open/with-wsl2-native (&optional prefix)
+    "Like `entropy/open-with-dired-open' but wrapped with
+`entropy/open-with-microsoft-native-when-wsl2-p' binding as t."
+    (interactive "P")
     (let ((entropy/open-with-microsoft-native-when-wsl2-p
-           (not (null current-prefix-arg))))
-      (apply orig-func orig-args)))
-  (advice-add 'entropy/open-with-match-open
-              :around
-              #'__ya/entropy/open-with-match-open)
+           t))
+      (funcall 'entropy/open-with-dired-open
+               prefix)))
   )
 
 ;; *** vertical center display
