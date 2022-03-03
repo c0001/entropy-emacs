@@ -423,7 +423,7 @@ Version 2017-10-09"
   :eemacs-mmphca
   (((:enable
      (or sys/is-graphic-support
-         sys/wsl-env-p)
+         sys/wsl2-env-p)
      :defer (:data
              (:adfors
               (dired-mode)
@@ -434,7 +434,7 @@ Version 2017-10-09"
     (("M-RET" entropy/open-with-dired-open "Dired open with portable apps"
       :enable
       (when (or sys/is-graphic-support
-                (and sys/wsl-env-p (not (display-graphic-p))))
+                (and sys/wsl2-env-p (not (display-graphic-p))))
         t)
       :exit t :map-inject t)
      )))

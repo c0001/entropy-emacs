@@ -3446,7 +3446,7 @@ clipboard with native operation system."
           (and (executable-find "termux-clipboard-get")
                'termux-clipboard-get)
           ;; microsoft wsl env
-          (and sys/wsl-env-p
+          (and sys/wsl2-env-p
                (executable-find "powershell.exe")
                'powershell)
           ;; gnu/linux platform
@@ -3521,9 +3521,9 @@ NOTE: no warranty use in other system."
 ;; (defun __adv/around/kill-new/windows-subsystem-env
 ;;     (orig-func &rest orig-args)
 ;;   "Kill things also put in windows system clipboard when
-;; `sys/wsl-env-p'."
+;; `sys/wsl2-env-p'."
 ;;   ;; just WSLg env since `xclip-mode' not enabled in that case
-;;   (when sys/wslg-env-p
+;;   (when sys/wsl2g-env-p
 ;;     (let ((str (car orig-args)))
 ;;       (entropy/emacs-windows-env/copy-to-clipboard-core
 ;;        str)))

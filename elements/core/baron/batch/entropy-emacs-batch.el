@@ -180,7 +180,7 @@
                      (:name "cmake-lsp"      :pred entropy/emacs-coworker-check-cmake-lsp   :enable (EEMACS-DT-IDENTITY t))
                      (:name "java-lsp"       :pred entropy/emacs-coworker-check-java-lsp    :enable (EEMACS-DT-IDENTITY t))
                      (:name "clangd-lsp"     :pred entropy/emacs-coworker-check-clangd-lsp  :enable (EEMACS-DT-IDENTITY t))
-                     (:name "wsl-open"       :pred entropy/emacs-coworker-check-wsl-open    :enable (EEMACS-DT-FORM sys/wsl-env-p))
+                     (:name "wsl-open"       :pred entropy/emacs-coworker-check-wsl-open    :enable (EEMACS-DT-FORM sys/wsl2-env-p))
                      (:name "pwsh-lsp"       :pred entropy/emacs-coworker-check-pwsh-lsp    :enable (EEMACS-DT-FORM (and (executable-find "pwsh")
                                                                                                                          (executable-find "dotnet"))))
                      (:name "python-lsp-ms"  :pred entropy/emacs-coworker-check-pyls-ms-lsp :enable (EEMACS-DT-FORM

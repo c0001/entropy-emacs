@@ -64,7 +64,7 @@
   (string-equal "root" (getenv "USER"))
   "Are you using ROOT user?")
 
-(defconst sys/wsl-env-p
+(defconst sys/wsl2-env-p
   (let ((wsl-indcf "/proc/version"))
     (and
      ;; use uname judge
@@ -82,12 +82,12 @@
          (point-min)
          (point-max))))))
   "Judge whether current env is in WSL(windows subsystem linux)
-environment."
+ver.2 environment."
   )
 
-(defconst sys/wslg-env-p (and sys/wsl-env-p (display-graphic-p))
+(defconst sys/wsl2g-env-p (and sys/wsl2-env-p (display-graphic-p))
   "Judge whether current env is in WSLg(windows subsystem linux
-gui) environment.")
+ver.2 gui) environment.")
 
 ;; *** group filter
 (defconst sys/is-win-group
