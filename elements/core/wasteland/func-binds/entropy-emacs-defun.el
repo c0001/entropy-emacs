@@ -3478,7 +3478,12 @@ clipboard with native operation system."
                  t
                (progn (require 'xclip)
                       (setq xclip-method judger
-                            xclip-program (symbol-name judger))
+                            xclip-program (if (eq judger 'powershell)
+                                              ;; NOTE: WSLg can not
+                                              ;; found non *.exe named
+                                              ;; executable
+                                              (executable-find "powershell.exe")
+                                            (symbol-name judger)))
                       (xclip-mode 1)
                       t))))
       judger)))
@@ -3508,19 +3513,25 @@ NOTE: no warranty use in other system."
       "powershell.exe -Command Get-Clipboard")
      0 -1)))
 
-(defun __adv/around/kill-new/windows-subsystem-env
-    (orig-func &rest orig-args)
-  "Kill things also put in windows system clipboard when
-`sys/wsl-env-p'."
-  ;; just WSLg env since `xclip-mode' not enabled in that case
-  (when sys/wslg-env-p
-    (let ((str (car orig-args)))
-      (entropy/emacs-windows-env/copy-to-clipboard-core
-       str)))
-  (apply orig-func orig-args))
-(advice-add 'kill-new
-            :around
-            #'__adv/around/kill-new/windows-subsystem-env)
+;; NOTE: there's no need to use for now Now [2022-03-03 Thu 15:00:55,
+;; since WSLg can handle the system<->wsl correctly. If used will
+;; cause the native clipboard transfer block timeout for
+;; `gui-get-selection'
+;;
+;; (defun __adv/around/kill-new/windows-subsystem-env
+;;     (orig-func &rest orig-args)
+;;   "Kill things also put in windows system clipboard when
+;; `sys/wsl-env-p'."
+;;   ;; just WSLg env since `xclip-mode' not enabled in that case
+;;   (when sys/wslg-env-p
+;;     (let ((str (car orig-args)))
+;;       (entropy/emacs-windows-env/copy-to-clipboard-core
+;;        str)))
+;;   (apply orig-func orig-args))
+;;
+;; (advice-add 'kill-new
+;;             :around
+;;             #'__adv/around/kill-new/windows-subsystem-env)
 
 (defun entropy/emacs-xterm-paste-core (event)
   "The eemacs kill-ring update function for monitoring
