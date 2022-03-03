@@ -74,13 +74,15 @@
       (shell-command-to-string "uname -a"))
      ;; cat /proc/version file
      (file-exists-p wsl-indcf)
-     (string-match-p
-      "\\(microsoft\\|Microsoft\\)"
-      (with-temp-buffer
-        (insert-file-contents wsl-indcf)
-        (buffer-substring
-         (point-min)
-         (point-max))))))
+     (and
+      (string-match-p
+       "\\(microsoft\\|Microsoft\\)"
+       (with-temp-buffer
+         (insert-file-contents wsl-indcf)
+         (buffer-substring
+          (point-min)
+          (point-max))))
+      t)))
   "Judge whether current env is in WSL(windows subsystem linux)
 ver.2 environment."
   )
