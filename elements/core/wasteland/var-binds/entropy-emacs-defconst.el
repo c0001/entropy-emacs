@@ -123,6 +123,10 @@ Posix emulator supports for:
 
       (not (string-empty-p (or (getenv "DESKTOP_SESSION") "")))
       (not (string-empty-p (or (getenv "XDG_CURRENT_DESKTOP") "")))
+      ;; WAYLAND
+      (not (string-empty-p (or (getenv "WAYLAND_DISPLAY") "")))
+      ;; X11
+      (not (string-empty-p (or (getenv "DISPLAY") "")))
       (display-graphic-p))
   "System group filter for graphic supported platforms.")
 

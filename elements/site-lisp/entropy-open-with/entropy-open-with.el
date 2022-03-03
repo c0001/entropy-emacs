@@ -348,6 +348,10 @@ string type.
                                           (string :tag "Exec argument"))))))
   :group 'entropy/open-with)
 
+(defcustom entropy/open-with-microsoft-native-when-wsl2-p nil
+  "Whether using windows native apps to open files when in
+microsoft wsl2 gnu/linux session.")
+
 (defvar entropy/open-with--type-list-full nil
   "Full list for `entropy/open-with-match-open' which gened by
   `entropy/open-with-type-list'")
@@ -360,26 +364,52 @@ string type.
 
 (defvar __entropy/open-with-wsl-env-judged nil)
 (defvar __entropy/open-with-wsl-env-p nil)
-(defun entropy/open-with-wsl-env-p ()
-  (if __entropy/open-with-wsl-env-judged
-      __entropy/open-with-wsl-env-p
-    (let ((wsl-indcf "/proc/version"))
-      (setq __entropy/open-with-wsl-env-p
-            (and
-             ;; use uname judge
-             (executable-find "uname")
-             (string-match-p
-              "Microsoft"
-              (shell-command-to-string "uname -a"))
-             ;; cat /proc/version file
-             (file-exists-p wsl-indcf)
-             (string-match-p
-              "\\(microsoft\\|Microsoft\\)"
-              (with-temp-buffer
-                (insert-file-contents wsl-indcf)
-                (buffer-substring
-                 (point-min)
-                 (point-max)))))))))
+(defun entropy/open-with-microsoft-windows-wsl2-env-p (&optional pure)
+  "Return non-nil whether current session in microsoft wsl2 gnu/linux env."
+  (and (or pure entropy/open-with-microsoft-native-when-wsl2-p)
+       (if __entropy/open-with-wsl-env-judged
+           __entropy/open-with-microsoft-windows-wsl2-env-p
+         (let ((wsl-indcf "/proc/version"))
+           (setq __entropy/open-with-microsoft-windows-wsl2-env-p
+                 (and
+                  ;; use uname judge
+                  (executable-find "uname")
+                  (string-match-p
+                   "Microsoft"
+                   (shell-command-to-string "uname -a"))
+                  ;; cat /proc/version file
+                  (file-exists-p wsl-indcf)
+                  (string-match-p
+                   "\\(microsoft\\|Microsoft\\)"
+                   (with-temp-buffer
+                     (insert-file-contents wsl-indcf)
+                     (buffer-substring
+                      (point-min)
+                      (point-max))))))))))
+
+(defun entropy/open-with-linux-env-p ()
+  "Return non-nil when in gnu/linux session except when
+`entropy/open-with-microsoft-windows-wsl2-env-p' and
+`entropy/open-with-microsoft-native-when-wsl2-p' are non-nil since
+we need to strongly distinguish wsl and linux env."
+  (let ((linux-env-p (eq system-type 'gnu/linux)))
+    (if (entropy/open-with-microsoft-windows-wsl2-env-p t)
+        (and (not entropy/open-with-microsoft-native-when-wsl2-p)
+             linux-env-p)
+      linux-env-p)))
+
+(defun entropy/open-with-system-type-non-support-error (extra-msg)
+  (let (systype)
+    (setq systype
+          (cond ((entropy/open-with-microsoft-windows-wsl2-env-p)
+                 'microsoft-wsl2)
+                ((entropy/open-with-linux-env-p)
+                 'gnu/linux)
+                (t
+                 system-type)))
+    (user-error
+     "[entropy/open-with error of system-type: %s]: %s"
+     systype extra-msg)))
 
 (defun entropy/open-with--filename-toplevel-predicate (filename)
   "Predicate FILENAME for top-level judgemments, if no error,
@@ -446,10 +476,15 @@ If not matched the exist file type then return nil."
                    (cond ((entropy/open-with--on-win32)
                           (let ((path-formated (replace-regexp-in-string "^\\(.\\):/" "\\1/" file-path)))
                             (setq $file-pattern (concat "file:///" path-formated))))
-                         ((or (eq system-type 'gnu/linux)
+                         ((or (entropy/open-with-microsoft-windows-wsl2-env-p)
+                              (entropy/open-with-linux-env-p)
                               (eq system-type 'darwin))
-                          (setq $file-pattern (concat "file://" file-path)))))
+                          (setq $file-pattern (concat "file://" file-path)))
+                         (t
+                          (entropy/open-with-system-type-non-support-error
+                           "we are not implement the 'file' arg transfer for this system type."))))
                   ((eq 'quote path-transform)
+                   ;; TODO: shall we need to do specially for ws2 env?
                    (setq $file-pattern (shell-quote-argument file-path)))
                   ((functionp path-transform)
                    (setq $file-pattern (funcall path-transform file-path)))
@@ -518,7 +553,7 @@ and writeable!")))
      ((and file-plistp
            ;; we don't want wsl env to using app associated open-with
            ;; refer since we must follow windows mimeapps settings
-           (not (entropy/open-with-wsl-env-p)))
+           (not (entropy/open-with-microsoft-windows-wsl2-env-p)))
       (setq caller (plist-get file-plist :caller)
             file-pattern (expand-file-name (plist-get file-plist :file-pattern))
             open-with-arg-concated (plist-get file-plist :open-with-arg-concated)
@@ -526,7 +561,7 @@ and writeable!")))
       (cond
        ((entropy/open-with--on-win32)
         (w32-shell-execute "open" caller open-with-arg-concated))
-       ((or (eq system-type 'gnu/linux)
+       ((or (entropy/open-with-linux-env-p)
             (eq system-type 'darwin))
         (let (
               ;; preserve `process-connection-type' to t since while
@@ -547,13 +582,17 @@ and writeable!")))
                     caller file-path)
             (get-buffer-create " *eemacs-*nix-open-with* ")
             "setsid" "-w" caller open-with-arg)
-           proc-sentinel)))))
+           proc-sentinel)))
+       (t
+        (entropy/open-with-system-type-non-support-error
+         (format "we can not invoke '%s' for this system type."
+                 caller)))))
      ;; ==================== native open ====================
      ((null file-plistp)
       (setq file-path (expand-file-name file-plist))
       (cond
        ;; wsl
-       ((entropy/open-with-wsl-env-p)
+       ((entropy/open-with-microsoft-windows-wsl2-env-p)
         (unless (executable-find "wsl-open")
           (user-error "You are in microsoft subsystem linux environment, please install 'wsl-open' \
 firstly using 'npm install -g wsl-open'"))
@@ -569,7 +608,7 @@ firstly using 'npm install -g wsl-open'"))
        ((entropy/open-with--on-win32)
         (w32-shell-execute "open" file-path))
        ;; linux
-       ((eq system-type 'gnu/linux)
+       ((entropy/open-with-linux-env-p)
         (let ((process-connection-type t))
           (set-process-sentinel
            (start-process
