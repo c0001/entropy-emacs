@@ -2832,7 +2832,10 @@ with requests.")
                 filename)))
 
 (defvar __unreadable-file-long-threshold 700)
-(defvar entropy/emacs-unreadable-file-judge-function nil)
+(defvar entropy/emacs-unreadable-file-judge-function nil
+  "The eemacs file unreadable judger, usually it store a function
+but aslo can be nil, so used after using `functionp' to check
+as.")
 (setq entropy/emacs-unreadable-file-judge-function
       (lambda (filename)
         (let* ((inhibit-read-only t)
@@ -2863,7 +2866,10 @@ with requests.")
                        (funcall entropy/emacs-unreadable-buffer-judge-function
                                 (current-buffer))))))))))
 
-(defvar entropy/emacs-unreadable-buffer-judge-function nil)
+(defvar entropy/emacs-unreadable-buffer-judge-function nil
+  "The eemacs buffer unreadable judger, usually it store a function
+but aslo can be nil, so used after using `functionp' to check
+as.")
 (setq entropy/emacs-unreadable-buffer-judge-function
       (lambda (buff)
         (with-current-buffer buff

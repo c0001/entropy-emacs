@@ -1406,7 +1406,8 @@ NOTE: this is a advice wrapper for any function."
 (defvar entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
 
 (defun entropy/emacs-basic-smooth-scrolling-mode-turn-on ()
-  (unless (funcall entropy/emacs-unreadable-buffer-judge-function (current-buffer))
+  (unless (and (functionp entropy/emacs-unreadable-buffer-judge-function)
+               (funcall entropy/emacs-unreadable-buffer-judge-function (current-buffer)))
     (entropy/emacs-basic-smooth-scrolling-mode 1)))
 
 (define-minor-mode entropy/emacs-basic-smooth-scrolling-mode
