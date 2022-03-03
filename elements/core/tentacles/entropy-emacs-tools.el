@@ -240,7 +240,29 @@ URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
 Version 2017-10-09"
   (interactive)
   (let ((wcdir
-          (expand-file-name default-directory)))
+         (expand-file-name default-directory))
+        proc-obj
+        (proc-sentinel
+         (lambda (proc _event)
+           (let ((proc-name (process-name proc))
+                 (proc-buffer (process-buffer proc))
+                 (proc-status (process-status proc))
+                 (error-pred (lambda (proc-name proc-buffer)
+                               (pop-to-buffer proc-buffer)
+                               (error "eemacs-linux-terminal-popup <%s> exited with fatal"
+                                      proc-name))))
+             (cond ((and (eq 'exit proc-status)
+                         (not (= 0 (process-exit-status proc))))
+                    (funcall error-pred proc-name proc-buffer))
+                   ((member proc-status '(stop signal))
+                    (funcall error-pred proc-name proc-buffer))
+                   ((and (eq 'exit proc-status)
+                         (= 0 (process-exit-status proc)))
+                    (message "eemacs-linux-terminal-popup <%s> open sucessfully"
+                             proc-name)
+                    (when (buffer-live-p proc-buffer)
+                      (let ((kill-buffer-hook nil))
+                        (kill-buffer proc-buffer)))))))))
     (cond
      (sys/win32p
       ;;(message "Microsoft Windows not supported bash shell, and we use cmd instead")
@@ -314,24 +336,28 @@ Version 2017-10-09"
               )))
         (unless exec-and-arg
           (error "Can not find proper terminal emulator on your system."))
-        (apply 'start-process
-               (format "eemacs-linux-terminal-popup_<%s>_%s"
-                       wcdir
-                       time-str)
-               (get-buffer-create
-                (format " *eemacs-linux-terminal-popup-proc-buffer_<%s>.%s* "
-                        wcdir
-                        time-str))
-               ;; use setsid to creat a new controlling terminal so that
-               ;; emacs not kill it while open since: gvfs-open and
-               ;; xdg-open return before their children are done
-               ;; working. Emacs might kill their controlling terminal when
-               ;; this happens, killing the children, and stopping refer
-               ;; application from opening properly. (see
-               ;; https://askubuntu.com/questions/646631/emacs-doesnot-work-with-xdg-open
-               ;; for more details)
-               (append '("setsid" "-w") exec-and-arg))
-        )))))
+        (setq proc-obj
+              (apply 'start-process
+                     (format "eemacs-linux-terminal-popup_<%s>_%s"
+                             wcdir
+                             time-str)
+                     (get-buffer-create
+                      (format " *eemacs-linux-terminal-popup-proc-buffer_<%s>.%s* "
+                              wcdir
+                              time-str))
+                     ;; use setsid to creat a new controlling terminal so that
+                     ;; emacs not kill it while open since: gvfs-open and
+                     ;; xdg-open return before their children are done
+                     ;; working. Emacs might kill their controlling terminal when
+                     ;; this happens, killing the children, and stopping refer
+                     ;; application from opening properly. (see
+                     ;; https://askubuntu.com/questions/646631/emacs-doesnot-work-with-xdg-open
+                     ;; for more details)
+                     (append '("setsid" "-w") exec-and-arg)))
+        (set-process-sentinel proc-obj proc-sentinel))
+      )
+     )
+    ))
 
 (when sys/win32p
   (defun entropy/emacs-tools-cmd()
