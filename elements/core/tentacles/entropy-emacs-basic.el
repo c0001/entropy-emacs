@@ -3065,6 +3065,40 @@ stored in `__emacs-rime-current-schema'."
   (advice-add 'rime-lib-select-schema
               :around #'__ya/rime-lib-select-schema)
 
+;; ******* candi show patch
+  (defun __ya/rime--message-display-content (content)
+    "Like `rime--message-display-content', Fix bugs."
+    (let ((message-log-max nil))
+      (if (memq
+           ;; EEMACS_TEMPORALLY_HACK: idle the content message while
+           ;; ensure an input or other emacs internal key events since
+           ;; the `sit-for' of the next message is take priority of
+           ;; the emacs-rime char puts to `current-buffer'.
+           last-input-event
+           '(
+             ;; SPC key in the default key event for rime to ensure an
+             ;; input. TODO: we need to expose an cutomization since its
+             ;; just the default value which can not cover each user's
+             ;; rime config.
+             32
+             ;; also as for `C-a' `C-e'
+             1 5
+             ))
+          (run-with-idle-timer
+           0.1
+           nil
+           #'(lambda (msg)
+               (let ((message-log-max nil))
+                 (save-window-excursion
+                   (with-temp-message msg
+                     (sit-for most-positive-fixnum)))))
+           content)
+        (save-window-excursion
+          (with-temp-message content
+            (sit-for most-positive-fixnum))))))
+  (advice-add 'rime--message-display-content
+              :override #'__ya/rime--message-display-content)
+
 ;; ******* eemacs spec apis
   ;; FIXME:
   ;; TODO: we must use an unified wrapper to judge the result since
