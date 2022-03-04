@@ -58,6 +58,11 @@ Windows configuration and workspace defination
 * Eyebrowse::
 * Buffer or Window switching::
 
+Chinse input method
+
+* PYIM::
+* EMACS-RIME::
+
 Major modes for programming
 
 * C and C++::
@@ -1175,7 +1180,22 @@ Although @samp{chinese-py} input method was pure and powerful for basic
 using, if onece you get it on your scatter doing, you will find it was
 really simple and crude which can not be used as the daily tool for
 thus. As the result, @samp{entropy-emacs} usig the most powerful and
-comprehensive 'pinyin' support melpa extentioin @uref{https://github.com/tumashu/pyim, pyim} :
+comprehensive 'pinyin' support melpa extentioin @uref{https://github.com/tumashu/pyim, pyim} and @uref{https://github.com/DogLooksGood/emacs-rime, emacs-rime}:
+
+@menu
+* PYIM::
+* EMACS-RIME::
+@end menu
+
+@node PYIM
+@subsubsection PYIM
+
+The breif descriptioin from its README is:
+
+@quotation
+PYIM 是一个 Emacs 中文输入法，支持全拼，双拼，五笔，仓颉 和 Rime 等
+
+@end quotation
 
 @example
 这是一段中文说明，你好shijie
@@ -1337,6 +1357,18 @@ Pyim allows user to toggle punctuation standard widths withs both of
 input session, this may be useful when you are editting the list or
 table in org mode.
 @end itemize
+
+@node EMACS-RIME
+@subsubsection @strong{TODO} EMACS-RIME
+
+Emacs-rime was an frontend of @uref{https://github.com/rime, rime} opensource input method for emacs
+binding by @samp{emacs-lisp} with its own emacs's dynamic module. It's
+provide simple api to communicate with the @uref{https://github.com/rime/librime, librime} and get the CBK
+from thus to the frontend implemented by @samp{emacs-lisp} to let user
+handle all typing through @samp{rime}.
+
+@samp{entropy-emacs} has fully configured @samp{emacs-rime} to let user use it
+out-of-box.
 
 @node Globally readonly mode
 @subsection Globally readonly mode

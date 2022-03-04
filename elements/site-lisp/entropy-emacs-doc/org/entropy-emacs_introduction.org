@@ -888,7 +888,18 @@ Although =chinese-py= input method was pure and powerful for basic
 using, if onece you get it on your scatter doing, you will find it was
 really simple and crude which can not be used as the daily tool for
 thus. As the result, =entropy-emacs= usig the most powerful and
-comprehensive 'pinyin' support melpa extentioin [[https://github.com/tumashu/pyim][pyim]] :
+comprehensive 'pinyin' support melpa extentioin [[https://github.com/tumashu/pyim][pyim]] and [[https://github.com/DogLooksGood/emacs-rime][emacs-rime]]:
+
+**** PYIM
+:PROPERTIES:
+:CUSTOM_ID: h-16601981-5d7c-4c07-8d5d-2ea92d57e99d
+:END:
+
+The breif descriptioin from its README is:
+
+#+begin_quote
+PYIM 是一个 Emacs 中文输入法，支持全拼，双拼，五笔，仓颉 和 Rime 等
+#+end_quote
 
 #+BEGIN_EXAMPLE
   这是一段中文说明，你好shijie
@@ -1029,6 +1040,20 @@ widgets for chosen:
   =half= and =full= style with keybinding =C-1= while you are in pyim
   input session, this may be useful when you are editting the list or
   table in org mode.
+
+**** TODO EMACS-RIME
+:PROPERTIES:
+:CUSTOM_ID: h-c309fd9b-7788-4e02-a70a-8c99c0fa1c17
+:END:
+
+Emacs-rime was an frontend of [[https://github.com/rime][rime]] opensource input method for emacs
+binding by =emacs-lisp= with its own emacs's dynamic module. It's
+provide simple api to communicate with the [[https://github.com/rime/librime][librime]] and get the CBK
+from thus to the frontend implemented by =emacs-lisp= to let user
+handle all typing through =rime=.
+
+=entropy-emacs= has fully configured =emacs-rime= to let user use it
+out-of-box.
 
 *** Globally readonly mode
 :PROPERTIES:
