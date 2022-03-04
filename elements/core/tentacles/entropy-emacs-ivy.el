@@ -325,19 +325,21 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
     "Ignore `ivy-thing-at-point' to return emtpy string but with some
 occasions since the internal `thing-at-point' is so laggy with
 large buffer."
-    (cond ((or (member real-this-command
+    (cond (
+           ;; FIXME: shall we need to use `with-ivy-window' to
+           ;; stat the status in origin buffer since, but I test
+           ;; that there's no need and why?
+           (or (member real-this-command
                        ;; enable for some subroutines
                        '(swiper-isearch-thing-at-point))
-               ;; when using emacs internal description callers in
-               ;; `emacs-lisp-mode'.
-               ;;
-               ;; FIXME: shall we need to use `with-ivy-window' to
-               ;; stat the status in origin buffer since, but I test
-               ;; that there's no need and why?
-               (and (eq major-mode 'emacs-lisp-mode)
+
+               (and (memq major-mode '(emacs-lisp-mode
+                                       lisp-interaction-mode
+                                       help-mode))
                     (memq this-command
                           '(counsel-describe-variable
-                            counsel-describe-function)))
+                            counsel-describe-function
+                            )))
                ;; let `swiper' like function using origin since its
                ;; internal needed in ivy source filea
                (memq (ivy-state-caller ivy-last)
