@@ -469,6 +469,7 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
 ;; *** hydra core
 (use-package hydra
   :commands (defhydra)
+  :eemacs-functions (hydra-default-pre)
   :init
   ;; Fix '[]' as key stroke in hydra doc init refer to
   ;; https://github.com/abo-abo/hydra/issues/365#issue-574484394
@@ -477,6 +478,88 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
   (setq hydra-key-regex
         "[][\\[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$-]+?")
   :config
+;; **** core patch
+;; ****** `hydra--make-defun'
+
+  (defun hydra--make-defun (name body doc head
+                                 keymap body-pre body-before-exit
+                                 &optional body-after-exit)
+    "Make a defun wrapper, using NAME, BODY, DOC, HEAD, and KEYMAP.
+NAME and BODY are the arguments to `defhydra'.
+DOC was generated with `hydra--doc'.
+HEAD is one of the HEADS passed to `defhydra'.
+BODY-PRE is added to the start of the wrapper.
+BODY-BEFORE-EXIT will be called before the hydra quits.
+BODY-AFTER-EXIT is added to the end of the wrapper.
+
+NOTE: this function has been redefined by eemacs by suggested by
+`entropy/emacs-top-improvements-for-require'.
+
+EEMACS_MAINTENANCE: follow upstream updates and just copy the new
+version src and remove the redudant require statements in this
+function."
+    (let* ((cmd-name (hydra--head-name head name))
+           (cmd (when (car head)
+                  (hydra--make-callable
+                   (cadr head))))
+           (doc (if (car head)
+                    (format "Call the head `%S' in the \"%s\" hydra.\n\n%s"
+                            (cadr head) name doc)
+                  (format "Call the body in the \"%s\" hydra.\n\n%s"
+                          name doc)))
+           (hint (intern (format "%S/hint" name)))
+           (body-foreign-keys (hydra--body-foreign-keys body))
+           (body-timeout (plist-get body :timeout))
+           (idle (or (and (eq (cadr head) 'body) (plist-get body :idle))
+                     (plist-get (nthcdr 3 head) :idle)))
+           (curr-body-fn-sym (intern (format "%S/body" name)))
+           (body-on-exit-t
+            `((hydra-keyboard-quit)
+              (setq hydra-curr-body-fn ',curr-body-fn-sym)
+              ,@(if body-after-exit
+                    `((unwind-protect
+                          ,(when cmd
+                             (hydra--call-interactively cmd (cadr head)))
+                        ,body-after-exit))
+                  (when cmd
+                    `(,(hydra--call-interactively cmd (cadr head)))))))
+           (body-on-exit-nil
+            (delq
+             nil
+             `((let ((hydra--ignore ,(not (eq (cadr head) 'body))))
+                 (hydra-keyboard-quit)
+                 (setq hydra-curr-body-fn ',curr-body-fn-sym))
+               ,(when cmd
+                  `(condition-case err
+                       ,(hydra--call-interactively cmd (cadr head))
+                     ((quit error)
+                      (message (error-message-string err)))))
+               ,(if idle
+                    `(hydra-idle-message ,idle ,hint ',name)
+                  `(hydra-show-hint ,hint ',name))
+               (hydra-set-transient-map
+                ,keymap
+                (lambda () (hydra-keyboard-quit) ,body-before-exit)
+                ,(when body-foreign-keys
+                   (list 'quote body-foreign-keys)))
+               ,body-after-exit
+               ,(when body-timeout
+                  `(hydra-timeout ,body-timeout))))))
+      `(defun ,cmd-name ()
+         ,doc
+         (interactive)
+         ;; (require 'hydra)
+         (hydra-default-pre)
+         ,@(when body-pre (list body-pre))
+         ,@(cond ((eq (hydra--head-property head :exit) t)
+                  body-on-exit-t)
+                 ((eq (hydra--head-property head :exit) nil)
+                  body-on-exit-nil)
+                 (t
+                  `((if ,(hydra--head-property head :exit)
+                        (progn
+                          ,@body-on-exit-t)
+                      ,@body-on-exit-nil)))))))
 
   )
 
