@@ -250,7 +250,7 @@ must satisfied follow requirements:
   (when entropy/emacs-imagemagick-feature-p
     (progn
       (setq org-image-actual-width nil)
-      (defun entropy/emacs-org--otii-before-advice (&rest arg-rest)
+      (defun entropy/emacs-org--otii-before-advice (orig-func &rest orig-args)
         "Advice for `org-toggle-inline-images' when emacs was
 build with imagemagick, because of that org-mode will have the
 ability to display GIF type image whatever it's size be, so it
@@ -258,10 +258,11 @@ will cause the large lagging performance when the file link
 directed to large gif file when willing display images in current
 buffer."
         (if (not (yes-or-no-p
-                  "This will spend sometime and causing lagging performance, cotinue? "))
-            (error "Abort displaying inline images")))
+                  "Toggle inline images in org-mode will spend sometime and causing lagging performance, continue? "))
+            (message "Abort displaying inline images")
+          (apply orig-func orig-args)))
       (advice-add 'org-display-inline-images
-                  :before #'entropy/emacs-org--otii-before-advice)))
+                  :around #'entropy/emacs-org--otii-before-advice)))
 
 ;; ***** org-auto-insert 'CUSTOM-ID'
 ;; which source code from the bloag@
