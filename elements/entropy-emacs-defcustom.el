@@ -2585,6 +2585,70 @@ module."
             (executable-find "cmake"))
        t))
 
+;; *** `require' eemacs internal enhancement?
+
+(defun entropy/emacs-top-improvements-for-require (orig-func &rest orig-args)
+  "The eemacs top improvements for `require'.
+
+Like `require' but just do `memq' for feature when it is an symbol.
+
+The existence of this advice is for some packages not use
+`require' in proper way thus cause the long latency for the
+particular lisp program, sicne althought `require' is an C
+implementation lisp function, it'll use more time to check an
+feature for whether it need to be required with more and more
+features are loaded presented in `features'. Because `require'
+internally do some extra checks and operations even a feature is
+loaded, and the checks and operations are rely on the
+`current-load-list' which see the `require' C source:
+
+#+begin_src C
+/* Record the presence of `require' in this file
+   even if the feature specified is already loaded.
+   But not more than once in any file,
+   and not when we aren't loading or reading from a file.  */
+if (!from_file)
+  {
+    Lisp_Object tail = Vcurrent_load_list;
+    FOR_EACH_TAIL_SAFE (tail)
+      if (NILP (XCDR (tail)) && STRINGP (XCAR (tail)))
+        from_file = true;
+  }
+
+if (from_file)
+  {
+    tem = Fcons (Qrequire, feature);
+    if (NILP (Fmember (tem, Vcurrent_load_list)))
+  LOADHIST_ATTACH (tem);
+  }
+tem = Fmemq (feature, Vfeatures);
+
+if (NILP (tem))
+{
+...
+}
+#+end_src
+
+The `curernt-load-list' is growth when the emacs session using,
+because mordern emacs configurations like =doom=, =spacemacs=
+usually use derfer loading to speedup the emacs startup
+procedure.
+
+EEMACS_MAINTENANCE: this advice is just used when
+`entropy/emacs-startup-with-Debug-p' is disabled since we can not
+judge this patch whether will broken the emacs internal
+mechanism, so be carefully.
+"
+  (let ((fp (car orig-args)))
+    (if (and (symbolp fp)
+             (not (bound-and-true-p entropy/emacs-startup-with-Debug-p)))
+        (if (memq fp features)
+            fp
+          (apply orig-func orig-args))
+      (apply orig-func orig-args))))
+(advice-add 'require
+            :around #'entropy/emacs-top-improvements-for-require)
+
 ;; *** run-hooks with prompt
 (defvar entropy/emacs--run-hooks-cache nil)
 
