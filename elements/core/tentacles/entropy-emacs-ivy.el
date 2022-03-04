@@ -1259,6 +1259,22 @@ display icon or empty string while
         '((lambda (&rest _) ""))
       `(,icon-func)))
 
+  (defun __ya/ivy-rich-normalize-width (str len &optional right-aligned)
+    "Like `ivy-rich-normalize-width' but using ascii dot seqs instead
+of the \"…\" since its font width may not be noarmalized with
+currnt fontset."
+    (let ((str-len (string-width str)))
+      (cond ((< str-len len)
+             (if right-aligned
+                 (concat (make-string (- len str-len) ? ) str)
+               (concat str (make-string (- len str-len) ? ))))
+            ((<= len (- str-len)) "")
+            ((> str-len len)
+             (truncate-string-to-width str len 0 nil "..."))
+            (t str))))
+  (advice-add 'ivy-rich-normalize-width
+              :override #'__ya/ivy-rich-normalize-width)
+
   (defun entropy/ivy--ivy-rich-set-transformers-list ()
     (let ((dcw-w entropy/ivy--ivy-rich-candi-width/with-docstring)
           (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring)
@@ -1268,11 +1284,17 @@ display icon or empty string while
               (:columns
                (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
                 (ivy-rich-candidate
-                 (:width ,(max (- dcw-w 10) 30)))
+                 (:width
+                  (lambda (str)
+                    (ivy-rich-normalize-width
+                     str
+                     (max (- (window-width (minibuffer-window))
+                             32)
+                          ,dcw-w)))))
                 (ivy-rich-switch-buffer-size
                  (:width 7))
                 (ivy-rich-switch-buffer-indicators
-                 (:width 4 :face error :align right))
+                 (:width 4 :face error :align left))
                 (ivy-rich-switch-buffer-major-mode
                  (:width 12 :face warning)))
                :predicate
