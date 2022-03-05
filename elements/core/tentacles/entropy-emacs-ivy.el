@@ -141,10 +141,18 @@ quit to the top-level when thus done.
 Notice that this wrapper designation was not suggested by the
 upstream and may be make risky follow the ivy updates.
 "
-    (let ((this-caller (ivy-state-caller ivy-last)))
+    (let ((this-caller (ivy-state-caller ivy-last))
+          ;; NOTE:
+          ;; `this-command' and `this-caller' is not always a symbol
+          ;; even though be commonly does as, so we need to wrapper
+          ;; thus.
+          (symname-func (lambda (x) (if (symbolp x )
+                                        (symbol-name x)
+                                      ""))))
       (when (and (or (eq this-command 'ivy-dispatching-done)
                      (eq this-command 'ivy-occur)
-                     (string-match-p "^ivy-read-action/" (symbol-name this-command)))
+                     (string-match-p "^ivy-read-action/"
+                                     (funcall symname-func this-command)))
                  ;; TODO: filters
                  (not (or
                        ;; FIXME: Since kill-new's
@@ -157,7 +165,8 @@ upstream and may be make risky follow the ivy updates.
                        ;; since common counsel commands are maintained
                        ;; by `ivy' author who has no wrong uses for
                        ;; `ivy-read'.
-                       (string-match-p "^counsel-.*$" (symbol-name this-caller))
+                       (string-match-p "^counsel-.*$"
+                                       (funcall symname-func this-caller))
                        )))
         (progn
           (user-error "Ivy quit for caller '%s'" this-caller)))))
