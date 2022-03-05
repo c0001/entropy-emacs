@@ -476,12 +476,22 @@ specification."
               ',buf-win
               'entropy/emacs-popwin--shackle-window-is-popup-window-p)))))))
 
+;; ***** Adjust other eemacs operations
   ;; ignore the window parameters restriction while current buffer is
   ;; an shackle popuped buffer since we temporally needed to maximize
   ;; it in most of cases.
   (add-to-list 'entropy/emacs-delete-other-windows-ignore-pms-predicates
                '(entropy/emacs-popwin--buffer-is-shackle-popup-p
                  (window-buffer)))
+
+  ;; unhack the current window and buffer while maxmize it since we do
+  ;; not want to let it be autoclose any more.
+  (defun entropy/emacs-popwin--shackle-popup-buffers/current-buffer&window-unhack-when-maxmized
+      (&rest _)
+    (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
+     (window-buffer)))
+  (add-hook 'entropy/emacs-delete-other-windows-before-hook
+            #'entropy/emacs-popwin--shackle-popup-buffers/current-buffer&window-unhack-when-maxmized)
 
   ;; do not show baecon blink when popuped buffer exists for visual
   ;; experience adjustments
@@ -561,10 +571,13 @@ specification."
               (when (ignore-errors (buffer-live-p stick-buffer))
                 (when (ignore-errors (window-live-p stick-window))
                   (message "Auto hiding popuped buffer <multi-window type> ...")
-                  (delete-window stick-window)))
-              (when close-done
-                (with-selected-window (get-buffer-window host-buffer)
-                  (recenter-top-bottom '(middle)))))))
+                  (delete-window stick-window)
+                  (setq close-done t)))
+              ;; ;; recenter the `host-buffer' window but it's optional so we commented it
+              ;; (when close-done
+              ;;   (with-selected-window (get-buffer-window host-buffer)
+              ;;     (recenter-top-bottom '(middle))))
+              )))
           ))
       ))
 
