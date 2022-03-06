@@ -103,7 +103,7 @@
         ("\\*Async Shell Command\\*.+" :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("^\\*Man.+\\*$"               :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("^\\*WoMan.+\\*$"             :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
-        ("^\\*Backtrace.+\\*$"         :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^\\*Backtrace.*\\*$"         :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*eldoc*"                     :regexp nil :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
 
         ;; Kill Ring
