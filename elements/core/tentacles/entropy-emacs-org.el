@@ -188,6 +188,35 @@ must satisfied follow requirements:
                            ; org heading line to imenu while be within
                            ; org-mode
 
+;; ***** No effect of TAB in a code block is as if it were issued in the language major mode buffer and fix yas <src expanding error for `nil-mode'
+
+  ;; 1. Firstly we do not want to emulate TAB in src block in as where
+  ;; as the major-mode taken buffer.
+  ;;
+  ;; 2. According to
+  ;; https://www.reddit.com/r/emacs/comments/nj08dz/issues_with_yasnippet_in_emacs_272_lisp_error/
+  ;;
+  ;; Issues With Yasnippet In Emacs 27.2 (Lisp error: (error "No suchlanguage mode: nil-mode"))
+  ;;
+  ;; The problem here is that Yasnippet tries to indent code after
+  ;; snippet expansion, and to indent code in the #+BEGIN_SRC block,
+  ;; Org mode needs to enter this block and execute language
+  ;; appropriate indent rules. Org tries to enter this block, but
+  ;; there's no language specified, hence the error. You can see this
+  ;; in the stacktrace:
+  ;;
+  ;; #+begin_example
+  ;; error("No such language mode: %s" nil-mode)
+  ;; org-edit-src-code() ;; Org decides to temporarely enter the indirect buffer
+  ;; org-babel-do-key-sequence-in-edit-buffer("\11") ;; Org tries to indent
+  ;; org-indent-line() ;; asks Org to indent
+  ;; indent-according-to-mode() ;; tries to meaningfully indent
+  ;; yas--indent-region(...) ;; tries to indent
+  ;;
+  ;; #+end_example
+  ;;
+  (setq org-src-tab-acts-natively nil)
+
 ;; ***** define 'end' key to `org-end-of-line'
   (define-key org-mode-map (kbd "<end>") 'org-end-of-line)
 
