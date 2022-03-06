@@ -101,9 +101,9 @@
         ("*Completions*"               :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*Shell Command Output*"      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("\\*Async Shell Command\\*.+" :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
-        ("^*Man.+*$"                   :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
-        ("^*WoMan.+*$"                 :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
-        ("^*Backtrace.+*$"             :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^\\*Man.+\\*$"               :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^\\*WoMan.+\\*$"             :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("^\\*Backtrace.+\\*$"         :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*eldoc*"                     :regexp nil :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
 
         ;; Kill Ring
@@ -139,7 +139,7 @@
         ("*rg*"                        :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*pt-search*"                 :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*Occur*"                     :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
-        ("\\*ivy-occur.+*$"            :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("\\*ivy-occur.+\\*$"          :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*xref*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Flymake
@@ -166,7 +166,7 @@
         ("*quickrun*"                  :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Go
-        ("^*godoc.+*$"                 :regexp t   :dedicated t :align bottom :size 0.4 :autoclose nil :select nil)
+        ("^\\*godoc.+\\*$"             :regexp t   :dedicated t :align bottom :size 0.4 :autoclose nil :select nil)
         ("*golint*"                    :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*govet*"                     :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
         ("*go-guru-output*"            :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)

@@ -1177,17 +1177,45 @@ Temp file was \"~/~entropy-artist.txt\""
   :ensure nil
   :defer entropy/emacs-fall-love-with-pdumper
   :commands woman
-  :init (setq woman-fill-column 100
-              woman-dired-keys nil)
+  :init
+  (setq woman-fill-column 100
+        woman-dired-keys nil)
+  ;; Disable the internal warning
+  (add-to-list 'warning-suppress-types
+               '((defvaralias losing-value woman-topic-history)))
+  (add-to-list 'warning-suppress-log-types
+               '((defvaralias losing-value woman-topic-history)))
   :config
-  (defun entropy/emacs-basic-woman--no-warning-around-advice
-      (orig-func &rest orig-args)
-    "Suppress defalias warning for woman defined for."
-    (with-no-warnings
-      (apply orig-func orig-args)))
-  (advice-add 'woman
-              :around
-              #'entropy/emacs-basic-woman--no-warning-around-advice))
+
+  (defun __ya/woman-really-find-file (filename compressed bufname)
+    "Like `woman-really-find-file' but respect eemacs `shackle-mode'
+specified."
+    (let ((WoMan-current-file filename))	; used for message logging
+      (if woman-use-own-frame
+          (select-frame
+           (or (and (frame-live-p woman-frame) woman-frame)
+               (setq woman-frame (make-frame)))))
+      (with-current-buffer (get-buffer-create bufname)
+        (if woman-use-own-frame
+            (condition-case nil
+                (pop-to-buffer-same-window (current-buffer))
+              (error (pop-to-buffer (current-buffer))))
+          (pop-to-buffer (current-buffer)))
+        (buffer-disable-undo)
+        (let ((inhibit-read-only nil))
+          (erase-buffer)			; NEEDED for reformat
+          (woman-insert-file-contents filename compressed)
+          ;; Set buffer's default directory to that of the file.
+          (setq default-directory (file-name-directory filename))
+          (setq-local backup-inhibited t)
+          (set-visited-file-name "")
+          (woman-process-buffer)))))
+  (advice-add 'woman-really-find-file
+              :override
+              #'__ya/woman-really-find-file)
+
+
+  )
 
 ;; ** Basic global settings:
 
