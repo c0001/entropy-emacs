@@ -292,4 +292,13 @@ fontset using `entropy/emacs-font-set-setfont-core'."
 (add-variable-watcher 'entropy/emacs-font-size-default
                       #'entropy/emacs--fontsize-set-guard)
 
+(defun entropy/emacs--fontenable-set-guard (symbol newval operation where)
+  "`entropy/emacs-font-setting-enable' vairable wather guard to reset
+fontset using `entropy/emacs-font-set-setfont-core'."
+  (when (eq operation 'set)
+    (unless (eq newval (symbol-value symbol))
+      (run-with-idle-timer 0.1 nil #'entropy/emacs-font-set-setfont-core))))
+(add-variable-watcher 'entropy/emacs-font-setting-enable
+                      #'entropy/emacs--fontenable-set-guard)
+
 (provide 'entropy-emacs-font-set)

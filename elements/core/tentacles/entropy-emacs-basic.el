@@ -2989,6 +2989,23 @@ current displayed buffer area wile
   :ensure nil
 ;; ****** preface
   :preface
+
+  (defun entropy/emacs-basic--emacs-rime-set-posframe-parameter ()
+    (let* ((rime-buff (ignore-errors (get-buffer rime-posframe-buffer)))
+           (rime-posframe (and rime-buff
+                               (posframe--find-existing-posframe
+                                rime-buff)))
+           repos)
+      (when (and rime-posframe (frame-live-p rime-posframe))
+        (posframe-delete-frame rime-buff)
+        ;; FIXME: find a way to reopen the rime posframe
+        (setq repos t))
+      (setq rime-posframe-properties
+            `(:internal-border-width
+              10
+              :font
+              ,(frame-parameter (selected-frame) 'font)))))
+
   (defun entropy/emacs-basic-emacs-rime-start ()
     "Load `rime' and set the schema by
 `entropy/emacs-basic--pyim-set-rime-schema'.
@@ -3018,6 +3035,9 @@ This function will store the `rime' loading callback to
                 (funcall build-func)))
         (when (eq entropy/emacs-IME-specs-initialized t)
           (entropy/emacs-with-temp-buffer
+            (entropy/emacs-basic--emacs-rime-set-posframe-parameter)
+            (add-hook 'entropy/emacs-font-set-end-hook
+                      #'entropy/emacs-basic--emacs-rime-set-posframe-parameter)
             (rime-activate nil)
             (rime-lib-select-schema entropy/emacs-internal-ime-use-rime-default-schema)
             (setq default-input-method "rime"))))))
