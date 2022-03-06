@@ -1196,11 +1196,6 @@ specified."
            (or (and (frame-live-p woman-frame) woman-frame)
                (setq woman-frame (make-frame)))))
       (with-current-buffer (get-buffer-create bufname)
-        (if woman-use-own-frame
-            (condition-case nil
-                (pop-to-buffer-same-window (current-buffer))
-              (error (pop-to-buffer (current-buffer))))
-          (pop-to-buffer (current-buffer)))
         (buffer-disable-undo)
         (let ((inhibit-read-only nil))
           (erase-buffer)			; NEEDED for reformat
@@ -1209,7 +1204,17 @@ specified."
           (setq default-directory (file-name-directory filename))
           (setq-local backup-inhibited t)
           (set-visited-file-name "")
-          (woman-process-buffer)))))
+          (woman-process-buffer)
+          ;; EEMACS_TEMPORALLY_HACK: scroll to the top of buffer since
+          ;; the orig-func cause to the tail of buffer
+          (goto-char (point-min)))
+        ;; EEMACS_TEMPORALLY_HACK: Finally popup the buffer since we
+        ;; do not want to see the buffer processing procedure.
+        (if woman-use-own-frame
+            (condition-case nil
+                (pop-to-buffer-same-window (current-buffer))
+              (error (pop-to-buffer (current-buffer))))
+          (pop-to-buffer (current-buffer))))))
   (advice-add 'woman-really-find-file
               :override
               #'__ya/woman-really-find-file)
