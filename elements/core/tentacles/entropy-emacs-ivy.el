@@ -1246,8 +1246,8 @@ display icon or empty string while
 
   ;; Initial eemacs specific ivy-rich columns
   (defvar entropy/ivy--ivy-rich-display-transformers-list nil)
-  (defvar entropy/ivy--ivy-rich-candi-width/non-docstring 150)
-  (defvar entropy/ivy--ivy-rich-candi-width/with-docstring 40)
+  (defvar entropy/ivy--ivy-rich-candi-width/non-docstring nil)
+  (defvar entropy/ivy--ivy-rich-candi-width/with-docstring 60)
   (defcustom entropy/emacs-ivy-rich-show-docstring-p nil
     "")
   (defun _ivy-rich-use-doc-width ()
