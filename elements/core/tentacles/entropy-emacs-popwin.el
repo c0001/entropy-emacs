@@ -286,7 +286,7 @@
                              (and (not (eq (selected-window) window))
                                   (selected-window))))))
 
-;; ***** workspace auto-adjust
+;; ***** workspace switch persist for `entropy/emacs-popwin--shackle-popup-display-history'
 
   (defvar entropy/emacs-popwin--shackle-autoclose-worksapce-group-cache nil)
 
@@ -315,14 +315,20 @@
       (setq entropy/emacs-popwin--shackle-autoclose-worksapce-group-cache
             (assq-delete-all ecwg-slot
                              entropy/emacs-popwin--shackle-autoclose-worksapce-group-cache))
+      ;; update `entropy/emacs-popwin--shackle-popup-display-history'
+      ;; proper to current workspace status since some buffer may be
+      ;; killed while user operations in other workspace.
       (when entropy/emacs-popwin--shackle-popup-display-history
         (dolist (el entropy/emacs-popwin--shackle-popup-display-history)
-          (let ((buff (car el)))
+          (let* ((buff (car el))
+                 (win (get-buffer-window buff)))
             (when (and (buffer-live-p buff)
-                       (get-buffer-window buff))
+                       (window-live-p win))
               (entropy/emacs-popwin--shackle-set-parameters-for-popup-buffer
-               buff)
-              (push (cons buff (get-buffer-window buff)) new-hist))))
+               buff (window-parameter
+                     win
+                     'entropy/emacs-popwin--shackle-origin-selected-window))
+              (push (cons buff win) new-hist))))
         (setq entropy/emacs-popwin--shackle-popup-display-history
               new-hist))))
 
