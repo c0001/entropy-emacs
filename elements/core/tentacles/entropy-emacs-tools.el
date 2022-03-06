@@ -1101,8 +1101,9 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
      '(when (entropy/emacs-posframe-adapted-p)
         (setq entropy/sdcv-default-show-tooltip-method 'posframe))))
 
-  (dolist (item '((eww . eww-mode-hook) (w3m . w3m-mode-hook)
-                  (info . Info-mode-hook) (markdown-mode . markdown-mode-hook)))
+  (dolist (item '((eww  . eww-mode-hook)  (w3m . w3m-mode-hook)
+                  (info . Info-mode-hook) (markdown-mode . markdown-mode-hook)
+                  (man  . Man-mode-hook)  (woman . woman-mode-hook)))
     (eval-after-load (car item)
       `(add-hook ',(cdr item) #'entropy/sdcv-autoshow-mode)))
 
