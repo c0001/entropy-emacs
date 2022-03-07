@@ -121,8 +121,9 @@ This func was automatically added into `post-command-hook' by
     (when (get-buffer entropy/sdcv-show-tooltip-buffer-name)
       (let ((del-func
              (lambda (&rest _)
-               (posframe-delete entropy/sdcv-show-tooltip-buffer-name)
-               (kill-buffer entropy/sdcv-show-tooltip-buffer-name)))
+               (posframe-hide entropy/sdcv-show-tooltip-buffer-name)
+               ;; (kill-buffer entropy/sdcv-show-tooltip-buffer-name)
+               ))
             (del-p nil))
         (cond ((eq
                 ;; we should use `real-this-command' since some post
