@@ -1128,6 +1128,21 @@ is ran after the registering procedure done within `progn' scope."
 
 (advice-add 'load-theme :around #'entropy/emacs-theme-load-advice)
 
+(defvar entropy/emacs-solaire-mode-extra-buffer-filters nil
+  "Extra buffer filter functions which return non-nil indicating
+the buffer should not enable `entropy/emacs-solaire-mode'.
+
+Each function take only one arg the BUFFER and return immediatly
+when one of the filters return non-nil.")
+
+(defun entropy/emacs-solaire-mode-run-extra-buffer-filters (buffer)
+  "The predicate for
+`entropy/emacs-solaire-mode-extra-buffer-filters'."
+  (catch :exit
+    (dolist (func entropy/emacs-solaire-mode-extra-buffer-filters)
+      (when (funcall func buffer)
+        (throw :exit t)))))
+
 ;; ** modeline refer
 
 (defvar entropy/emacs-mode-line-sticker ""

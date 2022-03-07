@@ -213,16 +213,41 @@ instead and see it for details."
           (push (face-remap-add-relative (car remap) (cdr remap))
                 entropy/emacs-solaire-mode--local-faces-remap-cookie))))))
 
+(defun entropy/emacs-solaire-mode-current-theme-need-reverse-p ()
+  (and (memq entropy/emacs-theme-sticker
+             '(doom-1337
+               doom-Iosvkem
+               doom-badger
+               doom-dark+
+               doom-ir-black
+               doom-material-dark
+               doom-molokai
+               doom-nova
+               doom-plain-dark
+               doom-sourcerer
+               doom-vibrant
+               ))
+       t))
+
+(defun entropy/emacs-solaire-mode-judge-special-buffer-p (&optional buffer)
+  (let ((buff (or buffer (current-buffer))))
+    (or (string-match-p
+         "^ \\*\\(Echo Area\\|company-box-\\).*$"
+         (buffer-name buff))
+        (entropy/emacs-solaire-mode-run-extra-buffer-filters
+         buff))))
+
 (defun entropy/emacs-solaire-mode-turn-on (&rest _)
   "Turrn on `entropy/emacs-solaire-mode', the subroutine of
 `entropy/emacs-solaire-global-mode'."
-  (and (not entropy/emacs-solaire-mode)
-       (or
-        ;; NOTE: do not use solaire in minibuffer since it's may need
-        ;; more works to do proper for that.
-        ;; ;; (minibufferp)
-        (funcall
-         (lambda ()
+  (let (rtn
+        (reverse-p (entropy/emacs-solaire-mode-current-theme-need-reverse-p))
+        (stick-filters (and (not (entropy/emacs-solaire-mode-judge-special-buffer-p))
+                            (not entropy/emacs-solaire-mode))))
+    (setq
+     rtn
+     (and stick-filters
+          (not
            (or (buffer-file-name)
                (member major-mode
                        '(dired-mode
@@ -233,7 +258,15 @@ instead and see it for details."
                          Info-mode
                          Man-mode
                          woman-mode))))))
-       (entropy/emacs-solaire-mode +1)))
+    (cond ((and reverse-p
+                stick-filters
+                (not rtn))
+           (setq rtn t))
+          ((and reverse-p
+                rtn)
+           (setq rtn nil)))
+    (when rtn
+      (entropy/emacs-solaire-mode +1))))
 
 (define-globalized-minor-mode
   entropy/emacs-solaire-global-mode
@@ -245,21 +278,6 @@ instead and see it for details."
 specification. This is the only eemacs official
 `entropy/emacs-solaire-global-mode' enable caller."
   (entropy/emacs-solaire-global-mode)
-  ;; downgrade `company-tooltip' face when needed
-  (when (entropy/emacs-theme-adapted-to-solaire)
-    (entropy/emacs-face-bg-scale-when-same
-     'company-tooltip 'solaire-default-face
-     (cond
-      ((or (eq (frame-parameter nil 'background-mode) 'light)
-           (string-match-p "\\(light\\|day\\)"
-                           (symbol-name entropy/emacs-theme-sticker)))
-       0.95)
-      ((eq (frame-parameter nil 'background-mode) 'dark)
-       0.5))
-     nil
-     (when (member (face-attribute 'company-tooltip :background)
-                   '(unspecified nil))
-       t)))
   (entropy/emacs-solaire-specific-for-themes))
 
 (defvar

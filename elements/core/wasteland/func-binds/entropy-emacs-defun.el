@@ -3372,10 +3372,10 @@ situation."
 (defun entropy/emacs-solaire-specific-for-themes (&rest _)
   "Sets of specification after loaded a new theme for specified
 stuffs on `entropy/emacs-solaire-mode' when
-`entropy/emacs-solaire-global-mode' was non-nil."
-  (when (and (entropy/emacs-theme-adapted-to-solaire)
-             (bound-and-true-p entropy/emacs-solaire-global-mode))
+`entropy/emacs-theme-adapted-to-solaire' was judged."
+  (when (entropy/emacs-theme-adapted-to-solaire)
     (require 'hl-line)
+    ;; common spec
     (cond
      ((or (eq entropy/emacs-theme-sticker 'spacemacs-dark)
           (eq entropy/emacs-theme-sticker 'spacemacs-light))
@@ -3390,7 +3390,21 @@ stuffs on `entropy/emacs-solaire-mode' when
                   "#333839")
                  ((display-graphic-p)
                   "#333340"))))))
-     (t nil))))
+     (t nil))
+    ;; downgrade `company-tooltip' face when needed
+    (entropy/emacs-face-bg-scale-when-same
+     'company-tooltip 'solaire-default-face
+     (cond
+      ((or (eq (frame-parameter nil 'background-mode) 'light)
+           (string-match-p "\\(light\\|day\\)"
+                           (symbol-name entropy/emacs-theme-sticker)))
+       0.95)
+      ((eq (frame-parameter nil 'background-mode) 'dark)
+       0.5))
+     nil
+     (when (member (face-attribute 'company-tooltip :background)
+                   '(unspecified nil))
+       t))))
 
 ;; *** Case fold search specification
 (defun entropy/emacs-case-fold-focely-around-advice (_old_func &rest _args)

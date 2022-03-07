@@ -1107,6 +1107,12 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
     (eval-after-load (car item)
       `(add-hook ',(cdr item) #'entropy/sdcv-autoshow-mode)))
 
+  (add-to-list 'entropy/emacs-solaire-mode-extra-buffer-filters
+               #'(lambda (buff)
+                   (string-match-p
+                    (regexp-quote (buffer-name buff))
+                    entropy/sdcv-show-tooltip-buffer-name)))
+
   :config
   (cond ((executable-find "wd")
          (setq entropy/sdcv-default-query-backend-name 'wudao-command))
