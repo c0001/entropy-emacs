@@ -253,7 +253,8 @@ instead and see it for details."
                        '(dired-mode
                          w3m-mode
                          eww-mode
-                         elfeed-mode
+                         elfeed-search-mode
+                         elfeed-show-mode
                          magit-status-mode
                          Info-mode
                          Man-mode
