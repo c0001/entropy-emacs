@@ -1362,7 +1362,22 @@ NOTE: this is an internal macro, do not use it in else where but here."
  (window-configuration-change-hook)
  "window-divider-mode-init" "window-divider-mode-init" prompt-echo
  :pdumper-no-end t
- (window-divider-mode t))
+ (window-divider-mode)
+ (defun entropy/emacs-wc-auto-toggle-window-divider-mode ()
+   (let ((need-to-disable
+          (memq entropy/emacs-theme-sticker
+                '(spacemacs-dark
+                  spacemacs-light))))
+     (if (and (bound-and-true-p window-divider-mode)
+              need-to-disable)
+         (window-divider-mode 0)
+       (unless (or (bound-and-true-p window-divider-mode)
+                   need-to-disable)
+         (window-divider-mode)))))
+ (run-with-idle-timer
+  0.2
+  t
+  #'entropy/emacs-wc-auto-toggle-window-divider-mode))
 
 ;; * provide
 (provide 'entropy-emacs-wc)
