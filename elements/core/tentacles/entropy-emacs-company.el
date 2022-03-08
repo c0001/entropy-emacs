@@ -74,6 +74,14 @@
 (defvar entropy/emacs-company-max-candidates 12
   "The companys max canids length restriction.")
 
+(defvar entropy/emacs-company-internal-pseudo-frontends
+  '(company-pseudo-tooltip-frontend
+    company-pseudo-tooltip-unless-just-one-frontend
+    company-pseudo-tooltip-unless-just-one-frontend-with-delay)
+  "The `company-mode' internal popup frontends collection.
+
+NOTE: update with `company' upstream.")
+
 (entropy/emacs-lazy-load-simple company
   (setq-default company-backends
                 (append (list entropy/emacs-company-top-initial-backends)
@@ -101,6 +109,8 @@
 ;; *** company for docs modes
 
 (defun entropy/emacs-company-privilege-yas-for-docs ()
+  "Make `company-backends' suitable for documents edits with
+yasnippet support *locally*."
   (make-local-variable 'company-backends)
   (add-to-list 'company-backends
                '(company-files company-yasnippet company-dabbrev
@@ -166,12 +176,17 @@ NOTE: this function is an around advice wrapper."
   ;; :diminish company-mode  ;;; This comment to diminish the modline
   :commands (global-company-mode
              company-mode
-             company-complete)
+             company-complete
+             company-files)
 
 ;; *** preface
   :preface
 
   (defun entropy/emacs-company-toggle-idledelay (&optional prefix)
+    "Toggle `company-idle-delay' on/off.
+
+When PREFIX, set the specfied idle delay seconds for as or use
+`entropy/emacs-company-idle-delay-default' as default."
     (interactive "P")
     (let ((def-safe-idle-secs
             (max (+ 0.1 entropy/emacs-safe-idle-minimal-secs)
@@ -198,10 +213,16 @@ NOTE: this function is an around advice wrapper."
            (red (number-to-string company-idle-delay)))))))
 
   (defun entropy/emacs-company-files (command)
+    "Like `company-files' but using as individual eemacs command with
+eemacs specifications"
     (interactive (list 'interactive))
-    (unless (or buffer-read-only
-                (equal (buffer-name)
-                       entropy/emacs-init-welcome-buffer-name))
+    (unless
+        ;; some filters not to triggered
+        (or buffer-read-only
+            ;; TODO: more
+            )
+      (unless (bound-and-true-p company-mode)
+        (company-mode))
       (company-files command)))
 
 ;; *** bind-key
@@ -447,9 +468,8 @@ activated status. Default time during set is less than 70ms."
                ;; ':post-command' slot of the frontend body in every
                ;; hinted for delete refer command which will cause the
                ;; delete char period time judge be useless.
-               (member (car company-frontends)
-                       '(company-pseudo-tooltip-unless-just-one-frontend
-                         company-pseudo-tooltip-unless-just-one-frontend-with-delay))
+               (memq (car company-frontends)
+                     entropy/emacs-company-internal-pseudo-frontends)
                (__company-delc-time-fly-p))
           (when (bound-and-true-p company-mode)
             (company-abort))))
@@ -473,11 +493,8 @@ canididates which makes emacs laggy for each post-command while
 `company-pseudo-tooltip-unhide'."
     (unless (and
              (eq (car orig-args) 'annotation)
-             (or (eq (car company-frontends)
-                     'company-pseudo-tooltip-unless-just-one-frontend)
-                 (eq (car company-frontends)
-                     'company-pseudo-tooltip-unless-just-one-frontend-with-delay
-                     )))
+             (memq (car company-frontends)
+                   entropy/emacs-company-internal-pseudo-frontends))
       (apply orig-func orig-args)))
   (advice-add 'company-call-backend
               :around
@@ -512,7 +529,7 @@ EEMACS_MAINTENANCE: stick to upstream udpate"
    :override
    #'__ya/company-fill-propertize)
 
-;; ******* optimization the interna substring routine
+;; ******* optimization the internal substring routine
   (defun __ya/company-safe-substring (orig-func &rest orig-args)
     "High performance version of `company-safe-substring'.
 EEMACS_MAINTENANCE: stick to upstream udpate"
@@ -682,15 +699,14 @@ with `shackle'."
   (defun entropy/emacs-company--default-frontend-set-hook
       (&rest _)
     (entropy/emacs-company--set-only-one-frontend
-     'company-pseudo-tooltip-unless-just-one-frontend))
+     'company-pseudo-tooltip-frontend))
 
   (defun entropy/emacs-company--default-enable ()
     ;; just use one frontends for reduce lagging
     (add-hook 'company-mode-hook
               #'entropy/emacs-company--default-frontend-set-hook)
     ;; travel all buffers with `company-mode' enabled to set frontend.
-    (entropy/emacs-company--set-only-one-frontend
-     'company-pseudo-tooltip-unless-just-one-frontend)
+    (entropy/emacs-company--default-frontend-set-hook)
     (cond ((display-graphic-p)
            (company-quickhelp-mode 1)
            (entropy/emacs-set-key-without-remap
@@ -840,7 +856,6 @@ with `shackle'."
             (setq x-gtk-resize-child-frames 'resize-mode)
           (setq x-gtk-resize-child-frames 'hide))))
 
-
   (advice-add 'company-box-show
               :around
               #'entropy/emacs-company--company-candis-restrict-advice)
@@ -967,8 +982,9 @@ while in `company-box-mode'."
       (add-hook 'buffer-list-update-hook 'company-box--handle-window-changes t)
       ;; HACK: do not make `company-frontends' local
       ;; (make-local-variable 'company-frontends)
-      (setq company-frontends (->> (delq 'company-pseudo-tooltip-frontend company-frontends)
-                                   (delq 'company-pseudo-tooltip-unless-just-one-frontend)))
+      (mapc (lambda (x) (setq company-frontends
+                              (delete x company-frontends)))
+            entropy/emacs-company-internal-pseudo-frontends)
       (add-to-list 'company-frontends 'company-box-frontend)
       (unless (assq 'company-box-frame frameset-filter-alist)
         (push '(company-box-doc-frame . :never) frameset-filter-alist)
