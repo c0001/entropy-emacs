@@ -980,7 +980,9 @@ while in `company-box-mode'."
       (remove-hook 'after-make-frame-functions 'company-box--set-mode t)
       (add-hook 'delete-frame-functions 'company-box--kill-buffer)
       (add-hook 'buffer-list-update-hook 'company-box--handle-window-changes t)
-      ;; HACK: do not make `company-frontends' local
+      ;; HACK: do not make `company-frontends' local since eemacs use
+      ;; unified `company-frontends' management
+      ;;
       ;; (make-local-variable 'company-frontends)
       (mapc (lambda (x) (setq company-frontends
                               (delete x company-frontends)))
@@ -991,7 +993,9 @@ while in `company-box-mode'."
         (push '(company-box-frame . :never) frameset-filter-alist)))
      ((memq 'company-box-frontend company-frontends)
       (setq company-frontends (delq 'company-box-frontend company-frontends))
-      (add-to-list 'company-frontends 'company-pseudo-tooltip-unless-just-one-frontend))))
+      ;; HACK: eemacs should support only one candi show even if use
+      ;; internal frontend.
+      (add-to-list 'company-frontends 'company-pseudo-tooltip-frontend))))
 
   (advice-add 'company-box--set-mode
               :override
@@ -1002,6 +1006,9 @@ while in `company-box-mode'."
 ;; ******* bug fix
   (defun __ya/company-box--get-frame
       (orig-func &rest orig-args)
+    "Like `company-box--get-frame' but we should guarantee the
+returned FRAME is lived since we can not do anything in a dead
+frame as that will cause error."
     (let ((frame (apply orig-func orig-args)))
       (when (ignore-errors (frame-live-p frame))
         frame)))
@@ -1011,7 +1018,7 @@ while in `company-box-mode'."
 
 ;; ******* core patch
 
-;; ******* recreate child frame after theme load
+;; ******** recreate child frame after theme load
   (defun __company-box-remove-child-frame/before-load-theme ()
     "Remove company-box's frame before load a new theme since the we
 don't set a proper method to let preserved old frame use the new
@@ -1025,7 +1032,7 @@ theme face spces."
   (add-hook 'entropy/emacs-theme-load-before-hook
             #'__company-box-remove-child-frame/before-load-theme)
 
-;; ******* set child frame indicator
+;; ******** set child frame indicator
   (defun __company-box-make-child-frame-with-frame-indicator
       (orig-func &rest orig-args)
     "Let `company-box--make-frame' be explicitly with frame indicator
@@ -1038,7 +1045,7 @@ as its `frame-parameter'."
               :around
               #'__company-box-make-child-frame-with-frame-indicator)
 
-;; ******* frame font spec
+;; ******** frame font spec
   (defun __company-box-make-child-frame-with-fontspec
       (orig-func &rest orig-args)
     "Let `company-box--make-frame' use same font from its parent
@@ -1068,10 +1075,11 @@ frame."
 
 ;; ***** loading patch
 
-  ;; HACK: disable remapping since we bind it manually and
-  ;; Because
+  ;; HACK: disable remapping since we bind it manually and Because
   ;; EEMACS_BUG: `company-box-doc' permanently remap
-  ;; `company-show-doc-buffer' to its spec.
+  ;; `company-show-doc-buffer' to its spec, so that any
+  ;; `company-show-doc-buffer' binding will redirect to the
+  ;; `company-box-doc-manually' which is a messy.
   (when (equal
          (lookup-key company-active-map
                      [remap company-show-doc-buffer])
@@ -1100,7 +1108,7 @@ frame."
   (defvar-local entropy/emacs-company--minibuffer-command nil)
 
   (defun entropy/emacs-company-elisp-minibuffer (command &optional arg &rest ignored)
-    "`company-mode' completion back-end for Emacs Lisp in the
+    "`company-mode' completion backend for Emacs Lisp in the
 minibuffer."
     (interactive (list 'interactive))
     (cl-case command
@@ -1133,7 +1141,6 @@ completion when calling: 'execute-extended-command' or
       (setq-local company-backends '((entropy/emacs-company-elisp-minibuffer
                                       company-capf)))
       (setq-local company-tooltip-limit 6)
-      (setq-local company-frontends '(company-pseudo-tooltip-unless-just-one-frontend))
       (company-mode 1)
 
       ;; We just use overlay render tooltip type because other
@@ -1142,7 +1149,10 @@ completion when calling: 'execute-extended-command' or
       (when (bound-and-true-p company-box-mode)
         (company-box-mode 0))
       (when (bound-and-true-p company-posframe-mode)
-        (company-posframe-mode 0))))
+        (company-posframe-mode 0))
+
+      ;; set internal tooltip
+      (setq-local company-frontends '(company-pseudo-tooltip-frontend))))
 
   (add-hook 'minibuffer-setup-hook
             #'entropy/emacs-active-minibuffer-company-elisp)
@@ -1161,7 +1171,11 @@ completion when calling: 'execute-extended-command' or
 
 (defun entropy/emacs-company-add-lsp-backend (&rest args)
   (make-local-variable 'company-backends)
-  (setq-local company-backends (remove 'company-lsp company-backends)
+  (setq-local company-backends
+              ;; remove the obsolte `company-lsp' backends since
+              ;; `lsp-mode' and `eglog' using emacs internal `capf'
+              ;; resource for mordern unified set.
+              (remove 'company-lsp company-backends)
               completion-ignore-case t
               completion-styles '(basic partial-completion emacs22))
   (add-to-list 'company-backends
