@@ -2222,7 +2222,9 @@ successfully both of situation of read persisit of create an new."
               (let ((coding-system-for-read 'utf-8-auto)
                     (coding-system-for-write 'utf-8-auto))
                 (setq kill-ring-read (read (current-buffer)))
-                (setq kill-ring kill-ring-read))
+                ;; append the current `kill-ring' to the persist one
+                ;; as we need the new to be insert as.
+                (setq kill-ring (append kill-ring kill-ring-read)))
             (error
              (setq kill-ring kill-ring-old
                    rtn nil)
