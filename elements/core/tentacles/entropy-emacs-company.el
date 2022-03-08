@@ -1370,7 +1370,15 @@ entropy-emacs."
        '(company-anaconda)))
     (add-hook
      'anaconda-mode-hook
-     #'entropy/emacs-company--set-company-backends-for-python-mode-in-traditional-way)))
+     #'entropy/emacs-company--set-company-backends-for-python-mode-in-traditional-way))
+  :config
+
+  ;; Use proxy for bootstrap anaconda-mode for the sake for installing
+  ;; server specs
+  (with-eval-after-load 'anaconda-mode
+    (advice-add 'anaconda-mode-bootstrap
+                :around
+                #'entropy/emacs-advice-for-common-do-with-http-proxy)))
 
 ;; *** common lisp
 ;; slime repl completion
