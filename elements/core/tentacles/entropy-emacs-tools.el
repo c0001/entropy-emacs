@@ -1107,18 +1107,18 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
     (eval-after-load (car item)
       `(add-hook ',(cdr item) #'entropy/sdcv-autoshow-mode)))
 
-  (add-to-list 'entropy/emacs-solaire-mode-extra-buffer-filters
-               #'(lambda (buff)
-                   (string-match-p
-                    (regexp-quote (buffer-name buff))
-                    entropy/sdcv-show-tooltip-buffer-name)))
-
   :config
   (cond ((executable-find "wd")
          (setq entropy/sdcv-default-query-backend-name 'wudao-command))
         ((or (not (executable-find "sdcv"))
              (not (entropy/sdcv-backends--sdcv-auto-search-dicts)))
-         (setq entropy/sdcv-default-query-backend-name 'youdao))))
+         (setq entropy/sdcv-default-query-backend-name 'youdao)))
+
+  (add-to-list 'entropy/emacs-solaire-mode-extra-buffer-filters
+               #'(lambda (buff)
+                   (string-match-p
+                    (regexp-quote (buffer-name buff))
+                    entropy/sdcv-show-tooltip-buffer-name))))
 
 ;; **** chinese dict
 (use-package entropy-cn-dict
