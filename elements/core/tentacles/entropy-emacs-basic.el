@@ -1181,10 +1181,11 @@ Temp file was \"~/~entropy-artist.txt\""
   (setq woman-fill-column 100
         woman-dired-keys nil)
   ;; Disable the internal warning
-  (add-to-list 'warning-suppress-types
-               '((defvaralias losing-value woman-topic-history)))
-  (add-to-list 'warning-suppress-log-types
-               '((defvaralias losing-value woman-topic-history)))
+  (with-eval-after-load 'warnings       ;FIXME: why? is it not preloading?
+    (add-to-list 'warning-suppress-types
+                 '((defvaralias losing-value woman-topic-history)))
+    (add-to-list 'warning-suppress-log-types
+                 '((defvaralias losing-value woman-topic-history))))
   :config
 
   (defun __ya/woman-really-find-file (filename compressed bufname)
