@@ -3108,6 +3108,13 @@ This function will store the `rime' loading callback to
 ;; ****** config
   :config
 
+  (add-to-list 'entropy/emacs-solaire-mode-extra-buffer-filters
+               #'(lambda (buff)
+                   (string-match-p
+                    (regexp-quote
+                     rime-posframe-buffer)
+                    (buffer-name buff))))
+
 ;; ******* core advice
   (defvar __emacs-rime-current-schema nil
     "The current `rime' schema selected.")
