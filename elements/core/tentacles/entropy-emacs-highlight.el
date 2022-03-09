@@ -150,7 +150,7 @@
     ;; emacs lisp mode doesn't have code-server support so we use
     ;; `symbol-overlay-mode' forcely enable injections for those
     ;; hooks.
-    (dolist (hook '(emacs-lisp-mode-hook lisp-interaction-mode-hook))
+    (dolist (hook '(lisp-mode-hook emacs-lisp-mode-hook lisp-interaction-mode-hook))
       (add-hook hook 'symbol-overlay-mode)))
 
   ;; Use union IDE like setting for the idle delay time

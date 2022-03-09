@@ -225,21 +225,57 @@ For lisp coding aim, always return the transfered buffer.
   :eemacs-mmphc
   (((:enable t :defer t)
     (lisp-mode (nil slime-mode-map) t))
-   ("Slime"
-    (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol
-      "Slime Describe Symbols"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("C-c C-s" slime-describe-symbol "Slime Describe Symbol At Point"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("C-c C-f" slime-describe-function "Slime Describe Func At Point"
-      :enable t
-      :exit t
-      :map-inject t)
-     ("C-c M-r" slime-repl "Slime repl" :enable t :map-inject t :exit t))))
+   ("Slime Basic"
+    (("b d"
+      (:pretty-hydra-cabinet
+       (:data
+        "Describe symbol"
+        (("C-c p" entropy/emacs-lisp-slime-counsel-desc-symbol
+          "Slime Describe Symbols"
+          :enable t
+          :exit t
+          :map-inject t)
+         ("C-c C-s" slime-describe-symbol "Slime Describe Symbol At Point"
+          :enable t
+          :exit t
+          :map-inject t)
+         ("C-c C-f" slime-describe-function "Slime Describe Func At Point"
+          :enable t
+          :exit t
+          :map-inject t)))
+       :other-rest-args
+       ((slime slime-mode-map)))
+      "Describe lisp symbols"
+      :enable t :exit t)
+     ("b n"
+      (:pretty-hydra-cabinet
+       (:data
+        "Defination Search"
+        (("M-." slime-edit-definition
+          "Edit the definition of the function called at point."
+          :enable t :exit t :map-inject t)
+         ("M-," slime-pop-find-definition-stack
+          "Pop the definition stack to go back from a definition."
+          :enable t :exit t :map-inject t)))
+       :other-rest-args
+       ((slime slime-mode-map)))
+      "Defination Search"
+      :enable t :exit t)
+     ("C-c M-r" slime-repl "Slime repl"
+      :enable t :map-inject t :exit t)
+     ("C-c C-k"
+      slime-compile-and-load-file
+      "Compile and load the current buffer’s file."
+      :enable t :exit t :map-inject t)
+     ("C-c M-k"
+      slime-compile-file
+      "Compile (but not load) the current buffer’s file."
+      :enable t :exit t :map-inject t)
+     ("C-c C-c"
+      slime-compile-defun
+      "Compile the top-level form at point."
+      :enable t :exit t :map-inject t))))
+
 ;; **** init
   :init
 

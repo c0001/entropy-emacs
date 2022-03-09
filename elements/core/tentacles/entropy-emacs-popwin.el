@@ -185,7 +185,7 @@
         ("^ +\\*eemacs"                :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select t)
 
         ;; sbcl-mode
-        ("^\\*slime-"                  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
+        ("^\\*slime-"                  :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*inferior-lisp*"             :regexp nil :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
         ("^\\*sldb"                    :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select nil)
 
