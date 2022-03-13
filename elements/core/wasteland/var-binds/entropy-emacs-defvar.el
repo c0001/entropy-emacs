@@ -249,6 +249,26 @@ repository and has submodule inited."
           (expand-file-name "autogen.sh" dir))
          dir)))
 
+(defvar entropy/emacs-read-extended-command-predicates nil
+  "A list of `read-extended-command-predicate' checking stop in
+order while the first one return nil which used when emacs
+version upper than 28.")
+(defun entropy/emacs-read-extended-command-predicate-function
+    (command buffer)
+  "The eemacs `read-extended-command-predicate' which obey
+`entropy/emacs-read-extended-command-predicates'."
+  (let (_)
+    (if entropy/emacs-read-extended-command-predicates
+        (catch :exit
+          (dolist (func entropy/emacs-read-extended-command-predicates)
+            (unless (funcall func command buffer)
+              (throw :exit nil)))
+          t)
+      t)))
+(unless (< emacs-major-version 28)
+  (setq read-extended-command-predicate
+        'entropy/emacs-read-extended-command-predicate-function))
+
 ;; ** byte compile refer
 
 (defvar entropy/emacs-session-in-byte-compile-emacs-core-p nil

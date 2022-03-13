@@ -3444,4 +3444,19 @@ evaluated result as its value.
      init-form)))
 
 ;; * provide
+
+;; Disable messy commands in `M-x' list
+(defun entropy/emacs-hydra-hollow-read-extended-command-predicate
+    (command &rest _)
+  (if (and (symbolp command)
+           (string-match-p
+            "^\\(entropy/emacs-individual-hydra\
+\\|eemacs-hydra-for-mode\
+\\|eemacs-hydra-hollow-random-func\\)"
+            (symbol-name command)))
+      nil
+    t))
+(add-to-list 'entropy/emacs-read-extended-command-predicates
+             #'entropy/emacs-hydra-hollow-read-extended-command-predicate)
+
 (provide 'entropy-emacs-hydra-hollow)
