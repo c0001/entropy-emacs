@@ -139,8 +139,10 @@
        (let ((buffer (get-buffer-create company-en-words/var--doc-buffer-name))
              (inhibit-read-only t)
              (short-trans
-              (wudao/query-word-by-command
-               arg)))
+              (apply (if (fboundp 'wudao/query-word-by-command/use-json-parse)
+                         'wudao/query-word-by-command/use-json-parse
+                       'wudao/query-word-by-command)
+                     (list arg))))
          (with-current-buffer buffer
            (erase-buffer)
            (insert
