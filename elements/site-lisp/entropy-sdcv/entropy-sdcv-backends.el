@@ -607,18 +607,24 @@ And install it by 'make install'. Finally check whether '~/.local/bin' in your \
 (defun entropy/sdcv-backends--query-with-wudao-by-hash (query show-method)
   (entropy/sdcv-backends--wudao-require)
   (let ((response (or (ignore-errors
-                        (wudao/query-word-by-hash
-                         query
-                         (eq show-method 'adjacent-common)))
+                        (apply (if (fboundp 'wudao/query-word-by-hash/use-json-parse)
+                                   'wudao/query-word-by-hash/use-json-parse
+                                 'wudao/query-word-by-hash)
+                               (list
+                                query
+                                (eq show-method 'adjacent-common))))
                       entropy/sdcv-core-response-null-prompt)))
     response))
 
 (defun entropy/sdcv-backends--query-with-wudao-by-command (query show-method)
   (entropy/sdcv-backends--wudao-require)
   (let ((response (or (ignore-errors
-                        (wudao/query-word-by-command
-                         query
-                         (eq show-method 'adjacent-common)))
+                        (apply (if (fboundp 'wudao/query-word-by-command/use-json-parse)
+                                   'wudao/query-word-by-command/use-json-parse
+                                 'wudao/query-word-by-command)
+                               (list
+                                query
+                                (eq show-method 'adjacent-common))))
                       entropy/sdcv-core-response-null-prompt)))
     response))
 
