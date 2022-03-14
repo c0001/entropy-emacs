@@ -3150,21 +3150,12 @@ conflicts."
   (defun __ya/rime--message-display-content (content)
     "Like `rime--message-display-content', Fix bugs."
     (let ((message-log-max nil))
-      (if (memq
-           ;; EEMACS_TEMPORALLY_HACK: idle the content message while
-           ;; ensure an input or other emacs internal key events since
-           ;; the `sit-for' of the next message is take priority of
-           ;; the emacs-rime char puts to `current-buffer'.
-           last-input-event
-           '(
-             ;; SPC key in the default key event for rime to ensure an
-             ;; input. TODO: we need to expose an cutomization since its
-             ;; just the default value which can not cover each user's
-             ;; rime config.
-             32
-             ;; also as for `C-a' `C-e'
-             1 5
-             ))
+      (if
+          ;; Idle `sit-for' while empty candi msg responsed on since
+          ;; there's also no point pre-post display while the candi
+          ;; msg is empty which indicate it's an non-mapped key for
+          ;; the rime engine.
+          (string-empty-p content)
           (run-with-idle-timer
            0.1
            nil
