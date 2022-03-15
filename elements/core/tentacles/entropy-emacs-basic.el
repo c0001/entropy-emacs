@@ -322,7 +322,129 @@ place can be easily found by other interactive command."
 
 ;; ***** config
   :config
-;; ****** Delete directory with force actions
+;; ****** Basic configs
+;; ******* Unbind some unusual keys which may cause mistakes or its dangerous
+
+  (dolist (key (list
+                ;; letter bounds
+                "a" "c" "d" "e" "f" "h" "i" "j" "k"
+                "l" "n" "p" "q" "s" "v" "x"
+                ;; case letter bounds
+                "A" "F" "G" "H" "I" "M" "N" "O" "P"
+                "T" "V" "W" "X" "Y"
+                ;; special key-sequence
+                "M-)" "~" "=" "C-M-d" "C-o" "M-s a C-s" "M-s a M-C-s"
+                "M-s f C-s" "M-s f M-C-s" "\M-\C-?" "\M-\C-d" "\M-\C-u"
+                "\M-\C-n" "\M-\C-p" "\M-{" "\M-}" "%"))
+    (define-key dired-mode-map (kbd key) nil))
+
+;; ******* Set unit of dired inode for human readable
+
+  (if (not sys/is-win-group)
+      ;; because of windows dired list is too long so just let it in linux
+      (setq dired-listing-switches "-alh --group-directories-first")
+    (setq dired-listing-switches "-alh"))
+
+;; ******* Hide details defautly
+  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+
+;; ******* Always delete and copy resursively
+  (setq dired-recursive-deletes 'always
+        dired-recursive-copies 'always)
+
+;; ****** Core advice
+;; ******* Patch for `dired-mark-pop-up'
+
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (eval
+   '(cond
+     ((version< emacs-version "28")
+      (defun __ya/dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
+        "Like `dired-mark-pop-up' but has been modified to be compat with =entropy-emacs=.
+
+Originally, this funciton using fully widnow size to fit the
+buffer content by using `fit-window-to-buffer', and thus this is
+annoying when buffer size was large which will make some
+conflicates to other UI experience like `ivy-read'. Yeap, the
+modifcation is to remove this feature.
+"
+        (if (or (eq dired-no-confirm t)
+                (memq op-symbol dired-no-confirm)
+                ;; If FILES defaulted to the current line's file.
+                (= (length files) 1))
+            (apply function args)
+          (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*")))
+                ;; Mark *Marked Files* window as softly-dedicated, to prevent
+                ;; other buffers e.g. *Completions* from reusing it (bug#17554).
+                (display-buffer-mark-dedicated 'soft))
+            (with-displayed-buffer-window
+                buffer
+                (cons 'display-buffer-below-selected
+                      ;; HACK: just preserve size
+                      '((preserve-size . (nil . t))))
+                #'(lambda (window _value)
+                    (with-selected-window window
+                      (unwind-protect
+                          (apply function args)
+                        (when (window-live-p window)
+                          (quit-restore-window window 'kill)))))
+              ;; Handle (t FILE) just like (FILE), here.  That value is
+              ;; used (only in some cases), to mean just one file that was
+              ;; marked, rather than the current line file.
+              (with-current-buffer buffer
+                (dired-format-columns-of-files
+                 (if (eq (car files) t) (cdr files) files))
+                (remove-text-properties (point-min) (point-max)
+                                        '(mouse-face nil help-echo nil))
+                (setq tab-line-exclude nil)))))))
+     (t
+      (defun __ya/dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
+        "like `dired-mark-pop-up' but has been modified to be compat with =entropy-emacs=.
+
+Originally, this funciton using fully widnow size to fit the
+buffer content by using `fit-window-to-buffer', and thus this is
+annoying when buffer size was large which will make some
+conflicates to other UI experience like `ivy-read'. Yeap, the
+modifcation is to remove this feature.
+"
+        (if (or (eq dired-no-confirm t)
+                (memq op-symbol dired-no-confirm)
+                ;; If FILES defaulted to the current line's file.
+                (= (length files) 1))
+            (apply function args)
+          (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*")))
+                ;; Mark *Marked Files* window as softly-dedicated, to prevent
+                ;; other buffers e.g. *Completions* from reusing it (bug#17554).
+                (display-buffer-mark-dedicated 'soft))
+            (with-current-buffer-window
+                buffer
+                `(display-buffer-below-selected
+                  ;; HACK: we just want to preserve the size
+                  ;; (window-height . fit-window-to-buffer)
+                  (preserve-size . (nil . t))
+                  (body-function
+                   . ,#'(lambda (_window)
+                          ;; Handle (t FILE) just like (FILE), here.  That value is
+                          ;; used (only in some cases), to mean just one file that was
+                          ;; marked, rather than the current line file.
+                          (dired-format-columns-of-files
+                           (if (eq (car files) t) (cdr files) files))
+                          (remove-text-properties (point-min) (point-max)
+                                                  '(mouse-face nil help-echo nil))
+                          (setq tab-line-exclude nil))))
+                #'(lambda (window _value)
+                    (with-selected-window window
+                      (unwind-protect
+                          (apply function args)
+                        (when (window-live-p window)
+                          (quit-restore-window window 'kill))))))))))))
+
+  (advice-add 'dired-mark-pop-up
+                  :override
+                  #'__ya/dired-mark-pop-up)
+
+;; ****** Eemacs spec `dired' commands
+;; ******* Delete directory with force actions
   (defvar entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap)
     "")
 
@@ -486,36 +608,7 @@ For lisp code, optional args:
     (entropy/emacs-basic-dired-delete-file-recursive nil t))
 
 
-;; ****** Unbind some unusual keys which may cause mistakes or its dangerous
-
-  (dolist (key (list
-                ;; letter bounds
-                "a" "c" "d" "e" "f" "h" "i" "j" "k"
-                "l" "n" "p" "q" "s" "v" "x"
-                ;; case letter bounds
-                "A" "F" "G" "H" "I" "M" "N" "O" "P"
-                "T" "V" "W" "X" "Y"
-                ;; special key-sequence
-                "M-)" "~" "=" "C-M-d" "C-o" "M-s a C-s" "M-s a M-C-s"
-                "M-s f C-s" "M-s f M-C-s" "\M-\C-?" "\M-\C-d" "\M-\C-u"
-                "\M-\C-n" "\M-\C-p" "\M-{" "\M-}" "%"))
-    (define-key dired-mode-map (kbd key) nil))
-
-;; ****** Set unit of dired inode for human readable
-
-  (if (not sys/is-win-group)
-      ;; because of windows dired list is too long so just let it in linux
-      (setq dired-listing-switches "-alh --group-directories-first")
-    (setq dired-listing-switches "-alh"))
-
-;; ****** Hide details defautly
-  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
-
-;; ****** Always delete and copy resursively
-  (setq dired-recursive-deletes 'always
-        dired-recursive-copies 'always)
-
-;; ****** Get both UNIX and WINDOWS style path string
+;; ******* Get both UNIX and WINDOWS style path string
   (defvar entropy/emacs-basic-dired-fpath-get-log nil
     "The log list stored file path temporarily, will be reset
 when you call `entropy/emacs-basic-get-dired-fpath'.")
@@ -553,7 +646,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
               entropy/emacs-basic-dired-fpath-get-log rtn)
         (message "Save all path string to log variable 'entropy/emacs-basic-dired-fpath-get-log'.")))))
 
-;; ****** Dired add load path
+;; ******* Dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
     (interactive)
     (let ((dir (completing-read "Choose load path adding item: "
@@ -563,7 +656,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
         (setq dir (file-name-directory dir)))
       (add-to-list 'load-path dir)))
 
-;; ****** Dired backup file
+;; ******* Dired backup file
 
   (defun entropy/emacs-basic-backup-files ()
     (interactive)
@@ -575,7 +668,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
           (entropy/cl-backup-file el)))
       (revert-buffer)))
 
-;; ****** Dired auto revert after some operations
+;; ******* Dired auto revert after some operations
 
   (defun entropy/emacs-basic--dired-revert-advice (orig-func &rest orig-args)
     "Dired buffer revert around advice for various file create operation.
@@ -620,96 +713,7 @@ TODO:
                             ,(when (version< emacs-version "28") 'dired-do-hardlink))))
     (advice-add el :around #'entropy/emacs-basic--dired-revert-advice))
 
-;; ****** Patch for `dired-mark-pop-up'
-
-  ;; EEMACS_MAINTENANCE: follow upstream updates
-  (eval
-   '(cond
-     ((version< emacs-version "28")
-      (defun __ya/dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
-        "Like `dired-mark-pop-up' but has been modified to be compat with =entropy-emacs=.
-
-Originally, this funciton using fully widnow size to fit the
-buffer content by using `fit-window-to-buffer', and thus this is
-annoying when buffer size was large which will make some
-conflicates to other UI experience like `ivy-read'. Yeap, the
-modifcation is to remove this feature.
-"
-        (if (or (eq dired-no-confirm t)
-                (memq op-symbol dired-no-confirm)
-                ;; If FILES defaulted to the current line's file.
-                (= (length files) 1))
-            (apply function args)
-          (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*")))
-                ;; Mark *Marked Files* window as softly-dedicated, to prevent
-                ;; other buffers e.g. *Completions* from reusing it (bug#17554).
-                (display-buffer-mark-dedicated 'soft))
-            (with-displayed-buffer-window
-                buffer
-                (cons 'display-buffer-below-selected
-                      ;; HACK: just preserve size
-                      '((preserve-size . (nil . t))))
-                #'(lambda (window _value)
-                    (with-selected-window window
-                      (unwind-protect
-                          (apply function args)
-                        (when (window-live-p window)
-                          (quit-restore-window window 'kill)))))
-              ;; Handle (t FILE) just like (FILE), here.  That value is
-              ;; used (only in some cases), to mean just one file that was
-              ;; marked, rather than the current line file.
-              (with-current-buffer buffer
-                (dired-format-columns-of-files
-                 (if (eq (car files) t) (cdr files) files))
-                (remove-text-properties (point-min) (point-max)
-                                        '(mouse-face nil help-echo nil))
-                (setq tab-line-exclude nil)))))))
-     (t
-      (defun __ya/dired-mark-pop-up (buffer-or-name op-symbol files function &rest args)
-        "like `dired-mark-pop-up' but has been modified to be compat with =entropy-emacs=.
-
-Originally, this funciton using fully widnow size to fit the
-buffer content by using `fit-window-to-buffer', and thus this is
-annoying when buffer size was large which will make some
-conflicates to other UI experience like `ivy-read'. Yeap, the
-modifcation is to remove this feature.
-"
-        (if (or (eq dired-no-confirm t)
-                (memq op-symbol dired-no-confirm)
-                ;; If FILES defaulted to the current line's file.
-                (= (length files) 1))
-            (apply function args)
-          (let ((buffer (get-buffer-create (or buffer-or-name " *Marked Files*")))
-                ;; Mark *Marked Files* window as softly-dedicated, to prevent
-                ;; other buffers e.g. *Completions* from reusing it (bug#17554).
-                (display-buffer-mark-dedicated 'soft))
-            (with-current-buffer-window
-                buffer
-                `(display-buffer-below-selected
-                  ;; HACK: we just want to preserve the size
-                  ;; (window-height . fit-window-to-buffer)
-                  (preserve-size . (nil . t))
-                  (body-function
-                   . ,#'(lambda (_window)
-                          ;; Handle (t FILE) just like (FILE), here.  That value is
-                          ;; used (only in some cases), to mean just one file that was
-                          ;; marked, rather than the current line file.
-                          (dired-format-columns-of-files
-                           (if (eq (car files) t) (cdr files) files))
-                          (remove-text-properties (point-min) (point-max)
-                                                  '(mouse-face nil help-echo nil))
-                          (setq tab-line-exclude nil))))
-                #'(lambda (window _value)
-                    (with-selected-window window
-                      (unwind-protect
-                          (apply function args)
-                        (when (window-live-p window)
-                          (quit-restore-window window 'kill))))))))))))
-
-  (advice-add 'dired-mark-pop-up
-                  :override
-                  #'__ya/dired-mark-pop-up)
-
+;; ******* __end
   )
 
 ;; **** Use dired-aux to enable dired-isearch
