@@ -336,13 +336,14 @@ place can be easily found by other interactive command."
     "Current file pre deleted by
 `entropy/emacs-basic-dired-delete-file-recursive'.")
 
-  (defvar entropy/emacs-basic--dired-delete-file-refer-files nil
+  (defvar entropy/emacs-basic--dired-delete-file-refer-files-buffer-history nil
     "Files buffer killed by
-`entropy/emacs-basic-dired-delete-file-recursive' log variable.")
+`entropy/emacs-basic-dired-delete-file-recursive' history
+variable.")
 
-  (defvar entropy/emacs-basic--dired-delete-file-refer-dired-buffers nil
-    "Dired buffer killed by `entropy/emacs-basic--dired-delete-file-rescursie'
-log variable.")
+  (defvar entropy/emacs-basic--dired-delete-file-refer-dired-buffers-history nil
+    "Dired buffers killed by `entropy/emacs-basic--dired-delete-file-rescursie'
+history log.")
 
   (defun entropy/emacs-basic--dired-delete-file-prompt (files-list)
     "popup buffer to deleting with prompting and return the
@@ -403,7 +404,7 @@ For lisp code, optional args:
           (let* ((buffer-file (buffer-file-name el)))
             (when (and buffer-file
                        (entropy/emacs-existed-files-equal-p file buffer-file))
-              (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-files
+              (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-files-buffer-history
                            (cons (buffer-name el) (current-time-string)))
               (kill-buffer el))))
 
@@ -432,7 +433,7 @@ For lisp code, optional args:
                       (expand-file-name
                        (file-name-nondirectory file) dir))
                     file))
-              (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers
+              (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers-history
                            (cons el (current-time-string)))
               (kill-buffer buffer))))
         (when (not just-kill-refers)
