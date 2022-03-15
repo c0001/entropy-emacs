@@ -445,18 +445,31 @@ modifcation is to remove this feature.
 
 ;; ****** Eemacs spec `dired' commands
 ;; ******* Delete directory with force actions
-  (defvar entropy/emacs-basic--dired-delete-file-mode-map (make-sparse-keymap)
-    "")
+
+  (defvar entropy/basic--dired-recursive-delete-prompt-buffer-name
+    "*eemacs delete file error*")
+
+  (defvar entropy/emacs-basic--dired-delete-file-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "q") #'delete-window)
+      map)
+    "Key map for `entropy/emacs-basic--dired-delete-file-mode'.")
 
   ;; TODO : comlete `entropy/emacs-basic--dired-delete-file-mode'
   (define-minor-mode entropy/emacs-basic--dired-delete-file-mode
     "Minor mode for func `entropy/emacs-basic-dired-delete-file-recursive'."
     :keymap entropy/emacs-basic--dired-delete-file-mode-map
-    :global nil)
+    :global nil
+    (setq buffer-read-only t))
 
   (defvar entropy/emacs-basic--dired-file-current-delete nil
     "Current file pre deleted by
 `entropy/emacs-basic-dired-delete-file-recursive'.")
+
+  (defvar entropy/emacs-basic--dired-files-deleted-history nil
+    "Actually file deleted by
+`entropy/emacs-basic-dired-delete-file-recursive', as an history
+log variable.")
 
   (defvar entropy/emacs-basic--dired-delete-file-refer-files-buffer-history nil
     "Files buffer killed by
@@ -510,24 +523,33 @@ For lisp code, optional args:
                              (t (error "Dir list invalid!"))))
            (did-times (length base-files))
            _file-type
-           (pbufname "*eemacs delete file error*")
-           (prompt-buffer (get-buffer-create
-                           pbufname))
+           (pbufname entropy/basic--dired-recursive-delete-prompt-buffer-name)
+           (prompt-buffer (with-current-buffer (get-buffer-create
+                                                pbufname)
+                            (let ((inhibit-read-only t))
+                              (erase-buffer)
+                              (insert
+                               "========== File Deletion Error Handle Prompt Buffer ==========\n"))
+                            (current-buffer)))
            error-occurred
-           (count 1))
+           (count 0))
 
       (unless just-kill-refers
         (entropy/emacs-basic--dired-delete-file-prompt base-files))
 
       (dolist (file base-files)
+        (cl-incf count)
 
         ;; killed refer buffers.
         (dolist (el (buffer-list))
           (let* ((buffer-file (buffer-file-name el)))
-            (when (and buffer-file
+            (when (and (buffer-live-p el)
+                       buffer-file
                        (entropy/emacs-existed-files-equal-p file buffer-file))
               (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-files-buffer-history
                            (cons (buffer-name el) (current-time-string)))
+              (message "[eemacs-dired-delete-file]: killed file <%s> referred buffer '%s'"
+                       file el)
               (kill-buffer el))))
 
         ;; killed refer dired buffers
@@ -557,7 +579,11 @@ For lisp code, optional args:
                     file))
               (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers-history
                            (cons el (current-time-string)))
+              (message "[eemacs-dired-delete-file]: killed file <%s> referred dired buffer '%s'"
+                       file buffer)
               (kill-buffer buffer))))
+
+        ;; Do deletion
         (when (not just-kill-refers)
           (condition-case this-error
               (progn
@@ -571,35 +597,43 @@ For lisp code, optional args:
                       ((f-directory-p file)
                        (setq _file-type 'directory)
                        (delete-directory file t)))
-                (when (and (equal major-mode 'dired-mode)
-                           (= count did-times))
-                  (revert-buffer))
+                (push (list :file-type _file-type
+                            :file-path file
+                            :date (current-time-string))
+                      entropy/emacs-basic--dired-files-deleted-history)
                 (cl-case _file-type
                   ('symbol_link
                    (message (format "Delete symbolink '%s' done! -v-" file)))
                   ('file
                    (message (format "Delete file '%s' done! -v-" file)))
                   ('directory
-                   (message (format "Delete directory '%s' done! -v-" file))))
-                (cl-incf count))
+                   (message (format "Delete directory '%s' done! -v-" file)))))
             (error
              (setq error-occurred t)
              (let* ((inhibit-read-only t))
                (unless (buffer-live-p prompt-buffer)
                  (error "buffer creation error for %s" pbufname))
                (with-current-buffer prompt-buffer
-                 (entropy/emacs-basic--dired-delete-file-mode)
-                 (goto-char (point-min))
-                 (erase-buffer)
-                 (when (= count 1)
-                   (insert
-                    "========== File Deletion Error Handle Prompt Buffer ==========\n"))
                  (insert
-                  (format "[%s] %s: %s deletion failed by %s \n"
-                          count _file-type file (cdr this-error)))))))))
+                  (format "[At %sth operation] %s: %s %s (%s) \n\tsince %s\n"
+                          count
+                          _file-type
+                          (propertize "deletion failed" 'face 'error)
+                          (file-name-nondirectory file)
+                          file
+                          (cdr this-error)))))))))
+
+      ;; update dired buffer after deletion
+      (when (and (not just-kill-refers)
+                 (equal major-mode 'dired-mode)
+                 (= count did-times))
+        (revert-buffer))
+      ;; error prompt
       (when error-occurred
         (with-current-buffer prompt-buffer
-          (insert "========== Prompt End =========="))
+          (let ((inhibit-read-only t))
+            (insert "========== Prompt End ==========")
+            (entropy/emacs-basic--dired-delete-file-mode)))
         (pop-to-buffer prompt-buffer))))
 
   (defun entropy/emacs-basic-dired-delete-file-refers ()
