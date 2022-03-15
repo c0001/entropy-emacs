@@ -486,7 +486,7 @@ For lisp code, optional args:
     (entropy/emacs-basic-dired-delete-file-recursive nil t))
 
 
-;; ****** unbind some unusual keys which may cause mistakes or its dangerous
+;; ****** Unbind some unusual keys which may cause mistakes or its dangerous
 
   (dolist (key (list
                 ;; letter bounds
@@ -502,30 +502,20 @@ For lisp code, optional args:
     (define-key dired-mode-map (kbd key) nil))
 
 ;; ****** Set unit of dired inode for human readable
-  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
 
   (if (not sys/is-win-group)
       ;; because of windows dired list is too long so just let it in linux
       (setq dired-listing-switches "-alh --group-directories-first")
     (setq dired-listing-switches "-alh"))
 
+;; ****** Hide details defautly
+  (add-hook 'dired-mode-hook #'dired-hide-details-mode)
+
 ;; ****** Always delete and copy resursively
   (setq dired-recursive-deletes 'always
         dired-recursive-copies 'always)
 
-;; ****** Improve dired files operation experience for kill opened refer buffers.
-  (defun entropy/emacs-basic--kill-redundant-buffer (&rest rest-args)
-    "Delete file refer redundant buffer which will cause dired
-'delete' or 'rename' failed."
-    (dolist (el (mapcar 'buffer-name (buffer-list)))
-      (dolist (re-el '("\\*Echo Area"
-                       "\\*RNC Input\\*"))
-        (when (string-match-p re-el el)
-          (kill-buffer el)))))
-  (advice-add 'dired-do-rename :before #'entropy/emacs-basic--kill-redundant-buffer)
-  (advice-add 'dired-do-flagged-delete :before #'entropy/emacs-basic--kill-redundant-buffer)
-
-;; ****** get both UNIX and WINDOWS style path string
+;; ****** Get both UNIX and WINDOWS style path string
   (defvar entropy/emacs-basic-dired-fpath-get-log nil
     "The log list stored file path temporarily, will be reset
 when you call `entropy/emacs-basic-get-dired-fpath'.")
@@ -563,7 +553,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
               entropy/emacs-basic-dired-fpath-get-log rtn)
         (message "Save all path string to log variable 'entropy/emacs-basic-dired-fpath-get-log'.")))))
 
-;; ****** dired add load path
+;; ****** Dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
     (interactive)
     (let ((dir (completing-read "Choose load path adding item: "
@@ -573,7 +563,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
         (setq dir (file-name-directory dir)))
       (add-to-list 'load-path dir)))
 
-;; ****** dired backup file
+;; ****** Dired backup file
 
   (defun entropy/emacs-basic-backup-files ()
     (interactive)
@@ -585,7 +575,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
           (entropy/cl-backup-file el)))
       (revert-buffer)))
 
-;; ****** dired auto revert after some operations
+;; ****** Dired auto revert after some operations
 
   (defun entropy/emacs-basic--dired-revert-advice (orig-func &rest orig-args)
     "Dired buffer revert around advice for various file create operation.
@@ -630,7 +620,7 @@ TODO:
                             ,(when (version< emacs-version "28") 'dired-do-hardlink))))
     (advice-add el :around #'entropy/emacs-basic--dired-revert-advice))
 
-;; ****** patch for `dired-mark-pop-up'
+;; ****** Patch for `dired-mark-pop-up'
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
   (eval
