@@ -3184,7 +3184,11 @@ conflicts."
           ;; there's also no point pre-post display while the candi
           ;; msg is empty which indicate it's an non-mapped key for
           ;; the rime engine.
-          (string-empty-p content)
+          (and (string-empty-p content)
+               ;; FIXME & NOTE: we should stick this patch only when
+               ;; `rime-mode' enabled, if not will cause the imcoming
+               ;; `message' lost and why?
+               rime-mode)
           (run-with-idle-timer
            0.1
            nil
