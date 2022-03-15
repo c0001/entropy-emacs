@@ -911,8 +911,8 @@ directory."
           (progn
             (dolist (el rtn-lite)
               (if (file-directory-p el)
-                  (push `("D" . ,el) rtn-attr)
-                (push `("F" . ,el) rtn-attr)))
+                  (push `(dir . ,el) rtn-attr)
+                (push `(file . ,el) rtn-attr)))
             rtn-attr)
         nil))))
 
@@ -924,7 +924,7 @@ directory."
     (if dirlist
         (progn
           (dolist (el dirlist)
-            (if (equal "D" (car el))
+            (if (eq 'dir (car el))
                 (push (cdr el) rtn)))
           (if rtn
               rtn
@@ -940,9 +940,9 @@ return the path list. "
     (when (not (null cur_get))
       (dolist (el cur_get)
         (cond
-         ((equal (car el) "F")
+         ((eq (car el) 'file)
           (push (cdr el) $files))
-         ((equal (car el) "D")
+         ((eq (car el) 'dir)
           (push (cdr el) $dirs))))
       (when $dirs
         (dolist (el $dirs)

@@ -33,7 +33,7 @@
 ;; file within ebook as the melpa package [[https://github.com/wasamasa/nov.el][nov.el]] does, or using convert
 ;; way for as that transfer each ebook's internal ebook page to org
 ;; file. Obviously, the first one have the exits extension does, thus
-;; this package was serving as the latter goal.  
+;; this package was serving as the latter goal.
 ;;
 ;;
 ;; Although kinds of ebook wrapper format are popular covering the word,
@@ -57,7 +57,7 @@
 ;; 4) Tidy up all converted org files into the normal org context format.
 ;;
 ;;
-;;;; Dependencies 
+;;;; Dependencies
 ;;
 ;; this package depends on some external cli dependencies:
 ;; - [[https://pandoc.org/][pandoc]]
@@ -95,7 +95,7 @@
 ;;;; Installation
 ;;
 ;; Just require it as:
-;;: (require 'entropy-epub2org) 
+;;: (require 'entropy-epub2org)
 ;;
 ;;;; Interaction
 ;;
@@ -379,7 +379,7 @@ choosing the target source file directory."
     (if flist
         (progn
           (dolist (el flist)
-            (when (and (equal "F" (car el))
+            (when (and (eq 'file (car el))
                        (string-match-p entropy/ep2o-ops-srcfiles-regexp (cdr el)))
               (push (cdr el) hlist))))
       (error (format "There's nothing in %s ." dir)))
@@ -412,7 +412,7 @@ created by `entropy/ep2o-list-html-src'."
          (dir-list (entropy/cl-list-dir-lite dir))
          rtn)
     (dolist (el dir-list)
-      (when (and (equal "F" (car el))
+      (when (and (eq 'file (car el))
                  (and (string-match-p "\\.org$" (cdr el))
                       (not (string-match-p "\\.#" (cdr el)))))
         (push (cdr el) rtn)))
@@ -481,9 +481,9 @@ Arg after-indent-list was the except file list for dealing manually after conver
 
 This function dealing with buffer `current-buffer'.
 
-This function return t or nil for judge whether do what to do for 
+This function return t or nil for judge whether do what to do for
 `entropy/ep2o-tidy-up-all-org-files'."
-  
+
   (let ((line-count (count-lines (point-min) (point-max)))
         (do-indent t)
         rtn)
@@ -639,7 +639,7 @@ navpoint level."
             (setq io-string rtv-abbr)))
          ((= io-re-count 0)
           (setq io-string "")))))
-      
+
       (if (not (equal "" io-string))  ;final tidy up io-string for inserting
           (setq io-string (concat io-string "/"))
         (setq io-string ""))
@@ -659,7 +659,7 @@ navpoint level."
               (setq insert-link-name (concat insert-link-file-name
                                              "::" insert-link-id)))
           (setq insert-link-name insert-link-file-name))
-        
+
         (setq head-link (concat "file:" io-string insert-link-name)))
 
       (setq rtn (format "[[%s][%s]]" head-link head-name))
@@ -752,7 +752,7 @@ dir/
 |  |--src-file1
 |  |--src-file2
 |  |-- .....
-|  |-- *.ncx 
+|  |-- *.ncx
 |--..
 "
   (let ((sub-dir-list (entropy/cl-list-subdir dir))
@@ -809,7 +809,7 @@ dir/
            ((entropy/ep2o-normal-dir-structer base-dir)
             (setq ops-dir    (concat base-dir "OPS/"))
             (dolist (el (entropy/cl-list-dir-lite ops-dir))
-              (when (and (equal "F" (car el))
+              (when (and (eq 'file (car el))
                          (string-match-p "\\.ncx$" (cdr el)))
                 (if (equal system-type 'windows-nt)
                     (setq ncx-file (replace-regexp-in-string "/" "\\" (cdr el) t t))
@@ -858,7 +858,7 @@ dir/
           (redisplay t)
           (entropy/ep2o-dos2unix-org-files org-files-list)
           (insert "End of line type transfer done!\n\n")
-          
+
           ;; tidy up org files
           (insert "---------------\n")
           (insert "process step3: \n")
@@ -870,7 +870,7 @@ dir/
             (entropy/ep2o-tidy-up-all-org-files org-files-list ep2o-dir-struct))
           (setq entropy/ep2o-index-relative nil)
           (insert "Tidy up done!\n\n")
-          
+
           ;; write index file
           (insert "---------------\n")
           (insert "process step4: \n")
@@ -889,7 +889,7 @@ dir/
           (insert "\n\n\nConvert finished")))
       (when (yes-or-no-p "Kill entropy ep2o dispather buffer?")
         (kill-buffer dispatcher-buffer)))))
-  
+
 
 
 ;;;; ops srcs adjusting function
@@ -925,7 +925,7 @@ dir/
         ;; manully inputting matching regexp
         (setq match-rexp (read-string "Inputting regexp: "))
 
-        ;; manully inputting replacing regexp 
+        ;; manully inputting replacing regexp
         (setq replace-str (read-string (format "Replacing for \"%s\" :" match-rexp)))
 
         (add-to-list 're-list `(,match-rexp . ,replace-str))
@@ -935,7 +935,7 @@ dir/
     ;; obtained converted org files list
     (dolist (el ops-dir-list)
       (when (and (string-match-p "\\.org" (cdr el))
-                 (equal (car el) "F"))
+                 (eq (car el) 'file))
         (add-to-list 'ops-org-files (cdr el))))
 
     ;; matched and replace user specifiction

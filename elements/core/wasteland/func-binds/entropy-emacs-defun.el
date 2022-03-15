@@ -553,8 +553,8 @@ directory."
           (progn
             (dolist (el rtn-lite)
               (if (file-directory-p el)
-                  (push `("D" . ,el) rtn-attr)
-                (push `("F" . ,el) rtn-attr)))
+                  (push `(dir . ,el) rtn-attr)
+                (push `(file . ,el) rtn-attr)))
             rtn-attr)
         nil))))
 
@@ -566,7 +566,7 @@ directory."
     (if dirlist
         (progn
           (dolist (el dirlist)
-            (if (equal "D" (car el))
+            (if (eq 'dir (car el))
                 (push (cdr el) rtn)))
           (if rtn
               (reverse rtn)
@@ -580,7 +580,7 @@ directory."
     (if dirlist
         (progn
           (dolist (el dirlist)
-            (when (equal "F" (car el))
+            (when (eq 'file (car el))
               (push (cdr el) rtn)))
           (if rtn
               rtn

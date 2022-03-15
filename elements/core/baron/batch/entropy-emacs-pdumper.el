@@ -186,7 +186,7 @@ configuration.")
          (file-list (mapcar
                      (lambda (x)
                        (let ((ftype (car x)))
-                         (when (equal "F" ftype)
+                         (when (eq 'file ftype)
                            (cdr x))))
                      lite-list))
          rtn)

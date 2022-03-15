@@ -313,7 +313,7 @@ two main dict file named with extension '.idx' 'ifo'."
       (if (and (listp sublist)
                (not (member nil sublist)))
           (dolist (el sublist)
-            (when (equal (car el) "F")
+            (when (eq (car el) 'file)
               (add-to-list 'flist (cdr el))))
         (entropy/sdcv-backends--common-message
          "Dir %s was empty!" dict-dir)
