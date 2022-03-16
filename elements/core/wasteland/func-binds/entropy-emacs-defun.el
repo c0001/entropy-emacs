@@ -539,6 +539,25 @@ otherwise."
         t)))
 
 ;; *** File and directory manipulation
+
+(defun entropy/emacs-make-relative-filename
+    (file dir &optional file-use-abs dir-use-abs)
+  "Convert FILE (use abs name while FILE-USE-ABS is non nil) to a
+name relative to DIR (use abs name while DIR-USE-ABS is non nil).
+If DIR is omitted or nil, it defaults to `default-directory'.  If
+FILE is not in the directory tree of DIR, return nil.
+
+The returned rel-filename is leading with the system filepath
+separator i.e. in Windows '\\' and in *nix system is '/'."
+  (or dir (setq dir default-directory))
+  (if file-use-abs
+      (setq file (expand-file-name file)))
+  (if dir-use-abs
+      (setq dir (expand-file-name dir)))
+  (if (string-match (concat "^" (regexp-quote dir)) file)
+      (substring file (match-end 0))
+    nil))
+
 (defun entropy/emacs-list-dir-lite (dir-root &optional not-abs)
   "Return an alist of fsystem nodes as:
 
