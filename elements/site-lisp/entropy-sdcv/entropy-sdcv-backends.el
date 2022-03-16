@@ -274,7 +274,7 @@ Func maily for setting the value of variable
     (if (and (not entropy/sdcv-backends-sdcv-user-dicts)
              (file-directory-p entropy/sdcv-backends-sdcv-common-dicts-host))
         (let* ((base-dir entropy/sdcv-backends-sdcv-common-dicts-host)
-               (dir-list (entropy/cl-list-subdir base-dir))
+               (dir-list (entropy/cl-list-subdirs base-dir))
                (dict-info-list nil))
           (if (and (listp dir-list)
                    (not (null dir-list)))

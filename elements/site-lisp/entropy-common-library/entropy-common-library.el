@@ -931,7 +931,7 @@ the DIR-ROOT.
           rtn-attr)
       nil)))
 
-(defun entropy/cl-list-subdir (dir-root &optional not-abs)
+(defun entropy/cl-list-subdirs (dir-root &optional not-abs)
   "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
 
 If optional arg NOT-ABS is non-nil then each node is relative to
