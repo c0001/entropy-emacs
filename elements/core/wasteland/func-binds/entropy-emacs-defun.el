@@ -539,7 +539,7 @@ otherwise."
         t)))
 
 ;; *** File and directory manipulation
-(defun entropy/emacs-list-dir-lite (dir-root)
+(defun entropy/emacs-list-dir-lite (dir-root &optional not-abs)
   "Return an alist of fsystem nodes as:
 
 #+begin_src elisp
@@ -553,28 +553,32 @@ indicate that:
 - 'file': the node is an file (or an symbolic to an regular file)
 - 'dir':  the node is an directory (or an symbolic to an directory)
 
-The node sort ordered by `string-lessp'.
+The node sort ordered by `string-lessp'
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT.
 "
   (let (rtn-full rtn-lite rtn-attr)
-    (when (and (file-exists-p dir-root)
-               (file-directory-p dir-root))
-      (setq rtn-full (directory-files dir-root t))
-      (dolist (el rtn-full)
-        ;; filter the . and ..
-        (if (not (string-match-p "\\(\\\\\\|/\\)\\(\\.\\|\\.\\.\\)$" el))
-            (push el rtn-lite)))
-      (if rtn-lite
-          (progn
-            (dolist (el rtn-lite)
-              (if (file-directory-p el)
-                  (push `(dir . ,el) rtn-attr)
-                (push `(file . ,el) rtn-attr)))
-            rtn-attr)
-        nil))))
+    (setq rtn-full (directory-files dir-root (not not-abs)))
+    (dolist (el rtn-full)
+      ;; filter the . and ..
+      (if (not (string-match-p "\\(\\\\\\|/\\)?\\(\\.\\|\\.\\.\\)$" el))
+          (push el rtn-lite)))
+    (if rtn-lite
+        (progn
+          (dolist (el rtn-lite)
+            (if (file-directory-p (expand-file-name el dir-root))
+                (push `(dir . ,el) rtn-attr)
+              (push `(file . ,el) rtn-attr)))
+          rtn-attr)
+      nil)))
 
-(defun entropy/emacs-list-subdir (dir-root)
-  "List subdir of root dir DIR-ROOT, ordered by `string-lessp'."
-  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
+(defun entropy/emacs-list-subdir (dir-root &optional not-abs)
+  "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT."
+  (let ((dirlist (entropy/emacs-list-dir-lite dir-root not-abs))
         (rtn nil))
     (if dirlist
         (progn
@@ -586,11 +590,14 @@ The node sort ordered by `string-lessp'.
             nil))
       nil)))
 
-(defun entropy/emacs-list-subfiles (dir-root)
+(defun entropy/emacs-list-subfiles (dir-root &optional not-abs)
   "Return a list of file(not directory) under directory DIR-ROOT.
 
-The structure of return is ordered by `string-lessp'."
-  (let ((dirlist (entropy/emacs-list-dir-lite dir-root))
+The structure of return is ordered by `string-lessp'.
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT."
+  (let ((dirlist (entropy/emacs-list-dir-lite dir-root not-abs))
         (rtn nil))
     (if dirlist
         (progn
@@ -602,27 +609,64 @@ The structure of return is ordered by `string-lessp'."
             nil))
       nil)))
 
-(defun entropy/emacs-list-dir-recursively (top-dir)
+(defun entropy/emacs-list-dir-recursively
+    (top-dir &optional not-abs top-dir-expand-of with-files)
   "List directory TOP-DIR's sub-dirctorys recursively, return a
 =dir-spec=, whose car was a path for one dirctory and the cdr was
 a list of =dir-spec= or nil if no sub-dir under it. The structure
-of return is ordered by `string-lessp'."
-  (let ((subdirs (entropy/emacs-list-subdir top-dir))
-        rtn)
+of return is ordered by `string-lessp'.
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the corresponding root dir.
+
+If optional arg TOP-DIR-EXPAND-OF is non-nil, we expand TOP-DIR
+with it to use as the initial TOP-DIR.
+
+If optional arg with-files, the car of the =dir-spec= is an cons
+of (dir . dir-files)."
+  (let* ((this-root
+          (if top-dir-expand-of
+              (expand-file-name top-dir top-dir-expand-of)
+            top-dir))
+         (subitems (entropy/emacs-list-dir-lite
+                    this-root not-abs))
+         (subfiles (and with-files
+                        (delete
+                         nil
+                         (mapcar (lambda (x)
+                                   (let ((dirp (eq (car x) 'file)))
+                                     (and dirp
+                                          (cdr x))))
+                                 subitems))))
+         (subdirs (delete
+                   nil
+                   (mapcar (lambda (x)
+                             (let ((dirp (eq (car x) 'dir)))
+                               (and dirp
+                                    (cdr x))))
+                           subitems)))
+         rtn)
     (catch :exit
-      (add-to-list 'rtn top-dir)
+      (add-to-list
+       'rtn
+       (if with-files (cons top-dir subfiles)
+         top-dir))
       (unless subdirs
         (throw :exit nil))
       (dolist (sub-dir subdirs)
         (add-to-list
          'rtn
-         (entropy/emacs-list-dir-recursively sub-dir))))
+         (entropy/emacs-list-dir-recursively
+          sub-dir not-abs
+          (when not-abs
+            this-root)
+          with-files))))
     (reverse rtn)))
 
 (defun entropy/emacs-list-dir-recursive-for-list (top-dir)
   "list sub-directorys under directory TOP-DIR recursively, and
 return the list. The structure of return is ordered by
-`string-lessp'."
+`string-lessp' and each node is absolute path name."
   (let ((dir-struct (entropy/emacs-list-dir-recursively top-dir))
         ext-func)
     (setq
@@ -642,7 +686,8 @@ return the list. The structure of return is ordered by
 
 (defun entropy/emacs-list-files-recursive-for-list (top-dir)
   "list files under directory TOP-DIR recursively, and return the
-list. The structure of return is ordered by `string-lessp'."
+list. The structure of return is ordered by `string-lessp' and
+each node is absolute path name."
   (let ((dir-list (entropy/emacs-list-dir-recursive-for-list top-dir))
         rtn)
     (dolist (dir dir-list)

@@ -897,12 +897,12 @@ following rule-set:
 
 ;;;;; dir
 ;;;;;; list dir
-(defun entropy/cl-list-dir-lite (dir-root)
+(defun entropy/cl-list-dir-lite (dir-root &optional not-abs)
   "Return an alist of fsystem nodes as:
 
 #+begin_src elisp
-'((dir . \\\"a-dir\\\")
-  (file . \\\"a.txt\\\"))
+'((dir . \"a-dir\")
+  (file . \"a.txt\"))
 #+end_src
 
 where the car of each elements is the node type with follow symols to
@@ -911,29 +911,32 @@ indicate that:
 - 'file': the node is an file (or an symbolic to an regular file)
 - 'dir':  the node is an directory (or an symbolic to an directory)
 
-The node sort ordered by `string-lessp'.
+The node sort ordered by `string-lessp'
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT.
 "
   (let (rtn-full rtn-lite rtn-attr)
-    (when (and (file-exists-p dir-root)
-               (file-directory-p dir-root))
-      (setq rtn-full (directory-files dir-root t))
-      (dolist (el rtn-full)
-        ;; filter . and ..
-        (if (not (string-match-p "\\(\\.$\\|\\.\\.$\\)" el))
-            (push el rtn-lite)))
-      (if rtn-lite
-          (progn
-            (dolist (el rtn-lite)
-              (if (file-directory-p el)
-                  (push `(dir . ,el) rtn-attr)
-                (push `(file . ,el) rtn-attr)))
-            rtn-attr)
-        nil))))
+    (setq rtn-full (directory-files dir-root (not not-abs)))
+    (dolist (el rtn-full)
+      ;; filter the . and ..
+      (if (not (string-match-p "\\(\\\\\\|/\\)?\\(\\.\\|\\.\\.\\)$" el))
+          (push el rtn-lite)))
+    (if rtn-lite
+        (progn
+          (dolist (el rtn-lite)
+            (if (file-directory-p (expand-file-name el dir-root))
+                (push `(dir . ,el) rtn-attr)
+              (push `(file . ,el) rtn-attr)))
+          rtn-attr)
+      nil)))
 
+(defun entropy/cl-list-subdir (dir-root &optional not-abs)
+  "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
 
-(defun entropy/cl-list-subdir (dir-root)
-  "List subdir of root dir DIR-ROOT, ordered by `string-lessp'."
-  (let ((dirlist (entropy/cl-list-dir-lite dir-root))
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT."
+  (let ((dirlist (entropy/cl-list-dir-lite dir-root not-abs))
         (rtn nil))
     (if dirlist
         (progn
@@ -941,14 +944,14 @@ The node sort ordered by `string-lessp'.
             (if (eq 'dir (car el))
                 (push (cdr el) rtn)))
           (if rtn
-              rtn
+              (reverse rtn)
             nil))
       nil)))
 
-
 (defun entropy/cl-list-dir-files-full (root-dir)
   "List all files recursively under root directory ROOT-DIR and
-return the path list, ordered by `string-lessp'. "
+return the path list, ordered by `string-lessp', and each node is
+absolute path name."
   (let* ((cur_get (entropy/cl-list-dir-lite root-dir))
          $dirs $files $childs rtn)
     (when (not (null cur_get))
