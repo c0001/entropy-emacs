@@ -71,14 +71,25 @@
                             ;; documents
                             "pdf" "djvu" "odt"
                             (regex "docx?") (regex "xslx?") (regex "pptx?")
-                            ;; archive type
-                            "zip" "7z" "xz" "rar" "bzip2"
-                            "tgz" "txz" "t7z" "tbz"
+                            ;; ==========
+                            ;; FIXME: the `jka-compr-handler' defaulty
+                            ;; handle common gnu tar type of archives,
+                            ;; so we can not handle that while
+                            ;; openwith or the emacs internal loading
+                            ;; procedure will be junked because emacs
+                            ;; load lisp files from those archives.
+                            ;;
+                            ;;    "tgz" "txz" "t7z" "tbz"
+                            ;;
                             ;; NOTE: do not set 'tar\..+' regex since
                             ;; the 'tar.sig' suffix is used for emacs
                             ;; internal IO like `package-intall'.
-                            (regex "tar\\.\\(gz\\|xz\\|bz\\)")
-                            "bak"
+                            ;;
+                            ;;   (regex "tar\\.\\(gz\\|xz\\|bz\\)")
+                            ;; ==========
+                            ;; but we can assoc non-tar archives
+                            "zip" "7z" "xz" "rar" "bzip2" "bz2"
+
                             ))))
                     "\\)$")
             ;; we use xdg-open(linux) and start(windows) as default mime handler
@@ -154,8 +165,11 @@ with ARGLIST."
                         (string-match-p (car oa) file))
                   (throw :exit t)))))))
 
+  (defvar __openwith-file-handler-history nil
+    "The `openwith-file-handler' hander log used for eemacs debug only.")
   (defun __ya/openwith-file-handler (operation &rest args)
     "Like `openwith-file-handler' but enhanced"
+    (push (cons operation args) __openwith-file-handler-history)
     (catch :exit
       (when (and openwith-mode (not (buffer-modified-p)) (zerop (buffer-size)))
         (let ((assocs openwith-associations)
@@ -183,7 +197,9 @@ with ARGLIST."
                   (when (bound-and-true-p recentf-mode)
                     (recentf-add-file file))
                   ;; quit procedure while matched rules
-                  (top-level)))))))
+                  (let ((debug-on-error nil))
+                    (error "Opened %s in external program"
+                           (file-name-nondirectory file)))))))))
       ;; when no association was found, relay the operation to other handlers
       (let ((inhibit-file-name-handlers
              (cons 'openwith-file-handler

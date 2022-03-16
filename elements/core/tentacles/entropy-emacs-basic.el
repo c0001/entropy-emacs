@@ -159,7 +159,30 @@ place can be easily found by other interactive command."
 ;; pollute the thread operations. (e.g. local directory naming as an
 ;; archive name will also invoking tramp-archive methods which throw
 ;; out many more problems while its magick filename I/O deals)
-(setq tramp-archive-enabled nil)
+(if (> emacs-major-version 27)
+    (with-eval-after-load
+        ;; FIXME: we need to do this after load `tramp-archive' or may
+        ;; cause the invalid file-name-handler error in emacs-28 and
+        ;; why?
+        ;;
+        ;; Try below elisp snippets:
+        ;;
+        ;; #+begin_src elisp
+        ;;   (entropy/emacs-test-emacs-with-pure-setup-with-form
+        ;;    "tramp-archive-enabled-bug-reproduce"
+        ;;    '(progn
+        ;;       (setq debug-on-error t)
+        ;;       (setq tramp-archive-enabled nil)
+        ;;       (file-directory-p
+        ;;        "/home/entropy/.config/entropy-config/\
+        ;;   entropy-emacs/entropy-emacs/annex/emacs-src/\
+        ;;   test/lisp/net/tramp-archive-resources/foo.iso/foo")
+        ;;       )
+        ;;    nil "emacs-28")
+        ;; #+end_src
+        'tramp-archive
+      (setq tramp-archive-enabled nil))
+  (setq tramp-archive-enabled nil))
 
 ;; ** Basic major-modes spec
 ;; *** Dired config
