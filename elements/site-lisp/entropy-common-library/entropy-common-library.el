@@ -898,13 +898,27 @@ following rule-set:
 ;;;;; dir
 ;;;;;; list dir
 (defun entropy/cl-list-dir-lite (dir-root)
-  "Return directory list with type of whichever file or
-directory."
+  "Return an alist of fsystem nodes as:
+
+#+begin_src elisp
+'((dir . \\\"a-dir\\\")
+  (file . \\\"a.txt\\\"))
+#+end_src
+
+where the car of each elements is the node type with follow symols to
+indicate that:
+
+- 'file': the node is an file (or an symbolic to an regular file)
+- 'dir':  the node is an directory (or an symbolic to an directory)
+
+The node sort ordered by `string-lessp'.
+"
   (let (rtn-full rtn-lite rtn-attr)
     (when (and (file-exists-p dir-root)
                (file-directory-p dir-root))
       (setq rtn-full (directory-files dir-root t))
       (dolist (el rtn-full)
+        ;; filter . and ..
         (if (not (string-match-p "\\(\\.$\\|\\.\\.$\\)" el))
             (push el rtn-lite)))
       (if rtn-lite
@@ -918,7 +932,7 @@ directory."
 
 
 (defun entropy/cl-list-subdir (dir-root)
-  "List subdir of root dir DIR-ROOT"
+  "List subdir of root dir DIR-ROOT, ordered by `string-lessp'."
   (let ((dirlist (entropy/cl-list-dir-lite dir-root))
         (rtn nil))
     (if dirlist
@@ -934,7 +948,7 @@ directory."
 
 (defun entropy/cl-list-dir-files-full (root-dir)
   "List all files recursively under root directory ROOT-DIR and
-return the path list. "
+return the path list, ordered by `string-lessp'. "
   (let* ((cur_get (entropy/cl-list-dir-lite root-dir))
          $dirs $files $childs rtn)
     (when (not (null cur_get))
