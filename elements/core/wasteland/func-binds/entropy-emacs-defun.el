@@ -628,8 +628,17 @@ the DIR-ROOT."
             nil))
       nil)))
 
-(defun entropy/emacs-list-dir-recursively
-    (top-dir &optional not-abs top-dir-expand-of with-files)
+(cl-defun entropy/emacs-list-dir-recursively
+    (top-dir &optional not-abs
+             &key
+             with-attributes
+             map-func
+             ;; remained
+             remain--not-calling-at-root
+             remain--top-dir-expand-of
+             remain--parent-attrs
+             remain--parent-subdir-nth-for-current
+             remain--prev-rel-path)
   "List directory TOP-DIR's sub-dirctorys recursively, return a
 =dir-spec=, whose car was a path for one dirctory and the cdr was
 a list of =dir-spec= or nil if no sub-dir under it. The structure
@@ -638,25 +647,104 @@ of return is ordered by `string-lessp'.
 If optional arg NOT-ABS is non-nil then each node is relative to
 the corresponding root dir.
 
-If optional arg TOP-DIR-EXPAND-OF is non-nil, we expand TOP-DIR
-with it to use as the initial TOP-DIR.
+If optional key WITH-ATTRIBUTES is enabled or the optional key
+MAP-FUNC is set, the car of the =dir-spec= is an cons of (dir
+. attributes-plist). In which case, the =attributes-plist= is
+defaultly include follow keys:
 
-If optional arg with-files, the car of the =dir-spec= is an cons
-of (dir . dir-files)."
-  (let* ((this-root
-          (if top-dir-expand-of
-              (expand-file-name top-dir top-dir-expand-of)
-            top-dir))
+#+begin_src elisp
+  (list
+   :dir-abspath dir-abspath
+   :dir-is-root-p dir-is-root-p
+   :dir-name dir-name
+   :dir-subdirs-names dir-subdirs
+   :dir-subfiles-names dir-subfiles
+   :dir-rel-path dir-rel-path
+   :dir-rel-path-level dir-rel-path-level
+   :dir-nth-pos-of-parent-subdirs dir-nth-pos-of-parent-subdirs
+   :dir-nth-pos-is-at-end-of-parent-subdirs dir-nth-pos-is-at-end-of-parent-subdirs
+   :dir-parent-attrs dir-parent-attrs
+   :dir-user-attrs dir-user-attrs)
+#+end_src
+
+The MAP-FUNC is an function used to participate with building each
+=dir-spec= but not influenced the core result of thus. It run after
+the current =dir-spec= has built its car place and generated its
+=attributs-plist= done, thus for as, the MAP-FUNC accept only one
+argument, i.e. current =dir-spec='s =attributes-plist= and its return
+will be put in place of the DIR-USR-ATTRS of current =dir-spec='s
+=attributes-plist= before generate current =dir-spec='s subdirs
+=dir-spec=.
+
+DIR-IS-ROOT-P is t when current =dir-spec='s dir is TOP-DIR, nil
+for otherwise.
+
+DIR-ABSPATH is the current =dir-spec='s dir's absolute path name,
+DIR-NAME is the dir name, DIR-SUBDIRS-NAMES is a list of subdirs
+names of current dir and so as such as DIR-SUBFILES-NAMES.
+
+DIR-NAME, DIR-SUBDIRS-NAMES and DIR-SUBFILES-NAMES are all relative
+name(s).
+
+DIR-SUBDIRS-NAMES and DIR-SUBFILES-NAMES can be nil while no such
+reflects.
+
+DIR-REL-PATH is an list of dir names ordered as relative path
+from TOP-DIR to the current =dir-spec='s dir(included) or nil
+when DIR-IS-ROOT-P TRUE, and DIR-REL-PATH-LEVEL is that relative
+depth integer as same as ~(length DIR-REL-PATH)~.
+
+DIR-NTH-POS-OF-PARENT-SUBDIRS is an 0-based index integer to
+indicate the current =dir-spec='s dir's pos of the parent's
+DIR-SUBDIRS-NAMES. It's nil when the current =dir-spec='s dir is
+TOP-DIR.
+
+DIR-NTH-POS-IS-AT-END-OF-PARENT-SUBDIRS is 1 when
+DIR-NTH-POS-OF-PARENT-SUBDIRS is the tail index and 0 for that
+its not thus. When it is nil indicate that this indicator is
+unusable since DIR-IS-ROOT-P is true.
+
+DIR-PARENT-ATTRS is the =attributes-plist= of the current
+=dir-spec='s parent dir's =attributes-plist=, and it is nil while
+DIR-IS-ROOT-P is true. The DIR-USER-ATTRS is the current dir's
+MAP-FUN operation's return which we've described earlier, so it
+is always nil while the MAP-FUNC is calling on.
+
+We involved the DIR-PARENT-ATTRS is for user to chasing the mapping
+status from TOP-DIR to the current =dir-spec='s dir so that the
+MAP-FUNC can be view more details thus on.
+
+NOTE:
+
+The keys:
+REMAIN--NOT-CALLING-AT-ROOT,
+REMAIN--TOP-DIR-EXPAND-OF,
+REMAIN--PARENET-DIRNAME,
+REMAIN--PREV-REL-PATH,
+REMAIN--PARENT-SUBDIR-NTH-FOR-CURRENT,
+REMAIN--PARENT-ATTRSARE
+
+Are used internally, do not use it in any way."
+  (let* ((root-calling-p (not remain--not-calling-at-root))
+         (this-level (if root-calling-p 0 remain--not-calling-at-root))
+         (this-root
+          (if remain--top-dir-expand-of
+              (expand-file-name top-dir remain--top-dir-expand-of)
+            (expand-file-name top-dir)))
+         ;; Just gen subfiles list when specified occasion
+         ;; for performance issue.
+         (use-attrs-p (or with-attributes map-func))
          (subitems (entropy/emacs-list-dir-lite
                     this-root not-abs))
-         (subfiles (and with-files
-                        (delete
-                         nil
-                         (mapcar (lambda (x)
-                                   (let ((dirp (eq (car x) 'file)))
-                                     (and dirp
-                                          (cdr x))))
-                                 subitems))))
+         (subfiles (and
+                    use-attrs-p
+                    (delete
+                     nil
+                     (mapcar (lambda (x)
+                               (let ((filep (eq (car x) 'file)))
+                                 (and filep
+                                      (cdr x))))
+                             subitems))))
          (subdirs (delete
                    nil
                    (mapcar (lambda (x)
@@ -664,22 +752,97 @@ of (dir . dir-files)."
                                (and dirp
                                     (cdr x))))
                            subitems)))
+         (get-fname-func (lambda (x)
+                           (if not-abs
+                               x
+                             (file-name-nondirectory x))))
+         (get-fnames-func (lambda (fnames)
+                            (when fnames
+                              (mapcar
+                               get-fname-func
+                               fnames))))
+         this-dirname
+         this-node-car
+         this-rel-path
+         default-attrs
+         user-spec-attrs
          rtn)
     (catch :exit
-      (add-to-list
-       'rtn
-       (if with-files (cons top-dir subfiles)
-         top-dir))
+      (setq this-dirname
+            (if root-calling-p
+                "."
+              (funcall get-fname-func top-dir))
+            this-rel-path
+            (if root-calling-p
+                nil
+              (append remain--prev-rel-path
+                      (list this-dirname))))
+      ;; this node operation
+      (when use-attrs-p
+        (setq default-attrs
+              (list :dir-abspath this-root
+                    :dir-is-root-p root-calling-p
+                    :dir-name this-dirname
+                    :dir-subdirs-names (funcall get-fnames-func subdirs)
+                    :dir-subfiles-names (funcall get-fnames-func subfiles)
+                    :dir-nth-pos-of-parent-subdirs remain--parent-subdir-nth-for-current
+                    :dir-nth-pos-is-at-end-of-parent-subdirs
+                    (when remain--parent-subdir-nth-for-current
+                      (if
+                          (eq (length (plist-get :dir-subdirs-names remain--parent-attrs))
+                              (1+ remain--parent-subdir-nth-for-current))
+                          1
+                        0))
+                    :dir-parent-attrs remain--parent-attrs
+                    :dir-user-attrs nil
+                    :dir-rel-path this-rel-path
+                    :dir-rel-path-level this-level)))
+      (when map-func
+        (setq user-spec-attrs
+              (funcall map-func default-attrs))
+        (when user-spec-attrs
+          (setq default-attrs
+                (plist-put default-attrs
+                           :dir-user-attrs user-spec-attrs))))
+      (let ((proper-top-dir (cond ((and root-calling-p
+                                        not-abs)
+                                   ".")
+                                  ((and root-calling-p
+                                        (not not-abs))
+                                   (expand-file-name top-dir))
+                                  (t
+                                   top-dir))))
+        (if with-attributes
+            (setq this-node-car
+                  (cons proper-top-dir default-attrs))
+          (setq this-node-car proper-top-dir)))
+      (push this-node-car rtn)
       (unless subdirs
         (throw :exit nil))
-      (dolist (sub-dir subdirs)
-        (add-to-list
-         'rtn
-         (entropy/emacs-list-dir-recursively
-          sub-dir not-abs
-          (when not-abs
-            this-root)
-          with-files))))
+      ;; map with this node's subdirs
+      (let ((parenth 0)
+            (cur-level
+             (if remain--not-calling-at-root
+                 (1+ remain--not-calling-at-root)
+               1))
+            (expand-of (when not-abs
+                         this-root))
+            )
+        (dolist (sub-dir subdirs)
+          (push
+           (entropy/emacs-list-dir-recursively
+            sub-dir not-abs
+            :with-attributes with-attributes
+            :map-func map-func
+            :remain--not-calling-at-root cur-level
+            :remain--top-dir-expand-of expand-of
+            :remain--prev-rel-path this-rel-path
+            :remain--parent-subdir-nth-for-current parenth
+            :remain--parent-attrs default-attrs
+            )
+           rtn)
+          (cl-incf parenth))
+        ))
     (reverse rtn)))
 
 (defun entropy/emacs-list-dir-recursive-for-list (top-dir)
