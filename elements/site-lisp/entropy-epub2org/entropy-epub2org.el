@@ -755,7 +755,7 @@ dir/
 |  |-- *.ncx
 |--..
 "
-  (let ((sub-dir-list (entropy/cl-list-subdirs dir))
+  (let ((sub-dir-list (entropy/cl-list-dir-subdirs dir))
         is-ops
         (rtn nil))
     (dolist (el sub-dir-list)

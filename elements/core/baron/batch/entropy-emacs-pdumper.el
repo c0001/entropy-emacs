@@ -72,7 +72,7 @@ configuration.")
   `(let* ((load-path
            (cond
             ((stringp ,top-dir)
-             (append (entropy/emacs-list-dir-recursive-for-list ,top-dir)
+             (append (entropy/emacs-list-dir-subdirs-recursively-for-list ,top-dir)
                      entropy/emacs-origin-load-path))
             ((and ,top-dir
                   (listp ,top-dir))
@@ -81,7 +81,7 @@ configuration.")
                  (setq rtn
                        (append
                         (and path
-                             (entropy/emacs-list-dir-recursive-for-list path))
+                             (entropy/emacs-list-dir-subdirs-recursively-for-list path))
                         rtn)))
                rtn))
             (t
@@ -92,7 +92,7 @@ configuration.")
 
 (defmacro entropy/emacs-pdumper--extract-files-with-dir
     (top-dir exc-filters inc-filters &optional full-path)
-  `(let* ((files (entropy/emacs-list-files-recursive-for-list ,top-dir))
+  `(let* ((files (entropy/emacs-list-dir-subfiles-recursively-for-list ,top-dir))
           rtn)
      (dolist (file files)
        (let ((file-name (if ,full-path file (file-name-nondirectory file)))

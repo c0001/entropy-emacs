@@ -931,7 +931,7 @@ the DIR-ROOT.
           rtn-attr)
       nil)))
 
-(defun entropy/cl-list-subdirs (dir-root &optional not-abs)
+(defun entropy/cl-list-dir-subdirs (dir-root &optional not-abs)
   "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
 
 If optional arg NOT-ABS is non-nil then each node is relative to
@@ -948,7 +948,7 @@ the DIR-ROOT."
             nil))
       nil)))
 
-(defun entropy/cl-list-dir-files-full (root-dir)
+(defun entropy/cl-list-dir-subfiles-recursively-for-list (root-dir)
   "List all files recursively under root directory ROOT-DIR and
 return the path list, ordered by `string-lessp', and each node is
 absolute path name."
@@ -965,7 +965,7 @@ absolute path name."
         (dolist (el $dirs)
           (setq $childs
                 (append $childs
-                        (entropy/cl-list-dir-files-full el)))))
+                        (entropy/cl-list-dir-subfiles-recursively-for-list el)))))
       (if $childs
           (setq rtn (append $files $childs))
         (setq rtn $files)))
@@ -1047,7 +1047,7 @@ Non-nil value.
         (max-specpdl-size 100000))
     (unless (file-directory-p root-dir)
       (error (format "Root-Dir <%s> not exist!" root-dir)))
-    (setq $files (entropy/cl-list-dir-files-full root-dir))
+    (setq $files (entropy/cl-list-dir-subfiles-recursively-for-list root-dir))
     (when $files
       (cond
        ((null sha_compare)

@@ -178,7 +178,7 @@ and the return is the rechecking result like above."
   (let* ((pkg-archive-dir (expand-file-name "archives" package-user-dir))
          (rtn
           (if (and (file-exists-p pkg-archive-dir)
-                   (entropy/emacs-list-files-recursive-for-list pkg-archive-dir))
+                   (entropy/emacs-list-dir-subfiles-recursively-for-list pkg-archive-dir))
               nil
             t)))
     (cond ((and try-get

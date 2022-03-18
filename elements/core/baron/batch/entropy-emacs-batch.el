@@ -325,7 +325,7 @@ faild with hash '%s' which must match '%s'"
     (let ((dirname
            (entropy/emacs-file-path-parser
             (car
-             (entropy/emacs-list-subdirs
+             (entropy/emacs-list-dir-subdirs
               dec-host))
             'non-trail-slash)))
       (rename-file dirname host)
@@ -422,7 +422,7 @@ faild with hash '%s' which must match '%s'"
     (entropy/emacs-message-do-message
      "%s"
      (green "Install eemacs-fonts  ..."))
-    (let ((repo-path (car (entropy/emacs-list-subdirs
+    (let ((repo-path (car (entropy/emacs-list-dir-subdirs
                            dec-host))))
       (if (file-directory-p repo-path)
           (entropy/emacs-message-do-message

@@ -592,7 +592,7 @@ the DIR-ROOT.
           rtn-attr)
       nil)))
 
-(defun entropy/emacs-list-subdirs (dir-root &optional not-abs)
+(defun entropy/emacs-list-dir-subdirs (dir-root &optional not-abs)
   "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
 
 If optional arg NOT-ABS is non-nil then each node is relative to
@@ -609,7 +609,7 @@ the DIR-ROOT."
             nil))
       nil)))
 
-(defun entropy/emacs-list-subfiles (dir-root &optional not-abs)
+(defun entropy/emacs-list-dir-subfiles (dir-root &optional not-abs)
   "Return a list of file(not directory) under directory DIR-ROOT.
 
 The structure of return is ordered by `string-lessp'.
@@ -628,7 +628,7 @@ the DIR-ROOT."
             nil))
       nil)))
 
-(cl-defun entropy/emacs-list-dir-recursively
+(cl-defun entropy/emacs-list-dir-subdirs-recursively
     (top-dir &optional not-abs
              &key
              with-attributes
@@ -830,7 +830,7 @@ Are used internally, do not use it in any way."
             )
         (dolist (sub-dir subdirs)
           (push
-           (entropy/emacs-list-dir-recursively
+           (entropy/emacs-list-dir-subdirs-recursively
             sub-dir not-abs
             :with-attributes with-attributes
             :map-func map-func
@@ -845,11 +845,11 @@ Are used internally, do not use it in any way."
         ))
     (reverse rtn)))
 
-(defun entropy/emacs-list-dir-recursive-for-list (top-dir)
+(defun entropy/emacs-list-dir-subdirs-recursively-for-list (top-dir)
   "list sub-directorys under directory TOP-DIR recursively, and
 return the list. The structure of return is ordered by
 `string-lessp' and each node is absolute path name."
-  (let ((dir-struct (entropy/emacs-list-dir-recursively top-dir))
+  (let ((dir-struct (entropy/emacs-list-dir-subdirs-recursively top-dir))
         ext-func)
     (setq
      ext-func
@@ -866,14 +866,14 @@ return the list. The structure of return is ordered by
          rtn)))
     (funcall ext-func dir-struct)))
 
-(defun entropy/emacs-list-files-recursive-for-list (top-dir)
+(defun entropy/emacs-list-dir-subfiles-recursively-for-list (top-dir)
   "list files under directory TOP-DIR recursively, and return the
 list. The structure of return is ordered by `string-lessp' and
 each node is absolute path name."
-  (let ((dir-list (entropy/emacs-list-dir-recursive-for-list top-dir))
+  (let ((dir-list (entropy/emacs-list-dir-subdirs-recursively-for-list top-dir))
         rtn)
     (dolist (dir dir-list)
-      (setq rtn (append rtn (entropy/emacs-list-subfiles dir))))
+      (setq rtn (append rtn (entropy/emacs-list-dir-subfiles dir))))
     rtn))
 
 (defun entropy/emacs-file-path-parser (file-name type)

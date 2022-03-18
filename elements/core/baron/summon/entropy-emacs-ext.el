@@ -280,7 +280,7 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 
 
 (defun entropy/emacs-ext--load-path (top-dir)
-  (let ((subdirs (entropy/emacs-list-subdirs top-dir)))
+  (let ((subdirs (entropy/emacs-list-dir-subdirs top-dir)))
     (dolist (el subdirs)
       (add-to-list 'load-path el)
       (entropy/emacs-ext--add-subdirs-to-load-path el))))

@@ -142,7 +142,7 @@ package."
 
 (defun entropy/poapps-list-apps ()
   "List portable apps under folder `entropy/poapps-root'."
-  (let ((dir (entropy/cl-list-subdirs entropy/poapps-root))
+  (let ((dir (entropy/cl-list-dir-subdirs entropy/poapps-root))
         Apps)
     (if (not dir) (error (format "None apps in '%s'" entropy/poapps-root)))
     (dolist (el0 dir)
