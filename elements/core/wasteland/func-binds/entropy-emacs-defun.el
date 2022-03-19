@@ -789,7 +789,7 @@ Are used internally, do not use it in any way."
                     :dir-nth-pos-is-at-end-of-parent-subdirs
                     (when remain--parent-subdir-nth-for-current
                       (if
-                          (eq (length (plist-get :dir-subdirs-names remain--parent-attrs))
+                          (eq (length (plist-get remain--parent-attrs :dir-subdirs-names))
                               (1+ remain--parent-subdir-nth-for-current))
                           1
                         0))
