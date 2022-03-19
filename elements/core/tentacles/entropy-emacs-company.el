@@ -161,15 +161,18 @@ NOTE: this function is an around advice wrapper."
 ;; *** prunning `company-frontends'
 
 (defun entropy/emacs-company--set-only-one-frontend
-    (only-one)
-  (setq company-frontends (list only-one)))
+    (only-one &rest others)
+  (setq company-frontends
+        (if others
+            (append (list only-one) others)
+          (list only-one))))
 
 (defun entropy/emacs-company--set-only-one-frontend-all-buffers
-    (only-one)
+    (only-one &rest others)
   (dolist (buff (buffer-list))
     (when (bound-and-true-p company-mode)
-      (entropy/emacs-company--set-only-one-frontend
-       only-one))))
+      (apply 'entropy/emacs-company--set-only-one-frontend
+             only-one others))))
 
 ;; ** company core
 (use-package company
@@ -330,6 +333,10 @@ eemacs specifications"
                      right-char))
     (add-to-list 'company--begin-inhibit-commands
                  command))
+
+  ;; make `company-frontends' buffer-local permanently since we want
+  ;; it be thus so we can control each buffers local specifications.
+  (make-variable-buffer-local 'company-frontends)
 
 ;; **** advices
 ;; ***** restrict company candidates length
@@ -699,14 +706,15 @@ with `shackle'."
   (defun entropy/emacs-company--default-frontend-set-hook
       (&rest _)
     (entropy/emacs-company--set-only-one-frontend
-     'company-pseudo-tooltip-frontend))
+     'company-pseudo-tooltip-frontend 'company-quickhelp-frontend))
 
   (defun entropy/emacs-company--default-enable ()
     ;; just use one frontends for reduce lagging
     (add-hook 'company-mode-hook
               #'entropy/emacs-company--default-frontend-set-hook)
     ;; travel all buffers with `company-mode' enabled to set frontend.
-    (entropy/emacs-company--default-frontend-set-hook)
+    (entropy/emacs-company--set-only-one-frontend-all-buffers
+     'company-pseudo-tooltip-frontend 'company-quickhelp-frontend)
     (cond ((display-graphic-p)
            (company-quickhelp-mode 1)
            (entropy/emacs-set-key-without-remap
@@ -787,7 +795,7 @@ with `shackle'."
            (add-hook 'company-mode-hook
                      #'entropy/emacs-company--company-box-frontend-set-hook)
            ;; travel all buffers with `company-mode' enabled to set frontend.
-           (entropy/emacs-company--set-only-one-frontend
+           (entropy/emacs-company--set-only-one-frontend-all-buffers
             'company-box-frontend)
            (add-hook
             'company-mode-hook
@@ -980,10 +988,10 @@ while in `company-box-mode'."
       (remove-hook 'after-make-frame-functions 'company-box--set-mode t)
       (add-hook 'delete-frame-functions 'company-box--kill-buffer)
       (add-hook 'buffer-list-update-hook 'company-box--handle-window-changes t)
-      ;; HACK: do not make `company-frontends' local since eemacs use
-      ;; unified `company-frontends' management
-      ;;
-      ;; (make-local-variable 'company-frontends)
+      (make-local-variable 'company-frontends)
+      ;; HACK: Make `company-frontends' removed all internal frontends
+      ;; since origin procedure doesn't enum the all internal
+      ;; frontends.
       (mapc (lambda (x) (setq company-frontends
                               (delete x company-frontends)))
             entropy/emacs-company-internal-pseudo-frontends)
@@ -1111,25 +1119,34 @@ frame."
     "`company-mode' completion backend for Emacs Lisp in the
 minibuffer."
     (interactive (list 'interactive))
-    (cl-case command
-      ('prefix (and (minibufferp)
-                    (company-grab-symbol)))
-      ('candidates
-       (cl-case entropy/emacs-company--minibuffer-command
-         ('execute-extended-command (all-completions arg obarray 'commandp))
-         (t (all-completions arg obarray))))))
+    (cond
+     ((eq command 'prefix)
+      (and (minibufferp)
+           (company-grab-symbol)))
+     ((eq command 'candidates)
+      (cl-case entropy/emacs-company--minibuffer-command
+        ('execute-extended-command (all-completions arg obarray 'commandp))
+        (t (apply 'company-capf 'candidates arg ignored))))
+     ((not (eq entropy/emacs-company--minibuffer-command 'execute-extended-command))
+      (apply 'company-capf command arg ignored))))
 
   (defun entropy/emacs-active-minibuffer-company-elisp ()
     "Active `company-mode' in minibuffer only for elisp
 completion when calling: 'execute-extended-command' or
 'eval-expression'."
-    (company-mode 0)
-    (when (and global-company-mode (or
-                                    (eq this-command #'execute-extended-command)
-                                    (eq this-command #'eval-expression)
-                                    (eq this-command #'eldoc-eval-expression)))
+    (when (bound-and-true-p company-mode)
+      (company-mode 0))
+    (when (and global-company-mode
+               (or
+                ;; commands filters to use `company-mode' in minibuffer
+                (eq this-command #'execute-extended-command)
+                (eq this-command #'eval-expression)
+                (eq this-command #'eldoc-eval-expression)
+                ;; TODO: add more filters
+                ))
 
-      (setq-local entropy/emacs-company--minibuffer-command this-command)
+      (setq-local entropy/emacs-company--minibuffer-command
+                  this-command)
 
       (setq-local completion-at-point-functions
                   (list (if (fboundp 'elisp-completion-at-point)
@@ -1138,8 +1155,13 @@ completion when calling: 'execute-extended-command' or
                         t))
 
       (setq-local company-show-numbers nil)
-      (setq-local company-backends '((entropy/emacs-company-elisp-minibuffer
-                                      company-capf)))
+      (setq-local company-backends
+                  (cond ((eq entropy/emacs-company--minibuffer-command 'execute-extended-command)
+                         '(entropy/emacs-company-elisp-minibuffer))
+                        (t
+                         '((entropy/emacs-company-elisp-minibuffer
+                            company-dabbrev
+                            )))))
       (setq-local company-tooltip-limit 6)
       (company-mode 1)
 
@@ -1152,7 +1174,9 @@ completion when calling: 'execute-extended-command' or
         (company-posframe-mode 0))
 
       ;; set internal tooltip
-      (setq-local company-frontends '(company-pseudo-tooltip-frontend))))
+      (setq-local company-frontends
+                  '(company-pseudo-tooltip-frontend))
+      ))
 
   (add-hook 'minibuffer-setup-hook
             #'entropy/emacs-active-minibuffer-company-elisp)
