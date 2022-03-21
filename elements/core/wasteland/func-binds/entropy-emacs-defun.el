@@ -897,6 +897,136 @@ each node is absolute path name."
       (setq rtn (append rtn (entropy/emacs-list-dir-subfiles dir))))
     rtn))
 
+(cl-defun entropy/emacs-print-dir-recursively
+    (top-dir buffer &optional with-files
+             &key
+             dir-face file-face
+             branch-str
+             branch-leaf-end-str
+             branch-leaf-non-end-str
+             leaf-str
+             )
+  (let* ((dir-face (or dir-face (progn (unless (featurep 'dired) (require 'dired)) 'dired-directory)))
+         (file-face (or file-face 'default))
+         (brs (or branch-str "│"))
+         (brslen (length brs))
+         (brlnes (or branch-leaf-non-end-str "├"))
+         (brlneslen (length brlnes))
+         (brles (or branch-leaf-end-str "└"))
+         (brleslen (length brles))
+         (lfs (or leaf-str "── "))
+         (lfslen (length lfs))
+         dir-indent-stack
+         file-indent-tail-stack
+         file-indent-tail-as-end-stack
+         chase-func
+         map-func
+         )
+    (when (or (> brslen
+                 (+ brlneslen lfslen))
+              (> brslen
+                 (+ brleslen lfslen)))
+      (user-error "[entropy/emacs-print-dir-recursively]: \
+BRANCH-STR '%s' is too long!" brs))
+    (let* ((node-nes (concat brlnes lfs))
+           (node-nees (concat brs
+                              (make-string
+                               (- (length node-nes) brslen)
+                               ?\ )))
+           (node-es (concat brles lfs))
+           (node-ees (make-string (length node-es)
+                                  ?\ ))
+           )
+      (setq chase-func
+            (lambda (x &optional level)
+              (let* ((level (or level 0))
+                     (dir-is-root (plist-get x :dir-is-root-p))
+                     (dir-subfiles (and with-files
+                                        (plist-get x :dir-subfiles-names)))
+                     (dir-pare-attrs (plist-get x :dir-parent-attrs))
+                     (dir-pare-subfiles (and with-files
+                                             (plist-get dir-pare-attrs :dir-subfiles-names)))
+                     (dir-end-of-pare-p (and (not dir-pare-subfiles)
+                                             (eq 1
+                                                 (plist-get
+                                                  x
+                                                  :dir-nth-pos-is-at-end-of-parent-subdirs))))
+                     )
+                (when (= level 0)
+                  (setq dir-indent-stack nil
+                        file-indent-tail-stack nil
+                        file-indent-tail-as-end-stack nil))
+                (cond
+                 ((and dir-is-root (= level 0))
+                  (setq dir-indent-stack '("")
+                        file-indent-tail-stack `(,node-nes)
+                        file-indent-tail-as-end-stack `(,node-es)))
+                 ((and dir-is-root (> level 0))
+                  nil)
+                 ((= level 0)
+                  (if dir-end-of-pare-p
+                      (progn
+                        (push node-es dir-indent-stack)
+                        (when dir-subfiles
+                          (setq file-indent-tail-stack `(,node-ees ,node-nes)
+                                file-indent-tail-as-end-stack `(,node-ees ,node-es))))
+                    (push node-nes dir-indent-stack)
+                    (when dir-subfiles
+                      (setq file-indent-tail-stack `(,node-nees ,node-nes)
+                            file-indent-tail-as-end-stack `(,node-nees ,node-es))))
+                  (funcall chase-func dir-pare-attrs (1+ level)))
+                 (t
+                  (if dir-end-of-pare-p
+                      (push node-ees dir-indent-stack)
+                    (push node-nees dir-indent-stack))
+                  (funcall chase-func dir-pare-attrs (1+ level))))
+                )))
+      (setq map-func
+            (lambda (x &optional end-call-p)
+              (let* ((dir-is-root-p (plist-get x :dir-is-root-p))
+                     (dir-name (plist-get x :dir-name))
+                     (dir-name-inst (propertize dir-name 'face dir-face))
+                     (dir-abs-path (plist-get x :dir-abspath))
+                     (dir-abs-path-inst (propertize dir-abs-path 'face 'shadow))
+                     (dir-subfiles (and with-files
+                                        (plist-get x :dir-subfiles-names)))
+                     dir-indent-inst
+                     file-indent-inst
+                     file-indent-as-end-inst)
+                (funcall chase-func x)
+                (setq dir-indent-inst
+                      (mapconcat 'identity dir-indent-stack "")
+                      file-indent-inst
+                      (mapconcat 'identity
+                                 (append (butlast dir-indent-stack) file-indent-tail-stack)
+                                 "")
+                      file-indent-as-end-inst
+                      (mapconcat 'identity
+                                 (append (butlast dir-indent-stack) file-indent-tail-as-end-stack)
+                                 ""))
+                (cond
+                 (end-call-p
+                  (when dir-subfiles
+                    (let ((count 0)
+                          (ovflow (1- (length dir-subfiles))))
+                      (dolist (f dir-subfiles)
+                        (if (= count ovflow)
+                            (insert (format "%s%s\n" file-indent-as-end-inst
+                                            (propertize f 'face file-face)))
+                          (insert (format "%s%s\n" file-indent-inst
+                                          (propertize f 'face file-face))))
+                        (cl-incf count)))))
+                 (t
+                  (if dir-is-root-p
+                      (insert (format "%s (%s)\n" dir-name-inst dir-abs-path-inst))
+                    (insert (format "%s%s\n" dir-indent-inst dir-name-inst))))))))
+
+      (with-current-buffer buffer
+        (entropy/emacs-list-dir-subdirs-recursively
+         top-dir t
+         :map-func map-func))
+      nil)))
+
 (defun entropy/emacs-file-path-parser (file-name type)
   "The file-path for 'entropy-emacs, functions for get base-name,
 shrink trail slash, and return the parent(up level) dir.
