@@ -667,14 +667,32 @@ defaultly include follow keys:
    :dir-user-attrs dir-user-attrs)
 #+end_src
 
-The MAP-FUNC is an function used to participate with building each
-=dir-spec= but not influenced the core result of thus. It run after
-the current =dir-spec= has built its car place and generated its
-=attributs-plist= done, thus for as, the MAP-FUNC accept only one
-argument, i.e. current =dir-spec='s =attributes-plist= and its return
-will be put in place of the DIR-USR-ATTRS of current =dir-spec='s
-=attributes-plist= before generate current =dir-spec='s subdirs
-=dir-spec=.
+The MAP-FUNC is an function used to participate with building
+each =dir-spec= but not influenced the core result of thus. It
+run after the current =dir-spec= has built its car place and
+generated its =attributs-plist= done, thus for as, the MAP-FUNC
+accept only one major argument, i.e. current =dir-spec='s
+=attributes-plist= and its return will be put in place of the
+DIR-USR-ATTRS of current =dir-spec='s =attributes-plist= before
+generate current =dir-spec='s subdirs =dir-spec=.
+
+The MAP-FUNC also be invoked while the recursive mapping returned from
+the current =dir-spec='s subdir or just after the end of cuarrent node
+dealing procedure while no subdirs found for current =dir-spec=, in
+which case its optional arg =END-CALL-P= will be set.
+
+Thus the MAP-FUNC's formula is:
+#+begin_src elisp
+  (lambda (attributes-plist &optional end-call-p)
+    (let (_)
+      (cond
+       (end-call-p
+        (do-something-for-end-call))
+       (t
+        (do-something-commonly)))))
+#+end_src
+
+*ATTRIBUTES-PLIST* key description:
 
 DIR-IS-ROOT-P is t when current =dir-spec='s dir is TOP-DIR, nil
 for otherwise.
@@ -818,6 +836,8 @@ Are used internally, do not use it in any way."
           (setq this-node-car proper-top-dir)))
       (push this-node-car rtn)
       (unless subdirs
+        (when map-func
+          (funcall map-func default-attrs 'end-call-p))
         (throw :exit nil))
       ;; map with this node's subdirs
       (let ((parenth 0)
@@ -841,8 +861,9 @@ Are used internally, do not use it in any way."
             :remain--parent-attrs default-attrs
             )
            rtn)
-          (cl-incf parenth))
-        ))
+          (cl-incf parenth)))
+      (when map-func
+        (funcall map-func default-attrs 'end-call-p)))
     (reverse rtn)))
 
 (defun entropy/emacs-list-dir-subdirs-recursively-for-list (top-dir)
