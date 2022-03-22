@@ -1955,7 +1955,9 @@ as thus."
   (dolist (rule `(,(rx "*outorg-edit-buffer*")
                   ,(rx "*Buffer Details*")
                   ,(rx "*Memory Explorer*")
-                  ,(rx "*poporg: ")))
+                  ,(rx "*poporg: ")
+                  ,(rx "*edit-indirect ")
+                  ,(rx "*Org Src test org")))
     (add-to-list 'entropy/grom-customizable-nonspecial-buffer-name-regexp-list
                  rule)))
 
