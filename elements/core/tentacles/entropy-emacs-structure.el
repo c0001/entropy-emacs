@@ -415,8 +415,8 @@ want to preserve the source demo."
   (defvar-local entropy/emacs-outshine-current-buffer-visibility-state
     nil)
   (defun entropy/emacs-outshine-cycle-buffer (&optional arg)
-    "like `outshine-cycle-bufer' but only based on `outline' so
-that it can be used in `org-mode' too.
+    "Like `outshine-cycle-bufer' but only based on `outline' so that it can
+be used in `org-mode' too.
 
 Rotate the visibility state of the buffer through 3 states:
 
@@ -426,13 +426,12 @@ Rotate the visibility state of the buffer through 3 states:
 
 - SHOW ALL: Show everything.
 
-With a numeric prefix ARG and is numberic, show all headlines up
-to that level i.e. matched show type OVERVIEW, show 'SHOW ALL' if
-the the prefix ARG is list as '(4) i.e. the pure single `C-u'
-type, further more show CONTENTS if it is '(16) i.e. double
-prefix type, and any other prefix type fallback to OVERVIEW
-status use `prefix-numeric-value' to recalc the specified head
-level specification.
+With a numeric prefix ARG and is numberic, show all headlines up to
+that level i.e. matched show type OVERVIEW, show 'SHOW ALL' if the the
+prefix ARG is the pure single `C-u' type, further more show CONTENTS
+if it is double prefix type, and any other prefix type fallback to
+OVERVIEW status use `prefix-numeric-value' and `log' base on 4 to
+recalc the specified head level specification.
 "
     (interactive "P")
     (if (or (bound-and-true-p outline-mode)
@@ -452,29 +451,45 @@ level specification.
                        (widen)
                        (forward-line 0)
                        (progn (outline-back-to-heading)
-                              (outline-level)))))))))
+                              (outline-level))))))))
+              (lscmd-eq-func
+               (lambda (type)
+                 (and (null current-prefix-arg)
+                      (eq entropy/emacs-outshine-current-buffer-visibility-state
+                          type))))
+              (cycle-type-msg-func
+               (lambda (type &optional other-msg)
+                 (let ((type-assoc
+                        '((overview . "OVERVIEW")
+                          (contents . "CONTENTS")
+                          (all      . "SHOW ALL"))))
+                   (message "[Outline cycle for type] \"%s\" done. (%s)"
+                            (or (alist-get type type-assoc)
+                                (error "wrong type of outline cycle type '%s'"
+                                       type))
+                            (or other-msg
+                                "-v-"))))))
           (save-excursion
             (cond
-             ;; condition (1)
+             ;; -------------------- condition (1) with numberic prefix arg
              ((integerp arg)
               (outline-show-all)
               (outline-hide-sublevels arg)
-              ;; HACK: also set this overview state like condition (5)
-              (setq this-command '__fake/outshine-cycle-overview
-                    entropy/emacs-outshine-current-buffer-visibility-state
-                    'overview))
+              (setq
+               entropy/emacs-outshine-current-buffer-visibility-state
+               'overview)
+              (funcall cycle-type-msg-func 'overview (format "Using level %s" arg)))
 
-             ;; condition (2)
+             ;; -------------------- condition (2) double prefix arg to CONTENTS tyep
              ((or
-               ;; HACK: ingore prefix did since condition (3)
                (equal arg '(16))
-               (eq last-command '__fake/outshine-cycle-overview))
+               (funcall lscmd-eq-func 'overview))
               ;; We just created the overview - now do table of contents
               ;; This can be slow in very large buffers, so indicate action
-              (message "CONTENTS...")
+              (funcall cycle-type-msg-func 'contents)
 
-              ;; HACK: firstly we must fold to top-level since the fully
-              ;; expanded children will not be fold while
+              ;; NOTE: firstly we must fold to top-level since the
+              ;; fully expanded children will not be fold while
               ;; `outline-show-branches'
               (condition-case error
                   (outline-hide-sublevels
@@ -499,38 +514,39 @@ level specification.
                       (outline-previous-visible-heading 1)
                       (outline-show-branches))
                   (error (goto-char (point-min)))))
-              (message "CONTENTS...done")
-              (setq this-command '__fake/outshine-cycle-toc
-                    entropy/emacs-outshine-current-buffer-visibility-state
-                    'contents))
+              (funcall cycle-type-msg-func 'contents)
+              (setq
+               entropy/emacs-outshine-current-buffer-visibility-state
+               'contents))
 
-             ;; condition (3)
+             ;; -------------------- condition (3) single prefix arg to show all
              ((or
-               ;; HACK: show all while `current-prefix-arg' is '(4) i.e. the
-               ;; single `C-u' type.
                (equal arg '(4))
-               (eq last-command '__fake/outshine-cycle-toc))
+               (funcall lscmd-eq-func 'contents))
               ;; We just showed the table of contents - now show everything
               (outline-show-all)
-              (message "SHOW ALL")
-              (setq this-command '__fake/outshine-cycle-showall
-                    entropy/emacs-outshine-current-buffer-visibility-state 'all))
+              (funcall cycle-type-msg-func 'all)
+              (setq
+               entropy/emacs-outshine-current-buffer-visibility-state 'all))
+
+             ;; -------------------- conditon (4) others
              (t
               ;; Default action: go to overview
               (let ((toplevel
                      (cond
-                      ;; ;; HACK: we just show all content of buffer while
-                      ;; ;; the prefix non-numberic specified according to
-                      ;; ;; the condition (3). so we  just comment this.
-
-                      ;; (current-prefix-arg
-                      ;;  (prefix-numeric-value current-prefix-arg))
+                      (current-prefix-arg
+                       ;; caculate `outline-level' with prefix-arg in
+                       ;; which case the level is larger or equal to 3
+                       ;; since 1 or 2 reflects `current-prefix-arg'
+                       ;; is mapped with condition(3) and condition(2)
+                       (floor (log (prefix-numeric-value current-prefix-arg) 4)))
                       ((save-excursion
+                         ;; use current heading level as matches
                          (beginning-of-line)
                          (looking-at outline-regexp))
                        (max 1 (save-excursion (beginning-of-line) (funcall outline-level))))
                       (t
-                       ;; HACK:
+                       ;; NOTE:
                        ;; judge first head level if current buffer doesn't
                        ;; use 1st level for first head
                        (let ((first-level
@@ -541,12 +557,11 @@ level specification.
                                     (beginning-of-line)
                                     (funcall outline-level-get-func))))))
                          (or first-level 1))))))
-                (outline-hide-sublevels toplevel))
-              (message "OVERVIEW")
-              (setq this-command '__fake/outshine-cycle-overview
-                    entropy/emacs-outshine-current-buffer-visibility-state
-                    'overview)))
-            )
+                (outline-hide-sublevels toplevel)
+                (setq
+                 entropy/emacs-outshine-current-buffer-visibility-state
+                 'overview)
+                (funcall cycle-type-msg-func 'overview (format "Using level %s" toplevel))))))
           ;; HACK: recenter the buffer point since fully overviw or
           ;; huge fold will let the buffer visibility empty that user
           ;; need to scroll window to show the whole content.
