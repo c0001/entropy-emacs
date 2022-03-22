@@ -632,6 +632,8 @@ the DIR-ROOT."
     (top-dir &optional not-abs
              &key
              with-attributes
+             with-level
+             with-filter
              map-func
              ;; remained
              remain--not-calling-at-root
@@ -646,6 +648,22 @@ of return is ordered by `string-lessp'.
 
 If optional arg NOT-ABS is non-nil then each node is relative to
 the corresponding root dir.
+
+If optional key WITH-LEVEL is non-nil and it should be an integer to
+indicate the recursively listing level for the TOP-DIR and should
+larger or equal than 1. This is as the well known linux command 'tree'
+does.
+
+If optional key WITH-FILTER is specifeid, its a function which take
+three arguments, i.e. 'type' (the node type) and the node absolute
+path who is one of the subfile or subdir of the mapping dir and its
+node name (i.e. filename wihtout directory components). The function
+must return nil if the node need be listed and non-nil for filtering
+out.
+
+There're some inner supported filter func can be used as WITH-FILTER
+when set as:
+- 't': `entropy/emacs-list-dir-subdirs-recursively/filter/ignore-hidden'
 
 If optional key WITH-ATTRIBUTES is enabled or the optional key
 MAP-FUNC is set, the car of the =dir-spec= is an cons of (dir
@@ -743,6 +761,10 @@ REMAIN--PARENT-SUBDIR-NTH-FOR-CURRENT,
 REMAIN--PARENT-ATTRSARE
 
 Are used internally, do not use it in any way."
+  (when with-level
+    (when (< with-level 1)
+      (user-error "[entropy/emacs-list-dir-subdirs-recursively]: \
+level restriction must larger/equal than 1")))
   (let* ((root-calling-p (not remain--not-calling-at-root))
          (this-level (if root-calling-p 0 remain--not-calling-at-root))
          (this-root
@@ -752,24 +774,59 @@ Are used internally, do not use it in any way."
          ;; Just gen subfiles list when specified occasion
          ;; for performance issue.
          (use-attrs-p (or with-attributes map-func))
-         (subitems (entropy/emacs-list-dir-lite
-                    this-root not-abs))
+         ;; The should do restriction based on level restriction and
+         ;; the subfiles and subdirs listing and mapping must obey it.
+         (this-should-do (< this-level (or with-level most-positive-fixnum)))
+         (subitems (and this-should-do (entropy/emacs-list-dir-lite this-root)))
+         (filter-func (lambda (&rest args)
+                        (let* ((inner-assoc
+                                '((t
+                                   .
+                                   entropy/emacs-list-dir-subdirs-recursively/filter/ignore-hidden))))
+                          (if with-filter
+                              (cond
+                               ((functionp with-filter)
+                                (not (apply with-filter args)))
+                               ((assoc with-filter inner-assoc)
+                                (not (apply (alist-get with-filter inner-assoc)
+                                            args)))
+                               (t
+                                (user-error
+                                 "[entropy/emacs-list-dir-subdirs-recursively]: \
+wrong type of :with-filter '%s'" with-filter)))
+                            t))))
          (subfiles (and
                     use-attrs-p
+                    this-should-do
                     (delete
                      nil
                      (mapcar (lambda (x)
-                               (let ((filep (eq (car x) 'file)))
-                                 (and filep
-                                      (cdr x))))
+                               (let* ((filep (eq (car x) 'file))
+                                      (node-abs (and filep
+                                                     (cdr x)))
+                                      node-name)
+                                 (when node-abs
+                                   (setq node-name (file-name-nondirectory node-abs))
+                                   (and (funcall filter-func 'file node-abs node-name)
+                                        (if not-abs
+                                            node-name
+                                          node-abs)))))
                              subitems))))
-         (subdirs (delete
-                   nil
-                   (mapcar (lambda (x)
-                             (let ((dirp (eq (car x) 'dir)))
-                               (and dirp
-                                    (cdr x))))
-                           subitems)))
+         (subdirs (and this-should-do
+                       (delete
+                        nil
+                        (mapcar (lambda (x)
+                                  (let* ((dirp (eq (car x) 'dir))
+                                         (node-abs (and dirp
+                                                        (cdr x)))
+                                         node-name)
+                                    (when node-abs
+                                      (setq node-name (file-name-nondirectory node-abs))
+                                      (and (funcall filter-func 'dir node-abs node-name)
+                                           (if not-abs
+                                               node-name
+                                             node-abs)))))
+                                subitems))))
          (get-fname-func (lambda (x)
                            (if not-abs
                                x
@@ -839,32 +896,51 @@ Are used internally, do not use it in any way."
         (when map-func
           (funcall map-func default-attrs 'end-call-p))
         (throw :exit nil))
-      ;; map with this node's subdirs
-      (let ((parenth 0)
-            (cur-level
-             (if remain--not-calling-at-root
-                 (1+ remain--not-calling-at-root)
-               1))
-            (expand-of (when not-abs
-                         this-root))
-            )
-        (dolist (sub-dir subdirs)
-          (push
-           (entropy/emacs-list-dir-subdirs-recursively
-            sub-dir not-abs
-            :with-attributes with-attributes
-            :map-func map-func
-            :remain--not-calling-at-root cur-level
-            :remain--top-dir-expand-of expand-of
-            :remain--prev-rel-path this-rel-path
-            :remain--parent-subdir-nth-for-current parenth
-            :remain--parent-attrs default-attrs
-            )
-           rtn)
-          (cl-incf parenth)))
+      ;; map with this node's subdirs restricted by level ristriction
+      (when subdirs
+        (let ((parenth 0)
+              (use-level
+               (1+ this-level))
+              (expand-of (when not-abs
+                           this-root))
+              )
+          (dolist (sub-dir subdirs)
+            (push
+             (entropy/emacs-list-dir-subdirs-recursively
+              sub-dir not-abs
+              :with-attributes with-attributes
+              :with-level with-level
+              :with-filter with-filter
+              :map-func map-func
+              :remain--not-calling-at-root use-level
+              :remain--top-dir-expand-of expand-of
+              :remain--prev-rel-path this-rel-path
+              :remain--parent-subdir-nth-for-current parenth
+              :remain--parent-attrs default-attrs
+              )
+             rtn)
+            (cl-incf parenth))))
       (when map-func
         (funcall map-func default-attrs 'end-call-p)))
     (reverse rtn)))
+
+(defun entropy/emacs-list-dir-subdirs-recursively/filter/ignore-hidden
+    (type node-abs node-name)
+  "The hidden files or dirs node filter function used for
+`entropy/emacs-list-dir-subdirs-recursively'."
+  (unless (fboundp 'rx)
+    (require 'rx))
+  (let ((dir-ignore-regexps
+         "^\\.")
+        (file-ignore-regexps
+         "^\\."))
+    (cl-case type
+      (file
+       (string-match-p file-ignore-regexps node-name))
+      (dir
+       (string-match-p dir-ignore-regexps node-name))
+      (t
+       nil))))
 
 (defun entropy/emacs-list-dir-subdirs-recursively-for-list (top-dir)
   "list sub-directorys under directory TOP-DIR recursively, and
@@ -905,7 +981,79 @@ each node is absolute path name."
              branch-leaf-end-str
              branch-leaf-non-end-str
              leaf-str
+             with-level
+             with-filter
              )
+  "Print the directory structure of TOP-DIR in BUFFER mapped with
+`entropy/emacs-list-dir-subdirs-recursively', also print the files
+when WITH-FILES is non-nil. (like the output of unix command \"tree\")
+
+Return t if print procedure successfully done.
+
+Optional key description:
+
+- DIR-FACE: face used for directory print
+- FILE-FACE: face used for file print
+- BRANCH-STR: the contiguous bone structure representation, a string
+- BRANCH-LEAF-NON-END-STR: the contiguous node's root representation, a string
+- BRANCH-LEAF-END-STR: the non-contiguous node's root representation, a string
+- LEAF-STR: the node's root leaf representation, a string
+- WITH-LEVEL: same as :with-level key in `entropy/emacs-list-dir-subdirs-recursively'
+- WITH-FILTER: same as :with-filter key in `entropy/emacs-list-dir-subdirs-recursively'
+
+Examples
+
+#+begin_src elisp
+  (entropy/emacs-print-dir-recursively
+   \"/etc/systemd\"
+   t
+   :with-level 2
+   :with-filter t)
+#+end_src
+
+#+begin_example
+  . (/etc/systemd)
+  ├── network
+  ├── system
+  │   ├── dbus-org.bluez.service
+  │   ├── dbus-org.freedesktop.nm-dispatcher.service
+  │   ├── dbus-org.freedesktop.timesync1.service
+  │   ├── default.target
+  │   └── display-manager.service
+  ├── user
+  │   └── pipewire-session-manager.service
+  ├── coredump.conf
+  ├── homed.conf
+  ├── journal-remote.conf
+  ├── journal-upload.conf
+  ├── journald.conf
+  ├── logind.conf
+  ├── networkd.conf
+  ├── oomd.conf
+  ├── pstore.conf
+  ├── resolved.conf
+  ├── sleep.conf
+  ├── swap.conf
+  ├── system.conf
+  ├── timesyncd.conf
+  └── user.conf
+#+end_example
+
+#+begin_src elisp
+  (entropy/emacs-print-dir-recursively
+   \"/etc/systemd\"
+   nil
+   :with-level 2
+   :with-filter t)
+#+end_src
+
+#+begin_example
+  . (/etc/systemd)
+  ├── network
+  ├── system
+  └── user
+#+end_example
+"
   (let* ((dir-face (or dir-face (progn (unless (featurep 'dired) (require 'dired)) 'dired-directory)))
          (file-face (or file-face 'default))
          (brs (or branch-str "│"))
@@ -1024,8 +1172,10 @@ BRANCH-STR '%s' is too long!" brs))
       (with-current-buffer buffer
         (entropy/emacs-list-dir-subdirs-recursively
          top-dir t
-         :map-func map-func))
-      nil)))
+         :map-func map-func
+         :with-level with-level
+         :with-filter with-filter))
+      t)))
 
 (defun entropy/emacs-file-path-parser (file-name type)
   "The file-path for 'entropy-emacs, functions for get base-name,
