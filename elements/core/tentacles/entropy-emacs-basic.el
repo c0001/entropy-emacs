@@ -257,7 +257,14 @@ place can be easily found by other interactive command."
                ("* @" dired-mark-symlinks "Mark all symbolic links"
                 :enable t :map-inject t :exit t)
                ("* N" dired-number-of-marked-files "Display the number and total size of the marked files"
-                :enable t :map-inject t :exit t)))
+                :enable t :map-inject t :exit t))
+              "Eemacs special mark commands"
+              (("s o"
+                entropy/emacs-basic-dired-mark-special-nodes/dir-has-onlyone-subdir-recursively
+                "Mark one subdir nesting nodes"
+                :enable t :map-inject nil :exit t)))
+             :pretty-hydra-category-width-indicator
+             (2 2)
              :other-rest-args
              ((dired dired-mode-map)))
         "Dired mark commands"
@@ -323,11 +330,15 @@ place can be easily found by other interactive command."
         "Image dired commands"
         :enable t :exit t))
       "Misc."
-      (("0" entropy/emacs-basic-get-dired-fpath "Get Node Path"
+      (("p" entropy/emacs-basic-get-dired-fpath "Get Node Path"
         :enable t
         :map-inject t
         :exit t)
        ("M-l" entropy/emacs-basic--dired-add-to-load-path "Add path"
+        :enable t
+        :map-inject t
+        :exit t)
+       ("T" entropy/emacs-basic-dired/print-tree "Show/Print marked nodes tree"
         :enable t
         :map-inject t
         :exit t))))
@@ -724,6 +735,194 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
         (when (file-exists-p el)
           (entropy/cl-backup-file el)))
       (revert-buffer)))
+
+;; ******* Dired mark special nodes
+;; ******** Mark one-subdir nesting structure nodes
+  (defun entropy/emacs-basic-dired-mark-special-nodes/dir-has-onlyone-subdir-recursively
+      (arg)
+    "Mark dired nodes whose sublevel nesting structure as:
+
+#+begin_example
+dir0
+|_dir1
+  |_dir2
+    |_dir3
+      ...
+#+end_example
+
+Thus on that each sub-level of the node just has one dir node and so
+on recursively based on depth level ARG. And we also disallow any
+files on each level.
+
+In interaction mode, ARG is caluated by `prefix-numeric-value' on
+`current-prefix-arg', so that both 'C-u C-u .. ' and 'C-u NUM' are
+acceptable. If `current-prefix-arg' is nil or ARG less than 1, we
+fallbackk to 1."
+    (interactive "P")
+    (unless (eq major-mode 'dired-mode)
+      (user-error "[Error]: current buffer is not an 'dired' buffer"))
+    ;; NOTE: firstly set off the region since `dired-mark' may marked
+    ;; all nodes within region?
+    (deactivate-mark)
+    ;; NOTE: firstly we need to unmark all marks
+    (let ((inhibit-message t))
+      (dired-unmark-all-marks))
+    (let ((level (cond
+                  ((null arg)
+                   1)
+                  ((listp arg)
+                   (floor
+                    (log (car arg) 4)))
+                  (t
+                   (if (> arg 0)
+                       arg
+                     1))))
+          jduge-func
+          cur-dir
+          satisfied-stack)
+
+      (setq judge-fun
+            (lambda (dir restrict-level)
+              (let* ((cur-level 0)
+                     curdir-subitems
+                     curdir-subfiles
+                     curdir-subdirs
+                     (nodes-get-func (lambda (type)
+                                       (delete nil
+                                               (mapcar
+                                                (lambda (x)
+                                                  (and (eq type (car x))
+                                                       (cdr x)))
+                                                curdir-subitems))))
+                     curdir-subdirs-len)
+                (catch :exit
+                  (while t
+                    ;; Do not list dir while out restriction although
+                    ;; its has non-effects but its useless and may
+                    ;; cause performance issue since large diretory
+                    ;; listing take long time.
+                    (unless (= cur-level restrict-level)
+                      (setq curdir-subitems
+                            (entropy/emacs-list-dir-lite
+                             dir)
+                            curdir-subfiles
+                            (funcall nodes-get-func 'file)
+                            curdir-subdirs
+                            (funcall nodes-get-func 'dir)
+                            curdir-subdirs-len
+                            (length
+                             curdir-subdirs)))
+                    (cond
+                     ;; Top condition while loop to throw t since all filters
+                     ;; missing matching thus.
+                     ((= cur-level restrict-level)
+                      (throw :exit t))
+                     ;; No subdirs found
+                     ((= curdir-subdirs-len 0)
+                      (throw :exit nil))
+                     ;; subdirlen larger than restiction
+                     ((> curdir-subdirs-len 1)
+                      (throw :exit nil))
+                     ;; should not has any subfiles
+                     (curdir-subfiles
+                      (throw :exit nil))
+                     )
+                    (setq dir (car curdir-subdirs))
+                    (cl-incf cur-level))))))
+
+      ;; main
+      (goto-char (point-min))
+      (catch :exit
+        (while t
+          (and
+           (dired-move-to-filename)
+           (throw :exit t))
+          (forward-line 1)
+          (when (eobp)
+            (user-error
+             "[Error] No valid node found in current 'dired' buffer!"))))
+      (catch :exit
+        (while (not (eobp))
+          (if (and (or (setq cur-dir (dired-get-filename))
+                       (error "[Debug] inner error"))
+                   (file-directory-p cur-dir))
+              (if (funcall judge-fun
+                           cur-dir level)
+                  (progn (dired-mark 1)
+                         (push (file-name-nondirectory cur-dir)
+                               satisfied-stack))
+                (unless (dired-next-line 1)
+                  (throw :exit nil)))
+            (unless (dired-next-line 1)
+              (throw :exit nil)))))
+      (if satisfied-stack
+          (progn
+            (goto-char (point-min))
+            ;; goto the first marked
+            (dired-next-marked-file 1)
+            (message "[OK] Marked %s dirs that satisfied %s level single subdir structure"
+                     (length satisfied-stack)
+                     level))
+        (user-error "No dirs matched %s level single subdir structure"
+                    level))))
+
+
+;; ******* Dired tree print
+
+  (defun entropy/emacs-basic-dired/print-tree (arg)
+    "Print dired nodes as shell command 'tree' like thus with depth
+restriction ARG, and popup those buffers.
+
+In interaction mode, ARG is caluated by `prefix-numeric-value' on
+`current-prefix-arg', so that both 'C-u C-u .. ' and 'C-u NUM' are
+acceptable. If `current-prefix-arg' is nil or ARG less than 1, we
+fallbackk to 1."
+    (interactive "P")
+    (unless (eq major-mode 'dired-mode)
+      (user-error "[Error]: current buffer is not an 'dired' buffer"))
+    (let ((with-level
+           (cond
+            ((null arg)
+             1)
+            ((listp arg)
+             (floor
+              (log (car arg) 4)))
+            (t
+             (if (> arg 0)
+                 arg
+               1))))
+          (nodes (or (dired-get-marked-files)
+                     (list (dired-current-directory))))
+          do-func
+          buffer
+          did-items)
+      (setq do-func
+            (lambda (dir level)
+              (let ((buffer (generate-new-buffer
+                             (format "*eemacs-dired-print-tree-<%s> (using level %s)*"
+                                     (file-name-nondirectory
+                                      (entropy/emacs-file-path-parser
+                                       dir
+                                       'non-trail-slash))
+                                     with-level)))
+                    (inhibit-read-only t))
+                (with-current-buffer buffer
+                  (erase-buffer))
+                (entropy/emacs-print-dir-recursively
+                 dir buffer
+                 t
+                 :with-level level)
+                buffer)))
+      (dolist (el nodes)
+        (when (file-directory-p el)
+          (push el did-items)
+          (setq buffer (funcall do-func el with-level))
+          (with-current-buffer buffer
+            (goto-char (point-min))
+            (setq buffer-read-only t))
+          (pop-to-buffer buffer)))
+      (unless did-items
+        (user-error "[Error]: can not found any nodes can be print its tree!"))))
 
 ;; ******* Dired auto revert after some operations
 
