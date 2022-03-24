@@ -851,7 +851,7 @@ hand, either 't' or 'nil' is for that.
     (when (not (null down-caller))
       (define-key keymap (kbd "<down>") down-caller))))
 
-;; ******** categor baron set
+;; ******** category baron set
 
 (defun entropy/emacs-hydra-hollow-category-define-rate-key
     (keymap category-baron)
