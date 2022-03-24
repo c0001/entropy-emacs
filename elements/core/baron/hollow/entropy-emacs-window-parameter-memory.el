@@ -28,8 +28,8 @@
 ;;
 ;; * Commentary:
 ;;
-;; The cookie framework for save or restgore current window
-;; configurationwindow parameters.
+;; The cookie framework for save or restgore current `window-list''s
+;; window parameters based on buffer of each window of thus.
 ;;
 ;; * Configuration:
 ;;
