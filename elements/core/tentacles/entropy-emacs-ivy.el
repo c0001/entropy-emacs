@@ -94,7 +94,11 @@
 
   ;; using fuzzy matching
   (setq ivy-re-builders-alist
-        '((read-file-name-internal . ivy--regex-fuzzy)
+        '((read-file-name-internal . ivy--regex-plus)
+          (counsel-M-x . ivy--regex-ignore-order)
+          (counsel-describe-function . ivy--regex-ignore-order)
+          (counsel-describe-variable . ivy--regex-ignore-order)
+          (counsel-describe-symbol . ivy--regex-ignore-order)
           ;; using elisp regex match candidates
           (t . ivy--regex)))
 
