@@ -209,7 +209,7 @@ then retun name-alist:
 
 ;;;;;; list capture region map
 (defun entropy/cl-capture-list-by-region-map (list-var region-map)
-  "Capture list LIST-VAR with region map REGION-TYPE and return
+  "Capture list LIST-VAR with region map REGION-MAP and return
 the grouped pair list type value.
 
 Arg REGION-MAP:
