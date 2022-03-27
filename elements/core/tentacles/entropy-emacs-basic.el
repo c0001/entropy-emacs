@@ -2250,8 +2250,8 @@ Filename are \".scratch_entropy\" host in
 `entropy/emacs-stuffs-topdir'.
 "
   (let ((bfn "*scratch*"))
-    (if (entropy/emacs-BufferName-match-live-buffer-p "*scratch*")
-        (kill-buffer "*scratch*"))
+    (when (get-buffer "*scratch*")
+      (kill-buffer "*scratch*"))
     (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
           ;; inhibit `find-file-hook' for speedup file create
           (find-file-hook nil))

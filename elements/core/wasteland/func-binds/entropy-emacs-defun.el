@@ -1209,17 +1209,6 @@ type:
        (setq rtn (file-name-directory fname))))
     rtn))
 
-(defun entropy/emacs-BufferName-match-live-buffer-p (buffername)
-  "Judge whether a unique live buffer named by BUFFERNAME existed!"
-  (let* ((bfl (mapcar 'buffer-name (buffer-list))))
-    (if (member
-         t
-         (mapcar #'(lambda (bname)
-                     (if (string= buffername bname) t nil))
-                 bfl))
-        t
-      nil)))
-
 (defun entropy/emacs-existed-files-equal-p (file1 file2)
   "Alternative to `file-equal-p' but judge whether files existed
 status before judging to prevent the unexpection internal error
