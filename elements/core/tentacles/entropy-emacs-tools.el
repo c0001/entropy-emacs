@@ -609,7 +609,40 @@ dynamically.")
                         :pdumper-no-end t))))
    ("Utils"
     (("C-c i" ialign "Interactively align region"
-      :enable t :exit t :global-bind t)))))
+      :enable t :exit t :global-bind t))))
+
+  :config
+
+  (defun __ya/ialign (orig-func &rest orig-args)
+    "Like `ialign' but with below specifications:
+
+1) make it `inhibit-read-only' since the `ialign' make buffer
+modification to preview the realtime `align' modifications. So we
+need to use this when we just want to test an alignment operation
+in an readonly buffer.
+
+2) repect buffer modification status not only via
+`buffer-modified-p' but also through comparing `buffer-undo-list'
+before and after the applied procedure in which case the
+orig-func is just canceled in which case the `ialign--revert' has
+reverted the changes in
+theoretically(i.e. NOTE&EEMACS_MAINTENANCE: we should ensure that
+when we update the version of `ialign').
+"
+    (let ((orig-buffer-undo-list buffer-undo-list)
+          (inhibit-read-only t)
+          rtn)
+      (unwind-protect
+          (setq rtn
+                (apply orig-func orig-args))
+        (when (and
+               (buffer-modified-p)
+               (eq buffer-undo-list orig-buffer-undo-list))
+          (set-buffer-modified-p nil))
+        rtn)))
+  (advice-add 'ialign :around #'__ya/ialign)
+
+  )
 
 ;; *** Firefox edit use emacs
 ;;
