@@ -2158,7 +2158,13 @@ as thus."
                   ,(rx "*edit-indirect ")
                   ,(rx "*Org Src test org")))
     (add-to-list 'entropy/grom-customizable-nonspecial-buffer-name-regexp-list
-                 rule)))
+                 rule))
+
+  ;; treat more functions `inhibit-read-only'
+  (dolist (func '(add-dir-local-variable))
+    (entropy/emacs-make-function-inhibit-readonly
+     func))
+  )
 
 ;; ****** Auto-Save
 (setq-default auto-save-default nil)    ; disable it for preventing typing lagging
