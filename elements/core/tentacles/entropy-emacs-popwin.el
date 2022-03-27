@@ -540,15 +540,15 @@ specification."
                          (window-live-p stick-window))
                 (winner-undo))))
 
-           (
-            ;; WHY?:
-            ;; Just recognize the buffer is shackle-popuped while its
-            ;; window is marked either for preventing messy judging
-            ;; while some internal unknown window display tricks like
-            ;; window reuse etc.
-            (entropy/emacs-popwin--buffer-is-shackle-popup-p
+           ((entropy/emacs-popwin--buffer-is-shackle-popup-p
              (window-buffer)
-             t)
+             ;; ;; WHY?:
+             ;; ;; Just recognize the buffer is shackle-popuped while its
+             ;; ;; window is marked either for preventing messy judging
+             ;; ;; while some internal unknown window display tricks like
+             ;; ;; window reuse etc.
+             ;; t
+             )
             (setq stick-buffer (window-buffer)
                   stick-window (get-buffer-window stick-buffer))
             (message "Auto hiding popuped buffer <buffer-local type> ...")
