@@ -1254,22 +1254,22 @@ otherwise use `secure-hash' instead (NOTE: do not use native
 method while large file, since `secure-hash' use emacs buffer to
 store file content in which case system memory will not be enough
 to handle the operation.)"
+  (unless (file-exists-p file)
+    (user-error "Error: file <%s> is not existed!" file))
   (let* (cur-hash
          rtn
          (hashstr (or hashstr ""))
-         (native-method (lambda (f hstr)
-                          (let* ((inhibit-read-only t)
-                                 (buff (create-file-buffer f)))
-                            (with-current-buffer buff
-                              (erase-buffer)
-                              (insert-file-contents-literally file))
-                            (setq cur-hash
-                                  (secure-hash type buff))
-                            (let ((kill-buffer-hook nil))
-                              (kill-buffer buff))
-                            (setq rtn
-                                  (if (string= cur-hash hstr)
-                                      t nil))))))
+         native-method)
+    (setq native-method
+          (lambda (f hstr)
+            (let* ((inhibit-read-only t))
+              (entropy/emacs-with-temp-buffer
+                (insert-file-contents-literally f)
+                (setq cur-hash
+                      (secure-hash type (current-buffer)))
+                (setq rtn
+                      (if (string= cur-hash hstr)
+                          t nil))))))
     (cond
      (use-native (funcall native-method file hashstr))
      (t
@@ -1316,6 +1316,10 @@ to handle the operation.)"
                          (car
                           (split-string (shell-command-to-string (format "sha512sum %s" (shell-quote-argument f)))
                                         " " t)))))))
+        ;; we must expand the filename to expand ~ like shell magick
+        ;; char which will cause messy in which case spwarn process
+        ;; will get the wrong(unexpanded) file path.
+        (setq file (expand-file-name file))
         (setq cur-hash (funcall (alist-get type type-alist) file))
         (setq rtn
               (if (string= hashstr cur-hash)
