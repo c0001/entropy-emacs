@@ -116,17 +116,48 @@
 
 ;; **** configs
   :config
-;; ***** basic setting
+;; ***** UI
+;; ****** startup UI
+  ;; Forcely trucate line for `org-mode' buffer
+  (setq org-startup-truncated t)
 
-  ;;Insert time-stamp when toggle 'TODO' to 'DONE'
+  ;; Hiding block details at init-time
+  (setq-default org-hide-block-startup t)
+
+;; ****** entities
+
+  ;; Show entities as UTF8 characters defautly
+  (setq org-pretty-entities t
+        org-pretty-entities-include-sub-superscripts t)
+
+;; ***** Cycle
+
+  ;; Set the empty line number between the headline without visible
+  (setq org-cycle-separator-lines 2)
+
+  ;; Vixual cycle with plain list
+  (setq-default org-cycle-include-plain-lists 'integrate)
+
+;; ***** Todo
+;; ******* todo priority
+  ;; lowset prioty was 'Z'
+  (setq org-lowest-priority 90)
+  ;; default prioty was 'C'
+  (setq org-default-priority 67)
+
+;; ******* todo log type
+
+  ;; Insert time-stamp when toggle 'TODO' to 'DONE'
   (setq org-log-done 'time)
 
+;; ***** Link
   ;; Do not hexify url link
   (when (boundp 'org-url-hexify-p)
-    ;; enable it when org-version under than 9.3
+    ;; disable it when org-version under than 9.3
     (setq org-url-hexify-p nil))
 
-  ;; Using relative path insert type while linking attachments
+  ;; Using relative path insert type defauly so that we can attachs
+  ;; things baed on org file.
   (setq-default org-link-file-path-type 'relative)
 
   ;; Using fuzzy match for org external link
@@ -134,13 +165,21 @@
   ;; 'file:xxx.org::str'
   (setq org-link-search-must-match-exact-headline nil)
 
-  ;; Forcely trucate line for `org-mode' buffer
-  (setq org-startup-truncated t)
+;; ***** Export
 
+  ;; Export heading level counts same as raw org that maximum for 8
+  (setq org-export-headline-levels 8)
+
+  ;; Interpret entities when exporting
+  (setq org-export-with-entities t)
+
+;; ***** Latex
+;; ****** formula convertor
   ;; Choosing org formula convertor
-  (when (and sys/is-graphic-support
-             entropy/emacs-imagemagick-feature-p
-             (not sys/is-win-group))
+  (cond
+   ((and sys/is-graphic-support
+         entropy/emacs-imagemagick-feature-p
+         (not sys/is-win-group))
     (setq org-preview-latex-default-process 'imagemagick)
     (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2))
     (defun entropy/emacs-org--latex-preview-fragment-with-imagemagick-warn
@@ -175,20 +214,38 @@ must satisfied follow requirements:
                 :around
                 #'entropy/emacs-org--latex-preview-fragment-with-imagemagick-warn))
 
-  (when sys/win32p
+   (sys/win32p
     (setq org-preview-latex-default-process 'dvisvgm)
-    (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2)))
+    (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.2))))
 
+;; ***** Refile
 
-  (setq-default org-hide-block-startup t)                         ;Hiding block details at init-time
-  (setq org-export-headline-levels 8)                             ;Export heading level counts same as raw org that maximum for 8
-  (setq org-cycle-separator-lines 2)                              ;Set the empty line number between the headline without visible
-  (setq-default org-cycle-include-plain-lists 'integrate)         ;Vixual cycle with plain list
-  (setq org-imenu-depth 8) ; The default depth shown for integrating
-                           ; org heading line to imenu while be within
-                           ; org-mode
+  (setq org-refile-targets '((nil :maxlevel . 9)
+                             (org-agenda-files :maxlevel . 9)))
 
-;; ***** No effect of TAB in a code block is as if it were issued in the language major mode buffer and fix yas <src expanding error for `nil-mode'
+  ;; Refile in a single go defautly since we use fuzzy
+  ;; `completing-read' framework that no need to search via the
+  ;; hierarchy which is low efficiency.
+  (setq org-outline-path-complete-in-steps nil)
+
+  ;; allow refile to the root of an org file
+  (setq org-refile-use-outline-path 'file)
+
+  ;; Make `org-refile' inhibiting the read only status
+  (entropy/emacs-make-function-inhibit-readonly
+   'org-refile)
+
+;; ***** Imenu integration
+
+  ;; The default depth shown for integrating org heading line to imenu
+  ;; while be within org-mode
+  (setq org-imenu-depth 8)
+
+;; ***** Hack
+;; ****** disable native TAB behaviour in src block
+
+  ;; No effect of TAB in a code block is as if it were issued in the language major mode buffer and
+  ;; fix yas <src expanding error for `nil-mode'
 
   ;; 1. Firstly we do not want to emulate TAB in src block in as where
   ;; as the major-mode taken buffer.
@@ -217,10 +274,10 @@ must satisfied follow requirements:
   ;;
   (setq org-src-tab-acts-natively nil)
 
-;; ***** define 'end' key to `org-end-of-line'
+;; ****** define 'end' key to `org-end-of-line' to adapt to org specifications
   (define-key org-mode-map (kbd "<end>") 'org-end-of-line)
 
-;; ***** org open at point enhanced
+;; ****** `org-open-at-point' enhanced
 
   ;; change the find-file method of org-open-at-point instead of find-file-other-window
   (defun entropy/emacs-org-open-at-point ()
@@ -250,32 +307,19 @@ must satisfied follow requirements:
               (concat link-type ":" path))
              (t (error (format "Invalid file type '%s'!" link-type)))))))
 
-;; ***** org-priority-setting
-  (setq org-lowest-priority 90)         ;lowset prioty was 'Z'
-  (setq org-default-priority 67)        ;default prioty was 'C'
-
-;; ***** org-refile
-  (setq org-refile-targets '((nil :maxlevel . 9)
-                             (org-agenda-files :maxlevel . 9)))
-  (setq org-outline-path-complete-in-steps nil)         ; Refile in a single go
-  (setq org-refile-use-outline-path 'file) ; allow refile to the root of an org file
-
-  ;; Make `org-refile' inhibiting the read only status
-  (entropy/emacs-make-function-inhibit-readonly
-   'org-refile)
-
-;; ***** org tag set interaction enhancement
+;; ****** org tag set interaction enhancement
 
   (when (and (or (featurep 'counsel)
                  (ignore-errors (require 'counsel)))
              (fboundp 'counsel-org-tag)
              (fboundp 'counsel-org-tag-agenda))
-    (entropy/emacs-lazy-load-simple org
-      (define-key org-mode-map (kbd "C-c C-q") #'counsel-org-tag))
+    ;; ;; we've bind it in `org-mode' hydra part so comment it.
+    ;; (entropy/emacs-lazy-load-simple org
+    ;;   (define-key org-mode-map (kbd "C-c C-q") #'counsel-org-tag))
     (entropy/emacs-lazy-load-simple org-agenda
       (define-key org-agenda-mode-map (kbd "C-c C-q") #'counsel-org-tag-agenda)))
 
-;; ***** org inline image toggle enhancement
+;; ****** org inline image toggle enhancement
   (when entropy/emacs-imagemagick-feature-p
     (progn
       (setq org-image-actual-width nil)
@@ -293,10 +337,12 @@ buffer."
       (advice-add 'org-display-inline-images
                   :around #'entropy/emacs-org--otii-before-advice)))
 
-;; ***** org-auto-insert 'CUSTOM-ID'
-;; which source code from the bloag@
-;; `https://writequit.org/articles/emacs-org-mode-generate-ids.html#h-cf29e5e7-b456-4842-a3f7-e9185897ac3b'
-;; ****** baisc function
+;; ****** org head line 'CUSTOM-ID' generator
+
+  ;; Inspired by:
+  ;; `https://writequit.org/articles/emacs-org-mode-generate-ids.html#h-cf29e5e7-b456-4842-a3f7-e9185897ac3b'
+
+;; ******* baisc function
   (defun entropy/emacs-org--custom-id-get (&optional pom create prefix)
     "Get the CUSTOM_ID property of the entry at point-or-marker POM.
 If POM is nil, refer to the entry at point. If the entry does not
@@ -315,7 +361,7 @@ CUSTOM_ID of the entry is returned."
           (org-id-add-location id (buffer-file-name (buffer-base-buffer)))
           id)))))
 
-;; ****** interactive function
+;; ******* interactive function
 
   (defun entropy/emacs-org-add-ids-to-headlines-in-file ()
     "Add CUSTOM_ID properties to all headlines in the current
@@ -341,7 +387,7 @@ file which do not already have one. Only adds ids if the
          (lambda () (entropy/emacs-org--custom-id-get (point) 'create))
          t nil))))
 
-;; ****** autamatically add ids to saved org-mode headlines
+;; ******* auto insert function
 
   (defun entropy/emacs-org-auto-add-org-ids-before-save ()
     "Auto add id into all heads of current org buffer before save
@@ -353,9 +399,9 @@ enabled at current org buffer. "
   (add-hook 'before-save-hook
             #'entropy/emacs-org-auto-add-org-ids-before-save)
 
-;; ***** org file apps patches
+;; ****** org file apps patches
 
-  (defun entropy/emacs-org--patch-org-file-apps ()
+  (defun entropy/emacs-org--specified-file-open-operations ()
     "Patch `org-file-apps' with some specification locally."
     (let ((map-list
            '(("\\.x?html?\\'" . system)
@@ -366,13 +412,22 @@ enabled at current org buffer. "
                   (append map-list org-file-apps))))
 
   (add-hook 'org-mode-hook
-            #'entropy/emacs-org--patch-org-file-apps)
+            #'entropy/emacs-org--specified-file-open-operations)
 
-;; ***** fix bugs of open directory using external apps in windows
+;; ****** inhibit org defaultly open directory link using `explorer.exe' in windows
+
   (when sys/is-win-group
+    ;; Remove the `directory' entries fistly
+    (setq org-file-apps
+          (delete nil
+                  (mapcar (lambda (x)
+                            (unless (eq (car x) 'directory)
+                              x))
+                          org-file-apps)))
+    ;; then inject the defautly one
     (add-to-list 'org-file-apps '(directory . emacs)))
 
-
+;; **** ___end___
   )
 
 ;; *** org-agenda
