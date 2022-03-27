@@ -1201,10 +1201,7 @@ type:
        (setq rtn fname))
       ('file-name
        (setq rtn
-             (replace-regexp-in-string
-              "^.*\\(\\\\\\|/\\)\\([^ /\\\\]+\\)$"
-              "\\2"
-              fname)))
+             (file-name-nondirectory fname)))
       ('parent-dir
        (setq rtn (file-name-directory fname))))
     rtn))
