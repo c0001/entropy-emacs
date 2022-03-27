@@ -462,7 +462,7 @@ enabled at current org buffer. "
       (error "You must use it in org agenda buffer!")))
 
 ;; **** config
-
+  :config
   ;; agenda tag set interaction enhancement
   ;; TODO: migrate to eemacs hydra
   (when (and (or (featurep 'counsel)
