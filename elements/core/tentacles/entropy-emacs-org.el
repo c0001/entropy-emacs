@@ -307,18 +307,6 @@ must satisfied follow requirements:
               (concat link-type ":" path))
              (t (error (format "Invalid file type '%s'!" link-type)))))))
 
-;; ****** org tag set interaction enhancement
-
-  (when (and (or (featurep 'counsel)
-                 (ignore-errors (require 'counsel)))
-             (fboundp 'counsel-org-tag)
-             (fboundp 'counsel-org-tag-agenda))
-    ;; ;; we've bind it in `org-mode' hydra part so comment it.
-    ;; (entropy/emacs-lazy-load-simple org
-    ;;   (define-key org-mode-map (kbd "C-c C-q") #'counsel-org-tag))
-    (entropy/emacs-lazy-load-simple org-agenda
-      (define-key org-agenda-mode-map (kbd "C-c C-q") #'counsel-org-tag-agenda)))
-
 ;; ****** org inline image toggle enhancement
   (when entropy/emacs-imagemagick-feature-p
     (progn
@@ -471,7 +459,23 @@ enabled at current org buffer. "
               (setq org-tags-match-list-sublevels 'indented)
             (setq org-tags-match-list-sublevels nil))
           (org-agenda-redo-all))
-      (error "You must use it in org agenda buffer!"))))
+      (error "You must use it in org agenda buffer!")))
+
+;; **** config
+
+  ;; agenda tag set interaction enhancement
+  ;; TODO: migrate to eemacs hydra
+  (when (and (or (featurep 'counsel)
+                 (ignore-errors (require 'counsel)))
+             (fboundp 'counsel-org-tag)
+             (fboundp 'counsel-org-tag-agenda))
+    (define-key org-agenda-mode-map
+      (kbd "C-c C-q") #'counsel-org-tag-agenda))
+
+  ;; TODO: add `org-agenda' eemacs hydra
+
+
+  )
 
 ;; *** org-capture
 (use-package org-capture
