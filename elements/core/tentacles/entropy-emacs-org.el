@@ -531,8 +531,8 @@ recovery method unless reopen capture operation.w
               :before
               #'entropy/emacs-org--capture-forbidden-toggle-link-display)
 
+;; **** ___end___
   )
-
 
 ;; *** org-babel
 (use-package ob
@@ -646,6 +646,8 @@ some LANGs if `web-mode' is featured."
      :around
      #'entropy/emacs-org--patch-org-src-edit-element-for-web-mode))
 
+;; **** ___end___
+
   )
 
 ;; *** org-export
@@ -742,8 +744,10 @@ the exec type for chosen the way whether embeded it into
   (advice-add 'org-open-file :around #'entropy/emacs-org--hexpt-advice)
 
 ;; ******* org ignore broken links
-  (setq org-export-with-broken-links 'mark))
+  (setq org-export-with-broken-links 'mark)
 
+;; ***** ___end___
+  )
 
 ;; **** ox-reveal
 (use-package ox-reveal
@@ -884,7 +888,7 @@ as the hypenation."
        (t (error "Invalid `org-id-method'")))
       (concat prefix unique))))
 
-;; *** keymap hydra reflect
+;; *** org keymap eemacs hydra specifications
 ;; **** org-mode
 ;; ***** sub-groups
 ;; ****** org basic manipulation
@@ -1881,7 +1885,7 @@ Now just supply localization image file analyzing."
 ;; ** org-pomodoro
 (use-package org-pomodoro)
 
-;; ** org export setting
+;; ** org html export extra themes
 (use-package entropy-org-export-theme-toggle
   :ensure nil
   :commands (entropy/org-exptth-set-head))
