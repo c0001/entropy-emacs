@@ -340,7 +340,7 @@ buffer."
 ;; ****** org head line 'CUSTOM-ID' generator
 
   ;; Inspired by:
-  ;; `https://writequit.org/articles/emacs-org-mode-generate-ids.html#h-cf29e5e7-b456-4842-a3f7-e9185897ac3b'
+  ;; https://writequit.org/articles/emacs-org-mode-generate-ids.html#h-cf29e5e7-b456-4842-a3f7-e9185897ac3b
 
 ;; ******* baisc function
   (defun entropy/emacs-org--custom-id-get (&optional pom create prefix)
@@ -843,50 +843,19 @@ cached refer file.
   (defun entropy/emacs-org-id-add-location-around-advice
       (orig-func &rest orig-args)
     "Around advice for `org-id-add-location' for preventing error
-popup when in non-file buffer."
-    (if (buffer-file-name (current-buffer))
+popup when in non-file buffer so that contiguous procedures run
+normally while that."
+    (if (buffer-file-name (buffer-base-buffer))
         (apply orig-func orig-args)
-      (ignore-errors (apply orig-func orig-args))))
+      (ignore-errors
+        (message "`org-id-get' expects a file-visiting buffer but for <%s>"
+                 (current-buffer))
+        (apply orig-func orig-args))))
   (advice-add 'org-id-add-location
               :around
               #'entropy/emacs-org-id-add-location-around-advice)
 
-  ;; Redefun the org-id-new for use '-' instead of ':'
-  (defun org-id-new (&optional prefix)
-    "Create a new globally unique ID.
-
-An ID consists of two parts separated by a colon:
-- a prefix
-- a unique part that will be created according to `org-id-method'.
-
-PREFIX can specify the prefix, the default is given by the variable
-`org-id-prefix'.  However, if PREFIX is the symbol `none', don't use any
-prefix even if `org-id-prefix' specifies one.
-
-So a typical ID could look like \"Org-4nd91V40HI\".
-
-Note: this function has been redefined to use '-' instead of ':'
-as the hypenation."
-
-    (let* ((prefix (if (eq prefix 'none)
-                       ""
-                     (concat (or prefix org-id-prefix) "-")))
-           unique)
-      (if (equal prefix "-") (setq prefix ""))
-      (cond
-       ((memq org-id-method '(uuidgen uuid))
-        (setq unique (org-trim (shell-command-to-string org-id-uuid-program)))
-        (unless (org-uuidgen-p unique)
-          (setq unique (org-id-uuid))))
-       ((eq org-id-method 'org)
-        (let* ((etime (org-reverse-string (org-id-time-to-b36)))
-               (postfix (if org-id-include-domain
-                            (progn
-                              (require 'message)
-                              (concat "@" (message-make-fqdn))))))
-          (setq unique (concat etime postfix))))
-       (t (error "Invalid `org-id-method'")))
-      (concat prefix unique))))
+  )
 
 ;; *** org keymap eemacs hydra specifications
 ;; **** org-mode

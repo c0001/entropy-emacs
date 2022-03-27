@@ -3255,9 +3255,12 @@ that."
                   (liberime-user-data-dir . "rime")
                   (pyim-dcache-directory . "pyim/dcache/")
 
+                  ;; org
+                  (org-id-locations-file . ".org-id-locations")
+                  (entropy/org-exptt-html-theme-cache-dir . "org-themes/org-html-themes")
+
                   ;; miscellanies
                   (idlwave-config-directory . "idlwave/")
-                  (entropy/org-exptt-html-theme-cache-dir . "org-themes/org-html-themes")
                   (elfeed-db-directory . "elfeed-db/")
                   (prescient-save-file . "var/prescient-save.el")
                   ))
