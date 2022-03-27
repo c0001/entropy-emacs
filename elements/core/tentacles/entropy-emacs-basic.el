@@ -1685,10 +1685,10 @@ NOTE: this is a advice wrapper for any function."
    mouse-wheel-scroll-amount '(1 ((shift) . 1))
    mouse-wheel-progressive-speed nil))
 
-(defvar entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
-(defvar entropy/emacs-basic--redisplay-dont-pause-orig-value redisplay-dont-pause)
-(defvar entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
-(defvar entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
+(defvar-local entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
+(defvar-local entropy/emacs-basic--redisplay-dont-pause-orig-value redisplay-dont-pause)
+(defvar-local entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
+(defvar-local entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
 
 (defun entropy/emacs-basic-smooth-scrolling-mode-turn-on ()
   (unless (and (functionp entropy/emacs-unreadable-buffer-judge-function)
@@ -1700,6 +1700,10 @@ NOTE: this is a advice wrapper for any function."
   :lighter "SM"
   (if entropy/emacs-basic-smooth-scrolling-mode
       (progn
+        (setq entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
+        (setq entropy/emacs-basic--redisplay-dont-pause-orig-value redisplay-dont-pause)
+        (setq entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
+        (setq entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
         (setq-local
          next-screen-context-lines 0
          redisplay-dont-pause      t
