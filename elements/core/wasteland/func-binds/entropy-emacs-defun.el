@@ -1282,18 +1282,31 @@ SRCDIR.
 If DESTDIR is under SRCDIR, sign a error since it will make
 unlimited recursively or messy up your file-system.
 
-Return t when succeed.
+Return t when succeed for all operations. And always return nil
+when no operations did since SRCDIR has no subfiles or
+subdirs (i.e. its empty) or has fatal operations occurred. This
+is th =common return=.
 
 When optional key WITH-LEVEL is non-nil, we just do the
 recursively in depth of that level so that its mast larger than
 0.
 
-When optional key POP-LOG is non-nil the return is follow below rules:
-- 't':      Popup a log buffer then return the buffer.
-- 'buffer': just return the log buffer.
-- 'log':    return the log list var and not defined its structure
-            but generally a list of details of what did.
-- 'log-string': return the log buffer's substring with its face properties.
+When optional key POP-LOG is non-nil the return is an cons whose
+car was the =common return= and its cdr is follow below subreturn
+rules (except the 't' type which return the same as =common
+return= but popup the log buffer):
+
+- 't':          Popup a log buffer without subreturn.
+
+- 'log':        subreturn the log list var =log-value= and not defined
+                its structure but generally a list of details of
+                what did.
+
+- 'log-buffer': subreturn the cons cel of car of the =log buffer=
+                and cdr of =log value=.
+
+- 'log-string': subreturn the cons cel of car of the =log buffer='s substring
+                with its face properties and cdr of =log value=.
 
 (Further more: the log buffer(and log string) is fontified for
 human readable format and the buffer is enabled an mode
@@ -1310,9 +1323,6 @@ operation is successfully did.
 Sign an error when SRCDIR is empty (i.e neither files or dirs is found
 under it) unless optional key NO-ERROR-WHEN-SRDIR-IS-EMPTY-P is
 non-nil.
-
-Always return nil when no operations did since SRCDIR has no
-subfiles or subdirs (i.e. its empty).
 "
   (setq srcdir (expand-file-name srcdir)
         destdir (expand-file-name destdir))
@@ -1336,11 +1346,12 @@ subfiles or subdirs (i.e. its empty).
   (let* (op-log
          op-log-summary-msg
          op-log-buffer
-         (use-log-buffer (member pop-log '(t buffer log-string)))
-         (need-pop-log-buffer (eq pop-log t))
+         op-log-substr
+         (use-log-buffer (member pop-log '(t log-buffer)))
          (use-log-string (eq pop-log 'log-string))
-         (use-log-temp-buffer (and use-log-buffer use-log-string))
+         (use-log-temp-buffer use-log-string)
          (use-log-value (eq pop-log 'log))
+         (need-pop-log-buffer (eq pop-log t))
          map-func log-buffer-func
          (destdir-ftruename (file-truename (directory-file-name destdir)))
          (fcounts 0) (dircounts 0) (fcounts-error 0) (dircounts-error 0)
@@ -1511,9 +1522,9 @@ subfiles or subdirs (i.e. its empty).
     ;; generate log buffer/string
     (when op-log
       (cond
-       ((and use-log-buffer (not use-log-temp-buffer))
+       (use-log-buffer
         (let* ((buffer (generate-new-buffer
-                        (format "hardlink for dir %s to %s"
+                        (format "[eemacs-do-hardlink-for-dir] %s to %s"
                                 srcdir destdir)
                         t)))
           (with-current-buffer buffer
@@ -1524,7 +1535,7 @@ subfiles or subdirs (i.e. its empty).
        (use-log-string
         (with-temp-buffer
           (funcall log-buffer-func (current-buffer))
-          (setq use-log-string
+          (setq op-log-substr
                 (buffer-substring (point-min) (point-max)))))))
 
     (message "[%s] Do hardlink for dir '%s' to '%s' %s (%s)"
@@ -1536,14 +1547,14 @@ subfiles or subdirs (i.e. its empty).
              op-log-summary-msg)
 
     (if op-log
-        (cond ((not pop-log)
-               t)
+        (cond ((or (not pop-log) (eq pop-log t))
+               (funcall all-is-success-p-func))
               (use-log-string
-               use-log-string)
+               (cons (funcall all-is-success-p-func) (cons op-log-substr op-log)))
               (use-log-buffer
-               op-log-buffer)
+               (cons (funcall all-is-success-p-func) (cons op-log-buffer op-log)))
               (use-log-value
-               op-log)
+               (cons (funcall all-is-success-p-func) op-log))
               (t
                (error "[eemacs do hardlink error] wrong type pop-log type: %s"
                       pop-log)))
