@@ -541,22 +541,78 @@ otherwise."
 ;; *** File and directory manipulation
 
 (defun entropy/emacs-make-relative-filename
-    (file dir &optional file-use-abs dir-use-abs)
-  "Convert FILE (use abs name while FILE-USE-ABS is non nil) to a
-name relative to DIR (use abs name while DIR-USE-ABS is non nil).
-If DIR is omitted or nil, it defaults to `default-directory'.  If
-FILE is not in the directory tree of DIR, return nil.
+    (file dir &optional as-list)
+  "Convert FILE to a name relative to DIR.  If DIR is omitted or
+nil, it defaults to `default-directory'.  If FILE is not in the
+directory tree of DIR, return nil.
 
-The returned rel-filename is leading with the system filepath
-separator i.e. in Windows '\\' and in *nix system is '/'."
+The returned rel-filename is *not* leading or tail with the system
+filepath separator i.e. in Windows '\\' and in *nix system is '/'.
+
+If optional arg AS-LIST is non-nil, return a relative path list whose
+each element is the *node-name*(i.e. file name) of the relative path
+string returned.
+
+If FILE and DIR are equalized by expanded by
+`directory-file-name' than the common return value is string
+\".\" and the AS-LIST return type is '(\".\")'
+
+*Always return nil of file and dir are not relatived.*
+"
   (or dir (setq dir default-directory))
-  (if file-use-abs
-      (setq file (expand-file-name file)))
-  (if dir-use-abs
-      (setq dir (expand-file-name dir)))
-  (if (string-match (concat "^" (regexp-quote dir)) file)
-      (substring file (match-end 0))
-    nil))
+  (setq file (directory-file-name (expand-file-name file)))
+  (setq dir (file-name-as-directory (expand-file-name dir)))
+  (let ((rtn
+         (if (string-match (concat "^" (regexp-quote dir)) file)
+             (substring file (match-end 0))
+           nil)))
+    (unless rtn
+      (when (string= (directory-file-name file)
+                     (directory-file-name dir))
+        (setq rtn ".")))
+    (when rtn
+      (when as-list
+        (if (string= rtn ".")
+            (setq rtn (list rtn))
+          (let ((cursubname (file-name-nondirectory rtn))
+                (curparename (file-name-directory rtn))
+                tmpvar itervar)
+            (if curparename
+                (progn
+                  (while (or curparename (not (string-empty-p (or cursubname ""))))
+                    (push cursubname tmpvar)
+                    (setq itervar (and curparename (directory-file-name curparename))
+                          cursubname (and itervar (file-name-nondirectory itervar))
+                          curparename (and itervar (file-name-directory itervar))))
+                  (setq rtn tmpvar))
+              (setq rtn (list cursubname)))))))
+    rtn))
+
+(defun entropy/emacs-batch-expand-file-name
+    (names &optional base-dir)
+  "`expand-file-name' batch mode for list of name NAMES, based on
+BASE-DIR when non-nil or `default-directory' as fallback.
+
+If NAMES is empty, return the BASE-DIR's expanded filename.
+
+NOTE: The NAMES is expanded using its reverse order, thus NAMES
+has to be real file system path hierarchy."
+  (let (form cur-name)
+    (while names
+      (setq cur-name (pop names))
+      (if form
+          (setq form
+                `(expand-file-name
+                  ,cur-name
+                  ,form))
+        (setq form
+              `(expand-file-name
+                ,cur-name
+                (or base-dir default-directory)))))
+    (if form
+        (eval form)
+      (expand-file-name
+       (or base-dir default-directory)))))
 
 (defun entropy/emacs-list-dir-lite (dir-root &optional not-abs)
   "Return an alist of fsystem nodes as:
@@ -1176,6 +1232,322 @@ BRANCH-STR '%s' is too long!" brs))
          :with-level with-level
          :with-filter with-filter))
       t)))
+
+(define-minor-mode entropy/emacs-do-hard-link-for-dir/log-mode
+  "Minor mode for `entropy/emacs-do-hard-link-for-dir' log buffer,
+simpley enable `outline-minor-mode' and binds its interactive
+commands as below keymap:
+
+`outline-cycle': TAB
+`outline-cycle-buffer' <backtab>
+
+And full keymap as:
+
+\\{entropy/emacs-do-hard-link-for-dir/log-mode-map}"
+  :global nil
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map [remap self-insert-command] 'ignore)
+            (define-key map [remap ] 'ignore)
+            (define-key map (kbd "TAB") '(lambda (&rest _)
+                                           (interactive)
+                                           (when (outline-on-heading-p)
+                                             (outline-cycle))))
+            (define-key map (kbd "<backtab>") 'outline-cycle-buffer)
+            (define-key map " " #'next-line)
+            (define-key map "\C-n" #'next-line)
+            (define-key map [down] #'next-line)
+            (define-key map "\C-p" #'previous-line)
+            (define-key map "\C-?" #'previous-line)
+            (define-key map [up] #'previous-line)
+            (define-key map (kbd "RET") #'ignore)
+            (define-key map (kbd "q") #'quit-window)
+            map)
+  (when entropy/emacs-do-hard-link-for-dir/log-mode
+    (let (_)
+      (outline-minor-mode))))
+
+(cl-defun entropy/emacs-do-hard-link-for-dir
+    (srcdir destdir
+            &key
+            with-level
+            pop-log
+            no-error-when-srdir-is-empty-p)
+  "Do hardlink from SRCDIR to DESTDIR using `add-name-to-file' for
+its subfiles and `make-directory' for subdirs, recursively.
+
+If SRDIR is not existed, sign an error. If DESETDIR is existed
+sign an error since we treat DESTDIR as the same hierachy as
+SRCDIR.
+
+If DESTDIR is under SRCDIR, sign a error since it will make
+unlimited recursively or messy up your file-system.
+
+Return t when succeed.
+
+When optional key WITH-LEVEL is non-nil, we just do the
+recursively in depth of that level so that its mast larger than
+0.
+
+When optional key POP-LOG is non-nil the return is follow below rules:
+- 't':      Popup a log buffer then return the buffer.
+- 'buffer': just return the log buffer.
+- 'log':    return the log list var and not defined its structure
+            but generally a list of details of what did.
+- 'log-string': return the log buffer's substring with its face properties.
+
+(Further more: the log buffer(and log string) is fontified for
+human readable format and the buffer is enabled an mode
+`entropy/emacs-do-hard-link-for-dir/log-mode' which follow
+`outline-minor-mode' benefits. So as on use can insert the log
+string into arbitrary `fundamental-mode' buffer and enable that
+mode. And the log is outline formatted based one top header so
+that you can concatenate the log string by multi-times invoke
+this function to gen a multi-operations log summary.)
+
+Sign an error when POP-LOG is not matched valied values but all
+operation is successfully did.
+
+Sign an error when SRCDIR is empty (i.e neither files or dirs is found
+under it) unless optional key NO-ERROR-WHEN-SRDIR-IS-EMPTY-P is
+non-nil.
+
+Always return nil when no operations did since SRCDIR has no
+subfiles or subdirs (i.e. its empty).
+"
+  (setq srcdir (expand-file-name srcdir)
+        destdir (expand-file-name destdir))
+  (cond
+   ((not (file-directory-p srcdir))
+    (user-error "[eemacs do hardlink error] source path not existed or is not an directory '%s'"
+                srcdir))
+   ((file-directory-p destdir)
+    (user-error "[eemacs do hardlink error] destination existed '%s'"
+                destdir))
+   ((not (file-readable-p srcdir))
+    (user-error "[eemacs do hardlink error] source path not readable '%s'"
+                srcdir))
+   ((not (file-writable-p (file-name-directory
+                           (directory-file-name destdir))))
+    (user-error "[eemacs do hardlink error] destination path not writeable '%s'"
+                destdir))
+   ((entropy/emacs-make-relative-filename destdir srcdir)
+    (user-error "[eemacs do hardlink error] destination '%s' is under the source directory '%s'"
+                destdir srcdir)))
+  (let* (op-log
+         op-log-summary-msg
+         op-log-buffer
+         (use-log-buffer (member pop-log '(t buffer log-string)))
+         (need-pop-log-buffer (eq pop-log t))
+         (use-log-string (eq pop-log 'log-string))
+         (use-log-temp-buffer (and use-log-buffer use-log-string))
+         (use-log-value (eq pop-log 'log))
+         map-func log-buffer-func
+         (destdir-ftruename (file-truename (directory-file-name destdir)))
+         (fcounts 0) (dircounts 0) (fcounts-error 0) (dircounts-error 0)
+         (all-is-success-p-func
+          (lambda () (and (zerop fcounts-error) (zerop dircounts-error))))
+         (fatal-or-success-string-get-func
+          (lambda ()
+            (if (funcall all-is-success-p-func)
+                (propertize "SUCCESS" 'face 'success)
+              (propertize "ERROR" 'face 'error)))))
+
+    (setq map-func
+          (lambda (x &optional calling-end-p)
+            (unless calling-end-p
+              (let* ((dir-is-root-p (plist-get x :dir-is-root-p))
+                     (this-should-do t)
+                     (dir-rel-path-list
+                      (plist-get x :dir-rel-path))
+                     (dir-src-abspath (plist-get x :dir-abspath))
+                     (dir-dest-abspath
+                      (entropy/emacs-batch-expand-file-name
+                       dir-rel-path-list destdir))
+                     (dir-subfile-names (plist-get x :dir-subfiles-names))
+                     (dir-subdir-names (plist-get x :dir-subdirs-names))
+                     (cur-succeed-p t)
+                     cur-error-msg)
+
+                (when (and dir-is-root-p
+                           (not dir-subfile-names)
+                           (not dir-subdir-names))
+                  (setq this-should-do nil)
+                  (when (not no-error-when-srdir-is-empty-p)
+                    (user-error "SRCDIR '%s' is empty!"
+                                srcdir)))
+
+                (when this-should-do
+                  (let ((src-dir-truepath (file-truename (directory-file-name dir-src-abspath))))
+                    (when
+                        ;; prevent nested linkage
+                        (entropy/emacs-make-relative-filename
+                         destdir-ftruename src-dir-truepath)
+                      (setq cur-succeed-p nil)
+                      (cl-incf dircounts-error)
+                      (setq op-log
+                            (append
+                             op-log
+                             `((mkdir :path ,dir-dest-abspath
+                                      :path-rellist ,dir-rel-path-list
+                                      :success nil
+                                      :error-msg
+                                      ,(format "error: prevent nested linkage (%s <-> %s)"
+                                               destdir-ftruename src-dir-truepath)))))))
+                  (when cur-succeed-p
+                    (condition-case error-type
+                        (progn
+                          (make-directory dir-dest-abspath)
+                          (setq cur-succeed-p t
+                                dircounts (1+ dircounts)))
+                      (error
+                       (setq cur-succeed-p nil)
+                       (cl-incf dircounts-error)
+                       (setq cur-error-msg (format "%S" error-type))))
+                    (setq op-log (append op-log `((mkdir :path ,dir-dest-abspath
+                                                         :path-rellist ,dir-rel-path-list
+                                                         :success ,cur-succeed-p
+                                                         :error-msg ,cur-error-msg)))))
+                  (when (and cur-succeed-p dir-subfile-names)
+                    (dolist (el dir-subfile-names)
+                      (let ((srcfname (expand-file-name
+                                       el
+                                       dir-src-abspath))
+                            (destfname (expand-file-name
+                                        el
+                                        dir-dest-abspath)))
+                        (condition-case error-type
+                            (progn
+                              (add-name-to-file srcfname destfname)
+                              (setq cur-succeed-p t
+                                    fcounts (1+ fcounts)))
+                          (error
+                           (setq cur-succeed-p nil)
+                           (cl-incf fcounts-error)
+                           (setq cur-error-msg (format "%S" error-type))))
+                        (setq op-log
+                              (append op-log `((hardlink :path ,destfname
+                                                         :path-rellist
+                                                         ,(append dir-rel-path-list
+                                                                  (list el))
+                                                         :success ,cur-succeed-p
+                                                         :error-msg ,cur-error-msg)))
+                              ))))))
+
+              ;; do not inject to user spec attrs since we donot use it.
+              nil)))
+
+    (setq log-buffer-func
+          (lambda (log-buff)
+            (with-current-buffer log-buff
+              (unless use-log-string
+                (entropy/emacs-do-hard-link-for-dir/log-mode))
+              (insert
+               (format "* Do hardlink for dir '%s'\nto\n'%s' %s.\n(%s)\n"
+                       srcdir destdir
+                       (funcall fatal-or-success-string-get-func)
+                       op-log-summary-msg))
+              (insert "------------------------------------------------------------\n")
+              (let (op
+                    op-attrs
+                    path
+                    path-rellist
+                    did-success
+                    did-error-msg
+                    (inhibit-read-only t))
+                (dolist (item op-log)
+                  (setq op-attrs (cdr item)
+                        op (car item)
+                        path (plist-get op-attrs :path)
+                        path-rellist (plist-get op-attrs :path-rellist)
+                        did-success (plist-get op-attrs :success)
+                        did-error-msg (plist-get op-attrs :error-msg))
+                  (cond
+                   ((eq op 'mkdir)
+                    (insert (concat
+                             "** "
+                             (if did-success
+                                 (propertize "SUCCESS " 'face 'success)
+                               (propertize "FATAL   " 'face 'error))
+                             (propertize "Mkdir" 'face (if did-success 'nobreak-hyphen 'error))
+                             ": "
+                             path
+                             (format "\n\trelative path list: %S" path-rellist)
+                             (if did-error-msg
+                                 (concat "\n\t" (propertize did-error-msg 'face 'error))
+                               "")
+                             "\n")))
+                   ((eq op 'hardlink)
+                    (insert (concat
+                             "** "
+                             (if did-success
+                                 (propertize "SUCCESS " 'face 'success)
+                               (propertize "FATAL   " 'face 'error))
+                             (propertize "Touch" 'face (if did-success 'success 'error))
+                             ": "
+                             path
+                             (format "\n\trelative path list: %S" path-rellist)
+                             (if did-error-msg
+                                 (concat "\n\t" (propertize did-error-msg 'face 'error))
+                               "")
+                             "\n"))))))
+
+              (unless use-log-temp-buffer
+                (setq buffer-read-only t))
+
+              )))
+
+    ;; main map process
+    (entropy/emacs-list-dir-subdirs-recursively
+     srcdir t
+     :with-attributes t
+     :with-level with-level
+     :map-func map-func)
+
+    (setq op-log-summary-msg
+          (format "(%s/%s) dir created/failed, (%s/%s) files did/failed hardlink"
+                  dircounts dircounts-error
+                  fcounts fcounts-error))
+
+    ;; generate log buffer/string
+    (when op-log
+      (cond
+       ((and use-log-buffer (not use-log-temp-buffer))
+        (let* ((buffer (generate-new-buffer
+                        (format "hardlink for dir %s to %s"
+                                srcdir destdir)
+                        t)))
+          (with-current-buffer buffer
+            (funcall log-buffer-func (current-buffer)))
+          (setq op-log-buffer buffer)
+          (when need-pop-log-buffer
+            (pop-to-buffer buffer))))
+       (use-log-string
+        (with-temp-buffer
+          (funcall log-buffer-func (current-buffer))
+          (setq use-log-string
+                (buffer-substring (point-min) (point-max)))))))
+
+    (message "[%s] Do hardlink for dir '%s' to '%s' %s (%s)"
+             (funcall fatal-or-success-string-get-func)
+             srcdir destdir
+             (if (funcall all-is-success-p-func)
+                 "successfully"
+               "with fatal")
+             op-log-summary-msg)
+
+    (if op-log
+        (cond ((not pop-log)
+               t)
+              (use-log-string
+               use-log-string)
+              (use-log-buffer
+               op-log-buffer)
+              (use-log-value
+               op-log)
+              (t
+               (error "[eemacs do hardlink error] wrong type pop-log type: %s"
+                      pop-log)))
+      nil)))
 
 (defun entropy/emacs-file-path-parser (file-name type)
   "The file-path for 'entropy-emacs, functions for get base-name,
