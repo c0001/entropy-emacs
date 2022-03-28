@@ -630,6 +630,7 @@ theoretically(i.e. NOTE&EEMACS_MAINTENANCE: we should ensure that
 when we update the version of `ialign').
 "
     (let ((orig-buffer-undo-list buffer-undo-list)
+          (orig-buffer-modification-p (buffer-modified-p))
           (inhibit-read-only t)
           rtn)
       (unwind-protect
@@ -638,7 +639,8 @@ when we update the version of `ialign').
         (when (and
                (buffer-modified-p)
                (eq buffer-undo-list orig-buffer-undo-list))
-          (set-buffer-modified-p nil))
+          (unless orig-buffer-modification-p
+            (set-buffer-modified-p nil)))
         rtn)))
   (advice-add 'ialign :around #'__ya/ialign)
 
