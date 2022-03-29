@@ -47,7 +47,7 @@
         content
         groups
         rtn)
-    (setq content (entropy/emacs-with-temp-buffer
+    (setq content (with-temp-buffer
                     (insert-file-contents file)
                     (buffer-string)))
     (setq groups (split-string content "^$"))

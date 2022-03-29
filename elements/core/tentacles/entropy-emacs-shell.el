@@ -242,7 +242,7 @@ was found."
            (content-injection
             (and
              hack_inject?
-             (entropy/emacs-with-temp-buffer
+             (with-temp-buffer
                (insert-file-contents
                 (expand-file-name "vterm-bashrc" entropy/emacs-templates-dir))
                (buffer-substring-no-properties

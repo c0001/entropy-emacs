@@ -91,7 +91,7 @@ region with error throw out in region selected occasion."
         (when buffer-read-only
           (setq buffer-read-only nil))
 
-        (entropy/emacs-with-temp-buffer
+        (with-temp-buffer
           (when buffer-read-only
             (setq buffer-read-only nil))
           (erase-buffer)

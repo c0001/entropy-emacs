@@ -701,7 +701,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 
       (cond
        ((= (length rtn) 1)
-        (entropy/emacs-with-temp-buffer
+        (with-temp-buffer
           (when buffer-read-only
             (setq buffer-read-only nil))
           (goto-char (point-min))
@@ -1184,7 +1184,7 @@ that show that filename wasn't exsited any more."
            (inhibit-read-only t))
       (if (string-empty-p readin)
           readin
-        (entropy/emacs-with-temp-buffer
+        (with-temp-buffer
           (insert readin)
 
           ;; Pruning the dir list of '.' and '..'
@@ -2385,7 +2385,7 @@ for kill-ring persistent at %s, do not edit it manually"
             "Judge whether the print type of VALUE can be read
 correctly, if thus return t otherwise for nil and transferred
 error type to output symbol OUTPUT-SYM."
-            (entropy/emacs-with-temp-buffer
+            (with-temp-buffer
               (condition-case error
                   (let (_)
                     ;; Print the value into a buffer...
@@ -3138,7 +3138,7 @@ This function will store the loading callback to
 
     ;; init pyim at temp buffer for preventing polluting
     ;; current-input-method in current buffer.
-    (entropy/emacs-with-temp-buffer
+    (with-temp-buffer
       (set-input-method "pyim")))
 
 ;; ******* init
@@ -3300,7 +3300,7 @@ This function will store the `rime' loading callback to
           (setq entropy/emacs-IME-specs-initialized
                 (funcall build-func)))
         (when (eq entropy/emacs-IME-specs-initialized t)
-          (entropy/emacs-with-temp-buffer
+          (with-temp-buffer
             (entropy/emacs-basic--emacs-rime-set-posframe-parameter)
             (add-hook 'entropy/emacs-font-set-end-hook
                       #'entropy/emacs-basic--emacs-rime-set-posframe-parameter)

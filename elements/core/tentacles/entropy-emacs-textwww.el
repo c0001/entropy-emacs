@@ -332,7 +332,7 @@ Reading " (w3m-url-readable-string (w3m-url-strip-authinfo url)) " ...\n\n"
 do any emacs work in any other buffer, or just wait ... ")))
            ;; -------------------------
            (max-line-len (save-mark-and-excursion
-                           (entropy/emacs-with-temp-buffer
+                           (with-temp-buffer
                              (let ((inhibit-read-only t)
                                    cur-head-pt
                                    len-stack)
@@ -368,7 +368,7 @@ do any emacs work in any other buffer, or just wait ... ")))
       (setq msg
             (save-mark-and-excursion
               (let ((inhibit-read-only t))
-              (entropy/emacs-with-temp-buffer
+              (with-temp-buffer
                 (insert info-str)
                 (goto-char (point-min))
                 (while (and (not (eobp)) t)

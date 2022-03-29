@@ -47,22 +47,6 @@
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
-(defmacro entropy/emacs-with-temp-buffer (&rest body)
-  "Like `with-temp-buffer' but press all hook related
-`kill-buffer' after body done so that we can say it real
-temporally do and have better performance than origin."
-  (declare (indent 0) (debug t))
-  (let ((temp-buffer (make-symbol "temp-buffer")))
-    `(let ((kill-buffer-hook nil)
-           (kill-buffer-query-functions nil)
-           (,temp-buffer (generate-new-buffer " *temp*")))
-       ;; `kill-buffer' can change current-buffer in some odd cases.
-       (with-current-buffer ,temp-buffer
-         (unwind-protect
-             (progn ,@body)
-           (and (buffer-name ,temp-buffer)
-                (kill-buffer ,temp-buffer)))))))
-
 (defun entropy/emacs-error-without-debug (string &rest args)
   "Like `error' but always press `debug-on-error'"
   (let ((debug-on-error nil))
@@ -2071,7 +2055,7 @@ to handle the operation.)"
     (setq native-method
           (lambda (f hstr)
             (let* ((inhibit-read-only t))
-              (entropy/emacs-with-temp-buffer
+              (with-temp-buffer
                 (insert-file-contents-literally f)
                 (setq cur-hash
                       (secure-hash type (current-buffer)))
@@ -3709,7 +3693,7 @@ object which can be used for `eval'."
                    (,read-base64-func-name __this_eval_form_str))
              (eval __this_eval_form)))
          (proc-eval-form-file
-          (entropy/emacs-with-temp-buffer
+          (with-temp-buffer
             (let ((inhibit-read-only t)
                   (print-level nil)
                   (print-length nil)
@@ -4864,7 +4848,7 @@ clipboard with native operation system."
   "Push string STR into WINDOWS system clipboard.
 
 NOTE: no warranty use in other system."
-  (entropy/emacs-with-temp-buffer
+  (with-temp-buffer
     (insert str)
     (call-process-region
      (point-min) (point-max)
@@ -4910,7 +4894,7 @@ yanking an obsolete entry from `kill-ring' when the emacs
 internal cut operation has updated the kill-ring but
 `xterm-paste' will still yank the previouse event content."
   (let* ((paste-str (nth 1 event)))
-    (entropy/emacs-with-temp-buffer
+    (with-temp-buffer
       (unless (string= paste-str
                        entropy/emacs--xterm-clipboard-head)
         (progn (setq entropy/emacs--xterm-clipboard-head
@@ -4967,7 +4951,7 @@ subroutine of `entropy/emacs-xterm-paste-core'.
   (interactive "e")
   (entropy/emacs-with-xterm-paste-core
    event
-   (let* ((paste (entropy/emacs-with-temp-buffer
+   (let* ((paste (with-temp-buffer
                    (yank)
                    (car kill-ring))))
      (when (and (stringp paste)

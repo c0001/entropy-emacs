@@ -246,7 +246,7 @@ used for 'git' only."
            (list "--no-pager"
                  "show"
                  commit-id)))
-      (entropy/emacs-with-temp-buffer
+      (with-temp-buffer
         (git-messenger:execute-command
          'git
          git-cmd-args t)
