@@ -642,7 +642,8 @@ If FILE and DIR are equalized by expanded by
 "
   (or dir (setq dir default-directory))
   (setq file (entropy/emacs-directory-file-name (expand-file-name file)))
-  (setq dir (file-name-as-directory (expand-file-name dir)))
+  (setq dir (file-name-as-directory
+             (entropy/emacs-directory-file-name (expand-file-name dir))))
   (let ((rtn
          (if (string-match (concat "^" (regexp-quote dir)) file)
              (substring file (match-end 0))
