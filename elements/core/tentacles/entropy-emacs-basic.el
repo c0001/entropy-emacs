@@ -1119,7 +1119,7 @@ This function is a around advice for function `dired-up-directory'."
       (setq cur-node-parent
             (ignore-errors
               (file-name-directory
-               (directory-file-name current-node))))
+               (entropy/emacs-directory-file-name current-node))))
       (if (or (null current-node)
               (entropy/emacs-existed-files-equal-p default-directory cur-node-parent))
           (if (and
@@ -1143,7 +1143,7 @@ This function is a around advice for function `dired-up-directory'."
               (progn (forward-line -1) (dired-move-to-filename))
             ;; Apply orig func filtered by checking whether the up-dir exist?
             (let* ((dir (dired-current-directory))
-                   (up (file-name-directory (directory-file-name dir))))
+                   (up (file-name-directory (entropy/emacs-directory-file-name dir))))
               (if (file-directory-p up)
                   (apply orig-func orig-args)
                 ;; kill other dired buffer as is or as subtree of thus dir
@@ -1153,7 +1153,7 @@ This function is a around advice for function `dired-up-directory'."
                     (kill-buffer buff))))))
         (let* ((search-node
                 (file-name-nondirectory
-                 (directory-file-name cur-node-parent))))
+                 (entropy/emacs-directory-file-name cur-node-parent))))
           (while (not (entropy/emacs-existed-files-equal-p (dired-get-filename) cur-node-parent))
             (re-search-backward
              (regexp-quote search-node)

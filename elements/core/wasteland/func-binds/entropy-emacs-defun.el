@@ -628,6 +628,15 @@ to quote it when you treat it as an directory."
             dev-ids)
       t)))
 
+(defun entropy/emacs-directory-file-name (file-or-directory)
+  "like `directory-file-name' but checking its type by
+`directory-name-p' firstly so that both file and directory name
+is supported that return the origin FILE-OR-DIRECTORY when it's
+not an directory name."
+  (if (directory-name-p file-or-directory)
+      (directory-file-name file-or-directory)
+    file-or-directory))
+
 (defun entropy/emacs-make-relative-filename
     (file dir &optional as-list)
   "Convert FILE to a name relative to DIR.  If DIR is omitted or
@@ -642,21 +651,21 @@ each element is the *node-name*(i.e. file name) of the relative path
 string returned.
 
 If FILE and DIR are equalized by expanded by
-`directory-file-name' than the common return value is string
+`entropy/emacs-directory-file-name' than the common return value is string
 \".\" and the AS-LIST return type is '(\".\")'
 
 *Always return nil of file and dir are not relatived.*
 "
   (or dir (setq dir default-directory))
-  (setq file (directory-file-name (expand-file-name file)))
+  (setq file (entropy/emacs-directory-file-name (expand-file-name file)))
   (setq dir (file-name-as-directory (expand-file-name dir)))
   (let ((rtn
          (if (string-match (concat "^" (regexp-quote dir)) file)
              (substring file (match-end 0))
            nil)))
     (unless rtn
-      (when (string= (directory-file-name file)
-                     (directory-file-name dir))
+      (when (string= (entropy/emacs-directory-file-name file)
+                     (entropy/emacs-directory-file-name dir))
         (setq rtn ".")))
     (when rtn
       (when as-list
@@ -669,7 +678,7 @@ If FILE and DIR are equalized by expanded by
                 (progn
                   (while (or curparename (not (string-empty-p (or cursubname ""))))
                     (push cursubname tmpvar)
-                    (setq itervar (and curparename (directory-file-name curparename))
+                    (setq itervar (and curparename (entropy/emacs-directory-file-name curparename))
                           cursubname (and itervar (file-name-nondirectory itervar))
                           curparename (and itervar (file-name-directory itervar))))
                   (setq rtn tmpvar))
@@ -1521,9 +1530,9 @@ Sign an error when POP-LOG is not matched valied values.
     (user-error "[entropy/emacs-do-directory-mirror] source path not readable '%s'"
                 srcdir))
    ((not (file-writable-p (file-name-directory
-                           (directory-file-name destdir))))
+                           (entropy/emacs-directory-file-name destdir))))
     (user-error "[entropy/emacs-do-directory-mirror] destination host path not writeable '%s'"
-                (file-name-directory (directory-file-name destdir))))
+                (file-name-directory (entropy/emacs-directory-file-name destdir))))
    ((entropy/emacs-make-relative-filename destdir srcdir)
     (user-error "[entropy/emacs-do-directory-mirror] destination '%s' is under the source directory '%s'"
                 destdir srcdir)))
@@ -1533,7 +1542,7 @@ Sign an error when POP-LOG is not matched valied values.
   ;; not usable for such case.
   (unless (entropy/emacs-files-in-same-filesystem-p
            (file-name-directory
-            (directory-file-name destdir))
+            (entropy/emacs-directory-file-name destdir))
            ;; we should indicate that the SRCDIR is an directory
            (file-name-as-directory
             srcdir))
@@ -1580,7 +1589,7 @@ Sign an error when POP-LOG is not matched valied values.
          (use-log-value (eq pop-log 'log))
          (need-pop-log-buffer (eq pop-log t))
          map-func log-buffer-func
-         (destdir-ftruename (file-truename (directory-file-name destdir)))
+         (destdir-ftruename (file-truename (entropy/emacs-directory-file-name destdir)))
          (fcounts 0) (dircounts 0) (fcounts-error 0) (dircounts-error 0)
          (all-is-success-p-func
           (lambda () (and (zerop fcounts-error) (zerop dircounts-error))))
@@ -1689,7 +1698,7 @@ Sign an error when POP-LOG is not matched valied values.
                   ;; under the subdirs tree if thus we should abandon
                   ;; to run the mirror process for preventing nesting
                   ;; messy.
-                  (let ((src-dir-truepath (file-truename (directory-file-name dir-src-abspath))))
+                  (let ((src-dir-truepath (file-truename (entropy/emacs-directory-file-name dir-src-abspath))))
                     (when
                         (entropy/emacs-make-relative-filename
                          destdir-ftruename src-dir-truepath)
@@ -2008,7 +2017,7 @@ type:
 - 'parent-dir':
 
   Return its parent directory path."
-  (let (rtn (fname (directory-file-name file-name)))
+  (let (rtn (fname (entropy/emacs-directory-file-name file-name)))
     (cl-case type
       ('non-trail-slash
        (setq rtn fname))
