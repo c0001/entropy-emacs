@@ -524,13 +524,33 @@ otherwise."
 
 ;; *** File and directory manipulation
 
+(defun entropy/emacs-file-exists-p (filename &optional file-attributes)
+  "Like `file-exists-p' but apply all FILENAME's file system node
+type e.g. a broken symbolink is also treat as existed.
+
+FILENAME is always be treat as an filename which not predicated
+by `directory-name-p', if so, it will be trimmed to a filename
+firstly.
+
+Return t or nil for the status.
+
+If optional argument FILE-ATTRIBUTES is non-nil, return FILENAME's
+file attributes predicated by `file-attributes' after the existed
+status checking, so return nil when file not exists as well."
+  (setq filename (entropy/emacs-directory-file-name filename))
+  (let ((fattrs (ignore-errors (file-attributes filename))))
+    (if file-attributes
+        fattrs
+      (and fattrs
+           t))))
+
 (defun entropy/emacs-get-file-attributes (file)
   "Like `file-attributes' but return a plist to represent its
 structure so that its more human readable and easy to get its
 sub-attribute.
 
-File must be an existed (whether or not you can read it) file or
-will throw an error.
+FILE must be existed (predicated by
+`entropy/emacs-file-exists-p') or will throw an error.
 
 Plist keys:
 
@@ -545,10 +565,9 @@ Plist keys:
 - =:status-change-time= : returned by `file-attribute-status-change-time'
 - =:access-time=        : returned by `file-attribute-access-time'
 "
-  (unless (file-exists-p file)
-    (user-error "[entropy/emacs-get-file-attributes] file-not-existed: <%s>"
-                file))
-  (let ((fattrs (file-attributes file))
+  (let ((fattrs (or (entropy/emacs-file-exists-p file t)
+                    (user-error "[entropy/emacs-get-file-attributes] file-not-existed: <%s>"
+                                file)))
         device-number
         user-id
         modifiction-time
@@ -577,8 +596,9 @@ Plist keys:
   "Judge all file of FILES are in the same filesystem, return t if
 thus, nil otherwise.
 
-FILES must be existed (whether or not you can read it), or will
-sign an error for any one who is not existed.
+FILEs must be existed (predicated by
+`entropy/emacs-file-exists-p') or will throw an error for any one
+who is not existed.
 
 Always return t when files just has one file and its existed.
 
@@ -1352,152 +1372,316 @@ And full keymap as:
     (srcdir destdir
             &key
             with-level
+            with-check-symlink
+            with-check-hardlink
             file-mirror-func
             dir-mirror-func
             operation-symbol
             use-symbolic-link
             pop-log
             no-error-when-srdir-is-empty-p)
-  "Do directory mirror from SRCDIR to DESTDIR using default
-FILE-MIRROR-FUNC `add-name-to-file' for its subfiles and default
-DIRECORY-MIRROR-FUNC `make-directory' for subdirs, recursively.
+  "Do directory mirror from SRCDIR to DESTDIR with =op-function= that
+using default FILE-MIRROR-FUNC whose subroutine is `add-name-to-file'
+for its subfiles and default DIRECORY-MIRROR-FUNC whose subroutine is
+`make-directory' for subdirs, recursively.
 
-If SRDIR is not existed, sign an error. If DESETDIR is existed
-sign an error since we treat DESTDIR as the same hierachy as
-SRCDIR.
+If SRDIR is not existed, sign an error. If DESETDIR is existed sign an
+error since we treat DESTDIR as the same hierachy as SRCDIR.
 
-Sign an error when SRCDIR is empty (i.e neither files or dirs is found
-under it) unless optional key NO-ERROR-WHEN-SRDIR-IS-EMPTY-P is
+Sign an error when SRCDIR is empty (i.e neither files nor dirs are
+found under it) unless optional key NO-ERROR-WHEN-SRDIR-IS-EMPTY-P is
 non-nil.
 
-If DESTDIR is under SRCDIR, sign a error since it will make
-unlimited recursively or messy up your file-system.
+If DESTDIR is under SRCDIR, sign a error since it will make unlimited
+recursively or messy up your file-system.
 
-When optional key WITH-LEVEL is non-nil, we just do the
-recursively in depth of that level so that its mast larger than
-0.
+When optional key WITH-LEVEL is non-nil, we just do the recursively in
+depth of that level so that its must larger than 0.
 
 If optional key OPERATION-SYMBOL is set, it should be a symbol to
-indicate the how to use this framework as customization aspect. If not
-set, the anonymous symbol is set to it internally. The setted
-OPERATION-SYMBOL only used when any of user spec mirror functions is
-set (see section *MIRROR FUNC SPEC*), and this framework has default
-OPERATION-SYMBOL for describing the default usage.
+indicate that how to use this framework as customization aspect. If
+not set, the anonymous symbol is set to it internally. The setted
+OPERATION-SYMBOL only used when any of user spec =op-function= is set
+(see section *MIRROR FUNC SPEC*), and this framework has default
+OPERATION-SYMBOL for describing the default =op-function=.
 
-*MIRROR FUNC SPEC*
+* *MIRROR FUNC SPEC*
 
-If FILE-MIRROR-FUNC is customized spec for, its should take two fixed
-arguments:
+The mirror function is called =op-function= used for recursively
+participates with this framework. There're two type =op-function=
+i.e. FILE-MIRROR-FUNC and DIR-MIRROR-FUNC, which see below.
 
-1. SRCSUBFILE: the source sub-file abs-path under any nested level of the SRCDIR
+** =op-function= FILE-MIRROR-FUNC
+If FILE-MIRROR-FUNC is customized spec for, its should take flow
+arguments (and respect the order):
+
+1. SRCSUBFILE: the source sub-file abs-path under any nested level of
+   the SRCDIR
 
 2. DESTSUBFILE : the destination sub-file abs-path under any nested
-   level of the DESTDIR.
+   level of the DESTDIR which intends to be mirrored to but finally
+   handled by this function.
 
 3. ATTRIBUTES-PLIST: the =attributes-plist= same as what
    `entropy/emacs-list-dir-subdirs-recursively' given from the current
    nested level of SRCDIR in where the SRCSUBFILE hosted, actually
    this framework use it as the core mapping subroutine.
 
-It should return the new absolute DESTSUBFILE path or will treat as an
-error. If the new DESTSUBFILE is not existed checked by
-`file-exists-p' an error is treated as.
+4. FORCE-USE-SYMBOLIC-LINK-P: t or nil for indicate current
+   SRCSUBFILE can not used to hardlinked to the DEESTSUBFILE.
+
+5. SRCSUBFILE-TYPE: the source sub-file's filesystem-node type
+   =node-type= a list of =node-sub-type= (symbol) whose car is the
+   default =note-sub-type= called =node-core-type= and must be placed
+   in i.e the =node-type= has at least one element and the cdr is
+   called =node-rest-type=. (see *Node Type* section for details)
+
+   + If WITH-CHECK-SYMLINK is non-nil and SRCSUBFILE is an
+     symbolic-link then an =node-sub-type='symlink' is placed in
+     =node-rest-type=.
+
+   + If WITH-CHECK-HARDLINK is non-nil and SRCSUBFILE's inode number
+     larger than 1, then a =node-sub-type= 'hardlink' also placed for as.
+
+
+It should return a plist (the =sub-op-return=) as follow rules:
+
+1. =:op-target-abs-path= : the new absolute DESTSUBFILE path. If the
+   new DESTSUBFILE is not existed which checked by `file-exists-p' an
+   error is treated as, unless the optional key
+   =:without-ensure-target-existed-status= is non-nil (see below).
+
+2. =:without-ensure-target-existed-status= : do not check the existed
+   status of =:op-target-abs-path=.
+
+3. =:op-target-node-type= : a =node-type= to indicate the generated target file type.
+
+4. =:op-symbol= (optional) : the operation indicator, a symbol which is
+   the indicator for identifying this =op-function= itself and if it
+   is not set in which case this framework will fallback to the
+   =defautl-op-symbol= (see the end of this section).
+
+5. =:op-name= (optional) : the operation indicator name of =op-symbol=
+   slot, is a string. If not set, fallback to =default-op-name= (see
+   the end of this section).
+
 
 If optional key USE-SYMBOLIC-LINK is non-nil then the default
-FILE-MIRROR-FUNC use `make-symbolic-link' instead for as. Also
-fallback to this when SRCDFIR and DESTDIR is not in the same
+FILE-MIRROR-FUNC use `make-symbolic-link' instead for as. This
+variable will auto be set when SRCDFIR and DESTDIR is not in the same
 file-system since we can not use hardlink in two different
-file-system. (the USE-SYMBOLIC-LINK key does not affect any of
-the user spec FILE-MIRROR-FUNC and DIR-MIRROR-FUNC).
+file-system. FORCE-USE-SYMBOLIC-LINK-P will be set when
+USE-SYMBOLIC-LINK is non-nil.
 
-If DIR-MIRROR-FUNC is customized spec for, its should take two fixed
-arguments:
+** =op-function= DIR-MIRROR-FUNC
+If DIR-MIRROR-FUNC is customized spec for, its should take follow
+arguments (and respect the order):
 
 1. SRCSUBDIR: the source sub-dir abs-path under any nested level of the SRCDIR
 
 2. DESTSUBDIR : the destination sub-directory abs-path under any
-   nested level of the DESTDIR.
+   nested level of the DESTDIR which intends to be mirrored but
+   finally handled by this function.
 
 3. ATTRIBUTES-PLIST: the =attributes-plist= same as what
    `entropy/emacs-list-dir-subdirs-recursively' given from the current
    nested level of SRCDIR of which the DESTSUBDIF owned, actually this
    framework use it as the core mapping subroutine.
 
-It should return the new absolute DESTSUBDIR path used for
-generating FILE-MIRROR-FUNC's DESTSUBFILE arg or will treat as an
-error. If the new DESTSUBDIR is not existed checked by
-`file-directory-p' an error is treated as.
+4. SRCSUBDIR-TYPE: the source sub-dir's filesystem-node =node-type=.
 
-The DIR-MIRROR-FUNC always called before FILE-MIRROR-FUNC so that be
-careful that you should respect the FILE-MIRRO-FUNC inner processing
-logic when you build your own DIR-MIRRO-FUNC, and thought this notice
-at first level. If an error catched when invoking the DIR-MIRROR-FUNC,
-the current level's FILE-MIRROR-FUNC will not be invoked after all.
+   Its =node-core-type= is 'dir' and it can coexisted with below
+   =node-sub-type=:
 
-Both FILE-MIRROR-FUNC and DIR-MIRROR-FUNC can aslo be an cons of below
-structure:
+   + If WITH-CHECK-SYMLINK is non-nil and SRCSUBDIR is an symbolic
+     link then 'symlink' pushed on its =node-rest-type=.
 
-: (op-symbol . op-function)
+   + If WITH-CHECK-HARDLINK is non-nil and SRCSUBDIR's inode number
+     larger than 1, then a =node-sub-type= 'hardlink' also placed for
+     as.
 
-Where the OP-SYMBOL is the OP-FUNCTION indicator for identifying
-itself used for logging with framework for the return (see section
-*RETURN*).
+
+It should return the an =sub-op-return= as what the FILE-MIRROR-FUNC
+did but with follow mentions:
+
++ The key =:op-target-abs-path= is a new absolute DESTSUBDIR path used
+  for generating FILE-MIRROR-FUNC's DESTSUBFILE arg. If the new
+  DESTSUBDIR is not existed checked by `file-directory-p' an error is
+  treated as, unless optional key
+  =:without-ensure-target-existed-status= is non-nil.
+
++ The DIR-MIRROR-FUNC always called before FILE-MIRROR-FUNC so that be
+  careful that you should respect the FILE-MIRRO-FUNC inner processing
+  logic when you build your own DIR-MIRRO-FUNC, and thought this
+  notice at first level. If an error catched when invoking the
+  DIR-MIRROR-FUNC, the current level's FILE-MIRROR-FUNC will not be
+  invoked after all and so even if it has no error catched but its
+  =sub-op-return= is invalid checked internally.
+
+** =op-function= Other Rules
+
+The =op-function= can aslo be an plist of below structure:
+
+: (:default-op-symbol default-op-symbol :default-op-name default-op-name :op-function op-function)
+
+Where the =default-op-symbol= is an operation symbol like =op-symbol=
+return by the =op-function= and is used for logging with this
+framework's log system (see section *RETURN*) as the default operation
+indicator when =op-symbol= can not getted from the =op-function= such
+as an inner error occurred within it or that is not set. And
+=default-op-name= is its name string and so as dealing with missing
+=op-name= as thus.
 
 If FILE-MIRROR-FUNC and DIR-MIRROR-FUNC both are symbols of functions,
-they are self-identified i.e. the OP-SYMBOL reuse their symbol as is.
+they are also be the =default-op-symbol/name= i.e. the
+DEFAULT-OP-SYMBOL reuse themselves as is and the DEFAULT-OP-NAME is
+auto-generated based on it.
 
-If no =op-symbol= can be found for an mirror function, this framework
-generate anonymous one based on the OPERATION-SYMBOL internally.
+This framework automatically add the missing =default-op-symbol=
+=default-op-name= internally using below algorithm:
 
-*RETURN*
+#+begin_example
+  a0: user spec default op sym
+  a1: user spec default op name
+  Z: user spec OPERATION-SYMBOL
+  A: internal fallback default op sym
+  C(sym): internal default op sym generator
+  D(sym): internal default op name generator
+
+  if a0
+     set a0 = a0
+  elif Z
+     set a0 = C(Z)
+  else
+     set a0 = C(A)
+
+  if a1
+     set a1 = a1
+  else
+     set a1 = D(a0)
+#+end_example
+
+* *Node Type*
+
+The =node-type= commolny has two type =node-core-type=:
+
+1. 'file': node is not a 'dir' type filesystem node.
+2. 'dir':  node is a directory filesystem node which satisfied
+           `file-directory-p'.
+
+Thus for the both 'file' and 'dir' =node-core-type= can be an symbolic
+link can has an 'symlink' subsequent =node-sub-type=.
+
+Further more an and 'file' =node-sub-type= can also be an 'hardlink',
+thus the 'hardlink' is also an =node-sub-type= and it can be coexisted
+with the 'symlink' since an symbolic can also be hardlinked for. Thus,
+an =node-type= can both 'symlink' and 'hardlink' =node-sub-type=.
+
+And that common occasion retrict the =node-type= for one of below five
+types:
+
+#+begin_src emacs-lisp :tangle yes
+  '(file)
+  '(file symlink)
+  '(file hardlink)
+  '(file symlink hardlink) ;; #1
+  '(file hardlink symlink) ;; #2
+  '(dir)
+  '(dir symlink)
+  '(dir hardlink symlink) ;; #3
+  '(dir symlink hardlink) ;; #4
+
+  ;; where we treat #1 and #2 is the same although they has not `equal'
+  ;; but we must ignore the place order since the order of non ==
+
+#+end_src
+
+And we call this type =node-type= is =node-type-common=, these five
+=node-type= collection is called =node-type-common-collection=. And we
+do not allow any =node-type= is not an =node-type-common=.
+
+But with this framwork, we also has an =node-type-userspec= without
+any =node-sub-type= type restriction unless the car of it is a symbol
+':userspec-node-type' and the rest is arbitrary. And
+=node-type-userspec= just can be used as the =op-target-node-type=
+since the SRCSUBFILE and SRCSUBDIR is real file and directory and we
+should use =node-type-common= to describe it in any case.
+
+This framework will check any =node-type= obtaining with above rules
+and throw an error its invalid.
+
+There's also another special =node-type= its permanently a null which
+can be juged by `null' which indicate this =node-type= can not be used
+and should ignore any operation on it which mean we do not throw
+checker error.
+
+* *RETURN*
 
 Return t when succeed for all operations. And always return nil when
-no operations did since SRCDIR has no subfiles or subdirs (i.e. its
-empty) or has fatal operation(s) occurred. And this is the
-=common-return=.
+no operations has been did since SRCDIR has neither subfiles nor
+subdirs (i.e. its empty) or has fatal operation(s) catched. And this
+is the =op-common-return=.
 
-When optional key POP-LOG is non-nil (except when its value is 't' in
-which case return =common-return= either) the return is a
-=rich-return= a cons whose car was the =common-return= and its cdr is
-=subreturn= follow below rules:
+When POP-LOG is non-nil (except when its value is 't' in which case
+return =op-common-return= either but with more operations, see its
+description for details) the return is a =op-rich-return= a cons whose
+car was the =op-common-return= and its cdr is called =op-sub-return=
+detailes by the POP-LOG value described as below list:
 
-1) 't': Popup a log buffer without subreturn.
+1. 't': Popup a log buffer without =op-sub-return=.
 
-2) 'log': subreturn the log list var i.e. the =log-value= a list of
+2. 'log': its =op-sub-return= is the log list var i.e. the =log-value= a list of
    plist of the operation details as key-pairs as:
 
-   * :op-symbol : the operation symbol indicator
-   * :op-name : the operation name indicator (string)
-   * :src-abs-path : the source abs path from which the operation did
-   * :dest-abs-path : the destination abs path to which the operation did
+   1) =:op-symbol=         : the operation symbol indicator and is the =op-symbol= return by
+                             =op-function=.
 
-   * :src-relative-list : the relative path list based on SRCDIR
-     (e.g. =(\"subdir_level_1\" \"subdir_level_1-1\" \"subdir_level_1-2\")=)
-     which can be used by `entropy/emacs-batch-expand-file-name'.
+   2) =:op-name=           : the operation name indicator (string) and is the =op-name=
+                             return by =op-function=.
 
-   * :process-succeed-p : the operation exit status that be t for
-     indicating success and nil for being \"with-fatal or error\".
+   3) =:src-abs-path=      : the source abs path path to the =op-function='s arg SRCSUBFILE or SRCSUBDIR.
 
-   * :error-msg : the error message when =:process-succeed-p= is nil,
-     automatically catched by `condition-case'.
+   4) =:dest-abs-path=     : the destination abs path to which is the =op-funciton='s arg
+                             DESTSUBFILE or DESTSUBDIR.
 
-3) 'log-buffer': subreturn the cons cel of car of the =log-buffer= and
-   cdr of =log-value=.
+   5) =:dest-abs-path-new= : the abs path obtaianed of =sub-op-return='s =op-target-abs-path=. or nil
+                             when it is `entropy/emacs-existed-files-equal-p' the =:dest-abs-path=.
 
-4) 'log-string': subreturn the cons cel of car of the =log-buffer='s
-   substring with its face properties and cdr of =log-value=.
+   6) =:src-node-type=     : obtained by SRCSUBFILE-TYPE when the =op-function= is FILE-MIRROR-FUNC
+                             or SRCSUBDIR-TYPE when the =op-function= is DIR-MIRROR-FUNC.
 
-If the =subreturn= is null, then the =common-return= retured,
-otherwise return the =rich-return=.
+   7) =:dest-node-type=    : the dest node filesystem-node type what opbtained by =sub-op-return='s
+                             =op-target-node-type=.
 
-(Further more: the log buffer(and log string) is fontified for
+   8) =:src-relative-list= : the relative path list based on SRCDIR
+                             (e.g. =(\"subdir_level_1\" \"subdir_level_1-1\" \"subdir_level_1-2\")=)
+                             which can be used by `entropy/emacs-batch-expand-file-name'.
+
+   9) =:process-succeed-p= : the operation exit status that be t for indicating success and nil
+                             for being \"with-fatal or error\", if it is an integer that say the
+                             =op-function= is did successfully but the =sub-op-return= is invalid
+                             as fully or partially.
+
+   10) =:error-msg=        : the error message when =:process-succeed-p= is not t, automatically
+                             catched by `condition-case'.
+
+3. 'log-buffer': its =op-sub-return= is an cons cel of car of the =log-buffer=
+                 and cdr of =log-value=.
+
+4. 'log-string': its =op-sub-return= is an cons cel of car of the =log-buffer='s
+                 substring with its face properties and cdr of =log-value=.
+
+If the =op-sub-return= is null, then the =op-common-return= retured,
+otherwise return the =op-rich-return=.
+
+(Further more: the =log-buffer= (and =log-string=) is fontified for
 human readable format and the buffer is enabled an mode
 `entropy/emacs-do-directory-mirror/log-mode' which follow
-`outline-minor-mode' benefits. So as on use can insert the log
+`outline-minor-mode' benefits. So as on used, user can insert the log
 string into arbitrary `fundamental-mode' buffer and enable that
-mode. And the log is outline formatted based one top header so
-that you can concatenate the log string by multi-times invoke
-this function to gen a multi-operations log summary.)
+mode. And the log is outline formatted based one top header so that
+you can concatenate the log string by multi-times invoke this function
+to generate a multi-operations log summary.)
 
 Sign an error when POP-LOG is not matched valied values.
 
@@ -1538,18 +1722,45 @@ Sign an error when POP-LOG is not matched valied values.
   (let* ((user-file-mirror-func file-mirror-func)
          (user-dir-mirror-func dir-mirror-func)
          use-user-mirror-func-p
+         (f-type-check-func
+          (lambda (x def &optional symcheck-force)
+            (let ((base-type (list def))
+                  (base-fattrs nil))
+              ;; fistly trim the directory-name indicator since we
+              ;; must treat it as a file before checking its type
+              (setq x (entropy/emacs-directory-file-name x))
+              (when (or with-check-symlink symcheck-force)
+                (when (file-symlink-p x)
+                  (push 'symlink base-type)))
+              (when with-check-hardlink
+                (setq base-fattrs
+                      (entropy/emacs-get-file-attributes x))
+                (when (> (plist-get base-fattrs :link-number) 1)
+                  (push 'hardlink base-type)))
+              (reverse base-type))))
          (file-mirror-func
           (lambda (srcf destf &rest _)
             (let (_)
               (if use-symbolic-link
                   (make-symbolic-link srcf destf)
                 (add-name-to-file srcf destf))
-              destf)))
+              (list :op-target-abs-path destf
+                    :without-ensure-target-existed-status nil
+                    :op-target-node-type
+                    (funcall f-type-check-func destf 'file use-symbolic-link)
+                    :op-symbol
+                    (if use-symbolic-link 'symlink 'hardlink)
+                    :op-name
+                    (if use-symbolic-link "SYMLINK" "HARDLINK")))))
          (dir-mirror-func
           (lambda (&rest args)
             (let ((target-dir (nth 1 args)))
               (make-directory target-dir)
-              target-dir)))
+              (list :op-target-abs-path target-dir
+                    :without-ensure-target-existed-status nil
+                    :op-target-node-type '(dir)
+                    :op-symbol 'mkdir
+                    :op-name "MKDIR"))))
          op-type
          op-name
          (op-name-gen-func
@@ -1576,8 +1787,38 @@ Sign an error when POP-LOG is not matched valied values.
          map-func log-buffer-func
          (destdir-ftruename (file-truename (entropy/emacs-directory-file-name destdir)))
          (fcounts 0) (dircounts 0) (fcounts-error 0) (dircounts-error 0)
+
+         (node-type-checker-func
+          (lambda (x)
+            (cond ((ignore-errors (or (eq (car x) :userspec-node-type)
+                                      (null x)))
+                   t)
+                  (t
+                   (let ((def-types '((file)
+                                      (file symlink)
+                                      (file hardlink)
+                                      (file symlink hardlink)
+                                      (file hardlink symlink)
+                                      (dir)
+                                      (dir symlink)
+                                      (dir symlink hardlink)
+                                      (dir hardlink symlink)
+                                      )))
+                     (if (member x def-types)
+                         t
+                       nil))))))
+
+         (sub-op-return-check-func
+          (lambda (x)
+            (let ((op-tnodetype (plist-get x :op-target-node-type)))
+              (catch :exit
+                (unless (funcall node-type-checker-func op-tnodetype)
+                  (throw :exit 0))
+                t))))
+
          (all-is-success-p-func
           (lambda () (and (zerop fcounts-error) (zerop dircounts-error))))
+
          (fatal-or-success-string-get-func
           (lambda ()
             (if (funcall all-is-success-p-func)
@@ -1592,63 +1833,83 @@ Sign an error when POP-LOG is not matched valied values.
           (t
            nil))
 
-    (setq op-type (cond ((and (or user-file-mirror-func user-dir-mirror-func)
+    (dolist (el `((0 . ,user-file-mirror-func)
+                  (1 . ,user-dir-mirror-func)))
+      (let* ((cat-slot-plist-p (entropy/emacs-strict-plistp (cdr el)))
+             (func-as-slot (and cat-slot-plist-p (plist-get (cdr el) :op-function)))
+             (func-as-cdr (ignore-errors (cdr el)))
+             (def-op-sym-as-slot (and cat-slot-plist-p (plist-get el :op-symbol)))
+             (def-op-name-as-slot (and cat-slot-plist-p (plist-get el :op-name)))
+             (fbk-op-sym-file 'unknown-subfile-op)
+             (fbk-op-sym-dir 'unknown-subfile-dir)
+             def-op-sym def-op-name
+             )
+        (setq def-op-sym
+              (or
+               ;; if set, use set
+               (and def-op-sym-as-slot
+                    (symbolp def-op-sym-as-slot)
+                    def-op-sym-as-slot)
+               ;; or if top, fallback to top
+               (and operation-symbol
+                    (symbolp operation-symbol)
+                    (let* ((osstr (symbol-name operation-symbol)))
+                      (cl-case (car el)
+                        (0 (make-symbol (format "%s-file-op" osstr)))
+                        (1 (make-symbol (format "%s-dir-op" osstr))))))
+               ;; or use internall set
+               (cl-case (car el)
+                 (0 fbk-op-sym-file)
+                 (1 fbk-op-sym-dir)))
+              def-op-name
+              (or
+               ;; if set, use set
+               (and def-op-name-as-slot
+                    (symbolp def-op-name-as-slot)
+                    def-op-name-as-slot)
+               ;; or fallback to sym def since we've set it or it's
+               ;; set already.
+               (funcall op-name-gen-func def-op-sym)))
+
+        (cl-case (car el)
+          (0
+           (setq file-op-type def-op-sym
+                 file-op-name def-op-name))
+          (1
+           (setq dir-op-type def-op-sym
+                 dir-op-name def-op-name)))
+
+        (cond
+         ((functionp func-as-cdr)
+          (cl-case (car el)
+            (0 (setq file-mirror-func func-as-cdr))
+            (1 (setq dir-mirror-func func-as-cdr))))
+         ((functionp func-as-slot)
+          (cl-case (car el)
+            (0 (setq file-mirror-func func-as-slot))
+            (1 (setq dir-mirror-func func-as-slot))))
+         (t
+          (cl-case (car el)
+            (0 (setq user-file-mirror-func nil))
+            (1 (setq user-dir-mirror-func nil)))))))
+
+    (setq use-user-mirror-func-p
+          (if (or user-file-mirror-func user-dir-mirror-func)
+              t
+            nil))
+
+    (setq op-type (cond ((and use-user-mirror-func-p
                               operation-symbol
                               (symbolp operation-symbol)
                               operation-symbol)
                          operation-symbol)
-                        ((or user-file-mirror-func user-dir-mirror-func)
+                        (use-user-mirror-func-p
                          'unknow-dir-mirror-op)
                         (t
                          (if use-symbolic-link
                              'eemacs-dir-mirror-symlink
                            'eemacs-dir-mirror-hardlink)))
           op-name (funcall op-name-gen-func op-type))
-
-    (dolist (el `((0 . ,user-file-mirror-func)
-                  (1 . ,user-dir-mirror-func)))
-      (let* ((func-slot (cdr el))
-             (func-as-cdr (ignore-errors (cdr func-slot)))
-             (op-as-car (ignore-errors (car func-slot)))
-             (func-as-full func-slot))
-        (setq op-as-car
-              (or (and op-as-car
-                       (symbolp op-as-car)
-                       op-as-car)
-                  (cl-case (car el)
-                    (0 'unknown-file-op)
-                    (1 'unknown-dir-op))))
-        (cond
-         ((functionp func-as-cdr)
-          (cl-case (car el)
-            (0 (setq file-mirror-func func-as-cdr
-                     file-op-type op-as-car))
-            (1 (setq dir-mirror-func func-as-cdr
-                     dir-op-type op-as-car))))
-         ((functionp func-slot)
-          (cl-case (car el)
-            (0 (setq file-mirror-func func-slot
-                     file-op-type (if (symbolp func-slot) func-slot 'unknown-subfile-mirror-op)))
-            (1 (setq dir-mirror-func func-slot
-                     dir-op-type (if (symbolp func-slot) func-slot 'unknown-subdir-mirror-op)))))
-         ((null func-slot)
-          (cl-case (car el)
-            (0 (setq user-file-mirror-func nil
-                     file-op-type (if use-symbolic-link 'symlink 'hardlink)))
-            (1 (setq user-dir-mirror-func nil
-                     dir-op-type 'mkdir))))
-         (t
-          (error "Wrong type of %s mirror function '%S'!"
-                 (cl-case (car el)
-                   (0 "file")
-                   (1 "dir")))))))
-    (setq file-op-name (funcall op-name-gen-func file-op-type)
-          dir-op-name (funcall op-name-gen-func dir-op-type))
-
-    (setq use-user-mirror-func-p
-          (if (and user-file-mirror-func user-dir-mirror-func)
-              t
-            nil))
 
 
     ;; ---------- map-func instance
@@ -1660,14 +1921,20 @@ Sign an error when POP-LOG is not matched valied values.
                      (dir-rel-path-list
                       (plist-get x :dir-rel-path))
                      (dir-src-abspath (plist-get x :dir-abspath))
+                     (dir-src-abspath-node-type
+                      (funcall f-type-check-func dir-src-abspath 'dir))
                      (dir-dest-abspath
                       (entropy/emacs-batch-expand-file-name
                        dir-rel-path-list destdir))
+                     dir-op-return-attrs
+                     (dir-op-target-node-type nil)
                      dir-dest-abspath-new
                      dir-dest-abspath-old-equal-new-p
+                     dir-dest-apspath-without-check-exist
                      (dir-subfile-names (plist-get x :dir-subfiles-names))
                      (dir-subdir-names (plist-get x :dir-subdirs-names))
-                     (cur-succeed-p t)
+                     (cur-succeed-p nil)
+                     (cur-succeed-type nil)
                      cur-error-msg)
 
                 (when (and dir-is-root-p
@@ -1679,26 +1946,33 @@ Sign an error when POP-LOG is not matched valied values.
                                 srcdir)))
 
                 (when this-should-do
+                  ;; initials the top condition var
+                  (setq cur-succeed-p t)
+
                   ;; Fistly we should check whether the DESTDIR is
                   ;; under the subdirs tree if thus we should abandon
                   ;; to run the mirror process for preventing nesting
                   ;; messy.
-                  (let ((src-dir-truepath (file-truename (entropy/emacs-directory-file-name dir-src-abspath))))
+                  (let ((src-dir-truepath
+                         (entropy/emacs-directory-file-name
+                          (file-truename dir-src-abspath))))
                     (when
                         (entropy/emacs-make-relative-filename
                          destdir-ftruename src-dir-truepath)
-                      (setq cur-succeed-p nil)
+                      (setq cur-succeed-p nil
+                            cur-succeed-type nil)
                       (cl-incf dircounts-error)
                       (setq op-log
                             (append
                              op-log
-                             `((dirmirror
-                                :op-symbol ,dir-op-type
-                                :op-name ,dir-op-name
+                             `((:src-node-type ,dir-src-abspath-node-type
+                                :dest-node-type dir-op-target-node-type
+                                :op-symbol ,(or (plist-get dir-op-return-attrs :op-symbol) dir-op-type)
+                                :op-name ,(or (plist-get dir-op-return-attrs :op-name) dir-op-name)
                                 :src-abs-path ,dir-src-abspath
                                 :dest-abs-path ,dir-dest-abspath
                                 :src-relative-list ,dir-rel-path-list
-                                :process-succeed-p nil
+                                :process-succeed-p ,cur-succeed-type
                                 :error-msg
                                 ,(format "error: prevent nested linkage (%s <-> %s)"
                                          destdir-ftruename src-dir-truepath)))))))
@@ -1706,110 +1980,152 @@ Sign an error when POP-LOG is not matched valied values.
                   (when cur-succeed-p
                     (condition-case error-type
                         (progn
-                          (setq dir-dest-abspath-new
+                          (setq dir-op-return-attrs
                                 (apply dir-mirror-func (list dir-src-abspath dir-dest-abspath x))
+                                dir-dest-abspath-new
+                                (plist-get dir-op-return-attrs :op-target-abs-path)
+                                dir-dest-apspath-without-check-exist
+                                (plist-get dir-op-return-attrs :without-ensure-target-existed-status)
+                                dir-op-target-node-type
+                                (plist-get dir-op-return-attrs :op-target-node-type)
                                 dir-dest-abspath-old-equal-new-p
                                 (ignore-errors
-                                  (string=
+                                  (entropy/emacs-existed-files-equal-p
                                    dir-dest-abspath dir-dest-abspath-new)))
+                          ;; check target node manuipulation status
                           (if dir-is-root-p
                               (unless dir-dest-abspath-old-equal-new-p
-                                (error "The new dest <%s> is invalid that it must be as the origin one <%s> at the first mirror turn."
+                                (error "The new dest <%s> is invalid that it must be \
+as the origin one <%s> at the first mirror turn."
                                        dir-dest-abspath-new dir-dest-abspath))
-                            (if (and (stringp dir-dest-abspath-new)
-                                     (not (string-empty-p dir-dest-abspath-new)))
-                                (cond (dir-dest-abspath-old-equal-new-p
-                                       (unless (file-directory-p dir-dest-abspath)
-                                         (error "The dest dir path %s is not existed"
-                                                dir-dest-abspath-new)))
-                                      ((not (file-directory-p dir-dest-abspath-new))
-                                       (error "The new dest dir path %s is not existed"
-                                              dir-dest-abspath-new))
-                                      ((not (entropy/emacs-make-relative-filename
-                                             dir-dest-abspath-new
-                                             destdir))
-                                       (error "The new dest dir %s is not under the top dest host %s"
-                                              dir-dest-abspath-new destdir)))
-                              (error "The new dest path %s is invalid"
-                                     dir-dest-abspath-new)))
-                          (setq cur-succeed-p t
-                                dircounts (1+ dircounts)))
+                            (unless dir-dest-apspath-without-check-exist
+                              (if (and (stringp dir-dest-abspath-new)
+                                       (not (string-empty-p dir-dest-abspath-new)))
+                                  (cond (dir-dest-abspath-old-equal-new-p
+                                         (unless (file-directory-p dir-dest-abspath)
+                                           (error "The dest dir path %s is not existed"
+                                                  dir-dest-abspath-new)))
+                                        ((not (file-directory-p dir-dest-abspath-new))
+                                         (error "The new dest dir path %s is not existed"
+                                                dir-dest-abspath-new))
+                                        ((not (entropy/emacs-make-relative-filename
+                                               dir-dest-abspath-new
+                                               destdir))
+                                         (error "The new dest dir %s is not under the top dest host %s"
+                                                dir-dest-abspath-new destdir)))
+                                (error "The new dest path %s is invalid"
+                                       dir-dest-abspath-new))))
+                          ;; check =sub-op-return='s validation
+                          (setq cur-succeed-type (funcall sub-op-return-check-func dir-op-return-attrs))
+                          (setq cur-succeed-p
+                                (if (eq cur-succeed-type t)
+                                    t
+                                  nil))
+                          (cl-incf dircounts))
                       (error
-                       (setq cur-succeed-p nil)
+                       (setq cur-succeed-p nil
+                             cur-succeed-type nil)
                        (cl-incf dircounts-error)
                        (setq cur-error-msg (format "%S" error-type))))
-                    (setq op-log (append op-log
-                                         `((dirmirror
-                                            :op-symbol ,dir-op-type
-                                            :op-name ,dir-op-name
-                                            :src-abs-path  ,dir-src-abspath
-                                            :dest-abs-path ,dir-dest-abspath
-                                            :dest-abs-path-new ,(and dir-dest-abspath-new
-                                                                 (not dir-dest-abspath-old-equal-new-p)
-                                                                 dir-dest-abspath-new)
-                                            :src-relative-list ,dir-rel-path-list
-                                            :process-succeed-p ,cur-succeed-p
-                                            :error-msg ,cur-error-msg)))))
+                    (setq
+                     op-log
+                     (append
+                      op-log
+                      `((:src-node-type ,dir-src-abspath-node-type
+                         :dest-node-type ,dir-op-target-node-type
+                         :op-symbol ,(or (plist-get dir-op-return-attrs :op-symbol) dir-op-type)
+                         :op-name ,(or (plist-get dir-op-return-attrs :op-name) dir-op-name)
+                         :src-abs-path  ,dir-src-abspath
+                         :dest-abs-path ,dir-dest-abspath
+                         :dest-abs-path-new ,(and dir-dest-abspath-new
+                                                  (not dir-dest-abspath-old-equal-new-p)
+                                                  dir-dest-abspath-new)
+                         :src-relative-list ,dir-rel-path-list
+                         :process-succeed-p ,cur-succeed-type
+                         :error-msg ,cur-error-msg)))))
 
                   ;; do the file mirror just when dir mirror successfully
                   (when (and cur-succeed-p dir-subfile-names)
                     (dolist (el dir-subfile-names)
-                      (let ((srcfname (expand-file-name
-                                       el
-                                       dir-src-abspath))
-                            (destfname (expand-file-name
+                      (let* ((srcfname (expand-file-name
                                         el
-                                        dir-dest-abspath-new))
-                            destfname-new
-                            destfname-old-eq-new)
+                                        dir-src-abspath))
+                             (srcfname-node-type (funcall f-type-check-func srcfname 'file))
+                             (destfname (expand-file-name
+                                         el
+                                         dir-dest-abspath-new))
+                             file-op-return-attrs
+                             (file-op-target-node-type nil)
+                             destfname-new
+                             destfname-new-without-check-exist
+                             destfname-old-eq-new)
                         (condition-case error-type
                             (progn
-                              (setq destfname-new
+                              (setq file-op-return-attrs
                                     (apply file-mirror-func (list srcfname destfname x))
+                                    destfname-new
+                                    (plist-get file-op-return-attrs :op-target-abs-path)
+                                    destfname-new-without-check-exist
+                                    (plist-get file-op-return-attrs :without-ensure-target-existed-status)
+                                    file-op-target-node-type
+                                    (plist-get file-op-return-attrs :op-target-node-type)
                                     destfname-old-eq-new
                                     (ignore-errors
-                                      (string=
+                                      (entropy/emacs-existed-files-equal-p
                                        destfname destfname-new)))
-                              (cond (destfname-old-eq-new
-                                     (unless (file-exists-p destfname)
+
+                              ;; check the target node manupulation status
+                              (unless destfname-new-without-check-exist
+                                (cond (destfname-old-eq-new
+                                       (unless (file-exists-p destfname)
+                                         (if use-symbolic-link
+                                             (if (file-attributes destfname-new)
+                                                 (error "the dest file symbolic %s is broken" destfname)
+                                               (error "the dest file symbolic %s is not existed" destfname))
+                                           (error "The dest file name %s is not created in filesystem!"
+                                                  destfname))))
+                                      ((not (and (stringp destfname-new)
+                                                 (not (string-empty-p destfname-new))))
+                                       (error "The new dest file name %s is invalid"
+                                              destfname-new))
+                                      ((not (file-exists-p destfname-new))
                                        (if use-symbolic-link
                                            (if (file-attributes destfname-new)
-                                               (error "the dest file symbolic %s is broken" destfname)
-                                             (error "the dest file symbolic %s is not existed" destfname))
-                                         (error "The dest file name %s is not created in filesystem!"
-                                                destfname))))
-                                    ((not (and (stringp destfname-new)
-                                               (not (string-empty-p destfname-new))))
-                                     (error "The new dest file name %s is invalid"
-                                            destfname-new))
-                                    ((not (file-exists-p destfname-new))
-                                     (if use-symbolic-link
-                                         (if (file-attributes destfname-new)
-                                             (error "the new dest file symbolic %s is broken" destfname-new)
-                                           (error "the new dest file symbolic %s is not existed" destfname-new))
-                                       (error "The new dest file name %s is not created in filesystem!"
-                                              destfname-new))))
-                              (setq cur-succeed-p t
-                                    fcounts (1+ fcounts)))
+                                               (error "the new dest file symbolic %s is broken" destfname-new)
+                                             (error "the new dest file symbolic %s is not existed" destfname-new))
+                                         (error "The new dest file name %s is not created in filesystem!"
+                                                destfname-new)))))
+
+                              ;; check the =sub-op-return='s validation
+                              (setq cur-succeed-type (funcall sub-op-return-check-func dir-op-return-attrs))
+                              (setq cur-succeed-p
+                                    (if (eq cur-succeed-type t)
+                                        t
+                                      nil))
+                              (cl-incf fcounts))
                           (error
                            (setq cur-succeed-p nil)
                            (cl-incf fcounts-error)
                            (setq cur-error-msg (format "%S" error-type))))
-                        (setq op-log
-                              (append op-log `((filemirror
-                                                :op-symbol ,file-op-type
-                                                :op-name ,file-op-name
-                                                :src-abs-path ,srcfname
-                                                :dest-abs-path ,destfname
-                                                :dest-abs-path-new ,(and destfname-new
-                                                                     (not destfname-old-eq-new)
-                                                                     destfname-new)
-                                                :src-relative-list
-                                                ,(append dir-rel-path-list
-                                                         (list el))
-                                                :process-succeed-p ,cur-succeed-p
-                                                :error-msg ,cur-error-msg)))
-                              ))))))
+                        (setq
+                         op-log
+                         (append
+                          op-log
+                          `((:src-node-type ,srcfname-node-type
+                             :dest-node-type ,file-op-target-node-type
+                             :op-symbol ,(or (plist-get file-op-return-attrs :op-symbol) file-op-type)
+                             :op-name ,(or (plist-get file-op-return-attrs :op-name) file-op-name)
+                             :src-abs-path ,srcfname
+                             :dest-abs-path ,destfname
+                             :dest-abs-path-new ,(and destfname-new
+                                                      (not destfname-old-eq-new)
+                                                      destfname-new)
+                             :src-relative-list
+                             ,(append dir-rel-path-list
+                                      (list el))
+                             :process-succeed-p ,cur-succeed-type
+                             :error-msg ,cur-error-msg)))
+                         ))))))
 
               ;; do not inject to user spec attrs since we donot use it.
               nil)))
@@ -1844,10 +2160,11 @@ Sign an error when POP-LOG is not matched valied values.
                        (funcall fatal-or-success-string-get-func)
                        op-log-summary-msg))
               (insert "------------------------------------------------------------\n")
-              (let (op
-                    op-attrs
+              (let (op-attrs
                     insop-sym
                     insop-name
+                    src-node-type
+                    dest-node-type
                     src-path
                     dest-path
                     dest-path-new
@@ -1859,9 +2176,14 @@ Sign an error when POP-LOG is not matched valied values.
                      (lambda (x success-face fatal-face)
                        (insert (concat
                                 (propertize "** " 'face 'org-level-2)
-                                (if did-success
-                                    (propertize "SUCCESS " 'face 'success)
-                                  (propertize "FATAL   " 'face 'error))
+                                (cond
+                                 ((eq did-success t)
+                                  (propertize "SUCCESS " 'face 'success))
+                                 ((integerp did-success)
+                                  (propertize "WARNING " 'face 'warning))
+                                 (t
+                                  (propertize "FATAL   " 'face 'error)))
+
                                 (propertize x 'face (if did-success success-face fatal-face))
                                 ": "
                                 (if path-rellist
@@ -1874,6 +2196,11 @@ Sign an error when POP-LOG is not matched valied values.
                                          "\n:OPERATION-NAME:"
                                          'face 'org-special-keyword)
                                         insop-name)
+                                (format "%s %s"
+                                        (propertize
+                                         "\n:SOURCE-NODE-TYPE:"
+                                         'face 'org-special-keyword)
+                                        src-node-type)
                                 (format "%s %s"
                                         (propertize
                                          "\n:SOURCE-ABSOLUTE-PATH:"
@@ -1891,6 +2218,11 @@ Sign an error when POP-LOG is not matched valied values.
                                              'face 'org-special-keyword)
                                             dest-path-new)
                                   "")
+                                (format "%s %s"
+                                        (propertize
+                                         "\n:DESTINATION-NODE-TYPE:"
+                                         'face 'org-special-keyword)
+                                        dest-node-type)
                                 (if did-error-msg
                                     (format "%s %s"
                                             (propertize
@@ -1901,10 +2233,11 @@ Sign an error when POP-LOG is not matched valied values.
                                 (propertize "\n:END:" 'face 'org-drawer)
                                 "\n")))))
                 (dolist (item op-log)
-                  (setq op-attrs (cdr item)
-                        op (car item)
+                  (setq op-attrs item
                         insop-sym (plist-get op-attrs :op-symbol)
                         insop-name (plist-get op-attrs :op-name)
+                        src-node-type (plist-get op-attrs :src-node-type)
+                        dest-node-type (plist-get op-attrs :dest-node-type)
                         src-path (plist-get op-attrs :src-abs-path)
                         dest-path (plist-get op-attrs :dest-abs-path)
                         dest-path-new (plist-get op-attrs :dest-abs-path-new)
@@ -1912,10 +2245,13 @@ Sign an error when POP-LOG is not matched valied values.
                         did-success (plist-get op-attrs :process-succeed-p)
                         did-error-msg (plist-get op-attrs :error-msg))
                   (cond
-                   ((eq op 'dirmirror)
+                   ((eq (car src-node-type) 'dir)
                     (funcall subitem-insert-func "DIRMIRROR " 'nobreak-hyphen 'error))
-                   ((eq op 'filemirror)
-                    (funcall subitem-insert-func "FILEMIRROR" 'success 'error)))))
+                   ((eq (car src-node-type) 'file)
+                    (funcall subitem-insert-func "FILEMIRROR" 'success 'error))
+                   (t
+                    (error "[entropy/emacs-do-directory-mirror]: iternal error (wrong type of src-node-type %s)"
+                           src-node-type)))))
 
               (unless use-log-temp-buffer
                 (setq buffer-read-only t))
@@ -1968,9 +2304,6 @@ Sign an error when POP-LOG is not matched valied values.
     ;; ---------- at the end, we return the =common-return=/=rich-return=
     (if op-log
         (progn
-          ;; trim the internal used fake op car
-          (setq op-log
-                (mapcar 'cdr op-log))
           (cond ((or (not pop-log) (eq pop-log t))
                  (funcall all-is-success-p-func))
                 (use-log-string
