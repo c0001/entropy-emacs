@@ -1135,10 +1135,19 @@ in current `dired' buffer. Use symbolic link type defautly unless
                             (append log-string-list
                                     (list log-string)))))))))
            )
-      (when (entropy/emacs-make-relative-filename
-             host-target base-dir-abs-path)
-        (user-error "Target host '%s' is under current dired directory!"
-                    host-target base-dir-abs-path))
+      ;; Firstly we must check the target host is not under any marked
+      ;; directories to ensure no unlimited mirror.
+      (let (_)
+        (dolist (el nodes)
+          (when (and
+                 (file-directory-p el)
+                 (entropy/emacs-make-relative-filename
+                  host-target el))
+            (user-error "Target host '%s' is under current dired directory's '%s' subdir!"
+                        host-target
+                        (file-name-nondirectory
+                         (entropy/emacs-directory-file-name
+                          el))))))
       (when nodes
         (dolist (node nodes)
           (setq node (expand-file-name node))
