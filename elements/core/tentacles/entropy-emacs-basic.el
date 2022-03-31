@@ -1156,7 +1156,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
                      node file-target
                      :use-symbolic-link (not use-hardlink)
                      :no-error-when-srcdir-is-empty-p t
-                     :pop-log 'log-string))
+                     :pop-log 'log-string-with-trim-title-style))
                    (mirror-log-var (cddr mirror-log))
                    (mirror-log-string (cadr mirror-log)))
               (when mirror-log-var

@@ -1680,20 +1680,24 @@ detailes by the POP-LOG value described as below list:
 3. 'log-buffer': its =op-sub-return= is an cons cel of car of the =log-buffer=
                  and cdr of =log-value=.
 
+                 The =log-buffer= is fontified for human readable
+                 format and the buffer is enabled an mode
+                 `entropy/emacs-do-directory-mirror/log-mode' which follow
+                 `outline-minor-mode' benefits. So as on used, user can insert the
+                 log string into arbitrary `fundamental-mode' buffer and enable that
+                 mode. And the log is outline formatted based one top header so that
+                 you can concatenate the log string by multi-times invoke this
+                 function to generate a multi-operations log summary.
+
 4. 'log-string': its =op-sub-return= is an cons cel of car of the =log-buffer='s
                  substring with its face properties and cdr of =log-value=.
 
+                 It has an sub type 'log-string-with-trim-title-style'
+                 which trim the title (the top head) as its children head style.
+
+
 If the =op-sub-return= is null, then the =op-common-return= retured,
 otherwise return the =op-rich-return=.
-
-(Further more: the =log-buffer= (and =log-string=) is fontified for
-human readable format and the buffer is enabled an mode
-`entropy/emacs-do-directory-mirror/log-mode' which follow
-`outline-minor-mode' benefits. So as on used, user can insert the log
-string into arbitrary `fundamental-mode' buffer and enable that
-mode. And the log is outline formatted based one top header so that
-you can concatenate the log string by multi-times invoke this function
-to generate a multi-operations log summary.)
 
 Sign an error when POP-LOG is not matched valied values.
 
@@ -1792,7 +1796,7 @@ Sign an error when POP-LOG is not matched valied values.
          op-log-substr
          use-symbolic-link-reason-msg
          (use-log-buffer (member pop-log '(t log-buffer)))
-         (use-log-string (eq pop-log 'log-string))
+         (use-log-string (member pop-log '(log-string log-string-with-trim-title-style)))
          (use-log-temp-buffer use-log-string)
          (use-log-value (eq pop-log 'log))
          (need-pop-log-buffer (eq pop-log t))
@@ -2150,28 +2154,54 @@ as the origin one <%s> at the first mirror turn."
             (with-current-buffer log-buff
               (unless use-log-string
                 (entropy/emacs-do-directory-mirror/log-mode))
-              (insert
-               (format "%s Do mirror using OP [%s] for dir '%s'\nto\n'%s' %s.\n(%s)\n"
-                       (propertize "*" 'face 'org-level-1)
-                       ;; op indicator
-                       (cond
-                        (use-user-mirror-func-p
-                         (propertize op-name 'face 'success))
-                        (t
-                         (if use-symbolic-link
-                             (if use-symbolic-link-reason-msg
-                                 (concat (propertize op-name 'face 'success)
-                                         "("
-                                         (propertize use-symbolic-link-reason-msg
-                                                     'face 'warning)
-                                         ")")
-                               (propertize op-name 'face 'success))
-                           (propertize op-name 'face 'warning))))
-                       ;; rest
-                       srcdir destdir
-                       (funcall fatal-or-success-string-get-func)
-                       op-log-summary-msg))
-              (insert "------------------------------------------------------------\n")
+              ;; insert top headline
+              (let ((headop-opname-str
+                     (cond
+                      (use-user-mirror-func-p
+                       (propertize op-name 'face 'success))
+                      (t
+                       (if use-symbolic-link
+                           (if use-symbolic-link-reason-msg
+                               (concat (propertize op-name 'face 'success)
+                                       "("
+                                       (propertize use-symbolic-link-reason-msg
+                                                   'face 'warning)
+                                       ")")
+                             (propertize op-name 'face 'success))
+                         (propertize op-name 'face 'warning)))))
+                    (headop-success-str (funcall fatal-or-success-string-get-func)))
+                (cond
+                 ((eq pop-log 'log-string-with-trim-title-style)
+                  (insert
+                   (concat
+                    ;; The simple header
+                    (propertize "* " 'face 'org-level-1)
+                    (format "%-8s" headop-success-str)
+                    (propertize "DIRMIRROR" 'face
+                                (if (funcall all-is-success-p-func)
+                                    'success 'error))
+                    ": "
+                    (file-name-nondirectory
+                     (entropy/emacs-directory-file-name srcdir))
+                    ;; op indicator
+                    "\nUsing operation type: "
+                    headop-opname-str
+                    "\n"
+                    ;; Summary
+                    (format "'%s' to '%s'\n(Summary: %s)"
+                            srcdir destdir op-log-summary-msg)
+                    "\n")))
+                 (t
+                  (insert
+                   (format "%s Do mirror using OP [%s] for dir '%s'\nto\n'%s' %s.\n(%s)\n\n"
+                           (propertize "*" 'face 'org-level-1)
+                           ;; op indicator
+                           headop-opname-str
+                           ;; rest
+                           srcdir destdir
+                           headop-success-str
+                           op-log-summary-msg)))))
+              ;; insert sub-headers
               (let (op-attrs
                     insop-sym
                     insop-name
