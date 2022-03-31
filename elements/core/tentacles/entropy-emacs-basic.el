@@ -1152,11 +1152,26 @@ in current `dired' buffer. Use symbolic link type defautly unless
            ((file-directory-p node)
             (funcall node-msg-func 'dir node file-target)
             (let* ((mirror-log
-                    (entropy/emacs-do-directory-mirror
-                     node file-target
-                     :use-symbolic-link (not use-hardlink)
-                     :no-error-when-srcdir-is-empty-p t
-                     :pop-log 'log-string-with-trim-title-style))
+                    ;; we also need to trace the native error for
+                    ;; `entropy/emacs-do-directory-mirror'.
+                    (condition-case error-type
+                        (entropy/emacs-do-directory-mirror
+                         node file-target
+                         :use-symbolic-link (not use-hardlink)
+                         :no-error-when-srcdir-is-empty-p t
+                         :pop-log 'log-string-with-trim-title-style)
+                      (error
+                       (funcall log-append-func
+                                (funcall log-get-func
+                                         op-type
+                                         node '(dir)
+                                         file-target
+                                         nil
+                                         (format "%S" error-type))
+                                nil)
+                       ;; must return nil since we should ignore
+                       ;; next procedure in this condition context
+                       nil)))
                    (mirror-log-var (cddr mirror-log))
                    (mirror-log-string (cadr mirror-log)))
               (when mirror-log-var
