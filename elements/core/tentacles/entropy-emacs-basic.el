@@ -275,6 +275,9 @@ place can be easily found by other interactive command."
         :enable t :map-inject t :exit t)
        ("C" dired-do-copy "Copy all marked (or next ARG) files, or copy the current file"
         :enable t :map-inject t :exit t)
+       ("M" entropy/emacs-dired-do-hard-or-symbolic-links-union-processor
+        "Mirror(symlink/hardlink) all marked files, or mirror the current file"
+        :enable t :map-inject t :exit t)
        ("L" dired-do-load "Load the marked (or next ARG) Emacs Lisp files"
         :enable t :map-inject t :exit t)
        ("Z" dired-do-compress "Compress or uncompress marked (or next ARG) files"
@@ -923,6 +926,284 @@ fallbackk to 1."
           (pop-to-buffer buffer)))
       (unless did-items
         (user-error "[Error]: can not found any nodes can be print its tree!"))))
+
+;; ******* Dired do hardlinks (can be used for directory as well) or symbolic links
+
+  (defvar-local entropy/emacs-basic--dired-do-hard-or-symbolic-link-log-list nil)
+
+  (defun entropy/emacs-basic--dired-do-hard-or-symbolic-link-prompt
+      (op-type files-list)
+    "A alternative `dired-mark-pop-up' for
+`entropy/emacs-dired-do-hard-or-symbolic-links-union-processor'
+predicating files with prompting and throw an error for quit when
+user refuse the prompts."
+    (let ((op-name
+           (cond
+            ((eq op-type 'hardlink)
+             "Hardlink")
+            ((eq op-type 'symlink)
+             "Symbolic-link")
+            (t
+             (error "wrong type of op-type: %s"
+                    op-name)))))
+      (if (dired-mark-pop-up
+           (format " *eemacs dired do %s to*" op-name)
+           (cond
+            ((eq op-type 'hardlink)
+             'hardlink)
+            ((eq op-type 'symbolic-link)
+             'symlink))
+           files-list
+           'yes-or-no-p
+           (format "Do eemacs files mirror %s %s "
+                   op-name
+                   (dired-mark-prompt nil files-list)))
+          t
+        (error "Cancel %s files!"
+               op-name))))
+
+  (defun entropy/emacs-dired-do-hard-or-symbolic-links-union-processor
+      (use-hardlink)
+    "Do files mirror using (symlink/hardlink) powered by
+`entropy/emacs-do-directory-mirror' for `dired-get-marked-files'
+in current `dired' buffer. Use symbolic link type defautly unless
+`current-prefix-arg' is non-nil."
+    (interactive "P")
+    (unless (eq major-mode 'dired-mode)
+      (user-error "Not in dired buffer"))
+    (setq entropy/emacs-basic--dired-do-hard-or-symbolic-link-log-list nil)
+    (let* ((op-type (if use-hardlink 'hardlink 'symlink))
+           (base-dir-abs-path (expand-file-name default-directory))
+           (nodes (let ((dfiles (dired-get-marked-files)))
+                    (unless dfiles
+                      (user-error "No files get from this dired buffer!"))
+                    (or (and (entropy/emacs-basic--dired-do-hard-or-symbolic-link-prompt
+                              op-type dfiles)
+                             dfiles)
+                        (user-error "Operation cancled"))))
+           (host-target (read-file-name "Choose target host: "
+                                   nil nil t nil 'file-directory-p))
+           (file-target nil)
+           (log-success-files 0)
+           (log-success-dirs 0)
+           (log-fatal-files 0)
+           (log-fatal-dirs 0)
+           (log-buffer (generate-new-buffer
+                        (format "*eemacs-dired-do-hardlink-<%s>*"
+                                default-directory)))
+           log-string-list
+           ;; functions
+           (node-msg-func
+            (lambda (ftype src dest)
+              (message "Do %s for %s type from '%s' to '%s' ..."
+                       op-type ftype src dest)))
+           (summary-msg-func
+            (lambda ()
+              (message "(%s/%s) dir created/failed, (%s/%s) files did/failed for %s operation"
+                       (+ log-success-dirs
+                          log-fatal-dirs)
+                       log-fatal-dirs
+                       (+ log-success-files
+                          log-fatal-files)
+                       log-fatal-files
+                       op-type)))
+           (node-type-get-func
+            (lambda (x def &optional symcheck-force)
+              (let ((base-type (list def))
+                    (base-fattrs nil))
+                ;; fistly trim the directory-name indicator since we
+                ;; must treat it as a file before checking its type
+                (setq x (entropy/emacs-directory-file-name x))
+                (when (file-symlink-p x)
+                  (push 'symlink base-type))
+                (setq base-fattrs
+                      (entropy/emacs-get-file-attributes x))
+                (when (> (plist-get base-fattrs :link-number) 1)
+                  (push 'hardlink base-type))
+                (reverse base-type))))
+           (log-append-func
+            (lambda (x group-log-p)
+              (if group-log-p
+                  (setq entropy/emacs-basic--dired-do-hard-or-symbolic-link-log-list
+                        (append
+                         entropy/emacs-basic--dired-do-hard-or-symbolic-link-log-list
+                         x))
+                (setq entropy/emacs-basic--dired-do-hard-or-symbolic-link-log-list
+                      (append
+                       entropy/emacs-basic--dired-do-hard-or-symbolic-link-log-list
+                       (list x))))))
+           (log-get-func
+            (lambda (op-type src-abs-path src-abs-path-node-type
+                     dest-abs-path success error-msg)
+              (let ((op-name
+                     (with-temp-buffer
+                       (insert (format "%s" op-type))
+                       (upcase-region (point-min) (point-max))
+                       (buffer-substring-no-properties
+                        (point-min) (point-max))))
+                    (dest-abs-path-node-type
+                     (when success
+                       (funcall node-type-get-func
+                                dest-abs-path
+                                (car src-abs-path-node-type)))))
+                (list
+                 :op-symbol op-type
+                 :op-name op-name
+                 :src-abs-path src-abs-path
+                 :src-node-type src-abs-path-node-type
+                 :dest-abs-path dest-abs-path
+                 :dest-node-type dest-abs-path-node-type
+                 :process-succeed-p success
+                 :error-msg error-msg
+                 :log-string
+                 (concat
+                  (format "* %s %s: %s \n"
+                          (cond
+                           ((eq success t)
+                            (propertize "SUCCESS " 'face 'success))
+                           ((integerp success)
+                            (propertize "WARNING " 'face 'warning))
+                           (t
+                            (propertize "FATAL   " 'face 'error)))
+                          (if (eq (car src-abs-path-node-type) 'dir)
+                              (propertize
+                               "DIRMIRROR "
+                               'face
+                               (if (eq success t) 'nobreak-hyphen 'error))
+                            (propertize
+                             "FILEMIRROR"
+                             'face (if (eq success t) 'success 'error)))
+                          (entropy/emacs-make-relative-filename
+                           src-abs-path
+                           base-dir-abs-path))
+                  (propertize ":PROPERTIES:" 'face 'org-drawer)
+                  (format "%s %s"
+                          (propertize
+                           "\n:OPERATION-NAME:"
+                           'face 'org-special-keyword)
+                          op-name)
+                  (format "%s %s"
+                          (propertize
+                           "\n:SOURCE-ABSOLUTE-PATH:"
+                           'face 'org-special-keyword)
+                          src-abs-path)
+                  (format "%s %s"
+                          (propertize
+                           "\n:SOURCE-NODE-TYPE:"
+                           'face 'org-special-keyword)
+                          src-abs-path-node-type)
+                  (format "%s %s"
+                          (propertize
+                           "\n:DESTINATION-ABSOLUTE-PATH:"
+                           'face 'org-special-keyword)
+                          dest-abs-path)
+                  (format "%s %s"
+                          (propertize
+                           "\n:DESTINATION-NODE-TYPE:"
+                           'face 'org-special-keyword)
+                          dest-abs-path-node-type)
+                  (if error-msg
+                      (format "%s %s"
+                              (propertize
+                               "\n:ERROR-MESSAGE:"
+                               'face 'org-special-keyword)
+                              (propertize error-msg 'face 'error))
+                    "")
+                  (propertize "\n:END:" 'face 'org-drawer)
+                  )))))
+           (log-filter-func
+            (lambda ()
+              (when entropy/emacs-basic--dired-do-hard-or-symbolic-link-log-list
+                (dolist (el entropy/emacs-basic--dired-do-hard-or-symbolic-link-log-list)
+                  (let ((ftype (car (plist-get el :src-node-type)))
+                        (success (plist-get el :process-succeed-p))
+                        (log-string (plist-get el :log-string)))
+                    ;; iterator increasement
+                    (cond
+                     ((eq ftype 'file)
+                      (if (eq success t)
+                          (cl-incf log-success-files)
+                        (cl-incf log-fatal-files)))
+                     ((eq ftype 'dir)
+                      (if (eq success t)
+                          (cl-incf log-success-dirs)
+                        (cl-incf log-fatal-dirs)))
+                     (t
+                      (error "[eemacs-dired-do-hardlink] internal error")))
+                    (when log-string
+                      (setq log-string-list
+                            (append log-string-list
+                                    (list log-string)))))))))
+           )
+      (when (entropy/emacs-make-relative-filename
+             host-target base-dir-abs-path)
+        (user-error "Target host '%s' is under current dired directory!"
+                    host-target base-dir-abs-path))
+      (when nodes
+        (dolist (node nodes)
+          (setq node (expand-file-name node))
+          (setq file-target
+                (expand-file-name
+                 (file-name-nondirectory
+                  (directory-file-name
+                   node))
+                 host-target))
+          (cond
+           ((file-directory-p node)
+            (funcall node-msg-func 'dir node file-target)
+            (let* ((mirror-log
+                    (entropy/emacs-do-directory-mirror
+                     node file-target
+                     :use-symbolic-link (not use-hardlink)
+                     :no-error-when-srcdir-is-empty-p t
+                     :pop-log 'log-string))
+                   (mirror-log-var (cddr mirror-log))
+                   (mirror-log-string (cadr mirror-log)))
+              (when mirror-log-var
+                (funcall log-append-func
+                         mirror-log-var
+                         t))
+              (when mirror-log-string
+                (setq log-string-list
+                      (append log-string-list
+                              (list mirror-log-string))))))
+           ((entropy/emacs-file-exists-p node)
+            (let ((srcnodetype (funcall node-type-get-func node 'file)))
+              (funcall node-msg-func 'file node file-target)
+              (condition-case error-type
+                  (progn
+                    (if use-hardlink
+                        (add-name-to-file node file-target)
+                      (make-symbolic-link node file-target))
+                    (funcall log-append-func
+                             (funcall log-get-func
+                                      op-type
+                                      node srcnodetype
+                                      file-target
+                                      t
+                                      nil)
+                             nil))
+                (error
+                 (funcall log-append-func
+                          (funcall log-get-func
+                                   op-type
+                                   node srcnodetype
+                                   file-target
+                                   nil
+                                   (format "%S" error-type))
+                          nil)))))))
+        (funcall log-filter-func)
+        (funcall summary-msg-func)
+        (when log-string-list
+          (with-current-buffer log-buffer
+            (let ((inhibit-read-only t))
+              (mapc (lambda (x)
+                      (insert x)
+                      (insert "\n"))
+                    log-string-list))
+            (entropy/emacs-do-directory-mirror/log-mode)
+            (setq buffer-read-only t)
+            (pop-to-buffer log-buffer))))))
 
 ;; ******* Dired auto revert after some operations
 
