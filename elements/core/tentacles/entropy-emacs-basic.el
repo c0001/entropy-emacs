@@ -1060,11 +1060,11 @@ in current `dired' buffer. Use symbolic link type defautly unless
                   (format "* %s %s: %s \n"
                           (cond
                            ((eq success t)
-                            (propertize "SUCCESS " 'face 'success))
+                            (propertize "SUCCESS" 'face 'success))
                            ((integerp success)
-                            (propertize "WARNING " 'face 'warning))
+                            (propertize "WARNING" 'face 'warning))
                            (t
-                            (propertize "FATAL   " 'face 'error)))
+                            (propertize "FATAL  " 'face 'error)))
                           (if (eq (car src-abs-path-node-type) 'dir)
                               (propertize
                                "DIRMIRROR "
