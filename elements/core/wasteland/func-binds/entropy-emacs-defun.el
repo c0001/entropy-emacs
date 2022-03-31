@@ -1379,7 +1379,7 @@ And full keymap as:
             operation-symbol
             use-symbolic-link
             pop-log
-            no-error-when-srdir-is-empty-p)
+            no-error-when-srcdir-is-empty-p)
   "Do directory mirror from SRCDIR to DESTDIR with =op-function= that
 using default FILE-MIRROR-FUNC whose subroutine is `add-name-to-file'
 for its subfiles and default DIRECORY-MIRROR-FUNC whose subroutine is
@@ -1389,7 +1389,7 @@ If SRDIR is not existed, sign an error. If DESETDIR is existed sign an
 error since we treat DESTDIR as the same hierachy as SRCDIR.
 
 Sign an error when SRCDIR is empty (i.e neither files nor dirs are
-found under it) unless optional key NO-ERROR-WHEN-SRDIR-IS-EMPTY-P is
+found under it) unless optional key NO-ERROR-WHEN-SRCDIR-IS-EMPTY-P is
 non-nil.
 
 If DESTDIR is under SRCDIR, sign a error since it will make unlimited
@@ -1941,7 +1941,7 @@ Sign an error when POP-LOG is not matched valied values.
                            (not dir-subfile-names)
                            (not dir-subdir-names))
                   (setq this-should-do nil)
-                  (when (not no-error-when-srdir-is-empty-p)
+                  (when (not no-error-when-srcdir-is-empty-p)
                     (user-error "SRCDIR '%s' is empty!"
                                 srcdir)))
 
