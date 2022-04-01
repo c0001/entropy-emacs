@@ -2177,7 +2177,7 @@ as the origin one <%s> at the first mirror turn."
                     ;; The simple header
                     (propertize "* " 'face 'org-level-1)
                     (format "%-8s" headop-success-str)
-                    (propertize "DIRMIRROR" 'face
+                    (propertize "DIRMIRROR " 'face
                                 (if (funcall all-is-success-p-func)
                                     'success 'error))
                     ": "
