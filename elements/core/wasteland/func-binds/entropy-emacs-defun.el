@@ -414,7 +414,7 @@ throw out an error."
       (while (and (not (null (nth pt rest)))
                   (not (and
                         (symbolp (nth pt rest))
-                        (string-match "^:" (symbol-name (nth pt rest))))))
+                        (string-match-p "^:" (symbol-name (nth pt rest))))))
         (push (nth pt rest) rtn)
         (cl-incf pt))
       (unless (null rtn)
