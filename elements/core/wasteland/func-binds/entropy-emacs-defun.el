@@ -331,7 +331,7 @@ after place must be key as well, thus the 'strict' meaning."
 (defun entropy/emacs-common-plistp (arg)
   "Common plist true-p checker
 
-The strict plist structed as key-value pairs appended list, the
+The common plist structed as key-value pairs appended list, the
 car of it was key, each key was a symbol must using the ':xx'
 type. Each key's value can be omitted thus the 'common' meaning."
   (cond
@@ -354,19 +354,21 @@ type. Each key's value can be omitted thus the 'common' meaning."
                 (append indicator '(0)))))
       (catch :exit
         (while (< pos (length indicator))
-          (when (= (nth pos indicator) 1)
-            (let ((-pos (+ 1 pos))
-                  (seq-num 0))
-              (while (and (< -pos (length indicator))
-                          (= (nth -pos indicator) 0))
-                (setq seq-num (+ 1 seq-num)
-                      -pos (+ 1 -pos)))
-              (when (> seq-num 1)
-                (setq fake-p t)
-                (throw :exit nil))
-              (if (> -pos (- (- (length indicator) 1) 1))
-                  (throw :exit nil)
-                (setq pos -pos))))))
+          (if (= (nth pos indicator) 1)
+              (let ((-pos (+ 1 pos))
+                    (seq-num 0))
+                (while (and (< -pos (length indicator))
+                            (= (nth -pos indicator) 0))
+                  (setq seq-num (+ 1 seq-num)
+                        -pos (+ 1 -pos)))
+                (when (> seq-num 1)
+                  (setq fake-p t)
+                  (throw :exit nil))
+                (if (> -pos (- (- (length indicator) 1) 1))
+                    (throw :exit nil)
+                  (setq pos -pos)))
+            (setq fake-p t)
+            (throw :exit nil))))
       (if fake-p
           nil
         t)))
