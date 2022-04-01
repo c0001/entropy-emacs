@@ -1857,7 +1857,7 @@ Sign an error when POP-LOG is not matched valied values.
              (def-op-sym-as-slot (and cat-slot-plist-p (plist-get el :op-symbol)))
              (def-op-name-as-slot (and cat-slot-plist-p (plist-get el :op-name)))
              (fbk-op-sym-file 'unknown-subfile-op)
-             (fbk-op-sym-dir 'unknown-subfile-dir)
+             (fbk-op-sym-dir 'unknown-subdir-op)
              def-op-sym def-op-name
              )
         (setq def-op-sym
