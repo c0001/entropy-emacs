@@ -988,6 +988,10 @@ in current `dired' buffer. Use symbolic link type defautly unless
            (log-success-dirs 0)
            (log-fatal-files 0)
            (log-fatal-dirs 0)
+           (log-allop-success-p-func
+            (lambda ()
+              (and (= 0 log-fatal-files)
+                   (= 0 log-fatal-dirs))))
            (log-buffer (generate-new-buffer
                         (format "*eemacs-dired-do-hardlink-<%s>*"
                                 default-directory)))
@@ -999,7 +1003,10 @@ in current `dired' buffer. Use symbolic link type defautly unless
                        op-type ftype src dest)))
            (summary-msg-func
             (lambda ()
-              (message "(%s/%s) dir created/failed, (%s/%s) files did/failed for %s operation"
+              (message "%s (%s/%s) dir created/failed, (%s/%s) files did/failed for %s operation"
+                       (if (funcall log-allop-success-p-func)
+                           (propertize "SUCCESS" 'face 'success)
+                         (propertize "ERROR" 'face 'error))
                        (+ log-success-dirs
                           log-fatal-dirs)
                        log-fatal-dirs
@@ -1057,7 +1064,8 @@ in current `dired' buffer. Use symbolic link type defautly unless
                  :error-msg error-msg
                  :log-string
                  (concat
-                  (format "* %s %s: %s \n"
+                  (format "%s %s %s: %s \n"
+                          (propertize "*" 'face 'org-level-1)
                           (cond
                            ((eq success t)
                             (propertize "SUCCESS" 'face 'success))

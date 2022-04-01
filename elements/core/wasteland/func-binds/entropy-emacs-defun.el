@@ -2179,7 +2179,7 @@ as the origin one <%s> at the first mirror turn."
                     (format "%-8s" headop-success-str)
                     (propertize "DIRMIRROR " 'face
                                 (if (funcall all-is-success-p-func)
-                                    'success 'error))
+                                    'nobreak-hyphen 'error))
                     ": "
                     (file-name-nondirectory
                      (entropy/emacs-directory-file-name srcdir))
