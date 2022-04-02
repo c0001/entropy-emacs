@@ -504,6 +504,131 @@ To get the real-body in BODY.
             (setq it (cddr it))
           (throw 'break it))))))
 
+(defun entropy/emacs-generalized-plist-get
+    (plist top-place prop &optional testfn)
+  "Like `plist-get' but return a cons as car of value get from
+PLIST using PROP and cdr is a =eemacs-generalized-plist-get-form=
+which can be used for `setf' i.e. a PLACE-FORM which can be
+evaluted to return the value as `plist-get' did.
+
+Always return nil when the prop not valid in plist or its slot is
+omitted i.e. the prop has no value stored in.
+
+TOP-PLACE is a symbol or a =eemacs-generalized-plist-get-form=
+where is the PLIST evaluated from.
+
+Example:
+
+#+begin_src emacs-lisp
+  (setq plist-var '(:a 1 :b 2 :c :d 4 :e nil :f))
+
+  (entropy/emacs-generalized-plist-get
+   plist-var 'plist-var :b)
+  ;; => (2 . (car (cdr (cdr (cdr plist-var)))))
+
+  (entropy/emacs-generalized-plist-get
+   plist-var 'plist-var :e)
+  ;; => (nil . (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr plist-var))))))))))
+
+  (entropy/emacs-generalized-plist-get
+   plist-var 'plist-var :c)
+  ;; => (:d . (car (cdr (cdr (cdr (cdr (cdr plist-var)))))))
+
+  (entropy/emacs-generalized-plist-get
+   plist-var 'plist-var :f)
+  ;; => nil
+
+  (entropy/emacs-generalized-plist-get
+   plist-var 'plist-var :invalid-prop)
+  ;; => nil
+#+end_src
+
+Optional argument TESTFN is set using it as the PROP query
+predicate, default is `eq'.
+"
+  (when plist
+    (let ((pos 0)
+          (mcp nil)
+          (testfn (or testfn 'eq)))
+      (setq mcp
+            (catch :exit
+              (dolist (el plist)
+                (when (funcall testfn el prop)
+                  (throw :exit t))
+                (cl-incf pos))
+              nil))
+      (if (and mcp (< (1+ pos) (length plist)))
+          (let ((cnt 0)
+                (formrtn nil))
+            (while (<= cnt pos)
+              (setq formrtn
+                    (if formrtn
+                        `(cdr ,formrtn)
+                      `(cdr ,top-place)))
+              (cl-incf cnt))
+            (cons
+             (plist-get plist prop)
+             `(car ,formrtn)))
+        nil))))
+
+(defun entropy/emacs-generalized-plist-get-batch-mode
+    (plist top-place props &optional testfn)
+  "The batch-mode for `entropy/emacs-generalized-plist-get' where
+PROPS is a list of PROP mapping to PLIST, thus:
+
+#+begin_src emacs-lisp
+  (setq plist-var '(:a 1 :b (:a 1 :b 2 :c 3) :c 3))
+
+  (entropy/emacs-generalized-plist-get-batch-mode
+   plist-var 'plist-var '(:b :b))
+  ;; => (2 . (car (cdr (cdr (cdr (car (cdr (cdr (cdr plist-var)))))))))
+#+end_src
+
+Always return nil when any mapping level's form generated failed
+or PROPS is `null'. Otherwise return as same as
+`entropy/emacs-generalized-plist-get'.
+"
+  (let (formrtn
+        macp
+        (cur_top_place top-place)
+        (cur_plist plist)
+        cur_log
+        cur_form
+        cur_value
+        cur_prop)
+    (cond
+     (props
+      (setq macp
+            (catch :exit
+              (while props
+                (setq cur_prop (pop props))
+                (setq cur_log
+                      (entropy/emacs-generalized-plist-get
+                       cur_plist cur_top_place cur_prop testfn)
+                      cur_value (car cur_log)
+                      cur_form (cdr cur_log))
+                (if cur_form
+                    (progn
+                      (setq cur_plist cur_value
+                            cur_top_place cur_form))
+                  (throw :exit nil)))
+              t))
+      (when macp
+        (cons cur_value cur_form)))
+     (t
+      nil))))
+
+(defun entropy/emacs-setf-plist (eemacs-generalized-plist-get-form value)
+  "Apply `setf' to a =eemacs-generalized-plist-get-form=
+EEMACS-GENERALIZED-PLIST-GET-FORM with VALUE.
+
+See `entropy/emacs-generalized-plist-get' and
+`entropy/emacs-generalized-plist-get-batch-mode' for details."
+  (when eemacs-generalized-plist-get-form
+    (eval
+     `(setf ,(cdr eemacs-generalized-plist-get-form)
+            ',value))))
+
 ;; *** String manipulation
 
 (defun entropy/emacs-map-string-match-p (str matches)
