@@ -927,12 +927,12 @@ the DIR-ROOT."
              remain--parent-subdir-nth-for-current
              remain--prev-rel-path)
   "List directory TOP-DIR's sub-dirctorys recursively, return a
-=dir-spec=, whose car was a path for one dirctory and the cdr was
-a list of =dir-spec= or nil if no sub-dir under it. The structure
-of return is ordered by `string-lessp'.
+=dir-spec=, whose car was a path for one dirctory i.e. a =node-name=
+and the cdr was a list of =dir-spec= or nil if no sub-dir under
+it. The structure of return is ordered by `string-lessp'.
 
-If optional arg NOT-ABS is non-nil then each node is relative to
-the corresponding root dir.
+If optional arg NOT-ABS is non-nil then each =node-name= is relative
+to the corresponding parent path.
 
 If optional key WITH-LEVEL is non-nil and it should be an integer to
 indicate the recursively listing level for the TOP-DIR and should
@@ -940,11 +940,11 @@ larger or equal than 1. This is as the well known linux command 'tree'
 does.
 
 If optional key WITH-FILTER is specifeid, its a function which take
-three arguments, i.e. 'type' (the node type) and the node absolute
-path who is one of the subfile or subdir of the mapping dir and its
-node name (i.e. filename wihtout directory components). The function
-must return nil if the node need be listed and non-nil for filtering
-out.
+three arguments, i.e. a file 'type' (the car of each element of the
+return of `entropy/emacs-list-dir-lite') and the absolute path who is
+one of the subfile or subdir of the mapping dir and its name
+(i.e. filename wihtout directory components). The function must return
+nil if the node need be listed and non-nil for filtering out.
 
 There're some inner supported filter func can be used as WITH-FILTER
 when set as:
@@ -982,7 +982,8 @@ generate current =dir-spec='s subdirs =dir-spec=.
 The MAP-FUNC also be invoked while the recursive mapping returned from
 the current =dir-spec='s subdir or just after the end of cuarrent node
 dealing procedure while no subdirs found for current =dir-spec=, in
-which case its optional arg =END-CALL-P= will be set.
+which case its optional arg END-CALL-P will be set, and we called this
+operation =map-func-end-call=.
 
 Thus the MAP-FUNC's formula is:
 #+begin_src elisp
@@ -1035,6 +1036,18 @@ We involved the DIR-PARENT-ATTRS is for user to chasing the mapping
 status from TOP-DIR to the current =dir-spec='s dir so that the
 MAP-FUNC can be view more details thus on.
 
+If the DIR-USER-ATTRS is an plist (which predicated by
+`entropy/emacs-strict-plistp'), there're special key are meaningful
+for this framwork:
+
+- =:should-not-operate-map-func-end-call= : if set, the operation
+  =map-func-end-call= is not be invoked.
+
+- =:should-not-operate-subdirs=: if set, we will not mapping to the
+  subdirs of current =dir-spec='s node path or terminated the rest
+  subdirs mapping when this value has been changed by the current
+  subdir mapping operation (see section *Fallback Modification*)
+
 NOTE:
 
 The keys:
@@ -1045,7 +1058,20 @@ REMAIN--PREV-REL-PATH,
 REMAIN--PARENT-SUBDIR-NTH-FOR-CURRENT,
 REMAIN--PARENT-ATTRSARE
 
-Are used internally, do not use it in any way."
+Are used internally, do not use it in any way.
+
+*Fallback Modification*:
+
+Since the top-level =attributes-plist= is accessed by any subdirs
+mapping procedure, so as on recursively, thus any level mapping
+procedure can modify it by side-effects which called
+=fallback-modification=, this can be did by value get using
+`entropy/emacs-generalized-plist-get-batch-mode' and value set using
+`entropy/emacs-setf-plist'.
+
+But we strongly just modify the DIR-USER-ATTRS, since any non user
+spec slot modification may corrupt the parents rest operations.
+"
   (when with-level
     (when (< with-level 1)
       (user-error "[entropy/emacs-list-dir-subdirs-recursively]: \
@@ -1126,6 +1152,20 @@ wrong type of :with-filter '%s'" with-filter)))
          this-rel-path
          default-attrs
          user-spec-attrs
+         (should-run-map-func-for-endcall-judge-func
+          (lambda ()
+            (not
+             (and
+              (entropy/emacs-strict-plistp user-spec-attrs)
+              (plist-get user-spec-attrs
+                         :should-not-operate-map-func-end-call)))))
+         (should-operate-subdirs-judge-func
+          (lambda ()
+            (not
+             (and
+              (entropy/emacs-strict-plistp user-spec-attrs)
+              (plist-get user-spec-attrs
+                         :should-not-operate-subdirs)))))
          rtn)
     (catch :exit
       (setq this-dirname
@@ -1177,8 +1217,10 @@ wrong type of :with-filter '%s'" with-filter)))
                   (cons proper-top-dir default-attrs))
           (setq this-node-car proper-top-dir)))
       (push this-node-car rtn)
+      ;; run map func end call if no subdirs
       (unless subdirs
-        (when map-func
+        (when (and map-func
+                   (funcall should-run-map-func-for-endcall-judge-func))
           (funcall map-func default-attrs 'end-call-p))
         (throw :exit nil))
       ;; map with this node's subdirs restricted by level ristriction
@@ -1189,24 +1231,31 @@ wrong type of :with-filter '%s'" with-filter)))
               (expand-of (when not-abs
                            this-root))
               )
-          (dolist (sub-dir subdirs)
-            (push
-             (entropy/emacs-list-dir-subdirs-recursively
-              sub-dir not-abs
-              :with-attributes with-attributes
-              :with-level with-level
-              :with-filter with-filter
-              :map-func map-func
-              :remain--not-calling-at-root use-level
-              :remain--top-dir-expand-of expand-of
-              :remain--prev-rel-path this-rel-path
-              :remain--parent-subdir-nth-for-current parenth
-              :remain--parent-attrs default-attrs
-              )
-             rtn)
-            (cl-incf parenth))))
-      (when map-func
+          (catch :exit-map-subdirs
+            (dolist (sub-dir subdirs)
+              (push
+               (entropy/emacs-list-dir-subdirs-recursively
+                sub-dir not-abs
+                :with-attributes with-attributes
+                :with-level with-level
+                :with-filter with-filter
+                :map-func map-func
+                :remain--not-calling-at-root use-level
+                :remain--top-dir-expand-of expand-of
+                :remain--prev-rel-path this-rel-path
+                :remain--parent-subdir-nth-for-current parenth
+                :remain--parent-attrs default-attrs
+                )
+               rtn)
+              (cl-incf parenth)
+              (unless (funcall should-operate-subdirs-judge-func)
+                (throw :exit-map-subdirs t))))))
+      ;; run map func end call
+      (when (and map-func
+                 (funcall should-run-map-func-for-endcall-judge-func))
         (funcall map-func default-attrs 'end-call-p)))
+
+    ;; return
     (reverse rtn)))
 
 (defun entropy/emacs-list-dir-subdirs-recursively/filter/ignore-hidden
