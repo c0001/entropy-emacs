@@ -1502,7 +1502,11 @@ BRANCH-STR '%s' is too long!" brs))
                  (t
                   (if dir-is-root-p
                       (insert (format "%s (%s)\n" dir-name-inst dir-abs-path-inst))
-                    (insert (format "%s%s\n" dir-indent-inst dir-name-inst))))))))
+                    (insert (format "%s%s\n" dir-indent-inst dir-name-inst)))))
+
+                ;; we should return the null user spec attrs since we do not need it
+                nil
+                )))
 
       (with-current-buffer buffer
         (entropy/emacs-list-dir-subdirs-recursively
@@ -2109,7 +2113,8 @@ Sign an error when POP-LOG is not matched valied values.
     (setq map-func
           (lambda (x &optional calling-end-p)
             (unless calling-end-p
-              (let* ((dir-is-root-p (plist-get x :dir-is-root-p))
+              (let* ((this-map-userspec-attrs nil)
+                     (dir-is-root-p (plist-get x :dir-is-root-p))
                      (this-should-do t)
                      (dir-rel-path-list
                       (plist-get x :dir-rel-path))
@@ -2154,6 +2159,15 @@ Sign an error when POP-LOG is not matched valied values.
                          destdir-ftruename src-dir-truepath)
                       (setq cur-succeed-p nil
                             cur-succeed-type nil)
+                      ;; notificate
+                      ;; `entropy/emacs-list-dir-subdirs-recursively'
+                      ;; to inhibit rest mapping operation
+                      (setq this-map-userspec-attrs
+                            (plist-put this-map-userspec-attrs
+                                       :should-not-operate-subdirs t))
+                      (setq this-map-userspec-attrs
+                            (plist-put this-map-userspec-attrs
+                                       :should-not-operate-map-func-end-call t))
                       (cl-incf dircounts-error)
                       (setq op-log
                             (append
@@ -2318,10 +2332,11 @@ as the origin one <%s> at the first mirror turn."
                                       (list el))
                              :process-succeed-p ,cur-succeed-type
                              :error-msg ,cur-error-msg)))
-                         ))))))
+                         )))))
 
-              ;; do not inject to user spec attrs since we donot use it.
-              nil)))
+                ;; return the map spec attrs
+                this-map-userspec-attrs
+                ))))
 
     ;; ---------- log-buffer-func instance
     (setq log-buffer-func
