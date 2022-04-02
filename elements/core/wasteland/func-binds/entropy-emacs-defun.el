@@ -1224,7 +1224,8 @@ wrong type of :with-filter '%s'" with-filter)))
           (funcall map-func default-attrs 'end-call-p))
         (throw :exit nil))
       ;; map with this node's subdirs restricted by level ristriction
-      (when subdirs
+      (when (and subdirs
+                 (funcall should-operate-subdirs-judge-func))
         (let ((parenth 0)
               (use-level
                (1+ this-level))
