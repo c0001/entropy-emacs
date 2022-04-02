@@ -1007,11 +1007,9 @@ in current `dired' buffer. Use symbolic link type defautly unless
                        (if (funcall log-allop-success-p-func)
                            (propertize "SUCCESS" 'face 'success)
                          (propertize "ERROR" 'face 'error))
-                       (+ log-success-dirs
-                          log-fatal-dirs)
+                       log-success-dirs
                        log-fatal-dirs
-                       (+ log-success-files
-                          log-fatal-files)
+                       log-success-files
                        log-fatal-files
                        op-type)))
            (node-type-get-func
