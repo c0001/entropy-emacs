@@ -223,7 +223,11 @@ place can be easily found by other interactive command."
         :exit t)
        ("S" hydra-dired-quick-sort/body "Sort dired with hydra dispatch"
         :enable (not sys/win32p) :map-inject t :exit t)
-       ("M-<up>" dired-up-directory "Up directory"
+       ("M-<up>" entropy/emacs-dired-Meta-up "Go/move point to parent dired-buffer/dir-node"
+        :enable t
+        :map-inject t
+        :exit t)
+       ("M-<down>" entropy/emacs-dired-Meta-down "Go/move point to next upgrade sibling dired-buffer/dir-node"
         :enable t
         :map-inject t
         :exit t)
@@ -481,6 +485,97 @@ modifcation is to remove this feature.
                   #'__ya/dired-mark-pop-up)
 
 ;; ****** Eemacs spec `dired' commands
+;; ******* Dired sibling directory navigation dwim
+
+  (defun entropy/emacs-dired-Meta-up ()
+    "Goto parent `dired' buffer of `dired-current-directory' or goto
+the parent subtree sibling using `dired-sutree-up'."
+    (interactive)
+    (let ((in-dired-subtree-p
+           (and (fboundp 'dired-subtree--get-ov)
+                (dired-subtree--get-ov))))
+      (cond
+       (in-dired-subtree-p
+        (dired-subtree-up))
+       (t
+        (dired-up-directory)))))
+
+  (defun entropy/emacs-dired-Meta-down ()
+    "Downup to parent next sibling `dired' buffer of
+`dired-current-directory' or goto the next upgrade level 1
+subtree sibling using `dired-subtree''s subroutine."
+    (interactive)
+    (let ((in-dired-subtree-p
+           (and (fboundp 'dired-subtree--get-ov)
+                (dired-subtree--get-ov)))
+          orig-pt)
+      (cond
+       (in-dired-subtree-p
+        (goto-char (overlay-end in-dired-subtree-p))
+        (dired-move-to-filename))
+       (t
+        (dired-up-directory)
+        (setq orig-pt (point))
+        (unless
+            (catch :exit
+              (while (and (= 0 (forward-line 1))
+                          (not (eobp)))
+                (when (and
+                       ;; We've replaced `file-directory-p' with the
+                       ;; regexp test to speed up filters over TRAMP.
+                       ;; So long as dired/ls format doesn't change,
+                       ;; we're good.  'd' for directories, 'l' for
+                       ;; potential symlinks to directories.
+                       (looking-at "..[dl]")
+                       (file-directory-p (dired-get-filename)))
+                  (dired-find-file)
+                  (throw :exit t)))
+              nil)
+          (goto-char orig-pt)
+          (user-error "No more subdirectories for dired host <%s>"
+                      (dired-current-directory)))
+        ))))
+
+;; ******* Yet another `narrow-to-region' to suite for `dired'
+
+  (defun entropy/emacs-dired-narrow-to-region ()
+    "Like `narrow-to-region' but with `dired' specfications and
+adapting thus and just enable when `region-active-p' is
+predicated."
+    (interactive)
+    (when (region-active-p)
+      (let ((regbeg (region-beginning))
+            (regend (region-end)))
+        (deactivate-mark)
+        (when (save-excursion (goto-char regend)
+                              (= 1 (line-number-at-pos nil t)))
+          (user-error "Region just includ top line of current dired-buffer!"))
+        (cond
+         (
+          ;; when at the top of buffer line, we should escase all
+          ;; title matching for convention.
+          (and (not (buffer-narrowed-p))
+               (= (line-number-at-pos) 1))
+          (setq regbeg (line-end-position)))
+         (t
+          ;; defaulty we should take the region begin at the previous
+          ;; line end point thus the region can include all text
+          ;; properties of current-line.
+          (unless (eq (progn (goto-char regbeg) (line-beginning-position))
+                      regbeg)
+            (setq regbeg (line-end-position 0)))))
+        ;; for the region end is like for the default case of region
+        ;; beg but using reversed thoughts.
+        (setq regend
+              (progn (goto-char regend)
+                     (if (= regend (line-beginning-position))
+                         regend
+                       (forward-line 1)
+                       (point))))
+        (narrow-to-region regbeg regend))))
+  (define-key dired-mode-map [remap narrow-to-region]
+    #'entropy/emacs-dired-narrow-to-region)
+
 ;; ******* Delete directory with force actions
 
   (defvar entropy/basic--dired-recursive-delete-prompt-buffer-name
@@ -1415,151 +1510,212 @@ TODO:
       "Org-mode like cycle visibilitya"
       :enable t :map-inject t :exit t))))
   :config
-;; ***** patch `dired-up-directory'
+;; ***** patch core libs
+  ;; TODO: add patch libs here if need
+;; ***** patch `dired-subtree-up'
 
-  (defun entropy/emacs-basic--dired-subtree-advice-for-dired-up-directory
-      (orig-func &rest orig-args)
-    "Move point to the parent node of current node in dired
-buffer without buffer content refreshing.
+  ;; EEMACS_MAINTENANCE: follow upstream updates
+  (defun __ya/dired-subtree-up (&optional arg)
+    "Like `dired-subtree-up' but fix bug when current subtree's
+parent is at the first node in curren dired buffer which
+`dired-previous-line' jump out the `invisible-p' target place as
+its description:
 
-NOTE:
+#+begin_quote
+We never want to move point into an invisible line.
+#+end_quote
 
-This function is a around advice for function `dired-up-directory'."
-    (let ((current-node (ignore-errors (dired-get-filename)))
-          cur-node-parent)
-      (setq cur-node-parent
-            (ignore-errors
-              (file-name-directory
-               (entropy/emacs-directory-file-name current-node))))
-      (if (or (null current-node)
-              (entropy/emacs-existed-files-equal-p default-directory cur-node-parent))
-          (if (and
-               (save-excursion
-                 (forward-line 0)
-                 (let ((line-str (buffer-substring (point) (progn (end-of-line) (point)))))
-                   (if (string-empty-p line-str)
-                       t
-                     nil)))
-               (and (bound-and-true-p dired-subtree-overlays)
-                    (catch :exit
-                      (dolist (ov dired-subtree-overlays)
-                        (let ((ov-beg (overlay-start ov))
-                              (ov-end (overlay-end ov)))
-                          (when (and
-                                 ov-beg ov-end  ;; prevent from null overlay instance
-                                 (and (<= (point) ov-end)
-                                      (>= (point) ov-beg)))
-                            (throw :exit t)))))))
-              ;; if current point in the subree overlay but not at an dired node
-              (progn (forward-line -1) (dired-move-to-filename))
-            ;; Apply orig func filtered by checking whether the up-dir exist?
-            (let* ((dir (dired-current-directory))
-                   (up (file-name-directory (entropy/emacs-directory-file-name dir))))
-              (if (file-directory-p up)
-                  (apply orig-func orig-args)
-                ;; kill other dired buffer as is or as subtree of thus dir
-                (let ((asoc-ups (dired-buffers-for-dir up)))
-                  (message "Up dir '%s' is not exsit, Abort!" up)
-                  (dolist (buff asoc-ups)
-                    (kill-buffer buff))))))
-        (let* ((search-node
-                (file-name-nondirectory
-                 (entropy/emacs-directory-file-name cur-node-parent))))
-          (while (not (entropy/emacs-existed-files-equal-p (dired-get-filename) cur-node-parent))
-            (re-search-backward
-             (regexp-quote search-node)
-             nil t))))))
-
-  (advice-add 'dired-up-directory
-              :around
-              #'entropy/emacs-basic--dired-subtree-advice-for-dired-up-directory)
+So jumping from the first node's subtree will visually at the top of
+the buffer.
+"
+    (interactive "p")
+    (-when-let (ov (dired-subtree--get-ov))
+      (goto-char (overlay-start ov))
+      (if (and
+           ;; we must using absolute line number to exclude the
+           ;; narrow case since its not suit for that case.
+           (not (buffer-narrowed-p))
+           (=
+            (line-number-at-pos
+             (save-excursion (forward-line -1) (point)))
+            3))
+          (progn (forward-line -1) (dired-move-to-filename))
+        (dired-previous-line 1))))
+  (advice-add 'dired-subtree-up
+              :override
+              #'__ya/dired-subtree-up)
 
 ;; ***** patch `dired-subtree--readin'
 
+  (defun entropy/emacs-basic--dired-subtree-readin-core
+      (buffer dirpath dired-actual-switches)
+    "Use `dired-insert-directory' to list DIRPATH's directory list to
+BUFFER with list switch DIRED-ACTUAL-SWITCHES which names to
+suggest using `dired-actual-switches' to do thus since `dired'
+finally use it internally for draw the list and we should obey it
+as consistency thought."
+    (let* ((inhibit-read-only t))
+      (with-current-buffer buffer
+        ;; insert dir list
+        (dired-insert-directory
+         dirpath
+         (or dired-actual-switches (error "empty `dired-actual-switches'")))
+        ;; remove invisble properties since we should let it be raw output
+        (remove-text-properties (point-min) (point-max) '(invisible))
+        ;; Pruning the dir list of '.' and '..'
+        (save-excursion
+          (let ((this-func
+                 (lambda ()
+                   (let* ((inhibit-point-motion-hooks t)
+                          (inhibit-field-text-motion t)
+                          lnendpt
+                          fname-beg
+                          fname)
+                     (setq lnendpt (line-end-position))
+                     (setq fname-beg (save-excursion
+                                       (dired-move-to-filename)))
+                     (when (integerp fname-beg)
+                       (setq fname (buffer-substring-no-properties fname-beg lnendpt))
+                       (when (or (string= fname ".")
+                                 (string= fname ".."))
+                         (forward-line 0)
+                         (delete-region (point) (1+ lnendpt))
+                         t))))))
+            (goto-char (point-min))
+            ;; remove the details title
+            (unless (dired-move-to-filename)
+              (goto-char (point-min))
+              (delete-region (point) (1+ (line-end-position))))
+            (while (not (eobp))
+              (unless (funcall this-func)
+                (forward-line 1))
+              (funcall this-func))
+            ;; remove eob's blank line
+            (goto-char (point-max))
+            (when (looking-at "^$")
+              ;; ignore error when buffer is empty now
+              (ignore-errors
+                (delete-char -1)))))
+        ;; Add leading space using for `dired-subtree--dired-line-is-directory-or-link-p'
+        (let ((this-func
+               (lambda ()
+                 (let ((cur-spc-len 0))
+                   (when (looking-at "\\( *\\)")
+                     (setq cur-spc-len
+                           (length (match-string 1))))
+                   (insert (make-string
+                            (max (- 2 cur-spc-len) 0)
+                            ?\ ))))))
+          (goto-char (point-min))
+          (funcall this-func)
+          (while (= (forward-line 1) 0)
+            (funcall this-func))
+          (delete-char -2)))))
+
   (defun entropy/emacs-basic--dired-subtree-readin-around-advice
-      (orig-func &rest orig-args)
-    "Around advice for `dired-subtree--readin' to put the
+      (&rest orig-args)
+    "Override advice for `dired-subtree--readin' to put the
 'dired-filename' text property to the filename correctly.
 
 That origin function just listing the directory files with
 verbatim style which doesn't has ability to distinguish some
 filename start with space char, this is buggly that if thus,
-`dired' will using basically `dired-move-to-filename' to get the
-beginning of the filename position which will prompt a warning
-that show that filename wasn't exsited any more."
-    (let* ((readin (apply orig-func orig-args))
-           (dirname (car orig-args))
-           fname-ps-list
-           rtn
-           (at-start t)
-           (inhibit-read-only t))
-      (if (string-empty-p readin)
-          readin
-        (with-temp-buffer
-          (insert readin)
-
-          ;; Pruning the dir list of '.' and '..'
-          ;;
-          ;; EEMACS_MAINTENANCE: some times the function
-          ;; `insert-directory' doesn't list the '.' '..' at top of
-          ;; the buffer, this need to investigating
-          (save-excursion
-            (goto-char (point-min))
-            (let (this-func)
-              (setq this-func
-                    (lambda ()
-                      (let ((fname-beg (save-excursion (dired-move-to-filename)))
-                            (fname-end (save-excursion (end-of-line) (point)))
-                            (kill-whole-line t))
-                        (when (integerp fname-beg)
-                          (when (or (string= (buffer-substring-no-properties fname-beg fname-end)
-                                             ".")
-                                    (string= (buffer-substring-no-properties fname-beg fname-end)
-                                             ".."))
-                            (forward-line 0)
-                            (kill-line)
-                            (funcall this-func))))))
-              (funcall this-func)
-              (while (= 0 (forward-line))
-                (funcall this-func))
-              ;; remove eob's blank line
-              (goto-char (point-max))
-              (when (looking-at "^$")
-                ;; ignore error when buffer is empty now
-                (ignore-errors
-                  (delete-char -1)))))
-
-          (goto-char (point-min))
-          (while (or at-start (= (forward-line) 0))
-            (setq at-start nil)
-            (let* ((fname-beg (save-excursion (dired-move-to-filename) (point)))
-                   (fname-end (save-excursion (end-of-line) (point)))
-                   (line-beg (save-excursion (forward-line 0) (point)))
-                   (fname-end1 fname-end)
-                   fname)
-              (setq fname (buffer-substring-no-properties fname-beg fname-end))
-              (while (and
-                      (not (file-exists-p (expand-file-name fname dirname)))
-                      (or (> fname-beg line-beg)
-                          (error "Fatal read current filename correctly in subtree routine")))
-                (while (and
-                        (> fname-end1 fname-beg)
-                        (not (file-exists-p (expand-file-name fname dirname))))
-                  (setq fname (buffer-substring-no-properties fname-beg fname-end1))
-                  (unless (file-exists-p (expand-file-name fname dirname))
-                    (setq fname-end1 (1- fname-end1))))
-                (if (file-exists-p (expand-file-name fname dirname))
-                    (setq fname-end fname-end1)
-                  (setq fname-beg (1- fname-beg)
-                        fname-end1 fname-end)))
-              (push (cons fname-beg fname-end) fname-ps-list)))
-          (dolist (item fname-ps-list)
-            (put-text-property (car item) (cdr item) 'dired-filename t))
-          (setq rtn (buffer-substring (point-min) (point-max)))
-          rtn))))
+`dired' will using `dired-move-to-filename-regexp' for
+`dired-move-to-filename' to guess the beginning of the filename
+position which will prompt a warning that show that filename
+wasn't exsited any more."
+    (let (
+          ;; we must get `dired-actual-switches' before the
+          ;; `with-temp-buffer' statement since its a buffer locl
+          ;; varaible.
+          (dir-ls-switches dired-actual-switches))
+      (with-temp-buffer
+        (entropy/emacs-basic--dired-subtree-readin-core
+         (current-buffer) (car orig-args) dir-ls-switches)
+        (buffer-substring (point-min) (point-max)))))
   (advice-add 'dired-subtree--readin
-              :around
+              :override
               #'entropy/emacs-basic--dired-subtree-readin-around-advice)
+
+;; ***** patch `dired-subtree-insert'
+
+  (defun __ya/dired-subtree-insert (orig-func &rest orig-args)
+    "Like `dired-subtree-insert' but with bug fix.
+
+EEMACS_MAINTENANCE: Updpate with upstream's updates.
+"
+    (when (and (dired-subtree--dired-line-is-directory-or-link-p)
+               (not (dired-subtree--is-expanded-p)))
+      (let* ((dir-name (dired-get-filename nil))
+             (listing (dired-subtree--readin (file-name-as-directory dir-name)))
+             ;; EEMACS_TEMPORALLY_HACK inhibit point motion features
+             ;; to ensure plain motion operations did correctly.
+             (inhibit-field-text-motion t)
+             (inhibit-point-motion-hooks t)
+             ;; EEMACS_TEMPORALLY_HACK: using top `inhibit-read-only'
+             ;; instead of using interactive `read-only-mode' which is
+             ;; messy.
+             (inhibit-read-only t)
+             beg end)
+        (move-end-of-line 1)
+        ;; this is pretty ugly, I'm sure it can be done better
+        (save-excursion
+          (insert listing)
+          (setq end (+ (point) 2)))
+        ;; EEMACS_TEMPORALLY_HACK: don't use (newline) since its an
+        ;; iteractive func which not designed for lisp programe. And it
+        ;; can not be did what we want in an 'invisible' property
+        ;; setted region like in a line of an symbolic with
+        ;; `dired-hide-details-mode' enabled buffer.
+        (insert "\n")
+        (setq beg (point))
+        (remove-text-properties (1- beg) beg '(dired-filename))
+        (let* ((ov (make-overlay beg end))
+               (parent (dired-subtree--get-ov (1- beg)))
+               (depth (or (and parent (1+ (overlay-get parent 'dired-subtree-depth)))
+                          1))
+               (face (intern (format "dired-subtree-depth-%d-face" depth))))
+          (when dired-subtree-use-backgrounds
+            (overlay-put ov 'face face))
+          ;; refactor this to some function
+          (overlay-put ov 'line-prefix
+                       (if (stringp dired-subtree-line-prefix)
+                           (if (not dired-subtree-use-backgrounds)
+                               (apply 'concat (-repeat depth dired-subtree-line-prefix))
+                             (cond
+                              ((eq nil dired-subtree-line-prefix-face)
+                               (apply 'concat
+                                      (-repeat depth dired-subtree-line-prefix)))
+                              ((eq 'subtree dired-subtree-line-prefix-face)
+                               (concat
+                                dired-subtree-line-prefix
+                                (propertize
+                                 (apply 'concat
+                                        (-repeat (1- depth) dired-subtree-line-prefix))
+                                 'face face)))
+                              ((eq 'parents dired-subtree-line-prefix-face)
+                               (concat
+                                dired-subtree-line-prefix
+                                (apply 'concat
+                                       (--map
+                                        (propertize dired-subtree-line-prefix
+                                                    'face
+                                                    (intern (format "dired-subtree-depth-%d-face" it)))
+                                        (number-sequence 1 (1- depth))))))))
+                         (funcall dired-subtree-line-prefix depth)))
+          (overlay-put ov 'dired-subtree-name dir-name)
+          (overlay-put ov 'dired-subtree-parent parent)
+          (overlay-put ov 'dired-subtree-depth depth)
+          (overlay-put ov 'evaporate t)
+          (push ov dired-subtree-overlays))
+        (goto-char beg)
+        (dired-move-to-filename)
+        (run-hooks 'dired-subtree-after-insert-hook))))
+  (advice-add 'dired-subtree-insert
+              :around
+              #'__ya/dired-subtree-insert)
+
+;; ***** __end__
   )
 
 
