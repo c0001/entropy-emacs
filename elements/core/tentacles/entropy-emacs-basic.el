@@ -677,7 +677,7 @@ For lisp code, optional args:
           (let* ((buffer-file (buffer-file-name el)))
             (when (and (buffer-live-p el)
                        buffer-file
-                       (entropy/emacs-existed-files-equal-p file buffer-file))
+                       (entropy/emacs-existed-filesystem-nodes-equal-p file buffer-file))
               (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-files-buffer-history
                            (cons (buffer-name el) (current-time-string)))
               (message "[eemacs-dired-delete-file]: killed file <%s> referred buffer '%s'"
@@ -693,7 +693,7 @@ For lisp code, optional args:
                    (if (eq major-mode 'dired-mode)
                        (not (eq buffer (current-buffer)))
                      t)
-                   (entropy/emacs-existed-files-equal-p
+                   (entropy/emacs-existed-filesystem-nodes-equal-p
                     (if (or (file-directory-p file)
                             ;; if file not exist then we match the name string
                             (string-match-p "/\\|\\\\$" file))
@@ -1117,7 +1117,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
                 (when (file-symlink-p x)
                   (push 'symlink base-type))
                 (setq base-fattrs
-                      (entropy/emacs-get-file-attributes x))
+                      (entropy/emacs-get-filesystem-node-attributes x))
                 (when (> (plist-get base-fattrs :link-number) 1)
                   (push 'hardlink base-type))
                 (reverse base-type))))
@@ -1292,7 +1292,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
                 (setq log-string-list
                       (append log-string-list
                               (list mirror-log-string))))))
-           ((entropy/emacs-file-exists-p node)
+           ((entropy/emacs-filesystem-node-exists-p node)
             (let ((srcnodetype (funcall node-type-get-func node 'file)))
               (funcall node-msg-func 'file node file-target)
               (condition-case error-type

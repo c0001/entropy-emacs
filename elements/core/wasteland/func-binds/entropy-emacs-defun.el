@@ -651,33 +651,28 @@ otherwise."
 
 ;; *** File and directory manipulation
 
-(defun entropy/emacs-file-exists-p (filename &optional file-attributes)
-  "Like `file-exists-p' but apply all FILENAME's file system node
+(defun entropy/emacs-filesystem-node-exists-p (file-or-dir-name &optional file-attributes)
+  "Like `file-exists-p' but apply all FILE-OR-DIR-NAME's file system node
 type e.g. a broken symbolink is also treat as existed.
-
-FILENAME is always be treat as an filename which not predicated
-by `directory-name-p', if so, it will be trimmed to a filename
-firstly.
 
 Return t or nil for the status.
 
-If optional argument FILE-ATTRIBUTES is non-nil, return FILENAME's
+If optional argument FILE-ATTRIBUTES is non-nil, return FILE-OR-DIR-NAME's
 file attributes predicated by `file-attributes' after the existed
 status checking, so return nil when file not exists as well."
-  (setq filename (entropy/emacs-directory-file-name filename))
-  (let ((fattrs (ignore-errors (file-attributes filename))))
+  (let ((fattrs (ignore-errors (file-attributes file-or-dir-name))))
     (if file-attributes
         fattrs
       (and fattrs
            t))))
 
-(defun entropy/emacs-get-file-attributes (file)
+(defun entropy/emacs-get-filesystem-node-attributes (filesystem-node)
   "Like `file-attributes' but return a plist to represent its
 structure so that its more human readable and easy to get its
 sub-attribute.
 
-FILE must be existed (predicated by
-`entropy/emacs-file-exists-p') or will throw an error.
+FILESYSTEM-NODE must be existed (predicated by
+`entropy/emacs-filesystem-node-exists-p') or will throw an error.
 
 Plist keys:
 
@@ -692,9 +687,9 @@ Plist keys:
 - =:status-change-time= : returned by `file-attribute-status-change-time'
 - =:access-time=        : returned by `file-attribute-access-time'
 "
-  (let ((fattrs (or (entropy/emacs-file-exists-p file t)
-                    (user-error "[entropy/emacs-get-file-attributes] file-not-existed: <%s>"
-                                file)))
+  (let ((fattrs (or (entropy/emacs-filesystem-node-exists-p filesystem-node t)
+                    (user-error "[entropy/emacs-get-filesystem-node-attributes] file-not-existed: <%s>"
+                                filesystem-node)))
         device-number
         user-id
         modifiction-time
@@ -717,17 +712,17 @@ Plist keys:
          :link-number (file-attribute-link-number fattrs)
          :status-change-time (file-attribute-status-change-time fattrs)
          :access-time (file-attribute-access-time fattrs))
-      (error "[entropy/emacs-get-file-attributes]: internal error"))))
+      (error "[entropy/emacs-get-filesystem-node-attributes]: internal error"))))
 
-(defun entropy/emacs-files-in-same-filesystem-p (&rest files)
-  "Judge all file of FILES are in the same filesystem, return t if
+(defun entropy/emacs-filesytem-nodes-in-same-filesystem-p (&rest filesystem-nodes)
+  "Judge all file of FILESYSTEM-NODES are in the same filesystem, return t if
 thus, nil otherwise.
 
-FILEs must be existed (predicated by
-`entropy/emacs-file-exists-p') or will throw an error for any one
+Filesystem-Nodes must be existed (predicated by
+`entropy/emacs-filesystem-node-exists-p') or will throw an error for any one
 who is not existed.
 
-Always return t when files just has one file and its existed.
+Always return t when filesystem-nodes just has one file and its existed.
 
 Be aware that the name of file or directory should be indicated
 significantly since an symbolic to an another filesystem is also
@@ -738,9 +733,9 @@ to quote it when you treat it as an directory."
         remote-files
         indc)
     (catch :exit
-      (dolist (f files)
-        (unless (file-exists-p f)
-          (user-error "[entropy/emacs-files-in-same-filesystem-p]: '%s' not existed!"
+      (dolist (f filesystem-nodes)
+        (unless (entropy/emacs-filesystem-node-exists-p f)
+          (user-error "[entropy/emacs-filesytem-nodes-in-same-filesystem-p]: '%s' not existed!"
                       f))
         (when (file-remote-p f)
           (push f remote-files))
@@ -748,11 +743,11 @@ to quote it when you treat it as an directory."
                (file-attributes f))
               dev-ids))
       (when remote-files
-        (unless (= (length files) remote-files)
+        (unless (= (length filesystem-nodes) remote-files)
           (throw :exit nil)))
       (setq indc (car dev-ids))
       (unless (integerp indc)
-        (error "[entropy/emacs-files-in-same-filesystem-p]: internal error"))
+        (error "[entropy/emacs-filesytem-nodes-in-same-filesystem-p]: internal error"))
       (mapc (lambda (x)
               (unless (= x indc)
                 (throw :exit nil)))
@@ -1838,7 +1833,7 @@ detailes by the POP-LOG value described as below list:
                              DESTSUBFILE or DESTSUBDIR.
 
    5) =:dest-abs-path-new= : the abs path obtaianed of =sub-op-return='s =op-target-abs-path=. or nil
-                             when it is `entropy/emacs-existed-files-equal-p' the =:dest-abs-path=.
+                             when it is `entropy/emacs-existed-filesystem-nodes-equal-p' the =:dest-abs-path=.
 
    6) =:src-node-type=     : obtained by SRCSUBFILE-TYPE when the =op-function= is FILE-MIRROR-FUNC
                              or SRCSUBDIR-TYPE when the =op-function= is DIR-MIRROR-FUNC.
@@ -1906,7 +1901,7 @@ Sign an error when POP-LOG is not matched valied values.
   ;; Always let default FILE-MIRROR-FUNC use symbolic when SRCDIR
   ;; and DESTDIR is not in the same filesytem since the hardlink is
   ;; not usable for such case.
-  (unless (entropy/emacs-files-in-same-filesystem-p
+  (unless (entropy/emacs-filesytem-nodes-in-same-filesystem-p
            (file-name-directory
             (entropy/emacs-directory-file-name destdir))
            ;; we should indicate that the SRCDIR is an directory
@@ -1931,7 +1926,7 @@ Sign an error when POP-LOG is not matched valied values.
                   (push 'symlink base-type)))
               (when with-check-hardlink
                 (setq base-fattrs
-                      (entropy/emacs-get-file-attributes x))
+                      (entropy/emacs-get-filesystem-node-attributes x))
                 (when (> (plist-get base-fattrs :link-number) 1)
                   (push 'hardlink base-type)))
               (reverse base-type))))
@@ -2197,7 +2192,7 @@ Sign an error when POP-LOG is not matched valied values.
                                 (plist-get dir-op-return-attrs :op-target-node-type)
                                 dir-dest-abspath-old-equal-new-p
                                 (ignore-errors
-                                  (entropy/emacs-existed-files-equal-p
+                                  (entropy/emacs-existed-filesystem-nodes-equal-p
                                    dir-dest-abspath dir-dest-abspath-new)))
                           ;; check target node manuipulation status
                           (if dir-is-root-p
@@ -2278,7 +2273,7 @@ as the origin one <%s> at the first mirror turn."
                                     (plist-get file-op-return-attrs :op-target-node-type)
                                     destfname-old-eq-new
                                     (ignore-errors
-                                      (entropy/emacs-existed-files-equal-p
+                                      (entropy/emacs-existed-filesystem-nodes-equal-p
                                        destfname destfname-new)))
 
                               ;; check the target node manupulation status
@@ -2580,16 +2575,19 @@ type:
        (setq rtn (file-name-directory fname))))
     rtn))
 
-(defun entropy/emacs-existed-files-equal-p (file1 file2)
-  "Alternative to `file-equal-p' but judge whether files existed
-status before judging to prevent the unexpection internal error
-hinttedd by `file-equal-p''s docstring, thus on, always return
-nil if two file are not equalization or either FILE1 or file2 is
-not existed."
-  (let ((file1-p (file-exists-p file1))
-        (file2-p (file-exists-p file2)))
-    (when (and file1-p file2-p)
-      (file-equal-p file1 file2))))
+(defun entropy/emacs-existed-filesystem-nodes-equal-p (filesystem-node1 filesystem-node2)
+  "Alternative to `file-equal-p' but using `file-attribute-inode-number'
+to distinguish the return.
+
+Return t while thus. Return nil otherwise.
+
+Always return nil, when any of FILESYSTEM-NODE1 or FILESYSTEM-NODE2 is
+not predicated by `entropy/emacs-filesystem-node-exists-p'."
+  (let ((f1-p (entropy/emacs-filesystem-node-exists-p filesystem-node1 t))
+        (f2-p (entropy/emacs-filesystem-node-exists-p filesystem-node2 t)))
+    (when (and f1-p f2-p)
+      (= (file-attribute-inode-number f1-p)
+         (file-attribute-inode-number f2-p)))))
 
 (defun entropy/emacs-write-file
     (filename &optional confirm)
