@@ -273,24 +273,24 @@ BUFFER with `erase-buffer' firstly. Return an plist of:
       :git-args git-cmd-args)
 #+end_src
 "
-    (let ((git-cmd-args
-           (delete nil
-                   (list "blame"
-                         ;; "-w"
-                         (when line "-L")
-                         (when line (format "%d,+1" line))
-                         "--increment"
-                         commit-id
-                         "--" file)))
-          (process-quit-status 0)
-          (process-call-func
-           (lambda ()
-             (setq process-quit-status
-                   (apply 'process-file "git" nil t nil
-                          git-cmd-args))))
-          blame-get-commit-id
-          prev-commit-id-of-blame-get-commit-id
-          rtn)
+    (let* ((git-cmd-args
+            (delete nil
+                    (list "blame"
+                          ;; "-w"
+                          (when line "-L")
+                          (when line (format "%d,+1" line))
+                          "--increment"
+                          commit-id
+                          "--" file)))
+           (process-quit-status 0)
+           (process-call-func
+            (lambda ()
+              (setq process-quit-status
+                    (apply 'process-file "git" nil t nil
+                           git-cmd-args))))
+           blame-get-commit-id
+           prev-commit-id-of-blame-get-commit-id
+           rtn)
       (with-current-buffer buffer
         (let ((inhibit-read-only t))
           (erase-buffer)
@@ -404,8 +404,8 @@ for 'git' type and fallback to it while other types."
                    (message "Current commit %s is the topest parent!"
                             git-messenger:last-commit-id)
                  ;; miscellaneous error
-                 (error "No parent commit ID: <%s>"
-                        process-output)))
+                 (user-error "No parent commit ID: <%s>"
+                             process-output)))
              (funcall istop-warn-func)
              (throw 'git-messenger-loop nil))))
         (otherwise
