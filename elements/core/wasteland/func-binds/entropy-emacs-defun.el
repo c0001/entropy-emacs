@@ -758,8 +758,12 @@ not an directory name."
 nil, it defaults to `default-directory'.  If FILE is not in the
 directory tree of DIR, return nil.
 
-The returned rel-filename is *not* leading or tail with the system
-filepath separator i.e. in Windows '\\' and in *nix system is '/'.
+FILE and DIR are all expanded as file and directory before
+calculating their relative relationship.
+
+The returned rel-filename is *not* leading or tail with the
+system filepath separator i.e. in Windows '\\' and in *nix system
+is '/'. (i.e. are all filenames)
 
 If optional arg AS-LIST is non-nil, return a relative path list whose
 each element is the *node-name*(i.e. file name) of the relative path
@@ -1261,36 +1265,72 @@ wrong type of :with-filter '%s'" with-filter)))
       (t
        nil))))
 
-(defun entropy/emacs-list-dir-subdirs-recursively-for-list (top-dir)
-  "list sub-directorys under directory TOP-DIR recursively, and
-return the list. The structure of return is ordered by
-`string-lessp' and each node is absolute path name."
-  (let ((dir-struct (entropy/emacs-list-dir-subdirs-recursively top-dir))
-        ext-func)
-    (setq
-     ext-func
-     (lambda (node)
-       (let (rtn)
-         (catch :exit
-           (setq rtn (list (car node)))
-           (unless (cdr node)
-             (throw :exit nil))
-           (dolist (sub-node (cdr node))
-             (setq
-              rtn
-              (append rtn (funcall ext-func sub-node)))))
-         rtn)))
-    (funcall ext-func dir-struct)))
+(cl-defun entropy/emacs-list-dir-subdirs-recursively-for-list
+    (top-dir &optional not-abs
+             &key
+             with-level
+             with-filter)
+  "List all sub-directories under TOP-DIR as a list ordered by
+`string-lessp' use `entropy/emacs-list-dir-subdirs-recursively'.
 
-(defun entropy/emacs-list-dir-subfiles-recursively-for-list (top-dir)
-  "list files under directory TOP-DIR recursively, and return the
-list. The structure of return is ordered by `string-lessp' and
-each node is absolute path name."
-  (let ((dir-list (entropy/emacs-list-dir-subdirs-recursively-for-list top-dir))
-        rtn)
-    (dolist (dir dir-list)
-      (setq rtn (append rtn (entropy/emacs-list-dir-subfiles dir))))
-    rtn))
+Optional argument NOT-ABS and optional keys are all related to
+`entropy/emacs-list-dir-subdirs-recursively' (see it for details).
+"
+  (let (rtn
+        map-func)
+    (setq map-func
+          (lambda (x &optional end-call-p)
+            (unless end-call-p
+              (let ((dir-abs-path (plist-get x :dir-abspath)))
+                (if not-abs
+                    (push (entropy/emacs-make-relative-filename
+                           dir-abs-path top-dir)
+                          rtn)
+                  (push dir-abs-path rtn)))
+              ;; always return nil user-spec-attrs
+              nil)))
+    (entropy/emacs-list-dir-subdirs-recursively
+     top-dir nil
+     :with-level with-level
+     :with-filter with-filter
+     :with-attributes nil
+     :map-func map-func)
+    (reverse rtn)))
+
+(cl-defun entropy/emacs-list-dir-subfiles-recursively-for-list
+    (top-dir &optional not-abs
+             &key
+             with-level
+             with-filter)
+  "List all sub-files under TOP-DIR as a list ordered by
+`string-lessp' use `entropy/emacs-list-dir-subdirs-recursively'.
+
+Optional argument NOT-ABS and optional keys are all related to
+`entropy/emacs-list-dir-subdirs-recursively' (see it for details).
+"
+  (let (rtn
+        map-func)
+    (setq map-func
+          (lambda (x &optional end-call-p)
+            (unless end-call-p
+              (let ((dir-abs-path (plist-get x :dir-abspath))
+                    (dir-subfiles (plist-get x :dir-subfiles-names)))
+                (when dir-subfiles
+                  (dolist (el dir-subfiles)
+                    (if not-abs
+                        (push (entropy/emacs-make-relative-filename
+                               (expand-file-name el dir-abs-path) top-dir)
+                              rtn)
+                      (push (expand-file-name el dir-abs-path) rtn)))))
+              ;; always return nil user-spec-attrs
+              nil)))
+    (entropy/emacs-list-dir-subdirs-recursively
+     top-dir nil
+     :with-level with-level
+     :with-filter with-filter
+     :with-attributes nil
+     :map-func map-func)
+    (reverse rtn)))
 
 (cl-defun entropy/emacs-print-dir-recursively
     (top-dir buffer &optional with-files
