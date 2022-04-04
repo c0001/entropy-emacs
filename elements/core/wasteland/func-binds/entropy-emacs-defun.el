@@ -821,7 +821,7 @@ has to be real file system path hierarchy."
         (setq form
               `(expand-file-name
                 ,cur-name
-                (or base-dir default-directory)))))
+                ,(or base-dir default-directory)))))
     (if form
         (eval form)
       (expand-file-name
@@ -2378,78 +2378,78 @@ as the origin one <%s> at the first mirror turn."
                            headop-success-str
                            op-log-summary-msg)))))
               ;; insert sub-headers
-              (let (op-attrs
-                    insop-sym
-                    insop-name
-                    src-node-type
-                    dest-node-type
-                    src-path
-                    dest-path
-                    dest-path-new
-                    path-rellist
-                    did-success
-                    did-error-msg
-                    (inhibit-read-only t)
-                    (subitem-insert-func
-                     (lambda (x success-face fatal-face)
-                       (insert (concat
-                                (propertize "** " 'face 'org-level-2)
-                                (cond
-                                 ((eq did-success t)
-                                  (propertize "SUCCESS " 'face 'success))
-                                 ((integerp did-success)
-                                  (propertize "WARNING " 'face 'warning))
-                                 (t
-                                  (propertize "FATAL   " 'face 'error)))
+              (let* (op-attrs
+                     insop-sym
+                     insop-name
+                     src-node-type
+                     dest-node-type
+                     src-path
+                     dest-path
+                     dest-path-new
+                     path-rellist
+                     did-success
+                     did-error-msg
+                     (inhibit-read-only t)
+                     (subitem-insert-func
+                      (lambda (x success-face fatal-face)
+                        (insert (concat
+                                 (propertize "** " 'face 'org-level-2)
+                                 (cond
+                                  ((eq did-success t)
+                                   (propertize "SUCCESS " 'face 'success))
+                                  ((integerp did-success)
+                                   (propertize "WARNING " 'face 'warning))
+                                  (t
+                                   (propertize "FATAL   " 'face 'error)))
 
-                                (propertize x 'face (if did-success success-face fatal-face))
-                                ": "
-                                (if path-rellist
-                                    (mapconcat 'identity path-rellist
-                                               (propertize "/" 'face 'org-macro))
-                                  ".")
-                                (propertize "\n:PROPERTIES:" 'face 'org-drawer)
-                                (format "%s %s"
-                                        (propertize
-                                         "\n:OPERATION-NAME:"
-                                         'face 'org-special-keyword)
-                                        insop-name)
-                                (format "%s %s"
-                                        (propertize
-                                         "\n:SOURCE-NODE-TYPE:"
-                                         'face 'org-special-keyword)
-                                        src-node-type)
-                                (format "%s %s"
-                                        (propertize
-                                         "\n:SOURCE-ABSOLUTE-PATH:"
-                                         'face 'org-special-keyword)
-                                        src-path)
-                                (format "%s %s"
-                                        (propertize
-                                         "\n:DESTINATION-ABSOLUTE-PATH:"
-                                         'face 'org-special-keyword)
-                                        dest-path)
-                                (if dest-path-new
-                                    (format "%s %s"
-                                            (propertize
-                                             "\n:DESTINATION-ABSOLUTE-PATH-NEW:"
-                                             'face 'org-special-keyword)
-                                            dest-path-new)
-                                  "")
-                                (format "%s %s"
-                                        (propertize
-                                         "\n:DESTINATION-NODE-TYPE:"
-                                         'face 'org-special-keyword)
-                                        dest-node-type)
-                                (if did-error-msg
-                                    (format "%s %s"
-                                            (propertize
-                                             "\n:ERROR-MESSAGE:"
-                                             'face 'org-special-keyword)
-                                            (propertize did-error-msg 'face 'error))
-                                  "")
-                                (propertize "\n:END:" 'face 'org-drawer)
-                                "\n")))))
+                                 (propertize x 'face (if did-success success-face fatal-face))
+                                 ": "
+                                 (if path-rellist
+                                     (mapconcat 'identity path-rellist
+                                                (propertize "/" 'face 'org-macro))
+                                   ".")
+                                 (propertize "\n:PROPERTIES:" 'face 'org-drawer)
+                                 (format "%s %s"
+                                         (propertize
+                                          "\n:OPERATION-NAME:"
+                                          'face 'org-special-keyword)
+                                         insop-name)
+                                 (format "%s %s"
+                                         (propertize
+                                          "\n:SOURCE-NODE-TYPE:"
+                                          'face 'org-special-keyword)
+                                         src-node-type)
+                                 (format "%s %s"
+                                         (propertize
+                                          "\n:SOURCE-ABSOLUTE-PATH:"
+                                          'face 'org-special-keyword)
+                                         src-path)
+                                 (format "%s %s"
+                                         (propertize
+                                          "\n:DESTINATION-ABSOLUTE-PATH:"
+                                          'face 'org-special-keyword)
+                                         dest-path)
+                                 (if dest-path-new
+                                     (format "%s %s"
+                                             (propertize
+                                              "\n:DESTINATION-ABSOLUTE-PATH-NEW:"
+                                              'face 'org-special-keyword)
+                                             dest-path-new)
+                                   "")
+                                 (format "%s %s"
+                                         (propertize
+                                          "\n:DESTINATION-NODE-TYPE:"
+                                          'face 'org-special-keyword)
+                                         dest-node-type)
+                                 (if did-error-msg
+                                     (format "%s %s"
+                                             (propertize
+                                              "\n:ERROR-MESSAGE:"
+                                              'face 'org-special-keyword)
+                                             (propertize did-error-msg 'face 'error))
+                                   "")
+                                 (propertize "\n:END:" 'face 'org-drawer)
+                                 "\n")))))
                 (dolist (item op-log)
                   (setq op-attrs item
                         insop-sym (plist-get op-attrs :op-symbol)
