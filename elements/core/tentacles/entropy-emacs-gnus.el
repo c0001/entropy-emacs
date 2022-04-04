@@ -1,4 +1,4 @@
-;;; entropy-emacs-gnus.el --- GNUS configuration for entropy-emacs
+;;; entropy-emacs-gnus.el --- GNUS configuration for entropy-emacs  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190907  Entropy
 ;; #+BEGIN_EXAMPLE

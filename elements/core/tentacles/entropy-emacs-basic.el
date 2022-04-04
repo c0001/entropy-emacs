@@ -1,4 +1,4 @@
-;;; entropy-emacs-basic.el --- entropy emacs basic config
+;;; entropy-emacs-basic.el --- entropy emacs basic config  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190602  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -654,7 +654,7 @@ For lisp code, optional args:
                               pre-files)
                              (t (error "Dir list invalid!"))))
            (did-times (length base-files))
-           _file-type
+           cur-file-type
            (pbufname entropy/basic--dired-recursive-delete-prompt-buffer-name)
            (prompt-buffer (with-current-buffer (get-buffer-create
                                                 pbufname)
@@ -721,19 +721,19 @@ For lisp code, optional args:
               (progn
                 (setq entropy/emacs-basic--dired-file-current-delete (list file))
                 (cond ((f-symlink-p file)
-                       (setq _file-type 'symbol_link)
+                       (setq cur-file-type 'symbol_link)
                        (delete-file file))
                       ((f-file-p file)
-                       (setq _file-type 'file)
+                       (setq cur-file-type 'file)
                        (delete-file file))
                       ((f-directory-p file)
-                       (setq _file-type 'directory)
+                       (setq cur-file-type 'directory)
                        (delete-directory file t)))
-                (push (list :file-type _file-type
+                (push (list :file-type cur-file-type
                             :file-path file
                             :date (current-time-string))
                       entropy/emacs-basic--dired-files-deleted-history)
-                (cl-case _file-type
+                (cl-case cur-file-type
                   ('symbol_link
                    (message (format "Delete symbolink '%s' done! -v-" file)))
                   ('file
@@ -749,7 +749,7 @@ For lisp code, optional args:
                  (insert
                   (format "[At %sth operation] %s: %s %s (%s) \n\tsince %s\n"
                           count
-                          _file-type
+                          cur-file-type
                           (propertize "deletion failed" 'face 'error)
                           (file-name-nondirectory file)
                           file
@@ -875,11 +875,11 @@ fallbackk to 1."
                    (if (> arg 0)
                        arg
                      1))))
-          jduge-func
+          judge-func
           cur-dir
           satisfied-stack)
 
-      (setq judge-fun
+      (setq judge-func
             (lambda (dir restrict-level)
               (let* ((cur-level 0)
                      curdir-subitems
@@ -944,7 +944,7 @@ fallbackk to 1."
           (if (and (or (setq cur-dir (dired-get-filename))
                        (error "[Debug] inner error"))
                    (file-directory-p cur-dir))
-              (if (funcall judge-fun
+              (if (funcall judge-func
                            cur-dir level)
                   (progn (dired-mark 1)
                          (push (file-name-nondirectory cur-dir)
@@ -1040,7 +1040,7 @@ user refuse the prompts."
              "Symbolic-link")
             (t
              (error "wrong type of op-type: %s"
-                    op-name)))))
+                    op-type)))))
       (if (dired-mark-pop-up
            (format " *eemacs dired do %s to*" op-name)
            (cond
@@ -1108,7 +1108,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
                        log-fatal-files
                        op-type)))
            (node-type-get-func
-            (lambda (x def &optional symcheck-force)
+            (lambda (x def)
               (let ((base-type (list def))
                     (base-fattrs nil))
                 ;; fistly trim the directory-name indicator since we
@@ -1515,7 +1515,7 @@ TODO:
 ;; ***** patch `dired-subtree-up'
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
-  (defun __ya/dired-subtree-up (&optional arg)
+  (defun __ya/dired-subtree-up (&optional _arg)
     "Like `dired-subtree-up' but fix bug when current subtree's
 parent is at the first node in curren dired buffer which
 `dired-previous-line' jump out the `invisible-p' target place as
@@ -1639,7 +1639,7 @@ wasn't exsited any more."
 
 ;; ***** patch `dired-subtree-insert'
 
-  (defun __ya/dired-subtree-insert (orig-func &rest orig-args)
+  (defun __ya/dired-subtree-insert (&rest _args)
     "Like `dired-subtree-insert' but with bug fix.
 
 EEMACS_MAINTENANCE: Updpate with upstream's updates.
@@ -1712,7 +1712,7 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
         (dired-move-to-filename)
         (run-hooks 'dired-subtree-after-insert-hook))))
   (advice-add 'dired-subtree-insert
-              :around
+              :override
               #'__ya/dired-subtree-insert)
 
 ;; ***** __end__
@@ -1785,7 +1785,7 @@ window point not shown in nice place e.g. at window bottom."
     ))
 
   :config
-  (defun entropy/emacs-basic-image-gif-warn (&optional args)
+  (defun entropy/emacs-basic-image-gif-warn (&rest _)
     "Warn that gif animation by large gif file will freeze
 emacs."
     (if (string-match-p "\\.gif" (buffer-name))
@@ -2448,14 +2448,14 @@ kill ansi-term buffer and its popup window refer to bug
 collection."
   (interactive)
   (if sys/linuxp
-      (let* ((_buff (current-buffer))
-             (_proc (get-buffer-process _buff)))
-        (when _proc
+      (let* ((buff (current-buffer))
+             (proc (get-buffer-process buff)))
+        (when proc
           (when (yes-or-no-p
                  (format "Buffer %S has a running process; kill it? "
-                         (buffer-name _buff)))
-            (set-process-filter _proc nil)
-            (kill-process _proc)
+                         (buffer-name buff)))
+            (set-process-filter proc nil)
+            (kill-process proc)
             (let ((kill-buffer-query-functions '((lambda () t))))
               (if (not (one-window-p))
                   (kill-buffer-and-window)
@@ -3624,7 +3624,7 @@ This function will store the loading callback to
     (setq pyim-page-tooltip entropy/emacs-pyim-tooltip)
     (add-variable-watcher
      'entropy/emacs-pyim-tooltip
-     (lambda  (symbol newval operation where)
+     (lambda  (symbol newval operation _where)
        (when (eq operation 'set)
          (unless (eq newval (symbol-value symbol))
            (setq pyim-page-tooltip newval)))))
@@ -3808,7 +3808,7 @@ This function will store the `rime' loading callback to
 
     (add-variable-watcher
      'entropy/emacs-emacs-rime-tooltip
-     (lambda  (symbol newval operation where)
+     (lambda  (symbol newval operation _where)
        (when (eq operation 'set)
          (unless (eq newval (symbol-value symbol))
            (setq rime-show-candidate

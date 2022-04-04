@@ -1,4 +1,4 @@
-;;; entropy-emacs-defvar.el --- entropy emacs internal variable declaration
+;;; entropy-emacs-defvar.el --- entropy emacs internal variable declaration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190602  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -459,7 +459,7 @@ must setted with SECS larger than or equal of this value.")
 
 (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal)
 (run-with-idle-timer 0.05 t #'entropy/emacs--set-idle-signal)
-(defun entropy/emacs--idle-var-guard (symbol newval operation where)
+(defun entropy/emacs--idle-var-guard (_symbol newval _operation _where)
   (unless (null newval)
     (force-mode-line-update)))
 (add-variable-watcher 'entropy/emacs-current-session-is-idle-p

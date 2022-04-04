@@ -1,4 +1,4 @@
-;;; entropy-emacs-ui.el --- entropy-emacs UI basic configuration
+;;; entropy-emacs-ui.el --- entropy-emacs UI basic configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -225,8 +225,7 @@ char \"|\")."
       ;; `entropy/emacs-ui--init-welcom-create-widget'. list contains the car as list of str-fancy-obj format
       ;; relied on func `entropy/emacs-ui--init-welcom-insert-widget-entry' and the cdr as align-width for the
       ;; widget width specific.
-      (let (temp-fancy
-            (align-width (apply 'max str-counts-list))
+      (let ((align-width (apply 'max str-counts-list))
             (n 0))
         (dolist (el str-obj-list)
           (let ((current-str-width (nth n str-counts-list)))

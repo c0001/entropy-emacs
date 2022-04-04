@@ -1,4 +1,4 @@
-;;; entropy-emacs-popwin.el --- window or buffer popuped feature for 'entropy-emacs'
+;;; entropy-emacs-popwin.el --- window or buffer popuped feature for 'entropy-emacs'  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190821  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -656,7 +656,7 @@ specification."
                   ))
     (advice-add func
                 :before
-                (lambda (&rest args)
+                (lambda (&rest _)
                   "Enable some features before eemacs popup operations startup"
                   (when (and entropy/emacs-use-recentf
                              (fboundp 'recentf-mode))

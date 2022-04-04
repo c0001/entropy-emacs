@@ -1,4 +1,4 @@
-;;; entropy-emacs-codeserver.el --- entropy-emacs code server configuration
+;;; entropy-emacs-codeserver.el --- entropy-emacs code server configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20191014  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -323,7 +323,7 @@ It is the recommendation of irony-mode official introduction."
   "Prevent c group mode as `php-mode' which was the derived from
 `c-mode' to load `irony-mode' and `company-irony'."
   (if (member major-mode '(c++-mode c-mode objc-mode))
-      (funcall oldfuc)
+      (apply oldfuc args)
     t))
 
 (defun entropy/emacs-codeserver-usepackage-irony ()
@@ -407,7 +407,7 @@ It is the recommendation of irony-mode official introduction."
 ;; ***** idle delay uniform
 (defvar entropy/emacs-codeserver--codeserver-doc-show-timer-watch-registry nil)
 (defun entropy/emacs-codeserver--codeserver-doc-show-delay-var-watcher
-    (symbol newval operation where)
+    (symbol newval operation _where)
   (when (eq operation 'set)
     (let ((timer-obj (alist-get symbol entropy/emacs-codeserver--codeserver-doc-show-timer-watch-registry)))
       (cond (timer-obj

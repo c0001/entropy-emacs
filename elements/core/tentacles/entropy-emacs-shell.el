@@ -1,4 +1,4 @@
-;;; entropy-emacs-shell.el --- entropy emacs shell configuration
+;;; entropy-emacs-shell.el --- entropy emacs shell configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C)  20190603  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -72,7 +72,7 @@
 (use-package eshell
   :ensure nil
   :preface
-  (defun entropy/emacs-shell--eshell-before-advice (&rest args)
+  (defun entropy/emacs-shell--eshell-before-advice (&rest _)
     "Delete eshell histroy file before eshell opening and prevent
 open eshell on tramp-buffer when on windows platform. "
     (if (file-exists-p eshell-history-file-name)

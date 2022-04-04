@@ -1,4 +1,4 @@
-;;; entropy-emacs-pdumper.el --- procedure wrapper for pdumper process of entropy-emacs
+;;; entropy-emacs-pdumper.el --- procedure wrapper for pdumper process of entropy-emacs  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190821  Entropy
 ;; #+BEGIN_EXAMPLE

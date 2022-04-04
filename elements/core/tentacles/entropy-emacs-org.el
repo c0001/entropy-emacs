@@ -1,4 +1,4 @@
-;;; entropy-emacs-org.el --- entropy emacs org-mode configuration
+;;; entropy-emacs-org.el --- entropy emacs org-mode configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -485,7 +485,7 @@ enabled at current org buffer. "
   :config
 ;; **** org-capture about
 ;; ***** hook for org-capture
-  (defun entropy/emacs-org--capture-indent-buffer (&optional arg)
+  (defun entropy/emacs-org--capture-indent-buffer (&rest _)
     "Indent org capture buffer when finished capture editting."
     (when org-adapt-indentation
       (let ((pm (point-min))
@@ -496,7 +496,7 @@ enabled at current org buffer. "
   (add-hook 'org-capture-prepare-finalize-hook
             #'entropy/emacs-org--capture-indent-buffer)
 
-  (defun entropy/emacs-org--capture-set-tags (&rest args)
+  (defun entropy/emacs-org--capture-set-tags (&rest _)
     "Adding org tags using `counsel-org-tag' after placed org capture template.
 
 This function was the after advice for `org-capture-template'."
@@ -520,7 +520,7 @@ This function was the after advice for `org-capture-template'."
   ;; effecting(all buffer be non-font-lock visual) and do not have the
   ;; recovery method unless reopen capture operation.w
 
-  (defun entropy/emacs-org--capture-forbidden-toggle-link-display (&rest rest-args)
+  (defun entropy/emacs-org--capture-forbidden-toggle-link-display (&rest _)
     "Advice for `org-toggle-link-display' for forbidden it when in capture buffer.
 
 Because of that if do this will lost the buffer font-lock
@@ -567,7 +567,7 @@ evaluate it.. "
       (advice-add 'org-babel-get-src-block-info
                   :around #'entropy/emacs-org--set-src-info)
 
-      (defun entropy/emacs-org--babel-comfirm-evaluate (old-func info)
+      (defun entropy/emacs-org--babel-comfirm-evaluate (old-func _info)
         "This function was the around advice func for
 `org-babel-confirm-evaluate' func.
 

@@ -1,4 +1,4 @@
-;;; entropy-emacs-comments.el --- entropy-emacs code docstring(comments) operations
+;;; entropy-emacs-comments.el --- entropy-emacs code docstring(comments) operations  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

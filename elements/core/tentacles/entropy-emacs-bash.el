@@ -1,4 +1,4 @@
-;;; entropy-emacs-bash.el --- entropy-emacs shell script development configuration
+;;; entropy-emacs-bash.el --- entropy-emacs shell script development configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

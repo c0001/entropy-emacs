@@ -1,4 +1,4 @@
-;;; entropy-emacs-tramp.el --- entropy-emacs tramp configuratin
+;;; entropy-emacs-tramp.el --- entropy-emacs tramp configuratin  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

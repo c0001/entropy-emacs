@@ -1,4 +1,4 @@
-;;; entropy-emacs-faces.el --- entropy emacs defined faces package
+;;; entropy-emacs-faces.el --- entropy emacs defined faces package  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190730  Entropy
 ;; #+BEGIN_EXAMPLE

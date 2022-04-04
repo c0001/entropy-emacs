@@ -1,4 +1,4 @@
-;;; entropy-emacs-rss.el --- Emacs Rss configuration
+;;; entropy-emacs-rss.el --- Emacs Rss configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190907  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -229,7 +229,7 @@ When USER-FEEDS-PLISTS is not set, use
           (list :proxy-feeds entropy/emacs-rss--elfeed-use-prroxy-feeds
                 :common-feeds entropy/emacs-rss--elfeed-non-prroxy-feeds)))))
 
-  (defun entropy/emacs-elfeed-feeds-variable-watcher (symbol newval operation where)
+  (defun entropy/emacs-elfeed-feeds-variable-watcher (symbol newval operation _where)
     "`entropy/emacs-elfeed-feeds' vairable wather guard to auto sync
 to `elfeed-feeds'."
     (when (eq operation 'set)
@@ -681,7 +681,7 @@ Arguments:
       (dolist (el entry-list)
         (let ((feed-title (entropy/emacs-rss--elfeed-read-feedname el)))
           (when feed-title
-            (add-to-list 'feedtitle-name-list feed-title)
+            (cl-pushnew feed-title feedtitle-name-list)
             (push el entries))))
 
       (if tname
@@ -759,7 +759,7 @@ selecting existing tag or input the new one instead."
              id
              (n-entry elfeed-db-entries))
         (dolist (el entries)
-          (add-to-list 'id (elfeed-entry-id el)))
+          (cl-pushnew (elfeed-entry-id el) id))
         (dolist (el id)
           (avl-tree-delete elfeed-db-index el))
         (dolist (el id)
@@ -832,7 +832,7 @@ will automatically be modified in `custom-file'."
       (dolist (el regexp)
         (dolist (elm feeds)
           (when (string-match-p el elm)
-            (add-to-list 'mlist elm))))
+            (cl-pushnew elm mlist))))
       (dolist (el mlist)
         (setq rtn (delete el rtn)))
       (setq elfeed-feeds rtn)
@@ -922,7 +922,7 @@ The minor changing was compat for above."
                                           ('eww 'eww-browse-url)
                                           ('emacs-w3m 'entropy/emacs-textwww--w3m-browse-url)
                                           ('entropy-browse-url-function entropy/emacs-browse-url-function))))
-      (funcall oldfun)))
+      (apply oldfun args)))
   (advice-add 'elfeed-search-browse-url :around #'entropy/emacs-rss--elfeed-browse-url-around)
   (advice-add 'elfeed-show-visit :around #'entropy/emacs-rss--elfeed-browse-url-around)
 

@@ -1,4 +1,4 @@
-;;; entropy-emacs-company.el --- entropy emacs completion config
+;;; entropy-emacs-company.el --- entropy emacs completion config  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -121,12 +121,12 @@ yasnippet support *locally*."
     (dolist (el '((org-mode . org-mode-hook)
                   (mardown-mode . markdown-mode-hook)
                   (text-mode . text-mode-hook)))
-      (add-to-list
-       'macros
+      (cl-pushnew
        `(lambda ()
           (with-eval-after-load ',(car el)
             (add-hook ',(cdr el)
-                      #'entropy/emacs-company-privilege-yas-for-docs)))))
+                      #'entropy/emacs-company-privilege-yas-for-docs)))
+       macros))
     (dolist (macro macros)
       (funcall macro))))
 
@@ -1067,7 +1067,7 @@ frame."
 
 ;; ******* Debug
   (defun entropy/emacs-company-box-delete-all-child-frames
-      (&optional arg)
+      (&optional _arg)
     "[Debug only] Delete all company-box child frames."
     (interactive "P")
     (let ((frame-list (frame-list)))
@@ -1193,7 +1193,7 @@ completion when calling: 'execute-extended-command' or
                 :after
                 #'entropy/emacs-company-add-lsp-backend)))
 
-(defun entropy/emacs-company-add-lsp-backend (&rest args)
+(defun entropy/emacs-company-add-lsp-backend (&rest _)
   (make-local-variable 'company-backends)
   (setq-local company-backends
               ;; remove the obsolte `company-lsp' backends since

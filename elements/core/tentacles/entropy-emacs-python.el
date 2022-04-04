@@ -1,4 +1,4 @@
-;;; entropy-emacs-python.el --- entropy-emacs python development configuration
+;;; entropy-emacs-python.el --- entropy-emacs python development configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

@@ -1,4 +1,4 @@
-;;; entropy-emacs-themes.el --- entropy-emacs UI theme configuration
+;;; entropy-emacs-themes.el --- entropy-emacs UI theme configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

@@ -1,4 +1,4 @@
-;;; entropy-emacs-tools.el --- entropy-emacs toolbox
+;;; entropy-emacs-tools.el --- entropy-emacs toolbox  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -1520,7 +1520,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   (defun entropy/emacs-tools--proxy-url-w3m-specific ()
     ;; recorde current retrieve url
     (defvar entropy/emacs-tools--w3m-retrieve-url nil)
-    (defun entropy/emacs-tools--w3m-recorde-retrieve-url (url &rest args)
+    (defun entropy/emacs-tools--w3m-recorde-retrieve-url (url &rest _)
       (setq entropy/emacs-tools--w3m-retrieve-url url))
     (defun entropy/emacs-tools-w3m-toggle-proxy ()
       "Toggle proxy using `entropy-proxy-url' and refresh current

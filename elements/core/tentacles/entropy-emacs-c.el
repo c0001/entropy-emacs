@@ -1,4 +1,4 @@
-;;; entropy-emacs-c.el --- entroy emacs C config
+;;; entropy-emacs-c.el --- entroy emacs C config  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE

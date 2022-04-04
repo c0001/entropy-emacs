@@ -1,4 +1,4 @@
-;;; entropy-emacs-project.el --- eemacs projects management configuration
+;;; entropy-emacs-project.el --- eemacs projects management configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) date  author
 ;; #+BEGIN_EXAMPLE

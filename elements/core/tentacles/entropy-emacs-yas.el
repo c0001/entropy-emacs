@@ -1,4 +1,4 @@
-;;; entropy-emacs-yas.el --- entropy-emacs yasnippet configuration
+;;; entropy-emacs-yas.el --- entropy-emacs yasnippet configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -82,7 +82,7 @@
       :enable t :exit t))))
 
   :init
-  (defun entropy/emacs-yas-enable-or-expand (&rest args)
+  (defun entropy/emacs-yas-enable-or-expand (&rest _)
     "Auto enable `yas-minor-mode' when not as it and call
 `yas-expand'."
     (interactive)

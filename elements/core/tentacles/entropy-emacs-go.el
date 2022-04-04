@@ -1,4 +1,4 @@
-;;; entropy-emac-go.el --- entropy-emacs Golang configuration
+;;; entropy-emac-go.el --- entropy-emacs Golang configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

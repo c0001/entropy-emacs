@@ -1,4 +1,4 @@
-;;; entropy-emacs-coworker.el --- entropy-emacs third party coworkers configuration
+;;; entropy-emacs-coworker.el --- entropy-emacs third party coworkers configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 2019  Entropy
 ;; #+BEGIN_EXAMPLE

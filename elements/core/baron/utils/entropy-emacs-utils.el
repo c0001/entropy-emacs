@@ -1,4 +1,4 @@
-;;; entropy-emacs-library.el --- entropy emacs underlying library for other part
+;;; entropy-emacs-library.el --- entropy emacs underlying library for other part  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE

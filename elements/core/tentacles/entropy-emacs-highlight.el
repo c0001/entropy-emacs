@@ -1,4 +1,4 @@
-;;; entropy-emacs-highlight.el --- entropy-emacs coding page visualized configuration
+;;; entropy-emacs-highlight.el --- entropy-emacs coding page visualized configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

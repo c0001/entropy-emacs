@@ -1,4 +1,4 @@
-;;; entropy-emacs-lisp.el --- entropy-emacs lisp development config
+;;; entropy-emacs-lisp.el --- entropy-emacs lisp development config  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

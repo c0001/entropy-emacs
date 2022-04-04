@@ -1,4 +1,4 @@
-;;; entropy-emacs-lua.el --- entropy-emacs lua development configuration
+;;; entropy-emacs-lua.el --- entropy-emacs lua development configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

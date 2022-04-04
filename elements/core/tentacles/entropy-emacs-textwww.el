@@ -1,4 +1,4 @@
-;;; entropy-emacs-testwww.el --- Plain text browser configuration for entropy-emacs
+;;; entropy-emacs-testwww.el --- Plain text browser configuration for entropy-emacs  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190907  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -163,7 +163,7 @@
           (concat invocation-directory "convert.exe")))
 
   ;; w3m personal browse url function
-  (defun entropy/emacs-textwww--w3m-browse-url (url &rest args)
+  (defun entropy/emacs-textwww--w3m-browse-url (url &rest _)
     (if (or (bound-and-true-p w3m-make-new-session)
             ;; TODO: more conditions to use new session
             (or (memq major-mode
@@ -237,7 +237,7 @@
            (if entropy/emacs-browse-url-function
                entropy/emacs-browse-url-function
              'browse-url-default-browser)))
-      (call-interactively oldfunc)))
+      (apply oldfunc args)))
   (advice-add 'w3m-view-url-with-browse-url
               :around #'entropy/emacs-textwww--w3m-external-advice)
 
@@ -467,11 +467,13 @@ Browser chosen based on variable
             (browse-url-browser-function
              (let (rtn choices)
                (when (functionp entropy/emacs-browse-url-function)
-                 (add-to-list 'choices `("personal" ,entropy/emacs-browse-url-function)))
+                 (cl-pushnew `("personal" ,entropy/emacs-browse-url-function)
+                             choices))
                (when (executable-find "w3m")
-                 (add-to-list 'choices `("w3m" ,(lambda (url &rest args)
-                                                  (w3m-goto-url url)))))
-               (add-to-list 'choices '("default" browse-url-default-browser))
+                 (cl-pushnew `("w3m" ,(lambda (url &rest _)
+                                        (w3m-goto-url url)))
+                             choices))
+               (cl-pushnew '("default" browse-url-default-browser) choices)
                (setq rtn (completing-read "Choice external browser:  "
                                           choices nil t))
                (setq rtn (nth 1 (assoc rtn choices)))

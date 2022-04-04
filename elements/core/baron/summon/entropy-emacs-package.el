@@ -1,4 +1,4 @@
-;;; entropy-emacs-package.el --- entropy-emacs package management configuration
+;;; entropy-emacs-package.el --- entropy-emacs package management configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -582,7 +582,7 @@ recognized as a normal macro."
             use-name id)))
 
 (defun use-package-normalize/:eemacs-adrequire
-    (use-name key key-value)
+    (use-name _key key-value)
   (let (pattern)
     (cond ((and (listp key-value)
                 (= 1 (length key-value)))
@@ -624,7 +624,7 @@ recognized as a normal macro."
             (symbol-name use-name))))))
 
 (defun use-package-handler/:eemacs-adrequire
-    (use-name key patterns rest state)
+    (use-name _key patterns rest state)
   "Make force require USE-NAME by applying advice to the buntch
 of functions according to before or after advice type and these
 specification is termed of =eemacs-adrequire-patterns=.

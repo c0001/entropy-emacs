@@ -1,4 +1,4 @@
-;;; entropy-emacs-ibuffer.el --- entropy-emacs ibuffer configuration
+;;; entropy-emacs-ibuffer.el --- entropy-emacs ibuffer configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

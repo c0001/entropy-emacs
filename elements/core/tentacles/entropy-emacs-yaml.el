@@ -1,4 +1,4 @@
-;;; entropy-emacs-yaml.el --- entropy-emacs yaml file editor configuration
+;;; entropy-emacs-yaml.el --- entropy-emacs yaml file editor configuration  -*- lexical-binding: t; -*-
 
 ;; * Copyright (C) 2019067  Entropy
 ;; #+BEGIN_EXAMPLE

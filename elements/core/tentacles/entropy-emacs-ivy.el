@@ -1,4 +1,4 @@
-;;; entropy-emacs-ivy.el ---  entropy emacs 'M-x' enhancement
+;;; entropy-emacs-ivy.el ---  entropy emacs 'M-x' enhancement  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -113,7 +113,7 @@
 ;; **** exit ivy procedure immediatly after the dispatch actions
   ;; FIXME: do not use for all ivy caller, add filter for specified caller
   (defun entropy/emacs-ivy--ivy-read-quit-after-dispatch-actions
-      (&rest args)
+      (&rest _)
     "Interrupting rest process when `this-command' was
 `ivy-dispatching-done' or `ivy-occur' or any extra ivy read
 actions.
@@ -1144,7 +1144,7 @@ Since we chosen the kmacro from ring, we set it as the
     (autoload icon-func "all-the-icons-ivy-rich"))
 
   (defun ya/all-the-icon-ivy-rich-common-dir-icon
-      (candi)
+      (_candi)
     (all-the-icons-ivy-rich--format-icon
      (all-the-icons-octicon "file-directory"
                             :height 1.0 :v-adjust 0.01)))

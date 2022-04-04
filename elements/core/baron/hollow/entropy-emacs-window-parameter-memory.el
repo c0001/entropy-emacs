@@ -1,4 +1,4 @@
-;;; entropy-emacs-window-parameter-memory.el --- A cookie for emacs window conifgurations
+;;; entropy-emacs-window-parameter-memory.el --- A cookie for emacs window conifgurations  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20201121  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -205,8 +205,7 @@ as MEMORY-TYPE-ROLE if available, and prunning the one in thus.
 
 Use `entropy/emacs-wpamemory-default-type-role' while the role is
 not specified."
-  (let* ((cache entropy/emacs-wpamemory--memory-cookies)
-         (res-obj (entropy/emacs-get-plist-form
+  (let* ((res-obj (entropy/emacs-get-plist-form
                    (entropy/emacs-wpamemory-get-memory
                     memory-type memory-type-role 'pop-it)
                    :register

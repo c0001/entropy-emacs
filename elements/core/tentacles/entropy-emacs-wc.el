@@ -1,4 +1,4 @@
-;;; entropy-emacs-wc.el --- entropy emacs window configuration
+;;; entropy-emacs-wc.el --- entropy emacs window configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190821 Entropy
 ;; #+BEGIN_EXAMPLE

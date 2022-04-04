@@ -1,4 +1,4 @@
-;;; entropy-emacs-markdown.el --- entropy-emacs markdown-mode configuration
+;;; entropy-emacs-markdown.el --- entropy-emacs markdown-mode configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 2010607  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -534,7 +534,7 @@ overflow hr line e.g. display in eldoc."
       (apply orig-func orig-args)))
 
 
-  (defun entropy/emacs-markdown--mdp-before-advice (&rest args)
+  (defun entropy/emacs-markdown--mdp-before-advice (&rest _)
     "Before advice for `markdown-preview-mode' when it trigger
 to disable `markdown-preview-mode' for clean up all web-sockets
 to prevent ports keeping as causing to next previewing error.

@@ -1,4 +1,4 @@
-;;; entropy-emacs-calendar.el --- entropy-emacs calendar config
+;;; entropy-emacs-calendar.el --- entropy-emacs calendar config  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE

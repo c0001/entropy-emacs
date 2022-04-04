@@ -1,4 +1,4 @@
-;;; entropy-emacs-game.el --- entropy-emacs emacs built-in games configuration
+;;; entropy-emacs-game.el --- entropy-emacs emacs built-in games configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

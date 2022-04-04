@@ -1,4 +1,4 @@
-;;; entropy-emacs-web.el --- entropy-emacs web development configuration
+;;; entropy-emacs-web.el --- entropy-emacs web development configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

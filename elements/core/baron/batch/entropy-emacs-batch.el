@@ -1,4 +1,4 @@
-;;; entropy-emacs-batch.el --- entropy-emacs non-interactive toolchains
+;;; entropy-emacs-batch.el --- entropy-emacs non-interactive toolchains  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190920  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -579,7 +579,8 @@ faild with hash '%s' which must match '%s'"
          (and (not clean)
               (delete nil
                       `(,(when (entropy/emacs-vterm-support-p)
-                           '(vterm ("cmake" ".") ("make"))))))))
+                           '(vterm ("cmake" ".") ("make")))))))
+        (byte-compile-docstring-max-column 200))
     ;; Compile dynamic modules firstly since the byte-compile process
     ;; will load the module as well.
     (when module-pkg-incs

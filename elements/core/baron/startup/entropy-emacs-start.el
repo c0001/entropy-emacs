@@ -1,4 +1,4 @@
-;;; entropy-emacs.el --- entropy emacs main bridge controller
+;;; entropy-emacs.el --- entropy emacs main bridge controller  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190602  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -48,14 +48,14 @@
 (defmacro entropy/emacs-start--run-with-duration-log
     (name &rest body)
   `(if (bound-and-true-p entropy/emacs-startup-with-Debug-p)
-       (let ((_before-time (current-time)))
+       (let ((before-time (current-time)))
          (prog1
              (progn
                ,@body)
            (push (cons (float-time
                         (time-subtract
                          (current-time)
-                         _before-time))
+                         before-time))
                        ;; strip quote of name pattern from require arg
                        (if (and (listp ',name)
                                 (eq 2 (length ',name))
@@ -316,7 +316,7 @@ Trying insert some words in below are:
 
 ;; *** Resetting browse-url-function in fancy-startup-screen
 
-(defun entropy/emacs-start--startup-screen-after-advice (&rest arg-rest)
+(defun entropy/emacs-start--startup-screen-after-advice (&rest _)
   "The advice when `entropy/emacs-browse-url-function' was detectived.
 
 The main goal for this advice function was to chanage startup
@@ -327,7 +327,7 @@ screen's `browse-url-browse-function' to
     (setq-local browse-url-browser-function 'browse-url-default-browser)))
 
 
-(defun entropy/emacs-start--about-emacs-after-advice (&rest arg-rest)
+(defun entropy/emacs-start--about-emacs-after-advice (&rest _)
   "The advice when `entropy/emacs-browse-url-function' was detectived.
 
 The main goal for this advice function was to chanage \"About

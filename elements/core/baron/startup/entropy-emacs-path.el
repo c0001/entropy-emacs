@@ -1,4 +1,4 @@
-;;; entropy-emacs-path.el --- entropy-emacs path setting
+;;; entropy-emacs-path.el --- entropy-emacs path setting  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Enropy
 ;; #+BEGIN_EXAMPLE
@@ -87,6 +87,7 @@
 
 ;; *** w32 path set library
 ;; **** subrs
+(defvar entropy/emacs-path-win32-shell-path-register nil)
 (setq entropy/emacs-path-win32-shell-path-register
       `((:trigger entropy/emacs-win-emacs-bin-path-add
                   :path invocation-directory
@@ -176,8 +177,7 @@
         ))
 
 (defun entropy/emacs-path--w32-path-sort-predicate ()
-  (let* ((orig-len (length entropy/emacs-path-win32-shell-path-register))
-         env-paths-positive
+  (let* (env-paths-positive
          env-paths-negative
          exec-paths-positive
          exec-paths-negative

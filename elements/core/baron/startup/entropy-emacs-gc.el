@@ -1,4 +1,4 @@
-;;; entropy-emacs-gc.el --- Automaitcally garbage-collection configurations for 'entropy-emacs'
+;;; entropy-emacs-gc.el --- Automaitcally garbage-collection configurations for 'entropy-emacs'  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190809  Entropy
 ;; #+BEGIN_EXAMPLE

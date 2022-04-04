@@ -1,4 +1,4 @@
-;;;  entropy-emacs-ext.el --- entropy-emacs extra dependencies configuration
+;;;  entropy-emacs-ext.el --- entropy-emacs extra dependencies configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -190,12 +190,11 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
                 ((eq entropy/emacs-ext-elpkg-get-type 'entropy-emacs-extenisons-project)
                  (list (plist-get full-extras :eemacs-ext)))))
     (when entropy/emacs-ext-use-eemacs-lsparc
-      (add-to-list 'rtn (plist-get full-extras :eemacs-lsparc)))
+      (cl-pushnew (plist-get full-extras :eemacs-lsparc) rtn))
     rtn))
 
 (defun entropy/emacs-ext--check-extra-status (extra-plist)
-  (let ((item (plist-get extra-plist :item))
-        (repo_lc (plist-get extra-plist :repo-lc))
+  (let ((repo_lc (plist-get extra-plist :repo-lc))
         (version_lc (plist-get extra-plist :version-lc))
         (indicator_lc (plist-get extra-plist :indicator-lc))
         (version (plist-get extra-plist :version))
@@ -289,8 +288,8 @@ code defined in `entropy/emacs-ext--extras-trouble-table' or t."
 ;; *** byte compile package
 (defun entropy/emacs-ext--byte-compile-directory (dir)
   (let* ((dir-cur (expand-file-name dir))
-         (dir-cur-P (unless (file-exists-p dir-cur)
-                      (error "Directory '%s' not exists!" dir-cur)))
+         (_ (unless (file-exists-p dir-cur)
+              (error "Directory '%s' not exists!" dir-cur)))
          (dir-list (directory-files (expand-file-name dir-cur)))
          source-dirP)
     (catch :exit

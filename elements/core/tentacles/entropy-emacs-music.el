@@ -1,4 +1,4 @@
-;;; entropy-emacs-music --- Music client for emacs
+;;; entropy-emacs-music --- Music client for emacs  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20200316  Entropy
 ;; #+BEGIN_EXAMPLE

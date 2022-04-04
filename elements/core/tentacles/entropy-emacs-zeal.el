@@ -1,4 +1,4 @@
-;;; entropy-emacs-zeal.el --- entropy-emacs external API query config
+;;; entropy-emacs-zeal.el --- entropy-emacs external API query config  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190603  Entropy
 ;; #+BEGIN_EXAMPLE

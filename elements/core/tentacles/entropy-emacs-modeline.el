@@ -1,4 +1,4 @@
-;;; entropy-emacs-modeline.el --- entropy-emacs mode-line format configuration
+;;; entropy-emacs-modeline.el --- entropy-emacs mode-line format configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE

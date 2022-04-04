@@ -1,4 +1,4 @@
-;;; entropy-emacs-vcs.el --- entropy-emacs version contol system configuration
+;;; entropy-emacs-vcs.el --- entropy-emacs version contol system configuration  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -140,13 +140,13 @@
       (&rest body)
     "The input waiting protect for
 `entropy/emacs-vcs--git-messenger:popup-message' of BODY."
-    `(let ((____hydra-need-quit____ t))
+    `(let ((|||hydra-need-quit___|$ t))
        (unwind-protect
            (progn
              (push (read-event) unread-command-events)
-             (setq ____hydra-need-quit____ nil))
+             (setq |||hydra-need-quit___|$ nil))
          ,@body
-         (when ____hydra-need-quit____
+         (when |||hydra-need-quit___|$
            (hydra-keyboard-quit)))))
 
   :commands git-messenger:copy-message

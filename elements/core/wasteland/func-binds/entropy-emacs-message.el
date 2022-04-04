@@ -1,4 +1,4 @@
-;;; entropy-emacs-message.el --- entropy-emacs top function library for 'message' refer
+;;; entropy-emacs-message.el --- entropy-emacs top function library for 'message' refer  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 201909  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -135,7 +135,7 @@ To get the real-body in BODY.
           (throw 'break it))))))
 
 ;; *** top advice
-(defun entropy/emacs-message-quit (&rest args)
+(defun entropy/emacs-message-quit (&rest _)
   (ignore-errors
     (entropy/emacs-message-hide-popup t)))
 (advice-add 'keyboard-quit :before #'entropy/emacs-message-quit)
@@ -229,7 +229,7 @@ interactive session."
      (format ,message ,@args)))
 
 (defmacro entropy/emacs-message--do-message-ansi-apply (message &rest args)
-  `(let* (echo-string
+  `(let* ((echo-string nil)
           (inhibit-read-only t)
           (rtn-1 (entropy/emacs-message-format-message ,message ,@args))
           (rtn
@@ -241,13 +241,16 @@ interactive session."
                        sys/win32p)
                    (substring-no-properties rtn)
                  rtn-1)
-             rtn))))
+             rtn))
+     echo-string))
 
 (defmacro entropy/emacs-message--do-message-popup (message &rest args)
   `(let* ((message-str
            (entropy/emacs-message--do-message-ansi-apply
             ,message ,@args))
-          break-p
+          (break-p
+           ;; TODO: add conditions
+           nil)
           (buff-get (lambda nil
                       (let ((buff
                              (get-buffer-create

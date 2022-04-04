@@ -1,4 +1,4 @@
-;;; entropy-emacs-structer.el --- entropy-emacs config of coding structer
+;;; entropy-emacs-structer.el --- entropy-emacs config of coding structer  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 20190607  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -92,7 +92,7 @@
              yafolding-show-all)
   :preface
   (defvar entropy/emacs-structure--yafolding-jumping-modes '(emacs-lisp-mode lisp-interaction-mode))
-  (defun entropy/emacs-structure-yaf-toggle (column)
+  (defun entropy/emacs-structure-yaf-toggle (_column)
     (interactive "P")
     (if (member major-mode entropy/emacs-structure--yafolding-jumping-modes)
         (progn

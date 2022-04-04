@@ -1,4 +1,4 @@
-;;; entropy-emacs-defun.el --- entropy emacs pre-defined libraries
+;;; entropy-emacs-defun.el --- entropy emacs pre-defined libraries  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) date  author
 ;; #+BEGIN_EXAMPLE
@@ -217,9 +217,9 @@ otherwise uses the original procedure."
                    func-name))))
      (eval
       `(defun ,ad-name (orig-func &rest orig-args)
-         (if (or (null ,satisfy-func)
-                 (and (functionp ,satisfy-func)
-                      (funcall ,satisfy-func)))
+         (if (or (null ',satisfy-func)
+                 (and (functionp ',satisfy-func)
+                      (funcall ',satisfy-func)))
              (let ((print-level (or ,level 3))
                    (print-length (or ,length 20)))
                (apply orig-func orig-args))
@@ -297,7 +297,7 @@ doc-string for details."
 LIST-VAR. POS was a positive integer and indexed start at 0,
 meaning as same as what in `nth' arglists."
   (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
-    (eval `(setf ,remap-form replace))))
+    (eval `(setf ,remap-form ',replace))))
 
 ;; *** Plist manipulation
 
@@ -588,8 +588,7 @@ Always return nil when any mapping level's form generated failed
 or PROPS is `null'. Otherwise return as same as
 `entropy/emacs-generalized-plist-get'.
 "
-  (let (formrtn
-        macp
+  (let (macp
         (cur_top_place top-place)
         (cur_plist plist)
         cur_log
@@ -689,17 +688,7 @@ Plist keys:
 "
   (let ((fattrs (or (entropy/emacs-filesystem-node-exists-p filesystem-node t)
                     (user-error "[entropy/emacs-get-filesystem-node-attributes] file-not-existed: <%s>"
-                                filesystem-node)))
-        device-number
-        user-id
-        modifiction-time
-        size
-        inode-number
-        group-id
-        link-number
-        status-change-time
-        access-time
-        type)
+                                filesystem-node))))
     (if fattrs
         (list
          :type (file-attribute-type fattrs)
@@ -1255,7 +1244,7 @@ wrong type of :with-filter '%s'" with-filter)))
     (reverse rtn)))
 
 (defun entropy/emacs-list-dir-subdirs-recursively/filter/ignore-hidden
-    (type node-abs node-name)
+    (type _ node-name)
   "The hidden files or dirs node filter function used for
 `entropy/emacs-list-dir-subdirs-recursively'."
   (unless (fboundp 'rx)
@@ -2821,19 +2810,19 @@ can be used into your form:
   (let ((prepare-form
          (or (entropy/emacs-get-plist-form
               eemacs-make-proc-args :prepare nil t)
-             (lambda () t)))
+             '(progn t)))
         (after-form
          (or (entropy/emacs-get-plist-form
               eemacs-make-proc-args :after nil t)
-             (lambda () t)))
+             '(progn t)))
         (error-form
          (or (entropy/emacs-get-plist-form
               eemacs-make-proc-args :error nil t)
-             (lambda () t)))
+             '(progn t)))
         (clean-form
          (or (entropy/emacs-get-plist-form
               eemacs-make-proc-args :cleanup nil t)
-             (lambda () t)))
+             '(progn t)))
         (synchronously
          (eval (entropy/emacs-get-plist-form
                 eemacs-make-proc-args :synchronously t t)))
@@ -3064,18 +3053,17 @@ effect the expection or try use another way to avoid this.
                    "\
 [error] EEMACS-TYPE-SPEC of <%s> is not recognized for spec '%s'"
                    eemacs-type-spec type))))
-        (rtn nil))
+        )
     (cond
      ;; function type
      ((eq type 'EEMACS-DT-FUNC)
       (cond
        ((or (funcall symbol-mean-p exp)
             (functionp exp))
-        (setq rtn
-              (if (functionp exp)
-                  (funcall exp)
-                (funcall
-                 (funcall symbol-mean-p exp t)))))
+        (if (functionp exp)
+            (funcall exp)
+          (funcall
+           (funcall symbol-mean-p exp t))))
        ((listp exp)
         (let ((args
                (mapcar
@@ -3297,7 +3285,7 @@ RANGE-DESCS is a list of RANGE-DESC which formed as one of below:
 ``` elisp
 (:type collection
  :fmstr \"l0_%s\"
- :range_descs ((:type number_range     :range (1 . 100))
+ :range-descs ((:type number_range     :range (1 . 100))
                (:type char_range       :range (65 . 90))
                (:type func             :func funcname :argslist (arg1 arg2 arg3 ...))
                (:type enum             :enum_str_list (el1 el2 el3 ...)))
@@ -3373,7 +3361,7 @@ separater CONCAT-SEPARATER when non-nil.
               (dolist (subrange range-descs)
                 (setq group-rtn
                       (append group-rtn
-                              (apply gen/from/core-func subrange))))
+                              (funcall gen/from/core-func subrange))))
               (mapcar (lambda (str) (format "%s%s" (format (or fmstr "%s") str) (or sep "")))
                       group-rtn))))
 
@@ -3392,8 +3380,8 @@ separater CONCAT-SEPARATER when non-nil.
                      (cond ((eq (plist-get el :type) 'collection)
                             (funcall gen/from/collection_type
                                      (plist-get el :range-descs)
-                                     (plist-get subrange :fmstr)
-                                     (plist-get subrange :sep)))
+                                     (plist-get el :fmstr)
+                                     (plist-get el :sep)))
                            (t
                             (funcall gen/from/core-func el)))))))
 
@@ -3403,7 +3391,7 @@ separater CONCAT-SEPARATER when non-nil.
               sub-group)
           (when (and (= 0 count) sparse-list)
             (setq sub-group
-                  (when sparse-list (pop sparse-list))))
+                  (pop sparse-list)))
           (cond (sub-group
                  (setq rtn (funcall concat-func head-group sub-group)))
                 (t
@@ -3711,14 +3699,14 @@ non-nil for thus, or nil otherwise."
 (defun entropy/emacs-network-download-file
     (url destination &optional use-curl async verify)
   "Download file from URL to DESTINATION via alternative
-synchronous or async method using emacs native `url-retrieve' or
-curl subprocess when USE-CURL non-nil, then verify the donwload
+synchronous or async method using emacs native `url-retrieve' or the
+\"curl\" subprocess when USE-CURL non-nil, then verify the donwload
 file via the VERIFY function with a single argument the
-DESTINATION file-name whic return t or nil for valid or invalid
+DESTINATION file-name which return t or nil for valid or invalid
 verification status.
 
 NOTE:
-   The verification process will be pressed under `conditio-case'
+   The verification process will be pressed under `condition-case'
    since we do not allow any error corrupts whole download
    procedure.
 
@@ -3773,7 +3761,7 @@ so that following keys are supported:
                    (when (file-exists-p ,tmp-file)
                      (delete-file ,tmp-file)
                      (message "Deleted temp download file!"))
-                   (if (and (functionp ,verify)
+                   (if (and (functionp ',verify)
                             (prog1
                                 t
                               (message ">> verify the downloaded file <%s> ..."
@@ -3785,7 +3773,7 @@ so that following keys are supported:
                                ;; procedure then destroys the API
                                ;; restriction.
                                (condition-case error
-                                   (funcall ,verify ,destination)
+                                   (funcall ',verify ,destination)
                                  (error
                                   (entropy/emacs-message-do-message
                                    "%s%s"
@@ -3796,7 +3784,9 @@ so that following keys are supported:
                          (put ',cbk-symbol 'error-type 'verify))
                      (setq ,cbk-symbol 'success)))
                (error
-                (message (car (cdr error)))
+                (entropy/emacs-message-do-message
+                 "%s"
+                 (red (format "%s" error)))
                 (setq ,cbk-symbol 'failed)
                 (put ',cbk-symbol 'error-type
                      'move)
@@ -3913,6 +3903,9 @@ so that following keys are supported:
                 (url-copy-file url tmp-file)
                 (funcall success-func))
             (error
+             (entropy/emacs-message-do-message
+              "%s"
+              (red (format "%s" error)))
              (funcall fatal-func)))))))
     cbk-symbol))
 
@@ -4281,7 +4274,8 @@ object which can be used for `eval'."
                       ,(or emacs-invocation-name
                            (expand-file-name invocation-name invocation-directory))
                       "-Q" "-l" ,proc-eval-form-file)
-           :sentinel nil))))
+           :sentinel nil))
+    proc))
 
 ;; ** eemacs specifications
 ;; *** Individuals
@@ -4654,7 +4648,7 @@ GENED-FUNCTION with their own name abbreviated."
                  (entropy/emacs-message-non-popup
                   (if (eq ',prompt-type 'prompt-popup) nil t))
                  end-time
-                 __func_rtn)
+                 func-bocy-rtn)
              (redisplay t)
              (entropy/emacs-message-do-message
               "%s '%s' %s"
@@ -4662,13 +4656,17 @@ GENED-FUNCTION with their own name abbreviated."
               (yellow ,initial-func-suffix-name)
               (blue "..."))
              (entropy/emacs-general-run-with-protect-and-gc-strict
-              (setq __func_rtn
+              (setq func-bocy-rtn
                     (prog1
                         (progn
                           ,@func-body)
+                      ;; FIXME: dummy for press byte-compile unused
+                      ;; lexical variable warning
+                      (setq $_|internal-args $_|internal-args)
+                      ;; set indicator preventing duplicted invoking
                       (setq ,var t)
                       ;; fake the function after evaluated it.
-                      (defun ,func (&rest $_|internal-args)
+                      (defun ,func (&rest _)
                         "this function has been faked since it just need to run once."
                         nil)
                       ;; finally we remove the initial injection
@@ -4689,7 +4687,7 @@ GENED-FUNCTION with their own name abbreviated."
               (green "seconds. (Maybe running rest tasks ...)"))
              (redisplay t)
              (entropy/emacs-idle-cleanup-echo-area)
-             __func_rtn)))
+             func-bocy-rtn)))
        (defun ,adder-func (&rest _)
          (let ((inhibit-quit t))
            (dolist (item ',list-var)
@@ -4871,7 +4869,7 @@ thus."))
         (message "Setting language environment to '%s'." entropy/emacs-locale-language-environment)))
      (t (user-error "Invalid LANG arg")))))
 
-(defun entropy/emacs-lang-set-utf-8 (&rest args)
+(defun entropy/emacs-lang-set-utf-8 (&rest _)
   "Setting language envrionment to unix-8-unix in vanilla status.
 
 The vanilla status is for that excepts some special occasion and
@@ -4886,7 +4884,7 @@ For temporally usage of this functional case, see
   (if (not (string= current-language-environment "UTF-8"))
       (entropy/emacs--lang-set "UTF-8")))
 
-(defun entropy/emacs-lang-set-local (&rest args)
+(defun entropy/emacs-lang-set-local (&rest _)
   "Setting language envrionment to the local matched with system
 setting in vanilla status.
 
@@ -4905,19 +4903,19 @@ For temporally usage of this functional case, see
       (entropy/emacs--lang-set "LOCAL")))
 
 
-(defun entropy/emacs-lang-use-utf-8-ces-around-advice (old-func &rest _)
+(defun entropy/emacs-lang-use-utf-8-ces-around-advice (old-func &rest args)
   "Common around advice for wrapper function into utf-8
 environment."
   (let* ((coding-system-for-read 'utf-8)
          (coding-system-for-write 'utf-8))
-    (apply old-func _)))
+    (apply old-func args)))
 
-(defun entropy/emacs-lang-use-locale-ces-around-advice (old-func &rest _)
+(defun entropy/emacs-lang-use-locale-ces-around-advice (old-func &rest args)
   "Common around advice for wrapper funcion into locale language
 environment, determined by `entropy/emacs-locale-coding-system'."
   (let ((coding-system-for-read entropy/emacs-locale-coding-system)
         (coding-system-for-write entropy/emacs-locale-coding-system))
-    (apply old-func _)))
+    (apply old-func args)))
 
 ;; the 'with' macro
 (defmacro entropy/emacs-lang-with-utf-8-ces (&rest body)
@@ -5312,16 +5310,16 @@ stuffs on `entropy/emacs-solaire-mode' when
        t))))
 
 ;; *** Case fold search specification
-(defun entropy/emacs-case-fold-focely-around-advice (_old_func &rest _args)
+(defun entropy/emacs-case-fold-focely-around-advice (old-func &rest args)
   "Wrapper function to disable `case-fold-search' functional ability."
-  (let ((_case_type case-fold-search)
+  (let ((orig-case-type case-fold-search)
         rtn)
     (unwind-protect
         (progn (setq case-fold-search nil)
-               (setq rtn (apply _old_func _args))
-               (setq case-fold-search _case_type)
+               (setq rtn (apply old-func args))
+               (setq case-fold-search orig-case-type)
                rtn)
-      (setq case-fold-search _case_type))))
+      (setq case-fold-search orig-case-type))))
 
 ;; *** Cli compatibale specification
 ;; **** `xterm-paste' wrappers

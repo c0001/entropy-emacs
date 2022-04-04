@@ -3200,7 +3200,7 @@ evaluated result as its value.
                  (list use-name :handle-arg $arg))
     (setq
      init-form
-     `((let (_callers)
+     `((let (callers-for-run)
          (dolist (island ',$arg)
            (let* ((baron (car island))
                   (attr (car baron))
@@ -3234,9 +3234,9 @@ evaluated result as its value.
                                 ',use-name defer
                                 core-caller)
                              core-caller)))
-               (push run-call _callers))))
-         (when (not (null _callers))
-           (dolist (caller (reverse _callers))
+               (push run-call callers-for-run))))
+         (when (not (null callers-for-run))
+           (dolist (caller (reverse callers-for-run))
              (funcall caller))))))
     (use-package-concat
      init-form
