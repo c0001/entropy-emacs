@@ -974,7 +974,10 @@ restriction ARG, and popup those buffers.
 In interaction mode, ARG is caluated by `prefix-numeric-value' on
 `current-prefix-arg', so that both 'C-u C-u .. ' and 'C-u NUM' are
 acceptable. If `current-prefix-arg' is nil or ARG less than 1, we
-fallbackk to 1."
+fallbackk to 1.
+
+This function also can print the tree as `org-mode' style with a
+interaction hint."
     (interactive "P")
     (unless (eq major-mode 'dired-mode)
       (user-error "[Error]: current buffer is not an 'dired' buffer"))
@@ -991,34 +994,38 @@ fallbackk to 1."
                1))))
           (nodes (or (dired-get-marked-files)
                      (list (dired-current-directory))))
+          (use-org-style
+           (yes-or-no-p "Use org style? "))
           do-func
           buffer
           did-items)
       (setq do-func
-            (lambda (dir level)
+            (lambda (dirs level)
               (let ((buffer (generate-new-buffer
-                             (format "*eemacs-dired-print-tree-<%s> (using level %s)*"
-                                     (file-name-nondirectory
-                                      (entropy/emacs-file-path-parser
-                                       dir
-                                       'non-trail-slash))
-                                     with-level)))
+                             (format "*eemacs-dired-print-tree (using level %s)*"
+                                     level)))
                     (inhibit-read-only t))
                 (with-current-buffer buffer
-                  (erase-buffer))
-                (entropy/emacs-print-dir-recursively
-                 dir buffer
-                 t
-                 :with-level level)
+                  (erase-buffer)
+                  (setq-local org-pretty-entities nil
+                              org-pretty-entities-include-sub-superscripts nil)
+                  (dolist (node dirs)
+                    (when (file-directory-p node)
+                      (push node did-items)
+                      (unless use-org-style
+                        (insert (format "* %s\n" node)))
+                      (entropy/emacs-print-dir-recursively
+                       node buffer
+                       t
+                       :with-level level
+                       :use-org-style use-org-style)
+                      (insert "\n")))
+                  (if did-items
+                      (progn (org-mode) (setq buffer-read-only t))
+                    (kill-buffer buffer)))
                 buffer)))
-      (dolist (el nodes)
-        (when (file-directory-p el)
-          (push el did-items)
-          (setq buffer (funcall do-func el with-level))
-          (with-current-buffer buffer
-            (goto-char (point-min))
-            (setq buffer-read-only t))
-          (pop-to-buffer buffer)))
+      (setq buffer (funcall do-func nodes with-level))
+      (when buffer (pop-to-buffer buffer))
       (unless did-items
         (user-error "[Error]: can not found any nodes can be print its tree!"))))
 

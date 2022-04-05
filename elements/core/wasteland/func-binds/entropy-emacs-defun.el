@@ -1340,6 +1340,7 @@ Optional argument NOT-ABS and optional keys are all related to
              branch-leaf-end-str
              branch-leaf-non-end-str
              leaf-str
+             use-org-style
              with-level
              with-filter
              )
@@ -1412,6 +1413,20 @@ Examples
   ├── system
   └── user
 #+end_example
+
+When optional key USE-ORG-STYLE is non-nil print the `org-mode'
+headline based tree and ignore all common tree style specifications.
+
+The USE-ORG-STYLE defaultly output each node with its propeties as of
+
+#+begin_src org-mode
+,** java-openjdk
+,:LOCATION: /etc/java-openjdk
+,:DIR-REL-PATH: (etc java-openjdk)
+,:DIR-ABS-PATH: /etc/java-openjdk
+,:NODE-TYPE: directory
+,:NODE-SIZE: 138
+#+end_src
 "
   (let* ((dir-face (or dir-face (progn (unless (featurep 'dired) (require 'dired)) 'dired-directory)))
          (file-face (or file-face 'default))
@@ -1491,6 +1506,8 @@ BRANCH-STR '%s' is too long!" brs))
       (setq map-func
             (lambda (x &optional end-call-p)
               (let* ((dir-is-root-p (plist-get x :dir-is-root-p))
+                     (dir-rel-level (plist-get x :dir-rel-path-level))
+                     (dir-rel-pathlist (plist-get x :dir-rel-path))
                      (dir-name (plist-get x :dir-name))
                      (dir-name-inst (propertize dir-name 'face dir-face))
                      (dir-abs-path (plist-get x :dir-abspath))
@@ -1499,34 +1516,93 @@ BRANCH-STR '%s' is too long!" brs))
                                         (plist-get x :dir-subfiles-names)))
                      dir-indent-inst
                      file-indent-inst
-                     file-indent-as-end-inst)
-                (funcall chase-func x)
-                (setq dir-indent-inst
-                      (mapconcat 'identity dir-indent-stack "")
-                      file-indent-inst
-                      (mapconcat 'identity
-                                 (append (butlast dir-indent-stack) file-indent-tail-stack)
-                                 "")
-                      file-indent-as-end-inst
-                      (mapconcat 'identity
-                                 (append (butlast dir-indent-stack) file-indent-tail-as-end-stack)
-                                 ""))
+                     file-indent-as-end-inst
+                     org-info-func)
+
+                (setq org-info-func
+                      (lambda (type &optional fname)
+                        (let* ((node-path (expand-file-name (or fname "") dir-abs-path))
+                               (node-attrs (entropy/emacs-get-filesystem-node-attributes node-path)))
+                          (concat
+                           ":PROPERTIES:\n"
+                           (format
+                            ":LOCATION: %s\n"
+                            node-path)
+                           (apply
+                            'format
+                            ":%s: %s\n"
+                            (cond
+                             ((eq type 'dir)
+                              (list "DIR-REL-PATH" dir-rel-pathlist))
+                             ((eq type 'file)
+                              (list "FILE-REL-PATH" (append dir-rel-pathlist (list fname))))))
+                           (apply
+                            'format
+                            ":%s: %s\n"
+                            (cond
+                             ((eq type 'dir)
+                              (list "DIR-ABS-PATH" node-path))
+                             ((eq type 'file)
+                              (list "FILE-ABS-PATH" node-path))))
+                           (format ":NODE-TYPE: %s\n"
+                                   (let* (_)
+                                     (cond
+                                      ((file-symlink-p node-path) "symlink")
+                                      ((file-directory-p node-path) "directory")
+                                      (t
+                                       (if (> (plist-get node-attrs :link-number) 1)
+                                           (format "%s(%s)" "hardlink" (plist-get node-attrs :link-number))
+                                         "file")))))
+                           (format ":NODE-SIZE: %s\n"
+                                   (file-size-human-readable
+                                    (plist-get node-attrs :size)))
+                           ":END:\n"))))
+
                 (cond
-                 (end-call-p
-                  (when dir-subfiles
-                    (let ((count 0)
-                          (ovflow (1- (length dir-subfiles))))
+                 (use-org-style
+                  (cond
+                   (end-call-p
+                    (when dir-subfiles
                       (dolist (f dir-subfiles)
-                        (if (= count ovflow)
-                            (insert (format "%s%s\n" file-indent-as-end-inst
-                                            (propertize f 'face file-face)))
-                          (insert (format "%s%s\n" file-indent-inst
-                                          (propertize f 'face file-face))))
-                        (cl-incf count)))))
+                        (insert (format "%s %s\n"
+                                        (make-string (+ 2 dir-rel-level) ?*)
+                                        f))
+                        (insert (funcall org-info-func 'file f)))))
+                   (t
+                    (insert (format "%s %s\n"
+                                    (make-string (1+ dir-rel-level) ?*)
+                                    (if dir-is-root-p
+                                        dir-abs-path
+                                      dir-name)))
+                    (insert (funcall org-info-func 'dir)))))
                  (t
-                  (if dir-is-root-p
-                      (insert (format "%s (%s)\n" dir-name-inst dir-abs-path-inst))
-                    (insert (format "%s%s\n" dir-indent-inst dir-name-inst)))))
+                  (funcall chase-func x)
+                  (setq dir-indent-inst
+                        (mapconcat 'identity dir-indent-stack "")
+                        file-indent-inst
+                        (mapconcat 'identity
+                                   (append (butlast dir-indent-stack) file-indent-tail-stack)
+                                   "")
+                        file-indent-as-end-inst
+                        (mapconcat 'identity
+                                   (append (butlast dir-indent-stack) file-indent-tail-as-end-stack)
+                                   ""))
+                  (cond
+                   (end-call-p
+                    (when dir-subfiles
+                      (let ((count 0)
+                            (ovflow (1- (length dir-subfiles))))
+                        (dolist (f dir-subfiles)
+                          (if (= count ovflow)
+                              (insert (format "%s%s\n" file-indent-as-end-inst
+                                              (propertize f 'face file-face)))
+                            (insert (format "%s%s\n" file-indent-inst
+                                            (propertize f 'face file-face))))
+                          (cl-incf count)))))
+                   (t
+                    (if dir-is-root-p
+                        (insert (format "%s (%s)\n" dir-name-inst dir-abs-path-inst))
+                      (insert (format "%s%s\n" dir-indent-inst dir-name-inst)))))))
 
                 ;; we should return the null user spec attrs since we do not need it
                 nil
