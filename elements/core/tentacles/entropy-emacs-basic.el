@@ -1007,8 +1007,6 @@ interaction hint."
                     (inhibit-read-only t))
                 (with-current-buffer buffer
                   (erase-buffer)
-                  (setq-local org-pretty-entities nil
-                              org-pretty-entities-include-sub-superscripts nil)
                   (dolist (node dirs)
                     (when (file-directory-p node)
                       (push node did-items)
@@ -1024,7 +1022,14 @@ interaction hint."
                         (insert "#+end_example"))
                       (insert "\n")))
                   (if did-items
-                      (progn (org-mode) (setq buffer-read-only t))
+                      (progn (org-mode)
+                             ;; NOTE: we must put the `org-mode'
+                             ;; specifiction after the mode enabled
+                             ;; since some sets maybe covered by its
+                             ;; hooks.
+                             (setq-local org-pretty-entities nil
+                                         org-pretty-entities-include-sub-superscripts nil)
+                             (setq buffer-read-only t))
                     (kill-buffer buffer)))
                 buffer)))
       (setq buffer (funcall do-func nodes with-level))
