@@ -4947,7 +4947,7 @@ thus."))
           (entropy/emacs--set-user-package-dir-common "27.1"))
       (cond
        ((string-match-p "^28" emacs-version)
-        (entropy/emacs--set-user-package-dir-common "28.0.50"))
+        (entropy/emacs--set-user-package-dir-common "28.1"))
        ((string-match-p "^29" emacs-version)
         (entropy/emacs--set-user-package-dir-common "29.0.50"))
        (t
