@@ -1390,7 +1390,7 @@ TODO:
                             ,(when (version< emacs-version "28") 'dired-do-hardlink))))
     (advice-add el :around #'entropy/emacs-basic--dired-revert-advice))
 
-;; ******* __end
+;; ***** __end
   )
 
 ;; **** Use dired-aux to enable dired-isearch
