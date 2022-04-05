@@ -312,7 +312,8 @@
         (when use-vterm
           (setq pkgs-rtn (append pkgs-rtn (list use-vterm))))
         (when use-extras
-          (setq pkgs-rtn (append pkgs-rtn use-extras)))))
+          (setq pkgs-rtn (append pkgs-rtn use-extras)))
+	(setq entropy-emacs-packages pkgs-rtn)))
 
 
 (provide 'entropy-emacs-package-requirements)
