@@ -997,7 +997,7 @@ interaction hint."
             (t
              (if (> arg 0)
                  arg
-               1))))
+               nil))))
           (nodes (or (dired-get-marked-files)
                      (list (dired-current-directory))))
           (use-org-style
@@ -1378,7 +1378,7 @@ directory.
             (t
              (if (> arg 0)
                  arg
-               most-positive-fixnum))))
+               nil))))
           (nodes (or (dired-get-marked-files)
                      (list (dired-current-directory))))
           (all-files-counts 0))
