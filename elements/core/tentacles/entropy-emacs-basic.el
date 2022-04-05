@@ -1013,12 +1013,15 @@ interaction hint."
                     (when (file-directory-p node)
                       (push node did-items)
                       (unless use-org-style
-                        (insert (format "* %s\n" node)))
+                        (insert (format "* %s\n" node))
+                        (insert "#+begin_example\n"))
                       (entropy/emacs-print-dir-recursively
                        node buffer
                        t
                        :with-level level
                        :use-org-style use-org-style)
+                      (unless use-org-style
+                        (insert "#+end_example"))
                       (insert "\n")))
                   (if did-items
                       (progn (org-mode) (setq buffer-read-only t))
