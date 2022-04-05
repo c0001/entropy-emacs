@@ -303,38 +303,8 @@ place can be easily found by other interactive command."
              ((dired dired-mode-map)))
         "Dired EPA(gnupg elisp Binding) commands"
         :enable t :exit t)
-       ("i" (:pretty-hydra-cabinet
-             (:data
-              "dired image viewer commands"
-              (("C-t d" image-dired-display-thumbs "Display thumbnails of all marked files"
-                :enable t :map-inject t :exit t)
-               ("C-t t" image-dired-tag-files "Tag marked file(s) in dired"
-                :enable t :map-inject t :exit t)
-               ("C-t r" image-dired-delete-tag "Remove tag for selected file(s)"
-                :enable t :map-inject t :exit t)
-               ("C-t j" image-dired-jump-thumbnail-buffer "Jump to thumbnail buffer"
-                :enable t :map-inject t :exit t)
-               ("C-t i" image-dired-dired-display-image "Display current image file"
-                :enable t :map-inject t :exit t)
-               ("C-t x" image-dired-dired-display-external "Display file at point using an external viewer"
-                :enable t :map-inject t :exit t)
-               ("C-t a" image-dired-display-thumbs-append "Append thumbnails to ‘image-dired-thumbnail-buffer’"
-                :enable t :map-inject t :exit t)
-               ("C-t ." image-dired-display-thumb "Shorthand for ‘image-dired-display-thumbs’ with prefix argument"
-                :enable t :map-inject t :exit t)
-               ("C-t c" image-dired-dired-comment-files "Add comment to current or marked files in dired"
-                :enable t :map-inject t :exit t)
-               ("C-t f" image-dired-mark-tagged-files "Use regexp to mark files with matching tag"
-                :enable t :map-inject t :exit t)
-               ("C-t C-t" image-dired-dired-toggle-marked-thumbs
-                "Toggle thumbnails in front of file names in the dired buffer"
-                :enable t :map-inject t :exit t)
-               ("C-t e" image-dired-dired-edit-comment-and-tags
-                "Edit comment and tags of current or marked image files"
-                :enable t :map-inject t :exit t)))
-             :other-rest-args
-             ((dired dired-mode-map)))
-        "Image dired commands"
+       ("i" entropy/emacs-image-dired-init
+        "Inital `image-dired' in current dired buffer"
         :enable t :exit t))
       "Misc."
       (("p" entropy/emacs-basic-get-dired-fpath "Get Node Path"
@@ -1815,6 +1785,25 @@ window point not shown in nice place e.g. at window bottom."
   )
 
 ;; *** Image-mode
+;; **** union framework
+
+(use-package image-file
+  :ensure nil
+  :commands (image-file-name-regexp
+             auto-image-file-mode))
+
+(defun entropy/emacs-image-mode-external-view-union (image-file)
+  "Use `entropy/open-with-port' to open IMAGE-FILE in external app.
+
+The IMAGE-FILE must match regexp of `image-file-name-regexp' or
+an error thrown out."
+  (unless (featurep 'entropy-open-with)
+    (require 'entropy-open-with))
+  (unless (string-match-p (image-file-name-regexp) image-file)
+    (user-error "'%s' is not an image file!"))
+  (entropy/open-with-port nil image-file))
+
+;; **** image main mode
 (use-package image-mode
   :ensure nil
   :eemacs-mmphc
@@ -1825,13 +1814,19 @@ window point not shown in nice place e.g. at window bottom."
      ((1 :width-desc "Navigation")
       (1 :width-desc "Resize")
       (1 :width-desc "Animation"))))
-   ("Navigation"
+   ("Navigation & View"
     (("gn" image-next-file "Visit the next image in the same directory"
       :enable t :map-inject t :exit t)
      ("gN" image-previous-file "Visit the preceding image in the same directory"
+      :enable t :map-inject t :exit t)
+     ("C-<return>" entropy/emacs-image-mode-open-as-external
+      "Display current image with external app"
+      :enable t :map-inject t :exit t)
+     ("M-RET" entropy/emacs-image-mode-open-as-external
+      "Display current image with external app"
       :enable t :map-inject t :exit t))
 
-    "Resize"
+    "Resize Temporally"
     (("t+" image-increase-size "Increase the image size by a factor of N."
       :enable t :map-inject t :exit t)
      ("t-" image-decrease-size "Decrease the image size by a factor of N."
@@ -1865,8 +1860,458 @@ emacs."
     (if (string-match-p "\\.gif" (buffer-name))
         (if (not (y-or-n-p "Do you want to animated it? "))
             (error "Please open it with external apps!"))))
-  (advice-add 'image-toggle-animation :before #'entropy/emacs-basic-image-gif-warn))
+  (advice-add 'image-toggle-animation :before #'entropy/emacs-basic-image-gif-warn)
 
+  (defun entropy/emacs-image-mode-open-as-external ()
+    "Display image with external app of file in current `image-mode'
+buffer."
+    (interactive)
+    (unless (eq major-mode 'image-mode)
+      (user-error "Not in image-mode"))
+    (let ((file (buffer-file-name)))
+      (unless (file-exists-p file)
+        (user-error "No original file name found"))
+      (entropy/emacs-image-mode-external-view-union
+       file)))
+  )
+
+;; **** image dired
+;; ***** core
+(use-package image-dired
+  :ensure nil
+  :commands (image-dired)
+;; ****** preface
+  :preface
+
+  (defun entropy/emacs-image-dired-init ()
+    "Initial `image-dired' automatically when proper."
+    (interactive)
+    (unless (eq major-mode 'dired-mode)
+      (user-error "Not in an dired buffer"))
+    (let ((cur-buffer (current-buffer))
+          (img-fmarked (dired-mark-files-regexp (image-file-name-regexp))))
+      (unless img-fmarked
+        (user-error "No images found!"))
+      (unwind-protect
+          (let ((files (dired-get-marked-files)))
+            (if (or (<= (length files) image-dired-show-all-from-dir-max-files)
+                    (and (> (length files) image-dired-show-all-from-dir-max-files)
+                         (y-or-n-p
+                          (format
+                           "Directory contains more than %d image files.  Proceed? "
+                           image-dired-show-all-from-dir-max-files))))
+                (progn
+                  (image-dired-display-thumbs)
+                  (with-current-buffer image-dired-thumbnail-buffer
+                    (when (bound-and-true-p hl-line-mode)
+                      ;; display `hl-line-mode' since its cover the
+                      ;; mark highliting face for thumbnails
+                      (hl-line-mode -1)))
+                  (pop-to-buffer image-dired-thumbnail-buffer))
+              (message "Canceled.")))
+        (with-current-buffer cur-buffer
+          (dired-unmark-all-marks)))))
+
+;; ****** __end__
+  )
+
+;; ***** image-dired-thumbnail-mode
+(use-package image-dired
+  :ensure nil
+  :commands (image-dired)
+;; ****** eemacs hydra hollow instance
+  :eemacs-mmphc
+  (((:enable t :defer t)
+    (image-dired-thumbnail-mode
+     (image-dired image-dired-thumbnail-mode-map)
+     t
+     (2 2 2)))
+   ("Basic"
+    (("RET" image-dired-display-thumbnail-original-image
+      "Display current thumbnail’s original image"
+      :enable t :map-inject t :exit t)
+     ("C-<return>" entropy/emacs-image-dired-thumbnail-mode-open-as-external
+      "Display current thumbnail’s original image with external app"
+      :enable t :map-inject t :exit t)
+     ("M-RET" entropy/emacs-image-dired-thumbnail-mode-open-as-external
+      "Display current thumbnail’s original image with external app"
+      :enable t :map-inject t :exit t)
+     ("v" (:pretty-hydra-cabinet
+           (:data
+            "Grid buffer navigation"
+            (("<right>" image-dired-forward-image
+              "Move to next image and display properties"
+              :enable t :map-inject t :exit t)
+             ("<left>" image-dired-backward-image
+              "Move to prev image and display properties"
+              :enable t :map-inject t :exit t)
+             ("<up>" image-dired-previous-line
+              "Move to previous line and display properties"
+              :enable t :map-inject t :exit t)
+             ("<down>" image-dired-next-line
+              "Move to next line and display properties"
+              :enable t :map-inject t :exit t)))
+           :other-rest-args ((image-dired image-dired-thumbnail-mode-map)))
+      "Navigation on thumbnails"
+      :enable t :exit t)
+     ("V" (:pretty-hydra-cabinet
+           (:data
+            "display buffer navigation"
+            (("C-<right>" entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/right
+              "Scroll image display buffer arrow <right>"
+              :enable t :map-inject t :exit t)
+             ("C-<left>" entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/left
+              "Scroll image display buffer arrow <left>"
+              :enable t :map-inject t :exit t)
+             ("C-<up>" entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/up
+              "Scroll image display buffer arrow <up>"
+              :enable t :map-inject t :exit t)
+             ("C-<down>" entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/down
+              "Scroll image display buffer arrow <down>"
+              :enable t :map-inject t :exit t)))
+           :other-rest-args ((image-dired image-dired-thumbnail-mode-map)))
+      "Navigation on display buffer"
+      :enable t :exit t)
+     ("SPC" image-dired-display-next-thumbnail-original
+      "Move to next thumbnail and display the image."
+      :enable t :exit t :map-inject t)
+     ("DEL" image-dired-display-previous-thumbnail-original
+      "Move to previous thumbnail and display image."
+      :enable t :exit t :map-inject t))
+    "Mark&Track"
+    (("m" image-dired-mark-thumb-original-file
+      "Mark original image file in associated Dired buffer."
+      :enable t :map-inject t :exit t)
+     ("u" image-dired-unmark-thumb-original-file
+      "Unmark original image file in associated Dired buffer."
+      :enable t :map-inject t :exit t)
+     ("." image-dired-track-original-file
+      "Track the original file in the associated Dired buffer."
+      :enable t :map-inject t :exit t)
+     ("d" entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired
+      "Popup associated dired buffer in current image dired thumbnail buffer."
+      :enable t :map-inject t :exit t)
+     ("TAB" image-dired-jump-original-dired-buffer
+      "Jump to the Dired buffer associated with the current image file"
+      :enable t :map-inject t :exit t)
+     ("g" (:pretty-hydra-cabinet
+           (:data
+            "Display Modification"
+            (("g" image-dired-line-up-dynamic
+              "Line up thumbnails images dynamically."
+              :enable t :exit t)
+             ("f" image-dired-line-up
+              "Line up thumbnails according to ‘image-dired-thumbs-per-row’"
+              :enable t :exit t)
+             ("i" image-dired-line-up-interactive
+              "Line up thumbnails interactively."
+              :enable t :exit t))))
+      "Update thumbnails grid arrangement"
+      :enable t :map-inject t :exit t)
+     ("t" (:pretty-hydra-cabinet
+           (:data
+            "viewc/modify thumbnails tag"
+            (("t" image-dired-tag-thumbnail
+              "Tag current or marked thumbnails."
+              :enable t :exit t)
+             ("r" image-dired-tag-thumbnail-remove
+              "Remove tag from current or marked thumbnails."
+              :enable t :exit t))))
+      "viewc/modify thumbnails tag"
+      :enable t :map-inject t :exit t))
+    "Image Rotate"
+    (("l" image-dired-rotate-thumbnail-left
+      "Rotate thumbnail left (counter clockwise) 90 degrees"
+      :enable t :exit t :map-inject t)
+     ("r" image-dired-rotate-thumbnail-right
+      "Rotate thumbnail counter right (clockwise) 90 degrees."
+      :enable t :exit t :map-inject t)
+     ("L" image-dired-rotate-original-left
+      "Rotate original image left (counter clockwise) 90 degrees."
+      :enable t :exit t :map-inject t)
+     ("R" image-dired-rotate-original-right
+      "Rotate original image right (clockwise) 90 degrees"
+      :enable t :exit t :map-inject t))
+    "Image Info Modifiction"
+    (("D" image-dired-thumbnail-set-image-description
+      "Set the ImageDescription EXIF tag for the original image."
+      :enable t :exit t :map-inject t)
+     ("C-d" image-dired-delete-char
+      "Remove current thumbnail from thumbnail buffer and line up."
+      :enable t :exit t :map-inject t)
+     ("c" image-dired-comment-thumbnail
+      "Add comment to current thumbnail in thumbnail buffer."
+      :enable t :exit t :map-inject t))
+    ))
+;; ****** config
+  :config
+;; ******* patch
+;; ******** core
+
+  (defvar __ya/image-dired-display-image-stick-fit-type nil)
+  (defvar-local __ya/image-dired-display-image-buffer-image-file nil)
+  ;; EEMACS_MAINTENANCE follow upstream updates
+  (defun __ya/image-dired-display-image (file &optional original-size)
+    "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
+means as DWIM that:
+
+- `=' 2:      fit to height (stick to window height using the origin image width)
+- `=' 3:      fit to width (stick to window width using the origin image height)
+- `eq' '(4):  use origin size which is same as origin mechanism the single 'C-u' prefix.
+
+The dwim is memoized via history variable
+`__ya/image-dired-display-image-stick-fit-type'.
+
+Any other prefix type is treat as clear/reset the stick history
+dwim memory and use both height and width fit display type."
+    (image-dired--check-executable-exists
+     'image-dired-cmd-create-temp-image-program)
+    (let* ((new-file (expand-file-name image-dired-temp-image-file))
+           (window (image-dired-display-window))
+           (image-type 'jpeg)
+           (max-image-pixel-factor 20000)
+           (should-use-dwim-func
+            (lambda ()
+              (or
+               ;; explicit should use dwim
+               (when (not original-size)
+                 ;; inherit history dwim type when history is set
+                 (when __ya/image-dired-display-image-stick-fit-type
+                   (setq original-size
+                         __ya/image-dired-display-image-stick-fit-type))
+                 t)
+               (cond
+                ;; user specified dwim type
+                ((member original-size '(2 3))
+                 ;; then we update the history dwim type
+                 (setq __ya/image-dired-display-image-stick-fit-type
+                       original-size)
+                 t)
+                ;; manually clear the hisrtoy type and fallback to use dwim
+                ((and (listp original-size)
+                      (not (equal original-size
+                                  ;; the single prefix treat as use origin size.
+                                  '(4))))
+                 ;; then we clear the history dwim type
+                 (setq
+                  __ya/image-dired-display-image-stick-fit-type
+                  nil)
+                 t)
+                ;; otherwise disable dwim i.e. use single `C-u' type
+                ;; which is same as origin mechanism
+                (t
+                 nil))))))
+
+      (setq file (expand-file-name file))
+      (if (funcall should-use-dwim-func)
+          (let* ((spec
+                  (list
+                   (cons ?p image-dired-cmd-create-temp-image-program)
+                   (cons ?w (or
+                             ;; height stick tyep expand width
+                             (and (eq original-size 2)
+                                  max-image-pixel-factor)
+                             (image-dired-display-window-width window)))
+                   (cons ?h (or
+                             ;; width stick type expand height
+                             (and (eq original-size 3)
+                                  max-image-pixel-factor)
+                             (image-dired-display-window-height window)))
+                   (cons ?f file)
+                   (cons ?t new-file)))
+                 (ret
+                  (apply #'call-process
+                         image-dired-cmd-create-temp-image-program nil nil nil
+                         (mapcar
+                          (lambda (arg) (format-spec arg spec))
+                          image-dired-cmd-create-temp-image-options))))
+            (when (not (zerop ret))
+              (error "Could not resize image")))
+        (setq image-type (image-type-from-file-name file))
+        (copy-file file new-file t))
+      (with-current-buffer (image-dired-create-display-image-buffer)
+        ;; let buffer known the current display image origin file
+        (setq __ya/image-dired-display-image-buffer-image-file file)
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (clear-image-cache)
+          (image-dired-insert-image new-file image-type 0 0)
+          (goto-char (point-min))
+          (set-window-vscroll window 0)
+          (set-window-hscroll window 0)
+          (image-dired-update-property 'original-file-name file)))))
+
+  (advice-add 'image-dired-display-image
+              :override #'__ya/image-dired-display-image)
+
+;; ******* eemacs spec commands
+;; ******** open with external app
+
+  (defun entropy/emacs-image-dired-thumbnail-mode-open-as-external ()
+    "Open thumbnails origin image file at point with external app."
+    (interactive)
+    (let ((file (image-dired-original-file-name)))
+      (if (not (string-equal major-mode "image-dired-thumbnail-mode"))
+          (message "Not in image-dired-thumbnail-mode")
+        (if (not (image-dired-image-at-point-p))
+            (message "No thumbnail at point")
+          (if (not file)
+              (message "No original file name found")
+            (entropy/emacs-image-mode-external-view-union
+             file))))))
+
+;; ******** popup associated dired buffer
+
+  (defun entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired ()
+    "Popup associated dired buffer in current image dired thumbnail buffer."
+    (interactive)
+    (unless (string-equal major-mode "image-dired-thumbnail-mode")
+      (user-error "Not in image-dired-thumbnail-mode"))
+    (let ((assoc-dired-buffer (image-dired-associated-dired-buffer)))
+      (unless (and (bufferp assoc-dired-buffer)
+                   (buffer-live-p assoc-dired-buffer))
+        (user-error "No associated dired-buffer found!"))
+      (if (bound-and-true-p shackle-mode)
+          (let* ((buff-name (buffer-name assoc-dired-buffer))
+                 (shackle-rules
+                  (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
+                      `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
+            (display-buffer assoc-dired-buffer))
+        (pop-to-buffer assoc-dired-buffer))))
+
+;; ******** scroll sync
+  (defvar entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer nil)
+  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
+      (arrow n)
+    "Scroll image in `image-dired-display-image-buffer' while current
+buffer is `image-dired-thumbnail-mode' with ARROW.
+
+ARROW is valid in 'up' 'down' 'left' 'right'."
+    (unless (string-equal major-mode "image-dired-thumbnail-mode")
+      (user-error "Not in image-dired-thumbnail-mode"))
+    (let* ((buffer (get-buffer image-dired-display-image-buffer))
+           (buffer-win (get-buffer-window buffer)))
+      (unless (and (buffer-live-p buffer)
+                   buffer-win)
+        (user-error "No lived image display buffer or window!"))
+      (with-selected-window buffer-win
+        (cond
+         ((equal arrow 'up)     (funcall-interactively 'image-previous-line n))
+         ((equal arrow 'down)   (funcall-interactively 'image-next-line n))
+         ((equal arrow 'left)   (funcall-interactively 'image-backward-hscroll n))
+         ((equal arrow 'right)  (funcall-interactively 'image-forward-hscroll n))
+         (t
+          (user-error "invalid arrow type: %s" arrow)))
+        ;; FIXME: why we should redraw the display frame to force visualized movitation?
+        (unless (or entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
+                    (eq arrow 'down))
+          (setq entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
+                (run-with-timer
+                 0.01 nil
+                 `(lambda ()
+                    (let ((frame (window-frame ',buffer-win)))
+                      (unwind-protect
+                          (when (frame-live-p frame)
+                            (redraw-frame frame))
+                        (setq entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer
+                              nil)))))))
+        )))
+  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/up
+      (&optional n)
+    "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'up'."
+    (interactive "p")
+    (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
+     'up n))
+  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/down
+      (&optional n)
+    "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'down'."
+    (interactive "p")
+    (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
+     'down n))
+  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/left
+      (&optional n)
+    "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'left'."
+    (interactive "p")
+    (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
+     'left n))
+  (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/right
+      (&optional n)
+    "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'right'."
+    (interactive "p")
+    (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
+     'right n))
+
+;; ****** __end__
+  )
+
+;; ***** image-dired-display-image-mode
+(use-package image-dired
+  :ensure nil
+;; ****** eemacs hydra hollow instance
+  :eemacs-mmphc
+  (((:enable t :defer t)
+    (image-dired-display-image-mode
+     (image-dired image-dired-display-image-mode-map)
+     t
+     (2 2 2)))
+   ("Basic"
+    (("RET" entropy/emacs-image-dired-display-image-buffer-redo-command
+      "Redisplay the current buffer image."
+      :enable t :exit t :map-inject t)
+     ("C-<return>" entropy/emacs-image-dired-buffer-view-with-external-app
+      "Display current displayed image’s original image with external app"
+      :enable t :map-inject t :exit t)
+     ("M-RET" entropy/emacs-image-dired-buffer-view-with-external-app
+      "Display current displayed image’s original image with external app"
+      :enable t :map-inject t :exit t)
+     ("I" entropy/emacs-image-dired-enable-image-mode-in-display-buffer
+      "Enable `image-mode' in current buffer."
+      :enable t :exit t :map-inject t))))
+
+;; ****** config
+  :config
+  (defun entropy/emacs-image-dired-buffer-view-with-external-app ()
+    "View current displayed image in external app."
+    (interactive)
+    (unless (eq major-mode 'image-dired-display-image-mode)
+      (user-error "Not in an dired image display spec buffer!"))
+    (let ((file __ya/image-dired-display-image-buffer-image-file))
+      (unless (and file (file-exists-p file))
+        (user-error "No image displayed in this buffer"))
+      (entropy/emacs-image-mode-external-view-union file)))
+
+  (defun entropy/emacs-image-dired-display-image-buffer-redo-command (arg)
+    "Redisplay the current `image-dired-display-image-buffer'
+displayed image as same operated mechanism as
+`image-dired-display-thumbnail-original-image'."
+    (interactive "P")
+    (unless (eq major-mode 'image-dired-display-image-mode)
+      (user-error "Not in an dired image display spec buffer!"))
+    (let ((file __ya/image-dired-display-image-buffer-image-file))
+      (unless (and file (file-exists-p file))
+        (user-error "No image displayed in this buffer"))
+      (image-dired-display-image file arg)))
+
+  (defun entropy/emacs-image-dired-enable-image-mode-in-display-buffer ()
+    "Enable `image-mode' in `image-dired-display-image-buffer'"
+    (interactive)
+    (unless (eq major-mode 'image-dired-display-image-mode)
+      (user-error "Not in an dired image display spec buffer!"))
+    (let ((inhibit-read-only t)
+          (file __ya/image-dired-display-image-buffer-image-file)
+          (window (selected-window))
+          (modified (buffer-modified-p)))
+      (unless (and file (file-exists-p file))
+        (user-error "No image displayed in this buffer"))
+      (unless (featurep 'image-mode)
+        (require 'image-mode))
+      (erase-buffer)
+      (insert-file-literally file)
+      (image-mode)
+      (restore-buffer-modified-p modified)))
+
+;; ****** __end__
+  )
 
 ;; *** Artist-mode
 (use-package artist
