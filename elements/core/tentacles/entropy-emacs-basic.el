@@ -1117,7 +1117,7 @@ in current `dired' buffer. Use symbolic link type defautly unless
             (lambda (ftype src dest)
               (message "Do %s for %s type from '%s' to '%s' ..."
                        op-type ftype src dest)))
-           (summary-msg-func
+           (summary-msg-info-get-func
             (lambda ()
               (message "%s (%s/%s) dir created/failed, (%s/%s) files did/failed for %s operation"
                        (if (funcall log-allop-success-p-func)
@@ -1128,6 +1128,10 @@ in current `dired' buffer. Use symbolic link type defautly unless
                        log-success-files
                        log-fatal-files
                        op-type)))
+           summary-msg-info-str
+           (summary-msg-message-func
+            (lambda ()
+              (message "%s" summary-msg-info-str)))
            (node-type-get-func
             (lambda (x def)
               (let ((base-type (list def))
@@ -1339,10 +1343,17 @@ in current `dired' buffer. Use symbolic link type defautly unless
                                    (format "%S" error-type))
                           nil)))))))
         (funcall log-filter-func)
-        (funcall summary-msg-func)
+        (setq summary-msg-info-str
+              (funcall summary-msg-info-get-func))
+        (funcall summary-msg-message-func)
         (when log-string-list
           (with-current-buffer log-buffer
             (let ((inhibit-read-only t))
+              (insert (format "%s\n%s\n%s\n\n"
+                              "=============================="
+                              summary-msg-info-str
+                              "=============================="
+                              ))
               (mapc (lambda (x)
                       (insert x)
                       (insert "\n"))
