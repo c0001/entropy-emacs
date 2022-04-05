@@ -348,7 +348,13 @@ place can be easily found by other interactive command."
        ("T" entropy/emacs-basic-dired/print-tree "Show/Print marked nodes tree"
         :enable t
         :map-inject t
-        :exit t))))
+        :exit t)
+       ("A" entropy/emacs-dired-do-counts-marked-files-recursively
+        "Count marked items recursively"
+        :enable t
+        :map-inject t
+        :exit t)
+       )))
 
   (entropy/emacs-lazy-initial-advice-before
    (dired-mode)
@@ -972,9 +978,9 @@ fallbackk to 1."
 restriction ARG, and popup those buffers.
 
 In interaction mode, ARG is caluated by `prefix-numeric-value' on
-`current-prefix-arg', so that both 'C-u C-u .. ' and 'C-u NUM' are
-acceptable. If `current-prefix-arg' is nil or ARG less than 1, we
-fallbackk to 1.
+`current-prefix-arg', so that both 'C-u C-u .. ' and 'C-u NUM'
+are acceptable. If `current-prefix-arg' is nil we fallbackk to 1,
+or if 0 we use `nil' which is for non level restriction.
 
 This function also can print the tree as `org-mode' style with a
 interaction hint."
@@ -1344,6 +1350,48 @@ in current `dired' buffer. Use symbolic link type defautly unless
             (entropy/emacs-do-directory-mirror/log-mode)
             (setq buffer-read-only t)
             (pop-to-buffer log-buffer))))))
+
+;; ******* Dired count marked files recursively
+
+  (defun entropy/emacs-dired-do-counts-marked-files-recursively (arg)
+    "Do count files recursively for marked items in `dired-mode'
+buffer with level restriction by ARG.
+
+In interaction mode, ARG is caluated by `prefix-numeric-value' on
+`current-prefix-arg', so that both 'C-u C-u .. ' and 'C-u NUM'
+are acceptable. If `current-prefix-arg' is nil we fallbackk to 1,
+or if 0 we use `nil' which for non level restriction.
+
+Any symbolic link target to a directory is recognized as an
+directory.
+"
+    (interactive "P")
+    (unless (eq major-mode 'dired-mode)
+      (user-error "[Error]: current buffer is not an 'dired' buffer"))
+    (let ((with-level
+           (cond
+            ((null arg)
+             1)
+            ((listp arg)
+             (floor
+              (log (car arg) 4)))
+            (t
+             (if (> arg 0)
+                 arg
+               most-positive-fixnum))))
+          (nodes (or (dired-get-marked-files)
+                     (list (dired-current-directory))))
+          (all-files-counts 0))
+      (dolist (el nodes)
+        (if (file-directory-p el)
+            (setq all-files-counts
+                  (+ all-files-counts
+                     (length (entropy/emacs-list-dir-subfiles-recursively-for-list
+                              el nil
+                              :with-level with-level))))
+          (cl-incf all-files-counts)))
+      (message (format "%s files in %s marked items"
+                       all-files-counts (length nodes)))))
 
 ;; ******* Dired auto revert after some operations
 
