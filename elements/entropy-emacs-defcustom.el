@@ -3133,7 +3133,11 @@ Do you want to open it with messy?"
          ;; prevent duplicated call, since the
          ;; `entropy/emacs-unreadable-file-advice-for-finid-file'
          ;; may did the same
-         (= large-file-warning-threshold most-positive-fixnum)
+         (and
+          ;; must check `large-file-warning-threshold' whether null,
+          ;; since it can be nil in its API documentation description.
+          large-file-warning-threshold
+          (= large-file-warning-threshold most-positive-fixnum))
          ;; matched unjudge cases
          (entropy/emacs-unreadable-file-unjuge-cases filename))
         (let ((large-file-warning-threshold most-positive-fixnum))
