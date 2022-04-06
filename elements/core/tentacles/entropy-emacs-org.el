@@ -235,6 +235,9 @@ must satisfied follow requirements:
   (entropy/emacs-make-function-inhibit-readonly
    'org-refile)
 
+  ;; Make refile cache enabled defaultly.
+  (setq org-refile-use-cache t)
+
 ;; ***** Imenu integration
 
   ;; The default depth shown for integrating org heading line to imenu
