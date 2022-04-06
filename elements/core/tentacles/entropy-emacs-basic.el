@@ -2495,7 +2495,12 @@ occasions. "
                         dired-mode
                         eww-mode
                         w3m-mode))
-              (bound-and-true-p entropy/emacs-ui-init-welcom-mode))
+              (bound-and-true-p entropy/emacs-ui-init-welcom-mode)
+              ;; we should always restirct
+              ;; `global-display-line-numbers-mode' in `prog-mode' or
+              ;; its derived modes.
+              (and (bound-and-true-p global-display-line-numbers-mode)
+                   (not (derived-mode-p 'prog-mode))))
     (apply orig-func orig-args)))
 
 (advice-add 'display-line-numbers-mode

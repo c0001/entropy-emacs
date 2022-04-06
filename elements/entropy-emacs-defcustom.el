@@ -461,7 +461,10 @@ will combined with =entropy-emacs= internal specification."
   "Eemacs ivy-mode configuration customizable group."
   :group 'entropy/emacs-customize-group-for-editor-common)
 
-(defcustom entropy/emacs-init-display-line-numbers-mode nil
+(defcustom entropy/emacs-init-display-line-numbers-mode
+  ;; now we can defaulty enable this in emacs 28 and upper since the
+  ;; `line-number-at-pos' is C-binding in those emacs-version.
+  (version< "28" emacs-version)
   "Enable `global-display-line-numbers-mode' at start up time."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-editor-line-hints)
