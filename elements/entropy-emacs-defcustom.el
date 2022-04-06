@@ -184,6 +184,11 @@ then enable the rich dashbord contents when value is 'rich'."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-initial-ui)
 
+(defcustom entropy/emacs-enable-visual-bell-at-startup nil
+  "Enabe visual bell UI feedback at startup."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-initial-ui)
+
 ;; ***** Frame Position
 (defgroup entropy/emacs-customize-group-for-initial-position nil
   "Eemacs emacs initial position configuration customizable group."

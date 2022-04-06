@@ -44,32 +44,36 @@
 
 (use-package doom-themes-ext-visual-bell
   :ensure nil
-  :commands (doom-themes-visual-bell-config)
-  :init
-  (entropy/emacs-lazy-initial-advice-before
-   (keyboard-quit)
-   "doom-visual-bell" "doom-visual-bell" prompt-echo
-   :pdumper-no-end t
-   (doom-themes-visual-bell-config)))
+  :functions (doom-themes-visual-bell-config
+              doom-themes-visual-bell-fn))
 
 (defvar __ring-bell-function nil)
-(defun entropy/emacs-themes-toggle-visual-bell (&rest _)
+(defun entropy/emacs-themes-toggle-visual-bell (&optional enable-force)
   "Toggle visual bell functionality interactively."
   (interactive)
   (let ((rbf ring-bell-function)
         (vbp visible-bell))
     (cond
-     (vbp
+     ((and (or vbp rbf) (not enable-force))
       (message "Disable visual bell ...")
       (setq ring-bell-function nil
-            __ring-bell-function rbf
-            visible-bell nil)
+            visible-bell nil
+            __ring-bell-function (or rbf 'doom-themes-visual-bell-fn))
       (message "Disable visual bell done!"))
      (t
       (message "Start visual bell ...")
-      (setq ring-bell-function __ring-bell-function
+      (setq ring-bell-function (or __ring-bell-function 'doom-themes-visual-bell-fn)
             visible-bell t)
       (message "Start visual bell done!")))))
+
+(entropy/emacs-lazy-initial-advice-before
+ (keyboard-quit)
+ "doom-visual-bell" "doom-visual-bell" prompt-echo
+ :pdumper-no-end t
+ (setq ring-bell-function nil
+       visible-bell nil)
+ (when entropy/emacs-enable-visual-bell-at-startup
+   (entropy/emacs-themes-toggle-visual-bell t)))
 
 (use-package doom-themes-ext-org
   :ensure nil
