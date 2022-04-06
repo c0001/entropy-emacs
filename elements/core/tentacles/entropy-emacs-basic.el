@@ -1009,7 +1009,9 @@ interaction hint."
                     (kill-buffer buffer)))
                 buffer)))
       (setq buffer (funcall do-func nodes with-level))
-      (when buffer (pop-to-buffer buffer))
+      (when (and (bufferp buffer)
+                 (buffer-live-p buffer))
+        (pop-to-buffer buffer))
       (unless did-items
         (user-error "[Error]: can not found any nodes can be print its tree!"))))
 
