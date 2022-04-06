@@ -1,0 +1,4 @@
+[submodule "annex/emacs-src"]
+	path = annex/emacs-src
+	url = git@github.com:c0001/entropy-gnu-emacs-src.git
+	branch = entropy-emacs-master
