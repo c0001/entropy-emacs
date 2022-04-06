@@ -2178,10 +2178,11 @@ dwim memory and use both height and width fit display type."
       (if (bound-and-true-p shackle-mode)
           (let* ((buff-name (buffer-name assoc-dired-buffer))
                  (shackle-rules
-                  (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
-                      `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
-            (display-buffer assoc-dired-buffer))
-        (pop-to-buffer assoc-dired-buffer))))
+                  `((,buff-name :select t :size 0.4 :align 'below :autoclose t))))
+            (display-buffer assoc-dired-buffer)
+            (message "Shackle popup to dired buffer <%s>" buff-name))
+        (pop-to-buffer assoc-dired-buffer)
+        (message "Native popup to dired buffer <%s>" buff-name))))
 
 ;; ******** scroll sync
   (defvar entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer nil)
