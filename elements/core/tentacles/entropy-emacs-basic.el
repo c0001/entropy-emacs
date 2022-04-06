@@ -1886,6 +1886,8 @@ buffer."
   (defun entropy/emacs-image-dired-init ()
     "Initial `image-dired' automatically when proper."
     (interactive)
+    (unless (featurep 'image-dired)
+      (require 'image-dired))
     (unless (eq major-mode 'dired-mode)
       (user-error "Not in an dired buffer"))
     (let ((cur-buffer (current-buffer))
