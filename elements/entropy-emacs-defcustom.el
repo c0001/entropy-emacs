@@ -2924,7 +2924,7 @@ list return t i.e. inidcate to unjudge for as.")
     (catch :exit
       (when (and
              ;; restrict image size under 100M
-             (<= fsize (* 100 (expt 1024 2)))
+             (and fsize (<= fsize (* 100 (expt 1024 2))))
              (string-match-p (image-file-name-regexp) filename))
         (throw :exit t))
 
