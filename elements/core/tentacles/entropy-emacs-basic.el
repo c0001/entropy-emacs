@@ -1808,6 +1808,9 @@ an error thrown out."
 ;; **** image main mode
 (use-package image-mode
   :ensure nil
+  :functions (image-set-window-vscroll
+              image-set-window-hscroll
+              image-mdoe)
   :eemacs-mmphc
   (((:enable t :defer t)
     (nil
@@ -2141,9 +2144,18 @@ dwim memory and use both height and width fit display type."
           (clear-image-cache)
           (image-dired-insert-image new-file image-type 0 0)
           (goto-char (point-min))
-          (set-window-vscroll window 0)
-          (set-window-hscroll window 0)
-          (image-dired-update-property 'original-file-name file)))))
+          (image-dired-update-property 'original-file-name file)
+          (with-selected-window window
+            (unless (string= (buffer-name) image-dired-display-image-buffer)
+              (error "internal error <current window is not matched display image buffer>"))
+            ;; FIXME: We must use `image-mode' subroutines to set the
+            ;; scroll pos since orign `set-window-vscroll' and
+            ;; `set-window-hscroll' is not work when previously has
+            ;; did scrolled operation using `image-next-line' etc. and
+            ;; why? (maybe since `image-next-line' and refer use
+            ;; `setf' i.e. `gv' functionality and why this does?)
+            (image-set-window-vscroll 0)
+            (image-set-window-hscroll 0))))))
 
   (advice-add 'image-dired-display-image
               :override #'__ya/image-dired-display-image)
