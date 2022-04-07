@@ -1465,6 +1465,36 @@ gui session has huge sets of differents in entropy-emacs.
 
 
 
+;; ** ime refer
+
+(defvar entropy/emacs-internal-IME-toggle-function
+  (lambda (&optional type)
+    (interactive)
+    (let ((error-msg
+           "Non defination found for current union internal ime toggle function."
+           ))
+      (message "%s" error-msg)
+      (if type
+          nil
+        error-msg)))
+  "Eemacs union emacs internal IME toggle function , is a
+`interactive' function.
+
+This function must be `ignore-errors' like wrapped i.e. never
+throw error, and return t for indicate internal IME toggle enable
+and nil for disable, and any other return is indicate toggle with
+fatal.
+
+And this function must can optionally accept one argument
+i.e. the toggle type, 'enable' or 'disable'. Which when type is
+enable, then theh function should enable the corresponding
+internal input method and 'disable' to disable thus, and the
+return means has changed to use t for succeed and any other
+return for fatal.
+
+If use a string as the fatal return, it should be the error message
+string for conventionally did.")
+
 ;; ** package patches refer
 
 (defvar entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-conditions nil

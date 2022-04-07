@@ -338,6 +338,35 @@ segmentation fault."
   ;; --- FIXME: why 'M-O' conflicated with <f1> in `vterm-mode-map'?
   (define-key vterm-mode-map (kbd "M-O") nil)
 
+  ;; enable native ime toggle for `vterm-mode'. Based on vterm updates
+  ;; of
+  ;; https://github.com/akermu/emacs-libvterm/commit/2b1392cb2b14ec5bd0b7355197d5f353aa5d3983
+  (defun entropy/emacs-vterm--internal-ime-toggle-wrapper
+      (orig-func &rest orig-args)
+    "Around advice for enable
+`entropy/emacs-internal-IME-toggle-function' in `vterm-mode-map'
+before invoke the main process."
+    (let (_)
+      (funcall entropy/emacs-internal-IME-toggle-function)
+      (apply orig-func orig-args)))
+
+  (let ((orig-func
+         (lookup-key
+          vterm-mode-map
+          (kbd
+           entropy/emacs-internal-ime-toggling-kbd-key))))
+    (setq orig-func
+          (and orig-func
+               (functionp orig-func)
+               orig-func))
+    (if orig-func
+        (advice-add orig-func
+                    :around
+                    #'entropy/emacs-vterm--internal-ime-toggle-wrapper)
+      (define-key vterm-mode-map
+        (kbd entropy/emacs-internal-ime-toggling-kbd-key)
+        entropy/emacs-internal-IME-toggle-function)))
+
   )
 
 ;; ** Shell Pop

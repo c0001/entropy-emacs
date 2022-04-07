@@ -4222,13 +4222,33 @@ current displayed buffer area wile
               #'__ya/pyim-indicator-daemon-function)
 
 ;; ******** toggle input method
-  (defun entropy/emacs-basic-pyim-toggle ()
+  (defun entropy/emacs-basic-pyim-toggle (&optional type)
     (interactive)
-    (if (string= current-input-method "pyim")
-        (set-input-method nil)
-      (progn
-        (set-input-method "pyim")
-        (setq pyim-punctuation-escape-list nil))))
+    "The eemacs pyim ime toggler which obey the
+`entropy/emacs-internal-IME-toggle-function' api."
+    (condition-case error
+        (let (disable-p enable-p)
+          (cond ((and (or (string= current-input-method "pyim")
+                          (eq type 'disable))
+                      (not (eq type 'enable))
+                      (setq disable-p t))
+                 (set-input-method nil))
+                ((and (or (eq type 'enable)
+                          (null type))
+                      (setq enable-p t))
+                 (set-input-method "pyim")
+                 (setq pyim-punctuation-escape-list nil))
+                (t
+                 (error "invalid ime toggle type '%s'" type)))
+          (if type
+              t
+            (if disable-p
+                nil
+              t)))
+      (error
+       (let ((error-msg (format "%s" error)))
+         (message "%s" error-msg)
+         error-msg))))
 
 ;; ******** using 'C-g' to cancling any pyim manipulation
   (if (not (version< emacs-version "26"))
@@ -4316,13 +4336,33 @@ This function will store the `rime' loading callback to
             (rime-lib-select-schema entropy/emacs-internal-ime-use-rime-default-schema)
             (setq default-input-method "rime"))))))
 
-  (defun entropy/emacs-basic-emacs-rime-toggle ()
+  (defun entropy/emacs-basic-emacs-rime-toggle (&optional type)
     (interactive)
-    (if (string= current-input-method "rime")
-        (set-input-method nil)
-      (progn
-        (set-input-method "rime")
-        t)))
+    "The eemacs emacs-rime ime toggler which obey the
+`entropy/emacs-internal-IME-toggle-function' api."
+    (condition-case error
+        (let (disable-p enable-p)
+          (cond ((and (or (string= current-input-method "rime")
+                          (eq type 'disable))
+                      (not (eq type 'enable))
+                      (setq disable-p t))
+                 (set-input-method nil))
+                ((and (or (eq type 'enable)
+                          (null type))
+                      (setq enable-p t))
+                 (set-input-method "rime")
+                 (setq pyim-punctuation-escape-list nil))
+                (t
+                 (error "invalid ime toggle type '%s'" type)))
+          (if type
+              t
+            (if disable-p
+                nil
+              t)))
+      (error
+       (let ((error-msg (format "%s" error)))
+         (message "%s" error-msg)
+         error-msg))))
 
 ;; ****** init
   :init
@@ -4548,8 +4588,14 @@ we do not want to init as duplicated which will cause messy."
          (lambda nil nil) (lambda nil nil)
          '(entropy/emacs-internal-ime-popup-type-autoset))
 
+        ;; union function set
+        (setq entropy/emacs-internal-IME-toggle-function
+              (plist-get ime-plist :toggle))
+
+        ;; union hydra hollow set
         (setq hydra-heads
-              `((,entropy/emacs-internal-ime-toggling-kbd-key ,(plist-get ime-plist :toggle)
+              `((,entropy/emacs-internal-ime-toggling-kbd-key
+                 ,entropy/emacs-internal-IME-toggle-function
                  ,(format "Set Inputmethod '%s'" ime-name)
                  :enable t
                  :toggle (string= current-input-method ,(plist-get ime-plist :imestr))
