@@ -1908,6 +1908,17 @@ buffer."
                            "Directory contains more than %d image files.  Proceed? "
                            image-dired-show-all-from-dir-max-files))))
                 (progn
+                  ;; FIXME:
+                  ;; Firstly we should clean up the active jobs stack
+                  ;; since the `image-dired-queue' is globalized and
+                  ;; its stack pop procedure is not safe of which will
+                  ;; be corrupt when any error within the queue run so
+                  ;; that the `image-dired-queue-active-jobs' may not
+                  ;; be `cl-decf' properly which will cause the new
+                  ;; queue do not run while it hint the
+                  ;; `image-dired-queue-active-limit'.
+                  (setq image-dired-queue-active-jobs 0
+                        image-dired-queue nil)
                   (image-dired-display-thumbs)
                   (with-current-buffer image-dired-thumbnail-buffer
                     (when (bound-and-true-p hl-line-mode)
