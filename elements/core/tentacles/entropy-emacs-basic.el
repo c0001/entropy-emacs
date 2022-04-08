@@ -2428,12 +2428,15 @@ displayed image as same operated mechanism as
     (define-key artist-mode-map (kbd "<") nil))
   )
 
-(defun entropy/emacs-basic-artist-mode ()
-  "Open one temp-file with artist-mode.
-Temp file was \"~/~entropy-artist.txt\""
+(defun entropy/emacs-basic-do-artist-temporally ()
+  "Display one temp-buffer with `artist-mode' enabled."
   (interactive)
-  (find-file "~/~entropy-artist.txt")
-  (artist-mode))
+  (let ((buffer (generate-new-buffer "*eemacs-artist-mode-temp-buffer*")))
+    (with-current-buffer buffer
+      (artist-mode)
+      (insert (make-string 100 ?\n))
+      (goto-char (point-min)))
+    (display-buffer buffer)))
 
 
 ;; *** Man-mode
