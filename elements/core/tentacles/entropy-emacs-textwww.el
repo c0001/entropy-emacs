@@ -541,6 +541,8 @@ in whole page."
 
 ;; **** default config
 
+  ;; dynamic declare
+  (defvar w3m-make-new-session)
   ;; redefine search-web for compat with entropy-emacs
   (defun __ya/search-web (engine word)
     "Like `search-web' but patch for:

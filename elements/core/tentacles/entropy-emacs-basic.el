@@ -2258,6 +2258,8 @@ dwim memory and use both height and width fit display type."
 
 ;; ******** popup associated dired buffer
 
+  ;; declare it as dynamic binding firstly
+  (defvar shackle-rules)
   (defun entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired ()
     "Popup associated dired buffer in current image dired thumbnail buffer."
     (interactive)
@@ -2268,13 +2270,14 @@ dwim memory and use both height and width fit display type."
                    (buffer-live-p assoc-dired-buffer))
         (user-error "No associated dired-buffer found!"))
       (if (bound-and-true-p shackle-mode)
-          (let* ((buff-name (buffer-name assoc-dired-buffer))
+          (let* ((buffer-name (buffer-name assoc-dired-buffer))
                  (shackle-rules
-                  `((,buff-name :select t :size 0.4 :align 'below :autoclose t))))
+                  (or (and (ignore-errors (shackle-match buffer-name)) shackle-rules)
+                      `((,buffer-name :select t :size 0.4 :align below :autoclose t)))))
             (display-buffer assoc-dired-buffer)
-            (message "Shackle popup to dired buffer <%s>" buff-name))
+            (message "Shackle popup to dired buffer <%s>" buffer-name))
         (pop-to-buffer assoc-dired-buffer)
-        (message "Native popup to dired buffer <%s>" buff-name))))
+        (message "Native popup to dired buffer <%s>" buffer-name))))
 
 ;; ******** scroll sync
   (defvar entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer nil)
