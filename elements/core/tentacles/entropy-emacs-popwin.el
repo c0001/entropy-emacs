@@ -605,7 +605,7 @@ specification."
                                        'internal-complete-buffer))
            (shackle-rules
             (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
-                `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
+                `((,buff-name :select t :size 0.4 :align below :autoclose t)))))
       (get-buffer-create buff-name)
       (display-buffer buff-name)))
 
@@ -617,7 +617,7 @@ specification."
            (buff-name (buffer-name (find-file-noselect file)))
            (shackle-rules
             (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
-                `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
+                `((,buff-name :select t :size 0.4 :align below :autoclose t)))))
       (display-buffer buff-name)))
 
   (defun entropy/emacs-popwin-shackle-popup-dired ()
@@ -629,7 +629,7 @@ specification."
            (buff-name (buffer-name (dired-noselect dir)))
            (shackle-rules
             (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
-                `((,buff-name :select t :size 0.4 :align 'below :autoclose t)))))
+                `((,buff-name :select t :size 0.4 :align below :autoclose t)))))
       (display-buffer buff-name)))
 
   (defun entropy/emacs-popwin-shackle-popup-message ()
@@ -638,7 +638,7 @@ specification."
     (let* ((buff-name (buffer-name (get-buffer-create "*Messages*")))
            (shackle-rules `((,buff-name
                              :select t
-                             :align 'below
+                             :align below
                              :autoclose t
                              :size 0.3))))
       (with-current-buffer buff-name
