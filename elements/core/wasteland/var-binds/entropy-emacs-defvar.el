@@ -640,6 +640,10 @@ within `entropy/emacs-startup-end-hook' are running done.")
 (defvar entropy/emacs-package-initialize-done-timestamp nil
   "Time-stamp after ran `package-initialize'")
 
+(declare-function benchmark-init/deactivate "ext:benchmark-init")
+(declare-function benchmark-init/show-durations-tabulated "ext:benchmark-init-modes")
+(declare-function benchmark-init/show-durations-tree "ext:benchmark-init-modes")
+(declare-function benchmark-init/activate "ext:benchmark-init")
 (defun entropy/emacs-run-startup-end-hook ()
   "Run `entropy/emacs-startup-end-hook' just before mark
 `entropy/emacs-startup-done' as done.

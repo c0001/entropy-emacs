@@ -1616,6 +1616,8 @@ BRANCH-STR '%s' is too long!" brs))
          :with-filter with-filter))
       t)))
 
+(declare-function org-shifttab "org")
+(declare-function outline-on-heading-p "outline")
 (define-minor-mode entropy/emacs-do-directory-mirror/log-mode
   "Minor mode for `entropy/emacs-do-directory-mirror' log buffer,
 simpley enable `outline-minor-mode' and binds its interactive
@@ -2965,19 +2967,19 @@ can be used into your form:
         ($call_proc_command (car (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
         ($call_proc_args (cdr (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
 
-        (__this_sync_sym (let ((make-sym-func
-                                (lambda ()
-                                  (intern (format "eemacs-make-process_%s_%s_%s_%s"
-                                                  (random) (random) (random) (random)))))
-                               sym)
-                           (setq sym (funcall make-sym-func))
-                           (when (boundp sym)
-                             (while (boundp sym)
-                               (setq sym (funcall make-sym-func))))
-                           (set sym nil)
-                           sym))
-        __this_proc
-        __this_proc_buffer)
+        (thiscur_sync_sym (let ((make-sym-func
+                                 (lambda ()
+                                   (intern (format "eemacs-make-process_%s_%s_%s_%s"
+                                                   (random) (random) (random) (random)))))
+                                sym)
+                            (setq sym (funcall make-sym-func))
+                            (when (boundp sym)
+                              (while (boundp sym)
+                                (setq sym (funcall make-sym-func))))
+                            (set sym nil)
+                            sym))
+        thiscur_proc
+        thiscur_proc_buffer)
     (when (eval prepare-form)
       (cond
        ((or (null synchronously)
@@ -2986,7 +2988,7 @@ can be used into your form:
                  ;; interaction session may freeze emacs why? and thus
                  ;; we just used this in noninteraction session.
                  (bound-and-true-p noninteractive)))
-        (setq __this_proc
+        (setq thiscur_proc
               (make-process
                :name $make_proc_name
                :buffer $make_proc_buffer
@@ -3022,18 +3024,18 @@ can be used into your form:
                       ;; do ran out procedures
                       (when (and (eq ',synchronously t)
                                  ran-out-p)
-                        (setq ,__this_sync_sym ran-out-p))
+                        (setq ,thiscur_sync_sym ran-out-p))
                       (when (and (not ',synchronously)
                                  ran-out-p)
                         ,clean-form)))))
 
-              __this_proc_buffer (process-buffer __this_proc))
+              thiscur_proc_buffer (process-buffer thiscur_proc))
 
         (when (eq synchronously t)
-          (while (null (symbol-value __this_sync_sym)) (sleep-for 0.1))
-          (eval `(let (($sentinel/destination ',__this_proc_buffer))
+          (while (null (symbol-value thiscur_sync_sym)) (sleep-for 0.1))
+          (eval `(let (($sentinel/destination ',thiscur_proc_buffer))
                    (unwind-protect
-                       (if (eq ,__this_sync_sym t)
+                       (if (eq ,thiscur_sync_sym t)
                            ;; just ran after form when this process ran out successfully
                            ,after-form)
                      ,clean-form)))))
@@ -5242,6 +5244,9 @@ modeline swither."
         (buffer-list)))
 
 ;; *** Theme loading specification
+
+(declare-function doom-modeline-refresh-bars "ext:doom-modeline")
+
 (defun entropy/emacs-theme-load-face-specifix (&optional x)
   "Sets of specification for eemacs native themes.
 
@@ -5439,6 +5444,13 @@ stuffs on `entropy/emacs-solaire-mode' when
 
 ;; *** Cli compatibale specification
 ;; **** `xterm-paste' wrappers
+
+;; pre declaration
+(defvar xclip-method)
+(defvar xclip-program)
+(declare-function term-send-raw-string "term")
+(declare-function xterm-paste "xterm")
+
 (defvar entropy/emacs--xterm-clipboard-head nil
   "The string of the the last event paste part of `xterm-paste',
 setted by `entropy/emacs-xterm-paste-core'.")
