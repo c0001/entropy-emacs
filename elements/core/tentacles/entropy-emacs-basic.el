@@ -1792,7 +1792,13 @@ window point not shown in nice place e.g. at window bottom."
 (use-package image-file
   :ensure nil
   :commands (image-file-name-regexp
-             auto-image-file-mode))
+             auto-image-file-mode)
+  :init
+
+  ;; Support webp file
+  (add-to-list 'image-file-name-extensions "webp")
+
+  )
 
 (defun entropy/emacs-image-mode-external-view-union (image-file)
   "Use `entropy/open-with-port' to open IMAGE-FILE in external app.
@@ -1804,6 +1810,64 @@ an error thrown out."
   (unless (string-match-p (image-file-name-regexp) image-file)
     (user-error "'%s' is not an image file!"))
   (entropy/open-with-port nil image-file))
+
+
+(defun entropy/emacs-image-mode-copy-image-as-jpeg
+    (srcfname destfname &optional ok-if-exists)
+  "Copy any source image file SRCFNAME to an jpeg image file
+DESTFNAME using imagemagick to convert thus when SRCFNAME is not
+an jpeg image file or just copy it using `copy-file'.
+
+Return t if the process did done or a cons to describe the failed
+status which formed as:
+
+: (fatal-status-symbol . error-msg)
+
+if =fatal-status-symbol= is 'nil', it indicate dedicated fatal
+occurs, other wise they are:
+
+- 'file-exists' : the target file exists
+- 'convert-not-found' : couvert executable not found
+- 'convert-failed' : the convert procedure failed
+
+If optional argument OK-IF-EXISTS is non-nil, the DESTFNAME will be
+overwrited.
+"
+  (let ((src-proper-p
+         (string-match-p "^jpeg\\|jpg\\|JPEG\\|JPG$"
+                         (file-name-extension srcfname)))
+        (error-symbol nil))
+    (condition-case error
+        (progn
+          (cond
+           (src-proper-p
+            (copy-file srcfname destfname ok-if-exists))
+           (t
+            (when (file-exists-p destfname)
+              (if ok-if-exists
+                  (delete-file destfname)
+                (setq error-symbol 'file-exists)
+                (user-error "Target file '%s' is existed!")))
+            (unless (executable-find "convert")
+              (setq error-symbol 'convert-not-found)
+              (user-error "imagemgick convert not found"))
+            (let ((default-directory temporary-file-directory))
+              (message "convert '%s' to '%s' jpeg file ..."
+                       srcfname destfname)
+              (unless (zerop
+                       (call-process "convert" nil nil nil
+                                     srcfname
+                                     "-strip"
+                                     (format "jpeg:%s" destfname)))
+                (setq error-symbol 'convert-failed)
+                (user-error "Convert '%s' to '%s' failed!"
+                            srcfname destfname))
+              (message "convert '%s' to '%s' jpeg file done"
+                       srcfname destfname))))
+          t)
+      (error
+       (cons error-symbol
+             (format "%s" error))))))
 
 ;; **** image main mode
 (use-package image-mode
@@ -1859,6 +1923,7 @@ an error thrown out."
     ))
 
   :config
+
   (defun entropy/emacs-basic-image-gif-warn (&rest _)
     "Warn that gif animation by large gif file will freeze
 emacs."
@@ -2145,8 +2210,12 @@ dwim memory and use both height and width fit display type."
                           image-dired-cmd-create-temp-image-options))))
             (when (not (zerop ret))
               (error "Could not resize image")))
-        (setq image-type (image-type-from-file-name file))
-        (copy-file file new-file t))
+        (let ((cpstatus
+               (entropy/emacs-image-mode-copy-image-as-jpeg
+                file new-file t)))
+          (unless (eq t cpstatus)
+            (error "Copy as orig file failed type '%s' as ['%s']"
+                   (car cpstatus) (cdr cpstatus)))))
       (with-current-buffer (image-dired-create-display-image-buffer)
         ;; let buffer known the current display image origin file
         (setq __ya/image-dired-display-image-buffer-image-file file)
