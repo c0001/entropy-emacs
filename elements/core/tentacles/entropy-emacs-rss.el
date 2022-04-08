@@ -368,7 +368,7 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
         (setq entropy/emacs-rss--elfeed-update/fetching-running-p t)))
     (setq entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer
           (run-with-timer
-           0 0.5
+           0 2
            `(lambda ()
               (let ((proxy-feeds ',proxy-feeds))
                 (if (entropy/emacs-rss--elfeed-process-running-p)
@@ -407,7 +407,7 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
                 entropy/emacs-rss--elfeed-update/fetching-running-p nil))))
     (setq entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer
           (run-with-timer
-           0 0.5
+           0 2
            (lambda ()
              (if (entropy/emacs-rss--elfeed-process-running-p)
                  (message "Waiting for proxy feeds retrieve done ...")
