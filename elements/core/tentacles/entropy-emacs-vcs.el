@@ -47,6 +47,8 @@
     (("C-x g" magit-status "Show the status of the current Git repository in a buffer"
       :enable t :exit t :global-bind t)
      ("C-x M-g" magit-dispatch "Invoke a Magit command from a list of available commands"
+      :enable t :exit t :global-bind t)
+     ("C-c M-g" magit-file-dispatch "Invoke a Magit command that acts on the visited file"
       :enable t :exit t :global-bind t))))
   :preface
   (defun entropy/emacs-vcs--magit-init ()
