@@ -4068,6 +4068,58 @@ operation system"
 (global-set-key (kbd "C-h C-f") nil)
 (global-set-key (kbd "C-h C-h") nil)
 
+;; *** Emacs core patches
+
+;; **** `insert-for-yank' patch
+
+(defun entropy/emacs-insert-for-yank/warning (orig-func &rest orig-args)
+  "Like `insert-for-yank' but with eemacs restirictions."
+  (let* ((str (car orig-args))
+         (str-size (length str))
+         (str-size-limit 70)
+         (str-newline-p (string-match-p "\n" str))
+         (prompt-buffer (get-buffer-create "*eemacs-yank-warning*"))
+         prompt-window
+         confirm-do-p
+         confirm-did-p
+         (prompt-kill-func
+          (lambda ()
+            (when (buffer-live-p prompt-buffer)
+              (when (and (windowp prompt-window)
+                         (window-live-p prompt-window)
+                         (not (eq (window-main-window) prompt-window)))
+                (delete-window prompt-window))
+              (kill-buffer prompt-buffer)))))
+    (cond
+     ;; 1) Dired restriction for insertion
+     ((and (not (bound-and-true-p buffer-read-only))
+           (or (derived-mode-p 'dired-mode)
+               (eq major-mode 'wdired-mode)))
+      (when (or (> str-size str-size-limit)
+                str-newline-p)
+        (with-current-buffer prompt-buffer
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert str)
+            (goto-char (point-min))))
+        (pop-to-buffer prompt-buffer)
+        (setq prompt-window (get-buffer-window prompt-buffer))
+        (unwind-protect
+            (progn
+              (setq confirm-do-p
+                    (yes-or-no-p
+                     "It's dangerous to insert this string into current dired buffer, really do?")
+                    confirm-did-p t)
+              )
+          (funcall prompt-kill-func)
+          (unless confirm-do-p
+            (when confirm-did-p
+              (user-error "Abort"))))))
+     ;; TODO: add more restrictions
+     )
+    (apply orig-func orig-args)))
+(advice-add 'insert-for-yank :around #'entropy/emacs-insert-for-yank/warning)
+
 ;; *** System-wide spec
 ;; **** Coding environment
 (setq system-time-locale "C") ;Use english format time string
