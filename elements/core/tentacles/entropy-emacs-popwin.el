@@ -139,7 +139,7 @@
         ("*rg*"                        :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*pt-search*"                 :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*Occur*"                     :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
-        ("\\*ivy-occur.+\\*$"          :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
+        ("\\*ivy-occur"                :regexp t   :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
         ("*xref*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
 
         ;; Flymake
