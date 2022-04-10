@@ -1,4 +1,4 @@
-;;; entropy-global-readonly-mode --- Simple global read-only mode
+;;; entropy-global-readonly-mode --- Simple global read-only mode  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20200221  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -152,7 +152,26 @@
 ;; recovered when =entropy/grom-mode= disabled.
 
 ;;; Changelog:
-
+;;
+;; - [2022-04-10 Sun 17:48:35] Bug fix
+;;
+;;   For now we will auto detect the `grep' like buffer which commonly
+;;   use `wgrep' to handle the read-only, and use `wgrep' refer
+;;   commands simulate the readonly operations since the commonly
+;;   `read-only-mode' is not suitable for that buffers and will
+;;   corrupt the emacs-sessioin, e.g. incorrectly unlock with user
+;;   modification will cause 'Text is readonly' error cover whole
+;;   emacs session.
+;;
+;;   Others:
+;;
+;;   1. `entropy/grom--buffer-special-p' is migrate to
+;;      `entropy/grom-buffer-special-p' which be an exposed API.
+;;
+;;   2. Refer to the main bug fix, command
+;;      `entropy-global-read-only-mode.el' also check the special
+;;      buffer when unlock operation.
+;;
 ;; - [2021-01-29 Fri 23:34:17] Support org patch to "modes" grom type
 
 ;;   Others:
@@ -194,20 +213,15 @@
 ;;;; require
 (require 'cl-lib)
 
+(declare-function wgrep-exit "ext:wgrep")
+(declare-function wgrep-change-to-wgrep-mode "ext:wgrep")
+(declare-function wdired-exit "ext:wdired")
+(declare-function wdired-change-to-wdired-mode "ext:wdired")
+
 ;;;; declare variable
 (defvar entropy/grom--internal-specified-special-bfregexp-list
   '(
     ;; Some important special buffer
-    "\\*Minibuf.*\\*"
-    "\\*Echo Area"
-    "\\*code-conversion-work\\*"
-    "\\*Kill Ring"
-    "\\*which-key"
-    "\\*shell"
-    "\\*ansi-term"
-    "\\*w3m-"
-    "\\*nntp"
-    "\\*gnus"
     "magit-process:"
     "magit:"
     "CAPTURE-.*\\.org$"
@@ -229,7 +243,8 @@ was the core buffer name regexp matching list for \"all\" type of
 
 Do not modify it manually, or will messy up with risky on
 your-self way. If need to do that, add rules into customizable
-variable `entropy/grom-customizable-special-buffer-name-regexp-list' instead.")
+variable `entropy/grom-customizable-special-buffer-name-regexp-list' instead."
+  )
 
 (defvar entropy/grom-buffer-true-name-pair-list nil
   "This list contains the FILENAME of the all buffer name
@@ -314,14 +329,24 @@ read-only functions in cases dependent, and return an signal
 symbol to show which routine type used.
 
 For now valid signal are:
-- 'dired' : which use wdired-mode to lock(save) and unlock(edit)
-- 'nil'   : commonly use `read-only-mode'"
+- 'wdired' : which use wdired-mode to lock(save) and unlock(edit)
+- 'wgrep'  : which use wgrep to lock(save) and unlock(edit)
+- 'nil'    : commonly use `read-only-mode'"
   (let (func-enable func-disable rtn)
     (cond ((or (derived-mode-p 'dired-mode)
                (eq major-mode 'wdired-mode))
-           (setq func-enable 'wdired-finish-edit
+           (setq func-enable 'wdired-exit
                  func-disable 'wdired-change-to-wdired-mode
-                 rtn 'dired))
+                 rtn 'wdired))
+          ((member major-mode
+                   '(rg-mode
+                     ivy-occur-grep-mode
+                     ;; TODO: add more major-mode use `wgrep' to
+                     ;; simulate the readonly operation.
+                     ))
+           (setq func-enable 'wgrep-exit
+                 func-disable 'wgrep-change-to-wgrep-mode
+                 rtn 'wgrep))
           (t
            (setq func-enable #'(lambda () (setq buffer-read-only t))
                  func-disable #'(lambda () (setq buffer-read-only nil)))))
@@ -339,10 +364,12 @@ For now valid signal are:
 whole expections rules."
   (let ((whole-init (copy-tree entropy/grom--internal-specified-special-bfregexp-list)))
     (dolist (el entropy/grom-customizable-special-buffer-name-regexp-list)
-      (add-to-list 'whole-init el t 'string=))
+      (unless (member el whole-init)
+        (setq whole-init
+              (append whole-init (list el)))))
     whole-init))
 
-(defun entropy/grom--buffer-special-p (buffer-or-name)
+(defun entropy/grom-buffer-special-p (buffer-or-name)
   (if (equal entropy/grom-readonly-type "all")
       (let ((buffer-name
              (or (and (stringp buffer-or-name) buffer-or-name)
@@ -376,16 +403,56 @@ whole expections rules."
   (let ((buffer (or buffer (current-buffer)))
         signal)
     (if (null no-check)
-        (if (entropy/grom--buffer-special-p buffer)
+        (if (entropy/grom-buffer-special-p buffer)
             (when message
-              (warn "You can not make '%s' read only, because this
+              (user-error "You can not make '%s' read only, because this
 operation may cause some risk. ('M-x read-only-mode' for forcely)"
-                    (buffer-name)))
+                          (buffer-name)))
           (with-current-buffer buffer
-            (setq signal (entropy/grom--readonly-1&0 1)))
-          (when (and message (null signal))
-            (message "Lock current buffer successfully")))
-      (entropy/grom--readonly-1&0 1))))
+            (setq signal (entropy/grom--readonly-1&0 1))))
+      (entropy/grom--readonly-1&0 1))
+    (when message
+      (message "Lock %s%s successfully%s"
+               (if (eq buffer (current-buffer))
+                   "current-buffer"
+                 buffer)
+               (if signal
+                   (format " use type [%s] " signal)
+                 "")
+               (cond
+                ((eq signal 'wdired)
+                 (format "%s" (substitute-command-keys
+                               "Press \\[wdired-finish-edit] when finished \
+or \\[wdired-abort-changes] to abort changes")))
+                ((eq signal 'wgrep)
+                 (format "%s" (substitute-command-keys
+                               "Press \\[wgrep-finish-edit] when finished \
+or \\[wgrep-abort-changes] to abort changes.")))
+                (t
+                 ""))))))
+
+(cl-defun entropy/grom--disable-read-only (&key message buffer no-check)
+  (let ((buffer (or buffer (current-buffer)))
+        signal)
+    (if (null no-check)
+        (if (entropy/grom-buffer-special-p buffer)
+            (when message
+              (user-error "You can not unlock '%s', because this operation may cause some
+risk. ('M-x read-only-mode' for forcely)"
+                          (buffer-name)))
+          (with-current-buffer buffer
+            (setq signal (entropy/grom--readonly-1&0 0))))
+      (entropy/grom--readonly-1&0 0))
+    (when (and message
+               ;; do not cover the message come from those type.
+               (not (member signal '(wdired wgrep))))
+      (message "Unlock %s%s successfully"
+               (if (eq buffer (current-buffer))
+                   "current-buffer"
+                 buffer)
+               (if signal
+                   (format " use type [%s] " signal)
+                 "")))))
 
 (defun entropy/grom--add-hook (hook function)
   (add-to-list 'entropy/grom--add-hook-register
@@ -444,15 +511,15 @@ single one or a list of thus. "
 (defun entropy/grom-read-only-buffer ()
   (interactive)
   (if buffer-read-only
-      (entropy/grom--readonly-1&0 0)
+      (entropy/grom--disable-read-only :message t)
     (entropy/grom--enable-read-only :message t)))
 
 ;;;;; Global read only toggle function
 ;;;###autoload
 (defun entropy/grom-toggle-read-only (&optional readonly editted current-buffer-ndwp cury)
-  "Toggle readonly-or-not for all buffers except for the buffer-name
-witin the full buffer name regexp matching list obtained by
-`entropy/grom--get-special-buffer-name-regexp-list'.
+  "Toggle readonly-or-not for all buffers except for the
+buffer-name witin the full buffer name regexp matching by
+`entropy/grom-buffer-special-p'.
 
 There's four optional argument for this function:
 
@@ -468,7 +535,8 @@ There's four optional argument for this function:
   =current-buffer-ndwp= to t,
   opposite means that not do current buffer."
   (interactive)
-  (let* ((current-buffer (buffer-name (current-buffer)))
+  (let* ((current-buffer (current-buffer))
+         (current-buffer-name (buffer-name current-buffer))
          (candidate '("global read only" "global editted"))
          (read
           (if (not (or readonly editted))
@@ -483,33 +551,31 @@ There's four optional argument for this function:
              ((and (eq readonly t)
                    (eq editted t))
               (error "Can not double true for readonly and editted!"))))))
-    (let ((p-buffer-list (mapcar (function buffer-name) (buffer-list))))
-      (dolist (value (copy-tree p-buffer-list))
-        (catch :exit
-          (dolist (cache (entropy/grom--get-special-buffer-name-regexp-list))
-            (when (string-match-p cache value)
-              (setq p-buffer-list (delete value p-buffer-list))
-              (throw :exit nil)))))
-      (let ((cury-did-for
+    (let ((buffer-name-list (mapcar (function buffer-name) (buffer-list))))
+      (dolist (value (copy-tree buffer-name-list))
+        (when (entropy/grom-buffer-special-p value)
+          (setq buffer-name-list (delete value buffer-name-list))))
+      (let ((cury-did-for-p
              (if current-buffer-ndwp cury
                (yes-or-no-p "Whether do with current buffer?"))))
-        (dolist (buffer p-buffer-list)
-          (with-current-buffer buffer
+        (dolist (buffname buffer-name-list)
+          (with-current-buffer (get-buffer buffname)
             (when
                 (not (eq major-mode 'dired-mode))
               (cond
                ((string= read "global read only")
                 (when (not buffer-read-only)
-                  (if (not (string= current-buffer buffer))
+                  (if (not (string= current-buffer-name buffname))
                       (entropy/grom--enable-read-only :no-check t)
-                    (when (eq cury-did-for t)
+                    (when cury-did-for-p
                       (entropy/grom--enable-read-only :no-check t)))))
                ((string= read "global editted")
                 (when buffer-read-only
-                  (if (not (string= current-buffer buffer))
-                      (entropy/grom--readonly-1&0 0)
-                    (when (eq cury-did-for t)
-                      (entropy/grom--readonly-1&0 0)))))))))))))
+                  (if (not (string= current-buffer-name buffname))
+                      (entropy/grom--disable-read-only :no-check t)
+                    (when cury-did-for-p
+                      (entropy/grom--disable-read-only :no-check t)))))))))))
+    ))
 
 ;;;###autoload
 (defun entropy/grom-quick-readonly-global ()
@@ -618,23 +684,31 @@ readonly mode is on."
       (or (string= entropy/grom-readonly-type "all")
           (string= entropy/grom-readonly-type "modes"))
     (entropy/grom--with-require-feature org-agenda
-      (define-key org-agenda-mode-map (kbd "C-d") #'entropy/grom--unlock-actived-agenda-file-buffers)
+      (define-key org-agenda-mode-map (kbd "C-d")
+        #'entropy/grom--unlock-actived-agenda-file-buffers)
 
       ;; org-agenda-todo advice
-      (entropy/grom--add-advice 'org-agenda-todo :before #'entropy/grom--agenda-unlock-current-entry)
-      (entropy/grom--add-advice 'org-agenda-todo :after #'entropy/grom--agenda-lock-current-entry)
+      (entropy/grom--add-advice
+       'org-agenda-todo
+       :before #'entropy/grom--agenda-unlock-current-entry)
+      (entropy/grom--add-advice
+       'org-agenda-todo
+       :after #'entropy/grom--agenda-lock-current-entry)
 
 
       ;; ============note behaviour ==============
       ;; -----------------------------------------
       ;; org-agenda-add-not advice
-      (entropy/grom--add-advice 'org-agenda-add-note :before #'entropy/grom--agenda-unlock-current-entry)
+      (entropy/grom--add-advice
+       'org-agenda-add-note :before #'entropy/grom--agenda-unlock-current-entry)
 
       ;; org-add-log-note
-      (entropy/grom--add-advice 'org-add-log-note :before #'entropy/grom--agenda-unlock-current-entry)
+      (entropy/grom--add-advice
+       'org-add-log-note :before #'entropy/grom--agenda-unlock-current-entry)
 
       ;; org-sore-log-note
-      (entropy/grom--add-advice 'org-store-log-note :after #'entropy/grom--agenda-lock-current-entry)))
+      (entropy/grom--add-advice
+       'org-store-log-note :after #'entropy/grom--agenda-lock-current-entry)))
 
 
 ;;;;;;;; Redefine org-capture about function for adapting for global-readonly-mode
@@ -675,7 +749,7 @@ was the override function for `org-capture-place-template' by
                                 #'entropy/grom--org-capture-place-template)
 
       (defun entropy/grom--org-capture-put-target-region-and-position-after-advice
-          (&rest args)
+          (&rest _)
         "Adding buffer unlock for narrowed org capture buffer.
 
 This func was advice for func
@@ -683,8 +757,9 @@ This func was advice for func
         (when buffer-read-only
           (entropy/grom--readonly-1&0 0)))
 
-      (entropy/grom--add-advice 'org-capture-put-target-region-and-position
-                                :after #'entropy/grom--org-capture-put-target-region-and-position-after-advice))
+      (entropy/grom--add-advice
+       'org-capture-put-target-region-and-position
+       :after #'entropy/grom--org-capture-put-target-region-and-position-after-advice))
 
     (entropy/grom--with-require-feature org-datetree
       (defun entropy/grom--org-datetree-before-advice ()

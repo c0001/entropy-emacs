@@ -1,15 +1,16 @@
 # Table of Contents
 
-1.  [Copyright (C) 20200221  Entropy](#orga3dd3dd)
-2.  [Commentary:](#org63062ed)
-    1.  [Requirements](#orgc728c62)
-    2.  [Installation](#org5e2340a)
-    3.  [Configuration](#orgc707caf)
-    4.  [Interaction](#orgf8f2a86)
-    5.  [Redefine functions and advices tracking](#orgc486bc1)
-3.  [Changelog:](#org2acf39c)
+1.  [Copyright (C) 20200221  Entropy](#org4e922cb)
+2.  [Commentary:](#org3f3c3be)
+    1.  [Requirements](#org135dc1c)
+    2.  [Installation](#orgbb1631f)
+    3.  [Configuration](#org2fe48c6)
+    4.  [Interaction](#orga6725c1)
+    5.  [Redefine functions and advices tracking](#org8f6721d)
+3.  [Changelog:](#orgb5ba046)
 
-<a id="orga3dd3dd"></a>
+
+<a id="org4e922cb"></a>
 
 # Copyright (C) 20200221  Entropy
 
@@ -35,7 +36,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="org63062ed"></a>
+<a id="org3f3c3be"></a>
 
 # Commentary:
 
@@ -62,7 +63,7 @@ The rule base for is follow the below two way:
     buffer list regexp matching for.
 
 
-<a id="orgc728c62"></a>
+<a id="org135dc1c"></a>
 
 ## Requirements
 
@@ -73,7 +74,7 @@ utilies. But all the re-defun procedure are just enabled when `org`
 loaded, there's no need to require `org` with the manually way.
 
 
-<a id="org5e2340a"></a>
+<a id="orgbb1631f"></a>
 
 ## Installation
 
@@ -81,7 +82,7 @@ Download main [source file](entropy-global-read-only-mode.el) to your load-path 
 the most easy way.
 
 
-<a id="orgc707caf"></a>
+<a id="org2fe48c6"></a>
 
 ## Configuration
 
@@ -131,7 +132,7 @@ The `use-packge` configure management type demo as:
       :init (add-hook 'after-init-hook #'entropy-grom-mode))
 
 
-<a id="orgf8f2a86"></a>
+<a id="orga6725c1"></a>
 
 ## Interaction
 
@@ -159,7 +160,7 @@ The `use-packge` configure management type demo as:
     `entropy/grom-toggle-read-only`.
 
 
-<a id="orgc486bc1"></a>
+<a id="org8f6721d"></a>
 
 ## Redefine functions and advices tracking
 
@@ -176,9 +177,28 @@ unlock codes into them respectively. The defination will be
 recovered when `entropy/grom-mode` disabled.
 
 
-<a id="org2acf39c"></a>
+<a id="orgb5ba046"></a>
 
 # Changelog:
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2022-04-10 Sun 17:48] </span></span> Bug fix
+
+    For now we will auto detect the \`grep' like buffer which commonly
+    use \`wgrep' to handle the read-only, and use \`wgrep' refer
+    commands simulate the readonly operations since the commonly
+    \`read-only-mode' is not suitable for that buffers and will
+    corrupt the emacs-sessioin, e.g. incorrectly unlock with user
+    modification will cause 'Text is readonly' error cover whole
+    emacs session.
+
+    Others:
+
+    1.  \`entropy/grom&#x2013;buffer-special-p' is migrate to
+        \`entropy/grom-buffer-special-p' which be an exposed API.
+
+    2.  Refer to the main bug fix, command
+        \`entropy-global-read-only-mode.el' also check the special
+        buffer when unlock operation.
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2021-01-29 Fri 23:34] </span></span> Support org patch to "modes" grom type
 
@@ -214,4 +234,4 @@ recovered when `entropy/grom-mode` disabled.
 -   <span class="timestamp-wrapper"><span class="timestamp">[2018-08-01 Wed] </span></span> version 0.1.0 release
 
 
-<a id="org51bedfa"></a>
+<a id="org8cf9f58"></a>
