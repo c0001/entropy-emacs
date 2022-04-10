@@ -412,24 +412,13 @@ operation may cause some risk. ('M-x read-only-mode' for forcely)"
             (setq signal (entropy/grom--readonly-1&0 1))))
       (entropy/grom--readonly-1&0 1))
     (when message
-      (message "Lock %s%s successfully%s"
+      (message "Lock %s%s successfully"
                (if (eq buffer (current-buffer))
                    "current-buffer"
                  buffer)
                (if signal
                    (format " use type [%s] " signal)
-                 "")
-               (cond
-                ((eq signal 'wdired)
-                 (format "%s" (substitute-command-keys
-                               "Press \\[wdired-finish-edit] when finished \
-or \\[wdired-abort-changes] to abort changes")))
-                ((eq signal 'wgrep)
-                 (format "%s" (substitute-command-keys
-                               "Press \\[wgrep-finish-edit] when finished \
-or \\[wgrep-abort-changes] to abort changes.")))
-                (t
-                 ""))))))
+                 "")))))
 
 (cl-defun entropy/grom--disable-read-only (&key message buffer no-check)
   (let ((buffer (or buffer (current-buffer)))
