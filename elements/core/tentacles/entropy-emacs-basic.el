@@ -1544,7 +1544,9 @@ TODO:
 (use-package dired-subtree
   :commands
   (dired-subtree-toggle
-   dired-subtree-cycle)
+   dired-subtree-cycle
+   entropy/emacs-dired-subtree-cycle)
+;; ***** eemacs mmphca
   :eemacs-mmphca
   (((:enable t :defer (:data (:adfors (dired-mode-hook) :adtype hook :pdumper-no-end t)))
     (dired-mode (dired dired-mode-map)))
@@ -1552,13 +1554,15 @@ TODO:
     (("TAB" dired-subtree-toggle
       "Insert subtree at point (vice versa)."
       :enable t :map-inject t :exit t)
-     ("<backtab>" dired-subtree-cycle
+     ("<backtab>" entropy/emacs-dired-subtree-cycle
       "Org-mode like cycle visibilitya"
       :enable t :map-inject t :exit t))))
+;; ***** config
   :config
-;; ***** patch core libs
+;; ****** patch
+;; ******* patch core libs
   ;; TODO: add patch libs here if need
-;; ***** patch `dired-subtree-up'
+;; ******* patch `dired-subtree-up'
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
   (defun __ya/dired-subtree-up (&optional _arg)
@@ -1591,7 +1595,7 @@ the buffer.
               :override
               #'__ya/dired-subtree-up)
 
-;; ***** patch `dired-subtree--readin'
+;; ******* patch `dired-subtree--readin'
 
   (defun entropy/emacs-basic--dired-subtree-readin-core
       (buffer dirpath dired-actual-switches)
@@ -1683,7 +1687,7 @@ wasn't exsited any more."
               :override
               #'entropy/emacs-basic--dired-subtree-readin-around-advice)
 
-;; ***** patch `dired-subtree-insert'
+;; ******* patch `dired-subtree-insert'
 
   (defun __ya/dired-subtree-insert (&rest _args)
     "Like `dired-subtree-insert' but with bug fix.
@@ -1760,6 +1764,30 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
   (advice-add 'dired-subtree-insert
               :override
               #'__ya/dired-subtree-insert)
+
+;; ****** eemacs spec commands
+;; ******* multi `dired-subtree-cycle'
+
+  (defun entropy/emacs-dired-subtree-cycle (&optional max-depth)
+    "Like `dired-subtree-cycle' but mapped with
+`dired-get-marked-files' when marked directories found."
+    (interactive "P")
+    (let ((mkitems (dired-get-marked-files)))
+      (cond
+       ((null mkitems)
+        (funcall 'dired-subtree-cycle max-depth))
+       (t
+        (dired-map-over-marks
+         (let* ((cur-fname (dired-get-filename))
+                (cur-item-p
+                 (and cur-fname
+                      (dired-subtree--dired-line-is-directory-or-link-p)
+                      (=
+                       (length (entropy/emacs-make-relative-filename
+                                cur-fname (dired-current-directory) t))
+                       1))))
+           (funcall 'dired-subtree-cycle max-depth))
+         nil t)))))
 
 ;; ***** __end__
   )
