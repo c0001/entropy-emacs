@@ -1781,12 +1781,9 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
          (let* ((cur-fname (dired-get-filename))
                 (cur-item-p
                  (and cur-fname
-                      (dired-subtree--dired-line-is-directory-or-link-p)
-                      (=
-                       (length (entropy/emacs-make-relative-filename
-                                cur-fname (dired-current-directory) t))
-                       1))))
-           (funcall 'dired-subtree-cycle max-depth))
+                      (dired-subtree--dired-line-is-directory-or-link-p))))
+           (when cur-item-p
+             (funcall 'dired-subtree-cycle max-depth)))
          nil t)))))
 
 ;; ***** __end__
