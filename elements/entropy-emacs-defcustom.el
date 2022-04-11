@@ -379,8 +379,8 @@ target process."
   "Eemacs general media player configuration customizable group."
   :group 'entropy/emacs-customize-group-for-UI)
 
-(defcustom entropy/emacs-align-window-center-with? 'olivetti
-  "The window central visual toggler type, valid of 'olivetti' or 'basic'.
+(defcustom entropy/emacs-window-center-mode-use-backend 'olivetti
+  "The window central visual trigger type, valid of 'olivetti' or 'basic'.
 
 =olivetti= was a riched window center align package which provide
 shrink and expand auto-key, and without alignment be killed
@@ -392,8 +392,16 @@ problem, =basic= type is simple but without fully featured.
   :group 'entropy/emacs-customize-group-for-window-ui)
 
 
-(defcustom entropy/emacs-align-window-center-automatically-p nil
-  "Automatically center window in some occasions."
+(defcustom entropy/emacs-window-center-auto-mode-enable-p nil
+  "The customized variable for indicate whether use center window
+feature (see `entropy/emacs-window-center-mode-use-backend' for
+details) in some occasions automatically.
+
+NOTE: do not use this variable to judge the case in lisp code,
+use
+`entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge'
+instead since this variable is just a top level user interface
+which is not a lisp API."
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-window-ui)
 

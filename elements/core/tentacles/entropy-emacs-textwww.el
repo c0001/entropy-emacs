@@ -290,8 +290,8 @@ value of it is not relavant to current buffer value."
      ((and (eq major-mode 'w3m-mode)
            (bound-and-true-p text-scale-mode))
       ;; disable window center mode since there's some visual bug
-      (when (bound-and-true-p entropy/emacs-wc-center-window-mode)
-        (entropy/emacs-wc-center-window-mode 0))
+      (when (bound-and-true-p entropy/emacs-window-center-mode)
+        (entropy/emacs-window-center-mode 0))
       (setq w3m-fill-column
             (entropy/emacs-textwww--w3m-calc-max-cols))
       (w3m-redisplay-this-page))
@@ -309,7 +309,7 @@ value of it is not relavant to current buffer value."
   ;; EEMACS_MAINTENANCE: follow upstream
   (defun __ya/w3m-display-progress-message (url)
     "Like `w3m-display-progress-message' but respect
-`entropy/emacs-wc-center-window-mode' and enhance the message
+`entropy/emacs-window-center-mode' and enhance the message
 alignment."
     (let* ((ecwidth (entropy/emacs-window-center-emulate-window-column-width-as-enabled))
            (wwidth (window-width))
@@ -346,18 +346,8 @@ do any emacs work in any other buffer, or just wait ... ")))
                                (apply 'max len-stack)))))
            (indent (make-string
                     (max 0 (/ (- (cond
-                                  ;; set align width respect `entropy/emacs-wc-center-window-mode'
-                                  ((or (and
-                                        (not entropy/emacs-window-force-inhibit-auto-center)
-                                        (and
-                                         entropy/emacs-window-auto-center-require-enable-p
-                                         (eq (entropy/emacs-wc-center-window-automatically-turn-on-judgements
-                                              (window-buffer))
-                                             t)))
-                                       (and (bound-and-true-p entropy/emacs-wc-center-window-mode)
-                                            (eq (entropy/emacs-wc-center-window-turn-on-judgements
-                                                 (window-buffer))
-                                                t)))
+                                  ;; set align width respect `entropy/emacs-window-center-mode'
+                                  ((bound-and-true-p entropy/emacs-window-center-mode)
                                    ecwidth)
                                   (t
                                    wwidth))
@@ -388,6 +378,7 @@ do any emacs work in any other buffer, or just wait ... ")))
               :override
               #'__ya/w3m-display-progress-message)
 
+;; **** __end__
   )
 
 
@@ -432,15 +423,11 @@ do any emacs work in any other buffer, or just wait ... ")))
   (add-to-list 'entropy/emacs-window-auto-center-commands-list
                #'eww)
   ;; sicne `eww' invoke its `major-mode' after its buffer popuped, the
-  ;; `entropy/emacs-wc-center-window-mode' will be disabled after
+  ;; `entropy/emacs-window-center-mode' will be disabled after
   ;; that, so we must manullay reinjected into that.
   (add-hook 'eww-mode-hook
             #'(lambda (&rest _)
-                (when (bound-and-true-p entropy/emacs-align-window-center-automatically-p)
-                  (when (eq (funcall #'entropy/emacs-wc-center-window-automatically-turn-on-judgements
-                                     (current-buffer))
-                            t)
-                    (entropy/emacs-wc-center-window-mode)))))
+                (entropy/emacs-wc-window-auto-center-mode-diwm)))
 
 ;; **** eww search engine
   (if entropy/emacs-enable-eww-search-engine-customize

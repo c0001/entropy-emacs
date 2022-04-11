@@ -758,9 +758,9 @@ when we update the version of `ialign').
   "Split the single window to two windows with different size
 which determined by the scale count 0.3 "
   (interactive)
-  (when (bound-and-true-p entropy/emacs-wc-center-window-mode)
-    (when (fboundp 'entropy/emacs-wc-center-window-mode)
-      (entropy/emacs-wc-center-window-mode 0)))
+  (when (bound-and-true-p entropy/emacs-window-center-mode)
+    (when (fboundp 'entropy/emacs-window-center-mode)
+      (entropy/emacs-window-center-mode 0)))
   (if (> (length (window-list)) 1) (delete-other-windows))
   (progn
     (entropy/emacs-no-same-buffer-split-window-horizontally

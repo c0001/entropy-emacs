@@ -2880,13 +2880,15 @@ NOTE: this is a advice wrapper for any function."
     "The window configuration before calling `undo-tree-visualize'.")
 
   (defvar-local entropy/emacs-basic--undo-tree-stick-autocenter-mode nil
-    "Whether `entropy/emacs-wc-center-window-mode' is enabled in
+    "Whether `entropy/emacs-window-center-mode' is enabled in
     `current-buffer'.")
 
   (defun entropy/emacs-basic--save-window-cfg-for-undo-tree
       (orig-func &rest orig-args)
-    (when (bound-and-true-p entropy/emacs-wc-center-window-mode)
-      (entropy/emacs-wc-center-window-mode 0)
+    ;; firstly reset the indicator (clean the previous set)
+    (setq entropy/emacs-basic--undo-tree-stick-autocenter-mode nil)
+    (when (bound-and-true-p entropy/emacs-window-center-mode)
+      (entropy/emacs-window-center-mode 0)
       (setq entropy/emacs-basic--undo-tree-stick-autocenter-mode t))
     (setq entropy/emacs-basic--undo-tree-stick-window-configuration
           (current-window-configuration))
@@ -2901,7 +2903,7 @@ NOTE: this is a advice wrapper for any function."
          entropy/emacs-basic--undo-tree-stick-window-configuration))
       (setq entropy/emacs-basic--undo-tree-stick-window-configuration nil)
       (when entropy/emacs-basic--undo-tree-stick-autocenter-mode
-        (entropy/emacs-wc-center-window-mode))
+        (entropy/emacs-window-center-mode))
       rtn))
 
   :init

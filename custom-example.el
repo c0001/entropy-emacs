@@ -35,7 +35,7 @@
 ;; (setq entropy/emacs-enable-initial-dashboard 'rich)
 
 ;; ;; Automatically center window in some occasions
-;; (setq entropy/emacs-align-window-center-automatically-p t)
+;; (setq entropy/emacs-window-center-auto-mode-enable-p t)
 
 (setq entropy/emacs-minimal-start nil)
 

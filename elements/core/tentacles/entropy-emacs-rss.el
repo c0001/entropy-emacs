@@ -156,7 +156,7 @@
     "Like `elfeed' but adapt for eemacs specifications."
     (prog1
         (apply orig-func orig-args)
-      (entropy/emacs-wc-center-window-auto-mode-for-current-selected-window)
+      (entropy/emacs-wc-window-auto-center-mode-diwm)
       ;; truncate long lines in this summary buffer since some feeds
       ;; title so long.
       (setq truncate-lines t)))
