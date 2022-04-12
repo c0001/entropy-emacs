@@ -3481,7 +3481,11 @@ file."
                       (let ((file-host (file-name-directory file)))
                         (unless (file-exists-p file-host)
                           (make-directory file-host t)))
-                      (find-file-noselect file)))
+                      (let ((large-file-warning-threshold
+                             ;; disable the large file restriction
+                             ;; since we do not modify it manually.
+                             most-positive-fixnum))
+                        (find-file-noselect file))))
          (inhibit-read-only t)
          ;; the `kill-ring' cache file header
          (top-message
@@ -3586,7 +3590,8 @@ successfully both of situation of read persisit of create an new."
         (entropy/emacs-basic-read-kill-ring-from-persist))
     (let* ((file entropy/emacs-kill-ring-persist-file)
            (find-file-suppress-same-file-warnings t) ;suppress the noisy same file warning
-           (buffer (find-file-noselect file))
+           (buffer (let ((large-file-warning-threshold most-positive-fixnum))
+                     (find-file-noselect file)))
            (inhibit-read-only t)
            kill-ring-read
            (kill-ring-old (copy-tree kill-ring))
