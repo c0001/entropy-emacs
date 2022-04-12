@@ -1327,6 +1327,19 @@ prepared for some emergency occasion.")
 
 ;; ** frame refer
 
+(defvar entropy/emacs-main-frame (selected-frame)
+  "The =main-operated-frame= (see below for details) used for
+=entropy-emacs= of current emacs-session predicated by `framep'
+or nil when it not set.
+
+=main-operated-frame= is the frame user sticked in, its commonly
+is the current `selected-frame', not an child frame or any other
+emacs server maked one, its an eemacs generally term and just a
+frame basically.
+
+NOTE: do not manually modify this variable, since eemacs auto set
+it internally.")
+
 ;; ** daemon refer
 (when (version< emacs-version "27")
   (defvar server-after-make-frame-hook nil
@@ -1374,7 +1387,12 @@ main daemon client's frame object. ':gui-p' for whether thus is
 (defvar entropy/emacs-daemon--main-client-indicator nil
   "Non-nil is a plist representation for current main daemon
 client built by
-`entropy/emacs-daemon--create-daemon-client-plist'.")
+`entropy/emacs-daemon--create-daemon-client-plist'.
+
+Do not set it with `setq' or other commonly lisp variable set
+api, using `entropy/emacs-daemon--set-main-client-indictor' to
+set an `entropy/emacs-daemon--reset-main-client-indictor' to
+reset.")
 
 (defvar entropy/emacs-daemon--legal-clients nil
   "A list of legal daemon clients representation.")
@@ -1389,7 +1407,20 @@ main client."
               :frame))))
     main-judge))
 
-(defun entropy/emacs-daemon--reset-main-client-indicator
+(defun entropy/emacs-daemon--set-main-client-indictor (x)
+  (setq entropy/emacs-daemon--main-client-indicator
+        x
+        entropy/emacs-main-frame
+        (plist-get entropy/emacs-daemon--main-client-indicator
+                   :frame)))
+
+(defun entropy/emacs-daemon--reset-main-client-indicator ()
+  (setq entropy/emacs-daemon--main-client-indicator
+        nil
+        entropy/emacs-main-frame
+        nil))
+
+(defun entropy/emacs-daemon--delete-frame-function
     (frame-predel)
   "Reset `entropy/emacs-daemon--main-client-indicator' when the frame of
 current daemon main client prepare to close, and the car of
@@ -1414,14 +1445,14 @@ non-nil, i.e. the new main daemon client."
                  (plist-get
                   (car entropy/emacs-daemon--legal-clients) :frame))
                 (progn
-                  (setq entropy/emacs-daemon--main-client-indicator
-                        (car entropy/emacs-daemon--legal-clients))
+                  (entropy/emacs-daemon--set-main-client-indictor
+                   (car entropy/emacs-daemon--legal-clients))
                   (throw :exit nil))
               (pop entropy/emacs-daemon--legal-clients))))))))
 
 (when (daemonp)
   (add-to-list 'delete-frame-functions
-               #'entropy/emacs-daemon--reset-main-client-indicator))
+               #'entropy/emacs-daemon--delete-frame-function))
 
 (defvar entropy/emacs-daemon--dont-init-client nil
   "Forbidden eemacs server client initialization specification
@@ -1459,7 +1490,7 @@ internal functional."
     ;; fix problem when main daemon client is dead
     (when entropy/emacs-daemon--main-client-indicator
       (unless (frame-live-p (plist-get entropy/emacs-daemon--main-client-indicator :frame))
-        (setq entropy/emacs-daemon--main-client-indicator nil)))
+        (entropy/emacs-daemon--reset-main-client-indicator)))
     ;; fix problem when there's dead daemon clients in register.
     (when entropy/emacs-daemon--legal-clients
       (let (temp_var)
@@ -1475,8 +1506,8 @@ internal functional."
         (let ((daemon-client-obj (entropy/emacs-daemon--create-daemon-client-plist)))
           (push daemon-client-obj entropy/emacs-daemon--legal-clients)
           (unless entropy/emacs-daemon--main-client-indicator
-            (setq entropy/emacs-daemon--main-client-indicator
-                  daemon-client-obj))
+            (entropy/emacs-daemon--set-main-client-indictor
+             daemon-client-obj))
           (when entropy/emacs-daemon-server-after-make-frame-hook
             (run-hooks 'entropy/emacs-daemon-server-after-make-frame-hook)))
       (let ((frame (selected-frame)))
