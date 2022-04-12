@@ -158,9 +158,67 @@
 
 ;; *** config
   :config
+;; **** core lib
 
-;; ***** advices
-;; ****** timer reset
+  (defun entropy/emacs-highlight-symbol-overlay-cancel-duplicate-timers ()
+    "Cancel all duplicates `symbol-overlay-idle-timer' func based
+idle timer according to the buffer obtained by `timer--args'
+which `eq' as same."
+    (let (smotmlist
+          dups)
+      (dolist (el timer-idle-list)
+        (when (equal (timer--function el) 'symbol-overlay-idle-timer)
+          (push el smotmlist)))
+      (when smotmlist
+        (let* ((dups-list nil)
+               (cur-tm (pop smotmlist))
+               (cur-tm-buff (car (timer--args cur-tm)))
+               (this-dup-detected nil))
+          (when smotmlist
+            (while smotmlist
+              (setq this-dup-detected nil)
+              (dolist (el smotmlist)
+                (let ((el-buff (car (timer--args el))))
+                  (when (eq el-buff cur-tm-buff)
+                    (push el dups-list)
+                    (push el this-dup-detected))))
+              (when this-dup-detected
+                (cl-loop for tm in this-dup-detected
+                         do (setq smotmlist
+                                  (delete tm smotmlist))))
+              (when smotmlist
+                (setq cur-tm (pop smotmlist)
+                      cur-tm-buff (car (timer--args cur-tm))))))
+          (when dups-list
+            (dolist (el dups-list)
+              (cancel-timer el)))))))
+
+  (defun entropy/emacs-highlight-symbol-overlay-cancel-dead-timers
+      ()
+    "Remove all killed-buffer's `symbol-overlay-idle-timer' since its
+a mistake in `symbol-overlay' which do not cancel the timer after
+buffer killed, but we hacked using
+`__hack/symbol-overlay-kill-buffer-hook' thus should no need to
+invoke this function any more isn't it?"
+    (dolist (timer timer-idle-list)
+      (let ((buff (car (timer--args timer)))
+            (func (timer--function timer)))
+        (when (and (eq 'symbol-overlay-idle-timer
+                       func)
+                   (bufferp buff))
+          (unless (buffer-live-p buff)
+            (cancel-timer timer))))))
+
+  (defun entropy/emacs-highlight-symbol-overlay-check-existed-timers ()
+    "Check existed `symbol-overlay-idle-timer' idle timers and remove
+dead and duplicated ones."
+    (interactive)
+    (progn
+      (entropy/emacs-highlight-symbol-overlay-cancel-dead-timers)
+      (entropy/emacs-highlight-symbol-overlay-cancel-duplicate-timers)))
+
+;; **** advices
+;; ***** timer reset
   (defun __adv/around/symbol-overlay-cancel-timer/0
       (orig-func &rest orig-args)
     "Forcely reset `symbol-overly-timer' for bug fix."
@@ -196,24 +254,7 @@
   (add-hook 'kill-buffer-hook
             #'__hack/symbol-overlay-kill-buffer-hook)
 
-  (defun entropy/emacs-highlight-kill-empty-symbol-overlay-timer
-      ()
-    "Remove all killed-buffer `symbol-overlay-idle-timer' since
-its a mistake in `symbol-overlay' which do not cancel the timer
-after buffer killed, but we hacked using
-`__hack/symbol-overlay-kill-buffer-hook' thus should no need to
-invoke this function any more isn't it?"
-    (interactive)
-    (dolist (timer timer-idle-list)
-      (let ((buff (car (timer--args timer)))
-            (func (timer--function timer)))
-        (when (and (eq 'symbol-overlay-idle-timer
-                       func)
-                   (bufferp buff))
-          (unless (buffer-live-p buff)
-            (cancel-timer timer))))))
-
-;; ****** after change hook modification
+;; ***** the minor-mode patch
 
   ;; BUG: we don't need the refrresh globally since it is hard coded in the
   ;; source.
@@ -223,7 +264,10 @@ invoke this function any more isn't it?"
   (defun __adv/around/symbol-overlay-mode/0
       (orig-func &rest orig-args)
     (prog1
-        (apply orig-func orig-args)
+        (progn
+          ;; firstly check existed timers
+          (entropy/emacs-highlight-symbol-overlay-check-existed-timers)
+          (apply orig-func orig-args))
       (cond ((bound-and-true-p symbol-overlay-mode)
              ;; FIXME: NOTE: below local binding is mistake and will
              ;; messy up all buffres overlay display function related
@@ -237,6 +281,8 @@ invoke this function any more isn't it?"
   (advice-add 'symbol-overlay-mode
               :around
               #'__adv/around/symbol-overlay-mode/0)
+
+;; *** __end__
   )
 
 ;; ** Highlight matching paren
