@@ -1223,11 +1223,18 @@ is satisfied firstly."
   "Run
 `entropy/emacs-wc-window-auto-center-mode-enable-for-all-displayed-windows'
 in `window-configuration-change-hook'."
-  (when (and
-         ;; just stick i eemcs main frame
-         (eq (selected-frame) entropy/emacs-main-frame)
-         ;; not run in minibuffer
-         (not (minibufferp)))
+  (when
+      ;; performance guarantee
+      (and
+       ;; just stick in eemcs main frame
+       (eq (selected-frame) entropy/emacs-main-frame)
+       ;; not run in minibuffer
+       (not (minibufferp))
+       ;; do not run when keybaord-quit hint since its usually not
+       ;; change the core window overlay.
+       (not (member real-last-command
+                    '(keyboard-quit
+                      minibuffer-keyboard-quit))))
     (when entropy/emacs-startup-with-Debug-p
       (message "Run eemacs window auto center window configuration hook ..."))
     (entropy/emacs-wc-window-auto-center-mode-enable-for-all-displayed-windows)
