@@ -1033,6 +1033,8 @@ is non-nil) even if
                       (and (bound-and-true-p dashboard-buffer-name)
                            (string-equal dashboard-buffer-name buff-name)))
               (throw :exit 'in-eemacs-welcom-buffer))
+            (when (string-equal " *LV*" buff-name)
+              (throw :exit 'lv-window))
             (when (string-match-p "magit.*:" buff-name)
               (throw :exit 'in-magit-refer-buffer))
             (when (string-match-p "magit-.*-mode" (format "%s" major-mode))
