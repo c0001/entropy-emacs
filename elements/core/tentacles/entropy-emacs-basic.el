@@ -1398,8 +1398,7 @@ TODO:
   which we could not retrieve thus unless we dirty hacky on the
   api, but it will lost the compatible ability later or may meet
   some unexpected fatals."
-    (let* ((dired-omit-verbose nil)
-           (cur-buffer (current-buffer))
+    (let* ((cur-buffer (current-buffer))
            (rtn (apply orig-func orig-args)))
       (with-current-buffer cur-buffer
         (revert-buffer))
@@ -1529,6 +1528,7 @@ TODO:
   :config
   (setq dired-omit-size-limit nil)
   (setq dired-omit-extensions nil)
+  (setq dired-omit-verbose nil)
   ;; Just omit the current node point and some windows volumn auto
   ;; created stuffs.
   (setq dired-omit-files
