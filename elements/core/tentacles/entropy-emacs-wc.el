@@ -1156,23 +1156,36 @@ olivetti-mode itself responsibility."
 (defvar entropy/emacs-wc-window-auto-center-mode--log nil)
 
 (defun entropy/emacs-wc-window-auto-center-mode-diwm
-    (&rest _)
+    (&optional buffer-or-name)
   "Enable/Disable `entropy/emacs-window-center-mode' for
 `selected-window' based on filter
 `entropy/emacs-wc-window-auto-center-mode-turn-on-judger' while
 `entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge'
 is satisfied firstly."
   (when (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
-    (let* ((buff (window-buffer))
-           (log (eq (entropy/emacs-wc-window-auto-center-mode-turn-on-judger
-                     buff)
-                    t)))
-      (with-selected-window (get-buffer-window buff)
-        (if (eq log t)
-            (unless (bound-and-true-p entropy/emacs-window-center-mode)
-              (entropy/emacs-window-center-mode))
-          (when (bound-and-true-p entropy/emacs-window-center-mode)
-            (entropy/emacs-window-center-mode 0)))))))
+    (let* ((buff (or (and buffer-or-name (get-buffer buffer-or-name))
+                     (window-buffer)))
+           (buff-win (ignore-errors (get-buffer-window buff)))
+           log)
+      (when buff-win
+        (setq log
+              (entropy/emacs-wc-window-auto-center-mode-turn-on-judger
+               buff))
+        (with-selected-window buff-win
+          (if (eq log t)
+              (unless (bound-and-true-p entropy/emacs-window-center-mode)
+                (entropy/emacs-window-center-mode))
+            (when (bound-and-true-p entropy/emacs-window-center-mode)
+              (entropy/emacs-window-center-mode 0))))))))
+
+(defun entropy/emacs-wc-window-auto-center-mode-diwm-idle
+    (&rest _)
+  "Funcall `entropy/emacs-wc-window-auto-center-mode-diwm' in idle
+status without repeat and stick to `current-buffer'."
+  (run-with-idle-timer
+   0.1 nil
+   #'entropy/emacs-wc-window-auto-center-mode-diwm
+   (current-buffer)))
 
 (defun entropy/emacs-wc-window-auto-center-mode-enable-for-all-displayed-windows (&rest _)
   "Auto enable/disable `entropy/emacs-window-center-mode' for
@@ -1268,7 +1281,9 @@ NOTE: this is an internal macro, do not use it in else where but here."
                             :around
                             #'entropy/emacs-window-auto-center-around-advice))
               (add-hook 'entropy/emacs-delete-other-windows-after-hook
-                        #'entropy/emacs-wc-window-auto-center-mode-diwm)))
+                        #'entropy/emacs-wc-window-auto-center-mode-diwm)
+              (add-hook 'after-change-major-mode-hook
+                        #'entropy/emacs-wc-window-auto-center-mode-diwm-idle)))
 
 ;; *** key bind
 (defvar entropy/emacs-window-center-mode-hydra-hollow-is-built-p nil)
