@@ -791,8 +791,6 @@ initialize the default non-lazy configs.
     (split-window-below)
     (benchmark-init/show-durations-tabulated)
     (benchmark-init/deactivate))
-  (when entropy/emacs-startup-debug-on-error
-    (setq debug-on-error nil))
   ;; ========== ran `entropy/emacs-after-startup-hook'
   (run-hooks 'entropy/emacs-after-startup-hook)
   )
