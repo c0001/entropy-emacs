@@ -1228,9 +1228,11 @@ in `window-configuration-change-hook'."
          (eq (selected-frame) entropy/emacs-main-frame)
          ;; not run in minibuffer
          (not (minibufferp)))
-    (message "Run eemacs window auto center window configuration hook ...")
+    (when entropy/emacs-startup-with-Debug-p
+      (message "Run eemacs window auto center window configuration hook ..."))
     (entropy/emacs-wc-window-auto-center-mode-enable-for-all-displayed-windows)
-    (message "Run eemacs window auto center window configuration hook done")))
+    (when entropy/emacs-startup-with-Debug-p
+      (message "Run eemacs window auto center window configuration hook done"))))
 
 (add-hook
  'entropy/emacs-after-startup-hook
