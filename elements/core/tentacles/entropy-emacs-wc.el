@@ -970,42 +970,43 @@ issue."
              (functionp entropy/emacs-wc--shrink-center-window-function))
     (funcall entropy/emacs-wc--shrink-center-window-function)))
 
-(defvar-local entropy/emacs-window-center-mode-is-set nil)
+(defvar-local entropy/emacs-window-center-mode--is-set-p nil
+  "The `entropy/emacs-window-center-mode' enable internal indicator
+used for `entropy/emacs-window-center-mode' internally only.")
 (define-minor-mode entropy/emacs-window-center-mode
   "Center buffer window init with raito of
 `entropy/emacs-window-center-integer'."
   :init-value nil
-  (if entropy/emacs-window-center-mode
-      (progn
-        (funcall-interactively
-         #'entropy/emacs-wc--center-window)
-        (setq entropy/emacs-window-center-mode-is-set t))
-    (funcall-interactively
-     #'entropy/emacs-wc--uncenter-window)
-    (setq entropy/emacs-window-center-mode-is-set nil)))
-
-;; Add filters to judge whether enable `entropy/emacs-window-center-mode'.
-(advice-add 'entropy/emacs-window-center-mode
-            :around
-            (lambda (orig-func &rest orig-args)
-              "Filters to judge whether enable `entropy/emacs-window-center-mode'."
-              (let* ((this-buff (window-buffer))
-                     (buff-lp (buffer-live-p this-buff))
-                     (enabled-yet (with-current-buffer this-buff
-                                    entropy/emacs-window-center-mode-is-set))
-                     (log (entropy/emacs-window-center-mode-turn-on-judger
-                           this-buff))
-                     rtn)
-                (if (eq log t)
-                    (setq rtn (apply orig-func orig-args))
-                  (push (list 'common
-                              :state (list :do 'enable
-                                           :log log
-                                           :buff-live-p buff-lp
-                                           :enabled-yet enabled-yet)
-                              :buffer this-buff)
-                        entropy/emacs-wc-window-auto-center-mode--log))
-                rtn)))
+  (let* ((this-buff (current-buffer))
+         (buff-lp (and this-buff (buffer-live-p this-buff)))
+         (buff-win (and buff-lp (get-buffer-window this-buff)))
+         (enabled-yet (with-current-buffer this-buff
+                        (bound-and-true-p entropy/emacs-window-center-mode--is-set-p)))
+         (log t))
+    ;; just judge filters when not invoke by auto-mode since the
+    ;; auto-mode invoke the enable process after its own judge, so we
+    ;; acquiesce we should do everything in auto mode env detected.
+    (unless entropy/emacs-window-auto-center-require-enable-p
+      (setq log (entropy/emacs-window-center-mode-turn-on-judger
+                 this-buff))
+      (push (list 'common
+                  :state (list :do (if entropy/emacs-window-center-mode 'enable 'disable)
+                               :log log
+                               :buff-live-p buff-lp
+                               :buff-win-p (and buff-win t)
+                               :enabled-yet enabled-yet)
+                  :buffer this-buff
+                  :buffer-win buff-win)
+            entropy/emacs-wc-window-auto-center-mode--log))
+    ;; main
+    (if entropy/emacs-window-center-mode
+        (when (eq log t)
+          (funcall-interactively
+           #'entropy/emacs-wc--center-window)
+          (setq entropy/emacs-window-center-mode--is-set-p t))
+      (funcall-interactively
+       #'entropy/emacs-wc--uncenter-window)
+      (setq entropy/emacs-window-center-mode--is-set-p nil))))
 
 ;; *** Manully method
 (when (eq entropy/emacs-window-center-mode-use-backend 'basic)
@@ -1229,11 +1230,12 @@ NOTE: this is an internal macro, do not use it in else where but here."
          (when entropy/emacs-window-auto-center-require-enable-p
            (let* ((buffer-or-name (nth ,buff-arg-nth orig-args))
                   (buff-lp (ignore-errors (buffer-live-p (get-buffer buffer-or-name))))
+                  (buff-win (and buff-lp (get-buffer-window buffer-or-name)))
                   (enabled-yet (and buff-lp
                                     (with-current-buffer buffer-or-name
-                                      entropy/emacs-window-center-mode-is-set)))
+                                      (bound-and-true-p entropy/emacs-window-center-mode))))
                   log)
-             (when buff-lp
+             (when (and buff-lp buff-win)
                (if enabled-yet
                    (when (and
                           (prog1 t
@@ -1241,7 +1243,7 @@ NOTE: this is an internal macro, do not use it in else where but here."
                                   (entropy/emacs-wc-window-auto-center-mode-turn-on-judger
                                    buffer-or-name)))
                           (not (eq log t)))
-                     (with-selected-window (get-buffer-window buffer-or-name)
+                     (with-selected-window buff-win
                        (entropy/emacs-window-center-mode 0)))
                  (when (and
                         (prog1 t
@@ -1249,14 +1251,16 @@ NOTE: this is an internal macro, do not use it in else where but here."
                                 (entropy/emacs-wc-window-auto-center-mode-turn-on-judger
                                  buffer-or-name)))
                         (eq log1 t))
-                   (with-selected-window (get-buffer-window buffer-or-name)
+                   (with-selected-window buff-win
                      (entropy/emacs-window-center-mode)))))
              (push (list ',adfor
                          :state (list :do (if enabled-yet 'enable 'disable)
                                       :log log
                                       :buff-live-p buff-lp
+                                      :buff-win-p (and buff-win t)
                                       :enabled-yet enabled-yet)
-                         :buffer buffer-or-name)
+                         :buffer buffer-or-name
+                         :buffer-win buff-win)
                    entropy/emacs-wc-window-auto-center-mode--log))))
        (advice-add ',adfor
                    :after
