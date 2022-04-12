@@ -2888,7 +2888,8 @@ NOTE: this is a advice wrapper for any function."
     ;; firstly reset the indicator (clean the previous set)
     (setq entropy/emacs-basic--undo-tree-stick-autocenter-mode nil)
     (when (bound-and-true-p entropy/emacs-window-center-mode)
-      (entropy/emacs-window-center-mode 0)
+      (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
+        (entropy/emacs-window-center-mode 0))
       (setq entropy/emacs-basic--undo-tree-stick-autocenter-mode t))
     (setq entropy/emacs-basic--undo-tree-stick-window-configuration
           (current-window-configuration))
@@ -2903,7 +2904,8 @@ NOTE: this is a advice wrapper for any function."
          entropy/emacs-basic--undo-tree-stick-window-configuration))
       (setq entropy/emacs-basic--undo-tree-stick-window-configuration nil)
       (when entropy/emacs-basic--undo-tree-stick-autocenter-mode
-        (entropy/emacs-window-center-mode))
+        (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
+          (entropy/emacs-window-center-mode)))
       rtn))
 
   :init

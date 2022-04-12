@@ -937,13 +937,6 @@ externally add below features:
             #'entropy/emacs-defvar--delete-other-windows-around-advice)
 
 ;; *** window center mode
-(defvar entropy/emacs-window-auto-center-commands-list
-  '(find-file dired dired-find-file push-button)
-  "Auto advice commands to center the buffer window after
-predicated for as.
-
-All functions list here will be let binging for
-`entropy/emacs-window-center-mode' auto mode.")
 
 (defvar entropy/emacs-window-force-inhibit-auto-center nil
   "Force inhibit `entropy/emacs-window-center-mode' auto mode
@@ -968,43 +961,6 @@ Return t or nil for commonly manner."
   (and entropy/emacs-window-center-auto-mode-enable-p
        (not entropy/emacs-window-force-inhibit-auto-center)
        t))
-
-(defun entropy/emacs-window-auto-center-around-advice
-    (orig-func &rest orig-args)
-  "Around advice to enable eemacs auto window center
-feature (i.e. `entropy/emacs-window-center-auto-mode-enable-p'
-is non-nil)."
-  (let ((entropy/emacs-window-auto-center-require-enable-p
-         (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)))
-    (apply orig-func orig-args)))
-
-(defmacro entropy/emacs-window-auto-center-make-around-advice-for-func
-    (name func &rest extra-body)
-  "Like `entropy/emacs-window-auto-center-around-advice' but is
-an macro and do with EXTRA-BODY for FUNC and auto make the unique
-advice NAME."
-  (let ((adv-name
-         (intern
-          (format
-           "entropy/emacs-window-auto-center-around-advice/for-%s-/with-extra-body/random-%s-%s"
-           name (random) (random)))))
-    `(progn
-       (defun ,adv-name (orig-func &rest orig-args)
-         (let ((entropy/emacs-window-auto-center-require-enable-p
-                (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)))
-           (prog1
-               (apply orig-func orig-args)
-             ,@extra-body)))
-       (advice-add ',func :around #',adv-name))))
-
-(defun entropy/emacs-window-auto-center-inhibit-around-advice
-    (orig-func &rest orig-args)
-  "Around advice to forbiddingly enable eemacs auto window center
-feature (i.e. `entropy/emacs-window-center-auto-mode-enable-p'
-is non-nil) even if
-`entropy/emacs-window-auto-center-require-enable-p' is non-nil."
-  (let ((entropy/emacs-window-force-inhibit-auto-center t))
-    (apply orig-func orig-args)))
 
 (defvar entropy/emacs-window-center-enable-before-hook nil
   "The hook run before `entropy/emacs-window-center-mode' enable")

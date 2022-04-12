@@ -115,8 +115,7 @@
                  ;; elfeed
 
                  elfeed-search-show-entry))
-    (add-to-list 'entropy/emacs-window-auto-center-commands-list
-                 cmd))
+    )
 
   ;; set curl path
   (let ((mingw-curl (if (and entropy/emacs-win-portable-mingw-enable
