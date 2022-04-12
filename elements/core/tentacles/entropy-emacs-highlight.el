@@ -264,10 +264,9 @@ dead and duplicated ones."
   (defun __adv/around/symbol-overlay-mode/0
       (orig-func &rest orig-args)
     (prog1
-        (progn
-          ;; firstly check existed timers
-          (entropy/emacs-highlight-symbol-overlay-check-existed-timers)
-          (apply orig-func orig-args))
+        (apply orig-func orig-args)
+      ;; firstly check existed timers
+      (entropy/emacs-highlight-symbol-overlay-check-existed-timers)
       (cond ((bound-and-true-p symbol-overlay-mode)
              ;; FIXME: NOTE: below local binding is mistake and will
              ;; messy up all buffres overlay display function related
