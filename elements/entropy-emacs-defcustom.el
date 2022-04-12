@@ -391,6 +391,14 @@ problem, =basic= type is simple but without fully featured.
           (const :tag "Basic simple way" basic))
   :group 'entropy/emacs-customize-group-for-window-ui)
 
+(defcustom entropy/emacs-window-center-integer 10
+  "The integer number used for eemacs window centered operation to
+divide the `window-width' for calculating the margin width, that's
+say if `window-width' is 135 and this divider is 10 and then the
+margin both of left and right of the specified will-be centerred
+window will be set to 13.5."
+  :type 'integer
+  :group 'entropy/emacs-customize-group-for-window-ui)
 
 (defcustom entropy/emacs-window-center-auto-mode-enable-p nil
   "The customized variable for indicate whether use center window
