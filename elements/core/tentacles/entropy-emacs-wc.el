@@ -1310,7 +1310,9 @@ NOTE: this is an internal macro, do not use it in else where but here."
         ("}" entropy/emacs-wc--expand-center-window
          "Expand align width"
          :enable t))))
-    (setq entropy/emacs-window-center-mode-hydra-hollow-is-built-p t)))
+    (setq entropy/emacs-window-center-mode-hydra-hollow-is-built-p t)
+    (advice-remove 'entropy/emacs-window-center-mode
+                   #'entropy/emacs-window-center-mode-hydra-hollow-build)))
 
 (advice-add 'entropy/emacs-window-center-mode
             :before
