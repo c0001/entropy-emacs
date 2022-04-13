@@ -1070,6 +1070,34 @@ indicate the false meaning."
         (wacw (entropy/emacs-window-no-margin-column-width)))
     (- wacw (* 2 (/ wacw ratio)))))
 
+;; ** dired refer
+
+(defvar entropy/emacs-dired-goto-file-extend-processors nil
+  "Extra processors applied for `dired-goto-file' when its return
+is nil for the sake of find the line matching the file when
+origin process can not did as. Did as extending role.
+
+Escape when first processor return non-nil.
+
+Each processor must accept the same arguments and must return as the
+same type as what described in `dired-goto-file'.")
+(defun entropy/emacs-dired-goto-file-with-extended-processors
+    (orig-func &rest orig-args)
+  "Extending the ability of `dired-goto-file' using
+`entropy/emacs-dired-goto-file-extend-processors' (see it for
+details)."
+  (let ((file (car orig-args))
+        (rtn (apply orig-func orig-args)))
+    (catch :exit
+      (when rtn
+        (throw :exit rtn))
+      (dolist (func entropy/emacs-dired-goto-file-extend-processors)
+        (when (setq rtn (funcall func file))
+          (throw :exit rtn)))
+      nil)))
+(advice-add 'dired-goto-file :around
+            #'entropy/emacs-dired-goto-file-with-extended-processors)
+
 ;; ** garbage collection refer
 
 (defvar entropy/emacs-gc-threshold-basic (* 1 1024 1024)

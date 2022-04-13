@@ -1765,6 +1765,38 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
               :override
               #'__ya/dired-subtree-insert)
 
+
+;; ****** dired extending
+;; ******* extending `dired-goto-file'
+  (defun entropy/emacs-basic-dired-subtree--dired-goto-file (file)
+    "Addon for `dired-goto-file' to find the line matching file."
+    (let (ov-start ov-end cur-fname pt)
+      (when dired-subtree-overlays
+        (setq
+         pt
+         (catch :exit
+           (dolist (ov
+                    ;; using from minimal pt from ov list
+                    (reverse dired-subtree-overlays))
+             (setq ov-start (overlay-start ov)
+                   ov-end (overlay-end ov))
+             (save-excursion
+               (goto-char ov-start)
+               (while (and (< (point) ov-end)
+                           (not (eobp)))
+                 (setq cur-fname
+                       (ignore-errors (dired-get-filename)))
+                 (when (and cur-fname
+                            (string-equal cur-fname file))
+                   (dired-move-to-filename)
+                   (throw :exit (point)))
+                 (dired-next-line 1))))))
+        (when pt
+          (goto-char pt)
+          pt))))
+  (add-to-list 'entropy/emacs-dired-goto-file-extend-processors
+               #'entropy/emacs-basic-dired-subtree--dired-goto-file)
+
 ;; ****** eemacs spec commands
 ;; ******* multi `dired-subtree-cycle'
 
