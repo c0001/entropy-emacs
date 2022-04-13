@@ -2088,6 +2088,23 @@ an error."
   )
 
 ;; ***** image-dired-thumbnail-mode
+
+;; FIXME: Def macro must be out of the `use-package' body why?
+(defmacro entropy/emacs-image-dired-thumbnail-with-mapping-images
+    (&rest body)
+  "Do BODY at every point at an image thumbnail in
+`image-dired-thumbnail-buffer' pretending with
+`with-silent-modifications'."
+  `(with-current-buffer image-dired-thumbnail-buffer
+     (save-mark-and-excursion
+       (goto-char (point-min))
+       (let ((inhibit-read-only t))
+         (while (not (eobp))
+           (with-silent-modifications
+             (when (image-dired-image-at-point-p)
+               ,@body))
+           (forward-char))))))
+
 (use-package image-dired
   :ensure nil
   :commands (image-dired)
@@ -2308,21 +2325,6 @@ point."
              1
              nil
              #'entropy/emacs-image-dired-idle-track-orig-file--core))))
-
-  (defmacro entropy/emacs-image-dired-thumbnail-with-mapping-images
-      (&rest body)
-    "Do BODY at every point at an image thumbnail in
-`image-dired-thumbnail-buffer' pretending with
-`with-silent-modifications'."
-    `(with-current-buffer image-dired-thumbnail-buffer
-       (save-mark-and-excursion
-         (goto-char (point-min))
-         (let ((inhibit-read-only t))
-           (while (not (eobp))
-             (with-silent-modifications
-               (when (image-dired-image-at-point-p)
-                 ,@body))
-             (forward-char))))))
 
 ;; ******* patch
 ;; ******** core
