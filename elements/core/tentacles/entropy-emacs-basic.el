@@ -2079,16 +2079,16 @@ buffer."
      ("v" (:pretty-hydra-cabinet
            (:data
             "Grid buffer navigation"
-            (("<right>" image-dired-forward-image
+            (("<right>" entropy/emacs-image-dired-forward-image
               "Move to next image and display properties"
               :enable t :map-inject t :exit t)
-             ("<left>" image-dired-backward-image
+             ("<left>" entropy/emacs-image-dired-backward-image
               "Move to prev image and display properties"
               :enable t :map-inject t :exit t)
-             ("<up>" image-dired-previous-line
+             ("<up>" entropy/emacs-image-dired-previous-line
               "Move to previous line and display properties"
               :enable t :map-inject t :exit t)
-             ("<down>" image-dired-next-line
+             ("<down>" entropy/emacs-image-dired-next-line
               "Move to next line and display properties"
               :enable t :map-inject t :exit t)))
            :other-rest-args ((image-dired image-dired-thumbnail-mode-map)))
@@ -2119,11 +2119,22 @@ buffer."
       "Move to previous thumbnail and display image."
       :enable t :exit t :map-inject t))
     "Mark&Track"
-    (("m" image-dired-mark-thumb-original-file
+    (("m" entropy/emacs-image-dired-mark-thumb-original-file
       "Mark original image file in associated Dired buffer."
       :enable t :map-inject t :exit t)
-     ("u" image-dired-unmark-thumb-original-file
+     ("u" entropy/emacs-image-dired-unmark-thumb-original-file
       "Unmark original image file in associated Dired buffer."
+      :enable t :map-inject t :exit t)
+     ("M" entropy/emacs-image-dired-mark-all-thumbs
+      "Mark all original image file in associated Dired buffer."
+      :enable t :map-inject t :exit t)
+     ("U" entropy/emacs-image-dired-unmark-all-thumbs
+      "Unmark all original image file in associated Dired buffer."
+      :enable t :map-inject t :exit t)
+     ("G" (progn (message "Sync mark status from associated dired buffer ...")
+                 (image-dired-thumb-update-marks)
+                 (message "Sync mark status from associated dired buffer done"))
+      "Sync mark status from associated Dired buffer."
       :enable t :map-inject t :exit t)
      ("." image-dired-track-original-file
       "Track the original file in the associated Dired buffer."
@@ -2131,7 +2142,7 @@ buffer."
      ("d" entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired
       "Popup associated dired buffer in current image dired thumbnail buffer."
       :enable t :map-inject t :exit t)
-     ("TAB" image-dired-jump-original-dired-buffer
+     ("<tab>" entropy/emacs-image-dired-jump-original-dired-buffer
       "Jump to the Dired buffer associated with the current image file"
       :enable t :map-inject t :exit t)
      ("g" (:pretty-hydra-cabinet
@@ -2183,8 +2194,100 @@ buffer."
       "Add comment to current thumbnail in thumbnail buffer."
       :enable t :exit t :map-inject t))
     ))
+;; ****** init
+  :init
+
 ;; ****** config
   :config
+;; ******* core lib
+
+  (defun entropy/emacs-image-dired-thumb-set-mark-properties-at-point (type)
+    "Set the mark face at point of `image-dired-thumbnail-buffer'.
+
+Valid TYPE are 'mark' 'flag' and 'unmark' and 'toggle'."
+    (when image-dired-thumb-visible-marks
+      (with-current-buffer image-dired-thumbnail-buffer
+        (save-mark-and-excursion
+          (let ((inhibit-read-only t))
+            (with-silent-modifications
+              (cond ((member type '(mark flag))
+                     (add-face-text-property
+                      (point) (1+ (point))
+                      'image-dired-thumb-mark))
+                    ((eq type 'unmark)
+                     (remove-text-properties
+                      (point) (1+ (point))
+                      '(face image-dired-thumb-mark)))
+                    ((eq type 'toggle)
+                     (if (eq (get-text-property (point) 'face)
+                             'image-dired-thumb-mark)
+                         (entropy/emacs-image-dired-thumb-set-mark-properties-at-point
+                          'unmark)
+                       (entropy/emacs-image-dired-thumb-set-mark-properties-at-point
+                          'mark)))
+                    (t
+                     (user-error "wrong type of mark property set type: %s"
+                                 type)))))))))
+
+  (defun entropy/emacs-image-dired-modify-mark-on-thumb-original-file (command)
+    "Modify mark in Dired buffer.
+COMMAND is one of `mark' for marking file in Dired, `unmark' for
+unmarking file in Dired or `flag' for flagging file for delete in
+Dired.
+
+Like `image-dired-modify-mark-on-thumb-original-file' but without
+update all thumbnails mark status which just image at current
+point."
+    (let ((file-name (image-dired-original-file-name))
+          (dired-buf (image-dired-associated-dired-buffer)))
+      (if (not (and dired-buf file-name))
+          (message "No image, or image with correct properties, at point.")
+        (with-current-buffer dired-buf
+          (message "%s" file-name)
+          (when (dired-goto-file file-name)
+            (cond ((eq command 'mark) (dired-mark 1))
+                  ((eq command 'unmark) (dired-unmark 1))
+                  ((eq command 'toggle)
+                   (if (image-dired-dired-file-marked-p)
+                       (dired-unmark 1)
+                     (dired-mark 1)))
+                  ((eq command 'flag) (dired-flag-file-deletion 1)))
+            (entropy/emacs-image-dired-thumb-set-mark-properties-at-point
+             command))))))
+
+  (defvar entropy/emacs-image-dired-idle-track-orig-file-timer nil)
+  (defun entropy/emacs-image-dired-idle-track-orig-file--core (&rest _)
+    (when (and (eq (current-buffer)
+                   (get-buffer image-dired-thumbnail-buffer))
+               t)
+      (image-dired-track-original-file)))
+  (defun entropy/emacs-image-dired-idle-track-orig-file ()
+    "Like `image-dired-track-original-file' but run with idle timer."
+    (when image-dired-track-movement
+      (when (timerp entropy/emacs-image-dired-idle-track-orig-file-timer)
+        (cancel-timer entropy/emacs-image-dired-idle-track-orig-file-timer)
+        (setq entropy/emacs-image-dired-idle-track-orig-file-timer
+              nil))
+      (setq entropy/emacs-image-dired-idle-track-orig-file-timer
+            (run-with-idle-timer
+             0.1 nil
+             #'entropy/emacs-image-dired-idle-track-orig-file--core))))
+
+  (defmacro entropy/emacs-image-dired-thumbnail-with-mapping-images
+      (&rest body)
+    "Do BODY at every point at an image thumbnail in
+`image-dired-thumbnail-buffer' pretending with
+`with-silent-modifications'."
+    `(with-current-buffer image-dired-thumbnail-buffer
+       (save-mark-and-excursion
+         (goto-char (point-min))
+         (let ((inhibit-read-only t))
+           (while (not (eobp))
+             (with-silent-modifications
+               (when (image-dired-image-at-point-p)
+                 ,@body))
+             (forward-char))))))
+
 ;; ******* patch
 ;; ******** core
 
@@ -2336,6 +2439,29 @@ dwim memory and use both height and width fit display type."
         (pop-to-buffer assoc-dired-buffer)
         (message "Native popup to dired buffer <%s>" buffer-name))))
 
+;; ******** jump to associated dired buffer
+
+  (defun entropy/emacs-image-dired-jump-original-dired-buffer ()
+    "Like `image-dired-jump-original-dired-buffer' but try to display
+the origin dired buffer first so that we commonly can did
+successfully for this operation."
+    (interactive)
+    (let* ((buff (image-dired-associated-dired-buffer))
+           (win (image-dired-get-buffer-window buff))
+           frame)
+      (unless (and (windowp win)
+                   (window-live-p win))
+        (setq win nil)
+        (when buff
+          (entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired)
+          (setq win (get-buffer-window buff))))
+      (if win
+          (progn
+            (if (not (equal (selected-frame) (setq frame (window-frame win))))
+                (select-frame-set-input-focus frame))
+            (select-window win))
+        (message "Associated dired buffer not visible"))))
+
 ;; ******** scroll sync
   (defvar entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/redraw-timer nil)
   (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
@@ -2397,6 +2523,149 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
     (interactive "p")
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'right n))
+
+;; ******** basic navigation
+
+  (defun entropy/emacs-image-dired-forward-image (&optional arg)
+    "Like `image-dired-forward-image' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (interactive "p")
+    (let (pos (steps (or arg 1)))
+      (dotimes (_ steps)
+        (if (and (not (eobp))
+                 (save-excursion
+                   (forward-char)
+                   (while (and (not (eobp))
+                               (not (image-dired-image-at-point-p)))
+                     (forward-char))
+                   (setq pos (point))
+                   (image-dired-image-at-point-p)))
+            (goto-char pos)
+          (error "At last image"))))
+    (when image-dired-track-movement
+      (entropy/emacs-image-dired-idle-track-orig-file))
+    (image-dired-display-thumb-properties))
+
+  (defun entropy/emacs-image-dired-backward-image (&optional arg)
+    "Like `image-dired-backward-image' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (interactive "p")
+    (let (pos (steps (or arg 1)))
+      (dotimes (_ steps)
+        (if (and (not (bobp))
+                 (save-excursion
+                   (backward-char)
+                   (while (and (not (bobp))
+                               (not (image-dired-image-at-point-p)))
+                     (backward-char))
+                   (setq pos (point))
+                   (image-dired-image-at-point-p)))
+            (goto-char pos)
+          (error "At first image"))))
+    (when image-dired-track-movement
+      (entropy/emacs-image-dired-idle-track-orig-file))
+    (image-dired-display-thumb-properties))
+
+  (defun entropy/emacs-image-dired-next-line ()
+    "Like `image-dired-next-line' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (interactive)
+    (let ((goal-column (current-column)))
+      (forward-line 1)
+      (move-to-column goal-column))
+    ;; If we end up in an empty spot, back up to the next thumbnail.
+    (if (not (image-dired-image-at-point-p))
+        (entropy/emacs-image-dired-backward-image))
+    (if image-dired-track-movement
+        (entropy/emacs-image-dired-idle-track-orig-file))
+    (image-dired-display-thumb-properties))
+
+  (defun entropy/emacs-image-dired-previous-line ()
+    "Like `image-dired-previous-line' but using
+`entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (interactive)
+    (let ((goal-column (current-column)))
+      (forward-line -1)
+      (move-to-column goal-column))
+    ;; If we end up in an empty spot, back up to the next
+    ;; thumbnail. This should only happen if the user deleted a
+    ;; thumbnail and did not refresh, so it is not very common. But we
+    ;; can handle it in a good manner, so why not?
+    (if (not (image-dired-image-at-point-p))
+        (entropy/emacs-image-dired-backward-image))
+    (if image-dired-track-movement
+        (entropy/emacs-image-dired-idle-track-orig-file))
+    (image-dired-display-thumb-properties))
+
+;; ******** mark/unmark
+
+  (defun entropy/emacs-image-dired-mark-thumb-original-file (&optional no-forward)
+    "Mark original image file in associated Dired buffer.
+
+Like `image-dired-mark-thumb-original-file' but using
+`entropy/emacs-image-dired-modify-mark-on-thumb-original-file' as
+subroutine and support region mark."
+    (interactive)
+    (if (region-active-p)
+        (let ((beg (region-beginning))
+              (end (region-end)))
+          (deactivate-mark)
+          (goto-char beg)
+          (while (< (point) end)
+            (when (image-dired-image-at-point-p)
+              (entropy/emacs-image-dired-modify-mark-on-thumb-original-file
+               'mark))
+            (forward-char 1)))
+      (entropy/emacs-image-dired-modify-mark-on-thumb-original-file
+       'mark))
+    (unless no-forward
+      (ignore-errors
+        (image-dired-forward-image))))
+
+  (defun entropy/emacs-image-dired-unmark-thumb-original-file (&optional no-forward)
+    "Unmark original image file in associated Dired buffer.
+
+Like `image-dired-unmark-thumb-original-file' but using
+`entropy/emacs-image-dired-modify-mark-on-thumb-original-file' as
+subroutine and support region unmark."
+    (interactive)
+    (if (region-active-p)
+        (let ((beg (region-beginning))
+              (end (region-end)))
+          (deactivate-mark)
+          (goto-char beg)
+          (while (< (point) end)
+            (when (image-dired-image-at-point-p)
+              (entropy/emacs-image-dired-modify-mark-on-thumb-original-file
+               'unmark))
+            (forward-char 1)))
+      (entropy/emacs-image-dired-modify-mark-on-thumb-original-file
+       'unmark))
+    (unless no-forward
+      (ignore-errors
+        (image-dired-forward-image))))
+
+  (defun entropy/emacs-image-dired-mark-all-thumbs ()
+    "Mark all image thumbs with syncing with associated
+dired buffer."
+    (interactive)
+    ;; cancel the regio first since it's meaningful for
+    ;; `entropy/emacs-image-dired-mark-thumb-original-file'
+    (deactivate-mark)
+    (entropy/emacs-image-dired-thumbnail-with-mapping-images
+     (let (_)
+       (entropy/emacs-image-dired-mark-thumb-original-file t))))
+
+  (defun entropy/emacs-image-dired-unmark-all-thumbs ()
+    "Unmark all image thumbs with syncing with associated
+dired buffer."
+    (interactive)
+    ;; cancel the regio first since it's meaningful for
+    ;; `entropy/emacs-image-dired-unmark-thumb-original-file'
+    (deactivate-mark)
+    (entropy/emacs-image-dired-thumbnail-with-mapping-images
+     (let (_)
+       (entropy/emacs-image-dired-unmark-thumb-original-file t))))
 
 ;; ****** __end__
   )
