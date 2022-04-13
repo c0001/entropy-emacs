@@ -1072,6 +1072,7 @@ indicate the false meaning."
 
 ;; ** dired refer
 
+;; *** `dired-goto-file' extending
 (defvar entropy/emacs-dired-goto-file-extend-processors nil
   "Extra processors applied for `dired-goto-file' when its return
 is nil for the sake of find the line matching the file when
@@ -1097,6 +1098,29 @@ details)."
       nil)))
 (advice-add 'dired-goto-file :around
             #'entropy/emacs-dired-goto-file-with-extended-processors)
+
+(defun entropy/emacs-dired-goto-file-use-re-search-forward (file)
+  "The extending to `dired-goto-file' using `re-search-forward'
+with the base file name of FILE to speedup in most of cases."
+  (let ((fbname (file-name-nondirectory (directory-file-name file)))
+        pt cur-fname)
+    (save-excursion
+      (goto-char (point-min))
+      (catch :exit
+        (while (re-search-forward (regexp-quote fbname) nil t)
+          (setq cur-fname (ignore-errors (dired-get-filename)))
+          (when (and cur-fname
+                     (string-equal cur-fname file))
+            (dired-move-to-filename)
+            (setq pt (point))
+            (throw :exit t)))))
+    (if pt
+        (progn
+          (goto-char pt)
+          pt)
+      nil)))
+(add-to-list 'entropy/emacs-dired-goto-file-extend-processors
+             #'entropy/emacs-dired-goto-file-use-re-search-forward)
 
 ;; ** garbage collection refer
 
