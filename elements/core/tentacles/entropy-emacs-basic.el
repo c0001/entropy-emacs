@@ -1794,8 +1794,8 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
         (when pt
           (goto-char pt)
           pt))))
-  (add-to-list 'entropy/emacs-dired-goto-file-extend-processors
-               #'entropy/emacs-basic-dired-subtree--dired-goto-file)
+  (entropy/emacs-dired-goto-file-extend-processors-regist
+   'entropy/emacs-basic-dired-subtree--dired-goto-file)
 
 ;; ****** eemacs spec commands
 ;; ******* multi `dired-subtree-cycle'

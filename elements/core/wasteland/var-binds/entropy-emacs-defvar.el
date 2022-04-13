@@ -1081,7 +1081,23 @@ origin process can not did as. Did as extending role.
 Escape when first processor return non-nil.
 
 Each processor must accept the same arguments and must return as the
-same type as what described in `dired-goto-file'.")
+same type as what described in `dired-goto-file'.
+
+NOTE:
+
+Using `entropy/emacs-dired-goto-file-extend-processors-regist' to
+regist your own extending function, do not use `add-to-list',
+`push' although its an list. Since we do other things
+internally.")
+
+(defun entropy/emacs-dired-goto-file-extend-processors-regist (func)
+  "Regist FUNC to
+`entropy/emacs-dired-goto-file-extend-processors'."
+  (unless (member func entropy/emacs-dired-goto-file-extend-processors)
+    (setq entropy/emacs-dired-goto-file-extend-processors
+          (append entropy/emacs-dired-goto-file-extend-processors
+                  (list func)))))
+
 (defun entropy/emacs-dired-goto-file-with-extended-processors
     (orig-func &rest orig-args)
   "Extending the ability of `dired-goto-file' using
@@ -1119,8 +1135,8 @@ with the base file name of FILE to speedup in most of cases."
           (goto-char pt)
           pt)
       nil)))
-(add-to-list 'entropy/emacs-dired-goto-file-extend-processors
-             #'entropy/emacs-dired-goto-file-use-re-search-forward)
+(entropy/emacs-dired-goto-file-extend-processors-regist
+ #'entropy/emacs-dired-goto-file-use-re-search-forward)
 
 ;; ** garbage collection refer
 
