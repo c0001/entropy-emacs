@@ -2287,10 +2287,14 @@ Dired.
 Like `image-dired-modify-mark-on-thumb-original-file' but without
 update all thumbnails mark status which just image at current
 point."
-    (let ((file-name (image-dired-original-file-name))
-          (dired-buf (image-dired-associated-dired-buffer)))
-      (if (not (and dired-buf file-name))
-          (message "No image, or image with correct properties, at point.")
+    (let* ((file-name (image-dired-original-file-name))
+           (dired-buf (image-dired-associated-dired-buffer))
+           (dired-buf-live-p (and dired-buf (buffer-live-p dired-buf))))
+      (if (not (and dired-buf-live-p file-name))
+          (cond ((not dired-buf-live-p)
+                 (message "No associated dired-buffer found!"))
+                (t
+                 (message "No image, or image with correct properties, at point.")))
         (with-current-buffer dired-buf
           (message "%s" file-name)
           (when (dired-goto-file file-name)
@@ -2407,13 +2411,13 @@ dwim memory and use both height and width fit display type."
                           (lambda (arg) (format-spec arg spec))
                           image-dired-cmd-create-temp-image-options))))
             (when (not (zerop ret))
-              (error "Could not resize image")))
+              (user-error "Could not resize image")))
         (let ((cpstatus
                (entropy/emacs-image-mode-copy-image-as-jpeg
                 file new-file t)))
           (unless (eq t cpstatus)
-            (error "Copy as orig file failed type '%s' as ['%s']"
-                   (car cpstatus) (cdr cpstatus)))))
+            (user-error "Copy as orig file failed type '%s' as ['%s']"
+                        (car cpstatus) (cdr cpstatus)))))
       (with-current-buffer (image-dired-create-display-image-buffer)
         ;; let buffer known the current display image origin file
         (setq __ya/image-dired-display-image-buffer-image-file file)
@@ -2587,7 +2591,7 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
                    (setq pos (point))
                    (image-dired-image-at-point-p)))
             (goto-char pos)
-          (error "At last image"))))
+          (user-error "At last image"))))
     (when image-dired-track-movement
       (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
@@ -2607,7 +2611,7 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
                    (setq pos (point))
                    (image-dired-image-at-point-p)))
             (goto-char pos)
-          (error "At first image"))))
+          (user-error "At first image"))))
     (when image-dired-track-movement
       (entropy/emacs-image-dired-idle-track-orig-file))
     (image-dired-display-thumb-properties))
