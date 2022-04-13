@@ -2010,19 +2010,49 @@ buffer."
 ;; ****** preface
   :preface
 
-  (defun entropy/emacs-image-dired-init ()
-    "Initial `image-dired' automatically when proper."
-    (interactive)
+  (defun entropy/emacs-image-dired-init (&optional arg)
+    "Initial `image-dired' automatically when proper.
+
+With prefix argument ARG is set, convert the thumbnails from
+whatever marked files getted from
+`dired-get-marked-files'. Otherwise, unmark all marked items
+firstly and then marked files through `image-file-name-regexp',
+convert the thumbnails from these marked items.
+
+If not marked files found (user spec mode), or non image files
+can be found in this dired buffer, cancel the operation and throw
+an error."
+    (interactive "P")
     (unless (featurep 'image-dired)
       (require 'image-dired))
     (unless (eq major-mode 'dired-mode)
       (user-error "Not in an dired buffer"))
     (let ((cur-buffer (current-buffer))
-          (img-fmarked (dired-mark-files-regexp (image-file-name-regexp))))
+          (img-fmarked (or
+                        (and arg (dired-get-marked-files))
+                        (let (effective-marked-files)
+                          ;; we must unmark all items firstly since any marked item not an
+                          ;; image will be a mistake for create thumbnails. Unless user
+                          ;; specifed marked files with prefix arg in which case we ignore
+                          ;; the messy protection.
+                          (dired-unmark-all-marks)
+                          (dired-mark-files-regexp (image-file-name-regexp))
+                          (setq effective-marked-files
+                                (dired-get-marked-files
+                                 nil nil nil
+                                 ;; distinguish the only one marked
+                                 ;; status so that we can jduge
+                                 ;; whether there's actual marked
+                                 ;; files has get from regexp marking
+                                 ;; process.
+                                 t))
+                          (if (null (cdr effective-marked-files))
+                              nil
+                            effective-marked-files)))))
       (unless img-fmarked
         (user-error "No images found!"))
       (unwind-protect
-          (let ((files (dired-get-marked-files)))
+          (let ((files img-fmarked))
             (if (or (<= (length files) image-dired-show-all-from-dir-max-files)
                     (and (> (length files) image-dired-show-all-from-dir-max-files)
                          (y-or-n-p
@@ -2045,7 +2075,9 @@ buffer."
                   (with-current-buffer image-dired-thumbnail-buffer
                     (when (bound-and-true-p hl-line-mode)
                       ;; display `hl-line-mode' since its cover the
-                      ;; mark highliting face for thumbnails
+                      ;; mark highliting face for thumbnails and will
+                      ;; drag the image dired origin file track
+                      ;; performance.
                       (hl-line-mode -1)))
                   (pop-to-buffer image-dired-thumbnail-buffer))
               (message "Canceled.")))
@@ -2270,7 +2302,11 @@ point."
               nil))
       (setq entropy/emacs-image-dired-idle-track-orig-file-timer
             (run-with-idle-timer
-             0.1 nil
+             ;; using one second is proper since any lower idle delay
+             ;; may hint the key repeat frequency which will not show
+             ;; the idle delay effects.
+             1
+             nil
              #'entropy/emacs-image-dired-idle-track-orig-file--core))))
 
   (defmacro entropy/emacs-image-dired-thumbnail-with-mapping-images
@@ -2429,6 +2465,14 @@ dwim memory and use both height and width fit display type."
       (unless (and (bufferp assoc-dired-buffer)
                    (buffer-live-p assoc-dired-buffer))
         (user-error "No associated dired-buffer found!"))
+      (when image-dired-track-movement
+        (with-current-buffer image-dired-thumbnail-buffer
+          ;; NOTE: firstly we should forcely sync the track point
+          ;; since we use
+          ;; `entropy/emacs-image-dired-idle-track-orig-file' to idle
+          ;; tracking orig file in most of case which may not did done
+          ;; yet.
+          (image-dired-track-original-file)))
       (if (bound-and-true-p shackle-mode)
           (let* ((buffer-name (buffer-name assoc-dired-buffer))
                  (shackle-rules
