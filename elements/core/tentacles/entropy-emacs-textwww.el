@@ -342,7 +342,8 @@ do any emacs work in any other buffer, or just wait ... ")))
            (indent (make-string
                     (max 0 (/ (- (cond
                                   ;; set align width respect `entropy/emacs-window-center-mode'
-                                  ((bound-and-true-p entropy/emacs-window-center-mode)
+                                  ((or (bound-and-true-p entropy/emacs-window-center-mode)
+                                       (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge))
                                    ecwidth)
                                   (t
                                    wwidth))
