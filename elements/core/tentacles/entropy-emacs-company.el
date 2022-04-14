@@ -705,16 +705,20 @@ with `shackle'."
 
   (defun entropy/emacs-company--default-frontend-set-hook
       (&rest _)
-    (entropy/emacs-company--set-only-one-frontend
-     'company-pseudo-tooltip-frontend 'company-quickhelp-frontend))
+    (apply 'entropy/emacs-company--set-only-one-frontend
+           'company-pseudo-tooltip-frontend
+           (when (display-graphic-p)
+             (list 'company-quickhelp-frontend))))
 
   (defun entropy/emacs-company--default-enable ()
     ;; just use one frontends for reduce lagging
     (add-hook 'company-mode-hook
               #'entropy/emacs-company--default-frontend-set-hook)
     ;; travel all buffers with `company-mode' enabled to set frontend.
-    (entropy/emacs-company--set-only-one-frontend-all-buffers
-     'company-pseudo-tooltip-frontend 'company-quickhelp-frontend)
+    (apply 'entropy/emacs-company--set-only-one-frontend-all-buffers
+           'company-pseudo-tooltip-frontend
+           (when (display-graphic-p)
+             (list 'company-quickhelp-frontend)))
     (cond ((display-graphic-p)
            (company-quickhelp-mode 1)
            (entropy/emacs-set-key-without-remap
