@@ -93,8 +93,11 @@ origin, since each set to the `gc-threshold' or
          ;; condition orderred by the performance sort from low to
          ;; high for preventing the judge performance issue
          (or
-          ;; company frontend will leak memory
-          (bound-and-true-p company-candidates)
+          ;; ----------
+          ;; ;; company frontend will leak memory
+          ;; (bound-and-true-p company-candidates)
+          ;; ----------
+
           ;; we hope all procedure during `eval-expression' are gc
           ;; restricted
           (or (member this-command

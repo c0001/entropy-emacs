@@ -133,6 +133,12 @@ yasnippet support *locally*."
 
 ;; *** Candidates length restriction
 
+;; declare firtly for lexical proper
+(defvar company-candidates)
+(defvar company-candidates-length)
+(defvar company-frontends)
+(defvar company-backends)
+
 (defvar-local entropy/company--this-candi-length nil)
 
 (defun entropy/emacs-company--company-candis-restrict-advice
@@ -304,6 +310,10 @@ eemacs specifications"
                                   org-mode
                                   )
                                 entropy/emacs-ide-for-them)
+   company-tooltip-width-grow-only nil
+   company-show-numbers nil
+   company-show-quick-access nil
+   company-format-margin-function nil   ;disable icon show with pseudo tooltip
    company-tooltip-limit 20  ; bigger popup window
    company-tooltip-maximum-width 70
    company-tooltip-minimum-width 20
@@ -576,9 +586,6 @@ efficiently way."
            (row (cdr (or (posn-actual-col-row posn)
                          ;; When position is non-visible for some reason.
                          nominal-pos))))
-      (when (and header-line-format (version< emacs-version "24.3.93.3"))
-        ;; http://debbugs.gnu.org/18384
-        (cl-decf row))
       (when (bound-and-true-p display-line-numbers)
         (cl-decf col (+ 2 (line-number-display-width))))
       (cons (+ col (window-hscroll)) row)))
