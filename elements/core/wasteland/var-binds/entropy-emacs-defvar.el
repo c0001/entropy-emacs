@@ -986,7 +986,7 @@ Return t or nil for commonly manner."
                        (string-equal transient--buffer-name buff-name))
               (throw :exit 'transient-window))
             (when (and (bound-and-true-p which-key-buffer-name)
-                       (string-equal transient--buffer-name buff-name))
+                       (string-equal which-key-buffer-name buff-name))
               (throw :exit 'whickey-window))
             (when (string-match-p "^\\*Messages\\*" buff-name)
               (throw :exit 'message-buffer))
