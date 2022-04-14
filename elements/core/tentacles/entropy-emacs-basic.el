@@ -4261,12 +4261,12 @@ successfully both of situation of read persisit of create an new."
              #'term-paste)))
         (enable-func
          `(lambda ()
-            (funcall ,cli-enable-func)
-            (funcall ,term-enable-func)))
+            (funcall ',cli-enable-func)
+            (funcall ',term-enable-func)))
         (disable-func
          `(lambda ()
-            (funcall ,cli-disable-func)
-            (funcall ,term-disable-func))))
+            (funcall ',cli-disable-func)
+            (funcall ',term-disable-func))))
    (if (null (daemonp))
        (when (entropy/emacs-xterm-cut-or-yank-sync-with-system/functional-env-statisfied-p)
          (funcall enable-func))
