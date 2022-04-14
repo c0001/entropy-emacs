@@ -543,34 +543,17 @@ notation.
    (white "⮞")
    (green "Full start completed.")))
 
-;; *** startup main function
-(defun entropy/emacs-start--init-X ()
-  (entropy/emacs-start-M-enable)
-  (entropy/emacs-start-X-enable))
-
-(defun entropy/emacs-start--init-M ()
-  (entropy/emacs-start-M-enable))
-
-(defun entropy/emacs-start--init-bingo ()
-  (cond
-   ((not entropy/emacs-minimal-start)
-    (entropy/emacs-start--init-X))
-   (entropy/emacs-minimal-start
-    (entropy/emacs-start--init-M))))
-
-;; On win10 there's default global utf-8 operation system based
-;; language environment setting supporting option. As when it enable,
-;; forcing reset emacs internal w32-code page setting to utf-8 which
-;; can support `shell-command' or other process calling API support
-;; multibyte filename as args.
-(when (and sys/win32p
-           (eq w32-ansi-code-page 65001))
-  (setq w32-system-coding-system 'utf-8)
-  (define-coding-system-alias 'cp65001 'utf-8))
-
-(defun entropy/emacs-start-linux-DE-IME-warning (&optional force)
+;; *** start up warns
+;; **** linux DE IME warning
+(defun entropy/emacs-start-linux-DE-IME-warning (&optional force pop-warn)
   "Warnning for linux desktop IME bug of eemacs bug
-[h-12379f67-4311-4433-86e3-a6fdfd886112]."
+[h-12379f67-4311-4433-86e3-a6fdfd886112].
+
+Return t for messy env detected, nil for otherwise. If optional
+argument POP-WARN is non-nil, throw out the warning.
+
+If optional argument FORCE is non-nil, we also judged in linux
+non-X env."
   (when (or sys/linux-x-p (and sys/linuxp force))
     (let ((envars '("GTL_IM_MODULE"
                     "GTK_IM_MODULE"
@@ -609,40 +592,103 @@ Currently detected env variables:")
                      (not (string-empty-p val)))
             (setq msg (format "%s\n%s=%s" msg env val)))))
       (unless (string-empty-p msg)
-        (warn "%s" (concat warn-head msg))))))
+        (when pop-warn
+          (warn "%s" (concat warn-head msg)))
+        t))))
+
+(defvar entropy/emacs-start-linux-DE-IME-warning-idle-timer nil)
+(defvar entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p nil)
+
+(defun entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset
+    (&optional frame force)
+  (when (and entropy/emacs-start-linux-DE-IME-warning-idle-timer
+             (if (timerp entropy/emacs-start-linux-DE-IME-warning-idle-timer)
+                 t
+               ;; prevent miscellaneous value injection
+               (when entropy/emacs-start-linux-DE-IME-warning-idle-timer
+                 (setq entropy/emacs-start-linux-DE-IME-warning-idle-timer nil))
+               nil)
+             (if (framep frame)
+                 ;; justify whether the frame is an gui daemon client
+                 (and
+                  (entropy/emacs-daemon-frame-is-daemon-client-p frame)
+                  (frame-live-p frame)
+                  (with-selected-frame frame (display-graphic-p)))
+               t)
+             (if force
+                 t
+               ;; just disable the timer when this client is the last gui client
+               (not (entropy/emacs-daemon-multi-gui-clients-p))))
+    (cancel-timer entropy/emacs-start-linux-DE-IME-warning-idle-timer)
+    (setq entropy/emacs-start-linux-DE-IME-warning-idle-timer nil)))
+
+(when (daemonp)
+  (add-to-list 'delete-frame-functions
+               #'entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset))
 
 (cond
  ((daemonp)
-  (defvar __entropy/emacs-start-linux-DE-IME-warning_idle_timer nil)
-  (defvar __entropy/emacs-start-linux-DE-IME-warning_prompt_did nil)
-  (defvar __entropy/emacs-start-linux-DE-IME-warning_done nil)
   (entropy/emacs-with-daemon-make-frame-done
    'eemacs-linux-de-ime-warning
    nil
    '(progn
-      (setq __entropy/emacs-start-linux-DE-IME-warning_prompt_did nil)
-      (setq __entropy/emacs-start-linux-DE-IME-warning_done nil)
-      (setq __entropy/emacs-start-linux-DE-IME-warning_idle_timer
-            (run-with-idle-timer
-             3
-             t
-             (lambda ()
-               (when (null __entropy/emacs-start-linux-DE-IME-warning_done)
-                 (entropy/emacs-start-linux-DE-IME-warning t)
-                 (switch-to-buffer "*Warnings*")
-                 (delete-other-windows)
-                 (when (and
-                        (null __entropy/emacs-start-linux-DE-IME-warning_prompt_did)
-                        (setq __entropy/emacs-start-linux-DE-IME-warning_prompt_did t)
-                        (yes-or-no-p "Did you know that?"))
-                   (cancel-timer __entropy/emacs-start-linux-DE-IME-warning_idle_timer)
-                   (setq __entropy/emacs-start-linux-DE-IME-warning_idle_timer nil))))))
+      (when (and (not entropy/emacs-start-linux-DE-IME-warning-idle-timer)
+                 (entropy/emacs-start-linux-DE-IME-warning t))
+        (setq entropy/emacs-start-linux-DE-IME-warning-idle-timer
+              (run-with-idle-timer
+               3
+               t
+               (lambda (&rest _)
+                 (unless entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p
+                   (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p t)
+                   (let ((cur_wcfg (current-window-configuration))
+                         (cur_frame (selected-frame)))
+                     (unwind-protect
+                         (progn
+                           (entropy/emacs-start-linux-DE-IME-warning t t)
+                           (switch-to-buffer "*Warnings*")
+                           (delete-other-windows)
+                           (sit-for 0.1)        ;enuser rediplay
+                           (when (yes-or-no-p "Did you know that?")
+                             (entropy/emacs-start-linux-DE-IME-warning-idle-timer/reset nil t)))
+                       (when (and (frame-live-p cur_frame)
+                                  (frame-visible-p cur_frame))
+                         (with-selected-frame cur_frame
+                           (set-window-configuration cur_wcfg)))
+                       (setq entropy/emacs-start-linux-DE-IME-warning-idle-is-prompting-p nil))))))))
       )))
+
  ((bound-and-true-p entropy/emacs-fall-love-with-pdumper)
   (add-hook 'entropy/emacs-pdumper-load-hook
-            #'entropy/emacs-start-linux-DE-IME-warning))
+            #'(lambda (&rest _)
+                (entropy/emacs-start-linux-DE-IME-warning nil t))))
  (t
-  (entropy/emacs-start-linux-DE-IME-warning)))
+  (entropy/emacs-start-linux-DE-IME-warning nil t)))
+
+;; *** startup main function
+(defun entropy/emacs-start--init-X ()
+  (entropy/emacs-start-M-enable)
+  (entropy/emacs-start-X-enable))
+
+(defun entropy/emacs-start--init-M ()
+  (entropy/emacs-start-M-enable))
+
+(defun entropy/emacs-start--init-bingo ()
+  (cond
+   ((not entropy/emacs-minimal-start)
+    (entropy/emacs-start--init-X))
+   (entropy/emacs-minimal-start
+    (entropy/emacs-start--init-M))))
+
+;; On win10 there's default global utf-8 operation system based
+;; language environment setting supporting option. As when it enable,
+;; forcing reset emacs internal w32-code page setting to utf-8 which
+;; can support `shell-command' or other process calling API support
+;; multibyte filename as args.
+(when (and sys/win32p
+           (eq w32-ansi-code-page 65001))
+  (setq w32-system-coding-system 'utf-8)
+  (define-coding-system-alias 'cp65001 'utf-8))
 
 (defun entropy/emacs-start-do-load ()
   (let (_)

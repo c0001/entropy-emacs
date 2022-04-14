@@ -1429,6 +1429,29 @@ reset.")
 (defvar entropy/emacs-daemon--legal-clients nil
   "A list of legal daemon clients representation.")
 
+(defun entropy/emacs-daemon-multi-gui-clients-p ()
+  "Indicate whether current daemon clients has 2 or more gui
+clients."
+  (when (daemonp)
+    (let ((cnt 0) frame gui-p)
+      (dolist (el entropy/emacs-daemon--legal-clients)
+        (setq frame (plist-get el :frame)
+              gui-p (plist-get el :gui-p))
+        (when (and gui-p
+                   (frame-live-p frame))
+          (cl-incf cnt)))
+      (if (> cnt 1)
+          t
+        nil))))
+
+(defun entropy/emacs-daemon-frame-is-daemon-client-p (frame)
+  "Return non-nil when frame is an daemon client."
+  (when (daemonp)
+    (catch :exit
+      (dolist (el entropy/emacs-daemon--legal-clients)
+        (when (eq (plist-get el :frame) frame)
+          (throw :exit t))))))
+
 (defun entropy/emacs-daemon-current-is-main-client (&optional frame)
   "Judge whether current frame is the frame of current daemon
 main client."
