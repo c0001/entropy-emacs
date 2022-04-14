@@ -1778,19 +1778,25 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
            (dolist (ov
                     ;; using from minimal pt from ov list
                     (reverse dired-subtree-overlays))
-             (setq ov-start (overlay-start ov)
-                   ov-end (overlay-end ov))
-             (save-excursion
-               (goto-char ov-start)
-               (while (and (< (point) ov-end)
-                           (not (eobp)))
-                 (setq cur-fname
-                       (ignore-errors (dired-get-filename)))
-                 (when (and cur-fname
-                            (string-equal cur-fname file))
-                   (dired-move-to-filename)
-                   (throw :exit (point)))
-                 (dired-next-line 1))))))
+             (when (overlayp ov)
+               (setq ov-start (overlay-start ov)
+                     ov-end (overlay-end ov))
+               (when
+                   ;; FIXME: why the ov start and end can be nil while
+                   ;; dired revert from deletion operations?
+                   (and (integer-or-marker-p ov-start)
+                        (integer-or-marker-p ov-end))
+                 (save-excursion
+                   (goto-char ov-start)
+                   (while (and (< (point) ov-end)
+                               (not (eobp)))
+                     (setq cur-fname
+                           (ignore-errors (dired-get-filename)))
+                     (when (and cur-fname
+                                (string-equal cur-fname file))
+                       (dired-move-to-filename)
+                       (throw :exit (point)))
+                     (dired-next-line 1))))))))
         (when pt
           (goto-char pt)
           pt))))
