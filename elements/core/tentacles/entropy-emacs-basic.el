@@ -5321,14 +5321,11 @@ otherwise returns nil."
                 (propertize "K" 'face
                             '__proced-size-kb-unit-face))))))
 
-  (let ((vsize '(cadr (alist-get 'vsize proced-grammar-alist)))
-        (rss '(cadr (alist-get 'rss proced-grammar-alist))))
-    (dolist (size-ptr '(vsize rss))
-      (when (eval size-ptr)
-        (funcall
-         `(lambda ()
-            (setf ,(symbol-value size-ptr)
-                  '__proced-size-kb-to-dwim-human-readable))))))
+  (dolist (size-ptr '(vsize rss))
+    (when (cadr (alist-get size-ptr proced-grammar-alist))
+      (setf (cadr (alist-get size-ptr proced-grammar-alist))
+            '__proced-size-kb-to-dwim-human-readable)))
+
 ;; ****** end
   )
 
