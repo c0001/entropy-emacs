@@ -1373,30 +1373,10 @@ NOTE: do not manually modify this variable, since eemacs auto set
 it internally.")
 
 ;; ** daemon refer
-(when (version< emacs-version "27")
-  (defvar server-after-make-frame-hook nil
-    "Hook run when the Emacs server creates a client frame.
-The created frame is selected when the hook is called.
-
-This hook was not native for current emacs version but backported
-from 27.1 for compatible reason.
-")
-  (defun entropy/emacs--server-make-frame-around-advice
-      (orig-func &rest orig-args)
-    (let ((rtn (apply orig-func orig-args)))
-      (unwind-protect
-          (progn
-            (run-hooks 'server-after-make-frame-hook)
-            rtn)
-        rtn)))
-  (advice-add 'server-execute
-              :around
-              #'entropy/emacs--server-make-frame-around-advice))
-
 (defvar entropy/emacs-daemon-server-init-done nil
   "When non-nil indicate the daemon server has been initialized
- i.e. has been first called done by open from 'emacsclient'
- command, that's say this daemon has been used at thus.")
+i.e. has been first called done by open from 'emacsclient'
+command, that's say this daemon has been used at thus.")
 
 (defvar entropy/emacs-daemon-server-after-make-frame-hook nil
   "Normal hooks run after a emacs daemon session create a client
