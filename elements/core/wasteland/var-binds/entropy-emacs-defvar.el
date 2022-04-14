@@ -1477,33 +1477,42 @@ main client."
 
 (defun entropy/emacs-daemon--delete-frame-function
     (frame-predel)
-  "Reset `entropy/emacs-daemon--main-client-indicator' when the frame of
-current daemon main client prepare to close, and the car of
-`entropy/emacs-daemon--legal-clients' will be the assignment if
-non-nil, i.e. the new main daemon client."
+  "Delete the frame FRAME-PREDEL when it is an daemon client i.e. judged
+by `entropy/emacs-daemon-frame-is-daemon-client-p'.
+
+If FRAME-PREDEL is `entropy/emacs-daemon--main-client-indicator' , it
+will be rest and the car of `entropy/emacs-daemon--legal-clients' will
+be the assignment to be the new main one if non-nil.
+
+Otherwise FRAME-PREDEL will be delete from
+`entropy/emacs-daemon--legal-clients', so that it will not be an legal
+frame predicated by `entropy/emacs-daemon-frame-is-daemon-client-p'
+any more.
+"
   (let (temp_var (frame frame-predel))
-    ;; pop out current daemon client from
-    ;; `entropy/emacs-daemon--legal-clients'.
-    (when (not (null entropy/emacs-daemon--legal-clients))
-      (dolist (el entropy/emacs-daemon--legal-clients)
-        (unless (eq frame (plist-get el :frame))
-          (push el temp_var)))
-      (setq entropy/emacs-daemon--legal-clients
-            temp_var))
-    ;; Reset `entropy/emacs-daemon--main-client-indicator'.
-    (when (entropy/emacs-daemon-current-is-main-client frame)
-      (setq entropy/emacs-daemon--main-client-indicator nil)
+    (when (entropy/emacs-daemon-frame-is-daemon-client-p frame)
+      ;; pop out current daemon client from
+      ;; `entropy/emacs-daemon--legal-clients'.
       (when (not (null entropy/emacs-daemon--legal-clients))
-        (catch :exit
-          (while entropy/emacs-daemon--legal-clients
-            (if (frame-live-p
-                 (plist-get
-                  (car entropy/emacs-daemon--legal-clients) :frame))
-                (progn
-                  (entropy/emacs-daemon--set-main-client-indictor
-                   (car entropy/emacs-daemon--legal-clients))
-                  (throw :exit nil))
-              (pop entropy/emacs-daemon--legal-clients))))))))
+        (dolist (el entropy/emacs-daemon--legal-clients)
+          (unless (eq frame (plist-get el :frame))
+            (push el temp_var)))
+        (setq entropy/emacs-daemon--legal-clients
+              temp_var))
+      ;; Reset `entropy/emacs-daemon--main-client-indicator'.
+      (when (entropy/emacs-daemon-current-is-main-client frame)
+        (entropy/emacs-daemon--reset-main-client-indicator)
+        (when (not (null entropy/emacs-daemon--legal-clients))
+          (catch :exit
+            (while entropy/emacs-daemon--legal-clients
+              (if (frame-live-p
+                   (plist-get
+                    (car entropy/emacs-daemon--legal-clients) :frame))
+                  (progn
+                    (entropy/emacs-daemon--set-main-client-indictor
+                     (car entropy/emacs-daemon--legal-clients))
+                    (throw :exit nil))
+                (pop entropy/emacs-daemon--legal-clients)))))))))
 
 (when (daemonp)
   (add-to-list 'delete-frame-functions
@@ -1529,18 +1538,25 @@ Please just leave it in `entropy-emacs-defvar' file as its
 internal functional."
   (when (and (daemonp)
              (null entropy/emacs-daemon--dont-init-client)
-             (and (or (frame-parameter nil 'visibility)
-                      (null noninteractive))
-                  ;; do not eval initialization when match some
-                  ;; special occasion by `last-command'
-                  (not (let ((rtn
-                              (mapcar
-                               (lambda (s)
-                                 (string-match-p
-                                  s
-                                  (symbol-name last-command)))
-                               '("^magit-"))))
-                         (delete nil rtn)))))
+             (and
+              ;; must an visisble frame, NOTE: we can not use
+              ;; `frame-visible-p' or the frame parameter `visibility'
+              ;; since they just return non-nil when frame is
+              ;; displayed even if the frame is created used to
+              ;; display, so we must use the underlying mechanism
+              (frame-parameter nil 'display)
+              ;; must not an existed client frame since
+              ;; `server-process-filter' use current frame like some
+              ;; server based package such as `with-editor' to make
+              ;; pseudo frame which reused current one.
+              (not (entropy/emacs-daemon-frame-is-daemon-client-p
+                    (selected-frame)))
+              ;; must in interaction mode
+              (null noninteractive)
+              ;; TODO: add more filters to make explicit judge whether
+              ;; the frame is maked from command line
+              ;; i.e. 'emacsclient ...'
+              ))
     (set-frame-parameter (selected-frame) 'eemacs-current-frame-is-daemon-created t)
     ;; fix problem when main daemon client is dead
     (when entropy/emacs-daemon--main-client-indicator
@@ -1555,6 +1571,7 @@ internal functional."
         (setq entropy/emacs-daemon--legal-clients temp_var)))
     ;; startup daemon specification
     (if (or (not entropy/emacs-daemon--main-client-indicator)
+            ;; in same display type
             (eq (display-graphic-p)
                 (plist-get entropy/emacs-daemon--main-client-indicator
                            :gui-p)))
