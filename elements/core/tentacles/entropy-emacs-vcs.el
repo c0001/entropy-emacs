@@ -386,6 +386,19 @@ for 'git' type and fallback to it while other types."
                    process-output
                    (buffer-substring-no-properties
                     (point-min) (point-max)))
+
+             ;; filter the process outpu
+             (with-temp-buffer
+               (insert process-output)
+               ;; remove final newline
+               (goto-char (point-max))
+               (when (looking-at "^$")
+                 (delete-char -1))
+               ;; ---------
+               (setq process-output
+                     (buffer-substring-no-properties
+                      (point-min) (point-max))))
+
              ;; reduce log size
              (when (> (length __ya/git-messenger:show-parent-process-output-log) 20)
                (setq __ya/git-messenger:show-parent-process-output-log
