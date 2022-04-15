@@ -83,12 +83,6 @@
   (setq ivy-on-del-error-function 'ignore)  ;Disable back-delete exit when empty input.
   (setq ivy-dynamic-exhibit-delay-ms 2) ;prevent immediacy dnynamic process fetching crash.
 
-  (setq ivy-add-newline-after-prompt t) ;enable newline for initial
-                                        ;prompt for preventing long
-                                        ;line prompt messy up candi
-                                        ;exhibits
-  ;; Use limit candi exhibits to prevent visual messy
-  (setq ivy-height (if ivy-add-newline-after-prompt 7 6))
   ;; Disable fancy highlight to the matched candidate for performance issue
   (setq ivy-display-style nil)
 
@@ -104,6 +98,34 @@
 
   (setq swiper-action-recenter t)       ;recenter buffer after swiper jumping to the match
 
+  ;; prompt newline set
+  (let* ((with-nl-func
+          '(lambda ()
+             ;; enable newline for initial prompt for preventing long line
+             ;; prompt messy up candi exhibits Use limit candi exhibits to
+             ;; prevent visual messy.
+             (setq ivy-add-newline-after-prompt t)
+             (setq ivy-height 7)))
+         (without-nl-func
+          '(lambda ()
+             (setq ivy-add-newline-after-prompt nil)
+             (setq ivy-height 6)))
+         (hack-func
+          `(lambda ()
+             (if (display-graphic-p)
+                 (funcall ',with-nl-func)
+               ;; Disable newline for terminal mode emacs session
+               ;; while in emacs 28 or higher version, since it can
+               ;; not be fully displayed in minibuffer prompt area.
+               (funcall ',without-nl-func)))))
+    (if (version< emacs-version "28")
+        (funcall with-nl-func)
+      (if (daemonp)
+          (entropy/emacs-with-daemon-make-frame-done
+           'ivy-height-and-prompt-newline-set
+           nil nil
+           `(funcall ',hack-func))
+        (funcall hack-func))))
 
 ;; *** ivy config
   :config
