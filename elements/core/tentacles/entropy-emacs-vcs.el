@@ -146,6 +146,9 @@
        (unwind-protect
            (progn
              (push (read-event) unread-command-events)
+             ;; when hint C-g we must exit the hydra also.
+             (when (eq (car unread-command-events) 7)
+               (git-messenger-hydra/lambda-\,-and-exit))
              (setq |||hydra-need-quit___|$ nil))
          ,@body
          (when |||hydra-need-quit___|$
@@ -459,6 +462,16 @@ for 'git' type and fallback to it while other types."
               __ya/git-messenger:show-parent/git/current-calling-depth 0))
       (setq msg-pretty-func
             (lambda (msg vcs commit-id author)
+              ;; remove gpg signature header
+              (with-temp-buffer
+                (let ((inhibit-read-only t))
+                  (insert msg)
+                  (goto-char (point-min))
+                  (save-match-data
+                    (when (re-search-forward "-----END PGP SIGNATURE-----" nil t)
+                      (progn
+                        (delete-region (point-min) (point)))))
+                  (setq msg (buffer-substring (point-min) (point-max)))))
               (if (git-messenger:show-detail-p commit-id)
                   (entropy/emacs-vcs--git-messenger:format-detail vcs commit-id author msg)
                 (cl-case vcs
@@ -496,8 +509,8 @@ for 'git' type and fallback to it while other types."
               entropy/emacs-vcs--git-messenger:popup-message-old-message
               popuped-message))
       (run-hook-with-args 'git-messenger:before-popup-hook popuped-message)
-      (git-messenger-hydra/body)
       (cond ((and (fboundp 'posframe-workable-p) (posframe-workable-p))
+             (git-messenger-hydra/body)
              (posframe-show msg-buffer-name
                             :string popuped-message
                             :left-fringe 8
@@ -507,8 +520,19 @@ for 'git' type and fallback to it while other types."
              (entropy/emacs-vcs--git-messenger:popup-message/unwind-protect
               (posframe-hide msg-buffer-name)))
             ((and (fboundp 'pos-tip-show) (display-graphic-p))
+             (git-messenger-hydra/body)
              (pos-tip-show popuped-message))
+            ((and (fboundp 'popup-tip) t)
+             (git-messenger-hydra/body)
+             (let ((tip (popup-tip popuped-message
+                                   :point (point)
+                                   :margin 1 :truncate t
+                                   :nowait t)))
+               (entropy/emacs-vcs--git-messenger:popup-message/unwind-protect
+                (popup-delete tip))))
             ((fboundp 'lv-message)
+             (let ((hydra-hint-display-type 'message))
+               (git-messenger-hydra/body))
              (lv-message popuped-message)
              (entropy/emacs-vcs--git-messenger:popup-message/unwind-protect
               (lv-delete-window)))
