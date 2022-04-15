@@ -5326,11 +5326,12 @@ corresponding stuffs."
      'term-color-blue nil
      :foreground "#61AFEF")
 
-    ;; border margin and fringe
+    ;; tooltip face
     (entropy/emacs-set-face-attribute
      'tooltip nil
-     :background "grey6"
+     :background "#393939393939"
      :foreground "white")
+    ;; border margin and fringe
     (entropy/emacs-set-face-attribute
      'border nil
      :background "grey6"
