@@ -784,9 +784,8 @@ posframe when available."
   :commands
   (
    major-mode-hydra-define
-   major-mode-hydra
-   major-mode-hydra-bind
    major-mode-hydra-define+
+   major-mode-hydra
    ))
 
 ;; *** def APIs
