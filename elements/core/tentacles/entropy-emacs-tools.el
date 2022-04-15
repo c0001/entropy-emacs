@@ -342,13 +342,13 @@ Version 2017-10-09"
               (and (executable-find "gnome-terminal")
                    `("gnome-terminal" ,wcdir))
               (and (executable-find "konsole")
-                   `("konsole "))
+                   `("konsole"))
 
               ;; ----- fallback to use xterm
               (and (executable-find "uxterm")
-                   ("uxterm"))
+                   '("uxterm"))
               (and (executable-find "xterm")
-                   ("xterm"))
+                   '("xterm"))
               )))
         (unless exec-and-arg
           (error "Can not find proper terminal emulator on your system."))
