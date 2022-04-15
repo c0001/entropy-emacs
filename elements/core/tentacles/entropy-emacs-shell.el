@@ -252,7 +252,6 @@ was found."
               (bashrc-buffer
                (find-file-noselect "~/.bashrc" nil t))
               (write-contents-functions nil)
-              (local-write-file-hooks nil)
               (write-file-functions nil)
               (before-save-hook nil)
               (after-save-hook nil))

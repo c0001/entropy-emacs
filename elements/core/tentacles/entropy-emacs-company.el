@@ -176,9 +176,10 @@ NOTE: this function is an around advice wrapper."
 (defun entropy/emacs-company--set-only-one-frontend-all-buffers
     (only-one &rest others)
   (dolist (buff (buffer-list))
-    (when (bound-and-true-p company-mode)
-      (apply 'entropy/emacs-company--set-only-one-frontend
-             only-one others))))
+    (with-current-buffer buff
+      (when (bound-and-true-p company-mode)
+        (apply 'entropy/emacs-company--set-only-one-frontend
+               only-one others)))))
 
 ;; ** company core
 (use-package company
@@ -311,7 +312,6 @@ eemacs specifications"
                                   )
                                 entropy/emacs-ide-for-them)
    company-tooltip-width-grow-only nil
-   company-show-numbers nil
    company-show-quick-access nil
    company-format-margin-function nil   ;disable icon show with pseudo tooltip
    company-tooltip-limit 20  ; bigger popup window
@@ -1165,7 +1165,6 @@ completion when calling: 'execute-extended-command' or
                           #'lisp-completion-at-point)
                         t))
 
-      (setq-local company-show-numbers nil)
       (setq-local company-backends
                   (cond ((eq entropy/emacs-company--minibuffer-command 'execute-extended-command)
                          '(entropy/emacs-company-elisp-minibuffer))

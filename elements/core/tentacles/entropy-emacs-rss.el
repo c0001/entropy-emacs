@@ -105,18 +105,6 @@
   ;; Nice time format string
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
 
-  ;; auto center window mode
-  (dolist (cmd '(
-                 ;; We don't patch for elfeed since elfeed change the
-                 ;; major-mode after popup the buffer which killed all
-                 ;; local settings. We advice for `elfeed' directly
-                 ;; for thus.
-                 ;;
-                 ;; elfeed
-
-                 elfeed-search-show-entry))
-    )
-
   ;; set curl path
   (let ((mingw-curl (if (and entropy/emacs-win-portable-mingw-enable
                              (file-exists-p entropy/emacs-win-portable-mingw-bin-path))
@@ -137,7 +125,7 @@
      ((ignore-errors (file-exists-p msys2-curl))
       (setq elfeed-curl-program-name msys2-curl)
       (setq elfeed-use-curl t))
-     ((ignore-errors (and (executable-find "curl")
+     ((ignore-errors (and (executable-find unix-curl)
                           sys/is-posix-compatible))
       (setq elfeed-use-curl t))
      ((ignore-errors (file-exists-p w32-curl))
@@ -163,8 +151,7 @@
 
   (defun entropy/emacs-rss--elfeed-url-hexify (url)
     (require 'entropy-common-library-const)
-    (let ((hexi-url (url-hexify-string url entropy/cl-url--allowed-chars)))
-      hexi-url))
+    (url-hexify-string url entropy/cl-url--allowed-chars))
 
   (defun entropy/emacs-rss--elfeed-search-update ()
     (elfeed-search-update--force))
@@ -266,7 +253,7 @@ instead."
       :save t))
     (let* ((hexi-url (entropy/emacs-rss--elfeed-url-hexify url))
            (use-proxy-p (yes-or-no-p "With proxy?"))
-           (new-feeds-plists (list (list url :use-proxy use-proxy-p)))
+           (new-feeds-plists (list (list hexi-url :use-proxy use-proxy-p)))
            (entropy/emamcs-rss--elfeed-save-custom save))
       (setq entropy/emacs-elfeed-feeds
             (append entropy/emacs-elfeed-feeds
@@ -276,7 +263,7 @@ instead."
         (elfeed-db-ensure)
         (entropy/emacs-rss--elfeed-fetch-feeds
          (entropy/emacs-rss--elfeed-arrange-feeds-plist
-          `(,url))))
+          `(,hexi-url))))
       ))
   (advice-add 'elfeed-add-feed :override
               #'__ya/elfeed-add-feed-around)
@@ -303,7 +290,8 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
         (symbol-value feeds-plist-name))))
 
   (defun entropy/emacs-rss--elfeed-arrange-feeds-plist (feeds)
-    "Gen an ELFEED-FEEDS-RICH from feeds"
+    "Gen an ELFEED-FEEDS-RICH from feeds using
+`entropy/emacs-elfeed-feeds' to judge its attributes."
     (let ((user-common-feeds nil)
           (user-proxy-feeds nil))
       (dolist (el feeds)
@@ -319,7 +307,7 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
       (when elfeed-use-curl
         ;; do more times sincee elfeed recall `elfeed-curl--run-queue'
         ;; in the curl cbk.
-        (dotimes (var 2)
+        (dotimes (_ 2)
           (sleep-for 0.2)
           (mapc (lambda (x) (when (string-match-p "elfeed-curl" x)
                               (delete-process x)))
@@ -638,9 +626,9 @@ Arguemnts:
             (dolist (el entl)
               (when (listp (elfeed-entry-tags el))
                 (push el entries)
-                (mapcar #'(lambda (x)
-                            (add-to-list 'tags-list x))
-                        (elfeed-entry-tags el)))))
+                (mapc #'(lambda (x)
+                          (push x tags-list))
+                      (elfeed-entry-tags el)))))
           ;; read user choice
           (if (not tag)
               (setq choice (completing-read

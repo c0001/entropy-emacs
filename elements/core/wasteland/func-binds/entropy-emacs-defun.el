@@ -3536,6 +3536,33 @@ separater CONCAT-SEPARATER when non-nil.
             (t
              rtn)))))
 
+;; *** Buffer manipulation
+
+(defun entropy/emacs-buffer-goto-line (line &optional buffer relative)
+  "Move to LINE of buffer BUFFER (default to `current-buffer'), if
+RELATIVE is non-nil move to visible LINE of the beginning of
+buffer visible part.
+
+When buffer is narrowing, and RELATIVE is nil, then the BUFFER
+will be widen.
+
+If LINE is larger than the buffer(or visible part of buffer) max
+line, goto the last line of the buffer(or visible part of
+buffer).
+
+The end form point is always at the beginning of the LINE."
+  (let ((buff (or buffer (current-buffer))))
+    (if relative
+        (with-current-buffer buff
+          (goto-char (point-min))
+          (forward-line (max 0 (1- line)))
+          (forward-line 0))
+      (with-current-buffer buff
+        (widen)
+        (goto-char (point-min))
+        (forward-line (max 0 (1- line)))
+        (forward-line 0)))))
+
 ;; *** Hook manipulation
 
 (defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)

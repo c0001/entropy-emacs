@@ -77,6 +77,8 @@
 
 ;; ** defvar
 
+(defvar eemacs-lspa/subr-loader-indicator)
+
 (defvar entropy/emacs-ext--loaded nil
   "Inidicate whether exts has loaded for prevent double
 loading.")

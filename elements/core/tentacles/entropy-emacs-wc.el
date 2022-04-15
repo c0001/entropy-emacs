@@ -554,7 +554,6 @@ This was the one action in `ivy-read'."
     (require 'ivy)
     (setq entropy/emacs-basic--eyebrowse-config-selected nil)
     (let* ((wcon (eyebrowse--get 'window-configs))
-           sanm
            candi
            candin)
       (dolist (el wcon)
@@ -625,7 +624,6 @@ The reason for this limit was that two points follow:
 
       (let* ((slots (mapcar 'car window-configs))
              (current-slot (eyebrowse--get 'current-slot))
-             (floor-tag (nth 2 (assoc (floor current-slot) window-configs)))
              (floor-slot (floor current-slot))
              (up-slot (+ 1 floor-slot)))
 

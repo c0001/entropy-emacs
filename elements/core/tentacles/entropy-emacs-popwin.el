@@ -368,7 +368,7 @@ specification."
 
 ;; ***** window&buffer indicator unhack
   (defun entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
-      (buffer-or-window &optional _non_recursive)
+      (buffer-or-window &optional non_recursive)
     (let (_)
       (cond
        ((windowp buffer-or-window)
@@ -386,7 +386,7 @@ specification."
                               'entropy/emacs-popwin--shackle-origin-selected-window
                               nil)
         (when (window-live-p buffer-or-window)
-          (unless _non_recursive
+          (unless non_recursive
             (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
              (window-buffer buffer-or-window) t))))
        ((bufferp buffer-or-window)
@@ -398,7 +398,7 @@ specification."
           (with-current-buffer buffer-or-window
             (setq-local entropy/emacs-popwin--shackle-buffer-is-popup-buffer-p
                         nil))
-          (unless _non_recursive
+          (unless non_recursive
             (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
              (get-buffer-window buffer-or-window) t)))))))
 

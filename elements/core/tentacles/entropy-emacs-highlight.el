@@ -164,8 +164,7 @@
     "Cancel all duplicates `symbol-overlay-idle-timer' func based
 idle timer according to the buffer obtained by `timer--args'
 which `eq' as same."
-    (let (smotmlist
-          dups)
+    (let (smotmlist)
       (dolist (el timer-idle-list)
         (when (equal (timer--function el) 'symbol-overlay-idle-timer)
           (push el smotmlist)))

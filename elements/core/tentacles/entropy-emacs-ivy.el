@@ -1696,28 +1696,32 @@ ACTION is a lambda function to call after selecting a result.
 This function returns the selected candidate or nil.
 
 NOTE: this function has been redefined by =entropy-emacs=."
-    (cond
+    (let* (selected)
+      (cond
+       ;;; NOTE: We comment this block for force check only one candi in
+       ;;; collection so that we can view the candi length in ivy
+       ;;; frame-work for more beneficent.
+       ;;; |||||
+       ;;; vvvv
+       ;; ((and action (= 1 (length collection)))
+       ;;  ;; select the only candidate immediately
+       ;;  (setq selected (car collection)))
+       (ffip-prefer-ido-mode
+        ;; ido can only handle list of strings
+        (setq selected (ido-completing-read prompt (mapcar 'car collection))))
+       (t
+        (setq selected (completing-read prompt collection))
+        (setq selected (or (assoc selected collection) selected))))
+      (when selected
+        ;; make sure only the string/file is passed to action
+        (let* ((default-directory (ffip-get-project-root-directory))
+               (result (if (consp selected) (cdr selected) selected)))
+          (if action (funcall action result) result)))))
 
-     ;;; NOTE: We comment this block for force check only one candi in
-     ;;; collection so that we can view the candi length in ivy
-     ;;; frame-work for more beneficent.
-     ;;; |||||
-     ;;; vvvv
-     ;; ((and action (= 1 (length collection)))
-     ;;  ;; select the only candidate immediately
-     ;;  (setq selected (car collection)))
-     (t
-      (setq selected (completing-read prompt collection))
-      (setq selected (or (assoc selected collection) selected))))
-    (when selected
-      ;; make sure only the string/file is passed to action
-      (let* ((default-directory (ffip-get-project-root-directory)))
-        (funcall action (if (consp selected) (cdr selected) selected)))))
-
-  (defun entropy/emacs-ivy-ffip (&optional _interaction)
+  (defun entropy/emacs-ivy-ffip (&optional pseudo-interaction)
     "Find file using `find-file-in-project' in place.
 
-Just find directory when _INTERACTION was non-nil (the prefix
+Just find directory when PSEUDO-INTERACTION was non-nil (the prefix
 with `C-u').
 
 NOTE: this function ignores all /ignore-patterns/ both included
@@ -1743,9 +1747,9 @@ under place will be detected!"
             (ffip-ignore-filenames nil)
             (ffip-rust-fd-respect-ignore-files nil)
             (ffip-prune-patterns '("")))
-        (cond ((eq _interaction 'dir)
+        (cond ((eq pseudo-interaction 'dir)
                (ffip-find-files "" nil t))
-              ((eq _interaction 'symlnk)
+              ((eq pseudo-interaction 'symlnk)
                (let ((__ffip-find-symbolic-only-p t))
                  (ffip-find-files nil nil)))
               (t

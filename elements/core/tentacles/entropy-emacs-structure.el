@@ -339,7 +339,7 @@ want to preserve the source demo."
                     (let* ((org-header-level (- (length (match-string-no-properties 0)) 4))
                            (replacement-string
                             (let ((strg ";"))
-                              (dotimes (i (1- org-header-level) strg)
+                              (dotimes (_ (1- org-header-level) strg)
                                 (setq strg (concat strg ";"))))))
                       (replace-match replacement-string
                                      nil nil nil 2)))))))
@@ -403,7 +403,7 @@ want to preserve the source demo."
     (when (and (bound-and-true-p outshine-mode)
                (entropy/emacs-buffer-is-lisp-like-p))
       (outshine-mode -1)
-      (let ((mode major-mode))
+      (let (_)
         (with-current-buffer (current-buffer)
           (setq-local
            entropy/emacs-structure--outshine-force-use-old-school-type-in-lisp-mode
@@ -491,7 +491,7 @@ recalc the specified head level specification.
               ;; NOTE: firstly we must fold to top-level since the
               ;; fully expanded children will not be fold while
               ;; `outline-show-branches'
-              (condition-case error
+              (condition-case nil
                   (outline-hide-sublevels
                    ;; found the first head as the toplevel result since we
                    ;; can not cycle through abnormal head structure.
@@ -674,7 +674,7 @@ compatible with =entropy-emacs=."
                  (let (rtn)
                    (if (> comment-add 0)
                        (progn
-                         (dotimes (var (+ comment-add 1))
+                         (dotimes (_ (+ comment-add 1))
                            (setq rtn
                                  (concat (or rtn "") comment-start)))
                          rtn)
@@ -750,7 +750,7 @@ suitable for the eemacs modified version of
                 (t (setq feature nil)))))
       feature))
 
-  (defun entropy/emacs-structure--outshine-set-outline-regexp-base (orig-func &rest orig-args)
+  (defun entropy/emacs-structure--outshine-set-outline-regexp-base (&rest _)
     "Return the actual outline-regexp-base.
 
 Preventing recursive face rending for level keywords that local
@@ -782,7 +782,7 @@ structure type for elisp."
                        (default-value 'outshine-regexp-base-char)))))
 
   (advice-add 'outshine-set-outline-regexp-base
-              :around
+              :override
               'entropy/emacs-structure--outshine-set-outline-regexp-base)
 
 ;; ***** eemacs outshine head inventing
@@ -953,7 +953,6 @@ This function is as the origin `outline-promote' but using
                   entropy/emacs-structure--outshine-face-level-max-level)
                (null entropy/emacs-structure--outshine-level-face-has-generated))
       (let* ((max-face-level entropy/emacs-structure--outshine-face-level-max-level)
-             (overflow (- outshine-max-level max-face-level))
              (top-map (cl-loop for step from (+ max-face-level 1) to outshine-max-level
                                collect step))
              (cnt 0)
@@ -988,7 +987,7 @@ This function is as the origin `outline-promote' but using
               (cl-incf face-inherit-indicator))))))
     (setq entropy/emacs-structure--outshine-level-face-has-generated t))
 
-  (defun entropy/emacs-structure--outshine-fontify-headlines (orig-func &rest orig-args)
+  (defun entropy/emacs-structure--outshine-fontify-headlines (_ &rest orig-args)
     "Calculate heading regexps for font-lock mode."
     (entropy/emacs-structure--outshine-batch-gen-outshine-level-faces)
     (let* ((outline-regexp (car orig-args))

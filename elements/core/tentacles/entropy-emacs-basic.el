@@ -1598,18 +1598,18 @@ the buffer.
 ;; ******* patch `dired-subtree--readin'
 
   (defun entropy/emacs-basic--dired-subtree-readin-core
-      (buffer dirpath dired-actual-switches)
+      (buffer dirpath user-spec-dired-actual-switches)
     "Use `dired-insert-directory' to list DIRPATH's directory list to
-BUFFER with list switch DIRED-ACTUAL-SWITCHES which names to
-suggest using `dired-actual-switches' to do thus since `dired'
-finally use it internally for draw the list and we should obey it
-as consistency thought."
+BUFFER with list switch USER-SPEC-DIRED-ACTUAL-SWITCHES which
+names to suggest using `dired-actual-switches' to do thus since
+`dired' finally use it internally for draw the list and we should
+obey it as consistency thought."
     (let* ((inhibit-read-only t))
       (with-current-buffer buffer
         ;; insert dir list
         (dired-insert-directory
          dirpath
-         (or dired-actual-switches (error "empty `dired-actual-switches'")))
+         (or user-spec-dired-actual-switches (error "empty `dired-actual-switches'")))
         ;; remove invisble properties since we should let it be raw output
         (remove-text-properties (point-min) (point-max) '(invisible))
         ;; Pruning the dir list of '.' and '..'
@@ -2485,15 +2485,15 @@ dwim memory and use both height and width fit display type."
           ;; tracking orig file in most of case which may not did done
           ;; yet.
           (image-dired-track-original-file)))
-      (if (bound-and-true-p shackle-mode)
-          (let* ((buffer-name (buffer-name assoc-dired-buffer))
-                 (shackle-rules
-                  (or (and (ignore-errors (shackle-match buffer-name)) shackle-rules)
-                      `((,buffer-name :select t :size 0.4 :align below :autoclose t)))))
-            (display-buffer assoc-dired-buffer)
-            (message "Shackle popup to dired buffer <%s>" buffer-name))
-        (pop-to-buffer assoc-dired-buffer)
-        (message "Native popup to dired buffer <%s>" buffer-name))))
+      (let ((buffer-name (buffer-name assoc-dired-buffer)))
+        (if (bound-and-true-p shackle-mode)
+            (let* ((shackle-rules
+                    (or (and (ignore-errors (shackle-match buffer-name)) shackle-rules)
+                        `((,buffer-name :select t :size 0.4 :align below :autoclose t)))))
+              (display-buffer assoc-dired-buffer)
+              (message "Shackle popup to dired buffer <%s>" buffer-name))
+          (pop-to-buffer assoc-dired-buffer)
+          (message "Native popup to dired buffer <%s>" buffer-name)))))
 
 ;; ******** jump to associated dired buffer
 
@@ -2788,7 +2788,7 @@ displayed image as same operated mechanism as
       (unless (featurep 'image-mode)
         (require 'image-mode))
       (erase-buffer)
-      (insert-file-literally file)
+      (insert-file-contents-literally file)
       (image-mode)
       (restore-buffer-modified-p modified)))
 
@@ -2959,6 +2959,20 @@ specified."
     (setq cursor-type t)))
 
 ;; ***** Hl-line And Line Numbers display
+
+(use-package hl-line
+  :ensure nil
+  :commands (hl-line-mode
+             global-hl-line-mode
+             hl-line-overlay)
+  :defines (hl-line-mode
+            global-hl-line-mode))
+
+(use-package display-line-numbers
+  :ensure nil
+  :commands (display-line-numbers-mode)
+  :defines (display-line-numbers-mode))
+
 ;; ****** Global display line number mode
 (defun entropy/emacs-basic--dspln-mode-around-advice
     (orig-func &rest orig-args)
@@ -3032,7 +3046,8 @@ buffer, in that case any conditions don't match the filter then
 ;; `global-hl-line-mode' did.
 (define-globalized-minor-mode entropy/emacs-hl-line-global-mode
   hl-line-mode
-  entropy/emacs-turn-on-hl-line-mode)
+  entropy/emacs-turn-on-hl-line-mode
+  :group 'hl-line)
 
 (entropy/emacs-lazy-initial-advice-before
  (find-file switch-to-buffer)
@@ -3174,6 +3189,7 @@ NOTE: this is a advice wrapper for any function."
 (define-minor-mode entropy/emacs-basic-smooth-scrolling-mode
   "Toggle smooth-scrolling buffer scrolling view."
   :lighter "SM"
+  :group 'scrolling
   (if entropy/emacs-basic-smooth-scrolling-mode
       (progn
         (setq entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
@@ -3196,7 +3212,8 @@ NOTE: this is a advice wrapper for any function."
 (define-globalized-minor-mode
   entropy/emacs-basic-smooth-scrolling-global-mode
   entropy/emacs-basic-smooth-scrolling-mode
-  entropy/emacs-basic-smooth-scrolling-mode-turn-on)
+  entropy/emacs-basic-smooth-scrolling-mode-turn-on
+  :group 'scrolling)
 
 (entropy/emacs-lazy-with-load-trail
  eemacs-smooth-scrolling-mode-init
@@ -3698,7 +3715,7 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
       (message "Toggle `global-auto-revert-mode' and `magit-auto-revert-mode' off."))
      (gav-off
       (message "Toggle `global-auto-revert-mode' off."))
-     (magav-off
+     (mgav-off
       (message "Toggle `magit-auto-revert-mode' off.")))))
 
 ;; *** Emacs-wide spec
@@ -3910,7 +3927,6 @@ error type to output symbol OUTPUT-SYM."
               (let ((inhibit-message t)
                     ;; tidy up buffer write context
                     (write-contents-functions nil)
-                    (local-write-file-hooks nil)
                     (write-file-functions nil)
                     (before-save-hook nil))
                 (save-buffer))))
@@ -4235,6 +4251,7 @@ successfully both of situation of read persisit of create an new."
 ;; Rebind "insert" refer key in terminal emacs to support yank&cut
 ;; communication with GUI.
 
+(defvar term-raw-map)
 (entropy/emacs-lazy-initial-advice-before
  (xterm-paste kill-ring-save yank)
  "xterm-rebind-init" "xterm-rebind-init" prompt-echo
@@ -4287,7 +4304,9 @@ successfully both of situation of read persisit of create an new."
          (setq entropy/emacs-basic--xterm-paste-rebinded nil))))))
 
 ;; **** Bookmarks
-(setq bookmark-save-flag 1)
+(use-package bookmark
+  :init
+  (setq bookmark-save-flag 1))
 
 ;; **** Description | Help mode improvement
 ;; ***** Restriction print level and length for help buffer
@@ -5046,6 +5065,7 @@ conflicts."
 
 ;; FIXME: when `ivy-dynamic-exhibit-delay-ms' is enabled, emacs-rime
 ;; will cause eemacs bug of =h-1c9af04d-403f-4050-a8eb-778fc47ff8de=
+(defvar __eemacs-internal-ime-union-registed-name-strings nil)
 (setq __eemacs-internal-ime-union-registed-name-strings
       (mapcar
        (lambda (x)

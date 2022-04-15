@@ -204,7 +204,7 @@
 
   (defun entropy/emacs-music--mpc-around-advice-for-mpc-volum-refresh
       (orig-func &rest orig-args)
-    (condition-case error
+    (condition-case nil
         (apply orig-func orig-args)
       (error
        (message "Warn: mpc callback with some fatal for `mpc-volumn-refresh'"))))
@@ -460,7 +460,7 @@ as hook for commonly situation."
     (interactive)
     (let ((this-start (line-number-at-pos (region-beginning)))
           (this-end (line-number-at-pos (region-end))))
-      (goto-line this-start)
+      (entropy/emacs-buffer-goto-line this-start)
       (while (and (<= (line-number-at-pos (point))
                       this-end)
                   (not (eobp)))
@@ -666,8 +666,8 @@ Add current music to queue when its not in thus."
         ;; end procedure
         (funcall clear-selections)
         (entropy/emacs-music--mpc-playlist)
-        (when (ignore-errors
-                (goto-line cur-line))
+        (progn
+          (entropy/emacs-buffer-goto-line cur-line)
           (recenter-top-bottom '(middle)))
         (message "Deleted %s songs from current playlist <%s>"
                  deleted-counts

@@ -533,6 +533,17 @@ for adding to variable `window-size-change-functions' and hook
 
 ;; *** emacs dashboard
 
+(defvar dashboard-init-info)
+(defvar dashboard-navigator-buttons)
+(defvar dashboard-startup-banner)
+(defvar dashboard-center-content)
+(defvar dashboard-banner-logo-title)
+(defvar dashboard-page-separator)
+(defvar dashboard-set-navigator)
+(defvar dashboard-items)
+(defvar dashboard-set-heading-icons)
+(defvar dashboard-set-file-icons)
+
 (when (and (eq entropy/emacs-enable-initial-dashboard 'rich)
            (not (daemonp)))
 

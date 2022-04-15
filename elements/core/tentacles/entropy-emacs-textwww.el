@@ -268,9 +268,8 @@ erros."
 ;; ***** Auto adjusting w3m page width while `text-scale-mode' is on
   (defun entropy/emacs-textwww--w3m-calc-max-cols ()
     (let* ((wwp (window-width nil t))
-           (fw (window-font-width))
-           max-cols)
-      (setq max-cols (floor (/ wwp fw)))))
+           (fw (window-font-width)))
+      (floor (/ wwp fw))))
 
   (defun entropy/emacs-textwww--w3m-page-text-scale-hook ()
     "Adjusting w3m buffer page width adapted to the window max
@@ -308,7 +307,6 @@ value of it is not relavant to current buffer value."
 alignment."
     (let* ((ecwidth (entropy/emacs-window-center-emulate-window-column-width-as-enabled))
            (wwidth (window-width))
-           (urllen (length url))
            ;; ----- prompts string-----
            (info-str
             (substitute-command-keys
@@ -534,7 +532,6 @@ fixing it as thus.
                   (search-web-query-engine)
                   (read-string "Search Word: " nil 'search-web-word-history)))
     (let* ((pattern (assoc engine search-web-engines 'string=))
-           (engine (car pattern))
            (url (cadr pattern))
            (render-get (caddr pattern))
            (render
@@ -609,7 +606,7 @@ fixing it as thus.
                                 "with choose extra browser"))))))
         (search-web engine word))))
 
-  (defun entropy/emacs-textwww-search-web-toggle (&optional prefix)
+  (defun entropy/emacs-textwww-search-web-toggle (&optional _prefix)
     "Trigger `search-web'.
 
 Prefix meaning:
@@ -622,7 +619,7 @@ Prefix meaning:
     (interactive "P")
     (entropy/emacs-textwww--search-web-toggle-core))
 
-  (defun entropy/emacs-textwww-search-web-region-toggle (&optional prefix)
+  (defun entropy/emacs-textwww-search-web-region-toggle (&optional _prefix)
     "Like `entropy/emacs-textwww-search-web-toggle' but trigger
 `search-web-region' instead."
     (interactive "P")

@@ -79,10 +79,9 @@ For lisp coding aim, always return the transfered buffer.
           (save-excursion
             (let* ((level-str (match-string 1))
                    (level (length level-str))
-                   (head-str (match-string 0))
                    (rep-str (concat ";;" (when choice " ")
                                     (let ((rtn ""))
-                                      (dotimes (var level)
+                                      (dotimes (_ level)
                                         (setq rtn (concat rtn (if choice "*" ";"))))
                                       (concat rtn " ")))))
               (replace-match

@@ -33,9 +33,6 @@
 ;; * Code:
 
 ;; ** require
-(if (version< emacs-version "27")
-    (require 'cl)
-  (require 'cl-macs))
 
 ;; ** Preparation
 (entropy/emacs-lazy-load-simple tern
@@ -425,7 +422,7 @@ format."
   (defun entropy/emacs-web--check-js-beautify-coworker ()
     (interactive)
     (entropy/emacs-coworker--coworker-isolate-bins-install-by-npm
-     "js-beautify" ("css-beautify" "html-beautify" "js-beautify")
+     "js-beautify" '("css-beautify" "html-beautify" "js-beautify")
      "js-beautify"))
 
   :eemacs-mmphca

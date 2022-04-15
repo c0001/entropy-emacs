@@ -584,6 +584,7 @@ EXIT /b
    "https://github.com/PowerShell/PowerShellEditorServices/releases/download/v2.1.0/PowerShellEditorServices.zip"
    'zip))
 
+(defvar lsp-pwsh-log-path)
 (with-eval-after-load 'lsp-pwsh         ;do not using
                                         ;`entropy/emacs-lazy-load-simple',
                                         ;thats will force load 'lsp' while pdumper procedure

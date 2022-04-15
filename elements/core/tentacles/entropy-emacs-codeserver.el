@@ -1337,7 +1337,7 @@ let eglot do completion with interface argument injection."
     (entropy/emacs-codeserver--eglot-server-chosen-hack
      'python-mode
      (cl-case entropy/emacs-codeserver-prefer-pyls-type
-       (pyls ("pyls"))
+       (pyls '("pyls"))
        (pyright '("pyright-langserver" "--stdio")))))
   (add-to-list 'entropy/emacs-codeserver--eglot-modes-spec
                '(python-mode
@@ -1546,7 +1546,7 @@ let eglot do completion with interface argument injection."
           (sit-for most-positive-fixnum t)
           (popup-delete pop)))
        (t
-        (let ((win-cfg (current-window-configuration)))
+        (let (_)
           (switch-to-buffer-other-window entropy/emacs-eglot-doc-buffer-name)
           (with-current-buffer entropy/emacs-eglot-doc-buffer-name
             (erase-buffer)

@@ -466,6 +466,14 @@ faild with hash '%s' which must match '%s'"
 
 ;; **** byte compile tentacles
 
+(setq byte-compile-warnings
+      '(not
+        unresolved
+        callargs
+        docstrings
+        make-local
+        ))
+
 (defun entropy/emacs-batch--byte-compile-dir (dir)
   (let* ((dir-cur (expand-file-name dir))
          (dir-cur-P (unless (file-exists-p dir-cur)
