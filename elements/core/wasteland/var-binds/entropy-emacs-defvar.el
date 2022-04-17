@@ -1372,6 +1372,25 @@ frame basically.
 NOTE: do not manually modify this variable, since eemacs auto set
 it internally.")
 
+(defvar entropy/emacs-delete-frame-functions nil
+  "Like `delete-frame-functions' but ran before it and any function
+in this list should not kill the frame internally which is
+restricted by thus.")
+
+(defun entropy/emacs--run-eemacs-delete-frame-functions
+    (&optional frame force)
+  "The running process for `entropy/emacs-delete-frame-functions'.
+
+NOTE: do not run it in any cases since its an `delete-frame' advice."
+  (let ((frame (or frame (selected-frame))))
+    (when entropy/emacs-delete-frame-functions
+      (dolist (func entropy/emacs-delete-frame-functions)
+        (funcall func frame)))))
+
+(advice-add 'delete-frame
+            :before
+            #'entropy/emacs--run-eemacs-delete-frame-functions)
+
 ;; ** daemon refer
 (defvar entropy/emacs-daemon-server-init-done nil
   "When non-nil indicate the daemon server has been initialized

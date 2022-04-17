@@ -209,6 +209,16 @@
 ;; **** preface
   :preface
 
+  (defvar entropy/emacs-wc-eyebrowse-fake-workspace-slot -1
+    "The remained eyebrowse slot used for vairous non-interaction
+operations for eemacs.
+
+This slot should obey the rules of:
+
+1. should not list in user interaction slots candi list
+2. should not opreated directly in user manually way.
+3. should not used outside of the context of eemacs `eyebrowse'config.")
+
   (setq entropy/emacs-wc-eyebrowse-mode-map
         (let ((map (make-sparse-keymap)))
           (define-key map (kbd "<") 'eyebrowse-prev-window-config)
@@ -410,16 +420,11 @@
   (add-hook 'eyebrowse-post-window-switch-hook #'entropy/emacs-wc--eyebrowse-resotre-wpamemory)
 
 ;; ***** Debugs for improving eyebrowse's user experience
-  (defun eyebrowse--read-slot ()
-    "Read in a window config SLOT to switch to.
-  A formatted list of window configs is presented as candidates.
-  If no match was found, the user input is interpreted as a new
-  slot to switch to.
+  (defun __ya/eyebrowse--read-slot ()
+    "Like `eyebrowse--read-slot' but redefined for be compat with
+  entropy-emacs for reasons as below:
 
-  Note:
-
-  This function has been modified for be compat with entropy-emacs
-  for reasons as below:
+1. Remove presented in slot:
 
   #+BEGIN_QUOTE
   Origin eyebrowse slots switching prompt showing all slots include
@@ -432,9 +437,14 @@
   #+END_QUOTE
 
   This minor improve refer to the github issue
-  https://github.com/wasamasa/eyebrowse/issues/77"
+  https://github.com/wasamasa/eyebrowse/issues/77
+
+2. Remove `entropy/emacs-wc-eyebrowse-fake-workspace-slot' for
+the sake of obeying its rules.
+"
     (let* ((current-slot (eyebrowse--get 'current-slot))
            (candidates (--keep (and (/= (car it) current-slot)
+                                    (/= (car it) entropy/emacs-wc-eyebrowse-fake-workspace-slot)
                                     (cons (eyebrowse-format-slot it)
                                           (car it)))
                                (eyebrowse--get 'window-configs)))
@@ -442,6 +452,10 @@
            (choice (cdr (assoc candidate candidates))))
       (or choice (eyebrowse--string-to-number candidate)
           (user-error "Invalid slot number"))))
+
+  (advice-add 'eyebrowse--read-slot
+              :override
+              #'__ya/eyebrowse--read-slot)
 
 ;; ***** Create window config
   (defun entropy/emacs-basic-eyebrowse-create-window-config ()
@@ -750,7 +764,188 @@ without derived slot."
                                        (format "[%s] " top-slot))
                                      'face 'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_content)
                          (propertize "." 'face 'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body))))
-       (t (error "You've at top wg!"))))))
+       (t (error "You've at top wg!")))))
+
+;; ***** config restore feature
+;; ******* core
+
+  (defvar entropy/emacs-wc-eyebrowse-savecfg-last-config nil)
+  (defvar entropy/emacs-wc-eyebrowse-savecfg-current-config nil)
+
+  (defun entropy/emacs-wc-eyebrowse-savecfg--switch-to-fake-slot
+      (&optional frame)
+    "Switch to (or create using `eyebrowse-new-workspace' of t and
+switch to) the `entropy/emacs-wc-eyebrowse-fake-workspace-slot'
+in FRAME.
+
+Return t for success and an error message string for failed.
+
+In failed case, the
+`entropy/emacs-wc-eyebrowse-savecfg-current-config' will be reset
+for the secure reason.
+
+This function existed because of we should let the last window
+status of eyebrowse stick in an user un-injected slot so as
+called 'fake' slot before save the current eyebrowse config or
+restore from saved config so that doesn't let the current new
+eyebrowse config cover the saved one."
+    (let ((frame (or frame (selected-frame)))
+          (eyebrowse-new-workspace t))
+      (condition-case error
+          (with-selected-frame frame
+            (if (bound-and-true-p eyebrowse-mode)
+                (progn
+                  (eyebrowse-switch-to-window-config
+                   entropy/emacs-wc-eyebrowse-fake-workspace-slot)
+                  t)
+              (error "eyebrowse not enabled")))
+        (error
+         (setq entropy/emacs-wc-eyebrowse-savecfg-current-config nil)
+         (format "%s" error)))))
+
+  (defun entropy/emacs-wc-eyebrowse-savecfg--save-current-config
+      (&optional frame disable-eyebrowse-after-save)
+    "Save current eyebrowse config for frame FRAME (default to selected frame).
+
+Return t for succeed, or an error message string while any failed
+status detected.
+
+Optional argument DISABLE-EYEBROWSE-AFTER-SAVE when non-nil,
+disable the `eyebrowse-mode' after saved succeed."
+    (with-selected-frame (or frame (selected-frame))
+      (catch :exit
+        (unless (bound-and-true-p eyebrowse-mode)
+          (throw :exit "eyebrowse not enabled"))
+        (let ((cur-slot (eyebrowse--get 'current-slot))
+              (gui-p (display-graphic-p))
+              (fake-switch-log
+               (entropy/emacs-wc-eyebrowse-savecfg--switch-to-fake-slot)))
+          (unless (eq fake-switch-log t)
+            (throw :exit
+                   (format "switch to fake slot with fatal (%s)"
+                           fake-switch-log)))
+          (setq entropy/emacs-wc-eyebrowse-savecfg-current-config
+                (list :gui-p gui-p
+                      :cur-slot cur-slot
+                      :full-config (eyebrowse--get 'window-configs)))
+          (if disable-eyebrowse-after-save
+              (condition-case error
+                  (eyebrowse-mode 0)
+                (error
+                 (throw :exit "disabel eyebrowse-mode with fatal")))
+            (condition-case error
+                (eyebrowse-switch-to-window-config cur-slot)
+              (error
+               (throw :exit
+                      (format "switch back to slot %s after save with fatal (%s)"
+                              cur-slot
+                              error))))))
+        t)))
+
+  (defun entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
+      (&optional frame enable-eyebrowse-before-restore)
+    "Restore previous savemd eyebrowse config for frame FRAME (default to selected frame).
+
+Return t for succeed, or an error message string while any failed
+status detected.
+
+Optional argument ENABLE-EYEBROWSE-BEFORE-RESTORE when non-nil,
+enable the `eyebrowse-mode' before the restoration procedure."
+    (with-selected-frame (or frame (selected-frame))
+      (catch :exit
+        (unless entropy/emacs-wc-eyebrowse-savecfg-current-config
+          (throw :exit "No saved eyebrowse config found"))
+        (if enable-eyebrowse-before-restore
+            (unless (bound-and-true-p eyebrowse-mode)
+              (condition-case error
+                  (eyebrowse-mode 1)
+                (error
+                 (throw :exit "enable eyebrowse mode with fatal"))))
+          (unless (bound-and-true-p eyebrowse-mode)
+            (throw :exit "eyebrowse not enabeld")))
+        (let* ((cur-slot (eyebrowse--get 'current-slot))
+               (cfg-attr entropy/emacs-wc-eyebrowse-savecfg-current-config)
+               (cfg-full (plist-get cfg-attr :full-config))
+               (cfg-gui-p (plist-get cfg-attr :gui-p))
+               (cfg-cur-slot (plist-get cfg-attr :cur-slot))
+               fake-switch-log)
+          (unless (eq cfg-gui-p (display-graphic-p))
+            (throw :exit "stored eyebrowse config not suitable for current display type"))
+          (setq fake-switch-log
+                (entropy/emacs-wc-eyebrowse-savecfg--switch-to-fake-slot))
+          (unless (eq fake-switch-log t)
+            (throw :exit
+                   (format "switch to fake slot with fatal (%s)"
+                           fake-switch-log)))
+          (eyebrowse--set 'window-configs cfg-full)
+          (condition-case error
+              (eyebrowse-switch-to-window-config cfg-cur-slot)
+            (error
+             (throw :exit (format "switch to previous stick slot %s with ftal %s")
+                    cfg-cur-slot error)))
+          (setq entropy/emacs-wc-eyebrowse-savecfg-last-config
+                entropy/emacs-wc-eyebrowse-savecfg-current-config
+                entropy/emacs-wc-eyebrowse-savecfg-current-config
+                nil))
+        t)))
+
+;; ******* daemon config restore
+
+  (defun entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard
+      (frame)
+    "Save current eyebrowse config of daemon client's frame FRAME
+before killed.
+
+The procedure only be invoked when curent daemon client is the
+only one lived daemon client and predicated by
+`entropy/emacs-daemon-current-is-main-client' so that we always
+stored the eyebrowse config user focused."
+    (when (and
+           (entropy/emacs-daemon-current-is-main-client frame)
+           (= 1 (length entropy/emacs-daemon--legal-clients))
+           t)
+      (with-selected-frame frame
+        (let (log)
+          (message "Save eyebrowse config for current daemon client ...")
+          (setq log (entropy/emacs-wc-eyebrowse-savecfg--save-current-config
+                     nil t))
+          (if (eq log t)
+              (message "Save eyebrowse config for current daemon client done")
+            (message "Not save eyebrowse config for current daemon client (%s)"
+                     log))))))
+
+  (defun entropy/emacs-wc-eyebrowse-savecfg--restore-saved-config (frame)
+    "Restore the eyebrowse config for dameon client's frame FAME
+saved by
+`entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard'."
+    (when entropy/emacs-wc-eyebrowse-savecfg-current-config
+      (with-selected-frame frame
+        (let (log)
+          (message "Restore eyebrowse config from previous daemon client ...")
+          (progn
+            (setq log (entropy/emacs-wc-eyebrowes-savecfg--restore-previous-config
+                       nil t))
+            (if (eq log t)
+                (message "Restore eyebrowse config from previous daemon client done")
+              (message "Not restore eyebrowse config for current daemon client (%s)"
+                       log)))))))
+
+  (when (daemonp)
+    ;; inject the delete frame function
+    (add-to-list
+     'entropy/emacs-delete-frame-functions
+     #'entropy/emacs-wc-eyebrowse-savecfg--daemon-client-guard)
+    ;; build daemon injection
+    (entropy/emacs-with-daemon-make-frame-done
+     'Restore-eyebrowse-config
+     nil nil
+     '(let (_)
+        (entropy/emacs-wc-eyebrowse-savecfg--restore-saved-config
+         (selected-frame)))))
+
+;; **** __end__
+
+  )
 
 ;; *** winner mode for recover previous window config faster
 (use-package winner
