@@ -347,6 +347,8 @@ eemacs specifications"
   ;; make `company-frontends' buffer-local permanently since we want
   ;; it be thus so we can control each buffers local specifications.
   (make-variable-buffer-local 'company-frontends)
+  ;; set the default company frontend with eemacs spec
+  (setq-default company-frontends '(company-pseudo-tooltip-frontend))
 
 ;; **** advices
 ;; ***** restrict company candidates length
