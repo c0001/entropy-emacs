@@ -636,11 +636,36 @@ with `shackle'."
 ;; *** toggle framework
 
 (eval-and-compile
-  (defvar entropy/emacs-company--frontend-register nil)
-  (defvar entropy/emacs-company--frontend-daemon-current-hook nil)
-  (defvar entropy/emacs-company-frontend-sticker nil))
+  (defvar entropy/emacs-company--frontend-register nil
+    "The register for the type of `company-frontends'.
+
+It is a list of alist which formed as car as the frontend type
+name symbol and cdr of a plist consists of:
+
+- =:enable= : a function without argument required to enable TYPE
+- =:disable= : a function without argument required to disable TYPE
+- =:daemon-init=: a function (or a form build the function) which will
+  be inject into `entropy/emacs-daemon-server-after-make-frame-hook'
+  used to manage the daemon refer specifications, usually build by
+  `entropy/emacs-with-daemon-make-frame-done'.
+")
+  (defvar entropy/emacs-company--frontend-daemon-current-hook nil
+    "The internally used variable to store the =:daemon-init=
+function for `entropy/emacs-company-frontend-sticker'.")
+  (defvar entropy/emacs-company-frontend-sticker nil
+    "The current used eemacs `company-frontends' type which has its
+instance in `entropy/emacs-company--frontend-register' or is nil
+indicates that there's no type is enabled."))
 
 (defun entropy/emacs-company-toggle-frontend (type)
+  "Set or toggle the `company-frontends' using type TYPE.
+
+When invoked from interaction call, the type completion prompts
+is popuped out.
+
+This function get the TYPE instance from
+`entropy/emacs-company--frontend-register' and save the user spec
+in `entropy/emacs-company-frontend-sticker'."
   (interactive
    (list (intern
           (completing-read "Choose valid company frontend: "
@@ -648,9 +673,18 @@ with `shackle'."
                                    entropy/emacs-company--frontend-register)))))
   (let* ((cur-type entropy/emacs-company-frontend-sticker)
          (cur-disable
-          (plist-get
-           (alist-get cur-type entropy/emacs-company--frontend-register)
-           :disable))
+          (or
+           (plist-get
+            (alist-get
+             ;; NOTE: just get the disable function from the registry
+             ;; form `entropy/emacs-company-frontend-sticker' since we
+             ;; shouldn't use the disable function when it is the
+             ;; first time call the toggle function.
+             cur-type
+             entropy/emacs-company--frontend-register)
+            :disable)
+           ;; fall back to the fake one
+           (lambda (&rest _) nil)))
          (chose-enable
           (plist-get
            (alist-get type entropy/emacs-company--frontend-register)
@@ -658,41 +692,52 @@ with `shackle'."
          (daemon-init
           (plist-get
            (alist-get type entropy/emacs-company--frontend-register)
-           :daemon-init)))
-    (when (and cur-type (not (functionp cur-disable)))
+           :daemon-init))
+         (daemon-init-inject-func
+          (lambda ()
+            ;; remove the old one
+            (when entropy/emacs-company--frontend-daemon-current-hook
+              (remove-hook 'entropy/emacs-daemon-server-after-make-frame-hook
+                           entropy/emacs-company--frontend-daemon-current-hook))
+            ;; generate the daemon guard function
+            (unless (symbolp daemon-init)
+              (setq daemon-init (eval daemon-init)))
+            (unless (functionp daemon-init)
+              (user-error
+               "[company-toggle-register '%s']: daemon init is not an function or can not build an function!"
+               cur-type))
+            ;; regist the new one
+            (setq entropy/emacs-company--frontend-daemon-current-hook
+                  daemon-init)
+            (unless (member daemon-init
+                            entropy/emacs-daemon-server-after-make-frame-hook)
+              (add-hook 'entropy/emacs-daemon-server-after-make-frame-hook
+                        daemon-init)))))
+    (when (not (functionp cur-disable))
       (error "Can not find associated disable function for company frontend '%s'"
              cur-type))
     (unless (functionp chose-enable)
       (error "Can not find associated enable function for company frontend '%s'"
              type))
 
-    (when (symbolp daemon-init)
-      ;; wrap daemon init to a form
-      (setq daemon-init `(funcall ,daemon-init)))
-
     (progn
-      (when cur-type
-        ;; disable current frontend injections
-        (funcall cur-disable)
-        ;; remove daemon init hook for current frontend type
-        (when entropy/emacs-company--frontend-daemon-current-hook
-          (remove-hook 'entropy/emacs-daemon-server-after-make-frame-hook
-                       entropy/emacs-company--frontend-daemon-current-hook)))
+      ;; Firstly we should disable current frontend injections
+      (funcall cur-disable)
+
+      ;; Finally invoke new type
       (cond (
              ;; is daemon and inited
              (and entropy/emacs-daemon-server-init-done (daemonp))
              (message "Enable company frontend type '%s' after daemon make frame ..."
                       type)
              (funcall chose-enable)
-             (setq entropy/emacs-company--frontend-daemon-current-hook
-                   (eval daemon-init)))
+             (funcall daemon-init-inject-func))
             (
              ;; is daemon but not inited
              (and (not entropy/emacs-daemon-server-init-done) (daemonp))
              (message "Planning to enable company frontend type '%s' after daemon make frame ..."
                       type)
-             (setq entropy/emacs-company--frontend-daemon-current-hook
-                   (eval daemon-init)))
+             (funcall daemon-init-inject-func))
             (t
              (message "Enable company frontend type '%s' ..."
                       type)
@@ -739,6 +784,9 @@ with `shackle'."
   (defun entropy/emacs-company--default-disable ()
     (remove-hook 'company-mode-hook
                  #'entropy/emacs-company--default-frontend-set-hook)
+    ;; travel all buffers with `company-mode' enabled to set default frontend
+    (entropy/emacs-company--set-only-one-frontend-all-buffers
+     'company-pseudo-tooltip-frontend)
     (when (bound-and-true-p company-quickhelp-mode)
       (company-quickhelp-mode 0)
       (entropy/emacs-set-key-without-remap
