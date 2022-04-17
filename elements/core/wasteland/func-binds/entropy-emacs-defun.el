@@ -5680,6 +5680,12 @@ subroutine of `entropy/emacs-xterm-paste-core'.
        (term-send-raw-string paste)))))
 
 ;; *** Emacs daemon specification
+
+(defvar entropy/emacs-with-daemon-make-frame-done-error-log nil
+  "Log list error message of run of
+`entropy/emacs-daemon-server-after-make-frame-hook' which each
+function made by `entropy/emacs-with-daemon-make-frame-done'.")
+
 (defun entropy/emacs-with-daemon-make-frame-done
     (name et-form ec-form &optional common-form)
   "Do sth after emacs daemon make a new frame.
@@ -5690,7 +5696,13 @@ subroutine of `entropy/emacs-xterm-paste-core'.
 Optional form COMMON-FORM run directly after ET-FORM and EC-FORM
 without any condition judgements.
 
-Return the hooker symbol."
+Return the hooker symbol.
+
+*For eemacs developer:*
+
+We never allowed any error occurred inside of user spec forms but
+stored the error log in
+`entropy/emacs-with-daemon-make-frame-done-error-log'."
   (let* ((--name--
           (intern
            (format "%s-for-emacs-daemon"
@@ -5700,10 +5712,19 @@ Return the hooker symbol."
        ,--name--
        entropy/emacs-daemon-server-after-make-frame-hook
        'append
-       (if (display-graphic-p)
-           ,ec-form
-         ,et-form)
-       ,common-form))))
+       (condition-case error
+           (progn
+             (if (display-graphic-p)
+                 ,ec-form
+               ,et-form)
+             ,common-form)
+         (error
+          (push (format "[%s]: time: (%s) display-type: (%s) error: (%S)"
+                        name
+                        (format-time-string "%Y-%m-%d %a %H:%M:%S")
+                        (display-graphic-p)
+                        error)
+                entropy/emacs-with-daemon-make-frame-done-error-log)))))))
 
 ;; *** Proxy specification
 ;; **** process env with eemacs union internet proxy

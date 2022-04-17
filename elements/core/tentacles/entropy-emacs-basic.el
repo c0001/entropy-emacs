@@ -5134,7 +5134,7 @@ we do not want to init as duplicated which will cause messy."
         ;; also reset popup type while emacs daemon type change
         (entropy/emacs-with-daemon-make-frame-done
          'eemacs-internal-ime-popuptype-autoreeset
-         (lambda nil nil) (lambda nil nil)
+         nil nil
          '(entropy/emacs-internal-ime-popup-type-autoset))
 
         ;; union function set
