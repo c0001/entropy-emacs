@@ -1620,9 +1620,6 @@ gui session has huge sets of differents in entropy-emacs.
   (add-hook 'server-after-make-frame-hook
             #'entropy/emacs-daemon--client-initialize))
 
-
-
-
 ;; ** ime refer
 
 (defvar entropy/emacs-internal-IME-toggle-function
