@@ -399,8 +399,22 @@ notation.
     (message "This function has been unloaded.")))
 
 (when entropy/emacs-internal-ime-use-backend
-  (add-hook 'entropy/emacs-start--init-after-load-hook
-            #'entropy/emacs-start--internalIME-startup-initialize))
+  (cond
+   ;; FIXME: intenal ime enabel procedure will block daemon init
+   ;; process so we arrange it into the server frame create hook.
+   ((daemonp)
+    (defvar entropy/emacs-start--internalIME-daemon-init-guard-func nil)
+    (setq entropy/emacs-start--internalIME-daemon-init-guard-func
+          (entropy/emacs-with-daemon-make-frame-done
+           'startup-with-internal-ime
+           nil nil
+           '(unless entropy/emacs-IME-specs-initialized
+              (entropy/emacs-start--internalIME-startup-initialize)
+              (remove-hook 'entropy/emacs-daemon-server-after-make-frame-hook
+                           entropy/emacs-start--internalIME-daemon-init-guard-func)))))
+   (t
+    (add-hook 'entropy/emacs-start--init-after-load-hook
+              #'entropy/emacs-start--internalIME-startup-initialize))))
 
 ;; *** after load procedure
 
