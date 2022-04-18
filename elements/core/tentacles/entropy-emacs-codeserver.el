@@ -923,6 +923,21 @@ https://emacs.stackexchange.com/questions/3821/a-faster-method-to-obtain-line-nu
       :enable t :exit t :toggle (if (bound-and-true-p lsp-ui-mode) t nil))
      ("d d" lsp-ui-doc-mode "Minor mode for showing hover information in child frame"
       :enable t :exit t :toggle (if (bound-and-true-p lsp-ui-doc-mode) t nil))
+     ("d e"
+      (if (ignore-errors (member 'lsp-ui-doc-mode lsp-mode-hook))
+          (progn
+            (remove-hook 'lsp-mode-hook 'lsp-ui-doc-mode)
+            (when (bound-and-true-p lsp-ui-doc-mode)
+              (lsp-ui-doc-mode 0)))
+        (add-hook 'lsp-mode-hook 'lsp-ui-doc-mode)
+        (dolist (buff (buffer-list))
+          (with-current-buffer buff
+            (when (bound-and-true-p lsp-mode)
+              (unless (bound-and-true-p lsp-ui-doc-mode)
+                (lsp-ui-doc-mode 1))))))
+      "global mode for showing hover information in child frame"
+      :enable t :exit nil
+      :toggle (ignore-errors (member 'lsp-ui-doc-mode lsp-mode-hook)))
      ("d f" lsp-ui-doc-frame-mode "Marker mode to add additional key bind for lsp-ui-doc-frame"
       :enable t :exit t :toggle (if (bound-and-true-p lsp-ui-doc-frame-mode) t nil))
      ("d g" lsp-ui-doc-glance "Trigger display hover information popup and hide it on next typing"
