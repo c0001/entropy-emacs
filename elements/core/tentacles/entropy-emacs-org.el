@@ -96,23 +96,17 @@
 ;; **** init
   :init
 
-  (entropy/emacs-lazy-load-simple org
-    (unless (or entropy/emacs-fall-love-with-pdumper
-                (not entropy/emacs-custom-enable-lazy-load))
-      ;; Patch org-mode first customized invoking procedure with more
-      ;; prompts for reducing nervous motion
-      (defvar entropy/emacs-org--org-mode-fist-calling-done nil)
-      (advice-add 'org-mode
-                  :around
-                  #'(lambda (orig-func &rest orig-args)
-                      (if entropy/emacs-org--org-mode-fist-calling-done
-                          (progn (apply orig-func orig-args))
-                        (entropy/emacs-run-hooks-with-prompt
-                         ;; require all ob-* features
-                         (dolist (feature entropy/emacs-org-babel-featurs)
-                           (require feature))
-                         (setq entropy/emacs-org--org-mode-fist-calling-done t)
-                         (apply orig-func orig-args)))))))
+  (entropy/emacs-lazy-initial-advice-before
+   (org-mode)
+   "org-mode-init" "org-mode-init" prompt-echo
+   :pdumper-no-end t
+   ;; Patch org-mode first customized invoking procedure with more
+   ;; prompts for reducing nervous motion
+   (entropy/emacs-run-hooks-with-prompt
+    ;; require all ob-* features
+    ;; FIXME: use org API `org-babel-do-load-languages' instead?
+    (dolist (feature entropy/emacs-org-babel-featurs)
+      (require feature))))
 
 ;; **** configs
   :config
