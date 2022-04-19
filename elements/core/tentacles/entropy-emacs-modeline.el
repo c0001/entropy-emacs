@@ -90,7 +90,6 @@
 
 (defun entropy/emacs-modeline--subr-func->set-selected-window
     (&optional orig-func &rest orig-args)
-  "Set `entropy/emacs-modeline--mdl-egroup' selected window indicator."
   (let ((rtn (when (and orig-func
                         (functionp orig-func))
                (apply orig-func orig-args)))
@@ -103,7 +102,6 @@
     rtn))
 
 (defun entropy/emacs-modeline--subr-func->unset-selected-window ()
-  "Unset `entropy/emacs-modeline--mdl-egroup' appropriately."
   (setq entropy/emacs-modeline--subr-var->current-selected-window nil)
   ;; (force-mode-line-update)
   )
@@ -112,10 +110,6 @@
   (and entropy/emacs-modeline--subr-var->current-selected-window
        (eq (entropy/emacs-modeline--subr-func->get-current-window)
            entropy/emacs-modeline--subr-var->current-selected-window)))
-
-(advice-add 'entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p
-            :around
-            #'entropy/emacs-current-window-is-selected-common-around-advice)
 
 ;; hooks for set selected window var
 (add-hook 'window-configuration-change-hook
@@ -127,19 +121,15 @@
             :around
             #'entropy/emacs-modeline--subr-func->set-selected-window)
 
-(with-no-warnings
-  (if (not (boundp 'after-focus-change-function))
-      (progn
-        (add-hook 'focus-in-hook  #'entropy/emacs-modeline--subr-func->set-selected-window)
-        (add-hook 'focus-out-hook #'entropy/emacs-modeline--subr-func->unset-selected-window))
-
-    (defun entropy/emacs-modeline--mdl-egroup/->refresh-frame ()
-      (setq entropy/emacs-modeline--subr-var->current-selected-window nil)
-      (cl-loop for frame in (frame-list)
-               if (eq (frame-focus-state frame) t)
-               return (entropy/emacs-modeline--subr-func->set-selected-window)))
-    (add-function :after after-focus-change-function
-                  #'entropy/emacs-modeline--mdl-egroup/->refresh-frame)))
+(defun entropy/emacs-modeline--subr-func/->refresh-frame ()
+  (setq entropy/emacs-modeline--subr-var->current-selected-window nil)
+  (cl-loop for frame in (frame-list)
+           if (and (eq (frame-focus-state frame) t)
+                   ;; not a child frame
+                   (not (frame-parent frame)))
+           return (entropy/emacs-modeline--subr-func->set-selected-window)))
+(add-function :after after-focus-change-function
+              #'entropy/emacs-modeline--subr-func/->refresh-frame)
 
 ;; **** advices after swither
 
@@ -217,9 +207,7 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 
   :commands (powerline-default-theme)
   :config
-  (advice-add 'powerline-selected-window-active
-              :around
-              #'entropy/emacs-current-window-is-selected-common-around-advice))
+  )
 
 ;; ***** spaceline
 (defvar entropy/emacs-modeline--spaceline-spec-done nil)
@@ -585,9 +573,7 @@ return nil"
   (advice-remove #'aw-update #'doom-modeline-aw-update)
 
 ;; ****** advices
-  (advice-add 'doom-modeline--active
-              :around
-              #'entropy/emacs-current-window-is-selected-common-around-advice)
+
   (defun entropy/emacs-modeline--doom-modeline-set-around-advice
       (orig-func &rest orig-args)
     "Around advice for `doom-modeline-set-modeline' which use
@@ -692,11 +678,8 @@ which lag so much."
 
 Note:
 
-This doom-modeline segment modified for adapting for
-entropy-emacs.
-
-entropy-emacs modified it for adapting for entropy-egroup of
-eyerbowse improvement."
+This doom-modeline segment has been modified for adapting for
+entropy-emacs."
     (if (and (bound-and-true-p eyebrowse-mode)
              (< 0 (length (eyebrowse--get 'window-configs))))
         (let* ((num (eyebrowse--get 'current-slot))
@@ -1008,7 +991,7 @@ format enabling process.
  entropy/emacs-modeline--doom-modeline-enable-done
  (doom-modeline-mode +1))
 
-;; toggle functionn for eemacs-egroup
+;; toggle functionn for eemacs origin modeline theme
 (advice-add 'entropy/emacs-mode-line-origin-theme
             :after #'entropy/emacs-modeline--set-mdlfmt-after-advice)
 (entropy/emacs-modeline--define-toggle
