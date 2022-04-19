@@ -349,7 +349,15 @@ return nil"
             (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
            ((and (derived-mode-p 'prog-mode)
                  (not (eq major-mode 'emacs-lisp-mode)))
-            (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
+            (cond
+             ((and (eq major-mode 'python-mode)
+                   (eq entropy/emacs-theme-sticker 'doom-1337))
+              (all-the-icons-icon-for-mode
+               major-mode
+               :v-adjust 0.001
+               :face 'all-the-icons-maroon))
+             (t
+              (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))))
            (t
             (all-the-icons-icon-for-mode major-mode)))
      (__ya/mdl-egroup/propertize-face
