@@ -159,7 +159,8 @@
 ;; *** config
   :config
 ;; **** core lib
-
+;; ***** [obsolete] timer pruning
+  ;; NOTE: no used since ver.20220304
   (defun entropy/emacs-highlight-symbol-overlay-cancel-duplicate-timers ()
     "Cancel all duplicates `symbol-overlay-idle-timer' func based
 idle timer according to the buffer obtained by `timer--args'
@@ -192,6 +193,7 @@ which `eq' as same."
             (dolist (el dups-list)
               (cancel-timer el)))))))
 
+  ;; NOTE: no used since ver.20220304
   (defun entropy/emacs-highlight-symbol-overlay-cancel-dead-timers
       ()
     "Remove all killed-buffer's `symbol-overlay-idle-timer' since its
@@ -208,6 +210,7 @@ invoke this function any more isn't it?"
           (unless (buffer-live-p buff)
             (cancel-timer timer))))))
 
+  ;; NOTE: no used since ver.20220304
   (defun entropy/emacs-highlight-symbol-overlay-check-existed-timers ()
     "Check existed `symbol-overlay-idle-timer' idle timers and remove
 dead and duplicated ones."
@@ -217,65 +220,34 @@ dead and duplicated ones."
       (entropy/emacs-highlight-symbol-overlay-cancel-duplicate-timers)))
 
 ;; **** advices
-;; ***** timer reset
-  (defun __adv/around/symbol-overlay-cancel-timer/0
-      (orig-func &rest orig-args)
-    "Forcely reset `symbol-overly-timer' for bug fix."
-    (prog1
-        (apply orig-func orig-args)
-      ;; Force bind it to nil since the `cancel-timer' function not
-      ;; care about the symbol.
-      (setq-local symbol-overlay-timer nil)))
-  (advice-add 'symbol-overlay-cancel-timer
-              :around
-              #'__adv/around/symbol-overlay-cancel-timer/0)
-
-
-  ;; EEMACS_MAINTENANCE: follow upstream updates
-  (defun __ya/symbol-overlay-idle-timer (buf)
-    "Like `symbol-overlay-idle-timer' but more efficient."
-    (when
-        ;; HACK: firstly judge the `window-buffer' to speedup judger
-        ;; procedure.
-        (and (eq (window-buffer) buf)
-             (buffer-live-p buf))
-      (with-current-buffer buf
-        (symbol-overlay-maybe-put-temp))))
-  (advice-add 'symbol-overlay-idle-timer
-              :override
-              #'__ya/symbol-overlay-idle-timer)
-
-  (defun __hack/symbol-overlay-kill-buffer-hook ()
-    "Make sure no remaining timer run after buffer is killed."
-    (when (and (bound-and-true-p symbol-overlay-timer)
-               (timerp symbol-overlay-timer))
-      (symbol-overlay-cancel-timer)))
-  (add-hook 'kill-buffer-hook
-            #'__hack/symbol-overlay-kill-buffer-hook)
 
 ;; ***** the minor-mode patch
 
   ;; BUG: we don't need the refrresh globally since it is hard coded in the
   ;; source.
-  (when (member 'symbol-overlay-refresh after-change-functions)
-    (remove-hook 'after-change-functions 'symbol-overlay-refresh))
+  (set-default 'after-change-functions
+               (delete 'symbol-overlay-refresh
+                       (default-value 'after-change-functions)))
 
   (defun __adv/around/symbol-overlay-mode/0
       (orig-func &rest orig-args)
     (prog1
         (apply orig-func orig-args)
       ;; firstly check existed timers
-      (entropy/emacs-highlight-symbol-overlay-check-existed-timers)
+      ;; NOTE: no used since ver.20220304
+      ;; (entropy/emacs-highlight-symbol-overlay-check-existed-timers)
       (cond ((bound-and-true-p symbol-overlay-mode)
-             ;; FIXME: NOTE: below local binding is mistake and will
-             ;; messy up all buffres overlay display function related
-             ;; operatin like `vr/replace' or `isearch-forward' etc. Why?
-             ;; ---> (make-variable-buffer-local 'after-change-functions)
-             (add-hook 'after-change-functions
-                       'symbol-overlay-refresh nil t))
+             ;; We just inject the change func in local binding var
+             ;; for performance issue.
+             (make-local-variable 'after-change-functions)
+             (add-to-list 'after-change-functions
+                          'symbol-overlay-refresh))
             (t
-             (remove-hook 'after-change-functions
-                          'symbol-overlay-refresh t)))))
+             (when (member 'symbol-overlay-refresh after-change-functions)
+               (setq after-change-functions
+                     (delete after-change-functions
+                             'symbol-overlay-refresh)))))))
+
   (advice-add 'symbol-overlay-mode
               :around
               #'__adv/around/symbol-overlay-mode/0)
