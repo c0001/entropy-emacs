@@ -78,7 +78,70 @@
 
 ;; *** eemaac-specification
 
-;; **** Advices after swither
+;; **** core lib
+(defvar entropy/emacs-modeline--subr-var->current-selected-window
+  (frame-selected-window))
+
+(defun entropy/emacs-modeline--subr-func->get-current-window ()
+  ;; Get the current window but should exclude on the child frame.
+  (if (and (fboundp 'frame-parent) (frame-parent))
+      (frame-selected-window (frame-parent))
+    (frame-selected-window)))
+
+(defun entropy/emacs-modeline--subr-func->set-selected-window
+    (&optional orig-func &rest orig-args)
+  "Set `entropy/emacs-modeline--mdl-egroup' selected window indicator."
+  (let ((rtn (when (and orig-func
+                        (functionp orig-func))
+               (apply orig-func orig-args)))
+        (win
+         (entropy/emacs-modeline--subr-func->get-current-window)))
+    (unless (minibuffer-window-active-p win)
+      (setq entropy/emacs-modeline--subr-var->current-selected-window win)
+      ;; (force-mode-line-update)
+      )
+    rtn))
+
+(defun entropy/emacs-modeline--subr-func->unset-selected-window ()
+  "Unset `entropy/emacs-modeline--mdl-egroup' appropriately."
+  (setq entropy/emacs-modeline--subr-var->current-selected-window nil)
+  ;; (force-mode-line-update)
+  )
+
+(defun entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p ()
+  (and entropy/emacs-modeline--subr-var->current-selected-window
+       (eq (entropy/emacs-modeline--subr-func->get-current-window)
+           entropy/emacs-modeline--subr-var->current-selected-window)))
+
+(advice-add 'entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p
+            :around
+            #'entropy/emacs-current-window-is-selected-common-around-advice)
+
+;; hooks for set selected window var
+(add-hook 'window-configuration-change-hook
+          #'entropy/emacs-modeline--subr-func->set-selected-window)
+(advice-add #'handle-switch-frame
+            :around
+            #'entropy/emacs-modeline--subr-func->set-selected-window)
+(advice-add #'select-window
+            :around
+            #'entropy/emacs-modeline--subr-func->set-selected-window)
+
+(with-no-warnings
+  (if (not (boundp 'after-focus-change-function))
+      (progn
+        (add-hook 'focus-in-hook  #'entropy/emacs-modeline--subr-func->set-selected-window)
+        (add-hook 'focus-out-hook #'entropy/emacs-modeline--subr-func->unset-selected-window))
+
+    (defun entropy/emacs-modeline--mdl-egroup/->refresh-frame ()
+      (setq entropy/emacs-modeline--subr-var->current-selected-window nil)
+      (cl-loop for frame in (frame-list)
+               if (eq (frame-focus-state frame) t)
+               return (entropy/emacs-modeline--subr-func->set-selected-window)))
+    (add-function :after after-focus-change-function
+                  #'entropy/emacs-modeline--mdl-egroup/->refresh-frame)))
+
+;; **** advices after swither
 
 (defun entropy/emacs-modeline--set-mdlfmt-after-advice (&rest _)
   "After advice for each mode line type switcher."
@@ -90,11 +153,10 @@
           (with-current-buffer bname
             (setq mode-line-format cur-mdl-fmt))))))
 
-
 ;; **** common eemacs spec eyebrowse segment
 (defun entropy/emacs-modeline--mdl-common-eyebrowse-face-dynamic-gen (tag)
   (let* ((derived (if (string-match-p "\\.[[:digit:]]" tag) t nil)))
-    (cond ((entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?)
+    (cond ((entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
            (if derived
                'entropy/emacs-defface-face-for-modeline-eyebrowse-face-derived
              'entropy/emacs-defface-face-for-modeline-eyebrowse-face-main))
@@ -224,71 +286,7 @@ enabled."
     (entropy/emacs-modeline--spaceline-defsegment-for-workspace)))
 
 ;; **** origin type
-;; ***** egroup core
-(defvar entropy/emacs-modeline--mdl-egroup-current-selected-window
-  (frame-selected-window))
 
-(defun entropy/emacs-modeline--mdl-egroup/->get-current-window ()
-  ;; Get the current window but should exclude on the child frame.
-  (if (and (fboundp 'frame-parent) (frame-parent))
-      (frame-selected-window (frame-parent))
-    (frame-selected-window)))
-
-(defun entropy/emacs-modeline--mdl-egroup/->set-selected-window
-    (&optional orig-func &rest orig-args)
-  "Set `entropy/emacs-modeline--mdl-egroup' selected window indicator."
-  (let ((rtn (when (and orig-func
-                        (functionp orig-func))
-               (apply orig-func orig-args)))
-        (win
-         (entropy/emacs-modeline--mdl-egroup/->get-current-window)))
-    (unless (minibuffer-window-active-p win)
-      (setq entropy/emacs-modeline--mdl-egroup-current-selected-window win)
-      ;; (force-mode-line-update)
-      )
-    rtn))
-
-(defun entropy/emacs-modeline--mdl-egroup/->unset-selected-window ()
-  "Unset `entropy/emacs-modeline--mdl-egroup' appropriately."
-  (setq entropy/emacs-modeline--mdl-egroup-current-selected-window nil)
-  ;; (force-mode-line-update)
-  )
-
-(defun entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p? ()
-  (and entropy/emacs-modeline--mdl-egroup-current-selected-window
-       (eq (entropy/emacs-modeline--mdl-egroup/->get-current-window)
-           entropy/emacs-modeline--mdl-egroup-current-selected-window)))
-
-(advice-add 'entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?
-            :around
-            #'entropy/emacs-current-window-is-selected-common-around-advice)
-
-;; hooks for set selected window var
-(add-hook 'window-configuration-change-hook
-          #'entropy/emacs-modeline--mdl-egroup/->set-selected-window)
-(advice-add #'handle-switch-frame
-            :around
-            #'entropy/emacs-modeline--mdl-egroup/->set-selected-window)
-(advice-add #'select-window
-            :around
-            #'entropy/emacs-modeline--mdl-egroup/->set-selected-window)
-
-(with-no-warnings
-  (if (not (boundp 'after-focus-change-function))
-      (progn
-        (add-hook 'focus-in-hook  #'entropy/emacs-modeline--mdl-egroup/->set-selected-window)
-        (add-hook 'focus-out-hook #'entropy/emacs-modeline--mdl-egroup/->unset-selected-window))
-
-    (defun entropy/emacs-modeline--mdl-egroup/->refresh-frame ()
-      (setq entropy/emacs-modeline--mdl-egroup-current-selected-window nil)
-      (cl-loop for frame in (frame-list)
-               if (eq (frame-focus-state frame) t)
-               return (entropy/emacs-modeline--mdl-egroup/->set-selected-window)))
-    (add-function :after after-focus-change-function
-                  #'entropy/emacs-modeline--mdl-egroup/->refresh-frame)))
-
-
-;; ***** egroup main
 (defvar entropy/emacs-modeline--origin-spec-done nil)
 (defvar entropy/emacs-modeline--origin-enable-done nil)
 
@@ -297,26 +295,26 @@ enabled."
   (setq entropy/emacs-modeline--origin-spec-done nil
         entropy/emacs-modeline--origin-enable-done nil))
 
-(defvar __ya/mode-line-buffer-identification
+(defvar entropy/emac-modeline--origin-mdl-buffer-identification
   (propertized-buffer-identification "%6b")
   "Mode line construct for identifying the buffer being displayed.
 Its default value is (\"%6b\") with some text properties added.
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
-(put '__ya/mode-line-buffer-identification 'risky-local-variable t)
-(make-variable-buffer-local '__ya/mode-line-buffer-identification)
+(put 'entropy/emac-modeline--origin-mdl-buffer-identification 'risky-local-variable t)
+(make-variable-buffer-local 'entropy/emac-modeline--origin-mdl-buffer-identification)
 
-(defun __ya/mdl-egroup/propertize-face (str face)
+(defun entropy/emacs-modeline--origin-mdl-propertize-face (str face)
   "Use `propertize' to decorate the STR with face FACE but
 inactive when
-`entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?'
+`entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p'
 return nil"
   (propertize str 'face
-              (if (entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?)
+              (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
                   face
                 'mode-line-inactive)))
 
-(defun __ya/mdl-egroup/use-icon-or-plain
+(defun entropy/emacs-modeline--origin-mdl-use-icon-or-plain
     (icon plain)
   "Use icon or plain text for modeline spec."
   (if (entropy/emacs-icons-displayable-p)
@@ -337,14 +335,14 @@ return nil"
    mode-line-modified " "
    (:eval
     (if (buffer-narrowed-p)
-        (__ya/mdl-egroup/propertize-face "><" 'warning)
+        (entropy/emacs-modeline--origin-mdl-propertize-face "><" 'warning)
       "↕"))
    ;;"remote:" mode-line-remote " "
    ;; mode-line-frame-identification
    ;; mode-line-modes
    " "
    (:eval
-    (__ya/mdl-egroup/use-icon-or-plain
+    (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
      (cond ((string-match-p "magit" (symbol-name major-mode))
             (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))
            ((and (derived-mode-p 'prog-mode)
@@ -360,28 +358,28 @@ return nil"
               (all-the-icons-icon-for-mode major-mode :v-adjust 0.001))))
            (t
             (all-the-icons-icon-for-mode major-mode)))
-     (__ya/mdl-egroup/propertize-face
+     (entropy/emacs-modeline--origin-mdl-propertize-face
       (format "%s" major-mode)
       (if (member entropy/emacs-theme-sticker '(doom-1337))
           'highlight
         'success))))
    " "
-   "" __ya/mode-line-buffer-identification " "
+   "" entropy/emac-modeline--origin-mdl-buffer-identification " "
    (:eval
-    (__ya/mdl-egroup/use-icon-or-plain
+    (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
      (concat (all-the-icons-faicon "pencil-square-o" :face 'all-the-icons-yellow :v-adjust -0.1) " ")
-     (concat (__ya/mdl-egroup/propertize-face
+     (concat (entropy/emacs-modeline--origin-mdl-propertize-face
               "POS:"
               'link)
              " ")))
    mode-line-position
    (:eval
     (when vc-mode
-      (__ya/mdl-egroup/use-icon-or-plain
+      (entropy/emacs-modeline--origin-mdl-use-icon-or-plain
        (format " %s%s " (all-the-icons-octicon "git-branch" :v-adjust 0.01 :face 'all-the-icons-red)
                vc-mode)
        (format "%s "
-               (__ya/mdl-egroup/propertize-face
+               (entropy/emacs-modeline--origin-mdl-propertize-face
                 vc-mode
                 'warning)))))
    mode-line-misc-info
@@ -391,7 +389,7 @@ return nil"
   (setq-default
    mode-line-format
    '(:eval
-     (if (entropy/emacs-modeline--mdl-egroup/->current-window-focus-on-p?)
+     (if (entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p)
          entropy/emacs-modeline--simple-mode-line-format
        (propertize
         (make-string
