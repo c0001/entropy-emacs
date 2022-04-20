@@ -1,4 +1,4 @@
-;;; code
+;;; code  -*- lexical-binding: t; -*-
 
 ;;;; require
 (require 'entropy-sdcv-core)
@@ -6,7 +6,6 @@
 (require 'youdao-dictionary)
 (require 'bing-dict)
 (require 'google-translate)
-(require 'entropy-common-library)
 
 (declare-function wudao/query-word-by-command "wudao-query")
 (declare-function wudao/query-word-hash "wudao-query")
@@ -274,14 +273,14 @@ Func maily for setting the value of variable
     (if (and (not entropy/sdcv-backends-sdcv-user-dicts)
              (file-directory-p entropy/sdcv-backends-sdcv-common-dicts-host))
         (let* ((base-dir entropy/sdcv-backends-sdcv-common-dicts-host)
-               (dir-list (entropy/cl-list-dir-subdirs base-dir))
+               (dir-list (entropy/sdcv-core-list-dir-subdirs base-dir))
                (dict-info-list nil))
           (if (and (listp dir-list)
                    (not (null dir-list)))
               (dolist (el dir-list)
                 (let ((dict-info (entropy/sdcv-backends--sdcv-judge-dictp el)))
                   (when dict-info
-                    (add-to-list 'dict-info-list dict-info))))
+                    (cl-pushnew dict-info dict-info-list :test 'equal))))
             (entropy/sdcv-backends--common-message
              "Could not auto search any dict!")
             (throw :exit nil))
@@ -307,14 +306,14 @@ by func `entropy/sdcv-backends--sdcv-get-dict-info', otherwise return nil.
 The valid dict checking mechanism was for finding whether exits
 two main dict file named with extension '.idx' 'ifo'."
   (catch :exit
-    (let ((sublist (entropy/cl-list-dir-lite dict-dir))
+    (let ((sublist (entropy/sdcv-core-list-dir-lite dict-dir))
           flist
           (rtn 0))
       (if (and (listp sublist)
                (not (member nil sublist)))
           (dolist (el sublist)
             (when (eq (car el) 'file)
-              (add-to-list 'flist (cdr el))))
+              (cl-pushnew (cdr el) flist :test 'equal)))
         (entropy/sdcv-backends--common-message
          "Dir %s was empty!" dict-dir)
         (throw :exit nil))
@@ -381,7 +380,7 @@ details)."
         (dolist (el entropy/sdcv-backends-sdcv-user-dicts)
           (let ((dict-info (entropy/sdcv-backends--sdcv-judge-dictp el)))
             (when dict-info
-              (add-to-list 'valid-dicts dict-info))))
+              (cl-pushnew dict-info valid-dicts :test 'equal))))
         (when (not valid-dicts)
           (entropy/sdcv-backends--common-message
            "Can not found valid dicts.")
@@ -447,18 +446,19 @@ string used for tooltip or adjacent buffer shown for. See also
 core func `entropy/sdcv-backends--sdcv-parse-response-json'.
 "
   (let* ((json-list-ob (entropy/sdcv-backends--sdcv-parse-response-json json-response))
+         word def def-overflow
          rtn)
     (setq word (car json-list-ob))
     (setq def (nth 1 json-list-ob))
     (setq def-overflow (nth 2 json-list-ob))
     (cond ((and word def)
            (when def-overflow
-             (setq def (entropy/cl-truncate-string-with-length
+             (setq def (entropy/sdcv-core-truncate-string-with-length
                         def
                         entropy/sdcv-core-response-column-width-max
                         def-overflow)))
            (let* ((word-count (string-width word))
-                  (dress-line (entropy/cl-concat-char "-" (+ 3 word-count))))
+                  (dress-line (entropy/sdcv-core-concat-char "-" (+ 3 word-count))))
              (setq rtn (concat dress-line "\n"
                                "⏺ " word "\n"
                                dress-line
@@ -527,7 +527,7 @@ analyzing based on max width specified by
 Return value as list as sexp (list word def def-width-overflow-lines)."
   (let* ((word (cdr (assoc 'word json-object-el)))
          (def (cdr (assoc 'definition json-object-el)))
-         (def-width (entropy/cl-get-string-max-width def entropy/sdcv-core-response-column-width-max))
+         (def-width (entropy/sdcv-core-get-string-max-width def entropy/sdcv-core-response-column-width-max))
          (def-width-overflow-lines (plist-get def-width :match-overflow-lines) )
          rtn)
     (setq rtn (list word def def-width-overflow-lines))
@@ -556,7 +556,6 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
 (defun entropy/sdcv-backends--query-with-sdcv (query show-method)
   (let* ((dict (entropy/sdcv-backends-sdcv-choose-dict))
          shell-json-response
-         feedback
          rtn)
     (setq entropy/sdcv-backends--sdcv-manually-fetch
           (cl-case show-method

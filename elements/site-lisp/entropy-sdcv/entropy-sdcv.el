@@ -1,4 +1,4 @@
-;;; entropy-sdcv.el --- entropy emacs sdcv front-end
+;;; entropy-sdcv.el --- entropy emacs sdcv front-end  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 20181211  Entropy
 
@@ -294,7 +294,9 @@ string with sdcv cli."
   "Mainly interactive func for search with inputted querying
 string with sdcv cli."
   (interactive)
-  (let* ((query (let (promt empty-error (rtn "") (prompt-initial (entropy/sdcv-core-get-word-or-region)))
+  (let* ((query (let (prompt
+                      (rtn "")
+                      (prompt-initial (entropy/sdcv-core-get-word-or-region)))
                   (cond (prompt-initial
                          (setq prompt (format "Input word (default: %s): " prompt-initial)))
                         (t (setq prompt "Input word: ")))

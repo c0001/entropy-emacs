@@ -1,4 +1,4 @@
-;;; entropy-sdcv-core.el --- The core framework of entropy-sdcv
+;;; entropy-sdcv-core.el --- The core framework of entropy-sdcv  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20191102  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -106,7 +106,6 @@
 (condition-case nil (require 'posframe) (error (message "Warn: You haven't install posframe!")))
 (require 'cl-lib)
 (require 'chinese-word-at-point)
-(require 'entropy-common-library)
 
 ;;;; defs
 (defvar entropy/sdcv-core--jieba-test-py
@@ -265,6 +264,199 @@ current local coding system which is obtained from
   (face-attribute 'tooltip :background))
 
 ;;;; library
+;;;;; file operation
+
+(defun entropy/sdcv-core-list-dir-lite (dir-root &optional not-abs)
+  "Return an alist of fsystem nodes as:
+
+#+begin_src elisp
+'((dir . \"a-dir\")
+  (file . \"a.txt\"))
+#+end_src
+
+where the car of each elements is the node type with follow symols to
+indicate that:
+
+- 'file': the node is an file (or an symbolic to an regular file)
+- 'dir':  the node is an directory (or an symbolic to an directory)
+
+The node sort ordered by `string-lessp'
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT.
+"
+  (let (rtn-full rtn-lite rtn-attr)
+    (setq rtn-full (directory-files dir-root (not not-abs)))
+    (dolist (el rtn-full)
+      ;; filter the . and ..
+      (if (not (string-match-p "\\(\\\\\\|/\\)?\\(\\.\\|\\.\\.\\)$" el))
+          (push el rtn-lite)))
+    (if rtn-lite
+        (progn
+          (dolist (el rtn-lite)
+            (if (file-directory-p (expand-file-name el dir-root))
+                (push `(dir . ,el) rtn-attr)
+              (push `(file . ,el) rtn-attr)))
+          rtn-attr)
+      nil)))
+
+(defun entropy/sdcv-core-list-dir-subdirs (dir-root &optional not-abs)
+  "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT."
+  (let ((dirlist (entropy/sdcv-core-list-dir-lite dir-root not-abs))
+        (rtn nil))
+    (if dirlist
+        (progn
+          (dolist (el dirlist)
+            (if (eq 'dir (car el))
+                (push (cdr el) rtn)))
+          (if rtn
+              (reverse rtn)
+            nil))
+      nil)))
+
+;;;;; string operation
+
+(defun entropy/sdcv-core-truncate-string-with-length (str length &optional line-indication)
+  "Truncate string STR with length LENGTH rescursively and be
+without destroying string struct.
+
+Optional argument LINE-INIDICATION formed as a list of integers
+to indicate which part (i.e. line indicator for buffer render
+case) to truncate."
+  (let (rtn
+        (str-split (split-string str "\n"))
+        (count 1)
+        (fill-func
+         (lambda (str length)
+           (let ((fill-column length))
+             (with-temp-buffer
+               (insert str)
+               (goto-char (point-min))
+               (fill-paragraph)
+               (buffer-substring
+                (point-min) (point-max)))))))
+    (dolist (el str-split)
+      (push (if line-indication
+                (if (member count line-indication)
+                    (funcall fill-func el length)
+                  el)
+              (funcall fill-func el length))
+            rtn)
+      (cl-incf count))
+    (cond ((> (length rtn) 1)
+           (setq rtn (reverse rtn))
+           (setq rtn (mapconcat (lambda (x)
+                                  (when (not (string-match "\n$" x))
+                                    (setq x (concat x "\n"))))
+                                rtn nil)))
+          (t (setq rtn (car rtn))))
+    rtn))
+
+(defun entropy/sdcv-core-get-string-max-width (str &optional max-indication)
+  "Get string width module by `string-width'.
+
+Without arg MAX-INDICATION sepcification will return the default
+module plist as '(:max-width max-len :match-max-lines max-lines-number-list)'
+
+With arg MAX-INDICATION indicated for, the return plist will
+append of ':match-overflow overflow-len' and
+':match-overflow-lines overflow-lines-number-list'.
+
+String width module can be illustrated as
+
+#+BEGIN_EXAMPLE
+  String buffer displayed square:
+
+  >  We set match-overflow to 7 chars
+
+  lines:+----------------+
+      1.|abcdefg         |
+      2.|agcdsdfa        |<-------------------------overflow
+      3.|absdfsdfsdfsf   |<-----max-width: 14
+      4.|asdfsdfsdfa     |<-------------------------overflow
+      5.|asdfasdfasdff   |<-----max-width: 14
+        +----------------+
+
+  Result: (:match-width 14 :match-max-lines (3 5) :match-overflow 7 :match-overflow-lines (2 4))
+#+END_EXAMPLE
+"
+  (let (str-len-list str-attr-list str-split max-len rtn rtn-overflow (count 1))
+    (setq str-split (split-string str "\n"))
+    (cond
+     ((= 1 (length str-split))
+      (setq rtn (cons (string-width str) (list 1))))
+     ((< 1 (length str-split))
+      (dolist (el str-split)
+        (cl-pushnew (cons count (string-width el)) str-attr-list :test 'equal)
+        (cl-incf count))
+      (dolist (el str-attr-list)
+        (cl-pushnew (cdr el) str-len-list :test 'equal))
+      (setq max-len (apply 'max str-len-list))
+
+      (dolist (el str-attr-list)
+        (when (equal (cdr el) max-len)
+          (push (car el) rtn)))
+      (when max-indication
+        (let (overflows)
+          (dolist (el str-len-list)
+            (when (> el max-indication)
+              (push el overflows)))
+          (dolist (el str-attr-list)
+            (when (member (cdr el) overflows)
+              (push (car el) rtn-overflow)))))
+
+      (setq rtn (list :max-width max-len
+                      :mactch-max-lines rtn))
+      (when max-indication
+        (setq rtn (append rtn (list
+                               :match-overflow max-indication
+                               :match-overflow-lines rtn-overflow))))))
+    rtn))
+
+(defun entropy/sdcv-core-concat-char (char-string times)
+  "Concat char-string CHAR-STRING do times TIMES with.
+
+CHAR was single type string as \"a\", and TIMES was number
+positive."
+  (let (rtn)
+    (unless (and (stringp char-string)
+                 (> times 1))
+      (error
+       "Char-string or times specification error!"))
+    (dotimes (_ times nil)
+      (if rtn
+          (setq rtn (concat rtn char-string))
+        (setq rtn char-string)))
+    rtn))
+
+;;;;; theme, color refer
+
+(defun entropy/sdcv-core-color-name-to-lab (color_name)
+  "Transfer color COLOR_NAME to lab format."
+  (let* ((Crgb (color-name-to-rgb color_name))
+         (Clab (apply 'color-srgb-to-lab Crgb)))
+    Clab))
+
+(defun entropy/sdcv-core-frameBG-dark-or-light ()
+  "Judge current emacs frame background color of dark or light type.
+
+This function used human perception color module LAB's light
+channel to analyze the background color human perception simply
+dividing it as uper or lower than 50 count which the lower as
+dark, otherwise as light.
+
+For terminal ui emacs using, this function will report the error
+because that some situation for those frame background was
+non-detectivation."
+  (let* ((CFbg (face-attribute 'default :background))
+         (CFlab_l (car (entropy/sdcv-core-color-name-to-lab CFbg))))
+    (if (> CFlab_l 55)
+        'light
+      'dark)))
+
 ;;;;; Coding system wrapper
 
 (defmacro entropy/sdcv-core-coding-with-utf-8-ces (&rest body)
@@ -313,7 +505,7 @@ downcase the query string."
   (let ((Lbg_color (entropy/sdcv-core-common-face-bgLight-color))
         (Bbg_color (entropy/sdcv-core-common-face-bgDark-color))
         (rtn (list :bg nil :fg nil)))
-    (cl-case (ignore-errors (entropy/cl-frameBG-dark-or-light))
+    (cl-case (ignore-errors (entropy/sdcv-core-frameBG-dark-or-light))
       (dark (setq rtn (plist-put rtn :bg Lbg_color))
             (setq rtn (plist-put rtn :fg "goldenrod")))
       (light (setq rtn (plist-put rtn :bg Bbg_color))

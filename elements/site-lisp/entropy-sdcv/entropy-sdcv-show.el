@@ -1,4 +1,4 @@
-;;; code
+;;; code  -*- lexical-binding: t; -*-
 ;;;; require
 (require 'popup)
 (require 'pos-tip)
@@ -82,8 +82,8 @@ posframe or popup shown mechanism."
          (face (entropy/sdcv-core-use-face (plist-get show-instance :show-face) 'posframe))
          (predicate (entropy/sdcv-show--response-predicate-gen show-predicate feedback posframe))
          (buffer (entropy/sdcv-show--get-buffer-create entropy/sdcv-show-tooltip-buffer-name))
-         (common-fg (face-attribute 'entropy/sdcv-core-common-face :foreground))
-         (common-bg (face-attribute 'entropy/sdcv-core-common-face :background))
+         ;; (common-fg (face-attribute 'entropy/sdcv-core-common-face :foreground))
+         ;; (common-bg (face-attribute 'entropy/sdcv-core-common-face :background))
          (color-func
           ;; posframe color spec can not be `undefined' in which case
           ;; it will fallback to unspec which will not follow font
