@@ -1,4 +1,4 @@
-;;; entropy-org-widget.el --- The org widget for entropy-emacs
+;;; entropy-org-widget.el --- The org widget for entropy-emacs  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190911  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -67,7 +67,12 @@
 
 (require 'org)
 
-;;;; Obsolete definatioin
+;;;; Core libs
+
+(defmacro entropy/ow--append-list-if-new (var value)
+  `(unless (member ,value ,var)
+     (setq ,var
+           (append ,var (list ,value)))))
 
 ;;;; Headline
 (defun entropy/ow-extract-head-alist (&optional query)
@@ -98,7 +103,7 @@ orderd in QUERY.
         (dolist (elm query)
           (dolist (el pl)
             (when (string= (car el) elm)
-              (add-to-list 'rlist (cons elm (cdr el)) t))))
+              (entropy/ow--append-list-if-new rlist (cons elm (cdr el))))))
       (setq rlist pl))
     rlist))
 
@@ -123,12 +128,12 @@ within current buffer.
               (progn (message (format "Buffer '%s' don't have any org-headline!"
                                       (current-buffer)))
                      (setq  ret-list nil))
-            (add-to-list 'ret-list (entropy/ow-extract-head-alist query) t))
-        (add-to-list 'ret-list (entropy/ow-extract-head-alist query) t))
+            (entropy/ow--append-list-if-new ret-list (entropy/ow-extract-head-alist query)))
+        (entropy/ow--append-list-if-new ret-list (entropy/ow-extract-head-alist query)))
       ;; The rest org headline matching
       (while (progn (org-next-visible-heading 1)
                     (if (looking-at-p org-heading-regexp) t nil))
-        (add-to-list 'ret-list (entropy/ow-extract-head-alist query) t)))
+        (entropy/ow--append-list-if-new ret-list (entropy/ow-extract-head-alist query))))
     (delete nil ret-list)))
 
 (defun entropy/ow-extract-hlink ()
