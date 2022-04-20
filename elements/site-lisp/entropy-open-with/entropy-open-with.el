@@ -1,4 +1,4 @@
-;;; entropy-open-with.el --- Open file by specific program
+;;; entropy-open-with.el --- Open file by specific program  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190614  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -238,6 +238,8 @@
 ;;; Code:
 (require 'entropy-common-library)
 
+(declare-function w32-shell-execute "w32fns")
+
 (defgroup entropy/open-with nil
   "Variable group for entropy-open-with"
   :group 'extensions)
@@ -350,7 +352,9 @@ string type.
 
 (defcustom entropy/open-with-microsoft-native-when-wsl2-p nil
   "Whether using windows native apps to open files when in
-microsoft wsl2 gnu/linux session.")
+microsoft wsl2 gnu/linux session."
+  :type 'boolean
+  :group 'entropy/open-with)
 
 (defvar entropy/open-with--type-list-full nil
   "Full list for `entropy/open-with-match-open' which gened by
@@ -529,7 +533,11 @@ and writeable!")))
 
 (defun entropy/open-with--open-file-plist (file-plist)
   (let* ((file-plistp (entropy/cl-plistp file-plist))
-         caller file-pattern file-path
+         caller
+         file-pattern
+         file-path
+         open-with-arg
+         open-with-arg-concated
          (proc-sentinel
           (lambda (proc _event)
             (let ((proc-name (process-name proc))
@@ -559,6 +567,7 @@ and writeable!")))
            (not (entropy/open-with-microsoft-windows-wsl2-env-p)))
       (setq caller (plist-get file-plist :caller)
             file-pattern (expand-file-name (plist-get file-plist :file-pattern))
+            file-path (expand-file-name (plist-get file-plist :file))
             open-with-arg-concated (plist-get file-plist :open-with-arg-concated)
             open-with-arg (plist-get file-plist :open-with-arg))
       (cond
@@ -582,7 +591,7 @@ and writeable!")))
           (set-process-sentinel
            (start-process
             (format "eemacs-*nix-open-with_%s_for_file_%s"
-                    caller file-path)
+                    caller file-pattern)
             (generate-new-buffer " *eemacs-*nix-open-with-match* ")
             "setsid" "-w" caller open-with-arg)
            proc-sentinel)))
@@ -624,13 +633,7 @@ firstly using 'npm install -g wsl-open'"))
        ((eq system-type 'darwin)
         ;; FIXME: its not asynchronously
         (error "Sorry! We haven't implement the 'xdg-open' like native caller in darwin system yet!"
-               ))
-       )
-
-      ;; show warn when non caller found for file
-      (unless (not (null caller))
-        (message "Can not match any open with type for file '%s', open with native MIME assoc."
-                 file-path))))))
+               )))))))
 
 (defun entropy/open-with-match-open (files)
   "This function be used for `entropy/open-with-dired-open' and
