@@ -338,7 +338,9 @@ Also load user extra emacs configuration when
                 (member eemacs-make-env
                         '("Install-Eemacs-Ext-Build"
                           "Install-Coworkers"
-                          "Install-Eemacs-Fonts")))
+                          "Install-Eemacs-Fonts"
+                          "Compile-Clean"
+                          )))
            t)
           (t
            (let ((extras-status (entropy/emacs-ext--check-all-extras)))
