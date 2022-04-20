@@ -433,7 +433,8 @@ and bug fix."
                            (line-end-position))
             ;; Prompts for insert boundary
             (setq ivy--prompt
-                  (if (eq real-last-command 'swiper-isearch-thing-at-point)
+                  (if (or (eq real-last-command 'swiper-isearch-thing-at-point)
+                          current-prefix-arg)
                       (concat
                        ivy-count-format
                        " Swiper-isearch-thing-at-pt: ")
