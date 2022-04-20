@@ -215,7 +215,7 @@ with ARGLIST."
 ;; ***** Open in desktop manager
 (when sys/is-graphic-support
   (defun entropy/emacs-tools-show-in-desktop (&optional dpath)
-    "Show current file in desktop.
+    "Show current file in desktop file manager.
  (Mac Finder, Windows Explorer, Linux file manager)
  This command be called when in a file or in `dired'.
 
@@ -396,7 +396,7 @@ Version 2017-10-09"
   'dired-mode '(dired dired-mode-map)
   '("Misc."
     (("M-=" entropy/emacs-tools-show-in-desktop
-      "Show current file in desktaop"
+      "Show current file in desktop file manager"
       :enable sys/is-graphic-support :exit t :map-inject t)))))
 
 (entropy/emacs-lazy-initial-for-hook
