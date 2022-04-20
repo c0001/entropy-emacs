@@ -201,7 +201,7 @@ Files:
 initialize processors.
 
 Files:
-@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @headitem file
 @tab description
 @item @samp{entropy-emacs-startup.el}
@@ -211,7 +211,9 @@ Files:
 @item @samp{entropy-emacs-font-set.el}
 @tab the startup font settings
 @item @samp{entropy-emacs-path.el}
-@tab the startup $PATH environment initialization
+@tab the startup @samp{$PATH} environment initialization
+@item
+@tab
 @end multitable
 
 @item
@@ -273,35 +275,32 @@ description:
 @tab @strong{init package}
 @tab @strong{package description}
 @item
-@tab entropy-emacs-basic.el
-@tab basic setting for @samp{entropy-emacs}
-@item basic config
 @tab entropy-emacs-themes.el
 @tab theme collections and startup default theme sets
-@item
+@item basic-ui
 @tab entropy-emacs-modeline.el
 @tab modeline themes collection and default modeline theme setes
 @item
 @tab
 @tab
-@item window conigurations
+@item basic-config
+@tab entropy-emacs-basic.el
+@tab basic setting for @samp{entropy-emacs}
+@item
+@tab
+@tab
+@item
 @tab entropy-emacs-wc.el
 @tab The emacs window moving and workaround emulator configuration
-@item
+@item window conigurations
 @tab entropy-emacs-popup.el
 @tab The popuped window procedure defination
 @item
 @tab
 @tab
-@item
+@item interactive chains
 @tab entropy-emacs-ivy.el
 @tab @uref{https://github.com/abo-abo/swiper, ivy} mode configs and others refer enhancements
-@item interactive chains
-@tab entropy-emacs-company.el
-@tab @uref{https://github.com/company-mode/company-mode, company-mode} confifs and other refer enhancements
-@item
-@tab entropy-emacs-yas.el
-@tab @uref{https://github.com/joaotavora/yasnippet, yasnippet for emacs} configs and other refer enhancements
 @item
 @tab
 @tab
@@ -311,21 +310,39 @@ description:
 @item
 @tab entropy-emacs-markdown.el
 @tab emacs markdown mode configs
-@item major modes
+@item
 @tab entropy-emacs-c.el
-@tab C/C++ mode configs with @samp{irony} completion chians
+@tab C/C++ mode configs
 @item
 @tab entropy-emacs-lisp.el
 @tab emacs lisp mode configs
-@item
+@item major-modes
 @tab entropy-emacs-web.el
 @tab web mode (web front/back end) configs (inclues js css html php)
 @item
 @tab entropy-emacs-python.el
-@tab python mode config with @samp{company-anaconda} completion chain
+@tab python mode config
 @item
 @tab entropy-emacs-lua.el
 @tab lua mode configs
+@item
+@tab entropy-emacs-rust.el
+@tab rust mode configs
+@item
+@tab entropy-emacs-go.el
+@tab go mode configs
+@item
+@tab entropy-emacs-yaml.el
+@tab yaml mode configs
+@item
+@tab entropy-emacs-codeserver.el
+@tab the dashboard for language server initialization
+@item IDE emulation
+@tab entropy-emacs-company.el
+@tab @uref{https://github.com/company-mode/company-mode, company-mode} confifs and other refer enhancements
+@item
+@tab entropy-emacs-yas.el
+@tab @uref{https://github.com/joaotavora/yasnippet, yasnippet for emacs} configs and other refer enhancements
 @item
 @tab
 @tab
@@ -348,23 +365,11 @@ description:
 @tab
 @tab
 @item entertainments
-@tab entropy-emacs-emms.el
+@tab entropy-emacs-music.el
 @tab gnu emms as media play control panel @samp{entropy-emacs} specifics
 @item
 @tab entropy-emacs-game.el
 @tab emacs internal game setting config optimization
-@item
-@tab
-@tab
-@item fundamental
-@tab entropy-emacs-custom.el
-@tab custom file loading setting with alternative custom file specific
-@item
-@tab
-@tab
-@item code server
-@tab entropy-emacs-codeserver.el
-@tab the dashboard for language server installer
 @item
 @tab
 @tab
@@ -419,6 +424,8 @@ Now, I built serveral packages shown as below table:
 @tab useful org widgets for other org refer extension building
 @item entropy-portableapps
 @tab emacs @uref{https://portableapps.com/, portableapps query} and open front-end for windows plattform
+@item entropy-adblockP-rule-analysis
+@tab emacs adblock rule simple parser
 @item entrop-proxy-url
 @tab http retrieving proxy tool for eww and emacs-w3m
 @item entropy-s2t

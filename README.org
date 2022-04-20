@@ -9,7 +9,7 @@
 
 #+BEGIN_QUOTE
 *Terms convention:*
-We call *eemacs* as the abbreviation of =entropy-emacs= or =eemacs=.
+We call *eemacs* as the abbreviation of =entropy-emacs=.
 #+END_QUOTE
 
 This personal emacs distribution can be used in:

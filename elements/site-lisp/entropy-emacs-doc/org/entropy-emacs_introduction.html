@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-03-04 Fri 19:43 -->
+<!-- 2022-04-20 Wed 22:10 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>entropy emacs introduction</title>
@@ -1222,7 +1222,7 @@ img
 </div>
 </div>
 
-<div id="org77ff86d" class="figure">
+<div id="orgdd4684e" class="figure">
 <p><img src="../annex/img/logo.png" alt="logo.png" width="300px" />
 </p>
 </div>
@@ -1427,7 +1427,12 @@ Files:
 
 <tr>
 <td class="org-left"><code>entropy-emacs-path.el</code></td>
-<td class="org-left">the startup $PATH environment initialization</td>
+<td class="org-left">the startup <code>$PATH</code> environment initialization</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
 </table></li>
@@ -1521,18 +1526,12 @@ description:
 <tbody>
 <tr>
 <td class="org-left">&#xa0;</td>
-<td class="org-left">entropy-emacs-basic.el</td>
-<td class="org-left">basic setting for <code>entropy-emacs</code></td>
-</tr>
-
-<tr>
-<td class="org-left">basic config</td>
 <td class="org-left">entropy-emacs-themes.el</td>
 <td class="org-left">theme collections and startup default theme sets</td>
 </tr>
 
 <tr>
-<td class="org-left">&#xa0;</td>
+<td class="org-left">basic-ui</td>
 <td class="org-left">entropy-emacs-modeline.el</td>
 <td class="org-left">modeline themes collection and default modeline theme setes</td>
 </tr>
@@ -1545,13 +1544,26 @@ description:
 </tbody>
 <tbody>
 <tr>
-<td class="org-left">window conigurations</td>
+<td class="org-left">basic-config</td>
+<td class="org-left">entropy-emacs-basic.el</td>
+<td class="org-left">basic setting for <code>entropy-emacs</code></td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-wc.el</td>
 <td class="org-left">The emacs window moving and workaround emulator configuration</td>
 </tr>
 
 <tr>
-<td class="org-left">&#xa0;</td>
+<td class="org-left">window conigurations</td>
 <td class="org-left">entropy-emacs-popup.el</td>
 <td class="org-left">The popuped window procedure defination</td>
 </tr>
@@ -1564,21 +1576,9 @@ description:
 </tbody>
 <tbody>
 <tr>
-<td class="org-left">&#xa0;</td>
+<td class="org-left">interactive chains</td>
 <td class="org-left">entropy-emacs-ivy.el</td>
 <td class="org-left"><a href="https://github.com/abo-abo/swiper">ivy</a> mode configs and others refer enhancements</td>
-</tr>
-
-<tr>
-<td class="org-left">interactive chains</td>
-<td class="org-left">entropy-emacs-company.el</td>
-<td class="org-left"><a href="https://github.com/company-mode/company-mode">company-mode</a> confifs and other refer enhancements</td>
-</tr>
-
-<tr>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">entropy-emacs-yas.el</td>
-<td class="org-left"><a href="https://github.com/joaotavora/yasnippet">yasnippet for emacs</a> configs and other refer enhancements</td>
 </tr>
 
 <tr>
@@ -1601,9 +1601,9 @@ description:
 </tr>
 
 <tr>
-<td class="org-left">major modes</td>
+<td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-c.el</td>
-<td class="org-left">C/C++ mode configs with <code>irony</code> completion chians</td>
+<td class="org-left">C/C++ mode configs</td>
 </tr>
 
 <tr>
@@ -1613,7 +1613,7 @@ description:
 </tr>
 
 <tr>
-<td class="org-left">&#xa0;</td>
+<td class="org-left">major-modes</td>
 <td class="org-left">entropy-emacs-web.el</td>
 <td class="org-left">web mode (web front/back end) configs (inclues js css html php)</td>
 </tr>
@@ -1621,13 +1621,50 @@ description:
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-python.el</td>
-<td class="org-left">python mode config with <code>company-anaconda</code> completion chain</td>
+<td class="org-left">python mode config</td>
 </tr>
 
 <tr>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">entropy-emacs-lua.el</td>
 <td class="org-left">lua mode configs</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">entropy-emacs-rust.el</td>
+<td class="org-left">rust mode configs</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">entropy-emacs-go.el</td>
+<td class="org-left">go mode configs</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">entropy-emacs-yaml.el</td>
+<td class="org-left">yaml mode configs</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">entropy-emacs-codeserver.el</td>
+<td class="org-left">the dashboard for language server initialization</td>
+</tr>
+
+<tr>
+<td class="org-left">IDE emulation</td>
+<td class="org-left">entropy-emacs-company.el</td>
+<td class="org-left"><a href="https://github.com/company-mode/company-mode">company-mode</a> confifs and other refer enhancements</td>
+</tr>
+
+<tr>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">entropy-emacs-yas.el</td>
+<td class="org-left"><a href="https://github.com/joaotavora/yasnippet">yasnippet for emacs</a> configs and other refer enhancements</td>
 </tr>
 
 <tr>
@@ -1676,7 +1713,7 @@ description:
 <tbody>
 <tr>
 <td class="org-left">entertainments</td>
-<td class="org-left">entropy-emacs-emms.el</td>
+<td class="org-left">entropy-emacs-music.el</td>
 <td class="org-left">gnu emms as media play control panel <code>entropy-emacs</code> specifics</td>
 </tr>
 
@@ -1692,36 +1729,9 @@ description:
 <td class="org-left">&#xa0;</td>
 </tr>
 </tbody>
-<tbody>
-<tr>
-<td class="org-left">fundamental</td>
-<td class="org-left">entropy-emacs-custom.el</td>
-<td class="org-left">custom file loading setting with alternative custom file specific</td>
-</tr>
-
-<tr>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-</tr>
-</tbody>
-<tbody>
-<tr>
-<td class="org-left">code server</td>
-<td class="org-left">entropy-emacs-codeserver.el</td>
-<td class="org-left">the dashboard for language server installer</td>
-</tr>
-
-<tr>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-<td class="org-left">&#xa0;</td>
-</tr>
-</tbody>
 </table>
 </div>
 </div>
-
 
 <div id="outline-container-h-e2a984e4-c4e3-401a-afcb-7bb09be92512" class="outline-2">
 <h2 id="h-e2a984e4-c4e3-401a-afcb-7bb09be92512"><span class="section-number-2">4.</span> Self built packages</h2>
@@ -1821,6 +1831,11 @@ Now, I built serveral packages shown as below table:
 <tr>
 <td class="org-left">entropy-portableapps</td>
 <td class="org-left">emacs <a href="https://portableapps.com/">portableapps query</a> and open front-end for windows plattform</td>
+</tr>
+
+<tr>
+<td class="org-left">entropy-adblockP-rule-analysis</td>
+<td class="org-left">emacs adblock rule simple parser</td>
 </tr>
 
 <tr>
@@ -1927,7 +1942,7 @@ means its a unified platform, a framework or a system.
 <b>Hydra-Hollow UI:</b>
 </p>
 
-<pre class="example" id="org523cdb9">
+<pre class="example" id="org87cfd3e">
 +---------------------------------------------------------------------------------------------------------------------+
 | [page indicator] eemacs top dispacher [up]: previous page [down]: next page                                         |
 |                                                                                                                     |
@@ -2261,7 +2276,7 @@ minibuffer and enhanced with candidates showing list powered by <a href="https:/
 each candidate was one unique slot number with workspace name:
 </p>
 
-<pre class="example" id="org4358f0b">
+<pre class="example" id="orgaffc517">
 +--------------------------------------------------------------------------------+
 |  * 169 U(Unix) *scratch*      Lisp Interactioin Orgstruct&gt;&gt;      &lt;&lt; 4: 23 ALL  |
 +--------------------------------------------------------------------------------+
@@ -2305,7 +2320,7 @@ laggning the way when be with your poor eyesight.(also seen as your
 screen was low dimessions as traditional '1366x768'.)
 </p>
 
-<pre class="example" id="org6f676f4">
+<pre class="example" id="orgc251e43">
 
 
 +---------------+-------+--------------------------+
@@ -2362,7 +2377,7 @@ above description. Derived slot will be created when you doing for
 arbitray reason for that.
 </p>
 
-<pre class="example" id="orgabc6916">
+<pre class="example" id="orgf3e09ab">
 
 +------------+ +------------+ +------------+
 | main slot 1| | main slot 2| |main slot 3 |
@@ -2473,7 +2488,7 @@ way for solving that problem was what it is.
 <li><p>
 <b>Frame place jumping:</b><br />
 </p>
-<pre class="example" id="org15afd4c">
+<pre class="example" id="org50bb26e">
 
 +-------------+-----------------------------+
 |             |                             |
@@ -2767,7 +2782,7 @@ PYIM 是一个 Emacs 中文输入法，支持全拼，双拼，五笔，仓颉 �
 </p>
 </blockquote>
 
-<pre class="example" id="org90cc81e">
+<pre class="example" id="org69066bd">
 这是一段中文说明，你好shijie
                       ^
                       |
@@ -2790,7 +2805,7 @@ minibuffer
 <p>
 Using minibuffer be the widget as:
 </p>
-<pre class="example" id="orgbb9f0fb">
+<pre class="example" id="org411e0a6">
 +----------------------------+
 |                            |
 | xxx|                       |
@@ -2822,7 +2837,7 @@ version below 26.1 and the oppsite using 'posframe'.
 
 <ul class="org-ul">
 <li><p>
-<b>Pyim dicts:</b> <a id="orgcb75189"></a>
+<b>Pyim dicts:</b> <a id="org4ae6843"></a>
 </p>
 
 <p>
@@ -2837,7 +2852,7 @@ extra char dicts for driven for candidates completion.
 <p>
 <code>pyim</code> extra dict was plain text format as:
 </p>
-<pre class="example" id="orga70660a">
+<pre class="example" id="org97f2341">
 ni-hao 你好
 shi-jie 世界
 </pre>
@@ -2902,7 +2917,7 @@ emacs startup finished i.e. <code>entropy/emacs-enable-pyim</code>, you can
 active it in your <code>custom.el</code> file, then the next time you start up
 or open new session of emacs , pyim will automatically startup using
 the default dicts specific by <code>entropy-emacs</code> as introduction form
-<a href="#orgcb75189">pyim dicts section</a>, or if you want to enable dicts specified by
+<a href="#org4ae6843">pyim dicts section</a>, or if you want to enable dicts specified by
 yourself, you can setting up custom-variable
 <code>entropy/emacs-pyim-dicts</code>, the variable information and value
 format can be shown by touching <code>C-h v entropy/emacs-pyim-dicts
@@ -3189,14 +3204,14 @@ heading level instead of the asterisk counts visualized.
 <p>
 <code>roman</code> type displayed as the sequence list as:
 </p>
-<pre class="example" id="org6bcc32e">
+<pre class="example" id="org36e1e35">
 "●" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ" "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ" "Ⅹ" "Ⅺ" "Ⅻ"
 </pre>
 
 <p>
 The instance for this is:
 </p>
-<pre class="example" id="orgc658794">
+<pre class="example" id="org4a0a46f">
 ● heading 1
   Ⅱ heading 2
     Ⅲ heading 3
@@ -3210,7 +3225,7 @@ The instance for this is:
 <p>
 Same sytle show for circle numberic:
 </p>
-<pre class="example" id="orgf64395b">
+<pre class="example" id="org1e4df98">
 "⓪" "①" "②" "③" "④" "⑤" "⑥" "⑦"
 "⑧" "⑨" "⑩" "⑪" "⑫" "⑬" "⑭" "⑮"
 "⑯" "⑰" "⑱" "⑲" "⑳"
@@ -4311,7 +4326,7 @@ divided three minor-modes individually and functionally purpose as
 the list below:
 </p>
 
-<pre class="example" id="orgb581d01">
+<pre class="example" id="org33e56a0">
 The keybindings for evaluating expressions in the browser are just
 like the Lisp modes. These are provided by the minor mode skewer-mode.
 
@@ -4371,7 +4386,7 @@ same folder of css or html files along into the server.
 <p>
 When one folder structer list as:
 </p>
-<pre class="example" id="org7a80c06">
+<pre class="example" id="org604ca6c">
 ~/:
  |____index.html
  |____index.css
@@ -4490,7 +4505,7 @@ The internal <code>M-x</code> replacement is swiper, using the same keybinding a
 it but with the interactive interface visualized as:
 </p>
 
-<pre class="example" id="orga047b30">
+<pre class="example" id="orgae436b4">
 +-----------------------------------+
 | I                                 |
 |                                   |
@@ -4919,7 +4934,7 @@ this by touching <code>win</code> key again.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Entropy</p>
-<p class="date">Created: 2022-03-04 Fri 19:43</p>
+<p class="date">Created: 2022-04-20 Wed 22:10</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

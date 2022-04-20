@@ -104,12 +104,13 @@ platforms for those rest parts to implement the instances.
    initialize processors.
 
    Files:
-   | file                        | description                                  |
-   |-----------------------------+----------------------------------------------|
-   | =entropy-emacs-startup.el=  | the top dispacher for startup                |
-   | =entropy-emacs-ui.el=       | the startup UI presentation                  |
-   | =entropy-emacs-font-set.el= | the startup font settings                    |
-   | =entropy-emacs-path.el=     | the startup $PATH environment initialization |
+   | file                        | description                                    |
+   |-----------------------------+------------------------------------------------|
+   | =entropy-emacs-startup.el=  | the top dispacher for startup                  |
+   | =entropy-emacs-ui.el=       | the startup UI presentation                    |
+   | =entropy-emacs-font-set.el= | the startup font settings                      |
+   | =entropy-emacs-path.el=     | the startup =$PATH= environment initialization |
+   |                             |                                                |
 
 4) *batch* : The cli interface for =entropy-emacs=, file
    =entropy-emacs-batch.el=.
@@ -147,47 +148,49 @@ The last, *Tentacles* category served for implement individual aims
 that the following table illustrates those tentacles and their
 description:
 
-| *Category*           | *init package*              | *package description*                                             |
-|----------------------+-----------------------------+-------------------------------------------------------------------|
-|                      | entropy-emacs-basic.el      | basic setting for =entropy-emacs=                                 |
-| basic config         | entropy-emacs-themes.el     | theme collections and startup default theme sets                  |
-|                      | entropy-emacs-modeline.el   | modeline themes collection and default modeline theme setes       |
-|                      |                             |                                                                   |
-|----------------------+-----------------------------+-------------------------------------------------------------------|
-| window conigurations | entropy-emacs-wc.el         | The emacs window moving and workaround emulator configuration     |
-|                      | entropy-emacs-popup.el      | The popuped window procedure defination                           |
-|                      |                             |                                                                   |
-|----------------------+-----------------------------+-------------------------------------------------------------------|
-|                      | entropy-emacs-ivy.el        | [[https://github.com/abo-abo/swiper][ivy]] mode configs and others refer enhancements                    |
-| interactive chains   | entropy-emacs-company.el    | [[https://github.com/company-mode/company-mode][company-mode]] confifs and other refer enhancements                 |
-|                      | entropy-emacs-yas.el        | [[https://github.com/joaotavora/yasnippet][yasnippet for emacs]] configs and other refer enhancements          |
-|                      |                             |                                                                   |
-|----------------------+-----------------------------+-------------------------------------------------------------------|
-|                      | entropy-emacs-org.el        | emacs org mode configs                                            |
-|                      | entropy-emacs-markdown.el   | emacs markdown mode configs                                       |
-| major modes          | entropy-emacs-c.el          | C/C++ mode configs with =irony= completion chians                 |
-|                      | entropy-emacs-lisp.el       | emacs lisp mode configs                                           |
-|                      | entropy-emacs-web.el        | web mode (web front/back end) configs (inclues js css html php)   |
-|                      | entropy-emacs-python.el     | python mode config with =company-anaconda= completion chain       |
-|                      | entropy-emacs-lua.el        | lua mode configs                                                  |
-|                      |                             |                                                                   |
-|----------------------+-----------------------------+-------------------------------------------------------------------|
-|                      | entropy-emacs-shell.el      | emacs internal shell front-end enhancements                       |
-| tool-chains          | entropy-emacs-vcs.el        | git/svn codes version control with =magit=                        |
-|                      | entropy-emacs-structure.el  | programme editting structs fold/expanding feature package         |
-|                      | entropy-emacs-highlight.el  | codes snippet highlighting guide feature provider                 |
-|                      | entropy-emacs-zeal.el       | external api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]            |
-|                      |                             |                                                                   |
-|----------------------+-----------------------------+-------------------------------------------------------------------|
-| entertainments       | entropy-emacs-emms.el       | gnu emms as media play control panel =entropy-emacs= specifics    |
-|                      | entropy-emacs-game.el       | emacs internal game setting config optimization                   |
-|                      |                             |                                                                   |
-|----------------------+-----------------------------+-------------------------------------------------------------------|
-| fundamental          | entropy-emacs-custom.el     | custom file loading setting with alternative custom file specific |
-|                      |                             |                                                                   |
-|----------------------+-----------------------------+-------------------------------------------------------------------|
-| code server          | entropy-emacs-codeserver.el | the dashboard for language server installer                       |
-|                      |                             |                                                                   |
+| *Category*           | *init package*              | *package description*                                           |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
+|                      | entropy-emacs-themes.el     | theme collections and startup default theme sets                |
+| basic-ui             | entropy-emacs-modeline.el   | modeline themes collection and default modeline theme setes     |
+|                      |                             |                                                                 |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
+| basic-config         | entropy-emacs-basic.el      | basic setting for =entropy-emacs=                               |
+|                      |                             |                                                                 |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
+|                      | entropy-emacs-wc.el         | The emacs window moving and workaround emulator configuration   |
+| window conigurations | entropy-emacs-popup.el      | The popuped window procedure defination                         |
+|                      |                             |                                                                 |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
+| interactive chains   | entropy-emacs-ivy.el        | [[https://github.com/abo-abo/swiper][ivy]] mode configs and others refer enhancements                  |
+|                      |                             |                                                                 |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
+|                      | entropy-emacs-org.el        | emacs org mode configs                                          |
+|                      | entropy-emacs-markdown.el   | emacs markdown mode configs                                     |
+|                      | entropy-emacs-c.el          | C/C++ mode configs                                              |
+|                      | entropy-emacs-lisp.el       | emacs lisp mode configs                                         |
+| major-modes          | entropy-emacs-web.el        | web mode (web front/back end) configs (inclues js css html php) |
+|                      | entropy-emacs-python.el     | python mode config                                              |
+|                      | entropy-emacs-lua.el        | lua mode configs                                                |
+|                      | entropy-emacs-rust.el       | rust mode configs                                               |
+|                      | entropy-emacs-go.el         | go mode configs                                                 |
+|                      | entropy-emacs-yaml.el       | yaml mode configs                                               |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
+|                      | entropy-emacs-codeserver.el | the dashboard for language server initialization                |
+| IDE emulation        | entropy-emacs-company.el    | [[https://github.com/company-mode/company-mode][company-mode]] confifs and other refer enhancements               |
+|                      | entropy-emacs-yas.el        | [[https://github.com/joaotavora/yasnippet][yasnippet for emacs]] configs and other refer enhancements        |
+|                      |                             |                                                                 |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
+|                      | entropy-emacs-shell.el      | emacs internal shell front-end enhancements                     |
+| tool-chains          | entropy-emacs-vcs.el        | git/svn codes version control with =magit=                      |
+|                      | entropy-emacs-structure.el  | programme editting structs fold/expanding feature package       |
+|                      | entropy-emacs-highlight.el  | codes snippet highlighting guide feature provider               |
+|                      | entropy-emacs-zeal.el       | external api query prompt powerd by external tool [[https://github.com/zealdocs/zeal][zeal]]          |
+|                      |                             |                                                                 |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
+| entertainments       | entropy-emacs-music.el      | gnu emms as media play control panel =entropy-emacs= specifics  |
+|                      | entropy-emacs-game.el       | emacs internal game setting config optimization                 |
+|                      |                             |                                                                 |
+|----------------------+-----------------------------+-----------------------------------------------------------------|
 
 * Self built packages
 :PROPERTIES:
@@ -222,6 +225,7 @@ Now, I built serveral packages shown as below table:
 | entropy-org-export-theme-toggle | toggle org html export theme specific for choosing theme or buiding it temporally quickly         |
 | entropy-org-widget              | useful org widgets for other org refer extension building                                         |
 | entropy-portableapps            | emacs [[https://portableapps.com/][portableapps query]] and open front-end for windows plattform                                 |
+| entropy-adblockP-rule-analysis  | emacs adblock rule simple parser                                                                  |
 | entrop-proxy-url                | http retrieving proxy tool for eww and emacs-w3m                                                  |
 | entropy-s2t                     | convert simplified chinese to traditional chinese func used for [[https://github.com/tumashu/pyim][pyim]] (emacs chinese input method) |
 | entropy-unfill                  | unfill buffer paragraph with specific rules built by user self                                    |
