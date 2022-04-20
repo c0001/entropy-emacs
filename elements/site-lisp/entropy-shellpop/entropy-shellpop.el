@@ -1,4 +1,4 @@
-;;; entropy-shellpop.el --- popup shell buffer for transient
+;;; entropy-shellpop.el --- popup shell buffer for transient  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190829  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -252,12 +252,12 @@
       (let ((comint-bol-pos (entropy/shellpop--get-comint-mode-bol-pos))
             pos-offset)
         (if (> comint-bol-pos (point))
-            (delete-backward-char n killflag)
+            (delete-char (- n) killflag)
           (setq pos-offset (- (point) comint-bol-pos))
           (when (< pos-offset 1) (user-error "Beginning of shell prompt line!"))
           (when (> n pos-offset) (setq n pos-offset))
-          (delete-backward-char n killflag)))
-    (delete-backward-char n killflag)))
+          (delete-char (- n) killflag)))
+    (delete-char (- n) killflag)))
 
 (defun entropy/shellpop--comint-send-input ()
   (interactive)
@@ -350,12 +350,12 @@
                   (;; prevent vterm auto rename buffer that lost register linkage
                    (vterm-buffer-name-string nil))
                 (vterm-mode)))))))
-    (append register (list (alist-get 'eshell types)))
-    (append register (list (alist-get 'shell types)))
+    (setq register (append register (list (alist-get 'eshell types))))
+    (setq register (append register (list (alist-get 'shell types))))
     (when (entropy/shellpop--vterm-supported)
-      (append register (list (alist-get 'vterm types))))
+      (setq register (append register (list (alist-get 'vterm types)))))
     (when (not (eq system-type 'windows-nt))
-      (append register (list (alist-get 'ansi-term types))))
+      (setq register (append register (list (alist-get 'ansi-term types)))))
     register)
     "Shell pop types defination.
 
@@ -444,6 +444,7 @@ for current maximized pop-shell."))))))
            ((null ,prompt)
             ,@body))))
 
+(declare-function eshell-reset "esh-mode")
 (defun entropy/shellpop--cd-to-cwd-eshell (cwd)
   (if (eshell-process-interact 'process-live-p)
       (message "Won't change CWD because of running process.")
