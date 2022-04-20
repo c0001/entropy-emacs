@@ -1,4 +1,4 @@
-;;; entropy-org-export-theme-toggle_varset.el --- varaible default value setting
+;;; entropy-org-export-theme-toggle_varset.el --- varaible default value setting  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018-11-12 Entropy
 

@@ -1,10 +1,10 @@
 # Table of Contents
 
-1.  [Commentary:](#orgc75ddee)
-    1.  [Preamble](#orgc1998a5)
-    2.  [Html part](#org01721d3)
+1.  [Commentary:](#org9aa48af)
+    1.  [Preamble](#org05b7ade)
+    2.  [Html part](#org7080440)
 
-Copyright (C) 2018-11-09  Entropy
+Copyright (C) 2018-11-09, 2022 Entropy
 
 Author:        Entropy <bmsac0001@gmail.com>
 Maintainer:    Entropy <bmsac001@gmail.com>
@@ -14,7 +14,7 @@ Version:       none
 Created:       2018-11-09
 Keywords:      org, theme
 Compatibility: GNU Emacs emacs-version;
-Package-Requires: ((emacs "24") (cl-lib "0.5") (org "9.1.3"))
+Package-Requires: ((emacs "24") (cl-lib "0.5") (org "9.1.3") (dash "2.19.1"))
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -30,14 +30,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="orgc75ddee"></a>
+<a id="org9aa48af"></a>
 
 # Commentary:
 
 **The theme toggle for Org export procedure.**
 
 
-<a id="orgc1998a5"></a>
+<a id="org05b7ade"></a>
 
 ## Preamble
 
@@ -54,7 +54,7 @@ this package just implemented the html exporting treatment part, thus
 follow instruction only has the html part.
 
 
-<a id="org01721d3"></a>
+<a id="org7080440"></a>
 
 ## Html part
 
@@ -95,7 +95,9 @@ follow instruction only has the html part.
         Demo:
 
             :theme_css
-            ("<link rel=\"stylesheet\" title=\"Standard\" href=\"https://orgmode.org/worg/style/worg.css\" type=\"text/css\" />" "<link rel=\"alternate stylesheet\" title=\"Zenburn\" href=\"https://orgmode.org/worg/style/worg-zenburn.css\" type=\"text/css\" />" "<link rel=\"alternate stylesheet\" title=\"Classic\" href=\"https://orgmode.org/worg/style/worg-classic.css\" type=\"text/css\" />"
+            ("<link rel=\"stylesheet\" title=\"Standard\" href=\"https://orgmode.org/worg/style/worg.css\" type=\"text/css\" />"
+             "<link rel=\"alternate stylesheet\" title=\"Zenburn\" href=\"https://orgmode.org/worg/style/worg-zenburn.css\" type=\"text/css\" />"
+             "<link rel=\"alternate stylesheet\" title=\"Classic\" href=\"https://orgmode.org/worg/style/worg-classic.css\" type=\"text/css\" />"
              "
             <style>
                 body #content {
@@ -171,7 +173,12 @@ follow instruction only has the html part.
 
             :theme_js
             ("<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery-1.11.0.min.js\"></script>"
-             "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery-ui-1.10.2.min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.localscroll-min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.scrollTo-1.4.3.1-min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.zclip.min.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/bigblow.js\"></script>" "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/hideshow.js\"></script>"
+             "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery-ui-1.10.2.min.js\"></script>"
+             "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.localscroll-min.js\"></script>"
+             "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.scrollTo-1.4.3.1-min.js\"></script>"
+             "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/jquery.zclip.min.js\"></script>"
+             "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/bigblow.js\"></script>"
+             "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/bigblow/js/hideshow.js\"></script>"
              "<script type=\"text/javascript\" src=\"https://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.min.js\"></script>")
 
     4.  `:theme_mischellaneous`
@@ -208,4 +215,4 @@ follow instruction only has the html part.
     this theme can not be cached in anyway.
 
 
-<a id="orgef63831"></a>
+<a id="org3717719"></a>
