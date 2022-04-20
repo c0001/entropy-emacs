@@ -1,4 +1,4 @@
-;;; entropy-s2t.el --- Simple and traditional chinese toggle function for pyim
+;;; entropy-s2t.el --- Simple and traditional chinese toggle function for pyim  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190911  Entropy
 ;; #+BEGIN_EXAMPLE
