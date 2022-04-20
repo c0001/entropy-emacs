@@ -1,4 +1,4 @@
-;;; entropy-adblock+-rule-analysis.el --- elisp extension to analyze adblock+ url rule set
+;;; entropy-adblock+-rule-analysis.el --- elisp extension to analyze adblock+ url rule set  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190530  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -198,9 +198,9 @@ attack or gnutls error in emacs batch mode)."
    ((null inct)
     (let (rtn-blacklist rtn-whitelist)
       (dolist (el entropy/adbp-rule--blacklist-regexps-cache)
-        (add-to-list 'rtn-blacklist (list el)))
+        (cl-pushnew (list el) rtn-blacklist :test 'equal))
       (dolist (el entropy/adbp-rule--whitelist-regexps-cache)
-        (add-to-list 'rtn-whitelist (list el)))
+        (cl-pushnew (list el) rtn-whitelist :test 'equal))
       (list :blacklist rtn-blacklist
             :whitelist rtn-whitelist)))
    (inct
