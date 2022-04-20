@@ -1,4 +1,4 @@
-;;; entropy-proxy-url ---  Url proxy for emacs eww and w3m
+;;; entropy-proxy-url ---  Url proxy for emacs eww and w3m  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190906  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -369,6 +369,97 @@ Useful for be using with `let' binding to inbihit any
 
 ;;;; library
 ;;;;; core functional
+;;;;;; common lib
+
+(defun entropy/proxy-url--gen-nested-append-form (form replace body &optional quote-append)
+  "Generate *nested appended* form scretched.
+
+A *nested appended* form was a regular nested form which each pos
+of the subroutine has the same formulation, the formulation was
+the =base-form=.
+
+Example:
+
+#+begin_src emacs-lisp :tangle yes
+
+  (setq temp/nested-append-form
+        `(symbol-name a b
+                      (symbol-name c d
+                                   (symbol-name e f
+                                                ,@body))))
+#+end_src
+
+the base formulation of nested append form
+=temp/nested-append-form= was ='(symbol-name x y)=, the 'x' and
+'y' are the replacement target, that for nest depth 1, replaced
+for 'a' and 'b'.
+
+Arguments:
+
+- FORM: a list represent a =base formulation=
+- REPLACE: a list of replacement expression, each element of this
+  list was a alist which each item's car was the pos of =base
+  formulation= list and the =(nth 1)= was the the replacement
+  symbol, that for example:
+
+  For the previous append nested form's replacement was:
+  #+begin_src emacs-lisp :tangle yes
+    '(((1 a) (2 b))
+      ((1 c) (2 d))
+      ((1 e) (2 f)))
+  #+end_src
+
+- BODY: the =base formulation='s rest form core, which can be run
+  as `with-eval-after-load' thus. It's wrappered in a list for
+  commonly use.
+
+Optional arguments QUOTE-APPEND was designed for append subroutine
+as quote form, for as that usually used in `eval-after-load', if
+non-nil, the =temp/nested-append-form= was generated for:
+
+#+begin_src emacs-lisp :tangle yes
+  (setq temp/nested-append-form
+        `(symbol-name a b
+                      '(symbol-name c d
+                                    '(symbol-name e f
+                                                  ,@body))))
+#+end_src
+"
+  (cond ((and (integerp replace)
+              (> replace 0))
+         (let (macro (depth replace))
+           (dotimes (_ depth)
+             (if (null macro)
+                 (setq macro `(,@form ,@body))
+               (setq macro (if (null quote-append)
+                               `(,@form ,macro)
+                             `(,@form ',macro)))))
+           macro))
+        ((and (not (null replace))
+              (> (length replace) 0))
+         (let ((depth (length replace))
+               replacedo)
+           (setq replacedo (nreverse (copy-tree replace)))
+           (let (macro)
+             (dotimes (step depth)
+               (let ((form (copy-tree form))
+                     (subreplacedo (nth step replacedo)))
+                 (dolist (el subreplacedo)
+                   (let ((pos (car el))
+                         (sub (cadr el)))
+                     (setf (nth pos form) sub)))
+                 (if (null macro)
+                     (setq macro `(,@form ,@body))
+                   (setq macro (if (null quote-append)
+                                   `(,@form ,macro)
+                                 `(,@form ',macro))))))
+             macro)))
+        (t
+         (error "[%s]: %s: %S"
+                "entropy/proxy-url--gen-nested-append-form"
+                "Wrong type of 'replace'"
+                replace))))
+
 ;;;;;; common retrieve recovery
 (defun entropy/proxy-url--rec-for-common ()
   (cond
@@ -506,7 +597,7 @@ Useful for be using with `let' binding to inbihit any
 (defun entropy/proxy-url--do-url-proxy
     (url type-source proxy-mechanism server-host-alist browse-func args)
   (let ((judge-source (symbol-value type-source))
-        judge form)
+        judge)
     (unless entropy/proxy-url-inhbit-all-proxy
       (if (eq judge-source t)
           (setq judge t)
@@ -668,9 +759,9 @@ Recipe slots:
                       (define-key (eval (car bind-form)) (kbd (eval (cdr bind-form)))
                         (unless ',unmake
                           #',switch-func-name))))))
-               (macro (entropy/cl-gen-nested-append-form
+               (macro (entropy/proxy-url--gen-nested-append-form
                        form replace body t)))
-          (add-to-list 'eval-binds macro)))
+          (cl-pushnew macro eval-binds :test 'equal)))
       (dolist (item eval-binds)
         (eval item)))))
 
