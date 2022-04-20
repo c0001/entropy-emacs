@@ -439,7 +439,7 @@ and bug fix."
                        " Swiper-isearch-thing-at-pt: ")
                     (concat
                      ivy-count-format
-                     " Swiper-isearch-thing-at-pt: (with 'C-u' and invoking again to insert boundary)")))
+                     " Swiper-isearch-thing-at-pt (with 'C-u' and invoking again to insert boundary): ")))
             (with-ivy-window
               (setq bnd
                     (if (setq regionp (region-active-p))
