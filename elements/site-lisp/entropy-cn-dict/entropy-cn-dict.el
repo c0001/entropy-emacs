@@ -1,4 +1,4 @@
-;;; entropy-cn-dict.el --- Simple chinese dictionary using BAIDU API
+;;; entropy-cn-dict.el --- Simple chinese dictionary using BAIDU API  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190911 Entropy
 ;; #+BEGIN_EXAMPLE
@@ -37,9 +37,14 @@
 
 (require 'eww)
 
+(defgroup entropy/cndt-customize-top-group nil
+  "Customize group for `entropy-cn-dict'."
+  :group 'extensions)
+
 (defcustom entropy/cndt-buffer-name "*entropy/cndt-buffer*"
   "Buffer name of `entropy-cn-dict'."
-  :type 'string)
+  :type 'string
+  :group 'entropy/cndt-customize-top-group)
 
 (defvar entropy/cndt-engine "https://hanyu.baidu.com/s?wd="
   "Search engine for chinese string query.")
