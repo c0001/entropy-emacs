@@ -128,7 +128,7 @@
 (defmacro entropy/org-refile--add-to-list (var value &optional append)
   `(unless (member ,value ,var)
      (if ,append
-         (setq ,var (append ,var ,value))
+         (setq ,var (append ,var (list ,value)))
        (push ,value ,var))))
 
 ;;;;; main micro for tag match refile
