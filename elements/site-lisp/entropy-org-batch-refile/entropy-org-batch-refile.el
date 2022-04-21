@@ -1,4 +1,4 @@
-;;; entropy-org-batch-refile.el --- Org batch refile simple interactivation
+;;; entropy-org-batch-refile.el --- Org batch refile simple interactivation  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190911  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -123,6 +123,14 @@
 ;;;; require
 (require 'org)
 ;;;; main function
+;;;;; core libs
+
+(defmacro entropy/org-refile--add-to-list (var value &optional append)
+  `(unless (member ,value ,var)
+     (if ,append
+         (setq ,var (append ,var ,value))
+       (push ,value ,var))))
+
 ;;;;; main micro for tag match refile
 (defmacro entropy/org-full-buffer-tag-match-refile (tag-regexp user-model)
   "The macro of instantiation of tag matched for `org-refile' function."
@@ -191,8 +199,8 @@ This function return the a list of \"'(file head)\"
      ;; cond 1
      ((equal model '(t 1))
       (if (entropy/obr--justify-head-in-file head file)
-          (progn (add-to-list 'model-list head)
-                 (add-to-list 'model-list file))
+          (progn (entropy/org-refile--add-to-list model-list head)
+                 (entropy/org-refile--add-to-list model-list file))
         (error "entropy/obr: user-target-model invalid! model:t 1")))
      ;; cond 2
      ((equal model '(t 2))
@@ -205,8 +213,8 @@ This function return the a list of \"'(file head)\"
               (newline 2)
               (forward-line 0)
               (insert auto-hn))
-            (add-to-list 'model-list head-auto)
-            (add-to-list 'model-list file))
+            (entropy/org-refile--add-to-list model-list head-auto)
+            (entropy/org-refile--add-to-list model-list file))
         (error "entropy/obr: user-target-model invalid! model: t 2")))
      ;; cond 3
      ((equal model '(t 3))
@@ -218,20 +226,20 @@ This function return the a list of \"'(file head)\"
               (newline 2)
               (forward-line 0)
               (insert (concat "* " head)))
-            (add-to-list 'model-list head)
-            (add-to-list 'model-list file))
+            (entropy/org-refile--add-to-list model-list head)
+            (entropy/org-refile--add-to-list model-list file))
         (error "entropy/obr: user-target-model invalid! model: t 3")))
      ;; cond 4
      ((equal model '(nil 2))
       (let ((auto-refile-model-list (entropy/obr--auto-create-refile-file t)))
-        (add-to-list 'model-list (car auto-refile-model-list))
-        (add-to-list 'model-list (nth 1 auto-refile-model-list))))
+        (entropy/org-refile--add-to-list model-list (car auto-refile-model-list))
+        (entropy/org-refile--add-to-list model-list (nth 1 auto-refile-model-list))))
      ;; cond 5
      ((equal model '(nil 3))
       (let ((auto-refile-model-list (entropy/obr--auto-create-refile-file)))
         (if (and head (eq (stringp head) t))
             (progn
-              (add-to-list 'model-list head)
+              (entropy/org-refile--add-to-list model-list head)
               (with-current-buffer (find-file-noselect (nth 1 auto-refile-model-list))
                 (if buffer-read-only (setq buffer-read-only nil))
                 (goto-char (point-max))
@@ -239,7 +247,7 @@ This function return the a list of \"'(file head)\"
                 (forward-line 0)
                 (insert (concat "* " head))))
           (error "entropy/obr: user-target-model invalid! model: nil 3"))
-        (add-to-list 'model-list (nth 1 auto-refile-model-list))))
+        (entropy/org-refile--add-to-list model-list (nth 1 auto-refile-model-list))))
      ;; cond t
      (t (error "entropy/obr: user-target-model invalid! model: \"(cond t)\"")))
     model-list))
@@ -343,7 +351,7 @@ count was 1.
                 (star-char ""))
             (while (<= count hierachy)
               (setq star-char (concat star-char "*"))
-              (+ count 1))
+              (cl-incf count))
             (setq return-head (concat star-char " " head-name))
             return-head))
       (progn
