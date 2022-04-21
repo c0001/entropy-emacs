@@ -799,7 +799,7 @@ which determined by the scale count 0.3 "
 (defun entropy/emacs-tools-dos2unix-internal ()
   "Exchange the buffer end-of-line type to unix sytle."
   (interactive)
-  (entropy/cl-backup-file (buffer-file-name))
+  (entropy/emacs-simple-backup-file (buffer-file-name))
   (revert-buffer-with-coding-system 'dos t)
   (set-buffer-file-coding-system 'unix)
   (if buffer-read-only
@@ -811,7 +811,7 @@ which determined by the scale count 0.3 "
 (defun entropy/emacs-tools-save-buffer-as-utf8-internal (coding-system)
   "Revert a buffer with `CODING-SYSTEM' and save as UTF-8."
   (interactive "zCoding system for visited file (default nil):")
-  (entropy/cl-backup-file (buffer-file-name))
+  (entropy/emacs-simple-backup-file (buffer-file-name))
   (revert-buffer-with-coding-system coding-system)
   (if (yes-or-no-p (format "Does encoding with '%s' display correctly? " coding-system))
       (progn
@@ -827,12 +827,12 @@ which determined by the scale count 0.3 "
   "Exchange the buffer end-of-line type to unix sytle."
   (interactive)
   (if (executable-find "dos2unix")
-      (progn
-        (setq entropy/cl-dos2unix-shell-command
+      (let ((sh-args nil))
+        (setq sh-args
               (concat "dos2unix " (concat " " "\"" buffer-file-name "\"")))
         (unless no-backup
-          (entropy/cl-backup-file (buffer-file-name)))
-        (shell-command entropy/cl-dos2unix-shell-command))
+          (entropy/emacs-simple-backup-file (buffer-file-name)))
+        (shell-command sh-args))
     (message "error: Can't find dos2unix executeble program in your PATH")))
 
 (defun entropy/emacs-tools-save-buffer-as-utf8-external (coding-system)
@@ -859,7 +859,7 @@ which determined by the scale count 0.3 "
                  iconv-cbk)
             (if (yes-or-no-p (format "Do you confirm transfer this file to '%s' ?" "utf-8-unix"))
                 (progn
-                  (entropy/cl-backup-file fname)
+                  (entropy/emacs-simple-backup-file fname)
                   (setq iconv-cbk (shell-command-to-string iconv_cmd))
                   (if (and (file-exists-p trans-file)
                            (equal iconv-cbk ""))

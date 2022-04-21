@@ -244,6 +244,25 @@ display.")
             ))
   "The org ox-* features list")
 
+(defconst entropy/emacs-url-allowed-chars
+  (progn
+    (require 'url-util)
+    (url--allowed-chars
+     (let ((hl url-unreserved-chars))
+       (dolist (el '(37 38 47 58 61 63))
+         (push el hl))
+       hl)))
+  "Allowed chars ': / % & = ?' for url-protocal heads in function
+`url-hexify-string'")
+
+(defconst entropy/emacs-cjk-punc-regexp
+  "[\u3002\uff1b\uff0c\uff1a\u201c\u201d\uff08\uff09\u3001\uff1f\u300a\u300b]"
+  "CJK punctuation regexp presentation")
+
+(defconst entropy/emacs-cjk-char-regexp
+  "[\u4e00-\u9fa5]"
+  "CJK char regexp presentation")
+
 ;; * provide
 (provide 'entropy-emacs-defconst)
 

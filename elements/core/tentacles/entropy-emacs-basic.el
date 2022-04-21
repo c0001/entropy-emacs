@@ -231,7 +231,7 @@ place can be easily found by other interactive command."
         :enable t
         :map-inject t
         :exit t)
-       ("B" entropy/emacs-basic-backup-files "Common Backup"
+       ("B" entropy/emacs-basic-dired-backup-files "Common Backup"
         :enable t
         :map-inject t
         :exit t))
@@ -800,14 +800,12 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 
 ;; ******* Dired backup file
 
-  (defun entropy/emacs-basic-backup-files ()
+  (defun entropy/emacs-basic-dired-backup-files ()
     (interactive)
-    (when (not (fboundp 'entropy/cl-backup-file))
-      (require 'entropy-common-library))
     (let ((files (dired-get-marked-files)))
       (dolist (el files)
         (when (file-exists-p el)
-          (entropy/cl-backup-file el)))
+          (entropy/emacs-simple-backup-file el)))
       (revert-buffer)))
 
 ;; ******* Dired mark special nodes
@@ -3824,10 +3822,8 @@ Filename are \".scratch_entropy\" host in
   "The persist kill ring file used indicator flag file.")
 
 (defun entropy/emacs-basic-kill-ring-persist-backup ()
-  (unless (fboundp 'entropy/cl-backup-file)
-    (require 'entropy-common-library))
   (when (file-exists-p entropy/emacs-kill-ring-persist-file)
-    (entropy/cl-backup-file
+    (entropy/emacs-simple-backup-file
      entropy/emacs-kill-ring-persist-file)))
 
 ;;     From the forum of stackexchange

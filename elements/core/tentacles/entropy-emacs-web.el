@@ -41,7 +41,6 @@
 ;; ** main libraries
 (defun entropy/emacs-web-browse-web-buffer ()
   (interactive)
-  (require 'entropy-common-library-const)
   (let* (url)
     (if (and buffer-file-name
              (file-exists-p buffer-file-name))
@@ -49,7 +48,7 @@
           (setq url
                 (url-hexify-string
                  (concat "file://" buffer-file-name)
-                 entropy/cl-url--allowed-chars))
+                 entropy/emacs-url-allowed-chars))
           (browse-url url)))))
 
 (defun entropy/emacs-web--web-mode-start-hook ()
@@ -376,7 +375,6 @@ server not actived and open the impatient url
 \"http://localhost:8080/imp/\" with file-name of current buffer
 if current file was html file."
     (interactive)
-    (require 'entropy-common-library)
     (require 'impatient-mode)
     (let* ((buffer_n (buffer-name (current-buffer))))
       (cond
@@ -392,7 +390,7 @@ if current file was html file."
           (imp-visit-buffer))))))
   :init (setq impatient-mode-delayed-update nil)
   :config
-  (advice-add 'impatient-mode :before 'entropy/cl-sn-buffer-p)
+
   (defun imp-visit-buffer (&optional arg)
     "Visit the current buffer in a browser.
 If given a prefix argument, visit the buffer listing instead.

@@ -710,11 +710,10 @@ unwanted space when exporting org-mode to html."
     "Function embeded into `org-file-apps', used for
 `entropy/emacs-org--hexpt-advice' to open html file using
 `entropy/emacs-browse-url-function'."
-    (require 'entropy-common-library-const)
     (if link
         (if (yes-or-no-p "Open html file with entropy/emacs-browse-url-function ? ")
             (funcall entropy/emacs-browse-url-function
-                     (concat "file:///" (url-hexify-string link entropy/cl-url--allowed-chars)))
+                     (concat "file:///" (url-hexify-string link entropy/emacs-url-allowed-chars)))
           (org-open-file path 'system))
       (error "Invalid link!")))
 
@@ -1778,7 +1777,6 @@ source images file existed status checking.
 NOTE:
 
 Now just supply localization image file analyzing."
-  (require 'entropy-common-library)
   (require 'entropy-org-widget)
   (let ((link-objs (entropy/ow-get-buffer-links (find-file-noselect org-file)))
         links_temp links
@@ -1796,7 +1794,7 @@ Now just supply localization image file analyzing."
               (let ((default-directory base-dir))
                 (push (expand-file-name non-abbrev) links)))
              (t
-              (unless (entropy/cl-check-filename-whether-illegal non-abbrev t)
+              (when (entropy/emacs-filesystem-node-name-legal-p non-abbrev)
                 (push non-abbrev links))))))))
     links))
 

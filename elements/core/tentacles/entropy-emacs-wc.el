@@ -488,7 +488,7 @@ the sake of obeying its rules.
 ;; ***** Batch create eyerbrowse window configs
   (defun entropy/emacs-basic-eyebrowse-create-workspaces (&optional ws-list $confirm)
     "Batch create eyebrowse workspace with name input prompt
-powered by `entropy/cl-repeated-read'.
+powered by `entropy/emacs-read-string-repeatedly'.
 
 You can insert optional arg WS-LIST for do it within lisp
 programming code. WS-LIST was list with string elements like:
@@ -498,7 +498,6 @@ programming code. WS-LIST was list with string elements like:
 The second optional arg $confirm will trigger the process
 confirmation when sets it to 't'."
     (interactive)
-    (require 'entropy-common-library)
     (when $confirm
       (unless (yes-or-no-p "Do you want to clean all workspace and buiding new workspaces? ")
         (error "Canceld rebuild workspaces.")))
@@ -506,7 +505,7 @@ confirmation when sets it to 't'."
     (let ((current-slot (eyebrowse--get 'current-slot ))
           (ws (if ws-list
                   ws-list
-                (entropy/cl-repeated-read "work-space name"))))
+                (entropy/emacs-read-string-repeatedly "work-space name"))))
       (dolist (el ws)
         (if (equal 1 current-slot)
             (progn
@@ -551,7 +550,7 @@ This was the one action in `ivy-read'."
           (push x entropy/emacs-basic--eyebrowse-config-selected))
       (let ((prompt (entropy/emacs-basic--eyebrowse-read-prompt)))
         (setf (ivy-state-prompt ivy-last) prompt)
-        (setq ivy--prompt (concat "(%d/%d) " prompt)))
+        (setq ivy--prompt (concat ivy-count-format " " prompt)))
       (cond
        ((memq this-command '(ivy-done
                              ivy-alt-done
@@ -564,7 +563,6 @@ This was the one action in `ivy-read'."
   (defun entropy/emacs-basic-eyebrowse-delete-workspace ()
     "Delete eyebrowse workspace with prompt."
     (interactive)
-    (require 'entropy-common-library)
     (require 'ivy)
     (setq entropy/emacs-basic--eyebrowse-config-selected nil)
     (let* ((wcon (eyebrowse--get 'window-configs))

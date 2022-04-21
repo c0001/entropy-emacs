@@ -150,8 +150,7 @@
   (advice-add 'elfeed :around #'__ya/elfeed)
 
   (defun entropy/emacs-rss--elfeed-url-hexify (url)
-    (require 'entropy-common-library-const)
-    (url-hexify-string url entropy/cl-url--allowed-chars))
+    (url-hexify-string url entropy/emacs-url-allowed-chars))
 
   (defun entropy/emacs-rss--elfeed-search-update ()
     (elfeed-search-update--force))
@@ -771,11 +770,10 @@ selecting existing tag or input the new one instead."
 
   (defun entropy/emacs-rss--elfeed-remove-read-action (x)
     "Repeatedly read action for removing feeds of `elfeed-feeds',
-powered by `entropy/cl-ivy-read-repeatedly-function'."
-    (require 'entropy-common-library)
+powered by `entropy/emacs-ivy-read-repeatedly-function'."
     (let ((temp (cdr x)))
       (setq x temp))
-    (entropy/cl-ivy-read-repeatedly-function
+    (entropy/emacs-ivy-read-repeatedly-function
      x 'entropy/emacs-rss--elfeed-feed-remove-list
      "Removing:"
      #'entropy/emacs-rss--elfeed-get-feed-title-name-by-feed-url))
@@ -812,7 +810,7 @@ This function will remove 'as entry' both in `elfeed-db' and
 `elfeed-feeds' and `entropy/emacs-elfeed-feeds' which is also
 will automatically be modified in `custom-file'."
     (interactive)
-    (let* ((regexp (entropy/cl-repeated-read "Input regexp"))
+    (let* ((regexp (entropy/emacs-read-string-repeatedly "Input regexp"))
            (feeds (elfeed-feed-list))
            mlist
            (rtn feeds))
@@ -834,13 +832,12 @@ will automatically be modified in `custom-file'."
 
   (defun entropy/emacs-rss--elfeed-update-read-action (x)
     "Repeatly read action for updating feeds of `elfeed-feeds',
-powered by `entropy/cl-ivy-read-repeatedly-function'."
-    (require 'entropy-common-library)
+powered by `entropy/emacs-ivy-read-repeatedly-function'."
     (cond ((stringp x)
            (user-error "Please choose one  matched canidate!"))
           ((consp x)
            (setq x (cdr x))
-           (entropy/cl-ivy-read-repeatedly-function
+           (entropy/emacs-ivy-read-repeatedly-function
             x 'entropy/emacs-rss--elfeed-multi-update-feeds-list
             "Updating: "
             #'entropy/emacs-rss--elfeed-get-feed-title-name-by-feed-url))))

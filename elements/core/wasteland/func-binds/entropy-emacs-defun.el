@@ -650,6 +650,12 @@ otherwise."
 
 ;; *** File and directory manipulation
 
+(defun entropy/emacs-filesystem-node-name-legal-p (filesystem-node-name-maybe)
+  "Return non-nil when a user spec filesystem node name
+FILESYSTEM-NODE-NAME-MAYBE is legal in current platform."
+  (let ((absname (expand-file-name filesystem-node-name-maybe)))
+    (file-name-absolute-p absname)))
+
 (defun entropy/emacs-filesystem-node-exists-p (file-or-dir-name &optional file-attributes)
   "Like `file-exists-p' but apply all FILE-OR-DIR-NAME's file system node
 type e.g. a broken symbolink is also treat as existed.
@@ -2794,6 +2800,48 @@ to handle the operation.)"
         cur-hash
       rtn)))
 
+(defun entropy/emacs-simple-backup-file (file-path)
+  "Backup file or directory FILE-PATH with named it by the form of
+\"{file-name-base}.backup_20180713_Fri_21-28-20.{file-extension-name}\"
+which use `file-name-base' to generate '{file-name-base}' and use
+`file-name-extension' to generate '{file-extension-name}'.
+
+If the generated backup name exists in filesystem then add a
+random suffix before the '{file-extension-name}'.
+
+Notice there's no backup naming regexp convention guarantee! "
+  (if (and (stringp file-path)
+           (file-exists-p file-path))
+      (let* ((file-name
+              (if (file-directory-p file-path)
+                  (directory-file-name file-path)
+                file-path))
+             (host-path (file-name-directory file-name))
+             (backup-name
+              (let ((rtn
+                     (concat
+                      (expand-file-name (file-name-base file-name) host-path)
+                      ".backup_"
+                      (format-time-string "%Y%m%d_%a_%H-%M-%S"))))
+                (while (file-exists-p rtn)
+                  (setq rtn
+                        (format "%s_(random_suffix_%s)" rtn
+                                (random most-positive-fixnum))))
+                (concat rtn "." (file-name-extension file-name))))
+             (file-base (file-name-nondirectory file-name))
+             (backup-base
+              (file-name-nondirectory backup-name)))
+        (when (file-exists-p backup-name)
+          (error "[internal error] The backup file name has duplicated in host location '%s'"
+                 host-path))
+        (if (file-directory-p file-path)
+            (copy-directory file-path backup-name nil nil t)
+          (copy-file file-path backup-name))
+        (message (format "Backup '%1$s' to '%2$s'" file-base backup-base)))
+    (user-error
+     (format "File or directory '%s' doesn't exists, thus can no be backuped!"
+             file-path))))
+
 ;; *** Process manipulation
 
 (defun entropy/emacs-process-exit-with-fatal-p
@@ -4421,6 +4469,111 @@ object which can be used for `eval'."
                       "-Q" "-l" ,proc-eval-form-file)
            :sentinel nil))
     proc))
+
+;; *** Read framework
+;; **** read string enhanced
+(defun entropy/emacs-read-string-repeatedly
+    (prompt &optional initial-input history default-value inherit-input-method)
+  "Like `read-string' but repeatly read while current input is not
+predicated by `string-empty-p'.
+
+Return as `read-string' when just one non-empty input or a list
+of thus which ordered as input order."
+  (let* ((this-read-str "__init__")
+         (input-prompt (or prompt "Read repeat"))
+         this-prompt
+         rtn)
+    (while (not (string-empty-p this-read-str))
+      (if rtn
+          (setq this-prompt
+                (format (concat input-prompt " (%s): ")
+                        (mapconcat #'identity (reverse rtn) ",")))
+        (setq this-prompt (format "%s: " input-prompt)))
+      (setq this-read-str
+            (read-string this-prompt
+                         initial-input history default-value inherit-input-method))
+
+      (unless (string-empty-p this-read-str)
+        (push this-read-str rtn)))
+    (if (> (length rtn) 1)
+        (reverse rtn)
+      (if rtn
+          (car rtn)
+        this-read-str))))
+
+;; **** ivy multiread framework
+
+(defvar ivy--prompt)
+(declare-function ivy-state-prompt "ext:ivy")
+(defun entropy/emacs-ivy-read-repeatedly-function
+    (read candidates-recorder-symbol prompt-abbrev &optional selected-shorten-function)
+  "Common repeatedly read core component used for building `ivy-read''s ':action' function.
+
+Arguments:
+
+- READ: the current chosen entry, commonly derived by the
+  ':action' function's first argument
+
+- CANDIDATES-RECORDER-SYMBOL: chosen stored list, it's a
+  symbol-name
+
+- PROMPT-ABBREV: abbrevation of prompt for repeatedly chosen
+  entry action prompt, suggested for keep consist with initial
+  promot.
+
+- SELECTED-SHORTEN-FUNCTION: function for shorten candidates's
+  display, accept only one argument i.e. the READ.
+"
+
+  (when (and (not (member read (symbol-value candidates-recorder-symbol)))
+             (not (string= "" read)))
+    (push read (symbol-value candidates-recorder-symbol)))
+  (let ((prompt (entropy/emacs--ivy-read-repeatedly-prompt-expand
+                 prompt-abbrev candidates-recorder-symbol selected-shorten-function)))
+    (setf (ivy-state-prompt ivy-last) prompt)
+    (setq ivy--prompt (concat ivy-count-format " " prompt)))
+  (cond
+   ((eq this-command 'ivy-call)
+    (with-selected-window (active-minibuffer-window)
+      (delete-minibuffer-contents)))
+   (t
+    t)))
+
+(defun entropy/emacs--ivy-read-repeatedly-prompt-expand
+    (prompt-abbrev candidates-recorder-symbol &optional shorten-function)
+  "Make incremented prompt string for function
+`entropy/emacs-ivy-read-repeatedly-function', you can see the
+details of arguments description on its function docstring."
+  (format
+   (concat prompt-abbrev " (%s) : ")
+   (let ((candis-list (symbol-value candidates-recorder-symbol))
+         mlist
+         rtn)
+     (dolist (candi-str candis-list)
+       (let (decorated-candi-str)
+         (unless (stringp candi-str)
+           (cond
+            ((symbolp candi-str)
+             (setq candi-str (symbol-name candi-str)))
+            (t
+             (error
+              "Just symbol and string type supported for candidates-recoreded (%s)."
+              candi-str))))
+         (setq decorated-candi-str
+               (if shorten-function
+                   (funcall shorten-function candi-str)
+                 candi-str))
+         (push decorated-candi-str mlist)))
+     (setq rtn
+           (let ((final-prompt-str ""))
+             (dolist (el mlist)
+               (setq final-prompt-str
+                     (concat final-prompt-str
+                             (if (string-empty-p el)
+                                 ""
+                               (concat el "☑; ")))))
+             final-prompt-str))
+     rtn)))
 
 ;; ** eemacs specifications
 ;; *** Individuals
