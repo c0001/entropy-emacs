@@ -1,4 +1,4 @@
-;;; entropy-dired-cp-or-mv.el --- Simple cross window cp or mv for emacs dired
+;;; entropy-dired-cp-or-mv.el --- Simple cross window cp or mv for emacs dired  -*- lexical-binding: t; -*-
 ;;
 ;;; Copyright (C) 20190911  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -11,21 +11,21 @@
 ;; Keywords:      dired, copy
 ;; Compatibility: GNU Emacs 24;
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;; #+END_EXAMPLE
-;; 
+;;
 ;;; Commentary:
 ;;
 ;;;; Preamble
@@ -61,7 +61,7 @@
 ;;     :load-path "path-to-your-local-dir"
 ;;     :commands (entropy/cpmv-dired-get-files-list
 ;;                entropy/cpmv-to-current))
-;; #+END_SRC   
+;; #+END_SRC
 ;;
 ;;;; Interaction
 ;;
@@ -70,8 +70,8 @@
 ;;   Getting the source marked files list preparing for copy or moving to
 ;;   another directory.
 ;;
-;; - *Function:* ~entropy/cpmv-to-current~ 
-;;   
+;; - *Function:* ~entropy/cpmv-to-current~
+;;
 ;;   Copy or moving files whose entries info stored in
 ;;   =entropy/cpmv--marked-files-list= to current dired buffer (the
 ;;   target dired buffer distinguished with the oringin one pointed by
@@ -91,7 +91,7 @@
 ;;
 ;; There's no need to get any customized configuration, all the function
 ;; are self-embedded tied.
-;; 
+;;
 ;;; Code:
 ;;;; require
 
@@ -158,21 +158,22 @@ Be sure in mind that data was the most core of your life!
 ;;;; function
 ;;;;; library
 ;;;;;; tools function
+
+(defmacro entropy/cpmv--add-to-list (var value &optional append)
+  `(unless (member ,value ,var)
+       (if ,append
+           (setq ,var
+                 (append ,var (list ,value)))
+         (push ,value ,var))))
+
+(defmacro entropy/cpmv--reverse-list (var)
+  `(setq ,var
+         (reverse ,var)))
+
 (defun entropy/cpmv--clean-variable ()
   "Clean all the cpmv about variable."
   (setq entropy/cpmv--marked-files-list nil)
   (setq entropy/cpmv--source-buffer-name nil))
-
-(defun entropy/cpmv--reverse (list-symbol)
-  "Reverse order the sequence of list.
-
-Because each elements of one list which be handled by `dolist' to the new list container will have
-the opposite vector direction as the origin one. For this situation, this function to done with what
-your wanted."
-  (let (return-list)
-    (dolist (el (symbol-value list-symbol))
-      (add-to-list 'return-list el))
-    (set list-symbol return-list)))
 
 (defun entropy/cpmv--make-files-list (in &optional out)
   "Accroding to the file type to make one list consisted like the
@@ -185,45 +186,71 @@ Argument description:
 
 - in: necessary arg of the file-list by dired mark function
   `dired-get-marked-files'.
-  
+
   This is the list type arg.
 
 
-- out: One symbol of output list variable. 
+- out: One symbol of output list variable.
 
 This is one internal function for `entropy/cpmv-dired-get-files-list'
 "
   (let (temp rlist)
     (dolist (el in)
       (if (file-directory-p el)
-          (progn
-            (add-to-list 'temp el)
-            (add-to-list 'temp 1))
-        (progn
-          (add-to-list 'temp el)
-          (add-to-list 'temp 0)))
-      (add-to-list 'rlist temp)
+          (setq temp (list 1 el))
+        (setq temp (list 0 el)))
+      (entropy/cpmv--add-to-list rlist temp)
       (setq temp nil))
-    (entropy/cpmv--reverse 'rlist)
+    (entropy/cpmv--reverse-list rlist)
     (if out
         (set out rlist)
       rlist)))
-
 
 (defun entropy/cpmv--judgement-duplicated-files (in)
   "Judged whether file in file-list which produced by
 `entropy/cpmv--make-files-list' has been in current location.
 
 This function used by `entropy/cpmv-to-current'"
-  (let ((judge 0)
-        (rv nil))
-    (dolist (el in)
-      (let ((f-o-d (nth 1 el)))
-        (if (file-exists-p (concat (dired-current-directory) (file-name-nondirectory f-o-d)))
-            (setq judge 1))))
-    (if (> judge 0)
-        (setq rv t))
+  (let ((rv nil))
+    (catch :exit
+      (dolist (el in)
+        (let ((f-o-d (nth 1 el)))
+          (when (file-exists-p (expand-file-name
+                                (file-name-nondirectory f-o-d)
+                                (dired-current-directory)))
+            (setq rv t)
+            (throw :exit t)))))
     rv))
+
+(defun entropy/cpmv--copy-file (src dest)
+  (cond
+   ((and (file-symlink-p src)
+         ;; tramp test
+         (let ((src-remote (file-remote-p src))
+               (dest-remote (file-remote-p dest)))
+           (if (or src-remote dest-remote)
+               ;; if both src and dest at same machine, we can make symlink to as.
+               (equal src-remote dest-remote)
+             ;; both src and dest is locally
+             t)))
+    (let ((src-link-target (file-truename src)))
+      (make-symbolic-link src-link-target dest)))
+   ((file-directory-p src)
+    (copy-directory src dest t))
+   (t
+    (copy-file src dest nil t))))
+
+(defun entropy/cpmv--delete-file (file)
+  (cond
+   ((file-symlink-p file)
+    (delete-file file t)
+    (message "delete symlink '%s' done" file))
+   ((file-directory-p file)
+    (delete-directory file t t)
+    (message "delete directory '%s' done" file))
+   (t
+    (delete-file file t)
+    (message "delete file '%s' done" file))))
 
 ;;;;;; print function
 
@@ -246,12 +273,12 @@ This function used by `entropy/cpmv-to-current'"
 ;; |                                          |
 ;; |                                          |
 ;; +------------------------------------------+
-       
+
 ;; The concept for print marked file-list could be generally divided into two partition:
-       
+
 ;; - Detailed file-list for let it contained the serial number for each entry.
 ;; - Color each entry according to it's file-type that file or directory.
-       
+
 ;; For print entry with serial number, we should calculate the sum of marked files and then arrange
 ;; them into the sequence which will also align them by adding the proper amount of '0'. And this
 ;; process was rely on the `entropy/cpmv--justify-count-visual'
@@ -292,17 +319,14 @@ This function used by `entropy/cpmv-to-current'"
         topc
         flist slist tlist clist plist)
     ;; calculate topc
-    (setq count 0)
-    (dolist (el file-list)
-      (setq count (+ count 1)))
-    (setq topc count)
+    (setq topc (length file-list))
 
     ;; flist
     (setq count 0)
     (dolist (el file-list)
       (setq count (+ count 1))
-      (add-to-list 'flist `(,count ,(car el) ,(nth 1 el))))
-    (entropy/cpmv--reverse 'flist)
+      (entropy/cpmv--add-to-list flist `(,count ,(car el) ,(nth 1 el))))
+    (entropy/cpmv--reverse-list flist)
 
     ;; slist
     (dolist (el flist)
@@ -310,8 +334,8 @@ This function used by `entropy/cpmv-to-current'"
             (type (nth 1 el))
             (fname (nth 2 el)))
         (setq ns (entropy/cpmv--justify-count-visual topc ns))
-        (add-to-list 'slist `(,ns ,type ,fname))))
-    (entropy/cpmv--reverse 'slist)
+        (entropy/cpmv--add-to-list slist `(,ns ,type ,fname))))
+    (entropy/cpmv--reverse-list slist)
 
     ;; tlist
     (dolist (el slist)
@@ -321,28 +345,28 @@ This function used by `entropy/cpmv-to-current'"
         (if (equal type 0)
             (setq type "file")
           (setq type "dir"))
-        (add-to-list 'tlist `(,ns ,type ,fname))))
-    (entropy/cpmv--reverse 'tlist)
+        (entropy/cpmv--add-to-list tlist `(,ns ,type ,fname))))
+    (entropy/cpmv--reverse-list tlist)
 
     ;; concat elements of tlist to strings
     (dolist (el tlist)
       (let ((ns (car el))
             (type (nth 1 el))
             (fname (nth 2 el)))
-        (add-to-list 'clist `(,type ,(concat ns 
+        (entropy/cpmv--add-to-list clist `(,type ,(concat ns
                                       (if (equal type "dir")
                                           "--"
                                         "-")
                                       type ": "
                                       fname)))))
-    (entropy/cpmv--reverse 'clist)
+    (entropy/cpmv--reverse-list clist)
 
     ;; make highlight string list
     (dolist (el clist)
       (let ((type (car el))
             (fname (nth 1 el)))
-        (add-to-list 'plist (entropy/cpmv--highlight-line fname type))))
-    (entropy/cpmv--reverse 'plist)
+        (entropy/cpmv--add-to-list plist (entropy/cpmv--highlight-line fname type))))
+    (entropy/cpmv--reverse-list plist)
 
     ;; insert them to buffer
     (let ((buffer "*entropy/cpmv-prompt-buffer*"))
@@ -388,12 +412,6 @@ This function used by `entropy/cpmv-to-current'"
      (t (error "Invalid file-type.")))
     ret))
 
-(defun entropy/cpmv--judge-file-type (file-name)
-  "Judgingt the file-type of 'file-name'."
-  (if (file-directory-p file-name)
-      1
-    0))
-
 (defun entropy/cpmv--justify-count-visual (topc int)
   "Return the string form of visual INT counts which improved by adding the align character '0' for
   the sequence of `prin1'
@@ -427,8 +445,7 @@ This function was one recursive function.
 "
   (if (< int 10)
       1
-    (let (result
-          (n-int (/ int 10))
+    (let ((n-int (/ int 10))
           cur)
       (setq cur (+ (entropy/cpmv--return-count-type n-int) 1))
       cur)))
@@ -442,7 +459,6 @@ checked buffer showing"
   (interactive)
   (let ((rl (dired-get-marked-files))
         (buf (buffer-name))
-        (count 0)
         (wc (current-window-configuration)))
     (if rl
         ;; checkout no . or .. folder contained
@@ -484,7 +500,7 @@ checked buffer showing"
           ;;   In this case, selected files contained target dir, which will cause func logical error
           ;; - target dir has duplicate files which equal selected files from origin dir.
 
-          
+
           ;; Judge whether in source dir
           (if (string= entropy/cpmv--source-buffer-name (buffer-name))
               (progn
@@ -512,8 +528,7 @@ checked buffer showing"
         ;; ========== Do cpmv operation ==========
         (let (;; Prompt for user to choose copy or mv source marked.
               (option (completing-read "Choose cp or mv: " '("mv" "cp") nil t))
-              (wc (current-window-configuration))
-              (count 0))
+              (wc (current-window-configuration)))
 
           ;; Render re-checkout prompt buffer and try to obtain the user confirmation.
           (entropy/cpmv--print entropy/cpmv--marked-files-list entropy/cpmv--target-info)
@@ -528,9 +543,7 @@ checked buffer showing"
           ;; Copy file
           (message "Coping files ...... ")
           (dolist (el entropy/cpmv--marked-files-list)
-            (if (equal (car el) 0)
-                (copy-file (nth 1 el) (dired-current-directory))
-              (copy-directory (nth 1 el) (dired-current-directory))))
+            (entropy/cpmv--copy-file (nth 1 el) (dired-current-directory)))
 
           ;; If choose 'mv' operation then prompt whether delete source file interactively.
           (if (string= option "mv")
@@ -538,9 +551,7 @@ checked buffer showing"
                   (progn
                     (message "Deleting files ......")
                     (dolist (el entropy/cpmv--marked-files-list)
-                      (if (equal (car el) 0)
-                          (delete-file (nth 1 el) t)
-                        (delete-directory (nth 1 el) t t))))
+                      (entropy/cpmv--delete-file (nth 1 el))))
                 (message "Origin files remained.")))
 
           ;; Prompt finishing operation
@@ -549,7 +560,7 @@ checked buffer showing"
             (message "Copy files done!"))
            ((string= "mv" option)
             (message "Move files done!"))))
-        
+
         ;; ========== refresh dired displaying ==========
         ;; judge whether origin source dired buffer exist, if t then revert it for presentting
         ;; latest state after cp-or-mv operation
@@ -565,7 +576,7 @@ checked buffer showing"
         ;; Revert target dired buffer and clean func internal variable.
         (entropy/cpmv--clean-variable)
         (revert-buffer nil t))
-    
+
     (progn
       (entropy/cpmv--clean-variable)
       (error "Do entropy/cpmv failure!")))
