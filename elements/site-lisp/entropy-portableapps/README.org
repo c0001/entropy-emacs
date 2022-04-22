@@ -12,12 +12,11 @@ using without any localization configuration pollution. This package
 was the simple portableapps management both of query and open frontend
 interface written by emacs lisp.
 
-* Requirements 
+* Requirements
 
-Depended on =entropy-common-library= as various other entropy emacs
-extensions.
+emcss 25
 
-* Installation 
+* Installation
 
 The =use-package= configuration form:
 
@@ -96,5 +95,4 @@ variable =entropy/poapps-root= to specified as the portabaleapps root
 directory.
 
 Another one was =entropy/poapps-exclude-list= to give the treatment
-for some no need binaries. 
-
+for some no need binaries.

@@ -8,7 +8,7 @@
 ;; Package-Version: 0.1.0
 ;; Created:       2018
 ;; Compatibility: GNU Emacs 25;
-;; Package-Requires: ((emacs "25") (cl-lib "0.5") (entropy-common-library "0.1.0"))
+;; Package-Requires: ((emacs "25") (cl-lib "0.5"))
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,8 +33,7 @@
 ;;
 ;;;; Requirements
 ;;
-;; Depended on =entropy-common-library= as various other entropy emacs
-;; extensions.
+;; emacs 25
 ;;
 ;;;; Installation
 ;;
@@ -120,7 +119,7 @@
 ;;
 ;;; Code:
 
-(require 'entropy-common-library)
+(declare-function w32-shell-execute "w32fns")
 
 (defgroup entropy-portableapps-group nil
   "Customized group for `entropy-portableapps'"
@@ -140,13 +139,95 @@ package."
                  (const nil))
   :group 'entropy-portableapps-group)
 
+(defun entropy/poapps--list-dir-lite (dir-root &optional not-abs)
+  "Return an alist of fsystem nodes as:
+
+#+begin_src elisp
+'((dir . \"a-dir\")
+  (file . \"a.txt\"))
+#+end_src
+
+where the car of each elements is the node type with follow symols to
+indicate that:
+
+- 'file': the node is an file (or an symbolic to an regular file)
+- 'dir':  the node is an directory (or an symbolic to an directory)
+
+The node sort ordered by `string-lessp'
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT.
+"
+  (let (rtn-full rtn-lite rtn-attr)
+    (setq rtn-full (directory-files dir-root (not not-abs)))
+    (dolist (el rtn-full)
+      ;; filter the . and ..
+      (if (not (string-match-p "\\(\\\\\\|/\\)?\\(\\.\\|\\.\\.\\)$" el))
+          (push el rtn-lite)))
+    (if rtn-lite
+        (progn
+          (dolist (el rtn-lite)
+            (if (file-directory-p (expand-file-name el dir-root))
+                (push `(dir . ,el) rtn-attr)
+              (push `(file . ,el) rtn-attr)))
+          rtn-attr)
+      nil)))
+
+(defun entropy/poapps--list-dir-subdirs (dir-root &optional not-abs)
+  "List subdir of root dir DIR-ROOT, ordered by `string-lessp'.
+
+If optional arg NOT-ABS is non-nil then each node is relative to
+the DIR-ROOT."
+  (let ((dirlist (entropy/poapps--list-dir-lite dir-root not-abs))
+        (rtn nil))
+    (if dirlist
+        (progn
+          (dolist (el dirlist)
+            (if (eq 'dir (car el))
+                (push (cdr el) rtn)))
+          (if rtn
+              (reverse rtn)
+            nil))
+      nil)))
+
+(defun entropy/poapps--make-name-alist (olist &optional naming-func)
+  "Make a named alist from a list OLIST.
+
+The named alist is a alist which each car of the element is a
+specified name object which defaultly is a unique order number for
+current position of OLIST if optional NAMING-FUNC was unset.
+
+Optional argument NAMEING-FUNC is a function provided by youself
+which has the single argument to accepting one extracted element
+of OLIST and return the name object of current element.
+
+Demo:
+
+If OLIST is (1 2 3 4 5), NAMING-FUNC is '(lambda (x) (+ 1 x))
+then retun name-alist:
+
+((2 . 1) (3. 2) (4. 3) (5. 4) (6. 5))
+"
+  (let* (rtn
+         (count -1))
+    (dolist (el olist)
+      (push `(,(if (functionp naming-func)
+                   (funcall naming-func el)
+                 (cl-incf count))
+              .
+              ,el)
+            rtn))
+    (if rtn
+        (reverse rtn)
+      (error "[entropy/poapps--make-name-alist]: error occurred"))))
+
 (defun entropy/poapps-list-apps ()
   "List portable apps under folder `entropy/poapps-root'."
-  (let ((dir (entropy/cl-list-dir-subdirs entropy/poapps-root))
+  (let ((dirs (entropy/poapps--list-dir-subdirs entropy/poapps-root))
         Apps)
-    (if (not dir) (error (format "None apps in '%s'" entropy/poapps-root)))
-    (dolist (el0 dir)
-      (let ((sub (entropy/cl-list-dir-lite el0)))
+    (if (not dirs) (error (format "None apps in '%s'" entropy/poapps-root)))
+    (dolist (el0 dirs)
+      (let ((sub (entropy/poapps--list-dir-lite el0)))
         (when sub
           (dolist (el1 sub)
             (if (string-match-p "\\(\\.exe\\|\\.bat\\)$" (cdr el1))
@@ -155,10 +236,10 @@ package."
 
 (defun entropy/poapps-make-name-alist ()
   "Make name alist for apps vector, relying on function
-`entropy/cl-make-name-alist'."
+`entropy/poapps--make-name-alist'."
   (let* ((olist (entropy/poapps-list-apps))
          (nfunc '(lambda (x) (file-name-nondirectory x)))
-         (teml (entropy/cl-make-name-alist olist nfunc))
+         (teml (entropy/poapps--make-name-alist olist nfunc))
          (rtn teml))
     (if entropy/poapps-exclude-list
         (dolist (el entropy/poapps-exclude-list)

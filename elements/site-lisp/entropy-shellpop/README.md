@@ -34,7 +34,7 @@
     Created:       2019-08-29
     Keywords:      shell-pop, shell
     Compatibility: GNU Emacs emacs-version 26.1;
-    Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3") (vterm "0.0.1"))
+    Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (vterm "0.0.1"))
 
 
 <a id="orgfe907a6"></a>

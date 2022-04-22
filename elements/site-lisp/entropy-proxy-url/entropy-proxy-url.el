@@ -242,7 +242,6 @@
 
 (require 'cl-lib)
 (require 'eww)
-(require 'entropy-common-library)
 (require 'entropy-adblock+-rule-analysis)
 
 (declare-function url-retrieve-internal 'url)

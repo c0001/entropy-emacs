@@ -23,7 +23,7 @@
 ;; Created:       2019-08-29
 ;; Keywords:      shell-pop, shell
 ;; Compatibility: GNU Emacs emacs-version 26.1;
-;; Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (entropy-common-library "0.1.3") (vterm "0.0.1"))
+;; Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (vterm "0.0.1"))
 ;; #+END_EXAMPLE
 ;;
 ;;; Commentary:
@@ -275,7 +275,6 @@
 ;;;; require
 (require 'cl-lib)
 (require 'shackle)
-(require 'entropy-common-library)
 
 (declare-function vterm-mode "vterm")
 (declare-function vterm-send-string "vterm")
@@ -406,6 +405,62 @@ Slot description:
 shellpop type")
 
 ;;;; library
+
+;;;;; common libs
+
+(defun entropy/shellpop--make-name-alist (olist &optional naming-func)
+  "Make a named alist from a list OLIST.
+
+The named alist is a alist which each car of the element is a
+specified name object which defaultly is a unique order number for
+current position of OLIST if optional NAMING-FUNC was unset.
+
+Optional argument NAMEING-FUNC is a function provided by youself
+which has the single argument to accepting one extracted element
+of OLIST and return the name object of current element.
+
+Demo:
+
+If OLIST is (1 2 3 4 5), NAMING-FUNC is '(lambda (x) (+ 1 x))
+then retun name-alist:
+
+((2 . 1) (3. 2) (4. 3) (5. 4) (6. 5))
+"
+  (let* (rtn
+         (count -1))
+    (dolist (el olist)
+      (push `(,(if (functionp naming-func)
+                   (funcall naming-func el)
+                 (cl-incf count))
+              .
+              ,el)
+            rtn))
+    (if rtn
+        (reverse rtn)
+      (error "[entropy/shellpop--make-name-alist]: occur wrong"))))
+
+(defun entropy/shellpop--plist-get-rest (plist-var key)
+  "Get the whole plist PLIST-VAR values-seq after the key KEY and
+return them into list ordered as original case."
+  (let (nth-key nth-rest-tail (count 0) rtn)
+    (catch :exit
+      (dolist (el plist-var)
+        (when (eq el key)
+          (setq nth-key count)
+          (throw :exit nil))
+        (cl-incf count)))
+    (catch :exit
+      (cl-loop for pos from (+ nth-key 1) to (- (length plist-var) 1)
+               when (and (symbolp (nth pos plist-var))
+                         (string-match-p "^:" (symbol-name (nth pos plist-var))))
+               do (progn (setq nth-rest-tail (- pos 1))
+                         (throw :exit nil))))
+    (unless (integerp nth-rest-tail)
+      (setq nth-rest-tail (- (length plist-var) 1)))
+    (cl-loop for pos from (+ 1 nth-key) to nth-rest-tail
+             do (push (nth pos plist-var) rtn))
+    (reverse rtn)))
+
 ;;;;; specific delete window function
 
 (defun entropy/shellpop--delete-window (window)
@@ -675,7 +730,7 @@ for current maximized pop-shell."))))))
 
 ;;;;; index overview
 (defun entropy/shellpop--make-prompt (shellpop-type-register-index)
-  (let* ((name-list (entropy/cl-make-name-alist
+  (let* ((name-list (entropy/shellpop--make-name-alist
                      shellpop-type-register-index
                      (lambda (x) (concat (number-to-string (car x))
                                          ": "
@@ -694,7 +749,7 @@ for current maximized pop-shell."))))))
          (type-size (plist-get shellpop-type :shackle-size))
          (type-align (plist-get shellpop-type :shackle-align))
          (type-bind (plist-get shellpop-type :type-keybind))
-         (type-body (entropy/cl-plist-get-rest shellpop-type :type-body))
+         (type-body (entropy/shellpop--plist-get-rest shellpop-type :type-body))
          (buffern-regexp (entropy/shellpop--gen-buffn-regexp type-name)))
     (list
      `(defun ,(intern func-name-core) (&optional index)

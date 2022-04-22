@@ -5,7 +5,7 @@
 ;; Author:        Entropy <bmsac0001@gmail.com>
 ;; Maintainer:    Entropy <bmsac001@gmail.com>
 ;; URL:           https://github.com/c0001/entropy-open-with/blob/master/entropy-open-with.el
-;; Package-Requires: ((entropy-common-library "0.1.0"))
+;; Package-Requires: ((emacs "25"))
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -236,7 +236,32 @@
 ;; More details see below function definition.
 ;;
 ;;; Code:
-(require 'entropy-common-library)
+
+(defun entropy/openwith--strict-plistp (arg)
+  "Strict plist true-p checker.
+
+The strict plist structed as key-value pairs appended list, the
+car of it was key, each key was a symbol must using the ':xx'
+type. Each key's value was grouped that say the key's 2-step
+after place must be key as well, thus the 'strict' meaning."
+  (cond
+   ((not (listp arg))
+    nil)
+   ((and (listp arg)
+         (= (/ (length arg) 2.0) (/ (length arg) 2)))
+    (let (rtn)
+      (cl-loop for item from 0 to (- (/ (length arg) 2) 1)
+               do (unless (and (symbolp (nth (* item 2) arg))
+                               ;; using `string-match-p' prevent match
+                               ;; history messy
+                               (string-match-p
+                                "^:"
+                                (symbol-name (nth (* item 2) arg))))
+                    (setq rtn t)))
+      (unless rtn
+        t)))
+   (t
+    nil)))
 
 (declare-function w32-shell-execute "w32fns")
 
@@ -532,7 +557,7 @@ and writeable!")))
 
 
 (defun entropy/open-with--open-file-plist (file-plist)
-  (let* ((file-plistp (entropy/cl-plistp file-plist))
+  (let* ((file-plistp (entropy/openwith--strict-plistp file-plist))
          caller
          file-pattern
          file-path
