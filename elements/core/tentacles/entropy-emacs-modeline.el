@@ -96,15 +96,11 @@
         (win
          (entropy/emacs-modeline--subr-func->get-current-window)))
     (unless (minibuffer-window-active-p win)
-      (setq entropy/emacs-modeline--subr-var->current-selected-window win)
-      ;; (force-mode-line-update)
-      )
+      (setq entropy/emacs-modeline--subr-var->current-selected-window win))
     rtn))
 
 (defun entropy/emacs-modeline--subr-func->unset-selected-window ()
-  (setq entropy/emacs-modeline--subr-var->current-selected-window nil)
-  ;; (force-mode-line-update)
-  )
+  (setq entropy/emacs-modeline--subr-var->current-selected-window nil))
 
 (defun entropy/emacs-modeline--subr-func->judge-current-window-focus-on-p ()
   (and entropy/emacs-modeline--subr-var->current-selected-window
