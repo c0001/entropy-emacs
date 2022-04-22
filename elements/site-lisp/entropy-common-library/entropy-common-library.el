@@ -327,7 +327,7 @@ after place must be key as well, thus the 'strict' meaning."
 (defun entropy/cl-common-plistp (arg)
   "Common plist true-p checker
 
-The strict plist structed as key-value pairs appended list, the
+The common plist structed as key-value pairs appended list, the
 car of it was key, each key was a symbol must using the ':xx'
 type. Each key's value can be omitted thus the 'common' meaning."
   (cond
