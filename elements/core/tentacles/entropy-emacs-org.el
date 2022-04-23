@@ -162,9 +162,11 @@
 ;; ***** Export
 
   ;; Export heading level counts same as raw org that maximum for 8
+  (defvar org-export-headline-levels)
   (setq org-export-headline-levels 8)
 
   ;; Interpret entities when exporting
+  (defvar org-export-with-entities)
   (setq org-export-with-entities t)
 
 ;; ***** Latex
@@ -214,15 +216,18 @@ must satisfied follow requirements:
 
 ;; ***** Refile
 
+  (defvar org-refile-targets)
   (setq org-refile-targets '((nil :maxlevel . 9)
                              (org-agenda-files :maxlevel . 9)))
 
   ;; Refile in a single go defautly since we use fuzzy
   ;; `completing-read' framework that no need to search via the
   ;; hierarchy which is low efficiency.
+  (defvar org-outline-path-complete-in-steps)
   (setq org-outline-path-complete-in-steps nil)
 
   ;; allow refile to the root of an org file
+  (defvar org-refile-use-outline-path)
   (setq org-refile-use-outline-path 'file)
 
   ;; Make `org-refile' inhibiting the read only status
@@ -230,6 +235,7 @@ must satisfied follow requirements:
    'org-refile)
 
   ;; Make refile cache enabled defaultly.
+  (defvar org-refile-use-cache)
   (setq org-refile-use-cache t)
 
 ;; ***** Imenu integration
@@ -615,6 +621,7 @@ reason, please see the docstring refer."
                   :around #'entropy/emacs-org--babel-comfirm-evaluate)))
 
 ;; **** org global export macro
+  (defvar org-export-global-macros)
   (entropy/emacs-lazy-load-simple ox
     (add-to-list 'org-export-global-macros
                  '("kbd" . "@@html:<code>$1</code>@@")))
@@ -752,6 +759,16 @@ the exec type for chosen the way whether embeded it into
 ;; **** ox-reveal
 (use-package ox-reveal
   :after ox
+  :defines (org-reveal-width
+            org-reveal-height
+            org-reveal-margin
+            org-reveal-min-scale
+            org-reveal-max-scale
+            org-reveal-control
+            org-reveal-center
+            org-reveal-progress
+            org-reveal-history
+            )
   :init
   ;; adding the backends to the general variable
   (add-to-list 'entropy/emacs-org-export-backends
@@ -1981,7 +1998,7 @@ corresponding to the specific transfer method."
         (let ((tname (replace-regexp-in-string "^CAPTURE-" "" buffname))
               (forward-re "\\(.*?/\\)+")
               (reverse-re "\\(.*?\\\\\\)+")
-              (post-foward-re "\\|.*?/?.*?$")
+              (post-forward-re "\\|.*?/?.*?$")
               (post-angle-re "<.*?>$"))
           (cond
            ;; forward uniquify buffer name type

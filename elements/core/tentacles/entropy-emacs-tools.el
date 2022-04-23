@@ -1005,6 +1005,9 @@ which determined by the scale count 0.3 "
   :commands (google-translate-translate
              entropy/emacs-tools-google-translate-at-point-direct-en-CN
              entropy/emacs-tools-google-translate-prompt-direct-en-CN)
+  :defines (google-translate-translation-direction-query
+            google-translate-current-translation-direction
+            google-translate-translation-direction-query)
   :init
   (when entropy/emacs-google-translate-toggle-patched-in-china
     ;;    Because google-translate has been block in china, so can use below variable for preventing

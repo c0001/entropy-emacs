@@ -499,19 +499,19 @@ dead and duplicated ones."
   (advice-add 'hl-todo--setup
               :around
               #'__ya/hl-todo-mode)
-  (defvar __global_hl_todo_mode_p nil)
+  (defvar entropy/emacs-highlight--global-hl-todo-mode-p nil)
   (defun __global_hl_todo_mode_auto_enable_patch_with_eemacs_spec
       (&rest _)
     "Hooks for auto patch `hl-todo-keyword-faces' with eemacs spec
 while change themes."
     (add-hook 'entropy/emacs-theme-load-before-hook
               #'(lambda (&rest _)
-                  (setq __global_hl_todo_mode_p global-hl-todo-mode)
-                  (when __global_hl_todo_mode_p
+                  (setq entropy/emacs-highlight--global-hl-todo-mode-p global-hl-todo-mode)
+                  (when entropy/emacs-highlight--global-hl-todo-mode-p
                     (global-hl-todo-mode -1))))
     (add-hook 'entropy/emacs-theme-load-after-hook
               #'(lambda (&rest _)
-                  (when __global_hl_todo_mode_p
+                  (when entropy/emacs-highlight--global-hl-todo-mode-p
                     (global-hl-todo-mode 1)))))
   (add-hook 'entropy/emacs-after-startup-hook
             #'__global_hl_todo_mode_auto_enable_patch_with_eemacs_spec)

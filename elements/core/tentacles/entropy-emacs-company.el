@@ -82,6 +82,7 @@
 
 NOTE: update with `company' upstream.")
 
+(defvar company-backends)
 (entropy/emacs-lazy-load-simple company
   (setq-default company-backends
                 (append (list entropy/emacs-company-top-initial-backends)
@@ -302,6 +303,10 @@ eemacs specifications"
 ;; **** basic setting
 
   ;; common internal customization
+  (defvar company-dabbrev-code-everywhere)
+  (defvar company-dabbrev-ignore-case)
+  (defvar company-dabbrev-downcase)
+  (defvar company-dabbrev-char-regexp)
   (setq
    ;; just enable company in some prog referred modes
    company-global-modes (append '(emacs-lisp-mode
@@ -521,18 +526,12 @@ canididates which makes emacs laggy for each post-command while
 
 ;; ****** pseudo frontend subroutine performance optimization
 ;; ******* simplify the pseudo candi line overlay generator
-  (defun __ya/company-fill-propertize (value annotation width selected left right)
+  (defun __ya/company-fill-propertize (value _annotation width selected left right)
     "The simplify `company-fill-propertize'.
 
 EEMACS_MAINTENANCE: stick to upstream udpate"
     (let* ((margin (length left))
-           (common (or (company-call-backend 'match value)
-                       (if company-common
-                           (string-width company-common)
-                         0)))
-           (_ (setq value (company-reformat (company--pre-render value))
-                    ;; annotation nil
-                    ))
+           (_ (setq value (company-reformat (company--pre-render value))))
            (line (concat left
                          (company-safe-substring
                           value 0 width)
@@ -1293,7 +1292,7 @@ completion when calling: 'execute-extended-command' or
   :init
   (with-eval-after-load 'company-box
     (defun entropy/emacs-company--company-en-words-icons-for-company-box
-        (candi)
+        (_candi)
       "Common text icon view for non-matched candi of dev env so
 that for en-words candi recognized "
       'Text)

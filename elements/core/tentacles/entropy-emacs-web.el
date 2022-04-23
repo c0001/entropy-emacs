@@ -51,6 +51,9 @@
                  entropy/emacs-url-allowed-chars))
           (browse-url url)))))
 
+(defvar web-mode-markup-indent-offset)
+(defvar web-mode-css-indent-offset)
+(defvar web-mode-code-indent-offset)
 (defun entropy/emacs-web--web-mode-start-hook ()
   ;; Set indent and tab-width
   (setq web-mode-markup-indent-offset 2)
@@ -388,7 +391,6 @@ if current file was html file."
         (impatient-mode 1)
         (when (string-match-p "\\.html" buffer_n)
           (imp-visit-buffer))))))
-  :init (setq impatient-mode-delayed-update nil)
   :config
 
   (defun imp-visit-buffer (&optional arg)

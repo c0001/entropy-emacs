@@ -72,6 +72,10 @@
 (use-package eshell
   :ensure nil
   :preface
+  (defvar eshell-history-file-name)
+  (defvar eshell-cmpl-cycle-completions)
+  (defvar eshell-aliases-file)
+  (defvar eshell-prompt-function)
   (defun entropy/emacs-shell--eshell-before-advice (&rest _)
     "Delete eshell histroy file before eshell opening and prevent
 open eshell on tramp-buffer when on windows platform. "
@@ -428,6 +432,7 @@ before invoke the main process."
           func))))
 
   :init
+  (defvar entropy/emacs-shell--shpop-types)
   (setq entropy/emacs-shell--shpop-types
         `(:ansiterm
           (:type-name

@@ -422,9 +422,7 @@ But we can not found curl in your PATH!")
           (message "Eemacs just support elfeed run in 'curl' mode, but you customize not to use it. \
 So we automatically help you to change to `curl' mode."))
         (let ((common-feeds (plist-get elfeed-feeds-rich :common-feeds))
-              (proxy-feeds (plist-get elfeed-feeds-rich :proxy-feeds))
-              (orig-filter elfeed-search-filter))
-          ;; (elfeed-search-set-filter "")
+              (proxy-feeds (plist-get elfeed-feeds-rich :proxy-feeds)))
           (cond ((and proxy-feeds
                       (plist-get entropy/emacs-union-http-proxy-plist :enable))
                  (entropy/emacs-rss--elfeed-update/fetch-common-feeds

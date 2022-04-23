@@ -44,7 +44,7 @@
           bookmark-library-view bookmark-add
           browse-with-external
           toggle-inline-image toggle-image
-          current-page-url current-link-url previous-page next-page goto-url
+          current-page-url current-link-url previous-page next-page
           search-query
           search-engine
           open-history)
@@ -151,8 +151,11 @@
   (setq w3m-redisplay-pages-automatically-p nil)
 
   ;; session configuration
+  (defvar w3m-session-autosave)
   (setq w3m-session-autosave nil)
+  (defvar w3m-session-deleted-save)
   (setq w3m-session-deleted-save nil)
+  (defvar w3m-session-crash-recovery)
   (setq w3m-session-crash-recovery nil)
 
   ;; shied windows internal synonyms 'convert.exe' with emacs internal
@@ -190,6 +193,7 @@
    :search-engine entropy/emacs-textwww-w3m-toggle-search-engine)
 
   ;; coding system specified to utf-8 when `current-language-environment' is thus.
+  (defvar w3m-bookmark-file-coding-system)
   (when (string= current-language-environment "UTF-8")
     (setq w3m-coding-system 'utf-8
           w3m-default-coding-system 'utf-8
@@ -210,6 +214,8 @@
   :config
 
 ;; ***** Search engine specified
+  (defvar w3m-search-engine-alist)
+  (defvar w3m-search-default-engine)
   (entropy/emacs-lazy-load-simple w3m-search
     ;; Default use Microsoft 'bing' search engine for compatible of
     ;; proxy wild problem especially for chinese user.
@@ -647,9 +653,8 @@ url-open about function."
   (setq-default search-web-external-browser browser)
   (setq-default search-web-in-emacs-browser 'eww-browse-url)
   (setq-default browse-url-browser-function browser)
-  (if (version< emacs-version "27")
-      (setq shr-external-browser browser)
-    (setq browse-url-secondary-browser-function browser)))
+  (setq browse-url-secondary-browser-function browser)
+  )
 
 (defun entropy/emacs-textwww-toggle-default-browser ()
   "Toggle browse-url defualt browse function for all url-open

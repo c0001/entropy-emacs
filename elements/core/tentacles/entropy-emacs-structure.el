@@ -31,6 +31,10 @@
 ;; * Code:
 
 ;; ** require
+(use-package outline
+  :ensure nil
+  :preface
+  (defvar outline-regexp))
 
 ;; ** libraries
 ;; function for universal code folding
@@ -45,7 +49,7 @@
 (defun entropy/emacs-structure-toggle-hiding (column)
   "Using `hs-toggle-hiding' to fold partition coding block."
   (interactive "P")
-  (if hs-minor-mode
+  (if (bound-and-true-p hs-minor-mode)
       (if (condition-case nil
               (hs-toggle-hiding)
             (error t))
@@ -644,7 +648,7 @@ call `outshine-imenu' instead."
 
 ;; **** redefination
 
-  (defvar-local __outline_local_spec_comment_start_str nil
+  (defvar-local entropy/emacs-structure--outline_local_spec_comment_start_str nil
     "The specified `comment-start' used for eemacs spec in
 outline mode or as its minor mode.
 
@@ -663,10 +667,10 @@ compatible with =entropy-emacs=."
          (looking-at (outshine-calc-outline-regexp))
          (let* ((m-strg (match-string-no-properties 0))
                 (comment-start
-                 ;; use `__outline_local_spec_comment_start_str' as precedence.
-                 (or (and __outline_local_spec_comment_start_str
-                          (stringp __outline_local_spec_comment_start_str)
-                          __outline_local_spec_comment_start_str)
+                 ;; use `entropy/emacs-structure--outline_local_spec_comment_start_str' as precedence.
+                 (or (and entropy/emacs-structure--outline_local_spec_comment_start_str
+                          (stringp entropy/emacs-structure--outline_local_spec_comment_start_str)
+                          entropy/emacs-structure--outline_local_spec_comment_start_str)
                      comment-start
                      (error
                       "There's no valid `comment-start' indicated in this buffer.")))
@@ -909,9 +913,9 @@ This function is as the origin `outline-promote' but using
 
 ;; ***** eemacs outshine heading face generator
 
-  (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp times)
+  (defun entropy/emacs-structure--outshine-gen-face-keywords (outline-regexp-spec times)
     (let ((outline-regex-head
-           (substring outline-regexp
+           (substring outline-regexp-spec
                       0
                       (- 0
                          (+ 7
@@ -990,10 +994,10 @@ This function is as the origin `outline-promote' but using
   (defun entropy/emacs-structure--outshine-fontify-headlines (_ &rest orig-args)
     "Calculate heading regexps for font-lock mode."
     (entropy/emacs-structure--outshine-batch-gen-outshine-level-faces)
-    (let* ((outline-regexp (car orig-args))
+    (let* ((outline-regexp-spec (car orig-args))
            (font-lock-new-keywords
             (entropy/emacs-structure--outshine-gen-face-keywords
-             outline-regexp
+             outline-regexp-spec
              outshine-max-level)))
       (add-to-list 'outshine-font-lock-keywords font-lock-new-keywords)
       (font-lock-add-keywords nil font-lock-new-keywords)
@@ -1129,7 +1133,7 @@ This function is an around advice for `outshine-mode'."
         (let ((comment-start "//")
               (comment-end ""))
           ;; make it as the specified `comment-start'
-          (setq-local __outline_local_spec_comment_start_str "//")
+          (setq-local entropy/emacs-structure--outline_local_spec_comment_start_str "//")
           (apply orig-func orig-args)))
        (t
         (apply orig-func orig-args)))))

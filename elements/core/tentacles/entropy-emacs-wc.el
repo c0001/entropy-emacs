@@ -827,7 +827,7 @@ disable the `eyebrowse-mode' after saved succeed."
                       :cur-slot cur-slot
                       :full-config (eyebrowse--get 'window-configs)))
           (if disable-eyebrowse-after-save
-              (condition-case error
+              (condition-case nil
                   (eyebrowse-mode 0)
                 (error
                  (throw :exit "disabel eyebrowse-mode with fatal")))
@@ -855,14 +855,13 @@ enable the `eyebrowse-mode' before the restoration procedure."
           (throw :exit "No saved eyebrowse config found"))
         (if enable-eyebrowse-before-restore
             (unless (bound-and-true-p eyebrowse-mode)
-              (condition-case error
+              (condition-case nil
                   (eyebrowse-mode 1)
                 (error
                  (throw :exit "enable eyebrowse mode with fatal"))))
           (unless (bound-and-true-p eyebrowse-mode)
             (throw :exit "eyebrowse not enabeld")))
-        (let* ((cur-slot (eyebrowse--get 'current-slot))
-               (cfg-attr entropy/emacs-wc-eyebrowse-savecfg-current-config)
+        (let* ((cfg-attr entropy/emacs-wc-eyebrowse-savecfg-current-config)
                (cfg-full (plist-get cfg-attr :full-config))
                (cfg-gui-p (plist-get cfg-attr :gui-p))
                (cfg-cur-slot (plist-get cfg-attr :cur-slot))
@@ -1128,6 +1127,8 @@ issue."
 (defvar entropy/emacs-wc--expand-center-window-function nil)
 (defvar entropy/emacs-wc--shrink-center-window-function nil)
 
+(defvar entropy/emacs-wc-window-auto-center-mode--log nil)
+
 (defun entropy/emacs-wc--center-window ()
   (interactive)
   (let ((cur-buff (current-buffer)))
@@ -1345,8 +1346,6 @@ olivetti-mode itself responsibility."
               :around #'entropy/emacs-wc--olivetti-around-advice-for-window-toggle-side-windows))
 
 ;; *** Auto center window
-
-(defvar entropy/emacs-wc-window-auto-center-mode--log nil)
 
 (defun entropy/emacs-wc-window-auto-center-mode-diwm
     (&optional buffer-or-name)

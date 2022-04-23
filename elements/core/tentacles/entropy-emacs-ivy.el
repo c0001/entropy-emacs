@@ -96,8 +96,6 @@
           ;; using elisp regex match candidates
           (t . ivy--regex)))
 
-  (setq swiper-action-recenter t)       ;recenter buffer after swiper jumping to the match
-
   ;; prompt newline set
   (let* ((with-nl-func
           '(lambda ()
@@ -416,6 +414,10 @@ large buffer."
          :map swiper-map
          ("M-q" . swiper-query-replace))
 
+;; *** init
+  :init
+  (setq swiper-action-recenter t)       ;recenter buffer after swiper jumping to the match
+
 ;; *** config
   :config
 
@@ -541,8 +543,7 @@ and bug fix."
     (let ((orig-judge (apply orig-func orig-args))
           (buffer (car orig-args)))
       (when orig-judge
-        (let ((mode (buffer-local-value 'major-mode (get-buffer buffer)))
-              (buff-name (buffer-name buffer))
+        (let ((buff-name (buffer-name buffer))
               (buff-fname (buffer-file-name buffer)))
           (and
            ;; basic restricks
@@ -596,8 +597,7 @@ unwind occasion.")
   ;; make `swiper-all' restore origin window-configuration when unwind
   (advice-add 'swiper-all :around #'entropy/emacs-ivy--swiper-all-restore-wfg)
 
-
-
+;; *** __end___
   )
 
 
@@ -1058,34 +1058,6 @@ Since we chosen the kmacro from ring, we set it as the
     (("C-c c m c" counsel-world-clock "Display time in different time zone in echo area"
       :enable t :exit t :eemacs-top-bind t)))))
 
-;; *** use firefox bookmarks and history query and open
-(use-package counsel-ffdata
-  :commands (counsel-ffdata-firefox-bookmarks
-             counsel-ffdata-firefox-history)
-
-  :eemacs-indhca
-  (((:enable t :defer (:data (:adfors (counsel-mode-hook) :adtype hook :pdumper-no-end t)))
-    (counsel-mode (counsel counsel-mode-map)))
-   ("Counsel Miscellaneous"
-    (("C-c c m f b" counsel-ffdata-firefox-bookmarks "Search your Firefox bookmarks"
-      :enable t :exit t :eemacs-top-bind t)
-     ("C-c c m f h" counsel-ffdata-firefox-history "Search your Firefox history"
-      :enable t :exit t :eemacs-top-bind t))))
-
-  :init
-  (setq counsel-ffdata-database-path
-        (ignore-errors
-          (cl-case system-type
-            ((gnu gnu/linux gnu/kfreebsd)
-             (expand-file-name
-              (car (file-expand-wildcards
-                    "~/.mozilla/firefox/*.default-release/places.sqlite"))))
-            (windows-nt
-             (car (file-expand-wildcards
-                   (expand-file-name "Mozilla/Firefox/Profiles/*/places.sqlite"
-                                     (getenv "APPDATA")))))))))
-
-
 ;; ** avy
 (use-package avy
   :commands
@@ -1275,7 +1247,7 @@ display icon or empty string while
     "Default candi width for non-doc show, nil for disable.")
   (defvar entropy/ivy--ivy-rich-candi-width/with-docstring 60
     "Default candi width for doc show, nil for disable.")
-  (defcustom entropy/emacs-ivy-rich-show-docstring-p nil
+  (defvar entropy/emacs-ivy-rich-show-docstring-p nil
     "")
   (defun _ivy-rich-use-doc-width ()
     (if entropy/emacs-ivy-rich-show-docstring-p
@@ -1313,7 +1285,7 @@ currnt fontset."
 
   (defun entropy/ivy--ivy-rich-set-transformers-list ()
     (let ((dcw-w entropy/ivy--ivy-rich-candi-width/with-docstring)
-          (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring)
+          ;; (dcw-n entropy/ivy--ivy-rich-candi-width/non-docstring)
           rtn)
       (setq rtn
             `(ivy-switch-buffer

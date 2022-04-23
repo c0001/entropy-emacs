@@ -46,6 +46,7 @@
 ;; ** require
 
 ;; ** library
+(defvar entropy/emacs-popwin-union-rule-map)
 (setq entropy/emacs-popwin-union-rule-map
       '((:regexp
          :all (lambda (x rule) (list :regexp x)))
@@ -91,6 +92,7 @@
         (setq rtn (append rtn (list rule-transed)))))
     rtn))
 
+(defvar entropy/emacs-popwin-regists)
 (setq entropy/emacs-popwin-regists
       '(;; Emacs
         ("*Help*"                      :regexp nil :dedicated t :align bottom :size 0.4 :autoclose t   :select t)
@@ -205,6 +207,7 @@
         ("^ ?\\*openwith-process\\*"   :regexp t   :dedicated t :align bottom :size 0.2 :autoclose t   :select nil)
         ))
 
+(defvar entropy/emacs-tools-beacon-blink-ignore)
 
 ;; ** shackle mode
 (use-package shackle
@@ -580,9 +583,10 @@ specification."
                   (delete-window stick-window)
                   (setq close-done t)))
               ;; ;; recenter the `host-buffer' window but it's optional so we commented it
-              ;; (when close-done
-              ;;   (with-selected-window (get-buffer-window host-buffer)
-              ;;     (recenter-top-bottom '(middle))))
+              (when close-done
+                (with-selected-window (get-buffer-window host-buffer)
+                  ;; (recenter-top-bottom '(middle))
+                  ))
               )))
           ))
       ))

@@ -213,6 +213,7 @@
               :around
               #'entropy/emacs-music--mpc-around-advice-for-mpc-volum-refresh)
 
+  (defvar entropy/emacs-music--mpc-auto-add-and-play-sinal nil)
   (defun entropy/emacs-music--mpc-around-advice-for-mpc--status-callback
       (orig-func &rest orig-args)
     (let ((rtn (apply orig-func orig-args)))
@@ -301,9 +302,7 @@ specification."
   (defun entropy/emacs-music-mpc--status-buffer-create ()
     "Create mpc status buffer with connection did on"
     (let* ((proc (mpc-proc))
-           (buf (mpc-proc-buffer proc 'status))
-           (songs-buf (mpc-proc-buffer proc 'songs))
-           (songs-win (if songs-buf (get-buffer-window songs-buf 0))))
+           (buf (mpc-proc-buffer proc 'status)))
       (unless (buffer-live-p buf)
         (setq buf (get-buffer-create "*MPC-Status*"))
         (with-current-buffer buf
@@ -594,7 +593,7 @@ i.e. not jump to que playlist."
       songs))
 
 ;; ***** Song play and add/delete from playlist
-  (defvar entropy/emacs-music--mpc-auto-add-and-play-sinal nil)
+
   (defun entropy/emacs-music-mpc-auto-add-and-play ()
     "Play current music in `mpc-songs-mode'.
 

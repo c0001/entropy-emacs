@@ -129,7 +129,7 @@ the old-BODY, and so on for larger level.
 (defmacro entropy/emacs-cl-compatible-apply (cl-func &rest args)
   "Macro for be forward compatibility of `cl.el' with `cl-lib.el'
 in new emacs-version."
-  `(let (abbrevp cl-func-use)
+  `(let (cl-func-use)
      (cond ((and (require 'cl-lib)
                  (not (null (entropy/emacs-cl-findnew-p ',cl-func))))
             (setq cl-func-use (entropy/emacs-cl-findnew-p ',cl-func))
@@ -138,8 +138,6 @@ in new emacs-version."
            ((fboundp ',cl-func)
             (setq cl-func-use ',cl-func)))
      (funcall cl-func-use ,@args)))
-
-
 
 ;; *** Sexp read and print
 

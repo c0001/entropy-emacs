@@ -652,6 +652,7 @@ when available."
 
 ;; ******** lsp diagnostics set
   ;; Use flycheck prefer as diagnostics backend
+  (defvar lsp-diagnostics-provider)
   (setq lsp-diagnostics-provider :auto
         ;; Use eemacs specific union diagnostic idle delay
         lsp-idle-delay entropy/emacs-ide-diagnostic-delay
@@ -687,6 +688,7 @@ when available."
 
   ;; Inhibit auto header insertion via lsp-cland client refer to
   ;; https://github.com/emacs-lsp/lsp-mode/issues/2503
+  (defvar lsp-clients-clangd-args)
   (setq lsp-clients-clangd-args '("--header-insertion=never"))
 
 ;; ******* config
@@ -1154,6 +1156,7 @@ updating."
   ;; we use eemacs spec simple lsp-java so that do not ensure it since
   ;; we purchasing it under eemacs itself yet.
   :ensure nil
+  :defines (lsp-java-boot-enabled)
   :init
   ;; EEMACS_BUG:
   ;; Currently we just use simple jdt feature because the boot server
@@ -1199,6 +1202,7 @@ updating."
 (use-package eglot
   :commands (eglot eglot-ensure eglot-shutdown
                    eglot-ui-doc-mode)
+  :defines (eglot-ui-doc-mode)
 
 ;; ***** eemacs indhc
   :eemacs-indhc
@@ -1396,7 +1400,7 @@ let eglot do completion with interface argument injection."
 
   (defclass eglot-html-languageserver (eglot-lsp-server) ()
     :documentation "Vscode html-languageserver class for eglot")
-  (cl-defmethod eglot-initialization-options ((server eglot-html-languageserver))
+  (cl-defmethod eglot-initialization-options ((_server eglot-html-languageserver))
     "`eglot-html-languageserver' initialization method"
     '(:embeddedLanguages
       (:css "true" :javascript "true")
@@ -1524,17 +1528,17 @@ let eglot do completion with interface argument injection."
 
 ;; ***** doc show
 
-  (defcustom entropy/emacs-eglot-doc-buffer-name "*eglot doc*"
+  (defvar entropy/emacs-eglot-doc-buffer-name "*eglot doc*"
     "The name of eglot tooltip name."
-    :type 'string)
+    )
 
-  (defcustom entropy/emacs-eglot-doc-tooltip-timeout 30
+  (defvar entropy/emacs-eglot-doc-tooltip-timeout 30
     "The timeout of eglot tooltip show time, in seconds."
-    :type 'integer)
+    )
 
-  (defcustom entropy/emacs-eglot-doc-tooltip-border-width 6
+  (defvar entropy/emacs-eglot-doc-tooltip-border-width 6
     "The border width of eglot tooltip, default is 6 px."
-    :type 'integer)
+    )
 
   (defun eglot-ui--show-doc-internal (string)
     (let* (

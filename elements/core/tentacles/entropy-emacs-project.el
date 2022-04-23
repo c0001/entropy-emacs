@@ -50,8 +50,6 @@
    projectile-use-git-grep nil
    ;; completion framework spec
    projectile-completion-system 'ivy
-   ;; disable pre-setted keymap
-   projectile-keymap-prefix nil
    ;; auto update detected projects and its status
    projectile-auto-update-cache t
    projectile-auto-discover t

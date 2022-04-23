@@ -58,15 +58,18 @@
 
 ;; Show time on mode line
 (when entropy/emacs-display-time-modeline
-  ;; enable time show when
-  (display-time-mode 1)
-  (setq-default display-time-interval 1)
-  ;; display time with date and real time infos
-  (setq display-time-day-and-date t)
-  ;; 24hr format
-  (setq display-time-24hr-format t)
-  (setq display-time-format " %e %b %Y %H:%M:%S ")
-  (display-time))
+  (use-package time
+    :ensure nil
+    :init
+    (entropy/emacs-lazy-with-load-trail
+     display-time-mode-init
+     (setq-default display-time-interval 1)
+     ;; display time with date and real time infos
+     (setq display-time-day-and-date t)
+     ;; 24hr format
+     (setq display-time-24hr-format t)
+     (setq display-time-format " %e %b %Y %H:%M:%S ")
+     (display-time-mode 1))))
 
 ;; A minor-mode menu for the mode line
 (use-package minions
@@ -211,6 +214,8 @@ This customization mainly adding the eyebrowse slot and tagging name show functi
 (defvar entropy/emacs-modeline--spaceline-spec-list
   '())
 
+(defvar spaceline-highlight-face-func)
+(defvar spaceline-workspace-numbers-unicode)
 (defun entropy/emacs-modeline--spaceline-specification ()
   ;; powerline specification
   (require 'powerline)
@@ -305,6 +310,7 @@ return nil"
       icon
     plain))
 
+(defvar entropy/emacs-modeline--simple-mode-line-format)
 (setq
  entropy/emacs-modeline--simple-mode-line-format
  '("%e"
@@ -388,6 +394,9 @@ return nil"
   :commands (doom-modeline-mode
              doom-modeline-refresh-bars)
   :preface
+
+  (defvar nyan-minimum-window-width)
+  (defvar poke-line-minimum-window-width)
 
   (defvar entropy/emacs-modeline--doom-modeline-spec-done nil)
   (defvar entropy/emacs-modeline--doom-modeline-enable-done nil)

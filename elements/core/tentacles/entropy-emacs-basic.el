@@ -189,6 +189,7 @@ place can be easily found by other interactive command."
 ;; **** dired basic
 (use-package dired
   :ensure nil
+  :defines (dired-do-revert-buffer)
 ;; ***** init
   :init
 
@@ -2045,6 +2046,8 @@ buffer."
 
 ;; **** image dired
 ;; ***** core
+(defvar-local __ya/image-dired-display-image-buffer-image-file nil)
+
 (use-package image-dired
   :ensure nil
   :commands (image-dired)
@@ -2375,7 +2378,7 @@ point."
 ;; ******** core
 
   (defvar __ya/image-dired-display-image-stick-fit-type nil)
-  (defvar-local __ya/image-dired-display-image-buffer-image-file nil)
+
   ;; EEMACS_MAINTENANCE follow upstream updates
   (defun __ya/image-dired-display-image (file &optional original-size)
     "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
@@ -2816,7 +2819,6 @@ displayed image as same operated mechanism as
       (user-error "Not in an dired image display spec buffer!"))
     (let ((inhibit-read-only t)
           (file __ya/image-dired-display-image-buffer-image-file)
-          (window (selected-window))
           (modified (buffer-modified-p)))
       (unless (and file (file-exists-p file))
         (user-error "No image displayed in this buffer"))
@@ -3212,7 +3214,6 @@ NOTE: this is a advice wrapper for any function."
    mouse-wheel-progressive-speed nil))
 
 (defvar-local entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
-(defvar-local entropy/emacs-basic--redisplay-dont-pause-orig-value redisplay-dont-pause)
 (defvar-local entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
 (defvar-local entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
 
@@ -3228,18 +3229,15 @@ NOTE: this is a advice wrapper for any function."
   (if entropy/emacs-basic-smooth-scrolling-mode
       (progn
         (setq entropy/emacs-basic--next-screen-context-lines-orig-value next-screen-context-lines)
-        (setq entropy/emacs-basic--redisplay-dont-pause-orig-value redisplay-dont-pause)
         (setq entropy/emacs-basic--scroll-margin-orig-value scroll-margin)
         (setq entropy/emacs-basic--scroll-conservatively-orig-value scroll-conservatively)
         (setq-local
          next-screen-context-lines 0
-         redisplay-dont-pause      t
          scroll-margin             0
          scroll-conservatively     100))
     (progn
       (setq-local
        next-screen-context-lines entropy/emacs-basic--next-screen-context-lines-orig-value
-       redisplay-dont-pause      entropy/emacs-basic--redisplay-dont-pause-orig-value
        scroll-margin             entropy/emacs-basic--scroll-margin-orig-value
        scroll-conservatively     entropy/emacs-basic--scroll-conservatively-orig-value)
       )))
@@ -3785,6 +3783,7 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
        (entropy/emacs-source-directory))
  ;; We must reeset this var since its preloaded before emacs startup.
  ;; EEMACS_MAINTENANCE: follow emacs version
+ (defvar find-function-C-source-directory)
  (setq find-function-C-source-directory
        (let ((dir (expand-file-name "src" source-directory)))
          (if (file-accessible-directory-p dir) dir))))
@@ -3892,6 +3891,7 @@ Filename are \".scratch_entropy\" host in
     (entropy/emacs-basic-kill-ring-persist-backup)
     (setq kill-ring nil) (garbage-collect)))
 
+(defvar entropy/emacs-basic-kill-ring-persist-error-log nil)
 (defun entropy/emacs-basic-kill-ring-persist (&optional remove-lock)
   "Save `kill-ring' to persist file `entropy/emacs-kill-ring-persist-file'.
 
@@ -3928,8 +3928,6 @@ for kill-ring persistent at %s, do not edit it manually"
          (print-length nil)
          (print-escape-nonascii t)
          (print-circle t)
-         ;; the error temp host
-         print-error
          ;; perdicatge filter judge
          (can-do-it t)
          ;; function for check `kill-ring' item's printed
@@ -3964,7 +3962,7 @@ error type to output symbol OUTPUT-SYM."
               (let ((item (substring-no-properties item)))
                 (if (funcall printable-judge
                              item
-                             'print-error)
+                             'entropy/emacs-basic-kill-ring-persist-error-log)
                     (progn (prin1 item to-buffer)
                            (insert ?\n))
                   ;; Warn that item is not readable
@@ -3974,7 +3972,7 @@ error type to output symbol OUTPUT-SYM."
                    "kill ring item "
                    (yellow (format "'%s'" item))
                    (format " can not be saved because of [%s] !"
-                           print-error)))))
+                           entropy/emacs-basic-kill-ring-persist-error-log)))))
             (insert ")")
             (with-temp-message ""
               (let ((inhibit-message t)
@@ -4157,10 +4155,13 @@ successfully both of situation of read persisit of create an new."
 (use-package saveplace
   :ensure nil
   :init
-  ;; Emacs 25 has a proper mode for `save-place'
-  (if (fboundp 'save-place-mode)
-      (save-place-mode)
-    (setq save-place t)))
+  (entropy/emacs-lazy-initial-advice-before
+   (find-file switch-to-buffer dired counsel-dired)
+   "save-place-init" "save-place-init" prompt-echo
+   ;; injects into pdumper recovery session since the save-place is
+   ;; dynamic
+   :pdumper-no-end nil
+   (save-place-mode)))
 
 (use-package recentf
   :if entropy/emacs-use-recentf
@@ -4287,6 +4288,12 @@ successfully both of situation of read persisit of create an new."
 ;; ***** key re-mapping
 ;; Binding 'super' and 'hyper' on win32 and mac.
 ;;   the idea form `http://ergoemacs.org/emacs/emacs_hyper_super_keys.html'
+
+(defvar w32-apps-modifier)
+(defvar mac-command-modifier)
+(defvar mac-option-modifier)
+(defvar mac-control-modifier)
+(defvar ns-function-modifier)
 (cond
  (sys/win32p
   (setq w32-apps-modifier 'hyper) ; Menu/App key
@@ -4774,10 +4781,7 @@ This function will store the loading callback to
     ;; customized dcache directory
     (setq pyim-dcache-directory entropy/emacs-pyim-dcache-host-path)
     ;; 5 candidates shown for pyim tooltip
-    (setq pyim-page-length 8)
-    ;; Using thread for loading dache
-    (when (version< "26" emacs-version)
-      (setq pyim-prefer-emacs-thread t)))
+    (setq pyim-page-length 8))
 
   (add-to-list 'entropy/emacs-basic-intenal-ime-unified-caller-register
                '(pyim
@@ -4828,15 +4832,14 @@ current displayed buffer area wile
     "The eemacs pyim ime toggler which obey the
 `entropy/emacs-internal-IME-toggle-function' api."
     (condition-case error
-        (let (disable-p enable-p)
+        (let (disable-p)
           (cond ((and (or (string= current-input-method "pyim")
                           (eq type 'disable))
                       (not (eq type 'enable))
                       (setq disable-p t))
                  (set-input-method nil))
                 ((and (or (eq type 'enable)
-                          (null type))
-                      (setq enable-p t))
+                          (null type)))
                  (set-input-method "pyim")
                  (setq pyim-punctuation-escape-list nil))
                 (t
@@ -4890,11 +4893,13 @@ current displayed buffer area wile
            (rime-posframe (and rime-buff
                                (posframe--find-existing-posframe
                                 rime-buff)))
-           repos)
+           ;; repos
+           )
       (when (and rime-posframe (frame-live-p rime-posframe))
         (posframe-delete-frame rime-buff)
         ;; FIXME: find a way to reopen the rime posframe
-        (setq repos t))
+        ;; (setq repos t)
+        )
       (setq rime-posframe-properties
             `(:internal-border-width
               10
@@ -4942,15 +4947,14 @@ This function will store the `rime' loading callback to
     "The eemacs emacs-rime ime toggler which obey the
 `entropy/emacs-internal-IME-toggle-function' api."
     (condition-case error
-        (let (disable-p enable-p)
+        (let (disable-p)
           (cond ((and (or (string= current-input-method "rime")
                           (eq type 'disable))
                       (not (eq type 'enable))
                       (setq disable-p t))
                  (set-input-method nil))
                 ((and (or (eq type 'enable)
-                          (null type))
-                      (setq enable-p t))
+                          (null type)))
                  (set-input-method "rime")
                  (setq pyim-punctuation-escape-list nil))
                 (t
