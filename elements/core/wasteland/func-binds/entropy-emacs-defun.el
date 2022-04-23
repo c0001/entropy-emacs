@@ -5430,6 +5430,7 @@ will automatically recongnized current theme name and do the
 corresponding stuffs."
   (unless x
     (setq x (symbol-name entropy/emacs-theme-sticker)))
+  ;; main spec
   (cond
    ((string-match-p "spacemacs-dark" x)
     (with-eval-after-load 'ivy
@@ -5539,7 +5540,50 @@ corresponding stuffs."
      :foreground "black")
     )
    (t
-    (entropy/emacs-set-fixed-pitch-serif-face-to-monospace))))
+    (entropy/emacs-set-fixed-pitch-serif-face-to-monospace)))
+  ;; other spec
+  ;; --- magit diff hunk highlight spec
+  ;;
+  ;; NOTE: in terminal magit hunk region background face is
+  ;; unspecified so we should let it be visible.
+  (unless (display-graphic-p)
+    (entropy/emacs-set-face-attribute
+     'magit-diff-hunk-region
+     nil
+     :weight 'bold
+     :extend t
+     :background
+     (let ((cur-bgc (face-attribute 'magit-diff-hunk-region :background)))
+       (unless (and (stringp cur-bgc)
+                    (entropy/emacs-color-string-hex-p cur-bgc))
+         (setq cur-bgc (face-attribute 'default :background)))
+       (if (and (stringp cur-bgc)
+                (entropy/emacs-color-string-hex-p cur-bgc))
+           (entropy/emacs-color-scale-common
+            cur-bgc
+            0.2)
+         "darkslategray"))))
+
+  ;; --- company tooltip selection highlight
+  ;; more visible for `company-tooltip-selection'
+  (when (member x '("doom-1337" "doom-Iosvkem"))
+    (entropy/emacs-set-face-attribute
+     'company-tooltip-selection
+     nil
+     :weight 'bold
+     :extend nil
+     :background
+     (let ((cur-bgc (face-attribute 'company-tooltip-selection :background)))
+       (unless (and (stringp cur-bgc)
+                    (entropy/emacs-color-string-hex-p cur-bgc))
+         (setq cur-bgc (face-attribute 'default :background)))
+       (if (and (stringp cur-bgc)
+                (entropy/emacs-color-string-hex-p cur-bgc))
+           (entropy/emacs-color-scale-common
+            cur-bgc
+            1.5)
+         "darkslategray"))))
+  )
 
 (defun entropy/emacs-theme-load-modeline-specifix (&optional arg)
   "Sets of specification for eemacs native modelines.
