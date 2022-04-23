@@ -699,6 +699,8 @@ Currently detected env variables:")
 ;; forcing reset emacs internal w32-code page setting to utf-8 which
 ;; can support `shell-command' or other process calling API support
 ;; multibyte filename as args.
+(defvar w32-ansi-code-page)
+(defvar w32-system-coding-system)
 (when (and sys/win32p
            (eq w32-ansi-code-page 65001))
   (setq w32-system-coding-system 'utf-8)
