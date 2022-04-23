@@ -203,7 +203,7 @@ place can be easily found by other interactive command."
         :enable t
         :exit t
         :map-inject t)
-       ("M-o" dired-find-file-other-window "Open item in other window"
+       ("M-o" entropy/emacs-dired-find-file-other-window "Open item in other window"
         :enable t
         :exit t
         :map-inject t)
@@ -551,6 +551,43 @@ predicated."
         (narrow-to-region regbeg regend))))
   (define-key dired-mode-map [remap narrow-to-region]
     #'entropy/emacs-dired-narrow-to-region)
+
+;; ******* Yet another `dired-find-file-other-window'
+
+  (defun entropy/emacs-dired-find-file-other-window ()
+    (interactive)
+    "Like `dired-find-file-other-window' but adapted to eemacs context."
+    (unless (eq major-mode 'dired-mode)
+      (user-error "Can not invoke this command out of `dired-mode'."))
+    (let* ((current-relfname (or (let ((f (dired-get-filename nil t)))
+                                   (ignore-errors
+                                     (entropy/emacs-make-relative-filename
+                                      f
+                                      ;; NOTE: we can not use
+                                      ;; `dired-current-directory' since
+                                      ;; it has been hacked by
+                                      ;; `dired-subtree' which also
+                                      ;; recognize the subtree item path
+                                      default-directory)))
+                                 (user-error "No on an dired file line!")))
+           (file-use-external-p (and
+                                 (not (file-directory-p current-relfname))
+                                 (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
+                                  current-relfname))))
+      (if file-use-external-p
+          (find-file current-relfname)
+        (unless (bound-and-true-p entropy/emacs-window-center-auto-mode-enable-p)
+          (when (bound-and-true-p entropy/emacs-window-center-mode)
+            (entropy/emacs-window-center-mode 0)))
+        (if (> (length (window-list)) 1) (delete-other-windows))
+        (progn
+          (entropy/emacs-no-same-buffer-split-window-horizontally
+           (ceiling (* 0.18
+                       (frame-width))))
+          (other-window 1)
+          (if (file-directory-p current-relfname)
+              (dired current-relfname)
+            (find-file current-relfname))))))
 
 ;; ******* Delete directory with force actions
 
@@ -3506,12 +3543,14 @@ retrieve from `window-list' larger than 1."
   (interactive)
   (let ((winlist (window-list)))
     (if (> (length winlist) 1)
+        ;; -------------------- grid case
         (cond
-         ;; -------------------- grid case
-         ((or
+         (
+          ;; === Just kill buffer even if is grid case
+          (or
            ;; Two windows displayed and one is dedicated with
            ;; `no-delete-other-windows'.
-           (and (eq (length winlist) 2)
+           (and (= (length winlist) 2)
                 (let (rtn)
                   (catch :exit
                     (mapc (lambda (win)
@@ -3524,14 +3563,15 @@ retrieve from `window-list' larger than 1."
                           winlist))
                   rtn))
            ;; when the window is the root window of current frame we
-           ;; just kill it, but FIXME: in some cases the main window
+           ;; just kill it, since in some cases the main window
            ;; may not be the only live window showed in current frame
-           ;; as messy.
+           ;; as messy and why?.
            (eq (window-main-window) (get-buffer-window (current-buffer))))
           (kill-buffer))
-         ;; ---------- default case
+         ;; === default grid case
          (t
           (kill-buffer-and-window)))
+      ;; -------------------- default case
       (kill-buffer))))
 
 (defun entropy/emacs-basic-kill-buffer ()
@@ -3540,12 +3580,29 @@ as thus."
   (interactive)
   (cond
    ((eq major-mode 'term-mode)
-    (call-interactively #'entropy/emacs-basic-kill-ansiterm-buffer))
-   ((buffer-file-name)
-    (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired))
+    (call-interactively #'entropy/emacs-basic-kill-ansiterm-buffer)
+    (message "Kill current ansi-term buffer done."))
+   ((and (buffer-file-name)
+         ;; not the 2 window horizontal overlay with the other one
+         ;; (not selected one) is the dired which match the dir of
+         ;; current `default-directory'.
+         (let ((current-defdir default-directory)
+               (win-is-2hp (entropy/emacs-window-overlay-is-2-horizontal-splits-p nil t)))
+           (if win-is-2hp
+               (with-current-buffer (window-buffer win-is-2hp)
+                 (if (and
+                      (eq major-mode 'dired-mode)
+                      (entropy/emacs-existed-filesystem-nodes-equal-p
+                       default-directory current-defdir))
+                     nil
+                   t))
+             t)))
+    (call-interactively #'entropy/emacs-basic-kill-buffer-and-show-its-dired)
+    (message "Revert to the dired of current buffer's `default-directory' done."))
    (t
     (call-interactively
-     #'entropy/emacs-basic-kill-buffer-and-its-window-when-grids))))
+     #'entropy/emacs-basic-kill-buffer-and-its-window-when-grids)
+    (message "Kill current buffer and its window done."))))
 
 (global-set-key (kbd "C-x k") #'entropy/emacs-basic-kill-buffer)
 (global-set-key (kbd "C-x M-k") #'kill-buffer)

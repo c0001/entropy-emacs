@@ -4385,6 +4385,30 @@ unless this hints."
         (set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
+;; **** Window overlay judgements
+
+(defun entropy/emacs-window-overlay-is-2-horizontal-splits-p (&optional frame other-window)
+  "Return non-nil when current window overlay in frame
+FRAME(default to the selected one) has just two windows and they
+are horizontally split.
+
+If optional argument OTHER-WINDOW is non-nil, return the window
+which is sibling of the selected one on FRAME when core predicate
+supplied."
+  (let ((frame (or frame (selected-frame))))
+    (with-selected-frame frame
+      (and (= (length (window-list)) 2)
+           (let ((rtn 0))
+             (mapc (lambda (x) (setq rtn (+ rtn (window-total-width x))))
+                   (window-list))
+             (= rtn (frame-width)))
+           (if other-window
+               (catch :exit
+                 (dolist (win (window-list))
+                   (unless (eq win (frame-selected-window))
+                     (throw :exit win)))
+                 (error "internal error: can not found the other window"))
+             t)))))
 
 ;; *** Test emacs with pure env
 
