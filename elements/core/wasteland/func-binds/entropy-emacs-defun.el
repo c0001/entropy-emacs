@@ -4395,13 +4395,24 @@ are horizontally split.
 If optional argument OTHER-WINDOW is non-nil, return the window
 which is sibling of the selected one on FRAME when core predicate
 supplied."
-  (let ((frame (or frame (selected-frame))))
+  (let ((frame (or frame (selected-frame)))
+        (frame-width-func
+         (lambda (&optional frm)
+           (let ((frm (or frm (selected-frame))))
+             (if (display-graphic-p)
+                 (frame-pixel-width frm)
+               (frame-width frm)))))
+        (window-width-func
+         (lambda (win)
+           (if (display-graphic-p)
+               (window-pixel-width win)
+             (window-total-width win)))))
     (with-selected-frame frame
       (and (= (length (window-list)) 2)
            (let ((rtn 0))
-             (mapc (lambda (x) (setq rtn (+ rtn (window-total-width x))))
+             (mapc (lambda (x) (setq rtn (+ rtn (funcall window-width-func x))))
                    (window-list))
-             (= rtn (frame-width)))
+             (= rtn (funcall frame-width-func)))
            (if other-window
                (catch :exit
                  (dolist (win (window-list))
