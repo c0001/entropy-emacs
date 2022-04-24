@@ -4615,7 +4615,11 @@ Arguments:
     (push read (symbol-value candidates-recorder-symbol)))
   (let ((prompt (entropy/emacs--ivy-read-repeatedly-prompt-expand
                  prompt-abbrev candidates-recorder-symbol selected-shorten-function)))
-    (setf (ivy-state-prompt ivy-last) prompt)
+    ;; NOTE: we must wrap the place holder into `eval' form since this
+    ;; function is defined before the the ivy sturcture defined in
+    ;; which case its `setf' general method is not defned which will
+    ;; cause the `setf' macro expand with fatal.
+    (eval `(setf (ivy-state-prompt ivy-last) ',prompt))
     (setq ivy--prompt (concat ivy-count-format " " prompt)))
   (cond
    ((eq this-command 'ivy-call)
