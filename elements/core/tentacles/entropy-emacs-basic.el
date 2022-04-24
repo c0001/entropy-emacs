@@ -1954,10 +1954,16 @@ overwrited.
               (message "convert '%s' to '%s' jpeg file ..."
                        srcfname destfname)
               (unless (zerop
-                       (call-process "convert" nil nil nil
-                                     srcfname
-                                     "-strip"
-                                     (format "jpeg:%s" destfname)))
+                       (if (executable-find "gm")
+                           (call-process "gm" nil nil nil
+                                         "convert"
+                                         srcfname
+                                         "-strip"
+                                         (format "jpeg:%s" destfname))
+                         (call-process "convert" nil nil nil
+                                       srcfname
+                                       "-strip"
+                                       (format "jpeg:%s" destfname))))
                 (setq error-symbol 'convert-failed)
                 (user-error "Convert '%s' to '%s' failed!"
                             srcfname destfname))
@@ -2127,6 +2133,35 @@ an error."
               (message "Canceled.")))
         (with-current-buffer cur-buffer
           (dired-unmark-all-marks)))))
+
+;; ****** config
+  :config
+
+  (setq image-dired-cmd-create-thumbnail-program
+        (if (executable-find "gm") "gm" "convert"))
+  (setq image-dired-cmd-create-temp-image-program
+        (if (executable-find "gm") "gm" "convert"))
+  (setq image-dired-cmd-create-thumbnail-options
+        (let ((opts image-dired-cmd-create-thumbnail-options))
+          (if (equal image-dired-cmd-create-thumbnail-program "gm")
+              (if (equal (car opts) "convert")
+                  opts
+                (cons "convert" opts))
+            opts)))
+  (setq image-dired-cmd-create-standard-thumbnail-options
+        (let ((opts image-dired-cmd-create-standard-thumbnail-options))
+          (if (equal image-dired-cmd-create-thumbnail-program "gm")
+              (if (equal (car opts) "convert")
+                  opts
+                (cons "convert" opts))
+            opts)))
+  (setq image-dired-cmd-create-temp-image-options
+        (let ((opts image-dired-cmd-create-temp-image-options))
+          (if (equal image-dired-cmd-create-temp-image-program "gm")
+              (if (equal (car opts) "convert")
+                  opts
+                (cons "convert" opts))
+            opts)))
 
 ;; ****** __end__
   )
