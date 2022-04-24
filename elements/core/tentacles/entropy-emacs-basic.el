@@ -2465,8 +2465,9 @@ dwim memory and use both height and width fit display type."
      'image-dired-cmd-create-temp-image-program)
     (let* ((new-file (expand-file-name image-dired-temp-image-file))
            (window (image-dired-display-window))
+           (window-height (image-dired-display-window-height window))
+           (window-width (image-dired-display-window-width window))
            (image-type 'jpeg)
-           (max-image-pixel-factor 20000)
            (should-use-dwim-p
             (entropy/emacs-basic-image-dired--display-size-with-dwim-p
              original-size)))
@@ -2479,13 +2480,13 @@ dwim memory and use both height and width fit display type."
                    (cons ?w (or
                              ;; height stick tyep expand width
                              (and (eq original-size 2)
-                                  max-image-pixel-factor)
-                             (image-dired-display-window-width window)))
+                                  "")
+                             window-width))
                    (cons ?h (or
                              ;; width stick type expand height
                              (and (eq original-size 3)
-                                  max-image-pixel-factor)
-                             (image-dired-display-window-height window)))
+                                  "")
+                             window-height))
                    (cons ?f file)
                    (cons ?t new-file)))
                  (ret
