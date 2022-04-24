@@ -111,6 +111,16 @@ the old-BODY, and so on for larger level.
   (entropy/emacs-unwind-protect-body-gen-nested-form
    body level))
 
+(defmacro entropy/emacs-when-defun
+    (name arglist condition-form &optional docstring &rest body)
+  "Like `defun' but only define NAME as an function when
+CONDITION-FORM is evaled return non-nil."
+  (declare (indent defun))
+  `(when (progn ,condition-form)
+     (defun ,name ,arglist
+       ,docstring
+       ,@body)))
+
 ;; *** Cl-function compatible manipulation
 (defun entropy/emacs-cl-findnew-p (func)
   (let (new-func)

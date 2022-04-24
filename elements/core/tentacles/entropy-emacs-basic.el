@@ -2379,8 +2379,41 @@ point."
 
   (defvar __ya/image-dired-display-image-stick-fit-type nil)
 
+  (eval-and-compile
+    (defmacro entropy/emacs-basic-image-dired--display-size-with-dwim-p (original-size)
+      `(or
+        ;; explicit should use dwim
+        (when (not ,original-size)
+          ;; inherit history dwim type when history is set
+          (when __ya/image-dired-display-image-stick-fit-type
+            (setq ,original-size
+                  __ya/image-dired-display-image-stick-fit-type))
+          t)
+        (cond
+         ;; user specified dwim type
+         ((member ,original-size '(2 3))
+          ;; then we update the history dwim type
+          (setq __ya/image-dired-display-image-stick-fit-type
+                ,original-size)
+          t)
+         ;; manually clear the hisrtoy type and fallback to use dwim
+         ((and (listp ,original-size)
+               (not (equal ,original-size
+                           ;; the single prefix treat as use origin size.
+                           '(4))))
+          ;; then we clear the history dwim type
+          (setq
+           __ya/image-dired-display-image-stick-fit-type
+           nil)
+          t)
+         ;; otherwise disable dwim i.e. use single `C-u' type
+         ;; which is same as origin mechanism
+         (t
+          nil)))))
+
   ;; EEMACS_MAINTENANCE follow upstream updates
-  (defun __ya/image-dired-display-image (file &optional original-size)
+  (entropy/emacs-when-defun __ya/image-dired-display-image (file &optional original-size)
+    (version< emacs-version "29")
     "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
 means as DWIM that:
 
@@ -2399,40 +2432,12 @@ dwim memory and use both height and width fit display type."
            (window (image-dired-display-window))
            (image-type 'jpeg)
            (max-image-pixel-factor 20000)
-           (should-use-dwim-func
-            (lambda ()
-              (or
-               ;; explicit should use dwim
-               (when (not original-size)
-                 ;; inherit history dwim type when history is set
-                 (when __ya/image-dired-display-image-stick-fit-type
-                   (setq original-size
-                         __ya/image-dired-display-image-stick-fit-type))
-                 t)
-               (cond
-                ;; user specified dwim type
-                ((member original-size '(2 3))
-                 ;; then we update the history dwim type
-                 (setq __ya/image-dired-display-image-stick-fit-type
-                       original-size)
-                 t)
-                ;; manually clear the hisrtoy type and fallback to use dwim
-                ((and (listp original-size)
-                      (not (equal original-size
-                                  ;; the single prefix treat as use origin size.
-                                  '(4))))
-                 ;; then we clear the history dwim type
-                 (setq
-                  __ya/image-dired-display-image-stick-fit-type
-                  nil)
-                 t)
-                ;; otherwise disable dwim i.e. use single `C-u' type
-                ;; which is same as origin mechanism
-                (t
-                 nil))))))
+           (should-use-dwim-p
+            (entropy/emacs-basic-image-dired--display-size-with-dwim-p
+             original-size)))
 
       (setq file (expand-file-name file))
-      (if (funcall should-use-dwim-func)
+      (if should-use-dwim-p
           (let* ((spec
                   (list
                    (cons ?p image-dired-cmd-create-temp-image-program)
@@ -2482,6 +2487,55 @@ dwim memory and use both height and width fit display type."
             ;; `setf' i.e. `gv' functionality and why this does?)
             (image-set-window-vscroll 0)
             (image-set-window-hscroll 0))))))
+
+  (entropy/emacs-when-defun __ya/image-dired-display-image (file &optional original-size)
+    (version< "29" emacs-version)
+    "Like `image-dired-display-image' but expand the ORIGINAL-SIZE
+means as DWIM that:
+
+- `=' 2:      fit to height (stick to window height using the origin image width)
+- `=' 3:      fit to width (stick to window width using the origin image height)
+- `eq' '(4):  use origin size which is same as origin mechanism the single 'C-u' prefix.
+
+The dwim is memoized via history variable
+`__ya/image-dired-display-image-stick-fit-type'.
+
+Any other prefix type is treat as clear/reset the stick history
+dwim memory and use both height and width fit display type."
+    (declare (advertised-calling-convention (file) "29.1"))
+    (setq file (expand-file-name file))
+    (when (not (file-exists-p file))
+      (error "No such file: %s" file))
+    (let ((buf (get-buffer-create image-dired-display-image-buffer))
+          (cur-win (selected-window))
+          (should-use-dwim-p
+           (entropy/emacs-basic-image-dired--display-size-with-dwim-p
+            original-size))
+          (inhibit-read-only t))
+      (unless (get-buffer-window buf)
+        (display-buffer buf))
+      (with-current-buffer buf
+        (when (eq major-mode 'image-dired-display-image-mode)
+          (with-selected-window (get-buffer-window buf)
+            (image-set-window-vscroll 0)
+            (image-set-window-hscroll 0)))
+        (erase-buffer)
+        (insert-file-contents-literally file)
+        (goto-char (point-min))
+        ;; let buffer known the current display image origin file
+        (setq __ya/image-dired-display-image-buffer-image-file file)
+        (let ((image-auto-resize
+               (or (if should-use-dwim-p
+                       (cond
+                        ((eq original-size 2)
+                         'fit-height)
+                        ((eq original-size 3)
+                         'fit-width))
+                     (when (equal original-size '(4))
+                       1))
+                   t)))
+          (image-dired-display-image-mode)))
+      (select-window cur-win)))
 
   (advice-add 'image-dired-display-image
               :override #'__ya/image-dired-display-image)
