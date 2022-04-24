@@ -1383,7 +1383,7 @@ in this list should not kill the frame internally which is
 restricted by thus.")
 
 (defun entropy/emacs--run-eemacs-delete-frame-functions
-    (&optional frame)
+    (&optional frame _force)
   "The running process for `entropy/emacs-delete-frame-functions'.
 
 NOTE: do not run it in any cases since its an `delete-frame' advice."
