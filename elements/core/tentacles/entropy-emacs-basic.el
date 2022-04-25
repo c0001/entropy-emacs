@@ -60,6 +60,7 @@
 (defun entropy/emacs-basic-mark-set ()
   "Mark the current point and push it to mark ring so that this
 place can be easily found by other interactive command."
+  (declare (interactive-only t))
   (interactive)
   (save-excursion
     (push-mark)))
@@ -467,6 +468,7 @@ modifcation is to remove this feature.
   (defun entropy/emacs-dired-Meta-up ()
     "Goto parent `dired' buffer of `dired-current-directory' or goto
 the parent subtree sibling using `dired-sutree-up'."
+    (declare (interactive-only t))
     (interactive)
     (let ((in-dired-subtree-p
            (and (fboundp 'dired-subtree--get-ov)
@@ -481,6 +483,7 @@ the parent subtree sibling using `dired-sutree-up'."
     "Downup to parent next sibling `dired' buffer of
 `dired-current-directory' or goto the next upgrade level 1
 subtree sibling using `dired-subtree''s subroutine."
+    (declare (interactive-only t))
     (interactive)
     (let ((in-dired-subtree-p
            (and (fboundp 'dired-subtree--get-ov)
@@ -519,6 +522,7 @@ subtree sibling using `dired-subtree''s subroutine."
     "Like `narrow-to-region' but with `dired' specfications and
 adapting thus and just enable when `region-active-p' is
 predicated."
+    (declare (interactive-only t))
     (interactive)
     (when (region-active-p)
       (let ((regbeg (region-beginning))
@@ -556,6 +560,7 @@ predicated."
 ;; ******* Yet another `dired-find-file-other-window'
 
   (defun entropy/emacs-dired-find-file-other-window ()
+    (declare (interactive-only t))
     (interactive)
     "Like `dired-find-file-other-window' but adapted to eemacs context."
     (unless (eq major-mode 'dired-mode)
@@ -794,6 +799,7 @@ For lisp code, optional args:
 when you call `entropy/emacs-basic-get-dired-fpath'.")
 
   (defun entropy/emacs-basic-get-dired-fpath (type)
+    (declare (interactive-only t))
     (interactive
      (list (completing-read "Choose path string type: "
                             '("unix" "win32"))))
@@ -828,6 +834,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 
 ;; ******* Dired add load path
   (defun entropy/emacs-basic--dired-add-to-load-path ()
+    (declare (interactive-only t))
     (interactive)
     (let ((dir (completing-read "Choose load path adding item: "
                                 'read-file-name-internal
@@ -839,6 +846,7 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 ;; ******* Dired backup file
 
   (defun entropy/emacs-basic-dired-backup-files ()
+    (declare (interactive-only t))
     (interactive)
     (let ((files (dired-get-marked-files)))
       (dolist (el files)
@@ -868,6 +876,7 @@ In interaction mode, ARG is caluated by `prefix-numeric-value' on
 `current-prefix-arg', so that both 'C-u C-u .. ' and 'C-u NUM' are
 acceptable. If `current-prefix-arg' is nil or ARG less than 1, we
 fallbackk to 1."
+    (declare (interactive-only t))
     (interactive "P")
     (unless (eq major-mode 'dired-mode)
       (user-error "[Error]: current buffer is not an 'dired' buffer"))
@@ -990,6 +999,7 @@ or if 0 we use `nil' which is for non level restriction.
 
 This function also can print the tree as `org-mode' style with a
 interaction hint."
+    (declare (interactive-only t))
     (interactive "P")
     (unless (eq major-mode 'dired-mode)
       (user-error "[Error]: current buffer is not an 'dired' buffer"))
@@ -1092,6 +1102,7 @@ user refuse the prompts."
 `entropy/emacs-do-directory-mirror' for `dired-get-marked-files'
 in current `dired' buffer. Use symbolic link type defautly unless
 `current-prefix-arg' is non-nil."
+    (declare (interactive-only t))
     (interactive "P")
     (unless (eq major-mode 'dired-mode)
       (user-error "Not in dired buffer"))
@@ -1384,6 +1395,7 @@ or if 0 we use `nil' which for non level restriction.
 Any symbolic link target to a directory is recognized as an
 directory.
 "
+    (declare (interactive-only t))
     (interactive "P")
     (unless (eq major-mode 'dired-mode)
       (user-error "[Error]: current buffer is not an 'dired' buffer"))
@@ -1845,6 +1857,7 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
   (defun entropy/emacs-dired-subtree-cycle (&optional max-depth)
     "Like `dired-subtree-cycle' but mapped with
 `dired-get-marked-files' when marked directories found."
+    (declare (interactive-only t))
     (interactive "P")
     (let ((mkitems (dired-get-marked-files)))
       (cond
@@ -2040,6 +2053,7 @@ emacs."
   (defun entropy/emacs-image-mode-open-as-external ()
     "Display image with external app of file in current `image-mode'
 buffer."
+    (declare (interactive-only t))
     (interactive)
     (unless (eq major-mode 'image-mode)
       (user-error "Not in image-mode"))
@@ -2072,6 +2086,7 @@ convert the thumbnails from these marked items.
 If not marked files found (user spec mode), or non image files
 can be found in this dired buffer, cancel the operation and throw
 an error."
+    (declare (interactive-only t))
     (interactive "P")
     (unless (featurep 'image-dired)
       (require 'image-dired))
@@ -2581,6 +2596,7 @@ dwim memory and use both height and width fit display type."
 
   (defun entropy/emacs-image-dired-thumbnail-mode-open-as-external ()
     "Open thumbnails origin image file at point with external app."
+    (declare (interactive-only t))
     (interactive)
     (let ((file (image-dired-original-file-name)))
       (if (not (string-equal major-mode "image-dired-thumbnail-mode"))
@@ -2598,6 +2614,7 @@ dwim memory and use both height and width fit display type."
   (defvar shackle-rules)
   (defun entropy/emacs-image-dired-thumbnail-mode-pop-assoc-dired ()
     "Popup associated dired buffer in current image dired thumbnail buffer."
+    (declare (interactive-only t))
     (interactive)
     (unless (string-equal major-mode "image-dired-thumbnail-mode")
       (user-error "Not in image-dired-thumbnail-mode"))
@@ -2629,6 +2646,7 @@ dwim memory and use both height and width fit display type."
     "Like `image-dired-jump-original-dired-buffer' but try to display
 the origin dired buffer first so that we commonly can did
 successfully for this operation."
+    (declare (interactive-only t))
     (interactive)
     (let* ((buff (image-dired-associated-dired-buffer))
            (win (image-dired-get-buffer-window buff))
@@ -2686,24 +2704,28 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
   (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/up
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'up'."
+    (declare (interactive-only t))
     (interactive "p")
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'up n))
   (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/down
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'down'."
+    (declare (interactive-only t))
     (interactive "p")
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'down n))
   (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/left
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'left'."
+    (declare (interactive-only t))
     (interactive "p")
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'left n))
   (defun entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer/right
       (&optional n)
     "Use `entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer' with 'right'."
+    (declare (interactive-only t))
     (interactive "p")
     (entropy/emacs-image-dired-thumbnail-mode-scroll-display-buffer
      'right n))
@@ -2713,6 +2735,7 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
   (defun entropy/emacs-image-dired-forward-image (&optional arg)
     "Like `image-dired-forward-image' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (declare (interactive-only t))
     (interactive "p")
     (let (pos (steps (or arg 1)))
       (dotimes (_ steps)
@@ -2733,6 +2756,7 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
   (defun entropy/emacs-image-dired-backward-image (&optional arg)
     "Like `image-dired-backward-image' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (declare (interactive-only t))
     (interactive "p")
     (let (pos (steps (or arg 1)))
       (dotimes (_ steps)
@@ -2753,6 +2777,7 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
   (defun entropy/emacs-image-dired-next-line ()
     "Like `image-dired-next-line' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (declare (interactive-only t))
     (interactive)
     (let ((goal-column (current-column)))
       (forward-line 1)
@@ -2767,6 +2792,7 @@ ARROW is valid in 'up' 'down' 'left' 'right'."
   (defun entropy/emacs-image-dired-previous-line ()
     "Like `image-dired-previous-line' but using
 `entropy/emacs-image-dired-idle-track-orig-file' as subroutine."
+    (declare (interactive-only t))
     (interactive)
     (let ((goal-column (current-column)))
       (forward-line -1)
@@ -2832,6 +2858,7 @@ subroutine and support region unmark."
   (defun entropy/emacs-image-dired-mark-all-thumbs ()
     "Mark all image thumbs with syncing with associated
 dired buffer."
+    (declare (interactive-only t))
     (interactive)
     ;; cancel the regio first since it's meaningful for
     ;; `entropy/emacs-image-dired-mark-thumb-original-file'
@@ -2843,6 +2870,7 @@ dired buffer."
   (defun entropy/emacs-image-dired-unmark-all-thumbs ()
     "Unmark all image thumbs with syncing with associated
 dired buffer."
+    (declare (interactive-only t))
     (interactive)
     ;; cancel the regio first since it's meaningful for
     ;; `entropy/emacs-image-dired-unmark-thumb-original-file'
@@ -2882,6 +2910,7 @@ dired buffer."
   :config
   (defun entropy/emacs-image-dired-buffer-view-with-external-app ()
     "View current displayed image in external app."
+    (declare (interactive-only t))
     (interactive)
     (unless (eq major-mode 'image-dired-display-image-mode)
       (user-error "Not in an dired image display spec buffer!"))
@@ -2894,6 +2923,7 @@ dired buffer."
     "Redisplay the current `image-dired-display-image-buffer'
 displayed image as same operated mechanism as
 `image-dired-display-thumbnail-original-image'."
+    (declare (interactive-only t))
     (interactive "P")
     (unless (eq major-mode 'image-dired-display-image-mode)
       (user-error "Not in an dired image display spec buffer!"))
@@ -2904,6 +2934,7 @@ displayed image as same operated mechanism as
 
   (defun entropy/emacs-image-dired-enable-image-mode-in-display-buffer ()
     "Enable `image-mode' in `image-dired-display-image-buffer'"
+    (declare (interactive-only t))
     (interactive)
     (unless (eq major-mode 'image-dired-display-image-mode)
       (user-error "Not in an dired image display spec buffer!"))
@@ -2942,6 +2973,7 @@ displayed image as same operated mechanism as
 
 (defun entropy/emacs-basic-do-artist-temporally ()
   "Display one temp-buffer with `artist-mode' enabled."
+  (declare (interactive-only t))
   (interactive)
   (let ((buffer (generate-new-buffer "*eemacs-artist-mode-temp-buffer*")))
     (with-current-buffer buffer
@@ -3013,6 +3045,7 @@ displayed image as same operated mechanism as
     "Manually fit current manpage to `window-width' like
 `Man-fit-to-window' and just support in an buffer that is
 `current-buffer' on which enabled `Man-mode'."
+    (declare (interactive-only t))
     (interactive)
     (with-current-buffer (current-buffer)
       (when (eq major-mode 'Man-mode)
@@ -3080,6 +3113,7 @@ specified."
 (setq-default cursor-type t)
 
 (defun entropy/emacs-basic-toggle-cursor-type ()
+  (declare (interactive-only t))
   (interactive)
   (if (string= (symbol-name cursor-type) "t")
       (setq cursor-type 'bar)
@@ -3203,6 +3237,7 @@ buffer, in that case any conditions don't match the filter then
 (defun entropy/emacs-basic-dhl-toggle ($Prefix)
   "Dwim enable/disable `hl-line-mode' while be on
 `display-line-numbers-mode' with prefix key enable."
+  (declare (interactive-only t))
   (interactive "P")
   (if (not $Prefix)
       (cl-case (entropy/emacs-basic--dhl-judge-state)
@@ -3356,12 +3391,14 @@ NOTE: this is a advice wrapper for any function."
 ;; ****** Input time into buffer
 (defun entropy/emacs-basic-now ()
   "Insert string for the current time formatted like '2:34 PM'."
+  (declare (interactive-only t))
   (interactive)                 ; permit invocation in minibuffer
   (insert (format-time-string "[%Y-%m-%d %a %H:%M:%S]")))
 
 (defun entropy/emacs-basic-today ()
   "Insert string for today's date nicely formatted in American style,
  e.g. Sunday, September 17, 2000."
+  (declare (interactive-only t))
   (interactive)                 ; permit invocation in minibuffer
   (insert (format-time-string "%A, %B %e, %Y")))
 
@@ -3457,12 +3494,15 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
     (apply func region)))
 
 (defun entropy/emacs-basic-toggle-case-for-capitalize ()
+  (declare (interactive-only t))
   (interactive)
   (entropy/emacs-basic-toggle-case-core 'capitalize))
 (defun entropy/emacs-basic-toggle-case-for-downcase ()
+  (declare (interactive-only t))
   (interactive)
   (entropy/emacs-basic-toggle-case-core 'downcase))
 (defun entropy/emacs-basic-toggle-case-for-upcase ()
+  (declare (interactive-only t))
   (interactive)
   (entropy/emacs-basic-toggle-case-core 'upcase))
 
@@ -3507,6 +3547,7 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
   :config
   (defun entropy/emacs-sudoedit-current-path-maybe (curr-path)
     "Get su privileges for CURR-PATH if need to so."
+    (declare (interactive-only t))
     (interactive (list (auto-sudoedit-current-path)))
     (let ((path (auto-sudoedit-path curr-path)))
       (if path
@@ -3569,6 +3610,7 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
 This function was usable for some occurrence that current mode
 functional part was missed or be without working on the proper
 way. "
+  (declare (interactive-only t))
   (interactive)
   (if (not (string-match-p "^CAPTURE-" (buffer-name)))
       (let ((point (point))
@@ -3665,6 +3707,7 @@ retrieve from `window-list' larger than 1."
 (defun entropy/emacs-basic-kill-buffer ()
   "Entropy emacs specified `kill-buffer' method, used for replace
 as thus."
+  (declare (interactive-only t))
   (interactive)
   (cond
    ((eq major-mode 'term-mode)
@@ -3828,6 +3871,7 @@ as thus."
   "Toggle auto-revert global bounds of feature on or off.
 
 NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
+  (declare (interactive-only t))
   (interactive)
   (let ((gav-p (bound-and-true-p global-auto-revert-mode))
         gav-on gav-off
@@ -3940,6 +3984,7 @@ Return the new scratch buffer.
 ;; Create a new scratch buffer
 (defun entropy/emacs-basic-create-scratch-buffer ()
   "Create a scratch buffer."
+  (declare (interactive-only t))
   (interactive)
   (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
   (message "Create *scratch* buffer done"))
@@ -3981,6 +4026,7 @@ Return the new scratch buffer.
 ;;     `https://superuser.com/questions/546619/clear-the-kill-ring-in-emacs'
 ;;     Or you just can use (setq kill-ring nil) only.
 (defun entropy/emacs-basic-clear-kill-ring ()
+  (declare (interactive-only t))
   (interactive)
   (when (yes-or-no-p "Clean kill ring? ")
     (entropy/emacs-basic-kill-ring-persist-backup)
@@ -4193,6 +4239,7 @@ successfully both of situation of read persisit of create an new."
 (defun __ya/backward-kill-word (arg)
     "Alternative for `backward-kill-word' but not trigger
 `kill-ring-save'."
+    (declare (interactive-only t))
     (interactive "p")
     (delete-region
      (point)
@@ -5230,6 +5277,7 @@ conflicts."
 
 
 (defun entropy/emacs-internal-ime-toggle-popup-type ()
+  (declare (interactive-only t))
   (interactive)
   (let ((chosen (completing-read "Choose popup type: "
                                  '("minibuffer"
