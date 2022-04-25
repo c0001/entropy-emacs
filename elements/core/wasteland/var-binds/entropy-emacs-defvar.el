@@ -242,7 +242,27 @@ repository and has submodule inited."
           (expand-file-name "autogen.sh" dir))
          dir)))
 
-(defvar entropy/emacs-read-extended-command-predicates nil
+(defvar entropy/emacs-read-extended-command-predicates
+  '(
+    ;; The default filter inspired by
+    ;; `execute-extended-command-for-buffer', to obey the
+    ;; `command-modes' predicate.
+    (lambda (symbol buffer)
+      (let ((modes (command-modes symbol))
+            cur_mjmode
+            cur_minmodes
+            cur_allmodes)
+        (if modes
+            (progn
+              (setq cur_mjmode (buffer-local-value 'major-mode buffer))
+              (setq cur_minmodes (buffer-local-value 'local-minor-modes buffer))
+              (setq cur_allmodes (cons cur_mjmode cur_minmodes))
+              (catch :exit
+                (dolist (mode modes)
+                  (when (memq mode cur_allmodes)
+                    (throw :exit t)))
+                nil))
+          t))))
   "A list of `read-extended-command-predicate' checking stop in
 order while the first one return nil which used when emacs
 version upper than 28.")
