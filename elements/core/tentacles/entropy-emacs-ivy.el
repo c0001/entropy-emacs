@@ -66,9 +66,7 @@
     ;; inject its own types but with some eemacs specified which need
     ;; to use initial inputs.
     (setq ivy-initial-inputs-alist nil)
-    (dolist (cmd '(counsel-M-x
-                   counsel-describe-variable
-                   counsel-describe-function))
+    (dolist (cmd '(Man-completion-table woman))
       (add-to-list 'ivy-initial-inputs-alist
                    (cons cmd "^")))
     ;; printable M-x candi sort default type by string less
