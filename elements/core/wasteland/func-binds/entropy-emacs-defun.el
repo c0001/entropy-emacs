@@ -3465,9 +3465,12 @@ the same NAME-SYMBOL is shared one lazy function defination."
            (format "entropy/emacs-eval-after-load-unique--/%s/indc-varname"
                    name-symbol)))
          (registed-p
-          (member func-name entropy/emacs-eval-after-load-unique-register))
+          (and (member func-name entropy/emacs-eval-after-load-unique-register)
+               t))
          (has-ran-p
-          (bound-and-true-p indicate-varname)))
+          (and (boundp indicate-varname)
+               (symbol-value indicate-varname)
+               t)))
     `(progn
        (if ,has-ran-p
            (progn ,@body)
