@@ -121,6 +121,42 @@ CONDITION-FORM is evaled return non-nil."
        ,docstring
        ,@body)))
 
+(defvar entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number 0)
+(defun entropy/emacs-make-dynamic-symbol-as-same-value (var)
+  "Make a new dynamic symbol whose value is same as VAR"
+  (let* (sym-rtn
+         (sym-make-func
+          (lambda nil
+            (setq sym-rtn
+                  (prog1
+                      (intern
+                       (format "entropy/emacs-make-dynamic-symbol-as-same-value/%d"
+                               entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number))
+                    (cl-incf entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number))))
+          ))
+    (while (boundp (funcall sym-make-func)))
+    (set sym-rtn var)
+    sym-rtn))
+
+(defmacro entropy/emacs-add-to-list
+    (list-var element &optional append compare-fn)
+  "Add ELEMENT to the top (the `car') of LIST-VAR unless APPEND is
+non-nil in which case add to the tail of thus.
+
+If ELEMENT is presented in LIST-VAR which be predicated by `member'
+as default (or using COMPARE-FN when its non-nil), do nothing.
+
+The LIST-VAR is modified unless do-nothing happened.
+
+LIST-VAR can be a generalized varaible.
+"
+  `(unless (if (and ,compare-fn t)
+               (funcall ,compare-fn ,element ,list-var)
+             (member ,element ,list-var))
+     (if ,append
+         (setf ,list-var (append ,list-var (list ,element)))
+       (setf ,list-var (push ,element ,list-var)))))
+
 ;; *** Cl-function compatible manipulation
 (defun entropy/emacs-cl-findnew-p (func)
   (let (new-func)
