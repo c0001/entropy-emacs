@@ -179,6 +179,13 @@
   :type 'integer
   :group 'entropy/sdcv-interactive-group)
 
+(defcustom entropy/sdcv-autoshow-either-query-zh_CN nil
+  "In `entropy/sdcv-autoshow-mode', whether query on zh_CN words?
+
+Suggest disable this option since high latency issue."
+  :type 'boolean
+  :group 'entropy/sdcv-interactive-group)
+
 ;;;; library
 (defun entropy/sdcv--process-coding-system-guard-for-backends (old-func &rest args)
   "The around advice for set specification emacs coding system when
@@ -218,7 +225,9 @@ system in this case was not the subject of utf-8 group."
                                              ;preventing the performance
                                              ;issue
                 (eq ,buff (current-buffer)))
-       (let ((thing (entropy/sdcv-core-get-word-or-region t))
+       (let* ((entropy/sdcv-core-get-thing-with-lang_zh_CN-p
+               entropy/sdcv-autoshow-either-query-zh_CN)
+              (thing (entropy/sdcv-core-get-word-or-region t))
              show-instance)
          (when (and (stringp thing)
                     (not (string= entropy/sdcv-autoshow-last-query thing))

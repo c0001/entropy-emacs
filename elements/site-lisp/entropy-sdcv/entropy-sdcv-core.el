@@ -146,6 +146,11 @@
   :type 'string
   :group 'entropy/sdcv-core-group)
 
+(defcustom entropy/sdcv-core-get-thing-with-lang_zh_CN-p t
+  "Whether enable thing gets with zh_CN language."
+  :type 'boolean
+  :group 'entropy/sdcv-core-group)
+
 (defcustom entropy/sdcv-core-query-backends-register
   '()
   "List of dict type of quering for.
@@ -482,7 +487,8 @@ Otherwise return word around point."
       (buffer-substring-no-properties (region-beginning)
                                       (region-end))
     (thing-at-point
-     (if (eq entropy/sdcv-core--jieba-test-result 'installed)
+     (if (and entropy/sdcv-core-get-thing-with-lang_zh_CN-p
+              (eq entropy/sdcv-core--jieba-test-result 'installed))
          'chinese-or-other-word
        'word)
      t)))

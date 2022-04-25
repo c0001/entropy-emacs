@@ -536,7 +536,6 @@ Return value as list as sexp (list word def def-width-overflow-lines)."
 ;;;;;; show predicate
 
 (defun entropy/sdcv-backends--sdcv-show-predicate (feedback show-method)
-  (entropy/sdcv-core-get-word-or-region)
   (cl-case show-method
     (minibuffer-common
      (let ((feedback
