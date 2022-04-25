@@ -3884,44 +3884,51 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
 ;;     auto-completion in none file buffer, so corresponding one file
 ;;     to *scratch* buffer.
 
+(defvar magit-inhibit-refresh-save)
 (defun entropy/emacs-basic--scratch-buffer-file-binding ()
-  "Corresponded *scratch* buffer to one temp-file.
+  "Bind *scratch* buffer to one persist file.
 
-Filename are \".scratch_entropy\" host in
-`entropy/emacs-stuffs-topdir'.
+The persist file is \".scratch_entropy\" host in `entropy/emacs-stuffs-topdir'.
+
+Return the new scratch buffer.
 "
-  (let ((bfn "*scratch*"))
-    (when (get-buffer "*scratch*")
-      (kill-buffer "*scratch*"))
+  (let* ((bfn "*scratch*")
+         (main-func
+          (lambda (&rest _)
+            (with-current-buffer (current-buffer)
+              ;; make scratch buffer as un-readonly defaultly
+              (if buffer-read-only (setq buffer-read-only nil))
+              ;; insert the `initial-scratch-message'
+              (save-excursion
+                (goto-char (point-min))
+                (unless (looking-at (regexp-quote initial-scratch-message))
+                  (insert initial-scratch-message)))
+              ;; disable `auto-save-mode' since we do not want to auto
+              ;; backup the scratch contents
+              (when (bound-and-true-p buffer-auto-save-file-name)
+                (auto-save-mode 0))
+              ;; rename to scratch buffer name
+              (rename-buffer bfn)
+              ;; follow basic scratch buffer major-mode spec
+              (unless (eq major-mode 'lisp-interaction-mode)
+                (lisp-interaction-mode))
+              ;; ignore scratch buffer file for `magit-save-repository-buffers' checker.
+              (setq-local magit-inhibit-refresh-save t)
+              ;; final procedures
+              (goto-char (point-min))))))
+    ;; kill the origin one firstly
+    (when (get-buffer bfn)
+      (kill-buffer (get-buffer bfn)))
+    ;; main
     (let ((fname (expand-file-name ".scratch_entropy" entropy/emacs-stuffs-topdir))
           ;; inhibit `find-file-hook' for speedup file create
           (find-file-hook nil))
-      (if (not (file-exists-p fname))
-          (progn
-            (write-region "" "" fname)
-            (with-current-buffer (find-file-noselect fname)
-              (if buffer-read-only (setq buffer-read-only nil))
-              (auto-save-mode 0)
-              (rename-buffer "*scratch*")
-              (unless (eq major-mode 'lisp-interaction-mode)
-                (lisp-interaction-mode))
-              (insert initial-scratch-message)))
-        (with-current-buffer (find-file-noselect fname)
-          (if buffer-read-only (setq buffer-read-only nil))
-          (auto-save-mode 0)
-          (rename-buffer "*scratch*")
-          (unless (eq major-mode 'lisp-interaction-mode)
-            (lisp-interaction-mode))
-          (save-excursion
-            (goto-char (point-min))
-            (unless (string-match-p
-                     (concat
-                      (car (split-string (regexp-quote initial-scratch-message) "^$" t))
-                      ".*")
-                     (buffer-substring-no-properties
-                      (point-min) (point-max)))
-              (insert initial-scratch-message))))))
-    bfn))
+      (unless (file-exists-p fname)
+        (write-region "" nil fname))
+      (with-current-buffer (find-file-noselect fname)
+        (funcall main-func)))
+    ;; return the buffer
+    (get-buffer bfn)))
 
 (entropy/emacs-lazy-initial-advice-before
  (find-file switch-to-buffer ivy-read)
@@ -3935,9 +3942,7 @@ Filename are \".scratch_entropy\" host in
   "Create a scratch buffer."
   (interactive)
   (switch-to-buffer (entropy/emacs-basic--scratch-buffer-file-binding))
-  (lisp-interaction-mode)
-  (message "Create *scratch* buffer"))
-
+  (message "Create *scratch* buffer done"))
 
 ;; **** Kill ring config
 ;; ***** basic
