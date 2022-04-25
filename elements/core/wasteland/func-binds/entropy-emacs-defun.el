@@ -5624,16 +5624,24 @@ corresponding stuffs."
       :weight 'bold
       :extend t
       :background
-      (let ((cur-bgc (face-attribute 'magit-diff-hunk-region :background)))
-        (unless (and (stringp cur-bgc)
-                     (entropy/emacs-color-string-hex-p cur-bgc))
-          (setq cur-bgc (face-attribute 'default :background)))
-        (if (and (stringp cur-bgc)
-                 (entropy/emacs-color-string-hex-p cur-bgc))
-            (entropy/emacs-color-scale-common
-             cur-bgc
-             0.2)
-          "darkslategray")))))
+      (let* ((color-p (lambda (x)
+                        (and (stringp x)
+                             (entropy/emacs-color-string-hex-p x)
+                             x)))
+             (cur-magit-bgc    (funcall color-p (face-attribute 'magit-diff-hunk-region :background)))
+             (cur-magit-hl-bgc (funcall color-p (face-attribute 'magit-diff-context-highlight :background)))
+             (cur-default-bgc  (funcall color-p (face-attribute 'default :background)))
+             )
+        (if cur-magit-bgc
+            cur-magit-bgc
+          (if cur-default-bgc
+              (entropy/emacs-color-scale-common
+               (or cur-magit-hl-bgc
+                   cur-default-bgc)
+               (if (eq (frame-parameter nil 'background-mode) 'light)
+                   0.8
+                 0.6))
+            "#2f2f4f4f4f4f"))))))
 
   ;; --- company tooltip selection highlight
   ;; more visible for `company-tooltip-selection'
@@ -5656,7 +5664,7 @@ corresponding stuffs."
             (entropy/emacs-color-scale-common
              cur-bgc
              1.5)
-          "darkslategray")))))
+          "#2f2f4f4f4f4f")))))
   )
 
 (defun entropy/emacs-theme-load-modeline-specifix (&optional arg)
