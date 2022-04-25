@@ -555,21 +555,21 @@ Slots description:
    ((entropy/emacs-common-plistp (ignore-errors (symbol-value pretty-hydra-category-name)))
     (dolist
         (el
-         '((:pretty-hydra-category-name-prefix pretty-hydra-category-name-prefix)
-           (:pretty-hydra-category-description pretty-hydra-category-description)
-           (:pretty-hydra-category-name pretty-hydra-category-name)
-           (:pretty-hydra-category-hydra-name pretty-hydra-category-hydra-name)
-           (:pretty-hydra-category-hydra-caller-name pretty-hydra-category-hydra-caller-name)
-           (:pretty-hydra-category-base-pretty-hydra-body pretty-hydra-category-base-pretty-hydra-body)
-           (:pretty-hydra-category-cabinet-unit-names-list pretty-hydra-category-cabinet-unit-names-list)
-           (:pretty-hydra-category-depth pretty-hydra-category-depth)
-           (:pretty-hydra-category-width pretty-hydra-category-width)
-           (:pretty-hydra-category-baron-name pretty-hydra-category-baron-name)
-           (:pretty-hydra-category-previous-category-name pretty-hydra-category-previous-category-name)
-           (:pretty-hydra-category-next-category-name pretty-hydra-category-next-category-name)))
-      (unless (null (symbol-value (cadr el)))
+         `((:pretty-hydra-category-name-prefix ,pretty-hydra-category-name-prefix)
+           (:pretty-hydra-category-description ,pretty-hydra-category-description)
+           (:pretty-hydra-category-name ,pretty-hydra-category-name)
+           (:pretty-hydra-category-hydra-name ,pretty-hydra-category-hydra-name)
+           (:pretty-hydra-category-hydra-caller-name ,pretty-hydra-category-hydra-caller-name)
+           (:pretty-hydra-category-base-pretty-hydra-body ,pretty-hydra-category-base-pretty-hydra-body)
+           (:pretty-hydra-category-cabinet-unit-names-list ,pretty-hydra-category-cabinet-unit-names-list)
+           (:pretty-hydra-category-depth ,pretty-hydra-category-depth)
+           (:pretty-hydra-category-width ,pretty-hydra-category-width)
+           (:pretty-hydra-category-baron-name ,pretty-hydra-category-baron-name)
+           (:pretty-hydra-category-previous-category-name ,pretty-hydra-category-previous-category-name)
+           (:pretty-hydra-category-next-category-name ,pretty-hydra-category-next-category-name)))
+      (unless (null (cadr el))
         (plist-put (symbol-value pretty-hydra-category-name)
-                   (car el) (symbol-value (cadr el))))))))
+                   (car el) (cadr el)))))))
 
 ;; ******** category names get
 ;; This section makes the core defination for =pretty-hydra-category=
@@ -1942,7 +1942,7 @@ FEATURE-REPLACCE and keymap data MAP-REPLACE."
             (t (setq rtn (append rtn (list hydra-injector-maybe))))))
      (t
       (error "Wrong type of argument: hydra-injector-p '%s'" hydra-injector-maybe)))
-    (add-to-list 'rtn :self-list)
+    (entropy/emacs-add-to-list rtn :self-list)
     rtn))
 
 ;; ****** predicate defination
