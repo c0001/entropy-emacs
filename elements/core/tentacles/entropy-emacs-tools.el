@@ -1423,6 +1423,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
     (let ((inhibit-read-only t))
       (with-current-buffer
           (get-buffer-create "*Memory Explorer*")
+        (local-set-key (kbd "q") 'quit-window)
         (setq buffer-read-only t)
         (condition-case error
             (entropy/emacs-message-simple-progress-message
@@ -1439,6 +1440,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
     (let ((inhibit-read-only t))
       (with-current-buffer
           (get-buffer-create "*Buffer Details*")
+        (local-set-key (kbd "q") 'quit-window)
         (setq buffer-read-only t)
         (entropy/emacs-message-simple-progress-message
          "Memory general overview"
