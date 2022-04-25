@@ -80,6 +80,10 @@
    ;; windows
    (setq magit-bury-buffer-function
          'magit-restore-window-configuration)
+   ;; inhibit commit with diff show sicne its redundant and we use
+   ;; ':select' rule for the revision window in `shackle-mode'.
+   (setq magit-commit-show-diff nil)
+   ;; init the eemacs spec
    (entropy/emacs-vcs--magit-init))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation
