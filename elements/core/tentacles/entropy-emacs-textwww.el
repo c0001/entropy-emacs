@@ -689,7 +689,7 @@ effective then adding option of personal browse url function that be in ordered 
                    "default"))
                 (t '("eww" "default"))))
          (choice
-          (ivy-read "Choose the function you want: " list-of-choice)))
+          (completing-read "Choose the function you want: " list-of-choice)))
         (cond
          ((string= choice "eww")
           (entropy/emacs-textwww--setting-default-browser 'eww-browse-url))

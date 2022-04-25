@@ -39,9 +39,14 @@
   (setq tern-command '("tern")))
 
 ;; ** main libraries
-(defun entropy/emacs-web-browse-web-buffer ()
-  (interactive)
-  (let* (url)
+(defun entropy/emacs-web-browse-html-buffer ()
+  "Browse current html buffer using `browse-url-browse-function'
+set of `entropy/emacs-browse-url-function-get-for-web-preview'."
+  (interactive nil web-mode html-mode)
+  (let* (url
+         tmp-file
+         (browse-url-browser-function
+          (entropy/emacs-browse-url-function-get-for-web-preview)))
     (if (and buffer-file-name
              (file-exists-p buffer-file-name))
         (progn
@@ -49,7 +54,17 @@
                 (url-hexify-string
                  (concat "file://" buffer-file-name)
                  entropy/emacs-url-allowed-chars))
-          (browse-url url)))))
+          (browse-url url))
+      (setq tmp-file
+            (make-temp-file "eemacs-web-preview_"
+                            nil
+                            ".html"
+                            (buffer-substring (point-min) (point-max))))
+      (setq url
+            (url-hexify-string
+             (concat "file://" tmp-file)
+             entropy/emacs-url-allowed-chars))
+      (browse-url url))))
 
 (defvar web-mode-markup-indent-offset)
 (defvar web-mode-css-indent-offset)
@@ -88,7 +103,7 @@
   (((:enable t :defer t)
     (web-mode (web-mode web-mode-map) t (1 2 1 1 2)))
    ("Basic"
-    (("<f1>" entropy/emacs-web-browse-web-buffer "Preview Current Buffer"
+    (("<f1>" entropy/emacs-web-browse-html-buffer "Preview Current Buffer"
       :enable t
       :exit t))
     "Attribute"

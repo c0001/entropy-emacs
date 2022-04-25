@@ -391,14 +391,30 @@ enabled at current org buffer. "
             #'entropy/emacs-org-auto-add-org-ids-before-save)
 
 ;; ****** org file apps patches
+;; ******* backends
+;; ******** html open app
+  (defun entropy/emacs-org--hexpt-function (&optional path link)
+    "Function embeded into `org-file-apps', used for
+`entropy/emacs-org--hexpt-advice' to open html file using
+`browse-url-browser-function' based on
+`entropy/emacs-browse-url-function-get-for-web-preview'."
+    (if (and (stringp link)
+             (stringp path)
+             (file-exists-p path))
+        (let ((browse-url-browser-function
+               (entropy/emacs-browse-url-function-get-for-web-preview)))
+          (browse-url
+           (concat "file:///"
+                   (url-hexify-string link entropy/emacs-url-allowed-chars))))
+      (error "Invalid link '%s' with path '%s'" link path)))
 
+;; ******* main
   (defun entropy/emacs-org--specified-file-open-operations ()
     "Patch `org-file-apps' with some specification locally."
     (let ((map-list
-           '(("\\.x?html?\\'" . system)
+           '(("\\.x?m?html?\\'" . entropy/emacs-org--hexpt-function)
              ("\\.[gG]if\\'" . system)
              ("\\.pdf\\'" . system))))
-      (make-local-variable 'org-file-apps)
       (setq-local org-file-apps
                   (append map-list org-file-apps))))
 
@@ -693,62 +709,6 @@ unwanted space when exporting org-mode to html."
               "\\(" fix-regexp "\\) *\n *\\(" fix-regexp "\\)") "\\1\\2" origin-contents)))
       (ad-set-arg 1 fixed-contents)))
 
-
-;; ******* org export html open function
-
-  ;; If `entropy/emacs-browse-url-function' is detectived then open
-  ;; exported html file with it instead of using default apps or
-  ;; system type.
-
-  (defun entropy/emacs-org--hexpt-use-external-type ()
-    "Returning the type of exec for open exported html file, they are:
-
-- \"personal\": using `entropy/emacs-browse-url-function' to open the
-  exported html file.
-
-- \"automatic\": using the way by `org-open-file' to automatilly
-  open exported file."
-    (if (and entropy/emacs-enable-personal-browse-url-function
-             (functionp entropy/emacs-browse-url-function))
-        "personal"
-      "automatic"))
-
-  (defun entropy/emacs-org--hexpt-function (&optional path link)
-    "Function embeded into `org-file-apps', used for
-`entropy/emacs-org--hexpt-advice' to open html file using
-`entropy/emacs-browse-url-function'."
-    (if link
-        (if (yes-or-no-p "Open html file with entropy/emacs-browse-url-function ? ")
-            (funcall entropy/emacs-browse-url-function
-                     (concat "file:///" (url-hexify-string link entropy/emacs-url-allowed-chars)))
-          (org-open-file path 'system))
-      (error "Invalid link!")))
-
-  (defun entropy/emacs-org--hexpt-advice (orig-func &rest orig-args)
-    "Advice for `org-open-file' for changing the \"html\"
-associtated function when exporting html file from org file
-or open html file link in org-mode.
-
-This function use `entropy/emacs-org--hexpt-function' to judge
-the exec type for chosen the way whether embeded it into
-`org-file-apps'."
-    (let* ((embeded '("\\.\\(x\\|m\\)?html?\\'" . entropy/emacs-org--hexpt-function))
-           (type (entropy/emacs-org--hexpt-use-external-type))
-           (process-connection-type nil))
-      (when (string-match "\\.\\(x\\|m\\)?html?$" (car orig-args))
-        (cond ((string= "personal" type)
-               (when (not (member embeded org-file-apps))
-                 (add-to-list 'org-file-apps embeded)
-                 (message "Using `entropy/emacs-browse-url-function' to open exported html file.")))
-              ("automatic"
-               (message
-                "Using automatic method to open exported html file! "))))
-      (unwind-protect
-          (apply orig-func orig-args)
-        (when (member embeded org-file-apps)
-          (setq org-file-apps (delete embeded org-file-apps))))))
-
-  (advice-add 'org-open-file :around #'entropy/emacs-org--hexpt-advice)
 
 ;; ******* org ignore broken links
   (setq org-export-with-broken-links 'mark)

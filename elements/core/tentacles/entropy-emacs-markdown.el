@@ -36,8 +36,17 @@
 ;; *** core
 (use-package markdown-mode
   :commands (markdown-mode)
-
   :preface
+
+  (defun entropy/emacs-markdown--with-eemacs-preview-browser
+      (orig-func &rest orig-args)
+    "Around advice for using `browse-url-function' retrieved by
+`entropy/emacs-browse-url-function-get-for-web-preview' to
+`browse-url'."
+    (let ((browse-url-browser-function
+           (entropy/emacs-browse-url-function-get-for-web-preview)))
+      (apply orig-func orig-args)))
+
   (defun entropy/emacs-markdown-preview-before-advice (&rest _)
     (if (executable-find "multimarkdown")
         (setq markdown-command "multimarkdown")
@@ -46,8 +55,7 @@
       (error "Mardown executable can not be found, you must
 either install 'markdown' or 'multimarkdown' from your system
 package management!"))
-    (message "Transferring current buffer using '%s' ..." markdown-command)
-    (sleep-for 3))
+    (message "Transferring current buffer using '%s' ..." markdown-command))
 
   :hook (markdown-mode . markdown-toggle-url-hiding)
   :mode (("README\\.md\\'" . gfm-mode)
@@ -82,6 +90,9 @@ package management!"))
   ;; prompt for markdown-command whether installed before previewer
   ;; transferring
   (advice-add 'markdown :before #'entropy/emacs-markdown-preview-before-advice)
+
+  ;; preview using eemacs spec browser
+  (advice-add 'markdown-preview :around #'entropy/emacs-markdown--with-eemacs-preview-browser)
 
   ;; seting export html styl-sheet
   (setq markdown-command-needs-filename t)
@@ -501,7 +512,9 @@ overflow hr line e.g. display in eldoc."
   "Render and preview with `grip'."
   (interactive)
   (if (executable-find "grip")
-      (let ((port "6419"))
+      (let ((port "6419")
+            (browse-url-browser-function
+             (entropy/emacs-browse-url-function-get-for-web-preview)))
         (start-process "grip" "*gfm-to-html*" "grip" (buffer-file-name) port)
         (browse-url (format "http://localhost:%s/%s.%s"
                             port
@@ -528,11 +541,6 @@ overflow hr line e.g. display in eldoc."
 (use-package markdown-preview-mode
   :after markdown-mode
   :preface
-  (defun entropy/emacs-markdown--with-default-browser
-      (orig-func &rest orig-args)
-    (let ((browse-url-browser-function 'browse-url-default-browser))
-      (apply orig-func orig-args)))
-
 
   (defun entropy/emacs-markdown--mdp-before-advice (&rest _)
     "Before advice for `markdown-preview-mode' when it trigger
@@ -570,7 +578,7 @@ This issue refer to
 
   (advice-add 'markdown-preview-mode
               :around
-              #'entropy/emacs-markdown--with-default-browser)
+              #'entropy/emacs-markdown--with-eemacs-preview-browser)
 
   (advice-add 'markdown-preview-mode
               :around #'entropy/emacs-lang-use-utf-8-ces-around-advice))
