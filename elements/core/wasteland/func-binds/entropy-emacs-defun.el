@@ -123,7 +123,8 @@ CONDITION-FORM is evaled return non-nil."
 
 (defvar entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number 0)
 (defun entropy/emacs-make-dynamic-symbol-as-same-value (var)
-  "Make a new dynamic symbol whose value is same as VAR"
+  "Make a new dynamic symbol whose value is same as VAR's value
+i.e. predicated by `eq'."
   (let* (sym-rtn
          (sym-make-func
           (lambda nil
