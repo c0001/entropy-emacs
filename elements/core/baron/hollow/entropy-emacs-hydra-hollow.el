@@ -866,7 +866,7 @@ hand, either 't' or 'nil' is for that.
     (define-key keymap (kbd "<up>") category-baron)))
 
 (defun entropy/emacs-hydra-hollow-category-patch-hire-title
-    (pretty-hydra-body &optional hint-string)
+    (pretty-hydra-body &optional _hint-string)
   (let* ((new-pretty-hydra-body (copy-tree pretty-hydra-body))
          (title (plist-get pretty-hydra-body :title))
          (stick-regexp "» Hint <up> to \\[Previous Hydra\\]")
@@ -1223,7 +1223,7 @@ Optional argument PRETTY-HYDRA-CATEGORY-WIDTH-INDICATOR is a
 "
   (let* ((ctgs (entropy/emacs-hydra-hollow-partion-pretty-hydra-cabinet
                 pretty-hydra-cabinet))
-         (ctg-len (length ctgs))
+         (_ctg-len (length ctgs))
          (ctg-indc (entropy/emacs-hydra-hollow-normalize-pretty-hydra-category-width-indicator
                     pretty-hydra-category-width-indicator))
          (body-patch (copy-tree pretty-hydra-body))
@@ -2035,7 +2035,7 @@ There's no rest-arguments required by this function.
          (global-bind-p (entropy/emacs-hydra-hollow--common-judge-p
                          (plist-get pretty-hydra-casket-plist :global-bind)))
          ;; :rest-args
-         (rest-args (plist-get riched-pretty-hydra-casket :rest-args))
+         (_rest-args (plist-get riched-pretty-hydra-casket :rest-args))
          )
     (when global-bind-p
       (setq notation
@@ -2188,7 +2188,7 @@ as for judging with 't' or 'nil'.
                       (plist-get pretty-hydra-casket-plist
                                  :eemacs-top-bind)))
          ;; :rest-args
-         (rest-args (plist-get riched-pretty-hydra-casket :rest-args))
+         (_rest-args (plist-get riched-pretty-hydra-casket :rest-args))
          )
     (when top-bind-p
       (setq notation
@@ -3020,7 +3020,7 @@ the instance has been created and the related form is banned."
                  collect item)))
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-normalize
-    (use-name key key-value)
+    (use-name _key key-value)
   (let ()
     (cond ((and (listp key-value)
                 (= 1 (length key-value)))
@@ -3032,7 +3032,7 @@ the instance has been created and the related form is banned."
             (symbol-name use-name))))))
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-tpha-def-handler
-    (use-name key $arg rest state)
+    (use-name _key $arg rest state)
   "The use-package =:eemacs-tpha= key handler.
 
 Special for its
@@ -3050,7 +3050,7 @@ evaluated result as its value.
     (dolist (island $arg)
       (let* ((baron (car island))
              (attr (car baron))
-             (requests (cadr baron))
+             (_requests (cadr baron))
              (enable (let ((enable-slot (plist-get attr :enable)))
                        (entropy/emacs-hydra-hollow--common-judge-p
                         enable-slot)))
@@ -3105,7 +3105,7 @@ evaluated result as its value.
                  collect item)))
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-normalize
-    (use-name key key-value)
+    (use-name _key key-value)
   (let ()
     (cond ((and (listp key-value)
                 (= 1 (length key-value)))
@@ -3119,7 +3119,7 @@ evaluated result as its value.
             (symbol-name use-name))))))
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphc-def-handler
-    (use-name key $arg rest state)
+    (use-name _key $arg rest state)
   "The use-package keyword handler for =:eemacs-mmphc=
 
 - Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
@@ -3212,7 +3212,7 @@ evaluated result as its value.
                  collect item)))
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-normalize
-    (use-name key key-value)
+    (use-name _key key-value)
   (let ()
     (cond ((and (listp key-value)
                 (= 1 (length key-value)))
@@ -3226,7 +3226,7 @@ evaluated result as its value.
             (symbol-name use-name))))))
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-mmphca-def-handler
-    (use-name key $arg rest state)
+    (use-name _key $arg rest state)
     "The use-package keyword handler for =:eemacs-mmphca=
 
 - Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
@@ -3326,7 +3326,7 @@ evaluated result as its value.
  :eemacs-indhc)
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-normalize
-    (use-name key key-value)
+    (use-name _key key-value)
   (let ()
     (cond ((and (listp key-value)
                 (= 1 (length key-value)))
@@ -3338,7 +3338,7 @@ evaluated result as its value.
             (symbol-name use-name))))))
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhc-def-handler
-    (use-name key $arg rest state)
+    (use-name _key $arg rest state)
   "The use-package keyword handler for =:eemacs-indhc=
 
 - Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
@@ -3427,7 +3427,7 @@ evaluated result as its value.
  :eemacs-indhca)
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-normalize
-    (use-name key key-value)
+    (use-name _key key-value)
   (let ()
     (cond ((and (listp key-value)
                 (= 1 (length key-value)))
@@ -3439,7 +3439,7 @@ evaluated result as its value.
             (symbol-name use-name))))))
 
 (defun entropy/emacs-hydra-hollow--usepackage-eemacs-indhca-def-handler
-    (use-name key $arg rest state)
+    (use-name _key $arg rest state)
     "The use-package keyword handler for =:eemacs-indhca=
 
 - Special for its =pretty-hydra-riched-usepackage-pattern-section-request=:
