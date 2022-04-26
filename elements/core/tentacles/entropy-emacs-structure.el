@@ -403,6 +403,7 @@ want to preserve the source demo."
     "Reload lisp(e.g. lisp elisp or more like one) buffer's outshine
     feataure with mordern \"*\" or old-school \";\" headline visual type
     set."
+    (declare (interactive-only t))
     (interactive)
     (when (and (bound-and-true-p outshine-mode)
                (entropy/emacs-buffer-is-lisp-like-p))
@@ -576,6 +577,7 @@ recalc the specified head level specification.
     "Like `outline-previous-visible-heading' but goto to parent
 heading as `entropy/emacs-org-previous-visible-heading' when
 prefix arg was '(4) i.e. the single `C-u' type."
+    (declare (interactive-only t))
     (interactive "P")
     (cond
      ((equal arg '(4))
@@ -588,6 +590,7 @@ prefix arg was '(4) i.e. the single `C-u' type."
     "Call `imenu' defautly unless `prefix-arg' is non-nil and
 `outshine-mode' is actived in `current-buffer' in which case we
 call `outshine-imenu' instead."
+    (declare (interactive-only t))
     (interactive "P")
     (cond ((and (bound-and-true-p outshine-mode)
                 args)
@@ -1056,6 +1059,8 @@ Otherwise, fallback to the original binding of %s in the current mode."
            (define-key ,keymap ,key (quote ,fn-name))))))
 
   (defun entropy/emacs-structure-outshine-demote-command (&optional which)
+    ""
+    (declare (interactive-only t))
     (interactive
      (list (if (and transient-mark-mode mark-active) 'region
              (outline-back-to-heading)
@@ -1064,6 +1069,8 @@ Otherwise, fallback to the original binding of %s in the current mode."
              which))
 
   (defun entropy/emacs-structure-outshine-promote-command (&optional which)
+    ""
+    (declare (interactive-only t))
     (interactive
      (list (if (and transient-mark-mode mark-active) 'region
              (outline-back-to-heading)
@@ -1163,6 +1170,7 @@ Optional argument CALC-DEPTH-1? is only used to the second option
 to restrict the entries counting behaviour, which will just
 enumerate the 1 depth sub-entries of current subtree and sum them
 amounts."
+  (declare (interactive-only t))
   (interactive "P")
   (save-excursion
     (let* ((calc-depth-1?

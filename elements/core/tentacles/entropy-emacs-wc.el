@@ -97,6 +97,8 @@
 
 ;; *** Use windmove function stolen :) from `https://github.com/troydm/emacs-stuff/blob/master/windcycle.el'
 (defun entropy/emacs-basic-windmove-up-cycle ()
+  "Briefly select uppon sibling window if exists or fallback to any other direction movement."
+  (declare (interactive-only t))
   (interactive)
   (condition-case nil (windmove-up)
     (error (condition-case nil (windmove-down)
@@ -105,6 +107,8 @@
                                (error (windmove-up))))))))))
 
 (defun entropy/emacs-basic-windmove-down-cycle()
+  "Briefly select below sibling window if exists or fallback to any other direction movement."
+  (declare (interactive-only t))
   (interactive)
   (condition-case nil (windmove-down)
     (error (condition-case nil (windmove-up)
@@ -113,6 +117,8 @@
                                (error (windmove-down))))))))))
 
 (defun entropy/emacs-basic-windmove-right-cycle()
+  "Briefly select right sibling window if exists or fallback to any other direction movement."
+  (declare (interactive-only t))
   (interactive)
   (condition-case nil (windmove-right)
     (error (condition-case nil (windmove-left)
@@ -121,6 +127,8 @@
                                (error (windmove-right))))))))))
 
 (defun entropy/emacs-basic-windmove-left-cycle()
+  "Briefly select left sibling window if exists or fallback to any other direction movement."
+  (declare (interactive-only t))
   (interactive)
   (condition-case nil (windmove-left)
     (error (condition-case nil (windmove-right)
@@ -470,6 +478,7 @@ the sake of obeying its rules.
 ;; ***** Show slot information
   (defun entropy/emacs-basic-eyebrowse-show-current-slot ()
     "Show current eyebrowse workspace slot and tag info."
+    (declare (interactive-only t))
     (interactive)
     (let* ((entropy/emacs-basic--eyebrowse-slot-result (eyebrowse--get 'current-slot))
            (window-configs (eyebrowse--get 'window-configs))
@@ -562,6 +571,7 @@ This was the one action in `ivy-read'."
 
   (defun entropy/emacs-basic-eyebrowse-delete-workspace ()
     "Delete eyebrowse workspace with prompt."
+    (declare (interactive-only t))
     (interactive)
     (require 'ivy)
     (setq entropy/emacs-basic--eyebrowse-config-selected nil)
@@ -623,6 +633,7 @@ The reason for this limit was that two points follow:
 - For trying to reducing the recongnization for operation.
 
 "
+    (declare (interactive-only t))
     (interactive)
     (let* ((dot-list '(
                        0.1 0.2 0.3

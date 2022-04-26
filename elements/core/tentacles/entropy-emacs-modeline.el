@@ -944,6 +944,8 @@ format enabling process.
   (let ((func-name (intern (concat "entropy/emacs-modeline-mdl-" name "-toggle"))))
     (push (cons name func-name) entropy/emacs-modeline--toggle-type-register)
     `(defun ,func-name ()
+       ""
+       (declare (interactive-only t))
        (interactive)
        ;; warn for `doom-modeline' laggy
        (defvar __doom-modeline-enabled-yet? nil)

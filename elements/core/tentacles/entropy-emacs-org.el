@@ -281,10 +281,13 @@ must satisfied follow requirements:
   (define-key org-mode-map (kbd "<end>") 'org-end-of-line)
 
 ;; ****** `org-open-at-point' enhanced
-
-  ;; change the find-file method of org-open-at-point instead of find-file-other-window
   (defun entropy/emacs-org-open-at-point ()
-    (interactive)
+    "Like `org-open-at-point' but:
+
+Change the find-file method of org-open-at-point instead of
+find-file-other-window"
+    (declare (interactive-only t))
+    (interactive nil org-mode)
     (let ((org-link-frame-setup
            (entropy/emacs-cl-compatible-apply
             acons
@@ -295,7 +298,8 @@ must satisfied follow requirements:
   ;; using entropy-open-with to open org link
   (defun entropy/emacs-org-eow ()
     "Open link in org-mode using `entropy/open-with-port'."
-    (interactive)
+    (declare (interactive-only t))
+    (interactive nil org-mode)
     (require 'entropy-open-with)
     (let* ((link (nth 1 (org-element-lineage
                          (org-element-context)
@@ -357,7 +361,7 @@ CUSTOM_ID of the entry is returned."
   (defun entropy/emacs-org-add-ids-to-headlines-in-file ()
     "Add CUSTOM_ID properties to all headlines in the current
 file which do not already have one."
-    (interactive)
+    (interactive nil org-mode)
     (org-map-entries
      (lambda ()
        (entropy/emacs-org--custom-id-get (point) 'create))
@@ -369,7 +373,7 @@ file which do not already have one."
 file which do not already have one. Only adds ids if the
 `auto-id' option is set to `t' in the file somewhere. ie,
 #+OPTIONS: auto-id:t"
-    (interactive)
+    (interactive nil org-mode)
     (save-excursion
       (widen)
       (goto-char (point-min))
@@ -471,8 +475,9 @@ enabled at current org buffer. "
   (setq org-tags-match-list-sublevels nil)
   (defun entropy/emacs-org-toggle-agenda-subshow-and-heading-levels ()
     "Toggle `org-agenda' tag exhibited visual type."
-    (interactive)
-    (if (string= "*Org Agenda*" (buffer-name))
+    (interactive nil org-mode)
+    (if (and (string= "*Org Agenda*" (buffer-name))
+             (eq major-mode 'org-agenda-mode))
         (progn
           (if (eq org-tags-match-list-sublevels nil)
               (setq org-tags-match-list-sublevels 'indented)
@@ -1356,7 +1361,8 @@ normally while that."
 (defun entropy/emacs-org-previous-visible-heading (&optional arg)
   "Like `org-previous-visible-heading' but goto to parent heading
 when prefix arg was '(4) i.e. the single `C-u' type."
-  (interactive "P")
+  (declare (interactive-only t))
+  (interactive "P" org-mode)
   (cond
    ((equal arg '(4))
     (outline-up-heading 1))
@@ -1683,7 +1689,8 @@ when prefix arg was '(4) i.e. the single `C-u' type."
 inputting, the align number must be positive as that it will be
 automatically transferred to the value adapted to
 `org-tags-column'."
-  (interactive "P")
+  (declare (interactive-only t))
+  (interactive "P" org-mode)
   (let ((org-tags-column (string-to-number
                           (concat "-"
                                   (read-string
@@ -1704,7 +1711,7 @@ automatically transferred to the value adapted to
 (defun entropy/emacs-org-ocii-extract-file-imgs-main ()
   "Extracting all images from one org file to the target location
 chosen as prompted query location state."
-  (interactive)
+  (interactive nil org-mode)
   (let* ((target-file (completing-read "choosing org file: "
                                        'read-file-name-internal
                                        nil t))
@@ -1902,7 +1909,7 @@ Note: this function was derived and extended from
 org-download-screenshot, and patched with support auto org-indent
 current inserted annotation when `org-adapt-indentation' non-nil.
 "
-    (interactive)
+    (interactive nil org-mode)
     (let* ((inhibit-read-only t)
            success-p
            (win-method "SnippingTool.exe")

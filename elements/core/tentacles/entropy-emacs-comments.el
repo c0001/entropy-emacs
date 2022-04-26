@@ -42,6 +42,7 @@
         'entropy-emacs-comment-dwim))))
 
 (defun entropy-emacs-comment-dwim (&rest args)
+  (declare (interactive-only t))
   (interactive)
   (cond
    ;; poporg is obsolete

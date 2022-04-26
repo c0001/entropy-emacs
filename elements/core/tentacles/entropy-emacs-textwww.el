@@ -389,7 +389,7 @@ do any emacs work in any other buffer, or just wait ... ")))
   (entropy/emacs-lazy-load-simple shr
     (defun entropy/emacs-textwww-get-eww-url ()
       "Get image or point url at eww or it's derived modes."
-      (interactive)
+      (interactive nil eww-mode)
       (let* (choice
              (url (or (and (setq choice "image-url") (get-text-property (point) 'image-url))
                       (and (setq choice "common-url") (get-text-property (point) 'shr-url)))))
@@ -444,7 +444,7 @@ Browser chosen based on variable
 2. personal browser specifiction rely on `entropy/emacs-browse-url-function'.
 3. default browser detecting as `browse-url-default-browser'.
 "
-    (interactive)
+    (interactive nil eww-mode)
     (unless (not (equal major-mode 'eww-mode))
       (let ((url (eww-copy-page-url))
             (browse-url-browser-function
@@ -468,7 +468,7 @@ Browser chosen based on variable
   (defun entropy/emacs-textwww--eww-toggle-show-image-whole-page ()
     "Toggle whether display inline images in current eww buffer
 in whole page."
-    (interactive)
+    (interactive nil eww-mode)
     (let ()
       (when (eq major-mode 'eww-mode)
         (setq-local shr-inhibit-images (null shr-inhibit-images))

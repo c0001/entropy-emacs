@@ -296,23 +296,33 @@ segmentation fault."
   ;; more vterm key bounding
 
   (defun entropy/emacs-shell-vterm-meta-left ()
-    (interactive)
+    ""
+    (declare (interactive-only t))
+    (interactive nil vterm-mode)
     (vterm-send-key "<left>" nil t nil))
 
   (defun entropy/emacs-shell-vterm-meta-right ()
-    (interactive)
+    ""
+    (declare (interactive-only t))
+    (interactive nil vterm-mode)
     (vterm-send-key "<right>" nil t nil))
 
   (defun entropy/emacs-shell-vterm-ctrl-left ()
-    (interactive)
+    ""
+    (declare (interactive-only t))
+    (interactive nil vterm-mode)
     (vterm-send-key "<left>" nil nil t))
 
   (defun entropy/emacs-shell-vterm-ctrl-right ()
-    (interactive)
+    ""
+    (declare (interactive-only t))
+    (interactive nil vterm-mode)
     (vterm-send-key "<right>" nil nil t))
 
   (defun entropy/emacs-shell-vterm-ctrl-backspace ()
-    (interactive)
+    ""
+    (declare (interactive-only t))
+    (interactive nil vterm-mode)
     (vterm-send-key "<backspace>" nil nil t))
 
   (define-key vterm-mode-map [C-left]

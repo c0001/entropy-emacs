@@ -59,24 +59,34 @@
   :preface
 
   (defun entropy/emacs-hl-symbol-overlay-toggle ()
+    ""
+    (declare (interactive-only t))
     (interactive)
     (symbol-overlay-mode 'toggle))
   (defun entropy/emacs-hl-symbol-overlay-put ()
+    ""
+    (declare (interactive-only t))
     (interactive)
     (unless (bound-and-true-p symbol-overlay-mode)
       (symbol-overlay-mode +1))
     (symbol-overlay-put))
   (defun entropy/emacs-hl-symbol-overlay-remove-all ()
+    ""
+    (declare (interactive-only t))
     (interactive)
     (unless (bound-and-true-p symbol-overlay-mode)
       (symbol-overlay-mode +1))
     (symbol-overlay-remove-all))
   (defun entropy/emacs-hl-symbol-overlay-jump-next ()
+    ""
+    (declare (interactive-only t))
     (interactive)
     (unless (bound-and-true-p symbol-overlay-mode)
       (symbol-overlay-mode +1))
     (symbol-overlay-jump-next))
   (defun entropy/emacs-hl-symbol-overlay-jump-prev ()
+    ""
+    (declare (interactive-only t))
     (interactive)
     (unless (bound-and-true-p symbol-overlay-mode)
       (symbol-overlay-mode +1))

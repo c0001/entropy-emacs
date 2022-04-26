@@ -99,6 +99,7 @@
   (with-eval-after-load 'elfeed
     (defun entropy/emacs-elfeed-show-log-buffer ()
       "Display `elfeed-log-bfufer'."
+      (declare (interactive-only t))
       (interactive)
       (pop-to-buffer (elfeed-log-buffer))))
 
@@ -434,7 +435,7 @@ So we automatically help you to change to `curl' mode."))
 
   (defun entropy/emacs-rss-elfeed-update ()
     "Like `elfeed-update' but specified for eemacs."
-    (interactive)
+    (interactive nil elfeed-search-mode)
     (let ((tmpvar (list :proxy-feeds entropy/emacs-rss--elfeed-use-prroxy-feeds
                         :common-feeds entropy/emacs-rss--elfeed-non-prroxy-feeds)))
       (entropy/emacs-rss--elfeed-fetch-feeds
@@ -493,7 +494,7 @@ So we automatically help you to change to `curl' mode."))
 This function will remove 'as entry' both in `elfeed-db' and
 `elfeed-feeds' and `entropy/emacs-elfeed-feeds' which is also
 will be automatically modified in `custom-file'."
-    (interactive)
+    (interactive nil elfeed-search-mode)
     (let ((feeds (hash-table-values (plist-get elfeed-db :feeds)))
           mlist olist)
       (dolist (el feeds)
@@ -511,10 +512,10 @@ will be automatically modified in `custom-file'."
   (defvar entropy/emacs-rss--elfeed-feed-prompt-alist '()
     "Alist of feeds prompt string and url.")
 
-
   (defun entropy/emacs-rss-elfeed-kill-buffer ()
     "Automatically swtitch to elfeed-search buffer when closed
 the current elfeed-show-buffer."
+    (declare (interactive-only t))
     (interactive)
     (if (not (equal major-mode 'elfeed-show-mode))
         (kill-buffer (current-buffer))
@@ -527,10 +528,9 @@ the current elfeed-show-buffer."
                      (message "Back to *elfeed-search* buffer."))
             (user-error "Couldn't found *elfeed-search* buffer."))))))
 
-
   (defun entropy/emacs-rss-elfeed-clean-filter ()
     "Clean all filter for curren elfeed search buffer."
-    (interactive)
+    (interactive nil elfeed-search-mode)
     (elfeed-search-set-filter ""))
 
   (defun entropy/emacs-rss--elfeed-build-feedname-regexp-filter (feedname)
@@ -587,7 +587,7 @@ Optional arg PREFIX when non-nil will call `elfeed-unjam', since
 some times the elfeed has messy with procedure like
 `header-line-format' indicator be stuck when `elfeed' spawns
 sentinels fatal etc. and do it no need care for as."
-    (interactive "P")
+    (interactive "P" elfeed-search-mode)
     (if (equal major-mode 'elfeed-search-mode)
         (entropy/emacs-rss--elfeed-search-update)
       (error "You are not in the 'elfeed-search-mode'!"))
@@ -690,23 +690,28 @@ Arguments:
 
   (defun entropy/emacs-rss-elfeed-filter-by-tag (tag)
     "Filter with tag choosen, powered by `entropy/emacs-rss--elfeed-tags-choice'"
+    (declare (interactive-only t))
     (interactive
      (list (entropy/emacs-rss--elfeed-tags-choice
             (entropy/emacs-rss--elfeed-get-all-entries)
-            nil nil nil t)))
+            nil nil nil t))
+     elfeed-search-mode)
     (elfeed-search-set-filter (concat "+" (symbol-name tag))))
 
   (defun entropy/emacs-rss-elfeed-filter-by-feedname (feedname)
     "Filter with feedname, powered by `entropy/emacs-rss--elfeed-feedname-choice'."
+    (declare (interactive-only t))
     (interactive
      (list (entropy/emacs-rss--elfeed-feedname-choice
-            (entropy/emacs-rss--elfeed-get-all-entries))))
+            (entropy/emacs-rss--elfeed-get-all-entries)))
+     elfeed-search-mode)
     (elfeed-search-set-filter (concat "=" feedname)))
 
   (defun entropy/emacs-rss-elfeed-untag-selected ()
     "Untag tag for selected entries with query prompt as
 requiring matched."
-    (interactive)
+    (declare (interactive-only t))
+    (interactive nil elfeed-search-mode)
     (let* ((entries (elfeed-search-selected))
            (choice (entropy/emacs-rss--elfeed-tags-choice
                     entries nil nil "Choose tag for remove: " t)))
@@ -717,7 +722,8 @@ requiring matched."
   (defun entropy/emacs-rss-elfeed-tag-selected ()
     "Adding tag for selected entries with query prompt for
 selecting existing tag or input the new one instead."
-    (interactive)
+    (declare (interactive-only t))
+    (interactive nil elfeed-search-mode)
     (let* ((entries (elfeed-search-selected))
            (full-entrylist (entropy/emacs-rss--elfeed-get-all-entries))
            (tag (entropy/emacs-rss--elfeed-tags-choice
@@ -730,7 +736,8 @@ selecting existing tag or input the new one instead."
 ;; *** delete entry
   (defun entropy/emacs-rss-elfeed-delete-entry ()
     "Delete entry of elfeed."
-    (interactive)
+    (declare (interactive-only t))
+    (interactive nil elfeed-search-mode)
     (if (not (use-region-p))
         (let* ((entry (elfeed-search-selected t))
                (id  (elfeed-entry-id entry))
@@ -783,7 +790,8 @@ function of `ivy-read'.
 This function will remove 'as entry' both in `elfeed-db' and
 `elfeed-feeds' and `entropy/emacs-elfeed-feeds' which is also
 will automatically be modified in `custom-file'."
-    (interactive)
+    (declare (interactive-only t))
+    (interactive nil elfeed-search-mode)
     (setq entropy/emacs-rss--elfeed-feed-remove-list nil
           entropy/emacs-rss--elfeed-feed-prompt-alist nil)
     (setq entropy/emacs-rss--elfeed-feed-prompt-alist (entropy/emacs-rss--elfeed-list-feeds))
@@ -807,7 +815,8 @@ will automatically be modified in `custom-file'."
 This function will remove 'as entry' both in `elfeed-db' and
 `elfeed-feeds' and `entropy/emacs-elfeed-feeds' which is also
 will automatically be modified in `custom-file'."
-    (interactive)
+    (declare (interactive-only t))
+    (interactive nil elfeed-search-mode)
     (let* ((regexp (entropy/emacs-read-string-repeatedly "Input regexp"))
            (feeds (elfeed-feed-list))
            mlist
@@ -864,7 +873,7 @@ promptings and injecting them into `entropy/emacs-rss--elfeed-multi-update-feeds
 
 ;; *** default external browser for feed viewing
 
-  (defun elfeed-search-browse-url (&optional use-generic-p)
+  (defun __ya/elfeed-search-browse-url (&optional use-generic-p)
     "Visit the current entry in your browser using `browse-url'.
 If there is a prefix argument, visit the current entry in the
 browser defined by `browse-url-generic-program'.
@@ -889,7 +898,7 @@ The minor changing was compat for above."
                       (browse-url-generic it)
                     (browse-url it)))
       (unless (use-region-p) (forward-line))))
-
+  (advice-add 'elfeed-search-browse-url :override #'__ya/elfeed-search-browse-url)
 
   (defun entropy/emacs-rss--elfeed-browse-url-around (oldfun &rest args)
     "Browse feed source by external browser with choosing."

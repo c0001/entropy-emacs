@@ -487,6 +487,7 @@ development web-browser."
 (defun entropy/emacs-tools-vertical-center ()
   "Just vertical-center buffer without further operation supplied
 like `recenter-top-bottom'."
+  (declare (interactive-only t))
   (interactive)
   (recenter-top-bottom '(middle)))
 
@@ -494,6 +495,7 @@ like `recenter-top-bottom'."
   "Just vertical-bottom buffer without further operation supplied
 like `recenter-top-bottom', if optional arg is non-nil then we
 vertical-top buffer."
+  (declare (interactive-only t))
   (interactive "P")
   (if arg
       (recenter-top-bottom 0)
@@ -771,6 +773,7 @@ which determined by the scale count 0.3 "
 ;; **** show time
 (defun entropy/emacs-tools-time-show ()
   "Show current time with date information also."
+  (declare (interactive-only t))
   (interactive)
   (let ((time (format-time-string "%Y-%m-%d %a %H:%M:%S")))
     (message "Now is %s" time)))
@@ -910,6 +913,8 @@ which determined by the scale count 0.3 "
 (defvar entropy/emacs-tools-dict-sticker entropy/emacs-dictionary-backend)
 
 (defun entropy/emacs-tools-dict-search-at-point ()
+  ""
+  (declare (interactive-only t))
   (interactive)
   (let ()
     (pcase entropy/emacs-tools-dict-sticker
@@ -919,6 +924,8 @@ which determined by the scale count 0.3 "
       ('bing (call-interactively 'entropy/emacs-tools-bing-dict-brief-direct)))))
 
 (defun entropy/emacs-tools-dict-search-with-prompt ()
+  ""
+  (declare (interactive-only t))
   (interactive)
   (let ()
     (pcase entropy/emacs-tools-dict-sticker
@@ -1345,6 +1352,7 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   "Open system home folder.
 
   It's usefully for windows user to quickly switching to 'c:/.../user-name'."
+  (declare (interactive-only t))
   (interactive)
   (cond
    (sys/win32p

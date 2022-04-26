@@ -599,12 +599,14 @@ specification."
 
   (defun entropy/emacs-popwin-shackle-show-last-popup-buffer ()
     "View last popup buffer."
+    (declare (interactive-only t))
     (interactive)
     (ignore-errors
       (display-buffer shackle-last-buffer)))
 
   (defun entropy/emacs-popwin-shackle-popup-buffer ()
     "Display buffer with popuped behaviour powered by `shackle'."
+    (declare (interactive-only t))
     (interactive)
     (let* ((buff-name (completing-read "Buffer choosing: "
                                        'internal-complete-buffer))
@@ -616,6 +618,7 @@ specification."
 
   (defun entropy/emacs-popwin-shackle-popup-find-file ()
     "Find file with popup window powered by `shackle'."
+    (declare (interactive-only t))
     (interactive)
     (let* ((file (completing-read "File choosing: " 'read-file-name-internal
                                   nil nil nil 'file-name-history))
@@ -627,6 +630,7 @@ specification."
 
   (defun entropy/emacs-popwin-shackle-popup-dired ()
     "Dired with popup window powered by `shackle'."
+    (declare (interactive-only t))
     (interactive)
     (let* ((dir (completing-read "Dired choosing: " 'read-file-name-internal
                                  'file-directory-p nil nil
@@ -639,6 +643,7 @@ specification."
 
   (defun entropy/emacs-popwin-shackle-popup-message ()
     "Display message buffer with popup type powerd by `shackle'."
+    (declare (interactive-only t))
     (interactive)
     (let* ((buff-name (buffer-name (get-buffer-create "*Messages*")))
            (shackle-rules `((,buff-name

@@ -316,7 +316,7 @@ queue done flag exposed to `ivy-done' idle trigger judger."
 ;; **** fix bug of `ivy-reverse-i-search'
 
   ;; EEMACS_MAINTENANCE: the patch must follow each update of `ivy'.
-  (defun ivy-reverse-i-search ()
+  (defun __ya/ivy-reverse-i-search ()
     "Enter a recursive `ivy-read' session using the current history.
 The selected history element will be inserted into the minibuffer.
 \\<ivy-reverse-i-search-map>
@@ -347,6 +347,8 @@ bug of (EEMACS_BUG: h-17036bdc-c6e9-4ac2-bac8-1c55bd8ecda4)."
                             (insert (substring-no-properties (car x)))
                             (ivy--cd-maybe))
                   :caller 'ivy-reverse-i-search)))))
+
+  (advice-add 'ivy-reverse-i-search :override #'__ya/ivy-reverse-i-search)
 
 ;; **** fix lag on `ivy-thing-at-point'
 
@@ -1728,11 +1730,13 @@ under place will be detected!"
 
   (defun entropy/emacs-ivy-ffip-directory-only ()
     "Find directory using `find-file-in-project' in place."
+    (declare (interactive-only t))
     (interactive)
     (funcall 'entropy/emacs-ivy-ffip 'dir))
 
   (defun entropy/emacs-ivy-ffip-symbolink-only ()
     "Find directory using `find-file-in-project' in place."
+    (declare (interactive-only t))
     (interactive)
     (funcall 'entropy/emacs-ivy-ffip 'symlnk))
 

@@ -510,7 +510,8 @@ overflow hr line e.g. display in eldoc."
 ;; you can install grip by 'pip install grip'
 (defun entropy/emacs-markdown-preview-grip ()
   "Render and preview with `grip'."
-  (interactive)
+  (declare (interactive-only t))
+  (interactive nil markdown-mode)
   (if (executable-find "grip")
       (let ((port "6419")
             (browse-url-browser-function

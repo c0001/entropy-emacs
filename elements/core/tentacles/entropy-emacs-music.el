@@ -387,6 +387,7 @@ specification."
   (defun entropy/emacs-music-mpc-mini ()
     "The `mpc' mini tpype which just display side window group
 for the songs list and status callback."
+    (declare (interactive-only t))
     (interactive)
     (let ((entropy/emacs-music--mpc-mini-mode t))
       (mpc)))
@@ -434,14 +435,14 @@ as hook for commonly situation."
 ;; ****** mpc select
   (defun entropy/emacs-music-mpc-unselect-all (&optional event)
     "Unselect the tag value at point."
-    (interactive (list last-nonmenu-event))
+    (interactive (list last-nonmenu-event) mpc-songs-mode)
     (mpc-event-set-point event)
     (if (and (bolp) (eobp)) (forward-line -1))
     (mapc 'delete-overlay mpc-select)
     (setq mpc-select nil))
 
   (defun entropy/emacs-music-mpc-unselect-single (&optional event)
-    (interactive (list last-nonmenu-event))
+    (interactive (list last-nonmenu-event) mpc-songs-mode)
     (mpc-event-set-point event)
     (save-excursion
       (when (get-char-property (point) 'mpc-select)
@@ -456,7 +457,7 @@ as hook for commonly situation."
     (forward-line 1))
 
   (defun entropy/emacs-music-mpc-unselect-region ()
-    (interactive)
+    (interactive nil mpc-songs-mode)
     (let ((this-start (line-number-at-pos (region-beginning)))
           (this-end (line-number-at-pos (region-end))))
       (entropy/emacs-buffer-goto-line this-start)
@@ -469,7 +470,7 @@ as hook for commonly situation."
         (deactivate-mark))))
 
   (defun entropy/emacs-music-mpc-select-single (&optional event)
-    (interactive (list last-nonmenu-event))
+    (interactive (list last-nonmenu-event) mpc-songs-mode)
     (mpc-event-set-point event)
     (if (and (bolp) (eobp)) (forward-line -1))
     (if (mpc-tagbrowser-all-p)
@@ -481,7 +482,7 @@ as hook for commonly situation."
     (forward-line 1))
 
   (defun entropy/emacs-music-mpc-select-region ()
-    (interactive)
+    (interactive nil mpc-songs-mode)
     (let ((this-start (region-beginning))
           (this-end (region-end)))
       (progn
@@ -529,7 +530,7 @@ i.e. not jump to que playlist."
      (entropy/emacs-music--mpc-get-current-playlist-constraints)))
 
   (defun entropy/emacs-music-mpc-songs-buffer-refresh ()
-    (interactive)
+    (interactive nil mpc-songs-mode)
     (entropy/emacs-music--mpc-playlist)
     (let* ((song-buff (get-buffer "*MPC-Songs*"))
            (song-win (ignore-errors (get-buffer-window song-buff))))
@@ -542,7 +543,7 @@ i.e. not jump to que playlist."
             (recenter-top-bottom '(middle)))))))
 
   (defun entropy/emacs-music--mpc-choose-playlist-constraints ()
-    (interactive)
+    (interactive nil mpc-songs-mode mpc-tagbrowser-mode mpc-status-mode)
     (let ((playlists (mpc-cmd-list 'Playlist))
           candis
           constraints)
@@ -564,7 +565,7 @@ i.e. not jump to que playlist."
       constraints))
 
   (defun entropy/emacs-music-mpc-jump-to-playlist ()
-    (interactive)
+    (interactive nil mpc-songs-mode mpc-tagbrowser-mode mpc-status-mode)
     (let ((constraints
            (entropy/emacs-music--mpc-choose-playlist-constraints)))
       (mpc-constraints-restore constraints)))
@@ -583,7 +584,7 @@ i.e. not jump to que playlist."
         rtn)))
 
   (defun entropy/emacs-music-mpc-add-to-playlist ()
-    (interactive)
+    (interactive nil mpc-songs-mode)
     (let ((songs (mapcar #'car (mpc-songs-selection)))
           (plchosen (entropy/emacs-music--mpc-choose-playlist-name
                      "to add")))
@@ -598,7 +599,7 @@ i.e. not jump to que playlist."
     "Play current music in `mpc-songs-mode'.
 
 Add current music to queue when its not in thus."
-    (interactive)
+    (interactive nil mpc-songs-mode)
     (condition-case nil
         (progn
           (call-interactively #'mpc-songs-jump-to))
@@ -614,7 +615,7 @@ Add current music to queue when its not in thus."
 
   (defun entropy/emacs-music-mpc-remove-songs-from-playlist
       (&optional non-selection-clear)
-    (interactive "P")
+    (interactive "P" mpc-songs-mode)
     (let ((entropy/emacs-message-non-popup t)
           (deleted-counts 0)
           cur-select
@@ -676,7 +677,7 @@ Add current music to queue when its not in thus."
 
 ;; ***** Volume increase/downcase
   (defun entropy/emacs-music-mpc-increae-volume ()
-    (interactive)
+    (interactive nil mpc-songs-mode mpc-tagbrowser-mode mpc-status-mode)
     (let* ((curvol (string-to-number (cdr (assq 'volume mpc-status))))
            (newvol (+ curvol 5))
            (newvol-str (number-to-string newvol)))
@@ -686,7 +687,7 @@ Add current music to queue when its not in thus."
         (message "Warn: mpc vol was loudest!"))))
 
   (defun entropy/emacs-music-mpc-decrease-volume ()
-    (interactive)
+    (interactive nil mpc-songs-mode mpc-tagbrowser-mode mpc-status-mode)
     (let* ((curvol (string-to-number (cdr (assq 'volume mpc-status))))
            (newvol (- curvol 5))
            (newvol-str (number-to-string (- curvol 5))))
@@ -726,7 +727,7 @@ Add current music to queue when its not in thus."
        "Add marked files to the Bongo library and then popup the
 `bongo-library-buffer' which the buffer point position has been
 jumped to the main context."
-       (interactive)
+       (interactive nil dired-mode)
        (let ((buffer (bongo-library-buffer)))
          (let (file (files nil))
            (dired-map-over-marks

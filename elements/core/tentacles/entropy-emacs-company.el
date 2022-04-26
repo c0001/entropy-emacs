@@ -226,7 +226,7 @@ When PREFIX, set the specfied idle delay seconds for as or use
   (defun entropy/emacs-company-files (command)
     "Like `company-files' but using as individual eemacs command with
 eemacs specifications"
-    (interactive (list 'interactive))
+    (interactive (list 'interactive) company-mode global-company-mode)
     (unless
         ;; some filters not to triggered
         (or buffer-read-only
@@ -1178,7 +1178,7 @@ frame."
   (defun entropy/emacs-company-elisp-minibuffer (command &optional arg &rest ignored)
     "`company-mode' completion backend for Emacs Lisp in the
 minibuffer."
-    (interactive (list 'interactive))
+    (interactive (list 'interactive) company-mode)
     (cond
      ((eq command 'prefix)
       (and (minibufferp)
