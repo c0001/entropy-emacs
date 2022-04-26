@@ -1,4 +1,4 @@
-;;; entropy-emacs-hydra-hollow.el --- entropy-emacs hydra framework
+;;; entropy-emacs-hydra-hollow.el --- entropy-emacs hydra framework  -*- lexical-binding: t; -*-
 ;;
 ;; * Copyright (C) 2019  Entropy
 ;; #+BEGIN_EXAMPLE
@@ -423,14 +423,16 @@ with specified indicator."
 ;; - =pretty-hydra-category=
 ;; - =pretty-hydra-category-hook=
 ;; - =pretty-hydra-category-name-prefix=
-;; - =pretty-hydra-category-name=
-;; - =pretty-hydra-category-hook-name=
-;; - =pretty-hydra-category-hydra-name=
+;; - =pretty-hydra-category-name= (dynamic varaible name)
+;; - =pretty-hydra-category-hook-name= (dynamic varaible name)
+;; - =pretty-hydra-category-hydra-name= (dynamic varaible name)
 ;; - =pretty-hydra-category-hydra-body=
-;; - =pretty-hydra-category-hydra-body-name=
+;;   the pretty hydra body which commonly used to generate hydra' '*/docstring'
+;; - =pretty-hydra-category-hydra-body-name= (dynamic varaible name)
 ;; - =pretty-hydra-category-hydra-keymap=
-;; - =pretty-hydra-category-hydra-keymap-name=
+;; - =pretty-hydra-category-hydra-keymap-name= (dynamic varaible name)
 ;; - =pretty-hydra-category-hydra-caller-name=
+;;    the hydra caller function symbol whose name commonly suffixed as '*/body'
 ;; - =pretty-hydra-category-cabinet=
 ;; - =pretty-hydra-category-cabinet-unit-name=
 ;; - =pretty-hydra-category-cabinet-unit-names-list=
@@ -536,7 +538,10 @@ Slots description:
   As the name meaning as.
 "
   (cond
-   ((null (entropy/emacs-common-plistp (ignore-errors (symbol-value pretty-hydra-category-name))))
+   ((or (not (boundp pretty-hydra-category-name))
+        (not (listp (symbol-value pretty-hydra-category-name)))
+        (null (entropy/emacs-common-plistp
+               (symbol-value pretty-hydra-category-name))))
     (set pretty-hydra-category-name
          (list
           :pretty-hydra-category-name-prefix pretty-hydra-category-name-prefix
@@ -552,7 +557,7 @@ Slots description:
           :pretty-hydra-category-previous-category-name pretty-hydra-category-previous-category-name
           :pretty-hydra-category-next-category-name
           pretty-hydra-category-next-category-name)))
-   ((entropy/emacs-common-plistp (ignore-errors (symbol-value pretty-hydra-category-name)))
+   (t
     (dolist
         (el
          `((:pretty-hydra-category-name-prefix ,pretty-hydra-category-name-prefix)
@@ -568,8 +573,9 @@ Slots description:
            (:pretty-hydra-category-previous-category-name ,pretty-hydra-category-previous-category-name)
            (:pretty-hydra-category-next-category-name ,pretty-hydra-category-next-category-name)))
       (unless (null (cadr el))
-        (plist-put (symbol-value pretty-hydra-category-name)
-                   (car el) (cadr el)))))))
+        (set pretty-hydra-category-name
+             (plist-put (symbol-value pretty-hydra-category-name)
+                        (car el) (cadr el))))))))
 
 ;; ******** category names get
 ;; This section makes the core defination for =pretty-hydra-category=
@@ -638,7 +644,7 @@ thus for. Support branch type are:
 - 'pretty-hydra-keymap' :: for get
   =pretty-hydra-category-hydra-kemap= host symbol name
 - 'pretty-hydra-body' :: for get
-  =pretty-hydra-category-hydra-body= host symbol name
+  =pretty-hydra-category-hydra-body= host symbol name i.e. the =pretty-hydra-category-hydra-body-name=
 - 'pretty-hydra-cabinet' :: for get
   =pretty-hydra-category-cabinet= host symbol name
 - t :: for get =pretty-hydra-category-hydra-caller-name="
@@ -2276,6 +2282,8 @@ if Optional arguments NOT-MERGE is non-nil. "
           new-pretty-hydra-caskets-list))))))
 
 ;; **** core hydra builder defination
+;; =pretty-hydra-cabinet-name= (dynamic varaible name)
+
 ;; ***** library
 
 (defvar entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook nil
@@ -2294,6 +2302,26 @@ Each function must just has one argumentm, a
      'entropy/emacs-hydra-hollow-pretty-hydra-cabinet-external-normalize-hook
      pretty-hydra-cabinet-name)))
 
+(defmacro entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet/lexical
+    (pretty-hydra-cabinet-name/lexical)
+  "Normalize an lexical-binding =pretty-hydra-cabinet-name= same as
+`entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet' which
+as an =pretty-hydra-cabinet-name/lexical= i.e. a lexical symbol
+whose value is an =pretty-hydra-cabinet=, since
+=pretty-hydra-cabinet-name= must be an dynamic variable's name so
+that we can not using normal subroutines to manipulate it, thus
+we use `entropy/emacs-make-dynamic-symbol-as-same-value' to
+handle its value and replace the new value to the lexical one.
+"
+  (let ((dysym-name (make-symbol "dysym-name")))
+    `(let ((,dysym-name (entropy/emacs-make-dynamic-symbol-as-same-value
+                         ,pretty-hydra-cabinet-name/lexical)))
+       (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
+        ,dysym-name)
+       (setq ,pretty-hydra-cabinet-name/lexical
+             (symbol-value ,dysym-name))
+       (unintern ,dysym-name))))
+
 ;; ***** hydra builder for individual
 
 ;; This section provide a method to define a somewhat hydra using
@@ -2303,8 +2331,8 @@ Each function must just has one argumentm, a
 (defun entropy/emacs-hydra-hollow-common-individual-hydra-define
     (individual-hydra-name hydra-injector heads-plist
                            &optional pretty-hydra-body pretty-hydra-category-width-indicator)
-  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
-   'heads-plist)
+  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet/lexical
+   heads-plist)
   (let ((has-defined (fboundp (entropy/emacs-hydra-hollow-category-common-individual-get-caller
                                individual-hydra-name)))
         (patched-heads-group
@@ -2329,8 +2357,8 @@ Each function must just has one argumentm, a
                            &optional
                            pretty-hydra-body
                            pretty-hydra-category-width-indicator-for-inject)
-  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
-   'heads-plist)
+  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet/lexical
+   heads-plist)
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
           heads-plist
@@ -2391,8 +2419,8 @@ HYDRA-INJECTOR, they are used as the same meaning as for
 
 (defun entropy/emacs-hydra-hollow-define-major-mode-hydra
     (mode hydra-injector body heads-plist &optional ctg-width-indc)
-  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
-   'heads-plist)
+  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet/lexical
+   heads-plist)
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
           heads-plist
@@ -2423,8 +2451,8 @@ HYDRA-INJECTOR, they are used as the same meaning as for
           &optional
           pretty-hydra-body
           pretty-hydra-category-width-indicator-for-inject)
-  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet
-   'heads-plist)
+  (entropy/emacs-hydra-hollow-customize-pretty-hydra-cabinet/lexical
+   heads-plist)
   (let ((patched-heads-group
          (entropy/emacs-hydra-hollow-rebuild-pretty-hydra-cabinet
           heads-plist
@@ -2446,6 +2474,28 @@ HYDRA-INJECTOR, they are used as the same meaning as for
 ;; **** miscellanies
 
 ;; ***** Recursive cabinet
+
+(defmacro entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet/lexical
+    (pretty-hydra-cabinet-name/lexical)
+  "Same as
+`entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet'
+but do with an lexical-binding =pretty-hydra-cabinet-name= which
+as an =pretty-hydra-cabinet-name/lexical= i.e. a lexical symbol
+whose value is an =pretty-hydra-cabinet=, since
+=pretty-hydra-cabinet-name= must be an dynamic variable's name so
+that we can not using normal subroutines to manipulate it, thus
+we use `entropy/emacs-make-dynamic-symbol-as-same-value' to
+handle its value and replace the new value to the lexical one.
+"
+  (let ((dysym-name (make-symbol "dysym-name")))
+    `(let ((,dysym-name (entropy/emacs-make-dynamic-symbol-as-same-value
+                         ,pretty-hydra-cabinet-name/lexical)))
+       (entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet
+        ,dysym-name)
+       (setq ,pretty-hydra-cabinet-name/lexical
+             (symbol-value ,dysym-name))
+       (unintern ,dysym-name)
+       ,pretty-hydra-cabinet-name/lexical)))
 
 (defun entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet
     (pretty-hydra-cabinet-name)
@@ -2508,8 +2558,8 @@ hydra body caller) =pretty-hydra-head-command=.
                         (when (funcall command-is-nest-func sub-command)
                           (throw :exit t)))))
                   (setq non-nested-subcabinet
-                        (entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet
-                         'sub-cabinet))
+                        (entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet/lexical
+                         sub-cabinet))
                 (setq non-nested-subcabinet sub-cabinet))
               (let ((new-pretty-hydra-casket-pattern
                      (list
