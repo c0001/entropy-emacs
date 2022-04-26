@@ -539,7 +539,8 @@ faild with hash '%s' which must match '%s'"
                   (log-buff (get-buffer log-buff-name)))
              (when (bufferp log-buff)
                (with-current-buffer log-buff
-                 (entropy/emacs-write-file log-file t)
+                 (when (> (buffer-size (current-buffer)) 0)
+                   (entropy/emacs-write-file log-file t))
                  (kill-buffer log-buff))))))))
 
 (defvar entropy/emacs-batch--bytecompile-item-register
