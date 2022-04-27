@@ -545,7 +545,7 @@ the current elfeed-show-buffer."
             ;; NOTE: do not `unintern' the tag symbol, since it's
             ;; maybe the internal API symbol name
             ;;
-            ;; (unintern tag)
+            ;; (unintern tag nil)
             (setq rtn
                   (intern
                    (replace-regexp-in-string
