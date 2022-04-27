@@ -3133,21 +3133,22 @@ can be used into your form:
                            ,after-form)
                      ,clean-form)))))
        (t
-        (let (($sentinel/destination
-               $call_proc_destination))
-          (unwind-protect
-              (if (=
-                   (apply 'call-process
-                          $call_proc_command
-                          $call_proc_infile
-                          $call_proc_destination
-                          $call_proc_display
-                          $call_proc_args)
-                   0)
-                  ;; just ran after form when this process ran out successfully
-                  (eval after-form)
-                (eval error-form))
-            (eval clean-form))))))))
+        (eval
+         `(let (($sentinel/destination
+                 ,$call_proc_destination))
+            (unwind-protect
+                (if (=
+                     (apply 'call-process
+                            ,$call_proc_command
+                            ,$call_proc_infile
+                            ,$call_proc_destination
+                            ',$call_proc_display
+                            ',$call_proc_args)
+                     0)
+                    ;; just ran after form when this process ran out successfully
+                    ,after-form
+                  ,error-form)
+              ,clean-form))))))))
 
 (defun entropy/emacs-make-chained-processes (eemacs-make-proc-args-list)
   "Chained batch of processes one by one powered by
