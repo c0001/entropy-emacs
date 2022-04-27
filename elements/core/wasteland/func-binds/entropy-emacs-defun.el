@@ -3956,10 +3956,111 @@ return t otherwise for nil. "
 
 ;; *** Newtork manipulation
 ;; **** network status checker
-(defun entropy/emacs-network-canbe-connected-?-p (hostname)
-  "Check hosted system whether can be connected to web sever
-HOSTNAME, a string to represent the server web address,
-e.g. \"www.google.com\".
+
+(defun entropy/emacs-network-url-canbe-connected-p (url &optional timeout use-curl)
+  "Check URL whether can be connecated and return non-nil if canbe thus.
+
+Optional argument TIMEOUT is an integer used to restrict the test
+timeout seconds range, default to 1 second.
+
+Throw an error when the command 'curl' not found in system PATH if
+USE-CURL is non-nil (but with some restriction as below description).
+
+About USE-CURL:
+
+Because emacs native `url-retrieve' implementation didn't fully
+support the Real TIMEOUT feature i.e its subroutine
+`make-network-process' didn't allow (FIXME: maybe?) the TIMEOUT
+feature. Instead it using a `while' procedure with time stamp duration
+judgement as:
+
+#+begin_src emacs-lisp
+  (catch 'done
+    (while (not data-buffer)
+      (when (and timeout (time-less-p timeout
+                                      (time-since start-time)))
+        (url-debug 'retrieval \"Timed out %s (after %ss)\" url
+                   (float-time (time-since start-time)))
+        (throw 'done 'timeout))
+        .......
+#+end_src
+
+So that, emacs will stuck while `make-network-process' return the
+data buffer but wait for an connection building (as dns or other
+fake data recieved by GFW) which is the realting the TIMEOUT care
+about.
+
+Thus, defaulty this function will forcely using the system 'curl'
+command to be the main subroutine when the 'curl' command existed in
+your system. Unless its `eq' to an symbol 'force-not'."
+  (let* ((timeout (or (and (integerp timeout) timeout) 1))
+         (cbksym (entropy/emacs-make-dynamic-symbol-as-same-value nil))
+         (use-curl (or (and (and use-curl (not (eq use-curl 'force-not)))
+                            (if (executable-find "curl")
+                                t
+                              (user-error "command 'curl' not found in your PATH")))
+                       (and
+                        (not (eq use-curl 'force-not))
+                        (executable-find "curl"))))
+         (native-func
+          '(lambda (x tout)
+             "Like `url-http-head' but be silent and no cookie used."
+             (unless (featurep 'url-http)
+               (require 'url-http))
+             (let ((url-request-method "HEAD")
+                   (url-request-data nil))
+               (url-retrieve-synchronously x t t tout))))
+         (cmd-args
+          `("curl"
+            ;; NOTE: just get the server response head so we do not stuck in an download link.
+            "-I"
+            "--connect-timeout" ,(number-to-string timeout)
+            "-s"
+            "-A"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
+(KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36"
+            ,url
+            "-o"
+            ;; https://curl.se/docs/manpage.html
+            ;; To suppress response bodies, you can redirect output to /dev/null:
+            ;;
+            ;;   curl example.com -o /dev/null
+            ;; Or for Windows use nul:
+            ;;
+            ;;   curl example.com -o nul
+            ,(if sys/win32p
+                 "nul"
+               "/dev/null")
+            )))
+    (if use-curl
+        (progn
+          (entropy/emacs-make-process
+           `(:name
+             ,(format "eemacs network url canbe connected test for 'url'" url)
+             :synchronously t
+             :command ',cmd-args
+             :buffer nil
+             :after
+             (setq ,cbksym t)))
+          (prog1
+              (symbol-value cbksym)
+            (unintern cbksym nil)))
+      (message "Use `url-http-head' to test url '%s' (warn: it may stuck emacs while GFW.) ..."
+               url)
+      (condition-case error
+          (with-current-buffer
+              (funcall native-func url timeout)
+            (let ((kill-buffer-hook nil))
+              (kill-buffer)
+              t))
+        (error
+         (message "%S" error)
+         nil)))))
+
+(defun entropy/emacs-network-hostname-canbe-connected-p (hostname)
+  "Check web hostname (not an target url) whether can be connected
+to web sever HOSTNAME, a string to represent the server web
+address, e.g. \"www.google.com\".
 
 This function use wildly integrated system kit \"ping\" as the
 subroutine, throw out a error prompt when it can no be found on
@@ -3971,11 +4072,11 @@ your system. Return non-nil for thus, or nil otherwise."
     (= 0 (apply 'call-process `("ping" nil nil nil ,@ping-args-core
                                 ,hostname)))))
 
-(defun entropy/emacs-network-connected-p ()
+(defun entropy/emacs-network-system-online-p ()
   "Judge whether emacs can be connected to the internet. Return
 non-nil for thus, or nil otherwise."
-  (or (entropy/emacs-network-canbe-connected-?-p "www.baidu.com")
-      (entropy/emacs-network-canbe-connected-?-p "www.google.com")))
+  (or (entropy/emacs-network-url-canbe-connected-p "www.baidu.com" 1)
+      (entropy/emacs-network-url-canbe-connected-p "www.google.com" 1)))
 
 ;; **** download file
 (defun entropy/emacs-network-download-file
