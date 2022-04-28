@@ -2320,7 +2320,7 @@ handle its value and replace the new value to the lexical one.
         ,dysym-name)
        (setq ,pretty-hydra-cabinet-name/lexical
              (symbol-value ,dysym-name))
-       (unintern ,dysym-name nil))))
+       (entropy/emacs-unintern-symbol ,dysym-name))))
 
 ;; ***** hydra builder for individual
 
@@ -2494,7 +2494,7 @@ handle its value and replace the new value to the lexical one.
         ,dysym-name)
        (setq ,pretty-hydra-cabinet-name/lexical
              (symbol-value ,dysym-name))
-       (unintern ,dysym-name nil)
+       (entropy/emacs-unintern-symbol ,dysym-name)
        ,pretty-hydra-cabinet-name/lexical)))
 
 (defun entropy/emacs-hydra-holow-recursive-expand-pretty-hydra-cabinet

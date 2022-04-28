@@ -123,7 +123,8 @@ CONDITION-FORM is evaled return non-nil."
 
 (defvar entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number 0)
 (defun entropy/emacs-make-dynamic-symbol-as-same-value (var)
-  "Make a new dynamic symbol whose value is same as VAR's value
+  "Make a new dynamic symbol (predicated by `special-variable-p'
+and interned in `obarray') whose value is same as VAR's value
 i.e. predicated by `eq'."
   (let* (sym-rtn
          (sym-make-func
@@ -136,24 +137,21 @@ i.e. predicated by `eq'."
                     (cl-incf entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number))))
           ))
     (while (boundp (funcall sym-make-func)))
-    (set sym-rtn var)
+    (eval
+     ;; use `defvar' to declare it as an dynamic special variable
+     ;; without lexical-binding environment wrapped.
+     `(defvar ,sym-rtn ',var
+        "Dynamic variable defined by `entropy/emacs-make-dynamic-symbol-as-same-value'")
+     ;; do not use lexical env
+     nil)
     sym-rtn))
 
-(defvar entropy/emacs-make-dynamic-symbol-as-void/heap-head-number 0)
-(defun entropy/emacs-make-dynamic-symbol-as-void ()
-  "Make a new dynamic symbol whose value is void."
-  (let* (sym-rtn
-         (sym-make-func
-          (lambda nil
-            (setq sym-rtn
-                  (prog1
-                      (intern
-                       (format "entropy/emacs-make-dynamic-symbol-as-void/%d"
-                               entropy/emacs-make-dynamic-symbol-as-void/heap-head-number))
-                    (cl-incf entropy/emacs-make-dynamic-symbol-as-void/heap-head-number))))
-          ))
-    (while (boundp (funcall sym-make-func)))
-    sym-rtn))
+(defun entropy/emacs-unintern-symbol (symbol &optional use-obarray)
+  "Like `unintern' but use SYMBOL as the main arg since although
+`unintern' support symbol as main arg but it may not `eq' to the
+one in which obarray used, so this function use `symbol-name'
+forcely get that name in USE-OBARRAY."
+  (unintern (symbol-name symbol) use-obarray))
 
 (defmacro entropy/emacs-add-to-list
     (list-var element &optional append compare-fn)

@@ -221,7 +221,7 @@ previous set."
                (advice-remove el
                               #',cancel_func))
              (dolist (el '(,loaded_var ,candi_var ,adv_func ,cancel_func))
-               (unintern el nil)))
+               (unintern (symbol-name el) nil)))
          (defvar ,loaded_var nil)
          (defvar ,candi_var nil)
          (defalias ',adv_func
