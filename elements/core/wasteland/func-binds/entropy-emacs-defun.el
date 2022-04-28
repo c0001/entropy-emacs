@@ -139,6 +139,22 @@ i.e. predicated by `eq'."
     (set sym-rtn var)
     sym-rtn))
 
+(defvar entropy/emacs-make-dynamic-symbol-as-void/heap-head-number 0)
+(defun entropy/emacs-make-dynamic-symbol-as-void ()
+  "Make a new dynamic symbol whose value is void."
+  (let* (sym-rtn
+         (sym-make-func
+          (lambda nil
+            (setq sym-rtn
+                  (prog1
+                      (intern
+                       (format "entropy/emacs-make-dynamic-symbol-as-void/%d"
+                               entropy/emacs-make-dynamic-symbol-as-void/heap-head-number))
+                    (cl-incf entropy/emacs-make-dynamic-symbol-as-void/heap-head-number))))
+          ))
+    (while (boundp (funcall sym-make-func)))
+    sym-rtn))
+
 (defmacro entropy/emacs-add-to-list
     (list-var element &optional append compare-fn)
   "Add ELEMENT to the top (the `car') of LIST-VAR unless APPEND is
