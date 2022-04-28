@@ -383,7 +383,7 @@ fast hints not laggy by `candidates' re-calculation."
       (setq this-command 'company-abort))
     (entropy/emacs-run-at-idle-immediately
      __idle/company-post-command
-     :which-hook 0.3
+     :which-hook 0.2
      :idle-when
      ;; TODO: complete the precise conditions
      (let ((special_key_p (member this-command
@@ -413,6 +413,8 @@ fast hints not laggy by `candidates' re-calculation."
                                     company-search-repeat-backward
                                     company-search-toggle-filtering
                                     company-search-printing-char
+                                    ;; company internal fake set
+                                    company-idle-begin
                                     )))
            (candi_exist_p (bound-and-true-p company-candidates)))
        (cond
@@ -439,7 +441,7 @@ fast hints not laggy by `candidates' re-calculation."
                    (and (numberp delay)
                         (not defining-kbd-macro)
                         (company--should-begin)
-                        (if (current-idle-time)
+                        (if (bound-and-true-p entropy/emacs-current-session-is-idle-p)
                             (funcall
                              'company-idle-begin
                              (current-buffer) (selected-window)
@@ -462,8 +464,6 @@ fast hints not laggy by `candidates' re-calculation."
   (advice-add 'company-post-command
               :override
               #'__ya/company-post-command)
-
-
 
 ;; ***** fly on type for `delete-char'
   (defvar-local __company-delc-time-host nil)
