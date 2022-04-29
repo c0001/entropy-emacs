@@ -168,8 +168,12 @@
     entropy/emacs-run-startup-top-init-timestamp)))
 
 ;; start eemacs
-(if (entropy/emacs-is-make-session)
-    (!eemacs-require 'entropy-emacs-batch)
-  (!eemacs-require 'entropy-emacs-start))
+(cond
+ ((entropy/emacs-is-make-session)
+  (!eemacs-require 'entropy-emacs-batch))
+ ((entropy/emacs-env-init-with-pure-eemacs-env-p)
+  (!eemacs-require 'entropy-emacs-pure-env))
+ (t
+  (!eemacs-require 'entropy-emacs-start)))
 
 (provide 'entropy-emacs)

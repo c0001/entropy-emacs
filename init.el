@@ -86,6 +86,19 @@ set earlier in the 'setq-local'.  The return value of the
 (when (version< emacs-version "26")
   (error "This requires Emacs 26 and above!"))
 
+;; *** eemacs init env filter
+
+(defun entropy/emacs-env-init-with-pure-eemacs-env-p (&rest _)
+  (let ((env (getenv "EEMACS_INIT_WITH_PURE")))
+    (and env
+         (not (string-empty-p env)))))
+
+(defmacro entropy/emacs-env-with-pure-eemacs-env (&rest body)
+  `(let ((process-environment
+          (cons "EEMACS_INIT_WITH_PURE=t"
+                process-environment)))
+     ,@body))
+
 ;; ** startup entropy-emacs
 
 (defvar __inited-p? nil)
@@ -129,18 +142,18 @@ emacs upstream")
      entropy/emacs-user-emacs-directory)
     "The value for `custom-file' but specified for =entropy-emacs=.")
 
-  (setq custom-file entropy/emacs-custom-common-file)
-
   (let ((cus entropy/emacs-custom-common-file))
-    (if (not (file-exists-p cus))
+    (unless (entropy/emacs-env-init-with-pure-eemacs-env-p)
+      (when (not (file-exists-p cus))
         (copy-file entropy/emacs-custom-common-file-template
                    entropy/emacs-custom-common-file
                    nil t))
-    (message "")
-    (message "====================================")
-    (message "[Loading] custom specifications ...")
-    (message "====================================\n")
-    (load cus))
+      (setq custom-file cus)
+      (message "")
+      (message "====================================")
+      (message "[Loading] custom specifications ...")
+      (message "====================================\n")
+      (load cus)))
 
   ;; load eemacs config
   (defun __init_emacs (&rest _)

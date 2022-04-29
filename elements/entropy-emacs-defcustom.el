@@ -2887,6 +2887,7 @@ NOTE: not support load dynamic module"
   (let (_)
     (cond
      ((or entropy/emacs-startup-with-Debug-p
+          (entropy/emacs-env-init-with-pure-eemacs-env-p)
           (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
           (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
           (or noninteractive
@@ -3279,7 +3280,8 @@ that."
                  #'entropy/emacs-display-graphic-fake-advice))))
 
 ;; *** clean stuff files
-(let ((top entropy/emacs-stuffs-topdir))
+(when-let ((_ (not (entropy/emacs-env-init-with-pure-eemacs-env-p)))
+           (top entropy/emacs-stuffs-topdir))
   (unless (file-exists-p top)
     (make-directory top))
   ;; root dir host in `top'

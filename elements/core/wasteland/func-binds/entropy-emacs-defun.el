@@ -4797,6 +4797,29 @@ object which can be used for `eval'."
            :sentinel nil))
     proc))
 
+(declare async-start "ext:async")
+(defun entropy/emacs-run-batch-with-eemacs-pure-env
+    (start-form finish-form)
+  "Invoke eemacs in batch-mode (i.e. `noninteractive' was non-nil)
+with `entropy/emacs-env-init-with-pure-eemacs-env-p' asynchronously.
+
+The START-FORM is a elisp form invoked in async request body, and
+the FINISH-FORM is invoke after the START-FORM ran out within
+current emacs session and optionally can use the result of
+START-FORM via the internal binding variable =$ASYNC-RESULT=."
+  (unless (featurep 'async)
+    (require 'async))
+  (entropy/emacs-env-with-pure-eemacs-env
+   (async-start
+    `(lambda (&rest _)
+       (let ((start-file
+              (expand-file-name
+               "init.el" ,entropy/emacs-user-emacs-directory)))
+         (load start-file)
+         ,start-form))
+    `(lambda ($async-result)
+       ,finish-form))))
+
 ;; *** Read framework
 ;; **** read string enhanced
 (defun entropy/emacs-read-string-repeatedly
