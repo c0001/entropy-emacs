@@ -3095,19 +3095,19 @@ can be used into your form:
 1) =$sentinel/proc=
    * description: the process current running
    * limitation: just used for async process
-   * Slots support: =:after=, =:cleanup=, =:sentinel=
+   * Slots support: =:after=, =:cleanup=, =:sentinel=, =:error=
 
 2) =$sentinel/event=
    * description: the process returned event string
    * limitation: just used for async process
-   * Slots support: =:after=, =:cleanup=, =:sentinel=
+   * Slots support: =:after=, =:cleanup=, =:sentinel=, =:error=
 
 3) =$sentinel/destination=
    * description: its a process buffer or for the meaning for the
      of `call-process' =destination= arg when calling process
      synchronously.
    * limitation: both async and sync process calling type
-   * Slots support: =:after=, =:cleanup=, =:sentinel=
+   * Slots support: =:after=, =:cleanup=, =:sentinel=, =:error=
 "
   (let ((prepare-form
          (or (entropy/emacs-get-plist-form
