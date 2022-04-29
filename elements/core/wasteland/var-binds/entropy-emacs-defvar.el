@@ -1021,6 +1021,10 @@ Return t or nil for commonly manner."
               (throw :exit 'in-magit-refer-buffer))
             (when (string-match-p "magit-.*-mode" (format "%s" major-mode))
               (throw :exit 'in-magit-refer-modes))
+            (when (or (member major-mode '(shell-mode vterm-mode term-mode eshell-mode))
+                      (string-match-p "*eemacs-\\(eshell\\|vterm\\|shell\\|ansiterm\\)-[0-9]+*"
+                                      buff-name))
+              (throw :exit 'in-term-mode))
             )
           t))))
   "List of filter function with one argument BUFFER-OR-NAME, and
