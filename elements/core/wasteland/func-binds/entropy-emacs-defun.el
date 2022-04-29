@@ -4803,6 +4803,8 @@ object which can be used for `eval'."
   "Invoke eemacs in batch-mode (i.e. `noninteractive' was non-nil)
 with `entropy/emacs-env-init-with-pure-eemacs-env-p' asynchronously.
 
+Return the async process object.
+
 The START-FORM is a elisp form invoked in async request body, and
 the FINISH-FORM is invoke after the START-FORM ran out within
 current emacs session and optionally can use the result of
