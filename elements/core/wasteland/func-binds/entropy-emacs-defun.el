@@ -2903,6 +2903,18 @@ Notice there's no backup naming regexp convention guarantee! "
 
 ;; *** Process manipulation
 
+(defun entropy/emacs-process-is-running-p (process)
+  "Return non-nil when PROCESS is running."
+  (member (process-status process)
+          '(
+            ;; for non-network process
+            run
+            stop
+            ;; for network process
+            open listen connect
+            ;; TODO: more precision
+            )))
+
 (defun entropy/emacs-process-exit-with-fatal-p
     (process &optional sentinel-event-string)
   "Judge whether a PROCESS is ran out with abnormal status. Return
@@ -2911,20 +2923,83 @@ non-nil if thus.
 Optional arguments SENTINEL-EVENT-STRING is the event-status
 string for normally getted from the PROCESS's sentinel."
   (require 'rx)
-  (let* ((proc process)
-         (event sentinel-event-string)
-         (event-regexp
-          (rx (or "deleted" "killed" "core dumped"
-                  (regex "exited abnormally with code.*")
-                  (regex "failed with code.*")
-                  "connection broken by remote peer"
-                  ;; TODO: adding more to done as exhaustively
-                  )
-              (? "\n"))))
-    (if event
-        (or (not (= 0 (process-exit-status proc)))
-            (string-match-p event-regexp event))
-      (not (= 0 (process-exit-status proc))))))
+  (and
+   ;; always return nil when process is running
+   (not (entropy/emacs-process-is-running-p process))
+   (let* ((proc process)
+          (event sentinel-event-string)
+          (event-regexp
+           (rx (or "deleted" "killed" "core dumped"
+                   (regex "exited abnormally with code.*")
+                   (regex "failed with code.*")
+                   "connection broken by remote peer"
+                   ;; TODO: adding more to done as exhaustively
+                   )
+               (? "\n"))))
+     (if event
+         (or (not (= 0 (process-exit-status proc)))
+             (string-match-p event-regexp event))
+       (not (= 0 (process-exit-status proc)))))))
+
+(defun entropy/emacs-process-exit-successfully-p
+    (process &optional sentinel-event-string)
+  "Judge whether a PROCESS is ran out successfully. Return non-nil
+if thus.
+
+Optional arguments SENTINEL-EVENT-STRING is the event-status
+string for normally getted from the PROCESS's sentinel."
+  (and
+   ;; always return nil when process is running
+   (not (entropy/emacs-process-is-running-p process))
+   (let* ((proc process)
+          (event sentinel-event-string)
+          (event-regexp
+           (rx (or "finished"
+                   ;; TODO: adding more to done as exhaustively
+                   )
+               (? "\n"))))
+     (if event
+         (or (= 0 (process-exit-status proc))
+             (string-match-p event-regexp event))
+       (= 0 (process-exit-status proc))))))
+
+(defun entropy/emacs-process-common-filter (&optional buffer-size-restriction without-newline)
+  "Common process filter used with some benefit features.
+
+If BUFFER-SIZE-RESTRICTION is non-nil, it must be an positive
+integer to restrict the process buffer size i.e erase the buffer
+content when its `buffer-size' is larger than it (default is
+10M). Or if it is `eq' to 'unlimit' then we don't do the default
+handle.
+
+If WITHOUT-NEWLINE is non-nil, do not insert a newline at the end
+of the current output when current output is not trailing with a
+newline."
+  `(lambda (proc proc-output)
+     (let ((proc-buffer (process-buffer proc))
+           (bfsr (or ',buffer-size-restriction (* 10 (expt 1024 2))))
+           (with-newline (or (not ',without-newline) t)))
+       (when (and (bufferp proc-buffer)
+                  (buffer-live-p proc-buffer))
+         (with-current-buffer proc-buffer
+           (let ((moving (= (point) (process-mark proc)))
+                 (inhibit-read-only t))
+             (save-excursion
+               ;; Insert the text, advancing the process marker.
+               (goto-char (process-mark proc))
+               (when (and
+                      bfsr
+                      (not (eq bfsr 'unlimit))
+                      (> (buffer-size) bfsr))
+                 (erase-buffer))
+               (insert proc-output)
+               ;; insert the newline when required as proper occasion
+               (when with-newline
+                 (unless (save-match-data
+                           (looking-at "^[ \t\r\n\v\f ]*$"))
+                   (insert "\n")))
+               (set-marker (process-mark proc) (point)))
+             (when moving (goto-char (process-mark proc)))))))))
 
 (defun entropy/emacs-chained-eemacs-make-proc-args (eemacs-make-proc-args-list)
   "Chained sets of `eemacs-make-proc-args-list' one by one
@@ -2960,6 +3035,8 @@ ordered of a list of thus of EEMACS-MAKE-PROC-ARGS-LIST."
     (eemacs-make-proc-args)
   "Make a asynchronous process or a synchronous one using the
 args in EEMACS-MAKE-PROC-ARGS.
+
+Return the process object when make an asynchronous process.
 
 Introduction of EEMACS-MAKE-PROC-ARGS:
 
@@ -3058,7 +3135,7 @@ can be used into your form:
         ;; make-proc args
         ($make_proc_name (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :name t t)))
         ($make_proc_buffer (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :buffer t t)))
-        ($make_proc_command (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t)))
+        ($make_proc_command nil)
         ($make_proc_coding (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :coding t t)))
         ($make_proc_noquery (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :noquery t t)))
         ($make_proc_stop (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :stop t t)))
@@ -3067,12 +3144,11 @@ can be used into your form:
         ($make_proc_sentinel (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :sentinel t t)))
 
         ;; call-process arg
-        ($call_proc_destination (or (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :destination t t))
-                                    (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :buffer t t))))
+        ($call_proc_destination nil)
         ($call_proc_infile (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :infile t t)))
         ($call_proc_display (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :display t t)))
-        ($call_proc_command (car (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
-        ($call_proc_args (cdr (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
+        ($call_proc_command nil)
+        ($call_proc_args nil)
 
         (thiscur_sync_sym (let ((make-sym-func
                                  (lambda ()
@@ -3087,6 +3163,15 @@ can be used into your form:
                             sym))
         thiscur_proc
         thiscur_proc_buffer)
+
+    ;; set var-binding here to prevent duplicate eval
+    (let ((cprss-args (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
+      (setq $make_proc_command cprss-args
+            $call_proc_command (car cprss-args)
+            $call_proc_args (cdr cprss-args)))
+    (setq $call_proc_destination (or (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :destination t t))
+                                     $make_proc_buffer))
+
     (when (eval prepare-form)
       (cond
        ((or (null synchronously)
@@ -3118,7 +3203,8 @@ can be used into your form:
                               (apply orig-sentinel
                                      $sentinel/proc $sentinel/event))
                           ;; run after/error when pure async run
-                          (cond ((string-match-p "finished\n" $sentinel/event)
+                          (cond ((entropy/emacs-process-exit-successfully-p
+                                  $sentinel/proc $sentinel/event)
                                  (setq ran-out-p t)
                                  (unless ',synchronously
                                    ,after-form))
@@ -3145,7 +3231,9 @@ can be used into your form:
                        (if (eq ,thiscur_sync_sym t)
                            ;; just ran after form when this process ran out successfully
                            ,after-form)
-                     ,clean-form)))))
+                     ,clean-form))))
+        ;; return the processor
+        thiscur_proc)
        (t
         (eval
          `(let (($sentinel/destination
