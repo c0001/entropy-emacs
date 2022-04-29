@@ -2968,9 +2968,9 @@ string for normally getted from the PROCESS's sentinel."
 
 If BUFFER-SIZE-RESTRICTION is non-nil, it must be an positive
 integer to restrict the process buffer size i.e erase the buffer
-content when its `buffer-size' is larger than it (default is
-10M). Or if it is `eq' to 'unlimit' then we don't do the default
-handle.
+content when its `buffer-size' is larger than it (default is 10M)
+before insert the arrived new output. Or if it is `eq' to
+'unlimit' then we don't do the default handle.
 
 If WITHOUT-NEWLINE is non-nil, do not insert a newline at the end
 of the current output when current output is not trailing with a
@@ -2978,7 +2978,7 @@ newline."
   `(lambda (proc proc-output)
      (let ((proc-buffer (process-buffer proc))
            (bfsr (or ',buffer-size-restriction (* 10 (expt 1024 2))))
-           (with-newline (or (not ',without-newline) t)))
+           (with-newline (not ',without-newline)))
        (when (and (bufferp proc-buffer)
                   (buffer-live-p proc-buffer))
          (with-current-buffer proc-buffer
