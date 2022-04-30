@@ -1426,7 +1426,7 @@ in `window-configuration-change-hook'."
       ;; performance guarantee
       (and
        ;; firstly check the user request var
-       entropy/emacs-window-center-auto-mode-enable-p
+       (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
        ;; just stick in eemcs main frame
        (eq (selected-frame) entropy/emacs-main-frame)
        ;; not run in minibuffer

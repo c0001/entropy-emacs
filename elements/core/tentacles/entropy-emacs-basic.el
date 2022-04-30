@@ -582,7 +582,7 @@ predicated."
                                   current-relfname))))
       (if file-use-external-p
           (find-file current-relfname)
-        (unless (bound-and-true-p entropy/emacs-window-center-auto-mode-enable-p)
+        (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
           (when (bound-and-true-p entropy/emacs-window-center-mode)
             (entropy/emacs-window-center-mode 0)))
         (if (> (length (window-list)) 1) (delete-other-windows))
@@ -3069,8 +3069,8 @@ displayed image as same operated mechanism as
             (if
                 ;; Use direct progn did in these conditions
                 (or inct
-                    (not (bound-and-true-p
-                          entropy/emacs-window-center-auto-mode-enable-p)))
+                    (not
+                     (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)))
                 (unless (and entropy/emacs-Man-mode-fit-to-window-timer
                              (timerp entropy/emacs-Man-mode-fit-to-window-timer)
                              (eq (car

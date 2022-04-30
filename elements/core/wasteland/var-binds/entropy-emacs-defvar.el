@@ -957,16 +957,13 @@ externally add below features:
 ;; *** window center mode
 
 (defvar entropy/emacs-window-force-inhibit-auto-center nil
-  "Force inhibit `entropy/emacs-window-center-mode' auto mode
-even if `entropy/emacs-window-auto-center-require-enable-p' is
-non-nil.")
+  "Force inhibit `entropy/emacs-window-center-mode' auto mode even
+if `entropy/emacs-window-center-auto-mode-enable-p' is non-nil.")
 
 (defvar entropy/emacs-window-auto-center-require-enable-p nil
-  "`let' binding idicator to enable
-`entropy/emacs-window-center-mode' auto mode in body session
-when `entropy/emacs-window-center-auto-mode-enable-p' is set,
-unless `entropy/emacs-window-force-inhibit-auto-center' is
-non-nil.")
+  "`let' non-nil binding idicator for indicate that the env is
+derived from the operation of `entropy/emacs-window-center-mode'
+auto mode.")
 
 (defun entropy/emacs-window-center-calc-margin-width (&optional window)
   "Calcualte the pre centerred window margin column width for
@@ -1160,8 +1157,7 @@ use the emulated result or use the `window-width'."
      (use-filter
       (setq filter-judge-p
             (funcall
-             (if (bound-and-true-p
-                  entropy/emacs-window-center-auto-mode-enable-p)
+             (if (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
                  'entropy/emacs-wc-window-auto-center-mode-turn-on-judger
                'entropy/emacs-window-center-mode-turn-on-judger)
              use-buff))
