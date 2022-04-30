@@ -1094,6 +1094,11 @@ indicate the false meaning."
               (setq entropy/emacs-window-center-auto-mode-enable-p nil)
               (throw :exit 'in-cli-session))
             (throw :exit 'frame-not-fullscreen))
+          (with-current-buffer buffer-or-name
+            ;; should not auto center window for elfeed search buffer
+            ;; since it has long title line.
+            (when (eq major-mode 'elfeed-search-mode)
+              (throw :exit 'elfeed-search-mode)))
           (unless (entropy/emacs-window-horizontally-fill-frame-p win)
             (throw :exit 'window-not-horizontally-fill-frame))
           t)))

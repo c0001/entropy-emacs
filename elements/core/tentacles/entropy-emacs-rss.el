@@ -948,8 +948,50 @@ The minor changing was compat for above."
       (when tags
         (insert "(" tags-str ")"))))
 
-  (setq elfeed-search-print-entry-function 'entropy/emacs-rss--elfeed-search-print-entry--default)
+  (setq elfeed-search-print-entry-function
+        'entropy/emacs-rss--elfeed-search-print-entry--default)
 
+;; *** patch `elfeed-show-entry'
+
+  (defun __ya/elfeed-show-entry (entry)
+    "Like `elfeed-show-entry' but display the buffer before generate
+the entry contents since we should respect
+`entropy/emacs-window-center-mode' and
+`entropy/emacs-window-center-auto-mode-enable-p'."
+    (let ((buff (get-buffer-create (elfeed-show--buffer-name entry))))
+      ;; display buffer firstly and then gen the entry content since
+      ;; the entry content body width are rely on the `window-width'
+      ;; but we did auto window center after it did so the content
+      ;; body width is overflow of the final `window-width'.
+      (funcall elfeed-show-entry-switch buff)
+      (with-current-buffer buff
+        (elfeed-show-mode)
+        (setq elfeed-show-entry entry)
+        (let ((func-sym
+               (entropy/emacs-make-new-function-name
+                '(&rest _)
+                "The `elfeed-show-entry' hack hooker."
+                nil
+                `(let ((buff ,(current-buffer)))
+                   (when (buffer-live-p buff)
+                     (with-current-buffer buff
+                       (elfeed-show-refresh)
+                       (message "elfeed entry buffer did window center mode adjusting done!")
+                       ))))))
+          (add-hook 'entropy/emacs-window-center-enable-after-hook
+                    func-sym nil t)
+          (add-hook 'entropy/emacs-window-center-disable-after-hook
+                    func-sym nil t)
+          (add-hook 'kill-buffer-hook
+                    `(lambda (&rest _)
+                       (entropy/emacs-unintern-symbol ',func-sym))
+                    nil t)
+          (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
+            (elfeed-show-refresh))))))
+  (advice-add 'elfeed-show-entry
+              :override #'__ya/elfeed-show-entry)
+
+;; *** __end__
   )
 
 ;; ** newsticker

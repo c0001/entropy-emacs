@@ -146,6 +146,26 @@ i.e. predicated by `eq'."
      nil)
     sym-rtn))
 
+(defun entropy/emacs-make-new-function-name
+    (arglist &optional docstring decl &rest body)
+  "Define a function with unexisted name symbol and return the new
+defined function name.
+
+ARGLIST is the arglist for that function, and BODY is the body of
+that function and decl is the declaration of that function.
+
+Since the defination process is same as `defun', so you also can
+inject `interactive' form in BODY."
+  (let ((sym (entropy/emacs-make-dynamic-symbol-as-same-value
+              (lambda (&rest _)
+                (error "Wrong usage of this function symbol")))))
+    (eval
+     `(defun ,sym ,arglist
+        ,docstring
+        ,decl
+        ,@body))
+    sym))
+
 (defun entropy/emacs-unintern-symbol (symbol &optional use-obarray)
   "Like `unintern' but use SYMBOL as the main arg since although
 `unintern' support symbol as main arg but it may not `eq' to the

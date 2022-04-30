@@ -1288,18 +1288,20 @@ used for `entropy/emacs-window-center-mode' internally only.")
    olivetti-shrink
    olivetti-expand)
   :preface
-  (defun entropy/emacs-wc--calc-olivetti-body-width ()
+  (defun entropy/emacs-wc--calc-olivetti-body-width (&rest _)
     "Calculate the centerred window body width rely on
 `entropy/emacs-window-center-calc-body-width'."
     (let (_)
-      (setq olivetti-body-width
-            (entropy/emacs-window-center-calc-body-width))))
+      (setq-local
+       olivetti-body-width
+       (entropy/emacs-window-center-calc-body-width))))
 
   :init
   (setq olivetti-minimum-body-width 10)
   (setq-default olivetti-body-width 0.8)
-  (add-hook 'olivetti-mode-hook
-            #'entropy/emacs-wc--calc-olivetti-body-width)
+  (advice-add 'olivetti-mode
+              :before
+              #'entropy/emacs-wc--calc-olivetti-body-width)
 
   (setq entropy/emacs-wc--center-window-function
         #'(lambda ()
