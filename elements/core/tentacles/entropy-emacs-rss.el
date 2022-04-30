@@ -624,7 +624,10 @@ Arguemnts:
               (when (listp (elfeed-entry-tags el))
                 (push el entries)
                 (mapc #'(lambda (x)
-                          (push x tags-list))
+                          (unless
+                              ;; do not save duplicated tags
+                              (member x tags-list)
+                            (push x tags-list)))
                       (elfeed-entry-tags el)))))
           ;; read user choice
           (if (not tag)
