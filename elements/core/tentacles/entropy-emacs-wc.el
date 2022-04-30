@@ -1220,9 +1220,8 @@ used for `entropy/emacs-window-center-mode' internally only.")
   (defvar       entropy/emacs-wc-centerwindow-basic--currentbuffer-center-step 1)
 
   (defun entropy/emacs-wc-centerwindow-basic--do-center ()
-    (let* ((ratio entropy/emacs-window-center-integer)
-           this-set)
-      (setq this-set (/ (entropy/emacs-window-no-margin-column-width) ratio))
+    (let* ((this-set
+            (entropy/emacs-window-center-calc-margin-width)))
       (set-window-margins
        nil
        this-set
@@ -1290,14 +1289,11 @@ used for `entropy/emacs-window-center-mode' internally only.")
    olivetti-expand)
   :preface
   (defun entropy/emacs-wc--calc-olivetti-body-width ()
-    "Calculate the center alignment percentage rely on
-`entropy/emacs-window-center-integer'."
-    (let ((partial
-           (/ (- (window-width)
-                 (* 2 (/ (window-width)
-                         entropy/emacs-window-center-integer)))
-              (float (window-width)))))
-      (setq olivetti-body-width partial)))
+    "Calculate the centerred window body width rely on
+`entropy/emacs-window-center-calc-body-width'."
+    (let (_)
+      (setq olivetti-body-width
+            (entropy/emacs-window-center-calc-body-width))))
 
   :init
   (setq olivetti-minimum-body-width 10)

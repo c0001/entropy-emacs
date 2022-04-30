@@ -4544,6 +4544,15 @@ WINDOW must be a live window and defaults to the selected one."
        (or (cdr (window-margins win))
            0))))
 
+(defun entropy/emacs-window-horizontally-fill-frame-p (&optional window)
+  "Return non-nil if WINDOW (default as `selected-window') is
+horizontally filled the frame i.e. its has no left or right
+sibling."
+  (let ((win (or window
+                 (selected-window))))
+    (= (window-total-width win)
+       (window-total-size (frame-root-window) t))))
+
 ;; **** Side window
 (defun entropy/emacs-overview-live-side-windows ()
   "Overview all lived side windows return an alist whose each

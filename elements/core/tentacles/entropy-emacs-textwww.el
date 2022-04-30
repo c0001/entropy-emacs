@@ -311,7 +311,8 @@ value of it is not relavant to current buffer value."
     "Like `w3m-display-progress-message' but respect
 `entropy/emacs-window-center-mode' and enhance the message
 alignment."
-    (let* ((ecwidth (entropy/emacs-window-center-emulate-window-column-width-as-enabled))
+    (let* ((ecwidth (entropy/emacs-window-center-emulate-window-column-width-as-enabled
+                     t))
            (wwidth (window-width))
            ;; ----- prompts string-----
            (info-str

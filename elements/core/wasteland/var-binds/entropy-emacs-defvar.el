@@ -968,6 +968,31 @@ when `entropy/emacs-window-center-auto-mode-enable-p' is set,
 unless `entropy/emacs-window-force-inhibit-auto-center' is
 non-nil.")
 
+(defun entropy/emacs-window-center-calc-margin-width (&optional window)
+  "Calcualte the pre centerred window margin column width for
+WINDOW (defaultly by `selected-window') with assumed that WINDOW
+has no margin set rely on
+`entropy/emacs-window-no-margin-column-width'."
+  (let ((window (or window (selected-window))))
+    (round
+     (/ (entropy/emacs-window-no-margin-column-width window)
+        (float entropy/emacs-window-center-integer)))))
+
+(defun entropy/emacs-window-center-calc-body-width (&optional window)
+  "Calcualte the pre centerred window body column width for
+WINDOW (defaultly by `selected-window') with assumed that WINDOW
+has no margin set rely on
+`entropy/emacs-window-no-margin-column-width'.
+
+Strictly say that this function is compatible with
+`entropy/emacs-window-center-calc-margin-width' which say that
+the return plus 2 times of the margin width calculated by that is
+equalized with
+`entropy/emacs-window-no-margin-column-width'."
+  (let ((window (or window (selected-window))))
+    (- (entropy/emacs-window-no-margin-column-width window)
+       (* 2 (entropy/emacs-window-center-calc-margin-width)))))
+
 (defun entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge
     ()
   "Judge whether current `entropy/emacs-window-center-mode'
@@ -1062,10 +1087,15 @@ indicate the false meaning."
             (throw :exit 'no-live-win))
           (unless (or (entropy/emacs-frame-is-fullscreen-p)
                       (entropy/emacs-frame-is-maximized-p))
+            (when (and (not noninteractive) (not (display-graphic-p)))
+              ;; forcely disable auto window center mode in cli
+              ;; session since we can not judge the maximized status
+              ;; of the term.
+              (setq entropy/emacs-window-center-auto-mode-enable-p nil)
+              (throw :exit 'in-cli-session))
             (throw :exit 'frame-not-fullscreen))
-          (unless (= (entropy/emacs-window-no-margin-column-width win)
-                     (frame-width))
-            (throw :exit 'window-not-fullscreen))
+          (unless (entropy/emacs-window-horizontally-fill-frame-p win)
+            (throw :exit 'window-not-horizontally-fill-frame))
           t)))
 
     ;; ---------- Others ...
@@ -1098,12 +1128,43 @@ indicate the false meaning."
        t))
    (error "Auto window center window judgements return error")))
 
-(defun entropy/emacs-window-center-emulate-window-column-width-as-enabled ()
+(defun entropy/emacs-window-center-emulate-window-column-width-as-enabled
+    (&optional use-filter use-window)
   "caculate `window-width' by emulating when
-`entropy/emacs-window-center-mode' init up."
-  (let ((ratio entropy/emacs-window-center-integer)
-        (wacw (entropy/emacs-window-no-margin-column-width)))
-    (- wacw (* 2 (/ wacw ratio)))))
+`entropy/emacs-window-center-mode' init up in window USE-WINDOW or the
+`selected-window' by default.
+
+It's as same as `entropy/emacs-window-center-calc-body-width'
+expect that:
+
+If USE-FILTER is non-nil, apply
+`entropy/emacs-wc-window-auto-center-mode-turn-on-judger' when
+`entropy/emacs-window-center-auto-mode-enable-p' is enabled or
+`entropy/emacs-window-center-mode-turn-on-judger' to pre-judge whether
+use the emulated result or use the `window-width'."
+  (let* ((use-window (or use-window (selected-window)))
+         (use-buff (window-buffer use-window))
+         use-width-func filter-judge-p)
+    ;; error when in a splitted root window
+    (unless use-buff
+      (error "Window %s has no buffer displayed in it!"))
+    (setq use-width-func
+          (lambda ()
+            (entropy/emacs-window-center-calc-body-width use-window)))
+    (cond
+     (use-filter
+      (setq filter-judge-p
+            (funcall
+             (if (bound-and-true-p
+                  entropy/emacs-window-center-auto-mode-enable-p)
+                 'entropy/emacs-wc-window-auto-center-mode-turn-on-judger
+               'entropy/emacs-window-center-mode-turn-on-judger)
+             use-buff))
+      (if (eq filter-judge-p t)
+          (funcall use-width-func)
+        (window-width use-window)))
+     (t
+      (funcall use-width-func)))))
 
 ;; ** dired refer
 
