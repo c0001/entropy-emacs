@@ -710,7 +710,7 @@ env."
                        ,rtn)
                    (defun ,name-adv (orig-func &rest orig-args)
                      ,(format "pretty-hydra hacked around advice for `%s'."
-                              name-adv)
+                              name)
                      (let* (,@entropy/emacs-pretty-hydra--hydra-hints-let-env)
                        (apply orig-func orig-args)))
                    (advice-add ',name :around #',name-adv)))
