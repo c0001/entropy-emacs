@@ -220,6 +220,16 @@ system in this case was not the subject of utf-8 group."
 (defvar entropy/sdcv-autoshow-union-daemon-timer nil
   "The timer registed `entropy/sdcv-autoshow--union-daemon-function'.")
 
+(define-minor-mode entropy/sdcv-autoshow-mode
+  "Automatically show the translation based on point thing."
+  :init-value nil
+  :lighter "sdcv_auto"
+  :global nil
+  (if entropy/sdcv-autoshow-mode
+      (entropy/sdcv-autoshow--union-daemon-run)
+    (entropy/sdcv-autoshow--union-daemon-shutdown
+     'with-check-exists)))
+
 (defun entropy/sdcv-autoshow--union-daemon-check-exists-status
     ()
   (catch :exit
@@ -269,16 +279,6 @@ system in this case was not the subject of utf-8 group."
           (entropy/sdcv-core-response-show
            (cons 'minibuffer-common
                  show-instance)))))))
-
-(define-minor-mode entropy/sdcv-autoshow-mode
-  "Automatically show the translation based on point thing."
-  :init-value nil
-  :lighter "sdcv_auto"
-  :global nil
-  (if entropy/sdcv-autoshow-mode
-      (entropy/sdcv-autoshow--union-daemon-run)
-    (entropy/sdcv-autoshow--union-daemon-shutdown
-     'with-check-exists)))
 
 (defvar entropy/sdcv-autoshow--delay-reset-timer-id 0)
 (defun entropy/sdcv-autoshow--delay-variable-watcher
@@ -368,17 +368,6 @@ string with sdcv cli."
     (setq entropy/sdcv-default-show-tooltip-method
           (intern
            (completing-read "Backends: " methods nil t)))))
-
-;;;###autoload
-(defun entropy/sdcv-clean-autoshow-all ()
-  (interactive)
-  (cl-loop for item in entropy/sdcv-autoshow-timer-register
-           when (timerp (cdr item))
-           do (progn (cancel-timer (cdr item))
-                     (when (buffer-live-p (car item))
-                       (with-current-buffer (car item)
-                         (entropy/sdcv-autoshow-mode 0)))))
-  (setq entropy/sdcv-autoshow-timer-register nil))
 
 ;;; provide
 (provide 'entropy-sdcv)

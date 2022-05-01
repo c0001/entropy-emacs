@@ -489,6 +489,7 @@ THEME-NAME specify the cached file name."
         (write-region nil nil fname)))))
 
 ;;;; main
+(defvar org-html-head-extra)
 
 ;;;###autoload
 (defun entropy/org-exptth-set-head ()

@@ -40,6 +40,10 @@
 
 ;; ** require
 
+(defvar company-backend)
+(defvar company-selection)
+(defvar company-candidates)
+
 ;; ** init setting
 ;;
 ;;     Now using three modeline style be the option for custom's choice:

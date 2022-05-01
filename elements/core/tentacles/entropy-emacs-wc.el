@@ -42,6 +42,10 @@
 
 ;; ** require
 
+(defvar ivy-last)
+(defvar ivy--prompt)
+(defvar ivy-count-format)
+
 (entropy/emacs-lazy-initial-for-hook
  (window-configuration-change-hook)
  "rich-window-config-hydra-hollow-top-init"

@@ -197,9 +197,9 @@
                :detailed-definition detailed-definition
                :suggestion (when (null detailed-translation)
                              (google-translate-json-suggestion json))))
-             (output-destination (if (null output-destination)
-                                     google-translate-output-destination
-                                   output-destination)))
+             (_output-destination (if (null output-destination)
+                                      google-translate-output-destination
+                                    output-destination)))
         (with-temp-buffer
           (google-translate-insert-translation gtos)
           (google-translate--trim-string

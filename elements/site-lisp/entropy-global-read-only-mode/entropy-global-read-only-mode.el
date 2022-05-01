@@ -218,6 +218,10 @@
 (declare-function wdired-exit "ext:wdired")
 (declare-function wdired-change-to-wdired-mode "ext:wdired")
 
+(defvar org-agenda-files)
+(defvar org-agenda-mode-map)
+(defvar org-capture-plist)
+
 ;;;; declare variable
 (defvar entropy/grom--internal-specified-special-bfregexp-list
   '(

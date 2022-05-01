@@ -32,6 +32,8 @@
 
 ;; ** require
 
+(defvar display-line-numbers-mode)
+
 ;; ** main
 (use-package tetris
   :ensure nil

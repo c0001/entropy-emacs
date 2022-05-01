@@ -518,7 +518,7 @@ non-nil, the =temp/nested-append-form= was generated for:
            ,@body1)))))
 
 (cl-defmacro entropy/proxy-url--with-shell-proxy
-    (&rest body &key server-host-list no-proxy &allow-other-keys)
+    (&rest body &key server-host-list _no-proxy &allow-other-keys)
   (declare (indent 0) (debug t))
   (let ((body1 (entropy/proxy-url--with-proxy-cl-args-body body)))
     `(let ((server-host1
@@ -535,7 +535,7 @@ non-nil, the =temp/nested-append-form= was generated for:
            ,@body1)))))
 
 (cl-defmacro entropy/proxy-url--with-w3m-proxy
-    (&rest body &key server-host-list no-proxy &allow-other-keys)
+    (&rest body &key server-host-list _no-proxy &allow-other-keys)
   (declare (indent 0) (debug t))
   (let ((body1 (entropy/proxy-url--with-proxy-cl-args-body body)))
     `(let ((server-host1

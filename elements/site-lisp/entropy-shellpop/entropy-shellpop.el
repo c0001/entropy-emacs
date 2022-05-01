@@ -266,6 +266,7 @@
         (comint-send-input)
       (user-error "Can not operate `comint-send-input' in this point!"))))
 
+(defvar shell-mode-map)
 (with-eval-after-load 'shell
   (define-key shell-mode-map (kbd "DEL")
     #'entropy/shellpop--delete-char-for-shell-mode)
@@ -871,7 +872,7 @@ for current maximized pop-shell."))))))
 ;;;;;; shellpop description
 
 (defun entropy/shellpop--rename-index-desc-core (index shellpop-type-register)
-  (let* ((type-name (car shellpop-type-register))
+  (let* ((_type-name (car shellpop-type-register))
          (type-plist (cdr shellpop-type-register))
          (type-indexs (plist-get type-plist :indexs))
          (old-desc (alist-get index type-indexs nil nil 'equal))
@@ -881,7 +882,7 @@ for current maximized pop-shell."))))))
           new-desc)))
 
 (defun entropy/shellpop--get-index-desc-core (index shellpop-type-register)
-  (let* ((type-name (car shellpop-type-register))
+  (let* ((_type-name (car shellpop-type-register))
          (type-plist (cdr shellpop-type-register))
          (type-indexs (plist-get type-plist :indexs))
          (old-desc (alist-get index type-indexs nil nil 'equal)))

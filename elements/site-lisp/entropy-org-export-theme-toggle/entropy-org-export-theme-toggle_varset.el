@@ -25,7 +25,7 @@
 
 
 ;;; Code:
-
+(defvar entropy/org-exptt-html-theme-plist)
 (setq entropy/org-exptt-html-theme-plist
       '(("Worg"
          :theme_css  ("<link rel=\"stylesheet\" title=\"Standard\" href=\"https://orgmode.org/worg/style/worg.css\" type=\"text/css\" />"

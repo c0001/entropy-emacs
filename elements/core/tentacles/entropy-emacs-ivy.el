@@ -45,6 +45,10 @@
 
 ;; ** require
 
+(defvar company-backend)
+(defvar company-selection)
+(defvar company-candidates)
+
 ;; ** ivy
 (use-package ivy
   :diminish ivy-mode

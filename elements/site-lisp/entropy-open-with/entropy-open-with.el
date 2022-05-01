@@ -391,12 +391,11 @@ microsoft wsl2 gnu/linux session."
 (defun entropy/open-with--on-win32 ()
   (member system-type '(windows-nt cygwin)))
 
-(defvar __entropy/open-with-wsl-env-judged nil)
-(defvar __entropy/open-with-wsl-env-p nil)
+(defvar __entropy/open-with-microsoft-windows-wsl2-env-p nil)
 (defun entropy/open-with-microsoft-windows-wsl2-env-p (&optional pure)
   "Return non-nil whether current session in microsoft wsl2 gnu/linux env."
   (and (or pure entropy/open-with-microsoft-native-when-wsl2-p)
-       (if __entropy/open-with-wsl-env-judged
+       (if __entropy/open-with-microsoft-windows-wsl2-env-p
            __entropy/open-with-microsoft-windows-wsl2-env-p
          (let ((wsl-indcf "/proc/version"))
            (setq __entropy/open-with-microsoft-windows-wsl2-env-p

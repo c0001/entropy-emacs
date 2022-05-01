@@ -486,7 +486,10 @@ faild with hash '%s' which must match '%s'"
           (setq source-dirP t)
           (throw :exit nil))))
     (if source-dirP
-        (byte-recompile-directory dir-cur 0 t)
+        (dolist (f (entropy/emacs-list-dir-subfiles dir-cur))
+          (unless (string-match-p "^.*-pkg\\.el$" f)
+            (when (string-match-p "^.*\\.el$" f)
+              (byte-recompile-file f t 0))))
       (error "Dir %s is not an elisp source dir"
              dir))))
 
@@ -496,8 +499,19 @@ faild with hash '%s' which must match '%s'"
   (format-time-string "%Y%m%d%H%M%S"))
 (defun entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks
     (name host require-features &optional clean)
-  (let* ((dir (expand-file-name
-               (format "elements/core/%s" host)
+  (let* ((label "")
+         (dir (expand-file-name
+               (if (string-prefix-p "-" host)
+                   (prog1
+                       (progn
+                         (setq host (replace-regexp-in-string
+                                     "^-" ""
+                                     host))
+                         (format "elements/site-lisp/%s" host))
+                     (setq label "site-lisp"))
+                 (prog1
+                     (format "elements/core/%s" host)
+                   (setq label "core")))
                entropy/emacs-user-emacs-directory))
          (elcs (directory-files dir nil ".*\\.elc$"))
          (log-file (expand-file-name
@@ -525,7 +539,8 @@ faild with hash '%s' which must match '%s'"
            (setq entropy/emacs-session-in-byte-compile-emacs-core-p t)
            ;; (setq debug-on-error t)
            (entropy/emacs-message-do-message
-            "\n==================== compile eemacs core/%s ... ===================="
+            "\n==================== compile eemacs %s/%s ... ===================="
+            (green label)
             (green host))
            (unless entropy/emacs-batch--bytecompile-eemacs-core-utils-frameworks/pkg-init-p
              (entropy/emacs-package-common-start)
@@ -580,6 +595,58 @@ faild with hash '%s' which must match '%s'"
       entropy-emacs-window-parameter-memory
       entropy-emacs-hydra-hollow))
 
+    (eemacs-site-lisp_entropy-adblockP-rule-analysis
+     "-entropy-adblockP-rule-analysis"
+     nil)
+    (eemacs-site-lisp_entropy-cn-dict
+     "-entropy-cn-dict"
+     nil)
+    (eemacs-site-lisp_entropy-dired-cp-or-mv
+     "-entropy-dired-cp-or-mv"
+     nil)
+    (eemacs-site-lisp
+     "-entropy-en-words"
+     nil)
+    (eemacs-site-lisp_entropy-global-read-only-mode
+     "-entropy-global-read-only-mode"
+     nil)
+    (eemacs-site-lisp_entropy-open-with
+     "-entropy-open-with"
+     nil)
+    (eemacs-site-lisp_entropy-org-batch-refile
+     "-entropy-org-batch-refile"
+     nil)
+    (eemacs-site-lisp_entropy-org-export-theme-toggle
+     "-entropy-org-export-theme-toggle"
+     nil)
+    (eemacs-site-lisp_entropy-org-widget
+     "-entropy-org-widget"
+     nil)
+    (eemacs-site-lisp_entropy-portableapps
+     "-entropy-portableapps"
+     nil)
+    (eemacs-site-lisp_entropy-proxy-url
+     "-entropy-proxy-url"
+     nil)
+    (eemacs-site-lisp_entropy-s2t
+     "-entropy-s2t"
+     nil)
+    (eemacs-site-lisp_entropy-sdcv
+     "-entropy-sdcv"
+     nil)
+    (eemacs-site-lisp_entropy-shellpop
+     "-entropy-shellpop"
+     nil)
+    (eemacs-site-lisp_lsp-java-simple
+     "-lsp-java-simple"
+     nil)
+    (eemacs-site-lisp_undo-tree-eemacs
+     "-undo-tree-eemacs"
+     nil)
+    (eemacs-site-lisp_emacs-rime
+     "-emacs-rime"
+     nil)
+
     ))
 
 (defun entropy/emacs-batch--do-bytecompile-eemacs-core
@@ -589,7 +656,7 @@ faild with hash '%s' which must match '%s'"
               (delete nil
                       `(,(when (entropy/emacs-vterm-support-p)
                            '(vterm ("cmake" ".") ("make")))))))
-        (byte-compile-docstring-max-column 200))
+        )
     ;; Compile dynamic modules firstly since the byte-compile process
     ;; will load the module as well.
     (when module-pkg-incs

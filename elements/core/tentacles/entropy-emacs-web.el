@@ -35,6 +35,8 @@
 ;; ** require
 
 ;; ** Preparation
+
+(defvar tern-command)
 (entropy/emacs-lazy-load-simple tern
   (setq tern-command '("tern")))
 
@@ -69,6 +71,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 (defvar web-mode-markup-indent-offset)
 (defvar web-mode-css-indent-offset)
 (defvar web-mode-code-indent-offset)
+(defvar tern-mode)
 (defun entropy/emacs-web--web-mode-start-hook ()
   ;; Set indent and tab-width
   (setq web-mode-markup-indent-offset 2)
