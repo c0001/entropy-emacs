@@ -106,6 +106,9 @@
   ;; Nice time format string
   (setq elfeed-search-date-format '("%Y/%m/%d-%H:%M" 16 :left))
 
+  ;; do not auto forward to next entry when show-entry
+  (setq elfeed-search-remain-on-entry t)
+
   ;; set curl path
   (let ((mingw-curl (if (and entropy/emacs-win-portable-mingw-enable
                              (file-exists-p entropy/emacs-win-portable-mingw-bin-path))
