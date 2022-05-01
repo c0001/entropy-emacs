@@ -1,15 +1,15 @@
 # Table of Contents
 
-1.  [Commentary:](#orgcaffc57)
-2.  [Development](#org60c5253)
-3.  [Chanage log](#orgd0ef3c4)
+1.  [Commentary:](#orgb624797)
+2.  [Development](#org45514b5)
+3.  [Chanage log](#orga3dff61)
 
 Copyright (C) 20181211  Entropy
 
 Author:           Entropy <bmsac0001@gmail.com>
 Maintainer:       Entropy <bmsac001@gmail.com>
 URL:              <https://github.com/c0001/entropy-sdcv>
-Package-Version:  20201118.1000
+Package-Version:  20220501.1000
 Version:          0.1.1
 Created:          2018-12-11 12:48:04
 Keywords:         sdcv
@@ -29,7 +29,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-<a id="orgcaffc57"></a>
+<a id="orgb624797"></a>
 
 # Commentary:
 
@@ -90,7 +90,7 @@ frameworks.
     interactive method demoted above.
 
 
-<a id="org60c5253"></a>
+<a id="org45514b5"></a>
 
 # Development
 
@@ -105,9 +105,18 @@ All the protocols defination are written in
 understanding.
 
 
-<a id="orgd0ef3c4"></a>
+<a id="orga3dff61"></a>
 
 # Chanage log
+
+2022/05/01
+
+-   Optimize \`entropy/sdcv-autoshow-mode' to use just one timer
+    running as to reduce performance issue.
+
+-   Since above optimization, \`entropy/sdcv-autoshow-delay'
+    updated with a variable watcher to auto reset the auto show
+    daemon with the new delay.
 
 2020/11/18
 
@@ -119,7 +128,7 @@ understanding.
     1.  macro \`entropy/sdcv-core-coding-with-locale-ces'
     2.  macro \`entropy/sdcv-core-coding-with-utf-8-ces'
 
-    Due to this change there're follow obsolete features:
+    Due to this change there're follow obsolete features
     removed:
 
     1.  variables:
@@ -166,4 +175,4 @@ understanding.
 -   First release pop out v0.1.0
 
 
-<a id="org8649a60"></a>
+<a id="orgebeb6ad"></a>

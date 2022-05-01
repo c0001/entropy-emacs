@@ -5,7 +5,7 @@
 ;; Author:           Entropy <bmsac0001@gmail.com>
 ;; Maintainer:       Entropy <bmsac001@gmail.com>
 ;; URL:              https://github.com/c0001/entropy-sdcv
-;; Package-Version:  20201118.1000
+;; Package-Version:  20220501.1000
 ;; Version:          0.1.1
 ;; Created:          2018-12-11 12:48:04
 ;; Keywords:         sdcv
@@ -98,6 +98,14 @@
 ;;
 ;;
 ;;; Chanage log
+;; 2022/05/01
+;;
+;;      * Optimize `entropy/sdcv-autoshow-mode' to use just one timer
+;;        running as to reduce performance issue.
+;;
+;;      * Since above optimization, `entropy/sdcv-autoshow-delay'
+;;        updated with a variable watcher to auto reset the auto show
+;;        daemon with the new delay.
 
 ;; 2020/11/18
 ;;      * Add timer to automatically tidy up
@@ -206,60 +214,61 @@ system in this case was not the subject of utf-8 group."
 
 ;;;; lazy show mode
 
-(defvar entropy/sdcv-autoshow-timer-register nil
-  "Timer register for `entropy/sdcv-autoshow-mode'.")
-
 (defvar-local entropy/sdcv-autoshow-last-query nil
   "The last query-word for `entropy/sdcv-autoshow-create'.")
 
-(defvar entropy/sdcv-autoshow-clean-register-timer nil
-  "The timer for `entropy/sdcv-clean-autoshow-timer-register'")
+(defvar entropy/sdcv-autoshow-union-daemon-timer nil
+  "The timer registed `entropy/sdcv-autoshow--union-daemon-function'.")
 
-(defun entropy/sdcv-autoshow-create (buff)
-  `(lambda (&rest _)                    ;additional arguments ignored
-                                        ;for some instance transferred
-                                        ;the arguments into.
+(defun entropy/sdcv-autoshow--union-daemon-check-exists-status
+    ()
+  (catch :exit
+    (dolist (buff (buffer-list))
+      (when (buffer-local-value
+             'entropy/sdcv-autoshow-mode
+             buff)
+        (throw :exit t)))))
 
-     (when (and entropy/sdcv-autoshow-mode   ;first check whether the minor
-                                             ;mode has been enabled for
-                                             ;preventing the performance
-                                             ;issue
-                (eq ,buff (current-buffer)))
-       (let* ((entropy/sdcv-core-get-thing-with-lang_zh_CN-p
-               entropy/sdcv-autoshow-either-query-zh_CN)
-              (thing (entropy/sdcv-core-get-word-or-region t))
-             show-instance)
-         (when (and (stringp thing)
-                    (not (string= entropy/sdcv-autoshow-last-query thing))
-                    (fboundp 'bing-dict-brief))
-           (setq entropy/sdcv-autoshow-last-query thing)
-           (setq show-instance
-                 (entropy/sdcv-core-query-backend
-                  thing
-                  entropy/sdcv-default-query-backend-name
-                  'minibuffer-common))
-           (unless (string= (plist-get show-instance :feedback)
-                            entropy/sdcv-core-response-null-prompt)
-             (entropy/sdcv-core-response-show
-              (cons 'minibuffer-common
-                    show-instance))))))))
+(defun entropy/sdcv-autoshow--union-daemon-shutdown
+    (&optional with-check-exists)
+  (when (timerp entropy/sdcv-autoshow-union-daemon-timer)
+    (catch :exit
+      (when with-check-exists
+        (when (entropy/sdcv-autoshow--union-daemon-check-exists-status)
+          (throw :exit nil)))
+      (cancel-timer entropy/sdcv-autoshow-union-daemon-timer)
+      (setq entropy/sdcv-autoshow-union-daemon-timer nil)
+      t)))
 
-(defun entropy/sdcv-clean-autoshow-timer-register ()
-  "Tidy up `entropy/sdcv-autoshow-timer-register' when some
-buffer with `entropy/sdcv-autoshow-mode' didn't existed any
-more."
-  (let (preserve-objs)
-    (dolist (item entropy/sdcv-autoshow-timer-register)
-      (let ((buff (car item))
-            (timer (cdr item)))
-        (if (buffer-live-p buff)
-            (push item preserve-objs)
-          (cancel-timer timer))))
-    (setq entropy/sdcv-autoshow-timer-register
-          preserve-objs)))
-(setq entropy/sdcv-autoshow-clean-register-timer
-      (run-with-idle-timer
-       1 t #'entropy/sdcv-clean-autoshow-timer-register))
+(defun entropy/sdcv-autoshow--union-daemon-run (&optional reset)
+  (when reset
+    (entropy/sdcv-autoshow--union-daemon-shutdown))
+  (unless (timerp entropy/sdcv-autoshow-union-daemon-timer)
+    (setq entropy/sdcv-autoshow-union-daemon-timer
+          (run-with-idle-timer
+           entropy/sdcv-autoshow-delay t
+           #'entropy/sdcv-autoshow--union-daemon-function))))
+
+(defun entropy/sdcv-autoshow--union-daemon-function (&rest _)
+  (when entropy/sdcv-autoshow-mode
+    (let* ((entropy/sdcv-core-get-thing-with-lang_zh_CN-p
+            entropy/sdcv-autoshow-either-query-zh_CN)
+           (thing (entropy/sdcv-core-get-word-or-region t))
+           show-instance)
+      (when (and (stringp thing)
+                 (not (string= entropy/sdcv-autoshow-last-query
+                               thing)))
+        (setq entropy/sdcv-autoshow-last-query thing)
+        (setq show-instance
+              (entropy/sdcv-core-query-backend
+               thing
+               entropy/sdcv-default-query-backend-name
+               'minibuffer-common))
+        (unless (string= (plist-get show-instance :feedback)
+                         entropy/sdcv-core-response-null-prompt)
+          (entropy/sdcv-core-response-show
+           (cons 'minibuffer-common
+                 show-instance)))))))
 
 (define-minor-mode entropy/sdcv-autoshow-mode
   "Automatically show the translation based on point thing."
@@ -267,18 +276,38 @@ more."
   :lighter "sdcv_auto"
   :global nil
   (if entropy/sdcv-autoshow-mode
-      (add-to-list 'entropy/sdcv-autoshow-timer-register
-                   (cons (current-buffer)
-                         (run-with-idle-timer
-                          entropy/sdcv-autoshow-delay t
-                          (entropy/sdcv-autoshow-create (current-buffer)))))
-    (let ((timer (alist-get (current-buffer)
-                            entropy/sdcv-autoshow-timer-register)))
-      (when (timerp timer)
-        (cancel-timer timer))
-      (setq entropy/sdcv-autoshow-timer-register
-            (delete (assoc (current-buffer) entropy/sdcv-autoshow-timer-register)
-                    entropy/sdcv-autoshow-timer-register)))))
+      (entropy/sdcv-autoshow--union-daemon-run)
+    (entropy/sdcv-autoshow--union-daemon-shutdown
+     'with-check-exists)))
+
+(defvar entropy/sdcv-autoshow--delay-reset-timer-id 0)
+(defun entropy/sdcv-autoshow--delay-variable-watcher
+    (symbol newval operation _where)
+  "`entropy/sdcv-autoshow-delay' vairable wather guard to reset the
+`entropy/sdcv-autoshow-union-daemon-timer'."
+  (when (eq operation 'set)
+    (unless (eq newval (symbol-value symbol))
+      ;; just reset the daemoin instance when exist buffer enabled
+      ;; `entropy/sdcv-autoshow-mode'.
+      (when (entropy/sdcv-autoshow--union-daemon-check-exists-status)
+        (message "Restart entropy/sdcv-autoshow daemon with idle delay %s"
+                 newval)
+        ;; must inject the reset body into a idle timer since the
+        ;; `entropy/sdcv-autoshow-delay' is not changed within the
+        ;; variable watcher body.
+        (cl-incf
+         entropy/sdcv-autoshow--delay-reset-timer-id)
+        (run-with-idle-timer
+         0.1 nil
+         `(lambda ()
+            ;; just using one reset instance using unique timer id.
+            (when (= entropy/sdcv-autoshow--delay-reset-timer-id
+                     ',entropy/sdcv-autoshow--delay-reset-timer-id)
+              (entropy/sdcv-autoshow--union-daemon-run
+               'reset))))))))
+(add-variable-watcher
+ 'entropy/sdcv-autoshow-delay
+ #'entropy/sdcv-autoshow--delay-variable-watcher)
 
 ;;;; main
 (advice-add 'entropy/sdcv-search-at-point-tooltip :around #'entropy/sdcv--process-coding-system-guard-for-backends)
