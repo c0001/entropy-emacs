@@ -2890,11 +2890,10 @@ NOTE: not support load dynamic module"
   (let (_)
     (cond
      ((or entropy/emacs-startup-with-Debug-p
-          (entropy/emacs-env-init-with-pure-eemacs-env-p)
-          (bound-and-true-p entropy/emacs-fall-love-with-pdumper)
-          (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
-          (or noninteractive
-              (daemonp)))
+          (and noninteractive
+               (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
+               (not (daemonp)))
+          )
       (require feature (or filename
                            (format "%s.el" feature))
                noerror))
