@@ -946,33 +946,34 @@ Arg ENABLE-FORM is the body of this macro used to do the modeline
 format enabling process.
 "
   (let ((func-name (intern (concat "entropy/emacs-modeline-mdl-" name "-toggle"))))
-    (push (cons name func-name) entropy/emacs-modeline--toggle-type-register)
-    `(defun ,func-name ()
-       ""
-       (declare (interactive-only t))
-       (interactive)
-       ;; warn for `doom-modeline' laggy
-       (defvar __doom-modeline-enabled-yet? nil)
-       (if (and (string= ,name "doom")
-                (null __doom-modeline-enabled-yet?))
-          (and (entropy/emacs-modeline--query-for-messy-modeline-enable
-                ,name)
-               (setq __doom-modeline-enabled-yet? t)))
-       ;; fistly tidy up the remaining spec of previous modeline type
-       (entropy/emacs-modeline--mdl-tidy-spec)
-       (setq entropy/emacs-mode-line-sticker ,name)
-       (let (_)
-         (progn
-           ,spec-form
-           (setq ,spec-done-indcator t)
-           (if ,enable-done-indicator
-               (message
-                "You modeline has been toggled to '%s' yet,\
+    `(progn
+       (push (cons ,name ',func-name) entropy/emacs-modeline--toggle-type-register)
+       (defun ,func-name ()
+         ""
+         (declare (interactive-only t))
+         (interactive)
+         ;; warn for `doom-modeline' laggy
+         (defvar __doom-modeline-enabled-yet? nil)
+         (if (and (string= ,name "doom")
+                  (null __doom-modeline-enabled-yet?))
+             (and (entropy/emacs-modeline--query-for-messy-modeline-enable
+                   ,name)
+                  (setq __doom-modeline-enabled-yet? t)))
+         ;; fistly tidy up the remaining spec of previous modeline type
+         (entropy/emacs-modeline--mdl-tidy-spec)
+         (setq entropy/emacs-mode-line-sticker ,name)
+         (let (_)
+           (progn
+             ,spec-form
+             (setq ,spec-done-indcator t)
+             (if ,enable-done-indicator
+                 (message
+                  "You modeline has been toggled to '%s' yet,\
  do not duplicate such operation" ,name)
-             ,@enable-form
-             (setq ,enable-done-indicator t)
-             (message "Toggle modeline type to '%s' successfully"
-                      ,name)))))))
+               ,@enable-form
+               (setq ,enable-done-indicator t)
+               (message "Toggle modeline type to '%s' successfully"
+                        ,name))))))))
 
 ;; toggle functionn for spaceline
 (advice-add 'spaceline-spacemacs-theme

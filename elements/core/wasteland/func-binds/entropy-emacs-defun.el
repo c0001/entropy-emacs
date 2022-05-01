@@ -6289,7 +6289,7 @@ stored the error log in
              ,common-form)
          (error
           (push (format "[%s]: time: (%s) display-type: (%s) error: (%S)"
-                        name
+                        ,--name--
                         (format-time-string "%Y-%m-%d %a %H:%M:%S")
                         (display-graphic-p)
                         error)
