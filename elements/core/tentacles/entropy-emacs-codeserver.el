@@ -276,7 +276,6 @@ NOTE: its an `lsp-mode' bug."
     "Like `flycheck-set-indication-mode' but for pdumper session
 only which use both of margin and fringe since the fringe for
 flycheck show error indication will lost in pdumper session."
-    (interactive)
     (setq mode 'left-margin)
     (setq left-fringe-width 8 right-fringe-width 4
           left-margin-width 2 right-margin-width 2)
