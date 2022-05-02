@@ -345,70 +345,126 @@ Optional arg FEEDS-PLIST-NAME if nil, pruning
               t
             elfeed-indicator))))
 
-  (defvar __elfeed-orig-curl-args nil)
+  (defvar __elfeed-orig-curl-args elfeed-curl-extra-arguments)
+  (defvar entropy/emacs-rss--elfeed-update/current-filter nil)
   (defvar entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer nil)
-  (defvar entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer nil)
+  (defun entropy/emacs-rss--elfeed-update/cancel-common-feeds-gurad-timer ()
+    (let ((inhibit-quit t))
+      (when (timerp entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer)
+        (cancel-timer entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer)
+        (setq entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer
+              nil
+              entropy/emacs-rss--elfeed-update/fetching-running-p
+              nil))))
 
+  (defvar entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer nil)
+  (defun entropy/emacs-rss--elfeed-update/cancel-proxy-feeds-gurad-timer ()
+    (let ((inhibit-quit t))
+      (when (timerp entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer)
+        (cancel-timer entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer)
+        (setq entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer
+              nil
+              entropy/emacs-rss--elfeed-update/fetching-running-p
+              nil
+              elfeed-curl-extra-arguments
+              __elfeed-orig-curl-args))))
+
+  (defun entropy/emacs-rss--elfeed-update/cancel-all-timer ()
+    (unwind-protect
+        (entropy/emacs-rss--elfeed-update/cancel-proxy-feeds-gurad-timer)
+      (entropy/emacs-rss--elfeed-update/cancel-common-feeds-gurad-timer)))
+
+  (defun entropy/emacs-rss--elfeed-update/set-search-filter (type)
+    (with-current-buffer (elfeed-search-buffer)
+      (cond
+       ((eq type 'before)
+        (setq entropy/emacs-rss--elfeed-update/current-filter
+              elfeed-search-filter)
+        (elfeed-search-set-filter
+         "*----------during update, please wait----------*"))
+       ((eq type 'after)
+        (when entropy/emacs-rss--elfeed-update/current-filter
+          (elfeed-search-set-filter
+           entropy/emacs-rss--elfeed-update/current-filter)))
+       (t
+        (error "wrong type of elfeed update filter set '%s'"
+               type)))))
+
+  (defun entropy/emacs-rss--elfeed-update/fetch-proxy-feeds-guard ()
+    (if (entropy/emacs-rss--elfeed-process-running-p)
+        (message "Waiting for proxy feeds retrieve done ...")
+      (unwind-protect
+          (progn
+            (message "Update proxy feeds done")
+            (setq elfeed-curl-extra-arguments
+                  __elfeed-orig-curl-args)
+            (entropy/emacs-rss--elfeed-update/set-search-filter
+             'after))
+        (entropy/emacs-rss--elfeed-update/cancel-proxy-feeds-gurad-timer))))
+  (defun entropy/emacs-rss--elfeed-update/fetch-proxy-feeds (proxy-feeds)
+    (let ((elfeed-feeds proxy-feeds)
+          (inhibit-quit t))
+      (message "Update proxy feeds ...")
+      (unless entropy/emacs-rss--elfeed-update/fetching-running-p
+        (progn
+          (setq entropy/emacs-rss--elfeed-use-proxy-p t)
+          (setq __elfeed-orig-curl-args elfeed-curl-extra-arguments)
+          (setq elfeed-curl-extra-arguments
+                `("-x" ,(format "http://%s:%s"
+                                (plist-get entropy/emacs-union-http-proxy-plist :host)
+                                (plist-get entropy/emacs-union-http-proxy-plist :port))))
+
+          ;; must flag the running indicator first
+          (setq entropy/emacs-rss--elfeed-update/fetching-running-p t)
+          (entropy/emacs-unwind-protect-unless-success
+              (elfeed-update)
+            (setq elfeed-curl-extra-arguments
+                  __elfeed-orig-curl-args
+                  entropy/emacs-rss--elfeed-update/fetching-running-p
+                  nil)))
+        (unless (timerp entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer)
+          (setq entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer
+                (run-with-timer
+                 0 2
+                 #'entropy/emacs-rss--elfeed-update/fetch-proxy-feeds-guard))))))
+
+  (defun entropy/emacs-rss--elfeed-update/fetch-comon-feeds-guard (proxy-feeds)
+    (let ((inhibit-quit t))
+      (if (entropy/emacs-rss--elfeed-process-running-p)
+          (message "Waiting for non-proxy feeds retrieve done ...")
+        (message "Update non-proxy feeds done")
+        (if proxy-feeds
+            (progn
+              (entropy/emacs-rss--elfeed-update/cancel-common-feeds-gurad-timer)
+              (if entropy/emacs-rss--elfeed-update/fetching-running-p
+                  (error "internal error: \
+`entropy/emacs-rss--elfeed-update/cancel-common-feeds-gurad-timer' \
+is not run normally")
+                (entropy/emacs-rss--elfeed-update/fetch-proxy-feeds
+                 proxy-feeds)))
+          (unwind-protect
+              (entropy/emacs-rss--elfeed-update/set-search-filter
+               'after)
+            (entropy/emacs-rss--elfeed-update/cancel-common-feeds-gurad-timer))))))
   (defun entropy/emacs-rss--elfeed-update/fetch-common-feeds (common-feeds &optional proxy-feeds)
     (message "Update non-proxy feeds ...")
     (setq entropy/emacs-rss--elfeed-use-proxy-p nil)
-    (when common-feeds
-      (let ((elfeed-feeds common-feeds))
-        (elfeed-update)
-        (setq entropy/emacs-rss--elfeed-update/fetching-running-p t)))
-    (setq entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer
-          (run-with-timer
-           0 2
-           `(lambda ()
-              (let ((proxy-feeds ',proxy-feeds))
-                (if (entropy/emacs-rss--elfeed-process-running-p)
-                    (message "Waiting for non-proxy feeds retrieve done ...")
-                  (message "Update non-proxy feeds done")
-                  (if proxy-feeds
-                      (unwind-protect
-                          (entropy/emacs-rss--elfeed-update/fetch-proxy-feeds
-                           proxy-feeds)
-                        (entropy/emacs-unwind-protect-body 10
-                          (when (timerp entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer)
-                            (cancel-timer entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer)
-                            (setq entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer
-                                  nil))))
-                    (setq entropy/emacs-rss--elfeed-update/fetching-running-p
-                          nil))))))))
-
-  (defun entropy/emacs-rss--elfeed-update/fetch-proxy-feeds (proxy-feeds)
-    (message "Update proxy feeds ...")
-    (setq entropy/emacs-rss--elfeed-use-proxy-p t)
-    (setq __elfeed-orig-curl-args elfeed-curl-extra-arguments)
-    (setq elfeed-curl-extra-arguments
-          `("-x" ,(format "http://%s:%s"
-                          (plist-get entropy/emacs-union-http-proxy-plist :host)
-                          (plist-get entropy/emacs-union-http-proxy-plist :port))))
-    (let ((elfeed-feeds proxy-feeds)
-          (no-protect nil))
-      (unwind-protect
-          (progn
-            (setq entropy/emacs-rss--elfeed-update/fetching-running-p t)
-            (elfeed-update)
-            (setq no-protect t))
-        (unless no-protect
-          (setq elfeed-curl-extra-arguments __elfeed-orig-curl-args
-                entropy/emacs-rss--elfeed-use-proxy-p nil
-                entropy/emacs-rss--elfeed-update/fetching-running-p nil))))
-    (setq entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer
-          (run-with-timer
-           0 2
-           (lambda ()
-             (if (entropy/emacs-rss--elfeed-process-running-p)
-                 (message "Waiting for proxy feeds retrieve done ...")
-               (message "Update proxy feeds done")
-               (setq elfeed-curl-extra-arguments
-                     __elfeed-orig-curl-args)
-               (when (timerp entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer)
-                 (cancel-timer entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer)
-                 (setq entropy/emacs-rss--elfeed-update/fetch-proxy-feeds/guard-timer nil))
-               (setq entropy/emacs-rss--elfeed-update/fetching-running-p
-                     nil))))))
+    (let ((inhibit-quit t))
+      (when common-feeds
+        (let ((elfeed-feeds common-feeds))
+          ;; must flag the running indicator first
+          (setq entropy/emacs-rss--elfeed-update/fetching-running-p t)
+          (entropy/emacs-unwind-protect-unless-success
+              (elfeed-update)
+            (setq
+             entropy/emacs-rss--elfeed-update/fetching-running-p
+             nil))))
+      (unless (timerp entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer)
+        (setq entropy/emacs-rss--elfeed-update/fetch-common-feeds/guard-timer
+              (run-with-timer
+               0 2
+               #'entropy/emacs-rss--elfeed-update/fetch-comon-feeds-guard
+               proxy-feeds)))))
 
   (defun entropy/emacs-rss--elfeed-fetch-feeds (elfeed-feeds-rich)
     "Synchronously fetch ELFEED-FEEDS-RICH."
@@ -427,14 +483,15 @@ But we can not found curl in your PATH!")
 So we automatically help you to change to `curl' mode."))
         (let ((common-feeds (plist-get elfeed-feeds-rich :common-feeds))
               (proxy-feeds (plist-get elfeed-feeds-rich :proxy-feeds)))
-          (cond ((and proxy-feeds
-                      (plist-get entropy/emacs-union-http-proxy-plist :enable))
-                 (entropy/emacs-rss--elfeed-update/fetch-common-feeds
-                  common-feeds proxy-feeds))
-                (t
-                 (setq entropy/emacs-rss--elfeed-use-proxy-p nil)
-                 (let ((elfeed-feeds common-feeds))
-                   (elfeed-update))))))))
+          ;; NOTE: Set temporaly filter to speed up the update
+          ;; procedure. Sine elfeed will auto update the current
+          ;; exhausted buffer when the filter matched the retrieved
+          ;; ones, this will cause performance issue when history
+          ;; feeds is too many i.e. the `elfeed-search-buffer''s size
+          ;; is large.
+          (entropy/emacs-rss--elfeed-update/set-search-filter 'before)
+          (entropy/emacs-rss--elfeed-update/fetch-common-feeds
+           common-feeds proxy-feeds)))))
 
   (defun entropy/emacs-rss-elfeed-update ()
     "Like `elfeed-update' but specified for eemacs."
@@ -595,6 +652,7 @@ sentinels fatal etc. and do it no need care for as."
         (entropy/emacs-rss--elfeed-search-update)
       (error "You are not in the 'elfeed-search-mode'!"))
     (when prefix
+      (entropy/emacs-rss--elfeed-update/cancel-all-timer)
       (elfeed-unjam)
       (entropy/emacs-rss--elfeed-process-stop-all)))
 
