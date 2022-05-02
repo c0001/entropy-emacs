@@ -1047,7 +1047,9 @@ the entry contents since we should respect
                     `(lambda (&rest _)
                        (entropy/emacs-unintern-symbol ',func-sym))
                     nil t)
-          (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
+          (unless (eq (entropy/emacs-wc-window-auto-center-mode-turn-on-judger
+                       (current-buffer))
+                      t)
             (elfeed-show-refresh))))))
   (advice-add 'elfeed-show-entry
               :override #'__ya/elfeed-show-entry)
