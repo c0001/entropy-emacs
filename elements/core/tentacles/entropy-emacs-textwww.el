@@ -187,7 +187,7 @@
    :browse-with-external w3m-view-url-with-browse-url
    :current-page-url w3m-print-current-url
    :current-link-url w3m-print-this-url
-   :previous-page w3m-view-previous-page
+   :previous-page entropy/emacs-textwww-w3m-view-previous-page
    :next-page w3m-view-next-page
    :search-query w3m-search
    :search-engine entropy/emacs-textwww-w3m-toggle-search-engine)
@@ -378,6 +378,73 @@ do any emacs work in any other buffer, or just wait ... ")))
   (advice-add 'w3m-display-progress-message
               :override
               #'__ya/w3m-display-progress-message)
+
+;; ***** eemacs spec command
+;; ****** union
+  (defvar entropy/emacs-textwww--w3m-inhibit-log-url nil
+    "When non-nil indicate that do not log current canonical
+`w3m-current-url' to `entropy/emacs-textwww--w3m-url-history'. It
+should always be `let' binding to use."
+    )
+  (defvar-local entropy/emacs-textwww--w3m-url-history nil
+    "The canonical url `w3m-current-url' (FIXME: does it always the
+return of `w3m-canonicalize-url'? if not we should update
+`entropy/emacs-textwww--w3m-log-current-url') history log for
+current w3m buffer.
+
+Each element of of this log list is a cons which car is the url
+and the cdr is the point which is the last visit for page
+content."
+    )
+
+  (defun entropy/emacs-textwww--w3m-log-current-url
+      (orig-func &rest orig-args)
+    (unless entropy/emacs-textwww--w3m-inhibit-log-url
+      (let (_)
+        (push (cons w3m-current-url
+                    (car w3m-current-position))
+              entropy/emacs-textwww--w3m-url-history)))
+    (apply orig-func orig-args))
+
+  (advice-add 'w3m-goto-url
+              :around
+              #'entropy/emacs-textwww--w3m-log-current-url)
+
+;; ****** previous page restore
+  (defun entropy/emacs-textwww-w3m-view-previous-page ()
+    "Like `w3m-view-previous-page' but use the eemacs spec history
+revision mechanism since `w3m-view-previous-page' has bug (or
+mistake) for restore the previous in 'about:.*' buffer i.e `w3m'
+internally did not log the 'about:.*' url as history so that it
+rotate the `w3m-history' to the previous page of the page we want
+to restore."
+    (declare (interactive-only t))
+    (interactive nil w3m-mode)
+    (let* ((hist (pop entropy/emacs-textwww--w3m-url-history))
+           (url (car hist))
+           (pos (cdr hist)))
+      (if (and (stringp url)
+               (w3m-url-valid url))
+          (let ((entropy/emacs-textwww--w3m-inhibit-log-url t)
+                ;; do not create new history
+                (w3m-history-reuse-history-elements t)
+                ;; check the cache available
+                (cache-available (not
+                                  (eq (gethash url w3m-cache-hashtb 'void)
+                                      'void)))
+                ;; FIXME:
+                ;; use cached page resources instead of re-request
+                ;; even if the content is not cached predicated by
+                ;; `w3m-cache-available-p' since the content is cached
+                ;; even if it show as non-cached?
+                (w3m-prefer-cache t))
+            (w3m-goto-url url)
+            (when (and cache-available
+                       (integer-or-marker-p pos))
+              (goto-char pos)
+              (recenter)))
+        ;; fallback to use `w3m-view-previous-page'.
+        (w3m-view-previous-page))))
 
 ;; **** __end__
   )
