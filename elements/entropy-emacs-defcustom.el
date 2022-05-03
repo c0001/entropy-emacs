@@ -421,6 +421,19 @@ which is not a lisp API."
   "Eemacs completion framework configuration customizable group."
   :group 'entropy-emacs-customize-top-group)
 
+(defcustom entropy/emacs-command-completion-use-style 'ivy
+  "The =entropy-emacs= command completion style.
+
+Valid value are:
+
+- 'ivy': use `ivy-read'.
+- 'nil': use native `completion-read'.
+"
+  :type '(choice
+          (const :tag "ivy" ivy)
+          (const :tag "native" nil))
+  :group 'entropy/emacs-customize-group-for-M-x)
+
 ;; **** ivy
 (defgroup entropy/emacs-customize-group-for-ivy-mode nil
   "Eemacs ivy-mode configuration customizable group."

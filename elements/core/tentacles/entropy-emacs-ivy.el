@@ -1314,7 +1314,36 @@ currnt fontset."
                  (cand)
                  (get-buffer cand))
                :delimiter "\t")
+              entropy/emacs-popwin-shackle-popup-buffer
+              (:columns
+               (,(_ivy-rich-use-icon-func 'all-the-icons-ivy-rich-buffer-icon)
+                (ivy-rich-candidate
+                 (:width
+                  (lambda (str)
+                    (ivy-rich-normalize-width
+                     str
+                     (max (- (window-width (minibuffer-window))
+                             32)
+                          ,dcw-w)))))
+                (ivy-rich-switch-buffer-size
+                 (:width 7))
+                (ivy-rich-switch-buffer-indicators
+                 (:width 4 :face error :align left))
+                (ivy-rich-switch-buffer-major-mode
+                 (:width 12 :face warning)))
+               :predicate
+               (lambda
+                 (cand)
+                 (get-buffer cand))
+               :delimiter "\t")
               counsel-find-file
+              (:columns
+               (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
+                (ivy-read-file-transformer)
+                (ivy-rich-counsel-find-file-truename
+                 (:face font-lock-doc-face)))
+               :delimiter "\t")
+              entropy/emacs-popwin-shackle-popup-find-file
               (:columns
                (,(_ivy-rich-use-icon-func 'ya/all-the-icons-ivy-rich-common-file-icon)
                 (ivy-read-file-transformer)

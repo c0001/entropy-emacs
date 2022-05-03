@@ -604,42 +604,84 @@ specification."
     (ignore-errors
       (display-buffer shackle-last-buffer)))
 
-  (defun entropy/emacs-popwin-shackle-popup-buffer ()
-    "Display buffer with popuped behaviour powered by `shackle'."
-    (declare (interactive-only t))
-    (interactive)
-    (let* ((buff-name (completing-read "Buffer choosing: "
-                                       'internal-complete-buffer))
-           (shackle-rules
+  (defun entropy/emacs-popwin-shackle-popup-buffer-action (buff-name)
+    (let* ((shackle-rules
             (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
                 `((,buff-name :select t :size 0.4 :align below :autoclose t)))))
       (get-buffer-create buff-name)
       (display-buffer buff-name)))
+  (defun entropy/emacs-popwin-shackle-popup-buffer ()
+    "Display buffer with popuped behaviour powered by `shackle'."
+    (declare (interactive-only t))
+    (interactive)
+    (let ((prompt "Buffer choosing: ")
+          (table 'internal-complete-buffer)
+          (action #'entropy/emacs-popwin-shackle-popup-buffer-action))
+      (cond
+       ((eq entropy/emacs-command-completion-use-style 'ivy)
+        (ivy-read prompt table
+                  :require-match nil
+                  :action action
+                  :caller 'entropy/emacs-popwin-shackle-popup-buffer))
+       (t
+        (let* ((buff-name (completing-read prompt table)))
+          (funcall action buff-name))))))
 
+  (defun entropy/emacs-popwin-shackle-popup-find-file-action (file)
+    (let* ((buff-name (buffer-name (find-file-noselect file)))
+           (shackle-rules
+            (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
+                `((,buff-name :select t :size 0.4 :align below :autoclose t)))))
+      (display-buffer buff-name)))
   (defun entropy/emacs-popwin-shackle-popup-find-file ()
     "Find file with popup window powered by `shackle'."
     (declare (interactive-only t))
     (interactive)
-    (let* ((file (completing-read "File choosing: " 'read-file-name-internal
-                                  nil nil nil 'file-name-history))
-           (buff-name (buffer-name (find-file-noselect file)))
+    (let* ((prompt "File choosing: ")
+           (table 'read-file-name-internal)
+           (history 'file-name-history)
+           (action #'entropy/emacs-popwin-shackle-popup-find-file-action))
+      (cond
+       ((eq entropy/emacs-command-completion-use-style 'ivy)
+        (ivy-read prompt table
+                  :require-match nil
+                  :action action
+                  :caller 'entropy/emacs-popwin-shackle-popup-find-file
+                  :history history))
+       (t
+        (let ((file (completing-read
+                     prompt table
+                     nil nil nil history)))
+          (funcall action file))))))
+
+  (defun entropy/emacs-popwin-shackle-popup-dired-action (dir)
+    (let* ((buff-name (buffer-name (dired-noselect dir)))
            (shackle-rules
             (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
                 `((,buff-name :select t :size 0.4 :align below :autoclose t)))))
       (display-buffer buff-name)))
-
   (defun entropy/emacs-popwin-shackle-popup-dired ()
     "Dired with popup window powered by `shackle'."
     (declare (interactive-only t))
     (interactive)
-    (let* ((dir (completing-read "Dired choosing: " 'read-file-name-internal
-                                 'file-directory-p nil nil
-                                 'file-name-history))
-           (buff-name (buffer-name (dired-noselect dir)))
-           (shackle-rules
-            (or (and (ignore-errors (shackle-match buff-name)) shackle-rules)
-                `((,buff-name :select t :size 0.4 :align below :autoclose t)))))
-      (display-buffer buff-name)))
+    (let* ((prompt "Dired choosing: ")
+           (table 'read-file-name-internal)
+           (predicate 'file-directory-p)
+           (history 'file-name-history)
+           (action #'entropy/emacs-popwin-shackle-popup-dired-action))
+      (cond
+       ((eq entropy/emacs-command-completion-use-style 'ivy)
+        (ivy-read prompt table
+                  :require-match nil
+                  :action action
+                  :predicate predicate
+                  :caller 'entropy/emacs-popwin-shackle-popup-dired
+                  :history history))
+       (t
+        (let ((dir (completing-read prompt table
+                                    predicate nil nil
+                                    history)))
+          (funcall action dir))))))
 
   (defun entropy/emacs-popwin-shackle-popup-message ()
     "Display message buffer with popup type powerd by `shackle'."
@@ -676,7 +718,8 @@ specification."
                     (unless (bound-and-true-p savehist-mode)
                       (savehist-mode)))
                   (unless (bound-and-true-p ivy-mode)
-                    (ivy-mode t)))))
+                    (when (eq entropy/emacs-command-completion-use-style 'ivy)
+                      (ivy-mode t))))))
 
 ;; **** reset rule action
 

@@ -476,7 +476,10 @@ notation.
   ;; =============================
 
   ;; ineractive
-  (entropy/emacs-common-require-feature 'entropy-emacs-ivy)
+  (cond ((eq entropy/emacs-command-completion-use-style 'ivy)
+         (entropy/emacs-common-require-feature 'entropy-emacs-ivy))
+        (t
+         nil))
   ;; org
   (entropy/emacs-common-require-feature 'entropy-emacs-org)
   ;; code folding
