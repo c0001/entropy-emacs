@@ -61,12 +61,25 @@
   "Mark the current point and push it to mark ring so that this
 place can be easily found by other interactive command.
 
-With prefix argument binds, use `pop-global-mark' to jump to the
-last mark place."
+With prefix argument binds, jump to the previous mark place."
   (declare (interactive-only t))
   (interactive)
   (if current-prefix-arg
-      (funcall-interactively #'pop-global-mark)
+      (let* ((mkr (cl-delete-duplicates
+                   mark-ring
+                   :test 'equal))
+             (mkr-top (car mkr))
+             (mkr-bottom (car (last mkr)))
+             (mkr-body (nbutlast (cdr mkr))))
+        (when mkr
+          (catch :exit
+            (when (eq mkr-top mkr-bottom)
+              (goto-char (marker-position mkr-top))
+              (throw :exit t))
+            (setq mark-ring
+                  (append (cons mkr-bottom mkr-body)
+                          (list mkr-top)))
+            (goto-char (marker-position mkr-bottom)))))
     (save-excursion
       (push-mark))))
 
