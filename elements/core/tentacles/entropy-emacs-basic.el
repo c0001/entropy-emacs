@@ -59,11 +59,16 @@
 
 (defun entropy/emacs-basic-mark-set ()
   "Mark the current point and push it to mark ring so that this
-place can be easily found by other interactive command."
+place can be easily found by other interactive command.
+
+With prefix argument binds, use `pop-global-mark' to jump to the
+last mark place."
   (declare (interactive-only t))
   (interactive)
-  (save-excursion
-    (push-mark)))
+  (if current-prefix-arg
+      (funcall-interactively #'pop-global-mark)
+    (save-excursion
+      (push-mark))))
 
 (entropy/emacs-lazy-with-load-trail
  top-keybinding
