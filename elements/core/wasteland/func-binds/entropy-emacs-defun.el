@@ -4980,10 +4980,20 @@ true, nil for otherwise."
                    (throw :exit nil))))
              rtn))))
 
+(defvar entropy/emacs-idle-cleanup-echo-area-timer-is-running-p nil)
 (defun entropy/emacs-idle-cleanup-echo-area ()
   "Cleanup remaining echo area message when bussy done for some
 tasks 'ing' refer prompts."
-  (run-with-idle-timer 0.2 nil (lambda () (message nil))))
+  (let ((inhibit-quit t))
+    (unless entropy/emacs-idle-cleanup-echo-area-timer-is-running-p
+      (setq entropy/emacs-idle-cleanup-echo-area-timer-is-running-p t)
+      (run-with-idle-timer
+       0.2 nil
+       (lambda ()
+         (let ((inhibit-quit t))
+           (message nil)
+           (setq entropy/emacs-idle-cleanup-echo-area-timer-is-running-p
+                 nil)))))))
 
 ;; --------- make funciton inhibit readonly internal ---------
 (defun entropy/emacs--make-function-inhibit-readonly-common
@@ -5298,7 +5308,10 @@ GENED-FUNCTION with their own name abbreviated."
                    (if (eq ',prompt-type 'prompt-popup) nil t))
                   end-time
                   func-body-rtn)
-             (redisplay t)
+              ;; NOTE: set indicator before any body running to
+              ;; preventing recursively invoking inside of body, this
+              ;; is important for advice wrapper.
+             (setq ,var t)
              (entropy/emacs-message-do-message
               "%s '%s' %s"
               (blue "Loading and enable feature")
@@ -5306,26 +5319,23 @@ GENED-FUNCTION with their own name abbreviated."
               (blue "..."))
              (entropy/emacs-general-run-with-protect-and-gc-strict
               (setq func-body-rtn
-                    (prog1
+                    (unwind-protect
                         (progn
                           ,@func-body)
                       ;; FIXME: dummy for press byte-compile unused
                       ;; lexical variable warning
                       (setq $_|internal-args $_|internal-args)
-                      ;; set indicator preventing duplicted invoking
-                      (setq ,var t)
-                      ;; fake the function after evaluated it.
-                      (defun ,func (&rest _)
-                        "this function has been faked since it just need to run once."
-                        nil)
                       ;; finally we remove the initial injection
                       (cond ((eq ',adder-type 'advice-add)
                              (dolist (adfor-it ',list-var)
                                (advice-remove adfor-it ',func)))
                             ((eq ',adder-type 'add-hook)
                              (dolist (adhfor-it ',list-var)
-                               (remove-hook adhfor-it ',func))))))
-              )
+                               (remove-hook adhfor-it ',func))))
+                      ;; fake the function after evaluated it.
+                      (fmakunbound ',func)
+                      (defalias ',func #'ignore)
+                      )))
              (setq end-time (time-to-seconds))
              (entropy/emacs-message-do-message
               "%s '%s' %s '%s' %s"
@@ -5334,14 +5344,14 @@ GENED-FUNCTION with their own name abbreviated."
               (green "within")
               (cyan (format "%f" (- end-time head-time)))
               (green "seconds. (Maybe running rest tasks ...)"))
-             (redisplay t)
              (entropy/emacs-idle-cleanup-echo-area)
              func-body-rtn)))
-       (let ((hook (entropy/emacs-select-trail-hook
-                    ',entropy/emacs-lazy-initial-form-pdumper-no-end)))
+       (let (_)
          (cond
           ((not entropy/emacs-custom-enable-lazy-load)
-           (set hook (append (symbol-value hook) '(,func))))
+           (let ((hook (entropy/emacs-select-trail-hook
+                        ',entropy/emacs-lazy-initial-form-pdumper-no-end)))
+             (set hook (append (symbol-value hook) '(,func)))))
           (t
            (let (_)
              (dolist (item ',list-var)
