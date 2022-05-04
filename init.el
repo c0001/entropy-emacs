@@ -175,6 +175,7 @@ emacs upstream")
    (t
     (add-hook 'after-init-hook
               #'__init_emacs
-              t)
+              ;; at end of init hook
+              100)
     ))
   )
