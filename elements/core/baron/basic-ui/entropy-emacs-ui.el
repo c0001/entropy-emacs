@@ -170,21 +170,39 @@ determined by above variable you setted."
 
   (defun entropy/emacs-ui--init-welcom-gen-widget-entry-info-list ()
     `(((:str "- Read ")
-       (:str "entropy-emacs introduction"
+       (:str "entropy-emacs"
              :link-type file
              :link ,(plist-get entropy/emacs-core-doc-file-archives-plist :org))
-       (:str ".")
-       (:str "(view ")
+       (:str " introduction.")
+       (:str " (view ")
        (:str "html version"
              :link-type web
              :link ,(concat "file://"
                             (plist-get entropy/emacs-core-doc-file-archives-plist :html)))
        (:str " go.) "))
 
+      ((:str "- Customize ")
+       (:str "entropy-emacs"
+             :link-type custom-group
+             :link entropy-emacs-customize-top-group)
+       (:str " interactively."))
+
       ((:str "- Get ")
-       (:str "entropy-emax64 encapsulation"
+       (:str "entropy-emacs"
              :link-type web
-             :link "https://sourceforge.net/projects/entropy-emax64/")
+             :link ,entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url)
+       (:str " stable elpa/melpa packages."))
+
+      ((:str "- Get ")
+       (:str "entropy-emacs"
+             :link-type web
+             :link ,entropy/emacs-ext-eemacs-fonts-archive-url)
+       (:str " suggested fonts."))
+
+      ((:str "- Learn ")
+       (:str "\"Structure and Interpretation of Computer Programs\""
+             :link-type info
+             :link "SICP")
        (:str "."))
 
       ((:str "- View ")
@@ -278,7 +296,18 @@ element str to the elemet will be append by
                 ((eq link-type 'help)
                  (setq link (plist-get str-obj-atom :link))
                  (setq rtn (list :face 'default
-                                 :link `(,str ,(list 'lambda '(_botton) link))))))
+                                 :link `(,str ,(list 'lambda '(_botton) link)))))
+                ((eq link-type 'info)
+                 (setq link (plist-get str-obj-atom :link))
+                 (setq rtn (list :face 'default
+                                 :link `(,str ,(list 'lambda '(_botton)
+                                                     `(info ,link))))))
+                ((eq link-type 'custom-group)
+                 (setq link (plist-get str-obj-atom :link))
+                 (setq rtn (list :face 'default
+                                 :link `(,str ,(list 'lambda '(_botton)
+                                                     `(customize-group ',link))))))
+                )
         (setq rtn `(:face default ,str)))
       rtn))
 
@@ -377,7 +406,8 @@ module (see `entropy/emacs-ui--init-welcom-text-logo-align').
                              (mapcar (lambda (str_line)
                                        (string-width str_line))
                                      str-list)))
-        (setq rtn `((:str ,(split-string str-choice "\n") :face nil :max_len ,max_len))))))
+        (setq rtn `((:str ,(split-string str-choice "\n")
+                          :face nil :max_len ,max_len))))))
 
 ;; **** main function
 
@@ -501,10 +531,11 @@ buffer window size."
     "Hook useing the core func `entropy/emacs-ui--init-welcom-wc-change-func'
 for adding to variable `window-size-change-functions' and hook
 `window-setup-hook'."
-    (let ((win-spec (get-buffer-window entropy/emacs-init-welcome-buffer-name))
-          (frame-spec (frame-selected-window)))
-      (when (and win-spec
-                 (not (window-minibuffer-p frame-spec)))
+    (when-let ((win-spec (get-buffer-window entropy/emacs-init-welcome-buffer-name))
+               (win-sel (frame-selected-window)))
+      (when (and (not (window-minibuffer-p win-sel))
+                 (window-live-p win-sel)
+                 (window-live-p win-spec))
         (with-selected-window win-spec
           (entropy/emacs-ui--init-welcom-wc-change-func)))))
 
