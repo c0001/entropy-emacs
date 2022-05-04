@@ -48,7 +48,8 @@
 (defmacro entropy/emacs-start--run-with-duration-log
     (name &rest body)
   `(if (bound-and-true-p entropy/emacs-startup-with-Debug-p)
-       (let ((before-time (current-time)))
+       (let* ((inhibit-quit t)
+              (before-time (current-time)))
          (prog1
              (progn
                ,@body)
@@ -710,7 +711,7 @@ Currently detected env variables:")
   (define-coding-system-alias 'cp65001 'utf-8))
 
 (defun entropy/emacs-start-do-load ()
-  (let (_)
+  (let ((inhibit-quit t))
     (when (and entropy/emacs-start-ext-available-p
                (not entropy/emacs-start--is-init-with-install))
       (entropy/emacs-message-do-message
@@ -726,14 +727,8 @@ Currently detected env variables:")
 
 (entropy/emacs-start--run-with-duration-log
  form/start-tentacles
- (if (or entropy/emacs-fall-love-with-pdumper
-         (daemonp))
-     (entropy/emacs-start-do-load)
-   (run-with-idle-timer
-    ;; EEMACS_BUG: we can not set delay less than 0.001 since bug:
-    ;; h-6d28b926-88c0-4286-a0de-9ee7b4a7516c
-    0.001 nil
-    #'entropy/emacs-start-do-load)))
+ (redisplay t)
+ (entropy/emacs-start-do-load))
 
 ;; * provide
 (provide 'entropy-emacs-start)

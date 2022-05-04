@@ -4925,9 +4925,9 @@ details of arguments description on its function docstring."
 (defmacro entropy/emacs-general-run-with-protect-and-gc-strict (&rest body)
   "Run BODY with `inhibit-quit' and restrict with basic
 `gc-cons-threshold'."
-  `(let ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
-         (gc-cons-percentage entropy/emacs-gc-percentage-basic)
-         (inhibit-quit t))
+  `(let* ((inhibit-quit t)
+          (gc-cons-threshold entropy/emacs-gc-threshold-basic)
+          (gc-cons-percentage entropy/emacs-gc-percentage-basic))
      ,@body))
 
 (defun entropy/emacs-transfer-wvol (file)
@@ -5047,6 +5047,7 @@ The compatible version comparation is rased on the two ways:
 (cl-defmacro entropy/emacs-lazy-load-simple
     (feature &rest body
              &key
+             eval-feature
              non-message
              always-lazy-load
              &allow-other-keys)
@@ -5057,15 +5058,19 @@ thus and autoloads them follow the order of that.
 
 Optional key valid for:
 
+- EVAL-FEATURE:
+
+  a form when evaluated non-nil, use feature returned by evaluate FEATURE.
+
 - NON-MESSAGE:
 
-  when non-nil do not show lazy loading config prompts.
+  a form when evaluated non-nil do not show lazy loading config prompts.
 
 - ALWAYS-LAZY-LOAD:
 
-  when non-nil always lazy loading config after the featuer loaded
-  without any restriction (see below). so the basic functional is same
-  as `with-after-load'.
+  a form when evalulated non-nil always lazy loading config after the
+  featuer loaded without any restriction (see below). so the basic
+  functional is same as `with-after-load'.
 
 NOTE: Eventually BODY just be autoload when
 `entropy/emacs-custom-enable-lazy-load' is non-nil with two
@@ -5081,57 +5086,62 @@ This function should always be used preferred to maintain eemacs
 internal context or API adding to thus, because any not be will
 pollute eemacs internal lazy load optimization."
   (declare (indent 1) (debug t))
-  (let ((body (entropy/emacs-get-plist-body body))
-        (this-load-fname
-         (and entropy/emacs-startup-with-Debug-p
-              (ignore-errors
-                (file-name-nondirectory load-file-name)))))
-    (when entropy/emacs-startup-with-Debug-p
-      (push (list :feature feature
-                  :load-in this-load-fname
-                  :body body)
-            entropy/emacs-lazy-load-simple-log-var))
+  (let ((body (entropy/emacs-get-plist-body body)))
     ;; macro main
-    `(let ((feature-this ',feature))
+    `(let ((feature (if ,eval-feature
+                        ,feature
+                      ',feature))
+           (body ',body)
+           (non-message ,non-message)
+           (always-lazy-load ,always-lazy-load)
+           (this-load-fname
+            (or
+             ;; NOTE: the `load-file-name' must be evaluated by
+             ;; load-time so we don't expand it at byte-compile time.
+             (if load-file-name
+                 (file-name-nondirectory load-file-name)
+               ;; fixed the byte-compile as original
+               ,byte-compile-current-file)
+             "top-level")))
+       (when entropy/emacs-startup-with-Debug-p
+         (push (list :feature ',feature ;log the origin feature form
+                     :load-in this-load-fname
+                     :body body)
+               entropy/emacs-lazy-load-simple-log-var))
        (cond
         ((or entropy/emacs-custom-enable-lazy-load
-             ,always-lazy-load)
-         (when (not (null feature-this))
-           (entropy/emacs-eval-after-load
-            ,feature
-            (entropy/emacs-message-simple-progress-message
-             (unless (or
-                      (not (null ',non-message))
-                      (member ',feature
-                              (last entropy/emacs--lazy-load-simple-feature-head 3)))
-               (setq entropy/emacs--lazy-load-simple-feature-head
-                     (append entropy/emacs--lazy-load-simple-feature-head
-                             (list ',feature)))
-               (if entropy/emacs-startup-with-Debug-p
-                   (format
-                    "[gened-by: %s] with lazy loading configs for feature '%s'"
-                    ,this-load-fname
-                    ',feature)
-                 (format
-                  "with lazy loading configs for feature '%s'"
-                  ',feature)))
-             (entropy/emacs-general-run-with-protect-and-gc-strict
-              ,@body)))))
+             always-lazy-load)
+         (when (not (null feature))
+           (eval
+            `(entropy/emacs-eval-after-load
+               ,feature
+               (entropy/emacs-message-simple-progress-message
+                (unless ,non-message
+                  (setq entropy/emacs--lazy-load-simple-feature-head
+                        (append entropy/emacs--lazy-load-simple-feature-head
+                                (list ',feature)))
+                  (format
+                   "[gened-by: %s] with lazy loading configs for feature '%s'"
+                   ,this-load-fname
+                   ',feature))
+                (entropy/emacs-general-run-with-protect-and-gc-strict
+                 ,@body))))))
         ((null entropy/emacs-custom-enable-lazy-load)
-         (when (not (null feature-this))
-           (unless (member feature-this (last entropy/emacs--lazy-load-simple-feature-head 3))
+         (when (not (null feature))
+           (unless non-message
              (entropy/emacs-message-do-message
-              "force load configs for feature '%s'" feature-this)
+              "force load configs for feature '%s'" feature)
              (setq entropy/emacs--lazy-load-simple-feature-head
                    (append entropy/emacs--lazy-load-simple-feature-head
-                           '(,feature))))
-           (cond ((listp feature-this)
-                  (dolist (el feature-this)
+                           `(,feature))))
+           (cond ((listp feature)
+                  (dolist (el feature)
                     (require el)))
-                 ((symbolp feature-this)
-                  (require feature-this)))
-           (entropy/emacs-general-run-with-protect-and-gc-strict
-            ,@body)))))))
+                 ((symbolp feature)
+                  (require feature)))
+           (eval
+            `(entropy/emacs-general-run-with-protect-and-gc-strict
+              ,@body))))))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
   "Wrapping BODY to a function named with suffix by NAME into
@@ -5201,7 +5211,7 @@ functional aim to:
 (defun entropy/emacs-lazy-initial-form
     (list-var
      initial-func-suffix-name initial-var-suffix-name
-     abbrev-name adder-name prompt-type
+     abbrev-name prompt-type
      &rest form_args)
   "Generate a form whose functional is to wrap some forms into a
 GENED-FUNTION who named with ABBREV-NAME and INITIAL-SUFFIX-NAME
@@ -5233,11 +5243,8 @@ There's two tricks:
 
 2. Using LIST-VAR and consider each element of it is a hook (when
    the ADDER-FLAG is nil) or a function (when ADDER-TYPE is
-   non-nil), and add the GENED-FUNCTION into the hook or the
-   advice env respectively using a ADDER-FUNCION named with the
-   GENED-FUNCTION name suffixing on ADDER-NAME (a non empty
-   string) for insteadly add it into =entropy-emacs startup trail
-   hook= to get the lazy load effection.
+   non-nil), and add the GENED-FUNCTION into the hook or advice
+   it to get the lazy load effection.
 
 The GENED-FUNCTION has the '&rest' type argument
 '$_|internal-args' which has different meaning for different value
@@ -5258,9 +5265,8 @@ At last, ABBREV-NAME is feature based name string so that other
 macro or function can use this function to generate the
 GENED-FUNCTION with their own name abbreviated."
 
-  (let* ((func (intern (concat abbrev-name "_" initial-func-suffix-name)))
-         (adder-func (intern (concat (symbol-name func) "_" adder-name)))
-         (var (intern (concat abbrev-name "_+" initial-var-suffix-name)))
+  (let* ((func (intern (concat abbrev-name "/lazy-func/" initial-func-suffix-name)))
+         (var (intern (concat abbrev-name "/lazy-indc-var/" initial-var-suffix-name)))
          (adder-type (car form_args))
          (adder-flag (cadr form_args))
          (func-body (nth 2 form_args)))
@@ -5271,26 +5277,27 @@ GENED-FUNCTION with their own name abbreviated."
                (not (null adder-flag)))
       (error "Non-nil flag for 'add-hook' adder-type for lazy-initial form '%s'"
              abbrev-name))
-    `(progn
+    `(let ((inhibit-quit t))
        (defvar ,var nil)
        (defun ,func (&rest $_|internal-args)
-         (unless (or ,var
-                     ;; we just run intialform after eemacs startup
-                     ;; done to speedup eemacs startup.
-                     (and
-                      (not (bound-and-true-p entropy/emacs-startup-done))
-                      ;; but in pdumper dump session we want it to run
-                      (not entropy/emacs-fall-love-with-pdumper)
-                      ;; but in daemon load session we want it run
-                      (not (daemonp))
-                      ;; but in non-lazy enable mode we want it run
-                      (not (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load)))
-                      ))
-           (let ((head-time (time-to-seconds))
-                 (entropy/emacs-message-non-popup
-                  (if (eq ',prompt-type 'prompt-popup) nil t))
-                 end-time
-                 func-bocy-rtn)
+         (when (and (not ,var)
+                    ;; we just run intialform after eemacs startup
+                    ;; done to speedup eemacs startup.
+                    (or
+                     (bound-and-true-p entropy/emacs-startup-done)
+                     ;; but in pdumper dump session we want it to run
+                     entropy/emacs-fall-love-with-pdumper
+                     ;; but in daemon load session we want it run
+                     (daemonp)
+                     ;; but in non-lazy enable mode we want it run
+                     (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+                     ))
+           (let* ((inhibit-quit t)
+                  (head-time (time-to-seconds))
+                  (entropy/emacs-message-non-popup
+                   (if (eq ',prompt-type 'prompt-popup) nil t))
+                  end-time
+                  func-body-rtn)
              (redisplay t)
              (entropy/emacs-message-do-message
               "%s '%s' %s"
@@ -5298,7 +5305,7 @@ GENED-FUNCTION with their own name abbreviated."
               (yellow ,initial-func-suffix-name)
               (blue "..."))
              (entropy/emacs-general-run-with-protect-and-gc-strict
-              (setq func-bocy-rtn
+              (setq func-body-rtn
                     (prog1
                         (progn
                           ,@func-body)
@@ -5329,24 +5336,18 @@ GENED-FUNCTION with their own name abbreviated."
               (green "seconds. (Maybe running rest tasks ...)"))
              (redisplay t)
              (entropy/emacs-idle-cleanup-echo-area)
-             func-bocy-rtn)))
-       (defun ,adder-func (&rest _)
-         (let ((inhibit-quit t))
-           (dolist (item ',list-var)
-             (if (not (null ,adder-flag))
-                 (,adder-type item ,adder-flag ',func)
-               (,adder-type item ',func)))
-           ;; fake it after evaluated it
-           (defun ,adder-func (&rest _)
-             "this function has been faked since it just need to run once."
-             nil)))
+             func-body-rtn)))
        (let ((hook (entropy/emacs-select-trail-hook
                     ',entropy/emacs-lazy-initial-form-pdumper-no-end)))
          (cond
           ((not entropy/emacs-custom-enable-lazy-load)
            (set hook (append (symbol-value hook) '(,func))))
           (t
-           (,adder-func)))))))
+           (let (_)
+             (dolist (item ',list-var)
+               (if (not (null ,adder-flag))
+                   (,adder-type item ,adder-flag ',func)
+                 (,adder-type item ',func))))))))))
 
 (cl-defmacro entropy/emacs-lazy-initial-for-hook
     (hooks initial-func-suffix-name initial-var-suffix-name
@@ -5375,7 +5376,8 @@ while pdumper procedure.
              ,pdumper-no-end))
         (entropy/emacs-lazy-initial-form
          ',hooks ',initial-func-suffix-name ',initial-var-suffix-name
-         "entropy/emacs--hook-first-enable-for" "hook-adder" ',prompt-type
+         "entropy/emacs--hook-first-enable-for"
+         ',prompt-type
          'add-hook nil
          ',body-wrap)))))
 
@@ -5407,7 +5409,7 @@ while pdumper procedure.
         (entropy/emacs-lazy-initial-form
          ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
          "entropy/emacs--beforeADV-fisrt-enable-for"
-         "before-advice-adder" ',prompt-type
+         ',prompt-type
          'advice-add
          :before
          ',body-wrap)))))
@@ -5425,7 +5427,7 @@ while pdumper procedure.
         (entropy/emacs-lazy-initial-form
          ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
          "entropy/emacs--AfterADV-fisrt-enable-for"
-         "after-advice-adder" ',prompt-type
+         ',prompt-type
          'advice-add
          :after
          ',body-wrap)))))
