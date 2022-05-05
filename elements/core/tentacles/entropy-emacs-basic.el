@@ -3610,7 +3610,7 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
     "Get su privileges for CURR-PATH if need to so."
     (declare (interactive-only t))
     (interactive (list (auto-sudoedit-current-path)))
-    (let ((path (auto-sudoedit-path curr-path)))
+    (let ((path (cdr (auto-sudoedit-path curr-path))))
       (if path
           (find-file path)
         (entropy/emacs-message-do-message
