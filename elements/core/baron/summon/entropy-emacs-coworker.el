@@ -546,7 +546,7 @@ EXIT /b
 (defun entropy/emacs-coworker-check-cmake-lsp (&rest _)
   (interactive)
   (entropy/emacs-coworker--coworker-isolate-bins-install-by-pip
-   "cmake-lsp" '("cmake-language-server" "cmake-format") "cmake-language-server"))
+   "cmake-lsp" '("cmake-language-server") "cmake-language-server"))
 
 ;; **** bash
 (defun entropy/emacs-coworker-check-bash-lsp (&rest _)
