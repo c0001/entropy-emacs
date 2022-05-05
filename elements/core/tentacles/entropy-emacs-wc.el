@@ -712,13 +712,14 @@ The reason for this limit was that two points follow:
            (slots (mapcar 'car window-configs))
            (floor-slot (floor (eyebrowse--get 'current-slot)))
            (top-slot (+ 1 floor-slot))
+           (current-slot (eyebrowse--get 'current-slot))
            derived-list
            derived-named-list
            choice)
       (dolist (el slots)
         (if (and (< el top-slot)
                  (> el floor-slot))
-            (if (and (not (= el (eyebrowse--get 'current-slot)))
+            (if (and (not (= el current-slot))
                      (not (= el floor-slot)))
                 (push el derived-list))))
       (if derived-list
@@ -731,11 +732,14 @@ The reason for this limit was that two points follow:
               el)
              derived-named-list))
         (cond
-         ((string-match-p "\\.[[:digit:]]" (number-to-string (eyebrowse--get 'current-slot)))
+         ((string-match-p "\\.[[:digit:]]"
+                          (number-to-string current-slot))
           (error "You are in the only one derived workspace."))
          (t (error "No derived work-space."))))
-      (setq choice (completing-read "Choose derived: " derived-named-list nil t))
-      (eyebrowse-switch-to-window-config (cdr (assoc choice derived-named-list)))))
+      (setq choice (completing-read
+                    "Choose derived: " derived-named-list nil t))
+      (eyebrowse-switch-to-window-config
+       (cdr (assoc choice derived-named-list)))))
 
   (defun entropy/emacs-basic-eyebrowse-switch-basic-window ()
     "Switch to basic workspace which has the prompt candidates
@@ -756,9 +760,10 @@ without derived slot."
       (dolist (el cons-slots)           ;make candi-name list
         (push (car el) s-and-name))
 
-      (setq choice (ivy-read "Switch to WS: " s-and-name
-                             :require-match t))
-      (eyebrowse-switch-to-window-config (cdr (assoc choice cons-slots)))))
+      (setq choice (completing-read "Switch to WS: " s-and-name
+                                    nil t))
+      (eyebrowse-switch-to-window-config
+       (cdr (assoc choice cons-slots)))))
 
   (defun entropy/emacs-basic-eyebrowse-switch-top ()
     "Back to the top workspace from current derived workspace."
@@ -769,14 +774,22 @@ without derived slot."
       (cond
        ((not (equal cslot top-slot))
         (eyebrowse-switch-to-window-config top-slot)
-        (message (concat (propertize "You've been back to top wg: "
-                                     'face 'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body)
-                         (propertize (if (and (not (equal top-tag ""))
-                                              (not (equal top-tag nil)))
-                                         (format "[%s]: %s " top-slot top-tag)
-                                       (format "[%s] " top-slot))
-                                     'face 'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_content)
-                         (propertize "." 'face 'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body))))
+        (message
+         (concat
+          (propertize
+           "You've been back to top wg: "
+           'face 'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body)
+          (propertize
+           (if (and (not (equal top-tag ""))
+                    (not (equal top-tag nil)))
+               (format "[%s]: %s " top-slot top-tag)
+             (format "[%s] " top-slot))
+           'face
+           'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_content)
+          (propertize
+           "."
+           'face
+           'entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body))))
        (t (error "You've at top wg!")))))
 
 ;; ***** config restore feature
