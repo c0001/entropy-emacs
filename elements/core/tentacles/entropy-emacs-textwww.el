@@ -205,6 +205,35 @@
           w3m-url-coding-system-alist '((nil . utf-8))
           ))
 
+  (defun __ya/w3m-bookmark-buffer ()
+    "Use exist bookmark visiting file buffer so that we can use user
+spec `buffer-file-coding-system' where `w3m' oftenly throw the
+error like \"Specified title includes unsafe character(s): %s\"."
+    (let ((bbuffn " *w3m bookmark*"))
+      (if (and (get-buffer bbuffn)
+               (file-equal-p
+                (buffer-file-name bbuffn)
+                w3m-bookmark-file))
+          ;; defaulty resuse the buffer for perfomance issue.
+          nil
+        ;; NOTE: Fistly we need to close the origin bookmark buffer using
+        ;; `w3m' internal API which is used to update its internal status.
+        (w3m-kill-buffer bbuffn)
+        (let ((large-file-warning-threshold
+               most-positive-fixnum)
+              (entropy/emacs-large-file-warning-threshold
+               most-positive-fixnum))
+          (with-current-buffer (find-file-noselect w3m-bookmark-file)
+            (when buffer-read-only
+              ;; NOTE: its must be an unread only buffer
+              (setq buffer-read-only nil)))))))
+  (with-eval-after-load 'w3m-bookmark
+    (advice-add 'w3m-bookmark-buffer
+                :before
+                #'__ya/w3m-bookmark-buffer)
+    (entropy/emacs-make-function-inhibit-readonly
+     #'w3m-bookmark-write-file))
+
   ;; disable w3m update warning before w3m loading
   (advice-add 'w3m-fix-melpa-installation
               :around
