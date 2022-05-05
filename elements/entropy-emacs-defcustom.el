@@ -2949,11 +2949,37 @@ which has the same meaning as `so-long-max' and default to 1000."
           (funcall func))
       (funcall func))))
 
-(defvar entropy/emacs-large-file-warning-threshold (* 8 (expt 1024 2))
-  "Like `large-file-warning-threshold' but used in eemacs internal.")
-;; FIXME: `large-file-warning-threshold' is nil in some occasions even
-;; if we bind it in top level. Refer to bug id [h-ca204a62-9e15-4f3b-ae23-f31b6046a9c5]
+;; EEMACS_MAINTENANCE: this var must be predicated `natnump' and
+;; `integerp' or will make as messy.
+(defconst entropy/emacs-large-file-warning-threshold
+  (* 8 (expt 1024 2))
+  "Like `large-file-warning-threshold' but used in eemacs internal
+as fallback. (also see
+`entropy/emacs-large-file-warning-threshold-get').
+
+NOTE: this var is an const var, do not modify it in any cases
+include in `let' binding or will make disaster.")
+(defun entropy/emacs-large-file-warning-threshold-guard
+    (sym newval op where)
+  (when op
+    (error
+     "`%S' to the const `entropy/emacs-large-file-warning-threshold'."
+     op)))
+(add-variable-watcher 'entropy/emacs-large-file-warning-threshold
+                      #'entropy/emacs-large-file-warning-threshold-guard)
+
 (setq large-file-warning-threshold entropy/emacs-large-file-warning-threshold)
+
+(defun entropy/emacs-large-file-warning-threshold-get ()
+  "Always return an fixnum value for file size restriction usage.
+
+In order to query `large-file-warning-threshold',
+`entropy/emacs-large-file-warning-threshold'."
+  (or (and
+       (integerp large-file-warning-threshold)
+       (natnump large-file-warning-threshold)
+       large-file-warning-threshold)
+      entropy/emacs-large-file-warning-threshold))
 
 (defvar entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter nil
   "The function to handler a filename whether need to open with
@@ -3009,7 +3035,7 @@ list return t i.e. inidcate to unjudge for as.")
                (kill-buffer-hook nil)
                (f-readp (file-readable-p filename))
                (f-existp (file-exists-p filename))
-               (fsize-max entropy/emacs-large-file-warning-threshold)
+               (fsize-max (entropy/emacs-large-file-warning-threshold-get))
                (fsize (and
                        f-readp f-existp
                        (file-attribute-size
@@ -3044,7 +3070,8 @@ as.")
 (setq entropy/emacs-unreadable-buffer-judge-function
       (lambda (buff)
         (with-current-buffer buff
-          (or (> (buffer-size) entropy/emacs-large-file-warning-threshold)
+          (or (> (buffer-size)
+                 (entropy/emacs-large-file-warning-threshold-get))
               (progn
                 (entropy/emacs-check-buffer-has-long-line-p
                  nil

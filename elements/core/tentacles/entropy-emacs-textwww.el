@@ -220,8 +220,6 @@ error like \"Specified title includes unsafe character(s): %s\"."
         ;; `w3m' internal API which is used to update its internal status.
         (w3m-kill-buffer bbuffn)
         (let ((large-file-warning-threshold
-               most-positive-fixnum)
-              (entropy/emacs-large-file-warning-threshold
                most-positive-fixnum))
           (with-current-buffer (find-file-noselect w3m-bookmark-file)
             (when buffer-read-only

@@ -485,7 +485,8 @@ Or modify the desktop file or the desktop custom keyboard shortcut for
 as ~EXEC=env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs %F~ or
 ~env GTL_IM_MODULE= GTK_IM_MODULE= QT_IM_MODULE= XMODIFIERS= emacs~.
 
-** MARKING bug of =large-file-warning-threshold= is nil in some occasions
+** DONE bug of =large-file-warning-threshold= is nil in some occasions
+CLOSED: [2022-05-05 Thu 14:46]
 :PROPERTIES:
 :CUSTOM_ID: h-ca204a62-9e15-4f3b-ae23-f31b6046a9c5
 :END:
@@ -551,7 +552,14 @@ So that we now temporally fix it by using an
 avoid it and bind =large-file-warning-threshold= value to its value at
 init time.
 
+- [2022-05-05 Thu 14:47:03] : fix up done
 
+  I forget the ~let~ binding case and the =nil= is meaningful to
+  =large-file-warning-threshold=.
+
+  For now we make =entropy/emacs-large-file-warning-threshold= as
+  const and using ~entropy/emacs-large-file-warning-threshold-get~ to
+  handle the result.
 
 ** TODO newsticker buggy
 :PROPERTIES:
