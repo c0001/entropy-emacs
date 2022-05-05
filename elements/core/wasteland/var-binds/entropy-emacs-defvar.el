@@ -1075,12 +1075,17 @@ indicate the false meaning."
     ;; ---------- default filter
     (lambda (buffer-or-name)
       (catch :exit
-        (let* (win)
+        (let* ((win (get-buffer-window buffer-or-name))
+               (win-live-p (and (windowp win)
+                                (window-live-p win)))
+               (buff-buff (get-buffer buffer-or-name))
+               (buff-name (when-let ((buff (get-buffer buffer-or-name)))
+                            (buffer-name buff))))
           (unless (entropy/emacs-window-auto-center-mode-base-condition-satisfied-judge)
             (throw :exit 'auto-center-base-condition-not-satisfied))
-          (unless (not (minibufferp (get-buffer buffer-or-name)))
+          (unless (not (minibufferp buff-buff))
             (throw :exit 'minibufferp))
-          (unless (setq win (get-buffer-window buffer-or-name))
+          (unless win-live-p
             (throw :exit 'no-live-win))
           (unless (or (entropy/emacs-frame-is-fullscreen-p)
                       (entropy/emacs-frame-is-maximized-p))
@@ -1098,6 +1103,9 @@ indicate the false meaning."
               (throw :exit 'elfeed-search-mode)))
           (unless (entropy/emacs-window-horizontally-fill-frame-p win)
             (throw :exit 'window-not-horizontally-fill-frame))
+          (when (string-match-p "^\\*\\(Proced\\|Process List\\).*$"
+                                buff-name)
+            (throw :exit 'process-buffer-detected))
           t)))
 
     ;; ---------- Others ...
