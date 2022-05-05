@@ -332,6 +332,22 @@ value of it is not relavant to current buffer value."
             #'entropy/emacs-textwww--w3m-page-text-scale-hook)
 
 ;; ***** UI tweak
+;; ****** `w3m-popup-buffer' tweak
+
+  (defun __ya/w3m-popup-buffer (orig-func &rest orig-args)
+    "The eemacs spec to `w3m-popup-buffer'."
+    (let ((rtn (apply orig-func orig-args)))
+      ;; auto center `w3m' initial welcom buffer window
+      (when (eq real-this-command 'w3m)
+        (when (eq (entropy/emacs-wc-window-auto-center-mode-turn-on-judger
+                   (current-buffer))
+                  t)
+          (entropy/emacs-window-center-mode)))
+      rtn))
+  (advice-add 'w3m-popup-buffer
+              :around
+              #'__ya/w3m-popup-buffer)
+
 ;; ****** Loading message center method tweak
   ;; EEMACS_MAINTENANCE: follow upstream
   (defun __ya/w3m-display-progress-message (url)
