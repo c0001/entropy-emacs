@@ -110,6 +110,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
    xref-quit-and-goto-xref
    xref-pop-marker-stack
    xref-find-definitions)
+;; *** eemacs hydra hollow instance
   :eemacs-indhc
   (((:enable t :defer (:data (:adfors (prog-mode-hook) :adtype hook :pdumper-no-end t)))
     (xref-mode))
@@ -127,8 +128,12 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
         'xref-mode))
       "Xref referrence jumping"
       :enable t :exit t))))
+
+;; *** config
   :config
-  ;; Disable xref in minibuffer prevents nesting looping unpredictable.
+
+;; **** eemacs spec
+;; ***** Disable xref in minibuffer prevents nesting looping unpredictable.
   (dolist (key (list "M-." "C-." "M-," "C-M-."))
     (dolist (map-ob '((ivy-minibuffer-map . ivy)
                       (minibuffer-inactive-mode-map . minibuffer)
@@ -143,7 +148,60 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
               (interactive)
               (message
                "You can not using xref functions in minibuffer"
-               ))))))))
+               )))))))
+
+;; ***** Dwim with `entropy-emacs-structure'
+  (defun entropy/emacs-codeserver-xref--show-entry-after-jump (&rest _)
+    "Show hidden entry afte xref jump which hidden by
+`entropy-emacs-structure' feature."
+    (when-let* ((_ (featurep 'entropy-emacs-structure))
+                (pt (point))
+                (ovs (overlays-at (point))))
+      ;; firstly show outline entry
+      (when (or (bound-and-true-p outline-mode)
+                (bound-and-true-p outline-minor-mode))
+       (save-excursion
+         (outline-show-entry)))
+
+      ;; then remove `hs-minor-mode' hidden overlay
+      (when-let ((hsmode-p (bound-and-true-p hs-minor-mode))
+                 (hs-line-is-hide-p
+                  (save-excursion
+                    (hs-already-hidden-p))))
+        (save-excursion
+          (hs-show-block)))
+
+      ;; then remove `vimish' hidden overlay
+      (when (and ovs
+                 (fboundp 'vimish-fold--vimish-overlay-p)
+                 (fboundp 'vimish-fold-delete)
+                 (catch :exit
+                   (dolist (ov ovs)
+                     (when (vimish-fold--vimish-overlay-p ov)
+                       (throw :exit t)))
+                   nil))
+        (save-excursion
+          (vimish-fold-delete)))
+
+      ;; then remove `yafolding' hidden overlay
+      (when (and (fboundp 'yafolding-get-overlays)
+                 (save-excursion
+                   (yafolding-get-overlays
+                    (line-beginning-position)
+                    (+ 1 (line-end-position)))))
+        (save-excursion
+          (yafolding-show-element)))
+
+      ;; Finally we push the mark for be convenience jumping with
+      ;; `entropy/emacs-basic-mark-set'
+      (push-mark pt)))
+
+  (add-hook 'xref-after-jump-hook
+            #'entropy/emacs-codeserver-xref--show-entry-after-jump
+            100)
+
+;; *** __end__
+  )
 
 
 ;; ** eldoc
