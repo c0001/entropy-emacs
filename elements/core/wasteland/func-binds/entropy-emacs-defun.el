@@ -115,20 +115,17 @@ forcely get that name in USE-OBARRAY."
   (unintern (symbol-name symbol) use-obarray))
 
 (defmacro entropy/emacs-unwind-protect-unless-success (body &rest unwindforms)
-  "Like `unwind-protect' but just run UNWINDFORMS unless BODY run with fatal."
+  "Like `unwind-protect' but just run UNWINDFORMS when BODY run with fatal."
   (declare (indent 1))
   (let ((sym (make-symbol "sym")))
-    `(let ((,sym (entropy/emacs-make-dynamic-symbol-as-same-value t)))
+    `(let ((,sym t))
        (unwind-protect
            (prog1
                ,body
-             (entropy/emacs-unintern-symbol ,sym))
-         (when (and (boundp ,sym)
-                    (symbol-value ,sym))
-           (unwind-protect
-               (progn
-                 ,@unwindforms)
-             (entropy/emacs-unintern-symbol ,sym)))))))
+             (setq ,sym nil))
+         (when ,sym
+           (progn
+             ,@unwindforms))))))
 
 (defmacro entropy/emacs-add-to-list
     (list-var element &optional append compare-fn)
