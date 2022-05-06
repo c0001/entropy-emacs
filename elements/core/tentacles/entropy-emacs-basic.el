@@ -4584,7 +4584,104 @@ successfully both of situation of read persisit of create an new."
 ;; ***** Print variable
 (defvar entropy/emacs-basic-print-variable-history nil)
 
-(defun entropy/emacs-basic-print-variable (variable)
+(defun entropy/emacs-basic-print-variable-core-func
+    (var &optional depth)
+  "Print VAR's value recursively according to its type in
+`current-buffer'"
+  (unless depth
+    (setq depth 0))
+  (let ((indent-insert-func
+         `(lambda (&optional str)
+            (insert (make-string ,depth ?\ ))
+            (when str
+              (insert str))))
+        (insert-newline
+         (lambda (&optional times)
+           (unless (save-match-data (looking-at "^$"))
+             (unless times
+               (setq times 1))
+             (dotimes (time times)
+               (insert "\n"))))))
+    (cond
+     ((stringp var)
+      `(string
+        :print-func
+        (lambda (x)
+          (funcall ',insert-newline)
+          (funcall ',indent-insert-func)
+          (funcall (if (> ,depth 0)
+                       'prin1
+                     'princ)
+                   x (current-buffer)))))
+     ((vectorp var)
+      `(vector
+        :print-func
+        (lambda (x)
+          (funcall ',insert-newline)
+          (funcall ',indent-insert-func "[\n")
+          (mapc
+           (lambda (y)
+             (funcall
+              (plist-get
+               (cdr (funcall
+                     #'entropy/emacs-basic-print-variable-core-func
+                     y (1+ ,depth)))
+               :print-func)
+              y)
+             (funcall ',insert-newline))
+           x)
+          (funcall ',indent-insert-func "]"))))
+     ((listp var)
+      `(list
+        :print-func
+        (lambda (x)
+          (funcall ',insert-newline)
+          (if (null x)
+              (funcall ',indent-insert-func "nil")
+            (funcall ',indent-insert-func "(\n")
+            (entropy/emacs-map-list-common
+             (lambda (y)
+               (funcall
+                (plist-get
+                 (cdr (funcall
+                       #'entropy/emacs-basic-print-variable-core-func
+                       y (1+ ,depth)))
+                 :print-func)
+                y)
+               (insert "\n"))
+             x)
+            (funcall ',indent-insert-func ")")))))
+     ((hash-table-p var)
+      `(hash
+        :print-func
+        (lambda (x)
+          (funcall ',insert-newline)
+          (funcall ',indent-insert-func "#<hash-table\n")
+          (maphash
+           (lambda (yk yv)
+             (funcall ',insert-newline)
+             (funcall ',indent-insert-func "->:key\n")
+             (funcall ',indent-insert-func (pp-to-string yk))
+             (funcall ',insert-newline)
+             (funcall ',indent-insert-func "->:val\n")
+             (funcall
+              (plist-get
+               (cdr (funcall
+                     #'entropy/emacs-basic-print-variable-core-func
+                     yv (1+ ,depth)))
+               :print-func)
+              yv))
+           x)
+          (funcall ',indent-insert-func ">"))))
+     (t
+      `(unknown
+        :print-func
+        (lambda (x)
+          (funcall ',insert-newline)
+          (funcall ',indent-insert-func (pp-to-string x))
+          ))))))
+
+(defun entropy/emacs-basic-print-variable (var-sym)
   "Print a variable into a transient buffer and popup to display
 it with focus on."
   (interactive
@@ -4592,61 +4689,97 @@ it with focus on."
     (intern
      (completing-read "Chosen variable symbol: "
                       obarray
-                      (lambda (x)
-                        (and (boundp x)
-                             x))
+                      (lambda (symbol)
+                        (or (and (boundp symbol)
+                                 (not (keywordp symbol)))
+                            (get symbol 'variable-documentation)))
                       t
                       nil
                       'entropy/emacs-basic-print-variable-history))))
-  (let ((buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
-        (inhibit-read-only t)
-        (variable (symbol-value variable))
-        (print-level nil)
-        (print-length nil))
-    (with-current-buffer buffer
-      (fundamental-mode)
-      (local-set-key (kbd "q") 'quit-window)
+  (let* ((orig-buffer
+          (let (rtn)
+            (if (and (eq major-mode 'help-mode)
+                     (eq (car help-xref-stack-item) 'describe-variable))
+                (setq rtn (nth 2 help-xref-stack-item))
+              (setq rtn (current-buffer)))
+            (unless (and rtn (bufferp rtn) (buffer-live-p rtn))
+              (user-error "Orig buffer <%s> invalid" rtn))
+            rtn))
+         (print-buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
+         (inhibit-read-only t)
+         (variable (with-current-buffer orig-buffer (symbol-value var-sym)))
+         (variable-type-get-func 'entropy/emacs-basic-print-variable-core-func)
+         (print-level nil)
+         (print-length nil)
+         print-window)
+
+    (with-current-buffer print-buffer
+      (buffer-disable-undo)
       (erase-buffer)
-      (cond
-       ((stringp variable)
-        (print variable (current-buffer)))
-       ((sequencep variable)
-        (mapc
-         (lambda (x)
-           (print x (current-buffer)))
-         variable))
-       (t
-        (print variable (current-buffer))))
+      (fundamental-mode)
+      (local-set-key (kbd "q") 'quit-window))
+    (display-buffer print-buffer)
+    (setq print-window (get-buffer-window print-buffer))
+    (select-window print-window)
+
+    (sit-for 0)
+    (message "print value of `%s' ..." var-sym)
+    (sit-for 0)
+
+    (with-current-buffer print-buffer
+      (entropy/emacs-unwind-protect-unless-success
+          (let ((var-type-obj
+                 (funcall variable-type-get-func variable)))
+            (insert (format ";; ========== print for [%s] type variable '%s'==========\n"
+                            (car var-type-obj)
+                            var-sym))
+            (funcall (plist-get (cdr var-type-obj) :print-func)
+                     variable))
+        (delete-window print-window)
+        (kill-buffer print-buffer)
+        (user-error "Abort!"))
 
       ;; truncate column while long line detected prevents lagging and
       ;; freezing and restore theh overflow content to button help
       ;; echo
       (goto-char (point-min))
-      (while (not (eobp))
-        (let ((line-width (- (line-end-position)
-                             (line-beginning-position)))
-              (over-contents ""))
-          (when (> line-width (frame-width))
-            (goto-char (+ (point) (frame-width)))
-            (setq over-contents
-                  (buffer-substring (- (point) 3)
-                                    (line-end-position)))
-            (replace-region-contents
-             (- (point) 3)
-             (line-end-position)
-             (lambda (&rest _) ""))
-            (insert-button "..."
-                           'action
-                           `(lambda (&rest _)
-                              (print ,over-contents))
-                           'help-echo
-                           (concat "mouse-2, RET: "
-                                   "Follow this link")
-                           'follow-link t))
-          (forward-line 1)))
-      (setq buffer-read-only t))
-    (display-buffer buffer)
-    (select-window (get-buffer-window buffer))))
+      (let ((win-len (window-width print-window)))
+        (while (not (eobp))
+          (let* ((lbegpt (line-beginning-position))
+                 (lendpt (line-end-position))
+                 (line-width (- lendpt lbegpt))
+                 (over-contents "")
+                 (lwrenpt nil))
+            (when (> line-width win-len)
+              (goto-char (+ (1- (point)) win-len))
+              (setq lwrenpt (- (point) 3))
+              (setq over-contents
+                    (buffer-substring lwrenpt
+                                      (line-end-position)))
+              (replace-region-contents
+               lwrenpt
+               (line-end-position)
+               (lambda (&rest _) ""))
+              (goto-char lwrenpt)
+              (insert-button
+               "..."
+               'action
+               `(lambda (&rest _)
+                  (print ,over-contents))
+               'help-echo
+               (concat "mouse-2, RET: "
+                       "Follow this link")
+               'follow-link t))
+            (forward-line 1))))
+      (lisp-data-mode)
+      (set-buffer-modified-p nil)
+      (local-set-key (kbd "q") 'quit-window)
+      (setq buffer-read-only t)
+      (goto-char (point-min)))
+
+    (message "print value of `%s' done (type 'q' to quit window)"
+             var-sym)
+    ))
 
 (defvar entropy/emacs-basic--desc-current-var nil)
 (defun entropy/emacs-basic--desc-var-preserve-var
@@ -4667,9 +4800,14 @@ it with focus on."
  (define-key help-mode-map
    (kbd "p")
    (lambda ()
+     "Using `entropy/emacs-basic-print-variable' to show the current
+described variable."
      (interactive)
      (entropy/emacs-basic-print-variable
-      entropy/emacs-basic--desc-current-var))))
+      (if (and (eq major-mode 'help-mode)
+               (eq (car help-xref-stack-item) 'describe-variable))
+          entropy/emacs-basic--desc-current-var
+        (user-error "Not in an `describe-variable' help buffer"))))))
 
 ;; ***** Lagging prompts
 

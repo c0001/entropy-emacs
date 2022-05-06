@@ -335,6 +335,23 @@ meaning as same as what in `nth' arglists."
   (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
     (eval `(setf ,remap-form ',replace))))
 
+;; **** Map cons or list
+
+(defun entropy/emacs-map-list-common (func var)
+  "Map a `listp' variable VAR with function FUNC for each element
+of VAR.
+
+This function is like `mapc' but also support dotted
+list (i.e. not predicted by `proper-list-p').
+"
+  (unless (listp var)
+    (signal 'wrong-type-argument (list 'listp var)))
+  (let (item (rest var))
+    (while rest
+      (setq item (if (listp rest) (car rest) rest)
+            rest (if (listp rest) (cdr rest) nil))
+      (funcall func item))))
+
 ;; *** Plist manipulation
 
 (defun entropy/emacs-strict-plistp (arg)

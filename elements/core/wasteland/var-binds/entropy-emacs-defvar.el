@@ -1106,6 +1106,8 @@ indicate the false meaning."
           (when (string-match-p "^\\*\\(Proced\\|Process List\\).*$"
                                 buff-name)
             (throw :exit 'process-buffer-detected))
+          (when (string= "*eemacs-minor-tools/print-var*" buff-name)
+            (throw :exit 'eemacs-var-print-buffer))
           t)))
 
     ;; ---------- Others ...
