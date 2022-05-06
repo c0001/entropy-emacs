@@ -4744,8 +4744,9 @@ it with focus on."
                             var-sym))
             (funcall (plist-get (cdr var-type-obj) :print-func)
                      variable))
-        (delete-window print-window)
-        (kill-buffer print-buffer)
+        (when (yes-or-no-p "Abort and droped the already printed contents?")
+          (delete-window print-window)
+          (kill-buffer print-buffer))
         (user-error "Abort!"))
 
       ;; truncate column while long line detected prevents lagging and
@@ -4759,7 +4760,7 @@ it with focus on."
                  (line-width (- lendpt lbegpt))
                  (over-contents "")
                  (lwrenpt nil))
-            (when (> line-width win-len)
+            (when (> line-width entropy/emacs-unreadable-buffer-so-long-threshold)
               (goto-char (+ (1- (point)) win-len))
               (setq lwrenpt (- (point) 3))
               (setq over-contents

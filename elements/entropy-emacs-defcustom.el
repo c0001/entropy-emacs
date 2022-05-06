@@ -2996,7 +2996,7 @@ with requests.")
        (funcall entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter
                 filename)))
 
-(defvar __unreadable-file-long-threshold 700)
+(defconst entropy/emacs-unreadable-buffer-so-long-threshold 1000)
 (defvar entropy/emacs-unreadable-file-judge-function nil
   "The eemacs file unreadable judger, usually it store a function
 but aslo can be nil, so used after using `functionp' to check
@@ -3075,7 +3075,7 @@ as.")
               (progn
                 (entropy/emacs-check-buffer-has-long-line-p
                  nil
-                 __unreadable-file-long-threshold
+                 entropy/emacs-unreadable-buffer-so-long-threshold
                  (when (version< emacs-version "28.0.91")
                    (save-excursion
                      (goto-char (point-max))
