@@ -4686,16 +4686,17 @@ successfully both of situation of read persisit of create an new."
 it with focus on."
   (interactive
    (list
-    (intern
-     (completing-read "Chosen variable symbol: "
-                      obarray
-                      (lambda (symbol)
-                        (or (and (boundp symbol)
-                                 (not (keywordp symbol)))
-                            (get symbol 'variable-documentation)))
-                      t
-                      nil
-                      'entropy/emacs-basic-print-variable-history))))
+    (let ((form-str
+           (completing-read "Chosen variable symbol or evaluate a form: "
+                            obarray
+                            (lambda (symbol)
+                              (or (and (boundp symbol)
+                                       (not (keywordp symbol)))
+                                  (get symbol 'variable-documentation)))
+                            nil
+                            nil
+                            'entropy/emacs-basic-print-variable-history)))
+      (read form-str))))
   (let* ((orig-buffer
           (let (rtn)
             (if (and (eq major-mode 'help-mode)
@@ -4707,7 +4708,14 @@ it with focus on."
             rtn))
          (print-buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
          (inhibit-read-only t)
-         (variable (with-current-buffer orig-buffer (symbol-value var-sym)))
+         (variable (cond ((symbolp var-sym)
+                          (with-current-buffer orig-buffer
+                            (symbol-value var-sym)))
+                         (t
+                          (with-current-buffer orig-buffer
+                            (condition-case err
+                                (eval var-sym nil)
+                              (error (user-error "fatal: %s" err)))))))
          (variable-type-get-func 'entropy/emacs-basic-print-variable-core-func)
          (print-level nil)
          (print-length nil)
@@ -4723,15 +4731,16 @@ it with focus on."
     (select-window print-window)
 
     (sit-for 0)
-    (message "print value of `%s' ..." var-sym)
+    (message "print value of `%S' ..." var-sym)
     (sit-for 0)
 
     (with-current-buffer print-buffer
       (entropy/emacs-unwind-protect-unless-success
           (let ((var-type-obj
                  (funcall variable-type-get-func variable)))
-            (insert (format ";; ========== print for [%s] type variable '%s'==========\n"
+            (insert (format ";; ========== print for [%s] type %s '%S'==========\n"
                             (car var-type-obj)
+                            (if (symbolp var-sym) "variable" "value of expression")
                             var-sym))
             (funcall (plist-get (cdr var-type-obj) :print-func)
                      variable))
@@ -4777,7 +4786,7 @@ it with focus on."
       (setq buffer-read-only t)
       (goto-char (point-min)))
 
-    (message "print value of `%s' done (type 'q' to quit window)"
+    (message "print value of `%S' done (type 'q' to quit window)"
              var-sym)
     ))
 
