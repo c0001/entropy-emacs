@@ -241,6 +241,44 @@ error like \"Specified title includes unsafe character(s): %s\"."
 
 ;; **** config
   :config
+;; ***** contents decoding patch
+
+  ;; Add missing 'brotli' data compression algorithm for "br" encoder
+  ;; type web content transfer format like
+  ;;
+  ;; https://en.wikipedia.org/wiki/Brotli
+  ;;
+  ;; #+begin_src emacs-lisp
+  ;;   (w3m-attributes "https://archlinux.org/packages/community/any/drawing" t)
+  ;;   ;; -> ("text/html" "utf-8" nil "br" nil "https://archlinux.org/packages/community/any/drawing/")
+  ;; #+end_src
+  ;;
+  ;; `w3m' just internally given the 'gzip' 'bzip2' 'deflate' method
+  ;; for web data decoding usage, so that `w3m' can not decoding the
+  ;; type of "br" when the transferring data is compressed by 'brotli'.
+  ;;
+  ;; FIXME: we should given an pull request to emacs-w3m upstream.
+  ;;
+  (dolist (encoder '(("br"     . brotli)
+                     ("brotli" . brotli)))
+    (add-to-list 'w3m-encoding-alist
+                 encoder))
+  (add-to-list 'w3m-decoder-alist
+               '(brotli "brotli" ("-d")))
+
+  (defun __ya/w3m-which-command (orig-func &rest orig-args)
+    "Throw `user-error' for COMMAND not found.
+
+So that we can notify user as thus and preventing ugly procedure
+remained."
+    (let ((cmd (apply orig-func orig-args)))
+      (unless cmd
+        (user-error "can not found cmd <%S> in your system!"
+                    orig-args))
+      cmd))
+  (advice-add 'w3m-which-command
+              :around
+              #'__ya/w3m-which-command)
 
 ;; ***** Search engine specified
   (defvar w3m-search-engine-alist)
