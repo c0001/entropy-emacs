@@ -928,7 +928,6 @@ externally add below features:
 * predicates: `entropy/emacs-delete-other-windows-ignore-pms-predicates'
 * Constant variable: `entropy/emacs-origin-window-configuration-before-delete-other-windows'
 "
-  (interactive)
   (let* (this-rtn
          (window (window-normalize-window (car orig-args)))
          (ignore-wmpmts-p

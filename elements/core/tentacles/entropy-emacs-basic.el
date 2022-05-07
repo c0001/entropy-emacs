@@ -4865,6 +4865,20 @@ operation system"
 (global-set-key (kbd "C-h C-f") nil)
 (global-set-key (kbd "C-h C-h") nil)
 
+;; ***** Disable messy commands in `M-x' list
+(defun entropy/emacs-baisc-general-read-extended-command-predicate
+    (command &rest _)
+  (if (and (symbolp command)
+           (string-match-p
+            "^\\(\\*table--\
+\\|__\
+\\).+$"
+            (symbol-name command)))
+      nil
+    t))
+(add-to-list 'entropy/emacs-read-extended-command-predicates
+             #'entropy/emacs-baisc-general-read-extended-command-predicate)
+
 ;; *** Emacs core patches
 
 ;; **** `insert-for-yank' patch

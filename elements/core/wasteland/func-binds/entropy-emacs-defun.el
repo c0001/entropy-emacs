@@ -5456,6 +5456,20 @@ while pdumper procedure.
          :after
          ',body-wrap)))))
 
+;; Disable messy commands in `M-x' list
+(defun entropy/emacs-lazy-initial-read-extended-command-predicate
+    (command &rest _)
+  (if (and (symbolp command)
+           (string-match-p
+            "^\\(entropy/emacs--AfterADV-fisrt-enable-for\
+\\|entropy/emacs--BeforeADV-fisrt-enable-for\
+\\|entropy/emacs--hook-first-enable-for\\).+$"
+            (symbol-name command)))
+      nil
+    t))
+(add-to-list 'entropy/emacs-read-extended-command-predicates
+             #'entropy/emacs-lazy-initial-read-extended-command-predicate)
+
 ;; *** Lazy execute specification
 ;; ***** TODO accumulation execution
 
