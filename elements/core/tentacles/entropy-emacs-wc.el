@@ -400,6 +400,10 @@ This slot should obey the rules of:
    eyebrowse-enable
    (eyebrowse-mode +1))
 
+  ;; simply prettify the slot chosen candi format
+  (setq eyebrowse-tagged-slot-format "🏠 %-4s:%20t"
+        eyebrowse-slot-format "🏠 %-4s")
+
 ;; **** config
   :config
   (setq eyebrowse-mode-line-style nil

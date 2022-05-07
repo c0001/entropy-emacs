@@ -4092,7 +4092,8 @@ Return the new scratch buffer.
   (interactive)
   (when (yes-or-no-p "Clean kill ring? ")
     (entropy/emacs-basic-kill-ring-persist-backup)
-    (setq kill-ring nil) (garbage-collect)))
+    (setq kill-ring nil)
+    (garbage-collect)))
 
 (defvar entropy/emacs-basic-kill-ring-persist-error-log nil)
 (defun entropy/emacs-basic-kill-ring-persist (&optional remove-lock)
@@ -4330,9 +4331,18 @@ successfully both of situation of read persisit of create an new."
              (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path))
     (entropy/emacs-lazy-load-simple custom
       (custom-set-variables
-       '(epg-gpg-program (expand-file-name "gpg.exe" entropy/emacs-microsoft-windows-unix-emulator-bin-path))
-       '(epg-gpgconf-program (expand-file-name "gpgconf.exe" entropy/emacs-microsoft-windows-unix-emulator-bin-path))
-       '(epg-gpgsm-program (expand-file-name "gpgsm.exe" entropy/emacs-microsoft-windows-unix-emulator-bin-path))))))
+       '(epg-gpg-program
+         (expand-file-name
+          "gpg.exe"
+          entropy/emacs-microsoft-windows-unix-emulator-bin-path))
+       '(epg-gpgconf-program
+         (expand-file-name
+          "gpgconf.exe"
+          entropy/emacs-microsoft-windows-unix-emulator-bin-path))
+       '(epg-gpgsm-program
+         (expand-file-name
+          "gpgsm.exe"
+          entropy/emacs-microsoft-windows-unix-emulator-bin-path))))))
 
 ;; **** Autocompression moode
 
