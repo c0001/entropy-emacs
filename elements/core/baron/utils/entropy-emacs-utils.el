@@ -834,6 +834,7 @@ posframe when available."
            (title (entropy/emacs-pretty-hydra-make-title-for-major-mode-common
                    ',mode (format "%s Actions" mode-str))))
       title)
+    :foreign-keys warn
     :color ambranth
     :quit-key "q"
     :separator "."))
