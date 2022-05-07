@@ -529,6 +529,22 @@ but used for hook  `%s'."
           (setq ,hook-idle-trigger-done-varname t))
         (run-with-idle-timer ,idle-sec t #',func-idle-trigger-name)))))
 
+(defun entropy/emacs-idle-sessioin-trigger-hooks-prunning
+    (name)
+  "Remove NAME in all eemacs idle trigger hooks both of
+`entropy/emacs-session-idle-trigger-hook' and the others based on
+`entropy/emacs-idle-session-trigger-delay-clusters'"
+  (setq entropy/emacs-session-idle-trigger-hook
+        (delete name
+                entropy/emacs-session-idle-trigger-hook))
+  (dolist (idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
+    (let ((hook
+           (__eemacs--get-idle-hook-refer-symbol-name
+            'hook-trigger-hook-name idle-sec)))
+      (set hook
+           (delete
+            name
+            (symbol-value hook))))))
 
 (defun __defvar/idle-part/cl-args-body (args)
   "Remove key-value paire from ARGS."
@@ -606,10 +622,9 @@ remove the oldest one and then injecting new one."
                  (with-current-buffer ',buff
                    ,body-wrapper)
                ,body-wrapper)))
-         ;; use `delete' ad `push' to reduce lag
-         (setq ,hook
-               (delete ',name
-                       ,hook))
+         ;; remove all NAME in hooks
+         (entropy/emacs-idle-sessioin-trigger-hooks-prunning
+          ',name)
          ;; We should append the hook to the tail since follow the time
          ;; order.
          (setq ,hook

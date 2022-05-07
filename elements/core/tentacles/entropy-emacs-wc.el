@@ -993,18 +993,24 @@ saved by
   (((:enable t :defer t)
     (winner-mode))
    ("Basic"
-    (("C-c <left>" winner-undo
+    (("C-c <left>"
+      entropy/emacs-wc-winner-undo
       "Winner Undo"
       :enable t
       :exit t
       :global-bind t)
-     ("C-c <right>" winner-redo
+     ("C-c <right>"
+      entropy/emacs-wc-winner-redo
       "Winner Redo"
       :enable t
       :exit t
       :global-bind t))))
 
   :init
+
+  ;; disable winner key-binding injection since we use hyra-hollow
+  ;; instance instead
+  (setq winner-dont-bind-my-keys t)
 
   (cond
    (entropy/emacs-fall-love-with-pdumper
@@ -1073,21 +1079,64 @@ saved by
               "^magit[-]?\\([a-z]+\\)?:"))))
 
   :config
-  (defun __adv/around/winner-save-old-configurations/post-command-idle-trigger
+  (defvar entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p nil)
+
+  (defun entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type ()
+    (cond
+     ((bound-and-true-p buffer-read-only)
+      0.2)
+     ((entropy/emacs-operation-status/running-auto-completion-op-p)
+      (+ 1
+         (entropy/emacs-operation-status/auto-completion-idle-delay)))
+     (t
+      0.4)))
+  (defun entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle
       (orig-func &rest orig-args)
     "Trigger `winner-mode' `post-command-hook'
 `winner-save-old-configurations' with idle timer for perfomance
 issue."
     (let (_)
-      (eval
-       `(entropy/emacs-run-at-idle-immediately
-         __idle/winner-save-old-config
-         :which-hook 0.4
-         (apply ',orig-func ',orig-args)))))
-  (advice-add 'winner-save-old-configurations
-              :around
-              #'__adv/around/winner-save-old-configurations/post-command-idle-trigger
-              )
+      (cond
+       (entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p
+        (apply orig-func orig-args))
+       ((and
+         ;; EEMACS_MAINTENANCE: the original post judger for
+         ;; `winner-save-old-configurations', please update with
+         ;; upstream updates.
+         (zerop (minibuffer-depth)))
+        (eval
+         `(entropy/emacs-run-at-idle-immediately
+           __idle/winner-save-old-config
+           ;; use enlarge idle hook to reduce lag
+           :which-hook ,(entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type)
+           (apply ',orig-func ',orig-args))))
+       (t
+        (apply orig-func orig-args)))))
+  (advice-add
+   'winner-save-old-configurations
+   :around
+   #'entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle)
+
+  (defun entropy/emacs-wc-winner-undo ()
+    "eemacs spec `winner-undo' command."
+    (interactive)
+    (progn
+      (setq this-command 'winner-undo)
+      (if (bound-and-true-p winner-mode)
+          (let ((entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p
+                 t))
+            (winner-save-old-configurations)
+            (winner-undo))
+        (user-error "winner-mode not enabled"))))
+
+  (defun entropy/emacs-wc-winner-redo ()
+    "eemacs spec `winner-redo' command."
+    (interactive)
+    (progn
+      (setq this-command 'winner-redo)
+      (if (bound-and-true-p winner-mode)
+          (winner-redo)
+        (user-error "winner-mode not enabled"))))
   )
 
 ;; *** desktop mode

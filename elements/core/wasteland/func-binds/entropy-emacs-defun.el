@@ -4933,6 +4933,33 @@ details of arguments description on its function docstring."
              final-prompt-str))
      rtn)))
 
+;; *** Operation status checker
+
+(defun entropy/emacs-operation-status/running-auto-completion-op-p ()
+  "The union judger for eemacs to indicating current operation is
+company with auto completion."
+  (cond
+   ((and (eq entropy/emacs-auto-completion-use-backend-as 'company)
+         (bound-and-true-p company-mode)
+         (bound-and-true-p company-candidates))
+    t)
+   (t
+    nil)))
+
+(defun entropy/emacs-operation-status/auto-completion-idle-delay ()
+  "Return current idle delay number for eemacs auto-completion
+operation."
+  (cond
+   ((eq entropy/emacs-auto-completion-use-backend-as 'company)
+    (or (and (bound-and-true-p company-idle-delay)
+             company-idle-delay)
+        (and (or (numberp entropy/emacs-company-idle-delay-default)
+                 (error "`entropy/emacs-company-idle-delay-default' is not an number"))
+             entropy/emacs-company-idle-delay-default)))
+   (t
+    (error "wrong type of eemacs auto-completion type '%s'"
+           entropy/emacs-auto-completion-use-backend-as))))
+
 ;; ** eemacs specifications
 ;; *** Individuals
 

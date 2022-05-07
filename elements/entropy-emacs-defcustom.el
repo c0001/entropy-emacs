@@ -1558,10 +1558,26 @@ emacs performance."
                      "Can not creat non-exist `entropy/emacs-yas-dir' error of %s"
                      error)))))))
 
-;; **** company mode config
+;; **** completion framework
+
+(defgroup entropy/emacs-customize-group-for-auto-completion nil
+  "Eemacs auto-completion framework configuration customizable group."
+  :group 'entropy/emacs-customize-group-for-IDE-configuration)
+
+(defcustom entropy/emacs-auto-completion-use-backend-as 'company
+  "The eemacs auto-completion framework backend type.
+
+Valid options are:
+
+- 'company': use `company-mode'."
+  :type '(choice
+          (const :tag "use `company-mode'" company))
+  :group 'entropy/emacs-customize-group-for-auto-completion)
+
+;; ***** company mode config
 (defgroup entropy/emacs-customize-group-for-company-mode nil
   "Eemacs company-mode configuration customizable group."
-  :group 'entropy/emacs-customize-group-for-IDE-configuration)
+  :group 'entropy/emacs-customize-group-for-auto-completion)
 
 (defcustom entropy/emacs-company-tooltip-use-type 'company-box
   "The tooltip kits used type for `company-mode'.
