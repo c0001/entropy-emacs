@@ -1054,6 +1054,28 @@ the entry contents since we should respect
   (advice-add 'elfeed-show-entry
               :override #'__ya/elfeed-show-entry)
 
+;; *** patch `elfeed-search--header'
+
+  (defvar-local entropy/emacs-rss-elfeed--last-elfeed-search--header-result
+    nil
+    "The last result evaluated by `elfeed-search--header' for
+`elfeed-search-buffer'.")
+  (defun __ya/elfeed-search--header (orig-func &rest orig-args)
+    "Like `elfeed-search--header' but just format real
+`header-line-format' when
+`entropy/emacs-current-session-is-idle-p' is non-nil to reduce
+lagging."
+    (let (rtn)
+      (if entropy/emacs-current-session-is-idle-p
+          (progn
+            (setq rtn (apply orig-func orig-args))
+            (setq entropy/emacs-rss-elfeed--last-elfeed-search--header-result
+                  rtn)
+            rtn)
+        entropy/emacs-rss-elfeed--last-elfeed-search--header-result)))
+  (advice-add 'elfeed-search--header
+              :around #'__ya/elfeed-search--header)
+
 ;; *** __end__
   )
 
