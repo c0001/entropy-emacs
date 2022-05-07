@@ -4600,7 +4600,7 @@ successfully both of situation of read persisit of create an new."
            (unless (save-match-data (looking-at "^$"))
              (unless times
                (setq times 1))
-             (dotimes (time times)
+             (dotimes (_ times)
                (insert "\n"))))))
     (cond
      ((stringp var)

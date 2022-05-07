@@ -107,6 +107,8 @@
    w3m-search
    w3m-goto-url)
 
+  :defines (w3m-bookmark-file)
+
   :bind
   (:map w3m-mode-map
         ("<down>" . next-line)
