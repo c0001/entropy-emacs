@@ -309,35 +309,6 @@ remained."
   (advice-add 'w3m-view-url-with-browse-url
               :around #'entropy/emacs-textwww--w3m-external-advice)
 
-;; ***** Quit window patch
-
-  ;; EEMACS_MAINTENANCE: Find a the core principle why this bug happen
-  ;; and rebuild this patch. (mainly caused by the permanently side
-  ;; window existing status like treemacs or neotree did).
-
-  (defun entropy/emacs-textwww--w3m-quit-window (orig-func &rest orig-args)
-    "Quit w3m window using specified way when the internal
-methods are fatal as. This is used to fix the deleting main window
-erros."
-    (let (quit-fatal-p
-          (buf-cur (current-buffer)))
-      (condition-case nil
-          (apply orig-func orig-args)
-        (error
-         (setq quit-fatal-p t)))
-      (when quit-fatal-p
-        (condition-case nil
-            (when (eq (current-buffer) buf-cur)
-              (bury-buffer))
-          (error
-           (bury-buffer))))))
-  (advice-add 'w3m-close-window
-              :around
-              #'entropy/emacs-textwww--w3m-quit-window)
-  (advice-add 'w3m-quit
-              :around
-              #'entropy/emacs-textwww--w3m-quit-window)
-
 ;; ***** Auto adjusting w3m page width while `text-scale-mode' is on
   (defun entropy/emacs-textwww--w3m-calc-max-cols ()
     (let* ((wwp (window-width nil t))
@@ -528,6 +499,59 @@ to restore."
               (recenter)))
         ;; fallback to use `w3m-view-previous-page'.
         (w3m-view-previous-page))))
+
+;; ****** make new session
+
+  (defun entropy/emacs-w3m-make-new-session ()
+    "Make a new `w3m' session."
+    (interactive)
+    (let (_)
+      (w3m nil t)))
+
+  (defun entropy/emacs-w3m-view-bookmark-in-new-session ()
+    "View w3m bookmark in a new `w3m' session."
+    (interactive)
+    (progn
+      (entropy/emacs-w3m-make-new-session)
+      (w3m-bookmark-view)))
+
+;; ****** quit w3m session dwim
+
+  (defun entropy/emacs-w3m-quit-window-dwim ()
+    "eemacs specified w3m window quit command"
+    (interactive nil w3m-mode)
+    (let* ((win-list (window-list))
+           (win-list-len (length win-list)))
+      (cond
+       ((> win-list-len 1)
+        (let* ((item
+                ;; FIXME: is w3m modified the buffer history order
+                ;; i.e. always let the car of thus be an already w3m
+                ;; buffer?
+                (let (prev-buff-obj)
+                  (catch :exit
+                    (dolist (el (window-prev-buffers))
+                      (let* ((this-buff (car el))
+                             (this-buff-livep
+                              (and (bufferp this-buff)
+                                   (buffer-live-p this-buff))))
+                        (when (and this-buff-livep
+                                   (not (eq
+                                         (buffer-local-value 'major-mode this-buff)
+                                         'w3m-mode)))
+                          (throw :exit el))))
+                    nil)))
+               (buff (car item))
+               (pos (caddr item)))
+          (if (and buff
+                   (bufferp buff)
+                   (buffer-live-p buff))
+              (progn (switch-to-buffer buff)
+                     (goto-char pos))
+            (kill-buffer))))
+       (t
+        (w3m-close-window)))))
+  (define-key w3m-mode-map (kbd "q") #'entropy/emacs-w3m-quit-window-dwim)
 
 ;; **** __end__
   )
