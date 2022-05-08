@@ -292,7 +292,9 @@ Because of no suitable backend actived yet."))))
 
   (setq flymake-start-on-flymake-mode t
         flymake-start-on-save-buffer t
-        ;; disable the obsolete option `flymake-start-syntax-check-on-find-file'  which use `flymake-start-on-flymake-mode' instead
+        ;; disable the obsolete option
+        ;; `flymake-start-syntax-check-on-find-file' which use
+        ;; `flymake-start-on-flymake-mode' instead
         flymake-start-on-flymake-mode nil))
 
 ;; **** flycheck
