@@ -3076,10 +3076,10 @@ displayed image as same operated mechanism as
      (list (current-buffer) t)
      Man-mode)
     (when-let* ((buffer (or buffer (current-buffer)))
-                (_ (and buffer (buffer-live-p buffer)))
+                (buffobj-p (and buffer (buffer-live-p buffer)))
                 (window (get-buffer-window
                          (current-buffer)))
-                (__ (and window (window-live-p window))))
+                (winobj-p (and window (window-live-p window))))
       (with-current-buffer buffer
         (let (_)
           (when (and (eq major-mode 'Man-mode)

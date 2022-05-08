@@ -154,7 +154,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
   (defun entropy/emacs-codeserver-xref--show-entry-after-jump (&rest _)
     "Show hidden entry afte xref jump which hidden by
 `entropy-emacs-structure' feature."
-    (when-let* ((_ (featurep 'entropy-emacs-structure))
+    (when-let* ((feature-p (featurep 'entropy-emacs-structure))
                 (pt (point))
                 (ovs (overlays-at (point))))
       ;; firstly show outline entry
