@@ -350,7 +350,7 @@ for `last-command'.
   "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
 (defvar entropy/emacs-idle-session-trigger-delay-clusters
-  '(0.2 0.3 0.33 0.4 0.5 0.7 0.8 1 2 3 4 5))
+  '(0.2 0.3 0.33 0.4 0.5 0.6 0.7 0.8 0.9 1 2 3 4 5))
 
 (defun __eemacs--get-idle-hook-refer-symbol-name_core
     (type idle-sec)

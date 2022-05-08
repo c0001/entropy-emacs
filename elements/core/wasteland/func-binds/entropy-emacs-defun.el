@@ -698,6 +698,80 @@ otherwise."
           nil
         t)))
 
+;; *** Arithmetic manupulation
+
+(defun entropy/emacs-number-member-in
+    (numb numbs-list
+          &optional
+          ceiling numbs-list-sort-func)
+  "Justify whether number NUMB is in a numbers list NUMBS-LIST,
+return NUMB if thus.
+
+If NUMB is not in NUMBS-LIST, the return is the number of NUMBS-LIST,
+which is the sibling with NUMB, and the *sibling* means as:
+
+1) If CEILING is set, the sibling is the first one of NUMBS-LIST who
+   is `>' NUMB, and its previous one is `<' NUMB.
+
+2) Otherwise, the sibling is the first one of NUMBS-LIST who is `<'
+   thans NUMB and its next one is `>' NUMB.
+
+The *first one* means obey the list order of NUMBS-LIST i.e. the `car'
+sequence. If NUMBS-LIST-SORT-FUNC is set, it should be a function
+which used to sort the NUMBS-LIST before query on the
+sibling. NUMBS-LIST-SORT-FUNC can be shorted as follow symbol:
+
+1) `<': use `<' to sort which let NUMBS-LIST's car be the minimal one
+   and along its cdr.
+2) `>': use `>' to sort which let NUMBS-LIST's car be the max one and
+   along its cdr.
+
+Any other type is a user specified function which should take the
+arguments as the same as `sort' function.
+
+NUMBS-LIST is not side-effects by NUMBS-LIST-SORT-FUNC, since the
+NUMBS-LIST will be copied before thus.
+
+If NUMB is out of range of NUMBS-LIST, then the minimal number is
+return when NUMB is less than it or the max one when NUMB is
+larger than thus.
+"
+  (when numbs-list-sort-func
+    ;; ensure no side-effects to origin list
+    (setq numbs-list (copy-sequence numbs-list))
+    (cond
+     ((eq numbs-list-sort-func '<)
+      (sort numbs-list '<))
+     ((eq numbs-list-sort-func '>)
+      (sort numbs-list '>))
+     (t
+      (setq numbs-list
+            (funcall numbs-list-sort-func
+                     numbs-list)))))
+  (let (nums-min
+        nums-max)
+    (cond
+     ((member numb numbs-list)
+      numb)
+     ((< numb (setq nums-min
+                         (apply 'min numbs-list)))
+      nums-min)
+     ((> numb (setq nums-max
+                    (apply 'max numbs-list)))
+      nums-max)
+     (t
+      (let ((prev (car numbs-list)))
+        (catch :exit
+          (dolist (next (cdr numbs-list))
+            (if (and (> numb prev)
+                     (< numb next))
+                (if ceiling
+                    (throw :exit next)
+                  (throw :exit prev))
+              (setq prev next)))
+          (error
+           "[internal error]: entropy/emacs-number-member-in")))))))
+
 ;; *** File and directory manipulation
 
 (defun entropy/emacs-filesystem-node-name-legal-p (filesystem-node-name-maybe)
