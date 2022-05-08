@@ -1086,17 +1086,8 @@ saved by
      ((bound-and-true-p buffer-read-only)
       0.2)
      ((entropy/emacs-operation-status/running-auto-completion-op-p)
-      (let ((hook
-             (+ 1
-                (entropy/emacs-operation-status/auto-completion-idle-delay))))
-        (unless (member
-                 hook
-                 entropy/emacs-idle-session-trigger-delay-clusters)
-          (setq hook (entropy/emacs-number-member-in
-                      hook
-                      entropy/emacs-idle-session-trigger-delay-clusters
-                      'ceiling))
-          hook)))
+      (+ 1
+         (entropy/emacs-operation-status/auto-completion-idle-delay)))
      (t
       0.4)))
   (defun entropy/emacs-wc-winner--winner-save-old-configurations/run-with-idle
