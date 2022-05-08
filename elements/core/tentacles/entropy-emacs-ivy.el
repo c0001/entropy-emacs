@@ -916,25 +916,65 @@ directly identified the input regexp string which do not be with
 
   (defvar entropy/emacs-ivy--counsel-company-candidates nil)
   (defvar entropy/emacs-ivy--counsel-company-backend nil)
+  (defvar entropy/emacs-ivy--counsel-company-common nil)
+  (defvar entropy/emacs-ivy--counsel-company-prefix nil)
+  (defvar entropy/emacs-ivy--counsel-company-selection nil)
+  (defvar entropy/emacs-ivy--counsel-company-point nil)
+  (defvar entropy/emacs-ivy--counsel-company-search-string nil)
+  (defvar entropy/emacs-ivy--counsel-orig-buff nil)
+  (defun __ya/counsel-company ()
+    "Lile `counsel-company' but hacked with eemacs prope."
+    (interactive)
+    ;; EEMACS_TEMPORALLY_HACK: do not duplicate enable company-mode
+    ;; since each run will call its hook/
+    (unless (bound-and-true-p company-mode)
+      (company-mode 1))
+    ;; EEMACS_TEMPORALLY_HACK:
+    (if company-candidates
+        (progn
+          (setq entropy/emacs-ivy--counsel-company-candidates
+                company-candidates
+                entropy/emacs-ivy--counsel-company-backend
+                company-backend
+                entropy/emacs-ivy--counsel-company-common
+                company-common
+                entropy/emacs-ivy--counsel-company-selection
+                company-selection
+                entropy/emacs-ivy--counsel-company-point
+                company-point
+                entropy/emacs-ivy--counsel-company-search-string
+                company-search-string
+                entropy/emacs-ivy--counsel-company-prefix
+                company-prefix
+                entropy/emacs-ivy--counsel-orig-buff
+                (current-buffer))
+          (company-call-frontends 'hide))
+      (user-error "No company candidates found"))
+    (let ((len (cond ((let (l)
+                        (and company-common
+                             (string= company-common
+                                      (buffer-substring
+                                       (- (point) (setq l (length company-common)))
+                                       (point)))
+                             l)))
+                     (company-prefix
+                      (length company-prefix)))))
+      (when len
+        (setq ivy-completion-beg (- (point) len))
+        (setq ivy-completion-end (point))
+        (ivy-read "Candidate: " company-candidates
+                  :action #'ivy-completion-in-region-action
+                  :caller 'counsel-company))))
 
-  (defun entropy/emacs-ivy--counsel-company-wrapper
-      (orig-func &rest orig-args)
-    (let ()
-      (unless company-candidates
-        (company-complete))
-      (setq entropy/emacs-ivy--counsel-company-candidates company-candidates
-            entropy/emacs-ivy--counsel-company-backend company-backend)
-      (apply orig-func orig-args)))
-
-  (advice-add 'counsel-company :around #'entropy/emacs-ivy--counsel-company-wrapper)
+  (advice-add 'counsel-company
+              :override
+              #'__ya/counsel-company)
 
   (defun entropy/emacs-ivy--counsel-company-show-doc-action (candi)
-    (let* ((selection candi)
-           (company-candidates entropy/emacs-ivy--counsel-company-candidates)
-           (company-backend entropy/emacs-ivy--counsel-company-backend)
-           doc-buffer)
+    (let* ((selection candi))
       (cond ((and (member major-mode '(emacs-lisp-mode lisp-interaction-mode))
-                  (not (eq company-backend 'company-en-words)))
+                  (not (eq entropy/emacs-ivy--counsel-company-backend
+                           'company-en-words)))
              (let ((sym (intern selection)))
                (when sym
                  (cond ((fboundp sym) (describe-function sym))
@@ -944,10 +984,38 @@ directly identified the input regexp string which do not be with
                        ((symbolp sym) (user-error "Interned symbol '%s'" sym))
                        (t . nil)))))
             (t
-             (setq doc-buffer
-                   (or (company-call-backend 'doc-buffer selection)
-                       (user-error "No documentation available")))
-             (pop-to-buffer doc-buffer)))))
+             (with-current-buffer entropy/emacs-ivy--counsel-orig-buff
+               (let* ((company-candidates entropy/emacs-ivy--counsel-company-candidates)
+                      (company-backend entropy/emacs-ivy--counsel-company-backend)
+                      (company-point entropy/emacs-ivy--counsel-company-point)
+                      (company-search-string entropy/emacs-ivy--counsel-company-search-string)
+                      (company-prefix entropy/emacs-ivy--counsel-company-prefix)
+                      (company-common entropy/emacs-ivy--counsel-company-common)
+                      (company-point entropy/emacs-ivy--counsel-company-point)
+                      (company-selection
+                       (or
+                        (- (length company-candidates)
+                           (length (member selection company-candidates)))
+                        (error "can not caculate the `company-selection'"))))
+                 ;; caculate the candidates cache
+                 (let (prefix c)
+                   (cl-dolist (backend (list company-backend))
+                     (setq prefix
+                           (if (or (symbolp backend)
+                                   (functionp backend))
+                               (let ((company-backend backend))
+                                 (company-call-backend 'prefix))
+                             (company--multi-backend-adapter
+                              backend 'prefix)))
+                     (when prefix
+                       (when (company--good-prefix-p prefix)
+                         (let* ((ignore-case (company-call-backend 'ignore-case))
+                                (company-prefix (company--prefix-str prefix))
+                                (company-backend backend))
+                           (company-calculate-candidates
+                            company-prefix ignore-case))))))
+                 ;; show doc buffer using native api
+                 (company-show-doc-buffer)))))))
 
   (ivy-add-actions 'counsel-company
                    '(("M-h" entropy/emacs-ivy--counsel-company-show-doc-action

@@ -602,33 +602,58 @@ efficiently way."
     "Redefine of `company-show-doc-buffer' since its conflicted
 with `shackle'."
     (interactive)
-    (let ((other-window-scroll-buffer)
-          (selection (or company-selection 0))
-          (orig-win (selected-window)))
-      (let* ((selected (nth selection company-candidates))
-             (doc-buffer (company-call-backend 'doc-buffer selected)))
-        (when (consp doc-buffer)
-          (setq doc-buffer (car doc-buffer)))
-        (if (or (and (bufferp doc-buffer)
-                     (buffer-live-p doc-buffer))
-                ;; or the buffer is `buffer-name' then we also getted
-                (and (stringp doc-buffer)
-                     (bufferp (get-buffer doc-buffer))))
-            (let (_)
-              (with-current-buffer doc-buffer
-                (goto-char (point-min)))
-              (with-selected-window orig-win
-                (company-abort))
-              (display-buffer doc-buffer))
-          (message "can not fetch doc of current selection '%s'"
-                   selected)))))
+    (let* ((orig-win (selected-window))
+           (other-window-scroll-buffer nil)
+           (selection-index (or company-selection 0))
+           (selected-candi-str (nth selection-index company-candidates))
+           (doc-buffer (company-call-backend 'doc-buffer selected-candi-str))
+           (_ (progn
+                (when (consp doc-buffer)
+                  (setq doc-buffer (car doc-buffer)))
+                (cond ((stringp doc-buffer)
+                       (setq doc-buffer (get-buffer doc-buffer)))
+                      ((bufferp doc-buffer)))
+                (unless doc-buffer
+                  (user-error
+                   "can not fetch doc of current selection '%s'"
+                   selected-candi-str))
+                (unless (and (bufferp doc-buffer)
+                             (buffer-live-p doc-buffer))
+                  (error "company doc buffer '%s' is not a buffer"
+                         doc-buffer))))
+           (doc-buffer-mode (and doc-buffer
+                                 (with-current-buffer doc-buffer
+                                   major-mode)))
+           (doc-contents (and doc-buffer
+                              (with-current-buffer doc-buffer
+                                (buffer-substring (point-min) (point-max)))))
+           (doc-buffer-new (get-buffer-create "*eemacs-company-doc*")))
+
+      ;; abort the origin window buffer company-status when used
+      (with-selected-window orig-win
+        (when (bound-and-true-p company-mode)
+          (company-abort)))
+      ;; show the eemacs specified doc buffer
+      (with-current-buffer doc-buffer-new
+        (let ((inhibit-read-only t))
+          (insert doc-contents)
+          (goto-char (point-min))
+          (setq buffer-read-only t)
+          (local-set-key
+           (kbd "q")
+           ;; using quote to disable closure binding
+           '(lambda ()
+              (interactive)
+              (kill-buffer-and-window)))))
+      (display-buffer doc-buffer-new)))
   (advice-add 'company-show-doc-buffer
               :override
               #'__ya/company-show-doc-buffer)
 
+;; *** __end__
   )
 
-;; *** company components function autoload
+;; ** company components function autoload
 (use-package company-dabbrev   :ensure nil :after company :commands company-dabbrev)
 (use-package company-files     :ensure nil :after company :commands company-files)
 (use-package company-yasnippet :ensure nil :after company :commands company-yasnippet)
@@ -1078,7 +1103,7 @@ while in `company-box-mode'."
 returned FRAME is lived since we can not do anything in a dead
 frame as that will cause error."
     (let ((frame (apply orig-func orig-args)))
-      (when (ignore-errors (frame-live-p frame))
+      (when (and (framep frame) (frame-live-p frame))
         frame)))
   (advice-add 'company-box--get-frame
               :around
