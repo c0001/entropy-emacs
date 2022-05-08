@@ -384,6 +384,7 @@ fast hints not laggy by `candidates' re-calculation."
     (entropy/emacs-run-at-idle-immediately
      __idle/company-post-command
      :which-hook 0.2
+     :current-buffer t
      :idle-when
      ;; TODO: complete the precise conditions
      (let ((special_key_p (member this-command

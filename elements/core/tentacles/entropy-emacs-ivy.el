@@ -228,7 +228,7 @@ upstream and may be make risky follow the ivy updates.
   (defun __ya/ivy--queue-exhibit ()
     "The override advice for `ivy--queue-exhibit' to exhibit the
 canidates idle after input event done by 0.2 seconds."
-    (setq-local __idle/ivy-queue-exhited-done nil)
+    (setq __idle/ivy-queue-exhited-done nil)
     (if (and (> ivy-dynamic-exhibit-delay-ms 0)
              (not (entropy/emacs-ivy-patch/inhibit-dynamic-exhibit-p))
              (ivy-state-dynamic-collection ivy-last))
@@ -242,7 +242,7 @@ canidates idle after input event done by 0.2 seconds."
                    "timer idle show ivy candis and set the the
 queue done flag exposed to `ivy-done' idle trigger judger."
                    (ivy--exhibit)
-                   (setq-local __idle/ivy-queue-exhited-done
+                   (setq __idle/ivy-queue-exhited-done
                                t)))))
       (if (and (member this-command '(self-insert-command
                                       ivy-backward-delete-char
@@ -260,7 +260,9 @@ queue done flag exposed to `ivy-done' idle trigger judger."
                )
           (entropy/emacs-run-at-idle-immediately
            __idle/ivy--queue-exhibit
-           :which-hook 0.2
+           :which-hook 0.1
+           :when (minibufferp)
+           :current-buffer t
            (let* ((func/ivy-done-like-p
                    (lambda (command)
                      (member command
@@ -289,9 +291,9 @@ queue done flag exposed to `ivy-done' idle trigger judger."
                          entropy/emacs-current-session-last-command-before-idle)
                      entropy/emacs-current-session-this-command-before-idle)))
              (ivy--exhibit))
-           (setq-local __idle/ivy-queue-exhited-done t))
+           (setq __idle/ivy-queue-exhited-done t))
         (ivy--exhibit)
-        (setq-local __idle/ivy-queue-exhited-done t))))
+        (setq __idle/ivy-queue-exhited-done t))))
 
   (advice-add 'ivy--queue-exhibit
               :override

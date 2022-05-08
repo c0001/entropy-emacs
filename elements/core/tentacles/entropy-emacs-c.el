@@ -52,6 +52,7 @@
      `(entropy/emacs-run-at-idle-immediately
        idle-fontify-c-type-buffer
        :which-hook 0.5
+       :current-buffer t
        (let ((cur-pos ,(point))
              ;; (cur-line (string-to-number (format-mode-line "%l")))
              (buff ',(current-buffer))

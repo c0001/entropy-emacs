@@ -300,6 +300,26 @@ NOTE: this variable is useful to patch with some high performance
 required function when concurrency ocation to reduce system lag
 e.g. the modeline position indicator fresh function.")
 
+(defvar entropy/emacs-session-idle-trigger-debug
+  entropy/emacs-startup-with-Debug-p
+  "Debug mode ran `entropy/emacs-session-idle-trigger-hook'."
+  )
+
+(defmacro entropy/emacs-session-idle--run-body-simple
+    (name error-var &rest body)
+  "Run BODY refer to a NAME and return the last form's result of BODY.
+
+If `entropy/emacs-session-idle-trigger-debug' is unset, then
+return nil when any error occurred in BODY and push the error msg
+into ERROR-VAR."
+  (declare (indent defun))
+  `(if entropy/emacs-session-idle-trigger-debug
+       (progn ,@body)
+     (condition-case err
+         (progn ,@body)
+       (error (push (cons ',name err) ,error-var)
+              nil))))
+
 (defvar entropy/emacs-session-idle-trigger-timer nil
   "The timer guard for run the
 `entropy/emacs-session-idle-trigger-hook'.
@@ -351,9 +371,6 @@ Like `entropy/emacs-current-session-this-command-before-idle' but
 for `last-command'.
 "
   )
-
-(defvar entropy/emacs-session-idle-trigger-debug entropy/emacs-startup-with-Debug-p
-  "Debug mode ran `entropy/emacs-session-idle-trigger-hook'.")
 
 (defvar entropy/emacs-safe-idle-minimal-secs 0.1
   "The minimal idle timer SECS run with checking var
@@ -531,7 +548,7 @@ but used for hook `%s'."
     (let ((hook
            (__eemacs--get-idle-hook-refer-symbol-name
             'hook-trigger-hook-name idle-sec)))
-      (when (boundp hook)
+      (when (eval `(bound-and-true-p ,hook))
         (set hook
              (delete
               name
@@ -550,6 +567,7 @@ but used for hook `%s'."
     (name &rest body
           &key
           ((:idle-when idle-p) t)
+          ((:when should-run) t)
           which-hook
           current-buffer
           &allow-other-keys)
@@ -565,6 +583,10 @@ Optional key slot support:
   Form for evaluated to non-nil from judging wherther to injection to
   idle trigger or just directly do BODY like `progn'.
 
+- when:
+
+  Form for evaluated to judge whether should run the BODY.
+
 - which-hook:
 
   Number(can be float) of seconds of to idicate which trigger
@@ -573,8 +595,9 @@ Optional key slot support:
 
 - current-buffer:
 
-  Wrap BODY in `current-buffer' as constant without any buffer live
-  checker.
+  Form when evaluated non-nil before BODY to wrap BODY in
+  `current-buffer' in the runtime, and ignore BODY when the
+  buffer is not lived in runtime.
 
 When `entropy/emacs-session-idle-trigger-debug' is null, then any
 body is error ignored.
@@ -582,7 +605,7 @@ body is error ignored.
 NOTE: each NAME in que is uniquely i.e. duplicated injection will
 remove the oldest one and then injecting new one."
   (when which-hook
-    (unless (> which-hook entropy/emacs-safe-idle-minimal-secs)
+    (unless (>= which-hook entropy/emacs-safe-idle-minimal-secs)
       (error "[%s] idle seconds is less than the safe value %s"
              name entropy/emacs-safe-idle-minimal-secs)))
   (let* ((hook
@@ -616,48 +639,65 @@ remove the oldest one and then injecting new one."
                'hook-trigger-timer-name which-hook)
             'entropy/emacs-session-idle-trigger-timer))
          (buff-stick-p current-buffer)
-         (buff (current-buffer))
          (body (__defvar/idle-part/cl-args-body body))
+         (body-wrapper-core
+          `(when ,should-run
+             ,@body))
          (body-wrapper
-          `(if entropy/emacs-session-idle-trigger-debug
-               (progn
-                 ,@body)
-             (condition-case error
-                 (progn
-                   ,@body)
-               (error
-                (push error ,hook-error-list))))))
+          `(entropy/emacs-session-idle--run-body-simple
+             ,name
+             ,hook-error-list
+             ,body-wrapper-core)))
+
     `(let (_)
-       (if (or (bound-and-true-p entropy/emacs-current-session-is-idle-p)
-               (ignore-errors (not ,idle-p)))
+       (if (or
+            ;; forcely run without idle since is idle yet
+            (bound-and-true-p entropy/emacs-current-session-is-idle-p)
+            (entropy/emacs-session-idle--run-body-simple
+              ,name
+              ,hook-error-list
+              (not ,idle-p)))
+
            (progn
-             ,@body)
+             ,body-wrapper)
 
-         (unless (fboundp ',hook-timer-func)
-           (entropy/emacs-def-idle-hook-refer-context
-            ,hook-idle-sec))
+         (let* ((func-name ',name)
+                (buff-stick-p ',buff-stick-p)
+                (cur-buff (current-buffer))
+                (body-wrapper ',body-wrapper)
+                (hook-error-list ',hook-error-list))
 
-         (defalias ',name
-           (lambda (&rest _)
-             (if ',buff-stick-p
-                 (with-current-buffer ',buff
-                   ,body-wrapper)
-               ,body-wrapper)))
-         ;; remove all NAME in hooks
-         (entropy/emacs-idle-session-trigger-hooks-prunning
-          ',name)
-         ;; We should append the hook to the tail since follow the time
-         ;; order.
-         (setq ,hook
-               (append ,hook
-                       (list ',name)))
+           (unless (fboundp ',hook-timer-func)
+             (entropy/emacs-def-idle-hook-refer-context
+              ,hook-idle-sec))
 
-         ;; Intial the trigger timer when not bound
-         (unless (bound-and-true-p ,hook-timer-varname)
-           (setq ,hook-timer-varname
-                 (run-with-idle-timer
-                  ,hook-idle-sec
-                  t ',hook-timer-func)))
+           (defalias ',name
+             `(lambda (&rest _)
+                (if (eval
+                     '(entropy/emacs-session-idle--run-body-simple
+                        ,func-name
+                        ,hook-error-list
+                        ,buff-stick-p))
+                    (when (and (bufferp ',cur-buff)
+                               (buffer-live-p ',cur-buff))
+                      (with-current-buffer ',cur-buff
+                        ,body-wrapper))
+                  ,body-wrapper)))
+           ;; remove all NAME in hooks
+           (entropy/emacs-idle-session-trigger-hooks-prunning
+            ',name)
+           ;; We should append the hook to the tail since follow the time
+           ;; order.
+           (setq ,hook
+                 (append ,hook
+                         (list ',name)))
+
+           ;; Intial the trigger timer when not bound
+           (unless (bound-and-true-p ,hook-timer-varname)
+             (setq ,hook-timer-varname
+                   (run-with-idle-timer
+                    ,hook-idle-sec
+                    t ',hook-timer-func))))
          ))))
 
 ;; ** eemacs top keymap refer
