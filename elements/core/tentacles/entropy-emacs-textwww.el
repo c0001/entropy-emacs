@@ -528,7 +528,7 @@ to restore."
                 ;; FIXME: is w3m modified the buffer history order
                 ;; i.e. always let the car of thus be an already w3m
                 ;; buffer?
-                (let (prev-buff-obj)
+                (let (_)
                   (catch :exit
                     (dolist (el (window-prev-buffers))
                       (let* ((this-buff (car el))

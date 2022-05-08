@@ -46,8 +46,12 @@
 ;; ** require
 
 (defvar company-backend)
+(defvar company-common)
+(defvar company-point)
+(defvar company-prefix)
 (defvar company-selection)
 (defvar company-candidates)
+(defvar company-search-string)
 
 ;; ** ivy
 (use-package ivy
@@ -998,7 +1002,7 @@ directly identified the input regexp string which do not be with
                            (length (member selection company-candidates)))
                         (error "can not caculate the `company-selection'"))))
                  ;; caculate the candidates cache
-                 (let (prefix c)
+                 (let (prefix)
                    (cl-dolist (backend (list company-backend))
                      (setq prefix
                            (if (or (symbolp backend)

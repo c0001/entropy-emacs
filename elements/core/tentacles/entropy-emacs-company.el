@@ -639,6 +639,7 @@ with `shackle'."
           (insert doc-contents)
           (goto-char (point-min))
           (setq buffer-read-only t)
+          (eval `(,doc-buffer-mode))
           (local-set-key
            (kbd "q")
            ;; using quote to disable closure binding
