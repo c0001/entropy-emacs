@@ -376,11 +376,20 @@ large buffer."
 
                (and (memq major-mode '(emacs-lisp-mode
                                        lisp-interaction-mode
+                                       lisp-data-mode
                                        help-mode))
                     (memq this-command
                           '(counsel-describe-variable
                             counsel-describe-function
                             )))
+               ;; enable get thing when region actived unless the
+               ;; region content is not thing like
+               (and (region-active-p)
+                    (let ((str (buffer-substring
+                                (region-beginning)
+                                (region-end))))
+                      (and (not (string-match-p "[ \n\t\r]" str))
+                           (not (> (length str) 100)))))
                ;; let `swiper' like function using origin since its
                ;; internal needed in ivy source filea
                (memq (ivy-state-caller ivy-last)
