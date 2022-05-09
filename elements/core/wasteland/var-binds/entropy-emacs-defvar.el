@@ -465,6 +465,22 @@ indicator `entropy/emacs-current-session-is-idle-p'."
              entropy/emacs-session-idle-trigger-hook-error-list)))
     (setq entropy/emacs-session-idle-trigger-hook nil))
   (setq entropy/emacs-current-session-idle-hook-ran-done t))
+(defvar entropy/emacs-session-idle-trigger-timer--init-delay-sec
+  (let ((idle-sec
+         (- entropy/emacs-safe-idle-minimal-secs
+            0.05)))
+    (unless (> idle-sec 0)
+      (error "[internal error]: entropy/emacs-safe-idle-minimal-secs is too small"
+             ))
+    idle-sec)
+  "[interanal use] the initial idle delay seconds for eemacs top
+idle trigger guard `entropy/emacs--set-idle-signal'"
+  )
+(setq entropy/emacs-session-idle-trigger-timer
+      (run-with-idle-timer
+       entropy/emacs-session-idle-trigger-timer--init-delay-sec
+       t
+       #'entropy/emacs--set-idle-signal))
 
 (add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal)
 (defun entropy/emacs--idle-var-guard (_symbol newval _operation _where)
@@ -616,13 +632,7 @@ remove the oldest one and then injecting new one."
          (hook-idle-sec
           (if which-hook
               which-hook
-            (let ((idle-sec
-                   (- entropy/emacs-safe-idle-minimal-secs
-                      0.05)))
-              (unless (> idle-sec 0)
-                (error "[internal error]: entropy/emacs-safe-idle-minimal-secs is too small"
-                       ))
-              idle-sec)))
+            entropy/emacs-session-idle-trigger-timer--init-delay-sec))
          (hook-error-list
           (if which-hook
               (__eemacs--get-idle-hook-refer-symbol-name
