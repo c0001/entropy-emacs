@@ -956,11 +956,16 @@ directly identified the input regexp string which do not be with
                 (current-buffer))
           (company-call-frontends 'hide))
       (user-error "No company candidates found"))
-    (let ((len (cond ((let (l)
+    (let ((len (cond ((let ((l (length company-common)))
                         (and company-common
                              (string= company-common
                                       (buffer-substring
-                                       (- (point) (setq l (length company-common)))
+                                       ;; ensure not
+                                       ;; `arg-out-of-range' since the
+                                       ;; `company-common' is not
+                                       ;; always the string user seen
+                                       ;; as.
+                                       (max (point-min) (- (point) l))
                                        (point)))
                              l)))
                      (company-prefix
