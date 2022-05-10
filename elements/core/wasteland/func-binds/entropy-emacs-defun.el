@@ -3215,19 +3215,19 @@ can be used into your form:
         ($call_proc_command nil)
         ($call_proc_args nil)
 
-        (thiscur_sync_sym (let ((make-sym-func
-                                 (lambda ()
-                                   (intern (format "eemacs-make-process_%s_%s_%s_%s"
-                                                   (random) (random) (random) (random)))))
-                                sym)
-                            (setq sym (funcall make-sym-func))
-                            (when (boundp sym)
-                              (while (boundp sym)
-                                (setq sym (funcall make-sym-func))))
-                            (set sym nil)
-                            sym))
+        (thiscur_sync_sym nil)
         thiscur_proc
         thiscur_proc_buffer)
+
+    ;; firstly judge the synchronization type
+    (setq thiscur_sync_sym
+          (when (and (eq synchronously t)
+                     ;; NOTE & FIXME: sleep waiting for async in
+                     ;; interaction session may freeze emacs why? and thus
+                     ;; we just used this in noninteraction session.
+                     (bound-and-true-p noninteractive))
+            (entropy/emacs-make-dynamic-symbol-as-same-value
+             nil)))
 
     ;; set var-binding here to prevent duplicate eval
     (let ((cprss-args (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
@@ -3240,11 +3240,7 @@ can be used into your form:
     (when (eval prepare-form)
       (cond
        ((or (null synchronously)
-            (and (eq synchronously t)
-                 ;; NOTE & FIXME: sleep waiting for async in
-                 ;; interaction session may freeze emacs why? and thus
-                 ;; we just used this in noninteraction session.
-                 (bound-and-true-p noninteractive)))
+            thiscur_sync_sym)
         (setq thiscur_proc
               (make-process
                :name $make_proc_name
@@ -3293,10 +3289,14 @@ can be used into your form:
           (while (null (symbol-value thiscur_sync_sym)) (sleep-for 0.1))
           (eval `(let (($sentinel/destination ',thiscur_proc_buffer))
                    (unwind-protect
-                       (if (eq ,thiscur_sync_sym t)
-                           ;; just ran after form when this process ran out successfully
-                           ,after-form)
-                     ,clean-form))))
+                       (when (eq ,thiscur_sync_sym t)
+                         ;; just ran after form when this process ran out successfully
+                         ,after-form)
+                     ;; run clean form
+                     (unwind-protect
+                         ,clean-form
+                       ;; unintern the temp sync indicator symbol
+                       (entropy/emacs-unintern-symbol ',thiscur_sync_sym))))))
         ;; return the processor
         thiscur_proc)
        (t
