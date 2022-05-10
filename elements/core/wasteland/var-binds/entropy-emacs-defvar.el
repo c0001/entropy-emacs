@@ -317,8 +317,11 @@ into ERROR-VAR."
        (progn ,@body)
      (condition-case err
          (progn ,@body)
-       (error (push (cons ',name err) ,error-var)
-              nil))))
+       (error
+        ;; escape byte-compile warning
+        (eval-when-compile (defvar ,error-var))
+        (push (cons ',name err) ,error-var)
+        nil))))
 
 (defvar entropy/emacs-session-idle-trigger-timer nil
   "The timer guard for run the
@@ -579,6 +582,16 @@ but used for hook `%s'."
             (setq it (cddr it))
           (throw 'break it))))))
 
+(defmacro entropy/emacs-run-at-idle-immediately--append-hook
+    (hook func)
+  `(progn
+     ;; escape byte-compile warning
+     (eval-when-compile
+       (defvar ,hook))
+     (setq
+      ,hook
+      (append ,hook
+              (list ',func)))))
 (cl-defmacro entropy/emacs-run-at-idle-immediately
     (name &rest body
           &key
@@ -698,12 +711,13 @@ remove the oldest one and then injecting new one."
             ',name)
            ;; We should append the hook to the tail since follow the time
            ;; order.
-           (setq ,hook
-                 (append ,hook
-                         (list ',name)))
+           (entropy/emacs-run-at-idle-immediately--append-hook
+            ,hook ,name)
 
            ;; Intial the trigger timer when not bound
            (unless (bound-and-true-p ,hook-timer-varname)
+             ;; escape byte-compile warning
+             (eval-when-compile (defvar ,hook-timer-varname))
              (setq ,hook-timer-varname
                    (run-with-idle-timer
                     ,hook-idle-sec
