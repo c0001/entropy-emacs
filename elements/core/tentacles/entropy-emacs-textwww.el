@@ -105,7 +105,9 @@
   :commands
   (w3m
    w3m-search
-   w3m-goto-url)
+   w3m-goto-url
+   entropy/emacs-w3m-make-new-session
+   entropy/emacs-w3m-view-bookmark-in-new-session)
 
   :defines (w3m-bookmark-file)
 
@@ -513,7 +515,8 @@ to restore."
     (interactive)
     (progn
       (entropy/emacs-w3m-make-new-session)
-      (w3m-bookmark-view)))
+      (let ((w3m-make-new-session nil))
+        (w3m-bookmark-view))))
 
 ;; ****** quit w3m session dwim
 
