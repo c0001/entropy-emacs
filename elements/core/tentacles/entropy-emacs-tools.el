@@ -54,9 +54,13 @@
 
   :config
 
+  (entropy/emacs-add-to-list
+   entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-ignore-handlers
+   'openwith-file-handler)
+
   (eval-when-compile (require 'rx))
-  (eval-and-compile
-    (setq openwith-associations
+  (setq openwith-associations
+        (eval-when-compile
           (list
            (list
             (concat "^.*\\.\\("
@@ -65,7 +69,7 @@
                        (or
                         ,@'(
                             ;; audio & video files
-                            "mpg" "mpeg" "mp3" "mp4" "rmvb"
+                            "mpg" "mpeg" "mp3" "mp4" "rmvb" "webm"
                             "avi" "wmv" "wav" "mov" "flv"
                             "ogm" "ogg" "mkv" "m4a" "flac" "aac" "ape"
                             ;; documents
@@ -147,34 +151,13 @@ with ARGLIST."
        (mapconcat 'shell-quote-argument arglist " "))))
   (advice-add 'openwith-open-windows :override #'__ya/openwith-open-windows)
 
-  (setq entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter
-        (lambda (filename)
-          (let ((assocs openwith-associations)
-                (file filename)
-                oa)
-            (catch :exit
-              ;; do not use `dolist' here, since some packages (like cl)
-              ;; temporarily unbind it
-              (while assocs
-                (setq oa (car assocs)
-                      assocs (cdr assocs))
-                (when (let
-                          ;; we must ensure `case-fold-search' since the
-                          ;; extenxion have uppercaes variants
-                          ((case-fold-search t))
-                        (string-match-p (car oa) file))
-                  (throw :exit t)))))))
-
-  (defvar __openwith-file-handler-history nil
-    "The `openwith-file-handler' hander log used for eemacs debug only.")
-  (defun __ya/openwith-file-handler (operation &rest args)
-    "Like `openwith-file-handler' but enhanced"
-    (push (cons operation args) __openwith-file-handler-history)
-    (catch :exit
-      (when (and openwith-mode (not (buffer-modified-p)) (zerop (buffer-size)))
-        (let ((assocs openwith-associations)
-              (file (car args))
-              oa)
+  (entropy/emacs-add-to-list
+   entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filters
+   '(lambda (filename)
+      (let ((assocs openwith-associations)
+            (file filename)
+            oa)
+        (catch :exit
           ;; do not use `dolist' here, since some packages (like cl)
           ;; temporarily unbind it
           (while assocs
@@ -185,21 +168,46 @@ with ARGLIST."
                       ;; extenxion have uppercaes variants
                       ((case-fold-search t))
                     (string-match-p (car oa) file))
-              (let ((params (mapcar (lambda (x) (if (eq x 'file) file x))
-                                    (nth 2 oa))))
-                (when (or (not openwith-confirm-invocation)
-                          (y-or-n-p (format "%s %s? " (cadr oa)
-                                            (mapconcat #'identity params " "))))
-                  (if (eq system-type 'windows-nt)
-                      (openwith-open-windows (cadr oa) params)
-                    (openwith-open-unix (cadr oa) params))
-                  (kill-buffer nil)
-                  (when (bound-and-true-p recentf-mode)
-                    (recentf-add-file file))
-                  ;; quit procedure while matched rules
-                  (let ((debug-on-error nil))
-                    (error "Opened %s in external program"
-                           (file-name-nondirectory file)))))))))
+              (throw :exit t))))))
+   'append)
+
+  (defvar __openwith-file-handler-history nil
+    "The `openwith-file-handler' hander log used for eemacs debug only.")
+  (defun __ya/openwith-file-handler (operation &rest args)
+    "Like `openwith-file-handler' but enhanced"
+    (push (cons operation args) __openwith-file-handler-history)
+    (progn
+      (when (and openwith-mode (not (buffer-modified-p)) (zerop (buffer-size)))
+        (let ((assocs openwith-associations)
+              (file (car args))
+              oa)
+          ;; do not use `dolist' here, since some packages (like cl)
+          ;; temporarily unbind it
+          (catch :exit-match
+            (while assocs
+              (setq oa (car assocs)
+                    assocs (cdr assocs))
+              (when (let
+                        ;; we must ensure `case-fold-search' since the
+                        ;; extenxion have uppercaes variants
+                        ((case-fold-search t))
+                      (string-match-p (car oa) file))
+                (let ((params (mapcar (lambda (x) (if (eq x 'file) file x))
+                                      (nth 2 oa))))
+                  (when (or (not openwith-confirm-invocation)
+                            (y-or-n-p (format "%s %s? " (cadr oa)
+                                              (mapconcat #'identity params " ")))
+                            (throw :exit-match nil))
+                    (if (eq system-type 'windows-nt)
+                        (openwith-open-windows (cadr oa) params)
+                      (openwith-open-unix (cadr oa) params))
+                    (kill-buffer nil)
+                    (when (bound-and-true-p recentf-mode)
+                      (recentf-add-file file))
+                    ;; quit procedure while matched rules
+                    (let ((debug-on-error nil))
+                      (error "Opened %s in external program"
+                             (file-name-nondirectory file))))))))))
       ;; when no association was found, relay the operation to other handlers
       (let ((inhibit-file-name-handlers
              (cons 'openwith-file-handler

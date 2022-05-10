@@ -2998,9 +2998,9 @@ In order to query `large-file-warning-threshold',
        large-file-warning-threshold)
       entropy/emacs-large-file-warning-threshold))
 
-(defvar entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter nil
-  "The function to handler a filename whether need to open with
-external app used for
+(defvar entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filters nil
+  "A list of functions to handler a filename whether need to open
+with external app used for
 `entropy/emacs-find-file-judge-filename-need-open-with-external-app-p'.
 
 NOTE: for eemacs developer notice of that this variable always
@@ -3009,9 +3009,48 @@ since at startup time we do not want to handle any external open
 with requests.")
 (defun entropy/emacs-find-file-judge-filename-need-open-with-external-app-p (filename)
   "Judge whether open FILENAME externally"
-  (and (functionp entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter)
-       (funcall entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filter
-                filename)))
+  (and (bound-and-true-p entropy/emacs-startup-done)
+       entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filters
+       (catch :exit
+         (dolist (func
+                  entropy/emacs-find-file-judge-fllename-need-open-with-external-app-core-filters)
+           (when (funcall func filename)
+             (throw :exit t)))
+         nil)))
+
+(defvar entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-ignore-handlers
+  nil
+  "List of file name handler not be handled by
+`entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p'
+which is stored in `file-name-handler-alist'.")
+(defvar entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-filters
+  '((lambda (filename)
+      (catch :exit
+        (dolist (el file-name-handler-alist)
+          (let ((matcher (car el))
+                (handler (cdr el)))
+            (unless (member
+                     handler
+                     entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-ignore-handlers
+                     )
+              (when (string-match-p matcher filename)
+                (throw :exit t)))))
+        nil)))
+  "List of functions used for
+`entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p'
+where each one accept one argument of a filename and return
+non-nil if the file is a emacs special dealing with file type.")
+(defun entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p (filename)
+  "Judge a file named as FILENAME whether matched a emacs
+internally specially maitained file type, return non-nil while
+thus."
+  (when entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-filters
+    (catch :exit
+      (dolist (func
+               entropy/emacs-find-file-judge-filename-is-emacs-intspecially-core-filters)
+        (when (funcall func filename)
+          (throw :exit t)))
+      nil)))
 
 (defconst entropy/emacs-unreadable-buffer-so-long-threshold 1000)
 (defvar entropy/emacs-unreadable-file-judge-function nil
@@ -3027,7 +3066,8 @@ list return t i.e. inidcate to unjudge for as.")
 (defun entropy/emacs-unreadable-file-unjuge-cases (filename)
   "The predicate to let eemacs unreadable file judge system ignore."
   (unless (fboundp 'image-file-name-regexp)
-    (require 'image-files))
+    (eval-when-compile
+      (require 'image-file)))
   (let ((fsize (and
                 (file-exists-p filename)
                 (file-attribute-size (file-attributes filename)))))
@@ -3179,15 +3219,22 @@ origin config file."
 
 (defun entropy/emacs-unreadable-file-advice-for-finid-file
     (orig-func &rest orig-args)
-  (if (and (functionp entropy/emacs-unreadable-file-judge-function)
-           ;; ignore any existed buffer matched FILENAME
-           (not (find-buffer-visiting (car orig-args)))
-           ;; Not remote file
-           (not (entropy/emacs-filename-is-remote-p (car orig-args)))
-           ;; Not judge for magic filename handler for
-           ;; `openwith-file-handler', since its open with external
-           ;; app.
-           (not (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p (car orig-args))))
+  (if (and
+       ;; just used in startup done occasion
+       (bound-and-true-p entropy/emacs-startup-done)
+       (functionp entropy/emacs-unreadable-file-judge-function)
+       ;; ignore any existed buffer matched FILENAME
+       (not (find-buffer-visiting (car orig-args)))
+       ;; Not remote file
+       (not (entropy/emacs-filename-is-remote-p (car orig-args)))
+       ;; Not judge for magic filename handler for
+       ;; `openwith-file-handler', since its open with external
+       ;; app.
+       (not (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
+             (car orig-args)))
+       ;; the file must not be a emacs internally specialed handled type
+       (not (entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p
+             (car orig-args))))
       (let* ((error-fmtstr
               "File '%s' is not readable e.g. its may freeze emacs, Abort!")
              (filename (car orig-args))
@@ -3236,21 +3283,35 @@ Do you want to open it with messy?"
 (defun entropy/emacs-abort-if-file-too-large (orig-func &rest orig-args)
   "Like `abort-if-file-too-large' but escape judge in some cases."
   (let ((filename (nth 2 orig-args)))
-    (if (or
-         ;; ignore any existed buffer matched FILENAME
-         (find-buffer-visiting filename)
-         ;; ingore external open needed FILENAME
-         (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p filename)
-         ;; prevent duplicated call, since the
-         ;; `entropy/emacs-unreadable-file-advice-for-finid-file'
-         ;; may did the same
-         (and
-          ;; must check `large-file-warning-threshold' whether null,
-          ;; since it can be nil in its API documentation description.
-          large-file-warning-threshold
-          (= large-file-warning-threshold most-positive-fixnum))
-         ;; matched unjudge cases
-         (entropy/emacs-unreadable-file-unjuge-cases filename))
+    (if (and
+         ;; just usage in init done occasion
+         (bound-and-true-p entropy/emacs-startup-done)
+         (or
+          ;; ignore any existed buffer matched FILENAME
+          (find-buffer-visiting filename)
+          ;; ingore external open needed FILENAME
+          (entropy/emacs-find-file-judge-filename-need-open-with-external-app-p
+           filename)
+
+          ;; Ignore file which is a emacs internally specialed handled type
+          ;;
+          ;; FIXME: shall we need to escape this? since a large
+          ;; internally handled type file may also freeze emacs, or we
+          ;; should use another tunny way?
+          ;;
+          ;; (entropy/emacs-find-file-judge-filename-is-emacs-intspecially-p
+          ;;  filename)
+
+          ;; prevent duplicated call, since the
+          ;; `entropy/emacs-unreadable-file-advice-for-finid-file'
+          ;; may did the same
+          (and
+           ;; must check `large-file-warning-threshold' whether null,
+           ;; since it can be nil in its API documentation description.
+           large-file-warning-threshold
+           (= large-file-warning-threshold most-positive-fixnum))
+          ;; matched unjudge cases
+          (entropy/emacs-unreadable-file-unjuge-cases filename)))
         (let ((large-file-warning-threshold most-positive-fixnum))
           (apply orig-func orig-args))
       (apply orig-func orig-args))))
