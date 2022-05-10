@@ -501,17 +501,25 @@ faild with hash '%s' which must match '%s'"
     (name host require-features &optional clean)
   (let* ((label "")
          (dir (expand-file-name
-               (if (string-prefix-p "-" host)
-                   (prog1
-                       (progn
-                         (setq host (replace-regexp-in-string
-                                     "^-" ""
-                                     host))
-                         (format "elements/site-lisp/%s" host))
-                     (setq label "site-lisp"))
+               (cond
+                ((string-prefix-p "-" host)
+                 (prog1
+                     (progn
+                       (setq host (replace-regexp-in-string
+                                   "^-" ""
+                                   host))
+                       (format "elements/site-lisp/%s" host))
+                   (setq label "site-lisp")))
+                ((string= "top" host)
+                 (prog1
+                     (progn
+                       (setq host "")
+                       (format "elements/%s" host))
+                   (setq label "eemacs-top-libs")))
+                (t
                  (prog1
                      (format "elements/core/%s" host)
-                   (setq label "core")))
+                   (setq label "core"))))
                entropy/emacs-user-emacs-directory))
          (elcs (directory-files dir nil ".*\\.elc$"))
          (log-file (expand-file-name
@@ -560,6 +568,10 @@ faild with hash '%s' which must match '%s'"
 
 (defvar entropy/emacs-batch--bytecompile-item-register
   '(
+    (eemacs-top-declare
+     "top"
+     nil)
+
     (eemacs-baron-wasteland-var-binds
      "wasteland/var-binds"
      nil)

@@ -42,19 +42,15 @@
 ;;
 ;; * Code:
 ;; ** Require
-(if (version< emacs-version "27")
-    (require 'cl)
-  (require 'cl-macs))
-(require 'subr-x)
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 ;; ** Internal init
 (defvar __eemacs-ext-union-host
   (expand-file-name "~/.config/entropy-config/entropy-emacs"))
 
 ;; ** Customizable Variables
-(defgroup entropy-emacs-customize-top-group nil
-  "Eemacs customizable variables top group."
-  :group 'extensions)
 
 ;; *** Fundamental
 (defgroup entropy/emacs-customize-group-for-fundametal-configuration nil
@@ -1373,21 +1369,6 @@ There're three valid key slots:
                  ((const :tag "Socks Version" :socks-version) integer)))
   :group 'entropy/emacs-customize-group-for-internet-proxy)
 
-;; *** Pdumper
-(defgroup entropy/emacs-customize-group-for-pdumper nil
-  "Eemacs portable dump configuration customizable group."
-  :group 'entropy-emacs-customize-top-group)
-
-(defcustom entropy/emacs-do-pdumper-in-X t
-  "Whether did pdumper for gui prot."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-pdumper)
-
-(defcustom entropy/emacs-fall-love-with-pdumper nil
-  "The emacs running type indication for pdumper."
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-pdumper)
-
 ;; *** Coworkers
 (defgroup entropy/emacs-customize-group-for-coworkers nil
   "Eemacs coworkers integrated configuration customizable group."
@@ -2560,27 +2541,6 @@ NOTE: this variable just be used when
   :type 'directory
   :group 'entropy/emacs-customize-group-for-w32-portable-kits)
 
-;; *** Debug
-
-(defgroup entropy/emacs-customize-group-for-DEBUG nil
-  "entropy-emacs debug configurations"
-  :group 'entropy-emacs-customize-top-group)
-
-(defcustom entropy/emacs-startup-with-Debug-p (getenv "EEMACS_DEBUG")
-  "Does eemacs start with debug mode?"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-DEBUG)
-
-(defcustom entropy/emacs-startup-benchmark-init entropy/emacs-startup-with-Debug-p
-  "Benchmark eemacs startup time?"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-DEBUG)
-
-(defcustom entropy/emacs-startup-debug-on-error entropy/emacs-startup-with-Debug-p
-  "Enable `debug-on-error' at eemacs startup time?"
-  :type 'boolean
-  :group 'entropy/emacs-customize-group-for-DEBUG)
-
 ;; ** Top APIs
 ;; *** top paths
 (defvar entropy/emacs-hosted-path
@@ -2847,7 +2807,6 @@ NOTE: you should always use this function to get thus variable
 value where there's no published for any of the internal entropy
 emacs specified environment variable references APIs, this is the
 only one for thus."
-  (require 'subr-x)
   (let ((env-p (getenv "EEMACS_MAKE")))
     (cond
      ((or (null env-p)
@@ -2871,7 +2830,6 @@ NOTE: you should always use this function to get thus variable
 value where there's no published for any of the internal entropy
 emacs specified environment variable references APIs, this is the
 only one for thus."
-  (require 'subr-x)
   (let ((env-p (getenv "EEMACS_MAKE_ALL")))
     (cond
      ((or (null env-p)
@@ -2907,33 +2865,6 @@ only one for thus."
                    (bound-and-true-p
                     entropy/emacs-fall-love-with-pdumper))))
     rtn))
-
-;; *** eemacs-require-func
-
-(defun entropy/emacs-common-require-feature
-    (feature &optional filename noerror)
-  "eemacs spec `require' facility , to prefer load the elisp
-source rather than its compiled version in some cases.
-
-NOTE: not support load dynamic module"
-  (let (_)
-    (cond
-     ((or entropy/emacs-startup-with-Debug-p
-          (entropy/emacs-env-init-with-pure-eemacs-env-p)
-          (and noninteractive
-               (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
-               (not (daemonp)))
-          )
-      (require feature (or filename
-                           (format "%s.el" feature))
-               noerror))
-     (t
-      (require feature filename noerror)))))
-
-(defalias '!eemacs-require
-  #'entropy/emacs-common-require-feature
-  "Alias for `entropy/emacs-common-require-feature' but just used
-in baron part to simplify context distinction search")
 
 ;; *** remote refer apis
 
@@ -3065,9 +2996,7 @@ of. Escape the filter loop matching while any element of this
 list return t i.e. inidcate to unjudge for as.")
 (defun entropy/emacs-unreadable-file-unjuge-cases (filename)
   "The predicate to let eemacs unreadable file judge system ignore."
-  (unless (fboundp 'image-file-name-regexp)
-    (eval-when-compile
-      (require 'image-file)))
+  (require 'image-file)
   (let ((fsize (and
                 (file-exists-p filename)
                 (file-attribute-size (file-attributes filename)))))
@@ -3488,11 +3417,12 @@ that."
       (unless
           ;; avoid when user pre sets in `custom-file'
           (and (boundp var-sym)
-               ;; but for some non-customized pre-setted var
+               ;; but for some pre loaded customized var
                (not (eq var-sym 'auto-save-list-file-prefix)))
-        (setq path (expand-file-name (cdr item) top))
+        (setq path (directory-file-name (expand-file-name (cdr item) top)))
         (setq path-root (file-name-directory path))
-        (intern (symbol-name var-sym)) ;make sure interned as init
+        ;; make sure declared as init
+        (eval `(defvar ,var-sym))
         (set-default var-sym path)
         ;; create each subs path chain for preventing unconditionally
         ;; file create fatal from thus.

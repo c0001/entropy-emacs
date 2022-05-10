@@ -105,6 +105,37 @@
 (defvar entropy/emacs-run-startup-top-init-timestamp (current-time)
   "Time-stamp eemacs top init prepare")
 
+;; ** eemacs top functions
+
+;; Top declared functions used for eemacs.
+
+;; *** eemacs-require-func
+
+(defun entropy/emacs-common-require-feature
+    (feature &optional filename noerror)
+  "eemacs spec `require' facility , to prefer load the elisp
+source rather than its compiled version in some cases.
+
+NOTE: not support load dynamic module"
+  (let (_)
+    (cond
+     ((or entropy/emacs-startup-with-Debug-p
+          (entropy/emacs-env-init-with-pure-eemacs-env-p)
+          (and noninteractive
+               (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
+               (not (daemonp)))
+          )
+      (require feature (or filename
+                           (format "%s.el" feature))
+               noerror))
+     (t
+      (require feature filename noerror)))))
+
+(defalias '!eemacs-require
+  #'entropy/emacs-common-require-feature
+  "Alias for `entropy/emacs-common-require-feature' but just used
+in baron part to simplify context distinction search")
+
 ;; ** Env variable declaration
 
 ;; The eemacs specified envrionment to indicated all subprocess are
@@ -157,7 +188,7 @@
   (dolist (sub-dep subs-dep)
     (add-to-list 'load-path (expand-file-name sub-dep deps-path))))
 
-(require 'entropy-emacs-defcustom)
+(!eemacs-require 'entropy-emacs-defcustom)
 (defvar entropy/emacs-run-startup-defcustom-load-done-timestamp (current-time)
   "Time-stamp eemacs load defcustom config done done")
 

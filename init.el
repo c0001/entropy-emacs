@@ -41,39 +41,51 @@
 ;; Debug emacs while hang on by send the SIGUSR2 process event
 (setq debug-on-event 'sigusr2)
 
+;; ** eemacs top declares
+
+(defgroup entropy-emacs-customize-top-group nil
+  "Eemacs customizable variables top group."
+  :group 'extensions)
+
+;; *** Debug
+
+(defgroup entropy/emacs-customize-group-for-DEBUG nil
+  "entropy-emacs debug configurations"
+  :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-startup-with-Debug-p (getenv "EEMACS_DEBUG")
+  "Does eemacs start with debug mode?"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-DEBUG)
+
+(defcustom entropy/emacs-startup-benchmark-init entropy/emacs-startup-with-Debug-p
+  "Benchmark eemacs startup time?"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-DEBUG)
+
+(defcustom entropy/emacs-startup-debug-on-error entropy/emacs-startup-with-Debug-p
+  "Enable `debug-on-error' at eemacs startup time?"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-DEBUG)
+
+;; *** Pdumper
+(defgroup entropy/emacs-customize-group-for-pdumper nil
+  "Eemacs portable dump configuration customizable group."
+  :group 'entropy-emacs-customize-top-group)
+
+(defcustom entropy/emacs-do-pdumper-in-X t
+  "Whether did pdumper for gui prot."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-pdumper)
+
+(defcustom entropy/emacs-fall-love-with-pdumper nil
+  "The emacs running type indication for pdumper."
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-pdumper)
+
 ;; ** prepare
 ;; *** multi-version emacs compatible
-;; **** make `setq-local' compatible
-(when (version< emacs-version "27")
-  (defmacro setq-local (&rest pairs)
-    "Make variables in PAIRS buffer-local and assign them the corresponding values.
-
-PAIRS is a list of variable/value pairs.  For each variable, make
-it buffer-local and assign it the corresponding value.  The
-variables are literal symbols and should not be quoted.
-
-The second VALUE is not computed until after the first VARIABLE
-is set, and so on; each VALUE can use the new value of variables
-set earlier in the 'setq-local'.  The return value of the
-'setq-local' form is the value of the last VALUE.
-
-\(fn [VARIABLE VALUE]...)"
-    (declare (debug setq))
-    (unless (zerop (mod (length pairs) 2))
-      (error "PAIRS must have an even number of variable/value members"))
-    (let ((expr nil))
-      (while pairs
-        (unless (symbolp (car pairs))
-          (error "Attempting to set a non-symbol: %s" (car pairs)))
-        ;; Can't use backquote here, it's too early in the bootstrap.
-        (setq expr
-              (cons
-               (list 'set
-                     (list 'make-local-variable (list 'quote (car pairs)))
-                     (car (cdr pairs)))
-               expr))
-        (setq pairs (cdr (cdr pairs))))
-      (macroexp-progn (nreverse expr)))))
+;; TODO ...
 
 ;; *** Warning of startup
 
@@ -83,8 +95,8 @@ set earlier in the 'setq-local'.  The return value of the
 ;; You may delete these explanatory comments.
 ;; (package-initialize)
 
-(when (version< emacs-version "26")
-  (error "This requires Emacs 26 and above!"))
+(when (version< emacs-version "27")
+  (error "This requires Emacs 27 and above!"))
 
 ;; *** eemacs init env filter
 
@@ -156,13 +168,25 @@ emacs upstream")
       (load cus)))
 
   ;; load eemacs config
-  (defun __init_emacs (&rest _)
-    "          init emacs          "
-    (require
-     'entropy-emacs
-     (expand-file-name
-      "elements/entropy-emacs.el"
-      entropy/emacs-user-emacs-directory)))
+  (defun __init_eemacs__ (&rest _)
+    "entropy-emacs loader"
+    (let ((eemacs-top-init-file
+           (cons 'entropy-emacs
+                 (expand-file-name
+                  "elements/entropy-emacs.el"
+                  entropy/emacs-user-emacs-directory))))
+      (cond
+       ((or entropy/emacs-startup-with-Debug-p
+            (entropy/emacs-env-init-with-pure-eemacs-env-p)
+            (and noninteractive
+                 (not (bound-and-true-p entropy/emacs-fall-love-with-pdumper))
+                 (not (daemonp)))
+            )
+        (require (car eemacs-top-init-file)
+                 (cdr eemacs-top-init-file)))
+       (t
+        (add-to-list 'load-path (file-name-directory (cdr eemacs-top-init-file)))
+        (require (car eemacs-top-init-file))))))
 
   (setq __inited-p? t)
   (cond
@@ -171,10 +195,10 @@ emacs upstream")
     (when (daemonp)
       (setq entropy/emacs-run-startup-afterinit-timestamp
             (current-time)))
-    (funcall #'__init_emacs))
+    (funcall #'__init_eemacs__))
    (t
     (add-hook 'after-init-hook
-              #'__init_emacs
+              #'__init_eemacs__
               ;; at end of init hook
               100)
     ))
