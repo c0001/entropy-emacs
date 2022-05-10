@@ -4789,23 +4789,32 @@ supplied."
 
 ;; *** Test emacs with pure env
 
-(defun entropy/emacs-test-emacs-with-pure-setup-with-form
-    (name form &optional use-current-package-user-dir emacs-invocation-name)
-  "Invoke subprocess with process name string NAME to run a FORM
-within a virginal emacs env (i.e. emacs -Q). Return the process
-object.
+(cl-defun entropy/emacs-test-emacs-with-pure-setup-with-form
+    (proc-name
+     &rest forms
+     &key
+     use-current-package-user-dir
+     emacs-invocation-name
+     &allow-other-keys)
+  "Invoke subprocess with process name string PROC-NAME to run
+FORMS within a virginal emacs env (i.e. emacs -Q). Return the
+process object.
 
-If USE-CURRENT-PACKAGE-USER-DIR is non-nill then, initialize
-packages with current emacs session's `package-user-dir' at the
-subprocess emacs initialization time.
+If USE-CURRENT-PACKAGE-USER-DIR is non-nill and `eq' wit 't',
+then initialize packages with current emacs session's
+`package-user-dir' at the subprocess emacs initialization
+time. Or it is a directory which used as thus, throw a error when
+the directory not exist.
 
 The `invocation-name' of the virginal emacs is as the same as
 current emacs session if optional arg EMACS-INVOCATION-NAME is
 not set, else using that as `invocation-name' for as."
+  (setq forms (entropy/emacs-get-plist-body forms))
   (let* (proc
-         (buffer (generate-new-buffer
-                  (format "*entropy/emacs-test-emacs-with-pure-setup-with-form/%s*"
-                          name)))
+         (proc-buffer
+          (generate-new-buffer
+           (format "*entropy/emacs-test-emacs-with-pure-setup-with-form/%s*"
+                   proc-name)))
          ;; -------------------- the read func --------------------
          (read-base64-func-name '__this-read-base64-encoded-sexp-from-buffer)
          (read-base64-func
@@ -4825,18 +4834,32 @@ object which can be used for `eval'."
                    (coding-system-for-write 'utf-8-auto))
                (read sexp-str))))
          ;; -------------------- the use spec form --------------------
-         (form-encoded (with-current-buffer (entropy/emacs-generate-base64-encoded-sexp-buffer
-                                             (if use-current-package-user-dir
-                                                 `(let ((package-user-dir ,package-user-dir))
-                                                    (progn
-                                                      (package-initialize)
-                                                      ,form))
-                                             `(progn
-                                                ,form)))
-                         (prog1
-                             (read (current-buffer))
-                           (let ((kill-buffer-hook nil))
-                             (kill-buffer (current-buffer))))))
+         (form-encoded
+          (with-current-buffer
+              (entropy/emacs-generate-base64-encoded-sexp-buffer
+               (if use-current-package-user-dir
+                   `(let ((package-user-dir
+                           ,(cond
+                             ((not (eq t use-current-package-user-dir))
+                              (let ((dir (eval use-current-package-user-dir)))
+                                (unless (and dir
+                                             (stringp dir)
+                                             (not (string-empty-p dir))
+                                             (file-exists-p dir))
+                                  (error "the specified package-user-dir is not exist via '%S'"
+                                         use-current-package-user-dir))
+                                dir))
+                             (t
+                              package-user-dir))))
+                      (progn
+                        (package-initialize)
+                        ,@forms))
+                 `(progn
+                    ,@forms)))
+            (prog1
+                (read (current-buffer))
+              (let ((kill-buffer-hook nil))
+                (kill-buffer (current-buffer))))))
          ;; -------------------- final eval form --------------------
          (proc-eval-form
           `(progn
@@ -4861,14 +4884,29 @@ object which can be used for `eval'."
               tmpfile))))
     (setq proc
           (make-process
-           :name name
-           :buffer buffer
+           :name proc-name
+           :buffer proc-buffer
            :command `(
                       ;; ensure use the same emacs version as current session
                       ,(or emacs-invocation-name
                            (expand-file-name invocation-name invocation-directory))
                       "-Q" "-l" ,proc-eval-form-file)
-           :sentinel nil))
+           :sentinel
+           `(lambda (proc event-str)
+              (cond ((entropy/emacs-process-exit-with-fatal-p proc event-str)
+                     (message
+                      "eemacs viginal emacs test proc '%s' exit with fatal!"
+                      ,proc-name)
+                     (when (buffer-live-p ,proc-buffer)
+                       (pop-to-buffer ,proc-buffer)))
+                    (t
+                     (unless (entropy/emacs-process-is-running-p proc)
+                       (when (buffer-live-p ,proc-buffer)
+                         (let ((kill-buffer-hook nil))
+                           (kill-buffer ,proc-buffer)))
+                       (message
+                        "eemacs viginal emacs test proc '%s' exit with successfully!"
+                        ,proc-name)))))))
     proc))
 
 (declare async-start "ext:async")

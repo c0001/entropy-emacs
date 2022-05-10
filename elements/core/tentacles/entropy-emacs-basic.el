@@ -189,6 +189,8 @@ With prefix argument binds, jump to the previous mark place."
         ;; #+begin_src elisp
         ;;   (entropy/emacs-test-emacs-with-pure-setup-with-form
         ;;    "tramp-archive-enabled-bug-reproduce"
+        ;;    :use-current-package-user-dir nil
+        ;;    :emacs-invocation-name "emacs-28.1"
         ;;    '(progn
         ;;       (setq debug-on-error t)
         ;;       (setq tramp-archive-enabled nil)
@@ -196,8 +198,7 @@ With prefix argument binds, jump to the previous mark place."
         ;;        "/home/entropy/.config/entropy-config/\
         ;;   entropy-emacs/entropy-emacs/annex/emacs-src/\
         ;;   test/lisp/net/tramp-archive-resources/foo.iso/foo")
-        ;;       )
-        ;;    nil "emacs-28")
+        ;;       ))
         ;; #+end_src
         'tramp-archive
       (setq tramp-archive-enabled nil))
