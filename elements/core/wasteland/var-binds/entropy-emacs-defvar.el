@@ -701,12 +701,14 @@ remove the oldest one and then injecting new one."
                    ,name
                    ,hook-error-list
                    ,buff-stick-p))
-                (cur-buff (or (and (windowp buff-stick-p-2)
-                                   (or (window-buffer buff-stick-p-2)
-                                       t))
-                              (or (and buff-stick-p-2
-                                       (bufferp buff-stick-p-2))
-                                  (current-buffer))))
+                (cur-buff
+                 (when buff-stick-p-2
+                   (or (and (windowp buff-stick-p-2)
+                            (or (window-buffer buff-stick-p-2)
+                                t))
+                       (or (and buff-stick-p-2
+                                (bufferp buff-stick-p-2))
+                           (current-buffer)))))
                 (body-wrapper-2 ',body-wrapper))
            (defalias ',name
              `(lambda (&rest _)
