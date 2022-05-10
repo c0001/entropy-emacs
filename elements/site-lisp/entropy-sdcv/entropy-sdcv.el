@@ -269,6 +269,9 @@ system in this case was not the subject of utf-8 group."
                  (not (string-empty-p thing))
                  (if entropy/sdcv-autoshow-either-query-zh_CN
                      t
+                   ;; we must re-ensure the thing is not a chinese
+                   ;; word since many backend using long time to query
+                   ;; the chinese word
                    (not (entropy/sdcv-core-chinese-string-p thing)))
                  (not (string= (or entropy/sdcv-autoshow-last-query "")
                                thing)))
