@@ -628,6 +628,12 @@ Optional key slot support:
   `current-buffer' in the runtime, and ignore BODY when the
   buffer is not lived in runtime.
 
+  When the form evaluated return a `bufferp' buffer, then use that
+  buffer as `current-buffer'.
+
+  When the form evaluated return a `windowp' window, then use that
+  window's displayed buffer as `current-buffer'.
+
 When `entropy/emacs-session-idle-trigger-debug' is null, then any
 body is error ignored.
 
@@ -684,44 +690,49 @@ remove the oldest one and then injecting new one."
            (progn
              ,body-wrapper)
 
-         (let* ((func-name ',name)
-                (buff-stick-p ',buff-stick-p)
-                (cur-buff (current-buffer))
-                (body-wrapper ',body-wrapper)
-                (hook-error-list ',hook-error-list))
+         ;; intitial the context when not defined
+         (unless (fboundp ',hook-timer-func)
+           (entropy/emacs-def-idle-hook-refer-context
+            ,hook-idle-sec))
 
-           (unless (fboundp ',hook-timer-func)
-             (entropy/emacs-def-idle-hook-refer-context
-              ,hook-idle-sec))
-
+         ;; define the new hook function
+         (let* ((buff-stick-p-2
+                 (entropy/emacs-session-idle--run-body-simple
+                   ,name
+                   ,hook-error-list
+                   ,buff-stick-p))
+                (cur-buff (or (and (windowp buff-stick-p-2)
+                                   (or (window-buffer buff-stick-p-2)
+                                       t))
+                              (or (and buff-stick-p-2
+                                       (bufferp buff-stick-p-2))
+                                  (current-buffer))))
+                (body-wrapper-2 ',body-wrapper))
            (defalias ',name
              `(lambda (&rest _)
-                (if (eval
-                     '(entropy/emacs-session-idle--run-body-simple
-                        ,func-name
-                        ,hook-error-list
-                        ,buff-stick-p))
+                (if ',buff-stick-p-2
                     (when (and (bufferp ',cur-buff)
                                (buffer-live-p ',cur-buff))
                       (with-current-buffer ',cur-buff
-                        ,body-wrapper))
-                  ,body-wrapper)))
-           ;; remove all NAME in hooks
-           (entropy/emacs-idle-session-trigger-hooks-prunning
-            ',name)
-           ;; We should append the hook to the tail since follow the time
-           ;; order.
-           (entropy/emacs-run-at-idle-immediately--append-hook
-            ,hook ,name)
+                        ,body-wrapper-2))
+                  ,body-wrapper-2))))
 
-           ;; Intial the trigger timer when not bound
-           (unless (bound-and-true-p ,hook-timer-varname)
-             ;; escape byte-compile warning
-             (eval-when-compile (defvar ,hook-timer-varname))
-             (setq ,hook-timer-varname
-                   (run-with-idle-timer
-                    ,hook-idle-sec
-                    t ',hook-timer-func))))
+         ;; remove all NAME in hooks
+         (entropy/emacs-idle-session-trigger-hooks-prunning
+          ',name)
+         ;; We should append the hook to the tail since follow the time
+         ;; order.
+         (entropy/emacs-run-at-idle-immediately--append-hook
+          ,hook ,name)
+
+         ;; Intial the trigger timer when not bound
+         (unless (bound-and-true-p ,hook-timer-varname)
+           ;; escape byte-compile warning
+           (eval-when-compile (defvar ,hook-timer-varname))
+           (setq ,hook-timer-varname
+                 (run-with-idle-timer
+                  ,hook-idle-sec
+                  t ',hook-timer-func)))
          ))))
 
 ;; ** eemacs top keymap refer

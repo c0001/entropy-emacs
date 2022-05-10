@@ -262,7 +262,6 @@ queue done flag exposed to `ivy-done' idle trigger judger."
            __idle/ivy--queue-exhibit
            :which-hook 0.1
            :when (minibufferp)
-           :current-buffer t
            (let* ((func/ivy-done-like-p
                    (lambda (command)
                      (member command
