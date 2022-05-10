@@ -267,6 +267,10 @@ system in this case was not the subject of utf-8 group."
            show-instance)
       (when (and (stringp thing)
                  (not (string-empty-p thing))
+                 ;; escape number thing since its meaningless for
+                 ;; query as and some backend will hang to query for
+                 ;; thus.
+                 (not (string-match-p "^[0-9]+$" thing))
                  (if entropy/sdcv-autoshow-either-query-zh_CN
                      t
                    ;; we must re-ensure the thing is not a chinese
