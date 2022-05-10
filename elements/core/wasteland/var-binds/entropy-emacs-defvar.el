@@ -706,8 +706,8 @@ remove the oldest one and then injecting new one."
                    (or (and (windowp buff-stick-p-2)
                             (or (window-buffer buff-stick-p-2)
                                 t))
-                       (or (and buff-stick-p-2
-                                (bufferp buff-stick-p-2))
+                       (or (and (bufferp buff-stick-p-2)
+                                buff-stick-p-2)
                            (current-buffer)))))
                 (body-wrapper-2 ',body-wrapper))
            (defalias ',name
