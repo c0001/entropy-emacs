@@ -123,9 +123,9 @@ forcely get that name in USE-OBARRAY."
            (prog1
                ,body
              (setq ,sym nil))
-         (when ,sym
-           (progn
-             ,@unwindforms))))))
+         (if ,sym
+             (progn
+               ,@unwindforms))))))
 
 (defmacro entropy/emacs-add-to-list
     (list-var element &optional append compare-fn)
