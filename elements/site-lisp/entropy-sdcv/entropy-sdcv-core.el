@@ -437,6 +437,14 @@ positive."
         (setq rtn char-string)))
     rtn))
 
+(defun entropy/sdcv-core-chinese-string-p (string)
+  "Return non-nil when string is an chinese string."
+  (and (stringp string)
+       (not (string-empty-p string))
+       (string-match-p
+        (format "\\cC\\{%s\\}" (length string))
+        string)))
+
 ;;;;; theme, color refer
 
 (defun entropy/sdcv-core-color-name-to-lab (color_name)

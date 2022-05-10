@@ -266,14 +266,24 @@ system in this case was not the subject of utf-8 group."
            (thing (entropy/sdcv-core-get-word-or-region t))
            show-instance)
       (when (and (stringp thing)
-                 (not (string= entropy/sdcv-autoshow-last-query
+                 (not (string-empty-p thing))
+                 (if entropy/sdcv-autoshow-either-query-zh_CN
+                     t
+                   (not (entropy/sdcv-core-chinese-string-p thing)))
+                 (not (string= (or entropy/sdcv-autoshow-last-query "")
                                thing)))
         (setq entropy/sdcv-autoshow-last-query thing)
-        (setq show-instance
-              (entropy/sdcv-core-query-backend
-               thing
-               entropy/sdcv-default-query-backend-name
-               'minibuffer-common))
+        (with-temp-message
+            ;; prompting for what is doing since the query backend is
+            ;; synchronously which may freeze emacs.
+            (format "[entorpy-sdcv] auto query thing <%s> using dict '%s' ..."
+                    thing
+                    entropy/sdcv-default-query-backend-name)
+          (setq show-instance
+                (entropy/sdcv-core-query-backend
+                 thing
+                 entropy/sdcv-default-query-backend-name
+                 'minibuffer-common)))
         (unless (string= (plist-get show-instance :feedback)
                          entropy/sdcv-core-response-null-prompt)
           (entropy/sdcv-core-response-show
