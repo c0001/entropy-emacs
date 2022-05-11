@@ -5113,25 +5113,29 @@ true, nil for otherwise."
     (and val
          (symbolp val))))
 
-(defun entropy/emacs-icons-displayable-p ()
+(defvar entropy/emacs-icons-displayable-p--cache nil)
+(defun entropy/emacs-icons-displayable-p (&optional reset)
   "Return non-nil if `all-the-icons' is displayable."
-  (and entropy/emacs-use-icon
-       (display-graphic-p)
-       ;; FIXME: `find-font' can not be used in emacs batch mode.
-       (or (and entropy/emacs-fall-love-with-pdumper
-                entropy/emacs-do-pdumper-in-X)
-           (let ((rtn t))
-             (catch :exit
-               (dolist (font-name '("github-octicons"
-                                    "FontAwesome"
-                                    "file-icons"
-                                    "Weather Icons"
-                                    "Material Icons"
-                                    "all-the-icons"))
-                 (unless (find-font (font-spec :name font-name))
-                   (setq rtn nil)
-                   (throw :exit nil))))
-             rtn))))
+  (or (and entropy/emacs-icons-displayable-p--cache
+           (not reset))
+      (setq entropy/emacs-icons-displayable-p--cache
+            (and entropy/emacs-use-icon
+                 (display-graphic-p)
+                 ;; FIXME: `find-font' can not be used in emacs batch mode.
+                 (or (and entropy/emacs-fall-love-with-pdumper
+                          entropy/emacs-do-pdumper-in-X)
+                     (let ((rtn t))
+                       (catch :exit
+                         (dolist (font-name '("github-octicons"
+                                              "FontAwesome"
+                                              "file-icons"
+                                              "Weather Icons"
+                                              "Material Icons"
+                                              "all-the-icons"))
+                           (unless (find-font (font-spec :name font-name))
+                             (setq rtn nil)
+                             (throw :exit nil))))
+                       rtn))))))
 
 (defvar entropy/emacs-idle-cleanup-echo-area-timer-is-running-p nil)
 (defun entropy/emacs-idle-cleanup-echo-area ()
@@ -6430,6 +6434,12 @@ stored the error log in
                         (display-graphic-p)
                         error)
                 entropy/emacs-with-daemon-make-frame-done-error-log)))))))
+
+(when (daemonp)
+  ;; reset icon displayable cache while daemon frame makeup
+  (entropy/emacs-with-daemon-make-frame-done
+   'reset-icon-displayable-cache
+   nil nil '(entropy/emacs-icons-displayable-p t)))
 
 ;; *** Proxy specification
 ;; **** process env with eemacs union internet proxy

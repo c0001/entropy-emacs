@@ -470,7 +470,16 @@ idle trigger guard `entropy/emacs--set-idle-signal'"
        t
        #'entropy/emacs--set-idle-signal))
 
-(add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal)
+;; we must ensure that this hook is first member of `pre-command-hook'
+;; since the referred var will reflect any functions rest of thus.
+;;
+;; FIXME: does the depth set can reflect the local variable binding?
+;; i.e. whether the local-binding of `pre-command-hook' is obey this
+;; global order?
+;;
+;; EEMACS_MAINTENANCE: follow the FIXME seciton to hack any other hook
+;; injecting before this one.
+(add-hook 'pre-command-hook #'entropy/emacs--reset-idle-signal -100)
 (defun entropy/emacs--idle-var-guard (_symbol newval _operation _where)
   (unless (null newval)
     (force-mode-line-update)))
