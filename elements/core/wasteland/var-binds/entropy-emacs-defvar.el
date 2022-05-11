@@ -418,27 +418,31 @@ wrong type of type: %s"
   'entropy/emacs-get-idle-hook-refer-symbol-name-with-idle-second)
 
 (defun entropy/emacs--reset-idle-signal ()
-  ;; NOTE:
-  ;; firstly we press the `inhibit-read-only' for preventing any
-  ;; procedure enable this of which polluting next operation.
-  (setq inhibit-read-only nil)
-  (setq entropy/emacs-current-session-is-idle-p nil
-        entropy/emacs-current-session-idle-hook-ran-done nil
-        entropy/emacs-current-session-this-command-before-idle this-command
-        entropy/emacs-current-session-last-command-before-idle last-command)
-  (dolist (idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
-    (let ((hook-idle-trigger-start-varname
-           (__eemacs--get-idle-hook-refer-symbol-name
-            'hook-trigger-start-var idle-sec))
-          (hook-idle-trigger-done-varname
-           (__eemacs--get-idle-hook-refer-symbol-name
-            'hook-trigger-done-var idle-sec)))
-      (eval
-       `(progn
-          (when (bound-and-true-p ,hook-idle-trigger-start-varname)
-            (setq ,hook-idle-trigger-start-varname nil))
-          (when (bound-and-true-p ,hook-idle-trigger-done-varname)
-            (setq ,hook-idle-trigger-done-varname nil)))))))
+  (when entropy/emacs-current-session-is-idle-p
+    (let (
+          ;; NOTE: protect as atomic manupulation
+          (inhibit-quit t))
+      ;; NOTE:
+      ;; firstly we press the `inhibit-read-only' for preventing any
+      ;; procedure enable this of which polluting next operation.
+      (setq inhibit-read-only nil)
+      (setq entropy/emacs-current-session-is-idle-p nil
+            entropy/emacs-current-session-idle-hook-ran-done nil
+            entropy/emacs-current-session-this-command-before-idle this-command
+            entropy/emacs-current-session-last-command-before-idle last-command)
+      (dolist (idle-sec entropy/emacs-idle-session-trigger-delay-clusters)
+        (let ((hook-idle-trigger-start-varname
+               (__eemacs--get-idle-hook-refer-symbol-name
+                'hook-trigger-start-var idle-sec))
+              (hook-idle-trigger-done-varname
+               (__eemacs--get-idle-hook-refer-symbol-name
+                'hook-trigger-done-var idle-sec)))
+          (eval
+           `(progn
+              (when (bound-and-true-p ,hook-idle-trigger-start-varname)
+                (setq ,hook-idle-trigger-start-varname nil))
+              (when (bound-and-true-p ,hook-idle-trigger-done-varname)
+                (setq ,hook-idle-trigger-done-varname nil)))))))))
 
 (defun entropy/emacs--set-idle-signal ()
   (setq entropy/emacs-current-session-is-idle-p t)
@@ -559,20 +563,21 @@ Optional IDEL-SEC indicate the idle seconds maybe logged by
 topset trigger status which equality the point just idle
 indicator `entropy/emacs-current-session-is-idle-p'."
   (if (null idle-sec)
-      (bound-and-true-p
-       entropy/emacs-current-session-is-idle-p)
-    (let ((var (__eemacs--get-idle-hook-refer-symbol-name
-                'hook-trigger-start-var idle-sec)))
-      (if (boundp var)
-          (symbol-value
-           var)
-        ;; instead of generate a new idle trigger instance, we just
-        ;; use `current-idle-time' to judge the idleness duration to
-        ;; reduce unnecessary timer resource for performance concern.
-        (let ((curidtm (current-idle-time)))
-          (and curidtm
-               (>= (time-to-seconds curidtm)
-                   idle-sec)))))))
+      entropy/emacs-current-session-is-idle-p
+    (and
+     entropy/emacs-current-session-is-idle-p
+     (let ((var (__eemacs--get-idle-hook-refer-symbol-name
+                 'hook-trigger-start-var idle-sec)))
+       (if (boundp var)
+           (symbol-value
+            var)
+         ;; instead of generate a new idle trigger instance, we just
+         ;; use `current-idle-time' to judge the idleness duration to
+         ;; reduce unnecessary timer resource for performance concern.
+         (let ((curidtm (current-idle-time)))
+           (and curidtm
+                (>= (time-to-seconds curidtm)
+                    idle-sec))))))))
 
 (defun entropy/emacs-idle-session-trigger-hooks-prunning
     (name)
