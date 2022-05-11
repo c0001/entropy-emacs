@@ -415,25 +415,37 @@ This slot should obey the rules of:
 
 ;; ***** window parameter memory
   (defun entropy/emacs-wc--eyebrowse-regist-wpamemory ()
-    (let ((cur-eslot (when (bound-and-true-p eyebrowse-mode)
-                       (eyebrowse--get 'current-slot))))
-      (entropy/emacs-wpamemory-regist-memory
-       'eyebrowse
-       `(EEMACS-DT-IDENTITY
-         .
-         (:eyebrowse-slot . ,cur-eslot)))))
+    (let* ((selected-frame (selected-frame))
+           (frame (when (eq selected-frame entropy/emacs-main-frame)
+                    selected-frame)))
+      (when frame
+        (let ((cur-eslot (when (bound-and-true-p eyebrowse-mode)
+                           (eyebrowse--get 'current-slot))))
+          (when cur-eslot
+            (entropy/emacs-wpamemory-regist-memory
+             'eyebrowse
+             `(EEMACS-DT-IDENTITY
+               :eyebrowse-slot ,cur-eslot :frame ,frame)))))))
 
   (defun entropy/emacs-wc--eyebrowse-resotre-wpamemory ()
-    (let ((cur-eslot (when (bound-and-true-p eyebrowse-mode)
-                       (eyebrowse--get 'current-slot))))
-      (entropy/emacs-wpamemory-restore-memory
-       'eyebrowse
-       `(EEMACS-DT-IDENTITY
-         .
-         (:eyebrowse-slot . ,cur-eslot)))))
+    (let* ((selected-frame (selected-frame))
+           (frame (when (eq selected-frame entropy/emacs-main-frame)
+                    selected-frame)))
+      (when frame
+        (let ((cur-eslot (when (bound-and-true-p eyebrowse-mode)
+                           (eyebrowse--get 'current-slot))))
+          (when cur-eslot
+            (entropy/emacs-wpamemory-restore-memory
+             'eyebrowse
+             `(EEMACS-DT-IDENTITY
+               :eyebrowse-slot ,cur-eslot :frame ,frame)))))))
 
-  (add-hook 'eyebrowse-pre-window-switch-hook #'entropy/emacs-wc--eyebrowse-regist-wpamemory)
-  (add-hook 'eyebrowse-post-window-switch-hook #'entropy/emacs-wc--eyebrowse-resotre-wpamemory)
+  (add-hook 'eyebrowse-pre-window-switch-hook
+            #'entropy/emacs-wc--eyebrowse-regist-wpamemory
+            100)
+  (add-hook 'eyebrowse-post-window-switch-hook
+            #'entropy/emacs-wc--eyebrowse-resotre-wpamemory
+            100)
 
 ;; ***** Debugs for improving eyebrowse's user experience
   (defun __ya/eyebrowse--read-slot ()

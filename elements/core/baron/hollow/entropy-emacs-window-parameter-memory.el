@@ -70,8 +70,9 @@ operations.
 Each MEMORY-TYPE can regist the memory into here multi-times,
 because each MEMORY-TYPE can have various feature represented by
 the MEMORY-TYPE-ROLE, but each MEMORY-TYPE-ROLE just can stored
-once in here which means that each type with the same role can
-not be duplicated, if so the new one replace the old one.")
+once in here which means that each type with the same
+role (compared by `equal') can not be duplicated, if so the new
+one replace the old one.")
 
 (defvar entropy/emacs-wpamemory-ignored-window-parameters
   '(eemacs-current-window
@@ -86,7 +87,7 @@ user specified.")
 (defun entropy/emacs-wpamemory-pruning-memory
     (memory-type &optional memory-type-role)
   "Prunning the =eemacs-wpamemory-regist-obj= with MEMORY-TYPE of
-its role as MEMORY-TYPE-ROLE from
+its role as MEMORY-TYPE-ROLE (compared by `equal') from
 `entropy/emacs-wpamemory--memory-cookies', use
 `entropy/emacs-wpamemory-default-type-role' while the role is not
 specified."
@@ -108,8 +109,8 @@ specified."
 
 (defun entropy/emacs-wpamemory-get-memory
     (memory-type memory-type-role &optional pop-it)
-    "Get the =eemacs-wpamemory-regist-obj= with MEMORY-TYPE
-of its role as MEMORY-TYPE-ROLE from
+    "Get the =eemacs-wpamemory-regist-obj= with MEMORY-TYPE of its
+role as MEMORY-TYPE-ROLE (compared by `equal') from
 `entropy/emacs-wpamemory--memory-cookies'"
   (let* ((cache entropy/emacs-wpamemory--memory-cookies)
          (memory-type-role
@@ -186,16 +187,13 @@ not specified.
 
     ;; get the cookie
     (when cache
-      (setq entropy/emacs-wpamemory--memory-cookies
-            (append
-             (list
-              (let (_)
-                (entropy/emacs-wpamemory-pruning-memory
-                 memory-type memory-type-role)
-                (append
-                 (list memory-type memory-type-role)
-                 (list :register cache))))
-             entropy/emacs-wpamemory--memory-cookies)))))
+      (entropy/emacs-wpamemory-pruning-memory
+       memory-type memory-type-role)
+      (entropy/emacs-add-to-list
+       entropy/emacs-wpamemory--memory-cookies
+       (append
+        (list memory-type memory-type-role)
+        (list :register cache))))))
 
 (defun entropy/emacs-wpamemory-restore-memory
     (memory-type &optional memory-type-role)
