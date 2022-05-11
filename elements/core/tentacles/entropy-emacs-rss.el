@@ -1054,6 +1054,25 @@ the entry contents since we should respect
   (advice-add 'elfeed-show-entry
               :override #'__ya/elfeed-show-entry)
 
+;; *** patch `elfeed-curl--call-callback'
+
+  (defvar __ya/elfeed-curl--call-callback-log nil
+    "")
+  ;; FIXME: `elfeed-curl--call-callback' has fatal bug of
+  ;; 'wrong-type-of-value: number-or-marker-p nil'.
+  (defun __ya/elfeed-curl--call-callback (orig-func &rest orig-args)
+    (if entropy/emacs-startup-with-Debug-p
+        (apply orig-func orig-args)
+      (condition-case err
+          (apply orig-func orig-args)
+        (error
+         (push (cons err orig-args)
+               __ya/elfeed-curl--call-callback-log)
+         nil))))
+  (advice-add 'elfeed-curl--call-callback
+              :around
+              #'__ya/elfeed-curl--call-callback)
+
 ;; *** patch `elfeed-search--header'
 
   (defvar-local entropy/emacs-rss-elfeed--last-elfeed-search--header-result
