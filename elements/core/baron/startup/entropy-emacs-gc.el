@@ -115,7 +115,7 @@ origin, since each set to the `gc-threshold' or
          ;; restrict the gc threshold when matching above condidtions
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 2 1024 1024)))
+          entropy/emacs-gc-threshold-basic))
         ;; -------------------- prog-mode --------------------
         ((derived-mode-p 'prog-mode)
          (__ya/gc-threshold_setq
