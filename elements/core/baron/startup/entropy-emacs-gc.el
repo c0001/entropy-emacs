@@ -78,14 +78,17 @@
             :around
             #'entropy/emacs-gc-wrapper)
 
-(defmacro  __ya/gc-threshold_setq (symbol value)
+(defmacro __ya/gc-threshold_setq (symbol value)
   "yet another `setq' but spec for garbage collection referred
 variable with newvar set while the VALUE is not equal to the
 origin, since each set to the `gc-threshold' or
 `gc-cons-percentage' will make gc subrotine analysis(?)"
   `(let ((newval ,value))
      (unless (= ,symbol newval)
-       (setq ,symbol newval))))
+       (setq ,symbol newval)
+       (when garbage-collection-messages
+         (message "current gc-cons-threshold is: %s"
+                  gc-cons-threshold)))))
 
 (defun entropy/emacs-gc--adjust-cons-threshold ()
   (cond (
