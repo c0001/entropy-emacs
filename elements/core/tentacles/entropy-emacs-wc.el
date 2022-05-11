@@ -1093,6 +1093,8 @@ saved by
   :config
   (defvar entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p nil)
 
+  (defvar entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type-cache
+    nil)
   (defun entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type ()
     (cond
      ((bound-and-true-p buffer-read-only)
@@ -1107,7 +1109,7 @@ saved by
     "Trigger `winner-mode' `post-command-hook'
 `winner-save-old-configurations' with idle timer for perfomance
 issue."
-    (let (_)
+    (let (idle-delay)
       (cond
        (entropy/emacs-basic-winner---winner-save-old-config-run-orig-func-p
         (apply orig-func orig-args))
@@ -1116,12 +1118,19 @@ issue."
          ;; `winner-save-old-configurations', please update with
          ;; upstream updates.
          (zerop (minibuffer-depth)))
-        (eval
-         `(entropy/emacs-run-at-idle-immediately
-           __idle/winner-save-old-config
-           ;; use enlarge idle hook to reduce lag
-           :which-hook ,(entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type)
-           (apply ',orig-func ',orig-args))))
+        (setq idle-delay
+              (entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type)
+              )
+        (unless (equal idle-delay
+                       entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type-cache)
+          (setq entropy/emacs-basic-winner---winner-save-old-config-run-with-idle-type-cache
+                idle-delay)
+          (eval
+           `(entropy/emacs-run-at-idle-immediately
+             __idle/winner-save-old-config
+             ;; use enlarge idle hook to reduce lag
+             :which-hook ,idle-delay
+             (apply ',orig-func ',orig-args)))))
        (t
         (apply orig-func orig-args)))))
   (advice-add
