@@ -513,6 +513,7 @@ re-trigger the timer IDLE-TIMER-VAR."
 certain eemacs-spec conditions."
   (let* ((buff (current-buffer))
          (buff-name (buffer-name buff))
+         (buff-fname (buffer-file-name buff))
          (buff-exclusions
           (rx (or (seq line-start "*Org Src")
                   (seq line-start " *org-src-fontification:")
@@ -524,11 +525,17 @@ certain eemacs-spec conditions."
             org-mode)))
     (unless (or
              ;; just buffer with file can be start codeserver
-             (not (buffer-file-name))
+             (not buff-fname)
              ;; `major-mode' filter
              (member major-mode mode-exclusions)
              ;; `buffer-name' filter
-             (string-match-p buff-exclusions buff-name))
+             (string-match-p buff-exclusions buff-name)
+             ;; a sudo tramp file since its used as fake tramp
+             ;; remotion which maybe messy up system
+             (and buff-fname
+                  (file-remote-p buff-fname)
+                  (string-match-p "^/sudo:" buff-fname))
+             )
       (apply orig-func orig-args))))
 
 
