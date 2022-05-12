@@ -391,13 +391,18 @@ large buffer."
                            (not (> (length str) 100)))))
                ;; let `swiper' like function using origin since its
                ;; internal needed in ivy source filea
-               (memq (ivy-state-caller ivy-last)
+               (memq this-command
                      '(swiper
                        swiper-isearch
+                       swiper-isearch-thing-at-point
                        ;; TODO: more
                        ))
                )
-           (apply orig-func orig-args))
+           (let (rtn)
+             (prog1 (setq rtn (apply orig-func orig-args))
+               (unless (string-empty-p rtn)
+                 (message "ivy-thing-at-pt: invoke by command <%s> at thing '%s'"
+                          this-command rtn)))))
           (t "")))
   (advice-add 'ivy-thing-at-point
               :around
