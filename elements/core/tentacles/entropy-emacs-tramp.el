@@ -178,12 +178,15 @@ This func divided this string into the return list as:
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
   '("Tramp"
     (("C-c s f" entropy/emacs-sudoedit-current-path-maybe
-      "Get su privileges for CURR-PATH if need to so."
+      "Get sudo privileges for CURR-PATH if need to so."
       :enable t :exit t :global-bind t)
      ("C-c s t" entropy/emacs-tramp-query-chosen-open
       "The dispatcher for tramp retrieving of entropy-emacs"
       :enable t :exit t :global-bind t)
-     ("C-c s c" entropy/emacs-tramp-clean-all
+     ("C-c s c" tramp-cleanup-this-connection
+      "Clean the current tramp session and refer buffers"
+      :enable t :exit t :global-bind t)
+     ("C-c s a" entropy/emacs-tramp-clean-all
       "Clean all tramp connections and refer buffers"
       :enable t :exit t :global-bind t)))))
 
