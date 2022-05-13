@@ -102,6 +102,10 @@ For lisp coding aim, always return the transfered buffer.
 ;; Note: `elisp-mode' was called `emacs-lisp-mode' in <=24
 (use-package elisp-mode
   :ensure nil
+  :commands (entropy/emacs-lisp-elisp-eval-defun
+             entropy/emacs-lisp-elisp-eval-buffer
+             entropy/emacs-lisp-elisp-eval-region
+             entropy/emacs-lisp-elisp-eval-last-sexp)
   :eemacs-mmphc
   ((((:enable t :defer (:data (:adfors (emacs-lisp-mode-hook) :adtype hook :pdumper-no-end t)))
      (emacs-lisp-mode (elisp-mode emacs-lisp-mode-map) t))
@@ -113,25 +117,62 @@ For lisp coding aim, always return the transfered buffer.
       :exit t
       :map-inject t))
     "Eval"
-    (("C-c C-c" eval-defun "Eval wrapping context"
+    (("C-c C-c" entropy/emacs-lisp-elisp-eval-defun "Eval wrapping context"
       :enable t
       :exit t
       :map-inject t)
-     ("C-c C-b" eval-buffer "Eval Whole buffer"
+     ("C-c C-b" entropy/emacs-lisp-elisp-eval-buffer "Eval Whole buffer"
       :enable t
       :exit t
       :map-inject t)
-     ("C-c M-r" eval-region "Eval Markup Region"
+     ("C-c M-r" entropy/emacs-lisp-elisp-eval-region "Eval Markup Region"
       :enable t
       :exit t
       :map-inject t)
-     ("C-x C-e" eval-last-sexp "Evaluate sexp before point"
+     ("C-x C-e" entropy/emacs-lisp-elisp-eval-last-sexp "Evaluate sexp before point"
       :enable t
       :exit t
       :map-inject t))))
   :config
   ;; disbale `eval-last-sexp' in `ctl-x-map' for reducing mistakes
   (define-key ctl-x-map "\C-e" nil)
+
+  (eval-when-compile
+    (defmacro entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
+        (type &rest body)
+      "Wrap eval type BODY in safety way i.e. promtp before did
+anything."
+      `(when (yes-or-no-p
+              (format "Really eval %s" ',type))
+         ,@body)))
+
+  (defun entropy/emacs-lisp-elisp-eval-defun ()
+    "Like `eval-defun' but in safety way."
+    (interactive)
+    (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
+     defun
+     (call-interactively 'eval-defun)))
+
+  (defun entropy/emacs-lisp-elisp-eval-buffer ()
+    "Like `eval-buffer' but in safety way."
+    (interactive)
+    (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
+     buffer
+     (call-interactively 'eval-buffer)))
+
+  (defun entropy/emacs-lisp-elisp-eval-region ()
+    "Like `eval-region' but in safety way."
+    (interactive)
+    (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
+     region
+     (call-interactively 'eval-region)))
+
+  (defun entropy/emacs-lisp-elisp-eval-last-sexp ()
+    "Like `eval-last-sexp' but in safety way."
+    (interactive)
+    (entropy/emacs-lisp--elisp-inct-eval-safaty-wrap
+     last-sexp
+     (call-interactively 'eval-last-sexp)))
   )
 
 (use-package eldoc-eval
