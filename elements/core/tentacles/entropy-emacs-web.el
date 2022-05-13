@@ -275,7 +275,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
     (("C-j" emmet-expand-line "Emmet expanding (intelligent)"
       :enable t :map-inject t :exit t))))
   :config
-  (define-key emmet-mode-keymap "C-c w" nil))
+  (define-key emmet-mode-keymap (kbd "C-c w") nil))
 
 ;; *** CSS mode
 (use-package css-mode
