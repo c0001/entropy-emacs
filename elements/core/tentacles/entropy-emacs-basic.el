@@ -3611,9 +3611,22 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
     "Get su privileges for CURR-PATH if need to so."
     (declare (interactive-only t))
     (interactive (list (auto-sudoedit-current-path)))
-    (let ((path (cdr (auto-sudoedit-path curr-path))))
-      (if path
-          (find-file path)
+    (let* ((cur-buff (current-buffer))
+           (cur-buff-fname (buffer-file-name cur-buff))
+           (autosudo-obj (auto-sudoedit-path curr-path))
+           (type (car autosudo-obj))
+           (path (cdr autosudo-obj)))
+      (if (and type path)
+          (progn
+            ;; increase tramp cache the sudo password expiry time
+            (let ((password-cache-expiry (* 60 30)))
+              (find-file path))
+            ;; kill the current file buffer firstly to ensure the
+            ;; tramped one is the only one visited the file so that we
+            ;; do not need to do some file steal operation any more.
+            (when (and cur-buff-fname
+                       (not (file-remote-p cur-buff-fname)))
+              (kill-buffer cur-buff)))
         (entropy/emacs-message-do-message
          "no need to get sudo permission to edit path %s"
          (green (format "%s" curr-path)))))))
