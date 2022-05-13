@@ -4509,9 +4509,28 @@ successfully both of situation of read persisit of create an new."
 ;; **** Key modification
 
 ;; ***** more conventions
-(global-set-key (kbd "C-M-g") 'keyboard-quit) ; when unintended active this, using 'QUIT' as 'C-g'
-(global-set-key (kbd "C-s-g") 'keyboard-quit) ; same as above of super key intended active
-(global-set-key (kbd "A-C-g") 'keyboard-quit) ; same as above of super key intended active
+
+;; arrange multi easy to mis-hints keyboard shortcuts to `keyboard-quit'
+(defvar ivy-minibuffer-map)
+(let ((keys '(
+              ;; when unintended active this, using 'QUIT' as 'C-g'
+              "C-M-g"
+              ;; same as above of super key intended active
+              "C-s-g"
+              ;; same as above of super key intended active
+              "A-C-g"
+              ;; same as above of super key intended active
+              "C-M-s-g"
+              )))
+  ;; for global mode map
+  (dolist (key keys)
+    (global-set-key (kbd key) 'keyboard-quit))
+
+  ;; also define the minibuffer specified `keboard-quit' function
+  (eval-after-load 'ivy
+    `(dolist (key ',keys)
+       (define-key ivy-minibuffer-map
+         (kbd key) 'minibuffer-keyboard-quit))))
 
 ;; ***** key re-mapping
 ;; Binding 'super' and 'hyper' on win32 and mac.
