@@ -1848,6 +1848,7 @@ Now just supply localization image file analyzing."
              org-download-screenshot
              org-download-delete
              org-download-enable)
+  :after org
   :bind
   (:map org-mode-map
         ("\C-cp" . entropy/emacs-org-download-screenshot))
