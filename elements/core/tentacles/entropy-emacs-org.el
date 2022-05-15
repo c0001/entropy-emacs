@@ -1855,9 +1855,7 @@ Now just supply localization image file analyzing."
 
   ;; Init setting for changing the default annotation method and support unicode dir-name
   (progn
-    ;; (require 'org-download)
-
-    (setq-default org-download-image-dir "../annex/img/")
+    (setq-default org-download-image-dir "./img/")
     (setq-default org-download-heading-lvl nil)	;; Cancel taxonomy make image directory
 
     ;; Support unicode filename
