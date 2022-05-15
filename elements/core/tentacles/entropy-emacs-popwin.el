@@ -536,7 +536,8 @@ specification."
             (setq stick-buffer (window-buffer)
                   stick-window (get-buffer-window stick-buffer))
             (when (entropy/emacs-popwin--buffer-is-shackle-popup-p stick-buffer)
-              (message "Auto hiding popuped buffer <one-window type> ...")
+              (message "Auto hide popups in <one-window type> (in window %S) ..."
+                       stick-window)
               (dolist (el (list stick-buffer stick-window))
                 (entropy/emacs-popwin--shackle-unhack-for-buffer-or-window
                  el))
@@ -555,7 +556,8 @@ specification."
              )
             (setq stick-buffer (window-buffer)
                   stick-window (get-buffer-window stick-buffer))
-            (message "Auto hiding popuped buffer <buffer-local type> ...")
+            (message "Auto hiding popups in <buffer-local type> (in buffer window %S) ..."
+                     stick-window)
             (let ((window-prev
                    (and (windowp stick-window)
                         (window-parameter
@@ -580,7 +582,9 @@ specification."
                  el))
               (when (ignore-errors (buffer-live-p stick-buffer))
                 (when (ignore-errors (window-live-p stick-window))
-                  (message "Auto hiding popuped buffer <multi-window type> ...")
+                  (message
+                   "Auto hiding popups in <multi-window type> (based on window %S) ..."
+                   (selected-window))
                   (delete-window stick-window)
                   (setq close-done t)))
               ;; ;; recenter the `host-buffer' window but it's optional so we commented it
