@@ -57,10 +57,23 @@ either install 'markdown' or 'multimarkdown' from your system
 package management!"))
     (message "Transferring current buffer using '%s' ..." markdown-command))
 
-  :hook (markdown-mode . markdown-toggle-url-hiding)
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
+
+  :init
+
+  (defun entropy/emacs-markdown--mdmode-core-specifed (&rest _)
+    "The eemacs top `markdown-mode' specifications."
+    ;; disable truncate line feature since markdown do not recognize
+    ;; filled paragraph as a paragraph.
+    (setq truncate-lines nil)
+    ;; hide the url source link as default
+    (setq markdown-hide-urls t)
+    )
+  (add-hook 'markdown-mode-hook
+            #'entropy/emacs-markdown--mdmode-core-specifed)
+
   :config
 
   ;; Change face for markdown code,pre,inline-code face for using
