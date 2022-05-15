@@ -757,6 +757,15 @@ when available."
   (defvar lsp-clients-clangd-args)
   (setq lsp-clients-clangd-args '("--header-insertion=never"))
 
+;; ******** lsp server init args specifications
+
+  (setq lsp-clients-typescript-server-args
+        `("--stdio"
+          "--tsserver-log-file"
+          ,(expand-file-name
+            ".tsserver-log-file"
+            entropy/emacs-temporary-file-directory)))
+
 ;; ******* config
   :config
 
