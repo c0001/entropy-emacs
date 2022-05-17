@@ -1,15 +1,17 @@
 # Table of Contents
 
-1.  [Copyright (C) 20190829  Entropy](#org2787f7d)
-2.  [Commentary:](#orgfe907a6)
-3.  [Configuration:](#orgb41cdc9)
-4.  [Development](#org4b42017)
-    1.  [`shellpop-type-register` data structure](#org1494a6b)
-    2.  [`shellpop-buffer-object` data structure](#org953baca)
-    3.  [Extensible developing](#org6290f18)
-5.  [Changelog](#org6e043d3)
+1.  [Copyright (C) 20190829  Entropy](#org450d926)
+2.  [Commentary:](#org477cc6f)
+3.  [Configuration:](#org88fe050)
+4.  [Development](#org1143668)
+    1.  [`shellpop-type-register-list` data structure](#org1fc4f55)
+    2.  [`shellpop-buffer-object` data structure](#org32f0446)
+    3.  [Extensible developing](#org8e838f6)
+5.  [Changelog](#org4ac5df1)
 
-<a id="org2787f7d"></a>
+
+
+<a id="org450d926"></a>
 
 # Copyright (C) 20190829  Entropy
 
@@ -29,7 +31,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Package-Version: 20190829
+    Package-Version: 20220517
     Version:       0.1.0
     Created:       2019-08-29
     Keywords:      shell-pop, shell
@@ -37,7 +39,7 @@
     Package-Requires: ((cl-lib "1.0") (shackle "1.0.3") (vterm "0.0.1"))
 
 
-<a id="orgfe907a6"></a>
+<a id="org477cc6f"></a>
 
 # Commentary:
 
@@ -56,7 +58,7 @@ purely fundamental, for optimizing features' detailes and
 restructed the popup feature rely on [shackle](https://github.com/wasamasa/shackle).
 
 
-<a id="orgb41cdc9"></a>
+<a id="org88fe050"></a>
 
 # Configuration:
 
@@ -79,7 +81,7 @@ You may customize variable `entropy/shellpop-pop-types` for more
 specification, see its doc-string for more.
 
 
-<a id="org4b42017"></a>
+<a id="org1143668"></a>
 
 # Development
 
@@ -87,30 +89,31 @@ For PR and extented aiming for, `entropy-shellpop` provide its own
 code context map, a illustration for thus as below sections:
 
 
-<a id="org1494a6b"></a>
+<a id="org1fc4f55"></a>
 
-## `shellpop-type-register` data structure
+## `shellpop-type-register-list` data structure
 
-This is the global host var-type designed for 'entropy-shellpop' to
-get the overview for all shellpop buffers in current emacs session of
-arbitrary shell-type (yes `entropy-shellpop` was multi-shell coexist
-possibly). It group the shellpop buffers into two-step tree, the top
-was referred to the `shell-type-name` and the subtree was for index of
-those buffers, that:
+This is a global var as a list of `shellpop-type-register` which be
+designed for 'entropy-shellpop' to get the overview for all
+shellpop buffers in current emacs session of arbitrary shell-type
+(yes `entropy-shellpop` was multi-shell coexist possibly). It group
+the shellpop buffers into two-step tree, the top was referred to
+the `shell-type-name` and the subtree was for index of those
+buffers, that:
 
                               =========================================
-                                 shellpop type register  illustration
+                                 shellpop type register list illustration
                               =========================================
 
 
-                                     +--------------------------+
-                                     |  shellpop-type-register  |
-                                     +-------------+------------+
+                                     +-------------------------------+
+                                     |  shellpop-type-register-list  |
+                                     +-------------+-----------------+
                                  ---------/        |        \---------
                eshell  ---------/             ansi | term             \---------  shell
-           +----------/--+                  +------v------+                  +--\----------+
-           | shelltype 1 |                  | shelltype 2 |                  | shelltype 3 |
-           +------+------+                  +------+------+                  +------+------+
+           +----------/---------------+     +------v------------------+      +--\----------------------+
+           | shellpop-type-register 1 |     | shellpop-type-register 2|      | shellpop-type-register 3|
+           +------+-------------------+     +------+------------------+      +------+------------------+
                   |                                |                                |
         +---------+---------+            +---------+---------+            +---------+---------+
         |         |         |            |         |         |            |         |         |
@@ -162,7 +165,7 @@ string, and the cdr was the plist whose slots are:
     is used currently.
 
 
-<a id="org953baca"></a>
+<a id="org32f0446"></a>
 
 ## `shellpop-buffer-object` data structure
 
@@ -194,7 +197,7 @@ various buffer status information, include:
     indicated that.
 
 
-<a id="org6290f18"></a>
+<a id="org8e838f6"></a>
 
 ## Extensible developing
 
@@ -205,9 +208,13 @@ and given the rich way to experience thus. Just do with your flying
 mind.
 
 
-<a id="org6e043d3"></a>
+<a id="org4ac5df1"></a>
 
 # Changelog
+
+-   <span class="timestamp-wrapper"><span class="timestamp">[2022-05-17 Tue 18:30]</span></span>
+
+    Add :pointer reflect preserve API
 
 -   <span class="timestamp-wrapper"><span class="timestamp">[2020-11-04 Wed 18:18]</span></span>
 
@@ -239,4 +246,4 @@ mind.
     The first release of `entropy-sdcv`
 
 
-<a id="org55a8b26"></a>
+<a id="orgb9d6401"></a>

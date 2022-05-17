@@ -18,7 +18,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;
-;; Package-Version: 20190829
+;; Package-Version: 20220517
 ;; Version:       0.1.0
 ;; Created:       2019-08-29
 ;; Keywords:      shell-pop, shell
@@ -69,29 +69,30 @@
 ;; For PR and extented aiming for, =entropy-shellpop= provide its own
 ;; code context map, a illustration for thus as below sections:
 
-;;;; =shellpop-type-register= data structure
+;;;; =shellpop-type-register-list= data structure
 
-;; This is the global host var-type designed for 'entropy-shellpop' to
-;; get the overview for all shellpop buffers in current emacs session of
-;; arbitrary shell-type (yes =entropy-shellpop= was multi-shell coexist
-;; possibly). It group the shellpop buffers into two-step tree, the top
-;; was referred to the =shell-type-name= and the subtree was for index of
-;; those buffers, that:
+;; This is a global var as a list of =shellpop-type-register= which be
+;; designed for 'entropy-shellpop' to get the overview for all
+;; shellpop buffers in current emacs session of arbitrary shell-type
+;; (yes =entropy-shellpop= was multi-shell coexist possibly). It group
+;; the shellpop buffers into two-step tree, the top was referred to
+;; the =shell-type-name= and the subtree was for index of those
+;; buffers, that:
 
 ;; #+BEGIN_EXAMPLE
 ;;                             =========================================
-;;                                shellpop type register  illustration
+;;                                shellpop type register list illustration
 ;;                             =========================================
 
 
-;;                                    +--------------------------+
-;;                                    |  shellpop-type-register  |
-;;                                    +-------------+------------+
+;;                                    +-------------------------------+
+;;                                    |  shellpop-type-register-list  |
+;;                                    +-------------+-----------------+
 ;;                                ---------/        |        \---------
 ;;              eshell  ---------/             ansi | term             \---------  shell
-;;          +----------/--+                  +------v------+                  +--\----------+
-;;          | shelltype 1 |                  | shelltype 2 |                  | shelltype 3 |
-;;          +------+------+                  +------+------+                  +------+------+
+;;          +----------/---------------+     +------v------------------+      +--\----------------------+
+;;          | shellpop-type-register 1 |     | shellpop-type-register 2|      | shellpop-type-register 3|
+;;          +------+-------------------+     +------+------------------+      +------+------------------+
 ;;                 |                                |                                |
 ;;       +---------+---------+            +---------+---------+            +---------+---------+
 ;;       |         |         |            |         |         |            |         |         |
@@ -181,6 +182,10 @@
 ;; mind.
 
 ;;; Changelog
+;; - [2022-05-17 Tue 18:30:06]
+;;
+;;   Add :pointer reflect preserve API
+
 ;; - [2020-11-04 Wed 18:18:29]
 
 ;;   Add `entropy-shellpop-mode' specific modeline
@@ -712,22 +717,41 @@ for current maximized pop-shell."))))))
   (let ((cur-indexs shellpop-type-register-index))
     (catch :exit
       (dolist (entry cur-indexs)
-        (when (eq index (car entry))
+        (when (equal index (car entry))
           (throw :exit t))))))
 
-(defun entropy/shellpop--put-index (shellpop-type-name buff-index)
+(defun entropy/shellpop--put-index
+    (shellpop-type-name buff-index &optional when-available no-new-desc)
   (let* ((type-name shellpop-type-name)
          (shellpop-type-register (assoc type-name entropy/shellpop--type-register))
          (cur-type-plist (cdr shellpop-type-register))
          (cur-type-indexs (plist-get cur-type-plist :indexs))
-         (cur-type-pointer (plist-get cur-type-plist :pointer)))
-    (unless (entropy/shellpop--type-index-member buff-index cur-type-indexs)
-      (plist-put cur-type-plist :indexs
-                 (append (list (cons buff-index (read-string "Type slot 'DES': ")))
-                         cur-type-indexs)))
-    (unless (eq cur-type-pointer buff-index)
-      (plist-put cur-type-plist
-                 :pointer buff-index))))
+         (cur-type-pointer (plist-get cur-type-plist :pointer))
+         (available (entropy/shellpop--type-index-member buff-index cur-type-indexs)))
+    (catch :exit
+      (when (and when-available (not available))
+        (throw :exit nil))
+      (unless available
+        (plist-put cur-type-plist :indexs
+                   (append
+                    (list
+                     (cons
+                      buff-index
+                      (or
+                       (and no-new-desc
+                            (stringp no-new-desc)
+                            (not (string-empty-p no-new-desc))
+                            no-new-desc)
+                       (and no-new-desc
+                            (format "anonymous new for '%s' at [%s]"
+                                    shellpop-type-name
+                                    buff-index))
+                       (read-string "Type slot 'DES': "))))
+                    cur-type-indexs)))
+      (unless (eq cur-type-pointer buff-index)
+        (plist-put cur-type-plist
+                   :pointer buff-index))
+      t)))
 
 ;;;;; index overview
 (defun entropy/shellpop--make-prompt (shellpop-type-register-index)
@@ -1011,6 +1035,33 @@ for current maximized pop-shell."))))))
   (interactive)
   (entropy/shellpop--make-types)
   (message "Intialized shellpop feature"))
+
+;;;###autoload
+(defun entropy/shellpop-expose-type-registers-pointer ()
+  "Return an object reflect each :pointer to a
+=shellpop-type-register=, just used for
+`entropy/shellpop-replace-type-registers-pointer-as'."
+  (let (rtn type-name pointer)
+    (dolist (el entropy/shellpop--type-register)
+      (setq type-name (car el)
+            pointer (plist-get (cdr el) :pointer))
+      (when pointer
+        (push (cons type-name pointer)
+              rtn)))
+    rtn))
+
+(defun entropy/shellpop-replace-type-registers-pointer-as
+    (var &optional desc)
+  "Reset current =shellpop-type-register-list= with the new
+:pointer patch obtained by
+`entropy/shellpop-expose-type-registers-pointer'."
+  (or desc (setq desc t))
+  (dolist (el var)
+    (let ((type-name (car el))
+          (pointer (cdr el)))
+      (when pointer
+        (entropy/shellpop--put-index
+         type-name pointer t desc)))))
 
 ;;; provide
 (provide 'entropy-shellpop)

@@ -506,7 +506,71 @@ before invoke the main process."
           (setq entropy/shellpop-pop-types
                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
                       (plist-get entropy/emacs-shell--shpop-types :shell)))))
-   (entropy/shellpop-start)))
+   (entropy/shellpop-start))
+
+  :config
+
+  (declare-function eyebrowse--get "ext:eyebrowse")
+  (defvar entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg nil)
+
+  (defun entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+      (slot)
+    (when (or slot
+              (eyebrowse--get 'current-slot))
+      (nth
+       2
+       (assoc
+        slot
+        (eyebrowse--get 'window-configs)))))
+
+  (defun entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune (var)
+    (setq entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg
+          (cl-remove-if
+           `(lambda (x)
+              (equal (car x) ',var))
+           entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg)))
+
+  (defun entropy/emacs-shell--eemacs-shellpop-eyebrowse-save-reg (&rest _)
+    (let* ((cur-slot (eyebrowse--get 'current-slot))
+           (cur-tag (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+                     cur-slot)))
+      (entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune
+       cur-slot)
+      (push (list cur-slot
+                  :tag cur-tag
+                  :reg (entropy/shellpop-expose-type-registers-pointer))
+            entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg)))
+
+  (defun entropy/emacs-shell--eemacs-shellpop-eyebrowse-restore-reg (&rest _)
+    (let* ((cur-slot (eyebrowse--get 'current-slot))
+           (cur-tag (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+                     cur-slot))
+           (old-hist
+            (alist-get
+             cur-slot
+             entropy/emacs-shell-eemacs-shellpop--eyebrowse-curreg
+             nil nil 'equal))
+           (old-tag (plist-get old-hist :tag))
+           (old-reg (plist-get old-hist :reg)))
+      (when old-hist
+        (entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune
+         cur-slot)
+        (when (or (equal cur-tag old-tag)
+                  (yes-or-no-p
+                   (format "Use an old shellpop register associate \
+the same eyebrowse slot as current use?(tag: %s) "
+                           old-tag)))
+          (entropy/shellpop-replace-type-registers-pointer-as
+           old-reg
+           (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
+            nil))))))
+
+  (with-eval-after-load 'eyebrowse
+    (add-hook 'eyebrowse-pre-window-switch-hook
+              #'entropy/emacs-shell--eemacs-shellpop-eyebrowse-save-reg)
+    (add-hook 'eyebrowse-post-window-switch-hook
+              #'entropy/emacs-shell--eemacs-shellpop-eyebrowse-restore-reg))
+  )
 
 ;; ** provide
 (provide 'entropy-emacs-shell)
