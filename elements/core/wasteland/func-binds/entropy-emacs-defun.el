@@ -833,7 +833,7 @@ Plist keys:
          :access-time (file-attribute-access-time fattrs))
       (error "[entropy/emacs-get-filesystem-node-attributes]: internal error"))))
 
-(defun entropy/emacs-filesytem-nodes-in-same-filesystem-p (&rest filesystem-nodes)
+(defun entropy/emacs-filesystem-nodes-in-same-filesystem-p (&rest filesystem-nodes)
   "Judge all file of FILESYSTEM-NODES are in the same filesystem, return t if
 thus, nil otherwise.
 
@@ -854,7 +854,7 @@ to quote it when you treat it as an directory."
     (catch :exit
       (dolist (f filesystem-nodes)
         (unless (entropy/emacs-filesystem-node-exists-p f)
-          (user-error "[entropy/emacs-filesytem-nodes-in-same-filesystem-p]: '%s' not existed!"
+          (user-error "[entropy/emacs-filesystem-nodes-in-same-filesystem-p]: '%s' not existed!"
                       f))
         (when (file-remote-p f)
           (push f remote-files))
@@ -866,7 +866,7 @@ to quote it when you treat it as an directory."
           (throw :exit nil)))
       (setq indc (car dev-ids))
       (unless (integerp indc)
-        (error "[entropy/emacs-filesytem-nodes-in-same-filesystem-p]: internal error"))
+        (error "[entropy/emacs-filesystem-nodes-in-same-filesystem-p]: internal error"))
       (mapc (lambda (x)
               (unless (= x indc)
                 (throw :exit nil)))
@@ -2138,7 +2138,7 @@ Sign an error when POP-LOG is not matched valied values.
   ;; Always let default FILE-MIRROR-FUNC use symbolic when SRCDIR
   ;; and DESTDIR is not in the same filesytem since the hardlink is
   ;; not usable for such case.
-  (unless (entropy/emacs-filesytem-nodes-in-same-filesystem-p
+  (unless (entropy/emacs-filesystem-nodes-in-same-filesystem-p
            (file-name-directory
             (entropy/emacs-directory-file-name destdir))
            ;; we should indicate that the SRCDIR is an directory
