@@ -833,6 +833,92 @@ Plist keys:
          :access-time (file-attribute-access-time fattrs))
       (error "[entropy/emacs-get-filesystem-node-attributes]: internal error"))))
 
+(defun entropy/emacs-filesystem-node-is-regular-file-p
+    (filesystem-node &optional symlink-also force-use-filename)
+  "Return non-nil when FILESYSTEM-NODE whether is a regular file.
+
+If optional argument SYMLINK-ALSO is non-nil, then a symbolink
+(whether broken or not) is treat as a regular file also.
+
+If optional argument FORCE-USE-FILENAME is non-nil, then use
+`entropy/emacs-directory-file-name' to deal the name of
+FILESYSTEM-NODE firstly."
+  (when force-use-filename
+    (setq filesystem-node
+          (entropy/emacs-directory-file-name filesystem-node)))
+  (let ((fsn-attrs (ignore-errors
+                     (entropy/emacs-get-filesystem-node-attributes
+                      filesystem-node)))
+        fsn-type)
+    (cond
+     ((not fsn-attrs)
+      nil)
+     (t
+      (setq fsn-type (plist-get fsn-attrs :type))
+      (cond
+       (symlink-also
+        (or (null fsn-type) (stringp fsn-type)))
+       (t
+        (null fsn-type)))))))
+
+(defun entropy/emacs-filesystem-node-is-symlink-p
+    (filesystem-node &optional force-use-filename)
+  "Return non-nil when FILESYSTEM-NODE is a symbolic link (whether
+broken or existed).
+
+If optional argument FORCE-USE-FILENAME is non-nil, then use
+`entropy/emacs-directory-file-name' to deal the name of
+FILESYSTEM-NODE firstly."
+  (when force-use-filename
+    (setq filesystem-node
+          (entropy/emacs-directory-file-name filesystem-node)))
+  (let ((fsn-attrs (ignore-errors
+                     (entropy/emacs-get-filesystem-node-attributes
+                      filesystem-node)))
+        fsn-type)
+    (cond
+     ((not fsn-attrs)
+      nil)
+     (t
+      (setq fsn-type (plist-get fsn-attrs :type))
+      (stringp fsn-type)))))
+
+(defun entropy/emacs-filesystem-node-is-regular-directory-p
+    (filesystem-node &optional symlink-also force-use-filename)
+  "Return non-nil when FILESYSTEM-NODE whether is a regular directory.
+
+If optional argument SYMLINK-ALSO is non-nil, then when
+FILESYSTEM-NODE is a symbolink (justify by
+`entropy/emacs-filesystem-node-is-symlink-p' with force filename
+deals) links from a existed directory treat as a regular
+directory also. In this case, the link chase using
+`file-truename'.
+
+If optional argument FORCE-USE-FILENAME is non-nil, then use
+`entropy/emacs-directory-file-name' to deal the name of
+FILESYSTEM-NODE firstly."
+  (when force-use-filename
+    (setq filesystem-node
+          (entropy/emacs-directory-file-name filesystem-node)))
+  (let ((fsn-attrs (ignore-errors
+                     (entropy/emacs-get-filesystem-node-attributes
+                      filesystem-node)))
+        fsn-type)
+    (cond
+     ((not fsn-attrs)
+      nil)
+     (t
+      (setq fsn-type (plist-get fsn-attrs :type))
+      (cond
+       (symlink-also
+        (if (entropy/emacs-filesystem-node-is-symlink-p
+             filesystem-node 'use-fname)
+            (entropy/emacs-filesystem-node-is-regular-directory-p
+             (file-truename filesystem-node) nil 'use-fname)
+          (eq t fsn-type)))
+       (t
+        (eq t fsn-type)))))))
+
 (defun entropy/emacs-filesystem-nodes-in-same-filesystem-p (&rest filesystem-nodes)
   "Judge all file of FILESYSTEM-NODES are in the same filesystem, return t if
 thus, nil otherwise.
