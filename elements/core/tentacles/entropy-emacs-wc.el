@@ -1590,17 +1590,22 @@ in `window-configuration-change-hook'."
  (window-divider-mode)
  (defun entropy/emacs-wc-auto-toggle-window-divider-mode ()
    (let ((need-to-disable
-          (memq entropy/emacs-theme-sticker
-                '(spacemacs-dark
-                  spacemacs-light))))
+          (lambda (&rest _)
+            (or
+             (memq entropy/emacs-theme-sticker
+                   '(spacemacs-dark
+                     spacemacs-light))
+             (string-match-p
+              "^base16-"
+              (symbol-name entropy/emacs-theme-sticker))))))
      (if (and (bound-and-true-p window-divider-mode)
-              need-to-disable)
+              (funcall need-to-disable))
          (window-divider-mode 0)
        (unless (or (bound-and-true-p window-divider-mode)
-                   need-to-disable)
+                   (funcall need-to-disable))
          (window-divider-mode)))))
  (run-with-idle-timer
-  0.2
+  1.5
   t
   #'entropy/emacs-wc-auto-toggle-window-divider-mode))
 
