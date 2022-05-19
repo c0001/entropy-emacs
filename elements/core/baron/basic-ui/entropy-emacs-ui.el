@@ -111,8 +111,14 @@ determined by above variable you setted."
            (toggle-frame-maximized))))
   (let (x y width height)
     ;; widht height, coordinate calculate.
-    (setq width (ceiling (* (x-display-pixel-width) entropy/emacs-init-frame-width-scale)))
-    (setq height (ceiling (* (x-display-pixel-height) entropy/emacs-init-frame-height-scale)))
+    (setq width
+          (ceiling
+           (* (x-display-pixel-width)
+              entropy/emacs-init-frame-width-scale)))
+    (setq height
+          (ceiling
+           (* (x-display-pixel-height)
+              entropy/emacs-init-frame-height-scale)))
     (setq x (ceiling (/ (- (x-display-pixel-width) width) 2)))
     (setq y (if entropy/emacs-init-fpos-y entropy/emacs-init-fpos-y 0))
     ;; frame position setting
@@ -201,13 +207,17 @@ determined by above variable you setted."
     `(((:str "- Read ")
        (:str "entropy-emacs"
              :link-type file
-             :link ,(plist-get entropy/emacs-core-doc-file-archives-plist :org))
+             :link ,(plist-get
+                     entropy/emacs-core-doc-file-archives-plist
+                     :org))
        (:str " introduction.")
        (:str " (view ")
        (:str "html version"
              :link-type web
              :link ,(concat "file://"
-                            (plist-get entropy/emacs-core-doc-file-archives-plist :html)))
+                            (plist-get
+                             entropy/emacs-core-doc-file-archives-plist
+                             :html)))
        (:str " go.) "))
 
       ((:str "- Customize ")
@@ -274,13 +284,16 @@ char \"|\")."
             (n 0))
         (dolist (el str-obj-list)
           (let ((current-str-width (nth n str-counts-list)))
-            (push (entropy/emacs-ui--init-welcom-widget-expand-str-obj el align-width current-str-width) str-fancy-list)
+            (push (entropy/emacs-ui--init-welcom-widget-expand-str-obj
+                   el align-width current-str-width)
+                  str-fancy-list)
             (setq n (1+ n))))
         (setq str-fancy-list (reverse str-fancy-list)
               str-fancy-list (cons str-fancy-list (+ 2 align-width))))
       str-fancy-list))
 
-  (defun entropy/emacs-ui--init-welcom-widget-expand-str-obj (str-obj align-width current-str-width)
+  (defun entropy/emacs-ui--init-welcom-widget-expand-str-obj
+      (str-obj align-width current-str-width)
     "Expand string object used by entropy emacs dashboard widget
 to the programmable list format used by func
 `entropy/emacs-ui--init-welcom-insert-widget-entry'.
@@ -294,12 +307,16 @@ left and right vertical char was the decoration for each widget
 entry."
     (let (atom-list rtn)
       (dolist (el str-obj)
-        (push (entropy/emacs-ui--init-welcom-widget-expand-str-obj-atom el) atom-list))
+        (push (entropy/emacs-ui--init-welcom-widget-expand-str-obj-atom
+               el)
+              atom-list))
       (dolist (el atom-list)
         (setq rtn (append el rtn)))
       (setq rtn (append '(:face default "|") rtn))
       (when (< current-str-width align-width)
-        (setq rtn (entropy/emacs-ui--init-welcom-widget-align-str-space rtn align-width current-str-width)))
+        (setq rtn
+              (entropy/emacs-ui--init-welcom-widget-align-str-space
+               rtn align-width current-str-width)))
       (setq rtn (append rtn '(:face default "|\n")))
       rtn))
 
@@ -340,7 +357,8 @@ element str to the elemet will be append by
         (setq rtn `(:face default ,str)))
       rtn))
 
-  (defun entropy/emacs-ui--init-welcom-widget-align-str-space (str-fancy-obj align-width current-str-width)
+  (defun entropy/emacs-ui--init-welcom-widget-align-str-space
+      (str-fancy-obj align-width current-str-width)
     "Align widget entry width to the align width ALIGN-WIDTH by
 fill the space to trailling of it."
     (let ((n (- align-width current-str-width))
@@ -357,9 +375,12 @@ insert func `entropy/emacs-ui--init-welcom-insert-widget-entry'."
     (let* ((widget (entropy/emacs-ui--init-welcom-gen-widget-entries))
            (widget-entries (car widget))
            (widget-width (cdr widget))
-           (left-margin (make-string (max 0
-                                          (floor (/ (- entropy/emacs-ui--init-welcom-width widget-width) 2)))
-                                     ?\ )))
+           (left-margin
+            (make-string
+             (max
+              0
+              (floor (/ (- entropy/emacs-ui--init-welcom-width widget-width) 2)))
+             ?\ )))
       (dolist (el widget-entries)
         (insert left-margin)
         (entropy/emacs-ui--init-welcom-insert-widget-entry el))))
@@ -517,8 +538,10 @@ widget used func `entropy/emacs-ui--init-welcom-create-widget'."
                              ;; from it's height.
                              (* (length title)
                                 (if (display-graphic-p)
-                                    (let ((height (face-attribute 'entropy/emacs-defface-face-for-welcome-buffer-title-face
-                                                                  :height)))
+                                    (let ((height
+                                           (face-attribute
+                                            'entropy/emacs-defface-face-for-welcome-buffer-title-face
+                                            :height)))
                                       (if height height 1))
                                   1)))
                           2)))
@@ -724,7 +747,9 @@ value as optional interaction while `PREFIX' is non-nil."
   (let ((bgtr-default entropy/emacs-loop-alpha-value)
         (bgtr
          (when prefix
-           (string-to-number (read-string "Input bg trransparent var (75-95): ")))))
+           (string-to-number
+            (read-string
+             "Input bg trransparent var (75-95): ")))))
     ;; Restrict transparent integer value be between 75 to 95 where is
     ;; the best customization
     (setq bgtr
@@ -766,9 +791,11 @@ value as optional interaction while `PREFIX' is non-nil."
 (defun entropy/emacs-show-col-row ()
   "Display buffer-position."
   (interactive)
-  (let* ((line   (number-to-string (+ (count-lines 1 (point))
-                                      (if (bolp) 1 0))))
-         (row   (number-to-string (current-column))))
+  (let* ((line
+          (number-to-string (+ (count-lines 1 (point))
+                               (if (bolp) 1 0))))
+         (row
+          (number-to-string (current-column))))
     (setq row (propertize row 'face 'epa-mark))
     (setq line (propertize line 'face 'epa-mark))
     (message "current-line:%s current-row:%s" line row)))
