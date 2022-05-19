@@ -196,6 +196,11 @@ configuration.")
     rtn))
 
 ;; *** recovery
+
+;; NOTE: declare customize variable first before lexical using to
+;; prevent internal error like "Defining as dynamic an already lexical
+;; var"
+(defvar bookmark-watch-bookmark-file)
 (defun entropy/emacs-pdumper--recovery ()
   (setq entropy/emacs-run-startup-pdumper-hooks-init-timestamp
         (current-time))
