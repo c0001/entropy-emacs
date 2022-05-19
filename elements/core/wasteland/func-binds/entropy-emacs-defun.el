@@ -2898,19 +2898,58 @@ type:
        (setq rtn (file-name-directory fname))))
     rtn))
 
-(defun entropy/emacs-existed-filesystem-nodes-equal-p (filesystem-node1 filesystem-node2)
-  "Alternative to `file-equal-p' but using `file-attribute-inode-number'
-to distinguish the return.
+(defun entropy/emacs-existed-filesystem-nodes-equal-p
+    (filesystem-node1 filesystem-node2 &optional chase-link)
+  "Alternative to `file-equal-p' but using `file-attributes' and
+`file-remote-p' to distinguish the return.
 
 Return t while thus. Return nil otherwise.
 
-Always return nil, when any of FILESYSTEM-NODE1 or FILESYSTEM-NODE2 is
-not predicated by `entropy/emacs-filesystem-node-exists-p'."
-  (let ((f1-p (entropy/emacs-filesystem-node-exists-p filesystem-node1 t))
-        (f2-p (entropy/emacs-filesystem-node-exists-p filesystem-node2 t)))
-    (when (and f1-p f2-p)
-      (= (file-attribute-inode-number f1-p)
-         (file-attribute-inode-number f2-p)))))
+That's say:
+
+Two file in same device and has same indoe number is recognized
+as same node. And the same device means that two node must in the
+same machine (i.e. host in local filesystem or the same remote
+connection return by `file-remote-p') and located in the same
+device while each node's hosted device number as same.
+
+When optional argument CHASE-LINK is non-nil then both
+FILESYTEM-NODE1 and FILESYTEM-NODE2 are expanded using
+`file-truename' before file atrributes compare. So that in this
+case symlinks to a same node is also recognize as same node.
+
+Always return nil, when any of FILESYSTEM-NODE1 or
+FILESYSTEM-NODE2 is not predicated by
+`entropy/emacs-filesystem-node-exists-p'."
+  (catch :exit
+    (let ((f1-rp (file-remote-p filesystem-node1))
+          (f2-rp (file-remote-p filesystem-node2)))
+      (cond
+       ((and f1-rp f2-rp)
+        ;; if two file is all the remote file and in same remote
+        ;; connection then we goto section1.
+        (if (string= f1-rp f2-rp)
+            nil
+          ;; otherwise in different remote connection, then they are
+          ;; explicitly different
+          (throw :exit nil)))
+       ;; only one is remote node, then they are explicit different
+       ((or f1-rp f2-rp)
+        (throw :exit nil)))
+      ;; secton1: inode and device number compare in same filesystem
+      (when chase-link
+        (setq filesystem-node1 (file-truename filesystem-node1)
+              filesystem-node2 (file-truename filesystem-node2)))
+      (let ((f1-p (entropy/emacs-filesystem-node-exists-p filesystem-node1 t))
+            (f2-p (entropy/emacs-filesystem-node-exists-p filesystem-node2 t)))
+        (when (and f1-p f2-p)
+          (and
+           ;; same device judge
+           (= (file-attribute-device-number f1-p)
+              (file-attribute-device-number f2-p))
+           ;; same indoe judge
+           (= (file-attribute-inode-number f1-p)
+              (file-attribute-inode-number f2-p))))))))
 
 (defun entropy/emacs-write-file
     (filename &optional confirm)

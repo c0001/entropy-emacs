@@ -724,17 +724,20 @@ For lisp code, optional args:
 
         ;; killed refer dired buffers
         (dolist (el dired-buffers)
-          (let ((dir (car el))
-                (buffer (cdr el)))
+          (let* ((dir (car el))
+                 (dirname-sans (entropy/emacs-directory-file-name dir))
+                 (fname-sans (entropy/emacs-directory-file-name file))
+                 (fname-dirp (or (file-directory-p file)
+                                 ;; if file not exist then we match the name string
+                                 (directory-name-p file)))
+                 (buffer (cdr el)))
             (when (and
                    (buffer-live-p buffer)
                    (if (eq major-mode 'dired-mode)
                        (not (eq buffer (current-buffer)))
                      t)
                    (entropy/emacs-existed-filesystem-nodes-equal-p
-                    (if (or (file-directory-p file)
-                            ;; if file not exist then we match the name string
-                            (string-match-p "/\\|\\\\$" file))
+                    (if fname-dirp
                         ;; NOTE: we must delete the trailing slash of
                         ;; the dired directory container retrieved by
                         ;; each car of the element of `dired-buffer'
@@ -743,10 +746,12 @@ For lisp code, optional args:
                         ;; such as directory name includes '.*.tar/'
                         ;; etc. , which may cause the loop break with
                         ;; specified handle error by gvfs.
-                        (replace-regexp-in-string "/$" "" dir)
+                        dirname-sans
+                      ;; fake file as under the curret dired dir
                       (expand-file-name
-                       (file-name-nondirectory file) dir))
-                    file))
+                       (file-name-nondirectory fname-sans) dir))
+                    fname-sans
+                    'chase-link))
               (add-to-list 'entropy/emacs-basic--dired-delete-file-refer-dired-buffers-history
                            (cons el (current-time-string)))
               (message "[eemacs-dired-delete-file]: killed file <%s> referred dired buffer '%s'"
