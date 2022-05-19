@@ -35,20 +35,49 @@
 (!eemacs-require 'entropy-emacs-defcustom)
 (!eemacs-require 'entropy-emacs-defface)
 
-(when
-    (not entropy/emacs-fall-love-with-pdumper)
-  (unless (catch :exit
-            ;; we should judge whether the bar feature supported in
-            ;; current emacs build.
-            (dolist (func '(scroll-bar-mode
-                            tool-bar-mode
-                            menu-bar-mode))
-              (unless (fboundp func)
-                (throw :exit t))))
-    (scroll-bar-mode 0)
-    (tool-bar-mode 0)
-    (menu-bar-mode 0)
-    (redisplay t)))
+(let ((this-init-done nil))
+  (defun entropy/emacs-ui-disable-emacs-bar-refer-uifeature
+      (&optional force)
+    "Disable emacs bar refer ui features.
+
+Defautly this function just can be invoked once, unless FORCE is
+non-nil."
+    (unless (or
+             (and this-init-done
+                  (not force))
+             (catch :exit
+               ;; we should judge whether the bar feature supported in
+               ;; current emacs build.
+               (dolist (func '(scroll-bar-mode
+                               tool-bar-mode
+                               menu-bar-mode))
+                 (unless (fboundp func)
+                   (throw :exit t)))))
+      (scroll-bar-mode 0)
+      (tool-bar-mode 0)
+      (menu-bar-mode 0)
+      (setq this-init-done t)
+      (redisplay t))))
+
+(cond
+ (entropy/emacs-fall-love-with-pdumper
+  ;; NOTE: we do not deal thus for pdumper session here since we
+  ;; inject `entropy/emacs-ui-disable-emacs-bar-refer-uifeature' to
+  ;; `entropy/emacs-pdumper--recovery' directly.
+  ;;
+  ;; Q: why not inject to `entropy/emacs-pdumper-load-hook'
+  ;;
+  ;; A: since `entropy/emacs-pdumper-load-hook' is not run firstly
+  ;; when pdumper session ui startup, so that we can not disable bar
+  ;; refer ui feature before the frame show up immediately.
+  nil)
+ ((daemonp)
+  (entropy/emacs-with-daemon-make-frame-done
+   'disable-emacs-bar-refer-ui-features
+   nil nil
+   '(entropy/emacs-ui-disable-emacs-bar-refer-uifeature)))
+ (t
+  (entropy/emacs-ui-disable-emacs-bar-refer-uifeature)))
 
 ;; ** theme in loading progress
 (defun entropy/emacs-ui--load-basic-theme-core ()

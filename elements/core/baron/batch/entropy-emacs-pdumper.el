@@ -208,19 +208,13 @@ configuration.")
         ;; silent bookmark reload prompt prevent session load fatal.
         (bookmark-watch-bookmark-file 'silent))
     (unless (entropy/emacs-in-pdumper-procedure-p)
+
+      ;; FIXME: restore the saved `load-path' sicne pdumper session
+      ;; will lost the `load-path' within the dump procedure
       (setq load-path entropy/emacs-pdumper-pre-lpth)
-      (unless (catch :exit
-                ;; we should judge whether the bar feature supported in
-                ;; current emacs build.
-                (dolist (func '(scroll-bar-mode
-                                tool-bar-mode
-                                menu-bar-mode))
-                  (unless (fboundp func)
-                    (throw :exit t))))
-        (scroll-bar-mode 0)
-        (tool-bar-mode 0)
-        (menu-bar-mode 0)
-        (redisplay t))
+
+      ;; disable bar ui features before any procedur
+      (entropy/emacs-ui-disable-emacs-bar-refer-uifeature)
 
       ;; TODO ...body
 
