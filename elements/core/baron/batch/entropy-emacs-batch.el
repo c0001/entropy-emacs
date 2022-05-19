@@ -38,12 +38,21 @@
 
 ;; ** require
 
+(defconst entropy/emacs-batch--make-env-type
+  (entropy/emacs-is-make-session)
+  "The `entropy/emacs-is-make-session' return for this emacs batch
+session"
+  )
+
 ;; do not auto native-comp while we did batch make
 (setq native-comp-deferred-compilation nil)
 
 (defun entropy/emacs-batch-require-prefer-use-source
     (feature)
-  (require feature (format "%s.el" feature)))
+  (if (equal "Dump" entropy/emacs-batch--make-env-type)
+      ;; let dump session using byte-compile procedure
+      (require feature)
+    (require feature (format "%s.el" feature))))
 
 (entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-message)
 (entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-defun)
@@ -683,7 +692,7 @@ faild with hash '%s' which must match '%s'"
 
 ;; ** interactive
 (when (entropy/emacs-ext-main)
-  (let ((type (entropy/emacs-is-make-session)))
+  (let ((type entropy/emacs-batch--make-env-type))
     (cond
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
