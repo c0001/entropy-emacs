@@ -1046,7 +1046,9 @@ for current maximized pop-shell."))))))
       (setq type-name (car el)
             pointer (plist-get (cdr el) :pointer))
       (when pointer
-        (push (cons type-name pointer)
+        (push (list type-name
+                    :pointer pointer
+                    :wcfg entropy/shellpop--top-wcfg-register)
               rtn)))
     rtn))
 
@@ -1057,11 +1059,17 @@ for current maximized pop-shell."))))))
 `entropy/shellpop-expose-type-registers-pointer'."
   (or desc (setq desc t))
   (dolist (el var)
-    (let ((type-name (car el))
-          (pointer (cdr el)))
+    (let* ((type-name (car el))
+           (attrs (cdr el))
+           (pointer (plist-get attrs :pointer))
+           (wcfg (plist-get attrs :wcfg)))
       (when pointer
         (entropy/shellpop--put-index
-         type-name pointer t desc)))))
+         type-name pointer t desc)
+        (when (and wcfg
+                   (window-configuration-p wcfg))
+          (setq entropy/shellpop--top-wcfg-register
+                wcfg))))))
 
 ;;; provide
 (provide 'entropy-shellpop)
