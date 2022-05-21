@@ -1184,7 +1184,7 @@ DIR-USR-ATTRS of current =dir-spec='s =attributes-plist= before
 generate current =dir-spec='s subdirs =dir-spec=.
 
 The MAP-FUNC also be invoked while the recursive mapping returned from
-the current =dir-spec='s subdir or just after the end of cuarrent node
+the current =dir-spec='s subdir or just after the end of current node
 dealing procedure while no subdirs found for current =dir-spec=, in
 which case its optional arg END-CALL-P will be set, and we called this
 operation =map-func-end-call=.
@@ -1482,12 +1482,17 @@ wrong type of :with-filter '%s'" with-filter)))
        nil))))
 
 (cl-defun entropy/emacs-list-dir-subdirs-recursively-for-list
-    (top-dir &optional not-abs
+    (top-dir &optional not-abs exclude-top-dir
              &key
              with-level
              with-filter)
-  "List all sub-directories under TOP-DIR as a list ordered by
+  "List all sub-directories under TOP-DIR (included unless
+EXCLUDE-TOP-DIR is non-nil, see below) as a list ordered by
 `string-lessp' use `entropy/emacs-list-dir-subdirs-recursively'.
+
+When optional argument EXCLUDE-TOP-DIR is non-nil, then the
+TOP-DIR is not list for as. It's useful to generate a list of
+pure subdirs of TOP-DIR.
 
 Optional argument NOT-ABS and optional keys are all related to
 `entropy/emacs-list-dir-subdirs-recursively' (see it for details).
@@ -1496,7 +1501,9 @@ Optional argument NOT-ABS and optional keys are all related to
         map-func)
     (setq map-func
           (lambda (x &optional end-call-p)
-            (unless end-call-p
+            (unless (or end-call-p
+                        (and exclude-top-dir
+                             (plist-get x :dir-is-root-p)))
               (let ((dir-abs-path (plist-get x :dir-abspath)))
                 (if not-abs
                     (push (entropy/emacs-make-relative-filename
