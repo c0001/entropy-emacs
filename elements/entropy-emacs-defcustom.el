@@ -636,7 +636,7 @@ customized variable `entropy/emacs-ext-elpkg-get-type'."
 value type according to non-defined internal definition")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
-  "v3.0.4"
+  "v3.0.5"
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-local-path
@@ -661,7 +661,7 @@ download/%s/entropy-emacs-extensions_build_%s.tar.xz"
   "")
 
 (defconst entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-archive-sha256sum
-  "25a90cc661ba819fff75c78f2034878192e66e497b31680eea376eb4026ac5ff"
+  "57f109dadca99507c5f136f9aee68ca910f33a9a3908ff4c49882a3cd1299970"
   "")
 
 ;; using `entropy-emacs-extensions-project-build' prefer when detected
