@@ -581,25 +581,52 @@ certain eemacs-spec conditions."
 ;; ******* preface
   :preface
 
-  (defun entropy/emacs-codeserver-lsp-mode-shutdown ()
-    "Fully disable all buffer's `lsp-mode' feature and shutdown
-those lsp client connections for the current lsp-mode workspace
-when available."
+  (defun entropy/emacs-codeserver-lsp-mode-shutdown
+      (&optional buffer)
+    "Fully disable all related buffer's of `lsp-mode' feature and
+shutdown those lsp client connections for the current lsp-mode
+workspace when available."
     (interactive)
-    (let (cur-wps)
-      (when
-          (ignore-errors (setq cur-wps (lsp-workspaces)))
-        (dolist (wp cur-wps)
-          (mapc
-           (lambda (buffer)
-             (with-current-buffer buffer
-               (when (bound-and-true-p lsp-ui-mode)
-                 (lsp-ui-mode 0))
-               (when (bound-and-true-p lsp-mode)
-                 (lsp-mode 0))))
-           (lsp--workspace-buffers wp)))
-        (lsp-shutdown-workspace))))
+    (with-current-buffer (or buffer (current-buffer))
+      (let (cur-wps
+            enabled-buffers
+            (feature-disable-func
+             (lambda (this-buff)
+               (when (buffer-live-p this-buff)
+                 (with-current-buffer this-buff
+                   (when (bound-and-true-p lsp-ui-mode)
+                     (lsp-ui-mode 0))
+                   (when (bound-and-true-p lsp-mode)
+                     (lsp-mode 0)))))))
+        (when
+            (ignore-errors (setq cur-wps (lsp-workspaces)))
+          ;; get wp enabed buffers
+          (dolist (wp cur-wps)
+            (mapc
+             (lambda (wp-buff)
+               (push wp-buff enabled-buffers))
+             (lsp--workspace-buffers wp)))
+          ;; shut down wps
+          (dolist (wp cur-wps)
+            (lsp-workspace-shutdown wp))
+          ;; disable featured buffers' feature
+          (dolist (wp-buff enabled-buffers)
+            (funcall feature-disable-func wp-buff))
+          ))))
 
+  (defun entropy/emacs-codeserver-lsp-mode-shutdown-all ()
+    "Fully disable all buffer's `lsp-mode' feature and shutdown
+those lsp client connections.
+
+The non-buffer associated lsp server process are not being
+shutdown since it is managed by the customize variable
+`lsp-keep-workspace-alive'."
+    (interactive)
+    (dolist (buff (buffer-list))
+      (when (and (buffer-live-p buff)
+                 (not (minibufferp buff)))
+        (entropy/emacs-codeserver-lsp-mode-shutdown
+         buff))))
 
 ;; ******* eemacs-indhc
   :eemacs-indhc
@@ -617,9 +644,13 @@ when available."
     "Workspace"
     (("w r" lsp-workspace-restart "Restart the workspace WORKSPACE"
       :enable t :exit t)
-     ("w s" lsp-workspace-shutdown "Shut the workspace WORKSPACE with selection"
+     ("w s" lsp-workspace-shutdown "Shut the *CURRENT* lsp WORKSPACE"
       :enable t :exit t)
-     ("w k" entropy/emacs-codeserver-lsp-mode-shutdown "Shut the *CURRENT* lsp WORKSPACE"
+     ("w k" entropy/emacs-codeserver-lsp-mode-shutdown
+      "Fully disable *CURRENT* lsp WORKSPACE's buffers ‘lsp-mode’ feature and servers"
+      :enable t :exit t)
+     ("w c" entropy/emacs-codeserver-lsp-mode-shutdown-all
+      "Disable all lsp WORKSPACEs and refer buffers 'lsp-mode' features and servers"
       :enable t :exit t)
      ("w a" lsp-workspace-folders-add "Add PROJECT-ROOT to the list of workspace folders"
       :enable t :exit t)
@@ -715,6 +746,13 @@ when available."
   (setq
    ;; Disable large verbose log
    lsp-log-io nil)
+
+  (setq
+   ;; delete remaining workspace when last associate buffer is closed
+   ;; to reduce memory usage and eemacs request of
+   ;; `entropy/emacs-codeserver-lsp-mode-shutdown-all'
+   lsp-keep-workspace-alive
+   nil)
 
 ;; ******** lsp diagnostics set
   ;; Use flycheck prefer as diagnostics backend
