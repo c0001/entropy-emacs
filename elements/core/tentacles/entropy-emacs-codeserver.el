@@ -1347,7 +1347,9 @@ updating."
   (setq eglot-send-changes-idle-time entropy/emacs-ide-diagnostic-delay
         eglot-autoshutdown t
         eglot-autoreconnect 4
-        eglot-events-buffer-size 2000000
+        ;; disale the eglot event buffer for performance issue:
+        ;; https://emacs-china.org/t/eglot/21074
+        eglot-events-buffer-size 0
         eglot-connect-timeout 10
         eglot-extend-to-xref nil)
 
