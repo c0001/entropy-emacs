@@ -3623,8 +3623,7 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
            (path (cdr autosudo-obj)))
       (if (and type path)
           (progn
-            ;; increase tramp cache the sudo password expiry time
-            (let ((password-cache-expiry (* 60 30)))
+            (let (_)
               (find-file path))
             ;; kill the current file buffer firstly to ensure the
             ;; tramped one is the only one visited the file so that we
@@ -4926,6 +4925,10 @@ operation system"
     t))
 (add-to-list 'entropy/emacs-read-extended-command-predicates
              #'entropy/emacs-baisc-general-read-extended-command-predicate)
+
+;; ***** proper password cache expire time
+
+(setq password-cache-expiry (* 30 60))
 
 ;; *** Emacs core patches
 
