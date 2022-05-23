@@ -221,7 +221,10 @@ This func divided this string into the return list as:
       "The dispatcher for tramp retrieving of entropy-emacs"
       :enable t :exit t :global-bind t)
      ("C-c s c" tramp-cleanup-this-connection
-      "Clean the current tramp session and refer buffers"
+      "Clean the current tramp session"
+      :enable t :exit t :global-bind t)
+     ("C-c s i" tramp-cleanup-connection
+      "Clean a tramp session while chosen"
       :enable t :exit t :global-bind t)
      ("C-c s a" entropy/emacs-tramp-clean-all
       "Clean all tramp connections and refer buffers"
