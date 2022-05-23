@@ -40,6 +40,33 @@
 (require 'tramp)
 
 ;; ** library
+
+(defun entropy/emacs-tramp--methods-alist-put
+    (method &rest params)
+  "Modify `tramp-methods''s METHOD's parameters with new PARAMS.
+
+If any *key* in PARAMS has `null' value, the METHOD's parameters
+*key* pair will be removed.
+
+If any *key* in METHOD's parameters doesn't existed in PARAMS,
+reserved as origin."
+  (let ((method-params
+         (alist-get method tramp-methods nil nil 'string=))
+        new-params)
+    (when method-params
+      (dolist (el method-params)
+        (let* ((key (car el))
+               (matchp (assoc key params))
+               (val (alist-get key params)))
+          (if matchp
+              (when val
+                (push (cons key val) new-params))
+            (push el new-params))))
+      (when new-params
+        (setq new-params (reverse new-params))
+        (setf (alist-get method tramp-methods nil nil 'string=)
+              new-params)))))
+
 (defun entropy/emacs-tramp--get-ssh-config ()
   "Get ssh config for extracting host candidates using func
 `entropy/emacs-tramp--list-ssh-config-group'."
@@ -177,6 +204,14 @@ This func divided this string into the return list as:
  "eemacs-tramp-hydra-hollow-init"
  prompt-echo
  :pdumper-no-end t
+ ;; let sudo like tramp method has eemacs union password expire
+ ;; timeout sets.
+ (dolist (method '("sudo"))
+   (apply
+    'entropy/emacs-tramp--methods-alist-put
+    method
+    `((tramp-session-timeout ,password-cache-expiry))))
+ ;; the hydra hollow instance
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
   '("Tramp"
     (("C-c s f" entropy/emacs-sudoedit-current-path-maybe
