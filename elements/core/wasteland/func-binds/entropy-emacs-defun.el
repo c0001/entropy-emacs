@@ -2952,11 +2952,16 @@ FILESYSTEM-NODE2 is not predicated by
         (when (and f1-p f2-p)
           (and
            ;; same device judge
-           (= (file-attribute-device-number f1-p)
-              (file-attribute-device-number f2-p))
+           ;;
+           ;; FIXME: `file-attribute-device-number' not obey its API
+           ;; docstring to return integer value for a remote file.
+           (equal
+            (file-attribute-device-number f1-p)
+            (file-attribute-device-number f2-p))
            ;; same indoe judge
-           (= (file-attribute-inode-number f1-p)
-              (file-attribute-inode-number f2-p))))))))
+           (=
+            (file-attribute-inode-number f1-p)
+            (file-attribute-inode-number f2-p))))))))
 
 (defun entropy/emacs-write-file
     (filename &optional confirm)
