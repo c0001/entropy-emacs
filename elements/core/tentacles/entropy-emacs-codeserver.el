@@ -530,11 +530,18 @@ certain eemacs-spec conditions."
              (member major-mode mode-exclusions)
              ;; `buffer-name' filter
              (string-match-p buff-exclusions buff-name)
+             ;; exclude unwriteable file since they usually are system
+             ;; ones which should not be tracked and may have hudge of
+             ;; files to tracking on its workspace.
+             (and buff-fname
+                  (not (file-writable-p buff-fname)))
              ;; a sudo tramp file since its used as fake tramp
              ;; remotion which maybe messy up system
              (and buff-fname
                   (file-remote-p buff-fname)
-                  (string-match-p "^/sudo:" buff-fname))
+                  (or
+                   (string-match-p "^/sudo:" buff-fname)
+                   (string-match-p "^/sudoedit:" buff-fname)))
              )
       (apply orig-func orig-args))))
 
