@@ -4637,18 +4637,22 @@ successfully both of situation of read persisit of create an new."
 `current-buffer'"
   (unless depth
     (setq depth 0))
-  (let ((indent-insert-func
-         `(lambda (&optional str)
-            (insert (make-string ,depth ?\ ))
-            (when str
-              (insert str))))
-        (insert-newline
-         (lambda (&optional times)
-           (unless (save-match-data (looking-at "^$"))
-             (unless times
-               (setq times 1))
-             (dotimes (_ times)
-               (insert "\n"))))))
+  (let* ((insert-func
+          '(lambda (obj)
+             (insert (format "%s" obj))))
+         (indent-insert-func
+          `(lambda (&optional str offset)
+             (or offset (setq offset 0))
+             (insert (make-string (+ ,depth offset) ?\ ))
+             (when str
+               (funcall ',insert-func str))))
+         (insert-newline
+          (lambda (&optional times)
+            (unless (save-match-data (looking-at "^$"))
+              (unless times
+                (setq times 1))
+              (dotimes (_ times)
+                (insert "\n"))))))
     (cond
      ((stringp var)
       `(string
@@ -4707,10 +4711,10 @@ successfully both of situation of read persisit of create an new."
           (maphash
            (lambda (yk yv)
              (funcall ',insert-newline)
-             (funcall ',indent-insert-func "->:key\n")
-             (funcall ',indent-insert-func (pp-to-string yk))
+             (funcall ',indent-insert-func ":key\n" 1)
+             (funcall ',indent-insert-func (pp-to-string yk) 1)
              (funcall ',insert-newline)
-             (funcall ',indent-insert-func "->:val\n")
+             (funcall ',indent-insert-func ":val\n" 1)
              (funcall
               (plist-get
                (cdr (funcall
@@ -4719,7 +4723,35 @@ successfully both of situation of read persisit of create an new."
                :print-func)
               yv))
            x)
+          (funcall ',insert-newline)
           (funcall ',indent-insert-func ">"))))
+     ((cl-struct-p var)
+      `(cl-struct
+        :print-func
+        (lambda (x)
+          (funcall ',insert-newline)
+          (funcall ',indent-insert-func "#s(")
+          (let* ((class (cl-find-class (type-of x)))
+                 (slots (cl--struct-class-slots class))
+
+                 (len (length slots)))
+            (funcall ',insert-func (cl--struct-class-name class))
+            (funcall ',insert-newline)
+            (dotimes (i len)
+              (let ((slot (aref slots i))
+                    (val (aref x (1+ i))))
+                (funcall ',indent-insert-func ":" 1)
+                (funcall ',insert-func (cl--slot-descriptor-name slot))
+                (funcall ',insert-newline)
+                (funcall
+                 (plist-get
+                  (cdr (funcall
+                        #'entropy/emacs-basic-print-variable-core-func
+                        val (1+ ,depth)))
+                  :print-func)
+                 val)
+                (funcall ',insert-newline))))
+          (funcall ',indent-insert-func ")"))))
      (t
       `(unknown
         :print-func
