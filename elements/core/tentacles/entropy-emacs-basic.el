@@ -4772,7 +4772,7 @@ it with focus on."
       (buffer-disable-undo)
       (erase-buffer)
       (fundamental-mode)
-      (local-set-key (kbd "q") 'quit-window))
+      (entropy/emacs-local-set-key (kbd "q") 'quit-window))
     (display-buffer print-buffer)
     (setq print-window (get-buffer-window print-buffer))
     (select-window print-window)
@@ -4830,7 +4830,7 @@ it with focus on."
             (forward-line 1))))
       (lisp-data-mode)
       (set-buffer-modified-p nil)
-      (local-set-key (kbd "q") 'quit-window)
+      (entropy/emacs-local-set-key (kbd "q") 'quit-window)
       (setq buffer-read-only t)
       (goto-char (point-min)))
 

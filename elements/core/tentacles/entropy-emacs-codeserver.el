@@ -1687,11 +1687,13 @@ let eglot do completion with interface argument injection."
             (insert string)
             (goto-char (point-min))
             (setq buffer-read-only t)
-            (local-set-key (kbd "q") 'kill-buffer-and-window)
-            (local-set-key (kbd "n") 'forward-line)
-            (local-set-key (kbd "j") 'forward-line)
-            (local-set-key (kbd "p") 'previous-line)
-            (local-set-key (kbd "k") 'previous-line)))))))
+            (apply 'entropy/emacs-local-set-key-batch-do
+                   `((,(kbd "q") . kill-buffer-and-window)
+                     (,(kbd "n") . forward-line)
+                     (,(kbd "j") . forward-line)
+                     (,(kbd "p") . previous-line)
+                     (,(kbd "k") . previous-line)))))
+        ))))
 
   (defvar __this_eglot-show-doc--sig-showing nil)
   (defvar __this_eglot-show-doc--this-buffer nil)

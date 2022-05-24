@@ -4775,6 +4775,33 @@ KEYMAP before bind the new spec."
   (declare (indent defun))
   `(define-key entropy/emacs-top-keymap ,key ,command))
 
+(defun entropy/emacs-local-set-key (key command)
+  "Like `local-set-key' but always create a new keymap which copied
+by `current-local-map' when it has or as what `local-set-key'
+does."
+  (or (vectorp key) (stringp key)
+      (signal 'wrong-type-argument (list 'arrayp key)))
+  (let ((map (current-local-map)))
+    (if map
+        (use-local-map (setq map (copy-tree map)))
+      (use-local-map (setq map (make-sparse-keymap))))
+    (define-key map key command)))
+
+(defun entropy/emacs-local-set-key-batch-do (&rest args)
+  "Like `entropy/emacs-local-set-key' but in batch mode i.e. ARGS
+are (key . command) paire formed list."
+  (let ((map (current-local-map)))
+    (if map
+        (setq map (copy-tree map))
+      (setq map (make-sparse-keymap)))
+    (dolist (el args)
+      (let ((key (car el))
+            (command (cdr el)))
+        (or (vectorp key) (stringp key)
+            (signal 'wrong-type-argument (list 'arrayp key)))
+        (define-key map key command)))
+    (use-local-map map)))
+
 ;; *** Compress or decompress file
 
 (defvar entropy/emacs-archive-dowith-alist

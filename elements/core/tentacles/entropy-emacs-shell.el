@@ -44,9 +44,11 @@
 ;; *** Improve shell buffer interactive experience
   (defun entropy/emacs-shell--n-shell-mode-hook ()
     "Shell mode customizations."
-    (local-set-key '[up] 'comint-previous-input)
-    (local-set-key '[down] 'comint-next-input)
-    (local-set-key '[(shift tab)] 'comint-next-matching-input-from-input)
+    (apply
+     'entropy/emacs-local-set-key-batch-do
+     '(([up] . comint-previous-input)
+       ([down] . comint-next-input)
+       ([(shift tab)] . comint-next-matching-input-from-input)))
     (setq comint-input-sender 'entropy/emacs-shell--n-shell-simple-send))
   (add-hook 'shell-mode-hook #'entropy/emacs-shell--n-shell-mode-hook)
 

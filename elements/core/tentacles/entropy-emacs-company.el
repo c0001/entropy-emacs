@@ -641,7 +641,7 @@ with `shackle'."
           (goto-char (point-min))
           (setq buffer-read-only t)
           (eval `(,doc-buffer-mode))
-          (local-set-key
+          (entropy/emacs-local-set-key
            (kbd "q")
            ;; using quote to disable closure binding
            '(lambda ()
