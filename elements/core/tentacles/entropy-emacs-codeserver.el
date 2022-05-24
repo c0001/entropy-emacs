@@ -1603,7 +1603,7 @@ let eglot do completion with interface argument injection."
                  )
       ))
 
- ;; ******* core
+;; ******* core
 
   (defun entropy/emacs-codeserver--eglot-server-chosen-for-HTML ()
     (entropy/emacs-codeserver--eglot-server-chosen-hack
