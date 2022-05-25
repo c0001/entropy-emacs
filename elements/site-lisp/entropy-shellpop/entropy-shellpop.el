@@ -467,6 +467,17 @@ return them into list ordered as original case."
              do (push (nth pos plist-var) rtn))
     (reverse rtn)))
 
+(defun entropy/shellpop--remote-files-same-host-p (&rest files)
+  (if files
+      (let (remote-ids)
+        (dolist (f files)
+          (cl-pushnew (file-remote-p f)
+                      remote-ids
+                      :test 'equal)
+          )
+        (= 1 (length remote-ids)))
+    (error "[entropy-shellpop]: arguments empty")))
+
 (defun entropy/shellpop--remote-fname-unquote (frname)
   (let ((remote-id (file-remote-p frname)))
     (if remote-id
@@ -500,13 +511,20 @@ for current maximized pop-shell."))))))
 
 ;;;;; cdw functions
 (defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given prompt &rest body)
-  `(unless (eq
-            ;; FIXME: the non-nil return is not extremely indicate
-            ;; TRUE which is described in docstring of `file-equal-p'.
-            (file-equal-p
-             (expand-file-name default-directory)
-             (expand-file-name ,path-given))
-            t)
+  `(unless (or
+            ;; when the current shell host not as same as the new one,
+            ;; we ignore the auto CDW feature, since its may cause
+            ;; current shellpop slot unreliable for user common
+            ;; operation which is usually not the user's expection.
+            (not (entropy/shellpop--remote-files-same-host-p
+                  default-directory ,path-given))
+            (eq
+             ;; FIXME: the non-nil return is not extremely indicate
+             ;; TRUE which is described in docstring of `file-equal-p'.
+             (file-equal-p
+              (expand-file-name default-directory)
+              (expand-file-name ,path-given))
+             t))
      (cond (,prompt
             (when (entropy/shellpop--confirm
                    (format "CD to '%s'" ,path-given))
@@ -1028,9 +1046,7 @@ for current maximized pop-shell."))))))
                        (propertize (format "@%s " major-mode)
                                    'face 'entropy/shellpop--modeline-highlight-major-mode-face)
                        (propertize "Working on: " 'face 'entropy/shellpop--modeline-highlight-working-on-face)
-                       (propertize (if (fboundp 'shrink-path-dirs)
-                                       (shrink-path-dirs default-directory)
-                                     default-directory)
+                       (propertize default-directory
                                    'face
                                    'entropy/shellpop--modeline-highlight-default-directory-face)))
          (rhs '(format "%s%s "
