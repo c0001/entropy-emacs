@@ -1711,7 +1711,15 @@ obey it as consistency thought."
             ;; remove the details title
             (unless (dired-move-to-filename)
               (goto-char (point-min))
-              (delete-region (point) (1+ (line-end-position))))
+              (condition-case err
+                  (delete-region (point) (1+ (line-end-position)))
+                (args-out-of-range
+                 ;; FIXME: directory like '/proc/1/fdinfo' has no
+                 ;; normally directory structure?
+                 (user-error "Special directory detected '%s'"
+                             dirpath))
+                (error
+                 (error "%s" err))))
             (while (not (eobp))
               (unless (funcall this-func)
                 (forward-line 1))
