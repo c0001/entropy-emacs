@@ -467,6 +467,13 @@ return them into list ordered as original case."
              do (push (nth pos plist-var) rtn))
     (reverse rtn)))
 
+(defun entropy/shellpop--remote-fname-unquote (frname)
+  (let ((remote-id (file-remote-p frname)))
+    (if remote-id
+        (string-remove-prefix
+         remote-id frname)
+      frname)))
+
 ;;;;; specific delete window function
 
 (defun entropy/shellpop--delete-window (window)
@@ -494,6 +501,8 @@ for current maximized pop-shell."))))))
 ;;;;; cdw functions
 (defmacro entropy/shellpop--cd-to-cwd-with-judge (path-given prompt &rest body)
   `(unless (eq
+            ;; FIXME: the non-nil return is not extremely indicate
+            ;; TRUE which is described in docstring of `file-equal-p'.
             (file-equal-p
              (expand-file-name default-directory)
              (expand-file-name ,path-given))
@@ -519,25 +528,41 @@ for current maximized pop-shell."))))))
    cwd t
    (goto-char (point-max))
    (comint-kill-input)
-   (insert (concat "cd " (shell-quote-argument cwd)))
+   (insert
+    (concat
+     "cd "
+     (shell-quote-argument
+      (entropy/shellpop--remote-fname-unquote
+       cwd))))
    (let ((comint-process-echoes t))
      (comint-send-input))
    (recenter 1)))
 
 (defun entropy/shellpop--cd-to-cwd-term (cwd)
-  (entropy/shellpop--cd-to-cwd-with-judge
-   cwd t
-   (term-send-raw-string "\C-u")
-   (term-send-raw-string "\C-k")
-   (term-send-raw-string (concat "cd " (shell-quote-argument cwd) "\n"))
-   (term-send-raw-string "\C-l")))
+  (unless
+      ;; emacs-term not support remote auto cd
+      (file-remote-p cwd)
+    (entropy/shellpop--cd-to-cwd-with-judge
+     cwd t
+     (term-send-raw-string "\C-u")
+     (term-send-raw-string "\C-k")
+     (term-send-raw-string
+      (concat "cd "
+              (shell-quote-argument
+               cwd)
+              "\n"))
+     (term-send-raw-string "\C-l"))))
 
 (defun entropy/shellpop--cd-to-cwd-vterm (cwd)
   (entropy/shellpop--cd-to-cwd-with-judge
    cwd t
    (vterm-send-C-u)
    (vterm-send-C-k)
-   (vterm-send-string (concat "cd " (shell-quote-argument cwd)))
+   (vterm-send-string
+    (concat "cd "
+            (shell-quote-argument
+             (entropy/shellpop--remote-fname-unquote
+              cwd))))
    (vterm-send-return)
    (vterm-send-C-l)))
 
