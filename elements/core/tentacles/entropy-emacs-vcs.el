@@ -83,7 +83,14 @@
    ;; inhibit commit with diff show sicne its redundant and we use
    ;; ':select' rule for the revision window in `shackle-mode'.
    (setq magit-commit-show-diff nil)
-   ;; init the eemacs spec
+
+   (setq
+    ;; also revert untracked files to increase accurateness
+    magit-auto-revert-tracked-only nil
+    ;; immediately did what did to prevent user messy
+    magit-auto-revert-immediately t)
+
+   ;; finally init the eemacs spec
    (entropy/emacs-vcs--magit-init))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation

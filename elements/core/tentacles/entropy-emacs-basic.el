@@ -3944,7 +3944,26 @@ as thus."
 (setq-default auto-save-default nil)    ; disable it for preventing typing lagging
 (setq make-backup-files nil)
 
-;; ****** Revert buffer
+;; ****** Auto Revert buffer
+
+(use-package autorevert
+  :ensure nil
+  :commands
+  (global-auto-revert-mode
+   auto-revert-mode)
+  :init
+  (setq
+   ;; immediatly revert to prevent user messy
+   auto-revert-interval 1
+   ;; but not disturb normal user inputs
+   auto-revert-stop-on-user-input t
+   ;; ignore modes check since we want to check every visited file
+   global-auto-revert-ignore-modes nil
+   ;; we should see what heppens to track bugs
+   auto-revert-verbose t
+   )
+  ;; disable lagging since vc check is time expensive
+  (setq auto-revert-check-vc-info nil))
 
 (entropy/emacs-lazy-initial-for-hook
  (find-file-hook)
