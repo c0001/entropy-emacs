@@ -569,25 +569,24 @@ window configs."
                           prompt))
               rtn)))
 
-  (eval-and-compile
-    (defun entropy/emacs-basic--eyebrowse-read-config-repeated (x)
-      "Used in repeated selected eyebrowse config with `ivy-call'.
+  (defun entropy/emacs-basic--eyebrowse-read-config-repeated (x)
+    "Used in repeated selected eyebrowse config with `ivy-call'.
 
 This was the one action in `ivy-read'."
-      (require 'ivy)
-      (if (not (member x entropy/emacs-basic--eyebrowse-config-selected))
-          (push x entropy/emacs-basic--eyebrowse-config-selected))
-      (let ((prompt (entropy/emacs-basic--eyebrowse-read-prompt)))
-        (setf (ivy-state-prompt ivy-last) prompt)
-        (setq ivy--prompt (concat ivy-count-format " " prompt)))
-      (cond
-       ((memq this-command '(ivy-done
-                             ivy-alt-done
-                             ivy-immediate-done))
-        t)
-       ((eq this-command 'ivy-call)
-        (with-selected-window (active-minibuffer-window)
-          (delete-minibuffer-contents))))))
+    (require 'ivy)
+    (if (not (member x entropy/emacs-basic--eyebrowse-config-selected))
+        (push x entropy/emacs-basic--eyebrowse-config-selected))
+    (let ((prompt (entropy/emacs-basic--eyebrowse-read-prompt)))
+      (eval `(setf (ivy-state-prompt ivy-last) ',prompt))
+      (setq ivy--prompt (concat ivy-count-format " " prompt)))
+    (cond
+     ((memq this-command '(ivy-done
+                           ivy-alt-done
+                           ivy-immediate-done))
+      t)
+     ((eq this-command 'ivy-call)
+      (with-selected-window (active-minibuffer-window)
+        (delete-minibuffer-contents)))))
 
   (defun entropy/emacs-basic-eyebrowse-delete-workspace ()
     "Delete eyebrowse workspace with prompt."
