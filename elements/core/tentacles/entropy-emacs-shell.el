@@ -518,7 +518,8 @@ before invoke the main process."
   (defun entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
       (slot)
     (when (or slot
-              (eyebrowse--get 'current-slot))
+              (setq slot
+                    (eyebrowse--get 'current-slot)))
       (nth
        2
        (assoc
@@ -557,11 +558,13 @@ before invoke the main process."
       (when old-hist
         (entropy/emacs-shell--eemacs-shellpop--eyebrowse-curreg-prune
          cur-slot)
-        (when (or (equal cur-tag old-tag)
-                  (yes-or-no-p
-                   (format "Use an old shellpop register associate \
+        (when (and
+               old-reg
+               (or (equal cur-tag old-tag)
+                   (yes-or-no-p
+                    (format "Use an old shellpop register associate \
 the same eyebrowse slot as current use?(tag: %s) "
-                           old-tag)))
+                            old-tag))))
           (entropy/shellpop-replace-type-registers-pointer-as
            old-reg
            (entropy/emacs-shell-eemacs-shellpop--eyebrowse-tag-get
