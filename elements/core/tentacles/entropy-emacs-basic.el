@@ -3953,8 +3953,9 @@ as thus."
    auto-revert-mode)
   :init
   (setq
-   ;; immediatly revert to prevent user messy
-   auto-revert-interval 1
+   ;; immediatly revert to prevent user messy but not set too small
+   ;; delay timer since system drives I/O is time expensive.
+   auto-revert-interval 5
    ;; but not disturb normal user inputs
    auto-revert-stop-on-user-input t
    ;; ignore modes check since we want to check every visited file
