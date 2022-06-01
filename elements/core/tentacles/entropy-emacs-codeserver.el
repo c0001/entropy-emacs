@@ -160,8 +160,13 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
       ;; firstly show outline entry
       (when (or (bound-and-true-p outline-mode)
                 (bound-and-true-p outline-minor-mode))
-       (save-excursion
-         (outline-show-entry)))
+        (save-excursion
+          (condition-case err
+              (outline-show-entry)
+            (outline-before-first-heading
+             (message "outline-before-first-heading"))
+            (error
+             (error "%s" err)))))
 
       ;; then remove `hs-minor-mode' hidden overlay
       (when-let ((hsmode-p (bound-and-true-p hs-minor-mode))
