@@ -136,14 +136,6 @@ NOTE: not support load dynamic module"
   "Alias for `entropy/emacs-common-require-feature' but just used
 in baron part to simplify context distinction search")
 
-;; ** Env variable declaration
-
-;; The eemacs specified envrionment to indicated all subprocess are
-;; ran in an eemacs session, in which case all subprocess can detected
-;; this variable to do some extra operations or something else.
-(setenv "EEMACS_ENV" "TRUE")
-
-
 ;; ** INIT
 (let* ((subs-core
         '("wasteland/var-binds" "wasteland/func-binds"
@@ -197,6 +189,16 @@ in baron part to simplify context distinction search")
    (time-subtract
     entropy/emacs-run-startup-defcustom-load-done-timestamp
     entropy/emacs-run-startup-top-init-timestamp)))
+
+;; The eemacs specified envrionment to indicated all subprocess are
+;; ran in an eemacs session, in which case all subprocess can detected
+;; this variable to do some extra operations or something else.
+(defun __set_eemacs_top_env_indicator ()
+  (setenv "EEMACS_ENV" "TRUE"))
+(__set_eemacs_top_env_indicator)
+;; we should also guaranteed the pdumper reload session has this too.
+(add-hook 'entropy/emacs-pdumper-load-hook
+          #'__set_eemacs_top_env_indicator)
 
 ;; start eemacs
 (cond
