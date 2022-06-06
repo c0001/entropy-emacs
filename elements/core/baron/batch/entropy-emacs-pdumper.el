@@ -231,7 +231,6 @@ configuration.")
       ;; the pdumper session procedure
       (run-hooks 'entropy/emacs-pdumper-load-hook)
       ;; trail dealing
-      (load-library "tramp")              ;reload tramp for enable `auto-sudoedit'
       (setq entropy/emacs-fall-love-with-pdumper nil)
       (entropy/emacs-message-do-message (green "Initialized pdumper session"))
       (when entropy/emacs-pdumper--rec-timer
