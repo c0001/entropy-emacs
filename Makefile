@@ -32,7 +32,7 @@ endif
 
 # ** variable
 EMACS := emacs
-EMACS_MAJOR_VERSION := 27
+EMACS_MAJOR_VERSION := 28
 EMACS_MAKE = $(EMACS) -Q --batch -l init.el
 TERMINATE_WARN = $(EMACS) --batch -q --eval '(or (yes-or-no-p "Remember terminate by kill -9 this make process instead of Ctrl-c since curl do not capture SIGINT") (error "force abort!"))'
 
@@ -52,9 +52,10 @@ endif
 
 .PHONY:help install compile compile-clean install-coworkers install-eemacs-ext-build install-eemacs-fonts update dump native-comp liberime all debug
 
+help: export EEMACS_MAKE=Help
 help:
-	@$(CAT) make-help.txt
-	@$(EMACS) --version
+	@$(EchoEmpty)
+	@$(EMACS_MAKE)
 
 install: export EEMACS_MAKE=Install
 install:

@@ -61,6 +61,112 @@ session"
 (entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-ext)
 
 ;; ** defvar
+
+(defvar entropy/emacs-batch-help-string
+  (format
+   "
+                   Entropy-Emacs Make
+
+Welcom to Entropy-Emacs Make procedure, there's two 'make' options
+provision that 'install', 'install-coworkers', for each as install all
+elisp packges, install external depedencies.
+
+#+begin_quote
+  NOTE: =entropy-emacs= currently support lowest emacs version is
+  =emacs-%s=.
+#+end_quote
+
+Before invoking 'make', you should setting env var of:
+- EMACS_MAJOR_VERSION: default 28
+
+  In which case, set it properly in which emacs session you will
+  use. (note: type =C-h v emacs-major-version= to see what entity
+  should be set on.)
+
+- EMACS: default the first matched 'emacs' caller in =$PATH= and its
+  major-version must match the EMACS_MAJOR_VERSION or will make messy
+  yourself.
+
+Make targets:
+
+       make all
+       make install
+       make compile
+       make liberime
+       make install-coworkers
+       make install-eemacs-ext-build
+       make install-eemacs-fonts
+       make update
+       make dump
+       make native-comp
+
+- 'update' option update existed installed packages.
+
+- 'dump' option dump the emacs using pdumper function
+  `dump-emacs-portable' (need emacs 27 version or above).
+
+  The dumped emacs binary file is stored in
+  'entropy/emacs-user-emacs-directory' (i.e. the entropy-emacs
+  specified `user-emacs-directory' and be equivalent to it in most of
+  cases) with name-space as 'eemacs_YearDateTime.pdmp', start it with:
+
+  -------
+         emacs --dump-file=eemacs_YearDateTime.pdmp
+  -------
+
+- 'native-comp' option will using gccemacs 'native-compile' func to
+  compile all packages hosted in `package-user-dir'. It's useful when
+  you use gccemacs.
+
+- 'install-coworkers' option will install all system-wide emacs
+  dependencies where entropy-emacs specified, you will do it when
+  you're missing any of libraries prompt internally of entropy-emacs
+  using.
+
+- 'install-eemacs-ext-build' option download specified
+  =entropy-emacs-extensions-project-build= to use as local melpa
+  mirror according current entropy-emacs version in which case after
+  successfully installed thus, entropy-emacs will use internal
+  specified packages version to get best experience for
+  entropy-emacs. (If the old build installed detected, we backup it in
+  the same place and install the new one.)
+
+  Currently =entropy-emacs-extensions-project-build= in used version
+  is =%s=. (you can review it by manually download in via [[%s]])
+
+- 'install-eemacs-fonts' option download and install entropy-emacs
+  suggested free copyright fonts (NOTE: auto-install in *nix system
+  but WINDOWS etc. on which show the prompts for manually installing.)
+
+- 'compile' option compile entropy-emacs to get better startup speed
+  and running performance. Use 'compile-clean' to clean the
+  bytecompile files.
+
+- 'liberime' option compile 'liberime' emacs-module based on your
+  system, note that you should have 'librime' and its develop headers
+  installed on your system e.g. in debian `apt install librime-dev'.
+
+  On windows platform or looing for more details please see the README
+  file under \"elements/site-lisp/liberime\".
+
+- 'all' option combine the [install, install-coworkers, liberime,
+  compile] sections together and export env varaible EEMACS_MAKE_ALL
+  with 1 before any operation did.
+
+
+MAINTAINS:
+
+        make debug: startup entropy-emacs with debug facilities
+
+
+In used emacs version is: %s
+"
+   entropy/emacs-lowest-emacs-version-requirement
+   entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-version
+   entropy/emacs-ext-elpkg-eemacs-ext-stable-build-repo-get-url
+   emacs-version
+   ))
+
 ;; ** library
 ;; *** common library
 
@@ -694,6 +800,8 @@ faild with hash '%s' which must match '%s'"
 (when (entropy/emacs-ext-main)
   (let ((type entropy/emacs-batch--make-env-type))
     (cond
+     ((equal type "Help")
+      (message "%s" entropy/emacs-batch-help-string))
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
        (entropy/emacs-package-install-all-packages)))
