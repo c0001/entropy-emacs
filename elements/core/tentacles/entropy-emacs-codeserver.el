@@ -809,6 +809,7 @@ shutdown since it is managed by the customize variable
 
 ;; ******** lsp server init args specifications
 
+  (defvar lsp-clients-typescript-server-args)
   (setq lsp-clients-typescript-server-args
         `("--stdio"
           "--tsserver-log-file"
