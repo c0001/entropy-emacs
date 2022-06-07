@@ -41,6 +41,14 @@
 ;; Debug emacs while hang on by send the SIGUSR2 process event
 (setq debug-on-event 'sigusr2)
 
+;; set entropy-emacs lowest emacs version requirement
+(defconst entropy/emacs-lowest-emacs-version-requirement
+  "27"
+  "The lowsest emacs version requirement for entropy-emacs.
+
+It's a version string which can be used for `version<' and
+`version<='.")
+
 ;; ** eemacs top declares
 
 (defgroup entropy-emacs-customize-top-group nil
@@ -95,8 +103,9 @@
 ;; You may delete these explanatory comments.
 ;; (package-initialize)
 
-(when (version< emacs-version "27")
-  (error "This requires Emacs 27 and above!"))
+(when (version< emacs-version entropy/emacs-lowest-emacs-version-requirement)
+  (error "This requires Emacs %s and above!"
+         entropy/emacs-lowest-emacs-version-requirement))
 
 ;; *** eemacs init env filter
 
