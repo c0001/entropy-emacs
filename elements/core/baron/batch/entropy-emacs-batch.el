@@ -54,12 +54,6 @@ session"
       (require feature)
     (require feature (format "%s.el" feature))))
 
-(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-message)
-(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-defun)
-(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-package)
-(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-coworker)
-(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-ext)
-
 ;; ** defvar
 
 (defvar entropy/emacs-batch-help-string
@@ -167,7 +161,18 @@ In used emacs version is: %s
    emacs-version
    ))
 
+(when (equal entropy/emacs-batch--make-env-type "Help")
+  (message "%s" entropy/emacs-batch-help-string)
+  (kill-emacs))
+
 ;; ** library
+
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-message)
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-defun)
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-package)
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-coworker)
+(entropy/emacs-batch-require-prefer-use-source 'entropy-emacs-ext)
+
 ;; *** common library
 
 ;; *** section prompting
@@ -800,8 +805,6 @@ faild with hash '%s' which must match '%s'"
 (when (entropy/emacs-ext-main)
   (let ((type entropy/emacs-batch--make-env-type))
     (cond
-     ((equal type "Help")
-      (message "%s" entropy/emacs-batch-help-string))
      ((equal type "Install")
       (entropy/emacs-batch--prompts-for-ext-install-section
        (entropy/emacs-package-install-all-packages)))
