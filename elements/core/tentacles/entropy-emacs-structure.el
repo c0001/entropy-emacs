@@ -1188,31 +1188,52 @@ amounts."
                 (floor (log (car cur-prefix) 4))
               cur-prefix))
            (begin-pos
-            (cond
-             ((null cur-prefix)
-              (outline-back-to-heading)
-              (point))
-             (t
-              (outline-up-heading cur-prefix)
-              (point))))
+            (condition-case err
+                (cond
+                 ((null cur-prefix)
+                  (outline-back-to-heading)
+                  (point))
+                 (t
+                  (outline-up-heading cur-prefix)
+                  (point)))
+              (t (point-min))))
            (see-level
-            (lambda ()
+            (lambda (&optional no-jump)
               (save-excursion
                 (if outline-raw-p
                     (if (eq major-mode 'org-mode)
-                        (org-current-level)
-                      (outline-back-to-heading)
-                      (outline-level))
+                        (let ((org-level (save-mark-and-excursion
+                                           (org-outline-level))))
+                          (if org-level
+                              (cond
+                               ((= 0 org-level)
+                                (user-error "no backward org heading found"))
+                               (t
+                                org-level))
+                            (user-error "no org heading found")))
+                      (progn
+                        (unless no-jump
+                          (outline-back-to-heading))
+                        (outline-level)))
                   (progn
-                    (require 'outshine)
-                    (outshine-mode 1)
-                    (outshine-calc-outline-level))))))
+                    (unless (featurep 'outshine)
+                      (require 'outshine))
+                    (unless (bound-and-true-p outshine-mode)
+                      (outshine-mode 1))
+                    (or (outshine-calc-outline-level)
+                        (user-error "no org heading found")))))))
            (cur-level
-            (funcall see-level))
+            (or
+             (condition-case err
+                 (funcall see-level)
+               (t 0))
+             0))
            (end-pos
-            (progn
-              (outline-end-of-subtree)
-              (point)))
+            (condition-case err
+                (progn
+                  (outline-end-of-subtree)
+                  (point))
+              (t (point-max))))
            (subtree-content
             (buffer-substring begin-pos end-pos)))
       (with-current-buffer temp-buffer
@@ -1225,17 +1246,18 @@ amounts."
           (outline-map-region
            (if calc-depth-1?
                (lambda (&rest _)
-                 (let* ((pos-level (funcall see-level)))
+                 (let* ((pos-level (funcall see-level 'no-jump)))
                    (when (= (+ cur-level 1) pos-level)
                      (cl-incf rtn))))
              (lambda (&rest _)
-               (let* ((pos-level (funcall see-level)))
+               (let* ((pos-level (funcall see-level 'no-jump)))
                  (when (< cur-level pos-level)
                    (cl-incf rtn)))))
            (point-min) (point-max))
-          (message "Subtree entries counts: %s (with-prefix: %s)"
+          (message "Subtree entries counts: %s (with-prefix: %s on current level %s)"
                    rtn
-                   cur-prefix))))))
+                   cur-prefix
+                   cur-level))))))
 
 ;; * provide
 (provide 'entropy-emacs-structure)
