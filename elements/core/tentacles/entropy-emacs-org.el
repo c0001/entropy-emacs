@@ -120,9 +120,9 @@
 
 ;; ****** entities
 
-  ;; Show entities as UTF8 characters defautly
-  (setq org-pretty-entities t
-        org-pretty-entities-include-sub-superscripts t)
+  ;; ;; Show entities as UTF8 characters defautly
+  ;; (setq org-pretty-entities t
+  ;;       org-pretty-entities-include-sub-superscripts t)
 
 ;; ***** Cycle
 
