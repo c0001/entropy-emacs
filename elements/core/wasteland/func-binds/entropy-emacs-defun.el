@@ -5220,7 +5220,7 @@ object which can be used for `eval'."
 
 (declare async-start "ext:async")
 (defun entropy/emacs-run-batch-with-eemacs-pure-env
-    (start-form finish-form)
+    (start-form finish-form &optional defdir)
   "Invoke eemacs in batch-mode (i.e. `noninteractive' was non-nil)
 with `entropy/emacs-env-init-with-pure-eemacs-env-p' asynchronously.
 
@@ -5229,10 +5229,14 @@ Return the async process object.
 The START-FORM is a elisp form invoked in async request body, and
 the FINISH-FORM is invoke after the START-FORM ran out within
 current emacs session and optionally can use the result of
-START-FORM via the internal binding variable =$ASYNC-RESULT=."
+START-FORM via the internal binding variable =$ASYNC-RESULT=.
+
+The process running `default-directory' is bind to DEFDIR if set
+or will fallback to `temporary-file-directory'."
   (unless (featurep 'async)
     (require 'async))
   (entropy/emacs-env-with-pure-eemacs-env
+   (or defdir temporary-file-directory)
    (async-start
     `(lambda (&rest _)
        (let ((start-file

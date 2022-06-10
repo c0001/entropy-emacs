@@ -114,8 +114,9 @@ It's a version string which can be used for `version<' and
     (and env
          (not (string-empty-p env)))))
 
-(defmacro entropy/emacs-env-with-pure-eemacs-env (&rest body)
-  `(let ((process-environment
+(defmacro entropy/emacs-env-with-pure-eemacs-env (defdir &rest body)
+  `(let ((default-directory (or ,defdir default-directory))
+         (process-environment
           (cons "EEMACS_INIT_WITH_PURE=t"
                 process-environment)))
      ,@body))
