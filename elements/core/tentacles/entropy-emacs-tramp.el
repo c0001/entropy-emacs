@@ -38,6 +38,9 @@
 ;; ** require
 
 (require 'tramp)
+;; preload the tramp sh pkg to generate the `tramp-methods' completely
+;; before modify it which prevent duplicate cover the modified patch.
+(require 'tramp-sh)
 
 ;; ** library
 
@@ -154,7 +157,6 @@ This func divided this string into the return list as:
 (defun entropy/emacs-tramp--gen-ssh-config-group-fflink (group)
   "Generate tramp link used for
 `entropy/emacs-tramp--query-chosen-open'."
-  (require 'tramp)
   (let ((host-address (nth 1 (or (assoc "hostname" group)
                                  (assoc "HostName" group)
                                  (assoc "Hostname" group)
@@ -198,19 +200,20 @@ This func divided this string into the return list as:
   (tramp-cleanup-all-buffers)
   (message "Clean up all tramp refers."))
 
+;; let sudo like tramp method has eemacs union password expire
+;; timeout sets.
+(dolist (method '("sudo"))
+  (apply
+   'entropy/emacs-tramp--methods-alist-put
+   method
+   `((tramp-session-timeout ,password-cache-expiry))))
+
 (entropy/emacs-lazy-initial-for-hook
  (entropy/emacs-after-startup-hook)
  "eemacs-tramp-hydra-hollow-init"
  "eemacs-tramp-hydra-hollow-init"
  prompt-echo
  :pdumper-no-end t
- ;; let sudo like tramp method has eemacs union password expire
- ;; timeout sets.
- (dolist (method '("sudo"))
-   (apply
-    'entropy/emacs-tramp--methods-alist-put
-    method
-    `((tramp-session-timeout ,password-cache-expiry))))
  ;; the hydra hollow instance
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
   '("Tramp"
