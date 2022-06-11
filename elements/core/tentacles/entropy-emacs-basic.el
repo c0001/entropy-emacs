@@ -298,6 +298,9 @@ With prefix argument binds, jump to the previous mark place."
         :enable t :map-inject t :exit t)
        ("y" dired-show-file-type "Print the type of FILE, according to the ‘file’ command"
         :enable t :map-inject t :exit t)
+       ("x" entropy/emacs-basic-dired-show-file-xdg-mime-type
+        "Print the xdg-mime type of FILE, according to the 'xdg-mime' command."
+        :enable t :map-inject t :exit t)
        ("C" dired-do-copy "Copy all marked (or next ARG) files, or copy the current file"
         :enable t :map-inject t :exit t)
        ("M" entropy/emacs-dired-do-hard-or-symbolic-links-union-processor
@@ -881,6 +884,28 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
         (when (file-exists-p el)
           (entropy/emacs-simple-backup-file el)))
       (revert-buffer)))
+
+;; ******* Dired mime query
+
+  ;; like `dired-show-file-type' but show xdg mime type.
+  (defun entropy/emacs-basic-dired-show-file-xdg-mime-type (file)
+    "Print the xdg mime type of FILE, according to the `xdg-mime' command.
+
+With prefix arg, also save the result to `kill-ring'."
+    (interactive (list (dired-get-filename t)))
+    (let (process-file-side-effects)
+      (condition-case err
+          (with-temp-buffer
+            (process-file "xdg-mime" nil t t
+                          "query" "filetype"
+                          (expand-file-name file))
+            (when (bolp)
+              (backward-delete-char 1))
+            (when current-prefix-arg
+              (kill-ring-save (point-min) (point-max)))
+            (message "%s" (buffer-string)))
+        (error
+         (user-error "%s" err)))))
 
 ;; ******* Dired mark special nodes
 ;; ******** Mark one-subdir nesting structure nodes
