@@ -1185,8 +1185,8 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
 
   (add-to-list 'entropy/emacs-solaire-mode-extra-buffer-filters
                #'(lambda (buff)
-                   (string-match-p
-                    (regexp-quote (buffer-name buff))
+                   (string-equal
+                    (buffer-name buff)
                     entropy/sdcv-show-tooltip-buffer-name))))
 
 ;; **** chinese dict
