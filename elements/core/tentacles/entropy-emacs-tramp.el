@@ -208,6 +208,31 @@ This func divided this string into the return list as:
    method
    `((tramp-session-timeout ,password-cache-expiry))))
 
+(defun entropy/emacs-tramp--add-to-list-adv (orig-func &rest orig-args)
+  "Around advice for `add-to-list' to prevent duplicate regist
+`tramp-methods' since:
+
+FIXME: Why tramp methods will be re-added for some keys like
+'sudo' even if the `tramp-sh' package is required before pdumper
+session init or in some cases?
+"
+  (let ((list-var (car orig-args))
+        ;; (default (nth 2 orig-args))
+        )
+    (if (and (eq list-var 'tramp-methods)
+             ;; prevent messy code
+             (boundp 'tramp-methods)
+             (listp tramp-methods))
+        (if (or (alist-get "sudo" tramp-methods nil nil 'string=)
+                ;; more etc.
+                )
+            tramp-methods
+          (apply orig-func orig-args))
+      (apply orig-func orig-args))))
+(advice-add 'add-to-list
+            :around
+            #'entropy/emacs-tramp--add-to-list-adv)
+
 (entropy/emacs-lazy-initial-for-hook
  (entropy/emacs-after-startup-hook)
  "eemacs-tramp-hydra-hollow-init"
