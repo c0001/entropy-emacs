@@ -5079,7 +5079,9 @@ operation system"
    (entropy/emacs-after-startup-hook)
    "init-lang-set-for-utf8" "init-lang-set-for-utf8"
    prompt-echo
-   :pdumper-no-end t
+   ;; we must ensure the lang set ran by pdumper session load time
+   ;; since te LANG can not be dump.
+   :pdumper-no-end nil
    (entropy/emacs-lang-set-utf-8)))
 
 ;; ***** Using customized basic encoding system
@@ -5088,7 +5090,14 @@ operation system"
 (when (and entropy/emacs-custom-language-environment-enable
            (stringp entropy/emacs-locale-language-environment))
   ;; Customize language environment with user specification
-  (entropy/emacs-lang-set-local))
+  (entropy/emacs-lazy-initial-for-hook
+   (entropy/emacs-after-startup-hook)
+   "init-lang-set-for-user-locale" "init-lang-set-for-user-locale"
+   prompt-echo
+   ;; we must ensure the lang set ran by pdumper session load time
+   ;; since te LANG can not be dump.
+   :pdumper-no-end nil
+   (entropy/emacs-lang-set-local)))
 
 ;; ****** Specific cases to forceing using UTF-8 encoding environment
 
