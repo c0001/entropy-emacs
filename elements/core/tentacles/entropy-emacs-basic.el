@@ -1798,6 +1798,57 @@ wasn't exsited any more."
 
 ;; ******* patch `dired-subtree-insert'
 
+  (defun __ya/dired-subtree--dired-line-is-directory-or-link-p
+      (orig-func &rest orig-args)
+    "Extended the simple line regexp match for
+`dired-subtree--dired-line-is-directory-or-link-p' after its origin
+speedup method so that we can recongnize more unregular directory
+listing format return by 'ls' in some cases like permission denied
+listing for some items under an readable dirctory e.g.
+
+#+begin_example
+  /proc/387:
+  /usr/bin/ls: cannot read symbolic link '/proc/387/cwd': Permission denied
+  /usr/bin/ls: cannot read symbolic link '/proc/387/root': Permission denied
+  /usr/bin/ls: cannot read symbolic link '/proc/387/exe': Permission denied
+    total used in directory 0 available 0 B
+    dr-xr-xr-x   2 root root 0 Jun 23 04:28 attr
+    dr-x------   2 root root 0 Jun 23 04:28 fd
+    dr-xr-xr-x   2 root root 0 Jun 23 04:28 fdinfo
+    dr-x------   2 root root 0 Jun 23 04:28 map_files
+    dr-xr-xr-x  59 root root 0 Jun 23 04:28 net
+    dr-x--x--x   2 root root 0 Jun 23 04:28 ns
+    dr-xr-xr-x   3 root root 0 Jun 22 22:28 task
+    -r--r--r--   1 root root 0 Jun 23 04:28 arch_status
+    -rw-r--r--   1 root root 0 Jun 23 04:28 autogroup
+    -r--------   1 root root 0 Jun 23 04:28 auxv
+    -r--r--r--   1 root root 0 Jun 23 04:28 cgroup
+    --w-------   1 root root 0 Jun 23 04:28 clear_refs
+    -r--r--r--   1 root root 0 Jun 23 04:16 cmdline
+    -rw-r--r--   1 root root 0 Jun 23 04:28 comm
+    -rw-r--r--   1 root root 0 Jun 23 04:28 coredump_filter
+    -r--r--r--   1 root root 0 Jun 23 04:28 cpuset
+    -r--r--r--   1 root root 0 Jun 23 04:28 cpu_resctrl_groups
+    lrwxrwxrwx   1 root root 0 Jun 23 04:28 cwd
+#+end_example
+
+In which case the leading space chars amount is larger or less than 2
+which is hardcoded in the ORIGIN-FUNC.
+"
+    (or (apply orig-func orig-args)
+        (let ((file (ignore-errors
+                      ;; using ignore errors to treat some defined
+                      ;; error msg from `dired-get-filename' as nil
+                      ;; return since we can not distinguish the '.'
+                      ;; and '..' while using its optional arg
+                      ;; NO-ERROR-IF-NOT-FILEP.
+                      (dired-get-filename))))
+          (and file
+               (file-directory-p file)))))
+  (advice-add 'dired-subtree--dired-line-is-directory-or-link-p
+              :around
+              #'__ya/dired-subtree--dired-line-is-directory-or-link-p)
+
   (defun __ya/dired-subtree-insert (&rest _args)
     "Like `dired-subtree-insert' but with bug fix.
 
