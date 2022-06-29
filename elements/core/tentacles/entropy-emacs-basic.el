@@ -6006,7 +6006,7 @@ otherwise returns nil."
          ("<f6>" entropy/emacs-ui-loop-alpha-selected-frame
           "Frame Alpha"
           :enable t
-          :toggle entropy/emacs-ui-loop-alpha-selected-frame-did
+          :toggle entropy/emacs-ui--loop-alpha-selected-frame-is-did
           :global-bind t)
          ("<f7>" entropy/emacs-basic-major-mode-reload
           "Reload Major"

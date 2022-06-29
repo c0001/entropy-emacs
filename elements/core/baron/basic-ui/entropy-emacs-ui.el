@@ -736,14 +736,14 @@ for adding to variable `window-size-change-functions' and hook
 
 ;; *** Transparence
 
-(defvar entropy/emacs-basic--loop-alpha-did nil)
+(defvar entropy/emacs-ui--loop-alpha-selected-frame-is-did nil)
 
 (defun entropy/emacs-ui-loop-alpha-selected-frame (&optional prefix)
   "Toggle frame transparent status with specified transparent
 value as optional interaction while `PREFIX' is non-nil."
   (interactive "P")
-  (setq entropy/emacs-basic--loop-alpha-did
-        (or prefix (null entropy/emacs-basic--loop-alpha-did)))
+  (setq entropy/emacs-ui--loop-alpha-selected-frame-is-did
+        (or prefix (null entropy/emacs-ui--loop-alpha-selected-frame-is-did)))
   (let ((bgtr-default entropy/emacs-loop-alpha-value)
         (bgtr
          (when prefix
@@ -763,7 +763,7 @@ value as optional interaction while `PREFIX' is non-nil."
                   bgtr)))))
     (funcall
      (lambda (a)
-       (unless entropy/emacs-basic--loop-alpha-did
+       (unless entropy/emacs-ui--loop-alpha-selected-frame-is-did
          (setq a 100))
        (let ((alpha-items (mapcar (lambda (x) (when (eq (car x) 'alpha) x))
                                   default-frame-alist)))
