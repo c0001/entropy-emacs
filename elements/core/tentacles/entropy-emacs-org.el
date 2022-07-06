@@ -1682,6 +1682,19 @@ when prefix arg was '(4) i.e. the single `C-u' type."
   '(4 2 2)
   '(4 2 2)))
 
+;; disable some `org-mode' defined keys which conflicts eemacs global
+;; sets.
+(entropy/emacs-lazy-initial-advice-after
+ (org-mode)
+ "disable-keybinding-for-org"
+ "disable-keybinding-for-org"
+ prompt-echo
+ :pdumper-no-end t
+ (dolist (key '("C-c <left>"
+                "C-c <right>"))
+   (define-key org-mode-map (kbd key)
+     nil)))
+
 ;; ** entropy-emacs additional function
 ;; *** tags align
 (defun entropy/emacs-org-tags-align (&optional all)
