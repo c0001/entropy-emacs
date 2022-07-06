@@ -123,6 +123,21 @@
     (unless (pinentry-emacs-gpg-agent-conf-patched-p)
       (pinentry-emacs-gpg-agent-conf-patch-func)))
 
+  (defun entropy/emacs-vcs--magit-safe-command-advice (orig-func &rest orig-args)
+    "The user prompts for unsafe `magit' commands like
+`magit-sparse-checkout-enable' i.e. they may do messy repository
+files destroying."
+    (if (yes-or-no-p
+         (format
+          "Do you really want to run the dangerous command `%s'?"
+          this-command))
+        (apply orig-func orig-args)
+      (user-error "Abort!")))
+  (dolist (func '(magit-sparse-checkout-enable))
+    (advice-add func
+                :around
+                #'entropy/emacs-vcs--magit-safe-command-advice))
+
   )
 
 (use-package ssh-agency
