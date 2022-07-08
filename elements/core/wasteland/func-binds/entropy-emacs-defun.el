@@ -1065,12 +1065,24 @@ The node sort ordered by `string-lessp'
 
 If optional arg NOT-ABS is non-nil then each node is relative to
 the DIR-ROOT.
+
+The returned list is filtered by
+`directory-files-no-dot-files-regexp' i.e. without '.' or '..'
+included.
 "
   (let (rtn-full rtn-lite rtn-attr)
     (setq rtn-full (directory-files dir-root (not not-abs)))
     (dolist (el rtn-full)
       ;; filter the . and ..
-      (if (not (string-match-p "\\(\\\\\\|/\\)?\\(\\.\\|\\.\\.\\)$" el))
+      (if (string-match-p
+           directory-files-no-dot-files-regexp
+           (if not-abs
+               el
+             ;; sans the directory part when filtering the absolute
+             ;; path since `directory-files-no-dot-files-regexp' can
+             ;; not handle the absolute path i.e. it just support
+             ;; the filename.
+             (file-name-nondirectory el)))
           (push el rtn-lite)))
     (if rtn-lite
         (progn
