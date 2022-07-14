@@ -2648,7 +2648,8 @@ as the origin one <%s> at the first mirror turn."
                                       nil))
                               (cl-incf fcounts))
                           (error
-                           (setq cur-succeed-p nil)
+                           (setq cur-succeed-p nil
+                                 cur-succeed-type nil)
                            (cl-incf fcounts-error)
                            (setq cur-error-msg (format "%S" error-type))))
                         (setq
