@@ -1264,6 +1264,11 @@ updating."
 (use-package lsp-python-ms
   :if (eq entropy/emacs-codeserver-prefer-pyls-type 'mspyls)
   :init
+
+  ;; NOTE: like the lsp-pyright config we must disable the :multi-root
+  ;; lsp register but for now its hardcoded in the package.
+  ;; EEMACS_MAINTENANCE: check the source updates and follow the suggestion.
+
   (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
                'lsp-python-ms)
   (when (executable-find "python3")
@@ -1273,6 +1278,12 @@ updating."
 (use-package lsp-pyright
   :if (eq entropy/emacs-codeserver-prefer-pyls-type 'pyright)
   :init
+  ;; disable multi-root for a single pyright server connection since
+  ;; python commonly use virtualenv for each project.
+  ;;
+  ;; NOTE: this variable must be set before load the package since its
+  ;; press on the `lsp-register-client'.
+  (setq lsp-pyright-multi-root nil)
   (add-to-list 'entropy/emacs-codeserver-lsp-mode-extra-clients
                'lsp-pyright))
 
