@@ -465,6 +465,10 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
 (use-package popup
   :commands (popup-tip))
 
+;; ** transient
+
+(use-package transient)
+
 ;; ** hydra
 ;; *** hydra core
 (use-package hydra

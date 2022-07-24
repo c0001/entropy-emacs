@@ -118,6 +118,30 @@
     (define-key global-map (kbd "C-x v i") nil))
 
   :config
+
+  (defun entropy/emacs-vcs-magit--add-mode-transient-default-arguments
+      (mode prop &rest args)
+    "Modify magit MODE's transient property PROP's default
+arguments list when any element of ARGS is not present in it and
+inject them to as.
+
+This function is simpley inspired from magit source as:
+
+#+begin_src elisp
+(put 'magit-diff-mode 'magit-diff-default-arguments
+     '(\"--stat\" \"--no-ext-diff\"))
+#+end_src
+"
+    (let ((old_args (get mode prop)))
+      (dolist (arg args)
+        (unless (member arg old_args)
+          (push arg old_args)))
+      (put mode prop old_args)))
+  ;; default enable signature show in magit revision panel
+  (entropy/emacs-vcs-magit--add-mode-transient-default-arguments
+   'magit-revision-mode 'magit-diff-default-arguments
+   "--show-signature")
+
   ;; windows wsl2 using `pinentry-emacs' as default gpg-agent passphrase
   (when sys/wsl2-env-p
     (unless (pinentry-emacs-gpg-agent-conf-patched-p)
