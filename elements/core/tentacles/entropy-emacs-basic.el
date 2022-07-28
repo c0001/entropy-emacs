@@ -2294,8 +2294,8 @@ an error."
    bug-fix-for-image-dired-list-tags
    emacs-version-incompatible
    :detector (not (and (version< emacs-version "30")
-                       (version< "28" emacs-version)))
-   :signal (entropy/emacs-do-error-for-emacs-version-incompatible "28 - 29")
+                       (version< "27" emacs-version)))
+   :signal (entropy/emacs-do-error-for-emacs-version-incompatible "27 - 29")
    :do-error t
    (defun image-dired-list-tags (file)
      "Read all tags for image FILE from the image database.
