@@ -3981,13 +3981,25 @@ as thus."
   :commands (whitespace-cleanup)
   :preface
   (defun entropy/emacs-basic-simple-whitespace-clean ()
-    "Clean whitespace with the default `whitspace-style'."
+    "Clean whitespace with the default `whitspace-style' (i.e. as the same
+as official initialized `defcustom' one) unless
+`entropy/emacs-inhibit-simple-whitespace-clean' is non-nil.
+
+NOTE: for eemacs maintainer may confused with the `whitespace'
+configuratioi in `entropy-emacs-highlight.el', the difference is in
+the letter file is configured for display style and the former is for
+coding style."
     (interactive)
-    (require 'whitespace)
-    (let ((whitespace-style (default-value 'whitespace-style)))
-      (with-current-buffer (current-buffer)
-        (let ((inhibit-read-only t))
-          (whitespace-cleanup)))))
+    (with-current-buffer (current-buffer)
+      (if entropy/emacs-inhibit-simple-whitespace-clean
+          (ignore)
+        (require 'whitespace)
+        (let ((whitespace-style (entropy/emacs-get-symbol-defcustom-value
+                                 'whitespace-style)))
+          (let ((inhibit-read-only t))
+            (whitespace-cleanup)
+            (message "whitespace cleanup for current buffer <%s> done"
+                     (current-buffer)))))))
   :init
   (add-hook 'before-save-hook
             #'entropy/emacs-basic-simple-whitespace-clean))
