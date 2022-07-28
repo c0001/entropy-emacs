@@ -2290,6 +2290,36 @@ an error."
                 (cons "convert" opts))
             opts)))
 
+  (entropy/emacs--api-restriction-uniform
+   bug-fix-for-image-dired-list-tags
+   emacs-version-incompatible
+   :detector (not (and (version< emacs-version "30")
+                       (version< "28" emacs-version)))
+   :signal (entropy/emacs-do-error-for-emacs-version-incompatible "28 - 29")
+   :do-error t
+   (defun image-dired-list-tags (file)
+     "Read all tags for image FILE from the image database.
+
+NOTE: this function has been redefined by eemacs to fix the regexp bug."
+     (image-dired-sane-db-file)
+     (image-dired--with-db-file
+       (let (end (tags ""))
+         (when (search-forward-regexp
+                (format "^%s"
+                        ;; we must quote the filename since its may
+                        ;; have illegal char to consider as an string.
+                        (regexp-quote file))
+                nil t)
+           (end-of-line)
+           (setq end (point))
+           (beginning-of-line)
+           (if (search-forward ";" end t)
+               (if (search-forward "comment:" end t)
+                   (if (search-forward ";" end t)
+                       (setq tags (buffer-substring (point) end)))
+                 (setq tags (buffer-substring (point) end)))))
+         (split-string tags ";")))))
+
 ;; ****** __end__
   )
 

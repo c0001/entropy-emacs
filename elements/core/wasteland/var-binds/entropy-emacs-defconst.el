@@ -153,6 +153,178 @@ environment whether support graphic display.")
 kernel based and its environment whether support graphic
 display.")
 
+;; ** Eemacs Error Framework
+
+(defvar entropy/emacs-top-error-symbol
+  'entropy/emacs-top-error-signal)
+(define-error entropy/emacs-top-error-symbol
+  "Eemacs top error" 'error)
+(defun entropy/emacs-do-eemacs-top-error (msg)
+  (signal
+   entropy/emacs-top-error-symbol
+   (list msg)))
+
+(defvar entropy/emacs-emacs-version-incompatible-error-symbol
+  'entropy/emacs-emacs-version-incompatible-error-signal)
+(define-error entropy/emacs-emacs-version-incompatible-error-symbol
+  "Eemacs emacs version incompatible" 'entropy/emacs-top-error-symbol)
+(defun entropy/emacs-do-error-for-emacs-version-incompatible
+    (emacs-version-request)
+  (signal
+   entropy/emacs-emacs-version-incompatible-error-symbol
+   (list
+    (format "emacs version '%s' request but current stands on '%s'"
+            emacs-version-request emacs-version))))
+
+(defvar entropy/emacs-package-version-incompatible-error-symbol
+  'entropy/emacs-package-version-incompatible-error-signal)
+(define-error entropy/emacs-package-version-incompatible-error-symbol
+  "Eemacs package version incompatible" 'entropy/emacs-top-error-symbol)
+(defun entropy/emacs-do-error-for-package-version-incompatible
+    (package-name package-version-request)
+  ;; the package version should obtained by `pkg-info-package-version'
+  (require 'pkg-info)
+  (signal
+   entropy/emacs-package-version-incompatible-error-symbol
+   (list
+    (format "package '%s' version '%s' request but current stands on '%s'"
+            package-name
+            package-version-request
+            (pkg-info-package-version package-name)))))
+
+(defun entropy/emacs-api-restriction-display-warn (msg &optional do-error)
+  (if do-error
+      (error msg)
+    (display-warning
+     'eemacs-api-restriction
+     msg
+     :emergency)))
+
+(defvar entropy/emacs-api-restriction-uniform-type-alist
+  '((emacs-version-incompatible
+     :default-detector
+     (version< emacs-version entropy/emacs-lowest-emacs-version-requirement)
+     :default-signal
+     (signal
+      entropy/emacs-emacs-version-incompatible-error-symbol
+      (list
+       (format "lowest emacs version '%s' request but current stands on '%s'"
+               entropy/emacs-lowest-emacs-version-requirement
+               emacs-version))))
+    (package-version-incompatible
+     :default-detector (ignore)
+     :default-signal (error "package version incompatible"))
+    ))
+(defvar entropy/emacs-api-restriction-detection-log nil)
+(cl-defmacro entropy/emacs--api-restriction-uniform
+    (op-name
+     type
+     &rest body
+     &key
+     detector
+     signal
+     do-error
+     &allow-other-keys)
+  "Do BODY via an operation named by OP-NAME which refer to an
+checker type.
+
+TYPE must one of the car of element of
+`entropy/emacs-api-restriction-uniform-type-alist' or will throw
+the error.
+
+EEMACS_MAINTENANCE:
+This macro is just used for eemacs maintainer in where they can
+not guarantee some patches are valid for all emacs-versions or
+purticular package version, thus for as, this macro can throw the
+warning or error while the patches running on thus situation and
+notice the eemacs maintainer to handle or update the patches.
+
+The DETETOR and SIGNAL is related to the checker instance and
+defaulty provided by according to the TYPE defined by eemacs
+internally. Or use the optional key slots as for manually
+specification and this is suggested since the defaults are
+commonly used as fallback and for demo usage.
+
+DETECTOR:
+
+        A form which return non-nil indicates to sign log with
+        TYPE registed by OP-NAME.
+
+SIGNAL:
+
+        When the DETECTOR return non-nil, use this form to `signal'
+        the warning. It should have an error form to interrupt the
+        BODY being Invoked via eval time since the error is ran inside
+        a `condition-case' wrapper.
+
+        We recommend to use the eemacs internal error API to do the signal:
+
+        - `entropy/emacs-do-eemacs-top-error'
+        - `entropy/emacs-do-error-for-emacs-version-incompatible'
+        - `entropy/emacs-do-error-for-package-version-incompatible'
+
+        Since they are tided with eemacs development.
+
+DO-ERROR:
+
+        When non-nil Signal use `error' instead of warning to forcley
+        corrupt the current emacs loop thread to avoid invoke any
+        letter processes influenced by the BODY.
+
+NOTE: all the key can be evaluated at run-time
+
+"
+
+  (let ((body (entropy/emacs-get-plist-body body))
+        (op-name-sym   (make-symbol "op-name"))
+        (type-sym      (make-symbol "type"))
+        (detector-sym  (make-symbol "detector"))
+        (signal-sym    (make-symbol "signal"))
+        (default-sym   (make-symbol "default"))
+        (warn-func-sym (make-symbol "warn-func"))
+        (err-sym       (make-symbol "err-sym"))
+        (err-data-sym  (make-symbol "err-data"))
+        (do-body-p-sym (make-symbol "do-body-p")))
+    `(let* ((,op-name-sym ',op-name)
+            (,type-sym ',type)
+            (,default-sym (alist-get ,type-sym entropy/emacs-api-restriction-uniform-type-alist))
+            (,detector-sym
+             (or ',detector
+                 (plist-get ,default-sym :default-detector)))
+            (,signal-sym
+             (or ',signal
+                 (plist-get ,default-sym :default-signal)))
+            ,err-sym ,err-data-sym ,do-body-p-sym
+            (,warn-func-sym
+             (lambda ()
+               (entropy/emacs-api-restriction-display-warn
+                (format "%s: [type: '%s' op-name: '%s' err-msg: \"%s\"]"
+                        ,err-sym ,type-sym ,op-name-sym ,err-data-sym)
+                ,do-error)))
+            )
+       (unless ,default-sym
+         (entropy/emacs-do-eemacs-top-error
+          (format "invalid eemacs api restriction type - %s"
+                  ,type-sym)))
+       (cond ((eval ,detector-sym)
+              (setq ,do-body-p-sym nil)
+              (condition-case err
+                  (eval ,signal-sym)
+                (t
+                 (setq ,err-sym (car err)
+                       ,err-data-sym (cdr err))
+                 (add-to-list 'entropy/emacs-api-restriction-detection-log
+                              (list
+                               ,type-sym
+                               :operation-name ,op-name-sym
+                               :error-sym ,err-sym
+                               :error-data ,err-data-sym))
+                 (funcall ,warn-func-sym))))
+             (t
+              (setq ,do-body-p-sym t)))
+       (when ,do-body-p-sym
+         ,@body))))
+
 ;; ** others
 (defconst entropy/emacs-origin-load-path (copy-tree load-path))
 
