@@ -2177,10 +2177,33 @@ buffer."
   )
 
 ;; **** image dired
+
+(defmacro entropy/emacs-basic-image-dired-use-package (&rest body)
+  "The use-packag patch for `image-dired' version related patches
+ver. load.
+
+This macro existed because of that each version of image-dird has
+fatal bug of using filename as part of the regexp string. And
+hence further more enhancement we can add also via this
+mechanism."
+  (declare (indent 1))
+  (let* ((path
+          (expand-file-name
+           (format "image-dired/%s" emacs-major-version)
+           entropy/emacs-site-lisp-path))
+         (body-patch (cons (car body)
+                           (cons :load-path
+                                 (cons path (cdr body))))))
+    (if (= emacs-major-version 28)
+        `(use-package
+           ,@body-patch)
+      `(use-package
+         ,@body))))
+
 ;; ***** core
 (defvar-local __ya/image-dired-display-image-buffer-image-file nil)
 
-(use-package image-dired
+(entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
   :commands (image-dired)
 ;; ****** preface
@@ -2341,7 +2364,7 @@ NOTE: this function has been redefined by eemacs to fix the regexp bug."
                ,@body))
            (forward-char))))))
 
-(use-package image-dired
+(entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
   :commands (image-dired)
 ;; ****** eemacs hydra hollow instance
@@ -3025,7 +3048,7 @@ dired buffer."
   )
 
 ;; ***** image-dired-display-image-mode
-(use-package image-dired
+(entropy/emacs-basic-image-dired-use-package image-dired
   :ensure nil
 ;; ****** eemacs hydra hollow instance
   :eemacs-mmphc

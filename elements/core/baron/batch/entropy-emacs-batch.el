@@ -769,6 +769,9 @@ faild with hash '%s' which must match '%s'"
     (eemacs-site-lisp_entropy-shellpop
      "-entropy-shellpop"
      nil)
+    (eemacs-site-lisp_image-dired-28-patch
+     "-image-dired/28"
+     nil)
     (eemacs-site-lisp_lsp-java-simple
      "-lsp-java-simple"
      nil)
