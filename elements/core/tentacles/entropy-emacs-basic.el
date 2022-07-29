@@ -4014,7 +4014,11 @@ the letter file is configured for display style and the former is for
 coding style."
     (interactive)
     (with-current-buffer (current-buffer)
-      (if entropy/emacs-inhibit-simple-whitespace-clean
+      (if (or entropy/emacs-inhibit-simple-whitespace-clean
+              ;; just used in interactive emacs session since we don't
+              ;; want to fluence the batch-mode while user use elisp
+              ;; as a shell or do non-ui related operations.
+              noninteractive)
           (ignore)
         (require 'whitespace)
         (let ((whitespace-style (entropy/emacs-get-symbol-defcustom-value
