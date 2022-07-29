@@ -175,10 +175,24 @@ configuration.")
                                       line-end)
                                  (seq "pkg.el" line-end)))))
          (inc-filters `(,(rx (seq line-start "entropy-" (* any))
-                             (seq ".el" line-end)))))
+                             (seq (or ".el" ".elc") line-end)))))
     (entropy/emacs-pdumper--extract-files-with-dir
      eemacs-deps-top-dir
      exc-filters inc-filters)))
+
+(defun entropy/emacs-pdumper--extract-eemacs-repack-builtin-packages ()
+  (let ((files entropy/emacs-emacs-builtin-package-repack-flist)
+        rtn fname-el fname-elc)
+    (dolist (f files)
+      (setq fname-el
+            (concat f ".el")
+            fname-elc
+            (concat f ".elc"))
+      (if (file-exists-p fname-elc)
+          (push fname-elc rtn)
+        (push fname-el rtn)))
+    ;; FIXME: really need follow the orig order?
+    (nreverse rtn)))
 
 (defun entropy/emacs-pdumper--extract-org-packages ()
   (let* ((org-dir (file-name-directory (locate-library "org")))
@@ -289,7 +303,10 @@ configuration.")
      . ,(entropy/emacs-pdumper--extract-upstream-packages))
     (,nil . ,(entropy/emacs-pdumper--extract-org-packages))
     ((,entropy/emacs-site-lisp-path ,entropy/emacs-pdumper--upstream-top-dir)
-     . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))))
+     . ,(entropy/emacs-pdumper--extract-eemacs-deps-packages))
+    (nil
+     .
+     ,(entropy/emacs-pdumper--extract-eemacs-repack-builtin-packages))))
 
 (entropy/emacs-pdumper--load-files entropy/emacs-pdumper--load-alist)
 

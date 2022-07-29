@@ -282,6 +282,33 @@ version upper than 28.")
   (setq read-extended-command-predicate
         'entropy/emacs-read-extended-command-predicate-function))
 
+(defvar entropy/emacs-emacs-builtin-package-repack-flist
+  (let (rtn
+        fname
+        (fname-exists-p
+         (lambda (x)
+           (or (file-exists-p (concat x ".el"))
+               (file-exists-p (concat x ".elc"))))))
+    (dolist (el `(("image-dired" "image-dired")))
+      (let ((feature-str (car el))
+            (files (cdr el)))
+        (unless files
+          (setq files (list feature-str)))
+        (dolist (f files)
+          (setq fname (expand-file-name
+                       (format "%s/%s/%s"
+                               feature-str
+                               emacs-major-version
+                               f)
+                       entropy/emacs-site-lisp-path))
+          (when (funcall fname-exists-p fname)
+            (push fname rtn)))))
+    rtn)
+  "List of files who are eemacs modi ver. of the emacs internal package.
+
+All the files are stripped their extensions so can be loaded by chosen
+needed extension type.")
+
 ;; ** byte compile refer
 
 (defvar entropy/emacs-session-in-byte-compile-emacs-core-p nil
