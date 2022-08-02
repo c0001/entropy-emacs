@@ -98,5 +98,13 @@
       (t
        (setq redisplay-skip-fontification-on-input t)))
 
+
+;; inhibit mouse highlight while typing
+;;
+;; inspired by :
+;; ;; https://www.gnu.org/software/emacs/manual/html_node/emacs/Mouse-Avoidance.html
+(setq make-pointer-invisible t
+      mouse-highlight 1)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here
