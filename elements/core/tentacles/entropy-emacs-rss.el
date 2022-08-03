@@ -140,6 +140,19 @@
 
 
   :config
+;; *** keymap refactory
+
+  (entropy/emacs-lazy-load-simple (elfeed-search)
+    (dolist (el '(("C-<down>"
+                   ;; disable paragraph down key since it will let
+                   ;; elfeed-search buffer scroll to the bottom
+                   . next-line)
+                  ("C-<up>"
+                   ;; disable paragraph up key since it will let
+                   ;; elfeed-search buffer scroll to the top entry
+                   . previous-line)))
+      (define-key elfeed-search-mode-map (kbd (car el)) (cdr el))))
+
 ;; *** core advice
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
