@@ -189,8 +189,10 @@ configuration.")
             fname-elc
             (concat f ".elc"))
       (if (file-exists-p fname-elc)
-          (push fname-elc rtn)
-        (push fname-el rtn)))
+          (push (list :load-method 'load :file fname-elc :load-path nil)
+                rtn)
+        (push (list :load-method 'load :file fname-el :load-path nil)
+              rtn)))
     ;; FIXME: really need follow the orig order?
     (nreverse rtn)))
 
@@ -263,7 +265,32 @@ configuration.")
   `(entropy/emacs-pdumper--with-load-path
     ,top-dir
     (dolist (file ,files)
-      (let* ((feature-name (file-name-base file))
+      ;; file can be a string or a plist formed as
+      ;;
+      ;; ``` elisp
+      ;; (:file file :load-method load-method :load-path load-path)
+      ;; ````
+      ;;
+      ;; where =file= is a string, =load-method= is a function take
+      ;; one arg i.e. the file to load the file into emacs lisp
+      ;; runtime (default use `require' to the file basename so the
+      ;; feature do not load twice, if you want to explicit load the
+      ;; file use `load' instead) and the =load-path= can be a local
+      ;; dir path string or a list of them which where be add to the
+      ;; top of the current `load-path'.
+      (let* ((file-loadpath nil)
+             (file-loadmethod nil)
+             (file (cond
+                    ((entropy/emacs-common-plistp file)
+                     (setq file-loadpath
+                           (plist-get file :load-path)
+                           file-loadmethod
+                           (plist-get file :load-method))
+                     (or (plist-get file :file)
+                         (error "[pdumper] wrong type of load file plist obj")))
+                    (t
+                     file)))
+             (feature-name (file-name-base file))
              (feature (intern feature-name)))
         (let ((inhibit-read-only t)
               (backup-inhibited t))
@@ -271,14 +298,16 @@ configuration.")
               (with-temp-buffer
                 (erase-buffer)
                 (goto-char (point-min))
-                (insert file)
+                (insert (format ":file '%s' :file-loadmethod '%s' :file-loadpath '%s'"
+                                file file-loadmethod file-loadpath))
                 (entropy/emacs-write-file
                  entropy/emacs-pdumper--loads-log-file))
             (with-current-buffer (find-file-noselect entropy/emacs-pdumper--loads-log-file)
               (goto-char (point-max))
               (when (looking-back "^.+")
                 (insert "\n"))
-              (insert file)
+              (insert (format ":file '%s' :file-loadmethod '%s' :file-loadpath '%s'"
+                              file file-loadmethod file-loadpath))
               (save-buffer))))
         (entropy/emacs-message-do-message
          "%s %s"
@@ -286,7 +315,18 @@ configuration.")
          (yellow feature-name))
         (let ((inhibit-message t))
           (condition-case error
-              (require feature)
+              (let ((load-path
+                     (if file-loadpath
+                         (if (listp file-loadpath)
+                             (append
+                              file-loadpath
+                              load-path)
+                           (cons file-loadpath load-path))
+                       load-path)))
+                (cond
+                 (file-loadmethod
+                  (funcall file-loadmethod file))
+                 (t (require feature))))
             (error
              (let ((inhibit-message nil))
                (message "error: %s" error)))))))))
