@@ -3075,6 +3075,17 @@ as.")
                      (goto-char (point-max))
                      (line-number-at-pos)))))))))
 
+;; *** _individuals
+
+(defun entropy/emacs-safety-message (format-string &rest args)
+  "Like `message' but prevent user use the FORMAT-STRING as the
+only argument apply to it which may cause error while the
+FORMAT-STRING is actually a format-string but used as a common
+string and no ARGS can be formatted."
+  (if args
+      (apply 'message format-string args)
+    (message "%s" format-string)))
+
 ;; ** entropy-emacs initialize
 ;; *** basic setting
 ;; **** make sure gpg pinentry passphrase prompt using emacs minibuffer

@@ -101,6 +101,13 @@ functional whenever what it is.")
 
 ;; ** library
 
+(defun entropy/emacs-message--safety-format (string &rest objects)
+  "Like `format' but wrap when no objects presented so as safety
+thus."
+  (if objects
+      (apply 'format string objects)
+    (format "%s" string)))
+
 (defun entropy/emacs-message--in-daemon-load-p ()
   "Judge whether current env is a daemon silence status e.g both
 satisficed `daemonp' and in emacs init time.
@@ -204,9 +211,8 @@ To get the real-body in BODY.
             ;; we shouldn't use `format' with only string type since
             ;; any string contain format notaion will cause it
             ;; corrupt.
-            (if args
-                (apply #'format format args)
-              format)
+            (entropy/emacs-message--safety-format
+             format args)
             0)))
 
 (defmacro entropy/emacs-message-format-message (message &rest args)
@@ -226,7 +232,7 @@ interactive session."
          (lambda (code format &rest args)
            (apply #'entropy/emacs-message--ansi-format
                   code format args))))
-     (format ,message ,@args)))
+     (entropy/emacs-message--safety-format ,message ,@args)))
 
 (defmacro entropy/emacs-message--do-message-ansi-apply (message &rest args)
   `(let* ((echo-string nil)
