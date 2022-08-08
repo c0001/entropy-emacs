@@ -211,8 +211,8 @@ To get the real-body in BODY.
             ;; we shouldn't use `format' with only string type since
             ;; any string contain format notaion will cause it
             ;; corrupt.
-            (entropy/emacs-message--safety-format
-             format args)
+            (apply 'entropy/emacs-message--safety-format
+                   format args)
             0)))
 
 (defmacro entropy/emacs-message-format-message (message &rest args)
@@ -232,7 +232,7 @@ interactive session."
          (lambda (code format &rest args)
            (apply #'entropy/emacs-message--ansi-format
                   code format args))))
-     (entropy/emacs-message--safety-format ,message ,@args)))
+     (funcall 'entropy/emacs-message--safety-format ,message ,@args)))
 
 (defmacro entropy/emacs-message--do-message-ansi-apply (message &rest args)
   `(let* ((echo-string nil)
