@@ -606,6 +606,24 @@ the beginning of the minibuffer.
 
 Run: [[./h-1c9af04d-403f-4050-a8eb-778fc47ff8de/run.sh]]
 
+** TODO emacs 29 ~commandp~ check function ~find-file~ loop without termination while ~find-file~ is adviced nested up to 20 level
+:PROPERTIES:
+:CUSTOM_ID: h:cf1dab14-2d89-4369-82e1-1a4e298fcfd3
+:END:
+
+It seems the new =oclosure= internal API invocation caused this issue.
+
+Reproduce:
+
+1. ensure emacs 29 is installed and can be found in the =PATH= and
+   assume the caller is =emacs-29=
+
+2. run the follow pre-defined reproduction:
+
+#+begin_src sh
+  sh ./'h:cf1dab14-2d89-4369-82e1-1a4e298fcfd3'/reproduce.sh emacs-29
+#+end_src
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d
