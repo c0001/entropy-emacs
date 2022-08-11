@@ -624,6 +624,14 @@ Reproduce:
   sh ./'h:cf1dab14-2d89-4369-82e1-1a4e298fcfd3'/reproduce.sh emacs-29
 #+end_src
 
+*** [2022-08-11 Thu 12:57:06] report bug to [[bug-gnu-emacs@gnu.org]]
+
+Bug id is: =#57115=
+
+Visist at https://debbugs.gnu.org/cgi/bugreport.cgi?bug=57115 or
+discussed on https://lists.gnu.org/archive/html/bug-gnu-emacs/2022-08/msg00897.html
+
+
 * COMMENT Local Varaibles
 :PROPERTIES:
 :CUSTOM_ID: h-550f1e2d-23da-47d3-98e1-cd8be05baa7d
