@@ -945,8 +945,12 @@ respectively."
             (cond
              (the-default-app
               (message "mime-type: %s default-appliction: %s"
-                       (propertize the-mime-type   'face '((t :foreground "yellow")))
-                       (propertize the-default-app 'face '((t :foreground "green")))))
+                       (propertize
+                        the-mime-type   'face
+                        'entropy/emacs-defface-simple-color-face-yellow)
+                       (propertize
+                        the-default-app 'face
+                        'entropy/emacs-defface-simple-color-face-green)))
              (t
               (message "%s"
                        the-mime-type))))

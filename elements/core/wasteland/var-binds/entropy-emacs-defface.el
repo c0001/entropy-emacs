@@ -29,6 +29,9 @@
 ;; Just requiring it commonly.
 ;;
 ;; * Code:
+;; ** require
+(require 'color)
+
 ;; ** preparation
 
 (defun entropy/emacs-set-fixed-pitch-serif-face-to-monospace ()
@@ -46,6 +49,71 @@ display ugly and small in `info-mode' or other simulate occasions."
 (defgroup entropy/emacs-defface-group nil
   "Eemacs customizable faces group"
   :group 'entropy-emacs-customize-top-group)
+
+;; ** common face
+
+(defgroup entropy/emacs-defface-simple-color-face-group nil
+  "Eemacs customizable simple color faces group"
+  :group 'entropy/emacs-defface-group)
+
+(defun entropy/emacs-defface-gen-simple-color-face (color-name color &rest other-faceattrs)
+  "Generate a simple color face using `defface' which belong to the
+face group
+`entropy/emacs-defface-simple-color-face-group'. Return the FACE.
+
+COLOR-NAME is the specified common emacs supported color name
+such as red,yellow,green etc. COLOR is the hex representation of
+COLOR-NAME, if nil use COLOR-NAME to generate one internally.
+
+Commonly FACE just has an :foreground attribute set to COLOR, but
+you can specified more attribute as what `set-face-attribute' did
+through specifying OTHER-FACEATTRS.
+"
+  (let* ((face-sym
+          (intern
+           (format "entropy/emacs-defface-simple-color-face-%s"
+                   color-name)))
+         (color
+          (or color
+              (apply 'color-rgb-to-hex
+                     (color-name-to-rgb
+                      color-name))))
+         form)
+    (setq
+     form
+     `(defface ,face-sym
+        '((t :foreground ,color
+             ,@other-faceattrs))
+        ,(if other-faceattrs
+             (format "eemacs's common color face for color '%s' (%s).
+
+With face attribtues:
+
+'%s'"
+                     color-name color other-faceattrs)
+           (format "eemacs's common color face for color '%s' (%s)."
+                   color-name color))
+        :group 'entropy/emacs-defface-simple-color-face-group))
+    (eval form)
+    ;; return the face symbol
+    face-sym))
+
+(dolist (color-spec
+         '((:color-name "red")
+           (:color-name "red-bold"    :color "red"    :attrs (:bold t))
+           (:color-name "green")
+           (:color-name "green-bold"  :color "green"  :attrs (:bold t))
+           (:color-name "yellow")
+           (:color-name "yellow-bold" :color "yellow" :attrs (:bold t))
+           (:color-name "blue")
+           (:color-name "blue-bold"   :color "blue"   :attrs (:bold t))
+           (:color-name "cyan")
+           (:color-name "cyan-bold"   :color "cyan"   :attrs (:bold t))))
+  (apply
+   'entropy/emacs-defface-gen-simple-color-face
+   (plist-get color-spec :color-name)
+   (plist-get color-spec :color)
+   (plist-get color-spec :attrs)))
 
 ;; ** eyebrowse faces
 (defface entropy/emacs-defface-face-for-eyebrowse-back-top-wg-message-face_body
