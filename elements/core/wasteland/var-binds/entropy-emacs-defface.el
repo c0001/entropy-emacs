@@ -62,8 +62,16 @@ face group
 `entropy/emacs-defface-simple-color-face-group'. Return the FACE.
 
 COLOR-NAME is the specified common emacs supported color name
-such as red,yellow,green etc. COLOR is the hex representation of
-COLOR-NAME, if nil use COLOR-NAME to generate one internally.
+such as red,yellow,green etc or use arbitrary string but in this
+case the COLOR must be specified see below:
+
+COLOR is the hex representation of COLOR-NAME, if nil use
+COLOR-NAME (assume its a valid emacs color alias without
+validation) to generate one internally but just in interactively
+session since the translation must use GUI features other wise
+use the COLOR-NAME directly as COLOR without type validation so
+that the usage must be carefully and we always suggested
+specified the COLOR argument.
 
 Commonly FACE just has an :foreground attribute set to COLOR, but
 you can specified more attribute as what `set-face-attribute' did
@@ -75,6 +83,7 @@ through specifying OTHER-FACEATTRS.
                    color-name)))
          (color
           (or color
+              (and noninteractive color-name)
               (apply 'color-rgb-to-hex
                      (color-name-to-rgb
                       color-name))))
@@ -99,16 +108,21 @@ With face attribtues:
     face-sym))
 
 (dolist (color-spec
-         '((:color-name "red")
-           (:color-name "red-bold"    :color "red"    :attrs (:bold t))
-           (:color-name "green")
-           (:color-name "green-bold"  :color "green"  :attrs (:bold t))
-           (:color-name "yellow")
-           (:color-name "yellow-bold" :color "yellow" :attrs (:bold t))
-           (:color-name "blue")
-           (:color-name "blue-bold"   :color "blue"   :attrs (:bold t))
-           (:color-name "cyan")
-           (:color-name "cyan-bold"   :color "cyan"   :attrs (:bold t))))
+         '((:color-name "red"           :color "red")
+           (:color-name "red-bold"      :color "red"    :attrs (:bold t))
+           (:color-name "red-italic"    :color "red"    :attrs (:slant italic))
+           (:color-name "green"         :color "green")
+           (:color-name "green-bold"    :color "green"  :attrs (:bold t))
+           (:color-name "green-italic"  :color "green"  :attrs (:slant italic))
+           (:color-name "yellow"        :color "yellow")
+           (:color-name "yellow-bold"   :color "yellow" :attrs (:bold t))
+           (:color-name "yellow-italic" :color "yellow" :attrs (:slant italic))
+           (:color-name "blue"          :color "blue")
+           (:color-name "blue-bold"     :color "blue"   :attrs (:bold t))
+           (:color-name "blue-italic"   :color "blue"   :attrs (:slant italic))
+           (:color-name "cyan"          :color "cyan")
+           (:color-name "cyan-bold"     :color "cyan"   :attrs (:bold t))
+           (:color-name "cyan-italic"   :color "cyan"   :attrs (:slant italic))))
   (apply
    'entropy/emacs-defface-gen-simple-color-face
    (plist-get color-spec :color-name)
