@@ -906,11 +906,19 @@ when you call `entropy/emacs-basic-get-dired-fpath'.")
 
   ;; like `dired-show-file-type' but show xdg mime type.
   (defun entropy/emacs-basic-dired-show-file-xdg-mime-type (file)
-    "Print the xdg mime type of FILE, according to the `xdg-mime' command.
+    "Print the xdg mime type of FILE and its default desktop
+application handler when exist, according to the `xdg-mime'
+command.
 
-With prefix arg, also save the result to `kill-ring'."
+With prefix arg, also save the result to `kill-ring'
+respectively."
     (interactive (list (dired-get-filename t)))
-    (let (process-file-side-effects)
+    (let (process-file-side-effects
+          (kill-ring-save-p current-prefix-arg)
+          (show-default-app-p
+           ;; TODO: shell we need to set this as an option?
+           t)
+          the-mime-type the-default-app)
       (condition-case err
           (with-temp-buffer
             (process-file "xdg-mime" nil t t
@@ -918,9 +926,30 @@ With prefix arg, also save the result to `kill-ring'."
                           (expand-file-name file))
             (when (bolp)
               (backward-delete-char 1))
-            (when current-prefix-arg
-              (kill-ring-save (point-min) (point-max)))
-            (message "%s" (buffer-string)))
+            (setq the-mime-type (buffer-string))
+            (when kill-ring-save-p
+              (kill-new the-mime-type))
+            (when show-default-app-p
+              (erase-buffer)
+              (process-file "xdg-mime" nil t t
+                            "query" "default"
+                            the-mime-type)
+              (setq the-default-app (buffer-string))
+              (if (string-empty-p the-default-app)
+                  (setq the-default-app nil)
+                (setq the-default-app
+                      (replace-regexp-in-string
+                       "\n" "" the-default-app))
+                (when kill-ring-save-p
+                  (kill-new the-default-app))))
+            (cond
+             (the-default-app
+              (message "mime-type: %s default-appliction: %s"
+                       (propertize the-mime-type   'face '((t :foreground "yellow")))
+                       (propertize the-default-app 'face '((t :foreground "green")))))
+             (t
+              (message "%s"
+                       the-mime-type))))
         (error
          (user-error "%s" err)))))
 
