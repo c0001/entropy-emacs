@@ -540,9 +540,9 @@ top to bottom which can be illustrated as below:
   level 1:            1                  2                  3                  4
                       |                  |                  |                  |
                   _________          _________          _________          _________
-                 /    |    \        /    |    \        /    |    \        /    |    \
+                 /    |    \\        /    |    \\        /    |    \\        /    |    \\
   level 2:       2    3    4        1    3    4        1    2    4        1    2    3
-                /\   /\    /\      /\   /\    /\      /\   /\    /\      /\   /\    /\
+                /\\   /\\    /\\      /\\   /\\    /\\      /\\   /\\    /\\      /\\   /\\    /\\
   level 3:     3  4 2  4  2  3    3  4 1  4  1  3    3  4 1  4  2  1    2  3 1  3  1  2
 #+end_example
 
@@ -570,6 +570,14 @@ When USE-COMBINATION is non-nil, the USE-TREE spec is ignored and
 the return is the =permutation-collectionn= without duplicates
 i.e. as following arithnmetic permutation's combination term.
 
+NOTE:
+
+Conventionally each elements of LIST-VAR must be unique since the
+sample space should not contained the duplicated elements under
+arithmetic terminology. But we remove the duplicated elements
+internally without modify LIST-VAR, so any case is safe. This
+realized that the real used LIST-VAR is always the dups-removed
+one so the result length maybe confused while thus.
 "
   (let (rtn)
     (when use-combination
