@@ -349,6 +349,247 @@ list (i.e. not predicted by `proper-list-p').
             rest (if (listp rest) (cdr rest) nil))
       (funcall func item))))
 
+;; **** Combinatorics
+
+(defalias 'entropy/emacs-get-seq-element-position 'cl-position)
+
+(cl-defun entropy/emacs-list-non-order-check-equal-p (lista listb &key test)
+  "Return non-nil if two list is equalization i.e has same `length'
+and same elements test by TEST or use `equal' defaultly."
+  (let ((alen (length lista))
+        (blen (length listb)))
+    (catch :exit
+      (unless (= alen blen)
+        (throw :exit nil))
+      (dolist (el lista)
+        (unless (cl-member el listb :test (or test 'equal))
+          (throw :exit nil)))
+      (throw :exit t))))
+
+(defun entropy/emacs-list-butfirst (list-var &optional n)
+  "Like `butlast' but return the new copy of LIST-VAR with first N
+elements removed. Remove the car of LIST-VAR when N is nil or
+omitted.
+
+(NOTE: the elements order is **not** modified)."
+  (let ((m n)
+        rtn)
+    (if (or (not n)
+            (= n 1))
+        (cdr list-var)
+      (dotimes (_ (- (length list-var) n))
+        (push (nth m list-var) rtn)
+        (cl-incf m))
+      (reverse rtn))))
+
+(cl-defun entropy/emacs-list-delete-elements-with-same-order (elements list-var &key test)
+  "Return a new copy LIST-VAR with same order as origin and with
+remove any element presented in ELEMENTS. This function do not
+modify LIST-VAR.
+
+ELEMENTS usually is a list but internally wrap it as list when
+it's not as."
+  (unless (listp elements)
+    (setq elements (list elements)))
+  (let (rtn
+        (cmp-func (or test 'equal)))
+    (dolist (el list-var)
+      (unless (cl-member el elements :test cmp-func)
+        (push el rtn)))
+    (reverse rtn)))
+
+(cl-defun entropy/emacs-list-non-order-remove-dups
+    (list-var &key list-el-test-func otherwise-test-func)
+  "Return a new copy LIST-VAR which remove all ITEMs in LIST-VAR
+are duplicated predicated by
+`entropy/emacs-list-non-order-check-equal-p' for lists compare and
+`equal' for otherwise defaulty unless OTHERWISE-TEST-FUNC is set.
+
+The LIST-EL-TEST-func is applied to the :test key for
+`entropy/emacs-list-non-order-check-equal-p'.
+
+The return list order is **non-modified** i.e same as what origin
+like."
+  (let ((rtn (copy-tree list-var))
+        (listlen (length list-var))
+        (cnt 0)
+        list-cache delete-cache delete-register)
+    (dolist (el list-var)
+      (unless (or (member el delete-register)
+                  (= cnt (- listlen 1)))
+        (setq list-cache
+              (entropy/emacs-list-butfirst
+               list-var
+               (+ cnt 1))
+              list-cache
+              (entropy/emacs-list-delete-elements-with-same-order delete-register list-cache))
+        (dolist (subel list-cache)
+          (unless (member subel delete-register)
+            (cond
+             ((and (listp el) (listp subel))
+              (when (entropy/emacs-list-non-order-check-equal-p
+                     el subel
+                     :test list-el-test-func)
+                (push subel delete-cache)
+                (push subel delete-register)))
+             (t
+              (when (funcall (or otherwise-test-func 'equal) el subel)
+                (push subel delete-cache)
+                (push subel delete-register))))))
+        (when delete-cache
+          (setq rtn (entropy/emacs-list-delete-elements-with-same-order delete-cache rtn)
+                delete-cache nil)))
+      (cl-incf cnt))
+    rtn))
+
+(defun entropy/emacs-sort-list-according-to-list
+    (list-to-sort list-base &rest pos-get-args)
+  "Return a new copy of LIST-TO-SORT with sort it as the same order
+of what each elements' order in LIST-BASE.
+
+The based LIST-BASE element's order index 'get' function using
+`entropy/emacs-get-seq-element-position', so as the POS-GET-ARGS
+is `apply' to the [keyword-value]... part of that function. Using
+[:test `equal'] defaulty."
+  (let ((rtn (copy-tree list-to-sort)))
+    (setq rtn
+          (sort
+           rtn
+           (lambda (a b)
+             (let ((apos (apply 'entropy/emacs-get-seq-element-position
+                                a list-base (or pos-get-args (list :test 'equal))))
+                   (bpos (apply 'entropy/emacs-get-seq-element-position
+                                b list-base (or pos-get-args (list :test 'equal)))))
+               (cond
+                ((and apos bpos)
+                 (> bpos apos))
+                (t
+                 nil))))))
+    rtn))
+
+(cl-defun __entropy/emacs-gen-list-permutations
+    (list-var nested-depths
+              &key use-tree
+              internal-not-top
+              internal-top-list)
+  (let ((listlen (length list-var))
+        (sublist nil)
+        rtn)
+    (unless (or
+             (= 0 nested-depths)
+             (< nested-depths listlen))
+      (error "nested-depths %s (i.e elements number %s) is overflow than listlen %s"
+             nested-depths (+ 1 nested-depths) listlen))
+    (catch :exit
+      (when (= nested-depths 0)
+        (throw :exit
+               (if (and use-tree internal-not-top)
+                   (list list-var)
+                 list-var)))
+      (dolist (topvar list-var)
+        (setq sublist (entropy/emacs-list-delete-elements-with-same-order topvar list-var))
+        (dolist (el (__entropy/emacs-gen-list-permutations
+                     sublist (- nested-depths 1)
+                     :use-tree use-tree
+                     :internal-not-top t
+                     :internal-top-list (append internal-top-list
+                                                (list topvar))))
+          (push (cons
+                 topvar
+                 (if (listp el)
+                     el
+                   (list el)))
+                rtn)))
+      (setq rtn (reverse rtn))
+      (if (and use-tree internal-not-top)
+          (list rtn)
+        rtn))))
+
+(cl-defun entropy/emacs-gen-list-permutations
+    (list-var sample-size &key use-tree use-combination)
+  "generate the =permutation-collection= of SAMPLE-SIZE of the sample space LIST-VAR.
+
+The =permutation-collectionn= is a list of =permutation-list= whose
+length is the SAMPLE-SIZE and each elements is one of the element of
+LIST-VAR. The length of =permutation-collectionn= is arithmetic
+arrangement of A(LIST-VAR length, SAMPLE-SIZE) i.e.  'a x (a-1) x
+(a-2) ... x (a - (SIMPLE-SIZE - 1))'. The return list formed like
+below list demo:
+
+**The permutation of sample-space (1 2 3) for smaple-size 3 without tree style**
+#+begin_src elisp
+'((1 2 3)
+  (1 3 2)
+  (2 1 3)
+  (2 3 1)
+  (3 1 2)
+  (3 2 1))
+#+end_src
+
+Which see, the order is related the origin element order of the
+LIST-VAR.
+
+If USE-TREE is non-nil then =permutation-collectionn= is a list
+structured using the origin tree style of the permutations from
+top to bottom which can be illustrated as below:
+
+**The permutation of sample-space (1 2 3 4) for smaple-size 3 with tree style**
+
+1) the tree map illustrator
+#+begin_example
+  level 1:            1                  2                  3                  4
+                      |                  |                  |                  |
+                  _________          _________          _________          _________
+                 /    |    \        /    |    \        /    |    \        /    |    \
+  level 2:       2    3    4        1    3    4        1    2    4        1    2    3
+                /\   /\    /\      /\   /\    /\      /\   /\    /\      /\   /\    /\
+  level 3:     3  4 2  4  2  3    3  4 1  4  1  3    3  4 1  4  2  1    2  3 1  3  1  2
+#+end_example
+
+2) its list represention:
+
+#+begin_src elisp
+  '((1 . (2 . (3 4))
+         (3 . (2 4))
+         (4 . (2 3)))
+    (2 . (1 . (3 4))
+         (3 . (1 4))
+         (4 . (1 3)))
+    (3 . (1 . (2 4))
+         (2 . (1 4))
+         (4 . (1 2)))
+    (4 . (1 . (2 3))
+         (2 . (1 3))
+         (3 . (1 2))))
+#+end_src
+
+Which see, the order is also related the origin element order of the
+LIST-VAR.
+
+When USE-COMBINATION is non-nil, the USE-TREE spec is ignored and
+the return is the =permutation-collectionn= without duplicates
+i.e. as following arithnmetic permutation's combination term.
+
+"
+  (let (rtn)
+    (when use-combination
+      (setq use-tree nil))
+    (catch :exit
+      (unless (listp list-var)
+        (signal 'wrong-type-argument (list 'listp list-var)))
+      (unless list-var
+        (throw :exit nil))
+      (unless (integerp sample-size)
+        (signal 'wrong-type-argument (list 'integerp sample-size)))
+      (unless (>= sample-size 1)
+        (setq sample-size 1))
+      (setq rtn
+            (__entropy/emacs-gen-list-permutations
+             list-var (- sample-size 1) :use-tree use-tree))
+      (if use-combination
+          (entropy/emacs-list-non-order-remove-dups rtn)
+        rtn))))
+
 ;; *** Plist manipulation
 
 (defun entropy/emacs-strict-plistp (arg)
