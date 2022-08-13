@@ -56,7 +56,8 @@ display ugly and small in `info-mode' or other simulate occasions."
   "Eemacs customizable simple color faces group"
   :group 'entropy/emacs-defface-group)
 
-(defun entropy/emacs-defface-gen-simple-color-face (color-name color &rest other-faceattrs)
+(defun entropy/emacs-defface-gen-simple-color-face
+    (color-name color &optional funcname-prefix &rest other-faceattrs)
   "Generate a simple color face using `defface' which belong to the
 face group
 `entropy/emacs-defface-simple-color-face-group'. Return the FACE.
@@ -76,10 +77,19 @@ specified the COLOR argument.
 Commonly FACE just has an :foreground attribute set to COLOR, but
 you can specified more attribute as what `set-face-attribute' did
 through specifying OTHER-FACEATTRS.
+
+Optional arg FUNCNAME-PREFIX when set, it should be:
+
+- a string: use this string concatenated with \"-%s\" format with
+  COLOR-NAME to generate the face name.
+
+The default face name is \"entropy/emacs-defface-simple-color-face\".
 "
   (let* ((face-sym
           (intern
-           (format "entropy/emacs-defface-simple-color-face-%s"
+           (format (or
+                    (and funcname-prefix (concat funcname-prefix "-%s"))
+                    "entropy/emacs-defface-simple-color-face-%s")
                    color-name)))
          (color
           (or color
@@ -127,6 +137,7 @@ With face attribtues:
    'entropy/emacs-defface-gen-simple-color-face
    (plist-get color-spec :color-name)
    (plist-get color-spec :color)
+   nil
    (plist-get color-spec :attrs)))
 
 ;; ** eyebrowse faces
