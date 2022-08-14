@@ -351,18 +351,17 @@ list (i.e. not predicted by `proper-list-p').
 
 ;; **** Combinatorics
 
-(defalias 'entropy/emacs-get-seq-element-position 'cl-position)
-
-(cl-defun entropy/emacs-list-non-order-check-equal-p (lista listb &key test)
-  "Return non-nil if two list is equalization i.e has same `length'
-and same elements test by TEST or use `equal' defaultly."
+(cl-defun entropy/emacs-list-has-same-elements-p (lista listb &key test)
+  "Return non-nil if two list is equalization as has same `length'
+and same elements test by TEST or use the same test as
+`cl-position' defaultly."
   (let ((alen (length lista))
         (blen (length listb)))
     (catch :exit
       (unless (= alen blen)
         (throw :exit nil))
       (dolist (el lista)
-        (unless (cl-member el listb :test (or test 'equal))
+        (unless (cl-position el listb :test test)
           (throw :exit nil)))
       (throw :exit t))))
 
@@ -382,102 +381,122 @@ omitted.
         (cl-incf m))
       (reverse rtn))))
 
-(cl-defun entropy/emacs-list-delete-elements-with-same-order (elements list-var &key test)
-  "Return a new copy LIST-VAR with same order as origin and with
-remove any element presented in ELEMENTS. This function do not
-modify LIST-VAR.
+(cl-defun entropy/emacs-list-remove-elements
+    (elements list-var &key test)
+  "Return a new copy list of LIST-VAR with same order as origin and
+with remove any element presented in ELEMENTS. This function do
+not modify LIST-VAR.
 
 ELEMENTS usually is a list but internally wrap it as list when
-it's not as."
+it's not as.
+
+Elements equalization is tested by TEST or use the same test as
+`cl-position' defaultly"
   (unless (listp elements)
     (setq elements (list elements)))
-  (let (rtn
-        (cmp-func (or test 'equal)))
+  (let (rtn)
     (dolist (el list-var)
-      (unless (cl-member el elements :test cmp-func)
+      (unless (cl-position el elements :test test)
         (push el rtn)))
     (reverse rtn)))
 
-(cl-defun entropy/emacs-list-non-order-remove-dups
-    (list-var &key list-el-test-func otherwise-test-func)
-  "Return a new copy LIST-VAR which remove all ITEMs in LIST-VAR
-are duplicated predicated by
-`entropy/emacs-list-non-order-check-equal-p' for lists compare and
-`equal' for otherwise defaulty unless OTHERWISE-TEST-FUNC is set.
+(cl-defun entropy/emacs-list-delete-elements
+    (elements list-var &key test)
+  "Remove any element of list LIST-VAR presented in ELEMENTS
+without order modification.
 
-The LIST-EL-TEST-func is applied to the :test key for
-`entropy/emacs-list-non-order-check-equal-p'.
+ELEMENTS usually is a list but internally wrap it as list when
+it's not as.
 
-The return list order is **non-modified** i.e same as what origin
-like."
+Elements equalization is tested by TEST or use the same test as
+`cl-position' defaultly.
+
+This is a destructive function; it reuses the storage of LIST
+whenever possible.
+
+Write `(setq foo (entropy/emacs-list-delete-elements elements foo))'
+to be sure of correctly changing the value of a list ‘foo’.  See
+also `entropy/emacs-list-remove-elements', which does not modify
+the argument.
+"
+  (unless (listp elements)
+    (setq elements (list elements)))
+  (let ((pos 0) npos
+        (ellen (length elements)))
+    (while (< pos ellen)
+      (if (setq npos (cl-position (nth pos elements) list-var :test test))
+          (if (= npos 0)
+              (setf list-var (cdr list-var))
+            (setcdr (nthcdr (1- npos) list-var)
+                    (nthcdr (1+ npos) list-var)))
+        (cl-incf pos)))
+    list-var))
+
+(defun entropy/emacs-list-remove-duplicates
+    (list-var &rest cl-keys)
+  "Like `cl-remove-duplicates' but just for LIST and guarantee with
+same order and return the new list.
+
+Keywords supported: :test :test-not
+
+(fn LIST [KEYWORD VALUE]...)"
   (let* (rtn
-         (tmplist
-          ;; init as non-empty as the top conditon
-          (copy-sequence list-var))
-         (list-copy nil)
-         (tmpcar    nil)
-         (cmp-func
-          (lambda (a b)
-            (cond
-             ((and (listp a) (listp b))
-              (entropy/emacs-list-non-order-check-equal-p
-               a b
-               :test list-el-test-func))
-             (t
-              (funcall (or otherwise-test-func 'equal) a b))))))
-    ;; algorithm for dups remover:
-    ;; --------------------------
-    ;; *tmplist* inti as *list-var*
-    ;; |
-    ;; v
-    ;; ___________
-    ;; | checker | <----------------------------------------------------------------------------+
-    ;; -----------                                                                              |
-    ;; |                                                                                        |
-    ;; +-----> 1: make a copy of current *tmplist* to *list-copy*.                     -|       |
-    ;;         2: cleanup *tmplist* as a container.                                     |       |
-    ;;         3: make the car of *list-copy* as a base item (i.e. *tmpcar*) to         |       |
-    ;;            remove the dups of cdr of *list-copy*.                                |       |
-    ;;         4: push any item in cdr of *list-copy* which not 'equal' with *tmpcar*   |-------+
-    ;;            to *tmplist* and drop any 'equal' one since they are dups.            |
-    ;;         5: push the *tmpcar* to the return since we've check its dups done.     -|
+         (list-copy (copy-sequence list-var))
+         (first-run-p t)
+         (tmpcar nil))
+    (while list-copy
+      (setq tmpcar (pop list-copy))
+      (when first-run-p
+        (push tmpcar rtn))
+      (unless (or first-run-p
+                  (apply 'cl-position tmpcar rtn
+                         cl-keys))
+        (push tmpcar rtn))
+      (setq first-run-p nil))
+    (if rtn (reverse rtn))))
 
-    (while tmplist
-      (setq list-copy tmplist
-            ;; reset cache
-            tmplist nil
-            tmpcar  nil)
-      (while list-copy
-        (if tmpcar
-            (if (funcall cmp-func tmpcar (car list-copy))
-                (pop list-copy)
-              (push (pop list-copy) tmplist))
-          ;; init tmpcar
-          (setq tmpcar (pop list-copy))))
-      (if tmpcar (push tmpcar rtn))
-      ;; reverse to obey the origin order
-      (if tmplist (setq tmplist (reverse tmplist))))
-    ;; finally we return the new copy with order obeyed
-    (reverse rtn)))
+(defun entropy/emacs-list-delete-duplicates
+    (list-var &rest cl-keys)
+  "Like `cl-delete-duplicates' i.e. (destructively) but just for
+LIST and guarantee with same order and restrict for some keys.
+
+Keywords supported: :test :test-not
+
+(fn LIST [KEYWORD VALUE]...)"
+  (let ((pos-at 1)
+        tmpcar)
+    (while (< pos-at (length list-var))
+      (setq tmpcar (nth pos-at list-var))
+      (if (apply 'cl-position tmpcar list-var
+                 :start 0 :end pos-at
+                 cl-keys)
+          (setcdr (nthcdr (1- pos-at) list-var)
+                  (nthcdr (1+ pos-at) list-var))
+        (cl-incf pos-at)))
+    list-var))
 
 (defun entropy/emacs-sort-list-according-to-list
-    (list-to-sort list-base &rest pos-get-args)
+    (list-to-sort list-base &rest cl-keys)
   "Return a new copy of LIST-TO-SORT with sort it as the same order
 of what each elements' order in LIST-BASE.
 
 The based LIST-BASE element's order index 'get' function using
-`entropy/emacs-get-seq-element-position', so as the POS-GET-ARGS
-is `apply' to the [keyword-value]... part of that function. Using
-[:test `equal'] defaulty."
-  (let ((rtn (copy-sequence list-to-sort)))
+`cl-position', so as the optional keypairs are `apply' to the
+[keyword-value]... part of that function. Internally does use
+[:test `equal'] defaulty since the two list's element may not be
+`eq' even has same structure but we consider that is same.
+
+(fn LIST-TO-SORT LIST-BASE [KEYWORD VALUE]...)"
+  (let ((rtn (copy-sequence list-to-sort))
+        (default-keys '(:test equal)))
     (setq rtn
           (sort
            rtn
            (lambda (a b)
-             (let ((apos (apply 'entropy/emacs-get-seq-element-position
-                                a list-base (or pos-get-args (list :test 'equal))))
-                   (bpos (apply 'entropy/emacs-get-seq-element-position
-                                b list-base (or pos-get-args (list :test 'equal)))))
+             (let ((apos (apply 'cl-position
+                                a list-base (or cl-keys default-keys)))
+                   (bpos (apply 'cl-position
+                                b list-base (or cl-keys default-keys))))
                (cond
                 ((and apos bpos)
                  (> bpos apos))
@@ -505,7 +524,7 @@ is `apply' to the [keyword-value]... part of that function. Using
                    (list list-var)
                  list-var)))
       (dolist (topvar list-var)
-        (setq sublist (entropy/emacs-list-delete-elements-with-same-order topvar list-var))
+        (setq sublist (entropy/emacs-list-remove-elements topvar list-var))
         (dolist (el (__entropy/emacs-gen-list-permutations
                      sublist (- nested-depths 1)
                      :use-tree use-tree
@@ -613,7 +632,14 @@ one so the result length maybe confused while thus.
             (__entropy/emacs-gen-list-permutations
              list-var (- sample-size 1) :use-tree use-tree))
       (if use-combination
-          (entropy/emacs-list-non-order-remove-dups rtn)
+          (entropy/emacs-list-remove-duplicates
+           rtn
+           :test
+           (lambda (a b)
+             (if (and (listp a) (listp b))
+                 (entropy/emacs-list-has-same-elements-p
+                  a b :test 'equal)
+               (equal a b))))
         rtn))))
 
 ;; *** Plist manipulation
