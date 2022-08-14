@@ -606,7 +606,8 @@ the beginning of the minibuffer.
 
 Run: [[./h-1c9af04d-403f-4050-a8eb-778fc47ff8de/run.sh]]
 
-** TODO emacs 29 ~commandp~ check function ~find-file~ loop without termination while ~find-file~ is adviced nested up to 20 level
+** DONE emacs 29 ~commandp~ check function ~find-file~ loop without termination while ~find-file~ is adviced nested up to 20 level
+CLOSED: [2022-08-14 Sun 12:23]
 :PROPERTIES:
 :CUSTOM_ID: h:cf1dab14-2d89-4369-82e1-1a4e298fcfd3
 :END:
@@ -625,11 +626,94 @@ Reproduce:
 #+end_src
 
 *** [2022-08-11 Thu 12:57:06] report bug to [[bug-gnu-emacs@gnu.org]]
+:PROPERTIES:
+:CUSTOM_ID: h:fb709ea6-fa3d-435c-9147-f1b16314dbdc
+:END:
 
 Bug id is: =#57115=
 
 Visist at https://debbugs.gnu.org/cgi/bugreport.cgi?bug=57115 or
 discussed on https://lists.gnu.org/archive/html/bug-gnu-emacs/2022-08/msg00897.html
+
+*** [2022-08-14 Sun 12:20:35] emacs devel has fixed this bug
+:PROPERTIES:
+:CUSTOM_ID: h:bcf0ed65-50fa-40e9-8030-d0300ecfdef7
+:END:
+
+emacs devel commit: emacs devel master: =dd2973bf504= Stefan Monnier
+has fixed this bug or maybe? since I test without any problem now.
+
+commit info:
+
+#+begin_src diff
+  @ dd2973bf5040d26d29a937d252eeaf2884dca9fb
+  Author:     Stefan Monnier <monnier@iro.umontreal.ca>
+  AuthorDate: Sat Aug 13 12:03:22 2022 -0400
+  Commit:     Stefan Monnier <monnier@iro.umontreal.ca>
+  CommitDate: Sat Aug 13 12:04:29 2022 -0400
+
+  Parent:     a1cf3b96f84 ; Fix documentation of 'deactivate-mark'
+
+  nadvice.el: Avoid exponential blow up in interactive-form recursion
+
+  ,* lisp/emacs-lisp/nadvice.el (advice--interactive-form): Sink the call
+  to `commandp` into the autoloaded function case since it's redundant in
+  the other branch.
+  (advice--make-interactive-form): Take just the interactive forms rather
+  than the actual functions as arguments.
+  (oclosure-interactive-form): Use `advice--interactive-form` rather than
+  `commandp` since we'd call `advice--interactive-form` afterwards anyway.
+
+  1 file changed, 13 insertions(+), 13 deletions(-)
+  lisp/emacs-lisp/nadvice.el | 26 +++++++++++++-------------
+
+  modified   lisp/emacs-lisp/nadvice.el
+  @@ -167,31 +167,31 @@ advice-eval-interactive-spec
+
+   (defun advice--interactive-form (function)
+     "Like `interactive-form' but tries to avoid autoloading functions."
+  -  (when (commandp function)
+  -    (if (not (and (symbolp function) (autoloadp (indirect-function function))))
+  -        (interactive-form function)
+  -      `(interactive (advice-eval-interactive-spec
+  +  (if (not (and (symbolp function) (autoloadp (indirect-function function))))
+  +      (interactive-form function)
+  +    (when (commandp function)
+  +      `(interactive (advice--eval-interactive-spec
+                        (cadr (interactive-form ',function)))))))
+
+  -(defun advice--make-interactive-form (function main)
+  +(defun advice--make-interactive-form (iff ifm)
+     ;; TODO: make it so that interactive spec can be a constant which
+     ;; dynamically checks the advice--car/cdr to do its job.
+     ;; For that, advice-eval-interactive-spec needs to be more faithful.
+  -  (let* ((iff (advice--interactive-form function))
+  -         (ifm (advice--interactive-form main))
+  -         (fspec (cadr iff)))
+  +  (let* ((fspec (cadr iff)))
+       (when (eq 'function (car-safe fspec)) ;; Macroexpanded lambda?
+  -      (setq fspec (nth 1 fspec)))
+  +      (setq fspec (eval fspec t)))
+       (if (functionp fspec)
+           `(funcall ',fspec ',(cadr ifm))
+         (cadr (or iff ifm)))))
+
+
+   (cl-defmethod oclosure-interactive-form ((ad advice) &optional _)
+  -  (let ((car (advice--car ad))
+  -        (cdr (advice--cdr ad)))
+  -    (when (or (commandp car) (commandp cdr))
+  -      `(interactive ,(advice--make-interactive-form car cdr)))))
+  +  (let* ((car (advice--car ad))
+  +         (cdr (advice--cdr ad))
+  +         (ifa (advice--interactive-form car))
+  +         (ifd (advice--interactive-form cdr)))
+  +    (when (or ifa ifd)
+  +      `(interactive ,(advice--make-interactive-form ifa ifd)))))
+
+   (cl-defmethod cl-print-object ((object advice) stream)
+     (cl-assert (advice--p object))
+#+end_src
 
 
 * COMMENT Local Varaibles
