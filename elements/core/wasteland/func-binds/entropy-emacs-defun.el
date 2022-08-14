@@ -410,37 +410,55 @@ The LIST-EL-TEST-func is applied to the :test key for
 
 The return list order is **non-modified** i.e same as what origin
 like."
-  (let ((rtn (copy-tree list-var))
-        (listlen (length list-var))
-        (cnt 0)
-        list-cache delete-cache delete-register)
-    (dolist (el list-var)
-      (unless (or (member el delete-register)
-                  (= cnt (- listlen 1)))
-        (setq list-cache
-              (entropy/emacs-list-butfirst
-               list-var
-               (+ cnt 1))
-              list-cache
-              (entropy/emacs-list-delete-elements-with-same-order delete-register list-cache))
-        (dolist (subel list-cache)
-          (unless (member subel delete-register)
+  (let* (rtn
+         (tmplist
+          ;; init as non-empty as the top conditon
+          (copy-sequence list-var))
+         (list-copy nil)
+         (tmpcar    nil)
+         (cmp-func
+          (lambda (a b)
             (cond
-             ((and (listp el) (listp subel))
-              (when (entropy/emacs-list-non-order-check-equal-p
-                     el subel
-                     :test list-el-test-func)
-                (push subel delete-cache)
-                (push subel delete-register)))
+             ((and (listp a) (listp b))
+              (entropy/emacs-list-non-order-check-equal-p
+               a b
+               :test list-el-test-func))
              (t
-              (when (funcall (or otherwise-test-func 'equal) el subel)
-                (push subel delete-cache)
-                (push subel delete-register))))))
-        (when delete-cache
-          (setq rtn (entropy/emacs-list-delete-elements-with-same-order delete-cache rtn)
-                delete-cache nil)))
-      (cl-incf cnt))
-    rtn))
+              (funcall (or otherwise-test-func 'equal) a b))))))
+    ;; algorithm for dups remover:
+    ;; --------------------------
+    ;; *tmplist* inti as *list-var*
+    ;; |
+    ;; v
+    ;; ___________
+    ;; | checker | <----------------------------------------------------------------------------+
+    ;; -----------                                                                              |
+    ;; |                                                                                        |
+    ;; +-----> 1: make a copy of current *tmplist* to *list-copy*.                     -|       |
+    ;;         2: cleanup *tmplist* as a container.                                     |       |
+    ;;         3: make the car of *list-copy* as a base item (i.e. *tmpcar*) to         |       |
+    ;;            remove the dups of cdr of *list-copy*.                                |       |
+    ;;         4: push any item in cdr of *list-copy* which not 'equal' with *tmpcar*   |-------+
+    ;;            to *tmplist* and drop any 'equal' one since they are dups.            |
+    ;;         5: push the *tmpcar* to the return since we've check its dups done.     -|
+
+    (while tmplist
+      (setq list-copy tmplist
+            ;; reset cache
+            tmplist nil
+            tmpcar  nil)
+      (while list-copy
+        (if tmpcar
+            (if (funcall cmp-func tmpcar (car list-copy))
+                (pop list-copy)
+              (push (pop list-copy) tmplist))
+          ;; init tmpcar
+          (setq tmpcar (pop list-copy))))
+      (if tmpcar (push tmpcar rtn))
+      ;; reverse to obey the origin order
+      (if tmplist (setq tmplist (reverse tmplist))))
+    ;; finally we return the new copy with order obeyed
+    (reverse rtn)))
 
 (defun entropy/emacs-sort-list-according-to-list
     (list-to-sort list-base &rest pos-get-args)
@@ -451,7 +469,7 @@ The based LIST-BASE element's order index 'get' function using
 `entropy/emacs-get-seq-element-position', so as the POS-GET-ARGS
 is `apply' to the [keyword-value]... part of that function. Using
 [:test `equal'] defaulty."
-  (let ((rtn (copy-tree list-to-sort)))
+  (let ((rtn (copy-sequence list-to-sort)))
     (setq rtn
           (sort
            rtn
