@@ -1162,7 +1162,7 @@ Will resume when finish composition."
         cursor-type      nil
         mode-line-format nil
         tab-line-format  nil)
-  (jit-lock-mode -1))
+  (jit-lock-mode nil))
 
 
 (require 'rime-predicates)
