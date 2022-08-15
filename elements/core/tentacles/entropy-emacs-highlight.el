@@ -354,6 +354,29 @@ dead and duplicated ones."
 (use-package rainbow-mode
   :diminish rainbow-mode
   :commands (rainbow-mode)
+  :preface
+
+  ;; EEMACS_MAINTENANCE & FIXME :
+  ;;
+  ;; The specified `rainbow-mode' for `web-mode' which can be
+  ;; directly inject to `web-mode-hook'.
+  ;;
+  ;; Since call `rainbow-mode' in `web-mode-hook' directly may cause
+  ;; redisplay error like:
+  ;;
+  ;; #+begin_example
+  ;; Error during redisplay: (jit-lock-function 1501) signaled (wrong-type-argument number-or-marker-p nil)
+  ;; #+end_example
+  (defun entropy/emacs-highlight--rainbow-mode-for-web-mode
+      (&rest _)
+    (let ((buff (current-buffer)))
+      (run-with-idle-timer
+       0 nil
+       (lambda (&rest _)
+         (when (and (buffer-live-p buff)
+                    (eq (current-buffer) buff))
+           (rainbow-mode 1))))))
+
   :eemacs-tpha
   (((:enable t :defer t))
    ("Highlight"
@@ -371,7 +394,8 @@ dead and duplicated ones."
   ;; default face of string context of documentation.
   ;; ;; (add-hook 'help-mode-hook #'rainbow-mode)
   (entropy/emacs-lazy-load-simple web-mode
-    (add-hook 'web-mode-hook #'rainbow-mode))
+    (add-hook 'web-mode-hook
+              #'entropy/emacs-highlight--rainbow-mode-for-web-mode))
   (entropy/emacs-lazy-load-simple css-mode
     (add-hook 'css-mode-hook #'rainbow-mode))
 
