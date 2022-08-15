@@ -326,7 +326,7 @@ NOTE: all the key can be evaluated at run-time
          ,@body))))
 
 ;; ** others
-(defconst entropy/emacs-origin-load-path (copy-tree load-path))
+(defconst entropy/emacs-origin-load-path (copy-sequence load-path))
 
 (defconst entropy/emacs-ecv "VERSION: 1.0.0 Tag: ONEPIECE"
   "Version of entropy-emacs.")

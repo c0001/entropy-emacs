@@ -4435,7 +4435,7 @@ successfully both of situation of read persisit of create an new."
                      (find-file-noselect file)))
            (inhibit-read-only t)
            kill-ring-read
-           (kill-ring-old (copy-tree kill-ring))
+           (kill-ring-old (copy-sequence kill-ring))
            (rtn t))
       (with-current-buffer buffer
         (goto-char (point-min))

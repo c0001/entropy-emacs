@@ -539,7 +539,7 @@ and bug fix."
 
   (defun __swiper-all-call-eemacs-spec-filters ()
     (setq __swiper-all-current-all-buffers (buffer-list))
-    (let ((filters (copy-tree __swiper-all-eemacs-spec-filters))
+    (let ((filters (copy-sequence __swiper-all-eemacs-spec-filters))
           (rtn-funcs nil))
       (catch :exit
         (while filters

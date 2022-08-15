@@ -1477,14 +1477,14 @@ let eglot do completion with interface argument injection."
 
   (defun entropy/emacs-codeserver--eglot-server-chosen-hack
       (mode concact)
-    (let* ((rtn (copy-tree eglot-server-programs)))
+    (let* (_)
       (make-local-variable 'eglot-server-programs)
       (setq eglot-server-programs
             (--map-when
              (equal (car it) mode)
              (cons (car it)
                    concact)
-             rtn))
+             eglot-server-programs))
       (unless (alist-get mode eglot-server-programs)
         (setq eglot-server-programs
               (append `((,mode . ,concact))
