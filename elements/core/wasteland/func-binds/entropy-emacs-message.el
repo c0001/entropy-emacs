@@ -482,8 +482,12 @@ window if available, return non-nil for success, nil otherwise."
 (defmacro entropy/emacs-message-do-error (message &rest args)
   "An alternative to `user-error' that strips out ANSI codes.
 
+Enable debugger when `entropy/emacs-startup-with-Debug-p' is
+enable, suppressed whenever possible in otherwise.
+
 NOTE: Just use it in `noninteractive' session."
-  `(progn
+  `(let ((debug-on-error entropy/emacs-startup-with-Debug-p)
+         (inhibit-debugger (not entropy/emacs-startup-with-Debug-p)))
      (entropy/emacs-message-do-message
       ,message ,@args)
      (user-error "")))
