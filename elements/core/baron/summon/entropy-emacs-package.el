@@ -249,7 +249,7 @@ the error msg into `entropy/emacs-package-install-failed-list'."
       (package-delete (car (alist-get pkg-name current-pkgs)) t))
     ;; install package after package archvie contents refresh
     ;; when needed.
-    (unless (ignore-errors (assoc pkg package-archive-contents))
+    (unless (ignore-errors (assoc pkg-name package-archive-contents))
       (package-refresh-contents))
     ;; installing/updating message
     (if print-prefix
@@ -361,7 +361,8 @@ command and rest of the command's arguments"
         (cl-incf count)))
     (let (
           ;; ensure we do not need debug for this statement
-          (debug-on-error nil))
+          (debug-on-error nil)
+          (inhibit-debugger t))
       (error ""))))
 
 ;; *** install
