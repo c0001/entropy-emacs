@@ -43,6 +43,9 @@
 ;; ** Require
 (when entropy/emacs-startup-debug-on-error
   (setq debug-on-error t))
+(when entropy/emacs-startup-jit-lock-debug-mode
+  (require 'jit-lock)
+  (jit-lock-debug-mode t))
 
 (defvar entropy/emacs-start--load-duration-log nil)
 (defmacro entropy/emacs-start--run-with-duration-log

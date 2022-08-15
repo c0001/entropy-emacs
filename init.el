@@ -76,6 +76,16 @@ It's a version string which can be used for `version<' and
   :type 'boolean
   :group 'entropy/emacs-customize-group-for-DEBUG)
 
+(defcustom entropy/emacs-startup-jit-lock-debug-mode nil
+  "Enable `jit-lock-debug-mode' at eemacs startup time?
+
+NOTE&FIXME: eemacs defaultly disable it since
+`jit-lock-debug-mode' can not render the
+display? (i.e. `dired-mode' and `prog-mode' etc. has no color
+renderred after init this.)"
+  :type 'boolean
+  :group 'entropy/emacs-customize-group-for-DEBUG)
+
 ;; *** Pdumper
 (defgroup entropy/emacs-customize-group-for-pdumper nil
   "Eemacs portable dump configuration customizable group."
