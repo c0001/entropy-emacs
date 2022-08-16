@@ -225,6 +225,10 @@ configuration.")
         (bookmark-watch-bookmark-file 'silent))
     (unless (entropy/emacs-in-pdumper-procedure-p)
 
+      ;; reset main frame indicator to current session follow eemacs
+      ;; internal api.
+      (setq entropy/emacs-main-frame (selected-frame))
+
       ;; FIXME: restore the saved `load-path' sicne pdumper session
       ;; will lost the `load-path' within the dump procedure
       (setq load-path entropy/emacs-pdumper-pre-lpth)
