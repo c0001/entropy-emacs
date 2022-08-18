@@ -4595,6 +4595,18 @@ always completely specified) when the ATTRIBUTE's value is
   (let ((inherit (or inherit 'default)))
     (face-attribute face attribute frame inherit)))
 
+(defun entropy/emacs-face-attribute-color-p
+    (face attribute &optional frame inherit)
+  "Same as `face-attribute' but return nil while the ATTRIBUTE's
+value of FACE is not a color string which can predicated by
+`entropy/emacs-color-string-hex-p' or a member of
+`defined-colors' on FRAME."
+  (let ((val (face-attribute face attribute frame inherit)))
+    (and (stringp val)
+         (or (entropy/emacs-color-string-hex-p val)
+             (member val (defined-colors frame)))
+         val)))
+
 (defun entropy/emacs-get-face-attribute-alist (face &optional frame inherit)
   "Map face FACE all attributes into a alist with element formed
 as '(cons attr-key attr-value)' which can be used for
