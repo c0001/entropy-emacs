@@ -209,7 +209,7 @@ instead and see it for details."
           entropy/emacs-solaire-mode--local-faces-remap-cookie)
     (setq entropy/emacs-solaire-mode--local-faces-remap-cookie nil))
   ;; Don't kick in if the current theme doesn't support solaire-mode.
-  (if (not (entropy/emacs-theme-adapted-to-solaire))
+  (if (not (entropy/emacs-theme-adapted-to-solaire-p))
       (setq entropy/emacs-solaire-mode nil)
     (when entropy/emacs-solaire-mode
       (dolist (remap entropy/emacs-solaire-remap-alist)
@@ -298,7 +298,7 @@ by `entropy/emacs-startup-done'.")
 (defun entropy/emacs-themes-startup-solaire-mode-as-daemon (&rest _)
   "Startup `entropy/emacs-solaire-global-mode' as the subset of
 `entropy/emacs-themes-solaire-startup-timer'."
-  (when (entropy/emacs-theme-adapted-to-solaire)
+  (when (entropy/emacs-theme-adapted-to-solaire-p)
     (let (_)
       (if entropy/emacs-startup-done
           (entropy/emacs-themes-enable-solaire-global-mode-with-spec)
