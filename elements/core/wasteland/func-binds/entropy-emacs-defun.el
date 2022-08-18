@@ -4586,18 +4586,27 @@ based the frame, nil for use selected frame."
 
 ;; *** Face manipulation
 
-(defun entropy/emacs-get-face-attribute-alist (face &optional frame)
+(defun entropy/emacs-face-attribute-trim-unspecified
+    (face attribute &optional frame inherit)
+  "Same as `face-attribute' but resolve any unspecified or
+relative values by merging with the ‘default’ face (which is
+always completely specified) when the ATTRIBUTE's value is
+'unspecified'."
+  (let ((inherit (or inherit 'default)))
+    (face-attribute face attribute frame inherit)))
+
+(defun entropy/emacs-get-face-attribute-alist (face &optional frame inherit)
   "Map face FACE all attributes into a alist with element formed
 as '(cons attr-key attr-value)' which can be used for
-`set-face-attribute' to loop did as."
+`set-face-attribute' to loop did as.
+
+If optional argument INHERIT and FRAME is non-nil, it has the
+same meaning used for `face-attribute'"
   (delete nil
           (mapcar
            (lambda (attr)
-             (let ((value (face-attribute face attr frame t)))
-               (if (eq value 'unspecified)
-                   (cond
-                    ((eq attr :foreground) (cons attr nil)))
-                 (cons attr value))))
+             (let ((value (face-attribute face attr frame inherit)))
+               (cons attr value)))
            entropy/emacs-face-attributes-list)))
 
 (defvar entropy/emacs-set-face-attribute--internal-log-for-setted-faces nil)
