@@ -6541,135 +6541,125 @@ modeline swither."
 
 (declare-function doom-modeline-refresh-bars "ext:doom-modeline")
 
-(defun entropy/emacs-theme-load-face-specifix (&optional x)
+(defun entropy/emacs-theme-load-face-specifix (&optional theme-name-str frame)
   "Sets of specification for eemacs native themes.
 
 This function should be invoked after a theme loaded done, and it
 will automatically recongnized current theme name and do the
 corresponding stuffs."
-  (unless x
-    (setq x (symbol-name entropy/emacs-theme-sticker)))
+  (unless theme-name-str
+    (setq theme-name-str (symbol-name entropy/emacs-theme-sticker)))
   ;; main spec
   (cond
-   ((string-match-p "spacemacs-dark" x)
+   ((string-match-p "spacemacs-dark" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-spacemacs-dark
      ivy
      (entropy/emacs-set-face-attribute
-      'ivy-current-match nil
+      'ivy-current-match frame
       :background "purple4" :bold t)))
-   ((string-match-p "spacemacs-light" x)
+   ((string-match-p "spacemacs-light" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-spacemacs-light
      ivy
      (entropy/emacs-set-face-attribute
-      'ivy-current-match nil
+      'ivy-current-match frame
       :background "salmon" :bold t)))
-   ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" x)
+   ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-tsdh-whiteboard-adwaita-themes
      ivy
      (if (equal 'dark (frame-parameter nil 'background-mode))
          (entropy/emacs-set-face-attribute
-          'ivy-current-match nil
+          'ivy-current-match frame
           :background "#65a7e2" :foreground "black")
        (entropy/emacs-set-face-attribute
-        'ivy-current-match nil
+        'ivy-current-match frame
         :background "#1a4b77" :foreground "white"))))
-   ((string= "doom-solarized-light" x)
+   ((string= "doom-solarized-light" theme-name-str)
     (when (not (featurep 'hl-line))
       (require 'hl-line))
     (entropy/emacs-set-face-attribute
-     'hl-line nil
+     'hl-line frame
      :background
      "LightGoldenrod2")
     (entropy/emacs-set-face-attribute
-     'solaire-hl-line-face nil
+     'solaire-hl-line-face frame
      :background "#ffffe4e4b5b5"))
-   ((string= "doom-Iosvkem" x)
+   ((string= "doom-Iosvkem" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-doom-Iosvkem-theme
      ivy
      (entropy/emacs-set-face-attribute
-      'ivy-current-match nil
+      'ivy-current-match frame
       :background "grey8"
       :distant-foreground "grey7")))
-   ((string= "doom-dark+" x)
+   ((string= "doom-dark+" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      outline-3-face-hack-for-doom-dark+-theme
      outline
      (entropy/emacs-set-face-attribute
-      'outline-3 nil
+      'outline-3 frame
       :foreground "LawnGreen")))
-   ((string= "doom-1337" x)
+   ((string= "doom-1337" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-doom-1337-theme
      ivy
      (entropy/emacs-set-face-attribute
-      'ivy-current-match nil
+      'ivy-current-match frame
       :background "#2257A0"
       :distant-foreground "#1B2229"))
     (entropy/emacs-set-face-attribute
-     'highlight nil
+     'highlight frame
      :foreground "grey7")
     (entropy/emacs-set-face-attribute
-     'region nil
+     'region frame
      :background "grey24"))
-   ((or (string= "sanityinc-tomorrow-bright" x)
-        (string= "sanityinc-tomorrow-night" x)
-        (string= "sanityinc-tomorrow-eighties" x))
+   ((or (string= "sanityinc-tomorrow-bright" theme-name-str)
+        (string= "sanityinc-tomorrow-night" theme-name-str)
+        (string= "sanityinc-tomorrow-eighties" theme-name-str))
     (entropy/emacs-set-face-attribute
-     'tooltip nil
+     'tooltip frame
      :background "white"
      :foreground "grey21"))
-   ((string= "sanityinc-tomorrow-blue" x)
+   ((string= "sanityinc-tomorrow-blue" theme-name-str)
     (entropy/emacs-set-face-attribute
-     'tooltip nil
+     'tooltip frame
      :background "white"
      :foreground "blue4"))
-   ((string= "ujelly" x)
-    ;; term
-    (entropy/emacs-set-face-attribute
-     'term-color-blue nil
-     :foreground "#61AFEF")
-
-    ;; tooltip face
-    (entropy/emacs-set-face-attribute
-     'tooltip nil
-     :background "#393939393939"
-     :foreground "white")
-    ;; border margin and fringe
-    (entropy/emacs-set-face-attribute
-     'border nil
-     :background "grey6"
-     :foreground "#505000000000")
-    (entropy/emacs-set-face-attribute
-     'internal-border nil
-     :background "grey6"
-     :foreground "#505000000000")
-    (entropy/emacs-set-face-attribute
-     'vertical-border nil
-     :background "grey6"
-     :foreground "#505000000000")
-    (entropy/emacs-set-face-attribute
-     'window-divider nil
-     :background "grey6"
-     :foreground "#505000000000")
-    (entropy/emacs-set-face-attribute
-     'window-divider-first-pixel nil
-     :background "grey6"
-     :foreground "#505000000000")
-    (entropy/emacs-set-face-attribute
-     'window-divider-last-pixel nil
-     :background "grey6"
-     :foreground "#505000000000")
-
-    ;; symbol-overlay
-    (entropy/emacs-set-face-attribute
-     'symbol-overlay-default-face nil
-     :background "DarkOrange"
-     :foreground "black")
-    )
+   ((string= "ujelly" theme-name-str)
+    (dolist (el `((:face tooltip
+                         :frame ,frame
+                         :spec (:background "#393939393939" :foreground "white"))
+                  (:face term-color-blue
+                         :frame ,frame
+                         :spec (:foreground "#61AFEF"))
+                  (:face border
+                         :frame ,frame
+                         :spec (:background "grey6" :foreground "#505000000000"))
+                  (:face internal-border
+                         :frame ,frame
+                         :spec (:background "grey6" :foreground "#505000000000"))
+                  (:face vertical-border
+                         :frame ,frame
+                         :spec (:background "grey6" :foreground "#505000000000"))
+                  (:face window-divider
+                         :frame ,frame
+                         :spec (:background "grey6" :foreground "#505000000000"))
+                  (:face window-divider-first-pixel
+                         :frame ,frame
+                         :spec (:background "grey6" :foreground "#505000000000"))
+                  (:face window-divider-last-pixel
+                         :frame ,frame
+                         :spec (:background "grey6" :foreground "#505000000000"))
+                  (:face symbol-overlay-default-face
+                         :frame ,frame
+                         :spec (:background "DarkOrange" :foreground "black")))
+                )
+      (apply 'entropy/emacs-set-face-attribute
+             (plist-get el :face)
+             (plist-get el :frame)
+             (plist-get el :spec))))
    (t
     (entropy/emacs-set-fixed-pitch-serif-face-to-monospace)))
   ;; other spec
@@ -6683,7 +6673,7 @@ corresponding stuffs."
      magit-diff
      (entropy/emacs-set-face-attribute
       'magit-diff-hunk-region
-      nil
+      frame
       :weight 'bold
       :extend t
       :background
@@ -6708,13 +6698,13 @@ corresponding stuffs."
 
   ;; --- company tooltip selection highlight
   ;; more visible for `company-tooltip-selection'
-  (when (member x '("doom-1337" "doom-Iosvkem"))
+  (when (member theme-name-str '("doom-1337" "doom-Iosvkem"))
     (entropy/emacs-eval-after-load-unique
      company-tooltip-selection-face-hack-for-variant-themes
      company
      (entropy/emacs-set-face-attribute
       'company-tooltip-selection
-      nil
+      frame
       :weight 'bold
       :extend nil
       :background
