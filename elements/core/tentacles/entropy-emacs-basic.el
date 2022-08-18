@@ -4955,7 +4955,11 @@ successfully both of situation of read persisit of create an new."
 
 (defun entropy/emacs-basic-print-variable (var-sym)
   "Print a variable into a transient buffer and popup to display
-it with focus on."
+it with focus on.
+
+Show the `default-value' while non-nil `current-prefix-arg' is
+detected or using `buffer-local-value' with buffer where invoked
+from."
   (interactive
    (list
     (let ((form-str
