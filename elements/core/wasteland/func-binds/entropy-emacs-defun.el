@@ -5715,13 +5715,18 @@ operation."
 ;; ** eemacs specifications
 ;; *** Individuals
 
+(defmacro entropy/emacs-general-run-with-gc-strict (&rest body)
+  "Run BODY with restricted `gc-cons-threshold'."
+  `(let* ((gc-cons-threshold entropy/emacs-gc-threshold-basic)
+          (gc-cons-percentage entropy/emacs-gc-percentage-basic))
+     ,@body))
+
 (defmacro entropy/emacs-general-run-with-protect-and-gc-strict (&rest body)
   "Run BODY with `inhibit-quit' and restrict with basic
 `gc-cons-threshold'."
-  `(let* ((inhibit-quit t)
-          (gc-cons-threshold entropy/emacs-gc-threshold-basic)
-          (gc-cons-percentage entropy/emacs-gc-percentage-basic))
-     ,@body))
+  `(let* ((inhibit-quit t))
+     (entropy/emacs-general-run-with-gc-strict
+      ,@body)))
 
 (defun entropy/emacs-transfer-wvol (file)
   "Transfer linux type root path header into windows volumn

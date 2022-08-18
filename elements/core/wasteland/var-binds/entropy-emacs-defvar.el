@@ -1417,7 +1417,7 @@ with the base file name of FILE to speedup in most of cases."
 
 ;; ** garbage collection refer
 
-(defvar entropy/emacs-gc-threshold-basic (* 150 1024 1024)
+(defvar entropy/emacs-gc-threshold-basic (* 1 1024 1024)
   "The basic thredshold for the growth for `gc-cons-threshold'")
 
 (defvar entropy/emacs-gc-percentage-basic 0.3
@@ -1425,6 +1425,11 @@ with the base file name of FILE to speedup in most of cases."
 
 (defvar entropy/emacs-garbage-collect-idle-timer nil
   "The garbage collection idle timer for entropy-emacs.")
+
+(defvar entropy/emacs-garbage-collect-restrict-commands nil
+  "List of commands (i.e. interactive functions) that need to
+restrict their runtime `gc-cons-threshold' while invoked in any
+keymap.")
 
 ;; ** theme refer
 

@@ -144,7 +144,8 @@ For lisp coding aim, always return the transfered buffer.
 anything."
       `(when (yes-or-no-p
               (format "Really eval %s" ',type))
-         ,@body)))
+         (entropy/emacs-general-run-with-gc-strict
+          ,@body))))
 
   (defun entropy/emacs-lisp-elisp-eval-defun ()
     "Like `eval-defun' but in safety way."

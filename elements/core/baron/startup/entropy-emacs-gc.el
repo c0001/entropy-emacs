@@ -63,7 +63,9 @@
               (time-subtract
                (current-time) --start--)))
        (push (list :stamp --cur-time-human-- :duration --duration--
-                   :idle-delay entropy/emacs-garbage-collection-delay)
+                   :idle-delay entropy/emacs-garbage-collection-delay
+                   :gc-cons-threshold gc-cons-threshold
+                   :gc-cons-percentage gc-cons-percentage)
              entropy/emacs-gc-records))))
 
 (defun entropy/emacs-gc-wrapper (orig-func &rest orig-args)
@@ -103,14 +105,15 @@ origin, since each set to the `gc-threshold' or
 
           ;; we hope all procedure during `eval-expression' are gc
           ;; restricted
-          (or (member this-command
-                      '(eval-last-sexp
-                        eval-region
-                        eval-defun
-                        eval-expression
-                        eval-print-last-sexp
-                        eval-buffer
-                        )))
+          (or (member
+               this-command
+               `(eval-last-sexp
+                 eval-region
+                 eval-defun
+                 eval-expression
+                 eval-print-last-sexp
+                 eval-buffer
+                 ,@entropy/emacs-garbage-collect-restrict-commands)))
           )
          ;; restrict the gc threshold when matching above condidtions
          (__ya/gc-threshold_setq
@@ -120,7 +123,7 @@ origin, since each set to the `gc-threshold' or
         (t
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 400 1024 1024)))))
+          (* 20 1024 1024)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
@@ -170,7 +173,7 @@ delay seconds SECS."
  "eemacs-gc-optimization" "eemacs-gc-optimization" prompt-echo
  :pdumper-no-end t
  (setq garbage-collection-messages nil)
- (add-hook 'post-command-hook #'entropy/emacs-gc--adjust-cons-threshold)
+ (add-hook 'pre-command-hook #'entropy/emacs-gc--adjust-cons-threshold 100)
  (entropy/emacs-gc--init-idle-gc)
  (setq read-process-output-max (* 1024 1024)))
 ;; --------------------------------------------------

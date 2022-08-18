@@ -4969,25 +4969,46 @@ it with focus on."
                             nil
                             'entropy/emacs-basic-print-variable-history)))
       (read form-str))))
-  (let* ((orig-buffer
-          (let (rtn)
-            (if (and (eq major-mode 'help-mode)
-                     (eq (car help-xref-stack-item) 'describe-variable))
-                (setq rtn (nth 2 help-xref-stack-item))
-              (setq rtn (current-buffer)))
-            (unless (and rtn (bufferp rtn) (buffer-live-p rtn))
-              (user-error "Orig buffer <%s> invalid" rtn))
-            rtn))
+  (let* ((orig-buffer-temp-p nil)
+         (help-mode-p (and (eq major-mode 'help-mode)
+                           (eq (car help-xref-stack-item) 'describe-variable)))
+         (orig-buffer
+          (if current-prefix-arg
+              (prog1
+                  (generate-new-buffer "*temp*" t)
+                (setq orig-buffer-temp-p t))
+            (let (rtn)
+              (if help-mode-p
+                  (setq rtn (nth 2 help-xref-stack-item))
+                (setq rtn (current-buffer)))
+              (unless (and rtn (bufferp rtn) (buffer-live-p rtn))
+                (user-error "Orig buffer <%s> invalid" rtn))
+              rtn)))
          (print-buffer (get-buffer-create "*eemacs-minor-tools/print-var*"))
          (inhibit-read-only t)
-         (variable (cond ((symbolp var-sym)
-                          (with-current-buffer orig-buffer
-                            (symbol-value var-sym)))
-                         (t
-                          (with-current-buffer orig-buffer
-                            (condition-case err
-                                (eval var-sym nil)
-                              (error (user-error "fatal: %s" err)))))))
+         (variable
+          (with-current-buffer orig-buffer
+            (prog1
+                (cond ((symbolp var-sym)
+                       (if orig-buffer-temp-p
+                           (if help-mode-p
+                               ;; FIXME: why we can not get the
+                               ;; correct default value of variable
+                               ;; such as `post-command-hook' in the
+                               ;; *help* buffer when using the map
+                               ;; binding command
+                               ;; `entropy/emacs-basic--desc-var-preserve-var'?
+                               ;; (so as on this bug we get the
+                               ;; default value before invoke it.)
+                               entropy/emacs-basic--desc-current-var-default-value
+                             (default-value var-sym))
+                         (symbol-value var-sym)))
+                      (t
+                       (condition-case err
+                           (eval var-sym nil)
+                         (error (user-error "fatal: %s" err)))))
+              (when orig-buffer-temp-p
+                (kill-buffer orig-buffer)))))
          (variable-type-get-func 'entropy/emacs-basic-print-variable-core-func)
          (print-level nil)
          (print-length nil)
@@ -5010,10 +5031,13 @@ it with focus on."
       (entropy/emacs-unwind-protect-unless-success
           (let ((var-type-obj
                  (funcall variable-type-get-func variable)))
-            (insert (format ";; ========== print for [%s] type %s '%S'==========\n"
+            (insert (format ";; ========== print for [%s] type %s '%S' %s ==========\n"
                             (car var-type-obj)
                             (if (symbolp var-sym) "variable" "value of expression")
-                            var-sym))
+                            var-sym
+                            (if (and orig-buffer-temp-p (symbolp var-sym))
+                                "with default value"
+                              (format "in buffer local <%s>" orig-buffer))))
             (funcall (plist-get (cdr var-type-obj) :print-func)
                      variable))
         (when (yes-or-no-p "Abort and droped the already printed contents?")
@@ -5063,17 +5087,33 @@ it with focus on."
              var-sym)
     ))
 
-(defvar entropy/emacs-basic--desc-current-var nil)
+(defvar entropy/emacs-basic--desc-current-var nil
+  "The current query on variable symbol of `describe-variable'.")
+(defvar entropy/emacs-basic--desc-current-var-default-value nil
+  "The current query on variable symbol's `default-value' of
+`describe-variable'.")
 (defun entropy/emacs-basic--desc-var-preserve-var
     (orig-func &rest orig-args)
   (let ((var (car orig-args)))
     (setq entropy/emacs-basic--desc-current-var
-          var)
+          var
+          entropy/emacs-basic--desc-current-var-default-value
+          (default-value var))
     (apply orig-func orig-args)))
 
 (advice-add 'describe-variable
             :around
             #'entropy/emacs-basic--desc-var-preserve-var)
+
+(defun entropy/emacs-basic-describe-variable-print-var ()
+  "Using `entropy/emacs-basic-print-variable' to show the current
+described variable."
+  (interactive nil help-mode)
+  (entropy/emacs-basic-print-variable
+   (if (and (eq major-mode 'help-mode)
+            (eq (car help-xref-stack-item) 'describe-variable))
+       entropy/emacs-basic--desc-current-var
+     (user-error "Not in an `describe-variable' help buffer"))))
 
 (entropy/emacs-lazy-initial-advice-after
  (help-mode)
@@ -5081,15 +5121,7 @@ it with focus on."
  :pdumper-no-end t
  (define-key help-mode-map
    (kbd "p")
-   (lambda ()
-     "Using `entropy/emacs-basic-print-variable' to show the current
-described variable."
-     (interactive)
-     (entropy/emacs-basic-print-variable
-      (if (and (eq major-mode 'help-mode)
-               (eq (car help-xref-stack-item) 'describe-variable))
-          entropy/emacs-basic--desc-current-var
-        (user-error "Not in an `describe-variable' help buffer"))))))
+   #'entropy/emacs-basic-describe-variable-print-var))
 
 ;; ***** Lagging prompts
 
