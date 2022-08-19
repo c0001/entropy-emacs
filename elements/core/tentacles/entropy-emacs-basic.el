@@ -269,6 +269,10 @@ With prefix argument binds, jump to the previous mark place."
                ("u" dired-unmark "Unmark the file at point in the Dired buffer"
                 :enable t :map-inject t :exit t)
                ("U" dired-unmark-all-marks "Remove all marks from all files in the Dired buffer"
+                :enable t :map-inject t :exit t)
+               ("C-<up>" dired-prev-marked-file "Move to the ARGth previous marked file."
+                :enable t :map-inject t :exit t)
+               ("C-<down>" dired-next-marked-file "Move to the ARGth next marked file."
                 :enable t :map-inject t :exit t))
               "Dired rich mark commands"
               (("* %" dired-mark-files-regexp "Mark all files matching REGEXP for use in later commands"
