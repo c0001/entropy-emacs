@@ -69,10 +69,12 @@
              entropy/emacs-gc-records))))
 
 (defun entropy/emacs-gc-wrapper (orig-func &rest orig-args)
-  (let (_)
+  (let ((msg "[gc]: Garbage-collecting"))
     (entropy/emacs-message-simple-progress-message
      (if entropy/emacs-garbage-collection-message-p
-         "[gc]: Garbage-collecting")
+         msg)
+     :with-temp-message t
+     :ignore-current-messages (lambda (x) (string-match-p (regexp-quote msg) x))
      (entropy/emacs-gc--with-record
        (apply orig-func orig-args)))))
 
