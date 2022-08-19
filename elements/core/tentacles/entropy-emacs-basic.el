@@ -300,7 +300,7 @@ With prefix argument binds, jump to the previous mark place."
         :enable t :map-inject t :exit t)
        ("x" entropy/emacs-basic-dired-show-file-xdg-mime-type
         "Print the xdg-mime type of FILE, according to the 'xdg-mime' command."
-        :enable t :map-inject t :exit t)
+        :enable sys/is-linux-and-graphic-support-p :map-inject t :exit t)
        ("C" dired-do-copy "Copy all marked (or next ARG) files, or copy the current file"
         :enable t :map-inject t :exit t)
        ("M" entropy/emacs-dired-do-hard-or-symbolic-links-union-processor
