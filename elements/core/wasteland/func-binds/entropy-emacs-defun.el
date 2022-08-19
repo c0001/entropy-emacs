@@ -993,6 +993,25 @@ otherwise."
 
 ;; *** Arithmetic manupulation
 
+(cl-defun entropy/emacs-sort-number-seq
+    (number-seq &key destructive sort-func)
+  "Return a sequence of numbers where all of them are member of
+NUMBER-SEQ but `sort' with SORT-FUNC if specified or use `<' as
+default method.
+
+The SORT-FUNC has same term as what `sort''s PREDICATE argument
+has.
+
+Defaultly the return is a new sequence i.e. the origin NUMBER-SEQ
+is not modified unless DESTRUCTIVE is specified and in where use
+'(setq foo (entropy/emacs-sort-number-seq foo :destructive t))'
+to be sure of correctly changing the value of a sequence
+‘foo’.  "
+  (let ((sort-func (or sort-func '<)))
+    (unless destructive
+      (setq number-seq (copy-sequence number-seq)))
+    (sort number-seq sort-func)))
+
 (defun entropy/emacs-number-member-in
     (numb numbs-list
           &optional
@@ -1047,7 +1066,7 @@ larger than thus.
      ((member numb numbs-list)
       numb)
      ((< numb (setq nums-min
-                         (apply 'min numbs-list)))
+                    (apply 'min numbs-list)))
       nums-min)
      ((> numb (setq nums-max
                     (apply 'max numbs-list)))
@@ -1064,6 +1083,98 @@ larger than thus.
               (setq prev next)))
           (error
            "[internal error]: entropy/emacs-number-member-in")))))))
+
+(cl-defun entropy/emacs-natural-number-p
+    (var &key exclude-zero detect-float convert-float)
+  "TEST whether VAR is an natural number i.e a `natnump' integer or
+integer `=' float number if DETECT-FLOAT is enabled.
+
+When EXCLUDE-ZERO is set, also treat VAR should be larger than 0.
+
+Return nil if test failed or non-nil as follow:
+
+1. a number same as VAR.
+2. a integer number `=' to VAR when VAR if `floatp' and both
+   DETECT-FLOAT and CONVERT-FLOAT are set.
+"
+  (let ((tmpvar var))
+    (catch :exit
+      ;; 1st: test whether var is a number object
+      (unless (numberp tmpvar)
+        (throw :exit nil))
+      ;; 2nd: just test whether it `eq' to 0 rather than use `=' when
+      ;; `exclude-zero' is enabled since the float part test is in
+      ;; follow steps.
+      (when exclude-zero
+        (when (eq tmpvar 0)
+          (throw :exit nil)))
+      ;; 3rd: test whether the float `var' is a actual integer.
+      (when (and detect-float
+                 (floatp tmpvar))
+        (unless (= var (setq tmpvar (ceiling var)))
+          (throw :exit nil))
+        ;; 4th: `var' is a actual integer float num, and test it with
+        ;; `exclude-zero'.
+        (when (and exclude-zero
+                   (= 0 tmpvar))
+          (throw :exit nil)))
+      ;; final return
+      (and
+       (natnump tmpvar)
+       (if (and convert-float detect-float)
+           tmpvar
+         var)))))
+
+(cl-defun entropy/emacs-calc-permutations
+    (permutation-size
+     sample-space-size
+     &key
+     calc-combination)
+  "Calculate and return the permutations number where choosing
+PERMUTATION-SIZE in SMAPLE-SPACE-SIZE. Return nil while
+calculation is overflow.
+
+When CALC-COMBINATION is non-nil, return a `cons' of car of
+permutations number and cdr of combinations number instead while
+not overflow."
+  (let ((cnt 0)
+        (rtn 1)
+        (cmb 1)
+        overflow-p)
+    (catch :exit
+      (cond
+       ((not (entropy/emacs-natural-number-p
+              permutation-size
+              :detect-float t
+              :exclude-zero t))
+        (error "permutation-size %s is not a natnum" permutation-size))
+       ((not (entropy/emacs-natural-number-p
+              sample-space-size
+              :detect-float t
+              :exclude-zero t))
+        (error "sample-space-size %s is not a natnum"
+               sample-space-size))
+       ((not (<= permutation-size sample-space-size))
+        (error "permutation-size %d is larger than sample-space-size %d"
+               permutation-size sample-space-size)))
+      (condition-case err
+          (progn
+            (while (< cnt permutation-size)
+              (setq rtn
+                    (* rtn (- sample-space-size cnt)))
+              (cl-incf cnt))
+            (when calc-combination
+              (setq cnt 0)
+              (while (< cnt permutation-size)
+                (setq cmb
+                      (* cmb (- permutation-size cnt)))
+                (cl-incf cnt))))
+        (error
+         (setq overflow-p err)))
+      (unless overflow-p
+        (if calc-combination
+            (cons rtn (/ rtn cmb))
+          rtn)))))
 
 ;; *** File and directory manipulation
 
