@@ -583,6 +583,154 @@ predicated."
   (define-key dired-mode-map [remap narrow-to-region]
     #'entropy/emacs-dired-narrow-to-region)
 
+  (cl-defun entropy/emacs-dired-narrow--to-marked-files-within-region
+      (&key begin-pt end-pt
+            jump-to-first-marked-file
+            use-region-selection)
+    "Remove all unmarked valid dired lines in `dired-mode' within
+region of BEGIN-PT to END-PT (default to `point-min' and
+`point-max').
+
+Re-pos to the first marked dired line when
+JUMP-TO-FIRST-MARKED-FILE is non-nil.
+
+When USE-REGION-SELECTION is set, using `region-beginning' and
+`region-end' when `region-active-p' return non-nil, in which case
+cover the begin and end point sets."
+    (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+    (if (and use-region-selection
+             (region-active-p))
+        (setq begin-pt (region-beginning)
+              end-pt (region-end))
+      (setq begin-pt (or begin-pt (point-min))
+            end-pt (or end-pt (point-max))))
+    (let* ((begin-pt (entropy/emacs-save-excurstion-and-mark-and-match-data
+                       (goto-char begin-pt)
+                       (goto-char (line-beginning-position))))
+           (end-pt (entropy/emacs-save-excurstion-and-mark-and-match-data
+                     (goto-char end-pt)
+                     (goto-char (line-end-position))))
+           (begin-marker (set-marker (make-marker) begin-pt))
+           (end-marker (set-marker (make-marker) end-pt))
+           (judge-func nil)
+           (njudge-func nil))
+      (setq judge-func
+            (lambda nil
+              (and (entropy/emacs-dired-fname-line-p)
+                   (entropy/emacs-dired-marked-line-p)))
+            njudge-func
+            (lambda ()
+              (or
+               ;; the line display top dir or top subdir
+               (not (entropy/emacs-dired-fname-line-p))
+               ;; dired subtree related parents
+               (let* ((ovs (bound-and-true-p dired-subtree-overlays))
+                      curpt-lnum
+                      curpt-nextline-start-pt
+                      curpt-is-dsubt-p
+                      curpt-dsubt-ov curpt-dsubt-next-line-ov
+                      cur-dsubt-ov-depth
+                      dsubt-markpos dsubt-markpos-ov dsubt-markpos-ov-depth
+                      dsubt-markpos-get-func)
+                 (setq dsubt-markpos-get-func
+                       (lambda (ov)
+                         (when (entropy/emacs-is-valid-overlay-p
+                                ov
+                                :in-buffer (current-buffer))
+                           (setq dsubt-markpos
+                                 (entropy/emacs-dired-region-has-marked-lines-p
+                                  (point) (overlay-end ov) 'line-beg))
+                           dsubt-markpos)))
+                 (when (and ovs
+                            ;; pre conditions
+                            (not
+                             (and
+                              (string-match-p
+                               "^ *$"
+                               (entropy/emacs-get-buffer-pos-line-content
+                                :without-properties t))
+                              (entropy/emacs-dired-subtree-api-get-overlay-at-pt)))
+                            )
+                   (setq curpt-dsubt-ov
+                         (entropy/emacs-dired-subtree-api-get-overlay-at-pt)
+                         curpt-is-dsubt-p curpt-dsubt-ov
+                         curpt-nextline-start-pt (1+ (line-end-position))
+                         curpt-lnum (line-number-at-pos))
+                   (when (> curpt-nextline-start-pt end-marker)
+                     (setq curpt-nextline-start-pt nil))
+                   (when
+                       (or
+                        (and curpt-is-dsubt-p
+                             (funcall dsubt-markpos-get-func curpt-dsubt-ov)
+                             (< (point) dsubt-markpos)
+                             (< (entropy/emacs-setq-single-with-explicit-return
+                                  cur-dsubt-ov-depth
+                                  (overlay-get curpt-dsubt-ov 'dired-subtree-depth))
+                                (entropy/emacs-setq-single-with-explicit-return
+                                  dsubt-markpos-ov-depth
+                                  (overlay-get
+                                   (setq dsubt-markpos-ov
+                                         (entropy/emacs-dired-subtree-api-get-overlay-at-pt
+                                          dsubt-markpos))
+                                   'dired-subtree-depth)))
+                             (or
+                              (= (+ curpt-lnum 1)
+                                 (line-number-at-pos (overlay-start dsubt-markpos-ov)))
+                              (catch :exit
+                                (let ((parent-ov dsubt-markpos-ov))
+                                  (while (setq
+                                          parent-ov
+                                          (entropy/emacs-dired-subtree-api-get-overlay-at-pt
+                                           (1- (overlay-start parent-ov))))
+                                    (when (= (line-number-at-pos (1- (overlay-start parent-ov)))
+                                             curpt-lnum)
+                                      (throw :exit t)))))))
+                        (and (not curpt-is-dsubt-p)
+                             curpt-nextline-start-pt
+                             (setq curpt-dsubt-next-line-ov
+                                   (entropy/emacs-dired-subtree-api-get-overlay-at-pt
+                                    curpt-nextline-start-pt))
+                             (funcall dsubt-markpos-get-func
+                                      curpt-dsubt-next-line-ov)))
+                     ;; finally return non-nil
+                     t))))))
+      (entropy/emacs-dired-map-lines
+       :use-region (cons begin-marker end-marker)
+       :map-func
+       (lambda ()
+         (let (rtn)
+           (catch :exit
+             (when (funcall judge-func)
+               (throw :exit nil))
+             (unless (funcall njudge-func)
+               (let ((inhibit-read-only t))
+                 (when (entropy/emacs-buffer-delete-line-at-pos
+                        :bound end-marker)
+                   (setq rtn 'pause-iterate))))
+             rtn))))
+      (when jump-to-first-marked-file
+        (goto-char begin-marker)
+        (entropy/emacs-dired-jump-to-next-fname-line
+         1
+         :use-current-line t
+         :bound (marker-position end-marker)
+         :use-filter 'mark
+         :move-to-filename t))))
+
+  (defun entropy/emacs-dired-narrow-to-marked-files ()
+    "Narrow `dired' buffer contents to only marked files with
+necessary extra informations preserved like dir header (or subdir
+header) and `dired-subtree' parent context's hierarchy.
+
+Type `\\[revert-buffer]' to exhibit original full buffer
+contents."
+    (declare (interactive-only t))
+    (interactive nil dired-mode)
+    (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+    (entropy/emacs-dired-narrow--to-marked-files-within-region
+     :jump-to-first-marked-file t
+     :use-region-selection t))
+
 ;; ******* Yet another `dired-find-file-other-window'
 
   (defun entropy/emacs-dired-find-file-other-window ()
@@ -1716,7 +1864,17 @@ TODO:
   :config
 ;; ****** patch
 ;; ******* patch core libs
-  ;; TODO: add patch libs here if need
+
+  ;; FIXME: report to updtream.
+  (defun __ya/dired-subtree--get-all-ovs-at-point (&optional p)
+    "Fix typo of dired-subtree--get-all-ovs-at-point."
+    (setq p (or p (point)))
+    (--filter (overlay-get it 'dired-subtree-depth)
+              (overlays-at p)))
+  (advice-add 'dired-subtree--get-all-ovs-at-point
+              :override
+              #'__ya/dired-subtree--get-all-ovs-at-point)
+
 ;; ******* patch `dired-subtree-up'
 
   ;; EEMACS_MAINTENANCE: follow upstream updates
@@ -2016,6 +2174,28 @@ EEMACS_MAINTENANCE: Updpate with upstream's updates.
           pt))))
   (entropy/emacs-dired-goto-file-extend-processors-regist
    'entropy/emacs-basic-dired-subtree--dired-goto-file)
+
+;; ****** eemacs spec apis
+
+  (defun entropy/emacs-dired-subtree-api-get-overlay-at-pt (&optional pt)
+    "Get nearest subtree overlay at point PT (defaults to `point'),
+return the ov or nil when not found."
+    (dired-subtree--get-ov pt))
+
+  (defun entropy/emacs-dired-subtree-api-get-overlays-with-depth-sort
+      (&optional pt reverse)
+    "Return a list of subtree overlays at `point' PT (defaults to `point').
+
+The return is sorted from wide to minimal which means that the
+car is the parent of PT. Or REVERSE the order which means the car
+is the minimal nested one from PT."
+    (--sort (funcall
+             (if reverse '< '>)
+             (overlay-get it 'dired-subtree-depth)
+             (overlay-get other 'dired-subtree-depth))
+            (if pt
+                (dired-subtree--get-all-ovs-at-point pt)
+              (copy-sequence dired-subtree-overlays))))
 
 ;; ****** eemacs spec commands
 ;; ******* multi `dired-subtree-cycle'

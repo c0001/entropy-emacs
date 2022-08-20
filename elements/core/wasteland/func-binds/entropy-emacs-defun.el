@@ -44,6 +44,33 @@
 (require 'cl-lib)
 (require 'rx)
 
+;; ** internal libs
+(cl-defun entropy/emacs-defun--get-real-body (list-var)
+  "Get BODY inside of plist like list LIST-VAR, commonly is the
+last `keywordp' keypair's cdr or return LIST-VAR when the car of
+LIST-VAR is not a `keywordp' keyword.
+
+This function is useful for `cl-defmacro' BODY parsing like:
+
+#+begin_src emacs-lisp
+(cl-defmacro name &rest body
+             &key
+             key-1
+             key-2
+             ...
+             &allow-other-keys)
+#+end_src
+
+To get the real-body in BODY use
+\(setq BODY (fn BODY))
+"
+  (let ((it list-var))
+    (catch 'break
+      (while t
+        (if (keywordp (car it))
+            (setq it (cddr it))
+          (throw 'break it))))))
+
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
@@ -51,16 +78,6 @@
   "Like `error' but always press `debug-on-error'"
   (let ((debug-on-error nil))
     (apply 'error string args)))
-
-(defmacro entropy/emacs-when-defun
-    (name arglist condition-form &optional docstring &rest body)
-  "Like `defun' but only define NAME as an function when
-CONDITION-FORM is evaled return non-nil."
-  (declare (indent defun))
-  `(when (progn ,condition-form)
-     (defun ,name ,arglist
-       ,docstring
-       ,@body)))
 
 (defvar entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number 0)
 (defun entropy/emacs-make-dynamic-symbol-as-same-value (var)
@@ -145,6 +162,66 @@ LIST-VAR can be a generalized varaible.
      (if ,append
          (setf ,list-var (append ,list-var (list ,element)))
        (setf ,list-var (push ,element ,list-var)))))
+
+(defmacro entropy/emacs-setq-single-with-explicit-return (var val)
+  "Like `setq' but just for the variable VAR and its value VAL and
+explicit use the VAR as return finally in which case the byte
+compiler doesn't throw the warning for unsed case.
+
+Details for when you want to use a lexical binding as set with return
+only like:
+
+: (let (foo bar) (setq bar (setq foo 1)) bar)
+
+The byte compiler will throw an error like:
+
+#+begin_quote
+Warning: Unused lexical variable `foo'
+#+end_quote
+
+And when use this macro, the expansion is look as:
+
+: (let (foo bar) (setq bar (progn (setq foo 1) foo)) bar)
+
+So that the lexical var FOO is used and no such error will occurred
+on.
+"
+  (declare (indent defun))
+  `(progn
+     (setq ,var ,val)
+     ,var))
+
+;; **** Apis with when wrapper
+(defmacro entropy/emacs-when-defun
+    (name arglist condition-form &optional docstring &rest body)
+  "Like `defun' but only define NAME as an function when
+CONDITION-FORM is evaled return non-nil."
+  (declare (indent defun))
+  `(when (progn ,condition-form)
+     (defun ,name ,arglist
+       ,docstring
+       ,@body)))
+
+(cl-defmacro entropy/emacs-save-excursion-when
+    (&rest body &key when &allow-other-keys)
+  "Like `save-excursion' when WHEN is set and evaluated return
+non-nil, or run BODY like `progn'."
+  (let ((body (entropy/emacs-defun--get-real-body body))
+        (use-when-p (not (null when))))
+    `(if (and ,use-when-p ,when)
+         (save-excursion ,@body)
+       (progn
+         ,@body))))
+
+(cl-defmacro entropy/emacs-widen-when
+    (&rest body &key when &allow-other-keys)
+  "Run BODY after `widen' the `current-buffer' when WHEN is set and
+evaluated return non-nil, or run BODY like `progn'."
+  (let ((body (entropy/emacs-defun--get-real-body body))
+        (use-when-p (not (null when))))
+    `(progn
+       (if (and ,use-when-p ,when) (widen))
+       ,@body)))
 
 ;; *** Cl-function compatible manipulation
 (defun entropy/emacs-cl-findnew-p (func)
@@ -258,6 +335,19 @@ otherwise uses the original procedure."
                (apply orig-func orig-args))
            (apply orig-func orig-args))))
      ad-name)))
+
+;; *** Place setf
+
+(defmacro entropy/emacs-swap-two-places-value
+    (place-a place-b &rest conditions)
+  "Swap two places' (PLACE-A's and PLACE-B's) value using `setf'
+when the last form of CONNDITIONS evaluated return non-nil."
+  (declare (indent defun))
+  (let ((tmpvar-sym (make-symbol "--tmpvar--")))
+    `(when (progn ,@conditions)
+       (let ((,tmpvar-sym ,place-b))
+         (setf ,place-b ,place-a)
+         (setf ,place-a ,tmpvar-sym)))))
 
 ;; *** Symbol manupulation
 
@@ -823,29 +913,7 @@ function return a form-plist."
                       tail-list)))))
     rtn))
 
-(defun entropy/emacs-get-plist-body (args)
-  "Get BODY inside of 'pre-plist' ARGS, commonly is the last non
-key-pair cdr.
-
-This function is useful for cl-based def* args parsing like:
-
-#+begin_src emacs-lisp
-  (name &rest body
-        &key
-        key-1
-        key-2
-        ...
-        &allow-other-keys)
-#+end_src
-
-To get the real-body in BODY.
-"
-  (let ((it args))
-    (catch 'break
-      (while t
-        (if (keywordp (car it))
-            (setq it (cddr it))
-          (throw 'break it))))))
+(defalias 'entropy/emacs-get-plist-body 'entropy/emacs-defun--get-real-body)
 
 (defun entropy/emacs-generalized-plist-get
     (plist top-place prop &optional testfn)
@@ -992,6 +1060,7 @@ otherwise."
         t)))
 
 ;; *** Arithmetic manupulation
+;; **** basic
 
 (cl-defun entropy/emacs-sort-number-seq
     (number-seq &key destructive sort-func)
@@ -1175,6 +1244,585 @@ not overflow."
         (if calc-combination
             (cons rtn (/ rtn cmb))
           rtn)))))
+
+;; **** coordinates system
+;; ***** xy coordinates system
+
+(defun entropy/emacs-xycrd-make-coordinate-obj (x y)
+  "Create a =EEMACS-XYCRD-POINT-OBJ= i.e. a cons of two number X
+and Y which as meaning of the extending on two dimensions with
+zero base."
+  (unless (numberp x)
+    (error "=EEMACS-XYCRD-POINT-OBJ= maker: X '%d' is invalid which
+should be number." x))
+  (unless (numberp y)
+    (error "=EEMACS-XYCRD-POINT-OBJ= maker: y '%d' is invalid which
+should be number." y))
+  (cons x y))
+
+(defun entropy/emacs-xycrd-make-rectangle-obj
+    (begin-crd end-crd)
+  "Get a =EEMACS-XYCRD-RECTANGLE-OBJ= according to two
+=EEMACS-XYCRD-POINT-OBJ= i.e. BEGIN-CRD and END-CRD.
+
+A =EEMACS-XYCRD-RECTANGLE-OBJ= is a plist to describe the rectangle
+part of a region. With follow keys returned as described below:
+
+1) =:begin-coordinate=: a =EEMACS-XYCRD-POINT-OBJ= which user
+   specified as *begin* coordinate.
+2) =:begin-coordinate=: a =EEMACS-XYCRD-POINT-OBJ= which user
+   specified as *end* coordinate.
+3) =:begin-negative-coordinate= : a =EEMACS-XYCRD-POINT-OBJ= negative
+   to =:begin-coordinate= which in same X coordinate as
+   =:begin-coordinate=, used with =:begin-coordinate= to consist a
+   rectangle top or bottom border.
+4) =:end-negative-coordinate= : a =EEMACS-XYCRD-POINT-OBJ= negative to
+   =:end-coordinate= which in same X coordinate as =:end-coordinate=,
+   used with =:end-coordinate= to consist a rectangle top or bottom
+   border.
+5) =:coordinate-overlap-p=: non-nil when =:begin-coordinate= and
+   =:end-coordinate= are same, in which case we can ensure there's no
+   region rectangle, in other word the region is a point zero-base
+   two-dimension coordinates system.
+6) =:rectangle-columns-amount=: how many buffer columns the rectangle
+   covered to. (NOTE: no meaning for non `natnump' coordinated
+   rectangle)
+7) =:rectangle-rows-amount=: how many buffer rows the rectangle
+   covered to. (NOTE: no meaning for non `natnump' coordinated
+   rectangle)
+8) =:vertical-negative-p=: non-nil when =:begin-coordinate='s X is
+   less than =:end-coordinate='s X.
+9) =:horizontal-negative-p=: non-nil when =:begin-coordinate='s Y is
+   larger than =:end-coordinate='s Y.
+10) =:full-negative-p=: both =:vertical-negative-p= and
+    =:horizontal-negative-p= are non-nil.
+11) =:coordinate-plist=: a plist enums four corner coordinates of the
+    rectangle i.e. =:top-left=, =:top-right=, =:bottom-left= and
+    =:bottom-right=.
+"
+  (let (crd-eq-p
+        (beg-crd begin-crd)   beg-crd-x  beg-crd-y
+        (end-crd end-crd)     end-crd-x  end-crd-y
+        beg-ncrd  beg-ncrd-x beg-ncrd-y
+        end-ncrd  end-ncrd-x end-ncrd-y
+        crd-plist
+        w-crdlen  h-crdlen
+        chamt-x   chamt-y
+        vertical-negative-p horizontal-negative-p full-negative-p)
+    (setq crd-eq-p   (equal beg-crd end-crd)
+
+          beg-crd-x  (car beg-crd)  beg-crd-y (cdr beg-crd)
+          end-crd-x  (car end-crd)  end-crd-y (cdr end-crd)
+
+          beg-ncrd-x end-crd-x     beg-ncrd-y beg-crd-y
+          end-ncrd-x beg-crd-x     end-ncrd-y end-crd-y
+
+          beg-ncrd   (entropy/emacs-xycrd-make-coordinate-obj beg-ncrd-x beg-ncrd-y)
+          end-ncrd   (entropy/emacs-xycrd-make-coordinate-obj end-ncrd-x end-ncrd-y)
+
+          w-crdlen   (abs (- beg-crd-x end-crd-x))
+          h-crdlen   (abs (- beg-crd-y end-crd-y))
+          chamt-x    w-crdlen
+          chamt-y
+          (cond
+           (crd-eq-p 0)
+           ((= w-crdlen 0) 0)
+           (t
+            (1+ h-crdlen)))
+          vertical-negative-p      (> beg-crd-y end-crd-y)
+          horizontal-negative-p    (> beg-crd-x beg-ncrd-x)
+          full-negative-p (and vertical-negative-p horizontal-negative-p)
+
+          crd-plist
+          (list :top-left      (cond (full-negative-p       end-crd)
+                                     (horizontal-negative-p beg-ncrd)
+                                     (vertical-negative-p   end-ncrd)
+                                     (t                     beg-crd))
+
+                :top-right     (cond (full-negative-p       end-ncrd)
+                                     (horizontal-negative-p beg-crd)
+                                     (vertical-negative-p   end-crd)
+                                     (t                     beg-ncrd))
+
+                :bottom-left   (cond (full-negative-p       beg-ncrd)
+                                     (horizontal-negative-p end-crd)
+                                     (vertical-negative-p   beg-crd)
+                                     (t                     end-ncrd))
+
+                :bottom-right  (cond (full-negative-p       beg-crd)
+                                     (horizontal-negative-p end-ncrd)
+                                     (vertical-negative-p   beg-ncrd)
+                                     (t                     end-crd))))
+    (list
+     :begin-coordinate           beg-crd    :end-coordinate          end-crd
+     :begin-negative-coordinate  beg-ncrd   :end-negative-coordinate end-ncrd
+     :coordinate-overlap-p       crd-eq-p
+     :rectangle-columns-amount   chamt-x
+     :rectangle-rows-amount      chamt-y
+     :vertical-negative-p        vertical-negative-p
+     :horizontal-negative-p      horizontal-negative-p
+     :full-negative-p            full-negative-p
+     :coordinate-plist           crd-plist)))
+
+(defvar entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-objnames
+  '("a" "b"))
+(defvar entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-dimnames
+  '("x" "y"))
+(defvar entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-dotnames
+  '("tpl" "tpr" "btl" "btr"))
+(cl-defun entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+    (objname &key
+             dotname use-collection
+             dimension-name)
+  "Gen `let' binding var `intern'ed symbol obey rules defined by
+`entropy/emacs-xycrd-rectangle-cmp-letbinds-wrapper'.
+
+OBJNAME is a element of `entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-objnames'.
+
+DOTNAME is a element of `entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-dotnames'.
+
+DIMENSION-NAME is a element of
+`entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-dimnames'.
+
+When USE-COLLECTION, DOTNAME and DIMENSION-NAME will be ignored
+and generate a symbol which describe a ':coordinate-plist' of the
+OBJ.
+
+Error when any invalid name are specified.
+"
+  (unless (member objname entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-objnames)
+    (error "objname invalid: %s" objname))
+  (when dotname
+    (unless (member dotname entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-dotnames)
+      (error "dotname invalid: %s" dotname)))
+  (when dimension-name
+    (unless (member dimension-name entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym-valid-dimnames)
+      (error "dimname invalid: %s" dimension-name)))
+  (let (name
+        (dotname-prefix "dot"))
+    (cond (use-collection
+           (setq name (format "%s-%ss" objname dotname-prefix))
+           (setq dotname nil
+                 dimension-name nil))
+          ((and objname dotname)
+           (setq name
+                 (format "%s-%s-%s"
+                         objname dotname-prefix dotname))
+           (when dimension-name
+             (setq name (format "%s-%s" name dimension-name)))))
+    (or name (error "args not specified full"))
+    (intern name)))
+
+(defun entropy/emacs-xycrd-rectangle-cmp-letbinds-wrapper
+    (a b)
+  "Generate `let*' binding for list of symbols which deconstructs
+the two =EEMACS-XYCRD-RECTANGLE-OBJ=.
+
+The deconstruction is based on the order of object name,
+rectangle corner dot name and the dimension name which as:
+
+#+begin_example
+<OBJECT-A>-<TOP-LEFT-DOT>-<X>
+#+end_example
+
+Unlike the example's full text naming as, this function use two simple
+name char \"a\" and \"b\" to bind with object A and B. The
+abbreviation is so as on the four dot cornerS'
+=EEMACS-XYCRD-POINT-OBJ= of the rectangle:
+
+- top left corner dot: \"dot-tpl\"
+- top right corner dot: \"dot-tpr\"
+- bottom left corner dot: \"dot-btl\"
+- bottom right corner dot: \"dot-btr\"
+
+And dimensions value as for \"x\", \"y\".
+
+That say if we want to use a `let*' bind name, usually we need
+remember a three nested naming procedure loop:
+
+#+begin_example
+  objname                   : (a b) ->
+  dot corner name           :  (dot-tpl dot-tpr dot-btl dot-btr) ->
+  dimenssion name (optional):   (x y)
+#+end_example
+
+Additionally there're also a 'a-dots' and 'b-dots' binds to bind with
+the ':coordinate-plist' part of the =EEMACS-XYCRD-RECTANGLE-OBJ=
+individually for object A and B.
+"
+  (let ((objnm-rel-alist `(("a" . ,a) ("b" . ,b)))
+        (dotnm-keyrel-alist '(("tpl" . :top-left)
+                              ("tpr" . :top-right)
+                              ("btl" . :bottom-left)
+                              ("btr" . :bottom-right)))
+        (dimnms '(("x" . car) ("y" . cdr)))
+        letbinds-list)
+    (dolist (objnm-rel objnm-rel-alist)
+      (let* ((objnm (car objnm-rel))
+             (var (cdr objnm-rel))
+             (obj-crdsym (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                          objnm :use-collection t)))
+        (push `(,obj-crdsym (plist-get ,var :coordinate-plist)) letbinds-list)
+        (dolist (dotnm-keyrel dotnm-keyrel-alist)
+          (let* ((dotnm (car dotnm-keyrel))
+                 (dotkey (cdr dotnm-keyrel))
+                 (obj-crd-posym (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                                 objnm :dotname dotnm)))
+            (push `(,obj-crd-posym (plist-get ,obj-crdsym ,dotkey))
+                  letbinds-list)
+            (dolist (dim dimnms)
+              (let* ((dimnm (car dim))
+                     (dimfunc (cdr dim))
+                     (obj-crd-pos-dimsym (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                                          objnm :dotname dotnm :dimension-name dimnm)))
+                (push `(,obj-crd-pos-dimsym (,dimfunc ,obj-crd-posym))
+                      letbinds-list)))))))
+    (nreverse letbinds-list)))
+
+(defvar entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym-valid-vhnames
+  '("rect-horizontal=" "rect-vertical=" "rect-all="))
+(defun entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym (vh-name)
+  "Gen `let*' binding var `intern'ed symbbol ovey rules defined by
+`entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-wrapper'.
+
+VH-NAME is a element of
+`entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym-valid-vhnames'.
+
+Error when any invalid name are specified.
+"
+  (unless (member vh-name entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym-valid-vhnames)
+    (error "invalid vh-name: %s" vh-name))
+  (intern vh-name))
+(defun entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-wrapper ()
+  "Like and based on
+`entropy/emacs-xycrd-rectangle-cmp-letbinds-wrapper', generate list of
+`let*' bindings used to compare the =EEMACS-XYCRD-RECTANGLE-OBJ= A
+based on B whether vertical or horizontal fully alignment.
+
+Bind 'rect-vertical=' indicates A's top and bottom borders' left
+and right dot corners' X dimension is same as B.
+
+Bind 'rect-horizontal=' indicates A's left and right borders' top
+and bottom dot corners' Y dimension is same as B.
+
+Bind 'rect-all=' indicates A and B is fully overlapped with each
+other.
+"
+  (let ((dim-rels '(("rect-horizontal=" . ("y" "tpl" "btl"))
+                    ("rect-vertical="   . ("x" "tpl" "tpr"))))
+        rtn eq-rtn)
+    (dolist (dimrel dim-rels)
+      (let ((opsym (intern (car dimrel)))
+            (dim (cadr dimrel))
+            (dotnms (cddr dimrel))
+            pattern)
+        (push opsym eq-rtn)
+        (dolist (dotnm dotnms)
+          (push `(= ,(entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                      "a" :dotname dotnm :dimension-name dim)
+                    ,(entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                      "b" :dotname dotnm :dimension-name dim))
+                pattern))
+        (push `(,opsym (and ,@(nreverse pattern))) rtn)))
+    `(,@(nreverse rtn)
+      (,(intern "rect-all=") (and ,@(nreverse eq-rtn))))))
+
+(defvar entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-dimnames
+  '("x" "y"))
+(defvar entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-dotnames
+  '("tpl" "tpr" "btl" "btr"))
+(defvar entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-brdnames
+  '("left" "right" "top" "bottom"))
+(defvar entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-cmpsyms
+  '(= < > == <&= >&=))
+(cl-defun entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+    (typename
+     &key
+     use-border
+     use-negative
+     compare-sym
+     dimension-name)
+  "Gen `let' binding var `intern'ed symbol obey rules defined by
+`entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-wrapper'.
+
+TYPENAME is a element of
+`entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-dotnames'
+or
+`entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-brdnames'
+when USE-BORDER is non-nil.
+
+DIMENSION-NAME is a element of
+`entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-dimnames'.
+
+COMPARE-SYM is element of
+`entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-cmpsyms'.
+
+When USE-NEGATIVE is set, the generated symbol is as what
+`entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-wrapper' got for
+negative terms.
+
+Error when any invalid name are specified.
+"
+  (let ((typelist (if use-border
+                      entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-brdnames
+                    entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-dotnames))
+        (dot-name-prefix    "dot")
+        (border-name-prefix "brd")
+        name)
+    (unless (member typename typelist)
+      (error "invalid typename: %s" typename))
+    (when dimension-name
+      (unless (member dimension-name entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-dimnames)
+        (error "dimname invalid: %s" dimension-name)))
+    (when compare-sym
+      (unless (member compare-sym entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym-valid-cmpsyms)
+        (error "compare func invalid: %s" compare-sym)))
+    (when (and use-border dimension-name)
+      (error "can not use-border with dimension-name"))
+    (setq name (format "%s-%s" (if use-border border-name-prefix dot-name-prefix)
+                       typename))
+    (when dimension-name (setq name (format "%s-%s" name dimension-name)))
+    (when compare-sym (setq name (format "%s%s" name (symbol-name compare-sym))))
+    (when use-negative (setq name (concat "!" name)))
+    (intern name)))
+
+(defun entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-wrapper ()
+  "Like and based on `entropy/emacs-xycrd-rectangle-cmp-letbinds-wrapper'
+and `entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-wrapper', generate
+list of `let*' bindings used to compare the
+=EEMACS-XYCRD-RECTANGLE-OBJ= A based on B for various calculations.
+
+The naming loops are:
+
+1) The compare type name, one of \"dot\" for dot corner and \"brd\" for
+   border.
+2) The type sub names i.e.
+   - for \"dot\" type: \"tpl\" \"tpr\" \"btl\" \"btr\" which is same termed as
+     the parent wrapper function.
+   - for \"brd\" type:
+     * \"left\":   for left border which has X against dimension comparing.
+     * \"right\":  for right border which has X against dimension comparing.
+     * \"top\":    for top border which has Y against dimension comparing.
+     * \"bottom\": for bottom border which has Y against dimension comparing.
+3) Subtype for \"dot\" type, the dimension name \"x\" and \"y\" which is
+   same termed as the parent wrapper function.
+4) The compare type name:
+   * '=': abstraction of equalization for all types even be with their
+     subtypes which see:
+     - when did for a \"dot\" type, return non-nil when they are the
+       same coordinate. If do with the dimension subtype of the \"dot\",
+       return non-nil when their corresponding same dimension value is
+       `='.
+     - when did for a \"brd\" type, return non-nil when the two border
+       has the same against dimension comparing value e.g. (symole
+       'brd-left=' indicate that A's left border and B's left border
+       is in the same X dimension, so as 'brd-top=' is Y same for
+       as.).
+   * '<' or '>': abstraction of lesser or larger for all types even be
+     with their subtypes which see:
+     - when did for a \"dot\" type with its subtype, return non-nil if
+       the corresponding dot corners' same dimension value is lesser
+       or larger.
+     - when did for a \"brd\" type, return non-nil when corresponding
+       against dimension comparing is judged.
+   * '&=': a subcompare type let each main compare type deliverred to
+     '<&=', '>&=', '==' and just used for \"brd\" type. Note for type
+     '==' is not has a same print style as others since this style is
+     more significant than the rigid one.
+     - '<&='or '>&=': return non-nil when the corresponding border
+       aganst dimension comparing like '<' and '>' and the borders
+       dot-corners' such dimension is same e.g. 'brd-left<&=' says
+       that A's left border is X lesser than B's and 'dot-tpl-x=' is
+       non-nil.
+     - '==': return non-nil when the corresponding borders is
+       coordinates same.
+
+
+For each comparing above, their also has a negative comparing variant,
+and named prefix with a '!' char as significantly represents the
+*negative* term. The negative comparing is rules as follow:
+1. for \"dot\" types:
+   - A's \"tpl\" compares against B's \"tpr\"
+   - A's \"tpr\" compares against B's \"tpl\"
+   - A's \"btl\" compares against B's \"btr\"
+   - A's \"btr\" compares against B's \"btl\"
+2. for \"brd\" types:
+   - A's \"left\" compares against B's \"right\"
+   - A's \"right\" compares against B's \"left\"
+   - A's \"top\" compares against B's \"bottom\"
+   - A's \"bottom\" compares against B's \"top\"
+
+And in negative comparing, '&=' variants' against dimension is not
+changed.
+"
+  (let* ((objnames '("a" . "b"))
+         (dimes-cons '("x" . "y"))
+         (dimes (list (car dimes-cons) (cdr dimes-cons)))
+         (tpl-dotnm "tpl")
+         (tpr-dotnm "tpr")
+         (btl-dotnm "btl")
+         (btr-dotnm "btr")
+         (dotnm-against-alist
+          `((,tpl-dotnm . ,tpr-dotnm)
+            (,tpr-dotnm . ,tpl-dotnm)
+            (,btl-dotnm . ,btr-dotnm)
+            (,btr-dotnm . ,btl-dotnm)))
+         (lrbrd-align-v-sym (entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym "rect-vertical="))
+         (tbbrd-align-h-sym (entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym "rect-horizontal="))
+         (drec-dots `(("left"     :main ,(car dimes-cons)
+                       :mate ,(cdr dimes-cons) :dotnms (,tpl-dotnm ,btl-dotnm)
+                       :vh-align-sym ,lrbrd-align-v-sym)
+                      ("right"    :main ,(car dimes-cons)
+                       :mate ,(cdr dimes-cons) :dotnms (,tpr-dotnm ,btr-dotnm)
+                       :vh-align-sym ,lrbrd-align-v-sym)
+                      ("top"      :main ,(cdr dimes-cons)
+                       :mate ,(car dimes-cons) :dotnms (,tpl-dotnm ,tpr-dotnm)
+                       :vh-align-sym ,tbbrd-align-h-sym)
+                      ("bottom"   :main ,(cdr dimes-cons)
+                       :mate ,(car dimes-cons) :dotnms (,btl-dotnm ,btr-dotnm)
+                       :vh-align-sym ,tbbrd-align-h-sym)))
+         (dotnames (entropy/emacs-list-delete-duplicates
+                    (flatten-list (mapcar (lambda (var)
+                                            (plist-get (cdr var) :dotnms))
+                                          drec-dots))
+                    :test 'string=))
+         (align-brdnames (mapcar 'car drec-dots))
+
+         (cmpsyms '(= < >))
+
+         (=align-symgen-func
+          (lambda (align-brdnm cmpsym &optional negative)
+            (let ((cmpname (symbol-name cmpsym)))
+              (if (eq cmpsym '=)
+                  (setq cmpname (concat cmpname "="))
+                (setq cmpname (concat cmpname "&=")))
+              (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+               align-brdnm :use-border t :compare-sym (intern cmpname)
+               :use-negative negative))))
+
+         (nalign-pattern-gen-func
+          (lambda (align-brdnm cmpsym &optional negative)
+            (let* ((opsym (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+                           align-brdnm :use-border t :compare-sym cmpsym :use-negative negative))
+                   (align-dots-flags
+                    (alist-get align-brdnm drec-dots))
+                   (pair-dots (plist-get align-dots-flags :dotnms))
+                   (dotnm (car pair-dots))
+                   (main-dim (plist-get align-dots-flags :main)))
+              (let ((oldsym (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+                             dotnm :dimension-name main-dim :compare-sym cmpsym :use-negative negative)))
+                `(,opsym ,oldsym)))))
+
+         (=align-pattern-gen-func
+          (lambda (align-brdnm cmpsym &optional negative)
+            (let* ((opsym (funcall =align-symgen-func align-brdnm cmpsym negative))
+                   (nopsym (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+                            align-brdnm :use-border t :compare-sym cmpsym :use-negative negative))
+                   (align-dots-flags
+                    (alist-get align-brdnm drec-dots))
+                   ;; (pair-dots (plist-get align-dots-flags :dotnms))
+                   ;; (mate-dim  (plist-get align-dots-flags :mate))
+                   ;; mate-calc-form
+                   (vh-alsym (plist-get align-dots-flags :vh-align-sym)))
+              ;; NOTE: if no
+              ;; `entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym'
+              ;; we can use below loops to generate the sub pattern
+              ;; but they are duplicats accross bindings so will cost
+              ;; extra non-needed CPU period.
+              ;;
+              ;; (dolist (dotnm pair-dots)
+              ;;   (let* ((mate-sym (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+              ;;                     dotnm :dimension-name mate-dim :compare-sym '=
+              ;;                     ;; always disable negative since no need
+              ;;                     :use-negative nil)))
+              ;;     (push mate-sym mate-calc-form)))
+              ;; `(,opsym (and ,nopsym ,@(nreverse mate-calc-form)))
+              `(,opsym (and ,nopsym ,vh-alsym))
+              )))
+         ;; final return
+         rtn)
+    ;; positive
+    (dolist (dotnm dotnames)
+      (dolist (dim dimes)
+        (dolist (cmp cmpsyms)
+          (let* ((opsym (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+                         dotnm :dimension-name dim
+                         :compare-sym cmp))
+                 (asym  (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                         (car objnames)
+                         :dotname dotnm :dimension-name dim))
+                 (bsym  (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                         (cdr objnames)
+                         :dotname dotnm :dimension-name dim)))
+            (push `(,opsym (,cmp ,asym ,bsym)) rtn)))))
+    (dolist (dotnm dotnames)
+      (let* ((opsym    (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+                        dotnm :compare-sym '=))
+             (adots-sym (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                         (car objnames) :dotname dotnm))
+             (bdots-sym (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                         (cdr objnames) :dotname dotnm)))
+        (push `(,opsym (equal ,adots-sym ,bdots-sym)) rtn)))
+    (dolist (brdnm align-brdnames)
+      (dolist (cps cmpsyms)
+        (push (funcall nalign-pattern-gen-func brdnm cps) rtn)))
+    (dolist (brdnm align-brdnames)
+      (dolist (cps cmpsyms)
+        (push (funcall =align-pattern-gen-func brdnm cps) rtn)))
+
+    ;; negative
+    (dolist (dotnm dotnames)
+      (dolist (dim dimes)
+        (dolist (cmp cmpsyms)
+          (let* ((opsym (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+                         dotnm :dimension-name dim :use-negative t
+                         :compare-sym cmp))
+                 (asym  (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                         (car objnames)
+                         :dotname dotnm :dimension-name dim))
+                 (bsym  (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                         (cdr objnames)
+                         :dotname (alist-get dotnm dotnm-against-alist) :dimension-name dim)))
+            (push `(,opsym (,cmp ,asym ,bsym)) rtn)))))
+    (dolist (dotnm dotnames)
+      (let* ((opsym     (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-gen-sym
+                         dotnm :compare-sym '= :use-negative t))
+             (adots-sym (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                         (car objnames) :dotname dotnm))
+             (bdots-sym (entropy/emacs-xycrd-rectangle-cmp-letbinds-gen-sym
+                         (cdr objnames) :dotname (alist-get dotnm dotnm-against-alist))))
+        (push `(,opsym (equal ,adots-sym ,bdots-sym)) rtn)))
+    (dolist (brdnm align-brdnames)
+      (dolist (cps cmpsyms)
+        (push (funcall nalign-pattern-gen-func brdnm cps 'neg) rtn)))
+    (dolist (brdnm align-brdnames)
+      (dolist (cps cmpsyms)
+        (push (funcall =align-pattern-gen-func brdnm cps 'neg) rtn)))
+    ;; rtn
+    `(,@(nreverse rtn))))
+
+(cl-defmacro with-eemacs-xycrd-rectangle-letbinds-wrapper
+    (a b &rest body
+       &key
+       use-vh
+       use-calc
+       &allow-other-keys)
+  "Macro run BODY with `entropy/emacs-xycrd-rectangle-cmp-letbinds-wrapper'.
+
+If USE-VN is non-nil also use
+`entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-wrapper'.
+
+If USE-CALC is non-nil then USE-VH is used forcely without check
+whether it is set or not, and
+`entropy/emacs-xycrd-rectangle-calc-cmp-letbinds-wrapper' is
+appended."
+  (declare (indent defun))
+  (let ((base-letbinds (entropy/emacs-xycrd-rectangle-cmp-letbinds-wrapper a b))
+        (vh-letbinds (entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-wrapper))
+        (calc-letbinds (entropy/emacs-xycrd-rectangle-cmp-calc-letbinds-wrapper))
+        (body (entropy/emacs-get-plist-body body)))
+    `(let* (,@base-letbinds ,@(when use-vh vh-letbinds) ,@(when use-calc calc-letbinds))
+       ,@body)))
 
 ;; *** File and directory manipulation
 
@@ -4540,31 +5188,857 @@ separater CONCAT-SEPARATER when non-nil.
              rtn)))))
 
 ;; *** Buffer manipulation
+;; **** Basic
 
-(defun entropy/emacs-buffer-goto-line (line &optional buffer relative)
-  "Move to LINE of buffer BUFFER (default to `current-buffer'), if
-RELATIVE is non-nil move to visible LINE of the beginning of
-buffer visible part.
+(defmacro entropy/emacs-use-marker-position (place)
+  "`setf' PLACE with its position value only when PLACE is
+`markerp' marker."
+  (let ((val-sym (make-symbol "the-value")))
+    `(let ((,val-sym ,place))
+       (if (markerp ,val-sym)
+           (setf ,place
+                 (marker-position ,val-sym))))))
+
+(defmacro entropy/emacs-use-markers-position (&rest places)
+  "Batch place of PLACES do `entropy/emacs-use-marker-position'."
+  (let (form)
+    (dolist (place places)
+      (push (macroexpand-1 `(entropy/emacs-use-marker-position ,place))
+            form))
+    `(progn ,@(nreverse form))))
+
+(cl-defun entropy/emacs-point-min (&optional without-restriction)
+  "Like `point-min' but return the `point-min' without buffer
+restriction i.e. `buffer-narrowed-p' when WITHOUT-RESTRICTION is
+set.
+
+See also `entropy/emacs-point-max'."
+  (if (and without-restriction
+           (buffer-narrowed-p))
+      (save-restriction
+        (widen)
+        (point-min))
+    (point-min)))
+
+(cl-defun entropy/emacs-point-max (&optional without-restriction)
+  "Like `point-max' but return the `point-max' without buffer
+restriction i.e. `buffer-narrowed-p' when WITHOUT-RESTRICTION is
+set.
+
+See also `entropy/emacs-point-min'."
+  (if (and without-restriction
+           (buffer-narrowed-p))
+      (save-restriction
+        (widen)
+        (point-max))
+    (point-max)))
+
+(cl-defun entropy/emacs-buffer-position-p
+    (position &key do-error with-range-check without-restriction)
+  "Return non-nil when POSITION is a vaid buffer position of
+`current-buffer'.
+
+When DO-ERROR is set, do `error' like
+`entropy/emacs-do-error-for-buffer-position-invalid' when
+POSITION is invalid.
+
+Optional keys WITH-RANGE-CHECK and WITHOUT-RESTRICTION has same
+meaning of `entropy/emacs-do-error-for-buffer-position-invalid'."
+  (let ((thefunc
+         (lambda ()
+           (funcall
+            'entropy/emacs-do-error-for-buffer-position-invalid
+            position
+            :with-range-check with-range-check
+            :without-restriction without-restriction))))
+    (if do-error
+        (funcall thefunc)
+      (ignore-errors (funcall thefunc)))))
+
+(cl-defun entropy/emacs-pos-within-buffer-portion-p
+    (position &optional without-restriction)
+  "Return non-nil when POSITION is within the BUFFER visible
+portion i.e. POSITION is `>=' BUFFER's `point-min' and `<='
+BUFFER's `point-max'.
+
+POSITION is same as the arg of `goto-char' and must be prediated
+by `entropy/emacs-buffer-position-p'.
+
+BUFFER is commonly the `current-buffer' but be the
+`marker-buffer' when position is a marker and the value got by
+`marker-buffer' is non-nil.
+
+When WITHOUT-PROPERTIES is set, then compare with the whole
+buffer portion without any restrictions i.e. `buffer-narrowed-p'.
+"
+  (let* ((posmk-p (markerp position))
+         (mkbuff (and posmk-p
+                      (marker-buffer position)))
+         (pt (if posmk-p (marker-position position) position))
+         ptmin ptmax)
+    (with-current-buffer (or mkbuff (current-buffer))
+      (save-restriction
+        (entropy/emacs-widen-when
+         :when without-restriction
+         (setq ptmin (point-min)
+               ptmax (point-max))
+         (entropy/emacs-buffer-position-p
+          pt :do-error t)
+         (and
+          (>= pt ptmin)
+          (<= pt ptmax)))))))
+
+(defun entropy/emacs-goto-char (position)
+  "Like `goto-char' but this function guaranteeing that goto the
+POSITION's point in `current-buffer' even if POSITION is a maker
+in another buffer.
+
+POSITION must be prediated by `entropy/emacs-buffer-position-p'
+with `current-buffer''s visible portion or an error will be
+throwed out."
+  (let* ((posmk-p (markerp position))
+         (pt (if posmk-p (marker-position position) position))
+         (_ (entropy/emacs-buffer-position-p
+             pt :do-error t :with-range-check t)))
+    (goto-char pt)))
+
+(cl-defmacro entropy/emacs-with-current-buffer
+    (buffer-or-name &rest body
+                    &key
+                    use-switch-directly
+                    &allow-other-keys)
+  "Same as `with-current-buffer' but run BODY after
+`switch-to-buffer' and `set-buffer' to BUFFER-OR-NAME when
+USE-SWITCH-DIRECTLY is non-nil, therefore do no use
+USE-SWITCH-DIRECTLY when in a `noninteractive' session.
+
+When USE-SWITCH-DIRECTLY is non-nil and other than 't', it should
+be a list of rest args exclude the first argument i.e. the
+BUFFER-OR-NAME of `switch-to-buffer' used to apply to
+`switch-to-buffer'."
+  (declare (indent 1) (debug t))
+  (let ((body (entropy/emacs-get-plist-body body))
+        (bforbn-sym (make-symbol "buffer-or-name"))
+        (swtd-sym   (make-symbol "use-switch-directly")))
+    `(let ((,bforbn-sym ,buffer-or-name)
+           (,swtd-sym ,use-switch-directly))
+       (if ,swtd-sym
+           (progn
+             (if (eq ,swtd-sym t)
+                 (switch-to-buffer ,bforbn-sym)
+               (apply 'switch-to-buffer ,bforbn-sym ,swtd-sym))
+             (set-buffer ,buffer-or-name)
+             ,@body)
+         (with-current-buffer ,buffer-or-name
+           ,@body)))))
+
+(cl-defmacro entropy/emacs-with-goto-char
+    (number-or-marker &rest body
+                      &key save-excursion use-switch-directly
+                      &allow-other-keys)
+  "Run BODY after `goto-char' to NUMBER-OR-MARKER of the
+BUFFER (use NUMBER-OR-MARKER's buffer when it's a marker and its
+`marker-buffer' is non-nil or use `current-buffer') and the whole
+procedure is with that BUFFER (i.e. run with the `current-buffer'
+set to BUFFER temporarily unless USE-SWITCH-DIRECTLY is non-nil
+see below). Return the result of last form of BODY.
+
+When SAVE-EXCURSION is non-nil, try to restore the point of the
+BUFFER after run BODY when possible.
+
+When USE-SWITCH-DIRECTLY is non-nil, it has same meaning of the
+same key of `entropy/emacs-with-current-buffer', otherwise
+restore the former `current-buffer' which presented before whole
+procedure.
+"
+  (declare (indent defun))
+  (let ((body (entropy/emacs-get-plist-body body))
+        (pt-sym     (make-symbol "number-or-marker"))
+        (mkbuf-sym  (make-symbol "the-marker-buffer"))
+        (swtd-sym   (make-symbol "use-switch-directly"))
+        (sves-sym   (make-symbol "use-save-excursion"))
+        (buff-sym   (make-symbol "the-buffer")))
+    `(let* ((,pt-sym ,number-or-marker)
+            (,mkbuf-sym (and (markerp ,pt-sym)
+                             (marker-buffer ,pt-sym)))
+            (,swtd-sym ,use-switch-directly)
+            (,sves-sym ,save-excursion)
+            (,buff-sym (or ,mkbuf-sym (current-buffer))))
+       (entropy/emacs-with-current-buffer ,buff-sym
+         :use-switch-directly ,swtd-sym
+         (entropy/emacs-save-excursion-when
+          :when ,sves-sym
+          (goto-char ,pt-sym)
+          ,@body)))))
+
+(cl-defun entropy/emacs-buffer-goto-line
+    (line-number &key buffer relative)
+  "Move to line with LINE-NUMBER of buffer BUFFER (default to
+`current-buffer'), if RELATIVE is non-nil move to visible line
+with LINE-NUMBER of the beginning of buffer visible part.
+
+LINE-NUMBER should be a integer or an error will be throwed out.
 
 When buffer is narrowing, and RELATIVE is nil, then the BUFFER
-will be widen.
+will be `widen'.
 
-If LINE is larger than the buffer(or visible part of buffer) max
-line, goto the last line of the buffer(or visible part of
-buffer).
+If LINE-NUMBER is larger or lesser than the BUFFER's visible
+part, goto the last/first line of the BUFFER visible part.
 
-The end form point is always at the beginning of the LINE."
+The end form point is always at the beginning of the target
+buffer line."
+  (unless (integerp line-number)
+    (signal 'wrong-type-argument
+            (list 'integerp "line-number" line-number)))
   (let ((buff (or buffer (current-buffer))))
-    (if relative
-        (with-current-buffer buff
-          (goto-char (point-min))
-          (forward-line (max 0 (1- line)))
-          (forward-line 0))
-      (with-current-buffer buff
-        (widen)
-        (goto-char (point-min))
-        (forward-line (max 0 (1- line)))
-        (forward-line 0)))))
+    (with-current-buffer buff
+      (entropy/emacs-widen-when
+       :when relative
+       (let* ((cur-lnum  (line-number-at-pos))
+              (lnum      (max 0 line-number))
+              (lnum-diff (- lnum cur-lnum)))
+         (forward-line lnum-diff)
+         (forward-line 0))))))
+
+(defun entropy/emacs-get-buffer-region-markers
+    (start end &optional buffer)
+  "Make and return a cons of car of the marker of start START and
+cdr of the marker of end END in buffer BUFFER (omitted for using
+`current-buffer').
+
+When START is `<' than END, the returned cons is reversed to obey
+the start-to-end order.
+
+START and END must be predicated by
+`entropy/emacs-buffer-position-p' with BUFFER's visible portion
+range check. When either START or END is a marker, only its
+`marker-position' is used.
+"
+  (with-current-buffer (or buffer (current-buffer))
+    (dolist (pt `(,start ,end))
+      (entropy/emacs-buffer-position-p pt :do-error t :with-range-check t))
+    (entropy/emacs-use-markers-position start end)
+    (let (start-mk end-mk)
+      (save-excursion
+        (setq start-mk (set-marker (make-marker) start)
+              end-mk (set-marker (make-marker) end))
+        (entropy/emacs-swap-two-places-value start-mk end-mk
+          (> start-mk end-mk)))
+      (cons start-mk end-mk))))
+
+(cl-defun entropy/emacs-get-buffer-region-from-pos
+    (start-offset
+     end-offset
+     &key
+     buffer position
+     from-line-begin
+     from-line-end
+     return-as-marker)
+  "Get a region cons of '(start . end) offset based on position POSITION
+(omitted for using `point')' `+' the integer START-OFFSET and
+END-OFFSET in buffer BUFFRE (omitted for using `current-buffer')
+respectively.
+
+POSITION must be predicated by `entropy/emacs-buffer-position-p' with
+BUFFER's visible range check, or an error will be throwed out.
+
+If FROM-LINE-BEGIN is non-nil, the based position is the
+`line-beginning-position' of the line of position.
+
+If FROM-LINE-END is non-nil, the based position is the
+`line-end-position' of the line of position.
+
+If both FROM-LINE-BEGIN and FROM-LINE-END are non-nil, the based
+positions is arranged to start and end respectively of:
+- start: `line-beginning-position'
+- end  : `line-end-position'
+
+If the calcualted reigon's start or end point is out of range of the
+BUFFER's visible portion, an error is occurred.
+
+If RETURN-AS-MARKER is non-nil, then the car and cdr of the return are
+both a marker `=' start or end respectively.
+
+The returned cons of start and end is reversed when start's point is
+`>' then end's point."
+  (with-current-buffer (or buffer (current-buffer))
+    (save-excursion
+      (if position
+          (entropy/emacs-goto-char position)
+        (setq position (point)))
+      (let* ((lnbeg-pt (line-beginning-position))
+             (lnend-pt (line-end-position))
+             begpt endpt)
+        (cond ((and from-line-begin from-line-end)
+               (setq begpt (max 1 (+ lnbeg-pt start-offset))
+                     endpt (max 1 (+ lnend-pt end-offset))))
+              (from-line-begin
+               (setq begpt (max 1 (+ lnbeg-pt start-offset))
+                     endpt (max 1 (+ lnbeg-pt end-offset))))
+              (from-line-end
+               (setq begpt (max 1 (+ lnend-pt start-offset))
+                     endpt (max 1 (+ lnend-pt end-offset))))
+              (t
+               (setq begpt (max 1 (+ position start-offset))
+                     endpt (max 1 (+ position end-offset)))))
+        (dolist (pt (list begpt endpt))
+          (entropy/emacs-buffer-position-p pt :do-error t :with-range-check t))
+        (entropy/emacs-swap-two-places-value begpt endpt
+          (< endpt begpt))
+        (if return-as-marker
+            (entropy/emacs-get-buffer-region-markers begpt endpt)
+          (cons begpt endpt))))))
+
+(cl-defun entropy/emacs-get-buffer-pos-line-content
+    (&key start-offset end-offset buffer position without-properties)
+  "Return substring of buffer BUFFER at the line of position
+POSITION with `line-beginning-position' to `line-end-position' as
+default region. Return nil when the default region is empty.
+
+When BUFFER is omitted, use `current-buffer' as default.
+
+When POSITION is omitted use `point' in BUFFER as
+default. POSITION must be predicated by
+`entropy/emacs-buffer-position-p' with BUFFER's visible portion
+check or a error will be throwed out.
+
+When WITHOUT-PROPERTIES is non-nil, trim all text properties of the
+return.
+
+When either START-OFFSET or END-OFFSET is non-nil, it should be a
+integer used to calculate the position offset by
+`line-beginning-position' and `line-end-position' respectively and use
+that region with error when the calculated region is wider than the
+line area. Also return nil when the calculated region is empty.
+"
+  (let ((buffer (or buffer (current-buffer)))
+        (pos position)
+        (extfunc (if without-properties 'buffer-substring-no-properties
+                   'buffer-substring))
+        begpt endpt region regbeg regend lnbegpt lnendpt)
+    (with-current-buffer buffer
+      (save-excursion
+        (and pos
+             (entropy/emacs-goto-char pos))
+        (setq lnbegpt (line-beginning-position)
+              lnendpt (line-end-position)
+              start-offset (or start-offset 0)
+              end-offset  (or end-offset  0)))
+      (setq region (entropy/emacs-get-buffer-region-from-pos
+                    start-offset end-offset
+                    :from-line-begin t
+                    :from-line-end t)
+            regbeg (car region)
+            regend (cdr region)
+            begpt (or (and (>= regbeg lnbegpt) (<= regbeg lnendpt) regbeg)
+                      (error "begin point out of current line's line-begin point"))
+            endpt (or (and (>= regend lnbegpt) (<= regend lnendpt) regend)
+                      (error "end point out of current line's line-end point")))
+      (funcall extfunc begpt endpt))))
+
+(cl-defun entropy/emacs-buffer-delete-line-at-pos
+    (&key
+     keep-relpos start-offset
+     preserve-newline
+     bound without-bound-when-bound-at-line-end
+     return-region-string
+     with-result-debug)
+  "Delete the `current-buffer''s line's full content or portion at `point'.
+
+This function defaultly do operation =delete-whole-line= when current
+=buffer-line='s =line-end-point= is =newline= or do
+=delete-whole-line-but-eobp= otherwise.
+
+When some options set, do =delete-line-portion= when proper see
+*OPTIONS*.
+
+Whatever whether or not to use option, this function calculates a
+default =pre-delete-region= of the =buffer-line= first. And the
+default =pre-delete-region= is equal to the =region= of a non =eobp=
+ended =buffer-line=.
+
+(See *Terminogies in this commentary* for keyword explanation.)
+
+* OPTIONS:
+
+- START-OFFSET: when set, it should be a `natnump' number . Used to
+  skip N points from the `line-beginning-position' of current line and
+  set that `point' as the =region-start-point= of the defualt
+  =pre-delete-region= i.e. the calculation is:
+  : =region-start-point= = (+ START-OFFSET  =line-start-point=)
+
+  When =region-start-point= is not less than =line-end-point= then
+  trigger =do-nothing=.
+
+  When it's larger than 0, always do =delete-line-portion=.
+
+  Defautls to 0.
+
+- PRESERVE-NEWLINE: when set, when =line-end-point= is a =newline=
+  then it will never be deleted. In which case always do a
+  =delete-line-portion= and it is =set-with-useless= when the current
+  =buffer-line= is the last line of `current-buffer' or BOUND is
+  =set-is-effective=.
+
+- BOUND: when set, it should be a `point' in current buffer, trigger
+  =do-nothing= when its overflow. It is used to restrict the default
+  =pre-delete-region='s =region-end-point= which defaults to the
+  =region-end-point= of the =buffer-line=. Trigger =do-nothing= when
+  it is less or equal then =region-start-point= of the default
+  =pre-delete-region=.
+
+  When it's larger than the =region-end-point= of the default
+  =pre-delete-region=, it is =set-with-useless=.
+
+  When it's less than =region-end-point= of the default
+  =pre-delete-region=, always do =delete-line-portion= unless
+  WITHOUT-BOUND-WHEN-BOUND-AT-LINE-END is =set-is-effective=.
+
+- WITHOUT-BOUND-WHEN-BOUND-AT-LINE-END: when set, reset the BOUND
+  option to =set-default= when BOUND is same as the =line-end-point=
+  of the current =buffer-line=. In which case, this function can do
+  =delete-whole-line= when proper occasion instead of being effected
+  by BOUND since the BOUND at =newline= is usually useless.
+
+- RETURN-REGION-STRING: see *Return*.
+
+- KEEP-RELPOS: when set and only with do the =delete-normal=, forward
+  the `point' to the original previous =buffer-line='s
+  =line-start-point= unless the current =buffer-line= is first line of
+  `current-buffer' in which case it is useless without any effection
+  and use the default behaviour (see *Default behaviour after
+  deletion*).
+
+- WITH-RESULT-DEBUG: EEMACS_MAINTENANCE internally debug usage, do not
+  used as common.
+
+* Default behaviour after deletion
+
+For =delete-whole-line=, put the `point' at the =line-start-point= of
+the original next =buffer-line=.
+
+For =delete-line-portion=, put the `point' at the =region-start-point=
+of the final =pre-delete-region=, also for when the
+=delete-line-portion= is a =delete-whole-line-but-eobp=.
+
+* Return
+
+This function return a plist to describe the successful operation
+result or nil when =do-nothing= is triggerred.
+
+The successful result plist has follow valid keys:
+
+1) ':type-of-deletion' :
+   - 0: the deletion operation is =delete-whole-line=
+   - 1: the deletion operation is =delete-whole-line-but-eobp=
+   - 2: the deletion operation is =delete-line-portion=
+
+2) ':type-of-operation-after-deletion' :
+   - '0' : indicate the result of default final operation of
+     =delete-whole-line=.
+   - '1': indicate the result of final operation of
+     =delete-line-portion= (include =delete-whole-line-but-eobp=
+     unless when KEEP-RELPOS is set and it is in effectively).
+   - '2' : indicate the result when KEEP-RELPOS is set and in
+     effectively.
+3) ':deleted-content-string' : when RETURN-REGION-STRING is set, it is
+   the actually deleted string without trim its text properties or nil
+   otherwise.
+
+* Terminogies in this commentary:
+
+- =newline=: A new line is a `point' whose content is a `C-j'.
+
+- =eobp=: A `point' whose content is `eobp'. It is equal to
+  `point-max'.
+
+- =line-end-point=: A `point' who is either a =newline= or a =eobp=.
+
+- =line-start-point=: A `point' who is not a =newline=.
+
+- =region=: A area of the buffer which use two `point' to described
+  i.e. the =region-start-point= and =region-end-point= where the
+  former's is always less or equal to the latter. When the former and
+  latter is `=' then we say this =region= is empty.
+
+- =region-contents= : a number to describe how many points a =region=
+  has.  A =region= has points start from =line-start-point= (include)
+  and end to the =line-end-point= (exclude).
+
+- =buffer-line=: A buffer line is a logical portion of the whole emacs
+  buffer content. Usually it has a start `point' which is a
+  continuation of a =line-end-point= and end with a
+  =line-end-point=.
+
+  When its =line-start-point='s position is `eq' to `point-min' then
+  it is the first line of the buffer.
+
+  When its =line-end-point= is a =eobp= then it is the last line of
+  the buffer.
+
+  Thus a =buffer-line= can be both a first and a last line of the
+  buffer therefore it is the only line in the buffer.
+
+  If a =buffer-line='s =line-start-point= is same as its
+  =line-end-point= then we say this line is empty.
+
+  Thus a =buffer-line= is also a =region= whose =region-start-point=
+  is =line-start-point= and its =region-end-point= is =line-end-point=
+  plus one or is =line-end-point= when its =line-end-point= is =eobp=.
+
+- =pre-delete-region=: a =region= that prepared to be deleted.
+
+- =delete-whole-line=: A operation delete whole points' content of a
+  =buffer-line=. When the =buffer-line='s end point is `eobp' this
+  =buffer-line= can not be operated by this kind of operation since we
+  can not delete a `eobp' (see =delete-whole-line-but-eobp=).
+
+- =delete-line-portion=: A operation that delete a portion of a
+  =buffer-line= which is a against operation of
+  =delete-whole-line=. In other words, any non empty =region= whose
+  =region-start-point= larger or equal to =line-start-point= and its
+  =region-end-point= is less than =line-end-point= then its contents
+  can be deleted by this operation.
+
+- =delete-whole-line-but-eobp=: a kind of =delete-line-portion=
+  operation which delete all contents of a =buffer-line= unless its
+  =line-end-point= is a =eobp= in which case its =line-start-point= is
+  not deleted. (why of see =delete-whole-line=).
+
+- =delete-normal=: do =delete-whole-line= or =delete-whole-line-but-eobp=.
+
+- =do-nothing= : a operation that let this function do not do
+  anything and return nil.
+
+- =set-default=: the default value of a option.
+
+- =set-with-useless=: indicate a option set as it is not set i.e. not
+  used.
+
+- =set-is-effective=: indicate a option set is useful i.e. in
+  effectively in this function procedure.
+"
+  (let* (deletion-type-flag
+         (deltype-alist '((0 . "delete-whole-line")
+                          (1 . "delete-whole-line-but-eobp")
+                          (2 . "delete-line-portion")))
+         final-optype-flag
+         (fnloptype-flag '((0 . "origin next line begin")
+                           (1 . "at start of deletion's region")
+                           (2 . "origin previous line begin")))
+         reg-content
+         (start-offset
+          (or
+           (and
+            (and start-offset
+                 (or (setq start-offset
+                           (entropy/emacs-natural-number-p
+                            start-offset :exclude-zero nil :detect-float t :convert-float t))
+                     (error "start offset must be a natural number")))
+            start-offset)
+           0))
+         (cur-pt              (point))
+         (cur-lbegpt          (line-beginning-position))
+         (cur-lendpt          (line-end-position))
+         (cur-start-edgept    (+ start-offset cur-lbegpt))
+         ;; if the calculated region start is not in the current line and it's meaningless
+         (fatalp              (or (> cur-start-edgept cur-lendpt) ;its ok if beg equal to lend since we support empty line
+                                  (<  cur-start-edgept cur-lbegpt))))
+    (unless fatalp
+      (let* ((cur-ptmin           (point-min))
+             (cur-ptmax           (point-max))
+             (cur-assume-edgept   (1+ cur-lendpt))
+             (_                   (when (and bound
+                                             without-bound-when-bound-at-line-end
+                                             (= bound cur-lendpt))
+                                    (setq bound nil)))
+             (bound               (or bound (min cur-assume-edgept cur-ptmax)))
+             (fatalp              (or
+                                   ;; bound should not same/larger as/than region start pos or it's meaningless
+                                   (>= cur-start-edgept bound)
+                                   ;; bound should within the buffer visible portion or it's meaning less
+                                   (> bound cur-ptmax))))
+        (unless fatalp
+          (let* (
+                 ;; the region end pt must at neareast place the
+                 ;; assumed end pt at and never overflow the boundary.
+                 (cur-end-edgept      (if (> cur-assume-edgept bound) bound cur-assume-edgept))
+                 (_                   (when (and preserve-newline (= cur-end-edgept cur-assume-edgept))
+                                        (setq cur-end-edgept (1- cur-end-edgept))))
+                 (cur-endeobp         (= cur-ptmax cur-end-edgept))
+                 ;; if the calculated region end pt is less than the
+                 ;; assumed end pt or the region start offset larger
+                 ;; than 0 i.e. forward to the line begin pos then
+                 ;; it's within the assumed region will be deleted so
+                 ;; we do not do any further plans.
+                 (reg-iswithin-p      (or (< cur-end-edgept cur-assume-edgept)
+                                          (> start-offset 0)))
+                 ;; or we can use assumed region to do deletion and do
+                 ;; other plans.
+                 (delete-wholeln-p    (not reg-iswithin-p))
+                 (delete-wholeln-buteob-p (and (= start-offset 0) cur-endeobp))
+                 (delete-lnportion-p  (and reg-iswithin-p
+                                           (not delete-wholeln-buteob-p)))
+                 (cur-firstln-p       (= (line-number-at-pos cur-pt)
+                                         (line-number-at-pos cur-ptmin)))
+
+                 (keeprelpos-effect-p (and keep-relpos
+                                           (not cur-firstln-p)
+                                           (or delete-wholeln-p
+                                               delete-wholeln-buteob-p)))
+                 (del-func            (lambda (x)
+                                        (setq reg-content (and return-region-string
+                                                               (buffer-substring
+                                                                cur-start-edgept cur-end-edgept)))
+                                        (delete-region cur-start-edgept cur-end-edgept)
+                                        (setq deletion-type-flag x))))
+            ;; delete region
+            (cond
+             (delete-wholeln-p
+              (funcall del-func 0))
+             (delete-wholeln-buteob-p
+              (funcall del-func 1))
+             (delete-lnportion-p
+              (funcall del-func 2))
+             (t
+              (error "internal error")))
+            ;; final operation
+            (cond (keeprelpos-effect-p
+                   (forward-line -1)
+                   (setq final-optype-flag 2))
+                  (delete-wholeln-p
+                   (setq final-optype-flag 0))
+                  (t
+                   ;; FIXME: did `delete-region' guarantees for put
+                   ;; point in region start?
+                   (unless (= (point) cur-start-edgept)
+                     (error "internal error"))
+                   (setq final-optype-flag 1)))
+            ))))
+
+    ;; final return
+    (when deletion-type-flag
+      (list :type-of-deletion
+            (if with-result-debug
+                (alist-get deletion-type-flag deltype-alist)
+              deletion-type-flag)
+            :type-of-operation-after-deletion
+            (if with-result-debug
+                (alist-get final-optype-flag fnloptype-flag)
+              final-optype-flag)
+            :deleted-content-string
+            reg-content))
+    ))
+
+;; **** buffer xy coordinates system
+
+(defun entropy/emacs-make-eemacs-buffer-pos-coordinate-obj (x y)
+  "Create a =EEMACS-POS-COORDINATE-OBJ= (see
+`entropy/emacs-get-eemacs-buffer-pos-coordinate-obj') without
+buffer `point' binding effectivity."
+  (unless (natnump x)
+    (error "=EEMACS-POS-COORDINATE-OBJ= maker: X '%d' is invalid which
+should be non-negative integer." x))
+  (unless (natnump y)
+    (error "=EEMACS-POS-COORDINATE-OBJ= maker: y '%d' is invalid which
+should be non-negative integer." y))
+  (cons x y))
+
+(defun entropy/emacs-get-eemacs-buffer-pos-coordinate-obj
+    (&optional number-or-marker buffer absolute)
+  "Return eemacs buffer pointer NUMBER-OR-MARKER's coordinate object
+i.e. =EEMACS-POS-COORDINATE-OBJ= a inherit of =EEMACS-XYCRD-POINT-OBJ=
+(see `entropy/emacs-xycrd-make-coordinate-obj' for details) but with both
+of X and Y is `natnump' integer which is used to describe logical
+place in a emacs buffer using `point' square left-top corner as the
+point of a =EEMACS-XYCRD-POINT-OBJ=.
+
+BUFFER is a live buffer and default to `current-buffer' but both be
+covered by the NUMBER-OR-MARKER's buffer when it is a marker (i.e. can
+be prediated by `markerp') and its `marker-buffer' is non-nil.
+
+When ABSOLUTE is non-nil return the absolute coordinate which ignore
+any narrowed portion.
+
+Unlike marker or overlay, =EEMACS-POS-COORDINATE-OBJ= is not bind with
+any buffer or NUMBER-OR-MARKER after got since its a abstraction of
+buffer zero base two dimensions coordinates system, but we need a
+buffer to get a valid `point' to calculate it since in this occasion
+we need build a *effective* =EEMACS-POS-COORDINATE-OBJ= (in other
+word, when the =EEMACS-POS-COORDINATE-OBJ= indicated place in the
+BUFFER no longer has any characters, the got
+=EEMACS-POS-COORDINATE-OBJ= can not be used to find character in its
+described place any more i.e. it points to a empty non-existed
+position in BUFFER, therefore the =EEMACS-POS-COORDINATE-OBJ= in this
+place is *noneffective* any more unless new contents inserted into
+BUFFER which filled that coordicate).
+
+Thus two =EEMACS-POS-COORDINATE-OBJ= are same which can be predicated
+by `equal' but all =EEMACS-POS-COORDINATE-OBJ= in any buffer got with
+same NUMBER-OR-MARKER's `point' are usually not same since the `point'
+has no defination to precisely describe a coordinate of a buffer where
+its just a non-multibyte character container que's length.
+
+Use `entropy/emacs-make-eemacs-buffer-pos-coordinate-obj' to make a
+context independent =EEMACS-POS-COORDINATE-OBJ=.
+"
+  (let* ((mkbuff (when (markerp number-or-marker)
+                   (marker-buffer number-or-marker)))
+         (buffer (or mkbuff buffer (current-buffer)))
+         (mkpt (when (markerp number-or-marker)
+                 (marker-position number-or-marker)))
+         (pt (or mkpt number-or-marker))
+         lnum lnbegpt)
+    (with-current-buffer buffer
+      (setq pt (or pt (point)))
+      (save-excursion
+        (goto-char pt)
+        (setq
+         lnum (line-number-at-pos nil absolute)
+         lnbegpt (line-beginning-position))))
+    (entropy/emacs-xycrd-make-coordinate-obj
+     (- pt lnbegpt)
+     (- lnum 1))))
+
+(defun entropy/emacs-buffer-get-eemacs-buffer-rectangle-obj
+    (begin-pt end-pt &optional buffer absolute)
+  "Return a =EEMACS-REGION-RECTANGLE-OBJ= i.e. a inherit of
+=EEMACS-XYCRD-RECTANGLE-OBJ= (see
+`entropy/emacs-xycrd-make-rectangle-obj') but
+using =EEMACS-XYCRD-POINT-OBJ='s buffer inheritance
+=EEMACS-POS-COORDINATE-OBJ=. The rectangle is according to a
+region of begin point BEGIN-PT and end point END-PT in buffer
+BUFFER.
+
+The extending part of =EEMACS-XYCRD-RECTANGLE-OBJ= is adding
+follow keys:
+
+1) =:buffer= : the buffer where we used to research on.
+2) =:absolute-coordinate-p= : non-nil when coordinated in a
+   non-narrowed premise, inherited from when ABSOLUTE is non-nil.
+3) =:buffer-narrow-region=: non-nil when BUFFER is
+   `buffer-narrowed-p' and be cons of car of the region beginning
+   point and cdr of the region end point.
+4) =:begin-point=: the region beginning point of BUFFER.
+5) =:end-point=: the region end point of BUFFER.
+
+See also `entropy/emacs-get-eemacs-buffer-pos-coordinate-obj' for
+how a coordinate is got.
+"
+  (let ((buffer (or buffer (current-buffer)))
+        buffer-narrow-region
+        beg-crd end-crd
+        rtn)
+    (with-current-buffer buffer
+      (setq buffer-narrow-region (when (buffer-narrowed-p) (cons (point-min) (point-max))))
+      (setq beg-crd    (entropy/emacs-get-eemacs-buffer-pos-coordinate-obj
+                        begin-pt nil absolute)
+            end-crd    (entropy/emacs-get-eemacs-buffer-pos-coordinate-obj
+                        end-pt nil absolute))
+      (setq rtn
+            (entropy/emacs-xycrd-make-rectangle-obj
+             beg-crd end-crd)
+            rtn (append
+                 (list :buffer buffer
+                       :buffer-narrow-region buffer-narrow-region
+                       :absolute-coordinate-p absolute
+                       :begin-point           begin-pt
+                       :end-point             end-pt)
+                 rtn))
+      rtn)))
+
+;; **** overlay manipultion
+
+(cl-defun entropy/emacs-is-valid-overlay-p (ov &key in-buffer do-error)
+  "Return OV when overlay OV is valid as:
+
+1) has alive buffer
+2) has valid start and end position
+
+Return nil when OV doesn't passed the validation.
+
+When IN-BUFFER is set, the OV validation also need its buffer
+`eq' to IN-BUFFER.
+
+When DO-ERROR is set, error when OV is invalid.
+"
+  (let ((ov-buff (overlay-buffer ov))
+        (ov-beg (overlay-start ov))
+        (ov-end (overlay-end ov))
+        (in-spec-buffer-p t)
+        (wide-pass-p nil)
+        rtn)
+    (setq rtn
+          (and (bufferp ov-buff)
+               (buffer-live-p ov-buff)
+               ov-beg ov-end
+               (setq wide-pass-p t)
+               (if in-buffer
+                   (setq in-spec-buffer-p
+                         (eq ov-buff in-buffer))
+                 t)
+               ov))
+    (unless rtn
+      (when do-error
+        (cond ((and wide-pass-p in-buffer (null in-spec-buffer-p))
+               (error "Overlay %S is an eemacs valid overlay but \
+is not in specified buffer %S"
+                      ov in-buffer))
+              (t
+               (error "Overlay %S is not a eemacs valid overlay")))))
+    rtn))
+
+(cl-defun entropy/emacs-buffer-position-within-overlay-p
+    (&rest overlays
+           &key position in-buffer
+           without-start-edge without-end-edge
+           return-all
+           &allow-other-keys)
+  "Return the first overlay in OVERLAYS whose area include buffer
+IN-BUFFER's position POSITION or all matched ones with order obeyed
+when RETURN-ALL is set. Return nil when no overlay matched for thus
+condition.
+
+POSITION must be predicated by `entropy/emacs-buffer-position-p'
+or an error will be throwed out.
+
+Commonly a position in a overlay is that:
+1) Overlay's buffer is IN-BUFFER where POSITION got from.
+2) Overlay's start position is less or equal (expect
+   WITHOUT-START-EDGE is set) than the POSITION.
+3) Overlay's end position minus 1 is larger or equal (expect
+   WITHOUT-END-EDGE is set) than the POSITION.
+4) Always not matched when the overlay start and end is same since the
+   buffer region is empty in this occasion.
+ "
+  (let ((ovs (entropy/emacs-defun--get-real-body overlays))
+        (pos position)
+        (in-buffer (or in-buffer (current-buffer)))
+        (range-func
+         (lambda (x a b)
+           (if (= a b)
+               nil
+             (and (if without-start-edge (> x a) (>= x a))
+                  (if without-end-edge
+                      (< x (1- b))
+                    (<= x (1- b)))))))
+        rtn)
+    (with-current-buffer in-buffer
+      (if pos
+          (entropy/emacs-buffer-position-p
+           pos
+           :do-error t)
+        (setq pos (point))))
+    (catch :exit
+      (dolist (ov ovs)
+        (and (entropy/emacs-is-valid-overlay-p ov :in-buffer in-buffer)
+             (let ((ov-beg (overlay-start ov))
+                   (ov-end (overlay-end   ov)))
+               (when (funcall range-func pos ov-beg ov-end)
+                 (push ov rtn)
+                 (unless return-all
+                   (throw :exit t)))))))
+    (if return-all rtn (car rtn))))
 
 ;; *** Hook manipulation
 
@@ -5963,6 +7437,20 @@ The compatible version comparation is rased on the two ways:
              (if strict
                  (string-match-p vl-1-regexp version-current)
                (string-match-p vl-2-regexp version-current))))))
+
+(cl-defmacro entropy/emacs-save-excurstion-and-mark-and-match-data
+    (&rest body &key turn-off &allow-other-keys)
+  "Run BODY wrapped in `save-mark-and-excursion' and
+`save-match-data'.
+
+When TURN-OFF evaled non-nil, then run BODY directly."
+  (declare (indent defun))
+  (let ((body (entropy/emacs-get-plist-body body)))
+    `(if ,turn-off
+         (progn ,@body)
+       (save-mark-and-excursion
+         (save-match-data
+           ,@body)))))
 
 ;; *** Lazy load specification
 (defvar entropy/emacs--lazy-load-simple-feature-head nil)
@@ -7372,6 +8860,356 @@ by get `entropy/emacs-union-http-prroxy-internal-enable-p' non-nil."
    'entropy/emacs-funcall-with-eemacs-union-http-internet-proxy
    (lambda nil t)
    orig-func orig-args))
+
+;; ** Major-modes' eemacs extra APIs
+;; *** dired mode
+
+(eval-when-compile
+  (require 'dired))
+
+(defun __entropy/emacs-dired-movement-arg-error (arg)
+  (or (entropy/emacs-natural-number-p (abs arg))
+      (error "dired movement arg %s is not a non-zero integer"
+             arg)))
+
+(defun entropy/emacs-dired-move-to-filename (&rest args)
+  "Move to the beginning of the filename on the current line but
+without movement and change any global state when no filename in
+current dired line. Return the position of the beginning of the
+filename, or nil if none found.
+
+ARGS is `apply' to `dired-move-to-filename'."
+  (let ((final-pt
+         (entropy/emacs-save-excurstion-and-mark-and-match-data
+           (apply 'dired-move-to-filename args))))
+    (when final-pt
+      (goto-char final-pt)
+      final-pt)))
+
+(cl-defun entropy/emacs-dired-fname-line-p (&key position raise-error move-to-filename)
+  "Return non-nil when the line at `current-buffer''s
+position (default to current `point') is a dired line with
+filename without movement.
+
+POSITION must be predicated by `entropy/emacs-buffer-position-p'
+with buffer visible portion check or an error will be thrown
+out. If POSTION is a marker, only its `marker-position' is used.
+
+If raise-error is set, error when the line is not thus.
+
+This function does not move point or change global state,
+including the match data defaulty unless MOVE-TO-FILENAME is set and
+see below:
+
+when MOVE-TO-FILENAME is set, move to the beginning of the
+filename on the line at POSITION only when the result is non-nil,
+Otherwise no movement did.
+"
+  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (setq position (or position (point)))
+  (entropy/emacs-use-markers-position position)
+  (entropy/emacs-buffer-position-p position :do-error t :with-range-check t)
+  (let (rtn success-p (pt position))
+    (entropy/emacs-save-excurstion-and-mark-and-match-data
+      (goto-char pt)
+      (setq rtn
+            (when (entropy/emacs-dired-move-to-filename)
+              (setq success-p t)
+              (point))))
+    (when (and raise-error (not success-p))
+      (error "dired line at pt %d has no filename" pt))
+    (catch :exit
+      (unless success-p
+        (throw :exit nil))
+      (unless move-to-filename
+        (throw :exit t))
+      (goto-char rtn)
+      t)))
+
+(cl-defun entropy/emacs-dired-marked-line-p (&key position raise-error move-to-filename)
+  "Return non-nil when the line at `current-buffer''s
+POSITION (default to current `point') is a dired line with
+marked.
+
+POSITION must be predicated by `entropy/emacs-buffer-position-p'
+with buffer visible portion check or an error will be thrown
+out. If POSTION is a marker, only its `marker-position' is used.
+
+Error while the line is not makred when RAISE-ERROR is set.
+
+This function does not move point or change global state,
+including the match data defaulty unless MOVE-TO-FILENAME is set
+and see below:
+
+when MOVE-TO-FILENAME is set, move to the beginning of the
+filename on the current line after successfully movement
+done. Return nil when movement can not be did without movement.
+"
+  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (setq position (or position (point)))
+  (entropy/emacs-use-markers-position position)
+  (entropy/emacs-buffer-position-p position :do-error t :with-range-check t)
+  (let ((pt position)
+        success-p rtn)
+    (setq rtn
+          (entropy/emacs-save-excurstion-and-mark-and-match-data
+            (goto-char pt)
+            (goto-char (line-beginning-position))
+            (when (re-search-forward dired-re-mark (line-end-position) t)
+              (setq success-p t)
+              (point))))
+    (catch :exit
+      (when (and raise-error (not success-p))
+        (error "dired line at pt %d is not marked" pt))
+      (unless success-p
+        (throw :exit nil))
+      (if move-to-filename
+          (progn
+            (setq rtn (entropy/emacs-save-excurstion-and-mark-and-match-data
+                        (goto-char rtn)
+                        (when (entropy/emacs-dired-move-to-filename)
+                          (point))))
+            (unless rtn
+              (throw :exit nil))
+            (goto-char rtn)
+            t)
+        t))))
+
+(cl-defun entropy/emacs-dired-next-line (arg &key move-to-line-beginning-position)
+  "Move down lines then position at filename when result is non-nil
+see below.
+
+Return non-nil if the target line (i.e. the line of position
+after move down) is predicated by
+`entropy/emacs-dired-fname-line-p'
+
+ARG says how many lines to move; default is one line. When ARG is
+negative then move backward previous line ARG times. When visuble
+portion has no enough lines to satisfied ARG then move to the
+corresponding edge i.e. `point-max' when arg is positive or
+`point-min' otherwise.
+
+When MOVE-TO-LINE-BEGINNING-POSITION is non-nil, move `point' to
+the `line-beginning-position' after move down done.
+"
+  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (__entropy/emacs-dired-movement-arg-error arg)
+  (let (rtn)
+    (let ((line-move-visual)
+          (goal-column))
+      (condition-case err
+          (line-move arg nil)
+        (error
+         (let ((errsym (car err)))
+           (cond
+            ((not (member errsym '(beginning-of-buffer end-of-buffer)))
+             (error "[entropy/emacs-dired-next-line]: internal error (linve-move implementation changed)"))
+            (t
+             (if (< arg 0)
+                 (goto-char (point-min))
+               (goto-char (point-max)))))))))
+    ;; We never want to move point into an invisible line.
+    (while (and (invisible-p (point))
+                (not (if (< arg 0) (bobp) (eobp))))
+      (forward-char (if (< arg 0) -1 1)))
+    (setq rtn (entropy/emacs-dired-fname-line-p :move-to-filename t))
+    (when move-to-line-beginning-position
+      (goto-char (line-beginning-position)))
+    rtn))
+
+(cl-defun entropy/emacs-dired-jump-to-next-fname-line
+    (arg &key
+         use-current-line
+         use-filter
+         bound
+         raise-error
+         move-to-filename)
+  "Jump to next dired fname line ARG times.
+
+ARG says how many times to move; default is one. When ARG is
+negative then move backward ARG times.
+
+When USE-FILTER is set, it should be a function without arguments
+request, run at a valid dired fname line and return non-nil to
+inidicate current dired line is satisfied expection. Or it can be
+set as one of follow valid values:
+
+- 'mark': when a dired line is a fname line and predicated by
+  `entropy/emacs-dired-marked-line-p'.
+
+Defaultly this function internally just use
+`entropy/emacs-dired-fname-line-p' as USE-FILTER.
+
+BOUND is a buffer `point' restrict the search boundary.
+
+Return nil when no next satisfied dired fname line found and
+without movement. And raise a error when RAISE-ERROR is set.
+
+Return non-nil when found next satisfied dired fname line and
+move to that line.
+
+When USE-CURRENT-LINE is set, when current dired line is a
+satisfied dired fname line then return non-nil immediately and
+without movement unless MOVE-TO-FILENAME is set, see below:
+
+When MOVE-TO-FILENAME is set, move to the beginning of the
+filename on the current line after successfully movement done.
+"
+  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (__entropy/emacs-dired-movement-arg-error arg)
+  (let* ((steps (if arg arg 1))
+         (bound (or bound (if (< steps 0) (point-min) (point-max))))
+         (use-marked (eq use-filter 'mark))
+         (filter-func (cond (use-marked
+                             'entropy/emacs-dired-marked-line-p)
+                            ((functionp use-filter)
+                             use-filter)
+                            (t
+                             (lambda nil t))))
+         (fln-judge-func
+          (lambda ()
+            (and (entropy/emacs-dired-fname-line-p)
+                 (funcall filter-func))))
+         (atept-func (lambda ()
+                       (if (> steps 0)
+                           (>= (point) bound)
+                         (<= (point) bound))))
+         final-pt success-p no-need-mvtf)
+    (catch :exit
+      (when use-current-line
+        (when (funcall fln-judge-func)
+          (when move-to-filename
+            (entropy/emacs-dired-move-to-filename))
+          (throw :exit t)))
+      (entropy/emacs-save-excurstion-and-mark-and-match-data
+        ;; escape current line
+        (goto-char (line-end-position))
+        (cond
+         (use-marked
+          (let ((continue-p t))
+            (while (and continue-p (not (funcall atept-func)))
+              (when (and (re-search-forward dired-re-mark bound 'move steps)
+                         (funcall fln-judge-func))
+                (setq continue-p nil
+                      success-p t)))))
+         (t
+          (setq no-need-mvtf t)
+          (let ((continue-p t)
+                (succnt 0))
+            (while (and continue-p (not (funcall atept-func)))
+              (entropy/emacs-dired-next-line (if (< steps 0) -1 1))
+              (when (funcall fln-judge-func)
+                (cl-incf succnt)
+                (when (= succnt (abs steps))
+                  (setq continue-p nil
+                        success-p t)))))))
+        (when success-p
+          (when (and (not no-need-mvtf) move-to-filename)
+            (entropy/emacs-dired-move-to-filename))
+          (setq final-pt (point))))
+      (if final-pt (goto-char final-pt))
+      (when (and raise-error (not success-p))
+        (error "jump to next dired fname line fatal"))
+      success-p)))
+
+(cl-defun entropy/emacs-dired-map-lines (&key use-region map-func)
+  "Call MAP-FUNC for all dired lines in `current-buffer' without
+arguments injection.
+
+The mapping procedure from begin and end of USE-REGION, its a
+cons of car of a begin marker so as cdr, default to the markers
+set by `point-min' and `point-max'.
+
+MAP-FUNC return 'pause-iterate' is used to notify the mapping
+procedure do not move to next dired line at next iteration in
+which case like dired line deletion operation in MAP-FUNC will
+let next dired line be current dired line in current iteration
+which will cause next iteration skip this line but its not our
+expection.
+
+MAP-FUNC return 'stop-iterate' is used forcely exist whole
+looping procedure.
+"
+  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (let* ((use-region (or use-region
+                         (cons (set-marker (make-marker) (point-min))
+                               (set-marker (make-marker) (point-max)))))
+         (begin-marker (car use-region))
+         (end-marker (cdr use-region))
+         (init t) (map-return nil)
+         (atept-func
+          (lambda ()
+            (let ((pt (point)))
+              (entropy/emacs-swap-two-places-value
+                begin-marker end-marker
+                (< end-marker begin-marker))
+              (or (>= pt end-marker)
+                  (funcall (if init 'ignore '<=)
+                           pt begin-marker)))))
+         (map-func (or map-func 'ignore)))
+    (goto-char begin-marker)
+    (catch :exit
+      (while (not (funcall atept-func))
+        (setq init nil)
+        (setq map-return (funcall map-func))
+        (if (eq map-return 'stop-iterate)
+            (throw :exit nil))
+        (unless (eq map-return 'pause-iterate)
+          (entropy/emacs-dired-next-line 1))))))
+
+(defun entropy/emacs-dired-region-has-marked-lines-p (start end &optional return-pos)
+  "Return non-nil when the region of START and END of
+`current-buffer' (must be dired buffer) has
+`entropy/emacs-dired-marked-line-p' dired lines.
+
+START and END must be predicated by
+`entropy/emacs-buffer-position-p' with buffer visible portion
+check or an error will be thrown out. If POSTION is a marker,
+only its `marker-position' is used.
+
+If RETURN-POS is set and origin return is non-nil, return a
+`point' based on first found dired markup line in that region and
+it should be in one of follow types:
+
+- symbol 'line-end'  : return `line-end-position' of that line.
+
+- symbol 'line-begin': return `line-beginning-position' of that
+  line.
+
+- a integer : return the position which is the
+  `line-beginning-position' of that line plus the integer but
+  stop to `point-max' when overflow.
+
+- default return `line-beginning-position' for any other non-nil
+  object.
+
+This function does not move point or change global state,
+including the match data defaulty.
+"
+  (entropy/emacs-do-error-for-major-moe-incompatible 'dired-mode)
+  (let (rtn)
+    (save-excursion
+      (entropy/emacs-dired-map-lines
+       :use-region (cons (set-marker (make-marker) start)
+                         (set-marker (make-marker) end))
+       :map-func
+       (lambda (&rest _)
+         (when (entropy/emacs-dired-marked-line-p)
+           (setq rtn
+                 (cond
+                  ((eq return-pos 'line-end)
+                   (line-end-position))
+                  ((eq return-pos 'line-begin)
+                   (line-beginning-position))
+                  ((integerp return-pos)
+                   (min (point-max)
+                        (+ (line-beginning-position)
+                           return-pos)))
+                  (return-pos
+                   (line-beginning-position))
+                  (t t)))
+           'stop-iterate))))
+    rtn))
 
 ;; * provide
 (provide 'entropy-emacs-defun)

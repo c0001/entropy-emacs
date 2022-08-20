@@ -164,10 +164,91 @@ display.")
    entropy/emacs-top-error-symbol
    (list msg)))
 
+(defvar entropy/emacs-buffer-position-invalid-error-symbol
+  'entropy/emacs-buffer-position-invalid-error)
+(define-error entropy/emacs-buffer-position-invalid-error-symbol
+  "Eemacs wrong type of buffer position" entropy/emacs-top-error-symbol)
+(cl-defun entropy/emacs-do-error-for-buffer-position-invalid
+    (position &key use-any-msg with-range-check without-restriction)
+  "Do error when a POSITION is not a valid buffer position value of
+`current-buffer' or error with message USE-ANY-MSG directly
+without any checks.
+
+When USE-ANY-MSG is not set and when POSITION is a marker, error
+when its `marker-position' doesn't be set i.e. empty. It success
+in this occasion, also check the marker's integer value, see
+below:
+
+When USE-ANY-MSG is not set and POSTION is not a maker or after
+the marker checking, error when POSITION is not a `natnump' or a
+`zerop' object.
+
+When USE-ANY-MSG is not set and WITH-RANGE-CHECK is set, also
+error when position is not `<' the `point-min' or `>' the
+`point-max'. With WITHOUT-RESTRICTION set, the buffer restriction
+is temporarily disabled using `save-restriction' to get the
+minimal `point-min' and max `point-marker'.
+
+Return non-nil when no error matched.
+"
+  (if use-any-msg
+      (format "the buffer-position var '%s' invalid since: %s."
+              use-any-msg)
+    (let* ((posmk-p  (markerp position))
+           (pt       (if posmk-p (marker-position position) position))
+           (ptwp     (and (natnump pt) (> pt 0)))
+           pt-p ptmin ptmax)
+      (catch :exit
+        (unless ptwp
+          (signal
+           entropy/emacs-buffer-position-invalid-error-symbol
+           (list
+            (format "the buffer-position var '%s' is not a valid natural \
+integer or non-empty marker."
+                    position))))
+        (unless with-range-check (throw :exit t))
+        (let ((limit-set-func
+               (lambda ()
+                 (setq ptmin (point-min)
+                       ptmax (point-max)))))
+          (if (and without-restriction
+                   (buffer-narrowed-p))
+              (save-restriction
+                (widen)
+                (funcall limit-set-func))
+            (funcall limit-set-func))
+          (setq pt-p
+                (and (natnump pt) (>= pt ptmin) (<= pt ptmax)))
+          (unless pt-p
+            (signal
+             entropy/emacs-buffer-position-invalid-error-symbol
+             (list
+              (format "the buffer-position var '%s' is overflow for \
+current buffer %S's %s."
+                      position (current-buffer)
+                      (if without-restriction "whole portion"
+                        "visible portion"))))))
+        ;; return true
+        t))))
+
+(defvar entropy/emacs-major-mode-incompatible-error-symbol
+  'entropy/emacs-major-mode-incompatible-error)
+(define-error entropy/emacs-major-mode-incompatible-error-symbol
+  "Eemacs major mode incompatible" entropy/emacs-top-error-symbol)
+(defun entropy/emacs-do-error-for-major-moe-incompatible
+    (need-major-mode &optional cur-major-mode)
+  (setq cur-major-mode (or cur-major-mode major-mode))
+  (unless (eq cur-major-mode need-major-mode)
+    (signal
+     entropy/emacs-major-mode-incompatible-error-symbol
+     (list
+      (format "current major-mode '%s' is not '%s'"
+              cur-major-mode need-major-mode)))))
+
 (defvar entropy/emacs-emacs-version-incompatible-error-symbol
   'entropy/emacs-emacs-version-incompatible-error-signal)
 (define-error entropy/emacs-emacs-version-incompatible-error-symbol
-  "Eemacs emacs version incompatible" 'entropy/emacs-top-error-symbol)
+  "Eemacs emacs version incompatible" entropy/emacs-top-error-symbol)
 (defun entropy/emacs-do-error-for-emacs-version-incompatible
     (emacs-version-request)
   (signal
@@ -179,7 +260,7 @@ display.")
 (defvar entropy/emacs-package-version-incompatible-error-symbol
   'entropy/emacs-package-version-incompatible-error-signal)
 (define-error entropy/emacs-package-version-incompatible-error-symbol
-  "Eemacs package version incompatible" 'entropy/emacs-top-error-symbol)
+  "Eemacs package version incompatible" entropy/emacs-top-error-symbol)
 (defun entropy/emacs-do-error-for-package-version-incompatible
     (package-name package-version-request)
   ;; the package version should obtained by `pkg-info-package-version'
