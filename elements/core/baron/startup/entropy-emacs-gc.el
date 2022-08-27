@@ -125,7 +125,7 @@ origin, since each set to the `gc-threshold' or
         (t
          (__ya/gc-threshold_setq
           gc-cons-threshold
-          (* 20 1024 1024)))))
+          (* 100 1024 1024)))))
 
 (defun entropy/emacs-gc--init-idle-gc (&optional sec)
   (setq entropy/emacs-garbage-collect-idle-timer
