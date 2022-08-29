@@ -3335,7 +3335,7 @@ displayed image as same operated mechanism as
   :config
 
   ;; Disabled '<' and '>' keybinding function.
-  (entropy/emacs-lazy-load-simple artist
+  (entropy/emacs-lazy-load-simple 'artist
     (define-key artist-mode-map (kbd ">") nil)
     (define-key artist-mode-map (kbd "<") nil))
   )
@@ -4724,7 +4724,7 @@ successfully both of situation of read persisit of create an new."
 
   (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
              (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path))
-    (entropy/emacs-lazy-load-simple custom
+    (entropy/emacs-lazy-load-simple 'custom
       (custom-set-variables
        '(epg-gpg-program
          (expand-file-name

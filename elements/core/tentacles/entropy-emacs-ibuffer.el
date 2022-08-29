@@ -51,7 +51,7 @@
 
   :init (setq ibuffer-filter-group-name-face '(:inherit (font-lock-string-face bold)))
   :config
-  (entropy/emacs-lazy-load-simple counsel
+  (entropy/emacs-lazy-load-simple 'counsel
     (with-no-warnings
       (defun entropy/emacs-ibuffer-find-file ()
         (interactive)

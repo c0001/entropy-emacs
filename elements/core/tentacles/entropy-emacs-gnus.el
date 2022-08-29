@@ -73,7 +73,7 @@
   ;; Unbind `message-kill-address' when in gnus mail `message-mode-map'.
   ;; Because of that this will cover `browse-kill-ring' default keybinding.
   (defvar message-mode-map)
-  (entropy/emacs-lazy-load-simple gnus-msg
+  (entropy/emacs-lazy-load-simple 'gnus-msg
     (define-key message-mode-map (kbd "C-c M-k") nil)))
 
 

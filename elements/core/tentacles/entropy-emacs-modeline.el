@@ -274,7 +274,7 @@ enabled."
 
 (entropy/emacs-usepackage-with-permanently-defer spaceline
   :init
-  (entropy/emacs-lazy-load-simple spaceline-segments
+  (entropy/emacs-lazy-load-simple 'spaceline-segments
     :always-lazy-load t
     (entropy/emacs-modeline--spaceline-defsegment-for-workspace)))
 

@@ -476,7 +476,7 @@ Version 2017-10-09"
 development web-browser."
     (let ((entropy/emacs-web-development-environment nil))
       (apply oldfunc arg-rest)))
-  (entropy/emacs-lazy-load-simple entropy-open-with
+  (entropy/emacs-lazy-load-simple 'entropy-open-with
     (advice-add 'entropy/open-with-port
                 :around
                 #'entropy/emacs-tools--open-with-port-stuffs-around))
@@ -1556,7 +1556,7 @@ can't visit one page suddenly."
     (advice-add 'w3m-retrieve :before
                 #'entropy/emacs-tools--w3m-recorde-retrieve-url))
 
-  (entropy/emacs-lazy-load-simple w3m
+  (entropy/emacs-lazy-load-simple 'w3m
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (require 'entropy-proxy-url)
       (entropy/proxy-url-make-builtin-recipes)
@@ -1564,7 +1564,7 @@ can't visit one page suddenly."
     (when (executable-find "w3m")
       (entropy/emacs-tools--proxy-url-w3m-specific)))
 
-  (entropy/emacs-lazy-load-simple eww
+  (entropy/emacs-lazy-load-simple 'eww
     (unless (eq entropy/emacs-proxy-url-loaded t)
       (require 'entropy-proxy-url)
       (entropy/proxy-url-make-builtin-recipes)

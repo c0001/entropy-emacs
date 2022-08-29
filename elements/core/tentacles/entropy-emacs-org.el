@@ -49,7 +49,7 @@
   (let ((entropy/emacs-web-development-environment t))
     (apply old-func args)))
 
-(entropy/emacs-lazy-load-simple ox
+(entropy/emacs-lazy-load-simple 'ox
   (advice-add 'org-export-dispatch
               :around #'entropy/emacs-org--export-panel-around-advice))
 
@@ -568,7 +568,7 @@ recovery method unless reopen capture operation.w
   :after org
   :config
 ;; **** org babel evaluate confirm
-  (entropy/emacs-lazy-load-simple org
+  (entropy/emacs-lazy-load-simple 'org
     (when (not (version< org-version "9.1.9"))
       (defvar entropy/emacs-org--src-info nil
         "Current org babel info using for `entropy/emacs-org--babel-comfirm-evaluate'.")
@@ -643,7 +643,7 @@ reason, please see the docstring refer."
 
 ;; **** org global export macro
   (defvar org-export-global-macros)
-  (entropy/emacs-lazy-load-simple ox
+  (entropy/emacs-lazy-load-simple 'ox
     (add-to-list 'org-export-global-macros
                  '("kbd" . "@@html:<code>$1</code>@@")))
 
@@ -669,7 +669,7 @@ some LANGs if `web-mode' is featured."
         (when (fboundp 'web-mode)
           (setq init-func 'web-mode)))
       (apply orig-func datum name init-func rest)))
-  (entropy/emacs-lazy-load-simple org-src
+  (entropy/emacs-lazy-load-simple 'org-src
     (advice-add
      'org-src--edit-element
      :around
@@ -813,7 +813,7 @@ cached refer file.
     (dolist (fn org-ctags-open-link-functions)
       (remove-hook 'org-open-link-functions fn)))
   :init
-  (entropy/emacs-lazy-load-simple (org org-ctags)
+  (entropy/emacs-lazy-load-simple '(org org-ctags)
     (entropy/emacs-org--ctags-disable)))
 
 ;; *** org-id

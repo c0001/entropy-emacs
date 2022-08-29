@@ -7,7 +7,7 @@
 ;; default face as font-lock atribtue, it will corrupts the
 ;; correctly font displaying when set spec font to this default
 ;; face.
-(entropy/emacs-lazy-load-simple all-the-icons-dired
+(entropy/emacs-lazy-load-simple 'all-the-icons-dired
   (defun entropy/emacs-ivy--swiper-format-function-for-dired (cands)
     "Transform CANDS into a string for minibuffer."
     (ivy--format-function-generic

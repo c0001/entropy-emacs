@@ -83,7 +83,7 @@
 NOTE: update with `company' upstream.")
 
 (defvar company-backends)
-(entropy/emacs-lazy-load-simple company
+(entropy/emacs-lazy-load-simple 'company
   (setq-default company-backends
                 (append (list entropy/emacs-company-top-initial-backends)
                         company-backends)))
@@ -295,7 +295,7 @@ eemacs specifications"
    ;; is null.
    :pdumper-no-end nil
    (entropy/emacs-company-global-init))
-  (entropy/emacs-lazy-load-simple (company counsel)
+  (entropy/emacs-lazy-load-simple '(company counsel)
     (define-key company-active-map (kbd "M-o") 'counsel-company))
 
 ;; *** config for after-load
@@ -1199,7 +1199,7 @@ frame."
 ;; *** Company in minibuffer
 
 ;; Stolen from https://gist.github.com/Bad-ptr/7787596#file-company-minibuffer-el
-(entropy/emacs-lazy-load-simple company
+(entropy/emacs-lazy-load-simple 'company
   (defvar-local entropy/emacs-company--minibuffer-command nil)
 
   (defun entropy/emacs-company-elisp-minibuffer (command &optional arg &rest ignored)
@@ -1269,11 +1269,11 @@ completion when calling: 'execute-extended-command' or
   )
 
 ;; ** company-lsp
-(entropy/emacs-lazy-load-simple lsp-mode
+(entropy/emacs-lazy-load-simple 'lsp-mode
   (advice-add 'lsp
               :after
               #'entropy/emacs-company-add-lsp-backend))
-(entropy/emacs-lazy-load-simple eglot
+(entropy/emacs-lazy-load-simple 'eglot
   (dolist (func '(eglot eglot-ensure))
     (advice-add func
                 :after
@@ -1343,7 +1343,7 @@ that for en-words candi recognized "
   :after company
   :commands (company-shell company-shell-env company-fish-shell)
   :init
-  (entropy/emacs-lazy-load-simple sh-script
+  (entropy/emacs-lazy-load-simple 'sh-script
     (defun entropy/emacs-company--set-company-backends-for-sh-mode-in-traditional-way
         ()
       (entropy/emacs-company--default-traditional-backends-generator
@@ -1363,7 +1363,7 @@ that for en-words candi recognized "
   (autoload (function company-web-jade) "company-web-jade" nil t)
   (autoload (function company-web-slim) "company-web-slim" nil t)
 
-  (entropy/emacs-lazy-load-simple web-mode
+  (entropy/emacs-lazy-load-simple 'web-mode
     (when (eq (entropy/emacs-get-use-ide-type 'web-mode) 'traditional)
       (defun entropy/emacs-company--set-company-backends-for-web-mode-in-traditional-way
           ()
@@ -1373,7 +1373,7 @@ that for en-words candi recognized "
        'web-mode-hook
        #'entropy/emacs-company--set-company-backends-for-web-mode-in-traditional-way)))
 
-  (entropy/emacs-lazy-load-simple css-mode
+  (entropy/emacs-lazy-load-simple 'css-mode
     (when (eq (entropy/emacs-get-use-ide-type 'css-mode) 'traditional)
       (defun entropy/emacs-company--set-company-backends-for-css-mode-in-traditional-way
           ()
@@ -1392,7 +1392,7 @@ that for en-words candi recognized "
   :after company
   :commands company-tern
   :init
-  (entropy/emacs-lazy-load-simple js2-mode
+  (entropy/emacs-lazy-load-simple 'js2-mode
     (defun entropy/emacs-company--set-company-backends-for-js2-mode-in-traditional-way
         ()
       (entropy/emacs-company--default-traditional-backends-generator
@@ -1429,7 +1429,7 @@ entropy-emacs."
   :if (eq (entropy/emacs-get-use-ide-type 'php-mode) 'traditional)
   :commands company-ac-php-backend
   :init
-  (entropy/emacs-lazy-load-simple php-mode
+  (entropy/emacs-lazy-load-simple 'php-mode
     (defun entropy/emacs-company--set-company-backends-for-php-mode-in-traditional-way ()
       (entropy/emacs-company--default-traditional-backends-generator
        '(company-ac-php-backend)))
@@ -1456,7 +1456,7 @@ entropy-emacs."
   (entropy/emacs-company--default-traditional-backends-generator
    '(company-c-headers company-irony)))
 
-(entropy/emacs-lazy-load-simple cc-mode
+(entropy/emacs-lazy-load-simple 'cc-mode
   (dolist (item '((c-mode-hook . (eq (entropy/emacs-get-use-ide-type 'c-mode) 'traditional))
                   (c++-mode-hook . (eq (entropy/emacs-get-use-ide-type 'c++-mode) 'traditional))))
     (when (eval (cdr item))
@@ -1473,7 +1473,7 @@ entropy-emacs."
   :after company
   :commands company-anaconda
   :init
-  (entropy/emacs-lazy-load-simple python
+  (entropy/emacs-lazy-load-simple 'python
     (defun entropy/emacs-company--set-company-backends-for-python-mode-in-traditional-way
         ()
       (entropy/emacs-company--default-traditional-backends-generator

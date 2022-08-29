@@ -141,7 +141,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
                       ;; minibuffer feature autoloading as a fake did.
                       (minibuffer-local-map . minibuffer)))
       (eval
-       `(entropy/emacs-lazy-load-simple ,(cdr map-ob)
+       `(entropy/emacs-lazy-load-simple ',(cdr map-ob)
           (define-key ,(car map-ob)
             (kbd ,key)
             (lambda ()
@@ -458,7 +458,7 @@ It is the recommendation of irony-mode official introduction."
 
 (when (and entropy/emacs-install-coworker-immediately
            (eq (entropy/emacs-get-use-ide-type 'js2-mode) 'traditional))
-  (entropy/emacs-lazy-load-simple js2-mode
+  (entropy/emacs-lazy-load-simple 'js2-mode
     (advice-add 'js2-mode
                 :before
                 #'entropy/emacs-coworker-check-tern-server)))
@@ -1379,7 +1379,7 @@ updating."
 
   ;; We stay out of company setting from eglot internal consistent
   ;; specified since eemacs has its own specification.
-  (entropy/emacs-lazy-load-simple eglot
+  (entropy/emacs-lazy-load-simple 'eglot
     (dolist (item '(completion-styles company))
       (add-to-list 'eglot-stay-out-of item)))
 
@@ -1858,45 +1858,45 @@ let eglot do completion with interface argument injection."
 
 ;; **** lsp html&css
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately web-mode
-  (entropy/emacs-lazy-load-simple web-mode
+  (entropy/emacs-lazy-load-simple 'web-mode
     (advice-add 'web-mode
                 :before
                 #'entropy/emacs-coworker-check-web-lsp)))
 
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately css-mode
-  (entropy/emacs-lazy-load-simple css-mode
+  (entropy/emacs-lazy-load-simple 'css-mode
     (advice-add 'css-mode
                 :before
                 #'entropy/emacs-coworker-check-web-lsp)))
 
 ;; **** lsp javascript
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately js2-mode
-  (entropy/emacs-lazy-load-simple js2-mode
+  (entropy/emacs-lazy-load-simple 'js2-mode
     (advice-add 'js2-mode :before #'entropy/emacs-coworker-check-js-lsp)))
 
 ;; **** lsp json
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately json-mode
-  (entropy/emacs-lazy-load-simple json-mode
+  (entropy/emacs-lazy-load-simple 'json-mode
     (advice-add 'json-mode :before #'entropy/emacs-coworker-check-json-lsp)))
 
 ;; **** lsp xml
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately nxml-mode
-  (entropy/emacs-lazy-load-simple nxml-mode
+  (entropy/emacs-lazy-load-simple 'nxml-mode
     (advice-add 'nxml-mode :before #'entropy/emacs-coworker-check-xml-lsp)))
 
 ;; **** lsp bash
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately sh-mode
-  (entropy/emacs-lazy-load-simple sh-mode
+  (entropy/emacs-lazy-load-simple 'sh-mode
     (advice-add 'sh-mode :before #'entropy/emacs-coworker-check-bash-lsp)))
 
 ;; **** lsp php
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately php-mode
-  (entropy/emacs-lazy-load-simple php-mode
+  (entropy/emacs-lazy-load-simple 'php-mode
     (advice-add 'php-mode :before #'entropy/emacs-coworker-check-php-lsp)))
 
 ;; **** lsp clangd
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately c-mode
-  (entropy/emacs-lazy-load-simple cc-mode
+  (entropy/emacs-lazy-load-simple 'cc-mode
     (advice-add 'c-mode
                 :before
                 #'entropy/emacs-coworker-check-clangd-lsp)
@@ -1906,28 +1906,28 @@ let eglot do completion with interface argument injection."
 
 ;; **** lsp cmake
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately cmake-mode
-  (entropy/emacs-lazy-load-simple cmake-mode
+  (entropy/emacs-lazy-load-simple 'cmake-mode
     (advice-add 'cmake-mode
                 :before
                 #'entropy/emacs-coworker-check-cmake-lsp)))
 
 ;; **** lsp python
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately python-mode
-  (entropy/emacs-lazy-load-simple python
+  (entropy/emacs-lazy-load-simple 'python
     (advice-add 'python-mode
                 :before
                 #'entropy/emacs-coworker-check-python-lsp)))
 
 ;; **** lsp powershell
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately powershell-mode
-  (entropy/emacs-lazy-load-simple powershell
+  (entropy/emacs-lazy-load-simple 'powershell
     (advice-add 'powershell-mode
                 :before
                 #'entropy/emacs-coworker-check-pwsh-lsp)))
 
 ;; **** lsp java
 (entropy/emacs-codeserver--ide-with-lsp-p?-and-immediately java-mode
-  (entropy/emacs-lazy-load-simple cc-mode
+  (entropy/emacs-lazy-load-simple 'cc-mode
     (advice-add 'java-mode
                 :before
                 #'entropy/emacs-coworker-check-java-lsp)))

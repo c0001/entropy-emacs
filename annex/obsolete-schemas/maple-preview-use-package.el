@@ -15,12 +15,12 @@
                    windmove-up
                    windmove-down))
       (advice-add $el :after #'maple-preview:send-to-server))
-    (entropy/emacs-lazy-load-simple eyebrowse
+    (entropy/emacs-lazy-load-simple 'eyebrowse
       (advice-add 'eyebrowse-switch-to-window-config
                   :after
                   #'maple-preview:send-to-server))
     (advice-add 'other-window :after #'maple-preview:send-to-server)
-    (entropy/emacs-lazy-load-simple markdown-mode
+    (entropy/emacs-lazy-load-simple 'markdown-mode
       (advice-add 'markdown-outdent-or-delete
                   :after
                   #'maple-preview:send-to-server))

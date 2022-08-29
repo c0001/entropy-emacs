@@ -37,7 +37,7 @@
 ;; ** Preparation
 
 (defvar tern-command)
-(entropy/emacs-lazy-load-simple tern
+(entropy/emacs-lazy-load-simple 'tern
   (setq tern-command '("tern")))
 
 ;; ** main libraries
@@ -349,7 +349,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   ;; disable the parse error messy hightlighting
   (setq js2-mode-show-parse-errors nil
         js2-mode-show-strict-warnings nil)
-  (entropy/emacs-lazy-load-simple js2-mode
+  (entropy/emacs-lazy-load-simple 'js2-mode
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
     (entropy/emacs-add-hook-lambda-nil
@@ -372,7 +372,7 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   :commands (skewer-mode skewer-html-mode skewer-css-mode)
   :diminish (skewer-mode skewer-html-mode skewer-css-mode)
   :init
-  (entropy/emacs-lazy-load-simple skewer-mode
+  (entropy/emacs-lazy-load-simple 'skewer-mode
     (dolist (el '(cache-table
                   skewer-bower
                   skewer-css
@@ -380,11 +380,11 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
                   skewer-repl
                   skewer-setup))
       (require el)))
-  (entropy/emacs-lazy-load-simple js2-mode
+  (entropy/emacs-lazy-load-simple 'js2-mode
     (add-hook 'js2-mode-hook #'skewer-mode))
-  (entropy/emacs-lazy-load-simple css-mode
+  (entropy/emacs-lazy-load-simple 'css-mode
     (add-hook 'css-mode-hook #'skewer-css-mode))
-  (entropy/emacs-lazy-load-simple sgml-mode
+  (entropy/emacs-lazy-load-simple 'sgml-mode
     (add-hook 'web-mode-hook #'skewer-html-mode)))
 
 (use-package impatient-mode

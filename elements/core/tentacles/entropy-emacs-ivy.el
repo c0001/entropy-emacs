@@ -69,7 +69,7 @@
   ;; and it's also be '^' for ahead searching, but when you want to
   ;; searching no limited in ahead type we must force disable it.
   (setq ivy-initial-inputs-alist nil)
-  (entropy/emacs-lazy-load-simple counsel
+  (entropy/emacs-lazy-load-simple 'counsel
     ;; we must set it nil again when loaded `counsel' which will
     ;; inject its own types but with some eemacs specified which need
     ;; to use initial inputs.
@@ -201,7 +201,7 @@ upstream and may be make risky follow the ivy updates.
   (advice-add 'ivy-read :after #'entropy/emacs-ivy--ivy-read-quit-after-dispatch-actions)
 
   ;; top level for ivy-mode-map
-  (entropy/emacs-lazy-load-simple ivy
+  (entropy/emacs-lazy-load-simple 'ivy
     (define-key ivy-mode-map (kbd "ESC ESC") 'top-level))
 
 
@@ -421,7 +421,7 @@ large buffer."
     ;; ---------------------------------------------------------
     ;; [2020-06-03 Wed 18:06:44] for now above issue seems be fixed,
     ;; but still using the patch for more enhancement.
-    (entropy/emacs-lazy-load-simple ivy
+    (entropy/emacs-lazy-load-simple 'ivy
       (require 'ivy-hydra)
       (when (fboundp 'ivy-hydra-read-action)
         ;; using new ivy hydra api in latest ivy update version
@@ -1193,7 +1193,7 @@ Since we chosen the kmacro from ring, we set it as the
   :init
   (if (and (eq entropy/emacs-ivy-rich-type 'all-the-icons-ivy)
            (entropy/emacs-icons-displayable-p))
-      (entropy/emacs-lazy-load-simple ivy
+      (entropy/emacs-lazy-load-simple 'ivy
         (all-the-icons-ivy-setup))))
 
 ;; *** ivy rich mode

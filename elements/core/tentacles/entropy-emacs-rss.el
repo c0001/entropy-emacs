@@ -142,7 +142,7 @@
   :config
 ;; *** keymap refactory
 
-  (entropy/emacs-lazy-load-simple (elfeed-search)
+  (entropy/emacs-lazy-load-simple 'elfeed-search
     (dolist (el '(("C-<down>"
                    ;; disable paragraph down key since it will let
                    ;; elfeed-search buffer scroll to the bottom

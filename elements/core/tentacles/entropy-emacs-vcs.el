@@ -169,7 +169,7 @@ files destroying."
   :if sys/win32p
   :commands (ssh-agency-ensure)
   :init
-  (entropy/emacs-lazy-load-simple magit
+  (entropy/emacs-lazy-load-simple 'magit
     (add-hook 'magit-credential-hook 'ssh-agency-ensure))
   :config
   (setenv "SSH_ASKPASS" "git-gui--askpass"))
@@ -220,7 +220,7 @@ files destroying."
   :config
 
 ;; ***** patches
-  (entropy/emacs-lazy-load-simple hydra
+  (entropy/emacs-lazy-load-simple 'hydra
     (defhydra git-messenger-hydra (:color blue)
       ("s" git-messenger:popup-show "show")
       ("c" git-messenger:copy-commit-id "copy hash")

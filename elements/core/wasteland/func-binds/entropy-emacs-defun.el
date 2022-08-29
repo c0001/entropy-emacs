@@ -4965,38 +4965,48 @@ loop form."
   "Wrap BODY into FEATURE using `eval-after-load'.
 
 Feature is can be a FILE arg of `eval-after-load' or a list of
-that (note that this is a macro that if feature is a list, it
-means no quote needed to construct it)."
+that.
+
+BODY is wrapped into a `lambda', it is defined with lexical
+bindings of the stack context who calling this macro but only
+when `lexical-binding' is enabled in that context, otherwise it
+is just a anonymous no arguments function.
+
+Return that BODY function"
   (declare (indent defun))
-  `(let (forms
-         (feature ',feature)
-         (body ',body)
-         (extract-item-func
-          (lambda (file)
-            (if (stringp file)
-                file
-              (list 'quote file)))))
-     (cond ((not (listp feature))
-            (setq forms
-                  `(eval-after-load ,(funcall extract-item-func feature)
-                     (lambda ()
-                       ,@body))))
-           ((and (listp feature)
-                 (= 1 (length feature)))
-            (setq forms
-                  `(eval-after-load ,(funcall extract-item-func (car feature))
-                     (lambda ()
-                       ,@body))))
-           ((and (listp feature)
-                 (> (length feature) 1))
-            (setq feature (reverse feature)
-                  forms `(eval-after-load ,(funcall extract-item-func (car feature))
-                           (lambda () ,@body)))
-            (dolist (el (cdr feature))
+  (let ((forms-sym        (make-symbol "forms"))
+        (feature-sym      (make-symbol "feature"))
+        (body-func-sym    (make-symbol "body-func"))
+        (extitem-func-sym (make-symbol "extract-item-func")))
+    `(let (,forms-sym
+           (,feature-sym ,feature)
+           (,body-func-sym (list 'function (lambda nil ,@body)))
+           (,extitem-func-sym
+            (lambda (file)
+              (if (stringp file)
+                  file
+                (list 'quote file)))))
+       (cond ((not (listp ,feature-sym))
+              (setq ,forms-sym
+                    (list 'eval-after-load (funcall ,extitem-func-sym ,feature-sym)
+                          ,body-func-sym)))
+             ((and (listp ,feature-sym)
+                   (= 1 (length ,feature-sym)))
               (setq forms
-                    `(eval-after-load ,(funcall extract-item-func el)
-                       ',forms)))))
-     (eval forms)))
+                    (list 'eval-after-load (funcall ,extitem-func-sym (car ,feature-sym))
+                          ,body-func-sym)))
+             ((and (listp ,feature-sym)
+                   (> (length ,feature-sym) 1))
+              (setq ,feature-sym (reverse ,feature-sym)
+                    ,forms-sym
+                    (list 'eval-after-load (funcall ,extitem-func-sym (car ,feature-sym))
+                          ,body-func-sym))
+              (dolist (el (cdr ,feature-sym))
+                (setq ,forms-sym
+                      (list 'eval-after-load (funcall ,extitem-func-sym el)
+                            ,forms-sym)))))
+       (eval ,forms-sym)
+       ,body-func-sym)))
 
 (defvar entropy/emacs-eval-after-load-unique-register nil)
 (defmacro entropy/emacs-eval-after-load-unique (name-symbol feature &rest body)
@@ -8170,21 +8180,21 @@ corresponding stuffs."
    ((string-match-p "spacemacs-dark" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-spacemacs-dark
-     ivy
+     'ivy
      (entropy/emacs-set-face-attribute
       'ivy-current-match frame
       :background "purple4" :bold t)))
    ((string-match-p "spacemacs-light" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-spacemacs-light
-     ivy
+     'ivy
      (entropy/emacs-set-face-attribute
       'ivy-current-match frame
       :background "salmon" :bold t)))
    ((string-match-p "\\(tsdh\\|whiteboard\\|adwaita\\)" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-tsdh-whiteboard-adwaita-themes
-     ivy
+     'ivy
      (if (equal 'dark (frame-parameter nil 'background-mode))
          (entropy/emacs-set-face-attribute
           'ivy-current-match frame
@@ -8205,7 +8215,7 @@ corresponding stuffs."
    ((string= "doom-Iosvkem" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-doom-Iosvkem-theme
-     ivy
+     'ivy
      (entropy/emacs-set-face-attribute
       'ivy-current-match frame
       :background "grey8"
@@ -8213,14 +8223,14 @@ corresponding stuffs."
    ((string= "doom-dark+" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      outline-3-face-hack-for-doom-dark+-theme
-     outline
+     'outline
      (entropy/emacs-set-face-attribute
       'outline-3 frame
       :foreground "LawnGreen")))
    ((string= "doom-1337" theme-name-str)
     (entropy/emacs-eval-after-load-unique
      ivy-current-match-face-hack-for-doom-1337-theme
-     ivy
+     'ivy
      (entropy/emacs-set-face-attribute
       'ivy-current-match frame
       :background "#2257A0"
@@ -8286,7 +8296,7 @@ corresponding stuffs."
   (unless (display-graphic-p)
     (entropy/emacs-eval-after-load-unique
      magit-diff-hunk-region-face-hack-for-cli-session
-     magit-diff
+     'magit-diff
      (entropy/emacs-set-face-attribute
       'magit-diff-hunk-region
       frame
@@ -8317,7 +8327,7 @@ corresponding stuffs."
   (when (member theme-name-str '("doom-1337" "doom-Iosvkem"))
     (entropy/emacs-eval-after-load-unique
      company-tooltip-selection-face-hack-for-variant-themes
-     company
+     'company
      (entropy/emacs-set-face-attribute
       'company-tooltip-selection
       frame

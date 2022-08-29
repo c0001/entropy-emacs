@@ -195,7 +195,7 @@ anything."
   (setq eldoc-eval-preferred-function 'eval-expression)
 
   (entropy/emacs-lazy-load-simple
-      eldoc-eval
+      'eldoc-eval
     (advice-add 'eldoc-in-minibuffer-mode
                 :after
                 #'entropy/emacs-lisp-eldoc-eval-minibuffer-map-rejected-advice

@@ -1902,7 +1902,7 @@ Both KEY and COMMAND can be nil expect that the ':inject-key' and
           :self-list)
       (dolist (pair (cdr hydra-injector))
         (eval
-         `(entropy/emacs-lazy-load-simple ,(car pair)
+         `(entropy/emacs-lazy-load-simple ',(car pair)
             :no-message t
             (entropy/emacs-hydra-hollow-define-key
              ',(cadr pair)
@@ -1910,7 +1910,7 @@ Both KEY and COMMAND can be nil expect that the ':inject-key' and
              #',command)))))
      ((entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
       (eval
-       `(entropy/emacs-lazy-load-simple ,(car hydra-injector)
+       `(entropy/emacs-lazy-load-simple ',(car hydra-injector)
           :no-message t
           (entropy/emacs-hydra-hollow-define-key
            ',(cadr hydra-injector)
@@ -2997,7 +2997,7 @@ the instance has been created and the related form is banned."
                     (reverse rtn))))
      ((eq patterns t)
       (setq rtn
-            `(entropy/emacs-lazy-load-simple ,use-name
+            `(entropy/emacs-lazy-load-simple ',use-name
                ;; NOTE: always defer for require
                :always-lazy-load t
                ,form-use-judge)))

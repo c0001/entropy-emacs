@@ -393,10 +393,10 @@ dead and duplicated ones."
   ;; Do not using rainbow mode in `help-mode' since it will messy the
   ;; default face of string context of documentation.
   ;; ;; (add-hook 'help-mode-hook #'rainbow-mode)
-  (entropy/emacs-lazy-load-simple web-mode
+  (entropy/emacs-lazy-load-simple 'web-mode
     (add-hook 'web-mode-hook
               #'entropy/emacs-highlight--rainbow-mode-for-web-mode))
-  (entropy/emacs-lazy-load-simple css-mode
+  (entropy/emacs-lazy-load-simple 'css-mode
     (add-hook 'css-mode-hook #'rainbow-mode))
 
   ;; Reset `rainbow-x-colors-font-lock-keywords' when toggle daemon
@@ -630,7 +630,7 @@ while change themes."
     (diff-hl-margin-mode 1))
 
   ;; Integration with magit and psvn
-  (entropy/emacs-lazy-load-simple magit
+  (entropy/emacs-lazy-load-simple 'magit
     (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
 ;; ** Visualize TAB, (HARD) SPACE, NEWLINE
@@ -673,7 +673,7 @@ while change themes."
                            trailing space-before-tab
                            indentation empty space-after-tab))
 
-  (entropy/emacs-lazy-load-simple popup
+  (entropy/emacs-lazy-load-simple 'popup
     ;; advice for whitespace-mode conflict with popup
     (defvar my-prev-whitespace-mode nil)
     (make-local-variable 'my-prev-whitespace-mode)

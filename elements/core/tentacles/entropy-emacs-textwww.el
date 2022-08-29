@@ -146,7 +146,7 @@
        :pdumper-no-end t
        :body
        (setq w3m-after-cursor-move-hook nil))
-    (entropy/emacs-lazy-load-simple w3m
+    (entropy/emacs-lazy-load-simple 'w3m
       (setq w3m-after-cursor-move-hook nil)))
 
   ;; disable this to prevent its lagging on because of that
@@ -285,7 +285,7 @@ remained."
 ;; ***** Search engine specified
   (defvar w3m-search-engine-alist)
   (defvar w3m-search-default-engine)
-  (entropy/emacs-lazy-load-simple w3m-search
+  (entropy/emacs-lazy-load-simple 'w3m-search
     ;; Default use Microsoft 'bing' search engine for compatible of
     ;; proxy wild problem especially for chinese user.
     (add-to-list 'w3m-search-engine-alist
@@ -564,7 +564,7 @@ to restore."
 (use-package eww
   :preface
 ;; **** get image url
-  (entropy/emacs-lazy-load-simple shr
+  (entropy/emacs-lazy-load-simple 'shr
     (defun entropy/emacs-textwww-get-eww-url ()
       "Get image or point url at eww or it's derived modes."
       (interactive nil eww-mode)
