@@ -35,11 +35,11 @@
   'entropy-emacs-comment-dwim)
 ;; assign extra non prog-modes with dwim comment operation
 (dolist (extra-mode '((conf-mode . conf-mode-map)))
-  (eval
-   `(entropy/emacs-lazy-load-simple ',(car extra-mode)
-      (define-key ,(cdr extra-mode)
-        (kbd entropy/emacs-custom-comment-dwim-prefix)
-        'entropy-emacs-comment-dwim))))
+  (entropy/emacs-lazy-load-simple (car extra-mode)
+    :lexical-bindings `((extra-mode . ,extra-mode))
+    (define-key (symbol-value (cdr extra-mode))
+      (kbd entropy/emacs-custom-comment-dwim-prefix)
+      'entropy-emacs-comment-dwim)))
 
 (defun entropy-emacs-comment-dwim (&rest args)
   (declare (interactive-only t))

@@ -355,10 +355,10 @@ With prefix argument binds, jump to the previous mark place."
        )))
 
   (entropy/emacs-lazy-initial-advice-before
-   (dired-mode)
+   '(dired-mode)
    "hydra-hollow-init-for-dired"
    "hydra-hollow-init-for-dired"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
     'dired-mode '(dired dired-mode-map) t
@@ -1728,8 +1728,8 @@ TODO:
 
 ;; **** Use dired-aux to enable dired-isearch
 (entropy/emacs-lazy-initial-advice-before
- (dired) "dired-aux-init-for-dired" "dired-aux-init-for-dired"
- prompt-echo
+ '(dired) "dired-aux-init-for-dired" "dired-aux-init-for-dired"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (require 'dired-aux)
  ;; disable '.' key binding with `dired-clean-directory' for dired
@@ -1810,9 +1810,9 @@ TODO:
   :commands (diredfl-global-mode)
   :init
   (entropy/emacs-lazy-initial-advice-after
-   (dired-mode)
+   '(dired-mode)
    "diredfl-init-for-dired" "diredfl-init-for-dired"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (diredfl-global-mode 1)))
 
@@ -3568,10 +3568,10 @@ occasions. "
             #'entropy/emacs-basic--dspln-mode-around-advice)
 
 (entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer)
+ '(find-file switch-to-buffer)
  "global-display-line-numbers-mode"
  "global-display-line-numbers-mode"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end nil
  (setq-default display-line-numbers-width-start t)
  (when entropy/emacs-init-display-line-numbers-mode
@@ -3616,8 +3616,9 @@ buffer, in that case any conditions don't match the filter then
   :group 'hl-line)
 
 (entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer)
- "global-hl-line-mode" "global-hl-line-mode" prompt-echo
+ '(find-file switch-to-buffer)
+ "global-hl-line-mode" "global-hl-line-mode"
+ :prompt-type 'prompt-echo
  :pdumper-no-end nil
  (when entropy/emacs-init-hl-line-mode
    (entropy/emacs-hl-line-global-mode 1)))
@@ -3728,8 +3729,9 @@ NOTE: this is a advice wrapper for any function."
   (advice-add func
               :around #'entropy/emacs-basic--hl-line-disable-wrapper))
 (entropy/emacs-lazy-initial-advice-before
- (dired-mode)
- "hl-line-spec-for-dired-init" "hl-line-spec-for-dired-init" prompt-echo
+ '(dired-mode)
+ "hl-line-spec-for-dired-init" "hl-line-spec-for-dired-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (dolist (el '(dired-previous-line dired-next-line))
    (advice-add el
@@ -3849,10 +3851,10 @@ NOTE: this is a advice wrapper for any function."
 
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (switch-to-buffer find-file)
+   '(switch-to-buffer find-file)
    "undo-tree-enable-init"
    "undo-tree-enable-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    ;; undo-tree can not enabled while pdumper
    :pdumper-no-end nil
    (global-undo-tree-mode t)
@@ -3915,9 +3917,10 @@ CASE-TYPE can be one of 'capitalize' 'downcase' 'upcase'."
   (entropy/emacs-basic-toggle-case-core 'upcase))
 
 (entropy/emacs-lazy-initial-advice-after
- (find-file switch-to-buffer prog-mode fundamental-mode)
+ '(find-file switch-to-buffer prog-mode fundamental-mode)
  "entropy-toggle-case-hydra-hollow-init"
- "entropy-toggle-case-hydra-hollow-init" prompt-echo
+ "entropy-toggle-case-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'words-manipulation nil
@@ -4165,9 +4168,9 @@ as thus."
 ;; mode and it well inject to `post-self-insert-hook' to increase
 ;; performance latency.
 (entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer)
+ '(find-file switch-to-buffer)
  "__disable-electric-indent-mode" "__disable-electric-indent-mode"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (when (bound-and-true-p electric-indent-mode)
    (electric-indent-mode 0))
@@ -4191,8 +4194,9 @@ as thus."
   :ensure nil
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (yank xterm-paste)
-   "delsel-mode-init" "delsel-mode-init" prompt-echo
+   '(yank xterm-paste)
+   "delsel-mode-init" "delsel-mode-init"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (delete-selection-mode 1)))
 
@@ -4266,10 +4270,10 @@ coding style."
 
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (find-file push-button find-library-name switch-to-buffer)
+   '(find-file push-button find-library-name switch-to-buffer)
    "entropy-grom"
    "entropy-grom"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (entropy-grom-mode +1))
 
@@ -4316,10 +4320,10 @@ coding style."
   (setq auto-revert-check-vc-info nil))
 
 (entropy/emacs-lazy-initial-for-hook
- (find-file-hook)
+ '(find-file-hook)
  "GlbAutoRevertMode"
  "GlbAutoRevertMode-enabled"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (global-auto-revert-mode +1))
 
@@ -4365,9 +4369,9 @@ NOTE: e.g. `global-auto-revert-mode' and `magit-auto-revert-mode'."
 ;; **** emacs source dir
 ;; Set `source-directory' to eemacs specified location
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-after-startup-hook)
+ '(entropy/emacs-after-startup-hook)
  "init-emacs-source-dir-set" "init-emacs-source-dir-set"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (setq source-directory
        (entropy/emacs-source-directory))
@@ -4431,9 +4435,9 @@ Return the new scratch buffer.
     (get-buffer bfn)))
 
 (entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer ivy-read)
+ '(find-file switch-to-buffer ivy-read)
  "init-eemamcs-scratch-buffer" "init-eemamcs-scratch-buffer"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-basic--scratch-buffer-file-binding))
 
@@ -4664,15 +4668,16 @@ successfully both of situation of read persisit of create an new."
               #'entropy/emacs-basic-kill-ring-persist-after-kill-emacs)))
 
 (entropy/emacs-lazy-initial-advice-before
- (
-  ;; yank query operations
-  yank-pop
-  counsel-yank-pop
-  ;; kill-ring side effects operations
-  kill-ring-save kill-line backward-kill-word
-  ;; yank operations
-  yank xterm-paste)
+ '(
+   ;; yank query operations
+   yank-pop
+   counsel-yank-pop
+   ;; kill-ring side effects operations
+   kill-ring-save kill-line backward-kill-word
+   ;; yank operations
+   yank xterm-paste)
  "kill-ring-persist-init" "kill-ring-persist-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end nil
  (entropy/emacs-basic--init-kill-ring-persist))
 
@@ -4717,8 +4722,9 @@ successfully both of situation of read persisit of create an new."
   :ensure nil
   :init
   (entropy/emacs-lazy-initial-for-hook
-   (dired-mode-hook find-file-hook)
-   "epa-mode" "epa-mode" prompt-echo
+   '(dired-mode-hook find-file-hook)
+   "epa-mode" "epa-mode"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (epa-file-enable))
 
@@ -4751,10 +4757,10 @@ successfully both of situation of read persisit of create an new."
                      (auto-compression-mode 1))))
       (t
        (entropy/emacs-lazy-initial-advice-before
-        (push-button load-library find-library)
+        '(push-button load-library find-library)
         "autocompression-mode"
         "autocompression-mode"
-        prompt-echo
+        :prompt-type 'prompt-echo
         :pdumper-no-end t
         (auto-compression-mode 0)
         (auto-compression-mode 1))))
@@ -4765,8 +4771,9 @@ successfully both of situation of read persisit of create an new."
   :ensure nil
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (find-file switch-to-buffer dired counsel-dired)
-   "save-place-init" "save-place-init" prompt-echo
+   '(find-file switch-to-buffer dired counsel-dired)
+   "save-place-init" "save-place-init"
+   :prompt-type 'prompt-echo
    ;; injects into pdumper recovery session since the save-place is
    ;; dynamic
    :pdumper-no-end nil
@@ -4779,8 +4786,9 @@ successfully both of situation of read persisit of create an new."
   :preface
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (find-file switch-to-buffer dired counsel-dired)
-   "recentf-init" "recentf-init" prompt-echo
+   '(find-file switch-to-buffer dired counsel-dired)
+   "recentf-init" "recentf-init"
+   :prompt-type 'prompt-echo
    ;; injects into pdumper recovery session since the recentf is
    ;; dynamic
    :pdumper-no-end nil
@@ -4801,10 +4809,10 @@ successfully both of situation of read persisit of create an new."
   :init
 
   (entropy/emacs-lazy-initial-advice-before
-   (find-file ivy-switch-buffer dired counsel-dired)
+   '(find-file ivy-switch-buffer dired counsel-dired)
    "savehist-init-for-find-file-refer"
    "savehist-init-for-find-file-refer"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (savehist-mode t))
 
@@ -4941,8 +4949,9 @@ successfully both of situation of read persisit of create an new."
 
 (defvar term-raw-map)
 (entropy/emacs-lazy-initial-advice-before
- (xterm-paste kill-ring-save yank)
- "xterm-rebind-init" "xterm-rebind-init" prompt-echo
+ '(xterm-paste kill-ring-save yank)
+ "xterm-rebind-init" "xterm-rebind-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (let* ((cli-enable-func
          (lambda ()
@@ -5193,7 +5202,7 @@ from."
                          (symbol-value var-sym)))
                       (t
                        (condition-case err
-                           (eval var-sym nil)
+                           (entropy/emacs-eval-with-lexical var-sym)
                          (error (user-error "fatal: %s" err)))))
               (when orig-buffer-temp-p
                 (kill-buffer orig-buffer)))))
@@ -5304,8 +5313,9 @@ described variable."
      (user-error "Not in an `describe-variable' help buffer"))))
 
 (entropy/emacs-lazy-initial-advice-after
- (help-mode)
- "help-print-var-bind-init" "help-print-var-bind-init" prompt-echo
+ '(help-mode)
+ "help-print-var-bind-init" "help-print-var-bind-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (define-key help-mode-map
    (kbd "p")
@@ -5436,9 +5446,9 @@ operation system"
 
 (unless entropy/emacs-custom-language-environment-enable
   (entropy/emacs-lazy-initial-for-hook
-   (entropy/emacs-after-startup-hook)
+   '(entropy/emacs-after-startup-hook)
    "init-lang-set-for-utf8" "init-lang-set-for-utf8"
-   prompt-echo
+   :prompt-type 'prompt-echo
    ;; we must ensure the lang set ran by pdumper session load time
    ;; since te LANG can not be dump.
    :pdumper-no-end nil
@@ -5451,9 +5461,9 @@ operation system"
            (stringp entropy/emacs-locale-language-environment))
   ;; Customize language environment with user specification
   (entropy/emacs-lazy-initial-for-hook
-   (entropy/emacs-after-startup-hook)
+   '(entropy/emacs-after-startup-hook)
    "init-lang-set-for-user-locale" "init-lang-set-for-user-locale"
-   prompt-echo
+   :prompt-type 'prompt-echo
    ;; we must ensure the lang set ran by pdumper session load time
    ;; since te LANG can not be dump.
    :pdumper-no-end nil
@@ -6102,9 +6112,9 @@ we do not want to init as duplicated which will cause messy."
            hydra-group))))))
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-hydra-hollow-call-before-hook)
+ '(entropy/emacs-hydra-hollow-call-before-hook)
  "eemacs-IMEspec-hydra-hollow-init" "eemacs-IMEspec-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
   '("IME"
@@ -6118,8 +6128,9 @@ we do not want to init as duplicated which will cause messy."
 ;; ***** process
 
 (entropy/emacs-lazy-initial-advice-after
- (process-menu-mode)
- "process-menu-mode-hydra-hollow-init" "process-menu-mode-hydra-hollow-init" prompt-echo
+ '(process-menu-mode)
+ "process-menu-mode-hydra-hollow-init" "process-menu-mode-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
   'process-menu-mode '(simple process-menu-mode-map) t
@@ -6287,9 +6298,10 @@ otherwise returns nil."
 ;; ** Eemacs basic hydra-hollow instances
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-after-startup-hook)
+ '(entropy/emacs-after-startup-hook)
  "eemacs-basic-core-hydra-hollow-init"
- "eemacs-basic-core-hydra-hollow-init" prompt-echo
+ "eemacs-basic-core-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'eemacs-basic-config-core nil

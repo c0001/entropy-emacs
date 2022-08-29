@@ -56,9 +56,9 @@
    projectile-track-known-projects-automatically t)
 
   (entropy/emacs-lazy-initial-for-hook
-   (entropy/emacs-after-startup-hook)
+   '(entropy/emacs-after-startup-hook)
    "projectile-global-mode-init" "projectile-global-mode-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (advice-add 'projectile-mode
                :after
@@ -249,7 +249,7 @@ previous set."
   (dolist (el '(counsel-projectile--project-buffers
                 counsel-projectile--project-buffers-and-files
                 counsel-projectile--project-directories))
-    (eval
+    (entropy/emacs-eval-with-lexical
      `(entropy/emacs-projectile--gen-candi-persist-rule
        ,el)))
 

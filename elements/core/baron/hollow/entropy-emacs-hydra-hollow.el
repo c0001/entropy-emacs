@@ -806,7 +806,7 @@ hand, either 't' or 'nil' is for that.
 
 (defun entropy/emacs-hydra-hollow-category-concat-title-for-nav
     (title depth &rest nav)
-  (let* ((title-str (substring-no-properties (eval title)))
+  (let* ((title-str (substring-no-properties (entropy/emacs-eval-with-lexical title)))
          (up-hint (car nav))
          (down-hint (cadr nav))
          (fmstr "[%s]: %s page")
@@ -870,7 +870,7 @@ hand, either 't' or 'nil' is for that.
   (let* ((new-pretty-hydra-body (copy-tree pretty-hydra-body))
          (title (plist-get pretty-hydra-body :title))
          (stick-regexp "» Hint <up> to \\[Previous Hydra\\]")
-         (stick-p (string-match-p stick-regexp (eval title)))
+         (stick-p (string-match-p stick-regexp (entropy/emacs-eval-with-lexical title)))
          new-title)
     (unless stick-p
       (setq new-title
@@ -1818,7 +1818,7 @@ KEYMAP was a keymap, a keymap symbol or for some meaningful usage:
                  (symbol-name func-name)))
         (push func-reg-num
               entropy/emacs-hydra-hollow-random-func-name-number-register)
-        (eval
+        (entropy/emacs-eval-with-lexical
          `(defun ,func-name ()
             (interactive)
             ,form))
@@ -1901,7 +1901,7 @@ Both KEY and COMMAND can be nil expect that the ':inject-key' and
      ((eq (entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
           :self-list)
       (dolist (pair (cdr hydra-injector))
-        (eval
+        (entropy/emacs-eval-with-lexical
          `(entropy/emacs-lazy-load-simple ',(car pair)
             :no-message t
             (entropy/emacs-hydra-hollow-define-key
@@ -1909,7 +1909,7 @@ Both KEY and COMMAND can be nil expect that the ':inject-key' and
              ,(or (plist-get (cddr pair) :inject-key) key)
              #',command)))))
      ((entropy/emacs-hydra-hollow-hydra-injector-valid-p hydra-injector)
-      (eval
+      (entropy/emacs-eval-with-lexical
        `(entropy/emacs-lazy-load-simple ',(car hydra-injector)
           :no-message t
           (entropy/emacs-hydra-hollow-define-key
@@ -2883,12 +2883,12 @@ both ommited, that as:
                                   (cond ((symbolp val)
                                          val)
                                         ((listp val)
-                                         (eval val)))))
+                                         (entropy/emacs-eval-with-lexical val)))))
                       (evfunc-1 (lambda (val)
                                   (cond ((symbolp val)
                                          (symbol-value val))
                                         ((listp val)
-                                         (eval val)))))
+                                         (entropy/emacs-eval-with-lexical val)))))
                       (evfunc-2 (lambda (val)
                                   (cond ((symbolp val)
                                          (symbol-value val))
@@ -2954,13 +2954,14 @@ And if PATTERN is nil, then we return the form as is.
           (intern
            (entropy/emacs-hydra-hollow/use-package/defer-parse/gen-random-ad-judger-prefix
             use-name)))
-         (_ (eval `(defvar ,judger-var nil
-                     ,(format
-                       "the judger var for use-package \
+         (_ (entropy/emacs-eval-with-lexical
+             `(defvar ,judger-var nil
+                ,(format
+                  "the judger var for use-package \
 hydra hollow instance deferred creation for package '%s' \
 which non-nil indicate that \
 the instance has been created and the related form is banned."
-                       use-name))))
+                  use-name))))
          (form-use-judge
           `(unless (bound-and-true-p ,judger-var)
              (prog1
@@ -2987,7 +2988,8 @@ the instance has been created and the related form is banned."
                           use-name adtype)))
           (push
            `(,ad-wrapper
-             ,adfors ,adprefix ,adprefix prompt-echo
+             ',adfors ',adprefix ',adprefix
+             :prompt-type 'prompt-echo
              :pdumper-no-end ',pdump-no-end
              ,form-use-judge)
            rtn)))

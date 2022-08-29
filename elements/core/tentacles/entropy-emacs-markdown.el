@@ -235,10 +235,10 @@ overflow hr line e.g. display in eldoc."
 ;; ***** hydra-define
 
 (entropy/emacs-lazy-initial-advice-before
- (markdown-mode)
+ '(markdown-mode)
  "mdstyle-hydra-hollow-init"
  "mdstyle-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'markdown-mode-style-map nil
@@ -296,10 +296,10 @@ overflow hr line e.g. display in eldoc."
 ;; ***** hydra-define
 
 (entropy/emacs-lazy-initial-advice-before
- (markdown-mode)
+ '(markdown-mode)
  "mdcmdmap-hydra-hollow-init"
  "mdcmdmaphydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'markdown-mode-command-map nil
@@ -501,8 +501,9 @@ overflow hr line e.g. display in eldoc."
 
 ;; ***** hydra defiens
 (entropy/emacs-lazy-initial-advice-after
- (markdown-mode)
- "markdown-mode-hydra-hollow-init" "markdown-mode-hydra-hollow-init" prompt-echo
+ '(markdown-mode)
+ "markdown-mode-hydra-hollow-init" "markdown-mode-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-define-major-mode-hydra
   'markdown-mode
@@ -539,10 +540,10 @@ overflow hr line e.g. display in eldoc."
     (user-error "Please install grip by 'pip install grip'.")))
 
 (entropy/emacs-lazy-initial-for-hook
- (markdown-mode-hook)
+ '(markdown-mode-hook)
  "markdown-grip-preview-hydra-hollow-init"
  "markdown-grip-preview-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define+
   'markdown-mode-command-map nil

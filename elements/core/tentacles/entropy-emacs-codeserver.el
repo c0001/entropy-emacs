@@ -70,12 +70,12 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 
 ;; ** hydra hollow
 
-(eval
+(entropy/emacs-eval-with-lexical
  `(entropy/emacs-lazy-initial-advice-before
-   ,(symbol-value 'entropy/emacs-ide-for-them)
+   ',(symbol-value 'entropy/emacs-ide-for-them)
    "eemacs-IDE-dispatcher-hydra-hollow-init"
    "eemacs-IDE-dispatcher-hydra-hollow-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-common-individual-hydra-define
     'eemacs-ide-hydra nil
@@ -140,7 +140,7 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
                       ;; Although its a native map but unified for
                       ;; minibuffer feature autoloading as a fake did.
                       (minibuffer-local-map . minibuffer)))
-      (eval
+      (entropy/emacs-eval-with-lexical
        `(entropy/emacs-lazy-load-simple ',(cdr map-ob)
           (define-key ,(car map-ob)
             (kbd ,key)
@@ -212,8 +212,9 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 ;; ** eldoc
 
 (entropy/emacs-lazy-initial-for-hook
- (prog-mode-hook)
- "eldoc-mode-init" "eldoc-mode-init" prompt-echo
+ '(prog-mode-hook)
+ "eldoc-mode-init" "eldoc-mode-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (defun entropy/emacs-eldoc-show-eldoc-for-current-point
      (&optional inct)
@@ -273,10 +274,10 @@ diagnostic feature is actived."
 Because of no suitable backend actived yet."))))
 
 (entropy/emacs-lazy-initial-for-hook
- (prog-mode-hook)
+ '(prog-mode-hook)
  "emacs-ide-diagnostic-hydra-hollow-init"
  "emacs-ide-diagnostic-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define+
   'eemacs-ide-hydra nil
@@ -732,10 +733,10 @@ shutdown since it is managed by the customize variable
        #'lsp-deferred)))
 
   (entropy/emacs-lazy-initial-advice-before
-   (lsp)
+   '(lsp)
    "lsp-enable-yas"
    "lsp-enable-yas"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (require 'yasnippet)
    (unless (bound-and-true-p yas-minor-mode)
@@ -1463,7 +1464,7 @@ let eglot do completion with interface argument injection."
             ((symbolp func-or-form)
              (funcall func-or-form))
             ((listp func-or-form)
-             (eval func-or-form))))))
+             (entropy/emacs-eval-with-lexical func-or-form))))))
      entropy/emacs-codeserver--eglot-modes-spec)
     (entropy/emacs-codeserver--eglot-completion-with-placeholder))
 

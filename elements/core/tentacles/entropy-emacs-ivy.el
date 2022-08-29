@@ -652,16 +652,17 @@ This is for use in `ivy-re-builders-alist'."
   ;; `ivy-prescient-mode' since its laggy.
   ;; TODO: hack on its laggy performance
   ;; (entropy/emacs-lazy-initial-advice-before
-  ;;  (ivy-mode)
-  ;;  "ivy-prescient-init" "ivy-prescient-init" prompt-echo
+  ;;  '(ivy-mode)
+  ;;  "ivy-prescient-init" "ivy-prescient-init"
+  ;;  :prompt-type 'prompt-echo
   ;;  :pdumper-no-end t
   ;;  (ivy-prescient-mode 1))
 
   ;; (entropy/emacs-lazy-initial-advice-after
-  ;;  (counsel-mode)
+  ;;  '(counsel-mode)
   ;;  "ivy-prescient-rebuilder-init"
   ;;  "ivy-prescient-rebuilder-init"
-  ;;  prompt-echo
+  ;;  :prompt-type 'prompt-echo
   ;;  :pdumper-no-end t
   ;;  (dolist (re-builder
   ;;           '((counsel-ag . ivy-prescient-non-fuzzy)
@@ -839,8 +840,9 @@ This is for use in `ivy-re-builders-alist'."
               #'entropy/emacs-lang-use-utf-8-ces-around-advice)
 
   (entropy/emacs-lazy-initial-for-hook
-   (entropy/emacs-after-startup-hook)
-   "counsel-init" "counsel-init" prompt-echo
+   '(entropy/emacs-after-startup-hook)
+   "counsel-init" "counsel-init"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    ;; enable `ivy-mode‘ firstly before enable `counsel-mode'
    (unless (bound-and-true-p ivy-mode)
@@ -1328,8 +1330,9 @@ display icon or empty string while
                 #'entropy/emacs-ivy--enable-ivy-rich-common))
      (t
       (entropy/emacs-lazy-initial-for-hook
-       (ivy-mode-hook)
-       "ivy-rich-init" "ivy-rich-init" prompt-echo
+       '(ivy-mode-hook)
+       "ivy-rich-init" "ivy-rich-init"
+       :prompt-type 'prompt-echo
        :pdumper-no-end t
        (entropy/emacs-ivy--enable-ivy-rich-common)))))
 
@@ -1648,9 +1651,10 @@ currnt fontset."
 ;; *** hydra for searcher
 
 (entropy/emacs-lazy-initial-advice-after
- (find-file switch-to-buffer)
+ '(find-file switch-to-buffer)
  "powerful-searcher-hydra-hollow-init"
- "powerful-searcher-hydra-hollow-init" prompt-echo
+ "powerful-searcher-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'powerful-searcher nil

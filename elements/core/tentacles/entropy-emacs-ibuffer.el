@@ -72,8 +72,9 @@
   :commands (all-the-icons-ibuffer-mode)
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (ibuffer)
-   "all-the-icons-ibuffer" "all-the-icons-ibuffer" prompt-echo
+   '(ibuffer)
+   "all-the-icons-ibuffer" "all-the-icons-ibuffer"
+   :prompt-type 'prompt-echo
    ;; We must ensure this startup while pdumpre recovery hook since in
    ;; any trail hook the `display-graphic-p' whill return nil while
    ;; pdumper make session and daemon load session.

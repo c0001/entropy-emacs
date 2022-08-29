@@ -97,8 +97,9 @@
   :init
 
   (entropy/emacs-lazy-initial-advice-before
-   (org-mode)
-   "org-mode-init" "org-mode-init" prompt-echo
+   '(org-mode)
+   "org-mode-init" "org-mode-init"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    ;; Patch org-mode first customized invoking procedure with more
    ;; prompts for reducing nervous motion
@@ -1665,10 +1666,10 @@ when prefix arg was '(4) i.e. the single `C-u' type."
 ;; ***** define-hydra
 
 (entropy/emacs-lazy-initial-advice-before
- (org-mode)
+ '(org-mode)
  "hydra-hollow-init-for-org"
  "hydra-hollow-init-for-org"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
   'org-mode '(org org-mode-map) t
@@ -1685,10 +1686,10 @@ when prefix arg was '(4) i.e. the single `C-u' type."
 ;; disable some `org-mode' defined keys which conflicts eemacs global
 ;; sets.
 (entropy/emacs-lazy-initial-advice-after
- (org-mode)
+ '(org-mode)
  "disable-keybinding-for-org"
  "disable-keybinding-for-org"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (dolist (key '("C-c <left>"
                 "C-c <right>"))

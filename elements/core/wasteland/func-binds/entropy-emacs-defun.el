@@ -71,6 +71,13 @@ To get the real-body in BODY use
             (setq it (cddr it))
           (throw 'break it))))))
 
+(defun entropy/emacs-eval-with-lexical (form &optional actual-lexical-binding)
+  "Like `eval' but forcely enable `lexical-binding' as t.
+
+ACTUAL-LEXICAL-BINDING when set then it is replaced the LEXICAL
+arg for `eval'."
+  (eval form (or actual-lexical-binding t)))
+
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
@@ -95,7 +102,7 @@ i.e. predicated by `eq'."
                     (cl-incf entropy/emacs-make-dynamic-symbol-as-same-value/heap-head-number))))
           ))
     (while (boundp (funcall sym-make-func)))
-    (eval
+    (entropy/emacs-eval-with-lexical
      ;; use `defvar' to declare it as an dynamic special variable
      ;; without lexical-binding environment wrapped.
      `(defvar ,sym-rtn ',var
@@ -117,7 +124,7 @@ inject `interactive' form in BODY."
   (let ((sym (entropy/emacs-make-dynamic-symbol-as-same-value
               (lambda (&rest _)
                 (error "Wrong usage of this function symbol")))))
-    (eval
+    (entropy/emacs-eval-with-lexical
      `(defun ,sym ,arglist
         ,docstring
         ,decl
@@ -325,7 +332,7 @@ otherwise uses the original procedure."
           (intern
            (format "entropy/emacs-print-limit-advice-for-%s"
                    func-name))))
-     (eval
+     (entropy/emacs-eval-with-lexical
       `(defun ,ad-name (orig-func &rest orig-args)
          (if (or (null ',satisfy-func)
                  (and (functionp ',satisfy-func)
@@ -353,7 +360,7 @@ when the last form of CONNDITIONS evaluated return non-nil."
 
 (defun entropy/emacs-get-symbol-defcustom-value (symbol)
   "Get SYMBOL standard value setted by `defcustom'."
-  (eval (car (get symbol 'standard-value))))
+  (entropy/emacs-eval-with-lexical (car (get symbol 'standard-value))))
 
 ;; *** List manipulation
 (defun entropy/emacs-numberic-list (list-var)
@@ -420,7 +427,7 @@ doc-string for details."
 LIST-VAR. POS was a positive integer and indexed start at 0,
 meaning as same as what in `nth' arglists."
   (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
-    (eval `(setf ,remap-form ',replace))))
+    (entropy/emacs-eval-with-lexical `(setf ,remap-form ',replace))))
 
 ;; **** Map cons or list
 
@@ -1035,7 +1042,7 @@ EEMACS-GENERALIZED-PLIST-GET-FORM with VALUE.
 See `entropy/emacs-generalized-plist-get' and
 `entropy/emacs-generalized-plist-get-batch-mode' for details."
   (when eemacs-generalized-plist-get-form
-    (eval
+    (entropy/emacs-eval-with-lexical
      `(setf ,(cdr eemacs-generalized-plist-get-form)
             ',value))))
 
@@ -1053,7 +1060,7 @@ Return t when one of MATCHES matched the target, nil for
 otherwise."
     (let ((rtn 0))
       (dolist (el matches)
-        (when (string-match-p (rx (regexp (eval el))) str)
+        (when (string-match-p (rx (regexp (entropy/emacs-eval-with-lexical el))) str)
           (cl-incf rtn)))
       (if (eq rtn 0)
           nil
@@ -2095,7 +2102,7 @@ has to be real file system path hierarchy."
                 ,cur-name
                 ,(or base-dir default-directory)))))
     (if form
-        (eval form)
+        (entropy/emacs-eval-with-lexical form)
       (expand-file-name
        (or base-dir default-directory)))))
 
@@ -4248,7 +4255,7 @@ body.
               ',rtn)))
          )
     (cl-incf entropy/emacs-add-filesystem-node-watcher--id-pool)
-    (eval
+    (entropy/emacs-eval-with-lexical
      `(progn
         (defvar ,modi-var-name nil
           ,(format "Filesystem-node [%s] modification timestamp host for =filesystem-node-watcher= `%s'"
@@ -4538,27 +4545,49 @@ can be used into your form:
               eemacs-make-proc-args :cleanup nil t)
              '(progn t)))
         (synchronously
-         (eval (entropy/emacs-get-plist-form
-                eemacs-make-proc-args :synchronously t t)))
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form
+           eemacs-make-proc-args :synchronously t t)))
         (default-directory
-          (or (eval (entropy/emacs-get-plist-form
-                     eemacs-make-proc-args :default-directory t t))
+          (or (entropy/emacs-eval-with-lexical
+               (entropy/emacs-get-plist-form
+                eemacs-make-proc-args :default-directory t t))
               default-directory))
         ;; make-proc args
-        ($make_proc_name (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :name t t)))
-        ($make_proc_buffer (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :buffer t t)))
+        ($make_proc_name
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :name t t)))
+        ($make_proc_buffer
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :buffer t t)))
         ($make_proc_command nil)
-        ($make_proc_coding (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :coding t t)))
-        ($make_proc_noquery (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :noquery t t)))
-        ($make_proc_stop (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :stop t t)))
-        ($make_proc_connection-type (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :connection-type t t)))
-        ($make_proc_filter (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :filter t t)))
-        ($make_proc_sentinel (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :sentinel t t)))
+        ($make_proc_coding
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :coding t t)))
+        ($make_proc_noquery
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :noquery t t)))
+        ($make_proc_stop
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :stop t t)))
+        ($make_proc_connection-type
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :connection-type t t)))
+        ($make_proc_filter
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :filter t t)))
+        ($make_proc_sentinel
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :sentinel t t)))
 
         ;; call-process arg
         ($call_proc_destination nil)
-        ($call_proc_infile (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :infile t t)))
-        ($call_proc_display (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :display t t)))
+        ($call_proc_infile
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :infile t t)))
+        ($call_proc_display
+         (entropy/emacs-eval-with-lexical
+          (entropy/emacs-get-plist-form eemacs-make-proc-args :display t t)))
         ($call_proc_command nil)
         ($call_proc_args nil)
 
@@ -4577,14 +4606,17 @@ can be used into your form:
              nil)))
 
     ;; set var-binding here to prevent duplicate eval
-    (let ((cprss-args (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
+    (let ((cprss-args (entropy/emacs-eval-with-lexical
+                       (entropy/emacs-get-plist-form eemacs-make-proc-args :command t t))))
       (setq $make_proc_command cprss-args
             $call_proc_command (car cprss-args)
             $call_proc_args (cdr cprss-args)))
-    (setq $call_proc_destination (or (eval (entropy/emacs-get-plist-form eemacs-make-proc-args :destination t t))
-                                     $make_proc_buffer))
+    (setq $call_proc_destination
+          (or (entropy/emacs-eval-with-lexical
+               (entropy/emacs-get-plist-form eemacs-make-proc-args :destination t t))
+              $make_proc_buffer))
 
-    (when (eval prepare-form)
+    (when (entropy/emacs-eval-with-lexical prepare-form)
       (cond
        ((or (null synchronously)
             thiscur_sync_sym)
@@ -4634,20 +4666,21 @@ can be used into your form:
 
         (when (eq synchronously t)
           (while (null (symbol-value thiscur_sync_sym)) (sleep-for 0.1))
-          (eval `(let (($sentinel/destination ',thiscur_proc_buffer))
-                   (unwind-protect
-                       (when (eq ,thiscur_sync_sym t)
-                         ;; just ran after form when this process ran out successfully
-                         ,after-form)
-                     ;; run clean form
-                     (unwind-protect
-                         ,clean-form
-                       ;; unintern the temp sync indicator symbol
-                       (entropy/emacs-unintern-symbol ',thiscur_sync_sym))))))
+          (entropy/emacs-eval-with-lexical
+           `(let (($sentinel/destination ',thiscur_proc_buffer))
+              (unwind-protect
+                  (when (eq ,thiscur_sync_sym t)
+                    ;; just ran after form when this process ran out successfully
+                    ,after-form)
+                ;; run clean form
+                (unwind-protect
+                    ,clean-form
+                  ;; unintern the temp sync indicator symbol
+                  (entropy/emacs-unintern-symbol ',thiscur_sync_sym))))))
         ;; return the processor
         thiscur_proc)
        (t
-        (eval
+        (entropy/emacs-eval-with-lexical
          `(let (($sentinel/destination
                  ,$call_proc_destination))
             (unwind-protect
@@ -4831,7 +4864,7 @@ whose predicate '%s' is not an function"
                       (entropy/emacs-type-spec-eval
                        eemacs-type-spec))
                     sbody)))))
-        (eval form-get)))
+        (entropy/emacs-eval-with-lexical form-get)))
      ;; identity type
      ((eq type 'EEMACS-DT-IDENTITY)
       exp)
@@ -4905,7 +4938,7 @@ example, if form '(a b c)'s looper 'b' will be replaced by '(1
 2)', when this arg was non-nil, the returned form will be '(a 1 2
 c)'."
   (let ((sub-elt (car looper))
-        (map-seq (eval (cadr looper)))
+        (map-seq (entropy/emacs-eval-with-lexical (cadr looper)))
         forms)
     (dolist (replace map-seq)
       (push
@@ -4961,6 +4994,11 @@ loop form."
     ',looper ',body t :parse-append))
 
 ;; **** `eval-after-load' batch port
+(defvar entropy/emacs--eval-after-load-log nil
+  "A list of feature mapped `entropy/emacs-eval-after-load'
+generated `lambda' or closures used to debug for view whether
+some context is useing `lexical-binding' environemnt. (only
+enabled when `entropy/emacs-startup-with-Debug-p' is set)")
 (defmacro entropy/emacs-eval-after-load (feature &rest body)
   "Wrap BODY into FEATURE using `eval-after-load'.
 
@@ -5004,8 +5042,15 @@ Return that BODY function"
               (dolist (el (cdr ,feature-sym))
                 (setq ,forms-sym
                       (list 'eval-after-load (funcall ,extitem-func-sym el)
-                            ,forms-sym)))))
-       (eval ,forms-sym)
+                            (list 'quote ,forms-sym))))))
+       (entropy/emacs-eval-with-lexical ,forms-sym)
+       (when entropy/emacs-startup-with-Debug-p
+         (push (list ,feature
+                     :lexical-bind-p lexical-binding
+                     :functype (car (cadr ,body-func-sym))
+                     :lexical (cadr (cadr ,body-func-sym))
+                     :load-fname load-file-name)
+               entropy/emacs--eval-after-load-log))
        ,body-func-sym)))
 
 (defvar entropy/emacs-eval-after-load-unique-register nil)
@@ -6074,7 +6119,7 @@ Return the defined function symbol. "
        (setq func-define
              (list 'defun prefix-name '()
                    '(progn ,@body)))
-       (eval func-define)
+       (entropy/emacs-eval-with-lexical func-define)
        (if ,as-append
            (setq ,hook
                  (append ,hook (list prefix-name)))
@@ -6109,7 +6154,7 @@ symbol t which means disable this hook before run BODY. "
                               x))
                           ,(car pattern))))
                let-core)))
-     (eval
+     (entropy/emacs-eval-with-lexical
       `(let* ,(reverse let-core)
          ,@body))))
 
@@ -7072,7 +7117,8 @@ object which can be used for `eval'."
                    `(let ((package-user-dir
                            ,(cond
                              ((not (eq t use-current-package-user-dir))
-                              (let ((dir (eval use-current-package-user-dir)))
+                              (let ((dir (entropy/emacs-eval-with-lexical
+                                          use-current-package-user-dir)))
                                 (unless (and dir
                                              (stringp dir)
                                              (not (string-empty-p dir))
@@ -7098,7 +7144,7 @@ object which can be used for `eval'."
              (setq __this_eval_form_str ,form-encoded)
              (setq __this_eval_form
                    (,read-base64-func-name __this_eval_form_str))
-             (eval __this_eval_form)))
+             (entropy/emacs-eval-with-lexical __this_eval_form)))
          (proc-eval-form-file
           (with-temp-buffer
             (let ((inhibit-read-only t)
@@ -7235,7 +7281,7 @@ Arguments:
     ;; function is defined before the the ivy sturcture defined in
     ;; which case its `setf' general method is not defned which will
     ;; cause the `setf' macro expand with fatal.
-    (eval `(setf (ivy-state-prompt ivy-last) ',prompt))
+    (entropy/emacs-eval-with-lexical `(setf (ivy-state-prompt ivy-last) ',prompt))
     (setq ivy--prompt (concat ivy-count-format " " prompt)))
   (cond
    ((eq this-command 'ivy-call)
@@ -7468,9 +7514,9 @@ When TURN-OFF evaled non-nil, then run BODY directly."
 (cl-defmacro entropy/emacs-lazy-load-simple
     (feature &rest body
              &key
-             eval-feature
              non-message
              always-lazy-load
+             lexical-bindings
              &allow-other-keys)
   "Execute BODY after/require FEAURE is loaded.  FEATURE is normally a
 feature name, but it can also be a file name, in case that file
@@ -7478,10 +7524,6 @@ does not provide any feature, further more FEATURE can be a list for
 thus and autoloads them follow the order of that.
 
 Optional key valid for:
-
-- EVAL-FEATURE:
-
-  a form when evaluated non-nil, use feature returned by evaluate FEATURE.
 
 - NON-MESSAGE:
 
@@ -7503,66 +7545,88 @@ exceptions while ALWAYS-LAZY-LOAD is nil:
    eemacs initialization for a pdumper procedure, no need to do
    thus as case 1.
 
+LEXICAL-BINDINGS:
+
+Since there's not always has `lexical-binding' environemnt for
+expanding this macro, thus use LEXICAL-BINDINGS to define a
+var-val alist bind to BODY when it is wrapped into lazy load
+scope since the BODY is ran in a lazy time out of the 'current
+content', LEXICAL-BINDINGS should be formed as same as the
+LEXICAL arg of `eval'.
+
 This function should always be used preferred to maintain eemacs
 internal context or API adding to thus, because any not be will
 pollute eemacs internal lazy load optimization."
   (declare (indent 1) (debug t))
-  (let ((body (entropy/emacs-get-plist-body body)))
+  (let ((body (entropy/emacs-get-plist-body body))
+        (this-load-fname-sym (make-symbol "this-load-fname"))
+        (feature-sym (make-symbol "feature-or-list"))
+        (body-func-sym (make-symbol "body-func")))
     ;; macro main
-    `(let ((feature (if ,eval-feature
-                        ,feature
-                      ',feature))
-           (body ',body)
-           (non-message ,non-message)
-           (always-lazy-load ,always-lazy-load)
-           (this-load-fname
+    `(let ((,feature-sym ,feature)
+           (,this-load-fname-sym
             (or
              ;; NOTE: the `load-file-name' must be evaluated by
              ;; load-time so we don't expand it at byte-compile time.
              (if load-file-name
                  (file-name-nondirectory load-file-name)
                ;; fixed the byte-compile as original
-               ,byte-compile-current-file)
-             "top-level")))
+               byte-compile-current-file)
+             "top-level"))
+           ,body-func-sym)
        (when entropy/emacs-startup-with-Debug-p
-         (push (list :feature ',feature ;log the origin feature form
-                     :load-in this-load-fname
-                     :body body)
+         (push (list :feature ,feature-sym ;log the origin feature form
+                     :load-in ,this-load-fname-sym
+                     :body ',body)
                entropy/emacs-lazy-load-simple-log-var))
        (cond
         ((or entropy/emacs-custom-enable-lazy-load
-             always-lazy-load)
-         (when (not (null feature))
-           (eval
-            `(entropy/emacs-eval-after-load
-               ,feature
-               (entropy/emacs-message-simple-progress-message
-                (unless ,non-message
-                  (setq entropy/emacs--lazy-load-simple-feature-head
-                        (append entropy/emacs--lazy-load-simple-feature-head
-                                (list ',feature)))
-                  (format
-                   "[gened-by: %s] with lazy loading configs for feature '%s'"
-                   ,this-load-fname
-                   ',feature))
-                (entropy/emacs-general-run-with-protect-and-gc-strict
-                 ,@body))))))
+             ,always-lazy-load)
+         (when (not (null ,feature-sym))
+           (cond
+            ;; FIXME: not all the time this macro is expand in an
+            ;; `lexical-binding' environment, so we still need to
+            ;; create a artificial closure scope to handle the FEATURE
+            ;; and LOAD-FNAME var bindind in runtime.
+            (t
+             (setq ,body-func-sym
+                   (list 'function
+                         (entropy/emacs-eval-with-lexical
+                          '(lambda nil
+                             (entropy/emacs-message-simple-progress-message
+                              (unless ,non-message
+                                (setq entropy/emacs--lazy-load-simple-feature-head
+                                      (append entropy/emacs--lazy-load-simple-feature-head
+                                              (list ,feature-sym)))
+                                (format
+                                 "[gened-by: %s] with lazy loading configs for feature '%s'"
+                                 ,this-load-fname-sym
+                                 ,feature-sym))
+                              (entropy/emacs-general-run-with-protect-and-gc-strict
+                               ,@body)))
+                          (append
+                           (list (cons ',feature-sym ,feature-sym)
+                                 (cons ',this-load-fname-sym ,this-load-fname-sym))
+                           ,lexical-bindings))))
+             (entropy/emacs-eval-with-lexical
+              (list 'entropy/emacs-eval-after-load
+                    (list 'quote ,feature-sym)
+                    (list 'funcall ,body-func-sym)))))))
         ((null entropy/emacs-custom-enable-lazy-load)
-         (when (not (null feature))
-           (unless non-message
+         (when (not (null ,feature-sym))
+           (unless ,non-message
              (entropy/emacs-message-do-message
-              "force load configs for feature '%s'" feature)
+              "force load configs for feature '%s'" ,feature-sym)
              (setq entropy/emacs--lazy-load-simple-feature-head
                    (append entropy/emacs--lazy-load-simple-feature-head
-                           `(,feature))))
-           (cond ((listp feature)
-                  (dolist (el feature)
+                           (list ,feature-sym))))
+           (cond ((listp ,feature-sym)
+                  (dolist (el ,feature-sym)
                     (require el)))
-                 ((symbolp feature)
-                  (require feature)))
-           (eval
-            `(entropy/emacs-general-run-with-protect-and-gc-strict
-              ,@body))))))))
+                 ((symbolp ,feature-sym)
+                  (require ,feature-sym)))
+           (entropy/emacs-general-run-with-protect-and-gc-strict
+            ,@body)))))))
 
 (defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
   "Wrapping BODY to a function named with suffix by NAME into
@@ -7603,7 +7667,7 @@ functional aim to:
                     (cdr body-form)
                   body))))
     `(progn
-       (eval
+       (entropy/emacs-eval-with-lexical
         '(defun ,func ()
            ,(or doc-string "")
            (entropy/emacs-message-do-message
@@ -7628,12 +7692,15 @@ functional aim to:
               (append (symbol-value (entropy/emacs-select-trail-hook ,pdumper-no-end))
                       '(,func))))))))
 
-(defvar entropy/emacs-lazy-initial-form-pdumper-no-end nil)
-(defun entropy/emacs-lazy-initial-form
+(cl-defmacro entropy/emacs-lazy-initial-form
     (list-var
      initial-func-suffix-name initial-var-suffix-name
+     &rest body
+     &key
+     adder-type adder-flag
      abbrev-name prompt-type
-     &rest form_args)
+     pdumper-no-end
+     &allow-other-keys)
   "Generate a form whose functional is to wrap some forms into a
 GENED-FUNTION who named with ABBREV-NAME and INITIAL-SUFFIX-NAME
 (a non empty string) and add it with some *tricks* to
@@ -7658,9 +7725,8 @@ There's two tricks:
 1. Directly add GENED-FUNCTION into the
    =entropy-emacs-startup-trail-hook= when
    `entropy/emacs-custom-enable-lazy-load' is non-nil. (if
-   `entropy/emacs-lazy-initial-form-pdumper-no-end' is non-nil we also
-   set the optional arg PDUMPER-NO-END of
-   `entropy/emacs-select-trail-hook')
+   PDUMPER-NO-END is non-nil we also set the optional arg
+   PDUMPER-NO-END of `entropy/emacs-select-trail-hook')
 
 2. Using LIST-VAR and consider each element of it is a hook (when
    the ADDER-FLAG is nil) or a function (when ADDER-TYPE is
@@ -7682,98 +7748,146 @@ string), BODY is wrapped into a form like:
     (setq INITIAL-VAR t))
 #+end_src
 
-At last, ABBREV-NAME is feature based name string so that other
-macro or function can use this function to generate the
-GENED-FUNCTION with their own name abbreviated."
+So that INITIAL-FUNC-SUFFIX-NAME is the string `concat' follow
+ABBREV-NAME to generate the body wrapper alias name i.e. the
+function name.
 
-  (let* ((func (intern (concat abbrev-name "/lazy-func/" initial-func-suffix-name)))
-         (var (intern (concat abbrev-name "/lazy-indc-var/" initial-var-suffix-name)))
-         (adder-type (car form_args))
-         (adder-flag (cadr form_args))
-         (func-body (nth 2 form_args)))
-    (unless (member adder-type '(add-hook advice-add))
-      (error "Wrong adder-type for lazy-initial form '%s'"
-             abbrev-name))
-    (when (and (eq adder-type 'add-hook)
-               (not (null adder-flag)))
-      (error "Non-nil flag for 'add-hook' adder-type for lazy-initial form '%s'"
-             abbrev-name))
-    `(let ((inhibit-quit t))
-       (defvar ,var nil)
-       (defun ,func (&rest $_|internal-args)
-         (when (and (not ,var)
-                    ;; we just run intialform after eemacs startup
-                    ;; done to speedup eemacs startup.
-                    (or
-                     (bound-and-true-p entropy/emacs-startup-done)
-                     ;; but in pdumper dump session we want it to run
-                     entropy/emacs-fall-love-with-pdumper
-                     ;; but in daemon load session we want it run
-                     (daemonp)
-                     ;; but in non-lazy enable mode we want it run
-                     (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
-                     ))
-           (let* ((inhibit-quit t)
-                  (head-time (time-to-seconds))
-                  (entropy/emacs-message-non-popup
-                   (if (eq ',prompt-type 'prompt-popup) nil t))
-                  end-time
-                  func-body-rtn)
-              ;; NOTE: set indicator before any body running to
-              ;; preventing recursively invoking inside of body, this
-              ;; is important for advice wrapper.
-             (setq ,var t)
-             (entropy/emacs-message-do-message
-              "%s '%s' %s"
-              (blue "Loading and enable feature")
-              (yellow ,initial-func-suffix-name)
-              (blue "..."))
-             (entropy/emacs-general-run-with-protect-and-gc-strict
-              (setq func-body-rtn
-                    (unwind-protect
-                        (progn
-                          ,@func-body)
-                      ;; FIXME: dummy for press byte-compile unused
-                      ;; lexical variable warning
-                      (setq $_|internal-args $_|internal-args)
-                      ;; finally we remove the initial injection
-                      (cond ((eq ',adder-type 'advice-add)
-                             (dolist (adfor-it ',list-var)
-                               (advice-remove adfor-it ',func)))
-                            ((eq ',adder-type 'add-hook)
-                             (dolist (adhfor-it ',list-var)
-                               (remove-hook adhfor-it ',func))))
-                      ;; fake the function after evaluated it.
-                      (fmakunbound ',func)
-                      (defalias ',func #'ignore)
-                      )))
-             (setq end-time (time-to-seconds))
-             (entropy/emacs-message-do-message
-              "%s '%s' %s '%s' %s"
-              (green "Load done for")
-              (yellow ,initial-func-suffix-name)
-              (green "within")
-              (cyan (format "%f" (- end-time head-time)))
-              (green "seconds. (Maybe running rest tasks ...)"))
-             (entropy/emacs-idle-cleanup-echo-area)
-             func-body-rtn)))
-       (let (_)
-         (cond
-          ((not entropy/emacs-custom-enable-lazy-load)
-           (let ((hook (entropy/emacs-select-trail-hook
-                        ',entropy/emacs-lazy-initial-form-pdumper-no-end)))
-             (set hook (append (symbol-value hook) '(,func)))))
-          (t
-           (let (_)
-             (dolist (item ',list-var)
-               (if (not (null ,adder-flag))
-                   (,adder-type item ,adder-flag ',func)
-                 (,adder-type item ',func))))))))))
+Thus for all, ABBREV-NAME is feature based name string so that other
+macro or function can use this naming domain to generate the
+GENED-FUNCTION with the same name abbreviated space. In which case
+various lazy load feature BODY wrapper can be belong to one
+ABBREV-NAME but not for the INITIAL-FUNC-SUFFIX-NAME and
+INITIAL-VAR-SUFFIX-NAME since they are unique for the current one, if
+so the whole lazy load case will be replaced by the latter one who
+invoked after."
+
+  (let ((list-var-sym (make-symbol "list-var"))
+        (func-body (entropy/emacs-defun--get-real-body body))
+        (func-lambda-sym (make-symbol "func-lamba-var"))
+        (func-body-lambda-sym (make-symbol "func-body-lamba-var"))
+        (func-sym (make-symbol "func"))
+        (var-sym (make-symbol "var"))
+        (adder-type-sym (make-symbol "the-adder-type"))
+        (adder-flag-sym (make-symbol "the-adder-flag"))
+        (initial-func-suffix-name-sym (make-symbol "the-initial-func-suffix-name"))
+        (initial-var-suffix-name-sym (make-symbol "the-initial-var-suffix-name"))
+        (prompt-type-sym (make-symbol "the-prompt-type"))
+        (abbrev-name-sym (make-symbol "the-abbrev-name")))
+    `(let* ((,list-var-sym ,list-var)
+            (,abbrev-name-sym ,abbrev-name)
+            (,initial-func-suffix-name-sym ,initial-func-suffix-name)
+            (,initial-var-suffix-name-sym ,initial-var-suffix-name)
+            (,func-sym (intern (concat ,abbrev-name-sym "/lazy-func/" ,initial-func-suffix-name-sym)))
+            (,var-sym (intern (concat ,abbrev-name-sym "/lazy-indc-var/" ,initial-var-suffix-name-sym)))
+            (,adder-type-sym ,adder-type)
+            (,adder-flag-sym ,adder-flag)
+            (,prompt-type-sym ,prompt-type)
+            (,func-body-lambda-sym (lambda nil ,@func-body))
+            ,func-lambda-sym
+            )
+       (unless (member ,adder-type-sym '(add-hook advice-add))
+         (error "Wrong adder-type-sym for lazy-initial form '%s'"
+                ,abbrev-name-sym))
+       (when (and (eq ,adder-type-sym 'add-hook)
+                  (not (null ,adder-flag-sym)))
+         (error "Non-nil flag for 'add-hook' adder-type-sym for lazy-initial form '%s'"
+                ,abbrev-name-sym))
+       (let ((inhibit-quit t))
+         (eval (list 'defvar ,var-sym nil)
+               ;; we need to explicit disable the lexical binding for `defvar'
+               nil)
+         (setq
+          ,func-lambda-sym
+          (entropy/emacs-eval-with-lexical
+           '(lambda (&rest $_|internal-args)
+              (when (and (not (symbol-value ,var-sym))
+                         ;; we just run intialform after eemacs startup
+                         ;; done to speedup eemacs startup.
+                         (or
+                          (bound-and-true-p entropy/emacs-startup-done)
+                          ;; but in pdumper dump session we want it to run
+                          entropy/emacs-fall-love-with-pdumper
+                          ;; but in daemon load session we want it run
+                          (daemonp)
+                          ;; but in non-lazy enable mode we want it run
+                          (not (bound-and-true-p entropy/emacs-custom-enable-lazy-load))
+                          ))
+                (let* ((inhibit-quit t)
+                       (head-time (time-to-seconds))
+                       (entropy/emacs-message-non-popup
+                        (if (eq ,prompt-type-sym 'prompt-popup) nil t))
+                       end-time
+                       func-body-rtn)
+                  ;; NOTE: set indicator before any body running to
+                  ;; preventing recursively invoking inside of body, this
+                  ;; is important for advice wrapper.
+                  (setq ,var-sym t)
+                  (entropy/emacs-message-do-message
+                   "%s '%s' %s"
+                   (blue "Loading and enable feature")
+                   (yellow ,initial-func-suffix-name)
+                   (blue "..."))
+                  (entropy/emacs-general-run-with-protect-and-gc-strict
+                   (setq func-body-rtn
+                         (unwind-protect
+                             (progn
+                               (funcall ,func-body-lambda-sym))
+                           ;; ;; FIXME: dummy for press byte-compile unused
+                           ;; ;; lexical variable warning
+                           ;; (setq $_|internal-args $_|internal-args)
+
+                           ;; finally we remove the initial injection
+                           (cond ((eq ,adder-type-sym 'advice-add)
+                                  (dolist (adfor-it ,list-var-sym)
+                                    (advice-remove adfor-it ,func-sym)))
+                                 ((eq ,adder-type-sym 'add-hook)
+                                  (dolist (adhfor-it ,list-var-sym)
+                                    (remove-hook adhfor-it ,func-sym))))
+                           ;; fake the function after evaluated it.
+                           (fmakunbound ,func-sym)
+                           (defalias ,func-sym #'ignore)
+                           )))
+                  (setq end-time (time-to-seconds))
+                  (entropy/emacs-message-do-message
+                   "%s '%s' %s '%s' %s"
+                   (green "Load done for")
+                   (yellow ,initial-func-suffix-name-sym)
+                   (green "within")
+                   (cyan (format "%f" (- end-time head-time)))
+                   (green "seconds. (Maybe running rest tasks ...)"))
+                  (entropy/emacs-idle-cleanup-echo-area)
+                  func-body-rtn)))
+           (list
+            (cons ',func-sym ,func-sym)
+            (cons ',var-sym ,var-sym)
+            (cons ',list-var-sym ,list-var-sym)
+            (cons ',adder-type-sym ,adder-type-sym)
+            (cons ',adder-flag-sym ,adder-flag-sym)
+            (cons ',func-lambda-sym ,func-lambda-sym)
+            (cons ',func-body-lambda-sym ,func-body-lambda-sym)
+            (cons ',prompt-type-sym ,prompt-type)
+            (cons ',initial-func-suffix-name-sym ,initial-func-suffix-name-sym))))
+         (entropy/emacs-eval-with-lexical
+          (list 'defalias (list 'quote ,func-sym)
+                (list 'function ,func-lambda-sym)))
+         ;; injection
+         (let (_)
+           (cond
+            ((not entropy/emacs-custom-enable-lazy-load)
+             (let ((hook (entropy/emacs-select-trail-hook
+                          ,pdumper-no-end)))
+               (set hook (append (symbol-value hook) (list ,func-sym)))))
+            (t
+             (let (_)
+               (dolist (item ,list-var-sym)
+                 (if (not (null ,adder-flag-sym))
+                     (funcall ,adder-type-sym item ,adder-flag-sym ,func-sym)
+                   (funcall ,adder-type-sym item ,func-sym)))))))))))
 
 (cl-defmacro entropy/emacs-lazy-initial-for-hook
     (hooks initial-func-suffix-name initial-var-suffix-name
-           prompt-type &rest body
-           &key pdumper-no-end
+           &rest body
+           &key pdumper-no-end prompt-type
            &allow-other-keys)
   "Wrap forms collection BODY into a auto-gened function named
 suffixed by INITIAL-FUNC-SUFFIX-NAME and then add it into a list
@@ -7792,20 +7906,18 @@ session is inject to the the common
 while pdumper procedure.
 "
   (let ((body-wrap (entropy/emacs-get-plist-body body)))
-    (eval
-     `(let ((entropy/emacs-lazy-initial-form-pdumper-no-end
-             ,pdumper-no-end))
-        (entropy/emacs-lazy-initial-form
-         ',hooks ',initial-func-suffix-name ',initial-var-suffix-name
-         "entropy/emacs--hook-first-enable-for"
-         ',prompt-type
-         'add-hook nil
-         ',body-wrap)))))
+    `(entropy/emacs-lazy-initial-form
+      ,hooks ,initial-func-suffix-name ,initial-var-suffix-name
+      :abbrev-name "entropy/emacs--hook-first-enable-for"
+      :prompt-type ,prompt-type
+      :adder-type 'add-hook
+      :pdumper-no-end ,pdumper-no-end
+      ,@body-wrap)))
 
 (cl-defmacro entropy/emacs-lazy-initial-advice-before
     (advice-fors initial-func-suffix-name initial-var-suffix-name
-                 prompt-type &rest body
-                 &key pdumper-no-end
+                 &rest body
+                 &key pdumper-no-end prompt-type
                  &allow-other-keys)
   "Wrap forms collection BODY into a auto-gened function named
 suffixed by INITIAL-FUNC-SUFFIX-NAME and then advice it to a list
@@ -7823,35 +7935,31 @@ session is inject to the the common
 `entropy/emacs-select-trail-hook' so that they are evaluated
 while pdumper procedure.
 "
-  (let ((body-wrap (entropy/emacs-get-plist-body body)))
-    (eval
-     `(let ((entropy/emacs-lazy-initial-form-pdumper-no-end
-             ,pdumper-no-end))
-        (entropy/emacs-lazy-initial-form
-         ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
-         "entropy/emacs--beforeADV-fisrt-enable-for"
-         ',prompt-type
-         'advice-add
-         :before
-         ',body-wrap)))))
+    (let ((body-wrap (entropy/emacs-get-plist-body body)))
+      `(entropy/emacs-lazy-initial-form
+        ,advice-fors ,initial-func-suffix-name ,initial-var-suffix-name
+        :abbrev-name "entropy/emacs--BeforeADV-fisrt-enable-for"
+        :prompt-type ,prompt-type
+        :adder-type 'advice-add
+        :adder-flag (quote :before)
+        :pdumper-no-end ,pdumper-no-end
+        ,@body-wrap)))
 
 (cl-defmacro entropy/emacs-lazy-initial-advice-after
     (advice-fors initial-func-suffix-name initial-var-suffix-name
-                 prompt-type &rest body
-                 &key pdumper-no-end
+                 &rest body
+                 &key pdumper-no-end prompt-type
                  &allow-other-keys)
   "Like `entropy/emacs-lazy-initial-advice-before' but for :after place."
   (let ((body-wrap (entropy/emacs-get-plist-body body)))
-    (eval
-     `(let ((entropy/emacs-lazy-initial-form-pdumper-no-end
-             ,pdumper-no-end))
-        (entropy/emacs-lazy-initial-form
-         ',advice-fors ',initial-func-suffix-name ',initial-var-suffix-name
-         "entropy/emacs--AfterADV-fisrt-enable-for"
-         ',prompt-type
-         'advice-add
-         :after
-         ',body-wrap)))))
+    `(entropy/emacs-lazy-initial-form
+      ,advice-fors ,initial-func-suffix-name ,initial-var-suffix-name
+      :abbrev-name "entropy/emacs--AfterADV-fisrt-enable-for"
+      :prompt-type ,prompt-type
+      :adder-type 'advice-add
+      :adder-flag (quote :after)
+      :pdumper-no-end ,pdumper-no-end
+      ,@body-wrap)))
 
 ;; Disable messy commands in `M-x' list
 (defun entropy/emacs-lazy-initial-read-extended-command-predicate
@@ -8139,7 +8247,7 @@ all cases is defined in
         (cond ((symbolp this-case)
                (setq rtn (funcall this-case)))
               ((listp this-case)
-               (setq rtn (eval this-case)))
+               (setq rtn (entropy/emacs-eval-with-lexical this-case)))
               (t
                (user-error "Wrong type of eemacs special modeline case, please check \
 `entropy/emacs-modeline-cases-of-spec-modeline'")))
@@ -8660,7 +8768,7 @@ stored the error log in
           (intern
            (format "%s-for-emacs-daemon"
                    (symbol-name name)))))
-    (eval
+    (entropy/emacs-eval-with-lexical
      `(entropy/emacs-add-hook-lambda-nil
        ,--name--
        entropy/emacs-daemon-server-after-make-frame-hook
@@ -8857,7 +8965,7 @@ Additionally, the ORIG-FUNC can retrieve whether proxy wrapper enabled
 by get `entropy/emacs-union-http-prroxy-internal-enable-p' non-nil."
   (if (and (plist-get entropy/emacs-union-http-proxy-plist :enable)
            (funcall filter-func))
-      (eval
+      (entropy/emacs-eval-with-lexical
        `(let ,(entropy/emacs-gen-eemacs-union-http-internet-proxy-let-bindings)
           (apply ',orig-func ',orig-args)))
     (apply orig-func orig-args)))

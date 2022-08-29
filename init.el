@@ -1,4 +1,4 @@
-;;; init.el --- entropy-emacs initiliaze raw
+;;; init.el --- entropy-emacs initiliaze raw  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019-03-29  Entropy
 

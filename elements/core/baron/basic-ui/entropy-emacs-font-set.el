@@ -301,8 +301,9 @@ when available."
             (throw :exit nil)))))))
 
 (entropy/emacs-lazy-initial-advice-before
- (find-file switch-to-buffer)
- "__set-prog-mode-font-set__" "__set-prog-mode-font-set__" prompt-echo
+ '(find-file switch-to-buffer)
+ "__set-prog-mode-font-set__" "__set-prog-mode-font-set__"
+ :prompt-type 'prompt-echo
  :pdumper-no-end nil
  (add-hook 'prog-mode-hook
            #'entropy/emacs-font-set--prog-font-set)

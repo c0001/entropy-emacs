@@ -46,9 +46,9 @@
   :init
 
   (entropy/emacs-lazy-initial-advice-before
-   (find-file switch-to-buffer)
+   '(find-file switch-to-buffer)
    "enable-native-openwith-mode" "enable-native-openwith-mode"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (openwith-mode))
 
@@ -397,8 +397,9 @@ Version 2017-10-09"
 ;; ***** hydra hollow instance
 
 (entropy/emacs-lazy-initial-advice-before
- (dired-mode) "eemacs-tools-open-in-extapp-hydra-hollow-init"
- "eemacs-tools-open-in-extapp-hydra-hollow-init" prompt-echo
+ '(dired-mode) "eemacs-tools-open-in-extapp-hydra-hollow-init"
+ "eemacs-tools-open-in-extapp-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-add-to-major-mode-hydra
   'dired-mode '(dired dired-mode-map)
@@ -408,9 +409,10 @@ Version 2017-10-09"
       :enable sys/is-graphic-support :exit t :map-inject t)))))
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-after-startup-hook)
+ '(entropy/emacs-after-startup-hook)
  "eemacs-tools-external-terminal-hydra-hollow-init"
- "eemacs-tools-external-terminal-hydra-hollow-init" prompt-echo
+ "eemacs-tools-external-terminal-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define+
   'eemacs-basic-config-core nil
@@ -510,10 +512,10 @@ vertical-top buffer."
     (recenter-top-bottom -1)))
 
 (entropy/emacs-lazy-initial-advice-before
- (switch-to-buffer find-file)
+ '(switch-to-buffer find-file)
  "eemacs-buffer-window-recenter-hydra-hollow-init"
  "eemacs-buffer-window-recenter-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'eemacs-center-line-position nil
@@ -789,9 +791,10 @@ which determined by the scale count 0.3 "
 ;; **** hydra hollow instance
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-after-startup-hook)
+ '(entropy/emacs-after-startup-hook)
  "eemacs-tools-self-functions-hydra-hollow-init"
- "eemacs-tools-self-functions-hydra-hollow-init" prompt-echo
+ "eemacs-tools-self-functions-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define+
   'eemacs-basic-config-core nil
@@ -886,9 +889,9 @@ which determined by the scale count 0.3 "
 
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-hydra-hollow-call-before-hook)
+ '(entropy/emacs-hydra-hollow-call-before-hook)
  "eemacs-dos2unix-hydra-hollow-init" "eemacs-dos2unix-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'tools-coding-refactor nil
@@ -943,10 +946,10 @@ which determined by the scale count 0.3 "
       ('bing (call-interactively 'entropy/emacs-tools-bing-dict-brief-prompt)))))
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-after-startup-hook)
+ '(entropy/emacs-after-startup-hook)
  "entropy-dict-search-hydra-hollow-init"
  "entropy-dict-search-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'eemacs-dict-search nil
@@ -1374,10 +1377,10 @@ https://github.com/atykhonov/google-translate/issues/98#issuecomment-562870854
   "Alias for entropy/emacs-tools-goto-sys-home.")
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-hydra-hollow-call-before-hook)
+ '(entropy/emacs-hydra-hollow-call-before-hook)
  "ehome-alias-hydra-hollow-init"
  "ehome-alias-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
   '("Basic"

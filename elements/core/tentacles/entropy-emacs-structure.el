@@ -617,10 +617,10 @@ call `outshine-imenu' instead."
 
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (switch-to-buffer find-file)
+   '(switch-to-buffer find-file)
    "enable-outshine-for-opened-buffer"
    "enable-outshine-for-opened-buffer"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    ;; enable `outshine-mode' in pre-opened lisp buffer like
    ;; `*scratch*' buffer since they are opened before

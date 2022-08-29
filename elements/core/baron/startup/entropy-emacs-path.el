@@ -307,8 +307,9 @@
 ;; re-get ENV var after dump load.
 (when entropy/emacs-fall-love-with-pdumper
   (entropy/emacs-lazy-initial-advice-before
-   (find-file switch-to-buffer dired ivy-mode counsel-mode entropy/shellpop-start)
-   "path-register" "path-register" prompt-echo
+   '(find-file switch-to-buffer dired ivy-mode counsel-mode entropy/shellpop-start)
+   "path-register" "path-register"
+   :prompt-type 'prompt-echo
    :pdumper-no-end nil
    (entropy/emacs-path-load-main)))
 

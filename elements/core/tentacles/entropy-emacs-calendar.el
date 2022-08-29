@@ -40,8 +40,9 @@
   :commands cal-china-x-setup
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (calendar)
-   "china-calendar-init" "china-calendar-init" prompt-echo
+   '(calendar)
+   "china-calendar-init" "china-calendar-init"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (cal-china-x-setup))
   :config

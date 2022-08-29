@@ -50,10 +50,10 @@
           open-history)
   (let ()
     `(entropy/emacs-lazy-initial-for-hook
-      (eww-mode-hook w3m-mode-hook)
+      '(eww-mode-hook w3m-mode-hook)
       ,(format"text-www-hydra-hollow-init/for-%s" mode)
       ,(format"text-www-hydra-hollow-init/for-%s" mode)
-      prompt-echo
+      :prompt-type 'prompt-echo
       :pdumper-no-end t
       (entropy/emacs-hydra-hollow-define-major-mode-hydra-common-sparse-tree
        ',mode '(,feature ,mode-map) t
@@ -884,9 +884,10 @@ effective then adding option of personal browse url function that be in ordered 
 ;; init setting
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-after-startup-hook)
+ '(entropy/emacs-after-startup-hook)
  "default-browser-toggle-hydra-hollow-init"
- "default-browser-toggle-hydra-hollow-init" prompt-echo
+ "default-browser-toggle-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-add-for-top-dispatch
   '("WWW"

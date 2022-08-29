@@ -234,10 +234,10 @@ session init or in some cases?
             #'entropy/emacs-tramp--add-to-list-adv)
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-after-startup-hook)
+ '(entropy/emacs-after-startup-hook)
  "eemacs-tramp-hydra-hollow-init"
  "eemacs-tramp-hydra-hollow-init"
- prompt-echo
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  ;; the hydra hollow instance
  (entropy/emacs-hydra-hollow-add-for-top-dispatch

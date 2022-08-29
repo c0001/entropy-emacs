@@ -34,9 +34,10 @@
 ;; ** require
 
 (entropy/emacs-lazy-initial-for-hook
- (org-mode-hook prog-mode-hook)
+ '(org-mode-hook prog-mode-hook)
  "yas-uniform-hydra-hollow-init"
- "yas-uniform-hydra-hollow-init" prompt-echo
+ "yas-uniform-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-category-common-individual-define
   'yasnippet-uniform

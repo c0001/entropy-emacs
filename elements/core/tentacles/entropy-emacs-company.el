@@ -287,9 +287,9 @@ eemacs specifications"
     (entropy/emacs-company-toggle-frontend
      entropy/emacs-company-tooltip-use-type))
   (entropy/emacs-lazy-initial-advice-before
-   (find-file switch-to-buffer)
+   '(find-file switch-to-buffer)
    "global-company-mode-init" "global-company-mode-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    ;; We must ensure the `global-company-mode' enabled in pdumper
    ;; recovery hook since the `company-mode-on' need `noninteractive'
    ;; is null.
@@ -729,7 +729,7 @@ in `entropy/emacs-company-frontend-sticker'."
                            entropy/emacs-company--frontend-daemon-current-hook))
             ;; generate the daemon guard function
             (unless (symbolp daemon-init)
-              (setq daemon-init (eval daemon-init)))
+              (setq daemon-init (entropy/emacs-eval-with-lexical daemon-init)))
             (unless (functionp daemon-init)
               (user-error
                "[company-toggle-register '%s']: daemon init is not an function or can not build an function!"
@@ -1459,7 +1459,7 @@ entropy-emacs."
 (entropy/emacs-lazy-load-simple 'cc-mode
   (dolist (item '((c-mode-hook . (eq (entropy/emacs-get-use-ide-type 'c-mode) 'traditional))
                   (c++-mode-hook . (eq (entropy/emacs-get-use-ide-type 'c++-mode) 'traditional))))
-    (when (eval (cdr item))
+    (when (entropy/emacs-eval-with-lexical (cdr item))
       (add-hook
        (car item)
        #'entropy/emacs-company--set-company-backends-for-C-mode-in-traditional-way

@@ -273,8 +273,9 @@ dead and duplicated ones."
   ;; emacs-28 enable it defaultly
   (when (version< emacs-version "28")
     (entropy/emacs-lazy-initial-advice-before
-     (find-file switch-to-buffer)
-     "show-paren-mode" "show-paren-mode" prompt-echo
+     '(find-file switch-to-buffer)
+     "show-paren-mode" "show-paren-mode"
+     :prompt-type 'prompt-echo
      :pdumper-no-end t
      (show-paren-mode t)))
   :config
@@ -294,8 +295,9 @@ dead and duplicated ones."
     (add-hook 'prog-mode-hook #'highlight-parentheses-mode))
 
   (entropy/emacs-lazy-initial-advice-after
-   (prog-mode) "highlight-parentheses-hydra-hollow-init"
-   "highlight-parentheses-hydra-hollow-init" prompt-echo
+   '(prog-mode) "highlight-parentheses-hydra-hollow-init"
+   "highlight-parentheses-hydra-hollow-init"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-add-for-top-dispatch
     '("Highlight"
@@ -328,10 +330,10 @@ dead and duplicated ones."
     (add-hook 'prog-mode-hook #'highlight-indent-guides-mode))
 
   (entropy/emacs-lazy-initial-advice-after
-   (prog-mode)
+   '(prog-mode)
    "highlight-indent-guides-mode-hydra-hollow-init"
    "highlight-indent-guides-mode-hydra-hollow-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-add-for-top-dispatch
     '("Highlight"
@@ -439,10 +441,10 @@ dead and duplicated ones."
     (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
   (entropy/emacs-lazy-initial-advice-after
-   (prog-mode)
+   '(prog-mode)
    "rainbow-delimeters-hydra-hollow-init"
    "rainbow-delimeters-hydra-hollow-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-add-for-top-dispatch
     '("Highlight"
@@ -511,8 +513,9 @@ dead and duplicated ones."
 
   (when entropy/emacs-hl-todo-enable-at-startup
     (entropy/emacs-lazy-initial-advice-before
-     (find-file prog-mode)
-     "global-hl-todo" "global-hl-todo" prompt-echo
+     '(find-file prog-mode)
+     "global-hl-todo" "global-hl-todo"
+     :prompt-type 'prompt-echo
      :pdumper-no-end t
      (progn
        (global-hl-todo-mode t))))
@@ -591,10 +594,10 @@ while change themes."
                  sys/is-posix-compatible)
              entropy/emacs-hl-diff-hl-enable-at-startup)
     (entropy/emacs-lazy-initial-advice-after
-     (find-file)
+     '(find-file)
      "global-diff-hl-hydra-hollow-init"
      "global-diff-hl-hydra-hollow-init"
-     prompt-echo
+     :prompt-type 'prompt-echo
      :pdumper-no-end t
      (global-diff-hl-mode t)))
 
@@ -605,10 +608,10 @@ while change themes."
   ;;(add-hook 'dired-mode-hook #'diff-hl-dired-mode)
 
   (entropy/emacs-lazy-initial-advice-after
-   (find-file)
+   '(find-file)
    "diff-hl-mode-hydra-hollow-init"
    "diff-hl-mode-hydra-hollow-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-add-for-top-dispatch
     '("Highlight"
@@ -647,10 +650,10 @@ while change themes."
       (add-hook hook #'whitespace-mode)))
 
   (entropy/emacs-lazy-initial-advice-after
-   (find-file)
+   '(find-file)
    "white-space-mode-hydra-hollow-init"
    "white-space-mode-hydra-hollow-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (entropy/emacs-hydra-hollow-add-for-top-dispatch
     '("Highlight"

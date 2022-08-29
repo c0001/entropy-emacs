@@ -47,9 +47,10 @@
 (defvar ivy-count-format)
 
 (entropy/emacs-lazy-initial-for-hook
- (window-configuration-change-hook)
+ '(window-configuration-change-hook)
  "rich-window-config-hydra-hollow-top-init"
- "rich-window-config-hydra-hollow-top-init" prompt-echo
+ "rich-window-config-hydra-hollow-top-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (let ((ind-hydra-name 'eemacs-window-config))
    (entropy/emacs-hydra-hollow-category-common-individual-define
@@ -142,9 +143,10 @@
 
 
 (entropy/emacs-lazy-initial-for-hook
- (window-configuration-change-hook)
+ '(window-configuration-change-hook)
  "window-jump-extra-hydra-hollow-init"
- "window-jump-extra-hydra-hollow-init" prompt-echo
+ "window-jump-extra-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define+
   'eemacs-window-config nil
@@ -1591,17 +1593,19 @@ in `window-configuration-change-hook'."
             #'entropy/emacs-window-center-mode-hydra-hollow-build)
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-hydra-hollow-call-before-hook)
+ '(entropy/emacs-hydra-hollow-call-before-hook)
  "align-buffer-hydra-hollow-extra-init"
- "align-buffer-hydra-hollow-extra-init" prompt-echo
+ "align-buffer-hydra-hollow-extra-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-window-center-mode-hydra-hollow-build))
 
 ;; ** Window divider
 
 (entropy/emacs-lazy-initial-for-hook
- (window-configuration-change-hook)
- "window-divider-mode-init" "window-divider-mode-init" prompt-echo
+ '(window-configuration-change-hook)
+ "window-divider-mode-init" "window-divider-mode-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (window-divider-mode)
  (defun entropy/emacs-wc-auto-toggle-window-divider-mode ()

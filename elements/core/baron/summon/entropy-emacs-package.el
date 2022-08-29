@@ -597,12 +597,12 @@ recognized as a normal macro."
                                   (cond ((symbolp val)
                                          val)
                                         ((listp val)
-                                         (eval val)))))
+                                         (entropy/emacs-eval-with-lexical val)))))
                       (evfunc-1 (lambda (val)
                                   (cond ((symbolp val)
                                          (symbol-value val))
                                         ((listp val)
-                                         (eval val)))))
+                                         (entropy/emacs-eval-with-lexical val)))))
                       (evfunc-2 (lambda (val)
                                   (cond ((symbolp val)
                                          (symbol-value val))
@@ -655,12 +655,13 @@ plist are:
           (intern
            (use-package-eemacs-adrequire/gen-random-ad-judger-prefix
             use-name)))
-         (_ (eval `(defvar ,judger-var nil
-                     ,(format
-                       "the judger var for use-package \
+         (_ (entropy/emacs-eval-with-lexical
+             `(defvar ,judger-var nil
+                ,(format
+                  "the judger var for use-package \
 :eemacs-adrequire for package '%s' which non-nil indicate that \
 the :eemacs-adrequrie has been loaded and the related form is banned."
-                       use-name))))
+                  use-name))))
          (rest-body (use-package-process-keywords use-name rest state))
          (form
           `(unless (bound-and-true-p ,judger-var)
@@ -688,7 +689,8 @@ the :eemacs-adrequrie has been loaded and the related form is banned."
           (setq init-form
                 (append init-form
                         `((,ad-wrapper
-                           ,adfors ,adprefix ,adprefix prompt-echo
+                           ',adfors ',adprefix ',adprefix
+                           :prompt-type 'prompt-echo
                            :pdumper-no-end ',pdump-no-end
                            ,form)))))))
     (use-package-concat

@@ -67,8 +67,9 @@
       (message "Start visual bell done!")))))
 
 (entropy/emacs-lazy-initial-advice-before
- (keyboard-quit)
- "doom-visual-bell" "doom-visual-bell" prompt-echo
+ '(keyboard-quit)
+ "doom-visual-bell" "doom-visual-bell"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (setq ring-bell-function nil
        visible-bell nil)
@@ -80,8 +81,9 @@
   :commands (doom-themes-org-config)
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (org-mode)
-   "doom-org-specific" "doom-org-specific" prompt-echo
+   '(org-mode)
+   "doom-org-specific" "doom-org-specific"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (doom-themes-org-config)))
 
@@ -339,8 +341,9 @@ by `entropy/emacs-startup-done'.")
         page-break-lines-max-width 70)
 
   (entropy/emacs-lazy-initial-advice-before
-   (find-file)
-   "PageBreakLines" "PageBreakLines" prompt-echo
+   '(find-file)
+   "PageBreakLines" "PageBreakLines"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (global-page-break-lines-mode +1)))
 

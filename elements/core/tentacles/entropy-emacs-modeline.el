@@ -1013,8 +1013,9 @@ format enabling process.
  (entropy/emacs-mode-line-origin-theme))
 
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-hydra-hollow-call-before-hook)
- "modeline-hydra-hollow-init" "modeline-hydra-hollow-init" prompt-echo
+ '(entropy/emacs-hydra-hollow-call-before-hook)
+ "modeline-hydra-hollow-init" "modeline-hydra-hollow-init"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (entropy/emacs-hydra-hollow-common-individual-hydra-define
   'eemacs-modeline-toggle nil

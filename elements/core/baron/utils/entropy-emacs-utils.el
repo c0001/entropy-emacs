@@ -43,9 +43,9 @@
 (use-package dash :init (require 'dash)
   :config
   (entropy/emacs-lazy-initial-for-hook
-   (emacs-lisp-mode-hook)
+   '(emacs-lisp-mode-hook)
    "dash-fontify-mode-init" "dash-fontify-mode-init"
-   prompt-echo
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (global-dash-fontify-mode)))
 
@@ -102,9 +102,10 @@
    )
   :init
   (entropy/emacs-lazy-initial-advice-before
-   (ivy-mode counsel-mode company-mode)
+   '(ivy-mode counsel-mode company-mode)
    "prescient-mode-init"
-   "prescient-mode-init" prompt-echo
+   "prescient-mode-init"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    (prescient-persist-mode 1)))
 
@@ -311,9 +312,9 @@ of `eldoc-idle-delay' after excute the ORIG-FUNC."
   (cond ((and (bound-and-true-p entropy/emacs-custom-enable-lazy-load)
               t)
          (entropy/emacs-lazy-initial-for-hook
-          (entropy/emacs-after-startup-hook)
+          '(entropy/emacs-after-startup-hook)
           "eldoc-new-version-load" "eldoc-new-version-load"
-          prompt-echo
+          :prompt-type 'prompt-echo
           (unless (bound-and-true-p __ya/eldoc-newpkg-load-p)
             (eval
              `(load ',__new_pkg/eldoc))

@@ -717,8 +717,9 @@ Add current music to queue when its not in thus."
   :init
 
   (entropy/emacs-lazy-initial-advice-before
-   (dired-mode)
-   "bongo-dired-init" "bongo-dired-init" prompt-echo
+   '(dired-mode)
+   "bongo-dired-init" "bongo-dired-init"
+   :prompt-type 'prompt-echo
    :pdumper-no-end t
    ;; use eval to inhibit macra expand while eemacs startup which be
    ;; to prevent loading extra packages.

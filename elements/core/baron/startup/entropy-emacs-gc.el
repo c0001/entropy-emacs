@@ -171,8 +171,9 @@ delay seconds SECS."
 ;; --------------------------------------------------
 ;; after init for eemacs gc init
 (entropy/emacs-lazy-initial-for-hook
- (entropy/emacs-after-startup-hook)
- "eemacs-gc-optimization" "eemacs-gc-optimization" prompt-echo
+ '(entropy/emacs-after-startup-hook)
+ "eemacs-gc-optimization" "eemacs-gc-optimization"
+ :prompt-type 'prompt-echo
  :pdumper-no-end t
  (setq garbage-collection-messages nil)
  (add-hook 'pre-command-hook #'entropy/emacs-gc--adjust-cons-threshold 100)
