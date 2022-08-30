@@ -83,38 +83,36 @@ With prefix argument binds, jump to the previous mark place."
     (save-excursion
       (push-mark))))
 
-(entropy/emacs-lazy-with-load-trail
- top-keybinding
- :pdumper-no-end t
- :body
- (if (null (daemonp))
-     (progn
-       (define-key (current-global-map)
-         (kbd entropy/emacs-top-key)
-         entropy/emacs-top-keymap)
-       (entropy/emacs-basic-set-mark-command))
-   ;;------------ set basic key-binds for daemon session------------
+(entropy/emacs-lazy-with-load-trail 'top-keybinding
+  :pdumper-no-end t
+  (if (null (daemonp))
+      (progn
+        (define-key (current-global-map)
+          (kbd entropy/emacs-top-key)
+          entropy/emacs-top-keymap)
+        (entropy/emacs-basic-set-mark-command))
+    ;;------------ set basic key-binds for daemon session------------
    ;;; redefine kill emacs bindings to frame delete that follow the
    ;;; default daemon session convention.
-   (define-key (current-global-map)
-     [remap save-buffers-kill-terminal] #'delete-frame)
+    (define-key (current-global-map)
+      [remap save-buffers-kill-terminal] #'delete-frame)
    ;;; remap `entropy/emacs-top-key' for daemon session
-   (entropy/emacs-with-daemon-make-frame-done
-    'top-key-bind nil nil
-    '(progn
-       (setq entropy/emacs-top-key
-             (if (display-graphic-p)
-                 (car entropy/emacs-top-prefix-key-cons)
-               (cdr entropy/emacs-top-prefix-key-cons)))
-       (define-key
-         (current-global-map)
-         (kbd
-          entropy/emacs-top-key)
-         entropy/emacs-top-keymap)))
-   ;; after set the top key, rebind the `set-mark-command' key-bind
-   (entropy/emacs-with-daemon-make-frame-done
-    'set-mark-command nil nil
-    '(entropy/emacs-basic-set-mark-command))))
+    (entropy/emacs-with-daemon-make-frame-done
+     'top-key-bind nil nil
+     '(progn
+        (setq entropy/emacs-top-key
+              (if (display-graphic-p)
+                  (car entropy/emacs-top-prefix-key-cons)
+                (cdr entropy/emacs-top-prefix-key-cons)))
+        (define-key
+          (current-global-map)
+          (kbd
+           entropy/emacs-top-key)
+          entropy/emacs-top-keymap)))
+    ;; after set the top key, rebind the `set-mark-command' key-bind
+    (entropy/emacs-with-daemon-make-frame-done
+     'set-mark-command nil nil
+     '(entropy/emacs-basic-set-mark-command))))
 
 ;; ** Personal infomation
 (when (and entropy/emacs-user-full-name
@@ -3781,8 +3779,8 @@ NOTE: this is a advice wrapper for any function."
   :group 'scrolling)
 
 (entropy/emacs-lazy-with-load-trail
- eemacs-smooth-scrolling-mode-init
- (entropy/emacs-basic-smooth-scrolling-global-mode 1))
+  'eemacs-smooth-scrolling-mode-init
+  (entropy/emacs-basic-smooth-scrolling-global-mode 1))
 
 
 ;; ***** Tab default visualization
@@ -4840,8 +4838,8 @@ successfully both of situation of read persisit of create an new."
   :init
   (when entropy/emacs-disable-mouse-at-init-time
     (entropy/emacs-lazy-with-load-trail
-     disable-mouse
-     (global-disable-mouse-mode t))))
+      'disable-mouse
+      (global-disable-mouse-mode t))))
 
 ;; **** Disable auto-window-vscroll
 
@@ -4860,11 +4858,9 @@ successfully both of situation of read persisit of create an new."
   :diminish which-key-mode
   :commands which-key-mode
   :init
-  (entropy/emacs-lazy-with-load-trail
-   which-key
-   :pdumper-no-end t
-   :body
-   (which-key-mode t))
+  (entropy/emacs-lazy-with-load-trail 'which-key
+    :pdumper-no-end t
+    (which-key-mode t))
   (setq which-key-popup-type 'side-window
         which-key-side-window-location 'bottom
         which-key-idle-delay 0.8
@@ -6251,12 +6247,12 @@ otherwise returns nil."
   :init
   (setq-default proced-format 'medium)
   (entropy/emacs-lazy-with-load-trail
-   auto-start-exec
-   (when sys/win32p
-     (dolist (el entropy/emacs-startwith-apps)
-       (when (executable-find (cdr el))
-         (entropy/emacs-basic-proced-auto-startwith
-          (car el) (cdr el))))))
+    'auto-start-exec
+    (when sys/win32p
+      (dolist (el entropy/emacs-startwith-apps)
+        (when (executable-find (cdr el))
+          (entropy/emacs-basic-proced-auto-startwith
+           (car el) (cdr el))))))
 
 ;; ****** config
   :config

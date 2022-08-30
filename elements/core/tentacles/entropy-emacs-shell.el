@@ -218,11 +218,11 @@ was found."
 
   :init
   (entropy/emacs-lazy-with-load-trail
-   fakecygpty
-   (fakecygpty-activate)
-   (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
-              (ignore-errors (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path)))
-     (advice-add 'cd :around 'entropy/emacs-shell--fakepty-cd-around-advice))))
+    'fakecygpty
+    (fakecygpty-activate)
+    (when (and entropy/emacs-microsoft-windows-unix-emulator-enable
+               (ignore-errors (file-exists-p entropy/emacs-microsoft-windows-unix-emulator-bin-path)))
+      (advice-add 'cd :around 'entropy/emacs-shell--fakepty-cd-around-advice))))
 
 
 ;; ** vterm config
@@ -482,33 +482,31 @@ before invoke the main process."
                 (vterm-buffer-name-string nil))
              (vterm-mode)))))
 
-  (entropy/emacs-lazy-with-load-trail
-   shellpop-feature
-   :pdumper-no-end t
-   :body
-   (cond ((or (not sys/win32p)
-              (and sys/win32p (bound-and-true-p fakecygpty--activated)))
-          (setq entropy/shellpop-pop-types
-                (list (plist-get entropy/emacs-shell--shpop-types :eshell)
-                      (plist-get entropy/emacs-shell--shpop-types :ansiterm)
-                      (plist-get entropy/emacs-shell--shpop-types :shell)))
-          (when (and (member "MODULES" (split-string system-configuration-features nil t))
-                     (not sys/win32p)
-                     (let ((execs '("git" "cmake" "make" "gcc" "libtool"))
-                           judge)
-                       (catch :exit
-                         (dolist (exec execs)
-                           (unless (executable-find exec)
-                             (setq judge t)
-                             (throw :exit nil))))
-                       (if judge nil t)))
-            (add-to-list 'entropy/shellpop-pop-types
-                         (plist-get entropy/emacs-shell--shpop-types :vterm))))
-         (sys/win32p
-          (setq entropy/shellpop-pop-types
-                (list (plist-get entropy/emacs-shell--shpop-types :eshell)
-                      (plist-get entropy/emacs-shell--shpop-types :shell)))))
-   (entropy/shellpop-start))
+  (entropy/emacs-lazy-with-load-trail 'shellpop-feature
+    :pdumper-no-end t
+    (cond ((or (not sys/win32p)
+               (and sys/win32p (bound-and-true-p fakecygpty--activated)))
+           (setq entropy/shellpop-pop-types
+                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
+                       (plist-get entropy/emacs-shell--shpop-types :ansiterm)
+                       (plist-get entropy/emacs-shell--shpop-types :shell)))
+           (when (and (member "MODULES" (split-string system-configuration-features nil t))
+                      (not sys/win32p)
+                      (let ((execs '("git" "cmake" "make" "gcc" "libtool"))
+                            judge)
+                        (catch :exit
+                          (dolist (exec execs)
+                            (unless (executable-find exec)
+                              (setq judge t)
+                              (throw :exit nil))))
+                        (if judge nil t)))
+             (add-to-list 'entropy/shellpop-pop-types
+                          (plist-get entropy/emacs-shell--shpop-types :vterm))))
+          (sys/win32p
+           (setq entropy/shellpop-pop-types
+                 (list (plist-get entropy/emacs-shell--shpop-types :eshell)
+                       (plist-get entropy/emacs-shell--shpop-types :shell)))))
+    (entropy/shellpop-start))
 
   :config
 

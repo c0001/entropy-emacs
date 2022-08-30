@@ -66,14 +66,14 @@
     :ensure nil
     :init
     (entropy/emacs-lazy-with-load-trail
-     display-time-mode-init
-     (setq-default display-time-interval 1)
-     ;; display time with date and real time infos
-     (setq display-time-day-and-date t)
-     ;; 24hr format
-     (setq display-time-24hr-format t)
-     (setq display-time-format " %e %b %Y %H:%M:%S ")
-     (display-time-mode 1))))
+      'display-time-mode-init
+      (setq-default display-time-interval 1)
+      ;; display time with date and real time infos
+      (setq display-time-day-and-date t)
+      ;; 24hr format
+      (setq display-time-24hr-format t)
+      (setq display-time-format " %e %b %Y %H:%M:%S ")
+      (display-time-mode 1))))
 
 ;; A minor-mode menu for the mode line
 (use-package minions
@@ -1112,17 +1112,17 @@ style which defined in `entropy/emacs-modeline-style'."
 
 ;; ** init procedure
 (entropy/emacs-lazy-with-load-trail
- eemacs-modeline-init
- (redisplay t)
- (entropy/emacs-modeline--mdl-init)
- (redisplay t)
- (entropy/emacs-with-daemon-make-frame-done
-  'eemacs-modeline-init nil nil
-  '(progn
-     (entropy/emacs-modeline--mdl-tidy-spec)
-     (funcall (alist-get entropy/emacs-mode-line-sticker
-                         entropy/emacs-modeline--toggle-type-register
-                         nil nil 'string=)))))
+  'eemacs-modeline-init
+  (redisplay t)
+  (entropy/emacs-modeline--mdl-init)
+  (redisplay t)
+  (entropy/emacs-with-daemon-make-frame-done
+   'eemacs-modeline-init nil nil
+   '(progn
+      (entropy/emacs-modeline--mdl-tidy-spec)
+      (funcall (alist-get entropy/emacs-mode-line-sticker
+                          entropy/emacs-modeline--toggle-type-register
+                          nil nil 'string=)))))
 
 ;; * provide
 (provide 'entropy-emacs-modeline)

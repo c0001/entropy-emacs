@@ -7628,22 +7628,20 @@ pollute eemacs internal lazy load optimization."
            (entropy/emacs-general-run-with-protect-and-gc-strict
             ,@body)))))))
 
-(defmacro entropy/emacs-lazy-with-load-trail (name &rest body)
+(cl-defmacro entropy/emacs-lazy-with-load-trail
+    (name &rest body &key
+          doc-string start-end pdumper-no-end
+          &allow-other-keys)
   "Wrapping BODY to a function named with suffix by NAME into
 =entropy-emacs-startup-trail-hook=.
 
 See `entropy/emacs-select-trail-hook' for details of what is
 =entropy-emacs-startup-trail-hook=.
 
-BODY can be forms or a expanded FORM-PLIST (see
-`entropy/emacs-get-plist-form') in which case there's some keys on
-functional aim to:
+Optional keys:
 
 - ':doc-string' :: host the function defination will be created
   for function of BODY.
-
-- ':body' :: slot host forms, this key was necessary if BODY is a
-  expanded FORM-PLIST.
 
 - ':start-end' :: inject function of BODY into
   `entropy/emacs-startup-end-hook'. Defaultly, BODY will be
@@ -7652,45 +7650,57 @@ functional aim to:
 
 - ':pdumper-no-end' :: specefied trail hook injection while
   pdumper according to `entropy/emacs-select-trail-hook'."
-  (let ((func (intern
-               (concat "entropy/emacs-lazy-trail-to-"
-                       (symbol-name name))))
-        (msg-str (symbol-name name))
-        (inject-to-start-end
-         (entropy/emacs-get-plist-form body :start-end t))
-        (doc-string
-         (entropy/emacs-get-plist-form body :doc-string t))
-        (pdumper-no-end
-         (entropy/emacs-get-plist-form body :pdumper-no-end t))
-        (body (let ((body-form (entropy/emacs-get-plist-form body :body nil t)))
-                (if body-form
-                    (cdr body-form)
-                  body))))
-    `(progn
-       (entropy/emacs-eval-with-lexical
-        '(defun ,func ()
-           ,(or doc-string "")
-           (entropy/emacs-message-do-message
-            "%s '%s' %s"
-            (blue "Start")
-            (yellow ,msg-str)
-            (blue "..."))
-           (entropy/emacs-general-run-with-protect-and-gc-strict
-            ,@body)
-           (entropy/emacs-message-do-message
-            "%s '%s' %s"
-            (blue "Start")
-            (yellow ,msg-str)
-            (blue "done!"))))
+  (declare (indent defun))
+  (let ((name-sym (make-symbol "name-var"))
+        (func-sym (make-symbol "func-name"))
+        (func-lambda-sym (make-symbol "func-body"))
+        (msg-str-sym (make-symbol "msg-str"))
+        (body-lambda-sym (make-symbol "body-lambda"))
+        (body (entropy/emacs-defun--get-real-body body)))
+    `(let* ((,body-lambda-sym (lambda nil ,@body))
+            (,name-sym ,name)
+            (_ (setq ,name-sym
+                     (or (and (stringp ,name-sym) ,name-sym)
+                         (symbol-name ,name-sym))))
+            (,func-sym (intern
+                        (concat "entropy/emacs-lazy-trail-to-"
+                                ,name-sym)))
+            (,msg-str-sym ,name-sym)
+            ,func-lambda-sym)
+       (setq ,func-lambda-sym
+             (entropy/emacs-eval-with-lexical
+              '(lambda (&rest _)
+                 (entropy/emacs-message-do-message
+                  "%s '%s' %s"
+                  (blue "Start")
+                  (yellow ,msg-str-sym)
+                  (blue "..."))
+                 (entropy/emacs-general-run-with-protect-and-gc-strict
+                  (funcall ,body-lambda-sym))
+                 (entropy/emacs-message-do-message
+                  "%s '%s' %s"
+                  (blue "Start")
+                  (yellow ,msg-str-sym)
+                  (blue "done!"))
+                 (fmakunbound ,func-sym))
+              (list (cons ',body-lambda-sym ,body-lambda-sym)
+                    (cons ',msg-str-sym ,msg-str-sym)
+                    (cons ',func-sym ,func-sym))))
+       (defalias ,func-sym ,func-lambda-sym
+         (or ,doc-string
+             (format "`entropy/emacs-lazy-with-load-trail' for feature '%s', \
+automatically self-`fmakunbound' when loaded done."
+                     ,name-sym)))
        (cond
-        (,inject-to-start-end
+        (,start-end
          (setq entropy/emacs-startup-end-hook
                (append entropy/emacs-startup-end-hook
-                       '(,func))))
+                       (list ,func-sym))))
         (t
-         (set (entropy/emacs-select-trail-hook ,pdumper-no-end)
-              (append (symbol-value (entropy/emacs-select-trail-hook ,pdumper-no-end))
-                      '(,func))))))))
+         (let ((hook (entropy/emacs-select-trail-hook ,pdumper-no-end)))
+           (set hook
+                (append (symbol-value hook)
+                        (list ,func-sym)))))))))
 
 (cl-defmacro entropy/emacs-lazy-initial-form
     (list-var

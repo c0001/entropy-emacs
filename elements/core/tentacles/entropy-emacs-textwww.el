@@ -141,11 +141,9 @@
   ;; disable the cursor move hook for reduce lagging
   ;; FIXME: we ensure set it after load w3m to take effecient, why?
   (if entropy/emacs-fall-love-with-pdumper
-      (entropy/emacs-lazy-with-load-trail
-       unset-w3m-after-cursor-move-hook
-       :pdumper-no-end t
-       :body
-       (setq w3m-after-cursor-move-hook nil))
+      (entropy/emacs-lazy-with-load-trail 'unset-w3m-after-cursor-move-hook
+        :pdumper-no-end t
+        (setq w3m-after-cursor-move-hook nil))
     (entropy/emacs-lazy-load-simple 'w3m
       (setq w3m-after-cursor-move-hook nil)))
 

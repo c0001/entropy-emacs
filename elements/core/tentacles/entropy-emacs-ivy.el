@@ -1270,9 +1270,8 @@ display icon or empty string while
 
   :init
   ;; (entropy/emacs-lazy-with-load-trail
-  ;;  all-the-icons-ivy-rich-mode
+  ;;  'all-the-icons-ivy-rich-mode
   ;;  :pdumper-no-end t
-  ;;  :body
   ;;  (memoize
   ;;   'ya/all-the-icons-ivy-rich-common-file-icon))
 

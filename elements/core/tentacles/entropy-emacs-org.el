@@ -1801,40 +1801,38 @@ Now just supply localization image file analyzing."
 (use-package org-bullets
   :commands (org-bullets-mode)
   :init
-  (entropy/emacs-lazy-with-load-trail
-   org-bullet-mode-init
-   :pdumper-no-end t
-   :body
-   (if (daemonp)
-       (entropy/emacs-with-daemon-make-frame-done
-        'org-bullet-mode-init
-        '(progn
-           (remove-hook 'org-mode-hook #'org-bullets-mode)
-           (mapc
-            (lambda (buffer)
-              (with-current-buffer buffer
-                (when (and (eq major-mode 'org-mode)
-                           (bound-and-true-p org-bullets-mode))
-                  (org-bullets-mode 0))))
-            (buffer-list)))
-        '(progn
-           (add-hook 'org-mode-hook #'org-bullets-mode)
-           (mapc
-            (lambda (buffer)
-              (with-current-buffer buffer
-                (when (and (eq major-mode 'org-mode)
-                           (null (bound-and-true-p org-bullets-mode)))
-                  (org-bullets-mode 1))))
-            (buffer-list))))
-     (add-hook 'org-mode-hook #'org-bullets-mode)
-     ;; update opened org-buffer bullet status
-     (mapc
-      (lambda (buffer)
-        (with-current-buffer buffer
-          (when (eq major-mode 'org-mode)
-            (unless (bound-and-true-p org-bullets-mode)
-              (org-bullets-mode 1)))))
-      (buffer-list))))
+  (entropy/emacs-lazy-with-load-trail 'org-bullet-mode-init
+    :pdumper-no-end t
+    (if (daemonp)
+        (entropy/emacs-with-daemon-make-frame-done
+         'org-bullet-mode-init
+         '(progn
+            (remove-hook 'org-mode-hook #'org-bullets-mode)
+            (mapc
+             (lambda (buffer)
+               (with-current-buffer buffer
+                 (when (and (eq major-mode 'org-mode)
+                            (bound-and-true-p org-bullets-mode))
+                   (org-bullets-mode 0))))
+             (buffer-list)))
+         '(progn
+            (add-hook 'org-mode-hook #'org-bullets-mode)
+            (mapc
+             (lambda (buffer)
+               (with-current-buffer buffer
+                 (when (and (eq major-mode 'org-mode)
+                            (null (bound-and-true-p org-bullets-mode)))
+                   (org-bullets-mode 1))))
+             (buffer-list))))
+      (add-hook 'org-mode-hook #'org-bullets-mode)
+      ;; update opened org-buffer bullet status
+      (mapc
+       (lambda (buffer)
+         (with-current-buffer buffer
+           (when (eq major-mode 'org-mode)
+             (unless (bound-and-true-p org-bullets-mode)
+               (org-bullets-mode 1)))))
+       (buffer-list))))
 
   :config
   (if (not (string= entropy/emacs-org-bullets-type "roman"))

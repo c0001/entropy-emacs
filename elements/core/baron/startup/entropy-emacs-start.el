@@ -299,8 +299,8 @@ Trying insert some words in below are:
                 (w32-send-sys-command #xF000)))))))
   (when entropy/emacs-microsoft-windows-native-ime-enhancement-enable
     (entropy/emacs-lazy-with-load-trail
-     patch-and-enable-w32-ime
-     (entropy/emacs-start-w32-ime-enable))))
+      'patch-and-enable-w32-ime
+      (entropy/emacs-start-w32-ime-enable))))
 
 
 ;; *** Diable linux tty swiching keybinding
@@ -312,7 +312,7 @@ Trying insert some words in below are:
   ;;  form/disable-virtual-terminal-tty-sh-command
   ;;  (when sys/linux-x-p
   ;;    (entropy/emacs-lazy-with-load-trail
-  ;;     setxkbmap
+  ;;     'setxkbmap
   ;;     (shell-command "setxkbmap -option srvrkeys:none")
   ;;     (entropy/emacs-message-do-message
   ;;      (yellow "Diable tty switching keybinding done! You can run shell-command \"setxkbmap -option ''\" manually"

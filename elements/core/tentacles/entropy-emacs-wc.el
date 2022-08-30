@@ -94,7 +94,7 @@
       :global-bind t))))
   :init
   ;; (entropy/emacs-lazy-with-load-trail
-  ;;  ace-window-init
+  ;;  'ace-window-init
   ;;  ;; NOTE: (FIXME) this mode will make each frame created be visible
   ;;  ;; by `aw--after-make-frame', its may be a compatible problem.
   ;;  (ace-window-display-mode +1))
@@ -399,8 +399,8 @@ This slot should obey the rules of:
   (setq eyebrowse-keymap-prefix (kbd "s-w"))
 
   (entropy/emacs-lazy-with-load-trail
-   eyebrowse-enable
-   (eyebrowse-mode +1))
+    'eyebrowse-enable
+    (eyebrowse-mode +1))
 
   ;; simply prettify the slot chosen candi format
   (setq eyebrowse-tagged-slot-format "🏠 %-4s:%20t"
@@ -1049,8 +1049,8 @@ saved by
    (t
     ;; Force init after load for prevent other frame window setup mess
     (entropy/emacs-lazy-with-load-trail
-     enable-winner-mode
-     (winner-mode +1))))
+      'enable-winner-mode
+      (winner-mode +1))))
 
   (setq winner-boring-buffers
         `("*Completions*"
@@ -1186,8 +1186,8 @@ issue."
   :commands (desktop-save-mode)
   :init
   (entropy/emacs-lazy-with-load-trail
-   desktop-save-mode
-   (desktop-save-mode 1))
+    'desktop-save-mode
+    (desktop-save-mode 1))
 
   :config
   ;; Restore frames into their original displays (if possible)

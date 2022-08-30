@@ -251,8 +251,8 @@
 ;; *** init
   :init
   (entropy/emacs-lazy-with-load-trail
-   shackle-mode
-   (shackle-mode t))
+    'shackle-mode
+    (shackle-mode t))
 
 ;; *** config
   :config

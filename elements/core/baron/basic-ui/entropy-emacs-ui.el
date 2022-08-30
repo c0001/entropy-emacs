@@ -137,19 +137,17 @@ determined by above variable you setted."
   (sleep-for 0.1)
   (redisplay t))
 
-(entropy/emacs-lazy-with-load-trail
- frame-reset-size&width
- :start-end t
- :body
- (when (display-graphic-p)
-   (when (and entropy/emacs-init-fpos-enable
-              (< entropy/emacs-init-frame-width-scale 1))
-     (when entropy/emacs-ui--init-frame-maximized
-       (toggle-frame-maximized))
-     (sleep-for 0.1)
-     (redisplay t)
-     (entropy/emacs-ui-set-frame-position)
-     (redisplay t))))
+(entropy/emacs-lazy-with-load-trail 'frame-reset-size&width
+  :start-end t
+  (when (display-graphic-p)
+    (when (and entropy/emacs-init-fpos-enable
+               (< entropy/emacs-init-frame-width-scale 1))
+      (when entropy/emacs-ui--init-frame-maximized
+        (toggle-frame-maximized))
+      (sleep-for 0.1)
+      (redisplay t)
+      (entropy/emacs-ui-set-frame-position)
+      (redisplay t))))
 
 ;; ** elisp show parent
 (unless entropy/emacs-use-highlight-features
@@ -609,9 +607,9 @@ for adding to variable `window-size-change-functions' and hook
 
   (if entropy/emacs-fall-love-with-pdumper
       (entropy/emacs-lazy-with-load-trail
-       welcome-buffer
-       (setq entropy/emacs-ui--init-welcom-width (window-width))
-       (entropy/emacs-ui--init-welcom-init-core))
+        'welcome-buffer
+        (setq entropy/emacs-ui--init-welcom-width (window-width))
+        (entropy/emacs-ui--init-welcom-init-core))
     (entropy/emacs-ui--init-welcom-init-core)))
 
 ;; *** emacs dashboard
@@ -718,21 +716,19 @@ for adding to variable `window-size-change-functions' and hook
     (redisplay t))
 
   (let (_)
-    (entropy/emacs-lazy-with-load-trail
-     rich-dashboard-init
-     :start-end t
-     :body
-     (entropy/emacs-rich-dashboard-init)
-     (add-hook 'window-size-change-functions
-               'dashboard-resize-on-hook))))
+    (entropy/emacs-lazy-with-load-trail 'rich-dashboard-init
+      :start-end t
+      (entropy/emacs-rich-dashboard-init)
+      (add-hook 'window-size-change-functions
+                'dashboard-resize-on-hook))))
 
 ;; ** Frame spec
 ;; *** Title
 (entropy/emacs-lazy-with-load-trail
- frame-title-set
- (setq frame-title-format
-       '("GNU Emacs " emacs-version "@" user-login-name))
- (setq icon-title-format frame-title-format))
+  'frame-title-set
+  (setq frame-title-format
+        '("GNU Emacs " emacs-version "@" user-login-name))
+  (setq icon-title-format frame-title-format))
 
 ;; *** Transparence
 
@@ -780,8 +776,8 @@ value as optional interaction while `PREFIX' is non-nil."
 (when (and entropy/emacs-start-with-frame-transparent-action
            (display-graphic-p))
   (entropy/emacs-lazy-with-load-trail
-   loop-alpha
-   (entropy/emacs-ui-loop-alpha-selected-frame)))
+    'loop-alpha
+    (entropy/emacs-ui-loop-alpha-selected-frame)))
 
 ;; ** Misc
 ;; *** minor misc

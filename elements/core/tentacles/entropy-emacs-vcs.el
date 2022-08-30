@@ -72,26 +72,24 @@
           #'magit-section-forward-sibling))))
 
   :init
-  (entropy/emacs-lazy-with-load-trail
-   magit-init
-   :pdumper-no-end t
-   :body
-   ;; preferred to use `magit-previous-window-configuration' to quit
-   ;; windows
-   (setq magit-bury-buffer-function
-         'magit-restore-window-configuration)
-   ;; inhibit commit with diff show sicne its redundant and we use
-   ;; ':select' rule for the revision window in `shackle-mode'.
-   (setq magit-commit-show-diff nil)
+  (entropy/emacs-lazy-with-load-trail 'magit-init
+    :pdumper-no-end t
+    ;; preferred to use `magit-previous-window-configuration' to quit
+    ;; windows
+    (setq magit-bury-buffer-function
+          'magit-restore-window-configuration)
+    ;; inhibit commit with diff show sicne its redundant and we use
+    ;; ':select' rule for the revision window in `shackle-mode'.
+    (setq magit-commit-show-diff nil)
 
-   (setq
-    ;; also revert untracked files to increase accurateness
-    magit-auto-revert-tracked-only nil
-    ;; immediately did what did to prevent user messy
-    magit-auto-revert-immediately t)
+    (setq
+     ;; also revert untracked files to increase accurateness
+     magit-auto-revert-tracked-only nil
+     ;; immediately did what did to prevent user messy
+     magit-auto-revert-immediately t)
 
-   ;; finally init the eemacs spec
-   (entropy/emacs-vcs--magit-init))
+    ;; finally init the eemacs spec
+    (entropy/emacs-vcs--magit-init))
 
   ;; Disabled vc.el key bindings for prevent to accidental activation
   (progn
