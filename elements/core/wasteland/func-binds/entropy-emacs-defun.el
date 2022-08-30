@@ -7744,7 +7744,7 @@ There's two tricks:
    it to get the lazy load effection.
 
 The GENED-FUNCTION has the '&rest' type argument
-'$_|internal-args' which has different meaning for different value
+'_advice-orig-args' which has different meaning for different value
 of ADDER-TYPE, it's meaningless when ADDER-TYPE is `add-hook',
 otherwise it has the meaning for `add-function' remaining.
 
@@ -7792,7 +7792,7 @@ invoked after."
             (,adder-type-sym ,adder-type)
             (,adder-flag-sym ,adder-flag)
             (,prompt-type-sym ,prompt-type)
-            (,func-body-lambda-sym (lambda nil ,@func-body))
+            (,func-body-lambda-sym (lambda (&rest _advice-orig-args) ,@func-body))
             ,func-lambda-sym
             )
        (unless (member ,adder-type-sym '(add-hook advice-add))
@@ -7809,7 +7809,7 @@ invoked after."
          (setq
           ,func-lambda-sym
           (entropy/emacs-eval-with-lexical
-           '(lambda (&rest $_|internal-args)
+           '(lambda (&rest ad-rest-args)
               (when (and (not (symbol-value ,var-sym))
                          ;; we just run intialform after eemacs startup
                          ;; done to speedup eemacs startup.
@@ -7841,11 +7841,7 @@ invoked after."
                    (setq func-body-rtn
                          (unwind-protect
                              (progn
-                               (funcall ,func-body-lambda-sym))
-                           ;; ;; FIXME: dummy for press byte-compile unused
-                           ;; ;; lexical variable warning
-                           ;; (setq $_|internal-args $_|internal-args)
-
+                               (apply ,func-body-lambda-sym ad-rest-args))
                            ;; finally we remove the initial injection
                            (cond ((eq ,adder-type-sym 'advice-add)
                                   (dolist (adfor-it ,list-var-sym)
