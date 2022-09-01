@@ -363,90 +363,228 @@ when the last form of CONNDITIONS evaluated return non-nil."
   (entropy/emacs-eval-with-lexical (car (get symbol 'standard-value))))
 
 ;; *** List manipulation
-(defun entropy/emacs-numberic-list (list-var)
-  "Return list element mapped with numberic prefix which concated
-with '0' as alignment indicator.
+;; **** Basics
+;; ***** Core
 
-For example, if a list formed as '(1 2 3 ... 100)', the returned
-list will formed as:
+(defsubst entropy/emacs-dotted-listp (list)
+  "Return non-nil if LIST is a dotted end list and is not a
+circular list.
 
-#+BEGIN_SRC elisp
-  '((\"001\" . 1)
-    (\"002\" . 2)
-    (\"003\" . 3)
-    ...
-    (\"100\" . 100))
-#+END_SRC
+In other word, a dotted list is a list whose last cdr is a
+`atom'.
+
+(see also `entropy/emacs-circular-listp' for circular list explanation.)"
+  (catch :exit
+    (if (proper-list-p list)
+        (throw :exit nil))
+    (when (entropy/emacs-circular-listp
+           list :internal-without-check-proper t)
+      (throw :exit nil))
+    t))
+
+(cl-defmacro entropy/emacs-list-map-cdr
+    (list &rest body &key with-exit with-it-as &allow-other-keys)
+  "Run BODY in mapping through each `cdr' of `listp' list LIST with
+bind 'it' of the current cdr which is came from LIST to the cdr
+of the last `consp' cons-cell of LIST.
+
+Interrupted when mapping done or the BODY's last form's
+evaluation return non-nil in any step of progress only when
+WITH-EXIT is set.
+
+When WITH-IT-AS is set, it should be a explicit a symbol for this
+macro to use it instead of 'it' as what bind for."
+  (declare (indent defun))
+  (let ((rest-sym (make-symbol "rest"))
+        (exit-sym (make-symbol "exit"))
+        (body-rtn-sym (make-symbol "body-rtn"))
+        (body (entropy/emacs-defun--get-real-body body)))
+    `(let ((,rest-sym ,list)
+           (,exit-sym ,with-exit)
+           (,body-rtn-sym nil)
+           ;; exposed internal let binding
+           ,(or with-it-as 'it))
+       (when ,rest-sym
+         (while (and (consp ,rest-sym)
+                     (if ,exit-sym
+                         (not ,body-rtn-sym)
+                       t))
+           (setq ,(or with-it-as 'it) ,rest-sym
+                 ,rest-sym (cdr ,rest-sym))
+           (setq ,body-rtn-sym (progn ,@body)))))))
+
+(cl-defmacro entropy/emacs-list-map-car
+    (list &rest body &key with-exit with-tail with-it-as &allow-other-keys)
+  "Run BODY in mapping through each `car' of `listp' list LIST with
+bind 'it' of the current car which is came from first car of LIST
+to the last car of the `consp' cons-cell' of LIST.
+
+When WITH-TAIL is set, then also run BODY for the last cdr of a
+`entropy/emacs-dotted-listp' list.
+
+Interrupted when mapping done or the BODY's last form's
+evaluation return non-nil in any step of progress only when
+WITH-EXIT is set.
+
+When WITH-IT-AS is set, it should be a explicit a symbol for this
+macro to use it instead of 'it' as what bind for."
+  (declare (indent defun))
+  (let ((rest-sym (make-symbol "rest"))
+        (exit-sym (make-symbol "exit"))
+        (body-rtn-sym (make-symbol "body-rtn"))
+        (body (entropy/emacs-defun--get-real-body body)))
+    `(let ((,rest-sym ,list)
+           (,exit-sym ,with-exit)
+           (,body-rtn-sym nil)
+           ;; exposed internal let binding
+           ,(or with-it-as 'it))
+       (when ,rest-sym
+         (while (and (consp ,rest-sym)
+                     (if ,exit-sym
+                         (not ,body-rtn-sym)
+                       t))
+           (setq ,(or with-it-as 'it) (car ,rest-sym)
+                 ,rest-sym (cdr ,rest-sym))
+           (setq ,body-rtn-sym (progn ,@body)))
+         (when (and (setq ,(or with-it-as 'it) ,rest-sym)
+                    (if ,exit-sym
+                        (not ,body-rtn-sym)
+                      t)
+                    ,with-tail)
+           ,@body)))))
+
+(cl-defun entropy/emacs-list-get-region
+    (list &key start end with-destructively ignore-empty-region)
+  "Return a new list which is a region of LIST from START to END.
+
+START and END is re-calculated by
+`entropy/emacs-seq-recalc-start-end' before progress.
+
+When START is overflow, then return nil.
+
+When START and END is same, then return the `car' of that place
+unless IGNORE-EMPTY-REGION is set in which case return nil.
+
+END when nil or omitted is indicate the place to the end of the
+LIST i.e. `length' of list.
+
+If WITH-DESTRUCTIVELY is set, the original LIST may be modified
+i.e. when END is not the end of LIST, and the return is use same
+storage as origin. Otherwise return the region as a new list which is
+copy from origin."
+  (entropy/emacs-seq-recalc-start-end list start end)
+  (catch :exit
+    (if (and end (= start end)) (throw :exit (unless ignore-empty-region (nth start list)))
+      (if (and (null end) (null (cdr list)) (= start 0)) (throw :exit (car list))
+        (if (and (null (cdr list)) (> start 0)) (throw :exit nil))))
+    (let ((i 0) exit beglist begpt ptdiff (end-is-end-p (null end)))
+      (entropy/emacs-list-map-cdr list
+        :with-exit t
+        (when (= i start)
+          (setq beglist it
+                begpt i))
+        (when begpt
+          (if (and end-is-end-p)
+              (setq exit t)
+            (when (= (1+ i) end)
+              (setq ptdiff (- i begpt))
+              (unless (setq end-is-end-p (null (cdr it)))
+                (if with-destructively (setcdr it nil)))
+              (setq exit t))))
+        (cl-incf i)
+        exit)
+      (unless begpt
+        (throw :exit nil))
+      ;; track end is overflow
+      (when (and (not ptdiff) end)
+        (if end-is-end-p (error "internal error"))
+        (setq end-is-end-p t))
+      (if with-destructively
+          beglist
+        (if end-is-end-p
+            (copy-sequence beglist)
+          (setq i 0 exit nil)
+          (entropy/emacs-list-map-cdr
+            (setq beglist (copy-sequence beglist))
+            :with-exit t
+            (when (= i ptdiff)
+              (setcdr it nil)
+              (setq exit t))
+            (cl-incf i)
+            exit)
+          beglist)))))
+
+(cl-defun entropy/emacs-circular-listp (list &key internal-without-check-proper)
+  "Return the `safe-length' of LIST when its a circular list or nil
+while its a `proper-list-p' list or a non-circular
+`entropy/emacs-dotted-listp' list.
+
+A circular list is a kind of list with self or portion circularity
+feature, for example:
+
+To build a self-circular list do:
+#+begin_src elisp
+  (let ((foo '(1 2)))
+    (setcdr (cdr foo) foo)
+    foo)
+#+end_src
+
+in which case the var 'foo' is circular with list whose car and `cadr'
+is 1 and 2, in other word it is self-circular.
+
+To build a portion-circular list do:
+#+begin_src elisp
+  (let ((foo '(1 2))
+        (bar '(3 4)))
+    (setcdr (cdr bar) bar)
+    (setcdr (cdr foo) bar)
+    foo)
+#+end_src
+
+in which case the var 'foo' is circular at `cddr' with self-circular
+list 'bar', in other word foo is portion-circular.
 "
-  (let* ((l-len (length list-var))
-         (register l-len)
-         (counter 0)
-         (step 1)
-         (zero-func
-          (lambda (counter str)
-            (let ((step (length str))
-                   (rtn str))
-              (while (< step counter)
-                (setq rtn (concat "0" rtn)
-                      step (+ 1 step)))
-              rtn)))
-         rtn)
-    (while (not (eq 0 register))
-      (setq register (/ register 10)
-            counter (+ 1 counter)))
-    (dolist (el list-var)
-      (push (cons (funcall zero-func counter (number-to-string step))
-                  el)
-            rtn)
-      (setq step (+ 1 step)))
-    (reverse rtn)))
+  (unless (listp list)
+    (signal 'wrong-type-argument `(listp ,list)))
+  (catch :exit
+    (when (and (not internal-without-check-proper)
+               (proper-list-p list))
+      (throw :exit nil))
+    (let* ((llen (safe-length list))
+           (mplv (1- llen))
+           (i 0)
+           exit rtn)
+      (entropy/emacs-list-map-cdr list
+        :with-exit t
+        (when (= i mplv)
+          (setq exit t)
+          (if (consp (cdr it)) (setq rtn t)))
+        (cl-incf i)
+        exit)
+      rtn)))
 
-;; **** Nth remap with `car' and `cdr'
-(defun entropy/emacs-remap-for-nth (pos list-var)
-  "Since `nth' can not be used into `setf' place holder, this
-function let a `nth' form remaped for a equivalent one suitable
-for `setf', the argument list is the same as `nth', see its
-doc-string for details."
-  (let (final-form)
-    (cond ((and (> pos 0)
-                (= pos 1))
-           (setq final-form `(cadr ',list-var)))
-          ((= pos 0)
-           (setq final-form `(car ',list-var)))
-          ((> pos 1)
-           (let ((tmp-form `(cdr ',list-var)))
-             (cl-loop for ct from 2 to pos
-                      do (setq tmp-form
-                               (list 'cdr tmp-form)))
-             (setq final-form
-                   (list 'car tmp-form)))))
-    final-form))
+(cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr)
+  "Replace `nth' N of `listp' LIST with replacement REPLACE by
+altered it i.e. in destructively way, do nothing when N overflow.
 
-(defun entropy/emacs-setf-for-nth (pos replace list-var)
-  "Setf for position POS with the replacement REPLACE in list
-LIST-VAR. POS was a positive integer and indexed start at 0,
-meaning as same as what in `nth' arglists."
-  (let ((remap-form (entropy/emacs-remap-for-nth pos list-var)))
-    (entropy/emacs-eval-with-lexical `(setf ,remap-form ',replace))))
-
-;; **** Map cons or list
-
-(defun entropy/emacs-map-list-common (func var)
-  "Map a `listp' variable VAR with function FUNC for each element
-of VAR.
-
-This function is like `mapc' but also support dotted
-list (i.e. not predicted by `proper-list-p').
-"
-  (unless (listp var)
-    (signal 'wrong-type-argument (list 'listp var)))
-  (let (item (rest var))
-    (while rest
-      (setq item (if (listp rest) (car rest) rest)
-            rest (if (listp rest) (cdr rest) nil))
-      (funcall func item))))
-
-;; **** Combinatorics
+If WITH-END-CDR is set, the N's max value can be plus one in
+which case it point to the last `atom' cdr of LIST."
+  (let ((i 0) exit)
+    (unless (< n 0)
+      (entropy/emacs-list-map-cdr list
+        :with-exit t
+        (cond ((= i n)
+               (setf (car it) replace
+                     exit t))
+              ((and with-end-cdr (= (1+ i) n)
+                    ;; guarantee it is last cons-cell of LIST i.e. it
+                    ;; is the last cons-cell of a dotted list LIST.
+                    (atom (cdr it)))
+               (setf (cdr it) replace
+                     exit t))
+              (t
+               (cl-incf i)))
+        exit))))
 
 (cl-defun entropy/emacs-list-has-same-elements-p (lista listb &key test)
   "Return non-nil if two list is equalization as has same `length'
@@ -462,115 +600,16 @@ and same elements test by TEST or use the same test as
           (throw :exit nil)))
       (throw :exit t))))
 
-(defun entropy/emacs-list-butfirst (list-var &optional n)
-  "Like `butlast' but return the new copy of LIST-VAR with first N
-elements removed. Remove the car of LIST-VAR when N is nil or
-omitted.
+(defun entropy/emacs-list-butfirst (list &optional n)
+  "Like `butlast' but return the new copy of LIST who is the
+portion of LIST by removed first N elements. Removed the car of
+LIST when N is nil or omitted.
 
-(NOTE: the elements order is **not** modified)."
-  (let ((m n)
-        rtn)
-    (if (or (not n)
-            (= n 1))
-        (cdr list-var)
-      (dotimes (_ (- (length list-var) n))
-        (push (nth m list-var) rtn)
-        (cl-incf m))
-      (reverse rtn))))
-
-(cl-defun entropy/emacs-list-remove-elements
-    (elements list-var &key test)
-  "Return a new copy list of LIST-VAR with same order as origin and
-with remove any element presented in ELEMENTS. This function do
-not modify LIST-VAR.
-
-ELEMENTS usually is a list but internally wrap it as list when
-it's not as.
-
-Elements equalization is tested by TEST or use the same test as
-`cl-position' defaultly"
-  (unless (listp elements)
-    (setq elements (list elements)))
-  (let (rtn)
-    (dolist (el list-var)
-      (unless (cl-position el elements :test test)
-        (push el rtn)))
-    (reverse rtn)))
-
-(cl-defun entropy/emacs-list-delete-elements
-    (elements list-var &key test)
-  "Remove any element of list LIST-VAR presented in ELEMENTS
-without order modification.
-
-ELEMENTS usually is a list but internally wrap it as list when
-it's not as.
-
-Elements equalization is tested by TEST or use the same test as
-`cl-position' defaultly.
-
-This is a destructive function; it reuses the storage of LIST
-whenever possible.
-
-Write `(setq foo (entropy/emacs-list-delete-elements elements foo))'
-to be sure of correctly changing the value of a list ‘foo’.  See
-also `entropy/emacs-list-remove-elements', which does not modify
-the argument.
-"
-  (unless (listp elements)
-    (setq elements (list elements)))
-  (let ((pos 0) npos
-        (ellen (length elements)))
-    (while (< pos ellen)
-      (if (setq npos (cl-position (nth pos elements) list-var :test test))
-          (if (= npos 0)
-              (setf list-var (cdr list-var))
-            (setcdr (nthcdr (1- npos) list-var)
-                    (nthcdr (1+ npos) list-var)))
-        (cl-incf pos)))
-    list-var))
-
-(defun entropy/emacs-list-remove-duplicates
-    (list-var &rest cl-keys)
-  "Like `cl-remove-duplicates' but just for LIST and guarantee with
-same order and return the new list.
-
-Keywords supported: :test :test-not
-
-(fn LIST [KEYWORD VALUE]...)"
-  (let* (rtn
-         (list-copy (copy-sequence list-var))
-         (first-run-p t)
-         (tmpcar nil))
-    (while list-copy
-      (setq tmpcar (pop list-copy))
-      (when first-run-p
-        (push tmpcar rtn))
-      (unless (or first-run-p
-                  (apply 'cl-position tmpcar rtn
-                         cl-keys))
-        (push tmpcar rtn))
-      (setq first-run-p nil))
-    (if rtn (reverse rtn))))
-
-(defun entropy/emacs-list-delete-duplicates
-    (list-var &rest cl-keys)
-  "Like `cl-delete-duplicates' i.e. (destructively) but just for
-LIST and guarantee with same order and restrict for some keys.
-
-Keywords supported: :test :test-not
-
-(fn LIST [KEYWORD VALUE]...)"
-  (let ((pos-at 1)
-        tmpcar)
-    (while (< pos-at (length list-var))
-      (setq tmpcar (nth pos-at list-var))
-      (if (apply 'cl-position tmpcar list-var
-                 :start 0 :end pos-at
-                 cl-keys)
-          (setcdr (nthcdr (1- pos-at) list-var)
-                  (nthcdr (1+ pos-at) list-var))
-        (cl-incf pos-at)))
-    list-var))
+If you want to make the return as the same storage as LIST, use
+`nthcdr' instead."
+  (declare (side-effect-free t))
+  (copy-sequence
+   (nthcdr (or n 1) list)))
 
 (defun entropy/emacs-sort-list-according-to-list
     (list-to-sort list-base &rest cl-keys)
@@ -601,6 +640,24 @@ The based LIST-BASE element's order index 'get' function using
                  nil))))))
     rtn))
 
+;; ***** Map
+
+(defun entropy/emacs-map-list-common (func var)
+  "Map a `listp' variable VAR with function FUNC for each element
+of VAR.
+
+This function is like `mapc' but also support dotted
+list (i.e. not predicted by `proper-list-p').
+"
+  (unless (listp var)
+    (signal 'wrong-type-argument (list 'listp var)))
+  (let (item (rest var))
+    (while rest
+      (setq item (if (listp rest) (car rest) rest)
+            rest (if (listp rest) (cdr rest) nil))
+      (funcall func item))))
+
+;; **** Combinatorics
 (cl-defun __entropy/emacs-gen-list-permutations
     (list-var nested-depths
               &key use-tree
@@ -621,7 +678,7 @@ The based LIST-BASE element's order index 'get' function using
                    (list list-var)
                  list-var)))
       (dolist (topvar list-var)
-        (setq sublist (entropy/emacs-list-remove-elements topvar list-var))
+        (setq sublist (cl-remove topvar list-var))
         (dolist (el (__entropy/emacs-gen-list-permutations
                      sublist (- nested-depths 1)
                      :use-tree use-tree
@@ -729,8 +786,10 @@ one so the result length maybe confused while thus.
             (__entropy/emacs-gen-list-permutations
              list-var (- sample-size 1) :use-tree use-tree))
       (if use-combination
-          (entropy/emacs-list-remove-duplicates
+          (cl-delete-duplicates
            rtn
+           ;; guarantee preserved former occurrences
+           :from-end t
            :test
            (lambda (a b)
              (if (and (listp a) (listp b))
@@ -738,6 +797,133 @@ one so the result length maybe confused while thus.
                   a b :test 'equal)
                (equal a b))))
         rtn))))
+
+;; **** Numberic list
+(defun entropy/emacs-numberic-list (list-var)
+  "Return list element mapped with numberic prefix which concated
+with '0' as alignment indicator.
+
+For example, if a list formed as '(1 2 3 ... 100)', the returned
+list will formed as:
+
+#+BEGIN_SRC elisp
+  '((\"001\" . 1)
+    (\"002\" . 2)
+    (\"003\" . 3)
+    ...
+    (\"100\" . 100))
+#+END_SRC
+"
+  (let* ((l-len (length list-var))
+         (register l-len)
+         (counter 0)
+         (step 1)
+         (zero-func
+          (lambda (counter str)
+            (let ((step (length str))
+                  (rtn str))
+              (while (< step counter)
+                (setq rtn (concat "0" rtn)
+                      step (+ 1 step)))
+              rtn)))
+         rtn)
+    (while (not (eq 0 register))
+      (setq register (/ register 10)
+            counter (+ 1 counter)))
+    (dolist (el list-var)
+      (push (cons (funcall zero-func counter (number-to-string step))
+                  el)
+            rtn)
+      (setq step (+ 1 step)))
+    (nreverse rtn)))
+
+
+;; *** Sequence manipulation
+
+(defmacro entropy/emacs-seq-recalc-start-end-common (start end)
+  "Re-calculate START and END value of a `sequencep' sequence which
+indicate a region of the sequence to a regular range i.e when
+both of START and END is non-nil then after the re-calculation
+both START and END are set as `>' 0 or `=' 0 when either of them
+is `<' 0 , and END and START are swapped from `>=' sort after
+calculation.
+
+If START is `null' originally, then just set it as 0 and continue
+the normal calculation.
+
+If END is `null' originally, then it is never modified since a
+nil END conventionally indicates the end of the sequence i.e. the
+`length' of the sequence."
+  (let ((start-sym (make-symbol "start"))
+        (end-sym   (make-symbol "end")))
+    `(let ((,start-sym ,start)
+           (,end-sym ,end))
+       (if (or (null ,start-sym) (< ,start-sym 0))
+           (setf ,start 0 ,start-sym 0))
+       (if (and (not (null ,end-sym)) (< ,end-sym 0))
+           (setf ,end 0 ,end-sym 0))
+       (when ,end-sym
+         (entropy/emacs-swap-two-places-value ,start ,end
+           (< ,end-sym ,start-sym))))))
+
+(cl-defmacro entropy/emacs-seq-recalc-start-end
+    (seq start end &key error-when-overflow &allow-other-keys)
+  "Like `entropy/emacs-seq-recalc-start-end-common' but also support
+negative indicators and optionally support bounding check. Return the
+`length' of SEQ. (tip: this macro return this value since it
+internally calculate the `length' of SEQ so that the caller no need to
+duplcated re-calc the `lenght' of SEQ for saving compute resource.)
+
+For either START and END is negative, it is re-calculated as the index
+from the end position (i.e. the `length') of SEQ negatively moved N
+times where N is the `abs' value of it, before whole process.
+
+When either START or END is less than 0, then START is set to 0 or set
+length of SEQ for END, unless as below:
+
+When ERROR-WHEN-OVERFLOW is set in which case a bound indices error is
+throwed out when either START or END is overflow the `length' of SEQ's
+either of its start or end index"
+  (let ((start-sym (make-symbol "start"))
+        (end-sym   (make-symbol "end"))
+        (seq-sym   (make-symbol "list"))
+        (seq-len-sym (make-symbol "seqlen"))
+        (tmpvar-sym  (make-symbol "tmpvar"))
+        (err-p-sym   (make-symbol "error-when-overflow")))
+    `(let* ((,start-sym ,start)
+            (,end-sym   ,end)
+            (,seq-sym   ,seq)
+            (,seq-len-sym (length ,seq-sym))
+            (,err-p-sym ,error-when-overflow)
+            (,tmpvar-sym nil))
+       (unless (and (null ,start-sym) (null ,end-sym))
+         (if (null ,start-sym) (setq ,start-sym 0))
+         (if (null ,end-sym)   (setq ,end-sym ,seq-len-sym))
+         (dolist (el (list (cons 'start ,start-sym)
+                           (cons 'end   ,end-sym)))
+           (setq ,tmpvar-sym (cdr el))
+           (if (< ,tmpvar-sym 0)
+               (setq ,tmpvar-sym (+ ,seq-len-sym ,tmpvar-sym)))
+           (if (or (< ,tmpvar-sym 0) (> ,tmpvar-sym ,seq-len-sym))
+               (if ,err-p-sym
+                   ;; simulation as `cl-subseq's error
+                   (error "Bad bounding indices: %s, %s"
+                          ,start-sym ,end-sym)
+                 (when (< ,tmpvar-sym 0)
+                   (cond ((eq 'start (car el))
+                          (setq ,start-sym 0))
+                         ((eq 'end (car el))
+                          (setq ,end-sym ,seq-len-sym)))))
+             (cond ((eq 'start (car el))
+                    (setq ,start-sym ,tmpvar-sym))
+                   ((eq 'end (car el))
+                    (setq ,end-sym ,tmpvar-sym))))))
+       (entropy/emacs-seq-recalc-start-end-common
+        ,start-sym ,end-sym)
+       (setf ,start ,start-sym
+             ,end   ,end-sym)
+       ;; return
+       ,seq-len-sym)))
 
 ;; *** Plist manipulation
 
@@ -1676,6 +1862,7 @@ changed.
             (,btr-dotnm . ,btl-dotnm)))
          (lrbrd-align-v-sym (entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym "rect-vertical="))
          (tbbrd-align-h-sym (entropy/emacs-xycrd-rectangle-cmp-vh-letbinds-gen-sym "rect-horizontal="))
+         ;; NOTE: key ':dotnms''s list is order required from top-to-bottom or left-to-right
          (drec-dots `(("left"     :main ,(car dimes-cons)
                        :mate ,(cdr dimes-cons) :dotnms (,tpl-dotnm ,btl-dotnm)
                        :vh-align-sym ,lrbrd-align-v-sym)
@@ -1688,11 +1875,8 @@ changed.
                       ("bottom"   :main ,(cdr dimes-cons)
                        :mate ,(car dimes-cons) :dotnms (,btl-dotnm ,btr-dotnm)
                        :vh-align-sym ,tbbrd-align-h-sym)))
-         (dotnames (entropy/emacs-list-delete-duplicates
-                    (flatten-list (mapcar (lambda (var)
-                                            (plist-get (cdr var) :dotnms))
-                                          drec-dots))
-                    :test 'string=))
+         ;; NOTE: strongly use conventionally order is tpl-tpr-btl-btr to let context clear
+         (dotnames `(,tpl-dotnm ,tpr-dotnm ,btl-dotnm ,btr-dotnm))
          (align-brdnames (mapcar 'car drec-dots))
 
          (cmpsyms '(= < >))
@@ -4873,125 +5057,6 @@ whose predicate '%s' is not an function"
        "%s"
        (format "ERROR: EEMACS-TYPE-SPEC detected fatal of spec %s"
                eemacs-type-spec))))))
-
-;; **** form item replace
-(defun entropy/emacs-replace-form-symbol
-    (form sub-elt replace &optional parse-append)
-  "Replace symbol SUB-ELT occurrences in form FORM with
-replacement REPLACE recursively.
-
-Form was a sequence, which must validated by data predicate
-`sequencep', otherwise throw out a error.
-
-If optional argument PARSE-APPEND is non-nil, the replacement is
-appended injecting into the form but always do not did this way
-when the REPLACE is not a LIST."
-  (unless (sequencep form)
-    (error "Wrong type of argument: sequencep, %s" form))
-  (let (form-patch
-        (vector-form-p (vectorp form)))
-    (mapc
-     (lambda (el)
-       (cond
-        ((and (symbolp el) (eq el sub-elt))
-         (setq form-patch
-               (append form-patch
-                       (if (or (null parse-append)
-                               (not (listp replace)))
-                           `(,replace)
-                         replace))))
-        ((and (sequencep el)
-              (not (stringp el)))
-         (setq form-patch
-               (append form-patch
-                       `(,(entropy/emacs-replace-form-symbol
-                           el sub-elt replace parse-append)))))
-        (t
-         (setq form-patch
-               (append form-patch `(,el))))))
-     form)
-    (if vector-form-p
-        (vconcat form-patch)
-      form-patch)))
-
-;; **** Dolist macro progn sequence port
-(defun entropy/emacs--progn-seq-dolist-core
-    (looper body-list &optional not-do parse-append)
-  "Put pices of forms with same structure based on a list of
-forms BODY-LIST together into a progn form, as `dolist' but
-without using `while' as looper procedure, its generate plenty
-forms with the looper replacement by LOOPER, its useful to
-generate a non-loop batch procedure.
-
-LOOPER is a two elements list whose car was a symbol indicate the
-lexical looper var and the cdr was a quoted list of the
-replacement or a symbol whose value was a list, even for a form to
-generate a list.
-
-If optional argument NOT-DO is non-nil, this function return a
-form represent the procedure, so that you can evaluate later or
-used in other cases.
-
-If optional argument PARSE-APPEND is non-nil, the replacement for
-the looper will inject into the form using appended way, for
-example, if form '(a b c)'s looper 'b' will be replaced by '(1
-2)', when this arg was non-nil, the returned form will be '(a 1 2
-c)'."
-  (let ((sub-elt (car looper))
-        (map-seq (entropy/emacs-eval-with-lexical (cadr looper)))
-        forms)
-    (dolist (replace map-seq)
-      (push
-       (entropy/emacs-replace-form-symbol
-        `(progn
-           ,@body-list)
-        sub-elt replace parse-append)
-       forms))
-    (setq forms
-          (append '(lambda nil)
-                  (list
-                   (append '(progn)
-                           (reverse forms)))))
-    (if not-do
-        forms
-      (funcall forms))))
-
-(defmacro entropy/emacs-progn-seq-dolist (looper &rest body)
-  "A eemacs specified `dolist' macro, like `dolist' but mainly
-has difference without `while' did and used a top `progn' form
-includes all loop elements inside it separately.
-
-The arguments list is same as `dolist' unless there's no RESULT
-optional argument provided.
-
-See `entropy/emacs-progn-seq-dolist-not-do' for non-evaluated
-way.
-
-See `entropy/emacs-progn-seq-dolist-with-parse-append' for
-replacement appended way."
-  `(entropy/emacs--progn-seq-dolist-core
-    ',looper ',body))
-
-(defmacro entropy/emacs-progn-seq-dolist-with-parse-append
-    (looper &rest body)
-  "Same as `entropy/emacs-progn-seq-dolist' but loop replacement
-will be append into the structure. "
-  `(entropy/emacs--progn-seq-dolist-core
-    ',looper ',body nil :parse-append))
-
-(defmacro entropy/emacs-progn-seq-dolist-not-do (looper &rest body)
-  "Same as `entropy/emacs-progn-seq-dolist' but do not evaluate
-the result, return a expanded batch progn type loop form."
-  `(entropy/emacs--progn-seq-dolist-core
-    ',looper ',body t))
-
-(defmacro entropy/emacs-progn-seq-dolist-not-do-with-parse-append
-    (looper &rest body)
-  "Same as `entropy/emacs-progn-seq-dolist-with-parse-append' but
-do not evaluate the result, return a expanded batch progn type
-loop form."
-  `(entropy/emacs--progn-seq-dolist-core
-    ',looper ',body t :parse-append))
 
 ;; **** `eval-after-load' batch port
 (defvar entropy/emacs--eval-after-load-log nil

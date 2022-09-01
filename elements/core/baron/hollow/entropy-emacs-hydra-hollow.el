@@ -368,7 +368,7 @@ its doc for more details."
                     pretty-hydra-cabinet-fake))
             (progn
               (dolist (pt pointer-list)
-                (entropy/emacs-setf-for-nth
+                (entropy/emacs-list-setf-nth
                  (+ pt 1) nil manipulate-list))
               (pop manipulate-list)
               (setq manipulate-list

@@ -233,11 +233,10 @@ anything."
     :bind (:map elisp-slime-nav-mode-map
                 ("C-h o" . elisp-slime-nav-describe-elisp-thing-at-point))
     :init
-    (entropy/emacs-progn-seq-dolist
-     (hook '(emacs-lisp-mode-hook
-             lisp-interaction-mode-hook
-             ielm-mode-hook))
-     (add-hook 'hook #'elisp-slime-nav-mode))))
+    (dolist (hook '(emacs-lisp-mode-hook
+                    lisp-interaction-mode-hook
+                    ielm-mode-hook))
+      (add-hook hook #'elisp-slime-nav-mode))))
 
 ;; Semantic code search for emacs lisp
 (use-package elisp-refs
