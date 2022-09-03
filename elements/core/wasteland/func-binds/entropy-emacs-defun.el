@@ -472,7 +472,7 @@ If WITH-DESTRUCTIVELY is set, the original LIST may be modified
 i.e. when END is not the end of LIST, and the return is use same
 storage as origin. Otherwise return the region as a new list which is
 copy from origin."
-  (entropy/emacs-seq-recalc-start-end list start end)
+  (entropy/emacs-seq-recalc-start-end list start end :with-set-end t)
   (catch :exit
     (if (and end (= start end)) (throw :exit (unless ignore-empty-region (nth start list)))
       (if (and (null end) (null (cdr list)) (= start 0)) (throw :exit (car list))
@@ -867,12 +867,12 @@ nil END conventionally indicates the end of the sequence i.e. the
            (< ,end-sym ,start-sym))))))
 
 (cl-defmacro entropy/emacs-seq-recalc-start-end
-    (seq start end &key error-when-overflow &allow-other-keys)
+    (seq start end &key error-when-overflow with-set-end &allow-other-keys)
   "Like `entropy/emacs-seq-recalc-start-end-common' but also support
 negative indicators and optionally support bounding check. Return the
 `length' of SEQ. (tip: this macro return this value since it
 internally calculate the `length' of SEQ so that the caller no need to
-duplcated re-calc the `lenght' of SEQ for saving compute resource.)
+duplcated re-calc the `length' of SEQ for saving compute resource.)
 
 For either START and END is negative, it is re-calculated as the index
 from the end position (i.e. the `length') of SEQ negatively moved N
@@ -883,7 +883,11 @@ length of SEQ for END, unless as below:
 
 When ERROR-WHEN-OVERFLOW is set in which case a bound indices error is
 throwed out when either START or END is overflow the `length' of SEQ's
-either of its start or end index"
+either of its start or end index
+
+Like `entropy/emacs-seq-recalc-start-end-common', the END is always
+unmodified when it's nil unless WITH-SET-END is non-nil in which case
+END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
   (let ((start-sym (make-symbol "start"))
         (end-sym   (make-symbol "end"))
         (seq-sym   (make-symbol "list"))
@@ -921,316 +925,236 @@ either of its start or end index"
        (entropy/emacs-seq-recalc-start-end-common
         ,start-sym ,end-sym)
        (setf ,start ,start-sym
-             ,end   ,end-sym)
+             ,end   (if (and (not ,with-set-end) (= ,end-sym ,seq-len-sym))
+                        nil ,end-sym))
        ;; return
        ,seq-len-sym)))
 
+(cl-defun entropy/emacs-seq-repeat-find
+    (item seq count &key find-func find-func-args)
+  "Find ITEM in sequence SEQ with COUNT times with finder FIND-FUNC with
+its arguments list FIND-FUNC-ARGS, return the final found `nth'
+postion of SEQ or nil when not found.
+
+FIND-FUNC should be a `cl-postion' argments list order and terms
+compatible function which at least should formed like this:
+: (fn elt seq &key start end)
+And should return the `nth' index of found ELT in SEQ or nil for not
+found. If omitted defaults to `cl-postion'.
+"
+  (let ((count (or count 1))
+        (find-func (or find-func 'cl-position)))
+    (catch :exit
+      (if (= 0 count) (throw :exit nil))
+      (if (= 1 count)
+          (throw :exit
+                 (apply find-func item seq find-func-args)))
+      (let* ((start (plist-get find-func-args :start))
+             (end   (plist-get find-func-args :end))
+             (from-end (plist-get find-func-args :from-end))
+             ;; prevent modified origin arglist
+             (args     (copy-sequence find-func-args))
+             (arg-repl-func
+              (lambda (key value)
+                ;; modify the key's value when the key is found in seq
+                ;; or append them.
+                (let ((mtchp (memq key args)))
+                  (if mtchp (setcdr mtchp (cons value (cddr mtchp)))
+                    (setq args (nconc args (list key value)))))))
+             newpos)
+        (entropy/emacs-seq-recalc-start-end
+         seq start end :error-when-overflow t :with-set-end t)
+        (if (<= end start) (throw :exit nil))
+        (while (> count 0)
+          (funcall arg-repl-func :start start)
+          (funcall arg-repl-func :end end)
+          (setq newpos
+                (apply find-func item seq args))
+          (if newpos
+              (if from-end
+                  (setq end newpos)
+                (setq start (1+ newpos)))
+            (throw :exit nil))
+          (setq count (1- count))
+          (when (> count 0)
+            (if (<= end start) (throw :exit nil))))
+        newpos))))
+
 ;; *** Plist manipulation
 
-(defun entropy/emacs-strict-plistp (arg)
-  "Strict plist true-p checker.
+(defun entropy/emacs-strict-plistp (var)
+  "Return non-nil when VAR is a strict plist.
 
 The strict plist structed as key-value pairs appended list, the
-car of it was key, each key was a symbol must using the ':xx'
-type. Each key's value was grouped that say the key's 2-step
-after place must be key as well, thus the 'strict' meaning."
-  (cond
-   ((or (not (listp arg))
-        (null arg))
-    nil)
-   ((and (listp arg)
-         (= (/ (length arg) 2.0) (/ (length arg) 2)))
-    (let (rtn)
-      (cl-loop for item from 0 to (- (/ (length arg) 2) 1)
-               do (unless (and (symbolp (nth (* item 2) arg))
-                               ;; using `string-match-p' prevent match
-                               ;; history messy
-                               (string-match-p
-                                "^:"
-                                (symbol-name (nth (* item 2) arg))))
-                    (setq rtn t)))
-      (unless rtn
-        t)))
-   (t
-    nil)))
+car of it was a key, each key was a `keywordp' symbol. Each key's
+value was grouped that say the place of any key's second sibling
+must also be a key , thus the *strict* meaning."
+  (let (llen llen-half (llp (listp var)))
+    (if (not llp) nil
+      (if (not (keywordp (car var))) nil
+        (if (< (setq llen (length var)) 2) nil
+          (if (not (= 0 (setq llen-half (% llen 2)))) nil
+            (catch :exit
+              (cl-loop for i from 0 to (1- llen-half)
+                       unless (keywordp (nth (* i 2) var))
+                       do (throw :exit nil))
+              t)))))))
 
-(defun entropy/emacs-common-plistp (arg)
-  "Common plist true-p checker
-
-The common plist structed as key-value pairs appended list, the
-car of it was key, each key was a symbol must using the ':xx'
-type. Each key's value can be omitted thus the 'common' meaning."
-  (cond
-   ((not (listp arg))
-    nil)
-   ((and (listp arg)
-         (not (null arg))
-         (symbolp (car arg)))
-    (let (indicator fake-p (pos 0))
-      (dolist (el arg)
-        (if (and (symbolp el)
-                 ;; using `string-match-p' prevent match
-                 ;; history messy
-                 (string-match-p
-                  "^:"
-                  (symbol-name el)))
-            (setq indicator
-                  (append indicator '(1)))
-          (setq indicator
-                (append indicator '(0)))))
-      (catch :exit
-        (while (< pos (length indicator))
-          (if (= (nth pos indicator) 1)
-              (let ((-pos (+ 1 pos))
-                    (seq-num 0))
-                (while (and (< -pos (length indicator))
-                            (= (nth -pos indicator) 0))
-                  (setq seq-num (+ 1 seq-num)
-                        -pos (+ 1 -pos)))
-                (when (> seq-num 1)
-                  (setq fake-p t)
-                  (throw :exit nil))
-                (if (> -pos (- (- (length indicator) 1) 1))
-                    (throw :exit nil)
-                  (setq pos -pos)))
-            (setq fake-p t)
-            (throw :exit nil))))
-      (if fake-p
-          nil
-        t)))
-   (t nil)))
+(defun entropy/emacs-common-plistp (var)
+  "Like `entropy/emacs-strict-plistp' but allow the key's value be
+omitted i.e. the next car of the key can also be a key or the end of
+list."
+  (let ((llp (listp var)))
+    (if (not llp) nil
+      (if (< (length var) 2) nil
+        (if (not (keywordp (car var))) nil
+          (let ((tpl var))
+            (catch :exit
+              (while (consp tpl)
+                (unless (keywordp (car tpl)) (throw :exit nil))
+                (if (keywordp (cadr tpl))
+                    (setq tpl (cdr tpl))
+                  (setq tpl (cddr tpl))))
+              t)))))))
 
 (defun entropy/emacs-get-plist-form
     (form-plist key &optional type no-error)
   "Like  `plist-get' but for getting the rest form of a key slot.
 
-FORM-PLIST must be an list and no other restriction announced be,
-but the key must be an symbol and formed as ':key' which start
-with an colon which is what emacs plist key name convention, thus
-all, any colon prefixed symbol involved in is treated as an key,
-so as, if the rest args of an key whose has an member of colon
-prefixed symbol will not be getted, which must be an important
-restriction.
+FORM-PLIST must be an list and no other restriction announced be, but
+the key must be an `keywordp' symbol, thus all, any colon prefixed
+symbol involved in is treated as an key, so as, if the rest args of an
+key whose has an member of colon prefixed symbol will not be got which
+must be noticed about.
 
-Do as the same as `plist-get' when TYPE was 't' or 'car'.
+Do as the same as `plist-get' when TYPE was `eq' to 't' or 'car'.
 
-Return a `progn' form when TYPE was nil or omitted or eq 'progn',
-In this case the return form will be nil if the slot's rest form
-are empty, or just presented as an single nil.
+Return a `progn' form when TYPE was nil or omitted or `eq' to 'progn',
+In this case the return form will be nil if the slot's rest forms are
+omitted or just presented as a single 'nil', in which case we treat
+this key has no rest forms.
 
-Return a list when TYPE was 'list'. In this case the return list
-will be nil if the slot's rest form are empty.
+Return a list when TYPE was `eq' to 'list'. In this case the return
+list will be nil if the slot's rest form are omitted.
 
-If NO-ERROR was non-nil, press all the error asserts, in that
-case return nil, otherwise when KEY can not be found in
-FORM-PLIST when type is not an 'car' type described as above,
-throw out an error."
-  (let* ((match (member key form-plist))
-         (rest (cdr match))
-         (is-car (member type '(car t)))
+If NO-ERROR was non-nil, press all the error asserts, and return
+nil. Otherwise when KEY can not be found in FORM-PLIST when TYPE is
+not an kind of `plist-get' type described as above, throw out an
+error."
+  (let* ((key-match-p (memq key form-plist))
+         (rest     (cdr key-match-p))
+         (is-car   (memq type '(car t)))
          (is-progn (or (null type) (eq type 'progn)))
-         (is-list (eq type 'list))
-         (pt 0)
-         (rtn nil))
+         (is-list  (eq type 'list))
+         rest-car rtn)
     (catch :exit
-      (when (null match)
+      (when (null key-match-p)
         (when (or no-error is-car)
           (throw :exit nil))
         (error "Can not match key '%s' in form-plist!" key))
-      (while (and (not (null (nth pt rest)))
-                  (not (and
-                        (symbolp (nth pt rest))
-                        (string-match-p "^:" (symbol-name (nth pt rest))))))
-        (push (nth pt rest) rtn)
-        (cl-incf pt))
+      (while (and (consp rest)
+                  (not (keywordp (setq rest-car (car rest)))))
+        (push rest-car rtn)
+        (setq rest (cdr rest)))
+      (setq rtn (nreverse rtn))
       (unless (null rtn)
         (setq rtn
               (cond
                (is-progn
-                (if (and (= (length rtn) 1)
-                         (null (car rtn)))
-                    nil
-                  `(progn
-                     ,@(reverse rtn))))
-               (is-car
-                (car (reverse rtn)))
-               (is-list
-                `(,@(reverse rtn))))))
+                (if (and (null (car rtn)) (= (length rtn) 1)) nil
+                  `(progn ,@rtn)))
+               (is-car   (car rtn))
+               (is-list `(,@rtn)))))
       rtn)))
-
-(defun entropy/emacs-inject-plist-form (form-plist key &rest inject-forms)
-  "Inject forms INJECT-FORMS into a plist in place of key slot
-KEY, if key can not be matched then append the KEY and thus. This
-function return a form-plist."
-  (let (key-pt
-        key-next-pt
-        (cnt 0)
-        rtn)
-    ;; get key slot place
-    (catch :exit
-      (while (<= cnt (- (length form-plist) 1))
-        (when (eq (nth cnt form-plist) key)
-          (setq key-pt cnt)
-          (throw :exit nil))
-        (cl-incf cnt)))
-
-    (when key-pt
-      ;; get next key slot place
-      (setq cnt (+ key-pt 1))
-      (catch :exit
-        (while (<= cnt (- (length form-plist) 1))
-          (when (and (symbolp (nth cnt form-plist))
-                     (string-match-p "^:" (symbol-name (nth cnt form-plist))))
-            (setq key-next-pt cnt)
-            (throw :exit nil))
-          (cl-incf cnt))))
-
-    (cond
-     ((null key-next-pt)
-      (setq rtn
-            (if key-pt
-                (append form-plist
-                        inject-forms)
-              (append form-plist
-                      (list key)
-                      inject-forms))))
-     (t
-      (let* ((head-list
-              (cl-loop for pt from 0 to (- key-next-pt 1)
-                       collect (nth pt form-plist)))
-             (tail-list
-              (member (nth key-next-pt form-plist) form-plist)))
-        (setq rtn
-              (append head-list
-                      inject-forms
-                      tail-list)))))
-    rtn))
 
 (defalias 'entropy/emacs-get-plist-body 'entropy/emacs-defun--get-real-body)
 
-(defun entropy/emacs-generalized-plist-get
-    (plist top-place prop &optional testfn)
-  "Like `plist-get' but return a cons as car of value get from
-PLIST using PROP and cdr is a =eemacs-generalized-plist-get-form=
-which can be used for `setf' i.e. a PLACE-FORM which can be
-evaluted to return the value as `plist-get' did.
+(cl-defun entropy/emacs-plist-setf
+    (plist key value &key append-new-key set-use-append set-use-expand)
+  "Set key slot of KEY to new value VALUE of a plist PLIST
+destructively. Return the altered PLIST or nil when KEY is not found
+in PLIST.
 
-Always return nil when the prop not valid in plist or its slot is
-omitted i.e. the prop has no value stored in.
+KEY can also be a list of keys in which case the set place is chained
+via the order of those keys in PLIST's child plist.
 
-TOP-PLACE is a symbol or a =eemacs-generalized-plist-get-form=
-where is the PLIST evaluated from.
+When APPEND-NEW-KEY is set, then when KEY is not matched in PLIST or
+its child plist, then the KEY is added in the tail of the PLIST or the
+corresponding child plist, and then VALUE is set there.
 
-Example:
+When SET-USE-APPEND is set, then VALUE is set append the KEY's slot's
+current value or directly did when KEY's value is empty (i.e. its
+sibling is also a key or its sibling is the end of corresponding
+plist.)
 
-#+begin_src emacs-lisp
-  (setq plist-var '(:a 1 :b 2 :c :d 4 :e nil :f))
-
-  (entropy/emacs-generalized-plist-get
-   plist-var 'plist-var :b)
-  ;; => (2 . (car (cdr (cdr (cdr plist-var)))))
-
-  (entropy/emacs-generalized-plist-get
-   plist-var 'plist-var :e)
-  ;; => (nil . (car (cdr (cdr (cdr (cdr (cdr (cdr (cdr (cdr plist-var))))))))))
-
-  (entropy/emacs-generalized-plist-get
-   plist-var 'plist-var :c)
-  ;; => (:d . (car (cdr (cdr (cdr (cdr (cdr plist-var)))))))
-
-  (entropy/emacs-generalized-plist-get
-   plist-var 'plist-var :f)
-  ;; => nil
-
-  (entropy/emacs-generalized-plist-get
-   plist-var 'plist-var :invalid-prop)
-  ;; => nil
-#+end_src
-
-Optional argument TESTFN is set using it as the PROP query
-predicate, default is `eq'.
+When SET-USE-EXPAND is set as non-nil, VALUE is expanded to assosiated
+place only when VALUE is a `proper-list-p' list.
 "
-  (when plist
-    (let ((pos 0)
-          (mcp nil)
-          (testfn (or testfn 'eq)))
-      (setq mcp
-            (catch :exit
-              (dolist (el plist)
-                (when (funcall testfn el prop)
-                  (throw :exit t))
-                (cl-incf pos))
-              nil))
-      (if (and mcp (< (1+ pos) (length plist)))
-          (let ((cnt 0)
-                (formrtn nil))
-            (while (<= cnt pos)
-              (setq formrtn
-                    (if formrtn
-                        `(cdr ,formrtn)
-                      `(cdr ,top-place)))
-              (cl-incf cnt))
-            (cons
-             (plist-get plist prop)
-             `(car ,formrtn)))
-        nil))))
-
-(defun entropy/emacs-generalized-plist-get-batch-mode
-    (plist top-place props &optional testfn)
-  "The batch-mode for `entropy/emacs-generalized-plist-get' where
-PROPS is a list of PROP mapping to PLIST, thus:
-
-#+begin_src emacs-lisp
-  (setq plist-var '(:a 1 :b (:a 1 :b 2 :c 3) :c 3))
-
-  (entropy/emacs-generalized-plist-get-batch-mode
-   plist-var 'plist-var '(:b :b))
-  ;; => (2 . (car (cdr (cdr (cdr (car (cdr (cdr (cdr plist-var)))))))))
-#+end_src
-
-Always return nil when any mapping level's form generated failed
-or PROPS is `null'. Otherwise return as same as
-`entropy/emacs-generalized-plist-get'.
-"
-  (let (macp
-        (cur_top_place top-place)
-        (cur_plist plist)
-        cur_log
-        cur_form
-        cur_value
-        cur_prop)
-    (cond
-     (props
-      (setq macp
-            (catch :exit
-              (while props
-                (setq cur_prop (pop props))
-                (setq cur_log
-                      (entropy/emacs-generalized-plist-get
-                       cur_plist cur_top_place cur_prop testfn)
-                      cur_value (car cur_log)
-                      cur_form (cdr cur_log))
-                (if cur_form
-                    (progn
-                      (setq cur_plist cur_value
-                            cur_top_place cur_form))
-                  (throw :exit nil)))
-              t))
-      (when macp
-        (cons cur_value cur_form)))
-     (t
-      nil))))
-
-(defun entropy/emacs-setf-plist (eemacs-generalized-plist-get-form value)
-  "Apply `setf' to a =eemacs-generalized-plist-get-form=
-EEMACS-GENERALIZED-PLIST-GET-FORM with VALUE.
-
-See `entropy/emacs-generalized-plist-get' and
-`entropy/emacs-generalized-plist-get-batch-mode' for details."
-  (when eemacs-generalized-plist-get-form
-    (entropy/emacs-eval-with-lexical
-     `(setf ,(cdr eemacs-generalized-plist-get-form)
-            ',value))))
+  (unless (consp plist)
+    (signal 'wrong-type-argument (list 'consp plist)))
+  (unless key (signal 'wrong-type-argument (list 'keywordp key)))
+  (let* ((keys (if (listp key) key (list key)))
+         (place plist)
+         (set-use-expand (and set-use-expand (proper-list-p value)))
+         (place-get-func
+          (lambda (l k)
+            (let (exit fp newval)
+              (entropy/emacs-list-map-cdr l
+                :with-exit t
+                (cond
+                 ((eq (car  it) k) (setq place it       exit t))
+                 ((eq (cadr it) k) (setq place (cdr it) exit t))
+                 ;; append new or refuse nesting
+                 ((not (consp (cdr it)))
+                  (if (not append-new-key)
+                      (and place (setq place nil))
+                    (if (not keys)
+                        (setq newval nil)
+                      (setq keys (nreverse keys))
+                      (while keys
+                        (setq newval (cons (pop keys) (or newval nil)))
+                        (unless fp (setq fp newval))))
+                    (setcdr it (cons k newval))
+                    (setq place (or fp (cdr it))
+                          exit t))))
+                exit))))
+         (set-func
+          (lambda nil
+            (let (exit (i 0))
+              (entropy/emacs-list-map-cdr place
+                :with-exit t
+                (if (and (= i 0) (atom (cdr it)))
+                    (progn (setcdr it (if set-use-expand value (list value)))
+                           (setq exit t))
+                  (when (or (atom (cdr it)) (keywordp (cadr it)))
+                    (cond
+                     (set-use-append
+                      (if set-use-expand
+                          (dolist (el (reverse value))
+                            (setcdr it (cons el (cdr it))))
+                        (setcdr it (cons value (cdr it)))))
+                     (t
+                      (let ((tl (cdr it)))
+                        (if set-use-expand
+                            (dolist (el (reverse value))
+                              (setcdr place (setq tl (cons el tl))))
+                          (setcdr place (cons value tl))))))
+                    (setq exit t)))
+                (cl-incf i)
+                exit)))))
+    (catch :exit
+      (let (cur-key)
+        (while (setq cur-key (pop keys))
+          (funcall place-get-func place cur-key)
+          (unless place (throw :exit nil))
+          (if (consp (cadr place))
+              (if keys (setq place (cadr place))
+                (funcall set-func)
+                (throw :exit plist))
+            (if keys (throw :exit nil)
+              (funcall set-func)
+              (throw :exit plist)))))
+      (error "internal error"))))
 
 ;; *** String manipulation
 
@@ -2524,9 +2448,7 @@ Are used internally, do not use it in any way.
 Since the top-level =attributes-plist= is accessed by any subdirs
 mapping procedure, so as on recursively, thus any level mapping
 procedure can modify it by side-effects which called
-=fallback-modification=, this can be did by value get using
-`entropy/emacs-generalized-plist-get-batch-mode' and value set using
-`entropy/emacs-setf-plist'.
+=fallback-modification=, this can be did by using `entropy/emacs-plist-setf'.
 
 But we strongly just modify the DIR-USER-ATTRS, since any non user
 spec slot modification may corrupt the parents rest operations.
@@ -4604,35 +4526,36 @@ newline."
                (set-marker (process-mark proc) (point)))
              (when moving (goto-char (process-mark proc)))))))))
 
-(defun entropy/emacs-chained-eemacs-make-proc-args (eemacs-make-proc-args-list)
-  "Chained sets of `eemacs-make-proc-args-list' one by one
-ordered of a list of thus of EEMACS-MAKE-PROC-ARGS-LIST."
-  (let* ((tail-pt (- (length eemacs-make-proc-args-list) 1))
-         (head-pt (- (length eemacs-make-proc-args-list) 2))
+(defun entropy/emacs-chained-eemacs-make-proc-args
+    (eemacs-make-proc-args-list)
+  "Chained sets of `eemacs-make-proc-args-list' one by one ordered
+of a list of thus of EEMACS-MAKE-PROC-ARGS-LIST."
+  (let* ((llen     (length eemacs-make-proc-args-list))
+         (llmax-pt (1- llen))
+         (tail-pt  llmax-pt)
+         (head-pt  (1- llmax-pt))
          rtn)
-    (cond ((< head-pt 0)
-           (setq rtn (car eemacs-make-proc-args-list)))
-          (t
-           (setq )
-           (while (>= head-pt 0)
-             (cond ((ignore-errors (= tail-pt (- (length eemacs-make-proc-args-list) 1)))
-                    (setq rtn
-                          (entropy/emacs-inject-plist-form
-                           (nth head-pt eemacs-make-proc-args-list)
-                           :after
-                           `(entropy/emacs-make-process
-                             ',(nth tail-pt eemacs-make-proc-args-list))))
-                    (setq tail-pt nil))
-                   (t
-                    (setq rtn
-                          (entropy/emacs-inject-plist-form
-                           (nth head-pt eemacs-make-proc-args-list)
-                           :after
-                           `(entropy/emacs-make-process
-                             ',rtn)))))
-             (setq
-              head-pt (1- head-pt)))))
-    rtn))
+    (if (< head-pt 0)
+        (car eemacs-make-proc-args-list)
+      (while (>= head-pt 0)
+        (if tail-pt
+            (setq rtn
+                  (entropy/emacs-plist-setf
+                   (copy-sequence (nth head-pt eemacs-make-proc-args-list))
+                   :after
+                   `(entropy/emacs-make-process
+                     ',(nth tail-pt eemacs-make-proc-args-list))
+                   :append-new-key t)
+                  tail-pt nil)
+          (setq rtn
+                (entropy/emacs-plist-setf
+                 (copy-sequence (nth head-pt eemacs-make-proc-args-list))
+                 :after
+                 `(entropy/emacs-make-process
+                   ',rtn)
+                 :append-new-key t)))
+        (setq head-pt (1- head-pt)))
+      rtn)))
 
 (defun entropy/emacs-make-process
     (eemacs-make-proc-args)
