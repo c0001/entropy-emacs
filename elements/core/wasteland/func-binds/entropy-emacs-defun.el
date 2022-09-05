@@ -7745,7 +7745,7 @@ invoked after."
 
   (let ((list-var-sym (make-symbol "list-var"))
         (func-body (entropy/emacs-defun--get-real-body body))
-        (func-lambda-sym (make-symbol "func-lamba-var"))
+        (func-lambda-sym (make-symbol "func-lambda-var"))
         (func-body-lambda-sym (make-symbol "func-body-lamba-var"))
         (func-sym (make-symbol "func"))
         (var-sym (make-symbol "var"))
@@ -7845,9 +7845,12 @@ invoked after."
             (cons ',func-body-lambda-sym ,func-body-lambda-sym)
             (cons ',prompt-type-sym ,prompt-type)
             (cons ',initial-func-suffix-name-sym ,initial-func-suffix-name-sym))))
-         (entropy/emacs-eval-with-lexical
-          (list 'defalias (list 'quote ,func-sym)
-                (list 'function ,func-lambda-sym)))
+
+         (defalias ,func-sym ,func-lambda-sym
+           (format "entropy emacs lazy initial wrapper for feature '%s', \
+automatically self-unbound when loaded done."
+                   ,initial-func-suffix-name-sym))
+
          ;; injection
          (let (_)
            (cond
