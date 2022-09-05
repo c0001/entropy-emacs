@@ -442,11 +442,9 @@ macro to use it instead of 'it' as what bind for."
            (setq ,(or with-it-as 'it) (car ,rest-sym)
                  ,rest-sym (cdr ,rest-sym))
            (setq ,body-rtn-sym (progn ,@body)))
-         (when (and (setq ,(or with-it-as 'it) ,rest-sym)
-                    (if ,exit-sym
-                        (not ,body-rtn-sym)
-                      t)
-                    ,with-tail)
+         (when (and ,with-tail
+                    (if ,exit-sym (not ,body-rtn-sym) t)
+                    (setq ,(or with-it-as 'it) ,rest-sym))
            ,@body)))))
 
 (cl-defun entropy/emacs-list-get-region
