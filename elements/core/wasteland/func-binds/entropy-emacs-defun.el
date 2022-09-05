@@ -168,7 +168,7 @@ forcely get that name in USE-OBARRAY."
             (,lsymp-sym (and ,list-sym (symbolp ,list-sym)))
             (,lnullp-sym (null ,list-sym)))
        (if ,lsymp-sym
-           (add-to-list ,list-sym ,elt-sym ,append-sym ,cmpf-sym)
+           (setq ,list-sym (add-to-list ,list-sym ,elt-sym ,append-sym ,cmpf-sym))
          (unless (if ,cmpf-sym
                      (funcall ,cmpf-sym ,elt-sym ,list-sym)
                    (member ,elt-sym ,list-sym))
@@ -180,7 +180,7 @@ forcely get that name in USE-OBARRAY."
              ;; `push' since it build a new list to var form.
              (push ,elt-sym ,list-var))))
        (if ,lsymp-sym
-           (symbol-value ,list-sym)
+           ,list-sym
          (if ,append-sym
              ,list-sym
            ;; the *add to top* type we should use origin form since we
