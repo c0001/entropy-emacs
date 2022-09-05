@@ -640,16 +640,20 @@ The based LIST-BASE element's order index 'get' function using
   "Map a `listp' variable VAR with function FUNC for each element
 of VAR.
 
-This function is like `mapc' but also support dotted
-list (i.e. not predicted by `proper-list-p').
+This function is like `mapc' but also support dotted or circular list
+(i.e. not predicted by `proper-list-p').
+
+NOTE: if VAR is circular list i.e. predicated by
+`entropy/emacs-circular-listp', this map will definitely not stop, if
+you want to stop with conditions use `entropy/emacs-list-map-car'
+instead.
 "
   (unless (listp var)
     (signal 'wrong-type-argument (list 'listp var)))
-  (let (item (rest var))
-    (while rest
-      (setq item (if (listp rest) (car rest) rest)
-            rest (if (listp rest) (cdr rest) nil))
-      (funcall func item))))
+  (if (atom var) nil
+    (entropy/emacs-list-map-car var
+      :with-tail t
+      (funcall func it))))
 
 ;; **** Combinatorics
 (cl-defun __entropy/emacs-gen-list-permutations
