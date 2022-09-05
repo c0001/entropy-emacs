@@ -405,10 +405,8 @@ macro to use it instead of 'it' as what bind for."
            ;; exposed internal let binding
            ,(or with-it-as 'it))
        (when ,rest-sym
-         (while (and (consp ,rest-sym)
-                     (if ,exit-sym
-                         (not ,body-rtn-sym)
-                       t))
+         (while (and (if ,exit-sym (not ,body-rtn-sym) t)
+                     (consp ,rest-sym))
            (setq ,(or with-it-as 'it) ,rest-sym
                  ,rest-sym (cdr ,rest-sym))
            (setq ,body-rtn-sym (progn ,@body)))))))
@@ -439,10 +437,8 @@ macro to use it instead of 'it' as what bind for."
            ;; exposed internal let binding
            ,(or with-it-as 'it))
        (when ,rest-sym
-         (while (and (consp ,rest-sym)
-                     (if ,exit-sym
-                         (not ,body-rtn-sym)
-                       t))
+         (while (and (if ,exit-sym (not ,body-rtn-sym) t)
+                     (consp ,rest-sym))
            (setq ,(or with-it-as 'it) (car ,rest-sym)
                  ,rest-sym (cdr ,rest-sym))
            (setq ,body-rtn-sym (progn ,@body)))
