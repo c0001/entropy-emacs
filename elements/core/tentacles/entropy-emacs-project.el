@@ -196,15 +196,15 @@ can not globally enable that hook and WHY?."
 
 ;; ***** patches
 ;; ****** Make projetile candi predicates persisted
-  (defmacro entropy/emacs-projectile--gen-candi-persist-rule (adv-for &optional remove)
+  (defun entropy/emacs-projectile--gen-candi-persist-rule (adv-for &optional remove)
     "Make projetile candi predicates persisted in the completion
 framework to reduce lagging.
 
 Optional arg REMOVE when non-nil, we remove all the patch by
 previous set."
-    (let ((loaded_var (intern (format "__cspadv_of_candi_persist_%s_loaded" adv-for)))
-          (candi_var (intern (format "__cspadv_of_candi_persist_%s_canids" adv-for)))
-          (adv_func (intern (format "__cspadv_of_candi_persist_adv/%s" adv-for)))
+    (let ((loaded_var  (intern (format "__cspadv_of_candi_persist_%s_loaded" adv-for)))
+          (candi_var   (intern (format "__cspadv_of_candi_persist_%s_canids" adv-for)))
+          (adv_func    (intern (format "__cspadv_of_candi_persist_adv/%s" adv-for)))
           (cancel_func (intern (format "__cspadv_of_candi_persist_reset/%s" adv-for)))
           (cspenv_p (lambda (&rest _)
                       ;; the predicate to ensure we should using
@@ -214,44 +214,42 @@ previous set."
                       ;; such candi predicates that indeed we need
                       ;; persists.
                       (window-minibuffer-p))))
-      `(if (not (null ',remove ))
-           (progn
-             (advice-remove ',adv-for #',adv_func)
-             (dolist (el '(keyboard-quit ivy-done top-level))
-               (advice-remove el
-                              #',cancel_func))
-             (dolist (el '(,loaded_var ,candi_var ,adv_func ,cancel_func))
-               (unintern (symbol-name el) nil)))
-         (defvar ,loaded_var nil)
-         (defvar ,candi_var nil)
-         (defalias ',adv_func
-           (lambda (orig-func &rest orig-args)
-             (if (funcall #',cspenv_p)
-                 (if (or (null ,candi_var)
-                         (null ,loaded_var))
-                     (setq ,loaded_var t
-                           ,candi_var (apply orig-func orig-args))
-                   ,candi_var)
-               (apply orig-func orig-args))))
-         (advice-add ',adv-for :around #',adv_func)
-         (defalias ',cancel_func
-           (lambda (&rest _)
-             (setq ,candi_var nil
-                   ,loaded_var nil)))
-         (dolist (el '(keyboard-quit ivy-done top-level))
-           (advice-add el
-                       :before
-                       #',cancel_func))
-         )))
+      (if (not (null remove))
+          (progn
+            (advice-remove adv-for adv_func)
+            (dolist (el '(keyboard-quit ivy-done top-level))
+              (advice-remove el cancel_func))
+            (dolist (el `(,loaded_var ,candi_var ,adv_func ,cancel_func))
+              (entropy/emacs-unintern-symbol el)))
+        (entropy/emacs-eval-with-lexical
+         `(progn
+            (defvar ,loaded_var nil)
+            (defvar ,candi_var nil)
+            (defalias ',adv_func
+              (lambda (orig-func &rest orig-args)
+                (if (funcall #',cspenv_p)
+                    (if (or (null ,candi_var)
+                            (null ,loaded_var))
+                        (setq ,loaded_var t
+                              ,candi_var (apply orig-func orig-args))
+                      ,candi_var)
+                  (apply orig-func orig-args))))
+            (advice-add ',adv-for :around #',adv_func)
+            (defalias ',cancel_func
+              (lambda (&rest _)
+                (setq ,candi_var nil
+                      ,loaded_var nil)))
+            (dolist (el '(keyboard-quit ivy-done top-level))
+              (advice-add el
+                          :before
+                          #',cancel_func)))))))
 
   ;; EEMACS_MAINTENANCE: persit common projectile list candi
   ;; predicates for reducing lag. These context may have some bug.
   (dolist (el '(counsel-projectile--project-buffers
                 counsel-projectile--project-buffers-and-files
                 counsel-projectile--project-directories))
-    (entropy/emacs-eval-with-lexical
-     `(entropy/emacs-projectile--gen-candi-persist-rule
-       ,el)))
+    (entropy/emacs-projectile--gen-candi-persist-rule el))
 
 ;; ***** simplify ivy transformer
   (defun counsel-projectile-find-file-transformer (str)

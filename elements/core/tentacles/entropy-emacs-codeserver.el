@@ -70,26 +70,25 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
 
 ;; ** hydra hollow
 
-(entropy/emacs-eval-with-lexical
- `(entropy/emacs-lazy-initial-advice-before
-   ',(symbol-value 'entropy/emacs-ide-for-them)
-   "eemacs-IDE-dispatcher-hydra-hollow-init"
-   "eemacs-IDE-dispatcher-hydra-hollow-init"
-   :prompt-type 'prompt-echo
-   :pdumper-no-end t
-   (entropy/emacs-hydra-hollow-common-individual-hydra-define
-    'eemacs-ide-hydra nil
-    '("Server" ()
-      "Diagnostics" ()))
+(entropy/emacs-lazy-initial-advice-before
+ entropy/emacs-ide-for-them
+ "eemacs-IDE-dispatcher-hydra-hollow-init"
+ "eemacs-IDE-dispatcher-hydra-hollow-init"
+ :prompt-type 'prompt-echo
+ :pdumper-no-end t
+ (entropy/emacs-hydra-hollow-common-individual-hydra-define
+  'eemacs-ide-hydra nil
+  '("Server" ()
+    "Diagnostics" ()))
 
-   (entropy/emacs-hydra-hollow-add-for-top-dispatch
-    '("Basic"
-      (("b l"
-        (:eval
-         (entropy/emacs-hydra-hollow-category-common-individual-get-caller
-          'eemacs-ide-hydra))
-        "eemacs IDE dispatcher"
-        :enable t))))))
+ (entropy/emacs-hydra-hollow-add-for-top-dispatch
+  '("Basic"
+    (("b l"
+      (:eval
+       (entropy/emacs-hydra-hollow-category-common-individual-get-caller
+        'eemacs-ide-hydra))
+      "eemacs IDE dispatcher"
+      :enable t)))))
 
 ;; ** xref jumping
 (use-package xref
@@ -140,15 +139,16 @@ Bounds is an cons of (beg . end) point of `current-buffer'"
                       ;; Although its a native map but unified for
                       ;; minibuffer feature autoloading as a fake did.
                       (minibuffer-local-map . minibuffer)))
-      (entropy/emacs-eval-with-lexical
-       `(entropy/emacs-lazy-load-simple ',(cdr map-ob)
-          (define-key ,(car map-ob)
-            (kbd ,key)
-            (lambda ()
-              (interactive)
-              (message
-               "You can not using xref functions in minibuffer"
-               )))))))
+      (entropy/emacs-lazy-load-simple (cdr map-ob)
+        :lexical-bindings `((map-ob . ,map-ob)
+                            (key . ,key))
+        (define-key (symbol-value (car map-ob))
+          (kbd key)
+          (lambda ()
+            (interactive)
+            (message
+             "You can not using xref functions in minibuffer"
+             ))))))
 
 ;; ***** Dwim with `entropy-emacs-structure'
   (defun entropy/emacs-codeserver-xref--show-entry-after-jump (&rest _)
