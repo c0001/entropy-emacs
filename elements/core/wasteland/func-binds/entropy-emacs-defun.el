@@ -153,22 +153,39 @@ forcely get that name in USE-OBARRAY."
 
 (defmacro entropy/emacs-add-to-list
     (list-var element &optional append compare-fn)
-  "Add ELEMENT to the top (the `car') of LIST-VAR unless APPEND is
-non-nil in which case add to the tail of thus.
-
-If ELEMENT is presented in LIST-VAR which be predicated by `member'
-as default (or using COMPARE-FN when its non-nil), do nothing.
-
-The LIST-VAR is modified unless do-nothing happened.
-
-LIST-VAR can be a generalized varaible.
-"
-  `(unless (if (and ,compare-fn t)
-               (funcall ,compare-fn ,element ,list-var)
-             (member ,element ,list-var))
-     (if ,append
-         (setf ,list-var (append ,list-var (list ,element)))
-       (setf ,list-var (push ,element ,list-var)))))
+  "Like `add-to-list' but LIST-VAR can also be a generalized varaible."
+  (let ((cmpf-sym   (make-symbol "compare-fn"))
+        (append-sym (make-symbol "use-append"))
+        (list-sym   (make-symbol "list-var"))
+        (elt-sym    (make-symbol "element"))
+        (lsymp-sym  (make-symbol "listvar-is-symbol-p"))
+        (lnullp-sym (make-symbol "listvar-is-null-p")))
+    `(let* ((,cmpf-sym ,compare-fn)
+            (,append-sym ,append)
+            (,list-sym ,list-var)
+            (,elt-sym ,element)
+            ;; NOTE: we should check nullp since nil is also a symbol
+            (,lsymp-sym (and ,list-sym (symbolp ,list-sym)))
+            (,lnullp-sym (null ,list-sym)))
+       (if ,lsymp-sym
+           (add-to-list ,list-sym ,elt-sym ,append-sym ,cmpf-sym)
+         (unless (if ,cmpf-sym
+                     (funcall ,cmpf-sym ,elt-sym ,list-sym)
+                   (member ,elt-sym ,list-sym))
+           (if ,append-sym
+               (if ,lnullp-sym
+                   (setf ,list-var (list ,elt-sym))
+                 (nconc ,list-sym (list ,elt-sym)))
+             ;; we should use the origin form of list-var while use
+             ;; `push' since it build a new list to var form.
+             (push ,elt-sym ,list-var))))
+       (if ,lsymp-sym
+           (symbol-value ,list-sym)
+         (if ,append-sym
+             ,list-sym
+           ;; the *add to top* type we should use origin form since we
+           ;; use `push'.
+           ,list-var)))))
 
 (defmacro entropy/emacs-setq-single-with-explicit-return (var val)
   "Like `setq' but just for the variable VAR and its value VAL and
@@ -6083,66 +6100,35 @@ Commonly a position in a overlay is that:
 
 ;; *** Hook manipulation
 
-(defmacro entropy/emacs-add-hook-lambda-nil (name hook as-append &rest body)
-  "Biuld auto-named function prefixed by NAME a symbol and inject
-into HOOK wrapped BODY. Appended inject when AS-APPEND is non-nil.
+(cl-defmacro entropy/emacs-add-hook-lambda-nil
+    (hook name &rest body &key use-append use-local &allow-other-keys)
+  "Biuld auto-named function prefixed by NAME a symbol or string
+with body of BODY and inject it into HOOK. Appended injection
+when USE-APPEND is non-nil.
 
-Return the defined function symbol. "
-  (let ()
-    `(let* ((prefix-name-func
-             (lambda ()
-               (intern (format
-                        "entropy/emacs-fake-lambda-nil-for-%s-/random-as-%s-function"
-                        (symbol-name ',name)
-                        (random most-positive-fixnum)))))
-            (prefix-name (funcall prefix-name-func))
-            func-define)
-       ;; Prevent duplicate fboundp
-       (when (fboundp prefix-name)
-         (while (fboundp prefix-name)
-           (setq prefix-name
-                 (funcall prefix-name-func))))
-       (setq func-define
-             (list 'defun prefix-name '()
-                   '(progn ,@body)))
-       (entropy/emacs-eval-with-lexical func-define)
-       (if ,as-append
-           (setq ,hook
-                 (append ,hook (list prefix-name)))
-         (add-hook ',hook
-                   prefix-name))
-       prefix-name)))
+When USE-LOCAL is set, then the function is inject into to HOOK's
+buffer-local variant where invoked from.
 
-(defmacro entropy/emacs-do-without-johns (!hooks-pattern &rest body)
-  "The macro for inhibit some johns in hooks and run body.
-
-!HOOKS-PATTERN is formed as:
-
-   hookname        inhibit-johns
-     |                  |
-     v                  v
-  ((hook0 (hook0-feature0 hook0-feature1 ...))
-   (hook1 (hook1-feature1 hook1-feature1 ...))
-    ...)
-
-While inhibit-johns can be either an list of thus or a single
-symbol t which means disable this hook before run BODY. "
-  `(let (let-core
-         (body ',body))
-     (dolist (pattern ',!hooks-pattern)
-       (if (eq (cadr pattern) t)
-           (push `(,(car pattern) nil) let-core)
-         (push `(,(car pattern)
-                 (delete*
-                  nil
-                  (mapcar (lambda (x)
-                            (unless (member x ',(cadr pattern))
-                              x))
-                          ,(car pattern))))
-               let-core)))
-     (entropy/emacs-eval-with-lexical
-      `(let* ,(reverse let-core)
-         ,@body))))
+Return the defined function name symbol."
+  (declare (indent defun))
+  (let ((name-sym (make-symbol "name"))
+        (fname-sym (make-symbol "func-name"))
+        (body (entropy/emacs-defun--get-real-body body)))
+    `(let* ((,name-sym ,name)
+            (,fname-sym nil))
+       ;; Prevent re-define
+       (while (fboundp
+               (setq ,fname-sym
+                     (intern (format
+                              "eemacs-fake-lambda-nil-for-%s/%s"
+                              (if (stringp ,name-sym) ,name-sym
+                                (symbol-name ,name-sym))
+                              (random most-positive-fixnum))))))
+       (defalias ,fname-sym
+         (lambda (&rest _)
+           ,@body))
+       (add-hook ,hook ,fname-sym ,use-append ,use-local)
+       ,fname-sym)))
 
 ;; *** Color operations
 
@@ -8760,24 +8746,22 @@ stored the error log in
           (intern
            (format "%s-for-emacs-daemon"
                    (symbol-name name)))))
-    (entropy/emacs-eval-with-lexical
-     `(entropy/emacs-add-hook-lambda-nil
-       ,--name--
-       entropy/emacs-daemon-server-after-make-frame-hook
-       'append
-       (condition-case error
-           (progn
-             (if (display-graphic-p)
-                 ,ec-form
-               ,et-form)
-             ,common-form)
-         (error
-          (push (format "[%s]: time: (%s) display-type: (%s) error: (%S)"
-                        ,--name--
-                        (format-time-string "%Y-%m-%d %a %H:%M:%S")
-                        (display-graphic-p)
-                        error)
-                entropy/emacs-with-daemon-make-frame-done-error-log)))))))
+    (entropy/emacs-add-hook-lambda-nil 'entropy/emacs-daemon-server-after-make-frame-hook
+      --name--
+      :use-append t
+      (condition-case error
+          (progn
+            (if (display-graphic-p)
+                (entropy/emacs-eval-with-lexical ec-form)
+              (entropy/emacs-eval-with-lexical et-form))
+            (entropy/emacs-eval-with-lexical common-form))
+        (error
+         (push (format "[%s]: time: (%s) display-type: (%s) error: (%S)"
+                       --name--
+                       (format-time-string "%Y-%m-%d %a %H:%M:%S")
+                       (display-graphic-p)
+                       error)
+               entropy/emacs-with-daemon-make-frame-done-error-log))))))
 
 (when (daemonp)
   ;; reset icon displayable cache while daemon frame makeup

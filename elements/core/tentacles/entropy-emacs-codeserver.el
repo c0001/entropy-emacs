@@ -743,15 +743,13 @@ shutdown since it is managed by the customize variable
      (yas-minor-mode 1)))
 
   ;; fully quit `lsp-mode' charge
-  (entropy/emacs-add-hook-lambda-nil
-   disable-lsp-remains-when-quit
-   lsp-mode-hook
-   nil
-   (when (not (bound-and-true-p lsp-mode))
-     (if (bound-and-true-p lsp-diagnostics-mode)
-         (lsp-diagnostics-mode 0))
-     (if (bound-and-true-p lsp-managed-mode)
-         (lsp-managed-mode 0))))
+  (entropy/emacs-add-hook-lambda-nil 'lsp-mode-hook
+    "disable-lsp-remains-when-quit"
+    (when (not (bound-and-true-p lsp-mode))
+      (if (bound-and-true-p lsp-diagnostics-mode)
+          (lsp-diagnostics-mode 0))
+      (if (bound-and-true-p lsp-managed-mode)
+          (lsp-managed-mode 0))))
 
 ;; ******** lsp union set
   (setq lsp-auto-guess-root t)

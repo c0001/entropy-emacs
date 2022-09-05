@@ -258,10 +258,11 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
 ;; ***** config
   :config
   (when (display-graphic-p)
-    (entropy/emacs-add-hook-lambda-nil
-     web-mode-enable-development-env web-mode-hook 'append
-     (setq-local entropy/emacs-web-development-environment
-                 t))))
+    (entropy/emacs-add-hook-lambda-nil 'web-mode-hook
+      "web-mode-enable-development-env"
+      :use-append t
+      (setq-local entropy/emacs-web-development-environment
+                  t))))
 
 ;; **** Emmet-mode for quick edittng
 (use-package emmet-mode
@@ -352,10 +353,11 @@ set of `entropy/emacs-browse-url-function-get-for-web-preview'."
   (entropy/emacs-lazy-load-simple 'js2-mode
     (require 'js2-old-indent)
     (require 'js2-imenu-extras)
-    (entropy/emacs-add-hook-lambda-nil
-     js2-initialized-common js2-mode-hook 'append
-     (setq-local js2-basic-offset 4)
-     (js2-imenu-extras-mode 1))))
+    (entropy/emacs-add-hook-lambda-nil 'js2-mode-hook
+      "js2-initialized-common"
+      :use-append t
+      (setq-local js2-basic-offset 4)
+      (js2-imenu-extras-mode 1))))
 
 ;; **** js2-refactor
 (use-package js2-refactor
