@@ -3439,8 +3439,8 @@ displayed image as same operated mechanism as
                              (eq (car
                                   (timer--args
                                    entropy/emacs-Man-mode-fit-to-window-timer))
-                                 window)))
-              (Man-fit-to-window window))
+                                 window))
+                  (Man-fit-to-window window)))
             ;; FIXME: why in wc auto center mode the progn did not
             ;; work? (so we use idle timer do as instead)
             (unless entropy/emacs-Man-mode-fit-to-window-timer
@@ -5013,6 +5013,13 @@ successfully both of situation of read persisit of create an new."
 ;; ***** Print variable
 (defvar entropy/emacs-basic-print-variable-history nil)
 
+(defvar entropy/emacs-basic--desc-current-var nil
+  "The current query on variable symbol of `describe-variable'.")
+
+(defvar entropy/emacs-basic--desc-current-var-default-value nil
+  "The current query on variable symbol's `default-value' of
+`describe-variable'.")
+
 (defun entropy/emacs-basic-print-variable-core-func
     (var &optional depth)
   "Print VAR's value recursively according to its type in
@@ -5280,11 +5287,6 @@ from."
              var-sym)
     ))
 
-(defvar entropy/emacs-basic--desc-current-var nil
-  "The current query on variable symbol of `describe-variable'.")
-(defvar entropy/emacs-basic--desc-current-var-default-value nil
-  "The current query on variable symbol's `default-value' of
-`describe-variable'.")
 (defun entropy/emacs-basic--desc-var-preserve-var
     (orig-func &rest orig-args)
   (let ((var (car orig-args)))

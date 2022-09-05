@@ -365,8 +365,8 @@ progress."
         (entropy/emacs-themes-strictly-load-theme
          entropy/emacs-theme-options t)
         (redisplay t))
-    (error "Problem loading theme %s"
-           (symbol-name entropy/emacs-theme-options)))
+    (t
+     (error "Problem loading theme %s" entropy/emacs-theme-options)))
   (when (and (fboundp 'powerline-reset)
              (string-match-p
               "space\\|powerline"

@@ -3913,7 +3913,7 @@ as the origin one <%s> at the first mirror turn."
                            op-log-summary-msg)))))
               ;; insert sub-headers
               (let* (op-attrs
-                     insop-sym
+                     ;; insop-sym
                      insop-name
                      src-node-type
                      dest-node-type
@@ -3986,7 +3986,7 @@ as the origin one <%s> at the first mirror turn."
                                  "\n")))))
                 (dolist (item op-log)
                   (setq op-attrs item
-                        insop-sym (plist-get op-attrs :op-symbol)
+                        ;; insop-sym (plist-get op-attrs :op-symbol)
                         insop-name (plist-get op-attrs :op-name)
                         src-node-type (plist-get op-attrs :src-node-type)
                         dest-node-type (plist-get op-attrs :dest-node-type)
@@ -4723,7 +4723,7 @@ can be used into your form:
                      ;; NOTE & FIXME: sleep waiting for async in
                      ;; interaction session may freeze emacs why? and thus
                      ;; we just used this in noninteraction session.
-                     (bound-and-true-p noninteractive))
+                     noninteractive)
             (entropy/emacs-make-dynamic-symbol-as-same-value
              nil)))
 

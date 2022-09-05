@@ -1188,7 +1188,7 @@ amounts."
                 (floor (log (car cur-prefix) 4))
               cur-prefix))
            (begin-pos
-            (condition-case err
+            (condition-case nil
                 (cond
                  ((null cur-prefix)
                   (outline-back-to-heading)
@@ -1224,12 +1224,12 @@ amounts."
                         (user-error "no org heading found")))))))
            (cur-level
             (or
-             (condition-case err
+             (condition-case nil
                  (funcall see-level)
                (t 0))
              0))
            (end-pos
-            (condition-case err
+            (condition-case nil
                 (progn
                   (outline-end-of-subtree)
                   (point))
