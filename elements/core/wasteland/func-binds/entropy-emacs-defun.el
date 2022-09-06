@@ -709,13 +709,29 @@ and same elements test by TEST or use the same test as
 (defun entropy/emacs-list-butfirst (list &optional n)
   "Like `butlast' but return the new copy of LIST who is the
 portion of LIST by removed first N elements. Removed the car of
-LIST when N is nil or omitted.
+LIST when N is nil or omitted. Return nil when N is overflow.
 
-If you want to make the return as the same storage as LIST, use
+If you want to make the return uses the same storage as LIST, use
 `nthcdr' instead."
   (declare (side-effect-free t))
   (copy-sequence
    (nthcdr (or n 1) list)))
+
+(defun entropy/emacs-list-nbutfirst (list &optional n)
+  "The destructively variant of `entropy/emacs-list-butfirst' and
+modified all references of LIST.
+
+Return altered LIST or nil if the deletion is overflow i.e. N is
+larger than or `=' the `length' of LIST, and also return nil when
+LIST just has only one element or it is `null'.
+
+Only the cell whose car is the last cdr of list is not deleted."
+  (when (and list (consp (cdr list)) (setq n (or n 1)))
+    (let ((i 0))
+      (while (and (< i n)
+                  (entropy/emacs-list-delete-car list)
+                  (setq i (1+ i))))
+      (if (= i n) list))))
 
 (defun entropy/emacs-sort-list-according-to-list
     (list-to-sort list-base &rest cl-keys)
