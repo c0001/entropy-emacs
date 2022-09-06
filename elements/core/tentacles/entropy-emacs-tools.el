@@ -748,9 +748,9 @@ when we update the version of `ialign').
                (cpbdins (copy-sequence bindings))
                cache)
           (dolist (binding cpbdins)
-            (unless (or (entropy/emacs-map-string-match-p
+            (unless (or (entropy/emacs-string-match-p
                          (cdr binding) rules)
-                        (entropy/emacs-map-string-match-p
+                        (entropy/emacs-string-match-p
                          (car binding) rules))
               (push binding cache)))
           (push (append (list group-name) (nreverse cache)) rtn)))

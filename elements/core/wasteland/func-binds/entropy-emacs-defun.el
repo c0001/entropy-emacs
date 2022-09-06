@@ -1286,23 +1286,33 @@ place only when VALUE is a `proper-list-p' list.
 
 ;; *** String manipulation
 
-(defun entropy/emacs-map-string-match-p (str matches)
-    "Batch match a list of regexp strings of MATCHES to a
-specified string STR.
+(cl-defun entropy/emacs-string-match-p
+    (str matches &optional start &key lexical-bindings return-details)
+  "Like `string-match-p' but support list of regexp strings MATCHES,
+return immediately when the first regexp string of MATCHES matched
+string STR.
 
-Each element of MATCHES is a regexp string or a form to build a
-regexp string. Internally the match subroutine use
-`string-match-p'.
+The element of MATCHES can also be a form which evaluated to
+generate a regexp string using `eval' with its lexical context
+LEXICAL-BINDINGS applied to.
 
-Return t when one of MATCHES matched the target, nil for
-otherwise."
-    (let ((rtn 0))
+When optional key RETURN-DETAILS is set, the return is a `cons' of car
+of the which regexp string matched STR and cdr of the origin return."
+  (declare (side-effect-free t))
+  (let (regexp rtn)
+    (catch :exit
       (dolist (el matches)
-        (when (string-match-p (rx (regexp (entropy/emacs-eval-with-lexical el))) str)
-          (cl-incf rtn)))
-      (if (eq rtn 0)
-          nil
-        t)))
+        (setq
+         rtn
+         (string-match-p
+          (setq regexp
+                (or (and (stringp el) el)
+                    (eval el lexical-bindings)))
+          str))
+        (and rtn
+             (throw :exit (if return-details (cons regexp rtn)
+                            rtn))))
+      nil)))
 
 ;; *** Arithmetic manupulation
 ;; **** basic
