@@ -651,6 +651,47 @@ after insertion.
       exit)
     rtn))
 
+(defun entropy/emacs-list-delete-car (list)
+  "Delete car of non-`entropy/emacs-dotted-listp' and `listp' LIST
+destructively with modifies all references to LIST. Return the
+altered LIST or nil while nothing did when LIST is `null' or it
+just has one element."
+  (let ((lcdr (cdr list)))
+    (when (and list (consp lcdr))
+      (setcdr list (cddr list))
+      (setcar list (car lcdr))
+      list)))
+
+(defun entropy/emacs-list-delete-elt (list nth)
+  "Delete element of non-`entropy/emacs-dotted-listp' and `listp'
+LIST at its `nth' position NTH destructively. Return the cdr of
+the origin NTH's `nthcdr' cons-cell or nil when it is the
+deletion of the last element of LIST.
+
+Also return nil when LIST is `null' or it just has one element,
+and without any modification.
+
+All references to LIST is modified when deletion operated.
+
+(see also `entropy/emacs-list-delete-car' for car deletion)
+(see also `entropy/emacs-list-insert-newelt' for adding new
+element to LIST)."
+  (let ((i 0) exit it-parent rtn)
+    (entropy/emacs-list-map-cdr list
+      :with-exit t
+      (when (= i nth)
+        (if (consp (cdr it))
+            (setq rtn (entropy/emacs-list-delete-car it))
+          ;; for tail of at least 2 elt list.
+          (when it-parent
+            (setcdr it-parent nil)
+            (setq rtn nil)))
+        (setq exit t))
+      (setq it-parent it
+            i (1+ i))
+      exit)
+    rtn))
+
 (cl-defun entropy/emacs-list-has-same-elements-p (lista listb &key test)
   "Return non-nil if two list is equalization as has same `length'
 and same elements test by TEST or use the same test as
