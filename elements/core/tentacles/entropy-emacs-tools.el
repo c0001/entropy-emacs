@@ -753,7 +753,7 @@ when we update the version of `ialign').
                         (entropy/emacs-string-match-p
                          (car binding) rules))
               (push binding cache)))
-          (push (append (list group-name) (nreverse cache)) rtn)))
+          (push (nconc (list group-name) (nreverse cache)) rtn)))
       (nreverse rtn)))
 
   (defun entropy/emacs-tools--dmm-adv-for-section-builder (orig-func &rest orig-args)

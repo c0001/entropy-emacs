@@ -42,6 +42,7 @@
       'entropy-emacs-comment-dwim)))
 
 (defun entropy-emacs-comment-dwim (&rest args)
+  "DIWM for current context's docstring or commentary boundaries."
   (declare (interactive-only t))
   (interactive)
   (cond
