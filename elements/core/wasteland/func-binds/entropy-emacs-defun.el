@@ -597,6 +597,60 @@ which case it point to the last `atom' cdr of LIST."
                (cl-incf i)))
         exit))))
 
+(defun entropy/emacs-list-add-car (list newcar)
+  "Modify `listp' LIST destructively for let LIST's cdr has same
+elements (and with same order) as what current LIST has, and
+replace car of LIST to NEWCAR.
+
+Unlike `add-to-list' or `push', this function will modify all
+references of LIST, since we changed LIST it self instead of its
+current used reference.
+
+Return the altered LIST or nil while LIST is `null' without did
+modification."
+  (when list
+    (setcdr list (cons (car list) (cdr list)))
+    (setcar list newcar)
+    list))
+
+(defun entropy/emacs-list-add-cadr (list newcadr)
+  "Modify `listp' LIST destructively for let NEWCADR be the new `cadr' of
+LIST with preserve its origin `cdr' as the `cddr' of altered LIST.
+
+This function is a right injection variant of
+`entropy/emacs-list-add-car'. Return the altered `cdr' of LIST or
+nil while LIST is `null' without did modification."
+  (when list
+    (setcdr list (cons newcadr (cdr list)))
+    (cdr list)))
+
+(defun entropy/emacs-list-insert-newelt
+    (list nth newelt &optional at-right)
+  "Insert a new element NEWELT into `lisp' LIST at pos of `nth' NTH
+in destructively way.
+
+If AT-RIGHT is non-nil inserts the NEWELT to the right of NTH, or
+defaultly inserts it into left of NTH.
+
+Return the cons-cell of which NEWELT inserted i.e. the sub-list
+of LIST whose car is the NEWELT or nil while nothing did i.e NTH
+is overflow or LIST is `null'. All references of LIST is modified
+after insertion.
+
+(see also `entropy/emacs-list-add-car' for left insertion)
+(see also `entropy/emacs-list-add-cadr' for right insertion)"
+  (let ((i 0) exit rtn)
+    (entropy/emacs-list-map-cdr list
+      :with-exit t
+      (when (= nth i)
+        (if at-right
+            (setq rtn (entropy/emacs-list-add-cadr it newelt))
+          (setq rtn (entropy/emacs-list-add-car it newelt)))
+        (setq exit t))
+      (cl-incf i)
+      exit)
+    rtn))
+
 (cl-defun entropy/emacs-list-has-same-elements-p (lista listb &key test)
   "Return non-nil if two list is equalization as has same `length'
 and same elements test by TEST or use the same test as
