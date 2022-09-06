@@ -733,35 +733,6 @@ Only the cell whose car is the last cdr of list is not deleted."
                   (setq i (1+ i))))
       (if (= i n) list))))
 
-(defun entropy/emacs-sort-list-according-to-list
-    (list-to-sort list-base &rest cl-keys)
-  "Return a new copy of LIST-TO-SORT with sort it as the same order
-of what each elements' order in LIST-BASE.
-
-The based LIST-BASE element's order index 'get' function using
-`cl-position', so as the optional keypairs are `apply' to the
-[keyword-value]... part of that function. Internally does use
-[:test `equal'] defaulty since the two list's element may not be
-`eq' even has same structure but we consider that is same.
-
-(fn LIST-TO-SORT LIST-BASE [KEYWORD VALUE]...)"
-  (let ((rtn (copy-sequence list-to-sort))
-        (default-keys '(:test equal)))
-    (setq rtn
-          (sort
-           rtn
-           (lambda (a b)
-             (let ((apos (apply 'cl-position
-                                a list-base (or cl-keys default-keys)))
-                   (bpos (apply 'cl-position
-                                b list-base (or cl-keys default-keys))))
-               (cond
-                ((and apos bpos)
-                 (> bpos apos))
-                (t
-                 nil))))))
-    rtn))
-
 ;; ***** Map
 
 (defun entropy/emacs-map-list-common (func var)
@@ -1105,6 +1076,37 @@ found. If omitted defaults to `cl-postion'.
           (when (> count 0)
             (if (<= end start) (throw :exit nil))))
         newpos))))
+
+(defun entropy/emacs-sort-seq-according-to-seq
+    (seq-to-sort seq-base &optional with-side-effects &rest cl-keys)
+  "Make sequence SEQ-TO-SORT sorted as the same order of what each
+elements' order in sequence SEQ-BASE.
+
+Both SEQ-TO-SORT and SEQ-BASE should be a list or
+vector. SEQ-TO-SORT is modified by side effects only when
+WITH-SIDE-EFFECTS is set. Return a new copy sorted sequence of
+SEQ-TO-SORT or the altered SEQ-TO-SORT when WITH-SIDE-EFFECTS is
+non-nil. SEQ-BASE is never modified.
+
+The SEQ-BASE element's order index 'get' function using
+`cl-position', so as the optional CL-KEYS are `apply' to the
+[KEYWORD VALUE]... part of that function. Internally does use
+[:test `equal'] defaulty since the two sequence's element may not
+be `eq' even has same structure but we consider that is same.
+
+(fn SEQ-TO-SORT SEQ-BASE &optional WITH-SIDE-EFFECTS [KEYWORD VALUE]...)"
+  (let ((rtn (if with-side-effects seq-to-sort
+               (copy-sequence seq-to-sort)))
+        (default-keys '(:test equal)))
+    (sort
+     rtn
+     (lambda (a b)
+       (let ((apos (apply 'cl-position
+                          a seq-base (or cl-keys default-keys)))
+             (bpos (apply 'cl-position
+                          b seq-base (or cl-keys default-keys))))
+         (when (and apos bpos)
+           (< apos bpos)))))))
 
 ;; *** Plist manipulation
 
