@@ -768,22 +768,22 @@ Only the cell whose car is the last cdr of list is not deleted."
 
 ;; ***** Map
 
-(defun entropy/emacs-list-mapc (func var)
-  "Map a `listp' variable VAR with function FUNC for each element
+(defun entropy/emacs-list-mapc (func list)
+  "Map a `listp' variable LIST with function FUNC for each element
 of VAR.
 
-This function is like `mapc' but also support dotted or circular list
-(i.e. not predicted by `proper-list-p').
+This function is like do `mapc' for a list but also support dotted or
+circular list (i.e. not predicted by `proper-list-p').
 
-NOTE: if VAR is circular list i.e. predicated by
+NOTE: if LIST is circular list i.e. predicated by
 `entropy/emacs-circular-listp', this map will definitely not stop, if
 you want to stop with conditions use `entropy/emacs-list-map-car'
 instead.
 "
-  (unless (listp var)
-    (signal 'wrong-type-argument (list 'listp var)))
-  (if (atom var) nil
-    (entropy/emacs-list-map-car var
+  (unless (listp list)
+    (signal 'wrong-type-argument (list 'listp list)))
+  (if (atom list) nil
+    (entropy/emacs-list-map-car list
       :with-tail t
       (funcall func it))))
 
