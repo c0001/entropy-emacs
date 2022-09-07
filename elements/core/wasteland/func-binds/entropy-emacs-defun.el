@@ -410,21 +410,21 @@ when the last form of CONNDITIONS evaluated return non-nil."
 ;; **** Basics
 ;; ***** Core
 
-(defsubst entropy/emacs-dotted-listp (list)
-  "Return non-nil if LIST is a dotted end list and is not a
-circular list.
+(defsubst entropy/emacs-dotted-listp (object)
+  "Return non-nil if OBJECT is a dotted end `listp' list and is not
+a circular list.
 
 In other word, a dotted list is a list whose last cdr is a
 `atom'.
 
 (see also `entropy/emacs-circular-listp' for circular list explanation.)"
-  (catch :exit
-    (if (proper-list-p list)
-        (throw :exit nil))
-    (when (entropy/emacs-circular-listp
-           list :internal-without-check-proper t)
-      (throw :exit nil))
-    t))
+  (and (listp object)
+       (catch :exit
+         (if (proper-list-p object) (throw :exit nil))
+         (when (entropy/emacs-circular-listp
+                object :internal-without-check-proper t)
+           (throw :exit nil))
+         t)))
 
 (defsubst entropy/emacs-lonely-listp (object)
   "Return non-nil when OBJECT is a `proper-list-p' list and just
@@ -563,9 +563,9 @@ copy from origin."
             exit)
           beglist)))))
 
-(cl-defun entropy/emacs-circular-listp (list &key internal-without-check-proper)
-  "Return the `safe-length' of LIST when its a circular list or nil
-while its a `proper-list-p' list or a non-circular
+(cl-defun entropy/emacs-circular-listp (object &key internal-without-check-proper)
+  "Return the `safe-length' of OBJECT when its a circular `listp'
+list or nil while its a `proper-list-p' list or a non-circular
 `entropy/emacs-dotted-listp' list.
 
 A circular list is a kind of list with self or portion circularity
@@ -593,24 +593,32 @@ To build a portion-circular list do:
 in which case the var 'foo' is circular at `cddr' with self-circular
 list 'bar', in other word foo is portion-circular.
 "
-  (unless (listp list)
-    (signal 'wrong-type-argument `(listp ,list)))
-  (catch :exit
-    (when (and (not internal-without-check-proper)
-               (proper-list-p list))
-      (throw :exit nil))
-    (let* ((llen (safe-length list))
-           (mplv (1- llen))
-           (i 0)
-           exit rtn)
-      (entropy/emacs-list-map-cdr list
-        :with-exit t
-        (when (= i mplv)
-          (setq exit t)
-          (if (consp (cdr it)) (setq rtn t)))
-        (cl-incf i)
-        exit)
-      rtn)))
+  (and
+   ;; a circal list is at least non-nil since nil is `proper-list-p'
+   object
+   (listp object)
+   (catch :exit
+     (when (and (not internal-without-check-proper)
+                (proper-list-p object))
+       (throw :exit nil))
+     (let* ((llen (safe-length object))
+            (mplv (1- llen))
+            (i 0)
+            exit rtn)
+       (entropy/emacs-list-map-cdr object
+         :with-exit t
+         (when (= i mplv)
+           (setq exit t)
+           (if (consp (cdr it)) (setq rtn t)))
+         (cl-incf i)
+         exit)
+       rtn))))
+
+(defsubst entropy/emacs-common-listp (object)
+  "Return the `length' of OBJECT if it is a `proper-list-p' and
+non-nil list, or nil otherwise."
+  (declare (side-effect-free t))
+  (and object (proper-list-p object)))
 
 (cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr)
   "Replace `nth' N of `listp' LIST with replacement REPLACE by
