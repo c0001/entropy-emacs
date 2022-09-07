@@ -787,7 +787,7 @@ instead.
       :with-tail t
       (funcall func it))))
 
-(defun entropy/emacs-list-map-replace (list func)
+(defun entropy/emacs-list-map-replace (func list)
   "Call function FUNC for each element of `listp' list and replace
 the element with the return of FUNC, in destructively way. Return
 the altered LIST or nil when LIST is `null'."
