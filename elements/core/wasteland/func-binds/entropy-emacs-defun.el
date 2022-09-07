@@ -426,11 +426,16 @@ In other word, a dotted list is a list whose last cdr is a
       (throw :exit nil))
     t))
 
-(defsubst entropy/emacs-lonely-listp (var)
-  "Return non-nil when VAR is a `proper-list-p' list and just has
-a single element."
-  (and (consp var)
-       (null (cdr var))))
+(defsubst entropy/emacs-lonely-listp (object)
+  "Return non-nil when OBJECT is a `proper-list-p' list and just
+has a single element."
+  (and (consp object)
+       (null (cdr object))))
+
+(defsubst entropy/emacs-double-list (object)
+  "Return a list who has a single element who is a list and has a
+single element OBJECT."
+  (list (list object)))
 
 (cl-defmacro entropy/emacs-list-map-cdr
     (list &rest body &key with-exit with-it-as &allow-other-keys)
