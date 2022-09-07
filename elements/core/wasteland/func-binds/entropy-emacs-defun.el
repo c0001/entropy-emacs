@@ -215,6 +215,33 @@ on.
      (setq ,var ,val)
      ,var))
 
+(defmacro entropy/emacs-call-function (func &rest args)
+  "Call FUNCTION with ARGS and return its value.
+
+The main exist reason for this macro is used to clear out the
+lisp coding type."
+  (declare (indent defun))
+  `(apply ,func ,@(or args (list nil))))
+
+(defmacro entropy/emacs-setf-by-body (var &rest body)
+  "Run BODY and using its last form's evaluated value set to a
+generalized variable VAR i.e rely on `setf'. Return VAR's new
+value.
+
+The main exist reason for this macro is used to clear out the
+lisp coding type."
+  (declare (indent defun))
+  `(setf ,var (progn ,@body)))
+
+(defmacro entropy/emacs-setf-by-func (var func &rest args)
+  "Call FUNCTION with its ARGS and set its value to variable VAR by
+`setf'. Return FUNC's evaluated value.
+
+The main exist reason for this macro is used to clear out the
+lisp coding type."
+  (declare (indent defun))
+  `(setf ,var (apply ,func ,@(or args (list nil)))))
+
 ;; **** Apis with when wrapper
 (defmacro entropy/emacs-when-defun
     (name arglist condition-form &optional docstring &rest body)
@@ -398,6 +425,12 @@ In other word, a dotted list is a list whose last cdr is a
            list :internal-without-check-proper t)
       (throw :exit nil))
     t))
+
+(defsubst entropy/emacs-lonely-listp (var)
+  "Return non-nil when VAR is a `proper-list-p' list and just has
+a single element."
+  (and (consp var)
+       (null (cdr var))))
 
 (cl-defmacro entropy/emacs-list-map-cdr
     (list &rest body &key with-exit with-it-as &allow-other-keys)
@@ -5017,11 +5050,15 @@ will be evaluated as the result to return. But this is good context
 readable convention to write the forms after an =:body= key in the
 exp, and is useful for this DT further more features, see below:
 
-If an =:sbody= is presented in the exp, then it will concated to
-the tail of the =:body= and each item in =:sbody= is an
-=eemacs-type-spec= which will be evaluated to be item in the tail
-of the =:body= `progn' form. In this case, if no =:body= is
-indicated in exp, then any other spec will be ignored.
+If an =:sbody= is presented in the exp, then it will concated to the
+tail of the =:body= and each item in =:sbody= is an =eemacs-type-spec=
+which will be evaluated to be item in the tail of the =:body= `progn'
+form. In this case, if no =:body= is indicated in exp, then any other
+spec will be ignored and a error threw out.
+
+After generate the form, the form is `eval' with its LEXICAL arg got
+by key =:lexical= in exps and its also a =eemacs-type-spec= and will
+be evaluated before using it.
 
 *Restriction*:
 
@@ -5031,85 +5068,68 @@ the same key name of any of the specified exp specification,
 please using quote to wrapped it out e.g. `(quote :body)' if not
 effect the expection or try use another way to avoid this.
 "
-  (let ((type (ignore-errors (car eemacs-type-spec)))
-        (exp (ignore-errors (cdr eemacs-type-spec)))
+  (let ((type (car-safe eemacs-type-spec))
+        (exp  (cdr-safe eemacs-type-spec))
         (symbol-mean-p
          (lambda (arg &optional get-val)
            "judge the general mean of symbol in this function"
-           (let (rtn use-carp)
-             (setq
-              rtn
-              (or (and (symbolp arg) t)
-                  (and (listp arg)
-                       (= 1 (length arg))
-                       (symbolp (car arg))
-                       (setq use-carp t))))
-             (if rtn
-                 (if get-val
-                     (if use-carp
-                         (car arg)
-                       arg)
-                   t)
-               nil))))
+           (let* (use-carp
+                  (rtn (or (and (symbolp arg) t)
+                           (and (entropy/emacs-lonely-listp arg)
+                                (symbolp (car arg))
+                                (setq use-carp t)))))
+             (if rtn (if get-val (if use-carp (car arg) arg) t)))))
         (error-type-fatal
-         (lambda (type)
+         (lambda (type &optional msg)
            (error (format
-                   "\
-[error] EEMACS-TYPE-SPEC of <%s> is not recognized for spec '%s'"
-                   eemacs-type-spec type))))
-        )
+                   "[error] EEMACS-TYPE-SPEC of <%s> is not valid for instance '%s': %s"
+                   type eemacs-type-spec msg)))))
     (cond
      ;; function type
      ((eq type 'EEMACS-DT-FUNC)
       (cond
-       ((or (funcall symbol-mean-p exp)
-            (functionp exp))
-        (if (functionp exp)
-            (funcall exp)
-          (funcall
-           (funcall symbol-mean-p exp t))))
+       ((functionp exp) (funcall exp))
+       ((funcall symbol-mean-p exp)
+        (let ((func (funcall symbol-mean-p exp t)))
+          (unless (functionp func)
+            (funcall error-type-fatal 'EEMACS-DT-FUNC
+                     (format "symbol '%s' is not a function" func)))
+          (funcall func)))
        ((listp exp)
-        (let ((args
-               (mapcar
-                (lambda (eemacs-type-spec)
-                  (entropy/emacs-type-spec-eval
-                   eemacs-type-spec))
-                (entropy/emacs-get-plist-form
-                 exp :args 'list t)))
-              (predicate
-               (entropy/emacs-type-spec-eval
-                (entropy/emacs-get-plist-form
-                 exp :predicate 'car t))))
+        (let ((args (mapcar
+                     (lambda (x) (entropy/emacs-type-spec-eval x))
+                     (entropy/emacs-get-plist-form
+                      exp :args 'list t)))
+              (predicate (entropy/emacs-type-spec-eval
+                          (entropy/emacs-get-plist-form
+                           exp :predicate 'car t))))
           (unless (functionp predicate)
-            (error
-             (format "[error] EEMACS-TYPE-SPEC of <EEMACS-DT-FUNC> \
-whose predicate '%s' is not an function"
-                     predicate)))
+            (funcall error-type-fatal 'EEMACS-DT-FUNC
+                     (format "predicate %s is not a function" predicate)))
           (apply predicate args)))
        (t
         (funcall error-type-fatal 'EEMACS-DT-FUNC))))
      ;; form type
      ((eq type 'EEMACS-DT-FORM)
-      (let ((body (entropy/emacs-get-plist-form exp :body 'list t))
-            (sbody (entropy/emacs-get-plist-form exp :sbody 'list t))
-            form-get)
+      (let* ((body    (entropy/emacs-get-plist-form exp :body 'list t))
+             (sbody   (entropy/emacs-get-plist-form exp :sbody 'list t))
+             (lexical (entropy/emacs-get-plist-form exp :lexical 'car t))
+             (_       (when lexical
+                        (entropy/emacs-setf-by-body lexical
+                          (entropy/emacs-type-spec-eval lexical))))
+             form-get)
         (if (and (null body)
                  (null sbody))
             (setq form-get (append (list 'progn) exp))
-          (setq form-get
-                (if body
-                    (append (list 'progn)
-                            body)))
+          (setq form-get (if body (append (list 'progn) body)
+                           (funcall error-type-fatal 'EEMACS-DT-FORM)))
           (when sbody
-            (setq form-get
-                  (append
-                   form-get
-                   (mapcar
-                    (lambda (eemacs-type-spec)
-                      (entropy/emacs-type-spec-eval
-                       eemacs-type-spec))
-                    sbody)))))
-        (entropy/emacs-eval-with-lexical form-get)))
+            (entropy/emacs-setf-by-func form-get 'append
+              form-get
+              (mapcar
+               (lambda (x) (entropy/emacs-type-spec-eval x))
+               sbody))))
+        (eval form-get lexical)))
      ;; identity type
      ((eq type 'EEMACS-DT-IDENTITY)
       exp)
