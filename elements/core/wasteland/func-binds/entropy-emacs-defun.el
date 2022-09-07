@@ -768,7 +768,7 @@ Only the cell whose car is the last cdr of list is not deleted."
 
 ;; ***** Map
 
-(defun entropy/emacs-map-list-common (func var)
+(defun entropy/emacs-list-mapc (func var)
   "Map a `listp' variable VAR with function FUNC for each element
 of VAR.
 
@@ -786,6 +786,15 @@ instead.
     (entropy/emacs-list-map-car var
       :with-tail t
       (funcall func it))))
+
+(defun entropy/emacs-list-map-replace (list func)
+  "Call function FUNC for each element of `listp' list and replace
+the element with the return of FUNC, in destructively way. Return
+the altered LIST or nil when LIST is `null'."
+  (when list
+    (entropy/emacs-list-map-cdr list
+      (setcar it (funcall func (car it))))
+    list))
 
 ;; **** Combinatorics
 (cl-defun __entropy/emacs-gen-list-permutations

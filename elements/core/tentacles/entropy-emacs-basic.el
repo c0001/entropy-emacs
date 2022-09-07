@@ -5079,7 +5079,7 @@ successfully both of situation of read persisit of create an new."
           (if (null x)
               (funcall ',indent-insert-func "nil")
             (funcall ',indent-insert-func "(\n")
-            (entropy/emacs-map-list-common
+            (entropy/emacs-list-mapc
              (lambda (y)
                (funcall
                 (plist-get
