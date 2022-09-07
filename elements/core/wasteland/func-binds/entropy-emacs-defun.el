@@ -5288,44 +5288,68 @@ the same NAME-SYMBOL is shared one lazy function defination."
 ;; **** Range form generation
 ;; ***** generate symbol/string from range description
 
-(defun entropy/emacs-generate-symbols-or-strings-from-range-desc
-    (this-range-descs &optional make-symbol concat concat-separater)
-  "Generate list of symbols or strings from RANGE-DESCS.
+(cl-defun entropy/emacs-generate-symbols-or-strings-from-range-desc
+    (this-range-descs &key make-symbol concat concat-separater)
+  "Generate list of symbols or strings from THIS-RANGE-DESCS.
 
-RANGE-DESCS is a list of RANGE-DESC which formed as one of below:
+THIS-RANGE-DESCS is a list of RANGE-DESC which formed as one of below:
 
-``` elisp
-(:type collection
- :fmstr \"l0_%s\"
- :range-descs ((:type number_range     :range (1 . 100))
-               (:type char_range       :range (65 . 90))
-               (:type func             :func funcname :argslist (arg1 arg2 arg3 ...))
-               (:type enum             :enum_str_list (el1 el2 el3 ...)))
- :sep \".\")
+#+begin_src elisp
+  ;; get list of strings from a specified number range
+  (:type number_range :fmstr \"l1_%s\" :range (10 . 90)   :sep \"...\")
+  ;; get list of strings from a specified character range
+  (:type char_range   :fmstr \"l2_%s\" :range (115 . 200) :sep \"___\")
+  ;; get list of strings from a specified list of elements
+  (:type enum
+         :enum_str_list (l3_0 l3_1 l3_2 ...)
+         :sep \" \")
+  ;; get list of strings from a specified sets return by a function
+  ;; applied with :arglist
+  (:type func
+         :func funcname :argslist (arg1 arg2 ...)
+         :sep \"---\")
+  ;; collect sets of types and merge all of their productions
+  ;; into a single string list
+  (:type collection
+         :fmstr \"l0_%s\"
+         :range-descs ((:type number_range     :range (1 . 100))
+                       (:type char_range       :range (65 . 90))
+                       (:type func             :func funcname :argslist (arg1 arg2 arg3 ...))
+                       (:type enum             :enum_str_list (el1 el2 el3 ...)))
+         :sep \".\")
+#+end_src
 
-(:type number_range :fmstr \"l1_%s\" :range (10 . 90)   :sep \"...\")
+Each RANGE-DESC is used to generate a list of strings from a range or
+sets (a list) which `format' by each type's format string =:fmstr= if
+that type interally defined for and its separator =:sep=. Obey the
+types order defined in THIS-RANGE-DESCS, construct the a final list of
+strings from combining the each string lists produced by each
+RANGE-DESC from the first to the last i.e. if we have three RANGE-DESC
+in THIS-RANGE-DESCS and each of them produced a list of two strings,
+then final we will get the final list of eight strings.
 
-(:type char_range   :fmstr \"l2_%s\" :range (115 . 200) :sep \"___\")
+When MAKE-SYMBOL is non-nil the result is a list of symbol using
+`make-symbol' instead of a list of string.
 
-(:type enum
- :enum_str_list (l3_0 l3_1 l3_2 ...)
- :sep \" \")
+When CONCAT is non-nil and not in a symbol return case, we return a
+string concated with each string of the result optionally with
+separater CONCAT-SEPARATER which is also a string.
 
-(:type func
- :func funcname :argslist (arg1 arg2 ...)
- :sep \"---\"
-```
-when MAKE-SYMBOL is non-nil we export a list of symbol, otherwise list of string.
+Example to generate a IPv4 address mask range defined as 192.x.x.x
 
-In list of string return type, when CONCAT is non-nil we return a
-string concated with each string of the list of string optional with
-separater CONCAT-SEPARATER when non-nil.
+#+begin_src elisp
+  '((:type enum :enum_str_list (\"192\") :sep \".\")
+    (:type number_range :fmstr \"%d\" :range (1 . 168) :sep \".\")
+    (:type number_range :fmstr \"%d\" :range (1 . 3) :sep \".\")
+    (:type number_range :fmstr \"%d\" :range (1 . 255) :sep \"\"))
+#+end_src
 "
-  (let* (sparse-list rtn
+  (let* (sparse-list
+         rtn
          (gen/from/number_range
           (lambda (range fmstr sep)
             (cl-loop for var from (car range) to (cdr range)
-                     collect (format "%s%s" (format (or fmstr "%s") (number-to-string var))
+                     collect (format "%s%s" (format (or fmstr "%s") var)
                                      (or sep "")))))
          (gen/from/char_range
           (lambda (range fmstr sep)
@@ -5374,28 +5398,29 @@ separater CONCAT-SEPARATER when non-nil.
                 (setq group-rtn
                       (append group-rtn
                               (funcall gen/from/core-func subrange))))
-              (mapcar (lambda (str) (format "%s%s" (format (or fmstr "%s") str) (or sep "")))
-                      group-rtn))))
+              (entropy/emacs-list-map-replace
+               (lambda (str) (format "%s%s" (format (or fmstr "%s") str) (or sep "")))
+               group-rtn))))
 
          (concat-func
           (lambda (str-list1 str-list2)
             (let (rtn)
               (dolist (el1 str-list1)
                 (dolist (el2 str-list2)
-                  (setq rtn (append rtn (list (concat el1 el2))))))
+                  (entropy/emacs-nconc-with-setvar rtn
+                    (list (cons (concat el1 el2) nil)))))
               rtn))))
 
     (dolist (el this-range-descs)
-      (setq sparse-list
-            (append sparse-list
-                    (list
-                     (cond ((eq (plist-get el :type) 'collection)
-                            (funcall gen/from/collection_type
-                                     (plist-get el :range-descs)
-                                     (plist-get el :fmstr)
-                                     (plist-get el :sep)))
-                           (t
-                            (funcall gen/from/core-func el)))))))
+      (entropy/emacs-nconc-with-setvar sparse-list
+        (entropy/emacs-double-list
+         (cond ((eq (plist-get el :type) 'collection)
+                (funcall gen/from/collection_type
+                         (plist-get el :range-descs)
+                         (plist-get el :fmstr)
+                         (plist-get el :sep)))
+               (t
+                (funcall gen/from/core-func el))))))
 
     (let ((count 0))
       (while sparse-list
@@ -5412,21 +5437,9 @@ separater CONCAT-SEPARATER when non-nil.
                    (setq rtn (funcall concat-func rtn head-group)))))
           (cl-incf count))))
     ;; return
-    (if make-symbol
-        (mapcar (lambda (str)
-                  (make-symbol str))
-                rtn)
+    (if make-symbol (mapcar (lambda (str) (make-symbol str)) rtn)
       (cond (concat
-             (let (str-rtn)
-               (mapc (lambda (str)
-                       (setq str-rtn
-                             (concat (or str-rtn "")
-                                     (if str-rtn
-                                         (or concat-separater "")
-                                       "")
-                                     str)))
-                     rtn)
-               str-rtn))
+             (mapconcat 'identity rtn concat-separater))
             (t
              rtn)))))
 
@@ -8975,23 +8988,24 @@ Return a list of thus when LIST-RETURN is non-nil."
                 (throw :exit entropy/emacs--noproxy-string-cache))))
     (let ((noproxy-string "") list-rtn)
       (dolist (el noproxy-list)
-        (cond ((and (listp el)
-                    (not (null el)))
+        (cond ((and (listp el) (not (null el)))
                (if list-return
                    (let ((range-list
                           (entropy/emacs-generate-symbols-or-strings-from-range-desc
                            el)))
-                     (setq list-rtn (append list-rtn range-list)))
+                     (entropy/emacs-nconc-with-setvar list-rtn
+                       (list range-list)))
                  (let ((range-str
                         (entropy/emacs-generate-symbols-or-strings-from-range-desc
-                         el nil t ",")))
+                         el :concat t :concat-separater ",")))
                    (setq noproxy-string
                          (if (not (string-empty-p noproxy-string))
                              (format "%s,%s" noproxy-string range-str)
                            range-str)))))
               ((stringp el)
                (if list-return
-                   (setq list-rtn (append list-rtn (list el)))
+                   (entropy/emacs-nconc-with-setvar list-rtn
+                     (entropy/emacs-double-list el))
                  (setq noproxy-string
                        (if (string-empty-p noproxy-string)
                            (format "%s" el)
