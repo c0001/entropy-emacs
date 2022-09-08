@@ -1466,7 +1466,7 @@ of the which regexp string matched STR and cdr of the origin return."
           (setq regexp
                 (or (and (stringp el) el)
                     (eval el lexical-bindings)))
-          str))
+          str start))
         (and rtn
              (throw :exit (if return-details (cons regexp rtn)
                             rtn))))
