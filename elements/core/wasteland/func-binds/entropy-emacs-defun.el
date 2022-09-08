@@ -741,7 +741,8 @@ If AT-RIGHT is non-nil inserts the NEWELT to the right of NTH, or
 defaultly inserts it into left of NTH.
 
 If NTH is 0 and AT-RIGHT is not set then both `car' and `cdr' of LIST
-is modified. Otherwise only `nthcdr' NTH of LIST is modified.
+is modified. Otherwise only `nthcdr' NTH-1 of LIST is modified or
+`nthcdr' NTH of thus when AT-RIGHT is set.
 
 Return the place NEWELT is inserted and its rest or nil while nothing
 did i.e NTH is overflow or LIST's type is invalid without any
