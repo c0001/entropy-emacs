@@ -620,6 +620,68 @@ non-nil list, or nil otherwise."
   (declare (side-effect-free t))
   (and object (proper-list-p object)))
 
+(defsubst entropy/emacs-base-listp (object)
+  "Return non-nil when OBJECT is a *base* `listp' LIST i.e same
+as `consp'.
+
+Emacs's LIST type is constructed based on `cons'-cell chains, but a
+'nil' also is a LIST aimed for be a chasing termintion flag, but it
+confused the elisp newbie for below Q&As:
+
+1. Is 'nil' also a LIST? yes
+
+2. If 'nil' is a LIST and LIST constructed based on `cons', why 'nil' not
+   a cons i.e. it's a `atom'?
+
+   'nil' is a LIST and also a `atom', it is the only Lisp object that
+   is both. In generally that it is contains no objects and so is also
+   called the empty type, and a subtype of every type. No object is of
+   type nil.
+
+   For LIST type who is also a subtype of `sequencep' SEQ type, other
+   SEQ subtype is `arrayp' ARR who is also a parent type for types
+   like vector, chatable etc. A SEQ is a space contains a sequence of
+   elements, each SEQ has fixed `length' for the current time until
+   expansion or reduction operating on. LIST represents a SEQ for sets
+   of its CARs, so the last CDR must be empty i.e. in Lisp is nil and
+   nil must be a `atom' in which case the CAR chasing is never going
+   on.
+
+3. So why 'nil' is a LIST?
+
+   Since Lisp is S-expression, S-expression is a LIST, 'nil' is the
+   empty presentation for Lisp, thus 'nil' is LIST i.e. empty LIST.
+
+LIST also has other features, like dotted-list (see
+`entropy/emacs-dotted-listp') or a circular list (see
+`entropy/emacs-circular-listp'). Eemacs also has a predicate for a
+single element LIST i.e. `entropy/emacs-lonely-listp'.
+
+Thus, this function predicated for a LIST who is either a dotted list
+or circular list and for a non-nil LIST.
+
+Also see `entropy/emacs-nbase-listp-error'."
+  (consp object))
+
+(defsubst entropy/emacs-nbase-listp-error (object)
+  "Sign an error when OBJECT isn't predicated by
+`entropy/emacs-base-listp'."
+  (unless (entropy/emacs-base-listp object)
+    (signal 'wrong-type-argument
+            (list 'entropy/emacs-base-listp object))))
+
+(cl-defmacro entropy/emacs-nbase-listp-not-do
+    (object &rest body &key when &allow-other-keys)
+  "Do BODY just when OBJECT is a `entropy/emacs-base-listp' LIST
+and return BODY's last one's value, otherwise return 'nil'.
+
+Optional key WHEN is a condition to finally judge whether run the
+BODY."
+  (declare (indent 1))
+  `(when (and (entropy/emacs-base-listp ,object)
+              ,(or when t))
+     ,@(entropy/emacs-defun--get-real-body body)))
+
 (cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr)
   "Replace `nth' N of `listp' LIST with replacement REPLACE by
 altered it i.e. in destructively way, do nothing when N overflow.
@@ -644,99 +706,112 @@ which case it point to the last `atom' cdr of LIST."
         exit))))
 
 (defun entropy/emacs-list-add-car (list newcar)
-  "Modify `listp' LIST destructively for let LIST's cdr has same
-elements (and with same order) as what current LIST has, and
-replace car of LIST to NEWCAR.
+  "Make `entropy/emacs-base-listp' LIST's `car' and `cdr' be its `cadr'
+and `cddr' and set its new `car' as NEWCAR.
 
 Unlike `add-to-list' or `push', this function will modify all
-references of LIST, since we changed LIST it self instead of its
-current used reference.
+references of LIST, since we changed LIST's `car' and `cdr' instead of
+its current reference.
 
-Return the altered LIST or nil while LIST is `null' without did
+Return the altered LIST or nil when LIST's type is invalid without any
 modification."
-  (when list
+  (entropy/emacs-nbase-listp-not-do list
     (setcdr list (cons (car list) (cdr list)))
     (setcar list newcar)
     list))
 
 (defun entropy/emacs-list-add-cadr (list newcadr)
-  "Modify `listp' LIST destructively for let NEWCADR be the new `cadr' of
-LIST with preserve its origin `cdr' as the `cddr' of altered LIST.
+  "Make `entropy/emacs-base-listp' LIST's `cdr' be its `cddr' and set
+its new `cadr' with NEWCADR.
 
 This function is a right injection variant of
-`entropy/emacs-list-add-car'. Return the altered `cdr' of LIST or
-nil while LIST is `null' without did modification."
-  (when list
+`entropy/emacs-list-add-car'. Return the altered `cdr' of LIST or nil
+while LIST's type is invalid without any modification."
+  (entropy/emacs-nbase-listp-not-do list
     (setcdr list (cons newcadr (cdr list)))
     (cdr list)))
 
 (defun entropy/emacs-list-insert-newelt
     (list nth newelt &optional at-right)
-  "Insert a new element NEWELT into `lisp' LIST at pos of `nth' NTH
-in destructively way.
+  "Insert a new element NEWELT into `entropy/emacs-base-listp' LIST at
+pos of `nth' NTH in destructively way (see rest statements for
+details).
 
 If AT-RIGHT is non-nil inserts the NEWELT to the right of NTH, or
 defaultly inserts it into left of NTH.
 
-Return the cons-cell of which NEWELT inserted i.e. the sub-list
-of LIST whose car is the NEWELT or nil while nothing did i.e NTH
-is overflow or LIST is `null'. All references of LIST is modified
-after insertion.
+If NTH is 0 and AT-RIGHT is not set then both `car' and `cdr' of LIST
+is modified. Otherwise only `nthcdr' NTH of LIST is modified.
 
-(see also `entropy/emacs-list-add-car' for left insertion)
-(see also `entropy/emacs-list-add-cadr' for right insertion)"
-  (let ((i 0) exit rtn)
-    (entropy/emacs-list-map-cdr list
-      :with-exit t
-      (when (= nth i)
-        (if at-right
-            (setq rtn (entropy/emacs-list-add-cadr it newelt))
-          (setq rtn (entropy/emacs-list-add-car it newelt)))
-        (setq exit t))
-      (cl-incf i)
-      exit)
-    rtn))
+Return the place NEWELT is inserted and its rest or nil while nothing
+did i.e NTH is overflow or LIST's type is invalid without any
+modification.
+
+(see also `entropy/emacs-list-add-car' and `entropy/emacs-list-add-cadr')"
+  (entropy/emacs-nbase-listp-not-do list
+    :when (>= nth 0)
+    (let ((i 0) old-it exit rtn)
+      (entropy/emacs-list-map-cdr list
+        :with-exit t
+        (when (= nth i)
+          (if at-right (entropy/emacs-list-add-cadr it newelt)
+            (if old-it (setcdr old-it (cons newelt it))
+              (entropy/emacs-list-add-car it newelt)))
+          (if at-right (setq rtn (cdr it))
+            (setq rtn (if old-it (cdr old-it) list)))
+          (setq exit t))
+        (setq old-it it i (1+ i))
+        exit)
+      rtn)))
 
 (defun entropy/emacs-list-delete-car (list)
-  "Delete car of non-`entropy/emacs-dotted-listp' and `listp' LIST
-destructively with modifies all references to LIST. Return the
-altered LIST or nil while nothing did when LIST is `null' or it
-just has one element."
-  (let ((lcdr (cdr list)))
-    (when (and list (consp lcdr))
-      (setcdr list (cddr list))
-      (setcar list (car lcdr))
-      list)))
+  "Make a `entropy/emacs-base-listp' LIST's `cadr' and `cddr' be its new
+`car' and `cdr' in destructively way of modifies all references to
+LIST. Return the altered LIST or nil while nothing did when LIST's
+type is invalid or it's `cdr' is `atom'."
+  (entropy/emacs-nbase-listp-not-do list
+    (let ((lcdr (cdr list)))
+      (when (and list (consp lcdr))
+        (setcdr list (cddr list))
+        (setcar list (car lcdr))
+        list))))
+
+(defun entropy/emacs-list-delete-cadr (list)
+  "Make a `entropy/emacs-base-listp' LIST's `cddr' (if exists) be its
+`cdr' so as its `cadr' is deleted, return the altered `cdr' of LIST or
+nil if nothing did or LIST's type is invalid.
+\n(see also `entropy/emacs-list-delete-car')"
+  (entropy/emacs-nbase-listp-not-do list
+    (when (consp (cdr list))
+      (setcdr list (cddr list)))))
 
 (defun entropy/emacs-list-delete-elt (list nth)
-  "Delete element of non-`entropy/emacs-dotted-listp' and `listp'
-LIST at its `nth' position NTH destructively. Return the cdr of
-the origin NTH's `nthcdr' cons-cell or nil when it is the
-deletion of the last element of LIST.
+  "Delete element of `entropy/emacs-base-listp' LIST at its `nth'
+position NTH destructively.
 
-Also return nil when LIST is `null' or it just has one element,
-and without any modification.
+If NTH larger than 0, return the cdr of place where NTH element is
+deleted. Return the altered LIST when NTH `=' 0, in which case all
+references to LIST is modified.
 
-All references to LIST is modified when deletion operated.
+Return nil when LIST's type is invalid or it just has one element
+or NTH is overflow, without any modification.
 
-(see also `entropy/emacs-list-delete-car' for car deletion)
-(see also `entropy/emacs-list-insert-newelt' for adding new
-element to LIST)."
-  (let ((i 0) exit it-parent rtn)
-    (entropy/emacs-list-map-cdr list
-      :with-exit t
-      (when (= i nth)
-        (if (consp (cdr it))
-            (setq rtn (entropy/emacs-list-delete-car it))
-          ;; for tail of at least 2 elt list.
-          (when it-parent
-            (setcdr it-parent nil)
-            (setq rtn nil)))
-        (setq exit t))
-      (setq it-parent it
-            i (1+ i))
-      exit)
-    rtn))
+(see also `entropy/emacs-list-delete-car' and `entropy/emacs-list-delete-cadr')."
+  (entropy/emacs-nbase-listp-not-do list
+    :when (>= nth 0)
+    (let ((i 0) exit it-parent rtn)
+      (entropy/emacs-list-map-cdr list
+        :with-exit t
+        (when (= i nth)
+          (if it-parent (setcdr it-parent (cdr it))
+            (entropy/emacs-list-delete-car it))
+          (if it-parent (setq rtn (cdr it-parent))
+            (setq rtn (and (consp (cdr list)) list)))
+          (setq exit t))
+        (setq it-parent it
+              i (1+ i))
+        exit)
+      rtn)))
 
 (cl-defun entropy/emacs-list-has-same-elements-p (lista listb &key test)
   "Return non-nil if two list is equalization as has same `length'
