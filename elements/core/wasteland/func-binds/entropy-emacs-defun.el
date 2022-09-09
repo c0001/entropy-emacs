@@ -1188,7 +1188,7 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
        ,seq-len-sym)))
 
 (cl-defmacro entropy/emacs-seq-with-safe-region
-    (seq start end &rest body &key seq-len &allow-other-keys)
+    (seq start end &rest body &key seq-len with-set-end &allow-other-keys)
   "Run BODY when the region of an sequence SEQ constructed by START and
 END is valid and return the BODY's value or nil otherwise.
 
@@ -1201,7 +1201,8 @@ be calculated and reset by `entropy/emacs-seq-recalc-start-end'
 before the validation, then validation of START and END is just check
 whether them are `=', if thus is invalid since an empty region is
 meaningless for BODY, otherwise START and END is set to the
-calculation results respectively and the validation is pass.
+calculation results respectively (END is set if it is nil only when
+WITH-SET-END is set non-nil) and the validation is passed.
 
 If optional key SEQ-LEN is set, it should be a place known by `setf'
 or a variable name, and it will set to the `length' of SEQ.
@@ -1217,7 +1218,7 @@ or a variable name, and it will set to the `length' of SEQ.
        (setq ,slen-sym
              ,(macroexpand-1
                (list 'entropy/emacs-seq-recalc-start-end
-                     seq start-sym end-sym)))
+                     seq start-sym end-sym :with-set-end with-set-end)))
        ,(when seq-len (list 'setf seq-len slen-sym))
        (unless (= ,start-sym (or ,end-sym ,slen-sym))
          (setf ,start ,start-sym ,end ,end-sym)
