@@ -502,67 +502,6 @@ macro to use it instead of 'it' as what bind for."
                     (setq ,(or with-it-as 'it) ,rest-sym))
            ,@body)))))
 
-(cl-defun entropy/emacs-list-get-region
-    (list &key start end with-destructively ignore-empty-region)
-  "Return a new list which is a region of LIST from START to END.
-
-START and END is re-calculated by
-`entropy/emacs-seq-recalc-start-end' before progress.
-
-When START is overflow, then return nil.
-
-When START and END is same, then return the `car' of that place
-unless IGNORE-EMPTY-REGION is set in which case return nil.
-
-END when nil or omitted is indicate the place to the end of the
-LIST i.e. `length' of list.
-
-If WITH-DESTRUCTIVELY is set, the original LIST may be modified
-i.e. when END is not the end of LIST, and the return is use same
-storage as origin. Otherwise return the region as a new list which is
-copy from origin."
-  (entropy/emacs-seq-recalc-start-end list start end :with-set-end t)
-  (catch :exit
-    (if (and end (= start end)) (throw :exit (unless ignore-empty-region (nth start list)))
-      (if (and (null end) (null (cdr list)) (= start 0)) (throw :exit (car list))
-        (if (and (null (cdr list)) (> start 0)) (throw :exit nil))))
-    (let ((i 0) exit beglist begpt ptdiff (end-is-end-p (null end)))
-      (entropy/emacs-list-map-cdr list
-        :with-exit t
-        (when (= i start)
-          (setq beglist it
-                begpt i))
-        (when begpt
-          (if (and end-is-end-p)
-              (setq exit t)
-            (when (= (1+ i) end)
-              (setq ptdiff (- i begpt))
-              (unless (setq end-is-end-p (null (cdr it)))
-                (if with-destructively (setcdr it nil)))
-              (setq exit t))))
-        (cl-incf i)
-        exit)
-      (unless begpt
-        (throw :exit nil))
-      ;; track end is overflow
-      (when (and (not ptdiff) end)
-        (if end-is-end-p (error "internal error"))
-        (setq end-is-end-p t))
-      (if with-destructively
-          beglist
-        (if end-is-end-p
-            (copy-sequence beglist)
-          (setq i 0 exit nil)
-          (entropy/emacs-list-map-cdr
-            (setq beglist (copy-sequence beglist))
-            :with-exit t
-            (when (= i ptdiff)
-              (setcdr it nil)
-              (setq exit t))
-            (cl-incf i)
-            exit)
-          beglist)))))
-
 (cl-defun entropy/emacs-circular-listp (object &key internal-without-check-proper)
   "Return the `safe-length' of OBJECT when its a circular `listp'
 list or nil while its a `proper-list-p' list or a non-circular
@@ -904,6 +843,61 @@ destructively so that no need to do that."
              (setf ,val-sym ,var-head-sym ,var ,val-sym)
              (apply 'nconc ,val-sym (cdr ,lists-sym)))))
        ,val-sym)))
+
+(cl-defun entropy/emacs-list-get-region
+    (list start &optional end &key with-destructively with-error)
+  "Return a new list which is a region of
+`entropy/emacs-common-listp' LIST from START to END, or nil
+without any operation when LIST is invaid or region is empty.
+
+START and END is re-calculated by
+`entropy/emacs-seq-with-safe-region' before progress.
+
+END when nil or omitted is indicate the place to the end of the
+LIST i.e. `length' of list.
+
+If WITH-DESTRUCTIVELY is set, the original LIST may be modified
+i.e. when END is not the end of LIST, and the return is use same
+storage as origin. Otherwise return the region as a new list which is
+copy from origin.
+
+When WITH-ERROR is set as non-nil, throw an error without any
+operation did only when it is one of below three types:
+
+1. 'invalid' : LIST type invalid
+2. 'overflow': Region bounding is overflow'
+3. 'all'     : Both of above all.
+"
+  (let (llen)
+    (entropy/emacs-ncommon-listp-not-do list
+      :set-list-len-for llen
+      :error-when-invalid (memq with-error '(invalid all))
+      (entropy/emacs-seq-with-safe-region llen start end
+        :with-set-end t :error-when-proper (memq with-error '(overflow all))
+        (catch :exit
+          (if (and (= start 0) (= end 1)) (throw :exit (car list)))
+          (let ((i 0) exit start-list prev-it rtn)
+            (entropy/emacs-list-map-cdr list
+              :with-exit t
+              (if start-list
+                  (cond
+                   ((= i end)
+                    (if with-destructively (setcdr prev-it nil))
+                    (setq exit t))
+                   ((= (1+ i) end)
+                    (if with-destructively (setcdr it nil)
+                      (push (car it) rtn)))
+                   ((> i start)
+                    (unless with-destructively
+                      (push (car it) rtn))))
+                (when (= i start)
+                  (setq start-list it)
+                  (unless with-destructively
+                    (push (car it) rtn))))
+              (setq prev-it it i (1+ i))
+              exit)
+            (if with-destructively start-list
+              (nreverse rtn))))))))
 
 ;; ***** Map
 
