@@ -1203,41 +1203,68 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
        ,seq-len-sym)))
 
 (cl-defmacro entropy/emacs-seq-with-safe-region
-    (seq start end &rest body &key seq-len with-set-end &allow-other-keys)
-  "Run BODY when the region of an sequence SEQ constructed by START and
-END is valid and return the BODY's value or nil otherwise.
-
-Both of START and END should a place known by `setf' or a variable
-name.
+    (seq start end &rest body
+         &key set-seqlen-for with-set-end error-when-proper
+         &allow-other-keys)
+  "Run BODY only when the region of an sequence SEQ constructed by START
+and END is valid and return the BODY's value or nil otherwise i.e. if
+SEQ is invalid or its `length' is 0 or region is invalid see below:
 
 SEQ's region is constructed by START and END, where both of them will
 be calculated and reset by `entropy/emacs-seq-recalc-start-end'
 *temporally* (i.e. save the results to temporal start or end var)
-before the validation, then validation of START and END is just check
-whether them are `=', if thus is invalid since an empty region is
-meaningless for BODY, otherwise START and END is set to the
-calculation results respectively (END is set if it is nil only when
-WITH-SET-END is set non-nil) and the validation is passed.
+without bounding check (unless ERROR-WHEN-PROPER is set) before the
+validation, then validation of START and END is just check whether
+them are `=', if thus is invalid since an empty region is meaningless
+for BODY, otherwise START and END is set to the calculation results
+respectively (END is set if it is nil only when WITH-SET-END is set
+non-nil) and the validation is passed.
 
-If optional key SEQ-LEN is set, it should be a place known by `setf'
-or a variable name, and it will set to the `length' of SEQ.
+SEQ should be a `sequencep' sequence. And also can be a integer which
+must be larger than 0 in which case it is used as SEQ's `length' since
+there's no need to duplicated calculate its length, and it is passed
+to `entropy/emacs-seq-recalc-start-end' for did what above paragraph
+said. Any other type for SEQ is invalid.
+
+Both of START and END should a place known by `setf' or a variable
+name.
+
+If optional key SET-SEQLEN-FOR is set, it should be a place known by
+`setf' or a variable name, and it will set to the `length' of SEQ.
+
+If optional key ERROR-WHEN-PROPER is set, when non-nil, `signal' error
+when proper occasions as:
+1) SEQ type invalid
+2) Either START or END is overflow.
 "
   (declare (indent 3))
-  (let ((start-sym (make-symbol "start-var"))
-        (end-sym (make-symbol "end-var"))
-        (slen-sym (make-symbol "seq-len"))
+  (let ((seq-sym       (make-symbol "sequence"))
+        (start-sym     (make-symbol "start-var"))
+        (end-sym       (make-symbol "end-var"))
+        (slen-sym      (make-symbol "seq-length"))
+        (use-errp-sym  (make-symbol "use-error-p"))
         (body (entropy/emacs-defun--get-real-body body)))
-    `(let ((,start-sym ,start)
-           (,end-sym   ,end)
+    `(let ((,seq-sym ,seq)
+           (,use-errp-sym ,error-when-proper)
            ,slen-sym)
-       (setq ,slen-sym
-             ,(macroexpand-1
-               (list 'entropy/emacs-seq-recalc-start-end
-                     seq start-sym end-sym :with-set-end with-set-end)))
-       ,(when seq-len (list 'setf seq-len slen-sym))
-       (unless (= ,start-sym (or ,end-sym ,slen-sym))
-         (setf ,start ,start-sym ,end ,end-sym)
-         ,@body))))
+       (cond ((and (integerp ,seq-sym) (> ,seq-sym 0))
+              (setq ,slen-sym ,seq-sym))
+             ((sequencep ,seq-sym)
+              (setq ,slen-sym (length ,seq-sym)))
+             (,use-errp-sym
+              (signal 'wrong-type-argument
+                      (list 'seq-or-zeroup-integerp ,seq-sym))))
+       (when ,slen-sym
+         (let ((,start-sym ,start)
+               (,end-sym   ,end))
+           (entropy/emacs-seq-recalc-start-end
+            ,slen-sym ,start-sym ,end-sym
+            :with-set-end ,with-set-end
+            :error-when-overflow ,use-errp-sym)
+           ,(when set-seqlen-for (list 'setf set-seqlen-for slen-sym))
+           (unless (= ,start-sym (or ,end-sym ,slen-sym))
+             (setf ,start ,start-sym ,end ,end-sym)
+             ,@body))))))
 
 (cl-defun entropy/emacs-seq-repeat-find
     (item seq count &key find-func find-func-args)
