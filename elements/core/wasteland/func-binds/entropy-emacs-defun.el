@@ -785,6 +785,87 @@ or NTH is overflow, without any modification.
         exit)
       rtn)))
 
+(cl-defmacro entropy/emacs-list-delete-region
+    (list start &optional end &key return-tail with-error)
+  "Delete region of of `entropy/emacs-common-listp' LIST from START
+to END in destructively way
+
+LIST and both of START and END should be a place used by `setf'
+or a variable name.
+
+START and END is re-calculated by
+`entropy/emacs-seq-with-safe-region' before any operations. If
+END is not set, defaults to end of LIST i.e. `length' of LIST.
+
+Return the altered LIST or the tail of LIST where END placed as
+car when RETURN-TAIL is set. Return nil while either LIST is
+invalid or its region is empty or overflow or coverred deletion
+occurred (see belows).
+
+If START is 0 and END less than `length' of LIST, both LIST's car
+and cdr are modified, otherwise the modification when do as just
+be at `nthcdr' of START-1.
+
+If the covered region is the whole LIST, then no modification to
+LIST. Instead only the current invoked PLACE referred to LIST is
+set to nil and nil is returned.
+
+When WITH-ERROR is set as non-nil, throw an error without any
+operation did only when it is one of below three types:
+
+1. 'invalid'  : LIST type invalid
+2. 'overflow' : Region bounding is overflow'
+3. 'all' or t : Both of above all.
+"
+  (declare (indent 1))
+  (let ((list-sym      (make-symbol "list-place"))
+        (rest-sym      (make-symbol "rest-place"))
+        (old-list-sym  (make-symbol "old-list-place"))
+        (lsymp-sym     (make-symbol "list-isvar-p"))
+        (lquotep-sym   (make-symbol "list-isconstant-p"))
+        (start-sym (make-symbol "start-sym"))
+        (end-sym   (make-symbol "end-sym"))
+        (llen-sym  (make-symbol "list-len"))
+        (i-sym (make-symbol "i")) (exit-sym (make-symbol "exit"))
+        (err-sym (make-symbol "with-error")))
+    `(let* ((,list-sym    ,list)
+            (,rest-sym    ,list-sym)
+            (,lsymp-sym   ,(symbolp list))
+            (,lquotep-sym ,(and (consp list)
+                                (memq (car list)
+                                      (list 'quote backquote-backquote-symbol
+                                            'backquote))))
+            (,start-sym   ,start)
+            (,end-sym     ,end)
+            ,old-list-sym ,llen-sym
+            (,i-sym 0) ,exit-sym (,err-sym ,with-error))
+       (entropy/emacs-ncommon-listp-not-do ,list-sym
+         :with-error (memq ,err-sym '(invalid all t))
+         :set-list-len-for ,llen-sym
+         (entropy/emacs-seq-with-safe-region ,llen-sym
+             ,start-sym ,end-sym
+           :with-set-end t :with-error (car (memq ,err-sym '(overflow all t)))
+           (if (or (= ,llen-sym 1) (and (= ,start-sym 0) (= ,end-sym ,llen-sym)))
+               (if ,lsymp-sym (setq ,list nil ,list-sym nil)
+                 (if ,lquotep-sym (setq ,list-sym nil)
+                   (setf ,list nil ,list-sym nil)))
+             (while (and (not ,exit-sym) (consp ,rest-sym))
+               (when (>= ,i-sym ,start-sym)
+                 (if (= ,i-sym 0)
+                     (and (= 1 ,end-sym) (setq ,exit-sym t))
+                   (if (= ,i-sym ,end-sym) (setq ,exit-sym t)
+                     (setcdr ,old-list-sym (cdr ,rest-sym)))))
+               (when (or (< ,i-sym ,start-sym) (= 0 ,i-sym))
+                 (setq ,old-list-sym ,rest-sym))
+               (setq ,rest-sym (cdr ,rest-sym))
+               (cl-incf ,i-sym))))
+         (if (and ,list-sym (= 0 ,start-sym))
+             (entropy/emacs-list-delete-car ,list-sym)
+           (setq ,old-list-sym (cdr ,old-list-sym)))
+         ;; return
+         (if (or (= 1 ,end-sym) (not ,return-tail))
+             ,list-sym ,old-list-sym)))))
+
 (cl-defun entropy/emacs-list-has-same-elements-p (lista listb &key test)
   "Return non-nil if two list is equalization as has same `length'
 and same elements test by TEST or use the same test as
