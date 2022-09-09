@@ -688,28 +688,20 @@ LIST also has other features, like dotted-list (see
 single element LIST i.e. `entropy/emacs-lonely-listp'.
 
 Thus, this function predicated for a LIST who is either a dotted list
-or circular list and for a non-nil LIST.
-
-Also see `entropy/emacs-nbase-listp-error'."
+or circular list and for a non-nil LIST."
   (consp object))
 
-(defsubst entropy/emacs-nbase-listp-error (object)
-  "Sign an error when OBJECT isn't predicated by
-`entropy/emacs-base-listp'."
-  (unless (entropy/emacs-base-listp object)
-    (signal 'wrong-type-argument
-            (list 'entropy/emacs-base-listp object))))
-
 (cl-defmacro entropy/emacs-nbase-listp-not-do
-    (object &rest body &key when &allow-other-keys)
+    (object &rest body &key extra-unless &allow-other-keys)
   "Do BODY just when OBJECT is a `entropy/emacs-base-listp' LIST
 and return BODY's last one's value, otherwise return 'nil'.
 
-Optional key WHEN is a condition to finally judge whether run the
-BODY."
+Optional key EXTRA-UNLESS when set, as extra trigger for ignore
+BODY when it return non-nil. It is evaluated after the main
+predicate."
   (declare (indent 1))
   `(when (and (entropy/emacs-base-listp ,object)
-              ,(or when t))
+              (not ,extra-unless))
      ,@(entropy/emacs-defun--get-real-body body)))
 
 (cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr)
@@ -780,7 +772,7 @@ modification.
 
 (see also `entropy/emacs-list-add-car' and `entropy/emacs-list-add-cadr')"
   (entropy/emacs-nbase-listp-not-do list
-    :when (>= nth 0)
+    :extra-unless (< nth 0)
     (let ((i 0) old-it exit rtn)
       (entropy/emacs-list-map-cdr list
         :with-exit t
@@ -829,7 +821,7 @@ or NTH is overflow, without any modification.
 
 (see also `entropy/emacs-list-delete-car' and `entropy/emacs-list-delete-cadr')."
   (entropy/emacs-nbase-listp-not-do list
-    :when (>= nth 0)
+    :extra-unless (< nth 0)
     (let ((i 0) exit it-parent rtn)
       (entropy/emacs-list-map-cdr list
         :with-exit t
