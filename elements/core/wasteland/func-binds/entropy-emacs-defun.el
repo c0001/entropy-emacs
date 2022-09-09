@@ -620,6 +620,36 @@ non-nil list, or nil otherwise."
   (declare (side-effect-free t))
   (and object (proper-list-p object)))
 
+(cl-defmacro entropy/emacs-ncommon-listp-not-do
+    (object &rest body
+            &key error-when-invalid set-list-len-for
+            extra-unless
+            &allow-other-keys)
+  "Run BODY and return its value only when OBJECT is
+`entropy/emacs-common-listp'. Return nil for otherwise.
+
+When ERROR-WHEN-INVALID is set as non-nil, throw an error and
+ignore BODY.
+
+When SET-LIST-LEN-FOR is set, it should be a place compatible for
+`setf' or a variable name for retreive the `length' of OBJECT
+when valid.
+
+Optional key EXTRA-UNLESS if set, neither run BODY when it return
+non-nil. And just evaluate it when the main judger predicated and
+while thus the SET-LIST-LEN-FOR is set.
+"
+  (declare (indent 1))
+  (let ((llen-sym (make-symbol "list-len")))
+    `(let (,llen-sym)
+       (setq ,llen-sym (entropy/emacs-common-listp ,object))
+       (when (and ,error-when-invalid (not ,llen-sym))
+         (signal 'wrong-type-argument
+                 (list 'entropy/emacs-common-listp ,object)))
+       (when (and ,llen-sym (not ,extra-unless))
+         ,@(if set-list-len-for (list `(setf ,set-list-len-for ,llen-sym)))
+         ,@(entropy/emacs-defun--get-real-body body)))))
+
 (defsubst entropy/emacs-base-listp (object)
   "Return non-nil when OBJECT is a *base* `listp' LIST i.e same
 as `consp'.
