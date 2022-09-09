@@ -561,18 +561,18 @@ non-nil list, or nil otherwise."
 
 (cl-defmacro entropy/emacs-ncommon-listp-not-do
     (object &rest body
-            &key error-when-invalid set-list-len-for
+            &key with-error set-list-len-for
             extra-unless
             &allow-other-keys)
   "Run BODY and return its value only when OBJECT is
 `entropy/emacs-common-listp'. Return nil for otherwise.
 
-When ERROR-WHEN-INVALID is set as non-nil, throw an error and
-ignore BODY.
+When WITH-ERROR is set as non-nil, throw an error and ignore BODY
+when OBJECT is invalid.
 
 When SET-LIST-LEN-FOR is set, it should be a place compatible for
-`setf' or a variable name for retreive the `length' of OBJECT
-when valid.
+`setf' or a variable name for retreive the `length' of OBJECT when
+valid.
 
 Optional key EXTRA-UNLESS if set, neither run BODY when it return
 non-nil. And just evaluate it when the main judger predicated and
@@ -582,7 +582,7 @@ while thus the SET-LIST-LEN-FOR is set.
   (let ((llen-sym (make-symbol "list-len")))
     `(let (,llen-sym)
        (setq ,llen-sym (entropy/emacs-common-listp ,object))
-       (when (and ,error-when-invalid (not ,llen-sym))
+       (when (and ,with-error (not ,llen-sym))
          (signal 'wrong-type-argument
                  (list 'entropy/emacs-common-listp ,object)))
        (when (and ,llen-sym (not ,extra-unless))
@@ -864,16 +864,16 @@ copy from origin.
 When WITH-ERROR is set as non-nil, throw an error without any
 operation did only when it is one of below three types:
 
-1. 'invalid' : LIST type invalid
-2. 'overflow': Region bounding is overflow'
-3. 'all'     : Both of above all.
+1. 'invalid'  : LIST type invalid
+2. 'overflow' : Region bounding is overflow'
+3. 'all' or t : Both of above all.
 "
   (let (llen)
     (entropy/emacs-ncommon-listp-not-do list
       :set-list-len-for llen
-      :error-when-invalid (memq with-error '(invalid all))
+      :with-error (memq with-error '(invalid all t))
       (entropy/emacs-seq-with-safe-region llen start end
-        :with-set-end t :error-when-proper (memq with-error '(overflow all))
+        :with-set-end t :with-error (car (memq with-error '(overflow all t)))
         (catch :exit
           (if (and (= start 0) (= end 1)) (throw :exit (car list)))
           (let ((i 0) exit start-list prev-it rtn)
@@ -1139,7 +1139,7 @@ nil END conventionally indicates the end of the sequence i.e. the
            (< ,end-sym ,start-sym))))))
 
 (cl-defmacro entropy/emacs-seq-recalc-start-end
-    (seq start end &key error-when-overflow with-set-end &allow-other-keys)
+    (seq start end &key with-error with-set-end &allow-other-keys)
   "Like `entropy/emacs-seq-recalc-start-end-common' but also support
 negative indicators and optionally support bounding check.
 
@@ -1161,7 +1161,7 @@ times where N is the `abs' value of it, before whole process.
 When either START or END is overflow, then START is set to 0 or set
 length of SEQ for END, unless as below:
 
-When ERROR-WHEN-OVERFLOW is set in which case a bound indices error is
+When WITH-ERROR is set in which case a bound indices error is
 throwed out when either START or END is overflow the `length' of SEQ's
 either of its start or end index
 
@@ -1174,7 +1174,7 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
         (seq-sym      (make-symbol "list"))
         (seq-len-sym (make-symbol "seqlen"))
         (tmpvar-sym  (make-symbol "tmpvar"))
-        (err-p-sym   (make-symbol "error-when-overflow")))
+        (err-p-sym   (make-symbol "with-error")))
     `(let* ((,start-sym   ,start)
             (,end-sym     ,end)
             (,end-nnp-sym (not (null ,end-sym)))
@@ -1187,7 +1187,7 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
                                            (list 'seq-or-integer-p ,seq-sym)))))
             (_ (if (< ,seq-len-sym 1)
                    (signal 'args-out-of-range (list "sequence length" ,seq-len-sym))))
-            (,err-p-sym   ,error-when-overflow)
+            (,err-p-sym   ,with-error)
             (,tmpvar-sym  nil))
        (unless (and (null ,start-sym) (null ,end-sym))
          (if (null ,start-sym) (setq ,start-sym 0))
@@ -1220,7 +1220,7 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
 
 (cl-defmacro entropy/emacs-seq-with-safe-region
     (seq start end &rest body
-         &key set-seqlen-for with-set-end error-when-proper
+         &key set-seqlen-for with-set-end with-error
          &allow-other-keys)
   "Run BODY only when the region of an sequence SEQ constructed by START
 and END is valid and return the BODY's value or nil otherwise i.e. if
@@ -1229,7 +1229,7 @@ SEQ is invalid or its `length' is 0 or region is invalid see below:
 SEQ's region is constructed by START and END, where both of them will
 be calculated and reset by `entropy/emacs-seq-recalc-start-end'
 *temporally* (i.e. save the results to temporal start or end var)
-without bounding check (unless ERROR-WHEN-PROPER is set) before the
+without bounding check (unless WITH-ERROR is set) before the
 validation, then validation of START and END is just check whether
 them are `=', if thus is invalid since an empty region is meaningless
 for BODY, otherwise START and END is set to the calculation results
@@ -1248,10 +1248,12 @@ name.
 If optional key SET-SEQLEN-FOR is set, it should be a place known by
 `setf' or a variable name, and it will set to the `length' of SEQ.
 
-If optional key ERROR-WHEN-PROPER is set, when non-nil, `signal' error
-when proper occasions as:
-1) SEQ type invalid
-2) Either START or END is overflow.
+When WITH-ERROR is set as non-nil, throw an error without any
+operation did only when it is one of below three types:
+
+1. ’invalid’  : SEQ type invalid or empty
+2. ’overflow’ : Region bounding is overflow’
+3. ’all’ or t : Both of above all.
 "
   (declare (indent 3))
   (let ((seq-sym       (make-symbol "sequence"))
@@ -1261,13 +1263,13 @@ when proper occasions as:
         (use-errp-sym  (make-symbol "use-error-p"))
         (body (entropy/emacs-defun--get-real-body body)))
     `(let ((,seq-sym ,seq)
-           (,use-errp-sym ,error-when-proper)
+           (,use-errp-sym ,with-error)
            ,slen-sym)
        (cond ((and (integerp ,seq-sym) (> ,seq-sym 0))
               (setq ,slen-sym ,seq-sym))
              ((sequencep ,seq-sym)
               (setq ,slen-sym (length ,seq-sym)))
-             (,use-errp-sym
+             ((memq ,use-errp-sym '(invalid all t))
               (signal 'wrong-type-argument
                       (list 'seq-or-zeroup-integerp ,seq-sym))))
        (when ,slen-sym
@@ -1276,7 +1278,7 @@ when proper occasions as:
            (entropy/emacs-seq-recalc-start-end
             ,slen-sym ,start-sym ,end-sym
             :with-set-end ,with-set-end
-            :error-when-overflow ,use-errp-sym)
+            :with-error (memq ,use-errp-sym '(overflow all t)))
            ,(when set-seqlen-for (list 'setf set-seqlen-for slen-sym))
            (unless (= ,start-sym (or ,end-sym ,slen-sym))
              (setf ,start ,start-sym ,end ,end-sym)
