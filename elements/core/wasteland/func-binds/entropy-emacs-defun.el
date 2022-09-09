@@ -579,12 +579,13 @@ non-nil. And just evaluate it when the main judger predicated and
 while thus the SET-LIST-LEN-FOR is set.
 "
   (declare (indent 1))
-  (let ((llen-sym (make-symbol "list-len")))
-    `(let (,llen-sym)
-       (setq ,llen-sym (entropy/emacs-common-listp ,object))
+  (let ((obsym    (make-symbol "object"))
+        (llen-sym (make-symbol "list-len")))
+    `(let ((,obsym ,object) ,llen-sym)
+       (setq ,llen-sym (entropy/emacs-common-listp ,obsym))
        (when (and ,with-error (not ,llen-sym))
          (signal 'wrong-type-argument
-                 (list 'entropy/emacs-common-listp ,object)))
+                 (list 'entropy/emacs-common-listp ,obsym)))
        (when (and ,llen-sym (not ,extra-unless))
          ,@(if set-list-len-for (list `(setf ,set-list-len-for ,llen-sym)))
          ,@(entropy/emacs-defun--get-real-body body)))))
@@ -631,17 +632,26 @@ or circular list and for a non-nil LIST."
   (consp object))
 
 (cl-defmacro entropy/emacs-nbase-listp-not-do
-    (object &rest body &key extra-unless &allow-other-keys)
+    (object &rest body &key extra-unless with-error &allow-other-keys)
   "Do BODY just when OBJECT is a `entropy/emacs-base-listp' LIST
 and return BODY's last one's value, otherwise return 'nil'.
 
 Optional key EXTRA-UNLESS when set, as extra trigger for ignore
 BODY when it return non-nil. It is evaluated after the main
-predicate."
+predicate.
+
+When WITH-ERROR is set as non-nil, throw an error before any
+operations when OBJECT is invalid."
   (declare (indent 1))
-  `(when (and (entropy/emacs-base-listp ,object)
-              (not ,extra-unless))
-     ,@(entropy/emacs-defun--get-real-body body)))
+  (let ((obsym     (make-symbol "object"))
+        (typep-sym (make-symbol "is-valid-p")))
+    `(let* ((,obsym ,object)
+            (,typep-sym (entropy/emacs-base-listp ,obsym)))
+       (and ,with-error (not ,typep-sym)
+            (signal 'wrong-type-argument
+                    (list 'entropy/emacs-base-listp ,obsym)))
+       (when (and ,typep-sym (not ,extra-unless))
+         ,@(entropy/emacs-defun--get-real-body body)))))
 
 (cl-defun entropy/emacs-list-setf-nth (n replace list &key with-end-cdr)
   "Replace `nth' N of `listp' LIST with replacement REPLACE by
