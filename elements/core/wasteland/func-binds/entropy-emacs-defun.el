@@ -1182,7 +1182,8 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
        (entropy/emacs-seq-recalc-start-end-common
         ,start-sym ,end-sym)
        (setf ,start ,start-sym
-             ,end   (if ,with-set-end ,end-sym (if,end-nnp-sym ,end-sym nil)))
+             ,end   (if ,with-set-end (or ,end-sym ,seq-len-sym)
+                      (if,end-nnp-sym ,end-sym nil)))
        ;; return
        ,seq-len-sym)))
 
