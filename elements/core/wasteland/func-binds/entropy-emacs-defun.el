@@ -1125,10 +1125,18 @@ nil END conventionally indicates the end of the sequence i.e. the
 (cl-defmacro entropy/emacs-seq-recalc-start-end
     (seq start end &key error-when-overflow with-set-end &allow-other-keys)
   "Like `entropy/emacs-seq-recalc-start-end-common' but also support
-negative indicators and optionally support bounding check. Return the
-`length' of SEQ. (tip: this macro return this value since it
-internally calculate the `length' of SEQ so that the caller no need to
-duplcated re-calc the `length' of SEQ for saving compute resource.)
+negative indicators and optionally support bounding check.
+
+Return the `length' of `sequencep' SEQ (tip: return this value since
+we internally calculate the `length' of SEQ so that the caller no need
+to duplcated re-calc the `length' of SEQ for saving compute resource.)
+
+SEQ can also be a integer which must be larger than 0 in which case
+SEQ is used to as its `length' for calculation (tip: this allowed
+prevent duplicated SEQ chasing for got its `length' if context of
+invocation already has the result).
+
+Throw error when SEQ is neither a sequence or thus integer.
 
 For either START and END is negative, it is re-calculated as the index
 from the end position (i.e. the `length') of SEQ negatively moved N
@@ -1155,7 +1163,14 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
             (,end-sym     ,end)
             (,end-nnp-sym (not (null ,end-sym)))
             (,seq-sym     ,seq)
-            (,seq-len-sym (length ,seq-sym))
+            (,seq-len-sym (cond ((integerp ,seq-sym)
+                                 ,seq-sym)
+                                ((sequencep ,seq-sym)
+                                 (length ,seq-sym))
+                                (t (signal 'wrong-type-argument
+                                           (list 'seq-or-integer-p ,seq-sym)))))
+            (_ (if (< ,seq-len-sym 1)
+                   (signal 'args-out-of-range (list "sequence length" ,seq-len-sym))))
             (,err-p-sym   ,error-when-overflow)
             (,tmpvar-sym  nil))
        (unless (and (null ,start-sym) (null ,end-sym))
