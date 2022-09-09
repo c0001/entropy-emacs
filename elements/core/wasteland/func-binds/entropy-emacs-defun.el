@@ -1134,7 +1134,7 @@ For either START and END is negative, it is re-calculated as the index
 from the end position (i.e. the `length') of SEQ negatively moved N
 times where N is the `abs' value of it, before whole process.
 
-When either START or END is less than 0, then START is set to 0 or set
+When either START or END is overflow, then START is set to 0 or set
 length of SEQ for END, unless as below:
 
 When ERROR-WHEN-OVERFLOW is set in which case a bound indices error is
@@ -1144,18 +1144,20 @@ either of its start or end index
 Like `entropy/emacs-seq-recalc-start-end-common', the END is always
 unmodified when it's nil unless WITH-SET-END is non-nil in which case
 END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
-  (let ((start-sym (make-symbol "start"))
-        (end-sym   (make-symbol "end"))
-        (seq-sym   (make-symbol "list"))
+  (let ((start-sym    (make-symbol "start"))
+        (end-sym      (make-symbol "end"))
+        (end-nnp-sym  (make-symbol "end-not-null-p"))
+        (seq-sym      (make-symbol "list"))
         (seq-len-sym (make-symbol "seqlen"))
         (tmpvar-sym  (make-symbol "tmpvar"))
         (err-p-sym   (make-symbol "error-when-overflow")))
-    `(let* ((,start-sym ,start)
-            (,end-sym   ,end)
-            (,seq-sym   ,seq)
+    `(let* ((,start-sym   ,start)
+            (,end-sym     ,end)
+            (,end-nnp-sym (not (null ,end-sym)))
+            (,seq-sym     ,seq)
             (,seq-len-sym (length ,seq-sym))
-            (,err-p-sym ,error-when-overflow)
-            (,tmpvar-sym nil))
+            (,err-p-sym   ,error-when-overflow)
+            (,tmpvar-sym  nil))
        (unless (and (null ,start-sym) (null ,end-sym))
          (if (null ,start-sym) (setq ,start-sym 0))
          (if (null ,end-sym)   (setq ,end-sym ,seq-len-sym))
@@ -1169,11 +1171,10 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
                    ;; simulation as `cl-subseq's error
                    (error "Bad bounding indices: %s, %s"
                           ,start-sym ,end-sym)
-                 (when (< ,tmpvar-sym 0)
-                   (cond ((eq 'start (car el))
-                          (setq ,start-sym 0))
-                         ((eq 'end (car el))
-                          (setq ,end-sym ,seq-len-sym)))))
+                 (cond ((eq 'start (car el))
+                        (setq ,start-sym 0))
+                       ((eq 'end (car el))
+                        (setq ,end-sym ,seq-len-sym))))
              (cond ((eq 'start (car el))
                     (setq ,start-sym ,tmpvar-sym))
                    ((eq 'end (car el))
@@ -1181,10 +1182,45 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
        (entropy/emacs-seq-recalc-start-end-common
         ,start-sym ,end-sym)
        (setf ,start ,start-sym
-             ,end   (if (and (not ,with-set-end) (= ,end-sym ,seq-len-sym))
-                        nil ,end-sym))
+             ,end   (if ,with-set-end ,end-sym (if,end-nnp-sym ,end-sym nil)))
        ;; return
        ,seq-len-sym)))
+
+(cl-defmacro entropy/emacs-seq-with-safe-region
+    (seq start end &rest body &key seq-len &allow-other-keys)
+  "Run BODY when the region of an sequence SEQ constructed by START and
+END is valid and return the BODY's value or nil otherwise.
+
+Both of START and END should a place known by `setf' or a variable
+name.
+
+SEQ's region is constructed by START and END, where both of them will
+be calculated and reset by `entropy/emacs-seq-recalc-start-end'
+*temporally* (i.e. save the results to temporal start or end var)
+before the validation, then validation of START and END is just check
+whether them are `=', if thus is invalid since an empty region is
+meaningless for BODY, otherwise START and END is set to the
+calculation results respectively and the validation is pass.
+
+If optional key SEQ-LEN is set, it should be a place known by `setf'
+or a variable name, and it will set to the `length' of SEQ.
+"
+  (declare (indent 3))
+  (let ((start-sym (make-symbol "start-var"))
+        (end-sym (make-symbol "end-var"))
+        (slen-sym (make-symbol "seq-len"))
+        (body (entropy/emacs-defun--get-real-body body)))
+    `(let ((,start-sym ,start)
+           (,end-sym   ,end)
+           ,slen-sym)
+       (setq ,slen-sym
+             ,(macroexpand-1
+               (list 'entropy/emacs-seq-recalc-start-end
+                     seq start-sym end-sym)))
+       ,(when seq-len (list 'setf seq-len slen-sym))
+       (unless (= ,start-sym (or ,end-sym ,slen-sym))
+         (setf ,start ,start-sym ,end ,end-sym)
+         ,@body))))
 
 (cl-defun entropy/emacs-seq-repeat-find
     (item seq count &key find-func find-func-args)
