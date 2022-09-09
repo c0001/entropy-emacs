@@ -1311,7 +1311,7 @@ END is replaced with the SEQ's end postion i.e. the `length' of SEQ."
 
 (cl-defmacro entropy/emacs-seq-with-safe-region
     (seq start end &rest body
-         &key set-seqlen-for with-set-end with-error
+         &key set-seq-len-for with-set-end with-error
          &allow-other-keys)
   "Run BODY only when the region of an sequence SEQ constructed by START
 and END is valid and return the BODY's value or nil otherwise i.e. if
@@ -1336,7 +1336,7 @@ said. Any other type for SEQ is invalid.
 Both of START and END should a place known by `setf' or a variable
 name.
 
-If optional key SET-SEQLEN-FOR is set, it should be a place known by
+If optional key SET-SEQ-LEN-FOR is set, it should be a place known by
 `setf' or a variable name, and it will set to the `length' of SEQ.
 
 When WITH-ERROR is set as non-nil, throw an error without any
@@ -1370,7 +1370,7 @@ operation did only when it is one of below three types:
             ,slen-sym ,start-sym ,end-sym
             :with-set-end ,with-set-end
             :with-error (memq ,use-errp-sym '(overflow all t)))
-           ,(when set-seqlen-for (list 'setf set-seqlen-for slen-sym))
+           ,(when set-seq-len-for (list 'setf set-seq-len-for slen-sym))
            (unless (= ,start-sym (or ,end-sym ,slen-sym))
              (setf ,start ,start-sym ,end ,end-sym)
              ,@body))))))
