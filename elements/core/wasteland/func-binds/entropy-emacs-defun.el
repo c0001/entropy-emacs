@@ -78,6 +78,12 @@ ACTUAL-LEXICAL-BINDING when set then it is replaced the LEXICAL
 arg for `eval'."
   (eval form (or actual-lexical-binding t)))
 
+(defun entropy/emacs-defun--group-memq-p (seq1 seq2)
+  "Return non-nil immediately while any element in sequnece SEQ1 `memq' in SEQ2."
+  (catch :exit
+    (mapc (lambda (x) (and (cl-position x seq2) (throw :exit t))) seq1)
+    nil))
+
 ;; ** Common manipulations
 ;; *** Emacs internal api replacement
 
